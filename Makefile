@@ -134,3 +134,44 @@ update-db-schema-reference:
 	@MATHOMS_FERNET_KEY=$${MATHOMS_FERNET_KEY:-NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=} \
 	  $(PYTHON) dev/generate_db_schema_reference.py > docs/DB_SCHEMA_REFERENCE.md
 	@echo "✓ docs/DB_SCHEMA_REFERENCE.md regenerado. Comite o diff."
+
+# ---------------------------------------------------------------------------
+# Go (A6g.7 — ADR-113)
+#
+# No-op enquanto não há .go no repo. Quando o primeiro serviço entrar em
+# services/<name>/ com go.mod próprio + use directive em go.work, os
+# targets executam normalmente. CI (.github/workflows/go.yml) gatilha
+# via hashFiles('**/*.go').
+# ---------------------------------------------------------------------------
+
+.PHONY: go-fmt go-lint go-test go-all
+
+GO_FILES := $(shell find . -type f -name "*.go" -not -path "./node_modules/*" -not -path "./.git/*" 2>/dev/null)
+
+## go-fmt: gofmt -s -w em todos os .go (no-op se não houver)
+go-fmt:
+	@if [ -z "$(GO_FILES)" ]; then \
+	  echo "go-fmt: nenhum arquivo .go encontrado (skip)"; \
+	else \
+	  gofmt -s -w $(GO_FILES); \
+	  echo "✓ gofmt aplicado"; \
+	fi
+
+## go-lint: golangci-lint run (no-op se não houver go.work ativo)
+go-lint:
+	@if [ ! -f go.work ] || [ -z "$(GO_FILES)" ]; then \
+	  echo "go-lint: sem go.work ou .go presentes (skip)"; \
+	else \
+	  golangci-lint run --timeout=3m ./...; \
+	fi
+
+## go-test: go test ./... -race -count=1 (no-op se não houver .go)
+go-test:
+	@if [ ! -f go.work ] || [ -z "$(GO_FILES)" ]; then \
+	  echo "go-test: sem go.work ou .go presentes (skip)"; \
+	else \
+	  go test ./... -race -count=1; \
+	fi
+
+## go-all: fmt + lint + test Go
+go-all: go-fmt go-lint go-test

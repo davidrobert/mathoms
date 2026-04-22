@@ -1,0 +1,106 @@
+name: Go CI
+
+on:
+  pull_request:
+    paths:
+      - '**.go'
+      - 'go.work'
+      - 'go.work.sum'
+      - 'services/**'
+      - '.golangci.yml'
+      - '.github/workflows/go.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**.go'
+      - 'go.work'
+      - 'go.work.sum'
+      - 'services/**'
+      - '.golangci.yml'
+      - '.github/workflows/go.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  go-lint:
+    name: Go lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect Go sources
+        id: detect
+        run: |
+          if compgen -G "**/*.go" > /dev/null 2>&1 || find . -type f -name "*.go" -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
+            echo "has_go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_go=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-go@v5
+        if: steps.detect.outputs.has_go == 'true'
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: go.work sync
+        if: steps.detect.outputs.has_go == 'true'
+        run: go work sync
+
+      - name: gofmt check
+        if: steps.detect.outputs.has_go == 'true'
+        run: |
+          unformatted=$(gofmt -s -l . 2>/dev/null || true)
+          if [ -n "$unformatted" ]; then
+            echo "✗ gofmt would reformat:"
+            echo "$unformatted"
+            gofmt -s -d .
+            exit 1
+          fi
+
+      - name: go vet
+        if: steps.detect.outputs.has_go == 'true'
+        run: go vet ./...
+
+      - name: golangci-lint
+        if: steps.detect.outputs.has_go == 'true'
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+          args: --timeout=3m
+          skip-save-cache: true
+
+      - name: Skip notice
+        if: steps.detect.outputs.has_go != 'true'
+        run: echo "No Go sources detected. Lint job is a vacuous no-op until services/<name>/*.go lands."
+
+  go-test:
+    name: Go test -race
+    runs-on: ubuntu-latest
+    needs: go-lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect Go sources
+        id: detect
+        run: |
+          if compgen -G "**/*.go" > /dev/null 2>&1 || find . -type f -name "*.go" -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
+            echo "has_go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_go=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-go@v5
+        if: steps.detect.outputs.has_go == 'true'
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Tests with race detector
+        if: steps.detect.outputs.has_go == 'true'
+        run: go test ./... -race -count=1 -timeout=5m
+
+      - name: Skip notice
+        if: steps.detect.outputs.has_go != 'true'
+        run: echo "No Go sources detected. Test job is a vacuous no-op until services/<name>/*.go lands."

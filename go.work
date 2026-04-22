@@ -1,0 +1,9 @@
+go 1.22
+
+// Workspace multi-module reservado para serviços Go futuros.
+// Quando o primeiro serviço entrar (ex.: services/pipeline-service-go/ com
+// go.mod próprio), adicione aqui:
+//
+//   use ./services/<nome>
+//
+// Ver docs/DECISIONS.md (ADR-113) e services/README.md para convenções.

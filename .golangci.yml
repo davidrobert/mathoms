@@ -1,0 +1,58 @@
+run:
+  timeout: 3m
+  go: "1.22"
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - ineffassign
+    - unused
+    - gofmt
+    - goimports
+    - gocritic
+    - revive
+    - bodyclose
+    - noctx
+    - sqlclosecheck
+    - rowserrcheck
+    - errorlint
+    - gocyclo
+    - goconst
+    - misspell
+    - unconvert
+    - unparam
+    - prealloc
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  govet:
+    enable-all: true
+  revive:
+    rules:
+      - name: exported
+      - name: error-return
+      - name: error-naming
+      - name: error-strings
+      - name: unused-parameter
+      - name: var-naming
+      - name: package-comments
+  errorlint:
+    errorf: true
+    asserts: true
+    comparison: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - revive
+      text: "unused-parameter"
+
+severity:
+  default-severity: error
