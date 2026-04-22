@@ -188,6 +188,45 @@ jobs:
             htmlcov/
           retention-days: 14
 
+  backend-tests-db-artifacts:
+    # A6b.3 pre-validation: roda a suíte backend com
+    # MATHOMS_USE_DB_ARTIFACTS=true para expor failures no caminho-alvo do
+    # cutover antes do flip global. Marcado continue-on-error: true e fora
+    # do gate all-green — sinal informativo, NÃO bloqueia merge. Será
+    # promovido a required após A6-human smoke aprovar (§A6b.3 no BACKLOG).
+    # Discrepâncias esperadas em ADR-106 (_meta, timestamps, ordem de listas).
+    name: Backend tests [USE_DB_ARTIFACTS=true] (informational)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r backend/requirements.txt
+          pip install reportlab pytest pytest-asyncio pytest-cov fakeredis
+
+      - name: Run backend tests with DB artifact store
+        env:
+          REDIS_URL: redis://localhost:6379/0
+          MATHOMS_USE_DB_ARTIFACTS: "true"
+        run: |
+          pytest backend/tests/ -q --tb=short
+
   frontend-lint:
     # A6g.6 slice 2, ADR-114: gate @typescript-eslint/no-explicit-any +
     # no-unused-vars bloqueantes; max-lines/-per-function progressivos.
