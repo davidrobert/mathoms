@@ -3,7 +3,7 @@
 > **Lane ID:** A6e.3b
 > **Branch prefix:** `agent/a6e3b-use-cases-rest/*`
 > **Depende de:** A6e.3 ✅ (padrão estabelecido em FamilyMember/Category/Goal) + A6f.1 ✅ (`HttpPipelineClient` permite desacoplar Document/Task do pipeline Celery direto).
-> **Paralelo com:** A6e.4 (4a, não-pipeline-adjacentes), A6e.5 (/v1 prefix), A6e.6 (events), A6g.2, A6g.4, A6g.7 — **zero overlap se respeitar escopo abaixo**.
+> **Paralelo com:** A6e.4 (4a, não-pipeline-adjacentes), A6e.5 (/v1 prefix), A6e.events (events), A6g.2, A6g.4, A6g.7 — **zero overlap se respeitar escopo abaixo**.
 > **Conflita com:** commits em `backend/app/api/config.py`, `backend/app/api/documents.py`, `backend/app/api/tasks.py`, `backend/app/services/document_processor.py`, `backend/app/services/task_service.py`, `backend/app/services/config_defaults.py`. A6e.4 4b é **continuação** desta lane — **não começar 4b antes desta mergear**.
 > **Onda:** 2
 > **Índice de prompts:** [README.md](README.md)
@@ -156,7 +156,7 @@ backend/app/application/
 
 **Considerações especiais:**
 - `link_task_to_goal` — cross-aggregate (Task → Goal). Use case **não** consulta Goal repo direto; recebe `goal_id` e valida existência via `GoalRepository` injetado como Protocol. Evita circular dependency.
-- `complete_task` emite evento — para esta lane, apenas chame `repo.mark_complete(...)`; A6e.6 adicionará `emit_event()` depois.
+- `complete_task` emite evento — para esta lane, apenas chame `repo.mark_complete(...)`; A6e.events adicionará `emit_event()` depois.
 - `TaskBudget` CRUD é CRUD puro; se cada use case for <10 linhas, considere agrupar em `manage_task_budget.py` com funções nomeadas (`create_budget`, `update_budget`, `delete_budget`) — **exceção justificada** ao padrão 1-use-case-por-arquivo. Documente no docstring.
 
 **Passos:** igual A6e.3 pattern. 10-12 use cases, testes puros em `backend/tests/application/task/` com `FakeTaskRepository`, `FakeTaskBudgetRepository`, `FakeTaskGoalLinkRepository`, `FakeGoalRepository` (para validação cross-aggregate).
@@ -230,7 +230,7 @@ Em rollback: `git reset --hard origin/main` na branch local, anuncia, abre issue
 ## Anti-patterns a evitar
 
 - **Use case que recebe `AsyncSession`.** Sessão é responsabilidade do repo + outer. Use case recebe Protocol; repo injetado implementa com sessão.
-- **Use case que inicia `AsyncTask` / `BackgroundTasks` / `create_task`.** Viola ADR-111 (stateless). Side-effect assíncrono vai para Celery via `HttpPipelineClient` ou para domain event (A6e.6).
+- **Use case que inicia `AsyncTask` / `BackgroundTasks` / `create_task`.** Viola ADR-111 (stateless). Side-effect assíncrono vai para Celery via `HttpPipelineClient` ou para domain event (A6e.events).
 - **Reusar `*Request` Pydantic como Command.** Crie `*Command` explícito — marca a fronteira HTTP→application.
 - **Service computacional virando use case.** `document_classification.classify_document` continua service; `classify_document_use_case` **chama** o service.
 - **Chamar `pipeline_task.run_pipeline.delay(...)` direto.** Viola A6f.1. Use `HttpPipelineClient` injetado como Protocol.
@@ -246,7 +246,7 @@ Lanes ativas ou prováveis (confirme com `git worktree list` + `git for-each-ref
 
 - `agent/a6e4-thin-routers/*` — **esta lane é pré-requisito para A6e.4 fase 4b**. A6e.4 4a (14 routers não-pipeline) pode rodar em paralelo sem overlap. Se A6e.4 iniciou 4a antes de você, zero conflito; se 4b começou prematuramente, pare e coordene.
 - `agent/a6e5-v1-prefix/*` — `main.py` + `core/config.py` + `lib/api/core.ts`. Zero overlap com `application/` e `tests/application/`.
-- `agent/a6e6-domain-events/*` — events emitidos de use cases. **Overlap real** em `backend/app/application/task/complete_task.py` (emitirá `TaskCompletedEvent`) e `document/upload_document.py` (emitirá `DocumentUploadedEvent`). Resolva: você **não** emite eventos neste slice; A6e.6 adiciona depois num commit pequeno por use case.
+- `agent/a6e-events/*` — events emitidos de use cases. **Overlap real** em `backend/app/application/task/complete_task.py` (emitirá `TaskCompletedEvent`) e `document/upload_document.py` (emitirá `DocumentUploadedEvent`). Resolva: você **não** emite eventos neste slice; A6e.events adiciona depois num commit pequeno por use case.
 - `agent/a6g2-pipeline-style/*` — `scripts/`, `pipeline/`. Zero overlap. (Mas `pipeline-service/` de A6f.1 pode continuar evoluindo — checar `git log -5 -- pipeline-service/` antes de mockar `HttpPipelineClient`.)
 - `agent/a6g3-backend-style/*` — `backend/app/services/`, `backend/app/repositories/`. Você **não** deve renomear services; só chamá-los via Protocol de use case. A6g.3 renomeia services quando pegar; seu use case importa pelo nome atual, rebase resolve.
 - `agent/a6g7-go-prep/*` — Go infra. Zero overlap.
@@ -272,7 +272,7 @@ git log -5 --oneline origin/main -- \
 ```bash
 git fetch origin && git log --oneline HEAD..origin/main
 # Se application/goal ou application/family_member mudaram, releia
-# padrão (A6e.6 pode ter adicionado emissão de eventos).
+# padrão (A6e.events pode ter adicionado emissão de eventos).
 ```
 
 ---
@@ -280,7 +280,7 @@ git fetch origin && git log --oneline HEAD..origin/main
 ## O que esta lane NÃO entrega (explicitar no CHANGELOG)
 
 - **Thin routers para `documents.py`, `tasks.py`, `config.py`** — A6e.4 fase 4b, lane subsequente.
-- **Emissão de domain events** (`TaskCompletedEvent`, `DocumentUploadedEvent`) — A6e.6.
+- **Emissão de domain events** (`TaskCompletedEvent`, `DocumentUploadedEvent`) — A6e.events.
 - **Refactor de `document_classification.py` / `task_service.py`** — A6g.3 backend sweep.
 - **Migração /api/v1/** — A6e.5.
 - **Enforcement AST** (teste de thin router) — A6e.4.

@@ -21,8 +21,9 @@ inteiro.
 | A6e.3b Use cases remanescentes (ConfigBlob+Document+Task) | [track_a6e3b_use_cases_rest.md](track_a6e3b_use_cases_rest.md) | 2 | `agent/a6e3b-use-cases-rest/*` |
 | A6e.4 Routers finos (≤50 linhas/endpoint) + teste AST | [track_a6e4_thin_routers.md](track_a6e4_thin_routers.md) | 2 | `agent/a6e4-thin-routers/*` |
 | A6g.7 Go prep (`.golangci.yml` + CI skip + `services/` skeleton + ADR-113) | [track_a6g7_go_prep.md](track_a6g7_go_prep.md) | 3 | `agent/a6g7-go-prep/*` |
+| A6e.events Domain events tipados (ADR-101 R17) — ex-`A6e.6` | [track_a6e_events_domain_events.md](track_a6e_events_domain_events.md) | 2 | `agent/a6e-events/*` |
 
-Lanes sem prompt dedicado (A6e.6, A6g.3, A6g.6) são descritas direto no BACKLOG.
+Lanes sem prompt dedicado (A6g.3, A6g.6) são descritas direto no BACKLOG.
 
 ## Antes de começar — pickup protocol
 

@@ -610,9 +610,9 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 **Status global (2026-04-22 — pós-merge A6e.3b + A6e.4 slices 1-3):**
 - **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (2026-04-20) · **A6f.1** (pipeline-as-service HTTP boundary, ADR-112, 2026-04-21) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21) · **A6g.2 1ª rodada** (T1.a/b/c + T2.a/b, 2026-04-21/22 — T3 scripts com goldens fica como A6g.2b pós-A6c.3) · **A6g.5** (tests sweep, 2026-04-21) · **A6g.7** (Go prep + ADR-113, 2026-04-22) · **A6e.3** (3 slices: FamilyMember + Category + Goal use cases, 2026-04-21) · **A6e.3b** (3 slices: ConfigBlob + Task + Document, 25 use cases + 61 testes, 2026-04-22) · **A6e.5** (`/api/v1/` + aliases + ADR-108, 2026-04-22) · **A6g.4** (rodadas 1+2+3, T2 `ts_long_files` frontend zerado, 2026-04-22).
 - **A6e per-aggregate** (6 agregados · repos+DTOs) concluído: FamilyMember + Category + ConfigBlob + Document + Goal + Task. Application layer agora cobre todos os 6 (47 use cases no total).
-- **Restante:** A6e (.4 routers finos 🚧 ativo 2/14 + AST · .6 events ☐ destravada pós-A6e.3) · A6g.2b T3 scripts com goldens ⏸ blocked-by A6c.3 · A6g.3 ☐ blocked-by A6e.4 · A6g.6 enforcement ☐ destravada (A6g.2/.4/.5 todos ✅) · A6-human gate humano · A6c blocked-by A6-human · F7 (7A-7F + LGPD).
+- **Restante:** A6e (.4 routers finos 🚧 ativo 2/14 + AST · **.events** domain events ☐ destravada pós-A6e.3 — renomeada de `.6` para evitar colisão com Goal slice histórico) · A6g.2b T3 scripts com goldens ⏸ blocked-by A6c.3 · A6g.3 ☐ blocked-by A6e.4 · A6g.6 enforcement ☐ destravada (A6g.2/.4/.5 todos ✅) · A6-human gate humano · A6c blocked-by A6-human · F7 (7A-7F + LGPD).
 - **Caminho crítico (serial):** A6e.4 (finalizar 12 routers — 4b destravada por A6e.3b) → A6g.3 → F7A → F7B → F7D+dogfood → GA. A6-human smoke destrava A6c + A6g.2b em paralelo.
-- **Lanes abertas agora (2026-04-22 — sync pós-A6e.3b merge):** **🚧 ativos:** A6e.4 slices 4+ (worktree `dreamy-taussig-8cb686`). **☐ livres:** A6e.4 fase 4b (config/documents/tasks destravados por A6e.3b ✅); A6e.6 domain events (destravada por A6e.3 ✅, **sem prompt** — escrever antes de pegar); A6g.6 enforcement (destravada por A6g.2/.4/.5 ✅, **sem prompt**); A6-human smoke (gate humano). **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
+- **Lanes abertas agora (2026-04-22 — sync pós-A6e.3b merge):** **🚧 ativos:** A6e.4 slices 4+ (worktree `dreamy-taussig-8cb686`). **☐ livres:** A6e.4 fase 4b (config/documents/tasks destravados por A6e.3b ✅); **A6e.events** domain events (renomeada de `A6e.6` em 2026-04-22 para evitar colisão histórica com Goal slice; destravada por A6e.3 ✅, **sem prompt** — escrever antes de pegar); A6g.6 enforcement (destravada por A6g.2/.4/.5 ✅, **sem prompt**); A6-human smoke (gate humano). **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
 - **Testes:** 1461 pipeline + 988 backend + 12 pipeline-service passing (zero regressão).
 
 ### Lanes abertas agora — pickup table
@@ -634,7 +634,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | **A6e.3b** use cases remanescentes (ConfigBlob+Document+Task) | `a6e3b-use-cases-rest` | [track_a6e3b_use_cases_rest.md](agent_prompts/track_a6e3b_use_cases_rest.md) — 25 use cases em 3 slices (ConfigBlob 6 / Task 13 / Document 6); padrão A6e.3 + `HttpPipelineClient` (A6f.1) como boundary | A6f.1 ✅ destravou | 2 | ✅ 2026-04-22 — 61 testes puros, zero regressão (`pytest backend/tests -q`: 1054 passed). Composites com storage/audit/bulk ficam no router para A6e.4 4b. |
 | **A6e.4** routers finos | `a6e4-thin-routers` | [track_a6e4_thin_routers.md](agent_prompts/track_a6e4_thin_routers.md) — 4900→≤1200 linhas (17 routers); **fase 4a** 2/14 entregues; **fase 4b** destravada pela A6e.3b ✅; teste AST enforcement em `backend/tests/architecture/test_routers_thin.py` | A6e.3 ✅ (4a) / A6e.3b ✅ (4b) | 2 | 🚧 parcial — 2/14 (4a) + teste AST. Branch `agent/a6e4-thin-routers/20260422-2020`: goals 444→333, audit 69→47, `THIN_ROUTERS={audit,categories,dashboard,family_members,goals}` enforçado. 12 routers restantes livres (config/documents/tasks agora destravados). |
 | **A6e.5** /api/v1/ prefix | `a6e5-v1-prefix` | [track_a6e5_v1_prefix.md](agent_prompts/track_a6e5_v1_prefix.md) — Prefixo canônico + alias deprecated em `/api/` com `Deprecation`+`Sunset` headers (RFC 8594); OpenAPI 3.1 versionado | — (independente de A6e.3) | 2 | ✅ 2026-04-22 (ADR-108) — rotas canônicas `/api/v1/*`, alias `/api/*` anuncia Sunset até F7A; OpenAPI `info.version=1.0.0`; frontend + MSW + E2E atualizados |
-| **A6e.6** domain events | `a6e6-domain-events` | `backend/app/events/` + handlers tipados | A6e.3 (preferencial) | 2 | ⏸ preferencial pós-A6e.3 |
+| **A6e.events** domain events (ex-A6e.6) | `a6e-events` | `backend/app/events/` + handlers tipados — renomeada em 2026-04-22 para evitar colisão histórica com Goal slice (5 commits com `(A6e.6)` são Goal slice pré-2026-04-22) | A6e.3 ✅ destravou | 2 | ☐ destravada, sem prompt |
 | **A6f.1** pipeline-as-service | `a6f1-pipeline-service` | [track_a6f1_pipeline_service.md](agent_prompts/track_a6f1_pipeline_service.md) — FastAPI standalone, backend fala por HTTP | A6e per-aggregate ✅ | 2 | ✅ 2026-04-21 (ADR-112) — slices 1-3 mergeados; extração de helpers/≤100 linhas deferida |
 | **A6g.5** tests sweep | `a6g5-tests-sweep` | [track_a6g5_tests_sweep.md](agent_prompts/track_a6g5_tests_sweep.md) — Fakes nomeados > MagicMock; nomes descritivos | — | 2 | ✅ 2026-04-21 |
 | **A6g.3** backend sweep | `a6g3-backend-style` | Services, repos, helpers, typing | A6e.4 ✅ | 3 | ⏸ blocked-by A6e.4 |
@@ -682,7 +682,7 @@ convergir em `origin/main`.
 ║  Lane B3: A6f.1 pipeline-service ✅ 2026-04-21 (ADR-112)             ║
 ║  (A6g.5 tests sweep ✅ 2026-04-21 — fora da Onda)                    ║
 ║                                                                       ║
-║  A6e.6 (domain events) prefere vir depois de B1 (use cases).         ║
+║  A6e.events (domain events) prefere vir depois de B1 (use cases).    ║
 ║  A6g.3 (backend sweep) rodará pós-A6e.4 (B1) — mesclar em Onda 3.    ║
 ╚═══════════════════════════════════════════════════════════════════════╝
                               │
@@ -720,8 +720,8 @@ convergir em `origin/main`.
 | Sessão curta, refactor cirúrgico em Python                   | A6g.2 pipeline → A6e.5 /v1 prefix |
 | Sessão curta, familiar com TS/React                          | A6g.4 frontend          |
 | Sessão longa (≥3h), greenfield infra                         | A6g.7 Go prep (pós-A6f.1 ✅) ou F7A Docker (Onda 3) |
-| Sessão longa, foco em backend DDD                            | A6e.4 (fases 4a+4b destravadas pela A6e.3b ✅) ou A6e.6 events |
-| Toda Onda 1 ocupada (caso atual 2026-04-22)                  | A6e.4 4a/4b, A6e.6 events ou A6-human smoke |
+| Sessão longa, foco em backend DDD                            | A6e.4 (fases 4a+4b destravadas pela A6e.3b ✅) ou A6e.events |
+| Toda Onda 1 ocupada (caso atual 2026-04-22)                  | A6e.4 4a/4b, A6e.events ou A6-human smoke |
 | Onda 2 inteira fechada e quer destravar F7                   | F7A Docker (C1, Onda 3) |
 
 **Regras de coordenação (aplicam a todas as ondas):**
@@ -856,7 +856,7 @@ convergir em `origin/main`.
 | A6e.3b | Use cases ConfigBlob + Task + Document | 3 agregados restantes + sub-agregados Task; Protocol + fakes; composites com storage/audit deferidos ao router | 2 sessões | ✅ 2026-04-22 — 25 use cases (6 ConfigBlob + 13 Task + 6 Document) + 61 testes puros; total application layer = 47 use cases em 6 agregados; `pytest backend/tests -q` 1054 passed |
 | A6e.4 | Routers finos | Refactor 4900→800 linhas (17 routers × ≤50); teste AST enforça | 1-2 sessões | ☐ (4a+4b agora destravadas) |
 | A6e.5 | Versionamento `/api/v1/` | Prefixo + aliases durante window; OpenAPI 3.1 versionado; `lib/api.ts` atualizado | 1 sessão | ✅ 2026-04-22 — rotas canônicas `/api/v1/*`; `LegacyApiDeprecationMiddleware` anuncia Sunset no `/api/*` (RFC 8594); `info.version=1.0.0`; `API_BASE` frontend + MSW + E2E sincronizados |
-| A6e.6 | Domain events tipados | `backend/app/events/` com `Event` base + `register_handler`; zero side-effect inline em use cases | 1 sessão | ☐ |
+| A6e.events | Domain events tipados (ex-A6e.6) | `backend/app/events/` com `Event` base + `register_handler`; zero side-effect inline em use cases | 1 sessão | ☐ |
 
 **Estimativa total A6e:** 5-7 sessões grandes, ~400+ testes novos.
 
@@ -915,7 +915,7 @@ convergir em `origin/main`.
 
 ---
 
-**Trilho per-aggregate CONCLUÍDO.** Destrava agora **A6e.3** (use cases — application layer R15), **A6e.4** (routers finos ≤50 linhas R16), **A6e.5** (/api/v1/ prefix), **A6e.6** (domain events tipados) — todas **transversais** a todos os 6 agregados migrados.
+**Trilho per-aggregate CONCLUÍDO.** Destrava agora **A6e.3** (use cases — application layer R15), **A6e.4** (routers finos ≤50 linhas R16), **A6e.5** (/api/v1/ prefix), **A6e.events** (domain events tipados R17, ex-`A6e.6`) — todas **transversais** a todos os 6 agregados migrados.
 
 **Pré-existente fora de escopo (reportado):** `test_alembic_guardrails::test_offline_sql_generation_works` falha por migration A6b `r6s7t8u9v0w1` usando `batch_alter_table` sem `copy_from`; `test_documents.py` x9 falha por schema drift em `workspaces.use_db_artifacts_override`. Nenhum dos dois tocado pelo slice A6e.1+.2.
 

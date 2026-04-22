@@ -3,8 +3,8 @@
 > **Lane ID:** A6e.4
 > **Branch prefix:** `agent/a6e4-thin-routers/*`
 > **Depende de:** A6e.3 ✅ (FamilyMember+Category+Goal use cases em main); **A6e.3b** (ConfigBlob+Document+Task) é pré-requisito **apenas** para fase 4b.
-> **Paralelo com:** A6e.3b, A6e.5, A6e.6, A6g.2, A6g.4, A6g.7 — zero overlap **se** respeitar a lista de arquivos por fase abaixo.
-> **Conflita com:** commits simultâneos em `backend/app/api/*.py` por outras lanes. A6e.5 só toca `main.py` (registry) e não o corpo dos routers — coexistir é seguro com rebase. A6e.6 emissão de eventos **dentro** dos routers: evitar (eventos vivem em use cases).
+> **Paralelo com:** A6e.3b, A6e.5, A6e.events, A6g.2, A6g.4, A6g.7 — zero overlap **se** respeitar a lista de arquivos por fase abaixo.
+> **Conflita com:** commits simultâneos em `backend/app/api/*.py` por outras lanes. A6e.5 só toca `main.py` (registry) e não o corpo dos routers — coexistir é seguro com rebase. A6e.events emissão de eventos **dentro** dos routers: evitar (eventos vivem em use cases).
 > **Onda:** 2
 > **Índice de prompts:** [README.md](README.md)
 > **Fonte de verdade:** [ADR-101 R15/R16 (routers finos)](../DECISIONS.md), [ADR-109 response_model](../DECISIONS.md), [CLAUDE.md §Code style](../../CLAUDE.md#code-style), [BACKLOG §A6e](../BACKLOG.md)
@@ -197,7 +197,7 @@ Lanes ativas ou recentemente mergeadas (confirme com `git worktree list` + `git 
 
 - `agent/a6e3b-use-cases-rest/*` (quando iniciar) — **hotspot direto** em `documents.py`, `tasks.py`, `config.py`. Sua fase 4b aguarda essa lane mergear.
 - `agent/a6e5-v1-prefix/*` — toca `backend/app/main.py` (registry de routers) + `core/config.py`. **Overlap potencial** em `main.py` (você adiciona `app.add_exception_handler`). Resolva: commite exception handlers em arquivo separado (`backend/app/core/exception_handlers.py`), registre em `main.py` com 1-2 linhas. A6e.5 registra routers; convivem.
-- `agent/a6e6-domain-events/*` — events vivem em `backend/app/events/` + emitidos de **use cases**, não routers. Zero overlap com seus commits de router. Overlap potencial em `backend/app/application/*/` se A6e.6 adiciona emissão de evento em use case que você criou — rebase e concatene.
+- `agent/a6e-events/*` — events vivem em `backend/app/events/` + emitidos de **use cases**, não routers. Zero overlap com seus commits de router. Overlap potencial em `backend/app/application/*/` se A6e.events adiciona emissão de evento em use case que você criou — rebase e concatene.
 - `agent/a6g2-pipeline-style/*` — `scripts/`, `pipeline/`, `tests/fixtures/`. Zero overlap.
 - `agent/a6g3-backend-style/*` (quando iniciar pós-A6e.4) — `backend/app/services/`, `backend/app/repositories/`. A6g.3 aguarda você; sem conflito.
 - `agent/a6g4-frontend-style/*` — frontend. Zero overlap.
@@ -214,7 +214,7 @@ git log -5 --oneline origin/main -- \
   backend/app/application/
 ```
 
-Se A6e.5 ou A6e.6 mergearam hotspot <30min, espere 2min, anuncie seu slice, commite **no mesmo turno** (≤5min).
+Se A6e.5 ou A6e.events mergearam hotspot <30min, espere 2min, anuncie seu slice, commite **no mesmo turno** (≤5min).
 
 **Sync periódico (sessão >1h):**
 
@@ -231,7 +231,7 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 ## O que esta lane NÃO entrega (explicitar no CHANGELOG)
 
-- **Domain events tipados** — A6e.6. Use cases novos deste slice não emitem eventos (ainda).
+- **Domain events tipados** — A6e.events. Use cases novos deste slice não emitem eventos (ainda).
 - **`/api/v1/` prefix** — A6e.5, em andamento paralelo. Esta lane preserva o prefix atual.
 - **Authorization policies declarativas** — futuro; use case chama `_assert_can_write(workspace, user)` hoje.
 - **Rate limiting por rota** — F7B. Esta lane apenas cria handlers previsíveis para permitir decorator/middleware.

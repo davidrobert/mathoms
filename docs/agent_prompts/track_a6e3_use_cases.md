@@ -24,7 +24,7 @@ A6e per-aggregate concluiu 6 agregados com repo+DTO. Próximo passo
 delegando para application layer; use cases são testáveis sem DB usando
 `FakeRepository`. Isso:
 - Destrava A6e.4 (routers ≤50 linhas) — sem use case, router não tem para onde encolher.
-- Destrava A6e.6 (domain events) — use case é o ponto natural para emitir eventos.
+- Destrava A6e.events (domain events, ex-`A6e.6`) — use case é o ponto natural para emitir eventos.
 - Destrava testes unitários puros de regras de negócio (hoje só teste de endpoint ou repo).
 
 **Por que scope reduzido:** A6f.1 está em progresso paralelo e vai
@@ -290,7 +290,7 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 - **ConfigBlob use cases** — faz parte de `api/config.py` (846 linhas) junto de Institution configs, LLM configs, etc. Agregado grande; fica para A6e.3b quando A6e.4 (routers finos) destravar a decomposição de `config.py`.
 - **Document + Task use cases** — bloqueados por A6f.1 (pipeline refactor tocando document_processor e pipeline_task). A6e.3b pós-merge.
-- **Domain events tipados** — A6e.6. Use cases deste slice não emitem eventos (ainda).
+- **Domain events tipados** — A6e.events (ex-`A6e.6`). Use cases deste slice não emitem eventos (ainda).
 - **Migração /api/v1/ prefix** — A6e.5. Manter rotas em `/` durante este slice.
 - **Enforcement automatizado** (teste AST contra `select(Model` em routers) — A6g.6.
 

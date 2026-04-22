@@ -2631,8 +2631,9 @@ passou pela disciplina DDD/SOLID do pipeline. Auditoria (2026-04-19) mostra:
   + handlers registrados; side-effects desacoplados.
 
 Escopo em 6 sub-fases (A6e.1 Repos → A6e.2 DTOs → A6e.3 Use cases → A6e.4
-Routers finos → A6e.5 Versioning → A6e.6 Events). Estimativa: 5-7 sessões
-grandes, ~400+ testes novos.
+Routers finos → A6e.5 Versioning → A6e.events Events — renomeada de `A6e.6`
+em 2026-04-22 para evitar colisão histórica com o Goal slice do track
+per-aggregate). Estimativa: 5-7 sessões grandes, ~400+ testes novos.
 
 **Consequências:**
 - ✅ Backend ganha a mesma disciplina do pipeline. Qualquer feature nova
