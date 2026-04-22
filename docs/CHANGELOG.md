@@ -8,6 +8,51 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.6 — enforcement automatizado de code style (2026-04-22 · ADR-114):**
+  Transforma as regras do `CLAUDE.md` §Code style em gates de CI para
+  impedir regressão dos sweeps A6g.2/.4/.5. Bicameral — gates imediatos
+  bloqueiam código novo; gate progressivo decrementa via baseline
+  auditado.
+  - **Slice 1 — Ruff:** `[tool.ruff]` em `pyproject.toml` com seleção
+    conservadora (E/F/I/W); `ignore` de I001/F541 (285+71 auto-fixáveis
+    ficam para A6g.6b — evita tocar 356 arquivos hoje). Hook
+    `ruff-pre-commit` sem `--fix` (gate bloqueante); CI job `Ruff check`
+    dedicado. `ruff format` **não** ativado — 422 arquivos reformatariam.
+  - **Slice 2 — ESLint:** flat config v9 em `frontend/eslint.config.mjs`.
+    `@typescript-eslint/no-explicit-any: error` preserva sweep A6g.4
+    (zero `any` em frontend/src hoje); `no-unused-vars: error`.
+    `max-lines` e `max-lines-per-function` em `warn` (74 warns legados).
+    Script `lint` muda de `next lint` (deprecado em Next 16) para
+    `eslint src/` direto. Cleanup de 9 unused imports inline (XCircle,
+    Wallet, DollarSign, ApiError + helpers fmtBRL/fmtPct mortos em
+    TaticoSections). Hook pre-commit via `dev/run_eslint_frontend.sh`
+    (pula se `node_modules` ausente localmente). CI job
+    `frontend-lint`.
+  - **Slice 3 — hooks grep:** `dev/check_forbidden_names.py` bloqueia
+    filenames genéricos `{utils,helpers,manager,handler,service}.
+    {py,ts,tsx}` (match exato; `audit_helpers.py` OK). ALLOWLIST com
+    1 entry (`pipeline/llm/service.py`, rename em A6g.2c).
+    `dev/check_float_money.py` bloqueia `: float` em campo monetário
+    (ADR-090) analisando apenas linhas ADICIONADAS em `git diff --cached`
+    — 79 legados passam. Skip explícito para tolerance/rate/percentage.
+  - **Slice 4 — testes AST fail-safe:** `test_no_any_in_boundary.py`
+    varre `backend/app/schemas/**/*.py`, parametriza por arquivo;
+    12 em `LEGACY_FILES` (4 OPAQUE permanentes; 8 com track).
+    `test_no_forbidden_names.py` varre repo inteiro (não só staged)
+    como fail-safe do pre-commit hook. 43 testes passam em
+    `backend/tests/architecture/` (inclui `test_routers_thin.py` de
+    A6e.4).
+  - **Slice 5 — audit regression:**
+    `dev/check_code_style_regression.py` compara audit atual com
+    `dev/code_style_baseline.json` (snapshot 2026-04-22: 2223
+    ofensores; P1=874, P7=825, P9=239 dominantes). Exit 1 se qualquer
+    categoria crescer; `--save-baseline` para atualizar após sweep.
+    CI job `code-style-regression` + adicionado a `all-green`.
+  - **Impacto pós-merge:** zero regressão nos sweeps A6g.2/.4/.5;
+    baseline pode apenas decrescer via A6g.6b (ruff-format + I001/F541
+    sweep), A6g.2c (rename `pipeline/llm/service.py`), A6e.3c
+    (eliminar `dict[str, Any]` em DTOs não-OPAQUE).
+
 - **A6e.events — domain events tipados (infra + 2 agregados) (2026-04-22 · ADR-101 R17 · ADR-115):**
   Introduz `backend/app/events/` com `Event` frozen-dataclass, registro
   estático via `@register_handler` e dispatcher síncrono (em transação).
