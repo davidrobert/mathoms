@@ -238,7 +238,10 @@ jobs:
       - name: Start backend (uvicorn + celery worker)
         env:
           MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
-          REDIS_URL: redis://localhost:6380/0
+          # Pydantic-settings usa env_prefix="MATHOMS_" — `REDIS_URL` puro é
+          # ignorado e o default (localhost:6379) cai fora do Redis do CI
+          # (exposto em 6380). Celery worker ficava em retry loop eterno.
+          MATHOMS_REDIS_URL: redis://localhost:6380/0
           MATHOMS_LLM_MOCK: "1"
         run: |
           uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 \
