@@ -102,47 +102,41 @@ def _parse_brl_target(title: str) -> Optional[float]:
     return None
 
 
+def _normalize_both_separators(raw: str) -> str:
+    """Dois separadores: o da direita é o decimal. BRL '20.000,00' → '20000.00'."""
+    if raw.rfind(",") > raw.rfind("."):
+        return raw.replace(".", "").replace(",", ".")
+    return raw.replace(",", "")  # US: '20,000.00'
+
+
+def _normalize_single_separator(raw: str, sep: str) -> str:
+    """Só um tipo de separador. 3 dígitos após último → milhar (remove);
+    ≠3 → decimal (padroniza para ponto)."""
+    if sep == "." and raw.count(".") > 1:
+        return raw.replace(".", "")  # múltiplos pontos → todos milhares
+    after = raw[raw.rfind(sep) + 1:]
+    if len(after) == 3 and after.isdigit():
+        return raw.replace(sep, "")  # milhar
+    return raw.replace(",", ".") if sep == "," else raw  # decimal
+
+
 def _raw_to_float(raw: str) -> Optional[float]:
     """Normaliza '20.000,00' ou '20,000.00' → 20000.0.
 
-    Heurística para distinguir BRL (ponto=milhar, vírgula=decimal) de US
-    (vírgula=milhar, ponto=decimal):
-      - Dois separadores: o último é o decimal.
-      - Um só separador + 3 dígitos depois: provável milhar (remove).
-      - Um só separador + ≠ 3 dígitos depois: provável decimal (normaliza p/ ponto).
+    Heurística: dois separadores → último é decimal; um só → 3 dígitos
+    após = milhar, senão = decimal. Empty/inválido → None.
     """
     raw = raw.strip()
     if not raw:
         return None
 
-    has_comma = "," in raw
-    has_dot = "." in raw
-
+    has_comma, has_dot = "," in raw, "." in raw
     if has_comma and has_dot:
-        # Dois separadores — o último é o decimal
-        if raw.rfind(",") > raw.rfind("."):
-            # BRL: 20.000,00
-            raw = raw.replace(".", "").replace(",", ".")
-        else:
-            # US: 20,000.00
-            raw = raw.replace(",", "")
+        raw = _normalize_both_separators(raw)
     elif has_comma:
-        # Só vírgula: 3 dígitos após → milhar; senão → decimal.
-        after = raw[raw.rfind(",") + 1 :]
-        if len(after) == 3 and after.isdigit():
-            raw = raw.replace(",", "")
-        else:
-            raw = raw.replace(",", ".")
+        raw = _normalize_single_separator(raw, ",")
     elif has_dot:
-        # Só ponto: múltiplos pontos → milhar. Um ponto + 3 dígitos após → milhar.
-        # Um ponto + ≠3 dígitos → decimal (mantém).
-        if raw.count(".") > 1:
-            raw = raw.replace(".", "")
-        else:
-            after = raw[raw.rfind(".") + 1 :]
-            if len(after) == 3 and after.isdigit():
-                raw = raw.replace(".", "")
-            # senão mantém como decimal (ex: "1.5" → 1.5)
+        raw = _normalize_single_separator(raw, ".")
 
     try:
         return float(raw)
@@ -175,6 +169,48 @@ def _current_month_period() -> tuple[date, date]:
     return start, end
 
 
+def _tx_date_in_period(tx, period_start: date, period_end: date) -> bool:
+    """True se a transação tem data válida dentro do período do mês corrente."""
+    if not tx.data:
+        return False
+    try:
+        tx_date_obj = date.fromisoformat(tx.data[:10])
+    except ValueError:
+        return False
+    return period_start <= tx_date_obj <= period_end
+
+
+def _match_transactions_by_keyword(
+    tenant_root: str,
+    keywords: list[str],
+    period_start: date,
+    period_end: date,
+) -> tuple[float, int, set[str]]:
+    """Soma `abs(valor)` de transações no período cujo `descricao` contém
+    uma das keywords. Retorna (executed, count, keywords_matched).
+
+    Best-effort: qualquer erro em `load_transactions` retorna zeros.
+    """
+    try:
+        txs = load_transactions(tenant_root)
+    except Exception:  # noqa: BLE001 — best-effort, nunca quebra endpoint
+        return 0.0, 0, set()
+
+    executed = 0.0
+    matched_count = 0
+    matched_keywords: set[str] = set()
+    for tx in txs:
+        if not _tx_date_in_period(tx, period_start, period_end):
+            continue
+        desc_lower = (tx.descricao or "").lower()
+        matched_kw = next((k for k in keywords if k in desc_lower), None)
+        if matched_kw:
+            matched_keywords.add(matched_kw)
+            executed += abs(tx.valor)
+            matched_count += 1
+    return executed, matched_count, matched_keywords
+
+
 def compute_progress(
     task: Task,
     *,
@@ -196,35 +232,15 @@ def compute_progress(
     period_start, period_end = _current_month_period()
     keywords = _load_aporte_keywords_from_config(tenant_root)
 
-    # Carrega transações se possível — best-effort
-    executed = 0.0
-    matched_count = 0
-    matched_keywords_set: set[str] = set()
-    if tenant_root:
-        try:
-            txs = load_transactions(tenant_root)
-        except Exception:  # noqa: BLE001 — best-effort, nunca quebra endpoint
-            txs = []
-        for tx in txs:
-            if not tx.data:
-                continue
-            tx_date = tx.data[:10]  # "YYYY-MM-DD..."
-            try:
-                tx_date_obj = date.fromisoformat(tx_date)
-            except ValueError:
-                continue
-            if not (period_start <= tx_date_obj <= period_end):
-                continue
-            desc_lower = (tx.descricao or "").lower()
-            matched_kw = next((k for k in keywords if k in desc_lower), None)
-            if matched_kw:
-                matched_keywords_set.add(matched_kw)
-                executed += abs(tx.valor)
-                matched_count += 1
+    executed, matched_count, matched_keywords_set = (
+        _match_transactions_by_keyword(
+            tenant_root, keywords, period_start, period_end
+        )
+        if tenant_root
+        else (0.0, 0, set())
+    )
 
-    percent = None
-    if target and target > 0:
-        percent = round(100.0 * executed / target, 1)
+    percent = round(100.0 * executed / target, 1) if target and target > 0 else None
 
     return TaskProgress(
         is_trackable=True,
