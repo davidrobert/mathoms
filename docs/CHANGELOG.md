@@ -8,6 +8,52 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6e.events — domain events tipados (infra + 2 agregados) (2026-04-22 · ADR-101 R17 · ADR-115):**
+  Introduz `backend/app/events/` com `Event` frozen-dataclass, registro
+  estático via `@register_handler` e dispatcher síncrono (em transação).
+  Desacopla side-effects transversais (audit log, notificações) dos use
+  cases — novo agregado que precisar de audit ganha `XCreatedEvent` +
+  handler que traduz para `AuditLogEvent`, sem tocar router ou service.
+  - **Slice 1 (infra) — 18 unit tests:** `base.py` (`Event` imutável com
+    `event_id` UUID hex, `occurred_at` UTC, `aggregate_id/type`,
+    `workspace_id`); `registry.py` (`@register_handler` + `_HANDLERS`
+    dict); `dispatcher.py` (`dispatch_sync(event, deps)` + stub
+    `enqueue_async`); `protocols.py` (`EventHandlerDeps` TypedDict
+    `total=False`). Fixture `save/restore` isola registry em testes sem
+    apagar handlers reais registrados via import.
+  - **Slice 2 (AuditLogEvent) — 7 tests:** `AuditLogEvent` persiste
+    `AuditLog` na sessão injetada; `FamilyMemberCreatedEvent` traduz
+    via `audit_family_member_created` (member_name fora do payload;
+    só `member_key` em `details` — ADR-110 §PII). Migra
+    `application/family_member/create_family_member.py` para emitir
+    após `repo.create()`. Router `family_members.py` passa `db` +
+    `current_user.id` explicitamente (ADR-111: deps via argumento).
+  - **Slice 3 (Task events) — 7 tests:** `TaskCreatedEvent` +
+    `TaskUpdatedEvent` + handler `task_notification_handler` cria
+    `Notification` reativa para deadline em horizonte
+    (overdue/urgent/soon). Dedupe por title sufixo `[#N:bucket]`
+    converge com cron legado. Flag
+    `MATHOMS_USE_EVENT_DRIVEN_TASK_NOTIFICATIONS=false` default
+    mantém `scan_and_create_notifications` como fonte única até gate
+    humano (A6e.events-followup). `application/task/create_task.py` +
+    `update_task.py` emitem eventos com `db` opcional (None → no-op,
+    preserva testes unitários com fakes).
+  - **Total:** 32 testes novos no pacote `backend/tests/events` (~10s);
+    zero regressão em suíte completa (baseline pré-A6e.events: 1064 items
+    — 1063 passed + 1 flaky; pós-A6e.events: 1096 passed + 4 skipped).
+  - **Atomicidade parcial reconhecida:** `FamilyMemberRepository.create()`
+    commita internamente (pré-A6e.events), então audit roda em txn
+    separada fechada pelo use case. Task é full-atomic
+    (`TaskRepository` segue caller-owns-commit, R14). ADR-115 documenta
+    como limitação a fechar quando repos não-Task migrarem para R14.
+  - **Out of scope explícito:** migração dos ~14 call-sites de
+    `audit_log()` inline em `backend/app/api/*.py` (tarefa
+    A6e.events-migration); handlers async pós-commit (Celery/WS); event
+    sourcing persistido.
+  - **Naming:** lane renomeada `A6e.6 → A6e.events` em 2026-04-22 para
+    evitar colisão com 5 commits históricos do Goal slice. Filtro:
+    `git log --grep "A6e.events"` retorna só esta lane.
+
 - **A6e.3b — application layer completa (ConfigBlob + Task + Document) (2026-04-22 · ADR-101 R15 · ADR-112):**
   Fecha a superfície DDD começada em A6e.3 — os 3 agregados deferidos
   (ConfigBlob, Task, Document) ganham use cases em
