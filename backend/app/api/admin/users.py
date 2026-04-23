@@ -64,13 +64,9 @@ async def list_users(
     stmt = select(User).order_by(User.created_at.desc())
     if q:
         like = f"%{q.lower()}%"
-        stmt = stmt.where(
-            func.lower(User.email).like(like) | func.lower(User.full_name).like(like)
-        )
+        stmt = stmt.where(func.lower(User.email).like(like) | func.lower(User.full_name).like(like))
     users = list((await db.execute(stmt.limit(limit))).scalars().all())
-    total = int(
-        (await db.execute(select(func.count()).select_from(User))).scalar_one() or 0
-    )
+    total = int((await db.execute(select(func.count()).select_from(User))).scalar_one() or 0)
     return AdminUserListResponse(
         users=[AdminUserSummary.model_validate(u) for u in users], total=total
     )
@@ -134,9 +130,7 @@ async def set_dev_flag(
     db: AsyncSession = Depends(get_db),
     principal: InternalOpsPrincipal = Depends(require_internal_operator),
 ) -> SetDeveloperFlagResponse:
-    result = await set_developer_flag(
-        db, user_id, enabled=body.enabled, actor=principal.actor
-    )
+    result = await set_developer_flag(db, user_id, enabled=body.enabled, actor=principal.actor)
     if not result.ok:
         _raise_from(result)
     await db.commit()

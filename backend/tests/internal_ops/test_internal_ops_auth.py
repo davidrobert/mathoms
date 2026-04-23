@@ -136,9 +136,7 @@ async def test_require_internal_operator_cookie_ok() -> None:
 @pytest.mark.asyncio
 async def test_require_internal_operator_bearer_ok() -> None:
     token = create_session_token(InternalOpsPrincipal(username="bob", role="ops"))
-    principal = await require_internal_operator(
-        ops_session=None, authorization=f"Bearer {token}"
-    )
+    principal = await require_internal_operator(ops_session=None, authorization=f"Bearer {token}")
     assert principal.username == "bob"
 
 

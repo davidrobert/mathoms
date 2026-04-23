@@ -55,8 +55,6 @@ async def ops_session_token_superadmin(admin_ui_enabled, ops_yaml, audit_path, c
 
 @pytest_asyncio.fixture
 async def ops_session_token_ops(admin_ui_enabled, ops_yaml, audit_path, client):
-    resp = await client.post(
-        "/admin/login", json={"username": "bob", "password": "BobOpsPw123!"}
-    )
+    resp = await client.post("/admin/login", json={"username": "bob", "password": "BobOpsPw123!"})
     assert resp.status_code == 200, resp.text
     return resp.cookies.get("ops_session")

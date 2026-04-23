@@ -35,9 +35,7 @@ def _anonymized_email(user_id: str) -> str:
     return f"anon-{short}@{_ANONYMIZED_DOMAIN}"
 
 
-async def anonymize_user(
-    db: AsyncSession, user_id: str, *, actor: str
-) -> OpResult:
+async def anonymize_user(db: AsyncSession, user_id: str, *, actor: str) -> OpResult:
     """Anonimiza o usuário `user_id`.
 
     Preserva `user.id` (FKs) e caminho de auditoria. Bumpa `token_version`.

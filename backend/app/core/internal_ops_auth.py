@@ -79,9 +79,7 @@ def load_operators(*, path: Path | None = None) -> dict[str, InternalOperator]:
     """Carrega operadores do yaml. Retorna dict username → operator."""
     target = path or _yaml_path()
     if not target.exists():
-        raise InternalOpsConfigError(
-            f"Arquivo de operadores internos não encontrado: {target}"
-        )
+        raise InternalOpsConfigError(f"Arquivo de operadores internos não encontrado: {target}")
     try:
         raw = yaml.safe_load(target.read_text(encoding="utf-8")) or {}
     except yaml.YAMLError as exc:
@@ -106,9 +104,7 @@ def load_operators(*, path: Path | None = None) -> dict[str, InternalOperator]:
             )
         if username in out:
             raise InternalOpsConfigError(f"Username duplicado em {target}: {username}")
-        out[username] = InternalOperator(
-            username=username, hashed_password=hashed, role=role
-        )
+        out[username] = InternalOperator(username=username, hashed_password=hashed, role=role)
     return out
 
 
@@ -122,9 +118,7 @@ def verify_operator_password(op: InternalOperator, password: str) -> bool:
 def create_session_token(
     principal: InternalOpsPrincipal, *, expires_delta: timedelta | None = None
 ) -> str:
-    expire = datetime.now(timezone.utc) + (
-        expires_delta or timedelta(minutes=_SESSION_TTL_MINUTES)
-    )
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=_SESSION_TTL_MINUTES))
     payload: dict[str, Any] = {
         "sub": principal.username,
         "role": principal.role,

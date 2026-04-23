@@ -42,9 +42,7 @@ async def test_anonymize(
     user_id = user.id
     await _with_cookie(client, ops_session_token_superadmin)
 
-    resp = await client.post(
-        f"/admin/users/{user_id}/anonymize", json={"confirm": "delete"}
-    )
+    resp = await client.post(f"/admin/users/{user_id}/anonymize", json={"confirm": "delete"})
     assert resp.status_code == 200
     body = resp.json()
     assert body["user_id"] == user_id
@@ -64,9 +62,7 @@ async def test_anonymize_requires_confirm_literal(
     await db.commit()
     user_id = user.id
     await _with_cookie(client, ops_session_token_superadmin)
-    resp = await client.post(
-        f"/admin/users/{user_id}/anonymize", json={"confirm": "nope"}
-    )
+    resp = await client.post(f"/admin/users/{user_id}/anonymize", json={"confirm": "nope"})
     assert resp.status_code == 422
 
 
@@ -128,9 +124,7 @@ async def test_developer_flag(
     user_id = user.id
 
     await _with_cookie(client, ops_session_token_superadmin)
-    resp = await client.post(
-        f"/admin/users/{user_id}/developer-flag", json={"enabled": True}
-    )
+    resp = await client.post(f"/admin/users/{user_id}/developer-flag", json={"enabled": True})
     assert resp.status_code == 200
     assert resp.json()["is_developer"] is True
 
@@ -149,9 +143,7 @@ async def test_update_email_conflict(
     b_id = b.id
 
     await _with_cookie(client, ops_session_token_superadmin)
-    resp = await client.patch(
-        f"/admin/users/{b_id}/email", json={"new_email": "a@test.com"}
-    )
+    resp = await client.patch(f"/admin/users/{b_id}/email", json={"new_email": "a@test.com"})
     assert resp.status_code == 409
 
 

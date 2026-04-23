@@ -18,7 +18,9 @@ from backend.tests.factories import make_document, make_user, make_workspace
 
 
 @pytest.mark.asyncio
-async def test_delete_document_removes_row_and_blob(db, audit_path: Path, tmp_path: Path, monkeypatch) -> None:
+async def test_delete_document_removes_row_and_blob(
+    db, audit_path: Path, tmp_path: Path, monkeypatch
+) -> None:
     from backend.app.core.config import settings
 
     monkeypatch.setattr(settings, "STORAGE_ROOT", tmp_path)
@@ -38,7 +40,9 @@ async def test_delete_document_removes_row_and_blob(db, audit_path: Path, tmp_pa
 
     assert result.ok and result.details["blob_removed"] is True
     assert not blob_abs.exists()
-    assert (await db.execute(select(Document).where(Document.id == doc.id))).scalar_one_or_none() is None
+    assert (
+        await db.execute(select(Document).where(Document.id == doc.id))
+    ).scalar_one_or_none() is None
 
     entry = read_audit(path=audit_path)[0]
     assert entry["action"] == "document.delete"
@@ -84,7 +88,9 @@ async def test_purge_confirm_by_user(db, audit_path: Path) -> None:
     await db.commit()
 
     assert result.ok and result.details["count"] == 2
-    remaining = (await db.execute(select(Document).where(Document.workspace_id == ws.id))).scalars().all()
+    remaining = (
+        (await db.execute(select(Document).where(Document.workspace_id == ws.id))).scalars().all()
+    )
     assert remaining == []
 
     entry = read_audit(path=audit_path)[0]

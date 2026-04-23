@@ -29,9 +29,7 @@ async def list_(
 ) -> AdminReportListResponse:
     reports = await list_reports(
         db,
-        filter=ListReportsFilter(
-            user_id=user_id, workspace_id=workspace_id, limit=limit
-        ),
+        filter=ListReportsFilter(user_id=user_id, workspace_id=workspace_id, limit=limit),
     )
     return AdminReportListResponse(
         reports=[

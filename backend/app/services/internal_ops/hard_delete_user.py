@@ -19,9 +19,7 @@ from backend.app.services.internal_ops.audit import (
 from backend.app.services.internal_ops.results import OpResult
 
 
-async def hard_delete_user(
-    db: AsyncSession, user_id: str, *, actor: str, reason: str
-) -> OpResult:
+async def hard_delete_user(db: AsyncSession, user_id: str, *, actor: str, reason: str) -> OpResult:
     """Remove o usuário do banco. `reason` obrigatória, registrada no audit."""
     if not reason or not reason.strip():
         return OpResult.failure("reason_required", user_id=user_id)

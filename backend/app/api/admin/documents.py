@@ -53,7 +53,11 @@ async def delete_one(
 ) -> DeleteDocumentResponse:
     result = await delete_document(db, document_id, actor=principal.actor)
     if not result.ok:
-        code = status.HTTP_404_NOT_FOUND if result.error == "document_not_found" else status.HTTP_400_BAD_REQUEST
+        code = (
+            status.HTTP_404_NOT_FOUND
+            if result.error == "document_not_found"
+            else status.HTTP_400_BAD_REQUEST
+        )
         raise HTTPException(status_code=code, detail=result.error)
     await db.commit()
     return DeleteDocumentResponse(

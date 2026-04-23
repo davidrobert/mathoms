@@ -26,9 +26,7 @@ def _resolve_blob_path(stored_path: str | None, workspace_id: str) -> Path | Non
     return Path(settings.STORAGE_ROOT) / workspace_id / stored_path
 
 
-async def delete_document(
-    db: AsyncSession, document_id: str, *, actor: str
-) -> OpResult:
+async def delete_document(db: AsyncSession, document_id: str, *, actor: str) -> OpResult:
     doc = (
         await db.execute(select(Document).where(Document.id == document_id))
     ).scalar_one_or_none()

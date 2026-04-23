@@ -20,9 +20,7 @@ def _require_ui_enabled() -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-router = APIRouter(
-    prefix="/admin", tags=["admin"], dependencies=[Depends(_require_ui_enabled)]
-)
+router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(_require_ui_enabled)])
 router.include_router(login_router)
 router.include_router(users_router)
 router.include_router(documents_router)

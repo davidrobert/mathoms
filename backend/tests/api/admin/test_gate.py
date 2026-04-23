@@ -29,9 +29,7 @@ async def test_admin_401_with_invalid_cookie(admin_ui_enabled, ops_yaml, client)
 
 
 @pytest.mark.asyncio
-async def test_client_jwt_not_accepted_by_admin(
-    admin_ui_enabled, ops_yaml, auth_client
-) -> None:
+async def test_client_jwt_not_accepted_by_admin(admin_ui_enabled, ops_yaml, auth_client) -> None:
     """Token do JWT cliente (SECRET_KEY) não entra no /admin/*."""
     auth = auth_client.headers.get("Authorization")
     assert auth

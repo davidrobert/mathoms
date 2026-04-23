@@ -29,9 +29,7 @@ class ListReportsFilter:
     limit: int = 100
 
 
-async def list_reports(
-    db: AsyncSession, *, filter: ListReportsFilter
-) -> list[ReportSummary]:
+async def list_reports(db: AsyncSession, *, filter: ListReportsFilter) -> list[ReportSummary]:
     stmt = select(Report).order_by(Report.created_at.desc())
     if filter.workspace_id:
         stmt = stmt.where(Report.workspace_id == filter.workspace_id)

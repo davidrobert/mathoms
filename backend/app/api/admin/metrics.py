@@ -48,6 +48,4 @@ async def audit(
     _: InternalOpsPrincipal = Depends(require_internal_operator),
 ) -> AuditListResponse:
     entries = read_audit(limit=limit)
-    return AuditListResponse(
-        entries=[AuditEntryDTO(**e) for e in entries]
-    )
+    return AuditListResponse(entries=[AuditEntryDTO(**e) for e in entries])

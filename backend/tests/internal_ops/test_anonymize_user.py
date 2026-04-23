@@ -36,9 +36,7 @@ async def test_anonymize_preserves_user_id_and_fks(db, audit_path: Path) -> None
     assert refreshed.token_version >= 1
     assert not verify_password("OldPw123!", refreshed.hashed_password)
 
-    ws_refreshed = (
-        await db.execute(select(Workspace).where(Workspace.id == ws.id))
-    ).scalar_one()
+    ws_refreshed = (await db.execute(select(Workspace).where(Workspace.id == ws.id))).scalar_one()
     assert ws_refreshed.owner_id == original_id
 
 

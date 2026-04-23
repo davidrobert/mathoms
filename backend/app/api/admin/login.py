@@ -55,16 +55,12 @@ async def login(payload: AdminLoginRequest, response: Response) -> AdminLoginRes
                 result="fail",
             )
         )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid_credentials"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid_credentials")
 
     principal = InternalOpsPrincipal(username=op.username, role=op.role)
     token = create_session_token(principal)
     _set_session_cookie(response, token)
-    append_audit(
-        AuditRecord(action="ops.login", actor=principal.actor, result="ok")
-    )
+    append_audit(AuditRecord(action="ops.login", actor=principal.actor, result="ok"))
     return AdminLoginResponse(
         username=principal.username,
         role=principal.role,

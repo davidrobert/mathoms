@@ -34,9 +34,7 @@ class MetricsSnapshot:
 
 
 async def get_metrics(db: AsyncSession, *, period_days: int = 30) -> MetricsSnapshot:
-    users_total = int(
-        (await db.execute(select(func.count()).select_from(User))).scalar_one() or 0
-    )
+    users_total = int((await db.execute(select(func.count()).select_from(User))).scalar_one() or 0)
     users_active = int(
         (
             await db.execute(select(func.count()).select_from(User).where(User.is_active.is_(True)))

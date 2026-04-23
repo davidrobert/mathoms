@@ -40,9 +40,7 @@ class AuditRecord:
     target_id: str | None = None
     result: str = "ok"
     details: dict[str, Any] = field(default_factory=dict)
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_json(self) -> str:
         payload = asdict(self)
