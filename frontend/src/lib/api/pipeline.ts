@@ -54,6 +54,14 @@ export interface PipelineRunListResponse {
   total: number;
 }
 
+/** ADR-119: fases do contrato LiveStep. Pesos fixos em `phaseWeight()`. */
+export type LiveStepPhase =
+  | "preparing"
+  | "awaiting_llm"
+  | "validating"
+  | "persisting"
+  | "finalizing";
+
 /** Live sub-step within a stage (WebSocket ``stage_activity``). */
 export interface PipelineStageActivity {
   stage: string;
@@ -62,6 +70,10 @@ export interface PipelineStageActivity {
   currentItem?: string;
   itemsDone?: number;
   itemsTotal?: number;
+  /** ADR-119 — sub-fase intra-item. */
+  phase?: LiveStepPhase;
+  /** ADR-119 — mediana dos últimos runs bem-sucedidos (só no 1º evento). */
+  estimatedDurationMs?: number;
 }
 
 export interface PipelineEvent {

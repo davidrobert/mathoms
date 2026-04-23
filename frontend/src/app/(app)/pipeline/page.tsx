@@ -75,6 +75,14 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
 
     if (event.event === "stage_activity" && event.stage) {
       const d = event.detail ?? {};
+      const phase = typeof d.phase === "string" ? d.phase : undefined;
+      const validPhases = [
+        "preparing",
+        "awaiting_llm",
+        "validating",
+        "persisting",
+        "finalizing",
+      ] as const;
       setLiveStageActivity({
         stage: event.stage,
         file: typeof d.file === "string" ? d.file : undefined,
@@ -84,6 +92,14 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
         itemsDone: typeof d.items_done === "number" ? d.items_done : undefined,
         itemsTotal:
           typeof d.items_total === "number" ? d.items_total : undefined,
+        phase:
+          phase && (validPhases as readonly string[]).includes(phase)
+            ? (phase as (typeof validPhases)[number])
+            : undefined,
+        estimatedDurationMs:
+          typeof d.estimated_duration_ms === "number"
+            ? d.estimated_duration_ms
+            : undefined,
       });
     }
 

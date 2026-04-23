@@ -9,6 +9,7 @@ import type {
 import { formatDuration, stageStatusLabel, stageName } from "@/lib/format";
 import { stageLlmFootnote } from "@/lib/pipelineTransparency";
 import { Button } from "@/components/ui/button";
+import { LiveStepProgress } from "./LiveStepProgress";
 import { useNowInterval } from "./useNowInterval";
 
 const VARIANT_COLORS: Record<string, string> = {
@@ -39,58 +40,6 @@ function StageRowLabel({ stage }: { stage: PipelineStageLog }) {
         <span className="ml-2 text-xs text-warning">(revisão)</span>
       )}
     </span>
-  );
-}
-
-function LiveActivityDetail({ activity }: { activity: PipelineStageActivity }) {
-  const hasCounter =
-    typeof activity.itemsTotal === "number" && activity.itemsTotal > 0;
-  const displayItem = activity.currentItem ?? activity.file;
-  if (!hasCounter && !activity.message && !displayItem) return null;
-
-  const done = activity.itemsDone ?? 0;
-  const total = activity.itemsTotal ?? 0;
-  const pct = hasCounter && total > 0 ? Math.min(100, (done / total) * 100) : 0;
-
-  return (
-    <div className="mx-3 mb-1 rounded-md border border-border/50 bg-muted/40 px-3 py-2 text-xs">
-      {hasCounter && (
-        <>
-          <div className="flex items-center justify-between gap-2 font-medium text-foreground">
-            <span>
-              Arquivo {Math.min(done + 1, total)} de {total}
-            </span>
-            <span className="font-mono text-[11px] text-muted-foreground">
-              {done}/{total}
-            </span>
-          </div>
-          <div
-            className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={total}
-            aria-valuenow={done}
-            aria-label={`Progresso da etapa: ${done} de ${total} arquivos`}
-          >
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-        </>
-      )}
-      {displayItem && (
-        <p
-          className={`${hasCounter ? "mt-2" : ""} font-mono text-[11px] text-foreground/90 truncate`}
-          title={displayItem}
-        >
-          {displayItem}
-        </p>
-      )}
-      {activity.message && !hasCounter && (
-        <p className="text-muted-foreground leading-snug">{activity.message}</p>
-      )}
-    </div>
   );
 }
 
@@ -147,7 +96,9 @@ export function StageRow({
           {stage.errors}
         </pre>
       )}
-      {stage.status === "running" && liveActivity && <LiveActivityDetail activity={liveActivity} />}
+      {stage.status === "running" && liveActivity && (
+        <LiveStepProgress activity={liveActivity} elapsedMs={displayMs ?? undefined} />
+      )}
     </div>
   );
 }
