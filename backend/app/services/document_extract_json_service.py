@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from backend.app.models.document import Document, DocumentType
-from backend.app.services.document_pipeline_sync import _find_e2_extract
+from backend.app.services.document_pipeline_sync import _find_e15a_extract, _find_e2_extract
 from backend.app.services.storage import StorageService
 
 
@@ -47,15 +47,26 @@ def read_document_extract_json(
     quando o diretório, lista de extratos ou arquivo-alvo não existe."""
     e2_dir = storage.tenant_root(workspace_id) / "processed" / "E2_extracts"
     if not e2_dir.exists():
-        raise DocumentExtractError("Nenhum extrato E2 disponível", status_code=404)
+        raise DocumentExtractError("Nenhum extrato disponível", status_code=404)
 
-    all_candidates = sorted(f.name for f in e2_dir.glob("*-2_extract.json"))
-    if not all_candidates:
-        raise DocumentExtractError("Nenhum extrato E2 encontrado", status_code=404)
-
-    target = _match_by_stored_path(doc, e2_dir) or _match_by_metadata(doc, e2_dir)
-    if target is None:
-        raise DocumentExtractError("Extrato E2 não encontrado para este documento", status_code=404)
+    # IRPF: extract vive em `-1.5a_extract.json` (E1.5a, per-arquivo).
+    if doc.doc_type == DocumentType.irpf:
+        target = _match_irpf_e15a(doc, e2_dir)
+        all_candidates = sorted(f.name for f in e2_dir.glob("*-1.5a_extract.json"))
+        if target is None:
+            raise DocumentExtractError(
+                "Extrato IRPF (E1.5a) não encontrado para este documento",
+                status_code=404,
+            )
+    else:
+        all_candidates = sorted(f.name for f in e2_dir.glob("*-2_extract.json"))
+        if not all_candidates:
+            raise DocumentExtractError("Nenhum extrato E2 encontrado", status_code=404)
+        target = _match_by_stored_path(doc, e2_dir) or _match_by_metadata(doc, e2_dir)
+        if target is None:
+            raise DocumentExtractError(
+                "Extrato E2 não encontrado para este documento", status_code=404
+            )
 
     try:
         data = json.loads(target.read_text(encoding="utf-8"))
@@ -63,6 +74,13 @@ def read_document_extract_json(
         raise DocumentExtractError(f"Erro ao ler extrato: {exc}", status_code=500) from exc
 
     return ExtractJsonResult(filename=target.name, data=data, all_candidates=all_candidates)
+
+
+def _match_irpf_e15a(doc: Document, e2_dir: Path) -> Path | None:
+    """Localiza `{stem}-1.5a_extract.json` para um doc IRPF via stored_path."""
+    if not doc.stored_path:
+        return None
+    return _find_e15a_extract(e2_dir, Path(doc.stored_path).name)
 
 
 def _match_by_stored_path(doc: Document, e2_dir: Path) -> Path | None:

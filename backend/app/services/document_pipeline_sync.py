@@ -14,9 +14,44 @@ from backend.app.core.database import SyncSessionLocal
 from backend.app.models.document import Document, DocumentStatus
 
 # These doc type values are never processed by the deterministic E2 extractor —
-# they live in income_tax_br/ or members/ and have no *-2_extract.json output.
+# eles vivem em income_tax_br/ ou members/. IRPF tem extract próprio via
+# E1.5a (`{stem}-1.5a_extract.json`); os demais não produzem JSON per-arquivo.
 # Using raw strings to avoid SQLAlchemy enum vs str comparison edge cases.
 _NO_E2_EXTRACT_TYPE_VALUES = {"irpf", "e1_members_json", "e1_5_baseline_json"}
+_IRPF_E15A_EXTRACT_TYPES = {"irpf"}
+
+
+def _e15a_json_name(source_filename: str) -> str:
+    """Mirror E1.5a write convention (stem + -1.5a_extract.json)."""
+    return re.sub(
+        r"(-0_original)?\.(pdf|csv|xls|xlsx|jpg|jpeg|png)$",
+        "-1.5a_extract.json",
+        source_filename,
+        flags=re.IGNORECASE,
+    )
+
+
+def _find_e15a_extract(e2_dir: Path, source_filename: str) -> Path | None:
+    """Return the E1.5a extract Path for an IRPF source filename, or None."""
+    if not e2_dir.exists():
+        return None
+    exact = e2_dir / _e15a_json_name(source_filename)
+    if exact.exists():
+        return exact
+    base_stem = re.sub(
+        r"(-0_original)?\.(pdf|csv|xls|xlsx|jpg|jpeg|png)$",
+        "",
+        source_filename,
+        flags=re.IGNORECASE,
+    )
+    pattern = re.compile(
+        rf"^{re.escape(base_stem)}[a-z]?-1\.5a_extract\.json$",
+        re.IGNORECASE,
+    )
+    for f in e2_dir.iterdir():
+        if f.is_file() and pattern.match(f.name):
+            return f
+    return None
 
 
 def _e2_json_name(source_filename: str) -> str:
@@ -99,7 +134,11 @@ def apply_pipeline_e2_sync_to_documents(
             doc.doc_type.value if hasattr(doc.doc_type, "value") else str(doc.doc_type or "")
         )
         if doc_type_val in _NO_E2_EXTRACT_TYPE_VALUES:
-            doc.pipeline_e2_extract_ok = None
+            if doc_type_val in _IRPF_E15A_EXTRACT_TYPES:
+                e15a_path = _find_e15a_extract(e2_dir, fname)
+                doc.pipeline_e2_extract_ok = e15a_path is not None
+            else:
+                doc.pipeline_e2_extract_ok = None
             doc.pipeline_extract_notes = None
             if doc.status == DocumentStatus.ready:
                 doc.status = DocumentStatus.processed

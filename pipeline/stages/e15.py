@@ -65,10 +65,71 @@ def _output_to_baseline_json(output) -> dict:
     }
 
 
-def run(ctx: WorkspaceContext) -> dict:
-    """Execute E1.5 baseline patrimonial extraction via LLM.
+_MAX_DOCS_PER_RUN = 10
 
-    Reads IRPF docs, sends to LLM, saves baseline JSON in E2_extracts/.
+
+def _artifact_key_for(doc: Path) -> str:
+    """Stem usado como artifact_key — casamento em disco via filename."""
+    name = doc.name
+    lowered = name.lower()
+    for ext in (".pdf", ".xlsx", ".xls", ".csv", ".json"):
+        if lowered.endswith(ext):
+            return name[: -len(ext)]
+    return doc.stem
+
+
+def _aggregate_baselines(per_file: list[dict]) -> dict:
+    """Combina N baselines per-arquivo num único baseline consolidado."""
+    all_items: list[dict] = []
+    assets = 0.0
+    liabilities = 0.0
+    members: list[str] = []
+    notes_parts: list[str] = []
+    confidences: list[float] = []
+    years: list[int] = []
+
+    for baseline in per_file:
+        all_items.extend(baseline.get("itens") or [])
+        resumo = baseline.get("resumo") or {}
+        assets += float(resumo.get("total_ativos") or 0.0)
+        liabilities += float(resumo.get("total_passivos") or 0.0)
+        ano = resumo.get("ano_referencia")
+        if isinstance(ano, int):
+            years.append(ano)
+        for m in resumo.get("membros") or []:
+            if m not in members:
+                members.append(m)
+        meta = baseline.get("_meta") or {}
+        conf = meta.get("confidence")
+        if isinstance(conf, (int, float)):
+            confidences.append(float(conf))
+        note = meta.get("notes")
+        if note:
+            notes_parts.append(str(note))
+
+    return {
+        "itens": all_items,
+        "resumo": {
+            "total_ativos": assets,
+            "total_passivos": liabilities,
+            "patrimonio_liquido": assets - liabilities,
+            "ano_referencia": max(years) if years else 0,
+            "membros": members,
+        },
+        "_meta": {
+            "source": "E1.5-llm",
+            "confidence": min(confidences) if confidences else 0.0,
+            "notes": "\n".join(notes_parts) if notes_parts else None,
+        },
+    }
+
+
+def run(ctx: WorkspaceContext) -> dict:
+    """Execute E1.5 baseline patrimonial extraction via LLM, per-arquivo.
+
+    Uma chamada LLM por IRPF → artefato E1.5a (`{stem}-1.5a_extract.json`)
+    vinculável ao documento. Depois agrega tudo num único
+    `baseline_patrimonial-1.5_baseline.json` (E1.5) lido por E1.5c.
     """
     from pipeline.llm.litellm_client import LLMConfig, LLMService
     from pipeline.llm.prompts.e15_baseline import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
@@ -84,13 +145,15 @@ def run(ctx: WorkspaceContext) -> dict:
         return {"skipped": True, "reason": "No IRPF/patrimony documents found"}
 
     extractor = DocumentTextExtractor(max_chars=80_000)
-    docs_text_parts = []
-    for doc in docs[:10]:
+    selected = docs[:_MAX_DOCS_PER_RUN]
+
+    docs_with_text: list[tuple[Path, str]] = []
+    for doc in selected:
         text = extractor.extract(doc)
         if text.strip():
-            docs_text_parts.append(f"=== {doc.name} ===\n{text}")
+            docs_with_text.append((doc, text))
 
-    if not docs_text_parts:
+    if not docs_with_text:
         return {"skipped": True, "reason": "No extractable text in IRPF documents"}
 
     from pipeline.live_progress import emit_stage_activity
@@ -98,56 +161,76 @@ def run(ctx: WorkspaceContext) -> dict:
     emit_stage_activity(
         ctx.pipeline_run_id,
         "E1.5",
-        message=f"Lendo declaração IRPF com IA ({len(docs_text_parts)} documento(s))…",
+        message=f"Lendo declaração IRPF com IA ({len(docs_with_text)} documento(s))…",
     )
-
-    documents_text = "\n\n".join(docs_text_parts)
-    # JSON/IRPF podem conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.
-    user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=documents_text)
 
     config = LLMConfig(**llm_config_data)
     service = LLMService(config)
-
-    result = service.call(
-        system_prompt=SYSTEM_PROMPT,
-        user_prompt=user_prompt,
-        output_schema=BaselinePatrimonialOutput,
-        max_tokens=max(config.max_tokens, _E15_MIN_COMPLETION_TOKENS),
-        stage="E1.5",
-    )
-
-    output: BaselinePatrimonialOutput = result.output
+    store = ctx.get_artifact_store()
 
     from pipeline.llm.validators import validate_e15_output
 
-    validation = validate_e15_output(output)
-    if not validation.valid:
-        logger.warning("E1.5: validation errors: %s", validation.errors)
-    if validation.warnings:
-        logger.info("E1.5: validation warnings: %s", validation.warnings)
+    per_file_baselines: list[dict] = []
+    total_tokens_in = 0
+    total_tokens_out = 0
+    total_cost_usd = 0.0
+    errors: list[str] = []
+    warnings: list[str] = []
 
-    baseline_json = _output_to_baseline_json(output)
+    for doc, text in docs_with_text:
+        documents_text = f"=== {doc.name} ===\n{text}"
+        # JSON/IRPF podem conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.
+        user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=documents_text)
+
+        result = service.call(
+            system_prompt=SYSTEM_PROMPT,
+            user_prompt=user_prompt,
+            output_schema=BaselinePatrimonialOutput,
+            max_tokens=max(config.max_tokens, _E15_MIN_COMPLETION_TOKENS),
+            stage="E1.5",
+        )
+
+        output: BaselinePatrimonialOutput = result.output
+        validation = validate_e15_output(output)
+        if not validation.valid:
+            errors.extend(validation.errors)
+        if validation.warnings:
+            warnings.extend(validation.warnings)
+
+        baseline_json = _output_to_baseline_json(output)
+        per_file_baselines.append(baseline_json)
+        store.write("E1.5a", _artifact_key_for(doc), baseline_json)
+
+        total_tokens_in += result.tokens_in
+        total_tokens_out += result.tokens_out
+        total_cost_usd += result.cost_estimate_usd
+
+    combined = _aggregate_baselines(per_file_baselines)
 
     # A6a (ADR-105): escreve via ArtifactStore em vez de disco direto.
     # Stage "E1.5" → E2_extracts/baseline_patrimonial-1.5_baseline.json
     # E1.5c lê este artefato e produz baseline_patrimonial-1.5_consolidated.json.
-    store = ctx.get_artifact_store()
-    store.write("E1.5", "baseline_patrimonial", baseline_json)
+    store.write("E1.5", "baseline_patrimonial", combined)
 
     logger.info(
-        "E1.5: %d items, net_worth=%.2f, confidence=%.2f",
-        len(output.items),
-        output.net_worth_brl,
-        output.confidence,
+        "E1.5: %d files, %d items, net_worth=%.2f",
+        len(per_file_baselines),
+        len(combined["itens"]),
+        combined["resumo"]["patrimonio_liquido"],
     )
 
     return {
         "success": True,
-        "items_extracted": len(output.items),
-        "net_worth_brl": output.net_worth_brl,
-        "confidence": output.confidence,
+        "items_extracted": len(combined["itens"]),
+        "net_worth_brl": combined["resumo"]["patrimonio_liquido"],
+        "confidence": combined["_meta"]["confidence"],
         "output_file": "baseline_patrimonial-1.5_baseline.json",
-        "tokens": {"in": result.tokens_in, "out": result.tokens_out},
-        "cost_usd": result.cost_estimate_usd,
-        "validation": validation.to_dict(),
+        "tokens": {"in": total_tokens_in, "out": total_tokens_out},
+        "cost_usd": total_cost_usd,
+        "validation": {
+            "valid": not errors,
+            "errors": errors,
+            "warnings": warnings,
+        },
+        "files_processed": len(per_file_baselines),
     }
