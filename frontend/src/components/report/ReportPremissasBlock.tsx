@@ -17,18 +17,18 @@ export function ReportPremissasBlock({ data }: { data: ReportAnalysisData }) {
 
   return (
     <section
-      className="mb-8 rounded-lg border border-[var(--surface-border)] bg-[color-mix(in_srgb,var(--surface-muted)_35%,transparent)]"
+      className="mb-6 text-xs"
       aria-labelledby="report-premissas-heading"
     >
       <details className="group">
         <summary
-          className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-medium text-[var(--surface-foreground)] marker:content-none"
+          className="flex cursor-pointer list-none items-center gap-1.5 text-[var(--surface-muted-foreground)] hover:text-[var(--surface-foreground)] marker:content-none"
           id="report-premissas-heading"
         >
+          <ChevronDown className="h-3 w-3 shrink-0 transition group-open:rotate-180" />
           <span>Premissas e como calculamos</span>
-          <ChevronDown className="h-4 w-4 shrink-0 transition group-open:rotate-180" />
         </summary>
-        <div className="space-y-3 border-t border-[var(--surface-border)] px-4 py-3 text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
+        <div className="mt-2 space-y-2 rounded-md border border-[var(--surface-border)] bg-[color-mix(in_srgb,var(--surface-muted)_25%,transparent)] px-3 py-2.5 leading-relaxed text-[var(--surface-muted-foreground)]">
           <p>
             <span className="font-medium text-[var(--surface-foreground)]">Período dos dados:</span>{" "}
             {String(data.periodo_dados ?? "—")}

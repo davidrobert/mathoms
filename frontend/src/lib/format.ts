@@ -91,6 +91,16 @@ const MONTH_SHORT_PT = [
   "Jul", "Ago", "Set", "Out", "Nov", "Dez",
 ];
 
+/** Valor BRL completo com centavos — útil em tooltip quando exibição é compact. */
+export function formatFullBRL(value: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
 /** "2023-01 a 2026-04" → "Jan 2023 → Abr 2026". Retorna input se não reconhecer. */
 export function formatPeriodRange(periodo: string | null | undefined): string {
   if (!periodo) return "—";

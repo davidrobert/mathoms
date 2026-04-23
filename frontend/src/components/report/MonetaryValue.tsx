@@ -13,6 +13,8 @@ interface MonetaryValueProps {
   fractionDigits?: number;
   /** Destaca sinal (verde positivo, vermelho negativo). */
   signed?: boolean;
+  /** Tooltip nativo — útil em compact p/ exibir valor completo. */
+  title?: string;
   className?: string;
 }
 
@@ -36,6 +38,7 @@ export function MonetaryValue({
   hideSymbol = false,
   fractionDigits = 2,
   signed = false,
+  title,
   className,
 }: MonetaryValueProps) {
   if (value === null || value === undefined || Number.isNaN(value)) {
@@ -61,7 +64,7 @@ export function MonetaryValue({
     : undefined;
 
   return (
-    <span className={cn("font-mono tabular-nums", colorClass, className)}>
+    <span className={cn("font-mono tabular-nums", colorClass, className)} title={title}>
       {signed && value > 0 ? "+" : ""}
       {formatted}
     </span>

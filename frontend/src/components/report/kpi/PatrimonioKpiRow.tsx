@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { formatFullBRL } from "@/lib/format";
 import { MonetaryValue } from "../MonetaryValue";
 import { getScoreColorVar, getScoreLabel } from "../utils/scoreUtils";
 import type {
@@ -29,11 +30,23 @@ export function PatrimonioKpiRow({
     <div className="mb-10 grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
       <Kpi
         label="Patrimônio Líquido"
-        value={<MonetaryValue value={patrimonio?.liquido} fractionDigits={0} />}
+        value={
+          <MonetaryValue
+            value={patrimonio?.liquido}
+            compact
+            title={patrimonio?.liquido != null ? formatFullBRL(patrimonio.liquido) : undefined}
+          />
+        }
       />
       <Kpi
         label="Investível"
-        value={<MonetaryValue value={patrimonio?.investivel} fractionDigits={0} />}
+        value={
+          <MonetaryValue
+            value={patrimonio?.investivel}
+            compact
+            title={patrimonio?.investivel != null ? formatFullBRL(patrimonio.investivel) : undefined}
+          />
+        }
         hint={
           patrimonio?.fonte_investimentos
             ? `Fonte: ${patrimonio.fonte_investimentos}`
