@@ -168,9 +168,7 @@ def compute_aporte_derived(inputs: AporteGoalInputs) -> AporteGoalDerived:
     pct: dict[str, float] = {}
     if inputs.distribuicao:
         pct = {
-            k: float(
-                (Decimal("100") * v / inputs.meta_aporte_mensal_brl).quantize(_CENT)
-            )
+            k: float((Decimal("100") * v / inputs.meta_aporte_mensal_brl).quantize(_CENT))
             for k, v in inputs.distribuicao.items()
         }
     return AporteGoalDerived(
