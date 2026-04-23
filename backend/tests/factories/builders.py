@@ -14,6 +14,7 @@ Ver `__init__.py` para convenções e exemplos de uso.
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from decimal import Decimal
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -204,7 +205,7 @@ async def make_if_goal(
     db: AsyncSession,
     *,
     workspace: Workspace,
-    renda_passiva_mensal_brl: float = 20000,
+    renda_passiva_mensal_brl: Decimal = Decimal("20000"),
     trs_pct: float = 5.0,
     retorno_real_anual_pct: float = 6.0,
     horizonte_anos: int = 15,

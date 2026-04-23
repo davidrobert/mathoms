@@ -26,7 +26,14 @@ from pydantic import BaseModel, Field
 
 
 class ReconciliationTolerancesSchema(BaseModel):
-    """Tolerâncias numéricas para reconciliação E3."""
+    """Tolerâncias numéricas para reconciliação E3.
+
+    ``saldo_diff`` e ``baseline_irpf_diff`` são **tolerâncias de
+    reconciliação**, não valores monetários: ADR-090 (Decimal money) não
+    se aplica. Nome persistido em ``config/pipeline.json`` + schema —
+    rename exigiria migração. Aceitos como ``P5_float_money=1`` no
+    audit baseline (A6g.3b).
+    """
 
     saldo_diff: float = Field(default=0.01, ge=0)
     temporal_gap_days: int = Field(default=2, ge=0)
