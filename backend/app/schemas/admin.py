@@ -133,6 +133,8 @@ class MetricsResponse(BaseModel):
     storage_bytes_total: int
     pipeline_runs_total: int
     pipeline_runs_last_period: int
+    documents_uploaded_last_period: int
+    new_users_last_period: int
     period_days: int
     generated_at: str
 

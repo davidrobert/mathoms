@@ -37,6 +37,8 @@ async def metrics(
         storage_bytes_total=snap.storage_bytes_total,
         pipeline_runs_total=snap.pipeline_runs_total,
         pipeline_runs_last_period=snap.pipeline_runs_last_period,
+        documents_uploaded_last_period=snap.documents_uploaded_last_period,
+        new_users_last_period=snap.new_users_last_period,
         period_days=snap.period_days,
         generated_at=snap.generated_at,
     )

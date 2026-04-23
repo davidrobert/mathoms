@@ -80,6 +80,8 @@ export interface MetricsResponse {
   storage_bytes_total: number;
   pipeline_runs_total: number;
   pipeline_runs_last_period: number;
+  documents_uploaded_last_period: number;
+  new_users_last_period: number;
   period_days: number;
   generated_at: string;
 }

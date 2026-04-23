@@ -31,3 +31,5 @@ async def test_metrics_counts(db) -> None:
     assert snap.workspaces_total == 1
     assert snap.documents_total == 2
     assert snap.storage_bytes_total == 3500
+    assert snap.documents_uploaded_last_period == 2
+    assert snap.new_users_last_period == 2

@@ -29,6 +29,8 @@ class MetricsSnapshot:
     storage_bytes_total: int
     pipeline_runs_total: int
     pipeline_runs_last_period: int
+    documents_uploaded_last_period: int
+    new_users_last_period: int
     period_days: int
     generated_at: str
 
@@ -75,6 +77,24 @@ async def get_metrics(db: AsyncSession, *, period_days: int = 30) -> MetricsSnap
         ).scalar_one()
         or 0
     )
+    documents_uploaded_last_period = int(
+        (
+            await db.execute(
+                select(func.count())
+                .select_from(Document)
+                .where(Document.uploaded_at >= cutoff)
+            )
+        ).scalar_one()
+        or 0
+    )
+    new_users_last_period = int(
+        (
+            await db.execute(
+                select(func.count()).select_from(User).where(User.created_at >= cutoff)
+            )
+        ).scalar_one()
+        or 0
+    )
     return MetricsSnapshot(
         users_total=users_total,
         users_active=users_active,
@@ -84,6 +104,8 @@ async def get_metrics(db: AsyncSession, *, period_days: int = 30) -> MetricsSnap
         storage_bytes_total=storage_bytes_total,
         pipeline_runs_total=pipeline_runs_total,
         pipeline_runs_last_period=pipeline_runs_last_period,
+        documents_uploaded_last_period=documents_uploaded_last_period,
+        new_users_last_period=new_users_last_period,
         period_days=period_days,
         generated_at=datetime.now(timezone.utc).isoformat(),
     )

@@ -33,6 +33,8 @@ function downloadCsv(snap: MetricsResponse): void {
     ["storage_bytes_total", String(snap.storage_bytes_total)],
     ["pipeline_runs_total", String(snap.pipeline_runs_total)],
     ["pipeline_runs_last_period", String(snap.pipeline_runs_last_period)],
+    ["documents_uploaded_last_period", String(snap.documents_uploaded_last_period)],
+    ["new_users_last_period", String(snap.new_users_last_period)],
     ["period_days", String(snap.period_days)],
     ["generated_at", snap.generated_at],
   ];
@@ -128,6 +130,14 @@ export default function MetricsPage() {
           <KpiCard
             label={`Runs (${snap.period_days}d)`}
             value={snap.pipeline_runs_last_period.toLocaleString("pt-BR")}
+          />
+          <KpiCard
+            label={`Uploads (${snap.period_days}d)`}
+            value={snap.documents_uploaded_last_period.toLocaleString("pt-BR")}
+          />
+          <KpiCard
+            label={`Novos users (${snap.period_days}d)`}
+            value={snap.new_users_last_period.toLocaleString("pt-BR")}
           />
         </div>
       )}
