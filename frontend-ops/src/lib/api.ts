@@ -137,11 +137,19 @@ export const api = {
   getMetrics: (periodDays = 30) =>
     request<MetricsResponse>(`/metrics?period_days=${periodDays}`),
 
-  listReports: (query: { user_id?: string; workspace_id?: string; limit?: number } = {}) => {
+  listReports: (
+    query: {
+      user_id?: string;
+      workspace_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ) => {
     const params = new URLSearchParams();
     if (query.user_id) params.set("user_id", query.user_id);
     if (query.workspace_id) params.set("workspace_id", query.workspace_id);
     if (query.limit != null) params.set("limit", String(query.limit));
+    if (query.offset != null) params.set("offset", String(query.offset));
     const qs = params.toString();
     return request<AdminReportListResponse>(`/reports${qs ? `?${qs}` : ""}`);
   },

@@ -150,6 +150,7 @@ class ReportSummaryDTO(BaseModel):
 
 class AdminReportListResponse(BaseModel):
     reports: list[ReportSummaryDTO]
+    total: int = 0
 
 
 class AuditEntryDTO(BaseModel):

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.report import Report
@@ -27,19 +27,29 @@ class ListReportsFilter:
     user_id: str | None = None
     workspace_id: str | None = None
     limit: int = 100
+    offset: int = 0
 
 
-async def list_reports(db: AsyncSession, *, filter: ListReportsFilter) -> list[ReportSummary]:
-    stmt = select(Report).order_by(Report.created_at.desc())
+async def list_reports(
+    db: AsyncSession, *, filter: ListReportsFilter
+) -> tuple[list[ReportSummary], int]:
+    """Retorna (page, total). Total serve UI para calcular #páginas."""
+    base = select(Report)
     if filter.workspace_id:
-        stmt = stmt.where(Report.workspace_id == filter.workspace_id)
+        base = base.where(Report.workspace_id == filter.workspace_id)
     elif filter.user_id:
-        stmt = stmt.join(Workspace, Report.workspace_id == Workspace.id).where(
+        base = base.join(Workspace, Report.workspace_id == Workspace.id).where(
             Workspace.owner_id == filter.user_id
         )
-    stmt = stmt.limit(max(1, min(filter.limit, 500)))
+    total = int(
+        (await db.execute(select(func.count()).select_from(base.subquery()))).scalar_one()
+        or 0
+    )
+    limit = max(1, min(filter.limit, 500))
+    offset = max(0, filter.offset)
+    stmt = base.order_by(Report.created_at.desc()).limit(limit).offset(offset)
     rows = (await db.execute(stmt)).scalars().all()
-    return [
+    summaries = [
         ReportSummary(
             id=r.id,
             workspace_id=r.workspace_id,
@@ -50,3 +60,4 @@ async def list_reports(db: AsyncSession, *, filter: ListReportsFilter) -> list[R
         )
         for r in rows
     ]
+    return summaries, total

@@ -24,12 +24,15 @@ async def list_(
     user_id: str | None = Query(default=None),
     workspace_id: str | None = Query(default=None),
     limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
     _: InternalOpsPrincipal = Depends(require_internal_operator),
 ) -> AdminReportListResponse:
-    reports = await list_reports(
+    reports, total = await list_reports(
         db,
-        filter=ListReportsFilter(user_id=user_id, workspace_id=workspace_id, limit=limit),
+        filter=ListReportsFilter(
+            user_id=user_id, workspace_id=workspace_id, limit=limit, offset=offset
+        ),
     )
     return AdminReportListResponse(
         reports=[
@@ -42,5 +45,6 @@ async def list_(
                 size_bytes=r.size_bytes,
             )
             for r in reports
-        ]
+        ],
+        total=total,
     )

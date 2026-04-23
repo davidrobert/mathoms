@@ -18,24 +18,32 @@ function formatBytes(bytes: number | null): string {
   return `${value.toFixed(1)} ${units[i]}`;
 }
 
+const PAGE_SIZE = 25;
+
 export default function ReportsPage() {
   const [userId, setUserId] = useState("");
   const [workspaceId, setWorkspaceId] = useState("");
+  const [appliedUser, setAppliedUser] = useState("");
+  const [appliedWs, setAppliedWs] = useState("");
   const [reports, setReports] = useState<ReportSummary[]>([]);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(
-    async (u: string, w: string): Promise<void> => {
+    async (u: string, w: string, off: number): Promise<void> => {
       setLoading(true);
       setError(null);
       try {
         const res = await api.listReports({
           user_id: u.trim() || undefined,
           workspace_id: w.trim() || undefined,
-          limit: 200,
+          limit: PAGE_SIZE,
+          offset: off,
         });
         setReports(res.reports);
+        setTotal(res.total);
       } catch (err) {
         setError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao carregar.");
       } finally {
@@ -46,8 +54,8 @@ export default function ReportsPage() {
   );
 
   useEffect(() => {
-    void load("", "");
-  }, [load]);
+    void load(appliedUser, appliedWs, offset);
+  }, [load, offset, appliedUser, appliedWs]);
 
   return (
     <section>
@@ -55,14 +63,16 @@ export default function ReportsPage() {
         <div>
           <h1 className="font-display text-2xl font-semibold text-surface-fg">Relatórios</h1>
           <p className="text-sm text-surface-muted-fg">
-            Read-only. {reports.length} resultado(s).
+            Read-only. {total.toLocaleString("pt-BR")} resultado(s) · exibindo {reports.length}.
           </p>
         </div>
         <form
           className="flex gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            void load(userId, workspaceId);
+            setOffset(0);
+            setAppliedUser(userId);
+            setAppliedWs(workspaceId);
           }}
         >
           <TextInput
@@ -133,6 +143,28 @@ export default function ReportsPage() {
           </tbody>
         </table>
       </div>
+
+      {total > PAGE_SIZE && (
+        <div className="mt-4 flex items-center justify-between text-sm text-surface-muted-fg">
+          <Button
+            variant="secondary"
+            onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
+            disabled={offset === 0 || loading}
+          >
+            Anterior
+          </Button>
+          <span>
+            {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} de {total}
+          </span>
+          <Button
+            variant="secondary"
+            onClick={() => setOffset((o) => o + PAGE_SIZE)}
+            disabled={offset + PAGE_SIZE >= total || loading}
+          >
+            Próxima
+          </Button>
+        </div>
+      )}
     </section>
   );
 }

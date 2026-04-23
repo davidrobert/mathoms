@@ -97,6 +97,7 @@ export interface ReportSummary {
 
 export interface AdminReportListResponse {
   reports: ReportSummary[];
+  total: number;
 }
 
 export interface AdminErrorResponse {
