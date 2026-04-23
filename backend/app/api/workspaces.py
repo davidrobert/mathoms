@@ -27,6 +27,8 @@ from backend.app.core.tenancy import (
     get_current_workspace,
     require_member_admin_role,
 )
+from backend.app.events import dispatch_sync
+from backend.app.events.domain import AuditLogEvent
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.models.workspace_member import WorkspaceMember
@@ -40,10 +42,10 @@ from backend.app.schemas.workspace_members import (
     MemberRoleUpdateRequest,
 )
 from backend.app.services import (
-    audit_service,
     invitation_service,
     membership_service,
 )
+from backend.app.services.audit import client_meta
 from backend.app.services.invitation_service import InvitationError
 from backend.app.services.membership_service import MembershipError
 
@@ -181,19 +183,25 @@ async def update_member_role_endpoint(
             detail={"code": exc.code, "message": str(exc)},
         ) from exc
 
-    await audit_service.log(
-        db=db,
-        workspace_id=workspace.id,
-        action="workspace.member.role_change",
-        resource_type="workspace_member",
-        resource_id=updated.id,
-        actor_user_id=actor.id,
-        details={
-            "target_user_id": user_id,
-            "from_role": previous_role,
-            "to_role": updated.role,
-        },
-        request=request,
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=updated.id,
+            aggregate_type="workspace_member",
+            workspace_id=workspace.id,
+            action="workspace.member.role_change",
+            resource_type="workspace_member",
+            resource_id=updated.id,
+            actor_user_id=actor.id,
+            ip_address=ip,
+            user_agent=ua,
+            details={
+                "target_user_id": user_id,
+                "from_role": previous_role,
+                "to_role": updated.role,
+            },
+        ),
+        {"db": db},
     )
     await db.commit()
     await db.refresh(updated)
@@ -236,15 +244,21 @@ async def remove_member_endpoint(
             detail={"code": exc.code, "message": str(exc)},
         ) from exc
 
-    await audit_service.log(
-        db=db,
-        workspace_id=workspace.id,
-        action="workspace.member.remove",
-        resource_type="workspace_member",
-        resource_id=removed.id,
-        actor_user_id=actor.id,
-        details={"target_user_id": user_id, "role": removed.role},
-        request=request,
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=removed.id,
+            aggregate_type="workspace_member",
+            workspace_id=workspace.id,
+            action="workspace.member.remove",
+            resource_type="workspace_member",
+            resource_id=removed.id,
+            actor_user_id=actor.id,
+            ip_address=ip,
+            user_agent=ua,
+            details={"target_user_id": user_id, "role": removed.role},
+        ),
+        {"db": db},
     )
     await db.commit()
 
@@ -290,15 +304,21 @@ async def create_invitation_endpoint(
             detail={"code": exc.code, "message": str(exc)},
         ) from exc
 
-    await audit_service.log(
-        db=db,
-        workspace_id=workspace.id,
-        action="workspace.member.invite",
-        resource_type="workspace_invitation",
-        resource_id=invitation.id,
-        actor_user_id=actor.id,
-        details={"email": body.email, "role": body.role},
-        request=request,
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=invitation.id,
+            aggregate_type="workspace_invitation",
+            workspace_id=workspace.id,
+            action="workspace.member.invite",
+            resource_type="workspace_invitation",
+            resource_id=invitation.id,
+            actor_user_id=actor.id,
+            ip_address=ip,
+            user_agent=ua,
+            details={"email": body.email, "role": body.role},
+        ),
+        {"db": db},
     )
     await db.commit()
     await db.refresh(invitation)
@@ -357,14 +377,20 @@ async def revoke_invitation_endpoint(
             detail={"code": exc.code, "message": str(exc)},
         ) from exc
 
-    await audit_service.log(
-        db=db,
-        workspace_id=workspace.id,
-        action="workspace.member.revoke_invite",
-        resource_type="workspace_invitation",
-        resource_id=inv.id,
-        actor_user_id=actor.id,
-        details={"email": inv.email},
-        request=request,
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=inv.id,
+            aggregate_type="workspace_invitation",
+            workspace_id=workspace.id,
+            action="workspace.member.revoke_invite",
+            resource_type="workspace_invitation",
+            resource_id=inv.id,
+            actor_user_id=actor.id,
+            ip_address=ip,
+            user_agent=ua,
+            details={"email": inv.email},
+        ),
+        {"db": db},
     )
     await db.commit()
