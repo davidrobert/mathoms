@@ -2043,18 +2043,27 @@ Regras firmes:
   no audit que catalogam os ofensores ainda em `float` (13 em
   `backend/app/` no snapshot 2026-04-22: 7 goal DTOs + 4 transactions +
   1 tolerance + 1 helper).
-- **A6g.3b** (☐ aberta, prompt `track_a6g3b_decimal_money_migration.md`)
-  migra os campos em DTO usando tipo `MoneyBRL = Annotated[Decimal,
-  BeforeValidator(_coerce_to_decimal), PlainSerializer(float,
-  when_used="json")]`. Estratégia: Decimal em memória + number no JSON
-  (via serializer), preservando wire-compat com frontend manual que
-  espera `number` em TS. Internal math em `goal_service.py` migra para
-  Decimal arithmetic com `.quantize(Decimal("0.01"))` nos returns.
-  Deferido de A6g.3 porque exige cascata de refactor de fórmulas
-  (compute_if_derived, compute_aporte_derived, compute_dolar_derived,
-  _pmt_constante_ate_fv) + revisão de OpenAPI snapshot (request schemas
-  ganham `anyOf [number, string]`) + frontend E2E re-cert em goal
-  flows.
+- **A6g.3b** (🚧 sessões 1+2 ✅ 2026-04-22) migra campos em DTO via tipo
+  `MoneyBRL = Annotated[Decimal, BeforeValidator(_coerce_to_decimal),
+  PlainSerializer(float, when_used="json")]` (idem `MoneyUSD`).
+  Decimal em memória + number no JSON (via serializer), preservando
+  wire-compat com frontend manual que espera `number` em TS. **Sessão
+  1 (slices 1+3):** tipo criado em `backend/app/schemas/money.py` +
+  4 campos transactions migrados (cascade em `transaction_service` e
+  `task_progress_service`). **Sessão 2 (slice 2, commit `71dc379`):**
+  11 campos goal DTOs (`aporte`/`dolar`/`if_goal`) + math em
+  `goal_service.py` refatorada em Decimal (`_retorno_mensal_decimal`
+  via `Decimal.ln()/.exp()` — expoente fracionário não suportado
+  nativo; `_pmt_constante_ate_fv`, `_if_meta_targets`,
+  `_aporte_cobrindo_gap_com_patrimonio` com Decimal puro;
+  `compute_dolar_derived` promove câmbio a Decimal, horizonte em
+  meses fica float (duração); `.quantize(Decimal("0.01"))` em
+  returns). Persistência via `model_dump(mode="json")` (SQLAlchemy
+  JSON column não tem codec Decimal). OpenAPI snapshot ganha
+  Input/Output split para schemas com `MoneyBRL` (Input `anyOf
+  [number, string]`, Output `number` puro) — wire TS intacto.
+  **Pendente:** S0 tolerance rename (opcional), S4 frontend sanity
+  manual, S5 baseline regen + ADR-090 nota final.
 - **Tolerâncias** (`saldo_diff`, `baseline_irpf_diff`, `score_diff_max`,
   `cv_*_diff_max`) NÃO são money — são deltas/thresholds. O audit
   pode flaggar como false positive (nome contém "saldo"). Rename para

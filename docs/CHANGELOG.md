@@ -8,6 +8,46 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.3b — Decimal money: goal DTOs + `goal_service` math (slice 2 ✅) (2026-04-22):**
+  Fecha a segunda sessão do track A6g.3b: 11 campos money em goal DTOs
+  migrados para `MoneyBRL`/`MoneyUSD` e aritmética em `goal_service.py`
+  reescrita em `Decimal` (ln/exp para taxa mensal equivalente, `.quantize
+  (Decimal("0.01"))` em boundaries). Persistência via `model_dump(mode=
+  "json")` mantém JSON `number` no DB — zero migração de schema. Wire
+  de response continua `number` via `PlainSerializer`.
+  - **DTOs migrados:** `aporte.py` (`meta_aporte_mensal_brl`,
+    `distribuicao: dict[str, MoneyBRL]`, `aporte_anual_brl`),
+    `dolar.py` (`meta_usd: MoneyUSD`, `aporte_mensal_brl`),
+    `if_goal.py` (`renda_passiva_mensal_brl`, `if_meta_brl`,
+    `aporte_necessario_mensal_brl`, `if_meta_conservadora_brl`,
+    `aporte_mensal_com_patrimonio_atual_brl`,
+    `patrimonio_atual_utilizado_brl`, `IFGoalComputeRequest
+    .patrimonio_atual_brl`, `IFGoalComputeResponse.faltante_brl`).
+  - **Math em Decimal:** `_retorno_mensal_decimal` via
+    `((1 + r_annual).ln() / Decimal("12")).exp() - 1` (Decimal não
+    suporta expoente fracionário direto); `_pmt_constante_ate_fv`,
+    `_if_meta_targets`, `_aporte_cobrindo_gap_com_patrimonio`
+    assinam Decimal. `compute_aporte_derived`: `anual = meta *
+    Decimal("12")`, distribuição pct via float cast (percentual não
+    é money). `compute_dolar_derived`: câmbio promovido a Decimal,
+    `horizonte_estimado_meses` permanece float (duração).
+    `get_latest_report_patrimonio_liquido` retorna `Optional[Decimal]`.
+  - **Persistência:** `create_if_goal_version`,
+    `create_typed_goal_version` e `make_if_goal` factory agora usam
+    `model_dump(mode="json")` para serializar Decimal → float antes
+    do INSERT (coluna SQLAlchemy `JSON` não tem codec Decimal).
+  - **OpenAPI snapshot:** Input/Output split agora aparece para DTOs
+    com `MoneyBRL` (Input aceita `anyOf [number, string]` por causa
+    do `BeforeValidator`, Output emite `number` puro). Frontend TS
+    intacto. Diff de +173/−21 linhas em `docs/api/v1/openapi.json`.
+  - **Testes:** `test_goal_service` / `test_goals_api` /
+    `test_goal_repository` / `test_goal_dto_mapper` verdes (64). Só
+    1 assertion ajustada: `test_aporte_zero_quando_patrimonio_ja_
+    projeta_acima_da_meta` usa `float(meta)` na aritmética mista
+    com `r_m` float. Comparações `Decimal("7200000.00") == 7_200_000.0`
+    continuam `True` nativamente.
+  - **Gates:** 1174 backend + `test_openapi_snapshot` verde.
+
 - **A6g.3b — Decimal money: tipo `MoneyBRL`/`MoneyUSD` + transactions migrado (parcial) (2026-04-22):**
   Executa slices 1+3 do track A6g.3b (goal DTOs + math `compute_if_derived`
   ficam para sessão dedicada). Cria tipo money com Decimal em memória +
