@@ -389,6 +389,22 @@ trabalhe em disjunto, `git stash push -- <arquivos>`, ou
 `git worktree add ../fin-<slug>` para isolar. Se `CLAUDE.md` mudou
 recente, releia antes de agir.
 
+**Detecção de edits perdidos entre turnos (retomada de sessão):** se você
+fez edits em turnos anteriores desta mesma sessão e o turno atual começa
+com `git status` limpo, o working tree foi revertido externamente (outro
+agente, `git checkout .` em outra aba, hook de limpeza de worktree…).
+Compare com o último commit:
+```bash
+git status && git log --oneline HEAD -3
+```
+Se não há commit novo com seu trabalho e a memória da conversa diz que
+você editou, **pare, avise o usuário em 1-2 linhas** ("edits perdidos
+entre turnos no worktree X — reaplicando Y arquivos") e reaplique **antes**
+de qualquer outra ação. Não continue em silêncio como se os edits
+estivessem lá. A regra #1 de "commit antes de devolver turno" (§Cadência)
+previne esse caso — esta detecção é o safety net quando a regra foi
+violada.
+
 ### Antes de pegar uma task do BACKLOG
 
 Agentes trabalham em branches `agent/<slug>/<timestamp>`. Dois agentes na
@@ -440,8 +456,29 @@ Timestamp evita colisão entre agentes. **Crie a branch antes da primeira
 edição**, não depois — edits em `main` local podem ser destruídos por
 `git reset --hard` de outro agente.
 
+**Worktree em `.claude/worktrees/<slug>/` é especialmente perigoso:** a
+branch default (`claude/<slug>`) é compartilhada por qualquer sessão
+Claude que reabra o mesmo worktree — edits uncommitted podem ser
+revertidos entre turnos quando outra sessão/hook mexe no working tree.
+Regra: **primeira ação ao entrar num worktree `.claude/worktrees/` é**
+```bash
+git status  # confirma clean ou entende o que tem
+git checkout -b agent/<slug>/<yyyyMMdd-HHmm>
+```
+antes de qualquer Edit/Write. Isso isola sua linha de trabalho de resets
+externos. Se já está numa branch `agent/*`, não recrie — continue nela.
+
 ### Cadência de commit (defensiva contra resets)
 
+- **Nunca termine uma resposta com working tree sujo.** Se fez edits e vai
+  devolver a palavra ao usuário (pedir confirmação, aguardar decisão,
+  entregar resultado pra validação), **commit WIP antes** — mesmo que seja
+  `chore(wip): gate A, aguardando aprovação p/ gate B`. A janela de risco
+  não é "pausa longa"; é **qualquer gap entre turnos**, porque o turno do
+  usuário pode ativar outro agente/aba/hook que toque o worktree. Perder
+  edits uncommitted é assimétrico: commit WIP custa 5 segundos, reversão
+  custa refazer 20 minutos e quebra confiança. Trade-off aceito: commits
+  WIP poluem histórico — squash no merge é barato.
 - **Commite a cada marco atômico** (criou repo, criou DTOs, refatorou
   endpoint) — commits sobrevivem a `git reset --hard HEAD` na branch.
 - Trabalhe em sua branch (§naming); edits em `main` local podem ser
