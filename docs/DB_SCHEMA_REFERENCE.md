@@ -607,6 +607,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `hashed_password` | `VARCHAR(255)` | no | — | — |
 | `full_name` | `VARCHAR(255)` | no | — | — |
 | `is_active` | `BOOLEAN` | no | `True` | — |
+| `is_developer` | `BOOLEAN` | no | server: `false` | — |
 | `token_version` | `INTEGER` | no | server: `0` | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
@@ -1141,6 +1142,7 @@ type User struct {
 	HashedPassword string `db:"hashed_password" json:"hashed_password"`
 	FullName string `db:"full_name" json:"full_name"`
 	IsActive bool `db:"is_active" json:"is_active"`
+	IsDeveloper bool `db:"is_developer" json:"is_developer"`
 	TokenVersion int `db:"token_version" json:"token_version"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }

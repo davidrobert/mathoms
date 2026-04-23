@@ -134,6 +134,7 @@ async def test_me_authenticated(auth_client: AsyncClient):
     assert data["email"] == "fixture@test.com"
     assert data["full_name"] == "Fixture User"
     assert data["is_active"] is True
+    assert data["is_developer"] is False
 
 
 @pytest.mark.asyncio

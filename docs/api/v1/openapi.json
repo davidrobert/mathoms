@@ -6197,6 +6197,11 @@
           "is_active": {
             "title": "Is Active",
             "type": "boolean"
+          },
+          "is_developer": {
+            "default": false,
+            "title": "Is Developer",
+            "type": "boolean"
           }
         },
         "required": [
