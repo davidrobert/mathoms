@@ -112,10 +112,10 @@ MATHOMS_DATABASE_URL=sqlite+aiosqlite:///./mathoms.db
 # CORS (default: localhost:3000)
 MATHOMS_CORS_ORIGINS=["http://localhost:3000"]
 
-# Feature flag — artefatos do pipeline no banco (ADR-083, cutover em curso)
-# Default False: scripts legados gravam em storage/<ws>/processed/*.json
-# True: DBArtifactStore ativo — pipeline_artifacts é fonte de verdade
-MATHOMS_USE_DB_ARTIFACTS=false
+# Feature flag — artefatos do pipeline no banco (ADR-083, cutover concluído)
+# Default True: DBArtifactStore ativo — pipeline_artifacts é fonte de verdade.
+# False: scripts legados gravam em storage/<ws>/processed/*.json (fallback de debug).
+MATHOMS_USE_DB_ARTIFACTS=true
 ```
 
 > **⚠️ Fernet key:** Se você perder essa chave ou gerá-la novamente, **todos os CPFs, API keys LLM e senhas PDF encriptadas ficam irrecuperáveis**. O user precisaria re-cadastrar.
@@ -400,7 +400,7 @@ Status + lanes abertas em [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração
 Principais mudanças já em código (fases 1-8 foundation):
 
 - **Artefatos do pipeline no banco** (tabela `pipeline_artifacts`, ADR-082) com feature flag
-  `MATHOMS_USE_DB_ARTIFACTS` (default `False`).
+  `MATHOMS_USE_DB_ARTIFACTS` (default `True` a partir de 2026-04-23 — ADR-118).
 - **Abstração `ArtifactStore`** em [`pipeline/artifact_store.py`](../pipeline/artifact_store.py)
   (ADR-083) — Disk, InMemory, DB (em `backend/`).
 - **Orquestrador declarativo** via [`pipeline/stage_spec.py`](../pipeline/stage_spec.py)

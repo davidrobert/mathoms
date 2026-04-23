@@ -8,6 +8,21 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **Default `MATHOMS_USE_DB_ARTIFACTS=true` (2026-04-23 · ADR-118):** flip do
+  default global de `False` → `True` em `backend/app/core/config.py` após
+  cutover DB validado (A6b/A6-human). Consequências operacionais:
+  - CI consolidado — removido job informacional
+    `backend-tests-db-artifacts` (`continue-on-error: true`); o único job
+    `backend-tests` passa a rodar com `MATHOMS_USE_DB_ARTIFACTS=true` e
+    bloqueia merge via `all-green`. ~15min/push economizados.
+  - `docs/SETUP.md`, `docs/ARCHITECTURE.md` (§17.3, §ArtifactStore),
+    `docs/STATELESS_AUDIT.md` (§6, conclusão) e `CLAUDE.md` (§Feature flag)
+    atualizados para refletir default `True`.
+  - `docs/runbooks/cutover.md` mantido como **referência histórica e
+    procedimento de rollback** (setar `false` + redeploy).
+  - Override per-workspace (`use_db_artifacts_override`, ADR-106) continua
+    válido — agora usado primariamente para debug com disco (`FALSE`).
+
 - **A6e.4 — Routers finos fase 4a COMPLETA (2026-04-22 · ADR-101 R15/R16):**
   **14/14 da fase 4a entregues** — os 7 routers restantes (`invitations`,
   `ws`, `llm`, `transactions`, `reports`, `workspaces`, `pipeline`) viraram

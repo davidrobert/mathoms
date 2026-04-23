@@ -114,15 +114,15 @@ Grep `fcntl`, `flock`, `filelock`, `portalocker` em `backend/` e
 `pipeline/` — **zero resultados**. Nenhum lock em disco que precisaria
 ser migrado para advisory lock Postgres ou `SET NX` Redis.
 
-**Ressalva operacional:** com `MATHOMS_USE_DB_ARTIFACTS=False` (default
-hoje), artifacts são escritos em `storage/<ws>/processed/...`. Se N
-Celery workers rodarem a mesma run (não deveria — `task_acks_late=True`
-+ `task_reject_on_worker_lost=True`), escrita concorrente em disco
-poderia gerar corrupção — mas a semântica Celery garante 1 worker por
-run_id. Ativar `MATHOMS_USE_DB_ARTIFACTS=True` (A6b) **elimina** essa
-classe de risco entirely — escrita via SQLAlchemy + Postgres.
+**Ressalva operacional:** default `MATHOMS_USE_DB_ARTIFACTS=True` (ADR-118,
+2026-04-23) — artifacts gravados via SQLAlchemy + Postgres, risco de escrita
+concorrente em disco eliminado. Workspaces com
+`use_db_artifacts_override=FALSE` (debug) ainda gravam em
+`storage/<ws>/processed/...`; a semântica Celery (`task_acks_late=True` +
+`task_reject_on_worker_lost=True`) garante 1 worker por run_id mesmo nesse
+modo.
 
-**Veredito:** ✅ **OK para modo atual; melhor ainda após cutover DB**.
+**Veredito:** ✅ **OK — default DB elimina classe de risco**.
 
 ### 7. `contextvars` — **request-scoped apenas**
 
@@ -186,9 +186,8 @@ decrypt é determinístico sobre a mesma key.
   o entregável nuclear da A6f.6 — valida empiricamente que o que o audit
   diz no papel funciona na prática. Vai em
   `tests/integration/test_multi_worker_concurrency.py`.
-- 🟢 **§6 File locks**: depende de `MATHOMS_USE_DB_ARTIFACTS=True` para
-  eliminar totalmente risco residual. Cutover pleno é A6-human (já
-  destravado pela A6b).
+- 🟢 **§6 File locks**: risco residual eliminado — default
+  `MATHOMS_USE_DB_ARTIFACTS=True` a partir de 2026-04-23 (ADR-118).
 
 ---
 

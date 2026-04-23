@@ -796,6 +796,17 @@ convergir em `origin/main`.
 
 **Nota A6b.5.6**: Logs de `skipped_free_tier` já existem no pipeline desde F5. Banner visual na UI fica para F7B (security hardening) junto com outros elementos de UX de produção.
 
+### A6b.flip — Flip do default global ✅ entregue 2026-04-23 (ADR-118)
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| A6b.flip.1 | `USE_DB_ARTIFACTS: bool = True` em `backend/app/core/config.py` | P0 | 5min | ✅ |
+| A6b.flip.2 | CI consolidado: remove job `backend-tests-db-artifacts` (continue-on-error) e seta `MATHOMS_USE_DB_ARTIFACTS=true` no único `backend-tests` → bloqueia `all-green` | P0 | 15min | ✅ |
+| A6b.flip.3 | Docs atualizadas (`CLAUDE.md`, `SETUP.md`, `ARCHITECTURE.md` §17.3/§ArtifactStore, `STATELESS_AUDIT.md`, `runbooks/cutover.md` header) | P0 | 30min | ✅ |
+| A6b.flip.4 | ADR-118 registrada + `CHANGELOG.md [Unreleased]` | P0 | 20min | ✅ |
+
+**Checkpoint A6b.flip:** ✅ Default `True` em `main`; rollback via `MATHOMS_USE_DB_ARTIFACTS=false` + redeploy (runbook `docs/runbooks/cutover.md §Rollback`).
+
 ### A6-human — Teste manual end-to-end (David)
 
 | # | Entrega | Prio | Esforço | Status |

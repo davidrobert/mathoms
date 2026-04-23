@@ -1,7 +1,12 @@
 # Runbook — Cutover `MATHOMS_USE_DB_ARTIFACTS` para workspaces existentes
 
-> ADR-082, ADR-083, ADR-096 · Complementa [BACKLOG §Sprint A6 — A6b](../BACKLOG.md#a6b--ativar-use_db_artifactstrue--validar-end-to-end) e [TESTING §Fase 4](../TESTING.md#infra--fase-4-cleanup--cutover)
-> Objetivo: migrar workspaces de `DiskArtifactStore` para `DBArtifactStore` sem perda de dados nem regressão de performance.
+> **Status (2026-04-23):** default global `MATHOMS_USE_DB_ARTIFACTS=true` (ADR-118).
+> Este runbook permanece válido como **referência histórica** do cutover e como
+> procedimento de **rollback** (setar `false` + redeploy) caso regressão apareça.
+> Novos workspaces já iniciam em modo DB sem ação adicional.
+>
+> ADR-082, ADR-083, ADR-096, ADR-118 · Complementa [BACKLOG §Sprint A6 — A6b](../BACKLOG.md#a6b--ativar-use_db_artifactstrue--validar-end-to-end) e [TESTING §Fase 4](../TESTING.md#infra--fase-4-cleanup--cutover)
+> Objetivo original: migrar workspaces de `DiskArtifactStore` para `DBArtifactStore` sem perda de dados nem regressão de performance.
 
 ---
 
