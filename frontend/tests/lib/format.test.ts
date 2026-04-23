@@ -533,7 +533,6 @@ describe("documentDisplayLabel()", () => {
       doc_type: "bank_statement",
       bank_code: "bradesco",
       period: "202603",
-      needs_review: false,
     });
     expect(out).toBe("Bradesco · Extrato · mar./2026");
   });
@@ -557,26 +556,42 @@ describe("documentDisplayLabel()", () => {
     expect(out).toBe("BTG Pactual · Extrato · fev./2026–mar./2026");
   });
 
-  it("retorna null se needs_review=true mesmo com dados", () => {
-    expect(
-      documentDisplayLabel({
-        doc_type: "bank_statement",
-        bank_code: "bradesco",
-        period: "202603",
-        needs_review: true,
-      }),
-    ).toBeNull();
+  it("ignora needs_review — incerteza é sinalizada por outro canal (ícone ⚠)", () => {
+    const out = documentDisplayLabel({
+      doc_type: "bank_statement",
+      bank_code: "bradesco",
+      period: "202603",
+    });
+    expect(out).toBe("Bradesco · Extrato · mar./2026");
   });
 
-  it("retorna null se faltam bank_code E doc_type", () => {
+  it("aceita só instituição quando doc_type é null", () => {
     expect(
-      documentDisplayLabel({ doc_type: null, bank_code: null, period: null }),
-    ).toBeNull();
+      documentDisplayLabel({ doc_type: null, bank_code: "itau", period: "2026" }),
+    ).toBe("Itaú · 2026");
   });
 
-  it("retorna null se só um dos campos estiver presente (sem período)", () => {
+  it("aceita só tipo quando bank_code é null", () => {
     expect(
       documentDisplayLabel({ doc_type: "bank_statement", bank_code: null, period: null }),
+    ).toBe("Extrato");
+  });
+
+  it("retorna null se faltam bank_code E doc_type (só tem período)", () => {
+    expect(
+      documentDisplayLabel({ doc_type: null, bank_code: null, period: "2026" }),
+    ).toBeNull();
+  });
+
+  it("retorna null se doc_type='other' sem instituição", () => {
+    expect(
+      documentDisplayLabel({ doc_type: "other", bank_code: null, period: null }),
+    ).toBeNull();
+  });
+
+  it("retorna null se nenhum campo presente", () => {
+    expect(
+      documentDisplayLabel({ doc_type: null, bank_code: null, period: null }),
     ).toBeNull();
   });
 
