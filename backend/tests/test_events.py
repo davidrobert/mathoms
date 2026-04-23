@@ -6,6 +6,7 @@ import pytest
 
 from backend.app.services.events import (
     publish_event,
+    publish_item_progress,
     publish_needs_review,
     publish_run_cancelled,
     publish_run_completed,
@@ -121,3 +122,100 @@ class TestPublishEvent:
         assert payload["run_id"] == "run-1"
         assert "stage" not in payload
         assert "error" not in payload
+
+
+class TestPublishItemProgress:
+    """ADR-119 — contrato LiveStep."""
+
+    def test_emits_all_contract_fields(self, fake_redis):
+        publish_item_progress(
+            "run-1",
+            "E1.5",
+            current_item="declaracao_david.pdf",
+            items_done=2,
+            items_total=5,
+            phase="awaiting_llm",
+            estimated_duration_ms=900_000,
+        )
+        payload = fake_redis.last.payload
+        assert payload["event"] == "stage_activity"
+        assert payload["stage"] == "E1.5"
+        assert payload["status"] == "running"
+        detail = payload["detail"]
+        assert detail["current_item"] == "declaracao_david.pdf"
+        assert detail["items_done"] == 2
+        assert detail["items_total"] == 5
+        assert detail["phase"] == "awaiting_llm"
+        assert detail["estimated_duration_ms"] == 900_000
+
+    def test_omits_optional_fields_when_none(self, fake_redis):
+        publish_item_progress(
+            "run-1", "E2-llm", current_item=None, items_done=0, items_total=3, phase="preparing"
+        )
+        detail = fake_redis.last.payload["detail"]
+        assert "current_item" not in detail
+        assert "estimated_duration_ms" not in detail
+        assert detail["items_done"] == 0
+
+    def test_throttles_rapid_consecutive_emits(self, fake_redis):
+        publish_item_progress(
+            "run-1", "E1.5", current_item="a.pdf", items_done=0, items_total=5, phase="preparing"
+        )
+        publish_item_progress(
+            "run-1",
+            "E1.5",
+            current_item="a.pdf",
+            items_done=0,
+            items_total=5,
+            phase="awaiting_llm",
+        )
+        assert len(fake_redis.messages) == 1
+
+    def test_finalizing_phase_bypasses_throttle(self, fake_redis):
+        publish_item_progress(
+            "run-1", "E1.5", current_item="a.pdf", items_done=4, items_total=5, phase="preparing"
+        )
+        publish_item_progress(
+            "run-1", "E1.5", current_item="e.pdf", items_done=5, items_total=5, phase="finalizing"
+        )
+        assert len(fake_redis.messages) == 2
+        assert fake_redis.last.payload["detail"]["phase"] == "finalizing"
+
+    def test_throttle_is_per_stage(self, fake_redis):
+        publish_item_progress(
+            "run-1", "E1", current_item=None, items_done=0, items_total=2, phase="preparing"
+        )
+        publish_item_progress(
+            "run-1", "E1.5", current_item=None, items_done=0, items_total=5, phase="preparing"
+        )
+        assert len(fake_redis.messages) == 2
+
+    def test_throttle_is_per_run(self, fake_redis):
+        publish_item_progress(
+            "run-a", "E1.5", current_item=None, items_done=0, items_total=5, phase="preparing"
+        )
+        publish_item_progress(
+            "run-b", "E1.5", current_item=None, items_done=0, items_total=5, phase="preparing"
+        )
+        assert len(fake_redis.messages) == 2
+
+    def test_rejects_invalid_phase(self, fake_redis):
+        with pytest.raises(ValueError, match="invalid LiveStep phase"):
+            publish_item_progress(
+                "run-1",
+                "E1.5",
+                current_item=None,
+                items_done=0,
+                items_total=1,
+                phase="wat",  # type: ignore[arg-type]
+            )
+
+    def test_rejects_items_done_out_of_range(self, fake_redis):
+        with pytest.raises(ValueError, match="out of"):
+            publish_item_progress(
+                "run-1", "E1.5", current_item=None, items_done=6, items_total=5, phase="preparing"
+            )
+        with pytest.raises(ValueError, match="out of"):
+            publish_item_progress(
+                "run-1", "E1.5", current_item=None, items_done=-1, items_total=5, phase="preparing"
+            )

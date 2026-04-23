@@ -27,12 +27,33 @@ class FakeRedisPublisher:
     def __init__(self, *, publish_error: Exception | None = None) -> None:
         self.messages: list[PublishedMessage] = []
         self._publish_error = publish_error
+        self._keys: set[str] = set()
 
     def publish(self, channel: str, payload: str) -> int:
         if self._publish_error is not None:
             raise self._publish_error
         self.messages.append(PublishedMessage(channel=channel, raw_payload=payload))
         return 1
+
+    def set(
+        self,
+        key: str,
+        value: str,
+        *,
+        nx: bool = False,
+        px: int | None = None,
+        ex: int | None = None,
+    ) -> bool | None:
+        # Minimal SET NX — suficiente para o throttle LiveStep (ADR-119).
+        # TTL ignorado; testes que precisam de expiração chamam `expire_key`.
+        del value, px, ex
+        if nx and key in self._keys:
+            return None
+        self._keys.add(key)
+        return True
+
+    def expire_key(self, key: str) -> None:
+        self._keys.discard(key)
 
     @property
     def last(self) -> PublishedMessage:

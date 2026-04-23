@@ -9,9 +9,15 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 logger = logging.getLogger(__name__)
+
+# ADR-119: fases válidas do contrato LiveStep. Tem peso fixo no frontend
+# (<LiveStepProgress/>) — adicionar valor aqui é breaking change.
+LiveStepPhase = Literal["preparing", "awaiting_llm", "validating", "persisting", "finalizing"]
+_LIVESTEP_PHASES = ("preparing", "awaiting_llm", "validating", "persisting", "finalizing")
+_LIVESTEP_THROTTLE_MS = 250
 
 _redis_client = None
 
@@ -121,6 +127,55 @@ def publish_stage_activity(
         status="running",
         detail=detail if detail else None,
     )
+
+
+def _livestep_throttle_allows(run_id: str, stage: str) -> bool:
+    # Rate limit via Redis SET NX PX (ADR-111: nunca throttle em memória).
+    # Falha aberta: sem Redis ou exceção → permite emissão.
+    client = _get_redis()
+    if client is None:
+        return True
+    try:
+        acquired = client.set(
+            f"livestep:th:{run_id}:{stage}", "1", nx=True, px=_LIVESTEP_THROTTLE_MS
+        )
+    except Exception as exc:
+        logger.warning("livestep throttle check failed, allowing emit: %s", exc)
+        return True
+    return bool(acquired)
+
+
+def publish_item_progress(
+    run_id: str,
+    stage: str,
+    *,
+    current_item: Optional[str],
+    items_done: int,
+    items_total: int,
+    phase: LiveStepPhase,
+    estimated_duration_ms: Optional[int] = None,
+) -> None:
+    """Emit LiveStep per-item progress (ADR-119).
+
+    Throttled to 1 event / 250ms per (run_id, stage). `phase="finalizing"`
+    sempre emite (usuário precisa ver a conclusão do último item).
+    """
+    if phase not in _LIVESTEP_PHASES:
+        raise ValueError(f"invalid LiveStep phase: {phase!r} (expected one of {_LIVESTEP_PHASES})")
+    if not (0 <= items_done <= items_total):
+        raise ValueError(f"items_done={items_done} out of [0, items_total={items_total}]")
+    if phase != "finalizing" and not _livestep_throttle_allows(run_id, stage):
+        return
+    detail: dict[str, Any] = {
+        "items_done": items_done,
+        "items_total": items_total,
+        "phase": phase,
+    }
+    if current_item is not None:
+        detail["current_item"] = current_item
+    if estimated_duration_ms is not None:
+        detail["estimated_duration_ms"] = estimated_duration_ms
+    publish_event(run_id, "stage_activity", stage=stage, status="running", detail=detail)
 
 
 def publish_needs_review(run_id: str, stage: str) -> None:
