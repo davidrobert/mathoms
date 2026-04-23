@@ -6552,7 +6552,6 @@
     },
     "/api/v1/invitations/{token}": {
       "get": {
-        "description": "Rota P\u00daBLICA (sem auth). O convidado pode nem ter conta ainda;\nesta rota serve para a landing `/invite/{token}` mostrar o contexto\nantes de pedir login/signup.\n\nRevela apenas campos do workspace e do inviter \u2014 nada sobre outros\nmembros ou dados financeiros.",
         "operationId": "preview_invitation_api_v1_invitations__token__get",
         "parameters": [
           {
@@ -6595,7 +6594,6 @@
     },
     "/api/v1/invitations/{token}/accept": {
       "post": {
-        "description": "Exige login. O email do user logado precisa bater com o email\nconvidado (case-insensitive).",
         "operationId": "accept_invitation_endpoint_api_v1_invitations__token__accept_post",
         "parameters": [
           {

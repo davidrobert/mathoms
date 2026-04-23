@@ -53,6 +53,7 @@ from backend.app.core.otel import instrument_fastapi, setup_otel
 from backend.app.middleware.correlation import CorrelationIdMiddleware
 from backend.app.middleware.legacy_deprecation import LegacyApiDeprecationMiddleware
 from backend.app.schemas.health import HealthResponse
+from backend.app.services.invitation_service import InvitationError
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +109,26 @@ async def _handle_validation(request: Request, exc: DomainValidationError) -> JS
 @app.exception_handler(AuthenticationError)
 async def _handle_auth(request: Request, exc: AuthenticationError) -> JSONResponse:
     return JSONResponse(status_code=401, content={"detail": str(exc)})
+
+
+_INVITATION_ERROR_STATUS = {
+    "not_found": 404,
+    "expired": 410,
+    "revoked": 410,
+    "already_accepted": 409,
+    "email_mismatch": 403,
+    "invalid_role": 422,
+    "already_member": 409,
+}
+
+
+@app.exception_handler(InvitationError)
+async def _handle_invitation(request: Request, exc: InvitationError) -> JSONResponse:
+    status_code = _INVITATION_ERROR_STATUS.get(exc.code, 400)
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": {"code": exc.code, "message": str(exc)}},
+    )
 
 
 # A6e.5 · ADR-108 — cada router é registrado 2×:
