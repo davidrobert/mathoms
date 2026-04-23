@@ -59,11 +59,11 @@ python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
 pip install -e ".[dev]"
+pip install -r backend/requirements.txt   # FastAPI, SQLAlchemy, Celery, cryptography…
 
 cd frontend && npm install && cd ..
 
 # Variáveis de ambiente (na raiz): ./scripts/gen-secrets.sh --init-env
-# (requer cryptography — ex.: pip install -r backend/requirements.txt)
 
 # Primeira vez / após mudanças em layout ou tokens:
 python3 design-tokens/build.py
