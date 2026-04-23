@@ -246,7 +246,7 @@ def _apply_processing_result(
 ) -> None:
     try:
         result = process_uploaded_document(
-            stored_path,
+            Path(stored_path),
             passwords,
             config_dir,
             tenant_root=tenant_root,
