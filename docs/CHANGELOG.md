@@ -31,7 +31,13 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     wire-compat validado via OpenAPI snapshot commitado nos slices
     1+3.
   - **Gate:** `pytest backend/tests -q` = **1177 passed, 4 skipped**
-    (zero regressão).
+    (zero regressão local). **CI no GitHub bloqueado por billing da
+    conta** (runs 24811030372 e anteriores falham com `"recent account
+    payments have failed"` — não é falha de código); ação fora do
+    escopo da lane. Verificação local cobre o gate funcional.
+  - **Commits em `main`:** `b17b83f` (code) + `ca9e93e` (docs).
+  - **Status:** **lane A6g.3b 100% concluída** (código + docs + baseline
+    + ADR-090 nota final).
 
 - **A6e.events-migration — 10 call-sites `audit_log()` inline → `AuditLogEvent` (2026-04-22):**
   Fecha a tarefa A6e.events-migration (destravada por A6e.events/ADR-115).
