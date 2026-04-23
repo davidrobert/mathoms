@@ -295,7 +295,7 @@ Ao adicionar global novo, registre entrada em
 
 ### Feature flag `MATHOMS_USE_DB_ARTIFACTS`
 
-Default `False`. Controla cutover DB do `ArtifactStore`. Durante transição,
+Default `True` (cutover concluído). Controla store do `ArtifactStore`. Durante transição,
 `MaterializationBridge` permite scripts legados rodarem com DB-backed
 store. Por workspace: `workspaces.use_db_artifacts_override: bool | None`
 (None = global flag, True = força DB, False = força disco).

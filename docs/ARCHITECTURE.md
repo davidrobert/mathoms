@@ -458,8 +458,8 @@ Três implementações concretas:
 encapsula queries cross-run (`get_latest_for_workspace`, `get_by_document`,
 `delete_stages_for_run`).
 
-**Feature flag** `MATHOMS_USE_DB_ARTIFACTS` (default `False`) seleciona o store em
-produção durante a janela de cutover.
+**Feature flag** `MATHOMS_USE_DB_ARTIFACTS` (default `True` desde 2026-04-23 — ADR-118)
+seleciona o store em produção. `False` é fallback de debug/rollback.
 
 ### Orquestrador declarativo (ADR-087)
 
@@ -1161,17 +1161,16 @@ passando, zero regressão nos goldens.
 
 ### 17.3 `ArtifactStore` como fronteira de storage (A6b ✅)
 
-`USE_DB_ARTIFACTS=False` continua o default — todos os stages rodam sobre
-`DiskArtifactStore` por default. **A6b entregou a infraestrutura de ativação
-opt-in por workspace** (`workspaces.use_db_artifacts_override`, ADR-106).
-Ativação por workspace:
+`USE_DB_ARTIFACTS=True` é o default (ADR-118, 2026-04-23) — todos os stages rodam
+sobre `DBArtifactStore` por default. Workspace pode forçar disco para debug via
+`workspaces.use_db_artifacts_override=FALSE` (ADR-106):
 ```sql
-UPDATE workspaces SET use_db_artifacts_override = TRUE WHERE id = '<ws_id>';
+UPDATE workspaces SET use_db_artifacts_override = FALSE WHERE id = '<ws_id>';
 ```
 `pipeline_task._resolve_use_db_artifacts(ws_id)` verifica override do workspace
-> global `MATHOMS_USE_DB_ARTIFACTS`. Quando ativo, cria `DBArtifactStore` com
-sessão longa e injeta em `ctx.artifact_store`. Cutover global ativa em A6c
-(após A6-human). Gate de validação: `python dev/compare_disk_vs_db.py <ws_id> --strict`.
+> global `MATHOMS_USE_DB_ARTIFACTS`. Com default ativo, cria `DBArtifactStore` com
+sessão longa e injeta em `ctx.artifact_store`. Gate de validação:
+`python dev/compare_disk_vs_db.py <ws_id> --strict`.
 
 ```python
 class ArtifactStore(Protocol):
