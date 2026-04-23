@@ -32,7 +32,7 @@ async def load_filtered_transactions(
     *,
     db: AsyncSession,
 ):
-    transactions = load_transactions(_tenant_root(workspace_id))
+    transactions = load_transactions(workspace_id, _tenant_root(workspace_id))
     overrides_map = await load_overrides_map(workspace_id, db)
     transactions = apply_overrides(transactions, overrides_map)
     return filter_transactions(

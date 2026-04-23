@@ -22,7 +22,7 @@ async def create_override(
     *,
     db: AsyncSession,
 ) -> TransactionOverrideResponse:
-    transactions = load_transactions(tenant_root(workspace_id))
+    transactions = load_transactions(workspace_id, tenant_root(workspace_id))
     matching = [t for t in transactions if t.transaction_hash == transaction_hash]
     if not matching:
         raise NotFoundError("Transação não encontrada")

@@ -182,6 +182,7 @@ def _tx_date_in_period(tx, period_start: date, period_end: date) -> bool:
 
 
 def _match_transactions_by_keyword(
+    workspace_id: str,
     tenant_root: str,
     keywords: list[str],
     period_start: date,
@@ -193,7 +194,7 @@ def _match_transactions_by_keyword(
     Best-effort: qualquer erro em `load_transactions` retorna zeros.
     """
     try:
-        txs = load_transactions(tenant_root)
+        txs = load_transactions(workspace_id, tenant_root)
     except Exception:  # noqa: BLE001 — best-effort, nunca quebra endpoint
         return Decimal("0"), 0, set()
 
@@ -215,6 +216,7 @@ def _match_transactions_by_keyword(
 def compute_progress(
     task: Task,
     *,
+    workspace_id: Optional[str] = None,
     tenant_root: Optional[str] = None,
 ) -> TaskProgress:
     """Computa progresso da task no mês corrente.
@@ -234,8 +236,10 @@ def compute_progress(
     keywords = _load_aporte_keywords_from_config(tenant_root)
 
     executed, matched_count, matched_keywords_set = (
-        _match_transactions_by_keyword(tenant_root, keywords, period_start, period_end)
-        if tenant_root
+        _match_transactions_by_keyword(
+            workspace_id, tenant_root, keywords, period_start, period_end
+        )
+        if tenant_root and workspace_id
         else (Decimal("0"), 0, set())
     )
 

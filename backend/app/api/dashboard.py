@@ -32,7 +32,7 @@ async def get_dashboard(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    e5 = load_e5_analysis(_tenant_root(workspace.id))
+    e5 = load_e5_analysis(workspace.id, _tenant_root(workspace.id))
 
     if not e5:
         return DashboardResponse(
@@ -57,7 +57,7 @@ async def get_alerts(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ):
-    e5 = load_e5_analysis(_tenant_root(workspace.id))
+    e5 = load_e5_analysis(workspace.id, _tenant_root(workspace.id))
 
     if not e5:
         return []

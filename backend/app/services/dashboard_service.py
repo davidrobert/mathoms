@@ -2,26 +2,20 @@
 
 from __future__ import annotations
 
-import json
 import logging
-from pathlib import Path
 from typing import Any
 
 from backend.app.schemas.dashboard import DashboardAlert, DashboardChart, DashboardKPI
+from backend.app.services.artifact_reader import read_latest_artifact
 
 logger = logging.getLogger(__name__)
 
 
-def load_e5_analysis(tenant_root: str) -> dict[str, Any] | None:
-    path = Path(tenant_root) / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-    if not path.exists():
-        return None
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, OSError) as exc:
-        logger.warning("Failed to load E5 analysis: %s", exc)
-        return None
+def load_e5_analysis(workspace_id: str, tenant_root: str) -> dict[str, Any] | None:
+    """Lê E5 analysis do DB (preferência) com fallback em disco."""
+    return read_latest_artifact(
+        workspace_id, stage="E5", key="analise_financeira", tenant_root=tenant_root
+    )
 
 
 def _fmt_brl(value: float) -> str:

@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 from decimal import Decimal
-from pathlib import Path
 from typing import Any, Optional
 
 from backend.app.schemas.transactions import TransactionItem, TransactionSummary
+from backend.app.services.artifact_reader import read_latest_artifact
 
 logger = logging.getLogger(__name__)
 
@@ -19,17 +18,10 @@ def generate_transaction_hash(tx: dict) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-def _load_e4_file(path: Path, tx_type: str) -> list[dict]:
-    """Load a single E4 unified JSON file and flatten the nested structure."""
-    if not path.exists():
+def _flatten_e4_payload(data: dict | None, tx_type: str) -> list[dict]:
+    """Achata a estrutura `{dados: {categoria: [items]}}` do E4 em lista."""
+    if not data:
         return []
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except (json.JSONDecodeError, OSError) as exc:
-        logger.warning("Failed to load %s: %s", path, exc)
-        return []
-
     dados = data.get("dados", {})
     transactions: list[dict] = []
     for _category_name, items in dados.items():
@@ -41,12 +33,16 @@ def _load_e4_file(path: Path, tx_type: str) -> list[dict]:
     return transactions
 
 
-def load_transactions(tenant_root: str) -> list[TransactionItem]:
-    root = Path(tenant_root)
-    e4_dir = root / "processed" / "E4_unified"
+def load_transactions(workspace_id: str, tenant_root: str) -> list[TransactionItem]:
+    receitas_payload = read_latest_artifact(
+        workspace_id, stage="E4", key="receitas", tenant_root=tenant_root
+    )
+    despesas_payload = read_latest_artifact(
+        workspace_id, stage="E4", key="despesas", tenant_root=tenant_root
+    )
 
-    raw_receitas = _load_e4_file(e4_dir / "receitas-4_unified.json", "receita")
-    raw_despesas = _load_e4_file(e4_dir / "despesas-4_unified.json", "despesa")
+    raw_receitas = _flatten_e4_payload(receitas_payload, "receita")
+    raw_despesas = _flatten_e4_payload(despesas_payload, "despesa")
 
     all_raw = raw_receitas + raw_despesas
     items: list[TransactionItem] = []

@@ -148,7 +148,7 @@ async def test_progress_with_fake_tenant_root_does_not_crash(db, tmp_path: Path)
         title="Configurar aporte R$ 10.000/mês",
         category="Invest",
     )
-    progress = compute_progress(task, tenant_root=str(tmp_path))
+    progress = compute_progress(task, workspace_id=str(ws.id), tenant_root=str(tmp_path))
     assert progress.is_trackable is True
     assert progress.executed_brl == 0.0
     assert progress.percent_executed == 0.0
@@ -217,7 +217,7 @@ async def test_progress_matches_transactions_with_keywords(db, tmp_path: Path):
     # Arquivo de receitas vazio (esperado pelo loader)
     (e4_dir / "receitas-4_unified.json").write_text(json.dumps({"dados": {}}), encoding="utf-8")
 
-    progress = compute_progress(task, tenant_root=str(tmp_path))
+    progress = compute_progress(task, workspace_id=str(ws.id), tenant_root=str(tmp_path))
     assert progress.is_trackable is True
     assert progress.target_brl == 20000.0
     # Somou os 2 aportes do mês (10k + 5k), ignorou o de mês anterior e o

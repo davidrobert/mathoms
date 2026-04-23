@@ -219,7 +219,9 @@ async def get_task_progress(
     task = await task_service.get_task(workspace.id, task_id, db=db)
     storage = StorageService()
     tenant_root = str(storage.tenant_root(workspace.id))
-    return task_progress_service.compute_progress(task, tenant_root=tenant_root)
+    return task_progress_service.compute_progress(
+        task, workspace_id=workspace.id, tenant_root=tenant_root
+    )
 
 
 @router.post(
