@@ -26,14 +26,14 @@ export function PatrimonioKpiRow({
   const taxaPoupanca = ratios?.taxa_poupanca_recorrente_pct;
 
   return (
-    <div className="mb-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="mb-10 grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
       <Kpi
         label="Patrimônio Líquido"
-        value={<MonetaryValue value={patrimonio?.liquido} />}
+        value={<MonetaryValue value={patrimonio?.liquido} fractionDigits={0} />}
       />
       <Kpi
         label="Investível"
-        value={<MonetaryValue value={patrimonio?.investivel} />}
+        value={<MonetaryValue value={patrimonio?.investivel} fractionDigits={0} />}
         hint={
           patrimonio?.fonte_investimentos
             ? `Fonte: ${patrimonio.fonte_investimentos}`
@@ -86,7 +86,7 @@ function Kpi({
       <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-semibold leading-tight text-[var(--surface-foreground)]">
+      <p className="mt-2 text-xl xl:text-2xl font-semibold leading-tight tracking-tight text-[var(--surface-foreground)] truncate">
         {value}
       </p>
       {hint && (
