@@ -421,7 +421,19 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
     }
 
     try:
-        with open(xls_path, "r", encoding="windows-1252") as f:
+        # Alguns exports do Itaú são XLS binário real (CDFV2 / "Microsoft Excel"),
+        # não HTML-as-XLS — abrir como texto crasha com UnicodeDecodeError. Sniff
+        # pelos magic bytes e delega para LLM fallback quando não for HTML.
+        with open(xls_path, "rb") as f:
+            head = f.read(8)
+        if head.startswith(b"\xd0\xcf\x11\xe0") or head.startswith(b"PK"):
+            result["notas"].append(
+                "Arquivo XLS binário (não HTML) — parser determinístico não suporta"
+            )
+            result["requires_llm_fallback"] = True
+            return result
+
+        with open(xls_path, "r", encoding="windows-1252", errors="replace") as f:
             html = f.read()
 
         soup = BeautifulSoup(html, "html.parser")

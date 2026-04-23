@@ -101,6 +101,21 @@ class TestParserRegistry:
         )
 
 
+class TestItauCdbBinaryXls:
+    """Itaú cdbdetalhes export is sometimes binary .xls (CDFV2) instead of
+    HTML-as-xls — parser must not crash with UnicodeDecodeError."""
+
+    def test_binary_xls_falls_back_to_llm(self, tmp_path):
+        from scripts.e2.banks.itau import parse_itau_cdb_html_xls
+
+        # CDFV2 magic header (Microsoft Compound File)
+        p = tmp_path / "itau_cdbdetalhes_2026.xls"
+        p.write_bytes(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 200)
+        result = parse_itau_cdb_html_xls(p, p.name)
+        assert result.get("requires_llm_fallback") is True
+        assert any("XLS binário" in n for n in result["notas"])
+
+
 class TestIsProcessable:
     def test_known_file(self):
         assert is_processable("c6bank_extratoconta_202601_202601-0_original.csv") is True
