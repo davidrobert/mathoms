@@ -63,7 +63,12 @@ class AuditAction(str, enum.Enum):
     vault_password_delete = "vault.password.delete"
 
 
-def _client_meta(request: Optional[Request] = None) -> tuple[Optional[str], Optional[str]]:
+def client_meta(request: Optional[Request] = None) -> tuple[Optional[str], Optional[str]]:
+    """Extrai (ip, user_agent) de um Request FastAPI.
+
+    Exposto para routers emitirem ``AuditLogEvent`` sem duplicar a lógica
+    de X-Forwarded-For (A6e.events-migration).
+    """
     if request is None:
         return None, None
     # Respeita X-Forwarded-For se presente (Traefik / reverse proxy)
@@ -71,6 +76,10 @@ def _client_meta(request: Optional[Request] = None) -> tuple[Optional[str], Opti
     ip = fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else None)
     ua = request.headers.get("user-agent")
     return ip, ua
+
+
+# Alias legado — mantido para compat com chamadas internas (audit_log).
+_client_meta = client_meta
 
 
 def _build(
