@@ -65,11 +65,32 @@ function EmptyReadyState({ onReload, title }: { onReload?: () => void; title: st
   );
 }
 
+function MissingIfGoalState() {
+  return (
+    <Card className="mb-8">
+      <CardContent>
+        <h2 className="mb-2 font-medium">Gerar Relatório</h2>
+        <p className="text-sm text-muted-foreground">
+          Antes de processar documentos, defina sua meta de Independência Financeira — ela é
+          usada no cálculo de progresso e cenários do relatório.
+        </p>
+        <Link
+          href="/plano/meta-if"
+          className="mt-3 inline-block text-primary hover:underline"
+        >
+          Definir Meta IF →
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function TriggerCard({
   readyCount,
   newCount,
   triggering,
   listDataOk,
+  hasIfGoal,
   onReload,
   onTrigger,
 }: {
@@ -77,12 +98,16 @@ export function TriggerCard({
   newCount: number;
   triggering: boolean;
   listDataOk: boolean;
+  /** `null` enquanto carrega, `false` bloqueia o trigger, `true` libera. */
+  hasIfGoal: boolean | null;
   onReload: () => void;
   onTrigger: (fromStage?: string, incremental?: boolean) => void;
 }) {
   if (!listDataOk) return <EmptyReadyState title="loadError" onReload={onReload} />;
   if (readyCount === 0) return <EmptyReadyState title="noDocs" />;
+  if (hasIfGoal === false) return <MissingIfGoalState />;
 
+  const blockedByIfGoal = hasIfGoal !== true;
   const hasNew = newCount > 0 && newCount < readyCount;
   return (
     <Card className="mb-8">
@@ -101,15 +126,19 @@ export function TriggerCard({
             <NewDocsButtons
               newCount={newCount}
               readyCount={readyCount}
-              triggering={triggering}
+              triggering={triggering || blockedByIfGoal}
               onTrigger={onTrigger}
             />
           ) : (
-            <Button onClick={() => onTrigger()} disabled={triggering}>
+            <Button onClick={() => onTrigger()} disabled={triggering || blockedByIfGoal}>
               {triggering ? <TriggeringLabel label="Iniciando..." /> : "Processar documentos"}
             </Button>
           )}
-          <Button variant="ghost" onClick={() => onTrigger("E3")} disabled={triggering}>
+          <Button
+            variant="ghost"
+            onClick={() => onTrigger("E3")}
+            disabled={triggering || blockedByIfGoal}
+          >
             Reprocessar a partir de {stageName("E3")}
           </Button>
         </div>

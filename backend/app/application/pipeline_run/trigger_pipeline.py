@@ -10,17 +10,23 @@ from sqlalchemy.orm import selectinload
 from backend.app.application.base.errors import ConflictError, ValidationError
 from backend.app.core.config import settings
 from backend.app.models.document import DOCUMENT_CLASSIFIED_OK, Document, DocumentStatus
+from backend.app.models.goal import Goal
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.schemas.pipeline import PipelineRunRequest, PipelineRunResponse
 from backend.app.services.pipeline_service import resolve_llm_tier_async, start_pipeline_run
 
 _ACTIVE_RUN_MESSAGE = "Já existe uma execução ativa neste workspace. Cancele ou aguarde."
+_MISSING_IF_GOAL_MESSAGE = (
+    "Defina sua meta de Independência Financeira antes de processar. "
+    "Acesse Plano → Meta IF para configurar."
+)
 
 
 async def trigger_pipeline(
     workspace_id: str, body: PipelineRunRequest, *, db: AsyncSession
 ) -> PipelineRunResponse:
     await _check_no_active_run(workspace_id, db=db)
+    await _require_if_goal(workspace_id, db=db)
     doc_count, new_doc_count = await _count_documents(workspace_id, db=db)
     _validate_counts(body, doc_count=doc_count, new_doc_count=new_doc_count)
     _validate_data_dir(workspace_id, body=body)
@@ -66,6 +72,21 @@ async def _check_no_active_run(workspace_id: str, *, db: AsyncSession) -> None:
     )
     if (result.scalar() or 0) > 0:
         raise ConflictError(_ACTIVE_RUN_MESSAGE)
+
+
+async def _require_if_goal(workspace_id: str, *, db: AsyncSession) -> None:
+    """Bloqueia pipeline se não há meta IF vigente — E5 falharia com KeyError lá na frente."""
+    result = await db.execute(
+        select(func.count())
+        .select_from(Goal)
+        .where(
+            Goal.workspace_id == workspace_id,
+            Goal.type == "INDEPENDENCIA_FINANCEIRA",
+            Goal.effective_to.is_(None),
+        )
+    )
+    if (result.scalar() or 0) == 0:
+        raise ValidationError(_MISSING_IF_GOAL_MESSAGE)
 
 
 async def _count_documents(workspace_id: str, *, db: AsyncSession) -> tuple[int, int]:

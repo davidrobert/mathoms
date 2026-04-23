@@ -202,6 +202,22 @@ def _read_life_plan_content() -> str:
     return ""
 
 
+def _require_if_meta_configured(life_plan_content: str | None = None) -> None:
+    """Fail-fast guard: valida que a meta IF existe antes de qualquer análise.
+
+    Sem este check, acessos diretos como ``goals["if_meta"]`` lançariam
+    ``KeyError: 'if_meta'`` em etapas tardias (mensagem opaca ao usuário).
+    O trigger do pipeline também valida — este é defesa em profundidade.
+    """
+    try:
+        extract_if_target_from_life_plan(life_plan_content)
+    except ValueError:
+        raise ValueError(
+            "Meta de Independência Financeira não configurada. "
+            "Acesse Plano → Meta IF para definir antes de processar documentos."
+        ) from None
+
+
 def extract_if_target_from_life_plan(life_plan_content: str | None = None) -> float:
     """Extract IF meta: goals.json → life_plan_goals.md regex → ValueError.
 
@@ -2663,6 +2679,8 @@ def main(root_dir: Path = None):
     print("=" * 70)
     print(f"[E5.0] Starting analysis at {datetime.now().isoformat()}")
 
+    _require_if_meta_configured()
+
     # Create output directory
     E5_ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -2929,6 +2947,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
 
     # 2. MD content lido uma vez no shell (A6d.2).
     life_plan_content = _read_life_plan_content()
+    _require_if_meta_configured(life_plan_content)
     tarefas_content = (
         CONFIG_TAREFAS.read_text(encoding="utf-8") if CONFIG_TAREFAS.exists() else None
     )

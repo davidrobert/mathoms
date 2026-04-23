@@ -18,6 +18,7 @@ import {
   type PipelineStageActivity,
   ApiError,
 } from "@/lib/api";
+import { getIFGoal } from "@/lib/api/goals";
 import { usePipelineWS } from "@/lib/usePipelineWS";
 import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
@@ -64,6 +65,8 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const [resuming, setResuming] = useState(false);
   const [liveStageActivity, setLiveStageActivity] =
     useState<PipelineStageActivity | null>(null);
+  /** `null` enquanto carrega; `false` = sem meta IF configurada — bloqueia trigger. */
+  const [hasIfGoal, setHasIfGoal] = useState<boolean | null>(null);
 
   const token = typeof window !== "undefined" ? getToken() : null;
 
@@ -145,7 +148,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [runsData, docsData, tierData, newDocData] = await Promise.all([
+      const [runsData, docsData, tierData, newDocData, ifGoalHas] = await Promise.all([
         listPipelineRuns(workspace.id),
         listDocuments(workspace.id, ["ready", "processed"]),
         getLLMTier(workspace.id).catch((): { tier: string; has_llm_config: boolean } => ({
@@ -153,6 +156,9 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           has_llm_config: false,
         })),
         getNewDocCount(workspace.id).catch(() => ({ new_count: 0 })),
+        getIFGoal(workspace.id)
+          .then(() => true)
+          .catch(() => false),
       ]);
       setListDataOk(true);
       setError("");
@@ -160,6 +166,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
       setReadyCount(docsData.total);
       setNewCount(newDocData.new_count);
       setIsPremium(tierData.tier === "premium");
+      setHasIfGoal(ifGoalHas);
 
       const active = runsData.runs.find((r) => ACTIVE_STATUSES.has(r.status));
       setActiveRun(active ?? null);
@@ -314,6 +321,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
             newCount={newCount}
             triggering={triggering}
             listDataOk={listDataOk}
+            hasIfGoal={hasIfGoal}
             onReload={() => void reload()}
             onTrigger={handleTrigger}
           />
