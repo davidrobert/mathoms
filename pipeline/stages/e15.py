@@ -168,13 +168,7 @@ def run(ctx: WorkspaceContext) -> dict:
     if not docs_with_text:
         return {"skipped": True, "reason": "No extractable text in IRPF documents"}
 
-    from pipeline.live_progress import emit_stage_activity
-
-    emit_stage_activity(
-        ctx.pipeline_run_id,
-        "E1.5",
-        message=f"Lendo declaração IRPF com IA ({len(docs_with_text)} documento(s))…",
-    )
+    from pipeline.live_progress import emit_item_progress
 
     config = LLMConfig(**llm_config_data)
     service = LLMService(config)
@@ -188,12 +182,29 @@ def run(ctx: WorkspaceContext) -> dict:
     total_cost_usd = 0.0
     errors: list[str] = []
     warnings: list[str] = []
+    total = len(docs_with_text)
 
-    for doc, text in docs_with_text:
+    for idx, (doc, text) in enumerate(docs_with_text):
+        emit_item_progress(
+            ctx.pipeline_run_id,
+            "E1.5",
+            current_item=doc.name,
+            items_done=idx,
+            items_total=total,
+            phase="preparing",
+        )
         documents_text = f"=== {doc.name} ===\n{text}"
         # JSON/IRPF podem conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.
         user_prompt = USER_PROMPT_TEMPLATE.format(documents_text=documents_text)
 
+        emit_item_progress(
+            ctx.pipeline_run_id,
+            "E1.5",
+            current_item=doc.name,
+            items_done=idx,
+            items_total=total,
+            phase="awaiting_llm",
+        )
         result = service.call(
             system_prompt=SYSTEM_PROMPT,
             user_prompt=user_prompt,
@@ -202,6 +213,14 @@ def run(ctx: WorkspaceContext) -> dict:
             stage="E1.5",
         )
 
+        emit_item_progress(
+            ctx.pipeline_run_id,
+            "E1.5",
+            current_item=doc.name,
+            items_done=idx,
+            items_total=total,
+            phase="validating",
+        )
         output: BaselinePatrimonialOutput = result.output
         validation = validate_e15_output(output)
         if not validation.valid:
@@ -209,6 +228,14 @@ def run(ctx: WorkspaceContext) -> dict:
         if validation.warnings:
             warnings.extend(validation.warnings)
 
+        emit_item_progress(
+            ctx.pipeline_run_id,
+            "E1.5",
+            current_item=doc.name,
+            items_done=idx,
+            items_total=total,
+            phase="persisting",
+        )
         baseline_json = _output_to_baseline_json(output)
         per_file_baselines.append(baseline_json)
         store.write("E1.5a", _artifact_key_for(doc), baseline_json)
@@ -216,6 +243,15 @@ def run(ctx: WorkspaceContext) -> dict:
         total_tokens_in += result.tokens_in
         total_tokens_out += result.tokens_out
         total_cost_usd += result.cost_estimate_usd
+
+    emit_item_progress(
+        ctx.pipeline_run_id,
+        "E1.5",
+        current_item=None,
+        items_done=total,
+        items_total=total,
+        phase="finalizing",
+    )
 
     combined = _aggregate_baselines(per_file_baselines)
 
