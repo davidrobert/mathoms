@@ -278,13 +278,32 @@ class TestPipelineService:
         factory = FakeSyncSessionFactory(
             FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="stale-ciphertext"))
         )
-        with (
-            patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
-            patch("backend.app.services.pipeline_service._vault.decrypt", return_value=None),
-            caplog.at_level(_logging.WARNING, logger="backend.app.services.pipeline_service"),
-        ):
-            assert detect_tier("ws-1") == "free"
-        assert any("decriptou para vazio" in r.message for r in caplog.records)
+        # Isolar de pollution de test ordering: força nível + propagação do logger
+        # alvo, caplog propaga o handler na raiz.
+        target_logger = _logging.getLogger("backend.app.services.pipeline_service")
+        prev_level, prev_prop, prev_disabled = (
+            target_logger.level,
+            target_logger.propagate,
+            target_logger.disabled,
+        )
+        target_logger.setLevel(_logging.WARNING)
+        target_logger.propagate = True
+        # alembic's fileConfig (chamado por test_alembic_guardrails) seta
+        # disable_existing_loggers=True (default), o que cala este logger
+        # em testes rodando depois dele.
+        target_logger.disabled = False
+        try:
+            with (
+                patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
+                patch("backend.app.services.pipeline_service._vault.decrypt", return_value=None),
+                caplog.at_level(_logging.WARNING),
+            ):
+                assert detect_tier("ws-1") == "free"
+            assert any("decriptou para vazio" in r.getMessage() for r in caplog.records)
+        finally:
+            target_logger.setLevel(prev_level)
+            target_logger.propagate = prev_prop
+            target_logger.disabled = prev_disabled
 
     def test_detect_tier_logs_warning_when_decrypt_raises(self, caplog):
         import logging as _logging
@@ -294,16 +313,33 @@ class TestPipelineService:
         factory = FakeSyncSessionFactory(
             FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="stale-ciphertext"))
         )
-        with (
-            patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
-            patch(
-                "backend.app.services.pipeline_service._vault.decrypt",
-                side_effect=RuntimeError("invalid token"),
-            ),
-            caplog.at_level(_logging.WARNING, logger="backend.app.services.pipeline_service"),
-        ):
-            assert detect_tier("ws-1") == "free"
-        assert any("falhou ao decriptar" in r.message for r in caplog.records)
+        target_logger = _logging.getLogger("backend.app.services.pipeline_service")
+        prev_level, prev_prop, prev_disabled = (
+            target_logger.level,
+            target_logger.propagate,
+            target_logger.disabled,
+        )
+        target_logger.setLevel(_logging.WARNING)
+        target_logger.propagate = True
+        # alembic's fileConfig (chamado por test_alembic_guardrails) seta
+        # disable_existing_loggers=True (default), o que cala este logger
+        # em testes rodando depois dele.
+        target_logger.disabled = False
+        try:
+            with (
+                patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
+                patch(
+                    "backend.app.services.pipeline_service._vault.decrypt",
+                    side_effect=RuntimeError("invalid token"),
+                ),
+                caplog.at_level(_logging.WARNING),
+            ):
+                assert detect_tier("ws-1") == "free"
+            assert any("falhou ao decriptar" in r.getMessage() for r in caplog.records)
+        finally:
+            target_logger.setLevel(prev_level)
+            target_logger.propagate = prev_prop
+            target_logger.disabled = prev_disabled
 
     def test_cancel_publishes_event(self):
         """cancel_pipeline_run should publish run_cancelled event."""

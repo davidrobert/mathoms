@@ -28,6 +28,8 @@ async def _seed_doc_for_pipeline(db: AsyncSession, ws_id: str) -> None:
     only care about tier detection or stage reviews need this minimal
     setup to clear the gate.
     """
+    from backend.tests.helpers.if_goal_stub import build_if_goal_stub
+
     db.add(
         Document(
             workspace_id=ws_id,
@@ -41,6 +43,7 @@ async def _seed_doc_for_pipeline(db: AsyncSession, ws_id: str) -> None:
             content_hash="seed" + ws_id[:28],
         )
     )
+    db.add(build_if_goal_stub(ws_id))
     await db.commit()
     data_dir = settings.STORAGE_ROOT / ws_id / "data" / "financial_statements"
     data_dir.mkdir(parents=True, exist_ok=True)

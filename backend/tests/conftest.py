@@ -237,6 +237,10 @@ async def auth_client_with_doc(auth_client: AsyncClient) -> AsyncClient:
             content_hash="fixture" + ws.id[:24],
         )
         session.add(doc)
+        # Pipeline trigger agora exige meta IF vigente (gate em trigger_pipeline).
+        from backend.tests.helpers.if_goal_stub import build_if_goal_stub
+
+        session.add(build_if_goal_stub(ws.id))
         await session.commit()
 
         data_dir = settings.STORAGE_ROOT / ws.id / "data" / "financial_statements"

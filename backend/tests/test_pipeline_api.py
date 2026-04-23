@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
 from backend.app.models.document import Document, DocumentStatus, DocumentType
+from backend.tests.helpers.if_goal_stub import build_if_goal_stub
 
 _START = "backend.app.application.pipeline_run.trigger_pipeline.start_pipeline_run"
 _CANCEL = "backend.app.application.pipeline_run.cancel_run.cancel_pipeline_run"
@@ -42,6 +43,7 @@ async def test_trigger_incremental_rejects_when_no_stored_paths(
             content_hash="no-path-test-hash-000000000000",
         )
     )
+    db.add(build_if_goal_stub(ws_id))
     await db.commit()
 
     with patch(_START):

@@ -102,6 +102,9 @@ class TestConcurrencyLimit:
                 content_hash="phase5seed" + ws.id[:22],
             )
         )
+        from backend.tests.helpers.if_goal_stub import build_if_goal_stub
+
+        db.add(build_if_goal_stub(ws.id))
         await db.commit()
         data_dir = settings.STORAGE_ROOT / ws.id / "data" / "financial_statements"
         data_dir.mkdir(parents=True, exist_ok=True)
