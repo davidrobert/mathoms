@@ -92,16 +92,35 @@ export async function uploadDocuments(
       }
     });
 
+    const safeParse = (text: string): unknown => {
+      try {
+        return JSON.parse(text);
+      } catch {
+        return null;
+      }
+    };
+
     xhr.addEventListener("load", () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(JSON.parse(xhr.responseText));
+        const parsed = safeParse(xhr.responseText);
+        if (parsed === null) {
+          reject(new ApiError(xhr.status, "Resposta inválida do servidor"));
+          return;
+        }
+        resolve(parsed as DocumentUploadResponse);
       } else {
-        const body = JSON.parse(xhr.responseText || "{}");
-        reject(new ApiError(xhr.status, body.detail || `HTTP ${xhr.status}`));
+        const parsed = safeParse(xhr.responseText) as { detail?: string } | null;
+        const detail =
+          parsed?.detail ||
+          (xhr.responseText && xhr.responseText.length < 200 ? xhr.responseText : null) ||
+          `HTTP ${xhr.status}`;
+        reject(new ApiError(xhr.status, detail));
       }
     });
 
     xhr.addEventListener("error", () => reject(new Error("Erro de conexão")));
+    xhr.addEventListener("abort", () => reject(new Error("Upload cancelado")));
+    xhr.addEventListener("timeout", () => reject(new Error("Tempo esgotado no upload")));
     xhr.send(formData);
   });
 }
