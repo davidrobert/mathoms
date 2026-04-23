@@ -8,6 +8,31 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6g.3b — polish final: factory Decimal + baseline regenerado (sessão 3 ✅) (2026-04-22):**
+  Fecha polish de A6g.3b após slices 1–3 mergeados. Encerra a lane.
+  - **`backend/tests/factories/builders.py::make_if_goal`:** assinatura
+    `renda_passiva_mensal_brl` migra de `float` → `Decimal("20000")`
+    (alinha com DTO `IFGoalInputs.renda_passiva_mensal_brl: MoneyBRL`).
+    Callers com literais `int` continuam válidos via coerção do
+    `BeforeValidator`.
+  - **`ReconciliationTolerancesSchema.saldo_diff`:** docstring explicando
+    que é **tolerância de reconciliação**, não money (ADR-090 não se
+    aplica). Nome persistido em `config/pipeline.json` + schema — rename
+    exigiria migração. Aceito como `P5_float_money=1` residual no
+    baseline (false-positive do detector `MONEY_NAME_PATTERN` que casa
+    `saldo`).
+  - **Baseline regenerado** (`dev/code_style_baseline.json`): P5 total
+    **76 → 67** (-9); backend **10 → 1** (só `saldo_diff` residual).
+    Slices 1+3 (commits `f348654`, `2804f65`) + slice 2 (`71dc379`)
+    consolidados no gate.
+  - **S0 (tolerance rename):** aceito como false-positive documentado
+    (não renomeado — prompt permitia essa via).
+  - **S4 (frontend sanity):** deps não instaladas neste worktree;
+    wire-compat validado via OpenAPI snapshot commitado nos slices
+    1+3.
+  - **Gate:** `pytest backend/tests -q` = **1177 passed, 4 skipped**
+    (zero regressão).
+
 - **A6e.events-migration — 10 call-sites `audit_log()` inline → `AuditLogEvent` (2026-04-22):**
   Fecha a tarefa A6e.events-migration (destravada por A6e.events/ADR-115).
   Os 10 `await audit_log(...)` / `await audit_service.log(...)` inline em

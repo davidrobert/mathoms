@@ -2062,8 +2062,16 @@ Regras firmes:
   JSON column não tem codec Decimal). OpenAPI snapshot ganha
   Input/Output split para schemas com `MoneyBRL` (Input `anyOf
   [number, string]`, Output `number` puro) — wire TS intacto.
-  **Pendente:** S0 tolerance rename (opcional), S4 frontend sanity
-  manual, S5 baseline regen + ADR-090 nota final.
+- **A6g.3b ✅ 2026-04-22 (sessão 3, polish final):** factory
+  `make_if_goal` migra `renda_passiva_mensal_brl` para `Decimal`;
+  `ReconciliationTolerancesSchema.saldo_diff` ganha docstring
+  explícita documentando que é **tolerância** (não money) — nome
+  persistido em `config/pipeline.json` + schema, rename exigiria
+  migração cruzada. Aceito como `P5_float_money=1` residual no
+  baseline (false-positive do `MONEY_NAME_PATTERN` que casa `saldo`).
+  Baseline regenerado: P5 total 76 → 67 (-9); backend 10 → 1.
+  Frontend sanity validado via OpenAPI snapshot commitado nos
+  slices 1+3 (wire continua `number`). **Lane A6g.3b fechada.**
 - **Tolerâncias** (`saldo_diff`, `baseline_irpf_diff`, `score_diff_max`,
   `cv_*_diff_max`) NÃO são money — são deltas/thresholds. O audit
   pode flaggar como false positive (nome contém "saldo"). Rename para
