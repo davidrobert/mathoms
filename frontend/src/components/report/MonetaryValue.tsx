@@ -28,7 +28,7 @@ interface MonetaryValueProps {
  * Uso:
  *   <MonetaryValue value={1234567.89} />         → R$ 1.234.567,89
  *   <MonetaryValue value={-500} signed />        → em vermelho, com sinal
- *   <MonetaryValue value={1_500_000} compact />  → R$ 1,5 mi
+ *   <MonetaryValue value={1_500_000} compact />  → R$ 1,50 mi
  *   <MonetaryValue value={null} />               → —
  */
 export function MonetaryValue({
@@ -50,8 +50,8 @@ export function MonetaryValue({
     style: hideSymbol ? "decimal" : "currency",
     currency,
     notation: compact ? "compact" : "standard",
-    minimumFractionDigits: compact ? 0 : fractionDigits,
-    maximumFractionDigits: compact ? 1 : fractionDigits,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   });
 
   const formatted = formatter.format(value);
