@@ -48,6 +48,7 @@ THIN_ROUTERS = frozenset(
         "tasks.py",
         "transactions.py",
         "vault.py",
+        "workspaces.py",
         "ws.py",
     }
 )

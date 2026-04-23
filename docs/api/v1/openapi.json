@@ -6641,7 +6641,6 @@
     },
     "/api/v1/me/workspaces": {
       "get": {
-        "description": "Lista memberships do usu\u00e1rio. Ordenado por joined_at (mais antigo\nprimeiro \u2014 workspace \"prim\u00e1rio\" fica em primeiro lugar).",
         "operationId": "list_my_workspaces_api_v1_me_workspaces_get",
         "responses": {
           "200": {
@@ -9775,7 +9774,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/invitations": {
       "get": {
-        "description": "Lista convites do workspace. Owner-only (s\u00f3 quem convida precisa\nver convites em andamento).",
         "operationId": "list_invitations_endpoint_api_v1_workspaces__workspace_id__invitations_get",
         "parameters": [
           {
@@ -9833,7 +9831,6 @@
         ]
       },
       "post": {
-        "description": "Cria um convite. Owner-only.\n\nRetorna o **token cru** na resposta \u2014 esse \u00e9 o \u00fanico momento em que\nele fica vis\u00edvel. Inclua em `/invite/{token}` e envie o link ao\nconvidado (WhatsApp, SMS, pessoalmente). F9.8 ligar\u00e1 envio por\nemail.",
         "operationId": "create_invitation_endpoint_api_v1_workspaces__workspace_id__invitations_post",
         "parameters": [
           {
@@ -9891,7 +9888,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/invitations/{invitation_id}": {
       "delete": {
-        "description": "Revoga um convite pendente. Owner-only. Idempotente.",
         "operationId": "revoke_invitation_endpoint_api_v1_workspaces__workspace_id__invitations__invitation_id__delete",
         "parameters": [
           {
@@ -9941,7 +9937,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/members": {
       "get": {
-        "description": "Lista membros do workspace. Qualquer membro (incluindo viewer) pode\nver \u2014 saber quem mais tem acesso \u00e9 informa\u00e7\u00e3o b\u00e1sica de confian\u00e7a.",
         "operationId": "list_members_endpoint_api_v1_workspaces__workspace_id__members_get",
         "parameters": [
           {
@@ -9989,7 +9984,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/members/{user_id}": {
       "delete": {
-        "description": "Remove um membro. Owner-only. N\u00e3o permite remover o pr\u00f3prio owner.",
         "operationId": "remove_member_endpoint_api_v1_workspaces__workspace_id__members__user_id__delete",
         "parameters": [
           {
@@ -10037,7 +10031,6 @@
         ]
       },
       "patch": {
-        "description": "Muda o role de um membro. Owner-only. N\u00e3o pode mudar o role de um\nowner (use transfer\u00eancia de ownership \u2014 n\u00e3o dispon\u00edvel ainda).",
         "operationId": "update_member_role_endpoint_api_v1_workspaces__workspace_id__members__user_id__patch",
         "parameters": [
           {

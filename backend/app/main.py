@@ -54,6 +54,7 @@ from backend.app.middleware.correlation import CorrelationIdMiddleware
 from backend.app.middleware.legacy_deprecation import LegacyApiDeprecationMiddleware
 from backend.app.schemas.health import HealthResponse
 from backend.app.services.invitation_service import InvitationError
+from backend.app.services.membership_service import MembershipError
 
 logger = logging.getLogger(__name__)
 
@@ -119,12 +120,29 @@ _INVITATION_ERROR_STATUS = {
     "email_mismatch": 403,
     "invalid_role": 422,
     "already_member": 409,
+    "limit_reached": 429,
 }
 
 
 @app.exception_handler(InvitationError)
 async def _handle_invitation(request: Request, exc: InvitationError) -> JSONResponse:
     status_code = _INVITATION_ERROR_STATUS.get(exc.code, 400)
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": {"code": exc.code, "message": str(exc)}},
+    )
+
+
+_MEMBERSHIP_ERROR_STATUS = {
+    "not_found": 404,
+    "is_owner": 409,
+    "invalid_role": 422,
+}
+
+
+@app.exception_handler(MembershipError)
+async def _handle_membership(request: Request, exc: MembershipError) -> JSONResponse:
+    status_code = _MEMBERSHIP_ERROR_STATUS.get(exc.code, 400)
     return JSONResponse(
         status_code=status_code,
         content={"detail": {"code": exc.code, "message": str(exc)}},
