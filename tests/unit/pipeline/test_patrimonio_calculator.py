@@ -343,6 +343,53 @@ def test_current_positions_caixa_from_adapter(config: PatrimonioConfig):
     assert result["caixa_detalhes"][0]["valor_brl"] == 58_000.0
 
 
+def test_current_positions_member_without_positions_falls_back_to_irpf(
+    config: PatrimonioConfig,
+):
+    """Quando só o titular tem posições atuais, cônjuge cai em IRPF (e vice-versa)."""
+    baseline = {
+        "members": {
+            "david": {"total_bens": 0, "bens": {}},
+            "mariana": {
+                "total_bens": 250_000,
+                "bens": {"investimentos": [{"valor": 250_000}]},
+            },
+        }
+    }
+    inv_atuais = {
+        "dados": [{"valor": 1}],
+        "total_por_membro": {"david": 300_000, "mariana": 0},
+    }
+    calc = PatrimonioCalculator(config)
+    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
+
+    assert result["investimentos_david"] == 300_000.0
+    assert result["investimentos_mariana"] == 250_000.0
+    assert result["fonte_investimentos"] == "posicoes_atuais+irpf"
+
+
+def test_current_positions_no_fallback_when_both_have_positions(
+    config: PatrimonioConfig,
+):
+    """Quando ambos os membros têm posições atuais, IRPF é ignorado."""
+    baseline = {
+        "members": {
+            "david": {"bens": {"investimentos": [{"valor": 999_999}]}},
+            "mariana": {"bens": {"investimentos": [{"valor": 999_999}]}},
+        }
+    }
+    inv_atuais = {
+        "dados": [{"valor": 1}],
+        "total_por_membro": {"david": 100, "mariana": 50},
+    }
+    calc = PatrimonioCalculator(config)
+    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
+
+    assert result["investimentos_david"] == 100.0
+    assert result["investimentos_mariana"] == 50.0
+    assert result["fonte_investimentos"] == "posicoes_atuais"
+
+
 def test_current_positions_empty_dados_treated_as_irpf(config: PatrimonioConfig):
     """investimentos_atuais.dados vazio → comportamento IRPF."""
     baseline = {

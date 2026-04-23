@@ -187,7 +187,23 @@ class PatrimonioCalculator:
             unattributed = safe_float(totais.get("", 0))
             if unattributed > 0:
                 titular_val += unattributed
-            return titular_val, conjuge_val, "posicoes_atuais"
+
+            fallback_used = False
+            if titular_val == 0:
+                irpf_titular = self._investimentos_from_irpf(
+                    titular_bens, extras=("saldo_corretora", "moeda_estrangeira", "outros")
+                )
+                if irpf_titular > 0:
+                    titular_val = irpf_titular
+                    fallback_used = True
+            if identity.conjuge_key and conjuge_val == 0:
+                irpf_conjuge = self._investimentos_from_irpf(conjuge_bens, extras=("outros",))
+                if irpf_conjuge > 0:
+                    conjuge_val = irpf_conjuge
+                    fallback_used = True
+
+            fonte = "posicoes_atuais+irpf" if fallback_used else "posicoes_atuais"
+            return titular_val, conjuge_val, fonte
 
         # Fallback IRPF
         titular_val = self._investimentos_from_irpf(
