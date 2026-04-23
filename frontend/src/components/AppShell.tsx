@@ -101,7 +101,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       >
         <div className="flex h-14 items-center border-b border-border px-5">
           <Link href="/plano" className="font-display text-xl font-bold tracking-tight">
-            Fin
+            Mathoms AI
           </Link>
         </div>
 
@@ -182,7 +182,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <span className="text-style-heading-sm lg:hidden">Fin</span>
+            <span className="text-style-heading-sm lg:hidden">Mathoms AI</span>
           </div>
 
           {/* Center: workspace — grows to fill, stays centered on desktop */}

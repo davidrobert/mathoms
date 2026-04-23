@@ -15,7 +15,7 @@ function RegisterPageInner() {
       <div className="flex flex-1 items-center justify-center">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold tracking-tight">Fin</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Mathoms AI</h1>
             <p className="mt-2 text-sm text-muted-foreground">Crie sua conta de acesso</p>
             <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">
               Isto é só o <span className="text-foreground/90">login</span> (quem usa o app). Depois de entrar, seu nome e
