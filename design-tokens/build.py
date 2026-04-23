@@ -26,6 +26,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 TOKENS_PATH = ROOT / "design-tokens" / "tokens.json"
 FRONTEND_OUTPUT = ROOT / "frontend" / "src" / "styles" / "tokens.css"
+FRONTEND_OPS_OUTPUT = ROOT / "frontend-ops" / "src" / "styles" / "tokens.css"
 TEMPLATE_OUTPUT = ROOT / "config" / "templates" / "_tokens.css"
 
 HEADER = """/* =====================================================================
@@ -274,10 +275,13 @@ def build() -> tuple[str, str]:
 
 def write_outputs(frontend_css: str, template_css: str) -> None:
     FRONTEND_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    FRONTEND_OPS_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     TEMPLATE_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     FRONTEND_OUTPUT.write_text(frontend_css, encoding="utf-8")
+    FRONTEND_OPS_OUTPUT.write_text(template_css, encoding="utf-8")
     TEMPLATE_OUTPUT.write_text(template_css, encoding="utf-8")
     print(f"✓ wrote {FRONTEND_OUTPUT.relative_to(ROOT)} ({len(frontend_css)} bytes)")
+    print(f"✓ wrote {FRONTEND_OPS_OUTPUT.relative_to(ROOT)} ({len(template_css)} bytes)")
     print(f"✓ wrote {TEMPLATE_OUTPUT.relative_to(ROOT)} ({len(template_css)} bytes)")
 
 
@@ -286,6 +290,7 @@ def check_in_sync() -> int:
     mismatches: list[str] = []
     for path, expected in [
         (FRONTEND_OUTPUT, frontend_css),
+        (FRONTEND_OPS_OUTPUT, template_css),
         (TEMPLATE_OUTPUT, template_css),
     ]:
         if not path.exists():
