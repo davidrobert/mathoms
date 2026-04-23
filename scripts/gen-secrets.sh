@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/gen-secrets.sh — gera FIN_FERNET_KEY e FIN_SECRET_KEY para desenvolvimento local.
+# scripts/gen-secrets.sh — gera MATHOMS_FERNET_KEY e MATHOMS_SECRET_KEY para desenvolvimento local.
 #
 # Requer: Python 3.11+ com pacote `cryptography` (ex.: pip install -e backend ou backend/requirements.txt).
 #
@@ -25,8 +25,8 @@ except ImportError:
     )
 import secrets
 
-print("FIN_FERNET_KEY=" + Fernet.generate_key().decode())
-print("FIN_SECRET_KEY=" + secrets.token_urlsafe(48))
+print("MATHOMS_FERNET_KEY=" + Fernet.generate_key().decode())
+print("MATHOMS_SECRET_KEY=" + secrets.token_urlsafe(48))
 PY
 }
 
@@ -46,9 +46,9 @@ init_env() {
   GEN_LINE_FERNET=""
   GEN_LINE_JWT=""
   while IFS= read -r line; do
-    if [[ "$line" == FIN_FERNET_KEY=* ]]; then
+    if [[ "$line" == MATHOMS_FERNET_KEY=* ]]; then
       GEN_LINE_FERNET="$line"
-    elif [[ "$line" == FIN_SECRET_KEY=* ]]; then
+    elif [[ "$line" == MATHOMS_SECRET_KEY=* ]]; then
       GEN_LINE_JWT="$line"
     fi
   done <"$tmpfile"
@@ -65,14 +65,14 @@ jwt = os.environ["GEN_LINE_JWT"]
 text = (root / ".env.example").read_text(encoding="utf-8")
 out_lines = []
 for line in text.splitlines():
-    if line.startswith("FIN_FERNET_KEY="):
+    if line.startswith("MATHOMS_FERNET_KEY="):
         out_lines.append(fernet)
-    elif line.startswith("FIN_SECRET_KEY="):
+    elif line.startswith("MATHOMS_SECRET_KEY="):
         out_lines.append(jwt)
     else:
         out_lines.append(line)
 (root / ".env").write_text("\n".join(out_lines) + "\n", encoding="utf-8")
-print("Criado .env a partir de .env.example com FIN_FERNET_KEY e FIN_SECRET_KEY gerados.")
+print("Criado .env a partir de .env.example com MATHOMS_FERNET_KEY e MATHOMS_SECRET_KEY gerados.")
 PY
 }
 
@@ -88,7 +88,7 @@ case "${1:-}" in
       cat <<EOF
 Uso: $(basename "$0") [--init-env|--help]
 
-Sem argumentos: imprime FIN_FERNET_KEY e FIN_SECRET_KEY novos.
+Sem argumentos: imprime MATHOMS_FERNET_KEY e MATHOMS_SECRET_KEY novos.
 
   --init-env   Copia .env.example para .env e injeta chaves geradas (não sobrescreve .env existente).
 
