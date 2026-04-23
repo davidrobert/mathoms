@@ -17,13 +17,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
+from backend.app.events import dispatch_sync
+from backend.app.events.domain import AuditLogEvent
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.workspace_members import (
     InvitationAcceptResponse,
     InvitationPreviewResponse,
 )
-from backend.app.services import audit_service, invitation_service
+from backend.app.services import invitation_service
+from backend.app.services.audit import client_meta
 from backend.app.services.invitation_service import InvitationError
 
 router = APIRouter(prefix="/invitations", tags=["invitations"])
@@ -108,15 +111,21 @@ async def accept_invitation_endpoint(
             detail={"code": exc.code, "message": str(exc)},
         ) from exc
 
-    await audit_service.log(
-        db=db,
-        workspace_id=member.workspace_id,
-        action="workspace.member.accept",
-        resource_type="workspace_member",
-        resource_id=member.id,
-        actor_user_id=user.id,
-        details={"role": member.role},
-        request=request,
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=member.id,
+            aggregate_type="workspace_member",
+            workspace_id=member.workspace_id,
+            action="workspace.member.accept",
+            resource_type="workspace_member",
+            resource_id=member.id,
+            actor_user_id=user.id,
+            ip_address=ip,
+            user_agent=ua,
+            details={"role": member.role},
+        ),
+        {"db": db},
     )
     await db.commit()
     await db.refresh(member)
