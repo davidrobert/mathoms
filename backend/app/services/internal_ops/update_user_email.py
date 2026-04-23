@@ -39,13 +39,15 @@ async def update_user_email(
     user.token_version = (user.token_version or 0) + 1
     await db.flush()
 
+    # audit name dedicado (`user.email_changed`) facilita filtro no sink:
+    # mudança de identidade é evento mais sensível que patch de perfil.
     append_audit(
         AuditRecord(
-            action="user.update_email",
+            action="user.email_changed",
             actor=actor,
             target_type="user",
             target_id=user.id,
-            details={"previous": previous, "current": normalized},
+            details={"old": previous, "new": normalized},
         )
     )
     return OpResult.success(user_id=user.id, changed=True, email=normalized)

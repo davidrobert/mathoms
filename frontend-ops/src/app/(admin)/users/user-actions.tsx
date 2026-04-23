@@ -381,9 +381,11 @@ function EditEmailModal({
         </>
       }
     >
-      <p className="text-sm text-surface-muted-fg">
-        Mudar o e-mail invalida JWTs existentes do usuário (bump de token_version).
-      </p>
+      <div className="rounded-md border border-brand-warning/30 bg-brand-warning/10 text-brand-warning-fg text-sm px-3 py-2">
+        <strong>Aviso:</strong> ao salvar, o usuário será deslogado em todas as
+        sessões ativas (JWTs existentes ficam inválidos via bump de
+        token_version).
+      </div>
       <label className="block">
         <span className="text-sm">Novo e-mail</span>
         <TextInput
