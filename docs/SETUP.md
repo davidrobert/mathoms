@@ -348,6 +348,17 @@ npm install
 npm run build
 ```
 
+### `MATHOMS_FERNET_KEY não configurada` ao subir o uvicorn
+
+`.env` existe mas o valor está vazio (`MATHOMS_FERNET_KEY=`). Geralmente
+significa que `.env` é cópia crua do `.env.example` e `gen-secrets.sh
+--init-env` foi abortado porque o arquivo já existia.
+
+```bash
+rm .env
+./scripts/gen-secrets.sh --init-env
+```
+
 ### `seed_db.py` falha com "table X has no column named Y"
 
 DB local (`mathoms.db`) é de uma sessão anterior e está com schema
