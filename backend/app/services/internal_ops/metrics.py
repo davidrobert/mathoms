@@ -80,9 +80,7 @@ async def get_metrics(db: AsyncSession, *, period_days: int = 30) -> MetricsSnap
     documents_uploaded_last_period = int(
         (
             await db.execute(
-                select(func.count())
-                .select_from(Document)
-                .where(Document.uploaded_at >= cutoff)
+                select(func.count()).select_from(Document).where(Document.uploaded_at >= cutoff)
             )
         ).scalar_one()
         or 0

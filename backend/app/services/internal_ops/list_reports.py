@@ -42,8 +42,7 @@ async def list_reports(
             Workspace.owner_id == filter.user_id
         )
     total = int(
-        (await db.execute(select(func.count()).select_from(base.subquery()))).scalar_one()
-        or 0
+        (await db.execute(select(func.count()).select_from(base.subquery()))).scalar_one() or 0
     )
     limit = max(1, min(filter.limit, 500))
     offset = max(0, filter.offset)

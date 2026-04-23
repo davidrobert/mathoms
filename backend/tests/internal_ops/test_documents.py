@@ -141,9 +141,7 @@ async def test_purge_rollback_on_blob_failure(
     assert not result.ok and result.error == "partial_failure"
     assert d2_id in result.details["failed_blobs"]
     remaining = set(
-        (
-            await db.execute(select(Document.id).where(Document.workspace_id == ws_id))
-        )
+        (await db.execute(select(Document.id).where(Document.workspace_id == ws_id)))
         .scalars()
         .all()
     )
