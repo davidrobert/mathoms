@@ -304,3 +304,96 @@ def test_quintoandar_synthetic_extracts_items(tmp_path: Path):
     result = parser_fn(path, filename)
     assert len(result.get("itens") or []) >= 1
     assert result.get("total_recebido") is not None
+
+
+def test_c6bank_usd_detected_by_content(monkeypatch, tmp_path: Path):
+    """Upload C6 Global USD com filename genérico `c6bank_extratoconta_` vira USD via sniff de conteúdo."""
+    from scripts.e2.banks import c6bank as c6mod
+
+    usd_header = (
+        "Extrato exportado no dia 29 de março de 2026\n"
+        "David Robert • 000.000.000-00\n"
+        "Agência 0001 • Conta 100000000-0 • Status da conta: ativa\n"
+        "Extrato Período • 01 de julho de 2025 até 31 de julho de 2025\n"
+        "Saldo do dia • 29 de março de 2026 • US$ 91,59\n"
+        "Julho 2025\n"
+        "Data Tipo Descrição Valor Autorização\n"
+    )
+    usd_rows = [
+        ("31/07", "Débito de cartão", "Bass Pro Store Orlando\nCartão 4845", "-US$ 17,56", "29/07"),
+        (None, "Débito de cartão", "Amazon Mark\nCartão 8884", "-US$ 30,86", None),
+        ("30/07", "Débito de cartão", "Walgreens\nCartão 4845", "-US$ 10,18", "28/07"),
+    ]
+
+    class _FakePage:
+        def __init__(self, text: str, tables: list) -> None:
+            self._text = text
+            self._tables = tables
+
+        def extract_text(self) -> str:
+            return self._text
+
+        def extract_tables(self) -> list:
+            return self._tables
+
+    class _FakePdf:
+        def __init__(self, pages):
+            self.pages = pages
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def _fake_open(_path):
+        return _FakePdf([_FakePage(usd_header, [usd_rows])])
+
+    monkeypatch.setattr(c6mod.pdfplumber, "open", _fake_open)
+
+    filename = "c6bank_extratoconta_202507_202507-0_original.pdf"
+    path = tmp_path / filename
+    path.write_bytes(b"%PDF-fake")
+
+    result = c6mod.parse_c6bank(path, filename)
+    assert result["moeda"] == "USD"
+    assert result["tipo"] == "extratocontaglobalusd"
+    assert len(result.get("transacoes") or []) >= 1
+    assert all(t["valor"] is not None for t in result["transacoes"])
+
+
+def test_c6bank_brl_not_misdetected_as_usd(monkeypatch, tmp_path: Path):
+    """Conteúdo com R$ continua sendo parseado como BRL mesmo se US$ aparecer (ex.: taxa de câmbio)."""
+    from scripts.e2.banks import c6bank as c6mod
+
+    brl_header = (
+        "Extrato Período • 01 de abril de 2026 até 30 de abril de 2026\n"
+        "Saldo do dia • 30 de abril de 2026 • R$ 1.234,56\n"
+        "Cotação US$ 1,00 = R$ 5,00\n"
+    )
+
+    class _FakePage:
+        def extract_text(self) -> str:
+            return brl_header
+
+        def extract_tables(self) -> list:
+            return []
+
+    class _FakePdf:
+        pages = [_FakePage()]
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    monkeypatch.setattr(c6mod.pdfplumber, "open", lambda _p: _FakePdf())
+
+    filename = "c6bank_extratoconta_202604_202604-0_original.pdf"
+    path = tmp_path / filename
+    path.write_bytes(b"%PDF-fake")
+
+    result = c6mod.parse_c6bank(path, filename)
+    assert result["moeda"] == "BRL"
+    assert result["tipo"] == "extratoconta"

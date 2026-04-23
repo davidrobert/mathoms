@@ -285,11 +285,39 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
 # =============================================================================
 
 
+def _sniff_c6_currency(pdf_path: Path) -> Optional[str]:
+    """Sniff moeda from first-page text. Returns 'USD', 'EUR' ou None se BRL/indefinido.
+
+    Alguns uploads vêm com filename genérico `c6bank_extratoconta_...` embora
+    o PDF seja extrato Global em USD/EUR. Detectamos pelo símbolo monetário.
+    """
+    if pdfplumber is None:
+        return None
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            head = pdf.pages[0].extract_text() or ""
+    except Exception:
+        return None
+    has_brl = "R$" in head
+    if "US$" in head and not has_brl:
+        return "USD"
+    if ("€" in head or re.search(r"\bEUR\b", head)) and not has_brl:
+        return "EUR"
+    return None
+
+
 def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse C6 Bank statement (conta, contapj, contaglobal)."""
     is_global_usd = "extratocontaglobalusd" in filename
     is_global_eur = "extratocontaglobaleur" in filename
     is_pj = "extratocontapj" in filename
+
+    if not (is_global_usd or is_global_eur or is_pj):
+        sniffed = _sniff_c6_currency(pdf_path)
+        if sniffed == "USD":
+            is_global_usd = True
+        elif sniffed == "EUR":
+            is_global_eur = True
 
     if is_global_usd:
         moeda = "USD"
