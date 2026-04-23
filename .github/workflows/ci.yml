@@ -360,7 +360,9 @@ jobs:
           MATHOMS_LLM_MOCK: "1"
         run: |
           cd frontend
-          npm run test:e2e
+          # Visual regression project é isolado (baseline OS/font-specific);
+          # roda em job dedicado (PW_VISUAL=1), não no gate cross-browser.
+          npm run test:e2e -- --project=chromium --project=firefox --project=webkit
 
       - name: Upload backend + celery logs (diagnóstico E2E)
         if: always()

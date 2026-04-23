@@ -46,26 +46,29 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testIgnore: /.*\.visual\.spec\.ts/,
     },
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] },
       // 6.5D.4: roda subconjunto crítico (filtrado por @critical tag)
       grep: process.env.PW_CROSS_BROWSER ? undefined : /@critical/,
+      testIgnore: /.*\.visual\.spec\.ts/,
     },
     {
       name: "webkit",
       use: { ...devices["Desktop Safari"] },
       grep: process.env.PW_CROSS_BROWSER ? undefined : /@critical/,
+      testIgnore: /.*\.visual\.spec\.ts/,
     },
-    // Visual regression isolado (snapshots dependentes de OS/font rendering)
+    // Visual regression isolado (snapshots dependentes de OS/font rendering).
+    // Roda só em CI dedicado (PW_VISUAL=1) — baseline precisa ser gerado em
+    // ambiente Linux/CI-parity (ver scripts/update_visual_snapshots.sh).
     {
       name: "visual",
       testMatch: /.*\.visual\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
-        // Tolerância pequena para anti-aliasing entre máquinas;
-        // CI deve regenerar snapshots em job dedicado se desviarem.
       },
     },
   ],
