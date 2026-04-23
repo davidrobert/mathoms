@@ -498,8 +498,36 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     fica thin-composite: use case retorna entidade → router resolve
     path → commit → unlink filesystem. Aliases `_uc_*` preservam
     operationIds (snapshot só diff em descriptions).
-  - **Allowlist atual `THIN_ROUTERS` (11):** `audit`, `auth`,
-    `categories`, `config`, `dashboard`, `family_members`,
+  - **`documents.py`** (slice 10 · fase 4b · `4f13b4a`): 770 → 447
+    linhas (-42%). 8 endpoints; 3 use cases + 5 composites extraídos
+    para `backend/app/services/document_*`:
+    - `password_vault_reader.get_workspace_passwords`: remove
+      `from sqlalchemy import select` do router.
+    - `document_upload_service.upload_document_batch`: quota + validação
+      + partial-unique-index savepoint + process + fuzzy dedup.
+    - `document_retry_service.retry_unlock_workspace_documents`:
+      re-processa docs travados com senhas atuais do vault.
+    - `document_reclassify_bulk_service.reclassify_workspace_documents`:
+      regex + LLM fallback em todos os docs + rename canônico + fuzzy
+      rebuild.
+    - `document_extract_json_service.read_document_extract_json`: match
+      por stored_path → fallback por bank+type+period.
+
+    Use-case handlers: `list_documents` → `list_workspace_documents`
+    (CSV parsing no use case); `delete_document` → `delete_document` +
+    file unlink inline; `update_document_classification` mantém helpers
+    privados (`_snapshot_before`, `_apply_classification_update`,
+    `_invalidate_e2_if_needed`) porque o use case atual não cobre
+    invalidação E2 + downgrade de status. **Breaking**: status filter
+    inválido agora retorna 422 (antes 400) — ADR-101 R15
+    (`ValidationError` → 422 global); teste atualizado.
+
+    `audit_log` permanece inline em 5 sites (upload/delete/update/retry/
+    reclassify) — migração para evento em A6e.events-migration dedicado.
+
+    **Fase 4b ✅ 3/3** (config + tasks + documents).
+  - **Allowlist atual `THIN_ROUTERS` (12):** `audit`, `auth`,
+    `categories`, `config`, `dashboard`, `documents`, `family_members`,
     `feature_flags`, `goals`, `notifications`, `tasks`, `vault`.
   - **Openapi snapshot** regenerado: apenas `FlagUpdateRequest` →
     `FlagUpdateCommand` (rename) + descrições deletadas de docstrings
