@@ -1,0 +1,21 @@
+# Compose de desenvolvimento local — apenas serviços complementares que o dev
+# sobe sob demanda (console interno, futuros add-ons). Backend FastAPI e
+# frontend cliente continuam rodando via `uvicorn`/`npm run dev` fora do compose.
+#
+# F7F-Local · ADR-116. Quando F7A.3 consolidar o compose dev completo,
+# este arquivo pode ser mesclado ou referenciado via `include:` (Compose v2.20+).
+
+services:
+  frontend-ops:
+    build:
+      context: ./frontend-ops
+      dockerfile: Dockerfile
+    image: mathoms-frontend-ops:dev
+    environment:
+      INTERNAL_OPS_API_BASE: "http://host.docker.internal:8000"
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:3100:3100"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
