@@ -253,6 +253,10 @@ function ResetPasswordModal({
               {copied ? "Copiado" : "Copiar"}
             </Button>
           </div>
+          <p className="mt-2 text-xs text-brand-warning-fg">
+            Oriente o usuário a rotacionar assim que logar. Todas as sessões JWT
+            ativas foram invalidadas (bump de token_version).
+          </p>
         </div>
       )}
       {error && <p className="text-brand-danger text-sm">{error}</p>}

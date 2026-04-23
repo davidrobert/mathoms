@@ -41,6 +41,27 @@ async def test_reset_generates_password(db, audit_path: Path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_reset_invalidates_existing_jwt(db, audit_path: Path) -> None:
+    """Token emitido antes do reset deve falhar o check de `tv` em deps.get_current_user."""
+    from backend.app.core.deps import get_current_user
+    from backend.app.core.security import create_access_token
+    from fastapi import HTTPException
+    from fastapi.security import HTTPAuthorizationCredentials
+
+    user = await make_user(db, password="OldPw!")
+    await db.commit()
+    old_token = create_access_token(subject=user.id, token_version=user.token_version)
+
+    await reset_password(db, user.id, actor="ops1")
+    await db.commit()
+
+    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=old_token)
+    with pytest.raises(HTTPException) as exc:
+        await get_current_user(credentials=creds, db=db)
+    assert exc.value.status_code == 401
+
+
+@pytest.mark.asyncio
 async def test_reset_explicit_password(db, audit_path: Path) -> None:
     user = await make_user(db)
     await db.commit()
