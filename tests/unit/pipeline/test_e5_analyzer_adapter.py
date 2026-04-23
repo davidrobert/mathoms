@@ -428,6 +428,79 @@ class TestA6d33Wiring:
         total, _ = adapter._load_caixa_from_e3(store)
         assert total == 0.0
 
+    def test_load_caixa_dedupes_multiple_periods_same_account(self):
+        """Vários extratos da mesma conta (períodos diferentes) não são somados —
+        prevalece o saldo do período com ``periodo_cobertura.fim`` mais recente."""
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        for per_fim, saldo in (
+            ("2024-03-31", 22120.66),
+            ("2025-01-31", 80629.65),
+            ("2026-04-15", 847.26),
+            ("2024-10-31", 149551.72),
+        ):
+            store.seed(
+                "E3",
+                f"itau_extratoconta_BRL_{per_fim.replace('-', '')}",
+                {
+                    "tipo_conta": "extratoconta",
+                    "banco": "Itaú",
+                    "moeda": "BRL",
+                    "saldo_final": saldo,
+                    "periodo_cobertura": {"inicio": "2024-01-01", "fim": per_fim},
+                },
+            )
+        adapter = E5AnalyzerAdapter()
+        total, detalhes = adapter._load_caixa_from_e3(store)
+        assert total == 847.26
+        assert len(detalhes) == 1
+        assert detalhes[0].saldo_original == 847.26
+
+    def test_load_caixa_keeps_distinct_accounts(self):
+        """Contas distintas (banco ou titular diferente) não são deduplicadas."""
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        store.seed(
+            "E3",
+            "itau_david_202604",
+            {
+                "tipo_conta": "extratoconta",
+                "banco": "Itaú",
+                "moeda": "BRL",
+                "titular": "David",
+                "saldo_final": 1000.0,
+                "periodo_cobertura": {"inicio": "2026-01-01", "fim": "2026-04-15"},
+            },
+        )
+        store.seed(
+            "E3",
+            "itau_mariana_202604",
+            {
+                "tipo_conta": "extratoconta",
+                "banco": "Itaú",
+                "moeda": "BRL",
+                "titular": "Mariana",
+                "saldo_final": 2500.0,
+                "periodo_cobertura": {"inicio": "2026-01-01", "fim": "2026-04-15"},
+            },
+        )
+        store.seed(
+            "E3",
+            "santander_david_202604",
+            {
+                "tipo_conta": "extratoconta",
+                "banco": "Santander",
+                "moeda": "BRL",
+                "titular": "David",
+                "saldo_final": 500.0,
+                "periodo_cobertura": {"inicio": "2026-01-01", "fim": "2026-04-15"},
+            },
+        )
+        adapter = E5AnalyzerAdapter()
+        total, detalhes = adapter._load_caixa_from_e3(store)
+        assert total == 4000.0
+        assert len(detalhes) == 3
+
     def test_identity_from_family_with_nome_curto(self):
         """``from_configs`` extrai nome_curto do family config."""
         family = {

@@ -579,10 +579,9 @@ class E5AnalyzerAdapter:
         cambio_usd = safe_float(self._taxas.get("cambio_usd_brl", 5.80), default=5.80)
         cambio_eur = safe_float(self._taxas.get("cambio_eur_brl", 6.35), default=6.35)
 
-        total_brl = 0.0
-        detalhes: list[CaixaDetalhe] = []
+        latest_per_account: dict[tuple[str, str, str, str], tuple[str, dict]] = {}
 
-        for key in sorted(keys):
+        for key in keys:
             data = store.read("E3", key) or {}
             tipo_conta = (data.get("tipo_conta") or "").lower()
             banco = (data.get("banco") or "").lower()
@@ -591,12 +590,25 @@ class E5AnalyzerAdapter:
 
             if saldo_raw is None or data.get("saldo_final_unknown", False):
                 continue
-            saldo = safe_float(saldo_raw)
-
             if "fatura" in tipo_conta or "poupan" in tipo_conta or "pj" in tipo_conta:
                 continue
             if banco in self._investment_banks:
                 continue
+
+            titular = (data.get("titular") or "").lower()
+            account_key = (banco, tipo_conta, moeda, titular)
+            period_end = (data.get("periodo_cobertura") or {}).get("fim") or ""
+            tiebreak = (period_end, key)
+            prev = latest_per_account.get(account_key)
+            if prev is None or tiebreak > prev[0]:
+                latest_per_account[account_key] = (tiebreak, data)
+
+        total_brl = 0.0
+        detalhes: list[CaixaDetalhe] = []
+        for _, data in sorted(latest_per_account.values(), key=lambda x: x[0]):
+            tipo_conta = (data.get("tipo_conta") or "").lower()
+            moeda = (data.get("moeda") or "BRL").upper()
+            saldo = safe_float(data.get("saldo_final"))
 
             if moeda == "USD":
                 valor_brl = saldo * cambio_usd

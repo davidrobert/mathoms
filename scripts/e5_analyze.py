@@ -786,8 +786,7 @@ def _load_caixa_from_e3_saldos() -> Tuple[float, List[Dict[str, Any]]]:
         cambio_usd = taxas.get("cambio_usd_brl", cambio_usd)
         cambio_eur = taxas.get("cambio_eur_brl", cambio_eur)
 
-    total_brl = 0.0
-    detalhes: List[Dict[str, Any]] = []
+    latest_per_account: Dict[Tuple[str, str, str, str], Tuple[Tuple[str, str], Dict[str, Any]]] = {}
 
     for fpath in sorted(E3_RECONCILED_DIR.glob("*-3_reconciled.json")):
         try:
@@ -803,7 +802,6 @@ def _load_caixa_from_e3_saldos() -> Tuple[float, List[Dict[str, Any]]]:
 
         if saldo is None or data.get("saldo_final_unknown", False):
             continue
-        saldo = safe_float(saldo)
 
         if "fatura" in tipo_conta:
             continue
@@ -813,6 +811,21 @@ def _load_caixa_from_e3_saldos() -> Tuple[float, List[Dict[str, Any]]]:
             continue
         if banco in _BANCOS_INVESTIMENTO:
             continue
+
+        titular = (data.get("titular") or "").lower()
+        account_key = (banco, tipo_conta, moeda, titular)
+        period_end = (data.get("periodo_cobertura") or {}).get("fim") or ""
+        tiebreak = (period_end, fpath.name)
+        prev = latest_per_account.get(account_key)
+        if prev is None or tiebreak > prev[0]:
+            latest_per_account[account_key] = (tiebreak, data)
+
+    total_brl = 0.0
+    detalhes: List[Dict[str, Any]] = []
+    for _, data in sorted(latest_per_account.values(), key=lambda x: x[0]):
+        tipo_conta = (data.get("tipo_conta") or "").lower()
+        moeda = (data.get("moeda") or "BRL").upper()
+        saldo = safe_float(data.get("saldo_final"))
 
         if moeda == "USD":
             valor_brl = saldo * cambio_usd
@@ -916,6 +929,43 @@ def analyze_patrimonio(
         n_pos = investimentos_atuais.get("n_posicoes", 0)
         data_ref = investimentos_atuais.get("data_consolidacao", "?")
         print(f"  [INFO] Usando posições atuais ({n_pos} posições, ref: {data_ref})")
+
+        fallback_used = False
+        if investimentos_david == 0:
+            irpf_d = 0.0
+            for inv in david_bens.get("investimentos", []):
+                irpf_d += _investimento_valor(inv)
+            contas_d = david_bens.get("contas_bancarias", [])
+            if isinstance(contas_d, list):
+                for inv in contas_d:
+                    irpf_d += _investimento_valor(inv)
+            else:
+                irpf_d += safe_float(contas_d)
+            for extra_key in ("saldo_corretora", "moeda_estrangeira", "outros"):
+                irpf_d += safe_float(david_bens.get(extra_key, 0))
+            if irpf_d > 0:
+                investimentos_david = irpf_d
+                fallback_used = True
+        if investimentos_mariana == 0:
+            irpf_m = 0.0
+            for inv in mariana_bens.get("investimentos", []):
+                irpf_m += _investimento_valor(inv)
+            contas_m = mariana_bens.get("contas_bancarias", [])
+            if isinstance(contas_m, list):
+                for inv in contas_m:
+                    irpf_m += _investimento_valor(inv)
+            else:
+                irpf_m += safe_float(contas_m)
+            for extra_key in ("outros",):
+                irpf_m += safe_float(mariana_bens.get(extra_key, 0))
+            if irpf_m > 0:
+                investimentos_mariana = irpf_m
+                fallback_used = True
+
+        if fallback_used:
+            fonte_investimentos = "posicoes_atuais+irpf"
+            print("  [INFO] Fallback IRPF aplicado a membro sem posições atuais")
+
         print(
             f"  [INFO] {_TITULAR_NOME}: R$ {investimentos_david:,.2f}, {_CONJUGE_NOME}: R$ {investimentos_mariana:,.2f}"
         )
