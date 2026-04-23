@@ -8,6 +8,74 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6e.4 — Routers finos fase 4a COMPLETA (2026-04-22 · ADR-101 R15/R16):**
+  **14/14 da fase 4a entregues** — os 7 routers restantes (`invitations`,
+  `ws`, `llm`, `transactions`, `reports`, `workspaces`, `pipeline`) viraram
+  thin em slices 11-17. THIN_ROUTERS sobe de 12 → 19 routers. Total
+  `wc -l` dos 7 antes = 1813 linhas → depois = 715 linhas (-60%). 7
+  novos aggregates em `backend/app/application/`:
+  `invitation/`, `realtime/`, `llm_config/`, `transaction/`, `report/`,
+  `workspace/`, `pipeline_run/`.
+  - **`invitations.py`** (slice 11): 127 → 57 linhas. 2 use cases
+    (`preview_invitation`, `accept_invitation`). Exception handler global
+    `InvitationError` em `main.py` substitui tradução code→status
+    ad-hoc (404/409/410/403/422/400). Use case `accept_invitation` emite
+    `AuditLogEvent` (alinhado com A6e.events-migration).
+  - **`ws.py`** (slice 12): 103 → 31 linhas. Extrai `verify_ws_token` +
+    pump loop Redis Pub/Sub para `application/realtime/pipeline_progress.py`
+    (`_subscribe`/`_pump_messages`/`_forward`/`_cleanup` privados).
+    Handler vira: valida token → accept → delegar. OpenAPI snapshot
+    intocado (WebSocket).
+  - **`llm.py`** (slice 13): 182 → 89 linhas. 5 use cases em
+    `application/llm_config/` (get/save/delete/test/tier) +
+    `_response.py` (mask_api_key + to_response). `NotFoundError`
+    global substitui `HTTPException(404)` ad-hoc em `test`/`delete`.
+  - **`transactions.py`** (slice 14): 231 → 104 linhas. 4 use cases
+    (list/export/create_override/delete_override) + `_loading.py`
+    (load_overrides_map + load_filtered_transactions). `TransactionFilters`
+    dataclass compartilhado entre list/export elimina duplicação de 8
+    Query params. `NotFoundError` global substitui 2 `HTTPException(404)`
+    ad-hoc. OpenAPI diff só em ordem de query params (consumers parseiam
+    por nome, zero breaking).
+  - **`reports.py`** (slice 15): 353 → 133 linhas. 7 use cases (list/
+    get/html/download_html/data/pdf/tasks) + `_common.py` (serialize_report/
+    sanitize_filename/fetch_report). `NotFoundError` global cobre 6 casos
+    ad-hoc de 404. `HTTPException(500)` preservado em
+    `get_report_data` quando JSON de análise corrompido (infra error,
+    não domain). Re-export `_sanitize_filename` no router
+    (`noqa: F401`) preserva `test_download_html_sanitize_filename_helper`.
+  - **`workspaces.py`** (slice 16): 371 → 163 linhas. 7 use cases em
+    `application/workspace/` (list_my_workspaces/list_members/
+    update_member_role/remove_member/create_invitation/list_invitations/
+    revoke_invitation) + `_dtos.py` (UserWorkspaceResponse/
+    UserWorkspaceListResponse + invitation_to_response helper). Exception
+    handler global `MembershipError` em `main.py` (not_found→404,
+    is_owner→409, invalid_role→422). `InvitationError` ganha
+    `limit_reached`→429 (usado em create_invitation). Use cases de
+    member/invitation actions emitem `AuditLogEvent` (continuidade de
+    A6e.events-migration). Remove 4 blocos `try/except code_to_status`
+    ad-hoc.
+  - **`pipeline.py`** (slice 17): 439 → 139 linhas. 8 use cases em
+    `application/pipeline_run/` (trigger/new_doc_count/list/get/cancel/
+    resume/list_reviews/action_review) + `_common.py` (fetch_run/
+    fetch_review/run_to_response). `trigger_pipeline` decomposto em 7
+    funções privadas (_check_no_active_run/_count_documents/
+    _validate_counts/_validate_data_dir/_resolve_incremental/
+    _resolve_stages/_create_run) — cada ≤20 linhas. Domain errors
+    substituem `HTTPException` ad-hoc: `ConflictError`→409 para
+    active-run/already-cancelled/needs-review-gate, `ValidationError`→422
+    para incremental-sem-docs/doc-count-zero/from_stage-inválido/
+    edit-sem-output. 3 tests atualizados (test_pipeline_api,
+    test_pipeline_review, test_pipeline_phase5) — patch locations
+    migrados para `application.pipeline_run.*.start_pipeline_run`;
+    2 assertions 400→422 (alinhamento com semântica ADR-101).
+  - **Gates empíricos:** `pytest backend/tests -q` 1191 passed + 4
+    skipped, zero regressão; teste AST `test_routers_thin.py` cobre 19
+    routers; OpenAPI snapshot diff apenas em descrições removidas +
+    ordem de parâmetros (zero path/method/response_model/status_code
+    removido além dos 2 casos 400→422 cobertos acima).
+  - **Lane fechada:** A6e.4 agora 17/17 (fase 4a 14/14 + fase 4b 3/3).
+
 - **A6g.3b — polish final: factory Decimal + baseline regenerado (sessão 3 ✅) (2026-04-22):**
   Fecha polish de A6g.3b após slices 1–3 mergeados. Encerra a lane.
   - **`backend/tests/factories/builders.py::make_if_goal`:** assinatura
@@ -109,6 +177,69 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
     com `r_m` float. Comparações `Decimal("7200000.00") == 7_200_000.0`
     continuam `True` nativamente.
   - **Gates:** 1174 backend + `test_openapi_snapshot` verde.
+  **14/14 da fase 4a entregues** — os 7 routers restantes (`invitations`,
+  `ws`, `llm`, `transactions`, `reports`, `workspaces`, `pipeline`) viraram
+  thin em slices 11-17. THIN_ROUTERS sobe de 12 → 19 routers. Total
+  `wc -l` dos 7 antes = 1813 linhas → depois = 715 linhas (-60%). 7
+  novos aggregates em `backend/app/application/`:
+  `invitation/`, `realtime/`, `llm_config/`, `transaction/`, `report/`,
+  `workspace/`, `pipeline_run/`.
+  - **`invitations.py`** (slice 11): 127 → 57 linhas. 2 use cases
+    (`preview_invitation`, `accept_invitation`). Exception handler global
+    `InvitationError` em `main.py` substitui tradução code→status
+    ad-hoc (404/409/410/403/422/400). Mesma base herdada por
+    `workspaces.py` depois.
+  - **`ws.py`** (slice 12): 103 → 31 linhas. Extrai `verify_ws_token` +
+    pump loop Redis Pub/Sub para `application/realtime/pipeline_progress.py`
+    (`_subscribe`/`_pump_messages`/`_forward`/`_cleanup` privados).
+    Handler vira: valida token → accept → delegar. OpenAPI snapshot
+    intocado (WebSocket).
+  - **`llm.py`** (slice 13): 182 → 89 linhas. 5 use cases em
+    `application/llm_config/` (get/save/delete/test/tier) +
+    `_response.py` (mask_api_key + to_response). `NotFoundError`
+    global substitui `HTTPException(404)` ad-hoc em `test`/`delete`.
+  - **`transactions.py`** (slice 14): 231 → 104 linhas. 4 use cases
+    (list/export/create_override/delete_override) + `_loading.py`
+    (load_overrides_map + load_filtered_transactions). `TransactionFilters`
+    dataclass compartilhado entre list/export elimina duplicação de 8
+    Query params. `NotFoundError` global substitui 2 `HTTPException(404)`
+    ad-hoc. OpenAPI diff só em ordem de query params (consumers parseiam
+    por nome, zero breaking).
+  - **`reports.py`** (slice 15): 353 → 133 linhas. 7 use cases (list/
+    get/html/download_html/data/pdf/tasks) + `_common.py` (serialize_report/
+    sanitize_filename/fetch_report). `NotFoundError` global cobre 6 casos
+    ad-hoc de 404. `HTTPException(500)` preservado em
+    `get_report_data` quando JSON de análise corrompido (infra error,
+    não domain). Re-export `_sanitize_filename` no router
+    (`noqa: F401`) preserva `test_download_html_sanitize_filename_helper`.
+  - **`workspaces.py`** (slice 16): 371 → 163 linhas. 7 use cases em
+    `application/workspace/` (list_my_workspaces/list_members/
+    update_member_role/remove_member/create_invitation/list_invitations/
+    revoke_invitation) + `_dtos.py` (UserWorkspaceResponse/
+    UserWorkspaceListResponse + invitation_to_response helper). Exception
+    handler global `MembershipError` em `main.py` (not_found→404,
+    is_owner→409, invalid_role→422). `InvitationError` ganha
+    `limit_reached`→429 (usado em create_invitation). Remove 4 blocos
+    `try/except code_to_status` ad-hoc.
+  - **`pipeline.py`** (slice 17): 439 → 139 linhas. 8 use cases em
+    `application/pipeline_run/` (trigger/new_doc_count/list/get/cancel/
+    resume/list_reviews/action_review) + `_common.py` (fetch_run/
+    fetch_review/run_to_response). `trigger_pipeline` decomposto em 7
+    funções privadas (_check_no_active_run/_count_documents/
+    _validate_counts/_validate_data_dir/_resolve_incremental/
+    _resolve_stages/_create_run) — cada ≤20 linhas. Domain errors
+    substituem `HTTPException` ad-hoc: `ConflictError`→409 para
+    active-run/already-cancelled/needs-review-gate, `ValidationError`→422
+    para incremental-sem-docs/doc-count-zero/from_stage-inválido/
+    edit-sem-output. 2 tests atualizados (test_pipeline_api,
+    test_pipeline_review) — patch locations migrados para
+    `application.pipeline_run.*.start_pipeline_run`; 2 assertions
+    400→422 (alinhamento com semântica ADR-101).
+  - **Gates empíricos:** `pytest backend/tests -q` verde; teste AST
+    `test_routers_thin.py` cobre 19 routers; OpenAPI snapshot diff
+    apenas em descrições removidas + ordem de parâmetros (zero
+    path/method/response_model/status_code removido além dos 2 casos
+    400→422 cobertos acima).
 
 - **A6g.3b — Decimal money: tipo `MoneyBRL`/`MoneyUSD` + transactions migrado (parcial) (2026-04-22):**
   Executa slices 1+3 do track A6g.3b (goal DTOs + math `compute_if_derived`

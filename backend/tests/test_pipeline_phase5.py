@@ -107,7 +107,7 @@ class TestConcurrencyLimit:
         data_dir.mkdir(parents=True, exist_ok=True)
         (data_dir / "seed.pdf").write_bytes(b"x")
 
-        with patch("backend.app.api.pipeline.start_pipeline_run"):
+        with patch("backend.app.application.pipeline_run.trigger_pipeline.start_pipeline_run"):
             resp = await client.post(
                 f"/api/workspaces/{ws.id}/pipeline/run", json={"skip_llm": True}
             )
