@@ -1,0 +1,658 @@
+# Plano — Elevar `/reports/[id]` e `e6_render.py` ao nível do `EXEMPLO_DE_RELATORIO.html`
+
+> **Audiência:** LLM executor (agente Claude em worktree próprio).
+> **Referência visual:** `EXEMPLO_DE_RELATORIO.html` (raiz do repo, 10 024 linhas).
+> **Referência atual:** `frontend/src/components/report/**`, `scripts/e6_render.py`,
+> `design-tokens/tokens.json`, `config/report_layout.yaml`.
+> **Data de emissão:** 2026-04-23.
+
+---
+
+## 0. Premissas e contratos
+
+### 0.1 Decisões de escopo (já aprovadas pelo usuário)
+
+| # | Decisão | Valor |
+|---|---------|-------|
+| 1 | Alvos de render | **React (rota `/reports/[id]`) + `e6_render.py` em paridade** |
+| 2 | Biblioteca de charts | **Chart.js 4 + react-chartjs-2 + chartjs-plugin-datalabels** — apenas dentro de `frontend/src/components/report/**`. Recharts permanece no dashboard interno. |
+| 3 | Navegação / modos | **Manter `ReportToc` sidebar**; **adicionar** top-nav sticky igual ao exemplo (com numeração + grupos + toggle de modo + toggle de tema). Os dois coexistem. |
+| 4 | Elementos visuais | **Todos** os do exemplo (cover hero, dark mode, chart-conclusion, section-divider, card variants, KPI-hero, score gauge, period toggle, back-to-top, export-toolbar, skip-nav, print CSS, kanban em T3). |
+| 5 | Dados | **Visual + data.** Onde o pipeline (E5) não produz o campo necessário, estender E5 e propagar no `ReportAnalysisData`. |
+
+### 0.2 Invariantes inegociáveis (CLAUDE.md)
+
+O executor **não** pode violar:
+
+- `Money`/`Decimal` em dinheiro — nunca `float` (ADR-090).
+- `pipeline/**` não importa `fastapi`/`celery`/`sqlalchemy` (dev/check_pipeline_boundaries.py).
+- Sem `--force`, `--no-verify`, `--amend` em commit pushado, `reset --hard` em branch compartilhada.
+- Stateless rigoroso (ADR-111): nada de estado mutável in-memory em `backend/` / `pipeline/`. Notas do T6 vão para **localStorage** (client-only) ou Redis via endpoint, **nunca** módulo global.
+- Endpoint JSON novo → `response_model` + `make update-openapi-snapshot` (ADR-109).
+- Sem `any` em TypeScript; sem `Dict[str, Any]` fora de boundaries em Python.
+- Pre-commit + `pytest` locais verdes **antes** de cada push.
+- Commits pequenos e coesos — 1 mudança lógica por commit, diff ≤ 300 linhas idealmente.
+- Branch `agent/<slug>/<yyyyMMdd-HHmm>`, criada **antes** da primeira edição.
+
+### 0.3 Protocolo de execução
+
+1. **Primeira ação em cada nova sessão:** `git status && git log --oneline HEAD -3`. Se vier suja e você não reconhece — pare e peça instrução.
+2. **Branch:** `agent/report-premium/<yyyyMMdd-HHmm>`. Uma branch por fase (ver §2) para manter PRs ≤ 800 linhas.
+3. **Commits WIP são obrigatórios** entre turnos. Nada de working tree sujo ao devolver a palavra.
+4. **Anunciar cada operação git** (commit hash + mensagem curta, push + destino).
+5. **Pausas para revisão humana** estão marcadas como 🛑 neste plano. Não prossiga sem resposta.
+6. **Em caso de dúvida de domínio** — consulte `config/definitions.md`, `config/pipeline.json`, `docs/DECISIONS.md`. Não invente regra.
+
+### 0.4 "Concluído" significa
+
+Para cada fase: **commit em `main` com CI verde** (§CLAUDE.md). Até lá, a fase está `in_progress` no seu tracking interno. "Passou local" não conta.
+
+---
+
+## 1. Fase 0 — Discovery & Gap Inventory (obrigatória antes de código)
+
+**Branch:** `agent/report-premium/phase0-discovery/<ts>`
+**Entregável:** `_scratch/REPORT_PREMIUM_GAPS.md` (commitado como `chore(docs): gaps inventory (phase 0)` em `_scratch/` que está no `.gitignore` — então **não** commita; entrega via tool-output e salva local).
+
+### 1.1 Leitura obrigatória integral
+
+- [ ] `EXEMPLO_DE_RELATORIO.html` inteiro (10 024 linhas) — leia em 3 blocos (`1-3500`, `3501-7000`, `7001-fim`). Anote por seção: cards presentes, charts presentes, dados injetados (`{{PLACEHOLDER}}` ou valor literal).
+- [ ] `frontend/src/types/report-analysis.ts` — shape atual do `ReportAnalysisData`.
+- [ ] `frontend/src/components/report/sections/*.tsx` — o que cada seção já consome e renderiza.
+- [ ] `config/report_layout.yaml` — inventário de cards/charts por seção (fonte de verdade do layout).
+- [ ] `design-tokens/tokens.json` + `design-tokens/build.py` — como tokens viram CSS.
+- [ ] `scripts/e6_render.py` + `scripts/e6/sanitize.py` + `scripts/e6/validate.py` — pipeline do export standalone.
+- [ ] `pipeline/domain/services/` (e5-relacionados) — onde E5 gera o payload de análise.
+
+### 1.2 Produto do discovery
+
+Um documento `_scratch/REPORT_PREMIUM_GAPS.md` com 4 tabelas:
+
+**Tabela A — Gaps de token.** Para cada variável CSS do `:root` do exemplo (linhas 31–147), marcar: `existe / ausente / renomear-para`. Saída esperada: lista de ~60 tokens a acrescentar em `tokens.json`.
+
+**Tabela B — Gaps de primitivo UI.** Componentes React que precisam existir e ainda não existem: `ReportCover`, `ReportTopNav`, `ModeToggle`, `ThemeToggle`, `CardVariant` (wrapper), `SectionDivider`, `IconBadge`, `KpiHero`, `KpiStrip`, `ScoreCard`, `ScoreBreakdownTable`, `ChartConclusion`, `PeriodToggle` (já existe — audita), `ChartNav`, `AlertBox`, `Badge`, `PontoForteItem`, `Kanban`, `KanbanColumn`, `KanbanCard`, `Timeline`, `ChangelogList`, `NotasCard`, `BackToTop`, `GoToBottom`, `ExportToolbar`, `SkipNav`, `CollapsibleSectionHeader`.
+
+**Tabela C — Gaps de dado no `ReportAnalysisData`.** Para cada campo que o exemplo exibe, mapear para fonte. Suspeitos iniciais (confirmar na discovery):
+- `score.overall`, `score.classe` ∈ {`Excelente`,`Bom`,`Regular`,`Ruim`,`Péssimo`,`Crítico`}, `score.breakdown[]` com `{dimensao, valor, peso, contrib}`, `score.formula`.
+- `meta_if.pct_atual`, `meta_if.pct_meta`, `meta_if.ano_alvo`, `meta_if.gap_mensal`.
+- `projecao.kpi_strip[]` (5 KPIs do `.proj-kpi-strip`).
+- `chart_conclusions[chart_id]` — texto curto (≤180 char) por gráfico.
+- `section_summaries[section_id]` — mini-resumo de 1-2 frases.
+- `pontos_fortes[]` — lista de `{icon, titulo, descricao}`.
+- `cerbasi.presente_vs_futuro` — 4 barras percentuais.
+- `tatico.kanban.itens[]` — `{id, titulo, prioridade ∈ {alta,media,baixa}, prazo_iso, coluna ∈ {a_fazer,em_andamento,concluido}}`.
+- `tatico.timeline[]`, `tatico.alertas[]`, `tatico.changelog[]`.
+- `capa.meta[]` — 4 cards (ex.: "Período analisado", "Gerado em", "Versão", "Metodologia").
+- `comparisons[]` — pares antes/depois por card quando aplicável.
+- `priority_badges` em tabelas estratégicas — `{alta,media,baixa}`.
+
+Para cada gap: `origem proposta` (E5 novo campo | LLM call | regra determinística | input manual do usuário) + `esforço` (S/R/O) + `bloqueia quais seções`.
+
+**Tabela D — Gaps no `report_layout.yaml`.** Cards/charts presentes no exemplo mas ausentes do YAML. O YAML é fonte de verdade — todos os novos itens visuais entram lá antes de virar código (pipeline `dev/codegen_report_layout.py` regenera os tipos).
+
+### 1.3 🛑 PAUSA para revisão humana
+
+Ao final da Fase 0, entregar o `REPORT_PREMIUM_GAPS.md` e **aguardar** aprovação. Não começar Fase 1 sem:
+
+- Lista de gaps de dado aprovada (usuário pode cortar: "o score fica para depois, entrega sem").
+- Decisão sobre onde os `chart_conclusions` e `section_summaries` são gerados: (i) LLM na E5, (ii) prompt template em `config/`, (iii) input manual do consultor.
+- Decisão sobre `NotasCard` T6: localStorage (client) vs endpoint persistido (Redis/DB).
+
+Saída esperada dessa pausa: decisões registradas em `docs/DECISIONS.md` como nova ADR (próximo número disponível — hoje seria ADR-117 ou superior; confira antes).
+
+---
+
+## 2. Roadmap de fases (visão geral)
+
+Cada fase = branch própria + PR próprio + merge antes de iniciar a próxima. Fases 3–7 podem paralelizar entre agentes diferentes se houver capacidade (ver §11).
+
+| Fase | Nome | Branch suffix | Saída | Depende de |
+|------|------|---------------|-------|------------|
+| 0 | Discovery & gaps | `phase0-discovery` | `REPORT_PREMIUM_GAPS.md` + ADR | — |
+| 1 | Design tokens + dark mode | `phase1-tokens` | `tokens.json` expandido, CSS regenerado | 0 |
+| 2 | Chart.js foundation | `phase2-charts` | Componentes `ChartBar/Donut/Area/Gauge/Combo/Stacked` + `PeriodToggle` + `ChartConclusion` | 1 |
+| 3 | UI primitives | `phase3-primitives` | Card variants, Alert, Badge, SectionDivider, IconBadge, KpiHero, ScoreCard, PontoForteItem | 1 |
+| 4 | Shell: cover + topnav + toolbar | `phase4-shell` | `ReportCover`, `ReportTopNav`, `ModeToggle`, `ThemeToggle`, `BackToTop`, `ExportToolbar`, `SkipNav` | 3 |
+| 5 | Layout YAML expansion | `phase5-layout` | `report_layout.yaml` atualizado + codegen TS/py | 0 |
+| 6 | Pipeline E5 — campos novos | `phase6-e5-data` | Novos campos em `ReportAnalysisData` + testes golden | 0, 5 |
+| 7 | Sections estratégicas | `phase7-sections-strategic` | S1–S4, S7–S10 repaginadas | 2, 3, 4, 6 |
+| 8 | Sections táticas + Kanban | `phase8-sections-tactical` | T1–T6 com Kanban + Notas + Changelog | 2, 3, 4, 6 |
+| 9 | Sections USA | `phase9-sections-usa` | U1–U4 | 2, 3, 4, 6 |
+| 10 | Apêndices A–E | `phase10-appendices` | APP_A existente + B/C/D/E novos | 5 |
+| 11 | `e6_render.py` paridade | `phase11-e6-parity` | Templates Jinja ou equivalente, 19 V-checks passam | 7, 8, 9, 10 |
+| 12 | Print + a11y + tests | `phase12-polish` | Print CSS, Playwright screenshots, axe-core | 11 |
+| 13 | Rollout & docs | `phase13-rollout` | Feature flag, CHANGELOG, DECISIONS, RUNBOOK | 12 |
+
+Estimativa total (um agente, serial): **10–14 sprints equivalentes**. Paralelizando Fases 3/5/6 e depois 7/8/9, o caminho crítico cai para ~7–9 sprints.
+
+---
+
+## 3. Fase 1 — Design tokens + dark mode
+
+**Branch:** `agent/report-premium/phase1-tokens/<ts>`
+
+### 3.1 Entregas
+
+1. Estender `design-tokens/tokens.json` com **todos** os tokens do `:root` do exemplo (linhas 31–147):
+   - Paleta completa (`--color-primary` até `--color-compare-pos`).
+   - Tokens semânticos de alert (4 pares `bg`/`text`) em light e dark.
+   - Escala completa de fontes (`--font-xs` a `--font-3xl`) — 8 níveis.
+   - Escala de spacing (`--space-xs` a `--space-4xl`) — 8 níveis + aliases legados.
+   - Escala de radius (`--radius-sm`, `md`, `lg`, `card`, `badge`, `pill`).
+   - Shadows (`card`, `card-hover`) — light e dark.
+   - Badge tokens (5 semânticas × 2 modos).
+   - Dark-mode overrides completos (linhas 108–147 do exemplo + gradientes `--card-feature-bg`, `--card-success-bg`, `--roadmap-bg`).
+2. `design-tokens/build.py` precisa produzir **dois artefatos**: o CSS que o Next.js já consome + o CSS que o `e6_render.py` injeta no HTML standalone. Se hoje só produz um, estender.
+3. Confirmar que fontes (`Plus Jakarta Sans`, `Inter`, `JetBrains Mono`) estão carregadas via `next/font/google` em `frontend/src/app/layout.tsx` conforme ADR-076. Nunca redefinir em CSS.
+4. Acrescentar theme toggle com `data-theme="light|dark"` em `<html>` + `localStorage` persistente. Componente fica em `frontend/src/components/report/ReportThemeToggle.tsx` (usado pela top-nav da Fase 4 — criar stub agora, integrar depois).
+
+### 3.2 Arquivos tocados
+
+- `design-tokens/tokens.json` (+ ~60 tokens)
+- `design-tokens/build.py` (+ export modo standalone se não existe)
+- `design-tokens/README.md` (documentar escalas)
+- `frontend/src/app/globals.css` (ou equivalente) — garantir que `data-theme="dark"` troca vars
+- `frontend/src/components/report/ReportThemeToggle.tsx` (novo, stub funcional)
+
+### 3.3 Critério de aceite
+
+- `python3 design-tokens/build.py` roda sem erro.
+- `npm run build` passa (Next.js).
+- Visual regression: capturar `/reports/[id]` em light e dark — não quebrou (mesmo sem cover novo, os cards existentes devem renderizar; dark mode fica elegante, não quebrado).
+- Pre-commit limpo; `pytest backend/tests -q` limpo.
+
+### 3.4 Commits sugeridos
+
+```
+feat(design-tokens): expand scale — fonts, spacing, radius, shadows (ADR-117)
+feat(design-tokens): dark mode tokens with calibrated gradients
+feat(design-tokens): build.py emits standalone CSS for e6_render
+feat(report): ReportThemeToggle with data-theme + localStorage
+```
+
+---
+
+## 4. Fase 2 — Chart.js foundation
+
+**Branch:** `agent/report-premium/phase2-charts/<ts>`
+
+### 4.1 Dependências
+
+```bash
+cd frontend && npm install chart.js@^4 react-chartjs-2@^5 chartjs-plugin-datalabels@^2
+```
+
+Adicionar em `frontend/next.config.ts` ou `tsconfig.json` nada — funciona direto. Para SSR (Next App Router), envolver em `dynamic(() => import(...), { ssr: false })` todos os componentes de chart (Chart.js depende de `window`).
+
+### 4.2 Componentes a criar
+
+Todos em `frontend/src/components/report/charts/`:
+
+| Arquivo | Propósito | Base no exemplo |
+|---------|-----------|-----------------|
+| `ChartRegistry.ts` | Registro único de escalas/plugins Chart.js + datalabels (evita tree-shaking quebrar) | — |
+| `ChartCanvas.tsx` | Wrapper com `dynamic` SSR-off + `aspect-ratio` + dark-mode aware | — |
+| `ChartBar.tsx` | Bar chart simples + agrupado | receita vs despesa |
+| `ChartStackedBar.tsx` | Stacked com legend agrupada | categorias despesa |
+| `ChartDonut.tsx` | Doughnut com `cutout` + label central opcional | patrimônio_doughnut |
+| `ChartPie.tsx` | Pie clássico | — |
+| `ChartLine.tsx` | Line + area fill opcional | evolução patrimonial |
+| `ChartCombo.tsx` | Bar + Line no mesmo canvas (dois eixos) | — |
+| `ChartWaterfall.tsx` | Waterfall via bar com floating bars | `waterfall_if` |
+| `ChartGaugeSemi.tsx` | Semi-circle gauge via doughnut `rotation:-90 circumference:180` | `#chart-score-gauge` |
+| `ChartConclusion.tsx` | Box de texto pós-gráfico (`.chart-conclusion`) | linha 298 |
+| `ChartNav.tsx` | Navegação temporal (dots + setas) | linhas 349–379 |
+| `PeriodToggle.tsx` | Segmented control 3M/6M/12M/YTD/ALL (já existe — auditar; expandir API) | linhas 381–413 |
+
+### 4.3 API consistente
+
+Cada chart exporta:
+
+```ts
+type ChartProps<TDatum> = {
+  data: TDatum;                    // shape tipado por chart
+  title?: string;
+  subtitle?: string;
+  conclusion?: string;             // texto curto — render automático de <ChartConclusion>
+  periodWindow?: PeriodWindow;     // controlled by parent via <PeriodToggle>
+  onPeriodChange?: (w: PeriodWindow) => void;
+  height?: number | "auto";
+  printFallbackSrc?: string;       // PNG base64 para print (injetado em build)
+  "data-testid"?: string;
+};
+```
+
+**Nunca** use `any`. Cada chart tem `TDatum` próprio documentado.
+
+### 4.4 Dark mode em charts
+
+Grid lines, tick labels e legendas precisam ler cores via `getComputedStyle(document.documentElement).getPropertyValue('--color-text-muted')`. Encapsule em `useChartTheme()` hook — retorna `{ gridColor, textColor, palette[] }`. Hook re-dispara em mudança de `data-theme`.
+
+### 4.5 Critério de aceite
+
+- Storybook local (ou página `/reports/_dev/charts`) renderiza cada chart com fixture estática.
+- Print-preview do Chrome mostra PNG fallback (não SVG vazio).
+- Testes unitários Vitest para `useChartTheme` e transformações de dados (não precisa teste visual Playwright ainda — vem na Fase 12).
+
+---
+
+## 5. Fase 3 — UI primitives
+
+**Branch:** `agent/report-premium/phase3-primitives/<ts>`
+
+### 5.1 Componentes
+
+Todos em `frontend/src/components/report/ui/`:
+
+| Componente | Props mínimas | Mapeamento CSS |
+|------------|---------------|----------------|
+| `Card` | `variant?: 'default'\|'feature'\|'success'\|'warn'\|'critical'\|'primary'\|'neutral'\|'top-danger'\|'top-accent'\|'highlight'`, `children` | `.card`, `.card-feature` etc. |
+| `CardTitle` | `as?: 'h2'\|'h3'`, `color?: 'primary'\|'green'\|'red'`, `size?: 'md'\|'lg'` | `.card-title`, `.card-title-*` |
+| `CardSubtitle` | `children` | `.card-subtitle` |
+| `Alert` | `severity: 'info'\|'success'\|'warning'\|'danger'`, `children` | `.alert-*` |
+| `Badge` | `color: 'green'\|'red'\|'yellow'\|'blue'\|'neutral'`, `children` | `.badge-*` |
+| `IconBadge` | `color: 'blue'\|'green'\|'red'\|'orange'\|'dark'`, `children` (1–2 chars) | `.icon-badge-*` |
+| `SectionDivider` | `icon?: ReactNode` | `.section-divider` + `.section-divider-icon` |
+| `KpiCard` | `label`, `value`, `sub?`, `tone?: 'default'\|'green'\|'red'\|'blue'`, `hero?: bool`, `accent?: 'default'\|'accent'\|'danger'\|'primary'`, `progress?: {value: 0..1, tone: 'green'\|'blue'\|'red'}` | `.kpi-card`, `.kpi-hero`, `.kpi-progress` |
+| `KpiGrid` | `columns?: 4\|6`, `children` | `.kpi-grid`, `.dash-kpis` |
+| `KpiStrip` | `items: {label, value, meta?}[]` | `.proj-kpi-strip` |
+| `ScoreCard` | `value: 0..100`, `classe`, `breakdown: {dimensao, valor, peso, contrib}[]`, `formula?` | `.score-card-wrap` + `.score-breakdown` |
+| `PontoForteItem` | `icon`, `titulo`, `descricao` | `.ponto-forte-item` |
+| `PontosFortesList` | `items: PontoForteProps[]` | `.pontos-fortes-list` |
+| `CollapsibleSectionHeader` | `title`, `collapsed`, `onToggle`, `hint?` (quando collapsed) | `.section-header` + `.collapse-icon` |
+| `SectionSummary` | `children` (1–2 frases) | `.section-summary` |
+| `TwoColCards` | `left`, `right` | `.two-col` |
+| `SplitCards` | idem, com `min-height` equalizado | `.split-cards` |
+| `ComparisonBlock` | `before: {titulo, valor}`, `after: {titulo, valor}` | `.comparison` |
+| `PriorityBadge` | `level: 'alta'\|'media'\|'baixa'` | `.priority-badge` |
+| `DeadlineBadge` | `iso`, computa `vencida`/`urgente`/`ok` | `.deadline-badge` |
+| `EffortBadge` | `effort: 'S'\|'R'\|'O'` | `.effort-badge-*` |
+
+### 5.2 Princípios
+
+- **Sem `className` prop em consumidores** a menos que seja flag de layout externo. Variant > className.
+- **Sem inline `style={{ color: '#...' }}`** no código final. Se precisar cor dinâmica, use `style={{ color: 'var(--color-accent)' }}` lendo token.
+- **Dark mode gratuito** — todos os primitivos referenciam vars CSS que já têm override em `[data-theme="dark"]`.
+
+### 5.3 Critério de aceite
+
+- Página `frontend/src/app/(dev)/reports/primitives/page.tsx` (gated por `process.env.NODE_ENV !== 'production'`) renderiza todos os primitivos com todas as variants.
+- Tipos exportados em `components/report/ui/index.ts`.
+- Teste Vitest mínimo: cada componente renderiza sem warning.
+
+---
+
+## 6. Fase 4 — Shell: cover + topnav + toolbar
+
+**Branch:** `agent/report-premium/phase4-shell/<ts>`
+
+### 6.1 Componentes
+
+- `ReportCover` (`components/report/ReportCover.tsx`):
+  - Gradient + `::before`/`::after` blobs (CSS puro).
+  - `cover-badge` em caps-lock.
+  - Título principal + subtítulo com gradient-clip (Plus Jakarta Sans 800 / 600).
+  - Grid de 4 `cover-meta-card` — props: `meta: {label, value}[]`.
+  - Props: `title`, `subtitle`, `badge`, `meta[]`. Todos vêm do snapshot de dados.
+- `ReportTopNav` (`components/report/ReportTopNav.tsx`):
+  - Sticky top, gradiente `linear-gradient(90deg, #0F2A44, #152F4A)`.
+  - `nav-brand` à esquerda (logo Mathoms).
+  - `nav-scroll` — horizontal scroll em mobile.
+  - 3 grupos por modo (`.nav-strategic`, `.nav-dashboard`, `.nav-usa`) — troca via `data-mode`.
+  - `ModeToggle` + `ThemeToggle` à direita.
+  - Active link via `IntersectionObserver` observando cada `<section id="...">`.
+- `ModeToggle` (`components/report/ModeToggle.tsx`):
+  - 3 botões (`Estratégico`/`Tático`/`USA`) — já integrados com `ReportModeProvider`.
+- `BackToTop` + `GoToBottom` (`components/report/FloatingNav.tsx`):
+  - Mostra/esconde via scroll listener (`opacity` transition). Debounce 100ms.
+- `SkipNav` (`components/report/SkipNav.tsx`):
+  - Primeiro foco da página, salta para `<main>`.
+- `ExportToolbar` (`components/report/ExportToolbar.tsx`):
+  - Botões: "Baixar HTML" (chama endpoint existente), "Baixar PDF" (print → save), "Copiar link" (clipboard).
+
+### 6.2 Integração em `ReportShell`
+
+- `<SkipNav />` primeiro filho.
+- `<ReportCover />` antes de `<ReportTopNav />` (hero aparece ao abrir, nav fica sticky ao rolar).
+- `<ReportTopNav />` sticky.
+- Sidebar `<ReportToc />` **mantida** — coexistem (usuário decidiu #3).
+- `<BackToTop />` + `<GoToBottom />` fixos.
+- `<ExportToolbar />` antes do `<Footer />`.
+
+### 6.3 Critério de aceite
+
+- Screenshots manuais: hero renderiza com gradient e meta cards em light e dark.
+- Sticky nav não sobrepõe conteúdo (testar scroll).
+- `tab`-navegação funcional (skip-nav aparece no primeiro `tab`, mode/theme toggle focáveis, nav links focáveis).
+- Mobile (<768px): hero compacta, nav esconde labels, sidebar vira drawer ou esconde.
+- Lighthouse acessibilidade ≥95.
+
+---
+
+## 7. Fase 5 — Layout YAML expansion
+
+**Branch:** `agent/report-premium/phase5-layout/<ts>`
+
+### 7.1 Entregas
+
+Atualizar `config/report_layout.yaml` para refletir **todos** os cards/charts do exemplo. Exemplo de diff (fragmento):
+
+```yaml
+estrategico:
+  sections:
+    - id: "S1"
+      title: "Patrimônio — Estrutura e Composição"
+      summary: true                   # novo: renderiza <SectionSummary>
+      charts:
+        - id: "patrimonio_doughnut"
+          enabled: true
+          conclusion: true            # novo: espera chart_conclusions[...]
+        - id: "waterfall_if"
+          enabled: true
+          conclusion: true
+        - id: "score_gauge"
+          enabled: true               # movido para S10 se fizer mais sentido — decidir na fase
+      cards:
+        - id: "perfil_familia"
+          variant: "feature"
+          size: "full"
+        - id: "patrimonio_resumo_tabela"
+          variant: "default"
+          size: "full"
+        - id: "pontos_fortes"
+          variant: "success"
+          size: "full"
+        - id: "comparacao_anterior"   # novo — comparison block
+          variant: "neutral"
+          size: "full"
+          enabled: false              # liga após Fase 6 entregar os dados
+```
+
+Para cada seção (S1–S10, T1–T6, U1–U4, APP_A–APP_E): enumerar cards/charts a partir de uma varredura do HTML do exemplo. Marcar `enabled: false` itens que dependem de dados ainda não entregues na Fase 6 — liga no commit correspondente.
+
+### 7.2 Codegen
+
+Rodar `python3 dev/codegen_report_layout.py` após cada mudança no YAML. Comitar `frontend/src/generated/report-layout.ts` e `backend/app/generated/report_layout.py` **no mesmo commit** que o YAML.
+
+### 7.3 Critério de aceite
+
+- Lint YAML passa (`pre-commit`).
+- Codegen produz TS/py válidos (`tsc --noEmit` + `ruff check`).
+- `ReportShell` itera o novo YAML sem quebrar (stubs aparecem para cards/charts ainda não migrados).
+
+---
+
+## 8. Fase 6 — Pipeline E5: campos novos
+
+**Branch:** `agent/report-premium/phase6-e5-data/<ts>`
+
+> Essa fase é a **mais arriscada**. Mexe em `pipeline/domain/services/` e no snapshot. Golden tests de paridade podem quebrar. Siga rigorosamente o padrão `tests/test_e3_main_with_store_parity.py`.
+
+### 8.1 Campos a adicionar
+
+Da Tabela C do `REPORT_PREMIUM_GAPS.md` (Fase 0). Lista **provável** (refinar na discovery):
+
+| Campo | Origem | Fonte | Esforço |
+|-------|--------|-------|---------|
+| `score` (objeto) | Determinística + LLM para classe | novo service `FinancialScoreCalculator` | O |
+| `meta_if` | Determinística a partir de `independencia.*` | extensão em service existente | S |
+| `chart_conclusions` (dict) | LLM na E5, um prompt por chart id | novo service `ChartConclusionGenerator` + prompt template em `config/prompts/chart_conclusions.md` | R |
+| `section_summaries` | LLM | novo service `SectionSummaryGenerator` | R |
+| `pontos_fortes` | LLM + regras | extensão de narrativas existentes | R |
+| `cerbasi_presente_futuro` | Determinística a partir de `fluxo_caixa.*` | regra nova | S |
+| `capa.meta` | Determinística | derivado de metadata já existente | S |
+| `comparisons` | Determinística a partir de snapshot anterior | requer fetch do snapshot t-1 | O |
+| `tatico.kanban.itens` | Determinística a partir de `tarefas` + `alertas` | transformação + enum | R |
+| `tatico.timeline` | Já existe ou deriva de `proximos_passos` | verificar | S |
+| `tatico.changelog` | Determinística a partir de diff snapshot t-1 vs t | O | — |
+
+Esforços: S (≤4h), R (4–12h), O (>12h — quebrar em subtarefas).
+
+### 8.2 Padrão obrigatório
+
+- Cada campo é **value object tipado** Pydantic (ADR-102 R18).
+- Services recebem `config: ValueObjectConfig`, não `StageConfig` inteiro (ADR-089/097).
+- **Dinheiro** sempre `Money` (ADR-090). Wire = string decimal.
+- Warnings = dataclasses tipadas com `.format()` (ADR-097 D1).
+- Golden test de paridade: input fixture → output JSON com campo novo; comparado byte-a-byte (tolerância `0.01` em whitelist monetária).
+- Schema em `config/schemas/e5.schema.json` atualizado; `make update-openapi-snapshot` depois de tocar endpoint.
+
+### 8.3 Migração no `ReportAnalysisData`
+
+- Cada campo novo é **opcional** (`?`) no TS. Seções consomem com default seguro. Assim a Fase 7 pode começar antes da Fase 6 terminar todos os campos.
+
+### 8.4 Critério de aceite
+
+- `pytest tests -q` verde — goldens atualizados com commits explícitos.
+- `pytest backend/tests -q` verde.
+- Schema E5 valida fixtures de produção (varredura dos snapshots disponíveis em `storage/`).
+- Nenhum `pipeline/**` importa `fastapi`/`celery`/`sqlalchemy` (check automático).
+- Nenhum `float` em campo monetário.
+
+### 8.5 🛑 PAUSA antes do merge
+
+Rodar o pipeline inteiro em uma fixture de produção e comparar o snapshot novo com o antigo. Se algum campo existente mudou inesperadamente → investigar antes de merge. Não siga para Fase 7 sem esse gate.
+
+---
+
+## 9. Fases 7–10 — Migrar seções
+
+**Branches:** `agent/report-premium/phase{7,8,9,10}-sections-*/<ts>`
+
+### 9.1 Padrão por seção
+
+Cada seção migra em **4 commits sequenciais**:
+
+1. **`feat(report): S1 visual skeleton`** — substitui o componente atual por estrutura nova com primitivos da Fase 3, mock data se necessário, sem charts ainda. Section-summary, cards, divider, footer. Deve renderizar bonito mesmo sem gráficos.
+2. **`feat(report): S1 wire data from snapshot`** — remove mocks, conecta `ReportAnalysisData`. Trata ausência de campo novo (Fase 6) com fallback silencioso (não quebra a seção).
+3. **`feat(report): S1 charts with Chart.js`** — adiciona os charts da Fase 2 + `PeriodToggle` onde aplicável + `ChartConclusion`. Verifica print fallback.
+4. **`test(report): S1 playwright snapshot + a11y`** — screenshot em light/dark/print, axe-core sem violations críticas.
+
+### 9.2 Ordem recomendada
+
+**Fase 7 (estratégica) — ordem por impacto visual:**
+- S10 Síntese (abre com ScoreCard + KpiHero — "primeira impressão" forte)
+- S1 Patrimônio (doughnut + waterfall)
+- S2 Fluxo de caixa (stacked bar + combo receita/despesa)
+- S3 Investimentos (pie + tabela + comparison)
+- S7 Independência financeira (KpiStrip de projeção + gauge)
+- S4 Imóveis
+- S8 Tributário
+- S9 Riscos (alert-heavy)
+
+**Fase 8 (tático):** T4 alertas → T1 fluxo → T2 aportes → T3 tarefas (Kanban é pesado — reservar sub-commit dedicado) → T5 próximos passos → T6 notas.
+
+**Fase 9 (USA):** U1 → U2 → U3 → U4.
+
+**Fase 10 (apêndices):** APP_A existente refatorado → APP_B premissas → APP_C cenários → APP_D referências → APP_E próximos ciclos. B/C/D/E são novos — estrutura cards + tabelas, dados simples.
+
+### 9.3 Kanban (T3) — atenção especial
+
+- `<Kanban>` `<KanbanColumn>` `<KanbanCard>` em `components/report/ui/kanban/`.
+- Props aceitam `onItemMove?` — **não persistir** por ora (sem backend). Estado local + localStorage com chave `mathoms:kanban:<reportId>`. Esse é um desvio de stateless: **aceitável porque é client-only**. Documentar em `docs/STATELESS_AUDIT.md`.
+- Drag-and-drop: `@dnd-kit/core` (leve, bem-mantido). Adicionar em `frontend/package.json`.
+
+### 9.4 T6 Notas
+
+- Textarea com autosave a cada `keyup` debounced 500ms.
+- Storage: localStorage (`mathoms:notas:<reportId>`). Indicador `.notas-save-dot` muda para `.saving` enquanto escreve.
+- Botões "Copiar markdown" (usa `turndown` — já referenciado no exemplo) e "Limpar".
+
+### 9.5 Critério de aceite por seção
+
+- Visual corresponde ao exemplo ao comparar screenshots lado-a-lado (tolerância de posicionamento, não pixel).
+- Sem `console.error` em dev.
+- Sem `any`.
+- `npm test -- --run` passa.
+- Lighthouse performance ≥85 na seção isolada (sem rede).
+
+---
+
+## 10. Fase 11 — `e6_render.py` paridade
+
+**Branch:** `agent/report-premium/phase11-e6-parity/<ts>`
+
+### 10.1 Abordagem
+
+O `e6_render.py` hoje provavelmente monta HTML procedural. Duas opções:
+
+- **(a)** Reescrever com Jinja2 — templates em `scripts/e6/templates/` (um por seção). Recomendado.
+- **(b)** Manter procedural e só trocar o CSS + gerar placeholders onde o exemplo usa `{{PLACEHOLDER}}`.
+
+Vá com (a). Jinja2 já é dependência usada indiretamente pelo FastAPI. Isolar o render em `scripts/e6/renderer.py` + `templates/` mantém `e6_render.py` fino como orquestrador.
+
+### 10.2 Reuso do CSS
+
+- `design-tokens/build.py` (Fase 1) já produz o CSS standalone. O template Jinja carrega esse CSS inline (como o exemplo faz).
+- Chart.js standalone: manter os `<script>` do CDN exatamente como no exemplo (`chart.umd.min.js` + `datalabels` + `turndown`). Isso **é** o modelo do exemplo — HTML auto-contido para email/backup.
+- JS inline de inicialização dos charts: extrair do React Runtime e regravar como vanilla. Onde React usa `useChartTheme`, o standalone lê diretamente `getComputedStyle`. Duplicação aceita (diferentes runtimes).
+
+### 10.3 Critério de aceite
+
+- `python3 scripts/e6_render.py <args>` gera HTML que passa nos **19 checks V1–V19** (`scripts/e6/validate.py`).
+- Abrir o HTML no Chrome: visual ~idêntico à rota `/reports/[id]` (tolerância de estado cliente — kanban e notas aparecem em estado "empty").
+- Dark mode funciona: toggle no HTML standalone muda o tema via `data-theme` + localStorage.
+- Print do Chrome gera PDF legível (sem canvas vazio — fallback PNG presente).
+
+### 10.4 🛑 PAUSA
+
+Comparar visualmente `e6_render.py` output com o exemplo em 3 cenários: fixture pequena (1 conta), fixture média (múltiplos bancos), fixture grande (dados reais redacted). Aprovação humana obrigatória antes do merge.
+
+---
+
+## 11. Fase 12 — Print + a11y + tests
+
+**Branch:** `agent/report-premium/phase12-polish/<ts>`
+
+### 11.1 Print CSS
+
+Copiar bloco `@media print` do exemplo (linhas 661–688) adaptando nomes de classe onde divergiu. Pontos críticos:
+
+- `.chart-print-img` — cada `<ChartCanvas>` precisa emitir um `<img>` irmão gerado em runtime via `canvas.toDataURL()` depois do primeiro render. Esconde em screen, mostra em print.
+- `@page { margin: 15mm; }` + `@page :first { margin-top: 0 }` para cover sangrar.
+- `print-color-adjust: exact` em hero, badges, alerts, cards coloridos.
+
+### 11.2 Acessibilidade
+
+- Rodar `axe-core` em cada seção via Playwright e falhar build se houver violações **critical** ou **serious**.
+- Keyboard-nav: fluxo `tab` → skip-nav → theme → mode → sidebar TOC → first section → charts → export.
+- `aria-label` em ícones sem texto (FloatingNav, ThemeToggle, ModeToggle).
+- Contraste WCAG AA mínimo (AAA onde possível) — verificar tokens dark.
+
+### 11.3 Testes Playwright
+
+Em `frontend/tests/e2e/reports/`:
+
+- `cover.@critical.spec.ts` — hero renderiza, meta-cards visíveis, dark mode toggleia.
+- `navigation.@critical.spec.ts` — clique em nav link faz scroll; IntersectionObserver atualiza active.
+- `sections.strategic.spec.ts` — percorre S1→S10, screenshot por seção, light + dark.
+- `sections.tactical.spec.ts` — idem para T1→T6, inclui Kanban drag básico.
+- `print.spec.ts` — CDP `Page.printToPDF`, diff contra baseline PDF.
+
+### 11.4 Critério de aceite
+
+- Suíte `@critical` 100% verde no CI.
+- Lighthouse: Performance ≥85, Accessibility ≥95, SEO ≥90, Best Practices ≥95.
+- `pytest tests -q` + `pytest backend/tests -q` + `npm test -- --run` + `npm run test:e2e -- --grep @critical` todos verdes **na mesma execução local** antes do push.
+
+---
+
+## 12. Fase 13 — Rollout & docs
+
+**Branch:** `agent/report-premium/phase13-rollout/<ts>`
+
+### 12.1 Feature flag
+
+- Env `MATHOMS_REPORT_PREMIUM_UI=true` em `.env.example` (default true em dev, false em staging até validar).
+- Se `false`: rota `/reports/[id]` continua no shell antigo (precisa manter o código antigo arquivado em branch, não no main). **Decisão:** sem feature flag, cutover direto — rollback é `git revert` do PR da Fase 13. **Mais simples, aceito risco.**
+
+### 12.2 Docs
+
+Atualizar, cada um em commit separado:
+
+- `docs/DECISIONS.md` — ADR-117 (design premium), ADR-118 (Chart.js), ADR-119 (notas localStorage), ADR-120 (kanban localStorage). Numeração real depende do estado no momento.
+- `docs/CHANGELOG.md` — entrada "Premium report UI (A6g.X · ADR-117..120)".
+- `docs/ARCHITECTURE.md §10` — nova estrutura `components/report/{ui,charts,sections,shell}`.
+- `docs/RUNBOOK.md` — como toggle de tema, onde localStorage é limpo, como regerar `e6` standalone.
+- `docs/BACKLOG.md` — mover a sprint para `CHANGELOG`.
+- `CLAUDE.md` — adicionar na tabela "Onde procurar contexto" referência ao novo design system de relatório.
+
+### 12.3 Smoke test humano
+
+Seguir `docs/SMOKE_TEST_HUMAN.md` com adições:
+- Abrir 3 relatórios reais (tamanhos diferentes).
+- Togglear tema, modo, period em cada.
+- Exportar PDF.
+- Rodar `e6_render.py` em fixture e comparar.
+
+---
+
+## 13. Paralelização (caminho crítico)
+
+```
+Fase 0 (discovery)
+   ↓
+Fase 1 (tokens) ─→ Fase 2 (charts) ─┐
+                Fase 3 (primitives) ─┼─→ Fase 4 (shell) ─→ Fase 7+8+9+10 (sections, paralelos) ─→ Fase 11 (e6) ─→ Fase 12 (polish) ─→ Fase 13 (rollout)
+                                     │
+Fase 5 (YAML) ─→ Fase 6 (E5 data) ───┘
+```
+
+- **Agente A** pode tocar Fases 1, 2, 4 em série.
+- **Agente B** pode tocar Fase 3 após Fase 1.
+- **Agente C** pode tocar Fases 5 + 6 após Fase 0.
+- Fases 7/8/9 são naturalmente paralelas entre agentes (seções distintas = arquivos distintos). A regra do CLAUDE.md §Antes de pegar uma task aplica: checar `git worktree list` + `origin/agent/*` antes de escolher.
+
+---
+
+## 14. Riscos e mitigações
+
+| Risco | Probabilidade | Impacto | Mitigação |
+|-------|---------------|---------|-----------|
+| Chart.js bundle size explode o frontend | M | M | Dynamic import + route-split em `/reports/**` apenas. Medir bundle com `@next/bundle-analyzer` na Fase 2. |
+| Golden tests de E5 quebram em massa | A | A | Na Fase 6, campos novos são **aditivos** e **opcionais** no schema. Existing fields não mudam. Goldens só atualizam para incluir os novos. |
+| Dark mode quebra em algum screenshot | M | B | Playwright multi-tema (light + dark) já na Fase 12. |
+| Score LLM gera resultado inconsistente entre runs | M | M | `temperature=0` + seed fixo + cache Redis por snapshot (TTL 24h). Documentar determinismo parcial. |
+| Kanban localStorage perde dados | B | B | Avisar usuário no footer do componente + botão "exportar estado" que copia JSON. |
+| Print PDF do Chrome ignora `@page` em algumas versões | M | B | Testar Chrome ≥120 (mínimo suportado no projeto); fallback `user-select: none` no header. |
+| PRs gigantes travando review | A | A | **Regra dura:** cada PR de seção ≤800 linhas. Se estourou, quebrar em sub-PRs "skeleton" + "data" + "charts". |
+
+---
+
+## 15. Checklist de início de cada fase (para o LLM)
+
+Cole no início de cada sessão:
+
+```
+□ git fetch origin && git status
+□ git log --oneline origin/main..HEAD -10
+□ git worktree list                       # §antes de pegar task
+□ Confirmar branch agent/report-premium/... correta; se no worktree `.claude/worktrees/*`,
+  criar sub-branch antes de qualquer edit
+□ Ler o ramo da fase neste plano de ponta a ponta
+□ Ler CLAUDE.md §Git e commits se faz >24h desde a última sessão
+□ TodoWrite com as entregas da fase
+□ Antes de tocar CLAUDE.md / CHANGELOG / BACKLOG / DECISIONS: git log -5 --oneline origin/main -- <arquivo>
+□ Ao terminar: git diff --stat (≤300 linhas?), pre-commit, pytest, npm test, push
+□ Anunciar commit hashes e push no chat
+```
+
+---
+
+## 16. O que **não** está no escopo
+
+Para o LLM não ficar tentado a "melhorar":
+
+- Trocar Recharts em telas que não são `/reports/**`.
+- Refatorar `pipeline/domain/services/` além do necessário para os campos novos da Fase 6.
+- Adicionar i18n (relatório é pt-BR fixo — ADR existente).
+- Substituir Tailwind por CSS Modules no resto do projeto (fora de scope).
+- Mover assets para CDN próprio.
+- Introduzir Storybook como dependência produtiva (páginas `_dev/` bastam).
+
+Se surgir necessidade legítima de extrapolar, **pausar** e pedir aprovação — registrar como nova ADR, não fazer "de orelhada".
+
+---
+
+**Fim do plano.**
+Próxima ação do executor: abrir Fase 0.
