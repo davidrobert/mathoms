@@ -7166,7 +7166,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/config/llm": {
       "delete": {
-        "description": "Delete LLM configuration (reverts workspace to free tier).",
         "operationId": "delete_llm_config_api_v1_workspaces__workspace_id__config_llm_delete",
         "parameters": [
           {
@@ -7205,7 +7204,6 @@
         ]
       },
       "get": {
-        "description": "Get current LLM configuration (API key masked).",
         "operationId": "get_llm_config_api_v1_workspaces__workspace_id__config_llm_get",
         "parameters": [
           {
@@ -7259,7 +7257,6 @@
         ]
       },
       "put": {
-        "description": "Create or update LLM configuration. API key is encrypted at rest via Fernet.",
         "operationId": "save_llm_config_api_v1_workspaces__workspace_id__config_llm_put",
         "parameters": [
           {
@@ -7317,7 +7314,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/config/llm/test": {
       "post": {
-        "description": "Test connectivity with the LLM provider. Uses saved config or override params.",
         "operationId": "test_llm_connection_api_v1_workspaces__workspace_id__config_llm_test_post",
         "parameters": [
           {
@@ -7382,7 +7378,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/config/llm/tier": {
       "get": {
-        "description": "Check current workspace tier (free or premium based on valid LLM config).",
         "operationId": "get_tier_api_v1_workspaces__workspace_id__config_llm_tier_get",
         "parameters": [
           {
