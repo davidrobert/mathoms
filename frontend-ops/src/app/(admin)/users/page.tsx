@@ -51,8 +51,16 @@ export default function UsersPage() {
   }, [load]);
 
   async function toggleDev(u: AdminUserSummary): Promise<void> {
+    const enabling = !u.is_developer;
+    if (enabling) {
+      const ok = window.confirm(
+        `Ligar flag developer para ${u.email}? ` +
+          "Permite acesso a endpoints /dev/* e sessões existentes serão invalidadas.",
+      );
+      if (!ok) return;
+    }
     try {
-      await api.setDeveloperFlag(u.id, !u.is_developer);
+      await api.setDeveloperFlag(u.id, enabling);
       await load(q);
     } catch (err) {
       setError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao alternar flag.");
