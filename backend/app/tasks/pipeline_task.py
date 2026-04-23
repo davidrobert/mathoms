@@ -338,16 +338,6 @@ def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
         )
 
 
-@celery_app.task(
-    name="pipeline.run",
-    bind=True,
-    max_retries=0,
-    acks_late=True,
-    reject_on_worker_lost=True,
-    time_limit=3600,
-    soft_time_limit=3000,
-    on_failure=_on_pipeline_task_failure,
-)
 def _bootstrap_pipeline_sys_path() -> None:
     """Garante que `pipeline.*` seja importável no worker Celery."""
     import sys
@@ -732,6 +722,16 @@ def _close_artifact_session(artifact_session, run_id: str) -> None:
         logger.debug("artifact_session closed for run_id=%s", run_id)
 
 
+@celery_app.task(
+    name="pipeline.run",
+    bind=True,
+    max_retries=0,
+    acks_late=True,
+    reject_on_worker_lost=True,
+    time_limit=3600,
+    soft_time_limit=3000,
+    on_failure=_on_pipeline_task_failure,
+)
 def run_pipeline_task(
     self,
     run_id: str,
