@@ -8,6 +8,14 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **UX — sub-progresso por arquivo em E2 (2026-04-23):** `stage_activity`
+  agora carrega `current_item`, `items_done`, `items_total` por arquivo
+  processado em `E2-extratos` / `E2-faturas` (ver `scripts/e2_extract.py
+  run_with_store`). Frontend exibe "Arquivo N/M · nome.pdf" no subtítulo
+  do `ActiveRunCard` (sem precisar expandir detalhes técnicos) + barra
+  de progresso intra-stage em `StageRow`. Mitiga ansiedade em rodadas
+  longas de leitura de faturas (20min+ sem feedback visível).
+
 - **Default `MATHOMS_USE_DB_ARTIFACTS=true` (2026-04-23 · ADR-118):** flip do
   default global de `False` → `True` em `backend/app/core/config.py` após
   cutover DB validado (A6b/A6-human). Consequências operacionais:
