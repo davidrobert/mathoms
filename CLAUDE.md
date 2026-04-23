@@ -61,6 +61,12 @@ merge confirmado**; até lá, `in_progress`.
 rebase, PR abandonado). Outros agentes só podem confiar que o trabalho
 "existe" se está em `main`.
 
+**Exceção — docs-only:** mudanças exclusivamente em documentação
+(`docs/**`, `*.md`, ADRs, plans, changelog) consideram-se concluídas ao
+mergear em `main` — **não é necessário aguardar CI verde**. Doc não afeta
+runtime; gate de CI existe para proteger regressão de código. Se o diff
+mistura doc + código, a regra normal volta a valer.
+
 ---
 
 ## Code style
@@ -350,6 +356,11 @@ precisa pedir aprovação; é obrigatório anunciar** cada operação git em
 
    **Qualquer falha → não faz push.** Corrige antes. `dev/commit.py
    --dry-run` valida tudo antes de commitar.
+
+   **Exceção docs-only:** diff exclusivamente em `docs/**`, `*.md`, ADRs,
+   plans — pule `pytest`/`npm test`/`npm run test:e2e`. `pre-commit run
+   --all-files` **continua obrigatório** (PII, paths proibidos, commit
+   msg). Se o diff mistura doc + código, rode a suíte completa.
 5. **Pre-push drift check** — imediatamente antes de `git push origin main`:
 
    ```bash
