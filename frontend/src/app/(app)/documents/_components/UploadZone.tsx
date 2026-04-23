@@ -33,7 +33,7 @@ function UploadPrompt() {
         Arraste arquivos aqui ou clique para selecionar
       </p>
       <p className="mt-1 text-xs text-muted-foreground">
-        PDF, CSV, XLSX, JPG, PNG, JSON — até 20 arquivos, 50MB cada
+        PDF, CSV, XLSX, JPG, PNG, JSON — até 100 arquivos, 50MB cada
       </p>
     </>
   );
