@@ -7,17 +7,19 @@ com ``meta_aporte_mensal_brl`` (validador de domínio no Inputs).
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
 from backend.app.schemas.dto.goal.base import GoalResponseBase
+from backend.app.schemas.money import MoneyBRL
 
 
 class AporteGoalInputs(BaseModel):
     """Inputs do usuário para estratégia de aportes mensais."""
 
-    meta_aporte_mensal_brl: float = Field(
+    meta_aporte_mensal_brl: MoneyBRL = Field(
         ...,
         gt=0,
         description="Meta de aporte mensal total em BRL.",
@@ -32,7 +34,7 @@ class AporteGoalInputs(BaseModel):
         "Imediato",
         description="Quando iniciar (ex: 'Imediato', 'Mai/2026').",
     )
-    distribuicao: dict[str, float] = Field(
+    distribuicao: dict[str, MoneyBRL] = Field(
         default_factory=dict,
         description="Mapa destino → valor BRL. Se não-vazio, soma deve == meta.",
     )
@@ -40,8 +42,8 @@ class AporteGoalInputs(BaseModel):
     @model_validator(mode="after")
     def _validar_distribuicao(self):
         if self.distribuicao:
-            soma = sum(self.distribuicao.values())
-            if abs(soma - self.meta_aporte_mensal_brl) > 0.01:
+            soma = sum(self.distribuicao.values(), Decimal("0"))
+            if abs(soma - self.meta_aporte_mensal_brl) > Decimal("0.01"):
                 raise ValueError(
                     f"Soma da distribuição ({soma:.2f}) difere da meta "
                     f"({self.meta_aporte_mensal_brl:.2f})."
@@ -52,7 +54,7 @@ class AporteGoalInputs(BaseModel):
 class AporteGoalDerived(BaseModel):
     """Valores derivados de aportes."""
 
-    aporte_anual_brl: float = Field(
+    aporte_anual_brl: MoneyBRL = Field(
         ...,
         description="Meta anualizada (meta_mensal × 12).",
     )

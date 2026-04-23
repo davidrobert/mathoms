@@ -256,7 +256,7 @@
       "AporteGoalComputeRequest": {
         "properties": {
           "inputs": {
-            "$ref": "#/components/schemas/AporteGoalInputs"
+            "$ref": "#/components/schemas/AporteGoalInputs-Input"
           }
         },
         "required": [
@@ -321,7 +321,61 @@
         "title": "AporteGoalHistoryResponse",
         "type": "object"
       },
-      "AporteGoalInputs": {
+      "AporteGoalInputs-Input": {
+        "description": "Inputs do usu\u00e1rio para estrat\u00e9gia de aportes mensais.",
+        "properties": {
+          "dia_aporte": {
+            "default": 5,
+            "description": "Dia do m\u00eas para o aporte (1-28).",
+            "maximum": 28.0,
+            "minimum": 1.0,
+            "title": "Dia Aporte",
+            "type": "integer"
+          },
+          "distribuicao": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Mapa destino \u2192 valor BRL. Se n\u00e3o-vazio, soma deve == meta.",
+            "title": "Distribuicao",
+            "type": "object"
+          },
+          "meta_aporte_mensal_brl": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "description": "Meta de aporte mensal total em BRL.",
+            "title": "Meta Aporte Mensal Brl"
+          },
+          "periodo_inicio": {
+            "default": "Imediato",
+            "description": "Quando iniciar (ex: 'Imediato', 'Mai/2026').",
+            "title": "Periodo Inicio",
+            "type": "string"
+          }
+        },
+        "required": [
+          "meta_aporte_mensal_brl"
+        ],
+        "title": "AporteGoalInputs",
+        "type": "object"
+      },
+      "AporteGoalInputs-Output": {
         "description": "Inputs do usu\u00e1rio para estrat\u00e9gia de aportes mensais.",
         "properties": {
           "dia_aporte": {
@@ -342,7 +396,6 @@
           },
           "meta_aporte_mensal_brl": {
             "description": "Meta de aporte mensal total em BRL.",
-            "exclusiveMinimum": 0.0,
             "title": "Meta Aporte Mensal Brl",
             "type": "number"
           },
@@ -414,7 +467,7 @@
             "type": "string"
           },
           "inputs": {
-            "$ref": "#/components/schemas/AporteGoalInputs"
+            "$ref": "#/components/schemas/AporteGoalInputs-Output"
           },
           "is_template": {
             "default": false,
@@ -470,7 +523,7 @@
         "description": "Comando para criar nova vers\u00e3o da meta de aportes.",
         "properties": {
           "inputs": {
-            "$ref": "#/components/schemas/AporteGoalInputs"
+            "$ref": "#/components/schemas/AporteGoalInputs-Input"
           },
           "notes": {
             "anyOf": [
@@ -1689,7 +1742,7 @@
             "title": "Cambio Brl Usd"
           },
           "inputs": {
-            "$ref": "#/components/schemas/DolarGoalInputs"
+            "$ref": "#/components/schemas/DolarGoalInputs-Input"
           }
         },
         "required": [
@@ -1753,18 +1806,55 @@
         "title": "DolarGoalHistoryResponse",
         "type": "object"
       },
-      "DolarGoalInputs": {
+      "DolarGoalInputs-Input": {
+        "description": "Inputs do usu\u00e1rio para meta de dolariza\u00e7\u00e3o.",
+        "properties": {
+          "aporte_mensal_brl": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "description": "Aporte mensal em BRL para convers\u00e3o.",
+            "title": "Aporte Mensal Brl"
+          },
+          "meta_usd": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "description": "Meta de acumula\u00e7\u00e3o em USD.",
+            "title": "Meta Usd"
+          }
+        },
+        "required": [
+          "meta_usd",
+          "aporte_mensal_brl"
+        ],
+        "title": "DolarGoalInputs",
+        "type": "object"
+      },
+      "DolarGoalInputs-Output": {
         "description": "Inputs do usu\u00e1rio para meta de dolariza\u00e7\u00e3o.",
         "properties": {
           "aporte_mensal_brl": {
             "description": "Aporte mensal em BRL para convers\u00e3o.",
-            "exclusiveMinimum": 0.0,
             "title": "Aporte Mensal Brl",
             "type": "number"
           },
           "meta_usd": {
             "description": "Meta de acumula\u00e7\u00e3o em USD.",
-            "exclusiveMinimum": 0.0,
             "title": "Meta Usd",
             "type": "number"
           }
@@ -1831,7 +1921,7 @@
             "type": "string"
           },
           "inputs": {
-            "$ref": "#/components/schemas/DolarGoalInputs"
+            "$ref": "#/components/schemas/DolarGoalInputs-Output"
           },
           "is_template": {
             "default": false,
@@ -1887,7 +1977,7 @@
         "description": "Comando para criar nova vers\u00e3o da meta de dolariza\u00e7\u00e3o.",
         "properties": {
           "inputs": {
-            "$ref": "#/components/schemas/DolarGoalInputs"
+            "$ref": "#/components/schemas/DolarGoalInputs-Input"
           },
           "notes": {
             "anyOf": [
@@ -2416,13 +2506,21 @@
         "description": "Request do endpoint dry-run ``/goals/if/compute``. N\u00e3o persiste.",
         "properties": {
           "inputs": {
-            "$ref": "#/components/schemas/IFGoalInputs"
+            "$ref": "#/components/schemas/IFGoalInputs-Input"
           },
           "patrimonio_atual_brl": {
             "anyOf": [
               {
-                "minimum": 0.0,
-                "type": "number"
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  }
+                ],
+                "ge": 0
               },
               {
                 "type": "null"
@@ -2480,7 +2578,7 @@
           "aporte_mensal_com_patrimonio_atual_brl": {
             "anyOf": [
               {
-                "minimum": 0.0,
+                "ge": 0,
                 "type": "number"
               },
               {
@@ -2492,7 +2590,6 @@
           },
           "aporte_necessario_mensal_brl": {
             "description": "Aporte mensal constante para atingir if_meta_brl no horizonte, **assumindo patrim\u00f4nio inicial zero** (refer\u00eancia; persistido no DB).",
-            "minimum": 0.0,
             "title": "Aporte Necessario Mensal Brl",
             "type": "number"
           },
@@ -2509,7 +2606,7 @@
           "patrimonio_atual_utilizado_brl": {
             "anyOf": [
               {
-                "minimum": 0.0,
+                "ge": 0,
                 "type": "number"
               },
               {
@@ -2550,7 +2647,64 @@
         "title": "IFGoalHistoryResponse",
         "type": "object"
       },
-      "IFGoalInputs": {
+      "IFGoalInputs-Input": {
+        "description": "Inputs do usu\u00e1rio para a meta de Independ\u00eancia Financeira.\n\nCorresponde a ``params_json.inputs`` no DB.",
+        "properties": {
+          "horizonte_anos": {
+            "description": "Horizonte em anos para atingir a meta.",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Horizonte Anos",
+            "type": "integer"
+          },
+          "renda_passiva_mensal_brl": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10000000.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "description": "Renda passiva mensal desejada em BRL (ex: 30000).",
+            "title": "Renda Passiva Mensal Brl"
+          },
+          "retorno_real_anual_pct": {
+            "description": "Retorno real esperado (acima da infla\u00e7\u00e3o) ao ano. T\u00edpico: 4-7.",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Retorno Real Anual Pct",
+            "type": "number"
+          },
+          "taxa_retirada_conservadora_pct": {
+            "default": 4.0,
+            "description": "Taxa conservadora (default 4.0 \u2014 regra cl\u00e1ssica de Trinity).",
+            "exclusiveMinimum": 0.0,
+            "maximum": 20.0,
+            "title": "Taxa Retirada Conservadora Pct",
+            "type": "number"
+          },
+          "trs_pct": {
+            "description": "Taxa de Retirada Segura operacional (% ao ano). Default produto: 5.0.",
+            "exclusiveMinimum": 0.0,
+            "maximum": 20.0,
+            "title": "Trs Pct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "renda_passiva_mensal_brl",
+          "trs_pct",
+          "retorno_real_anual_pct",
+          "horizonte_anos"
+        ],
+        "title": "IFGoalInputs",
+        "type": "object"
+      },
+      "IFGoalInputs-Output": {
         "description": "Inputs do usu\u00e1rio para a meta de Independ\u00eancia Financeira.\n\nCorresponde a ``params_json.inputs`` no DB.",
         "properties": {
           "horizonte_anos": {
@@ -2562,8 +2716,6 @@
           },
           "renda_passiva_mensal_brl": {
             "description": "Renda passiva mensal desejada em BRL (ex: 30000).",
-            "exclusiveMinimum": 0.0,
-            "maximum": 10000000.0,
             "title": "Renda Passiva Mensal Brl",
             "type": "number"
           },
@@ -2655,7 +2807,7 @@
             "type": "string"
           },
           "inputs": {
-            "$ref": "#/components/schemas/IFGoalInputs"
+            "$ref": "#/components/schemas/IFGoalInputs-Output"
           },
           "is_template": {
             "default": false,
@@ -2711,7 +2863,7 @@
         "description": "Comando para criar nova vers\u00e3o do Goal IF (``PUT /goals/if``).",
         "properties": {
           "inputs": {
-            "$ref": "#/components/schemas/IFGoalInputs"
+            "$ref": "#/components/schemas/IFGoalInputs-Input"
           },
           "notes": {
             "anyOf": [

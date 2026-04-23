@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Optional
 
 from backend.app.application.goal._protocols import GoalRepositoryProtocol
@@ -19,7 +20,7 @@ async def create_if_goal_version(
     workspace_id: str,
     created_by: Optional[str],
     repo: GoalRepositoryProtocol,
-    patrimonio_atual_brl: Optional[float] = None,
+    patrimonio_atual_brl: Optional[Decimal] = None,
     created_by_name: Optional[str] = None,
 ) -> IFGoalResponse:
     """Deriva via ``compute_if_derived`` e persiste append-only no repo.
@@ -31,8 +32,8 @@ async def create_if_goal_version(
     goal = await repo.create_new_version(
         workspace_id,
         "INDEPENDENCIA_FINANCEIRA",
-        params_json={"inputs": cmd.inputs.model_dump(), "meta_version": 1},
-        derived_json=derived.model_dump(exclude_none=True),
+        params_json={"inputs": cmd.inputs.model_dump(mode="json"), "meta_version": 1},
+        derived_json=derived.model_dump(mode="json", exclude_none=True),
         created_by=created_by,
         notes=cmd.notes,
     )

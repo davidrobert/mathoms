@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Optional
 
 from backend.app.application.base.errors import NotFoundError
@@ -14,7 +15,7 @@ async def get_active_if_goal(
     workspace_id: str,
     *,
     repo: GoalRepositoryProtocol,
-    patrimonio_atual_brl: Optional[float] = None,
+    patrimonio_atual_brl: Optional[Decimal] = None,
     created_by_name: Optional[str] = None,
 ) -> IFGoalResponse:
     """Retorna meta IF com ``derived`` recalculado usando patrimônio atual.

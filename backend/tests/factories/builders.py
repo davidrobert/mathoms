@@ -228,8 +228,8 @@ async def make_if_goal(
     goal = Goal(
         workspace_id=workspace.id,
         type="INDEPENDENCIA_FINANCEIRA",
-        params_json={"inputs": inputs.model_dump(), "meta_version": 1},
-        derived_json=derived.model_dump(exclude_none=True),
+        params_json={"inputs": inputs.model_dump(mode="json"), "meta_version": 1},
+        derived_json=derived.model_dump(mode="json", exclude_none=True),
         effective_from=effective_from or date.today(),
         effective_to=None,
         created_by=created_by.id if created_by else None,

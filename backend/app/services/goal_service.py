@@ -22,6 +22,7 @@ dentro de ``GoalRepository.create_new_version``.
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 from typing import Optional
 
 from pydantic import BaseModel
@@ -50,50 +51,70 @@ from backend.app.schemas.dto.goal import (
 # ─── Compute services (puros) ─────────────────────────────────────────
 
 
+_CENT = Decimal("0.01")
+_ZERO = Decimal("0")
+_ONE = Decimal("1")
+_EPSILON = Decimal("1e-12")
+
+
+def _retorno_mensal_decimal(retorno_real_anual_pct: float) -> Decimal:
+    """Converte taxa real anual (%) em taxa mensal equivalente, em Decimal.
+
+    ``(1+r_anual)^(1/12) - 1`` via ``ln`` + ``exp`` (Decimal não suporta
+    expoente fracionário direto). Precisão herda do contexto (default 28).
+    """
+    r_annual = Decimal(str(retorno_real_anual_pct)) / Decimal("100")
+    if r_annual <= _ZERO:
+        return _ZERO
+    return ((_ONE + r_annual).ln() / Decimal("12")).exp() - _ONE
+
+
 def _pmt_constante_ate_fv(
-    fv_alvo: float,
+    fv_alvo: Decimal,
     n_meses: int,
-    retorno_mensal: float,
-) -> float:
+    retorno_mensal: Decimal,
+) -> Decimal:
     """Parcela mensal (início do período) para atingir FV_alvo em n meses,
     com taxa retorno_mensal, **sem** valor inicial (anuidade pura).
     """
-    if fv_alvo <= 0:
-        return 0.0
-    if retorno_mensal < 1e-12:
-        return fv_alvo / n_meses
-    fator = (1 + retorno_mensal) ** n_meses - 1
+    if fv_alvo <= _ZERO:
+        return _ZERO
+    if retorno_mensal < _EPSILON:
+        return fv_alvo / Decimal(n_meses)
+    fator = (_ONE + retorno_mensal) ** n_meses - _ONE
     return fv_alvo * retorno_mensal / fator
 
 
-def _if_meta_targets(inputs: IFGoalInputs) -> tuple[float, float]:
+def _if_meta_targets(inputs: IFGoalInputs) -> tuple[Decimal, Decimal]:
     """Calcula `if_meta_brl` operacional (TRS) e conservadora (4% Trinity)."""
     renda_mensal = inputs.renda_passiva_mensal_brl
-    if_meta = renda_mensal * 12.0 / (inputs.trs_pct / 100.0)
-    if_meta_conservadora = renda_mensal * 12.0 / (inputs.taxa_retirada_conservadora_pct / 100.0)
+    trs = Decimal(str(inputs.trs_pct)) / Decimal("100")
+    cons = Decimal(str(inputs.taxa_retirada_conservadora_pct)) / Decimal("100")
+    if_meta = renda_mensal * Decimal("12") / trs
+    if_meta_conservadora = renda_mensal * Decimal("12") / cons
     return if_meta, if_meta_conservadora
 
 
 def _aporte_cobrindo_gap_com_patrimonio(
-    if_meta: float,
+    if_meta: Decimal,
     n_meses: int,
-    retorno_mensal: float,
-    patrimonio_atual_brl: float,
-) -> tuple[float, float]:
+    retorno_mensal: Decimal,
+    patrimonio_atual_brl: Decimal,
+) -> tuple[Decimal, Decimal]:
     """FV do patrimônio atual leva parte da meta; calcula PMT do gap restante.
 
     Retorna (aporte_com_pat_arredondado, patrimonio_utilizado_arredondado).
     """
-    pat_util = max(0.0, float(patrimonio_atual_brl))
-    fv_patrimonio_hoje = pat_util * ((1 + retorno_mensal) ** n_meses)
-    gap = max(0.0, if_meta - fv_patrimonio_hoje)
-    aporte = round(_pmt_constante_ate_fv(gap, n_meses, retorno_mensal), 2)
-    return aporte, round(pat_util, 2)
+    pat_util = max(_ZERO, patrimonio_atual_brl)
+    fv_patrimonio_hoje = pat_util * ((_ONE + retorno_mensal) ** n_meses)
+    gap = max(_ZERO, if_meta - fv_patrimonio_hoje)
+    aporte = _pmt_constante_ate_fv(gap, n_meses, retorno_mensal).quantize(_CENT)
+    return aporte, pat_util.quantize(_CENT)
 
 
 def compute_if_derived(
     inputs: IFGoalInputs,
-    patrimonio_atual_brl: Optional[float] = None,
+    patrimonio_atual_brl: Optional[Decimal] = None,
 ) -> IFGoalDerived:
     """Deriva os valores da meta IF a partir dos inputs do usuário.
 
@@ -113,21 +134,26 @@ def compute_if_derived(
     """
     if_meta, if_meta_conservadora = _if_meta_targets(inputs)
     n_meses = inputs.horizonte_anos * 12
-    retorno_mensal = (1 + inputs.retorno_real_anual_pct / 100.0) ** (1 / 12) - 1
+    retorno_mensal = _retorno_mensal_decimal(inputs.retorno_real_anual_pct)
 
     aporte_partindo_zero = _pmt_constante_ate_fv(if_meta, n_meses, retorno_mensal)
 
-    aporte_com_pat: Optional[float] = None
-    pat_util: Optional[float] = None
+    aporte_com_pat: Optional[Decimal] = None
+    pat_util: Optional[Decimal] = None
     if patrimonio_atual_brl is not None:
+        pat_dec = (
+            patrimonio_atual_brl
+            if isinstance(patrimonio_atual_brl, Decimal)
+            else Decimal(str(patrimonio_atual_brl))
+        )
         aporte_com_pat, pat_util = _aporte_cobrindo_gap_com_patrimonio(
-            if_meta, n_meses, retorno_mensal, patrimonio_atual_brl
+            if_meta, n_meses, retorno_mensal, pat_dec
         )
 
     return IFGoalDerived(
-        if_meta_brl=round(if_meta, 2),
-        aporte_necessario_mensal_brl=round(aporte_partindo_zero, 2),
-        if_meta_conservadora_brl=round(if_meta_conservadora, 2),
+        if_meta_brl=if_meta.quantize(_CENT),
+        aporte_necessario_mensal_brl=aporte_partindo_zero.quantize(_CENT),
+        if_meta_conservadora_brl=if_meta_conservadora.quantize(_CENT),
         aporte_mensal_com_patrimonio_atual_brl=aporte_com_pat,
         patrimonio_atual_utilizado_brl=pat_util,
     )
@@ -138,15 +164,17 @@ DEFAULT_CAMBIO_BRL_USD = 5.70  # MVP — override via compute request
 
 def compute_aporte_derived(inputs: AporteGoalInputs) -> AporteGoalDerived:
     """Deriva aporte anual e % de distribuição."""
-    anual = inputs.meta_aporte_mensal_brl * 12
+    anual = inputs.meta_aporte_mensal_brl * Decimal("12")
     pct: dict[str, float] = {}
     if inputs.distribuicao:
         pct = {
-            k: round(100 * v / inputs.meta_aporte_mensal_brl, 2)
+            k: float(
+                (Decimal("100") * v / inputs.meta_aporte_mensal_brl).quantize(_CENT)
+            )
             for k, v in inputs.distribuicao.items()
         }
     return AporteGoalDerived(
-        aporte_anual_brl=round(anual, 2),
+        aporte_anual_brl=anual.quantize(_CENT),
         distribuicao_pct=pct,
     )
 
@@ -156,12 +184,12 @@ def compute_dolar_derived(
     cambio_brl_usd: Optional[float] = None,
 ) -> DolarGoalDerived:
     """Estima meses para atingir meta USD dado aporte mensal em BRL."""
-    cambio = cambio_brl_usd or DEFAULT_CAMBIO_BRL_USD
+    cambio = Decimal(str(cambio_brl_usd or DEFAULT_CAMBIO_BRL_USD))
     aporte_usd = inputs.aporte_mensal_brl / cambio
-    if aporte_usd <= 0:
+    if aporte_usd <= _ZERO:
         meses = 0.0
     else:
-        meses = inputs.meta_usd / aporte_usd
+        meses = float(inputs.meta_usd / aporte_usd)
     return DolarGoalDerived(
         horizonte_estimado_meses=round(max(0.0, meses), 1),
     )
@@ -198,7 +226,7 @@ async def get_latest_report_patrimonio_liquido(
     workspace_id: str,
     *,
     db: AsyncSession,
-) -> Optional[float]:
+) -> Optional[Decimal]:
     """Último ``patrimonio_liquido`` não nulo do workspace (por ``created_at``).
 
     Usado pelo endpoint IF para enriquecer a resposta com o valor real
@@ -218,7 +246,7 @@ async def get_latest_report_patrimonio_liquido(
     row = (await db.execute(stmt)).scalar_one_or_none()
     if row is None:
         return None
-    return float(row)
+    return Decimal(str(row))
 
 
 # ─── Orquestração (leitura + criação versionada) ─────────────────────
@@ -304,10 +332,10 @@ async def create_if_goal_version(
         workspace_id,
         "INDEPENDENCIA_FINANCEIRA",
         params_json={
-            "inputs": inputs.model_dump(),
+            "inputs": inputs.model_dump(mode="json"),
             "meta_version": 1,
         },
-        derived_json=derived.model_dump(exclude_none=True),
+        derived_json=derived.model_dump(mode="json", exclude_none=True),
         created_by=created_by,
         notes=notes,
         is_template=is_template,
@@ -337,10 +365,10 @@ async def create_goal_version(
         workspace_id,
         goal_type,
         params_json={
-            "inputs": inputs.model_dump(),
+            "inputs": inputs.model_dump(mode="json"),
             "meta_version": 1,
         },
-        derived_json=derived.model_dump(exclude_none=True),
+        derived_json=derived.model_dump(mode="json", exclude_none=True),
         created_by=created_by,
         notes=notes,
         is_template=is_template,

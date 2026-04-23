@@ -15,6 +15,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 from backend.app.schemas.dto.goal.base import GoalResponseBase
+from backend.app.schemas.money import MoneyBRL
 
 
 class IFGoalInputs(BaseModel):
@@ -23,7 +24,7 @@ class IFGoalInputs(BaseModel):
     Corresponde a ``params_json.inputs`` no DB.
     """
 
-    renda_passiva_mensal_brl: float = Field(
+    renda_passiva_mensal_brl: MoneyBRL = Field(
         ...,
         gt=0,
         le=10_000_000,
@@ -61,11 +62,11 @@ class IFGoalDerived(BaseModel):
     Nunca digitados pelo usuário — sempre calculados server-side.
     """
 
-    if_meta_brl: float = Field(
+    if_meta_brl: MoneyBRL = Field(
         ...,
         description="Patrimônio-alvo: renda_passiva × 12 / (trs_pct / 100).",
     )
-    aporte_necessario_mensal_brl: float = Field(
+    aporte_necessario_mensal_brl: MoneyBRL = Field(
         ...,
         ge=0,
         description=(
@@ -73,11 +74,11 @@ class IFGoalDerived(BaseModel):
             "**assumindo patrimônio inicial zero** (referência; persistido no DB)."
         ),
     )
-    if_meta_conservadora_brl: float = Field(
+    if_meta_conservadora_brl: MoneyBRL = Field(
         ...,
         description="Patrimônio-alvo usando taxa conservadora (4% default).",
     )
-    aporte_mensal_com_patrimonio_atual_brl: Optional[float] = Field(
+    aporte_mensal_com_patrimonio_atual_brl: Optional[MoneyBRL] = Field(
         None,
         ge=0,
         description=(
@@ -86,7 +87,7 @@ class IFGoalDerived(BaseModel):
             "do horizonte. UI deve preferir este valor ao baseline quando presente."
         ),
     )
-    patrimonio_atual_utilizado_brl: Optional[float] = Field(
+    patrimonio_atual_utilizado_brl: Optional[MoneyBRL] = Field(
         None,
         ge=0,
         description="Patrimônio usado no cálculo de ``aporte_mensal_com_patrimonio_atual_brl``.",
@@ -97,7 +98,7 @@ class IFGoalComputeRequest(BaseModel):
     """Request do endpoint dry-run ``/goals/if/compute``. Não persiste."""
 
     inputs: IFGoalInputs
-    patrimonio_atual_brl: Optional[float] = Field(
+    patrimonio_atual_brl: Optional[MoneyBRL] = Field(
         None,
         ge=0,
         description=(
@@ -115,7 +116,7 @@ class IFGoalComputeResponse(BaseModel):
         None,
         description="Só presente se ``patrimonio_atual_brl`` foi enviado.",
     )
-    faltante_brl: Optional[float] = None
+    faltante_brl: Optional[MoneyBRL] = None
 
 
 class IFGoalUpsertCommand(BaseModel):

@@ -54,8 +54,8 @@ async def create_typed_goal_version(
     goal = await repo.create_new_version(
         workspace_id,
         goal_type,
-        params_json={"inputs": inputs.model_dump(), "meta_version": 1},
-        derived_json=derived.model_dump(exclude_none=True),
+        params_json={"inputs": inputs.model_dump(mode="json"), "meta_version": 1},
+        derived_json=derived.model_dump(mode="json", exclude_none=True),
         created_by=created_by,
         notes=notes,
     )

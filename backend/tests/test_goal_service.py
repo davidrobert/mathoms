@@ -97,7 +97,7 @@ def test_aporte_com_patrimonio_zero_igual_ao_baseline():
 
 def test_aporte_zero_quando_patrimonio_ja_projeta_acima_da_meta():
     inp = _inputs(renda=30000, trs=5.0, retorno=6.0, horizonte=15)
-    meta = compute_if_derived(inp).if_meta_brl
+    meta = float(compute_if_derived(inp).if_meta_brl)
     n_meses = 15 * 12
     r_m = (1 + 6.0 / 100.0) ** (1 / 12) - 1
     # PV tal que FV = PV * (1+r)^n >= meta

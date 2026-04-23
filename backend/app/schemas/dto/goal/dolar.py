@@ -12,17 +12,18 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 from backend.app.schemas.dto.goal.base import GoalResponseBase
+from backend.app.schemas.money import MoneyBRL, MoneyUSD
 
 
 class DolarGoalInputs(BaseModel):
     """Inputs do usuário para meta de dolarização."""
 
-    meta_usd: float = Field(
+    meta_usd: MoneyUSD = Field(
         ...,
         gt=0,
         description="Meta de acumulação em USD.",
     )
-    aporte_mensal_brl: float = Field(
+    aporte_mensal_brl: MoneyBRL = Field(
         ...,
         gt=0,
         description="Aporte mensal em BRL para conversão.",
