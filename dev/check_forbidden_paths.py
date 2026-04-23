@@ -33,6 +33,9 @@ FORBIDDEN_DIRS = (
 FORBIDDEN_FILES = (
     "mathoms.db",
     "config/passwords.txt",
+    # F7F-Local (ADR-116): credenciais de operadores internos nunca vão
+    # para o git. Apenas `config/internal_operators.example.yaml` é commitável.
+    "config/internal_operators.yaml",
 )
 
 # Basenames bloqueados em qualquer diretório (regressão: backend/.env vazou

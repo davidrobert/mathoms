@@ -58,3 +58,9 @@ node_modules/
 _smoke_pids/
 _smoke_storage/
 mathoms-smoke.db
+
+# F7F-Local console interno (ADR-116) — credenciais de operadores nunca
+# vão pro git. Apenas o template `.example` é commitado.
+config/internal_operators.yaml
+logs/internal_ops_audit.log
+logs/

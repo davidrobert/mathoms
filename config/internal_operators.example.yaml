@@ -1,0 +1,25 @@
+# F7F-Local — Operadores internos (ADR-116)
+#
+# Copie este arquivo para `config/internal_operators.yaml` (gitignored) e
+# substitua os hashes. Gere hashes com:
+#
+#   python3 scripts/hash_ops_pw.py
+#
+# Cada entrada define um operador que pode logar no console interno
+# (`/admin/login` quando `MATHOMS_INTERNAL_OPS_UI_ENABLED=1`).
+#
+# Campos:
+#   username          (obrigatório)  — identificador usado como ator de audit
+#   hashed_password   (obrigatório)  — bcrypt hash (nunca a senha em claro)
+#   role              (opcional)     — "superadmin" ou "ops" (default: "ops").
+#                                       IA-0 aceita ambas como strings livres;
+#                                       RBAC granular fica para F7F-Remote.
+#
+# **NUNCA** commite o arquivo real. O hook `dev/check_forbidden_paths.py`
+# bloqueia `config/internal_operators.yaml` por design.
+
+operators:
+  - username: admin
+    # Hash exemplo de "troca-esta-senha" (NÃO reusar em qualquer ambiente real).
+    hashed_password: "$2b$12$EXEMPLOEXEMPLOEXEMPLOuAbCdEfGhIjKlMnOpQrStUvWxYz012"
+    role: superadmin
