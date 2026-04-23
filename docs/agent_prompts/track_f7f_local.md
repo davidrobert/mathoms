@@ -90,7 +90,7 @@ Todos greenfield, zero conflito com outras lanes se o escopo for respeitado:
 **Meta:** backend expõe `/admin/login` + CRUD mínimo de ops; testes verdes antes de qualquer UI.
 
 1. **S1.a** `backend/app/services/internal_ops/` com `anonymize_user` + `hard_delete_user` + `audit` module (audit vai para `logs/internal_ops_audit.log` em JSON). Unit tests em `backend/tests/internal_ops/`.
-2. **S1.b** `backend/app/services/internal_ops/` completo (`reset_password`, `purge_documents`, `metrics`, `list_reports`). Unit tests.
+2. **S1.b** `backend/app/services/internal_ops/` completo (`reset_password`, `purge_documents`, `delete_document`, `set_developer_flag`, `update_user_email`, `update_user_profile`, `metrics`, `list_reports`). Mutações sensíveis (email, flag dev) bumpam `User.token_version` para invalidar JWTs. Unit tests cobrindo colisão de email + invalidação de sessão.
 3. **S1.c** `backend/app/core/internal_ops_auth.py` — carrega yaml, bcrypt verify, emite/valida JWT com `INTERNAL_OPS_SESSION_SECRET`, middleware `require_internal_operator`. Unit tests.
 4. **S1.d** `scripts/hash_ops_pw.py` (bcrypt interativo, sem echo) + `config/internal_operators.example.yaml` + entrada em `.gitignore` + ALLOWLIST em `dev/check_forbidden_paths.py`.
 5. **S1.e** `backend/app/api/admin/login.py` + `users.py` + `documents.py` + `metrics.py` + `reports.py`. Tests de 401/403 + happy path. `make update-openapi-snapshot`.
@@ -104,15 +104,15 @@ Todos greenfield, zero conflito com outras lanes se o escopo for respeitado:
 
 1. **S2.a** Bootstrap `frontend-ops/` — `package.json`, `next.config.ts` (standalone + bind `127.0.0.1:3100`), `tsconfig.json`, Tailwind config reusando `design-tokens/` (symlink ou relative import; **zero import** de `frontend/src/`). `Dockerfile` multi-stage.
 2. **S2.b** Login page + layout autenticado — chama `POST /admin/login`, armazena cookie via Set-Cookie, redireciona. Middleware Next protege rotas `(admin)/*`.
-3. **S2.c** Tela **Usuários** — lista + filtro por email, ações "Anonimizar" (confirmação dupla com `TYPE "delete"`), "Reset senha" (gera senha temporária copiável).
-4. **S2.d** Tela **Documentos** — purge com modo "prévia" (lista arquivos/linhas) antes de confirmar.
+3. **S2.c** Tela **Usuários** — lista + filtro por email, ações "Anonimizar" (confirmação dupla com `TYPE "delete"`), "Reset senha" (gera senha temporária copiável), "Editar cadastro" (email/full_name/is_active), toggle `is_developer`.
+4. **S2.d** Tela **Documentos** — purge com modo "prévia" (lista arquivos/linhas) antes de confirmar; exclusão individual por linha na listagem de documentos do usuário/workspace.
 5. **S2.e** Tela **Métricas** — cards + tabela (uploads/runs/workspaces/volume storage); export CSV como botão secundário.
 6. **S2.f** Tela **Relatórios** — lista read-only filtrada por email/`user_id`; link abre JSON/HTML em aba separada.
 7. **S2.g** `docker-compose.dev.yml` — service `frontend-ops` em `127.0.0.1:3100` (se já existir compose; senão documenta que F7A.3 vai incluir).
 
 **Gate S2:** `cd frontend-ops && npm run lint && npm run build` verde; smoke manual local (iniciar backend + frontend-ops, logar, executar uma anonimização em usuário de fixture); `docs/RUNBOOK.md` atualizado com URL/flag/rotação.
 
-### Slice 3 — 7F.10–7F.14 (refino das telas por área)
+### Slice 3 — 7F.10–7F.17 (refino das telas por área)
 
 Slice 2 entrega shell + tela por área; Slice 3 refina business logic específica (hard delete gate, ownership órfão, edge cases de purge). Este slice **só começa após S1+S2 mergeados** — reduz área de conflito.
 
@@ -121,6 +121,9 @@ Slice 2 entrega shell + tela por área; Slice 3 refina business logic específic
 3. **S3.c — 7F.12:** purge de documentos com scope switch (user vs workspace), preview paginada, rollback se qualquer blob falhar no storage.
 4. **S3.d — 7F.13:** dashboard de métricas com filtro de período (7d/30d/90d); cache in-process **proibido** (ADR-111), usa query direto.
 5. **S3.e — 7F.14:** lista de relatórios com paginação + filtro `needs_review`.
+6. **S3.f — 7F.15:** toggle `is_developer` na tela de edição do usuário; confirmação simples (ação reversível); substitui [set_developer_flag.py](../../backend/app/scripts/set_developer_flag.py) manual.
+7. **S3.g — 7F.16:** form de edição de cadastro (email/full_name/is_active); validação de unicidade de email; bump de `token_version` em mudança de email + audit separado para campo sensível.
+8. **S3.h — 7F.17:** exclusão individual de documento a partir da lista (separado do purge bulk de 7F.12); confirmação simples; audit inclui hash/nome do arquivo.
 
 **Gate S3:** tests Playwright `@internal-ops` básicos (login + 1 operação por área); checkpoint F7F-Local fechado.
 
@@ -173,7 +176,7 @@ python3 dev/check_forbidden_names.py
 
 ## Checklist de pronto (F7F-Local MVP)
 
-- [ ] `7F.L1` — `backend/app/services/internal_ops/` com 7 módulos + tests verdes (cobertura ≥85% em internal_ops/).
+- [ ] `7F.L1` — `backend/app/services/internal_ops/` com módulos para anonymize/hard_delete/reset_password/purge_documents/delete_document/set_developer_flag/update_user_email/update_user_profile/metrics/list_reports + tests verdes (cobertura ≥85% em internal_ops/).
 - [ ] `7F.L2` parte backend — `/admin/*` routes + auth yaml+bcrypt+JWT + flag `INTERNAL_OPS_UI_ENABLED` + smoke manual verde.
 - [ ] `7F.L2` parte frontend — `frontend-ops/` app Next separada, build limpo, login + 1 ação por área funciona localmente.
 - [ ] `7F.10` — anonimização default testada (user anonymized não consegue logar, FKs preservadas, audit gravado); hard delete exige mode explícito.
@@ -181,6 +184,9 @@ python3 dev/check_forbidden_names.py
 - [ ] `7F.12` — purge com preview funcionando; blob storage + DB em sync após confirm.
 - [ ] `7F.13` — dashboard mostra métricas reais; export CSV funciona.
 - [ ] `7F.14` — lista de relatórios read-only acessível, sem mutação.
+- [ ] `7F.15` — toggle `is_developer` funcional via UI; audit gravado.
+- [ ] `7F.16` — editar email/full_name/is_active; mudança de email bumpa `token_version` e invalida JWTs existentes; colisão de email retorna 409.
+- [ ] `7F.17` — exclusão individual de documento funciona; blob + DB em sync; audit grava hash/nome do arquivo.
 - [ ] `docker-compose.dev.yml` ou `README.md` documenta como subir `frontend-ops` em `127.0.0.1:3100`.
 - [ ] `docs/RUNBOOK.md` seção "Console interno local" — como adicionar operador (gerar bcrypt + editar yaml), rotação de credenciais, bloqueio em produção.
 - [ ] `config/internal_operators.yaml` no `.gitignore` + ALLOWLIST de `dev/check_forbidden_paths.py` + `.example` commitado.
