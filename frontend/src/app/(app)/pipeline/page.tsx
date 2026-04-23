@@ -60,6 +60,8 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastWsEventRef = useRef<number>(Date.now());
+  // ADR-119 item 6 — timestamp do último `stage_activity` por stage.
+  const lastActivityByStageRef = useRef<Record<string, number>>({});
   const [lastFailedRun, setLastFailedRun] = useState<PipelineRunResponse | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [resuming, setResuming] = useState(false);
@@ -74,6 +76,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     lastWsEventRef.current = Date.now();
 
     if (event.event === "stage_activity" && event.stage) {
+      lastActivityByStageRef.current[event.stage] = Date.now();
       const d = event.detail ?? {};
       const phase = typeof d.phase === "string" ? d.phase : undefined;
       const validPhases = [
@@ -353,6 +356,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
             run={activeRun}
             wsStatus={wsStatus}
             lastWsEventRef={lastWsEventRef}
+            lastActivityByStageRef={lastActivityByStageRef}
             liveStageActivity={liveStageActivity}
             onCancel={() => setCancelOpen(true)}
           />

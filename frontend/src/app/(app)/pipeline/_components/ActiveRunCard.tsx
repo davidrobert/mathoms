@@ -203,11 +203,13 @@ function IndeterminateProgress() {
 function TechnicalDetails({
   stageLogs,
   liveStageActivity,
+  lastActivityByStageRef,
   completedCount,
   totalStages,
 }: {
   stageLogs: PipelineRunResponse["stage_logs"];
   liveStageActivity: PipelineStageActivity | null;
+  lastActivityByStageRef: React.RefObject<Record<string, number>>;
   completedCount: number;
   totalStages: number;
 }) {
@@ -232,6 +234,7 @@ function TechnicalDetails({
               liveActivity={
                 liveStageActivity?.stage === stage.stage ? liveStageActivity : undefined
               }
+              lastActivityByStageRef={lastActivityByStageRef}
             />
           ))}
         </div>
@@ -282,12 +285,14 @@ export function ActiveRunCard({
   run,
   wsStatus,
   lastWsEventRef,
+  lastActivityByStageRef,
   liveStageActivity,
   onCancel,
 }: {
   run: PipelineRunResponse;
   wsStatus: string;
   lastWsEventRef: React.RefObject<number>;
+  lastActivityByStageRef: React.RefObject<Record<string, number>>;
   liveStageActivity: PipelineStageActivity | null;
   onCancel: () => void;
 }) {
@@ -367,6 +372,7 @@ export function ActiveRunCard({
           <TechnicalDetails
             stageLogs={run.stage_logs}
             liveStageActivity={liveStageActivity}
+            lastActivityByStageRef={lastActivityByStageRef}
             completedCount={completedCount}
             totalStages={totalStages}
           />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type {
   PipelineStageLog,
@@ -11,6 +11,7 @@ import { stageLlmFootnote } from "@/lib/pipelineTransparency";
 import { Button } from "@/components/ui/button";
 import { LiveStepProgress } from "./LiveStepProgress";
 import { useNowInterval } from "./useNowInterval";
+import { useStageStall } from "./useStageStall";
 
 const VARIANT_COLORS: Record<string, string> = {
   neutral: "text-muted-foreground",
@@ -46,9 +47,11 @@ function StageRowLabel({ stage }: { stage: PipelineStageLog }) {
 export function StageRow({
   stage,
   liveActivity,
+  lastActivityByStageRef,
 }: {
   stage: PipelineStageLog;
   liveActivity?: PipelineStageActivity;
+  lastActivityByStageRef?: React.RefObject<Record<string, number>>;
 }) {
   const st = stageStatusLabel(stage.status);
   const [expanded, setExpanded] = useState(false);
@@ -57,6 +60,11 @@ export function StageRow({
   const displayMs = running
     ? Math.max(0, now - new Date(stage.started_at).getTime())
     : stage.duration_ms;
+  const emptyRef = useRef<Record<string, number>>({});
+  const stall = useStageStall(
+    running && liveActivity ? liveActivity : null,
+    lastActivityByStageRef ?? emptyRef,
+  );
 
   const rowBg =
     stage.status === "running"
@@ -97,7 +105,12 @@ export function StageRow({
         </pre>
       )}
       {stage.status === "running" && liveActivity && (
-        <LiveStepProgress activity={liveActivity} elapsedMs={displayMs ?? undefined} />
+        <LiveStepProgress
+          activity={liveActivity}
+          elapsedMs={displayMs ?? undefined}
+          stalled={stall.stalled}
+          stalledForMs={stall.stalledForMs}
+        />
       )}
     </div>
   );
