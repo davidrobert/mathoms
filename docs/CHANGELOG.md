@@ -8,6 +8,37 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **A6e.events-migration — 10 call-sites `audit_log()` inline → `AuditLogEvent` (2026-04-22):**
+  Fecha a tarefa A6e.events-migration (destravada por A6e.events/ADR-115).
+  Os 10 `await audit_log(...)` / `await audit_service.log(...)` inline em
+  routers agora emitem `AuditLogEvent` via `dispatch_sync(..., {"db": db})`;
+  handler `write_audit_entry` (já existente) grava `AuditLog` na mesma
+  transação do caller. Funções `audit_log` / `audit_service.log` mantidas
+  em `services/` (referenciadas por testes) — só os routers pararam de
+  chamá-las diretamente.
+  - **Sites migrados:** `backend/app/api/documents.py` (5 — upload, delete,
+    retry_unlock, update_classification, reclassify), `workspaces.py`
+    (4 — purge/export + member changes), `invitations.py` (1).
+  - **`client_meta` helper exposto** em `backend/app/services/audit.py`
+    (ex-`_client_meta`): routers extraem IP+UA do `request` e passam
+    como fields do `AuditLogEvent`. Alias `_client_meta = client_meta`
+    preservado para compat.
+  - **`AuditAction` enum preservado:** routers continuam usando o
+    constante tipado (`AuditAction.document_upload.value`) — zero drift
+    de strings de ação.
+  - **Emit permanece no router** nos casos onde o composite (upload
+    batch, retry_unlock, delete) não tem use case thin ainda — decisão
+    documentada no backlog (A6e.4 4b já fechou; further extraction
+    deferred). Ainda assim o objetivo da ADR-115 foi atingido: zero
+    acoplamento direto com `audit_log()` do router; canal de eventos
+    é o único ponto de escrita.
+  - **Commits:** `b781ec7` (helper), `da133c0` (documents),
+    `d319438` (workspaces), `eabdd04` (invitations).
+  - **Gate:** `pytest backend/tests -q` = **1177 passed, 4 skipped**
+    (zero regressão); `pre-commit run --all-files` verde. Fix drift
+    de format pré-existente em `goal_service.py` (`e52cea1`) commitado
+    separado.
+
 - **A6g.3b — Decimal money: goal DTOs + `goal_service` math (slice 2 ✅) (2026-04-22):**
   Fecha a segunda sessão do track A6g.3b: 11 campos money em goal DTOs
   migrados para `MoneyBRL`/`MoneyUSD` e aritmética em `goal_service.py`
