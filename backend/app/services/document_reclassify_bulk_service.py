@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from functools import partial
 
 from backend.app.core.config import settings
-from backend.app.models.document import Document, DocumentType
+from backend.app.models.document import Document, DocumentStatus
 from backend.app.repositories.document_repository import DocumentRepository
 from backend.app.services.canonical_routing import rename_to_canonical
 from backend.app.services.classification_telemetry import emit_classification_outcome
@@ -189,6 +189,9 @@ def _apply_classification(doc: Document, clf: dict) -> None:
     meta = dict(clf.get("classification_meta") or {})
     meta["reclassified_at"] = datetime.now(timezone.utc).isoformat()
     doc.classification_meta = meta
+    if doc.status == DocumentStatus.error:
+        doc.status = DocumentStatus.ready
+        doc.error_message = None
 
 
 async def _maybe_rename_canonical(
