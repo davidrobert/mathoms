@@ -61,6 +61,15 @@ class Settings(BaseSettings):
     # Remover o cron + flag após gate humano verde (A6e.events-followup).
     USE_EVENT_DRIVEN_TASK_NOTIFICATIONS: bool = False
 
+    # F7F-Local / ADR-116 — console interno (/admin/*).
+    # Default off: rotas só montam se `MATHOMS_INTERNAL_OPS_UI_ENABLED=1`.
+    # Bloqueia boot em `ENVIRONMENT=production` a menos que
+    # `MATHOMS_INTERNAL_OPS_ACCEPT_PRODUCTION_RISK=1` seja setada
+    # explicitamente — console local (IA-0) não deve rodar em prod.
+    INTERNAL_OPS_UI_ENABLED: bool = False
+    INTERNAL_OPS_ACCEPT_PRODUCTION_RISK: bool = False
+    ENVIRONMENT: str = "development"
+
     # env_file resolvido em ABSOLUTO e com múltiplas localizações — evita que o
     # backend carregue config diferente conforme cwd (bug onde `.env` em
     # `backend/.env` não era lido quando uvicorn rodava da raiz do repo).

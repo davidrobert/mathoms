@@ -186,6 +186,24 @@ for _router in _ALL_ROUTERS:
         include_in_schema=False,
     )
 
+# F7F-Local / ADR-116 — console interno sob /admin/*.
+# Rotas sempre registradas mas gated por dependency `require_ui_enabled`
+# (retorna 404 se flag off). Em `ENVIRONMENT=production` com flag on,
+# boot falha sem `INTERNAL_OPS_ACCEPT_PRODUCTION_RISK=1` — IA-0 é dev/staging.
+if (
+    settings.INTERNAL_OPS_UI_ENABLED
+    and settings.ENVIRONMENT.lower() == "production"
+    and not settings.INTERNAL_OPS_ACCEPT_PRODUCTION_RISK
+):
+    raise RuntimeError(
+        "INTERNAL_OPS_UI_ENABLED=1 em produção exige "
+        "MATHOMS_INTERNAL_OPS_ACCEPT_PRODUCTION_RISK=1 (ADR-116)."
+    )
+
+from backend.app.api.admin import router as admin_router  # noqa: E402
+
+app.include_router(admin_router)
+
 
 @app.get("/health", response_model=HealthResponse)
 async def health() -> dict:
