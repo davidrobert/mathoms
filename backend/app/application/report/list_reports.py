@@ -1,0 +1,26 @@
+"""Use case: lista relatórios do workspace ordenados por ``created_at desc``."""
+
+from __future__ import annotations
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.application.report._common import serialize_report
+from backend.app.models.report import Report
+from backend.app.schemas.report import ReportListResponse
+from backend.app.services.report_lineage import workspace_ready_documents_summary
+
+
+async def list_reports(workspace_id: str, *, db: AsyncSession) -> ReportListResponse:
+    result = await db.execute(
+        select(Report).where(Report.workspace_id == workspace_id).order_by(Report.created_at.desc())
+    )
+    reports = list(result.scalars().all())
+    doc_total, doc_ids = await workspace_ready_documents_summary(db, workspace_id)
+    return ReportListResponse(
+        reports=[
+            serialize_report(r, source_document_count=doc_total, source_document_ids=doc_ids)
+            for r in reports
+        ],
+        total=len(reports),
+    )

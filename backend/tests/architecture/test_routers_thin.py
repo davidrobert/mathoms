@@ -44,6 +44,7 @@ THIN_ROUTERS = frozenset(
         "invitations.py",
         "llm.py",
         "notifications.py",
+        "reports.py",
         "tasks.py",
         "transactions.py",
         "vault.py",
