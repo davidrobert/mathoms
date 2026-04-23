@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { PipelineStageActivity } from "@/lib/api";
 
 // ADR-119 item 6 — piso absoluto do threshold de "sem sinal".
