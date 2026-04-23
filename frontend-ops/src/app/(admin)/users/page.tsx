@@ -173,6 +173,7 @@ export default function UsersPage() {
                     {canHardDelete && (
                       <Button
                         variant="danger"
+                        title="Irreversível · quebra FKs em audit/pipeline. Use Anonimizar quando possível."
                         onClick={() => setOpenAction({ user: u, kind: "hard_delete" })}
                       >
                         Hard delete
