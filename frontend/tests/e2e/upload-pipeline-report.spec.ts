@@ -79,6 +79,10 @@ test.describe("Upload → Pipeline → Report @critical", () => {
   }, info) => {
     await ensureLoggedIn(page, request, info);
 
+    // addInitScript só aplica após navegação real; about:blank bloqueia
+    // localStorage (SecurityError). Navegamos antes de ler o token.
+    await page.goto("/pipeline");
+
     // Configura LLM no backend (via API, seeding)
     const token = await page.evaluate(() => localStorage.getItem("fin_token"));
     await request.put("/api/v1/config/llm", {
