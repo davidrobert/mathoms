@@ -181,6 +181,8 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
                 meta["source"] = "llm_fallback"
 
     needs_review = confidence < _REVIEW_CONFIDENCE_THRESHOLD
+    if content_result.force_review:
+        needs_review = True
     meta["confidence"] = confidence
     meta["needs_review"] = needs_review
 

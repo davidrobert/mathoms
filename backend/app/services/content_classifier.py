@@ -526,6 +526,7 @@ class ContentClassification:
     source: str = "content_regex"
     matched_required: int = 0
     matched_supporting: int = 0
+    force_review: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -538,6 +539,7 @@ class ContentClassification:
             "source": self.source,
             "matched_required": self.matched_required,
             "matched_supporting": self.matched_supporting,
+            "force_review": self.force_review,
         }
 
 
@@ -621,6 +623,66 @@ def classify_text(text: str) -> ContentClassification:
     )
 
 
+# ---------------------------------------------------------------------------
+# Filename-guarded investment override
+# ---------------------------------------------------------------------------
+# Contexto: exports de corretoras (Rico, XP) vêm nomeados `*_extratoconta_*`
+# mas o conteúdo é dashboard de posição de investimentos, não extrato de conta.
+# Isso força o parser E2 a rodar e extrair 0 transações (ERROR espúrio).
+# Heurística determinística: se o filename sugere extrato, mas o conteúdo
+# mostra marcadores de investimento (≥3) e zero marcadores de extrato
+# bancário, reclassificamos como ``investimentosposicao`` e marcamos
+# ``force_review=True`` para revisão humana.
+_INVESTMENT_MARKERS: tuple[re.Pattern, ...] = (
+    re.compile(r"Posi[çc][ãa]o\s*(a\s*mercado|consolidada|de\s*carteira)", re.I),
+    re.compile(r"Fundos?\s*de\s*Investimentos?", re.I),
+    re.compile(r"Renda\s*Vari[aá]vel", re.I),
+    re.compile(r"Rentabilidade\s*(L[ií]quida|Bruta|Acumulada)?", re.I),
+    re.compile(r"\bproventos?\b", re.I),
+    re.compile(r"Aloca[çc][ãa]o(\s+da\s+carteira)?", re.I),
+    re.compile(r"Tesouro\s*(Direto|Selic|IPCA|Prefixado|Nacional)", re.I),
+    re.compile(r"\bETFs?\b|\bFIIs?\b|\bBDRs?\b"),
+    re.compile(r"\b[A-Z]{4}\d{1,2}\b"),  # B3 tickers: PETR4, ITSA4, MGLU3
+    re.compile(r"Carteira\s+de\s+(Renda|Investimentos)", re.I),
+)
+
+_BANK_STATEMENT_MARKERS: tuple[re.Pattern, ...] = (
+    re.compile(r"Saldo\s+anterior", re.I),
+    re.compile(r"Lan[çc]amentos\s+(do\s+dia|da\s+conta|do\s+per[ií]odo)", re.I),
+    re.compile(r"SALDO\s+(DO\s+DIA|ATUAL|DISPON[IÍ]VEL)", re.I),
+    re.compile(r"Ag[êe]ncia\s*[:\-]?\s*\d+.{0,40}Conta\s*[:\-]?\s*[\d-]+", re.I | re.DOTALL),
+    re.compile(r"TED\s+(Enviad|Recebid)", re.I),
+    re.compile(r"D[ée]bito\s+autom[aá]tico", re.I),
+    re.compile(r"PIX\s+(Enviad|Recebid)", re.I),
+    re.compile(r"Hist[oó]rico\s+de\s+Lan[çc]amentos", re.I),
+)
+
+
+def _maybe_apply_investment_override(
+    result: ContentClassification, filename: str, text: str
+) -> ContentClassification:
+    if "extratoconta" not in filename.lower():
+        return result
+    invest_hits = sum(1 for p in _INVESTMENT_MARKERS if p.search(text))
+    if invest_hits < 3:
+        return result
+    bank_hits = sum(1 for p in _BANK_STATEMENT_MARKERS if p.search(text))
+    if bank_hits > 0:
+        return result
+    # Skip LLM (conf >= 0.8) and force human review.
+    return ContentClassification(
+        doc_type="investimentosposicao",
+        dest_group="financial_statements",
+        institution=result.institution,
+        period=result.period,
+        confidence=0.85,
+        source="content_regex_investment_override",
+        matched_required=invest_hits,
+        matched_supporting=0,
+        force_review=True,
+    )
+
+
 def classify_file(filepath: Path, preview_extractor) -> ContentClassification:
     """Classify a file by its content.
 
@@ -639,4 +701,5 @@ def classify_file(filepath: Path, preview_extractor) -> ContentClassification:
             confidence=0.0,
             source=f"content_regex_preview_error:{type(exc).__name__}",
         )
-    return classify_text(text or "")
+    result = classify_text(text or "")
+    return _maybe_apply_investment_override(result, filepath.name, text or "")

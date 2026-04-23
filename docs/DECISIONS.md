@@ -1628,6 +1628,8 @@ Após F8.1 (ADR-073), apenas `INDEPENDENCIA_FINANCEIRA` tinha API + UI; os outro
 - ⚠️ CLI totalmente offline sem pacote ``backend`` mantém comportamento por nome — documentado como fallback.
 - ❌ Linhagem por ``document_id`` por seção de relatório não é escopo desta ADR (F11.4a).
 
+**Refinamento (2026-04-23):** exports de corretoras (Rico/XP) frequentemente vêm nomeados ``*_extratoconta_*`` mas o conteúdo é dashboard de posição de investimentos, sem transações. Sem guard, isso cai em ``extratoconta`` → parser E2 roda → 0 transações → ERROR espúrio. Adicionada regra determinística em ``content_classifier.py`` (``_maybe_apply_investment_override``): filename contém ``extratoconta`` **E** conteúdo tem ≥3 marcadores de investimento (posição a mercado, fundos, renda variável, rentabilidade, tickers B3, Tesouro Direto, proventos, alocação) **E** zero marcadores de extrato bancário (saldo anterior, lançamentos, TED/PIX, agência+conta) ⇒ reclassifica como ``investimentosposicao`` com ``force_review=True`` (gera ``needs_review=true`` para revisão humana). Confidence 0.85 para pular o LLM fallback. É um *refinamento* do ADR-081, não uma reversão — filename entra **apenas como guard** quando o conteúdo é ambíguo; a regra ainda é content-first.
+
 ---
 
 ## ADR-082 — PipelineArtifact: artefatos computacionais no banco

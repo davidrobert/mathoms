@@ -655,3 +655,62 @@ class TestCaixaPatterns:
         """'SAC - Alô Bradesco' no rodapé → bradesco (via Fone Fácil pattern)."""
         footer_only = "Fone Fácil\nCapitais e regiões metropolitanas\n0800 570 0022\n"
         assert detect_institution_by_content(footer_only) == "bradesco"
+
+
+# ---------------------------------------------------------------------------
+# Filename-guarded investment override (Rico/XP com filename *_extratoconta_*)
+# ---------------------------------------------------------------------------
+RICO_INVEST_DASHBOARD = """
+Rico Investimentos
+Posição a mercado — 31/03/2026
+
+Alocação da carteira
+Renda Variável Brasil
+PETR4 ............. 1.200 ações
+ITSA4 ............. 800 ações
+MGLU3 ............. 500 ações
+
+Fundos de Investimentos
+Rentabilidade Líquida Acumulada: 14,5%
+
+Tesouro Direto
+Tesouro Selic 2029
+
+Proventos recebidos no período: R$ 423,18
+"""
+
+
+class TestInvestmentOverride:
+    """Rico/XP exports com filename *_extratoconta_* + conteúdo de investimento."""
+
+    def test_override_triggers_on_rico_dashboard(self, tmp_path: Path):
+        fake = tmp_path / "95b3d36e4b3a_rico_extratoconta_2026.pdf"
+        fake.write_bytes(b"%PDF-stub")
+        result = classify_file(fake, lambda _p: RICO_INVEST_DASHBOARD)
+        assert result.doc_type == "investimentosposicao"
+        assert result.dest_group == "financial_statements"
+        assert result.force_review is True
+        assert result.source == "content_regex_investment_override"
+
+    def test_override_skipped_when_filename_not_extratoconta(self, tmp_path: Path):
+        fake = tmp_path / "rico_posicao_2026.pdf"
+        fake.write_bytes(b"%PDF-stub")
+        result = classify_file(fake, lambda _p: RICO_INVEST_DASHBOARD)
+        assert result.source != "content_regex_investment_override"
+        assert result.force_review is False
+
+    def test_override_skipped_when_bank_markers_present(self, tmp_path: Path):
+        """Conteúdo misto (invest + saldo anterior) NÃO aciona override."""
+        fake = tmp_path / "rico_extratoconta_2026.pdf"
+        fake.write_bytes(b"%PDF-stub")
+        mixed = RICO_INVEST_DASHBOARD + "\nSaldo anterior: R$ 1.234,56\n"
+        result = classify_file(fake, lambda _p: mixed)
+        assert result.source != "content_regex_investment_override"
+
+    def test_override_needs_three_investment_markers(self, tmp_path: Path):
+        """Só 1-2 marcadores → não aciona."""
+        fake = tmp_path / "rico_extratoconta_2026.pdf"
+        fake.write_bytes(b"%PDF-stub")
+        weak = "Rico Corretora\nAlocação total: R$ 100\n"
+        result = classify_file(fake, lambda _p: weak)
+        assert result.source != "content_regex_investment_override"
