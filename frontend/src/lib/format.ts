@@ -86,6 +86,50 @@ export function formatDateShort(iso: string): string {
 const MONTH_SHORT = new Intl.DateTimeFormat("pt-BR", { month: "short" });
 const MONTH_LONG = new Intl.DateTimeFormat("pt-BR", { month: "long" });
 
+const MONTH_SHORT_PT = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];
+
+/** "2023-01 a 2026-04" → "Jan 2023 → Abr 2026". Retorna input se não reconhecer. */
+export function formatPeriodRange(periodo: string | null | undefined): string {
+  if (!periodo) return "—";
+  const parts = String(periodo).split(" a ");
+  const fmt = (p: string) => {
+    const [y, m] = p.trim().split("-");
+    const mi = parseInt(m, 10);
+    if (!y || isNaN(mi) || mi < 1 || mi > 12) return null;
+    return `${MONTH_SHORT_PT[mi - 1]} ${y}`;
+  };
+  if (parts.length === 2) {
+    const a = fmt(parts[0]);
+    const b = fmt(parts[1]);
+    if (a && b) return `${a} → ${b}`;
+  }
+  if (parts.length === 1) {
+    const a = fmt(parts[0]);
+    if (a) return a;
+  }
+  return String(periodo);
+}
+
+/** ISO → "há 2 min", "há 3h", "há 2 d", "em 5 min". */
+export function formatRelativeTime(iso: string): string {
+  const now = Date.now();
+  const then = new Date(iso).getTime();
+  if (isNaN(then)) return "—";
+  const diffSec = Math.round((now - then) / 1000);
+  const abs = Math.abs(diffSec);
+  const past = diffSec >= 0;
+  const prefix = past ? "há " : "em ";
+  if (abs < 60) return past ? "agora" : "em instantes";
+  if (abs < 3600) return `${prefix}${Math.floor(abs / 60)} min`;
+  if (abs < 86400) return `${prefix}${Math.floor(abs / 3600)}h`;
+  if (abs < 86400 * 30) return `${prefix}${Math.floor(abs / 86400)} d`;
+  if (abs < 86400 * 365) return `${prefix}${Math.floor(abs / (86400 * 30))} meses`;
+  return `${prefix}${Math.floor(abs / (86400 * 365))} anos`;
+}
+
 export function formatPeriod(yyyymm: string | number): string {
   const s = String(yyyymm);
   if (s.length < 6) return s;

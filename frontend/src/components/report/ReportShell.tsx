@@ -7,7 +7,6 @@ import { Spinner } from "@/components/Spinner";
 import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
-import { formatDate } from "@/lib/format";
 
 const MONTHS_PT = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -151,7 +150,7 @@ export function ReportShell({
       <ReportSourceStrip
         reportPeriod={reportPeriod}
         analysisPeriod={analysisPeriodFromSnapshot}
-        generatedAtLabel={formatDate(reportCreatedAt)}
+        generatedAtIso={reportCreatedAt}
         pipelineRunId={pipelineRunId}
         sourceDocumentCount={sourceDocumentCount}
       />
@@ -192,24 +191,16 @@ export function ReportShell({
               data-report-mode={mode}
               data-report-ready="true"
             >
-              <header className="mb-10 border-b border-[var(--surface-border)] pb-6">
-                <p className="mb-1 font-mono text-[11px] tabular-nums uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-                  {dataState.data.periodo_dados ?? "Período não informado"}
-                </p>
-                <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-[var(--surface-foreground)]">
-                  {displayTitle}
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm text-[var(--surface-muted-foreground)]">
-                  Relatório deste período (operacional). Metas e cenários de longo prazo ficam em{" "}
-                  <Link
-                    className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
-                    href="/plano"
-                  >
-                    Meu Plano
-                  </Link>
-                  .
-                </p>
-              </header>
+              <p className="mb-8 max-w-2xl text-sm text-[var(--surface-muted-foreground)]">
+                Relatório deste período (operacional). Metas e cenários de longo prazo ficam em{" "}
+                <Link
+                  className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
+                  href="/plano"
+                >
+                  Meu Plano
+                </Link>
+                .
+              </p>
 
               <ReportPremissasBlock data={dataState.data} />
 

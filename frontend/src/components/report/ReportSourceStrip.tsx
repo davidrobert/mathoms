@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { formatDate, formatPeriodRange, formatRelativeTime } from "@/lib/format";
 
 interface ReportSourceStripProps {
   /** Período do cartão do relatório (metadados API). */
   reportPeriod: string | null;
   /** `data_analise` ou `periodo_dados` do JSON de análise, quando existir. */
   analysisPeriod: string | null | undefined;
-  /** Texto já formatado (ex.: `formatDateShort(created_at)`). */
-  generatedAtLabel: string;
+  /** ISO do `created_at` do relatório — formatamos aqui (relativo + absoluto no tooltip). */
+  generatedAtIso: string;
   /** F11.4a — UUID da execução do pipeline (GET report). */
   pipelineRunId?: string | null;
   /** F11.4a — agregado de documentos prontos no workspace. */
@@ -30,14 +31,18 @@ function shortRunId(id: string): string {
 export function ReportSourceStrip({
   reportPeriod,
   analysisPeriod,
-  generatedAtLabel,
+  generatedAtIso,
   pipelineRunId,
   sourceDocumentCount,
 }: ReportSourceStripProps) {
-  const period =
+  const rawPeriod =
     (analysisPeriod && String(analysisPeriod).trim()) ||
     reportPeriod ||
-    "—";
+    null;
+  const periodLabel = formatPeriodRange(rawPeriod);
+
+  const generatedRelative = formatRelativeTime(generatedAtIso);
+  const generatedAbsolute = formatDate(generatedAtIso);
 
   const hasAuditDetails = !!(pipelineRunId || (sourceDocumentCount != null && sourceDocumentCount > 0));
 
@@ -47,20 +52,13 @@ export function ReportSourceStrip({
       role="note"
       aria-label="Origem dos dados do relatório"
     >
-      {/* Linha principal — sempre visível */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono tabular-nums">
-        <span>
-          <span className="text-[var(--surface-foreground)]">Período:</span>{" "}
-          {period}
-        </span>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+        <span className="text-[var(--surface-foreground)]">{periodLabel}</span>
+        <span className="text-[var(--surface-border)]" aria-hidden>·</span>
+        <span title={generatedAbsolute}>gerado {generatedRelative}</span>
         <span className="text-[var(--surface-border)]" aria-hidden>·</span>
         <span>
-          <span className="text-[var(--surface-foreground)]">Gerado em:</span>{" "}
-          {generatedAtLabel}
-        </span>
-        <span className="text-[var(--surface-border)]" aria-hidden>·</span>
-        <span className="font-sans">
-          Dados em{" "}
+          dados em{" "}
           <Link
             href="/documents"
             className="text-[var(--brand-primary)] underline-offset-2 hover:underline"
@@ -80,11 +78,15 @@ export function ReportSourceStrip({
           <>
             <span className="text-[var(--surface-border)]" aria-hidden>·</span>
             <details className="group inline">
-              <summary className="cursor-pointer list-none font-sans text-[var(--surface-muted-foreground)] hover:text-[var(--surface-foreground)] select-none">
+              <summary className="cursor-pointer list-none text-[var(--surface-muted-foreground)] hover:text-[var(--surface-foreground)] select-none">
                 Auditoria{" "}
                 <span className="inline-block transition-transform group-open:rotate-180" aria-hidden>▾</span>
               </summary>
-              <div className="mt-1.5 space-y-1 pl-0 font-sans">
+              <div className="mt-1.5 space-y-1">
+                <p>
+                  <span className="text-[var(--surface-foreground)]">Gerado em:</span>{" "}
+                  <span className="font-mono tabular-nums">{generatedAbsolute}</span>
+                </p>
                 {pipelineRunId && (
                   <p>
                     <span className="text-[var(--surface-foreground)]">Execução:</span>{" "}
