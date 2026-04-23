@@ -35,6 +35,18 @@ async def purge(
         preview=body.preview,
     )
     if not result.ok:
+        if result.error == "partial_failure":
+            # rollback já aconteceu no service; retornamos 500 com detalhe estruturado
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    "code": "partial_failure",
+                    "count": result.details["count"],
+                    "ids": list(result.details["ids"]),
+                    "failed_blobs": list(result.details["failed_blobs"]),
+                    "blobs_removed": result.details["blobs_removed"],
+                },
+            )
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.error)
     await db.commit()
     return PurgeDocumentsResponse(

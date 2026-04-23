@@ -64,11 +64,44 @@ async def purge_documents(
         return OpResult.success(preview=True, **summary)
 
     blobs_removed = 0
+    failed_blobs: list[str] = []
     for doc in docs:
         blob = _resolve_blob_path(doc.stored_path, doc.workspace_id)
         if blob is not None and blob.exists():
-            blob.unlink()
-            blobs_removed += 1
+            try:
+                blob.unlink()
+                blobs_removed += 1
+            except OSError:
+                failed_blobs.append(doc.id)
+
+    if failed_blobs:
+        # rollback: não apagamos rows para evitar DB/blob fora de sync
+        await db.rollback()
+        append_audit(
+            AuditRecord(
+                action="document.purge",
+                actor=actor,
+                target_type="documents",
+                target_id=scope.workspace_id or scope.user_id,
+                result="partial_failure",
+                details={
+                    "count": summary["count"],
+                    "blobs_removed": blobs_removed,
+                    "failed_blobs": failed_blobs,
+                    "scope": summary["scope"],
+                },
+            )
+        )
+        return OpResult.failure(
+            "partial_failure",
+            preview=False,
+            count=summary["count"],
+            ids=summary["ids"],
+            failed_blobs=failed_blobs,
+            blobs_removed=blobs_removed,
+        )
+
+    for doc in docs:
         await db.delete(doc)
     await db.flush()
 

@@ -18,6 +18,9 @@ export default function DocumentsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmWord, setConfirmWord] = useState("");
   const [flash, setFlash] = useState<string | null>(null);
+  const [previewPage, setPreviewPage] = useState(0);
+
+  const PAGE_SIZE = 20;
 
   function scopeBody(): { user_id?: string; workspace_id?: string; preview: boolean } {
     return scope === "user"
@@ -29,6 +32,7 @@ export default function DocumentsPage() {
     setError(null);
     setBusy(true);
     setPreview(null);
+    setPreviewPage(0);
     try {
       const res = await api.purgeDocuments(scopeBody());
       setPreview(res);
@@ -36,6 +40,19 @@ export default function DocumentsPage() {
       setError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao buscar prévia.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function removeSingleFromPreview(docId: string): Promise<void> {
+    setError(null);
+    try {
+      await api.deleteDocument(docId);
+      setPreview((prev) =>
+        prev ? { ...prev, ids: prev.ids.filter((x) => x !== docId), count: prev.count - 1 } : prev,
+      );
+      setFlash(`Documento ${docId} excluído.`);
+    } catch (err) {
+      setError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao excluir.");
     }
   }
 
@@ -144,11 +161,53 @@ export default function DocumentsPage() {
                 )}
               </div>
               {preview.ids.length > 0 && (
-                <ul className="font-mono text-xs text-surface-muted-fg max-h-64 overflow-y-auto space-y-0.5">
-                  {preview.ids.map((docId) => (
-                    <li key={docId}>{docId}</li>
-                  ))}
-                </ul>
+                <>
+                  <ul className="font-mono text-xs text-surface-muted-fg max-h-64 overflow-y-auto space-y-0.5">
+                    {preview.ids
+                      .slice(previewPage * PAGE_SIZE, (previewPage + 1) * PAGE_SIZE)
+                      .map((docId) => (
+                        <li key={docId} className="flex items-center justify-between gap-2 py-0.5">
+                          <span>{docId}</span>
+                          {preview.preview && (
+                            <button
+                              onClick={() => void removeSingleFromPreview(docId)}
+                              className="text-brand-danger text-xs hover:underline"
+                            >
+                              excluir
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                  </ul>
+                  {preview.ids.length > PAGE_SIZE && (
+                    <div className="mt-2 flex items-center justify-between text-xs text-surface-muted-fg">
+                      <button
+                        onClick={() => setPreviewPage((p) => Math.max(0, p - 1))}
+                        disabled={previewPage === 0}
+                        className="px-2 py-1 rounded hover:bg-surface-border disabled:opacity-40"
+                      >
+                        Anterior
+                      </button>
+                      <span>
+                        Página {previewPage + 1} de{" "}
+                        {Math.ceil(preview.ids.length / PAGE_SIZE)}
+                      </span>
+                      <button
+                        onClick={() =>
+                          setPreviewPage((p) =>
+                            Math.min(Math.ceil(preview.ids.length / PAGE_SIZE) - 1, p + 1),
+                          )
+                        }
+                        disabled={
+                          (previewPage + 1) * PAGE_SIZE >= preview.ids.length
+                        }
+                        className="px-2 py-1 rounded hover:bg-surface-border disabled:opacity-40"
+                      >
+                        Próxima
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
