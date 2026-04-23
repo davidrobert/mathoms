@@ -355,11 +355,13 @@ def _setup_run_context(
     incremental: bool,
     incremental_doc_paths: list[str] | None,
 ):
-    """Cria WorkspaceContext + opcional DBArtifactStore session.
+    """Cria WorkspaceContext. DBArtifactStore é aberto por-stage no loop.
 
     Também seta ``MATHOMS_WORKSPACE_ROOT`` para scripts E0–E7 lazy-imported.
-    Retorna ``(ctx, artifact_session)`` — artifact_session é None quando a
-    flag DB está desligada.
+    Retorna ``(ctx, use_db_artifacts)`` — o segundo é bool indicando se a
+    flag DBArtifactStore está ativa para o workspace. Quando ativa, o loop
+    de stages abre/fecha sessão própria por stage (reduz contenção de
+    write-lock no SQLite contra ``pipeline_stage_logs``).
     """
     import os
 
@@ -370,22 +372,45 @@ def _setup_run_context(
     ctx.incremental_doc_paths = incremental_doc_paths or []
     ctx.ensure_dirs()
 
-    # A6b (ADR-106): injetar DBArtifactStore quando flag ativa.
-    # Abre sessão de longa duração para o store; commits após cada stage.
-    # Session é fechada em _close_artifact_session — stages não gerenciam sua própria sessão.
-    artifact_session = None
-    if _resolve_use_db_artifacts(ws_id):
-        from backend.app.services.db_artifact_store import DBArtifactStore
-
-        artifact_session = SyncSessionLocal()
-        ctx.artifact_store = DBArtifactStore(
-            artifact_session, workspace_id=ws_id, pipeline_run_id=run_id
-        )
+    use_db_artifacts = _resolve_use_db_artifacts(ws_id)
+    if use_db_artifacts:
         logger.info("pipeline_start using DBArtifactStore for run_id=%s ws_id=%s", run_id, ws_id)
 
     # Lazy-imported scripts (E0–E7) load pipeline_common — tenant-scoped paths.
     os.environ["MATHOMS_WORKSPACE_ROOT"] = str(tenant_root.resolve())
-    return ctx, artifact_session
+    return ctx, use_db_artifacts
+
+
+def _open_artifact_session(ws_id: str, run_id: str):
+    """Abre sessão nova + DBArtifactStore. Chamado por-stage pelo loop."""
+    from backend.app.services.db_artifact_store import DBArtifactStore
+
+    session = SyncSessionLocal()
+    store = DBArtifactStore(session, workspace_id=ws_id, pipeline_run_id=run_id)
+    return session, store
+
+
+def _commit_and_close_artifact_session(session) -> None:
+    """Commit+close de uma sessão por-stage. Rollback se commit falhar."""
+    if session is None:
+        return
+    try:
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+def _rollback_and_close_artifact_session(session) -> None:
+    """Rollback+close — usado quando stage falha antes do commit."""
+    if session is None:
+        return
+    try:
+        session.rollback()
+    finally:
+        session.close()
 
 
 def _mark_run_started(run_id: str, tier: str, celery_task_id: str) -> bool:
@@ -522,10 +547,14 @@ def _record_stage_result(
     result,
     elapsed_ms: int,
     completed_pct: int,
-    artifact_session,
 ) -> bool:
     """Persiste resultado final do stage + publica evento. Retorna ``True``
-    se o stage completou com sucesso."""
+    se o stage completou com sucesso.
+
+    Commit de artefatos agora é feito no loop de stages (sessão por-stage),
+    fora desta função — reduz contenção de write-lock SQLite vs a sessão
+    de ``pipeline_stage_logs`` aberta abaixo.
+    """
     with SyncSessionLocal() as db:
         stage_log = db.get(PipelineStageLog, log_id)
         stage_log.status = (
@@ -539,9 +568,6 @@ def _record_stage_result(
         db.commit()
 
     if result.success:
-        # A6b: commit artefatos do stage antes de avançar para o próximo.
-        if artifact_session is not None:
-            artifact_session.commit()
         publish_stage_completed(run_id, stage_name, completed_pct)
         return True
 
@@ -566,14 +592,20 @@ def _execute_stages_loop(
     ctx,
     stages: list[str],
     run_id: str,
+    ws_id: str,
     skip_llm: bool,
     stop_on_error: bool,
     tier: str,
     llm_stages,
     run_stage_fn,
-    artifact_session,
+    use_db_artifacts: bool,
 ) -> tuple[bool, bool]:
     """Executa o loop principal de stages.
+
+    Quando ``use_db_artifacts`` é ``True``, abre uma sessão fresca +
+    ``DBArtifactStore`` por stage e fecha após commit/rollback — libera
+    o write-lock SQLite entre stages, evitando contenção com a sessão
+    que escreve em ``pipeline_stage_logs``.
 
     Retorna ``(has_failure, paused_for_review)``.
     """
@@ -607,13 +639,20 @@ def _execute_stages_loop(
 
         _record_stage_running(run_id, stage_name, log_id, stage_started_at, progress_pct)
 
+        # Sessão por-stage (libera write-lock entre stages).
+        stage_session = None
+        if use_db_artifacts:
+            stage_session, store = _open_artifact_session(ws_id, run_id)
+            ctx.artifact_store = store
+
         start_mono = time.monotonic()
         result, attempts, exc_error, exc_tb = _run_stage_with_retry(ctx, stage_name, run_stage_fn)
         elapsed_ms = int((time.monotonic() - start_mono) * 1000)
         completed_pct = int(((stage_idx + 1) / total_stages) * 100)
 
-        # Exception during stage (all retries exhausted)
+        # Exception during stage (all retries exhausted): rollback + close.
         if result is None:
+            _rollback_and_close_artifact_session(stage_session)
             _record_stage_exception(
                 run_id,
                 stage_name,
@@ -630,9 +669,27 @@ def _execute_stages_loop(
             continue
 
         if result.success and is_llm and _has_validation_errors(result):
+            # needs_review: commit artefatos coletados antes de pausar.
+            try:
+                _commit_and_close_artifact_session(stage_session)
+            except Exception:  # noqa: BLE001
+                logger.exception("artifact commit failed on needs_review stage=%s", stage_name)
             _record_stage_needs_review(run_id, stage_name, log_id, result, elapsed_ms)
             paused_for_review = True
             break
+
+        if result.success:
+            try:
+                _commit_and_close_artifact_session(stage_session)
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("artifact commit failed stage=%s: %s", stage_name, exc)
+                has_failure = True
+                _record_stage_result(run_id, stage_name, log_id, result, elapsed_ms, completed_pct)
+                if stop_on_error:
+                    break
+                continue
+        else:
+            _rollback_and_close_artifact_session(stage_session)
 
         succeeded = _record_stage_result(
             run_id,
@@ -641,7 +698,6 @@ def _execute_stages_loop(
             result,
             elapsed_ms,
             completed_pct,
-            artifact_session,
         )
         if not succeeded:
             has_failure = True
@@ -707,9 +763,10 @@ def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
 
 
 def _close_artifact_session(artifact_session, run_id: str) -> None:
-    """Commit+close da sessão DBArtifactStore após todo o pipeline.
+    """No-op de compat: sessão é agora por-stage e fechada no loop.
 
-    Cobre artefatos pendentes de stages em ``needs_review`` ou runs cancelados.
+    Mantido para callers legados (ex.: caminho de abort em _mark_run_started).
+    Se uma sessão ainda estiver viva por alguma razão, faz commit+close.
     """
     if artifact_session is None:
         return
@@ -768,7 +825,7 @@ def run_pipeline_task(
     tenant_root = Path(tenant_root_str)
     config_dir = Path(config_dir_str)
 
-    ctx, artifact_session = _setup_run_context(
+    ctx, use_db_artifacts = _setup_run_context(
         run_id,
         ws_id,
         tenant_root,
@@ -794,26 +851,24 @@ def run_pipeline_task(
     _materialize_adapter_configs(ws_id, ctx, config_dir)
 
     if not _mark_run_started(run_id, tier, self.request.id):
-        _close_artifact_session(artifact_session, run_id)
         return {"status": "error", "detail": "Run not found"}
 
     has_failure, paused_for_review = _execute_stages_loop(
         ctx,
         stages,
         run_id,
+        ws_id,
         skip_llm,
         stop_on_error,
         tier,
         llm_stages,
         _exec_stage,
-        artifact_session,
+        use_db_artifacts,
     )
 
     if not paused_for_review:
         _finalize_run(run_id, has_failure)
         if not has_failure:
             _run_post_processing(ws_id, run_id, tenant_root)
-
-    _close_artifact_session(artifact_session, run_id)
 
     return {"status": "completed" if not has_failure else "failed", "run_id": run_id}
