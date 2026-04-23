@@ -63,7 +63,8 @@ pip install -r backend/requirements.txt   # FastAPI, SQLAlchemy, Celery, cryptog
 
 cd frontend && npm install && cd ..
 
-# Variáveis de ambiente (na raiz): ./scripts/gen-secrets.sh --init-env
+# Variáveis de ambiente (gera .env com MATHOMS_FERNET_KEY e demais secrets)
+./scripts/gen-secrets.sh --init-env
 
 # Primeira vez / após mudanças em layout ou tokens:
 python3 design-tokens/build.py
