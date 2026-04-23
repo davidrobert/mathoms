@@ -10,8 +10,8 @@ ou services de composite em ``backend/app/services/document_*``:
 - **File serve** (FileResponse): ``get_document_file`` usa StorageService
   diretamente — thin o suficiente.
 
-``audit_log`` permanece inline por ora — migração para evento em
-A6e.events-migration slice dedicado.
+Audit emitido via ``AuditLogEvent`` + ``dispatch_sync`` (A6e.events-migration,
+ADR-115). Router nivel porque composites não passam por use case fino.
 """
 
 from __future__ import annotations
@@ -32,6 +32,8 @@ from backend.app.application.document import (
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace, require_write_role
+from backend.app.events import dispatch_sync
+from backend.app.events.domain import AuditLogEvent
 from backend.app.models.document import Document, DocumentStatus
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
@@ -45,7 +47,7 @@ from backend.app.schemas.dto.document import (
     DocumentUploadResponse,
     document_to_response,
 )
-from backend.app.services.audit import AuditAction, audit_log
+from backend.app.services.audit import AuditAction, client_meta
 from backend.app.services.document_extract_json_service import (
     DocumentExtractError,
     read_document_extract_json,
@@ -103,22 +105,28 @@ async def upload_documents(
     except UploadBatchError as exc:
         raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
+    ip, ua = client_meta(request)
     for doc in result.created:
         if doc.stored_path:
-            await audit_log(
-                db,
-                action=AuditAction.document_upload,
-                resource_type="document",
-                resource_id=doc.id,
-                workspace_id=workspace.id,
-                actor_user_id=current_user.id,
-                request=request,
-                details={
-                    "filename": doc.original_name,
-                    "size_bytes": doc.file_size_bytes,
-                    "content_hash": doc.content_hash,
-                    "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
-                },
+            await dispatch_sync(
+                AuditLogEvent(
+                    aggregate_id=doc.id,
+                    aggregate_type="document",
+                    workspace_id=workspace.id,
+                    action=AuditAction.document_upload.value,
+                    resource_type="document",
+                    resource_id=doc.id,
+                    actor_user_id=current_user.id,
+                    ip_address=ip,
+                    user_agent=ua,
+                    details={
+                        "filename": doc.original_name,
+                        "size_bytes": doc.file_size_bytes,
+                        "content_hash": doc.content_hash,
+                        "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
+                    },
+                ),
+                {"db": db},
             )
 
     await db.commit()
@@ -172,15 +180,21 @@ async def update_document_classification(
     response = await _apply_classification_update(
         payload, workspace.id, document_id, current_user.id, repo
     )
-    await audit_log(
-        db,
-        action=AuditAction.document_update_classification,
-        resource_type="document",
-        resource_id=document_id,
-        workspace_id=workspace.id,
-        actor_user_id=current_user.id,
-        request=request,
-        details={"before": before, "after": payload.model_dump(exclude_unset=True)},
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=document_id,
+            aggregate_type="document",
+            workspace_id=workspace.id,
+            action=AuditAction.document_update_classification.value,
+            resource_type="document",
+            resource_id=document_id,
+            actor_user_id=current_user.id,
+            ip_address=ip,
+            user_agent=ua,
+            details={"before": before, "after": payload.model_dump(exclude_unset=True)},
+        ),
+        {"db": db},
     )
     await db.commit()
     return response
@@ -279,15 +293,21 @@ async def delete_document(
     abs_stored = _storage.abs_stored_file(workspace.id, doc.stored_path)
     if abs_stored and abs_stored.exists():
         abs_stored.unlink(missing_ok=True)
-    await audit_log(
-        db,
-        action=AuditAction.document_delete,
-        resource_type="document",
-        resource_id=document_id,
-        workspace_id=workspace.id,
-        actor_user_id=current_user.id,
-        request=request,
-        details=audit_details,
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=document_id,
+            aggregate_type="document",
+            workspace_id=workspace.id,
+            action=AuditAction.document_delete.value,
+            resource_type="document",
+            resource_id=document_id,
+            actor_user_id=current_user.id,
+            ip_address=ip,
+            user_agent=ua,
+            details=audit_details,
+        ),
+        {"db": db},
     )
     await db.commit()
 
@@ -312,19 +332,25 @@ async def retry_unlock(
     except RetryUnlockError as exc:
         raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
-    await audit_log(
-        db,
-        action=AuditAction.document_retry_unlock,
-        resource_type="workspace",
-        resource_id=workspace.id,
-        workspace_id=workspace.id,
-        actor_user_id=current_user.id,
-        request=request,
-        details={
-            "total_attempted": stats.total_attempted,
-            "total_ready": stats.total_ready,
-            "total_errored": stats.total_errored,
-        },
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=workspace.id,
+            aggregate_type="workspace",
+            workspace_id=workspace.id,
+            action=AuditAction.document_retry_unlock.value,
+            resource_type="workspace",
+            resource_id=workspace.id,
+            actor_user_id=current_user.id,
+            ip_address=ip,
+            user_agent=ua,
+            details={
+                "total_attempted": stats.total_attempted,
+                "total_ready": stats.total_ready,
+                "total_errored": stats.total_errored,
+            },
+        ),
+        {"db": db},
     )
     await db.commit()
     for doc in updated:
@@ -421,20 +447,26 @@ async def reclassify_documents(
         storage=_storage,
         skip_manual_overrides=skip_manual_overrides,
     )
-    await audit_log(
-        db,
-        action=AuditAction.document_update_classification,
-        resource_type="workspace",
-        resource_id=workspace.id,
-        workspace_id=workspace.id,
-        actor_user_id=current_user.id,
-        request=request,
-        details={
-            "total": stats.total,
-            "updated": stats.updated,
-            "skipped": stats.skipped,
-            "errors": stats.errors,
-        },
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=workspace.id,
+            aggregate_type="workspace",
+            workspace_id=workspace.id,
+            action=AuditAction.document_update_classification.value,
+            resource_type="workspace",
+            resource_id=workspace.id,
+            actor_user_id=current_user.id,
+            ip_address=ip,
+            user_agent=ua,
+            details={
+                "total": stats.total,
+                "updated": stats.updated,
+                "skipped": stats.skipped,
+                "errors": stats.errors,
+            },
+        ),
+        {"db": db},
     )
     await db.commit()
     return DocumentReclassifyResponse(
