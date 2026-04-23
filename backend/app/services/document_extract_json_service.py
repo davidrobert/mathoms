@@ -11,8 +11,14 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from backend.app.core.database import SyncSessionLocal
 from backend.app.models.document import Document, DocumentType
-from backend.app.services.document_pipeline_sync import _find_e15a_extract, _find_e2_extract
+from backend.app.repositories.pipeline_artifact_repository import PipelineArtifactRepository
+from backend.app.services.document_pipeline_sync import (
+    _e15a_base_stem,
+    _find_e2_extract,
+    _find_e15a_extract,
+)
 from backend.app.services.storage import StorageService
 
 
@@ -46,11 +52,22 @@ def read_document_extract_json(
     """Retorna o JSON do E2 para o doc. Levanta ``DocumentExtractError``
     quando o diretório, lista de extratos ou arquivo-alvo não existe."""
     e2_dir = storage.tenant_root(workspace_id) / "processed" / "E2_extracts"
-    if not e2_dir.exists():
-        raise DocumentExtractError("Nenhum extrato disponível", status_code=404)
 
     # IRPF: extract vive em `-1.5a_extract.json` (E1.5a, per-arquivo).
+    # Quando MATHOMS_USE_DB_ARTIFACTS=True, E1.5 escreve só no DB — fallback obrigatório.
     if doc.doc_type == DocumentType.irpf:
+        db_data = _read_irpf_e15a_from_db(doc, workspace_id)
+        if db_data is not None:
+            return ExtractJsonResult(
+                filename=db_data["filename"],
+                data=db_data["data"],
+                all_candidates=db_data["all_candidates"],
+            )
+        if not e2_dir.exists():
+            raise DocumentExtractError(
+                "Extrato IRPF (E1.5a) não encontrado para este documento",
+                status_code=404,
+            )
         target = _match_irpf_e15a(doc, e2_dir)
         all_candidates = sorted(f.name for f in e2_dir.glob("*-1.5a_extract.json"))
         if target is None:
@@ -58,6 +75,8 @@ def read_document_extract_json(
                 "Extrato IRPF (E1.5a) não encontrado para este documento",
                 status_code=404,
             )
+    elif not e2_dir.exists():
+        raise DocumentExtractError("Nenhum extrato disponível", status_code=404)
     else:
         all_candidates = sorted(f.name for f in e2_dir.glob("*-2_extract.json"))
         if not all_candidates:
@@ -81,6 +100,29 @@ def _match_irpf_e15a(doc: Document, e2_dir: Path) -> Path | None:
     if not doc.stored_path:
         return None
     return _find_e15a_extract(e2_dir, Path(doc.stored_path).name)
+
+
+def _read_irpf_e15a_from_db(doc: Document, workspace_id: str) -> dict | None:
+    """Lê E1.5a direto de ``pipeline_artifacts`` (modo DBArtifactStore).
+
+    Retorna ``{filename, data, all_candidates}`` ou ``None`` se não achar.
+    Usa o mesmo stem que `pipeline.stages.e15._artifact_key_for` (strip de
+    ``-0_original`` + extensão).
+    """
+    if not doc.stored_path:
+        return None
+    stem = _e15a_base_stem(Path(doc.stored_path).name)
+    with SyncSessionLocal() as db:
+        repo = PipelineArtifactRepository(db)
+        art = repo.get_latest_for_workspace(workspace_id, stage="E1.5a", artifact_key=stem)
+        if art is None:
+            return None
+        all_keys = repo.list_latest_keys(workspace_id, stage="E1.5a")
+        return {
+            "filename": f"{stem}-1.5a_extract.json",
+            "data": art.content_json,
+            "all_candidates": [f"{k}-1.5a_extract.json" for k in all_keys],
+        }
 
 
 def _match_by_stored_path(doc: Document, e2_dir: Path) -> Path | None:

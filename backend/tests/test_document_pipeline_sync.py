@@ -42,6 +42,62 @@ def test_apply_pipeline_e2_sync_keeps_processed(tmp_path: Path) -> None:
     assert doc.status == DocumentStatus.processed
 
 
+def test_apply_pipeline_e2_sync_irpf_uses_db_fallback_when_disk_missing(tmp_path: Path) -> None:
+    """DBArtifactStore mode: E1.5 escreve só no DB. Sync deve consultar DB
+    em vez de marcar `pipeline_e2_extract_ok=False` (que produz badge
+    "Sem extrato" na UI mesmo com extract presente)."""
+    from unittest.mock import MagicMock, patch
+
+    when = datetime(2026, 4, 23, 18, 0, tzinfo=timezone.utc)
+    doc = Document(
+        workspace_id="ws-1",
+        original_name="receitafederal_irpfdeclaracao_2024.pdf",
+        stored_path="data/income_tax_br/receitafederal_irpfdeclaracao_2024-0_original.pdf",
+        status=DocumentStatus.ready,
+        doc_type=DocumentType.irpf,
+        file_size_bytes=1,
+    )
+    (tmp_path / "processed" / "E2_extracts").mkdir(parents=True)
+
+    fake_repo = MagicMock()
+    fake_repo.get_latest_for_workspace.return_value = MagicMock()  # artifact exists
+    with patch(
+        "backend.app.services.document_pipeline_sync.PipelineArtifactRepository",
+        return_value=fake_repo,
+    ):
+        apply_pipeline_e2_sync_to_documents([doc], tmp_path, when, db=MagicMock())
+
+    assert doc.pipeline_e2_extract_ok is True
+    assert doc.status == DocumentStatus.processed
+    fake_repo.get_latest_for_workspace.assert_called_once_with(
+        "ws-1", stage="E1.5a", artifact_key="receitafederal_irpfdeclaracao_2024"
+    )
+
+
+def test_apply_pipeline_e2_sync_irpf_false_when_neither_disk_nor_db(tmp_path: Path) -> None:
+    from unittest.mock import MagicMock, patch
+
+    when = datetime(2026, 4, 23, 18, 0, tzinfo=timezone.utc)
+    doc = Document(
+        workspace_id="ws-1",
+        original_name="receitafederal_irpfdeclaracao_2024.pdf",
+        stored_path="data/income_tax_br/receitafederal_irpfdeclaracao_2024-0_original.pdf",
+        status=DocumentStatus.ready,
+        doc_type=DocumentType.irpf,
+        file_size_bytes=1,
+    )
+
+    fake_repo = MagicMock()
+    fake_repo.get_latest_for_workspace.return_value = None
+    with patch(
+        "backend.app.services.document_pipeline_sync.PipelineArtifactRepository",
+        return_value=fake_repo,
+    ):
+        apply_pipeline_e2_sync_to_documents([doc], tmp_path, when, db=MagicMock())
+
+    assert doc.pipeline_e2_extract_ok is False
+
+
 def test_apply_pipeline_e2_sync_skips_needs_password(tmp_path: Path) -> None:
     when = datetime(2026, 4, 17, 12, 0, tzinfo=timezone.utc)
     doc = Document(

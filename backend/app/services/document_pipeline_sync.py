@@ -9,9 +9,11 @@ from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.document import Document, DocumentStatus
+from backend.app.repositories.pipeline_artifact_repository import PipelineArtifactRepository
 
 # These doc type values are never processed by the deterministic E2 extractor —
 # eles vivem em income_tax_br/ ou members/. IRPF tem extract próprio via
@@ -31,6 +33,16 @@ def _e15a_json_name(source_filename: str) -> str:
     )
 
 
+def _e15a_base_stem(source_filename: str) -> str:
+    """Strip de extensão + ``-0_original`` — mesmo formato de artifact_key em E1.5."""
+    return re.sub(
+        r"(-0_original)?\.(pdf|csv|xls|xlsx|jpg|jpeg|png)$",
+        "",
+        source_filename,
+        flags=re.IGNORECASE,
+    )
+
+
 def _find_e15a_extract(e2_dir: Path, source_filename: str) -> Path | None:
     """Return the E1.5a extract Path for an IRPF source filename, or None."""
     if not e2_dir.exists():
@@ -38,12 +50,7 @@ def _find_e15a_extract(e2_dir: Path, source_filename: str) -> Path | None:
     exact = e2_dir / _e15a_json_name(source_filename)
     if exact.exists():
         return exact
-    base_stem = re.sub(
-        r"(-0_original)?\.(pdf|csv|xls|xlsx|jpg|jpeg|png)$",
-        "",
-        source_filename,
-        flags=re.IGNORECASE,
-    )
+    base_stem = _e15a_base_stem(source_filename)
     pattern = re.compile(
         rf"^{re.escape(base_stem)}[a-z]?-1\.5a_extract\.json$",
         re.IGNORECASE,
@@ -52,6 +59,17 @@ def _find_e15a_extract(e2_dir: Path, source_filename: str) -> Path | None:
         if f.is_file() and pattern.match(f.name):
             return f
     return None
+
+
+def has_e15a_artifact_in_db(db: Session, workspace_id: str, source_filename: str) -> bool:
+    """Fallback DB para E1.5a — `MATHOMS_USE_DB_ARTIFACTS=True` não materializa em disco.
+
+    Checa `pipeline_artifacts(stage='E1.5a', artifact_key=stem)`. Stem casa com
+    `pipeline.stages.e15._artifact_key_for` (strip de `-0_original` + extensão).
+    """
+    stem = _e15a_base_stem(source_filename)
+    repo = PipelineArtifactRepository(db)
+    return repo.get_latest_for_workspace(workspace_id, stage="E1.5a", artifact_key=stem) is not None
 
 
 def _e2_json_name(source_filename: str) -> str:
@@ -113,10 +131,15 @@ def apply_pipeline_e2_sync_to_documents(
     documents: Sequence[Document],
     tenant_root: Path,
     completed_at: datetime,
+    db: Session | None = None,
 ) -> None:
     """Update pipeline timestamps, E2 flags, and promote ``ready`` → ``processed``.
 
     Called after a successful pipeline run. Idempotent for rows already ``processed``.
+
+    Quando ``db`` é passado, IRPF sem extract em disco também é consultado na
+    tabela ``pipeline_artifacts`` — necessário com ``MATHOMS_USE_DB_ARTIFACTS=True``
+    (E1.5 escreve direto no DB sem materializar em disco).
     """
     e2_dir = tenant_root / "processed" / "E2_extracts"
     e2_dir.mkdir(parents=True, exist_ok=True)
@@ -135,8 +158,10 @@ def apply_pipeline_e2_sync_to_documents(
         )
         if doc_type_val in _NO_E2_EXTRACT_TYPE_VALUES:
             if doc_type_val in _IRPF_E15A_EXTRACT_TYPES:
-                e15a_path = _find_e15a_extract(e2_dir, fname)
-                doc.pipeline_e2_extract_ok = e15a_path is not None
+                has_extract = _find_e15a_extract(e2_dir, fname) is not None
+                if not has_extract and db is not None and doc.workspace_id:
+                    has_extract = has_e15a_artifact_in_db(db, doc.workspace_id, fname)
+                doc.pipeline_e2_extract_ok = has_extract
             else:
                 doc.pipeline_e2_extract_ok = None
             doc.pipeline_extract_notes = None
@@ -176,6 +201,6 @@ def sync_documents_pipeline_e2_status(
             .all()
         )
 
-        apply_pipeline_e2_sync_to_documents(rows, tenant_root, completed_at)
+        apply_pipeline_e2_sync_to_documents(rows, tenant_root, completed_at, db=db)
 
         db.commit()
