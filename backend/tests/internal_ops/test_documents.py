@@ -47,6 +47,8 @@ async def test_delete_document_removes_row_and_blob(
     entry = read_audit(path=audit_path)[0]
     assert entry["action"] == "document.delete"
     assert entry["details"]["content_hash"] == doc.content_hash
+    assert entry["details"]["original_name"] == doc.original_name
+    assert entry["details"]["blob_removed"] is True
 
 
 @pytest.mark.asyncio
@@ -101,3 +103,43 @@ async def test_purge_confirm_by_user(db, audit_path: Path) -> None:
 async def test_purge_requires_scope(db, audit_path: Path) -> None:
     result = await purge_documents(db, scope=PurgeScope(), actor="ops1", preview=False)
     assert not result.ok and result.error == "scope_required"
+
+
+@pytest.mark.asyncio
+async def test_purge_rollback_on_blob_failure(
+    db, audit_path: Path, tmp_path: Path, monkeypatch
+) -> None:
+    """S3.c — se `unlink` lançar OSError, DB rollback mantém rows intactos."""
+    from backend.app.core.config import settings
+
+    monkeypatch.setattr(settings, "STORAGE_ROOT", tmp_path)
+
+    user = await make_user(db)
+    ws = await make_workspace(db, owner=user)
+    d1 = await make_document(db, workspace=ws, stored_path="a.pdf")
+    d2 = await make_document(db, workspace=ws, stored_path="b.pdf")
+    for rel in ("a.pdf", "b.pdf"):
+        p = tmp_path / ws.id / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(b"x")
+    await db.commit()
+
+    original_unlink = Path.unlink
+
+    def _flaky_unlink(self, *args, **kwargs):
+        if self.name == "b.pdf":
+            raise OSError("permission denied")
+        return original_unlink(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "unlink", _flaky_unlink)
+
+    result = await purge_documents(
+        db, scope=PurgeScope(workspace_id=ws.id), actor="ops1", preview=False
+    )
+
+    assert not result.ok and result.error == "partial_failure"
+    assert d2.id in result.details["failed_blobs"]
+    remaining = {
+        r.id for r in (await db.execute(select(Document).where(Document.workspace_id == ws.id))).scalars().all()
+    }
+    assert remaining == {d1.id, d2.id}
