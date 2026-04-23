@@ -267,6 +267,44 @@ class TestPipelineService:
         ):
             assert detect_tier("ws-1") == "premium"
 
+    def test_detect_tier_logs_warning_when_decrypt_returns_none(self, caplog):
+        """FERNET_KEY rotacionada → decrypt() retorna None. Silêncio dissimulado
+        deixou IRPF sem JSON no prod (2026-04-23): sem log, tier="free" sem rastro.
+        """
+        import logging as _logging
+
+        from backend.app.services.pipeline_service import detect_tier
+
+        factory = FakeSyncSessionFactory(
+            FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="stale-ciphertext"))
+        )
+        with (
+            patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
+            patch("backend.app.services.pipeline_service._vault.decrypt", return_value=None),
+            caplog.at_level(_logging.WARNING, logger="backend.app.services.pipeline_service"),
+        ):
+            assert detect_tier("ws-1") == "free"
+        assert any("decriptou para vazio" in r.message for r in caplog.records)
+
+    def test_detect_tier_logs_warning_when_decrypt_raises(self, caplog):
+        import logging as _logging
+
+        from backend.app.services.pipeline_service import detect_tier
+
+        factory = FakeSyncSessionFactory(
+            FakeSyncDbSession(query_first=FakeLLMConfigRow(api_key_encrypted="stale-ciphertext"))
+        )
+        with (
+            patch("backend.app.services.pipeline_service.SyncSessionLocal", factory),
+            patch(
+                "backend.app.services.pipeline_service._vault.decrypt",
+                side_effect=RuntimeError("invalid token"),
+            ),
+            caplog.at_level(_logging.WARNING, logger="backend.app.services.pipeline_service"),
+        ):
+            assert detect_tier("ws-1") == "free"
+        assert any("falhou ao decriptar" in r.message for r in caplog.records)
+
     def test_cancel_publishes_event(self):
         """cancel_pipeline_run should publish run_cancelled event."""
         run_row = FakePipelineRunRow(status=PipelineRunStatus.running, celery_task_id=None)

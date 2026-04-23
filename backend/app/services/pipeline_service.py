@@ -24,34 +24,58 @@ logger = logging.getLogger(__name__)
 _vault = get_vault()
 
 
+def _classify_llm_config(cfg: LLMConfig | None, ws_id: str, *, context: str) -> str:
+    """Shared tier classification with observability for silent-decrypt failures.
+
+    Loga WARNING quando `LLMConfig` existe mas o ciphertext não decripta
+    (Fernet key rotacionada / trocada) ou decripta para vazio. Sem isso,
+    o pipeline degrada silenciosamente para `free tier` e todos os stages
+    LLM (E1, E1.5, E2-llm, E7-review) são pulados sem rastro.
+    """
+    if cfg is None:
+        return "free"
+    ciphertext = (cfg.api_key_encrypted or "").strip()
+    if not ciphertext:
+        logger.warning(
+            "LLMConfig sem api_key_encrypted ws=%s ctx=%s — degradando para free tier",
+            ws_id,
+            context,
+        )
+        return "free"
+    try:
+        plain = _vault.decrypt(ciphertext)
+    except Exception as exc:
+        logger.warning(
+            "LLMConfig.api_key_encrypted falhou ao decriptar ws=%s ctx=%s err=%s — "
+            "FERNET_KEY provavelmente rotacionada; usuário precisa re-adicionar a API key",
+            ws_id,
+            context,
+            exc,
+        )
+        return "free"
+    if not plain or not str(plain).strip():
+        logger.warning(
+            "LLMConfig.api_key_encrypted decriptou para vazio ws=%s ctx=%s — "
+            "FERNET_KEY provavelmente rotacionada; usuário precisa re-adicionar a API key",
+            ws_id,
+            context,
+        )
+        return "free"
+    return "premium"
+
+
 def detect_tier(ws_id: str) -> str:
     """``premium`` only when LLMConfig exists and the API key decrypts to non-empty text."""
     with SyncSessionLocal() as db:
         cfg = db.query(LLMConfig).filter(LLMConfig.workspace_id == ws_id).first()
-        if not cfg or not (cfg.api_key_encrypted or "").strip():
-            return "free"
-        try:
-            plain = _vault.decrypt(cfg.api_key_encrypted)
-        except Exception:
-            return "free"
-        if not plain or not str(plain).strip():
-            return "free"
-        return "premium"
+        return _classify_llm_config(cfg, ws_id, context="detect_tier")
 
 
 async def resolve_llm_tier_async(db: AsyncSession, workspace_id: str) -> str:
     """Async variant of :func:`detect_tier` for FastAPI handlers (same rules)."""
     result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == workspace_id))
     cfg = result.scalar_one_or_none()
-    if not cfg or not (cfg.api_key_encrypted or "").strip():
-        return "free"
-    try:
-        plain = _vault.decrypt(cfg.api_key_encrypted)
-    except Exception:
-        return "free"
-    if not plain or not str(plain).strip():
-        return "free"
-    return "premium"
+    return _classify_llm_config(cfg, workspace_id, context="resolve_llm_tier_async")
 
 
 def start_pipeline_run(
