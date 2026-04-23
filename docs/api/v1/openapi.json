@@ -83,6 +83,11 @@
             },
             "title": "Reports",
             "type": "array"
+          },
+          "total": {
+            "default": 0,
+            "title": "Total",
+            "type": "integer"
           }
         },
         "required": [
@@ -3876,9 +3881,17 @@
             "title": "Documents Total",
             "type": "integer"
           },
+          "documents_uploaded_last_period": {
+            "title": "Documents Uploaded Last Period",
+            "type": "integer"
+          },
           "generated_at": {
             "title": "Generated At",
             "type": "string"
+          },
+          "new_users_last_period": {
+            "title": "New Users Last Period",
+            "type": "integer"
           },
           "period_days": {
             "title": "Period Days",
@@ -3918,6 +3931,8 @@
           "storage_bytes_total",
           "pipeline_runs_total",
           "pipeline_runs_last_period",
+          "documents_uploaded_last_period",
+          "new_users_last_period",
           "period_days",
           "generated_at"
         ],
@@ -7620,6 +7635,17 @@
               "maximum": 500,
               "minimum": 1,
               "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
               "type": "integer"
             }
           },
