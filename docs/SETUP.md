@@ -348,6 +348,23 @@ npm install
 npm run build
 ```
 
+### `seed_db.py` falha com "table X has no column named Y"
+
+DB local (`mathoms.db`) é de uma sessão anterior e está com schema
+desatualizado. `init_db()` só cria tabelas **faltando** — não aplica
+migrações Alembic em tabelas pré-existentes.
+
+Duas saídas:
+
+```bash
+# A) Wipe (começa zerado — recomendado para smoke)
+rm -f mathoms.db mathoms.db-shm mathoms.db-wal mathoms-smoke.db*
+cd backend && python seed_db.py
+
+# B) Migrar (preserva dados)
+cd backend && alembic upgrade head && python seed_db.py
+```
+
 ### Worker Celery não reflete mudanças de código
 
 O worker precisa ser **reiniciado** manualmente após mudanças em:
