@@ -79,8 +79,8 @@ cd backend && python seed_db.py && cd ..
 # Terminal 1
 redis-server
 
-# Terminal 2 (com venv ativado, na raiz)
-cd backend && uvicorn app.main:app --reload --port 8000
+# Terminal 2 (com venv ativado, na raiz — NÃO fazer `cd backend`)
+uvicorn backend.app.main:app --reload --port 8000
 
 # Terminal 3 (com venv ativado, na raiz — mesmo nível que contém backend/)
 celery -A backend.app.worker worker -l info -c 2
