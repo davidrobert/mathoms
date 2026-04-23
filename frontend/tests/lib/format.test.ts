@@ -20,6 +20,7 @@ import {
   docStatusLabel,
   isDocumentClassifiedOk,
   docTypeLabel,
+  documentDisplayLabel,
   fileFormatLabel,
   institutionLabel,
   pipelineE2TouchLabel,
@@ -521,5 +522,70 @@ describe("Property-based: BRL formatter (F6.5D.2)", () => {
       ),
       { numRuns: 50 },
     );
+  });
+});
+
+// ─── documentDisplayLabel ───────────────────────────────────────────
+
+describe("documentDisplayLabel()", () => {
+  it("monta instituição · tipo · período quando tudo está presente", () => {
+    const out = documentDisplayLabel({
+      doc_type: "bank_statement",
+      bank_code: "bradesco",
+      period: "202603",
+      needs_review: false,
+    });
+    expect(out).toBe("Bradesco · Extrato · mar./2026");
+  });
+
+  it("omite período quando ausente mas mantém inst + tipo", () => {
+    expect(
+      documentDisplayLabel({
+        doc_type: "credit_card_bill",
+        bank_code: "itau",
+        period: null,
+      }),
+    ).toBe("Itaú · Fatura");
+  });
+
+  it("formata range de período (fev./2026–mar./2026)", () => {
+    const out = documentDisplayLabel({
+      doc_type: "bank_statement",
+      bank_code: "btgpactual",
+      period: "202602_202603",
+    });
+    expect(out).toBe("BTG Pactual · Extrato · fev./2026–mar./2026");
+  });
+
+  it("retorna null se needs_review=true mesmo com dados", () => {
+    expect(
+      documentDisplayLabel({
+        doc_type: "bank_statement",
+        bank_code: "bradesco",
+        period: "202603",
+        needs_review: true,
+      }),
+    ).toBeNull();
+  });
+
+  it("retorna null se faltam bank_code E doc_type", () => {
+    expect(
+      documentDisplayLabel({ doc_type: null, bank_code: null, period: null }),
+    ).toBeNull();
+  });
+
+  it("retorna null se só um dos campos estiver presente (sem período)", () => {
+    expect(
+      documentDisplayLabel({ doc_type: "bank_statement", bank_code: null, period: null }),
+    ).toBeNull();
+  });
+
+  it("mostra Indeterminado quando período é 999999", () => {
+    const out = documentDisplayLabel({
+      doc_type: "credit_card_bill",
+      bank_code: "bradesco",
+      period: "999999",
+    });
+    expect(out).toBe("Bradesco · Fatura · Indeterminado");
   });
 });

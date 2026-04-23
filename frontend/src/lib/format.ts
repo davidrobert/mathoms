@@ -201,6 +201,30 @@ export function docTypeLabel(type: DocumentType | null): string {
   return type ? DOC_TYPE_MAP[type] ?? type : "—";
 }
 
+/**
+ * Rótulo de negócio derivado dos campos classificados — `Bradesco · Extrato · mar/2026`.
+ *
+ * Separa *identidade do upload* (`original_name`, imutável) de *rótulo de negócio*
+ * (derivado, recalcula quando reclassifica). Quando a classificação é fraca
+ * (`needs_review` ou faltam bank+type), retorna `null` — caller exibe `original_name`.
+ */
+export function documentDisplayLabel(doc: {
+  doc_type: DocumentType | null;
+  bank_code: string | null;
+  period: string | null;
+  needs_review?: boolean | null;
+}): string | null {
+  if (doc.needs_review) return null;
+  const type = doc.doc_type ? docTypeLabel(doc.doc_type) : null;
+  const inst = doc.bank_code ? institutionLabel(doc.bank_code) : null;
+  if (!type && !inst) return null;
+  const period = doc.period ? formatDocPeriod(doc.period) : null;
+  const parts = [inst, type, period && period !== "—" ? period : null].filter(
+    (p): p is string => !!p,
+  );
+  return parts.length >= 2 ? parts.join(" · ") : null;
+}
+
 const BANK_NAMES: Record<string, string> = {
   itau: "Itaú",
   bradesco: "Bradesco",

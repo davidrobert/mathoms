@@ -14,6 +14,7 @@ import type { DocumentResponse } from "@/lib/api";
 import {
   docEffectiveStatus,
   docTypeLabel,
+  documentDisplayLabel,
   formatBytes,
   formatDate,
   formatDocPeriod,
@@ -36,6 +37,14 @@ import { isClassificationUncertain } from "./classificationHints";
 
 function FilenameCell({ doc }: { doc: DocumentResponse }) {
   const Icon = fileIconFor(doc.content_type);
+  const displayLabel = documentDisplayLabel(doc);
+  const primary = displayLabel ?? doc.original_name;
+  const secondary = displayLabel
+    ? `${doc.original_name} · ${formatDate(doc.uploaded_at)} · ${formatBytes(doc.file_size_bytes)}`
+    : `${formatDate(doc.uploaded_at)} · ${formatBytes(doc.file_size_bytes)}`;
+  const tooltip = displayLabel
+    ? `${primary}\n${doc.original_name}`
+    : doc.original_name;
   return (
     <TableCell className="max-w-0 min-w-[200px] align-middle">
       <div className="flex items-center gap-2">
@@ -51,14 +60,14 @@ function FilenameCell({ doc }: { doc: DocumentResponse }) {
               type="button"
               className="block w-full max-w-full cursor-default truncate border-0 bg-transparent p-0 text-left font-medium leading-tight text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              {doc.original_name}
+              {primary}
             </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-md break-words">
-              {doc.original_name}
+            <TooltipContent side="top" className="max-w-md whitespace-pre-line break-words">
+              {tooltip}
             </TooltipContent>
           </Tooltip>
           <div className="mt-0.5 truncate text-xs text-foreground/70">
-            {formatDate(doc.uploaded_at)} · {formatBytes(doc.file_size_bytes)}
+            {secondary}
           </div>
         </div>
       </div>
