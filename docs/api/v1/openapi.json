@@ -12390,6 +12390,29 @@
           },
           {
             "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
             "name": "member",
             "required": false,
             "schema": {
@@ -12514,29 +12537,6 @@
                 }
               ],
               "title": "Search"
-            }
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "required": false,
-            "schema": {
-              "default": 1,
-              "minimum": 1,
-              "title": "Page",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "page_size",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Page Size",
-              "type": "integer"
             }
           }
         ],
@@ -12575,7 +12575,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/transactions/export": {
       "get": {
-        "description": "BUG-009 fix: export ALL filtered transactions server-side (no pagination).\n\nReturns a CSV download with BOM for Excel compatibility.",
         "operationId": "export_transactions_api_v1_workspaces__workspace_id__transactions_export_get",
         "parameters": [
           {
@@ -12584,6 +12583,17 @@
             "required": true,
             "schema": {
               "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "csv",
+              "pattern": "^(csv)$",
+              "title": "Format",
               "type": "string"
             }
           },
@@ -12714,17 +12724,6 @@
               ],
               "title": "Search"
             }
-          },
-          {
-            "in": "query",
-            "name": "format",
-            "required": false,
-            "schema": {
-              "default": "csv",
-              "pattern": "^(csv)$",
-              "title": "Format",
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -12732,7 +12731,7 @@
             "content": {
               "text/csv": {}
             },
-            "description": "CSV com BOM (UTF-8) \u2014 transa\u00e7\u00f5es filtradas."
+            "description": "CSV com BOM (UTF-8)."
           },
           "422": {
             "content": {
