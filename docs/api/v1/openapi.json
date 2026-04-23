@@ -10294,7 +10294,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/pipeline/new-doc-count": {
       "get": {
-        "description": "Count documents never processed by the pipeline (pipeline_last_run_at IS NULL).",
         "operationId": "new_doc_count_api_v1_workspaces__workspace_id__pipeline_new_doc_count_get",
         "parameters": [
           {
@@ -10342,7 +10341,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/pipeline/run": {
       "post": {
-        "description": "Start a pipeline execution (deterministic stages by default).",
         "operationId": "trigger_pipeline_api_v1_workspaces__workspace_id__pipeline_run_post",
         "parameters": [
           {
@@ -10400,7 +10398,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/pipeline/runs": {
       "get": {
-        "description": "List all pipeline runs for the workspace, most recent first.",
         "operationId": "list_runs_api_v1_workspaces__workspace_id__pipeline_runs_get",
         "parameters": [
           {
@@ -10448,7 +10445,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}": {
       "get": {
-        "description": "Get detailed status of a pipeline run including all stage logs.",
         "operationId": "get_run_api_v1_workspaces__workspace_id__pipeline_runs__run_id__get",
         "parameters": [
           {
@@ -10505,7 +10501,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/cancel": {
       "post": {
-        "description": "Cancel an active pipeline run (stage-boundary cancellation).",
         "operationId": "cancel_run_api_v1_workspaces__workspace_id__pipeline_runs__run_id__cancel_post",
         "parameters": [
           {
@@ -10562,7 +10557,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/resume": {
       "post": {
-        "description": "Resume a pipeline run paused for review (needs_review status).",
         "operationId": "resume_run_api_v1_workspaces__workspace_id__pipeline_runs__run_id__resume_post",
         "parameters": [
           {
@@ -10619,7 +10613,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/reviews": {
       "get": {
-        "description": "List all stage reviews for a pipeline run.",
         "operationId": "list_reviews_api_v1_workspaces__workspace_id__pipeline_runs__run_id__reviews_get",
         "parameters": [
           {
@@ -10680,7 +10673,6 @@
     },
     "/api/v1/workspaces/{workspace_id}/pipeline/runs/{run_id}/reviews/{review_id}": {
       "post": {
-        "description": "Approve or edit a stage review.",
         "operationId": "action_review_api_v1_workspaces__workspace_id__pipeline_runs__run_id__reviews__review_id__post",
         "parameters": [
           {

@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.core.config import settings
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 
-_START = "backend.app.api.pipeline.start_pipeline_run"
-_CANCEL = "backend.app.api.pipeline.cancel_pipeline_run"
+_START = "backend.app.application.pipeline_run.trigger_pipeline.start_pipeline_run"
+_CANCEL = "backend.app.application.pipeline_run.cancel_run.cancel_pipeline_run"
 
 
 # ---------------------------------------------------------------------------
@@ -49,7 +49,7 @@ async def test_trigger_incremental_rejects_when_no_stored_paths(
             f"/api/workspaces/{ws_id}/pipeline/run",
             json={"incremental": True, "skip_llm": True},
         )
-    assert resp.status_code == 400
+    assert resp.status_code == 422
     assert (
         "incremental" in resp.json()["detail"].lower()
         or "armazenamento" in resp.json()["detail"].lower()

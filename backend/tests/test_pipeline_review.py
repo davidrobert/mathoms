@@ -17,7 +17,7 @@ from backend.app.models.workspace import Workspace
 from backend.app.services.vault import VaultService
 
 _vault = VaultService()
-_START = "backend.app.api.pipeline.start_pipeline_run"
+_START = "backend.app.application.pipeline_run.trigger_pipeline.start_pipeline_run"
 
 
 async def _seed_doc_for_pipeline(db: AsyncSession, ws_id: str) -> None:
@@ -213,7 +213,7 @@ async def test_edit_review_requires_output_json(client: AsyncClient, db: AsyncSe
         f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
         json={"action": "edit"},
     )
-    assert resp.status_code == 400
+    assert resp.status_code == 422
     assert "edited_output_json" in resp.json()["detail"]
 
 
