@@ -17,10 +17,9 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from pipeline.artifact_store import stage_dir_name, stage_suffix
-
 from backend.app.core.database import SyncSessionLocal
 from backend.app.repositories.pipeline_artifact_repository import PipelineArtifactRepository
+from pipeline.artifact_store import stage_dir_name, stage_suffix
 
 logger = logging.getLogger(__name__)
 
