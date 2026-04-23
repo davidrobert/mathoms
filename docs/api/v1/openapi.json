@@ -8154,7 +8154,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/documents": {
       "get": {
-        "description": "List documents in the workspace, optionally filtered by status or doc_type.",
+        "description": "List documents, filtrados por status (CSV) ou doc_type.",
         "operationId": "list_documents_api_v1_workspaces__workspace_id__documents_get",
         "parameters": [
           {
@@ -8234,7 +8234,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/documents/reclassify": {
       "post": {
-        "description": "Re-run content-first classifier on all (or non-manually-overridden) documents.\n\nUseful when classifier rules are updated or when documents were uploaded with\nwrong extensions and got misclassified. Documents with ``manual_override`` in\n``classification_meta`` are skipped by default (pass ``skip_manual_overrides=false``\nto force reclassification of those too).\n\nDoes NOT reprocess JSON members/baseline files (those are deterministic and\nclassified by structure, not content regex).",
+        "description": "Re-run classifier em todos (ou n\u00e3o-overridados) os docs do workspace.\n\n\u00datil quando regras do classifier mudam ou docs foram subidos com extens\u00e3o\nerrada. N\u00e3o reprocessa JSONs de members/baseline (classificados por estrutura).",
         "operationId": "reclassify_documents_api_v1_workspaces__workspace_id__documents_reclassify_post",
         "parameters": [
           {
@@ -8292,7 +8292,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/documents/retry-unlock": {
       "post": {
-        "description": "Re-attempt unlock on all documents with status 'needs_password' using current vault.",
+        "description": "Re-attempt unlock em todos os docs com status 'needs_password'.",
         "operationId": "retry_unlock_api_v1_workspaces__workspace_id__documents_retry_unlock_post",
         "parameters": [
           {
@@ -8344,7 +8344,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/documents/upload": {
       "post": {
-        "description": "Upload one or more documents. Each is saved, validated, unlocked (if PDF), and classified.",
+        "description": "Upload N documentos. Composite (storage + classify + fuzzy dedup + savepoint).\n\nAudit registrado por doc com ``stored_path`` n\u00e3o-nulo (ignora falhas\npuras de valida\u00e7\u00e3o para n\u00e3o poluir o log).",
         "operationId": "upload_documents_api_v1_workspaces__workspace_id__documents_upload_post",
         "parameters": [
           {
@@ -8402,7 +8402,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/documents/{document_id}": {
       "delete": {
-        "description": "Delete a document and its file from storage.",
+        "description": "Remove a row + arquivo do storage + audit entry.",
         "operationId": "delete_document_api_v1_workspaces__workspace_id__documents__document_id__delete",
         "parameters": [
           {
@@ -8450,7 +8450,7 @@
         ]
       },
       "patch": {
-        "description": "Corre\u00e7\u00e3o manual de classifica\u00e7\u00e3o (tipo, institui\u00e7\u00e3o, per\u00edodo).\n\nAceita envio parcial \u2014 s\u00f3 atualiza os campos presentes no body. Marca\n``classification_meta.manual_override`` e zera ``needs_review`` porque\no usu\u00e1rio confirmou o valor explicitamente.",
+        "description": "Corre\u00e7\u00e3o manual de classifica\u00e7\u00e3o (tipo, institui\u00e7\u00e3o, per\u00edodo).\n\nAceita envio parcial \u2014 s\u00f3 atualiza os campos presentes no body. Marca\n``classification_meta.manual_override`` e zera ``needs_review``.",
         "operationId": "update_document_classification_api_v1_workspaces__workspace_id__documents__document_id__patch",
         "parameters": [
           {
@@ -8574,7 +8574,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/documents/{document_id}/file": {
       "get": {
-        "description": "Serve o arquivo original de um documento para visualiza\u00e7\u00e3o ou download.\n\nPDFs s\u00e3o servidos com ``Content-Disposition: inline`` para que o navegador\nos abra diretamente. Outros formatos recebem ``attachment`` e s\u00e3o baixados.\nRequer autentica\u00e7\u00e3o Bearer (igual a todos os outros endpoints).",
+        "description": "Serve o arquivo original para visualiza\u00e7\u00e3o ou download.\n\nPDFs/imagens com ``Content-Disposition: inline`` (abrem no browser);\ndemais formatos como ``attachment`` (download).",
         "operationId": "get_document_file_api_v1_workspaces__workspace_id__documents__document_id__file_get",
         "parameters": [
           {

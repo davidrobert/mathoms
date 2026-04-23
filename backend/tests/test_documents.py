@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 
-_PROC = "backend.app.api.documents.process_uploaded_document"
+_PROC = "backend.app.services.document_upload_service.process_uploaded_document"
 
 
 def _mock_process(
@@ -200,8 +200,10 @@ async def test_list_documents_filter_by_status(auth_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_list_documents_invalid_status_filter(auth_client: AsyncClient):
+    # A6e.4 slice 10: list delega a use case que lança ValidationError →
+    # handler global ADR-101 R15 traduz para 422 (antes 400 inline).
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/documents?status=bogus")
-    assert resp.status_code == 400
+    assert resp.status_code == 422
 
 
 @pytest.mark.asyncio

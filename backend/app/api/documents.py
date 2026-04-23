@@ -1,25 +1,38 @@
-"""Documents API — upload, list, delete, retry-unlock (tenant-scoped, ADR-072)."""
+"""Documents API — thin router (A6e.4 slice 10 · fase 4b · ADR-101 R15/R16).
+
+Handlers delegam a use cases em ``backend/app/application/document/``
+ou services de composite em ``backend/app/services/document_*``:
+
+- **Pure CRUD** (use cases): ``list``, ``update_classification``, ``delete``.
+- **Composites extraídos** (services): ``upload_document_batch``,
+  ``retry_unlock_workspace_documents``, ``reclassify_workspace_documents``,
+  ``read_document_extract_json``.
+- **File serve** (FileResponse): ``get_document_file`` usa StorageService
+  diretamente — thin o suficiente.
+
+``audit_log`` permanece inline por ora — migração para evento em
+A6e.events-migration slice dedicado.
+"""
 
 from __future__ import annotations
 
-import hashlib
-import json
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
-from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.config import settings
+from backend.app.application.document import (
+    delete_document as _uc_delete_document,
+)
+from backend.app.application.document import (
+    list_workspace_documents as _uc_list_workspace_documents,
+)
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace, require_write_role
-from backend.app.models.document import Document, DocumentStatus, DocumentType
-from backend.app.models.password_vault import PasswordVault
+from backend.app.models.document import Document, DocumentStatus
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.document_repository import DocumentRepository
@@ -33,12 +46,22 @@ from backend.app.schemas.dto.document import (
     document_to_response,
 )
 from backend.app.services.audit import AuditAction, audit_log
-from backend.app.services.config_materializer import ensure_tenant_pipeline_config
-from backend.app.services.document_duplicates import rebuild_fuzzy_duplicate_pointers
-from backend.app.services.document_pipeline_sync import _find_e2_extract
-from backend.app.services.document_processor import process_uploaded_document
-from backend.app.services.storage import StorageService, detect_actual_mime
-from backend.app.services.vault import get_vault
+from backend.app.services.document_extract_json_service import (
+    DocumentExtractError,
+    read_document_extract_json,
+)
+from backend.app.services.document_reclassify_bulk_service import (
+    reclassify_workspace_documents,
+)
+from backend.app.services.document_retry_service import (
+    RetryUnlockError,
+    retry_unlock_workspace_documents,
+)
+from backend.app.services.document_upload_service import (
+    UploadBatchError,
+    upload_document_batch,
+)
+from backend.app.services.storage import StorageService
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/documents",
@@ -54,21 +77,6 @@ def _get_document_repo(
     return DocumentRepository(db)
 
 
-async def _get_vault_passwords(ws_id: str, db: AsyncSession) -> list[str]:
-    """Decrypt all vault passwords for a workspace."""
-    result = await db.execute(select(PasswordVault).where(PasswordVault.workspace_id == ws_id))
-    entries = result.scalars().all()
-    if not entries:
-        return []
-    vault_svc = get_vault()
-    passwords = []
-    for entry in entries:
-        pw = vault_svc.decrypt(entry.encrypted_password)
-        if pw:
-            passwords.append(pw)
-    return passwords
-
-
 @router.post(
     "/upload",
     response_model=DocumentUploadResponse,
@@ -82,149 +90,20 @@ async def upload_documents(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     repo: DocumentRepository = Depends(_get_document_repo),
-):
-    """Upload one or more documents. Each is saved, validated, unlocked (if PDF), and classified."""
-    if len(files) > settings.MAX_UPLOAD_BATCH_SIZE:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Máximo de {settings.MAX_UPLOAD_BATCH_SIZE} arquivos por upload",
+) -> DocumentUploadResponse:
+    """Upload N documentos. Composite (storage + classify + fuzzy dedup + savepoint).
+
+    Audit registrado por doc com ``stored_path`` não-nulo (ignora falhas
+    puras de validação para não poluir o log).
+    """
+    try:
+        result = await upload_document_batch(
+            workspace.id, files, db=db, repo=repo, storage=_storage
         )
+    except UploadBatchError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
-    within_quota, current_bytes = _storage.check_workspace_quota(workspace.id)
-    if not within_quota:
-        raise HTTPException(
-            status_code=413,
-            detail=f"Quota de storage excedida ({settings.MAX_STORAGE_PER_WORKSPACE_MB}MB)",
-        )
-
-    passwords = await _get_vault_passwords(workspace.id, db)
-    config_dir = settings.PIPELINE_ROOT / "config"
-    tenant_root = _storage.ensure_tenant_dirs(workspace.id)
-    ensure_tenant_pipeline_config(workspace.id, tenant_root)
-    created_docs = []
-
-    skipped_duplicates: list[str] = []
-
-    for upload_file in files:
-        filename = upload_file.filename or "unknown"
-        content = await upload_file.read()
-
-        # Detect MIME from magic bytes — more reliable than the HTTP header,
-        # which reflects the file extension chosen by the browser and can be
-        # wrong (e.g. a PDF exported with a .csv name).
-        actual_mime = detect_actual_mime(content) or upload_file.content_type
-
-        ok, err_msg = _storage.validate_file(filename, len(content), content=content)
-        if not ok:
-            doc = Document(
-                workspace_id=workspace.id,
-                original_name=filename,
-                status=DocumentStatus.error,
-                file_size_bytes=len(content),
-                content_type=actual_mime,
-                error_message=err_msg,
-            )
-            await repo.add(doc, flush=False)
-            created_docs.append(doc)
-            continue
-
-        if len(content) == 0:
-            doc = Document(
-                workspace_id=workspace.id,
-                original_name=filename,
-                status=DocumentStatus.error,
-                file_size_bytes=0,
-                content_type=actual_mime,
-                error_message="Arquivo vazio",
-            )
-            await repo.add(doc, flush=False)
-            created_docs.append(doc)
-            continue
-
-        content_hash = hashlib.sha256(content).hexdigest()
-
-        # Atomic dedup: rely on partial unique index
-        # `ux_documents_workspace_content_hash` (migration f1a2b3c4d5e6).
-        # Racing uploads of the same file hash against the index; at most
-        # one INSERT wins, others raise IntegrityError and are treated as
-        # duplicates. The file is only persisted to disk if the INSERT wins.
-        savepoint = await db.begin_nested()
-        try:
-            stored_path = _storage.save_to_inbox(workspace.id, filename, content)
-            doc = Document(
-                workspace_id=workspace.id,
-                original_name=filename,
-                stored_path=str(stored_path),
-                file_size_bytes=len(content),
-                content_type=actual_mime,
-                content_hash=content_hash,
-                status=DocumentStatus.classifying,
-            )
-            await repo.add(doc)
-        except IntegrityError:
-            await savepoint.rollback()
-            # Best-effort cleanup of orphaned file on disk
-            try:
-                if "stored_path" in locals() and stored_path and Path(stored_path).exists():
-                    Path(stored_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-            skipped_duplicates.append(filename)
-            continue
-
-        try:
-            result = process_uploaded_document(
-                stored_path,
-                passwords,
-                config_dir,
-                tenant_root=tenant_root,
-                workspace_id=workspace.id,
-                content_hash=content_hash,
-            )
-            doc.status = result["status"]
-            doc.doc_type = result["doc_type"]
-            doc.bank_code = result["bank_code"]
-            doc.period = result["period"]
-            doc.classification_meta = result["classification_meta"]
-            doc.classification_confidence = result.get("confidence")
-            doc.needs_review = bool(result.get("needs_review"))
-            doc.error_message = result["error_message"]
-            rel = result.get("stored_path_relative")
-            if rel:
-                doc.stored_path = rel
-
-            # P1.4 — if the LLM fallback failed for a permanent reason
-            # (auth, bad request, etc), force `needs_review=True` so the UI
-            # surfaces the issue to the user even if content-regex produced
-            # a weakly-confident classification. Transient errors don't
-            # force review because retry-unlock will naturally retry.
-            meta = result.get("classification_meta") or {}
-            if meta.get("llm_error_kind") == "permanent" and doc.status != DocumentStatus.error:
-                doc.needs_review = True
-
-            # Fuzzy dedupe: if another doc in this workspace has the same
-            # (doc_type, bank_code, period) but a different content_hash, flag
-            # this one as a possible duplicate. We don't block — user decides.
-            if doc.doc_type and doc.doc_type != DocumentType.other and doc.bank_code and doc.period:
-                existing_id = await repo.find_fuzzy_duplicate_id(
-                    workspace.id,
-                    doc_type=doc.doc_type,
-                    bank_code=doc.bank_code,
-                    period=doc.period,
-                    exclude_id=doc.id,
-                )
-                if existing_id:
-                    doc.possible_duplicate_of_id = existing_id
-                    doc.needs_review = True
-        except Exception as exc:
-            doc.status = DocumentStatus.error
-            doc.error_message = f"Erro no processamento: {str(exc)[:500]}"
-
-        created_docs.append(doc)
-
-        # Audit: só registramos uploads que chegaram a ter row criado com
-        # stored_path (ignoramos validação falha puramente, para não poluir
-        # o log com spam de file-type-errado).
+    for doc in result.created:
         if doc.stored_path:
             await audit_log(
                 db,
@@ -235,22 +114,22 @@ async def upload_documents(
                 actor_user_id=current_user.id,
                 request=request,
                 details={
-                    "filename": filename,
-                    "size_bytes": len(content),
-                    "content_hash": content_hash,
+                    "filename": doc.original_name,
+                    "size_bytes": doc.file_size_bytes,
+                    "content_hash": doc.content_hash,
                     "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
                 },
             )
 
     await db.commit()
-    for doc in created_docs:
+    for doc in result.created:
         await db.refresh(doc)
 
     return DocumentUploadResponse(
-        documents=[document_to_response(d) for d in created_docs],
-        skipped_duplicates=skipped_duplicates,
-        total_uploaded=len(created_docs),
-        total_skipped=len(skipped_duplicates),
+        documents=[document_to_response(d) for d in result.created],
+        skipped_duplicates=result.skipped_duplicates,
+        total_uploaded=len(result.created),
+        total_skipped=len(result.skipped_duplicates),
     )
 
 
@@ -260,34 +139,13 @@ async def list_documents(
     doc_type_filter: Optional[str] = Query(None, alias="doc_type"),
     workspace: Workspace = Depends(get_current_workspace),
     repo: DocumentRepository = Depends(_get_document_repo),
-):
-    """List documents in the workspace, optionally filtered by status or doc_type."""
-    statuses: Optional[list[DocumentStatus]] = None
-    if status_filter:
-        # Suporta um valor ou lista separada por vírgula: ``status=ready,processed``.
-        parts = [p.strip() for p in status_filter.split(",") if p.strip()]
-        allowed = {m.value for m in DocumentStatus}
-        for p in parts:
-            if p not in allowed:
-                raise HTTPException(status_code=400, detail=f"Status inválido: {p}")
-        statuses = [DocumentStatus(p) for p in parts]
-
-    doc_type_enum: Optional[DocumentType] = None
-    if doc_type_filter:
-        try:
-            doc_type_enum = DocumentType(doc_type_filter)
-        except ValueError:
-            raise HTTPException(status_code=400, detail=f"Tipo inválido: {doc_type_filter}")
-
-    docs = await repo.list(
+) -> DocumentListResponse:
+    """List documents, filtrados por status (CSV) ou doc_type."""
+    return await _uc_list_workspace_documents(
         workspace.id,
-        statuses=statuses,
-        doc_type=doc_type_enum,
-    )
-
-    return DocumentListResponse(
-        documents=[document_to_response(d) for d in docs],
-        total=len(docs),
+        repo=repo,
+        status_filter=status_filter,
+        doc_type_filter=doc_type_filter,
     )
 
 
@@ -304,69 +162,98 @@ async def update_document_classification(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     repo: DocumentRepository = Depends(_get_document_repo),
-):
+) -> DocumentResponse:
     """Correção manual de classificação (tipo, instituição, período).
 
     Aceita envio parcial — só atualiza os campos presentes no body. Marca
-    ``classification_meta.manual_override`` e zera ``needs_review`` porque
-    o usuário confirmou o valor explicitamente.
+    ``classification_meta.manual_override`` e zera ``needs_review``.
     """
-    doc = await repo.get_by_id(workspace.id, document_id)
+    before = await _snapshot_classification_before(workspace.id, document_id, repo)
+    response = await _apply_classification_update(
+        payload, workspace.id, document_id, current_user.id, repo
+    )
+    await audit_log(
+        db,
+        action=AuditAction.document_update_classification,
+        resource_type="document",
+        resource_id=document_id,
+        workspace_id=workspace.id,
+        actor_user_id=current_user.id,
+        request=request,
+        details={"before": before, "after": payload.model_dump(exclude_unset=True)},
+    )
+    await db.commit()
+    return response
+
+
+async def _snapshot_classification_before(
+    workspace_id: str, document_id: str, repo: DocumentRepository
+) -> dict:
+    doc = await repo.get_by_id(workspace_id, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Documento não encontrado")
-
-    updates = payload.model_dump(exclude_unset=True)
-    if not updates:
-        raise HTTPException(status_code=400, detail="Nenhum campo para atualizar")
-
-    before = {
+    return {
         "doc_type": doc.doc_type.value if hasattr(doc.doc_type, "value") else doc.doc_type,
         "bank_code": doc.bank_code,
         "period": doc.period,
     }
 
-    # Campos que afetam qual parser/LLM é usado na extração E2 — mudança invalida extrato anterior.
-    EXTRACTION_AFFECTING = {"doc_type", "bank_code"}
-    extraction_changed = bool(updates.keys() & EXTRACTION_AFFECTING)
 
+async def _apply_classification_update(
+    payload: DocumentUpdateCommand,
+    workspace_id: str,
+    document_id: str,
+    actor_user_id: str,
+    repo: DocumentRepository,
+) -> DocumentResponse:
+    """Aplica fields + manual_override meta + invalida E2 quando necessário.
+
+    Lógica inline porque o use case ``application/document/update_document_classification``
+    ainda não cobre invalidação E2 + downgrade de status (só aplica fields +
+    marca manual_override). Candidato a migração quando houver segundo
+    consumidor.
+    """
+    updates = payload.model_dump(exclude_unset=True)
+    if not updates:
+        raise HTTPException(status_code=400, detail="Nenhum campo para atualizar")
+
+    doc = await repo.get_by_id(workspace_id, document_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+    _apply_classification_fields(doc, updates, actor_user_id)
+    _invalidate_e2_if_needed(doc, updates)
+    return document_to_response(doc)
+
+
+def _apply_classification_fields(doc: Document, updates: dict, actor_user_id: str) -> None:
     if "doc_type" in updates:
         doc.doc_type = updates["doc_type"]
     if "bank_code" in updates:
         doc.bank_code = updates["bank_code"]
     if "period" in updates:
         doc.period = updates["period"]
-
     meta = dict(doc.classification_meta or {})
     meta["manual_override"] = {
         "at": datetime.now(timezone.utc).isoformat(),
-        "by": current_user.id,
+        "by": actor_user_id,
         "fields": sorted(updates.keys()),
     }
     doc.classification_meta = meta
     doc.classification_confidence = 1.0
     doc.needs_review = False
 
-    if extraction_changed:
-        # Invalida extrato anterior e recoloca o doc na fila do pipeline incremental.
-        doc.pipeline_last_run_at = None
-        doc.pipeline_e2_extract_ok = None
-        if doc.status == DocumentStatus.processed:
-            doc.status = DocumentStatus.ready
 
-    await audit_log(
-        db,
-        action=AuditAction.document_update_classification,
-        resource_type="document",
-        resource_id=doc.id,
-        workspace_id=workspace.id,
-        actor_user_id=current_user.id,
-        request=request,
-        details={"before": before, "after": updates},
-    )
-
-    await db.commit()
-    await db.refresh(doc)
-    return document_to_response(doc)
+def _invalidate_e2_if_needed(doc: Document, updates: dict) -> None:
+    """Se ``doc_type``/``bank_code`` mudou, extrato E2 antigo fica inválido —
+    recoloca doc na fila do pipeline incremental."""
+    extraction_affecting = {"doc_type", "bank_code"}
+    if not (updates.keys() & extraction_affecting):
+        return
+    doc.pipeline_last_run_at = None
+    doc.pipeline_e2_extract_ok = None
+    if doc.status == DocumentStatus.processed:
+        doc.status = DocumentStatus.ready
 
 
 @router.delete(
@@ -381,24 +268,17 @@ async def delete_document(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     repo: DocumentRepository = Depends(_get_document_repo),
-):
-    """Delete a document and its file from storage."""
-    doc = await repo.get_by_id(workspace.id, document_id)
-    if not doc:
-        raise HTTPException(status_code=404, detail="Documento não encontrado")
-
+) -> None:
+    """Remove a row + arquivo do storage + audit entry."""
+    doc = await _uc_delete_document(workspace.id, document_id, repo=repo)
     audit_details = {
         "original_name": doc.original_name,
         "content_hash": doc.content_hash,
         "doc_type": doc.doc_type.value if hasattr(doc.doc_type, "value") else doc.doc_type,
     }
-
     abs_stored = _storage.abs_stored_file(workspace.id, doc.stored_path)
     if abs_stored and abs_stored.exists():
         abs_stored.unlink(missing_ok=True)
-
-    await repo.delete(doc)
-
     await audit_log(
         db,
         action=AuditAction.document_delete,
@@ -409,7 +289,6 @@ async def delete_document(
         request=request,
         details=audit_details,
     )
-
     await db.commit()
 
 
@@ -424,54 +303,14 @@ async def retry_unlock(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     repo: DocumentRepository = Depends(_get_document_repo),
-):
-    """Re-attempt unlock on all documents with status 'needs_password' using current vault."""
-    passwords = await _get_vault_passwords(workspace.id, db)
-    if not passwords:
-        raise HTTPException(status_code=400, detail="Nenhuma senha cadastrada no vault")
-
-    docs = await repo.list(
-        workspace.id,
-        statuses=[DocumentStatus.needs_password],
-    )
-    if not docs:
-        raise HTTPException(status_code=404, detail="Nenhum documento pendente de senha")
-
-    config_dir = settings.PIPELINE_ROOT / "config"
-    tenant_root = _storage.ensure_tenant_dirs(workspace.id)
-    updated = []
-
-    for doc in docs:
-        abs_doc = _storage.abs_stored_file(workspace.id, doc.stored_path)
-        if not doc.stored_path or not abs_doc or not abs_doc.exists():
-            doc.status = DocumentStatus.error
-            doc.error_message = "Arquivo não encontrado no storage"
-            updated.append(doc)
-            continue
-
-        try:
-            proc_result = process_uploaded_document(
-                abs_doc,
-                passwords,
-                config_dir,
-                tenant_root=tenant_root,
-                workspace_id=workspace.id,
-                content_hash=doc.content_hash,
-            )
-            doc.status = proc_result["status"]
-            doc.doc_type = proc_result["doc_type"]
-            doc.bank_code = proc_result["bank_code"]
-            doc.period = proc_result["period"]
-            doc.classification_meta = proc_result["classification_meta"]
-            doc.error_message = proc_result["error_message"]
-            rel = proc_result.get("stored_path_relative")
-            if rel:
-                doc.stored_path = rel
-        except Exception as exc:
-            doc.status = DocumentStatus.error
-            doc.error_message = f"Erro no retry: {str(exc)[:500]}"
-
-        updated.append(doc)
+) -> list[DocumentResponse]:
+    """Re-attempt unlock em todos os docs com status 'needs_password'."""
+    try:
+        updated, stats = await retry_unlock_workspace_documents(
+            workspace.id, db=db, repo=repo, storage=_storage
+        )
+    except RetryUnlockError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
     await audit_log(
         db,
@@ -482,16 +321,14 @@ async def retry_unlock(
         actor_user_id=current_user.id,
         request=request,
         details={
-            "total_attempted": len(updated),
-            "total_ready": sum(1 for d in updated if d.status == DocumentStatus.ready),
-            "total_errored": sum(1 for d in updated if d.status == DocumentStatus.error),
+            "total_attempted": stats.total_attempted,
+            "total_ready": stats.total_ready,
+            "total_errored": stats.total_errored,
         },
     )
-
     await db.commit()
     for doc in updated:
         await db.refresh(doc)
-
     return [document_to_response(d) for d in updated]
 
 
@@ -513,28 +350,24 @@ async def get_document_file(
     document_id: str,
     workspace: Workspace = Depends(get_current_workspace),
     repo: DocumentRepository = Depends(_get_document_repo),
-):
-    """Serve o arquivo original de um documento para visualização ou download.
+) -> FileResponse:
+    """Serve o arquivo original para visualização ou download.
 
-    PDFs são servidos com ``Content-Disposition: inline`` para que o navegador
-    os abra diretamente. Outros formatos recebem ``attachment`` e são baixados.
-    Requer autenticação Bearer (igual a todos os outros endpoints).
+    PDFs/imagens com ``Content-Disposition: inline`` (abrem no browser);
+    demais formatos como ``attachment`` (download).
     """
     doc = await repo.get_by_id(workspace.id, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Documento não encontrado")
-
     abs_path = _storage.abs_stored_file(workspace.id, doc.stored_path)
     if abs_path is None or not abs_path.exists():
         raise HTTPException(status_code=404, detail="Arquivo não encontrado no storage")
 
     content_type = doc.content_type or "application/octet-stream"
-    # PDFs e imagens renderizam inline no browser; demais formatos são baixados.
     disposition = (
         "inline" if ("pdf" in content_type or content_type.startswith("image/")) else "attachment"
     )
     safe_name = doc.original_name.replace('"', "'")
-
     return FileResponse(
         path=str(abs_path),
         media_type=content_type,
@@ -550,59 +383,17 @@ async def get_document_extract_json(
     document_id: str,
     workspace: Workspace = Depends(get_current_workspace),
     repo: DocumentRepository = Depends(_get_document_repo),
-):
+) -> DocumentExtractJsonResponse:
     """Retorna o JSON extraído pelo E2 para um documento processado (dev/debug)."""
     doc = await repo.get_by_id(workspace.id, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Documento não encontrado")
-
-    e2_dir = _storage.tenant_root(workspace.id) / "processed" / "E2_extracts"
-    if not e2_dir.exists():
-        raise HTTPException(status_code=404, detail="Nenhum extrato E2 disponível")
-
-    all_candidates = sorted(f.name for f in e2_dir.glob("*-2_extract.json"))
-    if not all_candidates:
-        raise HTTPException(status_code=404, detail="Nenhum extrato E2 encontrado")
-
-    # Estratégia 1: correspondência exata via stored_path (mesmo algoritmo do sync)
-    target = None
-    if doc.stored_path:
-        source_filename = Path(doc.stored_path).name
-        target = _find_e2_extract(e2_dir, source_filename)
-
-    # Estratégia 2: fallback por bank_code + doc_type + period (sem stored_path)
-    if target is None:
-        matches = list(e2_dir.glob("*-2_extract.json"))
-        if doc.bank_code:
-            bank_matches = [f for f in matches if doc.bank_code.lower() in f.name.lower()]
-            if bank_matches:
-                matches = bank_matches
-        # Filtra por tipo de documento antes do período para evitar confusão extrato×fatura
-        _DOC_TYPE_KEYWORDS = {
-            DocumentType.credit_card_bill: ["fatura"],
-            DocumentType.bank_statement: ["extrato"],
-        }
-        if doc.doc_type in _DOC_TYPE_KEYWORDS:
-            kws = _DOC_TYPE_KEYWORDS[doc.doc_type]
-            type_matches = [f for f in matches if any(kw in f.name.lower() for kw in kws)]
-            if type_matches:
-                matches = type_matches
-        if doc.period:
-            period_prefix = doc.period.split("_")[0]
-            period_matches = [f for f in matches if period_prefix in f.name]
-            if period_matches:
-                matches = period_matches
-        target = sorted(matches)[0] if matches else None
-
-    if target is None:
-        raise HTTPException(status_code=404, detail="Extrato E2 não encontrado para este documento")
     try:
-        data = json.loads(target.read_text(encoding="utf-8"))
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Erro ao ler extrato: {exc}") from exc
-
+        result = read_document_extract_json(doc, workspace_id=workspace.id, storage=_storage)
+    except DocumentExtractError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
     return DocumentExtractJsonResponse(
-        filename=target.name, data=data, all_candidates=all_candidates
+        filename=result.filename, data=result.data, all_candidates=result.all_candidates
     )
 
 
@@ -618,141 +409,18 @@ async def reclassify_documents(
     db: AsyncSession = Depends(get_db),
     repo: DocumentRepository = Depends(_get_document_repo),
     skip_manual_overrides: bool = True,
-):
-    """Re-run content-first classifier on all (or non-manually-overridden) documents.
+) -> DocumentReclassifyResponse:
+    """Re-run classifier em todos (ou não-overridados) os docs do workspace.
 
-    Useful when classifier rules are updated or when documents were uploaded with
-    wrong extensions and got misclassified. Documents with ``manual_override`` in
-    ``classification_meta`` are skipped by default (pass ``skip_manual_overrides=false``
-    to force reclassification of those too).
-
-    Does NOT reprocess JSON members/baseline files (those are deterministic and
-    classified by structure, not content regex).
+    Útil quando regras do classifier mudam ou docs foram subidos com extensão
+    errada. Não reprocessa JSONs de members/baseline (classificados por estrutura).
     """
-    import asyncio
-    from functools import partial
-
-    from backend.app.services.canonical_routing import rename_to_canonical
-    from backend.app.services.classification_telemetry import emit_classification_outcome
-    from backend.app.services.document_classification import (
-        classification_can_route_to_data,
-        classify_document,
+    stats = await reclassify_workspace_documents(
+        workspace.id,
+        repo=repo,
+        storage=_storage,
+        skip_manual_overrides=skip_manual_overrides,
     )
-    from backend.app.services.document_processor import (
-        _detect_json_type,
-        resolve_classification_base,
-    )
-
-    tenant_root = _storage.ensure_tenant_dirs(workspace.id)
-    ensure_tenant_pipeline_config(workspace.id, tenant_root)
-    classification_base = resolve_classification_base(
-        settings.PIPELINE_ROOT / "config", tenant_root
-    )
-
-    docs = await repo.list(workspace.id)
-
-    total = len(docs)
-    n_updated = 0
-    n_skipped = 0
-    n_errors = 0
-
-    loop = asyncio.get_event_loop()
-
-    for doc in docs:
-        # Skip docs with manual overrides (unless caller opts in)
-        if skip_manual_overrides:
-            meta = doc.classification_meta or {}
-            if isinstance(meta, dict) and "manual_override" in meta:
-                n_skipped += 1
-                continue
-
-        if not doc.stored_path:
-            n_skipped += 1
-            continue
-
-        abs_path = _storage.abs_stored_file(doc.workspace_id, doc.stored_path)
-        if abs_path is None or not abs_path.exists():
-            n_skipped += 1
-            continue
-
-        try:
-            prior_type = doc.doc_type
-            # JSON members/baseline: classify by structure (sync, fast)
-            if abs_path.suffix.lower() == ".json":
-                json_type = _detect_json_type(abs_path)
-                if json_type:
-                    doc.doc_type = json_type
-                    doc.classification_confidence = 1.0
-                    doc.needs_review = False
-                    doc.classification_meta = {"source": "json_structure", "reclassified": True}
-                    emit_classification_outcome(
-                        context="reclassify",
-                        classification={
-                            "doc_type": json_type,
-                            "confidence": 1.0,
-                            "needs_review": False,
-                            "classification_meta": doc.classification_meta,
-                        },
-                        workspace_id=workspace.id,
-                        prior_doc_type=prior_type,
-                        outcome="json_structure",
-                    )
-                    n_updated += 1
-                else:
-                    n_skipped += 1
-                continue
-
-            # All other files: content regex → LLM fallback (blocking I/O in threadpool).
-            # Same classifier + routing gate as upload and E0-route (pipeline).
-            clf = await loop.run_in_executor(
-                None, partial(classify_document, abs_path, classification_base)
-            )
-            emit_classification_outcome(
-                context="reclassify",
-                classification=clf,
-                workspace_id=workspace.id,
-                prior_doc_type=prior_type,
-                outcome="classified",
-            )
-            doc.doc_type = clf["doc_type"]
-            doc.bank_code = clf["bank_code"]
-            doc.period = clf["period"]
-            doc.classification_confidence = clf["confidence"]
-            doc.needs_review = clf["needs_review"]
-            meta = dict(clf.get("classification_meta") or {})
-            meta["reclassified_at"] = datetime.now(timezone.utc).isoformat()
-            doc.classification_meta = meta
-
-            # Rename/move only when confident enough (same rule as upload / E0-route).
-            if classification_can_route_to_data(clf):
-                rename_result = await loop.run_in_executor(
-                    None,
-                    partial(
-                        rename_to_canonical,
-                        abs_path,
-                        tenant_root,
-                        settings.PIPELINE_ROOT,
-                        dest_group=clf["dest_group"],
-                        e0_doc_type=clf["e0_doc_type"],
-                        institution=clf.get("bank_code"),
-                        period=clf.get("period"),
-                        classification_meta=meta,
-                        content_hash=doc.content_hash,
-                    ),
-                )
-                if rename_result is not None:
-                    abs_new, rel_new = rename_result
-                    doc.stored_path = rel_new
-                    doc.original_name = abs_new.name
-
-            n_updated += 1
-        except Exception as exc:
-            doc.error_message = f"Reclassify error: {str(exc)[:200]}"
-            n_errors += 1
-
-    dup_rows = await repo.list_non_error(workspace.id)
-    rebuild_fuzzy_duplicate_pointers(dup_rows)
-
     await audit_log(
         db,
         action=AuditAction.document_update_classification,
@@ -761,10 +429,17 @@ async def reclassify_documents(
         workspace_id=workspace.id,
         actor_user_id=current_user.id,
         request=request,
-        details={"total": total, "updated": n_updated, "skipped": n_skipped, "errors": n_errors},
+        details={
+            "total": stats.total,
+            "updated": stats.updated,
+            "skipped": stats.skipped,
+            "errors": stats.errors,
+        },
     )
-
     await db.commit()
     return DocumentReclassifyResponse(
-        total=total, updated=n_updated, skipped=n_skipped, errors=n_errors
+        total=stats.total,
+        updated=stats.updated,
+        skipped=stats.skipped,
+        errors=stats.errors,
     )
