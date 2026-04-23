@@ -55,12 +55,26 @@ describe("DocumentsPage", () => {
   });
 
   it("renderiza tabela com documentos", async () => {
+    // bank_code/doc_type/period=null → documentDisplayLabel retorna null e
+    // o título cai para original_name (comportamento documentado do label).
     server.use(
       http.get(WS_DOCUMENTS, () =>
         HttpResponse.json({
           documents: [
-            makeDocument({ original_name: "extrato_jan.pdf", status: "ready" }),
-            makeDocument({ original_name: "fatura.pdf", status: "needs_password" }),
+            makeDocument({
+              original_name: "extrato_jan.pdf",
+              status: "ready",
+              bank_code: null,
+              doc_type: null,
+              period: null,
+            }),
+            makeDocument({
+              original_name: "fatura.pdf",
+              status: "needs_password",
+              bank_code: null,
+              doc_type: null,
+              period: null,
+            }),
           ],
           total: 2,
         }),
@@ -147,7 +161,15 @@ describe("DocumentsPage", () => {
         HttpResponse.json({
           documents: deleted
             ? []
-            : [makeDocument({ original_name: "deletar.pdf", status: "ready" })],
+            : [
+                makeDocument({
+                  original_name: "deletar.pdf",
+                  status: "ready",
+                  bank_code: null,
+                  doc_type: null,
+                  period: null,
+                }),
+              ],
           total: deleted ? 0 : 1,
         }),
       ),

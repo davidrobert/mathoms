@@ -261,4 +261,42 @@ export const handlers = [
   ),
   http.patch(`${API}/notifications/read`, () => new HttpResponse(null, { status: 204 })),
   http.delete(`${API}/notifications/:id`, () => new HttpResponse(null, { status: 204 })),
+
+  // ─── Workspace-scoped defaults (A6e.5) ───
+  // Paginas usam `/api/v1/workspaces/:id/...`; defaults aqui para cobrir o
+  // happy-path das renderizações em teste. Tests específicos sobrescrevem
+  // via `server.use()`.
+  // Default "happy": meta IF configurada. Tests que cobrem onboarding sem
+  // meta IF sobrescrevem com status 404 via `server.use()`.
+  http.get(`${API}/workspaces/:workspaceId/goals/if`, () =>
+    HttpResponse.json({
+      id: "goal-test",
+      type: "INDEPENDENCIA_FINANCEIRA",
+      params_json: { inputs: {}, meta_version: 1 },
+      derived_json: {},
+      effective_from: "2026-01-01",
+      effective_to: null,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    }),
+  ),
+  http.get(`${API}/workspaces/:workspaceId/tasks/upcoming`, () =>
+    HttpResponse.json({ tasks: [], total: 0 }),
+  ),
+  http.get(`${API}/workspaces/:workspaceId/transactions`, () =>
+    HttpResponse.json({
+      transactions: fixtures.transactions,
+      total: fixtures.transactions.length,
+      page: 1,
+      page_size: 500,
+      summary: {
+        total_receitas: 12500,
+        total_despesas: -8400,
+        saldo: 4100,
+        count: fixtures.transactions.length,
+        periodo_inicio: "2026-01-01",
+        periodo_fim: "2026-04-30",
+      },
+    }),
+  ),
 ];

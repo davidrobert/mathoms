@@ -184,7 +184,15 @@ describe("a11y — pages", () => {
     server.use(
       http.get("/api/v1/workspaces/:workspaceId/documents", () =>
         HttpResponse.json({
-          documents: [makeDocument({ original_name: "extrato.pdf", status: "ready" })],
+          documents: [
+            makeDocument({
+              original_name: "extrato.pdf",
+              status: "ready",
+              bank_code: null,
+              doc_type: null,
+              period: null,
+            }),
+          ],
           total: 1,
         }),
       ),
