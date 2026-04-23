@@ -69,13 +69,25 @@ _MAX_DOCS_PER_RUN = 10
 
 
 def _artifact_key_for(doc: Path) -> str:
-    """Stem usado como artifact_key — casamento em disco via filename."""
+    """Stem usado como artifact_key — casamento em disco via filename.
+
+    Paridade com `scripts.e2_extract._artifact_key_for_file`: strip de
+    ``-0_original`` para que o artefato final seja ``{stem}-1.5a_extract.json``
+    (e não ``{stem}-0_original-1.5a_extract.json``). `document_pipeline_sync`
+    e `document_extract_json_service` localizam o arquivo por esse nome.
+    """
     name = doc.name
     lowered = name.lower()
+    stem = name
     for ext in (".pdf", ".xlsx", ".xls", ".csv", ".json"):
         if lowered.endswith(ext):
-            return name[: -len(ext)]
-    return doc.stem
+            stem = name[: -len(ext)]
+            break
+    else:
+        stem = doc.stem
+    if "-0_original" in stem:
+        stem = stem.split("-0_original")[0]
+    return stem
 
 
 def _aggregate_baselines(per_file: list[dict]) -> dict:
