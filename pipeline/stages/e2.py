@@ -62,12 +62,16 @@ def run(
         incremental_allowed_stems=_incremental_stems(ctx),
     )
 
+    # Stage succeeds se houve progresso OU não houve erro. Falhas por-doc ficam
+    # registradas em `stats["erros_validacao"]` e viram "Sem extrato" no UI —
+    # não bloqueiam o pipeline quando parte do batch extraiu com sucesso.
     detail: dict = {
-        "success": stats["erros_validacao"] == 0,
+        "success": stats["erros_validacao"] == 0 or stats["processados"] > 0,
         "total": stats["processados"],
         "transacoes_total": stats["transacoes_total"],
         "llm_fallback": stats["llm_fallback"],
         "warnings": stats["warnings"],
+        "erros_validacao": stats["erros_validacao"],
     }
     if _incremental_stems(ctx) is not None:
         detail["incremental"] = True
