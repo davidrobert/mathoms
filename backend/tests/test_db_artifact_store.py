@@ -201,6 +201,56 @@ async def test_satisfies_artifact_store_protocol(db: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_read_after_write_without_commit_sees_pending(db: AsyncSession):
+    """Autoflush garante que ``read`` após ``write`` na mesma sessão sem
+    commit enxerga os dados pendentes (upsert semantics preservada ao
+    remover flush explícito por-write)."""
+    ws_id, run_id = await _seed_ws_and_run(db, email="autoflush@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_id)
+            store.write("E2", "k1", {"v": 1})
+            first = store.read("E2", "k1")
+            # Re-escreve (UPDATE path) e relê antes de commit
+            store.write("E2", "k1", {"v": 2})
+            second = store.read("E2", "k1")
+            s.commit()
+            return first, second
+
+    raw = await db.connection()
+    first, second = await raw.run_sync(_do)
+    assert first == {"v": 1}
+    assert second == {"v": 2}
+
+
+@pytest.mark.asyncio
+async def test_bulk_writes_single_commit(db: AsyncSession):
+    """N writes em série com um único commit no fim — semântica preservada
+    sem flush por-write (mitigação de lock contention em E2 com milhares
+    de transações)."""
+    ws_id, run_id = await _seed_ws_and_run(db, email="bulk@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_id)
+            for i in range(50):
+                store.write("E2", f"tx_{i:04d}", {"idx": i})
+            s.commit()
+            return store.list_keys("E2")
+
+    raw = await db.connection()
+    keys = await raw.run_sync(_do)
+    assert len(keys) == 50
+    assert keys[0] == "tx_0000"
+    assert keys[-1] == "tx_0049"
+
+
+@pytest.mark.asyncio
 async def test_store_does_not_close_session(db: AsyncSession):
     """Sessão injetada permanece utilizável pelo chamador após o store agir."""
     ws_id, run_id = await _seed_ws_and_run(db, email="noclose@test.com")

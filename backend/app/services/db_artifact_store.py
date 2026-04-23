@@ -9,6 +9,12 @@ arquitetural de ``pipeline/`` proíbe imports de fastapi/celery/sqlalchemy
 chamador controla ``commit`` / ``rollback`` / ``close``. Isso garante que toda
 a run compartilha uma transação e evita sessões órfãs.
 
+**Sem ``flush`` por-write:** writes/deletes apenas marcam o estado na sessão;
+o flush acontece naturalmente no ``commit`` do chamador (fim de stage em
+``pipeline_task._record_stage_result``) ou via ``autoflush`` antes de queries
+subsequentes na mesma sessão. Flush por-operação produzia contenção de
+write-lock em SQLite quando stages gravavam milhares de artefatos em série.
+
 Semântica:
     - ``write`` é upsert por ``(pipeline_run_id, stage, artifact_key)``.
     - ``read`` devolve o artefato do ``pipeline_run_id`` fixado no construtor;
@@ -100,13 +106,11 @@ class DBArtifactStore:
             row.content_json = data
             if document_id is not None:
                 row.document_id = document_id
-        self._session.flush()
 
     def delete(self, stage: str, key: str) -> None:
         row = self._get(stage, key)
         if row is not None:
             self._session.delete(row)
-            self._session.flush()
 
     def delete_stage(self, stage: str) -> int:
         count = (
@@ -114,5 +118,4 @@ class DBArtifactStore:
             .filter_by(pipeline_run_id=self._pipeline_run_id, stage=stage)
             .delete(synchronize_session=False)
         )
-        self._session.flush()
         return int(count or 0)
