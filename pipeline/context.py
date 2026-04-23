@@ -60,6 +60,13 @@ class WorkspaceContext:
     #: campo diretamente, para manter a resolução lazy.
     artifact_store: Optional["ArtifactStore"] = field(default=None, repr=False)
 
+    #: ADR-119 — mediana de duração (ms) por stage, calculada dos últimos runs
+    #: bem-sucedidos do workspace. Populado pelo orchestrator (Celery task);
+    #: vazio em CLI/testes. Stages emitem via ``emit_item_progress(...,
+    #: estimated_duration_ms=ctx.stage_duration_estimates.get(stage))`` no
+    #: primeiro evento da stage.
+    stage_duration_estimates: Dict[str, int] = field(default_factory=dict, repr=False)
+
     def __post_init__(self):
         self.root = Path(self.root).resolve()
         if self._config_dir_override is not None:

@@ -184,6 +184,7 @@ def run(ctx: WorkspaceContext) -> dict:
     warnings: list[str] = []
     total = len(docs_with_text)
 
+    estimated = ctx.stage_duration_estimates.get("E1.5")
     for idx, (doc, text) in enumerate(docs_with_text):
         emit_item_progress(
             ctx.pipeline_run_id,
@@ -192,6 +193,8 @@ def run(ctx: WorkspaceContext) -> dict:
             items_done=idx,
             items_total=total,
             phase="preparing",
+            # ADR-119: estimativa só no primeiro evento da stage.
+            estimated_duration_ms=estimated if idx == 0 else None,
         )
         documents_text = f"=== {doc.name} ===\n{text}"
         # JSON/IRPF podem conter `{`/`}` — em kwargs do str.format o valor é inserido literalmente.

@@ -371,6 +371,7 @@ def _setup_run_context(
     ctx.incremental = incremental
     ctx.incremental_doc_paths = incremental_doc_paths or []
     ctx.ensure_dirs()
+    ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
 
     use_db_artifacts = _resolve_use_db_artifacts(ws_id)
     if use_db_artifacts:
@@ -379,6 +380,20 @@ def _setup_run_context(
     # Lazy-imported scripts (E0–E7) load pipeline_common — tenant-scoped paths.
     os.environ["MATHOMS_WORKSPACE_ROOT"] = str(tenant_root.resolve())
     return ctx, use_db_artifacts
+
+
+def _load_stage_duration_estimates(ws_id: str) -> dict[str, int]:
+    """Carrega medianas cacheadas (ADR-119 item 5). Falha aberta: dict vazio."""
+    from backend.app.services.stage_duration_estimator import get_cached_stage_estimates
+
+    session = SyncSessionLocal()
+    try:
+        return get_cached_stage_estimates(session, ws_id)
+    except Exception as exc:
+        logger.warning("stage_duration_estimates load failed for ws=%s: %s", ws_id, exc)
+        return {}
+    finally:
+        session.close()
 
 
 def _open_artifact_session(ws_id: str, run_id: str):
