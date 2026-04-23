@@ -1,0 +1,97 @@
+"""Testes de delete_document e purge_documents."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+from sqlalchemy import select
+
+from backend.app.models.document import Document
+from backend.app.services.internal_ops.audit import read_audit
+from backend.app.services.internal_ops.delete_document import delete_document
+from backend.app.services.internal_ops.purge_documents import (
+    PurgeScope,
+    purge_documents,
+)
+from backend.tests.factories import make_document, make_user, make_workspace
+
+
+@pytest.mark.asyncio
+async def test_delete_document_removes_row_and_blob(db, audit_path: Path, tmp_path: Path, monkeypatch) -> None:
+    from backend.app.core.config import settings
+
+    monkeypatch.setattr(settings, "STORAGE_ROOT", tmp_path)
+
+    user = await make_user(db)
+    ws = await make_workspace(db, owner=user)
+    blob_rel = "inbox/x.pdf"
+    blob_abs = tmp_path / ws.id / blob_rel
+    blob_abs.parent.mkdir(parents=True, exist_ok=True)
+    blob_abs.write_bytes(b"content")
+
+    doc = await make_document(db, workspace=ws, stored_path=blob_rel)
+    await db.commit()
+
+    result = await delete_document(db, doc.id, actor="ops1")
+    await db.commit()
+
+    assert result.ok and result.details["blob_removed"] is True
+    assert not blob_abs.exists()
+    assert (await db.execute(select(Document).where(Document.id == doc.id))).scalar_one_or_none() is None
+
+    entry = read_audit(path=audit_path)[0]
+    assert entry["action"] == "document.delete"
+    assert entry["details"]["content_hash"] == doc.content_hash
+
+
+@pytest.mark.asyncio
+async def test_delete_document_missing(db, audit_path: Path) -> None:
+    result = await delete_document(db, "nope", actor="ops1")
+    assert not result.ok and result.error == "document_not_found"
+
+
+@pytest.mark.asyncio
+async def test_purge_preview_does_not_delete(db, audit_path: Path) -> None:
+    user = await make_user(db)
+    ws = await make_workspace(db, owner=user)
+    d1 = await make_document(db, workspace=ws)
+    d2 = await make_document(db, workspace=ws)
+    await db.commit()
+
+    result = await purge_documents(
+        db, scope=PurgeScope(workspace_id=ws.id), actor="ops1", preview=True
+    )
+    await db.commit()
+
+    assert result.ok and result.details["preview"] is True
+    assert result.details["count"] == 2
+    assert set(result.details["ids"]) == {d1.id, d2.id}
+    assert read_audit(path=audit_path) == []
+
+
+@pytest.mark.asyncio
+async def test_purge_confirm_by_user(db, audit_path: Path) -> None:
+    user = await make_user(db)
+    ws = await make_workspace(db, owner=user)
+    await make_document(db, workspace=ws)
+    await make_document(db, workspace=ws)
+    await db.commit()
+
+    result = await purge_documents(
+        db, scope=PurgeScope(user_id=user.id), actor="ops1", preview=False
+    )
+    await db.commit()
+
+    assert result.ok and result.details["count"] == 2
+    remaining = (await db.execute(select(Document).where(Document.workspace_id == ws.id))).scalars().all()
+    assert remaining == []
+
+    entry = read_audit(path=audit_path)[0]
+    assert entry["action"] == "document.purge"
+
+
+@pytest.mark.asyncio
+async def test_purge_requires_scope(db, audit_path: Path) -> None:
+    result = await purge_documents(db, scope=PurgeScope(), actor="ops1", preview=False)
+    assert not result.ok and result.error == "scope_required"
