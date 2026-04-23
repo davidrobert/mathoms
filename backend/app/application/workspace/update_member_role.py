@@ -1,4 +1,4 @@
-"""Use case: update role de um membro + audit."""
+"""Use case: update role de um membro + emit AuditLogEvent."""
 
 from __future__ import annotations
 
@@ -7,9 +7,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.base.errors import NotFoundError
+from backend.app.events import dispatch_sync
+from backend.app.events.domain import AuditLogEvent
 from backend.app.models.user import User
 from backend.app.schemas.workspace_members import MemberResponse, MemberRoleUpdateRequest
-from backend.app.services import audit_service, membership_service
+from backend.app.services import membership_service
+from backend.app.services.audit import client_meta
 
 
 async def update_member_role(
@@ -30,19 +33,25 @@ async def update_member_role(
         workspace_id, user_id, new_role=body.role, db=db
     )
 
-    await audit_service.log(
-        db=db,
-        workspace_id=workspace_id,
-        action="workspace.member.role_change",
-        resource_type="workspace_member",
-        resource_id=updated.id,
-        actor_user_id=actor.id,
-        details={
-            "target_user_id": user_id,
-            "from_role": previous_role,
-            "to_role": updated.role,
-        },
-        request=request,
+    ip, ua = client_meta(request)
+    await dispatch_sync(
+        AuditLogEvent(
+            aggregate_id=updated.id,
+            aggregate_type="workspace_member",
+            workspace_id=workspace_id,
+            action="workspace.member.role_change",
+            resource_type="workspace_member",
+            resource_id=updated.id,
+            actor_user_id=actor.id,
+            ip_address=ip,
+            user_agent=ua,
+            details={
+                "target_user_id": user_id,
+                "from_role": previous_role,
+                "to_role": updated.role,
+            },
+        ),
+        {"db": db},
     )
     await db.commit()
     await db.refresh(updated)
