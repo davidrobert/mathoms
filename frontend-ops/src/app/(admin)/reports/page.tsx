@@ -1,0 +1,138 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { Button, TextInput } from "@/components/ui";
+import { api, AdminApiError } from "@/lib/api";
+import type { ReportSummary } from "@/lib/types";
+
+function formatBytes(bytes: number | null): string {
+  if (bytes == null) return "—";
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB"];
+  let value = bytes / 1024;
+  let i = 0;
+  while (value >= 1024 && i < units.length - 1) {
+    value /= 1024;
+    i += 1;
+  }
+  return `${value.toFixed(1)} ${units[i]}`;
+}
+
+export default function ReportsPage() {
+  const [userId, setUserId] = useState("");
+  const [workspaceId, setWorkspaceId] = useState("");
+  const [reports, setReports] = useState<ReportSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(
+    async (u: string, w: string): Promise<void> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.listReports({
+          user_id: u.trim() || undefined,
+          workspace_id: w.trim() || undefined,
+          limit: 200,
+        });
+        setReports(res.reports);
+      } catch (err) {
+        setError(err instanceof AdminApiError ? `${err.status} · ${err.code}` : "Falha ao carregar.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    void load("", "");
+  }, [load]);
+
+  return (
+    <section>
+      <div className="flex items-end justify-between gap-4 mb-6">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-surface-fg">Relatórios</h1>
+          <p className="text-sm text-surface-muted-fg">
+            Read-only. {reports.length} resultado(s).
+          </p>
+        </div>
+        <form
+          className="flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void load(userId, workspaceId);
+          }}
+        >
+          <TextInput
+            placeholder="user_id"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            className="w-56"
+          />
+          <TextInput
+            placeholder="workspace_id"
+            value={workspaceId}
+            onChange={(e) => setWorkspaceId(e.target.value)}
+            className="w-56"
+          />
+          <Button variant="secondary" type="submit">
+            Filtrar
+          </Button>
+        </form>
+      </div>
+
+      {error && (
+        <div className="mb-4 rounded-md border border-brand-danger/30 bg-brand-danger/10 text-brand-danger text-sm px-3 py-2">
+          {error}
+        </div>
+      )}
+
+      <div className="overflow-x-auto border border-surface-border rounded-card bg-surface-card">
+        <table className="w-full text-sm">
+          <thead className="bg-surface-muted text-surface-muted-fg">
+            <tr>
+              <th className="text-left px-4 py-2 font-medium">Título</th>
+              <th className="text-left px-4 py-2 font-medium">Workspace</th>
+              <th className="text-left px-4 py-2 font-medium">Período</th>
+              <th className="text-left px-4 py-2 font-medium">Criado</th>
+              <th className="text-right px-4 py-2 font-medium">Tamanho</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && (
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-center text-surface-muted-fg">
+                  Carregando…
+                </td>
+              </tr>
+            )}
+            {!loading && reports.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-center text-surface-muted-fg">
+                  Nenhum relatório.
+                </td>
+              </tr>
+            )}
+            {reports.map((r) => (
+              <tr key={r.id} className="border-t border-surface-border">
+                <td className="px-4 py-2 text-surface-fg">{r.title}</td>
+                <td className="px-4 py-2 font-mono text-xs text-surface-muted-fg">
+                  {r.workspace_id}
+                </td>
+                <td className="px-4 py-2 text-surface-muted-fg">{r.period ?? "—"}</td>
+                <td className="px-4 py-2 text-surface-muted-fg">
+                  {new Date(r.created_at).toLocaleString("pt-BR")}
+                </td>
+                <td className="px-4 py-2 text-right mono-num text-surface-muted-fg">
+                  {formatBytes(r.size_bytes)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
