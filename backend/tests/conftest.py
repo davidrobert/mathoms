@@ -60,7 +60,7 @@ from sqlalchemy.orm import sessionmaker
 import backend.app.core.database as _database_module
 import backend.app.models  # noqa: F401 — ensure ALL models register with Base.metadata
 from backend.app.core.config import settings
-from backend.app.core.database import Base, get_db
+from backend.app.core.database import Base, attach_sqlite_pragmas, get_db
 from backend.app.main import app
 
 if not settings.FERNET_KEY:
@@ -81,16 +81,18 @@ engine = create_async_engine(
     TEST_DB_URL,
     echo=False,
     poolclass=pool.StaticPool,
-    connect_args={"check_same_thread": False},
+    connect_args={"check_same_thread": False, "timeout": 30},
 )
+attach_sqlite_pragmas(engine)
 TestSession = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 _sync_test_engine = create_engine(
     TEST_SYNC_DB_URL,
     echo=False,
     poolclass=pool.StaticPool,
-    connect_args={"check_same_thread": False},
+    connect_args={"check_same_thread": False, "timeout": 30},
 )
+attach_sqlite_pragmas(_sync_test_engine)
 TestSyncSession = sessionmaker(bind=_sync_test_engine, expire_on_commit=False)
 
 # Patch every module that imported SyncSessionLocal at top-level — their local
