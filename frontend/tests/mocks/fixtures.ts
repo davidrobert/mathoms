@@ -33,6 +33,7 @@ const user: UserResponse = {
   email: "founder@test.com",
   full_name: "Founder Teste",
   is_active: true,
+  is_developer: false,
 };
 
 const reports: ReportResponse[] = [

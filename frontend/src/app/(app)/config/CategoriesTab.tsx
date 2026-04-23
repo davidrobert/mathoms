@@ -21,6 +21,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import { useCurrentUser } from "@/lib/useCurrentUser";
 import type { UserWorkspace } from "@/lib/api";
 
 export default function CategoriesTab() {
@@ -30,6 +31,8 @@ export default function CategoriesTab() {
 }
 
 function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
+  const { user } = useCurrentUser();
+  const isDeveloper = user?.is_developer ?? false;
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -220,7 +223,8 @@ function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
         </Button>
       )}
 
-      {/* Reclassify banner */}
+      {/* Reclassify banner — dev-only (gating por is_developer) */}
+      {isDeveloper && (
       <div className="mt-6 rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -256,6 +260,7 @@ function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
           </Button>
         </div>
       </div>
+      )}
 
       <ConfirmDialog
         open={!!deleteTarget}

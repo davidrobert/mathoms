@@ -70,6 +70,7 @@ export function makeUser(overrides: Partial<UserResponse> = {}): UserResponse {
     email: `user${n}@test.com`,
     full_name: `Test User ${n}`,
     is_active: true,
+    is_developer: false,
     ...overrides,
   };
 }
