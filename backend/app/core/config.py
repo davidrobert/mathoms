@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     # Upload limits
     MAX_UPLOAD_SIZE_MB: int = 50
     MAX_STORAGE_PER_WORKSPACE_MB: int = 500
-    MAX_UPLOAD_BATCH_SIZE: int = 100
+    MAX_UPLOAD_BATCH_SIZE: int = 150
 
     # Vault encryption (Fernet symmetric key). Generate via: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     FERNET_KEY: str = ""
