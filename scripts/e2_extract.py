@@ -221,6 +221,7 @@ def run_with_store(
     faturas_only: bool = False,
     incremental_allowed_stems: set[str] | None = None,
     dry_run: bool = False,
+    pipeline_run_id: str | None = None,
 ) -> dict:
     """Caminho B (Fase 3.2): processa documentos e grava via ``ArtifactStore``.
 
@@ -255,7 +256,32 @@ def run_with_store(
         "skipped_overwrite": 0,
     }
 
-    for file_path in files:
+    emit_stage = target_stage or "E2"
+    total_files = len(files)
+    if pipeline_run_id and total_files > 0:
+        from pipeline.live_progress import emit_stage_activity
+
+        emit_stage_activity(
+            pipeline_run_id,
+            emit_stage,
+            message=f"{total_files} arquivo(s) na fila",
+            items_done=0,
+            items_total=total_files,
+        )
+
+    for idx, file_path in enumerate(files, start=1):
+        if pipeline_run_id:
+            from pipeline.live_progress import emit_stage_activity
+
+            emit_stage_activity(
+                pipeline_run_id,
+                emit_stage,
+                file=file_path.name,
+                message=f"Processando {idx}/{total_files}",
+                current_item=file_path.name,
+                items_done=idx - 1,
+                items_total=total_files,
+            )
         try:
             result = process_file(file_path, dry_run=dry_run)
             if result is None:

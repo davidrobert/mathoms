@@ -79,6 +79,11 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
         stage: event.stage,
         file: typeof d.file === "string" ? d.file : undefined,
         message: typeof d.message === "string" ? d.message : undefined,
+        currentItem:
+          typeof d.current_item === "string" ? d.current_item : undefined,
+        itemsDone: typeof d.items_done === "number" ? d.items_done : undefined,
+        itemsTotal:
+          typeof d.items_total === "number" ? d.items_total : undefined,
       });
     }
 

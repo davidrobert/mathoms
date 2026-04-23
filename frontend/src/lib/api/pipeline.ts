@@ -59,6 +59,9 @@ export interface PipelineStageActivity {
   stage: string;
   file?: string;
   message?: string;
+  currentItem?: string;
+  itemsDone?: number;
+  itemsTotal?: number;
 }
 
 export interface PipelineEvent {

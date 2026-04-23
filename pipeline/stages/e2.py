@@ -60,6 +60,7 @@ def run(
         extratos_only=extratos_only,
         faturas_only=faturas_only,
         incremental_allowed_stems=_incremental_stems(ctx),
+        pipeline_run_id=ctx.pipeline_run_id,
     )
 
     # Stage succeeds se houve progresso OU não houve erro. Falhas por-doc ficam

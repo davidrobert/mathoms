@@ -252,9 +252,30 @@ function resolveTitle(
 function resolveSubtitle(
   isPending: boolean,
   activePhase: ReturnType<typeof getPhase> | null,
+  liveStageActivity: PipelineStageActivity | null,
+  currentStage: string | null | undefined,
 ): string | null {
   if (isPending) return "Conectando ao serviço de processamento...";
-  return activePhase?.activeMessage ?? null;
+  const base = activePhase?.activeMessage ?? null;
+
+  const activityIsCurrent =
+    liveStageActivity &&
+    currentStage &&
+    liveStageActivity.stage === currentStage;
+  if (
+    activityIsCurrent &&
+    typeof liveStageActivity.itemsTotal === "number" &&
+    liveStageActivity.itemsTotal > 0
+  ) {
+    const done = liveStageActivity.itemsDone ?? 0;
+    const total = liveStageActivity.itemsTotal;
+    const current = Math.min(done + 1, total);
+    const name = liveStageActivity.currentItem ?? liveStageActivity.file;
+    const counter = `Arquivo ${current}/${total}`;
+    const suffix = name ? ` · ${name}` : "";
+    return base ? `${base} — ${counter}${suffix}` : `${counter}${suffix}`;
+  }
+  return base;
 }
 
 export function ActiveRunCard({
@@ -299,7 +320,12 @@ export function ActiveRunCard({
       : null;
 
   const title = resolveTitle(isPending, activePhase);
-  const subtitle = resolveSubtitle(isPending, activePhase);
+  const subtitle = resolveSubtitle(
+    isPending,
+    activePhase,
+    liveStageActivity,
+    run.current_stage,
+  );
   const llmStageActive =
     isRunning && run.current_stage != null && isPipelineLlmStage(run.current_stage);
 
