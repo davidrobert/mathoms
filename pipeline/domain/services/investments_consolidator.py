@@ -131,7 +131,12 @@ class InvestmentsConsolidator:
         # Phase 1: filtra candidates válidos.
         valid: list[dict[str, Any]] = []
         for data, src in pairs:
-            posicoes = data.get("posicoes") or data.get("composicao") or []
+            posicoes = (
+                data.get("posicoes")
+                or data.get("composicao")
+                or data.get("investimentos")
+                or []
+            )
             if not posicoes:
                 continue
             instituicao = data.get("instituicao") or data.get("banco") or ""
@@ -188,6 +193,7 @@ class InvestmentsConsolidator:
                     pos.get("valor_total")
                     or pos.get("valor_atual")
                     or pos.get("current_value")
+                    or pos.get("valor_brl")
                     or 0
                 )
                 try:
@@ -198,7 +204,12 @@ class InvestmentsConsolidator:
 
                 all_positions.append(
                     {
-                        "nome": pos.get("nome") or pos.get("name") or "",
+                        "nome": (
+                            pos.get("nome")
+                            or pos.get("name")
+                            or pos.get("descricao")
+                            or ""
+                        ),
                         "tipo": (
                             pos.get("tipo")
                             or pos.get("tipo_produto")

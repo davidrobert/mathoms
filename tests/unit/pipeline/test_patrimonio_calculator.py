@@ -368,6 +368,26 @@ def test_current_positions_member_without_positions_falls_back_to_irpf(
     assert result["fonte_investimentos"] == "posicoes_atuais+irpf"
 
 
+def test_current_positions_substring_member_match(config: PatrimonioConfig):
+    """Consolidator pode gravar membro como nome completo (ex.: de IRPF).
+    O calculator deve casar por substring do ``conjuge_key``."""
+    baseline = {"members": {"david": {}, "mariana": {}}}
+    inv_atuais = {
+        "dados": [{"valor": 1}],
+        "total_por_membro": {
+            "david": 300_000,
+            "mariana_teixeira_ferreira": 60_000,
+            "mariana_ferreira_campos": 25_000,
+        },
+    }
+    calc = PatrimonioCalculator(config)
+    result = calc.calculate(PatrimonioInputs(baseline=baseline, investimentos_atuais=inv_atuais))
+
+    assert result["investimentos_david"] == 300_000.0
+    assert result["investimentos_mariana"] == 85_000.0
+    assert result["fonte_investimentos"] == "posicoes_atuais"
+
+
 def test_current_positions_no_fallback_when_both_have_positions(
     config: PatrimonioConfig,
 ):

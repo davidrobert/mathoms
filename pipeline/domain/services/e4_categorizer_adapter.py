@@ -171,7 +171,11 @@ class E4CategorizerAdapter:
                 if not isinstance(data, dict):
                     continue
                 tipo = str(data.get("tipo") or "").lower()
-                if tipo not in _INVESTMENT_POSITION_TYPES:
+                tipo_documento = str(data.get("tipo_documento") or "").lower()
+                is_investment_report = (
+                    tipo_documento == "investment_report" and bool(data.get("investimentos"))
+                )
+                if tipo not in _INVESTMENT_POSITION_TYPES and not is_investment_report:
                     continue
                 # Injeta source name para o consolidador.
                 from pipeline.artifact_store import stage_suffix

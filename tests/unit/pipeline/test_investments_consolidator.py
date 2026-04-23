@@ -86,6 +86,29 @@ class TestBasic:
         assert out.n_posicoes == 0
         assert out.total_geral == 0.0
 
+    def test_reads_investimentos_field_with_valor_brl(self):
+        """E2-llm investment_report grava ``investimentos[{valor_brl, descricao}]``
+        em vez de ``posicoes[{valor_total, nome}]`` — ambos devem consolidar."""
+        c = _consolidator()
+        e = {
+            "_source": "btg_portfolio.json",
+            "instituicao": "btgpactual",
+            "membro": "mariana_teixeira_ferreira",
+            "data_referencia": "2026-03-31",
+            "tipo_documento": "investment_report",
+            "investimentos": [
+                {"tipo": "cdb", "descricao": "CDB BTG Agibank", "valor_brl": 29353.39},
+                {"tipo": "cdb", "descricao": "CDB PicPay", "valor_brl": 30442.60},
+            ],
+        }
+
+        out = c.consolidate([e])
+
+        assert out.n_posicoes == 2
+        assert out.total_por_membro == {"mariana_teixeira_ferreira": 59795.99}
+        assert out.dados[0]["nome"] == "CDB BTG Agibank"
+        assert out.dados[0]["valor_atual"] == 29353.39
+
 
 class TestDedup:
     def test_keeps_most_recent_per_institution_member(self):

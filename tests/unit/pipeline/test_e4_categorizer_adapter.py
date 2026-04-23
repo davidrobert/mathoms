@@ -103,6 +103,47 @@ class TestLoaders:
         assert positions[0]["tipo"] == "investimentosposicao"
         assert "_source" in positions[0]
 
+    def test_load_investment_positions_accepts_investment_report(self):
+        """E2-llm escreve ``tipo_documento=investment_report`` + ``investimentos``
+        para PDFs de portfólio (ex.: BTG). O adapter precisa incluí-los."""
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E2-llm",
+            "btg_portfolio",
+            {
+                "tipo_documento": "investment_report",
+                "instituicao": "btgpactual",
+                "membro": "mariana_teixeira_ferreira",
+                "investimentos": [
+                    {
+                        "tipo": "cdb",
+                        "descricao": "CDB BTG",
+                        "valor_brl": 29353.39,
+                    }
+                ],
+            },
+        )
+        classifier_cfg = ClassifierConfig.from_configs()
+        adapter = E4CategorizerAdapter(classifier=TransactionClassifier(classifier_cfg))
+
+        positions = adapter.load_investment_positions(store)
+
+        assert len(positions) == 1
+        assert positions[0]["tipo_documento"] == "investment_report"
+
+    def test_load_investment_positions_skips_investment_report_without_items(self):
+        """``investment_report`` sem lista ``investimentos`` não é posição."""
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E2-llm",
+            "empty_report",
+            {"tipo_documento": "investment_report", "investimentos": []},
+        )
+        classifier_cfg = ClassifierConfig.from_configs()
+        adapter = E4CategorizerAdapter(classifier=TransactionClassifier(classifier_cfg))
+
+        assert adapter.load_investment_positions(store) == []
+
     def test_load_investment_positions_dedups_by_key_across_stages(self):
         """DiskArtifactStore mapeia os 3 stages E2 para o mesmo dir — dedup
         por key evita ler o mesmo artefato múltiplas vezes."""

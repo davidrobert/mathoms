@@ -180,11 +180,21 @@ class PatrimonioCalculator:
         if inputs.has_current_positions:
             assert inputs.investimentos_atuais is not None  # narrow para type-checker
             totais = inputs.investimentos_atuais.get("total_por_membro", {}) or {}
-            titular_val = safe_float(totais.get(identity.titular_key, 0))
-            conjuge_val = (
-                safe_float(totais.get(identity.conjuge_key, 0)) if identity.conjuge_key else 0.0
-            )
-            unattributed = safe_float(totais.get("", 0))
+
+            titular_val = 0.0
+            conjuge_val = 0.0
+            unattributed = 0.0
+            for member_key, value in totais.items():
+                v = safe_float(value)
+                key_lower = str(member_key).lower()
+                if not key_lower:
+                    unattributed += v
+                elif identity.titular_key and identity.titular_key in key_lower:
+                    titular_val += v
+                elif identity.conjuge_key and identity.conjuge_key in key_lower:
+                    conjuge_val += v
+                else:
+                    unattributed += v
             if unattributed > 0:
                 titular_val += unattributed
 
