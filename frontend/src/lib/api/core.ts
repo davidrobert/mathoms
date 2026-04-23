@@ -23,37 +23,56 @@ export function isAuthenticated(): boolean {
 
 // ─── API Error ───
 
-/** Detail estruturado retornado pelo backend em erros 4xx de F9+
- * (`{code, message}`). Para erros antigos, vira string direta. */
-export type ApiErrorDetail = string | { code?: string; message?: string };
+/** Detail estruturado retornado pelo backend em erros 4xx.
+ * - string: erros legados
+ * - `{code, message}`: erros de domínio F9+
+ * - array de `{loc, msg}`: validação Pydantic (FastAPI/422) */
+export type PydanticValidationItem = {
+  loc?: (string | number)[];
+  msg?: string;
+  type?: string;
+};
+export type ApiErrorDetail =
+  | string
+  | { code?: string; message?: string }
+  | PydanticValidationItem[];
+
+function formatDetail(detail: ApiErrorDetail, status: number): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const msgs = detail
+      .map((d) => {
+        const field = d.loc?.filter((p) => p !== "body").join(".") ?? "";
+        return field ? `${field}: ${d.msg}` : d.msg;
+      })
+      .filter(Boolean);
+    return msgs.length ? msgs.join("; ") : `HTTP ${status}`;
+  }
+  return detail?.message ?? `HTTP ${status}`;
+}
 
 export class ApiError extends Error {
-  /** Detail cru. Pode ser string (legado) ou `{code, message}` (F9+).
+  /** Detail cru. Pode ser string, `{code, message}` ou array Pydantic.
    * Para extrair o code: `getErrorCode(err)`. */
   public readonly detailRaw: ApiErrorDetail;
 
   constructor(public status: number, detail: ApiErrorDetail) {
-    const msg =
-      typeof detail === "string"
-        ? detail
-        : detail?.message ?? `HTTP ${status}`;
-    super(msg);
+    super(formatDetail(detail, status));
     this.detailRaw = detail;
   }
 
   /** Accessor de compat com consumidores antigos que esperam string. */
   get detail(): string {
-    return typeof this.detailRaw === "string"
-      ? this.detailRaw
-      : this.detailRaw?.message ?? `HTTP ${this.status}`;
+    return formatDetail(this.detailRaw, this.status);
   }
 }
 
-/** Extrai `code` de um ApiError F9+. Retorna undefined se detail é string. */
+/** Extrai `code` de um ApiError F9+. Retorna undefined se detail é string ou array. */
 export function getErrorCode(err: unknown): string | undefined {
   if (!(err instanceof ApiError)) return undefined;
   const d = err.detailRaw;
-  return typeof d === "object" && d ? d.code : undefined;
+  if (typeof d !== "object" || d === null || Array.isArray(d)) return undefined;
+  return d.code;
 }
 
 // ─── Fetch Helpers ───
@@ -94,6 +113,7 @@ export async function apiFetch<T>(
     if (
       res.status === 401 &&
       typeof detail === "object" &&
+      !Array.isArray(detail) &&
       detail?.code === "token_revoked"
     ) {
       clearToken();
