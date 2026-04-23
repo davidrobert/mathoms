@@ -103,6 +103,9 @@ _database_module.sync_engine = _sync_test_engine
 from backend.app.scripts import backfill_artifacts_from_disk as _backfill_module  # noqa: E402
 from backend.app.services import artifact_reader as _artifact_reader_module  # noqa: E402
 from backend.app.services import (
+    document_extract_json_service as _document_extract_json_service_module,  # noqa: E402
+)
+from backend.app.services import (
     document_pipeline_sync as _document_pipeline_sync_module,  # noqa: E402
 )
 from backend.app.services import pipeline_service as _pipeline_service_module  # noqa: E402
@@ -114,6 +117,7 @@ for _mod in (
     _periodic_tasks_module,
     _pipeline_service_module,
     _document_pipeline_sync_module,
+    _document_extract_json_service_module,
     _backfill_module,
     _artifact_reader_module,
 ):

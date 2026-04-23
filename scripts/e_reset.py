@@ -5,6 +5,18 @@ from __future__ import annotations
 """
 E-reset / E-reset-from — Pipeline completo: reset + reprocessamento
 
+⚠️ CLI DEV-ONLY — limpa apenas ``processed/*.json`` em disco. Não toca
+``pipeline_artifacts`` no DB. Com ``MATHOMS_USE_DB_ARTIFACTS=True``
+(default do backend web), este script sozinho não é suficiente para
+reset completo — DB guarda os artefatos "de verdade". Para reset
+destrutivo com sincronia DB+disco, use:
+
+    python -m backend.app.scripts.reset_documents --apply
+
+Este script continua útil para: (a) workflows CLI com
+``DiskArtifactStore``, (b) inspecionar/limpar disco isoladamente,
+(c) preparar rerun manual pós-edição em JSONs.
+
 Usage:
   python scripts/e_reset.py                  # Reprocessamento completo (E0→E6)
   python scripts/e_reset.py --from E3        # Reprocessamento parcial de E3 em diante
@@ -964,6 +976,13 @@ def _print_reset_header(mode: str, args) -> None:
     if args.interactive:
         print("  MODO: --interactive (pipeline para em etapas LLM)")
     print(f"  Projeto: {PROJECT_DIR}")
+    print("=" * 60)
+    print(
+        "  ⚠️  Este script toca apenas processed/*.json em disco.\n"
+        "      NÃO limpa pipeline_artifacts no DB. Para reset com\n"
+        "      sincronia DB+disco, use:\n"
+        "        python -m backend.app.scripts.reset_documents --apply"
+    )
     print("=" * 60)
 
 
