@@ -83,21 +83,14 @@ class TestParserRegistry:
     def test_itau_extrato_with_hash_prefix(self):
         # ADR-084: canonical filenames receive a {sha256[:12]}_ prefix. Parsers
         # were written pre-ADR; registry normalizes `^` so prefix is optional.
-        assert (
-            route_to_parser("79340de51709_itau_extratoconta_2026-0_original.xls")
-            is not None
-        )
+        assert route_to_parser("79340de51709_itau_extratoconta_2026-0_original.xls") is not None
 
     def test_bradesco_extrato_with_hash_prefix(self):
-        assert (
-            route_to_parser("abcdef012345_bradesco_extratoconta_2026-0_original.pdf")
-            is not None
-        )
+        assert route_to_parser("abcdef012345_bradesco_extratoconta_2026-0_original.pdf") is not None
 
     def test_santander_extrato_with_hash_prefix(self):
         assert (
-            route_to_parser("deadbeef1234_santander_extratoconta_202601-0_original.xls")
-            is not None
+            route_to_parser("deadbeef1234_santander_extratoconta_202601-0_original.xls") is not None
         )
 
 

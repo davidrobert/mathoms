@@ -62,9 +62,7 @@ def _build_registry() -> None:
         parsers_list = getattr(mod, "PARSERS", [])
         for pattern_str, func_name in parsers_list:
             func = getattr(mod, func_name)
-            _ALL_PARSERS.append(
-                (re.compile(_normalize_pattern(pattern_str), re.IGNORECASE), func)
-            )
+            _ALL_PARSERS.append((re.compile(_normalize_pattern(pattern_str), re.IGNORECASE), func))
 
 
 _build_registry()
