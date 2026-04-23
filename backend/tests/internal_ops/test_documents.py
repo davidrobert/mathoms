@@ -118,8 +118,9 @@ async def test_purge_rollback_on_blob_failure(
     ws = await make_workspace(db, owner=user)
     d1 = await make_document(db, workspace=ws, stored_path="a.pdf")
     d2 = await make_document(db, workspace=ws, stored_path="b.pdf")
+    d1_id, d2_id, ws_id = d1.id, d2.id, ws.id
     for rel in ("a.pdf", "b.pdf"):
-        p = tmp_path / ws.id / rel
+        p = tmp_path / ws_id / rel
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_bytes(b"x")
     await db.commit()
@@ -134,12 +135,16 @@ async def test_purge_rollback_on_blob_failure(
     monkeypatch.setattr(Path, "unlink", _flaky_unlink)
 
     result = await purge_documents(
-        db, scope=PurgeScope(workspace_id=ws.id), actor="ops1", preview=False
+        db, scope=PurgeScope(workspace_id=ws_id), actor="ops1", preview=False
     )
 
     assert not result.ok and result.error == "partial_failure"
-    assert d2.id in result.details["failed_blobs"]
-    remaining = {
-        r.id for r in (await db.execute(select(Document).where(Document.workspace_id == ws.id))).scalars().all()
-    }
-    assert remaining == {d1.id, d2.id}
+    assert d2_id in result.details["failed_blobs"]
+    remaining = set(
+        (
+            await db.execute(select(Document.id).where(Document.workspace_id == ws_id))
+        )
+        .scalars()
+        .all()
+    )
+    assert remaining == {d1_id, d2_id}
