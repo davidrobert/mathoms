@@ -38,6 +38,20 @@ _INVESTMENT_PATTERNS: List[str] = [
 ]
 
 
+_HASH_PREFIX_RE = re.compile(r"^\^")
+
+
+def _normalize_pattern(pattern_str: str) -> str:
+    """Aceita o prefixo `{hash[:12]}_` (ADR-084) em patterns ancorados em `^`.
+
+    Parsers foram escritos assumindo o filename canônico
+    (ex.: `itau_extratoconta_2026.xls`). O ADR-084 adicionou prefixo
+    `{sha256[:12]}_` para evitar colisão. Esta normalização injeta
+    `(?:[a-f0-9]{12}_)?` após `^`, tornando o prefixo opcional.
+    """
+    return _HASH_PREFIX_RE.sub("^(?:[a-f0-9]{12}_)?", pattern_str)
+
+
 def _build_registry() -> None:
     """Load all bank modules and collect their PARSERS lists."""
     global _ALL_PARSERS
@@ -48,7 +62,9 @@ def _build_registry() -> None:
         parsers_list = getattr(mod, "PARSERS", [])
         for pattern_str, func_name in parsers_list:
             func = getattr(mod, func_name)
-            _ALL_PARSERS.append((re.compile(pattern_str, re.IGNORECASE), func))
+            _ALL_PARSERS.append(
+                (re.compile(_normalize_pattern(pattern_str), re.IGNORECASE), func)
+            )
 
 
 _build_registry()
