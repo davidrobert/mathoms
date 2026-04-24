@@ -44,6 +44,7 @@ from typing import Optional, Protocol, runtime_checkable
 #   produz artefato em disco DEVE ter entrada aqui.
 
 _STAGE_TO_DIR: dict[str, str] = {
+    "E1": "members",  # members-1b_unified.json — ADR-127
     "E1.5c": "E2_extracts",  # baseline vive em E2_extracts (convenção aceita)
     "E1.5": "E2_extracts",  # baseline bruto também
     "E1.5a": "E2_extracts",  # extrato per-IRPF (1 arquivo por documento)
@@ -62,6 +63,7 @@ _STAGE_TO_DIR: dict[str, str] = {
 }
 
 _STAGE_TO_SUFFIX: dict[str, str] = {
+    "E1": "-1b_unified.json",  # ADR-127
     "E1.5c": "-1.5_consolidated.json",
     "E1.5": "-1.5_baseline.json",
     "E1.5a": "-1.5a_extract.json",
