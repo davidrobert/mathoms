@@ -310,6 +310,17 @@ incorporados ao escopo de F7 (Produção + LGPD + Ops).
 
 ---
 
+## DOCS-REVIEW — Saúde da documentação (pós-revisão multi-agente 2026-04-24)
+
+Revisão coordenada por 4 agentes (senior-cto, product-designer, financial-planner, general-purpose) em 2026-04-24 produziu ~20 achados priorizados. **Batch 1** (hotfix — ADR-078/079 duplicados → 125/126, ADR-119/120 registradas, ROADMAP+BACKLOG sincronizados, contagens ARCHITECTURE alinhadas) foi entregue em `af8dce7`. **Batches 2 e 3** ficam como trabalho futuro em [BACKLOG §DOCS-REVIEW](BACKLOG.md#docs-review--followups-da-revisão-multi-agente-2026-04-24) — não bloqueiam F7, mas precisam acontecer antes de Beta fechado para saúde sustentável da doc.
+
+- **Batch 2 — reescrita** (15 itens): FORMULAS completo, COPY_GUIDELINES expandido, TOC em DECISIONS, shapes TS em REPORT_PREMIUM_GAPS, Quickstart LLM, Guia DDD, TESTING completo, design token governance, spec mobile, a11y checklist.
+- **Batch 3 — ADRs + correções de domínio** (12 itens): ADR-Processo formal, ADR-ScoringParams, ADR-MoneyDTOs (finaliza A6g.3b), ADR-AlocaçãoAlvo, fix Cerbasi `categorias_futuro`, reserva de emergência só líquidos, dívida boa×ruim, RebalancingAdvisor, YoC real, cobertura de seguros, auto-gen contagens ARCHITECTURE.
+
+**Ordem sugerida de ataque:** (1) batch3.4 processo de ADR → (2) batch2.8 shapes TS → (3) batch3.1/3.5/3.6 regras de domínio antes de GA → (4) batch3.2 Money DTOs → (5) demais em paralelo. Ver tabela completa no BACKLOG.
+
+---
+
 ## Timeline geral estimada
 
 | Período              | Milestone                                        |

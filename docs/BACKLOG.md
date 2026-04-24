@@ -22,6 +22,7 @@
 - [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
 - [F7F — Console interno (operadores)](#f7f--console-interno-operadores) — dividido em **F7F-Local** (UI web em `127.0.0.1`, sem OAuth, pré-produção) e **F7F-Remote** (`ops.mathoms.ai` com OAuth staff + RBAC + telemetria, produção)
 - [Report Premium UI — Paridade com EXEMPLO_DE_RELATORIO.html](#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ← **10/13 fases entregues**
+- [DOCS-REVIEW — Followups da revisão multi-agente 2026-04-24](#docs-review--followups-da-revisão-multi-agente-2026-04-24) ← **batches 2/3 do audit de docs**
 - [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
 - [F8 — Growth (Futuro)](#f8--growth-futuro)
 
@@ -1387,6 +1388,64 @@ lógicos — a defesa é app-level + audit + retenção.
 equivalente ao exemplo em dark/light + print; standalone (HTML offline)
 gerado pelo Next SSR sem depender do `e6_render.py` legado; Playwright
 valida os 19 V-checks; axe-core sem violações críticas.
+
+---
+
+## DOCS-REVIEW — Followups da revisão multi-agente 2026-04-24
+
+> **Contexto:** revisão coordenada por 4 agentes (senior-cto, product-designer, financial-planner, general-purpose) encontrou ~20 achados priorizados. Batch 1 (hotfix de integridade — ADRs duplicados, ADR-119/120, ROADMAP, contagens ARCHITECTURE) foi entregue em `af8dce7` (2026-04-24). Batches 2 (reescrita com decisão de escopo) e 3 (ADRs novas + correção de regras) ficam aqui para execução futura — **não bloqueia F7**, mas saúde-da-doc degrada rapidamente sem isso. Lanes abaixo são **independentes** entre si e podem ser pegas fora de ordem, exceto onde marcado.
+
+### DOCS-REVIEW.batch2 — Reescrita de documentos (decisões de escopo pendentes)
+
+Cada item abaixo exige decisão de escopo do dono antes de executar — não é mecânico.
+
+| # | Entrega | Prio | Esforço | Status | Decisão pendente |
+| --- | --- | --- | --- | --- | --- |
+| batch2.1 | **Expandir [FORMULAS.md](FORMULAS.md)** (hoje 11 linhas) para glossário completo: reserva de emergência, taxa de poupança, cobertura de despesas, taxa de endividamento, TRS, yield on cost, if_gap, diversificação, classificação Cerbasi. Para cada: fórmula, unidades, variáveis definidas, fontes (campo E5), faixas de classificação, referência metodológica (Perini/Cerbasi/AUVP). | P1 | 6-8h | ☐ | Glossário completo de 1 só passe **ou** MVP com 5-6 principais e evolução incremental? |
+| batch2.2 | **[docs/REPORT_PREMIUM_PLAN.md](REPORT_PREMIUM_PLAN.md) §10 — reconciliar com Delta #2**: hoje §10 descreve Jinja2 e Delta #2 descreve SSR Next (ADR-124); o commit `0b8a78c` (2026-04-24) escolheu §10-Jinja2 como vencedor. Formalizar essa reversão: marcar Delta #2 como superseded, reescrever §10 canônica, atualizar ADR-124 como "aposentadoria revertida". | P1 | 2-3h | ☐ | Confirmar reversão é definitiva? (já implícita no commit mas sem ADR de reversão) |
+| batch2.3 | **[docs/e6_render_readme.md](e6_render_readme.md) status**: marcar como histórico OU atualizar para refletir paridade Jinja2 da Fase 11 em curso (dep batch2.2). | P2 | 1h | ☐ | Histórico ou vivo? — decorre de batch2.2 |
+| batch2.4 | **[docs/CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md)** (2026-04-17) — P0.1 cita risco resolvido por ADR-081, P0.3 ignora CI strict já ativo. Decidir: snapshot histórico ("preservado como registro de P0") ou reescrita. | P2 | 2h | ☐ | Snapshot ou reescrita? |
+| batch2.5 | **[docs/PRODUCT.md](PRODUCT.md)** §3 (diferenciais) e §5 (GA criteria): incluir Report Premium UI como diferencial explícito; §5 explicitar que GA requer Fase 13 do Report Premium. | P2 | 1h | ☐ | — |
+| batch2.6 | **Expandir [COPY_GUIDELINES.md](COPY_GUIDELINES.md)** (hoje 14 linhas): (a) labels canônicos por seção do relatório, (b) estados vazios por card, (c) copy padrão por severity de `<Alert/>`, (d) tom em erros de pipeline visíveis, (e) microcopy Kanban/Notas. | P1 | 4-6h | ☐ | Fonte única PT-BR ou bilíngue? |
+| batch2.7 | **TOC navegável em [DECISIONS.md](DECISIONS.md)** (4518 linhas, 126 ADRs) — gerar índice com âncoras `#adr-NNN` via script em `dev/generate_adr_index.py` rodado em pre-commit. | P2 | 3h | ☐ | Auto-gerado em pre-commit ou inline manual? |
+| batch2.8 | **[REPORT_PREMIUM_GAPS.md](REPORT_PREMIUM_GAPS.md) §3 Tabela C — shapes TS definitivos**: 20 campos faltantes em `ReportAnalysisData` sem contrato. Ex.: `score.formula: string` vs estrutura; `projecao.kpi_strip[]` tamanho. Adicionar subseção "Contratos TS definitivos" ou mover para ADR-122. | P0 (bloqueia Fase 12+) | 4h | ☐ | — |
+| batch2.9 | **Quickstart para agente LLM** — novo doc `docs/AGENT_QUICKSTART.md` (ou seção em CLAUDE.md) mapeando pergunta → doc canônico. Ex.: "como escrevo endpoint novo?" → tenancy.md + ADR-101. | P2 | 2-3h | ☐ | Novo arquivo ou seção em CLAUDE.md? |
+| batch2.10 | **Guia DDD prático (R12-R17)** — docs/DDD_GUIDE.md com exemplo completo end-to-end (aggregate → repo → use case → DTO → router) análogo ao que tenancy.md faz para multi-tenancy. | P1 | 4-6h | ☐ | Baseado em qual aggregate como exemplo canônico? |
+| batch2.11 | **Completar [TESTING.md](TESTING.md)** (marcado "esqueleto inicial" desde F6.5): política de regressão, fixtures de boundary LLM, DB em testes, goldens de paridade, E2E `@critical`. | P1 | 4h | ☐ | — |
+| batch2.12 | **Design token governance** — seção em `design-tokens/README.md` (ou novo `docs/DESIGN_TOKENS.md`): quando criar token novo vs alias vs hex inline; policy de naming. | P2 | 2h | ☐ | — |
+| batch2.13 | **Spec mobile do relatório** — decidir e documentar: que seções saem, que charts ganham fallback, como Kanban vira lista em `<767px`. Adicionar em REPORT_PREMIUM_PLAN Delta novo ou seção. | P2 | 3h | ☐ | Docs only ou já implementa breakpoints? |
+| batch2.14 | **Checklist WCAG 2.1 AA operacional** — por seção do relatório: contraste (`<MonetaryValue>` vermelho em `--color-compare-neg`), teclado em Kanban, ordem de tab em seções. Gate por axe-core + Lighthouse ≥95 já existe (Fase 12) — checklist complementa. | P2 | 2h | ☐ | — |
+| batch2.15 | **Stage rename F9 exemplo concreto** — ADR-093 tem `STAGE_RENAME_MAP` mas nenhuma doc mostra antes/depois em query DB. Adicionar seção "Exemplo prático" em ADR-093 ou em ARCHITECTURE §7. | P2 | 1h | ☐ | — |
+
+### DOCS-REVIEW.batch3 — ADRs novas + correções de domínio
+
+Ataques que **mudam código ou parâmetros**, não só doc. Cada um deve virar ADR + PR separada.
+
+| # | Entrega | Prio | Esforço | Status | Impacto |
+| --- | --- | --- | --- | --- | --- |
+| batch3.1 | **ADR "Parâmetros de scoring financeiro"** — justificar thresholds em `config/scoring.json`: endividamento 20% (vs Cerbasi ~30% se dívida boa), poupança 25%, reserva 6 meses, consumo consciente 2000, pontos fortes 30%. Citar fonte metodológica para cada. | P1 | 4h | ☐ | docs-only (números não mudam — só rationale) |
+| batch3.2 | **ADR "Money DTOs no boundary"** + remediação das 79 violações `float_money` em [backend/app/schemas/goal.py](backend/app/schemas/goal.py) e [transactions.py](backend/app/schemas/transactions.py). Formaliza caminho p/ A6g.3b finalizar. Fere ADR-090 hoje. | P0 | 6-8h | ☐ | Código — wire format pode mudar |
+| batch3.3 | **ADR "Metodologia de alocação-alvo"** — adotar AUVP, heurística própria ou híbrido? Move alvos hardcoded em `definitions.md` (dogfood) para `config/scoring.json` ou novo `config/asset_allocation.json` por perfil de risco. | P1 | 6h | ☐ | Código + config |
+| batch3.4 | **Processo de ADR formal** — lifecycle (proposed/accepted/superseded), quem numera, colisão-free (vide ADR-078/079 duplicados). Novo `docs/ADR_PROCESS.md` ou seção em CLAUDE.md §Git. Template em `docs/adr_template.md`. | P1 | 2-3h | ☐ | docs + processo |
+| batch3.5 | **Fix Cerbasi `categorias_futuro`** — remover `financeiro` (IOF/taxas é gasto operacional por `definitions.md`, não "futuro"); alinhar defaults de `equilibrio_cerbasi_analyzer.py`. Hoje infla índice "futuro" artificialmente. | P0 | 2h | ☐ | Muda scoring em prod — requer regression test |
+| batch3.6 | **Reserva de emergência — só líquidos/baixa-vol** — `reserva_emergencia_calculator` hoje soma CDB com carência e ações voláteis como "total_liquida". Filtrar para ativos D+0/D+1 + baixa volatilidade (Cofrinhos, Tesouro Selic, poupança, CC). Renomear categoria `reserva_desejos` → `consumo_planejado` (nome engana). | P1 | 4h | ☐ | Muda cálculo + migration de categoria |
+| batch3.7 | **Dívida boa vs ruim** — `endividamento_analyzer.py` trata dívida como agregado. Cerbasi distingue financiamento imobiliário @ 9% a.a. vs rotativo @ 300%. Adicionar classificação por `taxa_aa` + `tipo` em `dividas-1.5_consolidated.json`. | P2 | 6h | ☐ | Schema + calculator |
+| batch3.8 | **TRS — documentar origem** — parâmetro em `if_projector` (default 4%) sem citar Bengen/Trinity/Perini. Adicionar em FORMULAS (dep batch2.1) + comentário com fonte em código. | P2 | 1h | ☐ | docs-only |
+| batch3.9 | **Yield on cost real** — hoje `renda_passiva_estimada_4pct` é genérica (4% × investível / 12). Calcular real a partir de `investimentos-3_unified.json` (DY × posição em ações/FIIs). | P2 | 6h | ☐ | Código novo |
+| batch3.10 | **RebalancingAdvisor (AUVP)** — service novo sugerindo em qual classe aportar dado desvio atual vs alvo. Dep batch3.3 (definir metodologia primeiro). | P2 | 8h | ☐ | Feature nova |
+| batch3.11 | **Cobertura de seguros (Cerbasi)** — métrica ausente do produto. Service contando prêmios vs renda + alerta em `dashboard_service`. | P2 | 6h | ☐ | Feature nova |
+| batch3.12 | **Auto-gerar contagens em ARCHITECTURE** — script `dev/refresh_architecture_counts.py` análogo a `DB_SCHEMA_REFERENCE.md` para §4/§5/§6/§7/§8/§10/§11, rodando em pre-commit (modo `--check`). Elimina drift recorrente. | P1 | 4h | ☐ | Script novo |
+
+**Ordem de ataque sugerida (quando abrir sessão dedicada):**
+
+1. batch3.4 (processo de ADR) → destrava os demais sem risco de nova colisão
+2. batch2.8 (shapes TS) → destrava Fase 12+ do Report Premium
+3. batch3.1/3.5/3.6 (scoring + Cerbasi + reserva) → regras de domínio corretas antes de GA
+4. batch3.2 (Money DTOs) → finaliza A6g.3b
+5. batch2.1 + batch3.8 (FORMULAS + TRS) juntos → coerência metodológica
+6. Demais em paralelo conforme prioridade
+
+**Nada aqui bloqueia** F7A/B/C/D nem Report Premium Fase 11/12/13 diretamente — mas saúde da doc degrada se `main` avança sem visitar esta lista.
 
 ---
 
