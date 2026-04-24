@@ -338,27 +338,27 @@ estrategico:
       # APP_A já migrado em ApendiceASection.tsx — cards[] vazio (uso hand-coded)
     - id: "APP_B"
       title: "Premissas Econômicas"
-      # enabled: false até Fase 10 entregar ApendiceBSection (GAPS Observation #5).
-      enabled: false
+      # Fase 10 entregou ApendiceBSection (ADR-117/122).
+      enabled: true
       cards:
         - {id: "premissas_economicas", enabled: true, variant: "feature", size: "full"}
         - {id: "metodologias", enabled: true, variant: "neutral", size: "full"}
     - id: "APP_C"
       title: "Cenários de Sensibilidade"
-      enabled: false
+      enabled: true
       charts:
         - {id: "cenarios_cambiais", enabled: false, conclusion: true}
       cards:
         - {id: "sensibilidade_ativos", enabled: true, variant: "feature", size: "full"}
     - id: "APP_D"
       title: "Referências e Recursos"
-      enabled: false
+      enabled: true
       cards:
         - {id: "fontes_dados", enabled: true, variant: "neutral", size: "half"}
         - {id: "metodologia_links", enabled: true, variant: "neutral", size: "half"}
     - id: "APP_E"
       title: "Próximos Ciclos e Roadmap"
-      enabled: false
+      enabled: true
       cards:
         - {id: "proximos_ciclos", enabled: true, variant: "highlight", size: "full"}
         - {id: "disclaimers", enabled: true, variant: "neutral", size: "full"}

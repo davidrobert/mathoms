@@ -581,7 +581,7 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "APP_B",
         "title": "Premissas Econômicas",
-        "enabled": false,
+        "enabled": true,
         "cards": [
           {
             "id": "premissas_economicas",
@@ -600,7 +600,7 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "APP_C",
         "title": "Cenários de Sensibilidade",
-        "enabled": false,
+        "enabled": true,
         "charts": [
           {
             "id": "cenarios_cambiais",
@@ -620,7 +620,7 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "APP_D",
         "title": "Referências e Recursos",
-        "enabled": false,
+        "enabled": true,
         "cards": [
           {
             "id": "fontes_dados",
@@ -639,7 +639,7 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "APP_E",
         "title": "Próximos Ciclos e Roadmap",
-        "enabled": false,
+        "enabled": true,
         "cards": [
           {
             "id": "proximos_ciclos",
