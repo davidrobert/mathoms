@@ -99,8 +99,121 @@ Para apagar **toda** a base de utilizadores e ficheiros de tenant (cenário de t
 
 ---
 
-## 7. Referências
+## 7. Console interno local (F7F-Local · IA-0)
+
+Ferramenta web em `127.0.0.1:3100` para operador executar ações de suporte/LGPD
+em **dev/staging** antes do produto estar em produção ([ADR-116](DECISIONS.md#adr-116)).
+**Não** rodar em produção — bloqueado por flag + bind local.
+
+### 7.1 Arquitetura resumida
+
+| Componente | Local |
+| --- | --- |
+| UI | `frontend-ops/` (Next app separada, bind `127.0.0.1:3100`) |
+| Rotas | `/admin/*` (FastAPI · só monta se `MATHOMS_INTERNAL_OPS_UI_ENABLED=1`) |
+| Auth | `config/internal_operators.yaml` (bcrypt) + JWT cookie `ops_session` `httpOnly + SameSite=Strict + Path=/admin`, TTL 8h |
+| Segredo de sessão | `MATHOMS_INTERNAL_OPS_SESSION_SECRET` (**distinto** de `MATHOMS_SECRET_KEY` do cliente) |
+| Audit | `logs/internal_ops_audit.log` (JSONL, fora de git) |
+
+### 7.2 Subir o stack local
+
+1. **Gerar hash do operador** (senha ≥12 chars):
+
+   ```bash
+   python3 scripts/hash_ops_pw.py
+   # cole o hash no próximo passo
+   ```
+
+2. **Criar `config/internal_operators.yaml`** (gitignored + bloqueado por `dev/check_forbidden_paths.py`):
+
+   ```yaml
+   operators:
+     - username: superadmin
+       hashed_password: "$2b$12$..."
+       role: superadmin
+   ```
+
+3. **Exportar envs e subir backend:**
+
+   ```bash
+   export MATHOMS_FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+   export MATHOMS_INTERNAL_OPS_UI_ENABLED=1
+   export MATHOMS_INTERNAL_OPS_SESSION_SECRET="<secret distinto do SECRET_KEY>"
+   export MATHOMS_SECRET_KEY="<secret do cliente>"
+   export MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(pwd)/mathoms.db"
+   uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+   ```
+
+   **Nota:** todas as envs de settings usam prefixo `MATHOMS_` — `DATABASE_URL`
+   sem prefixo é ignorado pelo BaseSettings.
+
+4. **Subir frontend-ops:**
+
+   ```bash
+   cd frontend-ops && npm run dev
+   # UI em http://127.0.0.1:3100/login
+   ```
+
+   Ou via compose: `docker compose -f docker-compose.dev.yml up frontend-ops`.
+
+### 7.3 Operações disponíveis (UI)
+
+Todas gravam linha em `logs/internal_ops_audit.log`:
+
+| Tela | Ações | Audit action |
+| --- | --- | --- |
+| Usuários | Anonimizar (default, FKs preservadas), Hard delete (superadmin + motivo), Reset senha (16 chars one-time), Editar nome/ativo, **Alterar email** (invalida JWTs), Toggle `is_developer` | `user.anonymize` · `user.hard_delete` · `user.reset_password` · `user.update_profile` · `user.email_changed` · `user.set_developer_flag` |
+| Documentos | Purge bulk (user\|workspace scope, preview paginada, rollback em OSError de blob), Delete individual | `document.purge` · `document.delete` |
+| Métricas | Dashboard com filtro 7d/30d/90d + export CSV | leitura — sem audit |
+| Relatórios | Lista read-only paginada (offset/total) | leitura — sem audit |
+
+**Anonimização é default** — prefira sempre anonymize sobre hard delete. Hard
+delete é irreversível e quebra FKs de audit/pipeline.
+
+### 7.4 Rotação de credenciais
+
+- **Senha do operador:** `python3 scripts/hash_ops_pw.py`, substituir hash no
+  yaml e reiniciar backend. Sessões ativas continuam válidas até expirar (8h) —
+  `/admin/logout` remove o cookie.
+- **`MATHOMS_INTERNAL_OPS_SESSION_SECRET`:** rotacionar invalida **todas** as
+  sessões de ops ativas (tokens deixam de verificar). Rotacionar pelo menos a
+  cada 90d ou após qualquer suspeita de vazamento. **Nunca** reutilizar
+  `MATHOMS_SECRET_KEY` (segredo do cliente) — se vazar, um lado compromete o
+  outro.
+- **Remover operador:** apagar a linha do yaml e reiniciar backend (não há
+  soft-delete; o yaml é a fonte única).
+
+### 7.5 Bloqueios de segurança (não bypasses)
+
+- Rotas `/admin/*` só montam se `MATHOMS_INTERNAL_OPS_UI_ENABLED=1` — senão
+  retornam 404.
+- Backend refusa subir com `ENVIRONMENT=production` + UI habilitada sem a flag
+  `--i-accept-production-risk` (ADR-116).
+- Bind **deve** ser `127.0.0.1`, nunca `0.0.0.0`. Para expor remotamente é
+  outra lane (F7F-Remote com OAuth + RBAC).
+- YAML de operadores nunca commitado — bloqueado por `dev/check_forbidden_paths.py`.
+
+### 7.6 Smoke manual
+
+Depois de qualquer mudança em `backend/app/services/internal_ops/`,
+`backend/app/api/admin/` ou `frontend-ops/`:
+
+1. Seed user fixture: `python3 scripts/seed_internal_ops_smoke.py` (imprime
+   user_id).
+2. Subir backend + frontend-ops (passos 7.2).
+3. Exercitar 1 fluxo por tela via UI; confirmar entrada no
+   `logs/internal_ops_audit.log`.
+4. Cleanup: `rm -f mathoms*.db config/internal_operators.yaml logs/internal_ops_audit.log`.
+
+Harness Playwright scaffolded em `frontend-ops/tests/e2e/internal-ops.spec.ts`
+(6 tests `@internal-ops`); execução em CI exige instalação do chromium +
+global-setup para subir backend seeded.
+
+---
+
+## 8. Referências
 
 - [SLO.md](SLO.md) — SLOs e SLAs de comunicação
-- [BACKLOG.md](BACKLOG.md) — 7E (operational readiness)
+- [BACKLOG.md](BACKLOG.md) — 7E (operational readiness) · F7F-Local
 - [SMOKE_TEST.md](SMOKE_TEST.md) — verificações manuais pré-release
+- [ADR-116](DECISIONS.md#adr-116) — decisões de design F7F-Local
