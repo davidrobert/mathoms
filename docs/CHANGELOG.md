@@ -9,6 +9,14 @@
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
 **Report Premium UI** (paridade visual com `EXEMPLO_DE_RELATORIO.html`).
 
+- **E7-review-llm via ArtifactStore (2026-04-24 · ADR-128):** stage
+  `pipeline/stages/e7_review_llm.py` passa a ler E5 (`store.read("E5",
+  "analise_financeira")`) e crossval (primeira chave alfabética via
+  `list_keys("E7-crossval")`, fallback `"{}"`), e a gravar review via
+  `store.write("E7-review", "review_llm", ...)`. Helpers `_load_*`
+  refatorados para receber `dict | None`; teste migrado para
+  `InMemoryArtifactStore`. Mapping `E7-review` pré-existente (ADR-083).
+
 - **E1 members via ArtifactStore (2026-04-24 · ADR-127):** última stage
   de domínio escrevendo direto em disco migrada para
   `ctx.get_artifact_store().write("E1", "members", ...)`. Mapping E1

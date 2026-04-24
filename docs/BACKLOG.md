@@ -774,6 +774,7 @@ convergir em `origin/main`.
 | A6a.3 | Critérios estruturais + integration tests com DiskArtifactStore em `tests/test_llm_stages.py` (4 testes novos) | P0 | 1h | ✅ |
 | A6a.4 | ADR-105: E1 (config, não artefato) e E7-review LLM (ad-hoc) **não migram** — decisão documentada | P2 | 15min | ✅ |
 | A6a.5 | **Revisada 2026-04-24 (ADR-127):** E1 migrada para `store.write("E1", "members", ...)`; mapping registrado; ADR-105 reinterpretada (E1 é artefato de domínio, não só config) | P1 | 1h | ✅ |
+| A6a.6 | **Revisada 2026-04-24 (ADR-128):** E7-review-llm migrada para `ArtifactStore` — `store.read("E5", ...)` + `list_keys("E7-crossval")` + `store.write("E7-review", "review_llm", ...)`; teste em `InMemoryArtifactStore`. ADR-105 reinterpretada (E7-review é stage determinístico em cima de input LLM — deve ser stateless) | P1 | 1h | ✅ |
 
 **Checkpoint A6a:** ✅ `MATHOMS_USE_DB_ARTIFACTS=true` pode ser ativado sem quebrar E3→E7.
 
