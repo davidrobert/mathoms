@@ -3516,6 +3516,315 @@
         "title": "InvitationResponse",
         "type": "object"
       },
+      "KanbanItemCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "categoria": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria"
+          },
+          "coluna": {
+            "default": "a_fazer",
+            "enum": [
+              "a_fazer",
+              "em_andamento",
+              "concluido"
+            ],
+            "title": "Coluna",
+            "type": "string"
+          },
+          "essencial": {
+            "anyOf": [
+              {
+                "enum": [
+                  "S",
+                  "R",
+                  "O"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Essencial"
+          },
+          "ordem": {
+            "default": 0,
+            "title": "Ordem",
+            "type": "integer"
+          },
+          "prazo": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prazo"
+          },
+          "prioridade": {
+            "anyOf": [
+              {
+                "enum": [
+                  "alta",
+                  "media",
+                  "baixa"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prioridade"
+          },
+          "titulo": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Titulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "titulo"
+        ],
+        "title": "KanbanItemCreate",
+        "type": "object"
+      },
+      "KanbanItemListResponse": {
+        "additionalProperties": false,
+        "description": "Envelope \u2014 evita Liskov issues com response_model Array.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/KanbanItemRead"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "KanbanItemListResponse",
+        "type": "object"
+      },
+      "KanbanItemRead": {
+        "additionalProperties": false,
+        "properties": {
+          "categoria": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria"
+          },
+          "coluna": {
+            "enum": [
+              "a_fazer",
+              "em_andamento",
+              "concluido"
+            ],
+            "title": "Coluna",
+            "type": "string"
+          },
+          "essencial": {
+            "anyOf": [
+              {
+                "enum": [
+                  "S",
+                  "R",
+                  "O"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Essencial"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ordem": {
+            "title": "Ordem",
+            "type": "integer"
+          },
+          "prazo": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prazo"
+          },
+          "prioridade": {
+            "anyOf": [
+              {
+                "enum": [
+                  "alta",
+                  "media",
+                  "baixa"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prioridade"
+          },
+          "report_id": {
+            "title": "Report Id",
+            "type": "string"
+          },
+          "titulo": {
+            "title": "Titulo",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "report_id",
+          "titulo",
+          "coluna",
+          "ordem",
+          "updated_at"
+        ],
+        "title": "KanbanItemRead",
+        "type": "object"
+      },
+      "KanbanItemUpdate": {
+        "additionalProperties": false,
+        "description": "PATCH body \u2014 todos campos opcionais.",
+        "properties": {
+          "categoria": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria"
+          },
+          "coluna": {
+            "anyOf": [
+              {
+                "enum": [
+                  "a_fazer",
+                  "em_andamento",
+                  "concluido"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coluna"
+          },
+          "essencial": {
+            "anyOf": [
+              {
+                "enum": [
+                  "S",
+                  "R",
+                  "O"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Essencial"
+          },
+          "ordem": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ordem"
+          },
+          "prazo": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prazo"
+          },
+          "prioridade": {
+            "anyOf": [
+              {
+                "enum": [
+                  "alta",
+                  "media",
+                  "baixa"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prioridade"
+          },
+          "titulo": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Titulo"
+          }
+        },
+        "title": "KanbanItemUpdate",
+        "type": "object"
+      },
       "LLMConfigCreateRequest": {
         "description": "Create or update LLM configuration for a workspace.",
         "properties": {
@@ -4747,6 +5056,63 @@
           "total"
         ],
         "title": "ReportListResponse",
+        "type": "object"
+      },
+      "ReportNotesRead": {
+        "additionalProperties": false,
+        "properties": {
+          "author_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author User Id"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "report_id": {
+            "title": "Report Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "report_id",
+          "content",
+          "updated_at"
+        ],
+        "title": "ReportNotesRead",
+        "type": "object"
+      },
+      "ReportNotesWrite": {
+        "additionalProperties": false,
+        "description": "PUT body \u2014 idempotente (upsert). Sem id no path (1:1 com report).",
+        "properties": {
+          "content": {
+            "maxLength": 20000,
+            "title": "Content",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "ReportNotesWrite",
         "type": "object"
       },
       "ReportResponse": {
@@ -13121,6 +13487,388 @@
         "summary": "Get Report Html",
         "tags": [
           "reports"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/kanban": {
+      "get": {
+        "description": "Lista todos items do Kanban deste relat\u00f3rio, ordenados por\n(coluna, ordem, created_at). Frontend decide como agrupar.",
+        "operationId": "list_kanban_api_v1_workspaces__workspace_id__reports__report_id__kanban_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KanbanItemListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Kanban",
+        "tags": [
+          "report-collab"
+        ]
+      },
+      "post": {
+        "operationId": "create_kanban_item_api_v1_workspaces__workspace_id__reports__report_id__kanban_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KanbanItemCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KanbanItemRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Kanban Item",
+        "tags": [
+          "report-collab"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/kanban/{item_id}": {
+      "delete": {
+        "operationId": "delete_kanban_item_api_v1_workspaces__workspace_id__reports__report_id__kanban__item_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Kanban Item",
+        "tags": [
+          "report-collab"
+        ]
+      },
+      "patch": {
+        "operationId": "update_kanban_item_api_v1_workspaces__workspace_id__reports__report_id__kanban__item_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KanbanItemUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KanbanItemRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Kanban Item",
+        "tags": [
+          "report-collab"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/notes": {
+      "get": {
+        "description": "Retorna as notas do relat\u00f3rio ou None (204-ish) quando vazio.",
+        "operationId": "get_notes_api_v1_workspaces__workspace_id__reports__report_id__notes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ReportNotesRead"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Notes Api V1 Workspaces  Workspace Id  Reports  Report Id  Notes Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Notes",
+        "tags": [
+          "report-collab"
+        ]
+      },
+      "put": {
+        "description": "Upsert idempotente \u2014 cria se n\u00e3o existe, atualiza content + author.",
+        "operationId": "put_notes_api_v1_workspaces__workspace_id__reports__report_id__notes_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportNotesWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportNotesRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Notes",
+        "tags": [
+          "report-collab"
         ]
       }
     },
