@@ -172,3 +172,75 @@ export interface EquilibrioCerbasiData {
 export function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
+
+// ──────────────────────────────────────────────────────────────────────
+// Fase 6 — campos opcionais para alimentar primitives Fase 3.
+//
+// Os tipos abaixo representam o SHAPE que o E5 produzirá quando estender
+// os services. Por ora, consumers (seções migradas em Fase 7-9) usam os
+// adapters em frontend/src/components/report/utils/* para derivar
+// estes shapes do snapshot atual (determinístico onde possível,
+// placeholders onde depende de LLM — ver ADR-122).
+// ──────────────────────────────────────────────────────────────────────
+
+/** Score completo (ADR-117/122). `formula` é novo campo Fase 6. */
+export interface ScoreFullData extends ScoreData {
+  formula?: string;
+  /** Breakdown em shape tipado usado pelo ScoreCard primitivo. */
+  breakdown?: Array<{
+    dimensao: string;
+    valor: number;
+    max?: number;
+    peso?: number;
+    contribuicao?: number;
+  }>;
+}
+
+/** Meta IF (independência financeira) — ADR-117 GAPS Tabela C #5-8. */
+export interface MetaIfData {
+  progresso_pct?: number;       // 0..1
+  gap_mensal?: number;          // R$
+  ano_alvo?: number;            // 2041
+  renda_passiva_alvo?: number;  // R$/mês
+}
+
+/** Strip de 5 KPIs na seção de projeção (S7). */
+export interface ProjecaoKpiStrip {
+  items?: Array<{
+    label: string;
+    value: string;
+    tone?: "default" | "gap" | "meta" | "year";
+    progress?: number;
+  }>;
+}
+
+/** Meta de capa (ADR-117 GAPS Tabela C #17). */
+export interface CoverMetaItem {
+  readonly label: string;
+  readonly value: string | number;
+}
+
+/** Kanban items persistidos (ADR-123). Até Fase 6.5 entregar endpoints,
+ *  adapter deriva de `tarefas[]`. */
+export interface KanbanItemData {
+  readonly id: string;
+  readonly titulo: string;
+  readonly prioridade?: "alta" | "media" | "baixa";
+  readonly prazo_iso?: string;
+  readonly coluna: "a_fazer" | "em_andamento" | "concluido";
+  readonly categoria?: string;
+  readonly essencial?: "S" | "R" | "O";
+}
+
+/** Timeline item (T5) — ADR-117 GAPS Tabela C #14. */
+export interface TimelineItemData {
+  readonly id: string;
+  readonly data_iso: string;
+  readonly acao: string;
+  readonly status?: "feito" | "pendente" | "aguardando";
+}
+
+/** Dicionários textuais híbridos (ADR-122). Fase 6 entrega versão
+ *  derivada frontend-side; LLM fallback fica para revisão Q11. */
+export type ChartConclusions = Record<string, string>;
+export type SectionSummaries = Record<string, string>;

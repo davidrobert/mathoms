@@ -1,0 +1,126 @@
+# ==============================================================================
+# Chart conclusions — templates determinísticos (ADR-117 · ADR-122 · Fase 6)
+# ==============================================================================
+# Para cada chart_id, define um template de texto curto (1-2 frases) que
+# descreve a leitura principal do gráfico. Variáveis `{...}` são interpoladas
+# a partir do snapshot E5.
+#
+# Campos disponíveis por chart:
+#   - chart_id: ID do chart (patrimonio_doughnut, etc.)
+#   - template: Texto com placeholders {placeholder_name}
+#   - fallback: Texto de fallback quando dados insuficientes
+#   - required_keys: Lista de chaves (dot-notation) que precisam existir em
+#                    data para o template ser aplicado. Se alguma faltar,
+#                    usa fallback.
+#
+# Formatter helpers (aplicáveis em qualquer placeholder):
+#   {valor|brl}  → formata como R$ 1.234,56
+#   {valor|pct}  → formata como 12%
+#   {valor|int}  → formata como inteiro
+# ==============================================================================
+
+version: "1.0"
+
+templates:
+
+  # ---- S1 Patrimônio -----------------------------------------------------
+  patrimonio_doughnut:
+    template: "{top_categoria} representa {top_pct|pct} do patrimônio líquido ({top_valor|brl})."
+    fallback: "Distribuição patrimonial por categoria."
+    required_keys: ["patrimonio.composicao"]
+
+  waterfall_if:
+    template: "Desde o início até hoje, o patrimônio acumulou {acumulado|brl} — {progresso_if|pct} do objetivo de independência financeira."
+    fallback: "Progresso acumulado rumo à independência financeira."
+    required_keys: ["patrimonio.liquido"]
+
+  score_gauge:
+    template: "Score atual: {score_valor|num} / {score_max|int} ({score_classe})."
+    fallback: "Indicador consolidado da saúde financeira."
+    required_keys: ["score.valor"]
+
+  # ---- S2 Fluxo de Caixa -------------------------------------------------
+  fluxo_mensal:
+    template: "Receita média mensal de {receita_recorrente|brl}, despesa média de {despesa_mensal|brl}. Fluxo líquido: {fluxo_liquido|brl}."
+    fallback: "Receita vs despesa mês a mês."
+    required_keys: ["fluxo_caixa.receita_recorrente_mensal", "fluxo_caixa.despesa_mensal_media"]
+
+  receita_bar:
+    template: "{receita_principal_fonte} lidera as receitas ({receita_principal_pct|pct})."
+    fallback: "Composição das receitas por fonte."
+    required_keys: ["fluxo_caixa.por_fonte"]
+
+  despesas_doughnut:
+    template: "{despesa_top_categoria} concentra {despesa_top_pct|pct} do gasto recorrente."
+    fallback: "Distribuição das despesas por categoria."
+    required_keys: ["fluxo_caixa.despesas_por_categoria"]
+
+  receita_despesa_mensal:
+    template: "Ao longo do período analisado, fluxo líquido médio foi {fluxo_medio|brl}/mês."
+    fallback: "Receita vs despesa ao longo do tempo."
+    required_keys: ["fluxo_caixa.receita_despesa_mensal_detalhado"]
+
+  viagens:
+    template: "Gasto total com viagens: {viagens_total|brl}."
+    fallback: "Orçamento e gastos de viagem no período."
+
+  # ---- S3 Investimentos --------------------------------------------------
+  alocacao_atual:
+    template: "Alocação atual: diversificada entre classes principais."
+    fallback: "Distribuição atual da carteira."
+
+  alocacao_alvo:
+    template: "Alocação alvo proposta segundo perfil de risco."
+    fallback: "Alocação alvo recomendada."
+
+  top15_ativos:
+    template: "Top 15 ativos concentram a maior parte dos investimentos financeiros."
+    fallback: "Ativos de maior exposição na carteira."
+
+  mariana_cenarios:
+    template: "Cenários de independência financeira do cônjuge."
+    fallback: "Projeção de independência financeira."
+
+  mariana_cenarios_usa:
+    template: "Cenários de independência financeira do cônjuge no contexto EUA."
+    fallback: "Projeção no contexto EUA."
+
+  # ---- S4 Real Estate ----------------------------------------------------
+  yield_imoveis:
+    template: "Rentabilidade agregada dos imóveis vs CDI do período."
+    fallback: "Rendimento dos imóveis comparado ao CDI."
+
+  # ---- S7 Independência --------------------------------------------------
+  projecao_3cenarios:
+    template: "Três cenários projetados (pessimista, base, otimista) até a meta de independência."
+    fallback: "Projeção patrimonial por cenário."
+
+  renda_passiva:
+    template: "Renda passiva atual: {renda_passiva_atual|brl}/mês. Meta: {renda_passiva_meta|brl}/mês."
+    fallback: "Progresso da renda passiva rumo à meta."
+    required_keys: ["renda_passiva.atual_mensal"]
+
+  # ---- S8 Tributário -----------------------------------------------------
+  impostos_pj:
+    template: "Carga fiscal efetiva do ano: {aliquota_pj|pct}."
+    fallback: "Composição tributária PJ."
+    required_keys: ["ratios.aliquota_efetiva_ir_pct"]
+
+  # ---- S9 Riscos ---------------------------------------------------------
+  bubble_riscos:
+    template: "Mapa de riscos consolida probabilidade × impacto dos pontos críticos identificados."
+    fallback: "Matriz de riscos priorizados."
+
+  # ---- S10 Síntese -------------------------------------------------------
+  top5_decisoes:
+    template: "5 decisões de maior impacto para os próximos 90 dias."
+    fallback: "Próximas decisões de alto impacto."
+
+  # ---- USA ---------------------------------------------------------------
+  custos_f1f2:
+    template: "Custos mensais estimados para estrutura F1/F2 no projeto EUA."
+    fallback: "Custos de mudança EUA."
+
+  cenarios_cambiais:
+    template: "Sensibilidade do plano a variações cambiais."
+    fallback: "Cenários cambiais considerados."
