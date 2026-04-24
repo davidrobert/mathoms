@@ -7,6 +7,7 @@ import type {
   AdminPrincipal,
   AdminReportListResponse,
   AdminUserListResponse,
+  AdminUserWorkspacesResponse,
   AnonymizeUserResponse,
   DeleteDocumentResponse,
   HardDeleteUserResponse,
@@ -109,6 +110,11 @@ export const api = {
       method: "PATCH",
       body: { new_email: newEmail },
     }),
+
+  listUserWorkspaces: (userId: string) =>
+    request<AdminUserWorkspacesResponse>(
+      `/users/${encodeURIComponent(userId)}/workspaces`,
+    ),
 
   updateUserProfile: (
     userId: string,

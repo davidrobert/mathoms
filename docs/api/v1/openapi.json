@@ -156,6 +156,22 @@
         "title": "AdminUserSummary",
         "type": "object"
       },
+      "AdminUserWorkspacesResponse": {
+        "properties": {
+          "workspaces": {
+            "items": {
+              "$ref": "#/components/schemas/UserWorkspaceDTO"
+            },
+            "title": "Workspaces",
+            "type": "array"
+          }
+        },
+        "required": [
+          "workspaces"
+        ],
+        "title": "AdminUserWorkspacesResponse",
+        "type": "object"
+      },
       "AlocacaoGoalComputeRequest": {
         "properties": {
           "inputs": {
@@ -6882,6 +6898,35 @@
         "title": "UserResponse",
         "type": "object"
       },
+      "UserWorkspaceDTO": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role",
+          "created_at"
+        ],
+        "title": "UserWorkspaceDTO",
+        "type": "object"
+      },
       "UserWorkspaceListResponse": {
         "properties": {
           "total": {
@@ -8379,6 +8424,81 @@
           }
         },
         "summary": "Reset Pw",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/users/{user_id}/workspaces": {
+      "get": {
+        "description": "Workspaces onde o usu\u00e1rio \u00e9 owner ou membro (read-only).",
+        "operationId": "list_workspaces_admin_users__user_id__workspaces_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ops_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ops Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserWorkspacesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Workspaces",
         "tags": [
           "admin"
         ]

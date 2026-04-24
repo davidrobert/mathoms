@@ -86,6 +86,17 @@ export interface MetricsResponse {
   generated_at: string;
 }
 
+export interface UserWorkspace {
+  id: string;
+  name: string;
+  role: string;
+  created_at: string;
+}
+
+export interface AdminUserWorkspacesResponse {
+  workspaces: UserWorkspace[];
+}
+
 export interface ReportSummary {
   id: string;
   workspace_id: string;

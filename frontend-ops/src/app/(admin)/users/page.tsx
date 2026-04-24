@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Badge, Button, TextInput } from "@/components/ui";
 import { api, AdminApiError } from "@/lib/api";
 import { useAuthGuard } from "@/lib/auth-guard";
-import type { AdminUserSummary } from "@/lib/types";
+import type { AdminUserSummary, UserWorkspace } from "@/lib/types";
 import { UserActionModal } from "./user-actions";
 
 type ActionKind =
@@ -28,11 +28,31 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [openAction, setOpenAction] = useState<OpenAction | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+  const [workspacesByUser, setWorkspacesByUser] = useState<
+    Record<string, UserWorkspace[] | "loading" | "error">
+  >({});
 
   async function copyId(id: string): Promise<void> {
     await navigator.clipboard.writeText(id);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1500);
+  }
+
+  async function toggleExpand(userId: string): Promise<void> {
+    if (expandedUserId === userId) {
+      setExpandedUserId(null);
+      return;
+    }
+    setExpandedUserId(userId);
+    if (workspacesByUser[userId] !== undefined && workspacesByUser[userId] !== "error") return;
+    setWorkspacesByUser((prev) => ({ ...prev, [userId]: "loading" }));
+    try {
+      const res = await api.listUserWorkspaces(userId);
+      setWorkspacesByUser((prev) => ({ ...prev, [userId]: res.workspaces }));
+    } catch {
+      setWorkspacesByUser((prev) => ({ ...prev, [userId]: "error" }));
+    }
   }
 
   const load = useCallback(
@@ -138,8 +158,17 @@ export default function UsersPage() {
               </tr>
             )}
             {users.map((u) => (
-              <tr key={u.id} className="border-t border-surface-border">
+              <Fragment key={u.id}>
+              <tr className="border-t border-surface-border">
                 <td className="px-4 py-2">
+                  <button
+                    type="button"
+                    onClick={() => void toggleExpand(u.id)}
+                    className="mr-2 text-surface-muted-fg hover:text-brand-primary"
+                    title={expandedUserId === u.id ? "Ocultar workspaces" : "Ver workspaces"}
+                  >
+                    {expandedUserId === u.id ? "▾" : "▸"}
+                  </button>
                   <span className="text-surface-fg">{u.email}</span>
                 </td>
                 <td className="px-4 py-2 text-surface-muted-fg">{u.full_name}</td>
@@ -208,6 +237,14 @@ export default function UsersPage() {
                   </div>
                 </td>
               </tr>
+              {expandedUserId === u.id && (
+                <tr className="bg-surface-muted">
+                  <td colSpan={6} className="px-4 py-3">
+                    <WorkspacesPanel entry={workspacesByUser[u.id]} onCopy={copyId} copiedId={copiedId} />
+                  </td>
+                </tr>
+              )}
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -223,5 +260,48 @@ export default function UsersPage() {
         />
       )}
     </section>
+  );
+}
+
+function WorkspacesPanel({
+  entry,
+  onCopy,
+  copiedId,
+}: {
+  entry: UserWorkspace[] | "loading" | "error" | undefined;
+  onCopy: (id: string) => void | Promise<void>;
+  copiedId: string | null;
+}) {
+  if (entry === undefined || entry === "loading") {
+    return <span className="text-xs text-surface-muted-fg">Carregando workspaces…</span>;
+  }
+  if (entry === "error") {
+    return <span className="text-xs text-brand-danger">Falha ao carregar.</span>;
+  }
+  if (entry.length === 0) {
+    return <span className="text-xs text-surface-muted-fg">Nenhum workspace.</span>;
+  }
+  return (
+    <div className="space-y-1">
+      <div className="text-xs uppercase tracking-wide text-surface-muted-fg mb-1">
+        {entry.length} workspace(s)
+      </div>
+      <ul className="space-y-1">
+        {entry.map((ws) => (
+          <li key={ws.id} className="flex items-center gap-3 text-sm">
+            <button
+              type="button"
+              onClick={() => void onCopy(ws.id)}
+              title="Copiar workspace_id"
+              className="font-mono text-xs text-surface-muted-fg hover:text-brand-primary hover:underline"
+            >
+              {copiedId === ws.id ? "copiado ✓" : ws.id}
+            </button>
+            <span className="text-surface-fg">{ws.name}</span>
+            <span className="text-xs text-surface-muted-fg">· {ws.role}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

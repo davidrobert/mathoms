@@ -139,6 +139,17 @@ class MetricsResponse(BaseModel):
     generated_at: str
 
 
+class UserWorkspaceDTO(BaseModel):
+    id: str
+    name: str
+    role: str
+    created_at: datetime
+
+
+class AdminUserWorkspacesResponse(BaseModel):
+    workspaces: list[UserWorkspaceDTO]
+
+
 class ReportSummaryDTO(BaseModel):
     id: str
     workspace_id: str

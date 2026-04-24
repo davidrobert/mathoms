@@ -15,6 +15,7 @@ from backend.app.models.user import User
 from backend.app.schemas.admin import (
     AdminUserListResponse,
     AdminUserSummary,
+    AdminUserWorkspacesResponse,
     AnonymizeUserRequest,
     AnonymizeUserResponse,
     HardDeleteUserRequest,
@@ -27,10 +28,12 @@ from backend.app.schemas.admin import (
     UpdateUserEmailResponse,
     UpdateUserProfileRequest,
     UpdateUserProfileResponse,
+    UserWorkspaceDTO,
 )
 from backend.app.services.internal_ops import (
     anonymize_user,
     hard_delete_user,
+    list_user_workspaces,
     reset_password,
     set_developer_flag,
     update_user_email,
@@ -182,4 +185,23 @@ async def patch_profile(
         user_id=result.details["user_id"],
         changed=result.details["changed"],
         fields=list(result.details.get("fields", [])),
+    )
+
+
+@router.get("/{user_id}/workspaces", response_model=AdminUserWorkspacesResponse)
+async def list_workspaces(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: InternalOpsPrincipal = Depends(require_internal_operator),
+) -> AdminUserWorkspacesResponse:
+    """Workspaces onde o usuário é owner ou membro (read-only)."""
+    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user_not_found")
+    ws = await list_user_workspaces(db, user_id)
+    return AdminUserWorkspacesResponse(
+        workspaces=[
+            UserWorkspaceDTO(id=w.id, name=w.name, role=w.role, created_at=w.created_at)
+            for w in ws
+        ]
     )

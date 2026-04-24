@@ -17,6 +17,10 @@ from backend.app.services.internal_ops.list_reports import (
     ReportSummary,
     list_reports,
 )
+from backend.app.services.internal_ops.list_user_workspaces import (
+    UserWorkspaceSummary,
+    list_user_workspaces,
+)
 from backend.app.services.internal_ops.metrics import MetricsSnapshot, get_metrics
 from backend.app.services.internal_ops.purge_documents import (
     PurgeScope,
@@ -51,4 +55,6 @@ __all__ = [
     "list_reports",
     "ListReportsFilter",
     "ReportSummary",
+    "list_user_workspaces",
+    "UserWorkspaceSummary",
 ]
