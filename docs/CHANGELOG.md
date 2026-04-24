@@ -9,12 +9,12 @@
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
 **Report Premium UI** (paridade visual com `EXEMPLO_DE_RELATORIO.html`).
 
-- **Report Premium UI — Fases 0-9 mergedas em `main` (2026-04-24 · ADR-117/
+- **Report Premium UI — Fases 0-10 mergedas em `main` (2026-04-24 · ADR-117/
   121/122/123/124):** migração do relatório nativo para paridade visual
   com `EXEMPLO_DE_RELATORIO.html`. Plano e status tracker em
   [REPORT_PREMIUM_PLAN.md](REPORT_PREMIUM_PLAN.md); gaps na Fase 0 em
-  [REPORT_PREMIUM_GAPS.md](REPORT_PREMIUM_GAPS.md). **9 das 13 fases**
-  concluídas (falta 10 Apêndices → 11 SSR export → 12 Polish → 13
+  [REPORT_PREMIUM_GAPS.md](REPORT_PREMIUM_GAPS.md). **10 das 13 fases**
+  concluídas (falta 11 `e6_render.py` paridade → 12 Polish → 13
   Rollout).
   - **F0 Discovery & gaps** (`0f7ddeb..07c44fa`) — plan + inventário +
     ADRs 117/121/122/123/124 emitidas.
@@ -74,13 +74,28 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
   - **F9 Seções USA U1-U4** (`9d5fbce`) — mesmo padrão F7 aplicado:
     `<SectionSummary>` + fallback; U1/U2/U4 passam `fallbackConclusion`
     ao `NarrativeChartCard`. 6 tests.
+  - **F10 Apêndices A-E** (`c63497d`, `78f9193`, `5fc8cc4`, `31f72cd`) —
+    APP_A refatorado para padrão Fase 7 (recebe `data` opcional +
+    `<SectionSummary>` com fallback). APP_B (Premissas e Metodologia)
+    lista `goals.premissas_snapshot` + card estático com
+    Perini/Cerbasi/AUVP/Score Mathoms. APP_C (Cenários Alternativos)
+    renderiza `cenarios_mariana` e `programa_milhas` com empty state
+    positivo. APP_D (Referências e Fontes) combina metodologias de
+    referência + lineage do relatório (`_report_lineage`). APP_E
+    (Próximos Ciclos) consome `narrativas.changelog` via `ChangelogList`
+    primitivo. YAML `appendices:` B-E flipado para `enabled: true`,
+    codegen TS/Pydantic regenerado. `ReportShell` dispatcher estendido.
+    10 tests novos em `apendices.test.tsx` cobrindo fallback, render
+    com dados e empty state para cada apêndice.
   - **Gates verdes em cada fase:** `vitest run` (suite cresceu para
-    504 tests — 2 falhas pré-existentes em `MonetaryValue compact`
-    independem destas mudanças), `tsc --noEmit` (zero novos erros
-    em arquivos tocados), `pytest backend/tests/test_reports_collab_api.py`
-    (10/10), `pre-commit run --files …`, drift check zero antes de
-    cada push. **Fase 10 (Apêndices A-E)** é a próxima (refator APP_A +
-    cria B/C/D/E + fix `MIGRATED_SECTIONS` + habilita no YAML).
+    520+ tests — falhas pré-existentes em `MonetaryValue compact` e
+    `ReportShell > renderiza header` independem destas mudanças),
+    `tsc --noEmit` (zero novos erros em arquivos tocados),
+    `pytest backend/tests/test_reports_collab_api.py` (10/10),
+    `pre-commit run --files …`, drift check zero antes de cada push.
+    **Fase 11 (`e6_render.py` paridade · ADR-124)** é a próxima —
+    reescrever o exportador HTML standalone com Jinja2 +
+    design tokens para paridade visual com a rota `/reports/[id]`.
 
 - **F7F-Local MVP fechado (2026-04-24 · ADR-116):** console interno em
   `127.0.0.1` pronto para dev/staging. 3 slices mergeados em `main`:

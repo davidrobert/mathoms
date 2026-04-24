@@ -6,7 +6,7 @@
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
 >
-> **Última atualização:** 2026-04-24 (Report Premium UI — 9/13 fases entregues em main: F0 discovery → F9 seções USA. Próxima: Fase 10 Apêndices A-E. Ver lane dedicada abaixo. · F7F-Local MVP fechado · A6e.4 ✅ fase 4a completa 14/14.)
+> **Última atualização:** 2026-04-24 (Report Premium UI — 10/13 fases entregues em main: F0 discovery → F10 apêndices. Próxima: Fase 11 `e6_render.py` paridade (ADR-124). Ver lane dedicada abaixo. · F7F-Local MVP fechado · A6e.4 ✅ fase 4a completa 14/14.)
 
 ---
 
@@ -21,7 +21,7 @@
   - [Ondas paralelas — mapa de dependências](#ondas-paralelas--mapa-de-dependências)
 - [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
 - [F7F — Console interno (operadores)](#f7f--console-interno-operadores) — dividido em **F7F-Local** (UI web em `127.0.0.1`, sem OAuth, pré-produção) e **F7F-Remote** (`ops.mathoms.ai` com OAuth staff + RBAC + telemetria, produção)
-- [Report Premium UI — Paridade com EXEMPLO_DE_RELATORIO.html](#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ← **9/13 fases entregues**
+- [Report Premium UI — Paridade com EXEMPLO_DE_RELATORIO.html](#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ← **10/13 fases entregues**
 - [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
 - [F8 — Growth (Futuro)](#f8--growth-futuro)
 
@@ -1321,8 +1321,8 @@ lógicos — a defesa é app-level + audit + retenção.
 > Objetivo: migrar `/reports/[id]` e o standalone do relatório para o
 > nível visual do `EXEMPLO_DE_RELATORIO.html` (10k linhas, raiz do repo).
 > Cross-cutting de frontend + backend (colaboração Notas/Kanban) + design
-> tokens + pipeline (derivadores). **9 de 13 fases entregues em
-> 2026-04-24.** Próxima fase: **10 (Apêndices A-E)**.
+> tokens + pipeline (derivadores). **10 de 13 fases entregues em
+> 2026-04-24.** Próxima fase: **11 (`e6_render.py` paridade — ADR-124)**.
 
 | Fase | Entrega | Status | Commits principais |
 | --- | --- | --- | --- |
@@ -1337,8 +1337,8 @@ lógicos — a defesa é app-level + audit + retenção.
 | 7 | S1-S10 wired com SectionSummary + Chart fallbacks | ✅ 2026-04-24 | `0f4663a`, `073db70`, `44468ec` |
 | 8 | T3/T5/T6 wired com API reports_collab | ✅ 2026-04-24 | `ac6fa81`, `dbc1195`, `a2f8843` |
 | 9 | U1-U4 wired com SectionSummary + Chart fallbacks | ✅ 2026-04-24 | `9d5fbce` |
-| 10 | Apêndices A-E + fix `MIGRATED_SECTIONS` | ☐ **próxima** | — |
-| 11 | Standalone via SSR (aposenta `e6_render.py` — ADR-124) | ☐ | depende de 7/8/9/10 |
+| 10 | Apêndices A-E + fix `MIGRATED_SECTIONS` | ✅ 2026-04-24 | `c63497d`, `78f9193`, `5fc8cc4`, `31f72cd` |
+| 11 | `e6_render.py` paridade (Jinja2 + tokens — ADR-124) | ☐ **próxima** | depende de 7/8/9/10 |
 | 12 | Print + a11y + Playwright screenshots + axe-core | ☐ | depende de 11 |
 | 13 | Rollout + CHANGELOG + RUNBOOK + delete `e6_render.py` | ☐ | depende de 12 |
 

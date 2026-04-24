@@ -172,8 +172,8 @@ Cada fase = branch própria + PR próprio + merge antes de iniciar a próxima. F
 | 7 | Sections estratégicas | `phase7-sections-strategic` | S1–S4, S7–S10 repaginadas | 2, 3, 4, 6 | ✅ 2026-04-24 |
 | 8 | Sections táticas + Kanban + Notas | `phase8-sections-tactical` | T3/T5/T6 consumindo endpoints 6.5 + HTTP client | 2, 3, 4, 6, 6.5 | ✅ 2026-04-24 |
 | 9 | Sections USA | `phase9-sections-usa` | U1–U4 | 2, 3, 4, 6 | ✅ 2026-04-24 |
-| 10 | Apêndices A–E (+ fix `MIGRATED_SECTIONS`) | `phase10-appendices` | APP_A refatorado + B/C/D/E novos + router unificado | 5 | ☐ **próxima** |
-| 11 | Standalone via SSR (aposenta `e6_render.py` — ADR-124) | `phase11-ssr-export` | Rota `/reports/[id]/export` + endpoint proxy + V-checks via Playwright | 7, 8, 9, 10 | ☐ |
+| 10 | Apêndices A–E (+ fix `MIGRATED_SECTIONS`) | `phase10-appendices` | APP_A refatorado + B/C/D/E novos + router unificado | 5 | ✅ 2026-04-24 |
+| 11 | `e6_render.py` paridade (Jinja2 + tokens — ADR-124) | `phase11-e6-parity` | Reescrever exportador standalone com templates Jinja2 + CSS tokens; 19 V-checks verdes | 7, 8, 9, 10 | ☐ **próxima** |
 | 12 | Print + a11y + tests | `phase12-polish` | Print CSS, Playwright screenshots, axe-core | 11 | ☐ |
 | 13 | Rollout & docs | `phase13-rollout` | CHANGELOG, RUNBOOK, delete `scripts/e6_render.py` | 12 | ☐ |
 
