@@ -19,6 +19,7 @@ import type {
   ScoreData,
   FluxoCaixaSummary,
 } from "@/types/report-analysis";
+import { deriveChartConclusion } from "../utils/conclusionUtils";
 
 interface S1Props {
   data: ReportAnalysisData;
@@ -41,7 +42,9 @@ export function S1PatrimonioSection({ data }: S1Props) {
     | Record<string, { context?: string; conclusion?: string }>
     | undefined;
 
-  const getConclusion = (id: string) => narrativas?.[id]?.conclusion;
+  /** ADR-117/122 — narrativa explícita do E5.N > fallback determinístico da Fase 6. */
+  const getConclusion = (id: string): string | undefined =>
+    narrativas?.[id]?.conclusion ?? deriveChartConclusion(id, data) ?? undefined;
 
   return (
     <ReportSection id="S1" title="Patrimônio — Estrutura e Composição">

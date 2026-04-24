@@ -18,6 +18,7 @@ import type {
   DiagnosticoComportamental,
   EquilibrioCerbasiData,
 } from "@/types/report-analysis";
+import { deriveChartConclusion } from "../utils/conclusionUtils";
 
 /** F9 · F2.B — Seção S2 (Fluxo de Caixa — Receitas e Despesas).
  *
@@ -47,7 +48,8 @@ export function S2FluxoCaixaSection({
     | Record<string, { context?: string; conclusion?: string }>
     | undefined;
 
-  const getConclusion = (id: string) => narrativas?.[id]?.conclusion;
+  const getConclusion = (id: string): string | undefined =>
+    narrativas?.[id]?.conclusion ?? deriveChartConclusion(id, data) ?? undefined;
 
   return (
     <ReportSection id="S2" title="Fluxo de Caixa — Receitas e Despesas">

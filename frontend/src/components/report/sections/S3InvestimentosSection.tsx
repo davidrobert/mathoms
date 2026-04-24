@@ -15,6 +15,7 @@ import {
   type ContrafluxoData,
 } from "../cards/ContrafluxoCard";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
+import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 
 interface InvestimentosBlock extends InvestimentosClasseData {
@@ -50,17 +51,29 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
         title="Alocação Atual"
         narratives={charts}
         size="half"
+        fallbackConclusion={deriveChartConclusion("alocacao_atual", data)}
       />
       <NarrativeChartCard
         chartId="alocacao_alvo"
         title="Alocação Alvo"
         narratives={charts}
         size="half"
+        fallbackConclusion={deriveChartConclusion("alocacao_alvo", data)}
       />
 
       {/* Demais charts — full width */}
-      <NarrativeChartCard chartId="top15_ativos" title="Top 15 Ativos Financeiros" narratives={charts} />
-      <NarrativeChartCard chartId="mariana_cenarios" title="Cenários IF — Cônjuge" narratives={charts} />
+      <NarrativeChartCard
+        chartId="top15_ativos"
+        title="Top 15 Ativos Financeiros"
+        narratives={charts}
+        fallbackConclusion={deriveChartConclusion("top15_ativos", data)}
+      />
+      <NarrativeChartCard
+        chartId="mariana_cenarios"
+        title="Cenários IF — Cônjuge"
+        narratives={charts}
+        fallbackConclusion={deriveChartConclusion("mariana_cenarios", data)}
+      />
 
       <div className="md:col-span-2">
         <InvestimentosClasseCard investimentos={inv} />
