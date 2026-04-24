@@ -57,6 +57,16 @@ import {
   T5ProximosPassosSection,
   T6NotasSection,
 } from "./sections/TaticoSections";
+import {
+  ReportCover,
+  ReportTopNav,
+  FloatingNav,
+  SkipNav,
+  ExportToolbar,
+  type CoverMeta,
+  type NavGroup,
+} from "./shell";
+import { useReportFontScale } from "./useReportFontScale";
 
 /** Todas as seções de todos os modos estão migradas (F2.A–H + Fase D). */
 const MIGRATED_SECTIONS = new Set([
@@ -87,6 +97,83 @@ function selectSections(mode: "estrategico" | "tatico" | "usa"): SectionSpec[] {
   if (mode === "estrategico") return LAYOUT.estrategico.sections;
   if (mode === "tatico") return LAYOUT.tatico.sections;
   return LAYOUT.usa.sections;
+}
+
+/** Converte o LAYOUT em grupos de nav por modo (ADR-117 · Fase 4). */
+function buildNavGroups(): {
+  estrategico: NavGroup[];
+  tatico: NavGroup[];
+  usa: NavGroup[];
+} {
+  const strategic = LAYOUT.estrategico.sections.filter((s) => s.enabled);
+  const strategicOverview = strategic.filter((s) =>
+    ["S1", "S2", "S3"].includes(s.id),
+  );
+  const strategicDetail = strategic.filter(
+    (s) => !["S1", "S2", "S3", "S10"].includes(s.id),
+  );
+  const strategicSynthesis = strategic.filter((s) => s.id === "S10");
+  const appendices = (LAYOUT.estrategico.appendices ?? []).filter((a) => a.enabled);
+
+  return {
+    estrategico: [
+      {
+        label: "Visão geral",
+        links: strategicOverview.map((s, i) => ({
+          id: s.id,
+          label: s.title,
+          num: String(i + 1),
+        })),
+      },
+      {
+        label: "Detalhes",
+        links: strategicDetail.map((s) => ({
+          id: s.id,
+          label: s.title,
+          num: s.id.replace(/^S/, ""),
+        })),
+      },
+      {
+        label: "Síntese",
+        links: strategicSynthesis.map((s) => ({
+          id: s.id,
+          label: s.title,
+          num: "10",
+        })),
+      },
+      {
+        label: "Apêndices",
+        links: appendices.map((a) => ({
+          id: a.id,
+          label: a.title,
+          num: a.id.replace(/^APP_/, ""),
+          isAppendix: true,
+        })),
+      },
+    ],
+    tatico: [
+      {
+        links: LAYOUT.tatico.sections
+          .filter((s) => s.enabled)
+          .map((s) => ({
+            id: s.id,
+            label: s.title,
+            num: s.id,
+          })),
+      },
+    ],
+    usa: [
+      {
+        links: LAYOUT.usa.sections
+          .filter((s) => s.enabled)
+          .map((s) => ({
+            id: s.id,
+            label: s.title,
+            num: s.id,
+          })),
+      },
+    ],
+  };
 }
 
 /** F9 · F1.1 — Shell nativo do relatório.
@@ -138,8 +225,35 @@ export function ReportShell({
     [enabledSections],
   );
 
+  const navGroups = useMemo(buildNavGroups, []);
+
+  const { scale: fontScale } = useReportFontScale();
+
+  const coverMeta = useMemo<CoverMeta[]>(() => {
+    if (dataState.status !== "success") return [];
+    const generated = new Date(reportCreatedAt).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+    return [
+      { label: "Período analisado", value: reportPeriod ?? "—" },
+      { label: "Gerado em", value: generated },
+      {
+        label: "Documentos",
+        value: sourceDocumentCount ?? "—",
+      },
+      { label: "Versão", value: "Premium" },
+    ];
+  }, [dataState.status, reportPeriod, reportCreatedAt, sourceDocumentCount]);
+
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col lg:h-screen">
+    <div
+      className="flex h-[calc(100vh-3.5rem)] flex-col lg:h-screen"
+      data-report-scope
+      data-font-scale={fontScale}
+    >
+      <SkipNav targetId="report-main" />
       <ReportHeader
         reportId={reportId}
         title={displayTitle}
@@ -155,10 +269,32 @@ export function ReportShell({
         sourceDocumentCount={sourceDocumentCount}
       />
 
-      <div className="flex flex-1 overflow-hidden">
-        {sidebarOpen && <ReportToc sections={tocEntries} />}
+      <ReportTopNav
+        groupsByMode={navGroups}
+        brand={
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          >
+            Mathoms
+          </span>
+        }
+      />
 
-        <main className="relative flex-1 overflow-y-auto bg-[var(--surface-background)]">
+      <div className="flex flex-1 overflow-hidden">
+        {sidebarOpen && (
+          <div className="hidden md:block">
+            <ReportToc sections={tocEntries} />
+          </div>
+        )}
+
+        <main
+          id="report-main"
+          className="relative flex-1 overflow-y-auto bg-[var(--surface-background)]"
+        >
           {dataState.status === "loading" && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--surface-background)]/80">
               <Spinner size="lg" />
@@ -186,6 +322,19 @@ export function ReportShell({
           )}
 
           {dataState.status === "success" && (
+            <>
+              {mode === "estrategico" && (
+                <ReportCover
+                  badge="Relatório Premium"
+                  title={displayTitle}
+                  subtitle={
+                    analysisPeriodFromSnapshot
+                      ? `Análise do período ${analysisPeriodFromSnapshot}`
+                      : undefined
+                  }
+                  meta={coverMeta}
+                />
+              )}
             <article
               className="mx-auto max-w-[960px] px-6 py-8 font-body text-[var(--surface-foreground)]"
               data-report-mode={mode}
@@ -251,9 +400,12 @@ export function ReportShell({
                     ) : null,
                   )}
             </article>
+            <ExportToolbar />
+            </>
           )}
         </main>
       </div>
+      <FloatingNav />
     </div>
   );
 }
