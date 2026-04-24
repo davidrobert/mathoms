@@ -12,15 +12,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _load_json_file(path) -> str:
-    """Load a JSON file and return its content as formatted string, or empty placeholder."""
-    if path.exists():
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            return json.dumps(data, ensure_ascii=False, indent=2)[:60_000]
-        except (json.JSONDecodeError, OSError) as exc:
-            logger.warning("E7-review: could not load %s: %s", path, exc)
-    return "{}"
+def _load_json_file(data: dict | None) -> str:
+    """Serialize an artifact dict to JSON string, or empty placeholder when absent."""
+    if data is None:
+        return "{}"
+    return json.dumps(data, ensure_ascii=False, indent=2)[:60_000]
 
 
 # Chaves do E5 que importam para o review holístico.
@@ -82,16 +78,12 @@ def _build_compact_e5(e5_data: dict) -> dict:
     return compact
 
 
-def _load_e5_compact(path) -> str:
-    """Load E5 JSON and return a compact projection as JSON string."""
-    if path.exists():
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            compact = _build_compact_e5(data)
-            return json.dumps(compact, ensure_ascii=False, indent=2)
-        except (json.JSONDecodeError, OSError) as exc:
-            logger.warning("E7-review: could not load %s: %s", path, exc)
-    return "{}"
+def _load_e5_compact(data: dict | None) -> str:
+    """Project the E5 artifact to its compact form and serialize it."""
+    if data is None:
+        return "{}"
+    compact = _build_compact_e5(data)
+    return json.dumps(compact, ensure_ascii=False, indent=2)
 
 
 def _output_to_review_json(output) -> dict:
