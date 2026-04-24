@@ -16,6 +16,13 @@ from backend.app.models.pipeline_run import (
     PipelineStageStatus,
 )
 from backend.app.models.report import Report
+from backend.app.models.report_collab import (
+    VALID_COLUNA,
+    VALID_ESSENCIAL,
+    VALID_PRIORIDADE,
+    KanbanItem,
+    ReportNotes,
+)
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.models.task import (
     VALID_CATEGORIES,
@@ -84,4 +91,9 @@ __all__ = [
     "Notification",
     "AuditLog",
     "PipelineArtifact",
+    "ReportNotes",
+    "KanbanItem",
+    "VALID_PRIORIDADE",
+    "VALID_COLUNA",
+    "VALID_ESSENCIAL",
 ]
