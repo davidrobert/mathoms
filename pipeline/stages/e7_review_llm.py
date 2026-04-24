@@ -146,16 +146,20 @@ def run(ctx: WorkspaceContext) -> dict:
     if not llm_config_data or not llm_config_data.get("api_key"):
         return {"skipped": True, "reason": "No LLM config — free tier"}
 
-    e5_path = ctx.e5_dir / "analise_financeira-5_analysis.json"
-    if not e5_path.exists():
+    store = ctx.get_artifact_store()
+    e5_data = store.read("E5", "analise_financeira")
+    if e5_data is None:
         return {"skipped": True, "reason": "E5 analysis not found — run E5 first"}
 
-    e5_json = _load_e5_compact(e5_path)
+    e5_json = _load_e5_compact(e5_data)
 
-    crossval_files = list(ctx.e7_dir.glob("*crossval*")) if ctx.e7_dir.exists() else []
-    e7_crossval_json = "{}"
-    if crossval_files:
-        e7_crossval_json = _load_json_file(crossval_files[0])
+    # E7-crossval writer ainda não grava via ArtifactStore (escopo de outra
+    # migração). list_keys fica vazio hoje → fallback "{}" preserva o
+    # comportamento do glob legado. Quando o writer migrar, a primeira chave
+    # alfabética passa a ser lida automaticamente.
+    crossval_keys = store.list_keys("E7-crossval")
+    crossval_data = store.read("E7-crossval", crossval_keys[0]) if crossval_keys else None
+    e7_crossval_json = _load_json_file(crossval_data)
 
     family_config = ctx.load_config("family_members.json")
     family_config_str = (
@@ -186,9 +190,7 @@ def run(ctx: WorkspaceContext) -> dict:
     output: E7ReviewOutput = result.output
     review_json = _output_to_review_json(output)
 
-    ctx.e7_dir.mkdir(parents=True, exist_ok=True)
-    out_path = ctx.e7_dir / "review_llm-7_review.json"
-    out_path.write_text(json.dumps(review_json, ensure_ascii=False, indent=2), encoding="utf-8")
+    store.write("E7-review", "review_llm", review_json)
 
     logger.info(
         "E7-review: %d insights, %d recommendations, risk=%s, confidence=%.2f",
@@ -205,7 +207,7 @@ def run(ctx: WorkspaceContext) -> dict:
         "score_adjustments": len(output.score_adjustments),
         "risk_level": output.risk_level,
         "confidence": output.confidence,
-        "output_file": out_path.name,
+        "output_file": "review_llm-7_review.json",
         "tokens": {"in": result.tokens_in, "out": result.tokens_out},
         "cost_usd": result.cost_estimate_usd,
     }
