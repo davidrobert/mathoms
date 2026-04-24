@@ -5,8 +5,11 @@
 > **Referência atual:** `frontend/src/components/report/**`, `scripts/e6_render.py`,
 > `design-tokens/tokens.json`, `config/report_layout.yaml`.
 > **Data de emissão:** 2026-04-23.
-> **Status da Fase 0:** CONCLUÍDA — ver [REPORT_PREMIUM_GAPS.md](REPORT_PREMIUM_GAPS.md)
-> e ADRs 117, 121–124. Deltas aplicados abaixo.
+> **Última revisão de status:** 2026-04-24.
+> **Status geral:** 9 de 13 fases entregues em `main` — Fases 0-9.
+> **Próxima fase:** 10 (Apêndices A-E + fix `MIGRATED_SECTIONS`).
+> Detalhes de cada fase na [tabela do §2](#2-roadmap-de-fases-visão-geral) e
+> em [BACKLOG.md — Report Premium UI](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
 
 ---
 
@@ -156,23 +159,29 @@ Saída esperada dessa pausa: decisões registradas em `docs/DECISIONS.md` como n
 
 Cada fase = branch própria + PR próprio + merge antes de iniciar a próxima. Fases 3–7 podem paralelizar entre agentes diferentes se houver capacidade (ver §11).
 
-| Fase | Nome | Branch suffix | Saída | Depende de |
-|------|------|---------------|-------|------------|
-| 0 | Discovery & gaps | `phase0-discovery` | `REPORT_PREMIUM_GAPS.md` + ADR | — |
-| 1 | Design tokens + dark mode | `phase1-tokens` | `tokens.json` expandido, CSS regenerado | 0 |
-| 2 | Chart.js foundation | `phase2-charts` | Componentes `ChartBar/Donut/Area/Gauge/Combo/Stacked` + `PeriodToggle` + `ChartConclusion` | 1 |
-| 3 | UI primitives | `phase3-primitives` | Card variants, Alert, Badge, SectionDivider, IconBadge, KpiHero, ScoreCard, PontoForteItem | 1 |
-| 4 | Shell: cover + topnav + toolbar | `phase4-shell` | `ReportCover`, `ReportTopNav`, `ModeToggle`, `ThemeToggle`, `BackToTop`, `ExportToolbar`, `SkipNav` | 3 |
-| 5 | Layout YAML expansion | `phase5-layout` | `report_layout.yaml` atualizado + codegen TS/py | 0 |
-| 6 | Pipeline E5 — campos novos (extensões + primeira LLM em E5) | `phase6-e5-data` | Novos campos em `ReportAnalysisData` + prompts híbridos (ADR-122) + testes golden | 0, 5 |
-| 6.5 | Backend persistence — Notas + Kanban (ADR-123) | `phase6_5-persistence` | 2 tabelas Alembic + 4 endpoints REST + OpenAPI snapshot | 0 |
-| 7 | Sections estratégicas | `phase7-sections-strategic` | S1–S4, S7–S10 repaginadas | 2, 3, 4, 6 |
-| 8 | Sections táticas + Kanban + Notas | `phase8-sections-tactical` | T1–T6 consumindo endpoints 6.5 | 2, 3, 4, 6, 6.5 |
-| 9 | Sections USA | `phase9-sections-usa` | U1–U4 | 2, 3, 4, 6 |
-| 10 | Apêndices A–E (+ fix `MIGRATED_SECTIONS`) | `phase10-appendices` | APP_A refatorado + B/C/D/E novos + router unificado | 5 |
-| 11 | Standalone via SSR (aposenta `e6_render.py` — ADR-124) | `phase11-ssr-export` | Rota `/reports/[id]/export` + endpoint proxy + V-checks via Playwright | 7, 8, 9, 10 |
-| 12 | Print + a11y + tests | `phase12-polish` | Print CSS, Playwright screenshots, axe-core | 11 |
-| 13 | Rollout & docs | `phase13-rollout` | CHANGELOG, RUNBOOK, delete `scripts/e6_render.py` | 12 |
+| Fase | Nome | Branch suffix | Saída | Depende de | Status |
+|------|------|---------------|-------|------------|--------|
+| 0 | Discovery & gaps | `phase0-discovery` | `REPORT_PREMIUM_GAPS.md` + ADR | — | ✅ 2026-04-24 |
+| 1 | Design tokens + dark mode | `phase1-tokens` | `tokens.json` expandido, CSS regenerado | 0 | ✅ 2026-04-24 |
+| 2 | Chart.js foundation | `phase2-charts` | Componentes `ChartBar/Donut/Area/Gauge/Combo/Stacked` + `PeriodToggle` + `ChartConclusion` | 1 | ✅ 2026-04-24 |
+| 3 | UI primitives | `phase3-primitives` | Card variants, Alert, Badge, SectionDivider, IconBadge, KpiHero, ScoreCard, PontoForteItem | 1 | ✅ 2026-04-24 |
+| 4 | Shell: cover + topnav + toolbar | `phase4-shell` | `ReportCover`, `ReportTopNav`, `ModeToggle`, `ThemeToggle`, `BackToTop`, `ExportToolbar`, `SkipNav` | 3 | ✅ 2026-04-24 |
+| 5 | Layout YAML expansion | `phase5-layout` | `report_layout.yaml` atualizado + codegen TS/py | 0 | ✅ 2026-04-24 |
+| 6 | Derivadores determinísticos (chart_conclusions + section_summaries + adapters) ¹ | `phase6-e5-data` | `deriveChartConclusion`, `deriveSectionSummary`, adapters Kanban/Timeline | 0, 5 | ✅ 2026-04-24 |
+| 6.5 | Backend persistence — Notas + Kanban (ADR-123) | `phase6_5-persistence` | 2 tabelas Alembic + 6 endpoints REST + OpenAPI snapshot | 0 | ✅ 2026-04-24 |
+| 7 | Sections estratégicas | `phase7-sections-strategic` | S1–S4, S7–S10 repaginadas | 2, 3, 4, 6 | ✅ 2026-04-24 |
+| 8 | Sections táticas + Kanban + Notas | `phase8-sections-tactical` | T3/T5/T6 consumindo endpoints 6.5 + HTTP client | 2, 3, 4, 6, 6.5 | ✅ 2026-04-24 |
+| 9 | Sections USA | `phase9-sections-usa` | U1–U4 | 2, 3, 4, 6 | ✅ 2026-04-24 |
+| 10 | Apêndices A–E (+ fix `MIGRATED_SECTIONS`) | `phase10-appendices` | APP_A refatorado + B/C/D/E novos + router unificado | 5 | ☐ **próxima** |
+| 11 | Standalone via SSR (aposenta `e6_render.py` — ADR-124) | `phase11-ssr-export` | Rota `/reports/[id]/export` + endpoint proxy + V-checks via Playwright | 7, 8, 9, 10 | ☐ |
+| 12 | Print + a11y + tests | `phase12-polish` | Print CSS, Playwright screenshots, axe-core | 11 | ☐ |
+| 13 | Rollout & docs | `phase13-rollout` | CHANGELOG, RUNBOOK, delete `scripts/e6_render.py` | 12 | ☐ |
+
+¹ **Fase 6 redimensionada conforme Delta #1** — `financial_score_calculator`,
+`pontos_fortes_analyzer`, `if_projector`, `ratios_calculator` já existiam em
+`pipeline/domain/services/`. Entrega virou derivadores frontend-side
+determinísticos + templates YAML, sem primeiro uso de Anthropic em E5
+(LLM para `section_summaries` adiado — revisar pós-Fase 12).
 
 Estimativa total (um agente, serial): **10–14 sprints equivalentes**. Paralelizando Fases 3/5/6 e depois 7/8/9, o caminho crítico cai para ~7–9 sprints.
 

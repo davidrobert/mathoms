@@ -6,7 +6,7 @@
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
 >
-> **Última atualização:** 2026-04-22 (A6e.4 ✅ **fechada** — fase 4a completa 14/14 com slices 11-17: invitations/ws/llm/transactions/reports/workspaces/pipeline. THIN_ROUTERS sobe de 12 → 19 (17 routers + /me + ws). 7 novos aggregates em application layer.)
+> **Última atualização:** 2026-04-24 (Report Premium UI — 9/13 fases entregues em main: F0 discovery → F9 seções USA. Próxima: Fase 10 Apêndices A-E. Ver lane dedicada abaixo. · F7F-Local MVP fechado · A6e.4 ✅ fase 4a completa 14/14.)
 
 ---
 
@@ -21,6 +21,7 @@
   - [Ondas paralelas — mapa de dependências](#ondas-paralelas--mapa-de-dependências)
 - [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
 - [F7F — Console interno (operadores)](#f7f--console-interno-operadores) — dividido em **F7F-Local** (UI web em `127.0.0.1`, sem OAuth, pré-produção) e **F7F-Remote** (`ops.mathoms.ai` com OAuth staff + RBAC + telemetria, produção)
+- [Report Premium UI — Paridade com EXEMPLO_DE_RELATORIO.html](#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ← **9/13 fases entregues**
 - [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
 - [F8 — Growth (Futuro)](#f8--growth-futuro)
 
@@ -1308,6 +1309,58 @@ lógicos — a defesa é app-level + audit + retenção.
 **Checkpoint F7F-Remote (IA-3 CS Lite, pré-beta):** 7F.6–7F.7 concluídos • support bundle redigido testado em incidente real • time de CS triado ≥1 ticket sem escalar para engenharia.
 
 **Checkpoint F7F-Remote (IA-4 Financeiro/Legal, pós-billing):** 7F.8 + fila DSAR (7B.18) integrada no console • export CSV contábil validado com contador externo.
+
+---
+
+## Report Premium UI — Paridade com EXEMPLO_DE_RELATORIO.html
+
+> Plano completo: [REPORT_PREMIUM_PLAN.md](REPORT_PREMIUM_PLAN.md) · Gaps
+> inventariados: [REPORT_PREMIUM_GAPS.md](REPORT_PREMIUM_GAPS.md) · ADRs:
+> 117, 121, 122, 123, 124 em [DECISIONS.md](DECISIONS.md).
+>
+> Objetivo: migrar `/reports/[id]` e o standalone do relatório para o
+> nível visual do `EXEMPLO_DE_RELATORIO.html` (10k linhas, raiz do repo).
+> Cross-cutting de frontend + backend (colaboração Notas/Kanban) + design
+> tokens + pipeline (derivadores). **9 de 13 fases entregues em
+> 2026-04-24.** Próxima fase: **10 (Apêndices A-E)**.
+
+| Fase | Entrega | Status | Commits principais |
+| --- | --- | --- | --- |
+| 0 | Discovery + gaps + ADRs 117/121/122/123/124 | ✅ 2026-04-24 | `0f7ddeb`, `4512e35`, `07c44fa`, `52a652a` |
+| 1 | Design tokens + dark mode + typography scope 13px | ✅ 2026-04-24 | `e634173`, `a2123e2`, `6f7c7a9` |
+| 2 | Chart.js foundation (9 primitivos + playground) | ✅ 2026-04-24 | `d8041e2`, `502d65f`, `31a44c7` |
+| 3 | UI primitives (19 componentes + 26 tests) | ✅ 2026-04-24 | `10179dd`, `1ae3475`, `144eb07`, `5c8e584`, `289fa57` |
+| 4 | Shell (Cover, TopNav, Toolbar, SkipNav, etc.) | ✅ 2026-04-24 | `6a09ff2`, `84a0187`, `bda1d17` |
+| 5 | Layout YAML expansion + codegen TS/Pydantic | ✅ 2026-04-24 | `0f2811f`, `91a2780`, `c3af835`, `8510cfa` |
+| 6 | Derivadores determinísticos (chart_conclusions + section_summaries + adapters) | ✅ 2026-04-24 | `7a8a46c`, `9c11749`, `eb29688` |
+| 6.5 | Backend persistence — Notas + Kanban (ADR-123) | ✅ 2026-04-24 | `2a1261f`, `c2fa932`, `2663ec3` |
+| 7 | S1-S10 wired com SectionSummary + Chart fallbacks | ✅ 2026-04-24 | `0f4663a`, `073db70`, `44468ec` |
+| 8 | T3/T5/T6 wired com API reports_collab | ✅ 2026-04-24 | `ac6fa81`, `dbc1195`, `a2f8843` |
+| 9 | U1-U4 wired com SectionSummary + Chart fallbacks | ✅ 2026-04-24 | `9d5fbce` |
+| 10 | Apêndices A-E + fix `MIGRATED_SECTIONS` | ☐ **próxima** | — |
+| 11 | Standalone via SSR (aposenta `e6_render.py` — ADR-124) | ☐ | depende de 7/8/9/10 |
+| 12 | Print + a11y + Playwright screenshots + axe-core | ☐ | depende de 11 |
+| 13 | Rollout + CHANGELOG + RUNBOOK + delete `e6_render.py` | ☐ | depende de 12 |
+
+**Pendências conhecidas (débito consciente):**
+
+- **DnD real em Kanban (F8):** `@dnd-kit/core` não foi adicionado —
+  primitivo usa botões de coluna. Ativar como sub-fase 8.1 opcional se
+  UX validar a demanda.
+- **LLM em E5 para `section_summaries` (F6):** adiado; hoje usamos
+  templates determinísticos em `deriveSectionSummary`. Q11 prevê
+  revisão após Fase 12.
+- **`comparisons` e `changelog`:** diferidos para v2 (Q6); declarados
+  `enabled: false` no YAML. Ativação pós-Fase 13 quando
+  `SnapshotChangelogBuilder` existir.
+- **2 testes `MonetaryValue compact` falham pré-existente** (ICU
+  renderiza "R$ 1,50 mi" vs regex esperando "1,5 mi") — não bloqueiam
+  e independem das fases; tratar em polish (Fase 12).
+
+**Checkpoint de saída:** relatório nativo `/reports/[id]` visualmente
+equivalente ao exemplo em dark/light + print; standalone (HTML offline)
+gerado pelo Next SSR sem depender do `e6_render.py` legado; Playwright
+valida os 19 V-checks; axe-core sem violações críticas.
 
 ---
 

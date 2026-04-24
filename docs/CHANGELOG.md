@@ -6,7 +6,81 @@
 
 ## [Unreleased]
 
-Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
+Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
+**Report Premium UI** (paridade visual com `EXEMPLO_DE_RELATORIO.html`).
+
+- **Report Premium UI — Fases 0-9 mergedas em `main` (2026-04-24 · ADR-117/
+  121/122/123/124):** migração do relatório nativo para paridade visual
+  com `EXEMPLO_DE_RELATORIO.html`. Plano e status tracker em
+  [REPORT_PREMIUM_PLAN.md](REPORT_PREMIUM_PLAN.md); gaps na Fase 0 em
+  [REPORT_PREMIUM_GAPS.md](REPORT_PREMIUM_GAPS.md). **9 das 13 fases**
+  concluídas (falta 10 Apêndices → 11 SSR export → 12 Polish → 13
+  Rollout).
+  - **F0 Discovery & gaps** (`0f7ddeb..07c44fa`) — plan + inventário +
+    ADRs 117/121/122/123/124 emitidas.
+  - **F1 Design tokens + dark mode** (`e634173`, `a2123e2`, `6f7c7a9`)
+    — `design-tokens/tokens.json` expandido; typography scope 13px
+    default + toggle (`ReportThemeToggle`, `useReportFontScale`);
+    paleta report.
+  - **F2 Chart.js foundation** (`d8041e2..502d65f..31a44c7`) — Chart.js
+    4 + react-chartjs-2 + datalabels; 9 primitivos em
+    `frontend/src/components/report/charts/primitives/` + `useChartTheme`
+    + `ChartConclusion` + `ChartNav` + playground `/reports/_dev/charts`.
+  - **F3 UI primitives** (`10179dd`, `1ae3475`, `144eb07`, `5c8e584`,
+    `289fa57`) — 19 primitives (`Alert`, `Badge`, `IconBadge`,
+    `SectionDivider`, família `Kpi*`, `ScoreCard`, `PontoForteItem`,
+    `Kanban`, `NotasCard`, `Timeline`, `ChangelogList`, badges de
+    Priority/Deadline/Effort) + playground `/reports/_dev/ui` + 26
+    tests Vitest.
+  - **F4 Shell** (`6a09ff2`, `84a0187`, `bda1d17`) — `ReportCover`
+    (hero gradient + meta), `ReportTopNav` (sticky + active link via
+    IntersectionObserver), `ModeToggle`, `FontScaleToggle`,
+    `FloatingNav`, `SkipNav`, `ExportToolbar`. Integrados em
+    `ReportShell` com `data-report-scope`. 9 Vitest tests.
+  - **F5 Layout YAML** (`0f2811f`, `91a2780`, `c3af835`, `8510cfa`) —
+    `config/report_layout.yaml` expandido: `cover:` / `navigation:` /
+    atributos `summary`/`divider_before`/`collapsible` por section,
+    `conclusion`/`period_toggle` por chart, `top_border` por card.
+    Apêndices B-E declarados `enabled: false` (até F10). Codegen TS
+    (`frontend/src/generated/report-layout.ts`) + Pydantic
+    (`backend/app/generated/report_layout.py`) sincronizados.
+  - **F6 Derivadores determinísticos** (`7a8a46c`, `9c11749`,
+    `eb29688`) — `deriveChartConclusion`, `deriveSectionSummary`,
+    `adaptTarefasToKanban`, `adaptProximos15dToTimeline`,
+    `priorityFromEffort`. Templates em
+    `config/prompts/chart_conclusions.yaml`. 20 tests de adapter. LLM
+    em E5 para `section_summaries` adiado (Q11 — revisar pós-F12).
+  - **F6.5 Backend persistence** (`2a1261f`, `c2fa932`, `2663ec3` ·
+    ADR-123) — tabelas `report_notes` + `kanban_items` via Alembic.
+    6 endpoints REST em `backend/app/api/reports_collab.py`
+    (GET/PUT `/notes`, GET/POST/PATCH/DELETE `/kanban`), schemas em
+    `backend/app/schemas/report_collab.py`, OpenAPI snapshot
+    atualizado, 10 tests pytest.
+  - **F7 Seções estratégicas S1-S10** (`0f4663a`, `073db70`, `44468ec`)
+    — cada seção renderiza `<SectionSummary>` com fallback derivado
+    (`deriveSectionSummary`) quando `narrativas[S*]` ausente.
+    `NarrativeChartCard` recebe `fallbackConclusion` via
+    `deriveChartConclusion`. S10 adota primitivo `ScoreCard`.
+  - **F8 Seções táticas + API wire-up** (`ac6fa81`, `dbc1195`,
+    `a2f8843` · ADR-123) — HTTP client em
+    `frontend/src/lib/api/reports.ts` (`getReportNotes`,
+    `putReportNotes`, `listKanbanItems`, `create/update/deleteKanbanItem`).
+    T3 TarefasSection consome kanban API + move otimista com rollback.
+    T6 NotasSection consome notes API com autosave (debounce 500ms
+    via primitivo). T5 ProximosPassos consome `adaptProximos15dToTimeline`.
+    `ReportShell` recebe `workspaceId` e repassa a T3/T6. 7 tests MSW.
+    DnD real com `@dnd-kit` **adiado** — primitivo usa botões de coluna
+    que cobrem o caso de uso imediato.
+  - **F9 Seções USA U1-U4** (`9d5fbce`) — mesmo padrão F7 aplicado:
+    `<SectionSummary>` + fallback; U1/U2/U4 passam `fallbackConclusion`
+    ao `NarrativeChartCard`. 6 tests.
+  - **Gates verdes em cada fase:** `vitest run` (suite cresceu para
+    504 tests — 2 falhas pré-existentes em `MonetaryValue compact`
+    independem destas mudanças), `tsc --noEmit` (zero novos erros
+    em arquivos tocados), `pytest backend/tests/test_reports_collab_api.py`
+    (10/10), `pre-commit run --files …`, drift check zero antes de
+    cada push. **Fase 10 (Apêndices A-E)** é a próxima (refator APP_A +
+    cria B/C/D/E + fix `MIGRATED_SECTIONS` + habilita no YAML).
 
 - **F7F-Local MVP fechado (2026-04-24 · ADR-116):** console interno em
   `127.0.0.1` pronto para dev/staging. 3 slices mergeados em `main`:
