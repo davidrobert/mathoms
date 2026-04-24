@@ -8,6 +8,7 @@ import {
 } from "../cards/PrevidenciaPgblCard";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 
 /** F9 · F2.E — Seção S7 (Independência Financeira). */
@@ -20,8 +21,18 @@ export function S7IndependenciaSection({ data }: { data: ReportAnalysisData }) {
   return (
     <ReportSection id="S7" title="Independência Financeira — Projeção de Longo Prazo">
       <SectionSummary narrativas={narrativas} sectionId="S7" />
-      <NarrativeChartCard chartId="projecao_3cenarios" title="Projeção Patrimonial — 3 Cenários" narratives={charts} />
-      <NarrativeChartCard chartId="renda_passiva" title="Renda Passiva — Progresso até a Meta" narratives={charts} />
+      <NarrativeChartCard
+        chartId="projecao_3cenarios"
+        title="Projeção Patrimonial — 3 Cenários"
+        narratives={charts}
+        fallbackConclusion={deriveChartConclusion("projecao_3cenarios", data)}
+      />
+      <NarrativeChartCard
+        chartId="renda_passiva"
+        title="Renda Passiva — Progresso até a Meta"
+        narratives={charts}
+        fallbackConclusion={deriveChartConclusion("renda_passiva", data)}
+      />
 
       {goals && (
         <div className="md:col-span-2 grid grid-cols-2 gap-4 md:grid-cols-4">
