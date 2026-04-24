@@ -22,17 +22,27 @@ export type CardSize = 'full' | 'half';
 
 export type ReportMode = 'estrategico' | 'tatico' | 'usa';
 
+export type TopBorder = 'danger' | 'accent';
+
+export type ChartHeight = number | 'auto';
+
 export interface CardSpec {
   id: string;
   enabled: boolean;
   variant?: CardVariant;
   size?: CardSize;
+  top_border?: TopBorder;
+  comparison_anchor_id?: string;
 }
 
 export interface ChartSpec {
   id: string;
   enabled: boolean;
   row?: string;
+  conclusion?: boolean;
+  context?: boolean;
+  period_toggle?: boolean;
+  height?: ChartHeight;
 }
 
 export interface SectionSpec {
@@ -42,18 +52,53 @@ export interface SectionSpec {
   charts?: ChartSpec[];
   cards?: CardSpec[];
   data_source?: string;
+  summary?: boolean;
+  divider_before?: boolean;
+  collapsible?: boolean;
 }
 
 export interface AppendixSpec {
   id: string;
   title: string;
   enabled: boolean;
+  charts?: ChartSpec[];
+  cards?: CardSpec[];
 }
 
 export interface KpiSpec {
   id: string;
   label: string;
   enabled: boolean;
+}
+
+export interface CoverMetaSpec {
+  label_key: string;
+  value_key?: string;
+}
+
+export interface CoverSpec {
+  enabled: boolean;
+  badge?: string;
+  title_key?: string;
+  subtitle_key?: string;
+  meta?: CoverMetaSpec[];
+}
+
+export interface NavLinkSpec {
+  section_id: string;
+  num?: string;
+  is_appendix?: boolean;
+}
+
+export interface NavGroupSpec {
+  label?: string;
+  links: NavLinkSpec[];
+}
+
+export interface NavigationSpec {
+  estrategico?: NavGroupSpec[];
+  tatico?: NavGroupSpec[];
+  usa?: NavGroupSpec[];
 }
 
 export interface ReportLayout {
@@ -69,31 +114,193 @@ export interface ReportLayout {
   usa: {
     sections: SectionSpec[];
   };
+  cover?: CoverSpec;
+  navigation?: NavigationSpec;
+  footer?: boolean;
+  export_toolbar?: boolean;
   chart_palette?: string[];
   chart_canvas_map?: Record<string, string>;
   chart_titles?: Record<string, string>;
 }
 
 export const LAYOUT: ReportLayout = {
-  "version": "1.1",
+  "version": "1.2",
+  "cover": {
+    "enabled": true,
+    "badge": "Relatório Premium",
+    "meta": [
+      {
+        "label_key": "Período analisado"
+      },
+      {
+        "label_key": "Gerado em"
+      },
+      {
+        "label_key": "Documentos"
+      },
+      {
+        "label_key": "Versão"
+      }
+    ]
+  },
+  "navigation": {
+    "estrategico": [
+      {
+        "label": "Visão geral",
+        "links": [
+          {
+            "section_id": "S1",
+            "num": "1"
+          },
+          {
+            "section_id": "S2",
+            "num": "2"
+          },
+          {
+            "section_id": "S3",
+            "num": "3"
+          }
+        ]
+      },
+      {
+        "label": "Detalhes",
+        "links": [
+          {
+            "section_id": "S4",
+            "num": "4"
+          },
+          {
+            "section_id": "S7",
+            "num": "7"
+          },
+          {
+            "section_id": "S8",
+            "num": "8"
+          },
+          {
+            "section_id": "S9",
+            "num": "9"
+          }
+        ]
+      },
+      {
+        "label": "Síntese",
+        "links": [
+          {
+            "section_id": "S10",
+            "num": "10"
+          }
+        ]
+      },
+      {
+        "label": "Apêndices",
+        "links": [
+          {
+            "section_id": "APP_A",
+            "num": "A",
+            "is_appendix": true
+          },
+          {
+            "section_id": "APP_B",
+            "num": "B",
+            "is_appendix": true
+          },
+          {
+            "section_id": "APP_C",
+            "num": "C",
+            "is_appendix": true
+          },
+          {
+            "section_id": "APP_D",
+            "num": "D",
+            "is_appendix": true
+          },
+          {
+            "section_id": "APP_E",
+            "num": "E",
+            "is_appendix": true
+          }
+        ]
+      }
+    ],
+    "tatico": [
+      {
+        "links": [
+          {
+            "section_id": "T1",
+            "num": "T1"
+          },
+          {
+            "section_id": "T2",
+            "num": "T2"
+          },
+          {
+            "section_id": "T3",
+            "num": "T3"
+          },
+          {
+            "section_id": "T4",
+            "num": "T4"
+          },
+          {
+            "section_id": "T5",
+            "num": "T5"
+          },
+          {
+            "section_id": "T6",
+            "num": "T6"
+          }
+        ]
+      }
+    ],
+    "usa": [
+      {
+        "links": [
+          {
+            "section_id": "U1",
+            "num": "U1"
+          },
+          {
+            "section_id": "U2",
+            "num": "U2"
+          },
+          {
+            "section_id": "U3",
+            "num": "U3"
+          },
+          {
+            "section_id": "U4",
+            "num": "U4"
+          }
+        ]
+      }
+    ]
+  },
+  "footer": true,
+  "export_toolbar": true,
   "estrategico": {
     "sections": [
       {
         "id": "S1",
         "title": "Patrimônio — Estrutura e Composição",
         "enabled": true,
+        "summary": true,
         "charts": [
           {
             "id": "patrimonio_doughnut",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true,
+            "context": true
           },
           {
             "id": "waterfall_if",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           },
           {
             "id": "score_gauge",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           }
         ],
         "cards": [
@@ -127,26 +334,37 @@ export const LAYOUT: ReportLayout = {
         "id": "S2",
         "title": "Fluxo de Caixa — Receitas e Despesas",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [
           {
             "id": "fluxo_mensal",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true,
+            "period_toggle": true
           },
           {
             "id": "receita_bar",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true,
+            "period_toggle": true
           },
           {
             "id": "despesas_doughnut",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true,
+            "period_toggle": true
           },
           {
             "id": "receita_despesa_mensal",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true,
+            "period_toggle": true
           },
           {
             "id": "viagens",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           }
         ],
         "cards": [
@@ -186,24 +404,35 @@ export const LAYOUT: ReportLayout = {
         "id": "S3",
         "title": "Investimentos — Carteira Financeira",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [
           {
             "id": "alocacao_atual",
             "enabled": true,
-            "row": "alocacao"
+            "row": "alocacao",
+            "conclusion": true
           },
           {
             "id": "alocacao_alvo",
             "enabled": true,
-            "row": "alocacao"
+            "row": "alocacao",
+            "conclusion": true
           },
           {
             "id": "top15_ativos",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           },
           {
             "id": "mariana_cenarios",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
+          },
+          {
+            "id": "viagens",
+            "enabled": false,
+            "conclusion": true
           }
         ],
         "cards": [
@@ -237,10 +466,13 @@ export const LAYOUT: ReportLayout = {
         "id": "S4",
         "title": "Real Estate — Imóveis e Renda Passiva",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [
           {
             "id": "yield_imoveis",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           }
         ],
         "cards": []
@@ -249,14 +481,18 @@ export const LAYOUT: ReportLayout = {
         "id": "S7",
         "title": "Independência Financeira — Projeção de Longo Prazo",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [
           {
             "id": "projecao_3cenarios",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           },
           {
             "id": "renda_passiva",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           }
         ],
         "cards": [
@@ -272,10 +508,14 @@ export const LAYOUT: ReportLayout = {
         "id": "S8",
         "title": "Previdência — PGBL e Fiscalidade",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [
           {
             "id": "impostos_pj",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true,
+            "period_toggle": true
           }
         ],
         "cards": []
@@ -284,10 +524,13 @@ export const LAYOUT: ReportLayout = {
         "id": "S9",
         "title": "Riscos e Proteção — Seguros Críticos",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [
           {
             "id": "bubble_riscos",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           }
         ],
         "cards": []
@@ -296,10 +539,13 @@ export const LAYOUT: ReportLayout = {
         "id": "S10",
         "title": "Síntese Estratégica — Tarefas e Score",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [
           {
             "id": "top5_decisoes",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           }
         ],
         "cards": [
@@ -307,13 +553,15 @@ export const LAYOUT: ReportLayout = {
             "id": "pontos_fortes",
             "enabled": true,
             "variant": "success",
-            "size": "half"
+            "size": "half",
+            "top_border": "accent"
           },
           {
             "id": "pontos_urgentes",
             "enabled": true,
             "variant": "critical",
-            "size": "half"
+            "size": "half",
+            "top_border": "danger"
           },
           {
             "id": "equilibrio_cerbasi_ref",
@@ -333,22 +581,79 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "APP_B",
         "title": "Premissas Econômicas",
-        "enabled": true
+        "enabled": false,
+        "cards": [
+          {
+            "id": "premissas_economicas",
+            "enabled": true,
+            "variant": "feature",
+            "size": "full"
+          },
+          {
+            "id": "metodologias",
+            "enabled": true,
+            "variant": "neutral",
+            "size": "full"
+          }
+        ]
       },
       {
         "id": "APP_C",
         "title": "Cenários de Sensibilidade",
-        "enabled": true
+        "enabled": false,
+        "charts": [
+          {
+            "id": "cenarios_cambiais",
+            "enabled": false,
+            "conclusion": true
+          }
+        ],
+        "cards": [
+          {
+            "id": "sensibilidade_ativos",
+            "enabled": true,
+            "variant": "feature",
+            "size": "full"
+          }
+        ]
       },
       {
         "id": "APP_D",
         "title": "Referências e Recursos",
-        "enabled": true
+        "enabled": false,
+        "cards": [
+          {
+            "id": "fontes_dados",
+            "enabled": true,
+            "variant": "neutral",
+            "size": "half"
+          },
+          {
+            "id": "metodologia_links",
+            "enabled": true,
+            "variant": "neutral",
+            "size": "half"
+          }
+        ]
       },
       {
         "id": "APP_E",
         "title": "Próximos Ciclos e Roadmap",
-        "enabled": true
+        "enabled": false,
+        "cards": [
+          {
+            "id": "proximos_ciclos",
+            "enabled": true,
+            "variant": "highlight",
+            "size": "full"
+          },
+          {
+            "id": "disclaimers",
+            "enabled": true,
+            "variant": "neutral",
+            "size": "full"
+          }
+        ]
       }
     ]
   },
@@ -390,37 +695,55 @@ export const LAYOUT: ReportLayout = {
         "id": "T1",
         "title": "Fluxo Operacional — Despesas vs Tetos",
         "enabled": true,
-        "data_source": "dashboard.despesas_por_categoria"
+        "collapsible": true,
+        "data_source": "dashboard.despesas_por_categoria",
+        "charts": [],
+        "cards": []
       },
       {
         "id": "T2",
         "title": "Aportes e Investimentos",
         "enabled": true,
-        "data_source": "dashboard.aportes + dashboard.investimentos_delta"
+        "collapsible": true,
+        "data_source": "dashboard.aportes + dashboard.investimentos_delta",
+        "charts": [],
+        "cards": []
       },
       {
         "id": "T3",
         "title": "Checklist de Tarefas",
         "enabled": true,
-        "data_source": "dashboard.tarefas + dashboard.tarefas_status"
+        "collapsible": true,
+        "data_source": "dashboard.tarefas + dashboard.tarefas_status",
+        "charts": [],
+        "cards": []
       },
       {
         "id": "T4",
         "title": "Alertas e Pendências",
         "enabled": true,
-        "data_source": "dashboard.alertas"
+        "collapsible": true,
+        "data_source": "dashboard.alertas",
+        "charts": [],
+        "cards": []
       },
       {
         "id": "T5",
         "title": "Próximos Passos",
         "enabled": true,
-        "data_source": "dashboard.proximos_15d"
+        "collapsible": true,
+        "data_source": "dashboard.proximos_15d",
+        "charts": [],
+        "cards": []
       },
       {
         "id": "T6",
         "title": "Notas e Observações",
         "enabled": true,
-        "data_source": "dashboard.notas"
+        "collapsible": true,
+        "data_source": "dashboard.notas",
+        "charts": [],
+        "cards": []
       }
     ]
   },
@@ -430,10 +753,12 @@ export const LAYOUT: ReportLayout = {
         "id": "U1",
         "title": "Mudança EUA — Estrutura F1/F2 e Custos",
         "enabled": true,
+        "summary": true,
         "charts": [
           {
             "id": "custos_f1f2",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           }
         ],
         "cards": []
@@ -442,10 +767,13 @@ export const LAYOUT: ReportLayout = {
         "id": "U2",
         "title": "Green Card — EB2-NIW e Compliance",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [
           {
             "id": "cenarios_cambiais",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           }
         ],
         "cards": []
@@ -454,6 +782,8 @@ export const LAYOUT: ReportLayout = {
         "id": "U3",
         "title": "NCLEX Roadmap — Licenciamento RN",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [],
         "cards": [
           {
@@ -468,10 +798,13 @@ export const LAYOUT: ReportLayout = {
         "id": "U4",
         "title": "Simulação — Cônjuge Sem Trabalhar",
         "enabled": true,
+        "summary": true,
+        "divider_before": true,
         "charts": [
           {
             "id": "mariana_cenarios_usa",
-            "enabled": true
+            "enabled": true,
+            "conclusion": true
           }
         ],
         "cards": [
@@ -479,7 +812,8 @@ export const LAYOUT: ReportLayout = {
             "id": "simulacao_mariana",
             "enabled": true,
             "variant": "warn",
-            "size": "full"
+            "size": "full",
+            "top_border": "accent"
           }
         ]
       }
