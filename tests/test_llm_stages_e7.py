@@ -43,11 +43,13 @@ class TestE7ReviewStage:
     @patch("pipeline.llm.litellm_client.LLMService.call")
     @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
     def test_runs_successfully_with_mock(self, mock_ensure, mock_call, tmp_path):
+        from pipeline.artifact_store import InMemoryArtifactStore
+
+        store = InMemoryArtifactStore()
+        store.seed("E5", "analise_financeira", {"score": 70, "patrimonio_liquido": 897000})
+
         ctx = make_llm_ctx(tmp_path)
-        ctx.e5_dir.mkdir(parents=True)
-        (ctx.e5_dir / "analise_financeira-5_analysis.json").write_text(
-            json.dumps({"score": 70, "patrimonio_liquido": 897000})
-        )
+        ctx.artifact_store = store
 
         mock_call.return_value = make_llm_call_result(make_e7_review_output())
 
@@ -61,10 +63,8 @@ class TestE7ReviewStage:
         assert result["risk_level"] == "moderate"
         assert result["confidence"] == 0.85
 
-        out_path = ctx.e7_dir / "review_llm-7_review.json"
-        assert out_path.exists()
-
-        data = json.loads(out_path.read_text())
+        data = store.read("E7-review", "review_llm")
+        assert data is not None
         assert data["nivel_risco"] == "moderate"
         assert len(data["insights"]) == 1
         assert "resumo_executivo" in data["narrativas"]
