@@ -3,7 +3,9 @@
 > **Fonte:** execução da Fase 0 do [docs/REPORT_PREMIUM_PLAN.md](REPORT_PREMIUM_PLAN.md).
 > **Produzido por:** agente dedicado (Opus 4.7 1M, worktree isolado, ~1h30 de discovery).
 > **Data:** 2026-04-23.
-> **Status:** 🛑 PAUSE — aguarda respostas às Open Questions §8 antes da Fase 1 iniciar.
+> **Status:** ✅ RESOLVIDO — 13 Open Questions respondidas pelo usuário em 2026-04-23;
+> decisões formalizadas em ADR-117, 121, 122, 123, 124. Fase 1 unlocked.
+> Deltas aplicados ao plano — ver [REPORT_PREMIUM_PLAN.md §Deltas](REPORT_PREMIUM_PLAN.md).
 
 ---
 
@@ -213,7 +215,26 @@ Legenda origem: `E5-det` = regra determinística em service existente; `E5-new` 
 
 ---
 
-## 7. Open questions (🛑 PAUSE humano antes da Fase 1)
+## 7. Open questions (✅ RESOLVIDO — ver ADRs 117/121/122/123/124)
+
+**Respostas do usuário (2026-04-23):**
+- Q1 → backend (ADR-123)
+- Q2 → híbrido — templates para charts, LLM para sections (ADR-122)
+- Q3 → backend (ADR-123)
+- Q4 → manter Chart.js (ADR-117)
+- Q5 → 13px default com override configurável (ADR-121)
+- Q6 → diferir `comparisons`/`changelog` para v2
+- Q7 → breakpoints: ≥1024 ambos, 768-1023 drawer, ≤767 topnav só
+- Q8 → worktree externo para fases longas, shared para curtas
+- Q9 → sim, JetBrains Mono no standalone
+- Q10 → PR único para Fase 3
+- Q11 → sem LLM em `pontos_fortes` por ora
+- Q12 → `e6_render.py` aposentado (ADR-124)
+- Q13 → ADRs 117/121/122/123/124
+
+Lista original preservada abaixo para auditoria:
+
+### 7.a Lista original das 13 perguntas
 
 1. **`NotasCard` T6 — localStorage vs endpoint persistido?** Recomendo localStorage (Stateless ADR-111 §exceções), promover para endpoint quando houver >1 dispositivo/usuário.
 2. **`chart_conclusions` + `section_summaries` — LLM, template ou input manual?** Recomendo híbrido: template para 21 charts (padrão previsível), LLM para 10 seções (narrativo varia). Abre ADR nova.

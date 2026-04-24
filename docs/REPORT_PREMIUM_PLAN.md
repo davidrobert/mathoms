@@ -5,6 +5,56 @@
 > **Referência atual:** `frontend/src/components/report/**`, `scripts/e6_render.py`,
 > `design-tokens/tokens.json`, `config/report_layout.yaml`.
 > **Data de emissão:** 2026-04-23.
+> **Status da Fase 0:** CONCLUÍDA — ver [REPORT_PREMIUM_GAPS.md](REPORT_PREMIUM_GAPS.md)
+> e ADRs 117, 121–124. Deltas aplicados abaixo.
+
+---
+
+## ⚠️ Deltas aplicados após Fase 0 (leitura obrigatória)
+
+Resultado da discovery + decisões humanas nas 13 open questions. Sempre que
+este plano conflitar com os deltas abaixo, **os deltas prevalecem**.
+
+1. **Fase 6 menor que estimado.** `financial_score_calculator`, `pontos_fortes_analyzer`,
+   `if_projector`, `ratios_calculator` já existem em `pipeline/domain/services/`.
+   Trabalho é **extensão**, não criação. Único service genuinamente novo:
+   `SnapshotChangelogBuilder` — **diferido para v2** (ver #4).
+2. **Fase 11 reescrita — aposentar `e6_render.py`** (ADR-124). Em vez de
+   Jinja2, a rota Next SSR `/reports/[id]/export` gera o HTML standalone.
+   Backend endpoint passa a proxyar. `scripts/e6_render.py` é deletado ao
+   final da fase. Os 19 V-checks migram para Playwright contra a rota.
+3. **Nova Fase 6.5 — backend persistence para Notas + Kanban** (ADR-123).
+   Duas tabelas novas (`report_notes`, `kanban_items`), migração Alembic,
+   4 endpoints REST com `response_model`, OpenAPI snapshot. Entra entre
+   Fase 6 (dados E5) e Fase 7 (seções). Esforço: ~1 sprint.
+4. **`comparisons` e `changelog` diferidos para v2** (decisão usuário Q6).
+   Entram como `enabled: false` no YAML durante Fase 5. Ativação pós-Fase 13
+   quando `SnapshotChangelogBuilder` for construído.
+5. **Typography configurável — 13px default** (ADR-121). `--font-base-px`
+   escopado no shell de `/reports/**`. Toggle "Compacto/Normal/Confortável"
+   na top-nav. Escala recalculada em px (não rem) dentro do relatório.
+6. **Chart conclusions ≠ section summaries** (ADR-122). Conclusions são
+   **templates determinísticos** em `config/prompts/chart_conclusions.yaml`
+   (Fase 6 `E5-det`, esforço S). Summaries são **LLM** com cache Redis
+   (Fase 6 `E5-new`, primeiro uso de Anthropic em E5 — prepare Fase 6 para
+   lidar com Anthropic key, cache, fakes nos testes).
+7. **`pontos_fortes` fica como está** (Q11 — sem LLM por ora). Analyzer
+   atual gera textos equivalentes ao exemplo. Revisar pós-Fase 12.
+8. **Breakpoints do shell** (Q7): ≥1024 sidebar+topnav; 768–1023 sidebar
+   vira drawer; ≤767 só topnav. `<ReportToc>` vira `<ReportTocDrawer>` em
+   tela média.
+9. **Branch strategy por fase** (Q8): fases curtas (1, 2, 3, 4, 5) em
+   `.claude/worktrees/<slug>/`; fases longas (6, 6.5, 7–11) em worktree
+   externo `../fin-report-premium-<phase>/` para isolamento de resets.
+10. **JetBrains Mono no standalone** (Q9): sim, Fase 1 adiciona na lista de
+    fontes — agora que o standalone sai por SSR, a font viaja junto.
+11. **Três bugs silenciosos** descobertos (ver GAPS.md §5 Observations):
+    `APP_B-E` não renderiza (`ReportShell.MIGRATED_SECTIONS` hardcoded),
+    `design-tokens/build.py` não emite CSS standalone,
+    YAML tático com schema divergente. **Fase 1 resolve o #2**; **Fase 5
+    resolve o #3**; **Fase 10 resolve o #1**.
+12. **ADR numbering real:** 117 / 121 / 122 / 123 / 124 (não 117–120 como
+    o plano original sugeriu — 118/119/120 já estão em uso).
 
 ---
 
@@ -114,14 +164,15 @@ Cada fase = branch própria + PR próprio + merge antes de iniciar a próxima. F
 | 3 | UI primitives | `phase3-primitives` | Card variants, Alert, Badge, SectionDivider, IconBadge, KpiHero, ScoreCard, PontoForteItem | 1 |
 | 4 | Shell: cover + topnav + toolbar | `phase4-shell` | `ReportCover`, `ReportTopNav`, `ModeToggle`, `ThemeToggle`, `BackToTop`, `ExportToolbar`, `SkipNav` | 3 |
 | 5 | Layout YAML expansion | `phase5-layout` | `report_layout.yaml` atualizado + codegen TS/py | 0 |
-| 6 | Pipeline E5 — campos novos | `phase6-e5-data` | Novos campos em `ReportAnalysisData` + testes golden | 0, 5 |
+| 6 | Pipeline E5 — campos novos (extensões + primeira LLM em E5) | `phase6-e5-data` | Novos campos em `ReportAnalysisData` + prompts híbridos (ADR-122) + testes golden | 0, 5 |
+| 6.5 | Backend persistence — Notas + Kanban (ADR-123) | `phase6_5-persistence` | 2 tabelas Alembic + 4 endpoints REST + OpenAPI snapshot | 0 |
 | 7 | Sections estratégicas | `phase7-sections-strategic` | S1–S4, S7–S10 repaginadas | 2, 3, 4, 6 |
-| 8 | Sections táticas + Kanban | `phase8-sections-tactical` | T1–T6 com Kanban + Notas + Changelog | 2, 3, 4, 6 |
+| 8 | Sections táticas + Kanban + Notas | `phase8-sections-tactical` | T1–T6 consumindo endpoints 6.5 | 2, 3, 4, 6, 6.5 |
 | 9 | Sections USA | `phase9-sections-usa` | U1–U4 | 2, 3, 4, 6 |
-| 10 | Apêndices A–E | `phase10-appendices` | APP_A existente + B/C/D/E novos | 5 |
-| 11 | `e6_render.py` paridade | `phase11-e6-parity` | Templates Jinja ou equivalente, 19 V-checks passam | 7, 8, 9, 10 |
+| 10 | Apêndices A–E (+ fix `MIGRATED_SECTIONS`) | `phase10-appendices` | APP_A refatorado + B/C/D/E novos + router unificado | 5 |
+| 11 | Standalone via SSR (aposenta `e6_render.py` — ADR-124) | `phase11-ssr-export` | Rota `/reports/[id]/export` + endpoint proxy + V-checks via Playwright | 7, 8, 9, 10 |
 | 12 | Print + a11y + tests | `phase12-polish` | Print CSS, Playwright screenshots, axe-core | 11 |
-| 13 | Rollout & docs | `phase13-rollout` | Feature flag, CHANGELOG, DECISIONS, RUNBOOK | 12 |
+| 13 | Rollout & docs | `phase13-rollout` | CHANGELOG, RUNBOOK, delete `scripts/e6_render.py` | 12 |
 
 Estimativa total (um agente, serial): **10–14 sprints equivalentes**. Paralelizando Fases 3/5/6 e depois 7/8/9, o caminho crítico cai para ~7–9 sprints.
 
