@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -127,10 +126,8 @@ def run(ctx: WorkspaceContext) -> dict:
 
     family_json = _output_to_family_members_json(output)
 
-    members_dir = ctx.members_dir
-    members_dir.mkdir(parents=True, exist_ok=True)
-    out_path = members_dir / "members-1b_unified.json"
-    out_path.write_text(json.dumps(family_json, ensure_ascii=False, indent=2), encoding="utf-8")
+    store = ctx.get_artifact_store()
+    store.write("E1", "members", family_json)
 
     logger.info("E1: extracted %d members, confidence=%.2f", len(output.members), output.confidence)
 
@@ -138,7 +135,7 @@ def run(ctx: WorkspaceContext) -> dict:
         "success": True,
         "members_extracted": len(output.members),
         "confidence": output.confidence,
-        "output_file": out_path.name,
+        "output_file": "members-1b_unified.json",
         "tokens": {"in": result.tokens_in, "out": result.tokens_out},
         "cost_usd": result.cost_estimate_usd,
         "validation": validation.to_dict(),
