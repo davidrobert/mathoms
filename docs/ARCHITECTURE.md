@@ -94,7 +94,7 @@ FastAPI (Pydantic models)
                 → Next.js consome com fetch type-safe
 
 Design tokens (tokens.json)
-    → build.py → CSS (frontend + E6 standalone)
+    → build.py → CSS (frontend)
 
 Report layout (report_layout.yaml)
     → codegen_report_layout.py → TypeScript + Pydantic
@@ -354,8 +354,8 @@ FeatureFlag
 E0-unlock → E0-audit → E0-route
 → E1 (LLM) → E1.5 (LLM) → E1.5c
 → E2-llm (LLM) → E2-faturas → E2-extratos
-→ E3 → E4 → E5 → E5.N → E6
-→ E7-crossval → E7-review (LLM) → E7-apply → E6-final
+→ E3 → E4 → E5 → E5.N
+→ E7-crossval → E7-review (LLM) → E7-apply
 ```
 
 ### Ordem determinística (`DETERMINISTIC_ORDER` — free)
@@ -363,9 +363,14 @@ E0-unlock → E0-audit → E0-route
 ```
 E0-audit → E1.5c (skip se sem baseline)
 → E2-faturas → E2-extratos
-→ E3 → E4 → E5 → E5.N → E6
-→ E7-crossval → E7-apply (skip) → E6-final
+→ E3 → E4 → E5 → E5.N
+→ E7-crossval → E7-apply (skip)
 ```
+
+> **Nota:** stages `E6` e `E6-final` foram removidos em
+> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+> O relatório final não é mais um artefato do pipeline — é renderizado
+> sob demanda via React na rota `/reports/[id]`.
 
 ### O que cada stage faz
 
@@ -384,13 +389,16 @@ E0-audit → E1.5c (skip se sem baseline)
 | E4             | det.       | Categorização por keywords (300+ em 16 categorias)               |
 | E5             | det.       | Análise: score, fluxo, patrimônio, goals, reserva emergência     |
 | E5.N           | det.       | Narrativas automáticas (contexto para cada seção)                |
-| E6             | det.       | Exporta HTML standalone (render primário é React nativo, F9)     |
 | E7-crossval    | det.       | 14 checks automáticos de qualidade                               |
 | E7-review      | **LLM**    | Review holístico (insights, recomendações, ajustes de score)     |
 | E7-apply       | det.       | Aplica review ao E5 JSON                                         |
-| E6-final       | det.       | Re-render final com review incorporado                           |
 
-> **Render do relatório (F9):** Desde F9, o relatório é renderizado como rota React nativa (`/reports/[id]`) consumindo `GET /reports/{id}/data`. O E6 gera HTML standalone para exportação (email, backup, impressão offline). PDF server-side via Playwright.
+> **Render do relatório:** O relatório é renderizado como rota React
+> nativa (`/reports/[id]`) consumindo `GET /reports/{id}/data`. O único
+> export server-side é **PDF via Playwright** (backend/app/services/pdf_renderer.py)
+> sobre essa mesma rota. O renderer HTML server-side (`e6_render.py`
+> + stages `E6`/`E6-final`) foi descontinuado em
+> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 
 ### Modo incremental (ADR-080)
 
@@ -752,9 +760,9 @@ Pipeline stages rodam em ordem → PipelineStageLog por stage
     ↓
 WebSocket /ws publica eventos via Redis Pub/Sub
     ↓
-E6 produz HTML → Report criado no DB (com analysis_json_path + tasks_snapshot)
+Celery task cria Report no DB (analysis_json_path + tasks_snapshot)
     ↓
-Frontend renderiza nativamente via GET /reports/{id}/data (React, F9)
+Frontend renderiza nativamente via GET /reports/{id}/data (React)
 ```
 
 ### Materialização de config
@@ -828,13 +836,12 @@ fin-current/
 │   │   └── schemas/
 │   └── stages/                # Thin wrappers (4-20 linhas cada)
 │
-├── scripts/                   # Pipeline scripts determinísticos (CLI + worker)
+├── scripts/                   # Pipeline scripts determinísticos (worker)
 │   ├── e0_audit.py, e0_route.py, e0_unlock.py
 │   ├── e15_consolidate.py, e2_extract.py
 │   ├── e3_reconcile.py, e4_categorize.py
 │   ├── e5_analyze.py, e5n_narrativas.py
-│   ├── e6_render.py, e7_review.py, e_reset.py
-│   ├── e6/                    # Submódulos E6 (sanitize.py, validate.py)
+│   ├── e7_review.py, e_reset.py
 │   ├── e2/                    # Parsers por banco (registry, common, banks/)
 │   └── pipeline_common.py     # Paths, config, JSON I/O (atomic writes), schema validation, structured logging
 │
@@ -869,7 +876,7 @@ fin-current/
 │
 ├── design-tokens/
 │   ├── tokens.json            # Fonte única de verdade (cores, tipografia, spacing)
-│   └── build.py               # Gera CSS para frontend + E6 standalone
+│   └── build.py               # Gera CSS para frontend
 │
 ├── config/                    # Configs globais (18 arquivos + schemas + templates)
 │   ├── pipeline.json          # Parâmetros operacionais + report_version
@@ -923,7 +930,7 @@ fin-current/
 | Config materializada por tenant (input do E2–E7)  | `storage/{ws_id}/config/*`                                  | `config_materializer.materialize_config()`                      |
 | Artefatos intermediários (`-2_extract.json`, …)   | `storage/{ws_id}/processed/E2_extracts/` etc.               | Scripts E2–E5 executando dentro do tenant_root                  |
 | Análise final (`analise_financeira-5_analysis.json`) | `storage/{ws_id}/processed/E5_analysis/`                 | Stage E5                                                        |
-| Relatório HTML final                              | `storage/{ws_id}/output/` e row em `reports` (DB)           | Stage E6 + handler que registra `Report`                        |
+| Relatório (metadata)                              | row em `reports` (DB) — sem filesystem                      | Celery task registra `Report` após E5/E7-apply; render é React on-demand |
 | Tasks snapshot no relatório                       | `reports.tasks_snapshot_json` (DB)                          | `build_snapshot_sync` na criação do Report                      |
 | Audit log                                         | `audit_logs` (DB)                                           | `audit_service.log()` dentro da transação                       |
 | Tasks queue state                                 | Redis (broker + result backend)                             | Celery                                                          |
@@ -946,7 +953,7 @@ obrigatórias no clone; criam-se só quando há esse uso local. Além disso:
 ## 12. Padrões arquiteturais
 
 ### "Wrap, Don't Rewrite" (F0)
-Scripts legados (E5=107KB, E6=197KB) têm lógica refinada. Em vez de reescrever:
+Scripts legados (E5=107KB — E6=197KB foi removido em ADR-129) têm lógica refinada. Em vez de reescrever:
 1. Cada script ganha `_init_config(base_dir)` que (re)carrega globals de config
 2. `main(root_dir=None)` aceita root injetado
 3. Wrappers finos em `pipeline/stages/` (3-5 linhas)

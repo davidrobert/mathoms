@@ -669,9 +669,11 @@ configs e docstrings antes de agir.
 - **Fontes:** Plus Jakarta Sans (display), Inter (body), JetBrains Mono
   (monetário). Carregadas via `next/font/google` no `layout.tsx` —
   **não redefinir no CSS**.
-- **Relatório nativo:** `frontend/src/components/report/` é o render React
-  primário (rota `/reports/[id]`). `e6_render.py` é exportador standalone
-  (email, backup).
+- **Relatório nativo:** `frontend/src/components/report/` é o **único**
+  renderer (rota `/reports/[id]`). Export server-side é PDF via Playwright
+  ([backend/app/services/pdf_renderer.py](backend/app/services/pdf_renderer.py))
+  sobre a mesma rota. Não existe renderer HTML server-side — descontinuado
+  em [ADR-129](docs/DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 - **Cores:** nunca hex literal no frontend — sempre `var(--brand-*)`,
   `var(--surface-*)`, `var(--semantic-*)`.
 - **Valores monetários:** sempre `<MonetaryValue/>` (font-mono +
@@ -683,15 +685,16 @@ configs e docstrings antes de agir.
 
 - Scripts em `scripts/` seguem `eN_nome.py` (e0, e2, e3…). Exceção:
   `pipeline_common.py` (módulo compartilhado — paths, config, JSON I/O,
-  atomic writes, schema validation, structured logging) e `e6_regen.py`
-  (utilitário visual).
+  atomic writes, schema validation, structured logging).
 - Scripts E0 importam paths/config via
   `import scripts.pipeline_common as _pc`.
-- `scripts/e6/` contém submódulos de `e6_render.py`: `sanitize.py`
-  (formato monetário), `validate.py` (19 checks V1–V19 no HTML).
 - Parsers de E2 ficam em `scripts/e2/banks/<banco>.py` — um módulo por
   banco, com lista `PARSERS` exportada. Novo banco = novo arquivo em
   `scripts/e2/banks/`.
+- Stage E6 (renderer HTML standalone) foi **removido** em
+  [ADR-129](docs/DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+  `scripts/e6_render.py`, `scripts/e6/`, `scripts/e6_regen.py` e
+  `pipeline/stages/e6.py` não existem mais — relatório é só React.
 - Valores monetários em BRL usam formato brasileiro (`1.234,56`) nos
   documentos e float (`1234.56`) nos JSONs.
 

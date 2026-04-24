@@ -134,7 +134,7 @@ python -m backend.app.scripts.cutover_execute --apply
 | Vertente | Foco | Entregas |
 |---|---|---|
 | Report React | Render nativo de 18 seções | 50 componentes (shell + 13 cards + 8 charts + 9 sections), lotes A–H, deep-links, scroll-spy, print CSS A4, mode via URL `?mode=` |
-| Design System | Identidade visual unificada | `tokens.json` (fonte única), `build.py` (CSS para frontend + E6), codegen YAML→TS/Pydantic, pre-commit hooks |
+| Design System | Identidade visual unificada | `tokens.json` (fonte única), `build.py` (CSS para frontend), codegen YAML→TS/Pydantic, pre-commit hooks |
 | Workspace Sharing | Multi-user com roles | WorkspaceInvitation, 3 roles (owner/member/viewer), forced logout, AcessosTab, workspace switcher, viewer banner |
 
 **Backend:** 3 migrations (analysis_json_path, invitations, token_version), 5 endpoints novos (/data, /download.html, /download.pdf, invitations CRUD), PDF server-side Playwright.
@@ -303,7 +303,7 @@ status de sessão aqui (vira drift).
 - **Entregues ✅:** A5a-A5f · A6a-c · A6d · A6e.3/.4/.5/.events · A6f.1/.2/.3/.4/.5a/.6 · A6g.1/.3b/.5/.6/.6b/.7 · A6b.flip (ADR-118) · A6-ux.livestep (ADR-119) · A6-readers.dbfirst (ADR-120).
 - **Parcial 🚧:** A6g.3 (backend style sweep — rodadas finais).
 - **Lanes abertas agora:** ver tabela em [BACKLOG §Lanes](BACKLOG.md). Confirme com `git worktree list` + `git for-each-ref --sort=-committerdate refs/remotes/origin/agent/`.
-- **Caminho crítico (serial):** A6g.3 final → F7A → F7B → F7D+dogfood → GA. Report Premium Fase 11 (`e6_render.py` paridade) + Fase 12 (polish/a11y) + Fase 13 (rollout) correm em paralelo com F7.
+- **Caminho crítico (serial):** A6g.3 final → F7A → F7B → F7D+dogfood → GA. Report Premium Fases 11/12/13 **canceladas** via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side); execução da remoção (`adr-129-e6-kill`) corre em paralelo com F7.
 
 **Após A6**: sprints dedicados §15 (LGPD) e §16 (Observabilidade) —
 incorporados ao escopo de F7 (Produção + LGPD + Ops).
