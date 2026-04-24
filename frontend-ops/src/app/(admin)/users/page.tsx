@@ -27,6 +27,13 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openAction, setOpenAction] = useState<OpenAction | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function copyId(id: string): Promise<void> {
+    await navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1500);
+  }
 
   const load = useCallback(
     async (filter: string): Promise<void> => {
@@ -109,6 +116,7 @@ export default function UsersPage() {
             <tr>
               <th className="text-left px-4 py-2 font-medium">E-mail</th>
               <th className="text-left px-4 py-2 font-medium">Nome</th>
+              <th className="text-left px-4 py-2 font-medium">ID</th>
               <th className="text-left px-4 py-2 font-medium">Status</th>
               <th className="text-left px-4 py-2 font-medium">Dev</th>
               <th className="text-right px-4 py-2 font-medium">Ações</th>
@@ -117,14 +125,14 @@ export default function UsersPage() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-surface-muted-fg">
+                <td colSpan={6} className="px-4 py-6 text-center text-surface-muted-fg">
                   Carregando…
                 </td>
               </tr>
             )}
             {!loading && users.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-surface-muted-fg">
+                <td colSpan={6} className="px-4 py-6 text-center text-surface-muted-fg">
                   Nenhum usuário encontrado.
                 </td>
               </tr>
@@ -135,6 +143,16 @@ export default function UsersPage() {
                   <span className="text-surface-fg">{u.email}</span>
                 </td>
                 <td className="px-4 py-2 text-surface-muted-fg">{u.full_name}</td>
+                <td className="px-4 py-2">
+                  <button
+                    type="button"
+                    onClick={() => void copyId(u.id)}
+                    title="Copiar user_id"
+                    className="font-mono text-xs text-surface-muted-fg hover:text-brand-primary hover:underline"
+                  >
+                    {copiedId === u.id ? "copiado ✓" : `${u.id.slice(0, 8)}…`}
+                  </button>
+                </td>
                 <td className="px-4 py-2">
                   <Badge tone={u.is_active ? "success" : "neutral"}>
                     {u.is_active ? "ativo" : "inativo"}
