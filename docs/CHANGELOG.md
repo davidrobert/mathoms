@@ -136,7 +136,28 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
     concreta de automação; reutiliza `backend/app/services/internal_ops/`
     sem duplicar regra.
 
-- **UX — sub-progresso por arquivo em E2 (2026-04-23):** `stage_activity`
+- **Contrato `LiveStep` formalizado (2026-04-23 · ADR-119):** payload único
+  de progresso intra-stage (`items_done`, `items_total`, `current_item`,
+  `phase`) para etapas com loop por item (E1, E1.5, E1.5c, E2-llm, E2-faturas,
+  E2-extratos). Helper backend `pipeline.live_progress.emit_item_progress(...)`
+  encapsula emissão + throttle; componente frontend `<LiveStepProgress/>`
+  renderiza uniforme. Stages sem loop mantêm `emit_stage_activity` simples.
+  Primeira implementação: sub-progresso E2 (entrada abaixo). Contrato
+  documentado para que demais stages iterativas migrem sem divergência de
+  schema. Motivação: E1.5 com 5 IRPFs ficava 44min sem update visual.
+
+- **Readers user-facing DB-first com fallback disco (2026-04-23 · ADR-120):**
+  após flip ADR-118, leitores em `backend/app/services/` que apontavam para
+  `tenant_root/processed/<dir>/*.json` passaram a consultar
+  `ArtifactStore` via helper único `artifact_reader.read_latest_artifact`.
+  Incidente 2026-04-23 (workspace caed2272 com E5 novo no DB renderizando
+  relatório com dados stale de disco — patrimônio `940k` em vez de `4.3M`)
+  motivou a adoção. 4 readers user-facing migrados; disco preservado como
+  fallback para CLI dev e workflows de edição manual. Rollback do flip
+  ADR-118 permanece viável.
+
+- **UX — sub-progresso por arquivo em E2 (2026-04-23 · ADR-119):**
+  `stage_activity`
   agora carrega `current_item`, `items_done`, `items_total` por arquivo
   processado em `E2-extratos` / `E2-faturas` (ver `scripts/e2_extract.py
   run_with_store`). Frontend exibe "Arquivo N/M · nome.pdf" no subtítulo
@@ -2995,7 +3016,7 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
 
 - **F7 / 7A.5:** `.env.example` na raiz (todas as `MATHOMS_*` documentadas + opcionais comentadas); `scripts/gen-secrets.sh` para gerar `MATHOMS_FERNET_KEY` / `MATHOMS_SECRET_KEY` (modo imprimir ou `--init-env` a partir do example); `docs/SETUP.md` e README atualizados.
 
-**F8.5 · Multi-tenant Goals completo (ADR-079):**
+**F8.5 · Multi-tenant Goals completo (ADR-126; renumerado de ADR-079 duplicado em 2026-04-24):**
 - **Backend**: API completa para APORTE_MENSAL, DOLARIZACAO e ALOCACAO_ALVO (12 novos endpoints: POST compute, GET current, GET history, PUT upsert por tipo)
 - **Backend**: 3 compute functions puras (`compute_aporte_derived`, `compute_dolar_derived`, `compute_alocacao_derived`); `create_goal_version` genérica + helpers tipados (`get_current_goal_typed`, `get_goal_history_typed`)
 - **Backend**: Pydantic models com validadores (distribuição == meta, alocação soma 100%); `_GoalResponseBase` compartilhada por IF + 3 novos
@@ -3101,7 +3122,7 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
 
 **Iframe removido:** `page.tsx` reescrita de 436 linhas (iframe + MutationObserver) para render React nativo.
 
-**Workspace Sharing (ADR-078):**
+**Workspace Sharing (ADR-125; renumerado de ADR-078 duplicado em 2026-04-24):**
 
 Backend:
 - `WorkspaceInvitation` model + migration — convites com token SHA-256, TTL 72h, uso único, rate limit 10 pendentes/workspace.

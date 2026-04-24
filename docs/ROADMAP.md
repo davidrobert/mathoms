@@ -2,8 +2,8 @@
 
 > Visão de alto nível das fases do projeto. Atualizar mensalmente ou ao mudar de fase.
 >
-> **Última atualização:** 2026-04-21
-> **Fase atual:** F9 concluída • **Sprint transversal A6**: A5a-A5f · A6a-c · A6d · A6f.2/.3/.4/.5a/.6 · A6g.1 fechados; A6e parcial (per-aggregate concluído) • Status de sessão + lanes abertas em [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) (fonte única) • F7 (Produção + LGPD + Ops) agendada após estabilidade do A6.
+> **Última atualização:** 2026-04-24
+> **Fase atual:** F9 concluída • **Sprint transversal A6**: Onda 2 ✅ (A6e.3/.4/.5/.events · A6f.1) + A6b.flip ✅ (ADR-118) + A6-ux.livestep ✅ (ADR-119) + A6-readers.dbfirst ✅ (ADR-120) + A6g.3b ✅ + A6g.6/6b ✅ + A6g.7 ✅; A6g.3 em rodada final • **Report Premium UI**: 10/13 fases ✅ (F0-F10 em `main`); Fase 11 (`e6_render.py` paridade via ADR-124) próxima • **F7F-Local**: MVP fechado (ADR-116) • Status de sessão + lanes abertas em [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) (fonte única) • F7 (Produção + LGPD + Ops) agendada após A6g.3 final + Fase 12/13 do Report Premium.
 
 ---
 
@@ -103,7 +103,7 @@ Detalhes completos: **[BACKLOG.md#f65--frontend-testing--qa](BACKLOG.md#f65--fro
 | F8.2 | Plano de Ação | Task/TaskSuggestion/TaskAttachment models, tarefas.md parser (43 tasks, 5 deadline types, dep #19→#18), 3 views (priority/deadline/category), drawer, form, sugestões 1-click, widget dashboard |
 | F8.3 | Integrações profundas | Task↔Goal linking, % executado (BRL parser + match transactions), snapshot imutável no Report, anexos CRUD (upload/download/delete), feature flags workspace-level (4 flags) |
 | F8.4 | Cutover CLI→Web | Pipeline adapter (materializa payloads antes do run), E5.N hook → TaskSuggestion, PLANNING_CONTEXT goal type (cobertura 100% do goals.json), worker beat diário, scripts de paridade + cutover automatizado, ADR-077 |
-| F8.5 | Multi-tenant Goals completo | API+UI para APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO (12 endpoints, 6 páginas React, dashboard `/plano` multi-goal), `create_goal_version` genérica, resiliência E6 (fallback + banner CTA), ADR-079 |
+| F8.5 | Multi-tenant Goals completo | API+UI para APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO (12 endpoints, 6 páginas React, dashboard `/plano` multi-goal), `create_goal_version` genérica, resiliência E6 (fallback + banner CTA), ADR-126 |
 
 **Números:**
 - **~146 testes** novos (goals: 32, tasks: 48, integrações: 45, adapter: 9, lint: 12)
@@ -299,11 +299,11 @@ ondas paralelas**: [BACKLOG.md §Sprint A6](BACKLOG.md#sprint-a6--migração-inf
 ROADMAP cobre apenas a visão de fases e timeline macro — não duplique
 status de sessão aqui (vira drift).
 
-**Resumo (snapshot 2026-04-21)**:
-- **Entregues ✅:** A5a-A5f · A6a-c · A6d · A6f.2/.3/.4/.5a/.6 · A6g.1.
-- **Parcial 🚧:** A6e (6 agregados com repos+DTOs — per-aggregate track concluído).
-- **Lanes abertas agora:** Onda 1 (A6g.2 pipeline sweep · A6g.4 frontend sweep) + Onda 2 destravada (A6e.3-.6 · A6f.1 · A6g.5). Ver tabela em BACKLOG.
-- **Caminho crítico (serial):** A6e.3 (use cases) → A6e.4 (routers finos) → F7A → F7B → F7D+dogfood → GA.
+**Resumo (snapshot 2026-04-24)**:
+- **Entregues ✅:** A5a-A5f · A6a-c · A6d · A6e.3/.4/.5/.events · A6f.1/.2/.3/.4/.5a/.6 · A6g.1/.3b/.5/.6/.6b/.7 · A6b.flip (ADR-118) · A6-ux.livestep (ADR-119) · A6-readers.dbfirst (ADR-120).
+- **Parcial 🚧:** A6g.3 (backend style sweep — rodadas finais).
+- **Lanes abertas agora:** ver tabela em [BACKLOG §Lanes](BACKLOG.md). Confirme com `git worktree list` + `git for-each-ref --sort=-committerdate refs/remotes/origin/agent/`.
+- **Caminho crítico (serial):** A6g.3 final → F7A → F7B → F7D+dogfood → GA. Report Premium Fase 11 (`e6_render.py` paridade) + Fase 12 (polish/a11y) + Fase 13 (rollout) correm em paralelo com F7.
 
 **Após A6**: sprints dedicados §15 (LGPD) e §16 (Observabilidade) —
 incorporados ao escopo de F7 (Produção + LGPD + Ops).

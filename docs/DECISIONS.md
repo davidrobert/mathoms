@@ -1149,7 +1149,7 @@ Integração com 6.5D.10 (contract test types) = complementar: aquele valida typ
 2. **Versionamento por append-only** — edição cria novo registro com `effective_from = hoje` e fecha o anterior com `effective_to = ontem`. Registro vigente é único por `(workspace_id, type)` e tem `effective_to IS NULL`.
 3. **Derivação server-side** — `goal_service.compute_if_derived(inputs: dict) -> dict` é função pura, testada, e é **a única fonte** do cálculo. Frontend chama `POST /goals/if/compute` para preview live; pipeline chama a mesma função.
 4. **Schema canônico por tipo** — `config/schemas/goal.if.schema.json` (criar) define `params_json.inputs.{renda_passiva_mensal_brl, trs_pct, retorno_real_anual_pct, horizonte_anos, taxa_retirada_conservadora_pct}` e `derived.{if_meta_brl, aporte_necessario_mensal_brl, if_meta_conservadora_brl}`. Backend valida write, frontend gera tipos TS via codegen (OpenAPI).
-5. **Tipos de goal implementados**: `INDEPENDENCIA_FINANCEIRA` em F8.1; `APORTE_MENSAL`, `DOLARIZACAO`, `ALOCACAO_ALVO` em F8.5 (ver ADR-079). `PLANNING_CONTEXT` cobre as 23 seções restantes do `goals.json` como blob genérico via adapter.
+5. **Tipos de goal implementados**: `INDEPENDENCIA_FINANCEIRA` em F8.1; `APORTE_MENSAL`, `DOLARIZACAO`, `ALOCACAO_ALVO` em F8.5 (ver ADR-126). `PLANNING_CONTEXT` cobre as 23 seções restantes do `goals.json` como blob genérico via adapter.
 6. **Migração do `goals.json` de Ferreira Campos** — one-shot script em `backend/app/scripts/seed_if_goal_ferreira_campos.py` cria registro inicial para a workspace existente com `renda_passiva_mensal_brl=30000, trs_pct=5.0, retorno_real_anual_pct=6.0` → `derived.if_meta_brl=7200000` (paridade bit-a-bit com valor legado).
 7. **Novos workspaces** — seed cria Goal template flag `is_template=true` com valores default (renda 20k/mês, trs 5%). UI do dashboard detecta a flag e força wizard antes de liberar outras funcionalidades.
 8. **Pipeline (E5/E5.N)** — lê Goal vigente via `pipeline_adapter.build_goals_payload(workspace_id)` que retorna dict no formato atual de `goals.json` (campo `independencia_financeira`). Rest de `goals.json` (`aportes`, `fase_f1f2`, etc.) continua servido pelo adapter a partir de fontes legadas até F8.5.
@@ -1459,7 +1459,12 @@ O relatório financeiro era exibido via iframe carregando o HTML produzido pelo 
 
 ---
 
-## ADR-078 — Workspace sharing: convites, viewer role, forced logout
+## ADR-125 — Workspace sharing: convites, viewer role, forced logout
+
+> Renumerado de ADR-078 (duplicata) em 2026-04-24 para resolver colisão com
+> ADR-078 "Render Nativo React + E6 como Exportador Standalone" (linha ~1396).
+> O conteúdo abaixo é o original; referências externas ao antigo "ADR-078
+> (workspace sharing)" devem migrar para ADR-125.
 
 **Status:** Decidido (F9) • **Data:** 2026-04-15
 
@@ -1561,7 +1566,12 @@ membro. F9 endereça esses 3 gaps.
 
 ---
 
-## ADR-079 — Multi-tenant Goals completos (APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO)
+## ADR-126 — Multi-tenant Goals completos (APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO)
+
+> Renumerado de ADR-079 (duplicata) em 2026-04-24 para resolver colisão com
+> ADR-079 "Content-first classification no upload web" (linha ~1510).
+> O conteúdo abaixo é o original; referências externas ao antigo "ADR-079
+> (multi-tenant goals)" devem migrar para ADR-126.
 
 **Status:** Decidido (F8.5) • **Data:** 2026-04-16
 

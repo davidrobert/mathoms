@@ -104,6 +104,8 @@ Report layout (report_layout.yaml)
 
 ## 4. Modelo de dados (21 models)
 
+> **Contagem real** (2026-04-24): `ls backend/app/models/*.py | grep -v __init__` → 21 arquivos. `DB_SCHEMA_REFERENCE.md` (auto-gerado) lista as tabelas expandidas incluindo associativas e partial indexes.
+
 ### Auth + Core
 
 ```
@@ -282,7 +284,9 @@ FeatureFlag
 
 ---
 
-## 5. API Surface (17 routers, ~80 endpoints)
+## 5. API Surface (20 routers, ~80 endpoints)
+
+> **Contagem real** (2026-04-24): `ls backend/app/api/*.py | grep -v __init__` → 20 arquivos de router.
 
 | Router | Endpoints-chave |
 | --- | --- |
@@ -306,7 +310,9 @@ FeatureFlag
 
 ---
 
-## 6. Services (26)
+## 6. Services (42 top-level + `internal_ops/` submódulo)
+
+> **Contagem real** (2026-04-24): `ls backend/app/services/*.py | grep -v __init__` → 42. Tabela abaixo é **parcial** (originalmente "26") e precisa de rodada de sync — entradas conhecidas faltantes: `artifact_reader`, `canonical_routing`, `classification_telemetry`, `config_defaults`, `document_classification`, `document_duplicates`, `document_extract_json_service`, `document_pipeline_sync`, `document_reclassify_bulk_service`, `document_retry_service`, `document_upload_service`, `password_vault_reader`, `pipeline_client`, `premissas_snapshot`, `report_lineage`, `stage_duration_estimator`, mais `internal_ops/` submódulo (F7F-Local, ADR-116). Não duplicar lista — fonte de verdade é o filesystem.
 
 | Service | Responsabilidade |
 | --- | --- |
@@ -652,7 +658,9 @@ nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
 
 ## 8. Frontend — Rotas e componentes
 
-### Rotas (19 total)
+### Rotas (25 `page.tsx` — 21 produto + 2 playgrounds `_dev` + 2 auth públicas extras)
+
+> **Contagem real** (2026-04-24): `find frontend/src/app -name page.tsx` → 25 arquivos. Produto: dashboard, documents, pipeline, transactions, reports (list+[id]), plano (home), plano/meta-if (+wizard), plano/aportes (+wizard), plano/dolarizacao (+wizard), plano/alocacao (+wizard), plano-de-acao (+sugestoes), vault, config. Playgrounds: reports/_dev/charts, reports/_dev/ui. Públicas: /, /login, /register, /invite/[token]. A tabela abaixo cobre o caminho principal — wizards de Aporte/Dolarização/Alocação e playgrounds `_dev` existem mas não estão enumerados.
 
 **Públicas:**
 | Rota | Página |
@@ -701,7 +709,7 @@ nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
 | `usePipelineWS.ts` | WebSocket hook (auto-reconnect, terminal events) |
 | `format.ts` | 9 formatters (currency BRL/USD, percent, delta, compact, doc/pipeline status) |
 | `export.ts` | Export CSV (BOM UTF-8, `;`) + XLSX (auto-width) |
-| `pipelinePhases.ts` | 14 backend stages → 4 user-facing phases |
+| `pipelinePhases.ts` | Backend stages → 4 user-facing phases. **Fonte de verdade de execução**: `pipeline.stage_spec.STAGE_REGISTRY` (18 entradas em 2026-04-24). O mapping UI agrupa (E2-extratos/E2-faturas/E2-llm → "Extração", etc.). |
 | `roleLabels.ts` | PT-BR labels (Responsável/Coadministrador/Acompanha) |
 
 ---
@@ -792,7 +800,7 @@ fin-current/
 │   │   │   └── pipeline_task.py  # Celery @task principal
 │   │   ├── worker.py          # Celery app config
 │   │   └── main.py            # FastAPI app
-│   ├── alembic/               # 17 DB migrations
+│   ├── alembic/               # 32 DB migrations (2026-04-24; `ls backend/alembic/versions/*.py`)
 │   ├── tests/                 # ~50 test files, ~450 tests
 │   │   ├── factories/         # Type-safe builders
 │   │   ├── fixtures/          # LLM mock, pipeline runs, PDF generator
@@ -869,7 +877,7 @@ fin-current/
 │   ├── definitions.md, methodology.md, report_spec.md
 │   ├── report_layout.yaml     # Codegen source → TS + Pydantic
 │   ├── scoring.json, cenarios.json, taxas.json, parametros_fiscais.json
-│   ├── schemas/               # 6 JSON schemas (baseline, goals, report_layout)
+│   ├── schemas/               # 11 JSON schemas (baseline, E2/E3/E4/E5, 4 goals, pipeline, report_layout)
 │   └── templates/             # 7 templates (HTML, MD, CSS)
 │
 ├── dev/                       # Dev tooling

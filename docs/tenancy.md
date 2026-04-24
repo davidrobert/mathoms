@@ -2,7 +2,7 @@
 
 > **Referências normativas:**
 > - [ADR-072](DECISIONS.md#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família) — tenancy original (F8)
-> - [ADR-078](DECISIONS.md#adr-078--workspace-sharing-convites-viewer-role-forced-logout) — workspace sharing (F9)
+> - [ADR-125](DECISIONS.md#adr-125--workspace-sharing-convites-viewer-role-forced-logout) — workspace sharing (F9; renumerado de ADR-078 em 2026-04-24)
 >
 > Este documento traduz as ADRs em padrões de código e checklist de revisão.
 
@@ -371,7 +371,7 @@ Endpoints pré-F8 (ex: `/api/documents`, `/api/reports`, `/api/config`) ainda us
 ## 9. Referências
 
 - [ADR-072 — Multi-tenancy strategy](DECISIONS.md#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família)
-- [ADR-078 — Workspace sharing (F9)](DECISIONS.md#adr-078--workspace-sharing-convites-viewer-role-forced-logout)
+- [ADR-125 — Workspace sharing (F9)](DECISIONS.md#adr-125--workspace-sharing-convites-viewer-role-forced-logout)
 - [ADR-039 — Dual DB SQLite dev + PostgreSQL prod](DECISIONS.md#adr-039--dual-db-sqlite-dev--postgresql-prod) (rationale para não usar RLS)
 - [ADR-075 — Cutover CLI → Web](DECISIONS.md#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) (deadline de migração)
 - [backend/app/core/tenancy.py](../backend/app/core/tenancy.py) — dependency factory (`get_current_workspace`, `require_role`, `require_write_role`, `require_member_admin_role`)

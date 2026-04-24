@@ -613,7 +613,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 - **A6e per-aggregate** (6 agregados · repos+DTOs) concluído: FamilyMember + Category + ConfigBlob + Document + Goal + Task. Application layer agora cobre 13 aggregates (audit, auth, category, config_blob, document, family_member, feature_flag, goal, invitation, llm_config, notification, pipeline_run, realtime, report, task, transaction, vault, workspace) — 60+ use cases.
 - **Restante:** A6e (**.events-followup** ⏸ — ativar flag notif em prod + remover cron, aguarda janela F7) · A6g.2b T3 scripts com goldens ⏸ blocked-by A6c.3 · A6g.3 🚧 parcial rodada 3 (P1 em `content_classifier`/`pipeline_service`/`models/task.py`/repositories) · A6-human gate humano · A6c blocked-by A6-human · F7 (7A-7F + LGPD).
 - **Caminho crítico (serial):** A6g.3 → F7A → F7B → F7D+dogfood → GA. A6-human smoke destrava A6c + A6g.2b em paralelo.
-- **Lanes abertas agora (2026-04-22 — sync pós-A6e.4 fechada + A6g.3b polish):** **☐ livres:** A6g.3 backend sweep rodada 3 (`content_classifier` 621l, `pipeline_service` P1×4, `models/task.py`, repositories — prompt `track_a6g3_backend_style_sweep.md`, 🚧 ativo em `friendly-elion-088f27`); A6-human smoke (gate humano). **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
+- **Lanes abertas agora (2026-04-24 — sync pós-Report Premium Fase 10 mergeada + ADR-119/120):** **☐ livres:** A6g.3 backend sweep rodada final (`content_classifier` 621l, `pipeline_service` P1×4, `models/task.py`, repositories — prompt `track_a6g3_backend_style_sweep.md`); A6-human smoke (gate humano); Report Premium Fase 11 `e6_render.py` paridade (ADR-124 — em progresso em `agent/report-premium/phase11-e6-parity/*`); F7F-Analyst (prompt a escrever). **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
 - **Testes:** 1461 pipeline + 1085 backend + 12 pipeline-service passing (zero regressão).
 
 ### Lanes abertas agora — pickup table
@@ -651,6 +651,9 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | **F7F-Analyst** superfície do especialista financeiro (IA-0+) | `f7f-analyst` | Role `analyst` no mesmo `frontend-ops/`; rotas `/analyst/*` com triage (7F.A4), deep dive (7F.A5), overview (7F.A6) e feedback loop (7F.A7); 5 indicadores de saúde Perini/Cerbasi/AUVP derivados de E1.5/E5; tabela `analyst_notes` nova (7F.A2 + ADR); service `analyst_metrics/` reutiliza `pipeline/domain/services/` | F7F-Local S1+S2 concluídos (shell + auth base) | 3+ (Lane C6, pós-F7F-Local) | ☐ aberta — **prompt a escrever** |
 | **A6-human** smoke | _(manual)_ | [SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) — 46 checks | A6b.5 ✅ | — | ☐ gate humano |
 | **A6c** deletar bridge | `a6c-delete-bridge` | Remove `stage_runner_compat` + `materialization_bridge` + `main(root_dir)` legados | A6-human aprovado | — | ⏸ blocked-by A6-human |
+| **A6-ux.livestep** contrato `LiveStep` | `livestep-contract` | ADR-119 — payload único de progresso intra-stage + helper `emit_item_progress` + primitivo `<LiveStepProgress/>`; primeira adoção em E2-extratos/E2-faturas | A6e.4 ✅ | — | ✅ entregue 2026-04-23 (branch `agent/livestep-contract/20260423-1530`) — migração das stages iterativas restantes (E1/E1.5/E1.5c/E2-llm) aberta como follow-up P1 |
+| **A6-readers.dbfirst** readers DB-first | `adr-db-first-readers` | ADR-120 — helper `artifact_reader.read_latest_artifact` DB-first com fallback disco; fix incidente 2026-04-23 (patrimônio stale) | A6b.flip ✅ | — | ✅ entregue 2026-04-23 (branch `agent/adr-db-first-readers/20260423-1645`) — 4 readers user-facing migrados |
+| **Report Premium Fase 11** `e6_render.py` paridade (Jinja2 + tokens) | `report-premium/phase11-e6-parity` | Reescrever exportador HTML standalone com Jinja2 + design tokens para paridade visual com `/reports/[id]` (ADR-124 revisitada — §10 do plano vence Delta #2) | Fase 10 ✅ | — | 🚧 ativa em `agent/report-premium/phase11-e6-parity/20260424-1558` |
 
 ### Ondas paralelas — mapa de dependências
 
@@ -811,6 +814,29 @@ convergir em `origin/main`.
 | A6b.flip.4 | ADR-118 registrada + `CHANGELOG.md [Unreleased]` | P0 | 20min | ✅ |
 
 **Checkpoint A6b.flip:** ✅ Default `True` em `main`; rollback via `MATHOMS_USE_DB_ARTIFACTS=false` + redeploy (runbook `docs/runbooks/cutover.md §Rollback`).
+
+### A6-ux.livestep — Contrato `LiveStep` ✅ entregue 2026-04-23 (ADR-119)
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| livestep.1 | `LiveStep` payload formalizado (`items_done`, `items_total`, `current_item`, `phase`) + helper `pipeline.live_progress.emit_item_progress` com throttle | P0 | 2h | ✅ |
+| livestep.2 | Primitivo frontend `<LiveStepProgress/>` render uniforme | P0 | 1h | ✅ |
+| livestep.3 | Primeira adoção: E2-extratos + E2-faturas (sub-progresso "Arquivo N/M · nome.pdf") | P0 | 1h | ✅ |
+| livestep.4 | ADR-119 registrada + CHANGELOG `[Unreleased]` | P0 | 30min | ✅ |
+| livestep.5 | Migração das stages iterativas restantes (E1, E1.5, E1.5c, E2-llm) | P1 | 3h | ☐ |
+
+**Checkpoint:** ✅ Contrato em produção; E2 emite progresso intra-stage. Demais stages iterativas migram sob demanda.
+
+### A6-readers.dbfirst — Readers DB-first com fallback disco ✅ entregue 2026-04-23 (ADR-120)
+
+| # | Entrega | Prio | Esforço | Status |
+| --- | --- | --- | --- | --- |
+| readers.1 | Helper único `backend.app.services.artifact_reader.read_latest_artifact(workspace_id, …)` DB-first, disco fallback | P0 | 2h | ✅ |
+| readers.2 | Migração dos 4 readers user-facing impactados (dashboard, transações, extract-JSON IRPF, relatório HTML) | P0 | 3h | ✅ |
+| readers.3 | Regressão do incidente 2026-04-23 (workspace caed2272, `940k` vs `4.3M`) coberta por teste | P0 | 1h | ✅ |
+| readers.4 | ADR-120 registrada + CHANGELOG `[Unreleased]` | P0 | 30min | ✅ |
+
+**Checkpoint:** ✅ Readers consultam `ArtifactStore` antes de disco; disco preservado p/ CLI dev; rollback ADR-118 continua viável.
 
 ### A6-human — Teste manual end-to-end (David)
 
