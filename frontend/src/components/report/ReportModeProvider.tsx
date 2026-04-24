@@ -1,24 +1,18 @@
 "use client";
 
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useState,
   type ReactNode,
 } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import type { ReportMode } from "@/generated/report-layout";
-
-const VALID_MODES = new Set<ReportMode>(["estrategico", "tatico", "usa"]);
-
-interface ReportModeContextValue {
-  mode: ReportMode;
-  setMode: (mode: ReportMode) => void;
-}
-
-const ReportModeContext = createContext<ReportModeContextValue | null>(null);
+import {
+  ReportModeContext,
+  VALID_MODES,
+  useReportMode,
+} from "./ReportModeContext";
 
 /** F9 · F3.2 — Provider com sync bidirecional URL ↔ state.
  *
@@ -44,7 +38,6 @@ export function ReportModeProvider({
     return initialMode;
   });
 
-  // Sync URL → state when URL changes externally (back/forward nav)
   useEffect(() => {
     const fromUrl = searchParams.get("mode") as ReportMode | null;
     if (fromUrl && VALID_MODES.has(fromUrl) && fromUrl !== mode) {
@@ -56,10 +49,9 @@ export function ReportModeProvider({
     (newMode: ReportMode) => {
       if (!VALID_MODES.has(newMode) || newMode === mode) return;
       setModeState(newMode);
-      // Sync state → URL (shallow, no scroll reset)
       const params = new URLSearchParams(searchParams.toString());
       if (newMode === "estrategico") {
-        params.delete("mode"); // default mode doesn't need URL param
+        params.delete("mode");
       } else {
         params.set("mode", newMode);
       }
@@ -79,12 +71,4 @@ export function ReportModeProvider({
   );
 }
 
-export function useReportMode(): ReportModeContextValue {
-  const ctx = useContext(ReportModeContext);
-  if (!ctx) {
-    throw new Error(
-      "useReportMode deve ser usado dentro de <ReportModeProvider>",
-    );
-  }
-  return ctx;
-}
+export { useReportMode };
