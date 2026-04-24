@@ -9,6 +9,13 @@
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
 **Report Premium UI** (paridade visual com `EXEMPLO_DE_RELATORIO.html`).
 
+- **E1 members via ArtifactStore (2026-04-24 · ADR-127):** última stage
+  de domínio escrevendo direto em disco migrada para
+  `ctx.get_artifact_store().write("E1", "members", ...)`. Mapping E1
+  registrado em `_STAGE_TO_DIR`/`_STAGE_TO_SUFFIX`; bridge +
+  DBArtifactStore passam a enxergar o artefato. TODO separado: estender
+  whitelist de `scripts/e_reset.py` para proteger o registro em DB.
+
 - **Report Premium UI — Fases 0-10 mergedas em `main` (2026-04-24 · ADR-117/
   121/122/123/124):** migração do relatório nativo para paridade visual
   com `EXEMPLO_DE_RELATORIO.html`. Plano e status tracker em
