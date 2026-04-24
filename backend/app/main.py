@@ -28,6 +28,7 @@ from backend.app.api.llm import router as llm_router
 from backend.app.api.notifications import router as notifications_router
 from backend.app.api.pipeline import router as pipeline_router
 from backend.app.api.reports import router as reports_router
+from backend.app.api.reports_collab import router as reports_collab_router
 from backend.app.api.tasks import router as tasks_router
 from backend.app.api.transactions import router as transactions_router
 from backend.app.api.vault import router as vault_router
@@ -156,6 +157,7 @@ async def _handle_membership(request: Request, exc: MembershipError) -> JSONResp
 _ALL_ROUTERS = (
     auth_router,
     reports_router,
+    reports_collab_router,
     vault_router,
     documents_router,
     pipeline_router,
