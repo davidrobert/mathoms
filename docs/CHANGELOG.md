@@ -8,6 +8,45 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)**.
 
+- **F7F-Local MVP fechado (2026-04-24 · ADR-116):** console interno em
+  `127.0.0.1` pronto para dev/staging. 3 slices mergeados em `main`:
+  - **S1** (`cd46545..ef1a7ae`) — camada de serviço
+    `backend/app/services/internal_ops/` (anonymize, hard_delete,
+    reset_password, purge_documents, delete_document, set_developer_flag,
+    update_user_email, update_user_profile, get_metrics, list_reports) +
+    auth yaml+bcrypt+JWT isolado (`INTERNAL_OPS_SESSION_SECRET`, cookie
+    `ops_session` Path=/admin) + rotas `/admin/*` sob flag
+    `MATHOMS_INTERNAL_OPS_UI_ENABLED` + `scripts/hash_ops_pw.py` + audit
+    JSONL em `logs/internal_ops_audit.log`.
+  - **S2** (`e65126b..d7b5a18`) — `frontend-ops/` app Next separada
+    (bind `127.0.0.1:3100`, design-tokens compartilhados, zero import do
+    frontend cliente); login + 4 telas por área (users/documents/metrics/
+    reports) + service `docker-compose.dev.yml`.
+  - **S3** (`876d09f..8f1e0ca`) — refino 7F.10–7F.17: tooltip hard-delete
+    irreversível, reset pw com 16 chars + invalidação JWT via
+    `token_version` (test `test_reset_invalidates_existing_jwt`), purge
+    com **DB rollback em OSError de blob** (evita DB/blob fora de sync) +
+    preview paginada com botão "excluir" por linha, métricas com filtro
+    7d/30d/90d + novos cards `documents_uploaded_last_period` +
+    `new_users_last_period`, reports com paginação `offset`/`total`
+    (server-side), toggle `is_developer` com confirm só ao ligar, audit
+    renomeado `user.email_changed` com `{old,new}` + banner warning de
+    logout global no modal, delete document audit com `original_name +
+    content_hash + blob_removed`.
+  - **Harness Playwright `@internal-ops`** scaffolded em
+    `frontend-ops/tests/e2e/` (6 tests: login inv/val + 4 áreas) +
+    `scripts/seed_internal_ops_smoke.py` (fixture idempotente). Run
+    end-to-end em CI pendente; smoke curl com backend real validado
+    manualmente (login/me/users/metrics com campos novos/reports com
+    total; fluxos S3.b/f/g auditados).
+  - **Gates verdes:** `pytest backend/tests -q` 1307/1307 · `pytest tests
+    -q` 1481/1481 · `npm run lint`+`npm run build` em frontend-ops ·
+    `pre-commit run --all-files` · `check_forbidden_paths` (YAML
+    operator nunca commitado) · OpenAPI snapshot regenerado e comitado.
+  - **7F.9 (CLI)** permanece em aberto — só executa se surgir demanda
+    concreta de automação; reutiliza `backend/app/services/internal_ops/`
+    sem duplicar regra.
+
 - **UX — sub-progresso por arquivo em E2 (2026-04-23):** `stage_activity`
   agora carrega `current_item`, `items_done`, `items_total` por arquivo
   processado em `E2-extratos` / `E2-faturas` (ver `scripts/e2_extract.py
