@@ -7,7 +7,34 @@
 ## [Unreleased]
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
-**Report Premium UI** (paridade visual com `EXEMPLO_DE_RELATORIO.html`).
+execução da **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
+(descontinuação do renderer HTML server-side).
+
+- **ADR-129 · Descontinuação completa do renderer HTML server-side
+  (2026-04-24 · docs-only):** supersede
+  [ADR-124](DECISIONS.md#adr-124--scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next)
+  (2026-04-23) sob premissas atualizadas — produto em desenvolvimento,
+  uso 100 % web, CLI deprecated, sem caso de uso para "download HTML".
+  Os 3 consumidores hipotéticos de ADR-124 (email contador, backup
+  offline, impressão sem app) nunca foram reais; email não existe em
+  prod e as outras 2 situações são cobertas por PDF via Playwright.
+  **Consequência direta:** Report Premium Fases 11/12/13 canceladas;
+  lane `agent/report-premium/phase11-e6-parity/20260424-1558` é
+  arquivada (não mergeada). Execução da remoção — `scripts/e6_render.py`
+  (4867 LOC), `scripts/e6/`, `scripts/e6_regen.py`, `pipeline/stages/e6.py`,
+  `stage_materialization`, stages `E6`/`E6-final`, endpoints `/html`
+  (público + admin) + `/download.html`, use cases `get_report_html.py`,
+  coluna `Report.html_path` (drop via Alembic), `seed_existing_reports`
+  + `backend/seed_db.py`, dead code frontend (`getReportHtmlUrl*`,
+  labels E6), emit CSS standalone em `design-tokens/build.py`,
+  `docs/e6_render_readme.md`, refs CLI em `scripts/e7_review.py`,
+  testes correlatos — tracked em BACKLOG sob a lane `adr-129-e6-kill`
+  (PRs sequenciais pós-merge desta ADR). ~5500 LOC a serem removidos;
+  último uso de `MaterializationBridge` para "espelhar DB → disco"
+  desaparece, pipeline fica 100 % ArtifactStore-native para stages de
+  domínio. Docs afetados: DECISIONS.md (ADR-124 superseded + ADR-129
+  nova), BACKLOG.md (Fase 11 ❌ + nova lane), REPORT_PREMIUM_PLAN.md
+  (§10/§11/§12 marcados histórico), CLAUDE.md, ARCHITECTURE.md, ROADMAP.md.
 
 - **E7-review-llm via ArtifactStore (2026-04-24 · ADR-128):** stage
   `pipeline/stages/e7_review_llm.py` passa a ler E5 (`store.read("E5",
