@@ -104,6 +104,8 @@ export interface ReportSummary {
   period: string | null;
   created_at: string;
   size_bytes: number | null;
+  owner_email: string | null;
+  workspace_name: string | null;
 }
 
 export interface AdminReportListResponse {

@@ -5238,6 +5238,17 @@
             "title": "Id",
             "type": "string"
           },
+          "owner_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Email"
+          },
           "period": {
             "anyOf": [
               {
@@ -5267,6 +5278,17 @@
           "workspace_id": {
             "title": "Workspace Id",
             "type": "string"
+          },
+          "workspace_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Name"
           }
         },
         "required": [

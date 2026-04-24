@@ -104,6 +104,7 @@ export default function ReportsPage() {
           <thead className="bg-surface-muted text-surface-muted-fg">
             <tr>
               <th className="text-left px-4 py-2 font-medium">Título</th>
+              <th className="text-left px-4 py-2 font-medium">Usuário</th>
               <th className="text-left px-4 py-2 font-medium">Workspace</th>
               <th className="text-left px-4 py-2 font-medium">Período</th>
               <th className="text-left px-4 py-2 font-medium">Criado</th>
@@ -114,14 +115,14 @@ export default function ReportsPage() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-surface-muted-fg">
+                <td colSpan={7} className="px-4 py-6 text-center text-surface-muted-fg">
                   Carregando…
                 </td>
               </tr>
             )}
             {!loading && reports.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-surface-muted-fg">
+                <td colSpan={7} className="px-4 py-6 text-center text-surface-muted-fg">
                   Nenhum relatório.
                 </td>
               </tr>
@@ -129,8 +130,14 @@ export default function ReportsPage() {
             {reports.map((r) => (
               <tr key={r.id} className="border-t border-surface-border">
                 <td className="px-4 py-2 text-surface-fg">{r.title}</td>
-                <td className="px-4 py-2 font-mono text-xs text-surface-muted-fg">
-                  {r.workspace_id}
+                <td className="px-4 py-2 text-surface-muted-fg">
+                  {r.owner_email ?? <span className="italic text-surface-muted-fg/60">—</span>}
+                </td>
+                <td className="px-4 py-2 font-mono text-xs text-surface-muted-fg" title={r.workspace_name ?? undefined}>
+                  {r.workspace_name ? (
+                    <span className="text-surface-fg block">{r.workspace_name}</span>
+                  ) : null}
+                  <span className="block">{r.workspace_id}</span>
                 </td>
                 <td className="px-4 py-2 text-surface-muted-fg">{r.period ?? "—"}</td>
                 <td className="px-4 py-2 text-surface-muted-fg">

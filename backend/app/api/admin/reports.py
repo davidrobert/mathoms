@@ -48,6 +48,8 @@ async def list_(
                 period=r.period,
                 created_at=r.created_at,
                 size_bytes=r.size_bytes,
+                owner_email=r.owner_email,
+                workspace_name=r.workspace_name,
             )
             for r in reports
         ],

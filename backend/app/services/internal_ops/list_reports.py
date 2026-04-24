@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.report import Report
+from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 
 
@@ -20,6 +21,8 @@ class ReportSummary:
     period: str | None
     created_at: datetime
     size_bytes: int | None
+    owner_email: str | None
+    workspace_name: str | None
 
 
 @dataclass(frozen=True)
@@ -34,20 +37,26 @@ async def list_reports(
     db: AsyncSession, *, filter: ListReportsFilter
 ) -> tuple[list[ReportSummary], int]:
     """Retorna (page, total). Total serve UI para calcular #páginas."""
-    base = select(Report)
+    # JOIN explícito com Workspace+User para trazer owner_email e workspace_name
+    # numa query só (evita N+1). outerjoin porque pipeline_run_id é FK nullable e
+    # precisamos ser defensivos caso workspace/user seja deletado no futuro.
+    base = (
+        select(Report, Workspace.name, User.email)
+        .outerjoin(Workspace, Report.workspace_id == Workspace.id)
+        .outerjoin(User, Workspace.owner_id == User.id)
+    )
     if filter.workspace_id:
         base = base.where(Report.workspace_id == filter.workspace_id)
     elif filter.user_id:
-        base = base.join(Workspace, Report.workspace_id == Workspace.id).where(
-            Workspace.owner_id == filter.user_id
-        )
+        base = base.where(Workspace.owner_id == filter.user_id)
+
     total = int(
         (await db.execute(select(func.count()).select_from(base.subquery()))).scalar_one() or 0
     )
     limit = max(1, min(filter.limit, 500))
     offset = max(0, filter.offset)
     stmt = base.order_by(Report.created_at.desc()).limit(limit).offset(offset)
-    rows = (await db.execute(stmt)).scalars().all()
+    rows = (await db.execute(stmt)).all()
     summaries = [
         ReportSummary(
             id=r.id,
@@ -56,7 +65,9 @@ async def list_reports(
             period=r.period,
             created_at=r.created_at,
             size_bytes=r.size_bytes,
+            owner_email=email,
+            workspace_name=ws_name,
         )
-        for r in rows
+        for r, ws_name, email in rows
     ]
     return summaries, total
