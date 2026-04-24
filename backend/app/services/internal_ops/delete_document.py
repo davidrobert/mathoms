@@ -27,6 +27,7 @@ def _resolve_blob_path(stored_path: str | None, workspace_id: str) -> Path | Non
 
 
 async def delete_document(db: AsyncSession, document_id: str, *, actor: str) -> OpResult:
+    # tenancy: global — internal_ops: superadmin cross-workspace delete (ADR-116)
     doc = (
         await db.execute(select(Document).where(Document.id == document_id))
     ).scalar_one_or_none()

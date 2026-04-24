@@ -11,7 +11,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 KanbanColuna = Literal["a_fazer", "em_andamento", "concluido"]
 KanbanPrioridade = Literal["alta", "media", "baixa"]
 KanbanEssencial = Literal["S", "R", "O"]

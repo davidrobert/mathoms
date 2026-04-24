@@ -25,15 +25,19 @@ class UserWorkspaceSummary:
     created_at: datetime
 
 
-async def list_user_workspaces(
-    db: AsyncSession, user_id: str
-) -> list[UserWorkspaceSummary]:
+async def list_user_workspaces(db: AsyncSession, user_id: str) -> list[UserWorkspaceSummary]:
     """Retorna workspaces em que o usuário é owner OU membro, ordenados por data."""
     owned_rows = (
-        await db.execute(
-            select(Workspace).where(Workspace.owner_id == user_id).order_by(Workspace.created_at)
+        (
+            await db.execute(
+                select(Workspace)
+                .where(Workspace.owner_id == user_id)
+                .order_by(Workspace.created_at)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     member_rows = (
         await db.execute(

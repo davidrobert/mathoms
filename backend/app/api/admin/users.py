@@ -201,7 +201,6 @@ async def list_workspaces(
     ws = await list_user_workspaces(db, user_id)
     return AdminUserWorkspacesResponse(
         workspaces=[
-            UserWorkspaceDTO(id=w.id, name=w.name, role=w.role, created_at=w.created_at)
-            for w in ws
+            UserWorkspaceDTO(id=w.id, name=w.name, role=w.role, created_at=w.created_at) for w in ws
         ]
     )

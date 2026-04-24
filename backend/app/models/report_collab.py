@@ -31,7 +31,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
 
-
 VALID_PRIORIDADE: frozenset[str] = frozenset({"alta", "media", "baixa"})
 VALID_COLUNA: frozenset[str] = frozenset({"a_fazer", "em_andamento", "concluido"})
 VALID_ESSENCIAL: frozenset[str] = frozenset({"S", "R", "O"})

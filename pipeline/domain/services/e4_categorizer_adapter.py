@@ -172,8 +172,8 @@ class E4CategorizerAdapter:
                     continue
                 tipo = str(data.get("tipo") or "").lower()
                 tipo_documento = str(data.get("tipo_documento") or "").lower()
-                is_investment_report = (
-                    tipo_documento == "investment_report" and bool(data.get("investimentos"))
+                is_investment_report = tipo_documento == "investment_report" and bool(
+                    data.get("investimentos")
                 )
                 if tipo not in _INVESTMENT_POSITION_TYPES and not is_investment_report:
                     continue

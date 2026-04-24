@@ -68,9 +68,8 @@ async def view_html(
     Permite superadmin visualizar sem precisar das credenciais do usuário
     dono do workspace (F7F-Local · ADR-116 — read-only; sem mutação).
     """
-    report = (
-        await db.execute(select(Report).where(Report.id == report_id))
-    ).scalar_one_or_none()
+    # tenancy: global — admin/ops read-only cross-workspace (F7F-Local · ADR-116)
+    report = (await db.execute(select(Report).where(Report.id == report_id))).scalar_one_or_none()
     if report is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="report_not_found")
     path = Path(report.html_path)
