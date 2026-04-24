@@ -6,7 +6,7 @@
 
 | Ambiente | Produto | API | Console interno |
 |---|---|---|---|
-| **Dev local** | http://localhost:3000 | http://localhost:8000 | http://localhost:3000/ops |
+| **Dev local** | http://localhost:3000 | http://localhost:8000 | http://127.0.0.1:3100 (F7F-Local; app `frontend-ops/`, flag `MATHOMS_INTERNAL_OPS_UI_ENABLED=1` · [RUNBOOK §7](RUNBOOK.md)) |
 | **Staging** | https://app.staging.mathoms.ai | https://api.staging.mathoms.ai | https://ops.staging.mathoms.ai |
 | **Produção** | https://app.mathoms.ai | https://api.mathoms.ai/v1/ | https://ops.mathoms.ai |
 

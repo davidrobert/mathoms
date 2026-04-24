@@ -94,6 +94,40 @@ Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · Login 
 
 Detalhes (Fernet, migrations Alembic, Playwright/PDF, troubleshooting): **[docs/SETUP.md](docs/SETUP.md)**.
 
+### Console interno local (F7F-Local · IA-0)
+
+Ferramenta para operador executar anonimização de conta, purge de documentos,
+reset de senha, toggle `is_developer` e leitura de métricas/relatórios em
+**dev/staging** — app Next separada em `frontend-ops/`, bind `127.0.0.1:3100`,
+rotas `/admin/*` no backend só sobem com flag explícita.
+
+Passos rápidos (ver **[docs/RUNBOOK.md §7](docs/RUNBOOK.md)** para detalhes):
+
+```bash
+# 1. Gerar hash do operador (senha ≥12 chars)
+python3 scripts/hash_ops_pw.py   # cole o hash no próximo passo
+
+# 2. Criar config/internal_operators.yaml (gitignored por design)
+cat > config/internal_operators.yaml <<EOF
+operators:
+  - username: superadmin
+    hashed_password: "$2b$12$..."
+    role: superadmin
+EOF
+
+# 3. Backend com flag + session secret isolado (NÃO reusar SECRET_KEY do cliente)
+export MATHOMS_INTERNAL_OPS_UI_ENABLED=1
+export MATHOMS_INTERNAL_OPS_SESSION_SECRET="<secret distinto>"
+uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+
+# 4. Frontend-ops em terminal separado
+cd frontend-ops && npm install && npm run dev
+# http://127.0.0.1:3100/login
+```
+
+Não rodar em produção — F7F-Remote (`ops.mathoms.ai` com OAuth staff) é lane
+separada; console local é bloqueado por flag + bind + guard de `ENVIRONMENT=production`.
+
 ---
 
 ## Contribuindo
