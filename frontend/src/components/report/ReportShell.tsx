@@ -99,78 +99,66 @@ function selectSections(mode: "estrategico" | "tatico" | "usa"): SectionSpec[] {
   return LAYOUT.usa.sections;
 }
 
-/** Converte o LAYOUT em grupos de nav por modo (ADR-117 · Fase 4). */
+/** Mapa section_id → title para lookup rápido (usado pelo buildNavGroups). */
+function buildTitleMap(): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const s of LAYOUT.estrategico.sections) map[s.id] = s.title;
+  for (const a of LAYOUT.estrategico.appendices ?? []) map[a.id] = a.title;
+  for (const s of LAYOUT.tatico.sections) map[s.id] = s.title;
+  for (const s of LAYOUT.usa.sections) map[s.id] = s.title;
+  return map;
+}
+
+/** Converte LAYOUT.navigation (Fase 5) em grupos para ReportTopNav.
+ *
+ * Cai em fallback computacional (mesma lógica anterior) se o YAML não
+ * tiver `navigation:` — backcompat caso alguém consuma um layout antigo.
+ */
 function buildNavGroups(): {
   estrategico: NavGroup[];
   tatico: NavGroup[];
   usa: NavGroup[];
 } {
-  const strategic = LAYOUT.estrategico.sections.filter((s) => s.enabled);
-  const strategicOverview = strategic.filter((s) =>
-    ["S1", "S2", "S3"].includes(s.id),
-  );
-  const strategicDetail = strategic.filter(
-    (s) => !["S1", "S2", "S3", "S10"].includes(s.id),
-  );
-  const strategicSynthesis = strategic.filter((s) => s.id === "S10");
-  const appendices = (LAYOUT.estrategico.appendices ?? []).filter((a) => a.enabled);
+  const titles = buildTitleMap();
+  const nav = LAYOUT.navigation;
+  if (nav?.estrategico && nav?.tatico && nav?.usa) {
+    const mapGroup = (groups: NonNullable<typeof nav.estrategico>): NavGroup[] =>
+      groups.map((g) => ({
+        label: g.label,
+        links: g.links.map((l) => ({
+          id: l.section_id,
+          label: titles[l.section_id] ?? l.section_id,
+          num: l.num,
+          isAppendix: l.is_appendix,
+        })),
+      }));
+    return {
+      estrategico: mapGroup(nav.estrategico),
+      tatico: mapGroup(nav.tatico),
+      usa: mapGroup(nav.usa),
+    };
+  }
 
+  // Fallback (pré-Fase 5) — derivado das seções enabled
+  const strategic = LAYOUT.estrategico.sections.filter((s) => s.enabled);
   return {
     estrategico: [
       {
-        label: "Visão geral",
-        links: strategicOverview.map((s, i) => ({
-          id: s.id,
-          label: s.title,
-          num: String(i + 1),
-        })),
-      },
-      {
-        label: "Detalhes",
-        links: strategicDetail.map((s) => ({
-          id: s.id,
-          label: s.title,
-          num: s.id.replace(/^S/, ""),
-        })),
-      },
-      {
-        label: "Síntese",
-        links: strategicSynthesis.map((s) => ({
-          id: s.id,
-          label: s.title,
-          num: "10",
-        })),
-      },
-      {
-        label: "Apêndices",
-        links: appendices.map((a) => ({
-          id: a.id,
-          label: a.title,
-          num: a.id.replace(/^APP_/, ""),
-          isAppendix: true,
-        })),
+        links: strategic.map((s) => ({ id: s.id, label: s.title, num: s.id })),
       },
     ],
     tatico: [
       {
         links: LAYOUT.tatico.sections
           .filter((s) => s.enabled)
-          .map((s) => ({
-            id: s.id,
-            label: s.title,
-            num: s.id,
-          })),
+          .map((s) => ({ id: s.id, label: s.title, num: s.id })),
       },
     ],
     usa: [
       {
         links: LAYOUT.usa.sections
           .filter((s) => s.enabled)
-          .map((s) => ({
-            id: s.id,
-            label: s.title,
-            num: s.id,
-          })),
+          .map((s) => ({ id: s.id, label: s.title, num: s.id })),
       },
     ],
   };
