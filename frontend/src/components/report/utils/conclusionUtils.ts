@@ -217,6 +217,11 @@ const SECTION_SUMMARIES: Record<
   U2: () => "Green Card EB2-NIW e compliance.",
   U3: () => "Roadmap para o NCLEX-RN.",
   U4: () => "Cenários de independência financeira do cônjuge.",
+  APP_A: () => "Glossário de termos financeiros e categorias patrimoniais.",
+  APP_B: () => "Premissas econômicas e metodologias que fundamentam as projeções.",
+  APP_C: () => "Cenários alternativos considerados no ciclo.",
+  APP_D: () => "Referências metodológicas e lineage dos dados.",
+  APP_E: () => "Histórico de ciclos e próximos passos do roadmap.",
 };
 
 export function deriveSectionSummary(

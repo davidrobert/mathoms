@@ -1,5 +1,8 @@
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
+import { SectionSummary } from "../SectionSummary";
+import { deriveSectionSummary } from "../utils/conclusionUtils";
+import type { ReportAnalysisData } from "@/lib/api";
 
 const GLOSSARIO: Array<{ termo: string; definicao: string }> = [
   { termo: "IF", definicao: "Independência Financeira — patrimônio suficiente para gerar renda passiva que cubra todas as despesas da família sem depender de trabalho ativo." },
@@ -81,13 +84,21 @@ function DefinitionTable({
   );
 }
 
-/** F9 · Fase D — Apêndice A: Definições e Siglas.
+/** F9 · Fase D · Fase 10 — Apêndice A: Definições e Siglas.
  *  Glossário de termos financeiros + categorias patrimoniais.
  *  Conteúdo estático — válido para qualquer workspace.
  */
-export function ApendiceASection() {
+export function ApendiceASection({ data }: { data?: ReportAnalysisData } = {}) {
+  const narrativas = data?.narrativas as Record<string, unknown> | undefined;
+  const fallback = data ? deriveSectionSummary("APP_A", data) : null;
   return (
     <ReportSection id="APP_A" title="Apêndice A — Definições e Siglas">
+      <SectionSummary narrativas={narrativas} sectionId="APP_A" />
+      {fallback && !narrativas?.["APP_A"] && (
+        <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
+          {fallback}
+        </p>
+      )}
       <DefinitionTable
         title="Glossário de Termos Financeiros"
         header="Sigla / Termo"
