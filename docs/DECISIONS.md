@@ -4321,6 +4321,187 @@ complementa ADR-118 fechando o gap de leitores.
 
 ---
 
+## ADR-117 — Report Premium UI baseline (paridade com EXEMPLO_DE_RELATORIO.html)
+
+**Status:** Decidido (Fase 0 do plano) • **Data:** 2026-04-23
+
+**Contexto:** O relatório atual em `/reports/[id]` (React) e o exporter
+standalone `scripts/e6_render.py` renderizam os mesmos dados do snapshot E5,
+mas visualmente ficam muito atrás do template interno
+`EXEMPLO_DE_RELATORIO.html` — que usa Chart.js, dark mode, cover hero,
+card variants, section dividers, KPI hero, score gauge, period toggle,
+kanban tático, e print CSS polido. Produto pede paridade visual com o
+template para transmitir qualidade profissional. Discovery da Fase 0
+produziu `docs/REPORT_PREMIUM_GAPS.md`.
+
+**Decisão:** Executar o plano de 14 fases documentado em
+`docs/REPORT_PREMIUM_PLAN.md` que eleva `/reports/[id]` e o export
+standalone ao nível do template. Biblioteca de charts em
+`components/report/**`: **Chart.js 4 + react-chartjs-2 + datalabels**
+(mantém Recharts fora de `/reports/**`). Dark mode obrigatório. Cover
+hero + top-nav sticky coexistem com `ReportToc` sidebar. Sub-ADRs
+fecham gaps específicos: 121 (typography), 122 (chart_conclusions híbrido),
+123 (notes/kanban persistidos), 124 (e6 retirement).
+
+**Consequências:**
+- ✅ Paridade visual com o template — produto ganha "peso" percebido.
+- ✅ Design tokens unificados (Fase 1) fecham dívida do CSS em dois sistemas.
+- ⚠️ Chart.js adiciona ~180KB ao bundle de `/reports/**` (aceito via
+  route-split + dynamic SSR-off).
+- ⚠️ Fase 6 (E5 data) é 30-40% menor que estimado inicialmente —
+  services-alvo (`financial_score_calculator`, `pontos_fortes_analyzer`,
+  `if_projector`, `ratios_calculator`) já existem; extensões apenas.
+- ❌ Três bugs silenciosos descobertos (APP_B-E não renderizam,
+  `design-tokens/build.py` não emite CSS standalone, schema YAML tático
+  divergente) — registrados para tratamento em fases específicas, não
+  bloqueiam o plano.
+
+Relaciona-se a: ADR-037 (Recharts — escopo restringido), ADR-076 (design
+system), ADR-102 (contratos), ADR-111 (stateless — revisto em ADR-123).
+
+---
+
+## ADR-121 — Typography base 13px com override configurável
+
+**Status:** Decidido (Fase 0) • **Data:** 2026-04-23
+
+**Contexto:** Exemplo usa `font-base: 13px` (denso, próprio para relatório
+financeiro com muita tabela). Tokens atuais partem de 16px (`rem` default
+do browser). Divergência força trade-off: mudar tudo para 13px quebra
+densidade visual do resto do app; manter 16px deixa o relatório com ar
+menos "editorial". Usuário pede base 13px **mas configurável**.
+
+**Decisão:** CSS var `--font-base-px` default `13px` **apenas dentro de
+`/reports/**`** (escopado no `<html data-report-scope>` ou wrapper do
+shell). Resto do app continua em 16px (sem mudança). Escala de fontes
+(`--font-xs` a `--font-3xl`) recalculada em torno de 13px conforme o
+exemplo (10/12/13/14/16/22/28/38px). User preference: toggle
+"Compacto (13px) / Normal (15px) / Confortável (17px)" na top-nav do
+relatório, persistido em localStorage `mathoms:report:font-scale`.
+
+**Consequências:**
+- ✅ Densidade editorial do exemplo preservada por default.
+- ✅ Usuário com dificuldade de leitura ajusta sem sair da tela.
+- ⚠️ Escopo da var requer rigor — qualquer `rem` dentro de `/reports/**`
+  resolve contra 13px, não 16px. Tests visuais devem cobrir.
+- ❌ Componentes compartilhados (`@/components/ui/*`) usados dentro do
+  relatório podem ficar levemente menores — revisar caso a caso.
+
+Relaciona-se a: ADR-076 (design tokens), ADR-117.
+
+---
+
+## ADR-122 — `chart_conclusions` e `section_summaries` em modo híbrido (template + LLM)
+
+**Status:** Decidido (Fase 0) • **Data:** 2026-04-23
+
+**Contexto:** Cada gráfico do relatório premium fica acompanhado de um
+`.chart-conclusion` (leitura curta do que o gráfico mostra) e cada seção
+tem uma `.section-summary` no topo. O exemplo tem ~21 charts e ~10 seções
+→ 31 textos por relatório. Opções: (a) templates determinísticos —
+baratos, previsíveis, mas narrativamente engessados; (b) LLM — ricos,
+variáveis, caros e introduzem primeira dependência Anthropic em E5;
+(c) input manual do consultor — não escala.
+
+**Decisão:** **Híbrido determinado pelo tipo**:
+
+- **Templates determinísticos** para `chart_conclusions`. Cada chart tem
+  regra em `config/prompts/chart_conclusions.yaml` que monta frase a partir
+  dos dados do snapshot (ex.: `despesas_doughnut` → "{top_categoria}
+  representa {pct}% das despesas recorrentes"). Fallback neutro quando
+  dados insuficientes.
+- **LLM** para `section_summaries` — 10 textos narrativos por snapshot,
+  `temperature=0`, cache Redis por hash `(section_id, snapshot_hash)` com
+  TTL 7d. Prompt template em `config/prompts/section_summaries.md`.
+  Custo estimado: ~10 chamadas Claude Haiku 4.5 por relatório ≈ $0.01.
+- **Fallback:** se Anthropic key ausente ou LLM falhar, cair para template
+  determinístico simples ("Seção X — {kpi_principal} em {valor}").
+
+**Consequências:**
+- ✅ 70% dos textos (charts) são determinísticos — zero custo, zero latência.
+- ✅ 30% narrativos (sections) ganham qualidade editorial real.
+- ⚠️ Primeira dependência Anthropic em E5 (até agora só E0/E1 chamavam LLM).
+  Exige: Anthropic key no worker Celery, cache Redis, fakes por hash nos testes.
+- ❌ Determinismo parcial — mesmo snapshot pode gerar summaries levemente
+  diferentes se cache expira; aceito (usuário vê variação < entre snapshots
+  diferentes).
+
+Relaciona-se a: ADR-024 (LiteLLM), ADR-025 (BYOK), ADR-117.
+
+---
+
+## ADR-123 — Notas (T6) e Kanban (T3) persistidos no backend
+
+**Status:** Decidido (Fase 0) • **Data:** 2026-04-23
+
+**Contexto:** Relatório premium tem dois componentes editáveis pelo usuário:
+`NotasCard` (textarea de anotações por relatório) e `Kanban` (tarefas
+arrastáveis). Discovery propôs localStorage (compatível com ADR-111
+stateless). Usuário decidiu **persistir no backend** — permite
+multi-dispositivo, multi-usuário e exportação.
+
+**Decisão:** Duas tabelas novas + 4 endpoints REST:
+
+- `report_notes` `{id, workspace_id, report_id, author_user_id, content,
+  updated_at}` — 1:1 com report (unique em `(workspace_id, report_id)`).
+- `kanban_items` `{id, workspace_id, report_id, titulo, prioridade,
+  prazo_iso, coluna, ordem, categoria, essencial, updated_at}` — 1:N.
+- Endpoints: `GET/PUT /v1/reports/{id}/notes`,
+  `GET/POST/PATCH/DELETE /v1/reports/{id}/kanban[/{item_id}]`. `response_model`
+  explícito (ADR-109). OpenAPI snapshot atualizado via `make update-openapi-snapshot`.
+- Debounce autosave 500ms no frontend → PUT idempotente.
+- Sem collaboration em tempo real (last-write-wins). Conflito raro:
+  usuário único por workspace no near term.
+
+**Consequências:**
+- ✅ Multi-dispositivo + exportação viáveis.
+- ✅ Continua stateless (ADR-111) — estado vive no DB, não em memória.
+- ⚠️ Fase 8 (tactical sections) cresce — não é mais localStorage puro.
+  Estimativa sobe ~1 dia.
+- ⚠️ Migração Alembic nova; cuidar de ordem em branch compartilhada.
+- ❌ Latência de save perceptível em conexão lenta — mitigado por
+  optimistic UI + indicador `.notas-save-dot`.
+
+Relaciona-se a: ADR-109 (response_model), ADR-111 (stateless).
+
+---
+
+## ADR-124 — `scripts/e6_render.py` aposentado em favor de SSR standalone do Next
+
+**Status:** Decidido (Fase 0) • **Data:** 2026-04-23 • **Supersedes** parte
+operacional de ADR-076 (seção "e6_render.py é exportador standalone").
+
+**Contexto:** O plano Fase 11 previa reescrever `e6_render.py` em Jinja2
+para paridade visual com o shell React. Custo alto (4 867 linhas
+procedurais + 19 V-checks + templates novos) e dívida de duplicação
+(dois renderers para os mesmos dados). Usuário decidiu aposentar o
+renderer standalone.
+
+**Decisão:** `scripts/e6_render.py` **não sobrevive** à Fase 11. Em seu
+lugar, uma rota Next SSR `/reports/[id]/export` renderiza o mesmo shell
+React com CSS inline (via `next-export-optimize` ou rota `generateStaticParams`
+sob demanda) e retorna HTML auto-contido com Chart.js do CDN e tokens
+inline — mesma função do `EXEMPLO_DE_RELATORIO.html`. O endpoint
+`GET /v1/reports/{id}/html` (que hoje chama `e6_render.py`) passa a
+proxyar para a rota Next.
+
+**Consequências:**
+- ✅ Um renderer só — fim da duplicação. Cada mudança visual viaja sozinha.
+- ✅ Exporta HTML standalone com mesmo nível de polish que a rota web
+  (mesmo shell, mesmos primitivos).
+- ⚠️ Backend precisa alcançar Next SSR em deploy (URL interna +
+  authentication header). Runbook atualizado.
+- ⚠️ Playwright ou similar pode ser necessário se a rota precisar de
+  hidratação completa antes do snapshot — avaliar na Fase 11.
+- ❌ `scripts/e6/validate.py` (19 V-checks) precisa migrar para teste
+  Playwright contra a rota `/export` — esforço não-trivial.
+- ❌ Email/backup flows que hoje chamam `e6_render.py` via CLI (fora da
+  app) quebram — refatorar para chamar endpoint HTTP.
+
+Relaciona-se a: ADR-076 (design system), ADR-117, Fase 11 do plano.
+
+---
+
 ## ADR-NNN — Titulo curto
 
 **Status:** Decidido (FX) • **Data:** YYYY-MM-DD
