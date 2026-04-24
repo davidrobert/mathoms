@@ -1,6 +1,6 @@
 # Design Tokens — Ferreira Campos Editorial
 
-Fonte única de tokens de design do produto Mathoms AI. Ver **ADR-076** em [../docs/DECISIONS.md](../docs/DECISIONS.md).
+Fonte única de tokens de design do produto Mathoms AI. Ver **ADR-076**, **ADR-117** (report premium) e **ADR-121** (typography configurável) em [../docs/DECISIONS.md](../docs/DECISIONS.md).
 
 ## Estrutura
 
@@ -15,7 +15,8 @@ Saídas geradas (não editar à mão):
 
 ```
 frontend/src/styles/tokens.css       ← site (Next.js + Tailwind v4 @theme inline)
-config/templates/_tokens.css         ← relatório standalone (E6)
+frontend-ops/src/styles/tokens.css   ← app ops (Next standalone)
+config/templates/_tokens.css         ← relatório standalone (futuro SSR export · ADR-124)
 ```
 
 ## Uso
@@ -43,6 +44,21 @@ python3 design-tokens/build.py --check
   - `chart` (12 cores categóricas)
   - `sidebar`
 - **card_variants** — variantes do relatório (highlight, feature, success, warn, critical, primary, neutral, top-danger, top-accent)
+- **report_palette** (ADR-117) — paleta exclusiva do relatório premium (`/reports/**`), emitida sob `[data-report-scope]` para não vazar no resto do app. Light + dark. Grupos: `surface_ext` (accent-bg, row-total, summary-bg…), `alert` (danger/warning/success/info × bg+text), `badge` (green/red/yellow/blue/neutral × bg+text), `table` (even/hover/total/header), `gradient` (cover-primary, cover-subtitle, nav-sticky, card-feature/success). Vars geradas: `--report-surface-*`, `--report-alert-*`, `--report-badge-*`, `--report-table-*`, `--report-gradient-*`.
+- **report_typography** (ADR-121) — escala tipográfica configurável escopada em `[data-report-scope][data-font-scale=…]`. 3 presets: `compact` (base 13px — default), `normal` (15px), `comfortable` (17px). Vars geradas: `--report-font-size-{xs,sm,base,md,lg,xl,2xl,3xl}` + `--report-font-base-px`. Também emite `--report-space-*` (section-gap, card-sm/md/lg) e `--report-radius-badge`.
+
+### Escopo do relatório (`[data-report-scope]`)
+
+O shell do relatório envolve o conteúdo em `<div data-report-scope data-font-scale="compact">`. Dentro desse escopo:
+
+- A paleta premium (`--report-*`) está disponível.
+- Os tokens globais (`--brand-*`, `--surface-*`) **continuam** disponíveis — o escopo é aditivo, não substitutivo.
+- Dark mode funciona automaticamente via `.dark [data-report-scope]` ou `[data-theme='dark'] [data-report-scope]`.
+- Trocar `data-font-scale` no wrapper muda a escala de fontes do relatório inteiro sem afetar o resto do app.
+
+Hooks de runtime:
+- `useReportFontScale()` em `frontend/src/components/report/` — lê/grava `localStorage['mathoms:report:font-scale']`.
+- `<ReportThemeToggle />` em `frontend/src/components/report/` — wrappa `next-themes` com UI segmentada light/dark.
 
 ## Regras de uso
 
