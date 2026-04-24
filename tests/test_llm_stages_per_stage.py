@@ -63,10 +63,8 @@ class TestE1Stage:
         assert result["tokens"]["in"] == 1500
         assert result["validation"]["valid"] is True
 
-        out_path = ctx.members_dir / "members-1b_unified.json"
-        assert out_path.exists()
-
-        data = json.loads(out_path.read_text())
+        data = ctx.get_artifact_store().read("E1", "members")
+        assert data is not None
         assert "david" in data["membros"]
         assert "mariana" in data["membros"]
         assert data["titular"] == "david"

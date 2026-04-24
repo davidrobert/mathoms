@@ -231,6 +231,26 @@ class TestStageMappings:
         with pytest.raises(KeyError):
             stage_suffix("not-a-stage")
 
+    def test_e1_members_mapping(self):
+        """E1 registrado em ambos os mapeamentos (ADR-127)."""
+        assert _STAGE_TO_DIR["E1"] == "members"
+        assert _STAGE_TO_SUFFIX["E1"] == "-1b_unified.json"
+
+    def test_e1_round_trip_disk(self, tmp_path: Path):
+        store = DiskArtifactStore(tmp_path)
+        payload = {"membros": {"david": {"nome_completo": "David"}}, "titular": "david"}
+        store.write("E1", "members", payload)
+        path = tmp_path / "processed" / "members" / "members-1b_unified.json"
+        assert path.exists()
+        assert store.read("E1", "members") == payload
+
+    def test_e1_round_trip_in_memory(self):
+        store = InMemoryArtifactStore()
+        payload = {"membros": {"david": {}}}
+        store.write("E1", "members", payload)
+        assert store.read("E1", "members") == payload
+        assert store.list_keys("E1") == ["members"]
+
     def test_legacy_e2_variants_all_present(self):
         """E2, E2-faturas, E2-extratos, E2-llm — todos precisam estar mapeados
         porque o ``MaterializationBridge`` usará os nomes do ``STAGE_REGISTRY``
