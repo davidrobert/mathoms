@@ -106,3 +106,112 @@ export function getReportDownloadPdfUrl(workspaceId: string, reportId: string): 
 export async function getReportData(workspaceId: string, reportId: string): Promise<ReportAnalysisData> {
   return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/data`);
 }
+
+// ─── Report collaboration (Notes + Kanban) — ADR-123 · Fase 6.5/8 ───
+
+export interface ReportNotesPayload {
+  id: string;
+  report_id: string;
+  content: string;
+  author_user_id: string | null;
+  updated_at: string;
+}
+
+export type KanbanColuna = "a_fazer" | "em_andamento" | "concluido";
+export type KanbanPrioridade = "alta" | "media" | "baixa";
+export type KanbanEssencial = "S" | "R" | "O";
+
+export interface KanbanItemPayload {
+  id: string;
+  report_id: string;
+  titulo: string;
+  coluna: KanbanColuna;
+  prioridade: KanbanPrioridade | null;
+  prazo: string | null;
+  categoria: string | null;
+  essencial: KanbanEssencial | null;
+  ordem: number;
+  updated_at: string;
+}
+
+export interface KanbanItemCreateBody {
+  titulo: string;
+  coluna?: KanbanColuna;
+  prioridade?: KanbanPrioridade | null;
+  prazo?: string | null;
+  categoria?: string | null;
+  essencial?: KanbanEssencial | null;
+  ordem?: number;
+}
+
+export interface KanbanItemUpdateBody {
+  titulo?: string;
+  coluna?: KanbanColuna;
+  prioridade?: KanbanPrioridade | null;
+  prazo?: string | null;
+  categoria?: string | null;
+  essencial?: KanbanEssencial | null;
+  ordem?: number;
+}
+
+export async function getReportNotes(
+  workspaceId: string,
+  reportId: string,
+): Promise<ReportNotesPayload | null> {
+  return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/notes`);
+}
+
+export async function putReportNotes(
+  workspaceId: string,
+  reportId: string,
+  content: string,
+): Promise<ReportNotesPayload> {
+  return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/notes`, {
+    method: "PUT",
+    body: JSON.stringify({ content }),
+  });
+}
+
+export async function listKanbanItems(
+  workspaceId: string,
+  reportId: string,
+): Promise<{ items: KanbanItemPayload[] }> {
+  return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/kanban`);
+}
+
+export async function createKanbanItem(
+  workspaceId: string,
+  reportId: string,
+  body: KanbanItemCreateBody,
+): Promise<KanbanItemPayload> {
+  return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/kanban`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function updateKanbanItem(
+  workspaceId: string,
+  reportId: string,
+  itemId: string,
+  body: KanbanItemUpdateBody,
+): Promise<KanbanItemPayload> {
+  return apiFetch(
+    `/workspaces/${workspaceId}/reports/${reportId}/kanban/${itemId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+export async function deleteKanbanItem(
+  workspaceId: string,
+  reportId: string,
+  itemId: string,
+): Promise<void> {
+  await apiFetch(
+    `/workspaces/${workspaceId}/reports/${reportId}/kanban/${itemId}`,
+    { method: "DELETE" },
+  );
+}
