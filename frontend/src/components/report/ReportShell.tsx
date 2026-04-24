@@ -42,6 +42,12 @@ import { S8PrevidenciaSection } from "./sections/S8PrevidenciaSection";
 import { S9RiscosSection } from "./sections/S9RiscosSection";
 import { S10SinteseSection } from "./sections/S10SinteseSection";
 import { ApendiceASection } from "./sections/ApendiceASection";
+import {
+  ApendiceBSection,
+  ApendiceCSection,
+  ApendiceDSection,
+  ApendiceESection,
+} from "./sections/ApendicesSections";
 import { PerfilFamiliaCard } from "./cards/PerfilFamiliaCard";
 import {
   U1MudancaEuaSection,
@@ -77,7 +83,7 @@ const MIGRATED_SECTIONS = new Set([
   // Tático
   "T1", "T2", "T3", "T4", "T5", "T6",
   // Apêndices
-  "APP_A",
+  "APP_A", "APP_B", "APP_C", "APP_D", "APP_E",
 ]);
 
 interface ReportShellProps {
@@ -464,7 +470,15 @@ function MigratedSection({
       return <T6NotasSection workspaceId={workspaceId} reportId={reportId} />;
     // Apêndices
     case "APP_A":
-      return <ApendiceASection />;
+      return <ApendiceASection data={data} />;
+    case "APP_B":
+      return <ApendiceBSection data={data} />;
+    case "APP_C":
+      return <ApendiceCSection data={data} />;
+    case "APP_D":
+      return <ApendiceDSection data={data} />;
+    case "APP_E":
+      return <ApendiceESection data={data} />;
     default:
       return null;
   }
