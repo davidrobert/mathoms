@@ -116,11 +116,12 @@ operators:
 EOF
 
 # 3. Backend com flag + session secret isolado (NÃO reusar SECRET_KEY do cliente)
+# Porta 8001 para não colidir com o backend principal do dev (8000)
 export MATHOMS_INTERNAL_OPS_UI_ENABLED=1
 export MATHOMS_INTERNAL_OPS_SESSION_SECRET="<secret distinto>"
-uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+uvicorn backend.app.main:app --host 127.0.0.1 --port 8001
 
-# 4. Frontend-ops em terminal separado
+# 4. Frontend-ops em terminal separado (default rewrite já aponta p/ :8001)
 cd frontend-ops && npm install && npm run dev
 # http://127.0.0.1:3100/login
 ```

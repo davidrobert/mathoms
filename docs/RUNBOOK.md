@@ -133,7 +133,9 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](DECISIONS.md#
        role: superadmin
    ```
 
-3. **Exportar envs e subir backend:**
+3. **Exportar envs e subir backend** em **porta dedicada `:8001`** (o backend
+   principal do dev roda em `:8000` — dois uvicorns convivem no mesmo
+   processo/DB, mas só o de `:8001` monta `/admin/*`):
 
    ```bash
    export MATHOMS_FERNET_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
@@ -141,11 +143,14 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](DECISIONS.md#
    export MATHOMS_INTERNAL_OPS_SESSION_SECRET="<secret distinto do SECRET_KEY>"
    export MATHOMS_SECRET_KEY="<secret do cliente>"
    export MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(pwd)/mathoms.db"
-   uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+   uvicorn backend.app.main:app --host 127.0.0.1 --port 8001
    ```
 
    **Nota:** todas as envs de settings usam prefixo `MATHOMS_` — `DATABASE_URL`
-   sem prefixo é ignorado pelo BaseSettings.
+   sem prefixo é ignorado pelo BaseSettings. Se você prefere rodar na `:8000`
+   (ex.: quando o backend principal não está ativo), pare o outro processo
+   (`kill $(lsof -ti tcp:8000)`) e **remova** o `INTERNAL_OPS_API_BASE` do
+   passo 4.
 
 4. **Subir frontend-ops:**
 
@@ -154,6 +159,10 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](DECISIONS.md#
    # UI em http://127.0.0.1:3100/login
    ```
 
+   O rewrite `/admin/*` → `INTERNAL_OPS_API_BASE` aponta por default para
+   `http://127.0.0.1:8001` (ver [`next.config.ts`](../frontend-ops/next.config.ts)).
+   Se você rodou o backend de ops em outra porta, exporte
+   `INTERNAL_OPS_API_BASE=http://127.0.0.1:<porta>` antes de `npm run dev`.
    Ou via compose: `docker compose -f docker-compose.dev.yml up frontend-ops`.
 
 ### 7.3 Operações disponíveis (UI)

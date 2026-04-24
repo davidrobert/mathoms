@@ -12,7 +12,10 @@ services:
       dockerfile: Dockerfile
     image: mathoms-frontend-ops:dev
     environment:
-      INTERNAL_OPS_API_BASE: "http://host.docker.internal:8000"
+      # Backend de ops roda em :8001 por default para não colidir com o
+      # backend principal do dev (:8000). Override via env se necessário:
+      # INTERNAL_OPS_API_BASE=http://host.docker.internal:8000 docker compose up ...
+      INTERNAL_OPS_API_BASE: "${INTERNAL_OPS_API_BASE:-http://host.docker.internal:8001}"
       NODE_ENV: production
     ports:
       - "127.0.0.1:3100:3100"
