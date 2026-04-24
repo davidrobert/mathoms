@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import pprint
 import sys
 from pathlib import Path
 from typing import Any
@@ -103,17 +104,27 @@ def render_ts(layout: dict[str, Any]) -> str:
         "",
         "export type ReportMode = 'estrategico' | 'tatico' | 'usa';",
         "",
+        "export type TopBorder = 'danger' | 'accent';",
+        "",
+        "export type ChartHeight = number | 'auto';",
+        "",
         "export interface CardSpec {",
         "  id: string;",
         "  enabled: boolean;",
         "  variant?: CardVariant;",
         "  size?: CardSize;",
+        "  top_border?: TopBorder;",
+        "  comparison_anchor_id?: string;",
         "}",
         "",
         "export interface ChartSpec {",
         "  id: string;",
         "  enabled: boolean;",
         "  row?: string;",
+        "  conclusion?: boolean;",
+        "  context?: boolean;",
+        "  period_toggle?: boolean;",
+        "  height?: ChartHeight;",
         "}",
         "",
         "export interface SectionSpec {",
@@ -123,18 +134,53 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  charts?: ChartSpec[];",
         "  cards?: CardSpec[];",
         "  data_source?: string;",
+        "  summary?: boolean;",
+        "  divider_before?: boolean;",
+        "  collapsible?: boolean;",
         "}",
         "",
         "export interface AppendixSpec {",
         "  id: string;",
         "  title: string;",
         "  enabled: boolean;",
+        "  charts?: ChartSpec[];",
+        "  cards?: CardSpec[];",
         "}",
         "",
         "export interface KpiSpec {",
         "  id: string;",
         "  label: string;",
         "  enabled: boolean;",
+        "}",
+        "",
+        "export interface CoverMetaSpec {",
+        "  label_key: string;",
+        "  value_key?: string;",
+        "}",
+        "",
+        "export interface CoverSpec {",
+        "  enabled: boolean;",
+        "  badge?: string;",
+        "  title_key?: string;",
+        "  subtitle_key?: string;",
+        "  meta?: CoverMetaSpec[];",
+        "}",
+        "",
+        "export interface NavLinkSpec {",
+        "  section_id: string;",
+        "  num?: string;",
+        "  is_appendix?: boolean;",
+        "}",
+        "",
+        "export interface NavGroupSpec {",
+        "  label?: string;",
+        "  links: NavLinkSpec[];",
+        "}",
+        "",
+        "export interface NavigationSpec {",
+        "  estrategico?: NavGroupSpec[];",
+        "  tatico?: NavGroupSpec[];",
+        "  usa?: NavGroupSpec[];",
         "}",
         "",
         "export interface ReportLayout {",
@@ -150,6 +196,10 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  usa: {",
         "    sections: SectionSpec[];",
         "  };",
+        "  cover?: CoverSpec;",
+        "  navigation?: NavigationSpec;",
+        "  footer?: boolean;",
+        "  export_toolbar?: boolean;",
         "  chart_palette?: string[];",
         "  chart_canvas_map?: Record<string, string>;",
         "  chart_titles?: Record<string, string>;",
@@ -199,6 +249,10 @@ CardSize = Literal["full", "half"]
 
 ReportMode = Literal["estrategico", "tatico", "usa"]
 
+TopBorder = Literal["danger", "accent"]
+
+ChartHeight = int | Literal["auto"]
+
 
 class _Base(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -209,12 +263,18 @@ class CardSpec(_Base):
     enabled: bool
     variant: CardVariant | None = None
     size: CardSize | None = None
+    top_border: TopBorder | None = None
+    comparison_anchor_id: str | None = None
 
 
 class ChartSpec(_Base):
     id: str
     enabled: bool
     row: str | None = None
+    conclusion: bool | None = None
+    context: bool | None = None
+    period_toggle: bool | None = None
+    height: ChartHeight | None = None
 
 
 class SectionSpec(_Base):
@@ -224,18 +284,53 @@ class SectionSpec(_Base):
     charts: list[ChartSpec] = []
     cards: list[CardSpec] = []
     data_source: str | None = None
+    summary: bool | None = None
+    divider_before: bool | None = None
+    collapsible: bool | None = None
 
 
 class AppendixSpec(_Base):
     id: str
     title: str
     enabled: bool
+    charts: list[ChartSpec] = []
+    cards: list[CardSpec] = []
 
 
 class KpiSpec(_Base):
     id: str
     label: str
     enabled: bool
+
+
+class CoverMetaSpec(_Base):
+    label_key: str
+    value_key: str | None = None
+
+
+class CoverSpec(_Base):
+    enabled: bool
+    badge: str | None = None
+    title_key: str | None = None
+    subtitle_key: str | None = None
+    meta: list[CoverMetaSpec] = []
+
+
+class NavLinkSpec(_Base):
+    section_id: str
+    num: str | None = None
+    is_appendix: bool | None = None
+
+
+class NavGroupSpec(_Base):
+    label: str | None = None
+    links: list[NavLinkSpec]
+
+
+class NavigationSpec(_Base):
+    estrategico: list[NavGroupSpec] = []
+    tatico: list[NavGroupSpec] = []
+    usa: list[NavGroupSpec] = []
 
 
 class Estrategico(_Base):
@@ -259,6 +354,10 @@ class ReportLayout(BaseModel):
     estrategico: Estrategico
     tatico: Tatico
     usa: Usa
+    cover: CoverSpec | None = None
+    navigation: NavigationSpec | None = None
+    footer: bool | None = None
+    export_toolbar: bool | None = None
     chart_palette: list[str] | None = None
     chart_canvas_map: dict[str, str] | None = None
     chart_titles: dict[str, str] | None = None
@@ -273,11 +372,12 @@ def render_py(layout: dict[str, Any]) -> str:
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")
 
-    layout_json = json.dumps(layout, indent=4, ensure_ascii=False)
+    # pprint emite literais Python válidos (True/False/None), json.dumps não.
+    layout_py = pprint.pformat(layout, indent=4, width=100, sort_dicts=False)
 
     return (
         PY_HEADER
-        + f"LAYOUT_DICT: dict = {layout_json}\n"
+        + f"LAYOUT_DICT: dict = {layout_py}\n"
         + "\n"
         + "LAYOUT: ReportLayout = ReportLayout.model_validate(LAYOUT_DICT)\n"
         + "\n"
