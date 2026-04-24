@@ -27,6 +27,18 @@
       "type": "string",
       "enum": ["full", "half"]
     },
+    "topBorder": {
+      "type": "string",
+      "enum": ["danger", "accent"],
+      "description": "ADR-117 · Fase 5 — borda superior decorativa. Renderiza .card-top-danger/.card-top-accent."
+    },
+    "heightSpec": {
+      "oneOf": [
+        {"type": "integer", "minimum": 100, "maximum": 800},
+        {"type": "string", "enum": ["auto"]}
+      ],
+      "description": "ADR-117 · Fase 5 — altura em px ou 'auto' (ChartCanvas default)."
+    },
     "cardSpec": {
       "type": "object",
       "required": ["id", "enabled"],
@@ -35,7 +47,12 @@
         "id": {"type": "string", "minLength": 1, "pattern": "^[a-z0-9_]+$"},
         "enabled": {"type": "boolean"},
         "variant": {"$ref": "#/$defs/cardVariant"},
-        "size": {"$ref": "#/$defs/cardSize"}
+        "size": {"$ref": "#/$defs/cardSize"},
+        "top_border": {"$ref": "#/$defs/topBorder"},
+        "comparison_anchor_id": {
+          "type": "string",
+          "description": "ADR-117 · Fase 5 — ID no comparisons[] do snapshot E5 (ativa quando Fase 6.5 entregar SnapshotChangelogBuilder)."
+        }
       }
     },
     "chartSpec": {
@@ -45,7 +62,20 @@
       "properties": {
         "id": {"type": "string", "minLength": 1, "pattern": "^[a-z0-9_]+$"},
         "enabled": {"type": "boolean"},
-        "row": {"type": "string"}
+        "row": {"type": "string"},
+        "conclusion": {
+          "type": "boolean",
+          "description": "ADR-117/122 · Fase 5 — se true, renderiza <ChartConclusion> lendo chart_conclusions[id]."
+        },
+        "context": {
+          "type": "boolean",
+          "description": "ADR-117 · Fase 5 — se true, renderiza <p class=\"chart-context\"> antes do canvas."
+        },
+        "period_toggle": {
+          "type": "boolean",
+          "description": "ADR-117 · Fase 5 — se true, expõe <PeriodToggle> acima do canvas (charts temporais)."
+        },
+        "height": {"$ref": "#/$defs/heightSpec"}
       }
     },
     "sectionSpec": {
@@ -64,7 +94,19 @@
           "type": "array",
           "items": {"$ref": "#/$defs/cardSpec"}
         },
-        "data_source": {"type": "string"}
+        "data_source": {"type": "string"},
+        "summary": {
+          "type": "boolean",
+          "description": "ADR-117/122 · Fase 5 — se true, renderiza <SectionSummary> no topo com section_summaries[id]."
+        },
+        "divider_before": {
+          "type": "boolean",
+          "description": "ADR-117 · Fase 5 — se true, renderiza <SectionDivider> antes da seção."
+        },
+        "collapsible": {
+          "type": "boolean",
+          "description": "ADR-117 · Fase 5 — se true, header vira <CollapsibleSectionHeader>."
+        }
       }
     },
     "appendixSpec": {
@@ -74,7 +116,70 @@
       "properties": {
         "id": {"type": "string", "minLength": 1},
         "title": {"type": "string", "minLength": 1},
-        "enabled": {"type": "boolean"}
+        "enabled": {"type": "boolean"},
+        "charts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/chartSpec"},
+          "description": "ADR-117 · Fase 5 — apêndices podem ter charts (ex.: APP_C cenários)."
+        },
+        "cards": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/cardSpec"},
+          "description": "ADR-117 · Fase 5 — apêndices podem ter cards (APP_B-E expandidos)."
+        }
+      }
+    },
+    "coverMetaSpec": {
+      "type": "object",
+      "required": ["label_key"],
+      "additionalProperties": false,
+      "properties": {
+        "label_key": {"type": "string", "minLength": 1},
+        "value_key": {"type": "string", "description": "Chave no snapshot E5 (ex.: 'periodo_dados'). Null = computado pelo shell."}
+      }
+    },
+    "coverSpec": {
+      "type": "object",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "badge": {"type": "string"},
+        "title_key": {"type": "string", "description": "Chave no snapshot para título; null = usa displayTitle do shell."},
+        "subtitle_key": {"type": "string"},
+        "meta": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {"$ref": "#/$defs/coverMetaSpec"}
+        }
+      }
+    },
+    "navLinkSpec": {
+      "type": "object",
+      "required": ["section_id"],
+      "additionalProperties": false,
+      "properties": {
+        "section_id": {"type": "string"},
+        "num": {"type": "string", "description": "Override de numeração. Se omitido, codegen deriva do id."},
+        "is_appendix": {"type": "boolean"}
+      }
+    },
+    "navGroupSpec": {
+      "type": "object",
+      "required": ["links"],
+      "additionalProperties": false,
+      "properties": {
+        "label": {"type": "string"},
+        "links": {"type": "array", "items": {"$ref": "#/$defs/navLinkSpec"}}
+      }
+    },
+    "navigationSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "estrategico": {"type": "array", "items": {"$ref": "#/$defs/navGroupSpec"}},
+        "tatico": {"type": "array", "items": {"$ref": "#/$defs/navGroupSpec"}},
+        "usa": {"type": "array", "items": {"$ref": "#/$defs/navGroupSpec"}}
       }
     },
     "kpiSpec": {
@@ -159,6 +264,20 @@
         "^[a-z0-9_]+$": {"type": "string"}
       },
       "additionalProperties": false
+    },
+
+    "cover": {"$ref": "#/$defs/coverSpec"},
+
+    "navigation": {"$ref": "#/$defs/navigationSpec"},
+
+    "footer": {
+      "type": "boolean",
+      "description": "ADR-117 · Fase 5 — liga/desliga o <footer> do relatório."
+    },
+
+    "export_toolbar": {
+      "type": "boolean",
+      "description": "ADR-117 · Fase 5 — liga/desliga <ExportToolbar>."
     },
 
     "section_charts": {
