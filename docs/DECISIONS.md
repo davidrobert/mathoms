@@ -2923,6 +2923,10 @@ E7-apply; já persiste no path correto via disco).
    migrada para `store.list_keys(stage)` em vez de glob de disco.
 3. **E1 não migra**: `family_members.json` é configuração do workspace, não
    artefato do pipeline. Escrita em `ctx.members_dir/` é correta.
+   > **⚠️ Superseded (2026-04-24) — ver ADR-127:** o output de E1
+   > (`members-1b_unified.json`) é de fato artefato de domínio (produto
+   > do LLM por execução, não config estática do workspace). E1 passou a
+   > persistir via `store.write("E1", "members", ...)`.
 4. **E7-review LLM não migra**: o reviewer externo (humano ou automação)
    escreve o arquivo de review; E7-apply já lê via path convencional. Não é
    stage de produção contínua — é input ad-hoc fora do loop determinístico.
