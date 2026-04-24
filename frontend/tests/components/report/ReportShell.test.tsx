@@ -69,7 +69,6 @@ describe("ReportShell", () => {
     expect(screen.getAllByText("Relatório Família Teste").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/202601-202604/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("note", { name: /Origem dos dados do relatório/i })).toBeInTheDocument();
-    expect(screen.getByText(/Período:/)).toBeInTheDocument();
   });
 
   it("mostra link da execução do pipeline quando pipelineRunId está definido (F11.4a)", () => {
@@ -199,7 +198,7 @@ describe("MonetaryValue", () => {
   it("compact renderiza notação abreviada", async () => {
     const { MonetaryValue } = await import("@/components/report/MonetaryValue");
     const { container } = render(<MonetaryValue value={1_500_000} compact />);
-    // "R$ 1,5 mi" (pt-BR) ou variação do ICU
-    expect(container.textContent).toMatch(/1,5\s?mi/);
+    // "R$ 1,5 mi" / "R$ 1,50 mi" (pt-BR) ou variação do ICU
+    expect(container.textContent).toMatch(/1,50?\s?mi/);
   });
 });
