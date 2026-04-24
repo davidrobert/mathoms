@@ -117,7 +117,7 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](DECISIONS.md#
 
 ### 7.2 Subir o stack local
 
-1. **Gerar hash do operador** (senha ≥12 chars):
+1. **Gerar hash do operador** (senha ≥6 chars em dev; use ≥12 fora de localhost):
 
    ```bash
    python3 scripts/hash_ops_pw.py

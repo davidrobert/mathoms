@@ -27,8 +27,8 @@ def main() -> int:
     if pw1 != pw2:
         print("As senhas não conferem.", file=sys.stderr)
         return 1
-    if len(pw1) < 12:
-        print("Senha curta: use pelo menos 12 caracteres.", file=sys.stderr)
+    if len(pw1) < 6:
+        print("Senha curta: use pelo menos 6 caracteres.", file=sys.stderr)
         return 2
 
     hashed = bcrypt.hashpw(pw1.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")

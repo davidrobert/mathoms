@@ -104,7 +104,7 @@ rotas `/admin/*` no backend só sobem com flag explícita.
 Passos rápidos (ver **[docs/RUNBOOK.md §7](docs/RUNBOOK.md)** para detalhes):
 
 ```bash
-# 1. Gerar hash do operador (senha ≥12 chars)
+# 1. Gerar hash do operador (senha ≥6 chars em dev; use ≥12 fora de localhost)
 python3 scripts/hash_ops_pw.py   # cole o hash no próximo passo
 
 # 2. Criar config/internal_operators.yaml (gitignored por design)
