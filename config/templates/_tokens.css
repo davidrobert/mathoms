@@ -1,12 +1,12 @@
 /* =====================================================================
  * Ferreira Campos Editorial — design tokens
- * Tokens unificados site × relatório (ADR-076)
+ * Tokens unificados site × relatório (ADR-076, ADR-117, ADR-121)
  *
  * GENERATED FILE — do not edit by hand.
  * Source: design-tokens/tokens.json
  * Regenerate: python design-tokens/build.py
  *
- * Version: 1.0.0
+ * Version: 1.1.0
  * ===================================================================== */
 
 :root {
@@ -247,4 +247,132 @@
     border-radius: var(--radius-card);
     padding: var(--space-2xl);
     background-clip: padding-box;
+}
+
+/* Report scope — ADR-117 palette + ADR-121 typography */
+[data-report-scope] {
+    --report-surface-accent-bg: #2DC653;
+    --report-surface-warning-text: #B45309;
+    --report-surface-light: #A8DADC;
+    --report-surface-bg: #F8FAFC;
+    --report-surface-row-total: #EDF2F7;
+    --report-surface-summary-bg: #EFF6FF;
+    --report-surface-conclusion-bg: #F8FAFC;
+    --report-surface-compare-neg: #FEF2F2;
+    --report-surface-compare-pos: #F0FDF4;
+
+    --report-alert-danger-bg: #FEF2F2;
+    --report-alert-danger-text: #991B1B;
+    --report-alert-warning-bg: #FFFBEB;
+    --report-alert-warning-text: #B45309;
+    --report-alert-success-bg: #F0FDF4;
+    --report-alert-success-text: #15803D;
+    --report-alert-info-bg: #EFF6FF;
+    --report-alert-info-text: #1E40AF;
+
+    --report-badge-green-bg: #DCFCE7;
+    --report-badge-green-text: #15803D;
+    --report-badge-red-bg: #FEE2E2;
+    --report-badge-red-text: #991B1B;
+    --report-badge-yellow-bg: #FEF3C7;
+    --report-badge-yellow-text: #92400E;
+    --report-badge-blue-bg: #DBEAFE;
+    --report-badge-blue-text: #1E40AF;
+    --report-badge-neutral-bg: #F1F5F9;
+    --report-badge-neutral-text: #475569;
+
+    --report-table-even-bg: #F8FAFC;
+    --report-table-hover-bg: #EEF5FF;
+    --report-table-total-bg: #EDF2F7;
+    --report-table-header-bg: #1A3A5C;
+
+    --report-gradient-cover-primary: linear-gradient(135deg, #0F2A44 0%, #1A3A5C 50%, #2E5D85 100%);
+    --report-gradient-cover-subtitle: linear-gradient(90deg, #A8DADC, #4ADE80);
+    --report-gradient-cover-divider: linear-gradient(90deg, #1E6E8F, #4ADE80);
+    --report-gradient-nav-sticky: linear-gradient(90deg, #0F2A44, #152F4A);
+    --report-gradient-card-feature: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 100%);
+    --report-gradient-card-success: linear-gradient(135deg, #F0FDF4, #F8FAFC);
+
+    --report-font-base-px: 13px;
+    --report-font-size-xs: 10px;
+    --report-font-size-sm: 12px;
+    --report-font-size-base: 13px;
+    --report-font-size-md: 14px;
+    --report-font-size-lg: 16px;
+    --report-font-size-xl: 22px;
+    --report-font-size-2xl: 28px;
+    --report-font-size-3xl: 38px;
+
+    --report-space-section-gap: 20px;
+    --report-space-card-sm: 16px;
+    --report-space-card-md: 24px;
+    --report-space-card-lg: 28px 32px;
+    --report-radius-badge: 10px;
+}
+[data-report-scope][data-font-scale="normal"] {
+    --report-font-base-px: 15px;
+    --report-font-size-xs: 11px;
+    --report-font-size-sm: 13px;
+    --report-font-size-base: 15px;
+    --report-font-size-md: 16px;
+    --report-font-size-lg: 18px;
+    --report-font-size-xl: 24px;
+    --report-font-size-2xl: 30px;
+    --report-font-size-3xl: 42px;
+}
+[data-report-scope][data-font-scale="comfortable"] {
+    --report-font-base-px: 17px;
+    --report-font-size-xs: 13px;
+    --report-font-size-sm: 15px;
+    --report-font-size-base: 17px;
+    --report-font-size-md: 18px;
+    --report-font-size-lg: 20px;
+    --report-font-size-xl: 26px;
+    --report-font-size-2xl: 32px;
+    --report-font-size-3xl: 46px;
+}
+.dark [data-report-scope],
+[data-theme='dark'] [data-report-scope] {
+    --report-surface-accent-bg: #4ADE80;
+    --report-surface-warning-text: #FBBF24;
+    --report-surface-light: #2A4A6B;
+    --report-surface-bg: #0B1120;
+    --report-surface-row-total: #1A2540;
+    --report-surface-summary-bg: #111D30;
+    --report-surface-conclusion-bg: #111827;
+    --report-surface-compare-neg: #2A1520;
+    --report-surface-compare-pos: #152A1A;
+
+    --report-alert-danger-bg: #2A1520;
+    --report-alert-danger-text: #FCA5A5;
+    --report-alert-warning-bg: #2A2215;
+    --report-alert-warning-text: #FDE68A;
+    --report-alert-success-bg: #152A1A;
+    --report-alert-success-text: #86EFAC;
+    --report-alert-info-bg: #152035;
+    --report-alert-info-text: #93C5FD;
+
+    --report-badge-green-bg: #14532D;
+    --report-badge-green-text: #86EFAC;
+    --report-badge-red-bg: #4C1D2A;
+    --report-badge-red-text: #FCA5A5;
+    --report-badge-yellow-bg: #3D2E0A;
+    --report-badge-yellow-text: #FDE68A;
+    --report-badge-blue-bg: #172554;
+    --report-badge-blue-text: #93C5FD;
+    --report-badge-neutral-bg: #1E293B;
+    --report-badge-neutral-text: #94A3B8;
+
+    --report-table-even-bg: #111827;
+    --report-table-hover-bg: #1A2744;
+    --report-table-total-bg: #1A2540;
+    --report-table-header-bg: #1A3A5C;
+
+    --report-gradient-cover-primary: linear-gradient(135deg, #080E1A 0%, #0F172A 50%, #162033 100%);
+    --report-gradient-cover-subtitle: linear-gradient(90deg, #A8DADC, #4ADE80);
+    --report-gradient-cover-divider: linear-gradient(90deg, #1E6E8F, #4ADE80);
+    --report-gradient-nav-sticky: linear-gradient(90deg, #080E1A, #0F172A);
+    --report-gradient-card-feature: linear-gradient(135deg, #111D30 0%, #151D2E 100%);
+    --report-gradient-card-success: linear-gradient(135deg, #0F1F18, #151D2E);
+
 }

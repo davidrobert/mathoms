@@ -153,6 +153,80 @@ def _card_variants_block(tokens: dict[str, Any]) -> list[str]:
     return lines
 
 
+def _report_palette_vars(palette_mode: dict[str, Any]) -> list[str]:
+    """Emit --report-* vars for one mode (light/dark)."""
+    lines: list[str] = []
+    for group_key in ("surface_ext", "alert", "badge", "table", "gradient"):
+        group = palette_mode.get(group_key, {})
+        prefix_map = {
+            "surface_ext": "report-surface",
+            "alert": "report-alert",
+            "badge": "report-badge",
+            "table": "report-table",
+            "gradient": "report-gradient",
+        }
+        prefix = prefix_map[group_key]
+        for k, v in group.items():
+            lines.append(f"    --{prefix}-{_kebab(k)}: {v};")
+        lines.append("")
+    return lines
+
+
+def _report_typography_vars(scale: dict[str, Any]) -> list[str]:
+    """Emit --report-font-size-* + --report-font-base-px vars for one scale preset."""
+    lines: list[str] = []
+    lines.append(f"    --report-font-base-px: {scale['base_px']}px;")
+    for key, value in scale.items():
+        if key == "base_px":
+            continue
+        lines.append(f"    --report-font-size-{_kebab(key)}: {value};")
+    return lines
+
+
+def _report_scope_block(tokens: dict[str, Any]) -> list[str]:
+    """Emit [data-report-scope] scoped block — report palette + typography.
+
+    Lives alongside :root vars; activates only inside ReportShell where
+    `<div data-report-scope data-font-scale="compact">` wraps the tree.
+    Dark mode uses the .dark/[data-theme='dark'] parent selectors.
+    """
+    palette = tokens["report_palette"]
+    typo = tokens["report_typography"]
+    default_scale = typo["default_scale"]
+    scales = typo["scales"]
+    spacing = typo.get("spacing_scope", {})
+    radius = typo.get("radius_scope", {})
+
+    out: list[str] = ["", "/* Report scope — ADR-117 palette + ADR-121 typography */"]
+
+    # Base scope block (light + default scale + spacing/radius extras)
+    out.append("[data-report-scope] {")
+    out.extend(_report_palette_vars(palette["light"]))
+    out.extend(_report_typography_vars(scales[default_scale]))
+    out.append("")
+    for k, v in spacing.items():
+        out.append(f"    --report-space-{_kebab(k)}: {v};")
+    for k, v in radius.items():
+        out.append(f"    --report-radius-{_kebab(k)}: {v};")
+    out.append("}")
+
+    # Non-default font scales
+    for scale_name, scale_def in scales.items():
+        if scale_name == default_scale:
+            continue
+        out.append(f'[data-report-scope][data-font-scale="{scale_name}"] {{')
+        out.extend(_report_typography_vars(scale_def))
+        out.append("}")
+
+    # Dark mode overrides for report palette only (typography is theme-agnostic)
+    out.append(".dark [data-report-scope],")
+    out.append("[data-theme='dark'] [data-report-scope] {")
+    out.extend(_report_palette_vars(palette["dark"]))
+    out.append("}")
+
+    return out
+
+
 def _theme_inline_block(tokens: dict[str, Any]) -> list[str]:
     """@theme inline block for Tailwind v4 — só no output do frontend."""
     lines = ["", "@theme inline {"]
@@ -253,6 +327,9 @@ def render_css(tokens: dict[str, Any], *, include_tailwind_theme: bool) -> str:
     out.append("}")
 
     out.extend(_card_variants_block(tokens))
+
+    if "report_palette" in tokens and "report_typography" in tokens:
+        out.extend(_report_scope_block(tokens))
 
     if include_tailwind_theme:
         out.extend(_theme_inline_block(tokens))
