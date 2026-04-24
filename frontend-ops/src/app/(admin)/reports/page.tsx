@@ -20,11 +20,6 @@ function formatBytes(bytes: number | null): string {
 
 const PAGE_SIZE = 25;
 
-// Base pública do app cliente onde o relatório é renderizado (ADR-076/F9).
-// Override via NEXT_PUBLIC_CLIENT_APP_BASE (ex.: staging/prod).
-const CLIENT_APP_BASE =
-  process.env.NEXT_PUBLIC_CLIENT_APP_BASE ?? "http://localhost:3000";
-
 export default function ReportsPage() {
   const [userId, setUserId] = useState("");
   const [workspaceId, setWorkspaceId] = useState("");
@@ -146,10 +141,11 @@ export default function ReportsPage() {
                 </td>
                 <td className="px-4 py-2 text-right">
                   <a
-                    href={`${CLIENT_APP_BASE}/reports/${r.id}`}
+                    href={`/admin/reports/${r.id}/html`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-primary hover:underline text-sm"
+                    title="HTML read-only via ops_session — não exige login do usuário"
                   >
                     abrir ↗
                   </a>
