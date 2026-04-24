@@ -1,13 +1,24 @@
-# Plano — Elevar `/reports/[id]` e `e6_render.py` ao nível do `EXEMPLO_DE_RELATORIO.html`
+# Plano — Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html`
 
+> ⚠️ **Status do plano (2026-04-24):** Fases 0-10 ✅ entregues em `main`.
+> **Fases 11 / 12 / 13 canceladas** via
+> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+> O renderer HTML server-side (`scripts/e6_render.py`) foi descontinuado
+> por completo — não há mais alvo de paridade HTML. React
+> (`/reports/[id]`) é o único renderer; PDF via Playwright é o único
+> export server-side. Todo conteúdo deste plano referente à Fase 11
+> (§10), Fase 12 (§11) e Fase 13 (§12) está mantido abaixo apenas como
+> **registro histórico** — não executar.
+>
 > **Audiência:** LLM executor (agente Claude em worktree próprio).
 > **Referência visual:** `EXEMPLO_DE_RELATORIO.html` (raiz do repo, 10 024 linhas).
-> **Referência atual:** `frontend/src/components/report/**`, `scripts/e6_render.py`,
+> **Referência atual (viva):** `frontend/src/components/report/**`,
 > `design-tokens/tokens.json`, `config/report_layout.yaml`.
+> **Referência histórica (removida na execução da ADR-129):**
+> `scripts/e6_render.py`, `scripts/e6/`.
 > **Data de emissão:** 2026-04-23.
 > **Última revisão de status:** 2026-04-24.
-> **Status geral:** 9 de 13 fases entregues em `main` — Fases 0-9.
-> **Próxima fase:** 10 (Apêndices A-E + fix `MIGRATED_SECTIONS`).
+> **Status geral:** 10 de 10 fases úteis entregues em `main` — Fases 0-10.
 > Detalhes de cada fase na [tabela do §2](#2-roadmap-de-fases-visão-geral) e
 > em [BACKLOG.md — Report Premium UI](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
 
@@ -22,10 +33,14 @@ este plano conflitar com os deltas abaixo, **os deltas prevalecem**.
    `if_projector`, `ratios_calculator` já existem em `pipeline/domain/services/`.
    Trabalho é **extensão**, não criação. Único service genuinamente novo:
    `SnapshotChangelogBuilder` — **diferido para v2** (ver #4).
-2. **Fase 11 reescrita — aposentar `e6_render.py`** (ADR-124). Em vez de
-   Jinja2, a rota Next SSR `/reports/[id]/export` gera o HTML standalone.
-   Backend endpoint passa a proxyar. `scripts/e6_render.py` é deletado ao
-   final da fase. Os 19 V-checks migram para Playwright contra a rota.
+2. ~~**Fase 11 reescrita — aposentar `e6_render.py`** (ADR-124). Em vez
+   de Jinja2, a rota Next SSR `/reports/[id]/export` gera o HTML
+   standalone. Backend endpoint passa a proxyar. `scripts/e6_render.py`
+   é deletado ao final da fase. Os 19 V-checks migram para Playwright
+   contra a rota.~~ **[Obsoleto — superseded por
+   [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).**
+   Nenhuma rota SSR será construída; o endpoint HTML inteiro é removido.
+   Os 19 V-checks desaparecem junto com o validador.
 3. **Nova Fase 6.5 — backend persistence para Notas + Kanban** (ADR-123).
    Duas tabelas novas (`report_notes`, `kanban_items`), migração Alembic,
    4 endpoints REST com `response_model`, OpenAPI snapshot. Entra entre
@@ -548,7 +563,16 @@ Cada seção migra em **4 commits sequenciais**:
 
 ---
 
-## 10. Fase 11 — `e6_render.py` paridade
+## 10. Fase 11 — `e6_render.py` paridade ❌ CANCELADA
+
+> ❌ **Cancelada 2026-04-24 via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).**
+> Conteúdo abaixo mantido apenas como registro histórico do desenho
+> original (Jinja2) e da revisão de 2026-04-24 (Next SSR sob ADR-124).
+> Nenhuma das duas abordagens será executada. A execução real é a
+> **remoção** do renderer, tracked em BACKLOG.md sob a lane
+> `adr-129-e6-kill`.
+
+
 
 **Branch:** `agent/report-premium/phase11-e6-parity/<ts>`
 
@@ -580,7 +604,17 @@ Comparar visualmente `e6_render.py` output com o exemplo em 3 cenários: fixture
 
 ---
 
-## 11. Fase 12 — Print + a11y + tests
+## 11. Fase 12 — Print + a11y + tests ⏭ ESCOPO REDIRECIONADO
+
+> ⏭ **2026-04-24:** a Fase 12 como descrita (Playwright com snapshot do
+> `e6_render.py` output, diff PDF contra baseline do renderer Python)
+> **perde sentido** com [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+> Os itens que sobrevivem — **print CSS no React**, axe-core, keyboard-nav,
+> Playwright de fluxo da rota `/reports/[id]` — viram uma lane dedicada
+> em F11 se prioritários. Conteúdo abaixo mantido como referência do
+> que já era útil independente do E6.
+
+
 
 **Branch:** `agent/report-premium/phase12-polish/<ts>`
 
@@ -617,7 +651,17 @@ Em `frontend/tests/e2e/reports/`:
 
 ---
 
-## 12. Fase 13 — Rollout & docs
+## 12. Fase 13 — Rollout & docs ❌ ABSORVIDA PELA ADR-129
+
+> ❌ **2026-04-24:** A Fase 13 previa "feature flag + CHANGELOG + delete
+> `e6_render.py`" como passo final do Report Premium. O `delete` acontece
+> agora sob [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side),
+> não como rollout, mas como **remoção definitiva** do renderer legado.
+> CHANGELOG e docs são atualizados no mesmo PR docs-only que emite ADR-129
+> e nos PRs de código subsequentes. Feature flag é dispensável (sem prod,
+> cutover direto).
+
+
 
 **Branch:** `agent/report-premium/phase13-rollout/<ts>`
 

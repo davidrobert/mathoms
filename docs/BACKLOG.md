@@ -6,7 +6,7 @@
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
 >
-> **Última atualização:** 2026-04-24 (Report Premium UI — 10/13 fases entregues em main: F0 discovery → F10 apêndices. Próxima: Fase 11 `e6_render.py` paridade (ADR-124). Ver lane dedicada abaixo. · F7F-Local MVP fechado · A6e.4 ✅ fase 4a completa 14/14.)
+> **Última atualização:** 2026-04-24 (Report Premium UI — 10/10 fases úteis entregues em main: F0 discovery → F10 apêndices. **Fases 11/12/13 canceladas via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)** — renderer HTML server-side descontinuado por completo. Execução da remoção tracked em nova lane `adr-129-e6-kill`. · F7F-Local MVP fechado · A6e.4 ✅ fase 4a completa 14/14.)
 
 ---
 
@@ -654,7 +654,8 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | **A6c** deletar bridge | `a6c-delete-bridge` | Remove `stage_runner_compat` + `materialization_bridge` + `main(root_dir)` legados | A6-human aprovado | — | ⏸ blocked-by A6-human |
 | **A6-ux.livestep** contrato `LiveStep` | `livestep-contract` | ADR-119 — payload único de progresso intra-stage + helper `emit_item_progress` + primitivo `<LiveStepProgress/>`; primeira adoção em E2-extratos/E2-faturas | A6e.4 ✅ | — | ✅ entregue 2026-04-23 (branch `agent/livestep-contract/20260423-1530`) — migração das stages iterativas restantes (E1/E1.5/E1.5c/E2-llm) aberta como follow-up P1 |
 | **A6-readers.dbfirst** readers DB-first | `adr-db-first-readers` | ADR-120 — helper `artifact_reader.read_latest_artifact` DB-first com fallback disco; fix incidente 2026-04-23 (patrimônio stale) | A6b.flip ✅ | — | ✅ entregue 2026-04-23 (branch `agent/adr-db-first-readers/20260423-1645`) — 4 readers user-facing migrados |
-| **Report Premium Fase 11** `e6_render.py` paridade (Jinja2 + tokens) | `report-premium/phase11-e6-parity` | Reescrever exportador HTML standalone com Jinja2 + design tokens para paridade visual com `/reports/[id]` (ADR-124 revisitada — §10 do plano vence Delta #2) | Fase 10 ✅ | — | 🚧 ativa em `agent/report-premium/phase11-e6-parity/20260424-1558` |
+| ~~**Report Premium Fase 11** `e6_render.py` paridade~~ | ~~`report-premium/phase11-e6-parity`~~ | **❌ Cancelada** via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) (2026-04-24) — renderer HTML server-side não sobrevive. Branch `agent/report-premium/phase11-e6-parity/20260424-1558` fica como histórico; não será mergeada. | — | — | ❌ 2026-04-24 (ADR-129) |
+| **ADR-129 remoção E6 + endpoints HTML** | `adr-129-e6-kill` | Execução da [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side): remover `scripts/e6_render.py`, `scripts/e6/`, `scripts/e6_regen.py`, `pipeline/stages/e6.py`, `stage_materialization`, stage `E6`/`E6-final` no registry, endpoints `/html` + `/download.html` (públicos + admin), use cases `get_report_html`, `download_report_html`, coluna `Report.html_path` (drop via Alembic), `seed_existing_reports`, `backend/seed_db.py`, dead code frontend (`getReportHtmlUrl*`, labels E6 em `pipelinePhases.ts` + `reports/[id]/page.tsx`), emit CSS standalone em `design-tokens/build.py`, doc `e6_render_readme.md`, refs CLI em `scripts/e7_review.py`, testes de todas as camadas. PRs sequenciais (API → pipeline → scripts → frontend → tokens → seed → testes → docs). | ADR-129 mergeada | P1 | 🚧 próxima |
 
 ### Ondas paralelas — mapa de dependências
 
@@ -1350,8 +1351,12 @@ lógicos — a defesa é app-level + audit + retenção.
 > Objetivo: migrar `/reports/[id]` e o standalone do relatório para o
 > nível visual do `EXEMPLO_DE_RELATORIO.html` (10k linhas, raiz do repo).
 > Cross-cutting de frontend + backend (colaboração Notas/Kanban) + design
-> tokens + pipeline (derivadores). **10 de 13 fases entregues em
-> 2026-04-24.** Próxima fase: **11 (`e6_render.py` paridade — ADR-124)**.
+> tokens + pipeline (derivadores). **10 de 10 fases úteis entregues em
+> 2026-04-24.** **Fases 11/12/13 canceladas** via
+> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)
+> (2026-04-24) — renderer HTML server-side descontinuado; React é único
+> renderer; PDF via Playwright continua como único export server-side.
+> A remoção é tracked na lane `adr-129-e6-kill` acima.
 
 | Fase | Entrega | Status | Commits principais |
 | --- | --- | --- | --- |
@@ -1367,9 +1372,9 @@ lógicos — a defesa é app-level + audit + retenção.
 | 8 | T3/T5/T6 wired com API reports_collab | ✅ 2026-04-24 | `ac6fa81`, `dbc1195`, `a2f8843` |
 | 9 | U1-U4 wired com SectionSummary + Chart fallbacks | ✅ 2026-04-24 | `9d5fbce` |
 | 10 | Apêndices A-E + fix `MIGRATED_SECTIONS` | ✅ 2026-04-24 | `c63497d`, `78f9193`, `5fc8cc4`, `31f72cd` |
-| 11 | `e6_render.py` paridade (Jinja2 + tokens — ADR-124) | ☐ **próxima** | depende de 7/8/9/10 |
-| 12 | Print + a11y + Playwright screenshots + axe-core | ☐ | depende de 11 |
-| 13 | Rollout + CHANGELOG + RUNBOOK + delete `e6_render.py` | ☐ | depende de 12 |
+| ~~11~~ | ~~`e6_render.py` paridade (Jinja2 + tokens — ADR-124)~~ | ❌ Cancelada via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) | — |
+| ~~12~~ | ~~Print + a11y + Playwright screenshots + axe-core (como descrita)~~ | ⏭ Escopo redirecionado — print CSS + a11y do shell React seguem como lane dedicada em F11 (não bloqueia ADR-129) | — |
+| ~~13~~ | ~~Rollout + CHANGELOG + RUNBOOK + delete `e6_render.py`~~ | ❌ Absorvida pela execução de [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) | — |
 
 **Pendências conhecidas (débito consciente):**
 
@@ -1387,9 +1392,11 @@ lógicos — a defesa é app-level + audit + retenção.
   e independem das fases; tratar em polish (Fase 12).
 
 **Checkpoint de saída:** relatório nativo `/reports/[id]` visualmente
-equivalente ao exemplo em dark/light + print; standalone (HTML offline)
-gerado pelo Next SSR sem depender do `e6_render.py` legado; Playwright
-valida os 19 V-checks; axe-core sem violações críticas.
+equivalente ao exemplo em dark/light + print. Standalone HTML **não
+existe mais** — [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)
+descontinuou o renderer server-side; PDF via Playwright é único export.
+Print CSS + a11y (axe-core) do shell React seguem como lane dedicada
+em F11 se prioritárias.
 
 ---
 
