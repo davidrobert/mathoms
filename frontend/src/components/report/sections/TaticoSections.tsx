@@ -1,17 +1,37 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
-import type { ReportAnalysisData } from "@/lib/api";
-import type { FluxoCaixaSummary, OrcamentoProspectivoData, ConsumoConscienteData } from "@/types/report-analysis";
+import { Kanban, NotasCard, Timeline } from "../ui";
+import type {
+  KanbanItem as KanbanUIItem,
+  KanbanColumn,
+  NotasSaveState,
+  TimelineItem,
+} from "../ui";
+import { adaptProximos15dToTimeline } from "../utils/timelineAdapter";
+import {
+  getReportNotes,
+  listKanbanItems,
+  putReportNotes,
+  updateKanbanItem,
+  type KanbanItemPayload,
+  type ReportAnalysisData,
+} from "@/lib/api";
+import { ApiError } from "@/lib/api";
+import type {
+  FluxoCaixaSummary,
+  OrcamentoProspectivoData,
+  ConsumoConscienteData,
+} from "@/types/report-analysis";
 
-/** F9 · F2.H — Seções T1–T6 do modo Tático (Dashboard Operacional).
+/** F9 · Fase 8 — Seções T1–T6 do modo Tático (Dashboard Operacional).
  *
- * O modo tático consome dados mais granulares (despesas vs tetos por
- * categoria, aportes, checklist tarefas, alertas, timeline 15 dias).
- * Na versão atual, renderiza os dados que existem no E5 JSON +
- * placeholders para os que virão da integração tasks (F8.3).
+ * T3 (tarefas) + T6 (notas) consomem ADR-123 endpoints de colaboração.
+ * T5 consome timelineAdapter derivando de `dashboard.proximos_15d`.
+ * T4 permanece read-only a partir de `data.alertas`.
  */
 
 export function T1FluxoOperacionalSection({ data }: { data: ReportAnalysisData }) {
@@ -31,7 +51,6 @@ export function T1FluxoOperacionalSection({ data }: { data: ReportAnalysisData }
 
   return (
     <ReportSection id="T1" title="Fluxo Operacional — Despesas vs Tetos">
-      {/* KPI row */}
       <div className="md:col-span-2 mb-2 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {kpis.map(({ label, value }) => (
           <div
@@ -86,75 +105,111 @@ export function T2AportesSection({ data: _data }: { data: ReportAnalysisData }) 
   );
 }
 
-const PRIORIDADE_COLOR: Record<string, string> = {
-  alta: "var(--semantic-loss)",
-  media: "var(--semantic-alert)",
-  baixa: "var(--semantic-gain)",
-};
+// ═════════════════════════════════════════════════════════════════════
+// T3 — Kanban (ADR-123)
+// ═════════════════════════════════════════════════════════════════════
 
-const PRIORIDADE_LABEL: Record<string, string> = {
-  alta: "Alta",
-  media: "Média",
-  baixa: "Baixa",
-};
+function payloadToUI(p: KanbanItemPayload): KanbanUIItem {
+  return {
+    id: p.id,
+    titulo: p.titulo,
+    coluna: p.coluna,
+    prioridade: p.prioridade ?? undefined,
+    prazoIso: p.prazo ?? undefined,
+    categoria: p.categoria ?? undefined,
+  };
+}
 
-export function T3TarefasSection({ data }: { data: ReportAnalysisData }) {
-  type Tarefa = { n?: number; t?: string; p?: string; e?: string; categoria?: string; impacto?: string };
-  const tarefas = (data.tarefas ?? []) as Tarefa[];
-  const tarefasStatus = (data.tarefas_status ?? {}) as Record<string, string>;
+export function T3TarefasSection({
+  data,
+  workspaceId,
+  reportId,
+}: {
+  data: ReportAnalysisData;
+  workspaceId: string;
+  reportId: string;
+}) {
+  const [items, setItems] = useState<readonly KanbanUIItem[]>([]);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setStatus("loading");
+    listKanbanItems(workspaceId, reportId)
+      .then((res) => {
+        if (cancelled) return;
+        setItems(res.items.map(payloadToUI));
+        setStatus("ready");
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Falha ao carregar tarefas.");
+        setStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId, reportId]);
+
+  const handleMove = useCallback(
+    (itemId: string, to: KanbanColumn) => {
+      const prev = items;
+      setItems((curr) =>
+        curr.map((it) => (it.id === itemId ? { ...it, coluna: to } : it)),
+      );
+      updateKanbanItem(workspaceId, reportId, itemId, { coluna: to }).catch(
+        (err: unknown) => {
+          setItems(prev);
+          setError(
+            err instanceof ApiError
+              ? err.message
+              : err instanceof Error
+                ? err.message
+                : "Falha ao mover tarefa.",
+          );
+        },
+      );
+    },
+    [items, workspaceId, reportId],
+  );
+
+  const tarefasFromSnapshot = Array.isArray(data.tarefas) ? data.tarefas.length : 0;
 
   return (
     <ReportSection id="T3" title="Checklist de Tarefas">
-      <ReportCard variant="feature" title="Tarefas">
-        {tarefas.length === 0 ? (
-          <p className="text-sm text-[var(--surface-muted-foreground)]">Nenhuma tarefa registrada.</p>
-        ) : (
-          <ul className="space-y-2">
-            {tarefas.slice(0, 20).map((tarefa, i) => {
-              const num = Number.isFinite(tarefa.n) ? tarefa.n : i + 1;
-              const status = tarefasStatus[String(num)] ?? "pendente";
-              const isDone = status === "feito";
-              const prioridade = tarefa.p ?? "media";
-              return (
-                <li key={`tarefa-${i}`} className="flex items-start gap-3 text-sm">
-                  {/* Status dot */}
-                  <span
-                    className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full"
-                    style={{ background: isDone ? "var(--semantic-gain)" : "var(--surface-muted-foreground)" }}
-                  />
-                  <span className="flex-1 leading-snug" style={{ textDecoration: isDone ? "line-through" : "none", opacity: isDone ? 0.6 : 1 }}>
-                    {tarefa.t ?? "—"}
-                  </span>
-                  {/* Priority badge */}
-                  <span
-                    className="shrink-0 rounded px-1.5 py-0.5 font-mono text-xs font-semibold"
-                    style={{ color: PRIORIDADE_COLOR[prioridade] ?? "inherit", background: "var(--surface-muted)" }}
-                  >
-                    {PRIORIDADE_LABEL[prioridade] ?? prioridade}
-                  </span>
-                  {/* Due date */}
-                  {tarefa.e && tarefa.e !== "—" && (
-                    <span className="shrink-0 font-mono text-xs text-[var(--surface-muted-foreground)]">
-                      {tarefa.e}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-            {tarefas.length > 20 && (
-              <li className="text-xs text-[var(--surface-muted-foreground)]">
-                + {tarefas.length - 20} tarefas adicionais
-              </li>
+      <ReportCard variant="feature" title="Kanban">
+        {status === "loading" && (
+          <p className="text-sm text-[var(--surface-muted-foreground)]">Carregando tarefas…</p>
+        )}
+        {status === "error" && (
+          <p className="text-sm text-[var(--semantic-loss)]">
+            {error ?? "Erro desconhecido."}
+          </p>
+        )}
+        {status === "ready" && items.length === 0 && (
+          <p className="text-sm text-[var(--surface-muted-foreground)]">
+            Nenhuma tarefa registrada no Kanban.
+            {tarefasFromSnapshot > 0 && (
+              <span>
+                {" "}O relatório lista {tarefasFromSnapshot} tarefa(s) no snapshot; crie items no Kanban para acompanhar.
+              </span>
             )}
-          </ul>
+          </p>
+        )}
+        {status === "ready" && items.length > 0 && (
+          <Kanban items={items} onMove={handleMove} />
         )}
       </ReportCard>
     </ReportSection>
   );
 }
 
+// ═════════════════════════════════════════════════════════════════════
+// T4 — Alertas (read-only)
+// ═════════════════════════════════════════════════════════════════════
+
 export function T4AlertasSection({ data }: { data: ReportAnalysisData }) {
-  // alertas is string[] in E5 JSON (generated by e5_analyze.py)
   const alertas = (data.alertas ?? []) as string[];
   return (
     <ReportSection id="T4" title="Alertas e Pendências">
@@ -164,7 +219,10 @@ export function T4AlertasSection({ data }: { data: ReportAnalysisData }) {
         ) : (
           <ul className="space-y-2">
             {alertas.map((msg, i) => (
-              <li key={i} className="flex items-start gap-2 rounded-md border border-[var(--surface-border)] bg-[var(--surface-muted)] p-3 text-sm">
+              <li
+                key={i}
+                className="flex items-start gap-2 rounded-md border border-[var(--surface-border)] bg-[var(--surface-muted)] p-3 text-sm"
+              >
                 <span className="mt-0.5 shrink-0 text-[var(--semantic-alert)]">⚠</span>
                 <span>{typeof msg === "string" ? msg : JSON.stringify(msg)}</span>
               </li>
@@ -176,26 +234,84 @@ export function T4AlertasSection({ data }: { data: ReportAnalysisData }) {
   );
 }
 
-export function T5ProximosPassosSection() {
+// ═════════════════════════════════════════════════════════════════════
+// T5 — Timeline 15 dias
+// ═════════════════════════════════════════════════════════════════════
+
+export function T5ProximosPassosSection({ data }: { data: ReportAnalysisData }) {
+  const items: readonly TimelineItem[] = adaptProximos15dToTimeline(data);
   return (
     <ReportSection id="T5" title="Próximos Passos">
       <ReportCard variant="feature" title="Timeline 15 dias">
-        <p className="text-sm text-[var(--surface-muted-foreground)]">
-          Timeline operacional será alimentada pela integração de tarefas com datas de vencimento.
-        </p>
+        {items.length === 0 ? (
+          <p className="text-sm text-[var(--surface-muted-foreground)]">
+            Nenhuma ação agendada nos próximos 15 dias.
+          </p>
+        ) : (
+          <Timeline items={items} />
+        )}
       </ReportCard>
     </ReportSection>
   );
 }
 
-export function T6NotasSection() {
+// ═════════════════════════════════════════════════════════════════════
+// T6 — Notas (ADR-123)
+// ═════════════════════════════════════════════════════════════════════
+
+export function T6NotasSection({
+  workspaceId,
+  reportId,
+}: {
+  workspaceId: string;
+  reportId: string;
+}) {
+  const [content, setContent] = useState("");
+  const [saveState, setSaveState] = useState<NotasSaveState>("idle");
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getReportNotes(workspaceId, reportId)
+      .then((res) => {
+        if (cancelled) return;
+        setContent(res?.content ?? "");
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLoaded(true);
+        setSaveState("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId, reportId]);
+
+  const handleChange = useCallback(
+    (next: string) => {
+      setContent(next);
+      setSaveState("saving");
+      putReportNotes(workspaceId, reportId, next)
+        .then(() => setSaveState("saved"))
+        .catch(() => setSaveState("error"));
+    },
+    [workspaceId, reportId],
+  );
+
+  if (!loaded) {
+    return (
+      <ReportSection id="T6" title="Notas e Observações">
+        <ReportCard variant="neutral" title="Notas">
+          <p className="text-sm text-[var(--surface-muted-foreground)]">Carregando notas…</p>
+        </ReportCard>
+      </ReportSection>
+    );
+  }
+
   return (
     <ReportSection id="T6" title="Notas e Observações">
-      <ReportCard variant="neutral" title="Notas">
-        <p className="text-sm text-[var(--surface-muted-foreground)]">
-          Área reservada para observações do consultor e da família.
-        </p>
-      </ReportCard>
+      <NotasCard value={content} onChange={handleChange} saveState={saveState} />
     </ReportSection>
   );
 }

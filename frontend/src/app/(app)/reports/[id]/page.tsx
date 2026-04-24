@@ -171,6 +171,7 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
       <ReportModeProvider initialMode="estrategico">
         <ReportShell
           reportId={reportId}
+          workspaceId={workspace.id}
           reportTitle={report!.title}
           dataState={dataState}
           reportPeriod={report!.period}

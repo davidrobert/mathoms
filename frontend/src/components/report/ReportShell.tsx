@@ -82,6 +82,8 @@ const MIGRATED_SECTIONS = new Set([
 
 interface ReportShellProps {
   reportId: string;
+  /** F8 · ADR-123 — necessário para endpoints de colaboração (T3/T6). */
+  workspaceId: string;
   reportTitle: string;
   dataState: UseReportDataState;
   /** Metadados do relatório (API) — F11.4 origem dos dados. */
@@ -175,6 +177,7 @@ function buildNavGroups(): {
  */
 export function ReportShell({
   reportId,
+  workspaceId,
   reportTitle,
   dataState,
   reportPeriod,
@@ -354,6 +357,8 @@ export function ReportShell({
                     key={section.id}
                     sectionId={section.id}
                     data={dataState.data}
+                    workspaceId={workspaceId}
+                    reportId={reportId}
                   />
                 ) : (
                   <ReportSection
@@ -384,6 +389,8 @@ export function ReportShell({
                         key={a.id}
                         sectionId={a.id}
                         data={dataState.data}
+                        workspaceId={workspaceId}
+                        reportId={reportId}
                       />
                     ) : null,
                   )}
@@ -402,9 +409,13 @@ export function ReportShell({
 function MigratedSection({
   sectionId,
   data,
+  workspaceId,
+  reportId,
 }: {
   sectionId: string;
   data: ReportAnalysisData;
+  workspaceId: string;
+  reportId: string;
 }) {
   switch (sectionId) {
     case "S1":
@@ -438,13 +449,19 @@ function MigratedSection({
     case "T2":
       return <T2AportesSection data={data} />;
     case "T3":
-      return <T3TarefasSection data={data} />;
+      return (
+        <T3TarefasSection
+          data={data}
+          workspaceId={workspaceId}
+          reportId={reportId}
+        />
+      );
     case "T4":
       return <T4AlertasSection data={data} />;
     case "T5":
-      return <T5ProximosPassosSection />;
+      return <T5ProximosPassosSection data={data} />;
     case "T6":
-      return <T6NotasSection />;
+      return <T6NotasSection workspaceId={workspaceId} reportId={reportId} />;
     // Apêndices
     case "APP_A":
       return <ApendiceASection />;

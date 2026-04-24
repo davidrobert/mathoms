@@ -57,7 +57,7 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          reportTitle="Relatório Família Teste"
+          workspaceId="ws-test" reportTitle="Relatório Família Teste"
           dataState={state}
           reportPeriod="2026-Q1"
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -79,7 +79,7 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          reportTitle="Rel"
+          workspaceId="ws-test" reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -97,7 +97,7 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          reportTitle="Rel"
+          workspaceId="ws-test" reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -117,7 +117,7 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          reportTitle="Rel"
+          workspaceId="ws-test" reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -140,7 +140,7 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          reportTitle="Rel"
+          workspaceId="ws-test" reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
@@ -159,7 +159,7 @@ describe("ReportShell", () => {
       wrap(
         <ReportShell
           reportId="r1"
-          reportTitle="Rel"
+          workspaceId="ws-test" reportTitle="Rel"
           dataState={state}
           reportPeriod={null}
           reportCreatedAt="2026-04-17T12:00:00.000Z"
