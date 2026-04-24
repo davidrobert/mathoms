@@ -326,10 +326,10 @@ def render_css(tokens: dict[str, Any], *, include_tailwind_theme: bool) -> str:
     out.append(f"    --shadow-card-hover: {shadow['card_hover_dark']};")
     out.append("}")
 
-    out.extend(_card_variants_block(tokens))
-
     if "report_palette" in tokens and "report_typography" in tokens:
         out.extend(_report_scope_block(tokens))
+
+    out.extend(_card_variants_block(tokens))
 
     if include_tailwind_theme:
         out.extend(_theme_inline_block(tokens))

@@ -180,71 +180,6 @@
     --shadow-card-hover: 0 6px 18px rgb(0 0 0 / 0.35);
 }
 
-/* Card variants — visual DNA do relatório */
-.card-variant-highlight {
-    border-left: 4px solid var(--brand-primary);
-    background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-card));
-    border-radius: var(--radius-card);
-    padding: var(--space-2xl);
-    background-clip: padding-box;
-}
-.card-variant-feature {
-    border: 1px solid var(--surface-border);
-    background: var(--surface-card);
-    border-radius: var(--radius-card);
-    padding: var(--space-2xl);
-    background-clip: padding-box;
-}
-.card-variant-success {
-    border-left: 4px solid var(--semantic-gain);
-    background: color-mix(in srgb, var(--semantic-gain) 6%, var(--surface-card));
-    border-radius: var(--radius-card);
-    padding: var(--space-2xl);
-    background-clip: padding-box;
-}
-.card-variant-warn {
-    border-left: 4px solid var(--semantic-alert);
-    background: color-mix(in srgb, var(--semantic-alert) 8%, var(--surface-card));
-    border-radius: var(--radius-card);
-    padding: var(--space-2xl);
-    background-clip: padding-box;
-}
-.card-variant-critical {
-    border-left: 4px solid var(--semantic-loss);
-    background: color-mix(in srgb, var(--semantic-loss) 6%, var(--surface-card));
-    border-radius: var(--radius-card);
-    padding: var(--space-2xl);
-    background-clip: padding-box;
-}
-.card-variant-primary {
-    border-left: 4px solid var(--brand-primary);
-    background: var(--surface-card);
-    border-radius: var(--radius-card);
-    padding: var(--space-2xl);
-    background-clip: padding-box;
-}
-.card-variant-neutral {
-    border-left: 4px solid var(--brand-neutral);
-    background: var(--surface-card);
-    border-radius: var(--radius-card);
-    padding: var(--space-2xl);
-    background-clip: padding-box;
-}
-.card-variant-top-danger {
-    border-top: 4px solid var(--semantic-loss);
-    background: var(--surface-card);
-    border-radius: var(--radius-card);
-    padding: var(--space-2xl);
-    background-clip: padding-box;
-}
-.card-variant-top-accent {
-    border-top: 4px solid var(--brand-accent);
-    background: var(--surface-card);
-    border-radius: var(--radius-card);
-    padding: var(--space-2xl);
-    background-clip: padding-box;
-}
-
 /* Report scope — ADR-117 palette + ADR-121 typography */
 [data-report-scope] {
     --report-surface-accent-bg: #2DC653;
@@ -371,6 +306,71 @@
     --report-gradient-card-feature: linear-gradient(135deg, #111D30 0%, #151D2E 100%);
     --report-gradient-card-success: linear-gradient(135deg, #0F1F18, #151D2E);
 
+}
+
+/* Card variants — visual DNA do relatório */
+.card-variant-highlight {
+    border-left: 4px solid var(--brand-primary);
+    background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-card));
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-feature {
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-success {
+    border-left: 4px solid var(--semantic-gain);
+    background: color-mix(in srgb, var(--semantic-gain) 6%, var(--surface-card));
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-warn {
+    border-left: 4px solid var(--semantic-alert);
+    background: color-mix(in srgb, var(--semantic-alert) 8%, var(--surface-card));
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-critical {
+    border-left: 4px solid var(--semantic-loss);
+    background: color-mix(in srgb, var(--semantic-loss) 6%, var(--surface-card));
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-primary {
+    border-left: 4px solid var(--brand-primary);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-neutral {
+    border-left: 4px solid var(--brand-neutral);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-top-danger {
+    border-top: 4px solid var(--semantic-loss);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
+.card-variant-top-accent {
+    border-top: 4px solid var(--brand-accent);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
 }
 
 @theme inline {
