@@ -20,6 +20,11 @@ function formatBytes(bytes: number | null): string {
 
 const PAGE_SIZE = 25;
 
+// Base pública do app cliente onde o relatório é renderizado (ADR-076/F9).
+// Override via NEXT_PUBLIC_CLIENT_APP_BASE (ex.: staging/prod).
+const CLIENT_APP_BASE =
+  process.env.NEXT_PUBLIC_CLIENT_APP_BASE ?? "http://localhost:3000";
+
 export default function ReportsPage() {
   const [userId, setUserId] = useState("");
   const [workspaceId, setWorkspaceId] = useState("");
@@ -108,19 +113,20 @@ export default function ReportsPage() {
               <th className="text-left px-4 py-2 font-medium">Período</th>
               <th className="text-left px-4 py-2 font-medium">Criado</th>
               <th className="text-right px-4 py-2 font-medium">Tamanho</th>
+              <th className="text-right px-4 py-2 font-medium">Abrir</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-surface-muted-fg">
+                <td colSpan={6} className="px-4 py-6 text-center text-surface-muted-fg">
                   Carregando…
                 </td>
               </tr>
             )}
             {!loading && reports.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-surface-muted-fg">
+                <td colSpan={6} className="px-4 py-6 text-center text-surface-muted-fg">
                   Nenhum relatório.
                 </td>
               </tr>
@@ -137,6 +143,16 @@ export default function ReportsPage() {
                 </td>
                 <td className="px-4 py-2 text-right mono-num text-surface-muted-fg">
                   {formatBytes(r.size_bytes)}
+                </td>
+                <td className="px-4 py-2 text-right">
+                  <a
+                    href={`${CLIENT_APP_BASE}/reports/${r.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand-primary hover:underline text-sm"
+                  >
+                    abrir ↗
+                  </a>
                 </td>
               </tr>
             ))}
