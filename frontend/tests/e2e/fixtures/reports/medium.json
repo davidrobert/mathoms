@@ -1,0 +1,70 @@
+{
+  "periodo_dados": "2026-01 a 2026-04",
+  "data_analise": "2026-04-25",
+  "patrimonio": {
+    "bruto": 1500000,
+    "liquido": 1200000,
+    "categorias": [
+      { "nome": "Imóveis", "valor": 800000, "percentual": 53.3 },
+      { "nome": "Renda Fixa", "valor": 350000, "percentual": 23.3 },
+      { "nome": "Renda Variável", "valor": 250000, "percentual": 16.7 },
+      { "nome": "Caixa", "valor": 100000, "percentual": 6.7 }
+    ]
+  },
+  "score": {
+    "valor": 82,
+    "max": 100,
+    "classificacao": "Muito Bom",
+    "componentes": []
+  },
+  "fluxo_caixa": {
+    "receitas_totais": 240000,
+    "despesas_totais": 168000,
+    "saldo": 72000
+  },
+  "ratios": {
+    "taxa_poupanca": 0.3,
+    "endividamento": 0.15
+  },
+  "reserva_emergencia": {
+    "atual": 80000,
+    "meta": 120000,
+    "meses_cobertos": 4.0
+  },
+  "endividamento": {
+    "total": 50000,
+    "percentual_renda": 0.15
+  },
+  "previdencia_pgbl": {
+    "saldo": 45000
+  },
+  "investimentos": {
+    "total": 600000,
+    "alocacao_atual": [],
+    "alocacao_alvo": []
+  },
+  "equilibrio_cerbasi": {
+    "presente": 0.55,
+    "futuro": 0.30,
+    "padrao_vida": 0.15
+  },
+  "cenarios_mariana": {},
+  "orcamento_prospectivo": {},
+  "pontos_fortes": [
+    { "titulo": "Diversificação patrimonial sólida" },
+    { "titulo": "Endividamento sob controle" }
+  ],
+  "pontos_urgentes": [
+    { "titulo": "Reserva de emergência incompleta" }
+  ],
+  "tarefas": [
+    { "titulo": "Revisar alocação de renda variável", "prazo": "2026-05-15" }
+  ],
+  "diagnostico_comportamental": [
+    { "categoria": "Disciplina", "nota": 8 }
+  ],
+  "tarefas_status": {},
+  "narrativas": {
+    "perfil_familia": "Família com perfil moderado, foco em independência financeira de longo prazo."
+  }
+}
