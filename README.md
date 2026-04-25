@@ -2,7 +2,7 @@
 
 > Envie extratos e documentos financeiros. Obtenha um retrato consolidado da família em minutos — não em semanas de planilha.
 
-**Status:** Dogfood interno · **F9 concluída** (relatório nativo React, design tokens, workspace sharing) · **Migração infra + domínio** em curso (fases 1-8 foundation entregues; plano em [_scratch/plano_migracao_artifacts_db.md](_scratch/plano_migracao_artifacts_db.md)) · Próxima fase planejada: **F7** (produção, LGPD, ops) — ver [docs/ROADMAP.md](docs/ROADMAP.md).
+**Status:** Dogfood interno · **F9 concluída** (relatório nativo React, design tokens, workspace sharing) · **Sprint transversal A6** em curso (Ondas 1-2 ✅; A6g.3 final + lane `adr-129-e6-kill` em andamento — ver [docs/BACKLOG.md §Sprint A6](docs/BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal)) · Próxima fase: **F7** (produção, LGPD, ops) — ver [docs/ROADMAP.md](docs/ROADMAP.md).
 
 **Produção (em configuração):** `app.mathoms.ai` · API: `api.mathoms.ai/v1/` · Console interno: `ops.mathoms.ai` · Docs: `docs.mathoms.ai` · Status: `status.mathoms.ai` · Landing: `mathoms.ai`. Ver [ADR-108](docs/DECISIONS.md#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns).
 
@@ -12,7 +12,7 @@
 
 Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas instituições, gerando análise com score financeiro, visão patrimonial, fluxo de caixa e recomendações.
 
-- **10 parsers bancários determinísticos** (`scripts/e2/banks/`): C6, Itaú, Santander, Bradesco, BTG, Rico, PicPay, Wise, Bank of America, QuintoAndar. Outras fontes (ex.: cripto/exchanges) entram via **E2-LLM** ou extensão futura do E2.
+- **11 parsers bancários determinísticos** (`scripts/e2/banks/`): C6, Itaú, Santander, Bradesco, Caixa, BTG, Rico, PicPay, Wise, Bank of America, QuintoAndar. Outras fontes (ex.: cripto/exchanges) entram via **E2-LLM** ou extensão futura do E2.
 - **LLM opcional (BYOK)** para etapas que não têm parser fixo (E1, E1.5, E2-llm, E7-review, etc.).
 - **Multi-tenant** com isolamento por workspace.
 - **Contratos type-safe** na API (FastAPI / OpenAPI) e tipagem forte no frontend (TypeScript).
