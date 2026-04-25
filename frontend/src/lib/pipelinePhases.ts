@@ -68,7 +68,7 @@ export const PIPELINE_PHASES: readonly Phase[] = [
     activeMessage: "Gerando o relatório e revisando a consistência dos números",
     description:
       "Renderizamos o relatório HTML, rodamos validações cruzadas para detectar inconsistências e aplicamos a revisão final antes de entregar.",
-    stages: ["E6", "E6-final", "E7-crossval", "E7-review", "E7-apply"],
+    stages: ["E7-crossval", "E7-review", "E7-apply"],
   },
 ] as const;
 

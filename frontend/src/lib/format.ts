@@ -423,8 +423,6 @@ export const STAGE_DISPLAY_NAMES: Record<string, string> = {
   "E4": "Categorização",
   "E5": "Análise financeira",
   "E5.N": "Narrativas",
-  "E6": "Geração do relatório",
-  "E6-final": "Relatório final",
   "E7-crossval": "Validação cruzada",
   "E7-review": "Revisão holística",
   "E7-apply": "Aplicação da revisão",
