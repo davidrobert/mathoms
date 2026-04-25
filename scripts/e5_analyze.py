@@ -134,7 +134,59 @@ def _init_config(base_dir: Path) -> None:
     _KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
 
 
-_init_config(_pc.PROJECT_DIR)
+# =============================================================================
+# Module-level defaults (Sessão A6d.1 — eliminado side-effect no import)
+# =============================================================================
+#
+# Antes de A6d.1: módulo invocava ``_init_config(_pc.PROJECT_DIR)`` no nível
+# de módulo, lendo configs do disco no import. Agora os globals começam com
+# defaults sensatos; ``_init_config(base_dir)`` é invocado explicitamente por
+# ``main(root_dir=...)`` e ``main_with_store(ctx)``.
+SCRIPTS_DIR: Path = _DEFAULT_BASE_DIR / "scripts"
+PROJECT_DIR: Path = _DEFAULT_BASE_DIR
+PROCESSED_DIR: Path = PROJECT_DIR / "processed"
+E4_UNIFIED_DIR: Path = PROCESSED_DIR / "E4_unified"
+E2_EXTRACTS_DIR: Path = PROCESSED_DIR / "E2_extracts"
+E3_RECONCILED_DIR: Path = PROCESSED_DIR / "E3_reconciled"
+E5_ANALYSIS_DIR: Path = PROCESSED_DIR / "E5_analysis"
+LIFE_PLAN_GOALS: Path = PROJECT_DIR / "life_plan" / "life_plan_goals.md"
+CONFIG_DEFINITIONS: Path = PROJECT_DIR / "config" / "definitions.md"
+CONFIG_TAREFAS: Path = PROJECT_DIR / "config" / "tarefas.md"
+CONFIG_GOALS: Path = PROJECT_DIR / "config" / "goals.json"
+CONFIG_SCORING: Path = PROJECT_DIR / "config" / "scoring.json"
+CONFIG_FISCAL: Path = PROJECT_DIR / "config" / "parametros_fiscais.json"
+CONFIG_FAMILY: Path = PROJECT_DIR / "config" / "family_members.json"
+CONFIG_TAXAS: Path = PROJECT_DIR / "config" / "taxas.json"
+CONFIG_MILHAS: Path = PROJECT_DIR / "config" / "milhas.md"
+FILE_RECEITAS: Path = E4_UNIFIED_DIR / "receitas-4_unified.json"
+FILE_DESPESAS: Path = E4_UNIFIED_DIR / "despesas-4_unified.json"
+FILE_PATRIMONIO: Path = E4_UNIFIED_DIR / "patrimonio-4_unified.json"
+FILE_INVESTIMENTOS: Path = E4_UNIFIED_DIR / "investimentos-4_unified.json"
+FILE_FLUXO_MENSAL: Path = E4_UNIFIED_DIR / "fluxo_mensal_detalhado-4_unified.json"
+FILE_BASELINE: Path = E2_EXTRACTS_DIR / "baseline_patrimonial-1.5_consolidated.json"
+FILE_OUTPUT: Path = E5_ANALYSIS_DIR / "analise_financeira-5_analysis.json"
+_TITULAR_DOB: date = date(date.today().year - 40, 1, 1)
+_CONJUGE_DOB: Any = None
+TODAY: date = date.today()
+ONE_TIME_INCOME_KEYWORDS: List[str] = ["fgts", "restituicao", "bolsa", "bonus", "venda"]
+ONE_TIME_INCOME_CATEGORIES: set = {
+    "receita_venda_ativo",
+    "receita_resgate",
+    "receita_fgts",
+    "receita_restituicao",
+}
+GOALS_CONFIG: Dict[str, Any] = {}
+SCORING_CONFIG: Dict[str, Any] = {}
+FISCAL_CONFIG: Dict[str, Any] = {}
+FAMILY_CONFIG: Dict[str, Any] = {}
+_TITULAR_KEY: str = ""
+_MEMBROS: Dict[str, Any] = {}
+_CONJUGE_KEY: str = ""
+_TITULAR_NOME: str = ""
+_CONJUGE_NOME: str = ""
+_KEY_INV_TITULAR: str = "investimentos_"
+_KEY_INV_CONJUGE: str = "investimentos_"
+_KEY_CENARIOS_CONJUGE: str = "cenarios_"
 
 
 # ============================================================================
