@@ -90,6 +90,36 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
     claim, exige ADR-A6f.5b), F12.4 (codegen `report_layout.yaml`),
     F12.5 (mensagens user-facing do backend).
 
+- **Lane `livestep-emit-stages` E0-route — loop sequencial (2026-04-25)
+  — saga ADR-119 fechada ✅:** nono e último emissor migrado para o
+  contrato [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
+  (após E1.5/E2/E1/E1.5c/E4/E5/E2-llm/E3). Última stage do pipeline
+  com loop sequencial — fecha a migração progressiva de
+  `emit_stage_activity` para `emit_item_progress` em **todas as 9
+  stages instrumentáveis**.
+  - **`scripts/e0_route.py`:** `route_all` ganha kwarg opcional
+    `pipeline_run_id: str | None = None`. No loop `for filepath in
+    files` emite `preparing` por arquivo (`current_item=filepath.name`,
+    `items_done=idx`). Após o loop, `finalizing` único bypassa
+    throttle.
+  - **`pipeline/stages/route_documents.py`:** wrapper refatorado para
+    chamar `route_all` diretamente com `pipeline_run_id=
+    ctx.pipeline_run_id`, mapeando stats → `{success, warning?}`.
+    Drop do `SystemExit` dance (exit codes 0/1/2) — agora inspeciona
+    stats explicitamente. Mais legível e permite plumbing do
+    `pipeline_run_id`.
+  - **Design — só `preparing` por arquivo:** `route_file` tem 4
+    return paths (skipped, unidentified, duplicate, routed) e LLM
+    fallback opcional. Instrumentar `awaiting_llm`/`persisting`
+    internamente exigiria refactor invasivo de `classify_by_llm` +
+    propagação de `pipeline_run_id` no `route_file`. Throttle de
+    250ms já cobre o caso comum (regex path <100ms, LLM segundos);
+    `preparing` per-file basta para barra avançar e `current_item`
+    rotacionar.
+  Commit `26225b1`. Suíte verde: 1464 pipeline + 22 events + 6
+  live_progress + tests/test_e0_route_edges + tests/test_stage_wrappers.
+  **0 lanes ADR-119 abertas** — saga concluída.
+
 - **Lane `livestep-emit-stages` E3 — adapter instrumentado (2026-04-25):**
   oitavo emissor migrado para o contrato
   [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
@@ -114,8 +144,7 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
     (no-op sem run_id), (c) há precedente de `output_stage`/
     `output_key_fn` como infrastructure concerns na mesma assinatura.
   Commit `e6e9ebd`. Suíte verde: 1464 pipeline + 22 events + 77 E3
-  (incluindo golden e adapter direto). Resta **1 lane** ADR-119
-  aberta: E0 (route loop).
+  (incluindo golden e adapter direto).
 
 - **Lane `livestep-emit-stages` E2-llm — concorrente (2026-04-25):**
   sétimo emissor migrado para o contrato
