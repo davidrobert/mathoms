@@ -100,6 +100,7 @@ const pipelineRun: PipelineRunResponse = {
       completed_at: NOW,
     },
   ],
+  report_id: null,
 };
 
 const members: FamilyMemberConfig[] = [

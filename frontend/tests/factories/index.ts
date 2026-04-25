@@ -205,6 +205,7 @@ export function makeRun(
     started_at: isoNow(),
     completed_at: isoNow(),
     stage_logs: [makeStageLog()],
+    report_id: null,
     ...overrides,
   };
 }
