@@ -10,9 +10,10 @@ Os 7 artefatos:
 - ``receitas`` — output de ``CashFlowBuilder.build_receitas_unified``
 - ``despesas`` — output de ``CashFlowBuilder.build_despesas_unified``
 - ``fluxo_mensal_detalhado`` — output de ``CashFlowBuilder.build_fluxo_mensal``
-- ``patrimonio`` — baseline normalizado (:class:`NormalizedBaseline`) OU
-  ``{"dados": []}`` quando ausente (paridade com ``load_patrimonio`` retornando
-  ``{}``).
+- ``patrimonio`` — baseline normalizado (:class:`NormalizedBaseline`); chave
+  **omitida** quando o baseline está ausente/vazio (ADR-132). O caller deve
+  escrever só as chaves presentes; o ``read()`` do store resolve a ausência
+  via fallback workspace-scoped para o E1.5c persistente do run anterior.
 - ``investimentos`` — output de ``InvestmentsConsolidator.consolidate``
 - ``seguros`` — placeholder ``{"dados": []}`` (legado sempre regenera)
 - ``pontos_milhas`` — placeholder ``{"dados": []}`` (legado sempre regenera)
@@ -47,33 +48,40 @@ def empty_placeholder() -> dict:
     return {"dados": []}
 
 
-def build_patrimonio_artifact(baseline) -> dict:
+def build_patrimonio_artifact(baseline) -> dict | None:
     """Payload para ``patrimonio-4_unified.json``.
 
     Quando ``baseline`` tem ``data`` não-vazio (baseline E1.5c carregado),
-    usa o próprio dict normalizado. Caso contrário, placeholder
-    ``{"dados": []}`` — paridade com ``load_patrimonio`` retornando ``{}``.
+    usa o próprio dict normalizado. Quando ausente/vazio devolve ``None`` —
+    sinal para :func:`serialize_e4_artifacts` **omitir** a chave (ADR-132).
+    Antes devolvia ``{"dados": []}``, que sobrescrevia o E4-patrimônio bom
+    em re-runs sem reprocessar IRPF.
     """
     if baseline is None or not getattr(baseline, "data", None):
-        return empty_placeholder()
+        return None
     return dict(baseline.data)
 
 
 def serialize_e4_artifacts(result: CategorizationResult) -> dict[str, dict]:
-    """Produz os 7 payloads E4 a partir de um :class:`CategorizationResult`.
+    """Produz os payloads E4 a partir de um :class:`CategorizationResult`.
 
-    A ordem das chaves no dict retornado é estável (``ARTIFACT_KEYS``), o que
-    ajuda a reproduzir o mesmo order de escrita do legado em testes de paridade.
+    A ordem das chaves no dict retornado segue ``ARTIFACT_KEYS`` quando
+    todos presentes; ``patrimonio`` é **omitido** se o baseline está vazio
+    (ADR-132 T2: preservar o artefato do run anterior é mais correto que
+    sobrescrever com placeholder).
     """
-    return {
+    patrimonio = build_patrimonio_artifact(result.baseline)
+    payloads: dict[str, dict] = {
         "receitas": result.cash_flow.receitas.to_legacy_dict(),
         "despesas": result.cash_flow.despesas.to_legacy_dict(),
         "fluxo_mensal_detalhado": result.cash_flow.fluxo_mensal.to_legacy_dict(),
-        "patrimonio": build_patrimonio_artifact(result.baseline),
-        "investimentos": result.investments.to_legacy_dict(),
-        "seguros": empty_placeholder(),
-        "pontos_milhas": empty_placeholder(),
     }
+    if patrimonio is not None:
+        payloads["patrimonio"] = patrimonio
+    payloads["investimentos"] = result.investments.to_legacy_dict()
+    payloads["seguros"] = empty_placeholder()
+    payloads["pontos_milhas"] = empty_placeholder()
+    return payloads
 
 
 def filename_for(artifact_key: str) -> str:

@@ -17,8 +17,11 @@ write-lock em SQLite quando stages gravavam milhares de artefatos em série.
 
 Semântica:
     - ``write`` é upsert por ``(pipeline_run_id, stage, artifact_key)``.
-    - ``read`` devolve o artefato do ``pipeline_run_id`` fixado no construtor;
-      para leitura cross-run use ``PipelineArtifactRepository``.
+    - ``read`` devolve o artefato do ``pipeline_run_id`` fixado no construtor.
+      Para stages em ``_WORKSPACE_SCOPED_STAGES`` (E1, E1.5, E1.5a, E1.5c —
+      datasets de referência por workspace, ADR-132), faz fallback para o
+      artefato mais recente do workspace quando o run atual não tem o key.
+      Para leitura cross-run arbitrária use ``PipelineArtifactRepository``.
     - ``list_keys`` devolve distinct keys no workspace (cross-run) para o stage.
     - ``delete_stage`` remove apenas os artefatos do run atual — runs
       anteriores permanecem intocadas.
@@ -31,6 +34,20 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
+
+
+_WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset({"E1", "E1.5", "E1.5a", "E1.5c"})
+"""Stages cujo artefato é dataset de **referência** (lifecycle por workspace,
+não por run). ``read()`` faz fallback para o artefato mais recente do
+workspace quando o ``pipeline_run_id`` atual não tem o key.
+
+Critério de inclusão: artefato é gerado por evento de domínio (upload de
+IRPF, edição de family_members) e deve sobreviver entre runs sem custo de
+reprocessamento. Stages run-scoped (E2/E3/E4/E5) **não** entram aqui —
+cada run é dono dos próprios outputs.
+
+Mudança aqui exige ADR (origem: ADR-132).
+"""
 
 
 class DBArtifactStore:
@@ -66,9 +83,26 @@ class DBArtifactStore:
             .one_or_none()
         )
 
+    def _get_latest_in_workspace(self, stage: str, key: str) -> Optional[PipelineArtifact]:
+        return (
+            self._session.query(PipelineArtifact)
+            .filter_by(
+                workspace_id=self._workspace_id,
+                stage=stage,
+                artifact_key=key,
+            )
+            .order_by(PipelineArtifact.created_at.desc())
+            .first()
+        )
+
     def read(self, stage: str, key: str) -> Optional[dict]:
         row = self._get(stage, key)
-        return row.content_json if row else None
+        if row is not None:
+            return row.content_json
+        if stage in _WORKSPACE_SCOPED_STAGES:
+            row = self._get_latest_in_workspace(stage, key)
+            return row.content_json if row is not None else None
+        return None
 
     def list_keys(self, stage: str) -> list[str]:
         rows = (

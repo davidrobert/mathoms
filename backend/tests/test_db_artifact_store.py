@@ -272,3 +272,170 @@ async def test_store_does_not_close_session(db: AsyncSession):
     raw = await db.connection()
     n = await raw.run_sync(_do)
     assert n == 1
+
+
+# =============================================================================
+# T1 — Cross-run fallback para stages workspace-scoped (ADR-132)
+# =============================================================================
+#
+# Bug observado: rodar pipeline sem reprocessar IRPF deixava E1.5c (baseline)
+# de runs anteriores invisível ao run atual; E4 lia None, escrevia placeholder
+# vazio sobre o E4-patrimônio bom, E5 zerava composição patrimonial.
+# Fix: read() cai para o artefato mais recente do workspace quando o stage
+# está em _WORKSPACE_SCOPED_STAGES e o run atual não tem o key.
+
+
+@pytest.mark.asyncio
+async def test_workspace_scoped_stage_falls_back_across_runs(db: AsyncSession):
+    """E1.5c escrito no run A é visível ao read() de um store no run B."""
+    ws_id, run_a = await _seed_ws_and_run(db, email="cross-run-a@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write(
+                "E1.5c",
+                "baseline_patrimonial",
+                {"itens": [{"valor_brl": 1000.0}], "patrimonio_por_ano": {"2024": {"total_bens": 1000.0}}},
+            )
+            s.commit()
+
+            store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+            return store_b.read("E1.5c", "baseline_patrimonial")
+
+    raw = await db.connection()
+    payload = await raw.run_sync(_do)
+    assert payload is not None, "fallback workspace-wide deveria devolver baseline do run anterior"
+    assert payload["patrimonio_por_ano"]["2024"]["total_bens"] == 1000.0
+
+
+@pytest.mark.asyncio
+async def test_run_scoped_stage_does_not_fall_back(db: AsyncSession):
+    """E2/E3/E4/E5 não fazem fallback — cada run é dono dos próprios outputs."""
+    ws_id, run_a = await _seed_ws_and_run(db, email="cross-run-b@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write("E2-extratos", "itau_202601", {"transacoes": [{"v": 1}]})
+            store_a.write("E4", "patrimonio", {"big": "data"})
+            store_a.write("E5", "analise_financeira", {"bruto": 999.0})
+            s.commit()
+
+            store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+            return (
+                store_b.read("E2-extratos", "itau_202601"),
+                store_b.read("E4", "patrimonio"),
+                store_b.read("E5", "analise_financeira"),
+            )
+
+    raw = await db.connection()
+    e2_val, e4_val, e5_val = await raw.run_sync(_do)
+    assert e2_val is None, "E2 é run-scoped, não pode vazar entre runs"
+    assert e4_val is None, "E4 é run-scoped"
+    assert e5_val is None, "E5 é run-scoped"
+
+
+@pytest.mark.asyncio
+async def test_workspace_fallback_returns_most_recent(db: AsyncSession):
+    """Quando 2 runs anteriores escreveram o mesmo (stage, key) workspace-scoped,
+    o fallback resolve para o mais recente por created_at."""
+    ws_id, run_a = await _seed_ws_and_run(db, email="cross-run-c@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+        import time
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.completed)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+            run_c_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_c_obj)
+            s.flush()
+            run_c = run_c_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write("E1.5c", "baseline_patrimonial", {"version": "old"})
+            s.commit()
+            time.sleep(0.01)  # garante created_at distinto em sqlite (resolução ms)
+
+            store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+            store_b.write("E1.5c", "baseline_patrimonial", {"version": "new"})
+            s.commit()
+
+            store_c = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_c)
+            return store_c.read("E1.5c", "baseline_patrimonial")
+
+    raw = await db.connection()
+    payload = await raw.run_sync(_do)
+    assert payload is not None
+    assert payload["version"] == "new", "fallback deve pegar a entrada mais recente"
+
+
+@pytest.mark.asyncio
+async def test_workspace_fallback_isolated_by_workspace(db: AsyncSession):
+    """Fallback NUNCA cruza workspaces — outro workspace não enxerga baseline alheio."""
+    ws_a_id, run_a = await _seed_ws_and_run(db, email="cross-ws-a@test.com")
+    ws_b_id, run_b = await _seed_ws_and_run(db, email="cross-ws-b@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            store_a = _store_on_sync_conn(s, workspace_id=ws_a_id, pipeline_run_id=run_a)
+            store_a.write("E1.5c", "baseline_patrimonial", {"secret": "ws_a_only"})
+            s.commit()
+
+            store_b = _store_on_sync_conn(s, workspace_id=ws_b_id, pipeline_run_id=run_b)
+            return store_b.read("E1.5c", "baseline_patrimonial")
+
+    raw = await db.connection()
+    payload = await raw.run_sync(_do)
+    assert payload is None, "workspace fallback não pode vazar entre workspaces"
+
+
+@pytest.mark.asyncio
+async def test_current_run_takes_precedence_over_workspace_fallback(db: AsyncSession):
+    """Quando o run atual tem o artefato, fallback NÃO é consultado."""
+    ws_id, run_a = await _seed_ws_and_run(db, email="precedence@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write("E1.5c", "baseline_patrimonial", {"version": "older_other_run"})
+            s.commit()
+
+            store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+            store_b.write("E1.5c", "baseline_patrimonial", {"version": "current_run"})
+            s.commit()
+
+            return store_b.read("E1.5c", "baseline_patrimonial")
+
+    raw = await db.connection()
+    payload = await raw.run_sync(_do)
+    assert payload["version"] == "current_run", (
+        "read() do run atual com artefato deve devolver o do run, não o fallback"
+    )

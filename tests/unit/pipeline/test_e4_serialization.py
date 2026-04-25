@@ -98,12 +98,19 @@ class TestPlaceholders:
         p = empty_placeholder()
         assert p == {"dados": []}
 
-    def test_build_patrimonio_artifact_from_empty_baseline(self):
-        n = type("Fake", (), {"data": {}})()
-        assert build_patrimonio_artifact(n) == {"dados": []}
+    def test_build_patrimonio_artifact_from_empty_baseline_omits(self):
+        """ADR-132 T2: baseline vazio → ``None`` (sinal "omitir chave").
 
-    def test_build_patrimonio_artifact_from_none_baseline(self):
-        assert build_patrimonio_artifact(None) == {"dados": []}
+        Antes (legado): retornava ``{"dados": []}``, que sobrescrevia o E4
+        patrimônio bom em re-runs sem reprocessar IRPF. Agora omite a chave
+        e o fallback workspace-scoped do read() resolve.
+        """
+        n = type("Fake", (), {"data": {}})()
+        assert build_patrimonio_artifact(n) is None
+
+    def test_build_patrimonio_artifact_from_none_baseline_omits(self):
+        """ADR-132 T2: baseline ``None`` → ``None``."""
+        assert build_patrimonio_artifact(None) is None
 
     def test_build_patrimonio_artifact_passes_through_data(self):
         n = type("Fake", (), {"data": {"patrimonio_por_ano": {"2024": {}}}})()
@@ -117,8 +124,13 @@ class TestPlaceholders:
 
 
 class TestSerializeE4Artifacts:
-    def test_produces_all_seven_keys(self):
+    def test_produces_all_seven_keys_when_baseline_present(self):
         store = InMemoryArtifactStore()
+        store.seed(
+            "E1.5c",
+            "baseline_patrimonial",
+            {"data_consolidacao": "2025-06-30", "membros_familia": [{"nome": "David"}]},
+        )
         store.seed(
             "E3",
             "a",
@@ -196,13 +208,19 @@ class TestSerializeE4Artifacts:
         d = payloads["despesas"]
         assert d["total_geral"] == 100.0  # valor absoluto
 
-    def test_patrimonio_empty_when_no_baseline(self):
+    def test_patrimonio_omitted_when_no_baseline(self):
+        """ADR-132 T2 (defesa em profundidade): sem baseline, ``patrimonio`` é
+        **omitido** do payload — em vez de gravar ``{"dados": []}`` e
+        sobrescrever o E4 bom de runs anteriores. O caller (``e4_categorize.
+        _e4_persist_artifacts``) só escreve as chaves presentes; o read()
+        com fallback workspace-scoped (T1) resolve a ausência.
+        """
         store = InMemoryArtifactStore()
         result = _adapter().categorize_via_store(store)
 
         payloads = serialize_e4_artifacts(result)
 
-        assert payloads["patrimonio"] == {"dados": []}
+        assert "patrimonio" not in payloads
 
     def test_patrimonio_uses_normalized_baseline_when_present(self):
         store = InMemoryArtifactStore()

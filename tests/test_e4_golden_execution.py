@@ -142,13 +142,18 @@ def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
     assert len(fluxo["meses_ordenados"]) >= 1
 
     for name in (
-        "patrimonio-4_unified.json",
         "investimentos-4_unified.json",
         "seguros-4_unified.json",
         "pontos_milhas-4_unified.json",
     ):
         p = out / name
         assert p.is_file(), f"missing {name}"
+
+    # ADR-132: sem baseline E1.5c, ``patrimonio-4_unified.json`` é omitido —
+    # antes era escrito como ``{"dados": []}`` e sobrescrevia o arquivo bom
+    # de runs anteriores em re-runs. O fallback workspace-scoped do read()
+    # resolve a ausência.
+    assert not (out / "patrimonio-4_unified.json").is_file()
 
     jsonschema = pytest.importorskip("jsonschema")
     schema = json.loads(

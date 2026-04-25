@@ -569,3 +569,76 @@ def test_solo_identity_no_conjuge_category(identity_solo: MemberIdentity):
     cats = {c["categoria"] for c in result["composicao"]}
     assert "Investimentos " in cats  # nome vazio
     assert result["investimentos_"] == 0.0  # conjuge_key vazia
+
+
+# =============================================================================
+# T3 — Invariante: baseline rico → composição reflete IRPF (ADR-132)
+# =============================================================================
+#
+# Regressão guardada: se um refactor futuro fizer o calculator "engolir"
+# silenciosamente o baseline (ex.: bug em _split_imoveis, _sum_veiculos,
+# resolve_members), este teste pega antes de chegar em produção.
+#
+# Cenário: baseline consolidado v1.5 com imóveis + veículos + total_bens > 0,
+# zero posições atuais (força fallback IRPF). A composição NÃO pode ser tudo
+# zero — pelo menos a maior parte do total_bens deve aparecer nas categorias
+# materializáveis (residência + imóveis_investimento + veículos).
+
+
+def test_calculator_uses_baseline_imoveis_e_veiculos(config: PatrimonioConfig):
+    """Dado baseline consolidado com imóveis/veículos/total_bens > 0, a
+    composição patrimonial reflete o IRPF — bug ADR-132 reaparecendo geraria
+    composição quase-zero apesar do baseline rico."""
+    baseline = {
+        "imoveis_consolidados": [
+            {
+                "descricao": "APARTAMENTO RESIDÊNCIA",
+                "proprietario": "david",
+                "valores_31_12": {"2024": 800000.0},
+                "tipo": "imovel",
+            },
+            {
+                "descricao": "APARTAMENTO INVESTIMENTO",
+                "proprietario": "david",
+                "valores_31_12": {"2024": 350000.0},
+                "tipo": "imovel",
+            },
+            {
+                "descricao": "APARTAMENTO MARIANA",
+                "proprietario": "mariana",
+                "valores_31_12": {"2024": 400000.0},
+                "tipo": "imovel",
+            },
+        ],
+        "veiculos_consolidados": [
+            {
+                "descricao": "CARRO X",
+                "proprietario": "david",
+                "valores_31_12": {"2024": 150000.0},
+                "tipo": "veiculo",
+            },
+        ],
+        "investimentos_consolidados": [],
+        "dividas": [],
+        "patrimonio_por_ano": {"2024": {"total_bens": 1700000.0, "total_dividas": 0.0}},
+    }
+    cfg = PatrimonioConfig(members=config.members, residencia_keyword="residência")
+    calc = PatrimonioCalculator(cfg)
+    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+
+    soma_composicao = sum(c["valor"] for c in result["composicao"])
+    total_bens = baseline["patrimonio_por_ano"]["2024"]["total_bens"]
+
+    assert soma_composicao >= total_bens * 0.5, (
+        f"composição engoliu o baseline: soma={soma_composicao} vs total_bens={total_bens}"
+    )
+    assert result["residencia"] > 0, "residência deveria casar via keyword"
+    assert result["imoveis_investimento"] > 0, "imóveis non-residência → investimento"
+    assert result["veiculos"] > 0, "veículos do baseline → composição"
+    # Pelo menos UMA categoria não-cash com valor — o bug ADR-132 zerava todas.
+    nao_cash = [
+        c
+        for c in result["composicao"]
+        if c["categoria"] not in {"Caixa e Moeda Estrangeira"} and c["valor"] > 0
+    ]
+    assert len(nao_cash) >= 2, "baseline rico deve materializar múltiplas categorias"
