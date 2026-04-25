@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import type {
   PipelineStageLog,
   PipelineStageActivity,
@@ -22,24 +22,41 @@ const VARIANT_COLORS: Record<string, string> = {
   muted: "text-muted-foreground",
 };
 
+function StageStatusIcon({ stage }: { stage: PipelineStageLog }) {
+  const st = stageStatusLabel(stage.status);
+  if (stage.status === "running") {
+    return (
+      <Loader2
+        className="h-4 w-4 shrink-0 animate-spin text-info-financial"
+        aria-label="Executando"
+      />
+    );
+  }
+  return (
+    <span
+      className={`text-base ${VARIANT_COLORS[st.variant] ?? "text-muted-foreground"}`}
+      aria-label={st.label}
+    >
+      {st.icon}
+    </span>
+  );
+}
+
 function StageRowLabel({ stage }: { stage: PipelineStageLog }) {
   const llmNote = stageLlmFootnote(stage.stage);
   return (
     <span className={`flex-1 ${stage.status === "running" ? "font-medium" : ""}`}>
       <span className="block">
         {stageName(stage.stage)}
+        {stage.status === "needs_review" && (
+          <span className="ml-2 text-xs text-warning">(revisão)</span>
+        )}
         {llmNote && (
           <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
             {llmNote}
           </span>
         )}
       </span>
-      {stage.status === "running" && (
-        <span className="ml-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-      )}
-      {stage.status === "needs_review" && (
-        <span className="ml-2 text-xs text-warning">(revisão)</span>
-      )}
     </span>
   );
 }
@@ -53,7 +70,6 @@ export function StageRow({
   liveActivity?: PipelineStageActivity;
   lastActivityByStageRef?: React.RefObject<Record<string, number>>;
 }) {
-  const st = stageStatusLabel(stage.status);
   const [expanded, setExpanded] = useState(false);
   const running = stage.status === "running";
   const now = useNowInterval(running, 1000);
@@ -76,13 +92,7 @@ export function StageRow({
   return (
     <div>
       <div className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${rowBg}`}>
-        <span
-          className={`text-base ${VARIANT_COLORS[st.variant] ?? "text-muted-foreground"} ${
-            stage.status === "running" ? "animate-pulse" : ""
-          }`}
-        >
-          {st.icon}
-        </span>
+        <StageStatusIcon stage={stage} />
         <StageRowLabel stage={stage} />
         <span className="text-xs text-muted-foreground font-mono">
           {formatDuration(displayMs)}
