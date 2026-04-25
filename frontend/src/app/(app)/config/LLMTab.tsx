@@ -39,6 +39,7 @@ import {
   Trash2,
   Zap,
   CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
@@ -222,6 +223,7 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
 
   const tierLabel = tier?.tier === "premium" ? "Premium" : "Free";
   const tierVariant = tier?.tier === "premium" ? "default" : "secondary";
+  const isKeyInvalid = config?.api_key_status === "invalid";
 
   return (
     <div className="space-y-6">
@@ -247,7 +249,9 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
           <p className="text-sm text-muted-foreground">
             {tier?.tier === "premium"
               ? "Todas as etapas com IA (leitura de dados pessoais, IRPF, investimentos e revisão final) estão habilitadas."
-              : "Configure uma chave de API para desbloquear as etapas com IA do processamento."}
+              : isKeyInvalid
+                ? "A chave salva não pôde ser descriptografada (FERNET_KEY rotacionada). Re-salve a API key para reativar Premium."
+                : "Configure uma chave de API para desbloquear as etapas com IA do processamento."}
           </p>
         </CardContent>
       </Card>
@@ -263,7 +267,9 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
               <CardTitle className="text-base">Configuração LLM</CardTitle>
               <CardDescription className="text-xs">
                 {config
-                  ? `Configurado: ${config.provider} / ${config.model_name}`
+                  ? isKeyInvalid
+                    ? `Chave inválida: ${config.provider} / ${config.model_name} — re-salve para reativar`
+                    : `Configurado: ${config.provider} / ${config.model_name}`
                   : "Nenhuma configuração ativa"}
               </CardDescription>
             </div>
@@ -271,6 +277,22 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
         </CardHeader>
 
         <CardContent className="space-y-5">
+          {isKeyInvalid && (
+            <div
+              role="alert"
+              className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm"
+            >
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+              <div className="space-y-1">
+                <p className="font-medium text-destructive">Chave de API não pôde ser descriptografada</p>
+                <p className="text-muted-foreground">
+                  A FERNET_KEY do servidor foi rotacionada após a chave ser salva. O pipeline está
+                  rodando em modo Free (sem etapas LLM). Insira a chave novamente abaixo e clique em
+                  Salvar para reativar Premium.
+                </p>
+              </div>
+            </div>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="llm-provider">Provedor</Label>
@@ -336,7 +358,13 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
               <Input
                 id="llm-key"
                 type={showKey ? "text" : "password"}
-                placeholder={config ? "••••••••  (já configurada — insira nova para alterar)" : "sk-..."}
+                placeholder={
+                  config
+                    ? isKeyInvalid
+                      ? "Insira a chave novamente para reativar"
+                      : "••••••••  (já configurada — insira nova para alterar)"
+                    : "sk-..."
+                }
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="pr-10"
@@ -371,7 +399,7 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
               Salvar
             </Button>
 
-            {config && (
+            {config && !isKeyInvalid && (
               <Button
                 variant="outline"
                 onClick={handleTest}

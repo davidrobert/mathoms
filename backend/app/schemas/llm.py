@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -34,6 +34,13 @@ class LLMConfigResponse(BaseModel):
     id: str
     provider: str
     api_key_masked: str = Field(..., description="Masked API key (first 4 + last 4 chars)")
+    api_key_status: Literal["valid", "invalid"] = Field(
+        default="valid",
+        description=(
+            "'invalid' quando o ciphertext não decripta com a FERNET_KEY atual "
+            "(rotação) ou decripta para vazio. Sinal para a UI pedir re-save."
+        ),
+    )
     model_name: str
     max_tokens: int
     temperature: float

@@ -16,11 +16,13 @@ def mask_api_key(key: str) -> str:
 
 def to_response(cfg: LLMConfig, *, vault: VaultService) -> LLMConfigResponse:
     api_key_plain = vault.decrypt(cfg.api_key_encrypted)
-    masked = mask_api_key(api_key_plain) if api_key_plain else "****"
+    is_valid = bool(api_key_plain and api_key_plain.strip())
+    masked = mask_api_key(api_key_plain) if is_valid else "****"
     return LLMConfigResponse(
         id=cfg.id,
         provider=cfg.provider,
         api_key_masked=masked,
+        api_key_status="valid" if is_valid else "invalid",
         model_name=cfg.model_name,
         max_tokens=cfg.max_tokens,
         temperature=cfg.temperature,

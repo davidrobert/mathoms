@@ -234,10 +234,49 @@ async def test_save_and_get_llm_config(auth_client: AsyncClient):
     assert "sk-a" in data["api_key_masked"]
     assert "7890" in data["api_key_masked"]
     assert "REAL-KEY-HERE" not in data["api_key_masked"]
+    assert data["api_key_status"] == "valid"
 
     get_resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/llm")
     assert get_resp.status_code == 200
     assert get_resp.json()["provider"] == "anthropic"
+    assert get_resp.json()["api_key_status"] == "valid"
+
+
+@pytest.mark.asyncio
+async def test_get_llm_config_after_fernet_rotation(auth_client: AsyncClient, db: AsyncSession):
+    """Fernet key rotacionada: ciphertext antigo não decripta → status='invalid'.
+
+    Regressão: antes desse fix, `to_response` mascarava com `"****"` mas não sinalizava
+    o erro à UI. Resultado: usuário via "configurado" e o pipeline silenciosamente
+    degradava para tier free (ver `pipeline_service._classify_llm_config`).
+    """
+    from cryptography.fernet import Fernet
+
+    ws_id = auth_client.ws_id
+    resp = await auth_client.put(
+        f"/api/workspaces/{ws_id}/config/llm",
+        json={
+            "provider": "anthropic",
+            "api_key": "sk-ant-original-key",
+            "model_name": "claude-sonnet-4-20250514",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["api_key_status"] == "valid"
+
+    other_fernet = Fernet(Fernet.generate_key())
+    rotated_ciphertext = other_fernet.encrypt(b"sk-ant-saved-with-old-fernet").decode()
+
+    result = await db.execute(select(LLMConfig).where(LLMConfig.workspace_id == ws_id))
+    cfg = result.scalar_one()
+    cfg.api_key_encrypted = rotated_ciphertext
+    await db.commit()
+
+    get_resp = await auth_client.get(f"/api/workspaces/{ws_id}/config/llm")
+    assert get_resp.status_code == 200
+    body = get_resp.json()
+    assert body["api_key_status"] == "invalid"
+    assert body["api_key_masked"] == "****"
 
 
 @pytest.mark.asyncio

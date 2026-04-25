@@ -170,6 +170,8 @@ export async function exportConfig(workspaceId: string): Promise<ConfigExport> {
 export interface LLMConfigResponse {
   id: string;
   provider: string;
+  api_key_masked: string;
+  api_key_status: "valid" | "invalid";
   model_name: string;
   max_tokens: number;
   temperature: number;

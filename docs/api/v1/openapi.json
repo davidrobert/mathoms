@@ -3876,6 +3876,16 @@
             "title": "Api Key Masked",
             "type": "string"
           },
+          "api_key_status": {
+            "default": "valid",
+            "description": "'invalid' quando o ciphertext n\u00e3o decripta com a FERNET_KEY atual (rota\u00e7\u00e3o) ou decripta para vazio. Sinal para a UI pedir re-save.",
+            "enum": [
+              "valid",
+              "invalid"
+            ],
+            "title": "Api Key Status",
+            "type": "string"
+          },
           "created_at": {
             "title": "Created At",
             "type": "string"
