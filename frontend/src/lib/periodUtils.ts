@@ -99,19 +99,3 @@ export function aggregateDespesasMediaMensal(
   return result;
 }
 
-/**
- * Filtra e ordena transações de alto valor (consumo pontual).
- * Exclui receitas; ordena decrescente por valor.
- */
-export function filterConsumoPontuais(
-  transactions: TransactionItem[],
-  minValue = 2000,
-): TransactionItem[] {
-  return transactions
-    .filter(
-      (t) =>
-        t.valor >= minValue &&
-        !isIncomeCategory(t.categoria ?? ""),
-    )
-    .sort((a, b) => b.valor - a.valor);
-}

@@ -101,6 +101,39 @@ export async function getReportData(workspaceId: string, reportId: string): Prom
   return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/data`);
 }
 
+// ─── Consumo Pontuais — gastos ≥ R$2k filtrados (transferências internas excluídas no backend) ───
+
+export interface ConsumoPontuaisItem {
+  data: string;
+  descricao: string;
+  valor: number;
+  banco: string;
+  categoria: string;
+  tipo_conta?: string | null;
+  titular?: string | null;
+  transaction_hash: string;
+}
+
+export interface ConsumoPontuaisResponse {
+  period: string;
+  date_from: string;
+  date_to: string;
+  items: ConsumoPontuaisItem[];
+  total: number;
+  total_valor: number;
+}
+
+export type ConsumoPontuaisPeriod = "3m" | "6m" | "12m" | "ytd";
+
+export async function getConsumoPontuais(
+  workspaceId: string,
+  period: ConsumoPontuaisPeriod,
+): Promise<ConsumoPontuaisResponse> {
+  return apiFetch(
+    `/workspaces/${workspaceId}/reports/consumo-pontuais?period=${period}`,
+  );
+}
+
 // ─── Report collaboration (Notes + Kanban) — ADR-123 · Fase 6.5/8 ───
 
 export interface ReportNotesPayload {

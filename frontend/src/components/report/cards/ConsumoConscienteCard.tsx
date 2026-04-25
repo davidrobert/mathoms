@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { PeriodToggle } from "../PeriodToggle";
-import { usePeriodTransactions } from "@/hooks/usePeriodTransactions";
-import { filterConsumoPontuais, type Period } from "@/lib/periodUtils";
+import { useConsumoPontuais } from "@/hooks/useConsumoPontuais";
+import type { Period } from "@/lib/periodUtils";
 import type { ConsumoConscienteData } from "@/types/report-analysis";
 
 /** F9 · F2.B · S2 — Card "Consumo Consciente" com toggle de período.
  *  KPIs do E5 no topo; lista de gastos pontuais ≥ R$2k abaixo por período.
+ *
+ *  A lista vem do endpoint /reports/consumo-pontuais — backend aplica
+ *  threshold + filtro de transferência interna (família) via
+ *  InternalTransferDetector, evitando que PIX entre contas próprias
+ *  apareçam como gasto.
  */
 export function ConsumoConscienteCard({
   consumo,
@@ -17,12 +22,7 @@ export function ConsumoConscienteCard({
   consumo: ConsumoConscienteData | undefined;
 }) {
   const [period, setPeriod] = useState<Period>("3m");
-  const { transactions, isLoading } = usePeriodTransactions(period);
-
-  const pontuais = useMemo(
-    () => filterConsumoPontuais(transactions),
-    [transactions],
-  );
+  const { items: pontuais, isLoading } = useConsumoPontuais(period);
 
   return (
     <ReportCard
