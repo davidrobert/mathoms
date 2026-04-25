@@ -65,6 +65,43 @@ execução da **[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
   - Resíduos da lane: items 3 (snapshots por seção × tema) e 5
     (checklist WCAG operacional).
 
+### 2026-04-25 — F9.2 T1 STAGE_REGISTRY descritivo + compat reverso (ADR-093)
+
+- `pipeline/stage_spec.py` — `STAGE_REGISTRY`, `FULL_ORDER`,
+  `DETERMINISTIC_ORDER`, `VIRTUAL_ARTIFACT_STAGES` agora usam keys
+  descritivas (`reconcile_transactions`, `analyze_finances`,
+  `extract_statements`, …). `STAGE_RENAME_MAP` permanece (legacy →
+  descriptive) como compat reverso; novo `DESCRIPTIVE_TO_LEGACY`
+  é o inverso.
+- Helpers públicos novos:
+  - `resolve_stage_name(name)` — aceita legacy ou descriptive,
+    retorna sempre descriptive. Use em qualquer boundary externo
+    (HTTP body, CLI arg, DB row durante janela F9.2 → F9.3).
+  - `to_legacy_stage_name(name)` — inverso, para adapters que
+    ainda gravam DB em formato legado.
+- `pipeline/orchestrator.py` — `_get_stage_runner` aplica
+  `resolve_stage_name` na entrada; `FROM_MAP` estendido com
+  keys legadas (`run_from("E3")` continua funcionando).
+- `backend/app/services/pipeline_client.py` — `is_llm_stage`
+  aceita ambos formatos.
+- **DB `pipeline_artifacts.stage` inalterado** — F9.3 (Alembic)
+  endereça migração de rows. Janela: app lê via
+  `resolve_stage_name`.
+- **CLI alias** `scripts/e_reset.py --from E3` ainda funciona
+  (deprecação formal será adicionada com warning em sub-fatia
+  T5; remoção em F9.6).
+- Cobertura: `tests/unit/pipeline/test_stage_spec.py` reescrito
+  para `EXPECTED_DESCRIPTIVE_STAGES` + novos casos para
+  `resolve_stage_name`/`to_legacy_stage_name`. Pipeline 1464
+  passed, backend 1307 passed.
+
+**Pendente para T2-T5 (sub-fatias futuras):** substituir strings
+literais `"E3"`/`"E5"` por descritivas em pipeline/orchestrator
+(call-sites diretos), backend services/repositories/routers, scripts
+CLI, tests não-golden, configs e docstrings. Compat reverso via
+`resolve_stage_name` permite essa migração ser **incremental** —
+qualquer novo código deve usar descritivo; legado migra piecemeal.
+
 ### 2026-04-25 — A6g.2b T3 pipeline scripts decomp (goldens-safe)
 
 - **5 scripts com goldens** decompostos em orchestrators finos +

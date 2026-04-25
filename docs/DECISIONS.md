@@ -2224,7 +2224,11 @@ mantém o sistema consistente, rename antecipado cria estado misto perigoso.
 
 ## ADR-093 — Rename completo de identificadores de stage (Opção A)
 
-**Status:** 🚧 Em execução — F9.0 ✅ (2026-04-24) · F9.1 ✅ (2026-04-25) · F9.2 destravada
+**Status:** 🚧 Em execução — F9.0 ✅ (2026-04-24) · F9.1 ✅ (2026-04-25) ·
+**F9.2 T1 ✅ (2026-04-25)** — `STAGE_REGISTRY` keys descritivas +
+`resolve_stage_name`/`to_legacy_stage_name` helpers + compat reverso;
+T2-T5 (substituição de strings literais em call-sites) abertas como
+follow-ups incrementais
 **Data:** 2026-04-19 • **Plano:** Fase 9 inteira
 
 **Contexto:** Os identificadores legados (`"E0-audit"`, `"E1.5c"`, `"E2-faturas"`,

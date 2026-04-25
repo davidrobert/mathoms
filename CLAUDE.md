@@ -252,13 +252,21 @@ Recebem **value objects de config tipados** (`ReconciliationConfig`,
 do adapter (ADR-097 D2). Warnings de domínio são dataclasses tipadas com
 `.format()`, não strings (ADR-097 D1).
 
-### Stage identifiers — use nomes legados até F9 (ADR-093)
+### Stage identifiers — F9.2+ usa nomes descritivos (ADR-093)
 
-Em código, DB (`pipeline_artifacts.stage`) e logs, use os identificadores
-**legados** (`"E2"`, `"E3"`, `"E5"`…). Nomes descritivos
-(`"extract_statements"`, `"reconcile_transactions"`…) estão mapeados em
-`STAGE_RENAME_MAP` (ver `pipeline/stage_spec.py`) e só entram em vigor na
-Fase 9. Fonte de verdade de execução: `pipeline.stage_spec.STAGE_REGISTRY`.
+**F9.2 T1 fechada 2026-04-25.** `STAGE_REGISTRY`/`FULL_ORDER` em
+`pipeline/stage_spec.py` agora usam keys descritivas
+(`"reconcile_transactions"`, `"analyze_finances"`,
+`"extract_statements"`…). Em **código novo**, prefira o nome descritivo.
+
+Para input externo (HTTP body, CLI arg, DB row durante janela →F9.3),
+use `resolve_stage_name(name)` — aceita legacy (`"E3"`) ou descritivo,
+retorna sempre descritivo. Inverso em `to_legacy_stage_name()` para
+adapters que ainda gravam DB legado.
+
+`STAGE_RENAME_MAP` permanece como compat reverso. DB
+`pipeline_artifacts.stage` continua em formato legado até F9.3
+(Alembic). Janela de compat termina em F9.6.
 
 ### Endpoint JSON exige `response_model` explícito (ADR-102 R18 · ADR-109)
 
