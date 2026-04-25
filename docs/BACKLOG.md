@@ -879,12 +879,12 @@ convergir em `origin/main`.
 
 | # | Entrega | Prio | Esforço | Status |
 | --- | --- | --- | --- | --- |
-| A6d.1.1 | Padrão A3b replicado em `e4_categorize.py` | P1 | 1h | ☐ |
-| A6d.1.2 | Padrão A3b em `e5_analyze.py` | P1 | 2h | ☐ |
-| A6d.1.3 | Padrão A3b em `e5n_narrativas.py` | P1 | 1h | ☐ |
-| A6d.1.4 | Padrão A3b em `e7_review.py` | P1 | 1h | ☐ |
-| A6d.1.5 | Padrão A3b em `e15_consolidate.py` | P1 | 1h | ☐ |
-| A6d.1.6 | Teste estrutural AST: `_init_config` não invocado em top-level dos 5 scripts | P1 | 30min | ☐ |
+| A6d.1.1 | Padrão A3b replicado em `e4_categorize.py` | P1 | 1h | ✅ 2026-04-24 |
+| A6d.1.2 | Padrão A3b em `e5_analyze.py` | P1 | 2h | ✅ 2026-04-24 |
+| A6d.1.3 | Padrão A3b em `e5n_narrativas.py` | P1 | 1h | ✅ 2026-04-24 |
+| A6d.1.4 | Padrão A3b em `e7_review.py` | P1 | 1h | ✅ 2026-04-24 |
+| A6d.1.5 | Padrão A3b em `e15_consolidate.py` | P1 | 1h | ✅ 2026-04-24 |
+| A6d.1.6 | Teste estrutural AST: `_init_config` não invocado em top-level dos 5 scripts | P1 | 30min | ✅ 2026-04-24 |
 
 #### A6d.2 — Testabilidade dos `analyze_*` sem disco ✅ entregue 2026-04-20
 
@@ -906,7 +906,7 @@ convergir em `origin/main`.
 | A6d.3.2 | E5.N: decomposição de `build_narrativas` (425 locs) em pacote `pipeline/domain/services/narrativas/` com `NarrativasContext` + `PerfilFamiliaNarrator` + `SummariesNarrator` + `ChartsNarrator` orquestrados por `E5NarrativasBuilder`. `scripts.e5n_narrativas.build_narrativas` vira delegate de 2 linhas; format helpers + validator movidos para `format_helpers.py` com back-compat aliases. 10 tests novos em `tests/test_e5n_builder_decomposition.py` + paridade legado↔novo em `tests/test_e5n_e7_main_with_store_parity.py` | P1 | 1 sessão | ✅ 2026-04-20 |
 | A6d.3.3 | E5: `E5AnalyzerAdapter` completado com 3 calculadoras puras novas (Etapa 1, já entregue) + switch de `main_with_store` para o adapter (Etapa 2, +143/-54 locs) + golden parity `tests/test_e5_main_with_store_parity.py` (Etapa 3, 2 cenários @ 0.01 BRL). Correções de paridade: `conjuge_key=""` sem default "mariana", `goals={}` no `PontosFortesAnalyzer`, `CenariosConjugeAnalyzer._compute_prazo` retorna `999` (int) | P1 | 2 sessões | ✅ 2026-04-20 |
 
-**Estimativa total A6d:** 3-5 sessões grandes (~200+ testes). **Realizado:** A6d.1 + A6d.2 + A6d.3.1 + **A6d.3.2** + **A6d.3.3** (~5 sessões). **Resta:** nada — A6d **fechada** 2026-04-20. Caminho B **puro** para todos os stages determinísticos relevantes (E3, E5, E5.N); E4 e E1.5c permanecem em B pragmático (decisão consciente — refactor não entrega valor adicional relevante); E7 é LLM-bound e não migra.
+**Estimativa total A6d:** 3-5 sessões grandes (~200+ testes). **Realizado:** A6d.1 (2026-04-24) + A6d.2 + A6d.3.1 + **A6d.3.2** + **A6d.3.3** (~5 sessões). **Resta:** nada — A6d **fechada**. Caminho B **puro** para todos os stages determinísticos relevantes (E3, E5, E5.N); E4 e E1.5c permanecem em B pragmático (decisão consciente — refactor não entrega valor adicional relevante); E7 é LLM-bound e não migra.
 
 ### A6e — DDD/SOLID no backend API (ADR-101, R12-R17)
 

@@ -92,6 +92,22 @@ execução da **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-ren
   style baseline regenerado: −1 272 ofensores (de 3 619 para 2 347).
   Próxima: fatia 4 (frontend dead code).
 
+- **A6d.1 · Eliminação de globals nos 5 scripts deterministas
+  (2026-04-24):** padrão A3b (já aplicado em `e3_reconcile.py`)
+  replicado em `e4_categorize.py`, `e5_analyze.py`,
+  `e5n_narrativas.py`, `e7_review.py` e `e15_consolidate.py`. Cada
+  script: remoção da invocação top-level de
+  `_init_config(_pc.PROJECT_DIR)` + defaults sensatos imutáveis no
+  nível de módulo. Em `e5n`, `FISCAL = _load_fiscal()` e
+  `_CLT_SOURCE_LABELS` (também side-effect de import) movidos para
+  dentro de `_init_config`. AST guard estrutural em
+  `tests/unit/pipeline/test_no_init_config_at_import.py` percorre
+  os 6 scripts (e3 + os 5 novos) e falha se encontrar
+  `_init_config(...)` em escopo top-level — ignorando `def`/`async def`.
+  Após A6c.3 que removeu `main(root_dir)` legado, apenas
+  `main_with_store(ctx)` invoca `_init_config(ctx.root)`.
+  1456 pipeline tests + 1307 backend tests passando, zero regressão.
+
 - **ADR-129 fatia 2 · Pipeline E6 + `stage_materialization` removidos
   (2026-04-24 · commit `9f4c616`):** segunda de 6 fatias da lane
   `adr-129-e6-kill`. Deletados `pipeline/stages/e6.py` e
