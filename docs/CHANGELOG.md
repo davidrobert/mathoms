@@ -49,6 +49,27 @@ execução da **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-ren
     code+test removido: ~3 100 linhas. Destrava `A6g.2b T3` (scripts
     com goldens) e marca fim formal da migração ADR-086 → ADR-083.
 
+- **ADR-129 fatia 4 · Frontend dead code limpo (2026-04-24 · commits
+  `b7e4c70` → `5865d8b`):** quarta de 6 fatias da lane `adr-129-e6-kill`.
+  Removidos os helpers `getReportHtmlUrl` e `getReportDownloadHtmlUrl`
+  em `frontend/src/lib/api/reports.ts` (endpoints backend já deletados
+  na fatia 1). Botões UI "Baixar HTML standalone" removidos do
+  `ReportHeader` (ícone Download), `ReportSectionStub` (botão "Baixar
+  HTML completo") e da rota `/reports/[id]` (estado pré-F9 reescrito
+  para "Relatório indisponível" sem download). `ExportToolbar` perdeu
+  o prop `onDownloadHtml` (sem callers no app) e o teste
+  correspondente em `shellPrimitives.test.tsx` foi removido. Stages
+  `E6` e `E6-final` removidos de `STAGE_DISPLAY_NAMES` (`format.ts`)
+  e de `PIPELINE_PHASES` (`pipelinePhases.ts`). MSW handlers para
+  `/reports/:id/html` e `/download.html` removidos em
+  `tests/mocks/handlers.ts`. Comentários "Substitui ... do
+  e6_render.py" limpos em 5 cards/sections (`S1PatrimonioSection`,
+  `NarrativeChartCard`, `PatrimonioCategoriasCard`,
+  `ReservaEmergenciaCard`, `EndividamentoCard`) e referência a
+  `/reports/{id}/html` no comentário de `golden-path.spec.ts`
+  reescrita. Suíte frontend 519 testes verde, ESLint 0 errors,
+  typecheck OK nos arquivos tocados. Próxima: fatia 5 (design-tokens).
+
 - **ADR-129 fatia 3 · Scripts E6 deletados + refs CLI residuais limpas
   (2026-04-24 · commits `e6d4fdf` → `152f205`):** terceira de 6 fatias
   da lane `adr-129-e6-kill`. Deletados `scripts/e6_render.py` (4867 LOC),
