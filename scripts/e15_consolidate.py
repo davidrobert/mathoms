@@ -551,5 +551,3 @@ def main_with_store(ctx) -> dict:
         "investimentos": len(consolidated.get("investimentos_consolidados", [])),
         "dividas": len(consolidated.get("dividas", [])),
     }
-
-

@@ -140,10 +140,7 @@ def test_e5n_execution_narrativas_with_conjuge_chart(e5n_tenant_with_conjuge: Pa
     e5n_mws(ctx)
 
     out = (
-        e5n_tenant_with_conjuge
-        / "processed"
-        / "E5_analysis"
-        / "analise_financeira-5_analysis.json"
+        e5n_tenant_with_conjuge / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
     )
     payload = json.loads(out.read_text(encoding="utf-8"))
     narr = payload.get("narrativas")
