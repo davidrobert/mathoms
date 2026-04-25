@@ -152,6 +152,25 @@ describe("ReportShell", () => {
     expect(screen.getByText("boom")).toBeInTheDocument();
   });
 
+  it("usa periodo_dados do snapshot no card 'Período analisado' quando reportPeriod é null", () => {
+    const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
+    render(
+      wrap(
+        <ReportShell
+          reportId="r1"
+          workspaceId="ws-test"
+          reportTitle="Rel"
+          dataState={state}
+          reportPeriod={null}
+          reportCreatedAt="2026-04-17T12:00:00.000Z"
+        />,
+      ),
+    );
+    const label = screen.getByText("Período analisado");
+    const valueEl = label.nextElementSibling;
+    expect(valueEl?.textContent).toBe("202601-202604");
+  });
+
   it("mostra spinner em loading", () => {
     const state: UseReportDataState = { status: "loading" };
     const { container } = render(

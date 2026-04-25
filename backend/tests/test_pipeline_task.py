@@ -464,3 +464,69 @@ class TestCreateReportFromOutput:
         async with Session() as db:
             result = await db.execute(select(Report).where(Report.workspace_id == ws_id))
             assert result.scalars().all() == []
+
+    @pytest.mark.asyncio
+    async def test_populates_period_from_periodo_dados(self, workspace_with_run, tmp_path):
+        """Report.period vem de analysis.periodo_dados — evita "—" no cover."""
+        from sqlalchemy import select
+
+        from backend.app.models.pipeline_artifact import PipelineArtifact
+        from backend.app.models.report import Report
+        from backend.app.tasks.pipeline_task import _create_report_from_output
+
+        ws_id = workspace_with_run["workspace_id"]
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
+
+        async with Session() as db:
+            db.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=run_id,
+                    stage="E5",
+                    artifact_key="analise_financeira",
+                    content_json={"periodo_dados": "2023-01 a 2026-04"},
+                )
+            )
+            await db.commit()
+
+        _create_report_from_output(ws_id, run_id, tmp_path / "tenant")
+
+        async with Session() as db:
+            report = (
+                await db.execute(select(Report).where(Report.workspace_id == ws_id))
+            ).scalar_one()
+            assert report.period == "2023-01 a 2026-04"
+
+    @pytest.mark.asyncio
+    async def test_period_falls_back_to_data_analise(self, workspace_with_run, tmp_path):
+        """Sem periodo_dados, usa data_analise — paridade com subtítulo do cover."""
+        from sqlalchemy import select
+
+        from backend.app.models.pipeline_artifact import PipelineArtifact
+        from backend.app.models.report import Report
+        from backend.app.tasks.pipeline_task import _create_report_from_output
+
+        ws_id = workspace_with_run["workspace_id"]
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
+
+        async with Session() as db:
+            db.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=run_id,
+                    stage="E5",
+                    artifact_key="analise_financeira",
+                    content_json={"data_analise": "2026-04"},
+                )
+            )
+            await db.commit()
+
+        _create_report_from_output(ws_id, run_id, tmp_path / "tenant")
+
+        async with Session() as db:
+            report = (
+                await db.execute(select(Report).where(Report.workspace_id == ws_id))
+            ).scalar_one()
+            assert report.period == "2026-04"
