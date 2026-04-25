@@ -6,23 +6,18 @@ Cobre o **caminho crítico** que motivou a sub-fase 6.5E:
 1. Workspace fixture completa (User + Workspace + FamilyMember + family_surname)
 2. `materialize_config` produz `family_members.json` no tenant_root corretamente
 3. PDFs sintéticos do gerador (6.5F.12) são abertos por `pdfplumber` (parseáveis)
-4. Substituição de tokens estilo `{{COVER_FAMILIA}}` no template HTML do E6 funciona
-   com o `family_surname` materializado (regressão BUG-015 end-to-end)
 
 # Escopo deferido (full pipeline E2E)
 
-Rodar E0→E1→E1.5→E2→E3→E4→E5→E6 com PDFs sintéticos requer:
+Rodar E0→E1→E1.5→E2→E3→E4→E5 com PDFs sintéticos requer:
 - **Roteamento + execução dos parsers:** `tests/test_e2_synthetic_pdf_parsers.py`
   (filename canônico por banco → `route_to_parser` → parse sem exceção). Extração
   detalhada de transações ainda depende de alinhar layout do gerador às regex de
   cada `scripts/e2/banks/<banco>.py` (evolução contínua).
 - Mockar/skipar stages LLM (E1, E1.5, E2-llm) com fixtures pré-computadas
   (parte de 6.5F.4 — `--real-pipeline` flag opt-in).
-- Workaround do uso pesado de `globals` em `e6_render.py` (nas funções
-  `_load_config_files`, `FAMILY_SOBRENOME`, etc.) — refatorar para receber
-  ctx puro é separado e maior.
 
-Esses 3 itens viram backlog explícito (ver final do arquivo) e a sub-fase
+Esses itens viram backlog explícito (ver final do arquivo) e a sub-fase
 6.5C.0 (Golden Path E2E via Playwright + backend real) cobre o end-to-end
 de produto pelo lado do usuário.
 
@@ -39,7 +34,6 @@ from __future__ import annotations
 # manual evita o shadowing.
 import importlib.util as _ilu
 import json
-import re
 import sys as _sys
 from pathlib import Path
 
@@ -201,15 +195,6 @@ class TestMaterializedConfigEndToEnd:
         assert "alimentacao" not in data["income_keywords"]
         assert "salario" not in data["expense_keywords"]
 
-    def test_global_template_files_preserved(self, db, golden_workspace, tmp_path):
-        """`_copy_global` copia o template HTML do E6 — sem ele, nada renderiza."""
-        config_dir = materialize_config(golden_workspace.id, tmp_path, db)
-        template_html = config_dir / "templates" / "report_template.html"
-        assert template_html.exists(), (
-            "Template HTML do E6 não foi copiado pelo materializer. "
-            "Sem isso, nenhum relatório renderiza."
-        )
-
 
 # ─────────────────────────────────────────────────────────────────────
 # Caminho crítico 2 — PDFs sintéticos do 6.5F.12 são parseáveis
@@ -274,78 +259,17 @@ class TestSyntheticPDFsAreParseable:
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Caminho crítico 3 — Token replacement do template HTML usa o sobrenome
-# ─────────────────────────────────────────────────────────────────────
-
-
-class TestE6TemplateUsesFamilySurname:
-    """Verifica que `{{COVER_FAMILIA}}` no template é substituído pelo
-    `family_surname` quando o JSON materializado é consumido — simula a
-    parte do E6 sem precisar rodar o pipeline inteiro.
-    """
-
-    def test_template_has_cover_familia_token(self):
-        """Sanity: o template do E6 ainda usa `{{COVER_FAMILIA}}`."""
-        template_path = (
-            Path(__file__).resolve().parents[2] / "config" / "templates" / "report_template.html"
-        )
-        if not template_path.exists():
-            pytest.skip(f"Template não encontrado em {template_path}")
-        content = template_path.read_text(encoding="utf-8")
-        assert "{{COVER_FAMILIA}}" in content, (
-            "Token {{COVER_FAMILIA}} sumiu do template. "
-            "Se foi renomeado intencionalmente, atualize este test e o "
-            "scripts/e6_render.py em sincronia."
-        )
-
-    def test_token_replacement_with_materialized_surname(self, db, golden_workspace, tmp_path):
-        """Pega o template, materializa o config, faz substituição manual,
-        valida que o cover renderizado contém 'Silva Souza'.
-        """
-        # 1. Materializa config
-        config_dir = materialize_config(golden_workspace.id, tmp_path, db)
-        family_data = json.loads((config_dir / "family_members.json").read_text("utf-8"))
-        surname = family_data["familia"]["sobrenome"]
-
-        # 2. Lê template (do projeto global — não copiado para tenant ainda
-        # se materialize não copiou, fallback para template global).
-        template_path = config_dir / "templates" / "report_template.html"
-        if not template_path.exists():
-            template_path = (
-                Path(__file__).resolve().parents[2]
-                / "config"
-                / "templates"
-                / "report_template.html"
-            )
-        if not template_path.exists():
-            pytest.skip(f"Template global não encontrado em {template_path}")
-        html = template_path.read_text(encoding="utf-8")
-
-        # 3. Substituição mínima (subset do que e6_render faz)
-        rendered = html.replace("{{COVER_FAMILIA}}", surname)
-
-        # 4. Asserts: surname aparece, token não vazou
-        assert surname in rendered, "Surname não foi inserido no HTML."
-        assert (
-            "{{COVER_FAMILIA}}" not in rendered
-        ), "Token {{COVER_FAMILIA}} ficou sem substituição."
-        # E o cover tem alguma estrutura mínima (não é string vazia)
-        assert "<html" in rendered.lower() or "<!DOCTYPE" in rendered.lower()
-
-
-# ─────────────────────────────────────────────────────────────────────
 # Backlog explícito — 6.5E.2 escopo deferido
 # ─────────────────────────────────────────────────────────────────────
 
 
 @pytest.mark.skip(
     reason=(
-        "Full pipeline E2E (E0→E6) com PDFs sintéticos — escopo deferido. "
+        "Full pipeline E2E (E0→E5) com PDFs sintéticos — escopo deferido. "
         "Requer: (a) gerador refinado por banco para casar regex/coordenadas "
         "dos parsers em scripts/e2/banks/, (b) mocks pré-computados de stages "
-        "LLM (parte de 6.5F.4), (c) refator de e6_render.py para evitar globals. "
-        "6.5C.0 (Golden Path E2E via Playwright) cobre o end-to-end pelo lado do "
-        "usuário enquanto este permanece deferido."
+        "LLM (parte de 6.5F.4). 6.5C.0 (Golden Path E2E via Playwright) cobre "
+        "o end-to-end pelo lado do usuário enquanto este permanece deferido."
     )
 )
 def test_full_pipeline_with_synthetic_pdfs():
@@ -353,7 +277,7 @@ def test_full_pipeline_with_synthetic_pdfs():
     1. Cria workspace fixture (golden_workspace)
     2. Gera 2 PDFs sintéticos (extrato + fatura) compatíveis com 1 parser
     3. Roda pipeline.run_pipeline(ctx) com skip_llm=True
-    4. Lê output/relatorio_*.html
-    5. Assert: contém "Silva Souza" em <h1>, KPIs renderizados, score > 0
+    4. Lê E5 JSON
+    5. Assert: contém "Silva Souza", KPIs presentes, score > 0
     """
     pass

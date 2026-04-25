@@ -197,28 +197,6 @@ class TestInitConfig:
 
         _init_config(_REPO_ROOT)
 
-    def test_e6_init_config_custom_root(self, tmp_path):
-        config_dir = tmp_path / "config"
-        config_dir.mkdir()
-        (config_dir / "family_members.json").write_text('{"titular":"test","membros":{}}')
-        (config_dir / "goals.json").write_text("{}")
-        (config_dir / "scoring.json").write_text("{}")
-        (config_dir / "parametros_fiscais.json").write_text("{}")
-        (config_dir / "taxas.json").write_text("{}")
-        (config_dir / "cenarios.json").write_text("{}")
-        (config_dir / "institutions.json").write_text("{}")
-        (config_dir / "pipeline.json").write_text("{}")
-
-        from scripts.e6_render import _init_config
-
-        _init_config(tmp_path)
-        from scripts import e6_render
-
-        assert e6_render.BASE_DIR == tmp_path
-        assert e6_render.OUTPUT_DIR == tmp_path / "output"
-
-        _init_config(_REPO_ROOT)
-
     def test_e0_audit_init_config_custom_root(self, tmp_path):
         from scripts.e0_audit import _init_config
 
