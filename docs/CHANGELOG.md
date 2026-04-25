@@ -8,7 +8,25 @@
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
 execução da **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
-(descontinuação do renderer HTML server-side).
+(descontinuação do renderer HTML server-side) + execução da
+**[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
+
+### 2026-04-24 — F9.0 audit ADR-093
+
+- `dev/audit_stage_references.py` (ferramenta reutilizável) +
+  `docs/audits/f9_audit_20260424.md` (resumo): 3468 ocorrências de
+  identificadores legados mapeadas em 6 categorias (doc 1412 · code 1353 ·
+  test 602 · config 55 · alembic 30 · filename 16).
+- `STAGE_RENAME_MAP` validado contra todo o código + docs + configs +
+  alembic — zero blockers; 17 nomes legados em uso, todos cobertos
+  (`E5`/`E3`/`E1`/`E4`/`E1.5`/`E2-llm`/`E5.N`/`E7-review`/`E1.5c`/
+  `E2-extratos`/`E2-faturas`/`E7-apply`/`E7-crossval`/`E0-route`/
+  `E0-audit`/`E0-unlock`/`E5-revised`).
+- Tests `test_covers_all_legacy_names` e `test_is_bijective` em
+  `tests/unit/pipeline/test_stage_spec.py` já validavam exhaustividade +
+  unicidade (não foi necessário criar novos).
+- DB sanity check pendente (sem `mathoms.db` local) — re-validar antes
+  de F9.3. F9.1 destravada.
 
 - **A6c · Bridge + main(root_dir) legados removidos (2026-04-24):**
   cutover Caminho B concluído após aprovação A6-human (smoke test).
