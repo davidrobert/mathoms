@@ -573,96 +573,6 @@ def build_narrativas():
     return builder.build(METRICS, FAMILY)
 
 
-def main(root_dir: Path = None):
-    """Main execution function."""
-    if root_dir:
-        _init_config(root_dir)
-
-    print("=" * 80)
-    print("E5.N NARRATIVAS GENERATOR")
-    print("=" * 80)
-    print()
-
-    # Read current E5 JSON
-    print(f"Reading E5 JSON from {E5_JSON_PATH}...")
-    if not E5_JSON_PATH.exists():
-        print(f"✗ E5 JSON not found at {E5_JSON_PATH}")
-        print("  Run e5_analyze.py first.")
-        return False
-
-    with open(E5_JSON_PATH, "r", encoding="utf-8") as f:
-        e5_data = json.load(f)
-
-    print(f"✓ Loaded E5 JSON with {len(e5_data)} top-level keys")
-    print()
-
-    # Load metrics dynamically from E5 JSON
-    global METRICS
-    METRICS = load_metrics_from_e5(e5_data)
-    none_count = sum(1 for v in METRICS.values() if v is None)
-    if none_count > 0:
-        print(f"  [WARN] {none_count} métricas com valor None após carregamento do E5")
-    print(f"✓ Loaded {len(METRICS)} metrics from E5 JSON")
-    print(f"  Score: {METRICS['score']}/10, Patrimônio: R$ {METRICS['patrimonio_bruto']:,.0f}")
-    print()
-
-    # Build narrativas
-    print("Building narrativas object with metrics from E5 JSON...")
-    narrativas = build_narrativas()
-    print(f"✓ Built narrativas with {len(narrativas)} main sections")
-    print("  - perfil_familia: left and right sections")
-    print(f"  - summaries: {len(narrativas['summaries'])} summaries (s1-s10)")
-    print(f"  - charts: {len(narrativas['charts'])} chart descriptions")
-    print()
-
-    # Validate narrativas
-    print("Validating narrativas against E5.N specification...")
-    is_valid, errors = validate_narrativas(narrativas)
-
-    if is_valid:
-        print("✓ All validations passed!")
-    else:
-        print(f"✗ Validation failed with {len(errors)} error(s):")
-        for error in errors:
-            print(f"  - {error}")
-        print()
-        return False
-
-    print()
-
-    # Inject into E5 JSON
-    print("Injecting narrativas into E5 JSON...")
-    e5_data["narrativas"] = narrativas
-    print("✓ Narrativas injected")
-    print()
-
-    # Save updated JSON
-    print(f"Saving updated E5 JSON to {E5_JSON_PATH}...")
-    with open(E5_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(e5_data, f, ensure_ascii=False, indent=2)
-    print("✓ Saved successfully")
-    print()
-
-    # Summary
-    print("=" * 80)
-    print("E5.N NARRATIVAS GENERATION COMPLETE")
-    print("=" * 80)
-    print()
-    print("Summary of updated metrics:")
-    print(f"  Score: {METRICS['score']}/10 ({METRICS['score_label']})")
-    print(f"  Taxa Poupança Recorrente: {fmt_percent(METRICS['taxa_poupanca'])}")
-    print(f"  Cobertura Despesas: {fmt_num(METRICS['cobertura_meses'])} meses")
-    print(f"  Taxa Endividamento: {fmt_percent(METRICS['taxa_endividamento'])}")
-    print(f"  Progresso IF: {fmt_percent(METRICS['progresso_if'])}")
-    print(f"  Patrimônio Bruto: {fmt_currency(METRICS['patrimonio_bruto'])}")
-    print(f"  Patrimônio Investível: {fmt_currency(METRICS['patrimonio_investivel'])}")
-    print(f"  IF Gap: {fmt_currency(METRICS['if_gap'])}")
-    print(f"  IF Prazo: {fmt_num(METRICS['if_prazo_anos'])} anos (ano {METRICS['if_ano']})")
-    print()
-
-    return True
-
-
 def main_with_store(ctx) -> dict:
     """E5.N Caminho B (Sessão A5e da Fase 8) — enriquece E5 com narrativas
     sobre ``ArtifactStore`` em vez de disco direto.
@@ -739,8 +649,3 @@ def main_with_store(ctx) -> dict:
         "charts_count": len(narrativas.get("charts", {})),
         "files_created": ["analise_financeira-5_analysis.json"],
     }
-
-
-if __name__ == "__main__":
-    success = main()
-    exit(0 if success else 1)

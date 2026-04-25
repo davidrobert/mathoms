@@ -163,25 +163,13 @@ def e5_tenant_with_baseline(tmp_path: Path) -> Path:
 
 def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
     """Roda E4 e E5 em tenant isolado; restaura globals dos scripts."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
-    from scripts.e4_categorize import _init_config as e4_init
-    from scripts.e4_categorize import main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
-    from scripts.e5_analyze import _init_config as e5_init
-    from scripts.e5_analyze import main as e5_main
-    from scripts.pipeline_common import _init_config as pc_init
+    from pipeline.context import WorkspaceContext
+    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.e5_analyze import main_with_store as e5_mws
 
-    try:
-        pc_init(e5_tenant_minimal)
-        e4_main(root_dir=e5_tenant_minimal)
-        pc_init(_REPO)
-        e5_main(root_dir=e5_tenant_minimal)
-    except SystemExit as exc:
-        pytest.fail(f"Pipeline main exited with {exc.code}")
-    finally:
-        pc_init(_REPO)
-        e4_init(E4_DEFAULT)
-        e5_init(E5_DEFAULT)
+    ctx = WorkspaceContext(root=e5_tenant_minimal)
+    e4_mws(ctx)
+    e5_mws(ctx)
 
     out = e5_tenant_minimal / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
     assert out.is_file(), f"missing {out}"
@@ -209,25 +197,13 @@ def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
 
 def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
     """E5 com receitas e despesas não nulas no E4 (golden expandido)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
-    from scripts.e4_categorize import _init_config as e4_init
-    from scripts.e4_categorize import main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
-    from scripts.e5_analyze import _init_config as e5_init
-    from scripts.e5_analyze import main as e5_main
-    from scripts.pipeline_common import _init_config as pc_init
+    from pipeline.context import WorkspaceContext
+    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.e5_analyze import main_with_store as e5_mws
 
-    try:
-        pc_init(e5_tenant_mixed_cashflow)
-        e4_main(root_dir=e5_tenant_mixed_cashflow)
-        pc_init(_REPO)
-        e5_main(root_dir=e5_tenant_mixed_cashflow)
-    except SystemExit as exc:
-        pytest.fail(f"Pipeline main exited with {exc.code}")
-    finally:
-        pc_init(_REPO)
-        e4_init(E4_DEFAULT)
-        e5_init(E5_DEFAULT)
+    ctx = WorkspaceContext(root=e5_tenant_mixed_cashflow)
+    e4_mws(ctx)
+    e5_mws(ctx)
 
     out = (
         e5_tenant_mixed_cashflow
@@ -251,25 +227,13 @@ def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
 
 def test_e5_execution_with_baseline_patrimonial(e5_tenant_with_baseline: Path):
     """E5 lê baseline consolidado: patrimônio bruto/líquido refletem totais do IRPF sintético."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
-    from scripts.e4_categorize import _init_config as e4_init
-    from scripts.e4_categorize import main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
-    from scripts.e5_analyze import _init_config as e5_init
-    from scripts.e5_analyze import main as e5_main
-    from scripts.pipeline_common import _init_config as pc_init
+    from pipeline.context import WorkspaceContext
+    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.e5_analyze import main_with_store as e5_mws
 
-    try:
-        pc_init(e5_tenant_with_baseline)
-        e4_main(root_dir=e5_tenant_with_baseline)
-        pc_init(_REPO)
-        e5_main(root_dir=e5_tenant_with_baseline)
-    except SystemExit as exc:
-        pytest.fail(f"Pipeline main exited with {exc.code}")
-    finally:
-        pc_init(_REPO)
-        e4_init(E4_DEFAULT)
-        e5_init(E5_DEFAULT)
+    ctx = WorkspaceContext(root=e5_tenant_with_baseline)
+    e4_mws(ctx)
+    e5_mws(ctx)
 
     out = (
         e5_tenant_with_baseline / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"

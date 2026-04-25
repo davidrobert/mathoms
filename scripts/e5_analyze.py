@@ -2720,217 +2720,13 @@ def analyze_equilibrio_cerbasi(fluxo: Dict[str, Any]) -> Dict[str, Any]:
 # ============================================================================
 
 
-def main(root_dir: Path = None):
-    """Main orchestration."""
-    if root_dir:
-        _init_config(root_dir)
-    print("\n" + "=" * 70)
-    print("E5 ANALYSIS — NUMERIC PORTIONS")
-    print("=" * 70)
-    print(f"[E5.0] Starting analysis at {datetime.now().isoformat()}")
-
-    _require_if_meta_configured()
-
-    # Create output directory
-    E5_ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Load input files
-    print("\n[E5.1] Loading E4 unified data...")
-    receitas = load_json(FILE_RECEITAS, required=True)
-    despesas = load_json(FILE_DESPESAS, required=True)
-    patrimonio_input = load_json(FILE_PATRIMONIO)
-    investimentos = load_json(FILE_INVESTIMENTOS)
-    fluxo_mensal = load_json(FILE_FLUXO_MENSAL, required=True)
-    baseline = load_json(FILE_BASELINE)
-
-    # Validate baseline
-    if not baseline:
-        print(
-            "  [CRITICAL] Baseline patrimonial vazio ou ausente — patrimônio será reportado como R$ 0!"
-        )
-
-    # Load existing output if present (to preserve narrativas)
-    existing_output = {}
-    if FILE_OUTPUT.exists():
-        existing_output = load_json(FILE_OUTPUT)
-
-    print(f"  ✓ Receitas: {receitas.get('total_geral', 0):.2f}")
-    print(f"  ✓ Despesas: {despesas.get('total_geral', 0):.2f}")
-
-    # ========================================================================
-    # COMPUTE NUMERIC SECTIONS
-    # ========================================================================
-
-    patrimonio = analyze_patrimonio(baseline, investimentos_atuais=investimentos)
-    investimentos_classes = analyze_investimentos_classes(baseline)
-
-    # Determine period string
-    # v5.3.1: derive period dynamically from data instead of hardcoded fallback
-    periodo_dados = receitas.get("periodo", "")
-    if not periodo_dados:
-        meses = fluxo_mensal.get("meses_ordenados", [])
-        if meses:
-            periodo_dados = f"{meses[0]} a {meses[-1]}"
-        else:
-            periodo_dados = f"{TODAY.strftime('%Y-%m')} a {TODAY.strftime('%Y-%m')}"
-            print(
-                f"  WARN: periodo not found in receitas nor fluxo_mensal, using today: {periodo_dados}"
-            )
-
-    goals = analyze_goals(patrimonio)
-    fluxo = analyze_fluxo_caixa(receitas, despesas, fluxo_mensal)
-    ratios = analyze_ratios(fluxo, patrimonio, goals)
-    score = calculate_score(ratios, patrimonio, goals, fluxo)
-
-    orcamento = analyze_orcamento_prospectivo(fluxo)
-    reserva = analyze_reserva_emergencia(fluxo, patrimonio)
-    endividamento = analyze_endividamento(patrimonio, baseline)
-    previdencia = analyze_previdencia_pgbl(fluxo)
-
-    pontos_fortes = analyze_pontos_fortes(score, ratios, patrimonio, fluxo, reserva, goals)
-    pontos_urgentes = analyze_pontos_urgentes(ratios, reserva, patrimonio)
-    consumo = analyze_consumo_consciente(fluxo, despesas)
-    diagnostico = analyze_diagnostico_comportamental(fluxo, ratios)
-    cenarios_conjuge = analyze_cenarios_conjuge(patrimonio, goals, fluxo)
-    cerbasi = analyze_equilibrio_cerbasi(fluxo)
-
-    # Parse tarefas.md (curated backlog) — falls back to pontos_urgentes if file missing
-    tarefas_parsed, tarefas_status_parsed = parse_tarefas_md()
-
-    # Parse milhas.md (manual input for miles programs)
-    programa_milhas = parse_milhas_md()
-
-    # ========================================================================
-    # BUILD OUTPUT JSON
-    # ========================================================================
-
-    # ========================================================================
-    # FIX 3.3: SANITY CHECKS — detect absurd values before writing output
-    # ========================================================================
-    _sanity_errors = []
-
-    pat_bruto = patrimonio.get("bruto", 0)
-    if pat_bruto < 0:
-        _sanity_errors.append(f"Patrimônio bruto negativo: R$ {pat_bruto:,.2f}")
-
-    receita_total = fluxo.get("receita_total", 0)
-    if receita_total < 0:
-        _sanity_errors.append(f"Receita total negativa: R$ {receita_total:,.2f}")
-
-    despesa_total = fluxo.get("despesa_total", 0)
-    if despesa_total < 0:
-        _sanity_errors.append(f"Despesa total negativa: R$ {despesa_total:,.2f}")
-
-    taxa_poup = ratios.get("taxa_poupanca_recorrente_pct", 0)
-    if not isinstance(taxa_poup, str) and (taxa_poup < -100 or taxa_poup > 100):
-        _sanity_errors.append(f"Taxa poupança fora do range [-100%, 100%]: {taxa_poup:.1f}%")
-
-    if_pct = goals.get("if_pct", 0)
-    if if_pct < 0:
-        _sanity_errors.append(f"IF progresso negativo: {if_pct:.1f}%")
-
-    endiv = ratios.get("endividamento_pct", 0)
-    if not isinstance(endiv, str) and endiv > 200:
-        _sanity_errors.append(f"Endividamento acima de 200%: {endiv:.1f}%")
-
-    score_val = score.get("valor", 0)
-    if score_val < 0 or score_val > 10:
-        _sanity_errors.append(f"Score fora do range [0, 10]: {score_val}")
-
-    if _sanity_errors:
-        print("\n  ⚠️  SANITY CHECK WARNINGS (possível corrupção de input):")
-        for err in _sanity_errors:
-            print(f"     • {err}")
-        print("  Pipeline continua, mas revise os dados de entrada.\n")
-
-    output = {
-        "periodo_dados": periodo_dados,
-        "data_analise": TODAY.isoformat(),
-        "patrimonio": patrimonio,
-        "goals": goals,
-        "fluxo_caixa": fluxo,
-        "ratios": ratios,
-        "score": score,
-        "orcamento_prospectivo": orcamento,
-        "reserva_emergencia": reserva,
-        "endividamento": endividamento,
-        "previdencia_pgbl": previdencia,
-        "pontos_fortes": pontos_fortes,
-        "pontos_urgentes": pontos_urgentes,
-        "investimentos": investimentos_classes,
-        "equilibrio_cerbasi": cerbasi,
-        # tarefas: from tarefas.md (curated) or fallback to pontos_urgentes (dynamic)
-        "tarefas": tarefas_parsed
-        if tarefas_parsed
-        else [
-            {
-                "n": i + 1,
-                "t": pu.get("acao", str(pu)),
-                "p": pu.get("prioridade", "media").lower(),
-                "e": pu.get("prazo", "—"),
-                "impacto": pu.get("impacto", ""),
-            }
-            for i, pu in enumerate(pontos_urgentes)
-        ],
-        "tarefas_status": tarefas_status_parsed
-        if tarefas_status_parsed
-        else {str(i + 1): "pendente" for i in range(len(pontos_urgentes))},
-        # alertas: array of strings expected by template JS
-        "alertas": [
-            f"Score financeiro: {score['valor']}/10 ({score['classificacao']})",
-        ]
-        + (
-            [f"Rentabilidade: {ratios['rentabilidade_pct']}"]
-            if ratios["rentabilidade_pct"] == "N/D"
-            else []
-        ),
-        "consumo_consciente": consumo,
-        "diagnostico_comportamental": diagnostico,
-        _KEY_CENARIOS_CONJUGE: cenarios_conjuge,
-        "programa_milhas": programa_milhas,
-    }
-
-    # PRESERVE narrativas from existing output (E5.N will add these later)
-    if "narrativas" in existing_output:
-        output["narrativas"] = existing_output["narrativas"]
-        print("\n  ✓ Preserving existing narrativas from previous run")
-
-    # ========================================================================
-    # WRITE OUTPUT — atomic write for crash safety (Fix 2.3)
-    # ========================================================================
-
-    FILE_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        import scripts.pipeline_common as _pc
-
-        _pc.write_json_atomic(FILE_OUTPUT, output, fsync=True)
-        _pc.validate_artifact(FILE_OUTPUT, "e5_analysis.schema.json")
-    except (ImportError, Exception):
-        # Fallback to direct write if pipeline_common not available
-        with open(FILE_OUTPUT, "w", encoding="utf-8") as f:
-            json.dump(output, f, indent=2, ensure_ascii=False)
-
-    print("\n[E5.FINAL] Analysis complete!")
-    print(f"  ✓ Output saved to: {FILE_OUTPUT}")
-    print("\n  === SUMMARY ===")
-    print(f"  Score: {score['valor']}/10 ({score['classificacao']})")
-    print(f"  Taxa Poupança: {ratios['taxa_poupanca_recorrente_pct']:.1f}%")
-    print(f"  Patrimônio Bruto: R$ {patrimonio['bruto']:,.2f}")
-    print(f"  Patrimônio Investível: R$ {patrimonio['investivel']:,.2f}")
-    print(f"  IF Meta: R$ {goals['if_meta']:,.2f}")
-    print(f"  IF Progresso: {goals['if_pct']:.1f}%")
-    print(f"  Prazo IF (realista): {goals['prazo_anos_realista']:.1f} anos → {goals['ano_if']}")
-    print("\n" + "=" * 70 + "\n")
-
-
 def _merge_life_plan_into_goals(
     goals: Dict[str, Any], life_plan_content: str | None
 ) -> Dict[str, Any]:
     """Enriquece ``goals.independencia_financeira`` com overrides extraídos do
     ``life_plan_goals.md`` quando goals.json não tem ``if_meta``/``trs_pct``.
 
-    Paridade com ``extract_if_target_from_life_plan`` / ``extract_if_trs`` do
-    legado — prioridade goals.json > life_plan regex. Sem mutação do input.
+    Prioridade: goals.json > life_plan regex. Sem mutação do input.
     """
     from pipeline.domain.services.if_projector import (
         extract_if_meta_from_text,
@@ -2953,14 +2749,8 @@ def _merge_life_plan_into_goals(
 
 
 def main_with_store(ctx) -> Dict[str, Any]:
-    """E5 Caminho B puro (A6d.3.3) — análise financeira via
-    :class:`E5AnalyzerAdapter` orquestrando os 14+ domain services extraídos
-    em A1/A3c/A5a/A5b/A5c.
-
-    Lê E4 artifacts via ``ArtifactStore``; os ``analyze_*`` legados coexistem
-    no módulo para compat com ``main(root_dir)`` CLI mas **não são chamados**
-    por este entrypoint. Golden ``tests/test_e5_main_with_store_parity.py``
-    garante paridade com ``main(root_dir)`` (tolerância 0.01 BRL em monetários).
+    """E5 — análise financeira via :class:`E5AnalyzerAdapter` orquestrando os
+    14+ domain services. Lê E4 artifacts via ``ArtifactStore``.
 
     Writes via ``ArtifactStore``:
     - ``store.write("E5", "analise_financeira", ...)`` — output principal.
@@ -3154,16 +2944,3 @@ def main_with_store(ctx) -> Dict[str, Any]:
         "if_prazo_anos": goals.get("prazo_anos_realista"),
         "sanity_warnings": [w.message for w in warnings],
     }
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except SystemExit:
-        raise
-    except Exception as e:
-        print(f"\n[E5] FATAL: {e}", file=sys.stderr)
-        import traceback
-
-        traceback.print_exc(file=sys.stderr)
-        sys.exit(1)

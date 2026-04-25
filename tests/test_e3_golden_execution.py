@@ -40,16 +40,12 @@ def e3_tenant_minimal(tmp_path: Path) -> Path:
 
 
 def test_e3_execution_produces_reconciled_json(e3_tenant_minimal: Path):
-    """Roda e3_reconcile.main em tenant isolado; restaura globals do script."""
-    from scripts.e3_reconcile import _DEFAULT_BASE_DIR, _init_config
-    from scripts.e3_reconcile import main as e3_main
+    """Roda e3_reconcile.main_with_store em tenant isolado."""
+    from pipeline.context import WorkspaceContext
+    from scripts.e3_reconcile import main_with_store
 
-    try:
-        e3_main(root_dir=e3_tenant_minimal)
-    except SystemExit as exc:
-        pytest.fail(f"E3 main exited with {exc.code}")
-    finally:
-        _init_config(_DEFAULT_BASE_DIR)
+    ctx = WorkspaceContext(root=e3_tenant_minimal)
+    main_with_store(ctx)
 
     e3_dir = e3_tenant_minimal / "processed" / "E3_reconciled"
     outputs = sorted(e3_dir.glob("*-3_reconciled.json"))

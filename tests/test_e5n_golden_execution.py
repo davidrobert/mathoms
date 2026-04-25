@@ -98,45 +98,25 @@ def e5n_tenant_with_conjuge(tmp_path: Path) -> Path:
 
 def test_e5n_execution_injects_narrativas(e5_tenant_minimal: Path):
     """Após E5, `e5n_narrativas.main` injeta `narrativas` válidas (spec E5.N)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
-    from scripts.e4_categorize import _init_config as e4_init
-    from scripts.e4_categorize import main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
-    from scripts.e5_analyze import _init_config as e5_init
-    from scripts.e5_analyze import main as e5_main
-    from scripts.e5n_narrativas import _DEFAULT_BASE_DIR as E5N_DEFAULT
+    from pipeline.context import WorkspaceContext
+    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.e5_analyze import main_with_store as e5_mws
     from scripts.e5n_narrativas import _init_config as e5n_init
-    from scripts.e5n_narrativas import main as e5n_main
+    from scripts.e5n_narrativas import main_with_store as e5n_mws
     from scripts.e5n_narrativas import validate_narrativas
-    from scripts.pipeline_common import _init_config as pc_init
 
-    ok = False
-    narr = None
-    narr_ok = False
-    val_errors: list[str] = []
-    try:
-        pc_init(e5_tenant_minimal)
-        e4_main(root_dir=e5_tenant_minimal)
-        pc_init(_REPO)
-        e5_main(root_dir=e5_tenant_minimal)
-        pc_init(_REPO)
-        ok = e5n_main(root_dir=e5_tenant_minimal)
+    ctx = WorkspaceContext(root=e5_tenant_minimal)
+    e4_mws(ctx)
+    e5_mws(ctx)
+    # validate_narrativas usa globals do e5n; init para o tenant antes de chamar.
+    e5n_init(e5_tenant_minimal)
+    e5n_mws(ctx)
 
-        out = e5_tenant_minimal / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-        payload = json.loads(out.read_text(encoding="utf-8"))
-        narr = payload.get("narrativas")
-        # validate_narrativas usa _KEY_CENARIOS_SECTION dos globals — só é coerente
-        # enquanto e5n_init ainda reflete este tenant (antes do finally).
-        narr_ok, val_errors = validate_narrativas(narr or {})
-    except SystemExit as exc:
-        pytest.fail(f"Pipeline main exited with {exc.code}")
-    finally:
-        pc_init(_REPO)
-        e4_init(E4_DEFAULT)
-        e5_init(E5_DEFAULT)
-        e5n_init(E5N_DEFAULT)
+    out = e5_tenant_minimal / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    narr = payload.get("narrativas")
+    narr_ok, val_errors = validate_narrativas(narr or {})
 
-    assert ok is True
     assert narr is not None
     assert set(narr.keys()) >= {"perfil_familia", "summaries", "charts"}
     assert narr_ok, val_errors
@@ -146,48 +126,29 @@ def test_e5n_execution_injects_narrativas(e5_tenant_minimal: Path):
 
 def test_e5n_execution_narrativas_with_conjuge_chart(e5n_tenant_with_conjuge: Path):
     """Com cônjuge em `family_members`, o chart obrigatório passa a ser `ana_cenarios` (não só `_cenarios`)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR as E4_DEFAULT
-    from scripts.e4_categorize import _init_config as e4_init
-    from scripts.e4_categorize import main as e4_main
-    from scripts.e5_analyze import _DEFAULT_BASE_DIR as E5_DEFAULT
-    from scripts.e5_analyze import _init_config as e5_init
-    from scripts.e5_analyze import main as e5_main
-    from scripts.e5n_narrativas import _DEFAULT_BASE_DIR as E5N_DEFAULT
+    from pipeline.context import WorkspaceContext
+    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.e5_analyze import main_with_store as e5_mws
     from scripts.e5n_narrativas import _init_config as e5n_init
-    from scripts.e5n_narrativas import main as e5n_main
+    from scripts.e5n_narrativas import main_with_store as e5n_mws
     from scripts.e5n_narrativas import validate_narrativas
-    from scripts.pipeline_common import _init_config as pc_init
 
-    ok = False
-    narr = None
-    narr_ok = False
-    val_errors: list[str] = []
-    try:
-        pc_init(e5n_tenant_with_conjuge)
-        e4_main(root_dir=e5n_tenant_with_conjuge)
-        pc_init(_REPO)
-        e5_main(root_dir=e5n_tenant_with_conjuge)
-        pc_init(_REPO)
-        ok = e5n_main(root_dir=e5n_tenant_with_conjuge)
+    ctx = WorkspaceContext(root=e5n_tenant_with_conjuge)
+    e4_mws(ctx)
+    e5_mws(ctx)
+    e5n_init(e5n_tenant_with_conjuge)
+    e5n_mws(ctx)
 
-        out = (
-            e5n_tenant_with_conjuge
-            / "processed"
-            / "E5_analysis"
-            / "analise_financeira-5_analysis.json"
-        )
-        payload = json.loads(out.read_text(encoding="utf-8"))
-        narr = payload.get("narrativas")
-        narr_ok, val_errors = validate_narrativas(narr or {})
-    except SystemExit as exc:
-        pytest.fail(f"Pipeline main exited with {exc.code}")
-    finally:
-        pc_init(_REPO)
-        e4_init(E4_DEFAULT)
-        e5_init(E5_DEFAULT)
-        e5n_init(E5N_DEFAULT)
+    out = (
+        e5n_tenant_with_conjuge
+        / "processed"
+        / "E5_analysis"
+        / "analise_financeira-5_analysis.json"
+    )
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    narr = payload.get("narrativas")
+    narr_ok, val_errors = validate_narrativas(narr or {})
 
-    assert ok is True
     assert narr is not None
     assert narr_ok, val_errors
     assert "ana_cenarios" in narr.get("charts", {})

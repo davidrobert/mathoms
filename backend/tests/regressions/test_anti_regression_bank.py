@@ -264,12 +264,16 @@ class TestBug015FamiliaSobrenome:
 
 class TestOp001ParseArgsCelery:
     """# Bug
-    Scripts (e0_audit, e0_unlock, e0_route, e15_consolidate, e2_extract,
-    e7_review) faziam `parser.parse_args()` que dentro do Celery fork
-    worker lia argumentos do comando `celery` → crash.
+    Scripts (e0_audit, e0_unlock, e0_route, e2_extract) faziam
+    `parser.parse_args()` que dentro do Celery fork worker lia argumentos
+    do comando `celery` → crash.
 
     # Fix
-    `parse_args([] if root_dir else None)` em todos os 6 scripts.
+    `parse_args([] if root_dir else None)`.
+
+    # Escopo pós-A6c
+    e15_consolidate e e7_review perderam ``main(root_dir)``/parse_args
+    (cutover Caminho B); rodam só via ``main_with_store(ctx)``.
 
     # Por que falharia se revertido
     parse_args() puro lê sys.argv que dentro do Celery contém args do
@@ -282,9 +286,7 @@ class TestOp001ParseArgsCelery:
             "e0_audit.py",
             "e0_unlock.py",
             "e0_route.py",
-            "e15_consolidate.py",
             "e2_extract.py",
-            "e7_review.py",
         ],
     )
     def test_script_parse_args_accepts_explicit_argv(self, script_name):

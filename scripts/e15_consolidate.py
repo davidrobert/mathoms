@@ -20,10 +20,8 @@ Uso:
   python scripts/e15_consolidate.py --dry-run    # mostra sem salvar
 """
 
-import argparse
 import json
 import re
-import sys
 from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -501,71 +499,11 @@ def _classify_investimento(grupo: str, descricao: str) -> str:
     return "investimento"
 
 
-def main(root_dir: Path = None):
-    if root_dir:
-        _init_config(root_dir)
-    parser = argparse.ArgumentParser(
-        description="E1.5 Consolidate — Enriquece baseline com chaves consolidadas",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Mostra resultado sem salvar.",
-    )
-    parser.add_argument(
-        "--baseline",
-        type=str,
-        default=str(BASELINE_FILE),
-        help=f"Caminho do baseline JSON (default: {BASELINE_FILE})",
-    )
-    args = parser.parse_args([] if root_dir else None)
-
-    baseline_path = Path(args.baseline)
-    if not baseline_path.exists():
-        print(f"  [ERROR] Baseline não encontrado: {baseline_path}")
-        sys.exit(1)
-
-    print("=" * 60)
-    print("  E1.5 Consolidate — Enriquecimento do baseline")
-    print("=" * 60)
-
-    with open(baseline_path, "r", encoding="utf-8") as f:
-        baseline = json.load(f)
-
-    # Check if already consolidated
-    if baseline.get("imoveis_consolidados") and baseline.get("patrimonio_por_ano"):
-        print("  [INFO] Baseline já contém chaves consolidadas — serão regeneradas.")
-
-    baseline = consolidate(baseline)
-
-    if args.dry_run:
-        print("\n  [DRY-RUN] Resultado (não salvo):")
-        print(json.dumps(baseline, indent=2, ensure_ascii=False)[:3000])
-        print("  ...")
-    else:
-        with open(baseline_path, "w", encoding="utf-8") as f:
-            json.dump(baseline, f, indent=2, ensure_ascii=False)
-        print(f"\n  [OK] Baseline atualizado: {baseline_path}")
-
-    print("=" * 60)
-
-
 def main_with_store(ctx) -> dict:
-    """E1.5c Caminho B (Sessão A5f da Fase 8) — consolida baseline patrimonial
-    via ``ArtifactStore`` em vez de disco direto.
+    """E1.5c — consolida baseline patrimonial via ``ArtifactStore``.
 
-    Coexiste com ``main(root_dir)`` legado. O wrapper
-    ``pipeline/stages/e15c.py`` chama esta função direto, sem
-    ``stage_runner_compat`` nem ``MaterializationBridge``.
-
-    Estratégia pragmática (padrão A4b/A5d): reutiliza ``consolidate()`` legado
-    para paridade garantida no golden. Lê/escreve baseline via ArtifactStore.
-
-    Skip gracioso quando E1.5 não rodou (free tier) — sem baseline, retorna
-    ``{"success": True, "skipped": True}``.
-
-    Paridade comprovada por golden em
-    ``tests/test_e15c_main_with_store_parity.py``.
+    Reutiliza ``consolidate()``. Lê/escreve baseline via ArtifactStore.
+    Skip gracioso quando E1.5 não rodou (free tier).
 
     Args:
         ctx: ``pipeline.context.WorkspaceContext``.
@@ -615,5 +553,3 @@ def main_with_store(ctx) -> dict:
     }
 
 
-if __name__ == "__main__":
-    main()

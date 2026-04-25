@@ -119,19 +119,11 @@ def e4_tenant_with_baseline(tmp_path: Path) -> Path:
 
 def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
     """Roda e4_categorize.main em tenant isolado; restaura globals."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR
-    from scripts.e4_categorize import _init_config as e4_init
-    from scripts.e4_categorize import main as e4_main
-    from scripts.pipeline_common import _init_config as pc_init
+    from pipeline.context import WorkspaceContext
+    from scripts.e4_categorize import main_with_store
 
-    try:
-        pc_init(e4_tenant_minimal)
-        e4_main(root_dir=e4_tenant_minimal)
-    except SystemExit as exc:
-        pytest.fail(f"E4 main exited with {exc.code}")
-    finally:
-        pc_init(_REPO)
-        e4_init(_DEFAULT_BASE_DIR)
+    ctx = WorkspaceContext(root=e4_tenant_minimal)
+    main_with_store(ctx)
 
     out = e4_tenant_minimal / "processed" / "E4_unified"
     assert out.is_dir()
@@ -176,19 +168,11 @@ def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
 
 def test_e4_execution_mixed_receita_despesa(e4_tenant_mixed_cashflow: Path):
     """Cenário com despesa categorizada (golden expandido)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR
-    from scripts.e4_categorize import _init_config as e4_init
-    from scripts.e4_categorize import main as e4_main
-    from scripts.pipeline_common import _init_config as pc_init
+    from pipeline.context import WorkspaceContext
+    from scripts.e4_categorize import main_with_store
 
-    try:
-        pc_init(e4_tenant_mixed_cashflow)
-        e4_main(root_dir=e4_tenant_mixed_cashflow)
-    except SystemExit as exc:
-        pytest.fail(f"E4 main exited with {exc.code}")
-    finally:
-        pc_init(_REPO)
-        e4_init(_DEFAULT_BASE_DIR)
+    ctx = WorkspaceContext(root=e4_tenant_mixed_cashflow)
+    main_with_store(ctx)
 
     out = e4_tenant_mixed_cashflow / "processed" / "E4_unified"
     receitas = json.loads((out / "receitas-4_unified.json").read_text(encoding="utf-8"))
@@ -209,19 +193,11 @@ def test_e4_execution_mixed_receita_despesa(e4_tenant_mixed_cashflow: Path):
 
 def test_e4_execution_with_baseline_patrimonial(e4_tenant_with_baseline: Path):
     """E4 com baseline: patrimonio-4_unified espelha o consolidado (schema baseline, não e4_unified)."""
-    from scripts.e4_categorize import _DEFAULT_BASE_DIR
-    from scripts.e4_categorize import _init_config as e4_init
-    from scripts.e4_categorize import main as e4_main
-    from scripts.pipeline_common import _init_config as pc_init
+    from pipeline.context import WorkspaceContext
+    from scripts.e4_categorize import main_with_store
 
-    try:
-        pc_init(e4_tenant_with_baseline)
-        e4_main(root_dir=e4_tenant_with_baseline)
-    except SystemExit as exc:
-        pytest.fail(f"E4 main exited with {exc.code}")
-    finally:
-        pc_init(_REPO)
-        e4_init(_DEFAULT_BASE_DIR)
+    ctx = WorkspaceContext(root=e4_tenant_with_baseline)
+    main_with_store(ctx)
 
     out = e4_tenant_with_baseline / "processed" / "E4_unified"
     pat_path = out / "patrimonio-4_unified.json"
