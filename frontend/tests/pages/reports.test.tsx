@@ -56,7 +56,7 @@ describe("ReportsPage (list)", () => {
       http.get("/api/v1/workspaces/:workspaceId/reports", () =>
         HttpResponse.json({
           reports: [
-            makeReport({ id: "r1", title: "Relatório Q1", period: "2026-01", size_bytes: 524288 }),
+            makeReport({ id: "r1", title: "Relatório Q1", period: "2026-01" }),
             makeReport({ id: "r2", title: "Relatório Q2", period: "2026-04" }),
           ],
           total: 2,

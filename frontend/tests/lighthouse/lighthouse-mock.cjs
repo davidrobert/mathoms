@@ -24,7 +24,6 @@ const REPORT_RESPONSE = {
   workspace_id: WORKSPACE_ID,
   title: "Relatório Sintético — Abril 2026",
   period: "2026-04",
-  size_bytes: 524288,
   score: 82,
   patrimonio_liquido: 1200000,
   created_at: "2026-04-25T12:00:00Z",
