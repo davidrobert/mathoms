@@ -79,5 +79,8 @@
     "vite": "^6.4.2",
     "vitest": "^3.2.4",
     "vitest-axe": "^0.1.0"
+  },
+  "overrides": {
+    "@swc/helpers": "^0.5.21"
   }
 }
