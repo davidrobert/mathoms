@@ -54,6 +54,23 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
     claim, exige ADR-A6f.5b), F12.4 (codegen `report_layout.yaml`),
     F12.5 (mensagens user-facing do backend).
 
+- **Lane `livestep-emit-stages` E4 + E5 — batch (2026-04-25):**
+  quinto e sexto emissores migrados para o contrato
+  [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
+  (após E1.5/E2/E1/E1.5c). Stages **single-batch** sem loop visível
+  no wrapper:
+  - **E4 — `pipeline/stages/categorize_transactions.py`:**
+    `current_item="Categorização de transações"`.
+  - **E5 — `pipeline/stages/analyze_finances.py`:**
+    `current_item="Análise financeira"`.
+  Apenas `preparing` + `finalizing` por stage — adapter
+  (`adapter.categorize_via_store`/`adapter.analyze_via_store`) é
+  chamada única, e instrumentar fases internas exigiria mexer no
+  adapter de domínio (fora do escopo desta lane). Commit `2a6d5e5`.
+  Suíte verde: 1464 pipeline + 22 events. Restam **3 lanes** ADR-119
+  abertas: E2-llm (concorrência ThreadPoolExecutor), E0 (route loop),
+  E3 (reconcile loop, exige instrumentar adapter).
+
 - **Lane `livestep-emit-stages` E1 + E1.5c — mecânicas (2026-04-25):**
   terceiro e quarto emissores migrados para o contrato
   [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
