@@ -612,9 +612,9 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 **Status global (2026-04-22 — pós-merge A6e.3b + A6e.events + A6e.events-migration + A6e.4 ✅ fechada + A6g.6 + A6g.2c + A6g.6b + A6g.3b ✅):**
 - **Entregues ✅:** A5a-A5f · A6a · A6b · A6b.5 · A6c · A6d (2026-04-20) · **A6f.1** (pipeline-as-service HTTP boundary, ADR-112, 2026-04-21) · A6f.2/.3/.4/.5a/.6 · **A6g.1** (audit baseline 2026-04-21) · **A6g.2 1ª rodada** (T1.a/b/c + T2.a/b, 2026-04-21/22 — T3 scripts com goldens fica como A6g.2b pós-A6c.3) · **A6g.5** (tests sweep, 2026-04-21) · **A6g.7** (Go prep + ADR-113, 2026-04-22) · **A6e.3** (3 slices: FamilyMember + Category + Goal use cases, 2026-04-21) · **A6e.3b** (3 slices: ConfigBlob + Task + Document, 25 use cases + 61 testes, 2026-04-22) · **A6e.4** (fase 4a 14/14 + fase 4b 3/3 — 17 routers thin + 13 novos aggregates, 2026-04-22) · **A6e.5** (`/api/v1/` + aliases + ADR-108, 2026-04-22) · **A6e.events** (domain events infra + 2 agregados migrados + ADR-115, 32 testes, 2026-04-22) · **A6e.events-migration** (10 call-sites audit_log inline → eventos, 2026-04-22) · **A6g.4** (rodadas 1+2+3, T2 `ts_long_files` frontend zerado, 2026-04-22) · **A6g.6** (enforcement automatizado — Ruff + ESLint + pre-commit hooks + AST tests + audit baseline decrescente, ADR-114, 2026-04-22) · **A6g.2c** (rename `pipeline/llm/service.py` → `litellm_client.py` — ALLOWLIST `forbidden-names` zerada, 2026-04-22) · **A6g.6b** (sweep ruff I001/F541 + ruff format . + promove `max-lines` warn→error; `max-lines-per-function` diferido, 2026-04-22) · **A6g.3b ✅** (sessões 1+2+3, polish fechado 2026-04-22 — P5 backend 10→1 residual `saldo_diff` tolerance).
 - **A6e per-aggregate** (6 agregados · repos+DTOs) concluído: FamilyMember + Category + ConfigBlob + Document + Goal + Task. Application layer agora cobre 13 aggregates (audit, auth, category, config_blob, document, family_member, feature_flag, goal, invitation, llm_config, notification, pipeline_run, realtime, report, task, transaction, vault, workspace) — 60+ use cases.
-- **Restante:** A6e (**.events-followup** ⏸ — ativar flag notif em prod + remover cron, aguarda janela F7) · A6g.2b T3 scripts com goldens ⏸ blocked-by A6c.3 · A6g.3 🚧 parcial rodada 3 (P1 em `content_classifier`/`pipeline_service`/`models/task.py`/repositories) · A6-human gate humano · A6c blocked-by A6-human · F7 (7A-7F + LGPD).
-- **Caminho crítico (serial):** A6g.3 → F7A → F7B → F7D+dogfood → GA. A6-human smoke destrava A6c + A6g.2b em paralelo.
-- **Lanes abertas agora (2026-04-24 — sync pós-Report Premium Fase 10 mergeada + ADR-119/120):** **☐ livres:** A6g.3 backend sweep rodada final (`content_classifier` 621l, `pipeline_service` P1×4, `models/task.py`, repositories — prompt `track_a6g3_backend_style_sweep.md`); A6-human smoke (gate humano); Report Premium Fase 11 `e6_render.py` paridade (ADR-124 — em progresso em `agent/report-premium/phase11-e6-parity/*`); F7F-Analyst (prompt a escrever). **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
+- **Restante:** A6e (**.events-followup** ⏸ — ativar flag notif em prod + remover cron, aguarda janela F7) · A6g.2b T3 scripts com goldens ⏸ blocked-by A6c.3 · A6g.3 🚧 parcial rodada 3 (P1 em `content_classifier`/`pipeline_service`/`models/task.py`/repositories) · **A6-human ✅ APROVADO 2026-04-24** · A6c destravado · F7 (7A-7F + LGPD).
+- **Caminho crítico (serial):** A6g.3 → F7A → F7B → F7D+dogfood → GA. **A6-human ✅ aprovado 2026-04-24 — destravou A6c + A6g.2b.**
+- **Lanes abertas agora (2026-04-24 — sync pós-Report Premium Fase 10 mergeada + ADR-119/120 + A6-human aprovado):** **☐ livres:** A6c (deletar bridge — destravado pela aprovação A6-human); A6g.3 backend sweep rodada final (`content_classifier` 621l, `pipeline_service` P1×4, `models/task.py`, repositories — prompt `track_a6g3_backend_style_sweep.md`); F7F-Analyst (prompt a escrever). **Sempre confirme com `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`** antes de pegar — a tabela pode estar desatualizada.
 - **Testes:** 1461 pipeline + 1085 backend + 12 pipeline-service passing (zero regressão).
 
 ### Lanes abertas agora — pickup table
@@ -650,8 +650,8 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | **A6g.3b** migração `float` → `Decimal` money (wire-compat) | `a6g3b-decimal-money` | [track_a6g3b_decimal_money_migration.md](agent_prompts/track_a6g3b_decimal_money_migration.md) — Elimina P5_float_money em `backend/app/` via tipo `MoneyBRL`/`MoneyUSD` (Decimal em memória, number no JSON via PlainSerializer — zero wire break). | A6g.3 ✅ rodadas 1+2 · A6g.6 gate ativo | 3+ | ✅ 2026-04-22 — **slices 1 + 2 + 3 ✅:** tipo `MoneyBRL`/`MoneyUSD` + 11 tests; transactions 4 campos + cascata services + 19 tests (sessão 1); **sessão 2:** 11 campos goal DTOs (aporte/dolar/if_goal) + math Decimal em `goal_service.py` (`_retorno_mensal_decimal` via `.ln()/.exp()`, `_pmt_constante_ate_fv`, `_if_meta_targets`, `_aporte_cobrindo_gap_com_patrimonio`, `compute_if/aporte/dolar_derived`), persistência via `model_dump(mode="json")`, OpenAPI Input/Output split (+173/−21); **sessão 3 (polish):** factory `make_if_goal` Decimal, `saldo_diff` documentado como tolerance (P5=1 residual aceito — nome persistido em `config/pipeline.json`), baseline regenerado (P5 backend 10→1). ADR-090 nota final gravada. |
 | **F7F-Local** console interno pré-produção (IA-0) | `f7f-local` | [track_f7f_local.md](agent_prompts/track_f7f_local.md) — UI web Next separada em `frontend-ops/` (bind `127.0.0.1:3100`, flag `INTERNAL_OPS_UI_ENABLED`) + camada de serviço em `backend/app/services/internal_ops/` + auth yaml+bcrypt+JWT cookie + anonimização default ([ADR-116](DECISIONS.md#adr-116)). 4 slices: S1 services+auth backend · S2 frontend-ops shell · S3 telas por área (7F.10–7F.17) · S4 CLI secundário 7F.9 (opcional) | — (greenfield, independente de 7A/B/C) | 3 (Lane C6) | ✅ **MVP fechado 2026-04-23** (S1+S2+S3 em `main`); S4 opcional em aberto |
 | **F7F-Analyst** superfície do especialista financeiro (IA-0+) | `f7f-analyst` | Role `analyst` no mesmo `frontend-ops/`; rotas `/analyst/*` com triage (7F.A4), deep dive (7F.A5), overview (7F.A6) e feedback loop (7F.A7); 5 indicadores de saúde Perini/Cerbasi/AUVP derivados de E1.5/E5; tabela `analyst_notes` nova (7F.A2 + ADR); service `analyst_metrics/` reutiliza `pipeline/domain/services/` | F7F-Local S1+S2 concluídos (shell + auth base) | 3+ (Lane C6, pós-F7F-Local) | ☐ aberta — **prompt a escrever** |
-| **A6-human** smoke | _(manual)_ | [SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) — 46 checks | A6b.5 ✅ | — | ☐ gate humano |
-| **A6c** deletar bridge | `a6c-delete-bridge` | Remove `stage_runner_compat` + `materialization_bridge` + `main(root_dir)` legados | A6-human aprovado | — | ⏸ blocked-by A6-human |
+| **A6-human** smoke | _(manual)_ | [SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) — 46 checks | A6b.5 ✅ | — | ✅ **APROVADO 2026-04-24** |
+| **A6c** deletar bridge | `a6c-delete-bridge` | Remove `stage_runner_compat` + `materialization_bridge` + `main(root_dir)` legados | A6-human ✅ | — | ☐ destravado |
 | **A6-ux.livestep** contrato `LiveStep` | `livestep-contract` | ADR-119 — payload único de progresso intra-stage + helper `emit_item_progress` + primitivo `<LiveStepProgress/>`; primeira adoção em E2-extratos/E2-faturas | A6e.4 ✅ | — | ✅ entregue 2026-04-23 (branch `agent/livestep-contract/20260423-1530`) — migração das stages iterativas restantes (E1/E1.5/E1.5c/E2-llm) aberta como follow-up P1 |
 | **A6-readers.dbfirst** readers DB-first | `adr-db-first-readers` | ADR-120 — helper `artifact_reader.read_latest_artifact` DB-first com fallback disco; fix incidente 2026-04-23 (patrimônio stale) | A6b.flip ✅ | — | ✅ entregue 2026-04-23 (branch `agent/adr-db-first-readers/20260423-1645`) — 4 readers user-facing migrados |
 | ~~**Report Premium Fase 11** `e6_render.py` paridade~~ | ~~`report-premium/phase11-e6-parity`~~ | **❌ Cancelada** via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) (2026-04-24) — renderer HTML server-side não sobrevive. Branch `agent/report-premium/phase11-e6-parity/20260424-1558` fica como histórico; não será mergeada. | — | — | ❌ 2026-04-24 (ADR-129) |
@@ -846,18 +846,18 @@ convergir em `origin/main`.
 
 | # | Entrega | Prio | Esforço | Status |
 | --- | --- | --- | --- | --- |
-| A6-human.1 | Auth + multi-tenancy (5 checks) | P0 | 30min | ☐ |
-| A6-human.2 | Documentos + classificação (10 checks) | P0 | 1h | ☐ |
-| A6-human.3 | Pipeline full + incremental + erro + histórico (7 checks) | P0 | 1h | ☐ |
-| A6-human.4 | Cada stage E0-E7 (6 checks) | P0 | 1h | ☐ |
-| A6-human.5 | Relatório completo (10 checks — seções, KPIs, linhagem, print, PDF, narrativas) | P0 | 1h | ☐ |
-| A6-human.6 | Goals/Plano (7 checks — dashboard + 4 wizards + premissas) | P0 | 1h | ☐ |
-| A6-human.7 | Configuração + admin + WS (8 checks) | P0 | 1h | ☐ |
-| A6-human.8 | Cutover DB específico (5 checks — `pipeline_artifacts` + paridade disk/DB) | P0 | 1h | ☐ |
-| A6-human.9 | Edge cases (5 checks — workspace sem baseline, fatura sem período, transf interna, etc.) | P0 | 1h | ☐ |
-| A6-human.10 | Relatório final: checklist + lista de bugs + **decisão explícita** aprovar A6c ou bloquear | P0 | 30min | ☐ |
+| A6-human.1 | Auth + multi-tenancy (5 checks) | P0 | 30min | ✅ |
+| A6-human.2 | Documentos + classificação (10 checks) | P0 | 1h | ✅ |
+| A6-human.3 | Pipeline full + incremental + erro + histórico (7 checks) | P0 | 1h | ✅ |
+| A6-human.4 | Cada stage E0-E7 (6 checks) | P0 | 1h | ✅ |
+| A6-human.5 | Relatório completo (10 checks — seções, KPIs, linhagem, print, PDF, narrativas) | P0 | 1h | ✅ |
+| A6-human.6 | Goals/Plano (7 checks — dashboard + 4 wizards + premissas) | P0 | 1h | ✅ |
+| A6-human.7 | Configuração + admin + WS (8 checks) | P0 | 1h | ✅ |
+| A6-human.8 | Cutover DB específico (5 checks — `pipeline_artifacts` + paridade disk/DB) | P0 | 1h | ✅ |
+| A6-human.9 | Edge cases (5 checks — workspace sem baseline, fatura sem período, transf interna, etc.) | P0 | 1h | ✅ |
+| A6-human.10 | Relatório final: checklist + lista de bugs + **decisão explícita** aprovar A6c ou bloquear | P0 | 30min | ✅ |
 
-**Gate:** A6c **depende** de aprovação humana documentada.
+**Gate:** ✅ **APROVADO 2026-04-24** — smoke test humano completo, A6c destravado.
 
 ### A6c — Deletar bridge + legados
 
