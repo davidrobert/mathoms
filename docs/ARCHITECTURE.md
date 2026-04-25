@@ -183,7 +183,7 @@ PipelineArtifact (ADR-082)
 
 Report
   id (UUID), workspace_id (FK), pipeline_run_id (FK→PipelineRun, SET NULL)
-  title, period, html_path, analysis_json_path (E5 JSON snapshot, F9)
+  title, period, analysis_json_path (E5 JSON snapshot, F9)
   tasks_snapshot_json (immutable snapshot, F8.3)
   size_bytes, score, patrimonio_liquido, created_at
 ```
@@ -294,7 +294,7 @@ FeatureFlag
 | **invitations.py** | GET preview (public), POST accept |
 | **documents.py** | POST upload (multipart batch), GET list, DELETE, POST retry-unlock |
 | **pipeline.py** | POST run, GET runs, cancel, resume, reviews |
-| **reports.py** | GET list/detail/html/download.html/download.pdf/data/tasks |
+| **reports.py** | GET list/detail/download.pdf/data/tasks |
 | **transactions.py** | GET list/export, POST override, DELETE override |
 | **config.py** | CRUD members/accounts/categories, GET/PUT pipeline/institutions/layout, import/export |
 | **goals.py** | POST compute IF, GET/PUT IF, history, goal↔tasks |

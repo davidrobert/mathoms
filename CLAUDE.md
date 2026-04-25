@@ -661,7 +661,7 @@ configs e docstrings antes de agir.
 ## Design System (ADR-076 · F9)
 
 - **Fonte de verdade:** `design-tokens/tokens.json` — gera CSS para
-  Next.js e E6 standalone via `python3 design-tokens/build.py`.
+  Next.js via `python3 design-tokens/build.py`.
 - **Codegen do layout:** `config/report_layout.yaml` →
   `frontend/src/generated/report-layout.ts` +
   `backend/app/generated/report_layout.py` via
