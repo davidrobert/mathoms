@@ -1012,77 +1012,30 @@ def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
 # ============================================================================
 
 
-def main_with_store(ctx) -> Dict[str, Any]:
-    """E4 Caminho B (Sessão A4b da Fase 7) — orquestra o pipeline E4 sobre
-    ``ArtifactStore`` em vez de disco direto.
-
-    Coexiste com ``main(root_dir)`` legado — não substitui. O wrapper
-    ``pipeline/stages/e4.py`` chama esta função direto, sem
-    ``MaterializationBridge``.
-
-    Diferenças vs ``main(root_dir)``:
-    - Lê E3/E2/baseline e escreve E4 via ``ctx.get_artifact_store()`` (Disk em
-      CLI, DB-backed em Web).
-    - Usa ``E4CategorizerAdapter`` (A4a) + ``serialize_e4_artifacts`` (A4b),
-      orquestrados pelos domain services puros extraídos nas Sessões A1/A3a/A4a.
-    - Sidecar ``qa_log.md`` em ``ctx.logs_dir`` quando existir.
-    - Validação JSON-schema em cada artefato escrito (modo warn).
-
-    Paridade comprovada por golden em
-    ``tests/test_e4_main_with_store_parity.py``.
-
-    Args:
-        ctx: ``pipeline.context.WorkspaceContext``.
-
-    Returns:
-        Dict com ``files_created``, ``total`` e contagens; consumido pelo
-        worker Celery para exibir na UI.
-    """
-    from pipeline.artifact_store import DiskArtifactStore
+def _e4_build_adapter(ctx):
+    """Carrega configs + monta E4CategorizerAdapter."""
     from pipeline.domain.services.e4_categorizer_adapter import E4CategorizerAdapter
-    from pipeline.domain.services.e4_serialization import (
-        all_filenames,
-        filename_for,
-        serialize_e4_artifacts,
-    )
 
-    print("=" * 80)
-    print("E4 CATEGORIZATION STAGE — Caminho B (main_with_store)")
-    print("=" * 80)
-
-    # 1. Configs via WorkspaceContext (CLI ou DB-overrides).
     categorization_cfg = ctx.load_config("categorization.json")
     family_cfg = ctx.load_config("family_members.json")
     pipeline_cfg = ctx.load_config("pipeline.json")
-
-    # 2. Adapter com clocks padrão (datetime.now); determinismo em testes
-    #    é controlado pelo golden via normalização dos campos variáveis.
     adapter = E4CategorizerAdapter.from_configs(
         categorization=categorization_cfg,
         family=family_cfg,
     )
+    return adapter, categorization_cfg, pipeline_cfg
 
-    store = ctx.get_artifact_store()
 
-    print(f"[E4.0] Workspace root: {ctx.root}")
-    print(f"[E4.0] Store impl:     {type(store).__name__}")
+def _e4_persist_artifacts(store, ctx, result) -> List[str]:
+    """Serializa via serialize_e4_artifacts, grava 7 artefatos e valida schema."""
+    from pipeline.artifact_store import DiskArtifactStore
+    from pipeline.domain.services.e4_serialization import filename_for, serialize_e4_artifacts
 
-    # 3. Pipeline: E3 → classify → aggregate + baseline + investimentos.
-    result = adapter.categorize_via_store(store)
-
-    print(
-        f"[E4.2] Processed: {result.cash_flow.receitas.total_transacoes} receitas, "
-        f"{result.cash_flow.despesas.total_transacoes} despesas, "
-        f"{result.cash_flow.transferencias_count} internal transfers"
-    )
-
-    # 4. Serializa e escreve os 7 artefatos via store.
     payloads = serialize_e4_artifacts(result)
     written_filenames: List[str] = []
     for key, payload in payloads.items():
         store.write("E4", key, payload)
         written_filenames.append(filename_for(key))
-        # Validate cada payload contra schema quando em disco.
         if isinstance(store, DiskArtifactStore) and _pc is not None:
             target = ctx.processed_dir / "E4_unified" / filename_for(key)
             if target.exists():
@@ -1090,29 +1043,28 @@ def main_with_store(ctx) -> Dict[str, Any]:
 
     for filename in written_filenames:
         print(f"[E4.3] Wrote {filename}")
+    return written_filenames
 
-    # 5. QA log sidecar — despesas não identificadas para review manual.
+
+def _e4_write_qa_sidecar(ctx, result, pipeline_cfg, categorization_cfg) -> None:
     logs_dir = ctx.logs_dir
     try:
         logs_dir.mkdir(parents=True, exist_ok=True)
     except OSError:
         pass
 
-    if logs_dir.exists():
-        despesas_legacy = [t.to_legacy_dict() for t in result.classified if t.kind == "despesa"]
-        _write_qa_log_e4(
-            logs_dir / "qa_log.md",
-            despesas=despesas_legacy,
-            pipeline_cfg=pipeline_cfg,
-            categorization_cfg=categorization_cfg,
-        )
+    if not logs_dir.exists():
+        return
+    despesas_legacy = [t.to_legacy_dict() for t in result.classified if t.kind == "despesa"]
+    _write_qa_log_e4(
+        logs_dir / "qa_log.md",
+        despesas=despesas_legacy,
+        pipeline_cfg=pipeline_cfg,
+        categorization_cfg=categorization_cfg,
+    )
 
-    # 6. Log de avisos de validação de investimentos (paridade com
-    #    ``build_investimentos_unified`` que hoje só `print`-ava).
-    for aviso in result.investments.avisos_validacao:
-        print(f"  {aviso}")
 
-    # 7. Summary (paridade com ``main(root_dir)`` linhas 1040-1053).
+def _e4_print_summary(result) -> None:
     receitas = result.cash_flow.receitas
     despesas = result.cash_flow.despesas
     inv = result.investments
@@ -1130,6 +1082,11 @@ def main_with_store(ctx) -> Dict[str, Any]:
     print("=" * 70)
     print("[E4.9] E4 Categorization Stage COMPLETE — Caminho B")
 
+
+def _e4_build_result_dict(written_filenames: List[str], result) -> Dict[str, Any]:
+    receitas = result.cash_flow.receitas
+    despesas = result.cash_flow.despesas
+    inv = result.investments
     return {
         "files_created": written_filenames,
         "total": len(written_filenames),
@@ -1143,6 +1100,39 @@ def main_with_store(ctx) -> Dict[str, Any]:
         "total_investimentos": inv.total_geral,
         "avisos_validacao_investimentos": list(inv.avisos_validacao),
     }
+
+
+def main_with_store(ctx) -> Dict[str, Any]:
+    """E4 Caminho B (Sessão A4b da Fase 7) — orquestra o pipeline E4 sobre
+    ``ArtifactStore`` em vez de disco direto.
+
+    Coexiste com ``main(root_dir)`` legado. Lê E3/E2/baseline e escreve E4 via
+    store. Paridade coberta por ``tests/test_e4_golden_execution.py``.
+    """
+    print("=" * 80)
+    print("E4 CATEGORIZATION STAGE — Caminho B (main_with_store)")
+    print("=" * 80)
+
+    adapter, categorization_cfg, pipeline_cfg = _e4_build_adapter(ctx)
+    store = ctx.get_artifact_store()
+    print(f"[E4.0] Workspace root: {ctx.root}")
+    print(f"[E4.0] Store impl:     {type(store).__name__}")
+
+    result = adapter.categorize_via_store(store)
+    print(
+        f"[E4.2] Processed: {result.cash_flow.receitas.total_transacoes} receitas, "
+        f"{result.cash_flow.despesas.total_transacoes} despesas, "
+        f"{result.cash_flow.transferencias_count} internal transfers"
+    )
+
+    written_filenames = _e4_persist_artifacts(store, ctx, result)
+    _e4_write_qa_sidecar(ctx, result, pipeline_cfg, categorization_cfg)
+
+    for aviso in result.investments.avisos_validacao:
+        print(f"  {aviso}")
+
+    _e4_print_summary(result)
+    return _e4_build_result_dict(written_filenames, result)
 
 
 def _write_qa_log_e4(
