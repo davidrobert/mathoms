@@ -11,6 +11,32 @@ execução da **[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Lane `report-a11y-finalize` item 3 (2026-04-25) — lane fechada
+  ✅:** snapshots visuais por seção × tema light/dark.
+  - [`frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts`](../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts)
+    — 48 testes (24 seções × 2 temas) no projeto `visual` do Playwright;
+    setup injeta `theme` em localStorage antes do mount p/ evitar flash
+    light→dark; tolerância `maxDiffPixels: 200`; suporte a
+    `[data-mask-snapshot]` para volates legítimos.
+  - Job CI `frontend-visual` opt-in via label `visual` ou
+    `workflow_dispatch` com input `run_visual` (lento + baselines
+    OS-específicas). Adicionado a `.github/workflows/ci.yml`.
+  - `.gitignore` bloqueia `*-darwin.png`/`*-win32.png` — baselines
+    macOS/Windows nunca devem ser commitadas, source of truth é Linux
+    do CI.
+  - Ops doc [`docs/REPORT_VISUAL_SNAPSHOTS.md`](REPORT_VISUAL_SNAPSHOTS.md)
+    explica fluxo de baseline (workflow_dispatch → artefato →
+    commitar `__snapshots__/*-linux.png` → diffs subsequentes).
+  - Decisão D3 do track aplicada: spec mobile fica fora — lane futura
+    `report-mobile-spec` quando produto decidir o que sai em <767px.
+  - Fecha **F11.2c** (regressão visual) do
+    [REPORT_PREMIUM_PLAN](REPORT_PREMIUM_PLAN.md).
+  - Baselines Linux pendentes — passo manual de mantenedor após o
+    merge desta entrada.
+  - **Lane `report-a11y-finalize` integralmente entregue**: 6/6 itens
+    (1 tab-order, 2 axe, 3 visual, 4 Lighthouse, 5 checklist, 6 gate
+    empírico).
+
 - **Lane `report-a11y-finalize` item 5 (2026-04-25):** checklist WCAG
   2.1 AA operacional em [`docs/REPORT_A11Y_CHECKLIST.md`](REPORT_A11Y_CHECKLIST.md).
   Tabela seção × critério (1.4.3 contraste, 2.1.1 teclado, 2.4.3 ordem

@@ -36,6 +36,7 @@ nesta tabela porque nenhuma seção tem regra específica.
 | `axe-core` por seção | 1.4.3 (parcial), 4.1.2 | [a11y.@critical.spec.ts](../frontend/tests/e2e/reports/a11y.@critical.spec.ts) | `critical+serious` (D1) |
 | Tab-order escopado a `[data-report-scope]` | 2.1.1, 2.4.3, 4.1.2 | [tab-order.@critical.spec.ts](../frontend/tests/e2e/reports/tab-order.@critical.spec.ts) | `@critical` (PR-blocking) |
 | Lighthouse CI (categoria `accessibility`) | 1.4.3, 2.4.7, 4.1.2 (mistura) | [lighthouserc.cjs](../frontend/lighthouserc.cjs) + job `frontend-lighthouse` | `error` em score < 0.95 (D2) |
+| Snapshots visuais por seção × tema | regressão estrutural light/dark (não substitui revisão humana de contraste em estados) | [sections.snapshots.visual.spec.ts](../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts) + job `frontend-visual` (opt-in) — ops em [REPORT_VISUAL_SNAPSHOTS.md](REPORT_VISUAL_SNAPSHOTS.md) | `maxDiffPixels: 200` por seção |
 | Gate empírico (one-shot) | meta-validação dos gates acima | [REPORT_A11Y_GATE_PROOF.md](REPORT_A11Y_GATE_PROOF.md) | manual, 2026-04-25 |
 
 **O que NÃO está coberto automaticamente** (vai pra "checklist humano"):
@@ -44,7 +45,9 @@ nesta tabela porque nenhuma seção tem regra específica.
   estado padrão; estados interativos exigem revisão visual.
 - Coerência de copy em `aria-label` (axe garante presença, não qualidade
   semântica). "Botão" como label passa axe e falha o usuário.
-- Snapshots visuais por tema (light/dark). Item 3 da lane fica aberto.
+- Contraste em estados dinâmicos passa por snapshot visual (item 3
+  entregue), mas snapshots detectam mudança estrutural — não auditam
+  WCAG diretamente.
 - Drag & drop do Kanban com teclado (T3) — comportamento que axe não
   detecta.
 

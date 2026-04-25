@@ -37,6 +37,10 @@ frontend/tsconfig.tsbuildinfo
 frontend/.lighthouseci/
 frontend/playwright-report/
 frontend/playwright-results/
+# Visual snapshots locais (macOS/non-Linux) não devem ser commitados —
+# baselines são geradas exclusivamente em CI Linux (lane report-a11y-finalize).
+frontend/tests/**/*-darwin.png
+frontend/tests/**/*-win32.png
 node_modules/
 
 # Testing
