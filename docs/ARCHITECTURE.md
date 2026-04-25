@@ -849,7 +849,18 @@ fin-current/
 │   │   │   ├── ui/            # 18 shadcn/base-ui primitives
 │   │   │   ├── charts/        # 3 Recharts wrappers
 │   │   │   ├── tasks/         # 9 task components
-│   │   │   ├── report/        # 50 report components (shell, cards, charts, sections)
+│   │   │   ├── report/        # Report Premium v1 (decomposto pós-Fase 10)
+│   │   │   │   ├── ui/        # 14 primitivos (Kpi, Alert, Badge, Timeline, NotasCard, kanban/, badges/)
+│   │   │   │   ├── charts/    # 8 Chart.js wrappers + primitives/ + _registry.ts
+│   │   │   │   ├── sections/  # S1-S10 (estratégico) + TaticoSections + UsaSections + ApendiceA-E
+│   │   │   │   ├── shell/     # ReportCover, ReportTopNav, ExportToolbar, FloatingNav, FontScaleToggle, ModeToggle, SkipNav
+│   │   │   │   ├── kpi/       # PatrimonioKpiRow (KPI rows reutilizáveis)
+│   │   │   │   ├── cards/     # 15 cards de domínio (PerfilFamilia, Reserva, Equilíbrio, Endividamento, Investimentos, Previdência…)
+│   │   │   │   ├── utils/     # conclusionUtils, kanbanAdapter, priorityMap, scoreUtils, timelineAdapter
+│   │   │   │   ├── ReportShell.tsx, ReportHeader.tsx, ReportSection.tsx, ReportToc.tsx, ReportSourceStrip.tsx
+│   │   │   │   ├── ReportModeProvider.tsx     # cliente, dinâmico (?mode= URL)
+│   │   │   │   ├── StaticReportModeProvider.tsx  # SSR/standalone (ADR-124 §11.1)
+│   │   │   │   └── report-print.css, MonetaryValue.tsx, ReportThemeToggle.tsx, useReportFontScale.ts
 │   │   │   └── *.tsx          # Compositions (AppShell, KPICard, etc.)
 │   │   ├── generated/         # Codegen (report-layout.ts from YAML)
 │   │   ├── types/             # Tipos fortes do E5 (análise financeira)
@@ -893,6 +904,17 @@ fin-current/
 ├── .github/workflows/ci.yml   # 7 CI jobs + all-green gate
 └── pyproject.toml             # Package mathoms-pipeline v0.2.0
 ```
+
+**Sobre `frontend/src/components/report/`** (Report Premium v1, pós-Fase
+10): shell decomposto em primitivos (`ui/`), Chart.js wrappers
+(`charts/`), seções por modo (`sections/`), shell composicional
+(`shell/`), KPIs reutilizáveis (`kpi/`), cards de domínio (`cards/`) e
+utilitários (`utils/`). Provider de modo dual:
+`ReportModeProvider` (cliente, dinâmico via `?mode=`) +
+`StaticReportModeProvider` (SSR/standalone — ADR-124 §11.1, mantido
+como provider mesmo após [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)
+descontinuar o renderer HTML server-side; React em `/reports/[id]` é
+único renderer; PDF via Playwright é único export server-side).
 
 ---
 
