@@ -60,7 +60,23 @@ def _init_config(base_dir: Path) -> None:
     _IMOVEL_MATCH_KEYWORDS = _FAMILY.get("imovel_match_keywords", [])
 
 
-_init_config(_pc.PROJECT_DIR)
+# =============================================================================
+# Module-level defaults (Sessão A6d.1 — eliminado side-effect no import)
+# =============================================================================
+#
+# Antes de A6d.1: módulo invocava ``_init_config(_pc.PROJECT_DIR)`` no nível
+# de módulo. Agora os globals começam com defaults; ``_init_config(base_dir)``
+# é invocado explicitamente por ``main(root_dir=...)`` / ``main_with_store(ctx)``.
+PROJECT_DIR: Path = _DEFAULT_BASE_DIR
+E2_DIR: Path = PROJECT_DIR / "processed" / "E2_extracts"
+_PIPELINE_CONFIG: dict = {}
+_ARTIFACT_NAMES: dict = {}
+BASELINE_FILE: Path = E2_DIR / "baseline_patrimonial-1.5_consolidated.json"
+_FAMILY: dict = {}
+_TITULAR: str = ""
+_MEMBROS: dict = {}
+_MEMBER_KEYS: list = []
+_IMOVEL_MATCH_KEYWORDS: list = []
 
 # IRPF grupo → categoria
 GRUPO_MAP = {
