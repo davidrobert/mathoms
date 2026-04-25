@@ -911,9 +911,15 @@ def route_all(
     dry_run: bool = False,
     use_llm: bool = True,
     file_filter: str | None = None,
+    pipeline_run_id: str | None = None,
 ) -> dict:
     """Route all files in inbox. Returns summary stats dict.
-    Importable by e_reset.py."""
+    Importable by e_reset.py.
+
+    Quando ``pipeline_run_id`` está setado (chamada via worker do backend),
+    emite progresso LiveStep por arquivo (ADR-119) — `preparing` antes do
+    routing e `finalizing` único após o loop.
+    """
     base = base or BASE
     inbox = base / "inbox"
     today = date.today().isoformat()
@@ -964,7 +970,18 @@ def route_all(
         },
     }
 
-    for filepath in files:
+    from pipeline.live_progress import emit_item_progress
+
+    total_files = len(files)
+    for idx, filepath in enumerate(files):
+        emit_item_progress(
+            pipeline_run_id,
+            "E0-route",
+            current_item=filepath.name,
+            items_done=idx,
+            items_total=total_files,
+            phase="preparing",
+        )
         result = route_file(filepath, base, dry_run=dry_run, use_llm=use_llm, today=today)
         stats["details"].append(result)
 
@@ -983,6 +1000,16 @@ def route_all(
             stats["unidentified"] += 1
         elif status == "skipped":
             stats["skipped"] += 1
+
+    if total_files > 0:
+        emit_item_progress(
+            pipeline_run_id,
+            "E0-route",
+            current_item=None,
+            items_done=total_files,
+            items_total=total_files,
+            phase="finalizing",
+        )
 
     # Write inbox_log entry
     if not dry_run:
