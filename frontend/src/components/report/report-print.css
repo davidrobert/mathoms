@@ -4,8 +4,7 @@
  * Complementa o @media print do globals.css com regras específicas do
  * relatório que o globals não deve conter.
  *
- * Recharts renderiza SVG — imprime nativamente sem fallback Canvas→PNG
- * (melhoria sobre o report_template.html antigo com Chart.js Canvas).
+ * Recharts renderiza SVG — imprime nativamente sem fallback Canvas→PNG.
  */
 
 @media print {

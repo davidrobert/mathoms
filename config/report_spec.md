@@ -161,7 +161,7 @@ Se `chart-context` ou `chart-conclusion` não tiver texto, OMITIR a tag inteira.
 
 ### ⚠️ Regra estrutural para `{{CONTENT_S*}}` e `{{CONTENT_APP_*}}`
 
-O template (`report_template.html`) já contém para cada seção:
+O template HTML legado (removido em ADR-129) já continha para cada seção:
 ```html
 <div class="section" id="secao-N">
   <div class="section-header"><h1>N. Título</h1></div>

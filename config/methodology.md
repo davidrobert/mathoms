@@ -116,7 +116,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 ### E6 — Relatório HTML (Determinístico)
 - **Objetivo:** Compilar todas as análises em relatório HTML completo. 100% determinístico via script Python — sem LLM.
 - **Comando:** `python scripts/e6_render.py`
-- **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com dados + narrativas), `report_template.html`, `report_spec.md`
+- **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com dados + narrativas), template HTML legado, `report_spec.md` *(stage removido — ver ADR-129; descrição legada mantida temporariamente)*
 - **Outputs:** `output/relatorio_financeiro_ferreira_campos_[DATE].html` — 10 seções estratégicas + 5 apêndices + 19 gráficos Chart.js
 - **Método:** Renderização por substituição de placeholders. Mesmos inputs = mesmo output.
 

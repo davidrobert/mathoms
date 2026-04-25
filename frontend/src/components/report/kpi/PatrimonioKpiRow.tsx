@@ -16,8 +16,7 @@ interface PatrimonioKpiRowProps {
 
 /** F9 · F2.A · S1 — Linha de 4 KPIs no topo do relatório.
  *
- * Antigamente era uma faixa no `.cover-hero` do report_template.html.
- * Nativo: grid 2/4 colunas, tipografia editorial, monetário com font-mono.
+ * Grid 2/4 colunas, tipografia editorial, monetário com font-mono.
  */
 export function PatrimonioKpiRow({
   patrimonio,

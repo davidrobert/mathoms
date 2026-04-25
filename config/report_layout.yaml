@@ -367,8 +367,8 @@ estrategico:
 # ==============================================================================
 # MODO TÁTICO (T1-T6 + KPIs) — Dashboard Operacional Quinzenal
 # ==============================================================================
-# Alinhado com o template HTML (report_template.html) que implementa T1-T6
-# como seções JS-driven alimentadas por DATA.dashboard.
+# Modo tático: seções T1-T6 alimentadas por DATA.dashboard no relatório
+# nativo React (rota /reports/[id]).
 # ==============================================================================
 tatico:
 

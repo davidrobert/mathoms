@@ -15,9 +15,12 @@ Saídas geradas (não editar à mão):
 
 ```
 frontend/src/styles/tokens.css       ← site (Next.js + Tailwind v4 @theme inline)
-frontend-ops/src/styles/tokens.css   ← app ops (Next standalone)
-config/templates/_tokens.css         ← relatório standalone (futuro SSR export · ADR-124)
+frontend-ops/src/styles/tokens.css   ← console ops (Next sem @theme inline)
 ```
+
+Renderer HTML standalone foi descontinuado em ADR-129 — o relatório vive
+exclusivamente em `/reports/[id]` (React) e o export PDF passa por
+Playwright sobre essa rota.
 
 ## Uso
 
@@ -71,5 +74,5 @@ Hooks de runtime:
 
 1. Edita `tokens.json`.
 2. Roda `python3 design-tokens/build.py`.
-3. Commita os 3 arquivos (tokens.json + 2 CSS gerados).
+3. Commita os arquivos (tokens.json + 2 CSS gerados).
 4. Pre-commit valida sync via `--check`.
