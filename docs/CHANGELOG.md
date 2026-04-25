@@ -7,9 +7,35 @@
 ## [Unreleased]
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
-execução da **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
-(descontinuação do renderer HTML server-side) + execução da
-**[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
+execução da **[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
+**[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
+(descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
+
+- **ADR-129 lane `adr-129-e6-kill` concluída (2026-04-25):** todas as
+  6 fatias mergeadas em `main`. Renderer HTML server-side erradicado;
+  React (`/reports/[id]`) é o único renderer; PDF via Playwright
+  continua como único export server-side. Hashes por fatia:
+  - **Fatia 1** backend API + drop `Report.html_path`: `94f693d`
+    (rotas removidas) + `4127abe` (`seed_existing_reports`) + `5e72e72`
+    (docs SETUP).
+  - **Fatia 2** pipeline + `stage_materialization`: `9f4c616`.
+  - **Fatia 3** scripts E6 + refs CLI: `e6d4fdf` → `2c17c77` →
+    `f947828` → `e74774f` → `2b18a29` → `152f205`.
+  - **Fatia 4** frontend dead code: `b7e4c70` → `1a2f385` →
+    `5865d8b`.
+  - **Fatia 5** design-tokens + templates standalone: `d395946`
+    (build.py) + `4e68061` (delete templates) + `dbcf5e1`
+    (re-aponta tests) + `85dc9fb` (sweep refs órfãs).
+  - **Fatia 6** docs finais: deletado `docs/e6_render_readme.md`,
+    `docs/PIPELINE_ARTIFACTS.md` reescrito (fluxo de produção
+    pós-ADR-129), refs em `ARCHITECTURE.md`/`TESTING.md`/
+    `ROADMAP.md`/`CLAUDE.md` limpas.
+
+  **Resultado agregado:** ~12 000 LOC removidos (5 693 de
+  `scripts/e6_render.py`, 5 047 dos templates standalone, restante
+  espalhado entre stages, helpers, UI e testes). ADR-124 (Jinja2
+  paridade) superseded; Fases 11/12/13 do Report Premium oficialmente
+  canceladas.
 
 ### 2026-04-24 — F9.0 audit ADR-093
 

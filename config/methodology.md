@@ -113,25 +113,20 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 - **Inputs:** `analise_financeira-5_analysis.json` (dados completos do E5), `members-1c_enriched.md`, `config/goals.json`
 - **Outputs:** Chave `narrativas` adicionada ao E5 JSON com `perfil_familia`, `summaries`, `charts`.
 
-### E6 — Relatório HTML (Determinístico)
-- **Objetivo:** Compilar todas as análises em relatório HTML completo. 100% determinístico via script Python — sem LLM.
-- **Comando:** `python scripts/e6_render.py`
-- **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com dados + narrativas), template HTML legado, `report_spec.md` *(stage removido — ver ADR-129; descrição legada mantida temporariamente)*
-- **Outputs:** `output/relatorio_financeiro_ferreira_campos_[DATE].html` — 10 seções estratégicas + 5 apêndices + 19 gráficos Chart.js
-- **Método:** Renderização por substituição de placeholders. Mesmos inputs = mesmo output.
+### Renderização do relatório (pós-[ADR-129](../docs/DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side))
+- **Objetivo:** Apresentar todas as análises em relatório consultivo completo.
+- **Renderer único:** rota React `/reports/[id]` no frontend Next.js, consumindo `GET /reports/{id}/data` (E5 JSON via `analysis_json_path`). 100% determinístico — sem LLM no render.
+- **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com dados + narrativas + refinamentos do E7).
+- **Export server-side:** PDF via Playwright (`backend/app/services/pdf_renderer.py`) sobre a mesma rota — único export server-side.
+- **Stages E6 / E6-final removidos:** o pipeline não gera mais HTML standalone. Re-renders após E7 são automáticos (a rota lê o E5 JSON atualizado).
 
 ### E7 — Review & Refine (LLM — pós-relatório)
 - **Objetivo:** Revisão holística pós-relatório usando a persona e abordagem desta methodology. Retroalimenta narrativas, summaries, chart descriptions, lista de tarefas e prioridades com base na visão completa do relatório renderizado.
-- **Comando:** `python scripts/e7_review.py` (cross-validation) → LLM review → `python scripts/e7_review.py --apply review.json` → `python scripts/e6_render.py` (re-render)
-- **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com narrativas), relatório HTML renderizado, `methodology.md` (persona)
-- **Outputs:** E5 JSON atualizado com refinamentos + `review_metadata` + `strategic_insights`, relatório HTML final re-renderizado
-- **Cross-validation:** 14 checks determinísticos verificam consistência entre score, patrimônio, fluxo, IF, endividamento, reserva, narrativas e tarefas
-- **Princípio:** Uma única passagem de review (sem recursão). Se refinamentos significativos forem necessários, re-executar com `python scripts/e_reset.py --from E7`
-
-### E6-final — Re-render (Determinístico)
-- **Objetivo:** Re-renderizar relatório HTML após E7 aplicar refinamentos ao E5 JSON.
-- **Comando:** `python scripts/e6_render.py` (mesmo script E6)
-- **Inputs/Outputs:** Idênticos ao E6, mas com E5 JSON já refinado pelo E7.
+- **Comando:** `python scripts/e7_review.py` (cross-validation) → LLM review → `python scripts/e7_review.py --apply review.json`. O re-render é automático na próxima abertura de `/reports/[id]`.
+- **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com narrativas), `methodology.md` (persona).
+- **Outputs:** E5 JSON atualizado com refinamentos + `review_metadata` + `strategic_insights`.
+- **Cross-validation:** 14 checks determinísticos verificam consistência entre score, patrimônio, fluxo, IF, endividamento, reserva, narrativas e tarefas.
+- **Princípio:** Uma única passagem de review (sem recursão). Se refinamentos significativos forem necessários, re-executar com `python scripts/e_reset.py --from E7`.
 
 ---
 
