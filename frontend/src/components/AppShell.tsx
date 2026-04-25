@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { getMe, clearToken, type UserResponse } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -67,6 +68,7 @@ const NAV_GROUPS: {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations("header");
   const [user, setUser] = useState<UserResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -101,7 +103,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       >
         <div className="flex h-14 items-center border-b border-border px-5">
           <Link href="/plano" className="font-display text-xl font-bold tracking-tight">
-            Mathoms AI
+            {t("title")}
           </Link>
         </div>
 
@@ -182,7 +184,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <span className="text-style-heading-sm lg:hidden">Mathoms AI</span>
+            <span className="text-style-heading-sm lg:hidden">{t("title")}</span>
           </div>
 
           {/* Center: workspace — grows to fill, stays centered on desktop */}

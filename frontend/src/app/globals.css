@@ -142,6 +142,23 @@
   html {
     @apply font-sans;
   }
+  /* F12.1 · ADR-130 — Fallbacks tipográficos por script.
+   * As fontes Noto Sans <X> são carregadas no <head> apenas para os
+   * locales que precisam (src/i18n/fonts.ts). Aqui ligamos a família
+   * extra ao stack via [lang] selector para cobrir glifos fora do
+   * Latin Extended-A. */
+  html[lang="zh-CN"] body {
+    font-family: "Noto Sans SC", var(--font-body), system-ui, sans-serif;
+  }
+  html[lang="hi"] body {
+    font-family: "Noto Sans Devanagari", var(--font-body), system-ui, sans-serif;
+  }
+  html[lang="bn"] body {
+    font-family: "Noto Sans Bengali", var(--font-body), system-ui, sans-serif;
+  }
+  html[lang="ar"] body {
+    font-family: "Noto Sans Arabic", var(--font-body), system-ui, sans-serif;
+  }
 }
 
 @keyframes indeterminate-progress {

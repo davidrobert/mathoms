@@ -15,6 +15,19 @@ import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import { server } from "./mocks/server";
 
+/** F12.1 · ADR-130 — `useTranslations()` devolve identidade (chave → chave)
+ * por default em testes que não montam `NextIntlClientProvider`. Suítes
+ * que precisam de strings reais (tests/i18n/**) importam o provider
+ * explicitamente e re-mockam `next-intl` localmente se necessário. */
+vi.mock("next-intl", async () => {
+  const actual = await vi.importActual<typeof import("next-intl")>("next-intl");
+  return {
+    ...actual,
+    useTranslations: () => (key: string) => key,
+    useLocale: () => "pt-BR",
+  };
+});
+
 /** Default workspace para páginas `(app)/` que usam `useWorkspace()` sem provider real. */
 vi.mock("@/lib/WorkspaceProvider", () => ({
   WorkspaceProvider: ({ children }: { children: ReactNode }) =>
