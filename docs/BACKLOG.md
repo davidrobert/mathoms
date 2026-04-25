@@ -1553,10 +1553,10 @@ Ataques que **mudam código ou parâmetros**, não só doc. Cada um deve virar A
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F12.1a | Instalar `next-intl@^3` + `frontend/src/i18n/{config,request,plural}.ts` + 11 arquivos `messages/<locale>.json` (vazios). | P0 | 4h | ⏳ |
-| F12.1b | `frontend/middleware.ts` cookie-based + matcher whitelist 11 locales; wrap `app/layout.tsx` em `NextIntlClientProvider` com `<html lang dir>`. | P0 | 4h | ⏳ |
-| F12.1c | Carregamento condicional de fontes Noto SC / Devanagari / Bengali / Arabic via `<link>` no critical path. | P0 | 4h | ⏳ |
-| F12.1d | Primeira string traduzida (header) nos 11 locales + smoke Vitest (`useTranslations` resolve, `dir="rtl"` em ar). | P0 | 4h | ⏳ |
+| F12.1a | Instalar `next-intl@^4` (Next 16 não aceita v3) + `frontend/src/i18n/{config,request,plural,fonts}.ts` + 11 arquivos `messages/<locale>.json` com `_meta` + `header.title`. | P0 | 4h | ✅ |
+| F12.1b | `frontend/middleware.ts` cookie-based + matcher whitelist 11 locales; wrap `app/layout.tsx` em `NextIntlClientProvider` com `<html lang dir>`; plugin `next-intl/plugin` em `next.config.ts`. | P0 | 4h | ✅ |
+| F12.1c | `src/i18n/fonts.ts` injeta Noto Sans SC / Devanagari / Bengali / Arabic via `<link rel="stylesheet">` no `<head>` quando o locale ativo precisa; fallback `[lang]` em `globals.css`. | P0 | 4h | ✅ |
+| F12.1d | `AppShell` consome `useTranslations("header").title`; smoke Vitest (`tests/i18n/foundation.test.tsx`, 26 asserts) cobre paridade JSON × 11 locales, render real via `NextIntlClientProvider`, `getDir`/`isLocale`/`localeFontHrefs`. | P0 | 4h | ✅ |
 
 ### F12.2 — Refactor de `format.ts` e `<MonetaryValue/>`
 

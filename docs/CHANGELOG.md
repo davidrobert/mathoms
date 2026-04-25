@@ -11,6 +11,49 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **F12.1 — Fundação i18n no frontend (2026-04-25) — ✅ concluída
+  (commit `cb0ff11` em `main`):** primeira fase de
+  [ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
+  (plano canônico em [docs/I18N_PLAN.md](I18N_PLAN.md)) entregue.
+  - `next-intl@^4` instalado (Next 16 não aceita v3 — desvio do plano
+    documentado; API equivalente para `useTranslations`/`Provider`).
+  - [`frontend/src/i18n/{config,request,plural,fonts}.ts`](../frontend/src/i18n/)
+    — whitelist tipada dos 11 locales (pt-BR default, en, pt-PT, zh-CN,
+    hi, es, ar, fr, bn, ru, id), `RTL_LOCALES = {ar}`, `getDir()`,
+    `localeFontHrefs()` para Noto Sans secundárias condicionais.
+  - 11 arquivos [`frontend/src/i18n/messages/<locale>.json`](../frontend/src/i18n/messages/)
+    com `_meta` + `header.title` (única chave neste corte; bulk
+    extraction fica para F12.6).
+  - [`frontend/middleware.ts`](../frontend/middleware.ts) cookie-based
+    (`NEXT_LOCALE`) — sem prefixo URL, preserva contrato ADR-108.
+  - [`frontend/next.config.ts`](../frontend/next.config.ts) registra
+    `next-intl/plugin` apontando para `src/i18n/request.ts`.
+  - [`frontend/src/app/layout.tsx`](../frontend/src/app/layout.tsx)
+    async: `getLocale()` define `<html lang dir>`;
+    `NextIntlClientProvider` no client tree; `<link>` condicional para
+    Noto Sans SC/Devanagari/Bengali/Arabic no `<head>`.
+  - [`frontend/src/app/globals.css`](../frontend/src/app/globals.css)
+    — fallback tipográfico via seletor `[lang="..."]` para
+    zh-CN/hi/bn/ar.
+  - [`AppShell`](../frontend/src/components/AppShell.tsx) substitui
+    literal "Mathoms AI" por `useTranslations("header").title` (sidebar
+    + mobile header — primeira string traduzida nos 11 locales).
+  - [`tests/i18n/foundation.test.tsx`](../frontend/tests/i18n/foundation.test.tsx)
+    — 26 asserts: paridade JSON × 11 locales, render real via
+    `NextIntlClientProvider` (override por `vi.doUnmock` +
+    `vi.importActual`), `getDir`/`isLocale`/`localeFontHrefs`.
+  - [`tests/setup.ts`](../frontend/tests/setup.ts) ganha mock global de
+    `next-intl` como identity (`key→key`) — preserva suítes existentes
+    que renderizam `AppShell` sem provider.
+  - Suíte: **561 vitest passed** (46 files, +26 novos asserts).
+  - Critério de aceite F12.1 atingido: troca de `NEXT_LOCALE` muda a
+    string do header em qualquer dos 11 locales; Noto Sans SC só
+    carrega em zh-CN; `dir="rtl"` ativo em ar.
+  - **Próximas lanes (paralelizáveis após F12.1):** F12.2 (`format.ts` +
+    `<MonetaryValue/>`), F12.3 (persistência em `users.locale` + JWT
+    claim, exige ADR-A6f.5b), F12.4 (codegen `report_layout.yaml`),
+    F12.5 (mensagens user-facing do backend).
+
 - **Lane `livestep-emit-stages` E2 (2026-04-25):** segundo emissor migrado
   para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
   (após E1.5 em `3bc9d25`). `scripts/e2_extract.py` agora chama
