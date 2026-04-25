@@ -33,9 +33,51 @@ from typing import Optional
 
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import Select
 
 from backend.app.models.task import Task
 from backend.app.schemas.task import TaskFilters
+
+
+def _apply_status_filter(stmt: Select, filters: TaskFilters) -> Select:
+    """``filters.status`` setado → exact match; senão exclui done/cancelled."""
+    if filters.status is not None:
+        return stmt.where(Task.status == filters.status)
+    excluded: list[str] = []
+    if not filters.include_done:
+        excluded.append("done")
+    if not filters.include_cancelled:
+        excluded.append("cancelled")
+    if excluded:
+        return stmt.where(Task.status.not_in(excluded))
+    return stmt
+
+
+def _apply_field_filters(stmt: Select, filters: TaskFilters) -> Select:
+    """Aplica filtros opcionais (priority, category, deadline range, etc)."""
+    if filters.priority is not None:
+        stmt = stmt.where(Task.priority == filters.priority)
+    if filters.category is not None:
+        stmt = stmt.where(Task.category == filters.category)
+    if filters.deadline_before is not None:
+        stmt = stmt.where(Task.deadline_date <= filters.deadline_before)
+    if filters.deadline_after is not None:
+        stmt = stmt.where(Task.deadline_date >= filters.deadline_after)
+    if filters.assigned_to is not None:
+        stmt = stmt.where(Task.assigned_to == filters.assigned_to)
+    if filters.related_goal_id is not None:
+        stmt = stmt.where(Task.related_goal_id == filters.related_goal_id)
+    return stmt
+
+
+def _priority_order_clause():
+    # paridade com legado: inverte ``upper()`` alfabético (O < R < S) para S → R → O
+    return case(
+        (func.upper(Task.priority) == "S", 1),
+        (func.upper(Task.priority) == "R", 2),
+        (func.upper(Task.priority) == "O", 3),
+        else_=99,
+    )
 
 
 class TaskRepository:
@@ -55,56 +97,18 @@ class TaskRepository:
     ) -> list[Task]:
         """Lista tasks aplicando ``filters``.
 
-        Ordenação preserva a semântica do service legado: prioridade
-        ``S → R → O`` via ``CASE`` (inverte o ``upper()`` alfabético
-        que daria ``O < R < S``), depois ``deadline_date`` ascendente
-        (``NULL`` por último), depois ``number`` asc.
-
-        Filtro de status:
-
-        - ``filters.status`` setado → ``WHERE status = X``.
-        - Default: exclui ``done`` / ``cancelled`` a menos que
-          ``include_done`` / ``include_cancelled`` sejam true.
+        Ordenação: prioridade ``S → R → O`` (CASE), depois deadline asc
+        com ``NULL`` por último, depois ``number`` asc.
         """
         stmt = select(Task).where(Task.workspace_id == workspace_id)
-
-        if filters.status is not None:
-            stmt = stmt.where(Task.status == filters.status)
-        else:
-            excluded: list[str] = []
-            if not filters.include_done:
-                excluded.append("done")
-            if not filters.include_cancelled:
-                excluded.append("cancelled")
-            if excluded:
-                stmt = stmt.where(Task.status.not_in(excluded))
-
-        if filters.priority is not None:
-            stmt = stmt.where(Task.priority == filters.priority)
-        if filters.category is not None:
-            stmt = stmt.where(Task.category == filters.category)
-        if filters.deadline_before is not None:
-            stmt = stmt.where(Task.deadline_date <= filters.deadline_before)
-        if filters.deadline_after is not None:
-            stmt = stmt.where(Task.deadline_date >= filters.deadline_after)
-        if filters.assigned_to is not None:
-            stmt = stmt.where(Task.assigned_to == filters.assigned_to)
-        if filters.related_goal_id is not None:
-            stmt = stmt.where(Task.related_goal_id == filters.related_goal_id)
-
-        priority_rank = case(
-            (func.upper(Task.priority) == "S", 1),
-            (func.upper(Task.priority) == "R", 2),
-            (func.upper(Task.priority) == "O", 3),
-            else_=99,
-        )
+        stmt = _apply_status_filter(stmt, filters)
+        stmt = _apply_field_filters(stmt, filters)
         stmt = stmt.order_by(
-            priority_rank,
+            _priority_order_clause(),
             Task.deadline_date.is_(None),
             Task.deadline_date.asc(),
             Task.number.asc(),
         )
-
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
