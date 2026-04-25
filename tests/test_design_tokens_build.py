@@ -2,7 +2,8 @@
 """Tests for design-tokens/build.py — ADR-076.
 
 Validates that the tokens.json → CSS generation is deterministic, complete,
-and produces syntactically valid CSS for both site and E6 standalone.
+and produces syntactically valid CSS for both the Next.js site and the
+frontend-ops console.
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ sys.modules["design_tokens_build"] = design_tokens_build
 _spec.loader.exec_module(design_tokens_build)
 
 FRONTEND_OUTPUT = design_tokens_build.FRONTEND_OUTPUT
-TEMPLATE_OUTPUT = design_tokens_build.TEMPLATE_OUTPUT
+FRONTEND_OPS_OUTPUT = design_tokens_build.FRONTEND_OPS_OUTPUT
 TOKENS_PATH = design_tokens_build.TOKENS_PATH
 build = design_tokens_build.build
 load_tokens = design_tokens_build.load_tokens
@@ -86,9 +87,9 @@ class TestTokensJson:
 
 class TestBuild:
     def test_build_produces_two_outputs(self):
-        frontend_css, template_css = build()
+        frontend_css, ops_css = build()
         assert frontend_css
-        assert template_css
+        assert ops_css
 
     def test_frontend_has_theme_inline(self):
         frontend_css, _ = build()
@@ -96,23 +97,23 @@ class TestBuild:
             "@theme inline" in frontend_css
         ), "frontend CSS must include Tailwind v4 @theme inline block"
 
-    def test_template_has_no_theme_inline(self):
-        _, template_css = build()
+    def test_ops_has_no_theme_inline(self):
+        _, ops_css = build()
         assert (
-            "@theme inline" not in template_css
-        ), "E6 standalone template must NOT include Tailwind-specific block"
+            "@theme inline" not in ops_css
+        ), "frontend-ops CSS must NOT include Tailwind-specific block"
 
     def test_both_outputs_have_light_and_dark(self):
-        frontend_css, template_css = build()
-        for name, css in [("frontend", frontend_css), ("template", template_css)]:
+        frontend_css, ops_css = build()
+        for name, css in [("frontend", frontend_css), ("ops", ops_css)]:
             assert ":root {" in css, f"{name} missing :root"
             assert ".dark," in css, f"{name} missing .dark block"
             assert "[data-theme='dark']" in css, f"{name} missing [data-theme='dark'] block"
 
     def test_outputs_reference_no_hardcoded_colors_outside_root(self):
         """Card variants and theme block should use var(), not hex literals."""
-        frontend_css, template_css = build()
-        for css in (frontend_css, template_css):
+        frontend_css, ops_css = build()
+        for css in (frontend_css, ops_css):
             idx = css.index("Card variants")
             rest = css[idx:]
             import re
@@ -137,10 +138,10 @@ class TestBuild:
                 f"essa var vem do next/font em runtime"
             )
 
-    def test_template_emits_font_families(self):
-        """Template E6 standalone precisa das famílias (não tem next/font)."""
-        _, template_css = build()
-        root_block = template_css.split(".dark,")[0]
+    def test_ops_emits_font_families(self):
+        """frontend-ops precisa das famílias (não tem next/font)."""
+        _, ops_css = build()
+        root_block = ops_css.split(".dark,")[0]
         assert "--font-display: 'Plus Jakarta Sans'" in root_block
         assert "--font-body: 'Inter'" in root_block
         assert "--font-mono: 'JetBrains Mono'" in root_block
@@ -171,10 +172,10 @@ class TestGeneratedFilesOnDisk:
             actual == expected
         ), "frontend tokens.css out of sync — run `python3 design-tokens/build.py`"
 
-    def test_template_file_exists_and_in_sync(self):
-        assert TEMPLATE_OUTPUT.exists()
+    def test_ops_file_exists_and_in_sync(self):
+        assert FRONTEND_OPS_OUTPUT.exists()
         _, expected = build()
-        actual = TEMPLATE_OUTPUT.read_text(encoding="utf-8")
+        actual = FRONTEND_OPS_OUTPUT.read_text(encoding="utf-8")
         assert (
             actual == expected
-        ), "config/templates/_tokens.css out of sync — run `python3 design-tokens/build.py`"
+        ), "frontend-ops/src/styles/tokens.css out of sync — run `python3 design-tokens/build.py`"
