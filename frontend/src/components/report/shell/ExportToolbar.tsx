@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 export interface ExportToolbarProps {
-  readonly onDownloadHtml?: () => void;
   readonly onDownloadPdf?: () => void;
   readonly shareUrl?: string;
   readonly className?: string;
@@ -11,11 +10,9 @@ export interface ExportToolbarProps {
 
 /** ADR-117 · Fase 4 — toolbar de exportação acima do footer.
  *
- * Matching `.export-toolbar` EXEMPLO_DE_RELATORIO.html linhas 631-638.
- * 3 botões: Baixar HTML, Baixar PDF (via print), Copiar link.
+ * 2 botões: Baixar PDF (via print) e Copiar link.
  */
 export function ExportToolbar({
-  onDownloadHtml,
   onDownloadPdf,
   shareUrl,
   className,
@@ -59,11 +56,6 @@ export function ExportToolbar({
         flexWrap: "wrap",
       }}
     >
-      {onDownloadHtml && (
-        <ToolbarBtn onClick={onDownloadHtml} icon="⬇">
-          Baixar HTML
-        </ToolbarBtn>
-      )}
       <ToolbarBtn onClick={handlePrint} icon="🖨">
         Baixar PDF
       </ToolbarBtn>

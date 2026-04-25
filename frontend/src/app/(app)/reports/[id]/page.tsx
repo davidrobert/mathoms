@@ -10,20 +10,16 @@ import { ReportShell } from "@/components/report/ReportShell";
 // F3.2: print CSS carregado apenas nesta rota
 import "@/components/report/report-print.css";
 import { Spinner } from "@/components/Spinner";
-import { AlertCircle, FileDown } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { getReportDownloadHtmlUrl } from "@/lib/api";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
 
 /** F9 · ADR-076 · F1.1 — Rota nativa do relatório.
  *
- * Substitui o iframe antigo (que renderizava o HTML do E6) por um render
- * React nativo consumindo /reports/{id}/data. Cards ainda não migrados
- * aparecem como stubs com link para download do HTML completo.
- *
- * Design tokens (Plus Jakarta + Inter + navy/verde) são aplicados em F1.2.
+ * Render React consumindo /reports/{id}/data. Cards ainda não migrados
+ * aparecem como stubs.
  */
 export default function ReportPage() {
   const { workspace } = useWorkspace();
@@ -122,7 +118,7 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
     );
   }
 
-  // Estado 3: relatório pré-F9 (sem analysis data) — oferece download standalone
+  // Estado 3: relatório pré-F9 (sem analysis data) — não pode mais ser exibido
   if (report && !report.has_analysis_data) {
     return (
       <div
@@ -131,35 +127,20 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
       >
         <div className="space-y-4 rounded-lg border border-border bg-card p-6">
           <div>
-            <p className="font-medium">Relatório gerado antes da migração F9</p>
+            <p className="font-medium">Relatório indisponível</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Este relatório foi gerado antes do render nativo e não tem o
-              snapshot JSON necessário para a visualização em React. Baixe
-              a versão HTML standalone para ver o conteúdo completo.
+              snapshot JSON necessário para visualização. Gere um novo
+              relatório a partir dos dados atuais.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              nativeButton={false}
-              render={
-                <Link
-                  href={getReportDownloadHtmlUrl(workspace.id, reportId)}
-                  target="_blank"
-                  rel="noopener"
-                />
-              }
-            >
-              <FileDown className="mr-1.5 h-4 w-4" />
-              Baixar HTML standalone
-            </Button>
-            <Button
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/reports" />}
-            >
-              Voltar
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/reports" />}
+          >
+            Voltar para a lista
+          </Button>
         </div>
       </div>
     );

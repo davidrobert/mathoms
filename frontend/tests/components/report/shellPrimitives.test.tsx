@@ -67,9 +67,8 @@ describe("<ExportToolbar />", () => {
       value: { writeText },
     });
   });
-  it("renderiza 3 botões quando onDownloadHtml fornecido", () => {
-    render(<ExportToolbar onDownloadHtml={vi.fn()} />);
-    expect(screen.getByRole("button", { name: /Baixar HTML/i })).toBeInTheDocument();
+  it("renderiza botões de PDF e copiar link", () => {
+    render(<ExportToolbar />);
     expect(screen.getByRole("button", { name: /Baixar PDF/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Copiar link/i })).toBeInTheDocument();
   });
@@ -82,13 +81,6 @@ describe("<ExportToolbar />", () => {
     expect(writeText).toHaveBeenCalledWith(
       "https://app.mathoms.ai/reports/123",
     );
-  });
-  it("chama onDownloadHtml ao clicar no botão HTML", async () => {
-    const onDownloadHtml = vi.fn();
-    const user = userEvent.setup();
-    render(<ExportToolbar onDownloadHtml={onDownloadHtml} />);
-    await user.click(screen.getByRole("button", { name: /Baixar HTML/i }));
-    expect(onDownloadHtml).toHaveBeenCalledTimes(1);
   });
 });
 

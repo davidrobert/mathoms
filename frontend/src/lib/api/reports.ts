@@ -83,16 +83,6 @@ export async function getReport(workspaceId: string, reportId: string): Promise<
   return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}`);
 }
 
-export function getReportHtmlUrl(workspaceId: string, reportId: string): string {
-  return `${API_BASE}/workspaces/${workspaceId}/reports/${reportId}/html`;
-}
-
-/** F9 · F1.5 — URL de download do HTML standalone (E6). Preservado como
- *  produto para compartilhamento offline (contador, anexo, backup). */
-export function getReportDownloadHtmlUrl(workspaceId: string, reportId: string): string {
-  return `${API_BASE}/workspaces/${workspaceId}/reports/${reportId}/download.html`;
-}
-
 /** F9 · F4.2 — URL de download do PDF server-side (Playwright). */
 export function getReportDownloadPdfUrl(workspaceId: string, reportId: string): string {
   return `${API_BASE}/workspaces/${workspaceId}/reports/${reportId}/download.pdf`;

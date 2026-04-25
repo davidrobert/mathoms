@@ -1,12 +1,7 @@
-import Link from "next/link";
-import { Construction, FileDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { getReportDownloadHtmlUrl } from "@/lib/api";
+import { Construction } from "lucide-react";
 import { ReportCard } from "./ReportCard";
-import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 interface ReportSectionStubProps {
-  reportId: string;
   cardIds: string[];
   chartIds: string[];
 }
@@ -14,18 +9,12 @@ interface ReportSectionStubProps {
 /** F9 · F1.1 — Stub mostrado enquanto um card ainda não migrou para React.
  *
  * Estratégia de migração por lotes (2.A–2.H): cada lote substitui alguns
- * stubs por componentes reais. Enquanto isso, o usuário vê uma mensagem
- * clara e um link para baixar o HTML standalone completo (F1.5).
- *
- * Não é um erro — é progresso visível.
+ * stubs por componentes reais. Não é um erro — é progresso visível.
  */
 export function ReportSectionStub({
-  reportId,
   cardIds,
   chartIds,
 }: ReportSectionStubProps) {
-  const { workspace } = useWorkspace();
-  if (!workspace) return null;
   return (
     <ReportCard variant="neutral" size="full">
       <div className="flex flex-col gap-4">
@@ -36,9 +25,7 @@ export function ReportSectionStub({
               Conteúdo em migração para a nova experiência
             </p>
             <p className="text-sm text-[var(--surface-muted-foreground)]">
-              Esta seção está sendo migrada do relatório standalone para a
-              visualização nativa. Durante a transição, você pode baixar a
-              versão completa em HTML.
+              Esta seção ainda está sendo migrada para a visualização nativa.
             </p>
           </div>
         </div>
@@ -53,24 +40,6 @@ export function ReportSectionStub({
             )}
           </div>
         )}
-
-        <div>
-          <Button
-            variant="outline"
-            size="sm"
-            nativeButton={false}
-            render={
-              <Link
-                href={getReportDownloadHtmlUrl(workspace.id, reportId)}
-                target="_blank"
-                rel="noopener"
-              />
-            }
-          >
-            <FileDown className="mr-1.5 h-4 w-4" />
-            Baixar HTML completo
-          </Button>
-        </div>
       </div>
     </ReportCard>
   );

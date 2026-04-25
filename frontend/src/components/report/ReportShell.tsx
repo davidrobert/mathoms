@@ -309,10 +309,6 @@ export function ReportShell({
                   <p className="mt-1 text-sm opacity-80">
                     {dataState.error.message}
                   </p>
-                  <p className="mt-2 text-sm opacity-80">
-                    Você pode baixar o HTML standalone pelo botão de download
-                    no topo.
-                  </p>
                 </div>
               </div>
             </div>
@@ -373,7 +369,6 @@ export function ReportShell({
                     title={section.title}
                   >
                     <ReportSectionStub
-                      reportId={reportId}
                       cardIds={(section.cards ?? [])
                         .filter((c) => c.enabled)
                         .map((c) => c.id)}

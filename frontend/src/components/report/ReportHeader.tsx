@@ -4,7 +4,6 @@ import { Fragment } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Download,
   Eye,
   EyeOff,
   FileText,
@@ -17,7 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getReportDownloadHtmlUrl, getReportDownloadPdfUrl } from "@/lib/api";
+import { getReportDownloadPdfUrl } from "@/lib/api";
 import { useReportMode } from "./ReportModeProvider";
 import type { ReportMode } from "@/generated/report-layout";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
@@ -44,12 +43,7 @@ const MODE_TOOLTIPS: Record<ReportMode, string> = {
 /** F9 · F1.1 — Header do relatório nativo.
  *
  * Barra fina com: voltar + título + seletor de modo + ações (toc, print,
- * download). Preserva a UX do header antigo (iframe) porém sem depender
- * do contexto JS do iframe para ações.
- *
- * Print server-side via Playwright virá em F4.2 — até lá, window.print()
- * nativo já funciona razoavelmente bem dado que tudo é SVG/HTML puro
- * (sem canvas).
+ * download).
  */
 export function ReportHeader({
   reportId,
@@ -160,29 +154,6 @@ export function ReportHeader({
             <Printer className="h-4 w-4" />
           </TooltipTrigger>
           <TooltipContent>Imprimir / PDF</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                nativeButton={false}
-                render={
-                  <Link
-                    href={getReportDownloadHtmlUrl(workspace.id, reportId)}
-                    target="_blank"
-                    rel="noopener"
-                    aria-label="Baixar HTML standalone"
-                  />
-                }
-              />
-            }
-          >
-            <Download className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>Baixar HTML standalone</TooltipContent>
         </Tooltip>
 
         <Tooltip>
