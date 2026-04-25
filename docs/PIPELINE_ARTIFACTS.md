@@ -56,6 +56,23 @@ Implementado em `tests/test_e5_golden_execution.py`: mesmo fluxo de dados que o 
 
 Implementado em `tests/test_e5n_golden_execution.py`: mesmo cenário mínimo que o golden E5 (helper `_build_e5_workspace` — evita depender de `pytest_plugins` entre módulos) → `e4_categorize.main` → `e5_analyze.main` → `e5n_narrativas.main` → `analise_financeira-5_analysis.json` passa a incluir `narrativas` (`perfil_familia`, `summaries`, `charts`). O teste chama `validate_narrativas` **antes** do `finally` que repõe os globals do `e5n_narrativas` (o chart dinâmico `{cônjuge}_cenarios` depende de `family_members.json` do tenant). Segundo cenário: **`test_e5n_execution_narrativas_with_conjuge_chart`** — membro com `papel: conjuge` → presença de `ana_cenarios` em `narrativas.charts`.
 
-## Golden de execução E6
+## Produção do relatório (pós-[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side))
 
-Implementado em `tests/test_e6_golden_execution.py`: após E4 e E5, `scripts.e6_render.render_report(root_dir=…)` com `config/templates/report_template.html`, `report_layout.yaml`, `cenarios.json`, `institutions.json` copiados do repositório → `output/relatorio_financeiro_YYYYMMDD.html` (HTML standalone; validações internas `validate_report` no render). **Correção de robustez:** `e6_render` cria `output/` com `mkdir(parents=True)` antes de gravar o HTML (tenants novos sem pasta `output/`).
+Não há mais stage E6 nem HTML standalone gerado pelo pipeline. O fluxo
+de produção do relatório é:
+
+1. **E5** (e opcionalmente E5.N + E7-review/apply) escreve
+   `processed/E5_analysis/analise_financeira-5_analysis.json` —
+   validado pelo `e5_analysis.schema.json`.
+2. `backend/app/services/pipeline_task._create_report_from_output`
+   cria o row `Report` no DB a partir desse JSON
+   (`analysis_json_path` aponta para o artifact-store snapshot).
+3. O relatório é renderizado **on-demand** pela rota React
+   `/reports/[id]` consumindo `GET /reports/{id}/data`.
+4. O único export server-side é **PDF via Playwright**
+   ([backend/app/services/pdf_renderer.py](../backend/app/services/pdf_renderer.py))
+   sobre essa mesma rota.
+
+A pasta `output/` em `storage/<workspace>/` ficou vestigial após a
+remoção do renderer standalone — consumidores foram extintos junto
+com `e6_render.py` (fatia 3) e `pipeline/stages/e6.py` (fatia 2).
