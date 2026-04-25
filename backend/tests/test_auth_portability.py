@@ -76,12 +76,15 @@ def test_jwt_tampered_signature_is_rejected() -> None:
     )
 
     token = create_access_token("user-abc", token_version=0)
-    # Troca o último char da assinatura (último segmento do JWT).
+    # Troca o primeiro char da assinatura (último segmento do JWT). Evitamos
+    # o último char porque, em base64url sem padding, ele pode conter bits
+    # ignorados pelo decoder (sig HS256 = 32 bytes → 43 chars; último char
+    # só usa 4 dos 6 bits) — flipar lá pode não alterar a assinatura efetiva.
     parts = token.split(".")
     assert len(parts) == 3
     sig = parts[2]
-    flipped = "A" if sig[-1] != "A" else "B"
-    tampered = ".".join(parts[:2] + [sig[:-1] + flipped])
+    flipped = "A" if sig[0] != "A" else "B"
+    tampered = ".".join(parts[:2] + [flipped + sig[1:]])
     assert decode_access_token_payload(tampered) is None
 
 
