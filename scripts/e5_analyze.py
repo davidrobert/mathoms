@@ -2800,52 +2800,31 @@ def _merge_life_plan_into_goals(
     return enriched
 
 
-def main_with_store(ctx) -> Dict[str, Any]:
-    """E5 — análise financeira via :class:`E5AnalyzerAdapter` orquestrando os
-    14+ domain services. Lê E4 artifacts via ``ArtifactStore``.
-
-    Writes via ``ArtifactStore``:
-    - ``store.write("E5", "analise_financeira", ...)`` — output principal.
-
-    Args:
-        ctx: ``pipeline.context.WorkspaceContext``.
-
-    Returns:
-        Dict com ``files_created``, ``total``, contagens.
-    """
-    from pipeline.artifact_store import DiskArtifactStore
-    from pipeline.domain.services.e5_analyzer_adapter import E5AnalyzerAdapter
-    from pipeline.domain.services.e5_serialization import (
-        E5_ARTIFACT_FILENAME,
-        E5_ARTIFACT_KEY,
-        E5OutputInputs,
-        build_e5_output,
-        run_sanity_checks,
-    )
-
-    print("=" * 70)
-    print("E5 ANALYSIS — Caminho B puro (via E5AnalyzerAdapter)")
-    print("=" * 70)
-
-    # 1. Configs — reinicializa globals do módulo + pipeline_common.
+def _e5_init_workspace(ctx):
+    """Reinicializa globals do módulo + pipeline_common e cria E5_ANALYSIS_DIR."""
     if _pc is not None:
         _pc._init_config(ctx.root)
     _init_config(ctx.root)
     E5_ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
-
     store = ctx.get_artifact_store()
     print(f"[E5.0] Workspace root: {ctx.root}")
     print(f"[E5.0] Store impl:     {type(store).__name__}")
+    return store
 
-    # 2. MD content lido uma vez no shell (A6d.2).
+
+def _e5_load_md_inputs() -> tuple[str, str | None, str | None]:
+    """Lê life_plan, tarefas e milhas do disco (paridade A6d.2)."""
     life_plan_content = _read_life_plan_content()
     _require_if_meta_configured(life_plan_content)
     tarefas_content = (
         CONFIG_TAREFAS.read_text(encoding="utf-8") if CONFIG_TAREFAS.exists() else None
     )
     milhas_content = CONFIG_MILHAS.read_text(encoding="utf-8") if CONFIG_MILHAS.exists() else None
+    return life_plan_content, tarefas_content, milhas_content
 
-    # 3. Sanity check dos inputs E4 antes de delegar ao adapter.
+
+def _e5_check_e4_inputs(store) -> tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    """Sanity check dos inputs E4; raise ValueError se ausente."""
     receitas = store.read("E4", "receitas") or {}
     despesas = store.read("E4", "despesas") or {}
     fluxo_mensal = store.read("E4", "fluxo_mensal_detalhado") or {}
@@ -2862,24 +2841,19 @@ def main_with_store(ctx) -> Dict[str, Any]:
 
     print(f"  ✓ Receitas: {receitas.get('total_geral', 0):.2f}")
     print(f"  ✓ Despesas: {despesas.get('total_geral', 0):.2f}")
+    return receitas, despesas, fluxo_mensal
 
-    # 4. Preserva narrativas de run anterior (E5.N).
-    existing_output = store.read("E5", E5_ARTIFACT_KEY) or {}
-    existing_narrativas = existing_output.get("narrativas")
 
-    # 5. Carrega configs auxiliares (CATEGORIZATION, TAXAS, INSTITUTIONS) — o
-    #    adapter consome todos via from_configs. GOALS_CONFIG/SCORING_CONFIG/
-    #    FISCAL_CONFIG/FAMILY_CONFIG já estão em globals via _init_config.
+def _e5_build_adapter(life_plan_content: str | None):
+    """Carrega configs auxiliares + monta E5AnalyzerAdapter."""
+    from pipeline.domain.services.e5_analyzer_adapter import E5AnalyzerAdapter
+
     categorization_cfg = _load_json_config(PROJECT_DIR / "config" / "categorization.json")
     taxas_cfg = _load_json_config(CONFIG_TAXAS)
     institutions_cfg = _load_json_config(PROJECT_DIR / "config" / "institutions.json")
-
-    # 6. Merge life_plan overrides (paridade com extract_if_target_from_life_plan
-    #    legado — goals.json tem prioridade; regex em life_plan é fallback).
     goals_enriched = _merge_life_plan_into_goals(GOALS_CONFIG, life_plan_content)
 
-    # 7. Compõe adapter com todos os configs + DOBs (extraídos em _init_config).
-    adapter = E5AnalyzerAdapter.from_configs(
+    return E5AnalyzerAdapter.from_configs(
         categorization=categorization_cfg,
         family=FAMILY_CONFIG,
         scoring=SCORING_CONFIG,
@@ -2891,88 +2865,117 @@ def main_with_store(ctx) -> Dict[str, Any]:
         conjuge_dob=_CONJUGE_DOB,
         reference_date=TODAY,
     )
-    result = adapter.analyze_via_store(store)
 
-    # 8. Extrai dicts legacy-shaped dos sub-resultados tipados.
-    patrimonio = result.patrimonio_full
-    investimentos_classes = result.investimentos_classes.to_legacy_dict()
-    fluxo = result.fluxo_enriched.to_legacy_dict()
-    goals = result.if_projection.to_legacy_dict() if result.if_projection else {}
-    ratios = result.ratios.to_legacy_dict()
-    score = result.score
-    orcamento = result.orcamento.to_legacy_dict()
-    reserva = result.reserva
-    endividamento = result.endividamento.to_legacy_dict()
-    previdencia = result.previdencia.to_legacy_dict()
-    pontos_fortes = [p.to_dict() for p in result.pontos_fortes]
-    pontos_urgentes = [p.to_dict() for p in result.pontos_urgentes]
-    consumo = result.consumo_consciente.to_legacy_dict()
-    diagnostico = [d.to_dict() for d in result.diagnosticos]
-    cenarios_conjuge = result.cenarios_conjuge.to_legacy_dict() if result.cenarios_conjuge else {}
-    cerbasi = result.equilibrio_cerbasi.to_legacy_dict()
 
-    # 9. periodo_dados — derivado de receitas/fluxo no shell (não vem do adapter).
+def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
+    """Converte sub-resultados tipados em dicts legacy-shaped."""
+    return {
+        "patrimonio": result.patrimonio_full,
+        "investimentos_classes": result.investimentos_classes.to_legacy_dict(),
+        "fluxo": result.fluxo_enriched.to_legacy_dict(),
+        "goals": result.if_projection.to_legacy_dict() if result.if_projection else {},
+        "ratios": result.ratios.to_legacy_dict(),
+        "score": result.score,
+        "orcamento": result.orcamento.to_legacy_dict(),
+        "reserva": result.reserva,
+        "endividamento": result.endividamento.to_legacy_dict(),
+        "previdencia": result.previdencia.to_legacy_dict(),
+        "pontos_fortes": [p.to_dict() for p in result.pontos_fortes],
+        "pontos_urgentes": [p.to_dict() for p in result.pontos_urgentes],
+        "consumo": result.consumo_consciente.to_legacy_dict(),
+        "diagnostico": [d.to_dict() for d in result.diagnosticos],
+        "cenarios_conjuge": (
+            result.cenarios_conjuge.to_legacy_dict() if result.cenarios_conjuge else {}
+        ),
+        "cerbasi": result.equilibrio_cerbasi.to_legacy_dict(),
+    }
+
+
+def _e5_resolve_periodo_dados(receitas: Dict[str, Any], fluxo_mensal: Dict[str, Any]) -> str:
     periodo_dados = receitas.get("periodo", "")
-    if not periodo_dados:
-        meses = fluxo_mensal.get("meses_ordenados", [])
-        if meses:
-            periodo_dados = f"{meses[0]} a {meses[-1]}"
-        else:
-            periodo_dados = f"{TODAY.strftime('%Y-%m')} a {TODAY.strftime('%Y-%m')}"
+    if periodo_dados:
+        return periodo_dados
+    meses = fluxo_mensal.get("meses_ordenados", [])
+    if meses:
+        return f"{meses[0]} a {meses[-1]}"
+    return f"{TODAY.strftime('%Y-%m')} a {TODAY.strftime('%Y-%m')}"
 
-    # 10. tarefas / milhas — parse de markdown, shell (adapter não lê).
-    tarefas_parsed, tarefas_status_parsed = parse_tarefas_md(tarefas_content)
-    programa_milhas = parse_milhas_md(milhas_content)
 
-    # 5. Sanity checks (paridade com main() legado linhas 2489-2523).
+def _e5_run_sanity_checks(legacy: Dict[str, Any]):
+    from pipeline.domain.services.e5_serialization import run_sanity_checks
+
     warnings = run_sanity_checks(
-        patrimonio=patrimonio,
-        fluxo=fluxo,
-        ratios=ratios,
-        goals=goals,
-        score=score,
+        patrimonio=legacy["patrimonio"],
+        fluxo=legacy["fluxo"],
+        ratios=legacy["ratios"],
+        goals=legacy["goals"],
+        score=legacy["score"],
     )
     if warnings:
         print("\n  ⚠️  SANITY CHECK WARNINGS (possível corrupção de input):")
         for w in warnings:
             print(f"     • {w.message}")
         print("  Pipeline continua, mas revise os dados de entrada.\n")
+    return warnings
 
-    # 6. Monta output via serializer tipado.
+
+def _e5_compose_output(
+    legacy: Dict[str, Any],
+    *,
+    periodo_dados: str,
+    tarefas_parsed,
+    tarefas_status_parsed,
+    programa_milhas,
+    existing_narrativas,
+) -> Dict[str, Any]:
+    from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
+
     output_inputs = E5OutputInputs(
         periodo_dados=periodo_dados,
         data_analise=TODAY.isoformat(),
-        patrimonio=patrimonio,
-        goals=goals,
-        fluxo=fluxo,
-        ratios=ratios,
-        score=score,
-        orcamento=orcamento,
-        reserva=reserva,
-        endividamento=endividamento,
-        previdencia=previdencia,
-        pontos_fortes=pontos_fortes,
-        pontos_urgentes=pontos_urgentes,
-        investimentos_classes=investimentos_classes,
-        equilibrio_cerbasi=cerbasi,
-        consumo=consumo,
-        diagnostico=diagnostico,
-        cenarios_conjuge=cenarios_conjuge,
+        patrimonio=legacy["patrimonio"],
+        goals=legacy["goals"],
+        fluxo=legacy["fluxo"],
+        ratios=legacy["ratios"],
+        score=legacy["score"],
+        orcamento=legacy["orcamento"],
+        reserva=legacy["reserva"],
+        endividamento=legacy["endividamento"],
+        previdencia=legacy["previdencia"],
+        pontos_fortes=legacy["pontos_fortes"],
+        pontos_urgentes=legacy["pontos_urgentes"],
+        investimentos_classes=legacy["investimentos_classes"],
+        equilibrio_cerbasi=legacy["cerbasi"],
+        consumo=legacy["consumo"],
+        diagnostico=legacy["diagnostico"],
+        cenarios_conjuge=legacy["cenarios_conjuge"],
         cenarios_conjuge_key=_KEY_CENARIOS_CONJUGE,
         programa_milhas=programa_milhas,
         tarefas=tarefas_parsed if tarefas_parsed else None,
         tarefas_status=tarefas_status_parsed if tarefas_status_parsed else None,
         existing_narrativas=existing_narrativas,
     )
-    output = build_e5_output(output_inputs)
+    return build_e5_output(output_inputs)
 
-    # 7. Escreve via ``ArtifactStore`` + valida contra schema em Disk.
+
+def _e5_persist(store, ctx, output: Dict[str, Any]) -> None:
+    from pipeline.artifact_store import DiskArtifactStore
+    from pipeline.domain.services.e5_serialization import E5_ARTIFACT_FILENAME, E5_ARTIFACT_KEY
+
     store.write("E5", E5_ARTIFACT_KEY, output)
     if isinstance(store, DiskArtifactStore) and _pc is not None:
         target = ctx.e5_dir / E5_ARTIFACT_FILENAME
         if target.exists():
             _pc.validate_artifact(target, "e5_analysis.schema.json")
 
+
+def _e5_print_summary(legacy: Dict[str, Any]) -> None:
+    from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
+
+    score = legacy["score"]
+    ratios = legacy["ratios"]
+    patrimonio = legacy["patrimonio"]
+    goals = legacy["goals"]
     print("\n[E5.FINAL] Analysis complete!")
     print(f"  ✓ Stored: E5/{E5_ARTIFACT_KEY}")
     print("\n  === SUMMARY ===")
@@ -2985,6 +2988,13 @@ def main_with_store(ctx) -> Dict[str, Any]:
     print(f"  Prazo IF (realista): {goals['prazo_anos_realista']:.1f} anos → {goals['ano_if']}")
     print("=" * 70)
 
+
+def _e5_build_result_dict(legacy: Dict[str, Any], warnings) -> Dict[str, Any]:
+    from pipeline.domain.services.e5_serialization import E5_ARTIFACT_FILENAME
+
+    score = legacy["score"]
+    patrimonio = legacy["patrimonio"]
+    goals = legacy["goals"]
     return {
         "files_created": [E5_ARTIFACT_FILENAME],
         "total": 1,
@@ -2996,3 +3006,43 @@ def main_with_store(ctx) -> Dict[str, Any]:
         "if_prazo_anos": goals.get("prazo_anos_realista"),
         "sanity_warnings": [w.message for w in warnings],
     }
+
+
+def main_with_store(ctx) -> Dict[str, Any]:
+    """E5 — análise financeira via :class:`E5AnalyzerAdapter` orquestrando os
+    14+ domain services. Lê E4 artifacts via ``ArtifactStore``; escreve E5/
+    ``analise_financeira``. Paridade coberta por ``tests/test_e5_golden_execution.py``.
+    """
+    from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
+
+    print("=" * 70)
+    print("E5 ANALYSIS — Caminho B puro (via E5AnalyzerAdapter)")
+    print("=" * 70)
+
+    store = _e5_init_workspace(ctx)
+    life_plan_content, tarefas_content, milhas_content = _e5_load_md_inputs()
+    receitas, despesas, fluxo_mensal = _e5_check_e4_inputs(store)
+
+    existing_output = store.read("E5", E5_ARTIFACT_KEY) or {}
+    existing_narrativas = existing_output.get("narrativas")
+
+    adapter = _e5_build_adapter(life_plan_content)
+    result = adapter.analyze_via_store(store)
+
+    legacy = _e5_extract_legacy_dicts(result)
+    periodo_dados = _e5_resolve_periodo_dados(receitas, fluxo_mensal)
+    tarefas_parsed, tarefas_status_parsed = parse_tarefas_md(tarefas_content)
+    programa_milhas = parse_milhas_md(milhas_content)
+
+    warnings = _e5_run_sanity_checks(legacy)
+    output = _e5_compose_output(
+        legacy,
+        periodo_dados=periodo_dados,
+        tarefas_parsed=tarefas_parsed,
+        tarefas_status_parsed=tarefas_status_parsed,
+        programa_milhas=programa_milhas,
+        existing_narrativas=existing_narrativas,
+    )
+    _e5_persist(store, ctx, output)
+    _e5_print_summary(legacy)
+    return _e5_build_result_dict(legacy, warnings)
