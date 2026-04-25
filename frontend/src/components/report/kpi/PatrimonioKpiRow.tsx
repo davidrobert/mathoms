@@ -98,7 +98,7 @@ function Kpi({
       <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
         {label}
       </p>
-      <p className="mt-2 text-xl xl:text-2xl font-semibold leading-tight tracking-tight text-[var(--surface-foreground)] truncate">
+      <p className="mt-2 text-lg xl:text-xl font-semibold leading-tight tracking-tight text-[var(--surface-foreground)] whitespace-nowrap">
         {value}
       </p>
       {hint && (

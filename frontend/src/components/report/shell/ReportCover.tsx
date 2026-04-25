@@ -66,7 +66,7 @@ export function ReportCover({
           pointerEvents: "none",
         }}
       />
-      <div style={{ position: "relative", maxWidth: 1120, margin: "0 auto" }}>
+      <div style={{ position: "relative", maxWidth: 1120, margin: 0 }}>
         {badge && (
           <span
             style={{

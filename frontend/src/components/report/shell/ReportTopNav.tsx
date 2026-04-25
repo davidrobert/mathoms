@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useReportMode } from "@/components/report/ReportModeProvider";
-import { ModeToggle } from "./ModeToggle";
 import { ReportThemeToggle } from "@/components/report/ReportThemeToggle";
 import { FontScaleToggle } from "./FontScaleToggle";
 
@@ -167,7 +166,6 @@ export function ReportTopNav({
           borderLeft: "1px solid rgba(255,255,255,0.1)",
         }}
       >
-        <ModeToggle compact />
         <FontScaleToggle />
         <ReportThemeToggle />
       </div>

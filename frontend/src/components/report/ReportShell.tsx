@@ -117,6 +117,11 @@ function buildTitleMap(): Record<string, string> {
   return map;
 }
 
+/** Encurta título da seção para uso no top-nav: "X — Y" → "X". */
+function shortLabel(title: string): string {
+  return title.split(" — ")[0].trim();
+}
+
 /** Converte LAYOUT.navigation (Fase 5) em grupos para ReportTopNav.
  *
  * Cai em fallback computacional (mesma lógica anterior) se o YAML não
@@ -135,7 +140,7 @@ function buildNavGroups(): {
         label: g.label,
         links: g.links.map((l) => ({
           id: l.section_id,
-          label: titles[l.section_id] ?? l.section_id,
+          label: shortLabel(titles[l.section_id] ?? l.section_id),
           num: l.num,
           isAppendix: l.is_appendix,
         })),
@@ -152,21 +157,21 @@ function buildNavGroups(): {
   return {
     estrategico: [
       {
-        links: strategic.map((s) => ({ id: s.id, label: s.title, num: s.id })),
+        links: strategic.map((s) => ({ id: s.id, label: shortLabel(s.title), num: s.id })),
       },
     ],
     tatico: [
       {
         links: LAYOUT.tatico.sections
           .filter((s) => s.enabled)
-          .map((s) => ({ id: s.id, label: s.title, num: s.id })),
+          .map((s) => ({ id: s.id, label: shortLabel(s.title), num: s.id })),
       },
     ],
     usa: [
       {
         links: LAYOUT.usa.sections
           .filter((s) => s.enabled)
-          .map((s) => ({ id: s.id, label: s.title, num: s.id })),
+          .map((s) => ({ id: s.id, label: shortLabel(s.title), num: s.id })),
       },
     ],
   };
@@ -308,7 +313,7 @@ export function ReportShell({
           )}
 
           {dataState.status === "error" && (
-            <div className="mx-auto max-w-[960px] px-6 pt-8">
+            <div className="max-w-[1120px] px-10 pt-8">
               <div className="flex items-start gap-3 rounded-lg bg-[color-mix(in_srgb,var(--semantic-loss)_10%,transparent)] p-6 text-[var(--semantic-loss)]">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
@@ -338,7 +343,7 @@ export function ReportShell({
                 />
               )}
             <article
-              className="mx-auto max-w-[960px] px-6 py-8 font-body text-[var(--surface-foreground)]"
+              className="max-w-[1120px] px-10 py-8 font-body text-[var(--surface-foreground)]"
               data-report-mode={mode}
               data-report-ready="true"
             >
