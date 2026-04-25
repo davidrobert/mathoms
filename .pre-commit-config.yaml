@@ -103,6 +103,25 @@ repos:
         pass_filenames: false
         files: '^(config/report_layout\.yaml|config/schemas/report_layout\.schema\.json|frontend/src/generated/report-layout\.ts|backend/app/generated/report_layout\.py)$'
 
+      - id: code-style-baseline
+        # ADR-114 / A6g.6 slice 5 — gate de regressão das categorias do
+        # audit. Roda quando py/ts/tsx mudam (mesmo set de arquivos que
+        # o audit_code_style.py varre). ~5s no repo atual.
+        name: "Code style baseline (P1/P7/P8 não regridem)"
+        entry: python3 dev/check_code_style_regression.py
+        language: system
+        pass_filenames: false
+        files: \.(py|ts|tsx)$
+
+      - id: frontend-lock-sync
+        # Gate inspirado no incidente 2026-04-25 (cb0ff11) — package.json
+        # commitado sem regenerar lockfile quebrou `npm ci` em CI por ~5h.
+        name: "frontend/package-lock.json em sync com package.json"
+        entry: python3 dev/check_frontend_lock_sync.py
+        language: system
+        pass_filenames: false
+        files: ^frontend/(package\.json|package-lock\.json)$
+
       - id: main-drift-check
         name: "pre-push: bloqueia push para main se origin/main avançou"
         entry: python3 dev/check_main_drift.py
