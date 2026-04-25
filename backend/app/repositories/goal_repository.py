@@ -109,6 +109,16 @@ class GoalRepository:
     # Commands
     # -------------------------------------------------------------------
 
+    async def _close_current_version(
+        self, workspace_id: str, goal_type: str, eff_from: date
+    ) -> None:
+        # flush intermediário resolve unique index parcial ux_goals_current_ws_type (ADR-073)
+        current = await self.get_active_by_type(workspace_id, goal_type)
+        if current is not None:
+            current.effective_to = eff_from - timedelta(days=1)
+            self._session.add(current)
+            await self._session.flush()
+
     async def create_new_version(
         self,
         workspace_id: str,
@@ -121,32 +131,15 @@ class GoalRepository:
         is_template: bool = False,
         effective_from: Optional[date] = None,
     ) -> Goal:
-        """Cria nova versão — fecha a vigente (se existir) na mesma transação.
+        """Cria nova versão append-only (ADR-073) — fecha a vigente na mesma transação.
 
-        Semântica append-only (ADR-073):
-
-        - Se existir vigente (``effective_to IS NULL``) para o
-          ``(workspace_id, goal_type)``, fecha-a com
-          ``effective_to = effective_from - 1 dia``.
-        - Flush intermediário resolve o unique index parcial
-          ``ux_goals_current_ws_type`` antes do insert novo — sem isso,
-          o INSERT quebraria com ``IntegrityError``.
-        - Insere o registro novo com ``effective_to = None``.
-
-        **Não commita** — caller é dono do boundary transacional. O
-        caller passa ``params_json`` e ``derived_json`` já serializados
-        (repo não conhece Pydantic nem compute services).
+        Não commita — caller é dono do boundary transacional.
         """
         if goal_type not in VALID_GOAL_TYPES:
             raise ValueError(f"Tipo de goal inválido: {goal_type}")
 
         eff_from = effective_from or date.today()
-
-        current = await self.get_active_by_type(workspace_id, goal_type)
-        if current is not None:
-            current.effective_to = eff_from - timedelta(days=1)
-            self._session.add(current)
-            await self._session.flush()
+        await self._close_current_version(workspace_id, goal_type, eff_from)
 
         goal = Goal(
             workspace_id=workspace_id,
