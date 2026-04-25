@@ -4886,4 +4886,3 @@ ADR nova e mova-o para a posição correta na ordem numérica.
 
 Se substituir uma ADR anterior, marcar: `Supersedes ADR-NNN`.
 -->
-
