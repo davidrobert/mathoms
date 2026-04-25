@@ -32,6 +32,8 @@ inteiro.
 | F9.4 `git mv scripts/e*.py` + alias CLI compat | [track_f9_4_scripts_rename.md](track_f9_4_scripts_rename.md) | F9 (5/7) | `agent/f9-stage-rename/4-scripts/*` |
 | F9.5 Guardrail hard-fail contra identificadores legados | [track_f9_5_guardrail_hardfail.md](track_f9_5_guardrail_hardfail.md) | F9 (6/7) | `agent/f9-stage-rename/5-guardrail/*` |
 | F9.6 Cleanup final: remover wrappers compat, aliases, globals | [track_f9_6_cleanup.md](track_f9_6_cleanup.md) | F9 (7/7) | `agent/f9-stage-rename/6-cleanup/*` |
+| Report a11y + Playwright finalize (resíduo F12) | [track_report_a11y_finalize.md](track_report_a11y_finalize.md) | Report Premium · resíduo F12 | `agent/report-a11y-finalize/*` |
+| Report Premium v1 polish (resíduo F13) | [track_report_v1_polish.md](track_report_v1_polish.md) | Report Premium · resíduo F13 | `agent/report-v1-polish/*` |
 
 Lanes com prompt inline (escopo documentado direto na linha da tabela "Lanes abertas agora" do BACKLOG, sem prompt dedicado): A6g.6b, A6g.2c, A6e.3c, A6e.events-migration, A6e.events-followup, A6g.2b, A6c.
 
