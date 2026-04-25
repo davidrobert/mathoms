@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Edge-case unit tests for E5 / E6 / E5.N helpers (7D.2)."""
+"""Edge-case unit tests for E5 / E5.N helpers (7D.2)."""
 
 import sys
 from datetime import date
@@ -9,7 +9,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.e5_analyze import calculate_edad, is_one_time_income, linear_interpolate
 from scripts.e5n_narrativas import _safe_div, validate_narrativas
-from scripts.e6_render import fmt_brl, safe_float
 
 
 class TestE5AnalyzeEdges:
@@ -26,16 +25,6 @@ class TestE5AnalyzeEdges:
 
     def test_is_one_time_income_keyword(self):
         assert is_one_time_income("BONUS 13o SALARIO") is True
-
-
-class TestE6RenderEdges:
-    def test_safe_float_invalid(self):
-        assert safe_float("x") == 0.0
-        assert safe_float(None) == 0.0
-
-    def test_fmt_brl(self):
-        s = fmt_brl(1234.56)
-        assert "R$" in s or "1" in s
 
 
 class TestE5NEdges:

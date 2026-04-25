@@ -39,11 +39,6 @@ class TestStageImports:
 
         assert callable(e5n.run)
 
-    def test_import_e6(self):
-        from pipeline.stages import e6
-
-        assert callable(e6.run)
-
     def test_import_e0_unlock(self):
         from pipeline.stages import e0_unlock
 

@@ -93,13 +93,10 @@ class TestMappingsComplete:
     Stages excluídos do bridge (escreveram/leram em outros lugares):
     - ``E0-*``: não produzem pipeline_artifacts.
     - ``E1``/``E1.5``: saídas em ``members/`` (não ``processed/``).
-    - ``E6``/``E6-final``: saídas HTML em ``output/``.
     """
 
     # Stages que NÃO são mediados pelo bridge (JSON em ``processed/``).
-    _NON_BRIDGE_STAGES = frozenset(
-        {"E0-audit", "E0-unlock", "E0-route", "E1", "E1.5", "E6", "E6-final"}
-    )
+    _NON_BRIDGE_STAGES = frozenset({"E0-audit", "E0-unlock", "E0-route", "E1", "E1.5"})
 
     def test_bridge_covered_stages_all_mapped(self):
         from pipeline.artifact_store import _STAGE_TO_DIR, _STAGE_TO_SUFFIX

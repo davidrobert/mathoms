@@ -11,7 +11,7 @@ Uso:
     ctx = WorkspaceContext.default()
     result = run_pipeline(ctx)                     # Pipeline determinístico completo
     result = run_from(ctx, "E3")                   # De E3 em diante
-    result = run_stages(ctx, ["E5", "E5.N", "E6"]) # Stages específicos
+    result = run_stages(ctx, ["E5", "E5.N"])       # Stages específicos
 """
 
 from __future__ import annotations
@@ -154,10 +154,6 @@ def _get_stage_runner(stage: str) -> Callable:
         return run
     if stage == "E5.N":
         from pipeline.stages.e5n import run
-
-        return run
-    if stage in ("E6", "E6-final"):
-        from pipeline.stages.e6 import run
 
         return run
     if stage == "E7-crossval":

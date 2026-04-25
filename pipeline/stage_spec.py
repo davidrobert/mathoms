@@ -12,7 +12,7 @@ migração completa para nomes descritivos (``"extract_statements"``,
 Exemplo:
 
     >>> FROM_MAP["E3"]
-    ['E3', 'E4', 'E5', 'E5.N', 'E6', 'E7-crossval', 'E7-review', 'E7-apply', 'E6-final']
+    ['E3', 'E4', 'E5', 'E5.N', 'E7-crossval', 'E7-review', 'E7-apply']
 """
 
 from __future__ import annotations
@@ -81,19 +81,17 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
     "E4": StageSpec("E4", reads=("E3",), writes=("E4",)),
     "E5": StageSpec("E5", reads=("E4", "E1.5c"), writes=("E5",)),
     "E5.N": StageSpec("E5.N", reads=("E5",), writes=("E5.N",)),
-    "E6": StageSpec("E6", reads=("E5",), writes=("E6",)),
     "E7-crossval": StageSpec("E7-crossval", reads=("E5",), writes=("E7-crossval",)),
     "E7-review": StageSpec(
         "E7-review", reads=("E5",), writes=("E7-review",), is_llm=True, tier="premium"
     ),
     "E7-apply": StageSpec("E7-apply", reads=("E7-review", "E5"), writes=("E5-revised",)),
-    "E6-final": StageSpec("E6-final", reads=("E5-revised",), writes=("E6-final",)),
 }
 
 
 # Artifact stages válidos que NÃO são unidades de execução — apenas categorias
 # de artefato escritas por outros stages. Hoje só existe ``E5-revised`` (saída
-# de ``E7-apply``, entrada de ``E6-final``).
+# de ``E7-apply``).
 VIRTUAL_ARTIFACT_STAGES: frozenset[str] = frozenset({"E5-revised"})
 
 
@@ -114,11 +112,9 @@ FULL_ORDER: list[str] = [
     "E4",
     "E5",
     "E5.N",
-    "E6",
     "E7-crossval",
     "E7-review",
     "E7-apply",
-    "E6-final",
 ]
 
 
@@ -144,11 +140,9 @@ STAGE_RENAME_MAP: dict[str, str] = {
     "E4": "categorize_transactions",
     "E5": "analyze_finances",
     "E5.N": "generate_narratives",
-    "E6": "render_report",
     "E7-crossval": "validate_cross",
     "E7-review": "review_finances",
     "E7-apply": "apply_review",
-    "E6-final": "render_final_report",
     "E5-revised": "analyze_finances_revised",  # virtual artifact stage
 }
 

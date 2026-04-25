@@ -18,7 +18,7 @@ rodem em CI sem flakiness, usamos fixtures pré-computadas:
 
 # Política
 
-- Mocks são "snapshot" realista: estrutura do JSON E5 + HTML E6 real.
+- Mocks são "snapshot" realista: estrutura do JSON E5 real.
 - Gerado por `regenerate_fixtures.py` quando pipeline muda output.
 - Versionado em tests/fixtures/pipeline_runs/ (JSON + HTML pequenos).
 
@@ -70,10 +70,8 @@ _DEFAULT_FREE_STAGES: list[tuple[str, str, int]] = [
     ("E4", "completed", 4_000),
     ("E5", "completed", 8_000),
     ("E5.N", "completed", 2_000),
-    ("E6", "completed", 5_000),
     ("E7-crossval", "completed", 3_000),
     ("E7-apply", "skipped", 0),
-    ("E6-final", "completed", 4_000),
 ]
 
 

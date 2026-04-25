@@ -58,7 +58,7 @@ class TestGetRetryConfig:
             assert cfg.max_retries > 0, f"{stage} should have retries configured"
 
     def test_deterministic_stages_no_retries(self):
-        for stage in ["E0-audit", "E0-route", "E2", "E3", "E4", "E5", "E6"]:
+        for stage in ["E0-audit", "E0-route", "E2", "E3", "E4", "E5"]:
             cfg = get_retry_config(stage)
             assert cfg.max_retries == 0, f"{stage} should have 0 retries"
 

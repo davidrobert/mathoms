@@ -44,11 +44,9 @@ EXPECTED_LEGACY_STAGES = {
     "E4",
     "E5",
     "E5.N",
-    "E6",
     "E7-crossval",
     "E7-review",
     "E7-apply",
-    "E6-final",
 }
 
 
@@ -75,9 +73,9 @@ class TestBuildFromMap:
 
     def test_on_full_order(self):
         m = build_from_map(FULL_ORDER)
-        # Sanidade: "a partir de E3" inclui E3 até E6-final
+        # Sanidade: "a partir de E3" inclui E3 até o último stage
         assert m["E3"][0] == "E3"
-        assert m["E3"][-1] == "E6-final"
+        assert m["E3"][-1] == FULL_ORDER[-1]
         # Todos os E5.* aparecem após E5
         e5_idx = m["E5"]
         assert e5_idx[0] == "E5"
@@ -98,14 +96,6 @@ class TestValidateFullOrder:
         i4 = bad.index("E4")
         i5 = bad.index("E5")
         bad[i4], bad[i5] = bad[i5], bad[i4]
-        with pytest.raises(AssertionError):
-            validate_full_order(bad)
-
-    def test_virtual_stage_is_respected(self):
-        # E6-final lê E5-revised (virtual). A ordem canônica deve passar.
-        validate_full_order(FULL_ORDER)
-        # Remover E7-apply (produtor de E5-revised) deve fazer falhar.
-        bad = [s for s in FULL_ORDER if s != "E7-apply"]
         with pytest.raises(AssertionError):
             validate_full_order(bad)
 

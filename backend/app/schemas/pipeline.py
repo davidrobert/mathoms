@@ -8,7 +8,7 @@ from pydantic import BaseModel, field_serializer, field_validator
 from backend.app.models.pipeline_run import PipelineRunStatus, PipelineStageStatus
 from backend.app.models.stage_review import StageReviewStatus
 
-VALID_FROM_STAGES = {"E0", "E1", "E2", "E3", "E4", "E5", "E5.N", "E6", "E7"}
+VALID_FROM_STAGES = {"E0", "E1", "E2", "E3", "E4", "E5", "E5.N", "E7"}
 
 
 class PipelineRunRequest(BaseModel):

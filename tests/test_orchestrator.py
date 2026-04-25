@@ -69,7 +69,7 @@ class TestOrchestratorLogic:
         stages = FROM_MAP["E3"]
         assert stages[0] == "E3"
         assert "E1" not in stages
-        assert "E6" in stages
+        assert "E5" in stages
 
     def test_from_map_e5_starts_at_e5(self):
         from pipeline.orchestrator import FROM_MAP
@@ -89,7 +89,7 @@ class TestOrchestratorLogic:
     def test_get_stage_runner_returns_callable_for_known(self):
         from pipeline.orchestrator import _get_stage_runner
 
-        for stage in ["E3", "E4", "E5", "E5.N", "E6", "E7-crossval"]:
+        for stage in ["E3", "E4", "E5", "E5.N", "E7-crossval"]:
             runner = _get_stage_runner(stage)
             assert runner is not None, f"No runner for {stage}"
             assert callable(runner)
