@@ -220,9 +220,125 @@ global-setup para subir backend seeded.
 
 ---
 
-## 8. Referências
+## 8. Debug da rota `/reports/[id]` (Report Premium v1)
+
+> Shell React `/reports/[id]` é o **único** renderer do relatório
+> ([ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side));
+> PDF server-side via Playwright é o único export. Renderer HTML
+> standalone foi removido — não procure por `e6_render.py`, ele não
+> existe mais.
+
+### 8.1 Abrir o relatório em dev
+
+```bash
+# Backend + worker + Redis (se já não rodando)
+docker compose up -d redis
+uvicorn backend.app.main:app --reload --port 8000
+# em outra aba:
+celery -A backend.app.worker worker -l info
+# em outra aba:
+cd frontend && npm run dev   # http://localhost:3000
+```
+
+Login → seleciona workspace que tem ao menos 1 run completa (até E5).
+`/reports` lista relatórios; click abre `/reports/<report_id>`.
+
+Workspace seed sem runs reais: rodar fluxo do `docs/SMOKE_TEST_HUMAN.md`
+§2 (gera relatório a partir de fixtures).
+
+### 8.2 localStorage do shell
+
+O shell persiste estado de UI **localmente** no browser:
+
+| Chave (prefixo `mathoms.report.`) | O que guarda |
+| --- | --- |
+| `theme`           | `light` \| `dark` (toggle do header) |
+| `mode`            | `estrategico` \| `tatico` \| `usa` (preferência do usuário; URL `?mode=` tem precedência) |
+| `font-scale`      | `0.85`–`1.15` (zoom relativo) |
+| `notas:<report_id>:<section_id>` | Notas livres da seção |
+| `kanban:<report_id>` | Colunas + ordem dos cards (T6) |
+
+Inspecionar/limpar via DevTools → Application → Local Storage → host.
+Reset completo do shell:
+
+```js
+Object.keys(localStorage)
+  .filter(k => k.startsWith('mathoms.report.'))
+  .forEach(k => localStorage.removeItem(k));
+```
+
+> **Nota persistida no servidor (ADR-123):** notas/kanban também sincronizam
+> via `reports_collab` API — limpar localStorage **não apaga server-side**.
+> Para reset completo, use endpoint `DELETE /v1/reports/<id>/collab/*`.
+
+### 8.3 Regerar PDF via Playwright
+
+Endpoint: `GET /v1/reports/<report_id>/download.pdf`. Backend chama
+[backend/app/services/pdf_renderer.py](../backend/app/services/pdf_renderer.py)
+que usa Chromium headless para imprimir a rota
+`/reports/<id>?print=1` em A4.
+
+```bash
+# Acionar manualmente (requer JWT válido):
+curl -H "Authorization: Bearer $TOKEN" \
+  https://api.mathoms.ai/v1/reports/<id>/download.pdf -o report.pdf
+```
+
+PDF é **gerado on-demand** (não cacheado). Para invalidar/forçar
+regeneração: simplesmente refazer a chamada — não há cache HTTP no
+endpoint. Se o PDF sai em branco ou sem charts: `chromium` do
+Playwright não está instalado no container do backend (ver
+[SETUP.md](SETUP.md) §Playwright).
+
+### 8.4 Shell que não monta (página em branco / spinner eterno)
+
+Diagnóstico em ordem:
+
+1. **Console do browser** → erro de hidratação / bundle?
+   `next dev` mostra stack trace; se erro é "module not found", roda
+   `cd frontend && rm -rf .next node_modules && npm install`.
+2. **Network tab** → `GET /v1/reports/<id>/full` retornando 200?
+   Se 404: report_id não existe; se 403: workspace mismatch.
+3. **`useReportData(id)` retornando `null`** → contrato
+   `ReportAnalysisData` quebrado pós-pipeline. Confere shape em
+   [frontend/src/types/](../frontend/src/types/) vs payload real do
+   endpoint. Mismatch comum: campo `score.formula` mudou de string
+   para objeto, etc.
+4. **`MIGRATED_SECTIONS` ausente** → seção referenciada no
+   `report_layout.yaml` ainda é stub; layout muda mas seções não.
+   Rodar `python3 dev/codegen_report_layout.py` e reiniciar dev server.
+
+### 8.5 Modo errado na URL
+
+`/reports/<id>?mode=foo` (modo inexistente) → `ReportModeProvider`
+faz fallback para `estrategico` silenciosamente e loga warning. Toggle
+do header sobrescreve a URL. Se quiser truncar `mode` da URL ao
+mudar via toggle, é comportamento esperado — provider re-pusha sem
+querystring.
+
+### 8.6 Print não funciona / quebras feias
+
+- `?print=1` na URL aciona estilos `@media print` + `data-print-route`
+  no `<html>`.
+- CSS de print mora em
+  [frontend/src/components/report/report-print.css](../frontend/src/components/report/report-print.css).
+  Quebras explícitas por seção via `break-inside: avoid;` em
+  `.report-section`.
+- Se gráfico Chart.js sai cortado: provavelmente o canvas excede
+  altura da página A4 — reduzir `aspectRatio` no wrapper específico
+  em `frontend/src/components/report/charts/`.
+- Se cabeçalho de família não aparece em todas as páginas: confere
+  se `<ReportCover>` está fora de container com `transform`
+  (transforms quebram `position: fixed` no print).
+
+---
+
+## 9. Referências
 
 - [SLO.md](SLO.md) — SLOs e SLAs de comunicação
 - [BACKLOG.md](BACKLOG.md) — 7E (operational readiness) · F7F-Local
 - [SMOKE_TEST.md](SMOKE_TEST.md) — verificações manuais pré-release
+- [SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) — runbook de smoke humano
+- [REPORT_PREMIUM_PLAN.md](REPORT_PREMIUM_PLAN.md) — plano canônico do shell v1
 - [ADR-116](DECISIONS.md#adr-116) — decisões de design F7F-Local
+- [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) — descontinuação do renderer HTML server-side
