@@ -307,6 +307,8 @@ export function makeLLMConfig(
   return {
     id: "llm-1",
     provider: "anthropic",
+    api_key_masked: "sk-a****1234",
+    api_key_status: "valid",
     model_name: "claude-opus-4-6",
     max_tokens: 4096,
     temperature: 0.0,
