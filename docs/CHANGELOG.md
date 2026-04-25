@@ -10,6 +10,23 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
 execução da **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side).
 
+- **ADR-129 fatia 2 · Pipeline E6 + `stage_materialization` removidos
+  (2026-04-24 · commit `9f4c616`):** segunda de 6 fatias da lane
+  `adr-129-e6-kill`. Deletados `pipeline/stages/e6.py` e
+  `pipeline/stage_materialization.py` (último caller de
+  `materialize_stages_to_root` era o próprio E6). Stages `E6`/`E6-final`
+  removidos de `STAGE_REGISTRY` + `FULL_ORDER` + `DETERMINISTIC_ORDER`
+  + `STAGE_RENAME_MAP` + `VALID_FROM_STAGES` (schema da API). Testes
+  removidos: `test_stage_materialization.py`, `test_e6_golden_execution.py`,
+  `test_import_e6` em `test_stage_wrappers.py`, `TestE6RenderEdges` em
+  `test_e5_e6_e5n_edges.py`. Fixtures (`pipeline_runs.py`, `baseline_disk.json`)
+  e tests (`test_orchestrator.py`, `test_stage_spec.py`,
+  `test_materialization_bridge.py`, `test_retry_config.py`) ajustados.
+  Pipeline determinístico agora termina em `E7-apply`; orchestrator não
+  importa mais E6. Scripts (`scripts/e6_render.py`, `scripts/e6/`,
+  `scripts/e6_regen.py`) ficam órfãos como dead code intencional —
+  removidos na fatia 3. Próxima: fatia 3 (scripts).
+
 - **ADR-129 fatia 1 · Backend API + drop `Report.html_path` (2026-04-24
   · commits `94f693d` + `4127abe` + `5e72e72`):** primeira de 6 fatias
   da lane `adr-129-e6-kill`. Removidas rotas `GET /reports/{id}/html` e
