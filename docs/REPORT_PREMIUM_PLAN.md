@@ -82,7 +82,7 @@ este plano conflitar com os deltas abaixo, **os deltas prevalecem**.
 
 | # | Decisão | Valor |
 |---|---------|-------|
-| 1 | Alvos de render | **React (rota `/reports/[id]`) + `e6_render.py` em paridade** |
+| 1 | Alvos de render | ~~**React + `e6_render.py` em paridade**~~ → **Apenas React (`/reports/[id]`)** + PDF Playwright. Renderer HTML server-side descontinuado em [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side). |
 | 2 | Biblioteca de charts | **Chart.js 4 + react-chartjs-2 + chartjs-plugin-datalabels** — apenas dentro de `frontend/src/components/report/**`. Recharts permanece no dashboard interno. |
 | 3 | Navegação / modos | **Manter `ReportToc` sidebar**; **adicionar** top-nav sticky igual ao exemplo (com numeração + grupos + toggle de modo + toggle de tema). Os dois coexistem. |
 | 4 | Elementos visuais | **Todos** os do exemplo (cover hero, dark mode, chart-conclusion, section-divider, card variants, KPI-hero, score gauge, period toggle, back-to-top, export-toolbar, skip-nav, print CSS, kanban em T3). |
@@ -129,7 +129,7 @@ Para cada fase: **commit em `main` com CI verde** (§CLAUDE.md). Até lá, a fas
 - [ ] `frontend/src/components/report/sections/*.tsx` — o que cada seção já consome e renderiza.
 - [ ] `config/report_layout.yaml` — inventário de cards/charts por seção (fonte de verdade do layout).
 - [ ] `design-tokens/tokens.json` + `design-tokens/build.py` — como tokens viram CSS.
-- [ ] `scripts/e6_render.py` + `scripts/e6/sanitize.py` + `scripts/e6/validate.py` — pipeline do export standalone.
+- [ ] ~~`scripts/e6_render.py` + `scripts/e6/sanitize.py` + `scripts/e6/validate.py`~~ — **removido em [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)** (lane `adr-129-e6-kill`). Não tente ler — não existe mais. Mantido aqui apenas como registro do escopo original da Fase 0.
 - [ ] `pipeline/domain/services/` (e5-relacionados) — onde E5 gera o payload de análise.
 
 ### 1.2 Produto do discovery

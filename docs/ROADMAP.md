@@ -3,7 +3,7 @@
 > Visão de alto nível das fases do projeto. Atualizar mensalmente ou ao mudar de fase.
 >
 > **Última atualização:** 2026-04-24
-> **Fase atual:** F9 concluída • **Sprint transversal A6**: Onda 2 ✅ (A6e.3/.4/.5/.events · A6f.1) + A6b.flip ✅ (ADR-118) + A6-ux.livestep ✅ (ADR-119) + A6-readers.dbfirst ✅ (ADR-120) + A6g.3b ✅ + A6g.6/6b ✅ + A6g.7 ✅; A6g.3 em rodada final • **Report Premium UI**: 10/13 fases ✅ (F0-F10 em `main`); Fase 11 (`e6_render.py` paridade via ADR-124) próxima • **F7F-Local**: MVP fechado (ADR-116) • Status de sessão + lanes abertas em [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) (fonte única) • F7 (Produção + LGPD + Ops) agendada após A6g.3 final + Fase 12/13 do Report Premium.
+> **Fase atual:** F9 concluída • **Sprint transversal A6**: Onda 2 ✅ (A6e.3/.4/.5/.events · A6f.1) + A6b.flip ✅ (ADR-118) + A6-ux.livestep ✅ (ADR-119) + A6-readers.dbfirst ✅ (ADR-120) + A6g.3b ✅ + A6g.6/6b ✅ + A6g.7 ✅; A6g.3 em rodada final • **Report Premium UI**: 10/10 fases úteis ✅ (F0-F10 em `main`); Fases 11/12/13 **canceladas** via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side); execução `adr-129-e6-kill` em curso • **F7F-Local**: MVP fechado (ADR-116) • Status de sessão + lanes abertas em [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) (fonte única) • F7 (Produção + LGPD + Ops) agendada após A6g.3 final + `adr-129-e6-kill`.
 
 ---
 

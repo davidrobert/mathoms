@@ -4,8 +4,17 @@
 > **Produzido por:** agente dedicado (Opus 4.7 1M, worktree isolado, ~1h30 de discovery).
 > **Data:** 2026-04-23.
 > **Status:** ✅ RESOLVIDO — 13 Open Questions respondidas pelo usuário em 2026-04-23;
-> decisões formalizadas em ADR-117, 121, 122, 123, 124. Fase 1 unlocked.
+> decisões formalizadas em ADR-117, 121, 122, 123, ~~124~~. Fase 1 unlocked.
 > Deltas aplicados ao plano — ver [REPORT_PREMIUM_PLAN.md §Deltas](REPORT_PREMIUM_PLAN.md).
+>
+> ⚠️ **Update 2026-04-24:** [ADR-124](DECISIONS.md#adr-124) (e Q12 abaixo)
+> foi superseded por [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+> O renderer HTML server-side foi **descontinuado por completo** —
+> `scripts/e6_render.py`, `scripts/e6/`, `pipeline/stages/e6.py` e
+> endpoints HTML foram removidos (lane `adr-129-e6-kill`). Observations
+> #2 (CSS standalone), #9 (4867 linhas Jinja2), Q9/Q12 e qualquer
+> referência a "exportador standalone" neste documento ficam como
+> **registro histórico** — não são mais ações pendentes.
 
 ---
 
