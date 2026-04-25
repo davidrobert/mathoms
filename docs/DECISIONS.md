@@ -5201,10 +5201,74 @@ placeholder `{"dados": []}` quando o baseline é vazio — passa a
 caso o fallback ainda assim falhe. Defesa em profundidade contra
 futuro stage que esqueça do scope.
 
-Gate de regressão: teste de integração que (i) escreve E1.5c no
-`pipeline_run_id=A`, (ii) instancia novo store no
-`pipeline_run_id=B` mesmo workspace, (iii) lê E1.5c esperando o
-payload de A — e o mesmo cenário com stage E2 esperando `None`.
+**Gates de regressão (4 camadas):**
+
+O bug ficou invisível por 7 rodadas no workspace observado porque
+nenhum teste cobria o caminho cross-run. Os gates abaixo são
+desenhados para falhar **rápido** (segundos, não minutos) e o mais
+**próximo** possível do ponto de regressão — quanto mais cedo na
+pirâmide, mais barato o sinal.
+
+**T1 — Unit (`backend/tests/services/test_db_artifact_store.py`).**
+Cobre a primitiva `read()`. Setup: dois stores no mesmo
+`workspace_id` com `pipeline_run_id` distintos (A e B); store A
+escreve `("E1.5c", "baseline_patrimonial", {"itens": [...]})` e
+`("E2-extratos", "x", {...})`. Asserções:
+
+- Store B `.read("E1.5c", "baseline_patrimonial")` retorna o payload
+  de A (fallback workspace ativo).
+- Store B `.read("E2-extratos", "x")` retorna `None` (run-scoped, sem
+  fallback).
+- Quando A e B têm payloads distintos para o mesmo
+  `(stage, key)` workspace-scoped, B vê o **mais recente por
+  `created_at`**.
+
+Gate falha em <100ms se alguém remover o `_WORKSPACE_SCOPED_STAGES`
+ou inverter a ordem do `ORDER BY`.
+
+**T2 — Unit
+(`tests/unit/pipeline/test_e4_serialization.py`).**
+Cobre a salvaguarda. Dado um `CategorizationResult` com
+`baseline=None` ou `baseline.data == {}`,
+`serialize_e4_artifacts(result)` **não** inclui a chave
+`"patrimonio"` no dict retornado (era `{"dados": []}` no legado).
+Garante que um futuro `build_patrimonio_artifact` "esperto" que
+voltar a gravar placeholder seja pego antes de chegar ao DB.
+
+**T3 — Unit
+(`tests/unit/pipeline/test_patrimonio_calculator.py`).**
+Invariante de output do calculator: dado um baseline com
+`imoveis_consolidados` não-vazio + `patrimonio_por_ano["2024"]
+.total_bens > 0` + `MemberIdentity` válido, o retorno satisfaz
+`composicao[].valor` somando ao menos `total_bens × 0.5` (i.e., a
+maior parte do IRPF chega à composição). Falha se o calculator
+voltar a "engolir" silenciosamente o baseline — o cenário exato do
+bug observado.
+
+**T4 — Integração
+(`backend/tests/integration/test_pipeline_cross_run_baseline.py`).**
+Smoke test cross-run completo, single source para detectar a classe
+de bug fim-a-fim. Sequência:
+
+1. Cria workspace; ingere fixtures de IRPF + 1 extrato bancário;
+   roda pipeline completa (run A) → assert `E5.patrimonio.bruto`
+   reflete soma de IRPF + extrato.
+2. Mesmo workspace, ingere **apenas** 1 novo extrato (sem novos
+   IRPFs); roda pipeline (run B) → assert
+   `bruto_B >= bruto_A × 0.99` (tolerância p/ flutuação de saldo).
+3. Inspeciona artefatos: `pipeline_artifacts` do run B contém
+   E2/E3/E4/E5 novos mas **não** E1.5c novo. E4 patrimônio do run
+   B é > 13 bytes ou ausente (nunca o placeholder).
+
+Roda em <5s com SQLite in-memory + fixtures pequenas (1 PDF IRPF
+mockado, 1 OFX). Único teste que pegaria o bug se T1/T2/T3 falharem
+juntos por engano de cobertura.
+
+**Onde NÃO testar:** evitar mock de `DBArtifactStore` em testes do
+calculator/E5 — ADR-097 D2 já manda usar fakes nomeados
+(`InMemoryArtifactStore`). Mock implícito esconderia exatamente este
+tipo de regressão. T1 valida o store real; T3/T4 validam o consumer
+contra fake/real respectivamente.
 
 **Consequências:**
 
