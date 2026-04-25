@@ -25,6 +25,13 @@ inteiro.
 | A6g.6 Enforcement automatizado (Ruff + ESLint + pre-commit + testes AST) | [track_a6g6_enforcement.md](track_a6g6_enforcement.md) | 3 | `agent/a6g6-enforcement/*` |
 | A6g.3 Backend Python code style sweep (services, repos, models, schemas) | [track_a6g3_backend_style_sweep.md](track_a6g3_backend_style_sweep.md) | 3 | `agent/a6g3-backend-style/*` |
 | F7F-Local Console interno pré-produção (IA-0) — UI Next separada + anonimização + auth yaml | [track_f7f_local.md](track_f7f_local.md) | 3 (Lane C6, independente de 7A/B/C) | `agent/f7f-local/*` |
+| F9.0 Audit referências legadas + exhaustividade `STAGE_RENAME_MAP` | [track_f9_0_audit.md](track_f9_0_audit.md) | F9 (1/7) | `agent/f9-stage-rename/0-audit/*` |
+| F9.1 `git mv pipeline/stages/e*.py` → descritivos | [track_f9_1_pipeline_stages_rename.md](track_f9_1_pipeline_stages_rename.md) | F9 (2/7) | `agent/f9-stage-rename/1-pipeline-stages/*` |
+| F9.2 Strings literais `"E*"` → descritivas em produção | [track_f9_2_string_literals.md](track_f9_2_string_literals.md) | F9 (3/7) | `agent/f9-stage-rename/2-strings/*` |
+| F9.3 Alembic migration `pipeline_artifacts.stage` em massa | [track_f9_3_alembic_migration.md](track_f9_3_alembic_migration.md) | F9 (4/7) | `agent/f9-stage-rename/3-alembic/*` |
+| F9.4 `git mv scripts/e*.py` + alias CLI compat | [track_f9_4_scripts_rename.md](track_f9_4_scripts_rename.md) | F9 (5/7) | `agent/f9-stage-rename/4-scripts/*` |
+| F9.5 Guardrail hard-fail contra identificadores legados | [track_f9_5_guardrail_hardfail.md](track_f9_5_guardrail_hardfail.md) | F9 (6/7) | `agent/f9-stage-rename/5-guardrail/*` |
+| F9.6 Cleanup final: remover wrappers compat, aliases, globals | [track_f9_6_cleanup.md](track_f9_6_cleanup.md) | F9 (7/7) | `agent/f9-stage-rename/6-cleanup/*` |
 
 Lanes com prompt inline (escopo documentado direto na linha da tabela "Lanes abertas agora" do BACKLOG, sem prompt dedicado): A6g.6b, A6g.2c, A6e.3c, A6e.events-migration, A6e.events-followup, A6g.2b, A6c.
 
