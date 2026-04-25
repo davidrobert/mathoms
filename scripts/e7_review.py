@@ -82,7 +82,26 @@ def _init_config(base_dir: Path) -> None:
     _QA_THRESHOLDS = _PIPELINE_CONFIG.get("qa_thresholds", {})
 
 
-_init_config(_pc.PROJECT_DIR)
+# =============================================================================
+# Module-level defaults (Sessão A6d.1 — eliminado side-effect no import)
+# =============================================================================
+#
+# Antes de A6d.1: módulo invocava ``_init_config(_pc.PROJECT_DIR)`` no nível
+# de módulo. Agora os globals começam com defaults; ``_init_config(base_dir)``
+# é invocado por ``main(root_dir=...)`` e ``main_with_store(ctx)``.
+PROJECT_DIR = _DEFAULT_BASE_DIR
+E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+METHODOLOGY_PATH = PROJECT_DIR / "config" / "methodology.md"
+DEFINITIONS_PATH = PROJECT_DIR / "config" / "definitions.md"
+FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
+SCORING_CONFIG_PATH = PROJECT_DIR / "config" / "scoring.json"
+PIPELINE_CONFIG_PATH = PROJECT_DIR / "config" / "pipeline.json"
+REPORT_SPEC_PATH = PROJECT_DIR / "config" / "report_spec.md"
+OUTPUT_DIR = PROJECT_DIR / "output"
+REVIEW_TEMPLATE_PATH = PROJECT_DIR / "processed" / "E7_review" / "e7_review_template.json"
+_SCORING_CONFIG: dict = {}
+_PIPELINE_CONFIG: dict = {}
+_QA_THRESHOLDS: dict = {}
 
 # =============================================================================
 # Data loading — everything from files, nothing hardcoded
