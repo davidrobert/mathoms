@@ -19,40 +19,44 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.stage_spec import (  # noqa: E402
+    DESCRIPTIVE_TO_LEGACY,
     DETERMINISTIC_ORDER,
     FULL_ORDER,
     LEGACY_FROM_ALIASES,
+    LEGACY_TO_DESCRIPTIVE,
     STAGE_REGISTRY,
     STAGE_RENAME_MAP,
     VIRTUAL_ARTIFACT_STAGES,
     build_from_map,
+    resolve_stage_name,
+    to_legacy_stage_name,
     validate_artifact_stage,
     validate_full_order,
 )
 
-EXPECTED_LEGACY_STAGES = {
-    "E0-audit",
-    "E0-unlock",
-    "E0-route",
-    "E1",
-    "E1.5",
-    "E1.5c",
-    "E2-faturas",
-    "E2-extratos",
-    "E2-llm",
-    "E3",
-    "E4",
-    "E5",
-    "E5.N",
-    "E7-crossval",
-    "E7-review",
-    "E7-apply",
+EXPECTED_DESCRIPTIVE_STAGES = {
+    "audit_documents",
+    "unlock_documents",
+    "route_documents",
+    "extract_members",
+    "extract_baseline",
+    "consolidate_baseline",
+    "extract_invoices",
+    "extract_statements",
+    "extract_with_llm",
+    "reconcile_transactions",
+    "categorize_transactions",
+    "analyze_finances",
+    "generate_narratives",
+    "validate_cross",
+    "review_finances",
+    "apply_review",
 }
 
 
 class TestRegistry:
-    def test_registry_covers_all_legacy_stages(self):
-        assert set(STAGE_REGISTRY.keys()) == EXPECTED_LEGACY_STAGES
+    def test_registry_covers_all_descriptive_stages(self):
+        assert set(STAGE_REGISTRY.keys()) == EXPECTED_DESCRIPTIVE_STAGES
 
     def test_full_order_matches_registry(self):
         assert set(FULL_ORDER) == set(STAGE_REGISTRY.keys())
@@ -73,13 +77,13 @@ class TestBuildFromMap:
 
     def test_on_full_order(self):
         m = build_from_map(FULL_ORDER)
-        # Sanidade: "a partir de E3" inclui E3 até o último stage
-        assert m["E3"][0] == "E3"
-        assert m["E3"][-1] == FULL_ORDER[-1]
-        # Todos os E5.* aparecem após E5
-        e5_idx = m["E5"]
-        assert e5_idx[0] == "E5"
-        assert "E5.N" in e5_idx
+        # Sanidade: "a partir de reconcile_transactions" inclui até o último stage
+        assert m["reconcile_transactions"][0] == "reconcile_transactions"
+        assert m["reconcile_transactions"][-1] == FULL_ORDER[-1]
+        # generate_narratives aparece após analyze_finances
+        af_idx = m["analyze_finances"]
+        assert af_idx[0] == "analyze_finances"
+        assert "generate_narratives" in af_idx
 
 
 class TestValidateFullOrder:
@@ -91,11 +95,12 @@ class TestValidateFullOrder:
             validate_full_order(FULL_ORDER + ["not-a-stage"])
 
     def test_dependency_after_consumer_raises(self):
-        # Invariante: E5 precisa de E4; invertendo a ordem → AssertionError
+        # Invariante: analyze_finances precisa de categorize_transactions;
+        # invertendo a ordem → AssertionError
         bad = [s for s in FULL_ORDER]
-        i4 = bad.index("E4")
-        i5 = bad.index("E5")
-        bad[i4], bad[i5] = bad[i5], bad[i4]
+        i_cat = bad.index("categorize_transactions")
+        i_an = bad.index("analyze_finances")
+        bad[i_cat], bad[i_an] = bad[i_an], bad[i_cat]
         with pytest.raises(AssertionError):
             validate_full_order(bad)
 
@@ -115,10 +120,10 @@ class TestValidateArtifactStage:
 
 
 class TestStageRenameMap:
-    def test_covers_all_legacy_names(self):
-        """STAGE_RENAME_MAP inclui todo key do REGISTRY + virtual stages."""
-        expected_keys = set(STAGE_REGISTRY.keys()) | set(VIRTUAL_ARTIFACT_STAGES)
-        assert set(STAGE_RENAME_MAP.keys()) == expected_keys
+    def test_values_cover_registry_plus_virtual(self):
+        """STAGE_RENAME_MAP values incluem todo key do REGISTRY + virtual stages."""
+        expected_descriptive = set(STAGE_REGISTRY.keys()) | set(VIRTUAL_ARTIFACT_STAGES)
+        assert set(STAGE_RENAME_MAP.values()) == expected_descriptive
 
     def test_is_bijective(self):
         values = list(STAGE_RENAME_MAP.values())
@@ -130,6 +135,31 @@ class TestStageRenameMap:
             assert new.islower() or "_" in new
             assert "-" not in new  # nenhum hífen — apenas underscore
             assert " " not in new
+
+    def test_legacy_to_descriptive_alias(self):
+        assert LEGACY_TO_DESCRIPTIVE is STAGE_RENAME_MAP
+
+    def test_descriptive_to_legacy_inverse(self):
+        for legacy, descriptive in STAGE_RENAME_MAP.items():
+            assert DESCRIPTIVE_TO_LEGACY[descriptive] == legacy
+
+
+class TestResolveStageName:
+    def test_legacy_returns_descriptive(self):
+        assert resolve_stage_name("E3") == "reconcile_transactions"
+        assert resolve_stage_name("E5.N") == "generate_narratives"
+        assert resolve_stage_name("E7-apply") == "apply_review"
+
+    def test_descriptive_passthrough(self):
+        assert resolve_stage_name("reconcile_transactions") == "reconcile_transactions"
+        assert resolve_stage_name("analyze_finances") == "analyze_finances"
+
+    def test_unknown_passthrough(self):
+        assert resolve_stage_name("unknown_stage") == "unknown_stage"
+
+    def test_to_legacy_inverse(self):
+        assert to_legacy_stage_name("reconcile_transactions") == "E3"
+        assert to_legacy_stage_name("E3") == "E3"  # passthrough
 
 
 class TestLegacyAliases:

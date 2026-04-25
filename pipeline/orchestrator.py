@@ -68,6 +68,7 @@ from pipeline.stage_spec import (
     LEGACY_FROM_ALIASES,
     STAGE_REGISTRY,
     build_from_map,
+    resolve_stage_name,
 )
 
 # OTel API é framework-neutral (ADR-110) e seguro importar em pipeline/.
@@ -80,7 +81,12 @@ except ImportError:  # pragma: no cover — OTel é dep do backend, não do pipe
     _TRACER = None
 
 
-LLM_STAGES = {name for name, spec in STAGE_REGISTRY.items() if spec.is_llm}
+_LLM_DESCRIPTIVE = {name for name, spec in STAGE_REGISTRY.items() if spec.is_llm}
+# Inclui aliases legados para que call-sites com ``"E1"``/``"E2-llm"`` etc.
+# continuem sendo detectados como LLM stages durante a janela de compat.
+from pipeline.stage_spec import DESCRIPTIVE_TO_LEGACY as _D2L  # noqa: E402
+
+LLM_STAGES = _LLM_DESCRIPTIVE | {_D2L[d] for d in _LLM_DESCRIPTIVE if d in _D2L}
 
 
 def _build_from_map_with_aliases() -> Dict[str, List[str]]:
@@ -99,72 +105,91 @@ def _build_from_map_with_aliases() -> Dict[str, List[str]]:
     return base
 
 
-FROM_MAP: Dict[str, List[str]] = _build_from_map_with_aliases()
+def _build_from_map_descriptive_with_legacy() -> Dict[str, List[str]]:
+    """Estende ``FROM_MAP`` com keys legadas mapeando para sequência descritiva.
+
+    Permite ``run_from("E3")`` continuar funcionando enquanto consumers migram.
+    """
+    base = _build_from_map_with_aliases()
+    from pipeline.stage_spec import LEGACY_TO_DESCRIPTIVE
+
+    for legacy, descriptive in LEGACY_TO_DESCRIPTIVE.items():
+        if descriptive in base and legacy not in base:
+            base[legacy] = base[descriptive][:]
+    return base
+
+
+FROM_MAP: Dict[str, List[str]] = _build_from_map_descriptive_with_legacy()
 
 
 def _get_stage_runner(stage: str) -> Callable:
-    """Lazy-import do runner correto para cada stage."""
-    if stage == "E0-unlock":
+    """Lazy-import do runner correto para cada stage.
+
+    Aceita nomes legados (``"E3"``) ou descritivos (``"reconcile_transactions"``)
+    via ``resolve_stage_name``.
+    """
+    stage = resolve_stage_name(stage)
+    if stage == "unlock_documents":
         from pipeline.stages.unlock_documents import run
 
         return run
-    if stage == "E0-audit":
+    if stage == "audit_documents":
         from pipeline.stages.audit_documents import run
 
         return run
-    if stage == "E0-route":
+    if stage == "route_documents":
         from pipeline.stages.route_documents import run
 
         return run
-    if stage == "E1":
+    if stage == "extract_members":
         from pipeline.stages.extract_members import run
 
         return run
-    if stage == "E1.5":
+    if stage == "extract_baseline":
         from pipeline.stages.extract_baseline import run
 
         return run
-    if stage == "E1.5c":
+    if stage == "consolidate_baseline":
         from pipeline.stages.consolidate_baseline import run
 
         return run
-    if stage == "E2-llm":
+    if stage == "extract_with_llm":
         from pipeline.stages.extract_with_llm import run
 
         return run
-    if stage == "E2-faturas":
+    if stage == "extract_invoices":
         from pipeline.stages.extract_invoices import run
 
         return run
-    if stage == "E2-extratos":
+    if stage == "extract_statements":
         from pipeline.stages.extract_statements import run
 
         return run
-    if stage == "E3":
+    if stage == "reconcile_transactions":
         from pipeline.stages.reconcile_transactions import run
 
         return run
-    if stage == "E4":
+    if stage == "categorize_transactions":
         from pipeline.stages.categorize_transactions import run
 
         return run
-    if stage == "E5":
+    if stage == "analyze_finances":
         from pipeline.stages.analyze_finances import run
 
         return run
-    if stage == "E5.N":
+    if stage == "generate_narratives":
         from pipeline.stages.generate_narratives import run
 
         return run
-    if stage == "E7-crossval":
+    if stage == "validate_cross":
         from pipeline.stages.e7 import run_crossval
 
         return run_crossval
-    if stage == "E7-review":
+    if stage == "review_finances":
         from pipeline.stages.review_finances import run
 
         return run
-    if stage == "E7-apply":
+    if stage == "apply_review":
         from pipeline.stages.e7 import run_apply
 
         return run_apply
@@ -214,8 +239,8 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                 "pipeline.stage": stage,
                 "pipeline.workspace_root": str(ctx.root),
                 "pipeline.run_id": ctx.pipeline_run_id or "",
-                "pipeline.is_llm": STAGE_REGISTRY[stage].is_llm
-                if stage in STAGE_REGISTRY
+                "pipeline.is_llm": STAGE_REGISTRY[resolve_stage_name(stage)].is_llm
+                if resolve_stage_name(stage) in STAGE_REGISTRY
                 else False,
             },
         )

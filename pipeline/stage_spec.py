@@ -4,15 +4,16 @@ Substitui o ``FROM_MAP`` manual em ``pipeline/orchestrator.py`` por um registro
 declarativo. Cada stage declara o que lê e escreve; a ordem de execução é
 explícita em ``FULL_ORDER`` e validada contra as dependências no startup.
 
-Durante as Fases 1-8, os identificadores usam nomes legados (``"E2"``,
-``"E3"``, ``"E5"``...). A Fase 9 aplica a **Opção A** (ADR-093):
-migração completa para nomes descritivos (``"extract_statements"``,
-``"reconcile_transactions"``...) via ``STAGE_RENAME_MAP``.
+**F9.2 (2026-04-25):** ``STAGE_REGISTRY``/``FULL_ORDER``/``DETERMINISTIC_ORDER``
+agora usam nomes descritivos (``"reconcile_transactions"``, ``"analyze_finances"``…)
+como keys. ``STAGE_RENAME_MAP`` permanece como compat reverso (legacy → descriptive).
+Use ``resolve_stage_name(name)`` para normalizar input externo (HTTP, CLI, DB)
+para o nome descritivo canônico. Hardening final dos nomes legados: F9.6.
 
 Exemplo:
 
-    >>> FROM_MAP["E3"]
-    ['E3', 'E4', 'E5', 'E5.N', 'E7-crossval', 'E7-review', 'E7-apply']
+    >>> FROM_MAP["reconcile_transactions"][0]
+    'reconcile_transactions'
 """
 
 from __future__ import annotations
@@ -42,89 +43,13 @@ class StageSpec:
 
 
 # =============================================================================
-# STAGE_REGISTRY — nomes legados durante Fases 1-8
+# Mapa canônico de rename (legacy → descriptive — ADR-093)
 # =============================================================================
 #
-# ⚠️ NÃO use nomes descritivos (``extract_statements``, ``reconcile_transactions``)
-# antes da Fase 9. O mapeamento 1-para-1 para os descritivos está em
-# ``STAGE_RENAME_MAP`` como fonte de verdade — aplicado em bloco na Fase 9.
-#
-# Notas de design (preserva semântica da Fase 9):
-#   - E0-unlock/E0-audit/E0-route: não produzem pipeline_artifacts. E0-route
-#     move arquivos para data/ via StorageService — o vínculo com E2 é via
-#     Document.stored_path, não via ArtifactStore. Writes=() é correto.
-#   - E2, E2-faturas, E2-extratos, E2-llm: TRÊS artifact stages distintos
-#     (``extract_invoices``/``extract_statements``/``extract_with_llm`` pós-9)
-#     evitam colisão na UNIQUE constraint quando o mesmo documento é processado
-#     por extrator determinístico + LLM fallback. E2 (legado) é a pasta
-#     compartilhada em disco; ``E2-faturas`` e ``E2-extratos`` são os wrappers
-#     executáveis. O orquestrador hoje só enfileira ``E2-faturas``, ``E2-extratos``
-#     e ``E2-llm`` — ``E2`` só aparece em legado (_STAGE_TO_DIR) e como key de
-#     compatibilidade no FROM_MAP de entrada (``run_from("E2")``).
-#   - E7-apply lê ``E7-review``+``E5`` e produz ``E5-revised`` (o ``render_final_report``
-#     lê desse artifact stage). ``E5-revised`` é um artifact stage virtual (não
-#     executável) — ver VIRTUAL_ARTIFACT_STAGES.
-
-STAGE_REGISTRY: dict[str, StageSpec] = {
-    "E0-audit": StageSpec(
-        "E0-audit",
-    ),
-    "E0-unlock": StageSpec("E0-unlock", tier="premium"),
-    "E0-route": StageSpec("E0-route", tier="premium"),
-    "E1": StageSpec("E1", writes=("E1",), is_llm=True, tier="premium"),
-    "E1.5": StageSpec("E1.5", writes=("E1.5",), is_llm=True, tier="premium"),
-    "E1.5c": StageSpec("E1.5c", reads=("E1.5",), writes=("E1.5c",)),
-    "E2-faturas": StageSpec("E2-faturas", writes=("E2-faturas",)),
-    "E2-extratos": StageSpec("E2-extratos", writes=("E2-extratos",)),
-    "E2-llm": StageSpec("E2-llm", writes=("E2-llm",), is_llm=True, tier="premium"),
-    "E3": StageSpec("E3", reads=("E2-extratos", "E2-faturas", "E2-llm"), writes=("E3",)),
-    "E4": StageSpec("E4", reads=("E3",), writes=("E4",)),
-    "E5": StageSpec("E5", reads=("E4", "E1.5c"), writes=("E5",)),
-    "E5.N": StageSpec("E5.N", reads=("E5",), writes=("E5.N",)),
-    "E7-crossval": StageSpec("E7-crossval", reads=("E5",), writes=("E7-crossval",)),
-    "E7-review": StageSpec(
-        "E7-review", reads=("E5",), writes=("E7-review",), is_llm=True, tier="premium"
-    ),
-    "E7-apply": StageSpec("E7-apply", reads=("E7-review", "E5"), writes=("E5-revised",)),
-}
-
-
-# Artifact stages válidos que NÃO são unidades de execução — apenas categorias
-# de artefato escritas por outros stages. Hoje só existe ``E5-revised`` (saída
-# de ``E7-apply``).
-VIRTUAL_ARTIFACT_STAGES: frozenset[str] = frozenset({"E5-revised"})
-
-
-# Sequência intencional de execução. NÃO é derivada automaticamente de
-# ``reads``/``writes`` — é uma decisão do orquestrador. ``validate_full_order``
-# apenas verifica consistência com as dependências declaradas.
-FULL_ORDER: list[str] = [
-    "E0-unlock",
-    "E0-audit",
-    "E0-route",
-    "E1",
-    "E1.5",
-    "E1.5c",
-    "E2-faturas",
-    "E2-extratos",
-    "E2-llm",
-    "E3",
-    "E4",
-    "E5",
-    "E5.N",
-    "E7-crossval",
-    "E7-review",
-    "E7-apply",
-]
-
-
-# Sequência determinística (pula stages LLM). Derivada do ``STAGE_REGISTRY``.
-DETERMINISTIC_ORDER: list[str] = [s for s in FULL_ORDER if not STAGE_REGISTRY[s].is_llm]
-
-
-# =============================================================================
-# Mapa canônico de rename (fonte de verdade para Fase 9 — ADR-093)
-# =============================================================================
+# Em F9.2+ STAGE_REGISTRY usa keys descritivas. STAGE_RENAME_MAP permanece
+# como dicionário de compat reverso para CLI alias (e_reset.py --from E3),
+# inputs HTTP legados, e leitura de rows DB ainda no formato antigo
+# (resolvido em F9.3 via Alembic).
 
 STAGE_RENAME_MAP: dict[str, str] = {
     "E0-audit": "audit_documents",
@@ -145,6 +70,133 @@ STAGE_RENAME_MAP: dict[str, str] = {
     "E7-apply": "apply_review",
     "E5-revised": "analyze_finances_revised",  # virtual artifact stage
 }
+
+LEGACY_TO_DESCRIPTIVE: dict[str, str] = STAGE_RENAME_MAP
+DESCRIPTIVE_TO_LEGACY: dict[str, str] = {v: k for k, v in STAGE_RENAME_MAP.items()}
+
+
+def resolve_stage_name(name: str) -> str:
+    """Normaliza nome de stage para descritivo canônico.
+
+    Aceita legacy (``"E3"``) ou descritivo (``"reconcile_transactions"``)
+    e retorna sempre o descritivo. Strings desconhecidas passam through.
+    Use em qualquer boundary que receba input externo (HTTP, CLI, DB).
+    """
+    return STAGE_RENAME_MAP.get(name, name)
+
+
+def to_legacy_stage_name(name: str) -> str:
+    """Inverso de ``resolve_stage_name`` — retorna nome legado se descritivo é conhecido.
+
+    Usado por adaptadores que ainda gravam DB rows no formato legado durante
+    a janela F9.2 → F9.3.
+    """
+    return DESCRIPTIVE_TO_LEGACY.get(name, name)
+
+
+# =============================================================================
+# STAGE_REGISTRY — keys descritivas (F9.2+, ADR-093)
+# =============================================================================
+#
+# Notas de design:
+#   - unlock_documents/audit_documents/route_documents: não produzem
+#     pipeline_artifacts. route_documents move arquivos para data/ via
+#     StorageService — o vínculo com extract_* é via Document.stored_path,
+#     não via ArtifactStore. Writes=() é correto.
+#   - extract_invoices, extract_statements, extract_with_llm: TRÊS artifact
+#     stages distintos evitam colisão na UNIQUE constraint quando o mesmo
+#     documento é processado por extrator determinístico + LLM fallback.
+#     O orquestrador enfileira os três; "E2" (sem sufixo) é apenas alias
+#     de FROM_MAP em LEGACY_FROM_ALIASES.
+#   - apply_review lê review_finances + analyze_finances e produz
+#     analyze_finances_revised (artifact stage virtual — ver
+#     VIRTUAL_ARTIFACT_STAGES).
+
+STAGE_REGISTRY: dict[str, StageSpec] = {
+    "audit_documents": StageSpec("audit_documents"),
+    "unlock_documents": StageSpec("unlock_documents", tier="premium"),
+    "route_documents": StageSpec("route_documents", tier="premium"),
+    "extract_members": StageSpec(
+        "extract_members", writes=("extract_members",), is_llm=True, tier="premium"
+    ),
+    "extract_baseline": StageSpec(
+        "extract_baseline", writes=("extract_baseline",), is_llm=True, tier="premium"
+    ),
+    "consolidate_baseline": StageSpec(
+        "consolidate_baseline", reads=("extract_baseline",), writes=("consolidate_baseline",)
+    ),
+    "extract_invoices": StageSpec("extract_invoices", writes=("extract_invoices",)),
+    "extract_statements": StageSpec("extract_statements", writes=("extract_statements",)),
+    "extract_with_llm": StageSpec(
+        "extract_with_llm", writes=("extract_with_llm",), is_llm=True, tier="premium"
+    ),
+    "reconcile_transactions": StageSpec(
+        "reconcile_transactions",
+        reads=("extract_statements", "extract_invoices", "extract_with_llm"),
+        writes=("reconcile_transactions",),
+    ),
+    "categorize_transactions": StageSpec(
+        "categorize_transactions",
+        reads=("reconcile_transactions",),
+        writes=("categorize_transactions",),
+    ),
+    "analyze_finances": StageSpec(
+        "analyze_finances",
+        reads=("categorize_transactions", "consolidate_baseline"),
+        writes=("analyze_finances",),
+    ),
+    "generate_narratives": StageSpec(
+        "generate_narratives", reads=("analyze_finances",), writes=("generate_narratives",)
+    ),
+    "validate_cross": StageSpec(
+        "validate_cross", reads=("analyze_finances",), writes=("validate_cross",)
+    ),
+    "review_finances": StageSpec(
+        "review_finances",
+        reads=("analyze_finances",),
+        writes=("review_finances",),
+        is_llm=True,
+        tier="premium",
+    ),
+    "apply_review": StageSpec(
+        "apply_review",
+        reads=("review_finances", "analyze_finances"),
+        writes=("analyze_finances_revised",),
+    ),
+}
+
+
+# Artifact stages válidos que NÃO são unidades de execução — apenas categorias
+# de artefato escritas por outros stages. Hoje só existe
+# ``analyze_finances_revised`` (saída de ``apply_review``).
+VIRTUAL_ARTIFACT_STAGES: frozenset[str] = frozenset({"analyze_finances_revised"})
+
+
+# Sequência intencional de execução. NÃO é derivada automaticamente de
+# ``reads``/``writes`` — é uma decisão do orquestrador. ``validate_full_order``
+# apenas verifica consistência com as dependências declaradas.
+FULL_ORDER: list[str] = [
+    "unlock_documents",
+    "audit_documents",
+    "route_documents",
+    "extract_members",
+    "extract_baseline",
+    "consolidate_baseline",
+    "extract_invoices",
+    "extract_statements",
+    "extract_with_llm",
+    "reconcile_transactions",
+    "categorize_transactions",
+    "analyze_finances",
+    "generate_narratives",
+    "validate_cross",
+    "review_finances",
+    "apply_review",
+]
+
+
+# Sequência determinística (pula stages LLM). Derivada do ``STAGE_REGISTRY``.
+DETERMINISTIC_ORDER: list[str] = [s for s in FULL_ORDER if not STAGE_REGISTRY[s].is_llm]
 
 
 # =============================================================================
@@ -220,7 +272,7 @@ validate_full_order(FULL_ORDER)
 # atalhos de "a partir daqui, inclui todos os subvariantes". Preservado em
 # ``build_from_map_with_legacy_aliases`` para o orchestrator.
 LEGACY_FROM_ALIASES: dict[str, str] = {
-    "E0": "E0-unlock",  # "a partir de E0" = rodar todo E0-*
-    "E2": "E2-faturas",  # "a partir de E2" = rodar todo E2-*
-    "E7": "E7-crossval",  # "a partir de E7" = rodar todo E7-*
+    "E0": "unlock_documents",  # "a partir de E0" = rodar todo E0-*
+    "E2": "extract_invoices",  # "a partir de E2" = rodar todo E2-*
+    "E7": "validate_cross",  # "a partir de E7" = rodar todo E7-*
 }
