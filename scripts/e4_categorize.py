@@ -87,11 +87,30 @@ def _init_config(base_dir: Path) -> None:
     CLT_SOURCE_MAPPING = _categorization["clt_source_mapping"]
 
 
-# Module level: carrega defaults (retrocompat com import e CLI direto)
-if _pc is not None:
-    _init_config(_pc.PROJECT_DIR)
-else:
-    _init_config(_DEFAULT_BASE_DIR)
+# =============================================================================
+# Module-level defaults (Sessão A6d.1 — eliminado side-effect no import)
+# =============================================================================
+#
+# Antes de A6d.1: o módulo invocava ``_init_config(_pc.PROJECT_DIR)`` no nível
+# de módulo, lendo ``config/categorization.json`` e ``config/family_members.json``
+# no momento do import. Isso quebrava em ambientes sem config (CI mínimo) e
+# tornava o módulo *não-importável puro*.
+#
+# Agora: globals começam com defaults vazios. ``_init_config(base_dir)`` continua
+# disponível e é invocado explicitamente por ``main(root_dir=...)`` e
+# ``main_with_store(ctx)``.
+_BASE_DIR: Path = _DEFAULT_BASE_DIR
+EXPENSE_KEYWORDS: Dict[str, Any] = {}
+INCOME_KEYWORDS: Dict[str, Any] = {}
+INTERNAL_TRANSFER_PATTERNS: List[str] = []
+INTERNAL_TRANSFER_RECIPIENTS: List[str] = []
+_BANK_SPECIFIC_PATTERNS: Dict[str, Any] = {}
+_GLOBAL_TRANSFER_PATTERNS: List[str] = []
+BANCO_MEMBRO: Dict[str, Any] = {}
+PJ_SOURCE_MAPPING: Dict[str, Any] = {}
+CLT_SOURCE_MAPPING: Dict[str, Any] = {}
+_pipeline_cfg: Dict[str, Any] = {}
+_categorization: Dict[str, Any] = {}
 
 
 # NOTE: All keyword data, transfer patterns, PJ/CLT mappings, and transfer
