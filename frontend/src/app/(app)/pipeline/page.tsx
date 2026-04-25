@@ -19,6 +19,7 @@ import {
   ApiError,
 } from "@/lib/api";
 import { getIFGoal } from "@/lib/api/goals";
+import { resolveStageName } from "@/lib/pipelineStageNames";
 import { usePipelineWS } from "@/lib/usePipelineWS";
 import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
@@ -75,8 +76,13 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const handleWSEvent = useCallback((event: PipelineEvent) => {
     lastWsEventRef.current = Date.now();
 
-    if (event.event === "stage_activity" && event.stage) {
-      lastActivityByStageRef.current[event.stage] = Date.now();
+    // ADR-093 / F9.2: emissores de `stage_activity` em pipeline/stages/*.py
+    // ainda passam keys legadas (E2-extratos, E1.5…). Normaliza para o
+    // descritivo aqui, alinhando com `stage_logs[].stage` no row.
+    const stage = event.stage ? resolveStageName(event.stage) : event.stage;
+
+    if (event.event === "stage_activity" && stage) {
+      lastActivityByStageRef.current[stage] = Date.now();
       const d = event.detail ?? {};
       const phase = typeof d.phase === "string" ? d.phase : undefined;
       const validPhases = [
@@ -87,7 +93,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
         "finalizing",
       ] as const;
       setLiveStageActivity({
-        stage: event.stage,
+        stage,
         file: typeof d.file === "string" ? d.file : undefined,
         message: typeof d.message === "string" ? d.message : undefined,
         currentItem:
@@ -108,7 +114,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
 
     if (event.event === "stage_started") {
       setLiveStageActivity((prev) =>
-        prev && event.stage && prev.stage !== event.stage ? null : prev
+        prev && stage && prev.stage !== stage ? null : prev
       );
     }
 
@@ -118,7 +124,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
       event.event === "stage_failed"
     ) {
       setLiveStageActivity((prev) =>
-        prev && event.stage && prev.stage === event.stage ? null : prev
+        prev && stage && prev.stage === stage ? null : prev
       );
     }
 

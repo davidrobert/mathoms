@@ -14,4 +14,13 @@ describe("isPipelineLlmStage", () => {
     expect(isPipelineLlmStage("E2")).toBe(false);
     expect(isPipelineLlmStage("E3")).toBe(false);
   });
+
+  it("aceita também os nomes descritivos pós-F9.2", () => {
+    expect(isPipelineLlmStage("extract_members")).toBe(true);
+    expect(isPipelineLlmStage("extract_baseline")).toBe(true);
+    expect(isPipelineLlmStage("extract_with_llm")).toBe(true);
+    expect(isPipelineLlmStage("review_finances")).toBe(true);
+    expect(isPipelineLlmStage("unlock_documents")).toBe(false);
+    expect(isPipelineLlmStage("reconcile_transactions")).toBe(false);
+  });
 });
