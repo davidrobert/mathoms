@@ -11,6 +11,28 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Pre-commit gates de code-style baseline e frontend-lock sync
+  (2026-04-25) — ✅:** dois jobs que só rodavam em CI passam a rodar
+  localmente, fechando a janela em que `main` fica vermelho até
+  alguém regenerar baseline ou lockfile. Origem: dois incidentes no
+  mesmo dia (cb0ff11 + ADR-119/ADR-131) — ambos teriam sido pegos
+  antes do push se o gate fosse local.
+  - `code-style-baseline`: roda
+    [`dev/check_code_style_regression.py`](../dev/check_code_style_regression.py)
+    quando `.py`/`.ts`/`.tsx` são staged (~5s). Gate idêntico ao job
+    CI "Code style baseline regression" (ADR-114).
+  - `frontend-lock-sync`: novo
+    [`dev/check_frontend_lock_sync.py`](../dev/check_frontend_lock_sync.py)
+    executa `npm ci --dry-run --ignore-scripts` em `frontend/`. Falha
+    quando o lockfile não satisfaz `package.json`. Pula limpo se
+    `npm` ausente (dev sem Node). Roda quando `frontend/package.json`
+    ou `frontend/package-lock.json` são staged.
+  - Pré-requisito: regenerou
+    [`dev/code_style_baseline.json`](../dev/code_style_baseline.json)
+    absorvendo offenders residuais de ADR-119/ADR-131 que `3c29e17`
+    não capturou (P1 +3, P7 +2, P8 +1). Funções continuam violando
+    "4-20 linhas"; baseline serve como floor até sweep dedicado.
+
 - **Report referencia `pipeline_artifact` por FK (2026-04-25) — ✅
   [ADR-131](DECISIONS.md#adr-131--report-referencia-pipeline_artifact-por-fk-drop-analysis_json_path):**
   encerra estruturalmente a regressão A6c+ADR-129 que a Fatia 1 (commit
