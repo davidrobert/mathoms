@@ -1,8 +1,7 @@
-"""Stage wrapper for E7 Review & Cross-validation — **Caminho B**
-(ADR-097, Sessão A5e).
+"""Stage wrapper for E7 Review & Cross-validation (ADR-097).
 
-Chama ``scripts.e7_review.main_with_store(ctx, mode=...)`` direto, sem
-``MaterializationBridge``. Dois modos determinísticos:
+Chama ``scripts.e7_review.main_with_store(ctx, mode=...)`` direto. Dois
+modos determinísticos:
 
 - ``run_crossval(ctx)`` — 14 checks CV1-CV14 + gera template para LLM em
   ``processed/E7_review/e7_review_template.json``.
@@ -11,7 +10,7 @@ Chama ``scripts.e7_review.main_with_store(ctx, mode=...)`` direto, sem
   ausente + sem template no workspace (free tier, sem LLM).
 
 O modo ``E7-review`` (LLM) **não migra** — é passo humano/externo, não
-determinístico. ``main(root_dir)`` legado continua no script para CLI.
+determinístico.
 """
 
 from __future__ import annotations

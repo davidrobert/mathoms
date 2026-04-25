@@ -1,8 +1,6 @@
-"""Stage wrapper for E5.N Narrativas — **Caminho B** (ADR-097, Sessão A5e).
+"""Stage wrapper for E5.N Narrativas (ADR-097).
 
-Chama ``scripts.e5n_narrativas.main_with_store(ctx)`` direto, sem
-``MaterializationBridge``. ``main(root_dir)`` legado continua existindo
-para CLI direto.
+Chama ``scripts.e5n_narrativas.main_with_store(ctx)`` direto.
 """
 
 from __future__ import annotations

@@ -1,11 +1,7 @@
-"""Stage wrapper for E4 Categorization — **Caminho B** (ADR-097, Sessão A4b).
+"""Stage wrapper for E4 Categorization (ADR-097).
 
-Esta versão **não** usa ``MaterializationBridge`` nem o script legado
-``main(root_dir)``. Chama ``scripts.e4_categorize.main_with_store(ctx)`` que
-opera direto sobre ``ctx.get_artifact_store()`` (Disk em CLI, DB em Web).
-
-O ``main(root_dir)`` legado continua existindo no script para compatibilidade
-com testes existentes e CLI direto, mas não é mais o caminho do pipeline web.
+Chama ``scripts.e4_categorize.main_with_store(ctx)`` que opera direto sobre
+``ctx.get_artifact_store()`` (Disk em CLI, DB em Web).
 """
 
 from __future__ import annotations

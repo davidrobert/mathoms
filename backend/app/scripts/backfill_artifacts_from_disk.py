@@ -41,7 +41,7 @@ def set_session_factory(factory: callable) -> None:
 
 
 # Stages cujos artefatos em disco são migrados. Excluímos stages que não
-# produzem JSON em ``processed/`` (ver MaterializationBridge.test_mappings_complete).
+# produzem JSON em ``processed/``.
 _MIGRATED_STAGES = [
     "E1.5c",
     "E2-extratos",

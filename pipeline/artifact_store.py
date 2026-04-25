@@ -36,7 +36,7 @@ from typing import Optional, Protocol, runtime_checkable
 # Mapeamentos stage → diretório/sufixo (convenção atual do ``processed/``)
 # =============================================================================
 #
-# Fonte de verdade para ``DiskArtifactStore`` e ``MaterializationBridge`` (Fase 2).
+# Fonte de verdade para ``DiskArtifactStore``.
 # As chaves são os identificadores legados — Fase 9 migra para os descritivos.
 #
 # Invariante (testado em ``tests/pipeline/test_artifact_stores.py``):

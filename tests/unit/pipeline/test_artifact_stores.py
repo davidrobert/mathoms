@@ -8,8 +8,7 @@ Cobre Fase 1 (Foundation) do plano de migração:
   entre testes (pytest cria instância nova por teste).
 - ``ReadableArtifactStore`` e ``ArtifactStore`` são reconhecidos via
   ``isinstance`` (``@runtime_checkable``).
-- ``_STAGE_TO_DIR`` e ``_STAGE_TO_SUFFIX`` têm a mesma cobertura de stages
-  (invariante para o ``MaterializationBridge`` da Fase 2).
+- ``_STAGE_TO_DIR`` e ``_STAGE_TO_SUFFIX`` têm a mesma cobertura de stages.
 """
 
 from __future__ import annotations
@@ -215,8 +214,7 @@ class TestStageMappings:
         """``_STAGE_TO_DIR`` e ``_STAGE_TO_SUFFIX`` cobrem os mesmos stages.
 
         Invariante de segurança: se um stage tem diretório mapeado, deve ter
-        sufixo mapeado e vice-versa, senão ``DiskArtifactStore`` e
-        ``MaterializationBridge`` (Fase 2) divergem silenciosamente.
+        sufixo mapeado e vice-versa.
         """
         assert set(_STAGE_TO_DIR.keys()) == set(_STAGE_TO_SUFFIX.keys())
 
@@ -253,8 +251,7 @@ class TestStageMappings:
 
     def test_legacy_e2_variants_all_present(self):
         """E2, E2-faturas, E2-extratos, E2-llm — todos precisam estar mapeados
-        porque o ``MaterializationBridge`` usará os nomes do ``STAGE_REGISTRY``
-        (Fase 1.5) e esses stages existem separadamente lá.
+        porque esses stages existem separadamente em ``STAGE_REGISTRY``.
         """
         for stage in ("E2", "E2-faturas", "E2-extratos", "E2-llm"):
             assert stage in _STAGE_TO_DIR, f"{stage} faltando em _STAGE_TO_DIR"

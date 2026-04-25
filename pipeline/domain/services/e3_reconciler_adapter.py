@@ -13,14 +13,8 @@ validadores extraídos de ``scripts/e3_reconcile.py`` na Sessão A1:
 - :class:`BankCanonicalizer` (output filename estável, comparação sem
   falsos positivos de substring)
 
-Lógica residual de ``scripts/e3_reconcile.py`` (geração de
-``reconciliation.md`` summary, ``qa_log.md`` rewriting, exit codes,
-``cleanup_e3_directory``) **continua no script legado** via
-``MaterializationBridge`` (Caminho A) até a Sessão A2 introduzir
-``main_with_store(config, store)``.
-
-Uso atual: testes de paridade + workspaces piloto antes do refactor real do
-``main()``.
+Lógica residual (``reconciliation.md`` summary, ``qa_log.md`` rewriting,
+``cleanup_e3_directory``) vive em ``scripts/e3_reconcile.main_with_store``.
 """
 
 from __future__ import annotations
