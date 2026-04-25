@@ -81,6 +81,65 @@
 - [ ] Download PDF server-side (`/download.pdf`) abre sem erro quando Playwright/Chromium configurado no backend
 - [ ] Capa/hero do PDF reflete período do snapshot e título do relatório (mesmo que tela)
 
+### 5.2 Report Premium UI smoke (humano · pós-Fase 10)
+
+> Pré-condição: workspace com pelo menos 1 relatório gerado (run completa
+> até E5). Modos `estrategico`/`tatico`/`usa` ativos desde F4 (commit
+> `a3411e6`); a11y automatizada chega via lane
+> [`report-a11y-finalize`](BACKLOG.md#lanes-abertas-agora--pickup-table) —
+> até lá esta seção é checklist humano provisório.
+
+**Modos**
+
+- [ ] `/reports/<id>?mode=estrategico` carrega seções S1–S10 visíveis
+- [ ] `/reports/<id>?mode=tatico` carrega seções T1–T6 visíveis
+- [ ] `/reports/<id>?mode=usa` carrega seções U1–U4 visíveis
+- [ ] Toggle de modo no header preserva o hash atual (abrir em `#S3`,
+      trocar modo, hash continua `#S3` ou equivalente do novo modo)
+- [ ] Modo inválido na URL (`?mode=foo`) → fallback silencioso para
+      `estrategico` (sem crash, sem página em branco)
+
+**Tema**
+
+- [ ] Light/dark toggle persiste após reload (chave
+      `mathoms.report.theme` em localStorage)
+- [ ] Cores monetárias respeitam tema em ambos os modos (positivo/negativo
+      legíveis em dark e light)
+- [ ] Print mode (`?print=1`) força light mesmo com `theme=dark` salvo
+
+**Print / PDF**
+
+- [ ] `Ctrl+P` (ou `?print=1`) oculta TopNav, FloatingNav e ExportToolbar
+- [ ] Quebras de página: gráficos S2/S5 não cortam ao meio
+- [ ] Cabeçalho de família + número de página aparecem em todas as páginas
+- [ ] PDF via `GET /v1/reports/<id>/download.pdf` (Playwright) sai em A4,
+      hero ocupa 1ª página, KPIs em monoespaçado (JetBrains Mono)
+
+**Colaboração (notas + kanban — ADR-123)**
+
+- [ ] Notas em qualquer seção persistem no localStorage **e** sincronizam
+      via `reports_collab` API; recarregar página mantém conteúdo
+- [ ] Kanban em T6 permite mover card entre colunas (botões — DnD real
+      é débito consciente, ver BACKLOG)
+- [ ] Limpar `localStorage` (`mathoms.report.*`) não apaga notas
+      server-side (precisa endpoint `DELETE /v1/reports/<id>/collab/*`)
+- [ ] Logout zera UI local; novo login carrega notas do servidor
+
+**Lineage / consolidação**
+
+- [ ] `ReportSourceStrip` no header mostra "Consolidado de N documentos"
+      coerente com o que o workspace tem em `/documents`
+- [ ] Apêndice A lista runs do pipeline (timestamps + stages executados)
+- [ ] Apêndice E (changelog) renderiza vazio se feature flag
+      `enabled: false` no `report_layout.yaml` — não quebra layout
+
+**Navegação**
+
+- [ ] FloatingNav mostra seções do modo ativo (não vaza T-/U- no
+      `estrategico`)
+- [ ] Click em item da TOC ancora suavemente na seção
+- [ ] FontScaleToggle (header) ajusta tipografia globalmente; persiste
+
 ## 6. Dashboard & Transactions
 
 - [ ] Dashboard carrega KPIs (Receitas, Despesas, Saldo, Score)
