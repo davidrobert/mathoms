@@ -34,6 +34,9 @@ frontend/node_modules/
 frontend/.next/
 frontend/coverage/
 frontend/tsconfig.tsbuildinfo
+frontend/.lighthouseci/
+frontend/playwright-report/
+frontend/playwright-results/
 node_modules/
 
 # Testing

@@ -373,6 +373,57 @@ jobs:
               body,
             });
 
+  frontend-lighthouse:
+    # Lane report-a11y-finalize item 4 — D2: PR-time, fixture medium,
+    # 3 runs, gate perf 0.85 / a11y 0.95 / bp 0.95 / seo 0.90 (warn).
+    # Não depende de backend — `tests/lighthouse/lighthouse-mock.cjs`
+    # injeta token + intercepta /api/v1/** com fixture sintética.
+    name: Frontend Lighthouse (relatório nativo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next (production preset)
+        env:
+          NODE_ENV: production
+        run: npm run build
+
+      - name: Start Next
+        run: |
+          npm run start -- -p 3000 > /tmp/next.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000 > /dev/null; then echo "next up"; break; fi
+            sleep 2
+          done
+          curl -sf http://127.0.0.1:3000 > /dev/null || (tail -50 /tmp/next.log && exit 1)
+
+      - name: Run Lighthouse CI
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        run: npm run lhci
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: frontend/.lighthouseci/
+          retention-days: 30
+
   all-green:
     name: All checks green
     runs-on: ubuntu-latest
@@ -386,6 +437,7 @@ jobs:
       - backend-tests
       - frontend-lint
       - frontend-tests
+      - frontend-lighthouse
     if: always()
     steps:
       - name: Verify all required jobs passed
@@ -399,4 +451,5 @@ jobs:
           if [[ "${{ needs.backend-tests.result }}" != "success" ]]; then exit 1; fi
           if [[ "${{ needs.frontend-lint.result }}" != "success" ]]; then exit 1; fi
           if [[ "${{ needs.frontend-tests.result }}" != "success" ]]; then exit 1; fi
+          if [[ "${{ needs.frontend-lighthouse.result }}" != "success" ]]; then exit 1; fi
           echo "✓ Todos os checks obrigatórios passaram"
