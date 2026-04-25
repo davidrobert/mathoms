@@ -92,6 +92,7 @@ export function ChartCanvas<TType extends ChartType = ChartType>({
           alt={ariaLabel ?? ""}
           className="chart-print-img"
           aria-hidden="true"
+          style={{ display: "none" }}
         />
       )}
     </div>

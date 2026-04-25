@@ -57,6 +57,16 @@
     page-break-inside: avoid;
   }
 
+  /* Chart.js (canvas) print fallback: troca canvas → PNG snapshot. */
+  [data-chart-canvas] > canvas {
+    display: none !important;
+  }
+  .chart-print-img {
+    display: block !important;
+    width: 100%;
+    height: auto;
+  }
+
   /* ────── Tables ────── */
   table {
     break-inside: avoid;
