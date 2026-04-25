@@ -8,7 +8,6 @@ interface PatrimonioCategoriasCardProps {
 
 /** F9 · F2.A · S1 — Card "Composição Patrimonial por Categoria".
  *
- * Substitui build_patrimonio_categorias_card() do e6_render.py.
  * Consome patrimonio.composicao (ou tabela_categorias como fallback).
  */
 export function PatrimonioCategoriasCard({

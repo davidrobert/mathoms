@@ -254,9 +254,7 @@ test.describe("Golden Path — smoke do produto inteiro @critical", () => {
       ).toContain(FAMILY_SURNAME);
     }).toPass({ timeout: 20_000 });
 
-    // (5) URL do relatório (geralmente /api/v1/reports/{id}/html) via
-    // href ou data attribute. O nome do arquivo HTML inclui o surname
-    // — cobertura secundária aqui (foco em cover text já validado).
+    // (5) URL do relatório (/reports/{id}) — foco em cover text já validado.
     const reportUrl = page.url();
     expect(reportUrl).toContain("/reports/");
 

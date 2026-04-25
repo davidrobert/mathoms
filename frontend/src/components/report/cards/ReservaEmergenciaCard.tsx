@@ -12,7 +12,6 @@ interface ReservaEmergenciaCardProps {
 /** F9 · F2.A · S1 — Card "Reserva de Emergência".
  *
  * Mostra cobertura em meses vs metas (6m e 12m) + avaliação qualitativa.
- * Substitui build_reserva_emergencia_card() do e6_render.py.
  *
  * Regra de variant (F3.2 refinará): se cobertura < 3 meses, força critical;
  * entre 3 e 6 warn; ≥ 6 success. Respeita override do layout.yaml.

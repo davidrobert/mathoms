@@ -28,7 +28,6 @@ interface S1Props {
 /** F9 · F2.A — Seção S1 completa (Patrimônio — Estrutura e Composição).
  *
  * Renderiza KPIs + 3 charts + 4 cards consumindo dados do E5 JSON.
- * Substitui a lógica de `build_sections()` do e6_render.py para S1.
  */
 export function S1PatrimonioSection({ data }: S1Props) {
   const patrimonio = data.patrimonio as PatrimonioData | undefined;

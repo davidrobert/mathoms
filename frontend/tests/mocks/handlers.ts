@@ -64,14 +64,6 @@ export const handlers = [
     if (!report) return HttpResponse.json({ detail: "Not found" }, { status: 404 });
     return HttpResponse.json(report);
   }),
-  http.get(`${API}/reports/:id/html`, () =>
-    HttpResponse.html("<html><body>Mocked report</body></html>"),
-  ),
-  http.get(`${API}/reports/:id/download.html`, () =>
-    HttpResponse.html("<html><body>Mocked standalone</body></html>", {
-      headers: { "Content-Disposition": 'attachment; filename="report.html"' },
-    }),
-  ),
   http.get(`${API}/workspaces/:workspaceId/reports`, () =>
     HttpResponse.json({ reports: fixtures.reports, total: fixtures.reports.length }),
   ),

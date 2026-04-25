@@ -4,9 +4,8 @@ import type { EndividamentoData } from "@/types/report-analysis";
 
 /** F9 · F2.A · S1 — Card "Endividamento".
  *
- * Substitui build_endividamento_card() do e6_render.py. Mostra total,
- * % do patrimônio e lista de dívidas (se houver). Quando total_dividas=0
- * celebra a situação com mensagem positiva.
+ * Mostra total, % do patrimônio e lista de dívidas (se houver). Quando
+ * total_dividas=0 celebra a situação com mensagem positiva.
  */
 export function EndividamentoCard({
   endividamento,

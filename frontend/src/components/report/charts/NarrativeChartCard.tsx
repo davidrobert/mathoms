@@ -12,9 +12,6 @@ interface NarrativeChartCardProps {
 
 /** F9 · F2.C–G — Card genérico para charts cujo dado é narrativo
  *  (apenas `context` + `conclusion`, sem datasets para Recharts).
- *
- *  Cobre a maioria dos charts de S3–S10 que vieram do e6_render.py
- *  como blocos de texto contextualizados.
  */
 export function NarrativeChartCard({
   chartId,
