@@ -4866,6 +4866,11 @@ para filesystem, violação pragmática agora removida).
 
 ---
 
+<!--
+Template editorial — preservado em HTML comment para não aparecer
+no ToC do GitHub como ADR real. Copie o bloco abaixo ao criar uma
+ADR nova e mova-o para a posição correta na ordem numérica.
+
 ## ADR-NNN — Titulo curto
 
 **Status:** Decidido (FX) • **Data:** YYYY-MM-DD
@@ -4880,3 +4885,5 @@ para filesystem, violação pragmática agora removida).
 - ❌ Drawbacks aceitos
 
 Se substituir uma ADR anterior, marcar: `Supersedes ADR-NNN`.
+-->
+

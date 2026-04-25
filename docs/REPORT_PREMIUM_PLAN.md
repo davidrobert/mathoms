@@ -46,8 +46,9 @@ este plano conflitar com os deltas abaixo, **os deltas prevalecem**.
    4 endpoints REST com `response_model`, OpenAPI snapshot. Entra entre
    Fase 6 (dados E5) e Fase 7 (seções). Esforço: ~1 sprint.
 4. **`comparisons` e `changelog` diferidos para v2** (decisão usuário Q6).
-   Entram como `enabled: false` no YAML durante Fase 5. Ativação pós-Fase 13
-   quando `SnapshotChangelogBuilder` for construído.
+   Entram como `enabled: false` no YAML durante Fase 5. Ativação diferida
+   para v2 quando `SnapshotChangelogBuilder` for construído (Fase 13 foi
+   cancelada por ADR-129; reativação agora depende de planejamento próprio).
 5. **Typography configurável — 13px default** (ADR-121). `--font-base-px`
    escopado no shell de `/reports/**`. Toggle "Compacto/Normal/Confortável"
    na top-nav. Escala recalculada em px (não rem) dentro do relatório.
@@ -241,7 +242,7 @@ Estimativa total (um agente, serial): **10–14 sprints equivalentes**. Paraleli
 ```
 feat(design-tokens): expand scale — fonts, spacing, radius, shadows (ADR-117)
 feat(design-tokens): dark mode tokens with calibrated gradients
-feat(design-tokens): build.py emits standalone CSS for e6_render
+feat(design-tokens): build.py emits standalone CSS for e6_render  # [obsoleto por ADR-129 — e6_render removido; CSS agora alimenta só /reports/[id]]
 feat(report): ReportThemeToggle with data-theme + localStorage
 ```
 
@@ -307,7 +308,7 @@ Grid lines, tick labels e legendas precisam ler cores via `getComputedStyle(docu
 
 - Storybook local (ou página `/reports/_dev/charts`) renderiza cada chart com fixture estática.
 - Print-preview do Chrome mostra PNG fallback (não SVG vazio).
-- Testes unitários Vitest para `useChartTheme` e transformações de dados (não precisa teste visual Playwright ainda — vem na Fase 12).
+- Testes unitários Vitest para `useChartTheme` e transformações de dados (testes visuais Playwright foram entregues na lane `report-a11y-finalize` — ver [REPORT_VISUAL_SNAPSHOTS.md](REPORT_VISUAL_SNAPSHOTS.md); Fase 12 original foi cancelada por ADR-129).
 
 ---
 
