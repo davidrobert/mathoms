@@ -289,6 +289,7 @@ class E3ReconcilerAdapter:
         input_stages: Iterable[str] | None = None,
         output_key_fn=None,
         serialize_fn=None,
+        pipeline_run_id: str | None = None,
     ) -> ReconciliationStoreResult:
         """Pipeline end-to-end: read → preprocess → reconcile → validate → write.
 
@@ -321,9 +322,20 @@ class E3ReconcilerAdapter:
         for stmt in reconciled:
             grouped[key_for(stmt)].append(stmt)
 
+        from pipeline.live_progress import emit_item_progress
+
         written = 0
         merged_statements: list[BankStatement] = []
-        for key, stmts in grouped.items():
+        items_total = len(grouped)
+        for idx, (key, stmts) in enumerate(grouped.items()):
+            emit_item_progress(
+                pipeline_run_id,
+                output_stage,
+                current_item=key,
+                items_done=idx,
+                items_total=items_total,
+                phase="preparing",
+            )
             sources = [s.source_document for s in stmts if s.source_document]
             if len(stmts) == 1:
                 merged_stmt = stmts[0]
@@ -360,8 +372,26 @@ class E3ReconcilerAdapter:
                 if len(stmts) > 1:
                     payload["pipeline_stage"] = "E3"
             merged_statements.append(merged_stmt)
+            emit_item_progress(
+                pipeline_run_id,
+                output_stage,
+                current_item=key,
+                items_done=idx,
+                items_total=items_total,
+                phase="persisting",
+            )
             store.write(output_stage, key, payload)
             written += 1
+
+        if items_total > 0:
+            emit_item_progress(
+                pipeline_run_id,
+                output_stage,
+                current_item=None,
+                items_done=items_total,
+                items_total=items_total,
+                phase="finalizing",
+            )
 
         # Validações — sempre rodam sobre os statements originais (pré-merge)
         # para preservar fidelidade temporal entre arquivos.

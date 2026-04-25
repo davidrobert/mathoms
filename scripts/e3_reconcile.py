@@ -1055,7 +1055,7 @@ def _e3_build_adapter(ctx):
     return adapter, canon
 
 
-def _e3_run_reconciliation(adapter, store, canon):
+def _e3_run_reconciliation(adapter, store, canon, pipeline_run_id: str | None = None):
     """Executa reconcile_via_store com serializer/key legados."""
     from pipeline.domain.services.e3_serialization import (
         generate_legacy_artifact_key,
@@ -1072,6 +1072,7 @@ def _e3_run_reconciliation(adapter, store, canon):
         output_stage="E3",
         output_key_fn=output_key_fn,
         serialize_fn=serialize_fn,
+        pipeline_run_id=pipeline_run_id,
     )
 
 
@@ -1181,7 +1182,18 @@ def main_with_store(ctx) -> Dict[str, Any]:
     log_progress("E3.0", f"Workspace root: {ctx.root}")
     log_progress("E3.0", f"Store impl:     {type(store).__name__}")
 
-    result = _e3_run_reconciliation(adapter, store, canon)
+    from pipeline.live_progress import emit_item_progress
+
+    emit_item_progress(
+        ctx.pipeline_run_id,
+        "E3",
+        current_item="Carregando extratos…",
+        items_done=0,
+        items_total=1,
+        phase="preparing",
+    )
+
+    result = _e3_run_reconciliation(adapter, store, canon, ctx.pipeline_run_id)
     written_filenames = _e3_validate_outputs(store, ctx)
     _e3_write_sidecar_logs(ctx, written_filenames, result)
     _e3_log_warnings(result)
