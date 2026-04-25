@@ -258,11 +258,14 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             premissas_snapshot = build_premissas_snapshot_sync(ws_id, tenant_root, db)
         except Exception:  # noqa: BLE001
             premissas_snapshot = None
+        analysis_content = artifact.get("content_json") or {}
+        period_value = analysis_content.get("periodo_dados") or analysis_content.get("data_analise")
         report = Report(
             id=str(uuid.uuid4()),
             workspace_id=ws_id,
             pipeline_run_id=run_id,
             title=f"Relatório {datetime.now(_BRT).strftime('%Y-%m-%d %H:%M')}",
+            period=period_value if isinstance(period_value, str) else None,
             analysis_artifact_id=artifact["id"],
             tasks_snapshot_json=tasks_snapshot,
             premissas_snapshot_json=premissas_snapshot,

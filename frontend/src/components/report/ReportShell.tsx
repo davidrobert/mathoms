@@ -234,7 +234,10 @@ export function ReportShell({
       year: "numeric",
     });
     return [
-      { label: "Período analisado", value: reportPeriod ?? "—" },
+      {
+        label: "Período analisado",
+        value: analysisPeriodFromSnapshot ?? reportPeriod ?? "—",
+      },
       { label: "Gerado em", value: generated },
       {
         label: "Documentos",
@@ -242,7 +245,13 @@ export function ReportShell({
       },
       { label: "Versão", value: "Premium" },
     ];
-  }, [dataState.status, reportPeriod, reportCreatedAt, sourceDocumentCount]);
+  }, [
+    dataState.status,
+    analysisPeriodFromSnapshot,
+    reportPeriod,
+    reportCreatedAt,
+    sourceDocumentCount,
+  ]);
 
   return (
     <div
