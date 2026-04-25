@@ -1356,9 +1356,8 @@ def _run_validation_and_summary(
             for s in trailing_llm:
                 desc = llm_descriptions.get(s, "")
                 print(f"    - {s}" + (f": {desc}" if desc else ""))
-            print("\n  Após concluir as etapas LLM acima, re-rode E6 para")
-            print("  gerar o relatório final com narrativas:")
-            print("    python scripts/e6_render.py")
+            print("\n  Relatório disponível em /reports/[id] na UI React")
+            print("  após concluir as etapas LLM acima.")
     print("=" * 60)
 
 

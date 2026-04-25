@@ -9,7 +9,7 @@ Reads the complete E5 JSON (data + narrativas) and performs:
   1. Deterministic cross-validation checks between sections
   2. Consistency analysis between narrativas text and underlying data
   3. Generates a review structure for LLM-driven refinement
-  4. Applies LLM refinements back to E5 JSON + triggers E6 re-render
+  4. Applies LLM refinements back to E5 JSON
 
 Usage:
   python scripts/e7_review.py                       # Cross-validation + review template
@@ -19,10 +19,10 @@ Usage:
 
 The E7 stage is an LLM stage. The typical workflow is:
   1. Run `python scripts/e7_review.py` to see cross-validation results
-  2. LLM reads results + E5 JSON + HTML report + methodology.md
+  2. LLM reads results + E5 JSON + methodology.md
   3. LLM creates review JSON using the persona/approach from methodology.md
   4. Run `python scripts/e7_review.py --apply review.json` to apply refinements
-  5. Run `python scripts/e6_render.py` to re-render the final report
+     (relatório atualizado disponível em /reports/[id] na UI React)
 
 Author: Pipeline Ferreira Campos
 """
@@ -964,8 +964,7 @@ Exemplos:
             with open(E5_JSON_PATH, "w", encoding="utf-8") as f:
                 json.dump(updated_e5, f, indent=2, ensure_ascii=False)
             print("  E5 JSON atualizado com refinamentos")
-            print("\n  Próximo passo: re-renderizar o relatório:")
-            print("    python scripts/e6_render.py")
+            print("  Relatório atualizado: /reports/[id] (UI React)")
         else:
             print(f"  [DRY-RUN] {change_count} seção(ões) seriam refinadas")
 
@@ -1015,12 +1014,11 @@ Exemplos:
     print()
     print("  Próximos passos (LLM):")
     print("  1. Leia o review template gerado acima")
-    print("  2. Leia o relatório HTML em output/")
+    print("  2. Abra o relatório em /reports/[id] (UI React)")
     print("  3. Use a persona do config/methodology.md para análise holística")
     print("  4. Preencha o template com refinamentos")
     print("  5. Salve como review JSON e aplique:")
     print("     python scripts/e7_review.py --apply <review.json>")
-    print("  6. Re-renderize: python scripts/e6_render.py")
     print()
 
     return True
