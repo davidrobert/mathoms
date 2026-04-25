@@ -20,10 +20,18 @@ module.exports = {
       url: ["http://127.0.0.1:3000/reports/report-fixture-medium?workspace=ws-fixture"],
       numberOfRuns: 3,
       puppeteerScript: "./tests/lighthouse/lighthouse-mock.cjs",
+      // Em CI (ubuntu-24.04 + setup-chrome via /opt/hostedtoolcache) o
+      // chrome-sandbox não tem owner=root mode=4755 e o launch aborta.
+      // --no-sandbox é seguro neste contexto: rodamos contra fixture
+      // sintética em loopback, sem código não-confiável.
+      puppeteerLaunchOptions: {
+        args: ["--no-sandbox", "--disable-dev-shm-usage"],
+      },
       settings: {
         preset: "desktop",
         // next-themes monta async; aguarda mais tempo p/ paint estabilizar.
         maxWaitForLoad: 45000,
+        chromeFlags: "--no-sandbox --disable-dev-shm-usage",
       },
     },
     assert: {
