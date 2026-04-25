@@ -19,7 +19,10 @@ import {
   ApiError,
 } from "@/lib/api";
 import { getIFGoal } from "@/lib/api/goals";
-import { resolveStageName } from "@/lib/pipelineStageNames";
+import {
+  parseStageActivityEvent,
+  resolveStageName,
+} from "@/lib/pipelineStageNames";
 import { usePipelineWS } from "@/lib/usePipelineWS";
 import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
@@ -76,40 +79,14 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const handleWSEvent = useCallback((event: PipelineEvent) => {
     lastWsEventRef.current = Date.now();
 
-    // ADR-093 / F9.2: emissores de `stage_activity` em pipeline/stages/*.py
-    // ainda passam keys legadas (E2-extratos, E1.5…). Normaliza para o
-    // descritivo aqui, alinhando com `stage_logs[].stage` no row.
+    // ADR-093 / F9.2: normaliza legacy stage IDs (E2-extratos, E1.5…)
+    // que ainda chegam de emissores em pipeline/stages/*.py.
     const stage = event.stage ? resolveStageName(event.stage) : event.stage;
 
-    if (event.event === "stage_activity" && stage) {
-      lastActivityByStageRef.current[stage] = Date.now();
-      const d = event.detail ?? {};
-      const phase = typeof d.phase === "string" ? d.phase : undefined;
-      const validPhases = [
-        "preparing",
-        "awaiting_llm",
-        "validating",
-        "persisting",
-        "finalizing",
-      ] as const;
-      setLiveStageActivity({
-        stage,
-        file: typeof d.file === "string" ? d.file : undefined,
-        message: typeof d.message === "string" ? d.message : undefined,
-        currentItem:
-          typeof d.current_item === "string" ? d.current_item : undefined,
-        itemsDone: typeof d.items_done === "number" ? d.items_done : undefined,
-        itemsTotal:
-          typeof d.items_total === "number" ? d.items_total : undefined,
-        phase:
-          phase && (validPhases as readonly string[]).includes(phase)
-            ? (phase as (typeof validPhases)[number])
-            : undefined,
-        estimatedDurationMs:
-          typeof d.estimated_duration_ms === "number"
-            ? d.estimated_duration_ms
-            : undefined,
-      });
+    const activity = parseStageActivityEvent(event);
+    if (activity) {
+      lastActivityByStageRef.current[activity.stage] = Date.now();
+      setLiveStageActivity(activity);
     }
 
     if (event.event === "stage_started") {

@@ -1,3 +1,5 @@
+import type { PipelineEvent, PipelineStageActivity } from "./api";
+
 /**
  * Espelha `STAGE_RENAME_MAP` em `pipeline/stage_spec.py` (ADR-093 / F9.2).
  *
@@ -30,4 +32,47 @@ const LEGACY_TO_DESCRIPTIVE: Record<string, string> = {
 
 export function resolveStageName(stage: string): string {
   return LEGACY_TO_DESCRIPTIVE[stage] ?? stage;
+}
+
+const VALID_PHASES = [
+  "preparing",
+  "awaiting_llm",
+  "validating",
+  "persisting",
+  "finalizing",
+] as const;
+
+/**
+ * Converte um evento WS `stage_activity` em `PipelineStageActivity`,
+ * normalizando o `stage` para o nome descritivo (ADR-093). Retorna
+ * `null` se o evento não tem `stage` ou não é um `stage_activity`.
+ *
+ * Função pura — extraída do handler em `app/(app)/pipeline/page.tsx`
+ * para ser testada sem render. Garante a invariante: o `stage` que
+ * sai daqui sempre é o descritivo, alinhado com `stage_logs[].stage`.
+ */
+export function parseStageActivityEvent(
+  event: PipelineEvent,
+): PipelineStageActivity | null {
+  if (event.event !== "stage_activity" || !event.stage) return null;
+  const d = event.detail ?? {};
+  const phase = typeof d.phase === "string" ? d.phase : undefined;
+  return {
+    stage: resolveStageName(event.stage),
+    file: typeof d.file === "string" ? d.file : undefined,
+    message: typeof d.message === "string" ? d.message : undefined,
+    currentItem:
+      typeof d.current_item === "string" ? d.current_item : undefined,
+    itemsDone: typeof d.items_done === "number" ? d.items_done : undefined,
+    itemsTotal:
+      typeof d.items_total === "number" ? d.items_total : undefined,
+    phase:
+      phase && (VALID_PHASES as readonly string[]).includes(phase)
+        ? (phase as (typeof VALID_PHASES)[number])
+        : undefined,
+    estimatedDurationMs:
+      typeof d.estimated_duration_ms === "number"
+        ? d.estimated_duration_ms
+        : undefined,
+  };
 }
