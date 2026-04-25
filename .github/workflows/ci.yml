@@ -403,11 +403,16 @@ jobs:
 
       - name: Setup Chrome (lhci usa chrome-launcher)
         # ubuntu-24.04 (novo default de ubuntu-latest) não traz mais Chrome
-        # pré-instalado. @lhci/cli 0.14 depende de chrome-launcher → exige
-        # binário no PATH ou CHROME_PATH definido.
+        # pré-instalado. @lhci/cli 0.14 → chrome-launcher só probes caminhos
+        # canônicos (/usr/bin/google-chrome, /opt/google/chrome/chrome).
+        # `browser-actions/setup-chrome` instala em /opt/hostedtoolcache, fora
+        # desses paths — exporta `chrome-path` que injetamos como CHROME_PATH
+        # no step LHCI (env honrada por chrome-launcher).
+        id: chrome
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
+          install-chromedriver: false
 
       - name: Build Next (production preset)
         env:
@@ -426,6 +431,7 @@ jobs:
       - name: Run Lighthouse CI
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: npm run lhci
 
       - name: Upload Lighthouse reports
