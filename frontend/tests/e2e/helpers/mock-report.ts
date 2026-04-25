@@ -125,6 +125,21 @@ export async function mockReportPage(
     if (path.includes("/notifications")) {
       return json(route, { notifications: [], total: 0, unread_count: 0 });
     }
+    if (path.includes("/transactions")) {
+      return json(route, {
+        transactions: [],
+        total: 0,
+        page: 1,
+        page_size: 500,
+        summary: {
+          total_in: 0,
+          total_out: 0,
+          net: 0,
+          by_category: {},
+          by_member: {},
+        },
+      });
+    }
     if (path.includes("/dashboard")) {
       return json(route, {});
     }
