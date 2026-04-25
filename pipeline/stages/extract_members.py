@@ -91,12 +91,16 @@ def run(ctx: WorkspaceContext) -> dict:
     if not docs_text_parts:
         return {"skipped": True, "reason": "No extractable text in documents"}
 
-    from pipeline.live_progress import emit_stage_activity
+    from pipeline.live_progress import emit_item_progress
 
-    emit_stage_activity(
+    item_label = f"{len(docs_text_parts)} documento(s) pessoais"
+    emit_item_progress(
         ctx.pipeline_run_id,
         "E1",
-        message=f"Lendo dados pessoais com IA ({len(docs_text_parts)} documento(s))…",
+        current_item=item_label,
+        items_done=0,
+        items_total=1,
+        phase="preparing",
     )
 
     documents_text = "\n\n".join(docs_text_parts)
@@ -106,6 +110,14 @@ def run(ctx: WorkspaceContext) -> dict:
     config = LLMConfig(**llm_config_data)
     service = LLMService(config)
 
+    emit_item_progress(
+        ctx.pipeline_run_id,
+        "E1",
+        current_item=item_label,
+        items_done=0,
+        items_total=1,
+        phase="awaiting_llm",
+    )
     result = service.call(
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,
@@ -118,6 +130,14 @@ def run(ctx: WorkspaceContext) -> dict:
 
     from pipeline.llm.validators import validate_e1_output
 
+    emit_item_progress(
+        ctx.pipeline_run_id,
+        "E1",
+        current_item=item_label,
+        items_done=0,
+        items_total=1,
+        phase="validating",
+    )
     validation = validate_e1_output(output)
     if not validation.valid:
         logger.warning("E1: validation errors: %s", validation.errors)
@@ -127,7 +147,23 @@ def run(ctx: WorkspaceContext) -> dict:
     family_json = _output_to_family_members_json(output)
 
     store = ctx.get_artifact_store()
+    emit_item_progress(
+        ctx.pipeline_run_id,
+        "E1",
+        current_item=item_label,
+        items_done=0,
+        items_total=1,
+        phase="persisting",
+    )
     store.write("E1", "members", family_json)
+    emit_item_progress(
+        ctx.pipeline_run_id,
+        "E1",
+        current_item=None,
+        items_done=1,
+        items_total=1,
+        phase="finalizing",
+    )
 
     logger.info("E1: extracted %d members, confidence=%.2f", len(output.members), output.confidence)
 

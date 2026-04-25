@@ -15,13 +15,26 @@ if TYPE_CHECKING:
 
 
 def run(ctx: "WorkspaceContext") -> dict:
-    from pipeline.live_progress import emit_stage_activity
+    from pipeline.live_progress import emit_item_progress
     from scripts.e15_consolidate import main_with_store
 
-    emit_stage_activity(
+    emit_item_progress(
         ctx.pipeline_run_id,
         "E1.5c",
-        message="Consolidando patrimônio inicial (enriquecimento determinístico)…",
+        current_item="Patrimônio inicial",
+        items_done=0,
+        items_total=1,
+        phase="preparing",
     )
 
-    return main_with_store(ctx)
+    result = main_with_store(ctx)
+
+    emit_item_progress(
+        ctx.pipeline_run_id,
+        "E1.5c",
+        current_item=None,
+        items_done=1,
+        items_total=1,
+        phase="finalizing",
+    )
+    return result
