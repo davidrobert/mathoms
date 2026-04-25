@@ -11,6 +11,19 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Lane `livestep-emit-stages` E2 (2026-04-25):** segundo emissor migrado
+  para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
+  (após E1.5 em `3bc9d25`). `scripts/e2_extract.py` agora chama
+  `emit_item_progress(phase="preparing")` no início do loop e
+  `emit_item_progress(phase="persisting")` antes de `store.write`,
+  com `finalizing` único após o loop. Substitui o `emit_stage_activity`
+  com texto embutido `"Processando idx/N"` por progresso tipado +
+  throttled. UI ganha barra determinística, label PT-BR rotando e
+  `current_item` preservado por `<LiveStepProgress/>`. E2 não emite
+  `awaiting_llm` no main path (parser determinístico; LLM fallback é
+  stub). Suíte verde: 1464 pipeline + 22 events + 16 e2/live_progress.
+  Commit `09858df`.
+
 - **Lane `report-a11y-finalize` item 3 (2026-04-25) — lane fechada
   ✅:** snapshots visuais por seção × tema light/dark.
   - [`frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts`](../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts)
