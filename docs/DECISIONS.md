@@ -4328,6 +4328,22 @@ uniforme. Stages sem loop continuam usando `emit_stage_activity` simples.
   big-bang. Durante transição, frontend tolera eventos antigos (campos
   ausentes = UI degrada ao comportamento atual).
 
+**Implementação — saga de migração concluída em 2026-04-25.** Todas as 9
+stages com loop iterativo emitem `emit_item_progress`:
+`extract_baseline` (E1.5, `3bc9d25`), `extract_statements`+`extract_invoices`
+(E2, `09858df`, compartilham `scripts/e2_extract.py`), `extract_members`
+(E1) + `consolidate_baseline` (E1.5c) em `3d819db`, `categorize_transactions`
+(E4) + `analyze_finances` (E5) em `2a6d5e5`, `extract_with_llm` (E2-llm,
+`56d8c42` — concorrência via `ThreadPoolExecutor` + `Lock` em counter
+compartilhado), `reconcile_transactions` (E3, `e6e9ebd` — primeira lane que
+instrumenta domain adapter via kwarg `pipeline_run_id`), `route_documents`
+(E0, `26225b1`). Stages rápidas (`unlock_documents`, `audit_documents`,
+`validate_cross`, `apply_review`) ficam sem emit intencionalmente — wall-time
+<500ms torna preparing+finalizing engolidos pelo throttle de 250ms. Zero
+callers de `emit_stage_activity` antigo em `pipeline/` ou `scripts/` —
+contrato antigo permanece exposto em `pipeline/live_progress.py` apenas
+para backward-compat de testes; remoção é candidata a cleanup futuro.
+
 Relaciona-se a: ADR-030-WS (transporte), ADR-080 (modo incremental — define o
 universo de `items_total`), ADR-076 (design system — tokens do componente).
 Não substitui nenhuma ADR anterior.
