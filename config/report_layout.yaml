@@ -23,8 +23,9 @@
 #   top-danger — borda superior vermelha
 #   top-accent — borda superior accent
 #
-# Para aplicar: e6_render.py lê este arquivo e itera pelas seções/cards
-# ao invés de usar a sequência hardcoded.
+# Para aplicar: o codegen (dev/codegen_report_layout.py) gera tipos para
+# o renderer React (frontend/src/generated/report-layout.ts) e backend
+# (backend/app/generated/report_layout.py) a partir deste arquivo.
 # ==============================================================================
 
 version: "1.2"
@@ -534,8 +535,8 @@ usa:
 # ==============================================================================
 # REGISTRY DE CARDS DISPONÍVEIS
 # ==============================================================================
-# Referência: todos os card builders existentes no e6_render.py
-# Use os IDs abaixo nas seções acima. Cada ID mapeia para um builder function.
+# Referência: IDs de cards consumidos pelo renderer React.
+# Use os IDs abaixo nas seções acima. Cada ID mapeia para um componente.
 #
 # ID                          | Builder Function                        | Seção Original
 # ----------------------------|-----------------------------------------|---------------
@@ -570,7 +571,7 @@ usa:
 # ==============================================================================
 # PALETA DE CORES DOS GRÁFICOS
 # ==============================================================================
-# Usada por e6_render.py como PALETTE para todos os Chart.js
+# Paleta de cores compartilhada por todos os charts do relatório.
 chart_palette:
   - "#1A3A5C"
   - "#2A9D8F"
@@ -664,7 +665,7 @@ usa_section_charts:
   4: ["mariana_cenarios_usa"]
 
 # ==============================================================================
-# DARK MODE — cores CSS (usadas por e6_regen.py)
+# DARK MODE — cores CSS (consumidas pelo design system / tokens.css)
 # ==============================================================================
 dark_mode:
   # Variáveis CSS raiz
