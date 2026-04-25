@@ -34,8 +34,6 @@ LEGACY_NAMES = sorted(STAGE_RENAME_MAP.keys())
 ALLOWED_PREFIXES = (
     "pipeline/stage_spec.py",
     "pipeline/artifact_store.py",
-    "pipeline/materialization_bridge.py",
-    "pipeline/stage_runner_compat.py",
     "pipeline/stages/",  # wrappers que ainda usam nomes legados
     "pipeline/orchestrator.py",  # LEGACY_FROM_ALIASES
     "backend/alembic/versions/",  # migrations (STAGE_RENAME, imports, comentários)
