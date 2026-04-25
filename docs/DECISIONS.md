@@ -85,6 +85,9 @@
 **Infra de produção (F7):**
 [D108](#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns)
 
+**Internacionalização (F12):**
+[D130](#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
+
 ---
 
 ## ADR-001 — SQLAlchemy 2.0 como ORM
@@ -4863,6 +4866,110 @@ agora pode ser simplificada), ADR-127 + ADR-128 (últimas stages de
 domínio migradas para store; E6 era o último bolsão de disco intencional
 em stage de domínio), ADR-111 (stateless — E6 forçava materialização
 para filesystem, violação pragmática agora removida).
+
+---
+
+## ADR-130 — Internacionalização com `next-intl` + persistência em `users.locale`
+
+**Status:** Proposto (F12) • **Data:** 2026-04-25
+
+**Contexto:** Plataforma é hoje 100% pt-BR. Usuário pediu suporte a
+múltiplos idiomas — escopo final: **11 locales** (top 10 globais +
+pt-PT). Decisões a tomar: biblioteca de i18n, estratégia de URLs,
+persistência da escolha, suporte a RTL (árabe), suporte a CJK
+(zh-CN), pluralização (ar 6 formas, ru 4 formas), e como integrar
+com o codegen do `report_layout.yaml`.
+
+Alternativas consideradas:
+
+- **Biblioteca:** `next-intl` (App Router-native, server components,
+  ICU MessageFormat nativo) vs `react-intl` (mais maduro mas
+  client-only) vs `i18next` (genérico, integração Next mais manual)
+  vs `lingui` (menor adoção).
+- **URL:** prefixo `/<locale>/...` (SEO-friendly) vs cookie
+  `NEXT_LOCALE` (preserva URLs canônicas ADR-108).
+- **Persistência:** só cookie/localStorage vs coluna `users.locale`
+  no DB.
+- **Tradução:** humana from-scratch (~440h) vs MT (DeepL Pro) +
+  revisão humana (~155h total + ~$4.500 custo externo).
+
+**Decisão:**
+
+1. **`next-intl@^3`** como biblioteca i18n no frontend.
+2. **Cookie `NEXT_LOCALE`** sem prefixo de URL (preserva ADR-108,
+   `app.mathoms.ai`).
+3. **Coluna `users.locale VARCHAR(10) NOT NULL DEFAULT 'pt-BR'`**
+   no DB + claim `locale` em JWT (cobre cross-device).
+4. **11 locales** suportados — ordem de prioridade definida pela
+   contagem global de speakers (Ethnologue 2024) + requisito de
+   produto pt-PT:
+
+   `pt-BR` (default), `en`, `pt-PT`, `zh-CN`, `hi`, `es`, `ar`,
+   `fr`, `bn`, `ru`, `id`.
+
+5. **`<html lang dir>`** dinâmico: `dir="rtl"` apenas para `ar`.
+   CSS logical properties (`margin-inline-start`, etc.) tornam-se
+   **obrigatórias** em código novo a partir de F12.1 — ESLint rule
+   custom para enforçar.
+6. **Fontes secundárias condicionais**: Noto Sans SC (zh-CN), Noto
+   Sans Devanagari (hi), Noto Sans Bengali (bn), Noto Sans Arabic
+   (ar) carregadas via `<link>` apenas quando o locale ativo precisa
+   (preserva bundle).
+7. **ICU MessageFormat** para plurais e seleção (necessário para ar
+   com 6 formas e ru com 4 formas).
+8. **Tradução: pipeline MT (DeepL Pro) → glossário fintech →
+   revisão humana por nativo**. Locales com MT ratio > 5%
+   permanecem em "beta" com banner explícito; promovidos a
+   produção quando ratio < 5%.
+9. **Codegen do `report_layout.yaml`** muda para emitir apenas
+   `i18n_key`s (sem strings inline) — labels migram para
+   `frontend/src/i18n/messages/<locale>.json`. Teste de paridade de
+   chaves entre 11 locales bloqueia merge se faltar entrada.
+10. **Strings dinâmicas concatenadas proibidas** em JSX — ESLint
+    rule custom força ICU MessageFormat (`{count, plural, ...}`).
+
+JWT payload mudar (claim novo) é breaking segundo ADR-109; abre-se
+**ADR-A6f.5b** dedicada antes do commit, com golden atualizado de
+`backend/tests/test_auth_portability.py`.
+
+Detalhamento operacional, fases (F12.1–F12.8), critérios de aceite,
+riscos e estimativas em [docs/I18N_PLAN.md](I18N_PLAN.md).
+
+**Consequências:**
+
+- ✅ 11 locales cobrem ~5,5 bilhões de speakers globais (~70% da
+  população mundial).
+- ✅ Suporte a RTL e CJK desde o dia 1; nenhum débito técnico
+  futuro para mercados internacionais.
+- ✅ URLs canônicas (ADR-108) intactas — sem redirect, sem prefixo.
+- ✅ Persistência cross-device via JWT claim + DB.
+- ✅ Stateless (ADR-111) preservado: locale resolve por contexto/JWT,
+  não cache mutável.
+- ✅ ICU MessageFormat torna pluralização correta possível em todos
+  os 11 locales.
+- ⚠️ Custo externo de tradução (~$4.500) + 50h revisão humana antes
+  de promoção a produção.
+- ⚠️ Fontes Indic/CJK adicionam ~430kb totais ao bundle (mas só
+  carregam quando o locale ativo precisa).
+- ⚠️ Refactor de `format.ts` toca ~80 call sites; commit único
+  facilita revisão.
+- ⚠️ pt-BR + en saem prontos no primeiro release; outros 9 locales
+  podem ficar em "beta" até revisão humana fechar.
+- ❌ SEO multilíngue não suportado (cookie-based). Aceito — app é
+  autenticado; landing pública é F8 Growth.
+- ❌ Conversão de moeda (BRL → CNY/EUR/...) fora de escopo;
+  símbolo R$ mantém em todos locales (formatação muda).
+- ❌ Tradução de narrativas LLM (E5, E7) e de dados do usuário
+  (categorias custom, nomes de instituições) ficam para fase 2 com
+  ADR dedicada.
+
+Relaciona-se a: ADR-053 (Intl nativo para datas — agora parametrizado
+por locale), ADR-076 (design system), ADR-097 D1 (warnings tipados —
+aplicado a `UserFacingError` no backend), ADR-102 R18 (response_model
+explícito — aplicado ao endpoint `PATCH /users/me/preferences`),
+ADR-108 (URLs canônicas — preservadas), ADR-109 (auth portability —
+exige ADR-A6f.5b por mudança no JWT payload), ADR-111 (stateless —
+locale via contexto, não cache).
 
 ---
 

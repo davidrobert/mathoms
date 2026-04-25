@@ -24,6 +24,7 @@
 - [Report Premium UI — Paridade com EXEMPLO_DE_RELATORIO.html](#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ← **10/13 fases entregues**
 - [DOCS-REVIEW — Followups da revisão multi-agente 2026-04-24](#docs-review--followups-da-revisão-multi-agente-2026-04-24) ← **batches 2/3 do audit de docs**
 - [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
+- [F12 — Internacionalização (i18n, 11 locales)](#f12--internacionalização-i18n-11-locales) — plano canônico em [I18N_PLAN.md](I18N_PLAN.md), decisão em [ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
 - [F8 — Growth (Futuro)](#f8--growth-futuro)
 
 ---
@@ -1539,6 +1540,100 @@ Ataques que **mudam código ou parâmetros**, não só doc. Cada um deve virar A
 
 ---
 
+## F12 — Internacionalização (i18n, 11 locales)
+
+> Suporte a múltiplos idiomas: pt-BR (default), en, pt-PT, zh-CN, hi,
+> es, ar, fr, bn, ru, id (top 10 globais + pt-PT). Plano canônico em
+> [docs/I18N_PLAN.md](I18N_PLAN.md). Decisão arquitetural em
+> [ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale).
+> Inclui RTL (árabe), CJK (zh-CN), scripts Indic (hi, bn), ICU
+> MessageFormat para plurais, e pipeline MT (DeepL) + revisão humana.
+
+### F12.1 — Fundação i18n no frontend
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F12.1a | Instalar `next-intl@^3` + `frontend/src/i18n/{config,request,plural}.ts` + 11 arquivos `messages/<locale>.json` (vazios). | P0 | 4h | ⏳ |
+| F12.1b | `frontend/middleware.ts` cookie-based + matcher whitelist 11 locales; wrap `app/layout.tsx` em `NextIntlClientProvider` com `<html lang dir>`. | P0 | 4h | ⏳ |
+| F12.1c | Carregamento condicional de fontes Noto SC / Devanagari / Bengali / Arabic via `<link>` no critical path. | P0 | 4h | ⏳ |
+| F12.1d | Primeira string traduzida (header) nos 11 locales + smoke Vitest (`useTranslations` resolve, `dir="rtl"` em ar). | P0 | 4h | ⏳ |
+
+### F12.2 — Refactor de `format.ts` e `<MonetaryValue/>`
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F12.2a | `format.ts` aceita `locale` em todas as funções públicas; remove constantes top-level; substitui por funções puras. | P0 | 4h | ⏳ |
+| F12.2b | `<MonetaryValue/>` consome `useLocale()`. Helper `useFormat()` injeta locale. | P0 | 2h | ⏳ |
+| F12.2c | Mapas `STAGE_DISPLAY_NAMES`, `DOC_STATUS_MAP`, `BANK_NAMES`, etc. → `messages/<locale>.json`. Snapshots Vitest nos 11 locales. | P0 | 2h | ⏳ |
+
+### F12.3 — Persistência da escolha (DB + JWT)
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F12.3a | **ADR-A6f.5b** — JWT claim `locale` (extensão de auth payload, breaking segundo ADR-109). Atualiza golden `test_auth_portability.py`. | P0 | 2h | ⏳ |
+| F12.3b | Migration Alembic: `users.locale VARCHAR(10) NOT NULL DEFAULT 'pt-BR'` + CHECK constraint nos 11 valores. Pydantic `Locale` enum em `backend/app/domain/locale.py`. | P0 | 3h | ⏳ |
+| F12.3c | Endpoint `PATCH /users/me/preferences` (response_model explícito ADR-109; rodar `make update-openapi-snapshot`). | P0 | 3h | ⏳ |
+| F12.3d | Frontend `/settings/preferences` com seletor 11 opções (nome nativo); grava cookie + chama API; teste integração login pt-PT/ar preserva idioma e direção. | P0 | 2h | ⏳ |
+
+### F12.4 — Codegen do report layout multilíngue
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F12.4a | Schema do `config/report_layout.yaml` migra labels para `i18n_key`. | P0 | 4h | ⏳ |
+| F12.4b | `dev/codegen_report_layout.py` emite tipos sem strings; valida que cada `i18n_key` existe nos 11 locales. | P0 | 4h | ⏳ |
+| F12.4c | Teste `tests/test_i18n_parity.py` — paridade de chaves entre 11 locales; falha CI se faltar entrada. | P0 | 4h | ⏳ |
+
+### F12.5 — Backend user-facing strings
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F12.5a | Centralizar 24 mensagens em `backend/app/i18n/messages.py` (dataclass `UserFacingError`). | P0 | 3h | ⏳ |
+| F12.5b | `Depends(get_current_locale)` resolve JWT claim → `Accept-Language` → default. Endpoints `documents.py`/`tasks.py`/`admin/users.py` consomem `error_message(code, locale)`. | P0 | 3h | ⏳ |
+| F12.5c | ICU plural Python (via `babel.support.Translations` ou helper) para mensagens com contagem. | P1 | 2h | ⏳ |
+
+### F12.6 — Tradução do relatório (bulk, paralelizável)
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F12.6a | Migrar ~85 componentes de `frontend/src/components/report/` strings → `messages/pt-BR.json`. ICU MessageFormat para plurais. ESLint rule custom proíbe novas strings literais em JSX. | P0 | 10h | ⏳ |
+| F12.6b | Script `dev/translate_messages.py` (DeepL Pro + glossário fintech `config/i18n_glossary.yaml`). Custo estimado ~$2.000 (DeepL Pro + chars overage). Marca `_meta.mt: true` por chave. | P0 | 15h | ⏳ |
+| F12.6c | Revisão humana por nativo nos 10 locales não-pt-BR (~5h cada = 50h externas). Marca `_meta.mt: false` quando ratificado. Locale liberado para produção quando ratio MT < 5%; acima disso, banner "beta". | P0 | 5h ext./locale | ⏳ |
+
+### F12.7 — RTL polish (locale `ar`)
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F12.7a | Auditoria `frontend/src/components/**` para `margin-left`/`padding-right`/`text-align: left`/`border-left` → CSS logical properties (`margin-inline-start`, etc.). | P0 | 6h | ⏳ |
+| F12.7b | Charts (Recharts) mantêm LTR em datas/eixos mesmo em ar (convenção fintech global). Ícones direcionais com `rtl:scale-x-[-1]`. | P0 | 3h | ⏳ |
+| F12.7c | Snapshot visual em ar para 5 telas principais; sem overflow horizontal. | P0 | 3h | ⏳ |
+
+### F12.8 — QA + E2E multi-locale
+
+| # | Tarefa | Prio | Est. | Status |
+| --- | --- | --- | --- | --- |
+| F12.8a | Playwright matrix: fluxos `@critical` (5) × 11 locales = 55 runs paralelos. CI < 20min. | P0 | 4h | ⏳ |
+| F12.8b | Visual regression do relatório nos 11 locales; PDF export (`pdf_renderer.py`) renderiza locale correto via cookie. | P0 | 4h | ⏳ |
+| F12.8c | Atualizar [SMOKE_TEST.md](SMOKE_TEST.md) com checklist troca de idioma (3 fluxos × 11 locales). | P1 | 2h | ⏳ |
+
+**Checkpoint F12:** usuário escolhe um dos 11 idiomas em
+`/settings/preferences`; preferência persiste após logout (DB + JWT
+claim); relatório React/PDF renderiza corretamente nos 11 locales;
+ar exibe layout RTL; CJK/Indic carregam fonte secundária sob demanda;
+plurais corretos via ICU; locales não-revisados marcam banner "beta".
+
+**Estimativa total:** ~156h engenharia + ~50h revisão humana externa
+≈ **~206h** com 1 agente em série; **~6 semanas** com 2 agentes em
+paralelo nas fases independentes.
+
+**Dependências:**
+- F12.1 é pré-requisito de tudo.
+- F12.2/F12.3/F12.4/F12.5 paralelizáveis após F12.1.
+- F12.6 depende de F12.2 + F12.4.
+- F12.7 depende de F12.6c (ar revisado).
+- F12.8 depende de tudo acima.
+
+---
+
 ## F8 — Growth (Futuro)
 
 Adiados conscientemente. São features de aquisição/marketing/polish pós-launch.
@@ -1560,7 +1655,6 @@ Adiados conscientemente. São features de aquisição/marketing/polish pós-laun
 | Billing real (Stripe)                             | BYOK resolve tier. Billing é projeto próprio            |
 | Screen reader testing (VoiceOver/NVDA)            | Testing dedicado após beta users                        |
 | Performance audit (Lighthouse >90)                | Relevante para produção pública, não dogfood            |
-| Multi-idioma (i18n)                               | pt-BR por default. i18n é esforço grande                |
 | Collaborative features (share, comments)          | Multi-user por workspace é projeto separado             |
 | Dashboard widgets customizáveis (drag-and-drop)   | Over-engineering                                        |
 
