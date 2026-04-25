@@ -11,6 +11,27 @@ execução da **[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+### 2026-04-25 — F9.1 pipeline/stages rename (ADR-093)
+
+- `git mv` em 14 wrappers de `pipeline/stages/e*.py` para nomes
+  descritivos conforme `STAGE_RENAME_MAP`: `audit_documents`,
+  `unlock_documents`, `route_documents`, `extract_members`,
+  `extract_baseline`, `consolidate_baseline`, `extract_statements`,
+  `extract_invoices`, `extract_with_llm`, `reconcile_transactions`,
+  `categorize_transactions`, `analyze_finances`, `generate_narratives`,
+  `review_finances`.
+- Imports atualizados em `pipeline/orchestrator.py`,
+  `pipeline/__init__.py`, `tests/test_llm_*.py`,
+  `tests/test_stage_wrappers.py`,
+  `tests/unit/pipeline/test_e15_artifact_key.py`.
+- Strings literais (`"E2"`, `"E3"`…) em `STAGE_REGISTRY` / código de
+  produção **inalteradas** — F9.2 endereça.
+- Itens deferidos: `pipeline/stages/e2.py` (shim compartilhado, fora do
+  mapa) e `pipeline/stages/e7.py` (`run_crossval` + `run_apply`
+  agrupados — split planejado para F9.6).
+- Goldens E3/E4/E5/E5.N/E7 verdes; 1458 pipeline + 1307 backend tests
+  passando, zero regressão. F9.2 destravada.
+
 - **Lane `report-a11y-finalize` itens 1+2 (2026-04-25):** primeiro gate
   empírico de a11y do relatório React. Decisão D1 do track adotada com
   default sugerido — severidade `critical+serious`. Entregas:
