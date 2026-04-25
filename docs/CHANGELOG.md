@@ -92,11 +92,31 @@ execução da **[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
     primeiro focável do escopo + Enter foca `#report-main` + controles
     globais com `aria-label` esperado + nenhum focável sem accessible
     name.
-  - Resíduos da lane (itens 3-6): snapshots por seção × tema, Lighthouse
-    CI, checklist WCAG operacional, gate empírico via PR descartável.
+  - Resíduos da lane (itens 3, 5, 6): snapshots por seção × tema,
+    checklist WCAG operacional, gate empírico via PR descartável.
   - Commits: `4c089e4` (fixture + helpers + specs) + `fbdf53c` (mock
     `/transactions` p/ destravar `ReceitasFonteCard` + tab-order
     re-escopado ao AppShell).
+
+- **Lane `report-a11y-finalize` item 4 (2026-04-25):** Lighthouse gate
+  na rota nativa do relatório. Decisão D2 do track adotada com default
+  sugerido — PR-time, fixture `medium`, 3 runs, preset desktop,
+  thresholds perf 0.85 / a11y 0.95 / bp 0.95 / seo 0.90 (warn). Entregas:
+  - `frontend/lighthouserc.cjs`: config `@lhci/cli` com `puppeteerScript`,
+    `numberOfRuns: 3`, assertions categóricas conforme D2.
+  - `frontend/tests/lighthouse/lighthouse-mock.cjs`: análogo Puppeteer
+    do `mock-report.ts` (Playwright); intercepta `/api/v1/**` com
+    fixture sintética + injeta token + pre-aquece a rota para
+    estabilizar `next-themes` antes do Lighthouse navegar.
+  - `.github/workflows/ci.yml`: novo job `frontend-lighthouse` (npm ci
+    + `next build` + `next start` + `lhci autorun` + upload de
+    reports). Sem backend — fixture sintética cobre tudo. Adicionado
+    a `all-green`.
+  - `.gitignore`: ignora `.lighthouseci/`, `playwright-report/`,
+    `playwright-results/`.
+  - Smoke local (`next dev` + 3 runs): perf=0.89 a11y=1.00 bp=0.96
+    seo=1.00 — todos os thresholds passam com folga.
+  - Commit: `1618a4e`.
 
 ### Report Premium UI v1 (2026-04-25)
 
