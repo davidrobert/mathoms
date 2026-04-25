@@ -11,6 +11,35 @@ execução da **[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Lane `report-a11y-finalize` itens 1+2 (2026-04-25):** primeiro gate
+  empírico de a11y do relatório React. Decisão D1 do track adotada com
+  default sugerido — severidade `critical+serious`. Entregas:
+  - `frontend/tests/e2e/helpers/mock-report.ts`: helper `mockReportPage`
+    intercepta `/api/v1/**` via `page.route()` + injeta token, permitindo
+    `/reports/[id]` renderizar com fixture sintética sem backend (mocka
+    `/auth/me`, `/me/workspaces`, GET report + data, notes, kanban,
+    transactions, notifications).
+  - `frontend/tests/e2e/fixtures/reports/medium.json`: fixture única,
+    zero PII, densidade média (`small`/`large` ficam para iteração de
+    snapshots futura).
+  - `frontend/tests/e2e/helpers/axe.ts`: `expectNoA11yViolations` com
+    gate configurável (default critical+serious), formata mensagem com
+    regra + nó ofensor + helpUrl.
+  - `frontend/tests/e2e/reports/a11y.@critical.spec.ts` (24 testes
+    verdes): scan axe-core por seção em modo estratégico (S1-S10,
+    APP_A-E), tático (T1-T6) e USA (U1-U4) + scan da página inteira.
+  - `frontend/tests/e2e/reports/tab-order.@critical.spec.ts` (4 testes
+    verdes): asserções escopadas a `[data-report-scope]` (relatório
+    roda dentro do `(app)/layout` com sidebar global) — skip-nav
+    primeiro focável do escopo + Enter foca `#report-main` + controles
+    globais com `aria-label` esperado + nenhum focável sem accessible
+    name.
+  - Resíduos da lane (itens 3-6): snapshots por seção × tema, Lighthouse
+    CI, checklist WCAG operacional, gate empírico via PR descartável.
+  - Commits: `4c089e4` (fixture + helpers + specs) + `fbdf53c` (mock
+    `/transactions` p/ destravar `ReceitasFonteCard` + tab-order
+    re-escopado ao AppShell).
+
 ### Report Premium UI v1 (2026-04-25)
 
 Marco: shell React `/reports/[id]` atinge paridade visual com
@@ -40,8 +69,9 @@ do relatório.
   removidos; ADR-124 superseded; Fases 11/12/13 do plano canceladas).
 - **Resíduos abertos:**
   [`report-a11y-finalize`](BACKLOG.md#lanes-abertas-agora--pickup-table)
-  (gate axe-core/Lighthouse + tab-order E2E + snapshots por seção).
-  Esta entrada **fecha**
+  itens 3-6 (Lighthouse CI + snapshots por seção + checklist WCAG + gate
+  empírico) — itens 1+2 (axe-core + tab-order) entregues em 2026-04-25,
+  ver entrada acima. Esta entrada **fecha**
   [`report-v1-polish`](BACKLOG.md#lanes-abertas-agora--pickup-table)
   (resíduo F13 — milestone + ARCHITECTURE/RUNBOOK/SMOKE/CLAUDE).
 
