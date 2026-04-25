@@ -14,6 +14,8 @@ interface ReportSourceStripProps {
   pipelineRunId?: string | null;
   /** F11.4a — agregado de documentos prontos no workspace. */
   sourceDocumentCount?: number | null;
+  /** Documentos efetivamente extraídos pela run que gerou o relatório. */
+  consumedDocumentCount?: number | null;
 }
 
 /**
@@ -34,6 +36,7 @@ export function ReportSourceStrip({
   generatedAtIso,
   pipelineRunId,
   sourceDocumentCount,
+  consumedDocumentCount,
 }: ReportSourceStripProps) {
   const rawPeriod =
     (analysisPeriod && String(analysisPeriod).trim()) ||
@@ -44,7 +47,10 @@ export function ReportSourceStrip({
   const generatedRelative = formatRelativeTime(generatedAtIso);
   const generatedAbsolute = formatDate(generatedAtIso);
 
-  const hasAuditDetails = !!(pipelineRunId || (sourceDocumentCount != null && sourceDocumentCount > 0));
+  const hasConsumed =
+    typeof consumedDocumentCount === "number" && consumedDocumentCount > 0;
+  const hasSource = sourceDocumentCount != null && sourceDocumentCount > 0;
+  const hasAuditDetails = !!(pipelineRunId || hasConsumed || hasSource);
 
   return (
     <div
@@ -99,10 +105,16 @@ export function ReportSourceStrip({
                     </Link>
                   </p>
                 )}
-                {sourceDocumentCount != null && sourceDocumentCount > 0 && (
+                {hasConsumed && (
                   <p>
-                    <span className="text-[var(--surface-foreground)]">Documentos:</span>{" "}
-                    <span className="font-mono tabular-nums">{sourceDocumentCount}</span> pronto(s) no workspace
+                    <span className="text-[var(--surface-foreground)]">Analisados:</span>{" "}
+                    <span className="font-mono tabular-nums">{consumedDocumentCount}</span> documento(s) extraído(s) pela execução
+                  </p>
+                )}
+                {hasSource && (
+                  <p>
+                    <span className="text-[var(--surface-foreground)]">No workspace:</span>{" "}
+                    <span className="font-mono tabular-nums">{sourceDocumentCount}</span> pronto(s) no momento da consulta
                   </p>
                 )}
               </div>

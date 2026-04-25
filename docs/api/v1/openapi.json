@@ -5127,6 +5127,18 @@
       },
       "ReportResponse": {
         "properties": {
+          "consumed_document_count": {
+            "default": 0,
+            "title": "Consumed Document Count",
+            "type": "integer"
+          },
+          "consumed_document_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Consumed Document Ids",
+            "type": "array"
+          },
           "created_at": {
             "title": "Created At",
             "type": "string"

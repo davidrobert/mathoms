@@ -15,6 +15,9 @@ export interface ReportResponse {
   /** F11.4a — documentos prontos no workspace (agregado; IDs truncados no backend). */
   source_document_count: number;
   source_document_ids: string[];
+  /** Documentos efetivamente extraídos pela run (DISTINCT document_id em pipeline_artifacts). */
+  consumed_document_count: number;
+  consumed_document_ids: string[];
   /** F9 · ADR-076 · ADR-131 — true se o relatório tem JSON de análise (FK ao pipeline_artifact) p/ render nativo. */
   has_analysis_data: boolean;
   /** F11.6b — snapshot de premissas (hash goals.json + metas ativas) na geração. */
@@ -38,6 +41,8 @@ export interface ReportAnalysisData {
     pipeline_run_id: string | null;
     source_document_count: number;
     source_document_ids: string[];
+    consumed_document_count: number;
+    consumed_document_ids: string[];
   };
   periodo_dados?: string;
   data_analise?: string;

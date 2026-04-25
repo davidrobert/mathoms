@@ -292,7 +292,15 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
             </div>
             <div>
               <dt className="text-xs text-[var(--surface-muted-foreground)]">
-                Documentos-fonte
+                Documentos analisados
+              </dt>
+              <dd className="font-mono tabular-nums">
+                {lineage.consumed_document_count ?? 0}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-[var(--surface-muted-foreground)]">
+                Prontos no workspace
               </dt>
               <dd className="font-mono tabular-nums">
                 {lineage.source_document_count}

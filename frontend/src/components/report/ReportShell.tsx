@@ -97,8 +97,9 @@ interface ReportShellProps {
   reportCreatedAt: string;
   /** F11.4a — opcional; link para a execução no Pipeline. */
   pipelineRunId?: string | null;
-  /** F11.4a — contagem agregada de documentos prontos (GET report). */
+  /** F11.4a — `sourceDocumentCount`: docs prontos no workspace (mutável); `consumedDocumentCount`: docs extraídos pela run (imutável). */
   sourceDocumentCount?: number | null;
+  consumedDocumentCount?: number | null;
 }
 
 function selectSections(mode: "estrategico" | "tatico" | "usa"): SectionSpec[] {
@@ -195,6 +196,7 @@ export function ReportShell({
   reportCreatedAt,
   pipelineRunId,
   sourceDocumentCount,
+  consumedDocumentCount,
 }: ReportShellProps) {
   const { mode } = useReportMode();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -241,16 +243,17 @@ export function ReportShell({
       minute: "2-digit",
       timeZoneName: "shortOffset",
     });
+    const docsMeta: CoverMeta =
+      typeof consumedDocumentCount === "number" && consumedDocumentCount > 0
+        ? { label: "Docs analisados", value: consumedDocumentCount }
+        : { label: "Docs no workspace", value: sourceDocumentCount ?? "—" };
     return [
       {
         label: "Período analisado",
         value: analysisPeriodFromSnapshot ?? reportPeriod ?? "—",
       },
       { label: "Gerado em", value: generated },
-      {
-        label: "Documentos",
-        value: sourceDocumentCount ?? "—",
-      },
+      docsMeta,
       { label: "Versão", value: "Premium" },
     ];
   }, [
@@ -259,6 +262,7 @@ export function ReportShell({
     reportPeriod,
     reportCreatedAt,
     sourceDocumentCount,
+    consumedDocumentCount,
   ]);
 
   return (
@@ -281,6 +285,7 @@ export function ReportShell({
         generatedAtIso={reportCreatedAt}
         pipelineRunId={pipelineRunId}
         sourceDocumentCount={sourceDocumentCount}
+        consumedDocumentCount={consumedDocumentCount}
       />
 
       <ReportTopNav

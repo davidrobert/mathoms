@@ -159,6 +159,7 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
           reportCreatedAt={report!.created_at}
           pipelineRunId={report!.pipeline_run_id}
           sourceDocumentCount={report!.source_document_count}
+          consumedDocumentCount={report!.consumed_document_count}
         />
       </ReportModeProvider>
     </TooltipProvider>

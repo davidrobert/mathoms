@@ -1,7 +1,7 @@
 {
   "audit_version": "1.0",
-  "generated_at": "2026-04-25T23:51:47Z",
-  "git_commit": "5efb8b55b0575c5674b63f85d62488898b1bad64",
+  "generated_at": "2026-04-25T23:50:28Z",
+  "git_commit": "8d5e637c45b91ef6ea93797e7b18aaa4cf3e2c4a",
   "offenders": [
     {
       "allowlisted": false,
@@ -5361,10 +5361,10 @@
       "file": "backend/app/application/report/_common.py",
       "id": "P1-0287",
       "identifier": "serialize_report",
-      "length": 21,
-      "line_end": 35,
+      "length": 26,
+      "line_end": 40,
       "line_start": 15,
-      "message": "Function 21 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
+      "message": "Function 26 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
     {
@@ -5385,10 +5385,10 @@
       "file": "backend/app/application/report/get_report_data.py",
       "id": "P1-0289",
       "identifier": "get_report_data",
-      "length": 25,
-      "line_end": 44,
-      "line_start": 20,
-      "message": "Function 25 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
+      "length": 28,
+      "line_end": 48,
+      "line_start": 21,
+      "message": "Function 28 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
     {
@@ -6694,8 +6694,8 @@
       "id": "P1-0397",
       "identifier": "workspace_ready_documents_summary",
       "length": 26,
-      "line_end": 36,
-      "line_start": 11,
+      "line_end": 37,
+      "line_start": 12,
       "message": "Function 26 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -9070,8 +9070,8 @@
       "id": "P1-0581",
       "identifier": "test_get_report_data_404_after_artifact_deleted",
       "length": 22,
-      "line_end": 311,
-      "line_start": 290,
+      "line_end": 375,
+      "line_start": 354,
       "message": "Function 22 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -9082,8 +9082,8 @@
       "id": "P1-0582",
       "identifier": "test_get_report_data_isolation_across_workspaces",
       "length": 30,
-      "line_end": 357,
-      "line_start": 328,
+      "line_end": 421,
+      "line_start": 392,
       "message": "Function 30 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -16534,8 +16534,8 @@
       "id": "P7-0225",
       "identifier": "ReportAnalysisResponse",
       "length": 6,
-      "line_end": 44,
-      "line_start": 44,
+      "line_end": 49,
+      "line_start": 49,
       "message": "Docstring multi-par\u00e1grafo; preferir 1-linha de intent",
       "severity": "low"
     },
@@ -16546,8 +16546,8 @@
       "id": "P7-0226",
       "identifier": "ReportTaskSnapshotItem",
       "length": 6,
-      "line_end": 55,
-      "line_start": 55,
+      "line_end": 60,
+      "line_start": 60,
       "message": "Docstring multi-par\u00e1grafo; preferir 1-linha de intent",
       "severity": "low"
     },
@@ -16558,8 +16558,8 @@
       "id": "P7-0227",
       "identifier": "ReportTasksResponse",
       "length": 9,
-      "line_end": 79,
-      "line_start": 79,
+      "line_end": 84,
+      "line_start": 84,
       "message": "Docstring multi-par\u00e1grafo; preferir 1-linha de intent",
       "severity": "low"
     },
@@ -28084,7 +28084,7 @@
       "severity": "info"
     }
   ],
-  "repo_root": "/Users/davidrobert/Desktop/_fin/Fin/fin-current/.claude/worktrees/sweet-elion-b782fe",
+  "repo_root": "/Users/davidrobert/Desktop/_fin/Fin/fin-current/.claude/worktrees/mystifying-bardeen-940a99",
   "summary": {
     "files_scanned": {
       "python": 767,
