@@ -5,8 +5,10 @@ desde A6c), o E5 deixou de escrever em disco e o ``_create_report_from_output``
 do pipeline_task ainda buscava ``processed/E5_analysis/*-5_analysis.json``.
 O resultado: pipelines marcados ``completed`` sem linha em ``reports``.
 
-Este script encontra runs nessa situação, materializa o artefato E5 do DB
-para o disco e cria a linha em ``reports`` retroativamente.
+ADR-131 (2026-04-25): o relatório passou a referenciar o artefato E5 por
+FK (``analysis_artifact_id``); este backfill agora cria a linha
+``reports`` apontando direto para a row em ``pipeline_artifacts`` — sem
+materializar nada em disco.
 
 Uso::
 
@@ -23,7 +25,6 @@ import json
 import sys
 import uuid
 from datetime import datetime
-from pathlib import Path
 from typing import Iterable, Optional
 from zoneinfo import ZoneInfo
 
@@ -34,12 +35,7 @@ from backend.app.core.database import SyncSessionLocal
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.models.report import Report
-from backend.app.services.storage import StorageService
-from pipeline.domain.services.e5_serialization import (
-    E5_ARTIFACT_FILENAME,
-    E5_ARTIFACT_KEY,
-    E5_OUTPUT_STAGE,
-)
+from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY, E5_OUTPUT_STAGE
 
 _BRT = ZoneInfo("America/Sao_Paulo")
 
@@ -69,8 +65,8 @@ def _runs_without_report(session: Session, workspace_id: Optional[str]) -> Itera
         yield run
 
 
-def _load_e5_artifact(session: Session, run: PipelineRun) -> Optional[dict]:
-    row = (
+def _find_e5_artifact(session: Session, run: PipelineRun) -> Optional[PipelineArtifact]:
+    return (
         session.query(PipelineArtifact)
         .filter_by(
             workspace_id=run.workspace_id,
@@ -80,23 +76,9 @@ def _load_e5_artifact(session: Session, run: PipelineRun) -> Optional[dict]:
         )
         .one_or_none()
     )
-    if row is None or not row.content_json:
-        return None
-    return row.content_json
 
 
-def _materialize_to_disk(payload: dict, tenant_root: Path) -> Path:
-    target_dir = tenant_root / "processed" / "E5_analysis"
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / E5_ARTIFACT_FILENAME
-    target.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    return target
-
-
-def _build_report(run: PipelineRun, analysis_json: Path) -> Report:
+def _build_report(run: PipelineRun, artifact: PipelineArtifact) -> Report:
     title_ts = run.completed_at or datetime.now(_BRT)
     if title_ts.tzinfo is None:
         title_ts = title_ts.replace(tzinfo=_BRT)
@@ -106,36 +88,29 @@ def _build_report(run: PipelineRun, analysis_json: Path) -> Report:
         workspace_id=run.workspace_id,
         pipeline_run_id=run.id,
         title=title,
-        analysis_json_path=str(analysis_json),
-        size_bytes=analysis_json.stat().st_size,
+        analysis_artifact_id=artifact.id,
     )
 
 
-def backfill(workspace_id: Optional[str], *, apply: bool, storage: StorageService) -> dict:
-    summary: dict = {"runs_inspected": 0, "missing_artifact": 0, "created": 0, "errors": []}
+def backfill(workspace_id: Optional[str], *, apply: bool) -> dict:
+    summary: dict = {"runs_inspected": 0, "missing_artifact": 0, "created": 0}
     with _session_factory() as session:
         for run in _runs_without_report(session, workspace_id):
             summary["runs_inspected"] += 1
-            payload = _load_e5_artifact(session, run)
-            if payload is None:
+            artifact = _find_e5_artifact(session, run)
+            if artifact is None or not artifact.content_json:
                 summary["missing_artifact"] += 1
                 sys.stderr.write(
                     f"[skip] run={run.id} ws={run.workspace_id} "
                     "— sem artefato E5/analise_financeira no DB\n"
                 )
                 continue
-            tenant_root = storage.ensure_tenant_dirs(run.workspace_id)
-            try:
-                analysis_json = _materialize_to_disk(payload, tenant_root)
-            except OSError as exc:
-                summary["errors"].append({"run_id": run.id, "error": str(exc)})
-                continue
             if apply:
-                session.add(_build_report(run, analysis_json))
+                session.add(_build_report(run, artifact))
             summary["created"] += 1
             sys.stderr.write(
                 f"[{'apply' if apply else 'dry-run'}] run={run.id} "
-                f"ws={run.workspace_id} → {analysis_json}\n"
+                f"ws={run.workspace_id} → artifact_id={artifact.id}\n"
             )
         if apply:
             session.commit()
@@ -155,8 +130,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    storage = StorageService()
-    summary = backfill(args.workspace_id, apply=args.apply, storage=storage)
+    summary = backfill(args.workspace_id, apply=args.apply)
 
     print(json.dumps(summary, indent=2, ensure_ascii=False))
     return 0

@@ -17,8 +17,9 @@ export type UseReportDataState =
  * já tem o workspace como prop (ex: ReportPageContent).
  *
  * `reportId` e `workspaceId` podem ser `null` para desligar o fetch (ex:
- * durante transições de rota). Em caso de 404 de relatório pré-F9 (sem
- * analysis_json_path), o estado fica em `error` com `ApiError.status === 404`.
+ * durante transições de rota). Em caso de 404 de relatório pré-F9 ou cujo
+ * artifact foi removido (ADR-131), o estado fica em `error` com
+ * `ApiError.status === 404`.
  */
 export function useReportData(
   reportId: string | null,

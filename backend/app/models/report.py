@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -21,17 +21,21 @@ class Report(Base):
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     period: Mapped[str] = mapped_column(String(50), nullable=True)
-    # Path to the E5 analysis JSON snapshot (ADR-076 / F9). Único path de
-    # arquivo persistido — o renderer HTML server-side foi descontinuado em
-    # ADR-129. Nullable: pré-F9 não preenchia.
-    analysis_json_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # ADR-131: FK ao artefato E5 em ``pipeline_artifacts``. Substitui o
+    # campo legado ``analysis_json_path`` (filesystem). ``SET NULL`` no
+    # delete do artifact preserva a linha do Report mesmo se o run for
+    # hard-deleted; o endpoint ``/reports/{id}/data`` retorna 404 nesse caso.
+    analysis_artifact_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("pipeline_artifacts.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     # F8.3 / ADR-074: snapshot imutável da lista de tasks no momento em que
     # o relatório foi gerado. Permite ao relatório renderizar "tarefas relatadas
     # em 15/abr/2026" mesmo que o backlog tenha mudado depois. Nullable = pré-F8.3.
     tasks_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # F11.6b — referência às premissas vigentes (metas + hash do goals.json) para comparar relatórios.
     premissas_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    size_bytes: Mapped[int] = mapped_column(Integer, nullable=True)
     score: Mapped[float] = mapped_column(Float, nullable=True)
     patrimonio_liquido: Mapped[float] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -40,3 +44,8 @@ class Report(Base):
 
     workspace = relationship("Workspace", back_populates="reports")
     pipeline_run = relationship("PipelineRun", back_populates="report")
+    analysis_artifact = relationship(
+        "PipelineArtifact",
+        foreign_keys=[analysis_artifact_id],
+        lazy="joined",
+    )

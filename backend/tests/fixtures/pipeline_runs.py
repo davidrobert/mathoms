@@ -45,18 +45,17 @@ o output em `tests/fixtures/pipeline_runs/{period}/`. Script futuro:
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.config import settings
 from backend.app.models import (
     PipelineRun,
     PipelineStageLog,
     Report,
     Workspace,
 )
+from backend.app.models.pipeline_artifact import PipelineArtifact
 
 # Stages que compõem uma run free tier (DETERMINISTIC_ORDER)
 _DEFAULT_FREE_STAGES: list[tuple[str, str, int]] = [
@@ -122,24 +121,24 @@ async def seed_completed_run(
             )
         )
 
-    # ADR-129: renderer HTML server-side removido — fixtures simulam apenas o
-    # JSON de análise E5 (única fonte do relatório React).
-    surname_slug = (family_surname or workspace.family_surname or "fixture").replace(" ", "_")
-    analysis_dir = Path(settings.STORAGE_ROOT) / str(workspace.id) / "processed" / "E5_analysis"
-    analysis_dir.mkdir(parents=True, exist_ok=True)
-    analysis_path = analysis_dir / f"analise_{surname_slug}_{period}-5_analysis.json"
-    analysis_path.write_text(
-        '{"periodo_dados": "' + period + '", "score": {"valor": 78}}',
-        encoding="utf-8",
+    # ADR-129/ADR-131: renderer HTML server-side removido e Report referencia
+    # o artefato E5 em pipeline_artifacts via FK — sem filesystem.
+    artifact = PipelineArtifact(
+        workspace_id=workspace.id,
+        pipeline_run_id=run.id,
+        stage="E5",
+        artifact_key="analise_financeira",
+        content_json={"periodo_dados": period, "score": {"valor": 78}},
     )
+    db.add(artifact)
+    await db.flush()
 
     report = Report(
         workspace_id=workspace.id,
         pipeline_run_id=run.id,
         title=f"Relatório {family_surname or workspace.name} — {period}",
         period=period,
-        analysis_json_path=str(analysis_path.relative_to(Path(settings.STORAGE_ROOT))),
-        size_bytes=analysis_path.stat().st_size,
+        analysis_artifact_id=artifact.id,
         score=78.0,
         patrimonio_liquido=250_000.0,
     )

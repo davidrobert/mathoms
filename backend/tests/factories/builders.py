@@ -538,8 +538,7 @@ async def make_report(
     pipeline_run: Optional[PipelineRun] = None,
     title: Optional[str] = None,
     period: str = "2026-04",
-    analysis_json_path: Optional[str] = None,
-    size_bytes: int = 500_000,
+    analysis_artifact_id: Optional[int] = None,
     score: Optional[float] = 78.0,
     patrimonio_liquido: Optional[float] = 250_000.0,
 ) -> Report:
@@ -551,8 +550,7 @@ async def make_report(
         pipeline_run_id=pipeline_run.id if pipeline_run else None,
         title=title or f"Relatório {n}",
         period=period,
-        analysis_json_path=analysis_json_path,
-        size_bytes=size_bytes,
+        analysis_artifact_id=analysis_artifact_id,
         score=score,
         patrimonio_liquido=patrimonio_liquido,
     )

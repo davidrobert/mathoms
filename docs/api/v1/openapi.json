@@ -5196,17 +5196,6 @@
             ],
             "title": "Score"
           },
-          "size_bytes": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Size Bytes"
-          },
           "source_document_count": {
             "default": 0,
             "title": "Source Document Count",
@@ -5270,17 +5259,6 @@
             ],
             "title": "Period"
           },
-          "size_bytes": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Size Bytes"
-          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -5306,8 +5284,7 @@
           "workspace_id",
           "title",
           "period",
-          "created_at",
-          "size_bytes"
+          "created_at"
         ],
         "title": "ReportSummaryDTO",
         "type": "object"

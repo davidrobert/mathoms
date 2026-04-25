@@ -156,7 +156,6 @@ class ReportSummaryDTO(BaseModel):
     title: str
     period: str | None
     created_at: datetime
-    size_bytes: int | None
     owner_email: str | None = None
     workspace_name: str | None = None
 

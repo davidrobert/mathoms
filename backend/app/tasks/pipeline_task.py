@@ -127,21 +127,19 @@ def _persist_llm_suggestions(ws_id: str, run_id: str, tenant_root: Path) -> None
     Fix 2.5: Uses sync DB session instead of asyncio.run() which can crash
     inside Celery workers (especially with gevent pool) and creates
     unnecessary event loops.
+
+    ADR-131: lê o payload diretamente do ``pipeline_artifacts`` em vez do
+    filesystem; ``Report.analysis_artifact_id`` referencia o mesmo registro.
     """
-    import json
     import logging
 
     logger = logging.getLogger("pipeline_task.suggestions")
 
-    analysis = _find_latest_analysis_json(tenant_root)
-    if analysis is None:
+    artifact = _find_latest_analysis_artifact(ws_id, run_id)
+    if artifact is None:
         return
 
-    try:
-        data = json.loads(analysis.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return
-
+    data = artifact["content_json"] or {}
     sugeridas = data.get("tarefas_sugeridas", [])
     if not sugeridas:
         return
@@ -200,39 +198,17 @@ def _persist_llm_suggestions(ws_id: str, run_id: str, tenant_root: Path) -> None
             logger.info("Saved %d suggestions", saved)
 
 
-def _find_latest_analysis_json(tenant_root: Path) -> Path | None:
-    """Locate the E5 analysis JSON snapshot used for the native React report view.
+def _find_latest_analysis_artifact(ws_id: str, run_id: str):
+    """Localiza o artefato E5 (``stage='E5'``, ``artifact_key='analise_financeira'``)
+    para o run especificado. ADR-131: substitui ``_find_latest_analysis_json``
+    (filesystem-based) — o relatório passa a referenciar o artifact por FK.
 
-    ADR-076 / F9: the rendered HTML (E6) is no longer the only consumable — the
-    frontend reads the E5 JSON directly. We persist the path so GET
-    /reports/{id}/data can serve it without re-running the pipeline.
+    Retorna o ``PipelineArtifact`` ou ``None``. Caller é responsável por
+    abrir/fechar a sessão; passamos a row ainda vinculada à sessão de
+    abertura para que o caller possa usar ``row.id``.
     """
-    e5_dir = tenant_root / "processed" / "E5_analysis"
-    if not e5_dir.exists():
-        return None
-    candidates = sorted(
-        e5_dir.glob("*-5_analysis.json"),
-        key=lambda f: f.stat().st_mtime,
-        reverse=True,
-    )
-    return candidates[0] if candidates else None
-
-
-def _materialize_analysis_json_from_db(ws_id: str, run_id: str, tenant_root: Path) -> Path | None:
-    """Regressão A6c+ADR-129: com ``USE_DB_ARTIFACTS=True`` (default desde
-    2026-04-24), o E5 escreve o artefato apenas no DB — o
-    ``MaterializationBridge`` foi removido. Como ``Report.analysis_json_path``
-    e ``get_report_data`` ainda leem do disco, materializamos o JSON
-    persistido em ``pipeline_artifacts`` para
-    ``processed/E5_analysis/<filename>`` no momento da criação do report.
-
-    Retorna ``None`` quando não há artefato persistido para o run.
-    """
-    import json as _json
-
     from backend.app.models.pipeline_artifact import PipelineArtifact
     from pipeline.domain.services.e5_serialization import (
-        E5_ARTIFACT_FILENAME,
         E5_ARTIFACT_KEY,
         E5_OUTPUT_STAGE,
     )
@@ -250,33 +226,17 @@ def _materialize_analysis_json_from_db(ws_id: str, run_id: str, tenant_root: Pat
         )
         if row is None or not row.content_json:
             return None
-        payload = row.content_json
-
-    target_dir = tenant_root / "processed" / "E5_analysis"
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / E5_ARTIFACT_FILENAME
-    target.write_text(
-        _json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    return target
+        # Captura os campos antes de fechar a sessão (objeto detacha).
+        return {"id": row.id, "content_json": row.content_json}
 
 
 def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> None:
-    # ADR-129: Report é criado a partir do JSON de análise E5 (renderer
-    # HTML server-side foi descontinuado). Sem analysis_json, não há nada
-    # para o relatório React consumir — pula.
-    #
-    # Fallback DB-aware: pós-A6c (2026-04-24), com USE_DB_ARTIFACTS=True
-    # o E5 só escreve no DB. Materializamos o JSON em disco a partir de
-    # ``pipeline_artifacts`` para que get_report_data + pdf_renderer
-    # continuem funcionando.
-    analysis_json = _find_latest_analysis_json(tenant_root)
-    if analysis_json is None:
-        analysis_json = _materialize_analysis_json_from_db(ws_id, run_id, tenant_root)
-    if analysis_json is None:
+    # ADR-131: Report referencia o artefato E5 por FK (analysis_artifact_id).
+    # Sem artifact no DB, não há nada para o relatório React consumir.
+    artifact = _find_latest_analysis_artifact(ws_id, run_id)
+    if artifact is None:
         logger.error(
-            "report_creation_skipped: no E5 analysis artifact in disk or DB " "for ws=%s run=%s",
+            "report_creation_skipped: no E5 analysis artifact in DB for ws=%s run=%s",
             ws_id,
             run_id,
         )
@@ -303,8 +263,7 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             workspace_id=ws_id,
             pipeline_run_id=run_id,
             title=f"Relatório {datetime.now(_BRT).strftime('%Y-%m-%d %H:%M')}",
-            analysis_json_path=str(analysis_json),
-            size_bytes=analysis_json.stat().st_size,
+            analysis_artifact_id=artifact["id"],
             tasks_snapshot_json=tasks_snapshot,
             premissas_snapshot_json=premissas_snapshot,
         )

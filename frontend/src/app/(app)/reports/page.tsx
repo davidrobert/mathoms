@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { listReports, type ReportResponse } from "@/lib/api";
-import { formatDateShort, formatBytes } from "@/lib/format";
+import { formatDateShort } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
 import { EmptyState } from "@/components/EmptyState";
@@ -95,9 +95,6 @@ function ReportsPageContent({ workspace }: { workspace: UserWorkspace }) {
                             <Calendar className="h-3.5 w-3.5" />
                             {report.period}
                           </span>
-                        )}
-                        {report.size_bytes && (
-                          <span>{formatBytes(report.size_bytes)}</span>
                         )}
                       </div>
                     </div>

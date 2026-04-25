@@ -20,7 +20,6 @@ class ReportSummary:
     title: str
     period: str | None
     created_at: datetime
-    size_bytes: int | None
     owner_email: str | None
     workspace_name: str | None
 
@@ -64,7 +63,6 @@ async def list_reports(
             title=r.title,
             period=r.period,
             created_at=r.created_at,
-            size_bytes=r.size_bytes,
             owner_email=email,
             workspace_name=ws_name,
         )

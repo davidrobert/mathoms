@@ -491,16 +491,16 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `pipeline_run_id` | `VARCHAR(36)` | yes | — | FK→pipeline_runs.id |
 | `title` | `VARCHAR(255)` | no | — | — |
 | `period` | `VARCHAR(50)` | yes | — | — |
-| `analysis_json_path` | `TEXT` | yes | — | — |
+| `analysis_artifact_id` | `INTEGER` | yes | — | FK→pipeline_artifacts.id |
 | `tasks_snapshot_json` | `JSON` | yes | — | — |
 | `premissas_snapshot_json` | `JSON` | yes | — | — |
-| `size_bytes` | `INTEGER` | yes | — | — |
 | `score` | `FLOAT` | yes | — | — |
 | `patrimonio_liquido` | `FLOAT` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Constraints:**
 
+- FOREIGN KEY (analysis_artifact_id) REFERENCES pipeline_artifacts.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (pipeline_run_id) REFERENCES pipeline_runs.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 
@@ -1113,10 +1113,9 @@ type Report struct {
 	PipelineRunId *string `db:"pipeline_run_id" json:"pipeline_run_id"`
 	Title string `db:"title" json:"title"`
 	Period *string `db:"period" json:"period"`
-	AnalysisJsonPath *string `db:"analysis_json_path" json:"analysis_json_path"`
+	AnalysisArtifactId *int `db:"analysis_artifact_id" json:"analysis_artifact_id"`
 	TasksSnapshotJson json.RawMessage `db:"tasks_snapshot_json" json:"tasks_snapshot_json"`
 	PremissasSnapshotJson json.RawMessage `db:"premissas_snapshot_json" json:"premissas_snapshot_json"`
-	SizeBytes *int `db:"size_bytes" json:"size_bytes"`
 	Score *float64 `db:"score" json:"score"`
 	PatrimonioLiquido *float64 `db:"patrimonio_liquido" json:"patrimonio_liquido"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`

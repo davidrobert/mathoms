@@ -7,7 +7,6 @@ export interface ReportResponse {
   workspace_id: string;
   title: string;
   period: string | null;
-  size_bytes: number | null;
   score: number | null;
   patrimonio_liquido: number | null;
   created_at: string;
@@ -16,7 +15,7 @@ export interface ReportResponse {
   /** F11.4a — documentos prontos no workspace (agregado; IDs truncados no backend). */
   source_document_count: number;
   source_document_ids: string[];
-  /** F9 · ADR-076 — true se o relatório tem JSON de análise p/ render nativo. */
+  /** F9 · ADR-076 · ADR-131 — true se o relatório tem JSON de análise (FK ao pipeline_artifact) p/ render nativo. */
   has_analysis_data: boolean;
   /** F11.6b — snapshot de premissas (hash goals.json + metas ativas) na geração. */
   premissas_snapshot?: Record<string, unknown> | null;
@@ -88,9 +87,9 @@ export function getReportDownloadPdfUrl(workspaceId: string, reportId: string): 
   return `${API_BASE}/workspaces/${workspaceId}/reports/${reportId}/download.pdf`;
 }
 
-/** F9 · ADR-076 — Busca o snapshot E5 JSON para o render nativo.
+/** F9 · ADR-076 · ADR-131 — Busca o snapshot E5 JSON para o render nativo.
  *
- * Retorna 404 se o relatório é pré-F9 (sem analysis_json_path) — verifique
+ * Retorna 404 se o relatório é pré-F9 ou se o artifact foi removido — verifique
  * antes via `ReportResponse.has_analysis_data` para evitar a requisição.
  */
 export async function getReportData(workspaceId: string, reportId: string): Promise<ReportAnalysisData> {

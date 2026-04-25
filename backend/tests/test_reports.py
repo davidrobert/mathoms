@@ -1,6 +1,5 @@
-"""Tests for report endpoints — list, get, data, pdf (F9 · ADR-076 · ADR-129)."""
+"""Tests for report endpoints — list, get, data, pdf (F9 · ADR-076 · ADR-129 · ADR-131)."""
 
-import json
 import uuid
 from pathlib import Path
 
@@ -45,20 +44,19 @@ async def _seed_report(
 ) -> str:
     """Cria um Report vinculado ao workspace do auth_client e retorna seu id.
 
-    Escreve (opcionalmente) o JSON de análise em `tmp_path` para que o
-    endpoint /data possa servir o arquivo.
+    ADR-131: quando ``analysis_payload`` é dado, cria um ``PipelineArtifact``
+    no DB com aquele conteúdo e referencia via ``analysis_artifact_id``.
+    Quando ``None``, deixa a FK como NULL (relatório sem análise — pré-F9
+    ou cujo run foi hard-deleted).
 
     ``db`` — deve ser a fixture ``db`` do conftest. Usar TestSession()
     direto causa "no such table" em pytest-asyncio strict mode porque a
     session é criada fora do lifecycle de fixtures.
     """
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
     from backend.app.models.report import Report
     from backend.app.models.workspace import Workspace
-
-    analysis_path: Path | None = None
-    if analysis_payload is not None:
-        analysis_path = tmp_path / "analysis.json"
-        analysis_path.write_text(json.dumps(analysis_payload), encoding="utf-8")
 
     # Use the fixture-managed session (same lifecycle as setup_db/create_all).
     # Falls back to TestSession if db not provided (compat).
@@ -79,13 +77,42 @@ async def _seed_report(
 
     async with session_ctx as session:
         ws = (await session.execute(select(Workspace))).scalar_one()
+
+        artifact_id: int | None = None
+        if analysis_payload is not None:
+            # PipelineArtifact requer pipeline_run_id (FK NOT NULL); cria
+            # um run sintético quando o caller não passou.
+            run_id = pipeline_run_id or str(uuid.uuid4())
+            existing_run = (
+                await session.execute(select(PipelineRun).where(PipelineRun.id == run_id))
+            ).scalar_one_or_none()
+            if existing_run is None:
+                session.add(
+                    PipelineRun(
+                        id=run_id,
+                        workspace_id=ws.id,
+                        status=PipelineRunStatus.completed,
+                    )
+                )
+                await session.flush()
+                pipeline_run_id = run_id
+            artifact = PipelineArtifact(
+                workspace_id=ws.id,
+                pipeline_run_id=run_id,
+                stage="E5",
+                artifact_key="analise_financeira",
+                content_json=analysis_payload,
+            )
+            session.add(artifact)
+            await session.flush()
+            artifact_id = artifact.id
+
         report = Report(
             id=str(uuid.uuid4()),
             workspace_id=ws.id,
             pipeline_run_id=pipeline_run_id,
             title="Relatório de Teste",
-            analysis_json_path=str(analysis_path) if analysis_path else None,
-            size_bytes=analysis_path.stat().st_size if analysis_path else None,
+            analysis_artifact_id=artifact_id,
             premissas_snapshot_json=premissas_snapshot_json,
         )
         session.add(report)
@@ -252,7 +279,7 @@ async def test_get_report_data_merges_premissas_snapshot_into_goals(
 async def test_get_report_data_404_when_analysis_missing(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
-    """Relatório pré-F9 (sem analysis_json_path) retorna 404."""
+    """Relatório pré-F9 ou cujo run/artifact foi removido (analysis_artifact_id NULL) → 404."""
     rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
     assert resp.status_code == 404
@@ -260,27 +287,28 @@ async def test_get_report_data_404_when_analysis_missing(
 
 
 @pytest.mark.asyncio
-async def test_get_report_data_404_when_file_missing_from_disk(
+async def test_get_report_data_404_after_artifact_deleted(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
-    """Path persistido mas arquivo apagado → 404 (não 500)."""
+    """ADR-131: artifact removido (ON DELETE SET NULL) → 404, não 500."""
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from backend.app.models.report import Report
+
     rid = await _seed_report(auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db)
-    # Apaga o JSON do disco preservando a row do DB
-    (tmp_path / "analysis.json").unlink()
+    # Carrega o report para obter analysis_artifact_id, apaga o artifact
+    # (FK ON DELETE SET NULL preserva a row do Report).
+    report = (await db.execute(select(Report).where(Report.id == rid))).scalar_one()
+    assert report.analysis_artifact_id is not None
+    artifact = (
+        await db.execute(
+            select(PipelineArtifact).where(PipelineArtifact.id == report.analysis_artifact_id)
+        )
+    ).scalar_one()
+    await db.delete(artifact)
+    await db.commit()
+
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
     assert resp.status_code == 404
-
-
-@pytest.mark.asyncio
-async def test_get_report_data_500_when_json_corrupted(
-    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
-):
-    rid = await _seed_report(auth_client, analysis_payload={"x": 1}, tmp_path=tmp_path, db=db)
-    # Corrompe o arquivo
-    (tmp_path / "analysis.json").write_text("{invalid json", encoding="utf-8")
-    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
-    assert resp.status_code == 500
-    assert "corrompido" in resp.json()["detail"].lower()
 
 
 # ─── ADR-129: sanitize helper segue em uso pelo download PDF ───────────

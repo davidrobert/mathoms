@@ -11,7 +11,6 @@ class ReportResponse(BaseModel):
     workspace_id: str
     title: str
     period: Optional[str] = None
-    size_bytes: Optional[int] = None
     score: Optional[float] = None
     patrimonio_liquido: Optional[float] = None
     created_at: datetime
@@ -20,9 +19,9 @@ class ReportResponse(BaseModel):
     # F11.4a — agregado: documentos prontos no workspace (IDs truncados p/ payload).
     source_document_count: int = 0
     source_document_ids: list[str] = Field(default_factory=list)
-    # ADR-076 / F9: indica ao frontend se o relatório tem JSON de análise
-    # disponível para o render nativo React. False = apenas HTML (legado pré-F9),
-    # usar download do standalone HTML em vez do view nativo.
+    # ADR-076 / F9 / ADR-131: indica ao frontend se o relatório tem JSON
+    # de análise disponível para o render nativo React. ``False`` = relatório
+    # legado pré-F9 ou cujo artifact foi removido (run hard-deleted).
     has_analysis_data: bool = False
     # F11.6b — snapshot de premissas (metas + hash goals.json) na geração.
     premissas_snapshot: Optional[dict] = None

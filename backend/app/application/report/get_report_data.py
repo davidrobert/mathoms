@@ -1,11 +1,11 @@
-"""Use case: snapshot E5 JSON do relatório + injeção de lineage/premissas."""
+"""Use case: snapshot E5 JSON do relatório + injeção de lineage/premissas.
+
+ADR-131: lê o ``content_json`` direto do ``pipeline_artifact`` referenciado
+por ``Report.analysis_artifact_id`` — zero filesystem.
+"""
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
-from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,21 +19,11 @@ from backend.app.services.report_lineage import (
 
 async def get_report_data(workspace_id: str, report_id: str, *, db: AsyncSession) -> JSONResponse:
     report = await fetch_report(workspace_id, report_id, db=db)
-    if not report.analysis_json_path:
-        raise NotFoundError(
-            "Este relatório não tem JSON de análise disponível " "(gerado antes do F9 · ADR-076)."
-        )
-    json_path = Path(report.analysis_json_path)
-    if not json_path.exists():
-        raise NotFoundError("Arquivo JSON de análise não encontrado no disco")
+    artifact = report.analysis_artifact
+    if artifact is None or not artifact.content_json:
+        raise NotFoundError("Este relatório não tem JSON de análise associado.")
 
-    try:
-        payload = json.loads(json_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"JSON de análise corrompido: {exc}",
-        ) from exc
+    payload = dict(artifact.content_json)
 
     doc_total, doc_ids = await workspace_ready_documents_summary(db, workspace_id)
     payload["_report_lineage"] = lineage_payload(
