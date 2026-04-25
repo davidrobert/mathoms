@@ -18,7 +18,7 @@ Este script continua útil para: (a) workflows CLI com
 (c) preparar rerun manual pós-edição em JSONs.
 
 Usage:
-  python scripts/e_reset.py                  # Reprocessamento completo (E0→E6)
+  python scripts/e_reset.py                  # Reprocessamento completo (E0→E7)
   python scripts/e_reset.py --from E3        # Reprocessamento parcial de E3 em diante
   python scripts/e_reset.py --from E4        # Reprocessamento parcial de E4 em diante
   python scripts/e_reset.py --dry-run        # Show what would be deleted (no changes)
@@ -27,11 +27,11 @@ Usage:
   python scripts/e_reset.py --move-to-inbox --interactive  # E-full-reset interativo (para em etapas LLM)
   python scripts/e_reset.py --continue       # Retoma pipeline interativo após etapa LLM
 
-Valid --from values: E0, E1, E2-faturas, E3, E4, E5, E5.N, E6, E7
+Valid --from values: E0, E1, E2-faturas, E3, E4, E5, E5.N, E7
 
 Sequência completa (sem --from):
   E0 Unlock → E0 Audit → E0 Route → E1 → E1.5 → E1.5c → E2-fat → E2-ext → E2-llm →
-  E3 → E4 → E5 → E5.N → E6 → E7-crossval → E7-review → E7-apply → E6-final
+  E3 → E4 → E5 → E5.N → E7-crossval → E7-review → E7-apply
 
 Modo padrão: etapas determinísticas rodam automaticamente, LLM são puladas com lembrete.
 Modo --interactive: pipeline PARA em cada etapa LLM (exit code 10), retoma com --continue.
@@ -239,7 +239,7 @@ def move_data_and_members_to_inbox(dry_run: bool = False) -> int:
 
 
 def artifacts_full_reset() -> list[Path]:
-    """Artifacts deleted on a full reset (E0→E6).
+    """Artifacts deleted on a full reset (E0→E7).
     NOTE: E0 artifacts (data/, members/ originals) and E1 artifacts
     (members/*-1a_extract.json, members-1b_unified.json, members-1c_enriched.md)
     are NOT deleted because E0/E1 are LLM-driven and cannot be regenerated
@@ -256,7 +256,7 @@ def artifacts_full_reset() -> list[Path]:
     # E2 summaries
     files += _glob("processed/E2_PROCESSING_SUMMARY.txt")
     files += _glob("processed/E2_TARGET_FILES_MANIFEST.txt")
-    # E6 — HTML output + backups
+    # Legacy HTML output (renderer descontinuado em ADR-129) + backups
     files += _glob(f"output/{_OUTPUT_HTML_GLOB}")
     files += _glob("output/*.html.bak")
     # Operational logs
@@ -273,15 +273,14 @@ def artifacts_from(stage: str) -> list[Path]:
     files: list[Path] = []
 
     stages_cascade = {
-        "E0": ["E2-all", "E3", "E4", "E5", "E7", "E6"],  # Limpa TODOS E2 (extratos + faturas)
-        "E1": ["E2-all", "E3", "E4", "E5", "E7", "E6"],  # Limpa TODOS E2 (extratos + faturas)
-        "E2-faturas": ["E2-faturas", "E3", "E4", "E5", "E7", "E6"],
-        "E3": ["E3", "E4", "E5", "E7", "E6"],
-        "E4": ["E4", "E5", "E7", "E6"],
-        "E5": ["E5", "E7", "E6"],
-        "E5.N": ["E5.N", "E7", "E6"],
-        "E6": ["E7", "E6"],
-        "E7": ["E7", "E6"],
+        "E0": ["E2-all", "E3", "E4", "E5", "E7", "LEGACY-HTML"],
+        "E1": ["E2-all", "E3", "E4", "E5", "E7", "LEGACY-HTML"],
+        "E2-faturas": ["E2-faturas", "E3", "E4", "E5", "E7", "LEGACY-HTML"],
+        "E3": ["E3", "E4", "E5", "E7", "LEGACY-HTML"],
+        "E4": ["E4", "E5", "E7", "LEGACY-HTML"],
+        "E5": ["E5", "E7", "LEGACY-HTML"],
+        "E5.N": ["E5.N", "E7", "LEGACY-HTML"],
+        "E7": ["E7", "LEGACY-HTML"],
     }
 
     cascade = stages_cascade[stage]
@@ -323,7 +322,10 @@ def artifacts_from(stage: str) -> list[Path]:
         # E7 review template
         files += _glob("processed/E7_review/e7_review_template.json")
 
-    if "E6" in cascade:
+    if "LEGACY-HTML" in cascade:
+        # Renderer HTML server-side descontinuado em ADR-129; cleanup
+        # de artefatos legados em disco (output/*.html .bak) continua
+        # útil para limpar runs antigas.
         files += _glob(f"output/{_OUTPUT_HTML_GLOB}")
         files += _glob("output/*.html.bak")
 
@@ -351,7 +353,6 @@ def check_dependencies(stages: list[str]) -> list[str]:
     stage_deps: dict[str, list[tuple[str, str]]] = {
         "E2-faturas": [("pdfplumber", "pip install pdfplumber")],
         "E2-extratos": [("pdfplumber", "pip install pdfplumber"), ("xlrd", "pip install xlrd")],
-        "E6": [("pytz", "pip install pytz")],
     }
 
     missing = []
@@ -416,7 +417,7 @@ def strip_review_from_e5_files(dry_run: bool = False) -> int:
 
 def strip_narrativas_from_e5_files(dry_run: bool = False) -> int:
     """Remove 'narrativas' key from all E5 analysis JSON files.
-    Ensures stale narrativas are never carried over to E6 after an E5.N reset.
+    Ensures stale narrativas are never carried over to E7 after an E5.N reset.
     Returns count of files modified."""
     if not E5_ANALYSIS.exists():
         print(f"  [WARN] Diretório {E5_ANALYSIS} não existe — nenhuma narrativa para limpar")
@@ -452,10 +453,8 @@ DETERMINISTIC_SCRIPTS = {
     "E4": SCRIPTS_DIR / "e4_categorize.py",
     "E5": SCRIPTS_DIR / "e5_analyze.py",
     "E5.N": SCRIPTS_DIR / "e5n_narrativas.py",
-    "E6": SCRIPTS_DIR / "e6_render.py",
     "E7-crossval": SCRIPTS_DIR / "e7_review.py",
     "E7-apply": SCRIPTS_DIR / "e7_review.py",
-    "E6-final": SCRIPTS_DIR / "e6_render.py",
 }
 
 LLM_STAGES = {"E1", "E1.5", "E2-llm", "E7-review"}
@@ -471,11 +470,9 @@ EXECUTION_ORDER_FULL = [
     "E4",
     "E5",
     "E5.N",  # Deterministic (narrativas)
-    "E6",
     "E7-crossval",  # Deterministic (cross-validation)
     "E7-review",  # Wall 3 (LLM)
     "E7-apply",  # Deterministic (apply review)
-    "E6-final",
 ]
 EXECUTION_ORDER_FROM = {
     "E0": [
@@ -489,11 +486,9 @@ EXECUTION_ORDER_FROM = {
         "E4",
         "E5",
         "E5.N",
-        "E6",
         "E7-crossval",
         "E7-review",
         "E7-apply",
-        "E6-final",
     ],
     "E1": [
         "E1",
@@ -506,11 +501,9 @@ EXECUTION_ORDER_FROM = {
         "E4",
         "E5",
         "E5.N",
-        "E6",
         "E7-crossval",
         "E7-review",
         "E7-apply",
-        "E6-final",
     ],
     "E2-faturas": [
         "E2-faturas",
@@ -519,18 +512,15 @@ EXECUTION_ORDER_FROM = {
         "E4",
         "E5",
         "E5.N",
-        "E6",
         "E7-crossval",
         "E7-review",
         "E7-apply",
-        "E6-final",
     ],
-    "E3": ["E3", "E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E4": ["E4", "E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E5": ["E5", "E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E5.N": ["E5.N", "E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E6": ["E6", "E7-crossval", "E7-review", "E7-apply", "E6-final"],
-    "E7": ["E7-crossval", "E7-review", "E7-apply", "E6-final"],
+    "E3": ["E3", "E4", "E5", "E5.N", "E7-crossval", "E7-review", "E7-apply"],
+    "E4": ["E4", "E5", "E5.N", "E7-crossval", "E7-review", "E7-apply"],
+    "E5": ["E5", "E5.N", "E7-crossval", "E7-review", "E7-apply"],
+    "E5.N": ["E5.N", "E7-crossval", "E7-review", "E7-apply"],
+    "E7": ["E7-crossval", "E7-review", "E7-apply"],
 }
 
 
@@ -858,10 +848,6 @@ def validate(from_stage: str | None) -> list[str]:
                 if w:
                     warnings.append(f"  E5: {w}")
 
-    html_files = list(OUTPUT_DIR.glob(_OUTPUT_HTML_GLOB))
-    if not html_files:
-        warnings.append("output/ não contém relatório HTML")
-
     return warnings
 
 
@@ -869,7 +855,7 @@ def validate(from_stage: str | None) -> list[str]:
 # Main
 # =============================================================================
 
-VALID_FROM_STAGES = ["E0", "E1", "E2-faturas", "E3", "E4", "E5", "E5.N", "E6", "E7"]
+VALID_FROM_STAGES = ["E0", "E1", "E2-faturas", "E3", "E4", "E5", "E5.N", "E7"]
 
 
 LLM_DESCRIPTIONS = {
@@ -882,11 +868,11 @@ LLM_DESCRIPTIONS = {
 
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Reprocessamento completo do pipeline financeiro (E0→E6)",
+        description="Reprocessamento completo do pipeline financeiro (E0→E7)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=f"""
 Exemplos:
-  python scripts/e_reset.py                                  # Reprocessamento completo (E0→E6)
+  python scripts/e_reset.py                                  # Reprocessamento completo (E0→E7)
   python scripts/e_reset.py --from E4                        # Reprocessamento de E4 em diante
   python scripts/e_reset.py --from E3 --dry-run              # Ver o que seria apagado
   python scripts/e_reset.py --clean-only                     # Só limpar, não executar
@@ -895,7 +881,7 @@ Exemplos:
 
 Sequência completa (modo interativo):
   [E1] → [E1.5] → E1.5c → E2-fat → E2-ext → [E2-llm] → E3 → E4 → E5 →
-  E5.N → E6 → E7-crossval → [E7-review] → E7-apply → E6-final
+  E5.N → E7-crossval → [E7-review] → E7-apply
   Colchetes = etapa LLM (wall — pipeline para e aguarda)
 
 Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
