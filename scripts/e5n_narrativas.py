@@ -91,7 +91,9 @@ def _load_fiscal():
 # garantem que helpers do módulo possam ser importados puros.
 SCRIPTS_DIR: Path = _DEFAULT_BASE_DIR / "scripts"
 PROJECT_DIR: Path = _DEFAULT_BASE_DIR
-E5_JSON_PATH: Path = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+E5_JSON_PATH: Path = (
+    PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+)
 FAMILY_CONFIG_PATH: Path = PROJECT_DIR / "config" / "family_members.json"
 GOALS_CONFIG_PATH: Path = PROJECT_DIR / "config" / "goals.json"
 TAXAS_CONFIG_PATH: Path = PROJECT_DIR / "config" / "taxas.json"
