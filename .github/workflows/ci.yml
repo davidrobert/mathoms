@@ -401,6 +401,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Setup Chrome (lhci usa chrome-launcher)
+        # ubuntu-24.04 (novo default de ubuntu-latest) não traz mais Chrome
+        # pré-instalado. @lhci/cli 0.14 depende de chrome-launcher → exige
+        # binário no PATH ou CHROME_PATH definido.
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
       - name: Build Next (production preset)
         env:
           NODE_ENV: production
