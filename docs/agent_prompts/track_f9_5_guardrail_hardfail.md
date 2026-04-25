@@ -7,7 +7,7 @@
 > **Conflita com:** commits em `tests/unit/pipeline/test_no_legacy_stage_names.py`, `pyproject.toml`, `.pre-commit-config.yaml`
 > **Onda:** F9 (sub-fatia 6/7)
 > **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) · [test_no_legacy_stage_names.py soft-fail atual](../../tests/unit/pipeline/test_no_legacy_stage_names.py)
+> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [test_no_legacy_stage_names.py soft-fail atual](../../tests/unit/pipeline/test_no_legacy_stage_names.py)
 
 > **Objetivo:** transformar [`tests/unit/pipeline/test_no_legacy_stage_names.py`](../../tests/unit/pipeline/test_no_legacy_stage_names.py)
 > de soft-fail (warn) para **hard-fail** (default em CI). Strings legadas

@@ -7,7 +7,7 @@
 > **Conflita com:** qualquer commit em `backend/alembic/versions/`
 > **Onda:** F9 (sub-fatia 4/7)
 > **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) · [migration scaffold já em repo](../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py)
+> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [migration scaffold já em repo](../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py)
 
 > **Objetivo:** validar e fechar a Alembic migration `q5r6s7t8u9v0_rename_stage_identifiers`
 > que reescreve `pipeline_artifacts.stage` e `pipeline_stage_logs.stage` dos

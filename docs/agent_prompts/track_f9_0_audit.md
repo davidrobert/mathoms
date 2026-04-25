@@ -7,7 +7,7 @@
 > **Conflita com:** qualquer commit ativo em `pipeline/stage_spec.py`, `pipeline/stages/`, `scripts/e*.py`, `backend/alembic/versions/`
 > **Onda:** F9 (sub-fatia 1/7)
 > **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) · [`pipeline.stage_spec.STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
+> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`pipeline.stage_spec.STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
 
 > **Objetivo (1 frase):** produzir um inventário exaustivo das ocorrências dos
 > identificadores legados (`E2`, `E3`, `E5`, `E5.N`, `E7-apply`…) em todo o

@@ -7,7 +7,7 @@
 > decisões formalizadas em ADR-117, 121, 122, 123, ~~124~~. Fase 1 unlocked.
 > Deltas aplicados ao plano — ver [REPORT_PREMIUM_PLAN.md §Deltas](REPORT_PREMIUM_PLAN.md).
 >
-> ⚠️ **Update 2026-04-24:** [ADR-124](DECISIONS.md#adr-124) (e Q12 abaixo)
+> ⚠️ **Update 2026-04-24:** [ADR-124](DECISIONS.md#adr-124--scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next) (e Q12 abaixo)
 > foi superseded por [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 > O renderer HTML server-side foi **descontinuado por completo** —
 > `scripts/e6_render.py`, `scripts/e6/`, `pipeline/stages/e6.py` e

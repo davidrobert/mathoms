@@ -7,7 +7,7 @@
 > **Conflita com:** qualquer commit em `pipeline/stages/`, `pipeline/stage_spec.py`, `pipeline/orchestrator.py`
 > **Onda:** F9 (sub-fatia 2/7)
 > **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
+> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
 
 > **Objetivo:** renomear os 14 wrappers em `pipeline/stages/e*.py` para os
 > nomes descritivos do `STAGE_RENAME_MAP`, atualizar imports e o registro

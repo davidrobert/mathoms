@@ -102,7 +102,7 @@ Para apagar **toda** a base de utilizadores e ficheiros de tenant (cenário de t
 ## 7. Console interno local (F7F-Local · IA-0)
 
 Ferramenta web em `127.0.0.1:3100` para operador executar ações de suporte/LGPD
-em **dev/staging** antes do produto estar em produção ([ADR-116](DECISIONS.md#adr-116)).
+em **dev/staging** antes do produto estar em produção ([ADR-116](DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local)).
 **Não** rodar em produção — bloqueado por flag + bind local.
 
 ### 7.1 Arquitetura resumida
@@ -340,5 +340,5 @@ querystring.
 - [SMOKE_TEST.md](SMOKE_TEST.md) — verificações manuais pré-release
 - [SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) — runbook de smoke humano
 - [REPORT_PREMIUM_PLAN.md](REPORT_PREMIUM_PLAN.md) — plano canônico do shell v1
-- [ADR-116](DECISIONS.md#adr-116) — decisões de design F7F-Local
+- [ADR-116](DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) — decisões de design F7F-Local
 - [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) — descontinuação do renderer HTML server-side

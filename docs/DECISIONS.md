@@ -3994,7 +3994,7 @@ agente de IA-0 trava antes da primeira tela.
 
 Três contextos adicionais importam aqui:
 
-- **A6g.7 Go prep já destravada** ([ADR-113](DECISIONS.md#adr-113)): backend
+- **A6g.7 Go prep já destravada** ([ADR-113](DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7)): backend
   **pode** virar Go em algum ponto. Acoplar a UI interna ao processo Python
   cria dívida de migração.
 - **F7F-Remote precisa consumir a mesma UI** (só troca o gate localhost →

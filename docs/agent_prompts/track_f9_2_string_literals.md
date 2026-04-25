@@ -7,7 +7,7 @@
 > **Conflita com:** qualquer commit em `pipeline/`, `backend/app/`, `scripts/`, `tests/` (escopo enorme — não há janela paralela viável)
 > **Onda:** F9 (sub-fatia 3/7) — **a maior das 7**
 > **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
+> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
 
 > **Objetivo:** trocar todas as strings literais `"E0-audit"`, `"E1.5c"`,
 > `"E2-faturas"`, `"E3"`, `"E5"`, `"E5.N"`, `"E7-apply"`… (16 keys do

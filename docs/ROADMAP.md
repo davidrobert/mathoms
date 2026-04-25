@@ -107,7 +107,7 @@ Detalhes completos: **[BACKLOG.md#f65--frontend-testing--qa](BACKLOG.md#f65--fro
 
 **Números:**
 - **~146 testes** novos (goals: 32, tasks: 48, integrações: 45, adapter: 9, lint: 12)
-- **6 ADRs**: [072](DECISIONS.md#adr-072) multi-tenancy, [073](DECISIONS.md#adr-073) goals versionados, [074](DECISIONS.md#adr-074) tasks 1ª classe, [075](DECISIONS.md#adr-075) cutover faseado, [077](DECISIONS.md#adr-077) adapter contrato
+- **6 ADRs**: [072](DECISIONS.md#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família) multi-tenancy, [073](DECISIONS.md#adr-073--goals-como-entidade-versionada-não-config-estático) goals versionados, [074](DECISIONS.md#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório) tasks 1ª classe, [075](DECISIONS.md#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) cutover faseado, [077](DECISIONS.md#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web) adapter contrato
 - **5 migrations Alembic** encadeadas: workspace_members → goals → tasks → report_snapshot → feature_flags
 - **20 tenant models** detectados pelo lint AST
 - **9 services** novos: goal, task, task_suggestion, task_notification, task_progress, task_attachment, report_tasks_snapshot, feature_flags, pipeline_adapter

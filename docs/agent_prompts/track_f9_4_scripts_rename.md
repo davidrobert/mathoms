@@ -7,7 +7,7 @@
 > **Conflita com:** qualquer commit em `scripts/`, `pipeline/orchestrator.py`, runbooks que invoquem `python -m scripts.e*`
 > **Onda:** F9 (sub-fatia 5/7)
 > **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
+> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
 
 > **Objetivo:** renomear scripts CLI em `scripts/e*.py` para nomes descritivos
 > e adicionar alias compat em `scripts/e_reset.py --from <stage>` (legacy ou

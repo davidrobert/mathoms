@@ -7,7 +7,7 @@
 > **Conflita com:** commits em `pipeline/stage_spec.py`, `scripts/e*.py` (wrappers), `pipeline/`
 > **Onda:** F9 (sub-fatia 7/7) — **fechamento**
 > **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) §9.6 + ADR-100 (housekeeping `_init_config`)
+> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) §9.6 + ADR-100 (housekeeping `_init_config`)
 
 > **Objetivo:** remover toda a infra de compat introduzida em F9.2-F9.4
 > (wrappers `scripts/e*.py`, alias `STAGE_RENAME_MAP` reverso,

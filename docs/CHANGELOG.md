@@ -7,7 +7,7 @@
 ## [Unreleased]
 
 Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
-execução da **[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
+execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)** (rename de stages F9).
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
@@ -3525,8 +3525,8 @@ ADRs relacionadas: ADR-076 (design tokens), ADR-117/118/121/122/123/124
 ## [F9] Relatório Nativo React + Workspace Sharing + Design System — 2026-04-15 ✅
 
 **ADRs:**
-- [ADR-076](DECISIONS.md#adr-076) Design tokens unificados site × relatório (fonte única `tokens.json`)
-- [ADR-078](DECISIONS.md#adr-078) Render nativo React + E6 como exportador standalone
+- [ADR-076](DECISIONS.md#adr-076--design-tokens-unificados-site--relatório) Design tokens unificados site × relatório (fonte única `tokens.json`)
+- [ADR-078](DECISIONS.md#adr-078--render-nativo-react--e6-como-exportador-standalone) Render nativo React + E6 como exportador standalone
 
 **Design System:**
 - `design-tokens/tokens.json`: fonte única de verdade (typography, spacing, radius, shadow, modes, card variants)
@@ -3599,11 +3599,11 @@ Frontend:
 ## [F8] Goals & Tasks + Cutover CLI→Web — 2026-04-15 ✅
 
 **ADRs:**
-- [ADR-072](DECISIONS.md#adr-072) Multi-tenancy: `WorkspaceMember` N:N, `get_current_workspace` dependency, tenancy lint AST-based com baseline
-- [ADR-073](DECISIONS.md#adr-073) Goals como entidade versionada (append-only, derivação server-side)
-- [ADR-074](DECISIONS.md#adr-074) Tasks como entidade de 1ª classe (fora do relatório)
-- [ADR-075](DECISIONS.md#adr-075) Cutover CLI→Web: estratégia de transição faseada com adapters
-- [ADR-077](DECISIONS.md#adr-077) Pipeline adapter como contrato de cutover
+- [ADR-072](DECISIONS.md#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família) Multi-tenancy: `WorkspaceMember` N:N, `get_current_workspace` dependency, tenancy lint AST-based com baseline
+- [ADR-073](DECISIONS.md#adr-073--goals-como-entidade-versionada-não-config-estático) Goals como entidade versionada (append-only, derivação server-side)
+- [ADR-074](DECISIONS.md#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório) Tasks como entidade de 1ª classe (fora do relatório)
+- [ADR-075](DECISIONS.md#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) Cutover CLI→Web: estratégia de transição faseada com adapters
+- [ADR-077](DECISIONS.md#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web) Pipeline adapter como contrato de cutover
 
 **Backend — Models + Migrations:**
 - `WorkspaceMember` (N:N user↔workspace, roles owner/member) + backfill migration

@@ -94,7 +94,7 @@ mistura doc + código, a regra normal volta a valer.
 - **TypeScript**: **sem `any`**. `unknown` + narrow para input externo.
   Tipos do codegen (`frontend/src/generated/`) são fonte de verdade para
   API ↔ UI.
-- **Go** (skeleton + linter prontos em A6g.7 · [ADR-113](docs/DECISIONS.md#adr-113);
+- **Go** (skeleton + linter prontos em A6g.7 · [ADR-113](docs/DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7);
   primeiro serviço entra em `services/<name>/`): **sem `interface{}`/`any`**
   fora de util genérico. Tipos concretos em assinaturas. Errors tipados
   (`var ErrNotFound = errors.New(...)` ou struct com `Error()`), nunca
