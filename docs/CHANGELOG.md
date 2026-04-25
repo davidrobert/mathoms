@@ -49,6 +49,28 @@ execução da **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-ren
     code+test removido: ~3 100 linhas. Destrava `A6g.2b T3` (scripts
     com goldens) e marca fim formal da migração ADR-086 → ADR-083.
 
+- **ADR-129 fatia 3 · Scripts E6 deletados + refs CLI residuais limpas
+  (2026-04-24 · commits `e6d4fdf` → `152f205`):** terceira de 6 fatias
+  da lane `adr-129-e6-kill`. Deletados `scripts/e6_render.py` (4867 LOC),
+  `scripts/e6/` (sanitize.py + validate.py), `scripts/e6_regen.py`.
+  Refs CLI a `python scripts/e6_render.py` removidas/atualizadas em
+  `scripts/e7_review.py` (docstring + bloco "próximos passos LLM" + apply
+  mode prints) e `scripts/e_reset.py` (instruções pós-LLM). Bônus
+  absorvido: `e_reset.py` tinha estrutura runtime de E6/E6-final que
+  apontava para arquivo deletado — limpeza completa de
+  `DETERMINISTIC_SCRIPTS`, `EXECUTION_ORDER_FULL/_FROM`, `stages_cascade`
+  (renomeado de `"E6"` para `"LEGACY-HTML"` no cleanup de
+  `output/*.html` legado em disco), `VALID_FROM_STAGES`,
+  `check_dependencies` e docstrings (E0→E6 → E0→E7). Tests E6 órfãos
+  removidos: `test_e6_init_config_custom_root` em
+  `tests/test_stage_wrappers.py`; `TestE6TemplateUsesFamilySurname` +
+  `test_global_template_files_preserved` em
+  `backend/tests/test_golden_pipeline.py`. Comentários órfãos em
+  `config/report_layout.yaml` apontando para `e6_render.py`/`e6_regen.py`
+  atualizados (4 comentários — só metadados, não muda valores). Code
+  style baseline regenerado: −1 272 ofensores (de 3 619 para 2 347).
+  Próxima: fatia 4 (frontend dead code).
+
 - **ADR-129 fatia 2 · Pipeline E6 + `stage_materialization` removidos
   (2026-04-24 · commit `9f4c616`):** segunda de 6 fatias da lane
   `adr-129-e6-kill`. Deletados `pipeline/stages/e6.py` e
