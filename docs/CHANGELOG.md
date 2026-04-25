@@ -11,6 +11,42 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report referencia `pipeline_artifact` por FK (2026-04-25) — ✅
+  [ADR-131](DECISIONS.md#adr-131--report-referencia-pipeline_artifact-por-fk-drop-analysis_json_path):**
+  encerra estruturalmente a regressão A6c+ADR-129 que a Fatia 1 (commit
+  `6112f7f`) havia mitigado materializando o JSON em disco. Agora o
+  `Report` aponta direto para `pipeline_artifacts.id` via FK
+  (`analysis_artifact_id` ON DELETE SET NULL); `analysis_json_path` e
+  `size_bytes` saíram do schema. `GET /reports/{id}/data` lê
+  `content_json` direto do DB — zero filesystem.
+  - Migration `v0w1x2y3z4a5_adr131_report_analysis_artifact_fk` em 3
+    passos (`batch_alter_table`): add column + FK, backfill SQL puro
+    (`UPDATE reports SET analysis_artifact_id = (SELECT pa.id FROM
+    pipeline_artifacts pa WHERE pa.pipeline_run_id =
+    reports.pipeline_run_id AND pa.stage='E5' AND
+    pa.artifact_key='analise_financeira' LIMIT 1)`), drop colunas
+    antigas. Snapshots `_table_pre/intermediate/post` declaram a FK
+    para preservá-la em rebuild SQLite.
+  - Reader (`get_report_data`): trocou
+    `Path(analysis_json_path).read_text()` +
+    `json.loads()` por `report.analysis_artifact.content_json` direto
+    (relationship `lazy="joined"`). "Arquivo inexistente" e "JSON
+    corrompido" deixam de existir como failure modes; resta só
+    "FK NULL → 404", coberto por novo teste
+    `test_get_report_data_404_after_artifact_deleted`.
+  - Writers atualizados: `_create_report_from_output`,
+    `_persist_llm_suggestions` e
+    `backend/app/scripts/backfill_reports_from_artifacts.py` leem o
+    artefato direto do DB e setam `analysis_artifact_id`. Helper
+    `_find_latest_analysis_json` (filesystem-based) deletado;
+    `_materialize_analysis_json_from_db` (Fatia 1) deletado.
+  - DTOs: `ReportResponse` e `ReportSummaryDTO` perdem `size_bytes`;
+    frontend `/reports` deixa de exibir tamanho do arquivo (UX
+    cosmético, sem caso de uso declarado).
+  - Snapshots regenerados: `docs/api/v1/openapi.json` e
+    `docs/DB_SCHEMA_REFERENCE.md`.
+  - Suíte: 1310 backend + 1464 pipeline ✓ (incl. 4 alembic guardrails).
+
 - **F12.1 — Fundação i18n no frontend (2026-04-25) — ✅ concluída
   (commit `cb0ff11` em `main`):** primeira fase de
   [ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
