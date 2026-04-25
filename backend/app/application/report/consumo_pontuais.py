@@ -1,14 +1,4 @@
-"""Use case: lista gastos pontuais ≥ threshold com filtro de transferências internas.
-
-Move para o backend a lógica antes duplicada no frontend
-(``frontend/src/lib/periodUtils.ts::filterConsumoPontuais``), que aceitava
-qualquer transação com ``valor >= 2000`` — incluindo PIX/TED entre contas
-da família que o E4 deixou cair no fallback ``nao_identificado``.
-
-Defesa em profundidade: aplica ``InternalTransferDetector`` sobre a descrição
-mesmo que o E4 não tenha capturado, garantindo que o card "Consumo Consciente"
-nunca exiba transferências familiares como saídas.
-"""
+"""Use case ``list_consumo_pontuais`` (card "Consumo Consciente")."""
 
 from __future__ import annotations
 
@@ -34,20 +24,22 @@ _TRANSFER_CATEGORIES = frozenset(
 )
 
 
+def _period_start(period: str, today: date) -> date:
+    if period == "3m":
+        return today - timedelta(days=31 * 3)
+    if period == "6m":
+        return today - timedelta(days=31 * 6)
+    if period == "12m":
+        return today.replace(year=today.year - 1)
+    return today.replace(month=1, day=1)
+
+
 def _resolve_period_dates(period: str, today: date | None = None) -> tuple[str, str]:
     """Replica ``frontend/src/lib/periodUtils.ts::getPeriodDates``."""
     if period not in VALID_PERIODS:
         raise ValueError(f"period inválido: {period!r} — esperado um de {VALID_PERIODS}")
     today = today or datetime.now(timezone.utc).date()
-    if period == "3m":
-        start = today - timedelta(days=31 * 3)
-    elif period == "6m":
-        start = today - timedelta(days=31 * 6)
-    elif period == "12m":
-        start = today.replace(year=today.year - 1)
-    else:  # "ytd"
-        start = today.replace(month=1, day=1)
-    return start.isoformat(), today.isoformat()
+    return _period_start(period, today).isoformat(), today.isoformat()
 
 
 def _tenant_config_dir(workspace_id: str) -> Path:
@@ -63,30 +55,41 @@ def _read_json(path: Path) -> dict[str, Any]:
         return {}
 
 
-def _build_internal_transfer_detector(workspace_id: str) -> InternalTransferDetector:
-    """Carrega ``categorization.json`` + ``family_members.json`` do tenant
-    (ou cai para o config global do repo) e monta detector tipado."""
+def _load_categorization(workspace_id: str) -> dict[str, Any]:
     tenant_dir = _tenant_config_dir(workspace_id)
     global_dir = settings.PIPELINE_ROOT / "config"
-
-    categorization = _read_json(tenant_dir / "categorization.json") or _read_json(
+    return _read_json(tenant_dir / "categorization.json") or _read_json(
         global_dir / "categorization.json"
     )
-    family = _read_json(tenant_dir / "family_members.json") or _read_json(
+
+
+def _load_family(workspace_id: str) -> dict[str, Any]:
+    tenant_dir = _tenant_config_dir(workspace_id)
+    global_dir = settings.PIPELINE_ROOT / "config"
+    return _read_json(tenant_dir / "family_members.json") or _read_json(
         global_dir / "family_members.json"
     )
-    transferencias_internas = (family.get("transferencias_internas") or {}) if family else {}
 
+
+def _merge_transfer_config(
+    categorization: dict[str, Any], family: dict[str, Any]
+) -> dict[str, Any]:
+    transferencias = (family.get("transferencias_internas") or {}) if family else {}
     merged = dict(categorization)
-    merged_patterns = list(merged.get("internal_transfer_patterns") or [])
-    merged_patterns += list(transferencias_internas.get("patterns_pix") or [])
-    merged["internal_transfer_patterns"] = merged_patterns
-    merged["internal_transfer_recipients"] = list(transferencias_internas.get("recipients") or [])
-    merged["bank_specific_transfer_patterns"] = (
-        transferencias_internas.get("patterns_bank_specific") or {}
-    )
-    merged["global_transfer_patterns"] = list(transferencias_internas.get("patterns_global") or [])
+    patterns = list(merged.get("internal_transfer_patterns") or [])
+    patterns += list(transferencias.get("patterns_pix") or [])
+    merged["internal_transfer_patterns"] = patterns
+    merged["internal_transfer_recipients"] = list(transferencias.get("recipients") or [])
+    merged["bank_specific_transfer_patterns"] = transferencias.get("patterns_bank_specific") or {}
+    merged["global_transfer_patterns"] = list(transferencias.get("patterns_global") or [])
+    return merged
 
+
+def _build_internal_transfer_detector(workspace_id: str) -> InternalTransferDetector:
+    """Detector tipado a partir do config materializado no tenant (ou global)."""
+    categorization = _load_categorization(workspace_id)
+    family = _load_family(workspace_id)
+    merged = _merge_transfer_config(categorization, family)
     return InternalTransferDetector(InternalTransferConfig.from_categorization(merged))
 
 
@@ -120,6 +123,27 @@ def _to_item(tx: TransactionItem) -> ConsumoPontuaisItem:
     )
 
 
+async def _load_window(
+    workspace_id: str, *, date_from: str, date_to: str, db: AsyncSession
+) -> list[TransactionItem]:
+    return await load_filtered_transactions(
+        workspace_id,
+        TransactionFilters(date_from=date_from, date_to=date_to),
+        db=db,
+    )
+
+
+def _filter_and_sort(
+    transactions: list[TransactionItem],
+    *,
+    threshold: Decimal,
+    detector: InternalTransferDetector,
+) -> list[TransactionItem]:
+    pontuais = [t for t in transactions if _is_pontual(t, threshold=threshold, detector=detector)]
+    pontuais.sort(key=lambda t: abs(t.valor), reverse=True)
+    return pontuais
+
+
 async def list_consumo_pontuais(
     workspace_id: str,
     *,
@@ -129,25 +153,14 @@ async def list_consumo_pontuais(
 ) -> ConsumoPontuaisResponse:
     threshold_value = threshold if threshold is not None else _DEFAULT_THRESHOLD
     date_from, date_to = _resolve_period_dates(period)
-
-    transactions = await load_filtered_transactions(
-        workspace_id,
-        TransactionFilters(date_from=date_from, date_to=date_to),
-        db=db,
-    )
-
+    transactions = await _load_window(workspace_id, date_from=date_from, date_to=date_to, db=db)
     detector = _build_internal_transfer_detector(workspace_id)
-    pontuais = [t for t in transactions if _is_pontual(t, threshold=threshold_value, detector=detector)]
-    pontuais.sort(key=lambda t: abs(t.valor), reverse=True)
-
-    items = [_to_item(t) for t in pontuais]
-    total_valor = sum((abs(t.valor) for t in pontuais), Decimal("0"))
-
+    pontuais = _filter_and_sort(transactions, threshold=threshold_value, detector=detector)
     return ConsumoPontuaisResponse(
         period=period,
         date_from=date_from,
         date_to=date_to,
-        items=items,
-        total=len(items),
-        total_valor=total_valor,
+        items=[_to_item(t) for t in pontuais],
+        total=len(pontuais),
+        total_valor=sum((abs(t.valor) for t in pontuais), Decimal("0")),
     )

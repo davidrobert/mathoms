@@ -59,13 +59,7 @@ async def list_consumo_pontuais(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ) -> ConsumoPontuaisResponse:
-    """Gastos pontuais ≥ R$2k no período, com transferências internas filtradas.
-
-    Usado pelo card "Consumo Consciente" do relatório. Aplica
-    ``InternalTransferDetector`` (família + bancos próprios) sobre a descrição
-    para excluir PIX/TED entre contas que o E4 deixou cair em
-    ``nao_identificado``.
-    """
+    """Gastos pontuais ≥ R$2k no período, com transferências internas filtradas (card Consumo Consciente)."""
     return await _list_consumo_pontuais(workspace.id, period=period, db=db)
 
 

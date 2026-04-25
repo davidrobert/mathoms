@@ -84,15 +84,7 @@ class ReportTaskSnapshotItem(BaseModel):
 
 
 class ConsumoPontuaisItem(BaseModel):
-    """Gasto pontual ≥ threshold após filtro de transferências internas.
-
-    Filtragem aplicada no backend:
-    1. ``valor`` >= ``consumo_min`` (default R$ 2.000).
-    2. Não é receita (``origem`` ausente).
-    3. Descrição não casa com ``InternalTransferDetector`` (recipients/patterns
-       de ``family_members.json``+``categorization.json``).
-    4. ``categoria`` não é ``transferencia_entre_contas``/``transferencia_familiar``.
-    """
+    """Gasto pontual ≥ threshold após filtro de transferências internas."""
 
     data: str
     descricao: str
@@ -105,10 +97,7 @@ class ConsumoPontuaisItem(BaseModel):
 
 
 class ConsumoPontuaisResponse(BaseModel):
-    """Resposta do endpoint ``GET /reports/consumo-pontuais``.
-
-    Lista filtrada e ordenada por valor descendente.
-    """
+    """Resposta do endpoint ``GET /reports/consumo-pontuais`` (ordenada desc)."""
 
     period: str
     date_from: str

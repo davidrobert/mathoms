@@ -6,6 +6,7 @@ import {
   getConsumoPontuais,
   type ConsumoPontuaisItem,
   type ConsumoPontuaisPeriod,
+  type ConsumoPontuaisResponse,
 } from "@/lib/api/reports";
 
 interface UseConsumoPontuaisResult {
@@ -16,19 +17,63 @@ interface UseConsumoPontuaisResult {
   error: string | null;
 }
 
-/**
- * Busca a lista filtrada de gastos pontuais ≥ R$2k para o período selecionado.
- *
- * Toda a regra (threshold, exclusão de transferências entre contas da
- * família) vive no backend — este hook é só fetch + estado de loading.
- */
+interface ConsumoState {
+  items: ConsumoPontuaisItem[];
+  total: number;
+  totalValor: number;
+}
+
+interface FetchHandlers {
+  setData: (s: ConsumoState) => void;
+  setError: (e: string | null) => void;
+  setIsLoading: (b: boolean) => void;
+}
+
+const EMPTY: ConsumoState = { items: [], total: 0, totalValor: 0 };
+
+function toState(res: ConsumoPontuaisResponse): ConsumoState {
+  return { items: res.items, total: res.total, totalValor: res.total_valor };
+}
+
+function describeError(err: unknown): string {
+  return err instanceof Error ? err.message : "Erro ao carregar gastos pontuais.";
+}
+
+function applyResolved(
+  res: ConsumoPontuaisResponse,
+  handlers: FetchHandlers,
+): void {
+  handlers.setData(toState(res));
+  handlers.setError(null);
+}
+
+function applyRejected(err: unknown, handlers: FetchHandlers): void {
+  handlers.setError(describeError(err));
+  handlers.setData(EMPTY);
+}
+
+function runFetch(
+  workspaceId: string,
+  period: ConsumoPontuaisPeriod,
+  handlers: FetchHandlers,
+): () => void {
+  let cancelled = false;
+  handlers.setIsLoading(true);
+  getConsumoPontuais(workspaceId, period)
+    .then((res) => !cancelled && applyResolved(res, handlers))
+    .catch((err: unknown) => !cancelled && applyRejected(err, handlers))
+    .finally(() => !cancelled && handlers.setIsLoading(false));
+  return () => {
+    cancelled = true;
+  };
+}
+
+/** Fetch da lista de gastos pontuais ≥ R$2k já filtrada pelo backend. */
 export function useConsumoPontuais(
   period: ConsumoPontuaisPeriod,
 ): UseConsumoPontuaisResult {
   const { workspace } = useWorkspace();
-  const [items, setItems] = useState<ConsumoPontuaisItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalValor, setTotalValor] = useState(0);
+  const [data, setData] = useState<ConsumoState>(EMPTY);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,26 +82,8 @@ export function useConsumoPontuais(
       setIsLoading(false);
       return;
     }
-    setIsLoading(true);
-    getConsumoPontuais(workspace.id, period)
-      .then((res) => {
-        setItems(res.items);
-        setTotal(res.total);
-        setTotalValor(res.total_valor);
-        setError(null);
-      })
-      .catch((err: unknown) => {
-        setError(
-          err instanceof Error ? err.message : "Erro ao carregar gastos pontuais.",
-        );
-        setItems([]);
-        setTotal(0);
-        setTotalValor(0);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    return runFetch(workspace.id, period, { setData, setError, setIsLoading });
   }, [workspace, period]);
 
-  return { items, total, totalValor, isLoading, error };
+  return { ...data, isLoading, error };
 }
