@@ -61,22 +61,29 @@ class TestOrchestratorLogic:
     def test_full_order_includes_llm(self):
         from pipeline.orchestrator import FULL_ORDER, LLM_STAGES
 
-        assert LLM_STAGES.issubset(set(FULL_ORDER))
+        # LLM_STAGES contém aliases legados + descritivos (F9.2 compat) — só
+        # exigimos que cada item de FULL_ORDER que é LLM esteja em LLM_STAGES.
+        from pipeline.stage_spec import STAGE_REGISTRY
+
+        for stage in FULL_ORDER:
+            if STAGE_REGISTRY[stage].is_llm:
+                assert stage in LLM_STAGES
 
     def test_from_map_e3_starts_at_e3(self):
         from pipeline.orchestrator import FROM_MAP
 
+        # Legacy key continua funcionando, mas conteúdo é descritivo (F9.2).
         stages = FROM_MAP["E3"]
-        assert stages[0] == "E3"
-        assert "E1" not in stages
-        assert "E5" in stages
+        assert stages[0] == "reconcile_transactions"
+        assert "extract_members" not in stages
+        assert "analyze_finances" in stages
 
     def test_from_map_e5_starts_at_e5(self):
         from pipeline.orchestrator import FROM_MAP
 
         stages = FROM_MAP["E5"]
-        assert stages[0] == "E5"
-        assert "E3" not in stages
+        assert stages[0] == "analyze_finances"
+        assert "reconcile_transactions" not in stages
 
     def test_from_map_invalid_returns_error(self):
         from pipeline import WorkspaceContext, run_from

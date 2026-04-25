@@ -66,9 +66,9 @@ class InProcessPipelineClient:
         )
 
     def is_llm_stage(self, stage: str) -> bool:
-        from pipeline.stage_spec import STAGE_REGISTRY
+        from pipeline.stage_spec import STAGE_REGISTRY, resolve_stage_name
 
-        spec = STAGE_REGISTRY.get(stage)
+        spec = STAGE_REGISTRY.get(resolve_stage_name(stage))
         return bool(spec and spec.is_llm)
 
 
@@ -107,9 +107,9 @@ class HttpPipelineClient:
         )
 
     def is_llm_stage(self, stage: str) -> bool:
-        from pipeline.stage_spec import STAGE_REGISTRY
+        from pipeline.stage_spec import STAGE_REGISTRY, resolve_stage_name
 
-        spec = STAGE_REGISTRY.get(stage)
+        spec = STAGE_REGISTRY.get(resolve_stage_name(stage))
         return bool(spec and spec.is_llm)
 
 

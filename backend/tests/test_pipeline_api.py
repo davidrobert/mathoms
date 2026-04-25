@@ -86,7 +86,8 @@ async def test_trigger_pipeline_from_stage(auth_client_with_doc: AsyncClient):
     assert resp.status_code == 202
     args = mock_start.call_args
     stages = args[1]["stages"] if "stages" in args[1] else args.kwargs.get("stages") or args[0][2]
-    assert "E3" in stages
+    # F9.2: from_stage="E3" (legado) resolve para "reconcile_transactions" (descritivo).
+    assert "reconcile_transactions" in stages
 
 
 @pytest.mark.asyncio

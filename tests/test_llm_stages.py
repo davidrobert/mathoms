@@ -408,12 +408,12 @@ class TestOrchestratorLLMStages:
     def test_full_order_has_correct_sequence(self):
         from pipeline.orchestrator import FULL_ORDER
 
-        e1_idx = FULL_ORDER.index("E1")
-        e15_idx = FULL_ORDER.index("E1.5")
-        e15c_idx = FULL_ORDER.index("E1.5c")
-        e2_llm_idx = FULL_ORDER.index("E2-llm")
-        e2_fat_idx = FULL_ORDER.index("E2-faturas")
+        e1_idx = FULL_ORDER.index("extract_members")
+        e15_idx = FULL_ORDER.index("extract_baseline")
+        e15c_idx = FULL_ORDER.index("consolidate_baseline")
+        e2_llm_idx = FULL_ORDER.index("extract_with_llm")
+        e2_fat_idx = FULL_ORDER.index("extract_invoices")
 
-        e2_ext_idx = FULL_ORDER.index("E2-extratos")
-        # E2 determinístico antes do E2-llm — só o que falhar no parser vai à IA.
+        e2_ext_idx = FULL_ORDER.index("extract_statements")
+        # E2 determinístico antes do extract_with_llm — só o que falhar no parser vai à IA.
         assert e1_idx < e15_idx < e15c_idx < e2_fat_idx < e2_ext_idx < e2_llm_idx
