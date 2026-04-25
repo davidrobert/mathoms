@@ -258,30 +258,17 @@ def run_with_store(
 
     emit_stage = target_stage or "E2"
     total_files = len(files)
-    if pipeline_run_id and total_files > 0:
-        from pipeline.live_progress import emit_stage_activity
+    from pipeline.live_progress import emit_item_progress
 
-        emit_stage_activity(
+    for idx, file_path in enumerate(files):
+        emit_item_progress(
             pipeline_run_id,
             emit_stage,
-            message=f"{total_files} arquivo(s) na fila",
-            items_done=0,
+            current_item=file_path.name,
+            items_done=idx,
             items_total=total_files,
+            phase="preparing",
         )
-
-    for idx, file_path in enumerate(files, start=1):
-        if pipeline_run_id:
-            from pipeline.live_progress import emit_stage_activity
-
-            emit_stage_activity(
-                pipeline_run_id,
-                emit_stage,
-                file=file_path.name,
-                message=f"Processando {idx}/{total_files}",
-                current_item=file_path.name,
-                items_done=idx - 1,
-                items_total=total_files,
-            )
         try:
             result = process_file(file_path, dry_run=dry_run)
             if result is None:
@@ -335,6 +322,14 @@ def run_with_store(
                     )
                     continue
 
+            emit_item_progress(
+                pipeline_run_id,
+                emit_stage,
+                current_item=file_path.name,
+                items_done=idx,
+                items_total=total_files,
+                phase="persisting",
+            )
             store.write(stage, key, result)
             log(
                 LOG_UNIFIED,
@@ -345,6 +340,16 @@ def run_with_store(
         except Exception as e:
             stats["erros_validacao"] += 1
             log(LOG_UNIFIED, "ERROR", f"  Failed: {file_path.name} — {e}")
+
+    if total_files > 0:
+        emit_item_progress(
+            pipeline_run_id,
+            emit_stage,
+            current_item=None,
+            items_done=total_files,
+            items_total=total_files,
+            phase="finalizing",
+        )
 
     return stats
 
