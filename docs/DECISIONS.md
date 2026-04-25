@@ -3474,11 +3474,13 @@ decisões anteriores. A contribuição de A6f.6 passa a ser:
   ADR-102 + regra operacional no CLAUDE.md).
 - ⚠️ Teste usa **fakeredis** + `AsyncClient` duplicado, não processos
   reais. Runbook manual (`docs/RUNBOOK.md` — a criar) cobre fail-over.
-- ⚠️ `MATHOMS_USE_DB_ARTIFACTS=False` (default) mantém escrita em disco
-  via `DiskArtifactStore`. Em produção multi-worker com disco
-  compartilhado, concurrency depende de Celery `task_acks_late=True`
-  garantir 1 worker por `run_id`. Cutover pleno (A6-human → A6c) elimina
-  essa classe de risco escrevendo via DB.
+- ⚠️ `MATHOMS_USE_DB_ARTIFACTS=False` (default **na época deste ADR**;
+  flipado para `True` em
+  [ADR-118](#adr-118--flip-do-default-mathoms_use_db_artifacts-para-true)
+  em 2026-04-23) mantém escrita em disco via `DiskArtifactStore`. Em
+  produção multi-worker com disco compartilhado, concurrency depende de
+  Celery `task_acks_late=True` garantir 1 worker por `run_id`. Cutover
+  pleno (A6-human → A6c) elimina essa classe de risco escrevendo via DB.
 - ❌ Novo dev que adicione dict mutável global precisa conhecer a regra
   — mitigado por (a) code review; (b) audit como referência viva;
   (c) CLAUDE.md "Regras operacionais" lista a proibição.
@@ -4216,7 +4218,10 @@ cutover antes de redeploy global — reverso ficou NOOP após flip).
   via `dev/compare_disk_vs_db.py`.
 
 Supersedes: marca A6b/A6c/A6-human como concluídos no que se refere ao
-default global. Override per-workspace (ADR-106) continua válido.
+default global; atualiza o trade-off ⚠️ documentado em
+[ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6),
+que registrava o default `False` da época. Override per-workspace
+(ADR-106) continua válido.
 
 ---
 
