@@ -132,7 +132,6 @@ python seed_db.py
 Isso cria:
 - Usuário dev: `admin@mathoms.ai` / `admin123`
 - Workspace default para esse usuário
-- Importa relatórios HTML existentes em `output/` (se houver)
 
 ### Migrations (Alembic)
 
