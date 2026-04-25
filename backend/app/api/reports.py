@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Query, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +19,9 @@ from backend.app.application.report import (
     get_report_tasks as _get_report_tasks,
 )
 from backend.app.application.report import (
+    list_consumo_pontuais as _list_consumo_pontuais,
+)
+from backend.app.application.report import (
     list_reports as _list_reports,
 )
 from backend.app.application.report._common import (
@@ -30,6 +33,7 @@ from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.report import (
+    ConsumoPontuaisResponse,
     ReportListResponse,
     ReportResponse,
     ReportTasksResponse,
@@ -47,6 +51,22 @@ async def list_reports(
     db: AsyncSession = Depends(get_db),
 ) -> ReportListResponse:
     return await _list_reports(workspace.id, db=db)
+
+
+@router.get("/consumo-pontuais", response_model=ConsumoPontuaisResponse)
+async def list_consumo_pontuais(
+    period: str = Query("3m", pattern=r"^(3m|6m|12m|ytd)$"),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+) -> ConsumoPontuaisResponse:
+    """Gastos pontuais ≥ R$2k no período, com transferências internas filtradas.
+
+    Usado pelo card "Consumo Consciente" do relatório. Aplica
+    ``InternalTransferDetector`` (família + bancos próprios) sobre a descrição
+    para excluir PIX/TED entre contas que o E4 deixou cair em
+    ``nao_identificado``.
+    """
+    return await _list_consumo_pontuais(workspace.id, period=period, db=db)
 
 
 @router.get("/{report_id}", response_model=ReportResponse)

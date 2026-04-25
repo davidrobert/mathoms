@@ -1493,6 +1493,109 @@
         "title": "ConfigImportResponse",
         "type": "object"
       },
+      "ConsumoPontuaisItem": {
+        "description": "Gasto pontual \u2265 threshold ap\u00f3s filtro de transfer\u00eancias internas.\n\nFiltragem aplicada no backend:\n1. ``valor`` >= ``consumo_min`` (default R$ 2.000).\n2. N\u00e3o \u00e9 receita (``origem`` ausente).\n3. Descri\u00e7\u00e3o n\u00e3o casa com ``InternalTransferDetector`` (recipients/patterns\n   de ``family_members.json``+``categorization.json``).\n4. ``categoria`` n\u00e3o \u00e9 ``transferencia_entre_contas``/``transferencia_familiar``.",
+        "properties": {
+          "banco": {
+            "title": "Banco",
+            "type": "string"
+          },
+          "categoria": {
+            "title": "Categoria",
+            "type": "string"
+          },
+          "data": {
+            "title": "Data",
+            "type": "string"
+          },
+          "descricao": {
+            "title": "Descricao",
+            "type": "string"
+          },
+          "tipo_conta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tipo Conta"
+          },
+          "titular": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Titular"
+          },
+          "transaction_hash": {
+            "title": "Transaction Hash",
+            "type": "string"
+          },
+          "valor": {
+            "title": "Valor",
+            "type": "number"
+          }
+        },
+        "required": [
+          "data",
+          "descricao",
+          "valor",
+          "banco",
+          "categoria",
+          "transaction_hash"
+        ],
+        "title": "ConsumoPontuaisItem",
+        "type": "object"
+      },
+      "ConsumoPontuaisResponse": {
+        "description": "Resposta do endpoint ``GET /reports/consumo-pontuais``.\n\nLista filtrada e ordenada por valor descendente.",
+        "properties": {
+          "date_from": {
+            "title": "Date From",
+            "type": "string"
+          },
+          "date_to": {
+            "title": "Date To",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConsumoPontuaisItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "period": {
+            "title": "Period",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "total_valor": {
+            "title": "Total Valor",
+            "type": "number"
+          }
+        },
+        "required": [
+          "period",
+          "date_from",
+          "date_to",
+          "items",
+          "total",
+          "total_valor"
+        ],
+        "title": "ConsumoPontuaisResponse",
+        "type": "object"
+      },
       "DashboardAlert": {
         "properties": {
           "message": {
@@ -13162,6 +13265,65 @@
           }
         ],
         "summary": "List Reports",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/reports/consumo-pontuais": {
+      "get": {
+        "description": "Gastos pontuais \u2265 R$2k no per\u00edodo, com transfer\u00eancias internas filtradas.\n\nUsado pelo card \"Consumo Consciente\" do relat\u00f3rio. Aplica\n``InternalTransferDetector`` (fam\u00edlia + bancos pr\u00f3prios) sobre a descri\u00e7\u00e3o\npara excluir PIX/TED entre contas que o E4 deixou cair em\n``nao_identificado``.",
+        "operationId": "list_consumo_pontuais_api_v1_workspaces__workspace_id__reports_consumo_pontuais_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "3m",
+              "pattern": "^(3m|6m|12m|ytd)$",
+              "title": "Period",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumoPontuaisResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Consumo Pontuais",
         "tags": [
           "reports"
         ]
