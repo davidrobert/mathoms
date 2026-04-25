@@ -693,11 +693,17 @@ Seguir `docs/SMOKE_TEST_HUMAN.md` com adições:
 
 ## 13. Paralelização (caminho crítico)
 
+> ℹ️ Diagrama original; Fases 11/12/13 (e6, polish, rollout) foram **canceladas** por
+> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+> O caminho crítico **executável** termina na Fase 10. Resíduos pós-10
+> (smoke, polish, rollout) seguem na lane `report-v1-polish` — ver
+> [BACKLOG.md](BACKLOG.md#lanes-abertas-agora--pickup-table).
+
 ```
 Fase 0 (discovery)
    ↓
 Fase 1 (tokens) ─→ Fase 2 (charts) ─┐
-                Fase 3 (primitives) ─┼─→ Fase 4 (shell) ─→ Fase 7+8+9+10 (sections, paralelos) ─→ Fase 11 (e6) ─→ Fase 12 (polish) ─→ Fase 13 (rollout)
+                Fase 3 (primitives) ─┼─→ Fase 4 (shell) ─→ Fase 7+8+9+10 (sections, paralelos) ─→ ✅ FIM (Fases 11/12/13 canceladas — ADR-129)
                                      │
 Fase 5 (YAML) ─→ Fase 6 (E5 data) ───┘
 ```

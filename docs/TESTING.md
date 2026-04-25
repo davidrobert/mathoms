@@ -502,7 +502,6 @@ em 2026-04-21).
 - [ ] Cada stage: golden fixture passa com artefatos no banco
 - [ ] E5: `pipeline_artifacts` tem `analise_financeira` com FK válida à run
 - [ ] `apply_review` escreve para artifact stage `analyze_finances_revised` (categoria em `VIRTUAL_ARTIFACT_STAGES`)
-- [ ] `render_final_report` lê de `analyze_finances_revised`; pipeline completo sem erro de constraint
 - [ ] `validate_artifact_stage("analyze_finances_revised")` passa; `validate_artifact_stage("foo")` levanta
 
 ### Infra — Fase 4 (cleanup + cutover)

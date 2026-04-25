@@ -367,9 +367,9 @@ E0-audit → E1.5c (skip se sem baseline)
 ```
 
 > **Nota:** stages `E6` e `E6-final` foram removidos em
-> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
-> O relatório final não é mais um artefato do pipeline — é renderizado
-> sob demanda via React na rota `/reports/[id]`.
+> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) —
+> o relatório não é mais artefato de pipeline. Render atual: ver §**Render do relatório**
+> (logo após a tabela de stages abaixo).
 
 ### O que cada stage faz
 

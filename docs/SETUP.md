@@ -270,7 +270,8 @@ python scripts/e2_extract.py --faturas-only
 # Reconciliação
 python scripts/e3_reconcile.py
 
-# Relatório completo (orquestra E0→E6; precisa MATHOMS_WORKSPACE_ROOT)
+# Pipeline completo (orquestra E0→E5.N; precisa MATHOMS_WORKSPACE_ROOT)
+# Renderização do relatório é via React em /reports/[id] (ADR-129 — sem stage E6).
 python scripts/e_reset.py
 
 # Orquestrador (define MATHOMS_WORKSPACE_ROOT a partir de --root)
