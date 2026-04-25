@@ -233,10 +233,13 @@ export function ReportShell({
 
   const coverMeta = useMemo<CoverMeta[]>(() => {
     if (dataState.status !== "success") return [];
-    const generated = new Date(reportCreatedAt).toLocaleDateString("pt-BR", {
+    const generated = new Date(reportCreatedAt).toLocaleString("pt-BR", {
       day: "2-digit",
       month: "long",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "shortOffset",
     });
     return [
       {

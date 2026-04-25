@@ -171,6 +171,26 @@ describe("ReportShell", () => {
     expect(valueEl?.textContent).toBe("202601-202604");
   });
 
+  it("inclui hora e timezone no card 'Gerado em' do cover", () => {
+    const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
+    render(
+      wrap(
+        <ReportShell
+          reportId="r1"
+          workspaceId="ws-test"
+          reportTitle="Rel"
+          dataState={state}
+          reportPeriod={null}
+          reportCreatedAt="2026-04-17T12:00:00.000Z"
+        />,
+      ),
+    );
+    const label = screen.getByText("Gerado em");
+    const valueEl = label.nextElementSibling;
+    expect(valueEl?.textContent).toMatch(/\d{2}:\d{2}/);
+    expect(valueEl?.textContent).toMatch(/GMT/);
+  });
+
   it("mostra spinner em loading", () => {
     const state: UseReportDataState = { status: "loading" };
     const { container } = render(
