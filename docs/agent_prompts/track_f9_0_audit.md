@@ -45,7 +45,11 @@ em 2026-04-24 (pós-A6c, pós-ADR-129 — `E6`/`E6-final` saíram do mapa).
 
 ## Entregas
 
-### 1. Script de auditoria — `_scratch/audit_stage_references.py`
+### 1. Script de auditoria — `dev/audit_stage_references.py`
+
+**Ferramenta reutilizável** — mora em `dev/` junto com `audit_code_style.py`
+(não `_scratch/`, que é gitignored). F9.1-F9.6 podem re-rodar para confirmar
+redução de offenders ao longo das fatias.
 
 Dump JSON com todas as ocorrências, classificadas por categoria. Sugestão de
 estrutura:
@@ -62,7 +66,11 @@ estrutura:
 #   "alembic"         — backend/alembic/versions/**
 ```
 
-Output esperado: `_scratch/stage_audit_<YYYYMMDD>.{json,md}` com:
+Interface sugerida: `python dev/audit_stage_references.py --format {json,md} --output-dir <path>`.
+Default `--output-dir _scratch/` (output **é** ephemeral — o artefato durável
+é o resumo em `docs/audits/`, não o dump bruto).
+
+Output esperado em `<output-dir>/stage_audit_<YYYYMMDD>.{json,md}`:
 - Total de ocorrências por categoria.
 - Top 20 arquivos com mais ocorrências (alvos prioritários de 9.2).
 - Lista de filenames `e*` em `scripts/` e `pipeline/stages/` (alvos 9.1/9.4).
@@ -104,10 +112,12 @@ Comparar com `STAGE_RENAME_MAP.keys()`. Qualquer stage não mapeado é
 investigação obrigatória **antes de prosseguir** — provavelmente débito de
 ADR-129 (E6/E6-final residual) ou stage ad-hoc esquecido.
 
-### 4. Relatório executivo — `_scratch/f9_audit_summary.md`
+### 4. Relatório executivo — `docs/audits/f9_audit_<YYYYMMDD>.md`
 
-Resumo de 1 página: contagens por categoria, lista de blockers (se houver),
-estimativa de esforço por sub-fatia (9.1-9.6) com base nos números reais.
+**Artefato durável** (commitado, não em `_scratch/`). Resumo de 1 página:
+contagens por categoria, lista de blockers (se houver), estimativa de
+esforço por sub-fatia (9.1-9.6) com base nos números reais. F9.1-F9.6
+consultam este arquivo; gitignored não serve.
 
 ---
 
@@ -122,13 +132,14 @@ git for-each-ref --sort=-committerdate \
   refs/remotes/origin/agent/f9-stage-rename/ | head -10
 git checkout -b agent/f9-stage-rename/0-audit/$(date +%Y%m%d-%H%M)
 
-# 1. Escrever audit_stage_references.py em _scratch/
-# 2. Rodar e iterar até output cobrir todas categorias acima
+# 1. Escrever dev/audit_stage_references.py (ferramenta commitada)
+# 2. Rodar `python dev/audit_stage_references.py --output-dir _scratch/`
+#    e iterar até output cobrir todas categorias acima
 # 3. Adicionar testes em tests/unit/pipeline/test_stage_spec.py
 pytest tests/unit/pipeline/test_stage_spec.py -q
 
 # 4. DB sanity check (se mathoms.db existir local)
-# 5. Escrever _scratch/f9_audit_summary.md
+# 5. Escrever docs/audits/f9_audit_<YYYYMMDD>.md (resumo durável)
 
 # Gates
 pre-commit run --all-files
@@ -146,13 +157,16 @@ git push origin HEAD:main
 
 ## Critérios de aceite (binários)
 
-- [ ] `_scratch/audit_stage_references.py` existe e roda em <10s.
-- [ ] `_scratch/stage_audit_<date>.{json,md}` commitado **não** (é scratch) — só `f9_audit_summary.md` vai pra `docs/audits/`.
+- [ ] `dev/audit_stage_references.py` commitado em `main` e roda em <10s (`python dev/audit_stage_references.py --format md --output-dir _scratch/` produz output).
+- [ ] `docs/audits/f9_audit_<YYYYMMDD>.md` commitado com resumo + contagens + blockers.
 - [ ] `test_rename_map_covers_all_legacy_names` + `test_rename_map_targets_are_unique` passando em verde.
-- [ ] Tabela "stage encontrado vs mapeado" tem 100% de cobertura — zero "Não".
-- [ ] DB local: `SELECT DISTINCT stage FROM pipeline_artifacts` retorna apenas keys de `STAGE_RENAME_MAP` (ou DB vazio).
-- [ ] `f9_audit_summary.md` em `docs/audits/f9_audit_<date>.md` (mover de `_scratch/`).
+- [ ] Tabela "stage encontrado vs mapeado" no resumo tem 100% de cobertura — zero "Não".
+- [ ] DB local: `SELECT DISTINCT stage FROM pipeline_artifacts` retorna apenas keys de `STAGE_RENAME_MAP` (ou DB vazio) — registrado no resumo.
 - [ ] BACKLOG + CHANGELOG atualizados (§Atualizar documentação).
+
+**Nota:** dumps brutos em `_scratch/stage_audit_<date>.{json,md}` são
+gitignored (ephemeral) e **não** são gate — qualquer um re-gera rodando
+o script. O gate é o resumo em `docs/audits/`.
 
 ---
 
@@ -177,7 +191,8 @@ Antes de push final, no **mesmo turno**:
    ```markdown
    ### 2026-MM-DD — F9.0 audit ADR-093
 
-   - `_scratch/audit_stage_references.py` + `docs/audits/f9_audit_<date>.md`:
+   - `dev/audit_stage_references.py` (ferramenta reutilizável) +
+     `docs/audits/f9_audit_<date>.md` (resumo):
      N ocorrências de identificadores legados mapeadas em K categorias.
    - `tests/unit/pipeline/test_stage_spec.py`: testes de exhaustividade e
      unicidade do `STAGE_RENAME_MAP`.
