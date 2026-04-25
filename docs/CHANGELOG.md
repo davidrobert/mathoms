@@ -54,6 +54,21 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
     claim, exige ADR-A6f.5b), F12.4 (codegen `report_layout.yaml`),
     F12.5 (mensagens user-facing do backend).
 
+- **Lane `livestep-emit-stages` E1 + E1.5c — mecânicas (2026-04-25):**
+  terceiro e quarto emissores migrados para o contrato
+  [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
+  (após E1.5 em `3bc9d25` e E2 em `09858df`). Stages **single-batch**
+  (não-loop):
+  - **E1 — `pipeline/stages/extract_members.py`:** chamada LLM única
+    em batch (todos docs pessoais combinados num prompt). 5 fases
+    sequenciais (`preparing → awaiting_llm → validating → persisting →
+    finalizing`), `items_total=1`, `current_item="N documento(s) pessoais"`.
+  - **E1.5c — `pipeline/stages/consolidate_baseline.py`:** stage
+    determinística rápida (sem LLM, sem loop, <1s). Apenas
+    `preparing` + `finalizing` — granularidade maior é desnecessária
+    (throttle 250ms engoliria emits intermediários).
+  Commit `3d819db`. Suíte verde: 1464 pipeline + 22 events.
+
 - **Lane `livestep-emit-stages` E2 (2026-04-25):** segundo emissor migrado
   para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
   (após E1.5 em `3bc9d25`). `scripts/e2_extract.py` agora chama
