@@ -78,6 +78,41 @@ async def resolve_llm_tier_async(db: AsyncSession, workspace_id: str) -> str:
     return _classify_llm_config(cfg, workspace_id, context="resolve_llm_tier_async")
 
 
+def _dispatch_celery_task(
+    run_id: str,
+    ws_id: str,
+    tenant_root,
+    config_dir,
+    stages: list[str],
+    skip_llm: bool,
+    stop_on_error: bool,
+    tier: str,
+    incremental: bool,
+    incremental_doc_paths: list[str] | None,
+) -> str:
+    from backend.app.tasks.pipeline_task import run_pipeline_task
+
+    result = run_pipeline_task.delay(
+        run_id=run_id,
+        ws_id=ws_id,
+        tenant_root_str=str(tenant_root),
+        config_dir_str=str(config_dir),
+        stages=stages,
+        skip_llm=skip_llm,
+        stop_on_error=stop_on_error,
+        tier=tier,
+        incremental=incremental,
+        incremental_doc_paths=incremental_doc_paths or [],
+    )
+    with SyncSessionLocal() as db:
+        run = db.get(PipelineRun, run_id)
+        if run:
+            run.celery_task_id = result.id
+            db.commit()
+    logger.info("Pipeline %s dispatched as Celery task %s", run_id, result.id)
+    return result.id
+
+
 def start_pipeline_run(
     run_id: str,
     ws_id: str,
@@ -105,27 +140,10 @@ def start_pipeline_run(
         config_dir = materialize_config(ws_id, tenant_root, db)
 
     try:
-        from backend.app.tasks.pipeline_task import run_pipeline_task
-
-        result = run_pipeline_task.delay(
-            run_id=run_id,
-            ws_id=ws_id,
-            tenant_root_str=str(tenant_root),
-            config_dir_str=str(config_dir),
-            stages=stages,
-            skip_llm=skip_llm,
-            stop_on_error=stop_on_error,
-            tier=tier,
-            incremental=incremental,
-            incremental_doc_paths=incremental_doc_paths or [],
+        return _dispatch_celery_task(
+            run_id, ws_id, tenant_root, config_dir, stages,
+            skip_llm, stop_on_error, tier, incremental, incremental_doc_paths,
         )
-        with SyncSessionLocal() as db:
-            run = db.get(PipelineRun, run_id)
-            if run:
-                run.celery_task_id = result.id
-                db.commit()
-        logger.info("Pipeline %s dispatched as Celery task %s", run_id, result.id)
-        return result.id
     except Exception as exc:
         logger.warning(
             "Celery unavailable (%s), falling back to background thread for run %s",
@@ -133,16 +151,8 @@ def start_pipeline_run(
             run_id,
         )
         _start_fallback_thread(
-            run_id,
-            ws_id,
-            tenant_root,
-            config_dir,
-            stages,
-            skip_llm,
-            stop_on_error,
-            tier,
-            incremental,
-            incremental_doc_paths,
+            run_id, ws_id, tenant_root, config_dir, stages,
+            skip_llm, stop_on_error, tier, incremental, incremental_doc_paths,
         )
         return None
 
@@ -182,13 +192,7 @@ def _start_fallback_thread(
     t.start()
 
 
-def resume_pipeline_run(run_id: str, ws_id: str) -> None:
-    """Resume a pipeline run that was paused for review.
-
-    Picks up from the stage *after* the paused stage.
-    """
-    from pipeline.orchestrator import FULL_ORDER
-
+def _flip_run_to_resuming(run_id: str, ws_id: str) -> tuple[str | None, str]:
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
         if not run or run.workspace_id != ws_id:
@@ -202,19 +206,33 @@ def resume_pipeline_run(run_id: str, ws_id: str) -> None:
         run.status = PipelineRunStatus.resuming
         run.paused_at_stage = None
         db.commit()
+    return paused_stage, tier
+
+
+def _stages_after_paused(paused_stage: str | None) -> list[str]:
+    from pipeline.orchestrator import FULL_ORDER
 
     if paused_stage and paused_stage in FULL_ORDER:
         idx = FULL_ORDER.index(paused_stage)
-        remaining_stages = FULL_ORDER[idx + 1 :]
-    else:
-        remaining_stages = []
+        return list(FULL_ORDER[idx + 1 :])
+    return []
+
+
+def _mark_run_completed(run_id: str) -> None:
+    with SyncSessionLocal() as db:
+        run = db.get(PipelineRun, run_id)
+        run.status = PipelineRunStatus.completed
+        run.completed_at = datetime.now(timezone.utc)
+        db.commit()
+
+
+def resume_pipeline_run(run_id: str, ws_id: str) -> None:
+    """Resume a pipeline run paused for review — picks up from the stage *after* paused."""
+    paused_stage, tier = _flip_run_to_resuming(run_id, ws_id)
+    remaining_stages = _stages_after_paused(paused_stage)
 
     if not remaining_stages:
-        with SyncSessionLocal() as db:
-            run = db.get(PipelineRun, run_id)
-            run.status = PipelineRunStatus.completed
-            run.completed_at = datetime.now(timezone.utc)
-            db.commit()
+        _mark_run_completed(run_id)
         return
 
     start_pipeline_run(
