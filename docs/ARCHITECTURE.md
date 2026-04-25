@@ -68,7 +68,6 @@
 │  │         Pipeline Core (package Python)                   │  │
 │  │   stage_spec.py (STAGE_REGISTRY)  stage_config.py        │  │
 │  │   artifact_store.py (Protocol + Disk/InMemory impls)     │  │
-│  │   materialization_bridge.py (temporário — removido F9)   │  │
 │  │   domain/ (models + services — Money, Reconciliation…)   │  │
 │  │   stages/ (wrappers) + llm/prompts/ + llm/validators/    │  │
 │  └─────────────────────────────────────────────────────────┘  │
@@ -523,16 +522,12 @@ class StageConfig(BaseModel):
 `from_context(ctx)` **falha rápido** com `ConfigError` quando um config
 obrigatório está ausente (vs. `or {}` silencioso).
 
-### `MaterializationBridge` — adapter temporário (ADR-086)
+### `MaterializationBridge` — removido em A6c (2026-04-24)
 
-`pipeline/materialization_bridge.py` permite que scripts legados (Caminho A)
-rodem com `DBArtifactStore` ativo — hidrata DB → `/tmp/fin_pipeline_{run_id}/`
-antes do stage e persiste o output de volta ao DB. Usado por
-`pipeline.stage_runner_compat.run_legacy_with_bridge_if_db` nos wrappers
-E4/E5/E5.N/E7. **E3 saiu do bridge na Sessão A2 (ADR-097)** — chama
-`scripts/e3_reconcile.main_with_store(ctx)` direto.
-
-Removido na Fase 9.6 quando todos os stages estiverem em Caminho B.
+Adapter temporário (ADR-086) entre `DBArtifactStore` e scripts legados em
+Caminho A. Removido após cutover Caminho B (A6a/b) + aprovação humana
+A6-human. Wrappers `pipeline/stages/eN.py` chamam
+`scripts.eN_*.main_with_store(ctx)` direto sobre `ArtifactStore`.
 
 ### Camada de domínio `pipeline/domain/` (ADR-089-091)
 
@@ -601,14 +596,11 @@ pipeline/domain/
   etc.) vive em `e3_serialization.py` — o adapter aceita `serialize_fn` e
   `output_key_fn` injetáveis via DI para permitir esse formato sem acoplar
   o domínio ao schema legado.
-- **E3 em Caminho B (ADR-097, Sessão A2)** — `scripts/e3_reconcile.py` tem
-  dois entry points coexistindo: `main(root_dir)` (legado, disco direto, CLI
-  + testes legados) e `main_with_store(ctx)` (orquestra o `E3ReconcilerAdapter`
-  sobre `ctx.get_artifact_store()`). [pipeline/stages/e3.py](../pipeline/stages/e3.py)
-  chama `main_with_store` **direto** — não usa `MaterializationBridge`.
-  Paridade de output coberta por [tests/test_e3_main_with_store_parity.py](../tests/test_e3_main_with_store_parity.py)
-  (tolerância `0.01` BRL). Sidecar logs (`reconciliation.md` + `qa_log.md`
-  E3 section) continuam sendo escritos em `ctx.logs_dir`.
+- **E3 Caminho B (ADR-097)** — `scripts/e3_reconcile.main_with_store(ctx)`
+  orquestra o `E3ReconcilerAdapter` sobre `ctx.get_artifact_store()`.
+  [pipeline/stages/e3.py](../pipeline/stages/e3.py) é o único caller.
+  Sidecar logs (`reconciliation.md` + `qa_log.md` E3 section) escritos em
+  `ctx.logs_dir`.
 - **Validadores de reconciliação** — `SaldoContinuityValidator` (continuidade de
   saldo entre extratos consecutivos da mesma conta), `TemporalGapDetector` (gaps
   em dias entre `period_end` e próximo `period_start`), `BaselineValidator`
@@ -823,8 +815,6 @@ fin-current/
 │   ├── stage_spec.py          # STAGE_REGISTRY + STAGE_RENAME_MAP + FULL_ORDER (ADR-087)
 │   ├── stage_config.py        # StageConfig (Pydantic frozen, ADR-088)
 │   ├── artifact_store.py      # Protocol + DiskArtifactStore + InMemoryArtifactStore (ADR-083)
-│   ├── materialization_bridge.py  # Adapter DB↔disk temporário (ADR-086)
-│   ├── stage_runner_compat.py # run_legacy_with_bridge_if_db helper
 │   ├── domain/                # Camada de domínio (ADR-089)
 │   │   ├── models/            # Money, Transaction, BankStatement, Investment, Baseline
 │   │   └── services/          # ReconciliationService, CategorizationService, calculators

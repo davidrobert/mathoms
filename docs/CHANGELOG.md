@@ -10,6 +10,45 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
 execução da **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side).
 
+- **A6c · Bridge + main(root_dir) legados removidos (2026-04-24):**
+  cutover Caminho B concluído após aprovação A6-human (smoke test).
+  Limpeza pós-cutover em 4 commits atômicos:
+  - **A6c.1 · `pipeline/stage_runner_compat.py` removido** —
+    helper `run_legacy_with_bridge_if_db` não tinha mais callers desde
+    A5e/f. ALLOWED_PREFIXES de `test_no_legacy_stage_names.py` ajustado.
+  - **A6c.2 · `pipeline/materialization_bridge.py` removido** (ADR-086)
+    — adapter DB↔disco temporário. Refs em docstrings de
+    `pipeline/stages/{e3,e4,e5,e5n,e7}.py`,
+    `pipeline/artifact_store.py`,
+    `pipeline/domain/services/e3_reconciler_adapter.py`,
+    `backend/app/scripts/backfill_artifacts_from_disk.py` e
+    `tests/unit/pipeline/test_artifact_stores.py` limpas.
+    (`stage_materialization.py` foi deletado em paralelo pela ADR-129
+    fatia 2 — não há mais ref a limpar lá.)
+  - **A6c.3 · `main(root_dir)` removido dos 6 scripts determinísticos**
+    (`scripts/{e15_consolidate,e3_reconcile,e4_categorize,e5_analyze,
+    e5n_narrativas,e7_review}.py`) + `if __name__ == "__main__"` blocks.
+    Helper `_merge_life_plan_into_goals` em `e5_analyze` preservado
+    (consumido por `main_with_store`). 5 parity tests
+    (`test_e{15c,3,4,5,5n_e7}_main_with_store_parity.py`) deletados —
+    paridade já provada e legado eliminado. 4 golden execution tests
+    (`test_e{3,4,5,5n}_golden_execution.py`) migrados para
+    `main_with_store(ctx)` via `WorkspaceContext`
+    (`test_e6_golden_execution.py` foi removido em paralelo pela
+    ADR-129 fatia 2). Fixture autouse em `tests/conftest.py` reseta
+    globals de `pipeline_common` após cada teste (substitui o reset
+    que vinha no `finally` do main legado).
+    `backend/tests/regressions/test_anti_regression_bank.py` ajustado:
+    OP-001 parametrize remove `e15_consolidate.py` e `e7_review.py`
+    (sem mais `parse_args` — só `main_with_store`).
+  - **A6c.4 · Docs:** `docs/ARCHITECTURE.md` (diagrama, §17 bridge,
+    seção E3, árvore de pastas), `CLAUDE.md` (seção
+    `MATHOMS_USE_DB_ARTIFACTS`), `docs/BACKLOG.md` (A6c.1-.4 ✅, lane
+    fechada, "Restante" atualizada — A6g.2b T3 destravado).
+  - **Resultado:** pipeline + backend tests verdes localmente. Total
+    code+test removido: ~3 100 linhas. Destrava `A6g.2b T3` (scripts
+    com goldens) e marca fim formal da migração ADR-086 → ADR-083.
+
 - **ADR-129 fatia 2 · Pipeline E6 + `stage_materialization` removidos
   (2026-04-24 · commit `9f4c616`):** segunda de 6 fatias da lane
   `adr-129-e6-kill`. Deletados `pipeline/stages/e6.py` e

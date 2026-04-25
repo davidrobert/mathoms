@@ -301,10 +301,10 @@ Ao adicionar global novo, registre entrada em
 
 ### Feature flag `MATHOMS_USE_DB_ARTIFACTS`
 
-Default `True` (cutover concluído). Controla store do `ArtifactStore`. Durante transição,
-`MaterializationBridge` permite scripts legados rodarem com DB-backed
-store. Por workspace: `workspaces.use_db_artifacts_override: bool | None`
-(None = global flag, True = força DB, False = força disco).
+Default `True` (cutover concluído em A6a/A6b/A6-human; bridge removido em
+A6c — 2026-04-24). Controla store do `ArtifactStore`. Por workspace:
+`workspaces.use_db_artifacts_override: bool | None` (None = global flag,
+True = força DB, False = força disco).
 
 ### Paths proibidos no git (enforçados por `dev/check_forbidden_paths.py`)
 
