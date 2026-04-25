@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build design tokens — gera CSS para site (Next.js/Tailwind v4) e E6 standalone.
+"""Build design tokens — gera CSS para o app Next.js e o console ops.
 
 Uso:
     python design-tokens/build.py
@@ -9,10 +9,10 @@ Fontes:
     design-tokens/tokens.json     ← única fonte de verdade
 
 Saídas:
-    frontend/src/styles/tokens.css      — consumido por globals.css (com @theme inline)
-    config/templates/_tokens.css        — consumido pelo template E6 standalone
+    frontend/src/styles/tokens.css       — site (Next.js + Tailwind v4 @theme inline)
+    frontend-ops/src/styles/tokens.css   — console ops (Next sem @theme inline)
 
-Referência: ADR-076 (docs/DECISIONS.md).
+Referência: ADR-076, ADR-129 (docs/DECISIONS.md).
 """
 
 from __future__ import annotations
@@ -27,7 +27,6 @@ ROOT = Path(__file__).resolve().parent.parent
 TOKENS_PATH = ROOT / "design-tokens" / "tokens.json"
 FRONTEND_OUTPUT = ROOT / "frontend" / "src" / "styles" / "tokens.css"
 FRONTEND_OPS_OUTPUT = ROOT / "frontend-ops" / "src" / "styles" / "tokens.css"
-TEMPLATE_OUTPUT = ROOT / "config" / "templates" / "_tokens.css"
 
 HEADER = """/* =====================================================================
  * {name} — design tokens
@@ -94,9 +93,9 @@ def _static_tokens_block(tokens: dict[str, Any], *, emit_fonts: bool) -> list[st
     preservar otimizações (subsetting, self-hosting, font-display:swap).
     Emitir aqui criaria conflito de cascata.
 
-    `emit_fonts=True` no output do E6 standalone: não há next/font — o
-    template precisa das vars para resolver as famílias via @import
-    Google Fonts no próprio HTML.
+    `emit_fonts=True` no output do frontend-ops: não há next/font no app
+    ops — o CSS precisa das vars para resolver as famílias via @import
+    Google Fonts.
     """
     lines: list[str] = []
 
@@ -302,8 +301,8 @@ def render_css(tokens: dict[str, Any], *, include_tailwind_theme: bool) -> str:
     (para o Next.js). Nesse caso `--font-*` NÃO são emitidas aqui, já que
     vêm do next/font/google em runtime.
 
-    `include_tailwind_theme=False` é o output do E6 standalone: inclui
-    `--font-*` porque o standalone não tem next/font.
+    `include_tailwind_theme=False` é o output do frontend-ops: inclui
+    `--font-*` porque o app ops não usa next/font.
     """
     meta = tokens["meta"]
     out: list[str] = [HEADER.format(**meta)]
@@ -346,29 +345,25 @@ def render_css(tokens: dict[str, Any], *, include_tailwind_theme: bool) -> str:
 def build() -> tuple[str, str]:
     tokens = load_tokens()
     frontend_css = render_css(tokens, include_tailwind_theme=True)
-    template_css = render_css(tokens, include_tailwind_theme=False)
-    return frontend_css, template_css
+    ops_css = render_css(tokens, include_tailwind_theme=False)
+    return frontend_css, ops_css
 
 
-def write_outputs(frontend_css: str, template_css: str) -> None:
+def write_outputs(frontend_css: str, ops_css: str) -> None:
     FRONTEND_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     FRONTEND_OPS_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    TEMPLATE_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     FRONTEND_OUTPUT.write_text(frontend_css, encoding="utf-8")
-    FRONTEND_OPS_OUTPUT.write_text(template_css, encoding="utf-8")
-    TEMPLATE_OUTPUT.write_text(template_css, encoding="utf-8")
+    FRONTEND_OPS_OUTPUT.write_text(ops_css, encoding="utf-8")
     print(f"✓ wrote {FRONTEND_OUTPUT.relative_to(ROOT)} ({len(frontend_css)} bytes)")
-    print(f"✓ wrote {FRONTEND_OPS_OUTPUT.relative_to(ROOT)} ({len(template_css)} bytes)")
-    print(f"✓ wrote {TEMPLATE_OUTPUT.relative_to(ROOT)} ({len(template_css)} bytes)")
+    print(f"✓ wrote {FRONTEND_OPS_OUTPUT.relative_to(ROOT)} ({len(ops_css)} bytes)")
 
 
 def check_in_sync() -> int:
-    frontend_css, template_css = build()
+    frontend_css, ops_css = build()
     mismatches: list[str] = []
     for path, expected in [
         (FRONTEND_OUTPUT, frontend_css),
-        (FRONTEND_OPS_OUTPUT, template_css),
-        (TEMPLATE_OUTPUT, template_css),
+        (FRONTEND_OPS_OUTPUT, ops_css),
     ]:
         if not path.exists():
             mismatches.append(f"MISSING: {path.relative_to(ROOT)}")
@@ -396,8 +391,8 @@ def main() -> int:
     if args.check:
         return check_in_sync()
 
-    frontend_css, template_css = build()
-    write_outputs(frontend_css, template_css)
+    frontend_css, ops_css = build()
+    write_outputs(frontend_css, ops_css)
     return 0
 
 
