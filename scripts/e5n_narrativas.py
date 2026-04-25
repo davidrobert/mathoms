@@ -27,7 +27,7 @@ def _init_config(base_dir: Path) -> None:
     global SCRIPTS_DIR, PROJECT_DIR
     global E5_JSON_PATH, FAMILY_CONFIG_PATH, GOALS_CONFIG_PATH
     global TAXAS_CONFIG_PATH, CATEGORIZATION_CONFIG_PATH, FISCAL_CONFIG_PATH
-    global FAMILY, _CATEGORIZATION
+    global FAMILY, _CATEGORIZATION, FISCAL, _CLT_SOURCE_LABELS
     global _TITULAR_KEY, _MEMBROS, _CONJUGE_KEY, _TITULAR_NOME, _CONJUGE_NOME
     global _KEY_INV_TITULAR, _KEY_INV_CONJUGE, _KEY_CENARIOS_CONJUGE
     global _KEY_IDADE_TITULAR_IF, _KEY_SAL_CONJUGE
@@ -67,8 +67,8 @@ def _init_config(base_dir: Path) -> None:
     _KEY_RENDA_CONJUGE_EUA_PROJ = f"renda_{_CONJUGE_KEY}_eua_projetada"
     _KEY_CENARIOS_SECTION = f"{_CONJUGE_KEY}_cenarios"
 
-
-_init_config(_pc.PROJECT_DIR)
+    FISCAL = _load_fiscal()
+    _CLT_SOURCE_LABELS = list(_CATEGORIZATION.get("clt_source_mapping", {}).values())
 
 
 def _load_fiscal():
@@ -80,8 +80,43 @@ def _load_fiscal():
     return {}
 
 
-FISCAL = _load_fiscal()
-_CLT_SOURCE_LABELS = list(_CATEGORIZATION.get("clt_source_mapping", {}).values())
+# =============================================================================
+# Module-level defaults (Sessão A6d.1 — eliminado side-effect no import)
+# =============================================================================
+#
+# Antes de A6d.1: módulo invocava ``_init_config(_pc.PROJECT_DIR)`` no nível
+# de módulo + ``FISCAL = _load_fiscal()`` (que lê parametros_fiscais.json).
+# Agora ambos passam para dentro de ``_init_config`` e são populados por
+# ``main(root_dir=...)`` / ``main_with_store(ctx)``. Os defaults abaixo
+# garantem que helpers do módulo possam ser importados puros.
+SCRIPTS_DIR: Path = _DEFAULT_BASE_DIR / "scripts"
+PROJECT_DIR: Path = _DEFAULT_BASE_DIR
+E5_JSON_PATH: Path = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+FAMILY_CONFIG_PATH: Path = PROJECT_DIR / "config" / "family_members.json"
+GOALS_CONFIG_PATH: Path = PROJECT_DIR / "config" / "goals.json"
+TAXAS_CONFIG_PATH: Path = PROJECT_DIR / "config" / "taxas.json"
+CATEGORIZATION_CONFIG_PATH: Path = PROJECT_DIR / "config" / "categorization.json"
+FISCAL_CONFIG_PATH: Path = PROJECT_DIR / "config" / "parametros_fiscais.json"
+FAMILY: dict = {}
+_CATEGORIZATION: dict = {}
+FISCAL: dict = {}
+_CLT_SOURCE_LABELS: list = []
+_TITULAR_KEY: str = ""
+_MEMBROS: dict = {}
+_CONJUGE_KEY: str = ""
+_TITULAR_NOME: str = ""
+_CONJUGE_NOME: str = ""
+_KEY_INV_TITULAR: str = "investimentos_"
+_KEY_INV_CONJUGE: str = "investimentos_"
+_KEY_CENARIOS_CONJUGE: str = "cenarios_"
+_KEY_IDADE_TITULAR_IF: str = "idade__if"
+_KEY_SAL_CONJUGE: str = "salario_"
+_KEY_INST_TITULAR: str = "_instituicoes"
+_KEY_INST_CONJUGE: str = "_instituicoes"
+_KEY_F1F2_TITULAR: str = "f1f2_estrategia_"
+_KEY_F1F2_CONJUGE: str = "f1f2_estrategia_"
+_KEY_RENDA_CONJUGE_EUA_PROJ: str = "renda__eua_projetada"
+_KEY_CENARIOS_SECTION: str = "_cenarios"
 
 
 # METRICS will be loaded from E5 JSON at runtime (no more hardcoding)
