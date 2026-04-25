@@ -88,7 +88,7 @@ async def test_reports_by_workspace(
 ) -> None:
     u = await make_user(db)
     ws = await make_workspace(db, owner=u)
-    db.add(Report(workspace_id=ws.id, title="T1", html_path="/tmp/t1.html"))
+    db.add(Report(workspace_id=ws.id, title="T1"))
     await db.commit()
 
     await _with_cookie(client, ops_session_token_superadmin)

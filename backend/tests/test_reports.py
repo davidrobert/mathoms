@@ -1,4 +1,4 @@
-"""Tests for report endpoints — list, get, html, data (F9 · ADR-076)."""
+"""Tests for report endpoints — list, get, data, pdf (F9 · ADR-076 · ADR-129)."""
 
 import json
 import uuid
@@ -31,19 +31,12 @@ async def test_get_report_not_found(auth_client: AsyncClient):
     assert resp.status_code == 404
 
 
-@pytest.mark.asyncio
-async def test_get_report_html_not_found(auth_client: AsyncClient):
-    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/nonexistent-id/html")
-    assert resp.status_code == 404
-
-
-# ─── F9 · ADR-076: analysis JSON endpoint ──────────────────────────────
+# ─── F9 · ADR-076 · ADR-129: analysis JSON endpoint ────────────────────
 
 
 async def _seed_report(
     auth_client: AsyncClient,
     *,
-    html_content: str = "<html><body>ok</body></html>",
     analysis_payload: dict | None = None,
     pipeline_run_id: str | None = None,
     premissas_snapshot_json: dict | None = None,
@@ -52,8 +45,8 @@ async def _seed_report(
 ) -> str:
     """Cria um Report vinculado ao workspace do auth_client e retorna seu id.
 
-    Escreve HTML e (opcionalmente) o JSON de análise em `tmp_path` para que
-    os endpoints possam servir os arquivos.
+    Escreve (opcionalmente) o JSON de análise em `tmp_path` para que o
+    endpoint /data possa servir o arquivo.
 
     ``db`` — deve ser a fixture ``db`` do conftest. Usar TestSession()
     direto causa "no such table" em pytest-asyncio strict mode porque a
@@ -61,9 +54,6 @@ async def _seed_report(
     """
     from backend.app.models.report import Report
     from backend.app.models.workspace import Workspace
-
-    html_file = tmp_path / "report.html"
-    html_file.write_text(html_content, encoding="utf-8")
 
     analysis_path: Path | None = None
     if analysis_payload is not None:
@@ -94,9 +84,8 @@ async def _seed_report(
             workspace_id=ws.id,
             pipeline_run_id=pipeline_run_id,
             title="Relatório de Teste",
-            html_path=str(html_file),
             analysis_json_path=str(analysis_path) if analysis_path else None,
-            size_bytes=len(html_content),
+            size_bytes=analysis_path.stat().st_size if analysis_path else None,
             premissas_snapshot_json=premissas_snapshot_json,
         )
         session.add(report)
@@ -294,64 +283,17 @@ async def test_get_report_data_500_when_json_corrupted(
     assert "corrompido" in resp.json()["detail"].lower()
 
 
-# ─── F1.5: GET /reports/{id}/download.html ────────────────────────────
+# ─── ADR-129: sanitize helper segue em uso pelo download PDF ───────────
 
 
-@pytest.mark.asyncio
-async def test_download_html_unauthorized(client: AsyncClient):
-    resp = await client.get(
-        "/api/workspaces/00000000-0000-0000-0000-000000000000/reports/any-id/download.html"
-    )
-    assert resp.status_code in (401, 403)
-
-
-@pytest.mark.asyncio
-async def test_download_html_not_found(auth_client: AsyncClient):
-    resp = await auth_client.get(
-        f"/api/workspaces/{auth_client.ws_id}/reports/nonexistent-id/download.html"
-    )
-    assert resp.status_code == 404
-
-
-@pytest.mark.asyncio
-async def test_download_html_sends_attachment_headers(
-    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
-):
-    rid = await _seed_report(
-        auth_client,
-        html_content="<html><body>Relatório</body></html>",
-        analysis_payload=None,
-        tmp_path=tmp_path,
-        db=db,
-    )
-    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/download.html")
-    assert resp.status_code == 200
-    assert resp.headers["content-type"].startswith("text/html")
-    disp = resp.headers["content-disposition"]
-    assert disp.startswith("attachment;")
-    assert "filename=" in disp
-    assert b"Relat" in resp.content
-
-
-@pytest.mark.asyncio
-async def test_download_html_404_when_file_missing_from_disk(
-    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
-):
-    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
-    (tmp_path / "report.html").unlink()
-    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/download.html")
-    assert resp.status_code == 404
-
-
-def test_download_html_sanitize_filename_helper():
-    """Nome com caracteres perigosos deve virar whitelist antes do header."""
+def test_sanitize_filename_helper():
     from backend.app.api.reports import _sanitize_filename
 
     assert _sanitize_filename('abc"; rm -rf /') == "abc___rm_-rf"
-    assert _sanitize_filename("relatório família.html") == "relat_rio_fam_lia.html"
-    assert _sanitize_filename("") == "relatorio.html"
-    assert _sanitize_filename("...") == "relatorio.html"
-    assert _sanitize_filename("report_2026-04.html") == "report_2026-04.html"
+    assert _sanitize_filename("relatório família.pdf") == "relat_rio_fam_lia.pdf"
+    assert _sanitize_filename("") == "relatorio.pdf"
+    assert _sanitize_filename("...") == "relatorio.pdf"
+    assert _sanitize_filename("report_2026-04.pdf") == "report_2026-04.pdf"
 
 
 @pytest.mark.asyncio

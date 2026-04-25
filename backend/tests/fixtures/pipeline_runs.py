@@ -124,27 +124,14 @@ async def seed_completed_run(
             )
         )
 
-    # HTML stub mínimo — em fixtures reais, substituir por HTML E6 real
-    # copiado de um run verdadeiro. Aqui cobrimos o contrato de arquivo.
+    # ADR-129: renderer HTML server-side removido — fixtures simulam apenas o
+    # JSON de análise E5 (única fonte do relatório React).
     surname_slug = (family_surname or workspace.family_surname or "fixture").replace(" ", "_")
-    html_dir = Path(settings.STORAGE_ROOT) / str(workspace.id) / "output"
-    html_dir.mkdir(parents=True, exist_ok=True)
-    html_path = html_dir / f"relatorio_{surname_slug}_{period}.html"
-    html_path.write_text(
-        f"""<!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset="utf-8"><title>Relatório {family_surname or ''}</title></head>
-<body>
-<h1>Cover: {family_surname or ''}</h1>
-<section id="kpis">
-  <div>Receitas: R$ 12.500,00</div>
-  <div>Despesas: R$ 8.400,00</div>
-  <div>Saldo: R$ 4.100,00</div>
-  <div>Score: 78</div>
-</section>
-<section id="charts"><div>[charts placeholder]</div></section>
-</body>
-</html>""",
+    analysis_dir = Path(settings.STORAGE_ROOT) / str(workspace.id) / "processed" / "E5_analysis"
+    analysis_dir.mkdir(parents=True, exist_ok=True)
+    analysis_path = analysis_dir / f"analise_{surname_slug}_{period}-5_analysis.json"
+    analysis_path.write_text(
+        '{"periodo_dados": "' + period + '", "score": {"valor": 78}}',
         encoding="utf-8",
     )
 
@@ -153,8 +140,8 @@ async def seed_completed_run(
         pipeline_run_id=run.id,
         title=f"Relatório {family_surname or workspace.name} — {period}",
         period=period,
-        html_path=str(html_path.relative_to(Path(settings.STORAGE_ROOT))),
-        size_bytes=html_path.stat().st_size,
+        analysis_json_path=str(analysis_path.relative_to(Path(settings.STORAGE_ROOT))),
+        size_bytes=analysis_path.stat().st_size,
         score=78.0,
         patrimonio_liquido=250_000.0,
     )

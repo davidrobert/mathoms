@@ -21,8 +21,7 @@ async def get_report_data(workspace_id: str, report_id: str, *, db: AsyncSession
     report = await fetch_report(workspace_id, report_id, db=db)
     if not report.analysis_json_path:
         raise NotFoundError(
-            "Este relatório não tem JSON de análise disponível "
-            "(gerado antes do F9). Use /html ou /download.html."
+            "Este relatório não tem JSON de análise disponível " "(gerado antes do F9 · ADR-076)."
         )
     json_path = Path(report.analysis_json_path)
     if not json_path.exists():

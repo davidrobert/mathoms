@@ -87,7 +87,6 @@ async def test_get_report_snapshot_returns_stored_json(db):
     report = Report(
         workspace_id=ws.id,
         title="Report teste",
-        html_path="/tmp/report.html",
         tasks_snapshot_json=snapshot,
     )
     db.add(report)
@@ -116,7 +115,6 @@ async def test_get_report_snapshot_cross_tenant_returns_none(db):
     report_b = Report(
         workspace_id=ws_b.id,
         title="B's report",
-        html_path="/tmp/report.html",
         tasks_snapshot_json=snapshot,
     )
     db.add(report_b)
@@ -134,7 +132,6 @@ async def test_get_report_snapshot_returns_null_when_legacy(db):
     report = Report(
         workspace_id=ws.id,
         title="Legacy report",
-        html_path="/tmp/report.html",
         tasks_snapshot_json=None,
     )
     db.add(report)

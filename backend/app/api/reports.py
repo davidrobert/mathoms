@@ -1,14 +1,11 @@
-"""Reports router fino — list/get/html/pdf/data/tasks (A6e.4 · ADR-101 R15/R16)."""
+"""Reports router fino — list/get/data/pdf/tasks (A6e.4 · ADR-101 R15/R16 · ADR-129)."""
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Response, status
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi import APIRouter, Depends, Response
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.application.report import (
-    download_report_html as _download_report_html,
-)
 from backend.app.application.report import (
     download_report_pdf as _download_report_pdf,
 )
@@ -17,9 +14,6 @@ from backend.app.application.report import (
 )
 from backend.app.application.report import (
     get_report_data as _get_report_data,
-)
-from backend.app.application.report import (
-    get_report_html as _get_report_html,
 )
 from backend.app.application.report import (
     get_report_tasks as _get_report_tasks,
@@ -62,24 +56,6 @@ async def get_report(
     db: AsyncSession = Depends(get_db),
 ) -> ReportResponse:
     return await _get_report(workspace.id, report_id, db=db)
-
-
-@router.get("/{report_id}/html", response_class=HTMLResponse)
-async def get_report_html(
-    report_id: str,
-    workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
-) -> HTMLResponse:
-    return await _get_report_html(workspace.id, report_id, db=db)
-
-
-@router.get("/{report_id}/download.html", response_class=FileResponse)
-async def download_report_html(
-    report_id: str,
-    workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
-) -> FileResponse:
-    return await _download_report_html(workspace.id, report_id, db=db)
 
 
 @router.get(

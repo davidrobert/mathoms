@@ -16,7 +16,6 @@ async def _make_report(db, *, workspace, title: str) -> Report:
     r = Report(
         workspace_id=workspace.id,
         title=title,
-        html_path=f"/tmp/{title}.html",
     )
     db.add(r)
     await db.flush()

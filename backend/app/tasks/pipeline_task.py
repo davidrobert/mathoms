@@ -219,14 +219,12 @@ def _find_latest_analysis_json(tenant_root: Path) -> Path | None:
 
 
 def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> None:
-    output_dir = tenant_root / "output"
-    if not output_dir.exists():
-        return
-    html_files = sorted(output_dir.glob("*.html"), key=lambda f: f.stat().st_mtime, reverse=True)
-    if not html_files:
-        return
-    latest = html_files[0]
+    # ADR-129: Report é criado a partir do JSON de análise E5 (renderer
+    # HTML server-side foi descontinuado). Sem analysis_json, não há nada
+    # para o relatório React consumir — pula.
     analysis_json = _find_latest_analysis_json(tenant_root)
+    if analysis_json is None:
+        return
     with SyncSessionLocal() as db:
         # ADR-074 §F8.3 — snapshot imutável das tasks no momento da geração.
         # Se a tabela `tasks` está vazia (ex: workspace legado pré-F8.2), vira
@@ -249,9 +247,8 @@ def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> No
             workspace_id=ws_id,
             pipeline_run_id=run_id,
             title=f"Relatório {datetime.now(_BRT).strftime('%Y-%m-%d %H:%M')}",
-            html_path=str(latest),
-            analysis_json_path=str(analysis_json) if analysis_json else None,
-            size_bytes=latest.stat().st_size,
+            analysis_json_path=str(analysis_json),
+            size_bytes=analysis_json.stat().st_size,
             tasks_snapshot_json=tasks_snapshot,
             premissas_snapshot_json=premissas_snapshot,
         )

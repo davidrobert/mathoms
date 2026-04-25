@@ -491,7 +491,6 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `pipeline_run_id` | `VARCHAR(36)` | yes | — | FK→pipeline_runs.id |
 | `title` | `VARCHAR(255)` | no | — | — |
 | `period` | `VARCHAR(50)` | yes | — | — |
-| `html_path` | `TEXT` | no | — | — |
 | `analysis_json_path` | `TEXT` | yes | — | — |
 | `tasks_snapshot_json` | `JSON` | yes | — | — |
 | `premissas_snapshot_json` | `JSON` | yes | — | — |
@@ -1114,7 +1113,6 @@ type Report struct {
 	PipelineRunId *string `db:"pipeline_run_id" json:"pipeline_run_id"`
 	Title string `db:"title" json:"title"`
 	Period *string `db:"period" json:"period"`
-	HtmlPath string `db:"html_path" json:"html_path"`
 	AnalysisJsonPath *string `db:"analysis_json_path" json:"analysis_json_path"`
 	TasksSnapshotJson json.RawMessage `db:"tasks_snapshot_json" json:"tasks_snapshot_json"`
 	PremissasSnapshotJson json.RawMessage `db:"premissas_snapshot_json" json:"premissas_snapshot_json"`

@@ -21,10 +21,9 @@ class Report(Base):
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     period: Mapped[str] = mapped_column(String(50), nullable=True)
-    html_path: Mapped[str] = mapped_column(Text, nullable=False)
-    # Path to the E5 analysis JSON snapshot (ADR-076 / F9): enables the native
-    # React report view to consume structured data instead of parsing HTML.
-    # Nullable for backward-compat with pre-F9 reports where only html_path existed.
+    # Path to the E5 analysis JSON snapshot (ADR-076 / F9). Único path de
+    # arquivo persistido — o renderer HTML server-side foi descontinuado em
+    # ADR-129. Nullable: pré-F9 não preenchia.
     analysis_json_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     # F8.3 / ADR-074: snapshot imutável da lista de tasks no momento em que
     # o relatório foi gerado. Permite ao relatório renderizar "tarefas relatadas

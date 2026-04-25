@@ -39,7 +39,7 @@ def serialize_report(
 def sanitize_filename(raw: str) -> str:
     """Whitelist [A-Za-z0-9._-] para impedir injeção em Content-Disposition."""
     cleaned = re.sub(r"[^A-Za-z0-9._-]", "_", raw).strip("._")
-    return cleaned or "relatorio.html"
+    return cleaned or "relatorio.pdf"
 
 
 async def fetch_report(workspace_id: str, report_id: str, *, db: AsyncSession) -> Report:

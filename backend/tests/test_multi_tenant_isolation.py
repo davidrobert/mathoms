@@ -447,14 +447,6 @@ class TestIsolationReports:
         )
         assert r.status_code == 404, r.text
 
-    @pytest.mark.asyncio
-    async def test_get_report_html_of_b_returns_404(self, client: AsyncClient, tenants):
-        r = await client.get(
-            f"/api/workspaces/{tenants['a']['ws'].id}/reports/{tenants['b']['report'].id}/html",
-            headers=_auth(tenants["a"]["token"]),
-        )
-        assert r.status_code == 404, r.text
-
 
 # ─────────────────────────────────────────────────────────────────────
 # Transactions
