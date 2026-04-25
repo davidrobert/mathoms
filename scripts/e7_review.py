@@ -489,9 +489,7 @@ def _cv14_monetary_format(e5: dict) -> CrossValidationResult:
         "Monetary format in narrativas",
         "warning" if format_issues else "info",
         not format_issues,
-        f"{len(format_issues)} issue(s): {format_issues[:3]}"
-        if format_issues
-        else "Formato OK",
+        f"{len(format_issues)} issue(s): {format_issues[:3]}" if format_issues else "Formato OK",
         ["narrativas"],
     )
 

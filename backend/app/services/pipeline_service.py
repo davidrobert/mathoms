@@ -141,8 +141,16 @@ def start_pipeline_run(
 
     try:
         return _dispatch_celery_task(
-            run_id, ws_id, tenant_root, config_dir, stages,
-            skip_llm, stop_on_error, tier, incremental, incremental_doc_paths,
+            run_id,
+            ws_id,
+            tenant_root,
+            config_dir,
+            stages,
+            skip_llm,
+            stop_on_error,
+            tier,
+            incremental,
+            incremental_doc_paths,
         )
     except Exception as exc:
         logger.warning(
@@ -151,8 +159,16 @@ def start_pipeline_run(
             run_id,
         )
         _start_fallback_thread(
-            run_id, ws_id, tenant_root, config_dir, stages,
-            skip_llm, stop_on_error, tier, incremental, incremental_doc_paths,
+            run_id,
+            ws_id,
+            tenant_root,
+            config_dir,
+            stages,
+            skip_llm,
+            stop_on_error,
+            tier,
+            incremental,
+            incremental_doc_paths,
         )
         return None
 
