@@ -10,6 +10,21 @@ Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
 execução da **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side).
 
+- **ADR-129 fatia 1 · Backend API + drop `Report.html_path` (2026-04-24
+  · commits `94f693d` + `4127abe` + `5e72e72`):** primeira de 6 fatias
+  da lane `adr-129-e6-kill`. Removidas rotas `GET /reports/{id}/html` e
+  `/download.html` (workspace + admin), use cases
+  `get_report_html`/`download_report_html`, coluna `Report.html_path`
+  (Alembic `u9v0w1x2y3z4` com `batch_alter_table`+`copy_from` para
+  offline SQL), e `_create_report_from_output` agora usa o JSON E5 como
+  fonte de `size_bytes`. Bônus absorvendo a fatia 6 original:
+  `seed_existing_reports` removido (escaneava `output/*.html` morto) e
+  `backend/seed_db.py` encolhido para só bootstrapar
+  `admin@mathoms.ai`. OpenAPI snapshot + `DB_SCHEMA_REFERENCE.md`
+  regenerados. E6 segue rodando no pipeline; o HTML produzido vira
+  garbage em `output/` até a fatia 2 removê-lo. Próxima: fatia 2
+  (pipeline `E6` + `stage_materialization`).
+
 - **ADR-129 · Descontinuação completa do renderer HTML server-side
   (2026-04-24 · docs-only):** supersede
   [ADR-124](DECISIONS.md#adr-124--scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next)
