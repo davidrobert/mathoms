@@ -579,43 +579,47 @@ def _compute_confidence(rule: TypeRule, req: int, sup: int) -> float:
     return 0.7
 
 
+def _empty_classification(
+    institution: str | None = None,
+    period: str | None = None,
+    *,
+    source: str | None = None,
+) -> ContentClassification:
+    return ContentClassification(
+        doc_type=None,
+        dest_group=None,
+        institution=institution,
+        period=period,
+        confidence=0.0,
+        source=source,
+        matched_required=0,
+        matched_supporting=0,
+    )
+
+
+def _resolve_institution(rule: TypeRule, detected: str | None) -> str | None:
+    # IRPF lista contas bancárias em "Bens e Direitos" — regex de banco bate primeiro
+    if rule.dest_group == "income_tax_br":
+        return "receitafederal"
+    return detected
+
+
 def classify_text(text: str) -> ContentClassification:
     """Classify a preview text extracted from a financial document."""
     if not text or len(text.strip()) < 20:
-        return ContentClassification(
-            doc_type=None,
-            dest_group=None,
-            institution=None,
-            period=None,
-            confidence=0.0,
-            source="content_regex_empty",
-        )
+        return _empty_classification(source="content_regex_empty")
 
     institution = detect_institution_by_content(text)
     rule, req, sup = detect_type_by_content(text)
     period = extract_period_from_content(text)
 
     if rule is None:
-        return ContentClassification(
-            doc_type=None,
-            dest_group=None,
-            institution=institution,
-            period=period,
-            confidence=0.0,
-            matched_required=0,
-            matched_supporting=0,
-        )
-
-    # IRPF/tax documents always belong to Receita Federal, regardless of what
-    # detect_institution_by_content() matched (IRPF PDFs list all bank accounts
-    # in "Bens e Direitos", which makes bank patterns match first).
-    if rule.dest_group == "income_tax_br":
-        institution = "receitafederal"
+        return _empty_classification(institution=institution, period=period)
 
     return ContentClassification(
         doc_type=rule.code,
         dest_group=rule.dest_group,
-        institution=institution,
+        institution=_resolve_institution(rule, institution),
         period=period,
         confidence=_compute_confidence(rule, req, sup),
         matched_required=req,
