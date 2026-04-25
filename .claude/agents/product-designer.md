@@ -77,8 +77,7 @@ Referências de qualidade que você usa como benchmark: Linear, Stripe Dashboard
 - Erros **resolvem**: "Não conseguimos conectar ao banco. Tente de novo em 1 min" > "Erro 500".
 
 ## Padrões específicos do Mathoms
-- **Relatório nativo React** (`frontend/src/components/report/`) é o render primário — rota `/reports/[id]`.
-- **E6 standalone HTML** (`e6_render.py`) é exportador para email/backup — mesmo tokens, mas constraints diferentes (sem JS, print-friendly).
+- **Relatório nativo React** (`frontend/src/components/report/`) é o **único** renderer — rota `/reports/[id]`. Export server-side é PDF via Playwright sobre essa mesma rota. Renderer HTML standalone foi descontinuado em [ADR-129](../../docs/DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side); não existe mais "exportador HTML".
 - **Layout codegen** — `config/report_layout.yaml` gera `frontend/src/generated/report-layout.ts` + `backend/app/generated/report_layout.py`. Estrutura de seção nasce no YAML, não no componente.
 - Público: **famílias + planejadores financeiros**. Tom: sério, confiável, legível — não gamificado, não infantil.
 
