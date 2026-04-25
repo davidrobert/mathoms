@@ -2224,7 +2224,7 @@ mantém o sistema consistente, rename antecipado cria estado misto perigoso.
 
 ## ADR-093 — Rename completo de identificadores de stage (Opção A)
 
-**Status:** Infraestrutura pronta • **Execução:** pós-Fases 5-8 completas
+**Status:** 🚧 Em execução — F9.0 ✅ (2026-04-24) · F9.1 ✅ (2026-04-25) · F9.2 destravada
 **Data:** 2026-04-19 • **Plano:** Fase 9 inteira
 
 **Contexto:** Os identificadores legados (`"E0-audit"`, `"E1.5c"`, `"E2-faturas"`,
@@ -2236,9 +2236,18 @@ exige coordenação entre código, DB, dev-ops e docs.
 
 **Decisão:** Aplicar **Opção A — rename em bloco** em 7 sub-fases (Fase 9 do plano):
 
-1. **9.0** — Auditoria: `_scratch/audit_stage_references.py` lista ocorrências;
-   teste `test_rename_map_covers_all_legacy_names` garante `STAGE_RENAME_MAP` exaustivo.
-2. **9.1** — `git mv pipeline/stages/e*.py → *descriptive*.py` (17 wrappers).
+1. **9.0** ✅ (2026-04-24) — Auditoria: `dev/audit_stage_references.py`
+   (ferramenta reutilizável) + resumo durável em
+   [`docs/audits/f9_audit_20260424.md`](audits/f9_audit_20260424.md);
+   3468 ocorrências mapeadas em 6 categorias, zero blockers. Testes
+   `test_covers_all_legacy_names` + `test_is_bijective` em
+   `tests/unit/pipeline/test_stage_spec.py` garantem `STAGE_RENAME_MAP`
+   exaustivo e bijetivo.
+2. **9.1** ✅ (2026-04-25) — `git mv pipeline/stages/e*.py → *descriptive*.py`
+   (14 wrappers). Imports atualizados em `pipeline/orchestrator.py`,
+   `pipeline/__init__.py` e tests. `pipeline/stages/e2.py` (shim
+   compartilhado, fora do mapa) e `pipeline/stages/e7.py`
+   (`run_crossval` + `run_apply` agrupados) deferidos para F9.6.
 3. **9.2** — Substituir strings literais em Python um arquivo por vez,
    com `pytest` entre cada.
 4. **9.3** — Alembic migration `q5r6s7t8u9v0_rename_stage_identifiers`:
