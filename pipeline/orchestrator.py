@@ -105,55 +105,55 @@ FROM_MAP: Dict[str, List[str]] = _build_from_map_with_aliases()
 def _get_stage_runner(stage: str) -> Callable:
     """Lazy-import do runner correto para cada stage."""
     if stage == "E0-unlock":
-        from pipeline.stages.e0_unlock import run
+        from pipeline.stages.unlock_documents import run
 
         return run
     if stage == "E0-audit":
-        from pipeline.stages.e0_audit import run
+        from pipeline.stages.audit_documents import run
 
         return run
     if stage == "E0-route":
-        from pipeline.stages.e0_route import run
+        from pipeline.stages.route_documents import run
 
         return run
     if stage == "E1":
-        from pipeline.stages.e1 import run
+        from pipeline.stages.extract_members import run
 
         return run
     if stage == "E1.5":
-        from pipeline.stages.e15 import run
+        from pipeline.stages.extract_baseline import run
 
         return run
     if stage == "E1.5c":
-        from pipeline.stages.e15c import run
+        from pipeline.stages.consolidate_baseline import run
 
         return run
     if stage == "E2-llm":
-        from pipeline.stages.e2_llm import run
+        from pipeline.stages.extract_with_llm import run
 
         return run
     if stage == "E2-faturas":
-        from pipeline.stages.e2_faturas import run
+        from pipeline.stages.extract_invoices import run
 
         return run
     if stage == "E2-extratos":
-        from pipeline.stages.e2_extratos import run
+        from pipeline.stages.extract_statements import run
 
         return run
     if stage == "E3":
-        from pipeline.stages.e3 import run
+        from pipeline.stages.reconcile_transactions import run
 
         return run
     if stage == "E4":
-        from pipeline.stages.e4 import run
+        from pipeline.stages.categorize_transactions import run
 
         return run
     if stage == "E5":
-        from pipeline.stages.e5 import run
+        from pipeline.stages.analyze_finances import run
 
         return run
     if stage == "E5.N":
-        from pipeline.stages.e5n import run
+        from pipeline.stages.generate_narratives import run
 
         return run
     if stage == "E7-crossval":
@@ -161,7 +161,7 @@ def _get_stage_runner(stage: str) -> Callable:
 
         return run_crossval
     if stage == "E7-review":
-        from pipeline.stages.e7_review_llm import run
+        from pipeline.stages.review_finances import run
 
         return run
     if stage == "E7-apply":

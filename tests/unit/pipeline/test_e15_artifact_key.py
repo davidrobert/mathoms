@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pipeline.stages.e15 import _artifact_key_for
+from pipeline.stages.extract_baseline import _artifact_key_for
 
 
 def test_artifact_key_strips_zero_original_suffix() -> None:

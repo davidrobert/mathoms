@@ -345,7 +345,7 @@ class TestValidationResult:
 
 class TestOutputConverters:
     def test_e1_output_to_family_members_json(self):
-        from pipeline.stages.e1 import _output_to_family_members_json
+        from pipeline.stages.extract_members import _output_to_family_members_json
 
         output = make_e1_output()
         result = _output_to_family_members_json(output)
@@ -357,7 +357,7 @@ class TestOutputConverters:
         assert result["titular"] == "david"
 
     def test_e15_output_to_baseline_json(self):
-        from pipeline.stages.e15 import _output_to_baseline_json
+        from pipeline.stages.extract_baseline import _output_to_baseline_json
 
         output = make_e15_output()
         result = _output_to_baseline_json(output)
@@ -368,7 +368,7 @@ class TestOutputConverters:
         assert result["_meta"]["confidence"] == 0.90
 
     def test_e2_llm_output_to_e2_json(self):
-        from pipeline.stages.e2_llm import _output_to_e2_json
+        from pipeline.stages.extract_with_llm import _output_to_e2_json
 
         output = make_e2_llm_output()
         result = _output_to_e2_json(output)

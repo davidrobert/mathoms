@@ -19,60 +19,70 @@ class TestStageImports:
 
         assert callable(e2.run)
 
-    def test_import_e3(self):
-        from pipeline.stages import e3
+    def test_import_reconcile_transactions(self):
+        from pipeline.stages import reconcile_transactions
 
-        assert callable(e3.run)
+        assert callable(reconcile_transactions.run)
 
-    def test_import_e4(self):
-        from pipeline.stages import e4
+    def test_import_categorize_transactions(self):
+        from pipeline.stages import categorize_transactions
 
-        assert callable(e4.run)
+        assert callable(categorize_transactions.run)
 
-    def test_import_e5(self):
-        from pipeline.stages import e5
+    def test_import_analyze_finances(self):
+        from pipeline.stages import analyze_finances
 
-        assert callable(e5.run)
+        assert callable(analyze_finances.run)
 
-    def test_import_e5n(self):
-        from pipeline.stages import e5n
+    def test_import_generate_narratives(self):
+        from pipeline.stages import generate_narratives
 
-        assert callable(e5n.run)
+        assert callable(generate_narratives.run)
 
-    def test_import_e0_unlock(self):
-        from pipeline.stages import e0_unlock
+    def test_import_unlock_documents(self):
+        from pipeline.stages import unlock_documents
 
-        assert callable(e0_unlock.run)
+        assert callable(unlock_documents.run)
 
-    def test_import_e0_route(self):
-        from pipeline.stages import e0_route
+    def test_import_route_documents(self):
+        from pipeline.stages import route_documents
 
-        assert callable(e0_route.run)
+        assert callable(route_documents.run)
 
-    def test_import_e0_audit(self):
-        from pipeline.stages import e0_audit
+    def test_import_audit_documents(self):
+        from pipeline.stages import audit_documents
 
-        assert callable(e0_audit.run)
+        assert callable(audit_documents.run)
 
-    def test_import_e1(self):
-        from pipeline.stages import e1
+    def test_import_extract_members(self):
+        from pipeline.stages import extract_members
 
-        assert callable(e1.run)
+        assert callable(extract_members.run)
 
-    def test_import_e15(self):
-        from pipeline.stages import e15
+    def test_import_extract_baseline(self):
+        from pipeline.stages import extract_baseline
 
-        assert callable(e15.run)
+        assert callable(extract_baseline.run)
 
-    def test_import_e15c(self):
-        from pipeline.stages import e15c
+    def test_import_consolidate_baseline(self):
+        from pipeline.stages import consolidate_baseline
 
-        assert callable(e15c.run)
+        assert callable(consolidate_baseline.run)
 
-    def test_import_e2_llm(self):
-        from pipeline.stages import e2_llm
+    def test_import_extract_statements(self):
+        from pipeline.stages import extract_statements
 
-        assert callable(e2_llm.run)
+        assert callable(extract_statements.run)
+
+    def test_import_extract_invoices(self):
+        from pipeline.stages import extract_invoices
+
+        assert callable(extract_invoices.run)
+
+    def test_import_extract_with_llm(self):
+        from pipeline.stages import extract_with_llm
+
+        assert callable(extract_with_llm.run)
 
     def test_import_e7(self):
         from pipeline.stages import e7
@@ -80,10 +90,10 @@ class TestStageImports:
         assert callable(e7.run_crossval)
         assert callable(e7.run_apply)
 
-    def test_import_e7_review_llm(self):
-        from pipeline.stages import e7_review_llm
+    def test_import_review_finances(self):
+        from pipeline.stages import review_finances
 
-        assert callable(e7_review_llm.run)
+        assert callable(review_finances.run)
 
 
 class TestInitConfig:

@@ -16,8 +16,8 @@ Uso via Python (novo — API programática):
     result = run_pipeline(ctx)
 
 Uso de stages individuais:
-    from pipeline.stages import e3
-    result = e3.run(ctx)
+    from pipeline.stages import reconcile_transactions
+    result = reconcile_transactions.run(ctx)
 """
 
 __version__ = "0.2.0"

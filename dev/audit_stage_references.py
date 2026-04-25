@@ -175,8 +175,9 @@ def _scan_text() -> list[Occurrence]:
 
 def _scan_db() -> list[str] | None:
     try:
-        from backend.app.db import session_scope  # type: ignore
         from sqlalchemy import text  # type: ignore
+
+        from backend.app.db import session_scope  # type: ignore
     except Exception:
         return None
     try:
@@ -195,19 +196,34 @@ def _summarize(occurrences: list[Occurrence], db_stages: list[str] | None) -> Au
         by_category[o.category] += 1
         by_name[o.name] += 1
         by_file[o.path] += 1
-    pipe_files = sorted({o.path for o in occurrences if o.category == "filename" and o.path.startswith("pipeline/stages/")})
-    scripts_files = sorted({o.path for o in occurrences if o.category == "filename" and o.path.startswith("scripts/")})
+    pipe_files = sorted(
+        {
+            o.path
+            for o in occurrences
+            if o.category == "filename" and o.path.startswith("pipeline/stages/")
+        }
+    )
+    scripts_files = sorted(
+        {o.path for o in occurrences if o.category == "filename" and o.path.startswith("scripts/")}
+    )
     # Coverage: só conta nomes que apareceram em strings/configs/docs/alembic/db.
     # Filenames (`e2_extract.py`) não são strings de stage e não participam.
-    string_categories = {"code_string", "test_string", "doc_string", "config", "alembic", "db_value"}
-    string_names: set[str] = {
-        o.name for o in occurrences if o.category in string_categories
+    string_categories = {
+        "code_string",
+        "test_string",
+        "doc_string",
+        "config",
+        "alembic",
+        "db_value",
     }
+    string_names: set[str] = {o.name for o in occurrences if o.category in string_categories}
     coverage = {n: (n in STAGE_RENAME_MAP) for n in sorted(string_names)}
     blockers: list[str] = []
     for n, mapped in coverage.items():
         if not mapped:
-            blockers.append(f"Nome '{n}' aparece em string de produção mas não está em STAGE_RENAME_MAP")
+            blockers.append(
+                f"Nome '{n}' aparece em string de produção mas não está em STAGE_RENAME_MAP"
+            )
     if db_stages is not None:
         for st in db_stages:
             if st not in STAGE_RENAME_MAP:
@@ -242,7 +258,13 @@ def _render_md(rep: AuditReport) -> str:
     ]
     for cat, n in rep.by_category.items():
         lines.append(f"| {cat} | {n} |")
-    lines += ["", "## Por nome legado", "", "| Nome | Ocorrências | Mapeado? |", "| --- | ---: | :---: |"]
+    lines += [
+        "",
+        "## Por nome legado",
+        "",
+        "| Nome | Ocorrências | Mapeado? |",
+        "| --- | ---: | :---: |",
+    ]
     for name, n in rep.by_name.items():
         lines.append(f"| `{name}` | {n} | {'✅' if rep.coverage.get(name) else '❌'} |")
     lines += ["", "## Top 20 arquivos", "", "| Arquivo | Ocorrências |", "| --- | ---: |"]
@@ -255,7 +277,10 @@ def _render_md(rep: AuditReport) -> str:
     if rep.db_distinct_stages is not None:
         lines += ["", "## DB — `SELECT DISTINCT stage FROM pipeline_artifacts`", ""]
         if rep.db_distinct_stages:
-            lines += [f"- `{s}` → `{STAGE_RENAME_MAP.get(s, '❌ NÃO MAPEADO')}`" for s in rep.db_distinct_stages]
+            lines += [
+                f"- `{s}` → `{STAGE_RENAME_MAP.get(s, '❌ NÃO MAPEADO')}`"
+                for s in rep.db_distinct_stages
+            ]
         else:
             lines.append("_(DB vazio)_")
     else:

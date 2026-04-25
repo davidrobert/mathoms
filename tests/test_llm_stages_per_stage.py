@@ -28,7 +28,7 @@ from tests._llm_stage_fixtures import (
 class TestE1Stage:
     def test_skips_without_llm_config(self, tmp_path):
         ctx = make_llm_ctx_no_llm(tmp_path)
-        from pipeline.stages.e1 import run
+        from pipeline.stages.extract_members import run
 
         result = run(ctx)
         assert result["skipped"] is True
@@ -36,7 +36,7 @@ class TestE1Stage:
 
     def test_skips_without_documents(self, tmp_path):
         ctx = make_llm_ctx(tmp_path)
-        from pipeline.stages.e1 import run
+        from pipeline.stages.extract_members import run
 
         result = run(ctx)
         assert result["skipped"] is True
@@ -53,7 +53,7 @@ class TestE1Stage:
         mock_extract.return_value = "IRPF 2024 content here"
         mock_call.return_value = make_llm_call_result(make_e1_output())
 
-        from pipeline.stages.e1 import run
+        from pipeline.stages.extract_members import run
 
         result = run(ctx)
 
@@ -78,7 +78,7 @@ class TestE1Stage:
         )  # .md not in initial search
         (tmp_path / "data" / "income_tax_br" / "image.png").write_text("x")  # not matching
 
-        from pipeline.stages.e1 import _find_personal_docs
+        from pipeline.stages.extract_members import _find_personal_docs
 
         docs = _find_personal_docs(ctx)
         names = {d.name for d in docs}
@@ -94,14 +94,14 @@ class TestE1Stage:
 class TestE15Stage:
     def test_skips_without_llm_config(self, tmp_path):
         ctx = make_llm_ctx_no_llm(tmp_path)
-        from pipeline.stages.e15 import run
+        from pipeline.stages.extract_baseline import run
 
         result = run(ctx)
         assert result["skipped"] is True
 
     def test_skips_without_documents(self, tmp_path):
         ctx = make_llm_ctx(tmp_path)
-        from pipeline.stages.e15 import run
+        from pipeline.stages.extract_baseline import run
 
         result = run(ctx)
         assert result["skipped"] is True
@@ -118,7 +118,7 @@ class TestE15Stage:
         mock_extract.return_value = "IRPF data here"
         mock_call.return_value = make_llm_call_result(make_e15_output())
 
-        from pipeline.stages.e15 import run
+        from pipeline.stages.extract_baseline import run
 
         result = run(ctx)
 
@@ -148,14 +148,14 @@ class TestE15Stage:
 class TestE2LLMStage:
     def test_skips_without_llm_config(self, tmp_path):
         ctx = make_llm_ctx_no_llm(tmp_path)
-        from pipeline.stages.e2_llm import run
+        from pipeline.stages.extract_with_llm import run
 
         result = run(ctx)
         assert result["skipped"] is True
 
     def test_skips_without_unprocessed_docs(self, tmp_path):
         ctx = make_llm_ctx(tmp_path)
-        from pipeline.stages.e2_llm import run
+        from pipeline.stages.extract_with_llm import run
 
         result = run(ctx)
         assert result["skipped"] is True
@@ -173,7 +173,7 @@ class TestE2LLMStage:
         mock_extract.return_value = "Investment report content"
         mock_call.return_value = make_llm_call_result(make_e2_llm_output())
 
-        from pipeline.stages.e2_llm import run
+        from pipeline.stages.extract_with_llm import run
 
         result = run(ctx)
 
@@ -187,7 +187,7 @@ class TestE2LLMStage:
         assert result["e2_llm_settings"]["workers"] == 1
 
     def test_e2_llm_perf_settings_defaults(self, tmp_path):
-        from pipeline.stages.e2_llm import _e2_llm_perf_settings
+        from pipeline.stages.extract_with_llm import _e2_llm_perf_settings
 
         ctx = make_llm_ctx(tmp_path)
         perf = _e2_llm_perf_settings(ctx)
@@ -196,7 +196,7 @@ class TestE2LLMStage:
         assert perf["max_pdf_pages"] == 35
 
     def test_e2_llm_queue_stats_groups_by_data_subdir(self, tmp_path):
-        from pipeline.stages.e2_llm import _e2_llm_queue_stats
+        from pipeline.stages.extract_with_llm import _e2_llm_queue_stats
 
         data_dir = tmp_path / "data"
         fs = data_dir / "financial_statements"
@@ -224,7 +224,7 @@ class TestE2LLMStage:
         store = ctx.get_artifact_store()
         store.write("E2", "itau_extrato", {"dummy": True})
 
-        from pipeline.stages.e2_llm import _find_unprocessed_docs
+        from pipeline.stages.extract_with_llm import _find_unprocessed_docs
 
         docs = _find_unprocessed_docs(ctx, store)
         names = [d.name for d in docs]
@@ -242,7 +242,7 @@ class TestE2LLMStage:
         store = ctx.get_artifact_store()
         store.write("E2-llm", "irpf_2024", {"dummy": True})
 
-        from pipeline.stages.e2_llm import _find_unprocessed_docs
+        from pipeline.stages.extract_with_llm import _find_unprocessed_docs
 
         docs = _find_unprocessed_docs(ctx, store)
         assert docs == []
@@ -259,21 +259,25 @@ class TestA6aStructural:
     """Verifica que E1.5 e E2-llm escrevem via ArtifactStore (não disco direto)."""
 
     def test_e15_does_not_write_text_directly(self):
-        src = (_REPO / "pipeline" / "stages" / "e15.py").read_text(encoding="utf-8")
+        src = (_REPO / "pipeline" / "stages" / "extract_baseline.py").read_text(encoding="utf-8")
         assert "write_text" not in src, (
-            "pipeline/stages/e15.py não deve escrever direto em disco — "
+            "pipeline/stages/extract_baseline.py não deve escrever direto em disco — "
             "A6a migrou para store.write('E1.5', ...)."
         )
-        assert "store.write" in src, "pipeline/stages/e15.py deve chamar store.write após A6a."
+        assert (
+            "store.write" in src
+        ), "pipeline/stages/extract_baseline.py deve chamar store.write após A6a."
 
     def test_e2_llm_does_not_write_text_directly_in_process_one(self):
-        src = (_REPO / "pipeline" / "stages" / "e2_llm.py").read_text(encoding="utf-8")
+        src = (_REPO / "pipeline" / "stages" / "extract_with_llm.py").read_text(encoding="utf-8")
         # O bloco de write dentro de _process_one_e2_llm_document não deve ter write_text
         assert "out_path.write_text" not in src, (
-            "pipeline/stages/e2_llm.py não deve usar out_path.write_text — "
+            "pipeline/stages/extract_with_llm.py não deve usar out_path.write_text — "
             "A6a migrou para store.write('E2-llm', ...)."
         )
-        assert "store.write" in src, "pipeline/stages/e2_llm.py deve chamar store.write após A6a."
+        assert (
+            "store.write" in src
+        ), "pipeline/stages/extract_with_llm.py deve chamar store.write após A6a."
 
     def test_e15_writes_to_e15_stage_key(self, tmp_path):
         """Com DiskArtifactStore, E1.5 deve produzir baseline_patrimonial-1.5_baseline.json."""
@@ -292,7 +296,7 @@ class TestA6aStructural:
                 return_value=make_llm_call_result(make_e15_output()),
             ),
         ):
-            from pipeline.stages.e15 import run
+            from pipeline.stages.extract_baseline import run
 
             result = run(ctx)
 
@@ -329,7 +333,7 @@ class TestA6aStructural:
                 return_value=make_llm_call_result(make_e2_llm_output()),
             ),
         ):
-            from pipeline.stages.e2_llm import run
+            from pipeline.stages.extract_with_llm import run
 
             result = run(ctx)
 

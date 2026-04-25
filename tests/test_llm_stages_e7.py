@@ -26,7 +26,7 @@ from tests._llm_stage_fixtures import (
 class TestE7ReviewStage:
     def test_skips_without_llm_config(self, tmp_path):
         ctx = make_llm_ctx_no_llm(tmp_path)
-        from pipeline.stages.e7_review_llm import run
+        from pipeline.stages.review_finances import run
 
         result = run(ctx)
         assert result["skipped"] is True
@@ -34,7 +34,7 @@ class TestE7ReviewStage:
 
     def test_skips_without_e5_analysis(self, tmp_path):
         ctx = make_llm_ctx(tmp_path)
-        from pipeline.stages.e7_review_llm import run
+        from pipeline.stages.review_finances import run
 
         result = run(ctx)
         assert result["skipped"] is True
@@ -53,7 +53,7 @@ class TestE7ReviewStage:
 
         mock_call.return_value = make_llm_call_result(make_e7_review_output())
 
-        from pipeline.stages.e7_review_llm import run
+        from pipeline.stages.review_finances import run
 
         result = run(ctx)
 
@@ -72,7 +72,7 @@ class TestE7ReviewStage:
 
 class TestE7ReviewOutputConverter:
     def test_output_to_review_json(self):
-        from pipeline.stages.e7_review_llm import _output_to_review_json
+        from pipeline.stages.review_finances import _output_to_review_json
 
         output = make_e7_review_output()
         result = _output_to_review_json(output)

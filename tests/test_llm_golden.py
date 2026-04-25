@@ -40,7 +40,7 @@ class TestE1GoldenFile:
 
     def test_output_converter(self, golden_data):
         from pipeline.llm.schemas.e1_members import MembersExtractOutput
-        from pipeline.stages.e1 import _output_to_family_members_json
+        from pipeline.stages.extract_members import _output_to_family_members_json
 
         output = MembersExtractOutput(**golden_data)
         fmj = _output_to_family_members_json(output)
@@ -81,7 +81,7 @@ class TestE15GoldenFile:
 
     def test_output_converter(self, golden_data):
         from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
-        from pipeline.stages.e15 import _output_to_baseline_json
+        from pipeline.stages.extract_baseline import _output_to_baseline_json
 
         output = BaselinePatrimonialOutput(**golden_data)
         baseline = _output_to_baseline_json(output)
@@ -119,7 +119,7 @@ class TestE2LLMGoldenFile:
 
     def test_output_converter(self, golden_data):
         from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
-        from pipeline.stages.e2_llm import _output_to_e2_json
+        from pipeline.stages.extract_with_llm import _output_to_e2_json
 
         output = LLMExtractOutput(**golden_data)
         e2 = _output_to_e2_json(output)
@@ -159,7 +159,7 @@ class TestE7ReviewGoldenFile:
 
     def test_output_converter(self, golden_data):
         from pipeline.llm.schemas.e7_review import E7ReviewOutput
-        from pipeline.stages.e7_review_llm import _output_to_review_json
+        from pipeline.stages.review_finances import _output_to_review_json
 
         output = E7ReviewOutput(**golden_data)
         result = _output_to_review_json(output)
