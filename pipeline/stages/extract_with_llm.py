@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -15,6 +16,39 @@ logger = logging.getLogger(__name__)
 
 # Evita escada 4k→8k→16k em extratos longos; alinhado ao mínimo de E1.5 para JSON grande.
 _E2_LLM_MIN_COMPLETION_TOKENS = 16_384
+
+
+class _E2LLMProgress:
+    """Counter compartilhado para emissões LiveStep concorrentes (ADR-119).
+
+    `_process_one_e2_llm_document` roda em ThreadPoolExecutor — `items_done`
+    precisa ser snapshot atômico do progresso global no momento de cada fase.
+    Increment fica no thread principal após `as_completed`, fora do crítico.
+    """
+
+    def __init__(self, total: int, run_id: str | None) -> None:
+        self._lock = threading.Lock()
+        self._done = 0
+        self.total = total
+        self.run_id = run_id
+
+    def emit(self, current_item: str | None, phase: str) -> None:
+        from pipeline.live_progress import emit_item_progress
+
+        with self._lock:
+            done = self._done
+        emit_item_progress(
+            self.run_id,
+            "E2-llm",
+            current_item=current_item,
+            items_done=done,
+            items_total=self.total,
+            phase=phase,
+        )
+
+    def increment(self) -> None:
+        with self._lock:
+            self._done += 1
 
 
 def _e2_extract_stem(path: Path) -> str:
@@ -144,14 +178,13 @@ def _process_one_e2_llm_document(
     llm_config_data: dict[str, Any],
     max_chars: int,
     max_pages: int,
-    pipeline_run_id: str | None,
+    progress: _E2LLMProgress,
 ) -> tuple[dict[str, Any] | None, dict[str, str] | None, Any]:
     """Extract + one LLM call for a single file. Returns (processed, error, run_summary).
 
     A6a: escreve via ``store.write("E2-llm", safe_stem, e2_json)`` em vez de
     disco direto — compatível com DiskArtifactStore e DBArtifactStore (A6b+).
     """
-    from pipeline.live_progress import emit_stage_activity
     from pipeline.llm.litellm_client import LLMRunSummary, LLMService
     from pipeline.llm.prompts.e2_llm import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
     from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
@@ -178,12 +211,7 @@ def _process_one_e2_llm_document(
             logger.warning("E2-llm: texto vazio para %s, pulando", doc.name)
             return None, None, empty_summary
 
-    emit_stage_activity(
-        pipeline_run_id,
-        "E2-llm",
-        file=doc.name,
-        message="Extraindo com IA…",
-    )
+    progress.emit(doc.name, "preparing")
 
     try:
         # Valores em str.format(**kwargs) são inseridos literalmente; chaves no texto do PDF/JSON não conflitam.
@@ -196,6 +224,7 @@ def _process_one_e2_llm_document(
         )
 
         min_out = max(cfg.max_tokens, _E2_LLM_MIN_COMPLETION_TOKENS)
+        progress.emit(doc.name, "awaiting_llm")
         result = service.call(
             system_prompt=SYSTEM_PROMPT,
             user_prompt=user_prompt,
@@ -208,6 +237,7 @@ def _process_one_e2_llm_document(
         )
         output: LLMExtractOutput = result.output
 
+        progress.emit(doc.name, "validating")
         validation = validate_e2_llm_output(output)
         if not validation.valid:
             logger.warning("E2-llm: validation errors for %s: %s", doc.name, validation.errors)
@@ -215,6 +245,7 @@ def _process_one_e2_llm_document(
         e2_json = _output_to_e2_json(output)
 
         safe_stem = _e2_extract_stem(doc).replace(" ", "_")[:80]
+        progress.emit(doc.name, "persisting")
         # A6a: escreve via store em vez de disco direto.
         store.write("E2-llm", safe_stem, e2_json)
 
@@ -371,13 +402,6 @@ def run(ctx: WorkspaceContext) -> dict:
         perf["max_input_chars"],
         perf["max_pdf_pages"],
     )
-    from pipeline.live_progress import emit_stage_activity
-
-    emit_stage_activity(
-        ctx.pipeline_run_id,
-        "E2-llm",
-        message=f"Iniciando leitura com IA — {len(docs)} arquivo(s) na fila",
-    )
     if logger.isEnabledFor(logging.DEBUG):
         names = [p.name for p in docs]
         if len(names) > 50:
@@ -396,6 +420,8 @@ def run(ctx: WorkspaceContext) -> dict:
     max_chars = int(perf["max_input_chars"])
     max_pages = int(perf["max_pdf_pages"])
 
+    progress = _E2LLMProgress(total=len(docs), run_id=ctx.pipeline_run_id)
+
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = [
             pool.submit(
@@ -405,17 +431,29 @@ def run(ctx: WorkspaceContext) -> dict:
                 llm_config_data,
                 max_chars,
                 max_pages,
-                ctx.pipeline_run_id,
+                progress,
             )
             for doc in docs
         ]
         for fut in as_completed(futures):
             proc, err, summ = fut.result()
+            progress.increment()
             summary_parts.append(summ)
             if proc is not None:
                 processed.append(proc)
             if err is not None:
                 errors.append(err)
+
+    from pipeline.live_progress import emit_item_progress
+
+    emit_item_progress(
+        ctx.pipeline_run_id,
+        "E2-llm",
+        current_item=None,
+        items_done=len(docs),
+        items_total=len(docs),
+        phase="finalizing",
+    )
 
     summary = _merge_llm_run_summaries(summary_parts)
 
