@@ -27,10 +27,10 @@ def _print_failure(stderr_or_stdout: str) -> None:
 
 
 def main() -> int:
-    if shutil.which("npm") is None or not (FRONT_DIR / "package.json").exists():
+    if shutil.which("npx") is None or not (FRONT_DIR / "package.json").exists():
         return 0
     result = subprocess.run(
-        ["npm", "ci", "--dry-run", "--ignore-scripts"],
+        ["npx", "-y", "npm@10", "ci", "--dry-run", "--ignore-scripts"],
         cwd=str(FRONT_DIR),
         capture_output=True,
         text=True,
