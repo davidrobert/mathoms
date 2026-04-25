@@ -1007,35 +1007,8 @@ def generate_output_filename(reconciled: Dict[str, Any]) -> str:
     return filename
 
 
-def main_with_store(ctx) -> Dict[str, Any]:
-    """E3 Caminho B (Sessão A2 da Fase 6) — orquestra o pipeline E3 sobre
-    ``ArtifactStore`` em vez de disco direto.
-
-    Não substitui ``main(root_dir)`` legado — coexiste. O wrapper
-    ``pipeline/stages/e3.py`` chama esta função; CLI direto e testes legados
-    continuam usando ``main(root_dir)``.
-
-    Diferenças vs ``main(root_dir)``:
-    - Lê E2 e escreve E3 via ``ctx.get_artifact_store()`` (in-memory ou DB-backed
-      em testes; disco no caminho normal).
-    - Usa os domain services extraídos na Sessão A1 (canonicalizer, grouper,
-      preprocessor, validators) — paridade comprovada por golden no
-      ``tests/unit/pipeline/test_e3_main_with_store_parity.py``.
-    - ``cleanup_e3_directory`` continua sendo chamado em modo Disk para
-      paridade com o legado.
-    - Sidecar logs (``reconciliation.md``, ``qa_log.md``) continuam em
-      ``ctx.logs_dir`` quando o diretório existe ou pode ser criado.
-
-    Args:
-        ctx: ``pipeline.context.WorkspaceContext`` com ``logs_dir`` e config.
-
-    Returns:
-        Dict com ``files_created``, ``total``, contagens e mensagens de
-        warning prontas para log.
-    """
-    # Imports lazy — `pipeline/` importa de `scripts/`? Não.
-    # Mas `scripts/` pode importar de `pipeline/` (sem boundary issue).
-    from pipeline.artifact_store import DiskArtifactStore
+def _e3_build_adapter(ctx):
+    """Carrega configs + monta E3ReconcilerAdapter com domain services tipados."""
     from pipeline.domain.models.bank import BankCanonicalizer
     from pipeline.domain.services.account_grouper import (
         AccountGrouper,
@@ -1046,15 +1019,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         BaselineValidatorConfig,
     )
     from pipeline.domain.services.e3_reconciler_adapter import E3ReconcilerAdapter
-    from pipeline.domain.services.e3_serialization import (
-        generate_legacy_artifact_key,
-        generate_legacy_filename,
-        serialize_to_e3_legacy_format,
-    )
-    from pipeline.domain.services.reconciliation_service import (
-        ReconciliationConfig,
-        ReconciliationService,
-    )
+    from pipeline.domain.services.reconciliation_service import ReconciliationConfig
     from pipeline.domain.services.reconciliation_validators import (
         SaldoContinuityConfig,
         SaldoContinuityValidator,
@@ -1062,16 +1027,10 @@ def main_with_store(ctx) -> Dict[str, Any]:
         TemporalGapDetector,
     )
 
-    print("=" * 80)
-    print("E3 RECONCILIATION STAGE — Caminho B (main_with_store)")
-    print("=" * 80)
-
-    # 1. Configs vindo do workspace context (CLI ou DB-overrides).
     institutions = ctx.load_config("institutions.json")
     family = ctx.load_config("family_members.json")
     pipeline_cfg = ctx.load_config("pipeline.json")
 
-    # 2. Domain services com configs tipadas.
     canon = BankCanonicalizer.from_institutions(institutions)
     grouper = AccountGrouper(
         AccountGrouperConfig.from_pipeline_config(family=family, pipeline=pipeline_cfg)
@@ -1093,30 +1052,33 @@ def main_with_store(ctx) -> Dict[str, Any]:
         temporal_detector=temporal_detector,
         baseline_validator=baseline_validator,
     )
+    return adapter, canon
 
-    store = ctx.get_artifact_store()
 
-    # 3. Cleanup E3 — só em modo Disk (paridade com legado #1).
-    if isinstance(store, DiskArtifactStore):
-        cleanup_e3_directory(ctx.e3_dir)
+def _e3_run_reconciliation(adapter, store, canon):
+    """Executa reconcile_via_store com serializer/key legados."""
+    from pipeline.domain.services.e3_serialization import (
+        generate_legacy_artifact_key,
+        serialize_to_e3_legacy_format,
+    )
 
-    log_progress("E3.0", f"Workspace root: {ctx.root}")
-    log_progress("E3.0", f"Store impl:     {type(store).__name__}")
-
-    # 4. Pipeline end-to-end via adapter, com filename + serializer legados.
     serialize_fn = lambda stmt, sources, dup: serialize_to_e3_legacy_format(
         stmt, sources=sources, duplicates_removed=dup
     )
     output_key_fn = lambda stmt: generate_legacy_artifact_key(stmt, canonicalizer=canon)
 
-    result = adapter.reconcile_via_store(
+    return adapter.reconcile_via_store(
         store,
         output_stage="E3",
         output_key_fn=output_key_fn,
         serialize_fn=serialize_fn,
     )
 
-    # 5. Validate cada payload escrito contra o schema E3.
+
+def _e3_validate_outputs(store, ctx) -> List[str]:
+    """Valida cada payload E3 escrito e devolve filenames na ordem de leitura."""
+    from pipeline.artifact_store import DiskArtifactStore
+
     written_filenames: List[str] = []
     for key in store.list_keys("E3"):
         filename = f"{key}-3_reconciled.json"
@@ -1125,27 +1087,31 @@ def main_with_store(ctx) -> Dict[str, Any]:
             target = ctx.e3_dir / filename
             if target.exists():
                 _pc.validate_artifact(target, "e3_reconciled.schema.json")
+    return written_filenames
 
-    # 6. Sidecar logs — paridade com legado (reconciliation.md + qa_log E3 section).
+
+def _e3_write_sidecar_logs(ctx, written_filenames: List[str], result) -> None:
     logs_dir = ctx.logs_dir
     try:
         logs_dir.mkdir(parents=True, exist_ok=True)
     except OSError:
         pass
 
-    if logs_dir.exists():
-        _write_reconciliation_summary(
-            logs_dir / "reconciliation.md",
-            written_filenames=written_filenames,
-            result=result,
+    if not logs_dir.exists():
+        return
+    _write_reconciliation_summary(
+        logs_dir / "reconciliation.md",
+        written_filenames=written_filenames,
+        result=result,
+    )
+    if result.temporal_warnings:
+        _write_qa_log_e3_section(
+            logs_dir / "qa_log.md",
+            temporal_warnings=result.temporal_warnings,
         )
-        if result.temporal_warnings:
-            _write_qa_log_e3_section(
-                logs_dir / "qa_log.md",
-                temporal_warnings=result.temporal_warnings,
-            )
 
-    # 7. Logs de warnings (formato compatível com legado, via .format() do warning).
+
+def _e3_log_warnings(result) -> None:
     for w in result.saldo_warnings:
         log_progress("E3.2", f"WARNING ({w.account_key[0]}): {w.format()}")
     for w in result.temporal_warnings:
@@ -1157,6 +1123,8 @@ def main_with_store(ctx) -> Dict[str, Any]:
     for w in result.anachronic_warnings:
         log_progress("E3.1", f"WARNING: {w.format()}")
 
+
+def _e3_print_summary(result) -> None:
     print("\n" + "=" * 80)
     print("E3 RECONCILIATION COMPLETE — Caminho B")
     print("=" * 80)
@@ -1172,6 +1140,8 @@ def main_with_store(ctx) -> Dict[str, Any]:
         print(f"Baseline diff warnings:     {len(result.baseline_warnings)}")
     print("=" * 80)
 
+
+def _e3_build_result_dict(written_filenames: List[str], result) -> Dict[str, Any]:
     return {
         "files_created": written_filenames,
         "total": result.artifacts_written,
@@ -1184,6 +1154,39 @@ def main_with_store(ctx) -> Dict[str, Any]:
         "period_warnings": [w.format() for w in result.period_warnings],
         "anachronic_warnings": [w.format() for w in result.anachronic_warnings],
     }
+
+
+def main_with_store(ctx) -> Dict[str, Any]:
+    """E3 Caminho B (Sessão A2 da Fase 6) — orquestra o pipeline E3 sobre
+    ``ArtifactStore`` em vez de disco direto.
+
+    Coexiste com ``main(root_dir)`` legado. Lê E2 e escreve E3 via
+    ``ctx.get_artifact_store()`` (in-memory ou DB-backed em testes; disco no
+    caminho normal). Usa domain services extraídos na Sessão A1 — paridade
+    comprovada por golden em ``tests/test_e3_golden_execution.py``.
+    """
+    from pipeline.artifact_store import DiskArtifactStore
+
+    print("=" * 80)
+    print("E3 RECONCILIATION STAGE — Caminho B (main_with_store)")
+    print("=" * 80)
+
+    adapter, canon = _e3_build_adapter(ctx)
+    store = ctx.get_artifact_store()
+
+    # Cleanup E3 — só em modo Disk (paridade com legado).
+    if isinstance(store, DiskArtifactStore):
+        cleanup_e3_directory(ctx.e3_dir)
+
+    log_progress("E3.0", f"Workspace root: {ctx.root}")
+    log_progress("E3.0", f"Store impl:     {type(store).__name__}")
+
+    result = _e3_run_reconciliation(adapter, store, canon)
+    written_filenames = _e3_validate_outputs(store, ctx)
+    _e3_write_sidecar_logs(ctx, written_filenames, result)
+    _e3_log_warnings(result)
+    _e3_print_summary(result)
+    return _e3_build_result_dict(written_filenames, result)
 
 
 def _write_reconciliation_summary(path: Path, *, written_filenames: List[str], result) -> None:
