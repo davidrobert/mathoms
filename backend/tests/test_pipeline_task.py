@@ -379,3 +379,123 @@ class TestPipelineService:
             from backend.app.services.pipeline_service import is_run_active
 
             assert is_run_active("run-1") is False
+
+
+class TestCreateReportFromOutput:
+    """Cobre a regressão A6c+ADR-129 (2026-04-24): com USE_DB_ARTIFACTS=True
+    o E5 só escreve no DB; o report era criado a partir do disco e ficava
+    sem ser materializado."""
+
+    @pytest.mark.asyncio
+    async def test_falls_back_to_db_artifact(self, workspace_with_run, tmp_path):
+        """Sem JSON em disco mas com artefato no DB → materializa e cria Report."""
+        from sqlalchemy import select
+
+        from backend.app.models.pipeline_artifact import PipelineArtifact
+        from backend.app.models.report import Report
+        from backend.app.tasks.pipeline_task import _create_report_from_output
+
+        ws_id = workspace_with_run["workspace_id"]
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
+
+        payload = {
+            "score": {"valor": 7.5, "classificacao": "bom"},
+            "ratios": {"taxa_poupanca_recorrente_pct": 22.5},
+            "patrimonio": {"bruto": 1000.0, "investivel": 800.0},
+            "goals": {"if_meta": 5000.0, "if_pct": 16.0, "prazo_anos_realista": 10},
+        }
+        async with Session() as db:
+            db.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=run_id,
+                    stage="E5",
+                    artifact_key="analise_financeira",
+                    content_json=payload,
+                )
+            )
+            await db.commit()
+
+        tenant_root = tmp_path / "tenant"
+        _create_report_from_output(ws_id, run_id, tenant_root)
+
+        materialized = (
+            tenant_root / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
+        )
+        assert materialized.exists(), "JSON deve ser materializado a partir do DB"
+
+        async with Session() as db:
+            result = await db.execute(select(Report).where(Report.workspace_id == ws_id))
+            reports = result.scalars().all()
+            assert len(reports) == 1
+            assert reports[0].pipeline_run_id == run_id
+            assert reports[0].analysis_json_path == str(materialized)
+            assert reports[0].size_bytes == materialized.stat().st_size
+
+    @pytest.mark.asyncio
+    async def test_disk_first_when_present(self, workspace_with_run, tmp_path):
+        """Se o JSON já existe em disco, não consulta o DB (mantém compat
+        com DiskArtifactStore)."""
+        from sqlalchemy import select
+
+        from backend.app.models.report import Report
+        from backend.app.tasks.pipeline_task import _create_report_from_output
+
+        ws_id = workspace_with_run["workspace_id"]
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
+
+        tenant_root = tmp_path / "tenant"
+        e5_dir = tenant_root / "processed" / "E5_analysis"
+        e5_dir.mkdir(parents=True)
+        disk_file = e5_dir / "ferreira-5_analysis.json"
+        disk_file.write_text('{"score": {"valor": 9}}', encoding="utf-8")
+
+        _create_report_from_output(ws_id, run_id, tenant_root)
+
+        async with Session() as db:
+            result = await db.execute(select(Report).where(Report.workspace_id == ws_id))
+            reports = result.scalars().all()
+            assert len(reports) == 1
+            assert reports[0].analysis_json_path == str(disk_file)
+
+    @pytest.mark.asyncio
+    async def test_no_artifact_no_report(self, workspace_with_run, tmp_path, caplog):
+        """Sem disco e sem DB → não cria report e loga error."""
+        import logging as _logging
+
+        from sqlalchemy import select
+
+        from backend.app.models.report import Report
+        from backend.app.tasks.pipeline_task import _create_report_from_output
+
+        ws_id = workspace_with_run["workspace_id"]
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
+
+        tenant_root = tmp_path / "tenant"
+        # alembic's fileConfig (chamado por test_alembic_guardrails) seta
+        # disable_existing_loggers=True (default), o que cala este logger
+        # em testes rodando depois dele. Mesmo workaround dos testes de tier.
+        target_logger = _logging.getLogger("backend.app.tasks.pipeline_task")
+        prev_level, prev_prop, prev_disabled = (
+            target_logger.level,
+            target_logger.propagate,
+            target_logger.disabled,
+        )
+        target_logger.setLevel(_logging.ERROR)
+        target_logger.propagate = True
+        target_logger.disabled = False
+        try:
+            with caplog.at_level(_logging.ERROR, logger="backend.app.tasks.pipeline_task"):
+                _create_report_from_output(ws_id, run_id, tenant_root)
+            assert any("report_creation_skipped" in r.getMessage() for r in caplog.records)
+        finally:
+            target_logger.setLevel(prev_level)
+            target_logger.propagate = prev_prop
+            target_logger.disabled = prev_disabled
+
+        async with Session() as db:
+            result = await db.execute(select(Report).where(Report.workspace_id == ws_id))
+            assert result.scalars().all() == []
