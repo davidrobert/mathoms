@@ -11,6 +11,43 @@ execução da **[ADR-093](DECISIONS.md#adr-093)** (rename de stages F9).
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+### Report Premium UI v1 (2026-04-25)
+
+Marco: shell React `/reports/[id]` atinge paridade visual com
+`EXEMPLO_DE_RELATORIO.html` (raiz do repo) e se torna o **único renderer**
+do relatório.
+
+- **10 fases entregues** (F0–F10) entre 2026-04-15 e 2026-04-24, do
+  discovery aos apêndices A–E. Detalhe por fase: ver tabela em
+  [REPORT_PREMIUM_PLAN.md §2](REPORT_PREMIUM_PLAN.md) ou em
+  [BACKLOG.md › Report Premium UI](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
+  Hashes principais: F1.1 `2751dea` (rota nativa substitui iframe),
+  F2.A `78a351b` (Patrimônio S1), F2.B `431f39c` (Fluxo S2), F2.C–G
+  `1289ea8` (S3–S10 estratégico), F2.H `a3411e6` (USA + Tático), F3.1
+  `dc4f9d0` (scroll-spy + deep-links), F3.2 `92d8de1` (mode via URL +
+  print A4), F4.0+F4.2 `bc232cc` (PDF Playwright server-side), F8
+  `dbc1195` (T3/T6 + Timeline), F11.1 `667ed4d`
+  (`StaticReportModeProvider` SSR), sync final `0b8a78c` (PLAN +
+  BACKLOG + CHANGELOG na Fase 10).
+- **Decomposição do shell** em primitivos por responsabilidade
+  (`frontend/src/components/report/{ui,charts,sections,shell,kpi,
+  cards,utils}/`) — provider de modo dual: `ReportModeProvider`
+  (cliente, dinâmico) + `StaticReportModeProvider` (SSR/standalone).
+- **Renderer HTML server-side descontinuado** via
+  [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side):
+  React é único renderer; PDF via Playwright é único export server-side.
+  Aposentadoria executada na lane `adr-129-e6-kill` (~12 000 LOC
+  removidos; ADR-124 superseded; Fases 11/12/13 do plano canceladas).
+- **Resíduos abertos:**
+  [`report-a11y-finalize`](BACKLOG.md#lanes-abertas-agora--pickup-table)
+  (gate axe-core/Lighthouse + tab-order E2E + snapshots por seção).
+  Esta entrada **fecha**
+  [`report-v1-polish`](BACKLOG.md#lanes-abertas-agora--pickup-table)
+  (resíduo F13 — milestone + ARCHITECTURE/RUNBOOK/SMOKE/CLAUDE).
+
+ADRs relacionadas: ADR-076 (design tokens), ADR-117/118/121/122/123/124
+(Report Premium série), ADR-129 (descontinuação E6).
+
 - **ADR-129 lane `adr-129-e6-kill` concluída (2026-04-25):** todas as
   6 fatias mergeadas em `main`. Renderer HTML server-side erradicado;
   React (`/reports/[id]`) é o único renderer; PDF via Playwright
