@@ -33,9 +33,7 @@ async def test_get_transfer_config_falls_back_to_global(auth_client: AsyncClient
 @pytest.mark.asyncio
 async def test_put_transfer_config_persists(auth_client: AsyncClient):
     body = _payload()
-    resp = await auth_client.put(
-        f"/api/workspaces/{auth_client.ws_id}/config/transfer", json=body
-    )
+    resp = await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/transfer", json=body)
     assert resp.status_code == 200, resp.text
     saved = resp.json()
     assert saved["recipients"] == ["DAVID ROBERT", "MARIANA TEIXEIRA"]
