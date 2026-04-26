@@ -221,6 +221,50 @@ _scratch/meu_relatorio.md     ← CORRETO
 
 ---
 
+## Planos → `docs/` (nunca `_scratch/`, nunca `.claude/`)
+
+Plano que **outros agentes precisam ler** vai obrigatoriamente em `docs/`
+e é commitado. `_scratch/` está no `.gitignore`; `.claude/worktrees/<x>/`
+nunca chega ao `main`. Plano fora de `docs/` = plano invisível.
+
+### Dois formatos, escopos distintos
+
+- **Operacional de uma lane** → `docs/agent_prompts/track_<slug>.md`.
+  Self-contained, executado por 1 agente em branch `agent/<slug>/*`,
+  ligado a uma linha do BACKLOG. Nome em **kebab/snake lowercase**:
+  `track_a6g7_go_prep.md`, `track_report_v2_t2_aportes.md`. Adicione
+  entrada na tabela do [docs/agent_prompts/README.md](docs/agent_prompts/README.md).
+- **Canônico multi-fase** → `docs/<TOPIC>_PLAN.md`. Feature grande que
+  atravessa várias lanes/sprints. Nome em **UPPER_SNAKE**:
+  `REPORT_PREMIUM_PLAN.md`, `I18N_PLAN.md`, `P1_STRUCTURAL_PLAN.md`.
+  Linke da tabela "Onde procurar contexto adicional" abaixo se virar
+  fonte de verdade.
+
+### Quando concluído → `docs/archive/`, com data
+
+`git mv docs/<NOME>.md docs/archive/<NOME>-YYYY-MM-DD.md` e adicione
+seção curta (≤8 linhas: data, motivo, substituído por…) ao
+[docs/archive/README.md](docs/archive/README.md). Padrão estabelecido
+por `PRODUCT_PLAN-2026-04-15.md`. **Não apague** — arqueologia de
+decisão tem valor; índice ativo fica limpo, histórico preservado.
+Lanes do BACKLOG (linhas marcadas ✅) não exigem arquivar o `track_*.md`
+correspondente — são consumidos uma vez, viram referência histórica
+no próprio prompt; arquivar só quando o prompt deixa de fazer sentido
+(escopo redefinido, lane cancelada).
+
+### Proibido
+
+- `_scratch/<plano>.md` — gitignored, invisível a outros agentes.
+- `.claude/<plano>.md`, `.claude/worktrees/<x>/<plano>.md` — local da
+  sessão; não chega ao `main`.
+- `<plano>.md` na raiz do repo — `dev/check_forbidden_paths.py` já
+  bloqueia muitos paths; raiz é reservada a `README.md`, `CLAUDE.md`,
+  `LICENSE`, configs.
+- `_archive/` — é manual histórico do pipeline (`manual_operacao_v6.1.md`),
+  não destino de planos.
+
+---
+
 ## Regras críticas (invariantes do repositório)
 
 ### Idioma e dados sensíveis
