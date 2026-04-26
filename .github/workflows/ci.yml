@@ -61,6 +61,13 @@ jobs:
     name: Detect changed paths
     runs-on: ubuntu-latest
     timeout-minutes: 1
+    # `dorny/paths-filter@v3` em pull_request usa GH API listFiles() para
+    # detectar diff. Sem `pull-requests: read` o token default falha com
+    # "Resource not accessible by integration" (settings repo pode estar
+    # em "Read repository contents only").
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
