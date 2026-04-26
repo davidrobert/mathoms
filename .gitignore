@@ -57,9 +57,11 @@ node_modules/
 *_pre_fix.*
 
 # Secrets — aplicam em qualquer diretório (sem leading slash = basename match).
-# `.env.example` continua versionado (é template).
+# `.env.example` e `.env.prod.example` continuam versionados (são templates).
 .env
 .env.test
+.env.prod
+.env.prod.local
 
 # Smoke test — estado local efêmero (A6b.5)
 _smoke_pids/
