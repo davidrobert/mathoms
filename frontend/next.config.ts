@@ -5,6 +5,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   // Next 16: Playwright navega via 127.0.0.1; sem esta lista o webpack-hmr
   // bloqueia o client bundle e a página não hidrata.
   allowedDevOrigins: ["127.0.0.1", "localhost"],
