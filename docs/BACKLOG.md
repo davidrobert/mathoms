@@ -19,6 +19,9 @@
 - [Sprint A6 — Migração Infra+Domínio](#sprint-a6--migração-infradomínio-plano-transversal) ← **sprint atual (transversal)**
   - [Lanes abertas agora — pickup table](#lanes-abertas-agora--pickup-table) ← **agente começa aqui**
   - [Ondas paralelas — mapa de dependências](#ondas-paralelas--mapa-de-dependências)
+- [Sprint A7 — Config DB Cutover](#sprint-a7--config-db-cutover-cli-legacy-removal) ← **plano detalhado em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md); 7 lanes, multi-agente paralelo, supervisão CTO**
+  - [Lanes A7 — pickup table](#lanes-a7--pickup-table)
+  - [Ondas A7 — mapa de dependências](#ondas-a7--mapa-de-dependências)
 - [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
   - [7A-dev — Fatia mínima local-first (pré-Hetzner)](#7a-dev--fatia-mínima-local-first-pré-hetzner--✅-local-fechado-2026-04-26-·--dev9-aguardando-vps) ← **✅ local fechado · dev.9 aguarda VPS**
 - [F7F — Console interno (operadores)](#f7f--console-interno-operadores) — dividido em **F7F-Local** (UI web em `127.0.0.1`, sem OAuth, pré-produção) e **F7F-Remote** (`ops.mathoms.ai` com OAuth staff + RBAC + telemetria, produção)
@@ -1081,6 +1084,86 @@ convergir em `origin/main`.
 > **Pickup de task / diagrama de ondas / lanes abertas:** fonte única no
 > topo de [§Sprint A6](#sprint-a6--migração-infradomínio-plano-transversal) —
 > subseções "Lanes abertas agora" e "Ondas paralelas — mapa de dependências".
+
+---
+
+## Sprint A7 — Config DB Cutover (CLI legacy removal)
+
+**Plano canônico:** [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md) — 11 seções com todos os ondas, gates e rollback.
+**ADRs:** [ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) (ConfigStore), [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) (vigência fiscal/câmbio), [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) (Decision aggregate), [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) (catalog/override), [ADR-138](DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7) (supervisão CTO).
+**Status global (2026-04-26):** ☐ aberto — aguardando autorização para iniciar A7.0. Nenhuma lane mergeada.
+**Objetivo (1 frase):** migrar `config/*` para DB multi-tenant + tabelas globais versionadas, remover bridges (`materialize_config`, `FileConfigStore`), deletar `config/`.
+**Princípios não-negociáveis:** (P1) produto continua funcionando entre ondas; (P2) `pipeline/**` não importa SQLAlchemy/FastAPI; (P3) stateless rigoroso (Redis, sem `@lru_cache`); (P4) money nunca é float; (P5) ADR antes de código; (P6) bridges com prazo de remoção; (P7) reversível via revert. Detalhes em [CONFIG_CUTOVER_PLAN.md §3](CONFIG_CUTOVER_PLAN.md#3-princípios-de-execução).
+**Supervisão:** agente `senior-cto` ou humano (David) — 4 gates (G1 ADR draft / G2 schema review / G3 PR pré-merge / G4 wave boundary). Detalhes em [CONFIG_CUTOVER_PLAN.md §6](CONFIG_CUTOVER_PLAN.md#6-protocolo-de-supervisão-cto).
+
+### Lanes A7 — pickup table
+
+> **Pickup protocol** idêntico ao da §Sprint A6: `git worktree list` + `git for-each-ref refs/remotes/origin/agent/` antes de escolher. Tabela é dica.
+> **Bloqueio duro:** Onda 2 (A7.1, A7.2a, A7.2b) só destrava após A7.0 mergeada em `main`. A7.3 só após A7.1 mergeada. A7.5 só após A7.1 + A7.2a + A7.2b + A7.3 + A7.4 mergeadas. A7.4 (docs metodologia) NÃO depende de nada — pode rodar em qualquer momento.
+
+| Lane | Branch slug | Prompt | Depende de | Onda | Paralelo com | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| **A7.0** ConfigStore protocol + adapters | `a7-0-config-store` | [track_a7_0_config_store.md](agent_prompts/track_a7_0_config_store.md) | — | 1 (bloqueante) | — | ☐ aberta — aguarda autorização |
+| **A7.1** Cutover `materialize_config` → ConfigStore | `a7-1-cutover-materialize` | [track_a7_1_cutover_materialize.md](agent_prompts/track_a7_1_cutover_materialize.md) | A7.0 ✅ | 2 | A7.2a, A7.2b, A7.4 | ☐ bloqueada por A7.0 |
+| **A7.2a** Decision aggregate (event-sourced) + migrator + UI Plano de Ação | `a7-2a-decision-aggregate` | [track_a7_2a_decision_aggregate.md](agent_prompts/track_a7_2a_decision_aggregate.md) | A7.0 ✅ | 2 | A7.1, A7.2b, A7.4 | ☐ bloqueada por A7.0 |
+| **A7.2b** Tabelas globais `fiscal_parameters` + `market_rates` versionadas | `a7-2b-fiscal-market-tables` | [track_a7_2b_fiscal_market_tables.md](agent_prompts/track_a7_2b_fiscal_market_tables.md) | A7.0 ✅ | 2 | A7.1, A7.2a, A7.4 | ☐ bloqueada por A7.0 |
+| **A7.3** Catalog + Override resolver (categorization + institutions) | `a7-3-catalog-override` | [track_a7_3_catalog_override.md](agent_prompts/track_a7_3_catalog_override.md) | A7.1 ✅ | 3 | — | ☐ bloqueada por A7.1 |
+| **A7.4** Metodologia → `docs/methodology/` (4 `.md` movidos) | `a7-4-methodology-docs` | [track_a7_4_methodology_docs.md](agent_prompts/track_a7_4_methodology_docs.md) | — (independente) | 2 (livre) | qualquer lane | ☐ aberta — pode pegar agora |
+| **A7.5** Cleanup final (deletar `config/` + bridges) | `a7-5-cleanup` | [track_a7_5_cleanup.md](agent_prompts/track_a7_5_cleanup.md) | A7.1 + A7.2a + A7.2b + A7.3 + A7.4 ✅ | 4 (bloqueante) | — | ☐ bloqueada por Onda 3 |
+
+### Ondas A7 — mapa de dependências
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║ ONDA 1 — Fundação (1 lane, BLOQUEANTE — sem paralelismo)              ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  A7.0  ConfigStore protocol + adapters                                 ║
+║   └─ pipeline/ports/config_store.py + 2 adapters                      ║
+║   └─ Aceita: zero call-sites migrados; smoke verde                    ║
+╚═══════════════════════════════════════════════════════════════════════╝
+                              │
+                              ▼
+╔═══════════════════════════════════════════════════════════════════════╗
+║ ONDA 2 — Cutover paralelizável (até 4 agentes simultâneos)             ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  A7.1   Cutover materialize_config → ConfigStore                       ║
+║          (pipeline/, scripts/, config_materializer.py)                 ║
+║  A7.2a  Decision aggregate + migrator + tela Plano de Ação             ║
+║          (backend/app/{models,application/decisions,api},              ║
+║           frontend/src/.../sections/PlanoDeAcao)                       ║
+║  A7.2b  fiscal_parameters + market_rates tabelas globais               ║
+║          (backend/app/models, pipeline/domain/services/...)            ║
+║  A7.4   docs/methodology/ — 4 .md movidos (paralelo livre)             ║
+║                                                                        ║
+║  Hotspot único cross-lane: BACKLOG.md, CHANGELOG.md, CLAUDE.md         ║
+║   → protocolo §Hotspots de documentação do CLAUDE.md                  ║
+╚═══════════════════════════════════════════════════════════════════════╝
+                              │ A7.1 mergeada
+                              ▼
+╔═══════════════════════════════════════════════════════════════════════╗
+║ ONDA 3 — Catalog/Override (1 lane, depende de A7.1)                    ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  A7.3  category_templates + workspace_category_overrides + resolver    ║
+║         institution_catalog global (sem override por workspace)        ║
+╚═══════════════════════════════════════════════════════════════════════╝
+                              │ todas mergeadas
+                              ▼
+╔═══════════════════════════════════════════════════════════════════════╗
+║ ONDA 4 — Cleanup final (1 lane, BLOQUEANTE)                            ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  A7.5  git rm -r config/                                               ║
+║         FileConfigStore + materialize_config removidos                 ║
+║         dev/check_forbidden_paths.py bloqueia config/*                 ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+### Coordenação multi-agente A7
+
+- **Pickup checks idênticos** ao Sprint A6: `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`. Lane com prefix `a7-*` em uso = pegue outra.
+- **Hotspots críticos durante a sprint:** `docs/BACKLOG.md`, `docs/CHANGELOG.md`, `docs/CONFIG_CUTOVER_PLAN.md`, `docs/DECISIONS.md`, `docs/STATELESS_AUDIT.md`. Aplicar protocolo §Hotspots de documentação do CLAUDE.md (anunciar, commit ≤5min, doc separada do código).
+- **Cross-lane hotspot esperado em Onda 2:** `pipeline/stage_config.py` (A7.1 + A7.2b ambos tocam). Solução: A7.2b adiciona apenas os métodos `get_fiscal_for_period`/`get_market_rate` no Protocol já criado em A7.0; ambos rebase em `main` antes de push.
+- **CTO supervision** segue [§6](CONFIG_CUTOVER_PLAN.md#6-protocolo-de-supervisão-cto). Agente que terminou trabalho anuncia "branch pronta para review" em CHANGELOG `[Unreleased]` + atualiza status na tabela acima para 🚧 G3, e **para de mexer em arquivos** até receber APROVADO/BLOQUEADO.
+- **Re-sync periódico em sessão >1h** (CLAUDE.md): `git fetch origin && git log --oneline HEAD..origin/main` a cada ~30min. Se outra lane A7 mergeou em `main`, releia [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md) — princípios podem ter ganhado nuance.
 
 ---
 
