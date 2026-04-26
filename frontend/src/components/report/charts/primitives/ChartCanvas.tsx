@@ -28,6 +28,10 @@ export interface ChartCanvasProps<TType extends ChartType = ChartType> {
   readonly className?: string;
   readonly "data-testid"?: string;
   readonly ariaLabel?: string;
+  /** v2.E.6 — Callback que recebe a instância Chart.js para uso imperativo
+   * (ex.: legenda custom que faz toggle via `getDatasetMeta`). Mantém o
+   * primitive controlado — quem precisa de acesso passa o callback. */
+  readonly onChartReady?: (chart: ChartJS | null) => void;
 }
 
 export function ChartCanvas<TType extends ChartType = ChartType>({
@@ -39,6 +43,7 @@ export function ChartCanvas<TType extends ChartType = ChartType>({
   maxHeight = 400,
   className,
   ariaLabel,
+  onChartReady,
   ...rest
 }: ChartCanvasProps<TType>) {
   const chartRef = useRef<ChartJS | null>(null);
@@ -78,7 +83,9 @@ export function ChartCanvas<TType extends ChartType = ChartType>({
       <ReactChart
         ref={(instance) => {
           // react-chartjs-2 retorna `ChartJSOrUndefined`; narrow para `Chart | null`
-          chartRef.current = (instance as ChartJS | undefined) ?? null;
+          const chart = (instance as ChartJS | undefined) ?? null;
+          chartRef.current = chart;
+          onChartReady?.(chart);
         }}
         type={type}
         data={data as ChartData}
