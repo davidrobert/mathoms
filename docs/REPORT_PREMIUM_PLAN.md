@@ -815,6 +815,7 @@ Onda v2.D — enabler estrutural (sequencial; destrava v2.8)
 
 Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
    v2.F.1 Hero KPI redesign (4 → 6 cards com hierarquia)
+   v2.F.2 Mover Hero KPI para fora de S1 (sumário executivo dedicado)
 ```
 
 ### 17.2 Tabela de lanes (resumo)
@@ -833,6 +834,7 @@ Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
 | v2.10 | §4.3 | R | P2 | C | inline |
 | v2.D.1 | enabler de v2.8 | O | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
 | v2.F.1 | §17.6 (cross-check com EXEMPLO) | S | P1 | F | inline (§17.6) — ✅ |
+| v2.F.2 | §17.7 (posicionamento herdado de v1, não-paritário com EXEMPLO) | S | P1 | F | inline (§17.7) |
 
 Origem detalhada de cada lane: §3 e §4 da auditoria
 ([wild-munching-pine.md](https://) — relatório do plan mode 2026-04-25).
@@ -850,7 +852,7 @@ Caminho crítico: **v2.1 (½d) → v2.D.1 (5d) → v2.8 (1.5d) ≈ 7 dias.**
 ### 17.4 Saída do v2
 
 Lane "Report Premium UI v2" considerada ✅ quando todas as sub-lanes
-(v2.1 a v2.10 + v2.D.1 + v2.F.1) estão ✅ em `main`, OU foram
+(v2.1 a v2.10 + v2.D.1 + v2.F.1 + v2.F.2) estão ✅ em `main`, OU foram
 explicitamente movidas para v3 com ADR justificativa. CHANGELOG
 receberá entrada consolidada análoga à da v1.
 
@@ -1021,6 +1023,108 @@ fica como follow-up).
   `members.{nome, ano_nascimento}` cruzado com `goals.ano_if`).
 - Renda Mensal e Custo de Vida como cards próprios em S2 (já existem
   como inputs do fluxo; UX de S2 não muda nesta lane).
+
+### 17.7 v2.F.2 — Mover Hero KPI para fora de S1 (sumário executivo dedicado)
+
+**Status:** 🚧 aberta 2026-04-26.
+**Onda:** v2.F (continuação de v2.F.1).
+**Esforço:** S (≤½ dia).
+**Origem:** observação pós-v2.F.1 — `HeroKpiGrid` ficou dentro de
+`S1PatrimonioSection` por herança do desenho v1 (4 KPIs majoritariamente
+patrimoniais), mas com 6 KPIs cruzando 5 seções (S1, S2, S7, S10) o
+posicionamento virou inconsistente com o conteúdo.
+
+#### Diagnóstico
+
+No `EXEMPLO_DE_RELATORIO.html`, o KPI grid vive em **seção própria
+não-numerada `id="kpis"`** (linha 1376), entre `cover-hero` (linha
+1281) e a primeira seção numerada `id="secao-1"` (linha 1643). É um
+**sumário executivo dedicado**, não parte de S1.
+
+Na nossa `main` atual (pós-v2.F.1, commit `fa1b4ef`), o
+`<HeroKpiGrid/>` está dentro de
+`<ReportSection id="S1" title="Patrimônio — Estrutura e Composição">`,
+passando 5 props heterogêneas (`patrimonio`, `reserva`, `ratios`,
+`goals`, `score`) — sinal claro de que cruza temas além de patrimônio.
+
+Mapping KPI → seção temática real:
+
+| KPI | Seção temática |
+|---|---|
+| Patrimônio Líquido / Investível | S1 |
+| Reserva de Emergência | S1 (com fronteira p/ S9 Riscos) |
+| Taxa de Poupança | **S2 Fluxo de Caixa** |
+| Independência Financeira | **S7 Independência** |
+| Score Financeiro | **S10 Síntese** |
+
+4 dos 6 KPIs **não são** sobre patrimônio. Mantê-los dentro de S1
+mente para o leitor.
+
+#### Decisão
+
+Criar `ExecutiveSummarySection` — container análogo a `ReportSection`,
+porém **não-numerado** (sem entrada na TOC seccional, sem prefixo "Sn"
+no header), e renderizar `<HeroKpiGrid/>` dentro dele no
+`ReportShell`, **antes** da primeira seção numerada (S1).
+
+#### Componente novo
+
+`frontend/src/components/report/ExecutiveSummarySection.tsx`
+
+- Wrapper visual com a mesma "moldura" de `ReportSection` (fundo, padding,
+  spacing, divider) **menos**:
+  - prefixo numerado no header
+  - registro na TOC
+  - `id` que case com pattern `S\d+|U\d+|T\d+`
+- `id="sumario-executivo"` (ou similar) — facilita anchor link e
+  print CSS, não conflita com TOC.
+- Header opcional discreto ("Sumário Executivo" em tipografia menor
+  que `ReportSectionTitle` — ou sem header, deixando os KPIs falarem
+  por si).
+
+#### Mudanças no shell
+
+`frontend/src/components/report/shell/` — onde `ReportSections`
+orquestra a sequência S1, S2, …, T1, T2, …, U1…, A, B, C…
+Adicionar `<ExecutiveSummarySection>` entre o `<ReportCover/>` e
+`<S1PatrimonioSection/>`.
+
+#### Mudanças em S1
+
+Remover `<HeroKpiGrid/>` (e os imports associados) de
+`S1PatrimonioSection.tsx`. S1 volta a ser focada em "Estrutura e
+Composição": narrativa + 3 charts (`PatrimonioDoughnutChart`,
+`WaterfallIfChart`, `ScoreCard`) + 4 cards (`PatrimonioCategorias`,
+`ReceitasFonte`, `Reserva`, `Endividamento`).
+
+Score continua duplicado entre o hero (mini KPI) e S1 (`<ScoreCard/>`
+gauge completo) — propositalmente: hero dá "leitura em 5s", S1 dá
+breakdown. Mesmo padrão para Reserva (mini KPI no hero, card detalhado
+em S1).
+
+#### Critério de aceite
+
+- [ ] `<ExecutiveSummarySection>` renderiza antes de `<S1PatrimonioSection>`
+  no `/reports/[id]`.
+- [ ] `S1PatrimonioSection` não importa nem usa `HeroKpiGrid`.
+- [ ] TOC não lista o sumário executivo como entrada numerada (S1 segue
+  como primeiro item).
+- [ ] `cd frontend && npm test -- --run` verde.
+- [ ] `pre-commit run --all-files` verde.
+- [ ] Visual: cover → sumário executivo (6 KPIs em 2 linhas) → S1
+  → S2 → … (anchor link `#sumario-executivo` funciona via barra de URL).
+- [ ] Sem regressão de print CSS / PDF (sumário fica numa página
+  natural; sem orphan/widow grosseiro entre KPIs).
+
+#### Fora de escopo
+
+- "Perfil da Família" entre KPIs e S1 (linha 1435 do exemplo) — fica
+  para v2.F.3 quando definirmos o conteúdo (membros + premissas
+  resumidas).
+- Pontos fortes / atenção logo abaixo dos KPIs — segue em S10 Síntese.
+- TOC opcionalmente listar "Sumário Executivo" como item zero da
+  navegação — decisão de produto separada; default desta lane é não
+  listar.
 
 ---
 
