@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Chart as ChartJS, ChartOptions, ChartType, ChartData } from "chart.js";
 import { Chart as ReactChart } from "react-chartjs-2";
 import { ensureChartRegistered } from "./ChartRegistry";
@@ -49,6 +49,18 @@ export function ChartCanvas<TType extends ChartType = ChartType>({
   const chartRef = useRef<ChartJS | null>(null);
   const [printSrc, setPrintSrc] = useState<string | null>(null);
 
+  // Ref callback estavel — React chama com null em unmount; estabilidade
+  // evita disparar setState do consumer (`onChartReady`) a cada render.
+  const setRef = useCallback(
+    (instance: unknown) => {
+      const chart = (instance as ChartJS | undefined) ?? null;
+      if (chartRef.current === chart) return;
+      chartRef.current = chart;
+      onChartReady?.(chart);
+    },
+    [onChartReady],
+  );
+
   useEffect(() => {
     const c = chartRef.current;
     if (!c) return;
@@ -81,12 +93,7 @@ export function ChartCanvas<TType extends ChartType = ChartType>({
       data-testid={rest["data-testid"]}
     >
       <ReactChart
-        ref={(instance) => {
-          // react-chartjs-2 retorna `ChartJSOrUndefined`; narrow para `Chart | null`
-          const chart = (instance as ChartJS | undefined) ?? null;
-          chartRef.current = chart;
-          onChartReady?.(chart);
-        }}
+        ref={setRef}
         type={type}
         data={data as ChartData}
         options={options as ChartOptions}
