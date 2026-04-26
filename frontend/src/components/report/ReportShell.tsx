@@ -384,17 +384,6 @@ export function ReportShell({
               data-report-mode={mode}
               data-report-ready="true"
             >
-              <p className="mb-8 max-w-2xl text-sm text-[var(--surface-muted-foreground)]">
-                Relatório deste período (operacional). Metas e cenários de longo prazo ficam em{" "}
-                <Link
-                  className="font-medium text-[var(--brand-primary)] underline-offset-2 hover:underline"
-                  href="/plano"
-                >
-                  Meu Plano
-                </Link>
-                .
-              </p>
-
               <ReportPremissasBlock data={dataState.data} />
 
               {/* Sumário Executivo (Hero KPI) — modo estratégico, antes do Perfil
