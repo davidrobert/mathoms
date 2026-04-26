@@ -474,8 +474,8 @@ jobs:
       - name: Run Playwright visual project
         env:
           PW_VISUAL: "1"
-          # `mock-report.ts` cobre /api/v1/** sem precisar de backend real.
-          PLAYWRIGHT_SKIP_WEB_SERVER: "0"
+          # `mock-report.ts` cobre /api/v1/** sem precisar de backend real;
+          # webServer ainda precisa subir Next em :3000 (default do Playwright).
         run: npm run test:e2e -- --project=visual --grep sections.snapshots
 
       - name: Upload visual diffs + baselines (artefato)
