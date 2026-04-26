@@ -80,7 +80,7 @@ describe("<TransferConfigEditor /> @ADR-133b", () => {
       ),
       http.put(`${API}/workspaces/:wsId/config/transfer`, async ({ request }) => {
         receivedBody = await request.json();
-        return HttpResponse.json(receivedBody);
+        return HttpResponse.json(receivedBody as Record<string, unknown>);
       }),
     );
 

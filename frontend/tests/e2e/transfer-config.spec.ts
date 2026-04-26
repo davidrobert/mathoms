@@ -27,7 +27,7 @@ test.describe("Config /transfer round-trip @critical", () => {
       .fill(sentinel);
     await page.getByTestId("recipients-add").click();
 
-    await expect(page.getByDisplayValue(sentinel)).toBeVisible();
+    await expect(page.locator(`input[value="${sentinel}"]`)).toBeVisible();
 
     const saveBtn = page.getByTestId("save-transfer-config");
     await expect(saveBtn).toBeEnabled();
@@ -38,7 +38,7 @@ test.describe("Config /transfer round-trip @critical", () => {
     ).toBeVisible();
 
     await page.reload();
-    await expect(page.getByDisplayValue(sentinel)).toBeVisible();
+    await expect(page.locator(`input[value="${sentinel}"]`)).toBeVisible();
 
     // Confirma persistência via GET direto na API
     const token = await page.evaluate(() => localStorage.getItem("fin_token"));
