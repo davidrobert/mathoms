@@ -4493,6 +4493,40 @@ relatório, persistido em localStorage `mathoms:report:font-scale`.
 - ❌ Componentes compartilhados (`@/components/ui/*`) usados dentro do
   relatório podem ficar levemente menores — revisar caso a caso.
 
+**Refinamento UX (2026-04-26):**
+
+Após uso real, ficou claro que (a) o segmented control "Compacto / Normal /
+Confortável" não comunicava "tamanho da fonte" para usuários não-técnicos
+(David: "aparentemente esses botões não fazem nada"); (b) default
+"Compacto" 13px era mesquinho para tabelas monetárias com `tabular-nums`
+(padrão fintech moderno opera 14-16px); (c) passos 13/15/17 eram
+imperceptíveis (apenas 2px); (d) ter 2 controles separados
+(`FontScaleToggle` + `ReportThemeToggle`) inflava a top-nav e não
+escalava para futuras prefs de leitura.
+
+Mudanças (sem alterar arquitetura — continua local + localStorage):
+
+- Default `useReportFontScale` passa de `"compact"` para `"normal"`.
+- Tokens `--report-font-base-px` por scale: `compact: 14px` (era 13),
+  `normal: 16px` (era 15), `comfortable: 18px` (era 17). Família
+  proporcional recalculada. Passo de 4px entre extremos torna a diferença
+  perceptível.
+- `FontScaleToggle.tsx` e `ReportThemeToggle.tsx` removidos. Novo
+  componente `AppearanceMenu.tsx` unifica fonte + tema em popover único
+  disparado por botão `Aa` na top-nav (padrão Medium/NYT/Apple Books).
+- `transition: font-size 180ms ease-out` em `[data-report-scope]` para
+  feedback visual perceptível ao trocar.
+
+**Por que não mover para `/settings`:** reading-time prefs (fonte, tema,
+line-height) seguem padrão da indústria — ficam inline na superfície de
+leitura, não em Settings. Settings é "set once and forget"; reading prefs
+são ajustadas durante a leitura, com feedback imediato. Idêntico ao
+padrão já consagrado de `useReportTocOpen`. Quando `/settings` cross-app
+nascer (provável com ADR-130 i18n), uma ADR nova deverá explicitar o
+split: account-level (locale, notificações, default workspace) → DB ·
+reading-level (fonte, tema, TOC) → localStorage. Esta ADR-121 refinada
+permanece autoritativa sobre o que **fica local**.
+
 Relaciona-se a: ADR-076 (design tokens), ADR-117.
 
 ---

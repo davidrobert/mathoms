@@ -11,6 +11,33 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report Appearance Menu — refinement [ADR-121](DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅:**
+  Funde `FontScaleToggle` (3 botões "Compacto/Normal/Confortável") e
+  `ReportThemeToggle` (Light/Dark) em um único `<AppearanceMenu/>` com
+  botão trigger `Aa` que abre popover. Mudanças:
+  - Default `useReportFontScale` `"compact"` → `"normal"` — 13px era
+    mesquinho para tabela monetária com `tabular-nums` (padrão fintech
+    moderno opera 14-16px).
+  - Passos `13/15/17px` → `14/16/18px`. 4px entre extremos torna a
+    diferença perceptível (antes 2px era imperceptível — origem da
+    queixa "aparentemente esses botões não fazem nada").
+  - Labels "Compacto/Normal/Confortável" trocados por ícone `Aa` em
+    3 tamanhos progressivos dentro do popover (padrão Medium/NYT/Apple
+    Books). Tooltip com nome textual mantido para a11y.
+  - `transition: font-size 180ms ease-out` em `[data-report-scope]` para
+    feedback visual imediato.
+  - Top-nav reduz 2 controles para 1; abre espaço para futuras prefs de
+    leitura no mesmo popover (line-height, largura de coluna, modo print).
+
+  Arquitetura **inalterada** — continua local + localStorage
+  (`mathoms:report:font-scale`). Reading-time prefs (fonte, tema,
+  line-height) seguem padrão da indústria: ficam inline na superfície de
+  leitura, não em `/settings`. ADR-121 ganhou subseção
+  "Refinamento UX (2026-04-26)" — não é ADR nova. `FontScaleToggle.tsx`
+  e `ReportThemeToggle.tsx` deletados (único consumer era `ReportShell`).
+  Lane: [`report-appearance-menu`](BACKLOG.md#lanes-abertas-agora--pickup-table).
+  Prompt: [`track_report_appearance_menu.md`](agent_prompts/track_report_appearance_menu.md).
+
 - **Report Premium UI v2 — Onda E (Charts UX) abertura + 3/8 entregues
   em paralelo (2026-04-26) — 🚧 parcial (v2.E.1, E.2, E.7 ✅ · E.3-E.6
   destravadas):** Onda E finaliza a migração Recharts→Chart.js dentro
