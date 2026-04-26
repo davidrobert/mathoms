@@ -265,7 +265,7 @@ jobs:
           path: |
             coverage.xml
             htmlcov/
-          retention-days: 14
+          retention-days: 7
 
   frontend-lint:
     # A6g.6 slice 2, ADR-114: gate @typescript-eslint/no-explicit-any +
@@ -322,7 +322,7 @@ jobs:
         with:
           name: frontend-vitest-results
           path: frontend/vitest-results.xml
-          retention-days: 14
+          retention-days: 7
 
   frontend-e2e:
     name: Frontend E2E (Playwright + backend real)
@@ -437,7 +437,7 @@ jobs:
             /tmp/uvicorn.log
             /tmp/celery.log
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 7
 
       - name: Upload Playwright report + trace + vídeo (F6.5F.9)
         if: always()
@@ -447,7 +447,7 @@ jobs:
           path: |
             frontend/playwright-report/
             frontend/playwright-results/
-          retention-days: 30
+          retention-days: 7
 
       - name: Comment PR com link do report (F6.5F.9)
         if: always() && github.event_name == 'pull_request'
@@ -531,7 +531,7 @@ jobs:
         with:
           name: lighthouse-reports
           path: frontend/.lighthouseci/
-          retention-days: 30
+          retention-days: 7
 
   frontend-visual:
     # Lane report-a11y-finalize item 3 — snapshots por seção (light+dark),
