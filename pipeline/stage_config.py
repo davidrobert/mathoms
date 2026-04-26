@@ -22,12 +22,13 @@ Fail-fast (M3): configs **obrigatórios** faltando levantam ``ConfigError``.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict
 
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
+    from pipeline.ports import ConfigStore
 
 
 class ConfigError(RuntimeError):
@@ -46,7 +47,7 @@ class StageConfig(BaseModel):
     :meth:`empty` para testes de domínio que não precisam de config.
     """
 
-    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=False)
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
     family_members: dict = {}
     pipeline: dict = {}
@@ -55,6 +56,11 @@ class StageConfig(BaseModel):
     goals: dict = {}
     scoring: dict = {}
     fiscal: dict = {}
+    # ConfigStore boundary (ADR-134, Sprint A7.0) — A7.1 popula em
+    # backend/app/services/pipeline_adapter.py com DBConfigStore. Default
+    # None preserva compat: chamadas antigas continuam usando _init_config /
+    # materialize_config até A7.5.
+    config_store: Optional["ConfigStore"] = None
 
     # Configs cuja ausência levanta ``ConfigError`` em ``from_context``.
     REQUIRED: ClassVar[frozenset[str]] = frozenset(
