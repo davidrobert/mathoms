@@ -10,11 +10,13 @@ import InstitutionsTab from "./InstitutionsTab";
 import ReportLayoutTab from "./ReportLayoutTab";
 import ImportExportTab from "./ImportExportTab";
 import LLMTab from "./LLMTab";
+import TransferConfigEditor from "./transfer/TransferConfigEditor";
 
 const TABS = [
   { id: "members", label: "Membros" },
   { id: "acessos", label: "Acessos" },
   { id: "categories", label: "Categorias" },
+  { id: "transfer", label: "Transferências" },
   { id: "pipeline", label: "Pipeline" },
   { id: "llm", label: "LLM" },
   { id: "institutions", label: "Instituições" },
@@ -42,6 +44,7 @@ export default function ConfigPage() {
         <TabsContent value="members"><MembersTab /></TabsContent>
         <TabsContent value="acessos"><AcessosTab /></TabsContent>
         <TabsContent value="categories"><CategoriesTab /></TabsContent>
+        <TabsContent value="transfer"><TransferConfigEditor /></TabsContent>
         <TabsContent value="pipeline"><PipelineTab /></TabsContent>
         <TabsContent value="llm"><LLMTab /></TabsContent>
         <TabsContent value="institutions"><InstitutionsTab /></TabsContent>

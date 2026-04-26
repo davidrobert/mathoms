@@ -155,6 +155,25 @@ export async function updateReportLayout(workspaceId: string, config_json: Recor
   return apiFetch(`/workspaces/${workspaceId}/config/report-layout`, { method: "PUT", body: JSON.stringify({ config_json }) });
 }
 
+// ─── Config: Transferências internas (ADR-133) ───
+
+/** Wire shape do bloco `transferencias_internas`. Strings são tratadas
+ * pelo backend como substrings literais (não regex). */
+export interface TransferConfigData {
+  patterns_pix: string[];
+  patterns_global: string[];
+  patterns_bank_specific: Record<string, string[]>;
+  recipients: string[];
+}
+
+export async function getTransferConfig(workspaceId: string): Promise<TransferConfigData> {
+  return apiFetch(`/workspaces/${workspaceId}/config/transfer`);
+}
+
+export async function putTransferConfig(workspaceId: string, body: TransferConfigData): Promise<TransferConfigData> {
+  return apiFetch(`/workspaces/${workspaceId}/config/transfer`, { method: "PUT", body: JSON.stringify(body) });
+}
+
 // ─── Config: Import / Export ───
 
 export async function importConfig(workspaceId: string, data: Partial<ConfigExport>): Promise<{ imported: string[]; total: number }> {
