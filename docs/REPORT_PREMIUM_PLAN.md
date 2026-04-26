@@ -816,6 +816,10 @@ Onda v2.D — enabler estrutural (sequencial; destrava v2.8)
 Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
    v2.F.1 Hero KPI redesign (4 → 6 cards com hierarquia)
    v2.F.2 Mover Hero KPI para fora de S1 (sumário executivo dedicado)
+   v2.F.3 Cover identity (título estático + família no badge/meta + PDF filename)
+     v2.F.3a Backend — expor workspace_family_surname no GET /reports/{id}
+     v2.F.3b Frontend — cover refresh (título/subtítulo estáticos + meta-cards)
+     v2.F.3c PDF filename — slug família + período no export
 ```
 
 ### 17.2 Tabela de lanes (resumo)
@@ -835,6 +839,9 @@ Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
 | v2.D.1 | enabler de v2.8 | O | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
 | v2.F.1 | §17.6 (cross-check com EXEMPLO) | S | P1 | F | inline (§17.6) — ✅ |
 | v2.F.2 | §17.7 (posicionamento herdado de v1, não-paritário com EXEMPLO) | S | P1 | F | inline (§17.7) — ✅ |
+| v2.F.3a | §17.8 (cover identity — backend) | S | P1 | F | inline (§17.8.a) |
+| v2.F.3b | §17.8 (cover identity — frontend) | S | P1 | F | inline (§17.8.b) |
+| v2.F.3c | §17.8 (cover identity — PDF filename) | S | P1 | F | inline (§17.8.c) |
 
 Origem detalhada de cada lane: §3 e §4 da auditoria
 ([wild-munching-pine.md](https://) — relatório do plan mode 2026-04-25).
@@ -852,7 +859,8 @@ Caminho crítico: **v2.1 (½d) → v2.D.1 (5d) → v2.8 (1.5d) ≈ 7 dias.**
 ### 17.4 Saída do v2
 
 Lane "Report Premium UI v2" considerada ✅ quando todas as sub-lanes
-(v2.1 a v2.10 + v2.D.1 + v2.F.1 + v2.F.2) estão ✅ em `main`, OU foram
+(v2.1 a v2.10 + v2.D.1 + v2.F.1 + v2.F.2 + v2.F.3a/b/c) estão ✅ em
+`main`, OU foram
 explicitamente movidas para v3 com ADR justificativa. CHANGELOG
 receberá entrada consolidada análoga à da v1.
 
@@ -1125,6 +1133,151 @@ em S1).
 - TOC opcionalmente listar "Sumário Executivo" como item zero da
   navegação — decisão de produto separada; default desta lane é não
   listar.
+
+### 17.8 v2.F.3 — Cover identity (título estático + família + PDF filename)
+
+**Status:** 🚧 aberta 2026-04-26 (3 sub-lanes paralelas).
+**Onda:** v2.F (continuação de v2.F.1 e v2.F.2).
+**Esforço total:** S+S+S (≤½ dia × 3 = ≤1d, paraleláveis em 3 agentes).
+**Origem:** revisão cruzada financial-planner + product-designer
+identificou 4 problemas no cover atual:
+
+1. **Título "Fechamento Abril 2026"** soa contábil/operacional —
+   desalinha com posicionamento premium de planejamento patrimonial
+   (Perini/Cerbasi/AUVP entregam *plano contínuo*, não snapshot de
+   fechamento).
+2. **Período repetido 3×** (título + subtítulo + meta-card) — DRY
+   violado. Subtítulo deveria qualificar o documento, não ecoar o
+   título.
+3. **Família ausente** — relatório personalizado vende identidade,
+   não template; exemplo de referência tem `Família Ferreira Campos`
+   no meta-card.
+4. **"Versão Manual Operações"** é jargão interno; usuário não sabe o
+   que é.
+
+#### Decisões finais (cover meta)
+
+- **Título:** `Planejamento Financeiro` (estático, paridade
+  `EXEMPLO_DE_RELATORIO.html:1284`)
+- **Subtítulo:** `Pessoal e Patrimonial` (estático, paridade `:1285`)
+- **Badge:** `Relatório · Família {Surname}` se `family_surname`
+  presente; **fallback** `Relatório Patrimonial` se ausente.
+- **Meta-cards (4 colunas, ordem):**
+  1. **Família** — `{Surname}` · **omite o card inteiro** se ausente
+     (não exibe `—`, não deixa slot vazio).
+  2. **Período de referência** — formato `jan 2023 — abr 2026` (pt-BR
+     com travessão, único ponto de aparição do range).
+  3. **Gerado em** — `{dia mês ano, hh}h{mm}` (mantém padrão atual).
+  4. **Versão** — `Mathoms v{N}` (extrair de `package.json::version`
+     ou env `NEXT_PUBLIC_APP_VERSION`).
+
+#### Contrato API (firmado para paralelismo)
+
+`GET /reports/{report_id}` (`response_model=ReportResponse` em
+[backend/app/schemas/report.py:11](backend/app/schemas/report.py:11))
+ganha campo opcional:
+
+```python
+class ReportResponse(BaseModel):
+    # ... campos existentes
+    workspace_family_surname: Optional[str] = None
+```
+
+Populado a partir de `Workspace.family_surname` (já existe em
+[backend/app/models/workspace.py:18](backend/app/models/workspace.py:18)).
+
+Frontend gera tipo TS via codegen / atualiza tipo manual
+correspondente em [frontend/src/lib/api/](frontend/src/lib/api/).
+
+#### Sub-lanes paraleláveis
+
+##### 17.8.a — Backend (independente)
+
+- **Branch:** `agent/cover-identity-backend/<ts>`
+- **Worktree:** isolada (`isolation: "worktree"`)
+- **Escopo:**
+  - Adicionar `workspace_family_surname: Optional[str] = None` em
+    `ReportResponse`.
+  - Popular o campo no router/serializer do GET
+    `/reports/{report_id}` (JOIN com Workspace ou lookup separado —
+    o que for menor diff).
+  - Atualizar snapshot OpenAPI: `make update-openapi-snapshot`
+    (ADR-109).
+  - Teste backend: novo workspace com `family_surname="Silva"`
+    devolve `workspace_family_surname="Silva"`; sem surname devolve
+    `None` (não erro).
+- **Critério de aceite:**
+  - `pytest backend/tests -q` verde
+  - `backend/tests/test_openapi_snapshot.py` verde após snapshot update
+  - Pre-commit verde
+- **Esforço:** S (≤2h)
+
+##### 17.8.b — Frontend cover (independente, contrato pré-acordado)
+
+- **Branch:** `agent/cover-identity-frontend/<ts>`
+- **Worktree:** isolada
+- **Escopo:**
+  - Adicionar `workspace_family_surname?: string | null` no tipo
+    `ReportResponse` em
+    [frontend/src/lib/api/](frontend/src/lib/api/) (campo opcional —
+    funciona com ou sem o backend já entregue).
+  - [ReportShell.tsx](frontend/src/components/report/ReportShell.tsx):
+    trocar `displayTitle` dinâmico por `title="Planejamento
+    Financeiro"` estático; subtítulo `"Pessoal e Patrimonial"`
+    estático (descartar `formatReportPeriod` se não usado em outro
+    lugar).
+  - [ReportCover.tsx](frontend/src/components/report/shell/ReportCover.tsx):
+    aceitar prop opcional `familySurname?: string | null`; renderizar
+    badge dinâmico (`Relatório · Família X` ou
+    `Relatório Patrimonial`).
+  - `coverMeta` em `ReportShell`: ordem refeita conforme decisão
+    (Família condicional, Período de referência pt-BR formato
+    `jan 2023 — abr 2026`, Gerado em mantém, Versão `Mathoms v{N}`).
+  - Helper de formatação pt-BR para período (input `"2023-01 a
+    2026-04"` → output `"jan 2023 — abr 2026"`); MES abreviado em
+    minúscula (`jan, fev, mar...`).
+  - Versão do app: ler de `package.json` via import ou env var.
+- **Critério de aceite:**
+  - `cd frontend && npm test -- --run` verde
+  - ESLint clean em arquivos tocados
+  - Pre-commit verde
+  - Cover sem `familySurname` degrada graciosamente: badge
+    `Relatório Patrimonial`, card `Família` ausente.
+- **Esforço:** S (≤4h)
+
+##### 17.8.c — PDF filename (independente)
+
+- **Branch:** `agent/cover-identity-pdf-filename/<ts>`
+- **Worktree:** isolada
+- **Escopo:**
+  - Investigar onde o filename do PDF é gerado (provável:
+    [backend/app/services/pdf_renderer.py](backend/app/services/pdf_renderer.py)
+    ou frontend `ExportToolbar`).
+  - Padrão: `mathoms-planejamento-{slug-familia}-{YYYY-MM}.pdf`
+    (slug = `unidecode + lowercase + - como separator`).
+  - Fallback se família ausente:
+    `mathoms-planejamento-{YYYY-MM}.pdf`.
+  - Período `{YYYY-MM}` extraído do final do `period`/`periodo_dados`
+    do relatório (ex.: `"2023-01 a 2026-04"` → `"2026-04"`).
+- **Critério de aceite:**
+  - Testes de geração de filename (com/sem família, períodos
+    variados)
+  - Pre-commit verde
+- **Esforço:** S (≤2h)
+
+#### Coordenação entre agentes
+
+- **Independência:** os 3 podem rodar em paralelo. v2.F.3b assume o
+  contrato firmado nesta seção; v2.F.3a entrega o contrato; v2.F.3c
+  toca filename, sem cruzar com cover.
+- **Hotspot:** os 3 vão tocar `docs/CHANGELOG.md` no fechamento — um
+  único agente fecha; os outros não tocam doc.
+- **Push protocol:** cada agente faz drift check + rebase + push
+  fast-forward para `main` direto (CLAUDE.md §Git e commits).
+  Conflitos previstos: zero (arquivos disjuntos).
+- **Coordenador (este)** monitora conclusões, atualiza status de
+  cada sub-lane neste plano (a → ✅, b → ✅, c → ✅), e fecha a
+  Onda F com entrada consolidada no CHANGELOG/BACKLOG.
 
 ---
 
