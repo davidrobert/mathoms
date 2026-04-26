@@ -1099,18 +1099,27 @@ convergir em `origin/main`.
 
 **Hospedagem confirmada:** Hetzner Cloud CX32 Falkenstein (€7.55/mês) + Coolify self-host (substitui 7A.7 Traefik manual + parte de 7C.2 deploy). Justificativa: comparativo Hetzner × DO Droplet × DO App Platform × Heroku × Railway × Render — Hetzner ~3-10× mais barato pelo mesmo recurso, GDPR/LGPD-friendly, controle total. ADR formal pode ser escrita quando promover para produção.
 
+**Plano de ondas paralelas:**
+
+- **Onda 1 (3 agentes paralelos):** dev.1 + dev.2 + dev.6 — read-only audit, edits triviais, novos arquivos isolados.
+- **Onda 2 (2 agentes paralelos):** (dev.3 + dev.7 num único agente — backend container completo) + dev.4 (frontend container).
+- **Onda 3 (sequencial):** dev.5 — `compose.prod.yml` que referencia o output das Ondas 1+2.
+- **Onda 4 (sequencial):** dev.8 — smoke local end-to-end valida tudo.
+
+Cada agente roda em worktree isolado (`.claude/worktrees/`) a partir de `origin/main`; orquestrador mergeia branches sequencialmente. Status atualizado no BACKLOG (commit + push) a cada start/end.
+
 **Sequência de execução (8 itens, ~5h total — 4h local, 1h pós-VPS):**
 
 | #     | Item                                                                                              | Local-only? | Mapeia em | Tempo  | Status |
 | ----- | ------------------------------------------------------------------------------------------------- | ----------- | --------- | ------ | ------ |
-| dev.1 | **Audit dos compose existentes + Makefile** — decidir reuso vs novo (5 composes já no repo)      | ✅ sim      | pré-7A    | 30min  | ☐      |
-| dev.2 | **Verificar `output: 'standalone'`** em `frontend/next.config.ts` e `frontend-ops/next.config.ts` | ✅ sim      | pré-7A.2  | 15min  | ☐      |
-| dev.3 | **Backend Dockerfile minimal** (single-stage, 3 CMDs: `api`/`worker`/`beat`, sem otimizar tamanho) | ✅ sim     | 7A.1 (fatia) | 1h    | ☐      |
-| dev.4 | **Frontend Dockerfile minimal** (multi-stage Next standalone, só `frontend/` cliente)             | ✅ sim      | 7A.2 (fatia) | 45min | ☐      |
-| dev.5 | **`docker-compose.prod.yml` minimal** (api+worker+beat + frontend + PG + Redis; **sem Traefik** — Coolify cuida; portas em `127.0.0.1` para teste local) | ✅ sim | 7A.4 (fatia) | 1h | ☐ |
-| dev.6 | **`.env.prod.example` + `dev/gen-secrets.sh`** (FERNET_KEY, JWT_SECRET via `python -c`)           | ✅ sim      | 7A.5 ✅ (já feito; só script novo) | 15min | ☐ |
-| dev.7 | **Wrapper de boot backend** (`backend/scripts/entrypoint.sh`): `alembic upgrade head` antes de `uvicorn`/`celery`, idempotente, só na role `api` | ✅ sim | 7A.9 (fatia) | 30min | ☐ |
-| dev.8 | **Smoke local prod-mode end-to-end**: `docker compose -f docker-compose.prod.yml up`, registrar user, login, upload PDF, trigger pipeline, ver relatório | ✅ sim | 7A.11 (fatia) | 30min | ☐ |
+| dev.1 | **Audit dos compose existentes + Makefile** — decidir reuso vs novo (5 composes já no repo)      | ✅ sim      | pré-7A    | 30min  | 🚧 Onda 1 |
+| dev.2 | **Verificar `output: 'standalone'`** em `frontend/next.config.ts` e `frontend-ops/next.config.ts` | ✅ sim      | pré-7A.2  | 15min  | 🚧 Onda 1 |
+| dev.3 | **Backend Dockerfile minimal** (single-stage, 3 CMDs: `api`/`worker`/`beat`, sem otimizar tamanho) | ✅ sim     | 7A.1 (fatia) | 1h    | ☐ Onda 2 |
+| dev.4 | **Frontend Dockerfile minimal** (multi-stage Next standalone, só `frontend/` cliente)             | ✅ sim      | 7A.2 (fatia) | 45min | ☐ Onda 2 |
+| dev.5 | **`docker-compose.prod.yml` minimal** (api+worker+beat + frontend + PG + Redis; **sem Traefik** — Coolify cuida; portas em `127.0.0.1` para teste local) | ✅ sim | 7A.4 (fatia) | 1h | ☐ Onda 3 |
+| dev.6 | **`.env.prod.example` + `dev/gen-secrets.sh`** (FERNET_KEY, JWT_SECRET via `python -c`)           | ✅ sim      | 7A.5 ✅ (já feito; só script novo) | 15min | 🚧 Onda 1 |
+| dev.7 | **Wrapper de boot backend** (`backend/scripts/entrypoint.sh`): `alembic upgrade head` antes de `uvicorn`/`celery`, idempotente, só na role `api` | ✅ sim | 7A.9 (fatia) | 30min | ☐ Onda 2 (junto com dev.3) |
+| dev.8 | **Smoke local prod-mode end-to-end**: `docker compose -f docker-compose.prod.yml up`, registrar user, login, upload PDF, trigger pipeline, ver relatório | ✅ sim | 7A.11 (fatia) | 30min | ☐ Onda 4 |
 | dev.9 | (pós-VPS) Hetzner CX32 + UFW + Docker + Coolify + Cloudflare A record `dev.mathoms.ai` + deploy + smoke remoto | ❌ precisa VPS | 7A.6/7A.7/7A.8/7A.13 (fatia) | 1h20 | ☐ |
 
 **Premissas e cortes conscientes:**
