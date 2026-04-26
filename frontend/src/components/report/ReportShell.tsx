@@ -439,7 +439,7 @@ export function ReportShell({
           )}
         </main>
       </div>
-      <FloatingNav />
+      <FloatingNav tocEntries={tocEntries} />
     </div>
   );
 }
