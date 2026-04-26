@@ -113,6 +113,16 @@ def _dispatch_celery_task(
     return result.id
 
 
+def _prepare_run_context(ws_id: str, tier: str | None) -> tuple[str, object, object]:
+    from backend.app.services.config_materializer import materialize_config
+
+    resolved_tier = tier if tier is not None else detect_tier(ws_id)
+    tenant_root = StorageService().ensure_tenant_dirs(ws_id)
+    with SyncSessionLocal() as db:
+        config_dir = materialize_config(ws_id, tenant_root, db)
+    return resolved_tier, tenant_root, config_dir
+
+
 def start_pipeline_run(
     run_id: str,
     ws_id: str,
@@ -128,48 +138,20 @@ def start_pipeline_run(
 
     Returns the Celery task ID, or None if Celery is unavailable (fallback to thread).
     """
-    from backend.app.services.config_materializer import materialize_config
-
-    if tier is None:
-        tier = detect_tier(ws_id)
-
-    storage = StorageService()
-    tenant_root = storage.ensure_tenant_dirs(ws_id)
-
-    with SyncSessionLocal() as db:
-        config_dir = materialize_config(ws_id, tenant_root, db)
-
+    tier, tenant_root, config_dir = _prepare_run_context(ws_id, tier)
+    args = (
+        run_id, ws_id, tenant_root, config_dir, stages,
+        skip_llm, stop_on_error, tier, incremental, incremental_doc_paths,
+    )
     try:
-        return _dispatch_celery_task(
-            run_id,
-            ws_id,
-            tenant_root,
-            config_dir,
-            stages,
-            skip_llm,
-            stop_on_error,
-            tier,
-            incremental,
-            incremental_doc_paths,
-        )
+        return _dispatch_celery_task(*args)
     except Exception as exc:
         logger.warning(
             "Celery unavailable (%s), falling back to background thread for run %s",
             exc,
             run_id,
         )
-        _start_fallback_thread(
-            run_id,
-            ws_id,
-            tenant_root,
-            config_dir,
-            stages,
-            skip_llm,
-            stop_on_error,
-            tier,
-            incremental,
-            incremental_doc_paths,
-        )
+        _start_fallback_thread(*args)
         return None
 
 
