@@ -7,7 +7,7 @@
 // Lote A (S1)
 export { PatrimonioDoughnutChart } from "./PatrimonioDoughnutChart";
 export { WaterfallIfChart } from "./WaterfallIfChart";
-export { ScoreGaugeChart } from "./ScoreGaugeChart";
+// `score_gauge` migrou para `ScoreCard` (ui/ScoreCard.tsx) em v2.E.7 — não é mais um chart Recharts.
 // Lote B (S2)
 export { FluxoMensalChart } from "./FluxoMensalChart";
 export { ReceitaBarChart } from "./ReceitaBarChart";
@@ -18,7 +18,7 @@ export const MIGRATED_CHART_IDS = new Set([
   // Lote A
   "patrimonio_doughnut",
   "waterfall_if",
-  "score_gauge",
+  // `score_gauge` removido — substituído pelo ScoreCard premium (v2.E.7).
   // Lote B
   "fluxo_mensal",
   "receita_bar",
