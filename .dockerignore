@@ -1,0 +1,45 @@
+# Build context — afeta todos os builds Docker rodados a partir da raiz do repo
+# (frontend/Dockerfile, pipeline-service/Dockerfile, etc.).
+# Por isso só exclui o que NUNCA deve entrar em contexto de build, nunca código.
+
+# Git / IDE / OS
+.git
+.github
+.vscode
+.idea
+.DS_Store
+
+# Caches de build / test
+**/node_modules
+**/.next
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.turbo
+**/playwright-report
+**/test-results
+.venv
+venv
+.coverage
+coverage
+
+# Storage / dados sensíveis (já bloqueados no .gitignore, reforço para Docker).
+storage
+data
+inbox
+inbox_processed
+_scratch
+_archive
+*.db
+*.sqlite
+.env
+.env.*
+!.env.example
+
+# Worktrees Claude
+.claude
+
+# Logs
+*.log

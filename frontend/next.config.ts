@@ -15,10 +15,12 @@ const nextConfig: NextConfig = {
     proxyClientMaxBodySize: "512mb",
   },
   async rewrites() {
+    // BACKEND_INTERNAL_URL=http://backend:8000 em prod (compose); fallback é dev local.
+    const backendUrl = process.env.BACKEND_INTERNAL_URL || "http://127.0.0.1:8000";
     return [
       {
         source: "/api/:path*",
-        destination: "http://127.0.0.1:8000/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
   },
