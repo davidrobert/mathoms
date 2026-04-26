@@ -1626,18 +1626,17 @@ Ataques que **mudam código ou parâmetros**, não só doc. Cada um deve virar A
 
 ### F12.1 — Fundação i18n no frontend
 
-> ⚠️ **F12.1a-d marcados ✅, mas implementados contra a lista antiga
-> de 11 locales (hi/ar/bn/id incluídos; de/ja/ko ausentes).**
-> **F12.1e abaixo é a tarefa de correção, P0 BLOQUEANTE — precisa
-> fechar antes de F12.2/F12.3/F12.4/F12.5 começarem.**
+> ✅ **F12.1e fechada em 2026-04-26 (commit `94cf939`).** F12.1a-d
+> ressincronizadas com a lista revisada de 10 locales; lanes
+> F12.2/F12.3/F12.4/F12.5 desbloqueadas.
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F12.1a | Instalar `next-intl@^4` (Next 16 não aceita v3) + `frontend/src/i18n/{config,request,plural,fonts}.ts` + 11 arquivos `messages/<locale>.json` com `_meta` + `header.title`. | P0 | 4h | ✅ (lista antiga) |
-| F12.1b | `frontend/middleware.ts` cookie-based + matcher whitelist 11 locales; wrap `app/layout.tsx` em `NextIntlClientProvider` com `<html lang dir>`; plugin `next-intl/plugin` em `next.config.ts`. | P0 | 4h | ✅ (lista antiga) |
-| F12.1c | `src/i18n/fonts.ts` injeta Noto Sans SC / Devanagari / Bengali / Arabic via `<link rel="stylesheet">` no `<head>` quando o locale ativo precisa; fallback `[lang]` em `globals.css`. | P0 | 4h | ✅ (lista antiga) |
-| F12.1d | `AppShell` consome `useTranslations("header").title`; smoke Vitest (`tests/i18n/foundation.test.tsx`, 26 asserts) cobre paridade JSON × 11 locales, render real via `NextIntlClientProvider`, `getDir`/`isLocale`/`localeFontHrefs`. | P0 | 4h | ✅ (lista antiga) |
-| **F12.1e** | **🔴 BLOQUEANTE — Sincronizar F12.1 com lista de 10 locales (ADR-130 atualizado).** Em `frontend/src/i18n/config.ts`: remove `hi`/`ar`/`bn`/`id` de `LOCALES`, adiciona `de`/`ja`/`ko`, `RTL_LOCALES = new Set()` (vazio); `getDir` passa a retornar sempre `"ltr"`. Em `fonts.ts`: remove Devanagari/Bengali/Arabic do `FONT_HREFS`, adiciona Noto Sans JP (`ja`) e Noto Sans KR (`ko`). Em `messages/`: deleta `hi.json`/`ar.json`/`bn.json`/`id.json`, cria `de.json`/`ja.json`/`ko.json` com mesmo `_meta` + `header.title` placeholder. Atualiza `frontend/middleware.ts` matcher. Atualiza `tests/i18n/foundation.test.tsx` (asserts cobrindo 10 locales × paridade JSON, sem RTL). Smoke Vitest verde. | **P0 (blocker)** | **4h** | ⏳ |
+| F12.1a | Instalar `next-intl@^4` (Next 16 não aceita v3) + `frontend/src/i18n/{config,request,plural,fonts}.ts` + arquivos `messages/<locale>.json` com `_meta` + `header.title` (lista corrigida em F12.1e). | P0 | 4h | ✅ |
+| F12.1b | `frontend/middleware.ts` cookie-based + matcher whitelist (lista corrigida em F12.1e); wrap `app/layout.tsx` em `NextIntlClientProvider` com `<html lang>`; plugin `next-intl/plugin` em `next.config.ts`. | P0 | 4h | ✅ |
+| F12.1c | `src/i18n/fonts.ts` injeta Noto Sans SC (`zh-CN`) / Noto Sans JP (`ja`) / Noto Sans KR (`ko`) via `<link rel="stylesheet">` no `<head>` quando o locale ativo precisa; fallback `[lang]` em `globals.css`. | P0 | 4h | ✅ |
+| F12.1d | `AppShell` consome `useTranslations("header").title`; smoke Vitest (`tests/i18n/foundation.test.tsx`, 24 asserts) cobre paridade JSON × 10 locales, render real via `NextIntlClientProvider`, `getDir`/`isLocale`/`localeFontHrefs`. | P0 | 4h | ✅ |
+| F12.1e | Sincronizar F12.1 com lista de 10 locales (ADR-130 revisado 2026-04-26). `config.ts` remove `hi`/`ar`/`bn`/`id`, adiciona `de`/`ja`/`ko`, `RTL_LOCALES = new Set()` (vazio). `fonts.ts`: Noto SC/JP/KR (sem Devanagari/Bengali/Arabic). `messages/`: `de.json`/`ja.json`/`ko.json` substituem `hi`/`ar`/`bn`/`id`. `globals.css` ajusta seletores `html[lang=...]`. `foundation.test.tsx` recalibra asserts. Suíte Vitest 571 passed; lint clean. | P0 (blocker) | 4h | ✅ (commit `94cf939`) |
 
 ### F12.2 — Refactor de `format.ts` e `<MonetaryValue/>`
 
@@ -1707,11 +1706,9 @@ corretos via ICU; locales não-revisados marcam banner "beta".
 **~5 semanas** com 2 agentes em paralelo nas fases independentes.
 
 **Dependências:**
-- **F12.1e (correção da lista de locales) é pré-requisito de tudo** —
-  bloqueia F12.2/F12.3/F12.4/F12.5 enquanto config/messages estiverem
-  na lista antiga.
-- F12.1 (a–d) já mergeado contra lista antiga; F12.1e re-sincroniza.
-- F12.2/F12.3/F12.4/F12.5 paralelizáveis após F12.1e.
+- F12.1 (a–e) ✅ — fundação completa contra lista revisada de 10
+  locales (commit `94cf939`).
+- F12.2/F12.3/F12.4/F12.5 paralelizáveis (próxima onda).
 - F12.6 depende de F12.2 + F12.4.
 - F12.7 (RTL) fora do escopo F12 atual.
 - F12.8 depende de tudo acima.

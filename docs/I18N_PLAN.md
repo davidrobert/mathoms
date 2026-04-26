@@ -247,16 +247,16 @@ em ko.
 
 **Commit:** `feat(frontend): instala next-intl + middleware de locale (10 locales, cookie-based) (F12.1)`
 
-### 🔴 F12.1e — Correção da lista de locales (P0 BLOQUEANTE, ~4h)
+### ✅ F12.1e — Correção da lista de locales (fechada 2026-04-26, commit `94cf939`)
 
-> **Mais alta prioridade dentro do plano.** F12.1a-d foram mergeadas
-> em 2026-04-25 contra a lista antiga de 11 locales (`hi`/`ar`/`bn`/
-> `id` incluídos; `de`/`ja`/`ko` ausentes), antes da revisão de
-> escopo do ADR-130 (2026-04-26). Toda lane subsequente
-> (F12.2/F12.3/F12.4/F12.5) **bloqueia** até F12.1e fechar — caso
-> contrário a fundação carrega 4 locales fora do escopo e ignora 3
-> dentro do escopo, contaminando JSON de mensagens, snapshots de
-> testes e schema do `users.locale`.
+> **Concluída.** A fundação F12.1 foi ressincronizada com a lista
+> revisada de 10 locales antes do início das lanes posteriores.
+> Alteração coberta: `frontend/src/i18n/{config,fonts}.ts`,
+> `messages/{de,ja,ko}.json` (substituem `hi/ar/bn/id`),
+> `globals.css` (seletores `html[lang=...]`),
+> `tests/i18n/foundation.test.tsx`. Suíte Vitest local 571 passed,
+> lint clean. Detalhes históricos abaixo, preservados como audit
+> trail.
 
 **Mudanças concretas:**
 
@@ -564,20 +564,17 @@ tradução em progresso, contribua para melhorar".
 ## 9. Dependências e ordem
 
 ```
-F12.1 (mergeada, lista antiga) ─→ 🔴 F12.1e (correção, BLOQUEANTE)
-                                            ↓
-                                  ┌─ F12.2 (format.ts) ──┬─ F12.6 (relatório bulk)
-                                  ├─ F12.3 (persist DB)  ├─
-                                  ├─ F12.4 (codegen)     ┘
-                                  └─ F12.5 (backend msgs)
+F12.1 (a–e) ✅ ──┬─ F12.2 (format.ts) ──┬─ F12.6 (relatório bulk)
+                ├─ F12.3 (persist DB)  ├─
+                ├─ F12.4 (codegen)     ┘
+                └─ F12.5 (backend msgs)
 
 F12.6 + F12.5 ──→ F12.8 (QA E2E)
 ```
 
-- **F12.1e é pré-requisito de tudo** (correção da fundação F12.1
-  para a lista revisada de 10 locales — ver §5).
+- F12.1 (a–e) fechada — fundação contra lista de 10 locales.
 - F12.2, F12.3, F12.4, F12.5 são independentes entre si —
-  paralelizáveis após F12.1e.
+  paralelizáveis (próxima onda).
 - F12.6 depende de F12.2 (format) e F12.4 (codegen).
 - F12.7 (RTL) sai do plano atual — ver §11 quando re-priorizado.
 - F12.8 só faz sentido com todas as outras mergeadas.
@@ -589,8 +586,8 @@ revisores externos para F12.6c.
 
 | Fase | Horas | Pode paralelizar com | Pré-requisito |
 | ---- | ----- | -------------------- | ------------- |
-| F12.1 | 16 | — | nenhum (mergeado) |
-| 🔴 F12.1e | 4 | — (BLOQUEANTE) | F12.1 |
+| F12.1 (a–d) | 16 | — | nenhum (✅ mergeado) |
+| F12.1e | 4 | — | F12.1 (✅ commit `94cf939`) |
 | F12.2 | 8  | F12.3, F12.4, F12.5 | F12.1e |
 | F12.3 | 10 | F12.2, F12.4, F12.5 | F12.1e |
 | F12.4 | 12 | F12.2, F12.3, F12.5 | F12.1e |
@@ -608,12 +605,10 @@ revisores externos para F12.6c.
      requisito de produto APAC/EU/DACH).
    - Banner "beta" para locales com MT ratio > 5%.
    - Orçamento de ~$4.050 (DeepL Pro + revisão humana freelancer).
-2. **🔴 Executar F12.1e (correção P0 BLOQUEANTE) primeiro** — branch
-   `agent/i18n-locale-fix/<yyyyMMdd-HHmm>`, PR pequeno (~4h). Sem
-   isso, todas as lanes posteriores compilam contra a lista antiga
-   de 11 locales. Ver §5 §F12.1e para a lista exata de arquivos.
-3. Após F12.1e mergear, abrir lanes paralelas para F12.2, F12.3,
-   F12.4, F12.5 (anunciar slugs em [BACKLOG.md F12](BACKLOG.md#f12--internacionalização-i18n-10-locales)).
+2. ✅ F12.1e fechada (commit `94cf939`, 2026-04-26) — fundação
+   ressincronizada com a lista revisada de 10 locales.
+3. Abrir lanes paralelas para F12.2, F12.3, F12.4, F12.5 (anunciar
+   slugs em [BACKLOG.md F12](BACKLOG.md#f12--internacionalização-i18n-10-locales)).
 4. F12.6a-b são técnicos (1 agente); F12.6c distribui entre revisores
    externos por locale.
 5. F12.8 fecha QA E2E. F12.7 (RTL) volta como ticket isolado quando
