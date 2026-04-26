@@ -1,25 +1,26 @@
-// F12.1 · ADR-130 — Locales suportados (11), default e RTL set.
-// Fonte: docs/I18N_PLAN.md §1.1.
+// F12.1e · ADR-130 revisado 2026-04-26 — Locales suportados (10), default
+// e RTL set. Fonte: docs/I18N_PLAN.md §1.1.
 
 export const LOCALES = [
   "pt-BR",
   "en",
   "pt-PT",
   "zh-CN",
-  "hi",
   "es",
-  "ar",
   "fr",
-  "bn",
   "ru",
-  "id",
+  "de",
+  "ja",
+  "ko",
 ] as const;
 
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "pt-BR";
 
-export const RTL_LOCALES: ReadonlySet<Locale> = new Set(["ar"]);
+// Sem locales RTL no escopo F12 (ADR-130 revisado). Mantido tipado para
+// reentrada futura — getDir continua simétrico.
+export const RTL_LOCALES: ReadonlySet<Locale> = new Set<Locale>();
 
 export const LOCALE_COOKIE = "NEXT_LOCALE";
 

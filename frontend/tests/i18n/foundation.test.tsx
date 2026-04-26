@@ -1,20 +1,21 @@
 /**
- * F12.1 · ADR-130 — Smoke da fundação i18n.
+ * F12.1e · ADR-130 revisado 2026-04-26 — Smoke da fundação i18n.
  *
  * Garante que:
- * 1. Os 11 locales suportados têm arquivo de mensagens com `header.title`
+ * 1. Os 10 locales suportados têm arquivo de mensagens com `header.title`
  *    + `_meta.locale` consistente.
  * 2. `NextIntlClientProvider` carrega messages e `useTranslations()`
- *    resolve a chave nos 11 locales.
- * 3. Helpers `getDir()` / `RTL_LOCALES` retornam `rtl` apenas para `ar`.
- * 4. `localeFontHrefs()` injeta Noto Sans secundárias só nos locales
- *    que precisam de glifos fora de Latin Extended-A.
+ *    resolve a chave nos 10 locales.
+ * 3. Helpers `getDir()` / `RTL_LOCALES` retornam sempre `ltr` no escopo
+ *    atual (sem locales RTL — `RTL_LOCALES` vazio).
+ * 4. `localeFontHrefs()` injeta Noto Sans secundárias só nos 3 locales
+ *    CJK (zh-CN, ja, ko).
  */
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 // Override do mock global em tests/setup.ts: aqui queremos `useTranslations`
-// real para provar que `NextIntlClientProvider` resolve as chaves dos 11
+// real para provar que `NextIntlClientProvider` resolve as chaves dos 10
 // dicionários. Outros testes seguem usando o mock identity em setup.ts.
 vi.doUnmock("next-intl");
 const { NextIntlClientProvider, useTranslations } =
@@ -30,13 +31,12 @@ import {
 } from "@/i18n/config";
 import { localeFontHrefs } from "@/i18n/fonts";
 
-import ar from "@/i18n/messages/ar.json";
-import bn from "@/i18n/messages/bn.json";
+import de from "@/i18n/messages/de.json";
 import en from "@/i18n/messages/en.json";
 import es from "@/i18n/messages/es.json";
 import fr from "@/i18n/messages/fr.json";
-import hi from "@/i18n/messages/hi.json";
-import id from "@/i18n/messages/id.json";
+import ja from "@/i18n/messages/ja.json";
+import ko from "@/i18n/messages/ko.json";
 import ptBR from "@/i18n/messages/pt-BR.json";
 import ptPT from "@/i18n/messages/pt-PT.json";
 import ru from "@/i18n/messages/ru.json";
@@ -47,13 +47,12 @@ const MESSAGES: Record<Locale, Record<string, unknown>> = {
   en,
   "pt-PT": ptPT,
   "zh-CN": zhCN,
-  hi,
   es,
-  ar,
   fr,
-  bn,
   ru,
-  id,
+  de,
+  ja,
+  ko,
 };
 
 function HeaderProbe() {
@@ -62,24 +61,31 @@ function HeaderProbe() {
 }
 
 describe("F12.1 i18n foundation", () => {
-  it("LOCALES tem exatamente os 11 locales planejados", () => {
-    expect(LOCALES).toHaveLength(11);
+  it("LOCALES tem exatamente os 10 locales planejados", () => {
+    expect(LOCALES).toHaveLength(10);
     expect(LOCALES).toContain(DEFAULT_LOCALE);
     expect(DEFAULT_LOCALE).toBe("pt-BR");
   });
 
   it("isLocale aceita whitelist e rejeita fora dela", () => {
     expect(isLocale("pt-BR")).toBe(true);
-    expect(isLocale("ar")).toBe(true);
+    expect(isLocale("de")).toBe(true);
+    expect(isLocale("ja")).toBe(true);
+    expect(isLocale("ko")).toBe(true);
+    // Locales removidos pela revisão de escopo (ADR-130 2026-04-26).
+    expect(isLocale("hi")).toBe(false);
+    expect(isLocale("ar")).toBe(false);
+    expect(isLocale("bn")).toBe(false);
+    expect(isLocale("id")).toBe(false);
     expect(isLocale("xx")).toBe(false);
     expect(isLocale(undefined)).toBe(false);
     expect(isLocale(123)).toBe(false);
   });
 
-  it("RTL_LOCALES contém apenas ar; getDir retorna rtl só para ar", () => {
-    expect(Array.from(RTL_LOCALES)).toEqual(["ar"]);
+  it("RTL_LOCALES está vazio; getDir retorna ltr em todos os 10 locales", () => {
+    expect(Array.from(RTL_LOCALES)).toEqual([]);
     for (const locale of LOCALES) {
-      expect(getDir(locale)).toBe(locale === "ar" ? "rtl" : "ltr");
+      expect(getDir(locale)).toBe("ltr");
     }
   });
 
@@ -115,8 +121,8 @@ describe("F12.1 i18n foundation", () => {
     },
   );
 
-  it("localeFontHrefs carrega Noto secundária apenas em zh-CN/hi/bn/ar", () => {
-    const needsExtra: ReadonlySet<Locale> = new Set(["zh-CN", "hi", "bn", "ar"]);
+  it("localeFontHrefs carrega Noto secundária apenas em zh-CN/ja/ko", () => {
+    const needsExtra: ReadonlySet<Locale> = new Set(["zh-CN", "ja", "ko"]);
     for (const locale of LOCALES) {
       const hrefs = localeFontHrefs(locale);
       if (needsExtra.has(locale)) {
