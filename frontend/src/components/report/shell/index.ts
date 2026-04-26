@@ -3,13 +3,10 @@ export { ReportCover } from "./ReportCover";
 export type { ReportCoverProps, CoverMeta } from "./ReportCover";
 
 export { ReportTopNav } from "./ReportTopNav";
-export type {
-  ReportTopNavProps,
-  NavLink,
-  NavGroup,
-} from "./ReportTopNav";
+export type { ReportTopNavProps, NavLink, NavGroup } from "./ReportTopNav";
 
 export { ModeToggle } from "./ModeToggle";
+export { ReportActions } from "./ReportActions";
 export { FontScaleToggle } from "./FontScaleToggle";
 export { FloatingNav } from "./FloatingNav";
 export { SkipNav } from "./SkipNav";

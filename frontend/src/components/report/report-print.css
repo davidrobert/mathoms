@@ -18,7 +18,7 @@
   /* ────── Hide shell chrome ────── */
   .sidebar-toc,
   .no-print,
-  [data-report-header] {
+  [data-report-topnav] {
     display: none !important;
   }
 

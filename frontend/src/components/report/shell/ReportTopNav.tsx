@@ -2,8 +2,6 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useReportMode } from "@/components/report/ReportModeProvider";
-import { ReportThemeToggle } from "@/components/report/ReportThemeToggle";
-import { FontScaleToggle } from "./FontScaleToggle";
 
 export interface NavLink {
   readonly id: string;
@@ -18,7 +16,10 @@ export interface NavGroup {
 }
 
 export interface ReportTopNavProps {
+  /** Slot esquerdo — breadcrumb ou brand. Sem fallback. */
   readonly brand?: ReactNode;
+  /** Slot direito — ações do relatório (modo, TOC, print, PDF, fonte, tema). */
+  readonly actions?: ReactNode;
   readonly groupsByMode: {
     readonly estrategico: readonly NavGroup[];
     readonly tatico: readonly NavGroup[];
@@ -37,6 +38,7 @@ export interface ReportTopNavProps {
  */
 export function ReportTopNav({
   brand,
+  actions,
   groupsByMode,
   scrollRoot,
   className,
@@ -156,19 +158,21 @@ export function ReportTopNav({
           </div>
         ))}
       </div>
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          marginLeft: 12,
-          flexShrink: 0,
-          paddingLeft: 12,
-          borderLeft: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        <FontScaleToggle />
-        <ReportThemeToggle />
-      </div>
+      {actions && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginLeft: 12,
+            flexShrink: 0,
+            paddingLeft: 12,
+            borderLeft: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
+          {actions}
+        </div>
+      )}
     </nav>
   );
 }

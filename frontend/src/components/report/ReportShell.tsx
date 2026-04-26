@@ -26,9 +26,9 @@ function formatReportPeriod(periodo: string): string | null {
   if (isNaN(year) || isNaN(month) || month < 1 || month > 12) return null;
   return `Fechamento ${MONTHS_PT[month - 1]} ${year}`;
 }
-import { ReportHeader } from "./ReportHeader";
 import { ReportPremissasBlock } from "./ReportPremissasBlock";
 import { ReportSourceStrip } from "./ReportSourceStrip";
+import { ReportThemeToggle } from "./ReportThemeToggle";
 import { ReportToc, type TocEntry } from "./ReportToc";
 import { ReportSection } from "./ReportSection";
 import { ReportSectionStub } from "./ReportSectionStub";
@@ -64,9 +64,11 @@ import {
   T6NotasSection,
 } from "./sections/TaticoSections";
 import {
+  ReportActions,
   ReportCover,
   ReportTopNav,
   FloatingNav,
+  FontScaleToggle,
   SkipNav,
   ExportToolbar,
   type CoverMeta,
@@ -272,25 +274,39 @@ export function ReportShell({
       data-font-scale={fontScale}
     >
       <SkipNav targetId="report-main" />
-      <ReportHeader
-        reportId={reportId}
-        title={displayTitle}
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={() => setSidebarOpen((v) => !v)}
-      />
 
       <ReportTopNav
         groupsByMode={navGroups}
         brand={
-          <span
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: 12,
-              fontWeight: 700,
-            }}
-          >
-            Mathoms
-          </span>
+          <nav aria-label="Trilha de navegação" className="flex items-center gap-1.5 text-xs">
+            <Link
+              href="/reports"
+              className="text-white/60 hover:text-white"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              Relatórios
+            </Link>
+            <span aria-hidden className="text-white/30">/</span>
+            <span
+              className="font-medium text-white"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {displayTitle}
+            </span>
+          </nav>
+        }
+        actions={
+          <>
+            <ReportActions
+              reportId={reportId}
+              workspaceId={workspaceId}
+              sidebarOpen={sidebarOpen}
+              onToggleSidebar={() => setSidebarOpen((v) => !v)}
+            />
+            <span className="mx-1 hidden h-5 w-px bg-white/15 md:inline-block" aria-hidden />
+            <FontScaleToggle />
+            <ReportThemeToggle />
+          </>
         }
       />
 
