@@ -20,6 +20,9 @@ export type { KpiCardProps, KpiStripItem, KpiTone, KpiAccent } from "./Kpi";
 export { ScoreCard } from "./ScoreCard";
 export type { ScoreCardProps, ScoreBreakdownRow, ScoreClasse } from "./ScoreCard";
 
+export { PeriodToggle } from "./PeriodToggle";
+export type { Period, PeriodToggleProps } from "./PeriodToggle";
+
 export { PontoForteItem, PontosFortesList } from "./PontoForteItem";
 export type { PontoForteItemProps } from "./PontoForteItem";
 
