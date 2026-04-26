@@ -24,7 +24,7 @@
 - [Report Premium UI — Paridade com EXEMPLO_DE_RELATORIO.html](#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ← **v1 ✅ entregue (10/10 fases úteis) · v2 roadmap aberto (11 sub-lanes em 4 ondas)**
 - [DOCS-REVIEW — Followups da revisão multi-agente 2026-04-24](#docs-review--followups-da-revisão-multi-agente-2026-04-24) ← **batches 2/3 do audit de docs**
 - [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
-- [F12 — Internacionalização (i18n, 11 locales)](#f12--internacionalização-i18n-11-locales) — plano canônico em [I18N_PLAN.md](I18N_PLAN.md), decisão em [ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
+- [F12 — Internacionalização (i18n, 10 locales)](#f12--internacionalização-i18n-10-locales) — plano canônico em [I18N_PLAN.md](I18N_PLAN.md), decisão em [ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
 - [F8 — Growth (Futuro)](#f8--growth-futuro)
 
 ---
@@ -1605,23 +1605,32 @@ Ataques que **mudam código ou parâmetros**, não só doc. Cada um deve virar A
 
 ---
 
-## F12 — Internacionalização (i18n, 11 locales)
+## F12 — Internacionalização (i18n, 10 locales)
 
-> Suporte a múltiplos idiomas: pt-BR (default), en, pt-PT, zh-CN, hi,
-> es, ar, fr, bn, ru, id (top 10 globais + pt-PT). Plano canônico em
-> [docs/I18N_PLAN.md](I18N_PLAN.md). Decisão arquitetural em
+> Suporte a múltiplos idiomas: pt-BR (default), en, pt-PT, zh-CN, es,
+> fr, ru, de, ja, ko (top 7 globais + pt-PT + de/ja/ko APAC/EU/DACH).
+> Plano canônico em [docs/I18N_PLAN.md](I18N_PLAN.md). Decisão
+> arquitetural em
 > [ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale).
-> Inclui RTL (árabe), CJK (zh-CN), scripts Indic (hi, bn), ICU
-> MessageFormat para plurais, e pipeline MT (DeepL) + revisão humana.
+> Inclui CJK (zh-CN, ja, ko), ICU MessageFormat para plurais
+> (necessário para `ru`), e pipeline MT (DeepL) + revisão humana.
+> RTL (`ar`/`he`) e Indic (`hi`/`bn`) saem do escopo atual — quando
+> re-priorizados, retomar via §11 do I18N_PLAN.md.
 
 ### F12.1 — Fundação i18n no frontend
 
+> ⚠️ **F12.1a-d marcados ✅, mas implementados contra a lista antiga
+> de 11 locales (hi/ar/bn/id incluídos; de/ja/ko ausentes).**
+> **F12.1e abaixo é a tarefa de correção, P0 BLOQUEANTE — precisa
+> fechar antes de F12.2/F12.3/F12.4/F12.5 começarem.**
+
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F12.1a | Instalar `next-intl@^4` (Next 16 não aceita v3) + `frontend/src/i18n/{config,request,plural,fonts}.ts` + 11 arquivos `messages/<locale>.json` com `_meta` + `header.title`. | P0 | 4h | ✅ |
-| F12.1b | `frontend/middleware.ts` cookie-based + matcher whitelist 11 locales; wrap `app/layout.tsx` em `NextIntlClientProvider` com `<html lang dir>`; plugin `next-intl/plugin` em `next.config.ts`. | P0 | 4h | ✅ |
-| F12.1c | `src/i18n/fonts.ts` injeta Noto Sans SC / Devanagari / Bengali / Arabic via `<link rel="stylesheet">` no `<head>` quando o locale ativo precisa; fallback `[lang]` em `globals.css`. | P0 | 4h | ✅ |
-| F12.1d | `AppShell` consome `useTranslations("header").title`; smoke Vitest (`tests/i18n/foundation.test.tsx`, 26 asserts) cobre paridade JSON × 11 locales, render real via `NextIntlClientProvider`, `getDir`/`isLocale`/`localeFontHrefs`. | P0 | 4h | ✅ |
+| F12.1a | Instalar `next-intl@^4` (Next 16 não aceita v3) + `frontend/src/i18n/{config,request,plural,fonts}.ts` + 11 arquivos `messages/<locale>.json` com `_meta` + `header.title`. | P0 | 4h | ✅ (lista antiga) |
+| F12.1b | `frontend/middleware.ts` cookie-based + matcher whitelist 11 locales; wrap `app/layout.tsx` em `NextIntlClientProvider` com `<html lang dir>`; plugin `next-intl/plugin` em `next.config.ts`. | P0 | 4h | ✅ (lista antiga) |
+| F12.1c | `src/i18n/fonts.ts` injeta Noto Sans SC / Devanagari / Bengali / Arabic via `<link rel="stylesheet">` no `<head>` quando o locale ativo precisa; fallback `[lang]` em `globals.css`. | P0 | 4h | ✅ (lista antiga) |
+| F12.1d | `AppShell` consome `useTranslations("header").title`; smoke Vitest (`tests/i18n/foundation.test.tsx`, 26 asserts) cobre paridade JSON × 11 locales, render real via `NextIntlClientProvider`, `getDir`/`isLocale`/`localeFontHrefs`. | P0 | 4h | ✅ (lista antiga) |
+| **F12.1e** | **🔴 BLOQUEANTE — Sincronizar F12.1 com lista de 10 locales (ADR-130 atualizado).** Em `frontend/src/i18n/config.ts`: remove `hi`/`ar`/`bn`/`id` de `LOCALES`, adiciona `de`/`ja`/`ko`, `RTL_LOCALES = new Set()` (vazio); `getDir` passa a retornar sempre `"ltr"`. Em `fonts.ts`: remove Devanagari/Bengali/Arabic do `FONT_HREFS`, adiciona Noto Sans JP (`ja`) e Noto Sans KR (`ko`). Em `messages/`: deleta `hi.json`/`ar.json`/`bn.json`/`id.json`, cria `de.json`/`ja.json`/`ko.json` com mesmo `_meta` + `header.title` placeholder. Atualiza `frontend/middleware.ts` matcher. Atualiza `tests/i18n/foundation.test.tsx` (asserts cobrindo 10 locales × paridade JSON, sem RTL). Smoke Vitest verde. | **P0 (blocker)** | **4h** | ⏳ |
 
 ### F12.2 — Refactor de `format.ts` e `<MonetaryValue/>`
 
@@ -1629,24 +1638,24 @@ Ataques que **mudam código ou parâmetros**, não só doc. Cada um deve virar A
 | --- | --- | --- | --- | --- |
 | F12.2a | `format.ts` aceita `locale` em todas as funções públicas; remove constantes top-level; substitui por funções puras. | P0 | 4h | ⏳ |
 | F12.2b | `<MonetaryValue/>` consome `useLocale()`. Helper `useFormat()` injeta locale. | P0 | 2h | ⏳ |
-| F12.2c | Mapas `STAGE_DISPLAY_NAMES`, `DOC_STATUS_MAP`, `BANK_NAMES`, etc. → `messages/<locale>.json`. Snapshots Vitest nos 11 locales. | P0 | 2h | ⏳ |
+| F12.2c | Mapas `STAGE_DISPLAY_NAMES`, `DOC_STATUS_MAP`, `BANK_NAMES`, etc. → `messages/<locale>.json`. Snapshots Vitest nos 10 locales. | P0 | 2h | ⏳ |
 
 ### F12.3 — Persistência da escolha (DB + JWT)
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
 | F12.3a | **ADR-A6f.5b** — JWT claim `locale` (extensão de auth payload, breaking segundo ADR-109). Atualiza golden `test_auth_portability.py`. | P0 | 2h | ⏳ |
-| F12.3b | Migration Alembic: `users.locale VARCHAR(10) NOT NULL DEFAULT 'pt-BR'` + CHECK constraint nos 11 valores. Pydantic `Locale` enum em `backend/app/domain/locale.py`. | P0 | 3h | ⏳ |
+| F12.3b | Migration Alembic: `users.locale VARCHAR(10) NOT NULL DEFAULT 'pt-BR'` + CHECK constraint nos 10 valores. Pydantic `Locale` enum em `backend/app/domain/locale.py`. | P0 | 3h | ⏳ |
 | F12.3c | Endpoint `PATCH /users/me/preferences` (response_model explícito ADR-109; rodar `make update-openapi-snapshot`). | P0 | 3h | ⏳ |
-| F12.3d | Frontend `/settings/preferences` com seletor 11 opções (nome nativo); grava cookie + chama API; teste integração login pt-PT/ar preserva idioma e direção. | P0 | 2h | ⏳ |
+| F12.3d | Frontend `/settings/preferences` com seletor 10 opções (nome nativo); grava cookie + chama API; teste integração login pt-PT/ja preserva idioma. | P0 | 2h | ⏳ |
 
 ### F12.4 — Codegen do report layout multilíngue
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
 | F12.4a | Schema do `config/report_layout.yaml` migra labels para `i18n_key`. | P0 | 4h | ⏳ |
-| F12.4b | `dev/codegen_report_layout.py` emite tipos sem strings; valida que cada `i18n_key` existe nos 11 locales. | P0 | 4h | ⏳ |
-| F12.4c | Teste `tests/test_i18n_parity.py` — paridade de chaves entre 11 locales; falha CI se faltar entrada. | P0 | 4h | ⏳ |
+| F12.4b | `dev/codegen_report_layout.py` emite tipos sem strings; valida que cada `i18n_key` existe nos 10 locales. | P0 | 4h | ⏳ |
+| F12.4c | Teste `tests/test_i18n_parity.py` — paridade de chaves entre 10 locales; falha CI se faltar entrada. | P0 | 4h | ⏳ |
 
 ### F12.5 — Backend user-facing strings
 
@@ -1661,40 +1670,43 @@ Ataques que **mudam código ou parâmetros**, não só doc. Cada um deve virar A
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
 | F12.6a | Migrar ~85 componentes de `frontend/src/components/report/` strings → `messages/pt-BR.json`. ICU MessageFormat para plurais. ESLint rule custom proíbe novas strings literais em JSX. | P0 | 10h | ⏳ |
-| F12.6b | Script `dev/translate_messages.py` (DeepL Pro + glossário fintech `config/i18n_glossary.yaml`). Custo estimado ~$2.000 (DeepL Pro + chars overage). Marca `_meta.mt: true` por chave. | P0 | 15h | ⏳ |
-| F12.6c | Revisão humana por nativo nos 10 locales não-pt-BR (~5h cada = 50h externas). Marca `_meta.mt: false` quando ratificado. Locale liberado para produção quando ratio MT < 5%; acima disso, banner "beta". | P0 | 5h ext./locale | ⏳ |
+| F12.6b | Script `dev/translate_messages.py` (DeepL Pro + glossário fintech `config/i18n_glossary.yaml`). Custo estimado ~$1.800 (DeepL Pro + chars overage). Marca `_meta.mt: true` por chave. | P0 | 15h | ⏳ |
+| F12.6c | Revisão humana por nativo nos 9 locales não-pt-BR (~5h cada = 45h externas). Marca `_meta.mt: false` quando ratificado. Locale liberado para produção quando ratio MT < 5%; acima disso, banner "beta". | P0 | 5h ext./locale | ⏳ |
 
-### F12.7 — RTL polish (locale `ar`)
+### F12.7 — RTL polish (`ar`) — **fora do escopo F12 atual**
 
-| # | Tarefa | Prio | Est. | Status |
-| --- | --- | --- | --- | --- |
-| F12.7a | Auditoria `frontend/src/components/**` para `margin-left`/`padding-right`/`text-align: left`/`border-left` → CSS logical properties (`margin-inline-start`, etc.). | P0 | 6h | ⏳ |
-| F12.7b | Charts (Recharts) mantêm LTR em datas/eixos mesmo em ar (convenção fintech global). Ícones direcionais com `rtl:scale-x-[-1]`. | P0 | 3h | ⏳ |
-| F12.7c | Snapshot visual em ar para 5 telas principais; sem overflow horizontal. | P0 | 3h | ⏳ |
+> Removida do plano enquanto `ar`/`he` estiverem fora do escopo
+> (ver §11 do [I18N_PLAN.md](I18N_PLAN.md)). CSS logical properties
+> permanecem **recomendadas** em código novo (decisão #10 do ADR-130)
+> para reduzir custo quando RTL voltar como ticket dedicado.
+> Estimativa preservada: ~12h auditoria + snapshots.
 
 ### F12.8 — QA + E2E multi-locale
 
 | # | Tarefa | Prio | Est. | Status |
 | --- | --- | --- | --- | --- |
-| F12.8a | Playwright matrix: fluxos `@critical` (5) × 11 locales = 55 runs paralelos. CI < 20min. | P0 | 4h | ⏳ |
-| F12.8b | Visual regression do relatório nos 11 locales; PDF export (`pdf_renderer.py`) renderiza locale correto via cookie. | P0 | 4h | ⏳ |
-| F12.8c | Atualizar [SMOKE_TEST.md](SMOKE_TEST.md) com checklist troca de idioma (3 fluxos × 11 locales). | P1 | 2h | ⏳ |
+| F12.8a | Playwright matrix: fluxos `@critical` (5) × 10 locales = 50 runs paralelos. CI < 20min. | P0 | 4h | ⏳ |
+| F12.8b | Visual regression do relatório nos 10 locales; PDF export (`pdf_renderer.py`) renderiza locale correto via cookie. | P0 | 4h | ⏳ |
+| F12.8c | Atualizar [SMOKE_TEST.md](SMOKE_TEST.md) com checklist troca de idioma (3 fluxos × 10 locales). | P1 | 2h | ⏳ |
 
-**Checkpoint F12:** usuário escolhe um dos 11 idiomas em
+**Checkpoint F12:** usuário escolhe um dos 10 idiomas em
 `/settings/preferences`; preferência persiste após logout (DB + JWT
-claim); relatório React/PDF renderiza corretamente nos 11 locales;
-ar exibe layout RTL; CJK/Indic carregam fonte secundária sob demanda;
-plurais corretos via ICU; locales não-revisados marcam banner "beta".
+claim); relatório React/PDF renderiza corretamente nos 10 locales;
+CJK (zh-CN/ja/ko) carrega fonte secundária sob demanda; plurais
+corretos via ICU; locales não-revisados marcam banner "beta".
 
-**Estimativa total:** ~156h engenharia + ~50h revisão humana externa
-≈ **~206h** com 1 agente em série; **~6 semanas** com 2 agentes em
-paralelo nas fases independentes.
+**Estimativa total:** ~144h engenharia + ~45h revisão humana externa
+≈ **~189h** com 1 agente em série (inclui F12.1e correção, 4h);
+**~5 semanas** com 2 agentes em paralelo nas fases independentes.
 
 **Dependências:**
-- F12.1 é pré-requisito de tudo.
-- F12.2/F12.3/F12.4/F12.5 paralelizáveis após F12.1.
+- **F12.1e (correção da lista de locales) é pré-requisito de tudo** —
+  bloqueia F12.2/F12.3/F12.4/F12.5 enquanto config/messages estiverem
+  na lista antiga.
+- F12.1 (a–d) já mergeado contra lista antiga; F12.1e re-sincroniza.
+- F12.2/F12.3/F12.4/F12.5 paralelizáveis após F12.1e.
 - F12.6 depende de F12.2 + F12.4.
-- F12.7 depende de F12.6c (ar revisado).
+- F12.7 (RTL) fora do escopo F12 atual.
 - F12.8 depende de tudo acima.
 
 ---
