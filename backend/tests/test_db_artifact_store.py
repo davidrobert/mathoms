@@ -303,7 +303,10 @@ async def test_workspace_scoped_stage_falls_back_across_runs(db: AsyncSession):
             store_a.write(
                 "E1.5c",
                 "baseline_patrimonial",
-                {"itens": [{"valor_brl": 1000.0}], "patrimonio_por_ano": {"2024": {"total_bens": 1000.0}}},
+                {
+                    "itens": [{"valor_brl": 1000.0}],
+                    "patrimonio_por_ano": {"2024": {"total_bens": 1000.0}},
+                },
             )
             s.commit()
 
@@ -357,8 +360,9 @@ async def test_workspace_fallback_returns_most_recent(db: AsyncSession):
     ws_id, run_a = await _seed_ws_and_run(db, email="cross-run-c@test.com")
 
     def _do(sync_conn):
-        from sqlalchemy.orm import Session
         import time
+
+        from sqlalchemy.orm import Session
 
         with Session(sync_conn) as s:
             run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.completed)
@@ -436,6 +440,6 @@ async def test_current_run_takes_precedence_over_workspace_fallback(db: AsyncSes
 
     raw = await db.connection()
     payload = await raw.run_sync(_do)
-    assert payload["version"] == "current_run", (
-        "read() do run atual com artefato deve devolver o do run, não o fallback"
-    )
+    assert (
+        payload["version"] == "current_run"
+    ), "read() do run atual com artefato deve devolver o do run, não o fallback"

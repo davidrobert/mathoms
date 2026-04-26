@@ -35,7 +35,6 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
 
-
 _WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset({"E1", "E1.5", "E1.5a", "E1.5c"})
 """Stages cujo artefato é dataset de **referência** (lifecycle por workspace,
 não por run). ``read()`` faz fallback para o artefato mais recente do

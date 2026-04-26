@@ -140,8 +140,16 @@ def start_pipeline_run(
     """
     tier, tenant_root, config_dir = _prepare_run_context(ws_id, tier)
     args = (
-        run_id, ws_id, tenant_root, config_dir, stages,
-        skip_llm, stop_on_error, tier, incremental, incremental_doc_paths,
+        run_id,
+        ws_id,
+        tenant_root,
+        config_dir,
+        stages,
+        skip_llm,
+        stop_on_error,
+        tier,
+        incremental,
+        incremental_doc_paths,
     )
     try:
         return _dispatch_celery_task(*args)

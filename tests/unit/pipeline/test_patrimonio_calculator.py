@@ -629,9 +629,9 @@ def test_calculator_uses_baseline_imoveis_e_veiculos(config: PatrimonioConfig):
     soma_composicao = sum(c["valor"] for c in result["composicao"])
     total_bens = baseline["patrimonio_por_ano"]["2024"]["total_bens"]
 
-    assert soma_composicao >= total_bens * 0.5, (
-        f"composição engoliu o baseline: soma={soma_composicao} vs total_bens={total_bens}"
-    )
+    assert (
+        soma_composicao >= total_bens * 0.5
+    ), f"composição engoliu o baseline: soma={soma_composicao} vs total_bens={total_bens}"
     assert result["residencia"] > 0, "residência deveria casar via keyword"
     assert result["imoveis_investimento"] > 0, "imóveis non-residência → investimento"
     assert result["veiculos"] > 0, "veículos do baseline → composição"

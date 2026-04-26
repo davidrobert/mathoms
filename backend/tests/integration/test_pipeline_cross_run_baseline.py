@@ -29,7 +29,6 @@ from backend.tests.factories import make_workspace
 from pipeline.domain.services.baseline_normalizer import BaselineNormalizer
 from pipeline.domain.services.e4_categorizer_adapter import E4CategorizerAdapter
 
-
 _RICH_BASELINE = {
     "imoveis_consolidados": [
         {
