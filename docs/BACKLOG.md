@@ -1112,15 +1112,17 @@ Cada agente roda em worktree isolado (`.claude/worktrees/`) a partir de `origin/
 
 | #     | Item                                                                                              | Local-only? | Mapeia em | Tempo  | Status |
 | ----- | ------------------------------------------------------------------------------------------------- | ----------- | --------- | ------ | ------ |
-| dev.1 | **Audit dos compose existentes + Makefile** — decidir reuso vs novo (5 composes já no repo)      | ✅ sim      | pré-7A    | 30min  | 🚧 Onda 1 |
-| dev.2 | **Verificar `output: 'standalone'`** em `frontend/next.config.ts` e `frontend-ops/next.config.ts` | ✅ sim      | pré-7A.2  | 15min  | 🚧 Onda 1 |
-| dev.3 | **Backend Dockerfile minimal** (single-stage, 3 CMDs: `api`/`worker`/`beat`, sem otimizar tamanho) | ✅ sim     | 7A.1 (fatia) | 1h    | ☐ Onda 2 |
-| dev.4 | **Frontend Dockerfile minimal** (multi-stage Next standalone, só `frontend/` cliente)             | ✅ sim      | 7A.2 (fatia) | 45min | ☐ Onda 2 |
+| dev.1 | **Audit dos compose existentes + Makefile** — decidir reuso vs novo (5 composes já no repo)      | ✅ sim      | pré-7A    | 30min  | ✅ Onda 1 |
+| dev.2 | **Verificar `output: 'standalone'`** em `frontend/next.config.ts` e `frontend-ops/next.config.ts` | ✅ sim      | pré-7A.2  | 15min  | ✅ Onda 1 (`ad98edf`) |
+| dev.3 | **Backend Dockerfile minimal** (single-stage, 3 CMDs: `api`/`worker`/`beat`, sem otimizar tamanho) | ✅ sim     | 7A.1 (fatia) | 1h    | 🚧 Onda 2 |
+| dev.4 | **Frontend Dockerfile minimal** (multi-stage Next standalone, só `frontend/` cliente)             | ✅ sim      | 7A.2 (fatia) | 45min | 🚧 Onda 2 |
 | dev.5 | **`docker-compose.prod.yml` minimal** (api+worker+beat + frontend + PG + Redis; **sem Traefik** — Coolify cuida; portas em `127.0.0.1` para teste local) | ✅ sim | 7A.4 (fatia) | 1h | ☐ Onda 3 |
-| dev.6 | **`.env.prod.example` + `dev/gen-secrets.sh`** (FERNET_KEY, JWT_SECRET via `python -c`)           | ✅ sim      | 7A.5 ✅ (já feito; só script novo) | 15min | 🚧 Onda 1 |
-| dev.7 | **Wrapper de boot backend** (`backend/scripts/entrypoint.sh`): `alembic upgrade head` antes de `uvicorn`/`celery`, idempotente, só na role `api` | ✅ sim | 7A.9 (fatia) | 30min | ☐ Onda 2 (junto com dev.3) |
+| dev.6 | **`.env.prod.example` + `dev/gen-secrets.sh`** (FERNET_KEY, JWT_SECRET via `python -c`)           | ✅ sim      | 7A.5 ✅ (já feito; só script novo) | 15min | ✅ Onda 1 (`187fd48`) |
+| dev.7 | **Wrapper de boot backend** (`backend/scripts/entrypoint.sh`): `alembic upgrade head` antes de `uvicorn`/`celery`, idempotente, só na role `api` | ✅ sim | 7A.9 (fatia) | 30min | 🚧 Onda 2 (junto com dev.3) |
 | dev.8 | **Smoke local prod-mode end-to-end**: `docker compose -f docker-compose.prod.yml up`, registrar user, login, upload PDF, trigger pipeline, ver relatório | ✅ sim | 7A.11 (fatia) | 30min | ☐ Onda 4 |
 | dev.9 | (pós-VPS) Hetzner CX32 + UFW + Docker + Coolify + Cloudflare A record `dev.mathoms.ai` + deploy + smoke remoto | ❌ precisa VPS | 7A.6/7A.7/7A.8/7A.13 (fatia) | 1h20 | ☐ |
+
+**Notas do audit dev.1 (2026-04-26):** Já existem 2 Dockerfiles — `frontend-ops/Dockerfile` (multi-stage Next standalone, bind 127.0.0.1:3100) e `pipeline-service/Dockerfile` (Python uvicorn). **Não existem** Dockerfiles para backend nem frontend principal — dev.3 e dev.4 criam do zero. Backend boota via `uvicorn backend.app.main:app`, env prefix `MATHOMS_`, vars obrigatórias: `MATHOMS_FERNET_KEY`, `MATHOMS_SECRET_KEY`, `MATHOMS_DATABASE_URL`, `MATHOMS_REDIS_URL`, `MATHOMS_STORAGE_ROOT`. Alembic config em `backend/alembic.ini`. Celery: `celery -A backend.app.worker worker`. `frontend/next.config.ts` usa `withNextIntl(nextConfig)` wrapper — `output: 'standalone'` foi adicionado no objeto interno (commit `ad98edf`, dev.2). `storage/` precisa volume persistente. Compose atual: `docker-compose.yml` é só Redis (base), `.dev.yml` é só `frontend-ops`, `.test.yml` é PG+Redis isolados (porta 5433/6380), `.smoke.yml` Redis pra Makefile dev. **Decisão:** `compose.prod.yml` será novo arquivo standalone (não `include:`-compõe os outros), porque escopo é diferente (containers self-contained pra Coolify). `pipeline-service/` e `services/` ficam fora do compose.prod minimal (sem cliente).
 
 **Premissas e cortes conscientes:**
 
