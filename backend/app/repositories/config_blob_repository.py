@@ -1,8 +1,8 @@
-"""ConfigBlobRepository — CRUD async para os 3 blobs de config por workspace.
+"""ConfigBlobRepository — CRUD async para os 4 blobs de config por workspace.
 
-Os três modelos (``PipelineConfig``, ``InstitutionConfig``, ``ReportLayout``)
-são **estruturalmente idênticos**: ``id`` + ``workspace_id`` (unique) +
-``config_json`` (dict opaco) + ``updated_at``. Este repositório é
+Os quatro modelos (``PipelineConfig``, ``InstitutionConfig``, ``ReportLayout``,
+``TransferConfig``) são **estruturalmente idênticos**: ``id`` + ``workspace_id``
+(unique) + ``config_json`` (dict opaco) + ``updated_at``. Este repositório é
 **genérico** — recebe a classe do modelo como parâmetro e encapsula o
 padrão comum:
 
@@ -40,21 +40,22 @@ from backend.app.models.config_blob import (
     InstitutionConfig,
     PipelineConfig,
     ReportLayout,
+    TransferConfig,
 )
 
-# Os 3 modelos têm a mesma shape — mas não herdam de um protocolo comum.
+# Os 4 modelos têm a mesma shape — mas não herdam de um protocolo comum.
 # Usar Union explícito é mais honesto que um TypeVar genérico sem bound.
-ConfigBlobModel = Union[PipelineConfig, InstitutionConfig, ReportLayout]
-_T = TypeVar("_T", PipelineConfig, InstitutionConfig, ReportLayout)
+ConfigBlobModel = Union[PipelineConfig, InstitutionConfig, ReportLayout, TransferConfig]
+_T = TypeVar("_T", PipelineConfig, InstitutionConfig, ReportLayout, TransferConfig)
 
 
 class ConfigBlobRepository:
-    """Single Responsibility: persistência dos 3 blobs de config do workspace.
+    """Single Responsibility: persistência dos 4 blobs de config do workspace.
 
     Não é um repositório "por agregado" no sentido estrito — é um repo
-    **paramétrico** que atende 3 tabelas isomórficas. A alternativa de 3
+    **paramétrico** que atende 4 tabelas isomórficas. A alternativa de 4
     repositórios separados duplicaria ~30 linhas de código sem ganho
-    semântico: os 3 blobs são "overrides" da config global e não têm
+    semântico: os 4 blobs são "overrides" da config global e não têm
     comportamento próprio.
     """
 

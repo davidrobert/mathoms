@@ -26,6 +26,9 @@ from backend.app.application.config_blob import (
     get_report_layout as _uc_get_report_layout,
 )
 from backend.app.application.config_blob import (
+    get_transfer_config as _uc_get_transfer_config,
+)
+from backend.app.application.config_blob import (
     update_institution_config as _uc_update_institution_config,
 )
 from backend.app.application.config_blob import (
@@ -33,6 +36,9 @@ from backend.app.application.config_blob import (
 )
 from backend.app.application.config_blob import (
     update_report_layout as _uc_update_report_layout,
+)
+from backend.app.application.config_blob import (
+    update_transfer_config as _uc_update_transfer_config,
 )
 from backend.app.core.database import get_db
 from backend.app.core.tenancy import get_current_workspace, require_write_role
@@ -59,6 +65,8 @@ from backend.app.schemas.dto.config_blob import (
     PipelineConfigUpdateCommand,
     ReportLayoutResponse,
     ReportLayoutUpdateCommand,
+    TransferConfigResponse,
+    TransferConfigUpdateCommand,
 )
 from backend.app.services.config_defaults import (
     ConfigDefaultsLoader,
@@ -189,6 +197,35 @@ async def update_report_layout(
     repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
 ) -> ReportLayoutResponse:
     response = await _uc_update_report_layout(body, workspace_id=workspace.id, repo=repo)
+    await db.commit()
+    return response
+
+
+# =============================================================================
+# Transfer Config (ADR-130) — bloco transferencias_internas
+# =============================================================================
+
+
+@router.get("/transfer", response_model=TransferConfigResponse)
+async def get_transfer_config(
+    workspace: Workspace = Depends(get_current_workspace),
+    repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
+) -> TransferConfigResponse:
+    return await _uc_get_transfer_config(workspace.id, repo=repo, defaults=_defaults)
+
+
+@router.put(
+    "/transfer",
+    response_model=TransferConfigResponse,
+    dependencies=[Depends(require_write_role)],
+)
+async def update_transfer_config(
+    body: TransferConfigUpdateCommand,
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    repo: ConfigBlobRepository = Depends(_get_config_blob_repo),
+) -> TransferConfigResponse:
+    response = await _uc_update_transfer_config(body, workspace_id=workspace.id, repo=repo)
     await db.commit()
     return response
 

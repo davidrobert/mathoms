@@ -126,3 +126,33 @@ class ReportLayoutResponse(BaseModel):
     config_json: dict[str, Any]
 
     model_config = {"from_attributes": True}
+
+
+# ---------------------------------------------------------------------------
+# TransferConfig — bloco transferencias_internas (ADR-130)
+# ---------------------------------------------------------------------------
+
+
+class TransferConfigResponse(BaseModel):
+    """Resposta do ``GET /config/transfer`` (ADR-130).
+
+    Estrutura **typed** porque os 4 campos têm shape bem-definida. Todos
+    são listas/dict planos consumidos pelo ``InternalTransferDetector``.
+
+    - ``patterns_pix``: substrings que indicam PIX entre contas próprias
+      (ex.: ``"PIX TRANSF DAVID"``).
+    - ``patterns_global``: substrings que valem em qualquer banco (ex.:
+      ``"TED D HBANK"``).
+    - ``patterns_bank_specific``: ``{banco_keyword: [padrão_exato, ...]}``
+      — só matcha quando o extrato vem do banco e a descrição é igual
+      ao padrão (anti-falso-positivo).
+    - ``recipients``: nomes/identificadores de contas próprias (ex.:
+      ``"DAVID ROBERT CAMARGO"``, ``"C6 BANK"``).
+    """
+
+    patterns_pix: list[str] = Field(default_factory=list)
+    patterns_global: list[str] = Field(default_factory=list)
+    patterns_bank_specific: dict[str, list[str]] = Field(default_factory=dict)
+    recipients: list[str] = Field(default_factory=list)
+
+    model_config = {"from_attributes": True}

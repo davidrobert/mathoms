@@ -73,3 +73,12 @@ class ReportLayoutUpdateCommand(BaseModel):
     config_json: dict[str, Any] = Field(
         ..., description="Conteúdo inteiro de report_layout.yaml — substitui o atual."
     )
+
+
+class TransferConfigUpdateCommand(BaseModel):
+    """Input do ``PUT /config/transfer`` (ADR-130) — replace total das 4 listas/dict."""
+
+    patterns_pix: list[str] = Field(default_factory=list)
+    patterns_global: list[str] = Field(default_factory=list)
+    patterns_bank_specific: dict[str, list[str]] = Field(default_factory=dict)
+    recipients: list[str] = Field(default_factory=list)

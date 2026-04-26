@@ -59,6 +59,9 @@ class Workspace(Base):
     report_layout = relationship(
         "ReportLayout", back_populates="workspace", uselist=False, cascade="all, delete-orphan"
     )
+    transfer_config = relationship(
+        "TransferConfig", back_populates="workspace", uselist=False, cascade="all, delete-orphan"
+    )
 
     # Phase 4 — LLM config
     llm_config = relationship(

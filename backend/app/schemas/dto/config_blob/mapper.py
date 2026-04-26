@@ -23,6 +23,7 @@ from backend.app.schemas.dto.config_blob.response import (
     InstitutionConfigResponse,
     PipelineConfigResponse,
     ReportLayoutResponse,
+    TransferConfigResponse,
 )
 
 
@@ -59,6 +60,11 @@ def report_layout_to_response(
     ``report_layout.yaml`` convertido via ``yaml.safe_load`` (disco).
     """
     return ReportLayoutResponse(config_json=config_json)
+
+
+def transfer_blob_to_response(config_json: dict[str, Any]) -> TransferConfigResponse:
+    """Converte dict → DTO tipado para ``transferencias_internas`` (ADR-130)."""
+    return TransferConfigResponse.model_validate(config_json)
 
 
 def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:

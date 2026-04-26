@@ -1,6 +1,9 @@
-"""JSON-blob config models: PipelineConfig, InstitutionConfig, ReportLayout.
+"""JSON-blob config models: PipelineConfig, InstitutionConfig, ReportLayout, TransferConfig.
 
 These store deep/variable-structure configs as JSON blobs — one row per workspace.
+TransferConfig (ADR-130) hospeda o bloco ``transferencias_internas`` antes
+embutido em ``config/family_members.json`` (recipients/patterns para
+``InternalTransferDetector``).
 """
 
 import uuid
@@ -74,3 +77,39 @@ class ReportLayout(Base):
     )
 
     workspace = relationship("Workspace", back_populates="report_layout")
+
+
+class TransferConfig(Base):
+    """Bloco ``transferencias_internas`` por workspace (ADR-130).
+
+    ``config_json`` shape::
+
+        {
+            "patterns_pix": list[str],
+            "patterns_global": list[str],
+            "patterns_bank_specific": dict[str, list[str]],
+            "recipients": list[str],
+        }
+
+    Materializado em ``family_members.json::transferencias_internas`` antes
+    de cada pipeline run. Consumido por ``InternalTransferDetector``.
+    """
+
+    __tablename__ = "transfer_configs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    workspace_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    config_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    workspace = relationship("Workspace", back_populates="transfer_config")

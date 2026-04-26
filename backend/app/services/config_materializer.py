@@ -20,7 +20,12 @@ from sqlalchemy.orm import Session, selectinload
 
 from backend.app.core.config import settings
 from backend.app.models.category import Category, CategoryKeyword
-from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
+from backend.app.models.config_blob import (
+    InstitutionConfig,
+    PipelineConfig,
+    ReportLayout,
+    TransferConfig,
+)
 from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.workspace import Workspace
@@ -44,6 +49,7 @@ def materialize_config(workspace_id: str, tenant_root: Path, db: Session) -> Pat
     _override_institutions(workspace_id, tenant_config, db)
     _override_report_layout(workspace_id, tenant_config, db)
     _override_llm_config(workspace_id, tenant_config, db)
+    _override_transfer_config(workspace_id, tenant_config, db)
 
     return tenant_config
 
@@ -160,6 +166,12 @@ def serialize_pipeline_config(workspace_id: str, db: Session) -> dict[str, Any] 
     return cfg.config_json if cfg else None
 
 
+def serialize_transfer_config(workspace_id: str, db: Session) -> dict[str, Any] | None:
+    """Bloco ``transferencias_internas`` (ADR-130) — None se não há row no DB."""
+    cfg = db.query(TransferConfig).filter(TransferConfig.workspace_id == workspace_id).first()
+    return cfg.config_json if cfg else None
+
+
 def serialize_institution_config(workspace_id: str, db: Session) -> dict[str, Any] | None:
     cfg = db.query(InstitutionConfig).filter(InstitutionConfig.workspace_id == workspace_id).first()
     return cfg.config_json if cfg else None
@@ -179,6 +191,34 @@ def _override_family_members(workspace_id: str, config_dir: Path, db: Session) -
     data = serialize_family_members(workspace_id, db)
     if data is not None:
         _write_json(config_dir / "family_members.json", data)
+
+
+def _override_transfer_config(workspace_id: str, config_dir: Path, db: Session) -> None:
+    """Aplica overlay do bloco ``transferencias_internas`` (ADR-130).
+
+    Roda **depois** de ``_override_family_members``, que pode ter sobrescrito
+    o arquivo perdendo o bloco. Garante que o bloco fique presente:
+
+    - Com row em ``TransferConfig`` (DB) → usa o config_json do DB.
+    - Sem row → recupera do global ``config/family_members.json`` para
+      compensar o overwrite. Sem essa rede, workspace com FamilyMember
+      no DB perderia o bloco e o E4 deixaria de detectar transferências.
+    """
+    data = serialize_transfer_config(workspace_id, db)
+    if data is None:
+        global_family_path = _global_config_dir() / "family_members.json"
+        if not global_family_path.is_file():
+            return
+        global_doc = json.loads(global_family_path.read_text(encoding="utf-8"))
+        data = global_doc.get("transferencias_internas")
+        if data is None:
+            return
+    family_path = config_dir / "family_members.json"
+    family_doc: dict[str, Any] = {}
+    if family_path.is_file():
+        family_doc = json.loads(family_path.read_text(encoding="utf-8"))
+    family_doc["transferencias_internas"] = data
+    _write_json(family_path, family_doc)
 
 
 def _override_categorization(workspace_id: str, config_dir: Path, db: Session) -> None:
