@@ -1,7 +1,7 @@
 {
   "audit_version": "1.0",
-  "generated_at": "2026-04-26T09:15:29Z",
-  "git_commit": "365dad1a40ceb5021bbe716a9585acc52e1bde6f",
+  "generated_at": "2026-04-26T09:34:11Z",
+  "git_commit": "c2fd6e9521c480fa607f990fae170f154c9112f1",
   "offenders": [
     {
       "allowlisted": false,
@@ -9190,8 +9190,8 @@
       "id": "P1-0591",
       "identifier": "test_get_report_data_404_after_artifact_deleted",
       "length": 22,
-      "line_end": 375,
-      "line_start": 354,
+      "line_end": 359,
+      "line_start": 338,
       "message": "Function 22 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -9202,8 +9202,8 @@
       "id": "P1-0592",
       "identifier": "test_get_report_data_isolation_across_workspaces",
       "length": 30,
-      "line_end": 421,
-      "line_start": 392,
+      "line_end": 405,
+      "line_start": 376,
       "message": "Function 30 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -10638,8 +10638,20 @@
     {
       "allowlisted": false,
       "category": "T3_ts_long_functions",
-      "file": "frontend/src/components/tasks/UpcomingTasksWidget.tsx",
+      "file": "frontend/src/components/sidebar/SidebarNotificationItem.tsx",
       "id": "T3-0023",
+      "identifier": "SidebarNotificationItem",
+      "length": 31,
+      "line_end": 40,
+      "line_start": 10,
+      "message": "TS function 31 lines; max 20 (heur\u00edstica brace-matched)",
+      "severity": "med"
+    },
+    {
+      "allowlisted": false,
+      "category": "T3_ts_long_functions",
+      "file": "frontend/src/components/tasks/UpcomingTasksWidget.tsx",
+      "id": "T3-0024",
       "identifier": "UpcomingTasksWidget",
       "length": 25,
       "line_end": 90,
@@ -10651,7 +10663,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/components/tasks/useUpcomingTasks.ts",
-      "id": "T3-0024",
+      "id": "T3-0025",
       "identifier": "useUpcomingTasks",
       "length": 31,
       "line_end": 43,
@@ -10663,7 +10675,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/hooks/usePeriodTransactions.ts",
-      "id": "T3-0025",
+      "id": "T3-0026",
       "identifier": "usePeriodTransactions",
       "length": 39,
       "line_end": 58,
@@ -10675,7 +10687,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/hooks/useReportData.ts",
-      "id": "T3-0026",
+      "id": "T3-0027",
       "identifier": "useReportData",
       "length": 35,
       "line_end": 58,
@@ -10687,7 +10699,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/export.ts",
-      "id": "T3-0027",
+      "id": "T3-0028",
       "identifier": "exportToXLSX",
       "length": 26,
       "line_end": 38,
@@ -10699,7 +10711,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/format.ts",
-      "id": "T3-0028",
+      "id": "T3-0029",
       "identifier": "fileFormatLabel",
       "length": 22,
       "line_end": 332,
@@ -10711,7 +10723,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/goalPremissas.ts",
-      "id": "T3-0029",
+      "id": "T3-0030",
       "identifier": "buildIFPremissasRows",
       "length": 35,
       "line_end": 66,
@@ -10723,7 +10735,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/goalPremissas.ts",
-      "id": "T3-0030",
+      "id": "T3-0031",
       "identifier": "buildAportePremissasRows",
       "length": 40,
       "line_end": 107,
@@ -10735,7 +10747,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/goalPremissas.ts",
-      "id": "T3-0031",
+      "id": "T3-0032",
       "identifier": "buildDolarPremissasRows",
       "length": 33,
       "line_end": 141,
@@ -10747,7 +10759,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/goalPremissas.ts",
-      "id": "T3-0032",
+      "id": "T3-0033",
       "identifier": "buildAlocacaoPremissasRows",
       "length": 30,
       "line_end": 172,
@@ -10759,7 +10771,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/pipelineErrorMessages.ts",
-      "id": "T3-0033",
+      "id": "T3-0034",
       "identifier": "buildUserFacingError",
       "length": 25,
       "line_end": 106,
@@ -10771,7 +10783,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/pipelinePhases.ts",
-      "id": "T3-0034",
+      "id": "T3-0035",
       "identifier": "computePhaseStates",
       "length": 24,
       "line_end": 173,
@@ -10783,7 +10795,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/pipelineStageNames.ts",
-      "id": "T3-0035",
+      "id": "T3-0036",
       "identifier": "parseStageActivityEvent",
       "length": 25,
       "line_end": 78,
@@ -10795,7 +10807,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/useCurrentUser.ts",
-      "id": "T3-0036",
+      "id": "T3-0037",
       "identifier": "useCurrentUser",
       "length": 29,
       "line_end": 78,
@@ -10807,7 +10819,7 @@
       "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/lib/useCurrentWorkspace.ts",
-      "id": "T3-0037",
+      "id": "T3-0038",
       "identifier": "useCurrentWorkspace",
       "length": 27,
       "line_end": 77,
@@ -28264,7 +28276,7 @@
       "severity": "info"
     }
   ],
-  "repo_root": "/Users/davidrobert/Desktop/_fin/Fin/fin-current",
+  "repo_root": "/Users/davidrobert/Desktop/_fin/Fin/fin-current/.claude/worktrees/serene-gould-d2bc57",
   "summary": {
     "files_scanned": {
       "python": 769,
@@ -28281,7 +28293,7 @@
       "P8_what_comments": 40,
       "P9_deep_nesting": 221,
       "T2_ts_long_files": 1,
-      "T3_ts_long_functions": 37,
+      "T3_ts_long_functions": 38,
       "T5_ts_hex_colors": 39
     },
     "offenders_by_directory": {
@@ -28303,7 +28315,7 @@
       },
       "frontend/": {
         "T2_ts_long_files": 1,
-        "T3_ts_long_functions": 37,
+        "T3_ts_long_functions": 38,
         "T5_ts_hex_colors": 39
       },
       "pipeline/": {
@@ -28334,7 +28346,7 @@
       "high": 409,
       "info": 28,
       "low": 1171,
-      "med": 747
+      "med": 748
     }
   }
 }
