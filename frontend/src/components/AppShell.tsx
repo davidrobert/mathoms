@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/Spinner";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { NotificationCenter } from "@/components/NotificationCenter";
-import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
+import { SidebarWorkspaceCard } from "@/components/sidebar/SidebarWorkspaceCard";
+import { SidebarNotificationItem } from "@/components/sidebar/SidebarNotificationItem";
 import { ViewerBanner } from "@/components/ViewerBanner";
 import { StatusPageFooter } from "@/components/StatusPageFooter";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -107,7 +107,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
 
+        <div className="border-b border-border px-2 py-2">
+          <SidebarWorkspaceCard />
+        </div>
+
         <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
+          <div className="space-y-0.5">
+            <SidebarNotificationItem />
+          </div>
           {NAV_GROUPS.map((group) => (
             <div key={group.heading}>
               <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -170,36 +177,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
+      {/* Mobile FAB — substitui o header em telas <lg. */}
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed left-3 top-3 z-30 h-10 w-10 shadow-md lg:hidden"
+        onClick={() => setMobileOpen(true)}
+        aria-label="Abrir menu"
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
+
       {/* Main */}
       <div className="flex flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center border-b border-border bg-card">
-          {/* Left: mobile menu + branding */}
-          <div className="flex items-center gap-3 pl-4 pr-2 lg:pl-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="lg:hidden"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Abrir menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <span className="text-style-heading-sm lg:hidden">{t("title")}</span>
-          </div>
-
-          {/* Center: workspace — grows to fill, stays centered on desktop */}
-          <div className="flex min-w-0 flex-1 items-center lg:justify-start">
-            <WorkspaceSwitcher />
-          </div>
-
-          {/* Right: actions */}
-          <div className="flex items-center gap-1 pr-4 lg:pr-6">
-            <NotificationCenter />
-            <div className="lg:hidden">
-              <ThemeToggle />
-            </div>
-          </div>
-        </header>
         <ViewerBanner />
         <main className="flex-1 overflow-y-auto">{children}</main>
         <StatusPageFooter variant="app" />
