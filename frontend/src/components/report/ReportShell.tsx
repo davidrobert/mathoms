@@ -138,7 +138,7 @@ function buildNavGroups(): {
 } {
   const titles = buildTitleMap();
   const nav = LAYOUT.navigation;
-  if (nav?.estrategico && nav?.tatico && nav?.usa) {
+  if (nav?.estrategico && nav?.tatico) {
     const mapGroup = (groups: NonNullable<typeof nav.estrategico>): NavGroup[] =>
       groups.map((g) => ({
         label: g.label,
@@ -152,7 +152,7 @@ function buildNavGroups(): {
     return {
       estrategico: mapGroup(nav.estrategico),
       tatico: mapGroup(nav.tatico),
-      usa: mapGroup(nav.usa),
+      usa: nav.usa ? mapGroup(nav.usa) : [],
     };
   }
 

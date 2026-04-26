@@ -31,6 +31,9 @@ const MODE_TOOLTIPS: Record<ReportMode, string> = {
   usa: "Cenários e planos para mudança aos EUA",
 };
 
+// TEMP: "usa" oculto da UI — adicionar de volta ao array para restaurar.
+const VISIBLE_MODES: readonly ReportMode[] = ["estrategico", "tatico"];
+
 /** Action zone do header unificado: Modo (3 segmentos) + TOC + Print + PDF.
  *
  * Renderizada à direita do `ReportTopNav` (sticky, dark gradient). Estilo
@@ -57,14 +60,8 @@ export function ReportActions({
         aria-label="Modo de visualização"
         className="flex items-center gap-0.5 rounded-md border border-white/15 p-0.5 text-xs"
       >
-        {(Object.keys(MODE_LABELS) as ReportMode[]).map((m) => (
+        {VISIBLE_MODES.map((m) => (
           <Fragment key={m}>
-            {m === "usa" && (
-              <span
-                className="mx-0.5 h-4 w-px shrink-0 bg-white/15"
-                aria-hidden
-              />
-            )}
             <Tooltip>
               <TooltipTrigger
                 render={

@@ -90,7 +90,7 @@ describe("ReportShell", () => {
     expect(link).toHaveAttribute("href", `/pipeline?run=${encodeURIComponent(runId)}`);
   });
 
-  it("mostra seletor de modo (estratégico/tático/EUA)", () => {
+  it("mostra seletor de modo (estratégico/tático)", () => {
     const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
     render(
       wrap(
@@ -107,7 +107,8 @@ describe("ReportShell", () => {
       screen.getByRole("tab", { name: "Estratégico", selected: true }),
     ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Tático" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "EUA" })).toBeInTheDocument();
+    // TEMP: aba "EUA" oculta da UI — restaurar quando o modo USA voltar.
+    expect(screen.queryByRole("tab", { name: "EUA" })).not.toBeInTheDocument();
   });
 
   it("renderiza seções migradas sem stubs no modo estratégico", () => {
