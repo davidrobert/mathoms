@@ -279,15 +279,6 @@ export function ReportShell({
         onToggleSidebar={() => setSidebarOpen((v) => !v)}
       />
 
-      <ReportSourceStrip
-        reportPeriod={reportPeriod}
-        analysisPeriod={analysisPeriodFromSnapshot}
-        generatedAtIso={reportCreatedAt}
-        pipelineRunId={pipelineRunId}
-        sourceDocumentCount={sourceDocumentCount}
-        consumedDocumentCount={consumedDocumentCount}
-      />
-
       <ReportTopNav
         groupsByMode={navGroups}
         brand={
@@ -418,6 +409,14 @@ export function ReportShell({
                     ) : null,
                   )}
             </article>
+            <ReportSourceStrip
+              reportPeriod={reportPeriod}
+              analysisPeriod={analysisPeriodFromSnapshot}
+              generatedAtIso={reportCreatedAt}
+              pipelineRunId={pipelineRunId}
+              sourceDocumentCount={sourceDocumentCount}
+              consumedDocumentCount={consumedDocumentCount}
+            />
             <ExportToolbar />
             </>
           )}

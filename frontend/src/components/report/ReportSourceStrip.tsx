@@ -19,10 +19,10 @@ interface ReportSourceStripProps {
 }
 
 /**
- * F11.4 — Faixa discreta de origem dos dados.
- *
- * Linha principal: período + data de geração (info relevante ao usuário).
- * Detalhes técnicos (run ID, contagem de docs) ficam colapsados sob "Auditoria".
+ * Faixa de procedência dos dados — renderizada no rodapé do `<main>`,
+ * antes do `ExportToolbar`. Trust signal de fim de documento (padrão
+ * Stripe/Vanta): "de onde vieram esses números?". Detalhes técnicos
+ * (run ID, contagem de docs) ficam colapsados sob "Auditoria".
  */
 function shortRunId(id: string): string {
   const t = id.trim();
@@ -54,7 +54,7 @@ export function ReportSourceStrip({
 
   return (
     <div
-      className="no-print border-b border-[var(--surface-border)] bg-[color-mix(in_srgb,var(--surface-muted)_45%,transparent)] px-4 py-2 text-xs leading-relaxed text-[var(--surface-muted-foreground)]"
+      className="mt-12 border-t border-[var(--surface-border)] bg-[color-mix(in_srgb,var(--surface-muted)_45%,transparent)] px-10 py-3 text-xs leading-relaxed text-[var(--surface-muted-foreground)]"
       role="note"
       aria-label="Origem dos dados do relatório"
     >
