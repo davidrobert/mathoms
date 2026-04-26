@@ -33,6 +33,10 @@ export interface ScoreCardProps {
   readonly classe: ScoreClasse;
   readonly breakdown?: readonly ScoreBreakdownRow[];
   readonly formula?: string;
+  /** v2.E.7 — parágrafo `chart-context` renderizado abaixo do título. */
+  readonly context?: string;
+  /** v2.E.7 — parágrafo `chart-conclusion` renderizado abaixo do breakdown. */
+  readonly conclusion?: string;
   readonly className?: string;
 }
 
@@ -47,6 +51,8 @@ export function ScoreCard({
   classe,
   breakdown,
   formula,
+  context,
+  conclusion,
   className,
 }: ScoreCardProps) {
   const accent = CLASSE_ACCENT[classe];
@@ -102,6 +108,20 @@ export function ScoreCard({
         </span>
       </header>
 
+      {context && (
+        <p
+          className="chart-context"
+          style={{
+            fontSize: "var(--report-font-size-base, 13px)",
+            color: "var(--surface-muted-foreground)",
+            margin: "8px 0 12px",
+            lineHeight: 1.5,
+          }}
+        >
+          {context}
+        </p>
+      )}
+
       <ChartGaugeSemi
         value={value}
         max={max}
@@ -154,6 +174,24 @@ export function ScoreCard({
             </tbody>
           </table>
         </div>
+      )}
+
+      {conclusion && (
+        <p
+          className="chart-conclusion"
+          style={{
+            fontSize: "var(--report-font-size-base, 13px)",
+            color: "var(--surface-foreground)",
+            lineHeight: 1.5,
+            margin: "12px 0 0",
+            padding: "10px 14px",
+            background: "var(--report-surface-conclusion-bg, var(--surface-muted))",
+            borderRadius: "var(--radius-md, 6px)",
+            borderLeft: "3px solid var(--brand-info)",
+          }}
+        >
+          {conclusion}
+        </p>
       )}
 
       {formula && (

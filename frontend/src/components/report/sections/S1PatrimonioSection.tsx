@@ -9,14 +9,13 @@ import { ReservaEmergenciaCard } from "../cards/ReservaEmergenciaCard";
 import { EndividamentoCard } from "../cards/EndividamentoCard";
 import { PatrimonioDoughnutChart } from "../charts/PatrimonioDoughnutChart";
 import { WaterfallIfChart } from "../charts/WaterfallIfChart";
-import { ScoreGaugeChart } from "../charts/ScoreGaugeChart";
+import { ScoreCard, type ScoreClasse } from "../ui/ScoreCard";
 import type { ReportAnalysisData } from "@/lib/api";
 import type {
   PatrimonioData,
   ReservaEmergenciaData,
   EndividamentoData,
   RatiosData,
-  ScoreData,
   FluxoCaixaSummary,
 } from "@/types/report-analysis";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
@@ -34,7 +33,7 @@ export function S1PatrimonioSection({ data }: S1Props) {
   const reserva = data.reserva_emergencia as ReservaEmergenciaData | undefined;
   const endividamento = data.endividamento as EndividamentoData | undefined;
   const ratios = data.ratios as RatiosData | undefined;
-  const score = data.score as ScoreData | undefined;
+  const score = data.score;
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
   const narrativas = data.narrativas as
@@ -68,9 +67,20 @@ export function S1PatrimonioSection({ data }: S1Props) {
         goals={goals}
         conclusion={getConclusion("waterfall_if")}
       />
-      <div className="md:col-span-2">
-        <ScoreGaugeChart score={score} />
-      </div>
+      {score && (
+        <div className="md:col-span-2">
+          <ScoreCard
+            value={score.valor}
+            max={score.max}
+            classe={score.classificacao as ScoreClasse}
+            breakdown={score.breakdown}
+            formula={score.formula}
+            context={score.context}
+            // ADR-117/122 — narrativa explícita do E5.N > parágrafo emitido pelo calculator (v2.E.7).
+            conclusion={narrativas?.score_gauge?.conclusion ?? score.conclusion}
+          />
+        </div>
+      )}
 
       {/* Cards */}
       <div className="md:col-span-2">
