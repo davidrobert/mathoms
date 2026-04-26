@@ -61,6 +61,33 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
   cleanup imports Recharts + ADR-13X). Atenção ao hotspot
   `_shared.ts`/`_registry.ts` (protocolo CLAUDE.md §Hotspots).
 
+- **Report Premium UI v2 — Onda F (Hero KPI polish) abertura + v2.F.1
+  ✅ (2026-04-26):** redesign do hero do S1 de 4 KPIs uniformes para 6
+  cards com hierarquia visual (commit `fa1b4ef`). Cross-check com
+  `EXEMPLO_DE_RELATORIO.html:1379-1419` (8 KPIs com `kpi-hero`)
+  identificou que o hero atual não respondia à pergunta central
+  ("quando ficamos independentes?") e diluía a mensagem por falta de
+  ancoragem visual. Decisão final, sintetizada após review cruzado de
+  financial-planner (Perini/Cerbasi/AUVP) + product-designer (a11y/
+  hierarquia/densidade), em `docs/REPORT_PREMIUM_PLAN.md` §17.6:
+
+  - ✅ **v2.F.1** — `HeroKpiGrid` substitui `PatrimonioKpiRow`. 6 KPIs
+    em 2 linhas (3-3 em xl, 2-2 em sm-md, empilhados em sm).
+    **Linha 1** — onde estou: Patrimônio Líquido · **Investível
+    (HERO)** · Reserva (semáforo verde≥6m / warning 3-6m / red <3m).
+    **Linha 2** — para onde vou: Taxa de Poupança · **Independência
+    Financeira (HERO composto)** · Score. Card de IF funde
+    Meta+Gap+Prazo numa narrativa única (% atingido + progress bar +
+    prazo em anos + gap em R$ vermelho), em vez dos 3 cards paralelos
+    do exemplo. Custo de Vida e Renda Mensal **não entram** no hero —
+    são inputs de fluxo, vivem em S2; aparecem só como contexto inline
+    em sub-labels (Reserva em meses, etc.). `KpiTone` estendido com
+    `"warning"` (`var(--brand-warning)`) — additivo, sem breaking
+    change para consumers existentes (UiDevPlayground, demais
+    sections). Lane puramente frontend, zero mudança de contrato DTO.
+    `PatrimonioKpiRow.tsx` removido. Vitest 593 passed; ESLint clean
+    em `src/`; pre-commit verde.
+
 - **Card "Consumo Consciente" — bug fix + ADR-133 (2026-04-26) — ✅:**
   resolução do bug onde PIX entre contas próprias da família apareciam
   como gastos pontuais no card. Solução em três camadas:

@@ -832,7 +832,7 @@ Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
 | v2.9 | §2.2 (LLM débito) | O | P2 | C | inline |
 | v2.10 | §4.3 | R | P2 | C | inline |
 | v2.D.1 | enabler de v2.8 | O | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
-| v2.F.1 | §17.6 (cross-check com EXEMPLO) | S | P1 | F | inline (§17.6) |
+| v2.F.1 | §17.6 (cross-check com EXEMPLO) | S | P1 | F | inline (§17.6) — ✅ |
 
 Origem detalhada de cada lane: §3 e §4 da auditoria
 ([wild-munching-pine.md](https://) — relatório do plan mode 2026-04-25).
@@ -902,7 +902,7 @@ o modo USA (não fundidos em S4/S7 como a hipótese inicial supunha).
 
 ### 17.6 v2.F.1 — Hero KPI redesign (4 → 6 cards com hierarquia)
 
-**Status:** 🚧 aberta 2026-04-26.
+**Status:** ✅ fechada 2026-04-26 (commit `fa1b4ef`).
 **Onda:** v2.F (isolada — toca só `S1PatrimonioSection` topo).
 **Esforço:** S (≤½ dia).
 **Origem:** comparação com `EXEMPLO_DE_RELATORIO.html:1379-1419` (8 KPIs
