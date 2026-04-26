@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
@@ -75,6 +75,7 @@ import {
   type NavGroup,
 } from "./shell";
 import { useReportFontScale } from "./useReportFontScale";
+import { useReportTocOpen } from "./useReportTocOpen";
 
 /** Todas as seções de todos os modos estão migradas (F2.A–H + Fase D). */
 const MIGRATED_SECTIONS = new Set([
@@ -201,7 +202,7 @@ export function ReportShell({
   consumedDocumentCount,
 }: ReportShellProps) {
   const { mode } = useReportMode();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { open: sidebarOpen, toggle: toggleSidebar } = useReportTocOpen();
 
   const analysisPeriodFromSnapshot =
     dataState.status === "success"
@@ -301,7 +302,7 @@ export function ReportShell({
               reportId={reportId}
               workspaceId={workspaceId}
               sidebarOpen={sidebarOpen}
-              onToggleSidebar={() => setSidebarOpen((v) => !v)}
+              onToggleSidebar={toggleSidebar}
             />
             <span className="mx-1 hidden h-5 w-px bg-white/15 md:inline-block" aria-hidden />
             <FontScaleToggle />
