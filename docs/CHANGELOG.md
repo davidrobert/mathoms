@@ -13,7 +13,7 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 
 - **F12.1e — Correção da lista de locales para 10 (2026-04-26) — ✅
   ([ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
-  revisado, commit `e9c45f7`):** sincroniza `frontend/src/i18n/config.ts`,
+  revisado, commit `94cf939`):** sincroniza `frontend/src/i18n/config.ts`,
   `fonts.ts`, `messages/`, `globals.css` e `tests/i18n/foundation.test.tsx`
   com a revisão de escopo do ADR-130 (11→10 locales). Remove
   `hi`/`ar`/`bn`/`id` (RTL e Indic/SE-Asia fora do escopo F12); adiciona
