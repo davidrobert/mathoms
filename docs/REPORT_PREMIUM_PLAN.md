@@ -765,5 +765,84 @@ Se surgir necessidade legítima de extrapolar, **pausar** e pedir aprovação �
 
 ---
 
+## 17. Report Premium UI v2 — roadmap pós-v1 (2026-04-25)
+
+> **Status:** v1 ✅ entregue (10 fases + 3 lanes residuais
+> `adr-129-e6-kill`, `report-a11y-finalize`, `report-v1-polish`).
+> v2 abre com auditoria 2026-04-25 que catalogou 3 inconsistências,
+> 3 débitos declarados e 3 lacunas.
+>
+> **Meta-prompt único:**
+> [docs/agent_prompts/track_report_v2.md](agent_prompts/track_report_v2.md)
+> — contém ondas, paralelização, dependências e checklist por lane.
+> **Prompts dedicados:** v2.4 ([T2 Aportes](agent_prompts/track_report_v2_t2_aportes.md))
+> e v2.D.1+v2.8 ([changelog engine](agent_prompts/track_report_v2_changelog_engine.md)).
+> Demais lanes (v2.1, v2.2, v2.3, v2.5, v2.6, v2.7, v2.9, v2.10) com
+> escopo inline no meta-prompt §3.
+
+### 17.1 Ondas + paralelização
+
+```
+Onda v2.A — fixes consistência (P0/P1, ~½ dia cada, paraleláveis)
+   v2.1  comparisons/changelog placeholders no YAML
+   v2.2  baselines visuais Linux trigger
+   v2.3  S5/S6 esclarecimento
+
+Onda v2.B — débitos visíveis (P1, paraleláveis com cuidado)
+   v2.4  T2 Aportes seção real          [prompt dedicado]
+   v2.5  score top-level no DTO         [conflita com v2.4 — ordem v2.5→v2.4]
+   v2.6  cards/ legacy: deprecate ou migrar
+
+Onda v2.C — features reconhecidas v2 (P2, mistas)
+   v2.7   DnD real Kanban (@dnd-kit/core)
+   v2.9   LLM-driven section_summaries em E5 (requer ADR)
+   v2.10  PDF visual diff em Playwright
+
+Onda v2.D — enabler estrutural (sequencial; destrava v2.8)
+   v2.D.1 SnapshotChangelogBuilder      [prompt dedicado]
+   v2.8   ativar comparisons/changelog  [depende v2.1 + v2.D.1]
+```
+
+### 17.2 Tabela de lanes (resumo)
+
+| Lane | Origem (auditoria) | Esforço | Prio | Onda | Prompt |
+|------|--------------------|---------|------|------|--------|
+| v2.1 | §3.1 | S | P0 | A | inline |
+| v2.2 | §3.5 | S | P0 | A | inline |
+| v2.3 | §4.1 | S | P1 | A | inline |
+| v2.4 | §3.2 | R/O | P1 | B | [dedicado](agent_prompts/track_report_v2_t2_aportes.md) |
+| v2.5 | §3.4 | S | P2 | B | inline |
+| v2.6 | §3.6 | R | P2 | B | inline |
+| v2.7 | §2.1 (DnD débito) | R | P2 | C | inline |
+| v2.8 | §2.3 / §3.1 | R | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
+| v2.9 | §2.2 (LLM débito) | O | P2 | C | inline |
+| v2.10 | §4.3 | R | P2 | C | inline |
+| v2.D.1 | enabler de v2.8 | O | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
+
+Origem detalhada de cada lane: §3 e §4 da auditoria
+([wild-munching-pine.md](https://) — relatório do plan mode 2026-04-25).
+
+### 17.3 Estimativas
+
+| Cenário | Tempo total | Agentes |
+|---------|-------------|---------|
+| Serial (1 agente) | ~12 dias úteis | 1 |
+| 3 agentes paralelos por onda | ~6 dias úteis | 3 |
+| 5+ agentes (otimização máxima) | ~5 dias úteis | 3-5 (limite v2.D.1→v2.8) |
+
+Caminho crítico: **v2.1 (½d) → v2.D.1 (5d) → v2.8 (1.5d) ≈ 7 dias.**
+
+### 17.4 Saída do v2
+
+Lane "Report Premium UI v2" considerada ✅ quando todas as 11 sub-lanes
+(v2.1 a v2.10 + v2.D.1) estão ✅ em `main`, OU foram explicitamente
+movidas para v3 com ADR justificativa. CHANGELOG receberá entrada
+consolidada análoga à da v1.
+
+---
+
 **Fim do plano.**
-Próxima ação do executor: abrir Fase 0.
+Próxima ação do executor: v1 está em `main` ✅; abrir Onda v2.A
+escolhendo uma das 3 lanes (v2.1, v2.2, v2.3) — ver
+[track_report_v2.md](agent_prompts/track_report_v2.md) §5 para
+pickup protocol.

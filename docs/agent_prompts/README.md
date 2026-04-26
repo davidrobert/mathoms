@@ -39,8 +39,11 @@ inteiro.
 | F9.6 Cleanup final: remover wrappers compat, aliases, globals | [track_f9_6_cleanup.md](track_f9_6_cleanup.md) | F9 (7/7) | `agent/f9-stage-rename/6-cleanup/*` |
 | Report a11y + Playwright finalize (resíduo F12) | [track_report_a11y_finalize.md](track_report_a11y_finalize.md) | Report Premium · resíduo F12 | `agent/report-a11y-finalize/*` |
 | Report Premium v1 polish (resíduo F13) | [track_report_v1_polish.md](track_report_v1_polish.md) | Report Premium · resíduo F13 | `agent/report-v1-polish/*` |
+| **Report Premium UI v2 — meta-prompt + ondas** (paralelização explícita das 10 lanes v2) | [track_report_v2.md](track_report_v2.md) | Report Premium · v2 | `agent/report-v2-*/*` |
+| Report v2.4 — T2 Aportes seção real (substituir stub) | [track_report_v2_t2_aportes.md](track_report_v2_t2_aportes.md) | Report Premium · v2 (Onda B) | `agent/report-v2-t2-aportes/*` |
+| Report v2.D.1 + v2.8 — Snapshot changelog engine + comparisons/changelog ON | [track_report_v2_changelog_engine.md](track_report_v2_changelog_engine.md) | Report Premium · v2 (Onda D + ativação) | `agent/report-v2-changelog-engine/*` |
 
-Lanes com prompt inline (escopo documentado direto na linha da tabela "Lanes abertas agora" do BACKLOG, sem prompt dedicado): A6g.6b, A6g.2c, A6e.3c, A6e.events-migration, A6e.events-followup, A6g.2b, A6c.
+Lanes com prompt inline (escopo documentado direto na linha da tabela "Lanes abertas agora" do BACKLOG, sem prompt dedicado): A6g.6b, A6g.2c, A6e.3c, A6e.events-migration, A6e.events-followup, A6g.2b, A6c, **v2.1, v2.2, v2.3, v2.5, v2.6, v2.7, v2.9, v2.10** (escopo curto — ver linhas v2.X em [BACKLOG.md › Report Premium UI v2](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ou no meta-prompt [track_report_v2.md](track_report_v2.md) §3).
 
 ## Antes de começar — pickup protocol
 
