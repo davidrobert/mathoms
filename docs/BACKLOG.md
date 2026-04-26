@@ -1103,7 +1103,7 @@ convergir em `origin/main`.
 
 | Lane | Branch slug | Prompt | Depende de | Onda | Paralelo com | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| **A7.0** ConfigStore protocol + adapters | `a7-0-config-store` | [track_a7_0_config_store.md](agent_prompts/track_a7_0_config_store.md) | — | 1 (bloqueante) | — | ☐ aberta — aguarda autorização |
+| **A7.0** ConfigStore protocol + adapters | `a7-0-config-store` | [track_a7_0_config_store.md](agent_prompts/track_a7_0_config_store.md) | — | 1 (bloqueante) | — | 🚧 em andamento (2026-04-26) |
 | **A7.1** Cutover `materialize_config` → ConfigStore | `a7-1-cutover-materialize` | [track_a7_1_cutover_materialize.md](agent_prompts/track_a7_1_cutover_materialize.md) | A7.0 ✅ | 2 | A7.2a, A7.2b, A7.4 | ☐ bloqueada por A7.0 |
 | **A7.2a** Decision aggregate (event-sourced) + migrator + UI Plano de Ação | `a7-2a-decision-aggregate` | [track_a7_2a_decision_aggregate.md](agent_prompts/track_a7_2a_decision_aggregate.md) | A7.0 ✅ | 2 | A7.1, A7.2b, A7.4 | ☐ bloqueada por A7.0 |
 | **A7.2b** Tabelas globais `fiscal_parameters` + `market_rates` versionadas | `a7-2b-fiscal-market-tables` | [track_a7_2b_fiscal_market_tables.md](agent_prompts/track_a7_2b_fiscal_market_tables.md) | A7.0 ✅ | 2 | A7.1, A7.2a, A7.4 | ☐ bloqueada por A7.0 |
