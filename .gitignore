@@ -66,6 +66,9 @@ _smoke_pids/
 _smoke_storage/
 mathoms-smoke.db
 
+# Dev stack (make dev-up) — PIDs e logs de processos locais
+_dev_pids/
+
 # F7F-Local console interno (ADR-116) — credenciais de operadores nunca
 # vão pro git. Apenas o template `.example` é commitado.
 config/internal_operators.yaml

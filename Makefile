@@ -90,6 +90,250 @@ smoke-dirs:
 	@mkdir -p $(SMOKE_DIR) $(SMOKE_STORAGE)
 
 # ---------------------------------------------------------------------------
+# Dev stack — sobe os 6 serviços de desenvolvimento local em background
+#
+# Diferente de `smoke-*`, este preserva `.env` e `mathoms.db` reais.
+# Targets:
+#   make dev-bootstrap       First-run: venv, deps, .env, codegen
+#   make dev-pull            git pull --ff-only + npm install
+#   make dev-up              Sobe redis + api(8000) + worker + frontend(3000)
+#                              + ops-api(8001) + frontend-ops(3100)
+#   make dev-down            Mata todos os processos
+#   make dev-restart         down && up
+#   make dev-restart-worker  Restart só do worker (após mudar pipeline/)
+#   make dev-status          ✅/❌ por serviço (PID + porta)
+#   make dev-logs            tail -f de todos (SVC=api para um só)
+#   make dev-reset-env       DESTRUTIVO: regenera .env (invalida Fernet)
+#
+# PIDs em _dev_pids/<svc>.pid · logs em _dev_pids/<svc>.log (no .gitignore)
+# ---------------------------------------------------------------------------
+
+DEV_DIR := _dev_pids
+
+.PHONY: dev-bootstrap dev-pull dev-up dev-down dev-restart dev-restart-worker \
+        dev-status dev-logs dev-reset-env dev-dirs \
+        dev-redis-up dev-api-up dev-worker-up dev-frontend-up \
+        dev-ops-api-up dev-frontend-ops-up
+
+## dev-dirs: Cria _dev_pids/
+dev-dirs:
+	@mkdir -p $(DEV_DIR)
+
+## dev-bootstrap: Setup inicial — venv, deps, .env, codegen
+dev-bootstrap:
+	@echo "▶  Verificando .venv…"
+	@if [ ! -d .venv ]; then \
+	   python3 -m venv .venv; \
+	   echo "   ✓ .venv criada"; \
+	 else echo "   ✓ .venv presente"; fi
+	@echo "▶  Instalando deps Python (pip install -e .[dev])…"
+	@$(VENV)/pip install -q -e ".[dev]"
+	@echo "▶  Instalando deps frontend…"
+	@npm --prefix frontend install --silent
+	@npm --prefix frontend-ops install --silent
+	@echo "▶  Verificando .env…"
+	@if [ ! -f .env ]; then \
+	   ./scripts/gen-secrets.sh --init-env; \
+	 else echo "   ✓ .env presente (preservado)"; fi
+	@echo "▶  Verificando frontend-ops/.env.local…"
+	@if [ ! -f frontend-ops/.env.local ] && [ -f frontend-ops/.env.local.example ]; then \
+	   cp frontend-ops/.env.local.example frontend-ops/.env.local; \
+	   echo "   ✓ frontend-ops/.env.local criado"; \
+	 else echo "   ✓ frontend-ops/.env.local presente ou example ausente"; fi
+	@echo "▶  Codegen (design-tokens + report-layout)…"
+	@$(PYTHON) design-tokens/build.py
+	@$(PYTHON) dev/codegen_report_layout.py
+	@if [ ! -f config/internal_operators.yaml ]; then \
+	   echo ""; \
+	   echo "   ⚠️  config/internal_operators.yaml não existe."; \
+	   echo "      Login no console interno (3100) falhará até criá-lo."; \
+	   echo "      Gere senha: python3 scripts/hash_ops_pw.py"; \
+	   echo "      Detalhes: docs/RUNBOOK.md §7.2."; \
+	 fi
+	@echo ""
+	@echo "  ✅ Bootstrap completo. 'make dev-up' para subir o stack."
+
+## dev-pull: git pull --ff-only + npm install em ambos os frontends
+dev-pull:
+	@echo "▶  Verificando working tree…"
+	@if ! git diff --quiet || ! git diff --cached --quiet; then \
+	   echo "   ❌ Working tree sujo. Commit ou stash antes."; \
+	   exit 1; \
+	 fi
+	@echo "▶  git fetch + git pull --ff-only…"
+	@git fetch origin
+	@git pull --ff-only
+	@echo "▶  npm install (frontend + frontend-ops)…"
+	@npm --prefix frontend install --silent
+	@npm --prefix frontend-ops install --silent
+	@echo "  ✅ Pull completo. 'make dev-restart' para reiniciar serviços."
+
+## dev-up: Sobe os 6 serviços em background
+dev-up: dev-dirs dev-redis-up dev-api-up dev-worker-up dev-frontend-up dev-ops-api-up dev-frontend-ops-up
+	@echo ""
+	@echo "  ✅ Dev stack subido (6 serviços):"
+	@echo "     Redis:        redis://localhost:6379/0"
+	@echo "     API:          http://localhost:8000"
+	@echo "     Worker:       celery (concurrency=2)"
+	@echo "     Frontend:     http://localhost:3000"
+	@echo "     Ops API:      http://127.0.0.1:8001/admin/*"
+	@echo "     Frontend-ops: http://127.0.0.1:3100/login"
+	@echo ""
+	@echo "  Logs em $(DEV_DIR)/<svc>.log · 'make dev-status' · 'make dev-logs'"
+
+dev-redis-up: dev-dirs
+	@if redis-cli ping >/dev/null 2>&1; then \
+	   echo "▶  Redis já rodando (reusando, não controlado por dev-down)"; \
+	 elif command -v redis-server >/dev/null 2>&1; then \
+	   redis-server --daemonize yes \
+	     --pidfile $(CURDIR)/$(DEV_DIR)/redis.pid \
+	     --logfile $(CURDIR)/$(DEV_DIR)/redis.log; \
+	   sleep 1; \
+	   echo "▶  Redis subido (nativo)"; \
+	 else \
+	   echo "   ❌ redis-server não encontrado. Instale: brew install redis"; \
+	   exit 1; \
+	 fi
+
+dev-api-up: dev-dirs
+	@echo "▶  Subindo API principal (porta 8000)…"
+	@nohup $(VENV)/uvicorn backend.app.main:app \
+	   --host 127.0.0.1 --port 8000 --reload \
+	   > $(CURDIR)/$(DEV_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/api.pid
+
+dev-worker-up: dev-dirs
+	@echo "▶  Subindo Celery worker (concurrency=2)…"
+	@nohup $(VENV)/celery -A backend.app.worker worker \
+	   --loglevel=info --concurrency=2 \
+	   > $(CURDIR)/$(DEV_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/worker.pid
+
+dev-frontend-up: dev-dirs
+	@echo "▶  Subindo frontend (porta 3000)…"
+	@nohup npm --prefix frontend run dev \
+	   > $(CURDIR)/$(DEV_DIR)/frontend.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/frontend.pid
+
+dev-ops-api-up: dev-dirs
+	@echo "▶  Subindo Ops API (porta 8001, /admin/*)…"
+	@OPS_SECRET="$$(grep -E '^MATHOMS_INTERNAL_OPS_SESSION_SECRET=' .env 2>/dev/null | head -1 | cut -d= -f2-)"; \
+	 if [ -z "$$OPS_SECRET" ]; then \
+	   OPS_SECRET="$$(openssl rand -hex 32)"; \
+	   echo "   ⚠️  MATHOMS_INTERNAL_OPS_SESSION_SECRET não está em .env — usando valor efêmero."; \
+	   echo "      Persistir: echo MATHOMS_INTERNAL_OPS_SESSION_SECRET=$$OPS_SECRET >> .env"; \
+	 fi; \
+	 MATHOMS_INTERNAL_OPS_UI_ENABLED=1 \
+	 MATHOMS_INTERNAL_OPS_SESSION_SECRET="$$OPS_SECRET" \
+	 nohup $(VENV)/uvicorn backend.app.main:app \
+	   --host 127.0.0.1 --port 8001 --reload \
+	   > $(CURDIR)/$(DEV_DIR)/ops-api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/ops-api.pid
+
+dev-frontend-ops-up: dev-dirs
+	@echo "▶  Subindo frontend-ops (porta 3100)…"
+	@INTERNAL_OPS_API_BASE=http://127.0.0.1:8001 \
+	 nohup npm --prefix frontend-ops run dev \
+	   > $(CURDIR)/$(DEV_DIR)/frontend-ops.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/frontend-ops.pid
+
+## dev-down: Mata todos os processos via PID files
+dev-down:
+	@echo "▶  Parando serviços de dev…"
+	@for svc in api worker frontend ops-api frontend-ops; do \
+	   if [ -f $(CURDIR)/$(DEV_DIR)/$$svc.pid ]; then \
+	     pid=$$(cat $(CURDIR)/$(DEV_DIR)/$$svc.pid); \
+	     if kill $$pid 2>/dev/null; then \
+	       echo "   ✓ $$svc (pid=$$pid) parado"; \
+	     else \
+	       echo "   · $$svc (pid=$$pid) já não estava rodando"; \
+	     fi; \
+	     rm -f $(CURDIR)/$(DEV_DIR)/$$svc.pid; \
+	   fi; \
+	 done
+	@if [ -f $(CURDIR)/$(DEV_DIR)/redis.pid ]; then \
+	   pid=$$(cat $(CURDIR)/$(DEV_DIR)/redis.pid); \
+	   kill $$pid 2>/dev/null && echo "   ✓ redis (pid=$$pid) parado" || true; \
+	   rm -f $(CURDIR)/$(DEV_DIR)/redis.pid; \
+	 else \
+	   echo "   · redis não foi subido por dev-up (preservado)"; \
+	 fi
+	@echo "  ✅ Stack parado."
+
+## dev-restart: down && up
+dev-restart: dev-down dev-up
+
+## dev-restart-worker: Restart só do worker (após mudar pipeline/ ou tasks/)
+dev-restart-worker:
+	@if [ -f $(CURDIR)/$(DEV_DIR)/worker.pid ]; then \
+	   pid=$$(cat $(CURDIR)/$(DEV_DIR)/worker.pid); \
+	   kill $$pid 2>/dev/null && echo "   ✓ Worker parado (pid=$$pid)" || true; \
+	   rm -f $(CURDIR)/$(DEV_DIR)/worker.pid; \
+	 fi
+	@$(MAKE) -s dev-worker-up
+	@echo "  ✅ Worker reiniciado."
+
+## dev-status: Health check de cada serviço
+dev-status:
+	@printf "%-14s  %-6s  %-5s  %s\n" "Serviço" "PID" "Porta" "Status"
+	@printf "%-14s  %-6s  %-5s  %s\n" "──────────────" "──────" "─────" "─────────────────"
+	@for svc in api worker frontend ops-api frontend-ops; do \
+	   case $$svc in \
+	     api)          port=8000 ;; \
+	     ops-api)      port=8001 ;; \
+	     frontend)     port=3000 ;; \
+	     frontend-ops) port=3100 ;; \
+	     *)            port="" ;; \
+	   esac; \
+	   pidfile=$(CURDIR)/$(DEV_DIR)/$$svc.pid; \
+	   if [ -f $$pidfile ]; then \
+	     pid=$$(cat $$pidfile); \
+	     if kill -0 $$pid 2>/dev/null; then \
+	       if [ -n "$$port" ]; then \
+	         if curl -sf -o /dev/null --max-time 2 http://127.0.0.1:$$port/ 2>/dev/null \
+	            || curl -sfI -o /dev/null --max-time 2 http://127.0.0.1:$$port/ 2>/dev/null; then \
+	           printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid $$port "✅ OK"; \
+	         else \
+	           printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid $$port "⏳ vivo, porta sem resposta"; \
+	         fi; \
+	       else \
+	         printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid "—" "✅ OK (sem porta)"; \
+	       fi; \
+	     else \
+	       printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid "$${port:-—}" "❌ PID morto"; \
+	     fi; \
+	   else \
+	     printf "%-14s  %-6s  %-5s  %s\n" $$svc "—" "$${port:-—}" "⚪ não subido"; \
+	   fi; \
+	 done
+	@if redis-cli ping >/dev/null 2>&1; then \
+	   printf "%-14s  %-6s  %-5s  %s\n" redis "—" 6379 "✅ OK"; \
+	 else \
+	   printf "%-14s  %-6s  %-5s  %s\n" redis "—" 6379 "❌ não responde"; \
+	 fi
+
+## dev-logs: tail -f de todos os logs (SVC=<nome> para um só)
+dev-logs:
+ifdef SVC
+	@tail -f $(CURDIR)/$(DEV_DIR)/$(SVC).log
+else
+	@tail -f $(CURDIR)/$(DEV_DIR)/*.log 2>/dev/null || \
+	 echo "Nenhum log encontrado. Rode 'make dev-up' primeiro."
+endif
+
+## dev-reset-env: DESTRUTIVO — regenera .env (INVALIDA Fernet → API keys LLM e dados encriptados quebram)
+dev-reset-env:
+	@echo "⚠️  ATENÇÃO: regenerar .env vai invalidar:"
+	@echo "    - API keys LLM salvas (precisará re-cadastrar)"
+	@echo "    - Senhas PDF criptografadas"
+	@echo "    - CPFs/dados sensíveis encriptados no DB"
+	@echo ""
+	@printf "Confirmar regeneração? (digite 'sim' para prosseguir): "
+	@read CONFIRM; \
+	 if [ "$$CONFIRM" = "sim" ]; then \
+	   rm -f .env; \
+	   ./scripts/gen-secrets.sh --init-env; \
+	   echo "  ✅ .env regenerado."; \
+	 else \
+	   echo "  · Abortado, .env preservado."; \
+	 fi
+
+# ---------------------------------------------------------------------------
 # Dev helpers
 # ---------------------------------------------------------------------------
 
