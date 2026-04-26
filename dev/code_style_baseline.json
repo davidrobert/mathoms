@@ -1,7 +1,7 @@
 {
   "audit_version": "1.0",
-  "generated_at": "2026-04-26T08:03:32Z",
-  "git_commit": "af5be08017257609324e313a92fb8b092b21977a",
+  "generated_at": "2026-04-26T09:15:29Z",
+  "git_commit": "365dad1a40ceb5021bbe716a9585acc52e1bde6f",
   "offenders": [
     {
       "allowlisted": false,
@@ -790,8 +790,8 @@
       "id": "P1-0060",
       "identifier": "test_run_b_sees_baseline_from_run_a_via_workspace_fallback",
       "length": 42,
-      "line_end": 117,
-      "line_start": 76,
+      "line_end": 116,
+      "line_start": 75,
       "message": "Function 42 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "high"
     },
@@ -802,8 +802,8 @@
       "id": "P1-0061",
       "identifier": "test_e4_load_baseline_in_run_b_reaches_run_a_baseline",
       "length": 64,
-      "line_end": 184,
-      "line_start": 121,
+      "line_end": 183,
+      "line_start": 120,
       "message": "Function 64 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "high"
     },
@@ -6094,8 +6094,8 @@
       "id": "P1-0347",
       "identifier": "write",
       "length": 23,
-      "line_end": 142,
-      "line_start": 120,
+      "line_end": 141,
+      "line_start": 119,
       "message": "Function 23 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -28264,7 +28264,7 @@
       "severity": "info"
     }
   ],
-  "repo_root": "/Users/davidrobert/Desktop/_fin/Fin/fin-current/.claude/worktrees/blissful-franklin-47e611",
+  "repo_root": "/Users/davidrobert/Desktop/_fin/Fin/fin-current",
   "summary": {
     "files_scanned": {
       "python": 769,
