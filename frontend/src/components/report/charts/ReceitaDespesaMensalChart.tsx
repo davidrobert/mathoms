@@ -148,30 +148,32 @@ export function ReceitaDespesaMensalChart({
   );
 }
 
+function enrichSeriesForStack(
+  series: readonly ChartSeries[] | undefined,
+  stack: "receita" | "despesa",
+  startIdx: number,
+): { datasets: EnrichedDataset[]; nextIdx: number } {
+  const datasets: EnrichedDataset[] = [];
+  let idx = startIdx;
+  (series ?? []).forEach((ds) => {
+    datasets.push({
+      label: ds.label,
+      data: ds.data,
+      stack,
+      backgroundColor: ds.backgroundColor ?? pickColorByIndex(idx++),
+    });
+  });
+  return { datasets, nextIdx: idx };
+}
+
 function useEnrichedDatasets(
   receita: readonly ChartSeries[] | undefined,
   despesa: readonly ChartSeries[] | undefined,
 ): readonly EnrichedDataset[] {
   return useMemo(() => {
-    const out: EnrichedDataset[] = [];
-    let colorIdx = 0;
-    (receita ?? []).forEach((ds) => {
-      out.push({
-        label: ds.label,
-        data: ds.data,
-        stack: "receita",
-        backgroundColor: ds.backgroundColor ?? pickColorByIndex(colorIdx++),
-      });
-    });
-    (despesa ?? []).forEach((ds) => {
-      out.push({
-        label: ds.label,
-        data: ds.data,
-        stack: "despesa",
-        backgroundColor: ds.backgroundColor ?? pickColorByIndex(colorIdx++),
-      });
-    });
-    return out;
+    const r = enrichSeriesForStack(receita, "receita", 0);
+    const d = enrichSeriesForStack(despesa, "despesa", r.nextIdx);
+    return [...r.datasets, ...d.datasets];
   }, [receita, despesa]);
 }
 
@@ -197,6 +199,12 @@ function sliceWindow(
   return { labels, datasets: sliced };
 }
 
+function formatMoneyAxisTick(v: number | string): string {
+  const n = Number(v);
+  if (Math.abs(n) >= 1000) return `R$ ${(n / 1000).toFixed(0)}k`;
+  return `R$ ${Math.round(n)}`;
+}
+
 function buildOptions(): ChartOptions<"bar"> {
   return {
     responsive: true,
@@ -209,16 +217,7 @@ function buildOptions(): ChartOptions<"bar"> {
     },
     scales: {
       x: { stacked: true, grid: { display: false } },
-      y: {
-        stacked: true,
-        ticks: {
-          callback: (v) => {
-            const n = Number(v);
-            if (Math.abs(n) >= 1000) return `R$ ${(n / 1000).toFixed(0)}k`;
-            return `R$ ${Math.round(n)}`;
-          },
-        },
-      },
+      y: { stacked: true, ticks: { callback: formatMoneyAxisTick } },
     },
   };
 }
