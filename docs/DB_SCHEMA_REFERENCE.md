@@ -4,7 +4,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 29
+**Total de tabelas:** 30
 
 ---
 
@@ -35,6 +35,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`task_suggestions`](#tasksuggestions)
 - [`tasks`](#tasks)
 - [`transaction_overrides`](#transactionoverrides)
+- [`transfer_configs`](#transferconfigs)
 - [`users`](#users)
 - [`workspace_invitations`](#workspaceinvitations)
 - [`workspace_members`](#workspacemembers)
@@ -652,6 +653,23 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_transaction_overrides_transaction_hash` (transaction_hash)
 - `ix_transaction_overrides_workspace_id` (workspace_id)
 
+### `transfer_configs`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, UNIQUE, INDEX |
+| `config_json` | `JSON` | no | callable: `dict` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- UNIQUE `ix_transfer_configs_workspace_id` (workspace_id)
+
 ### `users`
 
 | Column | Type | Nullable | Default | Tags |
@@ -788,6 +806,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `stage_reviews.edited_output_json`
 - `stage_reviews.original_output_json`
 - `task_suggestions.proposed_payload`
+- `transfer_configs.config_json`
 
 ---
 
@@ -1216,6 +1235,17 @@ type TransactionOverride struct {
 	Notes *string `db:"notes" json:"notes"`
 	Reviewed bool `db:"reviewed" json:"reviewed"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `transfer_configs` → `type TransferConfig struct`
+
+```go
+type TransferConfig struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	ConfigJson json.RawMessage `db:"config_json" json:"config_json"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 ```
 
