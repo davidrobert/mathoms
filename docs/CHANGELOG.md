@@ -283,6 +283,30 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
   - Resíduos da lane: items 3 (snapshots por seção × tema) e 5
     (checklist WCAG operacional).
 
+### 2026-04-25 — F9.2 resíduo split em 5 sub-fatias (ADR-093)
+
+- T1 fechado em main; T2-T5 organizados em prompts auto-contidos para
+  execução em sessões distintas:
+  - **F9.2a** pipeline core (`artifact_store` + `llm/*` + `stages/*` +
+    `domain/services/*`, ~150 hits) —
+    [track_f9_2a_pipeline_core_strings.md](agent_prompts/track_f9_2a_pipeline_core_strings.md).
+  - **F9.2b** scripts internos (`e0/e2/e3/e4/e5/e7/e15`, exceto
+    `e_reset.py`, ~120 hits) —
+    [track_f9_2b_scripts_strings.md](agent_prompts/track_f9_2b_scripts_strings.md).
+  - **F9.2c** `scripts/e_reset.py` deprecation warning + flip interno —
+    [track_f9_2c_e_reset_deprecation.md](agent_prompts/track_f9_2c_e_reset_deprecation.md).
+  - **F9.2d** backend residual (~40 hits) + tests não-golden (~600 hits,
+    goldens preservados) —
+    [track_f9_2d_backend_tests.md](agent_prompts/track_f9_2d_backend_tests.md).
+  - **F9.2e** closeout — re-audit + BACKLOG/CHANGELOG/ADR-093/CLAUDE.md
+    + destrava F9.3 (doc-only) —
+    [track_f9_2e_closeout.md](agent_prompts/track_f9_2e_closeout.md).
+- Ordem: 2a → (2b ‖ 2c ‖ 2d) → 2e. 2a bloqueia downstream porque
+  `artifact_store.py` é dependência de scripts/tests.
+- Compat layer (`resolve_stage_name`/`to_legacy_stage_name` +
+  `STAGE_RENAME_MAP`) permite migração piecemeal — sub-fatias podem
+  rodar em sessões e branches independentes.
+
 ### 2026-04-25 — F9.2 T1 STAGE_REGISTRY descritivo + compat reverso (ADR-093)
 
 - `pipeline/stage_spec.py` — `STAGE_REGISTRY`, `FULL_ORDER`,
