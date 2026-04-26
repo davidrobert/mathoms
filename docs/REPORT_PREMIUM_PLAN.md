@@ -536,6 +536,17 @@ Cada seção migra em **4 commits sequenciais**:
 - S8 Tributário
 - S9 Riscos (alert-heavy)
 
+> **Nota — ausência de S5/S6:** o gap é **intencional**. Em draft anterior
+> do exemplo, S5 e S6 cobriam, respectivamente, "Mudança EUA — F1/F2" e
+> "Green Card". Quando o **modo USA** foi separado do modo Estratégico,
+> esses dois conteúdos migraram para `U1` e `U2` no `report_layout.yaml`
+> (ver `# ex-S5` / `# ex-S6` em `config/report_layout.yaml:475,488`) e
+> também no `EXEMPLO_DE_RELATORIO.html` (comentários `ex-S5`/`ex-S6` nas
+> linhas 2093 e 2107). A numeração estratégica preservou os IDs históricos
+> S1-S4, S7-S10 para evitar churn de identificadores em snapshots, ADRs
+> e código já escrito. **Não há trabalho pendente** — mapeamento completo
+> em §17.5. Lane v2.3 fechada em 2026-04-26 (decisão **b**).
+
 **Fase 8 (tático):** T4 alertas → T1 fluxo → T2 aportes → T3 tarefas (Kanban é pesado — reservar sub-commit dedicado) → T5 próximos passos → T6 notas.
 
 **Fase 9 (USA):** U1 → U2 → U3 → U4.
@@ -838,6 +849,52 @@ Lane "Report Premium UI v2" considerada ✅ quando todas as 11 sub-lanes
 (v2.1 a v2.10 + v2.D.1) estão ✅ em `main`, OU foram explicitamente
 movidas para v3 com ADR justificativa. CHANGELOG receberá entrada
 consolidada análoga à da v1.
+
+### 17.5 v2.3 — S5/S6: mapeamento histórico (resolvido)
+
+**Status:** ✅ fechada 2026-04-26 com **decisão (b)** — S5/S6 existiram
+em draft anterior do `EXEMPLO_DE_RELATORIO.html` e foram migrados para
+o modo USA (não fundidos em S4/S7 como a hipótese inicial supunha).
+
+**Evidência da auditoria:**
+
+- `EXEMPLO_DE_RELATORIO.html` linhas 2093 e 2107: comentários
+  `<!-- USA U1 — F1/F2 (ex-S5) -->` e `<!-- USA U2 — Green Card (ex-S6) -->`.
+- `EXEMPLO_DE_RELATORIO.html` IDs de seção: `secao-1, 2, 3, 4, 7, 8, 9,
+  10` (estratégico) + `usa-1..usa-4` + `apendice-a..e`. Não há `secao-5`
+  nem `secao-6`.
+- `config/report_layout.yaml:101`: comentário do bloco `estrategico:` é
+  literalmente `# MODO ESTRATÉGICO (S1-S4, S7-S10 + Apêndices A-E)`.
+- `config/report_layout.yaml:464-468`: header do bloco `usa:` registra
+  `# Anteriormente S5 e S6 no modo Estratégico + cards do Apêndice E`.
+- `frontend/src/components/report/sections/`: zero `S5*.tsx` ou
+  `S6*.tsx`; zero referências a `S5`/`S6` no código.
+
+**Tabela de mapeamento:**
+
+| Ex-ID (draft) | Conteúdo            | ID atual | Localização atual                                                  |
+|---------------|---------------------|----------|--------------------------------------------------------------------|
+| S5            | Mudança EUA — F1/F2 | **U1**   | `config/report_layout.yaml:477` · modo USA · ex-S5 declarado inline |
+| S6            | Green Card — EB2-NIW | **U2**   | `config/report_layout.yaml:490` · modo USA · ex-S6 declarado inline |
+
+**Por que ficou assim:**
+
+- Modo USA é **opcional** (cliente-específico) e só renderiza quando
+  `report_data.modes.usa = true`. Manter o conteúdo no modo estratégico
+  obrigaria toggle por seção em vez de toggle por modo.
+- Renomear S7-S10 para fechar o gap quebraria snapshots, ADRs (cite-se
+  `S10` em [ADR-076 / ADR-117]), prompts de agentes e qualquer código
+  que dependa do mapping `S{n}` → seção. **Custo > benefício.**
+
+**Ação tomada nesta lane (v2.3):**
+
+- §9.2 — adicionada nota explicando o gap (ver acima).
+- §17.5 — esta tabela.
+- `CHANGELOG.md` — entrada `docs(report): v2.3 — S5/S6 esclarecimento (decisão b)`.
+- `config/report_layout.yaml` — **sem mudança estrutural**; comentários
+  `# ex-S5`/`# ex-S6` já existiam (linhas 475, 488) e o header do bloco
+  `usa:` (linhas 464-468) já registra a fusão. Auditoria apenas
+  confirmou que a documentação inline estava correta.
 
 ---
 

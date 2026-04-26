@@ -11,6 +11,21 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report Premium UI v2.3 — S5/S6 esclarecimento (2026-04-26) — ✅
+  decisão (b):** auditoria confirmou que `S5` e `S6` existiram em draft
+  anterior do `EXEMPLO_DE_RELATORIO.html` cobrindo "Mudança EUA — F1/F2"
+  e "Green Card — EB2-NIW", e foram **migrados para o modo USA** como
+  `U1` e `U2` quando o modo USA virou bloco opcional separado. A
+  numeração estratégica ficou `S1-S4, S7-S10` para preservar IDs já
+  citados em ADRs/snapshots/prompts. Documentação inline no
+  `config/report_layout.yaml` (header do bloco `usa:` e comentários
+  `# ex-S5`/`# ex-S6`) e nos comentários `<!-- ex-S5 -->`/`<!-- ex-S6 -->`
+  do exemplo HTML já registravam o mapeamento — auditoria apenas
+  formalizou em [REPORT_PREMIUM_PLAN.md §17.5](REPORT_PREMIUM_PLAN.md)
+  (tabela de mapeamento + rationale) e em §9.2 (nota inline explicando
+  o gap intencional). Sem mudança estrutural em código ou YAML.
+  Origem: lane v2.3 da Onda v2.A do roadmap pós-v1.
+
 - **Pre-commit gates de code-style baseline e frontend-lock sync
   (2026-04-25) — ✅:** dois jobs que só rodavam em CI passam a rodar
   localmente, fechando a janela em que `main` fica vermelho até
