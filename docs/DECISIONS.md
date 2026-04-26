@@ -5446,6 +5446,499 @@ DB-first, fallback para `ConfigDefaultsLoader` quando não há row.
 
 ---
 
+## ADR-134 — `ConfigStore`: protocolo de leitura tipado (pipeline + backend)
+
+**Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
+[ADR-082](#adr-082--pipelineartifact-artefatos-computacionais-no-banco)
+(blobs DB-first com materialização para o pipeline),
+[ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise),
+[ADR-101](#adr-101--routers-finos-use-cases-em-application),
+[ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6),
+[ADR-120](#adr-120--readers-user-facing-consultam-artifactstore-db-first-com-fallback-disco),
+[ADR-133](#adr-133--transferencias_internas-modelado-em-transfer_configs-workspace-scoped).
+
+**Contexto:** A versão CLI inicial do produto usava `config/*.json` +
+`*.md` como única fonte de verdade. O cutover para multi-tenant
+(A6a-A6f) migrou parte dos arquivos para DB (5 blobs:
+`pipeline_configs`, `categorization`, `family_members`,
+`institution_configs`, `report_layouts`, `transfer_configs`), mas
+manteve uma ponte (`backend/app/services/config_materializer.py`) que
+**escreve cópia em `config/`** antes do pipeline rodar — porque o
+pipeline lê do disco via `_init_config()`. Resultado: dois sources of
+truth, janela de race, e `pipeline/**` continua acoplado a `Path`.
+
+Alternativas consideradas:
+
+- **(a) Manter `materialize_config` indefinidamente.** Custo crescente:
+  toda nova entidade configurável adiciona dois write paths (DB + disco).
+  Não escala para `decisions`, `fiscal_parameters`, `market_rates` etc.
+- **(b) Fazer `pipeline/` importar SQLAlchemy.** Quebra
+  [ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise) e a
+  regra do CLAUDE.md (`dev/check_pipeline_boundaries.py`).
+- **(c) Protocolo `ConfigStore` definido em `pipeline/ports/`, com
+  adapter SQLAlchemy em `backend/app/services/`.** Simétrico ao padrão
+  `ArtifactStore`/`DBArtifactStore` que já funciona; pipeline injeta via
+  `StageConfig`.
+
+**Decisão:** Adotar (c).
+
+`pipeline/ports/config_store.py` define `ConfigStore` como
+`typing.Protocol` read-only. Métodos retornam dataclasses tipadas em
+`pipeline/domain/types/config.py` (`CategorizationConfig`,
+`FamilyMembersConfig`, `InstitutionsCatalog`, `ReportLayout`,
+`TransferConfig`, `FiscalParameters`, `MarketRate`).
+
+Dois adapters concretos:
+
+- `backend/app/services/db_config_store.py` (`DBConfigStore`) — usa os
+  repositórios já existentes; é o adapter de produção quando
+  `MATHOMS_USE_DB_ARTIFACTS=true`.
+- `pipeline/adapters/file_config_store.py` (`FileConfigStore`) — lê de
+  `PROJECT_DIR / "config"` para compatibilidade com testes legados +
+  invocações CLI fora do produto. **Emite `DeprecationWarning` no
+  construtor** com data de remoção (Sprint A7.5).
+
+`StageConfig` ganha campo `config_store: ConfigStore` (default
+`FileConfigStore` durante a janela de cutover; obrigatório após A7.5).
+
+`pipeline_adapter` (em `backend/app/services/pipeline_adapter.py`)
+instancia `DBConfigStore` ao construir `StageConfig`. Pipeline injetado
+via construtor; nenhum `@lru_cache` ou cache em processo (ADR-111).
+Cache hot-path vai para Redis com invalidação por evento.
+
+**Consequências:**
+- ✅ `pipeline/**` continua sem importar SQLAlchemy/FastAPI.
+  `dev/check_pipeline_boundaries.py` permanece verde.
+- ✅ Boundary única para qualquer leitura de configuração: novos blobs
+  (decisions, fiscal_parameters, market_rates, category_templates,
+  institution_catalog) entram pelo mesmo Protocol.
+- ✅ Testes domain-pure usam `InMemoryConfigStore` fake — alinhado com
+  estratégia de fakes nomeados (`tests/fakes/`).
+- ⚠️ Janela de cutover: `materialize_config` continua existindo até
+  A7.5; cada chamada legada emite `DeprecationWarning` + log
+  `mathoms.config.materialize.legacy_call`. Plano em
+  [CONFIG_CUTOVER_PLAN.md §5.0](CONFIG_CUTOVER_PLAN.md#§50-a70--configstore-protocol--adapters).
+- ❌ Adicionar campo novo ao `ConfigStore` exige tocar Protocol +
+  ambos os adapters + qualquer fake. Aceito como custo simétrico ao
+  ganho de tipagem cross-boundary.
+
+---
+
+## ADR-135 — Versionamento temporal de séries fiscais e câmbio
+
+**Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
+[ADR-090](#adr-090--money-em-domínio-decimal-string-no-wire),
+[ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise),
+[ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
+
+**Contexto:** `config/parametros_fiscais.json` (tabela IRPF, limite PGBL,
+teto INSS, alíquota lucro presumido) e `config/taxas.json` (câmbio
+USD/BRL, EUR/BRL, indexadores) são lidos pelo pipeline em
+`pipeline/domain/services/previdencia_analyzer.py`,
+`cenarios_conjuge_analyzer.py`, `patrimonio_types.py`. Hoje:
+
+1. Arquivos vivem em disco, sem DB, sem API, sem UI.
+2. **Não têm vigência temporal.** Atualizar IR para 2026 sobrescreve
+   2025. Re-renderizar relatório de 2025 hoje produz números diferentes
+   dos originais.
+3. São **globais a todos workspaces** — não pertencem a "config de
+   cliente"; são tabela de mercado.
+4. Migrar "para um workspace" (instinto inicial do produto) cria N
+   cópias divergentes na primeira mudança fiscal — anti-padrão.
+
+Reproducibilidade é requisito não-negociável para fintech: o relatório
+de fev/2025 gerado em 2027 deve produzir os mesmos números do gerado em
+mar/2025. Sem vigência por data, isso é falha silenciosa.
+
+Alternativas:
+
+- **(a) JSON na raiz com versão por arquivo (`fiscal_2025.json`).**
+  Resolve vigência mas continua read-from-disk; multiplica arquivos.
+- **(b) Tabela única `fiscal_parameters(year, ...)` sem
+  `effective_from`.** Simples, mas não captura mudanças intra-ano (ex.:
+  reforma tributária mid-year).
+- **(c) Tabela `fiscal_parameters` com `(year, effective_from,
+  effective_to)` + `market_rates(pair, observed_at)` com chave única
+  por par+data.** Suporta vigência fina e séries históricas de câmbio.
+
+**Decisão:** Adotar (c).
+
+Schema:
+
+```sql
+fiscal_parameters (
+  id UUID PK,
+  year INT NOT NULL,
+  ir_brackets JSONB NOT NULL,        -- tabela IRPF progressiva
+  pgbl_limit_brl_cents BIGINT NOT NULL,
+  inss_ceiling_brl_cents BIGINT NOT NULL,
+  lucro_presumido_aliquota DECIMAL(5,4) NOT NULL,
+  effective_from DATE NOT NULL,
+  effective_to DATE NULL,             -- null = vigente
+  source TEXT NOT NULL,               -- "Receita Federal Lei 14.973/2024"
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+market_rates (
+  id UUID PK,
+  pair TEXT NOT NULL,                 -- "USD/BRL", "EUR/BRL"
+  rate DECIMAL(20,10) NOT NULL,
+  observed_at DATE NOT NULL,
+  source TEXT NOT NULL,               -- "BCB PTAX"
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (pair, observed_at)
+);
+```
+
+Regra de seleção de período (escrita aqui para não virar folclore):
+
+- `get_fiscal_for_period(period)`: retorna a row com
+  `effective_from <= period.start AND (effective_to IS NULL OR
+  effective_to >= period.end)`. Se múltiplas rows cobrem o período (ex.:
+  reforma mid-year), pipeline aborta com erro tipado
+  `FiscalParameterAmbiguous` — relatório precisa ser explícito sobre qual
+  vigência usa.
+- `get_market_rate(pair, observed_at)`: retorna a row com
+  `pair = ? AND observed_at <= ? ORDER BY observed_at DESC LIMIT 1`.
+  Câmbio é "última cotação conhecida na data ou antes".
+
+Cache Redis com invalidação por evento (`fiscal_parameter.published`,
+`market_rate.published`). Sem `@lru_cache`.
+
+Money continua [ADR-090](#adr-090--money-em-domínio-decimal-string-no-wire):
+`*_brl_cents` em `BIGINT`, `rate` em `DECIMAL`, wire em string.
+
+**Consequências:**
+- ✅ Reproducibilidade histórica: relatório de qualquer período
+  re-renderiza com parâmetros vigentes naquele período.
+- ✅ Tabela é **global** — não duplica por workspace.
+- ✅ Auditoria: cada row tem `source` + timestamp; admin sabe quem
+  publicou.
+- ⚠️ Atualização de IR/PGBL/INSS/câmbio é operação de produto
+  (admin/ops UI em F7F-Local) — não git commit. Custo aceito; impede
+  drift.
+- ⚠️ Cache invalidation é por evento. Bug de invalidação produz drift
+  de até `tempo entre published e refresh`. Mitigação: mensagem de
+  evento dispara refresh ativo, não passivo.
+- ❌ Reforma tributária mid-year exige duas rows de
+  `fiscal_parameters` no mesmo ano + lógica do pipeline em decidir qual
+  usar. Resolvido via `effective_from/to` exclusivo.
+
+---
+
+## ADR-136 — `Decision` aggregate event-sourced com supersede chain
+
+**Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
+[ADR-090](#adr-090--money-em-domínio-decimal-string-no-wire),
+[ADR-101](#adr-101--routers-finos-use-cases-em-application),
+[ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries),
+[ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
+
+**Contexto:** `config/decisions.md` é um caderno editorial do cliente —
+**não** ADRs arquiteturais. Contém 15 itens (D01..D15) com:
+
+- Status que evolui no tempo (Pendente → Decidido → Executado).
+- Supersede chain (D15 substitui D06 quando TRS muda de 4% → 5%).
+- Valor envolvido em BRL (R$117.430 quitação financiamento, R$30k/mês
+  meta IF, R$500/mês DCA crypto).
+- Data de decisão e prazo de execução.
+
+Hoje vive em markdown estático versionado em git. Três problemas:
+
+1. **PII**: arquivo expõe valores reais em BRL — viola CLAUDE.md
+   §Regras críticas (dados sensíveis em commits proibidos).
+2. **Sem lifecycle**: status muda no markdown via edit manual; histórico
+   se perde ou vira diff de git incompreensível para usuário não-dev.
+3. **Mono-cliente**: arquivo serve apenas o workspace original do CLI.
+   Multi-tenant exige entidade per-workspace.
+
+Alternativas:
+
+- **(a) CRUD puro `decisions(id, status, ...)` com UPDATE de status.**
+  Perde audit trail. Não captura supersede chain naturalmente.
+- **(b) Tabela `decisions` + `decision_status_changes` (changelog
+  paralelo).** Funciona mas duplica modelos quando todo evento é
+  basicamente uma transição.
+- **(c) Aggregate event-sourced**: `decisions` (estado projetado) +
+  `decision_events` (append-only log de eventos tipados). Audit trail
+  nativo, supersede como tipo de evento, status como projeção.
+
+**Decisão:** Adotar (c) **escopado a este aggregate apenas** —
+não se torna convenção a propagar para outros aggregates do sistema. O
+resto do app continua CRUD onde for adequado (alinhado com
+[ADR-101](#adr-101--routers-finos-use-cases-em-application)).
+
+Schema:
+
+```sql
+decisions (
+  id UUID PK,
+  workspace_id UUID FK NOT NULL,
+  code TEXT NOT NULL,             -- "D01", "D15"
+  title TEXT NOT NULL,
+  rationale TEXT,
+  amount_brl_cents BIGINT NULL,
+  status TEXT NOT NULL,           -- enum: Pendente, Decidido, Executado, Descartado, Superseded
+  supersedes_id UUID FK NULL,
+  decided_at DATE NULL,
+  executed_at DATE NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (workspace_id, code)
+);
+
+decision_events (
+  id UUID PK,
+  decision_id UUID FK NOT NULL,
+  event_type TEXT NOT NULL,       -- Created, StatusChanged, Superseded, Executed, Updated
+  occurred_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  actor TEXT NOT NULL,            -- "system:migrator", "user:<id>", "agent:<name>"
+  payload JSONB NOT NULL          -- evento tipado (DTO Pydantic serializado)
+);
+```
+
+Use cases em `backend/app/application/decisions/`:
+
+- `CreateDecision` — emite `DecisionCreatedEvent`.
+- `UpdateDecision` — emite `DecisionUpdatedEvent` com diff.
+- `MarkDecisionExecuted` — emite `DecisionExecutedEvent` + atualiza
+  `executed_at`.
+- `SupersedeDecision(new_id, old_id)` — emite
+  `DecisionSupersededEvent`; status do antigo vira `Superseded`,
+  `supersedes_id` do novo aponta para o antigo.
+
+Endpoints REST: `GET/POST /api/v1/workspaces/{id}/decisions`,
+`GET/PATCH /api/v1/workspaces/{id}/decisions/{decision_id}`,
+`POST /api/v1/workspaces/{id}/decisions/{decision_id}/execute`. Todos
+com `response_model` explícito ([ADR-109](#adr-109--padrão-de-fastapi--testes-de-contrato)).
+
+Eventos do aggregate **não** entram em
+[ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries) (cross-aggregate
+events) — são internos. Se outro aggregate precisar reagir
+(`Notification` quando decisão executada >R$50k), aí sim emite domain
+event tipado pelo dispatcher.
+
+Migrator one-shot: `dev/migrate_decisions_to_db.py` parseia
+`config/decisions.md`, cria 15 rows + eventos `Created` no workspace
+alvo. Idempotente. **Descartável** — não generalizar.
+
+Money em `amount_brl_cents` (BIGINT) — [ADR-090](#adr-090--money-em-domínio-decimal-string-no-wire).
+
+**Consequências:**
+- ✅ Audit trail nativo: timeline de decisão é select linear em
+  `decision_events`.
+- ✅ Supersede chain explícita; UI renderiza "supersedes D06" como
+  link.
+- ✅ `decisions.md` removido — resolve dívida PII.
+- ⚠️ Padrão event-sourced é diferente do resto do app — requer
+  documentação extra para agentes/devs. Aceito porque o domínio do
+  aggregate (decisões com lifecycle) justifica.
+- ⚠️ Migrator é frágil (parser markdown). Aceito porque roda uma vez
+  e depois morre.
+- ❌ Eventos não compõem com event bus geral (ADR-115). Decisão
+  consciente — escopo do aggregate; se virar cross-aggregate, refatora.
+
+---
+
+## ADR-137 — Catalog + override resolver para `categorization` e `institutions`
+
+**Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
+[ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise),
+[ADR-101](#adr-101--routers-finos-use-cases-em-application),
+[ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6),
+[ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
+
+**Contexto:** `config/categorization.json` mistura duas coisas no mesmo
+schema:
+
+1. **Taxonomia base do produto** (categorias, parent/child, keywords
+   default) — versão evolui via ADR/seed (ex.: adicionar "Streaming" em
+   2025 quando vira despesa relevante).
+2. **Customização do cliente** (renomear "Mercado" para "Supermercado",
+   adicionar keyword "Hortifruti", desabilitar "Veículos" se a família
+   não tem carro).
+
+Hoje, `categories` table guarda o estado merged por workspace. Update
+do template (1) por dev → exige migration que sobrescreve customização
+do workspace; ou customização do workspace (2) bloqueia update do
+template. Drift garantido.
+
+`config/institutions.json` é mais simples — catálogo de bancos
+suportados. Cada workspace tem subset (via `BankAccount`), mas catálogo
+em si é global.
+
+Alternativas:
+
+- **(a) Manter `categories` materializado por workspace.** Sem versão
+  nem template. Custo: drift em todo update.
+- **(b) Storage somente do template + computar overrides via diff.**
+  Overrides ficam implícitos; histórico de "o que o usuário mudou" se
+  perde.
+- **(c) Tabela `category_templates` global + tabela
+  `workspace_category_overrides` (entradas explícitas só onde diverge);
+  resolver no read-path.** Storage mínimo, histórico explícito,
+  template evolui sem invalidar overrides.
+
+**Decisão:** Adotar (c) para `categorization`. Para `institutions`:
+tabela global `institution_catalog` única (sem override por workspace
+nesta lane — bancos do cliente já são `BankAccount` rows, não
+customização do catálogo).
+
+Schema:
+
+```sql
+category_templates (
+  id UUID PK,
+  key TEXT NOT NULL,              -- "alimentacao.restaurantes"
+  parent_key TEXT NULL,
+  label TEXT NOT NULL,
+  default_keywords TEXT[] NOT NULL,
+  sort_order INT NOT NULL,
+  template_version INT NOT NULL,  -- v1, v2 quando templ-set evolui
+  UNIQUE (key, template_version)
+);
+
+workspace_category_overrides (
+  id UUID PK,
+  workspace_id UUID FK NOT NULL,
+  template_key TEXT NOT NULL,
+  label_override TEXT NULL,
+  keywords_override TEXT[] NULL,  -- NULL = usa default; [] = lista vazia
+  disabled BOOLEAN NOT NULL DEFAULT FALSE,
+  UNIQUE (workspace_id, template_key)
+);
+
+institution_catalog (
+  id UUID PK,
+  code TEXT UNIQUE NOT NULL,      -- "itau", "c6bank"
+  name TEXT NOT NULL,
+  default_parser TEXT NULL,
+  metadata JSONB NOT NULL DEFAULT '{}'
+);
+```
+
+Resolver (`backend/app/services/category_resolver.py`):
+
+```python
+def resolve_categories(workspace_id: UUID, db: Session) -> list[ResolvedCategory]:
+    template = load_active_template(db)        # cached Redis
+    overrides = repo.list_overrides(workspace_id, db)
+    return [merge(t, overrides.get(t.key)) for t in template if not overrides.get(t.key, EMPTY).disabled]
+```
+
+Cache Redis com chave `categories:{workspace_id}:{template_version}`,
+invalidado por evento `category_override.changed` ou pelo bump de
+`template_version`. Sem `@lru_cache`.
+
+Migration: backfill `category_templates` a partir do
+`config/categorization.json` atual (template_version=1). Linhas
+existentes em `categories` que diferem do template viram entradas em
+`workspace_category_overrides`. Demais linhas viram derivadas no read.
+
+API: endpoints existentes em `/v1/workspaces/{id}/categories` continuam
+mesmo contrato (frontend não muda); rota write passa a criar/atualizar
+`workspace_category_overrides`.
+
+Regra rígida: **`category_templates.key` jamais é renomeado** após
+publicado. Adicionar key nova OK; deprecate (flag em metadata) OK;
+rename = breaking, exige nova `template_version` + migration de
+overrides.
+
+**Consequências:**
+- ✅ Template evolui (add categoria) sem invalidar overrides.
+- ✅ Override é explícito; UI mostra "padrão Mathoms" vs "modificado".
+- ✅ Storage mínimo — workspace que não customiza nada tem zero rows
+  em `workspace_category_overrides`.
+- ⚠️ Read-path é resolver, não SELECT direto. Cache Redis é
+  obrigatório em hot path (relatório lê 50+ vezes em E4/E5). Bench
+  antes/depois mostra latência.
+- ⚠️ Rename de template_key é proibido. Ergonomia de evolução exige
+  disciplina; aceita-se.
+- ❌ `institution_catalog` sem override por workspace impede cliente
+  raro com banco fora do catálogo. Mitigação: cliente abre ticket,
+  produto adiciona ao catálogo via seed/admin. Aceito como simplicidade.
+
+---
+
+## ADR-138 — Protocolo de supervisão CTO para Sprint A7
+
+**Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
+[ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise),
+[ADR-103](#adr-103--teste-humano-como-gate-de-cutover),
+[CONFIG_CUTOVER_PLAN.md §6](CONFIG_CUTOVER_PLAN.md#6-protocolo-de-supervisão-cto).
+
+**Contexto:** Sprint A7 executa cutover de `config/` para DB com **até 4
+agentes paralelos** em Onda 2 (A7.1, A7.2a, A7.2b, A7.4) e cadeia
+sequencial em Ondas 1, 3, 4. Sprint atravessa: pipeline read-path,
+schema DB, application layer, frontend, eventos, séries temporais,
+PII removal.
+
+Nenhuma sprint anterior teve essa combinação de:
+1. múltiplos agentes paralelos modificando arquivos disjuntos com risco
+   de conflito em `BACKLOG`/`CHANGELOG`/`CLAUDE.md` (hotspots);
+2. mudanças que **não podem** quebrar smoke E2E entre ondas;
+3. bridges (FileConfigStore, materialize_config) com prazo definido.
+
+Sem governança explícita, lanes paralelas vão produzir merge hell e/ou
+regressão silenciosa em prod.
+
+[ADR-103](#adr-103--teste-humano-como-gate-de-cutover) já estabeleceu
+"teste humano como gate" para A6 — funcionou para single-lane. Para
+multi-lane paralelo, falta protocolo de quem aprova o quê e quando.
+
+Alternativas:
+
+- **(a) Cada agente auto-aprova.** Modelo do A6g. Funciona para sweep
+  cosmético; falha em mudança estrutural cross-cutting.
+- **(b) Humano (David) revisa cada PR.** Bottleneck garantido em onda
+  com 4 lanes paralelas — ele vira fila.
+- **(c) Agente `senior-cto` revisa cada PR + humano supervisiona
+  wave boundaries.** Distribui carga: CTO faz revisão técnica
+  intra-lane; humano valida fechamento de onda.
+
+**Decisão:** Adotar (c) com 4 gates explícitos (G1–G4) descritos em
+[CONFIG_CUTOVER_PLAN.md §6](CONFIG_CUTOVER_PLAN.md#6-protocolo-de-supervisão-cto):
+
+| Gate | Quando | Quem | Output |
+|---|---|---|---|
+| **G1 — ADR draft** | Antes da 1ª linha de código da lane | CTO | ADR Decidido em DECISIONS.md |
+| **G2 — Schema review** | Antes da Alembic migration sair do branch | CTO | "Schema OK" em commit/track file |
+| **G3 — PR pré-merge** | Quando agente anuncia "branch pronta" | CTO | APROVADO ou BLOQUEADO + checklist |
+| **G4 — Wave boundary** | Antes da próxima onda começar | Humano | Smoke E2E verde + atualização BACKLOG |
+
+CTO pode ser:
+- **Humano** (David) durante horário de trabalho.
+- **Agente `senior-cto`** invocado via `Agent(subagent_type="senior-cto",
+  …)` quando humano não está disponível ou sprint roda em modo
+  asyncrônico.
+
+Em ambos os casos, sign-off é registrado:
+- Em commit trailer `Reviewed-by: <CTO identifier>` para G3;
+- Em BACKLOG status (✅ aprovado / 🚧 bloqueado) para G1, G2, G4.
+
+Critérios de aprovação (G3) — checklist em
+[CONFIG_CUTOVER_PLAN.md §6.4](CONFIG_CUTOVER_PLAN.md#64-critérios-de-aprovação).
+Bloqueio retorna lista de itens acionáveis; máximo 2 ciclos antes do
+humano intervir (§6.5).
+
+**Consequências:**
+- ✅ Multi-agente paralelo viável com revisão centralizada que não
+  bloqueia humano em fila.
+- ✅ ADRs (G1) escritas antes do código; rationale gravado para
+  agentes futuros.
+- ✅ Wave boundary explícito (G4) impede onda nova começar sem smoke
+  verde.
+- ⚠️ Custo de coordenação: agente espera review entre G3 e merge.
+  Mitigação: enquanto espera, agente pode pegar lane disjunta.
+- ⚠️ Agente `senior-cto` precisa do diff completo + plano +
+  acceptance gates como contexto. Prompt template em
+  [CONFIG_CUTOVER_PLAN.md §6.3](CONFIG_CUTOVER_PLAN.md#63-como-invocar-o-cto).
+- ❌ Não cobre validação empírica em workspace de cliente real —
+  smoke é fixture sintético. Aceito porque F7 ainda não fechou; quando
+  fechar, gate G4 ganha smoke shadow em workspace piloto.
+
+---
+
 <!--
 Template editorial — preservado em HTML comment para não aparecer
 no ToC do GitHub como ADR real. Copie o bloco abaixo ao criar uma
