@@ -48,6 +48,8 @@ const reports: ReportResponse[] = [
     pipeline_run_id: "run-1",
     source_document_count: 1,
     source_document_ids: ["doc-1"],
+    consumed_document_count: 1,
+    consumed_document_ids: ["doc-1"],
     has_analysis_data: true,
   },
 ];

@@ -227,6 +227,8 @@ export function makeReport(
     pipeline_run_id: null,
     source_document_count: 0,
     source_document_ids: [],
+    consumed_document_count: 0,
+    consumed_document_ids: [],
     has_analysis_data: true,
     ...overrides,
   };

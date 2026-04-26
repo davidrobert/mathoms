@@ -2,6 +2,8 @@ import type { Page, Route } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import type { ReportResponse } from "@/lib/api";
+
 /**
  * Mock helper para rota /reports/[id] sem backend real.
  *
@@ -31,7 +33,10 @@ function loadFixture(name: "medium"): unknown {
   return JSON.parse(raw);
 }
 
-function buildReportResponse(reportId: string, workspaceId: string) {
+function buildReportResponse(
+  reportId: string,
+  workspaceId: string,
+): ReportResponse {
   return {
     id: reportId,
     workspace_id: workspaceId,
@@ -43,6 +48,8 @@ function buildReportResponse(reportId: string, workspaceId: string) {
     pipeline_run_id: "run-fixture",
     source_document_count: 3,
     source_document_ids: ["doc-1", "doc-2", "doc-3"],
+    consumed_document_count: 3,
+    consumed_document_ids: ["doc-1", "doc-2", "doc-3"],
     has_analysis_data: true,
     premissas_snapshot: null,
   };
