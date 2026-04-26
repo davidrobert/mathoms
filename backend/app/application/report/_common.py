@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+import unicodedata
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,6 +48,37 @@ def sanitize_filename(raw: str) -> str:
     """Whitelist [A-Za-z0-9._-] para impedir injeção em Content-Disposition."""
     cleaned = re.sub(r"[^A-Za-z0-9._-]", "_", raw).strip("._")
     return cleaned or "relatorio.pdf"
+
+
+def slugify_family(surname: str | None) -> str:
+    """ASCII-safe slug: NFKD fold, lowercase, hífen como separador (vazio se inválido)."""
+    if not surname:
+        return ""
+    s = unicodedata.normalize("NFKD", surname.strip().lower())
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    s = re.sub(r"[^a-z0-9]+", "-", s)
+    return s.strip("-")
+
+
+def extract_period_yyyymm(period: str | None) -> str:
+    """Extrai ``YYYY-MM`` final (ex.: ``"2023-01 a 2026-04"`` → ``"2026-04"``)."""
+    if not period:
+        return ""
+    matches = re.findall(r"(\d{4}-\d{2})", period)
+    return matches[-1] if matches else ""
+
+
+def compose_pdf_filename(
+    surname: str | None,
+    period: str | None,
+    generated_at: datetime,
+) -> str:
+    """Compõe ``mathoms-planejamento-{slug}-{YYYY-MM}.pdf`` (v2.F.3c · §17.8.c)."""
+    slug = slugify_family(surname)
+    yyyymm = extract_period_yyyymm(period) or generated_at.strftime("%Y-%m")
+    if slug:
+        return f"mathoms-planejamento-{slug}-{yyyymm}.pdf"
+    return f"mathoms-planejamento-{yyyymm}.pdf"
 
 
 async def fetch_report(workspace_id: str, report_id: str, *, db: AsyncSession) -> Report:

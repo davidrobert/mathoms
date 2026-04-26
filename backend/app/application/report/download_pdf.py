@@ -8,10 +8,15 @@ from fastapi import HTTPException, status
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.application.report._common import fetch_report, sanitize_filename
+from backend.app.application.report._common import (
+    compose_pdf_filename,
+    fetch_report,
+    sanitize_filename,
+)
 from backend.app.core.config import settings
 from backend.app.core.security import create_access_token
 from backend.app.models.user import User
+from backend.app.models.workspace import Workspace
 from backend.app.services.pdf_renderer import render_pdf
 
 
@@ -22,7 +27,9 @@ async def download_report_pdf(
     user: User,
     db: AsyncSession,
 ) -> Response:
-    await fetch_report(workspace_id, report_id, db=db)
+    report = await fetch_report(workspace_id, report_id, db=db)
+    workspace = await db.get(Workspace, workspace_id)
+    surname = workspace.family_surname if workspace is not None else None
 
     # Token efêmero (60s) para Playwright autenticar na rota do frontend.
     ephemeral_token = create_access_token(user.id, expires_delta=timedelta(minutes=1))
@@ -31,7 +38,7 @@ async def download_report_pdf(
 
     pdf_bytes = await _render_or_raise(report_url, ephemeral_token)
 
-    filename = sanitize_filename(f"relatorio-{report_id[:8]}.pdf")
+    filename = sanitize_filename(compose_pdf_filename(surname, report.period, report.created_at))
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",

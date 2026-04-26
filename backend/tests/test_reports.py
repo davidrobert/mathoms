@@ -400,6 +400,71 @@ def test_sanitize_filename_helper():
     assert _sanitize_filename("report_2026-04.pdf") == "report_2026-04.pdf"
 
 
+# ─── v2.F.3c: PDF filename composition (família + período) ─────────────
+
+
+def test_pdf_filename_with_family_and_period():
+    from datetime import datetime, timezone
+
+    from backend.app.application.report._common import compose_pdf_filename
+
+    name = compose_pdf_filename(
+        "Ferreira Campos",
+        "2023-01 a 2026-04",
+        datetime(2026, 4, 26, tzinfo=timezone.utc),
+    )
+    assert name == "mathoms-planejamento-ferreira-campos-2026-04.pdf"
+
+
+def test_pdf_filename_without_family_uses_period_only():
+    from datetime import datetime, timezone
+
+    from backend.app.application.report._common import compose_pdf_filename
+
+    name = compose_pdf_filename(
+        None, "2023-01 a 2026-04", datetime(2026, 4, 26, tzinfo=timezone.utc)
+    )
+    assert name == "mathoms-planejamento-2026-04.pdf"
+
+    name_empty = compose_pdf_filename(
+        "   ", "2023-01 a 2026-04", datetime(2026, 4, 26, tzinfo=timezone.utc)
+    )
+    assert name_empty == "mathoms-planejamento-2026-04.pdf"
+
+
+def test_pdf_filename_without_period_falls_back_to_generated_at():
+    from datetime import datetime, timezone
+
+    from backend.app.application.report._common import compose_pdf_filename
+
+    generated = datetime(2026, 4, 26, 12, 30, tzinfo=timezone.utc)
+    name = compose_pdf_filename("Silva", None, generated)
+    assert name == "mathoms-planejamento-silva-2026-04.pdf"
+
+    name_blank = compose_pdf_filename("Silva", "", generated)
+    assert name_blank == "mathoms-planejamento-silva-2026-04.pdf"
+
+
+def test_pdf_filename_slug_strips_accents_and_spaces():
+    from datetime import datetime, timezone
+
+    from backend.app.application.report._common import (
+        compose_pdf_filename,
+        slugify_family,
+    )
+
+    assert slugify_family("Ferreira Campos") == "ferreira-campos"
+    assert slugify_family("Gonçalves d'Ávila") == "goncalves-d-avila"
+    assert slugify_family("  ÁCEnts   ") == "acents"
+
+    name = compose_pdf_filename(
+        "Gonçalves d'Ávila",
+        "2023-01 a 2026-04",
+        datetime(2026, 4, 26, tzinfo=timezone.utc),
+    )
+    assert name == "mathoms-planejamento-goncalves-d-avila-2026-04.pdf"
+
+
 @pytest.mark.asyncio
 async def test_get_report_data_isolation_across_workspaces(
     auth_client: AsyncClient, client: AsyncClient, tmp_path: Path, db: AsyncSession
