@@ -97,7 +97,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-56 flex-col border-r border-border bg-card transition-transform lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-56 flex-col border-r border-border bg-card transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -107,7 +107,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
 
-        <nav className="flex-1 space-y-4 px-3 py-4">
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
           {NAV_GROUPS.map((group) => (
             <div key={group.heading}>
               <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -141,7 +141,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <Separator />
-        <div className="p-4">
+        <div className="shrink-0 p-4">
           <p className="truncate text-sm font-medium">{user?.full_name}</p>
           <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
           <div className="mt-3 flex items-center gap-2">
