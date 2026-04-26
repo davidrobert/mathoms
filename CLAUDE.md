@@ -38,6 +38,30 @@ critério de aceite explícito.
 
 ---
 
+## Subagentes especializados (delegue antes de opinar fora do seu domínio)
+
+Em [.claude/agents/](.claude/agents/) há revisores com domínio próprio.
+Invoque via Agent tool antes de opinar em decisões que caem no escopo
+deles:
+
+- **[financial-planner](.claude/agents/financial-planner.md)** — regras
+  de domínio, métricas, recomendações financeiras (Perini/Cerbasi/AUVP).
+  Antes de propor KPI novo, mudar fórmula de
+  [FORMULAS.md](docs/FORMULAS.md), ou criar seção de relatório com
+  dimensão financeira.
+- **[product-designer](.claude/agents/product-designer.md)** — UI/UX,
+  copy, acessibilidade, aderência ao design system. Antes de propor
+  tela nova, mudar componente do relatório, ou decidir
+  copy/visualização.
+- **[senior-cto](.claude/agents/senior-cto.md)** — arquitetura, ADRs,
+  design de API, modelagem de domínio, trade-offs estruturais. Antes de
+  propor refactor cross-cutting, nova ADR, ou migração.
+
+Cada arquivo `.claude/agents/<nome>.md` tem o briefing completo.
+**Não duplique** o briefing aqui — leia direto.
+
+---
+
 ## "Concluído" = commit mergeado em `main` com CI verde
 
 Uma tarefa **só é concluída** quando:
