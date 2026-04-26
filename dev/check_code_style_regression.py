@@ -26,7 +26,9 @@ BASELINE = REPO_ROOT / "dev" / "code_style_baseline.json"
 
 
 def _git(*args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(["git", "-C", str(REPO_ROOT), *args], capture_output=True, text=True, check=False)
+    return subprocess.run(
+        ["git", "-C", str(REPO_ROOT), *args], capture_output=True, text=True, check=False
+    )
 
 
 def _ongoing_git_op() -> str | None:
@@ -136,7 +138,10 @@ def main(argv: list[str] | None = None) -> int:
             if verify_counts.get(cat, 0) != current_counts.get(cat, 0)
         ]
         if drift:
-            print("ERRO: re-audit pós-gravação divergiu — baseline pode estar inconsistente:", file=sys.stderr)
+            print(
+                "ERRO: re-audit pós-gravação divergiu — baseline pode estar inconsistente:",
+                file=sys.stderr,
+            )
             for cat, c1, c2 in drift:
                 print(f"  {cat}: {c1} → {c2}", file=sys.stderr)
             return 2
