@@ -9,6 +9,8 @@
  * pois o E5 JSON pode ter variações entre workspaces e versões.
  */
 
+import type { ChartSeries } from "./chart-series";
+
 // ──────────────────────────────────────────────────────────────────────
 // Lote A (S1) — Patrimônio
 // ──────────────────────────────────────────────────────────────────────
@@ -123,8 +125,14 @@ export interface FluxoCaixaSummary {
     labels?: string[];
     totais_receita?: number[];
     totais_despesa?: number[];
+    /** Onda v2.E.2 — séries por sub-fonte de receita (1 dataset por origem). */
+    receita_datasets?: ChartSeries[];
+    /** Onda v2.E.2 — séries por sub-categoria de despesa (1 dataset por categoria). */
+    despesa_datasets?: ChartSeries[];
   };
 }
+
+export type { ChartSeries } from "./chart-series";
 
 // ──────────────────────────────────────────────────────────────────────
 // Lote B (S2) — Fluxo de Caixa
