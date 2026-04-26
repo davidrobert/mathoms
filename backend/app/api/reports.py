@@ -32,12 +32,19 @@ from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
+from backend.app.repositories.config_blob_repository import ConfigBlobRepository
 from backend.app.schemas.report import (
     ConsumoPontuaisResponse,
     ReportListResponse,
     ReportResponse,
     ReportTasksResponse,
 )
+from backend.app.services.config_defaults import ConfigDefaultsLoader
+from backend.app.services.transfer_detector_resolver import (
+    resolve_internal_transfer_detector,
+)
+
+_defaults = ConfigDefaultsLoader()
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/reports",
@@ -60,7 +67,10 @@ async def list_consumo_pontuais(
     db: AsyncSession = Depends(get_db),
 ) -> ConsumoPontuaisResponse:
     """Gastos pontuais ≥ R$2k no período, com transferências internas filtradas (card Consumo Consciente)."""
-    return await _list_consumo_pontuais(workspace.id, period=period, db=db)
+    detector = await resolve_internal_transfer_detector(
+        workspace.id, repo=ConfigBlobRepository(db), defaults=_defaults
+    )
+    return await _list_consumo_pontuais(workspace.id, period=period, detector=detector, db=db)
 
 
 @router.get("/{report_id}", response_model=ReportResponse)

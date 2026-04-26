@@ -1,4 +1,4 @@
-"""Use case: replace total do blob ``TransferConfig`` (ADR-130)."""
+"""Use case: replace total do blob ``TransferConfig`` (ADR-133)."""
 
 from __future__ import annotations
 

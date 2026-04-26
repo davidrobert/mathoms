@@ -63,8 +63,15 @@ def report_layout_to_response(
 
 
 def transfer_blob_to_response(config_json: dict[str, Any]) -> TransferConfigResponse:
-    """Converte dict → DTO tipado para ``transferencias_internas`` (ADR-130)."""
-    return TransferConfigResponse.model_validate(config_json)
+    """Converte dict → DTO tipado para ``transferencias_internas`` (ADR-133)."""
+    return TransferConfigResponse.model_validate(_strip_transfer_comments(config_json))
+
+
+def _strip_transfer_comments(config_json: dict[str, Any]) -> dict[str, Any]:
+    """Filtra chaves ``_comment`` em ``patterns_bank_specific`` (legado JSON)."""
+    bank_raw = config_json.get("patterns_bank_specific") or {}
+    bank_clean = {k: v for k, v in bank_raw.items() if not str(k).startswith("_")}
+    return {**config_json, "patterns_bank_specific": bank_clean}
 
 
 def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:

@@ -167,7 +167,7 @@ def serialize_pipeline_config(workspace_id: str, db: Session) -> dict[str, Any] 
 
 
 def serialize_transfer_config(workspace_id: str, db: Session) -> dict[str, Any] | None:
-    """Bloco ``transferencias_internas`` (ADR-130) — None se não há row no DB."""
+    """Bloco ``transferencias_internas`` (ADR-133) — None se não há row no DB."""
     cfg = db.query(TransferConfig).filter(TransferConfig.workspace_id == workspace_id).first()
     return cfg.config_json if cfg else None
 
@@ -193,26 +193,23 @@ def _override_family_members(workspace_id: str, config_dir: Path, db: Session) -
         _write_json(config_dir / "family_members.json", data)
 
 
-def _override_transfer_config(workspace_id: str, config_dir: Path, db: Session) -> None:
-    """Aplica overlay do bloco ``transferencias_internas`` (ADR-130).
-
-    Roda **depois** de ``_override_family_members``, que pode ter sobrescrito
-    o arquivo perdendo o bloco. Garante que o bloco fique presente:
-
-    - Com row em ``TransferConfig`` (DB) → usa o config_json do DB.
-    - Sem row → recupera do global ``config/family_members.json`` para
-      compensar o overwrite. Sem essa rede, workspace com FamilyMember
-      no DB perderia o bloco e o E4 deixaria de detectar transferências.
-    """
+def _resolve_transfer_block(workspace_id: str, db: Session) -> dict[str, Any] | None:
+    """DB → global fallback. ``None`` se não há bloco em nenhum lugar."""
     data = serialize_transfer_config(workspace_id, db)
+    if data is not None:
+        return data
+    global_family_path = _global_config_dir() / "family_members.json"
+    if not global_family_path.is_file():
+        return None
+    global_doc = json.loads(global_family_path.read_text(encoding="utf-8"))
+    return global_doc.get("transferencias_internas")
+
+
+def _override_transfer_config(workspace_id: str, config_dir: Path, db: Session) -> None:
+    """Overlay ``transferencias_internas`` em ``family_members.json`` (ADR-133)."""
+    data = _resolve_transfer_block(workspace_id, db)
     if data is None:
-        global_family_path = _global_config_dir() / "family_members.json"
-        if not global_family_path.is_file():
-            return
-        global_doc = json.loads(global_family_path.read_text(encoding="utf-8"))
-        data = global_doc.get("transferencias_internas")
-        if data is None:
-            return
+        return
     family_path = config_dir / "family_members.json"
     family_doc: dict[str, Any] = {}
     if family_path.is_file():

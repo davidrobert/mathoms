@@ -1,4 +1,4 @@
-"""Use case: leitura do blob ``TransferConfig`` com fallback do disco (ADR-130)."""
+"""Use case: leitura do blob ``TransferConfig`` com fallback do disco (ADR-133)."""
 
 from __future__ import annotations
 

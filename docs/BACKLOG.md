@@ -29,6 +29,38 @@
 
 ---
 
+## ADR-133b — UI de edição `transfer_configs` (frontend) — P1
+
+**Status:** ☐ A executar (sessão dedicada). Backend de
+[ADR-133](DECISIONS.md#adr-133--transferencias_internas-modelado-em-transfer_configs-workspace-scoped)
+entregue 2026-04-26 (endpoints `GET/PUT /workspaces/{id}/config/transfer`).
+
+**Escopo:**
+
+- Página de configuração em `frontend/src/app/(app)/config/transfer/`
+  (ou expansão da existente `Categorization`/`Settings`) com 4 listas
+  editáveis (`recipients`, `patterns_pix`, `patterns_global`,
+  `patterns_bank_specific`).
+- Form com add/remove/edit por item; `patterns_bank_specific` é
+  `dict[bank, list[pattern]]` — UI agrupada por banco.
+- Helper text explicando: recipients = nomes de pessoas/contas próprias
+  (matching por substring no `descricao` da transação); patterns =
+  substrings que marcam transferência interna.
+- Carregar via `getTransferConfig(workspaceId)`; salvar via
+  `putTransferConfig(workspaceId, body)` (replace total).
+- Testes: vitest unit (componente) + um e2e `@critical` cobrindo
+  add → save → reload.
+
+**Critério de aceite:** usuário consegue adicionar um nome novo à
+lista `recipients`, salvar, rodar pipeline e ver as transferências
+reclassificadas no card "Consumo Consciente". Sem regressão visual nas
+páginas adjacentes.
+
+**Prompt dedicado:** ver bloco "B-UI session prompt" no commit
+da sessão atual (`feat(reports): consumo-pontuais` series).
+
+---
+
 ## P0/P1 — Motor canônico e pipeline (2026-04)
 
 Objetivo: **inventário de drift**, **fronteira motor × adaptadores**, **contratos JSON** e **base de golden tests**; em seguida **runner offline**, **CLI fina** e **CI strict** (ver plano estrutural).

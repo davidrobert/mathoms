@@ -4,7 +4,7 @@ Revision ID: w1x2y3z4a5b6
 Revises: v0w1x2y3z4a5
 Create Date: 2026-04-25
 
-ADR-130: extrai o bloco ``transferencias_internas`` de
+ADR-133: extrai o bloco ``transferencias_internas`` de
 ``config/family_members.json`` para a tabela ``transfer_configs``
 (workspace-scoped). Consumidor primário: ``InternalTransferDetector``
 no E4 e no use case ``list_consumo_pontuais``.

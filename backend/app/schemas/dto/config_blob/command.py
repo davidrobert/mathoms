@@ -76,7 +76,7 @@ class ReportLayoutUpdateCommand(BaseModel):
 
 
 class TransferConfigUpdateCommand(BaseModel):
-    """Input do ``PUT /config/transfer`` (ADR-130) — replace total das 4 listas/dict."""
+    """Input do ``PUT /config/transfer`` (ADR-133) — replace total das 4 listas/dict."""
 
     patterns_pix: list[str] = Field(default_factory=list)
     patterns_global: list[str] = Field(default_factory=list)

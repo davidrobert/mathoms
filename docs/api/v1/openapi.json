@@ -7263,6 +7263,82 @@
         "title": "TransactionSummary",
         "type": "object"
       },
+      "TransferConfigResponse": {
+        "description": "``GET /config/transfer`` \u2014 bloco ``transferencias_internas`` (ADR-133).",
+        "properties": {
+          "patterns_bank_specific": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Patterns Bank Specific",
+            "type": "object"
+          },
+          "patterns_global": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Patterns Global",
+            "type": "array"
+          },
+          "patterns_pix": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Patterns Pix",
+            "type": "array"
+          },
+          "recipients": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Recipients",
+            "type": "array"
+          }
+        },
+        "title": "TransferConfigResponse",
+        "type": "object"
+      },
+      "TransferConfigUpdateCommand": {
+        "description": "Input do ``PUT /config/transfer`` (ADR-133) \u2014 replace total das 4 listas/dict.",
+        "properties": {
+          "patterns_bank_specific": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Patterns Bank Specific",
+            "type": "object"
+          },
+          "patterns_global": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Patterns Global",
+            "type": "array"
+          },
+          "patterns_pix": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Patterns Pix",
+            "type": "array"
+          },
+          "recipients": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Recipients",
+            "type": "array"
+          }
+        },
+        "title": "TransferConfigUpdateCommand",
+        "type": "object"
+      },
       "UpdateUserEmailRequest": {
         "properties": {
           "new_email": {
@@ -10568,6 +10644,108 @@
           }
         ],
         "summary": "Update Report Layout",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/config/transfer": {
+      "get": {
+        "operationId": "get_transfer_config_api_v1_workspaces__workspace_id__config_transfer_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Transfer Config",
+        "tags": [
+          "config"
+        ]
+      },
+      "put": {
+        "operationId": "update_transfer_config_api_v1_workspaces__workspace_id__config_transfer_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferConfigUpdateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Transfer Config",
         "tags": [
           "config"
         ]

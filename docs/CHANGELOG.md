@@ -11,6 +11,26 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Card "Consumo Consciente" — bug fix + ADR-133 (2026-04-26) — ✅:**
+  resolução do bug onde PIX entre contas próprias da família apareciam
+  como gastos pontuais no card. Solução em três camadas:
+  (a) novo endpoint `GET /workspaces/{id}/reports/consumo-pontuais` que
+  centraliza no backend a lista filtrada — antes vivia em
+  `frontend/src/lib/periodUtils.ts::filterConsumoPontuais` (filtro local
+  só por valor + receita, sem detecção de transferência interna);
+  (b) defesa em profundidade aplicando `InternalTransferDetector` sobre
+  a descrição mesmo quando o E4 cai em `nao_identificado`;
+  (c) **[ADR-133](DECISIONS.md#adr-133--transferencias_internas-modelado-em-transfer_configs-workspace-scoped)** —
+  bloco `transferencias_internas` extraído de `config/family_members.json`
+  para a tabela `transfer_configs` (workspace-scoped). Migration
+  `w1x2y3z4a5b6`. Endpoints `GET/PUT /config/transfer`. Materializer
+  ganha `_override_transfer_config` (overlay em `family_members.json`
+  com fallback ao global). `list_consumo_pontuais` deixa de ler disco;
+  recebe `InternalTransferDetector` injetado via
+  `resolve_internal_transfer_detector` (DB-first → defaults globais).
+  UI de edição (`/config/transfer` form em `frontend/`) deferida para
+  sessão dedicada (BACKLOG: ADR-133b).
+
 - **CI — otimização de uso GitHub Actions (2026-04-26) — ✅:** workflow
   `.github/workflows/ci.yml` agora skipa jobs irrelevantes via
   [`dorny/paths-filter@v3`](https://github.com/dorny/paths-filter). Job

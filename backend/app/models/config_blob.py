@@ -1,7 +1,7 @@
 """JSON-blob config models: PipelineConfig, InstitutionConfig, ReportLayout, TransferConfig.
 
 These store deep/variable-structure configs as JSON blobs — one row per workspace.
-TransferConfig (ADR-130) hospeda o bloco ``transferencias_internas`` antes
+TransferConfig (ADR-133) hospeda o bloco ``transferencias_internas`` antes
 embutido em ``config/family_members.json`` (recipients/patterns para
 ``InternalTransferDetector``).
 """
@@ -80,20 +80,7 @@ class ReportLayout(Base):
 
 
 class TransferConfig(Base):
-    """Bloco ``transferencias_internas`` por workspace (ADR-130).
-
-    ``config_json`` shape::
-
-        {
-            "patterns_pix": list[str],
-            "patterns_global": list[str],
-            "patterns_bank_specific": dict[str, list[str]],
-            "recipients": list[str],
-        }
-
-    Materializado em ``family_members.json::transferencias_internas`` antes
-    de cada pipeline run. Consumido por ``InternalTransferDetector``.
-    """
+    """Bloco ``transferencias_internas`` por workspace (ADR-133)."""
 
     __tablename__ = "transfer_configs"
 
