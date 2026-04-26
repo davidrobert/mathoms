@@ -45,12 +45,28 @@ export interface ChartSpec {
   height?: ChartHeight;
 }
 
+/** Report Premium UI v2.1 — placeholder de <ComparisonBlock> por seção (deferred_until v2.8). */
+export interface ComparisonSpec {
+  id: string;
+  enabled: boolean;
+  deferred_until?: string;
+}
+
+/** Report Premium UI v2.1 — placeholder de <ChangelogList> por seção (deferred_until v2.8). */
+export interface ChangelogSpec {
+  id: string;
+  enabled: boolean;
+  deferred_until?: string;
+}
+
 export interface SectionSpec {
   id: string;
   title: string;
   enabled: boolean;
   charts?: ChartSpec[];
   cards?: CardSpec[];
+  comparisons?: ComparisonSpec[];
+  changelog?: ChangelogSpec[];
   data_source?: string;
   summary?: boolean;
   divider_before?: boolean;
@@ -328,6 +344,20 @@ export const LAYOUT: ReportLayout = {
             "variant": "feature",
             "size": "half"
           }
+        ],
+        "comparisons": [
+          {
+            "id": "comparisons_s1",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
+        ],
+        "changelog": [
+          {
+            "id": "changelog_s1",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
         ]
       },
       {
@@ -398,6 +428,20 @@ export const LAYOUT: ReportLayout = {
             "variant": "feature",
             "size": "half"
           }
+        ],
+        "comparisons": [
+          {
+            "id": "comparisons_s2",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
+        ],
+        "changelog": [
+          {
+            "id": "changelog_s2",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
         ]
       },
       {
@@ -459,6 +503,20 @@ export const LAYOUT: ReportLayout = {
             "enabled": true,
             "variant": "primary",
             "size": "half"
+          }
+        ],
+        "comparisons": [
+          {
+            "id": "comparisons_s3",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
+        ],
+        "changelog": [
+          {
+            "id": "changelog_s3",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
           }
         ]
       },
@@ -707,7 +765,21 @@ export const LAYOUT: ReportLayout = {
         "collapsible": true,
         "data_source": "dashboard.aportes + dashboard.investimentos_delta",
         "charts": [],
-        "cards": []
+        "cards": [],
+        "comparisons": [
+          {
+            "id": "comparisons_t2",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
+        ],
+        "changelog": [
+          {
+            "id": "changelog_t2",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
+        ]
       },
       {
         "id": "T3",
@@ -716,7 +788,21 @@ export const LAYOUT: ReportLayout = {
         "collapsible": true,
         "data_source": "dashboard.tarefas + dashboard.tarefas_status",
         "charts": [],
-        "cards": []
+        "cards": [],
+        "comparisons": [
+          {
+            "id": "comparisons_t3",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
+        ],
+        "changelog": [
+          {
+            "id": "changelog_t3",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
+        ]
       },
       {
         "id": "T4",
@@ -734,7 +820,21 @@ export const LAYOUT: ReportLayout = {
         "collapsible": true,
         "data_source": "dashboard.proximos_15d",
         "charts": [],
-        "cards": []
+        "cards": [],
+        "comparisons": [
+          {
+            "id": "comparisons_t5",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
+        ],
+        "changelog": [
+          {
+            "id": "changelog_t5",
+            "enabled": false,
+            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+          }
+        ]
       },
       {
         "id": "T6",

@@ -11,6 +11,27 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report Premium UI v2.1 — `comparisons`/`changelog` placeholders no
+  YAML (2026-04-26) — ✅:** cumpre promessa do BACKLOG §3.1 de "declarados
+  `enabled: false` no YAML" (até hoje só registrada em texto, sem entrada
+  real). Adicionados blocos placeholder em **6 seções candidatas óbvias**
+  — S1, S2, S3 (estratégico) e T2, T3, T5 (tático) — totalizando
+  **12 placeholders** (6 seções × 2 tipos). Cada bloco tem
+  `id: comparisons_<sec>` / `changelog_<sec>`, `enabled: false` e
+  `deferred_until: "v2.D.1 SnapshotChangelogBuilder"`. Schema
+  ([`config/schemas/report_layout.schema.json`](../config/schemas/report_layout.schema.json))
+  ganhou `$defs/comparisonSpec` + `$defs/changelogSpec` e expõe
+  `comparisons[]` / `changelog[]` em `sectionSpec.properties`. Codegen
+  ([`dev/codegen_report_layout.py`](../dev/codegen_report_layout.py))
+  emite `ComparisonSpec` / `ChangelogSpec` em TS e Pydantic; arquivos
+  gerados ([`frontend/src/generated/report-layout.ts`](../frontend/src/generated/report-layout.ts),
+  [`backend/app/generated/report_layout.py`](../backend/app/generated/report_layout.py))
+  regenerados no mesmo commit. `MIGRATED_SECTIONS` em `ReportShell.tsx`
+  já filtra seções `enabled:false` no nível superior; novos arrays não
+  são iterados pelo renderer (invisible by default) — render real virá
+  em **v2.8** depois que **v2.D.1 SnapshotChangelogBuilder** popular os
+  dados. Ver [docs/agent_prompts/track_report_v2.md §3 v2.1](agent_prompts/track_report_v2.md).
+
 - **F12.1e — Correção da lista de locales para 10 (2026-04-26) — ✅
   ([ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
   revisado, commit `94cf939`):** sincroniza `frontend/src/i18n/config.ts`,

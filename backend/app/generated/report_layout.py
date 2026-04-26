@@ -54,12 +54,30 @@ class ChartSpec(_Base):
     height: ChartHeight | None = None
 
 
+class ComparisonSpec(_Base):
+    """Report Premium UI v2.1 — placeholder de <ComparisonBlock> por seção (deferred_until v2.8)."""
+
+    id: str
+    enabled: bool
+    deferred_until: str | None = None
+
+
+class ChangelogSpec(_Base):
+    """Report Premium UI v2.1 — placeholder de <ChangelogList> por seção (deferred_until v2.8)."""
+
+    id: str
+    enabled: bool
+    deferred_until: str | None = None
+
+
 class SectionSpec(_Base):
     id: str
     title: str
     enabled: bool
     charts: list[ChartSpec] = []
     cards: list[CardSpec] = []
+    comparisons: list[ComparisonSpec] = []
+    changelog: list[ChangelogSpec] = []
     data_source: str | None = None
     summary: bool | None = None
     divider_before: bool | None = None
@@ -214,7 +232,15 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                         {   'id': 'endividamento',
                                                             'enabled': True,
                                                             'variant': 'feature',
-                                                            'size': 'half'}]},
+                                                            'size': 'half'}],
+                                           'comparisons': [   {   'id': 'comparisons_s1',
+                                                                  'enabled': False,
+                                                                  'deferred_until': 'v2.D.1 '
+                                                                                    'SnapshotChangelogBuilder'}],
+                                           'changelog': [   {   'id': 'changelog_s1',
+                                                                'enabled': False,
+                                                                'deferred_until': 'v2.D.1 '
+                                                                                  'SnapshotChangelogBuilder'}]},
                                        {   'id': 'S2',
                                            'title': 'Fluxo de Caixa — Receitas e Despesas',
                                            'enabled': True,
@@ -258,7 +284,15 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                         {   'id': 'milhas',
                                                             'enabled': False,
                                                             'variant': 'feature',
-                                                            'size': 'half'}]},
+                                                            'size': 'half'}],
+                                           'comparisons': [   {   'id': 'comparisons_s2',
+                                                                  'enabled': False,
+                                                                  'deferred_until': 'v2.D.1 '
+                                                                                    'SnapshotChangelogBuilder'}],
+                                           'changelog': [   {   'id': 'changelog_s2',
+                                                                'enabled': False,
+                                                                'deferred_until': 'v2.D.1 '
+                                                                                  'SnapshotChangelogBuilder'}]},
                                        {   'id': 'S3',
                                            'title': 'Investimentos — Carteira Financeira',
                                            'enabled': True,
@@ -296,7 +330,15 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                         {   'id': 'contrafluxo',
                                                             'enabled': True,
                                                             'variant': 'primary',
-                                                            'size': 'half'}]},
+                                                            'size': 'half'}],
+                                           'comparisons': [   {   'id': 'comparisons_s3',
+                                                                  'enabled': False,
+                                                                  'deferred_until': 'v2.D.1 '
+                                                                                    'SnapshotChangelogBuilder'}],
+                                           'changelog': [   {   'id': 'changelog_s3',
+                                                                'enabled': False,
+                                                                'deferred_until': 'v2.D.1 '
+                                                                                  'SnapshotChangelogBuilder'}]},
                                        {   'id': 'S4',
                                            'title': 'Real Estate — Imóveis e Renda Passiva',
                                            'enabled': True,
@@ -431,14 +473,30 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                       'data_source': 'dashboard.aportes + '
                                                      'dashboard.investimentos_delta',
                                       'charts': [],
-                                      'cards': []},
+                                      'cards': [],
+                                      'comparisons': [   {   'id': 'comparisons_t2',
+                                                             'enabled': False,
+                                                             'deferred_until': 'v2.D.1 '
+                                                                               'SnapshotChangelogBuilder'}],
+                                      'changelog': [   {   'id': 'changelog_t2',
+                                                           'enabled': False,
+                                                           'deferred_until': 'v2.D.1 '
+                                                                             'SnapshotChangelogBuilder'}]},
                                   {   'id': 'T3',
                                       'title': 'Checklist de Tarefas',
                                       'enabled': True,
                                       'collapsible': True,
                                       'data_source': 'dashboard.tarefas + dashboard.tarefas_status',
                                       'charts': [],
-                                      'cards': []},
+                                      'cards': [],
+                                      'comparisons': [   {   'id': 'comparisons_t3',
+                                                             'enabled': False,
+                                                             'deferred_until': 'v2.D.1 '
+                                                                               'SnapshotChangelogBuilder'}],
+                                      'changelog': [   {   'id': 'changelog_t3',
+                                                           'enabled': False,
+                                                           'deferred_until': 'v2.D.1 '
+                                                                             'SnapshotChangelogBuilder'}]},
                                   {   'id': 'T4',
                                       'title': 'Alertas e Pendências',
                                       'enabled': True,
@@ -452,7 +510,15 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                       'collapsible': True,
                                       'data_source': 'dashboard.proximos_15d',
                                       'charts': [],
-                                      'cards': []},
+                                      'cards': [],
+                                      'comparisons': [   {   'id': 'comparisons_t5',
+                                                             'enabled': False,
+                                                             'deferred_until': 'v2.D.1 '
+                                                                               'SnapshotChangelogBuilder'}],
+                                      'changelog': [   {   'id': 'changelog_t5',
+                                                           'enabled': False,
+                                                           'deferred_until': 'v2.D.1 '
+                                                                             'SnapshotChangelogBuilder'}]},
                                   {   'id': 'T6',
                                       'title': 'Notas e Observações',
                                       'enabled': True,

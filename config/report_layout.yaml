@@ -139,6 +139,16 @@ estrategico:
           enabled: true
           variant: "feature"
           size: "half"
+      # Report Premium UI v2.1 — placeholders deferred até v2.D.1+v2.8.
+      # Ver docs/agent_prompts/track_report_v2.md §3 v2.1.
+      comparisons:
+        - id: "comparisons_s1"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
+      changelog:
+        - id: "changelog_s1"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
 
     # --------------------------------------------------------------------------
     # S2 — Fluxo de Caixa
@@ -189,6 +199,15 @@ estrategico:
           enabled: false
           variant: "feature"
           size: "half"
+      # Report Premium UI v2.1 — placeholders deferred até v2.D.1+v2.8.
+      comparisons:
+        - id: "comparisons_s2"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
+      changelog:
+        - id: "changelog_s2"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
 
     # --------------------------------------------------------------------------
     # S3 — Investimentos
@@ -236,6 +255,15 @@ estrategico:
           enabled: true
           variant: "primary"
           size: "half"
+      # Report Premium UI v2.1 — placeholders deferred até v2.D.1+v2.8.
+      comparisons:
+        - id: "comparisons_s3"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
+      changelog:
+        - id: "changelog_s3"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
 
     # --------------------------------------------------------------------------
     # S4 — Real Estate
@@ -416,6 +444,15 @@ tatico:
       data_source: "dashboard.aportes + dashboard.investimentos_delta"
       charts: []
       cards: []
+      # Report Premium UI v2.1 — placeholders deferred até v2.D.1+v2.8.
+      comparisons:
+        - id: "comparisons_t2"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
+      changelog:
+        - id: "changelog_t2"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
 
     # --------------------------------------------------------------------------
     # T3 — Checklist de Tarefas (filtros: todas/pendentes/feitas/vencidas)
@@ -427,6 +464,15 @@ tatico:
       data_source: "dashboard.tarefas + dashboard.tarefas_status"
       charts: []
       cards: []
+      # Report Premium UI v2.1 — placeholders deferred até v2.D.1+v2.8.
+      comparisons:
+        - id: "comparisons_t3"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
+      changelog:
+        - id: "changelog_t3"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
 
     # --------------------------------------------------------------------------
     # T4 — Alertas e Pendências
@@ -449,6 +495,15 @@ tatico:
       data_source: "dashboard.proximos_15d"
       charts: []
       cards: []
+      # Report Premium UI v2.1 — placeholders deferred até v2.D.1+v2.8.
+      comparisons:
+        - id: "comparisons_t5"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
+      changelog:
+        - id: "changelog_t5"
+          enabled: false
+          deferred_until: "v2.D.1 SnapshotChangelogBuilder"
 
     # --------------------------------------------------------------------------
     # T6 — Notas e Observações

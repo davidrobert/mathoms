@@ -127,12 +127,28 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  height?: ChartHeight;",
         "}",
         "",
+        "/** Report Premium UI v2.1 — placeholder de <ComparisonBlock> por seção (deferred_until v2.8). */",
+        "export interface ComparisonSpec {",
+        "  id: string;",
+        "  enabled: boolean;",
+        "  deferred_until?: string;",
+        "}",
+        "",
+        "/** Report Premium UI v2.1 — placeholder de <ChangelogList> por seção (deferred_until v2.8). */",
+        "export interface ChangelogSpec {",
+        "  id: string;",
+        "  enabled: boolean;",
+        "  deferred_until?: string;",
+        "}",
+        "",
         "export interface SectionSpec {",
         "  id: string;",
         "  title: string;",
         "  enabled: boolean;",
         "  charts?: ChartSpec[];",
         "  cards?: CardSpec[];",
+        "  comparisons?: ComparisonSpec[];",
+        "  changelog?: ChangelogSpec[];",
         "  data_source?: string;",
         "  summary?: boolean;",
         "  divider_before?: boolean;",
@@ -277,12 +293,30 @@ class ChartSpec(_Base):
     height: ChartHeight | None = None
 
 
+class ComparisonSpec(_Base):
+    """Report Premium UI v2.1 — placeholder de <ComparisonBlock> por seção (deferred_until v2.8)."""
+
+    id: str
+    enabled: bool
+    deferred_until: str | None = None
+
+
+class ChangelogSpec(_Base):
+    """Report Premium UI v2.1 — placeholder de <ChangelogList> por seção (deferred_until v2.8)."""
+
+    id: str
+    enabled: bool
+    deferred_until: str | None = None
+
+
 class SectionSpec(_Base):
     id: str
     title: str
     enabled: bool
     charts: list[ChartSpec] = []
     cards: list[CardSpec] = []
+    comparisons: list[ComparisonSpec] = []
+    changelog: list[ChangelogSpec] = []
     data_source: str | None = None
     summary: bool | None = None
     divider_before: bool | None = None

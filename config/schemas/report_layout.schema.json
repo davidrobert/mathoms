@@ -78,6 +78,34 @@
         "height": {"$ref": "#/$defs/heightSpec"}
       }
     },
+    "comparisonSpec": {
+      "type": "object",
+      "required": ["id", "enabled"],
+      "additionalProperties": false,
+      "description": "Report Premium UI v2.1 — placeholder de bloco <ComparisonBlock>. Permanece enabled:false até v2.D.1 entregar SnapshotChangelogBuilder, e v2.8 ativar render.",
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "pattern": "^[a-z0-9_]+$"},
+        "enabled": {"type": "boolean"},
+        "deferred_until": {
+          "type": "string",
+          "description": "Lane v2 que ativará este bloco (ex.: 'v2.D.1 SnapshotChangelogBuilder')."
+        }
+      }
+    },
+    "changelogSpec": {
+      "type": "object",
+      "required": ["id", "enabled"],
+      "additionalProperties": false,
+      "description": "Report Premium UI v2.1 — placeholder de <ChangelogList>. Permanece enabled:false até v2.D.1 entregar SnapshotChangelogBuilder, e v2.8 ativar render.",
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "pattern": "^[a-z0-9_]+$"},
+        "enabled": {"type": "boolean"},
+        "deferred_until": {
+          "type": "string",
+          "description": "Lane v2 que ativará este bloco (ex.: 'v2.D.1 SnapshotChangelogBuilder')."
+        }
+      }
+    },
     "sectionSpec": {
       "type": "object",
       "required": ["id", "title", "enabled"],
@@ -93,6 +121,16 @@
         "cards": {
           "type": "array",
           "items": {"$ref": "#/$defs/cardSpec"}
+        },
+        "comparisons": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/comparisonSpec"},
+          "description": "Report Premium UI v2.1 — placeholders de <ComparisonBlock> por seção (enabled:false até v2.8)."
+        },
+        "changelog": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/changelogSpec"},
+          "description": "Report Premium UI v2.1 — placeholders de <ChangelogList> por seção (enabled:false até v2.8)."
         },
         "data_source": {"type": "string"},
         "summary": {
