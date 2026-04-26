@@ -44,6 +44,13 @@ inteiro.
 | Report v2.D.1 + v2.8 — Snapshot changelog engine + comparisons/changelog ON | [track_report_v2_changelog_engine.md](track_report_v2_changelog_engine.md) | Report Premium · v2 (Onda D + ativação) | `agent/report-v2-changelog-engine/*` |
 | **Report Onda v2.E — charts UX (8 sub-lanes: PeriodToggle + 5 charts Recharts→Chart.js + ScoreCard plug + re-baseline)** | [track_report_v2_charts_ux.md](track_report_v2_charts_ux.md) | Report Premium · v2 (Onda E) | `agent/report-v2-{period-toggle,fluxo-types,fluxo-mensal-chartjs,receita-bar-chartjs,despesas-doughnut-chartjs,receita-despesa-chartjs,score-card-plug,charts-rebaseline}/*` |
 | Report Appearance Menu (refinement ADR-121 Fase 4 — popover Aa unifica fonte+tema) | [track_report_appearance_menu.md](track_report_appearance_menu.md) | Report Premium · refinement | `agent/report-appearance-menu/*` |
+| **A7.0 ConfigStore protocol + adapters** (Sprint A7 · Onda 1 BLOQUEANTE) | [track_a7_0_config_store.md](track_a7_0_config_store.md) | A7 (1/4) | `agent/a7-0-config-store/*` |
+| **A7.1 Cutover `materialize_config` → ConfigStore** (Sprint A7 · Onda 2) | [track_a7_1_cutover_materialize.md](track_a7_1_cutover_materialize.md) | A7 (2/4) | `agent/a7-1-cutover-materialize/*` |
+| **A7.2a Decision aggregate + UI Plano de Ação + migrator** (Sprint A7 · Onda 2) | [track_a7_2a_decision_aggregate.md](track_a7_2a_decision_aggregate.md) | A7 (2/4) | `agent/a7-2a-decision-aggregate/*` |
+| **A7.2b Tabelas globais fiscal/market versionadas** (Sprint A7 · Onda 2) | [track_a7_2b_fiscal_market_tables.md](track_a7_2b_fiscal_market_tables.md) | A7 (2/4) | `agent/a7-2b-fiscal-market-tables/*` |
+| **A7.3 Catalog + Override resolver** (Sprint A7 · Onda 3) | [track_a7_3_catalog_override.md](track_a7_3_catalog_override.md) | A7 (3/4) | `agent/a7-3-catalog-override/*` |
+| **A7.4 Metodologia → docs/methodology/** (Sprint A7 · paralelo livre) | [track_a7_4_methodology_docs.md](track_a7_4_methodology_docs.md) | A7 (livre) | `agent/a7-4-methodology-docs/*` |
+| **A7.5 Cleanup final** (Sprint A7 · Onda 4 BLOQUEANTE) | [track_a7_5_cleanup.md](track_a7_5_cleanup.md) | A7 (4/4) | `agent/a7-5-cleanup/*` |
 
 Lanes com prompt inline (escopo documentado direto na linha da tabela "Lanes abertas agora" do BACKLOG, sem prompt dedicado): A6g.6b, A6g.2c, A6e.3c, A6e.events-migration, A6e.events-followup, A6g.2b, A6c, **v2.1, v2.2, v2.3, v2.6, v2.7, v2.9, v2.10** (escopo curto — ver linhas v2.X em [BACKLOG.md › Report Premium UI v2](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ou no meta-prompt [track_report_v2.md](track_report_v2.md) §3). **v2.5 absorvida em v2.E.7** ([track_report_v2_charts_ux.md §3 v2.E.7](track_report_v2_charts_ux.md)).
 
