@@ -114,14 +114,13 @@ const MONTH_SHORT_PT_LOWER = [
  */
 export function formatPeriodCoverPtBR(periodo: string | null | undefined): string {
   if (!periodo) return "—";
-  const raw = String(periodo);
   const fmt = (p: string): string | null => {
     const [y, m] = p.trim().split("-");
     const mi = parseInt(m, 10);
     if (!y || isNaN(mi) || mi < 1 || mi > 12) return null;
     return `${MONTH_SHORT_PT_LOWER[mi - 1]} ${y}`;
   };
-  const parts = raw.split(" a ");
+  const parts = periodo.split(" a ");
   if (parts.length === 2) {
     const a = fmt(parts[0]);
     const b = fmt(parts[1]);
@@ -131,7 +130,7 @@ export function formatPeriodCoverPtBR(periodo: string | null | undefined): strin
     const a = fmt(parts[0]);
     if (a) return a;
   }
-  return raw;
+  return periodo;
 }
 
 /** "2023-01 a 2026-04" → "Jan 2023 → Abr 2026". Retorna input se não reconhecer. */
