@@ -29,7 +29,6 @@ function formatReportPeriod(periodo: string): string | null {
 import { ExecutiveSummarySection } from "./ExecutiveSummarySection";
 import { ReportPremissasBlock } from "./ReportPremissasBlock";
 import { ReportSourceStrip } from "./ReportSourceStrip";
-import { ReportThemeToggle } from "./ReportThemeToggle";
 import { ReportToc, type TocGroup } from "./ReportToc";
 import { ReportSection } from "./ReportSection";
 import { ReportSectionStub } from "./ReportSectionStub";
@@ -69,7 +68,7 @@ import {
   ReportCover,
   ReportTopNav,
   FloatingNav,
-  FontScaleToggle,
+  AppearanceMenu,
   SkipNav,
   ExportToolbar,
   type CoverMeta,
@@ -326,8 +325,7 @@ export function ReportShell({
               onToggleSidebar={toggleSidebar}
             />
             <span className="mx-1 hidden h-5 w-px bg-white/15 md:inline-block" aria-hidden />
-            <FontScaleToggle />
-            <ReportThemeToggle />
+            <AppearanceMenu />
           </>
         }
       />

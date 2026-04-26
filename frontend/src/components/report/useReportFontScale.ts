@@ -4,16 +4,17 @@ import { useEffect, useState, useCallback } from "react";
 
 /** ADR-121 — typography configurável no escopo de `/reports/**`.
  *
- * Três presets (base px: 13/15/17) aplicados via `data-font-scale` no
- * wrapper `[data-report-scope]`. Persiste em localStorage.
+ * Três presets (base px: 14/16/18) aplicados via `data-font-scale` no
+ * wrapper `[data-report-scope]`. Persiste em localStorage. Default `normal`
+ * (16px) — refinement 2026-04-26: 13px era mesquinho para tabela monetária.
  *
- * Este hook não injeta UI — só expõe `(scale, setScale)`. O toggle visual
- * vive em Fase 4 (top-nav do relatório).
+ * Este hook não injeta UI — só expõe `(scale, setScale)`. UI vive em
+ * `AppearanceMenu` (popover Aa unificado fonte+tema).
  */
 export type ReportFontScale = "compact" | "normal" | "comfortable";
 
 const STORAGE_KEY = "mathoms:report:font-scale";
-const DEFAULT_SCALE: ReportFontScale = "compact";
+const DEFAULT_SCALE: ReportFontScale = "normal";
 const VALID_SCALES: ReportFontScale[] = ["compact", "normal", "comfortable"];
 
 function readStoredScale(): ReportFontScale {

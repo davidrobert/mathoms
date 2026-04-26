@@ -2,25 +2,21 @@
  * ADR-117 · Fase 4 — smoke tests dos primitivos do shell.
  *
  * Cobertura: ReportCover (hero + meta), SkipNav (href + a11y),
- * ExportToolbar (clipboard + print), FloatingNav (scroll listener),
- * FontScaleToggle (integração com useReportFontScale). ModeToggle é
- * testado indiretamente via ReportModeProvider — aqui só smoke.
+ * ExportToolbar (clipboard + print), FloatingNav (scroll listener).
+ * ModeToggle é testado indiretamente via ReportModeProvider — aqui só
+ * smoke. AppearanceMenu (popover Aa unificado fonte+tema) tem suite
+ * dedicada em `AppearanceMenu.test.tsx`.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 
 import {
   ReportCover,
   SkipNav,
   ExportToolbar,
   FloatingNav,
-  FontScaleToggle,
 } from "@/components/report/shell";
 
-// next-themes mock (ReportThemeToggle indireto via ReportTopNav — mas
-// neste arquivo não testamos ReportTopNav inteiro por causa de nav-next
-// dependency. Cobertura de ReportTopNav fica em ReportShell.test.tsx).
 vi.mock("next-themes", () => ({
   useTheme: () => ({ resolvedTheme: "light", setTheme: vi.fn() }),
 }));
@@ -91,21 +87,5 @@ describe("<FloatingNav />", () => {
     const down = screen.getByRole("button", { name: /final/i });
     expect(up).toHaveAttribute("data-visible", "false");
     expect(down).toHaveAttribute("data-visible");
-  });
-});
-
-describe("<FontScaleToggle />", () => {
-  beforeEach(() => window.localStorage.clear());
-  it("renderiza 3 botões e marca compact ativo por default", () => {
-    render(<FontScaleToggle />);
-    const compact = screen.getByRole("button", { name: "Compacto" });
-    expect(compact).toHaveAttribute("data-active", "true");
-    expect(compact).toHaveAttribute("aria-pressed", "true");
-  });
-  it("clicar em Normal persiste no localStorage", async () => {
-    const user = userEvent.setup();
-    render(<FontScaleToggle />);
-    await user.click(screen.getByRole("button", { name: "Normal" }));
-    expect(window.localStorage.getItem("mathoms:report:font-scale")).toBe("normal");
   });
 });

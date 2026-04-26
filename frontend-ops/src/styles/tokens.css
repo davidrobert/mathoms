@@ -228,43 +228,44 @@
     --report-gradient-card-feature: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 100%);
     --report-gradient-card-success: linear-gradient(135deg, #F0FDF4, #F8FAFC);
 
-    --report-font-base-px: 13px;
-    --report-font-size-xs: 10px;
-    --report-font-size-sm: 12px;
-    --report-font-size-base: 13px;
-    --report-font-size-md: 14px;
-    --report-font-size-lg: 16px;
-    --report-font-size-xl: 22px;
-    --report-font-size-2xl: 28px;
-    --report-font-size-3xl: 38px;
+    --report-font-base-px: 16px;
+    --report-font-size-xs: 12px;
+    --report-font-size-sm: 14px;
+    --report-font-size-base: 16px;
+    --report-font-size-md: 17px;
+    --report-font-size-lg: 19px;
+    --report-font-size-xl: 25px;
+    --report-font-size-2xl: 31px;
+    --report-font-size-3xl: 43px;
 
     --report-space-section-gap: 20px;
     --report-space-card-sm: 16px;
     --report-space-card-md: 24px;
     --report-space-card-lg: 28px 32px;
     --report-radius-badge: 10px;
+    transition: font-size 180ms ease-out;
 }
-[data-report-scope][data-font-scale="normal"] {
-    --report-font-base-px: 15px;
+[data-report-scope][data-font-scale="compact"] {
+    --report-font-base-px: 14px;
     --report-font-size-xs: 11px;
     --report-font-size-sm: 13px;
-    --report-font-size-base: 15px;
-    --report-font-size-md: 16px;
-    --report-font-size-lg: 18px;
-    --report-font-size-xl: 24px;
-    --report-font-size-2xl: 30px;
-    --report-font-size-3xl: 42px;
+    --report-font-size-base: 14px;
+    --report-font-size-md: 15px;
+    --report-font-size-lg: 17px;
+    --report-font-size-xl: 23px;
+    --report-font-size-2xl: 29px;
+    --report-font-size-3xl: 39px;
 }
 [data-report-scope][data-font-scale="comfortable"] {
-    --report-font-base-px: 17px;
-    --report-font-size-xs: 13px;
-    --report-font-size-sm: 15px;
-    --report-font-size-base: 17px;
-    --report-font-size-md: 18px;
-    --report-font-size-lg: 20px;
-    --report-font-size-xl: 26px;
-    --report-font-size-2xl: 32px;
-    --report-font-size-3xl: 46px;
+    --report-font-base-px: 18px;
+    --report-font-size-xs: 14px;
+    --report-font-size-sm: 16px;
+    --report-font-size-base: 18px;
+    --report-font-size-md: 19px;
+    --report-font-size-lg: 21px;
+    --report-font-size-xl: 27px;
+    --report-font-size-2xl: 33px;
+    --report-font-size-3xl: 47px;
 }
 .dark [data-report-scope],
 [data-theme='dark'] [data-report-scope] {

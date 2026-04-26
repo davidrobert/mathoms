@@ -7,7 +7,7 @@ export type { ReportTopNavProps, NavLink, NavGroup } from "./ReportTopNav";
 
 export { ModeToggle } from "./ModeToggle";
 export { ReportActions } from "./ReportActions";
-export { FontScaleToggle } from "./FontScaleToggle";
+export { AppearanceMenu } from "./AppearanceMenu";
 export { FloatingNav } from "./FloatingNav";
 export { SkipNav } from "./SkipNav";
 export { ExportToolbar } from "./ExportToolbar";

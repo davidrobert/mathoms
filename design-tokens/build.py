@@ -207,6 +207,9 @@ def _report_scope_block(tokens: dict[str, Any]) -> list[str]:
         out.append(f"    --report-space-{_kebab(k)}: {v};")
     for k, v in radius.items():
         out.append(f"    --report-radius-{_kebab(k)}: {v};")
+    transition = typo.get("transition")
+    if transition:
+        out.append(f"    transition: {transition};")
     out.append("}")
 
     # Non-default font scales
