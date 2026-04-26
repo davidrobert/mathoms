@@ -61,15 +61,32 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
   cleanup imports Recharts + ADR-13X). Atenção ao hotspot
   `_shared.ts`/`_registry.ts` (protocolo CLAUDE.md §Hotspots).
 
-- **Report Premium UI v2 — Onda F (Hero KPI polish) abertura + v2.F.1
-  ✅ (2026-04-26):** redesign do hero do S1 de 4 KPIs uniformes para 6
-  cards com hierarquia visual (commit `fa1b4ef`). Cross-check com
+- **Report Premium UI v2 — Onda F (Hero KPI polish) ✅ 2/2
+  (2026-04-26):** redesign + reposicionamento do hero KPI do relatório
+  estratégico, alinhando com `EXEMPLO_DE_RELATORIO.html`. **v2.F.1**
+  trocou 4 KPIs uniformes por 6 com hierarquia (`fa1b4ef`); **v2.F.2**
+  moveu o conjunto para fora de S1, num sumário executivo dedicado
+  (`35eee5f`). Cross-check com
   `EXEMPLO_DE_RELATORIO.html:1379-1419` (8 KPIs com `kpi-hero`)
   identificou que o hero atual não respondia à pergunta central
   ("quando ficamos independentes?") e diluía a mensagem por falta de
   ancoragem visual. Decisão final, sintetizada após review cruzado de
   financial-planner (Perini/Cerbasi/AUVP) + product-designer (a11y/
   hierarquia/densidade), em `docs/REPORT_PREMIUM_PLAN.md` §17.6:
+
+  - ✅ **v2.F.2** — `ExecutiveSummarySection` (container não-numerado,
+    fora da TOC seccional, `id="sumario-executivo"`) wrapping
+    `HeroKpiGrid`, renderizado no `ReportShell` entre
+    `ReportPremissasBlock` e `PerfilFamiliaCard`, gated por
+    `mode==="estrategico"`. Paridade com
+    `EXEMPLO_DE_RELATORIO.html:1376` (`<section id="kpis">` antes de
+    `secao-1`). `S1PatrimonioSection` deixa de importar `HeroKpiGrid`
+    e seu prop `ratios` (não usado fora do hero); volta a ser focada em
+    estrutura+composição (3 charts + 4 cards). Score continua duplicado
+    propositalmente entre hero (mini KPI) e S1 (gauge `ScoreCard`) —
+    leitura em 5s × breakdown completo. Refactor de posicionamento
+    puro, zero mudança de componente, dado ou contrato DTO. Vitest 593
+    passed.
 
   - ✅ **v2.F.1** — `HeroKpiGrid` substitui `PatrimonioKpiRow`. 6 KPIs
     em 2 linhas (3-3 em xl, 2-2 em sm-md, empilhados em sm).

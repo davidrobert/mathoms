@@ -834,7 +834,7 @@ Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
 | v2.10 | §4.3 | R | P2 | C | inline |
 | v2.D.1 | enabler de v2.8 | O | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
 | v2.F.1 | §17.6 (cross-check com EXEMPLO) | S | P1 | F | inline (§17.6) — ✅ |
-| v2.F.2 | §17.7 (posicionamento herdado de v1, não-paritário com EXEMPLO) | S | P1 | F | inline (§17.7) |
+| v2.F.2 | §17.7 (posicionamento herdado de v1, não-paritário com EXEMPLO) | S | P1 | F | inline (§17.7) — ✅ |
 
 Origem detalhada de cada lane: §3 e §4 da auditoria
 ([wild-munching-pine.md](https://) — relatório do plan mode 2026-04-25).
@@ -1026,7 +1026,7 @@ fica como follow-up).
 
 ### 17.7 v2.F.2 — Mover Hero KPI para fora de S1 (sumário executivo dedicado)
 
-**Status:** 🚧 aberta 2026-04-26.
+**Status:** ✅ fechada 2026-04-26 (commit `35eee5f`).
 **Onda:** v2.F (continuação de v2.F.1).
 **Esforço:** S (≤½ dia).
 **Origem:** observação pós-v2.F.1 — `HeroKpiGrid` ficou dentro de
