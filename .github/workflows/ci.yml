@@ -596,12 +596,24 @@ jobs:
           UPDATE_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines && '--update-snapshots' || '' }}
         run: npm run test:e2e -- --project=visual --grep sections.snapshots $UPDATE_FLAG
 
+      - name: Locate generated baselines (debug)
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines
+        run: |
+          echo "=== PNGs em tests/ que parecem snapshot ==="
+          find frontend/tests -name "*.png" 2>/dev/null | head -100
+          echo "=== diretórios -snapshots ou __snapshots__ ==="
+          find frontend/tests -type d \( -name "*-snapshots" -o -name "__snapshots__" \) 2>/dev/null
+
       - name: Upload generated baselines (quando --update-snapshots foi passado)
         if: always() && github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines
         uses: actions/upload-artifact@v4
         with:
           name: report-visual-baselines-generated
-          path: frontend/tests/e2e/reports/__snapshots__/
+          path: |
+            frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/
+            frontend/tests/e2e/reports/sections.snapshots.visual.spec-snapshots/
+            frontend/tests/e2e/reports/__snapshots__/
+            frontend/tests/**/*.png
           retention-days: 7
           if-no-files-found: warn
 
