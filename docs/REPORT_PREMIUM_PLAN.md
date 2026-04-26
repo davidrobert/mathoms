@@ -840,7 +840,7 @@ Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
 | v2.F.1 | §17.6 (cross-check com EXEMPLO) | S | P1 | F | inline (§17.6) — ✅ |
 | v2.F.2 | §17.7 (posicionamento herdado de v1, não-paritário com EXEMPLO) | S | P1 | F | inline (§17.7) — ✅ |
 | v2.F.3a | §17.8 (cover identity — backend) | S | P1 | F | inline (§17.8.a) — ✅ |
-| v2.F.3b | §17.8 (cover identity — frontend) | S | P1 | F | inline (§17.8.b) |
+| v2.F.3b | §17.8 (cover identity — frontend) | S | P1 | F | inline (§17.8.b) — ✅ |
 | v2.F.3c | §17.8 (cover identity — PDF filename) | S | P1 | F | inline (§17.8.c) — ✅ |
 
 Origem detalhada de cada lane: §3 e §4 da auditoria
@@ -1136,7 +1136,9 @@ em S1).
 
 ### 17.8 v2.F.3 — Cover identity (título estático + família + PDF filename)
 
-**Status:** 🚧 aberta 2026-04-26 (3 sub-lanes paralelas).
+**Status:** ✅ fechada 2026-04-26 (3/3: `710ae15` + `fc74ab3` + `db6cf6f`)
+— 3 agentes paralelos em worktrees isoladas, zero conflito (arquivos
+disjuntos), coordenação por contrato firmado nesta seção.
 **Onda:** v2.F (continuação de v2.F.1 e v2.F.2).
 **Esforço total:** S+S+S (≤½ dia × 3 = ≤1d, paraleláveis em 3 agentes).
 **Origem:** revisão cruzada financial-planner + product-designer
@@ -1221,7 +1223,28 @@ opcional).
   - Pre-commit verde
 - **Esforço:** S (≤2h)
 
-##### 17.8.b — Frontend cover (independente, contrato pré-acordado)
+##### 17.8.b — Frontend cover (independente, contrato pré-acordado) — ✅ 2026-04-26 (`db6cf6f`)
+
+Entregue: tipo TS `workspace_family_surname?: string | null` em
+`ReportResponse` ([reports.ts](frontend/src/lib/api/reports.ts));
+título e subtítulo estáticos
+([ReportShell.tsx](frontend/src/components/report/ReportShell.tsx) —
+`displayTitle` dinâmico removido; brand nav passa a usar
+`reportTitle`); helper exportado `formatPeriodCoverPtBR()` em
+[format.ts](frontend/src/lib/format.ts) com em-dash `—` e mês
+abreviado em minúscula; helper local `formatGeneratedAtPtBR` para o
+"Gerado em"; nova prop `familySurname?: string | null` em
+[ReportCover.tsx](frontend/src/components/report/shell/ReportCover.tsx)
++ helper `resolveBadge()` (badge dinâmico ou fallback `Relatório
+Patrimonial`); rota `/reports/[id]/page.tsx` passa `familySurname`
+(do `report.workspace_family_surname` com fallback para
+`workspace.family_surname`). Versão lida via
+`import pkg from "../../../package.json"` (tsconfig já tem
+`resolveJsonModule: true`); fallback `"Mathoms"` se ausente.
+
+Testes: 9 novos casos (5 em `ReportShell.test.tsx` + 4 em
+`format.test.ts`); 603 passed (1 skipped). Sem hex literal.
+Pre-commit verde.
 
 - **Branch:** `agent/cover-identity-frontend/<ts>`
 - **Worktree:** isolada

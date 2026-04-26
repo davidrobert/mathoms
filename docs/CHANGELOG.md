@@ -88,18 +88,61 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
   cleanup imports Recharts + ADR-13X). Atenção ao hotspot
   `_shared.ts`/`_registry.ts` (protocolo CLAUDE.md §Hotspots).
 
-- **Report Premium UI v2 — Onda F (Hero KPI polish) ✅ 2/2
-  (2026-04-26):** redesign + reposicionamento do hero KPI do relatório
-  estratégico, alinhando com `EXEMPLO_DE_RELATORIO.html`. **v2.F.1**
-  trocou 4 KPIs uniformes por 6 com hierarquia (`fa1b4ef`); **v2.F.2**
-  moveu o conjunto para fora de S1, num sumário executivo dedicado
-  (`35eee5f`). Cross-check com
-  `EXEMPLO_DE_RELATORIO.html:1379-1419` (8 KPIs com `kpi-hero`)
-  identificou que o hero atual não respondia à pergunta central
-  ("quando ficamos independentes?") e diluía a mensagem por falta de
-  ancoragem visual. Decisão final, sintetizada após review cruzado de
+- **Report Premium UI v2 — Onda F (Hero KPI + Cover identity) ✅ 5/5
+  (2026-04-26):** polish completo do topo do relatório estratégico,
+  alinhando com `EXEMPLO_DE_RELATORIO.html`. **v2.F.1** trocou 4 KPIs
+  uniformes por 6 com hierarquia (`fa1b4ef`); **v2.F.2** reposicionou
+  o conjunto para sumário executivo dedicado fora de S1 (`35eee5f`);
+  **v2.F.3a/b/c** entregou cover identity (título estático + família
+  no badge/meta-card + PDF filename) executada por **3 agentes
+  paralelos em worktrees isoladas** com contrato API firmado no plano
+  §17.8 — `710ae15` backend, `fc74ab3` PDF filename, `db6cf6f`
+  frontend cover. Zero conflito (arquivos disjuntos). Cross-check com
+  `EXEMPLO_DE_RELATORIO.html:1379-1419` (8 KPIs com `kpi-hero`) e
+  `:1281-1305` (cover) identificou que o hero atual não respondia à
+  pergunta central ("quando ficamos independentes?") e o cover soava
+  contábil/operacional ("Fechamento Abril 2026") com período
+  triplicado. Decisões finais sintetizadas após review cruzado de
   financial-planner (Perini/Cerbasi/AUVP) + product-designer (a11y/
-  hierarquia/densidade), em `docs/REPORT_PREMIUM_PLAN.md` §17.6:
+  hierarquia/densidade), em `docs/REPORT_PREMIUM_PLAN.md` §§17.6-17.8:
+
+  - ✅ **v2.F.3c** — PDF filename composto no backend
+    ([download_pdf.py](backend/app/application/report/download_pdf.py)
+    via header `Content-Disposition`). Helpers `slugify_family`,
+    `extract_period_yyyymm`, `compose_pdf_filename` em `_common.py`.
+    Slug ASCII-safe (`Gonçalves d'Ávila` → `goncalves-d-avila`).
+    Padrão: `mathoms-planejamento-{slug-familia}-{YYYY-MM}.pdf`.
+    Fallback gracioso: sem surname omite slot; sem período cai em
+    `generated_at`. Envolvido em `sanitize_filename` (defesa
+    anti-injeção; whitelist `[A-Za-z0-9._-]` preserva hífens). 4
+    testes novos; 24 passed em `test_reports.py`. `ExportToolbar` no
+    frontend só dispara `window.print()` ou `onDownloadPdf` injetado,
+    sem gerar nome.
+
+  - ✅ **v2.F.3b** — Frontend cover refresh
+    ([ReportCover.tsx](frontend/src/components/report/shell/ReportCover.tsx)
+    +
+    [ReportShell.tsx](frontend/src/components/report/ReportShell.tsx)).
+    Título estático `Planejamento Financeiro` (descarta
+    `displayTitle` dinâmico — brand nav passa a usar `reportTitle`);
+    subtítulo estático `Pessoal e Patrimonial`; badge dinâmico
+    `Relatório · Família {Surname}` ou fallback `Relatório
+    Patrimonial`; meta-cards reordenados (Família condicional,
+    Período de referência em pt-BR `jan 2023 — abr 2026` com em-dash
+    U+2014, Gerado em pt-BR, `Mathoms v{N}` lido de `package.json`).
+    Helper exportado `formatPeriodCoverPtBR()` em
+    [format.ts](frontend/src/lib/format.ts). Tipo TS
+    `workspace_family_surname?: string | null` em `ReportResponse`.
+    9 testes novos; 603 passed (1 skipped).
+
+  - ✅ **v2.F.3a** — Backend expõe `workspace_family_surname:
+    Optional[str] = None` em `ReportResponse` (lookup escalar
+    `select(Workspace.family_surname).where(Workspace.id == workspace_id)`
+    em `application/report/get_report.py`); snapshot OpenAPI
+    atualizado (ADR-109); 2 testes (com surname → "Silva"; sem →
+    `None`); 1328 testes backend passed. **Lista
+    (`list_reports`) não alterada** (escopo era GET singular; lista
+    devolve `null` no campo opcional para clientes que não usam).
 
   - ✅ **v2.F.2** — `ExecutiveSummarySection` (container não-numerado,
     fora da TOC seccional, `id="sumario-executivo"`) wrapping
