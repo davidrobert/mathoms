@@ -1,0 +1,173 @@
+# =============================================================================
+# Mathoms AI — docker-compose.prod.yml (lane 7A-dev · dev.5)
+# =============================================================================
+# Stack mínimo para `dev.mathoms.ai` (Hetzner CX32 + Coolify). Orquestra:
+#   postgres + redis + api + worker + beat + frontend
+#
+# Decisões aceitas (vide ADR-108 e contexto 7A-dev):
+#   - Sem Traefik aqui — Coolify roda Traefik externamente e injeta TLS.
+#     Portas expostas em 127.0.0.1 só para teste local (Coolify proxy
+#     entra via rede do compose, não via host port).
+#   - 1 réplica de `api` (Alembic upgrade idempotente, mas race em
+#     multi-replica). `worker` e `beat` aguardam `api` healthy antes de
+#     subir — evita conectar em DB pré-migração.
+#   - Imagem backend é construída uma vez no service `api` (`image:` +
+#     `build:`); `worker` e `beat` apenas referenciam o mesmo `image:` tag,
+#     reusando a build sem rebuild triplo.
+#   - Volumes persistentes: `mathoms_pgdata` (Postgres), `mathoms_redisdata`
+#     (snapshots Redis) e `mathoms_storage` (uploads/artifacts montado em
+#     /app/storage nos 3 modos de backend — todos podem escrever).
+#   - Healthcheck só no `api` (curl /health) e no `frontend` (curl /).
+#     Worker/beat não têm endpoint HTTP — `disable: true` evita ruído.
+#
+# Como rodar localmente (smoke do compose, sem Coolify):
+#   1. cp .env.prod.example .env.prod.local
+#   2. ./dev/gen-secrets.sh >> .env.prod.local   # FERNET_KEY/SECRET_KEY/POSTGRES_PASSWORD
+#   3. docker compose --env-file .env.prod.local -f docker-compose.prod.yml up --build
+#
+# Como Coolify usa:
+#   - Build context = repo root.
+#   - Env vars do `.env.prod.local` são importadas pela UI Coolify; valores
+#     `${VAR}` abaixo são resolvidos pelo Coolify no deploy.
+#   - Coolify substitui as portas 127.0.0.1:* pela rede interna dele —
+#     mantemos o bind local apenas para validação humana via SSH tunnel.
+#
+# Não substitui `docker-compose.dev.yml` (frontend-ops local) nem
+# `docker-compose.smoke.yml` (Redis efêmero pra `make smoke-up`).
+# =============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - mathoms_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - mathoms_redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    image: mathoms-backend:dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["api"]
+    env_file:
+      - .env.prod.local
+    environment:
+      # DSNs internos (rede do compose) sobrescrevem o que vier do env_file.
+      # Constrói a partir das partes do .env.prod.local — evita duplicar a
+      # senha em duas variáveis e mantém uma fonte única (POSTGRES_PASSWORD).
+      MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      MATHOMS_REDIS_URL: redis://redis:6379/0
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - mathoms_storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      # Alembic upgrade na primeira run pode levar 30s+ — start_period
+      # generoso evita marcar unhealthy enquanto a migração ainda corre.
+      start_period: 60s
+    restart: unless-stopped
+
+  worker:
+    # Reusa a tag construída pelo service `api` — Compose não rebuilda.
+    image: mathoms-backend:dev
+    command: ["worker"]
+    env_file:
+      - .env.prod.local
+    environment:
+      MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      MATHOMS_REDIS_URL: redis://redis:6379/0
+    volumes:
+      - mathoms_storage:/app/storage
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Worker não expõe HTTP; healthcheck do Dockerfile (curl /health)
+      # não se aplica. Desabilita pra não marcar o container como
+      # unhealthy permanentemente.
+      disable: true
+    restart: unless-stopped
+
+  beat:
+    image: mathoms-backend:dev
+    command: ["beat"]
+    env_file:
+      - .env.prod.local
+    environment:
+      MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      MATHOMS_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  frontend:
+    image: mathoms-frontend:dev
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    env_file:
+      - .env.prod.local
+    environment:
+      # Rewrite server-side do Next aponta para a rede interna do compose;
+      # NEXT_PUBLIC_API_URL (build-time, usado client-side) já vem do env_file.
+      BACKEND_INTERNAL_URL: http://api:8000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        # `service_started` basta — frontend pode subir em paralelo ao
+        # boot do api; o rewrite só é exercido quando o usuário navega.
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  mathoms_pgdata:
+  mathoms_redisdata:
+  mathoms_storage:
