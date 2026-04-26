@@ -120,8 +120,8 @@ def test_calculate_returns_all_5_components(default_calc: FinancialScoreCalculat
     assert len(result["componentes"]) == 5
 
 
-def test_calculate_output_shape(default_calc: FinancialScoreCalculator):
-    result = default_calc.calculate(
+def _calculate_default(default_calc: FinancialScoreCalculator) -> dict:
+    return default_calc.calculate(
         ratios={
             "taxa_poupanca_recorrente_pct": 10,
             "cobertura_despesas_meses": 6,
@@ -130,7 +130,11 @@ def test_calculate_output_shape(default_calc: FinancialScoreCalculator):
         patrimonio={"composicao": [{"valor": 100}]},
         goals={"if_pct": 20},
     )
+
+
+def test_calculate_output_shape(default_calc: FinancialScoreCalculator):
     # v2.E.7: breakdown/formula/context/conclusion novos para o ScoreCard premium.
+    result = _calculate_default(default_calc)
     assert set(result.keys()) == {
         "valor",
         "max",
