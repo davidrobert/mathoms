@@ -15,6 +15,14 @@ export interface NavGroup {
   readonly links: readonly NavLink[];
 }
 
+export type NavDensity = "default" | "compact";
+
+/** Acima desse total de links no modo ativo, faixa entra em modo compacto:
+ * apenas o `link.num` aparece; o label só expande no item ativo (scroll-spy).
+ * Estratégico tem 15 alvos → compacta; Tático (6) e USA (4) ficam normais.
+ */
+const COMPACT_THRESHOLD = 8;
+
 export interface ReportTopNavProps {
   /** Slot esquerdo — breadcrumb ou brand. Sem fallback. */
   readonly brand?: ReactNode;
@@ -46,6 +54,8 @@ export function ReportTopNav({
   const { mode } = useReportMode();
   const [activeId, setActiveId] = useState<string | null>(null);
   const groups = groupsByMode[mode];
+  const totalLinks = groups.reduce((acc, g) => acc + g.links.length, 0);
+  const density: NavDensity = totalLinks > COMPACT_THRESHOLD ? "compact" : "default";
 
   useEffect(() => {
     const linkIds = groups.flatMap((g) => g.links.map((l) => l.id));
@@ -78,6 +88,7 @@ export function ReportTopNav({
       className={className}
       aria-label="Navegação do relatório"
       data-report-topnav
+      data-density={density}
       style={{
         position: "sticky",
         top: 0,
@@ -153,6 +164,7 @@ export function ReportTopNav({
                 key={link.id}
                 link={link}
                 active={link.id === activeId}
+                density={density}
               />
             ))}
           </div>
@@ -177,17 +189,29 @@ export function ReportTopNav({
   );
 }
 
-function NavLinkItem({ link, active }: { link: NavLink; active: boolean }) {
+function NavLinkItem({
+  link,
+  active,
+  density,
+}: {
+  link: NavLink;
+  active: boolean;
+  density: NavDensity;
+}) {
+  const labelHidden = density === "compact" && !active;
   return (
     <a
       href={`#${link.id}`}
       data-active={active}
+      data-density={density}
       aria-current={active ? "location" : undefined}
+      aria-label={labelHidden ? link.label : undefined}
+      title={labelHidden ? link.label : undefined}
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 4,
-        padding: "10px 10px",
+        gap: labelHidden ? 0 : 4,
+        padding: labelHidden ? "10px 6px" : "10px 10px",
         color: active
           ? "#fff"
           : link.isAppendix
@@ -215,12 +239,22 @@ function NavLinkItem({ link, active }: { link: NavLink; active: boolean }) {
             background: "rgba(255,255,255,0.15)",
             fontSize: 10,
             fontWeight: 700,
+            flexShrink: 0,
           }}
         >
           {link.num}
         </span>
       )}
-      <span>{link.label}</span>
+      <span
+        style={{
+          maxWidth: labelHidden ? 0 : 200,
+          opacity: labelHidden ? 0 : 1,
+          overflow: "hidden",
+          transition: "max-width 0.2s, opacity 0.2s",
+        }}
+      >
+        {link.label}
+      </span>
     </a>
   );
 }
