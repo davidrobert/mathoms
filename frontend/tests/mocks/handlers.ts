@@ -187,6 +187,28 @@ export const handlers = [
   http.get(`${API}/config/report-layout`, () => HttpResponse.json({ config_json: {} })),
   http.put(`${API}/config/report-layout`, () => HttpResponse.json({ config_json: {} })),
 
+  // Transfer config (ADR-133) — também atendido em rota workspace-scoped
+  http.get(`${API}/config/transfer`, () =>
+    HttpResponse.json({
+      patterns_pix: [],
+      patterns_global: [],
+      patterns_bank_specific: {},
+      recipients: [],
+    }),
+  ),
+  http.put(`${API}/config/transfer`, async ({ request }) => HttpResponse.json(await request.json())),
+  http.get(`${API}/workspaces/:workspaceId/config/transfer`, () =>
+    HttpResponse.json({
+      patterns_pix: [],
+      patterns_global: [],
+      patterns_bank_specific: {},
+      recipients: [],
+    }),
+  ),
+  http.put(`${API}/workspaces/:workspaceId/config/transfer`, async ({ request }) =>
+    HttpResponse.json(await request.json()),
+  ),
+
   http.post(`${API}/config/import`, () => HttpResponse.json({ imported: [], total: 0 })),
   http.get(`${API}/config/export`, () =>
     HttpResponse.json({
