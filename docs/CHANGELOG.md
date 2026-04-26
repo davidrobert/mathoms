@@ -11,6 +11,33 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **CI — otimização de uso GitHub Actions (2026-04-26) — ✅:** workflow
+  `.github/workflows/ci.yml` agora skipa jobs irrelevantes via
+  [`dorny/paths-filter@v3`](https://github.com/dorny/paths-filter). Job
+  `changes` no topo classifica diff em 4 áreas (`backend`, `frontend`,
+  `pipeline`, `any_code`) e cada job code-related ganha `if:`
+  correspondente; `all-green` aceita `success` ou `skipped`. PR docs-only
+  cai de ~30 min (13 jobs) para ~1 min (só `changes` + `all-green`
+  no-op), alinhando com CLAUDE.md §"Concluído" linhas 64–68 que já
+  declarava docs-only fora do gate. PR backend-only pula frontend-* e
+  Lighthouse (~10 min); PR frontend-only pula pipeline + backend tests
+  (~15 min); PR mixed mantém comportamento atual (regressão zero).
+  Onda 2: `actions/cache@v4` em `~/.cache/ms-playwright` para
+  `frontend-e2e` (3 browsers) e `frontend-visual` (chromium) — chaves
+  separadas por conjunto, invalida em bump de `@playwright/test`,
+  economiza ~2-3 min/run em cache hit. Retention de 5 artifacts
+  descartáveis (backend-coverage, vitest-results, backend-logs,
+  playwright-report, lighthouse-reports) reduzido de 14-30d → 7d;
+  `report-visual-snapshots` mantém 30d para revisão de baselines
+  OS-específicas. Bug latente descoberto e corrigido durante validação:
+  `dorny/paths-filter` precisa de `permissions: pull-requests: read`
+  explícito no job (token default falha com "Resource not accessible by
+  integration" quando settings repo está em "Read repository contents
+  only"). Branch protection do `main` não está habilitada (repo privado
+  em GH Free), então `all-green` permanece informativo até gate ser
+  ativado. Commits: `ca7a9f4` (paths-filter), `a637a17` (cache),
+  `cbf508c` (retention), `663bc0b` (permission fix).
+
 - **Report Premium UI v2.1 — `comparisons`/`changelog` placeholders no
   YAML (2026-04-26) — ✅:** cumpre promessa do BACKLOG §3.1 de "declarados
   `enabled: false` no YAML" (até hoje só registrada em texto, sem entrada
