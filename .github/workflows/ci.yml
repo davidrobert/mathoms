@@ -39,6 +39,10 @@ on:
         description: "Rodar Visual snapshots (lento, baselines OS-específicas)"
         type: boolean
         default: false
+      update_visual_baselines:
+        description: "Re-gerar baselines visuais (--update-snapshots; só com run_visual=true)"
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -476,7 +480,17 @@ jobs:
           PW_VISUAL: "1"
           # `mock-report.ts` cobre /api/v1/** sem precisar de backend real;
           # webServer ainda precisa subir Next em :3000 (default do Playwright).
-        run: npm run test:e2e -- --project=visual --grep sections.snapshots
+          UPDATE_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines && '--update-snapshots' || '' }}
+        run: npm run test:e2e -- --project=visual --grep sections.snapshots $UPDATE_FLAG
+
+      - name: Upload generated baselines (quando --update-snapshots foi passado)
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-visual-baselines-generated
+          path: frontend/tests/e2e/reports/__snapshots__/
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: Upload visual diffs + baselines (artefato)
         if: always()
