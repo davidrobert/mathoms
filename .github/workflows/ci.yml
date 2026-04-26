@@ -53,10 +53,56 @@ env:
   PYTHONDONTWRITEBYTECODE: "1"
 
 jobs:
+  # Detecta o que mudou para condicionar jobs subsequentes. PRs docs-only
+  # rodam só `changes` + `all-green` (no-op). PRs backend-only não disparam
+  # frontend-* e Lighthouse; PRs frontend-only não disparam pipeline/backend
+  # tests. CLAUDE.md §"Concluído" linha 64–68 declara docs-only fora do gate.
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      pipeline: ${{ steps.filter.outputs.pipeline }}
+      any_code: ${{ steps.filter.outputs.any_code }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          # Mudança no próprio workflow → roda tudo (sanity contra
+          # regressão na config de filtros).
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'requirements.txt'
+              - '.github/workflows/ci.yml'
+            frontend:
+              - 'frontend/**'
+              - 'design-tokens/**'
+              - 'config/report_layout.yaml'
+              - '.github/workflows/ci.yml'
+            pipeline:
+              - 'pipeline/**'
+              - 'scripts/**'
+              - 'tests/**'
+              - 'config/**'
+              - 'requirements.txt'
+              - '.github/workflows/ci.yml'
+            any_code:
+              - '!docs/**'
+              - '!**.md'
+              - '!.claude/**'
+              - '!_archive/**'
+              - '!_scratch/**'
+
   lint:
     name: Lint + format
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: changes
+    if: needs.changes.outputs.any_code == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -80,6 +126,8 @@ jobs:
     name: Ruff check
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    needs: changes
+    if: needs.changes.outputs.any_code == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -96,6 +144,8 @@ jobs:
     name: Code style baseline regression
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    needs: changes
+    if: needs.changes.outputs.any_code == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -108,6 +158,8 @@ jobs:
     name: Lint anti-PII em fixtures (F6.5D.7)
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    needs: changes
+    if: needs.changes.outputs.any_code == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -120,6 +172,8 @@ jobs:
     name: Tenancy scoping lint (ADR-072)
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    needs: changes
+    if: needs.changes.outputs.any_code == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -136,6 +190,10 @@ jobs:
     name: Pipeline tests (tests/)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: changes
+    # `pipeline` cobre mudança em tests/, scripts/, pipeline/, config/.
+    # backend/ também porque importa pipeline/** e tem guardrail próprio.
+    if: needs.changes.outputs.pipeline == 'true' || needs.changes.outputs.backend == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -166,6 +224,9 @@ jobs:
     name: Backend tests (backend/tests/)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    needs: changes
+    # backend/ importa pipeline/**; mudança em pipeline pode quebrar backend.
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.pipeline == 'true'
     services:
       redis:
         image: redis:7-alpine
@@ -212,6 +273,8 @@ jobs:
     name: Frontend ESLint
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     defaults:
       run:
         working-directory: frontend
@@ -232,6 +295,8 @@ jobs:
     name: Frontend unit + integration (Vitest)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     defaults:
       run:
         working-directory: frontend
@@ -263,6 +328,9 @@ jobs:
     name: Frontend E2E (Playwright + backend real)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    needs: changes
+    # Opt-in via label `e2e` ou workflow_dispatch — preserva
+    # comportamento prévio. Filtro de área não se aplica (label é gate).
     if: |
       contains(github.event.pull_request.labels.*.name, 'e2e') ||
       (github.event_name == 'workflow_dispatch' && inputs.run_e2e)
@@ -389,6 +457,8 @@ jobs:
     name: Frontend Lighthouse (relatório nativo)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     defaults:
       run:
         working-directory: frontend
@@ -454,6 +524,9 @@ jobs:
     name: Frontend visual snapshots (relatório nativo)
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    needs: changes
+    # Opt-in via label `visual` ou workflow_dispatch — preserva
+    # comportamento prévio. Filtro de área não se aplica (label é gate).
     if: |
       contains(github.event.pull_request.labels.*.name, 'visual') ||
       (github.event_name == 'workflow_dispatch' && inputs.run_visual)
@@ -504,9 +577,13 @@ jobs:
           retention-days: 30
 
   all-green:
+    # Meta-job: aceita success OU skipped (paths-filter pula jobs por área).
+    # Falha apenas se algum job upstream falhou ou foi cancelado.
+    # Único required check candidato — demais ficam informativos.
     name: All checks green
     runs-on: ubuntu-latest
     needs:
+      - changes
       - lint
       - ruff
       - code-style-regression
@@ -519,16 +596,34 @@ jobs:
       - frontend-lighthouse
     if: always()
     steps:
-      - name: Verify all required jobs passed
+      - name: Verify all required jobs passed or were skipped
         run: |
-          if [[ "${{ needs.lint.result }}" != "success" ]]; then exit 1; fi
-          if [[ "${{ needs.ruff.result }}" != "success" ]]; then exit 1; fi
-          if [[ "${{ needs.code-style-regression.result }}" != "success" ]]; then exit 1; fi
-          if [[ "${{ needs.lint-pii.result }}" != "success" ]]; then exit 1; fi
-          if [[ "${{ needs.tenancy-lint.result }}" != "success" ]]; then exit 1; fi
-          if [[ "${{ needs.pipeline-tests.result }}" != "success" ]]; then exit 1; fi
-          if [[ "${{ needs.backend-tests.result }}" != "success" ]]; then exit 1; fi
-          if [[ "${{ needs.frontend-lint.result }}" != "success" ]]; then exit 1; fi
-          if [[ "${{ needs.frontend-tests.result }}" != "success" ]]; then exit 1; fi
-          if [[ "${{ needs.frontend-lighthouse.result }}" != "success" ]]; then exit 1; fi
-          echo "✓ Todos os checks obrigatórios passaram"
+          fail=0
+          for job in lint ruff code-style-regression lint-pii tenancy-lint \
+                     pipeline-tests backend-tests frontend-lint frontend-tests \
+                     frontend-lighthouse; do
+            case "$job" in
+              lint) result="${{ needs.lint.result }}" ;;
+              ruff) result="${{ needs.ruff.result }}" ;;
+              code-style-regression) result="${{ needs.code-style-regression.result }}" ;;
+              lint-pii) result="${{ needs.lint-pii.result }}" ;;
+              tenancy-lint) result="${{ needs.tenancy-lint.result }}" ;;
+              pipeline-tests) result="${{ needs.pipeline-tests.result }}" ;;
+              backend-tests) result="${{ needs.backend-tests.result }}" ;;
+              frontend-lint) result="${{ needs.frontend-lint.result }}" ;;
+              frontend-tests) result="${{ needs.frontend-tests.result }}" ;;
+              frontend-lighthouse) result="${{ needs.frontend-lighthouse.result }}" ;;
+            esac
+            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+              echo "✗ $job: $result"
+              fail=1
+            else
+              echo "✓ $job: $result"
+            fi
+          done
+          # `changes` job sempre roda — exigir success.
+          if [[ "${{ needs.changes.result }}" != "success" ]]; then
+            echo "✗ changes: ${{ needs.changes.result }}"
+            fail=1
+          fi
+          exit $fail
