@@ -812,6 +812,9 @@ Onda v2.C — features reconhecidas v2 (P2, mistas)
 Onda v2.D — enabler estrutural (sequencial; destrava v2.8)
    v2.D.1 SnapshotChangelogBuilder      [prompt dedicado]
    v2.8   ativar comparisons/changelog  [depende v2.1 + v2.D.1]
+
+Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
+   v2.F.1 Hero KPI redesign (4 → 6 cards com hierarquia)
 ```
 
 ### 17.2 Tabela de lanes (resumo)
@@ -829,6 +832,7 @@ Onda v2.D — enabler estrutural (sequencial; destrava v2.8)
 | v2.9 | §2.2 (LLM débito) | O | P2 | C | inline |
 | v2.10 | §4.3 | R | P2 | C | inline |
 | v2.D.1 | enabler de v2.8 | O | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
+| v2.F.1 | §17.6 (cross-check com EXEMPLO) | S | P1 | F | inline (§17.6) |
 
 Origem detalhada de cada lane: §3 e §4 da auditoria
 ([wild-munching-pine.md](https://) — relatório do plan mode 2026-04-25).
@@ -845,10 +849,10 @@ Caminho crítico: **v2.1 (½d) → v2.D.1 (5d) → v2.8 (1.5d) ≈ 7 dias.**
 
 ### 17.4 Saída do v2
 
-Lane "Report Premium UI v2" considerada ✅ quando todas as 11 sub-lanes
-(v2.1 a v2.10 + v2.D.1) estão ✅ em `main`, OU foram explicitamente
-movidas para v3 com ADR justificativa. CHANGELOG receberá entrada
-consolidada análoga à da v1.
+Lane "Report Premium UI v2" considerada ✅ quando todas as sub-lanes
+(v2.1 a v2.10 + v2.D.1 + v2.F.1) estão ✅ em `main`, OU foram
+explicitamente movidas para v3 com ADR justificativa. CHANGELOG
+receberá entrada consolidada análoga à da v1.
 
 ### 17.5 v2.3 — S5/S6: mapeamento histórico (resolvido)
 
@@ -895,6 +899,128 @@ o modo USA (não fundidos em S4/S7 como a hipótese inicial supunha).
   `# ex-S5`/`# ex-S6` já existiam (linhas 475, 488) e o header do bloco
   `usa:` (linhas 464-468) já registra a fusão. Auditoria apenas
   confirmou que a documentação inline estava correta.
+
+### 17.6 v2.F.1 — Hero KPI redesign (4 → 6 cards com hierarquia)
+
+**Status:** 🚧 aberta 2026-04-26.
+**Onda:** v2.F (isolada — toca só `S1PatrimonioSection` topo).
+**Esforço:** S (≤½ dia).
+**Origem:** comparação com `EXEMPLO_DE_RELATORIO.html:1379-1419` (8 KPIs
+com `kpi-hero`) vs. atual `PatrimonioKpiRow.tsx` (4 KPIs uniformes,
+sem hierarquia).
+
+#### Diagnóstico (consenso financial-planner + product-designer)
+
+- **Atual (4):** Patrimônio Líquido · Investível · Taxa Poupança ·
+  Score. Tudo igual peso visual → nenhum KPI ancora a leitura. Não
+  responde "**quando** fica independente?".
+- **Exemplo (8):** Bruto+Líquido juntos é redundante (delta vira sub).
+  Meta IF + Gap IF + Prazo IF como 3 cards fragmenta uma narrativa
+  só. Renda Mensal é input de fluxo (pertence a S2), não estado
+  patrimonial.
+- **Decisão:** 6 cards em 2 linhas com 2 heroes (1 por linha) e card
+  composto para Independência Financeira. Custo de Vida e Renda
+  Mensal **não entram** no hero — aparecem como contexto inline em
+  sub-labels onde fazem sentido (Reserva, Taxa Poupança, IF) e em
+  escala completa em S2 Fluxo de Caixa.
+
+#### Set de 6 KPIs (final)
+
+**Linha 1 — "Onde estou hoje" (estado patrimonial):**
+
+| # | KPI | Valor | Sub-label | Tratamento |
+|---|---|---|---|---|
+| 1 | Patrimônio Líquido | `patrimonio.liquido` | Bruto: R$ X | Satélite |
+| 2 | **Patrimônio Investível** | `patrimonio.investivel` | % do líquido | **HERO** |
+| 3 | Reserva de Emergência | `reserva_emergencia.cobertura_meses` | X meses · meta 6–12m | Satélite com **semáforo** |
+
+**Linha 2 — "Para onde vou" (trajetória até IF):**
+
+| # | KPI | Valor | Sub-label | Tratamento |
+|---|---|---|---|---|
+| 4 | Taxa de Poupança | `ratios.taxa_poupanca_recorrente_pct` | Recorrente · Total: X% | Satélite |
+| 5 | **Independência Financeira** | `goals.if_pct` (com barra) | Prazo: N anos · Gap: −R$ X | **HERO composto** (Meta+Gap+Prazo fundidos) |
+| 6 | Score Financeiro | `score.valor`/`score.max` | `score.classificacao` | Satélite |
+
+#### Contrato de dados (sem novos campos no DTO)
+
+Todos os campos já existem em [report-analysis.ts](../frontend/src/types/report-analysis.ts):
+
+- `PatrimonioData.{liquido, bruto, investivel}` ✓
+- `ReservaEmergenciaData.{cobertura_meses, avaliacao_liquidity}` ✓
+  (semáforo: `cobertura_meses ≥ 6` verde, `3..6` amarelo, `<3` vermelho)
+- `RatiosData.{taxa_poupanca_recorrente_pct, taxa_poupanca_total_pct}` ✓
+- `goals.{if_pct, if_gap, ano_if}` (Record<string, unknown> em S1) ✓
+  - Prazo (anos) derivado: `ano_if - new Date().getFullYear()`
+- `ScoreData.{valor, max, classificacao}` ✓
+
+**Nenhuma mudança de contrato backend ⇄ frontend.** Lane é puramente
+frontend.
+
+#### Componentes a criar
+
+- `frontend/src/components/report/kpi/HeroKpiGrid.tsx` — substitui
+  `PatrimonioKpiRow.tsx`. Grid 12-col em xl, colapsa para 1-col em sm.
+- `frontend/src/components/report/kpi/KpiCard.tsx` — variant `default`
+  (satélite) e `hero` (border 2px primary, valor 32px). Aceita
+  `tone?: 'default'|'success'|'danger'|'warning'|'info'` controlando
+  cor de delta/sub-label (não do valor absoluto).
+- `frontend/src/components/report/kpi/IndependenciaCompositeCard.tsx` —
+  card hero com: % atingido (valor), progress bar (6px), prazo em
+  anos (linha 2), gap em R$ (linha 3, em `var(--semantic-danger)`).
+- `frontend/src/components/report/kpi/ReservaSemaforoBadge.tsx` —
+  bullet 8px à direita do valor: verde/amarelo/vermelho via
+  `var(--semantic-{success,warning,danger})`.
+
+`PatrimonioKpiRow.tsx` é **deletado** ao final (uso único em S1; não
+há outros consumers — `grep -r "PatrimonioKpiRow"` confirma).
+
+#### Tokens e estilo (sem hex literal)
+
+- Heroes: `border: 2px solid var(--brand-primary)`, valor em
+  `--font-display` (Plus Jakarta Sans) `text-3xl/600`.
+- Satélites: `border: 1px solid var(--surface-border)`, valor em
+  `--font-mono` (JetBrains Mono) `text-xl/600`.
+- Cor semântica em delta/gap apenas — sinal `+/−` explícito sempre
+  acompanha (WCAG 1.4.1).
+- Progress bar: `--brand-primary` sobre `--surface-muted`, 6px.
+
+#### Critério de aceite
+
+- [ ] `S1PatrimonioSection` renderiza 6 cards em 2 linhas no breakpoint
+  xl (3-3) e empilha em sm.
+- [ ] 2 cards têm tratamento `hero` (Investível, IF). Heros visíveis
+  por: border 2px + valor maior.
+- [ ] Card de Reserva tem semáforo (verde/amarelo/vermelho) baseado
+  em `cobertura_meses`.
+- [ ] Card de IF é **um** componente composto (% + barra + prazo +
+  gap), não 3 cards separados.
+- [ ] Nenhum hex literal — só `var(--brand-*)` / `var(--surface-*)` /
+  `var(--semantic-*)`.
+- [ ] `cd frontend && npm test -- --run` verde (ou novos snapshots
+  atualizados intencionalmente).
+- [ ] `pre-commit run --all-files` verde.
+- [ ] `PatrimonioKpiRow.tsx` removido; nenhum import órfão.
+- [ ] `frontend/src/components/report/kpi/PatrimonioKpiRow.tsx` ↔
+  novo arquivo: diff aprovado em review visual (browser local).
+
+#### Risco conhecido
+
+Sparkline e progress bar animados quebram em PDF Playwright server-side
+(networkidle não espera animação). **Mitigação:** progress bar é puro
+CSS estático (`width: X%`), sem `transition`/`animation`. Sem
+sparkline nesta lane (escopo focado em hero estrutural — sparkline
+fica como follow-up).
+
+#### Fora de escopo (follow-ups possíveis)
+
+- Sparkline 12m no Investível (precisa série histórica em
+  `patrimonio.serie_12m` — campo novo no DTO).
+- Delta vs. 12m em Patrimônio Líquido (mesmo motivo).
+- Idade no atingimento da IF no sub-label do card composto (precisa
+  `members.{nome, ano_nascimento}` cruzado com `goals.ano_if`).
+- Renda Mensal e Custo de Vida como cards próprios em S2 (já existem
+  como inputs do fluxo; UX de S2 não muda nesta lane).
 
 ---
 
