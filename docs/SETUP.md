@@ -172,40 +172,55 @@ Relacionado: reset **só** de documentos e pastas de dados por tenant (preserva 
 
 ---
 
-## 4. Rodar os 4 serviços
+## 4. Rodar o stack local
 
-Precisa de **4 terminais** abertos simultaneamente:
+### Caminho rápido — `make dev-*`
 
-### Terminal 1 — Redis
+Uma aba de terminal sobe os **6 serviços** (Redis, API 8000, Celery worker,
+frontend 3000, Ops API 8001, frontend-ops 3100) em background:
+
 ```bash
-redis-server
-# ou como serviço: brew services start redis
+make dev-bootstrap   # primeira vez: venv, deps, .env, codegen
+make dev-up          # sobe tudo
+make dev-status      # checa PIDs e portas (✅/❌)
+make dev-logs        # tail -f de todos os logs (SVC=api para um só)
+make dev-down        # mata tudo (preserva Redis se já estava rodando antes)
 ```
 
-### Terminal 2 — Backend (FastAPI)
-```bash
-cd fin-current
-source .venv/bin/activate
-cd backend
-uvicorn app.main:app --reload --port 8000
-```
+| Target | O que faz |
+| --- | --- |
+| `make dev-bootstrap` | Cria `.venv`, instala deps Python e npm (frontend + frontend-ops), gera `.env` via `gen-secrets.sh --init-env` se ausente, gera `frontend-ops/.env.local`, roda codegen (design-tokens + report-layout). Avisa se `config/internal_operators.yaml` falta. |
+| `make dev-pull` | `git pull --ff-only` na raiz + `npm install` em ambos os frontends. Aborta se working tree sujo. |
+| `make dev-up` | Sobe os 6 serviços. **Não toca `.env` nem `mathoms.db`** (preserva Fernet e dados encriptados). |
+| `make dev-down` | Mata todos os processos via PID files. Só mata Redis se foi `dev-up` quem subiu. |
+| `make dev-restart` | `dev-down && dev-up`. |
+| `make dev-restart-worker` | Restart só do Celery worker — útil ao mexer em `pipeline/` ou `tasks/` (worker não tem hot reload). |
+| `make dev-status` | Tabela com PID + porta + health check de cada serviço. |
+| `make dev-logs` | `tail -f` de todos os logs em `_dev_pids/`. `SVC=api` para um só. |
+| `make dev-reset-env` | **Destrutivo.** Regenera `.env` (apaga `MATHOMS_FERNET_KEY` → invalida API keys LLM, senhas PDF, CPFs encriptados). Pede confirmação. |
 
-Acessar: http://localhost:8000/docs (OpenAPI) ou http://localhost:8000/health
+PIDs e logs ficam em `_dev_pids/<svc>.{pid,log}` (no `.gitignore`).
 
-### Terminal 3 — Celery worker
-```bash
-cd fin-current
-source .venv/bin/activate
-celery -A backend.app.worker worker -l info -c 2
-```
+URLs após `make dev-up`:
+- API: http://localhost:8000/docs · http://localhost:8000/health
+- Frontend: http://localhost:3000
+- Ops API: http://127.0.0.1:8001/admin/* (requer `config/internal_operators.yaml` — ver [RUNBOOK §7.2](RUNBOOK.md))
+- Frontend-ops: http://127.0.0.1:3100/login
 
-### Terminal 4 — Frontend (Next.js)
-```bash
-cd fin-current/frontend
-npm run dev
-```
+### Caminho manual — 4 terminais (fallback)
 
-Acessar: http://localhost:3000
+Útil se você precisa ver os logs ao vivo ou usar `--reload` interativamente.
+
+| Terminal | Comando |
+| --- | --- |
+| Redis | `redis-server` (ou `brew services start redis`) |
+| Backend (8000) | `source .venv/bin/activate && uvicorn backend.app.main:app --reload --port 8000` |
+| Celery | `source .venv/bin/activate && celery -A backend.app.worker worker -l info -c 2` |
+| Frontend | `cd frontend && npm run dev` |
+
+Para ops API (8001) e frontend-ops (3100), ver [RUNBOOK §7.2](RUNBOOK.md) —
+exige envs extras (`MATHOMS_INTERNAL_OPS_UI_ENABLED=1` etc.) que `make dev-up`
+já configura automaticamente.
 
 **Status page (opcional, 7E.6):** crie `frontend/.env.local` com `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=https://…` para exibir o link **Status e incidentes** no rodapé (login, cadastro, convite e área logada). Ver [RUNBOOK.md](RUNBOOK.md).
 

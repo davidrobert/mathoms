@@ -74,25 +74,19 @@ python3 dev/codegen_report_layout.py
 cd backend && python seed_db.py && cd ..
 ```
 
-**Subir a aplicação** — são necessários **4 terminais** (Redis, API, worker Celery, Next.js):
+**Subir a aplicação** — uma aba sobe os 6 serviços (Redis, API 8000, worker Celery, frontend 3000, ops API 8001, frontend-ops 3100):
 
 ```bash
-# Terminal 1
-redis-server
-
-# Terminal 2 (com venv ativado, na raiz — NÃO fazer `cd backend`)
-uvicorn backend.app.main:app --reload --port 8000
-
-# Terminal 3 (com venv ativado, na raiz — mesmo nível que contém backend/)
-celery -A backend.app.worker worker -l info -c 2
-
-# Terminal 4
-cd frontend && npm run dev
+make dev-bootstrap   # primeira vez: venv, deps, .env, codegen
+make dev-up          # sobe tudo em background; logs em _dev_pids/<svc>.log
+make dev-status      # ✅/❌ por serviço (PID + porta)
+make dev-logs        # tail -f (use SVC=api para um só)
+make dev-down        # mata tudo (preserva .env e mathoms.db)
 ```
 
-Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · Login após `seed_db.py`: `admin@mathoms.ai` / `admin123`.
+Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · Login após `make dev-bootstrap`: `admin@mathoms.ai` / `admin123`.
 
-Detalhes (Fernet, migrations Alembic, Playwright/PDF, troubleshooting): **[docs/SETUP.md](docs/SETUP.md)**.
+Detalhes dos targets, `dev-pull`, `dev-restart-worker`, `dev-reset-env` e fallback manual de 4 terminais: **[docs/SETUP.md §4](docs/SETUP.md)**. Migrations Alembic, Playwright/PDF, troubleshooting: idem.
 
 ### Console interno local (F7F-Local · IA-0)
 
@@ -101,10 +95,10 @@ reset de senha, toggle `is_developer` e leitura de métricas/relatórios em
 **dev/staging** — app Next separada em `frontend-ops/`, bind `127.0.0.1:3100`,
 rotas `/admin/*` no backend só sobem com flag explícita.
 
-Passos rápidos (ver **[docs/RUNBOOK.md §7](docs/RUNBOOK.md)** para detalhes):
+Setup inicial do operador (ver **[docs/RUNBOOK.md §7](docs/RUNBOOK.md)** para detalhes):
 
 ```bash
-# 1. Gerar hash do operador (senha ≥6 chars em dev; use ≥12 fora de localhost)
+# 1. Gerar hash da senha (≥6 chars em dev; use ≥12 fora de localhost)
 python3 scripts/hash_ops_pw.py   # cole o hash no próximo passo
 
 # 2. Criar config/internal_operators.yaml (gitignored por design)
@@ -114,17 +108,11 @@ operators:
     hashed_password: "$2b$12$..."
     role: superadmin
 EOF
-
-# 3. Backend com flag + session secret isolado (NÃO reusar SECRET_KEY do cliente)
-# Porta 8001 para não colidir com o backend principal do dev (8000)
-export MATHOMS_INTERNAL_OPS_UI_ENABLED=1
-export MATHOMS_INTERNAL_OPS_SESSION_SECRET="<secret distinto>"
-uvicorn backend.app.main:app --host 127.0.0.1 --port 8001
-
-# 4. Frontend-ops em terminal separado (default rewrite já aponta p/ :8001)
-cd frontend-ops && npm install && npm run dev
-# http://127.0.0.1:3100/login
 ```
+
+Depois disso, `make dev-up` já sobe a Ops API (8001) e o frontend-ops (3100) com
+as envs corretas (`MATHOMS_INTERNAL_OPS_UI_ENABLED=1` + session secret efêmero ou
+o que estiver no `.env`). Login em **http://127.0.0.1:3100/login**.
 
 Não rodar em produção — F7F-Remote (`ops.mathoms.ai` com OAuth staff) é lane
 separada; console local é bloqueado por flag + bind + guard de `ENVIRONMENT=production`.
