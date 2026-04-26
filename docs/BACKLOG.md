@@ -6,7 +6,7 @@
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
 >
-> **Última atualização:** 2026-04-26 (Report Premium UI v2 **Onda E 3/8 entregues em main** — primeira leva paralela executada por 3 agentes simultâneos: ✅ **v2.E.1** PeriodToggle + hook `usePeriodWindow` (`da841c2` — 16 specs Vitest verde) · ✅ **v2.E.2** TS types `receita_datasets`/`despesa_datasets` (`8ee4bd6` — divergência registrada: backend hoje só emite `{label, data}`; `backgroundColor`/`stack`/`borderRadius` ficam opcionais para enriquecimento client-side) · ✅ **v2.E.7** ScoreCard plug + DTO + backend score.context/conclusion (`55f00fa` + `22ca7d0` + `334f5f7` + `529cd70` — absorve v2.5; `ScoreGaugeChart.tsx` deletado; `financial_score_calculator` agora emite `breakdown`/`formula`/`context`/`conclusion`; preferência por `narrativas[score_gauge].conclusion` (E5.N LLM) sobre template determinístico). **v2.E.3-E.6 destravados para pickup** (até 4 agentes paralelos). · **Onda E aberta — Charts UX, 8 sub-lanes** finalizando migração Recharts→Chart.js que ADR-117 Fase 2 abriu mas Fase 7 não fechou. Prompt dedicado: [track_report_v2_charts_ux.md](agent_prompts/track_report_v2_charts_ux.md). · **Onda A 3/3 com débito v2.2b** — após billing GitHub Actions resolvido, retomada da v2.2 descobriu 2 bugs CI: (1) `PLAYWRIGHT_SKIP_WEB_SERVER:"0"` truthy bloqueava webServer (fix `a856e0b`); (2) workflow não passava `--update-snapshots` (fix `02216f8`+`bd72dc8` adiciona input opt-in `update_visual_baselines`). 28/48 baselines commitadas (`0558ea3`); gate empírico validado via PR #9 (run `24952744817` falhou em frontend-visual com diff visual). Resíduo: 20 baselines Tático+USA bloqueados por bug `clickMode()` em spec — abriu lane v2.2b (P1 ≤2h). · v2.1 `cbb389a` 12 placeholders YAML; v2.3 `4aebe50` decisão (b) refinada: S5/S6 → U1/U2 USA. · 2026-04-25 v2 roadmap aberto — auditoria pós-v1 catalogou 3 inconsistências, 3 débitos declarados e 3 lacunas em 11 sub-lanes paralelizáveis em 4 ondas. · lane `report-v1-polish` ✅ 6/6 fechada · lane `adr-129-e6-kill` ✅ 6/6 fechada · Report Premium UI — 10/10 fases úteis v1 entregues em main. **Fases 11/12/13 canceladas via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**. · F7F-Local MVP fechado · A6e.4 ✅ fase 4a completa 14/14.)
+> **Última atualização:** 2026-04-26 (**Lane aberta `7A-dev` — fatia mínima local-first (pré-Hetzner)** ☐ — sequência de 8 itens (~5h: 4h local + 1h pós-VPS) executando agora; meta é `dev.mathoms.ai` no Hetzner CX32 + Coolify (~R$45/mês), **sem F7B/F7C/F7D/F7E**; fatias mínimas de 7A.1/7A.2/7A.4/7A.6/7A.7/7A.8/7A.11 — endurece depois, incremental, sem jogar fora trabalho. Ver [§7A-dev](#7a-dev--lane-ativa-fatia-mínima-local-first-pré-hetzner--🚧-aberta-2026-04-26). · Report Premium UI v2 **Onda E 3/8 entregues em main** — primeira leva paralela executada por 3 agentes simultâneos: ✅ **v2.E.1** PeriodToggle + hook `usePeriodWindow` (`da841c2` — 16 specs Vitest verde) · ✅ **v2.E.2** TS types `receita_datasets`/`despesa_datasets` (`8ee4bd6` — divergência registrada: backend hoje só emite `{label, data}`; `backgroundColor`/`stack`/`borderRadius` ficam opcionais para enriquecimento client-side) · ✅ **v2.E.7** ScoreCard plug + DTO + backend score.context/conclusion (`55f00fa` + `22ca7d0` + `334f5f7` + `529cd70` — absorve v2.5; `ScoreGaugeChart.tsx` deletado; `financial_score_calculator` agora emite `breakdown`/`formula`/`context`/`conclusion`; preferência por `narrativas[score_gauge].conclusion` (E5.N LLM) sobre template determinístico). **v2.E.3-E.6 destravados para pickup** (até 4 agentes paralelos). · **Onda E aberta — Charts UX, 8 sub-lanes** finalizando migração Recharts→Chart.js que ADR-117 Fase 2 abriu mas Fase 7 não fechou. Prompt dedicado: [track_report_v2_charts_ux.md](agent_prompts/track_report_v2_charts_ux.md). · **Onda A 3/3 com débito v2.2b** — após billing GitHub Actions resolvido, retomada da v2.2 descobriu 2 bugs CI: (1) `PLAYWRIGHT_SKIP_WEB_SERVER:"0"` truthy bloqueava webServer (fix `a856e0b`); (2) workflow não passava `--update-snapshots` (fix `02216f8`+`bd72dc8` adiciona input opt-in `update_visual_baselines`). 28/48 baselines commitadas (`0558ea3`); gate empírico validado via PR #9 (run `24952744817` falhou em frontend-visual com diff visual). Resíduo: 20 baselines Tático+USA bloqueados por bug `clickMode()` em spec — abriu lane v2.2b (P1 ≤2h). · v2.1 `cbb389a` 12 placeholders YAML; v2.3 `4aebe50` decisão (b) refinada: S5/S6 → U1/U2 USA. · 2026-04-25 v2 roadmap aberto — auditoria pós-v1 catalogou 3 inconsistências, 3 débitos declarados e 3 lacunas em 11 sub-lanes paralelizáveis em 4 ondas. · lane `report-v1-polish` ✅ 6/6 fechada · lane `adr-129-e6-kill` ✅ 6/6 fechada · Report Premium UI — 10/10 fases úteis v1 entregues em main. **Fases 11/12/13 canceladas via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**. · F7F-Local MVP fechado · A6e.4 ✅ fase 4a completa 14/14.)
 
 ---
 
@@ -20,6 +20,7 @@
   - [Lanes abertas agora — pickup table](#lanes-abertas-agora--pickup-table) ← **agente começa aqui**
   - [Ondas paralelas — mapa de dependências](#ondas-paralelas--mapa-de-dependências)
 - [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
+  - [7A-dev — Lane ativa: fatia mínima local-first (pré-Hetzner)](#7a-dev--lane-ativa-fatia-mínima-local-first-pré-hetzner--🚧-aberta-2026-04-26) ← **🚧 executando agora**
 - [F7F — Console interno (operadores)](#f7f--console-interno-operadores) — dividido em **F7F-Local** (UI web em `127.0.0.1`, sem OAuth, pré-produção) e **F7F-Remote** (`ops.mathoms.ai` com OAuth staff + RBAC + telemetria, produção)
 - [Report Premium UI — Paridade com EXEMPLO_DE_RELATORIO.html](#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ← **v1 ✅ entregue (10/10 fases úteis) · v2 roadmap aberto (11 sub-lanes em 4 ondas)**
 - [DOCS-REVIEW — Followups da revisão multi-agente 2026-04-24](#docs-review--followups-da-revisão-multi-agente-2026-04-24) ← **batches 2/3 do audit de docs**
@@ -1091,6 +1092,45 @@ convergir em `origin/main`.
 ### 7A — Docker + Deploy + HTTPS (semana 1-2)
 
 **URLs canônicas (ADR-108):** `app.mathoms.ai` (produto) · `api.mathoms.ai/v1/...` (backend + WS) · `ops.mathoms.ai` (console interno F7F) · `docs.mathoms.ai` · `status.mathoms.ai` · apex `mathoms.ai` (landing). Staging: `*.staging.mathoms.ai`. Domínio em **Cloudflare Domains**. Ver [ARCHITECTURE.md §18](ARCHITECTURE.md#18-domínios-e-urls-públicas-f7a).
+
+#### 7A-dev — Lane ativa: fatia mínima local-first (pré-Hetzner) — 🚧 aberta 2026-04-26
+
+**Meta:** subir `dev.mathoms.ai` no Hetzner CX32 + Coolify (~R$45/mês) com o **mínimo absoluto** — sem F7B/F7C/F7D/F7E. Endurece depois, incremental. Acesso restrito (single user / equipe), sem LGPD, sem rate limit, sem backup off-site. **Substitui a versão "completa" das tasks 7A.1/7A.2/7A.4/7A.6/7A.7/7A.8/7A.11** por fatias mínimas; o restante de 7A entra quando promover dev → prod real.
+
+**Hospedagem confirmada:** Hetzner Cloud CX32 Falkenstein (€7.55/mês) + Coolify self-host (substitui 7A.7 Traefik manual + parte de 7C.2 deploy). Justificativa: comparativo Hetzner × DO Droplet × DO App Platform × Heroku × Railway × Render — Hetzner ~3-10× mais barato pelo mesmo recurso, GDPR/LGPD-friendly, controle total. ADR formal pode ser escrita quando promover para produção.
+
+**Sequência de execução (8 itens, ~5h total — 4h local, 1h pós-VPS):**
+
+| #     | Item                                                                                              | Local-only? | Mapeia em | Tempo  | Status |
+| ----- | ------------------------------------------------------------------------------------------------- | ----------- | --------- | ------ | ------ |
+| dev.1 | **Audit dos compose existentes + Makefile** — decidir reuso vs novo (5 composes já no repo)      | ✅ sim      | pré-7A    | 30min  | ☐      |
+| dev.2 | **Verificar `output: 'standalone'`** em `frontend/next.config.ts` e `frontend-ops/next.config.ts` | ✅ sim      | pré-7A.2  | 15min  | ☐      |
+| dev.3 | **Backend Dockerfile minimal** (single-stage, 3 CMDs: `api`/`worker`/`beat`, sem otimizar tamanho) | ✅ sim     | 7A.1 (fatia) | 1h    | ☐      |
+| dev.4 | **Frontend Dockerfile minimal** (multi-stage Next standalone, só `frontend/` cliente)             | ✅ sim      | 7A.2 (fatia) | 45min | ☐      |
+| dev.5 | **`docker-compose.prod.yml` minimal** (api+worker+beat + frontend + PG + Redis; **sem Traefik** — Coolify cuida; portas em `127.0.0.1` para teste local) | ✅ sim | 7A.4 (fatia) | 1h | ☐ |
+| dev.6 | **`.env.prod.example` + `dev/gen-secrets.sh`** (FERNET_KEY, JWT_SECRET via `python -c`)           | ✅ sim      | 7A.5 ✅ (já feito; só script novo) | 15min | ☐ |
+| dev.7 | **Wrapper de boot backend** (`backend/scripts/entrypoint.sh`): `alembic upgrade head` antes de `uvicorn`/`celery`, idempotente, só na role `api` | ✅ sim | 7A.9 (fatia) | 30min | ☐ |
+| dev.8 | **Smoke local prod-mode end-to-end**: `docker compose -f docker-compose.prod.yml up`, registrar user, login, upload PDF, trigger pipeline, ver relatório | ✅ sim | 7A.11 (fatia) | 30min | ☐ |
+| dev.9 | (pós-VPS) Hetzner CX32 + UFW + Docker + Coolify + Cloudflare A record `dev.mathoms.ai` + deploy + smoke remoto | ❌ precisa VPS | 7A.6/7A.7/7A.8/7A.13 (fatia) | 1h20 | ☐ |
+
+**Premissas e cortes conscientes:**
+
+- Domínio `mathoms.ai` é do usuário (confirmado 2026-04-26). Apenas **1 record DNS** necessário nesta fase: `dev.mathoms.ai` A → IP do CX32, proxy **OFF** (Coolify quer 80/443 direto pra cert Let's Encrypt). Resto de 7A.8 (apex/www/api/ops/staging/MX/SPF/DKIM) **adiado**.
+- **Pula nesta fase:** F7B inteira (rate limit, CSP, audit log, email verification, password reset, brute-force lockout, prompt injection defense), F7C inteira (CI/CD — deploy via push GitHub + webhook Coolify), F7D inteira (coverage gate, dogfood), F7E inteira (off-site backup, status page, LLM cap), `frontend-ops/` em container (roda local), `pipeline-service/` Go (sem cliente).
+- **Limitações aceitas** (registrar para retomada na promoção dev → prod):
+  - Sem rate limit → não compartilhar URL publicamente; mitigação opcional: basic-auth Cloudflare por cima.
+  - Sem backup off-site → snapshot Hetzner manual (€0 até 7d) é a única rede.
+  - Sem email verification → desligar `REQUIRE_EMAIL_VERIFICATION` no `.env.prod.local`.
+  - 1 réplica de api (Alembic no entrypoint não tem lock) — escalonar exige migrar lock pra Postgres ou beat-only-runs-migration.
+  - `.env` em texto puro no diretório Coolify do servidor.
+
+**Preserva dev local:** todos os arquivos novos são adicionais (`Dockerfile`, `frontend/Dockerfile`, `docker-compose.prod.yml`, `.env.prod.example`, `dev/gen-secrets.sh`, `backend/scripts/entrypoint.sh`). Nenhum edit em `docker-compose.dev.yml`, `requirements.txt`, `package.json` ou código de aplicação. `next.config.ts` ganha `output: 'standalone'` sem afetar `npm run dev`.
+
+**Promoção dev → prod (incremental, depois):** F7B P0 (~3 dias) → 7A.10 + 7E.4 backup off-site (~1 dia) → 7C.1+7C.2 CI/CD (~1 dia) → trocar subdomain `dev.` por `app.` + `api.` (~1h). Nenhum trabalho de `7A-dev` é jogado fora — só endurecido.
+
+---
+
+**Tabela canônica F7A** (versões "completas" das tasks; fatias mínimas estão em 7A-dev acima):
 
 | #     | Tarefa                                                                               | Prio | Est. | Status |
 | ----- | ------------------------------------------------------------------------------------ | ---- | ---- | ------ |
