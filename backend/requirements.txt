@@ -10,9 +10,13 @@ python-multipart>=0.0.7
 pydantic[email]>=2.0
 pydantic-settings>=2.0
 aiosqlite>=0.20
-# Sync driver para sync_engine (backend/app/core/database.py:21). URL postgres
-# sem driver explícito resolve para psycopg2 — sem ele, `alembic upgrade head`
-# com MATHOMS_DATABASE_URL=postgresql+asyncpg://... falha no import-time.
+# Drivers Postgres:
+# - asyncpg: usado pelo async engine (backend/app/core/database.py:52) quando
+#   MATHOMS_DATABASE_URL=postgresql+asyncpg://... — sem ele o import do
+#   create_async_engine quebra antes mesmo do alembic abrir conexão.
+# - psycopg2-binary: usado pelo sync_engine (database.py:21), que reaproveita a
+#   mesma URL com `+asyncpg` removido (config.py:91) → resolve para psycopg2.
+asyncpg>=0.29
 psycopg2-binary>=2.9
 greenlet>=3.0
 httpx>=0.27

@@ -160,7 +160,10 @@ services:
         # boot do api; o rewrite só é exercido quando o usuário navega.
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/ || exit 1"]
+      # Imagem `node:22-alpine` não inclui curl; usar wget (presente no busybox).
+      # Next.js standalone só escuta IPv4 (HOSTNAME=0.0.0.0), mas `localhost` em
+      # alpine resolve ::1 primeiro → connection refused. Endereçamos 127.0.0.1.
+      test: ["CMD-SHELL", "wget --quiet --spider http://127.0.0.1:3000/ || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 6
