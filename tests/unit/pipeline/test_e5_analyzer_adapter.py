@@ -322,7 +322,17 @@ class TestA6d33Wiring:
         adapter = E5AnalyzerAdapter()
         result = adapter.analyze_via_store(store)
 
-        assert set(result.score.keys()) == {"valor", "max", "classificacao", "componentes"}
+        # v2.E.7: ScoreCard premium consome breakdown/formula/context/conclusion.
+        assert set(result.score.keys()) == {
+            "valor",
+            "max",
+            "classificacao",
+            "componentes",
+            "breakdown",
+            "formula",
+            "context",
+            "conclusion",
+        }
         assert result.score["max"] == 10
         assert len(result.score["componentes"]) == 5
 

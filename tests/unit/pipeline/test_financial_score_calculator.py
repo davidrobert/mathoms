@@ -130,7 +130,17 @@ def test_calculate_output_shape(default_calc: FinancialScoreCalculator):
         patrimonio={"composicao": [{"valor": 100}]},
         goals={"if_pct": 20},
     )
-    assert set(result.keys()) == {"valor", "max", "classificacao", "componentes"}
+    # v2.E.7: breakdown/formula/context/conclusion novos para o ScoreCard premium.
+    assert set(result.keys()) == {
+        "valor",
+        "max",
+        "classificacao",
+        "componentes",
+        "breakdown",
+        "formula",
+        "context",
+        "conclusion",
+    }
     assert result["max"] == 10
 
 
@@ -315,6 +325,71 @@ def test_classify_custom_bands():
         goals={"if_pct": 5},
     )
     assert result["classificacao"] == "Baixo"
+
+
+def test_breakdown_has_expected_shape(default_calc: FinancialScoreCalculator):
+    """v2.E.7 — breakdown alimenta o ScoreCard premium."""
+    result = default_calc.calculate(
+        ratios={
+            "taxa_poupanca_recorrente_pct": 25,
+            "cobertura_despesas_meses": 12,
+            "taxa_endividamento_pct": 20,
+        },
+        patrimonio={"composicao": [{"valor": 1}] * 4},
+        goals={"if_pct": 40},
+    )
+    assert isinstance(result["breakdown"], list)
+    assert len(result["breakdown"]) == 5
+    for row in result["breakdown"]:
+        assert set(row.keys()) == {"dimensao", "valor", "max", "peso", "contribuicao"}
+        assert row["max"] == 10
+        assert 0 <= float(row["peso"]) <= 1
+
+
+def test_breakdown_pesos_somam_um(default_calc: FinancialScoreCalculator):
+    result = default_calc.calculate(
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 3,
+            "taxa_endividamento_pct": 5,
+        },
+        patrimonio={"composicao": []},
+        goals={"if_pct": 5},
+    )
+    soma = sum(b["peso"] for b in result["breakdown"])
+    assert soma == pytest.approx(1.0, abs=0.01)
+
+
+def test_context_e_conclusion_sao_strings(default_calc: FinancialScoreCalculator):
+    """v2.E.7 — paridade textual com EXEMPLO_DE_RELATORIO.html L1809-1811."""
+    result = default_calc.calculate(
+        ratios={
+            "taxa_poupanca_recorrente_pct": 30,
+            "cobertura_despesas_meses": 12,
+            "taxa_endividamento_pct": 15,
+        },
+        patrimonio={"composicao": [{"valor": 1}] * 4},
+        goals={"if_pct": 50},
+    )
+    assert isinstance(result["context"], str)
+    assert isinstance(result["conclusion"], str)
+    assert "/10" in result["context"]
+    assert result["classificacao"] in result["context"]
+    assert result["classificacao"] in result["conclusion"]
+
+
+def test_formula_inclui_pesos(default_calc: FinancialScoreCalculator):
+    result = default_calc.calculate(
+        ratios={
+            "taxa_poupanca_recorrente_pct": 0,
+            "cobertura_despesas_meses": 3,
+            "taxa_endividamento_pct": 5,
+        },
+        patrimonio={"composicao": []},
+        goals={"if_pct": 5},
+    )
+    assert "Score" in result["formula"]
+    assert "taxa_poupanca_recorrente" in result["formula"]
 
 
 def test_classify_custom_bands_edge_10():

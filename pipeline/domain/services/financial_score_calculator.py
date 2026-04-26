@@ -236,12 +236,22 @@ class FinancialScoreCalculator:
             sum(c["nota"] * c["peso"] for c in componentes) / total_peso if total_peso > 0 else 0.0
         )
         valor_score = round(valor_score, 1)
+        classificacao = self._classify(valor_score)
+
+        breakdown = self._build_breakdown(componentes, total_peso)
+        formula = self._build_formula(componentes)
+        context = self._build_context(valor_score, classificacao)
+        conclusion = self._build_conclusion(classificacao, breakdown)
 
         return {
             "valor": valor_score,
             "max": 10,
-            "classificacao": self._classify(valor_score),
+            "classificacao": classificacao,
             "componentes": componentes,
+            "breakdown": breakdown,
+            "formula": formula,
+            "context": context,
+            "conclusion": conclusion,
         }
 
     # -------------------------------------------------------------------------
@@ -286,3 +296,84 @@ class FinancialScoreCalculator:
         if valor_score < 8:
             return "Bom"
         return "Excelente"
+
+    @staticmethod
+    def _build_breakdown(componentes: list[dict], total_peso: float) -> list[dict]:
+        """Reformata `componentes` no shape consumido pelo `ScoreCard` premium.
+
+        Mapeia ``nome``→``dimensao``, normaliza ``peso`` para fração [0..1] e
+        calcula ``contribuicao`` (nota × peso normalizado).
+        """
+        if total_peso <= 0:
+            return []
+        return [
+            {
+                "dimensao": c["nome"],
+                "valor": c["nota"],
+                "max": 10,
+                "peso": round(c["peso"] / total_peso, 4),
+                "contribuicao": round(c["nota"] * c["peso"] / total_peso, 2),
+            }
+            for c in componentes
+        ]
+
+    @staticmethod
+    def _build_formula(componentes: list[dict]) -> str:
+        """Fórmula textual exibida no rodapé do ScoreCard."""
+        parts = " + ".join(f"{c['nome']}×{c['peso']:g}" for c in componentes)
+        total = sum(c["peso"] for c in componentes)
+        return f"Score = ({parts}) / {total:g}"
+
+    @staticmethod
+    def _build_context(valor: float, classificacao: str) -> str:
+        """Parágrafo `chart-context` — paridade com EXEMPLO_DE_RELATORIO.html L1809."""
+        return (
+            f"Indicador geral de saúde financeira da família, "
+            f"com score de {valor:.1f}/10 ({classificacao}). "
+            "Reflete equilíbrio entre pontos fortes e oportunidades de melhoria."
+        )
+
+    @staticmethod
+    def _build_conclusion(classificacao: str, breakdown: list[dict]) -> str:
+        """Parágrafo `chart-conclusion` — top-2 drivers do breakdown."""
+        if not breakdown:
+            return f"A classificação '{classificacao}' reflete o conjunto dos componentes do score."
+
+        ordered = sorted(
+            breakdown,
+            key=lambda b: float(b.get("contribuicao") or 0),
+            reverse=True,
+        )
+        # Componentes com nota >= 5 puxam pra cima; < 5 puxam pra baixo.
+        # Pega top-2 absolute drivers.
+        top2 = ordered[:2]
+        labels = [_humanize_dimension(b["dimensao"]) for b in top2]
+        notas = [float(b.get("valor") or 0) for b in top2]
+        avg_nota = sum(notas) / len(notas) if notas else 0
+        verbo = "melhora" if avg_nota >= 5 else "piora"
+        if len(labels) >= 2:
+            drivers = f"{verbo} em {labels[0]} e {labels[1]}"
+        elif labels:
+            drivers = f"{verbo} em {labels[0]}"
+        else:
+            drivers = "o conjunto dos componentes do score"
+        return f"A classificação '{classificacao}' reflete {drivers}."
+
+
+# =============================================================================
+# Helpers
+# =============================================================================
+
+
+_DIMENSION_LABELS: dict[str, str] = {
+    "taxa_poupanca_recorrente": "taxa de poupança recorrente",
+    "cobertura_despesas": "cobertura de despesas pela reserva",
+    "taxa_endividamento": "razão endividamento/patrimônio",
+    "progresso_if": "progresso da meta IF",
+    "diversificacao": "diversificação patrimonial",
+}
+
+
+def _humanize_dimension(key: str) -> str:
+    """Mapeia chave técnica para frase curta legível na conclusão."""
+    return _DIMENSION_LABELS.get(key, key.replace("_", " "))
