@@ -4,28 +4,11 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
+import pkg from "../../../package.json";
 import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
-
-const MONTHS_PT = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-];
-
-/**
- * Converte `periodo_dados` (ex: "2023-01 a 2026-04") em título legível
- * (ex: "Fechamento Abril 2026"). Retorna null se o formato não for reconhecido.
- */
-function formatReportPeriod(periodo: string): string | null {
-  const parts = periodo.split(" a ");
-  const endPart = parts[parts.length - 1].trim();
-  const [yearStr, monthStr] = endPart.split("-");
-  const year = parseInt(yearStr, 10);
-  const month = parseInt(monthStr, 10);
-  if (isNaN(year) || isNaN(month) || month < 1 || month > 12) return null;
-  return `Fechamento ${MONTHS_PT[month - 1]} ${year}`;
-}
+import { formatPeriodCoverPtBR } from "@/lib/format";
 import { ExecutiveSummarySection } from "./ExecutiveSummarySection";
 import { ReportPremissasBlock } from "./ReportPremissasBlock";
 import { ReportSourceStrip } from "./ReportSourceStrip";
@@ -77,6 +60,26 @@ import {
 import { useReportFontScale } from "./useReportFontScale";
 import { useReportTocOpen } from "./useReportTocOpen";
 
+const COVER_MONTH_SHORT_PT = [
+  "jan", "fev", "mar", "abr", "mai", "jun",
+  "jul", "ago", "set", "out", "nov", "dez",
+];
+
+/** v2.F.3b — "Gerado em" no cover: `10 abr 2026, 16h25`.
+ *
+ * Falha graciosamente: retorna o ISO original se não parsear.
+ */
+function formatGeneratedAtPtBR(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = COVER_MONTH_SHORT_PT[d.getMonth()];
+  const year = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${day} ${month} ${year}, ${hh}h${mm}`;
+}
+
 /** Todas as seções de todos os modos estão migradas (F2.A–H + Fase D). */
 const MIGRATED_SECTIONS = new Set([
   // Estratégico
@@ -103,6 +106,9 @@ interface ReportShellProps {
   /** F11.4a — `sourceDocumentCount`: docs prontos no workspace (mutável); `consumedDocumentCount`: docs extraídos pela run (imutável). */
   sourceDocumentCount?: number | null;
   consumedDocumentCount?: number | null;
+  /** v2.F.3b — sobrenome da família (de ReportResponse.workspace_family_surname).
+   * Quando ausente, o cover usa badge fallback e omite o card "Família". */
+  familySurname?: string | null;
 }
 
 function selectSections(mode: "estrategico" | "tatico" | "usa"): SectionSpec[] {
@@ -200,6 +206,7 @@ export function ReportShell({
   pipelineRunId,
   sourceDocumentCount,
   consumedDocumentCount,
+  familySurname,
 }: ReportShellProps) {
   const { mode } = useReportMode();
   const { open: sidebarOpen, toggle: toggleSidebar } = useReportTocOpen();
@@ -213,14 +220,6 @@ export function ReportShell({
           ? dataState.data.data_analise
           : undefined)
       : undefined;
-
-  const displayTitle = useMemo(() => {
-    if (analysisPeriodFromSnapshot) {
-      const formatted = formatReportPeriod(String(analysisPeriodFromSnapshot));
-      if (formatted) return formatted;
-    }
-    return reportTitle;
-  }, [analysisPeriodFromSnapshot, reportTitle]);
 
   const enabledSections = useMemo<SectionSpec[]>(
     () => selectSections(mode).filter((s) => s.enabled),
@@ -258,34 +257,28 @@ export function ReportShell({
 
   const coverMeta = useMemo<CoverMeta[]>(() => {
     if (dataState.status !== "success") return [];
-    const generated = new Date(reportCreatedAt).toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZoneName: "shortOffset",
-    });
-    const docsMeta: CoverMeta =
-      typeof consumedDocumentCount === "number" && consumedDocumentCount > 0
-        ? { label: "Docs analisados", value: consumedDocumentCount }
-        : { label: "Docs no workspace", value: sourceDocumentCount ?? "—" };
-    return [
-      {
-        label: "Período analisado",
-        value: analysisPeriodFromSnapshot ?? reportPeriod ?? "—",
-      },
+    const generated = formatGeneratedAtPtBR(reportCreatedAt);
+    const periodValue = formatPeriodCoverPtBR(
+      analysisPeriodFromSnapshot ?? reportPeriod ?? null,
+    );
+    const versionValue = pkg.version ? `Mathoms v${pkg.version}` : "Mathoms";
+    const surname = familySurname?.trim();
+    const cards: CoverMeta[] = [];
+    if (surname) {
+      cards.push({ label: "Família", value: surname });
+    }
+    cards.push(
+      { label: "Período de referência", value: periodValue },
       { label: "Gerado em", value: generated },
-      docsMeta,
-      { label: "Versão", value: "Premium" },
-    ];
+      { label: "Versão", value: versionValue },
+    );
+    return cards;
   }, [
     dataState.status,
     analysisPeriodFromSnapshot,
     reportPeriod,
     reportCreatedAt,
-    sourceDocumentCount,
-    consumedDocumentCount,
+    familySurname,
   ]);
 
   return (
@@ -312,7 +305,7 @@ export function ReportShell({
               className="font-medium text-white"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              {displayTitle}
+              {reportTitle}
             </span>
           </nav>
         }
@@ -367,13 +360,9 @@ export function ReportShell({
             <>
               {mode === "estrategico" && (
                 <ReportCover
-                  badge="Relatório Premium"
-                  title={displayTitle}
-                  subtitle={
-                    analysisPeriodFromSnapshot
-                      ? `Análise do período ${analysisPeriodFromSnapshot}`
-                      : undefined
-                  }
+                  title="Planejamento Financeiro"
+                  subtitle="Pessoal e Patrimonial"
+                  familySurname={familySurname}
                   meta={coverMeta}
                 />
               )}

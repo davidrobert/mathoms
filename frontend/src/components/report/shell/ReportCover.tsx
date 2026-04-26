@@ -6,11 +6,25 @@ export interface CoverMeta {
 }
 
 export interface ReportCoverProps {
+  /** Texto do badge superior. Se omitido, é derivado de `familySurname`
+   * (`Relatório · Família {Surname}` ou `Relatório Patrimonial`). */
   readonly badge?: string;
   readonly title: string;
   readonly subtitle?: string;
   readonly meta?: readonly CoverMeta[];
   readonly className?: string;
+  /** v2.F.3b — sobrenome da família. `null`/`undefined` → badge fallback
+   * `Relatório Patrimonial`. */
+  readonly familySurname?: string | null;
+}
+
+function resolveBadge(
+  badge: string | undefined,
+  familySurname: string | null | undefined,
+): string {
+  if (badge) return badge;
+  const surname = familySurname?.trim();
+  return surname ? `Relatório · Família ${surname}` : "Relatório Patrimonial";
 }
 
 /** ADR-117 · Fase 4 — cover hero do relatório premium.
@@ -27,7 +41,9 @@ export function ReportCover({
   subtitle,
   meta = [],
   className,
+  familySurname,
 }: ReportCoverProps) {
+  const resolvedBadge = resolveBadge(badge, familySurname);
   return (
     <header
       className={className}
@@ -67,24 +83,22 @@ export function ReportCover({
         }}
       />
       <div style={{ position: "relative", maxWidth: 1120, margin: 0 }}>
-        {badge && (
-          <span
-            style={{
-              display: "inline-block",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: "var(--radius-pill, 9999px)",
-              padding: "4px 16px",
-              fontSize: "var(--report-font-size-sm, 12px)",
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              marginBottom: 24,
-              color: "rgba(255,255,255,0.7)",
-              fontFamily: "var(--font-body)",
-            }}
-          >
-            {badge}
-          </span>
-        )}
+        <span
+          style={{
+            display: "inline-block",
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: "var(--radius-pill, 9999px)",
+            padding: "4px 16px",
+            fontSize: "var(--report-font-size-sm, 12px)",
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            marginBottom: 24,
+            color: "rgba(255,255,255,0.7)",
+            fontFamily: "var(--font-body)",
+          }}
+        >
+          {resolvedBadge}
+        </span>
         <h1
           style={{
             fontFamily: "var(--font-display)",

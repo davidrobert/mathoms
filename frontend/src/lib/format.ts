@@ -101,6 +101,39 @@ export function formatFullBRL(value: number): string {
   }).format(value);
 }
 
+const MONTH_SHORT_PT_LOWER = [
+  "jan", "fev", "mar", "abr", "mai", "jun",
+  "jul", "ago", "set", "out", "nov", "dez",
+];
+
+/** v2.F.3b — período no cover do relatório.
+ *
+ * "2023-01 a 2026-04" → "jan 2023 — abr 2026" (em-dash U+2014).
+ * Single-period "2026-04" → "abr 2026". Falha graciosamente: retorna o
+ * input cru se o formato não casar.
+ */
+export function formatPeriodCoverPtBR(periodo: string | null | undefined): string {
+  if (!periodo) return "—";
+  const raw = String(periodo);
+  const fmt = (p: string): string | null => {
+    const [y, m] = p.trim().split("-");
+    const mi = parseInt(m, 10);
+    if (!y || isNaN(mi) || mi < 1 || mi > 12) return null;
+    return `${MONTH_SHORT_PT_LOWER[mi - 1]} ${y}`;
+  };
+  const parts = raw.split(" a ");
+  if (parts.length === 2) {
+    const a = fmt(parts[0]);
+    const b = fmt(parts[1]);
+    if (a && b) return `${a} — ${b}`;
+  }
+  if (parts.length === 1) {
+    const a = fmt(parts[0]);
+    if (a) return a;
+  }
+  return raw;
+}
+
 /** "2023-01 a 2026-04" → "Jan 2023 → Abr 2026". Retorna input se não reconhecer. */
 export function formatPeriodRange(periodo: string | null | undefined): string {
   if (!periodo) return "—";

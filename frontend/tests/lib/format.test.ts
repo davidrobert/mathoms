@@ -38,6 +38,7 @@ import {
   formatNumber,
   formatPercent,
   formatPeriod,
+  formatPeriodCoverPtBR,
   formatRange,
   runStatusLabel,
   stageName,
@@ -245,6 +246,26 @@ describe("formatRange()", () => {
   it("usa traço (en-dash)", () => {
     const out = formatRange("202601", "202604");
     expect(out).toContain("–"); // en-dash
+  });
+});
+
+describe("formatPeriodCoverPtBR()", () => {
+  it("range completo 'YYYY-MM a YYYY-MM' → 'mmm YYYY — mmm YYYY' (em-dash)", () => {
+    expect(formatPeriodCoverPtBR("2023-01 a 2026-04")).toBe("jan 2023 — abr 2026");
+  });
+
+  it("período único 'YYYY-MM' → 'mmm YYYY'", () => {
+    expect(formatPeriodCoverPtBR("2026-04")).toBe("abr 2026");
+  });
+
+  it("entrada inválida cai graciosamente para input cru", () => {
+    expect(formatPeriodCoverPtBR("202601-202604")).toBe("202601-202604");
+    expect(formatPeriodCoverPtBR("foo")).toBe("foo");
+  });
+
+  it("null/undefined → '—'", () => {
+    expect(formatPeriodCoverPtBR(null)).toBe("—");
+    expect(formatPeriodCoverPtBR(undefined)).toBe("—");
   });
 });
 

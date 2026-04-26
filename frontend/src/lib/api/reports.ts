@@ -23,6 +23,9 @@ export interface ReportResponse {
   has_analysis_data: boolean;
   /** F11.6b — snapshot de premissas (hash goals.json + metas ativas) na geração. */
   premissas_snapshot?: Record<string, unknown> | null;
+  /** v2.F.3 — sobrenome da família (do workspace) para badge/cover. Pode vir
+   * `null` quando o workspace não definiu sobrenome ou pré v2.F.3a. */
+  workspace_family_surname?: string | null;
 }
 
 export interface ReportListResponse {

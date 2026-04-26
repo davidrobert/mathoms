@@ -160,6 +160,7 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
           pipelineRunId={report!.pipeline_run_id}
           sourceDocumentCount={report!.source_document_count}
           consumedDocumentCount={report!.consumed_document_count}
+          familySurname={report!.workspace_family_surname ?? workspace.family_surname}
         />
       </ReportModeProvider>
     </TooltipProvider>
