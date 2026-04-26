@@ -5,6 +5,17 @@ export const CHART_COLORS = Array.from(
   (_, i) => `var(--chart-${i + 1})`,
 );
 
+/** v2.E — Atribui cor estável da paleta categórica via índice (módulo 12).
+ *
+ * Backend (`fluxo_caixa_enricher`) emite `ChartSeries` com apenas
+ * `{label, data}` — frontend é responsável pela atribuição de cor.
+ * Stable: mesmo índice → mesma cor em qualquer render. */
+export function pickColorByIndex(idx: number): string {
+  const len = CHART_COLORS.length;
+  const safe = ((idx % len) + len) % len;
+  return CHART_COLORS[safe];
+}
+
 export function fmtBRL(n: number): string {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",

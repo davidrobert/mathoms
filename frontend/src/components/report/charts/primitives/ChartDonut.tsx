@@ -11,6 +11,13 @@ export interface ChartDonutProps extends ChartBaseProps {
   readonly cutout?: string | number;
   readonly showDataLabels?: boolean;
   readonly formatValue?: (v: number) => string;
+  /** Override do label exibido no segmento. Recebe (valor, pct, label). Se
+   *  retornar string vazia, datalabel é omitido. Default: `${pct}%` se ≥ 5%. */
+  readonly dataLabelFormatter?: (
+    value: number,
+    pct: number,
+    label: string,
+  ) => string;
   /** Texto central (renderizado via div absoluta, não via plugin). */
   readonly centerLabel?: string;
   readonly centerValue?: string;
@@ -27,6 +34,7 @@ export function ChartDonut({
   cutout = "60%",
   showDataLabels = false,
   formatValue = (v) => BRL.format(v),
+  dataLabelFormatter,
   centerLabel,
   centerValue,
   height = "auto",
@@ -69,16 +77,22 @@ export function ChartDonut({
               display: true,
               color: "#fff",
               font: { weight: 600 },
+              textStrokeColor: "rgba(0,0,0,0.3)",
+              textStrokeWidth: 2,
               formatter: (v: number, ctx) => {
                 const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
                 const pct = total > 0 ? (v / total) * 100 : 0;
+                if (dataLabelFormatter) {
+                  const lbl = String(ctx.chart.data.labels?.[ctx.dataIndex] ?? "");
+                  return dataLabelFormatter(v, pct, lbl);
+                }
                 return pct >= 5 ? `${pct.toFixed(0)}%` : "";
               },
             }
           : { display: false },
       },
     }),
-    [cutout, showDataLabels, theme, formatValue],
+    [cutout, showDataLabels, theme, formatValue, dataLabelFormatter],
   );
 
   return (
