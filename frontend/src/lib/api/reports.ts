@@ -1,3 +1,4 @@
+import type { ScoreData } from "@/types/report-analysis";
 import { API_BASE, apiFetch } from "./core";
 
 // ─── Report Types ───
@@ -50,12 +51,8 @@ export interface ReportAnalysisData {
   goals?: Record<string, unknown>;
   fluxo_caixa?: Record<string, unknown>;
   ratios?: Record<string, unknown>;
-  score?: {
-    valor: number;
-    max: number;
-    classificacao?: string;
-    componentes?: unknown[];
-  };
+  /** v2.E.7 — score top-level tipado (absorve v2.5; elimina o cast inline em S1). */
+  score?: ScoreData;
   orcamento_prospectivo?: Record<string, unknown>;
   reserva_emergencia?: Record<string, unknown>;
   endividamento?: Record<string, unknown>;

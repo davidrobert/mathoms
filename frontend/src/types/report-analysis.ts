@@ -92,11 +92,27 @@ export interface ScoreComponente {
   nota: number;
 }
 
+export interface ScoreBreakdownEntry {
+  dimensao: string;
+  valor: number;
+  max?: number;
+  peso?: number;
+  contribuicao?: number;
+}
+
 export interface ScoreData {
   valor: number;
   max: number;
   classificacao?: string;
   componentes?: ScoreComponente[];
+  /** v2.E.7 — alimenta o ScoreCard premium (dimensão/contribuição). */
+  breakdown?: ScoreBreakdownEntry[];
+  /** v2.E.7 — fórmula textual exibida no rodapé do ScoreCard. */
+  formula?: string;
+  /** v2.E.7 — parágrafo `chart-context` (acima do gauge). */
+  context?: string;
+  /** v2.E.7 — parágrafo `chart-conclusion` (abaixo do breakdown). */
+  conclusion?: string;
 }
 
 // Receitas (vive em fluxo_caixa, necessário no card de receitas de S1)
