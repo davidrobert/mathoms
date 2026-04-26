@@ -841,7 +841,7 @@ Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
 | v2.F.2 | §17.7 (posicionamento herdado de v1, não-paritário com EXEMPLO) | S | P1 | F | inline (§17.7) — ✅ |
 | v2.F.3a | §17.8 (cover identity — backend) | S | P1 | F | inline (§17.8.a) — ✅ |
 | v2.F.3b | §17.8 (cover identity — frontend) | S | P1 | F | inline (§17.8.b) |
-| v2.F.3c | §17.8 (cover identity — PDF filename) | S | P1 | F | inline (§17.8.c) |
+| v2.F.3c | §17.8 (cover identity — PDF filename) | S | P1 | F | inline (§17.8.c) — ✅ |
 
 Origem detalhada de cada lane: §3 e §4 da auditoria
 ([wild-munching-pine.md](https://) — relatório do plan mode 2026-04-25).
@@ -1254,7 +1254,24 @@ opcional).
     `Relatório Patrimonial`, card `Família` ausente.
 - **Esforço:** S (≤4h)
 
-##### 17.8.c — PDF filename (independente)
+##### 17.8.c — PDF filename (independente) — ✅ 2026-04-26 (`fc74ab3`)
+
+Entregue: filename gerado **só no backend**
+(`backend/app/application/report/download_pdf.py` via header
+`Content-Disposition`; `ExportToolbar` no frontend só chama
+`window.print()` ou `onDownloadPdf` injetado, não gera nome). Helpers
+`slugify_family`, `extract_period_yyyymm`, `compose_pdf_filename` em
+`_common.py`. Slug ASCII-safe (`Gonçalves d'Ávila` →
+`goncalves-d-avila`). Fallback gracioso: sem surname omite slot, sem
+período cai em `generated_at`. Envolvido em `sanitize_filename`
+(defesa anti-injeção; whitelist `[A-Za-z0-9._-]` preserva hífens do
+slug). 4 testes novos cobrindo todos os caminhos; 24 passed em
+`test_reports.py`. Pre-commit verde.
+
+Exemplos reais:
+- `mathoms-planejamento-ferreira-campos-2026-04.pdf`
+- `mathoms-planejamento-2026-04.pdf` (sem família)
+- `mathoms-planejamento-silva-2026-04.pdf` (período ausente, fallback `generated_at`)
 
 - **Branch:** `agent/cover-identity-pdf-filename/<ts>`
 - **Worktree:** isolada
