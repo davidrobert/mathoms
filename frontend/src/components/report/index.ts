@@ -6,4 +6,4 @@ export { StaticReportModeProvider } from "./StaticReportModeProvider";
 export { ReportSection } from "./ReportSection";
 export { ReportSectionStub } from "./ReportSectionStub";
 export { ReportShell } from "./ReportShell";
-export { ReportToc, type TocEntry } from "./ReportToc";
+export { ReportToc, type TocLink, type TocGroup } from "./ReportToc";

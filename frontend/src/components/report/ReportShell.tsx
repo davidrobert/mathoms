@@ -29,7 +29,7 @@ function formatReportPeriod(periodo: string): string | null {
 import { ReportPremissasBlock } from "./ReportPremissasBlock";
 import { ReportSourceStrip } from "./ReportSourceStrip";
 import { ReportThemeToggle } from "./ReportThemeToggle";
-import { ReportToc, type TocEntry } from "./ReportToc";
+import { ReportToc, type TocGroup } from "./ReportToc";
 import { ReportSection } from "./ReportSection";
 import { ReportSectionStub } from "./ReportSectionStub";
 import { useReportMode } from "./ReportModeProvider";
@@ -227,12 +227,32 @@ export function ReportShell({
     [mode],
   );
 
-  const tocEntries = useMemo<TocEntry[]>(
-    () => enabledSections.map((s) => ({ id: s.id, label: s.title })),
-    [enabledSections],
-  );
-
   const navGroups = useMemo(buildNavGroups, []);
+
+  /** Grupos do TOC lateral / drawer mobile — mesma estrutura do `navGroups`,
+   * mas com títulos completos das seções (a faixa do topo encurta via
+   * `shortLabel`). Apêndices entram como grupo "Apêndices" via YAML. */
+  const tocGroups = useMemo<TocGroup[]>(() => {
+    const titles = buildTitleMap();
+    const nav = LAYOUT.navigation;
+    const modeNav = nav?.[mode];
+    if (modeNav) {
+      return modeNav.map((g) => ({
+        label: g.label,
+        entries: g.links.map((l) => ({
+          id: l.section_id,
+          label: titles[l.section_id] ?? l.section_id,
+          num: l.num,
+          isAppendix: l.is_appendix,
+        })),
+      }));
+    }
+    return [
+      {
+        entries: enabledSections.map((s) => ({ id: s.id, label: s.title })),
+      },
+    ];
+  }, [mode, enabledSections]);
 
   const { scale: fontScale } = useReportFontScale();
 
@@ -314,7 +334,7 @@ export function ReportShell({
       <div className="flex flex-1 overflow-hidden">
         {sidebarOpen && (
           <div className="hidden md:block">
-            <ReportToc sections={tocEntries} />
+            <ReportToc groups={tocGroups} />
           </div>
         )}
 
@@ -439,7 +459,7 @@ export function ReportShell({
           )}
         </main>
       </div>
-      <FloatingNav tocEntries={tocEntries} />
+      <FloatingNav tocGroups={tocGroups} />
     </div>
   );
 }

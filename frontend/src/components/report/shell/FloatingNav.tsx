@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ChevronRight, List, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { List, X } from "lucide-react";
 
-export interface FloatingTocEntry {
+export interface FloatingTocLink {
   readonly id: string;
   readonly label: string;
+  readonly num?: string;
+  readonly isAppendix?: boolean;
+}
+
+export interface FloatingTocGroup {
+  readonly label?: string;
+  readonly entries: readonly FloatingTocLink[];
 }
 
 /** ADR-117 · Fase 4 — botões flutuantes Back-to-top + Go-to-bottom + Índice mobile.
@@ -20,16 +27,21 @@ export interface FloatingTocEntry {
 export function FloatingNav({
   showAfter = 400,
   scrollTarget,
-  tocEntries,
+  tocGroups,
 }: {
   readonly showAfter?: number;
   readonly scrollTarget?: HTMLElement | null;
-  readonly tocEntries?: readonly FloatingTocEntry[];
+  readonly tocGroups?: readonly FloatingTocGroup[];
 }) {
   const [showBack, setShowBack] = useState(false);
   const [showBottom, setShowBottom] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const totalEntries = useMemo(
+    () => tocGroups?.reduce((acc, g) => acc + g.entries.length, 0) ?? 0,
+    [tocGroups],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -99,7 +111,7 @@ export function FloatingNav({
     closeIndex();
   };
 
-  const showIndexButton = isMobile && (tocEntries?.length ?? 0) > 0;
+  const showIndexButton = isMobile && totalEntries > 0;
   const indexBottom = showBack ? (showBottom ? 132 : 78) : 24;
 
   return (
@@ -146,7 +158,7 @@ export function FloatingNav({
           <List size={18} aria-hidden />
         </button>
       )}
-      {tocEntries && tocEntries.length > 0 && (
+      {totalEntries > 0 && (
         <dialog
           ref={dialogRef}
           aria-label="Índice do relatório"
@@ -157,7 +169,7 @@ export function FloatingNav({
         >
           <div style={panelStyle} onClick={(e) => e.stopPropagation()}>
             <div style={panelHeaderStyle}>
-              <span style={panelTitleStyle}>Índice</span>
+              <span style={panelTitleStyle}>Capítulos</span>
               <button
                 type="button"
                 aria-label="Fechar índice"
@@ -168,16 +180,35 @@ export function FloatingNav({
               </button>
             </div>
             <nav aria-label="Seções do relatório" style={panelNavStyle}>
-              {tocEntries.map((entry) => (
-                <button
-                  key={entry.id}
-                  type="button"
-                  onClick={() => goToSection(entry.id)}
-                  style={panelLinkStyle}
+              {tocGroups?.map((group, groupIdx) => (
+                <div
+                  key={group.label ?? `g${groupIdx}`}
+                  style={panelGroupStyle}
                 >
-                  <ChevronRight size={14} aria-hidden style={{ flexShrink: 0 }} />
-                  <span style={{ textAlign: "left" }}>{entry.label}</span>
-                </button>
+                  {group.label && (
+                    <p style={panelGroupLabelStyle}>{group.label}</p>
+                  )}
+                  {group.entries.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      onClick={() => goToSection(entry.id)}
+                      style={{
+                        ...panelLinkStyle,
+                        opacity: entry.isAppendix ? 0.7 : 1,
+                      }}
+                    >
+                      {entry.num && (
+                        <span aria-hidden style={panelNumBadgeStyle}>
+                          {entry.num}
+                        </span>
+                      )}
+                      <span style={{ textAlign: "left", flex: 1 }}>
+                        {entry.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               ))}
             </nav>
           </div>
@@ -270,13 +301,30 @@ const panelNavStyle: React.CSSProperties = {
   flexDirection: "column",
   padding: "8px 12px 24px",
   overflowY: "auto",
+  gap: 12,
+};
+
+const panelGroupStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
   gap: 2,
+};
+
+const panelGroupLabelStyle: React.CSSProperties = {
+  margin: 0,
+  padding: "4px 12px 6px",
+  fontFamily: "var(--font-display)",
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "var(--surface-muted-foreground)",
 };
 
 const panelLinkStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: 8,
+  gap: 10,
   padding: "12px 12px",
   border: 0,
   background: "transparent",
@@ -286,4 +334,19 @@ const panelLinkStyle: React.CSSProperties = {
   fontSize: 14,
   borderRadius: 8,
   textAlign: "left",
+};
+
+const panelNumBadgeStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minWidth: 22,
+  height: 22,
+  padding: "0 6px",
+  borderRadius: 6,
+  background: "var(--surface-muted)",
+  color: "var(--surface-muted-foreground)",
+  fontSize: 11,
+  fontWeight: 700,
+  flexShrink: 0,
 };

@@ -1,28 +1,44 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-export interface TocEntry {
-  id: string;
-  label: string;
+export interface TocLink {
+  readonly id: string;
+  readonly label: string;
+  readonly num?: string;
+  readonly isAppendix?: boolean;
+}
+
+export interface TocGroup {
+  readonly label?: string;
+  readonly entries: readonly TocLink[];
 }
 
 interface ReportTocProps {
-  sections: TocEntry[];
+  groups: readonly TocGroup[];
 }
 
-/** F9 · F3.1 — Sidebar TOC nativo com scroll-spy refinado + deep-links.
+/** F9 · F3.1 — Sidebar TOC nativo com scroll-spy, deep-links e capítulos.
  *
- * Melhorias sobre F1.1:
- * - Inicializa activeId a partir de `window.location.hash` (deep-link incoming)
- * - Scroll automático na montagem se hash existir (ex: /reports/id#S3)
- * - Debounce do IntersectionObserver para evitar flickering em scroll rápido
- * - Hash atualizado durante scroll passivo (não só no click)
- * - TOC auto-scrolls para manter item ativo visível
+ * Diferencia-se da `ReportTopNav` (faixa sticky) carregando:
+ *  - headers de capítulo (`group.label`) — "índice tipo livro"
+ *  - badge `num` consistente com a faixa
+ *  - títulos completos das seções (faixa usa `shortLabel`)
+ *
+ * Comportamentos:
+ *  - inicializa activeId a partir de `window.location.hash` (deep-link)
+ *  - IntersectionObserver com debounce para scroll-spy
+ *  - hash atualizado em scroll passivo, não só no click
+ *  - auto-scroll do TOC para manter o item ativo visível
  */
-export function ReportToc({ sections }: ReportTocProps) {
+export function ReportToc({ groups }: ReportTocProps) {
+  const flatEntries = useMemo<readonly TocLink[]>(
+    () => groups.flatMap((g) => g.entries),
+    [groups],
+  );
+
   const [activeId, setActiveId] = useState<string>(() => {
     if (typeof window === "undefined") return "";
     const hash = window.location.hash.replace("#", "");
@@ -33,10 +49,9 @@ export function ReportToc({ sections }: ReportTocProps) {
 
   // Deep-link: scroll to hash on mount
   useEffect(() => {
-    if (typeof window === "undefined" || sections.length === 0) return;
+    if (typeof window === "undefined" || flatEntries.length === 0) return;
     const hash = window.location.hash.replace("#", "");
     if (!hash) return;
-    // Delay to let sections render
     const timer = setTimeout(() => {
       const el = document.getElementById(hash);
       if (el) {
@@ -45,17 +60,16 @@ export function ReportToc({ sections }: ReportTocProps) {
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [sections]);
+  }, [flatEntries]);
 
   // IntersectionObserver scroll-spy
   useEffect(() => {
-    if (sections.length === 0) return;
+    if (flatEntries.length === 0) return;
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Skip observer during user-click scroll (avoids flickering)
         if (isUserClick.current) return;
 
         if (debounceTimer) clearTimeout(debounceTimer);
@@ -66,7 +80,6 @@ export function ReportToc({ sections }: ReportTocProps) {
           if (visible[0]) {
             const newId = visible[0].target.id;
             setActiveId(newId);
-            // Update hash silently during passive scroll
             if (typeof window !== "undefined") {
               window.history.replaceState(null, "", `#${newId}`);
             }
@@ -76,8 +89,8 @@ export function ReportToc({ sections }: ReportTocProps) {
       { rootMargin: "-15% 0% -55% 0%", threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] },
     );
 
-    const elements = sections
-      .map((s) => document.getElementById(s.id))
+    const elements = flatEntries
+      .map((entry) => document.getElementById(entry.id))
       .filter((el): el is HTMLElement => el !== null);
 
     elements.forEach((el) => observer.observe(el));
@@ -86,7 +99,7 @@ export function ReportToc({ sections }: ReportTocProps) {
       observer.disconnect();
       if (debounceTimer) clearTimeout(debounceTimer);
     };
-  }, [sections]);
+  }, [flatEntries]);
 
   // Auto-scroll TOC to keep active item visible
   useEffect(() => {
@@ -99,64 +112,102 @@ export function ReportToc({ sections }: ReportTocProps) {
     }
   }, [activeId]);
 
-  const handleClick = useCallback(
-    (id: string) => {
-      const el = document.getElementById(id);
-      if (!el) return;
+  const handleClick = useCallback((id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
 
-      // Flag to suppress observer during smooth scroll
-      isUserClick.current = true;
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-      setActiveId(id);
-      if (typeof window !== "undefined") {
-        window.history.replaceState(null, "", `#${id}`);
-      }
+    isUserClick.current = true;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveId(id);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", `#${id}`);
+    }
 
-      // Re-enable observer after scroll settles
-      setTimeout(() => {
-        isUserClick.current = false;
-      }, 800);
-    },
-    [],
-  );
+    setTimeout(() => {
+      isUserClick.current = false;
+    }, 800);
+  }, []);
 
   return (
     <aside className="sidebar-toc no-print hidden w-60 shrink-0 overflow-y-auto border-r border-[var(--surface-border)] bg-[var(--surface-card)] p-3 lg:block">
       <p className="mb-3 px-2 font-display text-xs font-semibold uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-        Índice
+        Capítulos
       </p>
       <nav
         ref={navRef}
-        className="flex flex-col gap-0.5"
+        className="flex flex-col gap-3"
         aria-label="Índice do relatório"
       >
-        {sections.length === 0 && (
+        {flatEntries.length === 0 && (
           <p className="px-2 py-1.5 text-xs text-[var(--surface-muted-foreground)]">
             Nenhuma seção disponível neste modo.
           </p>
         )}
-        {sections.map((section) => (
-          <button
-            key={section.id}
-            data-toc-id={section.id}
-            onClick={() => handleClick(section.id)}
-            className={cn(
-              "flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-              activeId === section.id
-                ? "bg-[color-mix(in_srgb,var(--brand-primary)_10%,transparent)] font-medium text-[var(--brand-primary)]"
-                : "text-[var(--surface-muted-foreground)] hover:bg-[var(--surface-muted)]",
+        {groups.map((group, groupIdx) => (
+          <div key={group.label ?? `g${groupIdx}`} className="flex flex-col gap-0.5">
+            {group.label && (
+              <p className="mb-0.5 px-2 font-display text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--surface-muted-foreground)]/80">
+                {group.label}
+              </p>
             )}
-          >
-            <ChevronRight
-              className={cn(
-                "h-3.5 w-3.5 shrink-0 transition-transform",
-                activeId === section.id && "rotate-90 text-[var(--brand-primary)]",
-              )}
-            />
-            <span className="truncate">{section.label}</span>
-          </button>
+            {group.entries.map((entry) => (
+              <TocButton
+                key={entry.id}
+                entry={entry}
+                active={activeId === entry.id}
+                onClick={handleClick}
+              />
+            ))}
+          </div>
         ))}
       </nav>
     </aside>
+  );
+}
+
+function TocButton({
+  entry,
+  active,
+  onClick,
+}: {
+  entry: TocLink;
+  active: boolean;
+  onClick: (id: string) => void;
+}) {
+  return (
+    <button
+      data-toc-id={entry.id}
+      onClick={() => onClick(entry.id)}
+      className={cn(
+        "flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+        active
+          ? "bg-[color-mix(in_srgb,var(--brand-primary)_10%,transparent)] font-medium text-[var(--brand-primary)]"
+          : entry.isAppendix
+            ? "text-[var(--surface-muted-foreground)]/70 hover:bg-[var(--surface-muted)]"
+            : "text-[var(--surface-muted-foreground)] hover:bg-[var(--surface-muted)]",
+      )}
+    >
+      {entry.num ? (
+        <span
+          aria-hidden
+          className={cn(
+            "inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded text-[10px] font-bold",
+            active
+              ? "bg-[var(--brand-primary)] text-[var(--brand-primary-foreground,#fff)]"
+              : "bg-[var(--surface-muted)] text-[var(--surface-muted-foreground)]",
+          )}
+        >
+          {entry.num}
+        </span>
+      ) : (
+        <ChevronRight
+          className={cn(
+            "h-3.5 w-3.5 shrink-0 transition-transform",
+            active && "rotate-90 text-[var(--brand-primary)]",
+          )}
+        />
+      )}
+      <span className="truncate">{entry.label}</span>
+    </button>
   );
 }
