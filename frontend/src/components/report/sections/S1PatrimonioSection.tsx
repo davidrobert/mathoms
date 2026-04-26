@@ -2,7 +2,7 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import { PatrimonioKpiRow } from "../kpi/PatrimonioKpiRow";
+import { HeroKpiGrid } from "../kpi/HeroKpiGrid";
 import { PatrimonioCategoriasCard } from "../cards/PatrimonioCategoriasCard";
 import { ReceitasFonteCard } from "../cards/ReceitasFonteCard";
 import { ReservaEmergenciaCard } from "../cards/ReservaEmergenciaCard";
@@ -48,11 +48,13 @@ export function S1PatrimonioSection({ data }: S1Props) {
     <ReportSection id="S1" title="Patrimônio — Estrutura e Composição">
       <SectionSummary narrativas={narrativas} sectionId="S1" />
 
-      {/* KPI row fora do grid 2-col (full width) */}
+      {/* Hero KPI grid (6 cards em 2 linhas) — fora do grid 2-col (full width) */}
       <div className="md:col-span-2">
-        <PatrimonioKpiRow
+        <HeroKpiGrid
           patrimonio={patrimonio}
+          reserva={reserva}
           ratios={ratios}
+          goals={goals}
           score={score}
         />
       </div>

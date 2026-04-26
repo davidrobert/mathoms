@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type KpiTone = "default" | "green" | "red" | "blue";
+export type KpiTone = "default" | "green" | "red" | "blue" | "warning";
 export type KpiAccent = "default" | "accent" | "danger" | "primary";
 
 const TONE_COLOR: Record<KpiTone, string> = {
@@ -8,6 +8,7 @@ const TONE_COLOR: Record<KpiTone, string> = {
   green: "var(--brand-accent)",
   red: "var(--brand-danger)",
   blue: "var(--brand-info)",
+  warning: "var(--brand-warning)",
 };
 
 const ACCENT_BORDER: Record<KpiAccent, string> = {
