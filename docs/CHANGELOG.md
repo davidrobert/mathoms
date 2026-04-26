@@ -11,6 +11,18 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **F12.1e — Correção da lista de locales para 10 (2026-04-26) — ✅
+  ([ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
+  revisado, commit `e9c45f7`):** sincroniza `frontend/src/i18n/config.ts`,
+  `fonts.ts`, `messages/`, `globals.css` e `tests/i18n/foundation.test.tsx`
+  com a revisão de escopo do ADR-130 (11→10 locales). Remove
+  `hi`/`ar`/`bn`/`id` (RTL e Indic/SE-Asia fora do escopo F12); adiciona
+  `de`/`ja`/`ko` (mercados-alvo APAC/EU/DACH). `RTL_LOCALES` vira `Set`
+  vazio; fontes secundárias passam a ser Noto SC (zh-CN), Noto JP (ja),
+  Noto KR (ko). Desbloqueia F12.2/F12.3/F12.4/F12.5, que dependiam da
+  fundação corrigida. Origem: F12.1a-d mergeada em 2026-04-25 contra a
+  lista antiga, antes da revisão de escopo.
+
 - **Report Premium UI v2.3 — S5/S6 esclarecimento (2026-04-26) — ✅
   decisão (b):** auditoria confirmou que `S5` e `S6` existiram em draft
   anterior do `EXEMPLO_DE_RELATORIO.html` cobrindo "Mudança EUA — F1/F2"
