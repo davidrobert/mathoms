@@ -27,7 +27,12 @@ inteiro.
 | F7F-Local Console interno pré-produção (IA-0) — UI Next separada + anonimização + auth yaml | [track_f7f_local.md](track_f7f_local.md) | 3 (Lane C6, independente de 7A/B/C) | `agent/f7f-local/*` |
 | F9.0 Audit referências legadas + exhaustividade `STAGE_RENAME_MAP` | [track_f9_0_audit.md](track_f9_0_audit.md) | F9 (1/7) | `agent/f9-stage-rename/0-audit/*` |
 | F9.1 `git mv pipeline/stages/e*.py` → descritivos | [track_f9_1_pipeline_stages_rename.md](track_f9_1_pipeline_stages_rename.md) | F9 (2/7) | `agent/f9-stage-rename/1-pipeline-stages/*` |
-| F9.2 Strings literais `"E*"` → descritivas em produção | [track_f9_2_string_literals.md](track_f9_2_string_literals.md) | F9 (3/7) | `agent/f9-stage-rename/2-strings/*` |
+| F9.2 Strings literais `"E*"` → descritivas em produção (master + T1 ✅) | [track_f9_2_string_literals.md](track_f9_2_string_literals.md) | F9 (3/7) | `agent/f9-stage-rename/2-strings/*` |
+| F9.2a Pipeline core (artifact_store + llm + stages + domain/services) | [track_f9_2a_pipeline_core_strings.md](track_f9_2a_pipeline_core_strings.md) | F9 (3a/7) | `agent/f9-stage-rename/2a-pipeline-core/*` |
+| F9.2b Scripts (e0/e2/e3/e4/e5/e7/e15 internos, exceto e_reset) | [track_f9_2b_scripts_strings.md](track_f9_2b_scripts_strings.md) | F9 (3b/7) | `agent/f9-stage-rename/2b-scripts/*` |
+| F9.2c `scripts/e_reset.py` deprecation warning + flip interno | [track_f9_2c_e_reset_deprecation.md](track_f9_2c_e_reset_deprecation.md) | F9 (3c/7) | `agent/f9-stage-rename/2c-e-reset/*` |
+| F9.2d Backend residual + tests não-golden | [track_f9_2d_backend_tests.md](track_f9_2d_backend_tests.md) | F9 (3d/7) | `agent/f9-stage-rename/2d-backend-tests/*` |
+| F9.2e Closeout F9.2 (audit + docs + destrava F9.3) | [track_f9_2e_closeout.md](track_f9_2e_closeout.md) | F9 (3e/7) | `agent/f9-stage-rename/2e-closeout/*` |
 | F9.3 Alembic migration `pipeline_artifacts.stage` em massa | [track_f9_3_alembic_migration.md](track_f9_3_alembic_migration.md) | F9 (4/7) | `agent/f9-stage-rename/3-alembic/*` |
 | F9.4 `git mv scripts/e*.py` + alias CLI compat | [track_f9_4_scripts_rename.md](track_f9_4_scripts_rename.md) | F9 (5/7) | `agent/f9-stage-rename/4-scripts/*` |
 | F9.5 Guardrail hard-fail contra identificadores legados | [track_f9_5_guardrail_hardfail.md](track_f9_5_guardrail_hardfail.md) | F9 (6/7) | `agent/f9-stage-rename/5-guardrail/*` |
