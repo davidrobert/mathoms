@@ -195,8 +195,9 @@ make dev-down        # mata tudo (preserva Redis se já estava rodando antes)
 | `make dev-down` | Mata todos os processos via PID files. Só mata Redis se foi `dev-up` quem subiu. |
 | `make dev-restart` | `dev-down && dev-up`. |
 | `make dev-restart-worker` | Restart só do Celery worker — útil ao mexer em `pipeline/` ou `tasks/` (worker não tem hot reload). |
-| `make dev-status` | Tabela com PID + porta + health check de cada serviço. |
+| `make dev-status` | Tabela com PID + porta listening de cada serviço (via `lsof`). |
 | `make dev-logs` | `tail -f` de todos os logs em `_dev_pids/`. `SVC=api` para um só. |
+| `make dev-kill-stale` | Mata processos órfãos em 8000/8001/3000/3100 + limpa `_dev_pids/`. Use quando `dev-up` reclamar de "Porta X já em uso" (uvicorn/npm de sessão antiga). |
 | `make dev-reset-env` | **Destrutivo.** Regenera `.env` (apaga `MATHOMS_FERNET_KEY` → invalida API keys LLM, senhas PDF, CPFs encriptados). Pede confirmação. |
 
 PIDs e logs ficam em `_dev_pids/<svc>.{pid,log}` (no `.gitignore`).
