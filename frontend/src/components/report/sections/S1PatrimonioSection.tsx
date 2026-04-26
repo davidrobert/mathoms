@@ -2,7 +2,6 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import { HeroKpiGrid } from "../kpi/HeroKpiGrid";
 import { PatrimonioCategoriasCard } from "../cards/PatrimonioCategoriasCard";
 import { ReceitasFonteCard } from "../cards/ReceitasFonteCard";
 import { ReservaEmergenciaCard } from "../cards/ReservaEmergenciaCard";
@@ -15,7 +14,6 @@ import type {
   PatrimonioData,
   ReservaEmergenciaData,
   EndividamentoData,
-  RatiosData,
   FluxoCaixaSummary,
 } from "@/types/report-analysis";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
@@ -24,15 +22,15 @@ interface S1Props {
   data: ReportAnalysisData;
 }
 
-/** F9 · F2.A — Seção S1 completa (Patrimônio — Estrutura e Composição).
+/** F9 · F2.A — Seção S1 (Patrimônio — Estrutura e Composição).
  *
- * Renderiza KPIs + 3 charts + 4 cards consumindo dados do E5 JSON.
+ * Renderiza 3 charts + 4 cards consumindo dados do E5 JSON. Hero KPI vive
+ * em `<ExecutiveSummarySection>` antes de S1 (v2.F.2).
  */
 export function S1PatrimonioSection({ data }: S1Props) {
   const patrimonio = data.patrimonio as PatrimonioData | undefined;
   const reserva = data.reserva_emergencia as ReservaEmergenciaData | undefined;
   const endividamento = data.endividamento as EndividamentoData | undefined;
-  const ratios = data.ratios as RatiosData | undefined;
   const score = data.score;
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
@@ -47,17 +45,6 @@ export function S1PatrimonioSection({ data }: S1Props) {
   return (
     <ReportSection id="S1" title="Patrimônio — Estrutura e Composição">
       <SectionSummary narrativas={narrativas} sectionId="S1" />
-
-      {/* Hero KPI grid (6 cards em 2 linhas) — fora do grid 2-col (full width) */}
-      <div className="md:col-span-2">
-        <HeroKpiGrid
-          patrimonio={patrimonio}
-          reserva={reserva}
-          ratios={ratios}
-          goals={goals}
-          score={score}
-        />
-      </div>
 
       {/* Charts */}
       <PatrimonioDoughnutChart

@@ -26,6 +26,7 @@ function formatReportPeriod(periodo: string): string | null {
   if (isNaN(year) || isNaN(month) || month < 1 || month > 12) return null;
   return `Fechamento ${MONTHS_PT[month - 1]} ${year}`;
 }
+import { ExecutiveSummarySection } from "./ExecutiveSummarySection";
 import { ReportPremissasBlock } from "./ReportPremissasBlock";
 import { ReportSourceStrip } from "./ReportSourceStrip";
 import { ReportThemeToggle } from "./ReportThemeToggle";
@@ -395,6 +396,12 @@ export function ReportShell({
               </p>
 
               <ReportPremissasBlock data={dataState.data} />
+
+              {/* Sumário Executivo (Hero KPI) — modo estratégico, antes do Perfil
+                * Paridade com EXEMPLO_DE_RELATORIO.html:1376 (id="kpis"). */}
+              {mode === "estrategico" && (
+                <ExecutiveSummarySection data={dataState.data} />
+              )}
 
               {/* Perfil da Família — modo estratégico, acima das seções */}
               {mode === "estrategico" && (
