@@ -25,6 +25,45 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 BASELINE = REPO_ROOT / "dev" / "code_style_baseline.json"
 
 
+def _git(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(["git", "-C", str(REPO_ROOT), *args], capture_output=True, text=True, check=False)
+
+
+def _ongoing_git_op() -> str | None:
+    git_dir_proc = _git("rev-parse", "--git-dir")
+    if git_dir_proc.returncode != 0:
+        return "não é repositório git"
+    git_dir = Path(git_dir_proc.stdout.strip())
+    if not git_dir.is_absolute():
+        git_dir = REPO_ROOT / git_dir
+    for marker in ("rebase-merge", "rebase-apply", "MERGE_HEAD", "CHERRY_PICK_HEAD"):
+        if (git_dir / marker).exists():
+            return f"operação git em curso ({marker}); finalize antes de salvar baseline"
+    return None
+
+
+def _dirty_paths() -> list[str]:
+    status = _git("status", "--porcelain")
+    return [
+        line
+        for line in status.stdout.splitlines()
+        if line.strip() and not line.endswith("dev/code_style_baseline.json")
+    ]
+
+
+def _check_writable_state() -> str | None:
+    # cbc9b62 refrescou baseline durante rebase parcial → snapshot anterior ao
+    # refactor absorvido. Bloqueia working tree suja e ops git em curso.
+    if blocker := _ongoing_git_op():
+        return blocker
+    dirty = _dirty_paths()
+    if dirty:
+        sample = "\n  ".join(dirty[:5])
+        more = f"\n  ... (+{len(dirty) - 5} mais)" if len(dirty) > 5 else ""
+        return f"working tree suja (use stash ou commit antes):\n  {sample}{more}"
+    return None
+
+
 def _run_audit(out_dir: Path) -> dict:
     """Roda audit_code_style.py e carrega JSON resultante."""
     subprocess.check_call(
@@ -80,8 +119,27 @@ def main(argv: list[str] | None = None) -> int:
             improvements.append((cat, old, new))
 
     if args.save_baseline:
+        unsafe = _check_writable_state()
+        if unsafe:
+            print(f"ERRO: {unsafe}", file=sys.stderr)
+            return 2
         BASELINE.write_text(json.dumps(current, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        print(f"baseline atualizado: {BASELINE}")
+        head = current.get("git_commit", "unknown")
+        print(f"baseline atualizado: {BASELINE} (HEAD={head[:12]})")
+
+        with tempfile.TemporaryDirectory() as td:
+            verify = _run_audit(Path(td))
+        verify_counts: dict[str, int] = verify["summary"]["offenders_by_category"]
+        drift = [
+            (cat, current_counts.get(cat, 0), verify_counts.get(cat, 0))
+            for cat in set(verify_counts) | set(current_counts)
+            if verify_counts.get(cat, 0) != current_counts.get(cat, 0)
+        ]
+        if drift:
+            print("ERRO: re-audit pós-gravação divergiu — baseline pode estar inconsistente:", file=sys.stderr)
+            for cat, c1, c2 in drift:
+                print(f"  {cat}: {c1} → {c2}", file=sys.stderr)
+            return 2
         return 0
 
     if regressions:
