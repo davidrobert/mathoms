@@ -29,35 +29,35 @@
 
 ---
 
-## ADR-133b — UI de edição `transfer_configs` (frontend) — P1
+## ADR-133b — UI de edição `transfer_configs` (frontend) — ✅ entregue 2026-04-26
 
-**Status:** ☐ A executar (sessão dedicada). Backend de
-[ADR-133](DECISIONS.md#adr-133--transferencias_internas-modelado-em-transfer_configs-workspace-scoped)
-entregue 2026-04-26 (endpoints `GET/PUT /workspaces/{id}/config/transfer`).
+**Status:** ✅ Entregue (commits `95f841c` + `ba7b92e` + `66e9030` em
+`main`). Aba "Transferências" em `/config` + rota dedicada
+`/config/transfer`. 6 unit tests Vitest verde + 1 e2e Playwright
+`@critical` (suite local — execução E2E completa requer servers
+rodando, gates locais já executados em pre-commit/CI).
 
-**Escopo:**
+**Entrega:**
 
-- Página de configuração em `frontend/src/app/(app)/config/transfer/`
-  (ou expansão da existente `Categorization`/`Settings`) com 4 listas
-  editáveis (`recipients`, `patterns_pix`, `patterns_global`,
-  `patterns_bank_specific`).
-- Form com add/remove/edit por item; `patterns_bank_specific` é
-  `dict[bank, list[pattern]]` — UI agrupada por banco.
-- Helper text explicando: recipients = nomes de pessoas/contas próprias
-  (matching por substring no `descricao` da transação); patterns =
-  substrings que marcam transferência interna.
-- Carregar via `getTransferConfig(workspaceId)`; salvar via
-  `putTransferConfig(workspaceId, body)` (replace total).
-- Testes: vitest unit (componente) + um e2e `@critical` cobrindo
-  add → save → reload.
-
-**Critério de aceite:** usuário consegue adicionar um nome novo à
-lista `recipients`, salvar, rodar pipeline e ver as transferências
-reclassificadas no card "Consumo Consciente". Sem regressão visual nas
-páginas adjacentes.
-
-**Prompt dedicado:** ver bloco "B-UI session prompt" no commit
-da sessão atual (`feat(reports): consumo-pontuais` series).
+- `frontend/src/app/(app)/config/transfer/page.tsx` — rota canônica
+  com `PageHeader`.
+- `frontend/src/app/(app)/config/transfer/TransferConfigEditor.tsx` —
+  4 seções (Recipients, Padrões PIX, Padrões Globais, Padrões por
+  Banco). Add/edit/remove inline, Enter dispara add, Save desabilitado
+  até dirty, `role="alert"`/`role="status"` para mensagens.
+- `frontend/src/hooks/useTransferConfig.ts` — load + save com
+  mensagens de erro/sucesso e `clearMessages`.
+- `frontend/src/lib/api/config.ts` — `TransferConfigData` + helpers
+  `getTransferConfig` / `putTransferConfig`.
+- `frontend/src/app/(app)/config/page.tsx` — adiciona aba
+  "Transferências" entre Categorias e Pipeline reusando o editor.
+- `frontend/tests/components/TransferConfigEditor.test.tsx` — 6 unit
+  tests (load, add habilita Save, save chama PUT com body atualizado,
+  sucesso/erro inline, remove, add bank).
+- `frontend/tests/e2e/transfer-config.spec.ts` — Playwright `@critical`
+  navegar→add sentinel→save→reload→assert UI + GET API.
+- `frontend/tests/mocks/handlers.ts` — handlers MSW para
+  `/config/transfer` (workspace-scoped).
 
 ---
 

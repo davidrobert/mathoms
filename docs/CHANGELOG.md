@@ -28,8 +28,12 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
   com fallback ao global). `list_consumo_pontuais` deixa de ler disco;
   recebe `InternalTransferDetector` injetado via
   `resolve_internal_transfer_detector` (DB-first → defaults globais).
-  UI de edição (`/config/transfer` form em `frontend/`) deferida para
-  sessão dedicada (BACKLOG: ADR-133b).
+  UI de edição entregue em **ADR-133b** (commits `95f841c` + `ba7b92e`
+  + `66e9030`): aba "Transferências" em `/config` + rota dedicada
+  `/config/transfer` com 4 seções editáveis (Recipients, Padrões PIX,
+  Padrões Globais, Padrões por Banco). Add/edit/remove inline + Save
+  desabilitado até dirty + `role="alert"`/`role="status"` para erro/
+  sucesso. 6 unit tests Vitest verde + 1 E2E Playwright `@critical`.
 
 - **CI — otimização de uso GitHub Actions (2026-04-26) — ✅:** workflow
   `.github/workflows/ci.yml` agora skipa jobs irrelevantes via
