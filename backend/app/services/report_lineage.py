@@ -37,24 +37,37 @@ async def workspace_ready_documents_summary(
     return total, ids
 
 
+# Stages E2 (extração) — descritivos e legados. Cada artifact_key = 1 documento.
+# ``document_id`` é FK opcional não populada pelo pipeline atual; contamos
+# artifact_keys distintos como proxy do conjunto de documentos consumidos.
+_EXTRACTION_STAGES: tuple[str, ...] = (
+    "extract_statements",
+    "extract_invoices",
+    "extract_with_llm",
+    "E2-extratos",
+    "E2-faturas",
+    "E2-llm",
+)
+
+
 async def consumed_documents_for_run(
     db: AsyncSession, pipeline_run_id: str | None, *, id_limit: int = 128
 ) -> tuple[int, list[str]]:
-    """DISTINCT ``document_id`` em ``pipeline_artifacts`` da run (apenas stages E2 setam essa FK)."""
+    """DISTINCT ``artifact_key`` em stages E2 da run (proxy de docs extraídos)."""
     if not pipeline_run_id:
         return 0, []
-    distinct_doc = (
-        select(PipelineArtifact.document_id)
+    distinct_key = (
+        select(PipelineArtifact.artifact_key)
         .where(
             PipelineArtifact.pipeline_run_id == pipeline_run_id,
-            PipelineArtifact.document_id.is_not(None),
+            PipelineArtifact.stage.in_(_EXTRACTION_STAGES),
         )
         .distinct()
     )
     total = int(
-        (await db.execute(select(func.count()).select_from(distinct_doc.subquery()))).scalar() or 0
+        (await db.execute(select(func.count()).select_from(distinct_key.subquery()))).scalar() or 0
     )
-    rows = (await db.execute(distinct_doc.limit(id_limit))).all()
+    rows = (await db.execute(distinct_key.limit(id_limit))).all()
     return total, [str(r[0]) for r in rows if r[0] is not None]
 
 

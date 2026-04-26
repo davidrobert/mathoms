@@ -166,18 +166,6 @@ async def test_get_report_includes_source_document_fields(
     assert isinstance(data["consumed_document_ids"], list)
 
 
-def _make_doc(ws_id: str, name: str):
-    from backend.app.models.document import Document, DocumentStatus, DocumentType
-
-    return Document(
-        id=str(uuid.uuid4()),
-        workspace_id=ws_id,
-        original_name=name,
-        doc_type=DocumentType.bank_statement,
-        status=DocumentStatus.processed,
-    )
-
-
 def _make_artifact(ws_id: str, run_id: str, stage: str, key: str, doc_id: str | None):
     from backend.app.models.pipeline_artifact import PipelineArtifact
 
@@ -192,25 +180,20 @@ def _make_artifact(ws_id: str, run_id: str, stage: str, key: str, doc_id: str | 
 
 
 async def _seed_extraction_artifacts(
-    db: AsyncSession, ws_id: str, run_id: str, n_docs: int
-) -> list[str]:
-    docs = [_make_doc(ws_id, f"{i}.pdf") for i in range(n_docs)]
-    db.add_all(docs)
-    await db.flush()
-    artifacts = [
-        _make_artifact(ws_id, run_id, "extract_statements", f"{d.original_name}-2_extract", d.id)
-        for d in docs
-    ]
+    db: AsyncSession, ws_id: str, run_id: str, keys: list[str]
+) -> None:
+    """Adiciona artefatos E2 (stage extract_statements) + 1 não-extract (deve ser ignorado)."""
+    artifacts = [_make_artifact(ws_id, run_id, "extract_statements", k, doc_id=None) for k in keys]
     artifacts.append(_make_artifact(ws_id, run_id, "reconcile_transactions", "recon", None))
     db.add_all(artifacts)
     await db.commit()
-    return [d.id for d in docs]
 
 
 @pytest.mark.asyncio
 async def test_get_report_consumed_document_count_reflects_extraction_artifacts(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
+    """Conta DISTINCT artifact_key em stages E2; ignora outros stages e document_id=NULL."""
     from backend.app.models.workspace import Workspace
 
     run_id = str(uuid.uuid4())
@@ -218,13 +201,14 @@ async def test_get_report_consumed_document_count_reflects_extraction_artifacts(
         auth_client, analysis_payload={"x": 1}, pipeline_run_id=run_id, tmp_path=tmp_path, db=db
     )
     ws = (await db.execute(select(Workspace))).scalar_one()
-    doc_ids = await _seed_extraction_artifacts(db, ws.id, run_id, n_docs=2)
+    keys = ["a-2_extract", "b-2_extract"]
+    await _seed_extraction_artifacts(db, ws.id, run_id, keys)
 
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
     assert resp.status_code == 200
     data = resp.json()
     assert data["consumed_document_count"] == 2
-    assert set(data["consumed_document_ids"]) == set(doc_ids)
+    assert set(data["consumed_document_ids"]) == set(keys)
 
 
 @pytest.mark.asyncio
