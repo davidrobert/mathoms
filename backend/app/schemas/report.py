@@ -32,6 +32,9 @@ class ReportResponse(BaseModel):
     has_analysis_data: bool = False
     # F11.6b — snapshot de premissas (metas + hash goals.json) na geração.
     premissas_snapshot: Optional[dict] = None
+    # v2.F.3a — sobrenome da família para a capa do relatório (cover identity).
+    # Lido de ``Workspace.family_surname``; ``None`` quando não definido.
+    workspace_family_surname: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

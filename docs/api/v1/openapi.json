@@ -5327,6 +5327,17 @@
             "title": "Title",
             "type": "string"
           },
+          "workspace_family_surname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Family Surname"
+          },
           "workspace_id": {
             "title": "Workspace Id",
             "type": "string"

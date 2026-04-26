@@ -19,6 +19,7 @@ def serialize_report(
     source_document_ids: list[str] | None = None,
     consumed_document_count: int = 0,
     consumed_document_ids: list[str] | None = None,
+    workspace_family_surname: str | None = None,
 ) -> ReportResponse:
     ids = source_document_ids if source_document_ids is not None else []
     consumed_ids = consumed_document_ids if consumed_document_ids is not None else []
@@ -37,6 +38,7 @@ def serialize_report(
         consumed_document_count=consumed_document_count,
         consumed_document_ids=consumed_ids,
         premissas_snapshot=report.premissas_snapshot_json,
+        workspace_family_surname=workspace_family_surname,
     )
 
 

@@ -246,6 +246,34 @@ async def test_get_report_includes_premissas_snapshot(
 
 
 @pytest.mark.asyncio
+async def test_get_report_includes_workspace_family_surname_when_set(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    """v2.F.3a — surname populado a partir de Workspace.family_surname."""
+    from backend.app.models.workspace import Workspace
+
+    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
+    ws = (await db.execute(select(Workspace))).scalar_one()
+    ws.family_surname = "Silva"
+    await db.commit()
+
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
+    assert resp.status_code == 200
+    assert resp.json()["workspace_family_surname"] == "Silva"
+
+
+@pytest.mark.asyncio
+async def test_get_report_workspace_family_surname_none_when_unset(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    """v2.F.3a — sem surname devolve None (não 4xx/5xx)."""
+    rid = await _seed_report(auth_client, analysis_payload=None, tmp_path=tmp_path, db=db)
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}")
+    assert resp.status_code == 200
+    assert resp.json()["workspace_family_surname"] is None
+
+
+@pytest.mark.asyncio
 async def test_list_reports_propagates_has_analysis_data(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):
