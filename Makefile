@@ -101,8 +101,9 @@ smoke-dirs:
 #   make dev-down            Mata todos os processos
 #   make dev-restart         down && up
 #   make dev-restart-worker  Restart só do worker (após mudar pipeline/)
-#   make dev-status          ✅/❌ por serviço (PID + porta)
+#   make dev-status          ✅/❌ por serviço (PID + porta listening)
 #   make dev-logs            tail -f de todos (SVC=api para um só)
+#   make dev-kill-stale      Mata órfãos em 8000/8001/3000/3100 + limpa pids
 #   make dev-reset-env       DESTRUTIVO: regenera .env (invalida Fernet)
 #
 # PIDs em _dev_pids/<svc>.pid · logs em _dev_pids/<svc>.log (no .gitignore)
@@ -111,13 +112,26 @@ smoke-dirs:
 DEV_DIR := _dev_pids
 
 .PHONY: dev-bootstrap dev-pull dev-up dev-down dev-restart dev-restart-worker \
-        dev-status dev-logs dev-reset-env dev-dirs \
+        dev-status dev-logs dev-reset-env dev-dirs dev-kill-stale \
         dev-redis-up dev-api-up dev-worker-up dev-frontend-up \
         dev-ops-api-up dev-frontend-ops-up
 
 ## dev-dirs: Cria _dev_pids/
 dev-dirs:
 	@mkdir -p $(DEV_DIR)
+
+# Helper: aborta se a porta $(1) já está em uso por outro processo.
+# Usado nos dev-X-up para detectar uvicorn/npm órfãos antes do bind.
+define check_port_free
+	@if lsof -nP -iTCP:$(1) -sTCP:LISTEN >/dev/null 2>&1; then \
+	   pid=$$(lsof -ti tcp:$(1) 2>/dev/null | head -1); \
+	   echo "   ❌ Porta $(1) já está em uso (pid=$$pid)."; \
+	   echo "      Provavelmente uvicorn/npm órfão de uma sessão anterior."; \
+	   echo "      Resolva com: 'make dev-kill-stale'  (mata tudo nas portas 8000/8001/3000/3100)"; \
+	   echo "      Ou manual:   'kill $$pid'"; \
+	   exit 1; \
+	 fi
+endef
 
 ## dev-bootstrap: Setup inicial — venv, deps, .env, codegen
 dev-bootstrap:
@@ -197,6 +211,7 @@ dev-redis-up: dev-dirs
 
 dev-api-up: dev-dirs
 	@echo "▶  Subindo API principal (porta 8000)…"
+	$(call check_port_free,8000)
 	@nohup $(VENV)/uvicorn backend.app.main:app \
 	   --host 127.0.0.1 --port 8000 --reload \
 	   > $(CURDIR)/$(DEV_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/api.pid
@@ -209,11 +224,13 @@ dev-worker-up: dev-dirs
 
 dev-frontend-up: dev-dirs
 	@echo "▶  Subindo frontend (porta 3000)…"
+	$(call check_port_free,3000)
 	@nohup npm --prefix frontend run dev \
 	   > $(CURDIR)/$(DEV_DIR)/frontend.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/frontend.pid
 
 dev-ops-api-up: dev-dirs
 	@echo "▶  Subindo Ops API (porta 8001, /admin/*)…"
+	$(call check_port_free,8001)
 	@OPS_SECRET="$$(grep -E '^MATHOMS_INTERNAL_OPS_SESSION_SECRET=' .env 2>/dev/null | head -1 | cut -d= -f2-)"; \
 	 if [ -z "$$OPS_SECRET" ]; then \
 	   OPS_SECRET="$$(openssl rand -hex 32)"; \
@@ -228,6 +245,7 @@ dev-ops-api-up: dev-dirs
 
 dev-frontend-ops-up: dev-dirs
 	@echo "▶  Subindo frontend-ops (porta 3100)…"
+	$(call check_port_free,3100)
 	@INTERNAL_OPS_API_BASE=http://127.0.0.1:8001 \
 	 nohup npm --prefix frontend-ops run dev \
 	   > $(CURDIR)/$(DEV_DIR)/frontend-ops.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/frontend-ops.pid
@@ -268,10 +286,10 @@ dev-restart-worker:
 	@$(MAKE) -s dev-worker-up
 	@echo "  ✅ Worker reiniciado."
 
-## dev-status: Health check de cada serviço
+## dev-status: Health check de cada serviço (PID alive + porta listening)
 dev-status:
 	@printf "%-14s  %-6s  %-5s  %s\n" "Serviço" "PID" "Porta" "Status"
-	@printf "%-14s  %-6s  %-5s  %s\n" "──────────────" "──────" "─────" "─────────────────"
+	@printf "%-14s  %-6s  %-5s  %s\n" "──────────────" "──────" "─────" "──────────────────────"
 	@for svc in api worker frontend ops-api frontend-ops; do \
 	   case $$svc in \
 	     api)          port=8000 ;; \
@@ -285,17 +303,16 @@ dev-status:
 	     pid=$$(cat $$pidfile); \
 	     if kill -0 $$pid 2>/dev/null; then \
 	       if [ -n "$$port" ]; then \
-	         if curl -sf -o /dev/null --max-time 2 http://127.0.0.1:$$port/ 2>/dev/null \
-	            || curl -sfI -o /dev/null --max-time 2 http://127.0.0.1:$$port/ 2>/dev/null; then \
+	         if lsof -nP -iTCP:$$port -sTCP:LISTEN >/dev/null 2>&1; then \
 	           printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid $$port "✅ OK"; \
 	         else \
-	           printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid $$port "⏳ vivo, porta sem resposta"; \
+	           printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid $$port "⏳ subindo (porta ainda não listening)"; \
 	         fi; \
 	       else \
 	         printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid "—" "✅ OK (sem porta)"; \
 	       fi; \
 	     else \
-	       printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid "$${port:-—}" "❌ PID morto"; \
+	       printf "%-14s  %-6s  %-5s  %s\n" $$svc $$pid "$${port:-—}" "❌ PID morto (ver $(DEV_DIR)/$$svc.log)"; \
 	     fi; \
 	   else \
 	     printf "%-14s  %-6s  %-5s  %s\n" $$svc "—" "$${port:-—}" "⚪ não subido"; \
@@ -306,6 +323,26 @@ dev-status:
 	 else \
 	   printf "%-14s  %-6s  %-5s  %s\n" redis "—" 6379 "❌ não responde"; \
 	 fi
+
+## dev-kill-stale: Mata QUALQUER processo nas portas dev (8000/8001/3000/3100) + limpa _dev_pids/
+##                 Use quando dev-up reclama de "Porta X já em uso" (uvicorn/npm órfão).
+dev-kill-stale:
+	@echo "▶  Matando processos órfãos nas portas dev…"
+	@killed=0; \
+	 for port in 8000 8001 3000 3100; do \
+	   pids=$$(lsof -ti tcp:$$port 2>/dev/null); \
+	   if [ -n "$$pids" ]; then \
+	     for pid in $$pids; do \
+	       cmd=$$(ps -p $$pid -o comm= 2>/dev/null | head -1); \
+	       echo "   ✓ porta $$port → kill $$pid ($$cmd)"; \
+	       kill $$pid 2>/dev/null || kill -9 $$pid 2>/dev/null; \
+	       killed=$$((killed+1)); \
+	     done; \
+	   fi; \
+	 done; \
+	 if [ $$killed -eq 0 ]; then echo "   · nenhum órfão encontrado"; fi
+	@rm -rf $(CURDIR)/$(DEV_DIR)
+	@echo "  ✅ Stale kill completo. 'make dev-up' para subir novamente."
 
 ## dev-logs: tail -f de todos os logs (SVC=<nome> para um só)
 dev-logs:
