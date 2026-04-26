@@ -839,7 +839,7 @@ Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
 | v2.D.1 | enabler de v2.8 | O | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
 | v2.F.1 | §17.6 (cross-check com EXEMPLO) | S | P1 | F | inline (§17.6) — ✅ |
 | v2.F.2 | §17.7 (posicionamento herdado de v1, não-paritário com EXEMPLO) | S | P1 | F | inline (§17.7) — ✅ |
-| v2.F.3a | §17.8 (cover identity — backend) | S | P1 | F | inline (§17.8.a) |
+| v2.F.3a | §17.8 (cover identity — backend) | S | P1 | F | inline (§17.8.a) — ✅ |
 | v2.F.3b | §17.8 (cover identity — frontend) | S | P1 | F | inline (§17.8.b) |
 | v2.F.3c | §17.8 (cover identity — PDF filename) | S | P1 | F | inline (§17.8.c) |
 
@@ -1191,7 +1191,16 @@ correspondente em [frontend/src/lib/api/](frontend/src/lib/api/).
 
 #### Sub-lanes paraleláveis
 
-##### 17.8.a — Backend (independente)
+##### 17.8.a — Backend (independente) — ✅ 2026-04-26 (`710ae15`)
+
+Entregue: `workspace_family_surname: Optional[str] = None` em
+`ReportResponse` + lookup escalar
+(`select(Workspace.family_surname).where(...)` — menor diff que JOIN)
+no `application/report/get_report.py` + 2 testes (`Silva` → "Silva";
+sem surname → `None`) + snapshot OpenAPI atualizado. 1328 testes
+backend passed; pre-commit verde. Lista (`list_reports`) não alterada
+(escopo era GET singular; lista devolve `null` para o campo
+opcional).
 
 - **Branch:** `agent/cover-identity-backend/<ts>`
 - **Worktree:** isolada (`isolation: "worktree"`)
