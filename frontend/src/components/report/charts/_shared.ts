@@ -9,7 +9,13 @@ export const CHART_COLORS = Array.from(
  *
  * Backend (`fluxo_caixa_enricher`) emite `ChartSeries` com apenas
  * `{label, data}` — frontend é responsável pela atribuição de cor.
- * Stable: mesmo índice → mesma cor em qualquer render. */
+ * Stable: mesmo índice → mesma cor em qualquer render.
+ *
+ * @deprecated Retorna literal "var(--chart-N)" — Chart.js não resolve CSS
+ * vars no canvas (renderiza preto). Para charts Chart.js, use
+ * `useChartTheme().categorical[idx % len]` que resolve via
+ * getComputedStyle. Mantido por compat com `PatrimonioDoughnutChart`
+ * (Recharts, que resolve CSS vars no DOM). */
 export function pickColorByIndex(idx: number): string {
   const len = CHART_COLORS.length;
   const safe = ((idx % len) + len) % len;
