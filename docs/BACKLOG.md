@@ -1169,24 +1169,26 @@ convergir em `origin/main`.
 
 ---
 
-## Sprint A8 — Continuação multi-tenant (placeholder, abre após A7 fechar)
+## Sprint A8 — Continuação multi-tenant (aberta após A7 fechar 2026-04-27)
 
-**Status global (2026-04-27):** ☐ planejada — abre quando todas as lanes A7 (incluindo A7.5 cleanup + A7.6 rules-as-code) estiverem ✅ em `main`.
+**Status global (2026-04-27):** ☐ aberta — Sprint A7 ✅ entregue (tag `v-config-free` em `main`); A8 destravada para pickup.
 
-**Objetivo (1 frase):** completar a transição mono-cliente → multi-tenant que A7 começou, modelando entidades cliente-específicas que ficaram fora de A7 (workspace notes, mileage programs, programas de cashback, etc.) como agregados DB-first com API + UI.
+**Objetivo (1 frase):** completar a transição mono-cliente → multi-tenant que A7 começou, modelando entidades cliente-específicas que ficaram fora de A7 (workspace notes, mileage programs, programas de cashback, etc.) como agregados DB-first com API + UI; absorver follow-ups que A7 marcou como débito técnico aceito.
 
 ### Lanes A8 — picklist provisória
 
 | Lane | Branch slug | Origem do escopo | Depende de | Status |
 | --- | --- | --- | --- | --- |
-| **A8.1** MileageProgram aggregate (DB + API + UI) | `a8-1-mileage-aggregate` | A7.6 ADR-142 anota como débito técnico aceito (A7.6 entrega bridge `storage/<ws>/notes/milhas.md`; A8.1 modela em DB) | A7.6 ✅ | ☐ planejada |
+| **A8.0** Follow-ups A7 (3 itens herdados de CTO G4 sign-off) | `a8-0-a7-followups` | CTO G4 review do PR #15 listou: (a) ADR-149 "report_layout.yaml permanece como asset de produto" formaliza o trade-off A7.5 (codegen + API defaults source-of-truth via ADR-076); (b) refresh `docs/ARCHITECTURE.md §Fluxo de runtime` trocando `materialize_config` por `prepare_pipeline_config_dir` + `build_config_overrides_from_db`; (c) podar `load_global_json` dos 3 nomes deletados (`family_members.json`/`categorization.json`/`institutions.json`) em `backend/app/services/config_defaults.py` — code path morto pós-A7.5. | A7 ✅ | ☐ aberta — XS (≤2h), pode rodar imediatamente |
+| **A8.1** MileageProgram aggregate (DB + API + UI) | `a8-1-mileage-aggregate` | A7.6 ADR-147 anota como débito técnico aceito (A7.6 entrega bridge `storage/<ws>/notes/milhas.md`; A8.1 modela em DB) | A7 ✅ | ☐ planejada |
 
 **Princípio herdado de A7:** entidades cliente-específicas em DB workspace-scoped, regras universais em código + ADR. `storage/<ws>/notes/` é caminho transitório para conteúdo que ainda não tem schema DB justificado.
 
-**Lanes adicionais A8 podem incluir** (escopo a fechar após A7.5):
+**Lanes adicionais A8 podem incluir** (escopo a fechar após A8.0/A8.1):
 - Programas de cashback / pontos de cartão de crédito (similar pattern a MileageProgram).
 - Notas de planejamento livre (caderno digital workspace-scoped — mais flexível que Decision aggregate).
-- Reformulação do modelo de "famílias com >2 membros" (premissa atual: titular + cônjuge fixo).
+- Reformulação do modelo de "famílias com >2 membros" (premissa atual: titular + cônjuge fixo — ADR-145 explicita).
+- Migração de `config/report_layout.yaml` para outside-`config/` (requer reescrever `dev/codegen_report_layout.py` + `backend/app/services/config_defaults.py` API defaults). Próxima decisão estrutural; provavelmente ADR novo.
 
 Detalhes virão quando A7 fechar; este stub serve para registrar débito técnico explicitamente.
 
