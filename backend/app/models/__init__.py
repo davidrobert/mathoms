@@ -1,6 +1,11 @@
 from backend.app.models.audit_log import AuditLog
 from backend.app.models.category import Category, CategoryKeyword
+from backend.app.models.category_template import (
+    CategoryTemplate,
+    WorkspaceCategoryOverride,
+)
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
+from backend.app.models.institution_catalog import InstitutionCatalog
 from backend.app.models.decision import (
     VALID_DECISION_EVENT_TYPES,
     VALID_DECISION_STATUSES,
@@ -91,6 +96,9 @@ __all__ = [
     "BankAccount",
     "Category",
     "CategoryKeyword",
+    "CategoryTemplate",
+    "WorkspaceCategoryOverride",
+    "InstitutionCatalog",
     "PipelineConfig",
     "InstitutionConfig",
     "ReportLayout",
