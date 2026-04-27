@@ -12,6 +12,91 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report Premium UI v2 — Onda E (Charts UX) — segunda leva paralela
+  4/4 entregues + cleanup baseline (2026-04-26) — 🚧 7/8 (falta v2.E.8):**
+  4 sub-lanes executadas em paralelo por **4 agentes simultâneos** em
+  worktrees isoladas (general-purpose background), todas mergeadas em
+  main no mesmo dia. Onda E agora tem **7/8 sub-lanes ✅**, falta apenas
+  v2.E.8 (re-baseline visual + cleanup imports Recharts + ADR-13X).
+
+  - ✅ **v2.E.3** — `FluxoMensalChart` Recharts→Chart.js stacked +
+    `PeriodToggle` + `usePeriodWindow` (commit `5b8d54a`). 7 specs Vitest
+    novas (5 chart + 2 hook); 610 testes passed; pre-commit verde.
+    **Side-effect positivo:** criou
+    `frontend/src/components/report/hooks/useIsPrint.ts` (`matchMedia("print")`
+    + listener SSR-safe) — reaproveitado por E.4/E.5/E.6.
+    Hotspots `_shared.ts`/`_registry.ts` não foram tocados.
+
+  - ✅ **v2.E.4** — `ReceitaBarChart` Recharts→Chart.js horizontal +
+    `PeriodToggle` (commit `0e07499`). Consome `receita_datasets[]`
+    somando dentro da janela escolhida; ordenação desc por total;
+    paleta estável via `pickColorByIndex`; 9 specs Vitest; 628 testes
+    passed. **Hotspot resolvido:** commit `d2ae024` (helper duplicado)
+    foi **dropado durante rebase** após v2.E.5 entrar primeiro com
+    função idêntica — protocolo CLAUDE.md §Hotspots funcionou
+    automaticamente.
+
+  - ✅ **v2.E.5** — `DespesasDoughnutChart` Recharts→Chart.js +
+    datalabels + `PeriodToggle` (commit `6d0ab67`). Consome
+    `despesa_datasets[]` somando por janela; datalabels `R$ Xk` para
+    fatias ≥5%; `cutout: '50%'`; fallback gracioso em
+    `despesas_por_categoria` agregado quando datasets ausentes (toggle
+    oculto nesse caminho); 9 specs Vitest; 612 testes passed.
+    **Side-effects positivos:** (a) criou helper `pickColorByIndex` em
+    `_shared.ts` (módulo 12, estável por índice — reutilizado por
+    E.4/E.6); (b) `ChartDonut` primitive ganhou prop opcional
+    `dataLabelFormatter(value, pct, label)` + `textStrokeColor`/
+    `textStrokeWidth` (extensão aditiva, backwards-compat).
+    **Conflito resolvido:** rebase em `useIsPrint.ts` adotou versão
+    canônica de E.3 já em main.
+
+  - ✅ **v2.E.6** — `ReceitaDespesaMensalChart` Recharts→Chart.js
+    stacked + slide window 12m + tooltip por stack + legenda agrupada
+    custom + Vitest + E2E Playwright `@critical` (commits `6c2efc4` +
+    `f8cb30f` + `6b09407` + `32089ce` + cleanup `d9fa765` + baseline
+    `358d5ea`). Bar empilhado com 2 stack groups (`receita`/`despesa`),
+    enriquecimento client-side de `backgroundColor` via
+    `pickColorByIndex` e `stack` derivado do array de origem; slide
+    window 12m com prev/next + dots (oculto se ≤12m); tooltip custom
+    apenas do stack hovered (title/body/footer paridade
+    `EXEMPLO_DE_RELATORIO.html:7798-7829`); `RDMLegend.tsx` (legenda
+    agrupada Receitas/Despesas, swatches clicáveis com
+    `data-legend-swatch`/`aria-pressed`); chart-context +
+    chart-conclusion auto-gerados; print mode oculta nav/legenda
+    interativa, fixa última janela 12m, renderiza bloco textual de
+    totais consolidados; `ChartCanvas` ganhou prop
+    `onChartReady?(chart)` opcional (extensão aditiva).
+    **Anomalia aprendida:** agente pulou gates locais (worktree sem
+    `node_modules`/`pre-commit`) e confiou no CI como gate efetivo →
+    2 funções TS >20 linhas detectadas pós-merge na branch principal
+    (`useEnrichedDatasets` 26 linhas, `buildOptions` 25 linhas) →
+    cleanup follow-up `d9fa765` extraiu helpers
+    `enrichSeriesForStack` e `formatMoneyAxisTick` (sem mudança de
+    comportamento) + baseline atualizado em `358d5ea`. Lição para
+    futuros prompts: exigir gate local ou explicitar fallback quando
+    `node_modules` indisponível.
+
+  **Coordenação de hotspot empiricamente validada** entre os 4 agentes
+  paralelos:
+  - `useIsPrint.ts` — E.3 venceu (criou primeiro); E.4/E.5/E.6
+    convergiram via rebase.
+  - `pickColorByIndex` em `_shared.ts` — E.5 venceu; E.4 detectou
+    duplicação idêntica no rebase e dropou commit (sem perda).
+  - `ChartCanvas.tsx` — E.6 fez extensão aditiva (`onChartReady?`)
+    sem conflito.
+
+  **Bonus colateral:** T5_ts_hex_colors baseline -2 (4 migrations
+  removeram hex literals em favor de tokens `var(--brand-*)`/
+  `pickColorByIndex`).
+
+  **Próximo passo (sequencial):** v2.E.8 — re-trigger workflow
+  `frontend-visual` opt-in (`gh workflow run CI -f run_visual=true
+  -f update_visual_baselines=true`); commitar baselines novos
+  (esperado: cover×2 + S1×2 + S2×2 mudam, restantes idênticos);
+  remover último import `recharts` em `/reports/**` se houver;
+  gravar ADR-13X "Finalização migração Recharts→Chart.js em
+  /reports/**" relacionando ADR-037, ADR-117, ADR-122.
+
 - **Sprint A7 aberta — Config DB Cutover (CLI legacy removal) (2026-04-26) — ☐ aguarda autorização para iniciar A7.0:**
   Plano canônico em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md) — 11
   arquivos de `config/` (heranças do CLI mono-cliente) migram para DB
