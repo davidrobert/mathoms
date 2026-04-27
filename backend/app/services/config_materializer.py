@@ -1,68 +1,36 @@
-"""ConfigMaterializer — copies global config to tenant dir, overrides with DB edits."""
+"""ConfigMaterializer (post-A7.5) — copia tree global + materializa configs non-A7.1 (ADR-134)."""
 
 from __future__ import annotations
 
 import json
-import logging
 import shutil
-import warnings
 from pathlib import Path
 from typing import Any
 
-import yaml
 from sqlalchemy.orm import Session, selectinload
 
 from backend.app.core.config import settings
-from backend.app.models.category import Category, CategoryKeyword
+from backend.app.models.category import Category
 from backend.app.models.config_blob import (
     InstitutionConfig,
     PipelineConfig,
     ReportLayout,
     TransferConfig,
 )
-from backend.app.models.family_member import BankAccount, FamilyMember
+from backend.app.models.family_member import FamilyMember
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.workspace import Workspace
 from backend.app.services.vault import get_vault
 
 _vault = get_vault()
-_logger = logging.getLogger("mathoms.config.materialize")
-
-_DEPRECATION_NOTICE = (
-    "materialize_config writes A7.1 configs (categorization, family_members, "
-    "institutions, report_layout, transfer_config) to disk. After Sprint A7.1 "
-    "(ADR-134) the worker reads those via WorkspaceContext.config_overrides "
-    "populated from DBConfigStore — no disk write is needed. This function "
-    "will be removed in Sprint A7.5. Use prepare_pipeline_config_dir for "
-    "non-A7.1 configs (pipeline.json, llm_config.json, scoring/fiscal copies)."
-)
 
 
 def prepare_pipeline_config_dir(workspace_id: str, tenant_root: Path, db: Session) -> Path:
-    """A7.1 (ADR-134): copia o tree global + materializa apenas configs fora do escopo A7.1."""
+    """Copia o tree global + materializa apenas configs fora do escopo A7.1 (ADR-134)."""
     tenant_config = tenant_root / "config"
     _copy_global(_global_config_dir(), tenant_config)
     _override_pipeline(workspace_id, tenant_config, db)
     _override_llm_config(workspace_id, tenant_config, db)
-    return tenant_config
-
-
-def materialize_config(workspace_id: str, tenant_root: Path, db: Session) -> Path:
-    """LEGACY (deprecated A7.5): materializa todos os configs em disco — fired via DeprecationWarning."""
-    warnings.warn(_DEPRECATION_NOTICE, DeprecationWarning, stacklevel=2)
-    _logger.info(
-        "mathoms.config.materialize.legacy_call",
-        extra={"workspace_id": workspace_id, "tenant_root": str(tenant_root)},
-    )
-    tenant_config = tenant_root / "config"
-    _copy_global(_global_config_dir(), tenant_config)
-    _override_family_members(workspace_id, tenant_config, db)
-    _override_categorization(workspace_id, tenant_config, db)
-    _override_pipeline(workspace_id, tenant_config, db)
-    _override_institutions(workspace_id, tenant_config, db)
-    _override_report_layout(workspace_id, tenant_config, db)
-    _override_llm_config(workspace_id, tenant_config, db)
-    _override_transfer_config(workspace_id, tenant_config, db)
     return tenant_config
 
 
@@ -78,13 +46,6 @@ def _copy_global(src: Path, dst: Path) -> None:
 
 def _write_json(path: Path, data: dict[str, Any]) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-
-
-def _write_yaml(path: Path, data: dict[str, Any]) -> None:
-    path.write_text(
-        yaml.dump(data, allow_unicode=True, default_flow_style=False, sort_keys=False),
-        encoding="utf-8",
-    )
 
 
 # =============================================================================
@@ -195,63 +156,14 @@ def serialize_report_layout(workspace_id: str, db: Session) -> dict[str, Any] | 
 
 
 # =============================================================================
-# Override helpers — write serialized data to tenant config dir
+# Override helpers — write serialized data to tenant config dir (only non-A7.1)
 # =============================================================================
-
-
-def _override_family_members(workspace_id: str, config_dir: Path, db: Session) -> None:
-    data = serialize_family_members(workspace_id, db)
-    if data is not None:
-        _write_json(config_dir / "family_members.json", data)
-
-
-def _resolve_transfer_block(workspace_id: str, db: Session) -> dict[str, Any] | None:
-    """DB → global fallback. ``None`` se não há bloco em nenhum lugar."""
-    data = serialize_transfer_config(workspace_id, db)
-    if data is not None:
-        return data
-    global_family_path = _global_config_dir() / "family_members.json"
-    if not global_family_path.is_file():
-        return None
-    global_doc = json.loads(global_family_path.read_text(encoding="utf-8"))
-    return global_doc.get("transferencias_internas")
-
-
-def _override_transfer_config(workspace_id: str, config_dir: Path, db: Session) -> None:
-    """Overlay ``transferencias_internas`` em ``family_members.json`` (ADR-133)."""
-    data = _resolve_transfer_block(workspace_id, db)
-    if data is None:
-        return
-    family_path = config_dir / "family_members.json"
-    family_doc: dict[str, Any] = {}
-    if family_path.is_file():
-        family_doc = json.loads(family_path.read_text(encoding="utf-8"))
-    family_doc["transferencias_internas"] = data
-    _write_json(family_path, family_doc)
-
-
-def _override_categorization(workspace_id: str, config_dir: Path, db: Session) -> None:
-    data = serialize_categorization(workspace_id, db)
-    if data is not None:
-        _write_json(config_dir / "categorization.json", data)
 
 
 def _override_pipeline(workspace_id: str, config_dir: Path, db: Session) -> None:
     data = serialize_pipeline_config(workspace_id, db)
     if data is not None:
         _write_json(config_dir / "pipeline.json", data)
-
-
-def _override_institutions(workspace_id: str, config_dir: Path, db: Session) -> None:
-    data = serialize_institution_config(workspace_id, db)
-    if data is not None:
-        _write_json(config_dir / "institutions.json", data)
-
-
-def _override_report_layout(workspace_id: str, config_dir: Path, db: Session) -> None:
-    data = serialize_report_layout(workspace_id, db)
-    if data is not None:
-        _write_yaml(config_dir / "report_layout.yaml", data)
 
 
 # =============================================================================
@@ -282,17 +194,9 @@ def _override_llm_config(workspace_id: str, config_dir: Path, db: Session) -> No
 
 
 def ensure_tenant_pipeline_config(workspace_id: str, tenant_root: Path) -> Path:
-    """Materialize ``tenant_root/config/`` when missing (e.g. before first pipeline run).
-
-    Ensures upload and ``POST /documents/reclassify`` can use
-    :func:`document_processor.resolve_classification_base` with tenant-specific
-    ``family_members`` / ``institutions`` without requiring a prior pipeline execution.
-
-    A7.1 (ADR-134): usa ``prepare_pipeline_config_dir`` (sem materializar configs A7.1
-    em disco — esses fluem via ``WorkspaceContext.config_overrides`` no worker).
-    """
+    """Materialize ``tenant_root/config/`` when missing (post-A7.5 marker = ``pipeline.json``)."""
     tenant_root = Path(tenant_root).resolve()
-    marker = tenant_root / "config" / "institutions.json"
+    marker = tenant_root / "config" / "pipeline.json"
     if marker.is_file():
         return tenant_root / "config"
 

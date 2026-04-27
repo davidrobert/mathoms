@@ -14,6 +14,10 @@ _REPO = Path(__file__).resolve().parents[1]
 _E3_FIXTURE = (
     _REPO / "tests" / "fixtures" / "pipeline_golden" / "e3" / "minimal-conta-3_reconciled.json"
 )
+# A7.5: ``parametros_fiscais.json`` + ``taxas.json`` saíram de ``config/``.
+_LEGACY_CONFIGS = _REPO / "tests" / "fixtures" / "legacy_configs"
+_LEGACY_FISCAL = _LEGACY_CONFIGS / "parametros_fiscais.json"
+_LEGACY_TAXAS = _LEGACY_CONFIGS / "taxas.json"
 
 _GOALS_MIN = {
     "independencia_financeira": {
@@ -74,8 +78,8 @@ def _build_e5_workspace(tmp_path: Path, family: dict) -> Path:
         encoding="utf-8",
     )
     shutil.copy(_REPO / "config" / "scoring.json", cfg / "scoring.json")
-    shutil.copy(_REPO / "config" / "parametros_fiscais.json", cfg / "parametros_fiscais.json")
-    shutil.copy(_REPO / "config" / "taxas.json", cfg / "taxas.json")
+    shutil.copy(_LEGACY_FISCAL, cfg / "parametros_fiscais.json")
+    shutil.copy(_LEGACY_TAXAS, cfg / "taxas.json")
 
     e3_dir = tmp_path / "processed" / "E3_reconciled"
     e3_dir.mkdir(parents=True)

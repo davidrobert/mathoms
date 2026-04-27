@@ -16,8 +16,20 @@ import { FluxoMensalChart } from "@/components/report/charts/FluxoMensalChart";
 import type { FluxoCaixaSummary } from "@/types/report-analysis";
 
 vi.mock("react-chartjs-2", () => ({
-  Chart: ({ "aria-label": ariaLabel }: { "aria-label"?: string }) => (
-    <div data-testid="chart-mock" aria-label={ariaLabel} />
+  Chart: ({
+    "aria-label": ariaLabel,
+    data,
+  }: {
+    "aria-label"?: string;
+    data?: { datasets?: Array<{ backgroundColor?: string }> };
+  }) => (
+    <div
+      data-testid="chart-mock"
+      aria-label={ariaLabel}
+      data-bg-colors={JSON.stringify(
+        (data?.datasets ?? []).map((d) => d.backgroundColor ?? null),
+      )}
+    />
   ),
 }));
 
@@ -79,5 +91,25 @@ describe("<FluxoMensalChart />", () => {
     const text = document.body.textContent ?? "";
     expect(text).toMatch(/Saldo recorrente mensal de R\$\s?11\.342/);
     expect(text).toContain("Taxa de poupança recorrente de 16,4%");
+  });
+});
+
+// ─── Regressão: cores resolvidas (nunca "var(...)") ───
+// Bug histórico: receita/despesa passavam {color: "var(--semantic-gain)"}
+// literal — Chart.js não resolve CSS vars no canvas → barras ficavam pretas
+// em produção. Fix consome useChartTheme().semantic.{gain,loss} (hex
+// resolvido via getComputedStyle).
+describe("<FluxoMensalChart /> · cores resolvidas (anti-regressão)", () => {
+  it("backgroundColor de receita e despesa é cor concreta (hex/rgb), nunca 'var(...)'", () => {
+    render(<FluxoMensalChart fluxo={buildFluxo()} />);
+    const chart = screen.getByTestId("chart-mock");
+    const bgColors: ReadonlyArray<string | null> = JSON.parse(
+      chart.getAttribute("data-bg-colors") ?? "[]",
+    );
+    expect(bgColors).toHaveLength(2);
+    bgColors.forEach((c) => {
+      expect(c).toBeTruthy();
+      expect(c!.startsWith("var(")).toBe(false);
+    });
   });
 });

@@ -9,11 +9,37 @@ export const CHART_COLORS = Array.from(
  *
  * Backend (`fluxo_caixa_enricher`) emite `ChartSeries` com apenas
  * `{label, data}` — frontend é responsável pela atribuição de cor.
- * Stable: mesmo índice → mesma cor em qualquer render. */
+ * Stable: mesmo índice → mesma cor em qualquer render.
+ *
+ * @deprecated Retorna literal "var(--chart-N)" — Chart.js não resolve CSS
+ * vars no canvas (renderiza preto). Para charts Chart.js, use
+ * `useChartTheme().categorical[idx % len]` que resolve via
+ * getComputedStyle. Mantido por compat com `PatrimonioDoughnutChart`
+ * (Recharts, que resolve CSS vars no DOM). */
 export function pickColorByIndex(idx: number): string {
   const len = CHART_COLORS.length;
   const safe = ((idx % len) + len) % len;
   return CHART_COLORS[safe];
+}
+
+const MONTH_SHORT_PT_LOWER = [
+  "jan", "fev", "mar", "abr", "mai", "jun",
+  "jul", "ago", "set", "out", "nov", "dez",
+] as const;
+
+/** Backend `e5_analyze.py:1311` emite labels de chart mensais no formato
+ * `"yy/mm"` (ex.: `"26/02"`). Esse formato confunde — facilmente lido como
+ * `dd/MM`. Helper converte para pt-BR `"MMM/aa"` (ex.: `"fev/26"`).
+ *
+ * Falha graciosamente: retorna o input cru se o formato não casar
+ * `^\d{2}/\d{2}$` ou se o mês estiver fora de 01-12. */
+export function formatChartMonthLabel(label: string): string {
+  const m = /^(\d{2})\/(\d{2})$/.exec(label);
+  if (!m) return label;
+  const year = m[1];
+  const month = parseInt(m[2], 10);
+  if (isNaN(month) || month < 1 || month > 12) return label;
+  return `${MONTH_SHORT_PT_LOWER[month - 1]}/${year}`;
 }
 
 export function fmtBRL(n: number): string {

@@ -54,7 +54,10 @@ vi.mock("react-chartjs-2", () => {
   return {
     Chart: (props: {
       ref?: (instance: unknown) => void;
-      data: { labels: string[]; datasets: Array<{ label: string; stack: string }> };
+      data: {
+        labels: string[];
+        datasets: Array<{ label: string; stack: string; backgroundColor?: string }>;
+      };
       "aria-label"?: string;
     }) => {
       // Ref entregue em useEffect (pos-commit) para nao chamar setState
@@ -72,6 +75,9 @@ vi.mock("react-chartjs-2", () => {
           data-mock-chart="rdm"
           data-labels={JSON.stringify(props.data.labels)}
           data-dataset-count={props.data.datasets.length}
+          data-bg-colors={JSON.stringify(
+            props.data.datasets.map((d) => d.backgroundColor ?? null),
+          )}
         />
       );
     },
@@ -256,5 +262,40 @@ describe("<ReceitaDespesaMensalChart />", () => {
     const { container } = render(<ReceitaDespesaMensalChart fluxo={buildFluxo(4)} />);
     expect(container.querySelector("[data-chart-context]")).not.toBeNull();
     expect(container.querySelector("[data-chart-conclusion]")).not.toBeNull();
+  });
+});
+
+// ─── Regressão: cores resolvidas (nunca "var(...)") ───
+// Bug histórico: pickColorByIndex retornava "var(--chart-N)" literal,
+// e Chart.js não resolve CSS vars no canvas → barras ficavam pretas em
+// produção. Fix consome useChartTheme().categorical com hex resolvidos
+// via getComputedStyle. Este teste garante que regressão futura não
+// reintroduza literal "var(...)" no dataset.backgroundColor.
+describe("<ReceitaDespesaMensalChart /> · cores resolvidas (anti-regressão)", () => {
+  it("backgroundColor de todos os datasets é cor concreta (hex/rgb), nunca 'var(...)'", () => {
+    // Backend pode emitir series sem backgroundColor — neste cenário o
+    // fallback vem do useChartTheme().categorical, que resolve via
+    // getComputedStyle (em jsdom, lê do LIGHT_FALLBACK = hex literais).
+    const fluxo: FluxoCaixaSummary = {
+      receita_despesa_mensal_detalhado: {
+        labels: ["26/01", "26/02", "26/03"],
+        // Sem backgroundColor — força fallback via theme.categorical.
+        receita_datasets: [
+          { label: "Salário", data: [100, 200, 300] },
+          { label: "Aluguéis", data: [50, 60, 70] },
+        ],
+        despesa_datasets: [{ label: "Moradia", data: [80, 90, 100] }],
+      },
+    };
+    render(<ReceitaDespesaMensalChart fluxo={fluxo} />);
+    const chart = screen.getByRole("img", { name: /Receita vs Despesa/i });
+    const bgColors: ReadonlyArray<string | null> = JSON.parse(
+      chart.getAttribute("data-bg-colors") ?? "[]",
+    );
+    expect(bgColors.length).toBe(3);
+    bgColors.forEach((c) => {
+      expect(c).toBeTruthy();
+      expect(c!.startsWith("var(")).toBe(false);
+    });
   });
 });

@@ -10,8 +10,9 @@ import type {
 
 import { ReportCard } from "../ReportCard";
 import { ChartCanvas } from "./primitives/ChartCanvas";
+import { useChartTheme } from "./primitives/useChartTheme";
 import { RDMLegend, type RDMLegendItem } from "./RDMLegend";
-import { fmtBRL, pickColorByIndex } from "./_shared";
+import { fmtBRL, formatChartMonthLabel } from "./_shared";
 import { useIsPrint } from "../hooks/useIsPrint";
 import type { ChartSeries, FluxoCaixaSummary } from "@/types/report-analysis";
 
@@ -44,10 +45,15 @@ export function ReceitaDespesaMensalChart({
   fluxo: FluxoCaixaSummary | undefined;
 }) {
   const isPrint = useIsPrint();
+  const theme = useChartTheme();
   const det = fluxo?.receita_despesa_mensal_detalhado;
   const allLabels = det?.labels ?? [];
   const totalMonths = allLabels.length;
-  const enriched = useEnrichedDatasets(det?.receita_datasets, det?.despesa_datasets);
+  const enriched = useEnrichedDatasets(
+    det?.receita_datasets,
+    det?.despesa_datasets,
+    theme.categorical,
+  );
 
   const [offset, setOffset] = useState<number>(() => Math.max(0, totalMonths - WINDOW));
   const [hiddenIdx, setHiddenIdx] = useState<ReadonlySet<number>>(() => new Set());
@@ -152,16 +158,23 @@ function enrichSeriesForStack(
   series: readonly ChartSeries[] | undefined,
   stack: "receita" | "despesa",
   startIdx: number,
+  palette: readonly string[],
 ): { datasets: EnrichedDataset[]; nextIdx: number } {
   const datasets: EnrichedDataset[] = [];
   let idx = startIdx;
+  const len = Math.max(palette.length, 1);
   (series ?? []).forEach((ds) => {
+    // palette vem de useChartTheme().categorical, sempre 12 entradas
+    // (LIGHT_FALLBACK garante). `palette[0]` cobre o caso degenerado
+    // (palette vazia em SSR/teste sem CSS) sem hex literal.
+    const fallback = palette[((idx % len) + len) % len] ?? palette[0];
     datasets.push({
       label: ds.label,
       data: ds.data,
       stack,
-      backgroundColor: ds.backgroundColor ?? pickColorByIndex(idx++),
+      backgroundColor: ds.backgroundColor ?? fallback,
     });
+    idx++;
   });
   return { datasets, nextIdx: idx };
 }
@@ -169,12 +182,13 @@ function enrichSeriesForStack(
 function useEnrichedDatasets(
   receita: readonly ChartSeries[] | undefined,
   despesa: readonly ChartSeries[] | undefined,
+  palette: readonly string[],
 ): readonly EnrichedDataset[] {
   return useMemo(() => {
-    const r = enrichSeriesForStack(receita, "receita", 0);
-    const d = enrichSeriesForStack(despesa, "despesa", r.nextIdx);
+    const r = enrichSeriesForStack(receita, "receita", 0, palette);
+    const d = enrichSeriesForStack(despesa, "despesa", r.nextIdx, palette);
     return [...r.datasets, ...d.datasets];
-  }, [receita, despesa]);
+  }, [receita, despesa, palette]);
 }
 
 interface SlicedWindow {
@@ -189,7 +203,7 @@ function sliceWindow(
   size: number,
 ): SlicedWindow {
   const end = Math.min(offset + size, allLabels.length);
-  const labels = allLabels.slice(offset, end);
+  const labels = allLabels.slice(offset, end).map(formatChartMonthLabel);
   const sliced = datasets.map((d) => ({
     label: d.label,
     data: d.data.slice(offset, end),
@@ -217,7 +231,7 @@ function buildOptions(): ChartOptions<"bar"> {
     },
     scales: {
       x: { stacked: true, grid: { display: false } },
-      y: { stacked: true, ticks: { callback: formatMoneyAxisTick } },
+      y: { stacked: true, beginAtZero: true, ticks: { callback: formatMoneyAxisTick } },
     },
   };
 }

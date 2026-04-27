@@ -6,6 +6,122 @@
 
 ## [Unreleased]
 
+- **Test charts — lint anti-regressão `--chart-N: oklch(…)` (2026-04-27):**
+  Follow-up do CAVEAT registrado no fix `de2c00a` (barras pretas RDM).
+  Novo spec em
+  [`frontend/tests/styles/chart-vars-no-oklch.test.ts`](../frontend/tests/styles/chart-vars-no-oklch.test.ts)
+  varre `frontend/src/**/*.css` e falha se qualquer `--chart-\d+`
+  estiver definido com `oklch()`, `oklab()`, `lab()` ou `lch()` —
+  funções que `@kurkle/color@0.3.4` (parser do Chart.js) não suporta,
+  produzindo `ctx.fillStyle` inválido e canvas preto. O teste
+  componente existente em
+  [`ReceitaDespesaMensalChart.test.tsx:274-301`](../frontend/tests/components/report/ReceitaDespesaMensalChart.test.tsx)
+  só pega literal `var(...)` no dataset; em jsdom `useChartTheme`
+  cai pro `LIGHT_FALLBACK` (hex hard-coded), então regressão na CSS
+  escapava. Verificado revertendo `de2c00a` localmente: 24 ofensores
+  flagged, fix-forward retornou 4/4 verdes.
+
+- **Fix charts — barras pretas em ReceitaDespesaMensalChart (2026-04-27, [`de2c00a`](https://github.com/davidrobert/mathoms/commit/de2c00a)):**
+  Bug visual reportado via screenshot de produção (S2 — Fluxo de Caixa):
+  todas as barras renderizavam pretas, mesmo com legendas coloridas
+  corretamente. Sintoma parecido com 9ce3ce2 ("cores resolvidas"),
+  porém raiz diferente. **Root cause:** `--chart-1..12` definidos
+  duas vezes — `tokens.css:101-112` como hex (`#1A3A5C`, ...) e
+  `globals.css:58-70` como `oklch(...)`. Como `globals.css` importa
+  `tokens.css` na linha 10, o cascade terminava com os `oklch()`
+  ganhando. Chart.js usa `@kurkle/color@0.3.4`, que só parseia
+  hex/rgb/hsl/hwb — `oklch()` é silenciosamente inválido →
+  `ctx.fillStyle` cai pro default preto no canvas. Legendas (HTML+CSS)
+  funcionavam porque o browser resolve `oklch()` nativamente em CSS;
+  só o canvas quebrava. **Fix:** remover ambos os blocos `--chart-N`
+  duplicados (light + dark) de `globals.css` — o próprio comentário
+  em `globals.css:14-16` já proibia essa duplicação ("NÃO duplicar
+  variáveis que já estão em tokens.css"). Cascade volta a resolver
+  pelos hex de `tokens.css`. Tests 22/22 verdes (mock de Chart.js
+  não capturava o bug; `LIGHT_FALLBACK` em `useChartTheme` mascarava
+  o que `getComputedStyle` retornaria em produção). CAVEAT: regressão
+  futura — adicionar lint que rejeite `--chart-\d+: oklch` em
+  qualquer CSS é candidato a follow-up.
+
+- **Fix charts S2 — eixo X yy/mm → MMM/aa pt-BR (2026-04-27, [`5eb956f`](https://github.com/davidrobert/mathoms/commit/5eb956f)):**
+  Bug 3 do trio reportado pelo usuário. Backend `e5_analyze.py:1311` emite
+  labels de chart mensais como `"26/02"` (yy/mm), formato facilmente lido
+  como `dd/MM` ("dia 26 fev"). Fix puramente no frontend (backend canônico
+  é parseado por `previdencia_analyzer`, `cenarios_conjuge_analyzer`,
+  `orcamento_calculator` etc. — não tocar). Helper `formatChartMonthLabel`
+  em [`charts/_shared.ts`](../frontend/src/components/report/charts/_shared.ts)
+  converte `"26/02"` → `"fev/26"` via regex + `MONTH_SHORT_PT_LOWER`.
+  Aplicado em `FluxoMensalChart.slicedLabels` e
+  `ReceitaDespesaMensalChart.sliceWindow.labels`. Outros consumidores
+  (`ReceitaBarChart`, `DespesasDoughnutChart`) usam labels de fonte/
+  categoria, não meses — não precisam. Vitest 3 cenários (canônico,
+  não-casa, mês fora 01-12). Helper colocado em `charts/_shared.ts`
+  (não em `lib/format.ts`) para ficar coeso com `fmtBRL` e evitar
+  cruzar threshold T2_ts_long_files do gate code-style-baseline.
+  CAVEAT: visual baselines de S2 mudam (texto eixo X diferente).
+
+- **Fix charts S2 — cores resolvidas + eixo Y (2026-04-27):** Bugs visuais
+  reportados via screenshots de produção em `ReceitaDespesaMensalChart`
+  e `FluxoMensalChart` (S2 — Fluxo de Caixa). **Bug 1 (cores pretas):**
+  ambos os charts passavam literais `var(--chart-N)` / `var(--semantic-gain)`
+  como `backgroundColor` ao Chart.js — Chart.js não resolve CSS vars no
+  canvas (apenas no DOM, motivo pelo qual a legenda `RDMLegend` mostrava
+  cores corretas mas o canvas ficava preto). Fix: `useChartTheme()`
+  estendido com `theme.semantic.{gain,loss}` (resolvidos via
+  `getComputedStyle`); `ReceitaDespesaMensalChart` consome
+  `theme.categorical` em vez de `pickColorByIndex` (que retorna literal
+  `var(...)`); `FluxoMensalChart` consome `theme.semantic`. **Bug 2
+  (eixo Y):** (a) `ReceitaDespesaMensalChart` começava em `-R$ 20k`
+  mesmo sem valores negativos — fix `beginAtZero: true` no scale `y`;
+  (b) `FluxoMensalChart` duplicava label "R$ 50.000" sem sinal `−` no
+  negativo (bipolar ok, mas formatter aplicava `Math.abs`) — fix
+  removendo `Math.abs` em `formatValue`. `pickColorByIndex` marcado
+  `@deprecated` (mantido por compat com `PatrimonioDoughnutChart`/
+  `ReceitaBarChart`/`DespesasDoughnutChart`). Anti-regressão Vitest:
+  novos testes garantem `dataset.backgroundColor` jamais começa com
+  `"var("`. **CAVEAT:** visual baselines de S2
+  (`S2-light-visual-linux.png`, `S2-dark-visual-linux.png`) precisam
+  refresh em próxima rodada de visual gate via humano com
+  `update_visual_baselines=true` — preto → colorido e Y-axis zerado
+  mudam pixel rendering.
+
+- **A8.0 Follow-ups A7 — ✅ entregue (2026-04-27):** 3 itens herdados de
+  CTO G4 sign-off do PR #15 (Sprint A7 closeout). XS (~1h) lane.
+
+  **Entregas:**
+  - **(a) ADR-149** formalizando o trade-off da Sprint A7.5: `config/report_layout.yaml`
+    permanece como **asset de produto** (não dado cliente). Critério explícito:
+    arquivos em `config/` devem cumprir 4 itens (não-PII, consumido por código,
+    time Mathoms edita, sem schema DB redundante). Política de paths proibidos
+    é por arquivo (não diretório). Lista atual de assets legítimos: `report_layout.yaml`,
+    `pipeline.json`, `scoring.json`, `schemas/`, `prompts/`, `templates/`.
+    [ADR-149](DECISIONS.md#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80).
+  - **(b) `docs/ARCHITECTURE.md §Fluxo de runtime`** atualizado: §Materialização
+    de config → §Carregamento de config (DB-first pós-Sprint A7) descreve
+    `_prepare_run_context` + `prepare_pipeline_config_dir` + `build_config_overrides_from_db`
+    + `build_config_store(DBConfigStore)` em vez de `materialize_config`.
+    §12 Padrões arquiteturais: "Materialize, Don't Inject" marcado como
+    **superseded por ConfigStore em Sprint A7** (preserva história F3 mas
+    aponta para o padrão atual). Tabela §11 atualizada para `prepare_pipeline_config_dir`.
+  - **(c) Pruning de 3 dead `load_global_json` calls** em
+    `backend/app/api/{categories.py,family_members.py,config.py}` para os
+    nomes deletados em A7.5 (`family_members.json`, `categorization.json`,
+    `institutions.json`). Code path morto: `load_global_json` retornava `{}`
+    graceful pós-A7.5 (file ausente). Substituído por `{}` literal com
+    comentário de contexto. Helper `_export_institutions` separado de
+    `_export_blob_or_default` (institutions perdeu o default disco; pipeline
+    e report_layout permanecem com fallback global).
+
+  **Tests:** 1479 backend passed (zero regressão). Endpoints legacy
+  `/categories`, `/members`, `/export` continuam retornando shape vazio
+  coerente para workspace sem rows (comportamento multi-tenant correto:
+  não vaza identidade do founder, F6.5E.6).
+
+  **Bridges remanescentes pós-A8.0:** nenhum novo. Helper `load_global_json`
+  + `load_global_yaml` em `config_defaults.py` permanecem (usados por
+  `pipeline.json` + `report_layout.yaml` que **permanecem em `config/`**
+  conforme ADR-149).
+
 - **Spec mobile do relatório ✅ docs-only (2026-04-27):** D3 do
   `report-a11y-finalize` (deixada em aberto) e [batch2.13](BACKLOG.md)
   resolvidos com [REPORT_MOBILE_SPEC.md](REPORT_MOBILE_SPEC.md) novo +
@@ -164,11 +280,35 @@
   workspace dogfood (escopo do dono do produto). Follow-up v3: hash-de-prompt
   na cache key.
 
-Trabalho em andamento: **Sprint A7 — Config DB Cutover** (aberto 2026-04-26) +
-execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)** (rename de stages F9) +
+Trabalho em andamento: execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)** (rename de stages F9) +
 preparação para **F7 (Produção + LGPD + Ops)**.
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
+
+- **Sprint A7 ✅ entregue 2026-04-27 — Config DB Cutover (CLI legacy removal):**
+  7 lanes mergeadas em `main` no mesmo dia (A7.0 → A7.6). Plano canônico arquivado
+  em [docs/archive/CONFIG_CUTOVER_PLAN-2026-04-27.md](archive/CONFIG_CUTOVER_PLAN-2026-04-27.md).
+  Resultado: produto roda 100% DB-first via `DBConfigStore` (ADR-134); 5 arquivos
+  legados de `config/` deletados em A7.5 (`categorization.json`,
+  `family_members.json`, `institutions.json`, `parametros_fiscais.json`,
+  `taxas.json`) + `decisions.md` (A7.2a) + 4 docs metodológicos saídos via
+  A7.4/A7.6. Tabelas globais versionadas substituem `parametros_fiscais.json`
+  + `taxas.json` (ADR-135); entidade `Decision` event-sourced substitui markdown
+  editorial (ADR-136); catalog+override resolver substitui
+  `categorization.json`/`institutions.json` legados (ADR-137); rules-as-code
+  dissolveu `docs/methodology/` (ADR-143). **Bridges removidos em A7.5 (commit
+  final):** `FileConfigStore`, `materialize_config()` + helpers `_override_*`,
+  `legacy_json_to_fiscal`. **`config/report_layout.yaml`** permanece como
+  source-of-truth do codegen `dev/codegen_report_layout.py` (ADR-076) + default
+  global do blob — débito A8. **Testes:** 1555+ pipeline + 1475+ backend
+  continuam verdes; tests legacy adaptados (`test_config_materializer`,
+  `test_serializers_round_trip`, `test_golden_pipeline`, `test_config_api/_fallback`,
+  `test_consumo_pontuais`, `test_e5/e5n_golden_execution`, `test_stage_wrappers`);
+  fixtures `parametros_fiscais.json` + `taxas.json` migradas para
+  `tests/fixtures/legacy_configs/`. **STATELESS_AUDIT.md atualizado**
+  (`FileConfigStore._cache` saiu da lista). **`dev/check_forbidden_paths.py`**
+  bloqueia 11 paths legados de `config/`. CTO sign-off em 4 gates por lane.
+
 
 - **Report Premium UI v2 — saída ✅ (Cenário B fechou as 6 sub-lanes finais 2026-04-27):**
   6 lanes em 2 ondas paralelas + recovery: v2.2b (Tático ✅, USA ⏸ produto),

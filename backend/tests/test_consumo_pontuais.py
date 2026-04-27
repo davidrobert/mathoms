@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
-from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -67,29 +65,22 @@ def _make_artifact(workspace_id: str, run_id: str, key: str, content: dict) -> P
     )
 
 
-def _seed_tenant_family_config(workspace_id: str) -> Path:
-    """Materialize family_members.json + categorization.json mínimos no tenant."""
-    from backend.app.core.config import settings
+async def _seed_transfer_config(db, workspace_id: str) -> None:
+    """Persist ``TransferConfig`` blob — pos-A7.5 substitui o fallback de disco (ADR-134)."""
+    from backend.app.models.config_blob import TransferConfig
 
-    tenant_config = Path(settings.STORAGE_ROOT) / workspace_id / "config"
-    tenant_config.mkdir(parents=True, exist_ok=True)
-    family = _family_config()
-    (tenant_config / "family_members.json").write_text(json.dumps(family), encoding="utf-8")
-    (tenant_config / "categorization.json").write_text(
-        json.dumps({"internal_transfer_patterns": []}), encoding="utf-8"
+    db.add(
+        TransferConfig(
+            workspace_id=workspace_id,
+            config_json={
+                "patterns_pix": [],
+                "patterns_global": [],
+                "patterns_bank_specific": {},
+                "recipients": ["DAVID ROBERT CAMARGO", "MARIANA TEIXEIRA FERREIRA"],
+            },
+        )
     )
-    return tenant_config
-
-
-def _family_config() -> dict:
-    return {
-        "transferencias_internas": {
-            "patterns_pix": [],
-            "patterns_global": [],
-            "patterns_bank_specific": {},
-            "recipients": ["DAVID ROBERT CAMARGO", "MARIANA TEIXEIRA FERREIRA"],
-        }
-    }
+    await db.commit()
 
 
 @pytest.mark.asyncio
@@ -102,7 +93,7 @@ async def test_consumo_pontuais_excludes_internal_transfers_to_family(auth_clien
         _despesa("RESTAURANTE FASANO", 5000.0),
     ]
     await _seed_e4_despesas(db, auth_client.ws_id, despesas)
-    _seed_tenant_family_config(auth_client.ws_id)
+    await _seed_transfer_config(db, auth_client.ws_id)
 
     resp = await auth_client.get(
         f"/api/workspaces/{auth_client.ws_id}/reports/consumo-pontuais?period=3m"
@@ -120,7 +111,7 @@ async def test_consumo_pontuais_filters_below_threshold(auth_client: AsyncClient
         _despesa("GRANDE COMPRA", 3500.0, categoria="alimentacao"),
     ]
     await _seed_e4_despesas(db, auth_client.ws_id, despesas)
-    _seed_tenant_family_config(auth_client.ws_id)
+    await _seed_transfer_config(db, auth_client.ws_id)
 
     resp = await auth_client.get(
         f"/api/workspaces/{auth_client.ws_id}/reports/consumo-pontuais?period=3m"

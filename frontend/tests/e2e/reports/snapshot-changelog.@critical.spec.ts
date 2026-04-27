@@ -21,13 +21,10 @@ import {
 const FIXTURES_DIR = join(__dirname, "..", "fixtures", "reports");
 
 test.describe("Report Premium · v2.8 comparisons + changelog @critical", () => {
-  // BLOQUEADO em v2.8: ErrorBoundary "Cannot read properties of undefined
-  // (reading 'length')" afeta TODOS os specs @critical de /reports/[id] em
-  // origin/main pós-v2.9 (verificado: a11y, kanban, print, receita-despesa,
-  // tab-order, este — 19 falhas idênticas com o mesmo erro). Provavelmente
-  // regressão no merge de v2.9 (LLM section_summaries). Spec mantido como
-  // baseline determinística para destravar quando o débito for resolvido.
-  test.skip("seção S1 mostra delta vs relatório anterior", async ({ page }) => {
+  // Unfrozen 2026-04-27: root cause em useConsumoPontuais.toState() +
+  // mock-report rota /reports/consumo-pontuais fixado em b47dd47 (Lane 4+2).
+  // ErrorBoundary parou de comer S1-S10 do DOM; spec @critical volta ao verde.
+  test("seção S1 mostra delta vs relatório anterior", async ({ page }) => {
     const baseFixture = JSON.parse(
       readFileSync(join(FIXTURES_DIR, "medium.json"), "utf-8"),
     ) as Record<string, unknown>;

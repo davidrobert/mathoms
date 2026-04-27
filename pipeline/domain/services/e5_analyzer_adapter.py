@@ -301,8 +301,8 @@ class E5AnalyzerAdapter:
         A7.2b: ``fiscal_parameters`` (typed) tem prioridade sobre ``fiscal``
         (dict legacy). ``cambio_usd_brl`` / ``cambio_eur_brl`` (Decimal)
         têm prioridade sobre ``taxas["cambio_usd_brl"]`` / ``taxas["cambio_eur_brl"]``.
-        Quando ambos None, usa fallback do JSON legado via ``FileConfigStore``
-        bridge.
+        Quando ambos None, usa default codificado (5.80/6.35) — pos-A7.5,
+        sem fallback de disco.
         """
         member_cfg = MemberResolverConfig.from_family(family)
         identity = cls._build_identity(family, member_cfg)

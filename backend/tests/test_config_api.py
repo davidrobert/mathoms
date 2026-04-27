@@ -12,13 +12,15 @@ from httpx import AsyncClient
 class TestMembersAPI:
     @pytest.mark.asyncio
     async def test_list_members_fallback(self, auth_client: AsyncClient):
-        """Empty DB → returns defaults from disk."""
+        """Pos-A7.5 (ADR-134): ``config/family_members.json`` não existe mais —
+        endpoint legacy retorna lista vazia para workspaces sem rows. Fallback
+        de disco morreu junto com o cutover; defaults agora vêm do DB seed."""
         resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/members")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["total"] > 0
-        keys = [m["key"] for m in data["members"]]
-        assert "david" in keys
+        # Sem rows no DB e sem fallback de disco: lista vazia.
+        assert data["total"] == 0
+        assert data["members"] == []
 
     @pytest.mark.asyncio
     async def test_create_member(self, auth_client: AsyncClient):
@@ -287,12 +289,15 @@ class TestAccountsAPI:
 class TestCategoriesAPI:
     @pytest.mark.asyncio
     async def test_list_categories_fallback(self, auth_client: AsyncClient):
+        """Pos-A7.5: endpoint legacy ``/categories`` perde fallback de disco
+        (``config/categorization.json`` deletado). Workspaces novos veem
+        lista vazia até customizar via ``/category-overrides/resolved``
+        (A7.3 — resolver lê ``category_template`` global do seed)."""
         resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/categories")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["total"] > 0
-        codes = [c["code"] for c in data["categories"]]
-        assert "moradia" in codes
+        assert data["total"] == 0
+        assert data["categories"] == []
 
     @pytest.mark.asyncio
     async def test_create_category(self, auth_client: AsyncClient):
@@ -434,11 +439,15 @@ class TestPipelineConfigAPI:
 class TestInstitutionConfigAPI:
     @pytest.mark.asyncio
     async def test_get_fallback(self, auth_client: AsyncClient):
+        """Pos-A7.5: ``config/institutions.json`` deletado — endpoint legacy
+        retorna ``config_json={}`` para workspaces sem rows. ``institution_catalog``
+        global (A7.3) cobre o caso novo via ``/category-overrides/resolved``."""
         resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/institutions")
         assert resp.status_code == 200
         data = resp.json()
         assert "config_json" in data
-        assert "banco_canonical" in data["config_json"]
+        # Sem fallback de disco e sem row: blob vazio.
+        assert data["config_json"] == {}
 
     @pytest.mark.asyncio
     async def test_put_and_get(self, auth_client: AsyncClient):

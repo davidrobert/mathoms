@@ -1,12 +1,11 @@
-"""Tests for Phase 3C: ConfigMaterializer — serializers and disk materialization."""
+"""Tests para ConfigMaterializer (post-A7.5) — serializers + prepare_pipeline_config_dir."""
 
 import json
 from pathlib import Path
 
 import pytest
-import yaml
 from sqlalchemy import create_engine
-from sqlalchemy.orm import selectinload, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 import backend.app.models  # noqa: F401
 from backend.app.core.database import Base
@@ -17,7 +16,7 @@ from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.services.config_materializer import (
-    materialize_config,
+    prepare_pipeline_config_dir,
     serialize_categorization,
     serialize_family_members,
     serialize_institution_config,
@@ -183,117 +182,106 @@ class TestSerializeBlobs:
 
 
 # =============================================================================
-# Materialization tests
+# prepare_pipeline_config_dir — boundary helper (post-A7.5)
 # =============================================================================
 
 
-class TestMaterializeConfig:
-    def test_copies_global_config(self, db, workspace, tmp_path):
-        """With empty DB, materialized config equals global config."""
+_SENTINEL_MEMBER_KEY = "ws_sentinel_member_xyz"
+_SENTINEL_CATEGORY_CODE = "ws_sentinel_category_xyz"
+
+
+def _seed_a7_1_sentinels(db, workspace_id: str) -> tuple[str, str]:
+    """FamilyMember + Category sentinela usados para verificar não-materialização."""
+    db.add(_make_sentinel_member(workspace_id))
+    db.add(_make_sentinel_category(workspace_id))
+    db.commit()
+    return _SENTINEL_MEMBER_KEY, _SENTINEL_CATEGORY_CODE
+
+
+def _make_sentinel_member(workspace_id: str) -> FamilyMember:
+    return FamilyMember(
+        workspace_id=workspace_id,
+        key=_SENTINEL_MEMBER_KEY,
+        full_name="X",
+        short_name="X",
+        role="titular",
+        order=0,
+    )
+
+
+def _make_sentinel_category(workspace_id: str) -> Category:
+    return Category(
+        workspace_id=workspace_id,
+        code=_SENTINEL_CATEGORY_CODE,
+        name="X",
+        category_type="expense",
+        order=1,
+    )
+
+
+def _seed_llm_config(db, workspace_id: str, *, provider: str, api_key: str) -> None:
+    """Insere ``LLMConfig`` (vault-encrypted api_key) — helper de tests."""
+    from backend.app.models.llm_config import LLMConfig as LLMConfigModel
+
+    db.add(
+        LLMConfigModel(
+            workspace_id=workspace_id,
+            provider=provider,
+            api_key_encrypted=_vault.encrypt(api_key),
+            model_name="gpt-4o",
+            max_tokens=4096,
+            temperature=0.1,
+        )
+    )
+    db.commit()
+
+
+class TestPreparePipelineConfigDir:
+    def test_copies_global_config_tree(self, db, workspace, tmp_path):
         tenant_root = tmp_path / "tenant"
         tenant_root.mkdir()
 
-        config_dir = materialize_config(workspace.id, tenant_root, db)
+        config_dir = prepare_pipeline_config_dir(workspace.id, tenant_root, db)
 
         assert config_dir == tenant_root / "config"
-        assert (config_dir / "family_members.json").exists()
-        assert (config_dir / "categorization.json").exists()
+        # pipeline.json sobreviveu ao A7.5 — marker novo de ensure_tenant_pipeline_config.
         assert (config_dir / "pipeline.json").exists()
-        assert (config_dir / "institutions.json").exists()
-        assert (config_dir / "report_layout.yaml").exists()
-        # definitions.md dissolvido em A7.6 (rules-as-code, ADR-143) — não está em config/ nem docs/methodology/.
 
-    def test_overrides_family_members(self, db, workspace, tmp_path):
-        db.add(
-            FamilyMember(
-                workspace_id=workspace.id,
-                key="custom",
-                full_name="Custom User",
-                short_name="Custom",
-                role="titular",
-                order=0,
-            )
-        )
-        db.commit()
-
-        tenant_root = tmp_path / "tenant"
+    def test_skips_a7_1_configs(self, db, workspace, tmp_path):
+        """A7.1+A7.5: helper não escreve categorization/family_members/institutions/report_layout sentinelas."""
+        sentinel_key, sentinel_cat = _seed_a7_1_sentinels(db, workspace.id)
+        tenant_root = tmp_path / "tenant_thin"
         tenant_root.mkdir()
-        config_dir = materialize_config(workspace.id, tenant_root, db)
+        config_dir = prepare_pipeline_config_dir(workspace.id, tenant_root, db)
 
-        with open(config_dir / "family_members.json", "r") as f:
-            data = json.load(f)
-        assert "custom" in data["membros"]
-        assert "david" not in data["membros"]
+        fm_path = config_dir / "family_members.json"
+        if fm_path.exists():
+            fm_disk = json.loads(fm_path.read_text(encoding="utf-8"))
+            assert sentinel_key not in (fm_disk.get("membros") or {})
 
-    def test_overrides_pipeline_json(self, db, workspace, tmp_path):
+        cat_path = config_dir / "categorization.json"
+        if cat_path.exists():
+            cat_disk = json.loads(cat_path.read_text(encoding="utf-8"))
+            assert sentinel_cat not in (cat_disk.get("expense_keywords") or {})
+
+    def test_writes_pipeline_json_override(self, db, workspace, tmp_path):
+        """``pipeline.json`` continua sendo materializado (fora do escopo A7.1)."""
         db.add(
             PipelineConfig(workspace_id=workspace.id, config_json={"custom_key": "custom_value"})
         )
         db.commit()
 
-        tenant_root = tmp_path / "tenant"
+        tenant_root = tmp_path / "tenant_pipeline"
         tenant_root.mkdir()
-        config_dir = materialize_config(workspace.id, tenant_root, db)
+        config_dir = prepare_pipeline_config_dir(workspace.id, tenant_root, db)
 
         with open(config_dir / "pipeline.json", "r") as f:
             data = json.load(f)
         assert data["custom_key"] == "custom_value"
 
-    def test_overrides_report_layout_yaml(self, db, workspace, tmp_path):
-        db.add(
-            ReportLayout(
-                workspace_id=workspace.id, config_json={"version": "custom", "sections": []}
-            )
-        )
-        db.commit()
-
-        tenant_root = tmp_path / "tenant"
-        tenant_root.mkdir()
-        config_dir = materialize_config(workspace.id, tenant_root, db)
-
-        with open(config_dir / "report_layout.yaml", "r") as f:
-            data = yaml.safe_load(f)
-        assert data["version"] == "custom"
-
-    def test_unedited_configs_remain_global(self, db, workspace, tmp_path):
-        """Configs not in DB stay as copies from global."""
-        db.add(PipelineConfig(workspace_id=workspace.id, config_json={"only_this": True}))
-        db.commit()
-
-        tenant_root = tmp_path / "tenant"
-        tenant_root.mkdir()
-        config_dir = materialize_config(workspace.id, tenant_root, db)
-
-        with open(config_dir / "family_members.json", "r") as f:
-            data = json.load(f)
-        assert "membros" in data
-        assert "david" in data["membros"]
-
-    def test_idempotent(self, db, workspace, tmp_path):
-        """Running materialize twice produces the same result."""
-        tenant_root = tmp_path / "tenant"
-        tenant_root.mkdir()
-
-        materialize_config(workspace.id, tenant_root, db)
-        materialize_config(workspace.id, tenant_root, db)
-
-        assert (tenant_root / "config" / "pipeline.json").exists()
-
-    def test_preserves_templates_and_schemas(self, db, workspace, tmp_path):
-        """Non-editable files (templates/, schemas/) are copied. (definitions.md dissolvido em A7.6 rules-as-code, ADR-143.)"""
-        tenant_root = tmp_path / "tenant"
-        tenant_root.mkdir()
-        config_dir = materialize_config(workspace.id, tenant_root, db)
-
-        global_config = Path(__file__).resolve().parent.parent.parent.parent / "config"
-        if (global_config / "templates").exists():
-            assert (config_dir / "templates").exists()
-        if (global_config / "schemas").exists():
-            assert (config_dir / "schemas").exists()
-
 
 # =============================================================================
-# Phase 4 — LLM Config serializer
+# Phase 4 — LLM Config serializer + override via prepare_pipeline_config_dir
 # =============================================================================
 
 
@@ -323,141 +311,44 @@ class TestSerializeLLMConfig:
         assert data["max_tokens"] == 8192
         assert data["temperature"] == 0.2
 
-    def test_materialize_writes_llm_config(self, db, workspace, tmp_path):
-        """materialize_config() writes llm_config.json to tenant config dir."""
-        from backend.app.models.llm_config import LLMConfig as LLMConfigModel
-
-        cfg = LLMConfigModel(
-            workspace_id=workspace.id,
-            provider="openai",
-            api_key_encrypted=_vault.encrypt("sk-openai-key"),
-            model_name="gpt-4o",
-            max_tokens=4096,
-            temperature=0.1,
-        )
-        db.add(cfg)
-        db.commit()
-
+    def test_prepare_writes_llm_config(self, db, workspace, tmp_path):
+        """``prepare_pipeline_config_dir`` escreve llm_config.json quando há row."""
+        _seed_llm_config(db, workspace.id, provider="openai", api_key="sk-openai-key")
         tenant_root = tmp_path / "tenant_llm"
         tenant_root.mkdir()
-        config_dir = materialize_config(workspace.id, tenant_root, db)
+        config_dir = prepare_pipeline_config_dir(workspace.id, tenant_root, db)
 
         llm_path = config_dir / "llm_config.json"
         assert llm_path.exists()
-
         with open(llm_path) as f:
             data = json.load(f)
         assert data["provider"] == "openai"
         assert data["api_key"] == "sk-openai-key"
         assert data["model_name"] == "gpt-4o"
 
-    def test_materialize_without_llm_config(self, db, workspace, tmp_path):
-        """materialize_config() does not write llm_config.json if no LLM config in DB."""
+    def test_prepare_without_llm_config_omits_file(self, db, workspace, tmp_path):
+        """``prepare_pipeline_config_dir`` não cria llm_config.json sem row no DB."""
         tenant_root = tmp_path / "tenant_no_llm"
         tenant_root.mkdir()
-        config_dir = materialize_config(workspace.id, tenant_root, db)
+        config_dir = prepare_pipeline_config_dir(workspace.id, tenant_root, db)
 
         llm_path = config_dir / "llm_config.json"
         assert not llm_path.exists()
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# A7.1 (ADR-134) — prepare_pipeline_config_dir + DeprecationWarning
-# ═══════════════════════════════════════════════════════════════════════
+# =============================================================================
+# Templates / schemas preservados
+# =============================================================================
 
 
-_SENTINEL_MEMBER_KEY = "ws_sentinel_member_xyz"
-_SENTINEL_CATEGORY_CODE = "ws_sentinel_category_xyz"
-
-
-def _seed_sentinel_member(db, workspace_id: str) -> None:
-    db.add(
-        FamilyMember(
-            workspace_id=workspace_id,
-            key=_SENTINEL_MEMBER_KEY,
-            full_name="X",
-            short_name="X",
-            role="titular",
-            order=0,
-        )
-    )
-
-
-def _seed_sentinel_category(db, workspace_id: str) -> None:
-    db.add(
-        Category(
-            workspace_id=workspace_id,
-            code=_SENTINEL_CATEGORY_CODE,
-            name="X",
-            category_type="expense",
-            order=1,
-        )
-    )
-
-
-def _seed_a7_1_sentinels(db, workspace_id: str) -> tuple[str, str]:
-    """Adiciona FamilyMember + Category sentinela para verificar não-materialização."""
-    _seed_sentinel_member(db, workspace_id)
-    _seed_sentinel_category(db, workspace_id)
-    db.commit()
-    return _SENTINEL_MEMBER_KEY, _SENTINEL_CATEGORY_CODE
-
-
-def test_materialize_config_emits_deprecation_warning(db, workspace, tmp_path):
-    """A7.1: ``materialize_config`` emite ``DeprecationWarning``."""
-    import warnings
-
-    from backend.app.services.config_materializer import materialize_config
-
-    tenant_root = tmp_path / "tenant_dep"
-    tenant_root.mkdir()
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always", DeprecationWarning)
-        materialize_config(workspace.id, tenant_root, db)
-    assert any(issubclass(w.category, DeprecationWarning) for w in caught)
-    assert any("materialize_config" in str(w.message) for w in caught)
-
-
-def test_materialize_config_emits_legacy_call_log(db, workspace, tmp_path):
-    """A7.1: ``materialize_config`` registra structured log ``legacy_call``."""
-    from unittest.mock import patch
-
-    import backend.app.services.config_materializer as cm
-
-    tenant_root = tmp_path / "tenant_dep_log"
-    tenant_root.mkdir()
-    with patch.object(cm._logger, "info") as info_spy:
-        cm.materialize_config(workspace.id, tenant_root, db)
-    assert any("legacy_call" in str(c.args[0]) for c in info_spy.call_args_list if c.args)
-
-
-def test_prepare_pipeline_config_dir_skips_a7_1_configs(db, workspace, tmp_path):
-    """A7.1: novo helper não materializa categorization/family_members/etc."""
-    from backend.app.services.config_materializer import prepare_pipeline_config_dir
-
-    sentinel_key, sentinel_cat = _seed_a7_1_sentinels(db, workspace.id)
-    tenant_root = tmp_path / "tenant_thin"
+def test_prepare_preserves_templates_and_schemas(db, workspace, tmp_path):
+    """Pastas estáticas (templates/, schemas/) continuam sendo copiadas em A7.5."""
+    tenant_root = tmp_path / "tenant_tpl"
     tenant_root.mkdir()
     config_dir = prepare_pipeline_config_dir(workspace.id, tenant_root, db)
 
-    fm_disk = json.loads((config_dir / "family_members.json").read_text(encoding="utf-8"))
-    assert sentinel_key not in (fm_disk.get("membros") or {})
-
-    cat_disk = json.loads((config_dir / "categorization.json").read_text(encoding="utf-8"))
-    assert sentinel_cat not in (cat_disk.get("expense_keywords") or {})
-
-
-def test_prepare_pipeline_config_dir_does_not_emit_legacy_call(db, workspace, tmp_path):
-    """A7.1: o novo helper NÃO emite ``mathoms.config.materialize.legacy_call``."""
-    from unittest.mock import patch
-
-    import backend.app.services.config_materializer as cm
-    from backend.app.services.config_materializer import prepare_pipeline_config_dir
-
-    tenant_root = tmp_path / "tenant_clean"
-    tenant_root.mkdir()
-    with patch.object(cm._logger, "info") as info_spy:
-        prepare_pipeline_config_dir(workspace.id, tenant_root, db)
-    assert all(
-        not (call.args and "legacy_call" in str(call.args[0])) for call in info_spy.call_args_list
-    )
+    global_config = Path(__file__).resolve().parent.parent.parent.parent / "config"
+    if (global_config / "templates").exists():
+        assert (config_dir / "templates").exists()
+    if (global_config / "schemas").exists():
+        assert (config_dir / "schemas").exists()

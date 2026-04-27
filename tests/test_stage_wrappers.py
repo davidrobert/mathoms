@@ -8,7 +8,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from pipeline.context import WorkspaceContext
-from scripts.pipeline_common import _REPO_ROOT
+
+
+def _seed_e4_minimal_config_files(tmp_path: Path) -> None:
+    """Cria configs mínimos para ``e4_categorize._init_config(tmp_path)`` carregar."""
+    cfg = tmp_path / "config"
+    cfg.mkdir()
+    (cfg / "categorization.json").write_text(
+        '{"expense_keywords":{},"income_keywords":{},'
+        '"internal_transfer_patterns":[],"pj_source_mapping":{},'
+        '"clt_source_mapping":{}}'
+    )
+    (cfg / "family_members.json").write_text("{}")
+    (cfg / "pipeline.json").write_text("{}")
 
 
 class TestStageImports:
@@ -113,28 +125,23 @@ class TestInitConfig:
 
         assert e3_reconcile._BASE_DIR == tmp_path
 
-        # Restaurar default para não afetar outros testes
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 — config/ legado não
+        # tem mais categorization.json/family_members.json para o teardown.
 
     def test_e4_init_config_custom_root(self, tmp_path):
-        config_dir = tmp_path / "config"
-        config_dir.mkdir()
-        (config_dir / "categorization.json").write_text(
-            '{"expense_keywords":{},"income_keywords":{},'
-            '"internal_transfer_patterns":[],"pj_source_mapping":{},'
-            '"clt_source_mapping":{}}'
-        )
-        (config_dir / "family_members.json").write_text("{}")
-        (config_dir / "pipeline.json").write_text("{}")
+        _seed_e4_minimal_config_files(tmp_path)
 
-        from scripts.e4_categorize import _BASE_DIR, _init_config
+        # A7.5: e4_categorize._init_config delega ao cache de pipeline_common
+        # (CONFIG_DIR global) — reset _pc para tmp_path antes.
+        import scripts.pipeline_common as _pc
+
+        _pc._init_config(tmp_path)
+        from scripts.e4_categorize import _init_config
 
         _init_config(tmp_path)
         from scripts import e4_categorize
 
         assert e4_categorize._BASE_DIR == tmp_path
-
-        _init_config(_REPO_ROOT)
 
     def test_e2_common_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -152,7 +159,7 @@ class TestInitConfig:
         assert e2c.BASE_DIR == tmp_path
         assert e2c.DATA_DIR == tmp_path / "data" / "financial_statements"
 
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
     def test_e7_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -167,7 +174,7 @@ class TestInitConfig:
 
         assert e7_review.PROJECT_DIR == tmp_path
 
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
     def test_e5_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -186,7 +193,7 @@ class TestInitConfig:
         assert e5_analyze.PROJECT_DIR == tmp_path
         assert e5_analyze.E5_ANALYSIS_DIR == tmp_path / "processed" / "E5_analysis"
 
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
     def test_e5n_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -205,7 +212,7 @@ class TestInitConfig:
             == tmp_path / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
         )
 
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
     def test_e0_audit_init_config_custom_root(self, tmp_path):
         from scripts.e0_audit import _init_config
@@ -216,7 +223,7 @@ class TestInitConfig:
         assert e0_audit.PROJECT_DIR == tmp_path
         assert e0_audit.DATA_DIR == tmp_path / "data"
 
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
     def test_e0_route_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -233,7 +240,7 @@ class TestInitConfig:
         assert e0_route.BASE == tmp_path
         assert e0_route.INBOX == tmp_path / "inbox"
 
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
     def test_e0_unlock_init_config_custom_root(self, tmp_path):
         from scripts.e0_unlock import _init_config
@@ -244,7 +251,7 @@ class TestInitConfig:
         assert e0_unlock.BASE == tmp_path
         assert e0_unlock.INBOX == tmp_path / "inbox"
 
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
     def test_e15c_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"
@@ -260,7 +267,7 @@ class TestInitConfig:
         assert e15_consolidate.PROJECT_DIR == tmp_path
         assert e15_consolidate.E2_DIR == tmp_path / "processed" / "E2_extracts"
 
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
     def test_pipeline_common_init_config_custom_root(self, tmp_path):
         from scripts.pipeline_common import _init_config
@@ -272,17 +279,21 @@ class TestInitConfig:
         assert pc.CONFIG_DIR == tmp_path / "config"
         assert pc.E5_DIR == tmp_path / "processed" / "E5_analysis"
 
-        _init_config(_REPO_ROOT)
+        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
 
 class TestContextIntegration:
     """Verifica que WorkspaceContext.default() aponta para o projeto real."""
 
     def test_default_has_config_files(self):
+        """A7.5 (ADR-134): configs cliente migraram para DB; ``config/`` global
+        retém apenas assets de produto (pipeline, scoring, schemas, prompts,
+        templates, report_layout, etc.). ``family_members``/``categorization``
+        passam a vir via ``ConfigStore`` no boundary do worker."""
         ctx = WorkspaceContext.default()
         assert (ctx.config_dir / "pipeline.json").exists()
-        assert (ctx.config_dir / "family_members.json").exists()
-        assert (ctx.config_dir / "categorization.json").exists()
+        assert (ctx.config_dir / "scoring.json").exists()
+        assert (ctx.config_dir / "report_layout.yaml").exists()
 
     def test_default_has_processed_dirs(self):
         ctx = WorkspaceContext.default()

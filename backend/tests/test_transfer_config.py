@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
@@ -136,36 +135,8 @@ async def test_consumo_pontuais_uses_db_recipient(auth_client: AsyncClient, db, 
     assert not any("FULANO CUSTOM" in d for d in descricoes)
 
 
-def _seed_family_file(config_dir: Path) -> None:
-    family_doc = {
-        "membros": {"david": {"nome_completo": "David"}},
-        "banco_membro": {"itau": "david"},
-        "transferencias_internas": {"recipients": ["OLD"]},
-    }
-    (config_dir / "family_members.json").write_text(json.dumps(family_doc), encoding="utf-8")
-
-
-def _patch_serializer(new_block: dict, monkeypatch_):
-    from backend.app.services import config_materializer
-
-    monkeypatch_.setattr(
-        config_materializer, "serialize_transfer_config", lambda _ws, _db: new_block
-    )
-
-
-def test_materializer_override_preserves_other_family_fields(tmp_path, monkeypatch):
-    """Overlay aplica ``transferencias_internas`` sem perder ``membros`` etc."""
-    from backend.app.services import config_materializer
-
-    config_dir = tmp_path / "config"
-    config_dir.mkdir()
-    _seed_family_file(config_dir)
-    new_block = {"recipients": ["NEW"], "patterns_pix": ["PIX X"]}
-    _patch_serializer(new_block, monkeypatch)
-
-    config_materializer._override_transfer_config("ws-id", config_dir, db=None)  # type: ignore[arg-type]
-
-    result = json.loads((config_dir / "family_members.json").read_text(encoding="utf-8"))
-    assert result["membros"] == {"david": {"nome_completo": "David"}}
-    assert result["banco_membro"] == {"itau": "david"}
-    assert result["transferencias_internas"] == new_block
+# A7.5 (ADR-134): ``_override_transfer_config`` foi removido — bloco
+# ``transferencias_internas`` flui via ``WorkspaceContext.config_overrides``
+# (build_config_overrides_from_db._family_members_override funde DB +
+# transferencias_internas em memória, sem materializar em disco).
+# Test de overlay-em-disco descontinuado nesta sprint.

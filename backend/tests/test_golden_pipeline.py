@@ -1,11 +1,12 @@
-"""Golden file pipeline com PDFs sintéticos — F6.5E.2.
+"""Golden file pipeline com PDFs sintéticos — F6.5E.2 (post-A7.5).
 
-# Escopo desta suíte (entregue agora)
+# Escopo desta suíte
 
 Cobre o **caminho crítico** que motivou a sub-fase 6.5E:
 1. Workspace fixture completa (User + Workspace + FamilyMember + family_surname)
-2. `materialize_config` produz `family_members.json` no tenant_root corretamente
-3. PDFs sintéticos do gerador (6.5F.12) são abertos por `pdfplumber` (parseáveis)
+2. Serializers (``serialize_family_members`` / ``serialize_categorization``)
+   produzem o shape correto consumido por E5/E6
+3. PDFs sintéticos do gerador (6.5F.12) são abertos por ``pdfplumber`` (parseáveis)
 
 # Escopo deferido (full pipeline E2E)
 
@@ -52,7 +53,10 @@ from backend.app.models import (
     User,
     Workspace,
 )
-from backend.app.services.config_materializer import materialize_config
+from backend.app.services.config_materializer import (
+    serialize_categorization,
+    serialize_family_members,
+)
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _PDF_GEN_PATH = _PROJECT_ROOT / "tests" / "fixtures" / "pdf_generator.py"
@@ -165,30 +169,36 @@ def golden_workspace(db) -> Workspace:
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Caminho crítico 1 — materialize gera family_members.json correto
+# Caminho crítico 1 — serializers produzem family_members.json correto
 # ─────────────────────────────────────────────────────────────────────
 
 
-class TestMaterializedConfigEndToEnd:
-    """6.5E.2 cobertura mínima: workspace DB → materialize → assert no disco."""
+class TestSerializersEndToEnd:
+    """6.5E.2 cobertura mínima: workspace DB → serializer → assert shape (post-A7.5)."""
 
-    def test_family_members_json_has_familia_sobrenome(self, db, golden_workspace, tmp_path):
-        config_dir = materialize_config(golden_workspace.id, tmp_path, db)
-        family_json = config_dir / "family_members.json"
-        assert family_json.exists()
+    def test_family_members_serialization_has_familia_sobrenome(
+        self, db, golden_workspace, tmp_path
+    ):
+        data = serialize_family_members(golden_workspace.id, db)
+        assert data is not None
+        # Persiste para inspeção (paridade com fluxo legacy)
+        family_json = tmp_path / "family_members.json"
+        family_json.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
-        data = json.loads(family_json.read_text(encoding="utf-8"))
         # ★ BUG-015 end-to-end: chave familia.sobrenome propaga até o JSON consumido por E6
         assert data["familia"]["sobrenome"] == "Silva Souza"
         assert "founder" in data["membros"]
         assert data["banco_membro"]["c6bank"] == "founder"
         assert data["titular"] == "founder"
 
-    def test_categorization_json_separa_expense_income(self, db, golden_workspace, tmp_path):
-        config_dir = materialize_config(golden_workspace.id, tmp_path, db)
-        cat_json = config_dir / "categorization.json"
-        assert cat_json.exists()
-        data = json.loads(cat_json.read_text(encoding="utf-8"))
+    def test_categorization_serialization_separa_expense_income(
+        self, db, golden_workspace, tmp_path
+    ):
+        data = serialize_categorization(golden_workspace.id, db)
+        assert data is not None
+        cat_json = tmp_path / "categorization.json"
+        cat_json.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
         assert "mercado" in data["expense_keywords"]["alimentacao"]
         assert "folha" in data["income_keywords"]["salario"]
         # Cross-contaminação não-permitida
