@@ -1,0 +1,211 @@
+# Nightly CI — checks que não bloqueiam merge mas precisam rodar regularmente.
+#
+# Tirado de `ci.yml` para reduzir custo de Actions em PR-time. Roda diário às
+# 06:00 UTC (03:00 BRT) e on-demand via workflow_dispatch ou labels.
+#
+# Jobs aqui:
+# - frontend-lighthouse: perf/a11y/best-practices/SEO contra build production.
+#   Métrica de qualidade, não correctness — regressão detectada em até 24h é OK.
+#   Opt-in PR via label `lighthouse`.
+# - frontend-e2e-cross-browser: Playwright em Firefox + WebKit (Chromium roda
+#   no PR via ci.yml). Regressões cross-browser são raras; cobertura diária
+#   pega antes de release.
+#   Opt-in PR via label `cross-browser`.
+
+name: Nightly
+
+on:
+  schedule:
+    # 06:00 UTC = 03:00 BRT. Fora do horário de trabalho; cache do GH ainda
+    # quente do último PR.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [labeled, synchronize]
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-lighthouse:
+    name: Frontend Lighthouse (relatório nativo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # PR opt-in via label `lighthouse`; schedule e dispatch sempre rodam.
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'lighthouse')
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Chrome (lhci usa chrome-launcher)
+        # ubuntu-24.04 (novo default de ubuntu-latest) não traz mais Chrome
+        # pré-instalado. @lhci/cli 0.14 → chrome-launcher só probes caminhos
+        # canônicos (/usr/bin/google-chrome, /opt/google/chrome/chrome).
+        # `browser-actions/setup-chrome` instala em /opt/hostedtoolcache, fora
+        # desses paths — exporta `chrome-path` que injetamos como CHROME_PATH
+        # no step LHCI (env honrada por chrome-launcher).
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+          install-chromedriver: false
+
+      - name: Build Next (production preset)
+        env:
+          NODE_ENV: production
+        run: npm run build
+
+      - name: Start Next
+        run: |
+          npm run start -- -p 3000 > /tmp/next.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000 > /dev/null; then echo "next up"; break; fi
+            sleep 2
+          done
+          curl -sf http://127.0.0.1:3000 > /dev/null || (tail -50 /tmp/next.log && exit 1)
+
+      - name: Run Lighthouse CI
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: npm run lhci
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: frontend/.lighthouseci/
+          retention-days: 7
+
+  frontend-e2e-cross-browser:
+    name: Frontend E2E cross-browser (Firefox + WebKit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Schedule + dispatch sempre rodam. PR opt-in via label `cross-browser`.
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'cross-browser')
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fin_test
+          POSTGRES_PASSWORD: fin_test
+          POSTGRES_DB: fin_test
+        ports:
+          - 5433:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend deps
+        run: |
+          pip install -r requirements.txt -r backend/requirements.txt
+          pip install asyncpg reportlab
+
+      - name: Run alembic migrations
+        env:
+          MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
+        run: |
+          cd backend && alembic upgrade head
+
+      - name: Start backend (uvicorn + celery worker)
+        env:
+          MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
+          MATHOMS_REDIS_URL: redis://localhost:6380/0
+          MATHOMS_LLM_MOCK: "1"
+        run: |
+          uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 \
+            > /tmp/uvicorn.log 2>&1 &
+          celery -A backend.app.worker worker --loglevel=INFO --concurrency=2 \
+            > /tmp/celery.log 2>&1 &
+          sleep 5
+          curl -sf http://127.0.0.1:8000/health \
+            || (echo "backend não subiu" && tail -50 /tmp/uvicorn.log && exit 1)
+
+      - name: Install frontend deps
+        run: cd frontend && npm ci
+
+      - name: Cache Playwright Firefox + WebKit
+        # Cache key dedicado (3 browsers reduzido para 2 em nightly: Chromium
+        # já é exercitado pelo ci.yml E2E gate; aqui só Firefox + WebKit).
+        id: pw-cache-cb
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-firefox-webkit-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Playwright browsers (cache miss)
+        if: steps.pw-cache-cb.outputs.cache-hit != 'true'
+        working-directory: frontend
+        run: npx playwright install --with-deps firefox webkit
+
+      - name: Install Playwright OS deps (cache hit)
+        if: steps.pw-cache-cb.outputs.cache-hit == 'true'
+        working-directory: frontend
+        run: npx playwright install-deps firefox webkit
+
+      - name: Run Playwright E2E (Firefox + WebKit)
+        env:
+          PW_CROSS_BROWSER: "1"
+          MATHOMS_LLM_MOCK: "1"
+        run: |
+          cd frontend
+          npm run test:e2e -- --project=firefox --project=webkit
+
+      - name: Upload backend + celery logs (failure only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-browser-backend-logs
+          path: |
+            /tmp/uvicorn.log
+            /tmp/celery.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload Playwright report (failure only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-browser-playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/playwright-results/
+          retention-days: 7
