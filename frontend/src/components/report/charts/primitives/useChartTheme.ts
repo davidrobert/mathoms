@@ -11,6 +11,11 @@ import { useEffect, useMemo, useState } from "react";
  * Fora do browser (SSR) retorna valores light como fallback — os charts
  * são `ssr: false` então esse caminho quase nunca executa.
  */
+export interface ChartSemanticPalette {
+  readonly gain: string;
+  readonly loss: string;
+}
+
 export interface ChartPalette {
   readonly text: string;
   readonly textMuted: string;
@@ -23,6 +28,7 @@ export interface ChartPalette {
   readonly warning: string;
   readonly info: string;
   readonly categorical: readonly string[];
+  readonly semantic: ChartSemanticPalette;
 }
 
 const LIGHT_FALLBACK: ChartPalette = {
@@ -41,6 +47,10 @@ const LIGHT_FALLBACK: ChartPalette = {
     "#6D28D9", "#0891B2", "#CA8A04", "#BE185D",
     "#166534", "#9F1239", "#0369A1", "#A16207",
   ],
+  semantic: {
+    gain: "#15803D",
+    loss: "#B91C1C",
+  },
 };
 
 function readVar(root: HTMLElement, name: string, fallback: string): string {
@@ -68,6 +78,10 @@ function resolvePalette(): ChartPalette {
     warning: readVar(root, "--brand-warning", LIGHT_FALLBACK.warning),
     info: readVar(root, "--brand-info", LIGHT_FALLBACK.info),
     categorical,
+    semantic: {
+      gain: readVar(root, "--semantic-gain", LIGHT_FALLBACK.semantic.gain),
+      loss: readVar(root, "--semantic-loss", LIGHT_FALLBACK.semantic.loss),
+    },
   };
 }
 

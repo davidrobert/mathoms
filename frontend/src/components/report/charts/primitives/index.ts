@@ -32,7 +32,7 @@ export { ChartNav } from "./ChartNav";
 export type { ChartNavProps } from "./ChartNav";
 
 export { useChartTheme } from "./useChartTheme";
-export type { ChartPalette } from "./useChartTheme";
+export type { ChartPalette, ChartSemanticPalette } from "./useChartTheme";
 
 export { ensureChartRegistered } from "./ChartRegistry";
 
