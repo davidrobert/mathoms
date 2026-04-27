@@ -1,0 +1,91 @@
+# Nightly CI — checks que não bloqueiam merge mas precisam rodar regularmente.
+#
+# Tirado de `ci.yml` para reduzir custo de Actions em PR-time. Roda diário às
+# 06:00 UTC (03:00 BRT) e on-demand via workflow_dispatch ou label `lighthouse`.
+#
+# Jobs aqui:
+# - frontend-lighthouse: perf/a11y/best-practices/SEO contra build production.
+#   Métrica de qualidade, não correctness — regressão detectada em até 24h é OK.
+
+name: Nightly
+
+on:
+  schedule:
+    # 06:00 UTC = 03:00 BRT. Fora do horário de trabalho; cache do GH ainda
+    # quente do último PR.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [labeled, synchronize]
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-lighthouse:
+    name: Frontend Lighthouse (relatório nativo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # PR opt-in via label `lighthouse`; schedule e dispatch sempre rodam.
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'lighthouse')
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Chrome (lhci usa chrome-launcher)
+        # ubuntu-24.04 (novo default de ubuntu-latest) não traz mais Chrome
+        # pré-instalado. @lhci/cli 0.14 → chrome-launcher só probes caminhos
+        # canônicos (/usr/bin/google-chrome, /opt/google/chrome/chrome).
+        # `browser-actions/setup-chrome` instala em /opt/hostedtoolcache, fora
+        # desses paths — exporta `chrome-path` que injetamos como CHROME_PATH
+        # no step LHCI (env honrada por chrome-launcher).
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+          install-chromedriver: false
+
+      - name: Build Next (production preset)
+        env:
+          NODE_ENV: production
+        run: npm run build
+
+      - name: Start Next
+        run: |
+          npm run start -- -p 3000 > /tmp/next.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000 > /dev/null; then echo "next up"; break; fi
+            sleep 2
+          done
+          curl -sf http://127.0.0.1:3000 > /dev/null || (tail -50 /tmp/next.log && exit 1)
+
+      - name: Run Lighthouse CI
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: npm run lhci
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: frontend/.lighthouseci/
+          retention-days: 7
