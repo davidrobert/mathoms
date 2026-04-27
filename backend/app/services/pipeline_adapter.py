@@ -404,15 +404,17 @@ def build_tarefas_md_sync(
     return "\n".join(lines) + "\n"
 
 
-def build_config_store(*, db: SyncSession, use_db_artifacts: bool):
-    """Boundary helper (A7.1 · ADR-134): ``DBConfigStore`` quando flag on, ``FileConfigStore`` legacy senão."""
-    if use_db_artifacts:
-        from backend.app.services.db_config_store import DBConfigStore
+def build_config_store(*, db: SyncSession):
+    """Boundary helper (ADR-134, post-A7.5): always returns ``DBConfigStore``.
 
-        return DBConfigStore(db)
-    from pipeline.adapters.file_config_store import FileConfigStore
+    O fallback legacy ``FileConfigStore`` foi removido em Sprint A7.5 — produto
+    é DB-first. Workspaces com ``use_db_artifacts_override=False`` continuam
+    usando ``DiskArtifactStore`` para artefatos, mas leitura de config segue
+    sempre via DB.
+    """
+    from backend.app.services.db_config_store import DBConfigStore
 
-    return FileConfigStore()
+    return DBConfigStore(db)
 
 
 # A7.1 — keys que cobrimos pela via DB-first; out-of-scope (goals/scoring/

@@ -370,13 +370,14 @@ def _setup_run_context(
     incremental: bool,
     incremental_doc_paths: list[str] | None,
 ):
-    """Cria WorkspaceContext + injeta ``ConfigStore`` (A7.1 · ADR-134).
+    """Cria WorkspaceContext + injeta ``DBConfigStore`` (ADR-134, post-A7.5).
 
     Também seta ``MATHOMS_WORKSPACE_ROOT`` para scripts E0–E7 lazy-imported.
     Retorna ``(ctx, use_db_artifacts, config_store_session)`` — a sessão
     long-lived que respaldou o ``DBConfigStore`` é devolvida ao caller
-    para fechamento ao fim do run; ``None`` quando ``use_db_artifacts``
-    está desligado (FileConfigStore não usa sessão).
+    para fechamento ao fim do run. Após Sprint A7.5 o produto é DB-first
+    para config; o flag ``use_db_artifacts`` continua governando apenas
+    o artifact store (E0/E1/E2 outputs).
     """
     import os
 
@@ -390,16 +391,9 @@ def _setup_run_context(
     if use_db_artifacts:
         logger.info("pipeline_start using DBArtifactStore for run_id=%s ws_id=%s", run_id, ws_id)
 
-    config_store_session = SyncSessionLocal() if use_db_artifacts else None
-    config_store = build_config_store(
-        db=config_store_session,  # type: ignore[arg-type]
-        use_db_artifacts=use_db_artifacts,
-    )
-    overrides = (
-        build_config_overrides_from_db(ws_id, db=config_store_session)
-        if config_store_session is not None
-        else None
-    )
+    config_store_session = SyncSessionLocal()
+    config_store = build_config_store(db=config_store_session)
+    overrides = build_config_overrides_from_db(ws_id, db=config_store_session)
 
     ctx = WorkspaceContext.for_tenant(
         tenant_root,
