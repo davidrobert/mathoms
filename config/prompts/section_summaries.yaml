@@ -1,0 +1,216 @@
+# ==============================================================================
+# Section summaries — prompts LLM (ADR-144 · v2.9 · Fase 2)
+# ==============================================================================
+# Para cada section_id do `report_layout.yaml`, define system + user prompt
+# template para o `SectionSummaryGenerator` (LiteLLM + Instructor).
+#
+# **NOTA** (v2.9.1 pendente): copy editorial é genérico/placeholder. Antes
+# de habilitar LLM em prod, product-designer revisa tom, voz e exemplos
+# few-shot por seção. Schema de saída fixo (`SectionSummaryOutput`) — não
+# editar shape sem nova ADR.
+#
+# Convenções:
+#   - Português brasileiro, registro consultivo, máx. 2 frases.
+#   - LLM NUNCA formata BRL inline (ADR-090) — referencia métrica via
+#     `key_metric_ref` que o renderer resolve com <MonetaryValue/>.
+#   - User prompt tem placeholder `{section_data_json}` com o snapshot
+#     filtrado para a seção (gerador injeta JSON serializado, sem PII).
+#   - System prompt é compartilhado por todas as seções; o tom específico
+#     muda no user_prompt.
+# ==============================================================================
+
+version: "1.0"
+
+# Prompt-base injetado em todas as seções. Pequeno, instrutivo, sem few-shot
+# (few-shot vai por seção em `examples` se necessário).
+system_prompt: |
+  Você é editor de relatórios financeiros pessoais — registro consultivo,
+  português brasileiro, neutro, factual.
+
+  Para cada seção do relatório, escreva um summary em prosa (1-2 frases)
+  que contextualiza a leitura principal da seção sem repetir números do
+  cabeçalho. Use o `tone` para sinalizar atenção ("warning") quando os
+  dados indicam risco ou desvio relevante; "positive" quando indicam
+  melhora consistente; "neutral" caso contrário.
+
+  Regras:
+  - Não formate valores monetários inline (sem "R$ 1.234"). Se precisar
+    referenciar a métrica principal, use `key_metric_ref` com o id da
+    métrica (dot-notation, ex.: `patrimonio.liquido`).
+  - Não invente números nem categorias que não estão no payload.
+  - Se o payload está incompleto, retorne summary mais genérico — não
+    levante erro.
+
+# Sections — um entry por section_id do `report_layout.yaml`. Adicionar
+# section_id novo aqui é a única mudança necessária para LLM cobri-lo
+# (gerador faz lookup pelo id; missing → fallback determinístico).
+sections:
+
+  S1:
+    label: "Patrimônio consolidado"
+    user_prompt: |
+      Seção S1 — Patrimônio consolidado.
+
+      Dados da seção (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Escreva o summary cobrindo a estrutura patrimonial e o destaque de
+      composição. `key_metric_ref` esperado: `patrimonio.liquido`.
+
+  S2:
+    label: "Fluxo de caixa e diagnóstico comportamental"
+    user_prompt: |
+      Seção S2 — Fluxo de caixa.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma a relação receita/despesa do período. `key_metric_ref`
+      esperado: `fluxo_caixa.fluxo_liquido_mensal`.
+
+  S3:
+    label: "Carteira de investimentos"
+    user_prompt: |
+      Seção S3 — Investimentos.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma a alocação atual e a coerência com o perfil. `key_metric_ref`
+      esperado: `investimentos.total`.
+
+  S4:
+    label: "Imóveis e renda passiva"
+    user_prompt: |
+      Seção S4 — Imóveis.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma a posição em imóveis e o rendimento gerado. `key_metric_ref`
+      esperado: `imoveis.yield_bruto_pct`.
+
+  S7:
+    label: "Independência financeira"
+    user_prompt: |
+      Seção S7 — Independência financeira.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma a distância até a meta e o ritmo atual de aporte.
+      `key_metric_ref` esperado: `independencia.gap`.
+
+  S8:
+    label: "Estrutura tributária e previdenciária"
+    user_prompt: |
+      Seção S8 — Tributação e previdência.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma a eficiência fiscal e ações pendentes. `key_metric_ref`
+      esperado: `tributacao.aliquota_efetiva_pct`.
+
+  S9:
+    label: "Riscos e seguros"
+    user_prompt: |
+      Seção S9 — Riscos.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma os riscos prioritários e cobertura atual. `key_metric_ref`
+      esperado: `riscos.criticos_count`.
+
+  S10:
+    label: "Síntese e próximos passos"
+    user_prompt: |
+      Seção S10 — Síntese.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma os pontos fortes e urgências do ciclo. `key_metric_ref`
+      esperado: `score.valor`.
+
+  T2:
+    label: "Aportes e variação patrimonial"
+    user_prompt: |
+      Seção Tática T2 — Aportes.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma a cobertura da meta de aportes do ciclo. `key_metric_ref`
+      esperado: `aportes.cobertura_pct`.
+
+  T3:
+    label: "Tributação tática"
+    user_prompt: |
+      Seção Tática T3.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma o status fiscal do ciclo. `key_metric_ref` esperado:
+      `tributacao.status`.
+
+  T5:
+    label: "Cenários e simulações"
+    user_prompt: |
+      Seção Tática T5.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma os cenários considerados. `key_metric_ref` esperado:
+      `cenarios.principal`.
+
+  U1:
+    label: "Estrutura F1/F2 (USA)"
+    user_prompt: |
+      Seção USA U1 — F1/F2.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma a estrutura visto + custos. `key_metric_ref` esperado:
+      `usa.custo_fase_f1f2`.
+
+  U2:
+    label: "Green Card EB2-NIW"
+    user_prompt: |
+      Seção USA U2 — Green Card.
+
+      Dados (JSON):
+      ```json
+      {section_data_json}
+      ```
+
+      Resuma o status compliance. `key_metric_ref` esperado:
+      `usa.compliance_status`.
