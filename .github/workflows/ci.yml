@@ -232,19 +232,23 @@ jobs:
         # Mesmo cache key que pipeline-tests — mesma combinação de
         # requirements.txt + backend/requirements.txt. Ambos jobs compartilham
         # cache; quem executar primeiro popula, o segundo só restaura.
+        # restore-keys: fallback partial-match para reuso quando hash muda.
         id: venv-cache
         uses: actions/cache@v4
         with:
           path: .venv
           key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v2
+          restore-keys: |
+            venv-${{ runner.os }}-py313-
 
       - name: Install dependencies (cache miss)
         if: steps.venv-cache.outputs.cache-hit != 'true'
         run: |
-          python -m venv .venv
+          [ -d .venv ] || python -m venv .venv
           .venv/bin/pip install --upgrade pip
           .venv/bin/pip install -r requirements.txt -r backend/requirements.txt
-          .venv/bin/pip install reportlab pytest pytest-asyncio pytest-cov fakeredis
+          # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
+          .venv/bin/pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
