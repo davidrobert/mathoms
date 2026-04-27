@@ -459,6 +459,5 @@ def test_prepare_pipeline_config_dir_does_not_emit_legacy_call(db, workspace, tm
     with patch.object(cm._logger, "info") as info_spy:
         prepare_pipeline_config_dir(workspace.id, tenant_root, db)
     assert all(
-        not (call.args and "legacy_call" in str(call.args[0]))
-        for call in info_spy.call_args_list
+        not (call.args and "legacy_call" in str(call.args[0])) for call in info_spy.call_args_list
     )

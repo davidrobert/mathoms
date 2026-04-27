@@ -9,7 +9,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.context import WorkspaceContext  # noqa: E402
 
-
 _OVERRIDE_FAMILY = {
     "titular": "david",
     "membros": {
@@ -66,9 +65,7 @@ def test_e5_init_config_falls_back_to_disk_when_no_ctx(tmp_path: Path) -> None:
     cfg = tmp_path / "config"
     cfg.mkdir()
     (cfg / "family_members.json").write_text(json.dumps(_OVERRIDE_FAMILY), encoding="utf-8")
-    (cfg / "categorization.json").write_text(
-        json.dumps(_OVERRIDE_CATEGORIZATION), encoding="utf-8"
-    )
+    (cfg / "categorization.json").write_text(json.dumps(_OVERRIDE_CATEGORIZATION), encoding="utf-8")
     e5._init_config(tmp_path, ctx=None)
     assert e5._TITULAR_KEY == "david"
 

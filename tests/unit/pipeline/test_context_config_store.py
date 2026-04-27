@@ -20,9 +20,7 @@ class TestConfigStoreInjection:
 
     def test_for_tenant_accepts_config_store(self, tmp_path: Path):
         store = InMemoryConfigStore()
-        ctx = WorkspaceContext.for_tenant(
-            tmp_path, workspace_id="ws-001", config_store=store
-        )
+        ctx = WorkspaceContext.for_tenant(tmp_path, workspace_id="ws-001", config_store=store)
         assert ctx.config_store is store
         assert ctx.workspace_id == "ws-001"
 
