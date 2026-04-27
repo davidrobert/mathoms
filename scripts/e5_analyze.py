@@ -44,8 +44,15 @@ def _load_dob(fm: dict, member_key: str) -> date:
     return None
 
 
-def _init_config(base_dir: Path) -> None:
-    """(Re-)inicializa todos os globals de path e config a partir de base_dir."""
+def _read_e5_config_blob(name: str, disk_path: Path, ctx) -> dict:
+    """Read config via ``ctx.load_config`` (DB-first via overrides, A7.1) or disk fallback."""
+    if ctx is not None:
+        return ctx.load_config(name)
+    return _load_json_config(disk_path)
+
+
+def _init_config(base_dir: Path, *, ctx=None) -> None:
+    """(Re-)inicializa paths/config globals a partir de base_dir; ``ctx`` lido em A7.1 via ``ctx.load_config`` (ADR-134)."""
     global SCRIPTS_DIR, PROJECT_DIR
     global PROCESSED_DIR, E4_UNIFIED_DIR, E2_EXTRACTS_DIR, E3_RECONCILED_DIR, E5_ANALYSIS_DIR
     global LIFE_PLAN_GOALS, CONFIG_DEFINITIONS, CONFIG_TAREFAS
@@ -88,7 +95,7 @@ def _init_config(base_dir: Path) -> None:
     FILE_OUTPUT = E5_ANALYSIS_DIR / "analise_financeira-5_analysis.json"
 
     # Family config + DOBs
-    fm = _load_json_config(CONFIG_FAMILY)
+    fm = _read_e5_config_blob("family_members.json", CONFIG_FAMILY, ctx)
     titular_key = fm.get("titular", "david")
     _TITULAR_DOB = _load_dob(fm, titular_key)
     if not _TITULAR_DOB:
@@ -104,7 +111,7 @@ def _init_config(base_dir: Path) -> None:
 
     # One-time income config
     cat_path = PROJECT_DIR / "config" / "categorization.json"
-    cat = _load_json_config(cat_path)
+    cat = _read_e5_config_blob("categorization.json", cat_path, ctx)
     kw = cat.get("one_time_income_keywords", None)
     cats = cat.get("one_time_income_categories", None)
     if kw is not None and cats is not None:
@@ -2804,7 +2811,7 @@ def _e5_init_workspace(ctx):
     """Reinicializa globals do módulo + pipeline_common e cria E5_ANALYSIS_DIR."""
     if _pc is not None:
         _pc._init_config(ctx.root)
-    _init_config(ctx.root)
+    _init_config(ctx.root, ctx=ctx)
     E5_ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
     store = ctx.get_artifact_store()
     print(f"[E5.0] Workspace root: {ctx.root}")

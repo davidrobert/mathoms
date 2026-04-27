@@ -22,8 +22,15 @@ def _load_json_safe(path: Path) -> dict:
     return {}
 
 
-def _init_config(base_dir: Path) -> None:
-    """(Re-)inicializa paths e config globals a partir de base_dir."""
+def _read_config_blob(name: str, disk_path: Path, ctx) -> dict:
+    """Read config via ``ctx.load_config`` (DB-first via overrides, A7.1) or disk fallback."""
+    if ctx is not None:
+        return ctx.load_config(name)
+    return _load_json_safe(disk_path)
+
+
+def _init_config(base_dir: Path, *, ctx=None) -> None:
+    """(Re-)inicializa paths/config globals a partir de base_dir; ``ctx`` lido em A7.1 via ``ctx.load_config`` (ADR-134)."""
     global SCRIPTS_DIR, PROJECT_DIR
     global E5_JSON_PATH, FAMILY_CONFIG_PATH, GOALS_CONFIG_PATH
     global TAXAS_CONFIG_PATH, CATEGORIZATION_CONFIG_PATH, FISCAL_CONFIG_PATH
@@ -44,8 +51,8 @@ def _init_config(base_dir: Path) -> None:
     CATEGORIZATION_CONFIG_PATH = PROJECT_DIR / "config" / "categorization.json"
     FISCAL_CONFIG_PATH = PROJECT_DIR / "config" / "parametros_fiscais.json"
 
-    FAMILY = _load_json_safe(FAMILY_CONFIG_PATH)
-    _CATEGORIZATION = _load_json_safe(CATEGORIZATION_CONFIG_PATH)
+    FAMILY = _read_config_blob("family_members.json", FAMILY_CONFIG_PATH, ctx)
+    _CATEGORIZATION = _read_config_blob("categorization.json", CATEGORIZATION_CONFIG_PATH, ctx)
 
     _TITULAR_KEY = FAMILY.get("titular", "")
     _MEMBROS = FAMILY.get("membros", {})
@@ -673,7 +680,7 @@ def main_with_store(ctx) -> dict:
     import scripts.pipeline_common as _pc
 
     _pc._init_config(ctx.root)
-    _init_config(ctx.root)
+    _init_config(ctx.root, ctx=ctx)
 
     store = ctx.get_artifact_store()
     _e5n_print_header(ctx, store)
