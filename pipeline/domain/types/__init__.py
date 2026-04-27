@@ -14,10 +14,24 @@ from pipeline.domain.types.config import (
     TransferConfig,
     TransferInternalConfig,
 )
+from pipeline.domain.types.snapshot_changelog import (
+    AnalyzeFinancesSnapshot,
+    ChangelogEntry,
+    ComparisonItem,
+    ComparisonResult,
+    DeltaSignal,
+    SnapshotChangelogConfig,
+    UnknownSectionError,
+)
 
 __all__ = [
+    "AnalyzeFinancesSnapshot",
     "CategorizationConfig",
     "CategoryDef",
+    "ChangelogEntry",
+    "ComparisonItem",
+    "ComparisonResult",
+    "DeltaSignal",
     "FamilyMemberRecord",
     "FamilyMembersConfig",
     "FiscalParameters",
@@ -26,6 +40,8 @@ __all__ = [
     "IRPFBracket",
     "MarketRate",
     "ReportLayout",
+    "SnapshotChangelogConfig",
     "TransferConfig",
     "TransferInternalConfig",
+    "UnknownSectionError",
 ]
