@@ -58,7 +58,7 @@ remover por concisão.
 ## 2. Terminologia financeira canônica
 
 > Este glossário é a fonte de verdade. Quando `config/methodology.md`,
-> `config/report_layout.yaml` ou `config/definitions.md` divergir,
+> `config/report_layout.yaml` ou `docs/methodology/definitions.md` divergir,
 > abrir PR em **um** desses para alinhar — ver §11 Hierarquia.
 >
 > Gera, em F12.6b, `config/i18n_glossary.yaml` com as traduções
@@ -418,7 +418,7 @@ Em ordem decrescente de autoridade quando dois docs divergirem:
    sempre.
 4. **`config/report_layout.yaml`** — labels canônicos do relatório.
    Atualizar para alinhar com §2 quando divergir.
-5. **`config/definitions.md`** — definições operacionais (categorias,
+5. **`docs/methodology/definitions.md`** — definições operacionais (categorias,
    instituições, regras de roteamento). Atualizar idem.
 6. **Código** — último recurso; mudança de label sem atualizar §2
    é débito de copy.

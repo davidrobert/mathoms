@@ -879,14 +879,19 @@ fin-current/
 │   ├── tokens.json            # Fonte única de verdade (cores, tipografia, spacing)
 │   └── build.py               # Gera CSS para frontend
 │
-├── config/                    # Configs globais (18 arquivos + schemas + templates)
+├── config/                    # Configs globais (até A7.5; metodologia movida em A7.4 → docs/methodology/)
 │   ├── pipeline.json          # Parâmetros operacionais + report_version
 │   ├── family_members.json, categorization.json, institutions.json
-│   ├── definitions.md, methodology.md, report_spec.md
+│   ├── methodology.md, report_spec.md
 │   ├── report_layout.yaml     # Codegen source → TS + Pydantic
 │   ├── scoring.json, cenarios.json, taxas.json, parametros_fiscais.json
 │   ├── schemas/               # 11 JSON schemas (baseline, E2/E3/E4/E5, 4 goals, pipeline, report_layout)
 │   └── templates/             # 7 templates (HTML, MD, CSS)
+│
+├── docs/methodology/          # A7.4: documentação humana de produto (não-runtime)
+│   ├── definitions.md, regras_composicao_patrimonial.md
+│   ├── source_hierarchy.md, milhas.md
+│   └── README.md
 │
 ├── dev/                       # Dev tooling
 │   ├── commit.py, check_forbidden_paths.py, validate_commit_msg.py

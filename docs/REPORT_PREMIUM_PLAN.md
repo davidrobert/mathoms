@@ -116,7 +116,7 @@ O executor **não** pode violar:
 3. **Commits WIP são obrigatórios** entre turnos. Nada de working tree sujo ao devolver a palavra.
 4. **Anunciar cada operação git** (commit hash + mensagem curta, push + destino).
 5. **Pausas para revisão humana** estão marcadas como 🛑 neste plano. Não prossiga sem resposta.
-6. **Em caso de dúvida de domínio** — consulte `config/definitions.md`, `config/pipeline.json`, `docs/DECISIONS.md`. Não invente regra.
+6. **Em caso de dúvida de domínio** — consulte `docs/methodology/definitions.md`, `config/pipeline.json`, `docs/DECISIONS.md`. Não invente regra.
 
 ### 0.4 "Concluído" significa
 
