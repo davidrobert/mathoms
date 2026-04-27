@@ -32,7 +32,15 @@ interface FetchHandlers {
 const EMPTY: ConsumoState = { items: [], total: 0, totalValor: 0 };
 
 function toState(res: ConsumoPontuaisResponse): ConsumoState {
-  return { items: res.items, total: res.total, totalValor: res.total_valor };
+  // Defensive: API contract guarantees `items` array, mas em ambientes
+  // mockados/erros parciais (ex.: route catch-all em testes E2E retornando
+  // `{}`) o campo pode vir undefined, causando crash em `pontuais.length`
+  // no consumer. Coerce p/ default seguro — protege ErrorBoundary do shell.
+  return {
+    items: Array.isArray(res.items) ? res.items : [],
+    total: typeof res.total === "number" ? res.total : 0,
+    totalValor: typeof res.total_valor === "number" ? res.total_valor : 0,
+  };
 }
 
 function describeError(err: unknown): string {

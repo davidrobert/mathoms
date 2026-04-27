@@ -146,6 +146,21 @@ export async function mockReportPage(
         },
       });
     }
+    // ADR-148 — `useConsumoPontuais` consome este endpoint em S2 (card
+    // ConsumoConscienteCard). Sem esta rota, o catch-all `{}` quebrava
+    // o shape e disparava ErrorBoundary, derrubando o `<article>` inteiro
+    // — bug que fazia 28 baselines visuais skipar com `count===0` para
+    // `section#S1[data-report-section]` (regressão pós-commit ba29df1).
+    if (path.includes("/reports/consumo-pontuais")) {
+      return json(route, {
+        period: "3m",
+        date_from: "2026-01-01",
+        date_to: "2026-04-25",
+        items: [],
+        total: 0,
+        total_valor: 0,
+      });
+    }
     if (path.includes("/dashboard")) {
       return json(route, {});
     }
