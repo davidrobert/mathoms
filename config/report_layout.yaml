@@ -54,11 +54,16 @@ version: "1.2"
 cover:
   enabled: true
   badge: "Relatório Premium"
-  # title_key/subtitle_key null ⇒ shell usa displayTitle + period formatado
+  # title_key/subtitle_key null ⇒ shell usa displayTitle + period formatado.
+  # v2.F.3 (2026-04-26): badge dinâmico se workspace_family_surname presente
+  # ("Relatório · Família X"); meta agora mostra Família como primeiro card
+  # (condicional ao surname); rótulo Versão renderiza "Mathoms v{N}" via
+  # NEXT_PUBLIC_APP_VERSION; "Documentos" foi removido (não é insight do cover).
   meta:
-    - label_key: "Período analisado"
+    - label_key: "Família"
+      conditional_on: "workspace_family_surname"
+    - label_key: "Período"
     - label_key: "Gerado em"
-    - label_key: "Documentos"
     - label_key: "Versão"
 
 # ==============================================================================

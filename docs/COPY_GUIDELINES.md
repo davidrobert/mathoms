@@ -71,7 +71,10 @@ remover por concisão.
 | **Reserva de emergência** | Valor líquido em ativos resgatáveis em D+0/D+1 para cobrir 3–24 meses de despesas | minúsculo em corpo; Title Case em card title | — | `colchão`, `fundo de emergência`, `reserva de proteção` |
 | **Patrimônio líquido** | Soma de ativos − passivos (dívidas) | minúsculo em corpo | — | `total`, `valor total`, `riqueza` |
 | **Patrimônio bruto** | Soma de todos os ativos sem deduzir dívidas | minúsculo em corpo | — | `patrimônio total` (ambíguo) |
-| **Patrimônio investível** | Subconjunto líquido excluindo imóvel de moradia, veículo de uso e bens não-financeiros | minúsculo em corpo | — | `capital`, `investido` |
+| **Patrimônio investível** | Termo umbrella — **prefira as 3 formas precisas abaixo** quando o contexto importar (score, IF, projeção). | minúsculo em corpo | — | `capital`, `investido` |
+| **Patrimônio investível financeiro** | `cat_3 + cat_4 + cat_5 + cat_6` — apenas ativos financeiros líquidos. **Métrica Perini/AUVP canônica para `progresso_if`.** | minúsculo em corpo | — | — |
+| **Patrimônio investível total** | `bruto − cat_1 − cat_7` — exclui residência principal e veículos. Inclui imóveis de investimento. Métrica retro-compat. | minúsculo em corpo | — | — |
+| **Patrimônio investível efetivo** | `investivel_financeiro + (cat_2 if workspace.imoveis_no_if else 0)` — métrica usada de fato no score `progresso_if` (ver [ADR-142](DECISIONS.md#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)). | minúsculo em corpo | — | — |
 | **Aporte** | Valor mensal direcionado a investimentos para compor o número da IF | minúsculo em corpo | — | `contribuição`, `poupança`, `economia` |
 | **Aporte programado / DCA** | Aporte automático recorrente (Dollar-Cost Averaging) | minúsculo em corpo | `DCA` aceito após primeira menção | `compra programada` |
 | **Score financeiro** | Nota 0–10 ponderada por 5 critérios (poupança, cobertura, endividamento, IF, diversificação) | minúsculo em corpo; "Score Financeiro" em card title | — | `nota geral`, `health score` |
@@ -167,11 +170,11 @@ recurso.
 - Separador decimal: `,` (vírgula)
 - Casas decimais: **2** sempre, mesmo zero (`R$ 0,00`).
 - Negativo: **hífen + espaço** antes do símbolo, em **vermelho** (token
-  `--color-danger` / `text-loss`). Sinal e cor sempre juntos (a11y).
+  `var(--semantic-loss)`). Sinal e cor sempre juntos (a11y — daltônicos).
   - ✅ `-R$ 1.234,56`
   - ❌ `(R$ 1.234,56)` (parênteses são padrão US, evitar)
   - ❌ `R$ -1.234,56` (sinal entre símbolo e número confunde leitura)
-- Positivo com destaque (delta): **`+`** prefixado, em verde (`text-gain`).
+- Positivo com destaque (delta): **`+`** prefixado, em verde (`var(--semantic-gain)`).
   - `+R$ 1.234,56`
 
 Renderização única via `<MonetaryValue/>`. Nunca formatar à mão.
@@ -370,7 +373,7 @@ Botão de confirmação repete o verbo: "Apagar relatório", não "OK".
 
 | ❌ Proibido | Por quê | ✅ Substituir por |
 | --- | --- | --- |
-| **Emoji em label de KPI / título de card / categoria** | Quebra a11y (screen reader lê "carinha sorrindo"); reduz autoridade do produto fintech | Usar `<IconBadge>` (ícone tipográfico/SVG dedicado, com `aria-label`) |
+| **Emoji em label de KPI / título de card / categoria** | Quebra a11y (screen reader lê "carinha sorrindo"); reduz autoridade do produto fintech | Ícone Lucide ou SVG dedicado com `aria-label` (componente `<IconBadge>` planejado em REPORT_PREMIUM_PLAN Fase 3 — quando entrar, vira primitivo canônico). |
 | **Emoji em copy de produto sério** | Idem | Texto + ícone semântico |
 | **Exclamação em copy de produto** ("Pronto!", "Uau!", "Ótimo!") | Tom infantil; produto financeiro fala calmo | Frase declarativa: "Análise atualizada." |
 | **"Ops!"**, **"Putz"**, **"Eita"** em erro | Coloquial demais para fintech | "Não conseguimos..." + ação |

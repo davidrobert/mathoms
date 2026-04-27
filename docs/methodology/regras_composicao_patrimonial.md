@@ -230,8 +230,11 @@ patrimonio.veiculos              = cat_7
 
 ## TÍTULO DO CARD NO RELATÓRIO
 
-O canvas `chart-patrimonio-doughnut` deve ter o título **"Distribuição Patrimonial"**
-(não "Patrimônio Doughnut" nem "Patrimonio Doughnut").
+O canvas `chart-patrimonio-doughnut` deve ter o título **"Composição Patrimonial"**
+(fonte canônica: `config/report_layout.yaml:patrimonio_doughnut`). Decisão
+2026-04-27 alinhada com `report_layout.yaml` (codegen de labels) — termo
+"Distribuição" sugeria histograma. Não usar "Patrimônio Doughnut" nem
+"Patrimonio Doughnut".
 
 ---
 
