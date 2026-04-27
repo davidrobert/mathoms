@@ -12,6 +12,26 @@ preparação para **F7 (Produção + LGPD + Ops)**.
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report Premium UI v2 — saída ✅ (Cenário B fechou as 6 sub-lanes finais 2026-04-27):**
+  6 lanes em 2 ondas paralelas + recovery: v2.2b (Tático ✅, USA ⏸ produto),
+  v2.4 (T2 Aportes), v2.10 (PDF visual diff), v2.D.1 (SnapshotChangelogBuilder
+  · [ADR-148](DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório)),
+  v2.8 (comparisons/changelog ON), v2.9 (LLM section_summaries · [ADR-144](DECISIONS.md#adr-144--section_summaries-llm-driven-em-e5-com-cache--fallback-determinístico-v29)).
+  **Caminho crítico v2.D.1 → v2.8 fechado.** **2 ADRs novas:** ADR-148
+  (Snapshot — renumerada de 143 após colisão dupla: ADR-140 com Goal IF v2 e
+  A7.6 com rules-as-code) e ADR-144 (LLM section_summaries; toggle default OFF).
+  **Aprendizado de processo:** senior-cto recusou implementação corretamente —
+  escopo dele é review/ADR; general-purpose para FASE 2 daqui pra frente. Cada
+  agente FASE 1 (ADR) → senior-cto; FASE 2 (impl) → general-purpose. Reservas
+  de número de ADR colidiram 2× durante a sprint (ADR-140 reservado/perdido para
+  Goal IF v2; ADR-143 reservado/perdido para A7.6 rules-as-code) — renumeração
+  cirúrgica via `git rebase` na branch resolveu sem reescrever main. **Débitos
+  abertos** que não bloqueiam a saída: v2.D.1.1 (copy templates `narratives.py`),
+  v2.9.1 (copy prompts `section_summaries.yaml`), re-baseline visual
+  S1/S2/S3/T2/T3/T5, E2E `@critical` herdado de débito alheio em main,
+  regressão visual herdada de `0558ea3`. **Total v2:** Onda A 3/3 (v2.2b
+  parcial USA) · B 3/3 · C 3/3 · D 2/2 · E 8/8 · F 5/5.
+
 - **Report Premium UI v2.8 — comparisons + changelog ativos no relatório ✅ (2026-04-27):**
   Conecta o `SnapshotChangelogBuilder` (v2.D.1 · [ADR-148](DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório))
   ao endpoint + UI. 12 placeholders YAML em S1/S2/S3/T2/T3/T5 flippados de

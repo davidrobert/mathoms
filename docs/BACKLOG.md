@@ -1720,10 +1720,34 @@ antes de pegar.
 **Caminho crítico:** v2.1 (½d) → v2.D.1 (5d) → v2.8 (1.5d) ≈ **7 dias**.
 Tudo o mais é folga paralela.
 
-**Saída do v2:** considerada ✅ quando todas as 19 sub-lanes (v2.1 a
-v2.10 + v2.D.1 + v2.2b + v2.E.1-8; v2.5 absorvida em v2.E.7) estão ✅
-em `main` ou movidas para v3 com ADR justificativa. CHANGELOG receberá
-entrada consolidada análoga à da v1.
+**Saída do v2: ✅ alcançada 2026-04-27** — todas as sub-lanes ✅ em
+`main` ou movidas para v3 com ADR justificativa. Cenário B fechou as 6
+sub-lanes finais em 2 ondas paralelas (4 agentes Onda 1 + 2 agentes
+Onda 2 + 1 fix codegen + 1 renumeração ADR + 1 v2.D.1 FASE 2 reattempt
+após primeiro agente recusar por escopo de senior-cto):
+
+- ✅ **v2.2b parcial** Tático (USA U1-U4 ⏸ por decisão de produto, `enabled:false`)
+- ✅ **v2.4** T2 Aportes seção real (`87eb8b4`+`9f29854`+`32014bb`)
+- ✅ **v2.10** PDF visual diff Playwright (`2270295`+`db20031`+`415e4a6`)
+- ✅ **v2.D.1** SnapshotChangelogBuilder ([ADR-148](DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório), `f203a7f` merge)
+- ✅ **v2.8** comparisons/changelog YAML ON + render (`4001b04` merge)
+- ✅ **v2.9** LLM section_summaries em E5 ([ADR-144](DECISIONS.md#adr-144--section_summaries-llm-driven-em-e5-com-cache--fallback-determinístico-v29), `23de39c`+`ba59b18`; default OFF até v2.9.1)
+
+**2 ADRs novas** registradas no Cenário B: ADR-148 (Snapshot — renumerada
+de 143 após colisão dupla com Goal IF v2 e A7.6 docs/methodology) e
+ADR-144 (LLM section_summaries; reservou slot para 143 que depois virou
+A7.6 rules-as-code).
+
+**Caminho crítico v2.D.1 → v2.8** fechado.
+
+**Débitos abertos (não bloqueiam saída do v2):**
+
+- v2.D.1.1 ☐ — product-designer revisa copy de templates `narratives.py` antes de UI ficar visível em prod
+- v2.9.1 ☐ — product-designer revisa copy de prompts `config/prompts/section_summaries.yaml` antes de habilitar LLM em prod (toggle hoje default OFF)
+- v2.2b USA ⏸ — re-habilitação depende de retomada do modo USA pelo produto
+- Re-baseline visual S1/S2/S3/T2/T3/T5 + cover/APP — próxima rodada de visual gate via `gh workflow run CI -f run_visual=true -f update_visual_baselines=true`
+- E2E `@critical` em `/reports/[id]` quebrados por débito alheio em main pós-v2.9 ("Cannot read properties of undefined 'length'") — investigação em lane separada
+- Regressão visual herdada (28 baselines estratégicas/APP/cover do `0558ea3`) — investigar antes de re-rodar gate empírico estratégico
 
 ---
 
