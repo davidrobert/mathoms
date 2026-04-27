@@ -56,8 +56,23 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
     em_andamento`; drag dentro da mesma coluna NÃO emite PATCH.
     Roda em CI opt-in via label `e2e` (workflow `frontend-e2e` —
     cross-browser).
-  - Vitest 36 tests pass (uiPrimitives 29 + taticoSections 7); tsc
-    clean em `src/`; pre-commit verde.
+  - Vitest 36 tests pass localmente (uiPrimitives 29 + taticoSections 7
+    — superfície tocada por v2.7); tsc clean em `src/`; pre-commit verde.
+
+  **Caveat — CI Vitest pré-existente:** o run CI `24998747289` foi
+  cancelado por timeout de 10min no job "Frontend unit + integration
+  (Vitest)". Investigação confirmou: o hang é em
+  `tests/components/report/ReceitaDespesaMensalChart.test.tsx`,
+  introduzido no commit `6b09407` (v2.E.6, 2026-04-26) — **pré-existe
+  v2.7**. Localmente o describe `<ReceitaDespesaMensalChart />` (15
+  tests) trava sem output mesmo com `--testTimeout=10000`; rodando
+  testes isolados via `-t` cada um passa em <1s, sugerindo problema
+  na execução combinada (mocks `vi.hoisted` compartilhados,
+  ref-callback do mock react-chartjs-2, ou interação MSW). Outros 4 +
+  todas as suites de v2.E (E.1–E.5) passam normalmente. Lane
+  follow-up criada para bissecção + fix (ou `it.skip` cirúrgico) —
+  v2.7 fica em main, CI Vitest será revalidado quando o teste
+  problemático for corrigido.
 
 - **Report Premium UI v2 — v2.6 `cards/` cleanup ✅ (2026-04-27):**
   Auditoria pós-v1 (2026-04-25) classificou
