@@ -159,6 +159,12 @@ Ver [D58](#adr-058--vps-cx32-para-sizing) para sizing rationale.
 
 **Status:** Decidido (F0) • **Data:** 2026-04-12
 
+> **Nota (2026-04-15):** parcialmente superseded por
+> [ADR-072](#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família) — F8 formaliza
+> migração eventual dos wraps em adapters DB (configs de usuário saem do
+> repo). O padrão "wrap" continua válido para scripts que não migram (E0
+> route, E2 parsers).
+
 **Contexto:** Scripts legados (E5=107KB, E6=197KB) têm lógica refinada de domínio. Reescrever é arriscado e demorado.
 
 **Decisão:** Cada script ganha `_init_config(base_dir)` + `main(root_dir=None)`. Wrappers finos em `pipeline/stages/` (3-15 linhas).
@@ -198,6 +204,11 @@ Alternativa descartada: injetar config via dict. Exigiria refatorar `_init_confi
 
 **Status:** Decidido (F2)
 
+> **Nota (2026-04-15):** parcialmente superseded por
+> [ADR-079](#adr-079--content-first-classification-no-upload-web) — D79
+> introduz classificação por **conteúdo** (não nome) no upload web; D16
+> permanece válida para fluxo CLI legado.
+
 **Decisão:** Ao uploadar, o documento é automaticamente classificado (banco, tipo, período) via regex do E0-route. Sem intervenção manual.
 
 **Extensão (2026-04-15):** Documento também é copiado de `inbox/` para `data/{dest_group}/` imediatamente, para que o pipeline encontre os arquivos depois.
@@ -231,6 +242,11 @@ Alternativa descartada: injetar config via dict. Exigiria refatorar `_init_confi
 ## ADR-020 — Materializar config em disco
 
 **Status:** Decidido (F3)
+
+> **Nota (Sprint A6):** superseded por
+> [ADR-085](#adr-085--eliminar-materialização-de-config-em-disco) —
+> material config em disco eliminada em favor de `ConfigStore` ([ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend))
+> e cutover concluído em A7.1.
 
 **Contexto:** Scripts usam `_init_config(base_dir)` que lê de `base_dir/config/`. Como injetar config do DB sem reescrever 12+ scripts?
 
@@ -676,6 +692,10 @@ Documentado no Runbook.
 ## ADR-062 — Frontend testing em fase dedicada (6.5)
 
 **Status:** Decidido • **Data:** 2026-04-14
+
+> **Nota (2026-04-15):** parcialmente superseded por
+> [ADR-064](#adr-064--backend-hardening-em-sub-fase-65e) — escopo
+> estendido para incluir backend hardening como sub-fase 6.5E.
 
 **Contexto:** Versão anterior do plano tinha setup de testes frontend dentro de F7 misturado com Docker, LGPD, CI/CD, dogfood.
 
@@ -4526,6 +4546,14 @@ Relaciona-se a: ADR-076 (design tokens), ADR-117.
 ## ADR-122 — `chart_conclusions` e `section_summaries` em modo híbrido (template + LLM)
 
 **Status:** Decidido (Fase 0) • **Data:** 2026-04-23
+
+> **Nota (2026-04-27):** parte LLM (`section_summaries`) parcialmente
+> superseded por [ADR-144](#adr-144--section_summaries-llm-driven-em-e5-com-cache--fallback-determinístico-v29)
+> — desenho híbrido continua válido (chart_conclusions determinístico,
+> section_summaries LLM); D144 fecha lacunas operacionais de cache,
+> fallback, telemetry e diferenciação cache-runtime vs ArtifactStore que
+> D122 deixou em aberto antes de ADR-111 (stateless rigoroso) e
+> ADR-127/128 (contrato ArtifactStore para LLM).
 
 **Contexto:** Cada gráfico do relatório premium fica acompanhado de um
 `.chart-conclusion` (leitura curta do que o gráfico mostra) e cada seção
