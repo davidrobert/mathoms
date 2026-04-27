@@ -19,7 +19,7 @@
 [D39](#adr-039--dual-db-sqlite-dev--postgresql-prod) [D29-DB](#adr-029--alembic-para-migrations) [D38](#adr-038--docker-volume-para-storage-prod)
 
 **Pipeline:**
-[D14](#adr-014--threading-para-execução-background) [D15](#adr-015--vault-por-workspace) [D16](#adr-016--e0-route-automático-no-upload) [D17](#adr-017--sync-session-em-background-threads) [D18](#adr-018--config-dir-override-em-fortenant) [D19](#adr-019--storage-root-via-env-var) [D30](#adr-030--cancelamento-cooperativo-via-event) [D75](#adr-075--content-first-classification-no-upload-web) [D81](#adr-081--classificação-de-documentos-unificada-p2)
+[D14](#adr-014--threading-para-execução-background) [D15](#adr-015--vault-por-workspace) [D16](#adr-016--e0-route-automático-no-upload) [D17](#adr-017--sync-session-em-background-threads) [D18](#adr-018--config_dir-override-em-for_tenant) [D19](#adr-019--storage_root-via-env-var) [D30](#adr-030--cancelamento-cooperativo-via-threadingevent) [D79](#adr-079--content-first-classification-no-upload-web) [D81](#adr-081--classificação-de-documentos-unificada-p2)
 
 **Config:**
 [D20](#adr-020--materializar-config-em-disco) [D21](#adr-021--5-configs-editáveis) [D22](#adr-022--fallback-seletivo-de-config) [D23](#adr-023--importexport-json-de-config)
@@ -28,7 +28,7 @@
 [D24](#adr-024--litellm-como-proxy-universal) [D25](#adr-025--byok-bring-your-own-key) [D26](#adr-026--instructor--pydantic-para-structured-output) [D27](#adr-027--retry-→-needsreview-em-falha-de-validação) [D28](#adr-028--e7-full-scope-na-fase-4)
 
 **Task Queue:**
-[D29-TQ](#adr-029tq--celery--redis) [D30-WS](#adr-030ws--websocket--polling-fallback) [D31](#adr-031--redis-para-queue--pubsub) [D32](#adr-032--cancel-stage-boundary)
+[D29-TQ](#adr-029-tq--celery--redis) [D30-WS](#adr-030-ws--websocket--polling-fallback) [D31](#adr-031--redis-para-queue--pubsub) [D32](#adr-032--cancel-stage-boundary)
 
 **Frontend:**
 [D33](#adr-033--react-components-para-report) [D34](#adr-034--dashboard-completo-com-alertas) [D35](#adr-035--media-print-para-pdf-export) [D37](#adr-037--recharts-para-charts) [D42](#adr-042--design-system-antes-da-fase-5) [D43](#adr-043--shadcnui-como-component-library) [D50](#adr-050--tailwind-v4-theme-inline) [D51](#adr-051--geist-fonts) [D52](#adr-052--lucide-react-para-ícones) [D53](#adr-053--intl-nativo-para-datas) [D54](#adr-054--migração-incremental-de-pages)
@@ -37,7 +37,7 @@
 [D44](#adr-044--transaction-explorer-como-core) [D45](#adr-045--data-lineage-via-tooltip) [D46](#adr-046--responsivo-sem-pwa-obrigatório) [D47](#adr-047--category-override-em-vez-de-reconciliação-ui)
 
 **Produção:**
-[D7](#adr-007--fernet-app-level-para-criptografia) [D40](#adr-040--billing-adiado-para-pós-launch) [D41](#adr-041--traefik-como-reverse-proxy) [D55](#adr-055--coverage-target--85-line--95-new-code) [D56](#adr-056--rolling-restart-em-vez-de-blue-green) [D57](#adr-057--jwt-15min--refresh-7d) [D58](#adr-058--vps-cx32-para-sizing) [D59](#adr-059--docker-image-cve-scan-no-ci) [D60](#adr-060--fernet-dual-key-para-secret-rotation) [D61](#adr-061--telemetria-privacy-first)
+[D7](#adr-007--fernet-app-level-para-criptografia) [D40](#adr-040--billing-adiado-para-pós-launch) [D41](#adr-041--traefik-como-reverse-proxy) [D55](#adr-055--coverage-target-85-line--95-new-code) [D56](#adr-056--rolling-restart-em-vez-de-blue-green) [D57](#adr-057--jwt-15min--refresh-7d) [D58](#adr-058--vps-cx32-para-sizing) [D59](#adr-059--docker-image-cve-scan-no-ci) [D60](#adr-060--fernet-dual-key-para-secret-rotation) [D61](#adr-061--telemetria-privacy-first)
 
 **Testing:**
 [D62](#adr-062--frontend-testing-em-fase-dedicada-65) [D63](#adr-063--hardening-fintech-em-sub-fase-65d) [D64](#adr-064--backend-hardening-em-sub-fase-65e) [D67](#adr-067--test-infrastructure-em-sub-fase-65f) [D69](#adr-069--msw-sync-strategy-manual--lint-ci-não-codegen) [D70](#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) [D71](#adr-071--playwright-workspace-isolation-email-unique-por-worker)
@@ -195,7 +195,7 @@ Alternativa descartada: injetar config via dict. Exigiria refatorar `_init_confi
 
 ## ADR-014 — Threading para execução background
 
-**Status:** Decidido (F2) → Substituído por Celery em [D29-TQ](#adr-029tq--celery--redis)
+**Status:** Decidido (F2) → Substituído por Celery em [D29-TQ](#adr-029-tq--celery--redis)
 
 **Decisão original:** `threading.Thread` daemon para pipeline execution.
 
@@ -5069,7 +5069,7 @@ Em 2026-04-24 dois commits do mesmo dia colidiram silenciosamente:
 
 1. **A6c (`f7b824e`, manhã)** removeu o `MaterializationBridge` —
    passou a valer literalmente que com `USE_DB_ARTIFACTS=True`
-   (default desde A6c, [ADR-106](#adr-106)/[ADR-107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2)),
+   (default desde A6c, [ADR-106](#adr-106--opt-in-db-artifacts-por-workspace--dbartifactstore-no-celery-task-a6b)/[ADR-107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2)),
    o stage E5 grava o artefato **apenas** em `pipeline_artifacts`. O
    filesystem deixou de receber o JSON.
 2. **ADR-129 (`94f693d`, noite)** reescreveu `_create_report_from_output`
@@ -5155,8 +5155,8 @@ colunas e drop a FK.
 
 Relaciona-se a: [ADR-078](#adr-078--render-nativo-react--e6-como-exportador-standalone)
 (F9 — substitui premissa de filesystem),
-[ADR-082](#adr-082--pipeline_artifacts-mvp) (modelo `pipeline_artifacts`),
-[ADR-106](#adr-106) / [ADR-107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2)
+[ADR-082](#adr-082--pipelineartifact-artefatos-computacionais-no-banco) (modelo `pipeline_artifacts`),
+[ADR-106](#adr-106--opt-in-db-artifacts-por-workspace--dbartifactstore-no-celery-task-a6b) / [ADR-107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2)
 (A6c — bridge removido que motivou a regressão),
 [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)
 (stateless — agora aplicável ao read path do relatório),
@@ -5635,7 +5635,7 @@ Money continua [ADR-090](#adr-090--decimal-para-valores-monetários):
 **Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
 [ADR-090](#adr-090--decimal-para-valores-monetários),
 [ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e),
-[ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries),
+[ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents),
 [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
 
 **Contexto:** `config/decisions.md` é um caderno editorial do cliente —
@@ -5717,7 +5717,7 @@ Endpoints REST: `GET/POST /api/v1/workspaces/{id}/decisions`,
 com `response_model` explícito ([ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a)).
 
 Eventos do aggregate **não** entram em
-[ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries) (cross-aggregate
+[ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents) (cross-aggregate
 events) — são internos. Se outro aggregate precisar reagir
 (`Notification` quando decisão executada >R$50k), aí sim emite domain
 event tipado pelo dispatcher.
@@ -6083,7 +6083,7 @@ Relaciona-se a: ADR-037 (Recharts — escopo restringido), ADR-076
 - Cálculo de progresso passa a refletir gap real após migração — relatórios pré-migração mostravam progresso subestimado para famílias com renda passiva atual ativa.
 - Schema v1 fica como compat reverso até cleanup F-pós-A7.
 
-**Relaciona-se a:** [ADR-073](#adr-073--goals-no-banco-substituindo-goalsjson) (Goals no banco), [ADR-141](#adr-141--goal-alocacao-alvo-schema-v2-7-classes-auvp), [ADR-142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem). Detalhamento das fórmulas em [FORMULAS.md §IF](FORMULAS.md).
+**Relaciona-se a:** [ADR-073](#adr-073--goals-como-entidade-versionada-não-config-estático) (Goals no banco), [ADR-141](#adr-141--goal-alocação-alvo-schema-v2-7-classes-auvp), [ADR-142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem). Detalhamento das fórmulas em [FORMULAS.md §IF](FORMULAS.md).
 
 ---
 
