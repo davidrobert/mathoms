@@ -12,6 +12,79 @@ preparação para **F7 (Produção + LGPD + Ops)**.
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **A7.6 — Rules-as-code: dissolver `docs/methodology/` ✅ entregue (2026-04-27):**
+  Branch `agent/a7-6-rules-as-code/20260427-1311`, 7 commits + baseline
+  refresh, mergeados em `main`. Auditoria pós-A7.4 detectou que os 4
+  markdowns movidos para `docs/methodology/` continham 102 hits
+  cliente-PII (David, Mariana, Tasso, Hashdex, valores BRL, contas
+  Itaú/BTG/Santander) violando CLAUDE.md §Regras críticas. A7.6 dissolveu
+  o diretório (rules-as-code, [ADR-143](DECISIONS.md#adr-143--docsmethodology-é-rules-as-code-sprint-a76)):
+
+  - **regras_composicao_patrimonial.md** → docstring de módulo expandido
+    em `pipeline/domain/services/patrimonio_calculator.py` documentando
+    as 7 categorias canonical + 3 fixtures de teste anônimas
+    (titular/conjuge, ImovelExemplo, FundoExemplo, BancoExemplo) +
+    [ADR-145](DECISIONS.md#adr-145--7-categorias-canonical-da-composição-patrimonial).
+  - **source_hierarchy.md** → novo módulo
+    `pipeline/domain/services/source_tier.py` com constants TIER_*,
+    `SourcedTransaction`, `pick_winner`, `resolve_account_tier` +
+    docstring expandido em `reconciliation_service.py` +
+    [ADR-146](DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema).
+    Schema migration `BankAccount.source_tier` (Alembic
+    `z4a5b6c7d8e9_adr146_bank_account_source_tier.py`) backwards-compat
+    (add nullable + default None — populate/flip ficam para PR futuro
+    quando `is_duplicate` plumbar tier). 9 specs novos em
+    `tests/unit/pipeline/test_e3_source_tier_tie_breaking.py` cobrindo
+    invariantes ADR-146 §Consequências (tier mais alto vence; mesmo
+    tier → timestamp mais recente vence).
+  - **milhas.md** → bridge `parse_milhas_md` lê `<workspace>/notes/milhas.md`
+    primeiro com fallback warned para legado (removido em A7.5). Migrator
+    one-shot `dev/migrate_milhas_to_workspace_storage.py` (idempotente,
+    `--workspace-id`/`--workspace-root`/`--source`/`--force`). Universal
+    valuation methodology em docstring de `parse_milhas_md_content` +
+    [ADR-147](DECISIONS.md#adr-147--milhas-valuation-methodology-universal--storage-workspace-scoped).
+    `MileageProgram` DB aggregate = débito técnico aceito p/ Sprint A8.1.
+  - **definitions.md** → cliente puro dropado (DB rows); decisões de
+    planejamento absorvidas em A7.2a `Decision`; categorias absorvidas
+    em A7.3 catalog/override (em curso); regras universais cobertas
+    pelos docstrings de A7.6. Novo índice em
+    [docs/ARCHITECTURE.md §4.1 Domain glossary](ARCHITECTURE.md) com
+    11 conceitos × módulo enforcer × ADR canônica.
+
+  **Cleanup final:** `docs/methodology/` deletado;
+  `dev/check_forbidden_paths.py` + `dev/commit.py` bloqueiam recriação
+  via `FORBIDDEN_DIRS += "docs/methodology/"`. CLAUDE.md ganha bloco
+  "§Methodology = code" em Regras críticas + `docs/methodology/` em
+  §Paths proibidos. Comentários stale em `scripts/{e4_categorize,e_reset,e5_analyze}.py`
+  e `backend/tests/test_config_materializer.py` atualizados.
+
+  **Fix incidental — alembic heads collision (pre-existing bug):** A7.2a
+  e A7.2b ambas geraram revision id `x2y3z4a5b6c7`, deixando 2 alembic
+  heads em main. A7.6 renomeia o ID interno da fiscal migration para
+  `x2adr135fp01` e meu `z4a5b6c7d8e9` colapsa via tupla
+  `down_revision = (x2y3z4a5b6c7, y3z4a5b6c7d8)`. Resultado: `pytest
+  backend/tests/test_alembic_guardrails.py` (4 specs antes red) volta
+  a verde.
+
+  **Tests:** `pytest backend/tests -q` 1413 passed (era 1413, +1 por
+  schema snapshot); `pytest tests/test_e3_golden_execution.py
+  tests/test_e4_golden_execution.py tests/test_e5_golden_execution.py
+  tests/test_e5n_golden_execution.py` 9 passed (paridade byte-a-byte
+  preservada); `pytest tests/unit/pipeline/test_e3_source_tier_tie_breaking.py
+  test_e5_content_parsers.py test_patrimonio_calculator.py` 89 passed
+  (+12 novas specs A7.6); `dev/check_forbidden_paths.py` bloqueia
+  `docs/methodology/**`; `dev/check_code_style_regression.py` baseline
+  refresh intencional (P7+10 multi-paragraph docstrings co-localizados
+  com regras enforce — ADR-143 mandate).
+
+  **Coordenação:** zero overlap com A7.3 (em curso, toca catalog/override);
+  Sub-task 1 (definitions.md cleanup) já cobriu todo o conteúdo non-A7.3.
+  A7.3 finaliza categorias/instituições remanescentes quando mergear.
+
+  **Spawn task:** `chore(format): ruff format A7.2a/A7.2b leftovers` —
+  12 arquivos pré-existentes precisam ruff format (decisions, fiscal_parameters)
+  fora do escopo desta lane. Side task criada para commit dedicado.
+
 - **Report Premium UI v2.9 — LLM section_summaries em E5 ✅ (2026-04-27):**
   Fase 2 da [ADR-144](DECISIONS.md#adr-144--section_summaries-llm-driven-em-e5-com-cache--fallback-determinístico-v29)
   (mergeada como `22627e6` 2026-04-27 manhã). Substitui templates
@@ -168,23 +241,8 @@ preparação para **F7 (Produção + LGPD + Ops)**.
   **Débito aberto:** v2.D.1.1 (P2, ≤2h) — product-designer revisa copy
   dos 6 templates determinísticos antes de v2.8 flipar YAML.
 
-- **A7.6 — Rules-as-code (lane aberta 2026-04-27):** auditoria pós-merge
-  de A7.4 detectou que os 4 markdowns movidos para `docs/methodology/`
-  contêm 102 hits cliente-específicos (David, Mariana, Tasso, Hashdex,
-  valores BRL reais, contas Itaú/BTG) violando CLAUDE.md §Regras críticas
-  ("nunca expor valores monetários reais ... em commits"). A7.6 dissolve
-  o diretório: regras universais migram para docstrings + ADRs no código
-  que enforce; dados cliente migram para DB ou `storage/<ws>/notes/`
-  (gitignored). Track file: [track_a7_6_rules_as_code.md](agent_prompts/track_a7_6_rules_as_code.md).
-  Plano detalhado: [CONFIG_CUTOVER_PLAN.md §5.6](CONFIG_CUTOVER_PLAN.md#§56-a76--rules-as-code-dissolver-docsmethodology).
-  ADRs novas (gate G1 pendente): ADR-143 (rules-as-code geral) ·
-  ADR-145 (7-bucket composição patrimonial) · ADR-146 (E3 source hierarchy
-  + `BankAccount.source_tier`) · ADR-147 (milhas valuation + storage
-  workspace-scoped; `MileageProgram` DB entity = débito técnico p/ A8.1).
-  Estimativa: 3-4 sessões após G1. Sub-task 4 (definitions.md) depende
-  soft de A7.3 + A7.2a mergeadas. **Sprint A8 stub aberta** em
-  [BACKLOG.md §Sprint A8](BACKLOG.md#sprint-a8--continuação-multi-tenant-placeholder-abre-após-a7-fechar)
-  para registrar A8.1 explicitamente.
+- **A7.6 — Rules-as-code (lane aberta 2026-04-27 → ✅ entregue mesmo dia):**
+  ver entrada acima com detalhes completos da entrega.
 
 - **Report Premium UI v2.2b — fix `clickMode()` + 12 baselines Tático ✅ parcial (2026-04-27):**
   Resíduo da v2.2 fechado parcialmente — Tático populado, USA bloqueado

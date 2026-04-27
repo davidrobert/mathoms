@@ -1,6 +1,6 @@
 # Plano — Cutover de `config/` para DB multi-tenant (Sprint A7)
 
-> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 fechada (A7.1 ✅ + A7.2a ✅ + A7.2b ✅ + A7.4 ✅) · **A7.6 aberta** (rules-as-code: dissolve `docs/methodology/` que A7.4 introduziu como solução incompleta — gate G1 ✅ (CTO 2026-04-27)) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
+> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 fechada (A7.1 ✅ + A7.2a ✅ + A7.2b ✅ + A7.4 ✅) · **A7.6 ✅ entregue** (rules-as-code dissolveu `docs/methodology/` que A7.4 introduziu como solução incompleta) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
 > **Audiência:** agentes LLM em paralelo (Onda 2 com até 4 agentes simultâneos) + supervisor CTO (humano ou agente `senior-cto`).
 > **Premissa central:** o produto **continua operando em produção** entre cada onda. Nenhum passo pode quebrar smoke E2E ou bloquear geração de relatório de workspace existente.
 > **Referências:** [BACKLOG.md §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal), [DECISIONS.md ADR-134..138](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [CLAUDE.md §Regras críticas](../CLAUDE.md#regras-críticas-invariantes-do-repositório).
@@ -24,10 +24,10 @@ A meta da Sprint A7 é fechar esse cutover, separando os arquivos em três natur
 | `decisions.md` | **Cliente** ⚠️ contém valores BRL reais | Entidade `Decision` event-sourced (A7.2a) |
 | `parametros_fiscais.json` | Mercado (séries temporais) | Tabela global versionada por ano (A7.2b) |
 | `taxas.json` | Mercado (séries temporais) | Tabela global versionada por data (A7.2b) |
-| `definitions.md` | **Híbrido** (60% cliente em DB · 25% universal · 15% duplica CLAUDE.md) | A7.4 ✅ moved → A7.6 dissolve: ~80% drop (já em DB ou duplica), ~20% docstrings + ADR-143/145 |
-| `regras_composicao_patrimonial.md` | **Híbrido** (regras universais 7-bucket + exemplos cliente) | A7.4 ✅ moved → A7.6 dissolve: docstring no classifier `cash_flow_builder` + ADR-145 |
-| `source_hierarchy.md` | **Híbrido** (hierarquia universal + bancos cliente) | A7.4 ✅ moved → A7.6 dissolve: docstring em `income_origin_resolver` + ADR-146; banco→tier vai p/ DB `BankAccount.source_tier` |
-| `milhas.md` | **Híbrido** (método de valuation universal + programas cliente) | A7.4 ✅ moved → A7.6 dissolve: método em docstring `parse_milhas_md` + ADR-147; programas migram p/ `storage/<ws>/notes/milhas.md` (gitignored) — débito técnico p/ A8.1 (`MileageProgram` DB entity) |
+| `definitions.md` | **Híbrido** (60% cliente em DB · 25% universal · 15% duplica CLAUDE.md) | A7.4 ✅ moved → A7.6 ✅ dissolveu: ~80% drop (já em DB ou duplica), ~20% docstrings + ADR-143/145; índice em `docs/ARCHITECTURE.md §4.1 Domain glossary` |
+| `regras_composicao_patrimonial.md` | **Híbrido** (regras universais 7-bucket + exemplos cliente) | A7.4 ✅ moved → A7.6 ✅ dissolveu: docstring em `pipeline/domain/services/patrimonio_calculator.py` + ADR-145 |
+| `source_hierarchy.md` | **Híbrido** (hierarquia universal + bancos cliente) | A7.4 ✅ moved → A7.6 ✅ dissolveu: novo módulo `pipeline/domain/services/source_tier.py` + docstring em `reconciliation_service.py` + ADR-146; banco→tier em `BankAccount.source_tier` (Alembic z4a5b6c7d8e9) |
+| `milhas.md` | **Híbrido** (método de valuation universal + programas cliente) | A7.4 ✅ moved → A7.6 ✅ dissolveu: método em docstring `parse_milhas_md_content` + ADR-147; programas migram p/ `<workspace>/notes/milhas.md` (gitignored) via `dev/migrate_milhas_to_workspace_storage.py` — bridge transitório p/ A7.5; débito técnico p/ A8.1 (`MileageProgram` DB entity) |
 
 **Resultado final pós-A7:** zero arquivos em `config/` (diretório removido); pipeline lê tudo via `ConfigStore` (DB-first); séries fiscais/câmbio versionadas por data; entidade `Decision` substitui markdown editorial; `docs/methodology/` deletado (path proibido); regras universais vivem em docstrings + ADRs co-localizados com o código que enforce.
 
@@ -495,6 +495,16 @@ atualizados em `CLAUDE.md`, `.claude/agents/financial-planner.md`,
 `config/report_spec.md`, `backend/tests/test_config_materializer.py`.
 4 paths antigos bloqueados em `dev/{check_forbidden_paths,commit}.py`.
 
+> **Retrospectiva A7.6 (2026-04-27):** A7.4 foi `git mv` puro preservando
+> o vício do CLI mono-cliente — cada arquivo misturava regras universais
+> com instâncias cliente PII (David, Mariana, Tasso, Hashdex, valores BRL).
+> Auditoria pós-merge confirmou 102 hits cliente-específicos. **A7.6
+> dissolveu o diretório** (rules-as-code, ADR-143): regras universais
+> migraram para docstrings + ADRs co-localizados; dados cliente migraram
+> para DB (FamilyMember, BankAccount.source_tier, Decision aggregate)
+> ou `<workspace>/notes/` (gitignored). `docs/methodology/` virou path
+> proibido em `dev/check_forbidden_paths.py`. Ver §5.6 para detalhes.
+
 **Paralelo a tudo · 1 lane · ~1 sessão · não depende de nada.**
 
 **Objetivo:** mover documentação humana de produto para `docs/methodology/`, removê-la de `config/`. Atualiza referências de comentário em `scripts/e5_analyze.py`/`e7_review.py` que apontam para `config/<file>.md`.
@@ -551,11 +561,11 @@ atualizados em `CLAUDE.md`, `.claude/agents/financial-planner.md`,
 
 ---
 
-### §5.6 A7.6 — Rules-as-code: dissolver `docs/methodology/`
+### §5.6 A7.6 — Rules-as-code: dissolver `docs/methodology/` ✅ entregue 2026-04-27
 
 **Onda 2.5 · 1 lane · ~3-4 sessões · paralelo com A7.2a, A7.3.**
 
-**Status:** ☐ aberta — gate G1 ✅ (CTO 2026-04-27) (4 ADRs draft + CTO sign-off antes de codar).
+**Status:** ✅ entregue 2026-04-27 — 6 commits + baseline refresh em `agent/a7-6-rules-as-code/20260427-1311` (gate G1 ✅ CTO 2026-04-27 · gate G2/G3 inline).
 
 **Depende de:** A7.4 ✅ mergeada (arquivos atualmente em `docs/methodology/`).
 
@@ -750,6 +760,7 @@ Em caso de regressão silenciosa detectada pós-merge (>24h):
 - [ ] A7.2b Tabelas globais fiscal/market mergeadas + ADR-135 ✅ + `parametros_fiscais.json` + `taxas.json` removidos
 - [ ] A7.3 Catalog + override mergeada + ADR-137 ✅ + `categorization.json` + `institutions.json` removidos
 - [x] A7.4 Metodologia movida para `docs/methodology/` + 4 arquivos removidos de `config/`
+- [x] A7.6 Rules-as-code dissolveu `docs/methodology/` + ADRs 143/145/146/147 ✅ + `BankAccount.source_tier` schema + bridge `<ws>/notes/milhas.md`
 - [ ] A7.5 Cleanup mergeada — `config/` deletado, `FileConfigStore` removido, `materialize_config` removido
 - [ ] CHANGELOG entrada [Sprint A7 ✅] com data de fechamento
 - [ ] `dev/check_forbidden_paths.py` proíbe `config/*`
