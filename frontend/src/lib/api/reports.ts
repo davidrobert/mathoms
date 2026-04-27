@@ -33,6 +33,24 @@ export interface ReportListResponse {
   total: number;
 }
 
+/** v2.8 (ADR-148) — Item de comparação seção-a-seção entre relatórios. */
+export interface ComparisonItemRead {
+  section_id: string;
+  section_label: string;
+  before: number;
+  after: number;
+  delta_pct: number | null;
+  delta_signal: "up" | "down" | "stable";
+}
+
+/** v2.8 (ADR-148) — Entrada do changelog determinístico (uma por seção). */
+export interface ChangelogEntryRead {
+  section_id: string;
+  summary: string;
+  delta_signal: "up" | "down" | "stable";
+  delta_pct: number | null;
+}
+
 /** F9 · ADR-076 — payload do GET /reports/{id}/data.
  *
  * Tipagem progressiva: as 24 chaves top-level do E5 JSON serão tipadas
@@ -40,6 +58,10 @@ export interface ReportListResponse {
  * fase (F0.5) expomos shape parcial + fallback `Record<string, unknown>`.
  */
 export interface ReportAnalysisData {
+  /** v2.8 (ADR-148) — comparativos seção-a-seção. `null` no primeiro relatório. */
+  comparisons?: ComparisonItemRead[] | null;
+  /** v2.8 (ADR-148) — changelog determinístico das seções que mudaram. `null` no primeiro relatório. */
+  changelog?: ChangelogEntryRead[] | null;
   /** F11.4a — injetado pelo GET /reports/{id}/data (não faz parte do E5 legado). */
   _report_lineage?: {
     pipeline_run_id: string | null;

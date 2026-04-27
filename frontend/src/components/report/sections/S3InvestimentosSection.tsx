@@ -1,6 +1,7 @@
 "use client";
 
 import { ReportSection } from "../ReportSection";
+import { SectionSnapshotDiff } from "../SectionSnapshotDiff";
 import { SectionSummary } from "../SectionSummary";
 import {
   ContrafluxoCard,
@@ -97,6 +98,9 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
           </p>
         </div>
       )}
+
+      {/* v2.8 (ADR-148) — comparisons + changelog vs relatório anterior. */}
+      <SectionSnapshotDiff sectionId="S3" data={data} />
     </ReportSection>
   );
 }

@@ -226,11 +226,14 @@ const SECTION_SUMMARIES: Record<
 
 /**
  * v2.9 · ADR-144 — prefer-snapshot LLM section summaries.
+ * v2.8 · ADR-148 — anexa changelog summary quando determinístico.
  *
- * Se o E5 snapshot tem `section_summaries[sectionId]` (gerado por
- * SectionSummaryGenerator com LLM), usa direto. Senão cai no template
- * determinístico abaixo. Fallback continua válido como rede de
- * segurança quando LLM falha ou está desabilitado.
+ * Ordem de precedência (E5 snapshot → fallbacks):
+ * 1. `section_summaries[sectionId]` (LLM) tem prioridade absoluta — texto
+ *    editorial completo do E5.N.
+ * 2. Sem LLM: usa template determinístico + complementa com summary do
+ *    `changelog` (ADR-148 builder) se houver para esta seção.
+ * 3. Sem nada: fallback do template (ou null).
  */
 export function deriveSectionSummary(
   sectionId: string,
@@ -240,6 +243,11 @@ export function deriveSectionSummary(
     sectionId
   ];
   if (llmText && llmText.trim()) return llmText.trim();
-  const fn = SECTION_SUMMARIES[sectionId];
-  return fn ? fn(data) : null;
+  const base = SECTION_SUMMARIES[sectionId]?.(data) ?? null;
+  const changelog = data.changelog ?? null;
+  const matched = changelog?.find((entry) => entry.section_id === sectionId);
+  if (matched) {
+    return base ? `${base} ${matched.summary}.` : `${matched.summary}.`;
+  }
+  return base;
 }

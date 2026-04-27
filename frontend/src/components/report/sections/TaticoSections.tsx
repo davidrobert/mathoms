@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { SectionSnapshotDiff } from "../SectionSnapshotDiff";
 import { Kanban, NotasCard, Timeline } from "../ui";
 import type {
   KanbanItem as KanbanUIItem,
@@ -271,6 +272,8 @@ export function T2AportesSection({ data }: { data: ReportAnalysisData }) {
       <ReportCard variant="feature" title="Variação Patrimonial por Bloco">
         <InvestimentoDeltaTable rows={deltaRows} />
       </ReportCard>
+      {/* v2.8 (ADR-148) — comparisons + changelog vs relatório anterior. */}
+      <SectionSnapshotDiff sectionId="T2" data={data} />
     </ReportSection>
   );
 }
@@ -371,6 +374,8 @@ export function T3TarefasSection({
           <Kanban items={items} onMove={handleMove} />
         )}
       </ReportCard>
+      {/* v2.8 (ADR-148) — comparisons + changelog vs relatório anterior. */}
+      <SectionSnapshotDiff sectionId="T3" data={data} />
     </ReportSection>
   );
 }
@@ -421,6 +426,8 @@ export function T5ProximosPassosSection({ data }: { data: ReportAnalysisData }) 
           <Timeline items={items} />
         )}
       </ReportCard>
+      {/* v2.8 (ADR-148) — comparisons + changelog vs relatório anterior. */}
+      <SectionSnapshotDiff sectionId="T5" data={data} />
     </ReportSection>
   );
 }
