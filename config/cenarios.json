@@ -1,15 +1,16 @@
 {
   "_comment": "Cenários de sensibilidade para projeções — pessimista/realista/otimista. Fonte: BCB, IBGE, consenso de mercado.",
-  "_ultima_atualizacao": "2026-04-09",
+  "_ultima_atualizacao": "2026-04-27",
 
   "inflacao_ipca": {
     "label": "Inflação (IPCA)",
     "pessimista_pct": 6.0,
     "realista_pct": 4.5,
     "otimista_pct": 3.5,
-    "atual_label": "~5%"
+    "atual_label": "4,14%"
   },
   "retorno_real": {
+    "_comment": "Retorno real esperado da carteira (acima da inflação). Premissa: carteira mista 50% RF / 30% RV / 20% imóveis (alocação alvo da família). Para outros perfis de risco, ajustar.",
     "label": "Retorno real carteira",
     "pessimista_pct": 4.0,
     "realista_pct": 6.0,
@@ -19,9 +20,9 @@
   "selic": {
     "label": "CDI / Selic",
     "pessimista_pct": 8.0,
-    "realista_pct": 14.15,
+    "realista_pct": 14.50,
     "otimista_pct": 15.0,
-    "atual_label": "14,25%"
+    "atual_label": "14,75%"
   },
   "cambio": {
     "label": "Câmbio BRL/USD",

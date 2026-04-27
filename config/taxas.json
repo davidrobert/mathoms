@@ -1,13 +1,20 @@
 {
-  "_comment": "Taxas e indicadores macroeconômicos correntes. Atualizar a cada ciclo.",
-  "_ultima_atualizacao": "2026-04-09",
-  "_fonte": "BCB/IBGE/B3",
+  "_comment": "Taxas e indicadores macroeconômicos correntes. Atualizar a cada ciclo. Em A7.2b serão movidos para tabela versionada por data (séries temporais) — este JSON é snapshot operacional do ciclo corrente.",
+  "_ultima_atualizacao": "2026-04-27",
+  "_fonte": "BCB / IBGE / B3 — confirmar fontes oficiais antes de uso em planejamento real (séries históricas em mudança).",
 
   "cambio_usd_brl": 5.80,
   "cambio_eur_brl": 6.35,
-  "cdi_anual": 14.15,
-  "selic_atual": 14.25,
-  "ipca_anual": 5.48,
+  "cdi_anual": 14.50,
+  "selic_atual": 14.75,
+  "ipca_anual": 4.14,
   "igpm_anual": 8.58,
-  "tr_anual": 2.07
+  "tr_anual": 1.97,
+
+  "_notas_atualizacao_2026_04_27": {
+    "selic": "Copom 18-19/03/2026 manteve em 14,75% (era 14,25% no ciclo anterior).",
+    "cdi": "CDI roda ~25 pb abaixo da Selic; 14,50% é a média efetiva 2026 (era 14,15%).",
+    "ipca": "IPCA acumulado 12m em abril/2026 = 4,14% (era 5,48% — tendência de queda confirmada por Boletim Focus).",
+    "tr": "TR acumulada 12m em ~1,97% (era 2,07% — base poupança/FGTS/financiamentos)."
+  }
 }

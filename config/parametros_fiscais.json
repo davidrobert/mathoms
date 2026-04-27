@@ -1,31 +1,59 @@
 {
   "_comment": "Parâmetros fiscais brasileiros — tabela IRPF, lucro presumido, PGBL. Atualizar quando legislação mudar.",
-  "_ultima_atualizacao": "2026-04-08",
-  "_fonte": "Receita Federal / legislação vigente",
+  "_ultima_atualizacao": "2026-04-27",
+  "_fonte": "Receita Federal / Lei 15.270/2025 (vigência 01/01/2026) — confirmar com contador antes de uso definitivo em planejamento real.",
 
   "irpf_tabela_progressiva": {
-    "_comment": "Tabela progressiva mensal IRPF 2025/2026. Faixas em R$ anuais. Verificar se houve atualização legislativa.",
-    "faixas": [
-      {"limite_anual": 26963.20, "aliquota_pct": 0.0},
-      {"limite_anual": 33919.80, "aliquota_pct": 7.5},
-      {"limite_anual": 45012.60, "aliquota_pct": 15.0},
-      {"limite_anual": 55976.16, "aliquota_pct": 22.5},
-      {"limite_anual": null,     "aliquota_pct": 27.5}
-    ]
+    "_comment": "Tabela progressiva mensal IRPF 2026 pós-Lei 15.270/2025. Faixas em R$ MENSAIS (não anuais — convenção mudou). Isenção até R$ 5.000/mês com redutor linear que zera o imposto efetivo até R$ 5.000 e cria banda decrescente até R$ 7.350/mês. Acima de R$ 7.350 entra na tabela progressiva tradicional.",
+    "moeda": "BRL",
+    "periodicidade": "mensal",
+    "isencao_efetiva_mensal_brl": 5000.00,
+    "redutor_max_mensal_brl": 7350.00,
+    "_redutor_explicacao": "Para renda entre R$ 5.000,01 e R$ 7.350,00/mês: aplica redutor linear que zera imposto em R$ 5.000 e desce gradualmente até zerar o redutor em R$ 7.350. Receita Federal fornece tabela auxiliar — implementar via fórmula ou lookup mensal exato.",
+    "faixas_mensais": [
+      {"limite_mensal_brl": 2428.80,  "aliquota_pct": 0.0,   "deducao_brl": 0.00,    "_isenta_pre_lei": true},
+      {"limite_mensal_brl": 2826.65,  "aliquota_pct": 7.5,   "deducao_brl": 182.16},
+      {"limite_mensal_brl": 3751.05,  "aliquota_pct": 15.0,  "deducao_brl": 394.16},
+      {"limite_mensal_brl": 4664.68,  "aliquota_pct": 22.5,  "deducao_brl": 675.49},
+      {"limite_mensal_brl": null,     "aliquota_pct": 27.5,  "deducao_brl": 908.73}
+    ],
+    "_alta_renda_sobretaxa": {
+      "_comment": "Lei 15.270/2025 introduziu sobretaxa progressiva para rendas anuais >R$ 600.000. Alíquota efetiva mínima cresce para 0% (≤R$600k) → 10% (≥R$1,2M).",
+      "limite_anual_inicio_brl": 600000.00,
+      "limite_anual_aliquota_minima_10_brl": 1200000.00,
+      "aliquota_minima_max_pct": 10.0
+    }
   },
 
   "lucro_presumido": {
-    "_comment": "Percentual de presunção para serviços (base tributável = faturamento * percentual)",
-    "percentual_servicos_pct": 32.0
+    "_comment": "Percentual de presunção para serviços (base tributável = faturamento * percentual). Inclui IR + CSLL; PIS/COFINS/ISS calculados separadamente.",
+    "percentual_servicos_pct": 32.0,
+    "ir_aliquota_pct": 15.0,
+    "csll_aliquota_pct": 9.0,
+    "pis_pct": 0.65,
+    "cofins_pct": 3.0,
+    "iss_pct_range": [2.0, 5.0],
+    "_iss_nota": "ISS varia 2-5% por município — São Paulo cobra 2-5% conforme atividade CNAE. Confirmar alíquota exata no município de inscrição."
   },
 
   "pgbl": {
-    "_comment": "Limite de dedução PGBL sobre renda tributável anual",
-    "limite_deducao_pct": 12.0
+    "_comment": "Limite de dedução PGBL sobre renda tributável anual + tabela regressiva IR.",
+    "limite_deducao_pct": 12.0,
+    "_pre_requisito": "Vale apenas para quem entrega declaração completa (não simplificada) e tem rendimentos tributáveis (carteira CLT/PJ). Não cobre quem é só dividendos isentos.",
+    "tabela_regressiva": [
+      {"prazo_minimo_anos": 0,  "aliquota_pct": 35.0},
+      {"prazo_minimo_anos": 2,  "aliquota_pct": 30.0},
+      {"prazo_minimo_anos": 4,  "aliquota_pct": 25.0},
+      {"prazo_minimo_anos": 6,  "aliquota_pct": 20.0},
+      {"prazo_minimo_anos": 8,  "aliquota_pct": 15.0},
+      {"prazo_minimo_anos": 10, "aliquota_pct": 10.0}
+    ],
+    "tabela_progressiva_ref": "Mesma tabela IRPF acima — escolha do regime no resgate é definitiva."
   },
 
   "das_simples": {
-    "_comment": "Alíquota efetiva estimada do DAS (Simples Nacional) sobre faturamento PJ. Varia por faixa; 6% é a estimativa corrente.",
-    "aliquota_efetiva_pct": 6.0
+    "_comment": "Alíquota efetiva DAS (Simples Nacional) Anexo V sobre faturamento PJ. Depende de RBT12 (receita bruta acumulada 12 meses) E Fator R (folha/receita). Se Fator R ≥ 28%, ativos serviços recolhem como Anexo III (alíquotas iniciam ~6%). Valor abaixo é estimativa para Anexo V típico de TI/consultoria com Fator R ≥ 28% e RBT12 ≤ R$ 360k.",
+    "aliquota_efetiva_pct": 6.0,
+    "_calcular_realmente": "Para cálculo preciso, usar tabela completa Anexo V/III com RBT12 da empresa. Família atual com PJ no escopo dessa parametrização."
   }
 }
