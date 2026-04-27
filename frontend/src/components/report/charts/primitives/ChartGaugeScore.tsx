@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  type GaugePalette,
+  type ScoreClasseKey,
+  resolveGaugeScorePalette,
+} from "./gaugeScorePalette";
 
-export type ScoreClasseKey =
-  | "pessimo"
-  | "ruim"
-  | "regular"
-  | "bom"
-  | "excelente"
-  | "critico";
+export type { ScoreClasseKey };
 
 export interface ChartGaugeScoreProps {
   /** Valor 0..max. */
@@ -26,31 +25,6 @@ export interface ChartGaugeScoreProps {
   readonly "data-testid"?: string;
 }
 
-const SEGMENT_TOKENS: readonly ScoreClasseKey[] = [
-  "pessimo",
-  "ruim",
-  "regular",
-  "bom",
-  "excelente",
-];
-
-const FALLBACK_COLORS: Record<ScoreClasseKey, string> = {
-  pessimo: "#DC2640",
-  ruim: "#F0924A",
-  regular: "#F5BF2F",
-  bom: "#6EDBA0",
-  excelente: "#22B566",
-  critico: "#B91C1C",
-};
-
-interface GaugePalette {
-  readonly segments: readonly string[];
-  readonly tickLabel: string;
-  readonly tickStroke: string;
-  readonly needle: string;
-  readonly hubInner: string;
-}
-
 interface DrawArgs {
   readonly cssW: number;
   readonly cssH: number;
@@ -58,44 +32,40 @@ interface DrawArgs {
   readonly palette: GaugePalette;
 }
 
-function readVar(name: string, fallback: string): string {
-  if (typeof document === "undefined") return fallback;
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v || fallback;
+function drawArcSegment(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  outerR: number,
+  innerR: number,
+  startA: number,
+  endA: number,
+  fill: string,
+): void {
+  ctx.beginPath();
+  ctx.arc(cx, cy, outerR, startA, endA);
+  ctx.arc(cx, cy, innerR, endA, startA, true);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
 }
 
-function resolvePalette(): GaugePalette {
-  return {
-    segments: SEGMENT_TOKENS.map((k) =>
-      readVar(`--score-classe-${k}`, FALLBACK_COLORS[k]),
-    ),
-    tickLabel: readVar("--surface-muted-foreground", "#94A3B8"),
-    tickStroke: readVar("--surface-border", "#CBD5E1"),
-    needle: readVar("--brand-primary", "#1A2E44"),
-    hubInner: readVar("--surface-card", "#FFFFFF"),
-  };
-}
-
-function drawArc(ctx: CanvasRenderingContext2D, cx: number, cy: number, outerR: number, palette: GaugePalette): void {
-  const thickness = outerR * 0.28;
-  const innerR = outerR - thickness;
-  const gap = 0.02;
-  const segCount = palette.segments.length;
-  const totalArc = Math.PI - gap * (segCount - 1);
-  const segArc = totalArc / segCount;
-  ctx.save();
+function applyArcShadow(ctx: CanvasRenderingContext2D): void {
   ctx.shadowColor = "rgba(0,0,0,0.08)";
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 4;
+}
+
+function drawArc(ctx: CanvasRenderingContext2D, cx: number, cy: number, outerR: number, palette: GaugePalette): void {
+  const innerR = outerR - outerR * 0.28;
+  const gap = 0.02;
+  const segCount = palette.segments.length;
+  const segArc = (Math.PI - gap * (segCount - 1)) / segCount;
+  ctx.save();
+  applyArcShadow(ctx);
   for (let i = 0; i < segCount; i++) {
     const startA = Math.PI + i * (segArc + gap);
-    const endA = startA + segArc;
-    ctx.beginPath();
-    ctx.arc(cx, cy, outerR, startA, endA);
-    ctx.arc(cx, cy, innerR, endA, startA, true);
-    ctx.closePath();
-    ctx.fillStyle = palette.segments[i];
-    ctx.fill();
+    drawArcSegment(ctx, cx, cy, outerR, innerR, startA, startA + segArc, palette.segments[i]);
   }
   ctx.restore();
 }
@@ -120,29 +90,55 @@ function drawTicks(ctx: CanvasRenderingContext2D, cx: number, cy: number, outerR
   ctx.restore();
 }
 
-function drawNeedle(ctx: CanvasRenderingContext2D, cx: number, cy: number, outerR: number, fraction: number, palette: GaugePalette): void {
-  const needleAngle = Math.PI + fraction * Math.PI;
-  const needleLen = outerR * 0.92;
+function drawNeedleTriangle(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  outerR: number,
+  fraction: number,
+  fill: string,
+): void {
+  const angle = Math.PI + fraction * Math.PI;
+  const len = outerR * 0.92;
   const baseW = 3.5;
-  const nx = cx + Math.cos(needleAngle) * needleLen;
-  const ny = cy + Math.sin(needleAngle) * needleLen;
-  const perpAngle = needleAngle + Math.PI / 2;
-  ctx.save();
+  const perp = angle + Math.PI / 2;
   ctx.beginPath();
-  ctx.moveTo(nx, ny);
-  ctx.lineTo(cx + Math.cos(perpAngle) * baseW, cy + Math.sin(perpAngle) * baseW);
-  ctx.lineTo(cx - Math.cos(perpAngle) * baseW, cy - Math.sin(perpAngle) * baseW);
+  ctx.moveTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+  ctx.lineTo(cx + Math.cos(perp) * baseW, cy + Math.sin(perp) * baseW);
+  ctx.lineTo(cx - Math.cos(perp) * baseW, cy - Math.sin(perp) * baseW);
   ctx.closePath();
-  ctx.fillStyle = palette.needle;
+  ctx.fillStyle = fill;
   ctx.fill();
+}
+
+function drawNeedleHub(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  outer: string,
+  inner: string,
+): void {
   ctx.beginPath();
   ctx.arc(cx, cy, 7, 0, Math.PI * 2);
-  ctx.fillStyle = palette.needle;
+  ctx.fillStyle = outer;
   ctx.fill();
   ctx.beginPath();
   ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
-  ctx.fillStyle = palette.hubInner;
+  ctx.fillStyle = inner;
   ctx.fill();
+}
+
+function drawNeedle(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  outerR: number,
+  fraction: number,
+  palette: GaugePalette,
+): void {
+  ctx.save();
+  drawNeedleTriangle(ctx, cx, cy, outerR, fraction, palette.needle);
+  drawNeedleHub(ctx, cx, cy, palette.needle, palette.hubInner);
   ctx.restore();
 }
 
@@ -177,27 +173,36 @@ function useThemeKey(): number {
   return key;
 }
 
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+function startEasedAnimation(
+  durationMs: number,
+  onProgress: (p: number) => void,
+): () => void {
+  let raf = 0;
+  const start = performance.now();
+  const tick = (now: number) => {
+    const t = Math.min(1, (now - start) / durationMs);
+    onProgress(1 - Math.pow(1 - t, 3));
+    if (t < 1) raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(raf);
+}
+
 function useNeedleAnimation(value: number, max: number): number {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
-    const reduceMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduceMotion) {
+    if (prefersReducedMotion()) {
       setProgress(1);
       return;
     }
-    let raf = 0;
-    const start = performance.now();
-    const duration = 600;
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setProgress(eased);
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return startEasedAnimation(600, setProgress);
   }, [value, max]);
   return progress;
 }
@@ -231,7 +236,7 @@ export function ChartGaugeScore({
     const draw = () => {
       const cssW = wrapper.clientWidth;
       const cssH = cssW * (1.1 / 2);
-      drawGauge(canvas, { cssW, cssH, fraction, palette: resolvePalette() });
+      drawGauge(canvas, { cssW, cssH, fraction, palette: resolveGaugeScorePalette() });
     };
     draw();
     const ro = new ResizeObserver(draw);
