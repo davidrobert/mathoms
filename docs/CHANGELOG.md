@@ -6,9 +6,9 @@
 
 ## [Unreleased]
 
-Trabalho em andamento: preparação para **F7 (Produção + LGPD + Ops)** +
+Trabalho em andamento: **Sprint A7 — Config DB Cutover** (aberto 2026-04-26) +
 execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)** (rename de stages F9) +
-**Sprint A7 — Config DB Cutover** (aberto 2026-04-26).
+preparação para **F7 (Produção + LGPD + Ops)**.
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
@@ -74,6 +74,39 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
   `25003003442` (job `73218060762`, conclusion=success). Refs:
   [REPORT_PREMIUM_PLAN.md §11.1](REPORT_PREMIUM_PLAN.md) ·
   [track_report_v2.md §3 v2.10](agent_prompts/track_report_v2.md).
+
+- **Auditoria multi-agente 2 rodadas — drift cleanup + unificação metodológica ✅ (2026-04-27):**
+  Auditoria executada por 3 especialistas (senior-cto + product-designer + financial-planner)
+  em duas rodadas (~150 itens). Entregas em 3 commits:
+  - **`ae67141`** — drift técnico pós-ADR-129/131/A6c + sincronização Sprint A6→A7 (16 fixes em 15 arquivos):
+    endpoint `/full`→`/data` em RUNBOOK; `analysis_json_path`→`analysis_artifact_id` em
+    ARCHITECTURE/PIPELINE_ARTIFACTS (ADR-131); `POST /api/pipeline/run`→`/api/v1/pipeline/runs`
+    em ARCHITECTURE; ADR-076→ADR-078 em refs (4×); 32 anchor links broken corrigidos em DECISIONS;
+    SMOKE_TEST §5 e SMOKE_TEST_HUMAN A3.5 reescritos sem iframe/HTML/E6; CANONICAL_ENGINE_P0 +
+    P1_STRUCTURAL_PLAN sem refs E6; SETUP `_scratch`→`dev/`; BACKLOG F8 Growth→F10 Growth;
+    Sprint A7 marcada como atual; senior-cto.md briefing ADRs 076–latest; TESTING.md
+    bullets MaterializationBridge marcados como histórico (A6c).
+  - **`ea22837`** — unificação metodológica (17 arquivos, +862/-106; **batch2.1 ✅**):
+    Score Financeiro com fonte única em `scoring.json` (escala 0-10, 5 critérios com fontes
+    Perini/Cerbasi/AUVP); `methodology.md §SCORE` reescrito como referência ao JSON;
+    `methodology_template.md` reescrito sem componente fantasma. Reserva de emergência
+    canônica em `FORMULAS.md` + `methodology.md §RESERVA` + `scoring.json:reserva_emergencia`
+    com `_definicao` + `_base_calculo` (custo essencial trimestral, meses_alvo por perfil de renda).
+    Composição patrimonial: cat_5 sempre presente, dois conceitos de investível
+    (financeiro vs total + efetivo via toggle `imoveis_no_if`); `goal.if.schema.json` v1→v2
+    com `renda_passiva_atual_mensal_brl` + `if_meta_bruta_brl/liquida_brl`;
+    `goal.alocacao_alvo.v2.schema.json` criado (7 classes AUVP + KPI desvio).
+    AUVP corretamente caracterizada (Diagrama do Cerrado + rebalanceamento por aporte).
+    `categorization.json` ABDO MOHAMED → saúde + `_keyword_collisions` documenta risco EINSTEIN.
+    `COPY_GUIDELINES.md` reescrito (12 seções, glossário 28 termos, decisão IF graduada,
+    formato monetário, anti-padrões); pointers em `report_spec.md` + `methodology.md` + `I18N_PLAN.md`.
+    `agent_prompts/README.md` reforça fonte única de status no BACKLOG.
+  - **(este commit)** — fixes de regressão da rodada 2:
+    `methodology.md:119` `analysis_json_path` → `Report.analysis_artifact_id` (drift introduzido em ea22837);
+    `methodology.md:161` `score.py` → `financial_score_calculator.py` (drift idem);
+    `definitions.md` validação `if_gap` corrigida (era falsa acima da meta — `MAX(0, ...)`);
+    invariante anti-dupla-contagem documentada para `imoveis_no_if` × `renda_passiva_atual`.
+    BACKLOG marca `batch2.1 — Expandir FORMULAS.md` como ✅ (era ☐).
 
 - **CI fix — Vitest hang em `ReceitaDespesaMensalChart.test.tsx` ✅ (2026-04-27):**
   Conserto definitivo do hang que cancelou o CI Frontend Vitest em 10min

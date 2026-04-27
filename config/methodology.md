@@ -116,7 +116,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 ### Renderização do relatório (pós-[ADR-129](../docs/DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side))
 - **Objetivo:** Apresentar todas as análises em relatório consultivo completo.
-- **Renderer único:** rota React `/reports/[id]` no frontend Next.js, consumindo `GET /reports/{id}/data` (E5 JSON via `analysis_json_path`). 100% determinístico — sem LLM no render.
+- **Renderer único:** rota React `/reports/[id]` no frontend Next.js, consumindo `GET /reports/{id}/data` (E5 JSON via `Report.analysis_artifact_id` — FK para `pipeline_artifacts`, [ADR-131](../docs/DECISIONS.md#adr-131--report-referencia-pipeline_artifact-por-fk-drop-analysis_json_path)). 100% determinístico — sem LLM no render.
 - **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com dados + narrativas + refinamentos do E7).
 - **Export server-side:** PDF via Playwright (`backend/app/services/pdf_renderer.py`) sobre a mesma rota — único export server-side.
 - **Stages E6 / E6-final removidos:** o pipeline não gera mais HTML standalone. Re-renders após E7 são automáticos (a rota lê o E5 JSON atualizado).
@@ -158,7 +158,7 @@ score = Σ(componente_i × peso_i) / Σ(peso_i)
 - Endividamento mede comprometimento mensal de renda com dívida onerosa,
   excluindo financiamento imobiliário em quitação programada.
 
-Detalhes de implementação: `pipeline/domain/services/score.py` e `e5_analyze.py`.
+Detalhes de implementação: `pipeline/domain/services/financial_score_calculator.py` e `scripts/e5_analyze.py`.
 
 > Decisões 2026-04-27 que consolidaram o score:
 > (i) `scoring.json` é fonte única; `methodology.md` e `methodology_template.md` apenas referenciam.

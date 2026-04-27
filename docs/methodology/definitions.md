@@ -488,7 +488,8 @@ goals.if_gap = MAX(0, if_meta_liquida − investivel_efetivo)
 - `SUM(percentuais) == 100,0%`
 - `investivel_total < bruto`
 - `investivel_financeiro ≤ investivel_total`
-- `if_gap + investivel_efetivo == if_meta_liquida`
+- `if_gap == MAX(0, if_meta_liquida − investivel_efetivo)` (acima da meta, `if_gap = 0` e `investivel_efetivo > if_meta_liquida` — invariante de soma vira inválida)
+- **Anti-dupla-contagem (ADR-142):** se `pipeline.json:patrimonio_composicao.imoveis_no_if = true`, então `goal.if.inputs.renda_passiva_atual_mensal_brl` **deve excluir aluguéis líquidos** (já contabilizados via cat_2 no investível efetivo). Se `imoveis_no_if = false`, aluguéis líquidos **devem** entrar em `renda_passiva_atual` para descontar do alvo. Nunca os dois ao mesmo tempo.
 
 ---
 
