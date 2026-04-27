@@ -3,6 +3,10 @@
 > Histórico de decisões técnicas com contexto, alternativas e consequências.
 >
 > **Quando adicionar uma ADR:** toda vez que uma decisão não-trivial é tomada (escolha de tecnologia, padrão arquitetural, trade-off). ADRs são imutáveis — se uma decisão muda, adicione uma nova ADR que a substitua (ref: "Supersedes ADR-NNN").
+>
+> **Convenção de numeração:** novas ADRs usam apenas `ADR-NNN` (3 dígitos zero-padded). Os sufixos `-TQ` (`ADR-029-TQ`) e `-WS` (`ADR-030-WS`) são **históricos** — registraram decisões paralelas escritas no mesmo dia que ADR-029/ADR-030, antes da convenção numérica única. Não criar novos sufixos; em caso de decisão paralela, alocar o próximo `ADR-NNN` livre.
+>
+> **Gaps de numeração** (atualmente: 004, 008-012, 036, 048-049 — confira via `grep -E '^## ADR-[0-9]+' docs/DECISIONS.md`) refletem ADRs nunca formalizadas; não preencher retroativamente.
 
 ---
 

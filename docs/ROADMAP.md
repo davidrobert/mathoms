@@ -2,8 +2,8 @@
 
 > Visão de alto nível das fases do projeto. Atualizar mensalmente ou ao mudar de fase.
 >
-> **Última atualização:** 2026-04-24
-> **Fase atual:** F9 concluída • **Sprint transversal A6**: Onda 2 ✅ (A6e.3/.4/.5/.events · A6f.1) + A6b.flip ✅ (ADR-118) + A6-ux.livestep ✅ (ADR-119) + A6-readers.dbfirst ✅ (ADR-120) + A6g.3b ✅ + A6g.6/6b ✅ + A6g.7 ✅; A6g.3 em rodada final • **Report Premium UI**: 10/10 fases úteis ✅ (F0-F10 em `main`); Fases 11/12/13 **canceladas** via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side); execução `adr-129-e6-kill` em curso • **F7F-Local**: MVP fechado (ADR-116) • Status de sessão + lanes abertas em [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) (fonte única) • F7 (Produção + LGPD + Ops) agendada após A6g.3 final + `adr-129-e6-kill`.
+> **Última atualização:** 2026-04-27
+> **Fase atual:** **Sprint A7 — Config DB Cutover** 🚧 (A7.0 ✅ mergeada 2026-04-26 · A7.1 🚧 em andamento · A7.2a/2b/4 ☐ destravadas; plano em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md), 4 ondas, supervisão CTO via [ADR-138](DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7)) • **Sprint A6** ✅ encerrado (Onda 2 ✅ + A6b.flip ✅ ADR-118 + A6-ux.livestep ✅ ADR-119 + A6-readers.dbfirst ✅ ADR-120 + A6g.3 ✅ + A6g.3b ✅ + A6g.6/6b ✅ + A6g.7 ✅) • **F9 (stage rename)** parcial: F9.1 ✅ + F9.2 T1 ✅ (2026-04-25) + F9.2a-e ✅; F9.3 (Alembic massa) / F9.4 / F9.5 / F9.6 pendentes (janela compat até F9.6) • **Report Premium UI v1**: 10/10 fases úteis ✅ (F0-F10 em `main`); Fases 11/12/13 **canceladas** via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side); `adr-129-e6-kill` ✅ 2026-04-25; **v2 §17** 🚧 em ondas (E ✅ 8/8 + F ✅ 5/5 — restantes em [BACKLOG.md › Report Premium UI v2](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)) • **F7F-Local**: MVP fechado (ADR-116) • Status de sessão + lanes abertas em [BACKLOG §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal) (fonte única) • F7 (Produção + LGPD + Ops) agendada após A7 cutover + F9 cleanup.
 
 ---
 

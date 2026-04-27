@@ -24,6 +24,7 @@ inteiro.
 | A6e.events Domain events tipados (ADR-101 R17) — ex-`A6e.6` | [track_a6e_events_domain_events.md](track_a6e_events_domain_events.md) | 2 | `agent/a6e-events/*` |
 | A6g.6 Enforcement automatizado (Ruff + ESLint + pre-commit + testes AST) | [track_a6g6_enforcement.md](track_a6g6_enforcement.md) | 3 | `agent/a6g6-enforcement/*` |
 | A6g.3 Backend Python code style sweep (services, repos, models, schemas) | [track_a6g3_backend_style_sweep.md](track_a6g3_backend_style_sweep.md) | 3 | `agent/a6g3-backend-style/*` |
+| A6g.3b Decimal money migration (`float` BRL/USD → `Decimal`) | [track_a6g3b_decimal_money_migration.md](track_a6g3b_decimal_money_migration.md) | 3 | `agent/a6g3b-decimal-money/*` |
 | F7F-Local Console interno pré-produção (IA-0) — UI Next separada + anonimização + auth yaml | [track_f7f_local.md](track_f7f_local.md) | 3 (Lane C6, independente de 7A/B/C) | `agent/f7f-local/*` |
 | F9.0 Audit referências legadas + exhaustividade `STAGE_RENAME_MAP` | [track_f9_0_audit.md](track_f9_0_audit.md) | F9 (1/7) | `agent/f9-stage-rename/0-audit/*` |
 | F9.1 `git mv pipeline/stages/e*.py` → descritivos | [track_f9_1_pipeline_stages_rename.md](track_f9_1_pipeline_stages_rename.md) | F9 (2/7) | `agent/f9-stage-rename/1-pipeline-stages/*` |
