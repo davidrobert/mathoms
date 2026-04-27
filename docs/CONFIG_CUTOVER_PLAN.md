@@ -1,6 +1,6 @@
 # Plano — Cutover de `config/` para DB multi-tenant (Sprint A7)
 
-> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 começou (A7.1 ✅, A7.2a/A7.2b/A7.4 abertas) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
+> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 progredindo (A7.1 ✅, A7.4 ✅, A7.2a/A7.2b abertas) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
 > **Audiência:** agentes LLM em paralelo (Onda 2 com até 4 agentes simultâneos) + supervisor CTO (humano ou agente `senior-cto`).
 > **Premissa central:** o produto **continua operando em produção** entre cada onda. Nenhum passo pode quebrar smoke E2E ou bloquear geração de relatório de workspace existente.
 > **Referências:** [BACKLOG.md §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal), [DECISIONS.md ADR-134..138](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [CLAUDE.md §Regras críticas](../CLAUDE.md#regras-críticas-invariantes-do-repositório).
@@ -427,6 +427,15 @@ Cada lane fecha com PR atômico, mergeada via fast-forward em `main`. Rollback =
 
 ### §5.4 A7.4 — Documentação metodológica → `docs/methodology/`
 
+**✅ Entregue 2026-04-27** — branch `agent/a7-4-methodology-docs/20260427-1151`,
+5 commits. `docs/methodology/{definitions,regras_composicao_patrimonial,source_hierarchy,milhas}.md`
++ `README.md` index. `CONFIG_MILHAS` em `scripts/e5_analyze.py` repointado
+para o novo path (único arquivo *parseado* em runtime). Cross-doc refs
+atualizados em `CLAUDE.md`, `.claude/agents/financial-planner.md`,
+`docs/{COPY_GUIDELINES,REPORT_PREMIUM_PLAN,ARCHITECTURE}.md`,
+`config/report_spec.md`, `backend/tests/test_config_materializer.py`.
+4 paths antigos bloqueados em `dev/{check_forbidden_paths,commit}.py`.
+
 **Paralelo a tudo · 1 lane · ~1 sessão · não depende de nada.**
 
 **Objetivo:** mover documentação humana de produto para `docs/methodology/`, removê-la de `config/`. Atualiza referências de comentário em `scripts/e5_analyze.py`/`e7_review.py` que apontam para `config/<file>.md`.
@@ -623,7 +632,7 @@ Em caso de regressão silenciosa detectada pós-merge (>24h):
 - [ ] A7.2a Decision aggregate mergeada + ADR-136 ✅ + `decisions.md` removido
 - [ ] A7.2b Tabelas globais fiscal/market mergeadas + ADR-135 ✅ + `parametros_fiscais.json` + `taxas.json` removidos
 - [ ] A7.3 Catalog + override mergeada + ADR-137 ✅ + `categorization.json` + `institutions.json` removidos
-- [ ] A7.4 Metodologia movida para `docs/methodology/` + 4 arquivos removidos de `config/`
+- [x] A7.4 Metodologia movida para `docs/methodology/` + 4 arquivos removidos de `config/`
 - [ ] A7.5 Cleanup mergeada — `config/` deletado, `FileConfigStore` removido, `materialize_config` removido
 - [ ] CHANGELOG entrada [Sprint A7 ✅] com data de fechamento
 - [ ] `dev/check_forbidden_paths.py` proíbe `config/*`
