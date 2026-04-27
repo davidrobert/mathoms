@@ -146,13 +146,14 @@ export const LAYOUT: ReportLayout = {
     "badge": "Relatório Premium",
     "meta": [
       {
-        "label_key": "Período analisado"
+        "label_key": "Família",
+        "conditional_on": "workspace_family_surname"
+      },
+      {
+        "label_key": "Período"
       },
       {
         "label_key": "Gerado em"
-      },
-      {
-        "label_key": "Documentos"
       },
       {
         "label_key": "Versão"
