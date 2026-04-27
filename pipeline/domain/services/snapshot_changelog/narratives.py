@@ -6,20 +6,41 @@ from decimal import Decimal
 
 from pipeline.domain.types.snapshot_changelog import ComparisonItem
 
-# Débito v2.D.1.1 (BACKLOG): product-designer revisa cópia antes de v2.8 flipar YAML.
-TEMPLATES: dict[str, str] = {
-    "up": "{section_label} cresceu {pct_str} desde o relatório anterior",
-    "down": "{section_label} caiu {pct_str} desde o relatório anterior",
-    "stable": "{section_label} permanece estável desde o relatório anterior",
-    "from_zero": "{section_label} passou a registrar valor (antes zero, agora {after_brl})",
-    "to_zero": "{section_label} zerou desde o relatório anterior",
-    "both_zero": "{section_label} permanece em zero",
+# Templates por (delta_signal/cenário) × (polaridade da seção).
+# Polaridade: "asset" = mais é melhor (S1, S2, S3, T2)
+#             "expense" = mais não é necessariamente melhor (T5)
+# Verbos neutros ("subiu/recuou/avançou") evitam viés em despesas;
+# variação na cauda temporal evita repetição em listas longas.
+
+SECTION_POLARITY: dict[str, str] = {
+    "S1": "asset",
+    "S2": "asset",
+    "S3": "asset",
+    "T2": "asset",
+    "T5": "expense",
+}
+
+TEMPLATES: dict[tuple[str, str], str] = {
+    ("up", "asset"): "{section_label} avançou {pct_str} no mês",
+    ("up", "expense"): "{section_label} subiu {pct_str} no mês",
+    ("down", "asset"): "{section_label} recuou {pct_str} no mês",
+    ("down", "expense"): "{section_label} recuou {pct_str} no mês",
+    ("stable", "asset"): "{section_label} sem variação relevante no mês",
+    ("stable", "expense"): "{section_label} sem variação relevante no mês",
+    ("from_zero", "asset"): "{section_label} passou a registrar {after_brl} (antes sem valor)",
+    ("from_zero", "expense"): "{section_label} passou a registrar {after_brl} (antes sem valor)",
+    ("to_zero", "asset"): "{section_label} zerou neste relatório",
+    ("to_zero", "expense"): "{section_label} zerou neste relatório",
+    ("both_zero", "asset"): "{section_label} segue sem valor registrado",
+    ("both_zero", "expense"): "{section_label} segue sem valor registrado",
 }
 
 
 def format_summary(item: ComparisonItem) -> str:
     """Render de `ChangelogEntry.summary` por template determinístico."""
-    template = TEMPLATES[_select_template(item)]
+    template_key = _select_template(item)
+    polarity = SECTION_POLARITY.get(item.section_id, "asset")
+    template = TEMPLATES[(template_key, polarity)]
     return template.format(
         section_label=item.section_label,
         pct_str=_format_pct(item.delta_pct),
@@ -64,4 +85,4 @@ def _group_thousands(int_str: str) -> str:
     return ".".join(reversed(chunks))
 
 
-__all__ = ["TEMPLATES", "format_summary"]
+__all__ = ["SECTION_POLARITY", "TEMPLATES", "format_summary"]

@@ -86,7 +86,7 @@ def test_cenario_2_delta_acima_threshold():
     assert item.delta_pct == Decimal("5.00")
     assert len(result.entries) == 1
     assert result.entries[0].section_id == "S1"
-    assert "cresceu" in result.entries[0].summary
+    assert "avançou" in result.entries[0].summary
     assert "5,0%" in result.entries[0].summary
 
 
@@ -115,7 +115,7 @@ def test_cenario_4_delta_negativo():
     result = build_comparison(prev, curr, config)
     assert result.items[0].delta_signal == "down"
     assert result.items[0].delta_pct == Decimal("-3")
-    assert "caiu" in result.entries[0].summary
+    assert "recuou" in result.entries[0].summary
     assert "3,0%" in result.entries[0].summary
 
 
@@ -152,8 +152,8 @@ def test_cenario_6_from_zero():
     assert item.delta_signal == "up"
     assert item.delta_pct is None
     entry = result.entries[0]
-    assert "passou a registrar valor" in entry.summary
-    assert "antes zero" in entry.summary
+    assert "passou a registrar" in entry.summary
+    assert "antes sem valor" in entry.summary
     assert "R$ 2.500,00" in entry.summary
 
 
@@ -169,7 +169,7 @@ def test_cenario_7_to_zero():
     item = result.items[0]
     assert item.delta_signal == "down"
     assert item.delta_pct is None
-    assert "zerou desde o relatório anterior" in result.entries[0].summary
+    assert "zerou neste relatório" in result.entries[0].summary
 
 
 # ---------- Cenário 8: both zero → stable, delta_pct=0 ----------
@@ -185,6 +185,46 @@ def test_cenario_8_both_zero():
     assert item.delta_signal == "stable"
     assert item.delta_pct == Decimal("0")
     assert result.entries == ()
+
+
+# ---------- Cenário 9: polaridade expense (T5) usa "subiu", não "avançou" ----------
+
+
+def test_cenario_9_expense_polarity_t5_usa_subiu():
+    """T5 (despesas) com delta up usa verbo neutro "subiu" — trava regressão de viés."""
+    prev = _make_snapshot(
+        period="202603",
+        content={
+            "patrimonio": {"liquido": 0, "bruto": 0},
+            "fluxo_caixa": {
+                "receita_total": 0,
+                "despesa_total": 1000,
+                "investimentos_total": 0,
+            },
+        },
+    )
+    curr = _make_snapshot(
+        period="202604",
+        content={
+            "patrimonio": {"liquido": 0, "bruto": 0},
+            "fluxo_caixa": {
+                "receita_total": 0,
+                "despesa_total": 1100,
+                "investimentos_total": 0,
+            },
+        },
+    )
+    config = SnapshotChangelogConfig(
+        sections_to_compare=("T5",),
+        section_labels={"T5": "Despesas Totais"},
+    )
+    result = build_comparison(prev, curr, config)
+    assert result.items[0].section_id == "T5"
+    assert result.items[0].delta_signal == "up"
+    assert result.items[0].delta_pct == Decimal("10.00")
+    summary = result.entries[0].summary
+    assert "subiu" in summary
+    assert "avançou" not in summary
 
 
 # ---------- Defesa: section_id desconhecido ----------
