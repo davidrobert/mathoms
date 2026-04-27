@@ -26,6 +26,20 @@
 # Para aplicar: o codegen (dev/codegen_report_layout.py) gera tipos para
 # o renderer React (frontend/src/generated/report-layout.ts) e backend
 # (backend/app/generated/report_layout.py) a partir deste arquivo.
+#
+# TRÊS NÚMEROS DE VERSÃO COEXISTEM (não confundir):
+#   1. `version` (abaixo, "1.2")          — schema do PRÓPRIO YAML; bump
+#                                            quando shape do layout muda
+#                                            (campos novos, breaks de codegen).
+#   2. `version_fallback` (no fim, "v5.3") — fallback do meta-card "Versão"
+#                                            da capa; ReportShell prefere
+#                                            `pkg.version` (package.json).
+#                                            Mantido por segurança ofline.
+#   3. `report_version` em config/pipeline.json ("6.1") — identificador
+#                                            do TEMPLATE de relatório que o
+#                                            E5 emite no JSON (não relacionado
+#                                            ao layout YAML). Bump quando
+#                                            mudam seções/charts produzidos.
 # ==============================================================================
 
 version: "1.2"
@@ -280,6 +294,14 @@ estrategico:
           enabled: true
           conclusion: true
       cards: []
+
+    # --------------------------------------------------------------------------
+    # NOTA — IDs S5 e S6 não existem por design.
+    # No protótipo histórico (`EXEMPLO_DE_RELATORIO.html`) S5/S6 cobriam
+    # contexto USA; em 2026-04-26 (lane v2.3) decidiu-se migrá-los para
+    # U1/U2 do modo USA (ver app_b/U1/U2 abaixo + REPORT_PREMIUM_PLAN.md
+    # §17.5). IDs S5/S6 ficam reservados/queimados — não reciclar.
+    # --------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------
     # S7 — Independência Financeira

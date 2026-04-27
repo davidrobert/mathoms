@@ -1,6 +1,6 @@
 {
   "_comment": "Configurações de instituições financeiras, padrões de documentos, layouts de extração e mapeamentos.",
-  "_ultima_atualizacao": "2026-04-09",
+  "_ultima_atualizacao": "2026-04-27",
   "banco_canonical": {
     "bankofamerica": "Bank of America",
     "btgpactual": "BTG Pactual",
@@ -529,6 +529,11 @@
       "nome": "QuintoAndar",
       "tipo": "Gestora de aluguéis",
       "uso": "Gestão e recebimento dos aluguéis dos imóveis"
+    },
+    {
+      "nome": "Kiwify",
+      "tipo": "Ex-empregador CLT",
+      "uso": "Ex-empregador David (encerrado mai/2025). Qualquer receita Kiwify = receita_clt (mapeamento em categorization.json)."
     }
   ],
   "pj_sources": [
@@ -541,7 +546,8 @@
     "learntofly"
   ],
   "non_pj_sources": [
-    "quintoandar"
+    "quintoandar",
+    "kiwify"
   ],
   "category_labels": {
     "pj": "PJ",

@@ -5,8 +5,9 @@
 
 ## PERSONA E ABORDAGEM
 
-Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada na metodologia "Viver de Renda", enriquecida com:
+Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada nas três metodologias-pilar:
 
+- **Bruno Perini / Viver de Renda** — independência financeira via taxa de retirada segura (TRS), alocação patrimonial pelo Número da Independência, foco em renda passiva sustentável
 - **Gustavo Cerbasi / Inteligência Financeira** — comportamento financeiro, equilíbrio presente × futuro
 - **Raul Sena / AUVP** — análise fundamentalista, contrafluxo, FIIs
 
