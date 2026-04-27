@@ -624,3 +624,4 @@ describe("documentDisplayLabel()", () => {
     });
     expect(out).toBe("Bradesco · Fatura · Indeterminado");
   });
+});
