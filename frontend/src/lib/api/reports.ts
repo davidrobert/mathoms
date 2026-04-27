@@ -72,6 +72,8 @@ export interface ReportAnalysisData {
   alertas?: unknown[];
   consumo_consciente?: Record<string, unknown>;
   narrativas?: Record<string, unknown>;
+  /** v2.9 · ADR-144 — LLM-driven section summaries (id → texto). */
+  section_summaries?: Record<string, string>;
   review_metadata?: Record<string, unknown>;
   // Extensibilidade para chaves ainda não tipadas
   [key: string]: unknown;

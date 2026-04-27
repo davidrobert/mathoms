@@ -98,6 +98,35 @@ describe("deriveSectionSummary()", () => {
   it("Seção desconhecida retorna null", () => {
     expect(deriveSectionSummary("SXX", {} as ReportAnalysisData)).toBeNull();
   });
+
+  // v2.9 · ADR-144 — prefer-snapshot LLM section summaries
+  it("usa snapshot.section_summaries[id] quando presente (LLM)", () => {
+    const data = {
+      patrimonio: { liquido: 1_200_000 },
+      section_summaries: {
+        S1: "Resumo gerado por LLM com contexto narrativo.",
+      },
+    } as unknown as ReportAnalysisData;
+    expect(deriveSectionSummary("S1", data)).toBe(
+      "Resumo gerado por LLM com contexto narrativo.",
+    );
+  });
+
+  it("cai no template determinístico se snapshot.section_summaries[id] está ausente", () => {
+    const data = {
+      patrimonio: { liquido: 1_200_000 },
+      section_summaries: { S2: "outro id" },
+    } as unknown as ReportAnalysisData;
+    expect(deriveSectionSummary("S1", data)).toMatch(/R\$\s*1\.200\.000/);
+  });
+
+  it("strings vazias/whitespace no LLM caem para template", () => {
+    const data = {
+      patrimonio: { liquido: 1_200_000 },
+      section_summaries: { S1: "   " },
+    } as unknown as ReportAnalysisData;
+    expect(deriveSectionSummary("S1", data)).toMatch(/R\$\s*1\.200\.000/);
+  });
 });
 
 // ─── priorityMap ────────────────────────────────────────────────────

@@ -224,10 +224,22 @@ const SECTION_SUMMARIES: Record<
   APP_E: () => "Histórico de ciclos e próximos passos do roadmap.",
 };
 
+/**
+ * v2.9 · ADR-144 — prefer-snapshot LLM section summaries.
+ *
+ * Se o E5 snapshot tem `section_summaries[sectionId]` (gerado por
+ * SectionSummaryGenerator com LLM), usa direto. Senão cai no template
+ * determinístico abaixo. Fallback continua válido como rede de
+ * segurança quando LLM falha ou está desabilitado.
+ */
 export function deriveSectionSummary(
   sectionId: string,
   data: ReportAnalysisData,
 ): string | null {
+  const llmText = (data.section_summaries as Record<string, string> | undefined)?.[
+    sectionId
+  ];
+  if (llmText && llmText.trim()) return llmText.trim();
   const fn = SECTION_SUMMARIES[sectionId];
   return fn ? fn(data) : null;
 }
