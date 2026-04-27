@@ -48,11 +48,38 @@ class DBConfigStore:
         self._session = session
 
     def get_categorization(self, workspace_id: str) -> Optional[CategorizationConfig]:
-        """``categories`` + ``category_keywords`` rows do workspace."""
-        data = serialize_categorization(workspace_id, self._session)
-        if not data:
-            return None
-        return parse_categorization(data)
+        """Resolver template global + overrides do workspace (A7.3 · ADR-137)."""
+        from backend.app.services.category_resolver import (
+            METADATA_TEMPLATE_KEY,
+            resolve_categories,
+        )
+        from pipeline.domain.types.config import CategoryDef
+
+        try:
+            resolved = resolve_categories(workspace_id, self._session)
+        except Exception:
+            # Fallback A7.5-window: ainda há paridade com legacy ``categories`` table.
+            data = serialize_categorization(workspace_id, self._session)
+            if not data:
+                return None
+            return parse_categorization(data)
+        if not resolved:
+            # Sem template seedada → fallback legado para evitar quebra.
+            data = serialize_categorization(workspace_id, self._session)
+            if not data:
+                return None
+            return parse_categorization(data)
+        del METADATA_TEMPLATE_KEY  # filtrado pelo resolver
+        categories = {
+            c.key: CategoryDef(
+                code=c.key,
+                name=c.label,
+                keywords=c.keywords,
+                monthly_cap_cents=c.monthly_cap_brl_cents,
+            )
+            for c in resolved
+        }
+        return CategorizationConfig(categories=categories, metadata={})
 
     def get_family_members(self, workspace_id: str) -> Optional[FamilyMembersConfig]:
         """``family_members`` + ``bank_accounts`` + ``transfer_configs`` do workspace."""
@@ -63,10 +90,10 @@ class DBConfigStore:
         return parse_family_members(merged)
 
     def get_institutions(self) -> InstitutionsCatalog:
-        """Catálogo global — não é workspace-scoped no DB hoje (ADR-137 split em A7.3)."""
-        # A7.0 ainda lê o blob do primeiro workspace que tenha config customizada,
-        # com fallback para empty. A7.3 introduz ``institution_catalog`` global.
-        return InstitutionsCatalog(institutions={})
+        """Catálogo global via ``institution_catalog`` (A7.3 · ADR-137)."""
+        from backend.app.services.institution_resolver import resolve_institutions
+
+        return resolve_institutions(self._session)
 
     def get_report_layout(self, workspace_id: str) -> Optional[ReportLayout]:
         """``report_layouts`` row do workspace ou ``None``."""

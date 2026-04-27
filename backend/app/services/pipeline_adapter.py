@@ -443,20 +443,68 @@ def _family_members_override(workspace_id: str, db: SyncSession) -> dict[str, An
 
 
 def build_config_overrides_from_db(workspace_id: str, *, db: SyncSession) -> dict[str, Any]:
-    """Pré-serializa configs A7.1 do DB para ``WorkspaceContext.config_overrides`` (ADR-134)."""
-    from backend.app.services.config_materializer import (
-        serialize_categorization,
-        serialize_institution_config,
-        serialize_report_layout,
-    )
+    """Pré-serializa configs A7.1+A7.3 do DB para ``WorkspaceContext.config_overrides``.
+
+    A7.3 (ADR-137): ``categorization.json`` agora vem do resolver
+    (template global + overrides do workspace) + auxiliary metadata
+    (pj_source_mapping, internal_transfer_patterns…) do row reservado.
+    ``institutions.json`` vem do ``institution_catalog`` global.
+    """
+    from backend.app.services.config_materializer import serialize_report_layout
 
     sources: dict[str, Any] = {
         "family_members.json": _family_members_override(workspace_id, db),
-        "categorization.json": serialize_categorization(workspace_id, db),
-        "institutions.json": serialize_institution_config(workspace_id, db),
+        "categorization.json": _categorization_override(workspace_id, db),
+        "institutions.json": _institutions_override(db),
         "report_layout.yaml": serialize_report_layout(workspace_id, db),
     }
     return {k: v for k, v in sources.items() if v is not None}
+
+
+def _categorization_override(
+    workspace_id: str, db: SyncSession
+) -> dict[str, Any] | None:
+    """Resolved categories + auxiliary metadata, no formato consumido por e4_categorize."""
+    from backend.app.services.category_resolver import (
+        get_categorization_metadata,
+        resolve_categories,
+    )
+    from backend.app.services.config_materializer import serialize_categorization
+
+    try:
+        resolved = resolve_categories(workspace_id, db)
+        metadata = get_categorization_metadata(db)
+    except Exception:
+        return serialize_categorization(workspace_id, db)
+    if not resolved:
+        return serialize_categorization(workspace_id, db)
+    expense_keywords: dict[str, list[str]] = {}
+    income_keywords: dict[str, list[str]] = {}
+    for cat in resolved:
+        bucket = (
+            expense_keywords if cat.category_type == "expense" else income_keywords
+        )
+        bucket[cat.key] = list(cat.keywords)
+    payload: dict[str, Any] = {
+        "expense_keywords": expense_keywords,
+        "income_keywords": income_keywords,
+    }
+    payload.update(metadata)
+    return payload
+
+
+def _institutions_override(db: SyncSession) -> dict[str, Any] | None:
+    """Catálogo global → formato ``institutions.json`` (banco_canonical)."""
+    from backend.app.services.institution_resolver import resolve_institutions
+
+    catalog = resolve_institutions(db)
+    if not catalog.institutions:
+        return None
+    return {
+        "banco_canonical": {
+            code: inst.name for code, inst in catalog.institutions.items()
+        }
+    }
 
 
 __all__ = [
