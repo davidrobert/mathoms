@@ -76,6 +76,8 @@ FORBIDDEN_DIRS = (
 FORBIDDEN_FILES = (
     "mathoms.db",
     "config/passwords.txt",
+    # A7.2a (ADR-136): caderno editorial migrou para aggregate Decision.
+    "config/decisions.md",
     # A7.4: docs metodológicas movidas de config/ → docs/methodology/. Bloquear
     # ressurgimento dos paths antigos (regressão acidental ou rebase com conflito).
     "config/definitions.md",

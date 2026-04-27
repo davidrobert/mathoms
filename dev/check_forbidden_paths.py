@@ -36,6 +36,10 @@ FORBIDDEN_FILES = (
     # F7F-Local (ADR-116): credenciais de operadores internos nunca vão
     # para o git. Apenas `config/internal_operators.example.yaml` é commitável.
     "config/internal_operators.yaml",
+    # A7.2a (ADR-136): caderno editorial do cliente migrou para o aggregate
+    # `Decision`. Re-introduzir o arquivo violaria a política PII (valores BRL
+    # reais em git).
+    "config/decisions.md",
     # A7.4: docs metodológicas movidas de config/ → docs/methodology/. Bloquear
     # ressurgimento dos paths antigos (regressão acidental ou rebase com conflito).
     "config/definitions.md",
