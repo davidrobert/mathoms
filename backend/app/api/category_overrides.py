@@ -63,9 +63,7 @@ async def upsert_override(
     db: AsyncSession = Depends(get_db),
 ) -> CategoryResponse:
     """Cria/atualiza override do workspace para a ``template_key`` dada."""
-    return await upsert_category_override(
-        template_key, body, workspace_id=workspace.id, db=db
-    )
+    return await upsert_category_override(template_key, body, workspace_id=workspace.id, db=db)
 
 
 @router.delete(

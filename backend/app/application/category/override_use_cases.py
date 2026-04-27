@@ -26,16 +26,12 @@ from backend.app.services.category_resolver import (
 )
 
 
-async def list_categories_resolved(
-    workspace_id: str, *, db: AsyncSession
-) -> CategoryListResponse:
+async def list_categories_resolved(workspace_id: str, *, db: AsyncSession) -> CategoryListResponse:
     """``GET /categories`` — retorna template + overrides mergeados."""
     resolved = await db.run_sync(
         lambda sync_session: resolve_categories(workspace_id, sync_session)
     )
-    overrides = await WorkspaceCategoryOverrideRepository(db).list_by_workspace(
-        workspace_id
-    )
+    overrides = await WorkspaceCategoryOverrideRepository(db).list_by_workspace(workspace_id)
     override_id_by_key = {ov.template_key: ov.id for ov in overrides}
     items = [
         _resolved_to_response(c, override_id_by_key.get(c.key))
@@ -117,9 +113,7 @@ def _diff_or_none(value: str | None, default: str) -> str | None:
     return value
 
 
-def _keywords_diff(
-    value: list[str] | None, default: tuple[str, ...]
-) -> list[str] | None:
+def _keywords_diff(value: list[str] | None, default: tuple[str, ...]) -> list[str] | None:
     if value is None:
         return None
     if list(value) == list(default):
@@ -136,9 +130,7 @@ def _cap_diff(value: float | None, default: int | None) -> int | None:
     return cents
 
 
-def _resolved_to_response(
-    resolved: ResolvedCategory, override_id: str | None
-) -> CategoryResponse:
+def _resolved_to_response(resolved: ResolvedCategory, override_id: str | None) -> CategoryResponse:
     monthly_cap = (
         float(resolved.monthly_cap_brl_cents) / 100.0
         if resolved.monthly_cap_brl_cents is not None

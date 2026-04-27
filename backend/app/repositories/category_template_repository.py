@@ -24,17 +24,19 @@ class CategoryTemplateRepository:
         """Retorna templates da versão ordenados por ``sort_order, key`` (exclui metadata row)."""
         from backend.app.services.category_resolver import METADATA_TEMPLATE_KEY
 
-        rows = self._session.execute(
-            select(CategoryTemplate)
-            .where(CategoryTemplate.template_version == template_version)
-            .where(CategoryTemplate.key != METADATA_TEMPLATE_KEY)
-            .order_by(CategoryTemplate.sort_order, CategoryTemplate.key)
-        ).scalars().all()
+        rows = (
+            self._session.execute(
+                select(CategoryTemplate)
+                .where(CategoryTemplate.template_version == template_version)
+                .where(CategoryTemplate.key != METADATA_TEMPLATE_KEY)
+                .order_by(CategoryTemplate.sort_order, CategoryTemplate.key)
+            )
+            .scalars()
+            .all()
+        )
         return list(rows)
 
-    def get_by_key(
-        self, *, template_version: int, key: str
-    ) -> Optional[CategoryTemplate]:
+    def get_by_key(self, *, template_version: int, key: str) -> Optional[CategoryTemplate]:
         return self._session.execute(
             select(CategoryTemplate).where(
                 CategoryTemplate.template_version == template_version,

@@ -35,9 +35,7 @@ _TEMPLATE_VERSION = 1
 
 def upgrade() -> None:
     if context.is_offline_mode():
-        op.execute(
-            "-- A7.3 backfill (workspace_category_overrides) skipped in offline mode."
-        )
+        op.execute("-- A7.3 backfill (workspace_category_overrides) skipped in offline mode.")
         return
 
     bind = op.get_bind()
@@ -106,10 +104,7 @@ def _load_template(bind) -> dict[str, dict[str, Any]]:
 def _load_existing_categories(bind) -> list[dict[str, Any]]:
     try:
         result = bind.execute(
-            sa.text(
-                "SELECT id, workspace_id, code, name, monthly_cap "
-                "FROM categories"
-            )
+            sa.text("SELECT id, workspace_id, code, name, monthly_cap " "FROM categories")
         ).fetchall()
     except Exception:
         return []
@@ -117,9 +112,7 @@ def _load_existing_categories(bind) -> list[dict[str, Any]]:
     for r in result:
         cat_id = r[0]
         kw_rows = bind.execute(
-            sa.text(
-                "SELECT keyword FROM category_keywords WHERE category_id = :cid"
-            ),
+            sa.text("SELECT keyword FROM category_keywords WHERE category_id = :cid"),
             {"cid": cat_id},
         ).fetchall()
         rows.append(
@@ -138,26 +131,18 @@ def _load_existing_categories(bind) -> list[dict[str, Any]]:
 def _existing_override_pairs(bind) -> set[tuple[str, str]]:
     try:
         result = bind.execute(
-            sa.text(
-                "SELECT workspace_id, template_key FROM workspace_category_overrides"
-            )
+            sa.text("SELECT workspace_id, template_key FROM workspace_category_overrides")
         ).fetchall()
         return {(r[0], r[1]) for r in result}
     except Exception:
         return set()
 
 
-def _compute_diff(
-    cat: dict[str, Any], tmpl: dict[str, Any]
-) -> dict[str, Any] | None:
+def _compute_diff(cat: dict[str, Any], tmpl: dict[str, Any]) -> dict[str, Any] | None:
     """Retorna ``None`` se categoria == template (sem override necessário)."""
-    label_diff = (
-        cat["name"] if cat["name"] != tmpl["label"] else None
-    )
+    label_diff = cat["name"] if cat["name"] != tmpl["label"] else None
     keywords_diff = (
-        list(cat["keywords"])
-        if list(cat["keywords"]) != list(tmpl["keywords"])
-        else None
+        list(cat["keywords"]) if list(cat["keywords"]) != list(tmpl["keywords"]) else None
     )
     cap_diff = (
         cat["monthly_cap_brl_cents"]

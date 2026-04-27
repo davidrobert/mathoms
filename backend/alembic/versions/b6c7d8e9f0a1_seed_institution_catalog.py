@@ -89,10 +89,7 @@ def _query_existing_codes() -> set[str]:
     try:
         bind = op.get_bind()
         return {
-            r[0]
-            for r in bind.execute(
-                sa.text("SELECT code FROM institution_catalog")
-            ).fetchall()
+            r[0] for r in bind.execute(sa.text("SELECT code FROM institution_catalog")).fetchall()
         }
     except (AttributeError, Exception):
         return set()

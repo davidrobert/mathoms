@@ -35,31 +35,19 @@ class CategoryTemplate(Base):
 
     __tablename__ = "category_templates"
     __table_args__ = (
-        UniqueConstraint(
-            "template_version", "key", name="uq_category_templates_version_key"
-        ),
+        UniqueConstraint("template_version", "key", name="uq_category_templates_version_key"),
     )
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    template_version: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1, index=True
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    template_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, index=True)
     key: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     parent_key: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     label: Mapped[str] = mapped_column(String(120), nullable=False)
     category_type: Mapped[str] = mapped_column(String(10), nullable=False)
-    default_keywords: Mapped[list[str]] = mapped_column(
-        JSON, nullable=False, default=list
-    )
-    default_monthly_cap_brl_cents: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True
-    )
+    default_keywords: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    default_monthly_cap_brl_cents: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    metadata_json: Mapped[dict[str, Any]] = mapped_column(
-        JSON, nullable=False, default=dict
-    )
+    metadata_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -75,14 +63,10 @@ class WorkspaceCategoryOverride(Base):
 
     __tablename__ = "workspace_category_overrides"
     __table_args__ = (
-        UniqueConstraint(
-            "workspace_id", "template_key", name="uq_ws_cat_override_ws_key"
-        ),
+        UniqueConstraint("workspace_id", "template_key", name="uq_ws_cat_override_ws_key"),
     )
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
@@ -91,12 +75,8 @@ class WorkspaceCategoryOverride(Base):
     )
     template_key: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     label_override: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
-    keywords_override: Mapped[Optional[list[str]]] = mapped_column(
-        JSON, nullable=True
-    )
-    monthly_cap_brl_cents_override: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True
-    )
+    keywords_override: Mapped[Optional[list[str]]] = mapped_column(JSON, nullable=True)
+    monthly_cap_brl_cents_override: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     disabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

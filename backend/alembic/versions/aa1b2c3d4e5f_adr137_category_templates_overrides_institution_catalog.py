@@ -43,9 +43,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "template_version", "key", name="uq_category_templates_version_key"
-        ),
+        sa.UniqueConstraint("template_version", "key", name="uq_category_templates_version_key"),
     )
     with op.batch_alter_table("category_templates", schema=None) as batch_op:
         batch_op.create_index(
@@ -53,9 +51,7 @@ def upgrade() -> None:
             ["template_version"],
             unique=False,
         )
-        batch_op.create_index(
-            batch_op.f("ix_category_templates_key"), ["key"], unique=False
-        )
+        batch_op.create_index(batch_op.f("ix_category_templates_key"), ["key"], unique=False)
 
     op.create_table(
         "workspace_category_overrides",
@@ -68,17 +64,11 @@ def upgrade() -> None:
         sa.Column("disabled", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["workspace_id"], ["workspaces.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "workspace_id", "template_key", name="uq_ws_cat_override_ws_key"
-        ),
+        sa.UniqueConstraint("workspace_id", "template_key", name="uq_ws_cat_override_ws_key"),
     )
-    with op.batch_alter_table(
-        "workspace_category_overrides", schema=None
-    ) as batch_op:
+    with op.batch_alter_table("workspace_category_overrides", schema=None) as batch_op:
         batch_op.create_index(
             batch_op.f("ix_workspace_category_overrides_workspace_id"),
             ["workspace_id"],
@@ -103,9 +93,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     with op.batch_alter_table("institution_catalog", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_institution_catalog_code"), ["code"], unique=True
-        )
+        batch_op.create_index(batch_op.f("ix_institution_catalog_code"), ["code"], unique=True)
 
 
 def downgrade() -> None:
@@ -113,15 +101,9 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f("ix_institution_catalog_code"))
     op.drop_table("institution_catalog")
 
-    with op.batch_alter_table(
-        "workspace_category_overrides", schema=None
-    ) as batch_op:
-        batch_op.drop_index(
-            batch_op.f("ix_workspace_category_overrides_template_key")
-        )
-        batch_op.drop_index(
-            batch_op.f("ix_workspace_category_overrides_workspace_id")
-        )
+    with op.batch_alter_table("workspace_category_overrides", schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f("ix_workspace_category_overrides_template_key"))
+        batch_op.drop_index(batch_op.f("ix_workspace_category_overrides_workspace_id"))
     op.drop_table("workspace_category_overrides")
 
     with op.batch_alter_table("category_templates", schema=None) as batch_op:

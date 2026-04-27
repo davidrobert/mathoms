@@ -16,8 +16,8 @@ from backend.app.models.category_template import (
 )
 from backend.app.models.institution_catalog import InstitutionCatalog
 from backend.app.services import category_cache, institution_resolver
-from backend.app.services.pipeline_adapter import build_config_overrides_from_db
 from backend.app.services.category_resolver import METADATA_TEMPLATE_KEY
+from backend.app.services.pipeline_adapter import build_config_overrides_from_db
 
 
 @pytest.fixture
