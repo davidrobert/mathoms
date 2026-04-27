@@ -1,5 +1,10 @@
 /**
- * F9 · F2.A — Registry de charts migrados para React (Recharts).
+ * F9 · F2.A — Registry de charts migrados para React.
+ *
+ * Stack atual: Chart.js 4 (primitives em `charts/primitives/`) + Recharts
+ * (somente `WaterfallIfChart` e `PatrimonioDoughnutChart`, intencionalmente
+ * preservados pós Onda v2.E — ver ADR-139). Demais charts em `/reports/**`
+ * são Chart.js puro.
  *
  * Cada lote adiciona entradas. Charts não presentes aqui ficam
  * omitidos na renderização (sem stub — o stub é por seção, não por chart).
