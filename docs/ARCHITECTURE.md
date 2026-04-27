@@ -779,7 +779,7 @@ Document.status = "ready", classification_confidence, needs_review
 
 User clica "Gerar Relatório"
     ↓
-POST /api/v1/pipeline/runs → materialize_config() → Celery task
+POST /api/v1/pipeline/runs → prepare_pipeline_config_dir() → Celery task
     ↓
 Pipeline stages rodam em ordem → PipelineStageLog por stage
     ↓
@@ -790,23 +790,37 @@ Celery task cria Report no DB (analysis_artifact_id FK + tasks_snapshot)
 Frontend renderiza nativamente via GET /reports/{id}/data (React)
 ```
 
-### Materialização de config
+### Carregamento de config (DB-first pós-Sprint A7)
+
+Após Sprint A7 (Config DB Cutover, 2026-04-27), o pipeline lê configs **direto do DB via ConfigStore** ([ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend)). Materialização disco-side foi removida; bridges deletados em A7.5 (`materialize_config`, `FileConfigStore`).
 
 ```
-User edita config via UI → DB
+User edita config via UI → DB (categories, family_members, transfer_configs, etc.)
     ↓
 POST /api/v1/pipeline/runs
     ↓
-materialize_config(ws_id, tenant_root, db):
-  1. Copia config/ global → storage/{ws_id}/config/
-  2. Sobrescreve com serializers de configs editados no DB
-  3. Decripta LLM api_key e inclui em llm_config.json
-  4. pipeline_adapter: materializa goals.json + tarefas.md do DB
+backend.app.services.pipeline_service._prepare_run_context():
+  1. prepare_pipeline_config_dir(ws_id, tenant_root, db):
+     - Copia config/ global (assets de produto: schemas, prompts,
+       templates, scoring.json, pipeline.json, report_layout.yaml)
+       → storage/{ws_id}/config/
+     - Sobrescreve apenas pipeline.json + llm_config.json com overrides DB
+       (configs A7.1 NÃO são escritos em disco — fluem via DBConfigStore)
+  2. build_config_overrides_from_db(ws_id, db):
+     - Pré-serializa categorization, family_members, institutions,
+       report_layout, transfer_configs em dict
+     - Injetado em WorkspaceContext.config_overrides
+  3. build_config_store(db, use_db_artifacts=True):
+     - DBConfigStore lê DB via repositórios + cache Redis
+     - Injetado em WorkspaceContext.config_store
     ↓
-Pipeline scripts lêem de storage/{ws_id}/config/ via _init_config(root_dir)
+Pipeline stages consomem via ctx.load_config(name) (overrides → typed)
+ou via ctx.config_store.get_X(workspace_id) (typed direto)
     ↓
-Zero mudança na lógica interna dos scripts legados
+Goldens E3/E4/E5/E5.N preservam paridade byte-a-byte vs pré-A7
 ```
+
+**Assets de produto remanescentes em `config/`** ([ADR-149](DECISIONS.md#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80)): `report_layout.yaml`, `pipeline.json` (default), `scoring.json`, `schemas/`, `prompts/`, `templates/`. Editáveis pelo time Mathoms; **não** contêm dados cliente.
 
 ---
 
@@ -977,7 +991,7 @@ descontinuar o renderer HTML server-side; React em `/reports/[id]` é
 | Goals (metas financeiras)                         | `goals` (DB), `params_json` com `inputs` + `meta_version`, vigência `effective_from` / `effective_to` | `PUT /goals/...` (por tipo) · **UI F11.6a:** `GoalPremissasCard` em `/plano/*` |
 | Tasks (backlog de ações)                          | `tasks`, `task_suggestions`, `task_attachments` (DB)        | CRUD via `/tasks` endpoints                                     |
 | Feature flags                                     | `feature_flags` (DB) + defaults em código                   | `PUT /feature-flags/{flag}`                                     |
-| Config materializada por tenant (input do E2–E7)  | `storage/{ws_id}/config/*`                                  | `config_materializer.materialize_config()`                      |
+| Config materializada por tenant (assets de produto) | `storage/{ws_id}/config/*`                                  | `config_materializer.prepare_pipeline_config_dir()` (apenas pipeline.json + llm_config.json + assets globais; A7.1 configs fluem via `WorkspaceContext.config_overrides` from DB) |
 | Artefatos intermediários (`-2_extract.json`, …)   | `storage/{ws_id}/processed/E2_extracts/` etc.               | Scripts E2–E5 executando dentro do tenant_root                  |
 | Análise final (`analise_financeira-5_analysis.json`) | `storage/{ws_id}/processed/E5_analysis/`                 | Stage E5                                                        |
 | Relatório (metadata)                              | row em `reports` (DB) — sem filesystem                      | Celery task registra `Report` após E5/E7-apply; render é React on-demand |
@@ -1008,8 +1022,9 @@ Scripts legados (E5=107KB — E6=197KB foi removido em ADR-129) têm lógica ref
 2. `main(root_dir=None)` aceita root injetado
 3. Wrappers finos em `pipeline/stages/` (3-5 linhas)
 
-### Materialize, Don't Inject (F3)
-Scripts lêem config do disco via `_init_config`. `materialize_config()` copia `config/` global → tenant, sobrescreve com DB. Scripts continuam lendo de `tenant_root/config/` sem mudança.
+### Materialize, Don't Inject (F3 → superseded por ConfigStore em Sprint A7)
+
+**Histórico:** F3 introduziu `materialize_config()` que copiava `config/` global → tenant + sobrescrevia com DB; scripts lêem do disco via `_init_config`. **Sprint A7 (2026-04-27) substituiu este padrão** ([ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend)) pelo `ConfigStore` Protocol read-only. `materialize_config` foi deletado em A7.5; scripts continuam usando `ctx.load_config(name)` mas agora os dados fluem de DB via `WorkspaceContext.config_overrides` (populado por `build_config_overrides_from_db`). Para configs que ainda precisam de disco (assets de produto: `pipeline.json`, `llm_config.json` overrides), `prepare_pipeline_config_dir()` materializa apenas o subset necessário.
 
 ### Pipeline Adapter (F8)
 `pipeline_adapter.py` é a fachada DB → JSON para entidades migradas (goals, tasks, family_members). Scripts recebem JSONs materializados no disco, sem saber que a fonte é o DB.

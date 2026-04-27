@@ -281,8 +281,12 @@ async def export_config(
         pipeline=await _export_blob_or_default(
             blob_repo, workspace.id, PipelineConfig, "pipeline.json", yaml_source=False
         ),
+        # A8.0: `config/institutions.json` deletado em A7.5 (`default_filename=None`);
+        # A7.3 introduziu `institution_catalog` global. Endpoint legacy retorna
+        # blob DB se workspace tem `InstitutionConfig` row; senão `{}`.
+        # Migração futura: usar `institution_catalog` table.
         institutions=await _export_blob_or_default(
-            blob_repo, workspace.id, InstitutionConfig, "institutions.json", yaml_source=False
+            blob_repo, workspace.id, InstitutionConfig, None
         ),
         report_layout=await _export_blob_or_default(
             blob_repo, workspace.id, ReportLayout, "report_layout.yaml", yaml_source=True
@@ -366,14 +370,20 @@ async def _export_blob_or_default(
     repo: ConfigBlobRepository,
     ws_id: str,
     model_class: type,
-    default_filename: str,
+    default_filename: str | None,
     *,
-    yaml_source: bool,
+    yaml_source: bool = False,
 ) -> dict[str, Any]:
-    """Retorna o blob do DB ou o default do disco (dict, não DTO)."""
+    """Retorna o blob do DB ou o default do disco (dict, não DTO).
+
+    A8.0 (ADR-149): ``default_filename=None`` quando o asset disco foi
+    deletado em A7.5 e não tem mais default global (ex.: institutions.json).
+    """
     cfg_json = await repo.get_config_json(ws_id, model_class)
     if cfg_json is not None:
         return cfg_json
+    if default_filename is None:
+        return {}
     return load_global_yaml(default_filename) if yaml_source else load_global_json(default_filename)
 
 
@@ -431,7 +441,10 @@ async def _export_categorization(
 ) -> dict[str, Any]:
     cats = await repo.list_by_workspace(ws_id)
     if not cats:
-        return load_global_json("categorization.json")
+        # A8.0: `config/categorization.json` deletado em A7.5; workspace sem
+        # rows exporta blob vazio. A7.3 catalog/override é o caminho moderno;
+        # endpoint `/export` legacy preserva compat para flows internos.
+        return {}
 
     expense_keywords: dict[str, list[str]] = {}
     income_keywords: dict[str, list[str]] = {}

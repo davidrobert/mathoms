@@ -32,8 +32,6 @@ from backend.app.schemas.dto.category import (
     CategoryResponse,
     CategoryUpdateCommand,
 )
-from backend.app.services.config_defaults import load_global_json
-
 router = APIRouter(prefix="/workspaces/{workspace_id}/config", tags=["config"])
 
 
@@ -46,11 +44,10 @@ async def list_categories(
     workspace: Workspace = Depends(get_current_workspace),
     repo: CategoryRepository = Depends(_get_repo),
 ) -> CategoryListResponse:
-    return await uc_list_categories(
-        workspace.id,
-        repo=repo,
-        global_defaults=load_global_json("categorization.json"),
-    )
+    # A8.0: `config/categorization.json` deletado em A7.5; workspace sem rows
+    # retorna lista vazia. A7.3 catalog/override é o caminho moderno; este
+    # endpoint legacy continua para compat frontend até migração futura.
+    return await uc_list_categories(workspace.id, repo=repo)
 
 
 @router.post(

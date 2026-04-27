@@ -36,7 +36,6 @@ from backend.app.schemas.dto.family_member import (
     FamilyMemberResponse,
     FamilyMemberUpdateCommand,
 )
-from backend.app.services.config_defaults import load_global_json
 from backend.app.services.vault import get_vault
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/config", tags=["config"])
@@ -52,12 +51,10 @@ async def list_members(
     workspace: Workspace = Depends(get_current_workspace),
     repo: FamilyMemberRepository = Depends(_get_repo),
 ) -> FamilyMemberListResponse:
-    return await list_family_members(
-        workspace.id,
-        repo=repo,
-        vault=_vault,
-        global_defaults=load_global_json("family_members.json"),
-    )
+    # A8.0: `config/family_members.json` deletado em A7.5; workspace sem rows
+    # retorna lista vazia (comportamento correto multi-tenant — não vaza
+    # identidade do founder, F6.5E.6).
+    return await list_family_members(workspace.id, repo=repo, vault=_vault)
 
 
 @router.post(
