@@ -22,8 +22,7 @@ export function ModeToggle({
   readonly compact?: boolean;
 }) {
   const { mode, setMode } = useReportMode();
-  // TEMP: "usa" oculto da UI — adicionar de volta ao array para restaurar.
-  const modes: readonly ReportMode[] = ["estrategico", "tatico"];
+  const modes: readonly ReportMode[] = ["estrategico", "tatico", "usa"];
 
   return (
     <div

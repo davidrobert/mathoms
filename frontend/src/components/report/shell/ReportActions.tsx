@@ -31,8 +31,7 @@ const MODE_TOOLTIPS: Record<ReportMode, string> = {
   usa: "Cenários e planos para mudança aos EUA",
 };
 
-// TEMP: "usa" oculto da UI — adicionar de volta ao array para restaurar.
-const VISIBLE_MODES: readonly ReportMode[] = ["estrategico", "tatico"];
+const VISIBLE_MODES: readonly ReportMode[] = ["estrategico", "tatico", "usa"];
 
 /** Action zone do header unificado: Modo (3 segmentos) + TOC + Print + PDF.
  *

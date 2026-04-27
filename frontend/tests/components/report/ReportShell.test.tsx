@@ -107,8 +107,7 @@ describe("ReportShell", () => {
       screen.getByRole("tab", { name: "Estratégico", selected: true }),
     ).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Tático" })).toBeInTheDocument();
-    // TEMP: aba "EUA" oculta da UI — restaurar quando o modo USA voltar.
-    expect(screen.queryByRole("tab", { name: "EUA" })).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "EUA" })).toBeInTheDocument();
   });
 
   it("renderiza seções migradas sem stubs no modo estratégico", () => {
