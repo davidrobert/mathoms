@@ -21,9 +21,9 @@ preparação para **F7 (Produção + LGPD + Ops)**.
   que enforce; dados cliente migram para DB ou `storage/<ws>/notes/`
   (gitignored). Track file: [track_a7_6_rules_as_code.md](agent_prompts/track_a7_6_rules_as_code.md).
   Plano detalhado: [CONFIG_CUTOVER_PLAN.md §5.6](CONFIG_CUTOVER_PLAN.md#§56-a76--rules-as-code-dissolver-docsmethodology).
-  ADRs novas (gate G1 pendente): ADR-139 (rules-as-code geral) ·
-  ADR-140 (7-bucket composição patrimonial) · ADR-141 (E3 source hierarchy
-  + `BankAccount.source_tier`) · ADR-142 (milhas valuation + storage
+  ADRs novas (gate G1 pendente): ADR-143 (rules-as-code geral) ·
+  ADR-145 (7-bucket composição patrimonial) · ADR-146 (E3 source hierarchy
+  + `BankAccount.source_tier`) · ADR-147 (milhas valuation + storage
   workspace-scoped; `MileageProgram` DB entity = débito técnico p/ A8.1).
   Estimativa: 3-4 sessões após G1. Sub-task 4 (definitions.md) depende
   soft de A7.3 + A7.2a mergeadas. **Sprint A8 stub aberta** em

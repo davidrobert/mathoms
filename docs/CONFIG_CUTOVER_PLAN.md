@@ -24,10 +24,10 @@ A meta da Sprint A7 é fechar esse cutover, separando os arquivos em três natur
 | `decisions.md` | **Cliente** ⚠️ contém valores BRL reais | Entidade `Decision` event-sourced (A7.2a) |
 | `parametros_fiscais.json` | Mercado (séries temporais) | Tabela global versionada por ano (A7.2b) |
 | `taxas.json` | Mercado (séries temporais) | Tabela global versionada por data (A7.2b) |
-| `definitions.md` | **Híbrido** (60% cliente em DB · 25% universal · 15% duplica CLAUDE.md) | A7.4 ✅ moved → A7.6 dissolve: ~80% drop (já em DB ou duplica), ~20% docstrings + ADR-139/140 |
-| `regras_composicao_patrimonial.md` | **Híbrido** (regras universais 7-bucket + exemplos cliente) | A7.4 ✅ moved → A7.6 dissolve: docstring no classifier `cash_flow_builder` + ADR-140 |
-| `source_hierarchy.md` | **Híbrido** (hierarquia universal + bancos cliente) | A7.4 ✅ moved → A7.6 dissolve: docstring em `income_origin_resolver` + ADR-141; banco→tier vai p/ DB `BankAccount.source_tier` |
-| `milhas.md` | **Híbrido** (método de valuation universal + programas cliente) | A7.4 ✅ moved → A7.6 dissolve: método em docstring `parse_milhas_md` + ADR-142; programas migram p/ `storage/<ws>/notes/milhas.md` (gitignored) — débito técnico p/ A8.1 (`MileageProgram` DB entity) |
+| `definitions.md` | **Híbrido** (60% cliente em DB · 25% universal · 15% duplica CLAUDE.md) | A7.4 ✅ moved → A7.6 dissolve: ~80% drop (já em DB ou duplica), ~20% docstrings + ADR-143/145 |
+| `regras_composicao_patrimonial.md` | **Híbrido** (regras universais 7-bucket + exemplos cliente) | A7.4 ✅ moved → A7.6 dissolve: docstring no classifier `cash_flow_builder` + ADR-145 |
+| `source_hierarchy.md` | **Híbrido** (hierarquia universal + bancos cliente) | A7.4 ✅ moved → A7.6 dissolve: docstring em `income_origin_resolver` + ADR-146; banco→tier vai p/ DB `BankAccount.source_tier` |
+| `milhas.md` | **Híbrido** (método de valuation universal + programas cliente) | A7.4 ✅ moved → A7.6 dissolve: método em docstring `parse_milhas_md` + ADR-147; programas migram p/ `storage/<ws>/notes/milhas.md` (gitignored) — débito técnico p/ A8.1 (`MileageProgram` DB entity) |
 
 **Resultado final pós-A7:** zero arquivos em `config/` (diretório removido); pipeline lê tudo via `ConfigStore` (DB-first); séries fiscais/câmbio versionadas por data; entidade `Decision` substitui markdown editorial; `docs/methodology/` deletado (path proibido); regras universais vivem em docstrings + ADRs co-localizados com o código que enforce.
 
@@ -566,16 +566,16 @@ atualizados em `CLAUDE.md`, `.claude/agents/financial-planner.md`,
 **Princípio adotado:** product methodology IS the code. Documentar separadamente cria drift. Eliminar `docs/methodology/` força a referência única (código + ADR para o "porquê").
 
 **ADRs novas (gate G1 — antes de qualquer commit de código):**
-- **ADR-139** — `docs/methodology/` é rules-as-code (regra geral)
-- **ADR-140** — 7 categorias canonical da composição patrimonial + premissa "titular + cônjuge"
-- **ADR-141** — E3 source hierarchy + workspace tier em `BankAccount.source_tier`
-- **ADR-142** — Milhas: valuation methodology universal + programs em `storage/<ws>/notes/` (bridge transitório; A8.1 entrega `MileageProgram` DB entity)
+- **ADR-143** — `docs/methodology/` é rules-as-code (regra geral)
+- **ADR-145** — 7 categorias canonical da composição patrimonial + premissa "titular + cônjuge"
+- **ADR-146** — E3 source hierarchy + workspace tier em `BankAccount.source_tier`
+- **ADR-147** — Milhas: valuation methodology universal + programs em `storage/<ws>/notes/` (bridge transitório; A8.1 entrega `MileageProgram` DB entity)
 
 **Sub-tasks (1 commit por arquivo, após G1):**
 
-1. **`regras_composicao_patrimonial.md` → docstring no classifier + ADR-140.** Localizar função classificadora em `pipeline/domain/services/cash_flow_builder.py` (ou similar). Migrar 7 categorias + tabela "tipo X → bucket Y" para docstring (sem valores BRL, sem nomes; ref ADR-140). Goldens E4/E5 paridade byte-a-byte preservada.
-2. **`source_hierarchy.md` → docstring em `income_origin_resolver` + ADR-141 + schema migration.** Hierarquia universal vai p/ docstring; banco→tier workspace-specific migra p/ DB (`BankAccount.source_tier` — schema review G2 obrigatório). Goldens E3 verde.
-3. **`milhas.md` → `storage/<ws>/notes/milhas.md` + ADR-142.** Migrate `parse_milhas_md(workspace_root)` para ler de path workspace-scoped. Migrator one-shot (`dev/migrate_milhas_to_workspace_storage.py`) copia conteúdo atual para workspace piloto. Bridge: fallback p/ path antigo + DeprecationWarning (removido em A7.5). Universal valuation method + ADR-142. **A8.1 modela `MileageProgram` em DB** (débito técnico aceito).
+1. **`regras_composicao_patrimonial.md` → docstring no classifier + ADR-145.** Localizar função classificadora em `pipeline/domain/services/cash_flow_builder.py` (ou similar). Migrar 7 categorias + tabela "tipo X → bucket Y" para docstring (sem valores BRL, sem nomes; ref ADR-145). Goldens E4/E5 paridade byte-a-byte preservada.
+2. **`source_hierarchy.md` → docstring em `income_origin_resolver` + ADR-146 + schema migration.** Hierarquia universal vai p/ docstring; banco→tier workspace-specific migra p/ DB (`BankAccount.source_tier` — schema review G2 obrigatório). Goldens E3 verde.
+3. **`milhas.md` → `storage/<ws>/notes/milhas.md` + ADR-147.** Migrate `parse_milhas_md(workspace_root)` para ler de path workspace-scoped. Migrator one-shot (`dev/migrate_milhas_to_workspace_storage.py`) copia conteúdo atual para workspace piloto. Bridge: fallback p/ path antigo + DeprecationWarning (removido em A7.5). Universal valuation method + ADR-147. **A8.1 modela `MileageProgram` em DB** (débito técnico aceito).
 4. **`definitions.md` → DB schema ref + ARCHITECTURE.md glossary.** Mapping por seção:
    - **~190 linhas (38%) — cliente puro:** drop direto (já em DB: `FamilyMember`, `BankAccount`, `BaselinePatrimonial`).
    - **~60 linhas (12%) — decisões de planejamento:** A7.2a Decision aggregate (contratos PJ, estratégia aportes).

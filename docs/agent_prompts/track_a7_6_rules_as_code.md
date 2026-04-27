@@ -7,7 +7,7 @@
 > **Conflita com:** qualquer commit ativo em `docs/methodology/**`, `pipeline/domain/services/{cash_flow_builder,income_origin_resolver}.py`, `scripts/e5_analyze.py::parse_milhas_md`.
 > **Onda:** 2.5 (paralelo a Onda 2 mas com gate G1 pendente — ADRs precisam ser mergeadas antes de codar).
 > **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.6](../CONFIG_CUTOVER_PLAN.md#§56-a76--rules-as-code-dissolver-docsmethodology).
-> **ADRs novas (gate G1):** ADR-139 (`docs/methodology/` é rules-as-code), ADR-140 (composição patrimonial canonical 7-bucket), ADR-141 (E3 source hierarchy), ADR-142 (milhas valuation + storage workspace-scoped).
+> **ADRs novas (gate G1):** ADR-143 (`docs/methodology/` é rules-as-code), ADR-145 (composição patrimonial canonical 7-bucket), ADR-146 (E3 source hierarchy), ADR-147 (milhas valuation + storage workspace-scoped).
 > **Supervisão CTO:** G1 (ADR draft) **antes** de tocar código · G2 (schema review p/ migrator de milhas) · G3 (PR pré-merge).
 
 > **Objetivo (1 frase):** eliminar o diretório `docs/methodology/` movendo regras universais de produto para docstrings + ADRs no código que enforce, e dados cliente-específicos para DB ou `storage/<workspace_id>/notes/` (gitignored).
@@ -56,10 +56,10 @@ A A7.4 (mergeada) moveu 4 arquivos de `config/` → `docs/methodology/` mas a mo
 
 Drafts em `docs/DECISIONS.md` (status: Proposto → Decidido após CTO sign-off):
 
-- **ADR-139 — `docs/methodology/` é rules-as-code:** justifica eliminação do diretório, regra geral "product methodology IS the code".
-- **ADR-140 — 7 categorias canonical da composição patrimonial:** Residência própria, Imóveis investimento, Investimentos Titular, Investimentos Cônjuge, Criptoativos, Caixa + Moeda Estrangeira, Veículos. Regras de classificação (Hashdex é fundo FIC FIM ⇒ Investimentos, não Crypto). Premissa "exatamente 2 membros (titular + cônjuge)" é assumption do produto — documentar; expansão para N membros é tema futuro.
-- **ADR-141 — E3 source hierarchy:** prioridade canônica (LLM extraction > extrato > fatura > dedução). Workspace-specific banco→tier vai para DB (`BankAccount.source_tier` ou similar — confirmar com schema review G2).
-- **ADR-142 — Milhas: valuation methodology + storage workspace-scoped:** método de valuation (universal, ADR) + dados workspace-specific migrados de `docs/methodology/milhas.md` para `storage/<workspace_id>/notes/milhas.md` (gitignored). `parse_milhas_md` migra para ler do novo path. Migrator one-shot copia o conteúdo atual para o workspace piloto. Modelagem de `MileageProgram` como entidade DB fica fora deste escopo (potencial Sprint A8+).
+- **ADR-143 — `docs/methodology/` é rules-as-code:** justifica eliminação do diretório, regra geral "product methodology IS the code".
+- **ADR-145 — 7 categorias canonical da composição patrimonial:** Residência própria, Imóveis investimento, Investimentos Titular, Investimentos Cônjuge, Criptoativos, Caixa + Moeda Estrangeira, Veículos. Regras de classificação (Hashdex é fundo FIC FIM ⇒ Investimentos, não Crypto). Premissa "exatamente 2 membros (titular + cônjuge)" é assumption do produto — documentar; expansão para N membros é tema futuro.
+- **ADR-146 — E3 source hierarchy:** prioridade canônica (LLM extraction > extrato > fatura > dedução). Workspace-specific banco→tier vai para DB (`BankAccount.source_tier` ou similar — confirmar com schema review G2).
+- **ADR-147 — Milhas: valuation methodology + storage workspace-scoped:** método de valuation (universal, ADR) + dados workspace-specific migrados de `docs/methodology/milhas.md` para `storage/<workspace_id>/notes/milhas.md` (gitignored). `parse_milhas_md` migra para ler do novo path. Migrator one-shot copia o conteúdo atual para o workspace piloto. Modelagem de `MileageProgram` como entidade DB fica fora deste escopo (potencial Sprint A8+).
 
 **CTO sign-off** em cada ADR antes de prosseguir. Use `Agent(subagent_type="senior-cto", ...)` se humano não disponível.
 
@@ -72,14 +72,14 @@ Status: a maior parte do conteúdo **duplica DB schema** (membros, instituiçõe
    - Enum docstrings (papéis: titular/conjuge/dependente/etc.) — docstring na coluna `FamilyMember.role`.
    - Convenções de naming/path do pipeline — já estão em CLAUDE.md §Convenções.
    - **Conteúdo cliente-específico** (David's Itaú, valores) — descartar (já está em DB/BankAccount rows).
-2. Adicionar seção curta em `docs/ARCHITECTURE.md` (e.g., §"Domain glossary") com 1 parágrafo + links para DB schema + link para ADR-139 (regra geral) e ADR-140/141 (especificidades).
+2. Adicionar seção curta em `docs/ARCHITECTURE.md` (e.g., §"Domain glossary") com 1 parágrafo + links para DB schema + link para ADR-143 (regra geral) e ADR-145/146 (especificidades).
 3. `git rm docs/methodology/definitions.md`.
 4. Atualizar referências em `CLAUDE.md §Fontes de verdade` e `docs/agent_prompts/*` (A7.4 já atualizou alguns; reauditar com grep).
 5. Tests: nenhum runtime impacto (definitions.md não é parseada). Confirmar via `grep -rn 'definitions\.md' pipeline/ scripts/ backend/` retorna zero hits após cleanup.
 
-Commit: `docs(a7.6): definitions.md → DB schema ref + ARCHITECTURE glossary (ADR-139/140)`.
+Commit: `docs(a7.6): definitions.md → DB schema ref + ARCHITECTURE glossary (ADR-143/145)`.
 
-### Sub-task 2 — `regras_composicao_patrimonial.md` → docstring no classifier + ADR-140
+### Sub-task 2 — `regras_composicao_patrimonial.md` → docstring no classifier + ADR-145
 
 Status: as 7 categorias são enforced em algum ponto do pipeline E4/E5. Identificar e migrar.
 
@@ -88,15 +88,15 @@ Status: as 7 categorias são enforced em algum ponto do pipeline E4/E5. Identifi
    - `pipeline/domain/services/investments_consolidator.py` (categoriza investimentos).
    - `scripts/e5_analyze.py::analyze_patrimonio` (compõe o output S1 do relatório).
    - Use `Agent(subagent_type="Explore", ...)` para mapear precisamente.
-2. **Migração de regras:** docstring na função classificadora documenta as 7 categorias + tabela "tipo X → bucket Y" (sem valores BRL, sem nomes). Referência ADR-140 ("ver ADR-140 para o porquê dessas 7 categorias").
+2. **Migração de regras:** docstring na função classificadora documenta as 7 categorias + tabela "tipo X → bucket Y" (sem valores BRL, sem nomes). Referência ADR-145 ("ver ADR-145 para o porquê dessas 7 categorias").
 3. **Casos especiais (Hashdex, contas bancárias com `Aplicacao RDB/CDP`, etc.):** essas regras de matching ficam no docstring da função + cobertas por testes unitários com fixtures. **Nomes/valores reais NÃO entram nos testes** — usar fixtures genéricas (`FundoExemplo`, `BancoExemplo`).
 4. `git rm docs/methodology/regras_composicao_patrimonial.md`.
 5. Tests: golden de paridade E4/E5 (se houver) deve regenerar **idêntico** ao baseline pré-cutover (regra é a mesma, só mudou de lugar).
-6. Atualizar referências em comentários `# Source: docs/methodology/regras_composicao...` → `# Source: ADR-140`.
+6. Atualizar referências em comentários `# Source: docs/methodology/regras_composicao...` → `# Source: ADR-145`.
 
-Commit: `refactor(pipeline): regras composição patrimonial → docstring + ADR-140`.
+Commit: `refactor(pipeline): regras composição patrimonial → docstring + ADR-145`.
 
-### Sub-task 3 — `source_hierarchy.md` → docstring no resolver + ADR-141
+### Sub-task 3 — `source_hierarchy.md` → docstring no resolver + ADR-146
 
 Status: similar à anterior. A regra é universal (LLM > extrato > fatura > dedução); workspace-specific banco→tier vai para DB.
 
@@ -108,9 +108,9 @@ Status: similar à anterior. A regra é universal (LLM > extrato > fatura > dedu
 4. Tests: golden E3 deve continuar verde.
 5. Atualizar referências em scripts/e3_reconcile.py + tests.
 
-Commit: `refactor(pipeline): source hierarchy → docstring + ADR-141 (+ workspace tier em BankAccount)`.
+Commit: `refactor(pipeline): source hierarchy → docstring + ADR-146 (+ workspace tier em BankAccount)`.
 
-### Sub-task 4 — `milhas.md` → `storage/<ws>/notes/milhas.md` + docstring + ADR-142
+### Sub-task 4 — `milhas.md` → `storage/<ws>/notes/milhas.md` + docstring + ADR-147
 
 Status: **mais complexa** das 4 porque envolve runtime migration de path.
 
@@ -123,14 +123,14 @@ Status: **mais complexa** das 4 porque envolve runtime migration de path.
    - Idempotente: skip se path destino já existe.
    - CLI flag `--workspace-id`.
    - Não generalizar — script descartável.
-3. **Docstring + ADR-142:**
-   - Universal valuation methodology (como avaliar 1 ponto de cada programa) → docstring em `parse_milhas_md` + ADR-142.
-   - Notas culturais ("Smiles tem valor X em campanhas Y") → ADR-142 ou descartar (são timing-bound, não invariantes de produto).
+3. **Docstring + ADR-147:**
+   - Universal valuation methodology (como avaliar 1 ponto de cada programa) → docstring em `parse_milhas_md` + ADR-147.
+   - Notas culturais ("Smiles tem valor X em campanhas Y") → ADR-147 ou descartar (são timing-bound, não invariantes de produto).
 4. **Forbidden paths:** `dev/check_forbidden_paths.py` ganha bloqueio para `storage/` em git (já tem provavelmente — confirmar) e para `docs/methodology/milhas.md` (já tem após A7.4).
 5. **Sanity:** `gitignore` cobre `storage/<ws>/notes/`? Confirmar.
 6. Após verificação visual no workspace piloto: `git rm docs/methodology/milhas.md`.
 
-Commit: `feat(pipeline): milhas migra para storage/<ws>/notes/ + docstring + ADR-142`.
+Commit: `feat(pipeline): milhas migra para storage/<ws>/notes/ + docstring + ADR-147`.
 
 ### Sub-task 5 — `README.md` + delete dir + forbidden paths
 
@@ -158,11 +158,11 @@ Commit: `docs(a7.6): ✅ entregue — rules-as-code dissolve docs/methodology/`.
 
 ## Sequência de commits sugerida (após G1)
 
-1. `docs(adr): ADR-139 + 140 + 141 + 142 (Decidido) — gate G1 A7.6` (CTO sign-off em PR review).
-2. `refactor(pipeline): regras composição patrimonial → docstring + ADR-140` (Sub-task 2).
-3. `refactor(pipeline): source hierarchy → docstring + ADR-141` (Sub-task 3).
-4. `feat(pipeline): milhas migra para storage/<ws>/notes/ + ADR-142` (Sub-task 4) — inclui migrator + bridge + tests.
-5. `docs(a7.6): definitions.md → DB schema ref + ARCHITECTURE glossary (ADR-139/140)` (Sub-task 1, depois das outras pq referencia ADRs já mergeadas).
+1. `docs(adr): ADR-143 + 140 + 141 + 142 (Decidido) — gate G1 A7.6` (CTO sign-off em PR review).
+2. `refactor(pipeline): regras composição patrimonial → docstring + ADR-145` (Sub-task 2).
+3. `refactor(pipeline): source hierarchy → docstring + ADR-146` (Sub-task 3).
+4. `feat(pipeline): milhas migra para storage/<ws>/notes/ + ADR-147` (Sub-task 4) — inclui migrator + bridge + tests.
+5. `docs(a7.6): definitions.md → DB schema ref + ARCHITECTURE glossary (ADR-143/140)` (Sub-task 1, depois das outras pq referencia ADRs já mergeadas).
 6. `chore: remove docs/methodology/ + bloqueia path em forbidden_paths` (Sub-task 5).
 7. `docs(a7.6): ✅ entregue — rules-as-code dissolve docs/methodology/` (Sub-task 6).
 
@@ -190,10 +190,10 @@ Após cada commit: rebase em `origin/main`, `pytest backend/tests` + `pytest tes
 ## Riscos
 
 - **`parse_milhas_md` runtime breakage:** se path novo não popula antes do path antigo deletar, card de milhas no relatório fica vazio. Mitigação: bridge com fallback warned + migrator roda **antes** do `git rm`.
-- **Schema migration para `BankAccount.source_tier`:** se ADR-141 exigir column nova, requer Alembic migration backwards-compat (add nullable + populate + flip — nunca DROP no mesmo PR).
+- **Schema migration para `BankAccount.source_tier`:** se ADR-146 exigir column nova, requer Alembic migration backwards-compat (add nullable + populate + flip — nunca DROP no mesmo PR).
 - **Goldens drift silencioso:** se mudança de docstring/ADR alterar comportamento sutilmente (improvável; é só doc), goldens E4/E5 detectam.
 - **Outros agentes paralelos (A7.2a, A7.2b, A7.3):** podem tocar tabelas/services adjacentes. Coordenar via `docs/CHANGELOG.md` `[Unreleased]` antes de mexer em hot files.
-- **`milhas.md` storage workspace-scoped:** primeiro arquivo "notes" workspace-scoped do produto. Se ainda não há padrão, ADR-142 estabelece o padrão para futuros arquivos similares.
+- **`milhas.md` storage workspace-scoped:** primeiro arquivo "notes" workspace-scoped do produto. Se ainda não há padrão, ADR-147 estabelece o padrão para futuros arquivos similares.
 
 ---
 

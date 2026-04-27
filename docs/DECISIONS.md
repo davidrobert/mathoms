@@ -6280,6 +6280,176 @@ Com cache hit ratio esperado de ~60 % (usuário reabre relatório no mesmo dia, 
 
 ---
 
+## ADR-143 — `docs/methodology/` é rules-as-code (Sprint A7.6)
+
+**Status:** Proposto (Sprint A7.6) • **Data:** 2026-04-27 • **Relaciona** [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions). **Supersedes-a-aproximação-de** A7.4 (entregue 2026-04-27 — `git mv config/*.md docs/methodology/*.md`, mantida a estrutura híbrida que esta ADR corrige).
+
+**Contexto:** A versão CLI mono-cliente do Mathoms usava 4 arquivos markdown editoriais em `config/` (`definitions.md`, `regras_composicao_patrimonial.md`, `source_hierarchy.md`, `milhas.md`) que misturam dois conteúdos:
+
+1. **Regras universais de produto** — invariantes que o Mathoms enforce em runtime (as 7 categorias da composição patrimonial, hierarquia de fontes para reconciliação E3, método de valuation de pontos de milhagem).
+2. **Instâncias cliente-específicas do workspace piloto** — David, Mariana, Tasso da Silveira, Hashdex, valores BRL reais, contas Itaú/BTG, programas de milhas com saldos.
+
+A7.4 tratou esses arquivos como "documentação metodológica universal" e fez `git mv` puro para `docs/methodology/`. Auditoria pós-merge (2026-04-27) revelou **102 hits cliente-específicos** distribuídos pelos 4 arquivos (definitions: 59 · regras_composicao: 19 + valores BRL · source_hierarchy: 19 · milhas: 5). Isso viola CLAUDE.md §Regras críticas ("nunca expor valores monetários reais ... em commits"), e expõe o anti-padrão estrutural: **regra de produto como markdown gera drift** (quando o código muda, o doc fica desatualizado), e mistura com dados cliente cria caminho duplo (markdown vs DB) para a mesma informação.
+
+Alternativas consideradas:
+
+- **(a) Sanitizar `docs/methodology/`:** reescrever os 4 arquivos com placeholders (`TITULAR`, `CONJUGE`) sem dados cliente. Mantém o diretório como "spec doc paralelo ao código". **Trade-off:** drift garantido — toda mudança de regra em código requer atualização manual em 2 lugares. Adia o problema; não resolve.
+- **(b) Eliminar `docs/methodology/` (rules-as-code):** regras universais migram para docstrings + ADRs co-localizados com a função/classe que enforce; dados cliente migram para DB (estruturado) ou `storage/<workspace_id>/notes/` (gitignored, não-estruturado). Source of truth: o código.
+- **(c) Manter `docs/methodology/` como overview com links:** README curto linkando para os docstrings/ADRs. Trade-off intermediário — ainda exige sincronização do README, mas reduz superfície.
+
+**Decisão:** Adotar **(b) rules-as-code**.
+
+`docs/methodology/` deixa de existir. Para cada arquivo:
+
+1. **Regras universais** migram para docstrings na função/classe que enforce (e.g., 7 categorias da composição patrimonial → docstring em `pipeline/domain/services/cash_flow_builder.py` ou similar) + ADR específica (ADR-145, ADR-146, ADR-147 — uma por domínio) que captura o "porquê" da regra.
+2. **Dados cliente-estruturados** (categorias workspace-specific, contas bancárias, etc.) já vivem em DB ou migram via lanes correlatas (A7.2a Decision aggregate absorveu contratos PJ + estratégia de aportes; A7.3 absorve categorias/instituições; futuro A8.1 absorve programas de milhas).
+3. **Dados cliente-não-estruturados** (notas livres, observações editoriais que não cabem em entidades DB ainda) vão para `storage/<workspace_id>/notes/` — gitignored, workspace-scoped. Bridge transitório enquanto não há entidade DB modelada.
+
+`dev/check_forbidden_paths.py` ganha bloqueio para `docs/methodology/**` (impede recriação acidental).
+
+CLAUDE.md §Regras críticas ganha parágrafo: "Methodology = code. Nada em `docs/methodology/`. Regras universais vivem em docstrings + ADRs; dados cliente em DB ou `storage/<ws>/notes/`."
+
+**Consequências:**
+- ✅ Source of truth única: o código que enforce. Drift estrutural eliminado.
+- ✅ CLAUDE.md §Regras críticas (anti-PII em commits) reforçada por construção — não há mais lugar onde dados cliente "naturalmente" se misturam com regras de produto em git.
+- ✅ Regras universais ganham testes diretos via testes unitários da função que as enforce (não dependem de leitura de markdown).
+- ✅ Onboarding melhora: leitor encontra a regra **junto com a função que a aplica**, não em doc separado que pode estar desatualizado.
+- ⚠️ Quem busca "qual a regra do produto X?" precisa pesquisar no código (via grep/IDE) em vez de abrir um índice doc. Mitigação: ADRs especializadas (ADR-145..147) servem como índice canônico — referenciadas por nome em commits e docs.
+- ⚠️ Curva de migração: A7.6 sub-task 4 (sanitização de `definitions.md`) depende soft de A7.3 (categorias/instituições absorvidas) + A7.2a (decisões absorvidas) já mergeadas, para que o "drop" seja seguro.
+- ❌ Conteúdo histórico de `docs/methodology/` permanece em git history; auditoria pós-fato requer git blame / git log (não acessível via UI atual). Aceito — o vazamento de PII no history é o mesmo que tinha em `config/` antes; remoção retroativa do history exige `git filter-branch` que está fora do escopo desta lane.
+- ❌ Para regras que cruzam múltiplos arquivos (ex.: como E3 hierarchy interage com E4 categorização), o leitor precisa navegar entre N docstrings. Mitigação: ADRs do A7.6 (143, 145, 146, 147) servem como pontes cross-cutting.
+
+---
+
+## ADR-145 — 7 categorias canonical da composição patrimonial
+
+**Status:** Proposto (Sprint A7.6) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
+
+**Contexto:** O relatório financeiro do Mathoms apresenta a "Composição Patrimonial" como gráfico doughnut com **exatamente 7 buckets**. A taxonomia foi historicamente documentada em `config/methodology/regras_composicao_patrimonial.md` (movido para `docs/methodology/` em A7.4) misturando regras universais com exemplos cliente-específicos. ADR-143 elimina o markdown; esta ADR registra a decisão das 7 categorias como invariante de produto.
+
+A taxonomia é parte do **modelo metodológico Mathoms** (não do dado cliente): assume premissa "casal com até 2 titulares de investimentos" (titular + cônjuge) e separa imóveis de moradia × investimento — escolhas de produto inspiradas nas metodologias Perini / Cerbasi / AUVP referenciadas no projeto.
+
+Alternativas consideradas:
+
+- **(a) N categorias dinâmicas por workspace.** Cada cliente define seus buckets. **Trade-off:** quebra comparabilidade entre relatórios e relatórios benchmarks; aumenta complexidade de UI; sem evidência de demanda.
+- **(b) 5 categorias agregadas (Imóveis / Investimentos / Caixa / Crypto / Veículos).** Mais simples mas perde granularidade entre "residência principal" vs "imóveis investimento" e entre titular vs cônjuge — informação clínica para planejamento (Perini distingue residência de investimento; AUVP distingue patrimônio investível por membro).
+- **(c) 7 categorias fixas com regras determinísticas.** Mantém comparabilidade, captura nuance de produto, é estável.
+
+**Decisão:** Adotar **(c)**. As 7 categorias canônicas são:
+
+1. **Residência própria** — moradia principal da família (sempre exatamente 1 imóvel).
+2. **Imóveis investimento** — todos os imóveis dos membros, exceto a residência principal.
+3. **Investimentos {TITULAR}** — ativos financeiros do titular: investimentos clássicos (`investimentos[]`) + contas bancárias de tipo investimento (`tipo` contém `RDB|CDB|CDP|Renda Fixa|Investimento|Aplicacao|Poupança|Saldo em Conta` em corretora). **Inclui** fundos regulados que tenham nome sugerindo crypto mas sejam FIC FIM (ex.: Hashdex Crypto).
+4. **Investimentos {CONJUGE}** — mesmo conjunto, aplicado ao cônjuge (workspace-specific labelling via `family_members.json` membros titular/cônjuge).
+5. **Criptoativos** — crypto direta (BTC, ETH, ADA, etc.) mantida em exchanges. **Não inclui** fundos regulados de crypto.
+6. **Caixa + Moeda Estrangeira** — `tipo` contém `Conta Corrente` (sem "Investimento" no mesmo campo) **OU** `Moeda Estrangeira`.
+7. **Veículos** — categoria residual para automóveis/embarcações.
+
+Premissa de produto: **exatamente 2 titulares de investimentos** (titular + cônjuge). Famílias com configurações diferentes (apenas titular, >2 membros investidores, etc.) são tratadas como casos especiais — `Investimentos {CONJUGE}` retorna 0 quando ausente; >2 membros não suportado nesta versão.
+
+Regras de classificação (universal, sem dados cliente) vão para docstring na função classificadora em `pipeline/domain/services/cash_flow_builder.py` (ou serviço equivalente identificado no Explore da lane A7.6). Os exemplos cliente-específicos (Hashdex matching, contas Itaú Personnalité, etc.) viram **fixtures de teste unitário** com nomes anônimos (`FundoExemplo`, `BancoExemplo`).
+
+**Consequências:**
+- ✅ Comparabilidade entre relatórios e benchmarks externos preservada.
+- ✅ Taxonomia estável — clientes novos importam dados e relatório classifica determinísticamente.
+- ✅ Drift entre regra documentada × código aplicado eliminado (rules-as-code).
+- ⚠️ Famílias fora da premissa "casal" (>2 membros investidores, união homoafetiva com >2 titulares fiscais, etc.) são limitadas pela taxonomia. Expansão para N membros requer ADR futuro + redesenho de schema (provavelmente Sprint A8+).
+- ⚠️ Fundos com classificação ambígua (ex.: ETF temático, fundos de venture) seguem regra textual no docstring; resolução duvidosa requer decisão editorial → vira test fixture nova + atualização do docstring.
+- ❌ Renaming de `template_key` da categoria é PROIBIDO (apenas add/deprecate) — paralelo à regra de [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions) sobre categorization templates.
+
+---
+
+## ADR-146 — E3 source hierarchy + `BankAccount.source_tier` schema
+
+**Status:** Proposto (Sprint A7.6) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy).
+
+**Contexto:** O stage E3 (reconciliação) consolida transações de múltiplas fontes (extratos bancários parseados, faturas de cartão, screenshots de app, deduções IRPF, declarações editorais) e precisa decidir qual fonte tem precedência quando há conflito (ex.: mesma transação aparece em extrato + fatura de cartão por causa de pagamento intermediado).
+
+A regra histórica está em `config/methodology/source_hierarchy.md` (movido para `docs/methodology/` em A7.4) misturando hierarquia universal com mapeamento workspace-specific (David's Itaú vs Mariana's BTG). ADR-143 elimina o markdown; esta ADR registra hierarchia universal + abre schema migration para tier per `BankAccount`.
+
+Alternativas consideradas:
+
+- **(a) Hierarquia hardcoded global.** Toda banco tipo X é tier 1, banco tipo Y é tier 2. **Trade-off:** ignora variação por workspace (cliente A pode confiar mais em Itaú; cliente B em BTG). Insuficiente.
+- **(b) Hierarquia universal + override por workspace via campo `BankAccount.source_tier`.** Mathoms define tier default por *tipo* de fonte; cada workspace pode overrideá-lo per-account quando há razão.
+- **(c) Hierarquia 100% workspace-defined (sem default Mathoms).** Cliente novo abre conta = tem que configurar tier de cada banco. UX ruim; sem onboarding default.
+
+**Decisão:** Adotar **(b)**.
+
+Hierarquia universal default (tier ascendente — tier 1 = mais confiável, tier 5 = menos):
+
+1. **Tier 1 — Extração LLM de extrato OFX/PDF estruturado** (alta confiança: dados estruturados, datas precisas, descrições completas).
+2. **Tier 2 — Extrato bancário parseado por regex** (alta confiança quando o parser cobre o formato; pode perder transações em formatos não cobertos).
+3. **Tier 3 — Fatura de cartão de crédito** (cobertura parcial: só transações no cartão; pode duplicar com extrato quando há pagamento intermediado).
+4. **Tier 4 — Screenshot de app extraído por LLM** (média confiança: dependente da qualidade da imagem; bom para contas de investimento sem extrato).
+5. **Tier 5 — Declaração editorial / dedução IRPF / planilha manual do cliente** (baixa confiança automatizada, mas alta confiança humana — usado como ground truth para reconciliar discrepâncias finais).
+
+Regra de reconciliação: quando duas fontes reportam a mesma transação (matched por valor + data ± 2 dias + descrição similarity), a fonte de **tier menor (mais alto na hierarquia)** vence. Ties dentro do mesmo tier resolvem via timestamp da extração (mais recente vence) — evita instabilidade quando o pipeline reroda.
+
+Schema migration (Alembic backwards-compat — add nullable + populate + flip):
+
+```python
+class BankAccount(Base):
+    # ... campos existentes ...
+    source_tier: int | None = Column(SmallInteger, nullable=True, default=None)
+    # None = usar default Mathoms baseado em tipo (account_type / institution.parser).
+    # Não-None = override workspace-específico.
+```
+
+Function que enforce a hierarchy vai para docstring em `pipeline/domain/services/income_origin_resolver.py` (ou similar identificado pelo Explore da A7.6). Override workspace-specific resolvido via `ResolvedBankAccount.tier(workspace_id, db)` que consulta `source_tier` e fallback para regra default.
+
+**Consequências:**
+- ✅ Pipeline E3 deterministicamente reconciliável: ties têm regra explícita.
+- ✅ Workspace tem flexibilidade de override quando o default não reflete sua realidade (ex.: cliente que tem screenshot mais confiável que o extrato porque parser falha no formato).
+- ✅ Onboarding default funciona — não exige configuração tier-by-bank pelo cliente.
+- ⚠️ Schema migration adiciona coluna nullable ao `bank_accounts`. Backwards-compat sob ADR-097 (add nullable + populate + flip — sem DROP no mesmo PR).
+- ⚠️ Documentação da regra default fica em docstring de **uma** função (income_origin_resolver). Se a função for refatorada/extraída, o docstring deve migrar junto. Mitigação: regra documentada em ADR-146 mesmo (esta) é o índice canônico.
+- ❌ `source_tier` per-account ignora granularidade temporal (banco pode ter parser melhorando ao longo do tempo). Aceito — granularidade temporal exige ADR específica futura.
+
+---
+
+## ADR-147 — Milhas: valuation methodology universal + storage workspace-scoped
+
+**Status:** Proposto (Sprint A7.6) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
+
+**Contexto:** O relatório do Mathoms inclui um card "Programas de Milhagem" (Smiles, Latam Pass, Livelo, Atomos, MasterCard Surpreenda, etc.) com saldo de pontos por programa, valor estimado em BRL e regras de expiração. A fonte histórica é `config/milhas.md` (movido para `docs/methodology/` em A7.4) parseado em runtime por `scripts/e5_analyze.py::parse_milhas_md(workspace_root)`.
+
+O arquivo é **duas coisas ao mesmo tempo**: (a) doc humano com método de valuation universal (como avaliar 1 ponto Smiles em campanha vs base), (b) fonte de dados cliente-específica em runtime (saldos de Smiles do David, Latam Pass da Mariana). Anti-padrão clássico: doc + dado misturados em mesmo artefato versionado em git.
+
+ADR-143 elimina `docs/methodology/`. Esta ADR define dois caminhos separados:
+
+Alternativas consideradas para o **dado cliente** (saldos por programa):
+
+- **(α) `storage/<ws>/notes/milhas.md` gitignored, mesmo formato markdown.** `parse_milhas_md` lê do path novo. Migrator one-shot copia conteúdo atual para workspace piloto. **Trade-off:** continua file-based, sem API/UI editável. Drift entre notas humanas e relatório possível.
+- **(β) DB entity `MileageProgram(workspace_id, member_id, program_code, balance_points, accumulation_rate, valuation_per_point_cents, expiration_date, notes)`.** API + UI + migrator. Alinhado com pattern de `Decision` (ADR-136) e `FamilyMember`. **Trade-off:** ~2-3 sessões de trabalho extra além de A7.6 (paralelo de A7.2a). Mas é a saída arquitetural correta.
+- **(γ) Híbrido escalonado.** A7.6 entrega α (storage notes + bridge); Sprint A8.1 entrega β (DB entity).
+
+**Decisão:** Adotar **(γ)** com escopo claro entre as lanes:
+
+**A7.6 entrega:**
+- Universal valuation methodology em docstring na função `parse_milhas_md` (ou no novo módulo refatorado equivalente). Documenta: como precificar 1 ponto Smiles vs Latam Pass vs Livelo (regras genéricas, sem saldos cliente); periodicidade de atualização do método (ad-hoc, não programada).
+- Workspace-specific dados (programas + saldos) migram para `<workspace>/storage/<workspace_id>/notes/milhas.md` (gitignored, formato markdown estruturado idêntico ao atual).
+- Migrator one-shot `dev/migrate_milhas_to_workspace_storage.py` copia conteúdo atual de `docs/methodology/milhas.md` para o workspace piloto. Idempotente.
+- Bridge transitório: `parse_milhas_md` tenta o path novo primeiro; fallback para path antigo + `DeprecationWarning`. Bridge removido em A7.5 cleanup.
+
+**Sprint A8.1 entrega (débito técnico aceito):**
+- Schema DB: `MileageProgram` aggregate workspace-scoped + `MileageProgramSnapshot` para histórico de saldos.
+- Endpoints CRUD `/v1/workspaces/{id}/mileage-programs`.
+- Frontend tela de configuração (substitui edição manual de markdown).
+- Migrator de `storage/<ws>/notes/milhas.md` → DB rows.
+- `parse_milhas_md` deprecated; novo `load_mileage_programs(ws_id, db)` lê do DB.
+- `storage/<ws>/notes/milhas.md` deprecated com warning; removido em A8.x cleanup.
+
+**Consequências:**
+- ✅ A7.6 não é bloqueada pelo escopo de modelagem `MileageProgram` (que paralelaria A7.2a Decision em complexidade).
+- ✅ Dado cliente sai de git imediatamente (sub-task A7.6 entrega α antes do final da Sprint A7).
+- ✅ Método de valuation universal preservado em docstring + ADR — sobrevive a futuras refatorações.
+- ✅ A8.1 fica registrado como débito técnico explícito em `docs/BACKLOG.md §Sprint A8` (placeholder aberto em A7.6).
+- ⚠️ Janela transitória: workspace piloto edita `storage/<ws>/notes/milhas.md` manualmente. UX para clientes novos requer A8.1 mergeada.
+- ⚠️ `storage/<ws>/notes/` é primeiro caminho "notes workspace-scoped" do produto. ADR-147 estabelece o padrão: gitignored, formato livre (markdown), parser específico por categoria de notes, sempre acompanhado de docstring no parser que documenta o schema esperado.
+- ❌ Período entre A7.6 e A8.1: dois caminhos de leitura coexistem (path novo prioritário; fallback warned). DeprecationWarning + log estruturado torna o caminho legado discreto mas detectável.
+
+---
+
 <!--
 Template editorial — preservado em HTML comment para não aparecer
 no ToC do GitHub como ADR real. Copie o bloco abaixo ao criar uma
