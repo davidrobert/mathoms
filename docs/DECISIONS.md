@@ -10,34 +10,33 @@
 
 ---
 
+<!-- ADR-TOC-START -->
+
 ## Índice por categoria
 
 **Fundação:**
-[D1](#adr-001--sqlalchemy-20-como-orm) [D2](#adr-002--filesystem-local-para-storage) [D3](#adr-003--jwt-custom-para-auth) [D5](#adr-005--vps-hetzner-para-produção) [D6](#adr-006--monorepo) [D13](#adr-013--wrap-dont-rewrite-pattern)
+[D01](#adr-001--sqlalchemy-20-como-orm) [D02](#adr-002--filesystem-local-para-storage) [D03](#adr-003--jwt-custom-para-auth) [D05](#adr-005--vps-hetzner-para-produção) [D06](#adr-006--monorepo) [D13](#adr-013--wrap-dont-rewrite-pattern)
 
 **Persistência:**
-[D39](#adr-039--dual-db-sqlite-dev--postgresql-prod) [D29-DB](#adr-029--alembic-para-migrations) [D38](#adr-038--docker-volume-para-storage-prod)
+[D29](#adr-029--alembic-para-migrations) [D38](#adr-038--docker-volume-para-storage-prod) [D39](#adr-039--dual-db-sqlite-dev--postgresql-prod)
 
 **Pipeline:**
-[D14](#adr-014--threading-para-execução-background) [D15](#adr-015--vault-por-workspace) [D16](#adr-016--e0-route-automático-no-upload) [D17](#adr-017--sync-session-em-background-threads) [D18](#adr-018--config_dir-override-em-for_tenant) [D19](#adr-019--storage_root-via-env-var) [D30](#adr-030--cancelamento-cooperativo-via-threadingevent) [D79](#adr-079--content-first-classification-no-upload-web) [D81](#adr-081--classificação-de-documentos-unificada-p2)
+[D14](#adr-014--threading-para-execução-background) [D15](#adr-015--vault-por-workspace) [D16](#adr-016--e0-route-automático-no-upload) [D17](#adr-017--sync-session-em-background-threads) [D18](#adr-018--config_dir-override-em-for_tenant) [D19](#adr-019--storage_root-via-env-var) [D30](#adr-030--cancelamento-cooperativo-via-threadingevent) [D30-WS](#adr-030-ws--websocket--polling-fallback) [D75](#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) [D79](#adr-079--content-first-classification-no-upload-web) [D80](#adr-080--pipeline-incremental-extrair-só-docs-novos-consolidar-full) [D81](#adr-081--classificação-de-documentos-unificada-p2)
 
-**Config:**
+**Config (materialização legada):**
 [D20](#adr-020--materializar-config-em-disco) [D21](#adr-021--5-configs-editáveis) [D22](#adr-022--fallback-seletivo-de-config) [D23](#adr-023--importexport-json-de-config)
 
 **LLM:**
-[D24](#adr-024--litellm-como-proxy-universal) [D25](#adr-025--byok-bring-your-own-key) [D26](#adr-026--instructor--pydantic-para-structured-output) [D27](#adr-027--retry-→-needsreview-em-falha-de-validação) [D28](#adr-028--e7-full-scope-na-fase-4)
+[D24](#adr-024--litellm-como-proxy-universal) [D25](#adr-025--byok-bring-your-own-key) [D26](#adr-026--instructor--pydantic-para-structured-output) [D27](#adr-027--retry--needs_review-em-falha-de-validação) [D28](#adr-028--e7-full-scope-na-fase-4)
 
 **Task Queue:**
-[D29-TQ](#adr-029-tq--celery--redis) [D30-WS](#adr-030-ws--websocket--polling-fallback) [D31](#adr-031--redis-para-queue--pubsub) [D32](#adr-032--cancel-stage-boundary)
+[D29-TQ](#adr-029-tq--celery--redis) [D31](#adr-031--redis-para-queue--pubsub) [D32](#adr-032--cancel-stage-boundary)
 
-**Frontend:**
-[D33](#adr-033--react-components-para-report) [D34](#adr-034--dashboard-completo-com-alertas) [D35](#adr-035--media-print-para-pdf-export) [D37](#adr-037--recharts-para-charts) [D42](#adr-042--design-system-antes-da-fase-5) [D43](#adr-043--shadcnui-como-component-library) [D50](#adr-050--tailwind-v4-theme-inline) [D51](#adr-051--geist-fonts) [D52](#adr-052--lucide-react-para-ícones) [D53](#adr-053--intl-nativo-para-datas) [D54](#adr-054--migração-incremental-de-pages)
+**Frontend / Design:**
+[D33](#adr-033--react-components-para-report) [D34](#adr-034--dashboard-completo-com-alertas) [D35](#adr-035--media-print-para-pdf-export) [D37](#adr-037--recharts-para-charts) [D42](#adr-042--design-system-antes-da-fase-5) [D43](#adr-043--shadcnui-como-component-library) [D44](#adr-044--transaction-explorer-como-core) [D45](#adr-045--data-lineage-via-tooltip) [D46](#adr-046--responsivo-sem-pwa-obrigatório) [D47](#adr-047--category-override-em-vez-de-reconciliação-ui) [D50](#adr-050--tailwind-v4-theme-inline) [D51](#adr-051--geist-fonts) [D52](#adr-052--lucide-react-para-ícones) [D53](#adr-053--intl-nativo-para-datas) [D54](#adr-054--migração-incremental-de-pages) [D139](#adr-139--finalização-migração-rechartschartjs-em-reports)
 
-**Produto:**
-[D44](#adr-044--transaction-explorer-como-core) [D45](#adr-045--data-lineage-via-tooltip) [D46](#adr-046--responsivo-sem-pwa-obrigatório) [D47](#adr-047--category-override-em-vez-de-reconciliação-ui)
-
-**Produção:**
-[D7](#adr-007--fernet-app-level-para-criptografia) [D40](#adr-040--billing-adiado-para-pós-launch) [D41](#adr-041--traefik-como-reverse-proxy) [D55](#adr-055--coverage-target-85-line--95-new-code) [D56](#adr-056--rolling-restart-em-vez-de-blue-green) [D57](#adr-057--jwt-15min--refresh-7d) [D58](#adr-058--vps-cx32-para-sizing) [D59](#adr-059--docker-image-cve-scan-no-ci) [D60](#adr-060--fernet-dual-key-para-secret-rotation) [D61](#adr-061--telemetria-privacy-first)
+**Produção & Infra (F7):**
+[D07](#adr-007--fernet-app-level-para-criptografia) [D40](#adr-040--billing-adiado-para-pós-launch) [D41](#adr-041--traefik-como-reverse-proxy) [D55](#adr-055--coverage-target-85-line--95-new-code) [D56](#adr-056--rolling-restart-em-vez-de-blue-green) [D57](#adr-057--jwt-15min--refresh-7d) [D58](#adr-058--vps-cx32-para-sizing) [D59](#adr-059--docker-image-cve-scan-no-ci) [D60](#adr-060--fernet-dual-key-para-secret-rotation) [D61](#adr-061--telemetria-privacy-first) [D108](#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns) [D116](#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local)
 
 **Testing:**
 [D62](#adr-062--frontend-testing-em-fase-dedicada-65) [D63](#adr-063--hardening-fintech-em-sub-fase-65d) [D64](#adr-064--backend-hardening-em-sub-fase-65e) [D67](#adr-067--test-infrastructure-em-sub-fase-65f) [D69](#adr-069--msw-sync-strategy-manual--lint-ci-não-codegen) [D70](#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) [D71](#adr-071--playwright-workspace-isolation-email-unique-por-worker)
@@ -45,52 +44,34 @@
 **Operations:**
 [D65](#adr-065--sub-fase-7e-operational-readiness) [D66](#adr-066--auth-flows-completos-e-prompt-injection-em-7b-bloqueadores-de-beta)
 
-**UX/Linguagem:**
+**UX / Linguagem:**
 [D68](#adr-068--códigos-internos-do-pipeline-nunca-vazam-na-ui)
 
 **Multi-tenancy (F8):**
 [D72](#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família)
 
 **Goals & Tasks (F8):**
-[D73](#adr-073--goals-como-entidade-versionada-não-config-estático) [D74](#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório) [D75](#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) [D77](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web)
+[D73](#adr-073--goals-como-entidade-versionada-não-config-estático) [D74](#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório) [D77](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web)
 
-**Design System (F9):**
-[D76](#adr-076--design-tokens-unificados-site--relatório) [D78](#adr-078--render-nativo-react--e6-como-exportador-standalone)
+**Design System & Render (F9 / Report Premium):**
+[D76](#adr-076--design-tokens-unificados-site--relatório) [D78](#adr-078--render-nativo-react--e6-como-exportador-standalone) [D121](#adr-121--typography-base-13px-com-override-configurável) [D122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm) [D123](#adr-123--notas-t6-e-kanban-t3-persistidos-no-backend) [D124](#adr-124--scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next) [D125](#adr-125--workspace-sharing-convites-viewer-role-forced-logout) [D126](#adr-126--multi-tenant-goals-completos-aporte_mensal-dolarizacao-alocacao_alvo) [D127](#adr-127--e1-members-persiste-via-artifactstore) [D128](#adr-128--e7-review-llm-lêescreve-via-artifactstore) [D129](#adr-129--descontinuação-completa-do-renderer-html-server-side)
 
-**Infra + Domínio (migração `plano_migracao_artifacts_db.md`):**
-[D82](#adr-082--pipelineartifact-artefatos-computacionais-no-banco)
-[D83](#adr-083--artifactstore-abstração-de-io-para-artefatos)
-[D84](#adr-084--content-addressed-uploads)
-[D85](#adr-085--eliminar-materialização-de-config-em-disco)
-[D86](#adr-086--materializationbridge-adapter-temporário)
-[D87](#adr-087--stagespec-dependências-declarativas)
-[D88](#adr-088--stageconfig-configuração-imutável-por-parâmetro)
-[D89](#adr-089--pipelinedomain-camada-de-domínio-isolada-de-io)
-[D90](#adr-090--decimal-para-valores-monetários)
-[D91](#adr-091--pydantic-para-domain-objects-com-coleções)
-[D92](#adr-092--renomear-scripts-para-nomes-descritivos-de-domínio)
-[D93](#adr-093--rename-completo-de-identificadores-de-stage-opção-a)
-[D94](#adr-094--report-single-active-vs-versionado)
-[D95](#adr-095--segurança-de-content_json-lgpd)
-[D96](#adr-096--observabilidade-de-cutover)
-[D97](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy)
-[D98](#adr-098--caminho-b-pragmático-vs-puro-nomenclatura-oficial)
-[D99](#adr-099--reuse-de-analyze_-legadas-em-main_with_store-decisão-de-a5da5e)
-[D100](#adr-100--a6d-commitment-fechar-caminho-b-puro-nos-5-stages-pragmáticos)
-[D101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e)
-[D102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f)
-[D103](#adr-103--teste-manual-como-gate-antes-de-remoção-do-bridge-a6b5--a6-human)
-[D104](#adr-104--e15c-em-caminho-b-pragmático-sessão-a5f)
-[D105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a)
-[D106](#adr-106--opt-in-db-artifacts-por-workspace--dbartifactstore-no-celery-task-a6b)
-[D107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2)
-[D109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a)
-
-**Infra de produção (F7):**
-[D108](#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns)
+**Pipeline DDD/SOLID + Infra+Domínio (Sprint A6):**
+[D82](#adr-082--pipelineartifact-artefatos-computacionais-no-banco) [D83](#adr-083--artifactstore-abstração-de-io-para-artefatos) [D84](#adr-084--content-addressed-uploads) [D85](#adr-085--eliminar-materialização-de-config-em-disco) [D86](#adr-086--materializationbridge-adapter-temporário) [D87](#adr-087--stagespec-dependências-declarativas) [D88](#adr-088--stageconfig-configuração-imutável-por-parâmetro) [D89](#adr-089--pipelinedomain-camada-de-domínio-isolada-de-io) [D90](#adr-090--decimal-para-valores-monetários) [D91](#adr-091--pydantic-para-domain-objects-com-coleções) [D92](#adr-092--renomear-scripts-para-nomes-descritivos-de-domínio) [D93](#adr-093--rename-completo-de-identificadores-de-stage-opção-a) [D94](#adr-094--report-single-active-vs-versionado) [D95](#adr-095--segurança-de-content_json-lgpd) [D96](#adr-096--observabilidade-de-cutover) [D97](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy) [D98](#adr-098--caminho-b-pragmático-vs-puro-nomenclatura-oficial) [D99](#adr-099--reuse-de-analyze_-legadas-em-main_with_store-decisão-de-a5da5e) [D100](#adr-100--a6d-commitment-fechar-caminho-b-puro-nos-5-stages-pragmáticos) [D101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e) [D102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f) [D103](#adr-103--teste-manual-como-gate-antes-de-remoção-do-bridge-a6b5--a6-human) [D104](#adr-104--e15c-em-caminho-b-pragmático-sessão-a5f) [D105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a) [D106](#adr-106--opt-in-db-artifacts-por-workspace--dbartifactstore-no-celery-task-a6b) [D107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2) [D109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a) [D110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3) [D111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) [D112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1) [D113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) [D114](#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6) [D115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents) [D117](#adr-117--report-premium-ui-baseline-paridade-com-exemplo_de_relatoriohtml) [D118](#adr-118--flip-do-default-mathoms_use_db_artifacts-para-true) [D119](#adr-119--contrato-livestep-para-progresso-de-etapas-do-pipeline) [D120](#adr-120--readers-user-facing-consultam-artifactstore-db-first-com-fallback-disco)
 
 **Internacionalização (F12):**
 [D130](#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
+
+**Report Premium (F-pós, ondas v1/v2):**
+[D131](#adr-131--report-referencia-pipeline_artifact-por-fk-drop-analysis_json_path) [D132](#adr-132--lifecycle-scoping-de-pipeline_artifacts-workspace-vs-run) [D133](#adr-133--transferencias_internas-modelado-em-transfer_configs-workspace-scoped) [D144](#adr-144--section_summaries-llm-driven-em-e5-com-cache--fallback-determinístico-v29) [D148](#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório)
+
+**Sprint A7 — Rules-as-Code & Cutover:**
+[D134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) [D135](#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) [D136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain) [D137](#adr-137--catalog--override-resolver-para-categorization-e-institutions) [D138](#adr-138--protocolo-de-supervisão-cto-para-sprint-a7) [D143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76) [D145](#adr-145--7-categorias-canonical-da-composição-patrimonial) [D146](#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) [D147](#adr-147--milhas-valuation-methodology-universal--storage-workspace-scoped)
+
+**Decisões metodológicas pós-auditoria (Roadmap v2):**
+[D140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) [D141](#adr-141--goal-alocação-alvo-schema-v2-7-classes-auvp) [D142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)
+
+<!-- ADR-TOC-END -->
 
 ---
 
