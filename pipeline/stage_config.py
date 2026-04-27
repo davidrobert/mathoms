@@ -26,9 +26,16 @@ from typing import TYPE_CHECKING, ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict
 
+# `ConfigStore` precisa estar no namespace de runtime — é tipo de campo
+# Pydantic (`config_store: Optional["ConfigStore"]`). Com
+# `from __future__ import annotations` toda anotação vira string; Pydantic
+# tenta resolver e falha com "StageConfig is not fully defined" se o símbolo
+# está só em `if TYPE_CHECKING`. `WorkspaceContext` continua em TYPE_CHECKING
+# porque só aparece em assinatura de método (não passa por schema build).
+from pipeline.ports import ConfigStore
+
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
-    from pipeline.ports import ConfigStore
 
 
 class ConfigError(RuntimeError):
