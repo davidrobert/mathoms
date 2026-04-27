@@ -114,12 +114,14 @@ def _dispatch_celery_task(
 
 
 def _prepare_run_context(ws_id: str, tier: str | None) -> tuple[str, object, object]:
-    from backend.app.services.config_materializer import materialize_config
+    """A7.1 (ADR-134): configs A7.1 fluem via ``WorkspaceContext.config_overrides``;
+    aqui só materializamos os fora do escopo (pipeline, llm) + cópia global."""
+    from backend.app.services.config_materializer import prepare_pipeline_config_dir
 
     resolved_tier = tier if tier is not None else detect_tier(ws_id)
     tenant_root = StorageService().ensure_tenant_dirs(ws_id)
     with SyncSessionLocal() as db:
-        config_dir = materialize_config(ws_id, tenant_root, db)
+        config_dir = prepare_pipeline_config_dir(ws_id, tenant_root, db)
     return resolved_tier, tenant_root, config_dir
 
 

@@ -359,3 +359,109 @@ class TestSerializeLLMConfig:
 
         llm_path = config_dir / "llm_config.json"
         assert not llm_path.exists()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# A7.1 (ADR-134) — prepare_pipeline_config_dir + DeprecationWarning
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def _capture_materialize_logs():
+    """Captura logs de ``mathoms.config.materialize`` durante o teste."""
+    import logging
+
+    records: list[logging.LogRecord] = []
+
+    class _H(logging.Handler):
+        def emit(self, record):
+            records.append(record)
+
+    handler = _H()
+    logger = logging.getLogger("mathoms.config.materialize")
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    return records, handler, logger
+
+
+_SENTINEL_MEMBER_KEY = "ws_sentinel_member_xyz"
+_SENTINEL_CATEGORY_CODE = "ws_sentinel_category_xyz"
+
+
+def _seed_sentinel_member(db, workspace_id: str) -> None:
+    db.add(
+        FamilyMember(
+            workspace_id=workspace_id,
+            key=_SENTINEL_MEMBER_KEY,
+            full_name="X",
+            short_name="X",
+            role="titular",
+            order=0,
+        )
+    )
+
+
+def _seed_sentinel_category(db, workspace_id: str) -> None:
+    db.add(
+        Category(
+            workspace_id=workspace_id,
+            code=_SENTINEL_CATEGORY_CODE,
+            name="X",
+            category_type="expense",
+            order=1,
+        )
+    )
+
+
+def _seed_a7_1_sentinels(db, workspace_id: str) -> tuple[str, str]:
+    """Adiciona FamilyMember + Category sentinela para verificar não-materialização."""
+    _seed_sentinel_member(db, workspace_id)
+    _seed_sentinel_category(db, workspace_id)
+    db.commit()
+    return _SENTINEL_MEMBER_KEY, _SENTINEL_CATEGORY_CODE
+
+
+def test_materialize_config_emits_deprecation_warning(db, workspace, tmp_path):
+    """A7.1: ``materialize_config`` agora é deprecated; legacy_call log fires."""
+    from backend.app.services.config_materializer import materialize_config
+
+    tenant_root = tmp_path / "tenant_dep"
+    tenant_root.mkdir()
+    with pytest.warns(DeprecationWarning, match="materialize_config"):
+        materialize_config(workspace.id, tenant_root, db)
+
+    records, handler, logger = _capture_materialize_logs()
+    try:
+        materialize_config(workspace.id, tenant_root, db)
+    finally:
+        logger.removeHandler(handler)
+    assert any("legacy_call" in r.getMessage() for r in records)
+
+
+def test_prepare_pipeline_config_dir_skips_a7_1_configs(db, workspace, tmp_path):
+    """A7.1: novo helper não materializa categorization/family_members/etc."""
+    from backend.app.services.config_materializer import prepare_pipeline_config_dir
+
+    sentinel_key, sentinel_cat = _seed_a7_1_sentinels(db, workspace.id)
+    tenant_root = tmp_path / "tenant_thin"
+    tenant_root.mkdir()
+    config_dir = prepare_pipeline_config_dir(workspace.id, tenant_root, db)
+
+    fm_disk = json.loads((config_dir / "family_members.json").read_text(encoding="utf-8"))
+    assert sentinel_key not in (fm_disk.get("membros") or {})
+
+    cat_disk = json.loads((config_dir / "categorization.json").read_text(encoding="utf-8"))
+    assert sentinel_cat not in (cat_disk.get("expense_keywords") or {})
+
+
+def test_prepare_pipeline_config_dir_does_not_emit_legacy_call(db, workspace, tmp_path):
+    """A7.1: o novo helper NÃO emite ``mathoms.config.materialize.legacy_call``."""
+    from backend.app.services.config_materializer import prepare_pipeline_config_dir
+
+    tenant_root = tmp_path / "tenant_clean"
+    tenant_root.mkdir()
+    records, handler, logger = _capture_materialize_logs()
+    try:
+        prepare_pipeline_config_dir(workspace.id, tenant_root, db)
+    finally:
+        logger.removeHandler(handler)
+    assert all("legacy_call" not in r.getMessage() for r in records)

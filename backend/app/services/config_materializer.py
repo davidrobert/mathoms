@@ -1,17 +1,11 @@
-"""ConfigMaterializer — copies global config to tenant dir, overrides with DB edits.
-
-Called before each pipeline run. Scripts read from disk via _init_config() — zero changes needed.
-
-Flow:
-  1. Copy config/ global → storage/{workspace_id}/config/ (full tree)
-  2. For each config edited in DB → serialize to pipeline-compatible JSON → overwrite in tenant config/
-  3. For YAML configs (report_layout) → write as YAML to preserve compatibility
-"""
+"""ConfigMaterializer — copies global config to tenant dir, overrides with DB edits."""
 
 from __future__ import annotations
 
 import json
+import logging
 import shutil
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -32,17 +26,36 @@ from backend.app.models.workspace import Workspace
 from backend.app.services.vault import get_vault
 
 _vault = get_vault()
+_logger = logging.getLogger("mathoms.config.materialize")
+
+_DEPRECATION_NOTICE = (
+    "materialize_config writes A7.1 configs (categorization, family_members, "
+    "institutions, report_layout, transfer_config) to disk. After Sprint A7.1 "
+    "(ADR-134) the worker reads those via WorkspaceContext.config_overrides "
+    "populated from DBConfigStore — no disk write is needed. This function "
+    "will be removed in Sprint A7.5. Use prepare_pipeline_config_dir for "
+    "non-A7.1 configs (pipeline.json, llm_config.json, scoring/fiscal copies)."
+)
+
+
+def prepare_pipeline_config_dir(workspace_id: str, tenant_root: Path, db: Session) -> Path:
+    """A7.1 (ADR-134): copia o tree global + materializa apenas configs fora do escopo A7.1."""
+    tenant_config = tenant_root / "config"
+    _copy_global(_global_config_dir(), tenant_config)
+    _override_pipeline(workspace_id, tenant_config, db)
+    _override_llm_config(workspace_id, tenant_config, db)
+    return tenant_config
 
 
 def materialize_config(workspace_id: str, tenant_root: Path, db: Session) -> Path:
-    """Materialize configs from DB to disk for the pipeline to read.
-
-    Returns the tenant config dir path.
-    """
+    """LEGACY (deprecated A7.5): materializa todos os configs em disco — fired via DeprecationWarning."""
+    warnings.warn(_DEPRECATION_NOTICE, DeprecationWarning, stacklevel=2)
+    _logger.info(
+        "mathoms.config.materialize.legacy_call",
+        extra={"workspace_id": workspace_id, "tenant_root": str(tenant_root)},
+    )
     tenant_config = tenant_root / "config"
-    global_config = _global_config_dir()
-
-    _copy_global(global_config, tenant_config)
+    _copy_global(_global_config_dir(), tenant_config)
     _override_family_members(workspace_id, tenant_config, db)
     _override_categorization(workspace_id, tenant_config, db)
     _override_pipeline(workspace_id, tenant_config, db)
@@ -50,7 +63,6 @@ def materialize_config(workspace_id: str, tenant_root: Path, db: Session) -> Pat
     _override_report_layout(workspace_id, tenant_config, db)
     _override_llm_config(workspace_id, tenant_config, db)
     _override_transfer_config(workspace_id, tenant_config, db)
-
     return tenant_config
 
 
@@ -275,6 +287,9 @@ def ensure_tenant_pipeline_config(workspace_id: str, tenant_root: Path) -> Path:
     Ensures upload and ``POST /documents/reclassify`` can use
     :func:`document_processor.resolve_classification_base` with tenant-specific
     ``family_members`` / ``institutions`` without requiring a prior pipeline execution.
+
+    A7.1 (ADR-134): usa ``prepare_pipeline_config_dir`` (sem materializar configs A7.1
+    em disco — esses fluem via ``WorkspaceContext.config_overrides`` no worker).
     """
     tenant_root = Path(tenant_root).resolve()
     marker = tenant_root / "config" / "institutions.json"
@@ -284,4 +299,4 @@ def ensure_tenant_pipeline_config(workspace_id: str, tenant_root: Path) -> Path:
     from backend.app.core.database import SyncSessionLocal
 
     with SyncSessionLocal() as db:
-        return materialize_config(workspace_id, tenant_root, db)
+        return prepare_pipeline_config_dir(workspace_id, tenant_root, db)
