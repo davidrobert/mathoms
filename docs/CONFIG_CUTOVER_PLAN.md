@@ -1,6 +1,6 @@
 # Plano — Cutover de `config/` para DB multi-tenant (Sprint A7)
 
-> **Status:** ☐ aberto 2026-04-26 — aguarda autorização para início.
+> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 começou (A7.1 ✅, A7.2a/A7.2b/A7.4 abertas) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
 > **Audiência:** agentes LLM em paralelo (Onda 2 com até 4 agentes simultâneos) + supervisor CTO (humano ou agente `senior-cto`).
 > **Premissa central:** o produto **continua operando em produção** entre cada onda. Nenhum passo pode quebrar smoke E2E ou bloquear geração de relatório de workspace existente.
 > **Referências:** [BACKLOG.md §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal), [DECISIONS.md ADR-134..138](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [CLAUDE.md §Regras críticas](../CLAUDE.md#regras-críticas-invariantes-do-repositório).
@@ -214,9 +214,11 @@ Cada lane fecha com PR atômico, mergeada via fast-forward em `main`. Rollback =
 
 ---
 
-### §5.1 A7.1 — Cutover `materialize_config` → `ConfigStore`
+### §5.1 A7.1 — Cutover `materialize_config` → `ConfigStore` ✅ entregue 2026-04-27
 
 **Onda 2 · 1 lane · ~2–3 sessões · paralelo com A7.2a, A7.2b, A7.4.**
+
+**Status:** ✅ **mergeada em `main`** (2026-04-27, commits `7bac3fe`..`5929bb7` + ruff fix `eaed671`). CI verde em `fd0ebd9`.
 
 **Depende de:** A7.0 ✅ mergeada em `main`.
 
@@ -224,26 +226,30 @@ Cada lane fecha com PR atômico, mergeada via fast-forward em `main`. Rollback =
 
 **Configs afetados:** `categorization`, `family_members`, `report_layout`, `institutions`, `transfer_configs`.
 
-**Sequência sugerida (commits atômicos):**
+**Como foi entregue (5 commits atômicos):**
 
-1. `pipeline/stages/e4.py` + `pipeline/domain/services/categorization_service.py` recebem `ConfigStore`; testes com `InMemoryConfigStore` fake.
-2. `scripts/e5_analyze.py` (`analyze_*`) recebem `ConfigStore` via `StageConfig`; helper `_init_config` aceita store opcional. Read disco fica como fallback warned.
-3. `pipeline/stages/e5n.py` (narrativas) idem.
-4. `pipeline/stages/e3.py` (reconcile) idem para `family_members` (members/banco_membro).
-5. `backend/app/services/pipeline_adapter.py`: ao instanciar `StageConfig`, injeta `DBConfigStore` quando `MATHOMS_USE_DB_ARTIFACTS=true`.
-6. `materialize_config`: adiciona `warnings.warn(DeprecationWarning, ...)` + log JSON `mathoms.config.materialize.legacy_call`.
-7. Goldens: regenerar baselines apenas se houve diff esperado (provavelmente zero — leitura é equivalente).
+1. `feat(backend): pipeline_adapter injects ConfigStore via WorkspaceContext` (`7bac3fe`) — `pipeline/context.py` ganha `workspace_id` + `config_store: Optional[ConfigStore]`; `for_tenant` aceita ambos. `pipeline/stage_config.py` move `ConfigStore` import p/ runtime (Pydantic v2 forward-ref fix). `backend/app/services/pipeline_adapter.build_config_store(db, use_db_artifacts)` — `DBConfigStore` quando flag on, `FileConfigStore` legacy senão. `pipeline_task._setup_run_context` abre sessão long-lived só com flag on, instancia store, injeta. `_close_config_store_session` fecha no try/finally.
+2. `feat(backend): worker pre-popula config_overrides do DB` (`5e644ec`) — `build_config_overrides_from_db(workspace_id, db)` pré-serializa configs A7.1 em dict para `WorkspaceContext.config_overrides`. `_setup_run_context` injeta via `for_tenant(config=overrides, …)`. **E3/E4 automaticamente DB-first** (já usavam `ctx.load_config()`).
+3. `refactor(scripts): e5_analyze + e5n_narrativas read configs via ctx.load_config` (`13ce459`) — `_init_config(base_dir, *, ctx=None)` aceita ctx; `family_members.json` + `categorization.json` lidos via `ctx.load_config` quando ctx fornecido. `main(root_dir)` legado mantém leitura disco.
+4. `chore(backend): materialize_config DeprecationWarning + log; production usa prepare_pipeline_config_dir` (`5ed799a`) — `materialize_config()` emite `DeprecationWarning` + structured log `mathoms.config.materialize.legacy_call` (logger `mathoms.config.materialize`). Novo `prepare_pipeline_config_dir`: copia tree global + materializa apenas configs FORA do escopo A7.1 (pipeline.json, llm_config.json). **Não emite legacy_call.** `_prepare_run_context` + `ensure_tenant_pipeline_config` (upload flow) migrados.
+5. `test(a7): split deprecation/legacy_call assertions` (`23a28fe`) + `docs(a7): A7.1 ✅ entregue` (`5929bb7`) — F.I.R.S.T fix (mock spy ao invés de caplog p/ robustez cross-test) + CHANGELOG/BACKLOG.
 
-**Acceptance gates:**
-- `pytest tests -q && pytest backend/tests -q` verdes.
-- `make smoke` verde **e** logs do smoke não contêm `mathoms.config.materialize.legacy_call` (= zero call-site legado).
-- `grep -rn "_init_config\|materialize_config" pipeline/ scripts/` retorna **só** o site de fallback warned + testes do próprio fallback.
-- Smoke humano (subset de SMOKE_TEST_HUMAN.md §config) opcional se houver dúvida.
+**Acceptance gates batidos:**
+- ✅ `pytest tests -q` 1495 passed (+2 skipped) — pipeline goldens E3/E4/E5/E5.N paridade byte-a-byte preservada.
+- ✅ `pytest backend/tests -q` 1350 passed (+4 skipped) — incluindo todos os legacy `materialize_config` tests com DeprecationWarning emitida.
+- ✅ Fluxo produtivo (`_prepare_run_context` + `ensure_tenant_pipeline_config`) NÃO chama mais `materialize_config` — zero `mathoms.config.materialize.legacy_call` em smoke E2E. Tests legados emitem warning + log isolados ao escopo de teste.
+- ✅ `dev/check_pipeline_boundaries.py` verde (zero SQLAlchemy/FastAPI em `pipeline/`).
+- ✅ `dev/check_code_style_regression.py` verde (P7 −2 vs baseline; nenhum P1/P9 novo).
+- ✅ CI verde em `main` (`fd0ebd9`).
 
-**Riscos:**
-- Rota DB-first → fallback disco precisa ser determinístico. Se workspace não tem row em `categorization`, `DBConfigStore.get_categorization` retorna `None` → `pipeline_adapter` resolve para `FileConfigStore.get_categorization` com aviso. **Não** misturar (DB parcial + disco preenchendo gaps) — sempre um ou outro.
+**Bridges remanescentes (até A7.5):**
+- `materialize_config()` continua callable; cada chamada emite `DeprecationWarning` + structured log.
+- `FileConfigStore` (Sprint A7.0) continua disponível como fallback quando `MATHOMS_USE_DB_ARTIFACTS=False`.
 
-**Rollback:** revert do PR de cutover. `materialize_config` permanece como bridge.
+**Riscos confirmados como mitigados:**
+- Rota DB-first → fallback disco determinístico via `ctx.load_config(name)` (overrides → disco). Workspace sem row em `categorization` → overrides não inclui a key → disco prevalece (cópia global de `prepare_pipeline_config_dir`).
+
+**Rollback:** disponível via `git revert` dos 6 commits A7.1 + ruff fix. `materialize_config` permanece como bridge funcional.
 
 ---
 
