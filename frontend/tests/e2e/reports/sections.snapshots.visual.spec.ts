@@ -18,7 +18,7 @@
  *
  * v2.2b: troca de modo via URL `?mode=tatico|usa` (lida por
  * `ReportModeProvider`) em vez de click — evita brittleness do toggle
- * (role="tab" + label fora do botão) e funciona com `usa` oculto da UI.
+ * (role="tab" + label fora do botão).
  *
  * Baselines vivem em `tests/e2e/reports/__snapshots__/sections.snapshots.visual.spec.ts/`.
  * Atualização: `npm run test:e2e -- --project=visual --grep sections.snapshots --update-snapshots`
@@ -53,10 +53,9 @@ async function setupReport(
   const { workspaceId, reportId } = await mockReportPage(page);
   await page.setViewportSize(VIEWPORT);
   // v2.2b — modo via URL (`?mode=tatico|usa`) em vez de click no toggle.
-  // ReportModeProvider lê searchParams na montagem (deep-link). Robusto
-  // contra: (a) toggle "usa" oculto da UI (TEMP em ReportActions), (b)
-  // role="tab" + label dentro do TooltipTrigger sem aria-label, que
-  // quebrava `getByRole("button", { name: /Tático|USA/i })`.
+  // ReportModeProvider lê searchParams na montagem (deep-link). Evita
+  // brittleness de role="tab" + label dentro do TooltipTrigger sem
+  // aria-label, que quebrava `getByRole("button", { name: /Tático|USA/i })`.
   const modeParam = mode === "estrategico" ? "" : `&mode=${mode}`;
   await page.goto(
     `/reports/${reportId}?workspace=${workspaceId}${modeParam}`,
@@ -146,18 +145,12 @@ test.describe("Snapshots — modo tático", () => {
 
 // ─── USA ──────────────────────────────────────────────────────────────
 //
-// v2.2b — modo USA está oculto por decisão de produto (commit `adc3a15`).
-// U1-U4 têm `enabled: false` em `config/report_layout.yaml`; ReportShell
-// filtra por `enabledSections` antes de montar `<section>`, então as
-// seções não existem no DOM em prod nem em mock. Quando produto retomar
-// (flip dos 4 `enabled: false` no YAML + redoção do TEMP em
-// `ReportActions.VISUAL_MODES`), basta trocar `test.describe.skip` por
-// `test.describe` e re-rodar `gh workflow run CI -f run_visual=true
-// -f update_visual_baselines=true` para popular U1-U4 × 2 = 8 baselines.
-// Helper `setupReport(..., "usa")` já navega via deep-link `?mode=usa`
-// (testado em v2.2b) — toggle oculto da UI não bloqueia mais.
+// v2.2b completa — modo USA re-habilitado (decisão de produto retomada).
+// U1-U4 com `enabled: true` em `config/report_layout.yaml`; aba "EUA"
+// visível no tablist (`ReportActions.VISIBLE_MODES`). Helper
+// `setupReport(..., "usa")` navega via deep-link `?mode=usa`.
 
-test.describe.skip("Snapshots — modo USA", () => {
+test.describe("Snapshots — modo USA", () => {
   for (const theme of THEMES) {
     for (const sectionId of USA_SECTIONS) {
       test(`${sectionId} — ${theme}`, async ({ page }) => {
