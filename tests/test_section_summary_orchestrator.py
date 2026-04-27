@@ -83,10 +83,10 @@ def test_compute_snapshot_hash_changes_with_data():
 
 def test_supported_section_ids_match_yaml_keys():
     """Sanity check: SUPPORTED_SECTION_IDS bate com keys do YAML."""
+    from backend.app.services.section_summary_orchestrator import _resolve_yaml_path
     from pipeline.domain.services.section_summary_generator import (
         load_prompt_templates_from_yaml,
     )
-    from backend.app.services.section_summary_orchestrator import _resolve_yaml_path
 
     templates = load_prompt_templates_from_yaml(_resolve_yaml_path())
     yaml_keys = set(templates.keys())

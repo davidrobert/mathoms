@@ -9,15 +9,13 @@ from decimal import Decimal
 
 import pytest
 
+from backend.app.services.llm_cache import InMemoryLLMCache
 from pipeline.domain.services.section_summary_generator import (
     PromptTemplate,
     SectionSummaryGenerator,
     SectionSummaryGeneratorConfig,
 )
-
-from backend.app.services.llm_cache import InMemoryLLMCache
 from tests.fakes.llm import FakeLLMRaisingClient, FakeLLMSuccess, make_fake_fallback
-
 
 _TEMPLATE = PromptTemplate(
     system_prompt="You are a financial editor.",
