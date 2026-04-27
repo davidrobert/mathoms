@@ -30,8 +30,9 @@ async def list_categories_resolved(
     workspace_id: str, *, db: AsyncSession
 ) -> CategoryListResponse:
     """``GET /categories`` — retorna template + overrides mergeados."""
-    sync_session = await _sync_view(db)
-    resolved = resolve_categories(workspace_id, sync_session)
+    resolved = await db.run_sync(
+        lambda sync_session: resolve_categories(workspace_id, sync_session)
+    )
     overrides = await WorkspaceCategoryOverrideRepository(db).list_by_workspace(
         workspace_id
     )
@@ -52,8 +53,9 @@ async def upsert_category_override(
     db: AsyncSession,
 ) -> CategoryResponse:
     """``PUT /categories/{key}`` — escreve em ``workspace_category_overrides``."""
-    sync_session = await _sync_view(db)
-    resolved = resolve_categories(workspace_id, sync_session)
+    resolved = await db.run_sync(
+        lambda sync_session: resolve_categories(workspace_id, sync_session)
+    )
     by_key = {c.key: c for c in resolved}
     if template_key not in by_key:
         raise NotFoundError(
@@ -71,7 +73,9 @@ async def upsert_category_override(
         disabled=False,
     )
     category_cache.invalidate_resolved_categories(workspace_id)
-    refreshed = resolve_categories(workspace_id, sync_session)
+    refreshed = await db.run_sync(
+        lambda sync_session: resolve_categories(workspace_id, sync_session)
+    )
     new_by_key = {c.key: c for c in refreshed}
     return _resolved_to_response(new_by_key[template_key], overrides.id)
 
@@ -151,6 +155,3 @@ def _resolved_to_response(
     )
 
 
-async def _sync_view(db: AsyncSession):
-    """Helper: extrai a sync session subjacente para o resolver (sync API)."""
-    return await db.run_sync(lambda sync_session: sync_session)
