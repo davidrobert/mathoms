@@ -20,6 +20,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 _TODAY_FALLBACK = date(2026, 4, 19)
@@ -87,7 +88,15 @@ class CenariosConjugeConfig:
         conjuge_key: str = "mariana",
         conjuge_nome: str = "Mariana",
         reference_date: date | None = None,
+        cambio_usd_brl: Decimal | float | None = None,
     ) -> "CenariosConjugeConfig":
+        """Constrói config; ``cambio_usd_brl`` (Decimal/float) tem prioridade sobre ``taxas``.
+
+        Caller A7.2b passa ``cambio_usd_brl`` resolvido via
+        ``ConfigStore.get_market_rate("USD/BRL", ctx.report_date)``. Caller
+        legado pode continuar passando ``taxas={"cambio_usd_brl": 5.80}``
+        durante a janela de cutover.
+        """
         g = goals or {}
         if_cfg = g.get("independencia_financeira", {}) or {}
         aportes = g.get("aportes", {}) or {}
@@ -95,12 +104,17 @@ class CenariosConjugeConfig:
         mar = g.get("cenarios_conjuge") or g.get("mariana_eua", {}) or {}
         taxas_d = taxas or {}
 
+        if cambio_usd_brl is not None:
+            cambio = float(cambio_usd_brl)
+        else:
+            cambio = _safe_float(taxas_d.get("cambio_usd_brl", 5.80))
+
         return cls(
             titular_dob=titular_dob,
             retorno_real_anual_pct=_safe_float(if_cfg.get("retorno_real_anual_pct", 6.0)),
             aporte_base=_safe_float(aportes.get("meta_aporte_mensal", 0)),
             fator_reduzido=_safe_float(sim.get("aporte_reduzido_fator", 0.66)),
-            cambio_usd_brl=_safe_float(taxas_d.get("cambio_usd_brl", 5.80)),
+            cambio_usd_brl=cambio,
             renda_rn_minima_usd=_safe_float(mar.get("renda_rn_minima_usd", 4000)),
             renda_rn_maxima_usd=_safe_float(mar.get("renda_rn_maxima_usd", 7000)),
             titular_key=titular_key,

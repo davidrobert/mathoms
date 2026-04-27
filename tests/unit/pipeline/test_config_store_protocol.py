@@ -101,20 +101,36 @@ def test_file_config_store_transfer_config_returns_or_none():
     assert tc is None or isinstance(tc, TransferConfig)
 
 
-def test_file_config_store_fiscal_raises_not_implemented():
+def test_file_config_store_fiscal_returns_typed_dataclass():
+    """A7.2b: bridge legado lê parametros_fiscais.json + converte para FiscalParameters."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
         store = FileConfigStore()
-    with pytest.raises(NotImplementedError, match="A7.2b"):
-        store.get_fiscal_for_period(date(2025, 1, 1), date(2025, 12, 31))
+    fp = store.get_fiscal_for_period(date(2025, 1, 1), date(2025, 12, 31))
+    assert isinstance(fp, FiscalParameters)
+    assert fp.year == 2025
+    # config/parametros_fiscais.json: lucro_presumido=32% → 0.32 Decimal
+    assert fp.lucro_presumido_aliquota == Decimal("0.32")
+    assert len(fp.ir_brackets) >= 1
 
 
-def test_file_config_store_market_rate_raises_not_implemented():
+def test_file_config_store_market_rate_returns_decimal():
+    """A7.2b: bridge legado lê taxas.json::cambio_usd_brl como Decimal."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
         store = FileConfigStore()
-    with pytest.raises(NotImplementedError, match="A7.2b"):
-        store.get_market_rate("USD/BRL", date(2026, 4, 26))
+    rate = store.get_market_rate("USD/BRL", date(2026, 4, 26))
+    assert isinstance(rate, Decimal)
+    assert rate > 0
+
+
+def test_file_config_store_market_rate_unknown_pair_raises():
+    """Bridge não suporta pares fora de USD/BRL e EUR/BRL."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        store = FileConfigStore()
+    with pytest.raises(KeyError, match="GBP/BRL"):
+        store.get_market_rate("GBP/BRL", date(2026, 4, 26))
 
 
 # ---------------------------------------------------------------------------

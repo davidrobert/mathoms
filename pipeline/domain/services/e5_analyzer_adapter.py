@@ -37,9 +37,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 from pipeline.artifact_store import ArtifactStore
+from pipeline.domain.types.config import FiscalParameters
 from pipeline.domain.services.cenarios_conjuge_analyzer import (
     CenariosConjugeAnalyzer,
     CenariosConjugeConfig,
@@ -278,6 +280,8 @@ class E5AnalyzerAdapter:
         titular_dob: date | None = None,
         conjuge_dob: date | None = None,
         reference_date: date | None = None,
+        fiscal_parameters: FiscalParameters | None = None,
+        cambio_usd_brl: Decimal | float | None = None,
     ) -> "E5AnalyzerAdapter":
         """Constrói o adapter com todas as configs + services instanciados.
 
@@ -288,6 +292,11 @@ class E5AnalyzerAdapter:
 
         ``taxas`` fornece câmbios USD/EUR para valoração de caixa em ME.
         ``institutions`` lista bancos de investimento (skip em caixa).
+
+        A7.2b: ``fiscal_parameters`` (typed) tem prioridade sobre ``fiscal``
+        (dict legacy). ``cambio_usd_brl`` (Decimal) tem prioridade sobre
+        ``taxas["cambio_usd_brl"]``. Quando ambos None, usa fallback do JSON
+        legado via ``FileConfigStore`` bridge.
         """
         member_cfg = MemberResolverConfig.from_family(family)
         identity = cls._build_identity(family, member_cfg)
@@ -328,6 +337,7 @@ class E5AnalyzerAdapter:
                 conjuge_key=member_cfg.conjuge_key,
                 conjuge_nome=(member_cfg.conjuge_key or "").title(),
                 reference_date=reference_date,
+                cambio_usd_brl=cambio_usd_brl,
             )
             cenarios_analyzer = CenariosConjugeAnalyzer(cenarios_cfg)
 
@@ -344,7 +354,11 @@ class E5AnalyzerAdapter:
             ),
             if_projector=if_projector,
             endividamento_analyzer=EndividamentoAnalyzer(),
-            previdencia_analyzer=PrevidenciaAnalyzer(PrevidenciaConfig.from_fiscal(fiscal)),
+            previdencia_analyzer=PrevidenciaAnalyzer(
+                PrevidenciaConfig.from_fiscal_parameters(fiscal_parameters)
+                if fiscal_parameters is not None
+                else PrevidenciaConfig.from_fiscal(fiscal)
+            ),
             investimentos_classes_analyzer=InvestimentosClassesAnalyzer(
                 InvestimentosClassesConfig.from_configs(scoring=scoring)
             ),

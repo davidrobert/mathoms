@@ -2,7 +2,8 @@
 
 Extrai ``analyze_previdencia_pgbl`` (e5_analyze.py:1632) em domain service
 puro. Calcula potencial de dedução PGBL via receita PJ (anualizada) com base
-em ``parametros_fiscais.json`` (lucro presumido, limite PGBL, tabela IRPF).
+em ``FiscalParameters`` (ADR-135 — fonte: tabela ``fiscal_parameters``) ou
+``parametros_fiscais.json`` legacy (até A7.5).
 
 Função pura. Recebe ``PrevidenciaConfig`` tipada (R9/ISP) e dicts de entrada
 (``fluxo``). Não toca disco.
@@ -11,7 +12,10 @@ Função pura. Recebe ``PrevidenciaConfig`` tipada (R9/ISP) e dicts de entrada
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import Any
+
+from pipeline.domain.types.config import FiscalParameters
 
 
 def _safe_float(val) -> float:
@@ -81,6 +85,29 @@ class PrevidenciaConfig:
             lucro_presumido_pct=_safe_float(lp.get("percentual_servicos_pct", 32.0)),
             pgbl_limite_pct=_safe_float(pgbl.get("limite_deducao_pct", 12.0)),
             irpf_faixas=tuple(faixas),
+        )
+
+    @classmethod
+    def from_fiscal_parameters(cls, fiscal: FiscalParameters) -> "PrevidenciaConfig":
+        """Constrói config a partir de :class:`FiscalParameters` (ADR-135 · A7.2b).
+
+        ``lucro_presumido_aliquota`` em DB é ``DECIMAL`` (0..1); convertemos
+        para pct (×100) para preservar paridade com legado dict-based.
+        ``pgbl_limit_brl_cents=0`` (sentinel "calcular via pct") usa default
+        12% — ADR-135 documenta que o legado JSON expressa só pct.
+        """
+        faixas = tuple(
+            IRPFBracket(
+                limite_anual=(b.upper_brl_cents / 100.0) if b.upper_brl_cents else None,
+                aliquota_pct=float(b.aliquota_pct),
+            )
+            for b in fiscal.ir_brackets
+        )
+        lp_pct = float(fiscal.lucro_presumido_aliquota * Decimal("100"))
+        return cls(
+            lucro_presumido_pct=lp_pct or 32.0,
+            pgbl_limite_pct=12.0,
+            irpf_faixas=faixas,
         )
 
 

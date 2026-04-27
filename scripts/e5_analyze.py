@@ -2851,14 +2851,37 @@ def _e5_check_e4_inputs(store) -> tuple[Dict[str, Any], Dict[str, Any], Dict[str
     return receitas, despesas, fluxo_mensal
 
 
-def _e5_build_adapter(life_plan_content: str | None):
-    """Carrega configs auxiliares + monta E5AnalyzerAdapter."""
+def _e5_build_adapter(life_plan_content: str | None, ctx=None):
+    """Carrega configs auxiliares + monta E5AnalyzerAdapter.
+
+    Quando ``ctx.config_store`` está disponível (pipeline DB-first, A7.2b),
+    resolve ``FiscalParameters`` por período do relatório e
+    ``cambio_usd_brl`` por ``observed_at`` (regra ADR-135). Caller legado
+    (CLI sem DB) cai no fallback dict-based.
+    """
     from pipeline.domain.services.e5_analyzer_adapter import E5AnalyzerAdapter
 
     categorization_cfg = _load_json_config(PROJECT_DIR / "config" / "categorization.json")
     taxas_cfg = _load_json_config(CONFIG_TAXAS)
     institutions_cfg = _load_json_config(PROJECT_DIR / "config" / "institutions.json")
     goals_enriched = _merge_life_plan_into_goals(GOALS_CONFIG, life_plan_content)
+
+    fiscal_parameters = None
+    cambio_usd_brl = None
+    cs = getattr(ctx, "config_store", None) if ctx is not None else None
+    if cs is not None:
+        try:
+            from datetime import date as _date
+
+            year_start = _date(TODAY.year, 1, 1)
+            year_end = _date(TODAY.year, 12, 31)
+            fiscal_parameters = cs.get_fiscal_for_period(year_start, year_end)
+        except Exception as exc:  # pragma: no cover — fallback transparente
+            print(f"  [warn] ConfigStore.get_fiscal_for_period falhou ({exc}); usando dict legacy")
+        try:
+            cambio_usd_brl = cs.get_market_rate("USD/BRL", TODAY)
+        except Exception as exc:  # pragma: no cover
+            print(f"  [warn] ConfigStore.get_market_rate falhou ({exc}); usando taxas.json legacy")
 
     return E5AnalyzerAdapter.from_configs(
         categorization=categorization_cfg,
@@ -2871,6 +2894,8 @@ def _e5_build_adapter(life_plan_content: str | None):
         titular_dob=_TITULAR_DOB,
         conjuge_dob=_CONJUGE_DOB,
         reference_date=TODAY,
+        fiscal_parameters=fiscal_parameters,
+        cambio_usd_brl=cambio_usd_brl,
     )
 
 
@@ -3033,7 +3058,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
     existing_output = store.read("E5", E5_ARTIFACT_KEY) or {}
     existing_narrativas = existing_output.get("narrativas")
 
-    adapter = _e5_build_adapter(life_plan_content)
+    adapter = _e5_build_adapter(life_plan_content, ctx=ctx)
     result = adapter.analyze_via_store(store)
 
     legacy = _e5_extract_legacy_dicts(result)
