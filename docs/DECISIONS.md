@@ -1090,7 +1090,7 @@ Integração com 6.5D.10 (contract test types) = complementar: aquele valida typ
 
 **Status:** Decidido (F8) • **Data:** 2026-04-15 • **Contexto da task:** F8.0 — Fundação Goals & Tasks
 
-**Contexto:** Até F6.5 o produto operou assumindo **1 workspace por usuário** (query `Workspace WHERE owner_id = user.id` replicada em helpers `_get_workspace(user)` em cada arquivo de API — ex: [backend/app/api/documents.py:30](backend/app/api/documents.py:30)). Esse contrato foi aceitável no MVP com a família Ferreira Campos como único tenant. Para F8, a premissa do produto muda: **"será utilizado por diferentes clientes (e famílias) com objetivos, metas e dinâmicas próprias e distintas"**. Isso exige:
+**Contexto:** Até F6.5 o produto operou assumindo **1 workspace por usuário** (query `Workspace WHERE owner_id = user.id` replicada em helpers `_get_workspace(user)` em cada arquivo de API — ex: [backend/app/api/documents.py:30](backend/app/api/documents.py:30)). Esse contrato foi aceitável no MVP com o workspace inicial de dogfood como único tenant. Para F8, a premissa do produto muda: **"será utilizado por diferentes clientes (e famílias) com objetivos, metas e dinâmicas próprias e distintas"**. Isso exige:
 
 1. Múltiplos workspaces por usuário (um consultor pode acompanhar várias famílias).
 2. Múltiplos usuários por workspace (cônjuges, dependentes, contador convidado).
@@ -1175,7 +1175,7 @@ Integração com 6.5D.10 (contract test types) = complementar: aquele valida typ
 - `backend/app/api/goals.py` com endpoints documentados no plano de execução
 - `config/schemas/goal.if.schema.json`
 - Testes unitários de `compute_if_derived` (10+ casos) + integração multi-workspace
-- Script one-shot de seed para Ferreira Campos
+- Script one-shot de seed para o workspace inicial (dogfood)
 
 ---
 
@@ -1210,7 +1210,7 @@ No modelo multi-família, cada workspace tem seu próprio backlog com dinâmica 
 7. **Relatório lê snapshot imutável** — no momento da geração do relatório (E6), o serviço copia o estado atual de `tasks` para `report.snapshot_json`. O relatório renderiza a partir do snapshot, não do DB live. Garante que "relatório de 15/abr/2026" sempre mostra o que estava pendente naquele dia.
 8. **Export `GET /tasks/export.md`** — gera `tarefas.md` on-demand a partir do DB, preservando formato atual. Usado durante transição para scripts legados que ainda esperam o arquivo.
 9. **Migração one-shot do `tarefas.md` de Ferreira Campos** — importer em `backend/app/scripts/seed_tasks_ferreira_campos.py` parseia o MD, cria tasks preservando `number` (1..43, com `#2` e `#12` como `status=done`), categorias, prioridades, status, ref. Notas com dependência ("#19 depende de #18") são parsed e materializadas em `parent_task_id`.
-10. **Novos workspaces recebem templates genéricos** (não dados Ferreira Campos) — 10-12 tarefas essenciais comuns a qualquer família (contratar seguro vida, consultar CPA expatriado se aplicável, etc.) com `created_from='seed'`. Usuário pode aceitar, editar, ou descartar no onboarding.
+10. **Novos workspaces recebem templates genéricos** (não dados do workspace dogfood) — 10-12 tarefas essenciais comuns a qualquer família (contratar seguro vida, consultar CPA expatriado se aplicável, etc.) com `created_from='seed'`. Usuário pode aceitar, editar, ou descartar no onboarding.
 11. **Integração Task↔Transaction↔Goal (F8.3)** — `related_transaction_id` e `related_goal_id` opcionais. UI usa para mostrar "% executado" (tarefa "Aporte R$20k/mês" lê aportes do mês atual agregados por `aporte_match_keywords` do `goals.json`).
 12. **Remoção do `tarefas.md` do repo** acontece em F8.4 (cutover final) — até lá, arquivo permanece como seed/fallback.
 
@@ -1268,7 +1268,7 @@ O risco principal: quebrar o pipeline durante a transição e perder capacidade 
    - **F8.2**: `tarefas.md` completo
    - **F8.3**: integrações profundas (Task↔Transaction↔Goal)
    - **F8.4**: migração completa do resto do `goals.json` (aportes, alocação, riscos), `family_members.json`, `cenarios.json`, `decisions.md` — E5 passa a ler tudo do DB, remoção dos arquivos de Grupo A do repo.
-4. **Feature flags** por módulo — `goals_v2_enabled`, `tasks_v2_enabled`, `report_snapshot_v2_enabled`, todas workspace-level. Durante transição, flag OFF = pipeline usa arquivo legado; flag ON = pipeline usa adapter. Default ON na workspace de Ferreira Campos assim que módulo entrega; default ON para todos em F8.4.
+4. **Feature flags** por módulo — `goals_v2_enabled`, `tasks_v2_enabled`, `report_snapshot_v2_enabled`, todas workspace-level. Durante transição, flag OFF = pipeline usa arquivo legado; flag ON = pipeline usa adapter. Default ON no workspace dogfood inicial assim que módulo entrega; default ON para todos em F8.4.
 5. **Scripts CLI desabilitados em produção** — a partir de F8.4, `scripts/e*.py` são executáveis **apenas** via worker (import como módulo, não invocação CLI). Mantidos no repo como implementação de reference; `README.md` documenta que a interface suportada é a UI. Remoção total dos scripts fica como débito F9+ quando for seguro.
 6. **Regressão blindada** — cada fase roda o ciclo completo E0→E7 antes/depois em workspace de teste e faz diff dos artefatos (tolerância: só diferença em timestamps). Falha de paridade = rollback automático.
 7. **Backup dos Grupo A antes da remoção** — último snapshot pre-F8.4 vai para `_archive/pre-f8-cutover-2026-XX-XX/` com tag git, para referência histórica e auditoria.
@@ -1403,6 +1403,13 @@ Ao abrir `/reports/{id}`, o usuário experimenta uma quebra visual perceptível 
 ## ADR-078 — Render Nativo React + E6 como Exportador Standalone
 
 **Status:** Decidido (F9) • **Data:** 2026-04-15
+
+> **Nota (2026-04-24):** parte operacional desta ADR (`e6_render.py` como
+> exportador HTML standalone, endpoints `/html` e `/download.html`) foi
+> **superseded por [ADR-129](#adr-129--descontinuação-completa-do-renderer-html-server-side)**.
+> O renderer React nativo (`/reports/[id]`) é o único caminho vivo;
+> exportador HTML morreu. PDF via Playwright sobre a mesma rota cobre
+> os 3 casos de uso originalmente atribuídos ao standalone.
 
 **Contexto:**
 O relatório financeiro era exibido via iframe carregando o HTML produzido pelo `e6_render.py` (4000 linhas, string replacement, Chart.js Canvas). Isso causava:
@@ -6146,7 +6153,7 @@ Mais:
   - cat_2 fora de `investivel_efetivo`
   - `renda_passiva_atual_mensal_brl` **deve incluir aluguéis líquidos** (são a renda passiva real e não há contagem dupla).
 
-**Default:** `imoveis_no_if = true` para o caso Ferreira-Campos (yield líquido ~6% > TRS 5%) — já gravado em `pipeline.json` em `ea22837`. Para workspaces onde yield <TRS (Living Concept, vacancia), recomenda-se override `false`.
+**Default:** `imoveis_no_if = true` para o workspace dogfood inicial (yield líquido ~6% > TRS 5%) — já gravado em `pipeline.json` em `ea22837`. Para workspaces onde yield líquido < TRS (vacancia, ou imóveis com retorno baixo), recomenda-se override `false`.
 
 **Por que validar a invariante mas não automatizar:** o produto não calcula yield líquido por imóvel (depende de carnê-leão real, vacância histórica, despesas de manutenção). A escolha do toggle é decisão consultiva do planejador. Hoje vive em `pipeline.json` global; um futuro override por workspace exigiria coluna `Workspace.imoveis_no_if` (lane separada).
 
@@ -6158,7 +6165,7 @@ Mais:
 - Famílias podem comparar dois cenários (toggle on/off) para entender impacto — útil pedagogicamente.
 - "Por workspace" do toggle é hoje **promessa de doc**, não realidade — fica catalogado como débito.
 
-**Relaciona-se a:** [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) (motivação direta — `renda_passiva_atual_mensal_brl`), [FORMULAS.md §Patrimônio](FORMULAS.md), [definitions.md §FÓRMULAS PATRIMONIAIS](../config/definitions.md).
+**Relaciona-se a:** [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) (motivação direta — `renda_passiva_atual_mensal_brl`), [FORMULAS.md §Patrimônio](FORMULAS.md). Documentação histórica de fórmulas patrimoniais foi dissolvida em [ADR-143](#adr-143--rules-as-code-dissolução-de-docsmethodology-em-docstrings-e-architecture-glossary) (A7.6) — invariantes hoje vivem como docstrings em `pipeline/domain/services/` (composição) e em `docs/ARCHITECTURE.md §Glossário` (definitions).
 
 ---
 
