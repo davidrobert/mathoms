@@ -1,6 +1,6 @@
 """adr-135 fiscal_parameters + market_rates (séries temporais globais)
 
-Revision ID: x2y3z4a5b6c7
+Revision ID: x2adr135fp01
 Revises: w1x2y3z4a5b6
 Create Date: 2026-04-27
 
@@ -17,6 +17,12 @@ Schema:
 
 Money em ``BIGINT`` cents (PGBL/INSS) ou ``DECIMAL(20,10)`` (rate, alíquota)
 [ADR-090]. Rationale completa em ``docs/DECISIONS.md#adr-135``.
+
+A7.6 nota: revision ID renomeado de ``x2y3z4a5b6c7`` → ``x2adr135fp01``
+porque colidia com o ID escolhido por A7.2a (decisions). Era pre-existing
+bug que manteve dois alembic heads desde 2026-04-27 (ambas as lanes
+mergearam no mesmo dia). Filename mantido para git blame; renomeação
+apenas do ID interno + atualização do descendente ``y3z4a5b6c7d8``.
 """
 
 from typing import Sequence, Union
@@ -24,7 +30,7 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "x2y3z4a5b6c7"
+revision: str = "x2adr135fp01"
 down_revision: Union[str, None] = "w1x2y3z4a5b6"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

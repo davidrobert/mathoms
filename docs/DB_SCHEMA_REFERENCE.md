@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 32
+**Total de tabelas:** 34
 
 ---
 
@@ -90,6 +90,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `agency` | `VARCHAR(20)` | yes | — | — |
 | `account_number` | `VARCHAR(30)` | yes | — | — |
 | `label` | `VARCHAR(255)` | yes | — | — |
+| `source_tier` | `SMALLINT` | yes | — | — |
 
 **Constraints:**
 
@@ -952,6 +953,7 @@ type BankAccount struct {
 	Agency *string `db:"agency" json:"agency"`
 	AccountNumber *string `db:"account_number" json:"account_number"`
 	Label *string `db:"label" json:"label"`
+	SourceTier *string `db:"source_tier" json:"source_tier"`
 }
 ```
 

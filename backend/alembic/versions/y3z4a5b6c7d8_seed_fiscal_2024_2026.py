@@ -27,7 +27,10 @@ import sqlalchemy as sa
 from alembic import context, op
 
 revision: str = "y3z4a5b6c7d8"
-down_revision: Union[str, None] = "x2y3z4a5b6c7"
+# A7.6: down_revision atualizado de "x2y3z4a5b6c7" → "x2adr135fp01" porque
+# o ID original colidia com a migration de A7.2a (decisions). Ver nota em
+# x2y3z4a5b6c7_adr135_fiscal_parameters_market_rates.py.
+down_revision: Union[str, None] = "x2adr135fp01"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -4,7 +4,16 @@ import uuid
 from datetime import date, datetime, timezone
 from typing import Any, Optional
 
-from sqlalchemy import JSON, Date, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -50,5 +59,10 @@ class BankAccount(Base):
     agency: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     account_number: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
     label: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # ADR-146 (A7.6): override workspace-específico da hierarquia universal
+    # de fontes E3. NULL = usar default Mathoms (resolvido em runtime por
+    # tipo de fonte / parser do banco). 1 = mais confiável (extração LLM
+    # estruturada), 5 = menos confiável (declaração editorial / IRPF).
+    source_tier: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True, default=None)
 
     member = relationship("FamilyMember", back_populates="accounts")

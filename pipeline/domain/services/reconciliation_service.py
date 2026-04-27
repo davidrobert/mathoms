@@ -11,6 +11,29 @@ Responsabilidades (espelha ``scripts/e3_reconcile.py``):
 A implementação é **minimalista** — serve como foundation. Lógica avançada de
 validação de continuidade de saldo, detecção de transferências entre contas,
 etc., é acrescentada quando E3 passar para Caminho B completo.
+
+Hierarquia de fontes (ADR-146 · A7.6 rules-as-code)
+====================================================
+
+Quando duas fontes reportam a mesma transação (por exemplo: extrato +
+fatura de cartão registrando o mesmo pagamento intermediado), a regra
+canônica de tie-breaking está em
+:mod:`pipeline.domain.services.source_tier`:
+
+  1. Tier menor vence — TIER_LLM_STATEMENT (1) > TIER_REGEX_STATEMENT
+     (2) > TIER_CARD_INVOICE (3) > TIER_APP_SCREENSHOT (4) >
+     TIER_EDITORIAL (5).
+  2. Mesmo tier → timestamp da extração mais recente vence (estável e
+     idempotente entre reruns).
+
+Override workspace-específico via ``BankAccount.source_tier``: NULL =
+usar default Mathoms, não-NULL = força tier per-account.
+
+A integração ``ReconciliationService.is_duplicate`` × source_tier é
+**débito técnico aceito** desta lane — hoje o dedup ignora tier (todos
+caem no path "extrato" tier 2). Quando ``ResolvedBankAccount.tier`` for
+plumbado, a regra de prioridade fica explícita aqui. Para o "porquê":
+ver ADR-146.
 """
 
 from __future__ import annotations
