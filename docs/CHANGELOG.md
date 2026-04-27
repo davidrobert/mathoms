@@ -12,21 +12,59 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
-- **Report Premium UI v2 — Onda E (Charts UX) — segunda leva paralela
-  4/4 entregues + cleanup baseline (2026-04-26) — 🚧 7/8 (falta v2.E.8):**
-  4 sub-lanes executadas em paralelo por **4 agentes simultâneos** em
-  worktrees isoladas (general-purpose background), todas mergeadas em
-  main no mesmo dia. Onda E agora tem **7/8 sub-lanes ✅**, falta apenas
-  v2.E.8 (re-baseline visual + cleanup imports Recharts + ADR-13X).
+- **Report Premium UI v2 — Onda E (Charts UX) ✅ 8/8 (2026-04-26):**
+  Onda E fechou a migração Recharts→Chart.js dentro de `/reports/**`
+  que [ADR-117](DECISIONS.md#adr-117--report-premium-ui-baseline-paridade-com-exemplo_de_relatoriohtml)
+  Fase 2 abriu mas Fase 7 não fechou. **8 sub-lanes** documentadas em
+  [track_report_v2_charts_ux.md](agent_prompts/track_report_v2_charts_ux.md);
+  duas levas paralelas (3+4 agentes simultâneos em worktrees
+  isoladas) + closeout sequencial; todas mergeadas em main no mesmo
+  dia. Decisão consolidada em
+  [ADR-139](DECISIONS.md#adr-139--finalização-migração-recharts→chart.js-em-reports).
 
+  **Leva 1 (3 agentes paralelos):**
+  - ✅ **v2.E.1** — `PeriodToggle` UI primitive + hook `usePeriodWindow`
+    (commit `da841c2`). Segmented control 3M/6M/12M/Ano portado para
+    tokens (`--brand-primary`, `--surface-card`, `--surface-border`),
+    paridade `EXEMPLO_DE_RELATORIO.html:381-413`. Hook puro suporta
+    formato `"YY/MM"` e `"mes/aa"` pt-BR. 16 specs Vitest (10 hook + 6
+    componente) em `frontend/tests/components/report/` (config vitest
+    exige). Enabler de v2.E.3/E.4/E.5.
+  - ✅ **v2.E.2** — TS types `receita_datasets`/`despesa_datasets`
+    em `FluxoCaixaSummary` (commit `8ee4bd6`). Tipo `ChartSeries` em
+    `frontend/src/types/chart-series.ts` (separado de
+    `primitives/types.ts::ChartSeries` para evitar colisão).
+    **Divergência registrada:** backend hoje só emite `{label, data}`
+    por dataset; `backgroundColor`/`stack`/`borderRadius` opcionais —
+    enriquecimento client-side fica em E.4-E.6. Enabler de
+    v2.E.4/E.5/E.6.
+  - ✅ **v2.E.7** — `ScoreCard` premium plugado em S1 + score top-level
+    no DTO + backend `score.context`/`score.conclusion` (commits
+    `55f00fa` + `22ca7d0` + `334f5f7` + `529cd70`). **Absorve v2.5**
+    (score-dto). `S1PatrimonioSection` consome `<ScoreCard/>` (era
+    `<ScoreGaugeChart/>` Recharts); `ScoreCardProps` ganhou `context?`
+    e `conclusion?` com classes CSS `chart-context`/`chart-conclusion`.
+    Backend `financial_score_calculator` agora emite `breakdown`
+    (renomeado de `componentes` — peso normalizado fração [0..1] +
+    `contribuicao` calculada), `formula`, `context`, `conclusion`.
+    Templates Python determinísticos paridade
+    `EXEMPLO_DE_RELATORIO.html:1809-1811`; top-2 drivers em `conclusion`
+    ranked por `contribuicao`. Frontend prefere
+    `narrativas[score_gauge]?.conclusion` (E5.N LLM) sobre
+    `score.conclusion` (template) — alinhamento com
+    [ADR-122](DECISIONS.md#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm).
+    `ScoreGaugeChart.tsx` deletado; `_registry.ts` limpo. Vitest 593
+    passed; `pytest tests` 1470; `pytest backend/tests` 1324. Zero
+    `as ScoreData` ou `ScoreGaugeChart` em `frontend/src/`.
+
+  **Leva 2 (4 agentes paralelos simultâneos):**
   - ✅ **v2.E.3** — `FluxoMensalChart` Recharts→Chart.js stacked +
-    `PeriodToggle` + `usePeriodWindow` (commit `5b8d54a`). 7 specs Vitest
-    novas (5 chart + 2 hook); 610 testes passed; pre-commit verde.
-    **Side-effect positivo:** criou
-    `frontend/src/components/report/hooks/useIsPrint.ts` (`matchMedia("print")`
-    + listener SSR-safe) — reaproveitado por E.4/E.5/E.6.
-    Hotspots `_shared.ts`/`_registry.ts` não foram tocados.
-
+    `PeriodToggle` + `usePeriodWindow` (commit `5b8d54a`). 7 specs
+    Vitest novas (5 chart + 2 hook); 610 testes passed; pre-commit
+    verde. **Side-effect positivo:** criou
+    `frontend/src/components/report/hooks/useIsPrint.ts`
+    (`matchMedia("print")` + listener SSR-safe) — reaproveitado por
+    E.4/E.5/E.6.
   - ✅ **v2.E.4** — `ReceitaBarChart` Recharts→Chart.js horizontal +
     `PeriodToggle` (commit `0e07499`). Consome `receita_datasets[]`
     somando dentro da janela escolhida; ordenação desc por total;
@@ -35,21 +73,19 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
     foi **dropado durante rebase** após v2.E.5 entrar primeiro com
     função idêntica — protocolo CLAUDE.md §Hotspots funcionou
     automaticamente.
-
   - ✅ **v2.E.5** — `DespesasDoughnutChart` Recharts→Chart.js +
     datalabels + `PeriodToggle` (commit `6d0ab67`). Consome
     `despesa_datasets[]` somando por janela; datalabels `R$ Xk` para
     fatias ≥5%; `cutout: '50%'`; fallback gracioso em
     `despesas_por_categoria` agregado quando datasets ausentes (toggle
     oculto nesse caminho); 9 specs Vitest; 612 testes passed.
-    **Side-effects positivos:** (a) criou helper `pickColorByIndex` em
-    `_shared.ts` (módulo 12, estável por índice — reutilizado por
+    **Side-effects positivos:** (a) criou helper `pickColorByIndex`
+    em `_shared.ts` (módulo 12, estável por índice — reutilizado por
     E.4/E.6); (b) `ChartDonut` primitive ganhou prop opcional
     `dataLabelFormatter(value, pct, label)` + `textStrokeColor`/
     `textStrokeWidth` (extensão aditiva, backwards-compat).
     **Conflito resolvido:** rebase em `useIsPrint.ts` adotou versão
     canônica de E.3 já em main.
-
   - ✅ **v2.E.6** — `ReceitaDespesaMensalChart` Recharts→Chart.js
     stacked + slide window 12m + tooltip por stack + legenda agrupada
     custom + Vitest + E2E Playwright `@critical` (commits `6c2efc4` +
@@ -76,8 +112,24 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
     futuros prompts: exigir gate local ou explicitar fallback quando
     `node_modules` indisponível.
 
-  **Coordenação de hotspot empiricamente validada** entre os 4 agentes
-  paralelos:
+  **Closeout sequencial:**
+  - ✅ **v2.E.8** — cleanup imports Recharts em `_registry.ts`
+    (header atualizado refletindo Chart.js 4 + Recharts intencional
+    para `WaterfallIfChart`/`PatrimonioDoughnutChart`); ADR-139
+    "Finalização migração Recharts→Chart.js em /reports/**" gravada
+    em main relacionando-se a ADR-037, ADR-076, ADR-117, ADR-122;
+    BACKLOG/CHANGELOG sincronizados. Verificação por grep: `from
+    "recharts"` em `frontend/src/components/report/charts/` retorna
+    apenas os 2 charts intencionais. **Re-baseline visual delegada
+    ao operador humano:** workflow `frontend-visual` opt-in
+    (`gh workflow run CI -f run_visual=true
+    -f update_visual_baselines=true`) exige permissão `gh` ausente
+    do sandbox do agente; baselines esperadas mudarem: cover×2 +
+    S1×2 + S2×2 = 6 PNGs; restantes (40 PNGs S3-S10/T*/U*/APP_*)
+    idênticos.
+
+  **Coordenação de hotspot empiricamente validada** entre os 4
+  agentes paralelos da Leva 2:
   - `useIsPrint.ts` — E.3 venceu (criou primeiro); E.4/E.5/E.6
     convergiram via rebase.
   - `pickColorByIndex` em `_shared.ts` — E.5 venceu; E.4 detectou
@@ -89,13 +141,13 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
   removeram hex literals em favor de tokens `var(--brand-*)`/
   `pickColorByIndex`).
 
-  **Próximo passo (sequencial):** v2.E.8 — re-trigger workflow
-  `frontend-visual` opt-in (`gh workflow run CI -f run_visual=true
-  -f update_visual_baselines=true`); commitar baselines novos
-  (esperado: cover×2 + S1×2 + S2×2 mudam, restantes idênticos);
-  remover último import `recharts` em `/reports/**` se houver;
-  gravar ADR-13X "Finalização migração Recharts→Chart.js em
-  /reports/**" relacionando ADR-037, ADR-117, ADR-122.
+  **Fora de escopo (preservado intencionalmente — eventual v2.E.9):**
+  `WaterfallIfChart.tsx` e `PatrimonioDoughnutChart.tsx` continuam em
+  Recharts. Recharts permanece também em
+  `frontend/src/components/charts/Mathom*.tsx` e
+  `frontend/src/app/(app)/dashboard/_components/`
+  ([ADR-037](DECISIONS.md#adr-037--recharts-para-charts) com escopo
+  restringido).
 
 - **Sprint A7 aberta — Config DB Cutover (CLI legacy removal) (2026-04-26) — ☐ aguarda autorização para iniciar A7.0:**
   Plano canônico em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md) — 11
@@ -155,56 +207,6 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
   e `ReportThemeToggle.tsx` deletados (único consumer era `ReportShell`).
   Lane: [`report-appearance-menu`](BACKLOG.md#lanes-abertas-agora--pickup-table).
   Prompt: [`track_report_appearance_menu.md`](agent_prompts/track_report_appearance_menu.md).
-
-- **Report Premium UI v2 — Onda E (Charts UX) abertura + 3/8 entregues
-  em paralelo (2026-04-26) — 🚧 parcial (v2.E.1, E.2, E.7 ✅ · E.3-E.6
-  destravadas):** Onda E finaliza a migração Recharts→Chart.js dentro
-  de `/reports/**` que [ADR-117](DECISIONS.md#adr-117--report-premium-ui-baseline-paridade-com-exemplo_de_relatoriohtml)
-  Fase 2 abriu mas Fase 7 não fechou. 8 sub-lanes documentadas em
-  [track_report_v2_charts_ux.md](agent_prompts/track_report_v2_charts_ux.md);
-  primeira leva executada por 3 agentes simultâneos em worktrees
-  isoladas (`general-purpose` background).
-
-  - ✅ **v2.E.1** — `PeriodToggle` UI primitive + hook `usePeriodWindow`
-    (commit `da841c2`). Segmented control 3M/6M/12M/Ano portado para
-    tokens (`--brand-primary`, `--surface-card`, `--surface-border`),
-    paridade `EXEMPLO_DE_RELATORIO.html:381-413`. Hook puro suporta
-    formato `"YY/MM"` e `"mes/aa"` pt-BR. 16 specs Vitest (10 hook + 6
-    componente) em `frontend/tests/components/report/` (config vitest
-    exige). Enabler de v2.E.3/E.4/E.5.
-  - ✅ **v2.E.2** — TS types `receita_datasets`/`despesa_datasets`
-    em `FluxoCaixaSummary` (commit `8ee4bd6`). Tipo `ChartSeries` em
-    `frontend/src/types/chart-series.ts` (separado de
-    `primitives/types.ts::ChartSeries` para evitar colisão).
-    **Divergência registrada:** backend hoje só emite `{label, data}`
-    por dataset; `backgroundColor`/`stack`/`borderRadius` opcionais —
-    enriquecimento client-side fica em E.4-E.6 (paleta de tokens,
-    `stack` derivado). Enabler de v2.E.4/E.5/E.6.
-  - ✅ **v2.E.7** — `ScoreCard` premium plugado em S1 + score top-level
-    no DTO + backend `score.context`/`score.conclusion` (commits
-    `55f00fa` types + `22ca7d0` backend + `334f5f7` plug + `529cd70`
-    cleanup). **Absorve v2.5** (score-dto). `S1PatrimonioSection`
-    consome `<ScoreCard/>` (era `<ScoreGaugeChart/>` Recharts);
-    `ScoreCardProps` ganhou `context?` e `conclusion?` com classes CSS
-    `chart-context`/`chart-conclusion`. Backend
-    `financial_score_calculator` agora emite `breakdown` (renomeado de
-    `componentes` — peso normalizado fração [0..1] + `contribuicao`
-    calculada), `formula`, `context`, `conclusion`. Templates Python
-    determinísticos paridade `EXEMPLO_DE_RELATORIO.html:1809-1811`;
-    top-2 drivers em `conclusion` ranked por `contribuicao`.
-    Frontend prefere `narrativas[score_gauge]?.conclusion` (E5.N LLM)
-    sobre `score.conclusion` (template) — alinhamento com
-    [ADR-122](DECISIONS.md#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm).
-    `ScoreGaugeChart.tsx` deletado; `_registry.ts` limpo. Vitest 593
-    passed; `pytest tests` 1470; `pytest backend/tests` 1324. Zero
-    `as ScoreData` ou `ScoreGaugeChart` em `frontend/src/`.
-
-  **Próxima leva (4 sub-lanes paralelas destravadas):** v2.E.3
-  (FluxoMensal), v2.E.4 (ReceitaBar), v2.E.5 (DespesasDoughnut),
-  v2.E.6 (ReceitaDespesaMensal — slide window 12m + tooltip por stack +
-  legenda agrupada). Última, sequencial: v2.E.8 (re-baseline visual +
-  cleanup imports Recharts + ADR-13X). Atenção ao hotspot
-  `_shared.ts`/`_registry.ts` (protocolo CLAUDE.md §Hotspots).
 
 - **Report Premium UI v2 — Onda F (Hero KPI + Cover identity) ✅ 5/5
   (2026-04-26):** polish completo do topo do relatório estratégico,
