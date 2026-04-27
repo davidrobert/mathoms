@@ -12,6 +12,26 @@ preparação para **F7 (Produção + LGPD + Ops)**.
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report Premium UI v2.8 — comparisons + changelog ativos no relatório ✅ (2026-04-27):**
+  Conecta o `SnapshotChangelogBuilder` (v2.D.1 · [ADR-148](DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório))
+  ao endpoint + UI. 12 placeholders YAML em S1/S2/S3/T2/T3/T5 flippados de
+  `enabled:false → true` (commit `384b5bf`); `GET /reports/{id}/data` injeta
+  `comparisons: ComparisonItemRead[] | null` + `changelog: ChangelogEntryRead[] | null`
+  top-level via `snapshot_pair_loader` + `build_comparison()` (commit `0576b11`);
+  novos componentes React `ComparisonItemsBlock` (tabela antes→depois com sinal
+  ▲▼•), `SnapshotChangelogList` (lista com borda colorida por delta_signal) e
+  `SectionSnapshotDiff` wrapper que filtra por sectionId (commit `076d8f3`).
+  `conclusionUtils.deriveSectionSummary` ganha 3 camadas: LLM v2.9 prioritário >
+  template + changelog summary determinístico > template puro. **Caveats:**
+  (a) débito alheio em origin/main pós-v2.9 — todos os 19 specs `@critical` de
+  `/reports/[id]` quebram com erro genérico "Cannot read properties of undefined"
+  (verificado em worktree limpa de origin/main); spec novo `snapshot-changelog.@critical.spec.ts`
+  marcado `test.skip` com plano de unfreeze. (b) baselines visuais não regenerados
+  nesta lane — próxima rodada de visual gate vai precisar `update_visual_baselines=true`
+  para S1/S2/S3/T2/T3/T5 (componentes novos renderizam onde antes era nada).
+  Onda D do plano Report Premium fechada (2/2). v2.D.1.1 segue aberta como
+  débito de copy review pelo product-designer.
+
 - **A7.6 — Rules-as-code: dissolver `docs/methodology/` ✅ entregue (2026-04-27):**
   Branch `agent/a7-6-rules-as-code/20260427-1311`, 7 commits + baseline
   refresh, mergeados em `main`. Auditoria pós-A7.4 detectou que os 4
