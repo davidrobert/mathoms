@@ -380,7 +380,10 @@ def _setup_run_context(
     """
     import os
 
-    from backend.app.services.pipeline_adapter import build_config_store
+    from backend.app.services.pipeline_adapter import (
+        build_config_overrides_from_db,
+        build_config_store,
+    )
     from pipeline.context import WorkspaceContext
 
     use_db_artifacts = _resolve_use_db_artifacts(ws_id)
@@ -392,9 +395,15 @@ def _setup_run_context(
         db=config_store_session,  # type: ignore[arg-type]
         use_db_artifacts=use_db_artifacts,
     )
+    overrides = (
+        build_config_overrides_from_db(ws_id, db=config_store_session)
+        if config_store_session is not None
+        else None
+    )
 
     ctx = WorkspaceContext.for_tenant(
         tenant_root,
+        config=overrides,
         config_dir=config_dir,
         pipeline_run_id=run_id,
         workspace_id=ws_id,

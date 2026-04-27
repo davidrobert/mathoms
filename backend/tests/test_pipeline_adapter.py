@@ -208,3 +208,59 @@ def test_build_config_store_satisfies_protocol():
         warnings.simplefilter("ignore", DeprecationWarning)
         file_store = build_config_store(db=None, use_db_artifacts=False)
     assert isinstance(file_store, ConfigStore)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# build_config_overrides_from_db (A7.1 · ADR-134) — DB → ctx.config_overrides
+# ═══════════════════════════════════════════════════════════════════════
+
+
+@pytest.mark.asyncio
+async def test_build_config_overrides_includes_categorization(db):
+    """Workspace com Category rows → categorization.json no overrides."""
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.services.pipeline_adapter import build_config_overrides_from_db
+
+    ws = await factories.make_workspace(db)
+    await factories.make_category(
+        db, workspace=ws, code="alimentacao", category_type="expense", keywords=["mercado"]
+    )
+    await db.commit()
+
+    with SyncSessionLocal() as sync_db:
+        overrides = build_config_overrides_from_db(ws.id, db=sync_db)
+
+    assert "categorization.json" in overrides
+    assert overrides["categorization.json"]["expense_keywords"] == {"alimentacao": ["mercado"]}
+
+
+@pytest.mark.asyncio
+async def test_build_config_overrides_skips_empty_workspace(db):
+    """Workspace sem nenhum config row → overrides vazio."""
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.services.pipeline_adapter import build_config_overrides_from_db
+
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    with SyncSessionLocal() as sync_db:
+        overrides = build_config_overrides_from_db(ws.id, db=sync_db)
+    assert overrides == {}
+
+
+@pytest.mark.asyncio
+async def test_build_config_overrides_includes_family_members(db):
+    """Workspace com FamilyMember row → family_members.json no overrides."""
+    from backend.app.core.database import SyncSessionLocal
+    from backend.app.services.pipeline_adapter import build_config_overrides_from_db
+
+    ws = await factories.make_workspace(db)
+    await factories.make_member(
+        db, workspace=ws, key="david", full_name="David", short_name="David", role="titular"
+    )
+    await db.commit()
+
+    with SyncSessionLocal() as sync_db:
+        overrides = build_config_overrides_from_db(ws.id, db=sync_db)
+    assert "family_members.json" in overrides
+    assert overrides["family_members.json"]["membros"]["david"]["nome_curto"] == "David"

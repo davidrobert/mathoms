@@ -415,12 +415,57 @@ def build_config_store(*, db: SyncSession, use_db_artifacts: bool):
     return FileConfigStore()
 
 
+# A7.1 — keys que cobrimos pela via DB-first; out-of-scope (goals/scoring/
+# fiscal/taxas/pipeline/llm) seguem materialização normal por enquanto.
+_A7_1_OVERRIDE_KEYS: tuple[str, ...] = (
+    "categorization.json",
+    "family_members.json",
+    "institutions.json",
+    "report_layout.yaml",
+)
+
+
+def _family_members_override(workspace_id: str, db: SyncSession) -> dict[str, Any] | None:
+    """Funde ``family_members`` + ``transferencias_internas`` (ADR-133) em um blob."""
+    from backend.app.services.config_materializer import (
+        serialize_family_members,
+        serialize_transfer_config,
+    )
+
+    family = serialize_family_members(workspace_id, db)
+    transfer = serialize_transfer_config(workspace_id, db)
+    if not family and transfer is None:
+        return None
+    merged = dict(family or {})
+    if transfer is not None:
+        merged["transferencias_internas"] = transfer
+    return merged or None
+
+
+def build_config_overrides_from_db(workspace_id: str, *, db: SyncSession) -> dict[str, Any]:
+    """Pré-serializa configs A7.1 do DB para ``WorkspaceContext.config_overrides`` (ADR-134)."""
+    from backend.app.services.config_materializer import (
+        serialize_categorization,
+        serialize_institution_config,
+        serialize_report_layout,
+    )
+
+    sources: dict[str, Any] = {
+        "family_members.json": _family_members_override(workspace_id, db),
+        "categorization.json": serialize_categorization(workspace_id, db),
+        "institutions.json": serialize_institution_config(workspace_id, db),
+        "report_layout.yaml": serialize_report_layout(workspace_id, db),
+    }
+    return {k: v for k, v in sources.items() if v is not None}
+
+
 __all__ = [
     # Sync (worker)
     "build_goals_payload_sync",
     "build_tasks_payload_sync",
     "build_tarefas_md_sync",
     "build_config_store",
+    "build_config_overrides_from_db",
     # Async (endpoints)
     "build_goals_payload",
     "build_tasks_payload",
