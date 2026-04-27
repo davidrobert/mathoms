@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartGaugeSemi } from "@/components/report/charts/primitives";
+import { ChartGaugeScore, type ScoreClasseKey } from "@/components/report/charts/primitives";
 
 export type ScoreClasse =
   | "Excelente"
@@ -10,13 +10,13 @@ export type ScoreClasse =
   | "Péssimo"
   | "Crítico";
 
-const CLASSE_ACCENT: Record<ScoreClasse, string> = {
-  Excelente: "#22B566",
-  Bom: "#6EDBA0",
-  Regular: "#F5BF2F",
-  Ruim: "#F0924A",
-  Péssimo: "#DC2640",
-  Crítico: "#B91C1C",
+const CLASSE_TO_KEY: Record<ScoreClasse, ScoreClasseKey> = {
+  Excelente: "excelente",
+  Bom: "bom",
+  Regular: "regular",
+  Ruim: "ruim",
+  Péssimo: "pessimo",
+  Crítico: "critico",
 };
 
 export interface ScoreBreakdownRow {
@@ -40,10 +40,21 @@ export interface ScoreCardProps {
   readonly className?: string;
 }
 
-/** ADR-117 · Fase 3 — card composto de Score Financeiro.
+/** Mapeia uma nota 0-10 para a chave de cor da escala. */
+function noteToKey(nota: number, max: number): ScoreClasseKey {
+  const scaled = (nota / max) * 10;
+  if (scaled >= 8) return "excelente";
+  if (scaled >= 6) return "bom";
+  if (scaled >= 4) return "regular";
+  if (scaled >= 2) return "ruim";
+  return "pessimo";
+}
+
+/** ADR-117 · Card composto de Score Financeiro.
  *
- * Matching `.score-card-wrap` EXEMPLO_DE_RELATORIO.html linhas 979-1023.
- * Compõe: header badge + gauge semi + breakdown table + summary.
+ * Paridade visual com `EXEMPLO_DE_RELATORIO.html` (linhas 1808-1812 +
+ * 7984-8194): header com badge da classe, gauge canvas custom, tabela
+ * de breakdown com barras horizontais coloridas, summary footer.
  */
 export function ScoreCard({
   value,
@@ -55,7 +66,8 @@ export function ScoreCard({
   conclusion,
   className,
 }: ScoreCardProps) {
-  const accent = CLASSE_ACCENT[classe];
+  const classeKey = CLASSE_TO_KEY[classe];
+  const accent = `var(--score-classe-${classeKey})`;
   return (
     <section
       className={className}
@@ -100,11 +112,11 @@ export function ScoreCard({
             fontWeight: 700,
             letterSpacing: "0.3px",
             textTransform: "uppercase",
-            background: `${accent}20`,
+            background: `color-mix(in srgb, ${accent} 14%, transparent)`,
             color: accent,
           }}
         >
-          {classe}
+          {value.toFixed(1).replace(".", ",")} — {classe}
         </span>
       </header>
 
@@ -122,58 +134,15 @@ export function ScoreCard({
         </p>
       )}
 
-      <ChartGaugeSemi
+      <ChartGaugeScore
         value={value}
         max={max}
-        centerValue={value.toFixed(1)}
-        centerLabel={classe}
-        fillColor={accent}
-        height={220}
+        classeLabel={classe.toUpperCase()}
+        classeKey={classeKey}
       />
 
       {breakdown && breakdown.length > 0 && (
-        <div style={{ marginTop: 20, fontSize: 13 }}>
-          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
-            <thead>
-              <tr>
-                {["Dimensão", "Valor", "Peso", "Contribuição"].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      textAlign: "left",
-                      fontWeight: 600,
-                      color: "var(--surface-muted-foreground)",
-                      fontSize: 10,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.8px",
-                      padding: "8px 10px",
-                      borderBottom: "2px solid var(--surface-border)",
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {breakdown.map((row, i) => (
-                <tr key={`${row.dimensao}-${i}`}>
-                  <td style={tdStyle}>{row.dimensao}</td>
-                  <td style={{ ...tdStyle, textAlign: "center" }}>
-                    {row.valor.toFixed(1)}
-                    {row.max !== undefined ? ` / ${row.max}` : ""}
-                  </td>
-                  <td style={{ ...tdStyle, textAlign: "center" }}>
-                    {row.peso !== undefined ? `${(row.peso * 100).toFixed(0)}%` : "—"}
-                  </td>
-                  <td style={{ ...tdStyle, textAlign: "center", fontWeight: 700 }}>
-                    {row.contribuicao !== undefined ? row.contribuicao.toFixed(2) : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <BreakdownTable breakdown={breakdown} max={max} />
       )}
 
       {conclusion && (
@@ -217,3 +186,122 @@ const tdStyle: React.CSSProperties = {
   borderBottom: "1px solid var(--surface-border)",
   verticalAlign: "middle",
 };
+
+function dotStyle(color: string): React.CSSProperties {
+  return {
+    width: 8,
+    height: 8,
+    borderRadius: "50%",
+    background: color,
+    flexShrink: 0,
+  };
+}
+
+interface BreakdownTableProps {
+  readonly breakdown: readonly ScoreBreakdownRow[];
+  readonly max: number;
+}
+
+function BreakdownTable({ breakdown, max }: BreakdownTableProps) {
+  return (
+    <div style={{ marginTop: 20, fontSize: 13 }}>
+      <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+        <thead>
+          <tr>
+            {["Dimensão", "Nota", "Peso", "Contrib."].map((h, i) => (
+              <th
+                key={h}
+                style={{
+                  textAlign: i === 0 ? "left" : "center",
+                  fontWeight: 600,
+                  color: "var(--surface-muted-foreground)",
+                  fontSize: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.8px",
+                  padding: "8px 10px",
+                  borderBottom: "2px solid var(--surface-border)",
+                }}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {breakdown.map((row, i) => (
+            <BreakdownRow key={`${row.dimensao}-${i}`} row={row} max={max} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+interface BreakdownRowProps {
+  readonly row: ScoreBreakdownRow;
+  readonly max: number;
+}
+
+function BreakdownRow({ row, max }: BreakdownRowProps) {
+  const rowMax = row.max ?? max;
+  const pct = Math.max(0, Math.min(100, (row.valor / rowMax) * 100));
+  const noteColor = `var(--score-classe-${noteToKey(row.valor, rowMax)})`;
+  return (
+    <tr>
+      <td style={tdStyle}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={dotStyle(noteColor)} aria-hidden="true" />
+          <span style={{ fontWeight: 600 }}>{row.dimensao}</span>
+        </div>
+      </td>
+      <td style={{ ...tdStyle, minWidth: 140 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div
+            style={{
+              flex: 1,
+              height: 8,
+              background: "var(--surface-muted)",
+              borderRadius: 4,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${pct}%`,
+                height: "100%",
+                background: noteColor,
+                borderRadius: 4,
+                transition: "width 600ms cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            />
+          </div>
+          <span
+            style={{
+              fontVariantNumeric: "tabular-nums",
+              fontWeight: 700,
+              minWidth: 32,
+              textAlign: "right",
+            }}
+          >
+            {row.valor.toFixed(1).replace(".", ",")}
+          </span>
+        </div>
+      </td>
+      <td style={{ ...tdStyle, textAlign: "center" }}>
+        {row.peso !== undefined ? `${(row.peso * 100).toFixed(0)}%` : "—"}
+      </td>
+      <td
+        style={{
+          ...tdStyle,
+          textAlign: "center",
+          fontWeight: 700,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {row.contribuicao !== undefined
+          ? row.contribuicao.toFixed(2).replace(".", ",")
+          : "—"}
+      </td>
+    </tr>
+  );
+}

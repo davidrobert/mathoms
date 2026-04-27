@@ -10,6 +10,7 @@ import {
   ChartCombo,
   ChartWaterfall,
   ChartGaugeSemi,
+  ChartGaugeScore,
   ChartConclusion,
   ChartNav,
 } from "@/components/report/charts/primitives";
@@ -152,6 +153,17 @@ export function ChartsDevPlayground() {
           <ChartGaugeSemi value={2.8} max={10} centerValue="2.8" centerLabel="Crítico" />
           <ChartGaugeSemi value={5.5} max={10} centerValue="5.5" centerLabel="Regular" />
           <ChartGaugeSemi value={8.9} max={10} centerValue="8.9" centerLabel="Excelente" />
+        </div>
+      </section>
+
+      <section>
+        <h2>ChartGaugeScore (Score Financeiro — paridade com EXEMPLO_DE_RELATORIO.html)</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+          <ChartGaugeScore value={1.4} max={10} classeLabel="PÉSSIMO" classeKey="pessimo" />
+          <ChartGaugeScore value={3.2} max={10} classeLabel="RUIM" classeKey="ruim" />
+          <ChartGaugeScore value={5.5} max={10} classeLabel="REGULAR" classeKey="regular" />
+          <ChartGaugeScore value={6.9} max={10} classeLabel="BOM" classeKey="bom" />
+          <ChartGaugeScore value={8.7} max={10} classeLabel="EXCELENTE" classeKey="excelente" />
         </div>
       </section>
 

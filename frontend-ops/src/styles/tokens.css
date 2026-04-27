@@ -6,7 +6,7 @@
  * Source: design-tokens/tokens.json
  * Regenerate: python design-tokens/build.py
  *
- * Version: 1.1.0
+ * Version: 1.2.0
  * ===================================================================== */
 
 :root {
@@ -115,6 +115,13 @@
     --chart-11: #0369A1;
     --chart-12: #A16207;
 
+    --score-classe-pessimo: #DC2640;
+    --score-classe-ruim: #F0924A;
+    --score-classe-regular: #F5BF2F;
+    --score-classe-bom: #6EDBA0;
+    --score-classe-excelente: #22B566;
+    --score-classe-critico: #B91C1C;
+
     --sidebar-background: #F8FAFC;
     --sidebar-foreground: #0F172A;
     --sidebar-primary: #1A3A5C;
@@ -170,6 +177,13 @@
     --chart-10: #FCA5A5;
     --chart-11: #7DD3FC;
     --chart-12: #FBBF24;
+
+    --score-classe-pessimo: #FB7185;
+    --score-classe-ruim: #FDBA74;
+    --score-classe-regular: #FACC15;
+    --score-classe-bom: #86EFAC;
+    --score-classe-excelente: #4ADE80;
+    --score-classe-critico: #DC2640;
 
     --sidebar-background: #0F172A;
     --sidebar-foreground: #F8FAFC;
