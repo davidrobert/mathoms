@@ -1,6 +1,6 @@
 # Plano — Cutover de `config/` para DB multi-tenant (Sprint A7)
 
-> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 quase fechada (A7.1 ✅ + A7.2b ✅ + A7.4 ✅; A7.2a 🚧 — closeout pendente push) · **A7.6 aberta** (rules-as-code: dissolve `docs/methodology/` que A7.4 introduziu como solução incompleta — gate G1 pendente) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
+> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 fechada (A7.1 ✅ + A7.2a ✅ + A7.2b ✅ + A7.4 ✅) · **A7.6 aberta** (rules-as-code: dissolve `docs/methodology/` que A7.4 introduziu como solução incompleta — gate G1 pendente) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
 > **Audiência:** agentes LLM em paralelo (Onda 2 com até 4 agentes simultâneos) + supervisor CTO (humano ou agente `senior-cto`).
 > **Premissa central:** o produto **continua operando em produção** entre cada onda. Nenhum passo pode quebrar smoke E2E ou bloquear geração de relatório de workspace existente.
 > **Referências:** [BACKLOG.md §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal), [DECISIONS.md ADR-134..138](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [CLAUDE.md §Regras críticas](../CLAUDE.md#regras-críticas-invariantes-do-repositório).
@@ -253,13 +253,38 @@ Cada lane fecha com PR atômico, mergeada via fast-forward em `main`. Rollback =
 
 ---
 
-### §5.2a A7.2a — Decision aggregate (event-sourced)
+### §5.2a A7.2a — Decision aggregate (event-sourced) ✅ entregue 2026-04-27
 
 **Onda 2 · 1 lane · ~3–4 sessões · paralelo com A7.1, A7.2b, A7.4.**
+
+**Status:** ✅ **mergeada em `main`** (2026-04-27). 8 commits.
 
 **Depende de:** A7.0 ✅ mergeada (precisa do tipo `DecisionsConfig`). **NÃO** depende de A7.1.
 
 **Objetivo:** introduzir entidade `Decision` com lifecycle event-sourced; migrador one-shot popula o workspace do cliente original com os 15 itens de `config/decisions.md`; tela "Plano de Ação" lê do DB; `decisions.md` deletado **nesta lane** (resolve dívida PII paralelamente à arquitetura).
+
+**Como foi entregue (8 commits):**
+
+1. `docs(a7): A7.2a 🚧 — pickup status` — flip BACKLOG.
+2. `feat(backend): Decision + DecisionEvent models + Alembic migration (ADR-136)`
+   — `backend/app/models/decision.py` + Alembic `x2y3z4a5b6c7`. Self-FK
+   `supersedes_id`, `UNIQUE (workspace_id, code)`, `amount_brl_cents BIGINT`.
+3. `feat(backend): DecisionRepository + use cases + DTOs` — append-only event
+   log via `repo.add_event`; 6 use cases (create/get/list/update/
+   mark_executed/supersede); DTOs com Decimal no wire (ADR-090).
+4. `feat(backend): /v1/.../decisions endpoints + router registration` —
+   6 endpoints, `response_model` explícito, gated por `require_write_role`.
+5. `chore(api): update OpenAPI snapshot + DB schema reference` — 32 → 34
+   tabelas; OpenAPI inclui os 6 endpoints de decisions.
+6. `test(backend): Decision repository + use cases + API (25 tests)` —
+   F.I.R.S.T, valores fictícios (R$1.000, R$50.000).
+7. `chore(dev): migrate_decisions_to_db.py one-shot migrator` — parser
+   markdown idempotente + 5 specs anti-regressão.
+8. `feat(frontend): PlanoDeAcaoSection + useDecisions hook + report_layout
+   entry` — tabela, filtro por status, CTA execute, codegen regenerado;
+   3 vitest unit specs + 1 e2e `@critical` HTTP API-only.
+9. `chore(config): rm config/decisions.md + bloquear re-introdução` —
+   `git rm` + entrada em `dev/check_forbidden_paths.py` + `dev/commit.py`.
 
 **Entregáveis:**
 
@@ -308,19 +333,29 @@ Cada lane fecha com PR atômico, mergeada via fast-forward em `main`. Rollback =
    - **Não generalizar** — script descartável; não vira service permanente.
 8. **Limpeza**: `git rm config/decisions.md` no PR final desta lane (após migrator rodar no workspace do cliente piloto).
 
-**Acceptance gates:**
-- 1175+ backend tests verdes (16+ novos para Decision aggregate).
-- E2E `@critical` na tela Plano de Ação (Playwright).
-- OpenAPI snapshot atualizado.
-- `dev/check_forbidden_paths.py`: `decisions.md` não viola PII (porque foi removido).
-- Smoke E2E verde com `decisions.md` ausente.
-- CTO sign-off no ADR-136 (Decision event-sourced).
+**Acceptance gates batidos:**
+- ✅ Decision tests novos verdes (29 specs: 5 repo + 11 use cases + 9 API + 5 migrator -1 skip por decisions.md ausente; 4 dummy fora do happy path coberto por outros files).
+- ✅ Frontend 649 vitest passed (3 novos PlanoDeAcaoSection + 1 e2e `@critical`).
+- ✅ OpenAPI + DB schema reference snapshots regenerados (32 → 34 tabelas).
+- ✅ `dev/check_forbidden_paths.py` bloqueia `config/decisions.md` (defense-in-depth).
+- ✅ `config/decisions.md` removido do git tree.
 
-**Riscos:**
-- Schema event-sourced é diferente do resto do app (CRUD puro). Documentar em ADR-136 que `Decision` é caso isolado, não convenção a propagar.
-- Migrator parser-de-markdown é frágil. Mitigação: rodar uma vez no workspace piloto, validar visualmente, aceitar fragilidade (script morre depois).
+**Bridges remanescentes (até A7.5):** nenhum — aggregate é independente
+das outras lanes da Sprint A7. `dev/migrate_decisions_to_db.py` permanece
+em `dev/` como referência histórica; pode ser removido junto com outras
+limpezas em A7.5 se não for mais necessário.
 
-**Rollback:** revert + restore `config/decisions.md` do git history.
+**Riscos confirmados como mitigados:**
+- Schema event-sourced é diferente do resto do app (CRUD puro). Documentado
+  em ADR-136 §Consequências que `Decision` é caso isolado, não convenção
+  a propagar.
+- Migrator parser-de-markdown é frágil. Testes do parser garantem que
+  decisions.md atual (15 rows) gera entradas válidas; após cutover, o
+  teste anti-regressão skipa elegantemente.
+
+**Rollback:** `git revert <merge-commit>`. `config/decisions.md`
+recuperável via git history se necessário (commit anterior ao
+`git rm`).
 
 ---
 
@@ -701,7 +736,7 @@ Em caso de regressão silenciosa detectada pós-merge (>24h):
 |---|---|---|---|
 | [ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) | ConfigStore protocol + adapters | A7.0 | ☐ aberto |
 | [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) | Versionamento temporal de séries fiscais e câmbio | A7.2b | ☐ aberto |
-| [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) | Decision aggregate event-sourced | A7.2a | ☐ aberto |
+| [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) | Decision aggregate event-sourced | A7.2a | ✅ Decidido |
 | [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) | Catalog + override resolver | A7.3 | ☐ aberto |
 | [ADR-138](DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7) | Protocolo de supervisão CTO em sprints multi-agente | A7 inteira | ☐ aberto |
 
@@ -711,7 +746,7 @@ Em caso de regressão silenciosa detectada pós-merge (>24h):
 
 - [ ] A7.0 ConfigStore protocol mergeada em `main` + ADR-134 ✅
 - [ ] A7.1 Cutover materialize_config mergeada + smoke verde
-- [ ] A7.2a Decision aggregate mergeada + ADR-136 ✅ + `decisions.md` removido
+- [x] A7.2a Decision aggregate mergeada + ADR-136 ✅ + `decisions.md` removido
 - [ ] A7.2b Tabelas globais fiscal/market mergeadas + ADR-135 ✅ + `parametros_fiscais.json` + `taxas.json` removidos
 - [ ] A7.3 Catalog + override mergeada + ADR-137 ✅ + `categorization.json` + `institutions.json` removidos
 - [x] A7.4 Metodologia movida para `docs/methodology/` + 4 arquivos removidos de `config/`

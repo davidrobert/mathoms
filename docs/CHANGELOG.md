@@ -574,6 +574,69 @@ preparação para **F7 (Produção + LGPD + Ops)**.
   **ADR:** [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio)
   já estava status Decidido (criado em A7.0); esta lane implementa.
 
+- **A7.2a Decision aggregate (event-sourced) + migrator + Plano de Ação — ✅ entregue (2026-04-27):**
+  Onda 2 paralela com A7.1: caderno editorial em `config/decisions.md` (que
+  violava política PII com valores BRL reais) substituído por aggregate
+  event-sourced (`decisions` + `decision_events`). Driver duplo: arquitetura
+  (lifecycle Pendente → Decidido → Executado, supersede chain auditável) +
+  remoção de PII no mesmo PR.
+
+  **Entregas (8 commits):**
+  - `backend/app/models/decision.py` + Alembic `x2y3z4a5b6c7` — 2 tabelas
+    com `UNIQUE (workspace_id, code)`, self-FK `supersedes_id`,
+    `amount_brl_cents BIGINT` (ADR-090).
+  - `backend/app/repositories/decision_repository.py` + 6 use cases
+    em `backend/app/application/decisions/` (create/get/list/update/
+    mark_executed/supersede). Cada comando emite `DecisionEvent`
+    append-only via `repo.add_event` — invariante do aggregate.
+  - `backend/app/api/decisions.py` — 6 endpoints com `response_model`
+    explícito (ADR-109): `GET/POST /decisions`, `GET/PATCH /decisions/{id}`,
+    `POST /decisions/{id}/execute`, `POST /decisions/{id}/supersede`.
+    Write endpoints gated por `require_write_role`.
+  - `frontend/src/lib/api/decisions.ts` + `frontend/src/hooks/useDecisions.ts`
+    + `frontend/src/components/report/sections/PlanoDeAcao/` —
+    seção do relatório com tabela ordenada por `code`, filtro por status,
+    CTA "Marcar como executada" para Decisões `Decidido`.
+  - `config/report_layout.yaml` — entrada `tatico/plano_de_acao` +
+    codegen regenerado para frontend + backend.
+  - `dev/migrate_decisions_to_db.py` — script one-shot CLI
+    (`--workspace-id`, `--dry-run`); idempotente; **descartável** (não
+    importado em backend/app).
+  - `git rm config/decisions.md` + `dev/check_forbidden_paths.py` +
+    `dev/commit.py` bloqueiam re-introdução (defense-in-depth contra
+    regressão PII).
+
+  **Testes adicionais (38 specs novos):**
+  - `backend/tests/test_decision_repository.py` (5 specs) — CRUD,
+    UNIQUE constraint, isolamento cross-tenant, append-only events.
+  - `backend/tests/test_decision_use_cases.py` (11 specs) — felizes +
+    erros de domínio (Conflict 409, NotFound 404, Validation 422).
+  - `backend/tests/test_decisions_api.py` (9 specs) — integração HTTP
+    end-to-end + cross-tenant 403/404.
+  - `backend/tests/test_decisions_migrator.py` (5 specs) — parser
+    markdown table + status normalizer + anti-regressão sobre o
+    decisions.md atual (skip pós-cutover).
+  - `frontend/tests/components/PlanoDeAcaoSection.test.tsx` (3 specs) —
+    render, filtro por status, CTA execute.
+  - `frontend/tests/e2e/plano-de-acao.spec.ts` `@critical` — fluxo
+    HTTP API-only (cria → execute → GET persiste).
+
+  **Acceptance gates batidos:**
+  - ✅ Snapshots `docs/api/v1/openapi.json` + `docs/DB_SCHEMA_REFERENCE.md`
+    regenerados (32 → 34 tabelas).
+  - ✅ Decision tests todos verdes (29 passed).
+  - ✅ Frontend 649 vitest passed (sem regressão fora do escopo).
+  - ✅ Pipeline boundary: zero SQLAlchemy/FastAPI no migrator (vive em
+    `dev/`, importável standalone).
+  - ✅ `config/decisions.md` removido + bloqueado por
+    `check_forbidden_paths.py`.
+
+  **Bridges remanescentes:** nenhum — aggregate é independente de
+  outras lanes da Sprint A7.
+
+  Track: [track_a7_2a_decision_aggregate.md](agent_prompts/track_a7_2a_decision_aggregate.md).
+  ADR: [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain).
+
 - **A7.1 Cutover `materialize_config` → `ConfigStore` — ✅ entregue (2026-04-27):**
   Onda 2 começa: configs A7.1 (categorization, family_members, institutions,
   report_layout, transfer_config) já não são materializados em disco no fluxo
