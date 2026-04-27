@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mathoms://schemas/goal.if.v2",
+  "title": "Goal — Independência Financeira (v2)",
+  "description": "Schema CANDIDATO v2 para Goal IF (ADR-140 — roadmap, não em produção). Adiciona renda_passiva_atual_mensal_brl em inputs e métricas líquidas (if_meta_bruta_brl vs if_meta_liquida_brl) em derived. Backend/frontend hoje emitem v1 (`goal.if.schema.json`). Migração v1→v2 exige lane explícita: Pydantic DTO + serviço + seeds + frontend + DB write paths.",
+  "type": "object",
+  "required": ["inputs", "derived", "meta_version"],
+  "additionalProperties": false,
+  "properties": {
+    "meta_version": {
+      "type": "integer",
+      "const": 2,
+      "description": "v2: adiciona renda_passiva_atual_mensal_brl em inputs e if_meta_bruta_brl/if_meta_liquida_brl em derived. Migração v1→v2: renda_passiva_atual_mensal_brl=0 e if_meta_bruta_brl=if_meta_brl reproduz comportamento v1."
+    },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "renda_passiva_mensal_brl",
+        "trs_pct",
+        "retorno_real_anual_pct",
+        "horizonte_anos"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "renda_passiva_mensal_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10000000,
+          "description": "Renda passiva mensal desejada (alvo) em BRL. Em reais de hoje (poder de compra atual); produto deflaciona retornos para manter consistência."
+        },
+        "renda_passiva_atual_mensal_brl": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10000000,
+          "description": "Renda passiva já recebida hoje. Default 0. Se >0, if_meta_liquida_brl desconta este valor. Anti-dupla-contagem com `pipeline.json:patrimonio_composicao.imoveis_no_if`: quando true, este campo deve EXCLUIR aluguéis líquidos (já contados em cat_2 do investível efetivo); quando false, deve INCLUIR aluguéis líquidos. Ver ADR-142 e definitions.md §FÓRMULAS PATRIMONIAIS."
+        },
+        "trs_pct": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 20,
+          "description": "Taxa de Retirada Segura operacional (percentual ao ano). Default produto: 5%. Trinity Study clássico usa 4%."
+        },
+        "retorno_real_anual_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20,
+          "description": "Retorno real esperado (acima da inflação) ao ano."
+        },
+        "horizonte_anos": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Horizonte em anos até atingir a meta IF."
+        },
+        "taxa_retirada_conservadora_pct": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 20,
+          "description": "Taxa conservadora adicional para cálculo de meta alternativa (geralmente 4% — regra de Trinity). Opcional; se ausente usa 4.0."
+        }
+      }
+    },
+    "derived": {
+      "type": "object",
+      "required": ["if_meta_bruta_brl", "if_meta_liquida_brl", "aporte_necessario_mensal_brl"],
+      "additionalProperties": false,
+      "properties": {
+        "if_meta_bruta_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Patrimônio-alvo SEM desconto de renda passiva atual: renda_passiva_mensal × 12 / (trs_pct / 100). Didático — mostra o patrimônio total que sustenta o alvo."
+        },
+        "if_meta_liquida_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Patrimônio-alvo COM desconto: MAX(0, (renda_passiva_mensal − renda_passiva_atual) × 12 / (trs_pct/100)). Operacional — quanto FALTA acumular. Métrica usada em score.progresso_if e em goals.if_pct."
+        },
+        "if_meta_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "DEPRECATED em v2 — preservado para retro-compat com v1. Igual a if_meta_bruta_brl. Novos consumidores devem usar if_meta_bruta_brl ou if_meta_liquida_brl explicitamente."
+        },
+        "aporte_necessario_mensal_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Aporte mensal para atingir if_meta_liquida_brl no horizonte assumindo patrimônio inicial zero."
+        },
+        "if_meta_conservadora_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Patrimônio-alvo alternativo usando taxa_retirada_conservadora_pct (default 4% — Trinity). Bruto, sem desconto."
+        },
+        "aporte_mensal_com_patrimonio_atual_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Opcional. Aporte mensal quando há patrimônio inicial conhecido."
+        },
+        "patrimonio_atual_utilizado_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Opcional. Patrimônio (investivel_efetivo) usado no cálculo do aporte ajustado."
+        }
+      }
+    }
+  }
+}

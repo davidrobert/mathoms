@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "mathoms://schemas/goal.alocacao_alvo.v1",
-  "title": "Goal — Alocação-alvo (v1) [DEPRECATED em favor de v2]",
-  "description": "Percentuais-alvo de alocação da carteira (RF, RV, imóveis, liquidez USD). Migrada de `goals.json:alocacao_alvo`. ADR-075 §F8.4. Soma de %s deve ser 100. **DEPRECATED em 2026-04-27 em favor de goal.alocacao_alvo.v2 (7 classes AUVP).** v1 mantido apenas para retro-compat de workspaces existentes; novos workspaces devem usar v2.",
+  "title": "Goal — Alocação-alvo (v1)",
+  "description": "Percentuais-alvo de alocação da carteira (RF, RV, imóveis, liquidez USD). Migrada de `goals.json:alocacao_alvo`. ADR-075 §F8.4. Soma de %s deve ser 100. v2 disponível em `goal.alocacao_alvo.v2.schema.json` (ADR-141) com 7 classes AUVP — adoção é roadmap; backend/frontend hoje emitem v1.",
   "type": "object",
   "required": ["inputs", "derived", "meta_version"],
   "additionalProperties": false,

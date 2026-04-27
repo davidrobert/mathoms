@@ -6048,6 +6048,120 @@ Relaciona-se a: ADR-037 (Recharts — escopo restringido), ADR-076
 
 ---
 
+## ADR-140 — Goal IF schema v2 (renda passiva atual + IF meta líquida)
+
+**Status:** Roadmap — schema candidato em `config/schemas/goal.if.v2.schema.json`; backend, frontend e DB ainda emitem v1. Adoção exige lane dedicada.
+**Data:** 2026-04-27
+
+**Contexto:** Auditoria multi-agente (rodada 1, item 5 do financial-planner; rodada 2, item B1 do senior-cto) identificou dois gaps no schema v1 do Goal IF:
+
+1. **Premissa nominal vs real implícita.** `renda_passiva_mensal_brl` não declarava se é em valor presente (deflacionado) ou nominal futuro. Trinity assume retorno e retirada **reais**; produto opera em BRL de hoje. Sem campo explícito, planejadores externos (público B2B2C de [PRODUCT.md](PRODUCT.md)) preenchem manualmente e a UI pode capturar errado.
+
+2. **Dupla contagem de renda passiva atual.** A fórmula `if_meta = renda × 12 / TRS` ignora a renda passiva já fluindo (aluguéis, dividendos, juros). Família com R$9k/mês de aluguel e meta de R$30k/mês de IF tem **gap real** de R$21k/mês (não R$30k). Schema v1 não modela isso.
+
+**Decisão:** Criar `goal.if.v2.schema.json` (não substitui v1) com:
+
+- `inputs.renda_passiva_atual_mensal_brl` (default 0)
+- `derived.if_meta_bruta_brl` = patrimônio total que sustenta o alvo (didático)
+- `derived.if_meta_liquida_brl` = `MAX(0, (renda_passiva_mensal − renda_passiva_atual) × 12 / (trs_pct/100))` (operacional — métrica usada em `score.progresso_if`)
+- Description explicita "BRL de hoje (poder de compra atual)"
+- Anti-dupla-contagem com `imoveis_no_if` documentada (ADR-142)
+
+**Por que schema separado e não bump in-place:** evita breaking change. Backend (`goal_service.py`, `IFGoalDerived`, mapper, seeds, DB schemas) e frontend (`goals.ts`, `IFGoalForm`) operam em v1; bump in-place quebraria toda a base. Schema v2 fica como contrato disponível para a lane de migração.
+
+**Roadmap de adoção:**
+
+1. Adicionar coluna `meta_version` em `goals` table (já existe nos schemas Pydantic — checar se DB acompanha).
+2. Migrar `IFGoalDerived` para emitir os 3 (`if_meta_brl`, `if_meta_bruta_brl`, `if_meta_liquida_brl`); deprecar `if_meta_brl` em commit subsequente.
+3. UI de IF expõe os 4 campos novos (`renda_passiva_atual` em input; bruta/liquida lado a lado em hero; banner "já gera R$ X/mês").
+4. `score.progresso_if` consome `if_meta_liquida_brl` (não `if_meta_brl`).
+5. Migrator one-shot: `renda_passiva_atual_mensal_brl=0` em todos os goals existentes; `if_meta_liquida = if_meta_bruta` por construção.
+
+**Consequências:**
+
+- Goals existentes não mudam comportamento até migrator rodar (zero default preserva v1).
+- Cálculo de progresso passa a refletir gap real após migração — relatórios pré-migração mostravam progresso subestimado para famílias com renda passiva atual ativa.
+- Schema v1 fica como compat reverso até cleanup F-pós-A7.
+
+**Relaciona-se a:** [ADR-073](#adr-073--goals-no-banco-substituindo-goalsjson) (Goals no banco), [ADR-141](#adr-141--goal-alocacao-alvo-schema-v2-7-classes-auvp), [ADR-142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem). Detalhamento das fórmulas em [FORMULAS.md §IF](FORMULAS.md).
+
+---
+
+## ADR-141 — Goal alocação-alvo schema v2 (7 classes AUVP)
+
+**Status:** Roadmap — schema candidato em `config/schemas/goal.alocacao_alvo.v2.schema.json`; backend (`pipeline_adapter._serialize_alocacao_goal`), frontend (`plano/alocacao/page.tsx`) e seeds operam em v1.
+**Data:** 2026-04-27
+
+**Contexto:** Auditoria multi-agente (rodada 1, item 9; rodada 2, item B2) identificou que a caracterização da AUVP em [methodology.md](../config/methodology.md) e nos schemas era reducionista. AUVP é **alocação multi-classe + rebalanceamento por aporte via Diagrama do Cerrado** — não "fundamentalista + FIIs" como dizia v1 do `methodology.md`. O schema v1 de alocação-alvo (`renda_fixa_pct`, `acoes_pct`, `imoveis_reits_pct`, `liquidez_usd_pct` — 4 buckets) cola RF pré/pós/IPCA em um único bucket e mistura ações BR com internacionais — perde o que é distintivo na metodologia.
+
+**Decisão:** Criar `goal.alocacao_alvo.v2.schema.json` com 7 classes canônicas AUVP:
+
+- `rf_pos_pct` (Tesouro Selic, CDB CDI+, LCI/LCA CDI+)
+- `rf_pre_pct` (Tesouro Prefixado, CDB pré, debêntures pré)
+- `rf_ipca_pct` (Tesouro IPCA+, CDB IPCA+, debêntures IPCA+, CRI/CRA)
+- `acoes_br_pct` (BOVA11, ações domésticas)
+- `acoes_int_pct` (IVVB11, S&P500, ações em USD)
+- `fiis_pct` (tijolo + papel)
+- `caixa_pct` (CC + moeda estrangeira líquida)
+
+Mais:
+
+- `inputs.rebalanceamento_modo` enum (`por_aporte` default — princípio AUVP; `trigger_5pct/10pct` alternativas)
+- `derived.desvio_max_pct` — KPI de rebalanceamento (sinaliza classe defasada — onde o próximo aporte vai)
+- `derived.desvio_por_classe` — desvio assinado por classe (negativo = subalocada)
+
+**Migração v1→v2 (no migrator):**
+
+| Campo v1 | Mapeamento v2 |
+|---|---|
+| `renda_fixa_pct` | Default split 50% pos / 25% pré / 25% IPCA |
+| `acoes_pct` | `acoes_br_pct` |
+| `imoveis_reits_pct` | `fiis_pct` |
+| `liquidez_usd_pct` | 70% `acoes_int_pct` + 30% `caixa_pct` |
+
+**Roadmap de adoção:** lane dedicada que migra `pipeline_adapter._serialize_alocacao_goal`, `seed_goals_full_ferreira_campos.py`, `frontend/src/app/(app)/plano/alocacao/page.tsx`, `Step1Distribution.tsx`, `AlocacaoBar.tsx` para o novo schema. Componente UI ganha 7 sliders (em vez de 4) e card "Próximo aporte sugerido: classe X (-Y%)" como derivado.
+
+**Consequências:**
+
+- Schema v1 não é DEPRECATED (label removido em 2026-04-27 após confirmar que produção opera em v1).
+- Métrica `desvio_max_pct` é nova — KPI AUVP autêntico, sinaliza onde alocar próximo aporte (princípio Diagrama do Cerrado).
+- Públicos com patrimônios pequenos (<R$100k) podem achar 7 classes excessivas — produto pode oferecer "modo simples" (4 buckets) como toggle, mas a fonte de verdade é v2.
+
+**Relaciona-se a:** [ADR-075](#adr-075--cutover-cli--web-frontend-é-superfície-única-pós-f5) (origem do schema v1), [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida). Caracterização correta da AUVP em [`.claude/agents/financial-planner.md`](../.claude/agents/financial-planner.md). KPI `desvio_max_pct` documentado em [FORMULAS.md §Alocação](FORMULAS.md).
+
+---
+
+## ADR-142 — Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem
+
+**Status:** Decidido • **Data:** 2026-04-27
+
+**Contexto:** Em `ea22837` introduzimos no `definitions.md §FÓRMULAS PATRIMONIAIS` e em `FORMULAS.md` o conceito de **investível efetivo** = `investivel_financeiro + (cat_2 if workspace.imoveis_no_if else 0)`. Em paralelo, `goal.if.v2.schema.json` introduziu `renda_passiva_atual_mensal_brl` que desconta no denominador. Auditoria rodada 2 (item R7 / financial-planner 1.4) identificou **risco de dupla contagem**: se `imoveis_no_if=true` e `renda_passiva_atual` inclui aluguéis líquidos, os imóveis aparecem **duas vezes** — somam no numerador (cat_2 em investível efetivo) e descontam no denominador (renda passiva atual reduz `if_meta_liquida`).
+
+**Decisão:** Adotar **invariante de exclusão mútua** entre os dois caminhos:
+
+- Se `pipeline.json:patrimonio_composicao.imoveis_no_if = true`:
+  - cat_2 entra em `investivel_efetivo`
+  - `goal.if.inputs.renda_passiva_atual_mensal_brl` **deve excluir aluguéis líquidos** (pode incluir dividendos + juros — mas não a renda gerada por imóveis já contados como capital).
+- Se `imoveis_no_if = false`:
+  - cat_2 fora de `investivel_efetivo`
+  - `renda_passiva_atual_mensal_brl` **deve incluir aluguéis líquidos** (são a renda passiva real e não há contagem dupla).
+
+**Default:** `imoveis_no_if = true` para o caso Ferreira-Campos (yield líquido ~6% > TRS 5%) — já gravado em `pipeline.json` em `ea22837`. Para workspaces onde yield <TRS (Living Concept, vacancia), recomenda-se override `false`.
+
+**Por que validar a invariante mas não automatizar:** o produto não calcula yield líquido por imóvel (depende de carnê-leão real, vacância histórica, despesas de manutenção). A escolha do toggle é decisão consultiva do planejador. Hoje vive em `pipeline.json` global; um futuro override por workspace exigiria coluna `Workspace.imoveis_no_if` (lane separada).
+
+**Validação:** documentada em `definitions.md §FÓRMULAS PATRIMONIAIS:Validações`. `e5_analyze.py` deve emitir warning quando `imoveis_no_if=true` e `renda_passiva_atual_mensal_brl > sum(aluguéis_categorizados_como_renda_recorrente)` — sinaliza provável dupla contagem.
+
+**Consequências:**
+
+- `progresso_if` continua `investivel_efetivo / if_meta_liquida × 100` (FORMULAS.md), mas com invariante respeitada o resultado é correto.
+- Famílias podem comparar dois cenários (toggle on/off) para entender impacto — útil pedagogicamente.
+- "Por workspace" do toggle é hoje **promessa de doc**, não realidade — fica catalogado como débito.
+
+**Relaciona-se a:** [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) (motivação direta — `renda_passiva_atual_mensal_brl`), [FORMULAS.md §Patrimônio](FORMULAS.md), [definitions.md §FÓRMULAS PATRIMONIAIS](../config/definitions.md).
+
+---
+
 <!--
 Template editorial — preservado em HTML comment para não aparecer
 no ToC do GitHub como ADR real. Copie o bloco abaixo ao criar uma

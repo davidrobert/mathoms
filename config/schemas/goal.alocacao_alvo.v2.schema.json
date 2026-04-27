@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "mathoms://schemas/goal.alocacao_alvo.v2",
   "title": "Goal — Alocação-alvo (v2 — 7 classes AUVP)",
-  "description": "Percentuais-alvo de alocação multi-classe AUVP. v2 (2026-04-27) substitui v1 (4 buckets) por 7 classes canônicas alinhadas ao Diagrama do Cerrado. Migração v1→v2: somar pré+pós+ipca em renda_fixa_pct (split default 50/25/25); manter acoes_pct → acoes_br_pct; liquidez_usd_pct → 70% acoes_int_pct + 30% caixa_pct (USD = invest. + reserva FX); imoveis_reits_pct → fiis_pct.",
+  "description": "Schema CANDIDATO v2 para Goal alocação-alvo (ADR-141 — roadmap, não em produção). Substitui os 4 buckets de v1 (`goal.alocacao_alvo.schema.json`) por 7 classes canônicas AUVP alinhadas ao Diagrama do Cerrado. Backend/frontend hoje emitem v1 (`pipeline_adapter._serialize_alocacao_goal`, `seed_goals_full_ferreira_campos.py`, `frontend/src/app/(app)/plano/alocacao/page.tsx`); migração v1→v2 exige lane explícita. Migração v1→v2: somar pré+pós+ipca em renda_fixa_pct (split default 50/25/25); manter acoes_pct → acoes_br_pct; liquidez_usd_pct → 70% acoes_int_pct + 30% caixa_pct (USD = invest. + reserva FX); imoveis_reits_pct → fiis_pct.",
   "type": "object",
   "required": ["inputs", "derived", "meta_version"],
   "additionalProperties": false,
