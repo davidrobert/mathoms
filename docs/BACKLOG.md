@@ -1090,8 +1090,8 @@ convergir em `origin/main`.
 ## Sprint A7 — Config DB Cutover (CLI legacy removal)
 
 **Plano canônico:** [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md) — 11 seções com todos os ondas, gates e rollback.
-**ADRs:** [ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) (ConfigStore), [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) (vigência fiscal/câmbio), [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) (Decision aggregate), [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) (catalog/override), [ADR-138](DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7) (supervisão CTO).
-**Status global (2026-04-27):** 🚧 em andamento — **A7.0 ✅** + **A7.1 ✅** + **A7.2b ✅** + **A7.4 ✅** (Onda 2 entregando: cutover `materialize_config` (A7.1) + tabelas globais versionadas `fiscal_parameters` + `market_rates` (A7.2b) + reorganização editorial `docs/methodology/` (A7.4). Onda 2 ainda livre para A7.2a (1 lane restante). A7.3 destravada por A7.1.
+**ADRs:** [ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) (ConfigStore), [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) (vigência fiscal/câmbio), [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) (Decision aggregate), [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) (catalog/override), [ADR-138](DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7) (supervisão CTO), ADR-139..142 (rules-as-code A7.6 — gate G1 pendente).
+**Status global (2026-04-27):** 🚧 em andamento — **A7.0 ✅** + **A7.1 ✅** + **A7.2b ✅** + **A7.4 ✅** (4 lanes Onda 2 mergeadas no mesmo dia). A7.2a 🚧 (Decision aggregate — 11 commits pushed na branch, closeout doc bloqueado em push para main, aguarda decisão orquestrador). **A7.6 aberta** (rules-as-code: dissolver `docs/methodology/` que A7.4 introduziu como solução incompleta — dados cliente PII + regras universais misturadas violam CLAUDE.md §Regras críticas; gate G1 pendente — 4 ADRs draft + CTO sign-off antes de codar). A7.3 destravada por A7.1 (Onda 3 livre).
 **Objetivo (1 frase):** migrar `config/*` para DB multi-tenant + tabelas globais versionadas, remover bridges (`materialize_config`, `FileConfigStore`), deletar `config/`.
 **Princípios não-negociáveis:** (P1) produto continua funcionando entre ondas; (P2) `pipeline/**` não importa SQLAlchemy/FastAPI; (P3) stateless rigoroso (Redis, sem `@lru_cache`); (P4) money nunca é float; (P5) ADR antes de código; (P6) bridges com prazo de remoção; (P7) reversível via revert. Detalhes em [CONFIG_CUTOVER_PLAN.md §3](CONFIG_CUTOVER_PLAN.md#3-princípios-de-execução).
 **Supervisão:** agente `senior-cto` ou humano (David) — 4 gates (G1 ADR draft / G2 schema review / G3 PR pré-merge / G4 wave boundary). Detalhes em [CONFIG_CUTOVER_PLAN.md §6](CONFIG_CUTOVER_PLAN.md#6-protocolo-de-supervisão-cto).
@@ -1110,6 +1110,7 @@ convergir em `origin/main`.
 | **A7.3** Catalog + Override resolver (categorization + institutions) | `a7-3-catalog-override` | [track_a7_3_catalog_override.md](agent_prompts/track_a7_3_catalog_override.md) | A7.1 ✅ | 3 | — | ☐ bloqueada por A7.1 |
 | **A7.4** Metodologia → `docs/methodology/` (4 `.md` movidos) | `a7-4-methodology-docs` | [track_a7_4_methodology_docs.md](agent_prompts/track_a7_4_methodology_docs.md) | — (independente) | 2 (livre) | qualquer lane | ✅ entregue 2026-04-27 — 5 commits (4 `git mv` + index + scripts paths + cross-doc refs + forbidden_paths block list) |
 | **A7.5** Cleanup final (deletar `config/` + bridges) | `a7-5-cleanup` | [track_a7_5_cleanup.md](agent_prompts/track_a7_5_cleanup.md) | A7.1 + A7.2a + A7.2b + A7.3 + A7.4 ✅ | 4 (bloqueante) | — | ☐ bloqueada por Onda 3 |
+| **A7.6** Rules-as-code (dissolver `docs/methodology/`) | `a7-6-rules-as-code` | [track_a7_6_rules_as_code.md](agent_prompts/track_a7_6_rules_as_code.md) | A7.4 ✅ + ADR-139..142 (G1) | 2.5 | A7.2a, A7.3 | ☐ aberta — gate G1 (4 ADRs draft + CTO sign-off) antes de codar. **Substitui A7.4 retroativamente:** A7.4 moveu arquivos cliente-PII para `docs/methodology/` violando CLAUDE.md §Regras críticas; A7.6 dissolve o diretório (regras universais → docstrings + ADRs · dados cliente → DB ou `storage/<ws>/notes/`). |
 
 ### Ondas A7 — mapa de dependências
 
@@ -1164,6 +1165,29 @@ convergir em `origin/main`.
 - **Cross-lane hotspot esperado em Onda 2:** `pipeline/stage_config.py` (A7.1 + A7.2b ambos tocam). Solução: A7.2b adiciona apenas os métodos `get_fiscal_for_period`/`get_market_rate` no Protocol já criado em A7.0; ambos rebase em `main` antes de push.
 - **CTO supervision** segue [§6](CONFIG_CUTOVER_PLAN.md#6-protocolo-de-supervisão-cto). Agente que terminou trabalho anuncia "branch pronta para review" em CHANGELOG `[Unreleased]` + atualiza status na tabela acima para 🚧 G3, e **para de mexer em arquivos** até receber APROVADO/BLOQUEADO.
 - **Re-sync periódico em sessão >1h** (CLAUDE.md): `git fetch origin && git log --oneline HEAD..origin/main` a cada ~30min. Se outra lane A7 mergeou em `main`, releia [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md) — princípios podem ter ganhado nuance.
+
+---
+
+## Sprint A8 — Continuação multi-tenant (placeholder, abre após A7 fechar)
+
+**Status global (2026-04-27):** ☐ planejada — abre quando todas as lanes A7 (incluindo A7.5 cleanup + A7.6 rules-as-code) estiverem ✅ em `main`.
+
+**Objetivo (1 frase):** completar a transição mono-cliente → multi-tenant que A7 começou, modelando entidades cliente-específicas que ficaram fora de A7 (workspace notes, mileage programs, programas de cashback, etc.) como agregados DB-first com API + UI.
+
+### Lanes A8 — picklist provisória
+
+| Lane | Branch slug | Origem do escopo | Depende de | Status |
+| --- | --- | --- | --- | --- |
+| **A8.1** MileageProgram aggregate (DB + API + UI) | `a8-1-mileage-aggregate` | A7.6 ADR-142 anota como débito técnico aceito (A7.6 entrega bridge `storage/<ws>/notes/milhas.md`; A8.1 modela em DB) | A7.6 ✅ | ☐ planejada |
+
+**Princípio herdado de A7:** entidades cliente-específicas em DB workspace-scoped, regras universais em código + ADR. `storage/<ws>/notes/` é caminho transitório para conteúdo que ainda não tem schema DB justificado.
+
+**Lanes adicionais A8 podem incluir** (escopo a fechar após A7.5):
+- Programas de cashback / pontos de cartão de crédito (similar pattern a MileageProgram).
+- Notas de planejamento livre (caderno digital workspace-scoped — mais flexível que Decision aggregate).
+- Reformulação do modelo de "famílias com >2 membros" (premissa atual: titular + cônjuge fixo).
+
+Detalhes virão quando A7 fechar; este stub serve para registrar débito técnico explicitamente.
 
 ---
 

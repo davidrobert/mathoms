@@ -1,6 +1,6 @@
 # Plano — Cutover de `config/` para DB multi-tenant (Sprint A7)
 
-> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 entregando (A7.1 ✅ + A7.2b ✅ + A7.4 ✅; A7.2a aberta) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
+> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 quase fechada (A7.1 ✅ + A7.2b ✅ + A7.4 ✅; A7.2a 🚧 — closeout pendente push) · **A7.6 aberta** (rules-as-code: dissolve `docs/methodology/` que A7.4 introduziu como solução incompleta — gate G1 pendente) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
 > **Audiência:** agentes LLM em paralelo (Onda 2 com até 4 agentes simultâneos) + supervisor CTO (humano ou agente `senior-cto`).
 > **Premissa central:** o produto **continua operando em produção** entre cada onda. Nenhum passo pode quebrar smoke E2E ou bloquear geração de relatório de workspace existente.
 > **Referências:** [BACKLOG.md §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal), [DECISIONS.md ADR-134..138](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [CLAUDE.md §Regras críticas](../CLAUDE.md#regras-críticas-invariantes-do-repositório).
@@ -24,12 +24,12 @@ A meta da Sprint A7 é fechar esse cutover, separando os arquivos em três natur
 | `decisions.md` | **Cliente** ⚠️ contém valores BRL reais | Entidade `Decision` event-sourced (A7.2a) |
 | `parametros_fiscais.json` | Mercado (séries temporais) | Tabela global versionada por ano (A7.2b) |
 | `taxas.json` | Mercado (séries temporais) | Tabela global versionada por data (A7.2b) |
-| `definitions.md` | Metodologia | `docs/methodology/` (A7.4) |
-| `regras_composicao_patrimonial.md` | Metodologia (regra de produto, ADR) | `docs/methodology/` (A7.4) |
-| `source_hierarchy.md` | Metodologia | `docs/methodology/` (A7.4) |
-| `milhas.md` | Metodologia (parte método) + potencial `MileageProgram` futuro | `docs/methodology/` (A7.4); modelagem de milhas reais fica fora |
+| `definitions.md` | **Híbrido** (60% cliente em DB · 25% universal · 15% duplica CLAUDE.md) | A7.4 ✅ moved → A7.6 dissolve: ~80% drop (já em DB ou duplica), ~20% docstrings + ADR-139/140 |
+| `regras_composicao_patrimonial.md` | **Híbrido** (regras universais 7-bucket + exemplos cliente) | A7.4 ✅ moved → A7.6 dissolve: docstring no classifier `cash_flow_builder` + ADR-140 |
+| `source_hierarchy.md` | **Híbrido** (hierarquia universal + bancos cliente) | A7.4 ✅ moved → A7.6 dissolve: docstring em `income_origin_resolver` + ADR-141; banco→tier vai p/ DB `BankAccount.source_tier` |
+| `milhas.md` | **Híbrido** (método de valuation universal + programas cliente) | A7.4 ✅ moved → A7.6 dissolve: método em docstring `parse_milhas_md` + ADR-142; programas migram p/ `storage/<ws>/notes/milhas.md` (gitignored) — débito técnico p/ A8.1 (`MileageProgram` DB entity) |
 
-**Resultado final:** zero arquivos em `config/` (diretório removido); pipeline lê tudo via `ConfigStore`; séries fiscais/câmbio versionadas por data; entidade `Decision` substitui markdown editorial.
+**Resultado final pós-A7:** zero arquivos em `config/` (diretório removido); pipeline lê tudo via `ConfigStore` (DB-first); séries fiscais/câmbio versionadas por data; entidade `Decision` substitui markdown editorial; `docs/methodology/` deletado (path proibido); regras universais vivem em docstrings + ADRs co-localizados com o código que enforce.
 
 ---
 
@@ -513,6 +513,64 @@ atualizados em `CLAUDE.md`, `.claude/agents/financial-planner.md`,
 - Risco residual de leitor escondido: mitigado pelo grep + smoke. Se aparecer regressão pós-merge, revert puro restaura tudo (bridges em `git history`).
 
 **Rollback:** revert PR. Mas idealmente: testes empíricos pré-merge garantem zero regressão; depois desta lane, voltar atrás é caro.
+
+---
+
+### §5.6 A7.6 — Rules-as-code: dissolver `docs/methodology/`
+
+**Onda 2.5 · 1 lane · ~3-4 sessões · paralelo com A7.2a, A7.3.**
+
+**Status:** ☐ aberta — gate G1 pendente (4 ADRs draft + CTO sign-off antes de codar).
+
+**Depende de:** A7.4 ✅ mergeada (arquivos atualmente em `docs/methodology/`).
+
+**Objetivo:** eliminar o diretório `docs/methodology/` movendo regras universais de produto para docstrings + ADRs no código que enforce, e dados cliente-específicos para DB ou `storage/<workspace_id>/notes/` (gitignored).
+
+**Por que esta lane (retrospectiva A7.4):** A A7.4 fez `git mv` puro (`config/*.md` → `docs/methodology/*.md`) preservando o vício do CLI mono-cliente — cada arquivo mistura **regras universais de produto** (7 categorias, hierarquia de fontes, valuation de milhas) com **instâncias cliente-específicas do workspace piloto** (David, Mariana, Tasso da Silveira, Hashdex, valores BRL reais, contas Itaú/BTG). Auditoria pós-merge confirmou 102 hits cliente-específicos nos 4 arquivos (definitions: 59 · regras_composicao: 19 + valores BRL · source_hierarchy: 19 · milhas: 5). Isso viola CLAUDE.md §Regras críticas ("nunca expor valores monetários reais ... em commits"). A7.6 corrige a arquitetura: rules-as-code em vez de docs paralelos.
+
+**Princípio adotado:** product methodology IS the code. Documentar separadamente cria drift. Eliminar `docs/methodology/` força a referência única (código + ADR para o "porquê").
+
+**ADRs novas (gate G1 — antes de qualquer commit de código):**
+- **ADR-139** — `docs/methodology/` é rules-as-code (regra geral)
+- **ADR-140** — 7 categorias canonical da composição patrimonial + premissa "titular + cônjuge"
+- **ADR-141** — E3 source hierarchy + workspace tier em `BankAccount.source_tier`
+- **ADR-142** — Milhas: valuation methodology universal + programs em `storage/<ws>/notes/` (bridge transitório; A8.1 entrega `MileageProgram` DB entity)
+
+**Sub-tasks (1 commit por arquivo, após G1):**
+
+1. **`regras_composicao_patrimonial.md` → docstring no classifier + ADR-140.** Localizar função classificadora em `pipeline/domain/services/cash_flow_builder.py` (ou similar). Migrar 7 categorias + tabela "tipo X → bucket Y" para docstring (sem valores BRL, sem nomes; ref ADR-140). Goldens E4/E5 paridade byte-a-byte preservada.
+2. **`source_hierarchy.md` → docstring em `income_origin_resolver` + ADR-141 + schema migration.** Hierarquia universal vai p/ docstring; banco→tier workspace-specific migra p/ DB (`BankAccount.source_tier` — schema review G2 obrigatório). Goldens E3 verde.
+3. **`milhas.md` → `storage/<ws>/notes/milhas.md` + ADR-142.** Migrate `parse_milhas_md(workspace_root)` para ler de path workspace-scoped. Migrator one-shot (`dev/migrate_milhas_to_workspace_storage.py`) copia conteúdo atual para workspace piloto. Bridge: fallback p/ path antigo + DeprecationWarning (removido em A7.5). Universal valuation method + ADR-142. **A8.1 modela `MileageProgram` em DB** (débito técnico aceito).
+4. **`definitions.md` → DB schema ref + ARCHITECTURE.md glossary.** Mapping por seção:
+   - **~190 linhas (38%) — cliente puro:** drop direto (já em DB: `FamilyMember`, `BankAccount`, `BaselinePatrimonial`).
+   - **~60 linhas (12%) — decisões de planejamento:** A7.2a Decision aggregate (contratos PJ, estratégia aportes).
+   - **~120 linhas (24%) — universal product methodology:** docstrings em route_documents/E0/E1 LLM extractor/calculators + ADRs.
+   - **~150 linhas (30%) — híbrido categorização/instituições:** A7.3 catalog/override absorve.
+   - **~30 linhas (6%) — duplicação CLAUDE.md:** drop.
+   - Resultado: arquivo inteiro desaparece. Sub-task depende soft de A7.3 mergeada (categorias) e A7.2a (decisões).
+5. **`README.md` + `git rm -r docs/methodology/` + bloqueio em `dev/check_forbidden_paths.py`.** CLAUDE.md atualizado (Fontes de verdade + Regras críticas).
+6. **Documentação Sprint A7:** §1 atualizada (já feito), §5.4 retrospective note, §5.6 ✅, §10 checklist + ADRs 139-142 status Decidido.
+
+**Acceptance gates:**
+- ADRs 139-142 status Decidido em `docs/DECISIONS.md`.
+- `find docs/methodology/ -type f` → empty.
+- `dev/check_forbidden_paths.py` bloqueia `docs/methodology/**`.
+- `grep -rn "David\|Mariana\|Tasso\|Benedito\|Hashdex" docs/` → zero hits (fora git history e CHANGELOG retrospectivo).
+- `pytest tests -q` 1495+ passed (E3/E4/E5/E5.N goldens paridade preservada).
+- `pytest backend/tests -q` 1383+ passed.
+- `dev/check_pipeline_boundaries.py` verde.
+- CLAUDE.md atualizado.
+- Workspace piloto: relatório gera identicamente; card de milhas funciona com path novo.
+- CTO G3 ✅ pré-merge.
+
+**Riscos:**
+- **`parse_milhas_md` runtime breakage:** mitigação via bridge com fallback warned + migrator roda **antes** do `git rm`.
+- **Schema migration `BankAccount.source_tier`:** Alembic backwards-compat (add nullable + populate + flip — nunca DROP no mesmo PR).
+- **Coordenação cross-lane:** A7.3 (categorias) e A7.2a (decisões) podem absorver partes de definitions.md — sub-task 4 fica por último.
+
+**Rollback:** `git revert` por sub-task. Bridge transitório em sub-task 3 facilita rollback parcial.
+
+**Track file:** [track_a7_6_rules_as_code.md](agent_prompts/track_a7_6_rules_as_code.md).
 
 ---
 

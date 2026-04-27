@@ -12,6 +12,24 @@ preparação para **F7 (Produção + LGPD + Ops)**.
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **A7.6 — Rules-as-code (lane aberta 2026-04-27):** auditoria pós-merge
+  de A7.4 detectou que os 4 markdowns movidos para `docs/methodology/`
+  contêm 102 hits cliente-específicos (David, Mariana, Tasso, Hashdex,
+  valores BRL reais, contas Itaú/BTG) violando CLAUDE.md §Regras críticas
+  ("nunca expor valores monetários reais ... em commits"). A7.6 dissolve
+  o diretório: regras universais migram para docstrings + ADRs no código
+  que enforce; dados cliente migram para DB ou `storage/<ws>/notes/`
+  (gitignored). Track file: [track_a7_6_rules_as_code.md](agent_prompts/track_a7_6_rules_as_code.md).
+  Plano detalhado: [CONFIG_CUTOVER_PLAN.md §5.6](CONFIG_CUTOVER_PLAN.md#§56-a76--rules-as-code-dissolver-docsmethodology).
+  ADRs novas (gate G1 pendente): ADR-139 (rules-as-code geral) ·
+  ADR-140 (7-bucket composição patrimonial) · ADR-141 (E3 source hierarchy
+  + `BankAccount.source_tier`) · ADR-142 (milhas valuation + storage
+  workspace-scoped; `MileageProgram` DB entity = débito técnico p/ A8.1).
+  Estimativa: 3-4 sessões após G1. Sub-task 4 (definitions.md) depende
+  soft de A7.3 + A7.2a mergeadas. **Sprint A8 stub aberta** em
+  [BACKLOG.md §Sprint A8](BACKLOG.md#sprint-a8--continuação-multi-tenant-placeholder-abre-após-a7-fechar)
+  para registrar A8.1 explicitamente.
+
 - **Report Premium UI v2.2b — fix `clickMode()` + 12 baselines Tático ✅ parcial (2026-04-27):**
   Resíduo da v2.2 fechado parcialmente — Tático populado, USA bloqueado
   por decisão de produto.
