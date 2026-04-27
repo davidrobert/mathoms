@@ -44,31 +44,21 @@ async def _load_pair(
     new_id: str,
 ) -> tuple[Decision, Decision]:
     if old_id == new_id:
-        raise ValidationError(
-            "old e new não podem ser a mesma Decision", code="self_supersede"
-        )
+        raise ValidationError("old e new não podem ser a mesma Decision", code="self_supersede")
     old = await repo.get_by_id(workspace_id, old_id)
     if old is None:
-        raise NotFoundError(
-            f"Decision old id={old_id} não encontrada", code="decision_not_found"
-        )
+        raise NotFoundError(f"Decision old id={old_id} não encontrada", code="decision_not_found")
     new = await repo.get_by_id(workspace_id, new_id)
     if new is None:
-        raise NotFoundError(
-            f"Decision new id={new_id} não encontrada", code="decision_not_found"
-        )
+        raise NotFoundError(f"Decision new id={new_id} não encontrada", code="decision_not_found")
     return old, new
 
 
 def _ensure_supersedable(old: Decision, new: Decision) -> None:
     if old.status == "Superseded":
-        raise ValidationError(
-            "Decision antiga já está Superseded", code="already_superseded"
-        )
+        raise ValidationError("Decision antiga já está Superseded", code="already_superseded")
     if new.supersedes_id is not None:
-        raise ValidationError(
-            "Decision nova já tem supersedes_id", code="new_already_chained"
-        )
+        raise ValidationError("Decision nova já tem supersedes_id", code="new_already_chained")
 
 
 def _wire_supersede(old: Decision, new: Decision) -> None:
@@ -89,12 +79,8 @@ async def _emit_supersede_events(
 ) -> None:
     payload = {"old_id": old.id, "new_id": new.id, "note": note}
     await repo.add_event(
-        DecisionEvent(
-            decision_id=old.id, event_type="Superseded", actor=actor, payload=payload
-        )
+        DecisionEvent(decision_id=old.id, event_type="Superseded", actor=actor, payload=payload)
     )
     await repo.add_event(
-        DecisionEvent(
-            decision_id=new.id, event_type="Superseded", actor=actor, payload=payload
-        )
+        DecisionEvent(decision_id=new.id, event_type="Superseded", actor=actor, payload=payload)
     )

@@ -43,9 +43,7 @@ from backend.app.schemas.dto.decision import (
     DecisionUpdateCommand,
 )
 
-router = APIRouter(
-    prefix="/workspaces/{workspace_id}/decisions", tags=["decisions"]
-)
+router = APIRouter(prefix="/workspaces/{workspace_id}/decisions", tags=["decisions"])
 
 
 def _get_repo(db: AsyncSession = Depends(get_db)) -> DecisionRepository:

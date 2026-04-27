@@ -49,24 +49,16 @@ def upgrade() -> None:
         sa.Column("executed_at", sa.Date(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["workspace_id"], ["workspaces.id"], ondelete="CASCADE"
-        ),
-        sa.ForeignKeyConstraint(
-            ["supersedes_id"], ["decisions.id"], ondelete="SET NULL"
-        ),
+        sa.ForeignKeyConstraint(["workspace_id"], ["workspaces.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["supersedes_id"], ["decisions.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "workspace_id", "code", name="uq_decisions_workspace_code"
-        ),
+        sa.UniqueConstraint("workspace_id", "code", name="uq_decisions_workspace_code"),
     )
     with op.batch_alter_table("decisions", schema=None) as batch_op:
         batch_op.create_index(
             batch_op.f("ix_decisions_workspace_id"), ["workspace_id"], unique=False
         )
-        batch_op.create_index(
-            "ix_decisions_ws_status", ["workspace_id", "status"], unique=False
-        )
+        batch_op.create_index("ix_decisions_ws_status", ["workspace_id", "status"], unique=False)
 
     op.create_table(
         "decision_events",
@@ -76,9 +68,7 @@ def upgrade() -> None:
         sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("actor", sa.String(length=128), nullable=False),
         sa.Column("payload", sa.JSON(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["decision_id"], ["decisions.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["decision_id"], ["decisions.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     with op.batch_alter_table("decision_events", schema=None) as batch_op:

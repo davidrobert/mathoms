@@ -25,9 +25,7 @@ async def mark_decision_executed(
 ) -> DecisionResponse:
     decision = await repo.get_by_id(workspace_id, decision_id)
     if decision is None:
-        raise NotFoundError(
-            f"Decision id={decision_id} não encontrada", code="decision_not_found"
-        )
+        raise NotFoundError(f"Decision id={decision_id} não encontrada", code="decision_not_found")
     _ensure_executable(decision)
 
     executed_on = cmd.executed_at or date.today()
@@ -59,9 +57,7 @@ async def _emit_executed_event(
         event_type="Executed",
         actor=actor,
         payload={
-            "executed_at": decision.executed_at.isoformat()
-            if decision.executed_at
-            else None,
+            "executed_at": decision.executed_at.isoformat() if decision.executed_at else None,
             "note": note,
         },
     )

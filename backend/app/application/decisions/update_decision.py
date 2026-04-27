@@ -29,9 +29,7 @@ async def update_decision(
 ) -> DecisionResponse:
     decision = await repo.get_by_id(workspace_id, decision_id)
     if decision is None:
-        raise NotFoundError(
-            f"Decision id={decision_id} não encontrada", code="decision_not_found"
-        )
+        raise NotFoundError(f"Decision id={decision_id} não encontrada", code="decision_not_found")
 
     diff = _apply_patch(decision, cmd)
     decision.updated_at = datetime.now(timezone.utc)

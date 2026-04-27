@@ -7,12 +7,11 @@ Após a Sprint A7.5, este arquivo + o migrator podem ser removidos juntos.
 
 from __future__ import annotations
 
+# Import direto do módulo dev/ (não vai virar package permanente)
+import importlib.util
 from pathlib import Path
 
 import pytest
-
-# Import direto do módulo dev/ (não vai virar package permanente)
-import importlib.util
 
 
 def _load_migrator_module():

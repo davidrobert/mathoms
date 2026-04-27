@@ -28,9 +28,7 @@ class DecisionRepository:
     # Queries
     # -------------------------------------------------------------------
 
-    async def get_by_id(
-        self, workspace_id: str, decision_id: str
-    ) -> Optional[Decision]:
+    async def get_by_id(self, workspace_id: str, decision_id: str) -> Optional[Decision]:
         result = await self._session.execute(
             select(Decision).where(
                 Decision.workspace_id == workspace_id,
@@ -39,9 +37,7 @@ class DecisionRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_by_code(
-        self, workspace_id: str, code: str
-    ) -> Optional[Decision]:
+    async def get_by_code(self, workspace_id: str, code: str) -> Optional[Decision]:
         result = await self._session.execute(
             select(Decision).where(
                 Decision.workspace_id == workspace_id,

@@ -80,9 +80,7 @@ async def test_list_by_workspace_ordered_by_code(db: AsyncSession, two_workspace
 
 
 @pytest.mark.asyncio
-async def test_unique_constraint_workspace_code(
-    db: AsyncSession, two_workspaces
-):
+async def test_unique_constraint_workspace_code(db: AsyncSession, two_workspaces):
     ws_a, _ = two_workspaces
     repo = DecisionRepository(db)
     await repo.add(_new_decision(ws_a.id, code="D01"))

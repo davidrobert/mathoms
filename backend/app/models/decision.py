@@ -57,9 +57,7 @@ class Decision(Base):
 
     __tablename__ = "decisions"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
@@ -117,9 +115,7 @@ class DecisionEvent(Base):
 
     __tablename__ = "decision_events"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     decision_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("decisions.id", ondelete="CASCADE"),

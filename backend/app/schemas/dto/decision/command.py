@@ -34,9 +34,7 @@ class DecisionCreateCommand(BaseModel):
     @classmethod
     def _validate_status(cls, v: str) -> str:
         if v not in VALID_DECISION_STATUSES:
-            raise ValueError(
-                f"status inválido: {v!r}; aceitos: {sorted(VALID_DECISION_STATUSES)}"
-            )
+            raise ValueError(f"status inválido: {v!r}; aceitos: {sorted(VALID_DECISION_STATUSES)}")
         return v
 
 
@@ -57,9 +55,7 @@ class DecisionUpdateCommand(BaseModel):
         if v is None:
             return v
         if v not in VALID_DECISION_STATUSES:
-            raise ValueError(
-                f"status inválido: {v!r}; aceitos: {sorted(VALID_DECISION_STATUSES)}"
-            )
+            raise ValueError(f"status inválido: {v!r}; aceitos: {sorted(VALID_DECISION_STATUSES)}")
         return v
 
 

@@ -117,12 +117,8 @@ async def test_execute_twice_returns_422(db, client):
         json={"code": "D01", "title": "t"},
     )
     decision_id = create_resp.json()["id"]
-    await client.post(
-        f"/api/workspaces/{ws.id}/decisions/{decision_id}/execute", json={}
-    )
-    resp2 = await client.post(
-        f"/api/workspaces/{ws.id}/decisions/{decision_id}/execute", json={}
-    )
+    await client.post(f"/api/workspaces/{ws.id}/decisions/{decision_id}/execute", json={})
+    resp2 = await client.post(f"/api/workspaces/{ws.id}/decisions/{decision_id}/execute", json={})
     assert resp2.status_code == 422
 
 

@@ -55,9 +55,7 @@ async def test_create_decision_persists_and_emits_event(db, setup):
         rationale="contexto fictício",
         amount_brl=Decimal("1000.00"),
     )
-    resp = await create_decision(
-        cmd, workspace_id=ws.id, repo=repo, actor="user:alice"
-    )
+    resp = await create_decision(cmd, workspace_id=ws.id, repo=repo, actor="user:alice")
     await db.commit()
 
     assert resp.code == "D01"
