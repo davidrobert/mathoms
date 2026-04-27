@@ -363,4 +363,59 @@ def test_parse_milhas_md_shell_loader_returns_empty_when_file_missing(monkeypatc
     import scripts.e5_analyze as e5
 
     monkeypatch.setattr(e5, "CONFIG_MILHAS", tmp_path / "nonexistent.md")
+    monkeypatch.setattr(e5, "CONFIG_MILHAS_NEW", tmp_path / "nonexistent_new.md")
+    monkeypatch.setattr(e5, "CONFIG_MILHAS_LEGACY", tmp_path / "nonexistent_legacy.md")
     assert e5.parse_milhas_md() == {}
+
+
+def test_parse_milhas_md_prefers_new_path(monkeypatch, tmp_path):
+    """ADR-147 (A7.6): bridge tenta path novo antes do legado."""
+    import scripts.e5_analyze as e5
+
+    new_path = tmp_path / "notes" / "milhas.md"
+    legacy_path = tmp_path / "docs" / "methodology" / "milhas.md"
+    new_path.parent.mkdir(parents=True)
+    legacy_path.parent.mkdir(parents=True)
+    new_path.write_text("### ProgramaNew — TitularExemplo\n", encoding="utf-8")
+    legacy_path.write_text("### ProgramaLegacy — TitularExemplo\n", encoding="utf-8")
+
+    monkeypatch.setattr(e5, "CONFIG_MILHAS_NEW", new_path)
+    monkeypatch.setattr(e5, "CONFIG_MILHAS_LEGACY", legacy_path)
+    monkeypatch.setattr(e5, "CONFIG_MILHAS", new_path)
+
+    result = e5.parse_milhas_md()
+    registered = result.get("programas_registrados", [])
+    assert any("ProgramaNew" in name for name in registered)
+    assert not any("ProgramaLegacy" in name for name in registered)
+
+
+def test_parse_milhas_md_falls_back_to_legacy_with_warning(monkeypatch, tmp_path):
+    """ADR-147 (A7.6): quando path novo não existe, fallback ao legado emite
+    DeprecationWarning. Bridge é removido em A7.5 cleanup."""
+    import warnings
+
+    import scripts.e5_analyze as e5
+
+    new_path = tmp_path / "notes" / "milhas.md"  # não existe
+    legacy_path = tmp_path / "docs" / "methodology" / "milhas.md"
+    legacy_path.parent.mkdir(parents=True)
+    legacy_path.write_text(
+        "### ProgramaExemplo — TitularExemplo\n"
+        "| Campo | Valor |\n"
+        "| --- | --- |\n"
+        "| saldo_pontos | 1000 |\n"
+        "| valor_estimado_brl | 50.0 |\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(e5, "CONFIG_MILHAS_NEW", new_path)
+    monkeypatch.setattr(e5, "CONFIG_MILHAS_LEGACY", legacy_path)
+    monkeypatch.setattr(e5, "CONFIG_MILHAS", new_path)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = e5.parse_milhas_md()
+
+    assert any(issubclass(w.category, DeprecationWarning) for w in caught)
+    registered = result.get("programas_registrados", [])
+    assert any("ProgramaExemplo" in name for name in registered)

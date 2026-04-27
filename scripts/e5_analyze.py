@@ -56,7 +56,8 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     global SCRIPTS_DIR, PROJECT_DIR
     global PROCESSED_DIR, E4_UNIFIED_DIR, E2_EXTRACTS_DIR, E3_RECONCILED_DIR, E5_ANALYSIS_DIR
     global LIFE_PLAN_GOALS, CONFIG_DEFINITIONS, CONFIG_TAREFAS
-    global CONFIG_GOALS, CONFIG_SCORING, CONFIG_FISCAL, CONFIG_FAMILY, CONFIG_TAXAS, CONFIG_MILHAS
+    global CONFIG_GOALS, CONFIG_SCORING, CONFIG_FISCAL, CONFIG_FAMILY, CONFIG_TAXAS
+    global CONFIG_MILHAS, CONFIG_MILHAS_NEW, CONFIG_MILHAS_LEGACY
     global FILE_RECEITAS, FILE_DESPESAS, FILE_PATRIMONIO, FILE_INVESTIMENTOS
     global FILE_FLUXO_MENSAL, FILE_BASELINE, FILE_OUTPUT
     global _TITULAR_DOB, _CONJUGE_DOB, TODAY
@@ -83,7 +84,13 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     CONFIG_FISCAL = PROJECT_DIR / "config" / "parametros_fiscais.json"
     CONFIG_FAMILY = PROJECT_DIR / "config" / "family_members.json"
     CONFIG_TAXAS = PROJECT_DIR / "config" / "taxas.json"
-    CONFIG_MILHAS = PROJECT_DIR / "docs" / "methodology" / "milhas.md"
+    # ADR-147 (A7.6): milhas vivem em <workspace>/notes/milhas.md (gitignored).
+    # Bridge transitório: fallback para path legado quando o novo não existe;
+    # remoção do bridge planejada para A7.5 cleanup. Após A8.1 (MileageProgram
+    # DB entity), parse_milhas_md torna-se deprecated.
+    CONFIG_MILHAS_NEW = PROJECT_DIR / "notes" / "milhas.md"
+    CONFIG_MILHAS_LEGACY = PROJECT_DIR / "docs" / "methodology" / "milhas.md"
+    CONFIG_MILHAS = CONFIG_MILHAS_NEW
 
     FILE_RECEITAS = E4_UNIFIED_DIR / "receitas-4_unified.json"
     FILE_DESPESAS = E4_UNIFIED_DIR / "despesas-4_unified.json"
@@ -164,7 +171,9 @@ CONFIG_SCORING: Path = PROJECT_DIR / "config" / "scoring.json"
 CONFIG_FISCAL: Path = PROJECT_DIR / "config" / "parametros_fiscais.json"
 CONFIG_FAMILY: Path = PROJECT_DIR / "config" / "family_members.json"
 CONFIG_TAXAS: Path = PROJECT_DIR / "config" / "taxas.json"
-CONFIG_MILHAS: Path = PROJECT_DIR / "docs" / "methodology" / "milhas.md"
+CONFIG_MILHAS_NEW: Path = PROJECT_DIR / "notes" / "milhas.md"
+CONFIG_MILHAS_LEGACY: Path = PROJECT_DIR / "docs" / "methodology" / "milhas.md"
+CONFIG_MILHAS: Path = CONFIG_MILHAS_NEW
 FILE_RECEITAS: Path = E4_UNIFIED_DIR / "receitas-4_unified.json"
 FILE_DESPESAS: Path = E4_UNIFIED_DIR / "despesas-4_unified.json"
 FILE_PATRIMONIO: Path = E4_UNIFIED_DIR / "patrimonio-4_unified.json"
@@ -2200,10 +2209,30 @@ def parse_tarefas_md(content: str | None = None) -> Tuple[List[Dict[str, Any]], 
 
 
 def parse_milhas_md_content(text: str) -> Dict[str, Any]:
-    """Parse content of ``docs/methodology/milhas.md`` — **função pura, sem I/O**.
+    """Parse content of ``<workspace>/notes/milhas.md`` — **função pura, sem I/O**.
 
     A6d.2: extraída de ``parse_milhas_md`` para permitir testes unitários
     sem arquivo real.
+
+    Schema esperado do markdown (workspace-scoped, gitignored, ADR-147):
+
+        ### {Programa} — {Titular}
+        | Campo                 | Valor |
+        | --------------------- | ----- |
+        | saldo_pontos          | <int>   |
+        | custo_medio_ponto_brl | <float> |
+        | valor_estimado_brl    | <float> |
+
+    Universal valuation methodology (regra de produto, ADR-147):
+    cada programa tem ``custo_medio_ponto_brl`` (custo de aquisição) e
+    ``valor_estimado_brl`` (saldo × valor de mercado por ponto). A
+    economia no período é a diferença entre valor_equivalente_brl e o
+    custo de aquisição equivalente. Nomes de programa, titular, saldos
+    e datas são **dado workspace-específico** — vivem fora do git em
+    ``<workspace>/notes/milhas.md``.
+
+    Em A8.1 esta função fica deprecated em favor de ``MileageProgram``
+    aggregate (DB entity workspace-scoped) — débito técnico aceito.
     """
     programas: List[Dict[str, Any]] = []
     current_prog: Dict[str, Any] | None = None
@@ -2270,14 +2299,35 @@ def parse_milhas_md(content: str | None = None) -> Dict[str, Any]:
     """Shell loader: lê ``CONFIG_MILHAS`` do disco se ``content`` for ``None``.
 
     A6d.2: aceita ``content`` para testes; back-compat preservada via ``None``.
+
+    A7.6 (ADR-147): tenta path novo ``<workspace>/notes/milhas.md`` primeiro;
+    fallback para path legado ``docs/methodology/milhas.md`` com
+    ``DeprecationWarning``. Bridge transitório, removido em A7.5 cleanup.
     """
-    print("[E5.15] Parsing docs/methodology/milhas.md...")
+    print("[E5.15] Parsing <workspace>/notes/milhas.md...")
 
     if content is None:
-        if not CONFIG_MILHAS.exists():
-            print("  ⚠ docs/methodology/milhas.md not found — milhas card will be empty")
+        if CONFIG_MILHAS_NEW.exists():
+            content = CONFIG_MILHAS_NEW.read_text(encoding="utf-8")
+        elif CONFIG_MILHAS_LEGACY.exists():
+            import warnings
+
+            warnings.warn(
+                "Reading milhas.md from legacy path docs/methodology/milhas.md."
+                " Migrate to <workspace>/notes/milhas.md (ADR-147, A7.6) — bridge"
+                " removal planned for A7.5 cleanup. Run"
+                " dev/migrate_milhas_to_workspace_storage.py to migrate.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            print(
+                "  [warn] milhas.md legacy path — rode "
+                "dev/migrate_milhas_to_workspace_storage.py p/ migrar"
+            )
+            content = CONFIG_MILHAS_LEGACY.read_text(encoding="utf-8")
+        else:
+            print("  ⚠ <workspace>/notes/milhas.md not found — milhas card will be empty")
             return {}
-        content = CONFIG_MILHAS.read_text(encoding="utf-8")
 
     if not content:
         return {}
@@ -2823,13 +2873,30 @@ def _e5_init_workspace(ctx):
 
 
 def _e5_load_md_inputs() -> tuple[str, str | None, str | None]:
-    """Lê life_plan, tarefas e milhas do disco (paridade A6d.2)."""
+    """Lê life_plan, tarefas e milhas do disco (paridade A6d.2).
+
+    A7.6 (ADR-147): milhas tenta path novo ``<workspace>/notes/milhas.md``;
+    fallback para legado ``docs/methodology/milhas.md`` com warning.
+    """
     life_plan_content = _read_life_plan_content()
     _require_if_meta_configured(life_plan_content)
     tarefas_content = (
         CONFIG_TAREFAS.read_text(encoding="utf-8") if CONFIG_TAREFAS.exists() else None
     )
-    milhas_content = CONFIG_MILHAS.read_text(encoding="utf-8") if CONFIG_MILHAS.exists() else None
+    if CONFIG_MILHAS_NEW.exists():
+        milhas_content = CONFIG_MILHAS_NEW.read_text(encoding="utf-8")
+    elif CONFIG_MILHAS_LEGACY.exists():
+        import warnings
+
+        warnings.warn(
+            "Reading milhas.md from legacy path; migrate to <workspace>/notes/milhas.md"
+            " (ADR-147 · A7.6).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        milhas_content = CONFIG_MILHAS_LEGACY.read_text(encoding="utf-8")
+    else:
+        milhas_content = None
     return life_plan_content, tarefas_content, milhas_content
 
 
