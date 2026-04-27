@@ -13,8 +13,12 @@
  * Cobertura:
  * - shell global (cover, premissas) × {light, dark}
  * - Estratégico: S1-S10 + APP_A-E × {light, dark}
- * - Tático: T1-T6 × {light, dark} (após click no ModeToggle)
- * - USA: U1-U4 × {light, dark} (após click no ModeToggle)
+ * - Tático: T1-T6 × {light, dark} (deep-link `?mode=tatico`)
+ * - USA: U1-U4 × {light, dark} (deep-link `?mode=usa`)
+ *
+ * v2.2b: troca de modo via URL `?mode=tatico|usa` (lida por
+ * `ReportModeProvider`) em vez de click — evita brittleness do toggle
+ * (role="tab" + label fora do botão) e funciona com `usa` oculto da UI.
  *
  * Baselines vivem em `tests/e2e/reports/__snapshots__/sections.snapshots.visual.spec.ts/`.
  * Atualização: `npm run test:e2e -- --project=visual --grep sections.snapshots --update-snapshots`
@@ -33,7 +37,13 @@ const USA_SECTIONS = ["U1", "U2", "U3", "U4"];
 const THEMES = ["light", "dark"] as const;
 type Theme = (typeof THEMES)[number];
 
-async function setupReport(page: Page, theme: Theme): Promise<void> {
+type Mode = "estrategico" | "tatico" | "usa";
+
+async function setupReport(
+  page: Page,
+  theme: Theme,
+  mode: Mode = "estrategico",
+): Promise<void> {
   // next-themes lê localStorage key="theme" antes do mount — injetar
   // ANTES de qualquer goto evita flash light → dark no snapshot.
   await page.addInitScript((t) => {
@@ -42,7 +52,15 @@ async function setupReport(page: Page, theme: Theme): Promise<void> {
 
   const { workspaceId, reportId } = await mockReportPage(page);
   await page.setViewportSize(VIEWPORT);
-  await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+  // v2.2b — modo via URL (`?mode=tatico|usa`) em vez de click no toggle.
+  // ReportModeProvider lê searchParams na montagem (deep-link). Robusto
+  // contra: (a) toggle "usa" oculto da UI (TEMP em ReportActions), (b)
+  // role="tab" + label dentro do TooltipTrigger sem aria-label, que
+  // quebrava `getByRole("button", { name: /Tático|USA/i })`.
+  const modeParam = mode === "estrategico" ? "" : `&mode=${mode}`;
+  await page.goto(
+    `/reports/${reportId}?workspace=${workspaceId}${modeParam}`,
+  );
   await waitForReportReady(page);
 
   // Aguarda chart canvases renderizarem (chart.js anima por default;
@@ -72,14 +90,6 @@ async function snapshotSection(
       mask: [page.locator("[data-mask-snapshot]")],
     },
   );
-}
-
-async function clickMode(page: Page, label: RegExp): Promise<boolean> {
-  const btn = page.getByRole("button", { name: label }).first();
-  if (!(await btn.isVisible().catch(() => false))) return false;
-  await btn.click();
-  await page.waitForTimeout(300);
-  return true;
 }
 
 // ─── Estratégico (default mode) ────────────────────────────────────────
@@ -127,12 +137,7 @@ test.describe("Snapshots — modo tático", () => {
   for (const theme of THEMES) {
     for (const sectionId of TATICO_SECTIONS) {
       test(`${sectionId} — ${theme}`, async ({ page }) => {
-        await setupReport(page, theme);
-        const switched = await clickMode(page, /Tático/i);
-        if (!switched) {
-          test.skip(true, "ModeToggle Tático não encontrado");
-          return;
-        }
+        await setupReport(page, theme, "tatico");
         await snapshotSection(page, sectionId, theme);
       });
     }
@@ -145,12 +150,7 @@ test.describe("Snapshots — modo USA", () => {
   for (const theme of THEMES) {
     for (const sectionId of USA_SECTIONS) {
       test(`${sectionId} — ${theme}`, async ({ page }) => {
-        await setupReport(page, theme);
-        const switched = await clickMode(page, /USA|EUA/i);
-        if (!switched) {
-          test.skip(true, "ModeToggle USA não encontrado");
-          return;
-        }
+        await setupReport(page, theme, "usa");
         await snapshotSection(page, sectionId, theme);
       });
     }
