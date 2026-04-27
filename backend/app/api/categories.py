@@ -32,6 +32,7 @@ from backend.app.schemas.dto.category import (
     CategoryResponse,
     CategoryUpdateCommand,
 )
+
 router = APIRouter(prefix="/workspaces/{workspace_id}/config", tags=["config"])
 
 
