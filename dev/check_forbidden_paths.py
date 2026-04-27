@@ -36,6 +36,12 @@ FORBIDDEN_FILES = (
     # F7F-Local (ADR-116): credenciais de operadores internos nunca vão
     # para o git. Apenas `config/internal_operators.example.yaml` é commitável.
     "config/internal_operators.yaml",
+    # A7.4: docs metodológicas movidas de config/ → docs/methodology/. Bloquear
+    # ressurgimento dos paths antigos (regressão acidental ou rebase com conflito).
+    "config/definitions.md",
+    "config/regras_composicao_patrimonial.md",
+    "config/source_hierarchy.md",
+    "config/milhas.md",
 )
 
 # Basenames bloqueados em qualquer diretório (regressão: backend/.env vazou

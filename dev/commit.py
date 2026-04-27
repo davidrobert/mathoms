@@ -76,6 +76,12 @@ FORBIDDEN_DIRS = (
 FORBIDDEN_FILES = (
     "mathoms.db",
     "config/passwords.txt",
+    # A7.4: docs metodológicas movidas de config/ → docs/methodology/. Bloquear
+    # ressurgimento dos paths antigos (regressão acidental ou rebase com conflito).
+    "config/definitions.md",
+    "config/regras_composicao_patrimonial.md",
+    "config/source_hierarchy.md",
+    "config/milhas.md",
 )
 
 # Basenames bloqueados em qualquer diretório — .env/.env.test podem ter secrets
