@@ -404,11 +404,23 @@ def build_tarefas_md_sync(
     return "\n".join(lines) + "\n"
 
 
+def build_config_store(*, db: SyncSession, use_db_artifacts: bool):
+    """Boundary helper (A7.1 · ADR-134): ``DBConfigStore`` quando flag on, ``FileConfigStore`` legacy senão."""
+    if use_db_artifacts:
+        from backend.app.services.db_config_store import DBConfigStore
+
+        return DBConfigStore(db)
+    from pipeline.adapters.file_config_store import FileConfigStore
+
+    return FileConfigStore()
+
+
 __all__ = [
     # Sync (worker)
     "build_goals_payload_sync",
     "build_tasks_payload_sync",
     "build_tarefas_md_sync",
+    "build_config_store",
     # Async (endpoints)
     "build_goals_payload",
     "build_tasks_payload",

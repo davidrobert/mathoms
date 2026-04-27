@@ -67,7 +67,7 @@ class StageConfig(BaseModel):
     # backend/app/services/pipeline_adapter.py com DBConfigStore. Default
     # None preserva compat: chamadas antigas continuam usando _init_config /
     # materialize_config até A7.5.
-    config_store: Optional["ConfigStore"] = None
+    config_store: Optional[ConfigStore] = None
 
     # Configs cuja ausência levanta ``ConfigError`` em ``from_context``.
     REQUIRED: ClassVar[frozenset[str]] = frozenset(

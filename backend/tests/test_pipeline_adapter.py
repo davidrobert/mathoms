@@ -163,3 +163,48 @@ async def test_tarefas_md_header_marks_adapter(db):
     ws = await factories.make_workspace(db)
     md = await build_tarefas_md(ws.id, db=db)
     assert "Fonte de verdade: tabela `tasks`" in md
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# build_config_store (A7.1 · ADR-134) — boundary helper
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def test_build_config_store_db_branch_returns_db_adapter():
+    """Flag on → ``DBConfigStore`` ligado à sessão fornecida."""
+    from backend.app.services.db_config_store import DBConfigStore
+    from backend.app.services.pipeline_adapter import build_config_store
+
+    sentinel_session = object()
+    store = build_config_store(db=sentinel_session, use_db_artifacts=True)
+    assert isinstance(store, DBConfigStore)
+    assert store._session is sentinel_session
+
+
+def test_build_config_store_disk_branch_returns_file_adapter():
+    """Flag off → ``FileConfigStore`` legacy (emite DeprecationWarning)."""
+    import warnings
+
+    from backend.app.services.pipeline_adapter import build_config_store
+    from pipeline.adapters.file_config_store import FileConfigStore
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        store = build_config_store(db=None, use_db_artifacts=False)
+    assert isinstance(store, FileConfigStore)
+
+
+def test_build_config_store_satisfies_protocol():
+    """Ambos os branches implementam ``ConfigStore`` (runtime check)."""
+    import warnings
+
+    from backend.app.services.pipeline_adapter import build_config_store
+    from pipeline.ports import ConfigStore
+
+    db_store = build_config_store(db=object(), use_db_artifacts=True)
+    assert isinstance(db_store, ConfigStore)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        file_store = build_config_store(db=None, use_db_artifacts=False)
+    assert isinstance(file_store, ConfigStore)

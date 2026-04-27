@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from pipeline.artifact_store import ArtifactStore
+    from pipeline.ports import ConfigStore
 
 
 @dataclass
@@ -59,6 +60,15 @@ class WorkspaceContext:
     #: Stages devem usar ``ctx.get_artifact_store()`` em vez de acessar este
     #: campo diretamente, para manter a resolução lazy.
     artifact_store: Optional["ArtifactStore"] = field(default=None, repr=False)
+
+    #: Workspace identifier — required for ``ConfigStore`` reads (ADR-134).
+    #: ``None`` em CLI/testes locais; backend Celery preenche em ``for_tenant``.
+    workspace_id: Optional[str] = field(default=None, repr=False)
+
+    #: ``ConfigStore`` injetável (ADR-134, Sprint A7.1). ``None`` → stages caem no
+    #: fallback de disco via ``load_config()``. Backend popula com
+    #: :class:`DBConfigStore` em :func:`pipeline_task._setup_run_context`.
+    config_store: Optional["ConfigStore"] = field(default=None, repr=False)
 
     #: ADR-119 — mediana de duração (ms) por stage, calculada dos últimos runs
     #: bem-sucedidos do workspace. Populado pelo orchestrator (Celery task);
@@ -160,6 +170,8 @@ class WorkspaceContext:
         config_dir: Optional[Path] = None,
         pipeline_run_id: Optional[str] = None,
         artifact_store: Optional["ArtifactStore"] = None,
+        workspace_id: Optional[str] = None,
+        config_store: Optional["ConfigStore"] = None,
     ) -> WorkspaceContext:
         """Contexto para tenant web com config do banco de dados.
 
@@ -172,6 +184,10 @@ class WorkspaceContext:
             artifact_store: ``ArtifactStore`` pré-construído (ADR-083). ``None``
                 faz ``get_artifact_store()`` instanciar um ``DiskArtifactStore``
                 lazy na primeira chamada.
+            workspace_id: ID do workspace — necessário para leitura via ``config_store``
+                (ADR-134, A7.1).
+            config_store: ``ConfigStore`` pré-construído (ADR-134). ``None`` faz
+                stages caírem no fallback ``ctx.load_config()`` (disco/overrides).
         """
         return cls(
             root=tenant_root,
@@ -179,4 +195,6 @@ class WorkspaceContext:
             config_overrides=config,
             pipeline_run_id=pipeline_run_id,
             artifact_store=artifact_store,
+            workspace_id=workspace_id,
+            config_store=config_store,
         )

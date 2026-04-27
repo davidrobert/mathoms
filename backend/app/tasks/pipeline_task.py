@@ -370,31 +370,54 @@ def _setup_run_context(
     incremental: bool,
     incremental_doc_paths: list[str] | None,
 ):
-    """Cria WorkspaceContext. DBArtifactStore é aberto por-stage no loop.
+    """Cria WorkspaceContext + injeta ``ConfigStore`` (A7.1 · ADR-134).
 
     Também seta ``MATHOMS_WORKSPACE_ROOT`` para scripts E0–E7 lazy-imported.
-    Retorna ``(ctx, use_db_artifacts)`` — o segundo é bool indicando se a
-    flag DBArtifactStore está ativa para o workspace. Quando ativa, o loop
-    de stages abre/fecha sessão própria por stage (reduz contenção de
-    write-lock no SQLite contra ``pipeline_stage_logs``).
+    Retorna ``(ctx, use_db_artifacts, config_store_session)`` — a sessão
+    long-lived que respaldou o ``DBConfigStore`` é devolvida ao caller
+    para fechamento ao fim do run; ``None`` quando ``use_db_artifacts``
+    está desligado (FileConfigStore não usa sessão).
     """
     import os
 
+    from backend.app.services.pipeline_adapter import build_config_store
     from pipeline.context import WorkspaceContext
-
-    ctx = WorkspaceContext.for_tenant(tenant_root, config_dir=config_dir, pipeline_run_id=run_id)
-    ctx.incremental = incremental
-    ctx.incremental_doc_paths = incremental_doc_paths or []
-    ctx.ensure_dirs()
-    ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
 
     use_db_artifacts = _resolve_use_db_artifacts(ws_id)
     if use_db_artifacts:
         logger.info("pipeline_start using DBArtifactStore for run_id=%s ws_id=%s", run_id, ws_id)
 
+    config_store_session = SyncSessionLocal() if use_db_artifacts else None
+    config_store = build_config_store(
+        db=config_store_session,  # type: ignore[arg-type]
+        use_db_artifacts=use_db_artifacts,
+    )
+
+    ctx = WorkspaceContext.for_tenant(
+        tenant_root,
+        config_dir=config_dir,
+        pipeline_run_id=run_id,
+        workspace_id=ws_id,
+        config_store=config_store,
+    )
+    ctx.incremental = incremental
+    ctx.incremental_doc_paths = incremental_doc_paths or []
+    ctx.ensure_dirs()
+    ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
+
     # Lazy-imported scripts (E0–E7) load pipeline_common — tenant-scoped paths.
     os.environ["MATHOMS_WORKSPACE_ROOT"] = str(tenant_root.resolve())
-    return ctx, use_db_artifacts
+    return ctx, use_db_artifacts, config_store_session
+
+
+def _close_config_store_session(session) -> None:
+    """Fecha a sessão long-lived do ``DBConfigStore`` ao fim do run (A7.1)."""
+    if session is None:
+        return
+    try:
+        session.close()
+    except Exception as exc:
+        logger.warning("config_store_session close failed: %s", exc)
 
 
 def _load_stage_duration_estimates(ws_id: str) -> dict[str, int]:
@@ -811,6 +834,21 @@ def _close_artifact_session(artifact_session, run_id: str) -> None:
         logger.debug("artifact_session closed for run_id=%s", run_id)
 
 
+def _finalize_pipeline_outcome(
+    run_id: str,
+    ws_id: str,
+    tenant_root: Path,
+    has_failure: bool,
+    paused_for_review: bool,
+) -> None:
+    """Finaliza run + roda post-processing — extraído p/ achatar nesting (P9)."""
+    if paused_for_review:
+        return
+    _finalize_run(run_id, has_failure)
+    if not has_failure:
+        _run_post_processing(ws_id, run_id, tenant_root)
+
+
 @celery_app.task(
     name="pipeline.run",
     bind=True,
@@ -857,7 +895,7 @@ def run_pipeline_task(
     tenant_root = Path(tenant_root_str)
     config_dir = Path(config_dir_str)
 
-    ctx, use_db_artifacts = _setup_run_context(
+    ctx, use_db_artifacts, config_store_session = _setup_run_context(
         run_id,
         ws_id,
         tenant_root,
@@ -876,31 +914,30 @@ def run_pipeline_task(
         tier,
     )
 
-    # ADR-077 / F8.4: materializa payloads do adapter como arquivos no
-    # tenant config dir ANTES de rodar o pipeline. Os scripts (E5, E5.N,
-    # E6) continuam lendo de filesystem — zero refactor neles. O adapter
-    # gera o mesmo formato de `goals.json` e `tarefas.md` a partir do DB.
-    _materialize_adapter_configs(ws_id, ctx, config_dir)
+    try:
+        # ADR-077 / F8.4: materializa payloads do adapter como arquivos no
+        # tenant config dir ANTES de rodar o pipeline. Os scripts (E5, E5.N,
+        # E6) continuam lendo de filesystem — zero refactor neles. O adapter
+        # gera o mesmo formato de `goals.json` e `tarefas.md` a partir do DB.
+        _materialize_adapter_configs(ws_id, ctx, config_dir)
 
-    if not _mark_run_started(run_id, tier, self.request.id):
-        return {"status": "error", "detail": "Run not found"}
+        if not _mark_run_started(run_id, tier, self.request.id):
+            return {"status": "error", "detail": "Run not found"}
 
-    has_failure, paused_for_review = _execute_stages_loop(
-        ctx,
-        stages,
-        run_id,
-        ws_id,
-        skip_llm,
-        stop_on_error,
-        tier,
-        llm_stages,
-        _exec_stage,
-        use_db_artifacts,
-    )
+        has_failure, paused_for_review = _execute_stages_loop(
+            ctx,
+            stages,
+            run_id,
+            ws_id,
+            skip_llm,
+            stop_on_error,
+            tier,
+            llm_stages,
+            _exec_stage,
+            use_db_artifacts,
+        )
 
-    if not paused_for_review:
-        _finalize_run(run_id, has_failure)
-        if not has_failure:
-            _run_post_processing(ws_id, run_id, tenant_root)
-
-    return {"status": "completed" if not has_failure else "failed", "run_id": run_id}
+        _finalize_pipeline_outcome(run_id, ws_id, tenant_root, has_failure, paused_for_review)
+        return {"status": "completed" if not has_failure else "failed", "run_id": run_id}
+    finally:
+        _close_config_store_session(config_store_session)
