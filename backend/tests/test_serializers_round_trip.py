@@ -56,7 +56,7 @@ from backend.app.models import (
     Workspace,
 )
 from backend.app.services.config_materializer import (
-    materialize_config,
+    prepare_pipeline_config_dir,
     serialize_categorization,
     serialize_family_members,
     serialize_institution_config,
@@ -215,7 +215,7 @@ class TestRoundTripFamilyMembers:
         assert result["membros"] == {}  # explicit empty
 
     def test_round_trip_through_disk_preserves_familia(self, db, workspace, tmp_path):
-        """Round-trip COMPLETO: DB → materialize → disco → ler JSON → validar."""
+        """Round-trip serializer → disco → ler JSON → validar (post-A7.5: escrita manual)."""
         workspace.family_surname = "Round Trip Family"
         m = FamilyMember(
             workspace_id=workspace.id,
@@ -228,10 +228,9 @@ class TestRoundTripFamilyMembers:
         db.add(m)
         db.commit()
 
-        # Materializa para tenant_root tmp
-        config_dir = materialize_config(workspace.id, tmp_path, db)
-        family_json = config_dir / "family_members.json"
-        assert family_json.exists()
+        result = serialize_family_members(workspace.id, db)
+        family_json = tmp_path / "family_members.json"
+        family_json.write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
 
         on_disk = json.loads(family_json.read_text(encoding="utf-8"))
         assert on_disk["familia"]["sobrenome"] == "Round Trip Family"
@@ -326,15 +325,18 @@ class TestRoundTripBlobConfigs:
         assert serialize_institution_config(workspace.id, db) is None
         assert serialize_report_layout(workspace.id, db) is None
 
-    def test_report_layout_writes_yaml_on_disk(self, db, workspace, tmp_path):
-        """Report layout é YAML em disco (preserva comentários inline)."""
+    def test_report_layout_serializer_round_trip_via_yaml(self, db, workspace, tmp_path):
+        """Report layout: serializer + write yaml → ler → identidade (post-A7.5: escrita manual)."""
         blob = {"secoes": [{"nome": "capa", "ordem": 1}]}
         db.add(ReportLayout(workspace_id=workspace.id, config_json=blob))
         db.commit()
 
-        config_dir = materialize_config(workspace.id, tmp_path, db)
-        yaml_path = config_dir / "report_layout.yaml"
-        assert yaml_path.exists()
+        out = serialize_report_layout(workspace.id, db)
+        yaml_path = tmp_path / "report_layout.yaml"
+        yaml_path.write_text(
+            yaml.dump(out, allow_unicode=True, default_flow_style=False, sort_keys=False),
+            encoding="utf-8",
+        )
         on_disk = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
         assert on_disk == blob
 
@@ -371,6 +373,7 @@ class TestRoundTripLLMConfig:
         assert serialize_llm_config(workspace.id, db) is None
 
     def test_round_trip_through_disk(self, db, workspace, tmp_path):
+        """``prepare_pipeline_config_dir`` escreve llm_config.json via serializer (post-A7.5)."""
         cfg = LLMConfig(
             workspace_id=workspace.id,
             provider="anthropic",
@@ -382,7 +385,7 @@ class TestRoundTripLLMConfig:
         db.add(cfg)
         db.commit()
 
-        config_dir = materialize_config(workspace.id, tmp_path, db)
+        config_dir = prepare_pipeline_config_dir(workspace.id, tmp_path, db)
         llm_json = config_dir / "llm_config.json"
         assert llm_json.exists()
         on_disk = json.loads(llm_json.read_text(encoding="utf-8"))
