@@ -1,4 +1,4 @@
-"""Integration tests — ``snapshot_pair_loader``: 2 reports / compat ADR-093 / hash on-read (v2.D.1 · ADR-143)."""
+"""Integration tests — ``snapshot_pair_loader``: 2 reports / compat ADR-093 / hash on-read (v2.D.1 · ADR-148)."""
 
 from __future__ import annotations
 

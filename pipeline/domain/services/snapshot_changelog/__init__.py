@@ -1,4 +1,4 @@
-"""Pacote ``snapshot_changelog`` — builder determinístico de comparações (v2.D.1 · ADR-143)."""
+"""Pacote ``snapshot_changelog`` — builder determinístico de comparações (v2.D.1 · ADR-148)."""
 
 from pipeline.domain.services.snapshot_changelog.builder import (
     DEFAULT_SECTION_LABELS,

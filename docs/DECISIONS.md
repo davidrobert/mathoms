@@ -6162,7 +6162,293 @@ Mais:
 
 ---
 
-## ADR-143 — `SnapshotChangelogBuilder`: comparações mês-a-mês de relatório
+---
+
+
+## ADR-144 — `section_summaries` LLM-driven em E5 com cache + fallback determinístico (v2.9)
+
+**Status:** Decidido (Fase 1 — fundação arquitetural; implementação em Fase 2 sob lane v2.9) • **Data:** 2026-04-27
+
+**Supersedes (parcial):** parte LLM de [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm) — o desenho híbrido continua válido (chart_conclusions determinístico, section_summaries LLM), mas ADR-122 foi escrita antes de ADR-111 (stateless rigoroso) consolidar e antes de ADR-127/128 fixarem o contrato `ArtifactStore` para LLM stages. ADR-144 fecha as lacunas operacionais de cache, fallback, telemetry e diferenciação cache-runtime vs ArtifactStore.
+
+**Contexto:**
+- Hoje E5 produz `section_summaries` via templates determinísticos puros — derivers em `pipeline/domain/services/derivers/section_summaries.py` (backend) e `deriveSectionSummary` em `frontend/src/lib/conclusionUtils.ts` (frontend, fallback do snapshot). Resultado funciona, mas é narrativamente engessado: 10 textos por relatório, todos no mesmo registro mecânico, sem contextualizar tendência ou ressaltar o que mudou desde o snapshot anterior.
+- ADR-122 já decidiu o desenho geral (híbrido template+LLM). Faltava uma ADR operacional que fechasse: (i) qual stack LLM usar, (ii) onde mora o cache, (iii) qual é o fallback se LLM falha, (iv) como a telemetria diferencia regime LLM vs determinístico, (v) como esta dependência convive com ADR-111 (stateless) e ADR-127/128 (ArtifactStore para LLM stages).
+- E5 hoje é **100 % determinístico**. Todas as outras stages que tocam LLM (E1, E1.5, E2-llm, E7-review-llm) já estão estabilizadas em LiteLLM + Instructor com Pydantic ([ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a) / [ADR-127](#adr-127--e1-members-persiste-via-artifactstore) / [ADR-128](#adr-128--e7-review-llm-lê-escreve-via-artifactstore)). Esta ADR é a primeira intrusão de LLM em E5 e estabelece o padrão para futuras (e.g., v3 pode upgrade `ChangelogEntry.summary` para LLM reusando os mesmos primitives).
+
+**Alternativas consideradas e descartadas:**
+1. **Templates "ricos" sem LLM** (mais condicionais, mais variantes): cresce combinatorialmente, vira spaghetti, e não resolve o problema de tom narrativo. Rejeitado.
+2. **Input manual do consultor**: não escala — produto é self-serve. Rejeitado já em ADR-122.
+3. **OpenAI direto via SDK**: rompe paridade com E1/E1.5/E2-llm que usam LiteLLM. Rejeitado.
+4. **Cache em SQLite local / disco**: viola ADR-111 (multi-worker). Rejeitado.
+5. **Cache via `ArtifactStore`**: confunde camadas — `ArtifactStore` é para artefatos de pipeline (input/output de stage, parte do lineage do `ReportRun`); cache LLM é otimização de runtime, não artefato semanticamente versionado. Diferenciação preservada.
+
+**Decisão:**
+
+### 1. Stack LLM — paridade com E1/E1.5/E2-llm/E7-review-llm
+- **LiteLLM + Instructor + Pydantic** (mesma stack das outras LLM stages — [ADR-024 LiteLLM, ADR-025 BYOK, ADR-105]).
+- **Saída tipada** (`SectionSummaryResult` Pydantic) — nunca string livre. Campos: `summary_md: str`, `tone: Literal["neutral","positive","warning"]`, `key_metric_ref: Optional[str]`. **Money não aparece**: section_summaries são prosa narrativa; se o LLM emitir número monetário inline, o validator Pydantic exige `Decimal`-string e o renderer formata via `Money` ([ADR-090](#adr-090--decimal-para-valores-monetários)). Em prática o prompt instrui referenciar métrica por id (`key_metric_ref`) e o frontend resolve para `<MonetaryValue/>` — assim o LLM nunca formata BRL.
+- **Determinismo máximo viável**: `temperature=0`, `seed` fixo por `(section_id, snapshot_hash)`. Não é determinismo absoluto (provedor não garante), mas reduz drift run-a-run a < 1 %.
+- **Modelo default**: **Claude Haiku 4.5** (custo) — Sonnet 4.6 disponível como opt-in via `pipeline.json:llm.section_summaries.model_override` para clientes premium ou A/B test editorial.
+
+### 2. Cache — Redis (preferido) com fallback Postgres+TTL
+- **Cache key:** `mathoms:llm:section_summary:{workspace_id}:{snapshot_hash}:{section_id}`. `snapshot_hash` é o hash determinístico do payload de seção que entra no prompt (NÃO o hash do snapshot inteiro — duas seções do mesmo relatório têm hashes diferentes).
+- **TTL: 24h** (revisado para baixo vs ADR-122 que falava 7d). Justificativa: relatórios são gerados sob demanda, não automaticamente; usuário que reabre relatório no mesmo dia merece resposta cached, mas relatório re-gerado no dia seguinte (mesmo snapshot, mesma seção) deve revalidar — modelo pode ter sido atualizado, prompt pode ter evoluído. 24h é o ponto de Pareto.
+- **Storage:** Redis (preferido — já usado em ADR-111 cache layer, ADR-117 invitation rate limit). Adapter pequeno em `backend/app/services/llm_cache.py` com interface mínima (`get(key) -> Optional[str]`, `set(key, value, ttl_s)`).
+- **Fallback de storage**: se Redis indisponível em deploy minimalista (Mathoms self-host, single-node), tabela Postgres `llm_response_cache(key TEXT PRIMARY KEY, value JSONB, expires_at TIMESTAMPTZ)` com varredura batch via Celery beat (`expire_llm_cache` cron 1×/h). Mesmo contrato de adapter; escolha por env var `LLM_CACHE_BACKEND={redis|postgres}` (default `redis`).
+- **PROIBIDO** (ADR-111): `lru_cache`, `cached_property`, dict/`set` global em módulo, file lock. Esta ADR explicitamente fecha a porta — auditável por `dev/check_pipeline_boundaries.py` + `backend/tests/integration/test_multi_worker_concurrency.py`.
+
+### 3. Fallback determinístico — LLM nunca é caminho crítico
+- Qualquer falha do LLM (timeout, rate limit Anthropic 429, erro 5xx do provedor, JSON inválido após retry, cache backend down) **degrada silenciosamente** para os derivers determinísticos atuais (`pipeline/domain/services/derivers/section_summaries.py` no backend, `deriveSectionSummary` no frontend).
+- **Retries**: 1 retry com backoff 500ms para erro transiente; 2ª falha → fallback. Sem retry indefinido.
+- **Visibilidade do fallback**: nenhuma marca visual no relatório ("este texto é fallback") — usuário não diferencia. Fallback é registrado em telemetria (`fallback_used=true`) e em `qa_log.md` por workspace para diagnóstico interno.
+- **Princípio**: relatório nunca falha por causa de LLM. LLM é enhancement; produto sem LLM continua entregando valor.
+
+### 4. Telemetria — `fin.classification_telemetry`-style logger
+- Logger novo `mathoms.llm.section_summaries` (namespace consistente com `mathoms.classification` de `classify_document`).
+- **Campos por chamada** (sem PII; section_id é id de layout, não conteúdo do relatório):
+  - `section_id` (string canônica do `report_layout.yaml`)
+  - `snapshot_hash` (truncado a 12 chars)
+  - `latency_ms` (int)
+  - `cache_hit` (bool)
+  - `fallback_used` (bool — true se degradou para deriver determinístico)
+  - `model` (string — `"claude-haiku-4.5"` ou override)
+  - `prompt_tokens`, `completion_tokens` (int)
+  - `cost_usd` (Decimal-string, 6 casas — calculado pelo adapter usando pricing por modelo em `config/llm_pricing.json`)
+  - `error_class` (string opcional — `"timeout" | "rate_limit" | "invalid_json" | "provider_5xx"` ou `null`)
+- **Sem** logging do prompt ou resposta (são dados financeiros agregados — passam pelo princípio "PII fora do LLM" mas mantemos o log estritamente técnico para evitar vazamento via observabilidade).
+- Log JSON via `mathoms.*` ([ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3)). Agregação em `qa_log.md` por workspace é opcional e roda offline (sidecar batch).
+
+### 5. Custo — estimativa documentada
+Prompt típico de section_summary tem ~2 k tokens de input (snapshot data filtrada para a seção + instruções de tom + few-shot examples) e ~500 tokens de output. Por relatório: 10 seções × (2 000 in + 500 out).
+
+| Modelo | Pricing (USD / MTok, 2026-04 vigente) | Input cost | Output cost | **Total / relatório** |
+|---|---|---|---|---|
+| **Claude Haiku 4.5 (default)** | $1.00 in / $5.00 out | 10 × 2 000 / 1 e6 × $1.00 = $0.020 | 10 × 500 / 1 e6 × $5.00 = $0.025 | **~$0.045** |
+| Claude Sonnet 4.6 (premium opt-in) | $3.00 in / $15.00 out | $0.060 | $0.075 | **~$0.135** |
+
+Com cache hit ratio esperado de ~60 % (usuário reabre relatório no mesmo dia, TTL 24h), custo amortizado por **relatório novo** cai para ~$0.018 (Haiku) ou ~$0.054 (Sonnet). **Cap mensal por workspace** monitorado em telemetria — alarme se ultrapassar $5/mês (sinaliza loop bug ou abuso).
+
+### 6. Coordenação com ADRs vigentes — diferenciações explícitas
+
+| ADR | Como ADR-144 se relaciona |
+|---|---|
+| [ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a) | Padrão de LLM em pipeline já estabelecido. v2.9 segue, **mas** seu output (`section_summaries`) é parte do snapshot E5 (já persistido por E5 em `analise_financeira-5_analysis.json`), não artefato novo separado — não cria nova `_STAGE_TO_DIR` entry. |
+| [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) | Cache **deve** ser Redis ou Postgres com TTL. `lru_cache`/`cached_property`/global dict **proibidos**. Esta ADR é o ponto de aplicação do princípio em E5. |
+| [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm) | ADR-144 implementa o **branch LLM** do híbrido para `section_summaries`. `chart_conclusions` permanece determinístico — ADR-122 não é descartada, é refinada nos pontos operacionais. |
+| [ADR-127](#adr-127--e1-members-persiste-via-artifactstore) / [ADR-128](#adr-128--e7-review-llm-lê-escreve-via-artifactstore) | **NÃO confundir cache LLM com ArtifactStore**: ArtifactStore é para artefatos do pipeline (input/output de stage, parte do lineage do `ReportRun`, sujeito a `pipeline_artifacts` lifecycle [ADR-132]). Cache LLM é otimização de runtime — efêmero, TTL 24h, sem lineage, fora do `ReportRun` graph. Diferenciação codificada: `LLMCacheBackend` em `backend/app/services/llm_cache.py`, distinto de `ArtifactStore`. |
+| [ADR-148](#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório) (v2.D.1) | v2.9 é **independente** de v2.D.1. v2.D.1 entrega `ChangelogEntry.summary` determinístico (template). v3 (lane futura, fora desta ADR) pode upgrade `summary` para LLM reusando os primitives definidos aqui (`LLMCacheBackend`, telemetry logger, fallback pattern). v2.9 e v2.D.1 podem mergear em qualquer ordem. |
+| [ADR-090](#adr-090--decimal-para-valores-monetários) | Section summaries são prosa; LLM não emite valor monetário inline. Se o prompt evoluir e isso virar necessário, validator Pydantic exige `Decimal`-string + renderer formata via `Money`. |
+| [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3) | Telemetria via namespace `mathoms.llm.section_summaries`, JSON, sem PII. |
+| [ADR-024 / ADR-025] | LiteLLM + BYOK — paridade com demais stages. |
+
+### 7. Anti-escopo desta ADR
+- **NÃO** define a Pydantic schema concreta de `SectionSummaryResult` (Fase 2).
+- **NÃO** define o conteúdo do prompt em `config/prompts/section_summaries.yaml` (Fase 2 — sujeito a evolução editorial sem nova ADR salvo se mudar contrato de saída).
+- **NÃO** define o adapter Redis concreto nem migration Postgres (Fase 2).
+- **NÃO** marca v2.9 como ✅ no BACKLOG (continua 🚧 até Fase 2 mergear).
+
+**Consequências:**
+- ✅ Qualidade editorial real em 10 textos narrativos por relatório — diferencial vs. v1.
+- ✅ Padrão de LLM-em-runtime estabelecido para reuso futuro (v3 changelog, eventuais executive summary, etc.) sem precisar nova ADR estrutural.
+- ✅ Cache + fallback garantem que LLM é enhancement, não single-point-of-failure.
+- ⚠️ Custo recorrente: ~$0.018–$0.054 por relatório novo (com cache 60 %). Para 1 000 relatórios/mês = $18–$54/mês — aceitável para fintech B2C; monitorar com cap por workspace.
+- ⚠️ Latência: ~2–5 s por seção sequencial. Mitigação: paralelizar 10 seções via `asyncio.gather` + Instructor async; prazo total ~3–6 s. Ainda assim, geração de relatório passa de "instantânea" (~200 ms) para "alguns segundos" — UX precisa indicador de progresso.
+- ⚠️ Rate limit Anthropic: 50 req/min default. 10 seções/relatório = 5 relatórios concorrentes batem o teto. Fallback determinístico cobre o overflow; em escala maior, solicitar tier upgrade ou batchear via Anthropic Batch API (lane futura, fora desta ADR).
+- ⚠️ Cache invalidation por mudança de `snapshot_hash`: aceito — relatório é geração eventual, não hot path; revalidar quando snapshot muda é semanticamente correto.
+- ❌ Não-determinismo residual entre cache misses (mesmo input pode produzir variação narrativa em runs diferentes). Mitigado por `temperature=0` + seed + cache 24h. Aceito como custo do regime LLM; alternativa (templates) já considerada e descartada acima.
+- ❌ Primeiro consumidor real de Redis em pipeline (até hoje Redis era só backend session cache + Celery broker). Adiciona dependência operacional ao deploy mínimo. Mitigado pelo fallback Postgres+TTL.
+
+**Plano de adoção (Fase 2 — fora desta ADR):**
+1. Service `pipeline/domain/services/section_summary_generator.py` com Pydantic config tipado ([ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy) D2/D3) — não recebe `StageConfig` inteiro nem `Path`; conversão é do adapter.
+2. `LLMCacheBackend` protocol + `RedisLLMCache` / `PostgresLLMCache` em `backend/app/services/llm_cache.py`.
+3. Prompt template em `config/prompts/section_summaries.yaml` (paridade com `chart_conclusions.yaml`).
+4. Fallback path em E5 — invoca `derivers/section_summaries.py` se generator retorna `None` ou levanta.
+5. Frontend `conclusionUtils.ts` lê `section_summaries[i]` do snapshot se presente, senão deriva.
+6. Goldens em `tests/test_e5_section_summaries.py` com fakes (não bate API real em CI; usa `RecordedLLMResponseFake` por hash).
+7. Telemetria + alarme de cap mensal.
+8. Toggle `pipeline.json:llm.section_summaries.enabled` (default `true`) — permite desligar globalmente em incidente sem deploy.
+
+**Gate de Fase 2**: goldens verdes + custo telemetrado + ADR-144 mergeada em `main`.
+
+**Relaciona-se a:** [ADR-024 LiteLLM], [ADR-025 BYOK], [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-097](#adr-097--isp-em-services-de-domínio), [ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm), [ADR-127](#adr-127--e1-members-persiste-via-artifactstore), [ADR-128](#adr-128--e7-review-llm-lê-escreve-via-artifactstore), [ADR-132](#adr-132--lifecycle-scoping-de-pipeline_artifacts-workspace-vs-run). Lane operacional: [`docs/agent_prompts/track_report_v2.md` §3 v2.9](agent_prompts/track_report_v2.md).
+
+---
+
+## ADR-143 — `docs/methodology/` é rules-as-code (Sprint A7.6)
+
+**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions). **Supersedes-a-aproximação-de** A7.4 (entregue 2026-04-27 — `git mv config/*.md docs/methodology/*.md`, mantida a estrutura híbrida que esta ADR corrige).
+
+**Contexto:** A versão CLI mono-cliente do Mathoms usava 4 arquivos markdown editoriais em `config/` (`definitions.md`, `regras_composicao_patrimonial.md`, `source_hierarchy.md`, `milhas.md`) que misturam dois conteúdos:
+
+1. **Regras universais de produto** — invariantes que o Mathoms enforce em runtime (as 7 categorias da composição patrimonial, hierarquia de fontes para reconciliação E3, método de valuation de pontos de milhagem).
+2. **Instâncias cliente-específicas do workspace piloto** — David, Mariana, Tasso da Silveira, Hashdex, valores BRL reais, contas Itaú/BTG, programas de milhas com saldos.
+
+A7.4 tratou esses arquivos como "documentação metodológica universal" e fez `git mv` puro para `docs/methodology/`. Auditoria pós-merge (2026-04-27) revelou **102 hits cliente-específicos** distribuídos pelos 4 arquivos (definitions: 59 · regras_composicao: 19 + valores BRL · source_hierarchy: 19 · milhas: 5). Isso viola CLAUDE.md §Regras críticas ("nunca expor valores monetários reais ... em commits"), e expõe o anti-padrão estrutural: **regra de produto como markdown gera drift** (quando o código muda, o doc fica desatualizado), e mistura com dados cliente cria caminho duplo (markdown vs DB) para a mesma informação.
+
+Alternativas consideradas:
+
+- **(a) Sanitizar `docs/methodology/`:** reescrever os 4 arquivos com placeholders (`TITULAR`, `CONJUGE`) sem dados cliente. Mantém o diretório como "spec doc paralelo ao código". **Trade-off:** drift garantido — toda mudança de regra em código requer atualização manual em 2 lugares. Adia o problema; não resolve.
+- **(b) Eliminar `docs/methodology/` (rules-as-code):** regras universais migram para docstrings + ADRs co-localizados com a função/classe que enforce; dados cliente migram para DB (estruturado) ou `storage/<workspace_id>/notes/` (gitignored, não-estruturado). Source of truth: o código.
+- **(c) Manter `docs/methodology/` como overview com links:** README curto linkando para os docstrings/ADRs. Trade-off intermediário — ainda exige sincronização do README, mas reduz superfície.
+
+**Decisão:** Adotar **(b) rules-as-code**.
+
+`docs/methodology/` deixa de existir. Para cada arquivo:
+
+1. **Regras universais** migram para docstrings na função/classe que enforce (e.g., 7 categorias da composição patrimonial → docstring em `pipeline/domain/services/cash_flow_builder.py` ou similar) + ADR específica (ADR-145, ADR-146, ADR-147 — uma por domínio) que captura o "porquê" da regra.
+2. **Dados cliente-estruturados** (categorias workspace-specific, contas bancárias, etc.) já vivem em DB ou migram via lanes correlatas (A7.2a Decision aggregate absorveu contratos PJ + estratégia de aportes; A7.3 absorve categorias/instituições; futuro A8.1 absorve programas de milhas).
+3. **Dados cliente-não-estruturados** (notas livres, observações editoriais que não cabem em entidades DB ainda) vão para `storage/<workspace_id>/notes/` — gitignored, workspace-scoped. Bridge transitório enquanto não há entidade DB modelada.
+
+`dev/check_forbidden_paths.py` ganha bloqueio para `docs/methodology/**` (impede recriação acidental).
+
+CLAUDE.md §Regras críticas ganha parágrafo: "Methodology = code. Nada em `docs/methodology/`. Regras universais vivem em docstrings + ADRs; dados cliente em DB ou `storage/<ws>/notes/`."
+
+**Consequências:**
+- ✅ Source of truth única: o código que enforce. Drift estrutural eliminado.
+- ✅ CLAUDE.md §Regras críticas (anti-PII em commits) reforçada por construção — não há mais lugar onde dados cliente "naturalmente" se misturam com regras de produto em git.
+- ✅ Regras universais ganham testes diretos via testes unitários da função que as enforce (não dependem de leitura de markdown).
+- ✅ Onboarding melhora: leitor encontra a regra **junto com a função que a aplica**, não em doc separado que pode estar desatualizado.
+- ⚠️ Quem busca "qual a regra do produto X?" precisa pesquisar no código (via grep/IDE) em vez de abrir um índice doc. Mitigação: ADRs especializadas (ADR-145..147) servem como índice canônico — referenciadas por nome em commits e docs.
+- ⚠️ Curva de migração: A7.6 sub-task 4 (sanitização de `definitions.md`) depende soft de A7.3 (categorias/instituições absorvidas) + A7.2a (decisões absorvidas) já mergeadas, para que o "drop" seja seguro.
+- ❌ Conteúdo histórico de `docs/methodology/` permanece em git history; auditoria pós-fato requer git blame / git log (não acessível via UI atual). Aceito — o vazamento de PII no history é o mesmo que tinha em `config/` antes; remoção retroativa do history exige `git filter-branch` que está fora do escopo desta lane.
+- ❌ Para regras que cruzam múltiplos arquivos (ex.: como E3 hierarchy interage com E4 categorização), o leitor precisa navegar entre N docstrings. Mitigação: ADRs do A7.6 (143, 145, 146, 147) servem como pontes cross-cutting.
+
+---
+
+## ADR-145 — 7 categorias canonical da composição patrimonial
+
+**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
+
+**Contexto:** O relatório financeiro do Mathoms apresenta a "Composição Patrimonial" como gráfico doughnut com **exatamente 7 buckets**. A taxonomia foi historicamente documentada em `config/methodology/regras_composicao_patrimonial.md` (movido para `docs/methodology/` em A7.4) misturando regras universais com exemplos cliente-específicos. ADR-143 elimina o markdown; esta ADR registra a decisão das 7 categorias como invariante de produto.
+
+A taxonomia é parte do **modelo metodológico Mathoms** (não do dado cliente): assume premissa "casal com até 2 titulares de investimentos" (titular + cônjuge) e separa imóveis de moradia × investimento — escolhas de produto inspiradas nas metodologias Perini / Cerbasi / AUVP referenciadas no projeto.
+
+Alternativas consideradas:
+
+- **(a) N categorias dinâmicas por workspace.** Cada cliente define seus buckets. **Trade-off:** quebra comparabilidade entre relatórios e relatórios benchmarks; aumenta complexidade de UI; sem evidência de demanda.
+- **(b) 5 categorias agregadas (Imóveis / Investimentos / Caixa / Crypto / Veículos).** Mais simples mas perde granularidade entre "residência principal" vs "imóveis investimento" e entre titular vs cônjuge — informação clínica para planejamento (Perini distingue residência de investimento; AUVP distingue patrimônio investível por membro).
+- **(c) 7 categorias fixas com regras determinísticas.** Mantém comparabilidade, captura nuance de produto, é estável.
+
+**Decisão:** Adotar **(c)**. As 7 categorias canônicas são:
+
+1. **Residência própria** — moradia principal da família (sempre exatamente 1 imóvel).
+2. **Imóveis investimento** — todos os imóveis dos membros, exceto a residência principal.
+3. **Investimentos {TITULAR}** — ativos financeiros do titular: investimentos clássicos (`investimentos[]`) + contas bancárias de tipo investimento (`tipo` contém `RDB|CDB|CDP|Renda Fixa|Investimento|Aplicacao|Poupança|Saldo em Conta` em corretora). **Inclui** fundos regulados que tenham nome sugerindo crypto mas sejam FIC FIM (ex.: Hashdex Crypto).
+4. **Investimentos {CONJUGE}** — mesmo conjunto, aplicado ao cônjuge (workspace-specific labelling via `family_members.json` membros titular/cônjuge).
+5. **Criptoativos** — crypto direta (BTC, ETH, ADA, etc.) mantida em exchanges. **Não inclui** fundos regulados de crypto.
+6. **Caixa + Moeda Estrangeira** — `tipo` contém `Conta Corrente` (sem "Investimento" no mesmo campo) **OU** `Moeda Estrangeira`.
+7. **Veículos** — categoria residual para automóveis/embarcações.
+
+> **Nota de implementação ({TITULAR}/{CONJUGE}):** os labels exibidos no relatório vêm de `family_members.json` (campos `nome_curto` dos membros com papéis `titular`/`conjuge`); o `template_key` interno é estável (`investimentos_titular`, `investimentos_conjuge` — paralelo a [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions) que proíbe rename de keys). Renaming de label não afeta o key.
+
+Premissa de produto: **exatamente 2 titulares de investimentos** (titular + cônjuge). Famílias com configurações diferentes (apenas titular, >2 membros investidores, etc.) são tratadas como casos especiais — `Investimentos {CONJUGE}` retorna 0 quando ausente; >2 membros não suportado nesta versão.
+
+Regras de classificação (universal, sem dados cliente) vão para docstring na função classificadora em `pipeline/domain/services/cash_flow_builder.py` (ou serviço equivalente identificado no Explore da lane A7.6). Os exemplos cliente-específicos (Hashdex matching, contas Itaú Personnalité, etc.) viram **fixtures de teste unitário** com nomes anônimos (`FundoExemplo`, `BancoExemplo`).
+
+**Consequências:**
+- ✅ Comparabilidade entre relatórios e benchmarks externos preservada.
+- ✅ Taxonomia estável — clientes novos importam dados e relatório classifica determinísticamente.
+- ✅ Drift entre regra documentada × código aplicado eliminado (rules-as-code).
+- ⚠️ Famílias fora da premissa "casal" (>2 membros investidores, união homoafetiva com >2 titulares fiscais, etc.) são limitadas pela taxonomia. Expansão para N membros requer ADR futuro + redesenho de schema (provavelmente Sprint A8+).
+- ⚠️ Fundos com classificação ambígua (ex.: ETF temático, fundos de venture) seguem regra textual no docstring; resolução duvidosa requer decisão editorial → vira test fixture nova + atualização do docstring.
+- ❌ Renaming de `template_key` da categoria é PROIBIDO (apenas add/deprecate) — paralelo à regra de [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions) sobre categorization templates.
+
+---
+
+## ADR-146 — E3 source hierarchy + `BankAccount.source_tier` schema
+
+**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy).
+
+**Contexto:** O stage E3 (reconciliação) consolida transações de múltiplas fontes (extratos bancários parseados, faturas de cartão, screenshots de app, deduções IRPF, declarações editorais) e precisa decidir qual fonte tem precedência quando há conflito (ex.: mesma transação aparece em extrato + fatura de cartão por causa de pagamento intermediado).
+
+A regra histórica está em `config/methodology/source_hierarchy.md` (movido para `docs/methodology/` em A7.4) misturando hierarquia universal com mapeamento workspace-specific (David's Itaú vs Mariana's BTG). ADR-143 elimina o markdown; esta ADR registra hierarchia universal + abre schema migration para tier per `BankAccount`.
+
+Alternativas consideradas:
+
+- **(a) Hierarquia hardcoded global.** Toda banco tipo X é tier 1, banco tipo Y é tier 2. **Trade-off:** ignora variação por workspace (cliente A pode confiar mais em Itaú; cliente B em BTG). Insuficiente.
+- **(b) Hierarquia universal + override por workspace via campo `BankAccount.source_tier`.** Mathoms define tier default por *tipo* de fonte; cada workspace pode overrideá-lo per-account quando há razão.
+- **(c) Hierarquia 100% workspace-defined (sem default Mathoms).** Cliente novo abre conta = tem que configurar tier de cada banco. UX ruim; sem onboarding default.
+
+**Decisão:** Adotar **(b)**.
+
+Hierarquia universal default (tier ascendente — tier 1 = mais confiável, tier 5 = menos):
+
+1. **Tier 1 — Extração LLM de extrato OFX/PDF estruturado** (alta confiança: dados estruturados, datas precisas, descrições completas).
+2. **Tier 2 — Extrato bancário parseado por regex** (alta confiança quando o parser cobre o formato; pode perder transações em formatos não cobertos).
+3. **Tier 3 — Fatura de cartão de crédito** (cobertura parcial: só transações no cartão; pode duplicar com extrato quando há pagamento intermediado).
+4. **Tier 4 — Screenshot de app extraído por LLM** (média confiança: dependente da qualidade da imagem; bom para contas de investimento sem extrato).
+5. **Tier 5 — Declaração editorial / dedução IRPF / planilha manual do cliente** (baixa confiança automatizada, mas alta confiança humana — usado como ground truth para reconciliar discrepâncias finais).
+
+Regra de reconciliação: quando duas fontes reportam a mesma transação (matched por valor + data ± 2 dias + descrição similarity), a fonte de **tier menor (mais alto na hierarquia)** vence. Ties dentro do mesmo tier resolvem via timestamp da extração (mais recente vence) — evita instabilidade quando o pipeline reroda.
+
+Schema migration (Alembic backwards-compat — add nullable + populate + flip):
+
+```python
+class BankAccount(Base):
+    # ... campos existentes ...
+    source_tier: int | None = Column(SmallInteger, nullable=True, default=None)
+    # None = usar default Mathoms baseado em tipo (account_type / institution.parser).
+    # Não-None = override workspace-específico.
+```
+
+Function que enforce a hierarchy vai para docstring em `pipeline/domain/services/income_origin_resolver.py` (ou similar identificado pelo Explore da A7.6). Override workspace-specific resolvido via `ResolvedBankAccount.tier(workspace_id, db)` que consulta `source_tier` e fallback para regra default.
+
+**Consequências:**
+- ✅ Pipeline E3 deterministicamente reconciliável: ties têm regra explícita.
+- ✅ Workspace tem flexibilidade de override quando o default não reflete sua realidade (ex.: cliente que tem screenshot mais confiável que o extrato porque parser falha no formato).
+- ✅ Onboarding default funciona — não exige configuração tier-by-bank pelo cliente.
+- ⚠️ Schema migration adiciona coluna nullable ao `bank_accounts`. Backwards-compat sob ADR-097 (add nullable + populate + flip — sem DROP no mesmo PR).
+- ⚠️ Documentação da regra default fica em docstring de **uma** função (income_origin_resolver). Se a função for refatorada/extraída, o docstring deve migrar junto. Mitigação: regra documentada em ADR-146 mesmo (esta) é o índice canônico.
+- ⚠️ **Test fixture obrigatório:** dois artefatos mesmo-tier reconciliados deterministicamente entre runs (regra de tie-breaking via timestamp). Sub-task de A7.6 que migra o resolver deve incluir `tests/unit/pipeline/test_e3_source_tier_tie_breaking.py` com 2 specs: (a) tier mais alto vence ainda que extração mais antiga; (b) mesmo tier → timestamp mais recente vence.
+- ❌ `source_tier` per-account ignora granularidade temporal (banco pode ter parser melhorando ao longo do tempo). Aceito — granularidade temporal exige ADR específica futura.
+
+---
+
+## ADR-147 — Milhas: valuation methodology universal + storage workspace-scoped
+
+**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
+
+**Contexto:** O relatório do Mathoms inclui um card "Programas de Milhagem" (Smiles, Latam Pass, Livelo, Atomos, MasterCard Surpreenda, etc.) com saldo de pontos por programa, valor estimado em BRL e regras de expiração. A fonte histórica é `config/milhas.md` (movido para `docs/methodology/` em A7.4) parseado em runtime por `scripts/e5_analyze.py::parse_milhas_md(workspace_root)`.
+
+O arquivo é **duas coisas ao mesmo tempo**: (a) doc humano com método de valuation universal (como avaliar 1 ponto Smiles em campanha vs base), (b) fonte de dados cliente-específica em runtime (saldos de Smiles do David, Latam Pass da Mariana). Anti-padrão clássico: doc + dado misturados em mesmo artefato versionado em git.
+
+ADR-143 elimina `docs/methodology/`. Esta ADR define dois caminhos separados:
+
+Alternativas consideradas para o **dado cliente** (saldos por programa):
+
+- **(α) `storage/<ws>/notes/milhas.md` gitignored, mesmo formato markdown.** `parse_milhas_md` lê do path novo. Migrator one-shot copia conteúdo atual para workspace piloto. **Trade-off:** continua file-based, sem API/UI editável. Drift entre notas humanas e relatório possível.
+- **(β) DB entity `MileageProgram(workspace_id, member_id, program_code, balance_points, accumulation_rate, valuation_per_point_cents, expiration_date, notes)`.** API + UI + migrator. Alinhado com pattern de `Decision` (ADR-136) e `FamilyMember`. **Trade-off:** ~2-3 sessões de trabalho extra além de A7.6 (paralelo de A7.2a). Mas é a saída arquitetural correta.
+- **(γ) Híbrido escalonado.** A7.6 entrega α (storage notes + bridge); Sprint A8.1 entrega β (DB entity).
+
+**Decisão:** Adotar **(γ)** com escopo claro entre as lanes:
+
+**A7.6 entrega:**
+- Universal valuation methodology em docstring na função `parse_milhas_md` (ou no novo módulo refatorado equivalente). Documenta: como precificar 1 ponto Smiles vs Latam Pass vs Livelo (regras genéricas, sem saldos cliente); periodicidade de atualização do método (ad-hoc, não programada).
+- Workspace-specific dados (programas + saldos) migram para `<workspace>/storage/<workspace_id>/notes/milhas.md` (gitignored, formato markdown estruturado idêntico ao atual).
+- Migrator one-shot `dev/migrate_milhas_to_workspace_storage.py` copia conteúdo atual de `docs/methodology/milhas.md` para o workspace piloto. Idempotente.
+- Bridge transitório: `parse_milhas_md` tenta o path novo primeiro; fallback para path antigo + `DeprecationWarning`. Bridge removido em A7.5 cleanup.
+
+**Sprint A8.1 entrega (débito técnico aceito):**
+- Schema DB: `MileageProgram` aggregate workspace-scoped + `MileageProgramSnapshot` para histórico de saldos.
+- Endpoints CRUD `/v1/workspaces/{id}/mileage-programs`.
+- Frontend tela de configuração (substitui edição manual de markdown).
+- Migrator de `storage/<ws>/notes/milhas.md` → DB rows.
+- `parse_milhas_md` deprecated; novo `load_mileage_programs(ws_id, db)` lê do DB.
+- `storage/<ws>/notes/milhas.md` deprecated com warning; removido em A8.x cleanup.
+
+**Consequências:**
+- ✅ A7.6 não é bloqueada pelo escopo de modelagem `MileageProgram` (que paralelaria A7.2a Decision em complexidade).
+- ✅ Dado cliente sai de git imediatamente (sub-task A7.6 entrega α antes do final da Sprint A7).
+- ✅ Método de valuation universal preservado em docstring + ADR — sobrevive a futuras refatorações.
+- ✅ A8.1 fica registrado como débito técnico explícito em `docs/BACKLOG.md §Sprint A8` (placeholder aberto em A7.6).
+- ⚠️ Janela transitória: workspace piloto edita `storage/<ws>/notes/milhas.md` manualmente. UX para clientes novos requer A8.1 mergeada.
+- ⚠️ `storage/<ws>/notes/` é primeiro caminho "notes workspace-scoped" do produto. ADR-147 estabelece o padrão: gitignored, formato livre (markdown), parser específico por categoria de notes, sempre acompanhado de docstring no parser que documenta o schema esperado.
+- ❌ Período entre A7.6 e A8.1: dois caminhos de leitura coexistem (path novo prioritário; fallback warned). DeprecationWarning + log estruturado torna o caminho legado discreto mas detectável.
+
+---
+
+## ADR-148 — `SnapshotChangelogBuilder`: comparações mês-a-mês de relatório
 
 **Status:** Decidido (Onda v2.D · v2.D.1) • **Data:** 2026-04-27 •
 **Relaciona** [ADR-082](#adr-082--pipelineartifact-artefatos-computacionais-no-banco)
@@ -6408,297 +6694,6 @@ on-demand pelo endpoint.
   `comparisons`/`changelog` no YAML, baselines vão regerar.
   Comunicar no chat de coordenação para o agente de v2.10
   re-baselinar.
-
----
-
-<!--
-ADR-143 — slot reservado para `SnapshotChangelogBuilder` (lane v2.D.1
-do Report Premium UI v2 — `track_report_v2_changelog_engine.md`).
-Editado em branch dedicada, ainda não mergeada em `main` no momento
-em que ADR-144 foi escrita (2026-04-27). Quando mergear, ocupará esta
-posição entre ADR-142 e ADR-144.
--->
-
-## ADR-144 — `section_summaries` LLM-driven em E5 com cache + fallback determinístico (v2.9)
-
-**Status:** Decidido (Fase 1 — fundação arquitetural; implementação em Fase 2 sob lane v2.9) • **Data:** 2026-04-27
-
-**Supersedes (parcial):** parte LLM de [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm) — o desenho híbrido continua válido (chart_conclusions determinístico, section_summaries LLM), mas ADR-122 foi escrita antes de ADR-111 (stateless rigoroso) consolidar e antes de ADR-127/128 fixarem o contrato `ArtifactStore` para LLM stages. ADR-144 fecha as lacunas operacionais de cache, fallback, telemetry e diferenciação cache-runtime vs ArtifactStore.
-
-**Contexto:**
-- Hoje E5 produz `section_summaries` via templates determinísticos puros — derivers em `pipeline/domain/services/derivers/section_summaries.py` (backend) e `deriveSectionSummary` em `frontend/src/lib/conclusionUtils.ts` (frontend, fallback do snapshot). Resultado funciona, mas é narrativamente engessado: 10 textos por relatório, todos no mesmo registro mecânico, sem contextualizar tendência ou ressaltar o que mudou desde o snapshot anterior.
-- ADR-122 já decidiu o desenho geral (híbrido template+LLM). Faltava uma ADR operacional que fechasse: (i) qual stack LLM usar, (ii) onde mora o cache, (iii) qual é o fallback se LLM falha, (iv) como a telemetria diferencia regime LLM vs determinístico, (v) como esta dependência convive com ADR-111 (stateless) e ADR-127/128 (ArtifactStore para LLM stages).
-- E5 hoje é **100 % determinístico**. Todas as outras stages que tocam LLM (E1, E1.5, E2-llm, E7-review-llm) já estão estabilizadas em LiteLLM + Instructor com Pydantic ([ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a) / [ADR-127](#adr-127--e1-members-persiste-via-artifactstore) / [ADR-128](#adr-128--e7-review-llm-lê-escreve-via-artifactstore)). Esta ADR é a primeira intrusão de LLM em E5 e estabelece o padrão para futuras (e.g., v3 pode upgrade `ChangelogEntry.summary` para LLM reusando os mesmos primitives).
-
-**Alternativas consideradas e descartadas:**
-1. **Templates "ricos" sem LLM** (mais condicionais, mais variantes): cresce combinatorialmente, vira spaghetti, e não resolve o problema de tom narrativo. Rejeitado.
-2. **Input manual do consultor**: não escala — produto é self-serve. Rejeitado já em ADR-122.
-3. **OpenAI direto via SDK**: rompe paridade com E1/E1.5/E2-llm que usam LiteLLM. Rejeitado.
-4. **Cache em SQLite local / disco**: viola ADR-111 (multi-worker). Rejeitado.
-5. **Cache via `ArtifactStore`**: confunde camadas — `ArtifactStore` é para artefatos de pipeline (input/output de stage, parte do lineage do `ReportRun`); cache LLM é otimização de runtime, não artefato semanticamente versionado. Diferenciação preservada.
-
-**Decisão:**
-
-### 1. Stack LLM — paridade com E1/E1.5/E2-llm/E7-review-llm
-- **LiteLLM + Instructor + Pydantic** (mesma stack das outras LLM stages — [ADR-024 LiteLLM, ADR-025 BYOK, ADR-105]).
-- **Saída tipada** (`SectionSummaryResult` Pydantic) — nunca string livre. Campos: `summary_md: str`, `tone: Literal["neutral","positive","warning"]`, `key_metric_ref: Optional[str]`. **Money não aparece**: section_summaries são prosa narrativa; se o LLM emitir número monetário inline, o validator Pydantic exige `Decimal`-string e o renderer formata via `Money` ([ADR-090](#adr-090--decimal-para-valores-monetários)). Em prática o prompt instrui referenciar métrica por id (`key_metric_ref`) e o frontend resolve para `<MonetaryValue/>` — assim o LLM nunca formata BRL.
-- **Determinismo máximo viável**: `temperature=0`, `seed` fixo por `(section_id, snapshot_hash)`. Não é determinismo absoluto (provedor não garante), mas reduz drift run-a-run a < 1 %.
-- **Modelo default**: **Claude Haiku 4.5** (custo) — Sonnet 4.6 disponível como opt-in via `pipeline.json:llm.section_summaries.model_override` para clientes premium ou A/B test editorial.
-
-### 2. Cache — Redis (preferido) com fallback Postgres+TTL
-- **Cache key:** `mathoms:llm:section_summary:{workspace_id}:{snapshot_hash}:{section_id}`. `snapshot_hash` é o hash determinístico do payload de seção que entra no prompt (NÃO o hash do snapshot inteiro — duas seções do mesmo relatório têm hashes diferentes).
-- **TTL: 24h** (revisado para baixo vs ADR-122 que falava 7d). Justificativa: relatórios são gerados sob demanda, não automaticamente; usuário que reabre relatório no mesmo dia merece resposta cached, mas relatório re-gerado no dia seguinte (mesmo snapshot, mesma seção) deve revalidar — modelo pode ter sido atualizado, prompt pode ter evoluído. 24h é o ponto de Pareto.
-- **Storage:** Redis (preferido — já usado em ADR-111 cache layer, ADR-117 invitation rate limit). Adapter pequeno em `backend/app/services/llm_cache.py` com interface mínima (`get(key) -> Optional[str]`, `set(key, value, ttl_s)`).
-- **Fallback de storage**: se Redis indisponível em deploy minimalista (Mathoms self-host, single-node), tabela Postgres `llm_response_cache(key TEXT PRIMARY KEY, value JSONB, expires_at TIMESTAMPTZ)` com varredura batch via Celery beat (`expire_llm_cache` cron 1×/h). Mesmo contrato de adapter; escolha por env var `LLM_CACHE_BACKEND={redis|postgres}` (default `redis`).
-- **PROIBIDO** (ADR-111): `lru_cache`, `cached_property`, dict/`set` global em módulo, file lock. Esta ADR explicitamente fecha a porta — auditável por `dev/check_pipeline_boundaries.py` + `backend/tests/integration/test_multi_worker_concurrency.py`.
-
-### 3. Fallback determinístico — LLM nunca é caminho crítico
-- Qualquer falha do LLM (timeout, rate limit Anthropic 429, erro 5xx do provedor, JSON inválido após retry, cache backend down) **degrada silenciosamente** para os derivers determinísticos atuais (`pipeline/domain/services/derivers/section_summaries.py` no backend, `deriveSectionSummary` no frontend).
-- **Retries**: 1 retry com backoff 500ms para erro transiente; 2ª falha → fallback. Sem retry indefinido.
-- **Visibilidade do fallback**: nenhuma marca visual no relatório ("este texto é fallback") — usuário não diferencia. Fallback é registrado em telemetria (`fallback_used=true`) e em `qa_log.md` por workspace para diagnóstico interno.
-- **Princípio**: relatório nunca falha por causa de LLM. LLM é enhancement; produto sem LLM continua entregando valor.
-
-### 4. Telemetria — `fin.classification_telemetry`-style logger
-- Logger novo `mathoms.llm.section_summaries` (namespace consistente com `mathoms.classification` de `classify_document`).
-- **Campos por chamada** (sem PII; section_id é id de layout, não conteúdo do relatório):
-  - `section_id` (string canônica do `report_layout.yaml`)
-  - `snapshot_hash` (truncado a 12 chars)
-  - `latency_ms` (int)
-  - `cache_hit` (bool)
-  - `fallback_used` (bool — true se degradou para deriver determinístico)
-  - `model` (string — `"claude-haiku-4.5"` ou override)
-  - `prompt_tokens`, `completion_tokens` (int)
-  - `cost_usd` (Decimal-string, 6 casas — calculado pelo adapter usando pricing por modelo em `config/llm_pricing.json`)
-  - `error_class` (string opcional — `"timeout" | "rate_limit" | "invalid_json" | "provider_5xx"` ou `null`)
-- **Sem** logging do prompt ou resposta (são dados financeiros agregados — passam pelo princípio "PII fora do LLM" mas mantemos o log estritamente técnico para evitar vazamento via observabilidade).
-- Log JSON via `mathoms.*` ([ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3)). Agregação em `qa_log.md` por workspace é opcional e roda offline (sidecar batch).
-
-### 5. Custo — estimativa documentada
-Prompt típico de section_summary tem ~2 k tokens de input (snapshot data filtrada para a seção + instruções de tom + few-shot examples) e ~500 tokens de output. Por relatório: 10 seções × (2 000 in + 500 out).
-
-| Modelo | Pricing (USD / MTok, 2026-04 vigente) | Input cost | Output cost | **Total / relatório** |
-|---|---|---|---|---|
-| **Claude Haiku 4.5 (default)** | $1.00 in / $5.00 out | 10 × 2 000 / 1 e6 × $1.00 = $0.020 | 10 × 500 / 1 e6 × $5.00 = $0.025 | **~$0.045** |
-| Claude Sonnet 4.6 (premium opt-in) | $3.00 in / $15.00 out | $0.060 | $0.075 | **~$0.135** |
-
-Com cache hit ratio esperado de ~60 % (usuário reabre relatório no mesmo dia, TTL 24h), custo amortizado por **relatório novo** cai para ~$0.018 (Haiku) ou ~$0.054 (Sonnet). **Cap mensal por workspace** monitorado em telemetria — alarme se ultrapassar $5/mês (sinaliza loop bug ou abuso).
-
-### 6. Coordenação com ADRs vigentes — diferenciações explícitas
-
-| ADR | Como ADR-144 se relaciona |
-|---|---|
-| [ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a) | Padrão de LLM em pipeline já estabelecido. v2.9 segue, **mas** seu output (`section_summaries`) é parte do snapshot E5 (já persistido por E5 em `analise_financeira-5_analysis.json`), não artefato novo separado — não cria nova `_STAGE_TO_DIR` entry. |
-| [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) | Cache **deve** ser Redis ou Postgres com TTL. `lru_cache`/`cached_property`/global dict **proibidos**. Esta ADR é o ponto de aplicação do princípio em E5. |
-| [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm) | ADR-144 implementa o **branch LLM** do híbrido para `section_summaries`. `chart_conclusions` permanece determinístico — ADR-122 não é descartada, é refinada nos pontos operacionais. |
-| [ADR-127](#adr-127--e1-members-persiste-via-artifactstore) / [ADR-128](#adr-128--e7-review-llm-lê-escreve-via-artifactstore) | **NÃO confundir cache LLM com ArtifactStore**: ArtifactStore é para artefatos do pipeline (input/output de stage, parte do lineage do `ReportRun`, sujeito a `pipeline_artifacts` lifecycle [ADR-132]). Cache LLM é otimização de runtime — efêmero, TTL 24h, sem lineage, fora do `ReportRun` graph. Diferenciação codificada: `LLMCacheBackend` em `backend/app/services/llm_cache.py`, distinto de `ArtifactStore`. |
-| ADR-143 (slot reservado v2.D.1) | v2.9 é **independente** de v2.D.1. v2.D.1 entrega `ChangelogEntry.summary` determinístico (template). v3 (lane futura, fora desta ADR) pode upgrade `summary` para LLM reusando os primitives definidos aqui (`LLMCacheBackend`, telemetry logger, fallback pattern). v2.9 e v2.D.1 podem mergear em qualquer ordem. |
-| [ADR-090](#adr-090--decimal-para-valores-monetários) | Section summaries são prosa; LLM não emite valor monetário inline. Se o prompt evoluir e isso virar necessário, validator Pydantic exige `Decimal`-string + renderer formata via `Money`. |
-| [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3) | Telemetria via namespace `mathoms.llm.section_summaries`, JSON, sem PII. |
-| [ADR-024 / ADR-025] | LiteLLM + BYOK — paridade com demais stages. |
-
-### 7. Anti-escopo desta ADR
-- **NÃO** define a Pydantic schema concreta de `SectionSummaryResult` (Fase 2).
-- **NÃO** define o conteúdo do prompt em `config/prompts/section_summaries.yaml` (Fase 2 — sujeito a evolução editorial sem nova ADR salvo se mudar contrato de saída).
-- **NÃO** define o adapter Redis concreto nem migration Postgres (Fase 2).
-- **NÃO** marca v2.9 como ✅ no BACKLOG (continua 🚧 até Fase 2 mergear).
-
-**Consequências:**
-- ✅ Qualidade editorial real em 10 textos narrativos por relatório — diferencial vs. v1.
-- ✅ Padrão de LLM-em-runtime estabelecido para reuso futuro (v3 changelog, eventuais executive summary, etc.) sem precisar nova ADR estrutural.
-- ✅ Cache + fallback garantem que LLM é enhancement, não single-point-of-failure.
-- ⚠️ Custo recorrente: ~$0.018–$0.054 por relatório novo (com cache 60 %). Para 1 000 relatórios/mês = $18–$54/mês — aceitável para fintech B2C; monitorar com cap por workspace.
-- ⚠️ Latência: ~2–5 s por seção sequencial. Mitigação: paralelizar 10 seções via `asyncio.gather` + Instructor async; prazo total ~3–6 s. Ainda assim, geração de relatório passa de "instantânea" (~200 ms) para "alguns segundos" — UX precisa indicador de progresso.
-- ⚠️ Rate limit Anthropic: 50 req/min default. 10 seções/relatório = 5 relatórios concorrentes batem o teto. Fallback determinístico cobre o overflow; em escala maior, solicitar tier upgrade ou batchear via Anthropic Batch API (lane futura, fora desta ADR).
-- ⚠️ Cache invalidation por mudança de `snapshot_hash`: aceito — relatório é geração eventual, não hot path; revalidar quando snapshot muda é semanticamente correto.
-- ❌ Não-determinismo residual entre cache misses (mesmo input pode produzir variação narrativa em runs diferentes). Mitigado por `temperature=0` + seed + cache 24h. Aceito como custo do regime LLM; alternativa (templates) já considerada e descartada acima.
-- ❌ Primeiro consumidor real de Redis em pipeline (até hoje Redis era só backend session cache + Celery broker). Adiciona dependência operacional ao deploy mínimo. Mitigado pelo fallback Postgres+TTL.
-
-**Plano de adoção (Fase 2 — fora desta ADR):**
-1. Service `pipeline/domain/services/section_summary_generator.py` com Pydantic config tipado ([ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy) D2/D3) — não recebe `StageConfig` inteiro nem `Path`; conversão é do adapter.
-2. `LLMCacheBackend` protocol + `RedisLLMCache` / `PostgresLLMCache` em `backend/app/services/llm_cache.py`.
-3. Prompt template em `config/prompts/section_summaries.yaml` (paridade com `chart_conclusions.yaml`).
-4. Fallback path em E5 — invoca `derivers/section_summaries.py` se generator retorna `None` ou levanta.
-5. Frontend `conclusionUtils.ts` lê `section_summaries[i]` do snapshot se presente, senão deriva.
-6. Goldens em `tests/test_e5_section_summaries.py` com fakes (não bate API real em CI; usa `RecordedLLMResponseFake` por hash).
-7. Telemetria + alarme de cap mensal.
-8. Toggle `pipeline.json:llm.section_summaries.enabled` (default `true`) — permite desligar globalmente em incidente sem deploy.
-
-**Gate de Fase 2**: goldens verdes + custo telemetrado + ADR-144 mergeada em `main`.
-
-**Relaciona-se a:** [ADR-024 LiteLLM], [ADR-025 BYOK], [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-097](#adr-097--isp-em-services-de-domínio), [ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm), [ADR-127](#adr-127--e1-members-persiste-via-artifactstore), [ADR-128](#adr-128--e7-review-llm-lê-escreve-via-artifactstore), [ADR-132](#adr-132--lifecycle-scoping-de-pipeline_artifacts-workspace-vs-run). Lane operacional: [`docs/agent_prompts/track_report_v2.md` §3 v2.9](agent_prompts/track_report_v2.md).
-
----
-
-## ADR-143 — `docs/methodology/` é rules-as-code (Sprint A7.6)
-
-**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions). **Supersedes-a-aproximação-de** A7.4 (entregue 2026-04-27 — `git mv config/*.md docs/methodology/*.md`, mantida a estrutura híbrida que esta ADR corrige).
-
-**Contexto:** A versão CLI mono-cliente do Mathoms usava 4 arquivos markdown editoriais em `config/` (`definitions.md`, `regras_composicao_patrimonial.md`, `source_hierarchy.md`, `milhas.md`) que misturam dois conteúdos:
-
-1. **Regras universais de produto** — invariantes que o Mathoms enforce em runtime (as 7 categorias da composição patrimonial, hierarquia de fontes para reconciliação E3, método de valuation de pontos de milhagem).
-2. **Instâncias cliente-específicas do workspace piloto** — David, Mariana, Tasso da Silveira, Hashdex, valores BRL reais, contas Itaú/BTG, programas de milhas com saldos.
-
-A7.4 tratou esses arquivos como "documentação metodológica universal" e fez `git mv` puro para `docs/methodology/`. Auditoria pós-merge (2026-04-27) revelou **102 hits cliente-específicos** distribuídos pelos 4 arquivos (definitions: 59 · regras_composicao: 19 + valores BRL · source_hierarchy: 19 · milhas: 5). Isso viola CLAUDE.md §Regras críticas ("nunca expor valores monetários reais ... em commits"), e expõe o anti-padrão estrutural: **regra de produto como markdown gera drift** (quando o código muda, o doc fica desatualizado), e mistura com dados cliente cria caminho duplo (markdown vs DB) para a mesma informação.
-
-Alternativas consideradas:
-
-- **(a) Sanitizar `docs/methodology/`:** reescrever os 4 arquivos com placeholders (`TITULAR`, `CONJUGE`) sem dados cliente. Mantém o diretório como "spec doc paralelo ao código". **Trade-off:** drift garantido — toda mudança de regra em código requer atualização manual em 2 lugares. Adia o problema; não resolve.
-- **(b) Eliminar `docs/methodology/` (rules-as-code):** regras universais migram para docstrings + ADRs co-localizados com a função/classe que enforce; dados cliente migram para DB (estruturado) ou `storage/<workspace_id>/notes/` (gitignored, não-estruturado). Source of truth: o código.
-- **(c) Manter `docs/methodology/` como overview com links:** README curto linkando para os docstrings/ADRs. Trade-off intermediário — ainda exige sincronização do README, mas reduz superfície.
-
-**Decisão:** Adotar **(b) rules-as-code**.
-
-`docs/methodology/` deixa de existir. Para cada arquivo:
-
-1. **Regras universais** migram para docstrings na função/classe que enforce (e.g., 7 categorias da composição patrimonial → docstring em `pipeline/domain/services/cash_flow_builder.py` ou similar) + ADR específica (ADR-145, ADR-146, ADR-147 — uma por domínio) que captura o "porquê" da regra.
-2. **Dados cliente-estruturados** (categorias workspace-specific, contas bancárias, etc.) já vivem em DB ou migram via lanes correlatas (A7.2a Decision aggregate absorveu contratos PJ + estratégia de aportes; A7.3 absorve categorias/instituições; futuro A8.1 absorve programas de milhas).
-3. **Dados cliente-não-estruturados** (notas livres, observações editoriais que não cabem em entidades DB ainda) vão para `storage/<workspace_id>/notes/` — gitignored, workspace-scoped. Bridge transitório enquanto não há entidade DB modelada.
-
-`dev/check_forbidden_paths.py` ganha bloqueio para `docs/methodology/**` (impede recriação acidental).
-
-CLAUDE.md §Regras críticas ganha parágrafo: "Methodology = code. Nada em `docs/methodology/`. Regras universais vivem em docstrings + ADRs; dados cliente em DB ou `storage/<ws>/notes/`."
-
-**Consequências:**
-- ✅ Source of truth única: o código que enforce. Drift estrutural eliminado.
-- ✅ CLAUDE.md §Regras críticas (anti-PII em commits) reforçada por construção — não há mais lugar onde dados cliente "naturalmente" se misturam com regras de produto em git.
-- ✅ Regras universais ganham testes diretos via testes unitários da função que as enforce (não dependem de leitura de markdown).
-- ✅ Onboarding melhora: leitor encontra a regra **junto com a função que a aplica**, não em doc separado que pode estar desatualizado.
-- ⚠️ Quem busca "qual a regra do produto X?" precisa pesquisar no código (via grep/IDE) em vez de abrir um índice doc. Mitigação: ADRs especializadas (ADR-145..147) servem como índice canônico — referenciadas por nome em commits e docs.
-- ⚠️ Curva de migração: A7.6 sub-task 4 (sanitização de `definitions.md`) depende soft de A7.3 (categorias/instituições absorvidas) + A7.2a (decisões absorvidas) já mergeadas, para que o "drop" seja seguro.
-- ❌ Conteúdo histórico de `docs/methodology/` permanece em git history; auditoria pós-fato requer git blame / git log (não acessível via UI atual). Aceito — o vazamento de PII no history é o mesmo que tinha em `config/` antes; remoção retroativa do history exige `git filter-branch` que está fora do escopo desta lane.
-- ❌ Para regras que cruzam múltiplos arquivos (ex.: como E3 hierarchy interage com E4 categorização), o leitor precisa navegar entre N docstrings. Mitigação: ADRs do A7.6 (143, 145, 146, 147) servem como pontes cross-cutting.
-
----
-
-## ADR-145 — 7 categorias canonical da composição patrimonial
-
-**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
-
-**Contexto:** O relatório financeiro do Mathoms apresenta a "Composição Patrimonial" como gráfico doughnut com **exatamente 7 buckets**. A taxonomia foi historicamente documentada em `config/methodology/regras_composicao_patrimonial.md` (movido para `docs/methodology/` em A7.4) misturando regras universais com exemplos cliente-específicos. ADR-143 elimina o markdown; esta ADR registra a decisão das 7 categorias como invariante de produto.
-
-A taxonomia é parte do **modelo metodológico Mathoms** (não do dado cliente): assume premissa "casal com até 2 titulares de investimentos" (titular + cônjuge) e separa imóveis de moradia × investimento — escolhas de produto inspiradas nas metodologias Perini / Cerbasi / AUVP referenciadas no projeto.
-
-Alternativas consideradas:
-
-- **(a) N categorias dinâmicas por workspace.** Cada cliente define seus buckets. **Trade-off:** quebra comparabilidade entre relatórios e relatórios benchmarks; aumenta complexidade de UI; sem evidência de demanda.
-- **(b) 5 categorias agregadas (Imóveis / Investimentos / Caixa / Crypto / Veículos).** Mais simples mas perde granularidade entre "residência principal" vs "imóveis investimento" e entre titular vs cônjuge — informação clínica para planejamento (Perini distingue residência de investimento; AUVP distingue patrimônio investível por membro).
-- **(c) 7 categorias fixas com regras determinísticas.** Mantém comparabilidade, captura nuance de produto, é estável.
-
-**Decisão:** Adotar **(c)**. As 7 categorias canônicas são:
-
-1. **Residência própria** — moradia principal da família (sempre exatamente 1 imóvel).
-2. **Imóveis investimento** — todos os imóveis dos membros, exceto a residência principal.
-3. **Investimentos {TITULAR}** — ativos financeiros do titular: investimentos clássicos (`investimentos[]`) + contas bancárias de tipo investimento (`tipo` contém `RDB|CDB|CDP|Renda Fixa|Investimento|Aplicacao|Poupança|Saldo em Conta` em corretora). **Inclui** fundos regulados que tenham nome sugerindo crypto mas sejam FIC FIM (ex.: Hashdex Crypto).
-4. **Investimentos {CONJUGE}** — mesmo conjunto, aplicado ao cônjuge (workspace-specific labelling via `family_members.json` membros titular/cônjuge).
-5. **Criptoativos** — crypto direta (BTC, ETH, ADA, etc.) mantida em exchanges. **Não inclui** fundos regulados de crypto.
-6. **Caixa + Moeda Estrangeira** — `tipo` contém `Conta Corrente` (sem "Investimento" no mesmo campo) **OU** `Moeda Estrangeira`.
-7. **Veículos** — categoria residual para automóveis/embarcações.
-
-> **Nota de implementação ({TITULAR}/{CONJUGE}):** os labels exibidos no relatório vêm de `family_members.json` (campos `nome_curto` dos membros com papéis `titular`/`conjuge`); o `template_key` interno é estável (`investimentos_titular`, `investimentos_conjuge` — paralelo a [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions) que proíbe rename de keys). Renaming de label não afeta o key.
-
-Premissa de produto: **exatamente 2 titulares de investimentos** (titular + cônjuge). Famílias com configurações diferentes (apenas titular, >2 membros investidores, etc.) são tratadas como casos especiais — `Investimentos {CONJUGE}` retorna 0 quando ausente; >2 membros não suportado nesta versão.
-
-Regras de classificação (universal, sem dados cliente) vão para docstring na função classificadora em `pipeline/domain/services/cash_flow_builder.py` (ou serviço equivalente identificado no Explore da lane A7.6). Os exemplos cliente-específicos (Hashdex matching, contas Itaú Personnalité, etc.) viram **fixtures de teste unitário** com nomes anônimos (`FundoExemplo`, `BancoExemplo`).
-
-**Consequências:**
-- ✅ Comparabilidade entre relatórios e benchmarks externos preservada.
-- ✅ Taxonomia estável — clientes novos importam dados e relatório classifica determinísticamente.
-- ✅ Drift entre regra documentada × código aplicado eliminado (rules-as-code).
-- ⚠️ Famílias fora da premissa "casal" (>2 membros investidores, união homoafetiva com >2 titulares fiscais, etc.) são limitadas pela taxonomia. Expansão para N membros requer ADR futuro + redesenho de schema (provavelmente Sprint A8+).
-- ⚠️ Fundos com classificação ambígua (ex.: ETF temático, fundos de venture) seguem regra textual no docstring; resolução duvidosa requer decisão editorial → vira test fixture nova + atualização do docstring.
-- ❌ Renaming de `template_key` da categoria é PROIBIDO (apenas add/deprecate) — paralelo à regra de [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions) sobre categorization templates.
-
----
-
-## ADR-146 — E3 source hierarchy + `BankAccount.source_tier` schema
-
-**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy).
-
-**Contexto:** O stage E3 (reconciliação) consolida transações de múltiplas fontes (extratos bancários parseados, faturas de cartão, screenshots de app, deduções IRPF, declarações editorais) e precisa decidir qual fonte tem precedência quando há conflito (ex.: mesma transação aparece em extrato + fatura de cartão por causa de pagamento intermediado).
-
-A regra histórica está em `config/methodology/source_hierarchy.md` (movido para `docs/methodology/` em A7.4) misturando hierarquia universal com mapeamento workspace-specific (David's Itaú vs Mariana's BTG). ADR-143 elimina o markdown; esta ADR registra hierarchia universal + abre schema migration para tier per `BankAccount`.
-
-Alternativas consideradas:
-
-- **(a) Hierarquia hardcoded global.** Toda banco tipo X é tier 1, banco tipo Y é tier 2. **Trade-off:** ignora variação por workspace (cliente A pode confiar mais em Itaú; cliente B em BTG). Insuficiente.
-- **(b) Hierarquia universal + override por workspace via campo `BankAccount.source_tier`.** Mathoms define tier default por *tipo* de fonte; cada workspace pode overrideá-lo per-account quando há razão.
-- **(c) Hierarquia 100% workspace-defined (sem default Mathoms).** Cliente novo abre conta = tem que configurar tier de cada banco. UX ruim; sem onboarding default.
-
-**Decisão:** Adotar **(b)**.
-
-Hierarquia universal default (tier ascendente — tier 1 = mais confiável, tier 5 = menos):
-
-1. **Tier 1 — Extração LLM de extrato OFX/PDF estruturado** (alta confiança: dados estruturados, datas precisas, descrições completas).
-2. **Tier 2 — Extrato bancário parseado por regex** (alta confiança quando o parser cobre o formato; pode perder transações em formatos não cobertos).
-3. **Tier 3 — Fatura de cartão de crédito** (cobertura parcial: só transações no cartão; pode duplicar com extrato quando há pagamento intermediado).
-4. **Tier 4 — Screenshot de app extraído por LLM** (média confiança: dependente da qualidade da imagem; bom para contas de investimento sem extrato).
-5. **Tier 5 — Declaração editorial / dedução IRPF / planilha manual do cliente** (baixa confiança automatizada, mas alta confiança humana — usado como ground truth para reconciliar discrepâncias finais).
-
-Regra de reconciliação: quando duas fontes reportam a mesma transação (matched por valor + data ± 2 dias + descrição similarity), a fonte de **tier menor (mais alto na hierarquia)** vence. Ties dentro do mesmo tier resolvem via timestamp da extração (mais recente vence) — evita instabilidade quando o pipeline reroda.
-
-Schema migration (Alembic backwards-compat — add nullable + populate + flip):
-
-```python
-class BankAccount(Base):
-    # ... campos existentes ...
-    source_tier: int | None = Column(SmallInteger, nullable=True, default=None)
-    # None = usar default Mathoms baseado em tipo (account_type / institution.parser).
-    # Não-None = override workspace-específico.
-```
-
-Function que enforce a hierarchy vai para docstring em `pipeline/domain/services/income_origin_resolver.py` (ou similar identificado pelo Explore da A7.6). Override workspace-specific resolvido via `ResolvedBankAccount.tier(workspace_id, db)` que consulta `source_tier` e fallback para regra default.
-
-**Consequências:**
-- ✅ Pipeline E3 deterministicamente reconciliável: ties têm regra explícita.
-- ✅ Workspace tem flexibilidade de override quando o default não reflete sua realidade (ex.: cliente que tem screenshot mais confiável que o extrato porque parser falha no formato).
-- ✅ Onboarding default funciona — não exige configuração tier-by-bank pelo cliente.
-- ⚠️ Schema migration adiciona coluna nullable ao `bank_accounts`. Backwards-compat sob ADR-097 (add nullable + populate + flip — sem DROP no mesmo PR).
-- ⚠️ Documentação da regra default fica em docstring de **uma** função (income_origin_resolver). Se a função for refatorada/extraída, o docstring deve migrar junto. Mitigação: regra documentada em ADR-146 mesmo (esta) é o índice canônico.
-- ⚠️ **Test fixture obrigatório:** dois artefatos mesmo-tier reconciliados deterministicamente entre runs (regra de tie-breaking via timestamp). Sub-task de A7.6 que migra o resolver deve incluir `tests/unit/pipeline/test_e3_source_tier_tie_breaking.py` com 2 specs: (a) tier mais alto vence ainda que extração mais antiga; (b) mesmo tier → timestamp mais recente vence.
-- ❌ `source_tier` per-account ignora granularidade temporal (banco pode ter parser melhorando ao longo do tempo). Aceito — granularidade temporal exige ADR específica futura.
-
----
-
-## ADR-147 — Milhas: valuation methodology universal + storage workspace-scoped
-
-**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
-
-**Contexto:** O relatório do Mathoms inclui um card "Programas de Milhagem" (Smiles, Latam Pass, Livelo, Atomos, MasterCard Surpreenda, etc.) com saldo de pontos por programa, valor estimado em BRL e regras de expiração. A fonte histórica é `config/milhas.md` (movido para `docs/methodology/` em A7.4) parseado em runtime por `scripts/e5_analyze.py::parse_milhas_md(workspace_root)`.
-
-O arquivo é **duas coisas ao mesmo tempo**: (a) doc humano com método de valuation universal (como avaliar 1 ponto Smiles em campanha vs base), (b) fonte de dados cliente-específica em runtime (saldos de Smiles do David, Latam Pass da Mariana). Anti-padrão clássico: doc + dado misturados em mesmo artefato versionado em git.
-
-ADR-143 elimina `docs/methodology/`. Esta ADR define dois caminhos separados:
-
-Alternativas consideradas para o **dado cliente** (saldos por programa):
-
-- **(α) `storage/<ws>/notes/milhas.md` gitignored, mesmo formato markdown.** `parse_milhas_md` lê do path novo. Migrator one-shot copia conteúdo atual para workspace piloto. **Trade-off:** continua file-based, sem API/UI editável. Drift entre notas humanas e relatório possível.
-- **(β) DB entity `MileageProgram(workspace_id, member_id, program_code, balance_points, accumulation_rate, valuation_per_point_cents, expiration_date, notes)`.** API + UI + migrator. Alinhado com pattern de `Decision` (ADR-136) e `FamilyMember`. **Trade-off:** ~2-3 sessões de trabalho extra além de A7.6 (paralelo de A7.2a). Mas é a saída arquitetural correta.
-- **(γ) Híbrido escalonado.** A7.6 entrega α (storage notes + bridge); Sprint A8.1 entrega β (DB entity).
-
-**Decisão:** Adotar **(γ)** com escopo claro entre as lanes:
-
-**A7.6 entrega:**
-- Universal valuation methodology em docstring na função `parse_milhas_md` (ou no novo módulo refatorado equivalente). Documenta: como precificar 1 ponto Smiles vs Latam Pass vs Livelo (regras genéricas, sem saldos cliente); periodicidade de atualização do método (ad-hoc, não programada).
-- Workspace-specific dados (programas + saldos) migram para `<workspace>/storage/<workspace_id>/notes/milhas.md` (gitignored, formato markdown estruturado idêntico ao atual).
-- Migrator one-shot `dev/migrate_milhas_to_workspace_storage.py` copia conteúdo atual de `docs/methodology/milhas.md` para o workspace piloto. Idempotente.
-- Bridge transitório: `parse_milhas_md` tenta o path novo primeiro; fallback para path antigo + `DeprecationWarning`. Bridge removido em A7.5 cleanup.
-
-**Sprint A8.1 entrega (débito técnico aceito):**
-- Schema DB: `MileageProgram` aggregate workspace-scoped + `MileageProgramSnapshot` para histórico de saldos.
-- Endpoints CRUD `/v1/workspaces/{id}/mileage-programs`.
-- Frontend tela de configuração (substitui edição manual de markdown).
-- Migrator de `storage/<ws>/notes/milhas.md` → DB rows.
-- `parse_milhas_md` deprecated; novo `load_mileage_programs(ws_id, db)` lê do DB.
-- `storage/<ws>/notes/milhas.md` deprecated com warning; removido em A8.x cleanup.
-
-**Consequências:**
-- ✅ A7.6 não é bloqueada pelo escopo de modelagem `MileageProgram` (que paralelaria A7.2a Decision em complexidade).
-- ✅ Dado cliente sai de git imediatamente (sub-task A7.6 entrega α antes do final da Sprint A7).
-- ✅ Método de valuation universal preservado em docstring + ADR — sobrevive a futuras refatorações.
-- ✅ A8.1 fica registrado como débito técnico explícito em `docs/BACKLOG.md §Sprint A8` (placeholder aberto em A7.6).
-- ⚠️ Janela transitória: workspace piloto edita `storage/<ws>/notes/milhas.md` manualmente. UX para clientes novos requer A8.1 mergeada.
-- ⚠️ `storage/<ws>/notes/` é primeiro caminho "notes workspace-scoped" do produto. ADR-147 estabelece o padrão: gitignored, formato livre (markdown), parser específico por categoria de notes, sempre acompanhado de docstring no parser que documenta o schema esperado.
-- ❌ Período entre A7.6 e A8.1: dois caminhos de leitura coexistem (path novo prioritário; fallback warned). DeprecationWarning + log estruturado torna o caminho legado discreto mas detectável.
 
 ---
 

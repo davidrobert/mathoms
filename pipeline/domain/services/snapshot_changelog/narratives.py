@@ -1,4 +1,4 @@
-"""Templates determinísticos de narrativa do changelog (v2.D.1 · ADR-143)."""
+"""Templates determinísticos de narrativa do changelog (v2.D.1 · ADR-148)."""
 
 from __future__ import annotations
 

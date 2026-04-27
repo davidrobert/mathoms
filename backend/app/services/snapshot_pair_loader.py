@@ -1,11 +1,4 @@
-"""Adapter SQLAlchemy → ``AnalyzeFinancesSnapshot`` (v2.D.1 · ADR-143).
-
-Carrega o par (snapshot t-1, snapshot atual) de ``pipeline_artifacts`` para
-o `SnapshotChangelogBuilder`. Identidade `analysis_hash` é derivada on-read
-via `sha256(canonical_json(content_json))[:16]` — não persistida no DB.
-
-Janela de compat ADR-093: aceita `stage IN ('analyze_finances', 'E5')`.
-"""
+"""Adapter SQLAlchemy → ``AnalyzeFinancesSnapshot`` para o ``SnapshotChangelogBuilder`` (v2.D.1 · ADR-148; compat stage E5/analyze_finances ADR-093; hash on-read não persistido)."""
 
 from __future__ import annotations
 

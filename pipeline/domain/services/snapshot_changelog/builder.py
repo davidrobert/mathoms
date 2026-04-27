@@ -1,4 +1,4 @@
-"""``SnapshotChangelogBuilder`` — comparações mês-a-mês determinísticas (v2.D.1 · ADR-143)."""
+"""``SnapshotChangelogBuilder`` — comparações mês-a-mês determinísticas (v2.D.1 · ADR-148)."""
 
 from __future__ import annotations
 

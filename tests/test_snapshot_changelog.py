@@ -1,4 +1,4 @@
-"""Goldens do ``SnapshotChangelogBuilder`` — 8 cenários + defesas (v2.D.1 · ADR-143)."""
+"""Goldens do ``SnapshotChangelogBuilder`` — 8 cenários + defesas (v2.D.1 · ADR-148)."""
 
 from __future__ import annotations
 

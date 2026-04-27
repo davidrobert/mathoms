@@ -1,4 +1,4 @@
-"""Tipos do ``SnapshotChangelogBuilder`` (v2.D.1 · ADR-143)."""
+"""Tipos do ``SnapshotChangelogBuilder`` (v2.D.1 · ADR-148)."""
 
 from __future__ import annotations
 
