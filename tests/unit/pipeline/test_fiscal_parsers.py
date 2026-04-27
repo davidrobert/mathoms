@@ -94,5 +94,3 @@ class TestPayloadToDataclass:
         assert fp.year == 2030
         assert fp.ir_brackets == ()
         assert fp.lucro_presumido_aliquota == Decimal("0")
-
-

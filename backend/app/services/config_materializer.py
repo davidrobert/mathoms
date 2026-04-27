@@ -1,13 +1,4 @@
-"""ConfigMaterializer (post-A7.5) — copia tree global + overrides DB para non-A7.1 configs.
-
-A7.1 (ADR-134) movou ``categorization`` / ``family_members`` / ``institutions`` /
-``report_layout`` / ``transfer_config`` para ``WorkspaceContext.config_overrides``
-populado por ``DBConfigStore``. ``prepare_pipeline_config_dir`` é o único caminho
-suportado: copia ``config/`` global + materializa apenas ``pipeline.json`` e
-``llm_config.json`` (configs ainda lidos de disco pelos scripts CLI legacy).
-
-A função ``materialize_config`` (legacy) foi removida em Sprint A7.5.
-"""
+"""ConfigMaterializer (post-A7.5) — copia tree global + materializa configs non-A7.1 (ADR-134)."""
 
 from __future__ import annotations
 

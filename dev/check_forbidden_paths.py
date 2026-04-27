@@ -51,6 +51,17 @@ FORBIDDEN_FILES = (
     "config/regras_composicao_patrimonial.md",
     "config/source_hierarchy.md",
     "config/milhas.md",
+    # A7.5 (ADR-134/135/137): cleanup final do plano CONFIG_CUTOVER. Os 5
+    # arquivos abaixo migraram para DB (ConfigStore) ou tabelas globais
+    # versionadas. Re-introduzi-los reabre dual-source-of-truth.
+    # ``config/report_layout.yaml`` permanece em ``config/`` por ser source-of-
+    # truth do codegen ``dev/codegen_report_layout.py`` + default global do
+    # blob no API config. Migração para fora de ``config/`` é débito A8.
+    "config/categorization.json",
+    "config/family_members.json",
+    "config/institutions.json",
+    "config/parametros_fiscais.json",
+    "config/taxas.json",
 )
 
 # Basenames bloqueados em qualquer diretório (regressão: backend/.env vazou

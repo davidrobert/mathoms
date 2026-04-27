@@ -30,6 +30,11 @@ _BASELINE_MIN = (
     / "e2"
     / "minimal-baseline-1.5_consolidated.json"
 )
+# A7.5: ``parametros_fiscais.json`` + ``taxas.json`` saíram de ``config/`` —
+# fixtures locais cobrem tests legacy que precisam dos JSONs em disco.
+_LEGACY_CONFIGS = _REPO / "tests" / "fixtures" / "legacy_configs"
+_LEGACY_FISCAL = _LEGACY_CONFIGS / "parametros_fiscais.json"
+_LEGACY_TAXAS = _LEGACY_CONFIGS / "taxas.json"
 
 _GOALS_MIN = {
     "independencia_financeira": {
@@ -75,8 +80,8 @@ def e5_tenant_minimal(tmp_path: Path) -> Path:
         encoding="utf-8",
     )
     shutil.copy(_REPO / "config" / "scoring.json", cfg / "scoring.json")
-    shutil.copy(_REPO / "config" / "parametros_fiscais.json", cfg / "parametros_fiscais.json")
-    shutil.copy(_REPO / "config" / "taxas.json", cfg / "taxas.json")
+    shutil.copy(_LEGACY_FISCAL, cfg / "parametros_fiscais.json")
+    shutil.copy(_LEGACY_TAXAS, cfg / "taxas.json")
 
     e3_dir = tmp_path / "processed" / "E3_reconciled"
     e3_dir.mkdir(parents=True)
@@ -111,8 +116,8 @@ def e5_tenant_mixed_cashflow(tmp_path: Path) -> Path:
         encoding="utf-8",
     )
     shutil.copy(_REPO / "config" / "scoring.json", cfg / "scoring.json")
-    shutil.copy(_REPO / "config" / "parametros_fiscais.json", cfg / "parametros_fiscais.json")
-    shutil.copy(_REPO / "config" / "taxas.json", cfg / "taxas.json")
+    shutil.copy(_LEGACY_FISCAL, cfg / "parametros_fiscais.json")
+    shutil.copy(_LEGACY_TAXAS, cfg / "taxas.json")
 
     e3_dir = tmp_path / "processed" / "E3_reconciled"
     e3_dir.mkdir(parents=True)
@@ -147,8 +152,8 @@ def e5_tenant_with_baseline(tmp_path: Path) -> Path:
         encoding="utf-8",
     )
     shutil.copy(_REPO / "config" / "scoring.json", cfg / "scoring.json")
-    shutil.copy(_REPO / "config" / "parametros_fiscais.json", cfg / "parametros_fiscais.json")
-    shutil.copy(_REPO / "config" / "taxas.json", cfg / "taxas.json")
+    shutil.copy(_LEGACY_FISCAL, cfg / "parametros_fiscais.json")
+    shutil.copy(_LEGACY_TAXAS, cfg / "taxas.json")
 
     e2_dir = tmp_path / "processed" / "E2_extracts"
     e2_dir.mkdir(parents=True)
