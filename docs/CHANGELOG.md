@@ -12,6 +12,53 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report Premium UI v2 — v2.7 DnD real Kanban ✅ (2026-04-27):**
+  Fecha o **débito #1 do BACKLOG** (declarado pré-v2:
+  `@dnd-kit/core` não foi adicionado à v1; primitivo Kanban usava
+  botões "→ Coluna X" em vez de drag-and-drop). Lane v2.7 instala
+  `@dnd-kit/core@^6.3.1` (42KB minified / 13KB gzipped — bem abaixo
+  dos 50KB do gate de bundle do prompt) e refatora
+  [Kanban.tsx](frontend/src/components/report/ui/kanban/Kanban.tsx)
+  para usar `DndContext` + `useDraggable` (cards) + `useDroppable`
+  (colunas). API `onMove(id, to)` preservada — `TaticoSections.tsx`
+  não muda; o handler `onDragEnd` chama o mesmo callback quando o
+  card é solto sobre uma coluna diferente.
+
+  **Decisões:**
+  - **`@dnd-kit/sortable` NÃO instalado.** O escopo desta lane cobre
+    apenas drag entre colunas (cross-column moves), que é o caso de
+    uso de `onMove(id, to)`. Reordenação dentro da mesma coluna
+    (campo `ordem` do backend) ficaria mais natural com sortable, mas
+    exige extensão da API (`onReorder?` callback novo) e mudança em
+    TaticoSections para fazer PATCH de `ordem`. Conservadorismo: o
+    handler em `Kanban.tsx` checa `item.coluna === target` e retorna
+    sem chamar `onMove` — drag intra-coluna é no-op (Vitest +
+    Playwright validam).
+  - **Fallback mobile via CSS media query.** Botões "→ Coluna" agora
+    ficam em `data-kanban-move-buttons`. Em viewports `≥768px`
+    (`globals.css` regra adicionada), `display: none !important`
+    esconde os botões — DnD mouse é a interação primária. Em
+    `<767px`, os botões aparecem (long-press em touch é problemático
+    com scroll natural). Trade-off documentado em comentário CSS +
+    docstring do componente.
+  - **`activationConstraint: { distance: 6 }`** em `useSensor(PointerSensor)`
+    evita drag acidental ao clicar nos botões de fallback (3px
+    movimento espontâneo do dedo não dispara drag).
+
+  **Validação:**
+  - 3 specs Vitest novos em `tests/components/report/uiPrimitives.test.tsx`:
+    drop zones renderizados; cards com `data-kanban-item`; sem onMove
+    não renderiza botões de fallback. Mais 1 spec atualizado (caminho
+    botão clicável continua chamando `onMove`).
+  - Playwright `@critical` em
+    `frontend/tests/e2e/reports/kanban.@critical.spec.ts`:
+    drag de "A fazer" → "Em andamento" emite PATCH com `coluna:
+    em_andamento`; drag dentro da mesma coluna NÃO emite PATCH.
+    Roda em CI opt-in via label `e2e` (workflow `frontend-e2e` —
+    cross-browser).
+  - Vitest 36 tests pass (uiPrimitives 29 + taticoSections 7); tsc
+    clean em `src/`; pre-commit verde.
+
 - **Report Premium UI v2 — v2.6 `cards/` cleanup ✅ (2026-04-27):**
   Auditoria pós-v1 (2026-04-25) classificou
   `frontend/src/components/report/cards/` como "pré-Fase 3" e propôs
