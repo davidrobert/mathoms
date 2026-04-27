@@ -24,6 +24,7 @@ Exit codes:
     0 — todos os anchors válidos
     1 — há broken anchors (lista impressa)
 """
+
 from __future__ import annotations
 
 import argparse
