@@ -835,7 +835,7 @@ Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
 | v2.1 | §3.1 | S | P0 | A | inline |
 | v2.2 | §3.5 | S | P0 | A | inline |
 | v2.3 | §4.1 | S | P1 | A | inline |
-| v2.4 | §3.2 | R/O | P1 | B | [dedicado](agent_prompts/track_report_v2_t2_aportes.md) |
+| v2.4 | §3.2 | R/O | P1 | B | [dedicado](agent_prompts/track_report_v2_t2_aportes.md) — ✅ 2026-04-27 (`0805a87`+`38aa0ee`) |
 | v2.5 | §3.4 | S | P2 | B | inline |
 | v2.6 | §3.6 | R | P2 | B | inline |
 | v2.7 | §2.1 (DnD débito) | R | P2 | C | inline |

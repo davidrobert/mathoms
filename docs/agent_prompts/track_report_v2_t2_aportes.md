@@ -1,5 +1,8 @@
 # Track Report v2.4 — T2 Aportes seção real
 
+> **Status:** ✅ **2026-04-27** — entregue via commits `0805a87` (feat) + `38aa0ee` (refactor honrando 20 linhas).
+> Decisão final: **D1=(a) MVP determinístico** (dados já existem em `dashboard.aportes` + `dashboard.investimentos_delta`; nenhuma mudança de pipeline/backend). Detalhes em [CHANGELOG](../CHANGELOG.md) e [BACKLOG v2.4](../BACKLOG.md).
+>
 > **Lane ID:** `report-v2-t2-aportes`
 > **Branch prefix:** `agent/report-v2-t2-aportes/<yyyyMMdd-HHmm>`
 > **Depende de:** v1 ✅; **idealmente** v2.5 (`score` top-level DTO) antes
