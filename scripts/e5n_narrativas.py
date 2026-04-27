@@ -7,6 +7,7 @@ Metrics are loaded dynamically from E5 JSON at runtime.
 
 import json
 import re
+from decimal import Decimal
 from pathlib import Path
 
 import scripts.pipeline_common as _pc
@@ -285,7 +286,7 @@ def _safe_div(a, b, default=0):
     return a / b if b else default
 
 
-def load_metrics_from_e5(e5_data: dict) -> dict:
+def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | None = None) -> dict:
     """Extract METRICS dict from E5 JSON + config/goals.json + computed values.
 
     Sources:
@@ -293,9 +294,14 @@ def load_metrics_from_e5(e5_data: dict) -> dict:
       - config/goals.json: strategic targets (aportes, IF, F1/F2, seguros, etc.)
       - config/taxas.json: câmbio, CDI, SELIC, IPCA
       - Computed: yield, salary median, USD savings, derived ratios
+
+    A7.5: ``cambio_usd_brl`` (Decimal/float) tem prioridade sobre ``taxas.json``
+    quando passado pelo caller (resolvido via ``ConfigStore.get_market_rate``).
     """
     goals_cfg = _load_goals()
     taxas_cfg = _load_taxas()
+    if cambio_usd_brl is not None:
+        taxas_cfg = {**taxas_cfg, "cambio_usd_brl": float(cambio_usd_brl)}
 
     pat = e5_data.get("patrimonio", {})
     goals = e5_data.get("goals", {})
@@ -635,9 +641,11 @@ def _e5n_load_e5(store) -> dict | None:
     return e5_data
 
 
-def _e5n_load_metrics(e5_data: dict) -> _MetricsProxy:
+def _e5n_load_metrics(
+    e5_data: dict, *, cambio_usd_brl: Decimal | float | None = None
+) -> _MetricsProxy:
     global METRICS
-    METRICS = load_metrics_from_e5(e5_data)
+    METRICS = load_metrics_from_e5(e5_data, cambio_usd_brl=cambio_usd_brl)
     none_count = sum(1 for v in METRICS.values() if v is None)
     if none_count > 0:
         print(f"  [WARN] {none_count} métricas com valor None após carregamento do E5")
@@ -656,6 +664,20 @@ def _e5n_build_and_validate() -> tuple[dict | None, list[str]]:
         return None, errors
     print("✓ Validation passed")
     return narrativas, []
+
+
+def _resolve_cambio_via_config_store(ctx) -> Decimal | None:
+    """Resolve USD/BRL via ``ctx.config_store.get_market_rate`` (A7.5); ``None`` se indisponível."""
+    cs = getattr(ctx, "config_store", None) if ctx is not None else None
+    if cs is None:
+        return None
+    try:
+        from datetime import date as _date
+
+        return cs.get_market_rate("USD/BRL", _date.today())
+    except Exception as exc:  # pragma: no cover — fallback transparente
+        print(f"  [warn] ConfigStore.get_market_rate USD/BRL falhou ({exc}); usando taxas.json")
+        return None
 
 
 def _e5n_persist(store, e5_data: dict, narrativas: dict) -> None:
@@ -689,7 +711,8 @@ def main_with_store(ctx) -> dict:
     if e5_data is None:
         return {"success": False, "reason": "e5_not_found"}
 
-    _e5n_load_metrics(e5_data)
+    cambio_usd_brl = _resolve_cambio_via_config_store(ctx)
+    _e5n_load_metrics(e5_data, cambio_usd_brl=cambio_usd_brl)
     narrativas, errors = _e5n_build_and_validate()
     if narrativas is None:
         return {"success": False, "reason": "validation_failed", "errors": errors}

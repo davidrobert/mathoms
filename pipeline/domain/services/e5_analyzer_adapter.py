@@ -210,6 +210,8 @@ class E5AnalyzerAdapter:
         reserva_calculator: EmergencyReserveCalculator | None = None,
         score_calculator: FinancialScoreCalculator | None = None,
         taxas: dict | None = None,
+        cambio_usd_brl: Decimal | float | None = None,
+        cambio_eur_brl: Decimal | float | None = None,
         investment_banks: frozenset[str] | None = None,
         member_resolver: E5MemberResolver | None = None,
         fluxo_enricher: FluxoCaixaEnricher | None = None,
@@ -240,6 +242,8 @@ class E5AnalyzerAdapter:
         )
         self._score = score_calculator or FinancialScoreCalculator(FinancialScoreConfig.default())
         self._taxas = taxas or {}
+        self._cambio_usd_brl = float(cambio_usd_brl) if cambio_usd_brl is not None else None
+        self._cambio_eur_brl = float(cambio_eur_brl) if cambio_eur_brl is not None else None
         self._investment_banks = investment_banks or frozenset(
             {
                 "btg pactual",
@@ -282,6 +286,7 @@ class E5AnalyzerAdapter:
         reference_date: date | None = None,
         fiscal_parameters: FiscalParameters | None = None,
         cambio_usd_brl: Decimal | float | None = None,
+        cambio_eur_brl: Decimal | float | None = None,
     ) -> "E5AnalyzerAdapter":
         """Constrói o adapter com todas as configs + services instanciados.
 
@@ -294,9 +299,10 @@ class E5AnalyzerAdapter:
         ``institutions`` lista bancos de investimento (skip em caixa).
 
         A7.2b: ``fiscal_parameters`` (typed) tem prioridade sobre ``fiscal``
-        (dict legacy). ``cambio_usd_brl`` (Decimal) tem prioridade sobre
-        ``taxas["cambio_usd_brl"]``. Quando ambos None, usa fallback do JSON
-        legado via ``FileConfigStore`` bridge.
+        (dict legacy). ``cambio_usd_brl`` / ``cambio_eur_brl`` (Decimal)
+        têm prioridade sobre ``taxas["cambio_usd_brl"]`` / ``taxas["cambio_eur_brl"]``.
+        Quando ambos None, usa fallback do JSON legado via ``FileConfigStore``
+        bridge.
         """
         member_cfg = MemberResolverConfig.from_family(family)
         identity = cls._build_identity(family, member_cfg)
@@ -347,6 +353,8 @@ class E5AnalyzerAdapter:
             reserva_calculator=EmergencyReserveCalculator(reserva_cfg),
             score_calculator=FinancialScoreCalculator(score_cfg),
             taxas=taxas,
+            cambio_usd_brl=cambio_usd_brl,
+            cambio_eur_brl=cambio_eur_brl,
             investment_banks=investment_banks,
             member_resolver=E5MemberResolver(member_cfg),
             fluxo_enricher=FluxoCaixaEnricher(
@@ -584,14 +592,26 @@ class E5AnalyzerAdapter:
             - Poupança / PJ / corretora / fatura → skip
             - Banco de investimento → skip
 
+        Cambio resolution (A7.5): typed ``self._cambio_usd_brl`` /
+        ``self._cambio_eur_brl`` (resolvidos via ``ConfigStore.get_market_rate``)
+        têm prioridade sobre ``self._taxas`` dict legacy. Default final: 5.80/6.35.
+
         Sem keys em E3 (ou store sem list_keys) → (0.0, []).
         """
         keys = list(store.list_keys("E3")) if hasattr(store, "list_keys") else []
         if not keys:
             return 0.0, []
 
-        cambio_usd = safe_float(self._taxas.get("cambio_usd_brl", 5.80), default=5.80)
-        cambio_eur = safe_float(self._taxas.get("cambio_eur_brl", 6.35), default=6.35)
+        cambio_usd = (
+            self._cambio_usd_brl
+            if self._cambio_usd_brl is not None
+            else safe_float(self._taxas.get("cambio_usd_brl", 5.80), default=5.80)
+        )
+        cambio_eur = (
+            self._cambio_eur_brl
+            if self._cambio_eur_brl is not None
+            else safe_float(self._taxas.get("cambio_eur_brl", 6.35), default=6.35)
+        )
 
         latest_per_account: dict[tuple[str, str, str, str], tuple[str, dict]] = {}
 

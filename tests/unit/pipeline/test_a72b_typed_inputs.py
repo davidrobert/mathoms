@@ -102,3 +102,88 @@ class TestCenariosConjugeWithTypedCambio:
             titular_dob=_DAVID_DOB,
         )
         assert cfg.cambio_usd_brl == 5.75
+
+
+# ---------------------------------------------------------------------------
+# E5N — _resolve_cambio_via_config_store (A7.5)
+# ---------------------------------------------------------------------------
+
+
+class TestE5NResolveCambioViaConfigStore:
+    def test_returns_none_when_ctx_is_none(self):
+        from scripts.e5n_narrativas import _resolve_cambio_via_config_store
+
+        assert _resolve_cambio_via_config_store(None) is None
+
+    def test_returns_none_when_ctx_lacks_config_store(self):
+        from scripts.e5n_narrativas import _resolve_cambio_via_config_store
+
+        class _Ctx:
+            pass
+
+        assert _resolve_cambio_via_config_store(_Ctx()) is None
+
+    def test_returns_decimal_from_config_store(self):
+        from scripts.e5n_narrativas import _resolve_cambio_via_config_store
+
+        class _CS:
+            def get_market_rate(self, pair: str, observed_at) -> Decimal:
+                assert pair == "USD/BRL"
+                return Decimal("6.10")
+
+        class _Ctx:
+            config_store = _CS()
+
+        rate = _resolve_cambio_via_config_store(_Ctx())
+        assert rate == Decimal("6.10")
+
+    def test_returns_none_on_config_store_exception(self):
+        from scripts.e5n_narrativas import _resolve_cambio_via_config_store
+
+        class _CS:
+            def get_market_rate(self, pair: str, observed_at) -> Decimal:
+                raise KeyError("USD/BRL not seeded")
+
+        class _Ctx:
+            config_store = _CS()
+
+        assert _resolve_cambio_via_config_store(_Ctx()) is None
+
+
+class TestE5NLoadMetricsTypedCambio:
+    """A7.5: ``load_metrics_from_e5(cambio_usd_brl=...)`` override."""
+
+    def test_typed_cambio_overrides_taxas_json(self, tmp_path, monkeypatch):
+        """Decimal passado via kwarg substitui valor de taxas.json em METRICS."""
+        import scripts.e5n_narrativas as e5n
+
+        e5n._init_config(tmp_path)
+        monkeypatch.setattr(e5n, "_load_taxas", lambda: {"cambio_usd_brl": 5.0})
+
+        e5_data = {
+            "patrimonio": {},
+            "goals": {},
+            "fluxo_caixa": {},
+            "ratios": {},
+            "score": {},
+            "reserva_emergencia": {},
+        }
+        metrics = e5n.load_metrics_from_e5(e5_data, cambio_usd_brl=Decimal("6.50"))
+        assert metrics["cambio_usd_brl"] == 6.50
+
+    def test_taxas_json_used_when_typed_none(self, tmp_path, monkeypatch):
+        import scripts.e5n_narrativas as e5n
+
+        e5n._init_config(tmp_path)
+        monkeypatch.setattr(e5n, "_load_taxas", lambda: {"cambio_usd_brl": 5.0})
+
+        e5_data = {
+            "patrimonio": {},
+            "goals": {},
+            "fluxo_caixa": {},
+            "ratios": {},
+            "score": {},
+            "reserva_emergencia": {},
+        }
+        metrics = e5n.load_metrics_from_e5(e5_data)
+        assert metrics["cambio_usd_brl"] == 5.0

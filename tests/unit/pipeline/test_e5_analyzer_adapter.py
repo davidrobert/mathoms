@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -544,3 +545,125 @@ class TestA6d33Wiring:
     def test_investment_banks_default_when_institutions_empty(self):
         adapter = E5AnalyzerAdapter.from_configs()
         assert "btg pactual" in adapter._investment_banks
+
+
+class TestA75TypedCambio:
+    """A7.5 — ``cambio_usd_brl``/``cambio_eur_brl`` typed têm prioridade sobre ``taxas`` dict."""
+
+    def test_typed_usd_overrides_taxas_dict(self):
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E3",
+            "bofa_cc_USD",
+            {
+                "tipo_conta": "conta_corrente",
+                "banco": "Bank of America",
+                "moeda": "USD",
+                "saldo_final": 1000.0,
+            },
+        )
+        adapter = E5AnalyzerAdapter(
+            taxas={"cambio_usd_brl": 5.50},  # legacy
+            cambio_usd_brl=Decimal("6.00"),  # typed prioritário
+        )
+        total, detalhes = adapter._load_caixa_from_e3(store)
+        assert total == 6000.0  # 1000 * 6.00 (typed), não 5500 (taxas)
+        assert detalhes[0].valor_brl == 6000.0
+
+    def test_typed_eur_overrides_taxas_dict(self):
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E3",
+            "wise_cc_EUR",
+            {
+                "tipo_conta": "conta_corrente",
+                "banco": "Wise",
+                "moeda": "EUR",
+                "saldo_final": 500.0,
+            },
+        )
+        adapter = E5AnalyzerAdapter(
+            taxas={"cambio_eur_brl": 6.00},
+            cambio_eur_brl=Decimal("7.00"),
+        )
+        total, detalhes = adapter._load_caixa_from_e3(store)
+        assert total == 3500.0  # 500 * 7.00 (typed), não 3000 (taxas)
+        assert detalhes[0].valor_brl == 3500.0
+
+    def test_taxas_dict_used_when_typed_none(self):
+        """Backward compat: sem typed, lê do dict legacy."""
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E3",
+            "bofa_cc_USD",
+            {
+                "tipo_conta": "conta_corrente",
+                "banco": "Bank of America",
+                "moeda": "USD",
+                "saldo_final": 1000.0,
+            },
+        )
+        adapter = E5AnalyzerAdapter(taxas={"cambio_usd_brl": 5.50})
+        total, _ = adapter._load_caixa_from_e3(store)
+        assert total == 5500.0
+
+    def test_default_cambio_when_neither_typed_nor_dict(self):
+        """Sem typed nem dict, usa default 5.80/6.35."""
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E3",
+            "bofa_cc_USD",
+            {
+                "tipo_conta": "conta_corrente",
+                "banco": "Bank of America",
+                "moeda": "USD",
+                "saldo_final": 1000.0,
+            },
+        )
+        adapter = E5AnalyzerAdapter()
+        total, _ = adapter._load_caixa_from_e3(store)
+        assert total == 5800.0  # 1000 * 5.80 default
+
+    def test_typed_cambio_accepts_float(self):
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E3",
+            "bofa_cc_USD",
+            {
+                "tipo_conta": "conta_corrente",
+                "banco": "Bank of America",
+                "moeda": "USD",
+                "saldo_final": 1000.0,
+            },
+        )
+        adapter = E5AnalyzerAdapter(cambio_usd_brl=5.75)
+        total, _ = adapter._load_caixa_from_e3(store)
+        assert total == 5750.0
+
+    def test_from_configs_propagates_typed_cambio(self):
+        """``from_configs`` propaga ``cambio_usd_brl`` e ``cambio_eur_brl`` para o adapter."""
+        adapter = E5AnalyzerAdapter.from_configs(
+            cambio_usd_brl=Decimal("6.10"),
+            cambio_eur_brl=Decimal("7.20"),
+        )
+        assert adapter._cambio_usd_brl == 6.10
+        assert adapter._cambio_eur_brl == 7.20
+
+    def test_from_configs_typed_cambio_overrides_taxas_dict_in_caixa(self):
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E3",
+            "bofa_cc_USD",
+            {
+                "tipo_conta": "conta_corrente",
+                "banco": "Bank of America",
+                "moeda": "USD",
+                "saldo_final": 1000.0,
+            },
+        )
+        adapter = E5AnalyzerAdapter.from_configs(
+            taxas={"cambio_usd_brl": 5.0},
+            cambio_usd_brl=Decimal("6.50"),
+        )
+        total, _ = adapter._load_caixa_from_e3(store)
+        assert total == 6500.0

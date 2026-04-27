@@ -2856,8 +2856,9 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
 
     Quando ``ctx.config_store`` está disponível (pipeline DB-first, A7.2b),
     resolve ``FiscalParameters`` por período do relatório e
-    ``cambio_usd_brl`` por ``observed_at`` (regra ADR-135). Caller legado
-    (CLI sem DB) cai no fallback dict-based.
+    ``cambio_usd_brl`` / ``cambio_eur_brl`` por ``observed_at``
+    (regra ADR-135 / A7.5). Caller legado (CLI sem DB) cai no fallback
+    dict-based.
     """
     from pipeline.domain.services.e5_analyzer_adapter import E5AnalyzerAdapter
 
@@ -2868,6 +2869,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
 
     fiscal_parameters = None
     cambio_usd_brl = None
+    cambio_eur_brl = None
     cs = getattr(ctx, "config_store", None) if ctx is not None else None
     if cs is not None:
         try:
@@ -2881,7 +2883,11 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         try:
             cambio_usd_brl = cs.get_market_rate("USD/BRL", TODAY)
         except Exception as exc:  # pragma: no cover
-            print(f"  [warn] ConfigStore.get_market_rate falhou ({exc}); usando taxas.json legacy")
+            print(f"  [warn] ConfigStore.get_market_rate USD/BRL falhou ({exc}); usando taxas.json")
+        try:
+            cambio_eur_brl = cs.get_market_rate("EUR/BRL", TODAY)
+        except Exception as exc:  # pragma: no cover
+            print(f"  [warn] ConfigStore.get_market_rate EUR/BRL falhou ({exc}); usando taxas.json")
 
     return E5AnalyzerAdapter.from_configs(
         categorization=categorization_cfg,
@@ -2896,6 +2902,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         reference_date=TODAY,
         fiscal_parameters=fiscal_parameters,
         cambio_usd_brl=cambio_usd_brl,
+        cambio_eur_brl=cambio_eur_brl,
     )
 
 
