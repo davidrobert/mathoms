@@ -223,24 +223,56 @@ describe("<ChangelogList />", () => {
 });
 
 describe("<Kanban />", () => {
-  it("distribui items em 3 colunas e chama onMove", async () => {
+  const sampleItems = [
+    { id: "1", titulo: "A", coluna: "a_fazer" as const },
+    { id: "2", titulo: "B", coluna: "em_andamento" as const },
+    { id: "3", titulo: "C", coluna: "concluido" as const },
+  ];
+
+  it("distribui items em 3 colunas e chama onMove via fallback button", async () => {
     const onMove = vi.fn();
     const user = userEvent.setup();
-    render(
-      <Kanban
-        onMove={onMove}
-        items={[
-          { id: "1", titulo: "A", coluna: "a_fazer" },
-          { id: "2", titulo: "B", coluna: "em_andamento" },
-          { id: "3", titulo: "C", coluna: "concluido" },
-        ]}
-      />,
-    );
+    render(<Kanban onMove={onMove} items={sampleItems} />);
     expect(screen.getByText("A")).toBeInTheDocument();
     expect(screen.getByText("B")).toBeInTheDocument();
     expect(screen.getByText("C")).toBeInTheDocument();
     await user.click(screen.getAllByLabelText(/Mover para Em andamento/i)[0]);
     expect(onMove).toHaveBeenCalledWith("1", "em_andamento");
+  });
+
+  it("v2.7 — DnD wiring: cada coluna é um drop zone", () => {
+    render(<Kanban onMove={vi.fn()} items={sampleItems} />);
+    const board = document.querySelector("[data-kanban-board]");
+    expect(board).not.toBeNull();
+    expect(
+      document.querySelectorAll('[data-kanban-column]').length,
+    ).toBe(3);
+    expect(
+      document.querySelector('[data-kanban-column="a_fazer"]'),
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-kanban-column="em_andamento"]'),
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-kanban-column="concluido"]'),
+    ).not.toBeNull();
+  });
+
+  it("v2.7 — DnD wiring: cada card é arrastável (data-kanban-item presente)", () => {
+    render(<Kanban onMove={vi.fn()} items={sampleItems} />);
+    const cards = document.querySelectorAll("[data-kanban-item]");
+    expect(cards.length).toBe(3);
+    const ids = Array.from(cards).map((el) =>
+      el.getAttribute("data-item-id"),
+    );
+    expect(ids).toEqual(["1", "2", "3"]);
+  });
+
+  it("v2.7 — sem onMove, drag não chama nada (read-only)", () => {
+    render(<Kanban items={sampleItems} />);
+    expect(
+      document.querySelector('[data-kanban-move-buttons]'),
+    ).toBeNull();
   });
 });
 
