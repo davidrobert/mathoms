@@ -1,6 +1,32 @@
 /**
  * v2.E.6 — specs do `<ReceitaDespesaMensalChart>` (Chart.js stacked).
  *
+ * ⚠️ **EXCLUÍDO DA SUITE DEFAULT** (sufixo `.slow.test.tsx`) — o
+ * describe `<ReceitaDespesaMensalChart />` (15 tests) trava sem output
+ * quando rodado combinado, fazendo o job CI Frontend Vitest estourar
+ * o timeout de 10min. Suspeita: interação entre o mock `vi.hoisted` de
+ * `react-chartjs-2` (chart-instance ref + datasetMeta compartilhado) e
+ * o `userEvent.setup()` em "slide window"/"toggle swatch". Tests
+ * isolados via `-t` passam em <1s cada (`retorna null quando nao ha
+ * dados` em 7ms; `tooltip helpers` em ~800ms).
+ *
+ * **Para rodar:**
+ *
+ *   # Tooltip helpers (rápido, sem render combinado):
+ *   npm run test:slow -- -t "tooltip helpers"
+ *
+ *   # Test específico:
+ *   npm run test:slow -- -t "retorna null quando nao ha dados"
+ *
+ *   # Tudo (provavelmente trava — só execute se estiver investigando o bug):
+ *   npm run test:slow
+ *
+ * Lane follow-up para fix permanente: ver task spawnada
+ * "Fix CI Vitest 10-min timeout (slow ReceitaDespesaMensalChart test)".
+ * Quando consertado, renomear de volta para `.test.tsx` e remover o
+ * glob `tests/(...)/*.slow.test.tsx` do `exclude` em
+ * [vitest.config.ts](../../../vitest.config.ts).
+ *
  * Cobre:
  *  - Tooltip helpers (title/body/footer) puros, com mocks de items + chart
  *    (Chart.js nao roda em jsdom — `canvas` npm pkg nao instalado).
