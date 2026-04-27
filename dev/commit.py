@@ -76,6 +76,8 @@ FORBIDDEN_DIRS = (
 FORBIDDEN_FILES = (
     "mathoms.db",
     "config/passwords.txt",
+    # A7.2a (ADR-136): caderno editorial migrou para aggregate Decision.
+    "config/decisions.md",
 )
 
 # Basenames bloqueados em qualquer diretório — .env/.env.test podem ter secrets
