@@ -106,6 +106,11 @@
   `python3 dev/build_adr_toc.py --inline` após mudar headings; gates
   pre-commit pegam regressões automaticamente.
 
+- **`code_style_baseline.json` refresh — fecha débito P1+P7 herdado ✅ (2026-04-27, [`e90cbd9`](https://github.com/davidrobert/mathoms/commit/e90cbd9)):**
+  Baseline `dev/code_style_baseline.json` estava bloqueando CI em main com 5 ofensores não-absorvidos. Premissa original do orquestrador ("herdado de A7.6 `19e0068`") estava desatualizada — A7.6 já tinha refrescado próprio baseline em 3 commits sequenciais (`63162a8` + `db75a33` + `92dc03c`). Ofensores reais: 4 em [`dev/check_adr_anchors.py`](dev/check_adr_anchors.py) (commit `26437e9` F0+F1 anchors gate) + 1 em [`tests/test_snapshot_changelog.py`](tests/test_snapshot_changelog.py) (commit `2ae9dcd` v2.D.1.1 cenário 9 T5 expense polarity). Refresh focado nos arquivos específicos, sem absorção genérica. Bonus: ruff-format faltante em `check_adr_anchors.py` corrigido em commit separado [`43735ee`](https://github.com/davidrobert/mathoms/commit/43735ee). **`pre-commit run --all-files` verde sem nenhum SKIP** — workaround `SKIP=code-style-baseline` que v2.D.1, v2.8, v2.9, v2.D.1.1 usaram durante o Cenário B não é mais necessário.
+
+- **E2E `@critical` débito ✅ resolvido (2026-04-27):** Lane separada lançada em paralelo (`a86a806e8da6d60f1`) foi cancelada após Lane 4+2 (`b47dd47`) descobrir e fixar o **mesmo root cause**: `useConsumoPontuais.toState()` shape coercion + `mock-report.ts` rota `/reports/consumo-pontuais`. Os 19 specs `@critical` que falhavam com `Cannot read properties of undefined 'length'` voltam ao verde após `b47dd47`; spec `snapshot-changelog.@critical.spec.ts` (marcado `test.skip` em v2.8 por causa desse bug) pode ter `skip` removido em lane futura quando alguém validar.
+
 - **Report Premium UI v2.2b completa — modo USA re-habilitado + 8 baselines U1-U4 ✅ (2026-04-27):**
   Decisão de produto autorizou retomar o modo USA. Reverte parcialmente
   `adc3a15` ("ocultar USA temporariamente"): U1-U4 `enabled: true` no
