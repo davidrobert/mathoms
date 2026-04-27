@@ -145,8 +145,19 @@ test.describe("Snapshots — modo tático", () => {
 });
 
 // ─── USA ──────────────────────────────────────────────────────────────
+//
+// v2.2b — modo USA está oculto por decisão de produto (commit `adc3a15`).
+// U1-U4 têm `enabled: false` em `config/report_layout.yaml`; ReportShell
+// filtra por `enabledSections` antes de montar `<section>`, então as
+// seções não existem no DOM em prod nem em mock. Quando produto retomar
+// (flip dos 4 `enabled: false` no YAML + redoção do TEMP em
+// `ReportActions.VISUAL_MODES`), basta trocar `test.describe.skip` por
+// `test.describe` e re-rodar `gh workflow run CI -f run_visual=true
+// -f update_visual_baselines=true` para popular U1-U4 × 2 = 8 baselines.
+// Helper `setupReport(..., "usa")` já navega via deep-link `?mode=usa`
+// (testado em v2.2b) — toggle oculto da UI não bloqueia mais.
 
-test.describe("Snapshots — modo USA", () => {
+test.describe.skip("Snapshots — modo USA", () => {
   for (const theme of THEMES) {
     for (const sectionId of USA_SECTIONS) {
       test(`${sectionId} — ${theme}`, async ({ page }) => {
