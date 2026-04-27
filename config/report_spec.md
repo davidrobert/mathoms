@@ -210,7 +210,7 @@ Portanto, ao gerar o conteúdo dos placeholders:
 **Posição no HTML:** Dentro de `secao-2`, antes do card de Consumo Consciente.
 
 **Fonte de dados:**
-- Tetos e categorias: `config/definitions.md` seção "CATEGORIAS DE DESPESA (ORÇAMENTO PROSPECTIVO)" — **NUNCA hardcodar tetos**
+- Tetos e categorias: `docs/methodology/definitions.md` seção "CATEGORIAS DE DESPESA (ORÇAMENTO PROSPECTIVO)" — **NUNCA hardcodar tetos**
 - Média real: `report-data.orcamento_prospectivo.categorias[].media_real` (calculada no E4 a partir de `despesas-3_unified.json`)
 - Renda total: `report-data.orcamento_prospectivo.renda_total`
 - Período da média: `report-data.orcamento_prospectivo.periodo_meses` (ex: "11M")
@@ -585,12 +585,12 @@ A seção 3 contém **5 subsseções**, das quais **3 blocos são OBRIGATÓRIOS*
 
 ### Card obrigatório: 3.2 Estratégia de Aporte e Alocação (dentro de `secao-3` — OBRIGATÓRIO)
 
-**Regra:** Este card DEVE ser gerado SEMPRE na secao-3, logo após a tabela 3.1 Rentabilidade. Mostra a estratégia fixa de aporte mensal com destinos, valores, objetivos e liquidez. Os destinos e valores DEVEM vir de `config/definitions.md` seção "ESTRATÉGIA DE APORTES MENSAIS" — **nunca hardcodar valores no template ou no E5**. Mesmo sem dados de retorno, o card aparece com os dados de `definitions.md`.
+**Regra:** Este card DEVE ser gerado SEMPRE na secao-3, logo após a tabela 3.1 Rentabilidade. Mostra a estratégia fixa de aporte mensal com destinos, valores, objetivos e liquidez. Os destinos e valores DEVEM vir de `docs/methodology/definitions.md` seção "ESTRATÉGIA DE APORTES MENSAIS" — **nunca hardcodar valores no template ou no E5**. Mesmo sem dados de retorno, o card aparece com os dados de `definitions.md`.
 
 **Posição no HTML:** Após o bloco 3.1, antes dos cards de ações diretas.
 
 **Fonte de dados:**
-- Destinos e valores: `config/definitions.md` seção "ESTRATÉGIA DE APORTES MENSAIS"
+- Destinos e valores: `docs/methodology/definitions.md` seção "ESTRATÉGIA DE APORTES MENSAIS"
 - Configuração: `report-data.investimentos.estrategia_aporte` (gerado no E4 lendo definitions.md)
 
 **Estrutura HTML:**
