@@ -469,7 +469,14 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                       'data_source': 'dashboard.aportes + '
                                                      'dashboard.investimentos_delta',
                                       'charts': [],
-                                      'cards': [],
+                                      'cards': [   {   'id': 'aportes_status',
+                                                       'enabled': True,
+                                                       'variant': 'feature',
+                                                       'size': 'full'},
+                                                   {   'id': 'investimentos_delta',
+                                                       'enabled': True,
+                                                       'variant': 'feature',
+                                                       'size': 'full'}],
                                       'comparisons': [   {   'id': 'comparisons_t2',
                                                              'enabled': False,
                                                              'deferred_until': 'v2.D.1 '
@@ -691,5 +698,5 @@ LAYOUT_DICT: dict = {   'version': '1.2',
 
 LAYOUT: ReportLayout = ReportLayout.model_validate(LAYOUT_DICT)
 
-ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'investimentos_classe', 'kpi_rentabilidade', 'estrategia_aporte', 'contrafluxo', 'previdencia_pgbl', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref', 'nclex_roadmap', 'simulacao_mariana')
+ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'investimentos_classe', 'kpi_rentabilidade', 'estrategia_aporte', 'contrafluxo', 'previdencia_pgbl', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref', 'aportes_status', 'investimentos_delta', 'nclex_roadmap', 'simulacao_mariana')
 ALL_CHART_IDS: tuple[str, ...] = ('patrimonio_doughnut', 'waterfall_if', 'score_gauge', 'fluxo_mensal', 'receita_bar', 'despesas_doughnut', 'receita_despesa_mensal', 'viagens', 'alocacao_atual', 'alocacao_alvo', 'top15_ativos', 'mariana_cenarios', 'yield_imoveis', 'projecao_3cenarios', 'renda_passiva', 'impostos_pj', 'bubble_riscos', 'top5_decisoes', 'custos_f1f2', 'cenarios_cambiais', 'mariana_cenarios_usa')

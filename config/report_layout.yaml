@@ -461,13 +461,26 @@ tatico:
     # --------------------------------------------------------------------------
     # T2 — Aportes e Investimentos (status de cada destino + variação patrimonial)
     # --------------------------------------------------------------------------
+    # v2.4 — render real (era stub). Card "aportes_status" lista cada destino
+    # com KPI strip (5 slots: destinos, concluídos, total realizado, meta, %),
+    # card "investimentos_delta" mostra variação por bloco (David/Mariana/USD…).
+    # Conclusion lê narrativas[t2_aportes].conclusion (LLM E5.N) com fallback
+    # determinístico (deriva de dashboard.aportes).
     - id: "T2"
       title: "Aportes e Investimentos"
       enabled: true
       collapsible: true
       data_source: "dashboard.aportes + dashboard.investimentos_delta"
       charts: []
-      cards: []
+      cards:
+        - id: "aportes_status"
+          enabled: true
+          variant: "feature"
+          size: "full"
+        - id: "investimentos_delta"
+          enabled: true
+          variant: "feature"
+          size: "full"
       # Report Premium UI v2.1 — placeholders deferred até v2.D.1+v2.8.
       comparisons:
         - id: "comparisons_t2"

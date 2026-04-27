@@ -14,6 +14,10 @@ import {
 import { adaptTarefasToKanban } from "@/components/report/utils/kanbanAdapter";
 import { adaptProximos15dToTimeline } from "@/components/report/utils/timelineAdapter";
 import { priorityFromEffort } from "@/components/report/utils/priorityMap";
+import {
+  deriveAporteSummary,
+  deriveInvestimentosDelta,
+} from "@/components/report/utils/aportesAdapter";
 import type { ReportAnalysisData } from "@/lib/api";
 
 // ─── conclusionUtils ────────────────────────────────────────────────
@@ -175,5 +179,70 @@ describe("adaptProximos15dToTimeline()", () => {
 
   it("sem fonte retorna []", () => {
     expect(adaptProximos15dToTimeline({} as ReportAnalysisData)).toEqual([]);
+  });
+});
+
+// ─── aportesAdapter (v2.4) ──────────────────────────────────────────
+
+describe("deriveAporteSummary()", () => {
+  it("agrega cards, totais e cobertura quando há aportes no dashboard", () => {
+    const data = {
+      dashboard: {
+        aportes: {
+          a0: { label: "CDB", feito: true, valor_meta: 10_000, valor_feito: 10_000 },
+          a1: { label: "Tesouro", feito: false, valor_meta: 5_000 },
+          a2: { label: "ETF", feito: true, valor_meta: 3_000, valor_feito: 2_500 },
+        },
+      },
+    } as unknown as ReportAnalysisData;
+    const summary = deriveAporteSummary(data);
+    expect(summary).not.toBeNull();
+    expect(summary!.destinos_total).toBe(3);
+    expect(summary!.destinos_concluidos).toBe(2);
+    expect(summary!.total_meta).toBe(18_000);
+    // feito.a2 usa valor_feito=2500; pendente.a1 não soma
+    expect(summary!.total_realizado).toBe(12_500);
+    expect(summary!.cards.map((c) => c.id)).toEqual(["a0", "a1", "a2"]);
+  });
+
+  it("retorna null quando dashboard.aportes está vazio ou ausente", () => {
+    expect(deriveAporteSummary({} as ReportAnalysisData)).toBeNull();
+    expect(
+      deriveAporteSummary({ dashboard: { aportes: {} } } as unknown as ReportAnalysisData),
+    ).toBeNull();
+  });
+
+  it("usa valor_meta como fallback quando feito=true sem valor_feito", () => {
+    const data = {
+      dashboard: {
+        aportes: {
+          k: { label: "X", feito: true, valor_meta: 4_000 },
+        },
+      },
+    } as unknown as ReportAnalysisData;
+    const summary = deriveAporteSummary(data);
+    expect(summary!.total_realizado).toBe(4_000);
+    expect(summary!.cards[0].valor_efetivo).toBe(4_000);
+  });
+});
+
+describe("deriveInvestimentosDelta()", () => {
+  it("calcula delta = atual - anterior por bloco", () => {
+    const data = {
+      dashboard: {
+        investimentos_delta: {
+          d: { label: "Investimentos David", anterior: 100_000, atual: 110_000 },
+          m: { label: "Investimentos Mariana", anterior: 50_000, atual: 48_000 },
+        },
+      },
+    } as unknown as ReportAnalysisData;
+    const rows = deriveInvestimentosDelta(data);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ id: "d", delta: 10_000 });
+    expect(rows[1]).toMatchObject({ id: "m", delta: -2_000 });
+  });
+
+  it("retorna [] quando dashboard ausente", () => {
+    expect(deriveInvestimentosDelta({} as ReportAnalysisData)).toEqual([]);
   });
 });

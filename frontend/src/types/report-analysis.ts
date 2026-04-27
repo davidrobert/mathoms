@@ -268,3 +268,36 @@ export interface TimelineItemData {
  *  derivada frontend-side; LLM fallback fica para revisão Q11. */
 export type ChartConclusions = Record<string, string>;
 export type SectionSummaries = Record<string, string>;
+
+// ──────────────────────────────────────────────────────────────────────
+// v2.4 — Tático T2 (Aportes e Investimentos)
+//
+// Shape espelha o `dashboard.aportes` + `dashboard.investimentos_delta`
+// produzidos pelo E5 (paridade com EXEMPLO_DE_RELATORIO.html — bloco
+// `dash-aportes`). Determinístico; nenhum campo novo no pipeline.
+// ──────────────────────────────────────────────────────────────────────
+
+/** Item de aporte planejado/executado por destino (CDB, Tesouro, ETF…). */
+export interface AporteItem {
+  readonly label: string;
+  readonly feito: boolean;
+  readonly valor_meta: number;
+  readonly valor_feito?: number;
+}
+
+/** Variação patrimonial por bloco (Investimentos David, Mariana, USD…). */
+export interface InvestimentoDeltaItem {
+  readonly label: string;
+  readonly anterior: number;
+  readonly atual: number;
+}
+
+/** Subset tipado do `dashboard` consumido pelas seções táticas T1-T6.
+ *
+ * Mantém-se aberto via fallback `[key: string]: unknown` porque outras
+ * lanes (T1, T3, T5) leem chaves não cobertas por este arquivo. */
+export interface DashboardData {
+  readonly aportes?: Record<string, AporteItem>;
+  readonly investimentos_delta?: Record<string, InvestimentoDeltaItem>;
+  readonly [key: string]: unknown;
+}

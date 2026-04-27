@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 
 import {
+  T2AportesSection,
   T3TarefasSection,
   T5ProximosPassosSection,
   T6NotasSection,
@@ -24,6 +25,66 @@ const RID = "rpt-1";
 function emptyData(): ReportAnalysisData {
   return {} as ReportAnalysisData;
 }
+
+// ═════════════════════════════════════════════════════════════════════
+// T2 — Aportes (v2.4)
+// ═════════════════════════════════════════════════════════════════════
+
+function dataWithAportes(narrativa?: string): ReportAnalysisData {
+  return {
+    dashboard: {
+      aportes: {
+        a0: { label: "CDB Cofrinhos", feito: true, valor_meta: 10000, valor_feito: 10000 },
+        a1: { label: "Tesouro IPCA+", feito: false, valor_meta: 5000 },
+      },
+      investimentos_delta: {
+        d: { label: "David", anterior: 100000, atual: 110000 },
+      },
+    },
+    ...(narrativa
+      ? { narrativas: { t2_aportes: { conclusion: narrativa } } }
+      : {}),
+  } as unknown as ReportAnalysisData;
+}
+
+describe("T2AportesSection", () => {
+  it("renderiza KPIs, cards de aporte e tabela de variação patrimonial", () => {
+    render(<T2AportesSection data={dataWithAportes()} />);
+    expect(screen.getByRole("heading", { name: /Aportes e Investimentos/ })).toBeInTheDocument();
+    expect(screen.getByText("CDB Cofrinhos")).toBeInTheDocument();
+    expect(screen.getByText("Tesouro IPCA+")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Variação Patrimonial por Bloco/ })).toBeInTheDocument();
+    expect(screen.getByText(/^David$/)).toBeInTheDocument();
+  });
+
+  it("usa narrativa LLM (t2_aportes.conclusion) quando disponível", () => {
+    render(
+      <T2AportesSection
+        data={dataWithAportes("Aportes adiantados em 20% — manter ritmo.")}
+      />,
+    );
+    expect(
+      screen.getByText(/Aportes adiantados em 20% — manter ritmo\./),
+    ).toBeInTheDocument();
+  });
+
+  it("mostra estado vazio quando dashboard.aportes ausente", () => {
+    render(<T2AportesSection data={emptyData()} />);
+    expect(
+      screen.getByText(/Nenhum aporte registrado no dashboard/),
+    ).toBeInTheDocument();
+    // tabela de variação também vazia
+    expect(
+      screen.getByText(/Sem dados de variação patrimonial neste ciclo/),
+    ).toBeInTheDocument();
+  });
+
+  it("exibe contador concluídos/total nos KPIs", () => {
+    render(<T2AportesSection data={dataWithAportes()} />);
+    // 1 de 2 concluídos no fixture
+    expect(screen.getByText("1/2")).toBeInTheDocument();
+  });
+});
 
 describe("T3TarefasSection", () => {
   it("renderiza items do Kanban retornados pelo GET", async () => {

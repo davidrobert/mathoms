@@ -743,7 +743,20 @@ export const LAYOUT: ReportLayout = {
         "collapsible": true,
         "data_source": "dashboard.aportes + dashboard.investimentos_delta",
         "charts": [],
-        "cards": [],
+        "cards": [
+          {
+            "id": "aportes_status",
+            "enabled": true,
+            "variant": "feature",
+            "size": "full"
+          },
+          {
+            "id": "investimentos_delta",
+            "enabled": true,
+            "variant": "feature",
+            "size": "full"
+          }
+        ],
         "comparisons": [
           {
             "id": "comparisons_t2",
@@ -1080,7 +1093,7 @@ export const LAYOUT: ReportLayout = {
   "version_fallback": "v5.3"
 } as ReportLayout;
 
-export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "nclex_roadmap", "simulacao_mariana"] as const;
+export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "aportes_status", "investimentos_delta", "nclex_roadmap", "simulacao_mariana"] as const;
 export type CardId = (typeof ALL_CARD_IDS)[number];
 
 export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "bubble_riscos", "top5_decisoes", "custos_f1f2", "cenarios_cambiais", "mariana_cenarios_usa"] as const;
