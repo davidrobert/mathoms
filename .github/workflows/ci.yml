@@ -283,7 +283,14 @@ jobs:
   frontend-tests:
     name: Frontend unit + integration (Vitest)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Bumped 10→25 (2026-04-27): chart tests pós-v2.E.6 (refactor 502-line de
+    # ReceitaDespesaMensalChart) ficaram lentos em jsdom — react-chartjs-2
+    # tenta `acquire canvas getContext` (canvas npm pkg ausente) e cada miss
+    # spamma stderr. Sintoma: Vitest passa todos asserts mas runtime cresce
+    # de ~2min → ~10min+. Mitigação imediata é dar headroom; investigação
+    # do root cause (mock faltando em ReportShell? jsdom slowdown?) entra
+    # em hot-fix separado.
+    timeout-minutes: 25
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     defaults:
