@@ -366,23 +366,6 @@ class TestSerializeLLMConfig:
 # ═══════════════════════════════════════════════════════════════════════
 
 
-def _capture_materialize_logs():
-    """Captura logs de ``mathoms.config.materialize`` durante o teste."""
-    import logging
-
-    records: list[logging.LogRecord] = []
-
-    class _H(logging.Handler):
-        def emit(self, record):
-            records.append(record)
-
-    handler = _H()
-    logger = logging.getLogger("mathoms.config.materialize")
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
-    return records, handler, logger
-
-
 _SENTINEL_MEMBER_KEY = "ws_sentinel_member_xyz"
 _SENTINEL_CATEGORY_CODE = "ws_sentinel_category_xyz"
 
@@ -421,20 +404,31 @@ def _seed_a7_1_sentinels(db, workspace_id: str) -> tuple[str, str]:
 
 
 def test_materialize_config_emits_deprecation_warning(db, workspace, tmp_path):
-    """A7.1: ``materialize_config`` agora é deprecated; legacy_call log fires."""
+    """A7.1: ``materialize_config`` emite ``DeprecationWarning``."""
+    import warnings
+
     from backend.app.services.config_materializer import materialize_config
 
     tenant_root = tmp_path / "tenant_dep"
     tenant_root.mkdir()
-    with pytest.warns(DeprecationWarning, match="materialize_config"):
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", DeprecationWarning)
         materialize_config(workspace.id, tenant_root, db)
+    assert any(issubclass(w.category, DeprecationWarning) for w in caught)
+    assert any("materialize_config" in str(w.message) for w in caught)
 
-    records, handler, logger = _capture_materialize_logs()
-    try:
-        materialize_config(workspace.id, tenant_root, db)
-    finally:
-        logger.removeHandler(handler)
-    assert any("legacy_call" in r.getMessage() for r in records)
+
+def test_materialize_config_emits_legacy_call_log(db, workspace, tmp_path):
+    """A7.1: ``materialize_config`` registra structured log ``legacy_call``."""
+    from unittest.mock import patch
+
+    import backend.app.services.config_materializer as cm
+
+    tenant_root = tmp_path / "tenant_dep_log"
+    tenant_root.mkdir()
+    with patch.object(cm._logger, "info") as info_spy:
+        cm.materialize_config(workspace.id, tenant_root, db)
+    assert any("legacy_call" in str(c.args[0]) for c in info_spy.call_args_list if c.args)
 
 
 def test_prepare_pipeline_config_dir_skips_a7_1_configs(db, workspace, tmp_path):
@@ -455,13 +449,16 @@ def test_prepare_pipeline_config_dir_skips_a7_1_configs(db, workspace, tmp_path)
 
 def test_prepare_pipeline_config_dir_does_not_emit_legacy_call(db, workspace, tmp_path):
     """A7.1: o novo helper NÃO emite ``mathoms.config.materialize.legacy_call``."""
+    from unittest.mock import patch
+
+    import backend.app.services.config_materializer as cm
     from backend.app.services.config_materializer import prepare_pipeline_config_dir
 
     tenant_root = tmp_path / "tenant_clean"
     tenant_root.mkdir()
-    records, handler, logger = _capture_materialize_logs()
-    try:
+    with patch.object(cm._logger, "info") as info_spy:
         prepare_pipeline_config_dir(workspace.id, tenant_root, db)
-    finally:
-        logger.removeHandler(handler)
-    assert all("legacy_call" not in r.getMessage() for r in records)
+    assert all(
+        not (call.args and "legacy_call" in str(call.args[0]))
+        for call in info_spy.call_args_list
+    )
