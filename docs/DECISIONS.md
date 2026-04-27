@@ -6282,7 +6282,7 @@ Com cache hit ratio esperado de ~60 % (usuário reabre relatório no mesmo dia, 
 
 ## ADR-143 — `docs/methodology/` é rules-as-code (Sprint A7.6)
 
-**Status:** Proposto (Sprint A7.6) • **Data:** 2026-04-27 • **Relaciona** [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions). **Supersedes-a-aproximação-de** A7.4 (entregue 2026-04-27 — `git mv config/*.md docs/methodology/*.md`, mantida a estrutura híbrida que esta ADR corrige).
+**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions). **Supersedes-a-aproximação-de** A7.4 (entregue 2026-04-27 — `git mv config/*.md docs/methodology/*.md`, mantida a estrutura híbrida que esta ADR corrige).
 
 **Contexto:** A versão CLI mono-cliente do Mathoms usava 4 arquivos markdown editoriais em `config/` (`definitions.md`, `regras_composicao_patrimonial.md`, `source_hierarchy.md`, `milhas.md`) que misturam dois conteúdos:
 
@@ -6323,7 +6323,7 @@ CLAUDE.md §Regras críticas ganha parágrafo: "Methodology = code. Nada em `doc
 
 ## ADR-145 — 7 categorias canonical da composição patrimonial
 
-**Status:** Proposto (Sprint A7.6) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
+**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
 
 **Contexto:** O relatório financeiro do Mathoms apresenta a "Composição Patrimonial" como gráfico doughnut com **exatamente 7 buckets**. A taxonomia foi historicamente documentada em `config/methodology/regras_composicao_patrimonial.md` (movido para `docs/methodology/` em A7.4) misturando regras universais com exemplos cliente-específicos. ADR-143 elimina o markdown; esta ADR registra a decisão das 7 categorias como invariante de produto.
 
@@ -6345,6 +6345,8 @@ Alternativas consideradas:
 6. **Caixa + Moeda Estrangeira** — `tipo` contém `Conta Corrente` (sem "Investimento" no mesmo campo) **OU** `Moeda Estrangeira`.
 7. **Veículos** — categoria residual para automóveis/embarcações.
 
+> **Nota de implementação ({TITULAR}/{CONJUGE}):** os labels exibidos no relatório vêm de `family_members.json` (campos `nome_curto` dos membros com papéis `titular`/`conjuge`); o `template_key` interno é estável (`investimentos_titular`, `investimentos_conjuge` — paralelo a [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions) que proíbe rename de keys). Renaming de label não afeta o key.
+
 Premissa de produto: **exatamente 2 titulares de investimentos** (titular + cônjuge). Famílias com configurações diferentes (apenas titular, >2 membros investidores, etc.) são tratadas como casos especiais — `Investimentos {CONJUGE}` retorna 0 quando ausente; >2 membros não suportado nesta versão.
 
 Regras de classificação (universal, sem dados cliente) vão para docstring na função classificadora em `pipeline/domain/services/cash_flow_builder.py` (ou serviço equivalente identificado no Explore da lane A7.6). Os exemplos cliente-específicos (Hashdex matching, contas Itaú Personnalité, etc.) viram **fixtures de teste unitário** com nomes anônimos (`FundoExemplo`, `BancoExemplo`).
@@ -6361,7 +6363,7 @@ Regras de classificação (universal, sem dados cliente) vão para docstring na 
 
 ## ADR-146 — E3 source hierarchy + `BankAccount.source_tier` schema
 
-**Status:** Proposto (Sprint A7.6) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy).
+**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy).
 
 **Contexto:** O stage E3 (reconciliação) consolida transações de múltiplas fontes (extratos bancários parseados, faturas de cartão, screenshots de app, deduções IRPF, declarações editorais) e precisa decidir qual fonte tem precedência quando há conflito (ex.: mesma transação aparece em extrato + fatura de cartão por causa de pagamento intermediado).
 
@@ -6403,13 +6405,14 @@ Function que enforce a hierarchy vai para docstring em `pipeline/domain/services
 - ✅ Onboarding default funciona — não exige configuração tier-by-bank pelo cliente.
 - ⚠️ Schema migration adiciona coluna nullable ao `bank_accounts`. Backwards-compat sob ADR-097 (add nullable + populate + flip — sem DROP no mesmo PR).
 - ⚠️ Documentação da regra default fica em docstring de **uma** função (income_origin_resolver). Se a função for refatorada/extraída, o docstring deve migrar junto. Mitigação: regra documentada em ADR-146 mesmo (esta) é o índice canônico.
+- ⚠️ **Test fixture obrigatório:** dois artefatos mesmo-tier reconciliados deterministicamente entre runs (regra de tie-breaking via timestamp). Sub-task de A7.6 que migra o resolver deve incluir `tests/unit/pipeline/test_e3_source_tier_tie_breaking.py` com 2 specs: (a) tier mais alto vence ainda que extração mais antiga; (b) mesmo tier → timestamp mais recente vence.
 - ❌ `source_tier` per-account ignora granularidade temporal (banco pode ter parser melhorando ao longo do tempo). Aceito — granularidade temporal exige ADR específica futura.
 
 ---
 
 ## ADR-147 — Milhas: valuation methodology universal + storage workspace-scoped
 
-**Status:** Proposto (Sprint A7.6) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
+**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
 
 **Contexto:** O relatório do Mathoms inclui um card "Programas de Milhagem" (Smiles, Latam Pass, Livelo, Atomos, MasterCard Surpreenda, etc.) com saldo de pontos por programa, valor estimado em BRL e regras de expiração. A fonte histórica é `config/milhas.md` (movido para `docs/methodology/` em A7.4) parseado em runtime por `scripts/e5_analyze.py::parse_milhas_md(workspace_root)`.
 

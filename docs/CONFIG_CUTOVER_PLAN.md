@@ -1,6 +1,6 @@
 # Plano — Cutover de `config/` para DB multi-tenant (Sprint A7)
 
-> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 fechada (A7.1 ✅ + A7.2a ✅ + A7.2b ✅ + A7.4 ✅) · **A7.6 aberta** (rules-as-code: dissolve `docs/methodology/` que A7.4 introduziu como solução incompleta — gate G1 pendente) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
+> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 fechada (A7.1 ✅ + A7.2a ✅ + A7.2b ✅ + A7.4 ✅) · **A7.6 aberta** (rules-as-code: dissolve `docs/methodology/` que A7.4 introduziu como solução incompleta — gate G1 ✅ (CTO 2026-04-27)) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
 > **Audiência:** agentes LLM em paralelo (Onda 2 com até 4 agentes simultâneos) + supervisor CTO (humano ou agente `senior-cto`).
 > **Premissa central:** o produto **continua operando em produção** entre cada onda. Nenhum passo pode quebrar smoke E2E ou bloquear geração de relatório de workspace existente.
 > **Referências:** [BACKLOG.md §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal), [DECISIONS.md ADR-134..138](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [CLAUDE.md §Regras críticas](../CLAUDE.md#regras-críticas-invariantes-do-repositório).
@@ -555,7 +555,7 @@ atualizados em `CLAUDE.md`, `.claude/agents/financial-planner.md`,
 
 **Onda 2.5 · 1 lane · ~3-4 sessões · paralelo com A7.2a, A7.3.**
 
-**Status:** ☐ aberta — gate G1 pendente (4 ADRs draft + CTO sign-off antes de codar).
+**Status:** ☐ aberta — gate G1 ✅ (CTO 2026-04-27) (4 ADRs draft + CTO sign-off antes de codar).
 
 **Depende de:** A7.4 ✅ mergeada (arquivos atualmente em `docs/methodology/`).
 
