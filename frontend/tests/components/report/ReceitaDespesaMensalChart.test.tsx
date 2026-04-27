@@ -1,32 +1,6 @@
 /**
  * v2.E.6 — specs do `<ReceitaDespesaMensalChart>` (Chart.js stacked).
  *
- * ⚠️ **EXCLUÍDO DA SUITE DEFAULT** (sufixo `.slow.test.tsx`) — o
- * describe `<ReceitaDespesaMensalChart />` (15 tests) trava sem output
- * quando rodado combinado, fazendo o job CI Frontend Vitest estourar
- * o timeout de 10min. Suspeita: interação entre o mock `vi.hoisted` de
- * `react-chartjs-2` (chart-instance ref + datasetMeta compartilhado) e
- * o `userEvent.setup()` em "slide window"/"toggle swatch". Tests
- * isolados via `-t` passam em <1s cada (`retorna null quando nao ha
- * dados` em 7ms; `tooltip helpers` em ~800ms).
- *
- * **Para rodar:**
- *
- *   # Tooltip helpers (rápido, sem render combinado):
- *   npm run test:slow -- -t "tooltip helpers"
- *
- *   # Test específico:
- *   npm run test:slow -- -t "retorna null quando nao ha dados"
- *
- *   # Tudo (provavelmente trava — só execute se estiver investigando o bug):
- *   npm run test:slow
- *
- * Lane follow-up para fix permanente: ver task spawnada
- * "Fix CI Vitest 10-min timeout (slow ReceitaDespesaMensalChart test)".
- * Quando consertado, renomear de volta para `.test.tsx` e remover o
- * glob `tests/(...)/*.slow.test.tsx` do `exclude` em
- * [vitest.config.ts](../../../vitest.config.ts).
- *
  * Cobre:
  *  - Tooltip helpers (title/body/footer) puros, com mocks de items + chart
  *    (Chart.js nao roda em jsdom — `canvas` npm pkg nao instalado).
@@ -38,7 +12,8 @@
  * componente continua chamando `onChartReady` para o flow imperativo
  * (toggle no `getDatasetMeta`) ser exercitado no teste.
  */
-import { describe, expect, it, vi } from "vitest";
+import { useEffect } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -55,10 +30,25 @@ import type { FluxoCaixaSummary } from "@/types/report-analysis";
 // jsdom nao tem `canvas`; substituimos por um stub que (a) chama
 // `onChartReady` com uma instancia minima e (b) renderiza um <div role=img>
 // com data attrs para inspecao.
-const mocks = vi.hoisted(() => ({
-  chartUpdate: vi.fn(),
-  datasetMeta: [] as { hidden: boolean }[],
-}));
+//
+// `fakeChart` precisa ser ESTAVEL entre renders — `ChartCanvas.setRef` faz
+// short-circuit por referencia (`chartRef.current === chart`); se cada
+// render produz fakeChart novo, `setChartInstance` dispara a cada render
+// e o componente entra em infinite render loop (foi a causa do CI Vitest
+// timeout v2.E.6).
+const mocks = vi.hoisted(() => {
+  const datasetMeta: { hidden: boolean }[] = [];
+  const chartUpdate = vi.fn();
+  const fakeChart = {
+    update: chartUpdate,
+    getDatasetMeta: (i: number) => {
+      if (!datasetMeta[i]) datasetMeta[i] = { hidden: false };
+      return datasetMeta[i];
+    },
+    toBase64Image: () => "data:image/png;base64,stub",
+  };
+  return { chartUpdate, datasetMeta, fakeChart };
+});
 
 vi.mock("react-chartjs-2", () => {
   return {
@@ -67,16 +57,14 @@ vi.mock("react-chartjs-2", () => {
       data: { labels: string[]; datasets: Array<{ label: string; stack: string }> };
       "aria-label"?: string;
     }) => {
-      const fakeChart = {
-        update: mocks.chartUpdate,
-        getDatasetMeta: (i: number) => {
-          if (!mocks.datasetMeta[i]) mocks.datasetMeta[i] = { hidden: false };
-          return mocks.datasetMeta[i];
-        },
-        toBase64Image: () => "data:image/png;base64,stub",
-        data: props.data,
-      };
-      props.ref?.(fakeChart);
+      // Ref entregue em useEffect (pos-commit) para nao chamar setState
+      // do parent durante render do filho — React emite warning "Cannot
+      // update a component while rendering a different component".
+      const setRef = props.ref;
+      useEffect(() => {
+        setRef?.(mocks.fakeChart);
+        return () => setRef?.(null);
+      }, [setRef]);
       return (
         <div
           role="img"
@@ -88,6 +76,11 @@ vi.mock("react-chartjs-2", () => {
       );
     },
   };
+});
+
+beforeEach(() => {
+  mocks.chartUpdate.mockClear();
+  mocks.datasetMeta.length = 0;
 });
 
 function buildFluxo(months: number): FluxoCaixaSummary {
@@ -247,8 +240,6 @@ describe("<ReceitaDespesaMensalChart />", () => {
   });
 
   it("toggle no swatch flipa data-legend-hidden e chama chart.update()", async () => {
-    mocks.chartUpdate.mockClear();
-    mocks.datasetMeta.length = 0;
     const user = userEvent.setup();
     render(<ReceitaDespesaMensalChart fluxo={buildFluxo(6)} />);
     const swatches = screen.getAllByRole("button", { pressed: true });
