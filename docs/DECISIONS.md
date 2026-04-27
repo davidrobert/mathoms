@@ -563,7 +563,7 @@ Alternativa descartada: Big-bang. Alto risco de quebrar tudo.
 
 ## ADR-046 — Responsivo sem PWA obrigatório
 
-**Status:** Revisado (F6)
+**Status:** Decidido (F6) • **Revisão:** decisão original revisada — ver §"Decisão revisada" abaixo.
 
 **Decisão original:** PWA obrigatório com offline.
 
@@ -2219,7 +2219,7 @@ mantém o sistema consistente, rename antecipado cria estado misto perigoso.
 
 ## ADR-093 — Rename completo de identificadores de stage (Opção A)
 
-**Status:** 🚧 Em execução — F9.0 ✅ (2026-04-24) · F9.1 ✅ (2026-04-25) ·
+**Status:** Decidido (F9 · execução em andamento) — F9.0 ✅ (2026-04-24) · F9.1 ✅ (2026-04-25) ·
 **F9.2 T1 ✅ (2026-04-25)** — `STAGE_REGISTRY` keys descritivas +
 `resolve_stage_name`/`to_legacy_stage_name` helpers + compat reverso;
 T2-T5 (substituição de strings literais em call-sites) abertas como
@@ -6038,8 +6038,7 @@ Relaciona-se a: ADR-037 (Recharts — escopo restringido), ADR-076
 
 ## ADR-140 — Goal IF schema v2 (renda passiva atual + IF meta líquida)
 
-**Status:** Roadmap — schema candidato em `config/schemas/goal.if.v2.schema.json`; backend, frontend e DB ainda emitem v1. Adoção exige lane dedicada.
-**Data:** 2026-04-27
+**Status:** Roadmap • **Data:** 2026-04-27 • **Implementação:** schema candidato em `config/schemas/goal.if.v2.schema.json`; backend, frontend e DB ainda emitem v1 — adoção exige lane dedicada.
 
 **Contexto:** Auditoria multi-agente (rodada 1, item 5 do financial-planner; rodada 2, item B1 do senior-cto) identificou dois gaps no schema v1 do Goal IF:
 
@@ -6077,8 +6076,7 @@ Relaciona-se a: ADR-037 (Recharts — escopo restringido), ADR-076
 
 ## ADR-141 — Goal alocação-alvo schema v2 (7 classes AUVP)
 
-**Status:** Roadmap — schema candidato em `config/schemas/goal.alocacao_alvo.v2.schema.json`; backend (`pipeline_adapter._serialize_alocacao_goal`), frontend (`plano/alocacao/page.tsx`) e seeds operam em v1.
-**Data:** 2026-04-27
+**Status:** Roadmap • **Data:** 2026-04-27 • **Implementação:** schema candidato em `config/schemas/goal.alocacao_alvo.v2.schema.json`; backend (`pipeline_adapter._serialize_alocacao_goal`), frontend (`plano/alocacao/page.tsx`) e seeds operam em v1.
 
 **Contexto:** Auditoria multi-agente (rodada 1, item 9; rodada 2, item B2) identificou que a caracterização da AUVP em [methodology.md](../config/methodology.md) e nos schemas era reducionista. AUVP é **alocação multi-classe + rebalanceamento por aporte via Diagrama do Cerrado** — não "fundamentalista + FIIs" como dizia v1 do `methodology.md`. O schema v1 de alocação-alvo (`renda_fixa_pct`, `acoes_pct`, `imoveis_reits_pct`, `liquidez_usd_pct` — 4 buckets) cola RF pré/pós/IPCA em um único bucket e mistura ações BR com internacionais — perde o que é distintivo na metodologia.
 
