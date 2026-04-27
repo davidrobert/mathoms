@@ -387,6 +387,84 @@ async def test_get_report_data_404_after_artifact_deleted(
     assert resp.status_code == 404
 
 
+# ─── v2.8 (ADR-148): comparisons + changelog no payload ───────────────
+
+
+@pytest.mark.asyncio
+async def test_get_report_data_comparisons_null_when_first_report(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    """Primeiro relatório do workspace ⇒ ``comparisons: null, changelog: null`` (D3)."""
+    payload = {
+        "periodo_dados": "202601-202604",
+        "patrimonio": {"liquido": 1_000_000.0, "bruto": 1_200_000.0},
+        "fluxo_caixa": {
+            "receita_total": 50_000.0,
+            "despesa_total": 30_000.0,
+            "investimentos_total": 10_000.0,
+        },
+    }
+    rid = await _seed_report(auth_client, analysis_payload=payload, tmp_path=tmp_path, db=db)
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["comparisons"] is None
+    assert body["changelog"] is None
+
+
+@pytest.mark.asyncio
+async def test_get_report_data_comparisons_present_with_previous_snapshot(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    """Segundo relatório com snapshot anterior ⇒ ``comparisons``/``changelog`` populados."""
+    prev_payload = {
+        "periodo_dados": "202601-202603",
+        "patrimonio": {"liquido": 1_000_000.0, "bruto": 1_200_000.0},
+        "fluxo_caixa": {
+            "receita_total": 50_000.0,
+            "despesa_total": 30_000.0,
+            "investimentos_total": 10_000.0,
+        },
+    }
+    curr_payload = {
+        "periodo_dados": "202602-202604",
+        "patrimonio": {"liquido": 1_100_000.0, "bruto": 1_300_000.0},
+        "fluxo_caixa": {
+            "receita_total": 55_000.0,
+            "despesa_total": 30_000.0,
+            "investimentos_total": 12_000.0,
+        },
+    }
+    # Seed prev primeiro (created_at < curr).
+    await _seed_report(auth_client, analysis_payload=prev_payload, tmp_path=tmp_path, db=db)
+    rid_curr = await _seed_report(
+        auth_client, analysis_payload=curr_payload, tmp_path=tmp_path, db=db
+    )
+
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid_curr}/data")
+    assert resp.status_code == 200
+    body = resp.json()
+    items = body["comparisons"]
+    assert isinstance(items, list)
+    assert len(items) == 5  # S1, S2, S3, T2, T5
+    section_ids = [it["section_id"] for it in items]
+    assert section_ids == ["S1", "S2", "S3", "T2", "T5"]
+
+    s1 = next(it for it in items if it["section_id"] == "S1")
+    assert s1["before"] == pytest.approx(1_000_000.0)
+    assert s1["after"] == pytest.approx(1_100_000.0)
+    assert s1["delta_signal"] == "up"
+    assert s1["delta_pct"] == pytest.approx(10.0, rel=1e-3)
+
+    # Changelog tem entry só para seções não-stable.
+    entries = body["changelog"]
+    assert isinstance(entries, list)
+    assert len(entries) >= 1
+    # T5 (despesa estável: 30k → 30k) não deve aparecer.
+    t5_entries = [e for e in entries if e["section_id"] == "T5"]
+    assert t5_entries == []
+
+
 # ─── ADR-129: sanitize helper segue em uso pelo download PDF ───────────
 
 
