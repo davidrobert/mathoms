@@ -27,6 +27,9 @@ export type { ChartWaterfallProps, WaterfallStep } from "./ChartWaterfall";
 export { ChartGaugeSemi } from "./ChartGaugeSemi";
 export type { ChartGaugeSemiProps } from "./ChartGaugeSemi";
 
+export { ChartGaugeScore } from "./ChartGaugeScore";
+export type { ChartGaugeScoreProps, ScoreClasseKey } from "./ChartGaugeScore";
+
 export { ChartConclusion } from "./ChartConclusion";
 export { ChartNav } from "./ChartNav";
 export type { ChartNavProps } from "./ChartNav";

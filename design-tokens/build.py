@@ -78,6 +78,12 @@ def _mode_block(mode_data: dict[str, Any]) -> list[str]:
         lines.append(f"    --chart-{i}: {color};")
     lines.append("")
 
+    # score classes (Score Financeiro 0-10 — ADR-117 gauge)
+    for k, v in mode_data.get("score_classes", {}).items():
+        lines.append(f"    --score-classe-{_kebab(k)}: {v};")
+    if mode_data.get("score_classes"):
+        lines.append("")
+
     # sidebar
     for k, v in mode_data["sidebar"].items():
         lines.append(f"    --sidebar-{_kebab(k)}: {v};")
