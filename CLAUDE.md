@@ -60,6 +60,16 @@ deles:
 Cada arquivo `.claude/agents/<nome>.md` tem o briefing completo.
 **Não duplique** o briefing aqui — leia direto.
 
+**Catálogo extensível.** O senior-cto tem autonomia (`Write`/`Edit` em
+`.claude/agents/`) para criar novo especialista quando identificar gap
+de domínio recorrente não coberto pelos 3 atuais. Critérios e protocolo
+em [.claude/agents/senior-cto.md](.claude/agents/senior-cto.md)
+§Criação de novos especialistas. Esqueleto para novo agente:
+[.claude/agents/_TEMPLATE.md](.claude/agents/_TEMPLATE.md). Após o
+senior-cto criar o arquivo, o agente principal commita e adiciona entrada
+nesta lista — sem essa atualização, o orquestrador não sabe que o agente
+existe.
+
 ---
 
 ## "Concluído" = commit mergeado em `main` com CI verde
