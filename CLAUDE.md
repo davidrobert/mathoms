@@ -455,7 +455,12 @@ True = força DB, False = força disco).
 
 `storage/`, `data/`, `inbox/`, `inbox_processed/`, `_scratch/`,
 `docs/methodology/`, `.env`, `.env.test`, `mathoms.db`,
-`config/passwords.txt`, `*.db`, `*.sqlite`. Hook bloqueia antes do commit.
+`config/passwords.txt`, `*.db`, `*.sqlite`. Sprint A7
+(ADR-134/135/137) também bloqueia 11 arquivos legados de `config/`
+migrados para DB: `categorization.json`, `family_members.json`,
+`institutions.json`, `parametros_fiscais.json`, `taxas.json`,
+`decisions.md` (4 docs metodológicos saíram em A7.4/A7.6 e
+`docs/methodology/` é diretório bloqueado). Hook bloqueia antes do commit.
 
 ### URLs canônicas (ADR-108)
 
@@ -755,12 +760,13 @@ Consulte antes de inferir regras de domínio ou layout:
 | --------------------------------- | ------------------------------------------------------------------------- |
 | `docs/ARCHITECTURE.md §4.1 Domain glossary` | Índice de regras de domínio (rules-as-code, ADR-143) — aponta para o módulo enforcer + ADR canônica de cada conceito |
 | `config/pipeline.json`            | Parâmetros operacionais (inclui `report_version`, schema validation)      |
-| `config/family_members.json`      | Dados cadastrais canônicos                                                |
-| `config/institutions.json`        | Padrões de bancos e tipos de documento                                    |
-| `config/categorization.json`      | Keywords de categorização                                                 |
-| `config/report_layout.yaml`       | Seções e componentes do relatório (com comentários inline)                |
+| `config/report_layout.yaml`       | Seções e componentes do relatório (com comentários inline) — source-of-truth do codegen `dev/codegen_report_layout.py` (ADR-076) |
 | `config/schemas/*.schema.json`    | Contratos JSON por etapa                                                  |
 | `pipeline.stage_spec.STAGE_REGISTRY` | Source of truth de execução de stages (+ `STAGE_RENAME_MAP` para F9)   |
+| `ConfigStore` protocol (DB-first) | `family_members`, `categorization`, `institutions`, `report_layout`, `transferencias_internas` (Sprint A7.0–A7.5 · ADR-134). Workspace lê via `DBConfigStore` em `WorkspaceContext.config_overrides`. |
+| `fiscal_parameters` + `market_rates` (DB) | Tabelas globais versionadas por data — IRPF/PGBL/lucro presumido (ADR-135) e câmbio (USD/BRL, EUR/BRL). Substituiu `parametros_fiscais.json` + `taxas.json` em Sprint A7.2b. |
+| `category_template` + `workspace_category_overrides` + `institution_catalog` (DB) | Catalog global versionado + diff por workspace (ADR-137 · A7.3). Substituiu `categorization.json` + `institutions.json` legados. |
+| `Decision` aggregate (DB)         | Plano de Ação event-sourced (ADR-136 · A7.2a). Substituiu `decisions.md` editorial. |
 
 **Manual histórico (referência):** `_archive/manual_operacao_v6.1.md` —
 pipeline CLI legado.

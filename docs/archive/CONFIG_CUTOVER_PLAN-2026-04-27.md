@@ -1,6 +1,17 @@
-# Plano — Cutover de `config/` para DB multi-tenant (Sprint A7)
+# ARQUIVADO — Plano cutover de `config/` para DB multi-tenant
 
-> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 fechada (A7.1 ✅ + A7.2a ✅ + A7.2b ✅ + A7.4 ✅) · Onda 3 fechada (A7.3 ✅) · **A7.6 ✅ entregue** (rules-as-code dissolveu `docs/methodology/` que A7.4 introduziu como solução incompleta) · Onda 4 (A7.5 cleanup) **desbloqueada**.
+> **Sprint A7 fechada em 2026-04-27.** Todas as 7 lanes mergeadas em `main`.
+> Resultado: 5 arquivos do CLI legado removidos (`categorization.json`,
+> `family_members.json`, `institutions.json`, `parametros_fiscais.json`,
+> `taxas.json`); pipeline 100% DB-first via `DBConfigStore`; tabelas globais
+> versionadas para fiscal/market (ADR-135); entidade `Decision` event-sourced
+> substitui markdown editorial (ADR-136); resolver catalog+override para
+> categories e institutions (ADR-137); rules-as-code dissolveu
+> `docs/methodology/` (ADR-143). `FileConfigStore` + `materialize_config`
+> bridges removidos. ~~`config/report_layout.yaml`~~ permanece em `config/` por
+> ser source-of-truth do codegen `dev/codegen_report_layout.py` — débito A8.
+
+> **Status:** ✅ entregue 2026-04-27 — 7 lanes (A7.0–A7.6) mergeadas.
 > **Audiência:** agentes LLM em paralelo (Onda 2 com até 4 agentes simultâneos) + supervisor CTO (humano ou agente `senior-cto`).
 > **Premissa central:** o produto **continua operando em produção** entre cada onda. Nenhum passo pode quebrar smoke E2E ou bloquear geração de relatório de workspace existente.
 > **Referências:** [BACKLOG.md §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal), [DECISIONS.md ADR-134..138](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [CLAUDE.md §Regras críticas](../CLAUDE.md#regras-críticas-invariantes-do-repositório).

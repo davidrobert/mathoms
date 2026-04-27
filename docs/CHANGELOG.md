@@ -164,11 +164,35 @@
   workspace dogfood (escopo do dono do produto). Follow-up v3: hash-de-prompt
   na cache key.
 
-Trabalho em andamento: **Sprint A7 — Config DB Cutover** (aberto 2026-04-26) +
-execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)** (rename de stages F9) +
+Trabalho em andamento: execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)** (rename de stages F9) +
 preparação para **F7 (Produção + LGPD + Ops)**.
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
+
+- **Sprint A7 ✅ entregue 2026-04-27 — Config DB Cutover (CLI legacy removal):**
+  7 lanes mergeadas em `main` no mesmo dia (A7.0 → A7.6). Plano canônico arquivado
+  em [docs/archive/CONFIG_CUTOVER_PLAN-2026-04-27.md](archive/CONFIG_CUTOVER_PLAN-2026-04-27.md).
+  Resultado: produto roda 100% DB-first via `DBConfigStore` (ADR-134); 5 arquivos
+  legados de `config/` deletados em A7.5 (`categorization.json`,
+  `family_members.json`, `institutions.json`, `parametros_fiscais.json`,
+  `taxas.json`) + `decisions.md` (A7.2a) + 4 docs metodológicos saídos via
+  A7.4/A7.6. Tabelas globais versionadas substituem `parametros_fiscais.json`
+  + `taxas.json` (ADR-135); entidade `Decision` event-sourced substitui markdown
+  editorial (ADR-136); catalog+override resolver substitui
+  `categorization.json`/`institutions.json` legados (ADR-137); rules-as-code
+  dissolveu `docs/methodology/` (ADR-143). **Bridges removidos em A7.5 (commit
+  final):** `FileConfigStore`, `materialize_config()` + helpers `_override_*`,
+  `legacy_json_to_fiscal`. **`config/report_layout.yaml`** permanece como
+  source-of-truth do codegen `dev/codegen_report_layout.py` (ADR-076) + default
+  global do blob — débito A8. **Testes:** 1555+ pipeline + 1475+ backend
+  continuam verdes; tests legacy adaptados (`test_config_materializer`,
+  `test_serializers_round_trip`, `test_golden_pipeline`, `test_config_api/_fallback`,
+  `test_consumo_pontuais`, `test_e5/e5n_golden_execution`, `test_stage_wrappers`);
+  fixtures `parametros_fiscais.json` + `taxas.json` migradas para
+  `tests/fixtures/legacy_configs/`. **STATELESS_AUDIT.md atualizado**
+  (`FileConfigStore._cache` saiu da lista). **`dev/check_forbidden_paths.py`**
+  bloqueia 11 paths legados de `config/`. CTO sign-off em 4 gates por lane.
+
 
 - **Report Premium UI v2 — saída ✅ (Cenário B fechou as 6 sub-lanes finais 2026-04-27):**
   6 lanes em 2 ondas paralelas + recovery: v2.2b (Tático ✅, USA ⏸ produto),
