@@ -1,19 +1,6 @@
 #!/usr/bin/env python3
-"""Gera o sumário (Índice por categoria) de docs/DECISIONS.md.
+"""Gera o sumário (Índice por categoria) de docs/DECISIONS.md (idempotente)."""
 
-Categoriza cada ADR por uma combinação de heurística de palavras-chave
-no título + faixa numérica como fallback. A saída é um bloco markdown
-pronto para colar no início do arquivo (entre as marcações
-`<!-- ADR-TOC-START -->` e `<!-- ADR-TOC-END -->`).
-
-Uso:
-    python3 dev/build_adr_toc.py            # imprime ToC
-    python3 dev/build_adr_toc.py --inline   # injeta entre as marcações no DECISIONS.md
-    python3 dev/build_adr_toc.py --check    # exit 1 se ToC atual ≠ gerado
-
-O script é idempotente: rodar 2× gera o mesmo output dado o mesmo
-arquivo.
-"""
 from __future__ import annotations
 
 import argparse
@@ -42,95 +29,214 @@ def github_slug(heading_text: str) -> str:
 CATEGORIES: list[tuple[str, list[str], list[range]]] = [
     # (Nome da categoria, palavras-chave no título (lowercase), faixas numéricas)
     ("Fundação", ["sqlalchemy", "filesystem", "jwt", "vps", "monorepo", "wrap"], [range(1, 14)]),
-    ("Persistência", ["alembic", "postgresql", "sqlite", "docker volume", "fernet"], [range(38, 42)]),
-    ("Pipeline", [
-        "threading", "vault", "e0-route", "sync session",
-        "config_dir", "storage_root", "cancelamento", "content-first",
-        "classificação de documentos",
-    ], [range(14, 20), range(30, 31), range(75, 76), range(79, 80), range(81, 82)]),
-    ("Config (materialização legada)", ["materializar config", "configs editáveis", "fallback seletivo", "import/export"], [range(20, 24)]),
+    (
+        "Persistência",
+        ["alembic", "postgresql", "sqlite", "docker volume", "fernet"],
+        [range(38, 42)],
+    ),
+    (
+        "Pipeline",
+        [
+            "threading",
+            "vault",
+            "e0-route",
+            "sync session",
+            "config_dir",
+            "storage_root",
+            "cancelamento",
+            "content-first",
+            "classificação de documentos",
+        ],
+        [range(14, 20), range(30, 31), range(75, 76), range(79, 80), range(81, 82)],
+    ),
+    (
+        "Config (materialização legada)",
+        ["materializar config", "configs editáveis", "fallback seletivo", "import/export"],
+        [range(20, 24)],
+    ),
     ("LLM", ["litellm", "byok", "instructor", "retry", "e7 full scope"], [range(24, 29)]),
     ("Task Queue", ["celery", "websocket", "redis para queue", "cancel stage"], [range(29, 33)]),
-    ("Frontend / Design", [
-        "react components", "dashboard completo", "media print",
-        "recharts", "design system antes", "shadcn", "tailwind",
-        "geist fonts", "lucide", "intl nativo", "migração incremental",
-    ], [range(33, 55)]),
-    ("Produto", ["transaction explorer", "data lineage", "responsivo", "category override"], [range(44, 48)]),
-    ("Produção & Infra (F7)", [
-        "fernet app-level", "billing", "traefik", "coverage target",
-        "rolling restart", "jwt 15min", "vps cx32", "cve scan",
-        "fernet dual key", "telemetria", "subdomínios mathomsai",
-    ], [range(7, 8), range(40, 42), range(55, 62), range(108, 109)]),
-    ("Testing", [
-        "frontend testing em fase", "hardening fintech",
-        "backend hardening", "test infrastructure", "msw sync",
-        "premium llm e2e", "playwright workspace",
-    ], [range(62, 72)]),
+    (
+        "Frontend / Design",
+        [
+            "react components",
+            "dashboard completo",
+            "media print",
+            "recharts",
+            "design system antes",
+            "shadcn",
+            "tailwind",
+            "geist fonts",
+            "lucide",
+            "intl nativo",
+            "migração incremental",
+        ],
+        [range(33, 55)],
+    ),
+    (
+        "Produto",
+        ["transaction explorer", "data lineage", "responsivo", "category override"],
+        [range(44, 48)],
+    ),
+    (
+        "Produção & Infra (F7)",
+        [
+            "fernet app-level",
+            "billing",
+            "traefik",
+            "coverage target",
+            "rolling restart",
+            "jwt 15min",
+            "vps cx32",
+            "cve scan",
+            "fernet dual key",
+            "telemetria",
+            "subdomínios mathomsai",
+        ],
+        [range(7, 8), range(40, 42), range(55, 62), range(108, 109)],
+    ),
+    (
+        "Testing",
+        [
+            "frontend testing em fase",
+            "hardening fintech",
+            "backend hardening",
+            "test infrastructure",
+            "msw sync",
+            "premium llm e2e",
+            "playwright workspace",
+        ],
+        [range(62, 72)],
+    ),
     ("Operations", ["sub-fase 7e", "auth flows completos"], [range(65, 67)]),
     ("UX / Linguagem", ["códigos internos do pipeline"], [range(68, 69)]),
     ("Multi-tenancy (F8)", ["multi-tenancy"], [range(72, 73)]),
-    ("Goals & Tasks (F8)", [
-        "goals como entidade", "tasks como entidade",
-        "cutover cli", "pipeline-adapter como contrato",
-    ], [range(73, 78)]),
-    ("Design System & Render (F9 / Report Premium)", [
-        "design tokens unificados", "render nativo react", "design tokens",
-    ], [range(76, 79), range(121, 130)]),
-    ("Pipeline DDD/SOLID + Infra+Domínio (Sprint A6)", [
-        "pipelineartifact", "artifactstore", "content-addressed",
-        "eliminar materialização", "materializationbridge",
-        "stagespec", "stageconfig", "pipelinedomain", "decimal",
-        "pydantic para domain", "renomear scripts", "rename completo",
-        "report single-active", "lgpd", "observabilidade de cutover",
-        "extract-then-refactor", "caminho b", "reuse de analyze",
-        "a6d commitment", "princípios r12-r17", "princípios r18-r20",
-        "teste manual", "e15c", "llm stages escrevem",
-        "opt-in db artifacts", "remoção de materializationbridge",
-        "auth portability", "stateless-rigoroso",
-        "pipeline-as-service", "convenções go", "skeleton go",
-        "domain events", "f7f-local", "flip do default",
-        "livestep", "readers db-first",
-    ], [range(82, 121)]),
+    (
+        "Goals & Tasks (F8)",
+        [
+            "goals como entidade",
+            "tasks como entidade",
+            "cutover cli",
+            "pipeline-adapter como contrato",
+        ],
+        [range(73, 78)],
+    ),
+    (
+        "Design System & Render (F9 / Report Premium)",
+        [
+            "design tokens unificados",
+            "render nativo react",
+            "design tokens",
+        ],
+        [range(76, 79), range(121, 130)],
+    ),
+    (
+        "Pipeline DDD/SOLID + Infra+Domínio (Sprint A6)",
+        [
+            "pipelineartifact",
+            "artifactstore",
+            "content-addressed",
+            "eliminar materialização",
+            "materializationbridge",
+            "stagespec",
+            "stageconfig",
+            "pipelinedomain",
+            "decimal",
+            "pydantic para domain",
+            "renomear scripts",
+            "rename completo",
+            "report single-active",
+            "lgpd",
+            "observabilidade de cutover",
+            "extract-then-refactor",
+            "caminho b",
+            "reuse de analyze",
+            "a6d commitment",
+            "princípios r12-r17",
+            "princípios r18-r20",
+            "teste manual",
+            "e15c",
+            "llm stages escrevem",
+            "opt-in db artifacts",
+            "remoção de materializationbridge",
+            "auth portability",
+            "stateless-rigoroso",
+            "pipeline-as-service",
+            "convenções go",
+            "skeleton go",
+            "domain events",
+            "f7f-local",
+            "flip do default",
+            "livestep",
+            "readers db-first",
+        ],
+        [range(82, 121)],
+    ),
     ("Internacionalização (F12)", ["internacionalização"], [range(130, 131)]),
-    ("Report Premium (F-pós, ondas v1/v2)", [
-        "scripts/e6_render", "ssr standalone", "descontinuação completa",
-        "report referencia", "lifecycle scoping", "transferencias_internas",
-        "ui de edição", "snapshotchangelogbuilder", "section_summaries",
-        "finalização migração recharts", "supervisão cto",
-    ], [range(122, 130), range(131, 134), range(139, 140), range(144, 145), range(148, 149)]),
-    ("Sprint A7 — Rules-as-Code & Cutover", [
-        "configstore", "versionamento temporal de séries fiscais",
-        "decision aggregate", "catalog + override resolver",
-        "docs/methodology", "rules-as-code",
-        "7 categorias canonical", "source hierarchy", "milhas",
-    ], [range(134, 138), range(143, 148)]),
-    ("Decisões metodológicas pós-auditoria (Roadmap v2)", [
-        "goal if schema v2", "goal alocação-alvo schema v2",
-        "toggle `imoveis_no_if`", "imoveis_no_if",
-    ], [range(140, 143)]),
+    (
+        "Report Premium (F-pós, ondas v1/v2)",
+        [
+            "scripts/e6_render",
+            "ssr standalone",
+            "descontinuação completa",
+            "report referencia",
+            "lifecycle scoping",
+            "transferencias_internas",
+            "ui de edição",
+            "snapshotchangelogbuilder",
+            "section_summaries",
+            "finalização migração recharts",
+            "supervisão cto",
+        ],
+        [range(122, 130), range(131, 134), range(139, 140), range(144, 145), range(148, 149)],
+    ),
+    (
+        "Sprint A7 — Rules-as-Code & Cutover",
+        [
+            "configstore",
+            "versionamento temporal de séries fiscais",
+            "decision aggregate",
+            "catalog + override resolver",
+            "docs/methodology",
+            "rules-as-code",
+            "7 categorias canonical",
+            "source hierarchy",
+            "milhas",
+        ],
+        [range(134, 138), range(143, 148)],
+    ),
+    (
+        "Decisões metodológicas pós-auditoria (Roadmap v2)",
+        [
+            "goal if schema v2",
+            "goal alocação-alvo schema v2",
+            "toggle `imoveis_no_if`",
+            "imoveis_no_if",
+        ],
+        [range(140, 143)],
+    ),
 ]
 
 
 # Overrides por número quando a heurística pega mal (ordem de cima vence).
 # Mantém o script idempotente sem complicar demais a regra geral.
 OVERRIDES: dict[int, str] = {
-    7: "Produção & Infra (F7)",       # ADR-007 Fernet criptografia (não Fundação)
-    40: "Produção & Infra (F7)",      # Billing
-    41: "Produção & Infra (F7)",      # Traefik
-    57: "Produção & Infra (F7)",      # JWT 15min/refresh 7d
-    58: "Produção & Infra (F7)",      # VPS CX32
-    60: "Produção & Infra (F7)",      # Fernet dual key
-    65: "Operations",                 # 7E operational readiness
-    66: "Operations",                 # Auth flows beta blockers
-    68: "UX / Linguagem",             # códigos internos não vazam
+    7: "Produção & Infra (F7)",  # ADR-007 Fernet criptografia (não Fundação)
+    40: "Produção & Infra (F7)",  # Billing
+    41: "Produção & Infra (F7)",  # Traefik
+    57: "Produção & Infra (F7)",  # JWT 15min/refresh 7d
+    58: "Produção & Infra (F7)",  # VPS CX32
+    60: "Produção & Infra (F7)",  # Fernet dual key
+    65: "Operations",  # 7E operational readiness
+    66: "Operations",  # Auth flows beta blockers
+    68: "UX / Linguagem",  # códigos internos não vazam
     76: "Design System & Render (F9 / Report Premium)",
     77: "Goals & Tasks (F8)",
     78: "Design System & Render (F9 / Report Premium)",
-    80: "Pipeline",                   # incremental extraction
+    80: "Pipeline",  # incremental extraction
     106: "Pipeline DDD/SOLID + Infra+Domínio (Sprint A6)",
     109: "Pipeline DDD/SOLID + Infra+Domínio (Sprint A6)",  # auth portability A6f.5a
-    116: "Produção & Infra (F7)",     # F7F-Local
+    116: "Produção & Infra (F7)",  # F7F-Local
     138: "Sprint A7 — Rules-as-Code & Cutover",  # supervisão CTO Sprint A7
     139: "Frontend / Design",
     144: "Report Premium (F-pós, ondas v1/v2)",
@@ -143,13 +249,17 @@ def categorize(adr_id: str, num: int, title: str) -> str:
         return OVERRIDES[num]
     title_lower = title.lower()
     for cat, keywords, ranges in CATEGORIES:
-        for kw in keywords:
-            if kw in title_lower:
-                return cat
-        for r in ranges:
-            if num in r:
-                return cat
+        if _matches_keyword(keywords, title_lower) or _matches_range(ranges, num):
+            return cat
     return "Outras"
+
+
+def _matches_keyword(keywords: list[str], title_lower: str) -> bool:
+    return any(kw in title_lower for kw in keywords)
+
+
+def _matches_range(ranges: list[range], num: int) -> bool:
+    return any(num in r for r in ranges)
 
 
 def build_toc(content: str) -> str:
