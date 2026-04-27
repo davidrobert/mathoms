@@ -443,7 +443,7 @@ Transferências entre contas do casal **NÃO são receita nem despesa**. Devem s
 
 Estas fórmulas são canônicas e devem ser usadas em E4 e E5. Nunca hardcodar
 valores derivados. Detalhamento por categoria em
-`config/regras_composicao_patrimonial.md` §FÓRMULAS DERIVADAS — esses dois
+`docs/methodology/regras_composicao_patrimonial.md` §FÓRMULAS DERIVADAS — esses dois
 blocos devem evoluir juntos (incluir ambos no mesmo commit).
 
 ```
@@ -469,7 +469,7 @@ goals.if_gap = MAX(0, if_meta_liquida − investivel_efetivo)
 
 **Categorias da tabela patrimonial (devem somar exatamente ao bruto):**
 
-> ⚠️ **Regras detalhadas em `config/regras_composicao_patrimonial.md`** — o
+> ⚠️ **Regras detalhadas em `docs/methodology/regras_composicao_patrimonial.md`** — o
 > arquivo canônico com tabelas de matching, exemplos e validações. A tabela
 > abaixo é um resumo.
 
