@@ -12,6 +12,54 @@ preparação para **F7 (Produção + LGPD + Ops)**.
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report Premium UI v2.D.1 — `SnapshotChangelogBuilder` ✅ (2026-04-27):**
+  Fundação determinística para os blocos `comparisons` e `changelog` que
+  v2.1 plantou no [config/report_layout.yaml](../config/report_layout.yaml)
+  com `enabled: false` + `deferred_until: "v2.D.1 SnapshotChangelogBuilder"`.
+  v2.D.1 entrega o builder + adapter + tipos; v2.8 conecta no endpoint e
+  flipa `enabled: true` (lane separada).
+
+  **ADR:** [ADR-148 — `SnapshotChangelogBuilder`](DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório)
+  (renumerada de ADR-143 durante o merge: A7.6 ocupou ADR-143 com
+  `docs/methodology/` é rules-as-code entre o branch base 2026-04-27 12:04
+  e o rebase ~13:18). Decidiu storage = reuso de `pipeline_artifacts`
+  (zero migration), granularidade por seção (5 default: S1/S2/S3/T2/T5),
+  primeiro relatório → `null` no wire (não array vazio), narrativa via
+  template determinístico (sem LLM — `delta_signal: Literal["up","down","stable"]`,
+  threshold default `Decimal("0.5")` = 0,5%).
+
+  **Estrutura:**
+  - `pipeline/domain/types/snapshot_changelog.py`: dataclasses frozen
+    `AnalyzeFinancesSnapshot`, `ComparisonItem`, `ChangelogEntry`,
+    `ComparisonResult`, `SnapshotChangelogConfig`, `UnknownSectionError`.
+    `delta_pct: Decimal | None` (None nos edges com zero).
+  - `pipeline/domain/services/snapshot_changelog/{builder,narratives}.py`:
+    `build_comparison(prev, curr, config) -> ComparisonResult` puro;
+    `format_summary(item)` com 6 templates (`up`/`down`/`stable`/
+    `from_zero`/`to_zero`/`both_zero`).
+  - `backend/app/services/snapshot_pair_loader.py`: query SQLAlchemy
+    `(workspace_id, stage IN ('analyze_finances','E5'), artifact_key=
+    'analise_financeira', created_at < current)` ORDER BY DESC LIMIT 1
+    (compat ADR-093). `analysis_hash = sha256(canonical_json(content))[:16]`
+    derivada on-read, **não** persistida no DB.
+
+  **Tests (18 verdes):** 8 goldens v2.D.1 cobrindo trade-off T1
+  (`before==0`/`after==0`/`both_zero`) + 3 helpers/defesas em
+  [`tests/test_snapshot_changelog.py`](../tests/test_snapshot_changelog.py)
+  (sem `MagicMock` — fixtures puros nomeados); 7 integração SQLite em
+  memória em [`backend/tests/test_snapshot_pair_loader.py`](../backend/tests/test_snapshot_pair_loader.py)
+  (não mocado — CLAUDE.md §Testes), incluindo estabilidade do
+  `_canonical_json` (chaves em ordem distinta → mesmo hash) e cobertura
+  de formatos diversos do `periodo_dados`.
+
+  **Boundary preservada:** `pipeline/**` não importa
+  `fastapi`/`celery`/`sqlalchemy` (`dev/check_pipeline_boundaries.py`
+  verde). Money sempre `Decimal` (ADR-090). 0 ofensores P1/P7 nos
+  arquivos novos.
+
+  **Débito aberto:** v2.D.1.1 (P2, ≤2h) — product-designer revisa copy
+  dos 6 templates determinísticos antes de v2.8 flipar YAML.
+
 - **A7.6 — Rules-as-code (lane aberta 2026-04-27):** auditoria pós-merge
   de A7.4 detectou que os 4 markdowns movidos para `docs/methodology/`
   contêm 102 hits cliente-específicos (David, Mariana, Tasso, Hashdex,
