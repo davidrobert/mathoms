@@ -120,7 +120,8 @@ jobs:
     # Fail-fast por step: lint quebra rápido, fixar um por vez é OK.
     name: Lint (pre-commit + ruff + style baseline + PII + tenancy)
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    # Tighten 8→4min: observado 44s; 4min dá ~5× buffer e detecta hangs cedo.
+    timeout-minutes: 4
     needs: changes
     if: needs.changes.outputs.any_code == 'true'
     steps:
@@ -130,10 +131,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-          cache: pip
 
-      - name: Install lint deps
-        run: pip install pre-commit ruff==0.6.0 pytest
+      - name: Install uv (SHA-pinned v8.1.0)
+        # uv é resolver/installer 5-10x mais rápido que pip para deps Python.
+        # SHA pin previne tag-rewrite; v8.1.0 é a release mais recente.
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.5.x"
+
+      - name: Install lint deps (via uv)
+        run: uv pip install --system pre-commit ruff==0.6.0 pytest
 
       - name: pre-commit (all files)
         run: pre-commit run --all-files
@@ -156,7 +163,8 @@ jobs:
   pipeline-tests:
     name: Pipeline tests (tests/)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Tighten 10→5min: observado 54s; 5min dá ~5× buffer.
+    timeout-minutes: 5
     needs: changes
     # `pipeline` cobre mudança em tests/, scripts/, pipeline/, config/.
     # backend/ também porque importa pipeline/** e tem guardrail próprio.
@@ -168,29 +176,35 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-          cache: pip
+
+      - name: Install uv (SHA-pinned v8.1.0)
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.5.x"
 
       - name: Restore venv cache
-        # `setup-python cache: pip` cobre só ~/.cache/pip; venv ainda é
-        # reinstalado a cada run. Cache do venv inteiro pula install na hit
-        # (ganho ~60-90s). `restore-keys` permite reuso parcial de venv mais
-        # antigo quando requirements muda — pip resolve só os pacotes diff.
+        # Venv cache pula install na hit (ganho ~60-90s). Com uv (instala
+        # via prebuilt wheels paralelo), miss também fica ~10-15s. Bumped
+        # key v2→v3 porque migrei venv creation de `python -m venv` para
+        # `uv venv` (layout diferente em alguns pacotes binários).
+        # `restore-keys`: fallback partial-match para reuso quando hash muda.
         id: venv-cache
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v2
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v3
           restore-keys: |
             venv-${{ runner.os }}-py313-
 
-      - name: Install dependencies (cache miss)
+      - name: Install dependencies (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
-          [ -d .venv ] || python -m venv .venv
-          .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install -r requirements.txt -r backend/requirements.txt
+          [ -d .venv ] || uv venv .venv
+          uv pip install -r requirements.txt -r backend/requirements.txt
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
-          .venv/bin/pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -209,7 +223,8 @@ jobs:
   backend-tests:
     name: Backend tests (backend/tests/)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Tighten 15→8min: observado 4m04s com xdist; 8min dá ~2× buffer.
+    timeout-minutes: 8
     needs: changes
     # backend/ importa pipeline/**; mudança em pipeline pode quebrar backend.
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.pipeline == 'true'
@@ -226,7 +241,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-          cache: pip
+
+      - name: Install uv (SHA-pinned v8.1.0)
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.5.x"
 
       - name: Restore venv cache
         # Mesmo cache key que pipeline-tests — mesma combinação de
@@ -237,18 +256,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v2
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v3
           restore-keys: |
             venv-${{ runner.os }}-py313-
 
-      - name: Install dependencies (cache miss)
+      - name: Install dependencies (cache miss, via uv)
         if: steps.venv-cache.outputs.cache-hit != 'true'
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
-          [ -d .venv ] || python -m venv .venv
-          .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install -r requirements.txt -r backend/requirements.txt
+          [ -d .venv ] || uv venv .venv
+          uv pip install -r requirements.txt -r backend/requirements.txt
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
-          .venv/bin/pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -284,7 +304,8 @@ jobs:
     # no-unused-vars bloqueantes; max-lines/-per-function progressivos.
     name: Frontend ESLint
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Tighten 5→3min: observado 43s; 3min dá ~4× buffer.
+    timeout-minutes: 3
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     defaults:
@@ -306,11 +327,10 @@ jobs:
   frontend-tests:
     name: Frontend unit + integration (Vitest)
     runs-on: ubuntu-latest
-    # Restaurado para 10min (2026-04-27): mock global de `react-chartjs-2`
-    # em `frontend/tests/setup.ts` resolve o hang causado pelo refactor
-    # v2.E.6 — chart wrappers viram componentes inertes em testes que não
-    # mockam localmente, eliminando o loop de canvas getContext em jsdom.
-    timeout-minutes: 10
+    # Tighten 10→5min: observado 1m49s pós mock global de react-chartjs-2;
+    # 5min dá ~3× buffer. Mock vive em frontend/tests/setup.ts; sem ele
+    # suíte hangea (run 24999684508 ficou 22m54s antes do timeout de 25min).
+    timeout-minutes: 5
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     defaults:
