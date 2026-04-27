@@ -467,6 +467,95 @@ preparação para **F7 (Produção + LGPD + Ops)**.
   ✅ · `grep -rn 'config/{definitions,regras_composicao,source_hierarchy,milhas}'`
   retorna apenas as entradas legítimas em `dev/*.py` (block list).
 
+- **A7.2b Tabelas globais `fiscal_parameters` + `market_rates` versionadas — ✅ entregue (2026-04-27):**
+  Onda 2 (paralela com A7.1, A7.2a, A7.4): séries fiscais e cotações de
+  câmbio agora são **tabelas globais com vigência temporal** (não mais
+  `parametros_fiscais.json`/`taxas.json` em disco). Reproducibilidade
+  histórica garantida — relatório de fev/2025 usa parâmetros de 2025
+  mesmo quando regerado em 2027.
+
+  **Entregas (6 commits):**
+  - `backend/app/models/fiscal_parameter.py` + `market_rate.py` — modelos
+    SQLAlchemy: `fiscal_parameters` (id, year, ir_brackets JSON,
+    pgbl_limit_brl_cents BigInt, inss_ceiling_brl_cents BigInt,
+    lucro_presumido_aliquota DECIMAL(5,4), effective_from/to,
+    source) + `market_rates` (pair, rate DECIMAL(20,10),
+    observed_at, source, UNIQUE(pair, observed_at)).
+  - `backend/alembic/versions/x2y3z4a5b6c7_*` — migration cria as duas
+    tabelas (idempotente, offline-mode-safe).
+  - `backend/alembic/versions/y3z4a5b6c7d8_seed_*` — data migration
+    materializa snapshot de `parametros_fiscais.json` para 2024/2025/2026
+    + `taxas.json` para `today` e bootstrap em `2024-01-01` (impede
+    `MarketRateNotFound` em relatórios históricos).
+  - `backend/app/repositories/fiscal_parameter_repository.py` — lookup
+    por vigência (`effective_from <= start AND (effective_to IS NULL OR
+    effective_to >= end)`); raise `FiscalParameterAmbiguous` em overlap
+    mid-year + `FiscalParameterNotFound` em miss.
+  - `backend/app/repositories/market_rate_repository.py` —
+    `get_latest_on_or_before(pair, observed_at)` retorna última cotação
+    conhecida na data ou antes (regra ADR-135).
+  - `backend/app/services/fiscal_cache.py` — cache Redis (chaves
+    `fiscal:y={year}` TTL 1h fallback + `market:p={pair}:d={iso}` TTL 30d
+    immutable). Sem `@lru_cache` em processo (ADR-111). Falha aberta:
+    Redis down → DB direto.
+  - `backend/app/services/db_config_store.py` — `get_fiscal_for_period`
+    e `get_market_rate` saem de `NotImplementedError` (A7.0 stubs) e
+    delegam aos repositórios + cache.
+  - `pipeline/adapters/fiscal_parsers.py` — conversões row ↔
+    `FiscalParameters` typed dataclass + bridge legacy JSON.
+  - `pipeline/adapters/file_config_store.py` — `get_fiscal_for_period` /
+    `get_market_rate` lêem dos JSONs legados via `legacy_json_to_fiscal`
+    (bridge até A7.5; vigência fina ignorada — apenas year-bound).
+  - `pipeline/domain/services/previdencia_analyzer.py` —
+    `PrevidenciaConfig.from_fiscal_parameters(fiscal: FiscalParameters)`
+    constrói config a partir do dataclass typed; `from_fiscal(dict)`
+    permanece como fallback legacy.
+  - `pipeline/domain/services/cenarios_conjuge_analyzer.py` —
+    `from_configs` aceita `cambio_usd_brl: Decimal` typed com prioridade
+    sobre `taxas` dict.
+  - `pipeline/domain/services/e5_analyzer_adapter.py` — `from_configs`
+    ganha kwargs `fiscal_parameters` e `cambio_usd_brl` (prioridade
+    sobre dicts legacy).
+  - `scripts/e5_analyze.py:_e5_build_adapter(life_plan, ctx)` —
+    quando `ctx.config_store` disponível, resolve via
+    `get_fiscal_for_period(year_start, year_end)` +
+    `get_market_rate("USD/BRL", TODAY)`. Fallback warn-only se DB miss.
+
+  **Testes (49 specs novos):**
+  - `backend/tests/test_fiscal_market_repos.py` (16) — repos isolados +
+    overlap → ambíguo, miss → not found, UNIQUE constraint.
+  - `backend/tests/test_db_config_store_fiscal.py` (14) — DBConfigStore
+    typed return + cache key shape + fake redis round-trip + invalidação.
+  - `tests/unit/pipeline/test_fiscal_parsers.py` (10) — row → payload →
+    dataclass round-trip + legacy JSON bridge.
+  - `tests/unit/pipeline/test_a72b_typed_inputs.py` (9) — typed
+    constructors dos analyzers + fallback dict legacy.
+  - 2 specs A7.0 atualizados em `test_config_store_protocol.py` (stubs
+    `NotImplementedError` → bridge real).
+
+  **Acceptance gates batidos:**
+  - ✅ `pytest tests` 1515 passed (+2 skipped, +19 vs A7.1 baseline).
+  - ✅ `pytest backend/tests` 1372 passed (+4 skipped, +30 vs A7.1
+    baseline) incluindo `test_alembic_guardrails::test_offline_sql_generation_works`
+    (offline-mode guard no seed) e `test_db_schema_reference_snapshot`
+    (regenerado).
+  - ✅ `dev/check_pipeline_boundaries.py` verde (zero SQLAlchemy/FastAPI
+    em `pipeline/`).
+  - ✅ `dev/check_code_style_regression.py` verde (P9 −1 vs baseline;
+    nenhum P1/P7 novo após cleanup).
+  - ✅ `pre-commit run --all-files` verde.
+
+  **Bridges remanescentes (até A7.5):**
+  - `config/parametros_fiscais.json` + `config/taxas.json` mantidos:
+    consumidores secundários (`_load_caixa_from_e3` em
+    `e5_analyzer_adapter.py`, `e5n_narrativas.py`) ainda lêem dict
+    direto. Cleanup completo migra para `ConfigStore` em A7.5.
+  - `FileConfigStore.get_fiscal_for_period`/`get_market_rate` continuam
+    funcionando (bridge); janela de remoção termina em A7.5.
+
+  **ADR:** [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio)
+  já estava status Decidido (criado em A7.0); esta lane implementa.
+
 - **A7.1 Cutover `materialize_config` → `ConfigStore` — ✅ entregue (2026-04-27):**
   Onda 2 começa: configs A7.1 (categorization, family_members, institutions,
   report_layout, transfer_config) já não são materializados em disco no fluxo

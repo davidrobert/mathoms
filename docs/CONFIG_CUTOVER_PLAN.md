@@ -1,6 +1,6 @@
 # Plano — Cutover de `config/` para DB multi-tenant (Sprint A7)
 
-> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 progredindo (A7.1 ✅, A7.4 ✅, A7.2a/A7.2b abertas) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
+> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 entregando (A7.1 ✅ + A7.2b ✅ + A7.4 ✅; A7.2a aberta) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
 > **Audiência:** agentes LLM em paralelo (Onda 2 com até 4 agentes simultâneos) + supervisor CTO (humano ou agente `senior-cto`).
 > **Premissa central:** o produto **continua operando em produção** entre cada onda. Nenhum passo pode quebrar smoke E2E ou bloquear geração de relatório de workspace existente.
 > **Referências:** [BACKLOG.md §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal), [DECISIONS.md ADR-134..138](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [CLAUDE.md §Regras críticas](../CLAUDE.md#regras-críticas-invariantes-do-repositório).
@@ -324,15 +324,39 @@ Cada lane fecha com PR atômico, mergeada via fast-forward em `main`. Rollback =
 
 ---
 
-### §5.2b A7.2b — Tabelas globais fiscal/market versionadas
+### §5.2b A7.2b — Tabelas globais fiscal/market versionadas ✅ entregue 2026-04-27
 
 **Onda 2 · 1 lane · ~2–3 sessões · paralelo com A7.1, A7.2a, A7.4.**
 
-**Depende de:** A7.0 ✅ mergeada (precisa estender `ConfigStore`).
+**Status:** ✅ **entregue em 6 commits na branch `agent/a7-2b-fiscal-market-tables/20260427-1152`** (aguardando merge em `main`).
+
+**Depende de:** A7.0 ✅ mergeada (estendeu `ConfigStore` com stubs).
 
 **Objetivo:** `parametros_fiscais.json` e `taxas.json` viram tabelas globais versionadas por data. Pipeline (E5, `previdencia_analyzer`, `cenarios_conjuge_analyzer`) lê via `ConfigStore` com escopo de período. Reproducibilidade: relatório de fev/2025 usa parâmetros de 2025 mesmo gerado em 2027.
 
-**Entregáveis:**
+**Como foi entregue (6 commits):**
+
+1. `feat(backend): fiscal_parameters + market_rates models + Alembic` — `backend/app/models/{fiscal_parameter,market_rate}.py` + migration `x2y3z4a5b6c7`. Money em `BIGINT` cents (PGBL/INSS) ou `DECIMAL` (alíquota, rate). UNIQUE(pair, observed_at).
+2. `feat(backend): ConfigStore.get_fiscal_for_period + get_market_rate` — `FiscalParameterRepository.get_for_period` (overlap mid-year → `FiscalParameterAmbiguous`); `MarketRateRepository.get_latest_on_or_before`. Cache Redis `fiscal:y={year}` (TTL 1h fallback) + `market:p={pair}:d={iso}` (TTL 30d immutable). Falha aberta: Redis down → DB direto. `FileConfigStore` bridge implementado.
+3. `feat(backend): seed_fiscal_2024_2026` — data migration `y3z4a5b6c7d8` popula 2024/2025/2026 + USD/BRL/EUR/BRL para `today` e bootstrap `2024-01-01`. Idempotente (skip se row já existe). Offline-mode safe (`context.is_offline_mode()` → SQL comment).
+4. `refactor(pipeline): E5 analyzers consomem ConfigStore` — `PrevidenciaConfig.from_fiscal_parameters(FiscalParameters)`, `CenariosConjugeConfig.from_configs(cambio_usd_brl: Decimal)`, `E5AnalyzerAdapter.from_configs(fiscal_parameters=, cambio_usd_brl=)`. Scripts `e5_analyze.py` resolvem via `ctx.config_store`. Pipeline domain consome `FiscalParameters` typed; nunca dict ou Path.
+5. `test(a72b): 49 specs` — repos (16) + DBConfigStore + cache (14) + parsers (10) + typed analyzers (9).
+6. `chore(a72b): code style polish + alembic offline guard + schema snapshot` — encurta docstrings (P7), refatora `legacy_json_to_fiscal` para <20 linhas (P1), adiciona offline-mode guard no seed, regenera `docs/DB_SCHEMA_REFERENCE.md`.
+
+**Acceptance gates batidos:**
+- ✅ `pytest tests` 1515 passed (+19 vs A7.1 baseline) — incluindo 19 novos pipeline specs.
+- ✅ `pytest backend/tests` 1372 passed (+30 vs A7.1 baseline) — incluindo 30 novos backend specs + alembic offline + schema snapshot.
+- ✅ `dev/check_pipeline_boundaries.py` verde.
+- ✅ `dev/check_code_style_regression.py` verde (P9 −1; nenhum P1/P7 novo).
+- ✅ `pre-commit run --all-files` verde.
+
+**Bridges remanescentes (até A7.5):**
+- `config/parametros_fiscais.json` + `config/taxas.json` mantidos no PR — consumidores secundários (`_load_caixa_from_e3`, `e5n_narrativas.py`) ainda lêem dict direto. A7.5 cleanup migra todos os caminhos.
+- `FileConfigStore.get_fiscal_for_period`/`get_market_rate` continuam funcionando como fallback legacy.
+
+**ADR:** [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) já estava em status Decidido (criado em A7.0); esta lane implementa.
+
+**Entregáveis (originais — referência):**
 
 1. **Backend models**:
    ```python

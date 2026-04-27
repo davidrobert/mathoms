@@ -78,21 +78,38 @@ def fiscal_payload_to_dataclass(payload: Mapping[str, Any]) -> FiscalParameters:
     )
 
 
-def _legacy_brackets(faixas_raw: list) -> tuple[IRPFBracket, ...]:
-    out: list[IRPFBracket] = []
-    for raw in faixas_raw:
-        if not isinstance(raw, Mapping):
-            continue
-        upper_anual = raw.get("limite_anual")
-        upper_cents = _to_cents(upper_anual) if upper_anual is not None else None
-        out.append(
-            IRPFBracket(
-                upper_brl_cents=upper_cents,
-                aliquota_pct=_decimal(raw.get("aliquota_pct")),
-                deducao_brl_cents=0,
-            )
+def _bracket_from_raw(raw: Mapping[str, Any], *, monthly: bool) -> IRPFBracket:
+    upper_key = "limite_mensal_brl" if monthly else "limite_anual"
+    deducao_key = "deducao_brl"
+    upper = raw.get(upper_key)
+    if upper is None and not monthly:
+        upper = raw.get("limite_anual_brl")  # tolera variant
+    upper_cents: int | None = None
+    if upper is not None:
+        annual = (Decimal(str(upper)) * Decimal("12")) if monthly else Decimal(str(upper))
+        upper_cents = int((annual * Decimal("100")).quantize(Decimal("1")))
+    return IRPFBracket(
+        upper_brl_cents=upper_cents,
+        aliquota_pct=_decimal(raw.get("aliquota_pct")),
+        deducao_brl_cents=int((Decimal(str(raw.get(deducao_key) or 0)) * Decimal("100")))
+        if monthly
+        else 0,
+    )
+
+
+def _legacy_brackets(irpf_block: Mapping[str, Any]) -> tuple[IRPFBracket, ...]:
+    """Aceita ``faixas`` (anual, legado pré-2026) ou ``faixas_mensais`` (Lei 15.270/2025)."""
+    if irpf_block.get("faixas_mensais"):
+        return tuple(
+            _bracket_from_raw(raw, monthly=True)
+            for raw in irpf_block["faixas_mensais"]
+            if isinstance(raw, Mapping)
         )
-    return tuple(out)
+    return tuple(
+        _bracket_from_raw(raw, monthly=False)
+        for raw in (irpf_block.get("faixas") or [])
+        if isinstance(raw, Mapping)
+    )
 
 
 _DEFAULT_LEGACY_SOURCE = "config/parametros_fiscais.json (FileConfigStore bridge)"
@@ -102,7 +119,7 @@ def legacy_json_to_fiscal(
     data: Mapping[str, Any], *, year: int, source: str = _DEFAULT_LEGACY_SOURCE
 ) -> FiscalParameters:
     """``config/parametros_fiscais.json`` → :class:`FiscalParameters` (bridge A7.5)."""
-    brackets = _legacy_brackets((data.get("irpf_tabela_progressiva") or {}).get("faixas") or [])
+    brackets = _legacy_brackets(data.get("irpf_tabela_progressiva") or {})
     lp_pct = _decimal((data.get("lucro_presumido") or {}).get("percentual_servicos_pct") or 0)
     return FiscalParameters(
         year=year,

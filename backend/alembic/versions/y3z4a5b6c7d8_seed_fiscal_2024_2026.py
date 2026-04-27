@@ -33,11 +33,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 # ---------------------------------------------------------------------------
-# Conteúdo histórico (mesmo de config/parametros_fiscais.json em 2026-04-08).
-# Faixas IRPF anuais em cents; alíquota em pct (DECIMAL no DB).
+# Conteúdo histórico — faixas IRPF anuais (pré-Lei 15.270/2025) em cents.
+# A admin UI de F7F-Local popula rows pós-reforma Lei 15.270 com mensal
+# brackets + redutor. Este seed cobre apenas o estado pré-reforma para
+# evitar FiscalParameterNotFound em relatórios históricos.
 # ---------------------------------------------------------------------------
 
-_IR_BRACKETS_2025 = [
+_IR_BRACKETS_PRE_LEI_15270 = [
     {"upper_brl_cents": 2696320, "aliquota_pct": "0.0", "deducao_brl_cents": 0},
     {"upper_brl_cents": 3391980, "aliquota_pct": "7.5", "deducao_brl_cents": 0},
     {"upper_brl_cents": 4501260, "aliquota_pct": "15.0", "deducao_brl_cents": 0},
@@ -45,7 +47,7 @@ _IR_BRACKETS_2025 = [
     {"upper_brl_cents": None, "aliquota_pct": "27.5", "deducao_brl_cents": 0},
 ]
 
-_FISCAL_SOURCE = "config/parametros_fiscais.json snapshot 2026-04-27 (Receita Federal)"
+_FISCAL_SOURCE = "seed A7.2b — IRPF pré-Lei 15.270/2025 (Receita Federal snapshot 2026-04-27)"
 
 # Lucro presumido = 32% (serviços) → DECIMAL 0.32; PGBL pct → trabalhamos
 # com 0 cents porque o JSON legado expressa apenas como % da renda. Como
@@ -61,7 +63,7 @@ def _fiscal_row(year: int) -> dict:
     return {
         "id": str(uuid.uuid4()),
         "year": year,
-        "ir_brackets": _IR_BRACKETS_2025,
+        "ir_brackets": _IR_BRACKETS_PRE_LEI_15270,
         "pgbl_limit_brl_cents": _PGBL_LIMIT_CENTS,
         "inss_ceiling_brl_cents": _INSS_CEILING_CENTS,
         "lucro_presumido_aliquota": _LUCRO_PRESUMIDO,
