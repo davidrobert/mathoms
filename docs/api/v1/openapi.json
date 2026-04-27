@@ -1214,6 +1214,28 @@
         "title": "CategoryListResponse",
         "type": "object"
       },
+      "CategoryOverrideStatus": {
+        "description": "Status de override (delete confirma).",
+        "properties": {
+          "status": {
+            "pattern": "^(disabled|reset|upserted)$",
+            "title": "Status",
+            "type": "string"
+          },
+          "template_key": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Template Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_key",
+          "status"
+        ],
+        "title": "CategoryOverrideStatus",
+        "type": "object"
+      },
       "CategoryResponse": {
         "description": "Categoria de classifica\u00e7\u00e3o com suas keywords.",
         "properties": {
@@ -9841,6 +9863,237 @@
         "summary": "Update Category",
         "tags": [
           "config"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/config/category-overrides/resolved": {
+      "get": {
+        "description": "Lista categorias resolvidas (template + overrides) \u2014 espelho do GET legado.",
+        "operationId": "list_resolved_categories_api_v1_workspaces__workspace_id__config_category_overrides_resolved_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Resolved Categories",
+        "tags": [
+          "config",
+          "category-overrides"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/config/category-overrides/{template_key}": {
+      "delete": {
+        "description": "Desabilita categoria via override.disabled=True (n\u00e3o apaga o override).",
+        "operationId": "disable_override_api_v1_workspaces__workspace_id__config_category_overrides__template_key__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_key",
+            "required": true,
+            "schema": {
+              "title": "Template Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryOverrideStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Disable Override",
+        "tags": [
+          "config",
+          "category-overrides"
+        ]
+      },
+      "put": {
+        "description": "Cria/atualiza override do workspace para a ``template_key`` dada.",
+        "operationId": "upsert_override_api_v1_workspaces__workspace_id__config_category_overrides__template_key__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_key",
+            "required": true,
+            "schema": {
+              "title": "Template Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryUpdateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Upsert Override",
+        "tags": [
+          "config",
+          "category-overrides"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/config/category-overrides/{template_key}/reset": {
+      "post": {
+        "description": "Apaga override \u2192 categoria volta ao default do template.",
+        "operationId": "reset_override_api_v1_workspaces__workspace_id__config_category_overrides__template_key__reset_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_key",
+            "required": true,
+            "schema": {
+              "title": "Template Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryOverrideStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reset Override",
+        "tags": [
+          "config",
+          "category-overrides"
         ]
       }
     },

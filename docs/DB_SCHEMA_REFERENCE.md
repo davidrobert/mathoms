@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 34
+**Total de tabelas:** 37
 
 ---
 
@@ -16,6 +16,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`bank_accounts`](#bankaccounts)
 - [`categories`](#categories)
 - [`category_keywords`](#categorykeywords)
+- [`category_templates`](#categorytemplates)
 - [`decision_events`](#decisionevents)
 - [`decisions`](#decisions)
 - [`documents`](#documents)
@@ -23,6 +24,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`feature_flags`](#featureflags)
 - [`fiscal_parameters`](#fiscalparameters)
 - [`goals`](#goals)
+- [`institution_catalog`](#institutioncatalog)
 - [`institution_configs`](#institutionconfigs)
 - [`kanban_items`](#kanbanitems)
 - [`llm_configs`](#llmconfigs)
@@ -43,6 +45,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`transaction_overrides`](#transactionoverrides)
 - [`transfer_configs`](#transferconfigs)
 - [`users`](#users)
+- [`workspace_category_overrides`](#workspacecategoryoverrides)
 - [`workspace_invitations`](#workspaceinvitations)
 - [`workspace_members`](#workspacemembers)
 - [`workspaces`](#workspaces)
@@ -136,6 +139,32 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_category_keywords_category_id` (category_id)
+
+### `category_templates`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `template_version` | `INTEGER` | no | `1` | INDEX |
+| `key` | `VARCHAR(100)` | no | — | INDEX |
+| `parent_key` | `VARCHAR(100)` | yes | — | — |
+| `label` | `VARCHAR(120)` | no | — | — |
+| `category_type` | `VARCHAR(10)` | no | — | — |
+| `default_keywords` | `JSON` | no | callable: `list` | — |
+| `default_monthly_cap_brl_cents` | `BIGINT` | yes | — | — |
+| `sort_order` | `INTEGER` | no | `0` | — |
+| `metadata_json` | `JSON` | no | callable: `dict` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- UNIQUE (template_version, key) — `uq_category_templates_version_key`
+
+**Indexes:**
+
+- `ix_category_templates_key` (key)
+- `ix_category_templates_template_version` (template_version)
 
 ### `decision_events`
 
@@ -314,6 +343,23 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_goals_workspace_id` (workspace_id)
 - `ix_goals_ws_type_effective_from` (workspace_id, type, effective_from)
 - `ix_goals_ws_type_effective_to` (workspace_id, type, effective_to)
+
+### `institution_catalog`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `code` | `VARCHAR(50)` | no | — | UNIQUE, INDEX |
+| `name` | `VARCHAR(120)` | no | — | — |
+| `default_parser` | `VARCHAR(80)` | yes | — | — |
+| `category` | `VARCHAR(20)` | no | `'bank'` | — |
+| `metadata_json` | `JSON` | no | callable: `dict` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Indexes:**
+
+- UNIQUE `ix_institution_catalog_code` (code)
 
 ### `institution_configs`
 
@@ -783,6 +829,30 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - UNIQUE `ix_users_email` (email)
 
+### `workspace_category_overrides`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `template_key` | `VARCHAR(100)` | no | — | INDEX |
+| `label_override` | `VARCHAR(120)` | yes | — | — |
+| `keywords_override` | `JSON` | yes | — | — |
+| `monthly_cap_brl_cents_override` | `BIGINT` | yes | — | — |
+| `disabled` | `BOOLEAN` | no | `False` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, template_key) — `uq_ws_cat_override_ws_key`
+
+**Indexes:**
+
+- `ix_workspace_category_overrides_template_key` (template_key)
+- `ix_workspace_category_overrides_workspace_id` (workspace_id)
+
 ### `workspace_invitations`
 
 | Column | Type | Nullable | Default | Tags |
@@ -885,6 +955,8 @@ Schema usa `SQLAlchemy Enum()` nativo (Python enum → DB enum ou `VARCHAR + CHE
 Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou docstring do model) para serem portáveis cross-language.
 
 - `audit_logs.details`
+- `category_templates.default_keywords`
+- `category_templates.metadata_json`
 - `decision_events.payload`
 - `documents.classification_meta`
 - `family_members.extra`
@@ -892,6 +964,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `fiscal_parameters.ir_brackets`
 - `goals.derived_json`
 - `goals.params_json`
+- `institution_catalog.metadata_json`
 - `institution_configs.config_json`
 - `pipeline_artifacts.content_json`
 - `pipeline_configs.config_json`
@@ -905,6 +978,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `stage_reviews.original_output_json`
 - `task_suggestions.proposed_payload`
 - `transfer_configs.config_json`
+- `workspace_category_overrides.keywords_override`
 
 ---
 
@@ -979,6 +1053,25 @@ type CategoryKeyword struct {
 	Id string `db:"id" json:"id"`
 	CategoryId string `db:"category_id" json:"category_id"`
 	Keyword string `db:"keyword" json:"keyword"`
+}
+```
+
+### `category_templates` → `type CategoryTemplate struct`
+
+```go
+type CategoryTemplate struct {
+	Id string `db:"id" json:"id"`
+	TemplateVersion int `db:"template_version" json:"template_version"`
+	Key string `db:"key" json:"key"`
+	ParentKey *string `db:"parent_key" json:"parent_key"`
+	Label string `db:"label" json:"label"`
+	CategoryType string `db:"category_type" json:"category_type"`
+	DefaultKeywords json.RawMessage `db:"default_keywords" json:"default_keywords"`
+	DefaultMonthlyCapBrlCents *int64 `db:"default_monthly_cap_brl_cents" json:"default_monthly_cap_brl_cents"`
+	SortOrder int `db:"sort_order" json:"sort_order"`
+	MetadataJson json.RawMessage `db:"metadata_json" json:"metadata_json"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 ```
 
@@ -1101,6 +1194,21 @@ type Goal struct {
 	CreatedBy *string `db:"created_by" json:"created_by"`
 	Notes *string `db:"notes" json:"notes"`
 	IsTemplate bool `db:"is_template" json:"is_template"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `institution_catalog` → `type InstitutionCatalog struct`
+
+```go
+type InstitutionCatalog struct {
+	Id string `db:"id" json:"id"`
+	Code string `db:"code" json:"code"`
+	Name string `db:"name" json:"name"`
+	DefaultParser *string `db:"default_parser" json:"default_parser"`
+	Category string `db:"category" json:"category"`
+	MetadataJson json.RawMessage `db:"metadata_json" json:"metadata_json"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
@@ -1422,6 +1530,22 @@ type User struct {
 	IsDeveloper bool `db:"is_developer" json:"is_developer"`
 	TokenVersion int `db:"token_version" json:"token_version"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `workspace_category_overrides` → `type WorkspaceCategoryOverride struct`
+
+```go
+type WorkspaceCategoryOverride struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	TemplateKey string `db:"template_key" json:"template_key"`
+	LabelOverride *string `db:"label_override" json:"label_override"`
+	KeywordsOverride json.RawMessage `db:"keywords_override" json:"keywords_override"`
+	MonthlyCapBrlCentsOverride *int64 `db:"monthly_cap_brl_cents_override" json:"monthly_cap_brl_cents_override"`
+	Disabled bool `db:"disabled" json:"disabled"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 ```
 
