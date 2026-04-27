@@ -57,6 +57,8 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | `services/events.py:16` | `_redis_client` | Redis connection lazy singleton | ✅ pattern aceito — cada worker tem sua conexão para o Redis compartilhado |
 | `services/vault.py:48` | `_singleton` | `VaultService` lazy singleton | ✅ mesma lógica — cada worker inicializa o seu, interop zero necessário |
 | `core/database.py:11` | `engine` | `AsyncEngine` module-level | ✅ SQLAlchemy pool; cada worker tem seu pool para o DB compartilhado |
+| `pipeline/adapters/file_config_store.py:32` | `_PROJECT_ROOT` | `Path` constante | ✅ imutável (Path resolvido uma vez) |
+| `pipeline/adapters/file_config_store.py:38` | `FileConfigStore._cache` | `dict[str, Any]` por instância | ✅ singleton lazy idempotente — cada worker carrega o mesmo `config/` do disco; **deprecated** (Sprint A7.5 remove via [CONFIG_CUTOVER_PLAN.md §5.5](CONFIG_CUTOVER_PLAN.md#§55-a75--cleanup-final)) |
 
 **Veredito:** ✅ **OK**. Todos os globais são (a) constantes imutáveis —
 safe; ou (b) singletons idempotentes inicializados lazy — cada worker

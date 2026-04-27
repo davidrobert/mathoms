@@ -149,7 +149,31 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
   ([ADR-037](DECISIONS.md#adr-037--recharts-para-charts) com escopo
   restringido).
 
-- **Sprint A7 aberta — Config DB Cutover (CLI legacy removal) (2026-04-26) — ☐ aguarda autorização para iniciar A7.0:**
+- **A7.0 ConfigStore protocol + adapters — ✅ entregue (2026-04-26):**
+  Onda 1 da Sprint A7 fechada em 7 commits sequenciais. Boundary única
+  para leitura de configs do pipeline destrava toda Onda 2 (A7.1, A7.2a,
+  A7.2b livres em paralelo) + A7.4 (docs metodologia, paralelo livre).
+
+  **Entregas:**
+  - `pipeline/domain/types/config.py` — 12 frozen dataclasses (CategorizationConfig, FamilyMembersConfig, InstitutionsCatalog, ReportLayout, TransferConfig, FiscalParameters stub A7.2b, MarketRate stub A7.2b, etc.).
+  - `pipeline/ports/config_store.py` — `ConfigStore` Protocol `@runtime_checkable` com 7 métodos (5 per-workspace + 2 globais com vigência stub).
+  - `pipeline/adapters/file_config_store.py` — adapter legado que lê `config/*.json` + `report_layout.yaml` e emite `DeprecationWarning` com data de remoção (Sprint A7.5). Cache lazy idempotente (R19) registrado em `STATELESS_AUDIT.md`.
+  - `pipeline/adapters/config_parsers.py` — parsers compartilhados entre File + DB stores (mesma DB row → mesma dataclass que mesmo arquivo disco).
+  - `backend/app/services/db_config_store.py` — `DBConfigStore` SQLAlchemy delega aos `serialize_*` existentes em `config_materializer.py` + parsers compartilhados; mescla bloco `transferencias_internas` (ADR-133) automaticamente.
+  - `pipeline/adapters/in_memory_config_store.py` — fake nomeado para testes (padrão R15) + 18 specs em `tests/unit/pipeline/test_config_store_protocol.py` cobrindo Protocol shape, DeprecationWarning, parse, stubs A7.2b.
+  - `pipeline/stage_config.py` — campo `config_store: Optional[ConfigStore]` adicionado (default `None`; ConfigDict `arbitrary_types_allowed=True`); A7.1 popula em `pipeline_adapter.py`.
+
+  **Boundary preservado:** `dev/check_pipeline_boundaries.py` continua
+  verde — `pipeline/**` não importa SQLAlchemy/FastAPI/Celery. Adapter
+  DB vive em `backend/`; Protocol em `pipeline/ports/`.
+
+  **Zero call-sites migrados** nesta lane (intencional). A7.1 começa a
+  consumir `config_store` em E3/E4/E5/E5.N.
+
+  Track: [track_a7_0_config_store.md](agent_prompts/track_a7_0_config_store.md).
+  ADR: [ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
+
+- **Sprint A7 aberta — Config DB Cutover (CLI legacy removal) (2026-04-26) — 🚧 Onda 1 ✅ · Onda 2 destravada:**
   Plano canônico em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md) — 11
   arquivos de `config/` (heranças do CLI mono-cliente) migram para DB
   multi-tenant + tabelas globais versionadas + entidade `Decision`
