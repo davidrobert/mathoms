@@ -108,7 +108,13 @@ jobs:
               - 'pipeline/**'
               - 'scripts/**'
               - 'tests/**'
-              - 'config/**'
+              # `config/**` era amplo demais — casava com config/*.md
+              # (definitions.md, report_spec.md, etc — docs do produto).
+              # Limita aos formatos de runtime config que o pipeline lê.
+              - 'config/**.json'
+              - 'config/**.yaml'
+              - 'config/**.yml'
+              - 'config/schemas/**'
               - 'requirements.txt'
               - '.github/workflows/ci.yml'
             any_code:
