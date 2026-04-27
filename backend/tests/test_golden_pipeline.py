@@ -176,7 +176,9 @@ def golden_workspace(db) -> Workspace:
 class TestSerializersEndToEnd:
     """6.5E.2 cobertura mínima: workspace DB → serializer → assert shape (post-A7.5)."""
 
-    def test_family_members_serialization_has_familia_sobrenome(self, db, golden_workspace, tmp_path):
+    def test_family_members_serialization_has_familia_sobrenome(
+        self, db, golden_workspace, tmp_path
+    ):
         data = serialize_family_members(golden_workspace.id, db)
         assert data is not None
         # Persiste para inspeção (paridade com fluxo legacy)
@@ -189,7 +191,9 @@ class TestSerializersEndToEnd:
         assert data["banco_membro"]["c6bank"] == "founder"
         assert data["titular"] == "founder"
 
-    def test_categorization_serialization_separa_expense_income(self, db, golden_workspace, tmp_path):
+    def test_categorization_serialization_separa_expense_income(
+        self, db, golden_workspace, tmp_path
+    ):
         data = serialize_categorization(golden_workspace.id, db)
         assert data is not None
         cat_json = tmp_path / "categorization.json"
