@@ -1,6 +1,12 @@
 from backend.app.models.audit_log import AuditLog
 from backend.app.models.category import Category, CategoryKeyword
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
+from backend.app.models.decision import (
+    VALID_DECISION_EVENT_TYPES,
+    VALID_DECISION_STATUSES,
+    Decision,
+    DecisionEvent,
+)
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.feature_flag import FeatureFlag
@@ -88,6 +94,10 @@ __all__ = [
     "PipelineConfig",
     "InstitutionConfig",
     "ReportLayout",
+    "Decision",
+    "DecisionEvent",
+    "VALID_DECISION_STATUSES",
+    "VALID_DECISION_EVENT_TYPES",
     "LLMConfig",
     "StageReview",
     "StageReviewStatus",
