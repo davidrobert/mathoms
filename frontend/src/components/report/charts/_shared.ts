@@ -22,6 +22,26 @@ export function pickColorByIndex(idx: number): string {
   return CHART_COLORS[safe];
 }
 
+const MONTH_SHORT_PT_LOWER = [
+  "jan", "fev", "mar", "abr", "mai", "jun",
+  "jul", "ago", "set", "out", "nov", "dez",
+] as const;
+
+/** Backend `e5_analyze.py:1311` emite labels de chart mensais no formato
+ * `"yy/mm"` (ex.: `"26/02"`). Esse formato confunde — facilmente lido como
+ * `dd/MM`. Helper converte para pt-BR `"MMM/aa"` (ex.: `"fev/26"`).
+ *
+ * Falha graciosamente: retorna o input cru se o formato não casar
+ * `^\d{2}/\d{2}$` ou se o mês estiver fora de 01-12. */
+export function formatChartMonthLabel(label: string): string {
+  const m = /^(\d{2})\/(\d{2})$/.exec(label);
+  if (!m) return label;
+  const year = m[1];
+  const month = parseInt(m[2], 10);
+  if (isNaN(month) || month < 1 || month > 12) return label;
+  return `${MONTH_SHORT_PT_LOWER[month - 1]}/${year}`;
+}
+
 export function fmtBRL(n: number): string {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",

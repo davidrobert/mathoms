@@ -8,7 +8,7 @@ import type { ChartSeries } from "./primitives/types";
 import { useIsPrint } from "../hooks/useIsPrint";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
 import { PeriodToggle, type Period } from "../ui/PeriodToggle";
-import { fmtBRL } from "./_shared";
+import { fmtBRL, formatChartMonthLabel } from "./_shared";
 import type { FluxoCaixaSummary } from "@/types/report-analysis";
 
 /** v2.E.3 — Chart "Fluxo de Caixa Mensal" em Chart.js (paridade
@@ -36,7 +36,7 @@ export function FluxoMensalChart({
 
   if (!labels.length) return null;
 
-  const slicedLabels = labels.slice(window.start, window.end);
+  const slicedLabels = labels.slice(window.start, window.end).map(formatChartMonthLabel);
   const receita = (det?.totais_receita ?? []).slice(window.start, window.end);
   const despesa = (det?.totais_despesa ?? []).slice(window.start, window.end);
 

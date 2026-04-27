@@ -12,7 +12,7 @@ import { ReportCard } from "../ReportCard";
 import { ChartCanvas } from "./primitives/ChartCanvas";
 import { useChartTheme } from "./primitives/useChartTheme";
 import { RDMLegend, type RDMLegendItem } from "./RDMLegend";
-import { fmtBRL } from "./_shared";
+import { fmtBRL, formatChartMonthLabel } from "./_shared";
 import { useIsPrint } from "../hooks/useIsPrint";
 import type { ChartSeries, FluxoCaixaSummary } from "@/types/report-analysis";
 
@@ -203,7 +203,7 @@ function sliceWindow(
   size: number,
 ): SlicedWindow {
   const end = Math.min(offset + size, allLabels.length);
-  const labels = allLabels.slice(offset, end);
+  const labels = allLabels.slice(offset, end).map(formatChartMonthLabel);
   const sliced = datasets.map((d) => ({
     label: d.label,
     data: d.data.slice(offset, end),
