@@ -35,7 +35,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DECISIONS = REPO_ROOT / "docs" / "DECISIONS.md"
 
 HEADING_RE = re.compile(r"^## (ADR-[\w-]+ —.+)$", re.MULTILINE)
-ANCHOR_RE = re.compile(r"\[([^\]]+)\]\(#(adr-[a-z0-9_\-]+)\)")
+# Slugs incluem caracteres unicode latinos (ã, ç, é, ó, ú) gerados pelo
+# GitHub Slugger — `\w` em re.UNICODE cobre, mas casamos explicitamente
+# para evitar pegar caracteres não-slug.
+ANCHOR_RE = re.compile(r"\[([^\]]+)\]\(#(adr-[\w\-]+)\)", re.UNICODE)
 
 
 def github_slug(heading_text: str) -> str:

@@ -77,7 +77,7 @@
 [D98](#adr-098--caminho-b-pragmático-vs-puro-nomenclatura-oficial)
 [D99](#adr-099--reuse-de-analyze_-legadas-em-main_with_store-decisão-de-a5da5e)
 [D100](#adr-100--a6d-commitment-fechar-caminho-b-puro-nos-5-stages-pragmáticos)
-[D101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e)
+[D101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e)
 [D102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f)
 [D103](#adr-103--teste-manual-como-gate-antes-de-remoção-do-bridge-a6b5--a6-human)
 [D104](#adr-104--e15c-em-caminho-b-pragmático-sessão-a5f)
@@ -5382,7 +5382,7 @@ satisfaz exceção (a) do stateless audit),
 **Status:** Decidido • **Data:** 2026-04-25 • **Relaciona**
 [ADR-082](#adr-082--pipelineartifact-artefatos-computacionais-no-banco)
 (blobs DB-first com materialização para o pipeline),
-[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e) (use case
+[ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e) (use case
 puro, router monta dependências),
 [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)
 (elimina leitura de disco em request-path),
@@ -5444,7 +5444,7 @@ DB-first, fallback para `ConfigDefaultsLoader` quando não há row.
 
 - ✅ Cada workspace pode customizar recipients/patterns (família,
   conjuge, contas próprias variam por usuário).
-- ✅ Use case puro alinhado com [ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e);
+- ✅ Use case puro alinhado com [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e);
   zero I/O de disco em request-path
   ([ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)).
 - ✅ Pipeline E4 continua lendo `family_members.json` materializado —
@@ -5463,7 +5463,7 @@ DB-first, fallback para `ConfigDefaultsLoader` quando não há row.
 [ADR-082](#adr-082--pipelineartifact-artefatos-computacionais-no-banco)
 (blobs DB-first com materialização para o pipeline),
 [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy),
-[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e),
+[ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e),
 [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6),
 [ADR-120](#adr-120--readers-user-facing-consultam-artifactstore-db-first-com-fallback-disco),
 [ADR-133](#adr-133--transferencias_internas-modelado-em-transfer_configs-workspace-scoped).
@@ -5641,7 +5641,7 @@ Money continua [ADR-090](#adr-090--decimal-para-valores-monetários):
 
 **Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
 [ADR-090](#adr-090--decimal-para-valores-monetários),
-[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e),
+[ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e),
 [ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents),
 [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
 
@@ -5677,7 +5677,7 @@ Alternativas:
 **Decisão:** Adotar (c) **escopado a este aggregate apenas** —
 não se torna convenção a propagar para outros aggregates do sistema. O
 resto do app continua CRUD onde for adequado (alinhado com
-[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e)).
+[ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e)).
 
 Schema:
 
@@ -5755,7 +5755,7 @@ Money em `amount_brl_cents` (BIGINT) — [ADR-090](#adr-090--decimal-para-valore
 
 **Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
 [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy),
-[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e),
+[ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e),
 [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6),
 [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
 
@@ -6134,7 +6134,7 @@ Mais:
 - Métrica `desvio_max_pct` é nova — KPI AUVP autêntico, sinaliza onde alocar próximo aporte (princípio Diagrama do Cerrado).
 - Públicos com patrimônios pequenos (<R$100k) podem achar 7 classes excessivas — produto pode oferecer "modo simples" (4 buckets) como toggle, mas a fonte de verdade é v2.
 
-**Relaciona-se a:** [ADR-075](#adr-075--cutover-cli--web-frontend-é-superfície-única-pós-f5) (origem do schema v1), [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida). Caracterização correta da AUVP em [`.claude/agents/financial-planner.md`](../.claude/agents/financial-planner.md). KPI `desvio_max_pct` documentado em [FORMULAS.md §Alocação](FORMULAS.md).
+**Relaciona-se a:** [ADR-075](#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) (origem do schema v1), [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida). Caracterização correta da AUVP em [`.claude/agents/financial-planner.md`](../.claude/agents/financial-planner.md). KPI `desvio_max_pct` documentado em [FORMULAS.md §Alocação](FORMULAS.md).
 
 ---
 
@@ -6165,12 +6165,50 @@ Mais:
 - Famílias podem comparar dois cenários (toggle on/off) para entender impacto — útil pedagogicamente.
 - "Por workspace" do toggle é hoje **promessa de doc**, não realidade — fica catalogado como débito.
 
-**Relaciona-se a:** [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) (motivação direta — `renda_passiva_atual_mensal_brl`), [FORMULAS.md §Patrimônio](FORMULAS.md). Documentação histórica de fórmulas patrimoniais foi dissolvida em [ADR-143](#adr-143--rules-as-code-dissolução-de-docsmethodology-em-docstrings-e-architecture-glossary) (A7.6) — invariantes hoje vivem como docstrings em `pipeline/domain/services/` (composição) e em `docs/ARCHITECTURE.md §Glossário` (definitions).
+**Relaciona-se a:** [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) (motivação direta — `renda_passiva_atual_mensal_brl`), [FORMULAS.md §Patrimônio](FORMULAS.md). Documentação histórica de fórmulas patrimoniais foi dissolvida em [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76) (A7.6) — invariantes hoje vivem como docstrings em `pipeline/domain/services/` (composição) e em `docs/ARCHITECTURE.md §Glossário` (definitions).
 
 ---
 
----
+## ADR-143 — `docs/methodology/` é rules-as-code (Sprint A7.6)
 
+**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions). **Supersedes-a-aproximação-de** A7.4 (entregue 2026-04-27 — `git mv config/*.md docs/methodology/*.md`, mantida a estrutura híbrida que esta ADR corrige).
+
+**Contexto:** A versão CLI mono-cliente do Mathoms usava 4 arquivos markdown editoriais em `config/` (`definitions.md`, `regras_composicao_patrimonial.md`, `source_hierarchy.md`, `milhas.md`) que misturam dois conteúdos:
+
+1. **Regras universais de produto** — invariantes que o Mathoms enforce em runtime (as 7 categorias da composição patrimonial, hierarquia de fontes para reconciliação E3, método de valuation de pontos de milhagem).
+2. **Instâncias cliente-específicas do workspace piloto** — David, Mariana, Tasso da Silveira, Hashdex, valores BRL reais, contas Itaú/BTG, programas de milhas com saldos.
+
+A7.4 tratou esses arquivos como "documentação metodológica universal" e fez `git mv` puro para `docs/methodology/`. Auditoria pós-merge (2026-04-27) revelou **102 hits cliente-específicos** distribuídos pelos 4 arquivos (definitions: 59 · regras_composicao: 19 + valores BRL · source_hierarchy: 19 · milhas: 5). Isso viola CLAUDE.md §Regras críticas ("nunca expor valores monetários reais ... em commits"), e expõe o anti-padrão estrutural: **regra de produto como markdown gera drift** (quando o código muda, o doc fica desatualizado), e mistura com dados cliente cria caminho duplo (markdown vs DB) para a mesma informação.
+
+Alternativas consideradas:
+
+- **(a) Sanitizar `docs/methodology/`:** reescrever os 4 arquivos com placeholders (`TITULAR`, `CONJUGE`) sem dados cliente. Mantém o diretório como "spec doc paralelo ao código". **Trade-off:** drift garantido — toda mudança de regra em código requer atualização manual em 2 lugares. Adia o problema; não resolve.
+- **(b) Eliminar `docs/methodology/` (rules-as-code):** regras universais migram para docstrings + ADRs co-localizados com a função/classe que enforce; dados cliente migram para DB (estruturado) ou `storage/<workspace_id>/notes/` (gitignored, não-estruturado). Source of truth: o código.
+- **(c) Manter `docs/methodology/` como overview com links:** README curto linkando para os docstrings/ADRs. Trade-off intermediário — ainda exige sincronização do README, mas reduz superfície.
+
+**Decisão:** Adotar **(b) rules-as-code**.
+
+`docs/methodology/` deixa de existir. Para cada arquivo:
+
+1. **Regras universais** migram para docstrings na função/classe que enforce (e.g., 7 categorias da composição patrimonial → docstring em `pipeline/domain/services/cash_flow_builder.py` ou similar) + ADR específica (ADR-145, ADR-146, ADR-147 — uma por domínio) que captura o "porquê" da regra.
+2. **Dados cliente-estruturados** (categorias workspace-specific, contas bancárias, etc.) já vivem em DB ou migram via lanes correlatas (A7.2a Decision aggregate absorveu contratos PJ + estratégia de aportes; A7.3 absorve categorias/instituições; futuro A8.1 absorve programas de milhas).
+3. **Dados cliente-não-estruturados** (notas livres, observações editoriais que não cabem em entidades DB ainda) vão para `storage/<workspace_id>/notes/` — gitignored, workspace-scoped. Bridge transitório enquanto não há entidade DB modelada.
+
+`dev/check_forbidden_paths.py` ganha bloqueio para `docs/methodology/**` (impede recriação acidental).
+
+CLAUDE.md §Regras críticas ganha parágrafo: "Methodology = code. Nada em `docs/methodology/`. Regras universais vivem em docstrings + ADRs; dados cliente em DB ou `storage/<ws>/notes/`."
+
+**Consequências:**
+- ✅ Source of truth única: o código que enforce. Drift estrutural eliminado.
+- ✅ CLAUDE.md §Regras críticas (anti-PII em commits) reforçada por construção — não há mais lugar onde dados cliente "naturalmente" se misturam com regras de produto em git.
+- ✅ Regras universais ganham testes diretos via testes unitários da função que as enforce (não dependem de leitura de markdown).
+- ✅ Onboarding melhora: leitor encontra a regra **junto com a função que a aplica**, não em doc separado que pode estar desatualizado.
+- ⚠️ Quem busca "qual a regra do produto X?" precisa pesquisar no código (via grep/IDE) em vez de abrir um índice doc. Mitigação: ADRs especializadas (ADR-145..147) servem como índice canônico — referenciadas por nome em commits e docs.
+- ⚠️ Curva de migração: A7.6 sub-task 4 (sanitização de `definitions.md`) depende soft de A7.3 (categorias/instituições absorvidas) + A7.2a (decisões absorvidas) já mergeadas, para que o "drop" seja seguro.
+- ❌ Conteúdo histórico de `docs/methodology/` permanece em git history; auditoria pós-fato requer git blame / git log (não acessível via UI atual). Aceito — o vazamento de PII no history é o mesmo que tinha em `config/` antes; remoção retroativa do history exige `git filter-branch` que está fora do escopo desta lane.
+- ❌ Para regras que cruzam múltiplos arquivos (ex.: como E3 hierarchy interage com E4 categorização), o leitor precisa navegar entre N docstrings. Mitigação: ADRs do A7.6 (143, 145, 146, 147) servem como pontes cross-cutting.
+
+---
 
 ## ADR-144 — `section_summaries` LLM-driven em E5 com cache + fallback determinístico (v2.9)
 
@@ -6181,7 +6219,7 @@ Mais:
 **Contexto:**
 - Hoje E5 produz `section_summaries` via templates determinísticos puros — derivers em `pipeline/domain/services/derivers/section_summaries.py` (backend) e `deriveSectionSummary` em `frontend/src/lib/conclusionUtils.ts` (frontend, fallback do snapshot). Resultado funciona, mas é narrativamente engessado: 10 textos por relatório, todos no mesmo registro mecânico, sem contextualizar tendência ou ressaltar o que mudou desde o snapshot anterior.
 - ADR-122 já decidiu o desenho geral (híbrido template+LLM). Faltava uma ADR operacional que fechasse: (i) qual stack LLM usar, (ii) onde mora o cache, (iii) qual é o fallback se LLM falha, (iv) como a telemetria diferencia regime LLM vs determinístico, (v) como esta dependência convive com ADR-111 (stateless) e ADR-127/128 (ArtifactStore para LLM stages).
-- E5 hoje é **100 % determinístico**. Todas as outras stages que tocam LLM (E1, E1.5, E2-llm, E7-review-llm) já estão estabilizadas em LiteLLM + Instructor com Pydantic ([ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a) / [ADR-127](#adr-127--e1-members-persiste-via-artifactstore) / [ADR-128](#adr-128--e7-review-llm-lê-escreve-via-artifactstore)). Esta ADR é a primeira intrusão de LLM em E5 e estabelece o padrão para futuras (e.g., v3 pode upgrade `ChangelogEntry.summary` para LLM reusando os mesmos primitives).
+- E5 hoje é **100 % determinístico**. Todas as outras stages que tocam LLM (E1, E1.5, E2-llm, E7-review-llm) já estão estabilizadas em LiteLLM + Instructor com Pydantic ([ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a) / [ADR-127](#adr-127--e1-members-persiste-via-artifactstore) / [ADR-128](#adr-128--e7-review-llm-lêescreve-via-artifactstore)). Esta ADR é a primeira intrusão de LLM em E5 e estabelece o padrão para futuras (e.g., v3 pode upgrade `ChangelogEntry.summary` para LLM reusando os mesmos primitives).
 
 **Alternativas consideradas e descartadas:**
 1. **Templates "ricos" sem LLM** (mais condicionais, mais variantes): cresce combinatorialmente, vira spaghetti, e não resolve o problema de tom narrativo. Rejeitado.
@@ -6243,7 +6281,7 @@ Com cache hit ratio esperado de ~60 % (usuário reabre relatório no mesmo dia, 
 | [ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a) | Padrão de LLM em pipeline já estabelecido. v2.9 segue, **mas** seu output (`section_summaries`) é parte do snapshot E5 (já persistido por E5 em `analise_financeira-5_analysis.json`), não artefato novo separado — não cria nova `_STAGE_TO_DIR` entry. |
 | [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) | Cache **deve** ser Redis ou Postgres com TTL. `lru_cache`/`cached_property`/global dict **proibidos**. Esta ADR é o ponto de aplicação do princípio em E5. |
 | [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm) | ADR-144 implementa o **branch LLM** do híbrido para `section_summaries`. `chart_conclusions` permanece determinístico — ADR-122 não é descartada, é refinada nos pontos operacionais. |
-| [ADR-127](#adr-127--e1-members-persiste-via-artifactstore) / [ADR-128](#adr-128--e7-review-llm-lê-escreve-via-artifactstore) | **NÃO confundir cache LLM com ArtifactStore**: ArtifactStore é para artefatos do pipeline (input/output de stage, parte do lineage do `ReportRun`, sujeito a `pipeline_artifacts` lifecycle [ADR-132]). Cache LLM é otimização de runtime — efêmero, TTL 24h, sem lineage, fora do `ReportRun` graph. Diferenciação codificada: `LLMCacheBackend` em `backend/app/services/llm_cache.py`, distinto de `ArtifactStore`. |
+| [ADR-127](#adr-127--e1-members-persiste-via-artifactstore) / [ADR-128](#adr-128--e7-review-llm-lêescreve-via-artifactstore) | **NÃO confundir cache LLM com ArtifactStore**: ArtifactStore é para artefatos do pipeline (input/output de stage, parte do lineage do `ReportRun`, sujeito a `pipeline_artifacts` lifecycle [ADR-132]). Cache LLM é otimização de runtime — efêmero, TTL 24h, sem lineage, fora do `ReportRun` graph. Diferenciação codificada: `LLMCacheBackend` em `backend/app/services/llm_cache.py`, distinto de `ArtifactStore`. |
 | [ADR-148](#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório) (v2.D.1) | v2.9 é **independente** de v2.D.1. v2.D.1 entrega `ChangelogEntry.summary` determinístico (template). v3 (lane futura, fora desta ADR) pode upgrade `summary` para LLM reusando os primitives definidos aqui (`LLMCacheBackend`, telemetry logger, fallback pattern). v2.9 e v2.D.1 podem mergear em qualquer ordem. |
 | [ADR-090](#adr-090--decimal-para-valores-monetários) | Section summaries são prosa; LLM não emite valor monetário inline. Se o prompt evoluir e isso virar necessário, validator Pydantic exige `Decimal`-string + renderer formata via `Money`. |
 | [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3) | Telemetria via namespace `mathoms.llm.section_summaries`, JSON, sem PII. |
@@ -6278,48 +6316,7 @@ Com cache hit ratio esperado de ~60 % (usuário reabre relatório no mesmo dia, 
 
 **Gate de Fase 2**: goldens verdes + custo telemetrado + ADR-144 mergeada em `main`.
 
-**Relaciona-se a:** [ADR-024 LiteLLM], [ADR-025 BYOK], [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-097](#adr-097--isp-em-services-de-domínio), [ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm), [ADR-127](#adr-127--e1-members-persiste-via-artifactstore), [ADR-128](#adr-128--e7-review-llm-lê-escreve-via-artifactstore), [ADR-132](#adr-132--lifecycle-scoping-de-pipeline_artifacts-workspace-vs-run). Lane operacional: [`docs/agent_prompts/track_report_v2.md` §3 v2.9](agent_prompts/track_report_v2.md).
-
----
-
-## ADR-143 — `docs/methodology/` é rules-as-code (Sprint A7.6)
-
-**Status:** Decidido (Sprint A7.6 · CTO sign-off 2026-04-27) • **Data:** 2026-04-27 • **Relaciona** [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-137](#adr-137--catalog--override-resolver-para-categorization-e-institutions). **Supersedes-a-aproximação-de** A7.4 (entregue 2026-04-27 — `git mv config/*.md docs/methodology/*.md`, mantida a estrutura híbrida que esta ADR corrige).
-
-**Contexto:** A versão CLI mono-cliente do Mathoms usava 4 arquivos markdown editoriais em `config/` (`definitions.md`, `regras_composicao_patrimonial.md`, `source_hierarchy.md`, `milhas.md`) que misturam dois conteúdos:
-
-1. **Regras universais de produto** — invariantes que o Mathoms enforce em runtime (as 7 categorias da composição patrimonial, hierarquia de fontes para reconciliação E3, método de valuation de pontos de milhagem).
-2. **Instâncias cliente-específicas do workspace piloto** — David, Mariana, Tasso da Silveira, Hashdex, valores BRL reais, contas Itaú/BTG, programas de milhas com saldos.
-
-A7.4 tratou esses arquivos como "documentação metodológica universal" e fez `git mv` puro para `docs/methodology/`. Auditoria pós-merge (2026-04-27) revelou **102 hits cliente-específicos** distribuídos pelos 4 arquivos (definitions: 59 · regras_composicao: 19 + valores BRL · source_hierarchy: 19 · milhas: 5). Isso viola CLAUDE.md §Regras críticas ("nunca expor valores monetários reais ... em commits"), e expõe o anti-padrão estrutural: **regra de produto como markdown gera drift** (quando o código muda, o doc fica desatualizado), e mistura com dados cliente cria caminho duplo (markdown vs DB) para a mesma informação.
-
-Alternativas consideradas:
-
-- **(a) Sanitizar `docs/methodology/`:** reescrever os 4 arquivos com placeholders (`TITULAR`, `CONJUGE`) sem dados cliente. Mantém o diretório como "spec doc paralelo ao código". **Trade-off:** drift garantido — toda mudança de regra em código requer atualização manual em 2 lugares. Adia o problema; não resolve.
-- **(b) Eliminar `docs/methodology/` (rules-as-code):** regras universais migram para docstrings + ADRs co-localizados com a função/classe que enforce; dados cliente migram para DB (estruturado) ou `storage/<workspace_id>/notes/` (gitignored, não-estruturado). Source of truth: o código.
-- **(c) Manter `docs/methodology/` como overview com links:** README curto linkando para os docstrings/ADRs. Trade-off intermediário — ainda exige sincronização do README, mas reduz superfície.
-
-**Decisão:** Adotar **(b) rules-as-code**.
-
-`docs/methodology/` deixa de existir. Para cada arquivo:
-
-1. **Regras universais** migram para docstrings na função/classe que enforce (e.g., 7 categorias da composição patrimonial → docstring em `pipeline/domain/services/cash_flow_builder.py` ou similar) + ADR específica (ADR-145, ADR-146, ADR-147 — uma por domínio) que captura o "porquê" da regra.
-2. **Dados cliente-estruturados** (categorias workspace-specific, contas bancárias, etc.) já vivem em DB ou migram via lanes correlatas (A7.2a Decision aggregate absorveu contratos PJ + estratégia de aportes; A7.3 absorve categorias/instituições; futuro A8.1 absorve programas de milhas).
-3. **Dados cliente-não-estruturados** (notas livres, observações editoriais que não cabem em entidades DB ainda) vão para `storage/<workspace_id>/notes/` — gitignored, workspace-scoped. Bridge transitório enquanto não há entidade DB modelada.
-
-`dev/check_forbidden_paths.py` ganha bloqueio para `docs/methodology/**` (impede recriação acidental).
-
-CLAUDE.md §Regras críticas ganha parágrafo: "Methodology = code. Nada em `docs/methodology/`. Regras universais vivem em docstrings + ADRs; dados cliente em DB ou `storage/<ws>/notes/`."
-
-**Consequências:**
-- ✅ Source of truth única: o código que enforce. Drift estrutural eliminado.
-- ✅ CLAUDE.md §Regras críticas (anti-PII em commits) reforçada por construção — não há mais lugar onde dados cliente "naturalmente" se misturam com regras de produto em git.
-- ✅ Regras universais ganham testes diretos via testes unitários da função que as enforce (não dependem de leitura de markdown).
-- ✅ Onboarding melhora: leitor encontra a regra **junto com a função que a aplica**, não em doc separado que pode estar desatualizado.
-- ⚠️ Quem busca "qual a regra do produto X?" precisa pesquisar no código (via grep/IDE) em vez de abrir um índice doc. Mitigação: ADRs especializadas (ADR-145..147) servem como índice canônico — referenciadas por nome em commits e docs.
-- ⚠️ Curva de migração: A7.6 sub-task 4 (sanitização de `definitions.md`) depende soft de A7.3 (categorias/instituições absorvidas) + A7.2a (decisões absorvidas) já mergeadas, para que o "drop" seja seguro.
-- ❌ Conteúdo histórico de `docs/methodology/` permanece em git history; auditoria pós-fato requer git blame / git log (não acessível via UI atual). Aceito — o vazamento de PII no history é o mesmo que tinha em `config/` antes; remoção retroativa do history exige `git filter-branch` que está fora do escopo desta lane.
-- ❌ Para regras que cruzam múltiplos arquivos (ex.: como E3 hierarchy interage com E4 categorização), o leitor precisa navegar entre N docstrings. Mitigação: ADRs do A7.6 (143, 145, 146, 147) servem como pontes cross-cutting.
+**Relaciona-se a:** [ADR-024 LiteLLM], [ADR-025 BYOK], [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy), [ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm), [ADR-127](#adr-127--e1-members-persiste-via-artifactstore), [ADR-128](#adr-128--e7-review-llm-lêescreve-via-artifactstore), [ADR-132](#adr-132--lifecycle-scoping-de-pipeline_artifacts-workspace-vs-run). Lane operacional: [`docs/agent_prompts/track_report_v2.md` §3 v2.9](agent_prompts/track_report_v2.md).
 
 ---
 
@@ -6572,7 +6569,7 @@ estáveis e cacheáveis, mesmo se a redação mudar.
    `dev/check_pipeline_boundaries.py`).
 
    **Por que `stage IN (...)`:** janela de compat
-   [ADR-093](#adr-093--stage-identifiers-descritivos--mapa-canônico)
+   [ADR-093](#adr-093--rename-completo-de-identificadores-de-stage-opção-a)
    continua aberta — `pipeline_artifacts.stage` aceita tanto `"E5"`
    (legado, pré-F9.3) quanto `"analyze_finances"` (descritivo). O
    loader normaliza via `to_legacy_stage_name`/`resolve_stage_name`.
@@ -6596,7 +6593,7 @@ estáveis e cacheáveis, mesmo se a redação mudar.
    `ComparisonResult.items: list[ComparisonItem]` com 1 item por
    seção em `sections_to_compare` (default `("S1", "S2", "S3", "T2",
    "T5")`). Cada item carrega `before/after/delta_pct` em `Decimal`
-   ([ADR-090](#adr-090--money-nunca-float-padrão)).
+   ([ADR-090](#adr-090--decimal-para-valores-monetários)).
    `ComparisonResult.entries: list[ChangelogEntry]` com 1 entrada por
    seção que cruza `minimum_delta_pct` (default `Decimal("0.5")` =
    meio porcento — abaixo, "stable"). Drill-down por KPI é v3.
@@ -6654,7 +6651,7 @@ on-demand pelo endpoint.
   ([ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy)
   D2/D3). Cobertura de paridade legado-↔-novo não se aplica (feature
   nova). Money em `Decimal`
-  ([ADR-090](#adr-090--money-nunca-float-padrão)) end-to-end.
+  ([ADR-090](#adr-090--decimal-para-valores-monetários)) end-to-end.
 - ✅ **Pipeline-domain rigoroso.** Builder em
   `pipeline/domain/services/snapshot_changelog/` não importa
   fastapi/celery/sqlalchemy
