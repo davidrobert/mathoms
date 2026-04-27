@@ -162,9 +162,12 @@ function enrichSeriesForStack(
 ): { datasets: EnrichedDataset[]; nextIdx: number } {
   const datasets: EnrichedDataset[] = [];
   let idx = startIdx;
-  const len = palette.length;
+  const len = Math.max(palette.length, 1);
   (series ?? []).forEach((ds) => {
-    const fallback = len > 0 ? palette[((idx % len) + len) % len] : "#1A3A5C";
+    // palette vem de useChartTheme().categorical, sempre 12 entradas
+    // (LIGHT_FALLBACK garante). `palette[0]` cobre o caso degenerado
+    // (palette vazia em SSR/teste sem CSS) sem hex literal.
+    const fallback = palette[((idx % len) + len) % len] ?? palette[0];
     datasets.push({
       label: ds.label,
       data: ds.data,
