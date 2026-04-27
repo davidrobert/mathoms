@@ -28,6 +28,47 @@ vi.mock("next-intl", async () => {
   };
 });
 
+/** Mock global de `react-chartjs-2` (2026-04-27).
+ *
+ * Pós-v2.E.6 (refactor 502-line em ReceitaDespesaMensalChart), múltiplos
+ * componentes do report renderizam Chart.js wrappers no caminho default.
+ * jsdom não tem o pkg `canvas`; cada `acquireContext` falha, React entra
+ * em loop de re-render via useEffect, Vitest hangea (run 24999684508 do
+ * PR #10 ficou 22m54s antes do timeout).
+ *
+ * Stub global retorna componentes inertes; testes que precisam exercitar
+ * o flow imperativo (ref → chart.update / getDatasetMeta) sobrescrevem
+ * com `vi.mock` local — Vitest hoist do per-file ganha do setup global.
+ * Padrão já usado em `ReceitaDespesaMensalChart.test.tsx`.
+ */
+vi.mock("react-chartjs-2", () => {
+  const stub = () => null;
+  const stubWithRef = (props: { ref?: (instance: unknown) => void }) => {
+    if (typeof props.ref === "function") {
+      props.ref({
+        update: () => undefined,
+        getDatasetMeta: () => ({ hidden: false }),
+        toBase64Image: () => "data:image/png;base64,",
+      });
+    }
+    return null;
+  };
+  return {
+    Chart: stubWithRef,
+    Line: stub,
+    Bar: stub,
+    Doughnut: stub,
+    Pie: stub,
+    PolarArea: stub,
+    Radar: stub,
+    Scatter: stub,
+    Bubble: stub,
+    getElementAtEvent: () => null,
+    getDatasetAtEvent: () => null,
+    getElementsAtEvent: () => null,
+  };
+});
+
 /** Default workspace para páginas `(app)/` que usam `useWorkspace()` sem provider real. */
 vi.mock("@/lib/WorkspaceProvider", () => ({
   WorkspaceProvider: ({ children }: { children: ReactNode }) =>
