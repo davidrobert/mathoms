@@ -914,7 +914,7 @@ Conteúdo que **era** duplicado neste arquivo e agora vive em sua fonte
 | Arquitetura alvo pós-A6 (migração infra+domínio)    | [docs/ARCHITECTURE.md §17](docs/ARCHITECTURE.md)                                           |
 | Sprint atual da migração (A5f, A6a-f, A6-human, A6c, A6d…) | [docs/BACKLOG.md — Sprint A6](docs/BACKLOG.md)                                      |
 | Log cronológico de entregas (sessões A1–A6f por data) | [docs/CHANGELOG.md](docs/CHANGELOG.md)                                                   |
-| ADRs (076–109) e rationale de decisões              | [docs/DECISIONS.md](docs/DECISIONS.md)                                                     |
+| ADRs (001–148+) e rationale de decisões — ToC categorizado no topo, gates em [dev/check_adr_anchors.py](dev/check_adr_anchors.py), [dev/build_adr_toc.py](dev/build_adr_toc.py), [dev/validate_adr_format.py](dev/validate_adr_format.py); cheat-sheet de criação no preâmbulo do arquivo + protocolo em §"ADRs → docs/DECISIONS.md" deste CLAUDE.md | [docs/DECISIONS.md](docs/DECISIONS.md)                       |
 | Domínios e URLs públicas (ADR-108)                  | [docs/ARCHITECTURE.md §18](docs/ARCHITECTURE.md)                                           |
 | Smoke test humano (gate pré-A6c)                    | [docs/SMOKE_TEST_HUMAN.md](docs/SMOKE_TEST_HUMAN.md)                                       |
 | Artefatos de pipeline + schemas                     | [docs/PIPELINE_ARTIFACTS.md](docs/PIPELINE_ARTIFACTS.md)                                   |

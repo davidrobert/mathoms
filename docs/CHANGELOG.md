@@ -6,6 +6,63 @@
 
 ## [Unreleased]
 
+- **DECISIONS.md cleanup — plano F0-F8 ✅ (2026-04-27):**
+  Plano de correção em 9 fases derivado da auditoria estrutural pelo
+  `senior-cto`. Estado final: 142 headings · 280 anchor refs · 0 broken
+  · ToC cobrindo 100% das ADRs (era 30%) · 141/141 ADRs validam formato.
+
+  Entregas:
+  - **F0** [`95c1aed`](https://github.com/davidrobert/mathoms/commit/95c1aed):
+    [dev/check_adr_anchors.py](dev/check_adr_anchors.py) — gate de
+    GitHub Slugger; valida toda referência `[X](#adr-...)` contra slugs
+    canônicos gerados a partir dos headings. Modo `--suggest` gera sed
+    pronto.
+  - **F1** [`95c1aed`](https://github.com/davidrobert/mathoms/commit/95c1aed):
+    15 anchor links broken corrigidos (ToC: D18/D19/D30/D75/D29-TQ/D30-WS/D55;
+    cross-refs internas: ADR-082, ADR-106 ×2, ADR-115 ×2, ADR-073, ADR-141).
+  - **F2** [`d1d2531`](https://github.com/davidrobert/mathoms/commit/d1d2531):
+    drift de conteúdo. PII "Ferreira-Campos" removida em prosa (4 lugares;
+    3 mantidas em refs a paths reais de scripts). Path obsoleto
+    `config/definitions.md` substituído por nota cruzada para ADR-143.
+    Banner pós-ADR-129 em ADR-078.
+  - **F3** [`8afdb9d`](https://github.com/davidrobert/mathoms/commit/8afdb9d):
+    move ADR-143 antes de ADR-144 (restaura ordem cronológica + numérica
+    da Sprint A7.6). Bug fix unicode em
+    [dev/check_adr_anchors.py](dev/check_adr_anchors.py) (regex
+    `[a-z0-9_\-]` não pegava ã/é/ó) revelou +15 anchors broken escondidos
+    (ADR-101 ×7 `ddd-solid`/`dddsolid`, ADR-128 ×4 `lê-escreve`/`lêescreve`,
+    ADR-090 ×2, ADR-075/093/097 ×1 cada).
+  - **F4** [`27ba9b0`](https://github.com/davidrobert/mathoms/commit/27ba9b0):
+    [dev/build_adr_toc.py](dev/build_adr_toc.py) — auto-gen idempotente
+    do ToC com 19 categorias canônicas + tabela de overrides por número.
+    Marcações `<!-- ADR-TOC-START -->` / `<!-- ADR-TOC-END -->`
+    delimitam a área editável.
+  - **F5** [`7fe3517`](https://github.com/davidrobert/mathoms/commit/7fe3517):
+    Status outliers padronizados (ADR-046 `Revisado` → `Decidido` +
+    revisão inline; ADR-093 `🚧 Em execução` → `Decidido (F9 · execução
+    em andamento)`). ADR-140/141 consolidam Status+Data+Implementação
+    na mesma linha.
+  - **F6** [`f0a09b3`](https://github.com/davidrobert/mathoms/commit/f0a09b3):
+    bidirecional supersedure — banners em 5 ADRs históricas substituídas
+    (ADR-013 ← ADR-072; ADR-016 ← ADR-079; ADR-020 ← ADR-085; ADR-062
+    ← ADR-064; ADR-122 ← ADR-144).
+  - **F7** SKIPPED — quebrar ADR-148 (269 linhas) e ADR-132 (205 linhas)
+    fica como follow-up oportunístico quando ADRs forem revisitadas.
+    Trade-off "ADR enxuta perde rastreabilidade vs. ADR densa é a doença"
+    sem ganho claro.
+  - **F8** [`ff1465c`](https://github.com/davidrobert/mathoms/commit/ff1465c):
+    [dev/validate_adr_format.py](dev/validate_adr_format.py) (formato
+    Status/Data/seções estruturadas) + cheat-sheet no preâmbulo do
+    `docs/DECISIONS.md` + protocolo em [CLAUDE.md §"ADRs →
+    docs/DECISIONS.md"](CLAUDE.md). 3 hooks pre-commit registrados em
+    `.pre-commit-config.yaml` (`adr-anchors`, `adr-toc`, `adr-format`)
+    rodam apenas em mudanças no DECISIONS.md.
+
+  **Recomendação institucionalizada:** novas ADRs devem rodar
+  `python3 dev/check_adr_anchors.py --suggest` antes de citar anchor;
+  `python3 dev/build_adr_toc.py --inline` após mudar headings; gates
+  pre-commit pegam regressões automaticamente.
+
 - **Report Premium UI v2.2b completa — modo USA re-habilitado + 8 baselines U1-U4 ✅ (2026-04-27):**
   Decisão de produto autorizou retomar o modo USA. Reverte parcialmente
   `adc3a15` ("ocultar USA temporariamente"): U1-U4 `enabled: true` no
