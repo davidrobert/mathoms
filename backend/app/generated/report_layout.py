@@ -101,6 +101,7 @@ class KpiSpec(_Base):
 class CoverMetaSpec(_Base):
     label_key: str
     value_key: str | None = None
+    conditional_on: str | None = None
 
 
 class CoverSpec(_Base):

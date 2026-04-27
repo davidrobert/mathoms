@@ -90,6 +90,7 @@ export interface KpiSpec {
 export interface CoverMetaSpec {
   label_key: string;
   value_key?: string;
+  conditional_on?: string;
 }
 
 export interface CoverSpec {

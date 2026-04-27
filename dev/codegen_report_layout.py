@@ -172,6 +172,7 @@ def render_ts(layout: dict[str, Any]) -> str:
         "export interface CoverMetaSpec {",
         "  label_key: string;",
         "  value_key?: string;",
+        "  conditional_on?: string;",
         "}",
         "",
         "export interface CoverSpec {",
@@ -340,6 +341,7 @@ class KpiSpec(_Base):
 class CoverMetaSpec(_Base):
     label_key: str
     value_key: str | None = None
+    conditional_on: str | None = None
 
 
 class CoverSpec(_Base):
