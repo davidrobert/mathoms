@@ -60,6 +60,7 @@ export function LoginForm({ nextUrl }: { nextUrl: string }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
+              suppressHydrationWarning
             />
           </div>
 
@@ -72,6 +73,7 @@ export function LoginForm({ nextUrl }: { nextUrl: string }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              suppressHydrationWarning
             />
           </div>
 
