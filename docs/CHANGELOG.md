@@ -12,6 +12,53 @@ execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificador
 **[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.
 
+- **Report Premium UI v2 — v2.6 `cards/` cleanup ✅ (2026-04-27):**
+  Auditoria pós-v1 (2026-04-25) classificou
+  `frontend/src/components/report/cards/` como "pré-Fase 3" e propôs
+  três caminhos: (a) migrar para `ui/`; (b) deprecar como wrappers;
+  (c) aceitar legacy. A lane reabriu com evidência empírica e a
+  decisão final é **(c) refinada** — `cards/` é a **camada
+  section-composer** legítima entre primitivos `ui/`
+  (`Alert`/`Badge`/`Kpi`/`ScoreCard`/`Timeline`/…) e `sections/`
+  (`S1`–`S10`). Todos os 14 cards já consomem o primitivo canônico
+  `ReportCard`; carregam lógica de domínio atrelada a shapes
+  específicos do DTO (`PatrimonioData`,
+  `OrcamentoProspectivoData`, `EquilibrioCerbasiData`…) e
+  pertencem a esta camada por design.
+
+  **Cleanup entregue:**
+  - `cards/_registry.ts` (com `MIGRATED_CARD_IDS` morto + nomenclatura
+    F2.A obsoleta da migração v1) → `cards/index.ts` (barrel padrão
+    com docstring de fronteira de camada + instrução explícita "não
+    migrar para `ui/`");
+  - 6 consumidores (`S1PatrimonioSection`, `S2FluxoCaixaSection`,
+    `S3InvestimentosSection`, `S7IndependenciaSection`,
+    `S10SinteseSection`, `ReportShell`) passam a importar pelo barrel
+    (`from "../cards"`) em vez de cada arquivo individual;
+  - `cards/PontosFortesList` → `cards/PontosFortesCard` (rename)
+    resolve colisão de nome com `ui/PontoForteItem::PontosFortesList`
+    (este último é primitivo `<ul>` com children; o card recebe
+    `pontos: PontoForte[]` do DTO e wrappa em `ReportCard`);
+  - `cards/PontosUrgentesList` → `cards/PontosUrgentesCard` por
+    simetria;
+  - decisão arquitetural registrada em
+    [REPORT_PREMIUM_PLAN.md §17.9](REPORT_PREMIUM_PLAN.md) com
+    diagrama das camadas (`sections/` → `cards/` → `ui/` →
+    `ReportCard`).
+
+  **Zero mudança visual.** Apenas reorganização de imports + 2
+  renames + docs. Vitest + pre-commit verdes; tsc clean em `src/`
+  (erros pré-existentes em `tests/` são unrelated).
+
+  **Não escopo (deferido):** dedup de
+  `report/PeriodToggle.tsx` (legado, encaixa em `headerRight` de
+  `ReportCard`) vs `ui/PeriodToggle.tsx` (v2.E.1, segmented control
+  acima de chart) — APIs distintas com propósitos legítimos
+  diferentes; eventual dedup vai para v2.6b/v3. `lib/periodUtils.ts`
+  e `hooks/usePeriodTransactions` ficam intocados (servem caso de
+  lista bruta de `TransactionItem[]`, não competem com
+  `report/hooks/usePeriodWindow` da v2.E.1).
+
 - **Report Premium UI v2 — Onda E (Charts UX) ✅ 8/8 (2026-04-26):**
   Onda E fechou a migração Recharts→Chart.js dentro de `/reports/**`
   que [ADR-117](DECISIONS.md#adr-117--report-premium-ui-baseline-paridade-com-exemplo_de_relatoriohtml)

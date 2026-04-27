@@ -1334,6 +1334,76 @@ Exemplos reais:
   cada sub-lane neste plano (a → ✅, b → ✅, c → ✅), e fecha a
   Onda F com entrada consolidada no CHANGELOG/BACKLOG.
 
+### 17.9 v2.6 — `cards/` aceito como camada section-composer (resolvido)
+
+**Auditoria pós-v1 (2026-04-25)** classificou
+`frontend/src/components/report/cards/` como "pré-Fase 3" e propôs três
+caminhos: (a) migrar para `ui/`; (b) deprecar como wrappers; (c) aceitar
+legacy via doc. A lane v2.6 reabriu a discussão e a evidência empírica
+reverteu o framing original — a decisão final é **(c) refinada**.
+
+**Por que `cards/` não é legacy:**
+
+1. Todos os 14 cards já usam o primitivo canônico `ReportCard` (re-export
+   feito em `ui/index.ts` para simetria, mas o arquivo vive em
+   `report/ReportCard.tsx`). Não há duplicação de `Card`, `Alert` ou
+   `Badge` — o "gap" apontado pela auditoria não existe na prática.
+2. Cada card carrega lógica de domínio do relatório atrelada a um shape
+   específico do DTO (`PatrimonioData`, `OrcamentoProspectivoData`,
+   `EquilibrioCerbasiData`…). Mover para `ui/` poluiria a camada de
+   primitivos com regras de seção.
+3. O caminho (a) "migrar" produziria 14 renomeações sem ganho
+   arquitetural; (b) "wrappers" adiciona indireção sem propósito.
+
+**Camadas do relatório premium (após v2.6):**
+
+```
+sections/<S>.tsx       ← composer de seção: assemble cards + charts + summaries
+   │
+   ▼
+cards/<X>Card.tsx      ← section-composer: shape de DTO + frame ReportCard
+   │
+   ▼
+ui/{Alert,Badge,Kpi,   ← primitivos section-agnostic, reutilizáveis
+    ScoreCard,Timeline,
+    PeriodToggle,
+    PontoForteItem,...}
+   │
+   ▼
+ReportCard.tsx         ← primitivo canônico de "card" (frame visual)
+                         re-exportado em ui/index.ts por simetria
+```
+
+**Cleanup entregue na lane v2.6:**
+
+1. `cards/_registry.ts` (com `MIGRATED_CARD_IDS` morto e nomenclatura
+   F2.A obsoleta da migração v1) → `cards/index.ts` (barrel padrão) com
+   docstring explicando a fronteira de camada e instrução explícita
+   "não migrar para `ui/`".
+2. Os 6 consumidores (`S1`/`S2`/`S3`/`S7`/`S10`/`ReportShell`) passaram
+   a importar pelo barrel (`from "../cards"`) em vez de cada arquivo
+   individual.
+3. `cards/PontosFortesList` → `cards/PontosFortesCard` (renomeação)
+   resolve a colisão de nome com `ui/PontoForteItem::PontosFortesList`
+   (este último é primitivo `<ul>` com children; o card é o composer
+   que recebe `pontos: PontoForte[]` do DTO e wrappa em `ReportCard`).
+   Para simetria, `cards/PontosUrgentesList` → `cards/PontosUrgentesCard`.
+4. Decisão registrada **aqui** (§17.9) e em `cards/index.ts` para que
+   futuros agentes parem na fronteira e não recriem a discussão.
+
+**O que NÃO foi feito (e por quê):**
+
+- **Não migramos `report/PeriodToggle.tsx` legado** para `ui/PeriodToggle`
+  (v2.E.1). São APIs distintas: o primitivo legado encaixa em
+  `headerRight` de `ReportCard` (compacto, Tailwind via `cn`); o de
+  v2.E.1 é segmented control de janela temporal acima de chart (inline
+  styles, `marginBottom: 4`, label "Janela temporal" / "Ano"). Ambos
+  têm propósito legítimo. Dedup (se desejado) fica para v2.6b/v3.
+- **Não tocamos `lib/periodUtils.ts` nem `hooks/usePeriodTransactions`**.
+  Eles servem casos com lista bruta de `TransactionItem[]` da API; não
+  competem com `report/hooks/usePeriodWindow.ts` (que opera sobre
+  arrays mensais já agregados no DTO).
+
 ---
 
 **Fim do plano.**
