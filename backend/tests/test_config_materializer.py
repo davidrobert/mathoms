@@ -201,7 +201,7 @@ class TestMaterializeConfig:
         assert (config_dir / "pipeline.json").exists()
         assert (config_dir / "institutions.json").exists()
         assert (config_dir / "report_layout.yaml").exists()
-        assert (config_dir / "definitions.md").exists()
+        # definitions.md moved to docs/methodology/ in A7.4 — no longer in config/.
 
     def test_overrides_family_members(self, db, workspace, tmp_path):
         db.add(
@@ -280,7 +280,7 @@ class TestMaterializeConfig:
         assert (tenant_root / "config" / "pipeline.json").exists()
 
     def test_preserves_templates_and_schemas(self, db, workspace, tmp_path):
-        """Non-editable files (templates/, schemas/, definitions.md) are copied."""
+        """Non-editable files (templates/, schemas/) are copied. (definitions.md moved to docs/methodology/ in A7.4.)"""
         tenant_root = tmp_path / "tenant"
         tenant_root.mkdir()
         config_dir = materialize_config(workspace.id, tenant_root, db)

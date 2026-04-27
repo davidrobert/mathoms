@@ -69,7 +69,7 @@ def _init_config(base_dir: Path) -> None:
     PROJECT_DIR = base_dir
     E5_JSON_PATH = base_dir / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
     METHODOLOGY_PATH = base_dir / "config" / "methodology.md"
-    DEFINITIONS_PATH = base_dir / "config" / "definitions.md"
+    DEFINITIONS_PATH = base_dir / "docs" / "methodology" / "definitions.md"
     FAMILY_CONFIG_PATH = base_dir / "config" / "family_members.json"
     SCORING_CONFIG_PATH = base_dir / "config" / "scoring.json"
     PIPELINE_CONFIG_PATH = base_dir / "config" / "pipeline.json"
@@ -92,7 +92,7 @@ def _init_config(base_dir: Path) -> None:
 PROJECT_DIR = _DEFAULT_BASE_DIR
 E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
 METHODOLOGY_PATH = PROJECT_DIR / "config" / "methodology.md"
-DEFINITIONS_PATH = PROJECT_DIR / "config" / "definitions.md"
+DEFINITIONS_PATH = PROJECT_DIR / "docs" / "methodology" / "definitions.md"
 FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
 SCORING_CONFIG_PATH = PROJECT_DIR / "config" / "scoring.json"
 PIPELINE_CONFIG_PATH = PROJECT_DIR / "config" / "pipeline.json"

@@ -76,14 +76,14 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     E5_ANALYSIS_DIR = PROCESSED_DIR / "E5_analysis"
 
     LIFE_PLAN_GOALS = PROJECT_DIR / "life_plan" / "life_plan_goals.md"
-    CONFIG_DEFINITIONS = PROJECT_DIR / "config" / "definitions.md"
+    CONFIG_DEFINITIONS = PROJECT_DIR / "docs" / "methodology" / "definitions.md"
     CONFIG_TAREFAS = PROJECT_DIR / "config" / "tarefas.md"
     CONFIG_GOALS = PROJECT_DIR / "config" / "goals.json"
     CONFIG_SCORING = PROJECT_DIR / "config" / "scoring.json"
     CONFIG_FISCAL = PROJECT_DIR / "config" / "parametros_fiscais.json"
     CONFIG_FAMILY = PROJECT_DIR / "config" / "family_members.json"
     CONFIG_TAXAS = PROJECT_DIR / "config" / "taxas.json"
-    CONFIG_MILHAS = PROJECT_DIR / "config" / "milhas.md"
+    CONFIG_MILHAS = PROJECT_DIR / "docs" / "methodology" / "milhas.md"
 
     FILE_RECEITAS = E4_UNIFIED_DIR / "receitas-4_unified.json"
     FILE_DESPESAS = E4_UNIFIED_DIR / "despesas-4_unified.json"
@@ -157,14 +157,14 @@ E2_EXTRACTS_DIR: Path = PROCESSED_DIR / "E2_extracts"
 E3_RECONCILED_DIR: Path = PROCESSED_DIR / "E3_reconciled"
 E5_ANALYSIS_DIR: Path = PROCESSED_DIR / "E5_analysis"
 LIFE_PLAN_GOALS: Path = PROJECT_DIR / "life_plan" / "life_plan_goals.md"
-CONFIG_DEFINITIONS: Path = PROJECT_DIR / "config" / "definitions.md"
+CONFIG_DEFINITIONS: Path = PROJECT_DIR / "docs" / "methodology" / "definitions.md"
 CONFIG_TAREFAS: Path = PROJECT_DIR / "config" / "tarefas.md"
 CONFIG_GOALS: Path = PROJECT_DIR / "config" / "goals.json"
 CONFIG_SCORING: Path = PROJECT_DIR / "config" / "scoring.json"
 CONFIG_FISCAL: Path = PROJECT_DIR / "config" / "parametros_fiscais.json"
 CONFIG_FAMILY: Path = PROJECT_DIR / "config" / "family_members.json"
 CONFIG_TAXAS: Path = PROJECT_DIR / "config" / "taxas.json"
-CONFIG_MILHAS: Path = PROJECT_DIR / "config" / "milhas.md"
+CONFIG_MILHAS: Path = PROJECT_DIR / "docs" / "methodology" / "milhas.md"
 FILE_RECEITAS: Path = E4_UNIFIED_DIR / "receitas-4_unified.json"
 FILE_DESPESAS: Path = E4_UNIFIED_DIR / "despesas-4_unified.json"
 FILE_PATRIMONIO: Path = E4_UNIFIED_DIR / "patrimonio-4_unified.json"
@@ -2197,7 +2197,7 @@ def parse_tarefas_md(content: str | None = None) -> Tuple[List[Dict[str, Any]], 
 
 
 def parse_milhas_md_content(text: str) -> Dict[str, Any]:
-    """Parse content of ``config/milhas.md`` — **função pura, sem I/O**.
+    """Parse content of ``docs/methodology/milhas.md`` — **função pura, sem I/O**.
 
     A6d.2: extraída de ``parse_milhas_md`` para permitir testes unitários
     sem arquivo real.
@@ -2268,11 +2268,11 @@ def parse_milhas_md(content: str | None = None) -> Dict[str, Any]:
 
     A6d.2: aceita ``content`` para testes; back-compat preservada via ``None``.
     """
-    print("[E5.15] Parsing config/milhas.md...")
+    print("[E5.15] Parsing docs/methodology/milhas.md...")
 
     if content is None:
         if not CONFIG_MILHAS.exists():
-            print("  ⚠ config/milhas.md not found — milhas card will be empty")
+            print("  ⚠ docs/methodology/milhas.md not found — milhas card will be empty")
             return {}
         content = CONFIG_MILHAS.read_text(encoding="utf-8")
 
