@@ -19,6 +19,7 @@ from backend.app.api.auth import router as auth_router
 from backend.app.api.categories import router as categories_router
 from backend.app.api.config import router as config_router
 from backend.app.api.dashboard import router as dashboard_router
+from backend.app.api.decisions import router as decisions_router
 from backend.app.api.documents import router as documents_router
 from backend.app.api.family_members import router as family_members_router
 from backend.app.api.feature_flags import router as feature_flags_router
@@ -171,6 +172,7 @@ _ALL_ROUTERS = (
     notifications_router,
     audit_router,
     goals_router,
+    decisions_router,
     workspaces_router,
     workspaces_tenant_router,
     invitations_router,
