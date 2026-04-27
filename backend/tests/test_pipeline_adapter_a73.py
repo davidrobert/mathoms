@@ -107,9 +107,7 @@ def _seed_institutions(session_factory) -> None:
 WS = "ws-pa-a73"
 
 
-def test_build_overrides_includes_categorization_from_template(
-    sync_db, no_redis
-):
+def test_build_overrides_includes_categorization_from_template(sync_db, no_redis):
     _seed_template(sync_db)
     with sync_db() as s:
         overrides = build_config_overrides_from_db(WS, db=s)
@@ -128,9 +126,7 @@ def test_build_overrides_includes_metadata_aux_keys(sync_db, no_redis):
     assert cat["pj_source_mapping"] == {"ARVO": "Arvo (PJ)"}
 
 
-def test_build_overrides_categorization_with_workspace_override(
-    sync_db, no_redis
-):
+def test_build_overrides_categorization_with_workspace_override(sync_db, no_redis):
     _seed_template(sync_db)
     with sync_db() as s:
         s.add(
@@ -147,9 +143,7 @@ def test_build_overrides_categorization_with_workspace_override(
         s.commit()
     with sync_db() as s:
         overrides = build_config_overrides_from_db(WS, db=s)
-    assert overrides["categorization.json"]["expense_keywords"]["moradia"] == [
-        "NOVA_KW"
-    ]
+    assert overrides["categorization.json"]["expense_keywords"]["moradia"] == ["NOVA_KW"]
 
 
 def test_build_overrides_includes_institutions_from_catalog(sync_db, no_redis):

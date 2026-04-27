@@ -17,9 +17,11 @@ class InstitutionCatalogRepository:
         self._session = session
 
     def list_all(self) -> list[InstitutionCatalog]:
-        rows = self._session.execute(
-            select(InstitutionCatalog).order_by(InstitutionCatalog.code)
-        ).scalars().all()
+        rows = (
+            self._session.execute(select(InstitutionCatalog).order_by(InstitutionCatalog.code))
+            .scalars()
+            .all()
+        )
         return list(rows)
 
     def get_by_code(self, code: str) -> Optional[InstitutionCatalog]:

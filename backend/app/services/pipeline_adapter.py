@@ -461,9 +461,7 @@ def build_config_overrides_from_db(workspace_id: str, *, db: SyncSession) -> dic
     return {k: v for k, v in sources.items() if v is not None}
 
 
-def _categorization_override(
-    workspace_id: str, db: SyncSession
-) -> dict[str, Any] | None:
+def _categorization_override(workspace_id: str, db: SyncSession) -> dict[str, Any] | None:
     """Resolved categories + auxiliary metadata, no formato consumido por e4_categorize."""
     from backend.app.services.category_resolver import (
         get_categorization_metadata,
@@ -481,9 +479,7 @@ def _categorization_override(
     expense_keywords: dict[str, list[str]] = {}
     income_keywords: dict[str, list[str]] = {}
     for cat in resolved:
-        bucket = (
-            expense_keywords if cat.category_type == "expense" else income_keywords
-        )
+        bucket = expense_keywords if cat.category_type == "expense" else income_keywords
         bucket[cat.key] = list(cat.keywords)
     payload: dict[str, Any] = {
         "expense_keywords": expense_keywords,
@@ -500,11 +496,7 @@ def _institutions_override(db: SyncSession) -> dict[str, Any] | None:
     catalog = resolve_institutions(db)
     if not catalog.institutions:
         return None
-    return {
-        "banco_canonical": {
-            code: inst.name for code, inst in catalog.institutions.items()
-        }
-    }
+    return {"banco_canonical": {code: inst.name for code, inst in catalog.institutions.items()}}
 
 
 __all__ = [

@@ -28,9 +28,7 @@ def resolve_institutions(db: Session) -> InstitutionsCatalog:
     cached = _get_cached_catalog()
     if cached is not None:
         return _payload_to_catalog(cached)
-    rows = db.execute(
-        select(InstitutionCatalog).order_by(InstitutionCatalog.code)
-    ).scalars().all()
+    rows = db.execute(select(InstitutionCatalog).order_by(InstitutionCatalog.code)).scalars().all()
     catalog = _rows_to_catalog(list(rows))
     _store_catalog_cache([_def_to_payload(d) for d in catalog.institutions.values()])
     return catalog

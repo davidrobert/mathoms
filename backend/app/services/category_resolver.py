@@ -83,26 +83,30 @@ def get_categorization_metadata(
     return dict(row.metadata_json or {})
 
 
-def _load_active_template(
-    db: Session, template_version: int
-) -> list[CategoryTemplate]:
-    rows = db.execute(
-        select(CategoryTemplate)
-        .where(CategoryTemplate.template_version == template_version)
-        .where(CategoryTemplate.key != METADATA_TEMPLATE_KEY)
-        .order_by(CategoryTemplate.sort_order, CategoryTemplate.key)
-    ).scalars().all()
+def _load_active_template(db: Session, template_version: int) -> list[CategoryTemplate]:
+    rows = (
+        db.execute(
+            select(CategoryTemplate)
+            .where(CategoryTemplate.template_version == template_version)
+            .where(CategoryTemplate.key != METADATA_TEMPLATE_KEY)
+            .order_by(CategoryTemplate.sort_order, CategoryTemplate.key)
+        )
+        .scalars()
+        .all()
+    )
     return list(rows)
 
 
-def _load_overrides(
-    db: Session, workspace_id: str
-) -> dict[str, WorkspaceCategoryOverride]:
-    rows = db.execute(
-        select(WorkspaceCategoryOverride).where(
-            WorkspaceCategoryOverride.workspace_id == workspace_id
+def _load_overrides(db: Session, workspace_id: str) -> dict[str, WorkspaceCategoryOverride]:
+    rows = (
+        db.execute(
+            select(WorkspaceCategoryOverride).where(
+                WorkspaceCategoryOverride.workspace_id == workspace_id
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return {row.template_key: row for row in rows}
 
 
@@ -119,9 +123,7 @@ def _merge_template_and_overrides(
     return resolved
 
 
-def _merge_one(
-    tmpl: CategoryTemplate, ov: Optional[WorkspaceCategoryOverride]
-) -> ResolvedCategory:
+def _merge_one(tmpl: CategoryTemplate, ov: Optional[WorkspaceCategoryOverride]) -> ResolvedCategory:
     if ov is None:
         return _resolved_from_template(tmpl)
     label = ov.label_override if ov.label_override is not None else tmpl.label

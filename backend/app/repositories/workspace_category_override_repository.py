@@ -16,9 +16,7 @@ class WorkspaceCategoryOverrideRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def list_by_workspace(
-        self, workspace_id: str
-    ) -> list[WorkspaceCategoryOverride]:
+    async def list_by_workspace(self, workspace_id: str) -> list[WorkspaceCategoryOverride]:
         result = await self._session.execute(
             select(WorkspaceCategoryOverride).where(
                 WorkspaceCategoryOverride.workspace_id == workspace_id

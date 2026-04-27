@@ -153,5 +153,3 @@ def _resolved_to_response(
         order=resolved.sort_order,
         keywords=list(resolved.keywords),
     )
-
-

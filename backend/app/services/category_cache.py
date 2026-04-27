@@ -27,9 +27,7 @@ def template_cache_key(template_version: int) -> str:
     return f"category_template:v={template_version}"
 
 
-def get_cached_resolved(
-    workspace_id: str, template_version: int
-) -> list[dict] | None:
+def get_cached_resolved(workspace_id: str, template_version: int) -> list[dict] | None:
     """Lê lista cacheada de resolved categories. ``None`` em miss/parse-fail."""
     raw = _redis_get(resolved_cache_key(workspace_id, template_version))
     if raw is None:
@@ -41,9 +39,7 @@ def get_cached_resolved(
         return None
 
 
-def store_resolved_cache(
-    workspace_id: str, template_version: int, payload: list[dict]
-) -> None:
+def store_resolved_cache(workspace_id: str, template_version: int, payload: list[dict]) -> None:
     _redis_set(
         resolved_cache_key(workspace_id, template_version),
         json.dumps(payload),

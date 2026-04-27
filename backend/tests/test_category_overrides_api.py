@@ -60,9 +60,7 @@ async def test_list_resolved_returns_template_when_no_overrides(
 ):
     _, ws_id = await _auth(db, client)
     await _seed_template(db)
-    resp = await client.get(
-        f"/api/workspaces/{ws_id}/config/category-overrides/resolved"
-    )
+    resp = await client.get(f"/api/workspaces/{ws_id}/config/category-overrides/resolved")
     assert resp.status_code == 200
     codes = {c["code"] for c in resp.json()["categories"]}
     assert "moradia" in codes
@@ -70,21 +68,15 @@ async def test_list_resolved_returns_template_when_no_overrides(
 
 
 @pytest.mark.asyncio
-async def test_list_resolved_returns_empty_when_no_template(
-    db: AsyncSession, client: AsyncClient
-):
+async def test_list_resolved_returns_empty_when_no_template(db: AsyncSession, client: AsyncClient):
     _, ws_id = await _auth(db, client)
-    resp = await client.get(
-        f"/api/workspaces/{ws_id}/config/category-overrides/resolved"
-    )
+    resp = await client.get(f"/api/workspaces/{ws_id}/config/category-overrides/resolved")
     assert resp.status_code == 200
     assert resp.json()["total"] == 0
 
 
 @pytest.mark.asyncio
-async def test_upsert_creates_override_with_keywords(
-    db: AsyncSession, client: AsyncClient
-):
+async def test_upsert_creates_override_with_keywords(db: AsyncSession, client: AsyncClient):
     _, ws_id = await _auth(db, client)
     await _seed_template(db)
     resp = await client.put(
@@ -111,9 +103,7 @@ async def test_upsert_with_label_change(db: AsyncSession, client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_upsert_unknown_template_key_returns_404(
-    db: AsyncSession, client: AsyncClient
-):
+async def test_upsert_unknown_template_key_returns_404(db: AsyncSession, client: AsyncClient):
     _, ws_id = await _auth(db, client)
     await _seed_template(db)
     resp = await client.put(
@@ -154,20 +144,14 @@ async def test_upsert_with_monthly_cap(db: AsyncSession, client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_disable_filters_from_resolved_list(
-    db: AsyncSession, client: AsyncClient
-):
+async def test_disable_filters_from_resolved_list(db: AsyncSession, client: AsyncClient):
     _, ws_id = await _auth(db, client)
     await _seed_template(db)
-    resp = await client.delete(
-        f"/api/workspaces/{ws_id}/config/category-overrides/moradia"
-    )
+    resp = await client.delete(f"/api/workspaces/{ws_id}/config/category-overrides/moradia")
     assert resp.status_code == 200
     assert resp.json()["status"] == "disabled"
 
-    listing = await client.get(
-        f"/api/workspaces/{ws_id}/config/category-overrides/resolved"
-    )
+    listing = await client.get(f"/api/workspaces/{ws_id}/config/category-overrides/resolved")
     codes = {c["code"] for c in listing.json()["categories"]}
     assert "moradia" not in codes
     assert "alimentacao" in codes
@@ -181,26 +165,18 @@ async def test_reset_removes_override(db: AsyncSession, client: AsyncClient):
         f"/api/workspaces/{ws_id}/config/category-overrides/moradia",
         json={"name": "Custom"},
     )
-    resp = await client.post(
-        f"/api/workspaces/{ws_id}/config/category-overrides/moradia/reset"
-    )
+    resp = await client.post(f"/api/workspaces/{ws_id}/config/category-overrides/moradia/reset")
     assert resp.status_code == 200
     assert resp.json()["status"] == "reset"
 
-    listing = await client.get(
-        f"/api/workspaces/{ws_id}/config/category-overrides/resolved"
-    )
+    listing = await client.get(f"/api/workspaces/{ws_id}/config/category-overrides/resolved")
     moradia = next(c for c in listing.json()["categories"] if c["code"] == "moradia")
     assert moradia["name"] == "Moradia"
 
 
 @pytest.mark.asyncio
-async def test_reset_with_no_existing_override_is_noop(
-    db: AsyncSession, client: AsyncClient
-):
+async def test_reset_with_no_existing_override_is_noop(db: AsyncSession, client: AsyncClient):
     _, ws_id = await _auth(db, client)
     await _seed_template(db)
-    resp = await client.post(
-        f"/api/workspaces/{ws_id}/config/category-overrides/moradia/reset"
-    )
+    resp = await client.post(f"/api/workspaces/{ws_id}/config/category-overrides/moradia/reset")
     assert resp.status_code == 200
