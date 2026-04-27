@@ -270,6 +270,28 @@ export const LAYOUT: ReportLayout = {
           }
         ]
       }
+    ],
+    "usa": [
+      {
+        "links": [
+          {
+            "section_id": "U1",
+            "num": "U1"
+          },
+          {
+            "section_id": "U2",
+            "num": "U2"
+          },
+          {
+            "section_id": "U3",
+            "num": "U3"
+          },
+          {
+            "section_id": "U4",
+            "num": "U4"
+          }
+        ]
+      }
     ]
   },
   "footer": true,
@@ -842,7 +864,7 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "U1",
         "title": "Mudança EUA — Estrutura F1/F2 e Custos",
-        "enabled": false,
+        "enabled": true,
         "summary": true,
         "charts": [
           {
@@ -856,7 +878,7 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "U2",
         "title": "Green Card — EB2-NIW e Compliance",
-        "enabled": false,
+        "enabled": true,
         "summary": true,
         "divider_before": true,
         "charts": [
@@ -871,7 +893,7 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "U3",
         "title": "NCLEX Roadmap — Licenciamento RN",
-        "enabled": false,
+        "enabled": true,
         "summary": true,
         "divider_before": true,
         "charts": [],
@@ -887,7 +909,7 @@ export const LAYOUT: ReportLayout = {
       {
         "id": "U4",
         "title": "Simulação — Cônjuge Sem Trabalhar",
-        "enabled": false,
+        "enabled": true,
         "summary": true,
         "divider_before": true,
         "charts": [

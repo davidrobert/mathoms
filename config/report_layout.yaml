@@ -103,14 +103,12 @@ navigation:
         - {section_id: "T4", num: "T4"}
         - {section_id: "T5", num: "T5"}
         - {section_id: "T6", num: "T6"}
-  # TEMP: modo USA oculto da UI — restaurar removendo este bloco e revertendo
-  # `enabled: false` em U1–U4 abaixo + filtros em ModeToggle/ReportActions/ReportModeContext.
-  # usa:
-  #   - links:
-  #       - {section_id: "U1", num: "U1"}
-  #       - {section_id: "U2", num: "U2"}
-  #       - {section_id: "U3", num: "U3"}
-  #       - {section_id: "U4", num: "U4"}
+  usa:
+    - links:
+        - {section_id: "U1", num: "U1"}
+        - {section_id: "U2", num: "U2"}
+        - {section_id: "U3", num: "U3"}
+        - {section_id: "U4", num: "U4"}
 
 # ==============================================================================
 # FLAGS GLOBAIS (ADR-117 · Fase 5)
@@ -574,8 +572,7 @@ usa:
     # --------------------------------------------------------------------------
     - id: "U1"
       title: "Mudança EUA — Estrutura F1/F2 e Custos"
-      # TEMP: ocultado — flip para true para restaurar a seção.
-      enabled: false
+      enabled: true
       summary: true
       charts:
         - id: "custos_f1f2"
@@ -588,8 +585,7 @@ usa:
     # --------------------------------------------------------------------------
     - id: "U2"
       title: "Green Card — EB2-NIW e Compliance"
-      # TEMP: ocultado — flip para true para restaurar a seção.
-      enabled: false
+      enabled: true
       summary: true
       divider_before: true
       charts:
@@ -603,8 +599,7 @@ usa:
     # --------------------------------------------------------------------------
     - id: "U3"
       title: "NCLEX Roadmap — Licenciamento RN"
-      # TEMP: ocultado — flip para true para restaurar a seção.
-      enabled: false
+      enabled: true
       summary: true
       divider_before: true
       charts: []
@@ -619,8 +614,7 @@ usa:
     # --------------------------------------------------------------------------
     - id: "U4"
       title: "Simulação — Cônjuge Sem Trabalhar"
-      # TEMP: ocultado — flip para true para restaurar a seção.
-      enabled: false
+      enabled: true
       summary: true
       divider_before: true
       charts:
