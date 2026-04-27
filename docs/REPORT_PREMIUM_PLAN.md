@@ -1406,6 +1406,38 @@ ReportCard.tsx         ← primitivo canônico de "card" (frame visual)
 
 ---
 
+### 17.10 — Spec mobile do relatório (D3 do `report-a11y-finalize`)
+
+> Spec completa: [REPORT_MOBILE_SPEC.md](REPORT_MOBILE_SPEC.md).
+
+**Decisão de produto convergida em 2026-04-27**: relatório suporta
+viewports `<767px` em **leitura/consulta** (não em edição). Modo
+Estratégico é prioridade; modo Tático fica acessível mas com aviso de
+otimização para tablet/desktop (T3 Kanban vira lista vertical agrupada
+estendendo o fallback v2.7). Charts ganham fallback agregado (donut
+top-7+"outros", slide window 6m default, Top-15 → Top-5); tabelas com
+>3 colunas viram listas de cards; tipografia escala 87.5% global em
+`<767px`; cover ganha padding/h1/meta-cards responsivos (4 cols → 2).
+
+**Implementação fica em lane futura `report-mobile-impl`** — esta
+entrega é spec only. Spec lista P0 (12h) + P1 (11h) + P2 (11h),
+sequenciadas em 7 slices com paralelização possível em "tabelas → cards"
+(8 cards independentes).
+
+**Não-escopo:**
+
+- Print/PDF mantém layout desktop em qualquer viewport — servidor
+  renderiza headless 1280×1800 ([backend/app/services/pdf_renderer.py](../backend/app/services/pdf_renderer.py));
+  PDF mobile-fluido quebraria paridade com `EXEMPLO_DE_RELATORIO.html`.
+- Tablet retrato (768-1023px) usa comportamento desktop atual já
+  aceitável — sem branch dedicado.
+
+**Resolve:** [batch2.13](BACKLOG.md) (status atualizado para ✅
+docs-only) + decisão D3 deixada em aberto por
+[track_report_a11y_finalize.md](agent_prompts/track_report_a11y_finalize.md).
+
+---
+
 **Fim do plano.**
 Próxima ação do executor: v1 está em `main` ✅; abrir Onda v2.A
 escolhendo uma das 3 lanes (v2.1, v2.2, v2.3) — ver
