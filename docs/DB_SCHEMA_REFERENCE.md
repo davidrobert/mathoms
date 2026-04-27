@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 30
+**Total de tabelas:** 32
 
 ---
 
@@ -16,6 +16,8 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`bank_accounts`](#bankaccounts)
 - [`categories`](#categories)
 - [`category_keywords`](#categorykeywords)
+- [`decision_events`](#decisionevents)
+- [`decisions`](#decisions)
 - [`documents`](#documents)
 - [`family_members`](#familymembers)
 - [`feature_flags`](#featureflags)
@@ -131,6 +133,54 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_category_keywords_category_id` (category_id)
+
+### `decision_events`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `decision_id` | `VARCHAR(36)` | no | — | FK→decisions.id, INDEX |
+| `event_type` | `VARCHAR(32)` | no | — | — |
+| `occurred_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `actor` | `VARCHAR(128)` | no | — | — |
+| `payload` | `JSON` | no | callable: `dict` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (decision_id) REFERENCES decisions.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_decision_events_decision_id` (decision_id)
+- `ix_decision_events_decision_occurred` (decision_id, occurred_at)
+
+### `decisions`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `code` | `VARCHAR(16)` | no | — | — |
+| `title` | `VARCHAR(500)` | no | — | — |
+| `rationale` | `TEXT` | yes | — | — |
+| `amount_brl_cents` | `BIGINT` | yes | — | — |
+| `status` | `VARCHAR(32)` | no | — | — |
+| `supersedes_id` | `VARCHAR(36)` | yes | — | FK→decisions.id |
+| `decided_at` | `DATE` | yes | — | — |
+| `executed_at` | `DATE` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (supersedes_id) REFERENCES decisions.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, code) — `uq_decisions_workspace_code`
+
+**Indexes:**
+
+- `ix_decisions_workspace_id` (workspace_id)
+- `ix_decisions_ws_status` (workspace_id, status)
 
 ### `documents`
 
@@ -791,6 +841,7 @@ Schema usa `SQLAlchemy Enum()` nativo (Python enum → DB enum ou `VARCHAR + CHE
 Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou docstring do model) para serem portáveis cross-language.
 
 - `audit_logs.details`
+- `decision_events.payload`
 - `documents.classification_meta`
 - `family_members.extra`
 - `feature_flags.flags_json`
@@ -882,6 +933,38 @@ type CategoryKeyword struct {
 	Id string `db:"id" json:"id"`
 	CategoryId string `db:"category_id" json:"category_id"`
 	Keyword string `db:"keyword" json:"keyword"`
+}
+```
+
+### `decision_events` → `type DecisionEvent struct`
+
+```go
+type DecisionEvent struct {
+	Id string `db:"id" json:"id"`
+	DecisionId string `db:"decision_id" json:"decision_id"`
+	EventType string `db:"event_type" json:"event_type"`
+	OccurredAt time.Time `db:"occurred_at" json:"occurred_at"`
+	Actor string `db:"actor" json:"actor"`
+	Payload json.RawMessage `db:"payload" json:"payload"`
+}
+```
+
+### `decisions` → `type Decision struct`
+
+```go
+type Decision struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	Code string `db:"code" json:"code"`
+	Title string `db:"title" json:"title"`
+	Rationale *string `db:"rationale" json:"rationale"`
+	AmountBrlCents *int64 `db:"amount_brl_cents" json:"amount_brl_cents"`
+	Status string `db:"status" json:"status"`
+	SupersedesId *string `db:"supersedes_id" json:"supersedes_id"`
+	DecidedAt *time.Time `db:"decided_at" json:"decided_at"`
+	ExecutedAt *time.Time `db:"executed_at" json:"executed_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 ```
 
