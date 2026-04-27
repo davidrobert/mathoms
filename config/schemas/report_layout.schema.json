@@ -173,7 +173,8 @@
       "additionalProperties": false,
       "properties": {
         "label_key": {"type": "string", "minLength": 1},
-        "value_key": {"type": "string", "description": "Chave no snapshot E5 (ex.: 'periodo_dados'). Null = computado pelo shell."}
+        "value_key": {"type": "string", "description": "Chave no snapshot E5 (ex.: 'periodo_dados'). Null = computado pelo shell."},
+        "conditional_on": {"type": "string", "description": "v2.F.3b — só renderiza o card quando este campo do ReportResponse estiver presente (ex.: 'workspace_family_surname')."}
       }
     },
     "coverSpec": {
