@@ -48,15 +48,23 @@ Ver scripts em `scripts/` e configs em `config/` para detalhes completos.
 
 ---
 
-## SCORE FINANCEIRO — 5 CRITÉRIOS
+## SCORE FINANCEIRO
 
-| Critério | Peso | Faixas de nota |
+Score em escala **0-10** com 1 decimal, fonte única em `config/scoring.json`.
+Componentes (consultar `scoring.json:score_componentes` para ranges e pesos):
+
+| Componente | Peso | Fonte metodológica |
 |---|---|---|
-| Taxa de poupança | 25% | <10%=3, 10-15%=5, 15-20%=7, 20-25%=8, ≥25%=10 |
-| Controle gastos variáveis | 20% | Amplitude mensal alta=5, moderada=7, baixa=9 |
-| Endividamento | 20% | Dívida zero=10, <30% renda=7, >30%=3 |
-| Diversificação patrimônio | 20% | >70% concentrado=4, 55-70%=6, <55%=8 |
-| Progresso Indep. Financeira | 15% | <25%=4, 25-40%=5.5, 40-60%=7, >60%=9 |
+| Taxa Poupança Recorrente | 2.0 | Cerbasi |
+| Cobertura Despesas (meses) | 1.5 | Cerbasi + Perini |
+| Taxa Endividamento | 1.5 | Cerbasi |
+| Progresso Independência Financeira | 2.0 | Perini |
+| Diversificação Patrimonial | 1.0 | AUVP |
+
+Classificação: 0–2 Crítico · 2–4 Atenção · 4–6 Regular · 6–8 Bom · 8–10 Excelente.
+
+> Não duplicar ranges/pesos aqui — `scoring.json` é canônico. Esta tabela
+> é apenas índice de leitura.
 
 ---
 

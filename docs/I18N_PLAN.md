@@ -482,6 +482,12 @@ Termos críticos com tradução normativa por locale. Aplicado **antes**
 da MT (substituição literal); revisor humano não pode mudar (apenas
 sinaliza ao PM).
 
+> **Source-of-truth em pt-BR vive em
+> [docs/COPY_GUIDELINES.md §2](COPY_GUIDELINES.md);** este YAML
+> carrega apenas as traduções para os 9 demais locales. Mudança de
+> termo canônico em pt-BR começa em `COPY_GUIDELINES.md` e propaga
+> para o glossário i18n via PR único.
+
 Exemplos:
 
 ```yaml

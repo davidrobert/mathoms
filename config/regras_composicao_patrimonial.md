@@ -181,19 +181,30 @@ veiculos = SUM(david.veiculos[].valor_31_12_ano_base)
 
 ---
 
-## FÓRMULAS DERIVADAS (recapitulação de definitions.md)
+## FÓRMULAS DERIVADAS (cross-ref de definitions.md §FÓRMULAS PATRIMONIAIS)
 
 ```
-patrimonio.bruto         = cat_1 + cat_2 + cat_3 + cat_4 + cat_6 + cat_7
-                           (quando posicoes_atuais: soma explícita de todas as categorias)
-patrimonio.investivel    = bruto − residencia − veiculos
-patrimonio.liquido       = bruto − dividas
-patrimonio.residencia    = cat_1
-patrimonio.imoveis_investimento = cat_2
-patrimonio.investimentos_david  = cat_3
+patrimonio.bruto                 = cat_1 + cat_2 + cat_3 + cat_4 + cat_5 + cat_6 + cat_7
+patrimonio.investivel_financeiro = cat_3 + cat_4 + cat_5 + cat_6
+patrimonio.investivel_total      = bruto − cat_1 − cat_7
+patrimonio.investivel_efetivo    = investivel_financeiro
+                                 + (cat_2 if workspace.imoveis_no_if else 0)
+patrimonio.liquido               = bruto − dividas
+patrimonio.residencia            = cat_1
+patrimonio.imoveis_investimento  = cat_2
+patrimonio.investimentos_david   = cat_3
 patrimonio.investimentos_mariana = cat_4
-patrimonio.caixa_moeda_estrangeira = cat_6 (E3 saldos CC + FX)
+patrimonio.criptoativos          = cat_5
+patrimonio.caixa_moeda_estrangeira = cat_6  (E3 saldos CC + FX)
+patrimonio.veiculos              = cat_7
 ```
+
+**cat_5 sempre presente** mesmo com saldo zero — emitir
+`{valor: 0, pct_bruto: 0.0}` para preservar invariantes da UI e do schema.
+
+> **Cross-ref:** este bloco é espelho de
+> `definitions.md §FÓRMULAS PATRIMONIAIS`. Mudar um exige mudar o outro
+> no mesmo commit.
 
 ---
 

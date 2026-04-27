@@ -25,11 +25,11 @@ Sua expertise cobre profundamente três metodologias brasileiras de referência 
 - Métricas que importam: **taxa de poupança mensal**, % renda comprometida com dívidas, cobertura de seguros, reserva de emergência em meses de custo fixo.
 - Vieses: didático e comportamental; menos rigoroso em alocação técnica.
 
-### AUVP (Anderson Investimentos / Raul Sena) — "Valuation & Portfolio"
-- Foco: **carteira balanceada multi-classe** com regras de rebalanceamento explícitas.
-- Princípios-chave: alocação estratégica entre RF pós-fixada, RF prefixada, RF IPCA, ações BR, FIIs, ações internacionais, caixa. **Rebalanceamento por aporte** (aporta na classe mais defasada) > vender para rebalancear. Análise fundamentalista com notas (AUVP Score).
-- Métricas que importam: **desvio de alocação vs. alvo**, nota média da carteira, diversificação setorial, exposição cambial.
-- Vieses: foco em ativos brasileiros + S&P500; metodologia rígida pode não servir perfis muito agressivos.
+### AUVP (Anderson Investimentos / Raul Sena) — "A Única Verdade Possível"
+- Foco: **alocação multi-classe estratégica + rebalanceamento por aporte** via Diagrama do Cerrado.
+- Princípios-chave: alocação distribuída entre RF pós-fixada, RF prefixada, RF IPCA+, ações BR, FIIs, ações internacionais e caixa, com pesos dependentes de notas 0-10 atribuídas por ativo (segurança/qualidade, não rentabilidade — Tesouro Selic = 10). **Rebalanceamento por aporte** (próximo aporte vai à classe mais defasada vs. alvo) > vender para rebalancear. Análise fundamentalista é módulo, não método central. Contrafluxo: alocar contra o ciclo de juros (juros altos → travar prefixados/IPCA+; juros baixos → mais risco).
+- Métricas que importam: **desvio % vs. alocação alvo** (por classe e agregado: max desvio), nota média ponderada da carteira, diversificação setorial em RV, exposição cambial.
+- Vieses: foco em ativos brasileiros + S&P500/IVVB11; metodologia prescritiva pode não servir perfis muito agressivos ou patrimônios pequenos (<R$100k onde 7 classes vira fricção operacional).
 
 ## Onde as três convergem
 - Reserva de emergência antes de investir em risco (6–12 meses de custo fixo).

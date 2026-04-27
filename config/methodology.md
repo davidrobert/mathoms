@@ -7,9 +7,9 @@
 
 Consultor financeiro especialista em independência financeira e planejamento patrimonial para famílias brasileiras de alta renda com contexto internacional. Abordagem baseada nas três metodologias-pilar:
 
-- **Bruno Perini / Viver de Renda** — independência financeira via taxa de retirada segura (TRS), alocação patrimonial pelo Número da Independência, foco em renda passiva sustentável
-- **Gustavo Cerbasi / Inteligência Financeira** — comportamento financeiro, equilíbrio presente × futuro
-- **Raul Sena / AUVP** — análise fundamentalista, contrafluxo, FIIs
+- **Bruno Perini / Viver de Renda** — independência financeira via taxa de retirada segura (TRS), patrimônio-alvo pelo múltiplo de custo de vida (regra dos 300 / TRS 4-5%), foco em renda passiva sustentável e reinvestimento disciplinado na fase de acumulação.
+- **Gustavo Cerbasi / Inteligência Financeira** — comportamento financeiro, ciclos de vida, orçamento por percentuais (essenciais / estilo de vida / futuro), proteção (seguros, previdência), diálogo financeiro em casal.
+- **Raul Sena / AUVP — A Única Verdade Possível** — alocação multi-classe estratégica entre renda fixa pós-fixada, prefixada e IPCA+, ações BR, ações internacionais, FIIs e caixa; **rebalanceamento por aporte** (aporta na classe mais defasada — princípio do Diagrama do Cerrado); análise fundamentalista com sistema de notas 0-10 por ativo; contrafluxo (alocar contra o ciclo de juros vigente).
 
 Combinações obrigatórias:
 
@@ -82,7 +82,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 - **Objetivo:** Número da IF, gap, prazo em 3 cenários.
 - **Inputs:** `patrimonio-4_unified.json`, `config/goals.json`
 - **Outputs:** Bloco `independencia_financeira` no E5 JSON — Projeção 3 cenários, renda passiva 2035 por 8 fontes com disclaimer, card TRS didático.
-- **Terminologia:** Usar "Independência Financeira" (não "IF") nos títulos.
+- **Terminologia:** Usar "Independência Financeira" (não "IF") nos títulos. Regra completa de capitalização e abreviação em [docs/COPY_GUIDELINES.md §3.1](../docs/COPY_GUIDELINES.md).
 
 **E5.4 — Estratégia Tributária (→ seção 8 do relatório)**
 - **Objetivo:** Otimizações tributárias, carnê-leão, PGBL, Simples vs LP.
@@ -131,23 +131,75 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 
 ---
 
-## SCORE FINANCEIRO — 5 CRITÉRIOS (v5.2)
+## SCORE FINANCEIRO (v5.4)
 
-O score é uma média ponderada de 5 componentes, cada um pontuado de 0 a 10 com interpolação linear entre os extremos.
+O score é uma média ponderada de 5 componentes em escala **0-10** com 1 decimal,
+**fonte única em `config/scoring.json`** (consumido por `e5_analyze.py`).
 
-| Componente | Peso | Critério 10/10 | Critério 0/10 |
+Cada componente é interpolado linearmente entre `range_min` (nota 0) e `range_max`
+(nota 10); componentes marcados `invertido: true` invertem a escala. A justificativa
+metodológica (Perini/Cerbasi/AUVP) por critério está em `scoring.json:_metodologia`.
+
+**Fórmula:**
+
+```
+score = Σ(componente_i × peso_i) / Σ(peso_i)
+```
+
+**Faixas (em `scoring.json:score_classificacao`):**
+0–2 Crítico · 2–4 Atenção · 4–6 Regular · 6–8 Bom · 8–10 Excelente.
+
+**Regras operacionais:**
+
+- Salvar componentes individuais em `score.componentes[]` para transparência.
+- Receita one-time (rescisão, FGTS, venda de ativo, infoproduto pontual) **não entra**
+  em `taxa_poupanca_recorrente` — usar receita recorrente.
+- Cobertura de despesas usa **custo essencial mensal** (definição em §RESERVA DE EMERGÊNCIA).
+- Endividamento mede comprometimento mensal de renda com dívida onerosa,
+  excluindo financiamento imobiliário em quitação programada.
+
+Detalhes de implementação: `pipeline/domain/services/score.py` e `e5_analyze.py`.
+
+> Decisões 2026-04-27 que consolidaram o score:
+> (i) `scoring.json` é fonte única; `methodology.md` e `methodology_template.md` apenas referenciam.
+> (ii) Escala 0-10 com 1 decimal vence; escala 0-100 do template antigo descontinuada.
+> (iii) Componente "Controle de gastos variáveis" (template fantasma) não entra — sem série temporal estável o suficiente.
+
+---
+
+## RESERVA DE EMERGÊNCIA
+
+Fórmula canônica:
+
+```
+reserva_alvo      = custo_essencial_mensal × meses_alvo
+cobertura_atual   = reserva_liquida_disponivel ÷ custo_essencial_mensal
+```
+
+**Custo essencial mensal:** média trimestral das categorias `moradia,
+alimentacao, transporte, saude, seguros, servicos_domesticos, educacao,
+suporte_familiar, financiamentos`. Impostos não-PJ entram (IPTU, IPVA,
+IRPF); impostos PJ saem (DAS, GPS INSS PJ — cessam se a operação cessar).
+Lista canônica em `scoring.json:reserva_emergencia._base_calculo`.
+
+**Meses-alvo por composição de renda familiar** (proxy: % da receita
+recorrente vinda de `receita_pj`):
+
+| Perfil | receita_pj_% | meses-alvo | Justificativa |
 |---|---|---|---|
-| Taxa de poupança **recorrente** | 2.0 | ≥ 50% | ≤ 0% (déficit). **USAR RECEITA RECORRENTE** (excluir one-time: rescisões, Kiwify, vendas). |
-| Cobertura de despesas (meses) | 1.5 | ≥ 24 meses | ≤ 3 meses |
-| Taxa de endividamento | 1.5 | ≤ 5% | ≥ 50% |
-| Progresso Indep. Financeira (% da meta) | 2.0 | ≥ 80% | ≤ 5% |
-| Diversificação (categorias ≥ 5% do patrimônio) | 1.0 | ≥ 5 categorias | ≤ 1 categoria |
+| CLT estável (≥2 fontes) | < 10% | 6 | Cerbasi: 6 meses cobre dispensa + recolocação típica. |
+| CLT única fonte | < 10% | 12 | Sem rede de cônjuge — Perini sobe para 12. |
+| Renda mista | 10–30% | 12 | PJ é volatilidade material — convergência Cerbasi + Perini. |
+| PJ relevante | 30–60% | 12 | Volatilidade alta; CLT residual ainda ancora. |
+| PJ dominante | ≥ 60% | 18 | Perini cita 12-24 para autônomos; produto adota 18 como meio termo defensável. |
 
-**Fórmula:** `score = Σ(componente_i × peso_i) / Σ(peso_i)`, arredondado a 1 decimal.
+**Faixas de classificação** (sobre `cobertura_atual` em meses):
+< 3 Insuficiente · 3-6 Mínima · 6-12 Adequada · 12-24 Robusta · > 24
+Excessiva.
 
-**Classificação:** 0-2 = "Crítico", 2-4 = "Atenção", 4-6 = "Regular", 6-8 = "Bom", 8-10 = "Excelente".
-
-Salvar componentes individuais em `score.componentes[]` para transparência. Ver `e5_analyze.py` para detalhes de implementação.
+**Reserva ≠ patrimônio investível.** Reserva mora em ativos com liquidez
+D+0 a D+1 e baixíssimo risco (Tesouro Selic, CDB liquidez diária ≥ FGC,
+caixa). Não confundir com Cofrinhos atrelados a CDI longo.
 
 ---
 

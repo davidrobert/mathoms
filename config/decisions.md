@@ -73,7 +73,7 @@
 | Confirmar taxa PGBL Itaú | David | Abr/2026 | Se >1% a.a., portabilidade para BTG/XP (sem IR, mantém regime regressivo). |
 | Iniciar aportes PGBL R$1.800/mês | David | Abr/2026 | Economia IRPF R$5.940/ano (12% renda tributável ~R$180k, deduz 27,5%, paga 10% após 10 anos). Depende de: confirmar taxa PGBL. |
 | Consolidar PicPay R$53k → Cofrinhos | David | Abr/2026 | + resgatar C6 R$2k. Simplificar corretoras. |
-| Consolidar reserva emergência (meta R$382k em Cofrinhos) | David | Ongoing — meta 12 meses | Aporte mensal R$10k via D02. Progresso acompanhado a cada ciclo. |
+| Consolidar reserva emergência (meta R$382k em Cofrinhos) | David | Ongoing — meta 12 meses | Aporte mensal R$10k via D02. Progresso acompanhado a cada ciclo. **Derivação da meta:** `reserva_alvo = custo_essencial_mensal × 12` ≈ R$31,8k × 12 ≈ R$382k. Custo essencial conforme `scoring.json:reserva_emergencia._base_calculo`; 12 meses por perfil "renda_mista" (PJ ~10-30% da receita recorrente). Revalidar a cada ciclo se o custo essencial mudar. Ver `methodology.md` §RESERVA DE EMERGÊNCIA. |
 | Avaliar Alaska Black (-13,24%) | David | Set/2026 | Se persistir negativo, resgatar → IVVB11. |
 | Após reserva 12 meses: realocar Cofrinhos | David | Jan/2027 | R$10k Cofrinhos → R$5k reserva oportunidade + R$5k IPCA+ 2035/2040 (contrafluxo). |
 

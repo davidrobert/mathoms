@@ -1,43 +1,84 @@
 {
-  "_comment": "Parâmetros de scoring financeiro — ranges, pesos, classificações. Usado por e5_analyze.py.",
-  "_ultima_atualizacao": "2026-04-08",
+  "_comment": "Parâmetros de scoring financeiro — ranges, pesos, classificações. Fonte única consumida por e5_analyze.py. Documentação em methodology.md §SCORE FINANCEIRO. Não duplicar ranges/pesos em outros arquivos.",
+  "_ultima_atualizacao": "2026-04-27",
+
+  "_escala": {
+    "min": 0,
+    "max": 10,
+    "decimais": 1,
+    "_nota": "Escala 0-10 com 1 decimal. Decisão 2026-04-27 — escala 0-100 do template antigo descontinuada."
+  },
+
+  "_metodologia": {
+    "_descricao": "Cada critério é justificado por pelo menos uma das três metodologias-pilar do produto (Perini/Cerbasi/AUVP).",
+    "taxa_poupanca_recorrente": {
+      "fonte": "Cerbasi — Como Organizar sua Vida Financeira (2014)",
+      "racional": "Taxa de poupança é o preditor mais robusto de progresso patrimonial — supera escolha de ativos no longo prazo. Excluir receita one-time evita falso positivo (rescisão, FGTS, venda de ativo)."
+    },
+    "cobertura_despesas": {
+      "fonte": "Cerbasi + Perini — convergência",
+      "racional": "Reserva de emergência em meses de custo essencial. Blindagem antes de risco. 24 meses sinaliza folga estrutural; <3 meses é zona crítica."
+    },
+    "taxa_endividamento": {
+      "fonte": "Cerbasi — dívidas boas vs. ruins",
+      "racional": "Comprometimento de renda com dívida onerosa. Juros do passivo geralmente > retorno esperado do ativo — quitar antes de investir em risco."
+    },
+    "progresso_if": {
+      "fonte": "Perini — Viver de Renda",
+      "racional": "Patrimônio investível ÷ meta IF. Operacionaliza a regra dos 300 / múltiplo de custo. 80% é zona de finalização, 5% é fase de partida."
+    },
+    "diversificacao": {
+      "fonte": "AUVP — alocação multi-classe",
+      "racional": "Número de categorias com ≥5% do bruto. Proxy simples para concentração; AUVP exige distribuição mas o sinal só se torna crítico após reserva consolidada — peso menor."
+    }
+  },
 
   "score_componentes": {
-    "_comment": "Cada componente tem range [min, max] para interpolação linear 0→10, e um peso. 'invertido' inverte a escala (valor alto = nota baixa).",
+    "_comment": "Cada componente tem range [min, max] para interpolação linear 0→10, peso, e citação metodológica. 'invertido' inverte a escala (valor alto = nota baixa).",
     "taxa_poupanca_recorrente": {
       "nome_display": "Taxa Poupança Recorrente",
       "range_min": 0,
       "range_max": 50,
       "peso": 2.0,
-      "invertido": false
+      "invertido": false,
+      "unidade": "% da receita recorrente",
+      "fonte": "Cerbasi"
     },
     "cobertura_despesas": {
       "nome_display": "Cobertura Despesas (meses)",
       "range_min": 3,
       "range_max": 24,
       "peso": 1.5,
-      "invertido": false
+      "invertido": false,
+      "unidade": "meses de custo essencial",
+      "fonte": "Cerbasi + Perini"
     },
     "taxa_endividamento": {
-      "nome_display": "Taxa Endividamento (inv)",
+      "nome_display": "Taxa Endividamento",
       "range_min": 5,
       "range_max": 50,
       "peso": 1.5,
-      "invertido": true
+      "invertido": true,
+      "unidade": "% renda mensal comprometida",
+      "fonte": "Cerbasi"
     },
     "progresso_if": {
-      "nome_display": "Progresso IF",
+      "nome_display": "Progresso Independência Financeira",
       "range_min": 5,
       "range_max": 80,
       "peso": 2.0,
-      "invertido": false
+      "invertido": false,
+      "unidade": "% da meta IF",
+      "fonte": "Perini"
     },
     "diversificacao": {
-      "nome_display": "Diversificação",
+      "nome_display": "Diversificação Patrimonial",
       "range_min": 1,
       "range_max": 6,
       "peso": 1.0,
-      "invertido": false
+      "invertido": false,
+      "unidade": "categorias com ≥5% do bruto",
+      "fonte": "AUVP"
     }
   },
 
@@ -50,11 +91,38 @@
   ],
 
   "reserva_emergencia": {
-    "niveis_meses": [6, 12],
+    "_definicao": "Reserva-alvo = custo_essencial_mensal × meses_alvo. Cobertura atual = reserva_liquida_disponivel ÷ custo_essencial_mensal. Documentação completa em methodology.md §RESERVA DE EMERGÊNCIA e FORMULAS.md.",
+    "_base_calculo": {
+      "custo_essencial_mensal": {
+        "metodo": "media_trimestral",
+        "categorias_in": [
+          "moradia", "alimentacao", "transporte", "saude", "seguros",
+          "servicos_domesticos", "educacao", "suporte_familiar", "financiamentos"
+        ],
+        "categorias_out": [
+          "lazer_viagens", "vestuario", "assinaturas", "melhoria_reforma",
+          "reserva_desejos", "financeiro"
+        ],
+        "impostos": {
+          "incluir": ["IPTU", "IPVA", "IRPF"],
+          "excluir": ["DAS Simples Nacional", "DARF PJ", "GPS INSS PJ"]
+        }
+      },
+      "meses_alvo_por_perfil_renda": {
+        "clt_estavel":      {"meses": 6,  "criterio": "receita_pj_pct < 10% E ≥2 fontes CLT independentes na família"},
+        "clt_unica_fonte":  {"meses": 12, "criterio": "receita_pj_pct < 10% E 1 única fonte de renda"},
+        "renda_mista":      {"meses": 12, "criterio": "10% ≤ receita_pj_pct < 30%"},
+        "pj_relevante":     {"meses": 12, "criterio": "30% ≤ receita_pj_pct < 60%"},
+        "pj_dominante":     {"meses": 18, "criterio": "receita_pj_pct ≥ 60%"}
+      }
+    },
+    "niveis_meses": [3, 6, 12, 24],
     "classificacao": [
-      {"minimo_meses": 12, "label": "Excelente"},
-      {"minimo_meses": 6,  "label": "Adequada"},
-      {"minimo_meses": 0,  "label": "Insuficiente"}
+      {"minimo_meses": 24, "label": "Excessiva",    "acao": "realocar_excedente"},
+      {"minimo_meses": 12, "label": "Robusta",      "acao": "manter"},
+      {"minimo_meses": 6,  "label": "Adequada",     "acao": "manter_se_clt"},
+      {"minimo_meses": 3,  "label": "Mínima",       "acao": "completar_para_alvo"},
+      {"minimo_meses": 0,  "label": "Insuficiente", "acao": "prioridade_maxima"}
     ]
   },
 

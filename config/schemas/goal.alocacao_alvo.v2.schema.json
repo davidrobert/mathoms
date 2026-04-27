@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mathoms://schemas/goal.alocacao_alvo.v2",
+  "title": "Goal — Alocação-alvo (v2 — 7 classes AUVP)",
+  "description": "Percentuais-alvo de alocação multi-classe AUVP. v2 (2026-04-27) substitui v1 (4 buckets) por 7 classes canônicas alinhadas ao Diagrama do Cerrado. Migração v1→v2: somar pré+pós+ipca em renda_fixa_pct (split default 50/25/25); manter acoes_pct → acoes_br_pct; liquidez_usd_pct → 70% acoes_int_pct + 30% caixa_pct (USD = invest. + reserva FX); imoveis_reits_pct → fiis_pct.",
+  "type": "object",
+  "required": ["inputs", "derived", "meta_version"],
+  "additionalProperties": false,
+  "properties": {
+    "meta_version": {"type": "integer", "const": 2},
+    "inputs": {
+      "type": "object",
+      "required": [
+        "rf_pos_pct",
+        "rf_pre_pct",
+        "rf_ipca_pct",
+        "acoes_br_pct",
+        "acoes_int_pct",
+        "fiis_pct",
+        "caixa_pct"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rf_pos_pct": {
+          "type": "number", "minimum": 0, "maximum": 100,
+          "description": "Renda fixa pós-fixada (Tesouro Selic, CDB CDI+, LCI/LCA CDI+)."
+        },
+        "rf_pre_pct": {
+          "type": "number", "minimum": 0, "maximum": 100,
+          "description": "Renda fixa prefixada (Tesouro Prefixado, CDB pré, debêntures pré)."
+        },
+        "rf_ipca_pct": {
+          "type": "number", "minimum": 0, "maximum": 100,
+          "description": "Renda fixa atrelada à inflação (Tesouro IPCA+, CDB IPCA+, debêntures IPCA+, CRI/CRA)."
+        },
+        "acoes_br_pct": {
+          "type": "number", "minimum": 0, "maximum": 100,
+          "description": "Ações brasileiras + ETFs Brasil (BOVA11, IVVB11 NÃO entra aqui)."
+        },
+        "acoes_int_pct": {
+          "type": "number", "minimum": 0, "maximum": 100,
+          "description": "Ações internacionais + ETFs internacionais (IVVB11, S&P500, ações em USD)."
+        },
+        "fiis_pct": {
+          "type": "number", "minimum": 0, "maximum": 100,
+          "description": "Fundos imobiliários (tijolo + papel)."
+        },
+        "caixa_pct": {
+          "type": "number", "minimum": 0, "maximum": 100,
+          "description": "Caixa, conta corrente, moeda estrangeira líquida — inclui reserva de emergência se já em ativos D+0."
+        },
+        "rebalanceamento_modo": {
+          "type": "string",
+          "enum": ["por_aporte", "anual", "semestral", "trimestral", "trigger_5pct", "trigger_10pct"],
+          "description": "Default AUVP: 'por_aporte' (aporta na classe mais defasada). Triggers % → vender quando desvio > X%."
+        },
+        "instrumentos": {
+          "type": "object",
+          "description": "Texto livre por classe — instrumentos preferenciais (CDB do banco X, fundo Y).",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "derived": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "soma_percentuais": {
+          "type": "number",
+          "description": "Soma dos 7 percentuais. Deve bater com 100 (validar no service)."
+        },
+        "desvio_max_pct": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maior desvio absoluto entre alocação atual e alvo (em pontos percentuais). KPI de rebalanceamento — sinaliza classe defasada (próximo aporte vai aqui)."
+        },
+        "desvio_por_classe": {
+          "type": "object",
+          "description": "Desvio (atual_pct − alvo_pct) por classe. Negativo = subalocado (próximo aporte vai aqui).",
+          "additionalProperties": {"type": "number"}
+        }
+      }
+    }
+  }
+}

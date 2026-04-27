@@ -441,38 +441,54 @@ Transferências entre contas do casal **NÃO são receita nem despesa**. Devem s
 
 ## FÓRMULAS PATRIMONIAIS — REGRA OBRIGATÓRIA
 
-Estas fórmulas são canônicas e devem ser usadas em E4 e E5. Nunca hardcodar valores derivados.
+Estas fórmulas são canônicas e devem ser usadas em E4 e E5. Nunca hardcodar
+valores derivados. Detalhamento por categoria em
+`config/regras_composicao_patrimonial.md` §FÓRMULAS DERIVADAS — esses dois
+blocos devem evoluir juntos (incluir ambos no mesmo commit).
 
 ```
-patrimonio.bruto       = SUM(total_bens de cada membro no baseline)
-patrimonio.dividas     = SUM(dividas de cada membro no baseline)
-patrimonio.liquido     = bruto − dividas
-patrimonio.investivel  = bruto − residencia_principal − veiculos
-                       ⚠️ SEMPRE < bruto (se violar, há erro)
-goals.if_pct           = investivel / if_meta × 100
-goals.if_gap           = if_meta − investivel
+patrimonio.bruto                = cat_1 + cat_2 + cat_3 + cat_4 + cat_5 + cat_6 + cat_7
+patrimonio.dividas              = SUM(dividas de cada membro no baseline)
+patrimonio.liquido              = bruto − dividas
+
+# Métrica financeira pura (Perini/AUVP) — usada em score.progresso_if
+patrimonio.investivel_financeiro = cat_3 + cat_4 + cat_5 + cat_6
+
+# Métrica total (retro-compat) — bruto excluindo bens de uso pessoal
+patrimonio.investivel_total = bruto − cat_1 − cat_7
+                            = cat_2 + cat_3 + cat_4 + cat_5 + cat_6
+                            ⚠️ SEMPRE < bruto (se violar, há erro)
+
+# Toggle por workspace (pipeline.json:imoveis_no_if) controla qual usar em progresso_if
+patrimonio.investivel_efetivo = investivel_financeiro
+                              + (cat_2 if workspace.imoveis_no_if else 0)
+
+goals.if_pct = investivel_efetivo / if_meta_liquida × 100
+goals.if_gap = MAX(0, if_meta_liquida − investivel_efetivo)
 ```
 
 **Categorias da tabela patrimonial (devem somar exatamente ao bruto):**
 
-> ⚠️ **Regras detalhadas em `config/regras_composicao_patrimonial.md`** — o arquivo canônico
-> com tabelas de matching, exemplos e validações. A tabela abaixo é um resumo.
+> ⚠️ **Regras detalhadas em `config/regras_composicao_patrimonial.md`** — o
+> arquivo canônico com tabelas de matching, exemplos e validações. A tabela
+> abaixo é um resumo.
 
-| # | Categoria | Cálculo |
-|---|---|---|
-| 1 | Residência própria | IRPF David → imóvel Tasso da Silveira |
-| 2 | Imóveis investimento | SUM(ALL imoveis ALL members) − Residência. **Inclui David E Mariana.** |
-| 3 | Investimentos David | baseline.investimentos[] + contas_bancarias[] de tipo investimento (CDB, RDB, RF, Poupança, conta corretora). Hashdex fica aqui (fundo regulado). |
-| 4 | Investimentos Mariana | baseline.investimentos[] + contas_bancarias[] de tipo investimento (mesma regra cat.3) |
-| 5 | Criptoativos | Binance saldo (crypto direta: BTC, ETH, ADA, AXS etc.) — NÃO inclui fundos crypto regulados |
-| 6 | Caixa + Moeda | bruto − categorias 1-5 − categoria 7 (RESIDUAL). Deve conter apenas CC puras + moeda estrangeira. Se > 5% do bruto → warning. |
-| 7 | Veículos | SUM(ALL veiculos ALL members) |
+| # | Categoria | Cálculo | Conta no `investivel_financeiro`? |
+|---|---|---|---|
+| 1 | Residência própria | IRPF → imóvel de moradia | Não |
+| 2 | Imóveis investimento | SUM(ALL imoveis ALL members) − Residência. **Inclui David E Mariana.** | Toggle `imoveis_no_if` |
+| 3 | Investimentos David | baseline.investimentos[] + contas_bancarias[] de tipo investimento (CDB, RDB, RF, Poupança, conta corretora). Hashdex fica aqui (fundo regulado). | Sim |
+| 4 | Investimentos Mariana | baseline.investimentos[] + contas_bancarias[] de tipo investimento (mesma regra cat.3) | Sim |
+| 5 | Criptoativos | Binance saldo (crypto direta: BTC, ETH, ADA, AXS etc.) — NÃO inclui fundos crypto regulados. **Sempre presente** (saldo zero ⇒ `valor: 0, pct_bruto: 0.0`). | Sim |
+| 6 | Caixa + Moeda | bruto − categorias 1-5 − categoria 7 (RESIDUAL). Deve conter apenas CC puras + moeda estrangeira. Se > 5% do bruto → warning. | Sim |
+| 7 | Veículos | SUM(ALL veiculos ALL members) | Não |
 
 **Validações (bloquear geração se falhar):**
-- `SUM(categorias 1–7) == bruto`
+- `SUM(cat_1..cat_7) == bruto` (tolerância R$ 1,00)
 - `SUM(percentuais) == 100,0%`
-- `investivel < bruto`
-- `if_gap + investivel == if_meta`
+- `investivel_total < bruto`
+- `investivel_financeiro ≤ investivel_total`
+- `if_gap + investivel_efetivo == if_meta_liquida`
 
 ---
 

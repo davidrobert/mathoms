@@ -1,5 +1,9 @@
 {
   "_comment": "Keywords de categorização — fonte única para e4_categorize.py. Derivado de definitions.md.",
+  "_keyword_collisions": {
+    "EINSTEIN": "Keywords 'EINSTEIN MORUMBI' e 'HOSPITAL ALBERT EINSTE' (categoria 'saude', expense_keywords) podem colidir com identificador de receita 'SOCIEDADE BENEFICENTE ISRAELITA' (salário Mariana — Hospital Israelita Albert Einstein). Como os identificadores literais diferem, não há colisão direta hoje. Risco residual: PIX/transferências internas entre membros da família contendo 'Einstein' no histórico podem ser classificados como saúde quando deveriam ser ignorados (transferência interna). Mitigação: e4_categorize.py deve aplicar expense_keywords apenas a transações de fluxo de saída (amount < 0) E que não casem com internal_transfer_patterns.",
+    "ABDO MOHAMED": "Foi removido de 'melhoria_reforma' em 2026-04-27 (ver definitions.md:181 — Instituto Dr. Barakat de Medicina Integrativa, categoria saúde)."
+  },
   "expense_keywords": {
     "moradia": [
       "ELETROPAULO",
@@ -330,6 +334,7 @@
       "CLINICA DERMATOLOGICA",
       "INSTITUTO DR BARAKAT",
       "PDV*BARA CLINICA",
+      "ABDO MOHAMED",
       "BRENTESINSTITUTO",
       "FISIOTERAPIA BEBE EIRE",
       "PELVIE FISIOTERAPIA",
@@ -602,8 +607,7 @@
       "MATEUS SOUZA ARCANJO",
       "MANOEL MESSIAS",
       "LEROY MERLIN",
-      "VESALTEC",
-      "ABDO MOHAMED"
+      "VESALTEC"
     ],
     "educacao": [
       "LEITURA",

@@ -8,7 +8,7 @@ inteiro.
 
 ## Índice de prompts
 
-> **Fonte única de status/ocupação:** [../BACKLOG.md §Lanes abertas agora](../BACKLOG.md#lanes-abertas-agora--pickup-table). Este índice lista apenas **o que tem prompt escrito** — status omitido de propósito para evitar drift entre dois lugares.
+> **Fonte única de status/ocupação:** [../BACKLOG.md §Lanes abertas agora](../BACKLOG.md#lanes-abertas-agora--pickup-table) (A6) e [§Lanes A7](../BACKLOG.md#lanes-a7--pickup-table) (A7). Este índice lista apenas **o que tem prompt escrito** — **status omitido de propósito** para evitar drift entre dois lugares. Marcadores ✅/🚧/☐ **não pertencem** às linhas desta tabela; descrição da lane (escopo, dependências) é o único conteúdo permitido aqui. Confirme estado real com `git for-each-ref --sort=-committerdate refs/remotes/origin/agent/` antes de pickup.
 
 | Lane | Arquivo | Onda | Branch prefix |
 | --- | --- | --- | --- |
@@ -28,7 +28,7 @@ inteiro.
 | F7F-Local Console interno pré-produção (IA-0) — UI Next separada + anonimização + auth yaml | [track_f7f_local.md](track_f7f_local.md) | 3 (Lane C6, independente de 7A/B/C) | `agent/f7f-local/*` |
 | F9.0 Audit referências legadas + exhaustividade `STAGE_RENAME_MAP` | [track_f9_0_audit.md](track_f9_0_audit.md) | F9 (1/7) | `agent/f9-stage-rename/0-audit/*` |
 | F9.1 `git mv pipeline/stages/e*.py` → descritivos | [track_f9_1_pipeline_stages_rename.md](track_f9_1_pipeline_stages_rename.md) | F9 (2/7) | `agent/f9-stage-rename/1-pipeline-stages/*` |
-| F9.2 Strings literais `"E*"` → descritivas em produção (master + T1 ✅) | [track_f9_2_string_literals.md](track_f9_2_string_literals.md) | F9 (3/7) | `agent/f9-stage-rename/2-strings/*` |
+| F9.2 Strings literais `"E*"` → descritivas em produção (master + sub-fatias 9.2a-e) | [track_f9_2_string_literals.md](track_f9_2_string_literals.md) | F9 (3/7) | `agent/f9-stage-rename/2-strings/*` |
 | F9.2a Pipeline core (artifact_store + llm + stages + domain/services) | [track_f9_2a_pipeline_core_strings.md](track_f9_2a_pipeline_core_strings.md) | F9 (3a/7) | `agent/f9-stage-rename/2a-pipeline-core/*` |
 | F9.2b Scripts (e0/e2/e3/e4/e5/e7/e15 internos, exceto e_reset) | [track_f9_2b_scripts_strings.md](track_f9_2b_scripts_strings.md) | F9 (3b/7) | `agent/f9-stage-rename/2b-scripts/*` |
 | F9.2c `scripts/e_reset.py` deprecation warning + flip interno | [track_f9_2c_e_reset_deprecation.md](track_f9_2c_e_reset_deprecation.md) | F9 (3c/7) | `agent/f9-stage-rename/2c-e-reset/*` |
@@ -53,7 +53,7 @@ inteiro.
 | **A7.4 Metodologia → docs/methodology/** (Sprint A7 · paralelo livre) | [track_a7_4_methodology_docs.md](track_a7_4_methodology_docs.md) | A7 (livre) | `agent/a7-4-methodology-docs/*` |
 | **A7.5 Cleanup final** (Sprint A7 · Onda 4 BLOQUEANTE) | [track_a7_5_cleanup.md](track_a7_5_cleanup.md) | A7 (4/4) | `agent/a7-5-cleanup/*` |
 
-Lanes com prompt inline (escopo documentado direto na linha da tabela "Lanes abertas agora" do BACKLOG, sem prompt dedicado): A6g.6b, A6g.2c, A6e.3c, A6e.events-migration, A6e.events-followup, A6g.2b, A6c, **v2.1, v2.2, v2.3, v2.6, v2.7, v2.9, v2.10** (escopo curto — ver linhas v2.X em [BACKLOG.md › Report Premium UI v2](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ou no meta-prompt [track_report_v2.md](track_report_v2.md) §3). **v2.5 absorvida em v2.E.7** ([track_report_v2_charts_ux.md §3 v2.E.7](track_report_v2_charts_ux.md)).
+Lanes com prompt inline (escopo documentado direto na linha da tabela "Lanes abertas agora" do BACKLOG, sem prompt dedicado): A6g.6b, A6g.2c, A6e.3c, A6e.events-migration, A6e.events-followup, A6g.2b, A6c, **v2.1, v2.2, v2.3, v2.5, v2.6, v2.7, v2.9, v2.10** (escopo curto — ver linhas v2.X em [BACKLOG.md › Report Premium UI v2](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ou no meta-prompt [track_report_v2.md](track_report_v2.md) §3). Status (entregue / em andamento / aberta) **somente no BACKLOG**.
 
 ## Antes de começar — pickup protocol
 
