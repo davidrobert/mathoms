@@ -6,6 +6,22 @@
 
 ## [Unreleased]
 
+- **Spec mobile do relatório ✅ docs-only (2026-04-27):** D3 do
+  `report-a11y-finalize` (deixada em aberto) e [batch2.13](BACKLOG.md)
+  resolvidos com [REPORT_MOBILE_SPEC.md](REPORT_MOBILE_SPEC.md) novo +
+  delta em [REPORT_PREMIUM_PLAN.md §17.10](REPORT_PREMIUM_PLAN.md).
+  Decisão de produto convergida: relatório suporta `<767px` em
+  leitura/consulta; modo Tático fica acessível com tooltip
+  "Otimizado para tablet/desktop"; T3 Kanban vira lista vertical
+  agrupada estendendo o fallback v2.7; charts ganham fallback
+  agregado (donut top-7 + "outros", slide window 6m default,
+  Top-15→Top-5); tabelas com >3 cols viram cards; tipografia escala
+  87.5% global. Print/PDF mantém layout desktop em qualquer viewport
+  (não-escopo). Auditoria estática catalogou 9 issues (3 estruturais
+  P0/P1, 3 estéticos P1/P2, 3 informacionais P0/P1). Implementação
+  fica em lane futura `report-mobile-impl` (P2, 2-5d, ~34h em 7
+  slices) — esta entrega é spec only. Commit `4c76c4b`.
+
 - **Regressão visual fixada + rebaseline parcial (Items 4+2) ✅ (2026-04-27):**
   Item 4 fixou a regressão silenciosa que fazia 28 baselines visuais (cover×2 +
   S1-S4×2 + S7-S10×2 + APP_A-E×2) skipar com `count===0` para
