@@ -24,7 +24,7 @@ from decimal import Decimal
 from typing import Sequence, Union
 
 import sqlalchemy as sa
-from alembic import op
+from alembic import context, op
 
 revision: str = "y3z4a5b6c7d8"
 down_revision: Union[str, None] = "x2y3z4a5b6c7"
@@ -87,7 +87,17 @@ _MARKET_BOOTSTRAP_SOURCE = "bootstrap A7.2b (cotação corrente replicada para h
 
 
 def upgrade() -> None:
-    bind = op.get_bind()
+    # Offline mode (--sql) não consegue renderizar listas/dicts como literais
+    # JSON. Seed é data migration; pulamos em offline e documentamos: para
+    # gerar SQL preview, rode em ambiente online (DBA depois insere via
+    # script externo).
+    if context.is_offline_mode():
+        op.execute(
+            "-- A7.2b seed (fiscal_parameters + market_rates) skipped in offline mode; "
+            "run via online migration on target DB."
+        )
+        return
+
     fiscal_table = sa.table(
         "fiscal_parameters",
         sa.column("id", sa.String),
@@ -102,12 +112,7 @@ def upgrade() -> None:
         sa.column("created_at", sa.DateTime(timezone=True)),
     )
 
-    existing_years = {
-        r[0]
-        for r in bind.execute(
-            sa.text("SELECT DISTINCT year FROM fiscal_parameters")
-        ).fetchall()
-    }
+    existing_years = _query_existing_years()
     rows = [_fiscal_row(year) for year in (2024, 2025, 2026) if year not in existing_years]
     if rows:
         op.bulk_insert(fiscal_table, rows)
@@ -122,14 +127,9 @@ def upgrade() -> None:
         sa.column("created_at", sa.DateTime(timezone=True)),
     )
     today = date(2026, 4, 27)
-    existing_pairs = {
-        (r[0], str(r[1]))
-        for r in bind.execute(
-            sa.text("SELECT pair, observed_at FROM market_rates")
-        ).fetchall()
-    }
+    existing_pairs = _query_existing_pairs()
     market_rows: list[dict] = []
-    for (pair, rate) in _MARKET_RATES_INITIAL:
+    for pair, rate in _MARKET_RATES_INITIAL:
         for observed, source in (
             (_MARKET_BOOTSTRAP_DATE, _MARKET_BOOTSTRAP_SOURCE),
             (today, _MARKET_SOURCE),
@@ -148,6 +148,30 @@ def upgrade() -> None:
             )
     if market_rows:
         op.bulk_insert(market_table, market_rows)
+
+
+def _query_existing_years() -> set[int]:
+    """Idempotência online; em offline mode, sempre retorna empty (assume DB vazio)."""
+    try:
+        bind = op.get_bind()
+        return {
+            r[0]
+            for r in bind.execute(sa.text("SELECT DISTINCT year FROM fiscal_parameters")).fetchall()
+        }
+    except (AttributeError, Exception):  # offline mode (--sql) → no live connection
+        return set()
+
+
+def _query_existing_pairs() -> set[tuple[str, str]]:
+    """Idempotência online; em offline mode, sempre retorna empty."""
+    try:
+        bind = op.get_bind()
+        return {
+            (r[0], str(r[1]))
+            for r in bind.execute(sa.text("SELECT pair, observed_at FROM market_rates")).fetchall()
+        }
+    except (AttributeError, Exception):
+        return set()
 
 
 def downgrade() -> None:

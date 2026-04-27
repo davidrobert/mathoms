@@ -1,11 +1,4 @@
-"""MarketRateRepository — leitura sync de cotações por par + data (ADR-135).
-
-Lookup canônico: "última cotação conhecida em ``observed_at`` ou antes".
-
-    SELECT * FROM market_rates
-    WHERE pair = ? AND observed_at <= ?
-    ORDER BY observed_at DESC LIMIT 1
-"""
+"""MarketRateRepository — leitura sync de cotações por par + data (ADR-135 · A7.2b)."""
 
 from __future__ import annotations
 

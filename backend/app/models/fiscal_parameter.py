@@ -14,20 +14,11 @@ from backend.app.core.database import Base
 
 
 class FiscalParameter(Base):
-    """Parâmetros fiscais BR (IRPF, PGBL, INSS, lucro presumido) com vigência.
-
-    Tabela **global** (não workspace-scoped) — séries de mercado/legislação,
-    não config de cliente. Selecionada por período via
-    ``effective_from <= period.start AND (effective_to IS NULL OR
-    effective_to >= period.end)``. Múltiplas rows cobrindo o período →
-    ``FiscalParameterAmbiguous`` no caller.
-    """
+    """Parâmetros fiscais BR (IRPF/PGBL/INSS) com vigência — tabela global (ADR-135)."""
 
     __tablename__ = "fiscal_parameters"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     year: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     ir_brackets: Mapped[list] = mapped_column(JSON, nullable=False)
     pgbl_limit_brl_cents: Mapped[int] = mapped_column(BigInteger, nullable=False)

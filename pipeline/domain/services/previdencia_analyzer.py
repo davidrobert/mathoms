@@ -89,13 +89,7 @@ class PrevidenciaConfig:
 
     @classmethod
     def from_fiscal_parameters(cls, fiscal: FiscalParameters) -> "PrevidenciaConfig":
-        """Constrói config a partir de :class:`FiscalParameters` (ADR-135 · A7.2b).
-
-        ``lucro_presumido_aliquota`` em DB é ``DECIMAL`` (0..1); convertemos
-        para pct (×100) para preservar paridade com legado dict-based.
-        ``pgbl_limit_brl_cents=0`` (sentinel "calcular via pct") usa default
-        12% — ADR-135 documenta que o legado JSON expressa só pct.
-        """
+        """Constrói config a partir de :class:`FiscalParameters` (ADR-135 · A7.2b)."""
         faixas = tuple(
             IRPFBracket(
                 limite_anual=(b.upper_brl_cents / 100.0) if b.upper_brl_cents else None,

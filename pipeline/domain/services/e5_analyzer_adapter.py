@@ -41,7 +41,6 @@ from decimal import Decimal
 from typing import Any
 
 from pipeline.artifact_store import ArtifactStore
-from pipeline.domain.types.config import FiscalParameters
 from pipeline.domain.services.cenarios_conjuge_analyzer import (
     CenariosConjugeAnalyzer,
     CenariosConjugeConfig,
@@ -125,6 +124,7 @@ from pipeline.domain.services.reserva_emergencia_calculator import (
     EmergencyReserveCalculator,
     ReservaEmergenciaConfig,
 )
+from pipeline.domain.types.config import FiscalParameters
 
 # =============================================================================
 # Stage keys

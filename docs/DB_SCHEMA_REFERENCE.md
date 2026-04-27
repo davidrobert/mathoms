@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 30
+**Total de tabelas:** 32
 
 ---
 
@@ -19,10 +19,12 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`documents`](#documents)
 - [`family_members`](#familymembers)
 - [`feature_flags`](#featureflags)
+- [`fiscal_parameters`](#fiscalparameters)
 - [`goals`](#goals)
 - [`institution_configs`](#institutionconfigs)
 - [`kanban_items`](#kanbanitems)
 - [`llm_configs`](#llmconfigs)
+- [`market_rates`](#marketrates)
 - [`notifications`](#notifications)
 - [`password_vault`](#passwordvault)
 - [`pipeline_artifacts`](#pipelineartifacts)
@@ -211,6 +213,27 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - `ix_feature_flags_workspace_id` (workspace_id)
 
+### `fiscal_parameters`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `year` | `INTEGER` | no | — | INDEX |
+| `ir_brackets` | `JSON` | no | — | — |
+| `pgbl_limit_brl_cents` | `BIGINT` | no | — | — |
+| `inss_ceiling_brl_cents` | `BIGINT` | no | — | — |
+| `lucro_presumido_aliquota` | `NUMERIC(5, 4)` | no | — | — |
+| `effective_from` | `DATE` | no | — | INDEX |
+| `effective_to` | `DATE` | yes | — | INDEX |
+| `source` | `TEXT` | no | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Indexes:**
+
+- `ix_fiscal_parameters_effective_from` (effective_from)
+- `ix_fiscal_parameters_effective_to` (effective_to)
+- `ix_fiscal_parameters_year` (year)
+
 ### `goals`
 
 | Column | Type | Nullable | Default | Tags |
@@ -309,6 +332,26 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - UNIQUE `ix_llm_configs_workspace_id` (workspace_id)
+
+### `market_rates`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `pair` | `VARCHAR(16)` | no | — | INDEX |
+| `rate` | `NUMERIC(20, 10)` | no | — | — |
+| `observed_at` | `DATE` | no | — | INDEX |
+| `source` | `TEXT` | no | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- UNIQUE (pair, observed_at) — `uq_market_rates_pair_observed_at`
+
+**Indexes:**
+
+- `ix_market_rates_observed_at` (observed_at)
+- `ix_market_rates_pair` (pair)
 
 ### `notifications`
 
@@ -794,6 +837,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `documents.classification_meta`
 - `family_members.extra`
 - `feature_flags.flags_json`
+- `fiscal_parameters.ir_brackets`
 - `goals.derived_json`
 - `goals.params_json`
 - `institution_configs.config_json`
@@ -941,6 +985,23 @@ type FeatureFlag struct {
 }
 ```
 
+### `fiscal_parameters` → `type FiscalParameter struct`
+
+```go
+type FiscalParameter struct {
+	Id string `db:"id" json:"id"`
+	Year int `db:"year" json:"year"`
+	IrBrackets json.RawMessage `db:"ir_brackets" json:"ir_brackets"`
+	PgblLimitBrlCents int64 `db:"pgbl_limit_brl_cents" json:"pgbl_limit_brl_cents"`
+	InssCeilingBrlCents int64 `db:"inss_ceiling_brl_cents" json:"inss_ceiling_brl_cents"`
+	LucroPresumidoAliquota decimal.Decimal `db:"lucro_presumido_aliquota" json:"lucro_presumido_aliquota"`
+	EffectiveFrom time.Time `db:"effective_from" json:"effective_from"`
+	EffectiveTo *time.Time `db:"effective_to" json:"effective_to"`
+	Source string `db:"source" json:"source"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
 ### `goals` → `type Goal struct`
 
 ```go
@@ -1004,6 +1065,19 @@ type LLMConfig struct {
 	Temperature float64 `db:"temperature" json:"temperature"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `market_rates` → `type MarketRate struct`
+
+```go
+type MarketRate struct {
+	Id string `db:"id" json:"id"`
+	Pair string `db:"pair" json:"pair"`
+	Rate decimal.Decimal `db:"rate" json:"rate"`
+	ObservedAt time.Time `db:"observed_at" json:"observed_at"`
+	Source string `db:"source" json:"source"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
 

@@ -75,7 +75,11 @@ def _make_rate(*, pair: str, observed_at: date, rate: Decimal, source: str = "te
 class TestFiscalParameterRepository:
     def test_get_for_period_returns_single_row(self, sync_db):
         with sync_db() as s:
-            s.add(_make_fiscal(year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)))
+            s.add(
+                _make_fiscal(
+                    year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)
+                )
+            )
             s.commit()
             row = FiscalParameterRepository(s).get_for_period(date(2025, 6, 1), date(2025, 6, 30))
             assert row.year == 2025
@@ -84,9 +88,7 @@ class TestFiscalParameterRepository:
         with sync_db() as s:
             s.add(_make_fiscal(year=2026, effective_from=date(2026, 1, 1), effective_to=None))
             s.commit()
-            row = FiscalParameterRepository(s).get_for_period(
-                date(2030, 1, 1), date(2030, 12, 31)
-            )
+            row = FiscalParameterRepository(s).get_for_period(date(2030, 1, 1), date(2030, 12, 31))
             assert row.year == 2026
 
     def test_get_for_period_raises_not_found(self, sync_db):
@@ -96,7 +98,11 @@ class TestFiscalParameterRepository:
 
     def test_get_for_period_raises_ambiguous_on_overlap(self, sync_db):
         with sync_db() as s:
-            s.add(_make_fiscal(year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)))
+            s.add(
+                _make_fiscal(
+                    year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)
+                )
+            )
             s.add(
                 _make_fiscal(
                     year=2025,
@@ -107,32 +113,54 @@ class TestFiscalParameterRepository:
             )
             s.commit()
             with pytest.raises(FiscalParameterAmbiguous):
-                FiscalParameterRepository(s).get_for_period(
-                    date(2025, 8, 1), date(2025, 8, 31)
-                )
+                FiscalParameterRepository(s).get_for_period(date(2025, 8, 1), date(2025, 8, 31))
 
     def test_list_covering_period_returns_only_rows_that_span_full_window(self, sync_db):
         """Vigência exclusiva: para cobrir [start, end], precisa effective_from<=start AND effective_to>=end."""
         with sync_db() as s:
-            s.add(_make_fiscal(year=2024, effective_from=date(2024, 1, 1), effective_to=date(2024, 12, 31)))
-            s.add(_make_fiscal(year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)))
+            s.add(
+                _make_fiscal(
+                    year=2024, effective_from=date(2024, 1, 1), effective_to=date(2024, 12, 31)
+                )
+            )
+            s.add(
+                _make_fiscal(
+                    year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)
+                )
+            )
             s.commit()
             # Ano fiscal único 2025 cobre [2025-06-01, 2025-06-30]; 2024 não cobre.
-            rows = FiscalParameterRepository(s).list_covering_period(date(2025, 6, 1), date(2025, 6, 30))
+            rows = FiscalParameterRepository(s).list_covering_period(
+                date(2025, 6, 1), date(2025, 6, 30)
+            )
             assert [r.year for r in rows] == [2025]
 
     def test_list_covering_period_returns_empty_when_window_spans_two_years(self, sync_db):
         """Janela cruzando ano fiscal sem row contínua → empty (motiva ambiguidade)."""
         with sync_db() as s:
-            s.add(_make_fiscal(year=2024, effective_from=date(2024, 1, 1), effective_to=date(2024, 12, 31)))
-            s.add(_make_fiscal(year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)))
+            s.add(
+                _make_fiscal(
+                    year=2024, effective_from=date(2024, 1, 1), effective_to=date(2024, 12, 31)
+                )
+            )
+            s.add(
+                _make_fiscal(
+                    year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)
+                )
+            )
             s.commit()
-            rows = FiscalParameterRepository(s).list_covering_period(date(2024, 12, 1), date(2025, 1, 31))
+            rows = FiscalParameterRepository(s).list_covering_period(
+                date(2024, 12, 1), date(2025, 1, 31)
+            )
             assert rows == []
 
     def test_get_by_year_returns_match_or_none(self, sync_db):
         with sync_db() as s:
-            s.add(_make_fiscal(year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)))
+            s.add(
+                _make_fiscal(
+                    year=2025, effective_from=date(2025, 1, 1), effective_to=date(2025, 12, 31)
+                )
+            )
             s.commit()
             assert FiscalParameterRepository(s).get_by_year(2025).year == 2025
             assert FiscalParameterRepository(s).get_by_year(2099) is None
@@ -140,7 +168,11 @@ class TestFiscalParameterRepository:
     def test_list_all(self, sync_db):
         with sync_db() as s:
             for year in (2024, 2025, 2026):
-                s.add(_make_fiscal(year=year, effective_from=date(year, 1, 1), effective_to=date(year, 12, 31)))
+                s.add(
+                    _make_fiscal(
+                        year=year, effective_from=date(year, 1, 1), effective_to=date(year, 12, 31)
+                    )
+                )
             s.commit()
             rows = FiscalParameterRepository(s).list_all()
             assert [r.year for r in rows] == [2026, 2025, 2024]

@@ -27,12 +27,8 @@ def _fiscal_2025() -> FiscalParameters:
         inss_ceiling_brl_cents=0,
         lucro_presumido_aliquota=Decimal("0.32"),
         ir_brackets=(
-            IRPFBracket(
-                upper_brl_cents=2696320, aliquota_pct=Decimal("0.0"), deducao_brl_cents=0
-            ),
-            IRPFBracket(
-                upper_brl_cents=None, aliquota_pct=Decimal("27.5"), deducao_brl_cents=0
-            ),
+            IRPFBracket(upper_brl_cents=2696320, aliquota_pct=Decimal("0.0"), deducao_brl_cents=0),
+            IRPFBracket(upper_brl_cents=None, aliquota_pct=Decimal("27.5"), deducao_brl_cents=0),
         ),
         effective_from=date(2025, 1, 1),
         effective_to=date(2025, 12, 31),

@@ -1,16 +1,4 @@
-"""FiscalParameterRepository — leitura sync por período (ADR-135 · A7.2b).
-
-Encapsula queries sobre ``fiscal_parameters`` para o ``DBConfigStore``
-(consumo síncrono pelo worker do pipeline).
-
-Regra de seleção (ADR-135):
-
-    effective_from <= period_start
-    AND (effective_to IS NULL OR effective_to >= period_end)
-
-Múltiplas rows cobrindo o período → ``FiscalParameterAmbiguous`` no caller
-(o repo retorna a lista; é o caller que decide).
-"""
+"""FiscalParameterRepository — leitura sync por vigência (ADR-135 · A7.2b)."""
 
 from __future__ import annotations
 
@@ -36,9 +24,7 @@ class FiscalParameterRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def list_covering_period(
-        self, period_start: date, period_end: date
-    ) -> list[FiscalParameter]:
+    def list_covering_period(self, period_start: date, period_end: date) -> list[FiscalParameter]:
         """Lista rows com vigência cobrindo ``[period_start, period_end]``."""
         stmt = (
             select(FiscalParameter)

@@ -1,16 +1,4 @@
-"""Cache Redis para parâmetros fiscais e cotações de mercado (ADR-135 · A7.2b).
-
-Stateless rigoroso (ADR-111): sem ``@lru_cache`` em processo. Cache mora
-em Redis; invalidação é por evento (``fiscal_parameter.published``,
-``market_rate.published``).
-
-Chaves:
-
-- ``fiscal:y={year}`` — TTL 1h (fallback se evento não chegar)
-- ``market:p={pair}:d={iso}`` — sem TTL (immutable após gravado)
-
-Falha aberta: Redis indisponível → cache miss, vai direto ao DB.
-"""
+"""Cache Redis para fiscal/market — stateless ADR-111, falha aberta sem Redis (A7.2b · ADR-135)."""
 
 from __future__ import annotations
 
