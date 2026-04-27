@@ -194,17 +194,7 @@ def _override_llm_config(workspace_id: str, config_dir: Path, db: Session) -> No
 
 
 def ensure_tenant_pipeline_config(workspace_id: str, tenant_root: Path) -> Path:
-    """Materialize ``tenant_root/config/`` when missing (e.g. before first pipeline run).
-
-    Ensures upload and ``POST /documents/reclassify`` can use
-    :func:`document_processor.resolve_classification_base` with tenant-specific
-    ``family_members`` / ``institutions`` without requiring a prior pipeline execution.
-
-    A7.1 (ADR-134): usa ``prepare_pipeline_config_dir`` (sem materializar configs A7.1
-    em disco — esses fluem via ``WorkspaceContext.config_overrides`` no worker).
-    Pos-A7.5: ``institutions.json`` global foi removido — marker passou a usar
-    ``pipeline.json`` (preservado em ``config/``).
-    """
+    """Materialize ``tenant_root/config/`` when missing (post-A7.5 marker = ``pipeline.json``)."""
     tenant_root = Path(tenant_root).resolve()
     marker = tenant_root / "config" / "pipeline.json"
     if marker.is_file():

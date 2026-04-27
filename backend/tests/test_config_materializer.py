@@ -192,27 +192,48 @@ _SENTINEL_CATEGORY_CODE = "ws_sentinel_category_xyz"
 
 def _seed_a7_1_sentinels(db, workspace_id: str) -> tuple[str, str]:
     """FamilyMember + Category sentinela usados para verificar não-materialização."""
-    db.add(
-        FamilyMember(
-            workspace_id=workspace_id,
-            key=_SENTINEL_MEMBER_KEY,
-            full_name="X",
-            short_name="X",
-            role="titular",
-            order=0,
-        )
+    db.add(_make_sentinel_member(workspace_id))
+    db.add(_make_sentinel_category(workspace_id))
+    db.commit()
+    return _SENTINEL_MEMBER_KEY, _SENTINEL_CATEGORY_CODE
+
+
+def _make_sentinel_member(workspace_id: str) -> FamilyMember:
+    return FamilyMember(
+        workspace_id=workspace_id,
+        key=_SENTINEL_MEMBER_KEY,
+        full_name="X",
+        short_name="X",
+        role="titular",
+        order=0,
     )
+
+
+def _make_sentinel_category(workspace_id: str) -> Category:
+    return Category(
+        workspace_id=workspace_id,
+        code=_SENTINEL_CATEGORY_CODE,
+        name="X",
+        category_type="expense",
+        order=1,
+    )
+
+
+def _seed_llm_config(db, workspace_id: str, *, provider: str, api_key: str) -> None:
+    """Insere ``LLMConfig`` (vault-encrypted api_key) — helper de tests."""
+    from backend.app.models.llm_config import LLMConfig as LLMConfigModel
+
     db.add(
-        Category(
+        LLMConfigModel(
             workspace_id=workspace_id,
-            code=_SENTINEL_CATEGORY_CODE,
-            name="X",
-            category_type="expense",
-            order=1,
+            provider=provider,
+            api_key_encrypted=_vault.encrypt(api_key),
+            model_name="gpt-4o",
+            max_tokens=4096,
+            temperature=0.1,
         )
     )
     db.commit()
-    return _SENTINEL_MEMBER_KEY, _SENTINEL_CATEGORY_CODE
 
 
 class TestPreparePipelineConfigDir:
@@ -292,26 +313,13 @@ class TestSerializeLLMConfig:
 
     def test_prepare_writes_llm_config(self, db, workspace, tmp_path):
         """``prepare_pipeline_config_dir`` escreve llm_config.json quando há row."""
-        from backend.app.models.llm_config import LLMConfig as LLMConfigModel
-
-        cfg = LLMConfigModel(
-            workspace_id=workspace.id,
-            provider="openai",
-            api_key_encrypted=_vault.encrypt("sk-openai-key"),
-            model_name="gpt-4o",
-            max_tokens=4096,
-            temperature=0.1,
-        )
-        db.add(cfg)
-        db.commit()
-
+        _seed_llm_config(db, workspace.id, provider="openai", api_key="sk-openai-key")
         tenant_root = tmp_path / "tenant_llm"
         tenant_root.mkdir()
         config_dir = prepare_pipeline_config_dir(workspace.id, tenant_root, db)
 
         llm_path = config_dir / "llm_config.json"
         assert llm_path.exists()
-
         with open(llm_path) as f:
             data = json.load(f)
         assert data["provider"] == "openai"

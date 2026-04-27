@@ -66,10 +66,7 @@ def collect_headings(content: str) -> dict[str, str]:
 
 
 def collect_anchor_refs(content: str) -> list[tuple[int, str, str]]:
-    """Retorna [(linha, texto_link, slug_citado)] para cada `[X](#adr-...)`.
-
-    Ignora linhas dentro de blocos de código (cercados por ```).
-    """
+    """Retorna [(linha, texto_link, slug_citado)] para cada `[X](#adr-...)` (ignora code blocks)."""
     refs: list[tuple[int, str, str]] = []
     in_code_block = False
     for line_no, line in enumerate(content.splitlines(), start=1):
