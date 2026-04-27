@@ -15,6 +15,7 @@ from backend.app.core.database import SyncSessionLocal
 from backend.app.models.document import Document, DocumentType
 from backend.app.repositories.pipeline_artifact_repository import PipelineArtifactRepository
 from backend.app.services.document_pipeline_sync import (
+    _E2_DB_STAGES,
     _e15a_base_stem,
     _find_e2_extract,
     _find_e15a_extract,
@@ -75,9 +76,18 @@ def read_document_extract_json(
                 "Extrato IRPF (E1.5a) não encontrado para este documento",
                 status_code=404,
             )
-    elif not e2_dir.exists():
-        raise DocumentExtractError("Nenhum extrato disponível", status_code=404)
     else:
+        # E2 (extratos / faturas / comprovantes): com MATHOMS_USE_DB_ARTIFACTS=True
+        # o stage E2 grava só em pipeline_artifacts. DB primário, disco fallback.
+        db_data = _read_e2_from_db(doc, workspace_id)
+        if db_data is not None:
+            return ExtractJsonResult(
+                filename=db_data["filename"],
+                data=db_data["data"],
+                all_candidates=db_data["all_candidates"],
+            )
+        if not e2_dir.exists():
+            raise DocumentExtractError("Nenhum extrato disponível", status_code=404)
         all_candidates = sorted(f.name for f in e2_dir.glob("*-2_extract.json"))
         if not all_candidates:
             raise DocumentExtractError("Nenhum extrato E2 encontrado", status_code=404)
@@ -122,6 +132,42 @@ def _read_irpf_e15a_from_db(doc: Document, workspace_id: str) -> dict | None:
             "filename": f"{stem}-1.5a_extract.json",
             "data": art.content_json,
             "all_candidates": [f"{k}-1.5a_extract.json" for k in all_keys],
+        }
+
+
+def _latest_e2_artifact(repo: PipelineArtifactRepository, workspace_id: str, stem: str):
+    """Mais recente de E2-extratos/faturas/llm para um stem (cross-stage)."""
+    candidates = (
+        repo.get_latest_for_workspace(workspace_id, stage=s, artifact_key=stem)
+        for s in _E2_DB_STAGES
+    )
+    found = [c for c in candidates if c is not None]
+    return max(found, key=lambda a: a.created_at) if found else None
+
+
+def _all_e2_keys(repo: PipelineArtifactRepository, workspace_id: str) -> set[str]:
+    """Stems com E2 artifact em qualquer stage do workspace."""
+    keys: set[str] = set()
+    for stage in _E2_DB_STAGES:
+        keys.update(repo.list_latest_keys(workspace_id, stage=stage))
+    return keys
+
+
+def _read_e2_from_db(doc: Document, workspace_id: str) -> dict | None:
+    """Lê E2 do DB (DBArtifactStore mode); None se não achar."""
+    if not doc.stored_path:
+        return None
+    stem = _e15a_base_stem(Path(doc.stored_path).name)
+    with SyncSessionLocal() as db:
+        repo = PipelineArtifactRepository(db)
+        latest = _latest_e2_artifact(repo, workspace_id, stem)
+        if latest is None:
+            return None
+        all_keys = _all_e2_keys(repo, workspace_id)
+        return {
+            "filename": f"{stem}-2_extract.json",
+            "data": latest.content_json,
+            "all_candidates": sorted(f"{k}-2_extract.json" for k in all_keys),
         }
 
 

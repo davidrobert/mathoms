@@ -22,6 +22,10 @@ from backend.app.repositories.pipeline_artifact_repository import PipelineArtifa
 _NO_E2_EXTRACT_TYPE_VALUES = {"irpf", "e1_members_json", "e1_5_baseline_json"}
 _IRPF_E15A_EXTRACT_TYPES = {"irpf"}
 
+# Stages onde E2 grava per-doc no DB (espelho de scripts/e2_extract.run_with_store).
+# E2-llm é stub determinístico que registra arquivos delegados ao wrapper LLM.
+_E2_DB_STAGES = ("E2-extratos", "E2-faturas", "E2-llm")
+
 
 def _e15a_json_name(source_filename: str) -> str:
     """Mirror E1.5a write convention (stem + -1.5a_extract.json)."""
@@ -70,6 +74,16 @@ def has_e15a_artifact_in_db(db: Session, workspace_id: str, source_filename: str
     stem = _e15a_base_stem(source_filename)
     repo = PipelineArtifactRepository(db)
     return repo.get_latest_for_workspace(workspace_id, stage="E1.5a", artifact_key=stem) is not None
+
+
+def has_e2_artifact_in_db(db: Session, workspace_id: str, source_filename: str) -> bool:
+    """Fallback DB para E2 (mesma motivação de `has_e15a_artifact_in_db`)."""
+    stem = _e15a_base_stem(source_filename)
+    repo = PipelineArtifactRepository(db)
+    return any(
+        repo.get_latest_for_workspace(workspace_id, stage=stage, artifact_key=stem) is not None
+        for stage in _E2_DB_STAGES
+    )
 
 
 def _e2_json_name(source_filename: str) -> str:
@@ -137,9 +151,10 @@ def apply_pipeline_e2_sync_to_documents(
 
     Called after a successful pipeline run. Idempotent for rows already ``processed``.
 
-    Quando ``db`` é passado, IRPF sem extract em disco também é consultado na
-    tabela ``pipeline_artifacts`` — necessário com ``MATHOMS_USE_DB_ARTIFACTS=True``
-    (E1.5 escreve direto no DB sem materializar em disco).
+    Quando ``db`` é passado, IRPF e docs E2 (extratos / faturas / comprovantes)
+    sem extract em disco são consultados na tabela ``pipeline_artifacts`` —
+    necessário com ``MATHOMS_USE_DB_ARTIFACTS=True`` (E1.5 e E2 escrevem direto
+    no DB sem materializar em disco).
     """
     e2_dir = tenant_root / "processed" / "E2_extracts"
     e2_dir.mkdir(parents=True, exist_ok=True)
@@ -170,7 +185,10 @@ def apply_pipeline_e2_sync_to_documents(
             continue
 
         extract_path = _find_e2_extract(e2_dir, fname)
-        doc.pipeline_e2_extract_ok = extract_path is not None
+        has_extract = extract_path is not None
+        if not has_extract and db is not None and doc.workspace_id:
+            has_extract = has_e2_artifact_in_db(db, doc.workspace_id, fname)
+        doc.pipeline_e2_extract_ok = has_extract
         doc.pipeline_extract_notes = _read_extract_notes(extract_path) if extract_path else None
         if doc.status == DocumentStatus.ready:
             doc.status = DocumentStatus.processed
