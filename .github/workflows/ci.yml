@@ -28,6 +28,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # `ready_for_review` substitui o default que dispara em draft. Drafts
+    # só rodam CI quando promovidos a "ready". Economiza ~50% dos triggers
+    # se você usa drafts (que é o pattern recomendado para WIP em PR).
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       run_e2e:
@@ -59,27 +63,30 @@ jobs:
   changes:
     name: Detect changed paths
     runs-on: ubuntu-latest
-    timeout-minutes: 1
-    # `dorny/paths-filter@v3` em pull_request usa GH API listFiles() para
-    # detectar diff. Sem `pull-requests: read` o token default falha com
-    # "Resource not accessible by integration" (settings repo pode estar
-    # em "Read repository contents only").
+    timeout-minutes: 2
+    # tj-actions/changed-files SHA-pinned (não tag) por causa do incidente
+    # CVE-2025-30066 (mar/2025) que comprometeu tags v1-v45. v47.0.6
+    # (abr/2026) é pós-fix e SHA explícito impede tag-rewrite. files_yaml
+    # replica o pattern de filter-groups do dorny/paths-filter@v3.
     permissions:
       contents: read
       pull-requests: read
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-      pipeline: ${{ steps.filter.outputs.pipeline }}
-      any_code: ${{ steps.filter.outputs.any_code }}
+      backend: ${{ steps.filter.outputs.backend_any_changed }}
+      frontend: ${{ steps.filter.outputs.frontend_any_changed }}
+      pipeline: ${{ steps.filter.outputs.pipeline_any_changed }}
+      any_code: ${{ steps.filter.outputs.any_code_any_changed }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+        with:
+          fetch-depth: 2
+      - name: Detect changed files (SHA-pinned v47.0.6)
         id: filter
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
         with:
           # Mudança no próprio workflow → roda tudo (sanity contra
           # regressão na config de filtros).
-          filters: |
+          files_yaml: |
             backend:
               - 'backend/**'
               - 'requirements.txt'
@@ -97,6 +104,7 @@ jobs:
               - 'requirements.txt'
               - '.github/workflows/ci.yml'
             any_code:
+              - '**'
               - '!docs/**'
               - '!**.md'
               - '!.claude/**'
@@ -165,20 +173,24 @@ jobs:
       - name: Restore venv cache
         # `setup-python cache: pip` cobre só ~/.cache/pip; venv ainda é
         # reinstalado a cada run. Cache do venv inteiro pula install na hit
-        # (ganho ~60-90s). Key invalida em qualquer mudança de requirements.
+        # (ganho ~60-90s). `restore-keys` permite reuso parcial de venv mais
+        # antigo quando requirements muda — pip resolve só os pacotes diff.
         id: venv-cache
         uses: actions/cache@v4
         with:
           path: .venv
           key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v1
+          restore-keys: |
+            venv-${{ runner.os }}-py313-
 
       - name: Install dependencies (cache miss)
         if: steps.venv-cache.outputs.cache-hit != 'true'
         run: |
-          python -m venv .venv
+          [ -d .venv ] || python -m venv .venv
           .venv/bin/pip install --upgrade pip
           .venv/bin/pip install -r requirements.txt -r backend/requirements.txt
-          .venv/bin/pip install reportlab pytest pytest-asyncio pytest-cov fakeredis
+          # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
+          .venv/bin/pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -244,10 +256,17 @@ jobs:
           # Suíte backend roda apenas no caminho-alvo — bloqueia merge se quebrar.
           MATHOMS_USE_DB_ARTIFACTS: "true"
         run: |
-          pytest backend/tests/ -q --tb=short
+          # `-n auto` (pytest-xdist) paraleliza por CPU. SQLite in-memory +
+          # recreate-per-test (ver backend/tests/conftest.py) é xdist-safe:
+          # cada worker process tem engine próprio. Ganho ~50% (15→7-10min).
+          # `--dist loadgroup` mantém tests do mesmo file no mesmo worker —
+          # reduz overhead de fixture setup compartilhado dentro de classe.
+          pytest backend/tests/ -q --tb=short -n auto --dist loadgroup
 
-      - name: Upload coverage
-        if: always()
+      - name: Upload coverage (artifact only on failure)
+        # Coverage XML só interessa quando CI quebra — em verde, ninguém
+        # baixa. Reduz upload + storage de retention.
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
@@ -283,14 +302,11 @@ jobs:
   frontend-tests:
     name: Frontend unit + integration (Vitest)
     runs-on: ubuntu-latest
-    # Bumped 10→25 (2026-04-27): chart tests pós-v2.E.6 (refactor 502-line de
-    # ReceitaDespesaMensalChart) ficaram lentos em jsdom — react-chartjs-2
-    # tenta `acquire canvas getContext` (canvas npm pkg ausente) e cada miss
-    # spamma stderr. Sintoma: Vitest passa todos asserts mas runtime cresce
-    # de ~2min → ~10min+. Mitigação imediata é dar headroom; investigação
-    # do root cause (mock faltando em ReportShell? jsdom slowdown?) entra
-    # em hot-fix separado.
-    timeout-minutes: 25
+    # Restaurado para 10min (2026-04-27): mock global de `react-chartjs-2`
+    # em `frontend/tests/setup.ts` resolve o hang causado pelo refactor
+    # v2.E.6 — chart wrappers viram componentes inertes em testes que não
+    # mockam localmente, eliminando o loop de canvas getContext em jsdom.
+    timeout-minutes: 10
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     defaults:
@@ -312,8 +328,9 @@ jobs:
       - name: Run Vitest
         run: npm test -- --reporter=default --reporter=junit --outputFile=./vitest-results.xml
 
-      - name: Upload results
-        if: always()
+      - name: Upload results (only on failure)
+        # Vitest junit XML só interessa em falha — em verde ninguém baixa.
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-vitest-results
@@ -395,34 +412,36 @@ jobs:
           cd frontend
           npm ci
 
-      - name: Cache Playwright browsers
+      - name: Cache Playwright Chromium
+        # Em PR só Chromium é instalado — Firefox/WebKit ficam para o
+        # nightly (ver nightly.yml > frontend-e2e-cross-browser). Cache
+        # key dedicado evita poluir o cache 3-browsers do nightly.
         id: pw-cache-e2e
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          # Chave por package-lock garante invalidação na bump de @playwright/test.
-          key: playwright-${{ runner.os }}-3browsers-${{ hashFiles('frontend/package-lock.json') }}
+          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
 
-      - name: Install Playwright browsers (cache miss)
+      - name: Install Playwright Chromium (cache miss)
         if: steps.pw-cache-e2e.outputs.cache-hit != 'true'
         working-directory: frontend
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: npx playwright install --with-deps chromium
 
       - name: Install Playwright OS deps (cache hit)
         if: steps.pw-cache-e2e.outputs.cache-hit == 'true'
         working-directory: frontend
-        run: npx playwright install-deps chromium firefox webkit
+        run: npx playwright install-deps chromium
 
-      - name: Run Playwright E2E (cross-browser em fluxos @critical)
+      - name: Run Playwright E2E (Chromium em fluxos @critical)
         env:
-          PW_CROSS_BROWSER: "1"
           # F6.5F.11 (ADR-070): mock LLM em CI default; PW_REAL_LLM=1 no nightly
           MATHOMS_LLM_MOCK: "1"
         run: |
           cd frontend
-          # Visual regression project é isolado (baseline OS/font-specific);
-          # roda em job dedicado (PW_VISUAL=1), não no gate cross-browser.
-          npm run test:e2e -- --project=chromium --project=firefox --project=webkit
+          # Cross-browser (Firefox + WebKit) movido para nightly.yml.
+          # Regressões cross-browser são raras; rodar só Chromium em PR
+          # corta ~50% do runtime do gate E2E quando label `e2e` ativo.
+          npm run test:e2e -- --project=chromium
 
       - name: Upload backend + celery logs (diagnóstico E2E)
         if: always()
