@@ -540,6 +540,20 @@ tatico:
       charts: []
       cards: []
 
+    # --------------------------------------------------------------------------
+    # plano_de_acao — Plano de Ação (Decisões editoriais — A7.2a · ADR-136)
+    # --------------------------------------------------------------------------
+    # Decision aggregate event-sourced. Lê de
+    # /api/v1/workspaces/{id}/decisions; renderer = PlanoDeAcaoSection.
+    # Substitui o caderno legado em config/decisions.md (removido em A7.2a).
+    - id: "plano_de_acao"
+      title: "Plano de Ação"
+      enabled: true
+      collapsible: true
+      data_source: "decisions"
+      charts: []
+      cards: []
+
 # ==============================================================================
 # MODO USA (U1-U4) — Projeto Mudança EUA
 # ==============================================================================

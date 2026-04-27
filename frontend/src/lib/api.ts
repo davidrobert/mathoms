@@ -17,3 +17,4 @@ export * from "./api/workspaces";
 export * from "./api/goals";
 export * from "./api/tasks";
 export * from "./api/feature-flags";
+export * from "./api/decisions";

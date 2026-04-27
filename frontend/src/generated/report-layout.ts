@@ -822,6 +822,15 @@ export const LAYOUT: ReportLayout = {
         "data_source": "dashboard.notas",
         "charts": [],
         "cards": []
+      },
+      {
+        "id": "plano_de_acao",
+        "title": "Plano de Ação",
+        "enabled": true,
+        "collapsible": true,
+        "data_source": "decisions",
+        "charts": [],
+        "cards": []
       }
     ]
   },

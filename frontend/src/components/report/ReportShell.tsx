@@ -24,6 +24,7 @@ import { S7IndependenciaSection } from "./sections/S7IndependenciaSection";
 import { S8PrevidenciaSection } from "./sections/S8PrevidenciaSection";
 import { S9RiscosSection } from "./sections/S9RiscosSection";
 import { S10SinteseSection } from "./sections/S10SinteseSection";
+import { PlanoDeAcaoSection } from "./sections/PlanoDeAcao";
 import { ApendiceASection } from "./sections/ApendiceASection";
 import {
   ApendiceBSection,
@@ -88,6 +89,8 @@ const MIGRATED_SECTIONS = new Set([
   "U1", "U2", "U3", "U4",
   // Tático
   "T1", "T2", "T3", "T4", "T5", "T6",
+  // A7.2a · ADR-136 — Plano de Ação (Decision aggregate)
+  "plano_de_acao",
   // Apêndices
   "APP_A", "APP_B", "APP_C", "APP_D", "APP_E",
 ]);
@@ -504,6 +507,9 @@ function MigratedSection({
       return <T5ProximosPassosSection data={data} />;
     case "T6":
       return <T6NotasSection workspaceId={workspaceId} reportId={reportId} />;
+    // A7.2a · ADR-136 — Plano de Ação (Decisões editoriais)
+    case "plano_de_acao":
+      return <PlanoDeAcaoSection workspaceId={workspaceId} />;
     // Apêndices
     case "APP_A":
       return <ApendiceASection data={data} />;
