@@ -1,6 +1,6 @@
 # Plano — Cutover de `config/` para DB multi-tenant (Sprint A7)
 
-> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 fechada (A7.1 ✅ + A7.2a ✅ + A7.2b ✅ + A7.4 ✅) · **A7.6 ✅ entregue** (rules-as-code dissolveu `docs/methodology/` que A7.4 introduziu como solução incompleta) · Onda 3 destravada (A7.3 abre após A7.1) · Onda 4 (A7.5 cleanup) bloqueada.
+> **Status:** 🚧 em andamento (2026-04-27) — Onda 1 ✅ (A7.0) · Onda 2 fechada (A7.1 ✅ + A7.2a ✅ + A7.2b ✅ + A7.4 ✅) · Onda 3 fechada (A7.3 ✅) · **A7.6 ✅ entregue** (rules-as-code dissolveu `docs/methodology/` que A7.4 introduziu como solução incompleta) · Onda 4 (A7.5 cleanup) **desbloqueada**.
 > **Audiência:** agentes LLM em paralelo (Onda 2 com até 4 agentes simultâneos) + supervisor CTO (humano ou agente `senior-cto`).
 > **Premissa central:** o produto **continua operando em produção** entre cada onda. Nenhum passo pode quebrar smoke E2E ou bloquear geração de relatório de workspace existente.
 > **Referências:** [BACKLOG.md §Sprint A7](BACKLOG.md#sprint-a7--config-db-cutover-cli-legacy-removal), [DECISIONS.md ADR-134..138](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [CLAUDE.md §Regras críticas](../CLAUDE.md#regras-críticas-invariantes-do-repositório).
@@ -444,6 +444,13 @@ recuperável via git history se necessário (commit anterior ao
 
 ### §5.3 A7.3 — Catalog + Override resolver
 
+**✅ Entregue 2026-04-27** — branch `agent/a7-3-catalog-override/20260427-1730`,
+9 commits. 3 models novas (`CategoryTemplate`, `WorkspaceCategoryOverride`,
+`InstitutionCatalog`) + 4 Alembic migrations chained (DDL + 3 seeds/backfill)
++ resolver service com cache Redis + 3 repositories + DBConfigStore wiring +
+4 override CRUD endpoints + 68 specs novas (1488 backend total / 1570
+pipeline total verde).
+
 **Onda 3 · 1 lane · ~3 sessões · serial com A7.1.**
 
 **Depende de:** A7.1 ✅ mergeada (leitor é `ConfigStore`).
@@ -747,7 +754,7 @@ Em caso de regressão silenciosa detectada pós-merge (>24h):
 | [ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) | ConfigStore protocol + adapters | A7.0 | ☐ aberto |
 | [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) | Versionamento temporal de séries fiscais e câmbio | A7.2b | ☐ aberto |
 | [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) | Decision aggregate event-sourced | A7.2a | ✅ Decidido |
-| [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) | Catalog + override resolver | A7.3 | ☐ aberto |
+| [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) | Catalog + override resolver | A7.3 | ✅ Decidido |
 | [ADR-138](DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7) | Protocolo de supervisão CTO em sprints multi-agente | A7 inteira | ☐ aberto |
 
 ---
@@ -758,7 +765,7 @@ Em caso de regressão silenciosa detectada pós-merge (>24h):
 - [ ] A7.1 Cutover materialize_config mergeada + smoke verde
 - [x] A7.2a Decision aggregate mergeada + ADR-136 ✅ + `decisions.md` removido
 - [ ] A7.2b Tabelas globais fiscal/market mergeadas + ADR-135 ✅ + `parametros_fiscais.json` + `taxas.json` removidos
-- [ ] A7.3 Catalog + override mergeada + ADR-137 ✅ + `categorization.json` + `institutions.json` removidos
+- [x] A7.3 Catalog + override mergeada + ADR-137 ✅ (`categorization.json` + `institutions.json` removidos em A7.5 cleanup)
 - [x] A7.4 Metodologia movida para `docs/methodology/` + 4 arquivos removidos de `config/`
 - [x] A7.6 Rules-as-code dissolveu `docs/methodology/` + ADRs 143/145/146/147 ✅ + `BankAccount.source_tier` schema + bridge `<ws>/notes/milhas.md`
 - [ ] A7.5 Cleanup mergeada — `config/` deletado, `FileConfigStore` removido, `materialize_config` removido

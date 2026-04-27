@@ -702,6 +702,87 @@ preparação para **F7 (Produção + LGPD + Ops)**.
   ([ADR-037](DECISIONS.md#adr-037--recharts-para-charts) com escopo
   restringido).
 
+- **A7.3 Catalog + Override resolver (categorization + institutions) — ✅ entregue (2026-04-27):**
+  Sprint A7 · Onda 3 · única lane · serial após A7.1 mergeada. Implementa
+  [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions):
+  storage explícito de **template global versionado** (`category_templates`)
+  + **overrides por workspace** (`workspace_category_overrides`, somente
+  diff). `institutions.json` vira tabela global `institution_catalog`
+  (sem override por workspace nesta lane).
+
+  **Entregas (8 commits):**
+  - **Models** (`backend/app/models/category_template.py`,
+    `institution_catalog.py`): `CategoryTemplate` (template_version + key
+    UNIQUE), `WorkspaceCategoryOverride` (UNIQUE workspace_id + template_key),
+    `InstitutionCatalog` (code UNIQUE). `monthly_cap_brl_cents` em
+    `BigInteger` (ADR-090, money nunca float). `default_keywords`/
+    `keywords_override` em `JSON` (SQLite-friendly).
+  - **Alembic chain (4 migrations chained):**
+    - `aa1b2c3d4e5f` — DDL das 3 tabelas com índices + UNIQUE constraints.
+    - `a5b6c7d8e9f0` — seed `category_templates` v1: 16 expense + 8 income
+      categories + 1 row reservada `__categorization_metadata__` carregando
+      `pj_source_mapping`/`clt_source_mapping`/`internal_transfer_patterns`/
+      `one_time_income_*`/`qa_investigation_patterns` em `metadata_json`.
+    - `b6c7d8e9f0a1` — seed `institution_catalog`: 17 instituições com
+      categoria heurística (bank/broker/exchange/fintech/government/
+      real_estate/employer).
+    - `d8e9f0a1b2c3` — backfill `workspace_category_overrides` a partir de
+      `categories` rows existentes; cria override SOMENTE onde diverge do
+      template (label/keywords/cap). Float→cents (ADR-090). Não dropa
+      tabelas legadas (A7.5 cleanup).
+  - **Resolver** (`backend/app/services/category_resolver.py`):
+    `resolve_categories(workspace_id, db)` → `list[ResolvedCategory]`
+    frozen dataclass (key, label, category_type, keywords, monthly_cap_brl_cents,
+    sort_order, parent_key, disabled). Cache Redis em
+    `category_cache.py` com invalidação ativa por evento (sem `@lru_cache`,
+    ADR-111). Falha aberta sem Redis. `get_categorization_metadata(db)`
+    retorna o blob auxiliar do row reservado.
+  - **Institution resolver** (`backend/app/services/institution_resolver.py`):
+    `resolve_institutions(db) -> InstitutionsCatalog` cached.
+  - **Repositories** (`category_template_repository.py`,
+    `workspace_category_override_repository.py`,
+    `institution_catalog_repository.py`): sync para template/catalog,
+    async para override CRUD; upsert idempotente respeita UNIQUE.
+  - **DBConfigStore wiring** (`backend/app/services/db_config_store.py`):
+    `get_categorization` delega ao resolver com fallback legado para
+    paridade pré→pós cutover. `get_institutions` lê do
+    `institution_catalog` global. `build_config_overrides_from_db`
+    monta `categorization.json` do worker boundary com expense/income
+    keywords + auxiliary metadata; `institutions.json` vem do catálogo
+    global.
+  - **API** (`backend/app/api/category_overrides.py`): 4 endpoints novos
+    com `response_model` Pydantic (ADR-102 R18) sob
+    `/workspaces/{id}/config/category-overrides`:
+    - `GET .../resolved` — lista template+overrides mergeados.
+    - `PUT .../{template_key}` — upsert override (cria/atualiza diff).
+    - `DELETE .../{template_key}` — desabilita (`override.disabled=True`).
+    - `POST .../{template_key}/reset` — apaga override → volta ao default.
+    Endpoints legados em `/categories` mantidos intactos para compat
+    com frontend; A7.5 migrará frontend e removerá os legados.
+  - **Tests (68 specs novas):** `test_category_resolver.py` (17),
+    `test_institution_resolver.py` (5),
+    `test_workspace_category_override_repository.py` (8),
+    `test_db_config_store_categorization_a73.py` (7),
+    `test_category_overrides_api.py` (10),
+    `test_pipeline_adapter_a73.py` (5),
+    `test_a73_seed_migrations.py` (16). Fakes nomeados
+    (`FakeRedisClient`) — sem `MagicMock` inline (CLAUDE.md §Testes).
+
+  **Gates:** `pre-commit run --all-files` ✅ · `pytest backend/tests -q`
+  1488 passed / 5 skipped ✅ · `pytest tests -q` 1570 passed / 2 skipped
+  ✅ · `make update-openapi-snapshot` + `update-db-schema-reference`
+  comitados ✅ · `alembic upgrade head` em SQLite fresco produz 25
+  category_templates rows + 17 institution_catalog rows + paridade com
+  legacy `categories` (resolver fallback até A7.5).
+
+  **Coordenação cross-lane:**
+  - **A7.5 desbloqueada:** Onda 4 cleanup (`git rm config/*` + remoção
+    de bridges) agora pode rodar.
+  - **Risco de drift quando template renomear key:** ADR-137 §Decisão
+    documenta proibição de rename de `template_key` (só add/deprecate);
+    rename de key implicaria nova `template_version` + migration de
+    overrides — fora do escopo desta lane.
+
 - **A7.4 Metodologia → `docs/methodology/` — ✅ entregue (2026-04-27):**
   Reorganização editorial: 4 arquivos de documentação humana movidos de
   `config/` para `docs/methodology/` (Sprint A7 · Onda 2 · paralelo livre ·
