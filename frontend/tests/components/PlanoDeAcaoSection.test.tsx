@@ -62,9 +62,9 @@ describe("<PlanoDeAcaoSection /> @A7.2a", () => {
     });
     expect(screen.getByText("Quitar dívida fictícia")).toBeInTheDocument();
     expect(screen.getByText("D02")).toBeInTheDocument();
-    // Ambos status visíveis
-    expect(screen.getByText("Decidido")).toBeInTheDocument();
-    expect(screen.getByText("Pendente")).toBeInTheDocument();
+    // Status badges (não confundir com tabs do filtro — ambos têm os labels)
+    expect(screen.getAllByText("Decidido").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Pendente").length).toBeGreaterThanOrEqual(1);
   });
 
   it("filtra por status quando o usuário clica num tab", async () => {
