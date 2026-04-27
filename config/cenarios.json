@@ -38,10 +38,11 @@
     "atual_label": "—"
   },
   "trs": {
+    "_comment": "TRS realista 5% alinhada com decisão D15 (decisions.md) e goal.if default; pessimista 4% preserva Trinity Study clássico como fallback conservador. Atualizado 2026-04-27.",
     "label": "TRS",
-    "pessimista_pct": 3.5,
-    "realista_pct": 4.0,
-    "otimista_pct": 5.0,
+    "pessimista_pct": 4.0,
+    "realista_pct": 5.0,
+    "otimista_pct": 6.0,
     "atual_label": "—"
   },
 

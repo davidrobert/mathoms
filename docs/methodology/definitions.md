@@ -203,7 +203,13 @@
 | `financiamentos`      | Financiamentos imobiliários                        | (variável)  | —       |
 | `impostos`            | Impostos (IRPF, IPTU, IPVA, DAS, DARF)             | (variável)  | —       |
 
-**Total tetos fixos: R$ 34.950/mês (44,5% da renda)**
+**Total tetos fixos: R$ 34.950/mês**
+
+> **Base de cálculo:** percentual contra a renda **bruta total** (CLT + PJ
+> + aluguéis líquidos), não contra renda recorrente líquida. Renda bruta
+> aproximada R$ 78.500/mês (2026), então R$ 34.950 ≈ 44,5%. Contra renda
+> recorrente líquida (~R$ 55.700/mês), é 62,7% — **mais conservador para
+> regra de 50/30/20 Cerbasi**. Recálculo a cada ciclo.
 *Nota: `financiamentos` e `impostos` não têm teto fixo — são obrigações variáveis acompanhadas separadamente.*
 
 ### REGRAS DE CATEGORIZAÇÃO POR KEYWORDS (usadas no E4)
@@ -421,9 +427,17 @@ Transferências entre contas do casal **NÃO são receita nem despesa**. Devem s
 | **Total** | **R$ 22.300** | | | | |
 
 **Notas:**
-- Os R$20.000 (4 primeiros) são configurados como aporte automático (tarefa #6).
-- O PGBL R$1.800 é um setup separado no Itaú (tarefa #7) — R$1.800/mês = R$21.600/ano = 12% da renda tributável (~R$180k).
-- O DCA Crypto R$500 inicia em mai/2026 (tarefa #23) — via Binance ou Hashdex, a definir.
+- **D02 (`decisions.md`) declara aporte mensal R$ 20.000** = soma das 4
+  primeiras linhas (Cofrinhos + IPCA+ + IVVB11 + Wise) — esse é o
+  **aporte automático core** referenciado pelo score `taxa_poupanca_recorrente`.
+- O PGBL R$ 1.800 é um setup separado no Itaú (tarefa #7) — R$ 1.800/mês
+  = R$ 21.600/ano = 12% da renda tributável (~R$ 180k). Conta como
+  aporte previdenciário (não core), mas integra `aporte_mensal_total_brl`.
+- O DCA Crypto R$ 500 inicia em mai/2026 (tarefa #23) — via Binance ou
+  Hashdex, a definir. Não-core (discricionário).
+- **Total R$ 22.300 ≠ D02 R$ 20.000** intencionalmente: o "core" cabe em
+  uma única regra de aporte automático; PGBL e DCA Crypto são setups
+  paralelos. Para projeção IF, somar todos os 3 (`aporte_mensal_total = 22.300`).
 - PGBL é **investimento/previdência**, não despesa. Aparece na classe de ativos `previdencia` (meta 5% da carteira).
 
 **Validação aportes → alocação alvo:**

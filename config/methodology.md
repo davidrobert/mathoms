@@ -197,6 +197,26 @@ recorrente vinda de `receita_pj`):
 < 3 Insuficiente · 3-6 Mínima · 6-12 Adequada · 12-24 Robusta · > 24
 Excessiva.
 
+A faixa "Excessiva" (>24 meses) **não é convergência canônica** — Cerbasi
+e Perini não escrevem teto. Adotada pelo produto com fundamentação AUVP
+(custo de oportunidade de caixa: R$ 100k acima do alvo em CDI 14% ≈ R$ 14k/ano
+de retorno-real perdido vs. carteira diversificada). Recomendação "realocar
+excedente" só dispara quando há excedente material **e** alocação efetiva
+está abaixo do alvo (ver `goal.alocacao_alvo:desvio_max_pct`).
+
+**Modulador para dependentes** (recomendação Cerbasi para famílias com
+filhos pequenos / idosos dependentes — não codificado em `meses_alvo_por_perfil_renda`
+mas deve ser aplicado pelo planejador):
+
+- Bebê / criança ≤6 anos (dependência total): **multiplicar `meses_alvo` por 1,3**
+  (ex.: CLT estável + bebê = 8 meses, não 6).
+- Idoso dependente (custo médico não-coberto pelo plano): **multiplicar por 1,2**.
+- Família com 2+ filhos em idade escolar: **multiplicar por 1,15**.
+
+Trade-off: scoring puramente algorítmico não captura — fica como ajuste
+consultivo. Lane futura: estender `scoring.json:reserva_emergencia._base_calculo`
+com `modulador_dependentes`.
+
 **Reserva ≠ patrimônio investível.** Reserva mora em ativos com liquidez
 D+0 a D+1 e baixíssimo risco (Tesouro Selic, CDB liquidez diária ≥ FGC,
 caixa). Não confundir com Cofrinhos atrelados a CDI longo.
@@ -207,12 +227,19 @@ caixa). Não confundir com Cofrinhos atrelados a CDI longo.
 
 | Variável | Pessimista | Realista (base) | Otimista | Atual (abr/2026) |
 |---|---|---|---|---|
-| Inflação (IPCA) | 6,0% | 4,5% | 3,5% | 5,48% |
+| Inflação (IPCA 12m) | 6,0% | 4,5% | 3,5% | 4,14% |
 | Retorno real carteira | 4,0% | 6,0% | 8,0% | ~6,0% |
-| CDI / Selic | 8,0% | 14,15% | 15,0% | 14,25% |
+| CDI / Selic | 8,0% | 14,5% | 15,0% | 14,75% |
 | Câmbio BRL/USD | R$ 7,50 | R$ 5,80 | R$ 4,50 | R$ 5,80 |
 | Valorização imóveis SP | 2% | 5% | 8% | — |
-| TRS (Taxa de Retirada Segura) | 3,5% | 4,0% | 5,0% | — |
+| TRS (Taxa de Retirada Segura) | 4,0% | 5,0% | 6,0% | — |
+
+> **TRS realista 5%** alinhada com decisão D15 ([decisions.md](decisions.md))
+> e com `goal.if.schema.json:trs_pct.default` (5%). Justificativa: carteira
+> mista BR + imóveis com yield líquido ≥ TRS sustenta retiradas levemente
+> acima de Trinity 4% sem comprometer probabilidade de sucesso (referência:
+> Perini ampliado, AUVP). Cenário pessimista 4% preserva Trinity clássico
+> como fallback conservador.
 
 ---
 

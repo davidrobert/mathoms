@@ -28,8 +28,8 @@
       "racional": "Patrimônio investível ÷ meta IF. Operacionaliza a regra dos 300 / múltiplo de custo. 80% é zona de finalização, 5% é fase de partida."
     },
     "diversificacao": {
-      "fonte": "AUVP — alocação multi-classe",
-      "racional": "Número de categorias com ≥5% do bruto. Proxy simples para concentração; AUVP exige distribuição mas o sinal só se torna crítico após reserva consolidada — peso menor."
+      "fonte": "Cerbasi — diversificação patrimonial por origem",
+      "racional": "Número de buckets de origem (residência, imóveis investimento, investimentos D, investimentos M, cripto, caixa+moeda, veículos) com ≥5% do bruto. Proxy simples para concentração de patrimônio. NÃO confundir com diversificação de carteira AUVP (RF pré/pós/IPCA, ações BR/INT, FIIs, caixa) — para essa, ver `goal.alocacao_alvo.v2.schema.json:derived.desvio_max_pct` (KPI canônico AUVP, peso futuro). Esta métrica é peso menor (1.0) porque para patrimônios <R$5M, concentração em 1-2 origens ainda é racional."
     }
   },
 
@@ -72,13 +72,13 @@
       "fonte": "Perini"
     },
     "diversificacao": {
-      "nome_display": "Diversificação Patrimonial",
+      "nome_display": "Diversificação Patrimonial (origem)",
       "range_min": 1,
       "range_max": 6,
       "peso": 1.0,
       "invertido": false,
-      "unidade": "categorias com ≥5% do bruto",
-      "fonte": "AUVP"
+      "unidade": "buckets de origem com ≥5% do bruto",
+      "fonte": "Cerbasi (concentração patrimonial). Para diversificação de carteira AUVP, ver goal.alocacao_alvo.v2:derived.desvio_max_pct."
     }
   },
 
@@ -127,15 +127,17 @@
   },
 
   "cerbasi": {
-    "_comment": "Equilíbrio Cerbasi: presente (gastos correntes) vs futuro (investimento no futuro).",
+    "_comment": "Equilíbrio Cerbasi: presente (gastos correntes / estilo de vida) vs futuro (capital alocado para construir patrimônio). 'Futuro' canônico Cerbasi = aporte/poupança/educação dos filhos. 'reserva_desejos' (consumo planejado) e 'financeiro' (atrito: IOF/anuidade/juros) NÃO são 'futuro' — foram removidos em 2026-04-27 após auditoria (item S3).",
     "categorias_presente": [
       "moradia", "alimentacao", "transporte", "saude", "lazer_viagens",
       "servicos_domesticos", "assinaturas", "vestuario",
-      "seguros", "melhoria_reforma", "suporte_familiar"
+      "seguros", "melhoria_reforma", "suporte_familiar",
+      "reserva_desejos", "financeiro"
     ],
     "categorias_futuro": [
-      "educacao", "financeiro", "reserva_desejos"
+      "educacao"
     ],
+    "_aporte_como_futuro": "O 'capital alocado para o futuro' canônico Cerbasi (aportes em RF/RV/FIIs/previdência) NÃO vive em despesas — vive em fluxo de aportes (`investimentos-4_unified.json`). e5_analyze.py soma `aporte_mensal_recorrente_brl` ao numerador de 'futuro' antes de classificar. Apenas 'educacao' é despesa que conta como futuro (educação dos filhos / cursos profissionalizantes que geram renda).",
     "classificacao": [
       {"minimo_futuro_pct": 30, "label": "Investidor"},
       {"minimo_futuro_pct": 20, "label": "Equilibrado"},

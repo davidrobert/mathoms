@@ -212,10 +212,19 @@ patrimonio.veiculos              = cat_7
 
 1. `SUM(composicao[].valor) == patrimonio.bruto` (diferença tolerada: ≤ R$ 1,00)
 2. `SUM(composicao[].pct_bruto) == 100.0%`
-3. `patrimonio.investivel < patrimonio.bruto`
-4. `patrimonio.investivel == bruto − cat_1 − cat_7`
-5. **Os campos top-level do E4 (`patrimonio.investimentos_david`, etc.) DEVEM ser idênticos aos valores correspondentes em `composicao[]`** — proibido ter dois conjuntos de números divergentes
-6. `cat_6 (Caixa + ME) < 5% do bruto` → warning se violado (vide regra da categoria 6)
+3. `patrimonio.investivel_total < patrimonio.bruto` (sempre — bruto inclui residência e veículos que estão fora do investível total)
+4. `patrimonio.investivel_total == bruto − cat_1 − cat_7`
+5. `patrimonio.investivel_financeiro <= patrimonio.investivel_total` (financeiro = subset do total que exclui imóveis investimento)
+6. `patrimonio.investivel_financeiro == cat_3 + cat_4 + cat_5 + cat_6` (definição direta)
+7. **Os campos top-level do E4 (`patrimonio.investimentos_david`, etc.) DEVEM ser idênticos aos valores correspondentes em `composicao[]`** — proibido ter dois conjuntos de números divergentes.
+8. `cat_6 (Caixa + ME) < 5% do bruto` → warning se violado (vide regra da categoria 6).
+9. **Anti-dupla-contagem ([ADR-142](../docs/DECISIONS.md#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)):**
+   se `pipeline.json:patrimonio_composicao.imoveis_no_if = true` e há
+   `goal.if.inputs.renda_passiva_atual_mensal_brl > 0`, então o valor
+   declarado **deve excluir** aluguéis líquidos de cat_2 (já contabilizados
+   no `investivel_efetivo`). Caso contrário, dupla contagem do patrimônio
+   imobiliário. E4 emite warning quando `imoveis_no_if=true` e
+   `renda_passiva_atual > sum(aluguéis_categorizados_recorrentes)`.
 
 ---
 
