@@ -179,7 +179,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v1
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v2
           restore-keys: |
             venv-${{ runner.os }}-py313-
 
@@ -236,7 +236,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v1
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v2
 
       - name: Install dependencies (cache miss)
         if: steps.venv-cache.outputs.cache-hit != 'true'
