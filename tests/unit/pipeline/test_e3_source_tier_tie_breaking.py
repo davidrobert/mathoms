@@ -25,7 +25,6 @@ from pipeline.domain.services.source_tier import (
     resolve_account_tier,
 )
 
-
 # =============================================================================
 # Spec (a) — tier mais alto vence ainda que extração mais antiga
 # =============================================================================
