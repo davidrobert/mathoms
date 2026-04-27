@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { ReportCard } from "../ReportCard";
-import { ChartBar } from "./primitives";
+import { ChartBar, useChartTheme } from "./primitives";
 import type { ChartSeries } from "./primitives/types";
 import { useIsPrint } from "../hooks/useIsPrint";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
@@ -29,6 +29,7 @@ export function FluxoMensalChart({
   const det = fluxo?.receita_despesa_mensal_detalhado;
   const labels = useMemo(() => det?.labels ?? [], [det?.labels]);
   const isPrint = useIsPrint();
+  const theme = useChartTheme();
   const [period, setPeriod] = useState<Period>("12m");
   const effectivePeriod: Period = isPrint ? "12m" : period;
   const window = usePeriodWindow(labels, effectivePeriod);
@@ -40,8 +41,8 @@ export function FluxoMensalChart({
   const despesa = (det?.totais_despesa ?? []).slice(window.start, window.end);
 
   const series: ChartSeries[] = [
-    { label: "Receita", data: receita, color: "var(--semantic-gain)" },
-    { label: "Despesa", data: despesa.map((v) => -v), color: "var(--semantic-loss)" },
+    { label: "Receita", data: receita, color: theme.semantic.gain },
+    { label: "Despesa", data: despesa.map((v) => -v), color: theme.semantic.loss },
   ];
 
   const context = buildContext(slicedLabels, fluxo);
@@ -64,7 +65,7 @@ export function FluxoMensalChart({
         labels={slicedLabels}
         series={series}
         stacked
-        formatValue={(v) => fmtBRL(Math.abs(v))}
+        formatValue={(v) => fmtBRL(v)}
         ariaLabel="Fluxo de caixa mensal — receita e despesa empilhadas"
         height={256}
       />
