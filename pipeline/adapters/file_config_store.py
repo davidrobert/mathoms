@@ -18,6 +18,7 @@ from pipeline.adapters.config_parsers import (
     parse_report_layout,
     parse_transfers,
 )
+from pipeline.adapters.fiscal_parsers import legacy_json_to_fiscal
 from pipeline.domain.types.config import (
     CategorizationConfig,
     FamilyMembersConfig,
@@ -33,6 +34,16 @@ _DEPRECATION_NOTICE = (
 )
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+_LEGACY_PAIR_KEYS = {
+    "USD/BRL": "cambio_usd_brl",
+    "EUR/BRL": "cambio_eur_brl",
+}
+
+
+def _legacy_pair_key(pair: str) -> str:
+    """Mapeia ``"USD/BRL"`` → ``"cambio_usd_brl"`` (chaves do JSON legado)."""
+    return _LEGACY_PAIR_KEYS.get(pair, pair.lower().replace("/", "_"))
 
 
 class FileConfigStore:
@@ -92,20 +103,32 @@ class FileConfigStore:
     # ------------------------------------------------------------------
 
     def get_fiscal_for_period(self, period_start: date, period_end: date) -> FiscalParameters:
-        """Stub A7.2b — FileConfigStore não suporta vigência (ADR-135)."""
-        del period_start, period_end
-        raise NotImplementedError(
-            "get_fiscal_for_period is populated in Sprint A7.2b (ADR-135). "
-            "Use DBConfigStore once fiscal_parameters table is seeded."
-        )
+        """Bridge legado: lê ``parametros_fiscais.json`` ignorando vigência fina (A7.2b)."""
+        del period_end  # FileConfigStore não suporta vigência mid-year — usa year do start
+        data = self._load_json("parametros_fiscais.json") or {}
+        if not data:
+            raise FileNotFoundError(
+                "config/parametros_fiscais.json missing — FileConfigStore bridge "
+                "for fiscal data requires the file. Migrate to DBConfigStore (A7.2b)."
+            )
+        return legacy_json_to_fiscal(data, year=period_start.year)
 
     def get_market_rate(self, pair: str, observed_at: date) -> Decimal:
-        """Stub A7.2b — FileConfigStore não suporta vigência de câmbio (ADR-135)."""
-        del pair, observed_at
-        raise NotImplementedError(
-            "get_market_rate is populated in Sprint A7.2b (ADR-135). "
-            "Use DBConfigStore once market_rates table is seeded."
-        )
+        """Bridge legado: lê ``taxas.json`` ignorando ``observed_at`` (cotação corrente única)."""
+        del observed_at  # JSON tem só uma cotação corrente — sem histórico
+        data = self._load_json("taxas.json") or {}
+        if not data:
+            raise FileNotFoundError(
+                "config/taxas.json missing — FileConfigStore bridge for market data "
+                "requires the file. Migrate to DBConfigStore (A7.2b)."
+            )
+        key = _legacy_pair_key(pair)
+        if key not in data:
+            raise KeyError(
+                f"Pair {pair!r} not in legacy taxas.json (key={key!r}). "
+                "Add via DBConfigStore + market_rates table (A7.2b)."
+            )
+        return Decimal(str(data[key]))
 
     # ------------------------------------------------------------------
     # Helpers privados

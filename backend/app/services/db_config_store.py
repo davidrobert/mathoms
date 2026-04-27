@@ -8,6 +8,11 @@ from typing import Any, Optional
 
 from sqlalchemy.orm import Session
 
+from backend.app.repositories.fiscal_parameter_repository import (
+    FiscalParameterRepository,
+)
+from backend.app.repositories.market_rate_repository import MarketRateRepository
+from backend.app.services import fiscal_cache
 from backend.app.services.config_materializer import (
     serialize_categorization,
     serialize_family_members,
@@ -21,6 +26,10 @@ from pipeline.adapters.config_parsers import (
     parse_institutions,
     parse_report_layout,
     parse_transfers,
+)
+from pipeline.adapters.fiscal_parsers import (
+    fiscal_payload_to_dataclass,
+    fiscal_row_to_payload,
 )
 from pipeline.domain.types.config import (
     CategorizationConfig,
@@ -81,14 +90,22 @@ class DBConfigStore:
         return parse_institutions(data)
 
     def get_fiscal_for_period(self, period_start: date, period_end: date) -> FiscalParameters:
-        """Stub A7.2b — tabela ``fiscal_parameters`` é seedada em A7.2b (ADR-135)."""
-        del period_start, period_end
-        raise NotImplementedError("get_fiscal_for_period is populated in Sprint A7.2b (ADR-135).")
+        """Lê ``fiscal_parameters`` por vigência; raise se 0 ou ≥2 rows (ADR-135)."""
+        row = FiscalParameterRepository(self._session).get_for_period(period_start, period_end)
+        cached = fiscal_cache.get_cached_fiscal(row.year)
+        if cached is None:
+            cached = fiscal_row_to_payload(row)
+            fiscal_cache.store_fiscal_cache(row.year, cached)
+        return fiscal_payload_to_dataclass(cached)
 
     def get_market_rate(self, pair: str, observed_at: date) -> Decimal:
-        """Stub A7.2b — tabela ``market_rates`` é seedada em A7.2b (ADR-135)."""
-        del pair, observed_at
-        raise NotImplementedError("get_market_rate is populated in Sprint A7.2b (ADR-135).")
+        """Lê última cotação de ``pair`` em data <= ``observed_at`` (ADR-135)."""
+        cached = fiscal_cache.get_cached_market_rate(pair, observed_at)
+        if cached is not None:
+            return cached
+        rate = MarketRateRepository(self._session).get_rate(pair, observed_at)
+        fiscal_cache.store_market_rate_cache(pair, observed_at, rate)
+        return rate
 
 
 def _merge_transfer_block(
