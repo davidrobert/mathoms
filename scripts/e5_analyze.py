@@ -55,7 +55,7 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     """(Re-)inicializa paths/config globals a partir de base_dir; ``ctx`` lido em A7.1 via ``ctx.load_config`` (ADR-134)."""
     global SCRIPTS_DIR, PROJECT_DIR
     global PROCESSED_DIR, E4_UNIFIED_DIR, E2_EXTRACTS_DIR, E3_RECONCILED_DIR, E5_ANALYSIS_DIR
-    global LIFE_PLAN_GOALS, CONFIG_DEFINITIONS, CONFIG_TAREFAS
+    global LIFE_PLAN_GOALS, CONFIG_TAREFAS
     global CONFIG_GOALS, CONFIG_SCORING, CONFIG_FISCAL, CONFIG_FAMILY, CONFIG_TAXAS
     global CONFIG_MILHAS, CONFIG_MILHAS_NEW, CONFIG_MILHAS_LEGACY
     global FILE_RECEITAS, FILE_DESPESAS, FILE_PATRIMONIO, FILE_INVESTIMENTOS
@@ -77,7 +77,6 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     E5_ANALYSIS_DIR = PROCESSED_DIR / "E5_analysis"
 
     LIFE_PLAN_GOALS = PROJECT_DIR / "life_plan" / "life_plan_goals.md"
-    CONFIG_DEFINITIONS = PROJECT_DIR / "docs" / "methodology" / "definitions.md"
     CONFIG_TAREFAS = PROJECT_DIR / "config" / "tarefas.md"
     CONFIG_GOALS = PROJECT_DIR / "config" / "goals.json"
     CONFIG_SCORING = PROJECT_DIR / "config" / "scoring.json"
@@ -164,7 +163,6 @@ E2_EXTRACTS_DIR: Path = PROCESSED_DIR / "E2_extracts"
 E3_RECONCILED_DIR: Path = PROCESSED_DIR / "E3_reconciled"
 E5_ANALYSIS_DIR: Path = PROCESSED_DIR / "E5_analysis"
 LIFE_PLAN_GOALS: Path = PROJECT_DIR / "life_plan" / "life_plan_goals.md"
-CONFIG_DEFINITIONS: Path = PROJECT_DIR / "docs" / "methodology" / "definitions.md"
 CONFIG_TAREFAS: Path = PROJECT_DIR / "config" / "tarefas.md"
 CONFIG_GOALS: Path = PROJECT_DIR / "config" / "goals.json"
 CONFIG_SCORING: Path = PROJECT_DIR / "config" / "scoring.json"

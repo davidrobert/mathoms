@@ -7,7 +7,7 @@ Reads E3 reconciled files and produces unified E4 output files.
 This stage:
 1. Reads all *-3_reconciled.json files from processed/E3_reconciled/
 2. Reads baseline patrimonio from E2 extracts
-3. Applies keyword-based categorization rules (hardcoded from docs/methodology/definitions.md)
+3. Applies keyword-based categorization rules (catalog + workspace overrides; ADR-137)
 4. Detects internal transfers and excludes them
 5. Generates 7 unified JSON output files to processed/E4_unified/
 

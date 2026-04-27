@@ -662,7 +662,7 @@ WALL_INSTRUCTIONS = {
         "stages_covered": ["E1", "E1.5"],
         "instructions": [
             "1. Leia os documentos em data/ (holerites, currículos, docs pessoais)",
-            "2. Leia docs/methodology/definitions.md para dados cadastrais canônicos",
+            "2. Leia config/family_members.json (DB row em produção) para dados cadastrais canônicos",
             "3. Para cada membro, crie members/[membro]_[tipo]-1a_extract.json",
             "4. Consolide em members/members-1b_unified.json",
             "5. Gere members/members-1c_enriched.md",

@@ -694,7 +694,7 @@ Consulte antes de inferir regras de domínio ou layout:
 
 | Recurso                           | Função                                                                    |
 | --------------------------------- | ------------------------------------------------------------------------- |
-| `docs/methodology/definitions.md` | Membros, instituições, categorias, regras especiais (movido de `config/` em A7.4) |
+| `docs/ARCHITECTURE.md §4.1 Domain glossary` | Índice de regras de domínio (rules-as-code, ADR-143) — aponta para o módulo enforcer + ADR canônica de cada conceito |
 | `config/pipeline.json`            | Parâmetros operacionais (inclui `report_version`, schema validation)      |
 | `config/family_members.json`      | Dados cadastrais canônicos                                                |
 | `config/institutions.json`        | Padrões de bancos e tipos de documento                                    |

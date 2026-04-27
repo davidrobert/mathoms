@@ -283,6 +283,39 @@ FeatureFlag
 
 ---
 
+## 4.1. Domain glossary (rules-as-code)
+
+Mathoms é um produto de **planejamento patrimonial** com taxonomias e
+regras de domínio que vivem no código (rules-as-code, [ADR-143](DECISIONS.md#adr-143--docsmethodology-é-rules-as-code-sprint-a76)).
+Esta seção é índice rápido — para o "porquê" + alternativas consideradas,
+ler a ADR linkada; para o "como" + matching exato, ler o docstring do
+módulo enforcer.
+
+| Conceito | Source of truth (código) | ADR canônica |
+| --- | --- | --- |
+| Membros familiares (titular/cônjuge/dependente) | `backend/app/models/family_member.py::FamilyMember.role` + `family_members.json` workspace-specific | — |
+| Contas bancárias + override de tier de fonte | `backend/app/models/family_member.py::BankAccount.source_tier` | [ADR-146](DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
+| Instituições financeiras (catálogo + workspace overrides) | `backend/app/models/institution_catalog.py` + resolver | [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
+| Categorias de receita/despesa (catálogo + workspace overrides) | `backend/app/models/category_template.py` + `workspace_category_override.py` + resolver | [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
+| 7 categorias canonical da composição patrimonial | `pipeline/domain/services/patrimonio_calculator.py::PatrimonioCalculator` (módulo docstring) | [ADR-145](DECISIONS.md#adr-145--7-categorias-canonical-da-composição-patrimonial) |
+| Hierarquia de fontes E3 + tie-breaking de reconciliação | `pipeline/domain/services/source_tier.py` + `reconciliation_service.py` (docstring) | [ADR-146](DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
+| Programas de milhagem — método de valuation universal + storage workspace-scoped (`<workspace>/notes/milhas.md`, gitignored) | `scripts/e5_analyze.py::parse_milhas_md_content` (docstring) | [ADR-147](DECISIONS.md#adr-147--milhas-valuation-methodology-universal--storage-workspace-scoped) |
+| Decisões de planejamento patrimonial (event-sourced) | `backend/app/models/decision.py::Decision` + `DecisionEvent` | [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) |
+| Parâmetros fiscais (IRPF, lucro presumido, PGBL) versionados por ano | `backend/app/models/fiscal_parameter.py::FiscalParameter` | [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
+| Câmbio + indexadores temporais | `backend/app/models/market_rate.py::MarketRate` | [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
+| Códigos de tipo de documento + roteamento E0 | `scripts/e0_route.py::DOC_TYPE_PATTERNS` | — |
+| Naming pattern de artefatos (`[entidade]_[tipo]_[periodo]-N_stage.ext`) | `CLAUDE.md §Convenções de naming de artefatos` | — |
+| Money policy (`Decimal` string · `int64` cents · nunca float) | `pipeline/domain/models/transaction.py::Money` | [ADR-090](DECISIONS.md#adr-090--money-nunca-é-float) |
+
+**Regra geral:** nada de regras de produto em markdown editorial. Toda
+regra que o código enforce vive no código (docstring) + ADR (porquê);
+toda configuração workspace-specific vive em DB; toda nota livre
+workspace-specific vai para `<workspace>/notes/` (gitignored). `docs/methodology/`
+é um path **proibido** desde A7.6 — `dev/check_forbidden_paths.py`
+bloqueia recriação acidental.
+
+---
+
 ## 5. API Surface (20 routers, ~80 endpoints)
 
 > **Contagem real** (2026-04-24): `ls backend/app/api/*.py | grep -v __init__` → 20 arquivos de router.
