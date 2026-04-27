@@ -6,10 +6,11 @@ import { ReportCard } from "../ReportCard";
 import { useIsPrint } from "../hooks/useIsPrint";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
 import { ChartBar } from "./primitives/ChartBar";
+import { useChartTheme } from "./primitives/useChartTheme";
 import type { ChartSeries as ChartPrimitiveSeries } from "./primitives/types";
 import { PeriodToggle } from "../ui/PeriodToggle";
 import type { Period } from "../ui/PeriodToggle";
-import { fmtBRL, pickColorByIndex } from "./_shared";
+import { fmtBRL } from "./_shared";
 import type { ChartSeries, FluxoCaixaSummary } from "@/types/report-analysis";
 
 interface FonteAggregated {
@@ -28,10 +29,11 @@ const TOP_N_CONTEXT = 3;
  * agregado: o toggle 3M/6M/12M/Ano slica `data[start..end]` para recalcular
  * totais e re-ordenar fontes desc.
  *
- * Cores são atribuídas client-side por `pickColorByIndex` (paleta
- * `--chart-1..12`) — backend hoje só emite `{label, data}`. Mesma fonte
- * preserva mesma cor entre renders pois ordenação é determinística por
- * total desc.
+ * Cores são atribuídas client-side via `useChartTheme().categorical`
+ * (resolve `--chart-1..12` por `getComputedStyle` — Chart.js não resolve
+ * CSS vars no canvas) — backend hoje só emite `{label, data}`. Mesma
+ * fonte preserva mesma cor entre renders pois ordenação é determinística
+ * por total desc.
  *
  * Print mode (`@media print`): oculta toggle e fixa em 12m.
  */
@@ -44,6 +46,7 @@ export function ReceitaBarChart({
 }) {
   const [periodState, setPeriod] = useState<Period>("12m");
   const isPrint = useIsPrint();
+  const theme = useChartTheme();
   const period = isPrint ? PRINT_PERIOD : periodState;
 
   const detalhado = fluxo?.receita_despesa_mensal_detalhado;
@@ -52,8 +55,8 @@ export function ReceitaBarChart({
   const window = usePeriodWindow(labels, period);
 
   const aggregated = useMemo(
-    () => aggregateByFonte(datasets, window.start, window.end),
-    [datasets, window.start, window.end],
+    () => aggregateByFonte(datasets, window.start, window.end, theme.categorical),
+    [datasets, window.start, window.end, theme.categorical],
   );
 
   if (aggregated.length === 0) return null;
@@ -103,6 +106,7 @@ function aggregateByFonte(
   datasets: readonly ChartSeries[],
   start: number,
   end: number,
+  palette: readonly string[],
 ): readonly FonteAggregated[] {
   const totals = datasets.map((ds, i) => ({
     label: humanizeLabel(ds.label),
@@ -111,10 +115,11 @@ function aggregateByFonte(
   }));
   const filtered = totals.filter((t) => t.total > 0);
   filtered.sort((a, b) => b.total - a.total);
+  const len = palette.length;
   return filtered.map((t, idx) => ({
     label: t.label,
     total: t.total,
-    color: pickColorByIndex(idx),
+    color: palette[idx % len],
   }));
 }
 

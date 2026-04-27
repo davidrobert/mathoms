@@ -17,15 +17,31 @@ import type { FluxoCaixaSummary } from "@/types/report-analysis";
 // react-chartjs-2 quebra em jsdom sem pkg `canvas`. Mock com div + label
 // dump para introspeção do conteúdo das fatias.
 vi.mock("react-chartjs-2", () => ({
-  Chart: ({ data }: { data: { labels?: readonly string[]; datasets: readonly { data: readonly number[] }[] } }) => (
-    <div data-testid="chart-mock">
-      {(data.labels ?? []).map((lbl, i) => (
-        <span key={lbl} data-slice={lbl} data-value={data.datasets[0]?.data[i] ?? 0}>
-          {lbl}={data.datasets[0]?.data[i] ?? 0}
-        </span>
-      ))}
-    </div>
-  ),
+  Chart: ({
+    data,
+  }: {
+    data: {
+      labels?: readonly string[];
+      datasets: readonly {
+        data: readonly number[];
+        backgroundColor?: readonly string[] | string;
+      }[];
+    };
+  }) => {
+    const ds = data.datasets[0];
+    const bgArr = Array.isArray(ds?.backgroundColor)
+      ? (ds!.backgroundColor as readonly string[])
+      : [];
+    return (
+      <div data-testid="chart-mock" data-bg-colors={JSON.stringify(bgArr)}>
+        {(data.labels ?? []).map((lbl, i) => (
+          <span key={lbl} data-slice={lbl} data-value={ds?.data[i] ?? 0}>
+            {lbl}={ds?.data[i] ?? 0}
+          </span>
+        ))}
+      </div>
+    );
+  },
 }));
 
 const FLUXO_WITH_DATASETS: FluxoCaixaSummary = {
@@ -128,6 +144,26 @@ describe("<DespesasDoughnutChart />", () => {
     expect(slices["Moradia"]).toBe(1000);
     expect(slices["Alimentação"]).toBe(500);
     expect(slices["Transporte"]).toBe(200);
+  });
+
+  // Regressão: cores de cada fatia precisam vir resolvidas (hex/rgb) —
+  // nunca string literal "var(--chart-N)". Bug histórico (de2c00a / 9ce3ce2):
+  // com `pickColorByIndex` retornando "var(--chart-N)" e Chart.js sem
+  // resolver CSS vars no canvas, todas as fatias do donut renderizavam em
+  // preto. Fix migra para `useChartTheme().categorical` (resolve via
+  // getComputedStyle; em jsdom usa LIGHT_FALLBACK = hex literais).
+  it("backgroundColor de cada fatia é hex/rgb resolvido — nunca 'var(...)' literal", () => {
+    render(<DespesasDoughnutChart fluxo={FLUXO_WITH_DATASETS} />);
+    const chart = screen.getByTestId("chart-mock");
+    const bgColors: ReadonlyArray<string> = JSON.parse(
+      chart.getAttribute("data-bg-colors") ?? "[]",
+    );
+    // 3 fatias com value > 0 em FLUXO_WITH_DATASETS
+    expect(bgColors).toHaveLength(3);
+    bgColors.forEach((c) => {
+      expect(c).toBeTruthy();
+      expect(c.startsWith("var(")).toBe(false);
+    });
   });
 
   it("filtra categorias com value <= 0", () => {

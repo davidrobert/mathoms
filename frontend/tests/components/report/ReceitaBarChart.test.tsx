@@ -152,6 +152,23 @@ describe("<ReceitaBarChart /> v2.E.4", () => {
     expect(screen.getByText("Texto custom backend")).toBeInTheDocument();
   });
 
+  // Regressão: cor de cada série precisa vir resolvida (hex/rgb) — nunca
+  // string literal "var(--chart-N)". Bug histórico (de2c00a/9ce3ce2): com
+  // `pickColorByIndex` retornando "var(--chart-N)" e Chart.js sem resolver
+  // CSS vars no canvas, todas as barras renderizavam em preto. Fix consome
+  // `useChartTheme().categorical` (resolve por getComputedStyle / fallback
+  // hex). Em jsdom, fallback retorna hex literais do `LIGHT_FALLBACK`.
+  it("cor de cada série é hex/rgb resolvido — nunca 'var(...)' literal", () => {
+    captures.length = 0;
+    render(<ReceitaBarChart fluxo={buildFluxo()} />);
+    const last = captures.at(-1)!;
+    expect(last.series.length).toBeGreaterThan(0);
+    last.series.forEach((s) => {
+      expect(s.color).toBeTruthy();
+      expect(s.color!.startsWith("var(")).toBe(false);
+    });
+  });
+
   it("oculta PeriodToggle em print mode", () => {
     const original = window.matchMedia;
     Object.defineProperty(window, "matchMedia", {

@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 
 import { ReportCard } from "../ReportCard";
 import { ChartDonut } from "./primitives/ChartDonut";
-import { fmtBRL, pickColorByIndex } from "./_shared";
+import { useChartTheme } from "./primitives/useChartTheme";
+import { fmtBRL } from "./_shared";
 import { PeriodToggle, type Period } from "../ui/PeriodToggle";
 import { usePeriodWindow } from "../hooks/usePeriodWindow";
 import { useIsPrint } from "../hooks/useIsPrint";
@@ -140,15 +141,22 @@ export function DespesasDoughnutChart({
   conclusion,
 }: DespesasDoughnutChartProps) {
   const isPrint = useIsPrint();
+  const theme = useChartTheme();
   const [period, setPeriod] = useState<Period>("12m");
   const effectivePeriod: Period = isPrint ? "12m" : period;
   const labels = fluxo?.receita_despesa_mensal_detalhado?.labels ?? [];
   const window = usePeriodWindow(labels, effectivePeriod);
   const slices = useDespesaSlices(fluxo, window.start, window.end);
   const total = useMemo(() => slices.reduce((acc, s) => acc + s.value, 0), [slices]);
+  const palette = theme.categorical;
   const donutData = useMemo(
-    () => slices.map((s, i) => ({ label: s.label, value: s.value, color: pickColorByIndex(i) })),
-    [slices],
+    () =>
+      slices.map((s, i) => ({
+        label: s.label,
+        value: s.value,
+        color: palette[i % palette.length],
+      })),
+    [slices, palette],
   );
 
   if (slices.length === 0) return null;
