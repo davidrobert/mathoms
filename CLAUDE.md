@@ -56,13 +56,30 @@ deles:
 - **[senior-cto](.claude/agents/senior-cto.md)** — arquitetura, ADRs,
   design de API, modelagem de domínio, trade-offs estruturais. Antes de
   propor refactor cross-cutting, nova ADR, ou migração.
+- **[data-engineer](.claude/agents/data-engineer.md)** — modelagem de DB,
+  migrations, schemas de pipeline, paridade legado↔novo, MLOps/LLMOps
+  (eval, drift, custo). Antes de propor migration não-trivial, novo
+  stage, mudança em `config/schemas/`, eval de LLM, ou decidir onde
+  dado vive (DB vs. blob vs. cache).
+- **[sre-devops](.claude/agents/sre-devops.md)** — confiabilidade
+  (SLO/runbook/postmortem), segurança aplicada (auth, secrets, tenancy,
+  headers), FinOps (custo de cloud/LLM), observabilidade
+  (logs/metrics/traces/alertas), DR/backup, CI/CD/deploy. Antes de
+  propor mudança em CI/CD, alerta novo, mudança em segurança/auth,
+  política de backup, capacity planning, ou redução de custo.
+- **[build-vs-buy](.claude/agents/build-vs-buy.md)** — decisão
+  build-vs-buy de dependência substantiva (auth, queue, error tracking,
+  banking aggregator, OCR, LLM provider, etc.). Avalia TCO, lock-in,
+  time-to-market, soberania de dados (LGPD), risco de fornecedor.
+  Invoque antes de adotar SaaS/lib/framework não-trivial ou ao ouvir
+  "vamos construir do zero" sem comparativo.
 
 Cada arquivo `.claude/agents/<nome>.md` tem o briefing completo.
 **Não duplique** o briefing aqui — leia direto.
 
 **Catálogo extensível.** O senior-cto tem autonomia (`Write`/`Edit` em
 `.claude/agents/`) para criar novo especialista quando identificar gap
-de domínio recorrente não coberto pelos 3 atuais. Critérios e protocolo
+de domínio recorrente não coberto pelos atuais. Critérios e protocolo
 em [.claude/agents/senior-cto.md](.claude/agents/senior-cto.md)
 §Criação de novos especialistas. Esqueleto para novo agente:
 [.claude/agents/_TEMPLATE.md](.claude/agents/_TEMPLATE.md). Após o
