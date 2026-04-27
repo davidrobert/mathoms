@@ -6,6 +6,29 @@
 
 ## [Unreleased]
 
+- **Report Premium UI v2.D.1.1 + v2.9.1 — copy review entregue pelo product-designer ✅ (2026-04-27):**
+  Cenário B fechou os dois débitos editoriais abertos durante a saída do v2.
+  **v2.D.1.1 (`2ae9dcd`):** `SnapshotChangelogBuilder` ganha `SECTION_POLARITY`
+  classificando S1/S2/S3/T2 como `asset` e T5 como `expense`. Verbos sem viés
+  (`avançou/recuou` para asset, `subiu/recuou` para expense) substituem
+  `cresceu/caiu`; cauda temporal "no mês" reduz repetição em listas. Cópia de
+  zero ajustada (`passou a registrar`, `antes sem valor`, `zerou neste relatório`,
+  `segue sem valor registrado`). 5 goldens atualizados + 1 cenário novo
+  (`test_cenario_9_expense_polarity_t5_usa_subiu`) trava regressão de viés em
+  despesa. **v2.9.1 (`2b8b144`):** `config/prompts/section_summaries.yaml` salta
+  para `version: "1.1"`. System prompt reescrito com persona Mathoms ancorada em
+  COPY_GUIDELINES (Perini/Cerbasi/AUVP), regras anti-hallucination explícitas
+  (proibida projeção sem payload, comparação externa, inferência causal,
+  promessa de retorno) e anti-padrões de tom (sem exclamação/gamificação/
+  alarmismo). 13 user_prompts ganham contexto editorial específico, ângulo
+  narrativo claro e thresholds explícitos para `tone`. Labels alinhadas a
+  `report_layout.yaml`; correções de divergência: T3 `Tributação tática` →
+  `Checklist de Tarefas` e T5 `Cenários e simulações` → `Próximos Passos`. Sem
+  mudança de schema (`SectionSummaryOutput` intacto). Toggle prod
+  `MATHOMS_LLM_SECTION_SUMMARIES` permanece OFF até QA editorial humano em
+  workspace dogfood (escopo do dono do produto). Follow-up v3: hash-de-prompt
+  na cache key.
+
 Trabalho em andamento: **Sprint A7 — Config DB Cutover** (aberto 2026-04-26) +
 execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)** (rename de stages F9) +
 preparação para **F7 (Produção + LGPD + Ops)**.
@@ -26,8 +49,8 @@ preparação para **F7 (Produção + LGPD + Ops)**.
   de número de ADR colidiram 2× durante a sprint (ADR-140 reservado/perdido para
   Goal IF v2; ADR-143 reservado/perdido para A7.6 rules-as-code) — renumeração
   cirúrgica via `git rebase` na branch resolveu sem reescrever main. **Débitos
-  abertos** que não bloqueiam a saída: v2.D.1.1 (copy templates `narratives.py`),
-  v2.9.1 (copy prompts `section_summaries.yaml`), re-baseline visual
+  abertos** que não bloqueiam a saída: ~~v2.D.1.1~~ ✅ 2026-04-27 (`2ae9dcd`),
+  ~~v2.9.1~~ ✅ 2026-04-27 (`2b8b144`), re-baseline visual
   S1/S2/S3/T2/T3/T5, E2E `@critical` herdado de débito alheio em main,
   regressão visual herdada de `0558ea3`. **Total v2:** Onda A 3/3 (v2.2b
   parcial USA) · B 3/3 · C 3/3 · D 2/2 · E 8/8 · F 5/5.
