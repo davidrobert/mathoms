@@ -355,7 +355,12 @@ def generate() -> str:
     out.write(
         "> **Auto-gerado** por `dev/generate_db_schema_reference.py`. "
         "Não edite manualmente — rode `make update-db-schema-reference` e "
-        "comite o diff.\n\n"
+        "comite o diff.\n>\n"
+        "> **Última regeneração:** consulte `git log -1 --format=%cs -- "
+        "docs/DB_SCHEMA_REFERENCE.md`. O conteúdo é determinístico "
+        "(mesmo `Base.metadata` ⇒ mesmos bytes — verificado por "
+        "`backend/tests/test_db_schema_reference_snapshot.py`), por isso "
+        "não embutimos `datetime.now()` no header.\n\n"
     )
     out.write(
         "Referência canônica de schema do banco. Cobre todos os models "
