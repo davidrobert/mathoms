@@ -328,15 +328,13 @@ export const LAYOUT: ReportLayout = {
         "comparisons": [
           {
             "id": "comparisons_s1",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ],
         "changelog": [
           {
             "id": "changelog_s1",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ]
       },
@@ -412,15 +410,13 @@ export const LAYOUT: ReportLayout = {
         "comparisons": [
           {
             "id": "comparisons_s2",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ],
         "changelog": [
           {
             "id": "changelog_s2",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ]
       },
@@ -488,15 +484,13 @@ export const LAYOUT: ReportLayout = {
         "comparisons": [
           {
             "id": "comparisons_s3",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ],
         "changelog": [
           {
             "id": "changelog_s3",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ]
       },
@@ -762,15 +756,13 @@ export const LAYOUT: ReportLayout = {
         "comparisons": [
           {
             "id": "comparisons_t2",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ],
         "changelog": [
           {
             "id": "changelog_t2",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ]
       },
@@ -785,15 +777,13 @@ export const LAYOUT: ReportLayout = {
         "comparisons": [
           {
             "id": "comparisons_t3",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ],
         "changelog": [
           {
             "id": "changelog_t3",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ]
       },
@@ -817,15 +807,13 @@ export const LAYOUT: ReportLayout = {
         "comparisons": [
           {
             "id": "comparisons_t5",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ],
         "changelog": [
           {
             "id": "changelog_t5",
-            "enabled": false,
-            "deferred_until": "v2.D.1 SnapshotChangelogBuilder"
+            "enabled": true
           }
         ]
       },
