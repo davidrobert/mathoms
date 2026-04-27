@@ -62,6 +62,7 @@ export function RegisterForm({ nextUrl }: { nextUrl: string }) {
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Como deve aparecer na sua conta"
               autoComplete="name"
+              suppressHydrationWarning
             />
             <p className="text-xs text-muted-foreground">
               Independente dos membros da família que você configurará no relatório.
@@ -77,6 +78,7 @@ export function RegisterForm({ nextUrl }: { nextUrl: string }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
+              suppressHydrationWarning
             />
           </div>
 
@@ -90,6 +92,7 @@ export function RegisterForm({ nextUrl }: { nextUrl: string }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Mínimo 6 caracteres"
+              suppressHydrationWarning
             />
           </div>
 
