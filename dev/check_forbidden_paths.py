@@ -28,6 +28,10 @@ FORBIDDEN_DIRS = (
     "inbox/",
     "inbox_processed/",
     "_scratch/",
+    # A7.6 (ADR-143): rules-as-code dissolveu docs/methodology/. Bloquear
+    # recriação acidental — regras universais vivem em docstrings + ADRs;
+    # dados cliente em DB ou <workspace>/notes/ (gitignored).
+    "docs/methodology/",
 )
 
 FORBIDDEN_FILES = (
@@ -42,6 +46,7 @@ FORBIDDEN_FILES = (
     "config/decisions.md",
     # A7.4: docs metodológicas movidas de config/ → docs/methodology/. Bloquear
     # ressurgimento dos paths antigos (regressão acidental ou rebase com conflito).
+    # A7.6 (ADR-143): docs/methodology/ também dissolvido (ver FORBIDDEN_DIRS).
     "config/definitions.md",
     "config/regras_composicao_patrimonial.md",
     "config/source_hierarchy.md",
@@ -88,18 +93,16 @@ def _staged_deletion_paths(repo_root: Path) -> set[str]:
 
 def check(path: str, *, staged_deletions: set[str] | None = None) -> str | None:
     """Retorna a razão da violação, ou None se passou."""
+    is_deletion = staged_deletions is not None and path in staged_deletions
     for forbidden in FORBIDDEN_DIRS:
         if path.startswith(forbidden):
-            return f"diretório proibido: {forbidden}"
+            # Permite deletar (cleanup A7.6, ressincronização .gitignore, etc.).
+            return None if is_deletion else f"diretório proibido: {forbidden}"
     basename = path.rsplit("/", 1)[-1]
     if basename in FORBIDDEN_BASENAMES:
-        if staged_deletions is not None and path in staged_deletions:
-            return None
-        return f"arquivo proibido: {basename} (em {path})"
+        return None if is_deletion else f"arquivo proibido: {basename} (em {path})"
     if path in FORBIDDEN_FILES:
-        if staged_deletions is not None and path in staged_deletions:
-            return None
-        return f"arquivo proibido: {path}"
+        return None if is_deletion else f"arquivo proibido: {path}"
     for suffix in FORBIDDEN_SUFFIXES:
         if path.endswith(suffix):
             return f"sufixo proibido: {suffix}"

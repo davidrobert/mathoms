@@ -75,34 +75,23 @@ def migrate(source: Path, workspace_root: Path, force: bool = False) -> int:
     return 0
 
 
-def main() -> int:
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--workspace-id",
-        help="ID do workspace (resolve para <repo>/storage/<id>/notes/milhas.md).",
-    )
-    parser.add_argument(
-        "--workspace-root",
-        help="Path absoluto do workspace (alternativa a --workspace-id).",
-    )
-    parser.add_argument(
-        "--source",
-        help="Path do arquivo fonte legado (default: tenta docs/methodology/ e _archive/).",
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Sobrescreve destino existente (default: skip idempotente).",
-    )
-    args = parser.parse_args()
+    parser.add_argument("--workspace-id", help="ID do workspace.")
+    parser.add_argument("--workspace-root", help="Path absoluto do workspace.")
+    parser.add_argument("--source", help="Path do arquivo fonte legado.")
+    parser.add_argument("--force", action="store_true", help="Sobrescreve destino.")
+    return parser
 
+
+def main() -> int:
+    args = _build_parser().parse_args()
     try:
         ws_root = _resolve_workspace_root(args)
         source = _resolve_source(args)
     except SystemExit as exc:
         print(str(exc), file=sys.stderr)
         return 1
-
     return migrate(source, ws_root, force=args.force)
 
 

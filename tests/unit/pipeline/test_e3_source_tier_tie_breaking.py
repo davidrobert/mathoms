@@ -37,9 +37,7 @@ def test_higher_tier_wins_over_older_extraction() -> None:
     now = datetime(2026, 4, 27, 12, 0, tzinfo=timezone.utc)
     older = now - timedelta(days=30)
 
-    llm_old = SourcedTransaction(
-        tier=TIER_LLM_STATEMENT, extracted_at=older, identifier="LLM-old"
-    )
+    llm_old = SourcedTransaction(tier=TIER_LLM_STATEMENT, extracted_at=older, identifier="LLM-old")
     invoice_new = SourcedTransaction(
         tier=TIER_CARD_INVOICE, extracted_at=now, identifier="Invoice-new"
     )

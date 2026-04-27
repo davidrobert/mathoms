@@ -309,6 +309,16 @@ no próprio prompt; arquivar só quando o prompt deixa de fazer sentido
   senhas, documentos pessoais ou conteúdo financeiro bruto em commits,
   logs, exemplos, docstrings, fixtures ou outputs de console.
 
+### Methodology = code (ADR-143)
+
+Regras universais de produto vivem em **docstrings** co-localizados
+com a função/classe enforcer + **ADR canônica** (rationale + alternativas).
+Dados cliente vivem em **DB** (estruturado) ou
+`<workspace>/notes/` (gitignored, livre). **`docs/methodology/` é path
+proibido** desde A7.6 — `dev/check_forbidden_paths.py` bloqueia recriação.
+Para encontrar a regra de um conceito de domínio, comece pelo índice em
+[docs/ARCHITECTURE.md §4.1 Domain glossary](docs/ARCHITECTURE.md).
+
 ### Pipeline não importa framework
 
 `pipeline/**/*.py` **não pode importar** `fastapi`, `celery`, `sqlalchemy`.
@@ -394,9 +404,9 @@ True = força DB, False = força disco).
 
 ### Paths proibidos no git (enforçados por `dev/check_forbidden_paths.py`)
 
-`storage/`, `data/`, `inbox/`, `inbox_processed/`, `_scratch/`, `.env`,
-`.env.test`, `mathoms.db`, `config/passwords.txt`, `*.db`, `*.sqlite`.
-Hook bloqueia antes do commit.
+`storage/`, `data/`, `inbox/`, `inbox_processed/`, `_scratch/`,
+`docs/methodology/`, `.env`, `.env.test`, `mathoms.db`,
+`config/passwords.txt`, `*.db`, `*.sqlite`. Hook bloqueia antes do commit.
 
 ### URLs canônicas (ADR-108)
 

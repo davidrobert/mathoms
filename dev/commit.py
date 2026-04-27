@@ -68,6 +68,10 @@ FORBIDDEN_DIRS = (
     "inbox/",
     "inbox_processed/",
     "_scratch/",
+    # A7.6 (ADR-143): rules-as-code dissolveu docs/methodology/. Bloquear
+    # recriação acidental — regras universais vivem em docstrings + ADRs;
+    # dados cliente em DB ou <workspace>/notes/ (gitignored).
+    "docs/methodology/",
 )
 
 # Arquivos individuais que nunca devem ir pro repo.
