@@ -688,6 +688,31 @@ def _e5n_persist(store, e5_data: dict, narrativas: dict) -> None:
     print("=" * 80)
 
 
+def _e5n_generate_section_summaries(ctx, e5_data: dict) -> dict:
+    """Hook v2.9 — gera section_summaries via LLM se MATHOMS_LLM_SECTION_SUMMARIES=1."""
+    # Falha aberta: import erro / generator off → retorna {} (E5.N
+    # continua sem o campo; frontend cai em deriveSectionSummary).
+    try:
+        from backend.app.services.section_summary_orchestrator import (
+            generate_all_section_summaries,
+        )
+    except Exception as exc:  # noqa: BLE001 — pipeline standalone (sem backend)
+        print(f"  [info] section_summaries skipped (backend unavailable): {exc}")
+        return {}
+
+    workspace_id = _resolve_workspace_id(ctx)
+    return generate_all_section_summaries(workspace_id=workspace_id, e5_data=e5_data)
+
+
+def _resolve_workspace_id(ctx) -> int:
+    candidate = getattr(ctx, "workspace_id", None) if ctx is not None else None
+    if isinstance(candidate, int):
+        return candidate
+    if isinstance(candidate, str) and candidate.isdigit():
+        return int(candidate)
+    return 0
+
+
 def main_with_store(ctx) -> dict:
     """E5.N Caminho B (Sessão A5e da Fase 8) — enriquece E5 com narrativas
     sobre ``ArtifactStore`` em vez de disco direto.
@@ -717,11 +742,20 @@ def main_with_store(ctx) -> dict:
     if narrativas is None:
         return {"success": False, "reason": "validation_failed", "errors": errors}
 
+    # v2.9 · ADR-144 — LLM-driven section summaries (toggle por env;
+    # default OFF até v2.9.1 revisar copy). Falha aberta.
+    e5_data["narrativas"] = narrativas  # disponível p/ fallback determinístico do generator
+    section_summaries = _e5n_generate_section_summaries(ctx, e5_data)
+    if section_summaries:
+        e5_data["section_summaries"] = section_summaries
+        print(f"  ✓ section_summaries (LLM): {len(section_summaries)} seções")
+
     _e5n_persist(store, e5_data, narrativas)
     return {
         "success": True,
         "narrativas_section_count": len(narrativas),
         "summaries_count": len(narrativas.get("summaries", {})),
         "charts_count": len(narrativas.get("charts", {})),
+        "section_summaries_count": len(section_summaries),
         "files_created": ["analise_financeira-5_analysis.json"],
     }
