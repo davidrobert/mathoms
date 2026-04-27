@@ -183,9 +183,9 @@ PipelineArtifact (ADR-082)
 
 Report
   id (UUID), workspace_id (FK), pipeline_run_id (FK→PipelineRun, SET NULL)
-  title, period, analysis_json_path (E5 JSON snapshot, F9)
+  title, period, analysis_artifact_id (FK→PipelineArtifact, SET NULL — ADR-131)
   tasks_snapshot_json (immutable snapshot, F8.3)
-  size_bytes, score, patrimonio_liquido, created_at
+  score, patrimonio_liquido, created_at
 ```
 
 ### Goals & Tasks (F8)
@@ -746,13 +746,13 @@ Document.status = "ready", classification_confidence, needs_review
 
 User clica "Gerar Relatório"
     ↓
-POST /api/pipeline/run → materialize_config() → Celery task
+POST /api/v1/pipeline/runs → materialize_config() → Celery task
     ↓
 Pipeline stages rodam em ordem → PipelineStageLog por stage
     ↓
 WebSocket /ws publica eventos via Redis Pub/Sub
     ↓
-Celery task cria Report no DB (analysis_json_path + tasks_snapshot)
+Celery task cria Report no DB (analysis_artifact_id FK + tasks_snapshot)
     ↓
 Frontend renderiza nativamente via GET /reports/{id}/data (React)
 ```
@@ -762,7 +762,7 @@ Frontend renderiza nativamente via GET /reports/{id}/data (React)
 ```
 User edita config via UI → DB
     ↓
-POST /api/pipeline/run
+POST /api/v1/pipeline/runs
     ↓
 materialize_config(ws_id, tenant_root, db):
   1. Copia config/ global → storage/{ws_id}/config/

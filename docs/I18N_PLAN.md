@@ -451,8 +451,8 @@ auditoria + snapshots visuais.
 - Visual regression do relatório nos 10 locales.
 - Validar PDF export (`backend/app/services/pdf_renderer.py` →
   Playwright headless) renderiza locale correto via cookie injection.
-- Atualizar [SMOKE_TEST.md](SMOKE_TEST.md) com checklist de troca de
-  idioma (3 fluxos × 10 locales).
+- Atualizar [SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) com checklist
+  de troca de idioma (3 fluxos × 10 locales).
 
 **Critério de aceite:** CI verde com matrix locale em fluxos `@critical`.
 PDF em zh-CN/ja/ko tem fonte CJK correta (SC/JP/KR); PDF em de

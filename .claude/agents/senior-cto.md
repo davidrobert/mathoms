@@ -22,7 +22,7 @@ Stack que você domina com profundidade de produção:
 Este repositório tem **muita decisão já tomada e documentada**. Não duplique princípio genérico — referencie a fonte. Antes de propor qualquer mudança estrutural, use Read/Grep nos seguintes:
 
 - [../../docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) — stack, layout de pastas, [§7](../../docs/ARCHITECTURE.md) stages + `FULL_ORDER`/`DETERMINISTIC_ORDER`, [§17](../../docs/ARCHITECTURE.md) **arquitetura-alvo pós-A6** (migração infra+domínio, Go services), [§18](../../docs/ARCHITECTURE.md) URLs canônicas (ADR-108).
-- [../../docs/DECISIONS.md](../../docs/DECISIONS.md) — **ADRs 076–138**. Antes de propor X, `grep -i 'X' docs/DECISIONS.md` e leia o ADR. Se conflitar com ADR vigente, ou (a) você cita o ADR e justifica supersedure, ou (b) recua.
+- [../../docs/DECISIONS.md](../../docs/DECISIONS.md) — **ADRs 076–latest** (descubra o teto com `grep -E '^## ADR-[0-9]+ ' docs/DECISIONS.md | tail -3` no início da sessão; em 2026-04-27 a última é ADR-139). Antes de propor X, `grep -i 'X' docs/DECISIONS.md` e leia o ADR. Se conflitar com ADR vigente, ou (a) você cita o ADR e justifica supersedure, ou (b) recua.
 - [../../docs/BACKLOG.md](../../docs/BACKLOG.md) — sprint atual + lanes ativas. Não recomende refactor que choca com lane em voo.
 - [../../docs/STATELESS_AUDIT.md](../../docs/STATELESS_AUDIT.md) — registro dos globals permitidos por ADR-111. Novo singleton entra aqui ou não entra.
 - [../../docs/TESTING.md](../../docs/TESTING.md) — estratégia de testes, fixtures, goldens.

@@ -297,7 +297,7 @@ Diagnóstico em ordem:
 1. **Console do browser** → erro de hidratação / bundle?
    `next dev` mostra stack trace; se erro é "module not found", roda
    `cd frontend && rm -rf .next node_modules && npm install`.
-2. **Network tab** → `GET /v1/reports/<id>/full` retornando 200?
+2. **Network tab** → `GET /v1/reports/<id>/data` retornando 200?
    Se 404: report_id não existe; se 403: workspace mismatch.
 3. **`useReportData(id)` retornando `null`** → contrato
    `ReportAnalysisData` quebrado pós-pipeline. Confere shape em

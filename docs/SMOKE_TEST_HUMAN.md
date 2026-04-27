@@ -99,9 +99,9 @@ Marque cada item. Ao final registre a decisão na §5.
 
 - [ ] **A3.1** Botão "Processar todos" dispara pipeline → status muda para `running`
 - [ ] **A3.2** Progress bar de stages aparece no UI e avança
-- [ ] **A3.3** Cada stage E0 → E4 aparece como completed no histórico
+- [ ] **A3.3** Cada stage E0 → E5 aparece como completed no histórico
 - [ ] **A3.4** E5 (análise financeira) completa sem erro
-- [ ] **A3.5** E6 (relatório HTML) é gerado e aparece na lista de relatórios
+- [ ] **A3.5** Linha de `Report` é criada no DB pós-pipeline e o card aparece em `/reports` (renderer único React — stage E6 removido em ADR-129)
 - [ ] **A3.6** Pipeline completa sem erros (status `completed`)
 - [ ] **A3.7** Segundo run (incremental) processa apenas documentos novos
 

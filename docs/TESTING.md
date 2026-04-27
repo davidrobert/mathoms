@@ -479,15 +479,15 @@ em 2026-04-21).
 - [ ] E2-faturas processa apenas faturas; E2-extratos processa apenas extratos (flags corretas)
 - [ ] `import scripts.pipeline_common` sem `FIN_WORKSPACE_ROOT` não levanta `SystemExit`
 
-### Infra — Fase 2 (DBArtifactStore + MaterializationBridge)
+### Infra — Fase 2 (DBArtifactStore + MaterializationBridge — bridge removido em A6c, mantido como histórico)
 
 - [ ] `DBArtifactStore` round-trip preserva dados exatos (read ∘ write = identity)
 - [ ] Sessão SQLAlchemy injetada no `__init__`; store nunca cria sessão própria
 - [ ] Celery task: commit só após run completa; sem sessão órfã em caso de exception
 - [ ] Pipeline E2→E5 com `MATHOMS_USE_DB_ARTIFACTS=true` produz E5 idêntico ao caminho disco (golden)
-- [ ] `MaterializationBridge` como context manager: `tmp_dir` limpo após `__exit__` (inclusive em exception)
-- [ ] `MaterializationBridge._STAGE_TO_DIR` e `_STAGE_TO_SUFFIX` cobrem todos os stages com artefatos em disco
-- [ ] `MATHOMS_USE_DB_ARTIFACTS` é setting global (env var); override per-workspace é temporário e documentado
+- [ ] `MATHOMS_USE_DB_ARTIFACTS` é setting global (env var); default `True` desde [ADR-118](DECISIONS.md#adr-118--flip-do-default-mathoms_use_db_artifacts-para-true) (2026-04-23); override per-workspace via `workspaces.use_db_artifacts_override`
+- [ ] ~~`MaterializationBridge` como context manager~~ — bridge **removido em A6c** (2026-04-24); cutover encerrado, sem caminho disco residual no Celery
+- [ ] ~~`MaterializationBridge._STAGE_TO_DIR` e `_STAGE_TO_SUFFIX`~~ — idem, removido em A6c
 - [ ] Regressão de perf (R8): tempo total ≤ baseline × 1.15, peak RSS ≤ baseline × 1.20
 - [ ] `dev/compare_disk_vs_db.py` reporta 0 diffs estruturais em workspace piloto
 

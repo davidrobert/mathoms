@@ -65,12 +65,17 @@
 
 ## 5. Relatório
 
+> Pós-[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side):
+> renderer único é a rota React `/reports/[id]` consumindo
+> `GET /v1/reports/{id}/data`. Não há mais iframe, HTML server-side
+> nem botão "Download HTML".
+
 - [ ] `/reports` lista reports mais recentes primeiro
-- [ ] Click em card de report abre `/reports/{id}` com iframe carregado
-- [ ] HTML do report contém `{{COVER_FAMILIA}}` renderizado com o sobrenome (**BUG-015 regression**)
-- [ ] Nome do arquivo do report inclui o family_surname
+- [ ] Click em card de report abre `/reports/{id}` (rota nativa React, sem iframe)
+- [ ] Network tab mostra `GET /v1/reports/{id}/data` retornando 200 com payload `ReportAnalysisData`
+- [ ] Payload `/data` inclui o `family_surname` no cover (**BUG-015 regression**)
+- [ ] Nome do arquivo do PDF exportado inclui o `family_surname`
 - [ ] Print preview (Ctrl+P) formata corretamente (`@media print` ativa)
-- [ ] Download HTML funciona
 - [ ] Export tables (CSV/XLSX) de seção específica funciona
 
 ### 5.1 Entrega impressa / PDF (F11.3)

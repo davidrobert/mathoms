@@ -299,11 +299,11 @@ ondas paralelas**: [BACKLOG.md §Sprint A6](BACKLOG.md#sprint-a6--migração-inf
 ROADMAP cobre apenas a visão de fases e timeline macro — não duplique
 status de sessão aqui (vira drift).
 
-**Resumo (snapshot 2026-04-24)**:
-- **Entregues ✅:** A5a-A5f · A6a-c · A6d · A6e.3/.4/.5/.events · A6f.1/.2/.3/.4/.5a/.6 · A6g.1/.3b/.5/.6/.6b/.7 · A6b.flip (ADR-118) · A6-ux.livestep (ADR-119) · A6-readers.dbfirst (ADR-120).
-- **Parcial 🚧:** A6g.3 (backend style sweep — rodadas finais).
-- **Lanes abertas agora:** ver tabela em [BACKLOG §Lanes](BACKLOG.md). Confirme com `git worktree list` + `git for-each-ref --sort=-committerdate refs/remotes/origin/agent/`.
-- **Caminho crítico (serial):** A6g.3 final → F7A → F7B → F7D+dogfood → GA. Report Premium Fases 11/12/13 **canceladas** via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side); execução da remoção (`adr-129-e6-kill`) corre em paralelo com F7.
+**Resumo (snapshot 2026-04-27)**:
+- **Sprint A6 ✅ encerrada:** A5a-A5f · A6a-c · A6d · A6e.3/.4/.5/.events · A6f.1/.2/.3/.4/.5a/.6 · A6g.1/.3 ✅ · A6g.3b/.5/.6/.6b/.7 · A6b.flip (ADR-118) · A6-ux.livestep (ADR-119) · A6-readers.dbfirst (ADR-120).
+- **Sprint atual: A7 — Config DB Cutover** 🚧 (A7.0 ✅ mergeada 2026-04-26 · A7.1 🚧 · A7.2a/2b/4 ☐ destravadas; plano em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md), supervisão CTO via [ADR-138](DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7)).
+- **Lanes abertas agora:** ver tabela em [BACKLOG §Sprint A7 — Lanes](BACKLOG.md#lanes-a7--pickup-table). Confirme com `git worktree list` + `git for-each-ref --sort=-committerdate refs/remotes/origin/agent/`.
+- **Caminho crítico (serial):** A7 cutover → F9.3+ (rename DB) → F7A → F7B → F7D+dogfood → GA. Report Premium Fases 11/12/13 **canceladas** via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side); `adr-129-e6-kill` ✅ 2026-04-25.
 
 **Após A6**: sprints dedicados §15 (LGPD) e §16 (Observabilidade) —
 incorporados ao escopo de F7 (Produção + LGPD + Ops).

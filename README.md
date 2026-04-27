@@ -2,7 +2,7 @@
 
 > Envie extratos e documentos financeiros. Obtenha um retrato consolidado da família em minutos — não em semanas de planilha.
 
-**Status:** Dogfood interno · **F9 concluída** (relatório nativo React, design tokens, workspace sharing) · **Sprint transversal A6** em curso (Ondas 1-2 ✅; lane `adr-129-e6-kill` ✅ concluída; A6g.3 final em andamento — ver [docs/BACKLOG.md §Sprint A6](docs/BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal)) · Próxima fase: **F7** (produção, LGPD, ops) — ver [docs/ROADMAP.md](docs/ROADMAP.md).
+**Status:** Dogfood interno · **Fase 9 (produto)** ✅ entregue — relatório nativo React, design tokens, workspace sharing · **Sprint A6** ✅ encerrada (transversal infra+domínio) · **Sprint A7 — Config DB Cutover** 🚧 em andamento (plano em [docs/CONFIG_CUTOVER_PLAN.md](docs/CONFIG_CUTOVER_PLAN.md), supervisão CTO via [ADR-138](docs/DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7)) · Épico transversal **F9 stage rename** (≠ Fase 9 do produto) parcial — ver [docs/ROADMAP.md](docs/ROADMAP.md) · Próxima fase: **F7** (produção, LGPD, ops).
 
 **Produção (em configuração):** `app.mathoms.ai` · API: `api.mathoms.ai/v1/` · Console interno: `ops.mathoms.ai` · Docs: `docs.mathoms.ai` · Status: `status.mathoms.ai` · Landing: `mathoms.ai`. Ver [ADR-108](docs/DECISIONS.md#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns).
 

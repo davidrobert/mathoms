@@ -67,8 +67,8 @@
 | E4 execução golden (E3→E4) | ✅ `tests/test_e4_golden_execution.py` |
 | E5 execução golden (E4→E5) | ✅ `tests/test_e5_golden_execution.py` |
 | Baseline E1.5 em golden E4/E5 | ✅ fixture `e2/minimal-baseline-1.5_consolidated.json` + testes `*_with_baseline_patrimonial` |
-| E6 execução golden (E5→HTML) | ✅ `tests/test_e6_golden_execution.py` |
-| QA log (`logs/qa_log.md`) em goldens E4/E5/E6 | ✅ `tests/pipeline_golden_asserts.py` |
+| E6 execução golden (E5→HTML) | ❌ removido em [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) (2026-04-25) — `test_e6_golden_execution.py` deletado junto com `pipeline/stages/e6.py` |
+| QA log (`logs/qa_log.md`) em goldens E4/E5 | ✅ `tests/pipeline_golden_asserts.py` |
 | E5.N execução golden (E5→narrativas) | ✅ `tests/test_e5n_golden_execution.py` (validação antes do reset de globals; cenário cônjuge cobre `ana_cenarios`) |
 | E2 PDF × registry (smoke parse) | ✅ `tests/test_e2_synthetic_pdf_parsers.py` — todos os `BANK_MODULES` com `_draw_*` + testes (`test_c6bank_*`, `test_bradesco_*`, `test_btgpactual_*` … `test_caixa_*`, `test_quintoandar_*`) |
 | LLM JSON × schemas Pydantic | ✅ `tests/fixtures/llm_golden/` + `tests/test_llm_golden.py` — [README](../tests/fixtures/llm_golden/README.md) |

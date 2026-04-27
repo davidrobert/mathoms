@@ -58,7 +58,7 @@ cd frontend && npm install && cd ..
 ## 1.1. Build steps (codegen e tokens)
 
 ```bash
-# Design tokens (gera CSS para Next.js e E6)
+# Design tokens (gera CSS para Next.js)
 python3 design-tokens/build.py
 
 # Codegen do layout (gera TS e Pydantic a partir do YAML)
@@ -437,6 +437,6 @@ Principais mudanças já em código (fases 1-8 foundation):
 **Auditoria de identificadores legados (Fase 9):**
 
 ```bash
-.venv/bin/python _scratch/audit_stage_references.py          # lista ocorrências
-.venv/bin/python _scratch/audit_stage_references.py --strict # exit 1 se houver leak
+.venv/bin/python dev/audit_stage_references.py          # lista ocorrências
+.venv/bin/python dev/audit_stage_references.py --strict # exit 1 se houver leak
 ```

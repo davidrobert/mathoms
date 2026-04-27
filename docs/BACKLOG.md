@@ -16,11 +16,11 @@
 - [F6.5 — Frontend Testing & QA](#f65--frontend-testing--qa) ✅
 - [P0/P1 — Motor canônico e pipeline](#p0p1--motor-canônico-e-pipeline-2026-04)
 - [P2 — Unificação da classificação de documentos](#p2--unificação-da-classificação-de-documentos)
-- [Sprint A6 — Migração Infra+Domínio](#sprint-a6--migração-infradomínio-plano-transversal) ← **sprint atual (transversal)**
-  - [Lanes abertas agora — pickup table](#lanes-abertas-agora--pickup-table) ← **agente começa aqui**
+- [Sprint A6 — Migração Infra+Domínio](#sprint-a6--migração-infradomínio-plano-transversal) ✅ encerrada (Onda 2 + A6b.flip + A6-ux.livestep + A6-readers.dbfirst + A6c + A6d + A6e + A6f + A6g.3/3b/6/6b/7)
+  - [Lanes A6 — pickup table (histórico)](#lanes-abertas-agora--pickup-table)
   - [Ondas paralelas — mapa de dependências](#ondas-paralelas--mapa-de-dependências)
-- [Sprint A7 — Config DB Cutover](#sprint-a7--config-db-cutover-cli-legacy-removal) ← **plano detalhado em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md); 7 lanes, multi-agente paralelo, supervisão CTO**
-  - [Lanes A7 — pickup table](#lanes-a7--pickup-table)
+- [Sprint A7 — Config DB Cutover](#sprint-a7--config-db-cutover-cli-legacy-removal) ← **sprint atual** · plano em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md); 7 lanes, multi-agente paralelo, supervisão CTO
+  - [Lanes A7 — pickup table](#lanes-a7--pickup-table) ← **agente começa aqui**
   - [Ondas A7 — mapa de dependências](#ondas-a7--mapa-de-dependências)
 - [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
   - [7A-dev — Fatia mínima local-first (pré-Hetzner)](#7a-dev--fatia-mínima-local-first-pré-hetzner--✅-local-fechado-2026-04-26-·--dev9-aguardando-vps) ← **✅ local fechado · dev.9 aguarda VPS**
@@ -29,7 +29,7 @@
 - [DOCS-REVIEW — Followups da revisão multi-agente 2026-04-24](#docs-review--followups-da-revisão-multi-agente-2026-04-24) ← **batches 2/3 do audit de docs**
 - [F11 — Confiança, transparência e excelência de relatório](#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)
 - [F12 — Internacionalização (i18n, 10 locales)](#f12--internacionalização-i18n-10-locales) — plano canônico em [I18N_PLAN.md](I18N_PLAN.md), decisão em [ADR-130](DECISIONS.md#adr-130--internacionalização-com-next-intl--persistência-em-userslocale)
-- [F8 — Growth (Futuro)](#f8--growth-futuro)
+- [F10 — Growth (Futuro)](#f10--growth-futuro)
 
 ---
 
@@ -1934,7 +1934,7 @@ corretos via ICU; locales não-revisados marcam banner "beta".
 
 ---
 
-## F8 — Growth (Futuro)
+## F10 — Growth (Futuro)
 
 Adiados conscientemente. São features de aquisição/marketing/polish pós-launch.
 

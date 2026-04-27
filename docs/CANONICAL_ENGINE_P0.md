@@ -27,7 +27,7 @@
 ### Motor canônico (lógica determinística + contratos)
 
 - Estágios em `pipeline/stages/` e implementações em `scripts/` / `pipeline/llm/` que produzem/consomem artefatos versionados.
-- Parsers E2, reconciliação E3, categorização E4, análise E5, checks E7-crossval, export E6 (onde aplicável).
+- Parsers E2, reconciliação E3, categorização E4, análise E5, checks E7-crossval, review/apply E7. Stage E6 (renderer HTML standalone) **removido em [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)** — relatório é renderizado on-demand pela rota React `/reports/[id]` + export PDF via Playwright.
 - Dados de política em `config/` (ex.: `pipeline.json`, `categorization`, schemas em `config/schemas/`).
 
 ### Adaptadores (I/O e ambiente — não duplicam regra de negócio)
@@ -69,14 +69,14 @@
 
 | Ativo | Escopo |
 | --- | --- |
-| `backend/tests/test_golden_pipeline.py` | Workspace + materialize + PDFs sintéticos + token capa E6; **full E0→E6** documentado como deferido |
+| `backend/tests/test_golden_pipeline.py` | Workspace + materialize + PDFs sintéticos; **full E0→E5** documentado como deferido (E6 removido em [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)) |
 | `tests/test_llm_golden.py` | Schemas LLM / fixtures |
 | E2E Playwright + `seed_completed_run` | Caminho de produto com mock de pipeline |
 | `tests/test_schema_validation.py` | Minimal JSON válido vs schema |
 
 **Gaps**
 
-1. Golden **por estágio** até E6 (E3→E4→E5→E5.N→HTML), incluindo **despesa categorizada**, **baseline patrimonial mínimo**, **`test_e5n_golden_execution`** (narrativas + `validate_narrativas`, incl. tenant com cônjuge / chart `ana_cenarios`), **`test_e6_golden_execution`** e assert de **`logs/qa_log.md`** (`pipeline_golden_asserts`); endurecer goldens por estágio conforme novos requisitos.
+1. Golden **por estágio** até E5 (E3→E4→E5→E5.N), incluindo **despesa categorizada**, **baseline patrimonial mínimo**, **`test_e5n_golden_execution`** (narrativas + `validate_narrativas`, incl. tenant com cônjuge / chart `ana_cenarios`) e assert de **`logs/qa_log.md`** (`pipeline_golden_asserts`); endurecer goldens por estágio conforme novos requisitos. (Render HTML/E6 removido em [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) — paridade React validada por Playwright.)
 2. PDFs sintéticos + registry E2: `tests/test_e2_synthetic_pdf_parsers.py` (filename canônico por banco → `route_to_parser` → parse). Layouts dedicados no `pdf_generator` para **todo** `BANK_MODULES`: extratos com **≥1 transação** e **`saldo_final`** onde aplicável — **C6**, **Bradesco**, **BTG**, **Rico**, **Wise**, **PicPay**, **Bank of America**, **Santander**, **Itaú**, **Caixa** (`test_c6bank_*`, `test_bradesco_*`, `test_btgpactual_*` … `test_caixa_*`). **Quinto Andar** (fatura): **`itens`** + **`total_recebido`** (`test_quintoandar_synthetic_extracts_items`). Smoke texto: `backend/tests/test_golden_pipeline.py::TestSyntheticPDFsAreParseable`. **Fase 1 (registry) só sintética:** fechada para layouts dedicados.
 3. LLM: JSONs em `tests/fixtures/llm_golden/` + `tests/test_llm_golden.py` (parse Pydantic, validators, conversores); ver [tests/fixtures/llm_golden/README.md](../tests/fixtures/llm_golden/README.md). Mocks de runtime: `backend/tests/fixtures/llm_mock.py` — [ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in).
 4. **Fase 2 (opcional):** PDFs reais anonimizados — scaffold `tests/fixtures/e2_real_pdf_anon/` + `tests/test_e2_real_pdf_regression.py`; popular binários redigidos quando fizer sentido — [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado* e [BACKLOG.md](BACKLOG.md).

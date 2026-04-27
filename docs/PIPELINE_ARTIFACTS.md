@@ -66,7 +66,8 @@ de produção do relatório é:
    validado pelo `e5_analysis.schema.json`.
 2. `backend/app/services/pipeline_task._create_report_from_output`
    cria o row `Report` no DB a partir desse JSON
-   (`analysis_json_path` aponta para o artifact-store snapshot).
+   (`analysis_artifact_id` aponta via FK para `pipeline_artifacts.id` —
+   ADR-131 substituiu o ponteiro de filesystem `analysis_json_path`).
 3. O relatório é renderizado **on-demand** pela rota React
    `/reports/[id]` consumindo `GET /reports/{id}/data`.
 4. O único export server-side é **PDF via Playwright**

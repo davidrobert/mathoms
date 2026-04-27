@@ -4761,7 +4761,7 @@ receber `dict | None` em vez de `Path` — I/O sai da camada de domínio.
 ## ADR-129 — Descontinuação completa do renderer HTML server-side
 
 **Status:** Decidido • **Data:** 2026-04-24 • **Supersedes [ADR-124](#adr-124--scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next)** e encerra a parte
-do [ADR-076](#adr-076--design-system-unificado-via-tokens-e-codegen) que
+do [ADR-078](#adr-078--render-nativo-react--e6-como-exportador-standalone) que
 declarava `e6_render.py` como "exportador standalone".
 
 **Contexto:** ADR-124 (2026-04-23) decidiu matar o script `e6_render.py`
@@ -4787,7 +4787,7 @@ proposta por ADR-124 gastaria esforço para servir um endpoint sem
 cliente.
 
 O relatório nativo React em `frontend/src/components/report/**` já é o
-renderer primário desde [ADR-076](#adr-076--design-system-unificado-via-tokens-e-codegen)
+renderer primário desde [ADR-078](#adr-078--render-nativo-react--e6-como-exportador-standalone)
 e ganhou paridade visual com `EXEMPLO_DE_RELATORIO.html` via Fases 0-10
 do [Report Premium Plan](REPORT_PREMIUM_PLAN.md).
 
@@ -4858,7 +4858,7 @@ Escopo concreto da remoção (executado em PR sequencial pós-ADR):
 - **Fase 11.1 — `StaticReportModeProvider`** (commit `667ed4d` já em
   `main`): **mantida.** O provider estático é útil independente do export
   HTML — funciona como refactor limpo do `ReportModeContext`. Ver
-  [ADR-124 §Implementação §Onda 11.1](#adr-124-scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next)
+  [ADR-124 §Implementação §Onda 11.1](#adr-124--scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next)
   para contexto histórico.
 
 **Consequências:**
@@ -5054,7 +5054,7 @@ locale via contexto, não cache).
 ## ADR-131 — `Report` referencia `pipeline_artifact` por FK (drop `analysis_json_path`)
 
 **Status:** Decidido • **Data:** 2026-04-25 • **Supersedes** parte de
-[ADR-076](#adr-076--design-system-unificado-via-tokens-e-codegen) (a
+[ADR-078](#adr-078--render-nativo-react--e6-como-exportador-standalone) (a
 seção F9 que decidiu persistir `analysis_json_path` em disco como
 fonte de verdade do relatório React).
 
@@ -5131,7 +5131,7 @@ colunas e drop a FK.
 - ✅ **Single source of truth.** Relatório, artifact e linhagem
   vivem todos no DB. Não há mais "criar Report" ↔ "materializar
   arquivo" como duas operações separadas que podem dessincronizar.
-- ✅ **Stateless puro** ([ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6))
+- ✅ **Stateless puro** ([ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6))
   no caminho de leitura: o handler de
   `GET /reports/{id}/data` faz uma query (com `lazy=joined`) e
   serializa. Zero filesystem, zero contexto por tenant_root.
@@ -5153,12 +5153,12 @@ colunas e drop a FK.
   perdido). Aceito por ser ambiente de desenvolvimento; mais limpo
   agora vale do que opcionalidade futura.
 
-Relaciona-se a: [ADR-076](#adr-076--design-system-unificado-via-tokens-e-codegen)
+Relaciona-se a: [ADR-078](#adr-078--render-nativo-react--e6-como-exportador-standalone)
 (F9 — substitui premissa de filesystem),
 [ADR-082](#adr-082--pipeline_artifacts-mvp) (modelo `pipeline_artifacts`),
 [ADR-106](#adr-106) / [ADR-107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2)
 (A6c — bridge removido que motivou a regressão),
-[ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6)
+[ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)
 (stateless — agora aplicável ao read path do relatório),
 [ADR-129](#adr-129--descontinuação-completa-do-renderer-html-server-side)
 (introdução do reader filesystem-based agora removido).
@@ -5362,7 +5362,7 @@ Relaciona-se a
 [ADR-093](#adr-093--rename-completo-de-identificadores-de-stage-opção-a)
 (stage rename — futuras keys descritivas declaram scope no momento
 de adição),
-[ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6)
+[ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)
 (a constante `_WORKSPACE_SCOPED_STAGES` é constante imutável,
 satisfaz exceção (a) do stateless audit),
 [ADR-120](#adr-120--readers-user-facing-consultam-artifactstore-db-first-com-fallback-disco)
@@ -5375,9 +5375,9 @@ satisfaz exceção (a) do stateless audit),
 **Status:** Decidido • **Data:** 2026-04-25 • **Relaciona**
 [ADR-082](#adr-082--pipelineartifact-artefatos-computacionais-no-banco)
 (blobs DB-first com materialização para o pipeline),
-[ADR-101](#adr-101--routers-finos-use-cases-em-application) (use case
+[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e) (use case
 puro, router monta dependências),
-[ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6)
+[ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)
 (elimina leitura de disco em request-path),
 [ADR-120](#adr-120--readers-user-facing-consultam-artifactstore-db-first-com-fallback-disco)
 (padrão DB-first com fallback global).
@@ -5398,7 +5398,7 @@ repo, sem modelagem em DB. Consequências práticas:
    (renomear arquivo, dropar `_copy_global`) quebraria o E4 em silêncio.
 3. O use case `list_consumo_pontuais` lia `family_members.json` e
    `categorization.json` diretamente do disco — quebra de SRP/ISP e
-   roça com [ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6)
+   roça com [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)
    (request-path tocando filesystem para regra de domínio).
 
 Alternativas:
@@ -5437,9 +5437,9 @@ DB-first, fallback para `ConfigDefaultsLoader` quando não há row.
 
 - ✅ Cada workspace pode customizar recipients/patterns (família,
   conjuge, contas próprias variam por usuário).
-- ✅ Use case puro alinhado com [ADR-101](#adr-101--routers-finos-use-cases-em-application);
+- ✅ Use case puro alinhado com [ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e);
   zero I/O de disco em request-path
-  ([ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6)).
+  ([ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)).
 - ✅ Pipeline E4 continua lendo `family_members.json` materializado —
   zero mudança no contrato de scripts.
 - ⚠️ Workspace sem row em `transfer_configs` cai no global silencio-
@@ -5455,9 +5455,9 @@ DB-first, fallback para `ConfigDefaultsLoader` quando não há row.
 **Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
 [ADR-082](#adr-082--pipelineartifact-artefatos-computacionais-no-banco)
 (blobs DB-first com materialização para o pipeline),
-[ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise),
-[ADR-101](#adr-101--routers-finos-use-cases-em-application),
-[ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6),
+[ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy),
+[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e),
+[ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6),
 [ADR-120](#adr-120--readers-user-facing-consultam-artifactstore-db-first-com-fallback-disco),
 [ADR-133](#adr-133--transferencias_internas-modelado-em-transfer_configs-workspace-scoped).
 
@@ -5477,7 +5477,7 @@ Alternativas consideradas:
   toda nova entidade configurável adiciona dois write paths (DB + disco).
   Não escala para `decisions`, `fiscal_parameters`, `market_rates` etc.
 - **(b) Fazer `pipeline/` importar SQLAlchemy.** Quebra
-  [ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise) e a
+  [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy) e a
   regra do CLAUDE.md (`dev/check_pipeline_boundaries.py`).
 - **(c) Protocolo `ConfigStore` definido em `pipeline/ports/`, com
   adapter SQLAlchemy em `backend/app/services/`.** Simétrico ao padrão
@@ -5531,8 +5531,8 @@ Cache hot-path vai para Redis com invalidação por evento.
 ## ADR-135 — Versionamento temporal de séries fiscais e câmbio
 
 **Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
-[ADR-090](#adr-090--money-em-domínio-decimal-string-no-wire),
-[ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise),
+[ADR-090](#adr-090--decimal-para-valores-monetários),
+[ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy),
 [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
 
 **Contexto:** `config/parametros_fiscais.json` (tabela IRPF, limite PGBL,
@@ -5609,7 +5609,7 @@ Regra de seleção de período (escrita aqui para não virar folclore):
 Cache Redis com invalidação por evento (`fiscal_parameter.published`,
 `market_rate.published`). Sem `@lru_cache`.
 
-Money continua [ADR-090](#adr-090--money-em-domínio-decimal-string-no-wire):
+Money continua [ADR-090](#adr-090--decimal-para-valores-monetários):
 `*_brl_cents` em `BIGINT`, `rate` em `DECIMAL`, wire em string.
 
 **Consequências:**
@@ -5633,8 +5633,8 @@ Money continua [ADR-090](#adr-090--money-em-domínio-decimal-string-no-wire):
 ## ADR-136 — `Decision` aggregate event-sourced com supersede chain
 
 **Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
-[ADR-090](#adr-090--money-em-domínio-decimal-string-no-wire),
-[ADR-101](#adr-101--routers-finos-use-cases-em-application),
+[ADR-090](#adr-090--decimal-para-valores-monetários),
+[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e),
 [ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries),
 [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
 
@@ -5670,7 +5670,7 @@ Alternativas:
 **Decisão:** Adotar (c) **escopado a este aggregate apenas** —
 não se torna convenção a propagar para outros aggregates do sistema. O
 resto do app continua CRUD onde for adequado (alinhado com
-[ADR-101](#adr-101--routers-finos-use-cases-em-application)).
+[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e)).
 
 Schema:
 
@@ -5714,7 +5714,7 @@ Use cases em `backend/app/application/decisions/`:
 Endpoints REST: `GET/POST /api/v1/workspaces/{id}/decisions`,
 `GET/PATCH /api/v1/workspaces/{id}/decisions/{decision_id}`,
 `POST /api/v1/workspaces/{id}/decisions/{decision_id}/execute`. Todos
-com `response_model` explícito ([ADR-109](#adr-109--padrão-de-fastapi--testes-de-contrato)).
+com `response_model` explícito ([ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a)).
 
 Eventos do aggregate **não** entram em
 [ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries) (cross-aggregate
@@ -5726,7 +5726,7 @@ Migrator one-shot: `dev/migrate_decisions_to_db.py` parseia
 `config/decisions.md`, cria 15 rows + eventos `Created` no workspace
 alvo. Idempotente. **Descartável** — não generalizar.
 
-Money em `amount_brl_cents` (BIGINT) — [ADR-090](#adr-090--money-em-domínio-decimal-string-no-wire).
+Money em `amount_brl_cents` (BIGINT) — [ADR-090](#adr-090--decimal-para-valores-monetários).
 
 **Consequências:**
 - ✅ Audit trail nativo: timeline de decisão é select linear em
@@ -5747,9 +5747,9 @@ Money em `amount_brl_cents` (BIGINT) — [ADR-090](#adr-090--money-em-domínio-d
 ## ADR-137 — Catalog + override resolver para `categorization` e `institutions`
 
 **Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
-[ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise),
-[ADR-101](#adr-101--routers-finos-use-cases-em-application),
-[ADR-111](#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6),
+[ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy),
+[ADR-101](#adr-101--princípios-r12-r17-ddd-solid-no-backend-api-a6e),
+[ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6),
 [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
 
 **Contexto:** `config/categorization.json` mistura duas coisas no mesmo
@@ -5867,8 +5867,8 @@ overrides.
 ## ADR-138 — Protocolo de supervisão CTO para Sprint A7
 
 **Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
-[ADR-097](#adr-097--extract-then-refactor-com-paridade-bytewise),
-[ADR-103](#adr-103--teste-humano-como-gate-de-cutover),
+[ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy),
+[ADR-103](#adr-103--teste-manual-como-gate-antes-de-remoção-do-bridge-a6b5--a6-human),
 [CONFIG_CUTOVER_PLAN.md §6](CONFIG_CUTOVER_PLAN.md#6-protocolo-de-supervisão-cto).
 
 **Contexto:** Sprint A7 executa cutover de `config/` para DB com **até 4
@@ -5886,7 +5886,7 @@ Nenhuma sprint anterior teve essa combinação de:
 Sem governança explícita, lanes paralelas vão produzir merge hell e/ou
 regressão silenciosa em prod.
 
-[ADR-103](#adr-103--teste-humano-como-gate-de-cutover) já estabeleceu
+[ADR-103](#adr-103--teste-manual-como-gate-antes-de-remoção-do-bridge-a6b5--a6-human) já estabeleceu
 "teste humano como gate" para A6 — funcionou para single-lane. Para
 multi-lane paralelo, falta protocolo de quem aprova o quê e quando.
 
