@@ -4,7 +4,9 @@ from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, Re
 from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.feature_flag import FeatureFlag
+from backend.app.models.fiscal_parameter import FiscalParameter
 from backend.app.models.goal import VALID_GOAL_TYPES, Goal
+from backend.app.models.market_rate import MarketRate
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.notification import Notification
 from backend.app.models.password_vault import PasswordVault
@@ -68,6 +70,8 @@ __all__ = [
     "VALID_SUGGESTION_STATUSES",
     "VALID_SUGGESTION_SOURCES",
     "FeatureFlag",
+    "FiscalParameter",
+    "MarketRate",
     "Report",
     "Document",
     "DocumentStatus",
