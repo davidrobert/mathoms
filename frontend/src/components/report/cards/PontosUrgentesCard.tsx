@@ -7,8 +7,12 @@ interface PontoUrgente {
   impacto?: string;
 }
 
-/** F9 · F2.G · S10 — Card "Pontos Urgentes". */
-export function PontosUrgentesList({
+/** Card "Pontos Urgentes" (S10).
+ *
+ * Sibling de `PontosFortesCard` com `variant="critical"`; recebe a
+ * lista de `PontoUrgente` do DTO e a renderiza dentro de um `ReportCard`.
+ */
+export function PontosUrgentesCard({
   pontos,
 }: {
   pontos: PontoUrgente[] | unknown[] | undefined;

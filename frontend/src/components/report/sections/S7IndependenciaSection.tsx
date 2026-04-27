@@ -2,10 +2,7 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import {
-  PrevidenciaPgblCard,
-  type PrevidenciaPgblData,
-} from "../cards/PrevidenciaPgblCard";
+import { PrevidenciaPgblCard, type PrevidenciaPgblData } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { deriveChartConclusion } from "../utils/conclusionUtils";

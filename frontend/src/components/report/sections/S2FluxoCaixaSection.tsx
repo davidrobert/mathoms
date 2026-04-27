@@ -2,10 +2,12 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import { OrcamentoProspectivoCard } from "../cards/OrcamentoProspectivoCard";
-import { ConsumoConscienteCard } from "../cards/ConsumoConscienteCard";
-import { DiagnosticoComportamentalCard } from "../cards/DiagnosticoComportamentalCard";
-import { EquilibrioCerbasiCard } from "../cards/EquilibrioCerbasiCard";
+import {
+  ConsumoConscienteCard,
+  DiagnosticoComportamentalCard,
+  EquilibrioCerbasiCard,
+  OrcamentoProspectivoCard,
+} from "../cards";
 import { FluxoMensalChart } from "../charts/FluxoMensalChart";
 import { ReceitaBarChart } from "../charts/ReceitaBarChart";
 import { DespesasDoughnutChart } from "../charts/DespesasDoughnutChart";

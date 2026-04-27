@@ -2,8 +2,7 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import { PontosFortesList } from "../cards/PontosFortesList";
-import { PontosUrgentesList } from "../cards/PontosUrgentesList";
+import { PontosFortesCard, PontosUrgentesCard } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { ScoreCard } from "../ui/ScoreCard";
 import type { ScoreClasse, ScoreBreakdownRow } from "../ui/ScoreCard";
@@ -54,8 +53,8 @@ export function S10SinteseSection({ data }: { data: ReportAnalysisData }) {
         {chartConclusion && <ChartConclusion>{chartConclusion}</ChartConclusion>}
       </div>
 
-      <PontosFortesList pontos={data.pontos_fortes as unknown[] | undefined} />
-      <PontosUrgentesList pontos={data.pontos_urgentes as unknown[] | undefined} />
+      <PontosFortesCard pontos={data.pontos_fortes as unknown[] | undefined} />
+      <PontosUrgentesCard pontos={data.pontos_urgentes as unknown[] | undefined} />
     </ReportSection>
   );
 }

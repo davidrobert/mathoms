@@ -31,7 +31,7 @@ import {
   ApendiceDSection,
   ApendiceESection,
 } from "./sections/ApendicesSections";
-import { PerfilFamiliaCard } from "./cards/PerfilFamiliaCard";
+import { PerfilFamiliaCard } from "./cards";
 import {
   U1MudancaEuaSection,
   U2GreenCardSection,

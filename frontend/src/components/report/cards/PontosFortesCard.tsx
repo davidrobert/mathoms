@@ -6,8 +6,13 @@ interface PontoForte {
   descricao?: string;
 }
 
-/** F9 · F2.G · S10 — Card "Pontos Fortes". */
-export function PontosFortesList({
+/** Card "Pontos Fortes" (S10).
+ *
+ * Disambig de `ui/PontoForteItem::PontosFortesList` — aquele é o
+ * primitivo `<ul>` que recebe children; este aqui consome a lista de
+ * `PontoForte` do DTO e a renderiza dentro de um `ReportCard variant="success"`.
+ */
+export function PontosFortesCard({
   pontos,
 }: {
   pontos: PontoForte[] | unknown[] | undefined;

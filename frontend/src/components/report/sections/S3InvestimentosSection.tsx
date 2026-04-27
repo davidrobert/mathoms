@@ -3,17 +3,13 @@
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import {
-  InvestimentosClasseCard,
-  type InvestimentosClasseData,
-} from "../cards/InvestimentosClasseCard";
-import {
-  EstrategiaAporteCard,
-  type EstrategiaAporteData,
-} from "../cards/EstrategiaAporteCard";
-import {
   ContrafluxoCard,
+  EstrategiaAporteCard,
+  InvestimentosClasseCard,
   type ContrafluxoData,
-} from "../cards/ContrafluxoCard";
+  type EstrategiaAporteData,
+  type InvestimentosClasseData,
+} from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";

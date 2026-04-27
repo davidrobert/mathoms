@@ -2,10 +2,12 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import { PatrimonioCategoriasCard } from "../cards/PatrimonioCategoriasCard";
-import { ReceitasFonteCard } from "../cards/ReceitasFonteCard";
-import { ReservaEmergenciaCard } from "../cards/ReservaEmergenciaCard";
-import { EndividamentoCard } from "../cards/EndividamentoCard";
+import {
+  EndividamentoCard,
+  PatrimonioCategoriasCard,
+  ReceitasFonteCard,
+  ReservaEmergenciaCard,
+} from "../cards";
 import { PatrimonioDoughnutChart } from "../charts/PatrimonioDoughnutChart";
 import { WaterfallIfChart } from "../charts/WaterfallIfChart";
 import { ScoreCard, type ScoreClasse } from "../ui/ScoreCard";
