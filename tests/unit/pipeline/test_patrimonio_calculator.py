@@ -642,3 +642,114 @@ def test_calculator_uses_baseline_imoveis_e_veiculos(config: PatrimonioConfig):
         if c["categoria"] not in {"Caixa e Moeda Estrangeira"} and c["valor"] > 0
     ]
     assert len(nao_cash) >= 2, "baseline rico deve materializar múltiplas categorias"
+
+
+# =============================================================================
+# ADR-145 — 7 categorias canonical (rules-as-code, A7.6)
+# =============================================================================
+#
+# Estes testes documentam invariantes das categorias da composição patrimonial
+# como **fixtures anônimas** — sem dados cliente reais. Para o "porquê" de cada
+# regra, ver ADR-145 em `docs/DECISIONS.md`.
+
+
+@pytest.fixture
+def identity_anon() -> MemberIdentity:
+    """Identidade com nomes genéricos para fixtures de regras universais."""
+    return MemberIdentity(
+        titular_key="titular",
+        conjuge_key="conjuge",
+        titular_nome="Titular",
+        conjuge_nome="Conjuge",
+    )
+
+
+@pytest.fixture
+def config_anon(identity_anon: MemberIdentity) -> PatrimonioConfig:
+    return PatrimonioConfig(members=identity_anon, residencia_keyword="rua principal")
+
+
+def test_adr145_residencia_via_keyword_only_titular(config_anon: PatrimonioConfig):
+    """ADR-145 categoria 1: residência principal = imóvel do titular cuja
+    descrição contém ``residencia_keyword``. Imóveis do cônjuge nunca são
+    residência (vão para imoveis_investimento)."""
+    baseline = {
+        "members": {
+            "titular": {
+                "total_bens": 800_000,
+                "bens": {
+                    "imoveis": [
+                        {"descricao": "ImovelExemplo Rua Principal 100", "valor": 500_000},
+                        {"descricao": "ImovelInvestimentoExemplo", "valor": 100_000},
+                    ],
+                },
+            },
+            "conjuge": {
+                "total_bens": 200_000,
+                "bens": {
+                    "imoveis": [
+                        {"descricao": "ImovelExemplo Rua Principal 200", "valor": 200_000},
+                    ],
+                },
+            },
+        }
+    }
+    calc = PatrimonioCalculator(config_anon)
+    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    assert result["residencia"] == 500_000.0, "residência = só imóvel do titular com keyword"
+    assert (
+        result["imoveis_investimento"] == 300_000.0
+    ), "outros imóveis (titular + cônjuge) → investimento"
+
+
+def test_adr145_investimentos_irpf_includes_contas_bancarias(config_anon: PatrimonioConfig):
+    """ADR-145 categoria 3: investimentos do titular incluem ``investimentos[]``
+    + ``contas_bancarias[]`` (no IRPF fallback, somam diretamente — paridade
+    legado). A regra de matching por palavra-chave (RDB/CDB/Aplicacao) é
+    aplicada quando o pipeline tem extratos de banco; aqui o IRPF agrega tudo.
+    """
+    baseline = {
+        "members": {
+            "titular": {
+                "total_bens": 1_000_000,
+                "bens": {
+                    "investimentos": [
+                        {"tipo": "FundoExemplo Renda Fixa FIC FIM", "valor": 200_000},
+                    ],
+                    "contas_bancarias": [
+                        {"tipo": "Aplicacao RDB BancoExemplo", "valor": 50_000},
+                    ],
+                },
+            },
+            "conjuge": {"total_bens": 0, "bens": {}},
+        }
+    }
+    calc = PatrimonioCalculator(config_anon)
+    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    assert (
+        result["investimentos_titular"] == 250_000.0
+    ), "investimentos titular = investimentos[] + contas_bancarias[]"
+
+
+def test_adr145_solo_titular_conjuge_bucket_is_zero():
+    """ADR-145 premissa: famílias com 1 titular apenas → bucket 4 (cônjuge) = 0.
+    A taxonomia tolera ausência de cônjuge sem quebrar invariantes."""
+    identity_solo_local = MemberIdentity(
+        titular_key="titular",
+        conjuge_key="",
+        titular_nome="Titular",
+        conjuge_nome="",
+    )
+    config_solo = PatrimonioConfig(members=identity_solo_local, residencia_keyword="")
+    baseline = {
+        "members": {
+            "titular": {
+                "total_bens": 100_000,
+                "bens": {"investimentos": [{"valor": 100_000}]},
+            }
+        }
+    }
+    result = PatrimonioCalculator(config_solo).calculate(PatrimonioInputs(baseline=baseline))
+    # Solo: chave dinâmica é investimentos_titular (sem conjuge_key, é só titular)
+    assert result["investimentos_titular"] == 100_000.0
+    assert result.get("investimentos_") == 0.0  # bucket cônjuge ausente == 0

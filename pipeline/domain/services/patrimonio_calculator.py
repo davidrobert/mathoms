@@ -13,6 +13,53 @@ Segue o **mesmo contrato de saída** do legado — o dict é consumido por:
 - ``config/report_layout.yaml`` via ``analise_financeira-5_analysis.json``.
 - ``scripts/e5n_narrativas.build_narrativas`` (campos ``composicao``,
   ``caixa_detalhes``, ``fonte_investimentos``).
+
+Composição patrimonial — taxonomia canônica (rules-as-code, ADR-145)
+====================================================================
+
+Sprint A7.6 (rules-as-code) consolidou a especificação das categorias da
+composição patrimonial neste módulo + ADR-145. As regras universais são
+invariantes do produto Mathoms (não dado cliente).
+
+**7 categorias canônicas (ordem ADR-145):**
+
+1. **Residência própria** — moradia principal (sempre exatamente 1 imóvel,
+   identificado via ``residencia_keyword`` no campo ``descricao`` do
+   imóvel do titular). Ver :meth:`PatrimonioCalculator._split_imoveis`.
+2. **Imóveis investimento** — todos os outros imóveis (titular + cônjuge),
+   exceto a residência principal. Ver
+   :meth:`PatrimonioCalculator._split_imoveis`.
+3. **Investimentos {TITULAR}** — ativos financeiros do titular. Inclui
+   ``investimentos[]`` clássicos + ``contas_bancarias[]`` cujo ``tipo``
+   contenha ``RDB|CDB|CDP|Renda Fixa|Investimento|Aplicacao|Poupança`` (ou
+   "saldo em conta" de corretora). **Inclui** fundos regulados (FIC FIM)
+   mesmo quando o nome sugere crypto — fundo FIC FIM não é crypto direta.
+4. **Investimentos {CONJUGE}** — mesma regra aplicada ao cônjuge. Quando
+   ausente (família com 1 titular apenas), retorna 0. Ver
+   :meth:`PatrimonioCalculator._compute_investimentos`.
+5. **Criptoativos** — crypto direta (BTC/ETH/etc.) em exchanges. **Não
+   inclui** fundos regulados de crypto. No fallback IRPF, crypto direta
+   chega via campo ``criptos`` em ``bens`` e é somada ao bucket de
+   investimentos do titular (paridade legado); composição doughnut tem
+   bucket próprio quando o pipeline rodar com extratos Binance via
+   :mod:`pipeline.domain.services.investimentos_classes_analyzer`.
+6. **Caixa + Moeda Estrangeira** — saldo final reconciliado (E3) das
+   contas correntes BRL + contas FX convertidas (USD/EUR via
+   ``taxas.json``). Ver :meth:`PatrimonioCalculator._compute_caixa` e
+   ``scripts/e5_analyze._load_caixa_from_e3_saldos``.
+7. **Veículos** — soma de ``veiculos[]`` de todos os membros. Ver
+   :meth:`PatrimonioCalculator._sum_veiculos`.
+
+**Premissa de produto:** "casal com até 2 titulares de investimentos"
+(titular + cônjuge). Famílias fora dessa configuração ficam limitadas
+pela taxonomia — expansão para N membros requer ADR futuro.
+
+**Renaming de label vs key:** os labels exibidos no relatório vêm dos
+``nome_curto`` em ``family_members.json``; chaves internas no JSON do
+E5 são estáveis (``investimentos_titular``, ``investimentos_conjuge``).
+
+Para o "porquê" de cada decisão (alternativas consideradas, trade-offs):
+ver `ADR-145 <docs/DECISIONS.md#adr-145>`_.
 """
 
 from __future__ import annotations
@@ -137,7 +184,14 @@ class PatrimonioCalculator:
         ) + safe_float(conjuge_data.get("total_dividas", conjuge_data.get("dividas", 0)))
 
     def _split_imoveis(self, titular_bens: dict, conjuge_bens: dict) -> tuple[float, float]:
-        """Separa imóveis em residência principal (via keyword) vs investimento."""
+        """Separa imóveis em residência principal (via keyword) vs investimento.
+
+        Implementa as categorias 1 e 2 de ADR-145 (composição patrimonial):
+        residência principal = único imóvel do titular cuja descrição contém
+        ``residencia_keyword`` (case-insensitive); todos os demais imóveis
+        — incluindo todos os do cônjuge por convenção legado — vão para
+        ``imoveis_investimento``.
+        """
         residencia = 0.0
         imoveis_investimento = 0.0
         keyword = (self._config.residencia_keyword or "").lower()
@@ -171,9 +225,13 @@ class PatrimonioCalculator:
     ) -> tuple[float, float, str]:
         """Calcula investimentos por membro + fonte.
 
-        Prefere ``investimentos_atuais`` (posições atuais E2-llm) sobre
-        fallback IRPF. Posições sem membro atribuído (``""``) vão para o
-        titular (convenção legado).
+        Implementa as categorias 3 e 4 de ADR-145 (Investimentos {TITULAR}
+        e Investimentos {CONJUGE}). Prefere ``investimentos_atuais``
+        (posições atuais E2-llm) sobre fallback IRPF. Posições sem membro
+        atribuído (``""``) vão para o titular (convenção legado).
+
+        Fundos regulados (FIC FIM) com nome sugerindo crypto seguem aqui —
+        ADR-145: "fundo FIC FIM não é crypto direta".
         """
         identity = self._config.members
 
@@ -306,7 +364,18 @@ class PatrimonioCalculator:
         caixa_moeda_estrangeira: float,
         veiculos: float,
     ) -> list[dict]:
-        """Monta as 6 categorias + percentuais via largest-remainder (soma=100%)."""
+        """Monta as 6 categorias visíveis + percentuais via largest-remainder
+        (soma=100%).
+
+        Categorias retornadas — paridade legado, materializa 6 das 7 buckets
+        de ADR-145: Residência (#1), Imóveis Investimento (#2), Investimentos
+        Titular (#3), Investimentos Cônjuge (#4), Caixa + ME (#6), Veículos
+        (#7). Bucket #5 (Criptoativos) consolida em #3/#6 conforme regra de
+        ADR-145 (crypto direta IRPF → bucket investimentos do titular;
+        Hashdex/FIC FIM → bucket investimentos titular). Quando o pipeline
+        recebe extratos de exchange (Binance), a separação visual aparece
+        no doughnut de ``investimentos_classes`` — não nesta composição.
+        """
         identity = self._config.members
         composicao = [
             {"categoria": "Residência", "valor": residencia},

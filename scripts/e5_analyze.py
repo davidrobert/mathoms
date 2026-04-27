@@ -827,7 +827,10 @@ _BANCOS_INVESTIMENTO = _load_investment_banks()
 def _load_caixa_from_e3_saldos() -> Tuple[float, List[Dict[str, Any]]]:
     """Load cash + foreign currency balances from E3 reconciled statements.
 
-    Classification (per regras_composicao_patrimonial.md):
+    Classification (categoria #6 de ADR-145; ver
+    :mod:`pipeline.domain.services.patrimonio_calculator` para taxonomia
+    completa):
+
       Conta corrente BRL (traditional bank) → Caixa
       Foreign currency (USD/EUR)            → Moeda Estrangeira (→ BRL via taxas.json)
       Poupança / PJ / corretora / fatura    → skip (Investimentos or already counted)
