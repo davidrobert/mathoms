@@ -53,31 +53,28 @@ function toCard(id: string, item: AporteItem): AporteCard {
   };
 }
 
+function summarize(cards: readonly AporteCard[]): AporteSummary {
+  const total_meta = cards.reduce((sum, c) => sum + c.valor_meta, 0);
+  const total_realizado = cards.reduce((sum, c) => sum + (c.valor_efetivo ?? 0), 0);
+  return {
+    cards,
+    total_meta,
+    total_realizado,
+    destinos_total: cards.length,
+    destinos_concluidos: cards.filter((c) => c.feito).length,
+  };
+}
+
 /** Deriva resumo de aportes a partir de `dashboard.aportes`.
  *
  * Retorna `null` quando o snapshot não trouxer o bloco — caller renderiza
  * estado vazio.
  */
 export function deriveAporteSummary(data: ReportAnalysisData): AporteSummary | null {
-  const dash = getDashboard(data);
-  const aportes = dash?.aportes;
+  const aportes = getDashboard(data)?.aportes;
   if (!aportes || Object.keys(aportes).length === 0) return null;
-
   const cards = Object.entries(aportes).map(([id, item]) => toCard(id, item));
-  const total_meta = cards.reduce((sum, c) => sum + c.valor_meta, 0);
-  const total_realizado = cards.reduce(
-    (sum, c) => sum + (c.valor_efetivo ?? 0),
-    0,
-  );
-  const destinos_concluidos = cards.filter((c) => c.feito).length;
-
-  return {
-    cards,
-    total_meta,
-    total_realizado,
-    destinos_total: cards.length,
-    destinos_concluidos,
-  };
+  return summarize(cards);
 }
 
 function toDeltaRow(id: string, item: InvestimentoDeltaItem): InvestimentoDeltaRow {
