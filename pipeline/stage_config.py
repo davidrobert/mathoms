@@ -22,17 +22,9 @@ Fail-fast (M3): configs **obrigatórios** faltando levantam ``ConfigError``.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, Optional
+from typing import TYPE_CHECKING, ClassVar
 
 from pydantic import BaseModel, ConfigDict
-
-# `ConfigStore` precisa estar no namespace de runtime — é tipo de campo
-# Pydantic (`config_store: Optional["ConfigStore"]`). Com
-# `from __future__ import annotations` toda anotação vira string; Pydantic
-# tenta resolver e falha com "StageConfig is not fully defined" se o símbolo
-# está só em `if TYPE_CHECKING`. `WorkspaceContext` continua em TYPE_CHECKING
-# porque só aparece em assinatura de método (não passa por schema build).
-from pipeline.ports import ConfigStore
 
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
@@ -63,11 +55,8 @@ class StageConfig(BaseModel):
     goals: dict = {}
     scoring: dict = {}
     fiscal: dict = {}
-    # ConfigStore boundary (ADR-134, Sprint A7.0) — A7.1 popula em
-    # backend/app/services/pipeline_adapter.py com DBConfigStore. Default
-    # None preserva compat: chamadas antigas continuam usando _init_config /
-    # materialize_config até A7.5.
-    config_store: Optional[ConfigStore] = None
+    # ``ConfigStore`` flui via ``WorkspaceContext.config_store`` (ADR-134) —
+    # ``StageConfig`` carrega apenas o snapshot dict resolvido no boundary.
 
     # Configs cuja ausência levanta ``ConfigError`` em ``from_context``.
     REQUIRED: ClassVar[frozenset[str]] = frozenset(

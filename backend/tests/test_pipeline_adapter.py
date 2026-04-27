@@ -166,48 +166,28 @@ async def test_tarefas_md_header_marks_adapter(db):
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# build_config_store (A7.1 · ADR-134) — boundary helper
+# build_config_store (ADR-134, post-A7.5) — boundary helper sempre DB-first
 # ═══════════════════════════════════════════════════════════════════════
 
 
-def test_build_config_store_db_branch_returns_db_adapter():
-    """Flag on → ``DBConfigStore`` ligado à sessão fornecida."""
+def test_build_config_store_returns_db_adapter():
+    """Sempre ``DBConfigStore`` ligado à sessão fornecida (post-A7.5)."""
     from backend.app.services.db_config_store import DBConfigStore
     from backend.app.services.pipeline_adapter import build_config_store
 
     sentinel_session = object()
-    store = build_config_store(db=sentinel_session, use_db_artifacts=True)
+    store = build_config_store(db=sentinel_session)
     assert isinstance(store, DBConfigStore)
     assert store._session is sentinel_session
 
 
-def test_build_config_store_disk_branch_returns_file_adapter():
-    """Flag off → ``FileConfigStore`` legacy (emite DeprecationWarning)."""
-    import warnings
-
-    from backend.app.services.pipeline_adapter import build_config_store
-    from pipeline.adapters.file_config_store import FileConfigStore
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        store = build_config_store(db=None, use_db_artifacts=False)
-    assert isinstance(store, FileConfigStore)
-
-
 def test_build_config_store_satisfies_protocol():
-    """Ambos os branches implementam ``ConfigStore`` (runtime check)."""
-    import warnings
-
+    """Adapter retornado implementa ``ConfigStore`` (runtime check)."""
     from backend.app.services.pipeline_adapter import build_config_store
     from pipeline.ports import ConfigStore
 
-    db_store = build_config_store(db=object(), use_db_artifacts=True)
-    assert isinstance(db_store, ConfigStore)
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        file_store = build_config_store(db=None, use_db_artifacts=False)
-    assert isinstance(file_store, ConfigStore)
+    store = build_config_store(db=object())
+    assert isinstance(store, ConfigStore)
 
 
 # ═══════════════════════════════════════════════════════════════════════
