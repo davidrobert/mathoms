@@ -7,6 +7,48 @@
 > **Convenção de numeração:** novas ADRs usam apenas `ADR-NNN` (3 dígitos zero-padded). Os sufixos `-TQ` (`ADR-029-TQ`) e `-WS` (`ADR-030-WS`) são **históricos** — registraram decisões paralelas escritas no mesmo dia que ADR-029/ADR-030, antes da convenção numérica única. Não criar novos sufixos; em caso de decisão paralela, alocar o próximo `ADR-NNN` livre.
 >
 > **Gaps de numeração** (atualmente: 004, 008-012, 036, 048-049 — confira via `grep -E '^## ADR-[0-9]+' docs/DECISIONS.md`) refletem ADRs nunca formalizadas; não preencher retroativamente.
+>
+> ### Cheat-sheet de criação de ADR
+>
+> Template canônico (template editorial completo em HTML comment ao final
+> deste arquivo):
+>
+> ```markdown
+> ## ADR-NNN — Título descritivo
+>
+> **Status:** Decidido (FX) • **Data:** YYYY-MM-DD
+>
+> **Contexto:** ...
+>
+> **Decisão:** ...
+>
+> **Consequências:**
+> - ✅ ...
+> - ⚠️ ...
+> - ❌ ...
+>
+> **Relaciona-se a:** [ADR-XXX](#adr-xxx--slug-canônico) ...
+> ```
+>
+> - **Heading:** 3 dígitos zero-padded (`ADR-007`, não `ADR-7`). Não criar
+>   sufixos `-XX` (`-TQ`/`-WS` são apenas históricos).
+> - **Status:** apenas 3 valores aceitos pelo `dev/validate_adr_format.py`:
+>   `Decidido`, `Proposto`, `Roadmap`. Sufixos de fase em parênteses são
+>   livres (`Decidido (F8.4)`, `Decidido (Sprint A7.6)`).
+> - **Anchor link:** copy-paste do título real, **nunca** reinventado.
+>   Use `python3 dev/check_adr_anchors.py --suggest` para gerar.
+> - **Supersedure bidirecional:** ao criar ADR que substitui ADR-X, declare
+>   `**Supersedes** ADR-X` na nova **e** adicione banner `> **Nota
+>   (YYYY-MM-DD):** parcialmente superseded por ADR-Y` na antiga.
+> - **ToC:** rode `python3 dev/build_adr_toc.py --inline` após adicionar a
+>   ADR. Categoria pode ser ajustada via override em `OVERRIDES` no script.
+> - **Tamanho:** ADR > 150 linhas exige justificativa explícita ou split
+>   (mover detalhes operacionais para `track_*.md`).
+>
+> Validações automáticas no pre-commit (após F8 do plano DECISIONS):
+> - `dev/check_adr_anchors.py` — slugs GitHub Slugger válidos.
+> - `dev/build_adr_toc.py --check` — ToC sincronizado com headings.
+> - `dev/validate_adr_format.py` — formato Status/Data + estrutura mínima.
 
 ---
 

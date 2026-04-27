@@ -66,9 +66,21 @@ def collect_headings(content: str) -> dict[str, str]:
 
 
 def collect_anchor_refs(content: str) -> list[tuple[int, str, str]]:
-    """Retorna [(linha, texto_link, slug_citado)] para cada `[X](#adr-...)`."""
+    """Retorna [(linha, texto_link, slug_citado)] para cada `[X](#adr-...)`.
+
+    Ignora linhas dentro de blocos de código (cercados por ```).
+    """
     refs: list[tuple[int, str, str]] = []
+    in_code_block = False
     for line_no, line in enumerate(content.splitlines(), start=1):
+        # Aceita fence em código normal (```), em blockquote (> ```) e
+        # com indentação variável.
+        stripped = line.lstrip("> \t")
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
         for match in ANCHOR_RE.finditer(line):
             refs.append((line_no, match.group(1), match.group(2)))
     return refs

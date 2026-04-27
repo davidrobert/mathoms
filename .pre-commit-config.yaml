@@ -129,3 +129,27 @@ repos:
         stages: [pre-push]
         pass_filenames: false
         always_run: true
+
+      # --------------------------------------------------------------------
+      # Gates de DECISIONS.md (Sprint A7 · F0/F4/F8 do plano de correção)
+      # --------------------------------------------------------------------
+      - id: adr-anchors
+        name: "DECISIONS.md: anchor links válidos (GitHub Slugger)"
+        entry: python3 dev/check_adr_anchors.py
+        language: system
+        files: ^docs/DECISIONS\.md$
+        pass_filenames: false
+
+      - id: adr-toc
+        name: "DECISIONS.md: ToC sincronizado com headings"
+        entry: python3 dev/build_adr_toc.py --check
+        language: system
+        files: ^docs/DECISIONS\.md$
+        pass_filenames: false
+
+      - id: adr-format
+        name: "DECISIONS.md: formato Status/Data + estrutura mínima"
+        entry: python3 dev/validate_adr_format.py
+        language: system
+        files: ^docs/DECISIONS\.md$
+        pass_filenames: false

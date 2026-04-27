@@ -316,6 +316,38 @@ no próprio prompt; arquivar só quando o prompt deixa de fazer sentido
 
 ---
 
+## ADRs → `docs/DECISIONS.md`
+
+Toda decisão arquitetural ou de produto não-trivial vira ADR. Convenções
+canonicas em [docs/DECISIONS.md §Cheat-sheet](docs/DECISIONS.md):
+
+- **Heading:** `## ADR-NNN — Título descritivo` (3 dígitos zero-padded).
+  Não criar sufixos `-XX` (`-TQ`/`-WS` são apenas históricos).
+- **Status:** apenas 3 valores aceitos pelo
+  [`dev/validate_adr_format.py`](dev/validate_adr_format.py):
+  `Decidido`, `Proposto`, `Roadmap`. Sufixos de fase em parênteses são
+  livres (`Decidido (F8.4)`, `Decidido (Sprint A7.6)`).
+- **Anchor link:** copy-paste do título real, **nunca** reinventado.
+  Use `python3 dev/check_adr_anchors.py --suggest` para gerar.
+- **Supersedure bidirecional:** ao criar ADR-Y que substitui ADR-X,
+  declare `**Supersedes** ADR-X` em Y **e** adicione banner
+  `> **Nota (YYYY-MM-DD):** parcialmente superseded por ADR-Y` em X.
+- **ToC:** rode `python3 dev/build_adr_toc.py --inline` após adicionar
+  uma ADR. Categoria pode ser ajustada via override em `OVERRIDES` no
+  script.
+- **Tamanho:** ADR > 150 linhas exige justificativa explícita ou split
+  (mover detalhes operacionais para `track_*.md` ou doc operacional).
+
+**Gates de validação** (rodar antes de commit em `docs/DECISIONS.md`):
+
+```bash
+python3 dev/check_adr_anchors.py        # slugs GitHub Slugger válidos
+python3 dev/build_adr_toc.py --check    # ToC sincronizado
+python3 dev/validate_adr_format.py      # formato Status/Data/seções
+```
+
+---
+
 ## Regras críticas (invariantes do repositório)
 
 ### Idioma e dados sensíveis
