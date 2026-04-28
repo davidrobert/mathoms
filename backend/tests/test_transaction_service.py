@@ -13,7 +13,13 @@ def _payload(items: list[dict]) -> dict:
 
 
 def _tx(descricao: str, valor: str, *, data: str = "2026-04-15", banco: str = "c6bank") -> dict:
-    return {"data": data, "descricao": descricao, "valor": valor, "banco": banco, "titular": "David"}
+    return {
+        "data": data,
+        "descricao": descricao,
+        "valor": valor,
+        "banco": banco,
+        "titular": "David",
+    }
 
 
 @pytest.fixture
