@@ -1,15 +1,12 @@
 "use client";
 
 /**
- * /plano — overview do plano financeiro do workspace (F8.1 + F8.5).
+ * /plano — hub de metas financeiras do workspace (F8.1 + F8.5).
  *
- * Dashboard multi-goal:
- * - Grid 2x2 com status cards para IF, Aportes, Dolarizacao, Alocacao
- * - Banner CTA quando 0 goals configuradas
- * - Barra de progresso IF + KPI cards + tarefas (backward compat)
+ * Hierarquia: hero IF (meta-mãe) → metas de suporte (Aportes/Dolarização/
+ * Alocação) → tarefas que destravam a IF.
  */
 
-import Link from "next/link";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -18,12 +15,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 
-import { EmptyGoalsBanner } from "./_components/EmptyGoalsBanner";
-import { GoalsOverviewGrid } from "./_components/GoalsOverviewGrid";
-import { IFKPIsRow } from "./_components/IFKPIsRow";
-import { IFParamsCard } from "./_components/IFParamsCard";
-import { IFProgressBar } from "./_components/IFProgressBar";
+import { IFEmptyHero, IFHeroCard } from "./_components/IFHeroCard";
 import { LinkedTasksSection } from "./_components/LinkedTasksSection";
+import { SupportGoalsRow } from "./_components/SupportGoalsRow";
 import { usePlanoOverview } from "./_components/usePlanoOverview";
 
 export default function PlanoPage() {
@@ -44,68 +38,40 @@ export default function PlanoPage() {
     return <PlanoNoWorkspaceState />;
   }
 
-  const configuredCount = [
-    goals.ifGoal,
-    goals.aporteGoal,
-    goals.dolarGoal,
-    goals.alocacaoGoal,
-  ].filter(Boolean).length;
-
   const ifGoal = goals.ifGoal;
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-6xl px-6 py-8">
       <PageHeader
         title="Meu Plano"
         description="Metas financeiras e progresso"
-        actions={
-          ifGoal ? (
-            <Button
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/plano/meta-if" />}
-            >
-              Revisar meta IF
-            </Button>
-          ) : undefined
-        }
       />
 
-      {configuredCount === 0 && <EmptyGoalsBanner />}
+      {ifGoal ? (
+        <IFHeroCard goal={ifGoal} progress={progress} />
+      ) : (
+        <IFEmptyHero />
+      )}
 
-      <GoalsOverviewGrid
-        ifGoal={goals.ifGoal}
+      <SupportGoalsRow
         aporteGoal={goals.aporteGoal}
         dolarGoal={goals.dolarGoal}
         alocacaoGoal={goals.alocacaoGoal}
       />
 
-      {ifGoal && (
-        <>
-          {progress && (
-            <IFProgressBar
-              pct={progress.pct}
-              faltante={progress.faltante}
-              patrimonio={progress.patrimonio}
-              metaBrl={ifGoal.derived.if_meta_brl}
-            />
-          )}
-          <IFKPIsRow goal={ifGoal} />
-          <IFParamsCard goal={ifGoal} />
-          <LinkedTasksSection tasks={linkedTasks} />
-        </>
-      )}
+      {ifGoal && <LinkedTasksSection tasks={linkedTasks} />}
     </div>
   );
 }
 
 function PlanoLoadingState() {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-6xl px-6 py-8">
       <PageHeader title="Meu Plano" description="Carregando..." />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-28 rounded-lg" />
+      <Skeleton className="mb-6 h-56 rounded-xl" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-20 rounded-xl" />
         ))}
       </div>
     </div>
@@ -114,7 +80,7 @@ function PlanoLoadingState() {
 
 function PlanoErrorState({ error }: { error: string }) {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-6xl px-6 py-8">
       <PageHeader title="Meu Plano" />
       <Card>
         <CardContent className="py-12">
@@ -138,7 +104,7 @@ function PlanoErrorState({ error }: { error: string }) {
 
 function PlanoNoWorkspaceState() {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-6xl px-6 py-8">
       <PageHeader title="Meu Plano" />
       <Card>
         <CardContent className="py-12 text-center">

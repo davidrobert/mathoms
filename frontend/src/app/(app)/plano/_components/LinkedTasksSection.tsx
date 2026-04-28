@@ -5,7 +5,6 @@ import { ArrowRight, ListTodo, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { TaskDeadlineBadge } from "@/components/tasks/TaskDeadlineBadge";
 import { TaskPriorityChip } from "@/components/tasks/TaskPriorityChip";
 import { TaskStatusPill } from "@/components/tasks/TaskStatusPill";
@@ -17,28 +16,26 @@ interface LinkedTasksSectionProps {
 
 export function LinkedTasksSection({ tasks }: LinkedTasksSectionProps) {
   return (
-    <Card className="mt-6">
-      <CardContent className="py-6">
-        <LinkedTasksHeader count={tasks.length} />
-        {tasks.length === 0 ? (
-          <EmptyLinkedTasks />
-        ) : (
-          <ul className="space-y-2">
-            {tasks.map((task) => (
-              <LinkedTaskRow key={task.id} task={task} />
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+    <section className="mt-8">
+      <LinkedTasksHeader count={tasks.length} />
+      {tasks.length === 0 ? (
+        <EmptyLinkedTasks />
+      ) : (
+        <ul className="space-y-2">
+          {tasks.map((task) => (
+            <LinkedTaskRow key={task.id} task={task} />
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
 function LinkedTasksHeader({ count }: { count: number }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        <ListTodo className="h-4 w-4" />
+      <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <ListTodo className="h-3.5 w-3.5" />
         Tarefas que destravam esta meta
         {count > 0 && (
           <span className="ml-1 font-mono text-xs tabular-nums normal-case">
@@ -82,7 +79,7 @@ function EmptyLinkedTasks() {
           render={<Link href="/plano-de-acao/sugestoes" />}
         >
           <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-          Ver sugestoes automaticas
+          Ver sugestões automáticas
         </Button>
       </div>
     </div>
