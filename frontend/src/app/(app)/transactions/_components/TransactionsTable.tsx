@@ -13,7 +13,7 @@ import { TransactionRow } from "./TransactionRow";
 interface TransactionsTableProps {
   transactions: TransactionItem[];
   categoryOptions: string[];
-  editingHash: string | null;
+  editingRowId: string | null;
   editCategory: string;
   savingOverride: boolean;
   onStartEdit: (tx: TransactionItem) => void;
@@ -40,10 +40,10 @@ export function TransactionsTable(props: TransactionsTableProps) {
         <TableBody>
           {props.transactions.map((tx) => (
             <TransactionRow
-              key={tx.transaction_hash}
+              key={tx.row_id}
               tx={tx}
               categoryOptions={props.categoryOptions}
-              editing={props.editingHash === tx.transaction_hash}
+              editing={props.editingRowId === tx.row_id}
               editCategory={props.editCategory}
               savingOverride={props.savingOverride}
               onStartEdit={props.onStartEdit}

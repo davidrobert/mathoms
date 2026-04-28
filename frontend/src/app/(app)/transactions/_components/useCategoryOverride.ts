@@ -15,12 +15,12 @@ interface Options {
 }
 
 export function useCategoryOverride({ workspaceId, onAfterChange, onError }: Options) {
-  const [editingHash, setEditingHash] = useState<string | null>(null);
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [editCategory, setEditCategory] = useState("");
   const [savingOverride, setSavingOverride] = useState(false);
 
   function startEdit(tx: TransactionItem) {
-    setEditingHash(tx.transaction_hash);
+    setEditingRowId(tx.row_id);
     setEditCategory(tx.categoria);
   }
 
@@ -29,7 +29,7 @@ export function useCategoryOverride({ workspaceId, onAfterChange, onError }: Opt
     setSavingOverride(true);
     try {
       await overrideTransactionCategory(workspaceId, hash, { new_category: editCategory });
-      setEditingHash(null);
+      setEditingRowId(null);
       await onAfterChange();
     } catch (err) {
       onError(err instanceof ApiError ? err.detail : "Erro ao salvar override");
@@ -51,10 +51,10 @@ export function useCategoryOverride({ workspaceId, onAfterChange, onError }: Opt
   }
 
   return {
-    editingHash,
+    editingRowId,
     editCategory,
     savingOverride,
-    setEditingHash,
+    setEditingRowId,
     setEditCategory,
     startEdit,
     saveOverride,

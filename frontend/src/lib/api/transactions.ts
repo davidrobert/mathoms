@@ -13,6 +13,7 @@ export interface TransactionItem {
   titular: string;
   moeda: string;
   transaction_hash: string;
+  row_id: string;
   is_overridden: boolean;
 }
 

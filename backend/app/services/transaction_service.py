@@ -45,9 +45,12 @@ def load_transactions(workspace_id: str, tenant_root: str) -> list[TransactionIt
     raw_despesas = _flatten_e4_payload(despesas_payload, "despesa")
 
     all_raw = raw_receitas + raw_despesas
+    occurrence_counter: dict[str, int] = {}
     items: list[TransactionItem] = []
     for tx in all_raw:
         tx_hash = generate_transaction_hash(tx)
+        idx = occurrence_counter.get(tx_hash, 0)
+        occurrence_counter[tx_hash] = idx + 1
         items.append(
             TransactionItem(
                 data=tx.get("data", ""),
@@ -60,6 +63,7 @@ def load_transactions(workspace_id: str, tenant_root: str) -> list[TransactionIt
                 titular=tx.get("titular"),
                 moeda=tx.get("moeda"),
                 transaction_hash=tx_hash,
+                row_id=f"{tx_hash}:{idx}",
                 is_overridden=False,
             )
         )

@@ -376,11 +376,11 @@ function TransactionsContent() {
           <TransactionsTable
             transactions={data.transactions}
             categoryOptions={categoryOptions}
-            editingHash={override.editingHash}
+            editingRowId={override.editingRowId}
             editCategory={override.editCategory}
             savingOverride={override.savingOverride}
             onStartEdit={override.startEdit}
-            onCancelEdit={() => override.setEditingHash(null)}
+            onCancelEdit={() => override.setEditingRowId(null)}
             onEditCategoryChange={override.setEditCategory}
             onSaveOverride={override.saveOverride}
             onRemoveOverride={override.clearOverride}

@@ -7418,6 +7418,10 @@
             ],
             "title": "Origem"
           },
+          "row_id": {
+            "title": "Row Id",
+            "type": "string"
+          },
           "tipo_conta": {
             "anyOf": [
               {
@@ -7455,7 +7459,8 @@
           "valor",
           "banco",
           "categoria",
-          "transaction_hash"
+          "transaction_hash",
+          "row_id"
         ],
         "title": "TransactionItem",
         "type": "object"

@@ -25,7 +25,14 @@ class TransactionItem(BaseModel):
     tipo_conta: Optional[str] = None
     titular: Optional[str] = None
     moeda: Optional[str] = None
+    # Identidade lógica (data|descricao|valor|banco|titular). Múltiplas
+    # transações físicas idênticas (ex.: 2 lattes no mesmo dia) compartilham
+    # este hash — propositalmente, pois TransactionOverride é unique por hash.
     transaction_hash: str
+    # Identidade física estável por linha (`{hash}:{occurrence_idx}`). Usado
+    # como chave de render no frontend; resolve colisão de keys quando hash
+    # logical repete entre linhas distintas.
+    row_id: str
     is_overridden: bool = False
 
 
