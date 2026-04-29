@@ -49,9 +49,7 @@ class DismissSuggestionCommand(BaseModel):
     @classmethod
     def _validate_reason(cls, v: str) -> str:
         if v not in VALID_DISMISS_REASONS:
-            raise ValueError(
-                f"reason inválido: {v!r}; aceitos: {sorted(VALID_DISMISS_REASONS)}"
-            )
+            raise ValueError(f"reason inválido: {v!r}; aceitos: {sorted(VALID_DISMISS_REASONS)}")
         return v
 
 

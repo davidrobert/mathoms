@@ -1,14 +1,17 @@
 "use client";
 
 /**
- * Direção E · Onda 4 — placeholder hook para contagem de sugestões pendentes.
+ * Direção E · Onda 5 · ADR-153 — contagem de sugestões pendentes do
+ * último relatório (impl real). Substitui o stub Onda 4.
  *
- * Aggregate `Suggestion` ainda não existe no backend (Onda 5 entregará
- * tabela + endpoints + pipeline E5 que gera sugestões). Por enquanto
- * retorna sempre 0 — banner em `/plano` fica oculto. Quando Onda 5
- * ligar o endpoint, basta trocar o stub pela chamada real (mesma
- * assinatura do hook permanece).
+ * Mesma assinatura do stub para que `SuggestionsBanner` em `/plano` e
+ * `ActionStatusBar` em `/acao` continuem funcionando sem mudança no
+ * call-site.
  */
+
+import { useCallback, useEffect, useState } from "react";
+
+import { countSuggestions } from "@/lib/api";
 
 export interface SuggestionsCountState {
   count: number;
@@ -18,9 +21,32 @@ export interface SuggestionsCountState {
 export function useSuggestionsCount(
   workspaceId: string | undefined,
 ): SuggestionsCountState {
-  // Stub determinístico até Onda 5 (Suggestion full-stack).
-  // Mantém referência a workspaceId para o linter aceitar e para
-  // sinalizar que o hook é workspace-scoped quando real.
-  void workspaceId;
-  return { count: 0, loading: false };
+  const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const reload = useCallback(async () => {
+    if (!workspaceId) {
+      setCount(0);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const resp = await countSuggestions(workspaceId, "Pendente");
+      setCount(resp.count);
+    } catch (err) {
+      // Falha silenciosa no banner — UI degrada para count=0 (banner some).
+      // Banner de sugestões é cosmético; toast aqui geraria ruído visual.
+      void err;
+      setCount(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [workspaceId]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  return { count, loading };
 }

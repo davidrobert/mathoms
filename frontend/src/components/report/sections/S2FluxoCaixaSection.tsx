@@ -3,6 +3,7 @@
 import { ReportSection } from "../ReportSection";
 import { SectionSnapshotDiff } from "../SectionSnapshotDiff";
 import { SectionSummary } from "../SectionSummary";
+import { SuggestionCalloutInline } from "./SuggestionCallout";
 import {
   ConsumoConscienteCard,
   DiagnosticoComportamentalCard,
@@ -31,8 +32,10 @@ import { deriveChartConclusion } from "../utils/conclusionUtils";
  */
 export function S2FluxoCaixaSection({
   data,
+  workspaceId,
 }: {
   data: ReportAnalysisData;
+  workspaceId?: string;
 }) {
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
   const orcamento = data.orcamento_prospectivo as
@@ -57,6 +60,9 @@ export function S2FluxoCaixaSection({
   return (
     <ReportSection id="S2" title="Fluxo de Caixa — Receitas e Despesas">
       <SectionSummary narrativas={narrativas} sectionId="S2" />
+      {workspaceId && (
+        <SuggestionCalloutInline sectionId="S2" workspaceId={workspaceId} />
+      )}
 
       {/* Charts */}
       <div className="md:col-span-2">

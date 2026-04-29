@@ -257,7 +257,11 @@ def _rule_aporte_abaixo_meta(
 def _rule_dolarizacao_atrasada(
     snapshot: dict[str, Any], cfg: SuggestionGeneratorConfig
 ) -> SuggestionDraft | None:
-    dolar = _as_dict(snapshot.get("dolarizacao") or snapshot.get("usa", {}).get("dolarizacao") if isinstance(snapshot.get("usa"), dict) else snapshot.get("dolarizacao"))
+    dolar = _as_dict(
+        snapshot.get("dolarizacao") or snapshot.get("usa", {}).get("dolarizacao")
+        if isinstance(snapshot.get("usa"), dict)
+        else snapshot.get("dolarizacao")
+    )
     if not dolar:
         return None
     cobertura = _as_float(dolar.get("cobertura_pct"))

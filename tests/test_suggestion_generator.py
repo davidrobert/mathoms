@@ -98,9 +98,7 @@ def test_alocacao_dentro_da_tolerancia_skips(gen):
 
 
 def test_aporte_abaixo_meta_warning(gen):
-    snapshot = {
-        "fluxo_caixa": {"aporte_medio_3m": 1000.0, "aporte_meta_mensal": 2000.0}
-    }
+    snapshot = {"fluxo_caixa": {"aporte_medio_3m": 1000.0, "aporte_meta_mensal": 2000.0}}
     drafts = gen.generate(snapshot)
     d = next(d for d in drafts if d.kind == "aporte_abaixo_meta")
     assert d.severity == "warning"
@@ -108,9 +106,7 @@ def test_aporte_abaixo_meta_warning(gen):
 
 
 def test_aporte_em_dia_skips(gen):
-    snapshot = {
-        "fluxo_caixa": {"aporte_medio_3m": 1500.0, "aporte_meta_mensal": 2000.0}
-    }
+    snapshot = {"fluxo_caixa": {"aporte_medio_3m": 1500.0, "aporte_meta_mensal": 2000.0}}
     assert all(d.kind != "aporte_abaixo_meta" for d in gen.generate(snapshot))
 
 
@@ -132,9 +128,7 @@ def test_ranking_severity_first_then_amount(gen):
     snapshot = {
         "goals": {"taxa_retirada_efetiva_pct": 5.0},  # warning
         "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},  # danger
-        "investimentos": {
-            "desvios_alvo": [{"classe": "X", "desvio_pp": 30.0}]
-        },  # info
+        "investimentos": {"desvios_alvo": [{"classe": "X", "desvio_pp": 30.0}]},  # info
         "fluxo_caixa": {"aporte_medio_3m": 100.0, "aporte_meta_mensal": 1000.0},  # warning
         "dolarizacao": {"cobertura_pct": 0.0, "meta_pct": 50.0},  # info
     }

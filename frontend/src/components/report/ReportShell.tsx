@@ -25,6 +25,7 @@ import { S8PrevidenciaSection } from "./sections/S8PrevidenciaSection";
 import { S9RiscosSection } from "./sections/S9RiscosSection";
 import { S10SinteseSection } from "./sections/S10SinteseSection";
 import { PlanoDeAcaoSection } from "./sections/PlanoDeAcao";
+import { SuggestionCalloutSummary } from "./sections/SuggestionCallout";
 import { ApendiceASection } from "./sections/ApendiceASection";
 import {
   ApendiceBSection,
@@ -395,6 +396,12 @@ export function ReportShell({
                 ),
               )}
 
+              {/* Direção E · Onda 5 · ADR-153 — agregador "Próximos passos"
+                * com lista das sugestões pendentes do workspace. */}
+              {mode === "estrategico" && (
+                <SuggestionCalloutSummary workspaceId={workspaceId} />
+              )}
+
               {/* Apêndices — modo estratégico */}
               {mode === "estrategico" &&
                 (LAYOUT.estrategico.appendices ?? [])
@@ -443,13 +450,13 @@ function MigratedSection({
     case "S1":
       return <S1PatrimonioSection data={data} />;
     case "S2":
-      return <S2FluxoCaixaSection data={data} />;
+      return <S2FluxoCaixaSection data={data} workspaceId={workspaceId} />;
     case "S3":
       return <S3InvestimentosSection data={data} />;
     case "S4":
       return <S4RealEstateSection data={data} />;
     case "S7":
-      return <S7IndependenciaSection data={data} />;
+      return <S7IndependenciaSection data={data} workspaceId={workspaceId} />;
     case "S8":
       return <S8PrevidenciaSection data={data} />;
     case "S9":

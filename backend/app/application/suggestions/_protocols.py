@@ -12,9 +12,7 @@ from backend.app.models.suggestion import Suggestion
 
 
 class SuggestionRepositoryProtocol(Protocol):
-    async def get_by_id(
-        self, workspace_id: str, suggestion_id: str
-    ) -> Optional[Suggestion]: ...
+    async def get_by_id(self, workspace_id: str, suggestion_id: str) -> Optional[Suggestion]: ...
 
     async def get_by_dedup_key(
         self,
@@ -27,8 +25,6 @@ class SuggestionRepositoryProtocol(Protocol):
         self, workspace_id: str, status: Optional[str] = None
     ) -> list[Suggestion]: ...
 
-    async def count_by_workspace(
-        self, workspace_id: str, status: Optional[str] = None
-    ) -> int: ...
+    async def count_by_workspace(self, workspace_id: str, status: Optional[str] = None) -> int: ...
 
     async def add(self, suggestion: Suggestion) -> Suggestion: ...

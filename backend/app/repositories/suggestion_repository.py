@@ -27,9 +27,7 @@ class SuggestionRepository:
     # Queries
     # -------------------------------------------------------------------
 
-    async def get_by_id(
-        self, workspace_id: str, suggestion_id: str
-    ) -> Optional[Suggestion]:
+    async def get_by_id(self, workspace_id: str, suggestion_id: str) -> Optional[Suggestion]:
         result = await self._session.execute(
             select(Suggestion).where(
                 Suggestion.workspace_id == workspace_id,
@@ -67,9 +65,7 @@ class SuggestionRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def count_by_workspace(
-        self, workspace_id: str, status: Optional[str] = None
-    ) -> int:
+    async def count_by_workspace(self, workspace_id: str, status: Optional[str] = None) -> int:
         items = await self.list_by_workspace(workspace_id, status=status)
         return len(items)
 

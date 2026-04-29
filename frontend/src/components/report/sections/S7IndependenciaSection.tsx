@@ -2,6 +2,7 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
+import { SuggestionCalloutInline } from "./SuggestionCallout";
 import { PrevidenciaPgblCard, type PrevidenciaPgblData } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
@@ -9,7 +10,13 @@ import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 
 /** F9 · F2.E — Seção S7 (Independência Financeira). */
-export function S7IndependenciaSection({ data }: { data: ReportAnalysisData }) {
+export function S7IndependenciaSection({
+  data,
+  workspaceId,
+}: {
+  data: ReportAnalysisData;
+  workspaceId?: string;
+}) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const previdencia = data.previdencia_pgbl as unknown as PrevidenciaPgblData | undefined;
@@ -18,6 +25,9 @@ export function S7IndependenciaSection({ data }: { data: ReportAnalysisData }) {
   return (
     <ReportSection id="S7" title="Independência Financeira — Projeção de Longo Prazo">
       <SectionSummary narrativas={narrativas} sectionId="S7" />
+      {workspaceId && (
+        <SuggestionCalloutInline sectionId="S7" workspaceId={workspaceId} />
+      )}
       <NarrativeChartCard
         chartId="projecao_3cenarios"
         title="Projeção Patrimonial — 3 Cenários"

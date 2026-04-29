@@ -83,9 +83,7 @@ async def test_count_with_explicit_status(db, client):
     await _seed_pending_in_ws(db, ws.id)
     await db.commit()
 
-    resp = await client.get(
-        f"/api/workspaces/{ws.id}/suggestions/count?status=Descartada"
-    )
+    resp = await client.get(f"/api/workspaces/{ws.id}/suggestions/count?status=Descartada")
     assert resp.status_code == 200
     assert resp.json()["count"] == 0
 
@@ -225,7 +223,5 @@ async def test_regenerate_suggestions_idempotent(db, client):
     assert body2["skipped_dedup"] == 1
 
     # E confirma que ainda há só 1 Pendente.
-    list_resp = await client.get(
-        f"/api/workspaces/{ws.id}/suggestions?status=Pendente"
-    )
+    list_resp = await client.get(f"/api/workspaces/{ws.id}/suggestions?status=Pendente")
     assert list_resp.json()["total"] == 1

@@ -75,9 +75,7 @@ class Suggestion(Base):
 
     __tablename__ = "suggestions"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("workspaces.id", ondelete="CASCADE"),
@@ -104,12 +102,8 @@ class Suggestion(Base):
         nullable=True,
     )
     dismissed_reason: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
-    accepted_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    dismissed_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    accepted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    dismissed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

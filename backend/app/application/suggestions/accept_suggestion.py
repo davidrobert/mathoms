@@ -92,9 +92,7 @@ async def _create_decision_from(
     """Cria Decision via use case canônico (ADR-136). Emite event extra
     com ``derived_from_suggestion_id`` para rastreabilidade."""
     title = modified_title if modified_title is not None else suggestion.title
-    rationale = (
-        modified_rationale if modified_rationale is not None else suggestion.rationale
-    )
+    rationale = modified_rationale if modified_rationale is not None else suggestion.rationale
     decision_response = await create_decision(
         DecisionCreateCommand(
             code=cmd.decision_code,

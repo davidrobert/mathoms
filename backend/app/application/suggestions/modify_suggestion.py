@@ -39,13 +39,9 @@ async def modify_suggestion(
 ) -> SuggestionResponse:
     suggestion = await _load_pending(workspace_id, suggestion_id, suggestion_repo)
     final_amount = (
-        cmd.amount_brl
-        if cmd.amount_brl is not None
-        else cents_to_brl(suggestion.amount_brl_cents)
+        cmd.amount_brl if cmd.amount_brl is not None else cents_to_brl(suggestion.amount_brl_cents)
     )
-    accept_cmd = AcceptSuggestionCommand(
-        decision_code=cmd.decision_code, note=cmd.note
-    )
+    accept_cmd = AcceptSuggestionCommand(decision_code=cmd.decision_code, note=cmd.note)
     decision = await _create_decision_from(
         suggestion,
         cmd=accept_cmd,
