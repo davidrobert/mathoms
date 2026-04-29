@@ -113,7 +113,7 @@ function SuggestionItem({
       </div>
       {workspaceId && (
         <Link
-          href={`/acao#${suggestion.id}`}
+          href={`/acao?tab=inbox#SUG-${suggestion.id}`}
           className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-foreground hover:underline"
         >
           Promover para ação

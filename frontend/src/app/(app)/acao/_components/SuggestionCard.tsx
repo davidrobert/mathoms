@@ -58,7 +58,11 @@ export function SuggestionCard({
   const [dismissOpen, setDismissOpen] = useState(false);
 
   return (
-    <Card data-suggestion-id={suggestion.id}>
+    <Card
+      id={`SUG-${suggestion.id}`}
+      data-suggestion-id={suggestion.id}
+      className="scroll-mt-24 target:ring-2 target:ring-brand-500 target:ring-offset-2"
+    >
       <CardContent className="flex flex-col gap-3 py-4">
         <SeverityRow suggestion={suggestion} />
         <p className="text-sm font-semibold leading-snug">

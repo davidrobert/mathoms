@@ -6,12 +6,13 @@
  * Renomeada de `/plano-de-acao` em ADR-152. Tabs: Inbox · Tarefas ·
  * Timeline · Notas. Topo fixo de status agrega contadores.
  *
- * Default: tab Tarefas (estado atual da pré-Onda 6). Quando Onda 5
- * ligar Suggestions, fazer Inbox como default se houver pendentes
- * (designer recommendation: "força o ritual").
+ * Default (Onda 7 #2): tab Inbox quando há sugestões pendentes; senão
+ * Tarefas. URL `?tab=inbox|tarefas|timeline|notas` sempre vence (deep-
+ * link do relatório → /acao?tab=inbox#SUG-XXX).
  */
 
-import { useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CalendarClock, Inbox, ListTodo, StickyNote } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -29,39 +30,117 @@ import { InboxTab } from "./_components/InboxTab";
 import { NotasTab } from "./_components/NotasTab";
 import { TasksTab } from "./_components/TasksTab";
 import { TimelineTab } from "./_components/TimelineTab";
+import { useSuggestionsCount } from "../plano/_components/useSuggestionsCount";
 
 type TabId = "inbox" | "tarefas" | "timeline" | "notas";
 
-const DEFAULT_TAB: TabId = "tarefas";
+const FALLBACK_TAB: TabId = "tarefas";
+const VALID_TAB_IDS: ReadonlySet<string> = new Set([
+  "inbox",
+  "tarefas",
+  "timeline",
+  "notas",
+]);
+
+function parseTabId(value: string | null | undefined): TabId | null {
+  return value && VALID_TAB_IDS.has(value) ? (value as TabId) : null;
+}
 
 export default function AcaoPage() {
-  const { workspace, isLoading: wsLoading } = useWorkspace();
-  const [tab, setTab] = useState<TabId>(DEFAULT_TAB);
+  return (
+    <Suspense fallback={<AcaoLoadingState />}>
+      <AcaoPageInner />
+    </Suspense>
+  );
+}
 
-  if (wsLoading) {
-    return (
-      <div className="mx-auto max-w-5xl px-6 py-8">
-        <PageHeader title="Ação" description="Carregando..." />
-      </div>
-    );
-  }
-  if (!workspace) {
-    return <NoWorkspaceState />;
-  }
+function AcaoLoadingState() {
+  return (
+    <div className="mx-auto max-w-5xl px-6 py-8">
+      <PageHeader title="Ação" description="Carregando..." />
+    </div>
+  );
+}
+
+function AcaoPageInner() {
+  const { workspace, isLoading: wsLoading } = useWorkspace();
+  const searchParams = useSearchParams();
+  const urlTab = parseTabId(searchParams?.get("tab"));
+  const { count: pending, loading: pendingLoading } = useSuggestionsCount(workspace?.id);
+  const { tab, onTabChange } = useTabSelection({ urlTab, pending, pendingLoading });
+  useScrollToHashCard(tab);
+
+  if (wsLoading) return <AcaoLoadingState />;
+  if (!workspace) return <NoWorkspaceState />;
+  return <AcaoLoaded workspaceId={workspace.id} tab={tab} onTabChange={onTabChange} />;
+}
+
+interface AcaoLoadedProps {
+  workspaceId: string;
+  tab: TabId;
+  onTabChange: (t: TabId) => void;
+}
+
+function AcaoLoaded({ workspaceId, tab, onTabChange }: AcaoLoadedProps) {
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
       <PageHeader
         title="Ação"
         description="O que fazer agora — sugestões, tarefas, próximos passos, notas"
       />
-      <ActionStatusBar workspaceId={workspace.id} />
-      <AcaoTabs
-        tab={tab}
-        onTabChange={setTab}
-        workspaceId={workspace.id}
-      />
+      <ActionStatusBar workspaceId={workspaceId} />
+      <AcaoTabs tab={tab} onTabChange={onTabChange} workspaceId={workspaceId} />
     </div>
   );
+}
+
+interface UseTabSelectionInput {
+  urlTab: TabId | null;
+  pending: number;
+  pendingLoading: boolean;
+}
+
+/** Onda 7 #2 — defaulta para Inbox quando há sugestões pendentes; URL
+ * `?tab=` sempre vence; se o usuário trocou manualmente, ignora pending. */
+function useTabSelection({ urlTab, pending, pendingLoading }: UseTabSelectionInput) {
+  const [tab, setTab] = useState<TabId>(urlTab ?? FALLBACK_TAB);
+  const userPickedRef = useRef(false);
+
+  useEffect(() => {
+    if (urlTab) return;
+    if (userPickedRef.current) return;
+    if (pendingLoading) return;
+    if (pending > 0) setTab("inbox");
+  }, [pending, pendingLoading, urlTab]);
+
+  const onTabChange = (t: TabId) => {
+    userPickedRef.current = true;
+    setTab(t);
+  };
+  return { tab, onTabChange };
+}
+
+/** Onda 7 #3 — quando navegamos para `/acao?tab=inbox#SUG-XXX`, o Inbox
+ * carrega assíncrono; tentamos posicionar o card por ~2s até ele
+ * existir no DOM. Anchor highlight via `:target` em SuggestionCard. */
+function useScrollToHashCard(tab: TabId) {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (tab !== "inbox") return;
+    const hash = window.location.hash;
+    if (!hash || hash.length < 2) return;
+    let attempts = 0;
+    const handle = window.setInterval(() => {
+      const el = document.getElementById(hash.slice(1));
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.clearInterval(handle);
+        return;
+      }
+      if (++attempts >= 20) window.clearInterval(handle);
+    }, 100);
+    return () => window.clearInterval(handle);
+  }, [tab]);
 }
 
 function NoWorkspaceState() {
