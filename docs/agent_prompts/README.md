@@ -54,7 +54,7 @@ inteiro.
 | **A7.5 Cleanup final** (Sprint A7 · Onda 4 BLOQUEANTE) | [track_a7_5_cleanup.md](track_a7_5_cleanup.md) | A7 (4/4) | `agent/a7-5-cleanup/*` |
 | **Onda 5 Suggestion full-stack** (Direção E — redesign de interfaces) | [track_onda_5_suggestion_aggregate.md](track_onda_5_suggestion_aggregate.md) | Direção E (5/6) | `agent/onda-5-suggestion-aggregate/*` |
 | **Onda 1 Migration kanban→task + notes→workspace_notes** (Direção E — paralelizável com Onda 5) | [track_onda_1_kanban_task_migration.md](track_onda_1_kanban_task_migration.md) | Direção E (1/6) | `agent/onda-1-kanban-task-migration/*` |
-| **Onda 7 P0 bloqueadores** (Direção E pós-revisão · ~3d · P0 — bloqueia ritual mensal) | [track_onda_7_p0_blockers.md](track_onda_7_p0_blockers.md) | Direção E pós-revisão (7/9) | `agent/onda-7-p0-blockers/*` |
+| **Onda 7 P0 bloqueadores** ✅ entregue 2026-04-29 (5 fixes em main, vitest 691 passing, ADR-156) | [track_onda_7_p0_blockers.md](track_onda_7_p0_blockers.md) | Direção E pós-revisão (7/9) | `agent/onda-7-p0-blockers/*` |
 | **Onda 8 Coerência metodológica** (Direção E pós-revisão · ~5-7d · P1 — Cerbasi/AUVP/Perini completos) | [track_onda_8_methodology_coherence.md](track_onda_8_methodology_coherence.md) | Direção E pós-revisão (8/9) | `agent/onda-8-methodology-coherence/*` |
 | **Onda 9 Design system polish + mobile** (Direção E pós-revisão · ~3d · P2 — paralelizável) | [track_onda_9_design_system_polish.md](track_onda_9_design_system_polish.md) | Direção E pós-revisão (9/9) | `agent/onda-9-design-system-polish/*` |
 

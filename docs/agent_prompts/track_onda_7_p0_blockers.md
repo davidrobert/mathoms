@@ -1,6 +1,7 @@
 # Track — Onda 7: bloqueadores P0 da Direção E (pós-revisão de produto)
 
-> **Status:** ☐ aberta
+> **Status:** ✅ entregue 2026-04-29 (5 fixes em main, vitest 691 passing,
+> ADR-156, CHANGELOG)
 >
 > **Contexto:** prompt self-contained para nova sessão Claude Code
 > dedicada à Onda 7 da Direção E. Branch sugerida:

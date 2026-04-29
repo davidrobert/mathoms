@@ -14,12 +14,13 @@
 > system. **3 ondas dedicadas** com prompts self-contained
 > (paralelizáveis com gating na Onda 7 #4 single-source patrimônio):
 >
-> - **Onda 7 P0 bloqueadores** (~3d) — reordenar `/plano` (Estratégia →
->   Plano de Ação → Mês corrente collapsible); `/acao` default = Inbox
->   quando há pendentes; fix anchor `#SUG-XXX` do relatório → Inbox;
->   single-source `patrimonio_snapshot`; `<OnboardingHero/>` para
->   workspace zero. Prompt: [track_onda_7_p0_blockers.md](agent_prompts/track_onda_7_p0_blockers.md).
->   Branch: `agent/onda-7-p0-blockers/*`. **Recomendado executar primeiro.**
+> - **Onda 7 P0 bloqueadores** ✅ **2026-04-29** — 5 fixes em main:
+>   `/plano` reordenado (Estratégia → Plano de Ação → Mês corrente
+>   collapsible); `/acao` default = Inbox quando há pendentes + lê
+>   `?tab=`; anchor `#SUG-XXX` do relatório → Inbox funciona;
+>   single-source `patrimonio_snapshot` ([ADR-156](DECISIONS.md#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7));
+>   `<OnboardingHero/>` para workspace zero. Vitest 691 passing (+2
+>   teste paridade KPI↔Hero). Prompt: [track_onda_7_p0_blockers.md](agent_prompts/track_onda_7_p0_blockers.md).
 > - **Onda 8 Coerência metodológica** (~5-7d) — 6 novas regras
 >   Suggestion (endividamento, lifestyle creep, seguros, concentração
 >   instituição, custo essencial vs inflação, renda passiva Perini);
