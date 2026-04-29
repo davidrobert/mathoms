@@ -98,8 +98,12 @@ def _partial_failure_result(
     }
     _audit_purge(actor, scope, details, result="partial_failure")
     return OpResult.failure(
-        "partial_failure", preview=False, count=summary["count"],
-        ids=summary["ids"], failed_blobs=failed_blobs, blobs_removed=blobs_removed,
+        "partial_failure",
+        preview=False,
+        count=summary["count"],
+        ids=summary["ids"],
+        failed_blobs=failed_blobs,
+        blobs_removed=blobs_removed,
     )
 
 
@@ -118,7 +122,9 @@ async def _collect(
     run_ids = await _target_run_ids(db, ws_ids)
     ctx = await resolve_scope_context(db, scope)
     summary = _build_summary(
-        docs, run_ids, scope,
+        docs,
+        run_ids,
+        scope,
         {"owner_email": ctx.owner_email, "workspace_names": list(ctx.workspace_names)},
     )
     return docs, ws_ids, run_ids, summary
@@ -141,10 +147,16 @@ async def purge_documents(
         await db.rollback()
         return _partial_failure_result(actor, scope, summary, blobs_removed, failed)
     await _do_purge(db, ws_ids, run_ids)
-    _audit_purge(actor, scope, {
-        "count": summary["count"], "blobs_removed": blobs_removed,
-        "runs_removed": len(run_ids), "scope": summary["scope"],
-    })
+    _audit_purge(
+        actor,
+        scope,
+        {
+            "count": summary["count"],
+            "blobs_removed": blobs_removed,
+            "runs_removed": len(run_ids),
+            "scope": summary["scope"],
+        },
+    )
     return OpResult.success(
         preview=False, blobs_removed=blobs_removed, runs_removed=len(run_ids), **summary
     )

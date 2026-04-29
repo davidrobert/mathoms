@@ -84,7 +84,9 @@ async def test_purge_reports_by_workspace_deletes_rows_and_e5(db, audit_path: Pa
     assert result.ok and result.details["count"] == 1
     assert result.details["artifacts_removed"] == 1
     assert await _scalars_all(db, select(Report).where(Report.workspace_id == ws.id)) == []
-    assert await _scalars_all(db, select(ReportNotes).where(ReportNotes.workspace_id == ws.id)) == []
+    assert (
+        await _scalars_all(db, select(ReportNotes).where(ReportNotes.workspace_id == ws.id)) == []
+    )
     assert await _scalars_all(db, select(KanbanItem).where(KanbanItem.workspace_id == ws.id)) == []
     e5 = await _scalars_all(db, select(PipelineArtifact).where(PipelineArtifact.id == e5_id))
     e2 = await _scalars_all(db, select(PipelineArtifact).where(PipelineArtifact.id == e2_id))

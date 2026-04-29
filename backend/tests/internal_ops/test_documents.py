@@ -90,10 +90,15 @@ async def _setup_doc_with_artifact(db) -> object:
     ws = await make_workspace(db, owner=user)
     await make_document(db, workspace=ws)
     run = await make_run(db, workspace=ws)
-    db.add(PipelineArtifact(
-        workspace_id=ws.id, pipeline_run_id=run.id, stage="E2",
-        artifact_key="bank", content_json={"transactions": []},
-    ))
+    db.add(
+        PipelineArtifact(
+            workspace_id=ws.id,
+            pipeline_run_id=run.id,
+            stage="E2",
+            artifact_key="bank",
+            content_json={"transactions": []},
+        )
+    )
     return ws
 
 
@@ -107,8 +112,16 @@ async def test_purge_cascades_pipeline_runs_and_artifacts(db, audit_path: Path) 
     )
     await db.commit()
     assert result.ok and result.details["runs_removed"] == 1
-    runs = (await db.execute(select(PipelineRun).where(PipelineRun.workspace_id == ws.id))).scalars().all()
-    arts = (await db.execute(select(PipelineArtifact).where(PipelineArtifact.workspace_id == ws.id))).scalars().all()
+    runs = (
+        (await db.execute(select(PipelineRun).where(PipelineRun.workspace_id == ws.id)))
+        .scalars()
+        .all()
+    )
+    arts = (
+        (await db.execute(select(PipelineArtifact).where(PipelineArtifact.workspace_id == ws.id)))
+        .scalars()
+        .all()
+    )
     assert runs == [] and arts == []
 
 
