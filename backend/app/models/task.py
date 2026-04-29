@@ -73,7 +73,17 @@ VALID_DEADLINE_KINDS: frozenset[str] = frozenset(
     {"HARD_DATE", "MONTH", "QUARTER", "CONDITIONAL", "UNSCHEDULED"}
 )
 
-VALID_CREATED_FROM: frozenset[str] = frozenset({"manual", "seed", "llm_suggestion"})
+VALID_CREATED_FROM: frozenset[str] = frozenset(
+    {"manual", "seed", "llm_suggestion", "kanban_migration"}
+)
+
+# board_column é o eixo tático do Kanban (ADR-153). NULL = task não vive
+# no board view. Preenchido via aceite explícito do usuário ou backfill.
+VALID_BOARD_COLUMNS: frozenset[str] = frozenset({"a_fazer", "em_andamento", "concluido"})
+
+# urgency é o eixo tático ortogonal a `priority` (S/R/O metodológico).
+# Migrado de KanbanItem.prioridade. Opt-in para tasks novas (NULL ok).
+VALID_URGENCIES: frozenset[str] = frozenset({"alta", "media", "baixa"})
 
 VALID_SUGGESTION_STATUSES: frozenset[str] = frozenset({"pending", "approved", "rejected", "merged"})
 
@@ -137,6 +147,25 @@ class Task(Base):
     created_from: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
     source_suggestion_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
+    # ADR-153: Kanban view; NULL = task fora do board. Backfill preserva coluna.
+    board_column: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    board_order: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
+    # ADR-153: eixo tático ortogonal a priority (S/R/O); opt-in.
+    urgency: Mapped[Optional[str]] = mapped_column(String(8), nullable=True)
+
+    # ADR-153: ON DELETE SET NULL preserva task ao deletar o relatório de origem.
+    origin_report_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("reports.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
+    # ADR-153: filtra tasks de Kanban migrado em widgets (UpcomingTasksWidget).
+    is_board_only: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
+
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -169,6 +198,7 @@ class Task(Base):
         UniqueConstraint("workspace_id", "number", name="uq_task_ws_number"),
         Index("ix_tasks_ws_status_deadline", "workspace_id", "status", "deadline_date"),
         Index("ix_tasks_ws_priority_status", "workspace_id", "priority", "status"),
+        Index("ix_tasks_ws_board_column", "workspace_id", "board_column"),
     )
 
     def __repr__(self) -> str:  # pragma: no cover
