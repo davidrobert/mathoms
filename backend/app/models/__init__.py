@@ -46,6 +46,7 @@ from backend.app.models.suggestion import (
     Suggestion,
 )
 from backend.app.models.task import (
+    VALID_BOARD_COLUMNS,
     VALID_CATEGORIES,
     VALID_CREATED_FROM,
     VALID_DEADLINE_KINDS,
@@ -53,6 +54,7 @@ from backend.app.models.task import (
     VALID_STATUSES,
     VALID_SUGGESTION_SOURCES,
     VALID_SUGGESTION_STATUSES,
+    VALID_URGENCIES,
     Task,
     TaskAttachment,
     TaskSuggestion,
@@ -67,6 +69,7 @@ from backend.app.models.workspace_member import (
     WRITE_ROLES,
     WorkspaceMember,
 )
+from backend.app.models.workspace_note import WorkspaceNotes
 
 __all__ = [
     "User",
@@ -86,8 +89,11 @@ __all__ = [
     "VALID_STATUSES",
     "VALID_DEADLINE_KINDS",
     "VALID_CREATED_FROM",
+    "VALID_BOARD_COLUMNS",
+    "VALID_URGENCIES",
     "VALID_SUGGESTION_STATUSES",
     "VALID_SUGGESTION_SOURCES",
+    "WorkspaceNotes",
     "FeatureFlag",
     "FiscalParameter",
     "MarketRate",

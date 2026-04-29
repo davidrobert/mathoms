@@ -35,6 +35,7 @@ from backend.app.api.suggestions import router as suggestions_router
 from backend.app.api.tasks import router as tasks_router
 from backend.app.api.transactions import router as transactions_router
 from backend.app.api.vault import router as vault_router
+from backend.app.api.workspace_notes import router as workspace_notes_router
 from backend.app.api.workspaces import (
     router as workspaces_router,
 )
@@ -181,6 +182,7 @@ _ALL_ROUTERS = (
     workspaces_tenant_router,
     invitations_router,
     tasks_router,
+    workspace_notes_router,
     feature_flags_router,
 )
 
