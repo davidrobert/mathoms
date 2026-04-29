@@ -49,6 +49,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`workspace_category_overrides`](#workspacecategoryoverrides)
 - [`workspace_invitations`](#workspaceinvitations)
 - [`workspace_members`](#workspacemembers)
+- [`workspace_notes`](#workspacenotes)
 - [`workspaces`](#workspaces)
 
 ---
@@ -784,6 +785,11 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `assigned_to` | `VARCHAR(36)` | yes | — | FK→family_members.id |
 | `created_from` | `VARCHAR(32)` | no | `'manual'` | — |
 | `source_suggestion_id` | `VARCHAR(36)` | yes | — | — |
+| `board_column` | `VARCHAR(32)` | yes | — | — |
+| `board_order` | `INTEGER` | yes | — | — |
+| `urgency` | `VARCHAR(8)` | yes | — | — |
+| `origin_report_id` | `VARCHAR(36)` | yes | — | FK→reports.id |
+| `is_board_only` | `BOOLEAN` | no | server: `0` | — |
 | `completed_at` | `DATETIME` | yes | — | — |
 | `cancelled_at` | `DATETIME` | yes | — | — |
 | `created_by` | `VARCHAR(36)` | yes | — | FK→users.id |
@@ -794,6 +800,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - FOREIGN KEY (assigned_to) REFERENCES family_members.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (created_by) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (origin_report_id) REFERENCES reports.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (parent_task_id) REFERENCES tasks.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (related_goal_id) REFERENCES goals.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
@@ -807,6 +814,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_tasks_priority` (priority)
 - `ix_tasks_status` (status)
 - `ix_tasks_workspace_id` (workspace_id)
+- `ix_tasks_ws_board_column` (workspace_id, board_column)
 - `ix_tasks_ws_priority_status` (workspace_id, priority, status)
 - `ix_tasks_ws_status_deadline` (workspace_id, status, deadline_date)
 
@@ -943,6 +951,29 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_workspace_members_user_id` (user_id)
 - `ix_workspace_members_workspace_id` (workspace_id)
 - `ix_workspace_members_ws_user` (workspace_id, user_id)
+
+### `workspace_notes`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `title` | `VARCHAR(200)` | yes | — | — |
+| `content` | `TEXT` | no | `''` | — |
+| `pinned` | `BOOLEAN` | no | server: `0` | — |
+| `author_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (author_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_workspace_notes_workspace_id` (workspace_id)
+- `ix_workspace_notes_ws_pinned_updated` (workspace_id, pinned, updated_at)
 
 ### `workspaces`
 
@@ -1547,6 +1578,11 @@ type Task struct {
 	AssignedTo *string `db:"assigned_to" json:"assigned_to"`
 	CreatedFrom string `db:"created_from" json:"created_from"`
 	SourceSuggestionId *string `db:"source_suggestion_id" json:"source_suggestion_id"`
+	BoardColumn *string `db:"board_column" json:"board_column"`
+	BoardOrder *int `db:"board_order" json:"board_order"`
+	Urgency *string `db:"urgency" json:"urgency"`
+	OriginReportId *string `db:"origin_report_id" json:"origin_report_id"`
+	IsBoardOnly bool `db:"is_board_only" json:"is_board_only"`
 	CompletedAt *time.Time `db:"completed_at" json:"completed_at"`
 	CancelledAt *time.Time `db:"cancelled_at" json:"cancelled_at"`
 	CreatedBy *string `db:"created_by" json:"created_by"`
@@ -1640,6 +1676,21 @@ type WorkspaceMember struct {
 	Role string `db:"role" json:"role"`
 	InvitedBy *string `db:"invited_by" json:"invited_by"`
 	JoinedAt time.Time `db:"joined_at" json:"joined_at"`
+}
+```
+
+### `workspace_notes` → `type WorkspaceNote struct`
+
+```go
+type WorkspaceNote struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	Title *string `db:"title" json:"title"`
+	Content string `db:"content" json:"content"`
+	Pinned bool `db:"pinned" json:"pinned"`
+	AuthorUserId *string `db:"author_user_id" json:"author_user_id"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 ```
 
