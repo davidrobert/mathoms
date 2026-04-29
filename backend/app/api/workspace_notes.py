@@ -1,4 +1,4 @@
-"""WorkspaceNotes API — router fino (ADR-153, supersede ADR-123 ReportNotes)."""
+"""WorkspaceNotes API — router fino (ADR-154, supersede ADR-123 ReportNotes)."""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""dev/migrate_kanban_to_task.py — backfill ADR-153 M1 (kanban_items+report_notes → tasks+workspace_notes; idempotente)."""
+"""dev/migrate_kanban_to_task.py — backfill ADR-154 M1 (kanban_items+report_notes → tasks+workspace_notes; idempotente)."""
 
 from __future__ import annotations
 

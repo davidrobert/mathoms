@@ -1,4 +1,4 @@
-"""WorkspaceNotes — notas livres por workspace, multi-row, com pin (ADR-153, supersede ReportNotes ADR-123)."""
+"""WorkspaceNotes — notas livres por workspace, multi-row, com pin (ADR-154, supersede ReportNotes ADR-123)."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from backend.app.core.database import Base
 
 
 class WorkspaceNotes(Base):
-    """Nota livre por workspace (ADR-153)."""
+    """Nota livre por workspace (ADR-154)."""
 
     __tablename__ = "workspace_notes"
 
