@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 
+import { DecisionsSection } from "./_components/DecisionsSection";
 import { IFEmptyHero, IFHeroCard } from "./_components/IFHeroCard";
 import { LinkedTasksSection } from "./_components/LinkedTasksSection";
 import { SupportGoalsRow } from "./_components/SupportGoalsRow";
@@ -58,6 +59,8 @@ export default function PlanoPage() {
         dolarGoal={goals.dolarGoal}
         alocacaoGoal={goals.alocacaoGoal}
       />
+
+      <DecisionsSection workspaceId={workspace.id} />
 
       {ifGoal && <LinkedTasksSection tasks={linkedTasks} />}
     </div>
