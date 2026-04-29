@@ -70,9 +70,7 @@ class TestCodegenYAML:
             "top-danger",
             "top-accent",
         }
-        all_sections = (
-            layout["estrategico"]["sections"] + layout["usa"]["sections"]
-        )
+        all_sections = layout["estrategico"]["sections"] + layout["usa"]["sections"]
         for section in all_sections:
             for card in section.get("cards", []) or []:
                 if "variant" in card:
@@ -84,9 +82,7 @@ class TestCodegenYAML:
         """Variantes usadas no YAML devem existir em design-tokens/tokens.json."""
         tokens = json.loads((ROOT / "design-tokens" / "tokens.json").read_text())
         allowed = set(tokens["card_variants"].keys())
-        all_sections = (
-            layout["estrategico"]["sections"] + layout["usa"]["sections"]
-        )
+        all_sections = layout["estrategico"]["sections"] + layout["usa"]["sections"]
         used: set[str] = set()
         for section in all_sections:
             for card in section.get("cards", []) or []:
