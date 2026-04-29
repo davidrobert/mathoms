@@ -1,5 +1,10 @@
 # Track — Onda 5: Suggestion aggregate full-stack (Direção E)
 
+> **Status:** ✅ Entregue em 2026-04-29 (commits `ee4dc33`/`0a3dc2f`/
+> `35a4f86`/`7b1d4ff` em `main`, [ADR-153](../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples),
+> [PR #19](https://github.com/davidrobert/mathoms/pull/19)). Mantido em
+> `docs/agent_prompts/` como referência histórica.
+>
 > **Contexto:** Este prompt é self-contained para nova sessão Claude
 > Code dedicada a entregar a Onda 5 da Direção E (redesign de
 > interfaces). Branch sugerida: `agent/onda-5-suggestion-aggregate/<ts>`,
