@@ -89,16 +89,16 @@
 ### 5.2 Report Premium UI smoke (humano · pós-Fase 10)
 
 > Pré-condição: workspace com pelo menos 1 relatório gerado (run completa
-> até E5). Modos `estrategico`/`tatico`/`usa` ativos desde F4 (commit
-> `a3411e6`); a11y automatizada chega via lane
+> até E5). Modos `estrategico`/`usa` ativos (Modo Tático removido em
+> ADR-151 · Direção E · Onda 3). A11y automatizada chega via lane
 > [`report-a11y-finalize`](BACKLOG.md#lanes-abertas-agora--pickup-table) —
 > até lá esta seção é checklist humano provisório.
 
 **Modos**
 
-- [ ] `/reports/<id>?mode=estrategico` carrega seções S1–S10 visíveis
-- [ ] `/reports/<id>?mode=tatico` carrega seções T1–T6 visíveis
+- [ ] `/reports/<id>?mode=estrategico` carrega seções S1–S10 + plano_de_acao + APP_A-E
 - [ ] `/reports/<id>?mode=usa` carrega seções U1–U4 visíveis
+- [ ] `/reports/<id>?mode=tatico` faz fallback silencioso para `estrategico` (modo removido)
 - [ ] Toggle de modo no header preserva o hash atual (abrir em `#S3`,
       trocar modo, hash continua `#S3` ou equivalente do novo modo)
 - [ ] Modo inválido na URL (`?mode=foo`) → fallback silencioso para

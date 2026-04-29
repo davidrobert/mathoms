@@ -253,10 +253,10 @@ O shell persiste estado de UI **localmente** no browser:
 | Chave (prefixo `mathoms.report.`) | O que guarda |
 | --- | --- |
 | `theme`           | `light` \| `dark` (toggle do header) |
-| `mode`            | `estrategico` \| `tatico` \| `usa` (preferência do usuário; URL `?mode=` tem precedência) |
+| `mode`            | `estrategico` \| `usa` (preferência do usuário; URL `?mode=` tem precedência). Modo `tatico` removido em ADR-151. |
 | `font-scale`      | `0.85`–`1.15` (zoom relativo) |
-| `notas:<report_id>:<section_id>` | Notas livres da seção |
-| `kanban:<report_id>` | Colunas + ordem dos cards (T6) |
+| `notas:<report_id>:<section_id>` | Notas livres (legado pré-ADR-151; `report_notes` migra para `workspace_notes` em Onda 1) |
+| `kanban:<report_id>` | Colunas + ordem dos cards (legado pré-ADR-151; `kanban_items` migra para `tasks` em Onda 1) |
 
 Inspecionar/limpar via DevTools → Application → Local Storage → host.
 Reset completo do shell:

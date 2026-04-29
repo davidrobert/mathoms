@@ -111,7 +111,7 @@ Detalhes completos: **[BACKLOG.md#f65--frontend-testing--qa](BACKLOG.md#f65--fro
 - **5 migrations Alembic** encadeadas: workspace_members → goals → tasks → report_snapshot → feature_flags
 - **20 tenant models** detectados pelo lint AST
 - **9 services** novos: goal, task, task_suggestion, task_notification, task_progress, task_attachment, report_tasks_snapshot, feature_flags, pipeline_adapter
-- **11 rotas frontend**: /plano, /plano/meta-if[/wizard], /plano/aportes[/wizard], /plano/dolarizacao[/wizard], /plano/alocacao[/wizard], /plano-de-acao, /plano-de-acao/sugestoes
+- **11 rotas frontend**: /plano, /plano/meta-if[/wizard], /plano/aportes[/wizard], /plano/dolarizacao[/wizard], /plano/alocacao[/wizard], /acao (ex-/plano-de-acao, renomeada em ADR-152), /acao/sugestoes
 - **4 JSON schemas** canônicos: goal.if, goal.aporte_mensal, goal.dolarizacao, goal.alocacao_alvo
 
 **Sequência operacional de cutover** (pós-deploy):

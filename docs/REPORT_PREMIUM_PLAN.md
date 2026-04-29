@@ -1,6 +1,6 @@
 # Plano — Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html`
 
-> ⚠️ **Status do plano (2026-04-27 · documento vivo · escopo dual v1+v2):**
+> ⚠️ **Status do plano (2026-04-29 · documento vivo · escopo dual v1+v2):**
 >
 > - **v1 (Fases 0-10) — ✅ 10/10 entregues em `main`** (banner anterior 2026-04-24).
 > - **Fases 11 / 12 / 13 — canceladas** via
@@ -9,6 +9,14 @@
 > - **v2 (§17) — 🚧 em andamento.** Roadmap pós-v1 com 11 sub-lanes em 4 ondas.
 >   Ondas A/B/C/D parcial + Onda E ✅ 8/8 + Onda F ✅ 5/5 entregues. Lanes
 >   abertas em [BACKLOG.md › Report Premium UI v2](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
+> - **Direção E (2026-04-29) — Modo Tático removido do relatório**
+>   ([ADR-151](DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)).
+>   Toda referência a `tatico.*` (KPIs, T1-T6, Kanban, Timeline,
+>   Notas) abaixo é **registro histórico**. Conteúdo redistribuído:
+>   `/plano` (Decisions D01–D15, Onda 2 ✅), `/acao` (tabs, Onda 6 ✅
+>   — [ADR-152](DECISIONS.md#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6)).
+>   Próximas ondas: Onda 5 (Suggestion full-stack), Onda 1 (migration
+>   `kanban_items` + `report_notes` → `tasks` + `workspace_notes`).
 >
 > O renderer HTML server-side (`scripts/e6_render.py`) foi descontinuado
 > por completo — não há mais alvo de paridade HTML. React

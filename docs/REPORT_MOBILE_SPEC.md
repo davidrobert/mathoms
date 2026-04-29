@@ -5,6 +5,12 @@
 > resposta a [batch2.13](BACKLOG.md) e à decisão D3 de
 > [track_report_a11y_finalize.md](agent_prompts/track_report_a11y_finalize.md).
 >
+> **Atualização (2026-04-29):** Modo Tático removido do relatório
+> ([ADR-151](DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces),
+> Direção E · Onda 3). Especificações mobile abaixo que mencionam
+> T1-T6 são **registro histórico**. Spec mobile efetiva passa a cobrir
+> apenas Modos Estratégico + USA.
+>
 > **Status:** spec only. Implementação fica em lane futura
 > `report-mobile-impl` ([BACKLOG.md](BACKLOG.md)).
 >

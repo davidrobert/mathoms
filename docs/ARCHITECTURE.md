@@ -711,12 +711,13 @@ nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
 | `/pipeline` | Trigger + progress (PhaseStepper 4 fases) |
 | `/transactions` | Filtros, busca, override de categoria, export CSV/XLSX |
 | `/reports` | Lista de relatórios (metadata, score, tamanho) |
-| `/reports/[id]` | **Render nativo React** (18 seções, 13 cards, 8 charts Recharts) |
-| `/plano` | **Home do app.** Overview meta IF: barra de progresso %, 3 KPI cards, parâmetros, tarefas ligadas |
+| `/reports/[id]` | **Render nativo React** — Estratégico (S1–S10 + plano_de_acao + APP_A-E) + USA (U1-U4). Modo Tático removido (ADR-151). |
+| `/plano` | **Home do app — executive summary** (Direção E · Onda 4): KPIs row · banner de sugestões · Hero IF · Metas de suporte · **Decisões em vigor** · Tarefas ligadas à IF |
 | `/plano/meta-if` | Editor da meta IF com simulador live |
 | `/plano/meta-if/wizard` | Wizard 4 passos (renda → TRS → horizonte → confirm) |
-| `/plano-de-acao` | Tasks: 3 views (priority/deadline/category) + CRUD + drawer |
-| `/plano-de-acao/sugestoes` | Fila de sugestões approve/reject 1-click |
+| `/acao` | **Superfície dinâmica** (Direção E · Onda 6, ADR-152): tabs Inbox · Tarefas · Timeline · Notas. Inbox e Notas em placeholder até Ondas 5 e 1. |
+| `/acao/sugestoes` | Fila de TaskSuggestion (LLM) approve/reject 1-click |
+| `/plano-de-acao` | Redirect 308 → `/acao` (rota antiga, ADR-152) |
 | `/vault` | CRUD senhas (encrypted at-rest) |
 | `/config` | Settings: workspace, membros, acessos, categorias, pipeline, layout |
 
@@ -899,7 +900,7 @@ fin-current/
 │   │   │   ├── report/        # Report Premium v1 (decomposto pós-Fase 10)
 │   │   │   │   ├── ui/        # 14 primitivos (Kpi, Alert, Badge, Timeline, NotasCard, kanban/, badges/)
 │   │   │   │   ├── charts/    # 8 Chart.js wrappers + primitives/ + _registry.ts
-│   │   │   │   ├── sections/  # S1-S10 (estratégico) + TaticoSections + UsaSections + ApendiceA-E
+│   │   │   │   ├── sections/  # S1-S10 (estratégico) + UsaSections + ApendiceA-E (Modo Tático removido em ADR-151)
 │   │   │   │   ├── shell/     # ReportCover, ReportTopNav, ExportToolbar, FloatingNav, FontScaleToggle, ModeToggle, SkipNav
 │   │   │   │   ├── kpi/       # PatrimonioKpiRow (KPI rows reutilizáveis)
 │   │   │   │   ├── cards/     # 15 cards de domínio (PerfilFamilia, Reserva, Equilíbrio, Endividamento, Investimentos, Previdência…)

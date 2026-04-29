@@ -90,16 +90,14 @@ Legenda:
 | **APP_D** | ✅ | — | ✅ | ✅ | ✅ | — |
 | **APP_E** | ✅ | — | ✅ | ✅ | ✅ | — |
 
-### Modo Tático (T1–T6)
+### Modo Tático (T1–T6) — REMOVIDO em [ADR-151](DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)
 
-| Seção | 1.4.3 | 2.1.1 | 2.4.3 | 2.4.7 | 4.1.2 | Checklist humano específico |
-|---|---|---|---|---|---|---|
-| **T1** Fluxo Operacional | ✅ | 👁 | ✅ | ✅ | ✅ | — |
-| **T2** Aportes | ✅ | — | ✅ | ✅ | ✅ | — |
-| **T3** Tarefas (Kanban) | ✅ | 👁 | 👁 | ✅ | 👁 | **drag & drop por teclado funciona?** colunas têm role/state? |
-| **T4** Alertas | ✅ | — | ✅ | ✅ | ✅ | — |
-| **T5** Próximos Passos | ✅ | — | ✅ | ✅ | ✅ | — |
-| **T6** Notas | ✅ | 👁 | ✅ | ✅ | ✅ | textarea respeita preferência de tema? |
+> **Histórico (2026-04-29):** Modo Tático removido do relatório
+> (Direção E · Onda 3). Conteúdo redistribuído: Kanban (T3) e Notas
+> (T6) migram para `/acao` na Onda 1; tarefas viviam em `/plano-de-acao`
+> (renomeada para `/acao` em ADR-152). Checklist preservado em
+> arquivo histórico para referência de a11y futura quando Suggestion
+> aggregate (Onda 5) e workspace_notes (Onda 1) entrarem.
 
 ### Modo USA (U1–U4)
 
