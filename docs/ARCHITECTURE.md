@@ -357,11 +357,13 @@ bloqueia recriação acidental.
 | **config_materializer** | Materializa 5 configs editáveis (DB → disco per-tenant) |
 | **goal_service** | Goal computation (IF via FV anuidade, Aporte, Dolar, Alocação) + CRUD versionado append-only (`create_goal_version` genérica, helpers tipados) |
 | **task_service** | Task CRUD + status transitions + dependencies + export MD |
-| **task_suggestion_service** | Suggestion queue: create/approve/reject/merge |
+| **task_suggestion_service** | TaskSuggestion (legado LLM): create/approve/reject/merge — distinto de `Suggestion` (ADR-153) |
 | **task_notification_service** | Scan deadlines → notifications (overdue/upcoming) |
 | **task_progress_service** | % executado (BRL parser + match transactions) |
 | **task_attachment_service** | Upload/list/delete task attachments |
 | **report_tasks_snapshot_service** | Snapshot imutável de tasks no momento do relatório |
+| **suggestion_service** | `Suggestion` aggregate (ADR-153 · Direção E · Onda 5): proposal imutável + state machine accept/dismiss/modify; pipeline E5 gera via `SuggestionGenerator` (5 regras canônicas); aceitar cria Decision com `derived_from_suggestion_id` |
+| **workspace_notes_service** | `WorkspaceNotes` aggregate (ADR-154 · Direção E · Onda 1): notas livres por workspace, multi-row com pin; substitui `report_notes` (deprecated) |
 | **dashboard_service** | KPIs, charts, alerts, data freshness |
 | **transaction_service** | Load transactions E4 JSON + overrides + filtering |
 | **audit_service** | Log audit events (action, resource, actor, IP) |
@@ -711,12 +713,12 @@ nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
 | `/pipeline` | Trigger + progress (PhaseStepper 4 fases) |
 | `/transactions` | Filtros, busca, override de categoria, export CSV/XLSX |
 | `/reports` | Lista de relatórios (metadata, score, tamanho) |
-| `/reports/[id]` | **Render nativo React** — Estratégico (S1–S10 + plano_de_acao + APP_A-E) + USA (U1-U4). Modo Tático removido (ADR-151). |
-| `/plano` | **Home do app — executive summary** (Direção E · Onda 4): KPIs row · banner de sugestões · Hero IF · Metas de suporte · **Decisões em vigor** · Tarefas ligadas à IF |
+| `/reports/[id]` | **Render nativo React** — Estratégico (S1–S10 + plano_de_acao + APP_A-E) + USA (U1-U4). Modo Tático removido (ADR-151). `<SuggestionCallout/>` inline em seções com sugestões + agregador "§ Próximos passos" no fim (ADR-153 · Onda 5). |
+| `/plano` | **Home do app — executive summary** (Direção E · Onda 4): KPIs row · `SuggestionsBanner` (contagem real de sugestões pendentes via Onda 5) · Hero IF · Metas de suporte · **Decisões em vigor** · Tarefas ligadas à IF |
 | `/plano/meta-if` | Editor da meta IF com simulador live |
 | `/plano/meta-if/wizard` | Wizard 4 passos (renda → TRS → horizonte → confirm) |
-| `/acao` | **Superfície dinâmica** (Direção E · Onda 6, ADR-152): tabs Inbox · Tarefas · Timeline · Notas. Inbox e Notas em placeholder até Ondas 5 e 1. |
-| `/acao/sugestoes` | Fila de TaskSuggestion (LLM) approve/reject 1-click |
+| `/acao` | **Superfície dinâmica** (Direção E · Onda 6, ADR-152): tabs Inbox · Tarefas · Timeline · Notas. **Inbox** consome `Suggestion` (ADR-153 · Onda 5) com fluxos Aceitar/Modificar/Descartar. **Notas** consome `WorkspaceNotes` (ADR-154 · Onda 1). |
+| `/acao/sugestoes` | Fila de TaskSuggestion (LLM legacy) approve/reject 1-click — distinto de `Suggestion` (ADR-153) que vive na Inbox tab |
 | `/plano-de-acao` | Redirect 308 → `/acao` (rota antiga, ADR-152) |
 | `/vault` | CRUD senhas (encrypted at-rest) |
 | `/config` | Settings: workspace, membros, acessos, categorias, pipeline, layout |

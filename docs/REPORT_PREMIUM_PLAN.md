@@ -9,14 +9,23 @@
 > - **v2 (§17) — 🚧 em andamento.** Roadmap pós-v1 com 11 sub-lanes em 4 ondas.
 >   Ondas A/B/C/D parcial + Onda E ✅ 8/8 + Onda F ✅ 5/5 entregues. Lanes
 >   abertas em [BACKLOG.md › Report Premium UI v2](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
-> - **Direção E (2026-04-29) — Modo Tático removido do relatório**
+> - **Direção E (2026-04-29) — ✅ COMPLETA (6/6 ondas em `main`).**
+>   Modo Tático removido do relatório
 >   ([ADR-151](DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)).
 >   Toda referência a `tatico.*` (KPIs, T1-T6, Kanban, Timeline,
 >   Notas) abaixo é **registro histórico**. Conteúdo redistribuído:
->   `/plano` (Decisions D01–D15, Onda 2 ✅), `/acao` (tabs, Onda 6 ✅
->   — [ADR-152](DECISIONS.md#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6)).
->   Próximas ondas: Onda 5 (Suggestion full-stack), Onda 1 (migration
->   `kanban_items` + `report_notes` → `tasks` + `workspace_notes`).
+>   `/plano` (Decisions D01–D15 com UI completa, Onda 2 ✅;
+>   `SuggestionsBanner` com count real, Onda 4 ✅), `/acao` (tabs Inbox
+>   · Tarefas · Timeline · Notas, Onda 6 ✅ ·
+>   [ADR-152](DECISIONS.md#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6)).
+>   Adicionalmente: `Suggestion` aggregate full-stack
+>   ([ADR-153](DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) ·
+>   Onda 5 ✅) com `<SuggestionCallout/>` inline no relatório +
+>   agregador "§ Próximos passos" + `<SuggestionCard/>` na Inbox de
+>   `/acao`. Migration `KanbanItem`→`Task` + `ReportNotes`→`WorkspaceNotes`
+>   ([ADR-154](DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) ·
+>   Onda 1 ✅ M1; M2 drop em sprint+1). Notas tab em `/acao` agora
+>   funcional via `useWorkspaceNotes`.
 >
 > O renderer HTML server-side (`scripts/e6_render.py`) foi descontinuado
 > por completo — não há mais alvo de paridade HTML. React

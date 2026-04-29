@@ -94,10 +94,13 @@ Legenda:
 
 > **Histórico (2026-04-29):** Modo Tático removido do relatório
 > (Direção E · Onda 3). Conteúdo redistribuído: Kanban (T3) e Notas
-> (T6) migram para `/acao` na Onda 1; tarefas viviam em `/plano-de-acao`
-> (renomeada para `/acao` em ADR-152). Checklist preservado em
-> arquivo histórico para referência de a11y futura quando Suggestion
-> aggregate (Onda 5) e workspace_notes (Onda 1) entrarem.
+> (T6) migrados para `/acao` Tarefas/Notas via ADR-154 (Onda 1 ✅);
+> tarefas viviam em `/plano-de-acao` (renomeada para `/acao` em
+> ADR-152). Sugestões acionáveis vivem em `/acao` Inbox via ADR-153
+> (Suggestion aggregate · Onda 5 ✅). Checklist a11y dos novos
+> componentes (`<SuggestionCallout/>` inline no relatório,
+> `<SuggestionCard/>` em /acao Inbox, NotasTab com `<WorkspaceNotes/>`)
+> precisa ser adicionado em lane futura.
 
 ### Modo USA (U1–U4)
 
