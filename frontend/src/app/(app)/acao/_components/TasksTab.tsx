@@ -101,11 +101,13 @@ interface TasksState {
 
 function useTasksState(workspaceId: string): TasksState {
   const local = useTasksLocalState();
-  const reload = useReloadTasks(workspaceId, local.includeDone, {
-    setTasks: local.setTasks,
-    setLoading: local.setLoading,
-    setError: local.setError,
-  });
+  const reload = useReloadTasks(
+    workspaceId,
+    local.includeDone,
+    local.setTasks,
+    local.setLoading,
+    local.setError,
+  );
   useEffect(() => {
     void reload();
   }, [reload]);
@@ -145,30 +147,25 @@ function useTasksLocalState(): TasksLocalState {
   };
 }
 
-interface ReloadDeps {
-  setTasks: (t: TaskResponse[]) => void;
-  setLoading: (b: boolean) => void;
-  setError: (s: string | null) => void;
-}
-
 function useReloadTasks(
   workspaceId: string,
   includeDone: boolean,
-  deps: ReloadDeps,
+  setTasks: (t: TaskResponse[]) => void,
+  setLoading: (b: boolean) => void,
+  setError: (s: string | null) => void,
 ): () => Promise<void> {
   return useCallback(async () => {
-    deps.setLoading(true);
-    deps.setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const resp = await listTasks(workspaceId, { include_done: includeDone });
-      deps.setTasks(resp.tasks);
+      setTasks(resp.tasks);
     } catch (err) {
-      const msg = err instanceof ApiError ? err.detail : "Erro ao carregar tarefas";
-      deps.setError(msg);
+      setError(err instanceof ApiError ? err.detail : "Erro ao carregar tarefas");
     } finally {
-      deps.setLoading(false);
+      setLoading(false);
     }
-  }, [workspaceId, includeDone, deps]);
+  }, [workspaceId, includeDone, setTasks, setLoading, setError]);
 }
 
 function useStatusChange(
