@@ -96,3 +96,52 @@ async def test_reports_by_workspace(
     assert resp.status_code == 200
     titles = [r["title"] for r in resp.json()["reports"]]
     assert titles == ["T1"]
+
+
+@pytest.mark.asyncio
+async def test_reports_purge_preview(
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client, db
+) -> None:
+    u = await make_user(db)
+    ws = await make_workspace(db, owner=u, name="Familia X")
+    db.add(Report(workspace_id=ws.id, title="R1"))
+    db.add(Report(workspace_id=ws.id, title="R2"))
+    await db.commit()
+    await _with_cookie(client, ops_session_token_superadmin)
+    resp = await client.post("/admin/reports/purge", json={"workspace_id": ws.id, "preview": True})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["preview"] is True and body["count"] == 2 and body["artifacts_to_remove"] == 0
+    assert body["scope_context"] == {"owner_email": u.email, "workspace_names": ["Familia X"]}
+
+
+@pytest.mark.asyncio
+async def test_reports_purge_requires_scope(
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client
+) -> None:
+    await _with_cookie(client, ops_session_token_superadmin)
+    resp = await client.post("/admin/reports/purge", json={"preview": True})
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_reports_purge_executes(
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client, db
+) -> None:
+    u = await make_user(db)
+    ws = await make_workspace(db, owner=u)
+    db.add(Report(workspace_id=ws.id, title="R1"))
+    await db.commit()
+
+    await _with_cookie(client, ops_session_token_superadmin)
+    resp = await client.post(
+        "/admin/reports/purge",
+        json={"workspace_id": ws.id, "preview": False},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["preview"] is False
+    assert body["count"] == 1
+
+    resp_list = await client.get(f"/admin/reports?workspace_id={ws.id}")
+    assert resp_list.json()["reports"] == []

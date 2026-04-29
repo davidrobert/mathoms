@@ -14,10 +14,40 @@ from backend.app.schemas.admin import (
     DeleteDocumentResponse,
     PurgeDocumentsRequest,
     PurgeDocumentsResponse,
+    ScopeContextDTO,
 )
 from backend.app.services.internal_ops import PurgeScope, delete_document, purge_documents
 
 router = APIRouter(prefix="/documents")
+
+
+def _partial_failure_exception(details: dict) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail={
+            "code": "partial_failure",
+            "count": details["count"],
+            "ids": list(details["ids"]),
+            "failed_blobs": list(details["failed_blobs"]),
+            "blobs_removed": details["blobs_removed"],
+        },
+    )
+
+
+def _to_purge_response(details: dict) -> PurgeDocumentsResponse:
+    ctx_raw = details.get("scope_context") or {}
+    return PurgeDocumentsResponse(
+        preview=details["preview"],
+        count=details["count"],
+        ids=list(details["ids"]),
+        runs_to_remove=details.get("runs_to_remove", 0),
+        runs_removed=details.get("runs_removed"),
+        blobs_removed=details.get("blobs_removed"),
+        scope_context=ScopeContextDTO(
+            owner_email=ctx_raw.get("owner_email"),
+            workspace_names=list(ctx_raw.get("workspace_names") or []),
+        ),
+    )
 
 
 @router.post("/purge", response_model=PurgeDocumentsResponse)
@@ -36,25 +66,10 @@ async def purge(
     )
     if not result.ok:
         if result.error == "partial_failure":
-            # rollback já aconteceu no service; retornamos 500 com detalhe estruturado
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    "code": "partial_failure",
-                    "count": result.details["count"],
-                    "ids": list(result.details["ids"]),
-                    "failed_blobs": list(result.details["failed_blobs"]),
-                    "blobs_removed": result.details["blobs_removed"],
-                },
-            )
+            raise _partial_failure_exception(result.details)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.error)
     await db.commit()
-    return PurgeDocumentsResponse(
-        preview=result.details["preview"],
-        count=result.details["count"],
-        ids=list(result.details["ids"]),
-        blobs_removed=result.details.get("blobs_removed"),
-    )
+    return _to_purge_response(result.details)
 
 
 @router.delete("/{document_id}", response_model=DeleteDocumentResponse)

@@ -8,13 +8,20 @@ import pytest
 from sqlalchemy import select
 
 from backend.app.models.document import Document
+from backend.app.models.pipeline_artifact import PipelineArtifact
+from backend.app.models.pipeline_run import PipelineRun
 from backend.app.services.internal_ops.audit import read_audit
 from backend.app.services.internal_ops.delete_document import delete_document
 from backend.app.services.internal_ops.purge_documents import (
     PurgeScope,
     purge_documents,
 )
-from backend.tests.factories import make_document, make_user, make_workspace
+from backend.tests.factories import (
+    make_document,
+    make_run,
+    make_user,
+    make_workspace,
+)
 
 
 @pytest.mark.asyncio
@@ -73,7 +80,46 @@ async def test_purge_preview_does_not_delete(db, audit_path: Path) -> None:
     assert result.ok and result.details["preview"] is True
     assert result.details["count"] == 2
     assert set(result.details["ids"]) == {d1.id, d2.id}
+    assert result.details["scope_context"]["owner_email"] == user.email
+    assert result.details["scope_context"]["workspace_names"] == [ws.name]
     assert read_audit(path=audit_path) == []
+
+
+@pytest.mark.asyncio
+async def test_purge_cascades_pipeline_runs_and_artifacts(db, audit_path: Path) -> None:
+    """Purge de docs limpa pipeline_runs do escopo (cascade pega artefatos)."""
+    user = await make_user(db)
+    ws = await make_workspace(db, owner=user)
+    await make_document(db, workspace=ws)
+    run = await make_run(db, workspace=ws)
+    db.add(
+        PipelineArtifact(
+            workspace_id=ws.id,
+            pipeline_run_id=run.id,
+            stage="E2",
+            artifact_key="bank",
+            content_json={"transactions": []},
+        )
+    )
+    await db.commit()
+
+    result = await purge_documents(
+        db, scope=PurgeScope(workspace_id=ws.id), actor="ops1", preview=False
+    )
+    await db.commit()
+
+    assert result.ok and result.details["runs_removed"] == 1
+    runs = (
+        (await db.execute(select(PipelineRun).where(PipelineRun.workspace_id == ws.id)))
+        .scalars()
+        .all()
+    )
+    arts = (
+        (await db.execute(select(PipelineArtifact).where(PipelineArtifact.workspace_id == ws.id)))
+        .scalars()
+        .all()
+    )
+    assert runs == [] and arts == []
 
 
 @pytest.mark.asyncio

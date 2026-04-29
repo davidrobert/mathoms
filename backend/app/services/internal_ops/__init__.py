@@ -22,15 +22,17 @@ from backend.app.services.internal_ops.list_user_workspaces import (
     list_user_workspaces,
 )
 from backend.app.services.internal_ops.metrics import MetricsSnapshot, get_metrics
-from backend.app.services.internal_ops.purge_documents import (
-    PurgeScope,
-    purge_documents,
-)
+from backend.app.services.internal_ops.purge_documents import purge_documents
+from backend.app.services.internal_ops.purge_reports import purge_reports
 from backend.app.services.internal_ops.reset_password import (
     generate_temp_password,
     reset_password,
 )
 from backend.app.services.internal_ops.results import OpResult
+from backend.app.services.internal_ops.scope import (
+    PurgeScope,
+    ScopeContext,
+)
 from backend.app.services.internal_ops.set_developer_flag import set_developer_flag
 from backend.app.services.internal_ops.update_user_email import update_user_email
 from backend.app.services.internal_ops.update_user_profile import update_user_profile
@@ -49,7 +51,9 @@ __all__ = [
     "update_user_profile",
     "delete_document",
     "purge_documents",
+    "purge_reports",
     "PurgeScope",
+    "ScopeContext",
     "get_metrics",
     "MetricsSnapshot",
     "list_reports",

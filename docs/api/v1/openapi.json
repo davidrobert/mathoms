@@ -5368,6 +5368,32 @@
           "preview": {
             "title": "Preview",
             "type": "boolean"
+          },
+          "runs_removed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runs Removed"
+          },
+          "runs_to_remove": {
+            "default": 0,
+            "title": "Runs To Remove",
+            "type": "integer"
+          },
+          "scope_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScopeContextDTO"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -5376,6 +5402,91 @@
           "ids"
         ],
         "title": "PurgeDocumentsResponse",
+        "type": "object"
+      },
+      "PurgeReportsRequest": {
+        "properties": {
+          "preview": {
+            "default": true,
+            "title": "Preview",
+            "type": "boolean"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          }
+        },
+        "title": "PurgeReportsRequest",
+        "type": "object"
+      },
+      "PurgeReportsResponse": {
+        "properties": {
+          "artifacts_removed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifacts Removed"
+          },
+          "artifacts_to_remove": {
+            "default": 0,
+            "title": "Artifacts To Remove",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Ids",
+            "type": "array"
+          },
+          "preview": {
+            "title": "Preview",
+            "type": "boolean"
+          },
+          "scope_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScopeContextDTO"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "preview",
+          "count",
+          "ids"
+        ],
+        "title": "PurgeReportsResponse",
         "type": "object"
       },
       "QAThresholdsSchema": {
@@ -6036,6 +6147,30 @@
           "evaluated"
         ],
         "title": "ScanDeadlinesResponse",
+        "type": "object"
+      },
+      "ScopeContextDTO": {
+        "properties": {
+          "owner_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Email"
+          },
+          "workspace_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Workspace Names",
+            "type": "array"
+          }
+        },
+        "title": "ScopeContextDTO",
         "type": "object"
       },
       "SetDeveloperFlagRequest": {
@@ -8677,6 +8812,81 @@
           }
         },
         "summary": "List ",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/reports/purge": {
+      "post": {
+        "operationId": "purge_admin_reports_purge_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ops_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ops Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurgeReportsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeReportsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Purge",
         "tags": [
           "admin"
         ]

@@ -106,6 +106,11 @@ class UpdateUserProfileResponse(BaseModel):
     fields: list[str] = Field(default_factory=list)
 
 
+class ScopeContextDTO(BaseModel):
+    owner_email: str | None = None
+    workspace_names: list[str] = Field(default_factory=list)
+
+
 class PurgeDocumentsRequest(BaseModel):
     user_id: str | None = None
     workspace_id: str | None = None
@@ -116,7 +121,25 @@ class PurgeDocumentsResponse(BaseModel):
     preview: bool
     count: int
     ids: list[str]
+    runs_to_remove: int = 0
+    runs_removed: int | None = None
     blobs_removed: int | None = None
+    scope_context: ScopeContextDTO | None = None
+
+
+class PurgeReportsRequest(BaseModel):
+    user_id: str | None = None
+    workspace_id: str | None = None
+    preview: bool = True
+
+
+class PurgeReportsResponse(BaseModel):
+    preview: bool
+    count: int
+    ids: list[str]
+    artifacts_to_remove: int = 0
+    artifacts_removed: int | None = None
+    scope_context: ScopeContextDTO | None = None
 
 
 class DeleteDocumentResponse(BaseModel):
