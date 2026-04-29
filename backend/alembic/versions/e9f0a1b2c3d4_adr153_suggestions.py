@@ -57,9 +57,7 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["workspace_id"], ["workspaces.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["report_id"], ["reports.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(
-            ["accepted_decision_id"], ["decisions.id"], ondelete="SET NULL"
-        ),
+        sa.ForeignKeyConstraint(["accepted_decision_id"], ["decisions.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "workspace_id",
@@ -70,12 +68,8 @@ def upgrade() -> None:
     )
     with op.batch_alter_table("suggestions", schema=None) as batch_op:
         batch_op.create_index("ix_sugagg_workspace_id", ["workspace_id"], unique=False)
-        batch_op.create_index(
-            "ix_sugagg_ws_status", ["workspace_id", "status"], unique=False
-        )
-        batch_op.create_index(
-            "ix_sugagg_ws_dedup", ["workspace_id", "dedup_key"], unique=False
-        )
+        batch_op.create_index("ix_sugagg_ws_status", ["workspace_id", "status"], unique=False)
+        batch_op.create_index("ix_sugagg_ws_dedup", ["workspace_id", "dedup_key"], unique=False)
         batch_op.create_index(
             "ix_sugagg_ws_section",
             ["workspace_id", "section_id"],

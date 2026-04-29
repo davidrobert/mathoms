@@ -78,9 +78,7 @@ def _collect_ids(sections: list[dict[str, Any]], key: str) -> list[str]:
 
 
 def render_ts(layout: dict[str, Any]) -> str:
-    all_sections = (
-        layout["estrategico"]["sections"] + layout["usa"]["sections"]
-    )
+    all_sections = layout["estrategico"]["sections"] + layout["usa"]["sections"]
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")
 
@@ -390,9 +388,7 @@ class ReportLayout(BaseModel):
 
 
 def render_py(layout: dict[str, Any]) -> str:
-    all_sections = (
-        layout["estrategico"]["sections"] + layout["usa"]["sections"]
-    )
+    all_sections = layout["estrategico"]["sections"] + layout["usa"]["sections"]
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")
 

@@ -6,6 +6,40 @@
 
 ## [Unreleased]
 
+- **Direção E — Onda 5: aggregate `Suggestion` full-stack
+  ([ADR-153](DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples),
+  2026-04-29):** Peça central da Direção E — completa o ritual
+  *relatório → sugere → usuário aceita/modifica/descarta em `/acao`
+  → vira Decision*.
+
+  **Backend:** modelo `Suggestion` (proposal imutável + state machine
+  simples Pendente/Aceita/Modificada/Descartada), migration Alembic,
+  repositório, 8 use cases (list, count, get, accept, modify, dismiss,
+  regenerate-for-report) + protocols, router REST com 7 endpoints.
+  Aceitar cria `Decision` via use case canônico (ADR-136), com evento
+  extra `derivation` para rastreabilidade. OpenAPI snapshot atualizado.
+
+  **Pipeline:** `pipeline/domain/services/suggestion_generator.py` —
+  gerador determinístico puro com 5 regras canônicas (TRS desalinhada,
+  reserva insuficiente, alocação fora do alvo, aporte abaixo da meta,
+  dolarização atrasada). Cap=6, ranking severity → amount, dedup_key
+  com buckets que toleram ruído pequeno. `SuggestionDraft` em
+  `pipeline/domain/types/suggestion.py` preserva boundary do pipeline
+  (não importa backend). Trigger via endpoint dedicado, NÃO hook do
+  pipeline (idempotência + boundary respeitado).
+
+  **Frontend:** cliente `lib/api/suggestions.ts`, hook `useSuggestions`,
+  `useSuggestionsCount` real (substitui stub Onda 4). `SuggestionCard`
+  em `acao/_components/` com Aceitar/Modificar/Descartar via dialogs
+  locais; `InboxTab` agora lista cards filtráveis. `SuggestionCallout`
+  inline em S2/S7 + agregador "Próximos passos" no fim do relatório.
+  Severidade tripla (info/warning/danger) com faixa lateral 3px +
+  ícone Lucide + copy de leigo escondendo vocabulário event-sourced.
+
+  **Testes:** 40 backend (10 use case + 10 API + 20 unit gen) + 11
+  frontend (6 hook + 5 helper); suítes completas verdes (688 vitest +
+  24 alembic guardrails).
+
 - **Direção E — Onda 4 + Onda 6: `/plano` executive + `/acao` consolidada (2026-04-29):**
 
   **Onda 4 entregue (`/plano` executive summary):** novos componentes
