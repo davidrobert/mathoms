@@ -158,7 +158,12 @@ export async function getConsumoPontuais(
   );
 }
 
-// ─── Report collaboration (Notes + Kanban) — ADR-123 · Fase 6.5/8 ───
+// ─── Report collaboration (Notes + Kanban) — DEPRECATED ────────────
+// ADR-154 M2 (2026-04-29): endpoints retornam HTTP 410 Gone. Substituídos
+// por `WorkspaceNotes` (frontend/src/hooks/useWorkspaceNotes.ts) e
+// `Task` com `board_column` (use cases /tasks?view=board). Funções e
+// tipos abaixo permanecem só para clientes legados não-migrados; serão
+// removidos no PR M3 (sprint+2). Não importar em código novo.
 
 export interface ReportNotesPayload {
   id: string;
@@ -205,6 +210,7 @@ export interface KanbanItemUpdateBody {
   ordem?: number;
 }
 
+/** @deprecated ADR-154 M2 — endpoint retorna 410 Gone; use useWorkspaceNotes(). */
 export async function getReportNotes(
   workspaceId: string,
   reportId: string,
@@ -212,6 +218,7 @@ export async function getReportNotes(
   return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/notes`);
 }
 
+/** @deprecated ADR-154 M2 — endpoint retorna 410 Gone; use useWorkspaceNotes(). */
 export async function putReportNotes(
   workspaceId: string,
   reportId: string,
@@ -223,6 +230,7 @@ export async function putReportNotes(
   });
 }
 
+/** @deprecated ADR-154 M2 — endpoint retorna 410 Gone; use /tasks?view=board. */
 export async function listKanbanItems(
   workspaceId: string,
   reportId: string,
@@ -230,6 +238,7 @@ export async function listKanbanItems(
   return apiFetch(`/workspaces/${workspaceId}/reports/${reportId}/kanban`);
 }
 
+/** @deprecated ADR-154 M2 — endpoint retorna 410 Gone; use /tasks com board_column. */
 export async function createKanbanItem(
   workspaceId: string,
   reportId: string,
@@ -241,6 +250,7 @@ export async function createKanbanItem(
   });
 }
 
+/** @deprecated ADR-154 M2 — endpoint retorna 410 Gone; use PATCH /tasks/{id}. */
 export async function updateKanbanItem(
   workspaceId: string,
   reportId: string,
@@ -256,6 +266,7 @@ export async function updateKanbanItem(
   );
 }
 
+/** @deprecated ADR-154 M2 — endpoint retorna 410 Gone; use DELETE /tasks/{id}. */
 export async function deleteKanbanItem(
   workspaceId: string,
   reportId: string,

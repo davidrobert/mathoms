@@ -1,15 +1,23 @@
-"""Report collaboration models — ADR-123 · Fase 6.5.
+"""Report collaboration models — DEPRECATED (Direção E · Onda 1 · M2).
 
-Entidades editáveis pelo usuário dentro do relatório premium:
+Histórico (ADR-123 · Fase 6.5): entidades editáveis pelo usuário
+dentro do relatório premium — `ReportNotes` (T6, 1:1 com report) e
+`KanbanItem` (T3, N:1 com report). Persistidos no backend em vez de
+localStorage para habilitar multi-dispositivo. Stateless rigoroso
+(ADR-111) — estado vive no DB.
 
-- ``ReportNotes`` (T6) — textarea de anotações por relatório.
-  1:1 com report (unique em ``(workspace_id, report_id)``).
-- ``KanbanItem`` (T3) — tarefas arrastáveis no Kanban tático.
-  N:1 com report.
+**Sunset (ADR-154 · M2 — 2026-04-29):** Modo Tático foi removido
+(ADR-151), aggregates foram migrados para `Task` + `WorkspaceNotes`
+(M1). Tabelas físicas renomeadas para `_legacy_kanban_items` /
+`_legacy_report_notes` (RENAME, dado preservado). Estes models
+permanecem apontando para as tabelas legadas **apenas** porque
+`backend/app/services/internal_ops/purge_reports.py` ainda faz
+DELETE em ambas no fluxo de purga de relatórios — limpa qualquer
+remanescente. Após drop final em PR M3 (sprint+2, ~2026-05-13),
+models e DELETE serão removidos.
 
-Decisão (ADR-123): persistir no backend em vez de localStorage para
-habilitar multi-dispositivo e exportação. Continua stateless rigoroso
-(ADR-111) — estado vive no DB, não em módulo global.
+Endpoints REST (`reports_collab.py`) já retornam HTTP 410 Gone.
+Frontend não consome mais desde a Onda 3 (commit `cf14af6`).
 """
 
 from __future__ import annotations
@@ -39,7 +47,7 @@ VALID_ESSENCIAL: frozenset[str] = frozenset({"S", "R", "O"})
 class ReportNotes(Base):
     """Anotações livres por relatório (T6 do shell premium)."""
 
-    __tablename__ = "report_notes"
+    __tablename__ = "_legacy_report_notes"  # ADR-154 M2 sunset (2026-04-29)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(
@@ -85,7 +93,7 @@ class ReportNotes(Base):
 class KanbanItem(Base):
     """Item do Kanban tático do relatório premium (T3)."""
 
-    __tablename__ = "kanban_items"
+    __tablename__ = "_legacy_kanban_items"  # ADR-154 M2 sunset (2026-04-29)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str] = mapped_column(

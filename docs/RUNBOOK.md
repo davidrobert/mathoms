@@ -255,8 +255,8 @@ O shell persiste estado de UI **localmente** no browser:
 | `theme`           | `light` \| `dark` (toggle do header) |
 | `mode`            | `estrategico` \| `usa` (preferência do usuário; URL `?mode=` tem precedência). Modo `tatico` removido em ADR-151. |
 | `font-scale`      | `0.85`–`1.15` (zoom relativo) |
-| `notas:<report_id>:<section_id>` | Notas livres (legado pré-ADR-151; `report_notes` migrado para `workspace_notes` em ADR-154 · Onda 1 M1; tabela legada será dropada na M2 sprint+1) |
-| `kanban:<report_id>` | Colunas + ordem dos cards (legado pré-ADR-151; `kanban_items` migrado para `tasks` com `board_column`/`board_order`/`is_board_only` em ADR-154 · Onda 1 M1; tabela legada será dropada na M2 sprint+1) |
+| `notas:<report_id>:<section_id>` | Notas livres (legado pré-ADR-151; `report_notes` migrado para `workspace_notes` em ADR-154 M1; **endpoints REST retornam HTTP 410 Gone desde ADR-154 M2 (2026-04-29);** tabela renomeada para `_legacy_report_notes`, drop final em PR M3 sprint+2) |
+| `kanban:<report_id>` | Colunas + ordem dos cards (legado pré-ADR-151; `kanban_items` migrado para `tasks` com `board_column`/`board_order`/`is_board_only` em ADR-154 M1; **endpoints REST retornam HTTP 410 Gone desde ADR-154 M2 (2026-04-29);** tabela renomeada para `_legacy_kanban_items`, drop final em PR M3 sprint+2) |
 
 Inspecionar/limpar via DevTools → Application → Local Storage → host.
 Reset completo do shell:

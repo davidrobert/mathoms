@@ -1,6 +1,14 @@
-"""Testes de integração — Notes (T6) + Kanban (T3) do relatório premium.
+"""Testes — endpoints legacy de Notes (T6) + Kanban (T3) retornam 410 Gone.
 
-ADR-123 · Fase 6.5.
+Histórico (ADR-123 · Fase 6.5): testes happy path para
+``/workspaces/{ws}/reports/{report_id}/{notes|kanban[/item_id]}``
+retornavam 200/201/204.
+
+**Sunset (ADR-154 · M2 · 2026-04-29):** Modo Tático foi removido
+(ADR-151), aggregates migraram para Task + WorkspaceNotes (M1).
+Endpoints aqui retornam HTTP 410 Gone com payload informativo apontando
+para os novos. Estes testes validam o contrato de sunset; suíte
+original foi reescrita.
 """
 
 from __future__ import annotations
@@ -21,140 +29,62 @@ async def _auth(db, client):
     return user, ws, report
 
 
-# ─── Notes ────────────────────────────────────────────────────────────
+def _assert_gone(resp, code: str) -> None:
+    assert resp.status_code == 410, resp.text
+    detail = resp.json()["detail"]
+    assert detail["code"] == code
+    assert "ADR-154" in detail["message"]
+    assert "migrated_to" in detail
 
 
 @pytest.mark.asyncio
-async def test_get_notes_empty_returns_null(db, client):
+async def test_get_notes_returns_410_gone(db, client):
     _, ws, r = await _auth(db, client)
     resp = await client.get(f"/api/workspaces/{ws.id}/reports/{r.id}/notes")
-    assert resp.status_code == 200
-    assert resp.json() is None
+    _assert_gone(resp, "report_notes_gone")
 
 
 @pytest.mark.asyncio
-async def test_put_notes_creates_then_updates(db, client):
+async def test_put_notes_returns_410_gone(db, client):
     _, ws, r = await _auth(db, client)
-    # Cria
     resp = await client.put(
         f"/api/workspaces/{ws.id}/reports/{r.id}/notes",
-        json={"content": "Primeiro texto"},
+        json={"content": "ignored"},
     )
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["content"] == "Primeiro texto"
-    note_id = body["id"]
-
-    # Atualiza (idempotente — mesmo id)
-    resp = await client.put(
-        f"/api/workspaces/{ws.id}/reports/{r.id}/notes",
-        json={"content": "Revisado"},
-    )
-    assert resp.status_code == 200
-    body2 = resp.json()
-    assert body2["id"] == note_id
-    assert body2["content"] == "Revisado"
+    _assert_gone(resp, "report_notes_gone")
 
 
 @pytest.mark.asyncio
-async def test_get_notes_returns_after_put(db, client):
-    _, ws, r = await _auth(db, client)
-    await client.put(
-        f"/api/workspaces/{ws.id}/reports/{r.id}/notes",
-        json={"content": "persistido"},
-    )
-    resp = await client.get(f"/api/workspaces/{ws.id}/reports/{r.id}/notes")
-    assert resp.status_code == 200
-    assert resp.json()["content"] == "persistido"
-
-
-@pytest.mark.asyncio
-async def test_put_notes_report_wrong_workspace_404(db, client):
-    _, ws, _ = await _auth(db, client)
-    resp = await client.put(
-        f"/api/workspaces/{ws.id}/reports/nonexistent/notes",
-        json={"content": "x"},
-    )
-    assert resp.status_code == 404
-
-
-# ─── Kanban ──────────────────────────────────────────────────────────
-
-
-@pytest.mark.asyncio
-async def test_kanban_list_empty(db, client):
+async def test_get_kanban_returns_410_gone(db, client):
     _, ws, r = await _auth(db, client)
     resp = await client.get(f"/api/workspaces/{ws.id}/reports/{r.id}/kanban")
-    assert resp.status_code == 200
-    assert resp.json() == {"items": []}
+    _assert_gone(resp, "report_kanban_gone")
 
 
 @pytest.mark.asyncio
-async def test_kanban_create_then_list(db, client):
+async def test_post_kanban_returns_410_gone(db, client):
     _, ws, r = await _auth(db, client)
     resp = await client.post(
         f"/api/workspaces/{ws.id}/reports/{r.id}/kanban",
-        json={"titulo": "Rebalancear", "coluna": "a_fazer", "prioridade": "alta"},
+        json={"titulo": "ignored"},
     )
-    assert resp.status_code == 201
-    item = resp.json()
-    assert item["titulo"] == "Rebalancear"
-    assert item["coluna"] == "a_fazer"
-    assert item["prioridade"] == "alta"
-
-    list_resp = await client.get(f"/api/workspaces/{ws.id}/reports/{r.id}/kanban")
-    assert list_resp.status_code == 200
-    items = list_resp.json()["items"]
-    assert len(items) == 1
-    assert items[0]["id"] == item["id"]
+    _assert_gone(resp, "report_kanban_gone")
 
 
 @pytest.mark.asyncio
-async def test_kanban_patch_muda_coluna(db, client):
-    _, ws, r = await _auth(db, client)
-    r1 = await client.post(
-        f"/api/workspaces/{ws.id}/reports/{r.id}/kanban",
-        json={"titulo": "X", "coluna": "a_fazer"},
-    )
-    item_id = r1.json()["id"]
-    resp = await client.patch(
-        f"/api/workspaces/{ws.id}/reports/{r.id}/kanban/{item_id}",
-        json={"coluna": "em_andamento"},
-    )
-    assert resp.status_code == 200
-    assert resp.json()["coluna"] == "em_andamento"
-
-
-@pytest.mark.asyncio
-async def test_kanban_delete_returns_204(db, client):
-    _, ws, r = await _auth(db, client)
-    c = await client.post(
-        f"/api/workspaces/{ws.id}/reports/{r.id}/kanban",
-        json={"titulo": "Del me"},
-    )
-    item_id = c.json()["id"]
-    resp = await client.delete(f"/api/workspaces/{ws.id}/reports/{r.id}/kanban/{item_id}")
-    assert resp.status_code == 204
-
-    list_resp = await client.get(f"/api/workspaces/{ws.id}/reports/{r.id}/kanban")
-    assert list_resp.json()["items"] == []
-
-
-@pytest.mark.asyncio
-async def test_kanban_patch_nonexistent_404(db, client):
+async def test_patch_kanban_item_returns_410_gone(db, client):
     _, ws, r = await _auth(db, client)
     resp = await client.patch(
-        f"/api/workspaces/{ws.id}/reports/{r.id}/kanban/not-a-real-id",
-        json={"coluna": "concluido"},
+        f"/api/workspaces/{ws.id}/reports/{r.id}/kanban/item-id",
+        json={"titulo": "ignored"},
     )
-    assert resp.status_code == 404
+    _assert_gone(resp, "report_kanban_gone")
 
 
 @pytest.mark.asyncio
-async def test_kanban_validation_prioridade_invalida(db, client):
+async def test_delete_kanban_item_returns_410_gone(db, client):
     _, ws, r = await _auth(db, client)
-    resp = await client.post(
-        f"/api/workspaces/{ws.id}/reports/{r.id}/kanban",
-        json={"titulo": "X", "prioridade": "urgentissima"},
+    resp = await client.delete(
+        f"/api/workspaces/{ws.id}/reports/{r.id}/kanban/item-id",
     )
-    assert resp.status_code == 422
+    _assert_gone(resp, "report_kanban_gone")

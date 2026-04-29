@@ -7267,7 +7267,20 @@ Decisões de design pendentes (ver track):
 
 ## ADR-154 — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1)
 
-**Status:** Decidido (Direção E · Onda 1 · M1) • **Data:** 2026-04-29 •
+> **M2 sunset entregue (2026-04-29):** tabelas legadas renomeadas para
+> `_legacy_kanban_items` / `_legacy_report_notes` (RENAME, dado
+> preservado); endpoints `/notes` e `/kanban` retornam HTTP 410 Gone
+> com payload informativo. Estratégia conservadora vs DROP direto
+> previsto na seção §M2 abaixo: rename é reversível em segundos via
+> downgrade; DROP é irreversível sem backup; janela de 7 dias de
+> validação não foi cumprida (M1 e M2 no mesmo dia). Drop final
+> agendado para PR M3 (sprint+2, ~2026-05-13) após validação. Models
+> SQLAlchemy `KanbanItem`/`ReportNotes` permanecem (tablename
+> `_legacy_*`) porque `purge_reports.py` ainda faz DELETE em ambos.
+> Migration: `a0b1c2d3e4f5_adr154_m2_sunset_legacy.py`. Endpoints:
+> `backend/app/api/reports_collab.py` reescrito.
+
+**Status:** Decidido (Direção E · Onda 1 · M1+M2) • **Data:** 2026-04-29 •
 **Supersedes** parcial [ADR-123](#adr-123--notas-t6-e-kanban-t3-persistidos-no-backend)
 (Kanban e Notas como aggregates separados acoplados ao relatório). Estende
 [ADR-074](#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório)
@@ -7368,14 +7381,25 @@ durante o brainstorm da Direção E concluiu:
   curto prazo (já tinha perdido na ADR-151; M1 só completa a migração
   silenciosa para Tasks). Board view real é roadmap separado.
 
-**Migration M1 → M2 (sprint+1):**
+**Migration M1 → M2 → M3 (revisada 2026-04-29):**
 
-- M1 (entregue): tabelas/colunas adicionadas + backfill + endpoints
-  + UI de Notas. **Tabelas legadas vivas, sem consumer no frontend.**
-- M2 (próximo PR): `DROP TABLE kanban_items`, `DROP TABLE report_notes`,
-  endpoints `/kanban` e `/report_notes` retornam 410 Gone. Roda só
-  após validação manual em workspace Allen + 7 dias de operação sem
-  regressão.
+- M1 ✅ (entregue 2026-04-29): tabelas/colunas adicionadas + backfill
+  + endpoints + UI de Notas. **Tabelas legadas vivas, sem consumer
+  no frontend.**
+- M2 ✅ (entregue 2026-04-29): RENAME `kanban_items` →
+  `_legacy_kanban_items` + RENAME `report_notes` →
+  `_legacy_report_notes` (estratégia conservadora vs DROP direto
+  porque mesmo-dia da M1 não cumpriu janela de 7 dias). Endpoints
+  `/notes` e `/kanban` retornam HTTP 410 Gone com payload informativo
+  apontando para os novos endpoints (`/workspaces/{ws}/notes` e
+  `/workspaces/{ws}/tasks`). Frontend `lib/api/reports.ts` ganha
+  `@deprecated` JSDoc. Models permanecem apontando para `_legacy_*`
+  porque `purge_reports.py` ainda faz DELETE em ambos.
+- M3 (próximo PR, sprint+2 após validação ≥7 dias): `DROP TABLE
+  _legacy_kanban_items`, `DROP TABLE _legacy_report_notes`, remover
+  models `KanbanItem`/`ReportNotes`, remover `_delete_report_collab`
+  de `purge_reports.py`, deletar funções legadas em
+  `lib/api/reports.ts`. PR pequeno, baixo risco.
 
 **Referências de código:**
 

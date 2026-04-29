@@ -1,212 +1,105 @@
-"""Report collaboration — Notes (T6) + Kanban (T3) endpoints.
+"""Report collaboration — DEPRECATED (Direção E · Onda 1 · M2 sunset).
 
-ADR-123 · Fase 6.5. Endpoints sob ``/workspaces/{workspace_id}/reports/
-{report_id}/{notes|kanban[/item_id]}``.
+Histórico (ADR-123 · Fase 6.5): endpoints sob ``/workspaces/{ws_id}/
+reports/{report_id}/{notes|kanban[/item_id]}`` para CRUD de Notas (T6) +
+Kanban (T3) do Modo Tático.
 
-Padrão thin-router: queries diretas (sem use case) — CRUD simples sobre
-2 tabelas, sem regras de domínio complexas além de validação de
-ownership (report pertence ao workspace).
+**Sunset (ADR-154 · Direção E · Onda 1 · M2 — 2026-04-29):** Modo Tático
+foi removido em ADR-151 (Onda 3); aggregates `KanbanItem` e
+`ReportNotes` foram migrados em ADR-154 M1 para `Task` (com
+`board_column`/`board_order`/`origin_report_id`) e `WorkspaceNotes`
+respectivamente. Tabelas legadas renomeadas para `_legacy_*` (drop
+final em PR M3, sprint+2). Frontend não consome mais estes endpoints
+desde a Onda 3 (commit `cf14af6`).
+
+Todas as rotas retornam **HTTP 410 Gone** com payload informativo
+apontando para os novos endpoints. Manter o roteador (vs simplesmente
+deletar) preserva mensagens claras para clientes externos cegos
+durante a janela de sunset.
 """
 
 from __future__ import annotations
 
-import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from backend.app.core.database import get_db
-from backend.app.core.deps import get_current_user
-from backend.app.core.tenancy import get_current_workspace
-from backend.app.models import (
-    KanbanItem,
-    Report,
-    ReportNotes,
-    User,
-    Workspace,
-)
-from backend.app.schemas.report_collab import (
-    KanbanItemCreate,
-    KanbanItemListResponse,
-    KanbanItemRead,
-    KanbanItemUpdate,
-    ReportNotesRead,
-    ReportNotesWrite,
-)
+from fastapi import APIRouter, HTTPException, Path, status
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/reports/{report_id}",
-    tags=["report-collab"],
+    tags=["report-collab-legacy"],
 )
 
 
-async def _ensure_report_in_workspace(
-    db: AsyncSession, workspace: Workspace, report_id: str
+_GONE_NOTES = {
+    "code": "report_notes_gone",
+    "message": (
+        "Endpoint deprecated (ADR-154 M2 · 2026-04-29). Notas de "
+        "relatório foram migradas para WorkspaceNotes — consultar "
+        "/workspaces/{ws_id}/notes."
+    ),
+    "migrated_to": "/workspaces/{workspace_id}/notes",
+}
+
+_GONE_KANBAN = {
+    "code": "report_kanban_gone",
+    "message": (
+        "Endpoint deprecated (ADR-154 M2 · 2026-04-29). Kanban de "
+        "relatório foi fundido em Task — consultar /workspaces/{ws_id}/"
+        "tasks com board_column/board_order."
+    ),
+    "migrated_to": "/workspaces/{workspace_id}/tasks",
+}
+
+
+def _gone(detail: dict) -> HTTPException:
+    return HTTPException(status_code=status.HTTP_410_GONE, detail=detail)
+
+
+@router.get("/notes")
+async def get_notes_gone(
+    workspace_id: Annotated[str, Path()],
+    report_id: Annotated[str, Path()],
 ) -> None:
-    """Valida que o report pertence ao workspace. 404 caso contrário."""
-    stmt = select(Report.id).where(Report.id == report_id, Report.workspace_id == workspace.id)
-    result = await db.execute(stmt)
-    if result.scalar_one_or_none() is None:
-        raise HTTPException(status_code=404, detail="Report not found")
+    raise _gone(_GONE_NOTES)
 
 
-# ═════════════════════════════════════════════════════════════════════
-# Notes (T6) — 1:1 com report
-# ═════════════════════════════════════════════════════════════════════
-
-
-@router.get("/notes", response_model=ReportNotesRead | None)
-async def get_notes(
+@router.put("/notes")
+async def put_notes_gone(
+    workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
-    workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
-) -> ReportNotesRead | None:
-    """Retorna as notas do relatório ou None (204-ish) quando vazio."""
-    await _ensure_report_in_workspace(db, workspace, report_id)
-    stmt = select(ReportNotes).where(
-        ReportNotes.workspace_id == workspace.id,
-        ReportNotes.report_id == report_id,
-    )
-    result = await db.execute(stmt)
-    row = result.scalar_one_or_none()
-    if row is None:
-        return None
-    return ReportNotesRead.model_validate(row)
+) -> None:
+    raise _gone(_GONE_NOTES)
 
 
-@router.put("/notes", response_model=ReportNotesRead)
-async def put_notes(
+@router.get("/kanban")
+async def list_kanban_gone(
+    workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
-    body: ReportNotesWrite,
-    workspace: Workspace = Depends(get_current_workspace),
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-) -> ReportNotesRead:
-    """Upsert idempotente — cria se não existe, atualiza content + author."""
-    await _ensure_report_in_workspace(db, workspace, report_id)
-    stmt = select(ReportNotes).where(
-        ReportNotes.workspace_id == workspace.id,
-        ReportNotes.report_id == report_id,
-    )
-    result = await db.execute(stmt)
-    row = result.scalar_one_or_none()
-    if row is None:
-        row = ReportNotes(
-            id=str(uuid.uuid4()),
-            workspace_id=workspace.id,
-            report_id=report_id,
-            author_user_id=user.id,
-            content=body.content,
-        )
-        db.add(row)
-    else:
-        row.content = body.content
-        row.author_user_id = user.id
-    await db.commit()
-    await db.refresh(row)
-    return ReportNotesRead.model_validate(row)
+) -> None:
+    raise _gone(_GONE_KANBAN)
 
 
-# ═════════════════════════════════════════════════════════════════════
-# Kanban (T3) — 1:N com report
-# ═════════════════════════════════════════════════════════════════════
-
-
-@router.get("/kanban", response_model=KanbanItemListResponse)
-async def list_kanban(
+@router.post("/kanban")
+async def create_kanban_gone(
+    workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
-    workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
-) -> KanbanItemListResponse:
-    """Lista todos items do Kanban deste relatório, ordenados por
-    (coluna, ordem, created_at). Frontend decide como agrupar."""
-    await _ensure_report_in_workspace(db, workspace, report_id)
-    stmt = (
-        select(KanbanItem)
-        .where(
-            KanbanItem.workspace_id == workspace.id,
-            KanbanItem.report_id == report_id,
-        )
-        .order_by(KanbanItem.coluna, KanbanItem.ordem, KanbanItem.created_at)
-    )
-    result = await db.execute(stmt)
-    rows = result.scalars().all()
-    return KanbanItemListResponse(items=[KanbanItemRead.model_validate(r) for r in rows])
+) -> None:
+    raise _gone(_GONE_KANBAN)
 
 
-@router.post("/kanban", response_model=KanbanItemRead, status_code=status.HTTP_201_CREATED)
-async def create_kanban_item(
-    report_id: Annotated[str, Path()],
-    body: KanbanItemCreate,
-    workspace: Workspace = Depends(get_current_workspace),
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-) -> KanbanItemRead:
-    await _ensure_report_in_workspace(db, workspace, report_id)
-    row = KanbanItem(
-        id=str(uuid.uuid4()),
-        workspace_id=workspace.id,
-        report_id=report_id,
-        titulo=body.titulo,
-        coluna=body.coluna,
-        prioridade=body.prioridade,
-        prazo=body.prazo,
-        categoria=body.categoria,
-        essencial=body.essencial,
-        ordem=body.ordem,
-        created_by=user.id,
-    )
-    db.add(row)
-    await db.commit()
-    await db.refresh(row)
-    return KanbanItemRead.model_validate(row)
-
-
-@router.patch("/kanban/{item_id}", response_model=KanbanItemRead)
-async def update_kanban_item(
+@router.patch("/kanban/{item_id}")
+async def update_kanban_gone(
+    workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
     item_id: Annotated[str, Path()],
-    body: KanbanItemUpdate,
-    workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
-) -> KanbanItemRead:
-    await _ensure_report_in_workspace(db, workspace, report_id)
-    stmt = select(KanbanItem).where(
-        KanbanItem.id == item_id,
-        KanbanItem.workspace_id == workspace.id,
-        KanbanItem.report_id == report_id,
-    )
-    result = await db.execute(stmt)
-    row = result.scalar_one_or_none()
-    if row is None:
-        raise HTTPException(status_code=404, detail="Kanban item not found")
-    updates = body.model_dump(exclude_unset=True)
-    for field, value in updates.items():
-        setattr(row, field, value)
-    await db.commit()
-    await db.refresh(row)
-    return KanbanItemRead.model_validate(row)
+) -> None:
+    raise _gone(_GONE_KANBAN)
 
 
-@router.delete("/kanban/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_kanban_item(
+@router.delete("/kanban/{item_id}")
+async def delete_kanban_gone(
+    workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
     item_id: Annotated[str, Path()],
-    workspace: Workspace = Depends(get_current_workspace),
-    db: AsyncSession = Depends(get_db),
-) -> Response:
-    await _ensure_report_in_workspace(db, workspace, report_id)
-    stmt = select(KanbanItem).where(
-        KanbanItem.id == item_id,
-        KanbanItem.workspace_id == workspace.id,
-        KanbanItem.report_id == report_id,
-    )
-    result = await db.execute(stmt)
-    row = result.scalar_one_or_none()
-    if row is None:
-        raise HTTPException(status_code=404, detail="Kanban item not found")
-    await db.delete(row)
-    await db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+) -> None:
+    raise _gone(_GONE_KANBAN)
