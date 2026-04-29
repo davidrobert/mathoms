@@ -52,6 +52,8 @@ inteiro.
 | **A7.3 Catalog + Override resolver** (Sprint A7 · Onda 3) | [track_a7_3_catalog_override.md](track_a7_3_catalog_override.md) | A7 (3/4) | `agent/a7-3-catalog-override/*` |
 | **A7.4 Metodologia → docs/methodology/** (Sprint A7 · paralelo livre) | [track_a7_4_methodology_docs.md](track_a7_4_methodology_docs.md) | A7 (livre) | `agent/a7-4-methodology-docs/*` |
 | **A7.5 Cleanup final** (Sprint A7 · Onda 4 BLOQUEANTE) | [track_a7_5_cleanup.md](track_a7_5_cleanup.md) | A7 (4/4) | `agent/a7-5-cleanup/*` |
+| **Onda 5 Suggestion full-stack** (Direção E — redesign de interfaces) | [track_onda_5_suggestion_aggregate.md](track_onda_5_suggestion_aggregate.md) | Direção E (5/6) | `agent/onda-5-suggestion-aggregate/*` |
+| **Onda 1 Migration kanban→task + notes→workspace_notes** (Direção E — paralelizável com Onda 5) | [track_onda_1_kanban_task_migration.md](track_onda_1_kanban_task_migration.md) | Direção E (1/6) | `agent/onda-1-kanban-task-migration/*` |
 
 Lanes com prompt inline (escopo documentado direto na linha da tabela "Lanes abertas agora" do BACKLOG, sem prompt dedicado): A6g.6b, A6g.2c, A6e.3c, A6e.events-migration, A6e.events-followup, A6g.2b, A6c, **v2.1, v2.2, v2.3, v2.5, v2.6, v2.7, v2.9, v2.10** (escopo curto — ver linhas v2.X em [BACKLOG.md › Report Premium UI v2](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) ou no meta-prompt [track_report_v2.md](track_report_v2.md) §3). Status (entregue / em andamento / aberta) **somente no BACKLOG**.
 
