@@ -1,6 +1,34 @@
 {
   "components": {
     "schemas": {
+      "AcceptSuggestionCommand": {
+        "additionalProperties": false,
+        "description": "Aceita sugest\u00e3o criando ``Decision`` com os campos sugeridos.",
+        "properties": {
+          "decision_code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Decision Code",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "decision_code"
+        ],
+        "title": "AcceptSuggestionCommand",
+        "type": "object"
+      },
       "AdminLoginRequest": {
         "properties": {
           "password": {
@@ -2103,6 +2131,34 @@
           "blob_removed"
         ],
         "title": "DeleteDocumentResponse",
+        "type": "object"
+      },
+      "DismissSuggestionCommand": {
+        "additionalProperties": false,
+        "description": "Descarta sugest\u00e3o com motivo controlado.",
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "reason": {
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "DismissSuggestionCommand",
         "type": "object"
       },
       "DocumentExtractJsonResponse": {
@@ -4722,6 +4778,73 @@
         "title": "MetricsResponse",
         "type": "object"
       },
+      "ModifySuggestionCommand": {
+        "additionalProperties": false,
+        "description": "Aceita com modifica\u00e7\u00e3o \u2014 usu\u00e1rio customiza title/rationale/amount.",
+        "properties": {
+          "amount_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Brl"
+          },
+          "decision_code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Decision Code",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "decision_code"
+        ],
+        "title": "ModifySuggestionCommand",
+        "type": "object"
+      },
       "NewDocCountResponse": {
         "description": "Resposta de ``GET /pipeline/new-doc-count`` \u2014 docs nunca processados.",
         "properties": {
@@ -5551,6 +5674,13 @@
         "title": "QAThresholdsSchema",
         "type": "object"
       },
+      "RegenerateSuggestionsCommand": {
+        "additionalProperties": false,
+        "description": "Re-gera sugest\u00f5es para um Report. Sem par\u00e2metros por enquanto.",
+        "properties": {},
+        "title": "RegenerateSuggestionsCommand",
+        "type": "object"
+      },
       "RegisterRequest": {
         "properties": {
           "email": {
@@ -6344,6 +6474,223 @@
         ],
         "title": "StageReviewStatus",
         "type": "string"
+      },
+      "SuggestionCountResponse": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "SuggestionCountResponse",
+        "type": "object"
+      },
+      "SuggestionListResponse": {
+        "properties": {
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestionResponse"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "suggestions",
+          "total"
+        ],
+        "title": "SuggestionListResponse",
+        "type": "object"
+      },
+      "SuggestionRegenerateResponse": {
+        "description": "Resultado de uma regenera\u00e7\u00e3o \u2014 quantas drafts viraram persisted.",
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "skipped_cap": {
+            "title": "Skipped Cap",
+            "type": "integer"
+          },
+          "skipped_dedup": {
+            "title": "Skipped Dedup",
+            "type": "integer"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestionResponse"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          },
+          "total_drafts": {
+            "title": "Total Drafts",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created",
+          "skipped_dedup",
+          "skipped_cap",
+          "total_drafts",
+          "suggestions"
+        ],
+        "title": "SuggestionRegenerateResponse",
+        "type": "object"
+      },
+      "SuggestionResponse": {
+        "description": "Sugest\u00e3o projetada \u2014 o que a UI consome.",
+        "properties": {
+          "accepted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted At"
+          },
+          "accepted_decision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted Decision Id"
+          },
+          "amount_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Brl"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dismissed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dismissed At"
+          },
+          "dismissed_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dismissed Reason"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "origin": {
+            "title": "Origin",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
+          },
+          "section_id": {
+            "title": "Section Id",
+            "type": "string"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "section_id",
+          "kind",
+          "origin",
+          "severity",
+          "title",
+          "rationale",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SuggestionResponse",
+        "type": "object"
       },
       "TaskAttachmentListResponse": {
         "description": "Wrapper pagina\u00e7\u00e3o-ready para ``GET /tasks/{id}/attachments``.",
@@ -15209,6 +15556,72 @@
         ]
       }
     },
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/regenerate-suggestions": {
+      "post": {
+        "operationId": "regenerate_suggestions_for_report_api_v1_workspaces__workspace_id__reports__report_id__regenerate_suggestions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegenerateSuggestionsCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionRegenerateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Regenerate Suggestions For Report",
+        "tags": [
+          "suggestions"
+        ]
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/reports/{report_id}/tasks": {
       "get": {
         "operationId": "get_report_tasks_api_v1_workspaces__workspace_id__reports__report_id__tasks_get",
@@ -15262,6 +15675,387 @@
         "summary": "Get Report Tasks",
         "tags": [
           "reports"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/suggestions": {
+      "get": {
+        "operationId": "list_suggestions_api_v1_workspaces__workspace_id__suggestions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Suggestions",
+        "tags": [
+          "suggestions"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/suggestions/count": {
+      "get": {
+        "operationId": "count_suggestions_api_v1_workspaces__workspace_id__suggestions_count_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "Pendente",
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionCountResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Count Suggestions",
+        "tags": [
+          "suggestions"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/suggestions/{suggestion_id}": {
+      "get": {
+        "operationId": "get_suggestion_api_v1_workspaces__workspace_id__suggestions__suggestion_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Suggestion",
+        "tags": [
+          "suggestions"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/suggestions/{suggestion_id}/accept": {
+      "post": {
+        "operationId": "accept_suggestion_api_v1_workspaces__workspace_id__suggestions__suggestion_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptSuggestionCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Accept Suggestion",
+        "tags": [
+          "suggestions"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/suggestions/{suggestion_id}/dismiss": {
+      "post": {
+        "operationId": "dismiss_suggestion_api_v1_workspaces__workspace_id__suggestions__suggestion_id__dismiss_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DismissSuggestionCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Dismiss Suggestion",
+        "tags": [
+          "suggestions"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/suggestions/{suggestion_id}/modify": {
+      "post": {
+        "operationId": "modify_suggestion_api_v1_workspaces__workspace_id__suggestions__suggestion_id__modify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "suggestion_id",
+            "required": true,
+            "schema": {
+              "title": "Suggestion Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifySuggestionCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Modify Suggestion",
+        "tags": [
+          "suggestions"
         ]
       }
     },

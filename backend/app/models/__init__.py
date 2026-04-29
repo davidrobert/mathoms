@@ -37,6 +37,14 @@ from backend.app.models.report_collab import (
     ReportNotes,
 )
 from backend.app.models.stage_review import StageReview, StageReviewStatus
+from backend.app.models.suggestion import (
+    VALID_DISMISS_REASONS,
+    VALID_SUGGESTION_AGGREGATE_STATUSES,
+    VALID_SUGGESTION_KINDS,
+    VALID_SUGGESTION_ORIGINS,
+    VALID_SUGGESTION_SEVERITIES,
+    Suggestion,
+)
 from backend.app.models.task import (
     VALID_CATEGORIES,
     VALID_CREATED_FROM,
@@ -106,6 +114,12 @@ __all__ = [
     "DecisionEvent",
     "VALID_DECISION_STATUSES",
     "VALID_DECISION_EVENT_TYPES",
+    "Suggestion",
+    "VALID_SUGGESTION_AGGREGATE_STATUSES",
+    "VALID_SUGGESTION_SEVERITIES",
+    "VALID_SUGGESTION_ORIGINS",
+    "VALID_SUGGESTION_KINDS",
+    "VALID_DISMISS_REASONS",
     "LLMConfig",
     "StageReview",
     "StageReviewStatus",
