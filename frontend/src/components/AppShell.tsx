@@ -16,7 +16,6 @@ import { ViewerBanner } from "@/components/ViewerBanner";
 import { StatusPageFooter } from "@/components/StatusPageFooter";
 import { CommandPalette } from "@/components/CommandPalette";
 import {
-  LayoutDashboard,
   FileText,
   Zap,
   ArrowLeftRight,
@@ -48,7 +47,6 @@ const NAV_GROUPS: {
   {
     heading: "Fechamento do período",
     items: [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/documents", label: "Documentos", icon: FileText },
       { href: "/pipeline", label: "Pipeline", icon: Zap },
       { href: "/transactions", label: "Transações", icon: ArrowLeftRight },

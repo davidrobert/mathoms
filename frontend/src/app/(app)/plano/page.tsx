@@ -1,18 +1,32 @@
 "use client";
 
 /**
- * /plano — hub de metas financeiras do workspace (F8.1 + F8.5).
+ * /plano — única "home" do app pós-ADR-155.
  *
- * Hierarquia: hero IF (meta-mãe) → metas de suporte (Aportes/Dolarização/
- * Alocação) → tarefas que destravam a IF.
+ * Consolida 3 camadas em uma única tela vertical:
+ *
+ * 1. **Estratégia** (executive summary): KPIs estratégicos · banner de
+ *    sugestões · Hero IF · Metas de suporte.
+ * 2. **Mês corrente** (operacional, ex-/dashboard): alertas · KPIs
+ *    operacionais · charts. Componentes vivem em `_dashboard/`.
+ * 3. **Plano de Ação** (execução): Decisões em vigor · tarefas próximas ·
+ *    tarefas que destravam IF.
+ *
+ * `/dashboard` agora redireciona 308 para `/plano` (ADR-155, Direção E
+ * consolidação). `/acao` permanece como superfície dinâmica de execução
+ * (Inbox, Tarefas, Timeline, Notas).
  */
 
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UpcomingTasksWidget } from "@/components/tasks/UpcomingTasksWidget";
+import { getDashboard, type DashboardResponse } from "@/lib/api";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 import { DecisionsSection } from "./_components/DecisionsSection";
@@ -22,60 +36,151 @@ import { PlanoKpiRow } from "./_components/PlanoKpiRow";
 import { SuggestionsBanner } from "./_components/SuggestionsBanner";
 import { SupportGoalsRow } from "./_components/SupportGoalsRow";
 import { usePlanoOverview } from "./_components/usePlanoOverview";
+import { AlertCard } from "./_components/_dashboard/AlertCard";
+import { ChartsGrid } from "./_components/_dashboard/ChartsGrid";
+import { HeaderActions } from "./_components/_dashboard/HeaderActions";
+import { KpiRow as DashboardKpiRow } from "./_components/_dashboard/KpiRow";
+import { monthLabelToDateRange } from "./_components/_dashboard/dashboardHelpers";
 
 export default function PlanoPage() {
   const { workspace, isLoading: wsLoading } = useWorkspace();
-  const { goals, linkedTasks, progress, patrimonio, loading, error } =
-    usePlanoOverview(workspace?.id);
+  const overview = usePlanoOverview(workspace?.id);
+  const dashboard = useDashboardData(workspace?.id);
+  const router = useRouter();
 
-  if (wsLoading || (workspace?.id && loading)) {
+  if (wsLoading || (workspace?.id && overview.loading)) {
     return <PlanoLoadingState />;
   }
-
-  if (error) {
-    return <PlanoErrorState error={error} />;
+  if (overview.error) {
+    return <PlanoErrorState error={overview.error} />;
   }
-
   if (!workspace) {
     return <PlanoNoWorkspaceState />;
   }
 
-  const ifGoal = goals.ifGoal;
+  const ifGoal = overview.goals.ifGoal;
+  const handleBarClick = (label: string) => {
+    const range = monthLabelToDateRange(label);
+    if (range) {
+      router.push(
+        `/transactions?date_from=${range.date_from}&date_to=${range.date_to}`,
+      );
+    }
+  };
+  const handleSliceClick = (name: string) => {
+    router.push(`/transactions?category=${encodeURIComponent(name)}`);
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
       <PageHeader
         title="Meu Plano"
-        description="Onde você está hoje, onde quer chegar"
+        description="Sua vida financeira — onde está, onde vai, o que está em jogo"
+        actions={
+          <HeaderActions
+            dataFreshness={dashboard.data?.data_freshness}
+            loading={dashboard.loading}
+            onRefresh={dashboard.load}
+          />
+        }
       />
 
       <PlanoKpiRow
-        patrimonio={patrimonio}
+        patrimonio={overview.patrimonio}
         ifGoal={ifGoal}
-        ifProgress={progress}
-        aporteGoal={goals.aporteGoal}
+        ifProgress={overview.progress}
+        aporteGoal={overview.goals.aporteGoal}
         loading={false}
       />
 
       <SuggestionsBanner workspaceId={workspace.id} />
 
       {ifGoal ? (
-        <IFHeroCard goal={ifGoal} progress={progress} />
+        <IFHeroCard goal={ifGoal} progress={overview.progress} />
       ) : (
         <IFEmptyHero />
       )}
 
       <SupportGoalsRow
-        aporteGoal={goals.aporteGoal}
-        dolarGoal={goals.dolarGoal}
-        alocacaoGoal={goals.alocacaoGoal}
+        aporteGoal={overview.goals.aporteGoal}
+        dolarGoal={overview.goals.dolarGoal}
+        alocacaoGoal={overview.goals.alocacaoGoal}
       />
+
+      <SectionDivider label="Mês corrente" />
+
+      {dashboard.data && dashboard.data.alerts.length > 0 && (
+        <div className="mb-6 space-y-3">
+          {dashboard.data.alerts.map((alert, i) => (
+            <AlertCard key={`${alert.severity}-${i}`} alert={alert} />
+          ))}
+        </div>
+      )}
+
+      <DashboardKpiRow
+        loading={dashboard.loading}
+        kpis={dashboard.data?.kpis ?? []}
+      />
+
+      <ChartsGrid
+        loading={dashboard.loading}
+        charts={dashboard.data?.charts ?? []}
+        onBarClick={handleBarClick}
+        onSliceClick={handleSliceClick}
+      />
+
+      <SectionDivider label="Plano de Ação" />
 
       <DecisionsSection workspaceId={workspace.id} />
 
-      {ifGoal && <LinkedTasksSection tasks={linkedTasks} />}
+      <div className="mt-6">
+        <UpcomingTasksWidget />
+      </div>
+
+      {ifGoal && <LinkedTasksSection tasks={overview.linkedTasks} />}
     </div>
   );
+}
+
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="my-8 flex items-center gap-3">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </h2>
+      <div className="flex-1 border-t border-border" />
+    </div>
+  );
+}
+
+interface DashboardState {
+  data: DashboardResponse | null;
+  loading: boolean;
+  error: string | null;
+  load: () => Promise<void>;
+}
+
+function useDashboardData(workspaceId: string | undefined): DashboardState {
+  const [data, setData] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    if (!workspaceId) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await getDashboard(workspaceId);
+      setData(res);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao carregar dashboard");
+    } finally {
+      setLoading(false);
+    }
+  }, [workspaceId]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  return { data, loading, error, load };
 }
 
 function PlanoLoadingState() {

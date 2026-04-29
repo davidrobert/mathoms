@@ -76,9 +76,10 @@ describe("AppShell", () => {
     await screen.findByText("conteudo");
     expect(screen.getByText("Plano de vida")).toBeInTheDocument();
     expect(screen.getByText("Fechamento do período")).toBeInTheDocument();
+    // ADR-155: "Dashboard" removido — absorvido por /plano.
     for (const label of [
       "Meu Plano",
-      "Dashboard",
+      "Ação",
       "Documentos",
       "Pipeline",
       "Transações",

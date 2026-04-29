@@ -27,11 +27,13 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { server } from "../mocks/server";
 import { makeDashboard, makeKPI, makeDocument, makeVaultPassword } from "../factories";
 
-// next/navigation mock (algumas pages usam)
+// next/navigation mock (algumas pages usam — incluindo redirect Server Component
+// usado pelo /dashboard pós-ADR-155)
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   usePathname: () => "/",
   useSearchParams: () => new URLSearchParams(),
+  redirect: vi.fn(),
 }));
 vi.mock("next/link", () => ({
   default: ({ children, href, ...rest }: any) => <a href={href} {...rest}>{children}</a>,
@@ -204,30 +206,7 @@ describe("a11y — pages", () => {
     assertNoSeriousViolations(results);
   });
 
-  it("DashboardPage (com KPIs) é acessível", async () => {
-    server.use(
-      http.get("/api/v1/workspaces/:workspaceId/dashboard", () =>
-        HttpResponse.json(
-          makeDashboard({
-            kpis: [
-              makeKPI({ label: "Receitas", value: "R$ 12.500,00" }),
-              makeKPI({ label: "Despesas", value: "R$ 8.400,00" }),
-            ],
-          }),
-        ),
-      ),
-    );
-    const { default: DashboardPage } = await import("@/app/(app)/dashboard/page");
-    vi.mock("recharts", async () => {
-      const actual = await vi.importActual<typeof import("recharts")>("recharts");
-      return {
-        ...actual,
-        ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
-      };
-    });
-    const { container, findByText } = render(<DashboardPage />);
-    await findByText("Receitas");
-    const results = await axe(container);
-    assertNoSeriousViolations(results);
-  });
+  // ADR-155: DashboardPage virou redirect; teste a11y dos charts/KPIs
+  // operacionais (que agora vivem na seção "Mês corrente" do /plano)
+  // fica como lane futura `plano-a11y` quando produto pedir.
 });

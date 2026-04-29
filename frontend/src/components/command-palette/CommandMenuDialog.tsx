@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import {
-  LayoutDashboard,
   FileText,
   Zap,
   BarChart3,
@@ -23,10 +22,9 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/cn";
 
-const NAV: { label: string; href: string; icon: typeof LayoutDashboard }[] = [
+const NAV: { label: string; href: string; icon: typeof Target }[] = [
   { label: "Meu Plano", href: "/plano", icon: Target },
   { label: "Ação", href: "/acao", icon: ListTodo },
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Documentos", href: "/documents", icon: FileText },
   { label: "Pipeline", href: "/pipeline", icon: Zap },
   { label: "Transações", href: "/transactions", icon: ArrowLeftRight },
