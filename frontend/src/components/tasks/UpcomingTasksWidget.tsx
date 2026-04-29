@@ -39,7 +39,7 @@ function WidgetHeader({ count }: { count: number }) {
           <span className="text-xs text-muted-foreground tabular-nums">({count})</span>
         )}
       </div>
-      <Button variant="ghost" size="xs" nativeButton={false} render={<Link href="/plano-de-acao" />}>
+      <Button variant="ghost" size="xs" nativeButton={false} render={<Link href="/acao" />}>
         Ver todas <ArrowRight className="ml-1 h-3 w-3" />
       </Button>
     </div>

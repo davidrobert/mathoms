@@ -29,7 +29,6 @@ import {
   ListTodo,
 } from "lucide-react";
 
-/** Match route without treating `/plano` as prefix of `/plano-de-acao` (startsWith bug). */
 function isNavActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -43,7 +42,7 @@ const NAV_GROUPS: {
     heading: "Plano de vida",
     items: [
       { href: "/plano", label: "Meu Plano", icon: Target },
-      { href: "/plano-de-acao", label: "Plano de Ação", icon: ListTodo },
+      { href: "/acao", label: "Ação", icon: ListTodo },
     ],
   },
   {

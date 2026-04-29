@@ -15,7 +15,7 @@ interface SuggestionsBannerProps {
  *
  * Só renderiza quando há sugestões pendentes (count > 0). Severidade
  * cresce com volume: ≤3 = info, ≥4 = warning. Click leva ao inbox
- * em /acao (ainda /plano-de-acao até Onda 6 renomear a rota).
+ * em /acao (rota ativa desde Onda 6, ADR-152).
  *
  * Fonte de dados é stub até Onda 5 (Suggestion full-stack). Componente
  * está pronto para "ligar" no backend trocando só o hook.
@@ -52,7 +52,7 @@ export function SuggestionsBanner({ workspaceId }: SuggestionsBannerProps) {
         size="sm"
         variant="outline"
         nativeButton={false}
-        render={<Link href="/plano-de-acao" />}
+        render={<Link href="/acao" />}
         className="shrink-0"
       >
         Revisar

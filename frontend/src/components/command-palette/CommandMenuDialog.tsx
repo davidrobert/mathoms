@@ -25,7 +25,7 @@ import { cn } from "@/lib/cn";
 
 const NAV: { label: string; href: string; icon: typeof LayoutDashboard }[] = [
   { label: "Meu Plano", href: "/plano", icon: Target },
-  { label: "Plano de Ação", href: "/plano-de-acao", icon: ListTodo },
+  { label: "Ação", href: "/acao", icon: ListTodo },
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Documentos", href: "/documents", icon: FileText },
   { label: "Pipeline", href: "/pipeline", icon: Zap },
