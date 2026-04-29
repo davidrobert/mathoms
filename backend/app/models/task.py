@@ -77,7 +77,7 @@ VALID_CREATED_FROM: frozenset[str] = frozenset(
     {"manual", "seed", "llm_suggestion", "kanban_migration"}
 )
 
-# board_column é o eixo tático do Kanban (ADR-153). NULL = task não vive
+# board_column é o eixo tático do Kanban (ADR-154). NULL = task não vive
 # no board view. Preenchido via aceite explícito do usuário ou backfill.
 VALID_BOARD_COLUMNS: frozenset[str] = frozenset({"a_fazer", "em_andamento", "concluido"})
 
@@ -147,21 +147,21 @@ class Task(Base):
     created_from: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
     source_suggestion_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
-    # ADR-153: Kanban view; NULL = task fora do board. Backfill preserva coluna.
+    # ADR-154: Kanban view; NULL = task fora do board. Backfill preserva coluna.
     board_column: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     board_order: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
-    # ADR-153: eixo tático ortogonal a priority (S/R/O); opt-in.
+    # ADR-154: eixo tático ortogonal a priority (S/R/O); opt-in.
     urgency: Mapped[Optional[str]] = mapped_column(String(8), nullable=True)
 
-    # ADR-153: ON DELETE SET NULL preserva task ao deletar o relatório de origem.
+    # ADR-154: ON DELETE SET NULL preserva task ao deletar o relatório de origem.
     origin_report_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("reports.id", ondelete="SET NULL"),
         nullable=True,
     )
 
-    # ADR-153: filtra tasks de Kanban migrado em widgets (UpcomingTasksWidget).
+    # ADR-154: filtra tasks de Kanban migrado em widgets (UpcomingTasksWidget).
     is_board_only: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="0"
     )

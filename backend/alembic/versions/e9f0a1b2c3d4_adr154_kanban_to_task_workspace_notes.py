@@ -1,10 +1,10 @@
-"""ADR-153 (M1): Task expand (board_*, origin_report_id) + workspace_notes table.
+"""ADR-154 (M1): Task expand (board_*, origin_report_id) + workspace_notes table.
 
 Revision ID: e9f0a1b2c3d4
 Revises: d8e9f0a1b2c3
 Create Date: 2026-04-29
 
-ADR-153 (Direção E · Onda 1): funde ``KanbanItem`` (ADR-123) no aggregate
+ADR-154 (Direção E · Onda 1): funde ``KanbanItem`` (ADR-123) no aggregate
 ``Task`` (ADR-074) e migra ``ReportNotes`` (ADR-123) para ``workspace_notes``
 (workspace-scoped, multi-row, opcionalmente fixadas).
 
