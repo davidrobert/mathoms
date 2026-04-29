@@ -1,5 +1,13 @@
 # Track — Onda 1: Migration `kanban_items` + `report_notes` → `tasks` + `workspace_notes`
 
+> **Status:** ✅ Entregue (M1) em 2026-04-29 (commits `6b21207`/`c8f0ed4`/
+> `4529192`/`0f9b5a3`/`77ce046`/`8adaf60` em `main`,
+> [ADR-154](../DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1),
+> [PR #20](https://github.com/davidrobert/mathoms/pull/20)). Mantido em
+> `docs/agent_prompts/` como referência histórica. M2 (drop `kanban_items`
+> + `report_notes` + endpoints 410 Gone) fica para sprint+1, em PR
+> separado, após validação 7+ dias em workspace Allen.
+>
 > **Contexto:** Este prompt é self-contained para nova sessão Claude
 > Code dedicada à Onda 1 da Direção E. Branch sugerida:
 > `agent/onda-1-kanban-task-migration/<ts>`, partindo de `origin/main`
