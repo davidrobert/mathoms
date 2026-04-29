@@ -40,14 +40,6 @@ import {
   U4SimulacaoMarianaSection,
 } from "./sections/UsaSections";
 import {
-  T1FluxoOperacionalSection,
-  T2AportesSection,
-  T3TarefasSection,
-  T4AlertasSection,
-  T5ProximosPassosSection,
-  T6NotasSection,
-} from "./sections/TaticoSections";
-import {
   ReportActions,
   ReportCover,
   ReportTopNav,
@@ -81,15 +73,14 @@ function formatGeneratedAtPtBR(iso: string): string {
   return `${day} ${month} ${year}, ${hh}h${mm}`;
 }
 
-/** Todas as seções de todos os modos estão migradas (F2.A–H + Fase D). */
+/** Todas as seções de todos os modos estão migradas (F2.A–H + Fase D).
+ * ADR-151 (Direção E): Modo Tático removido — T1-T6 não são mais renderizados. */
 const MIGRATED_SECTIONS = new Set([
   // Estratégico
   "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10",
   // USA
   "U1", "U2", "U3", "U4",
-  // Tático
-  "T1", "T2", "T3", "T4", "T5", "T6",
-  // A7.2a · ADR-136 — Plano de Ação (Decision aggregate)
+  // A7.2a · ADR-136 — Plano de Ação (Decision aggregate, agora no Estratégico)
   "plano_de_acao",
   // Apêndices
   "APP_A", "APP_B", "APP_C", "APP_D", "APP_E",
@@ -114,9 +105,8 @@ interface ReportShellProps {
   familySurname?: string | null;
 }
 
-function selectSections(mode: "estrategico" | "tatico" | "usa"): SectionSpec[] {
+function selectSections(mode: "estrategico" | "usa"): SectionSpec[] {
   if (mode === "estrategico") return LAYOUT.estrategico.sections;
-  if (mode === "tatico") return LAYOUT.tatico.sections;
   return LAYOUT.usa.sections;
 }
 
@@ -125,7 +115,6 @@ function buildTitleMap(): Record<string, string> {
   const map: Record<string, string> = {};
   for (const s of LAYOUT.estrategico.sections) map[s.id] = s.title;
   for (const a of LAYOUT.estrategico.appendices ?? []) map[a.id] = a.title;
-  for (const s of LAYOUT.tatico.sections) map[s.id] = s.title;
   for (const s of LAYOUT.usa.sections) map[s.id] = s.title;
   return map;
 }
@@ -142,12 +131,11 @@ function shortLabel(title: string): string {
  */
 function buildNavGroups(): {
   estrategico: NavGroup[];
-  tatico: NavGroup[];
   usa: NavGroup[];
 } {
   const titles = buildTitleMap();
   const nav = LAYOUT.navigation;
-  if (nav?.estrategico && nav?.tatico) {
+  if (nav?.estrategico) {
     const mapGroup = (groups: NonNullable<typeof nav.estrategico>): NavGroup[] =>
       groups.map((g) => ({
         label: g.label,
@@ -160,7 +148,6 @@ function buildNavGroups(): {
       }));
     return {
       estrategico: mapGroup(nav.estrategico),
-      tatico: mapGroup(nav.tatico),
       usa: nav.usa ? mapGroup(nav.usa) : [],
     };
   }
@@ -171,13 +158,6 @@ function buildNavGroups(): {
     estrategico: [
       {
         links: strategic.map((s) => ({ id: s.id, label: shortLabel(s.title), num: s.id })),
-      },
-    ],
-    tatico: [
-      {
-        links: LAYOUT.tatico.sections
-          .filter((s) => s.enabled)
-          .map((s) => ({ id: s.id, label: shortLabel(s.title), num: s.id })),
       },
     ],
     usa: [
@@ -396,7 +376,6 @@ export function ReportShell({
                     sectionId={section.id}
                     data={dataState.data}
                     workspaceId={workspaceId}
-                    reportId={reportId}
                   />
                 ) : (
                   <ReportSection
@@ -455,12 +434,10 @@ function MigratedSection({
   sectionId,
   data,
   workspaceId,
-  reportId,
 }: {
   sectionId: string;
   data: ReportAnalysisData;
   workspaceId: string;
-  reportId: string;
 }) {
   switch (sectionId) {
     case "S1":
@@ -488,25 +465,6 @@ function MigratedSection({
       return <U3NclexSection data={data} />;
     case "U4":
       return <U4SimulacaoMarianaSection data={data} />;
-    // Tático
-    case "T1":
-      return <T1FluxoOperacionalSection data={data} />;
-    case "T2":
-      return <T2AportesSection data={data} />;
-    case "T3":
-      return (
-        <T3TarefasSection
-          data={data}
-          workspaceId={workspaceId}
-          reportId={reportId}
-        />
-      );
-    case "T4":
-      return <T4AlertasSection data={data} />;
-    case "T5":
-      return <T5ProximosPassosSection data={data} />;
-    case "T6":
-      return <T6NotasSection workspaceId={workspaceId} reportId={reportId} />;
     // A7.2a · ADR-136 — Plano de Ação (Decisões editoriais)
     case "plano_de_acao":
       return <PlanoDeAcaoSection workspaceId={workspaceId} />;

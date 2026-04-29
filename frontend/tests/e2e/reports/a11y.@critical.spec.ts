@@ -13,7 +13,7 @@ import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
 
 const STRATEGIC_SECTIONS = ["S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10"];
 const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
-const TATICO_SECTIONS = ["T1", "T2", "T3", "T4", "T5", "T6"];
+// ADR-151 (Direção E): Modo Tático removido — bloco T1-T6 retirado do relatório.
 const USA_SECTIONS = ["U1", "U2", "U3", "U4"];
 
 test.describe("Report a11y @critical", () => {
@@ -51,32 +51,6 @@ test.describe("Report a11y @critical", () => {
       const exists = await page.locator(selector).count();
       if (exists === 0) {
         test.skip(true, `seção ${sectionId} não montada no modo padrão`);
-        return;
-      }
-      await expectNoA11yViolations(page, { selector });
-    });
-  }
-});
-
-test.describe("Report a11y modo tático @critical", () => {
-  for (const sectionId of TATICO_SECTIONS) {
-    test(`seção ${sectionId} sem violações critical+serious`, async ({ page }) => {
-      const { workspaceId, reportId } = await mockReportPage(page);
-      await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
-      await waitForReportReady(page);
-
-      const modeBtn = page
-        .getByRole("button", { name: /Tático/i })
-        .first();
-      if (await modeBtn.isVisible().catch(() => false)) {
-        await modeBtn.click();
-        await page.waitForTimeout(200);
-      }
-
-      const selector = `section#${sectionId}[data-report-section]`;
-      const exists = await page.locator(selector).count();
-      if (exists === 0) {
-        test.skip(true, `seção ${sectionId} não montada — ModeToggle pode ter mudado de UI`);
         return;
       }
       await expectNoA11yViolations(page, { selector });

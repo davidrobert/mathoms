@@ -88,6 +88,7 @@ navigation:
     - label: "Síntese"
       links:
         - {section_id: "S10", num: "10"}
+        - {section_id: "plano_de_acao", num: "11"}
     - label: "Apêndices"
       links:
         - {section_id: "APP_A", num: "A", is_appendix: true}
@@ -95,14 +96,6 @@ navigation:
         - {section_id: "APP_C", num: "C", is_appendix: true}
         - {section_id: "APP_D", num: "D", is_appendix: true}
         - {section_id: "APP_E", num: "E", is_appendix: true}
-  tatico:
-    - links:
-        - {section_id: "T1", num: "T1"}
-        - {section_id: "T2", num: "T2"}
-        - {section_id: "T3", num: "T3"}
-        - {section_id: "T4", num: "T4"}
-        - {section_id: "T5", num: "T5"}
-        - {section_id: "T6", num: "T6"}
   usa:
     - links:
         - {section_id: "U1", num: "U1"}
@@ -377,6 +370,21 @@ estrategico:
           variant: "highlight"
           size: "full"
 
+    # --------------------------------------------------------------------------
+    # plano_de_acao — Decisões em Vigor no Período (A7.2a · ADR-136 · ADR-149)
+    # --------------------------------------------------------------------------
+    # Apêndice gerado da Decision aggregate na data do snapshot — read-only.
+    # Gestão (criar/editar/superseder/executar) vive em /plano (Onda 2 da
+    # Direção E). Modo Tático foi removido (ADR-149 supersede ADR-117/ADR-123).
+    - id: "plano_de_acao"
+      title: "Plano de Ação — Decisões em Vigor"
+      enabled: true
+      summary: true
+      divider_before: true
+      data_source: "decisions"
+      charts: []
+      cards: []
+
   # ----------------------------------------------------------------------------
   # Apêndices (A-E)
   # ----------------------------------------------------------------------------
@@ -411,151 +419,6 @@ estrategico:
       cards:
         - {id: "proximos_ciclos", enabled: true, variant: "highlight", size: "full"}
         - {id: "disclaimers", enabled: true, variant: "neutral", size: "full"}
-
-# ==============================================================================
-# MODO TÁTICO (T1-T6 + KPIs) — Dashboard Operacional Quinzenal
-# ==============================================================================
-# Modo tático: seções T1-T6 alimentadas por DATA.dashboard no relatório
-# nativo React (rota /reports/[id]).
-# ==============================================================================
-tatico:
-
-  # KPIs do painel tático (barra superior, 6 slots)
-  kpis:
-    - id: "patrimonio_delta"
-      label: "Patrimônio Δ"
-      enabled: true
-    - id: "aportes_check"
-      label: "Aportes ✓"
-      enabled: true
-    - id: "despesas_alerta"
-      label: "Despesas Alerta"
-      enabled: true
-    - id: "tarefas_pct"
-      label: "Tarefas %"
-      enabled: true
-    - id: "alerta_1"
-      label: "Alerta Crítico 1"
-      enabled: true
-    - id: "alerta_2"
-      label: "Alerta Crítico 2"
-      enabled: true
-
-  sections:
-
-    # --------------------------------------------------------------------------
-    # T1 — Fluxo Operacional (Despesas vs Tetos por categoria)
-    # --------------------------------------------------------------------------
-    - id: "T1"
-      title: "Fluxo Operacional — Despesas vs Tetos"
-      enabled: true
-      collapsible: true
-      data_source: "dashboard.despesas_por_categoria"
-      charts: []
-      cards: []
-
-    # --------------------------------------------------------------------------
-    # T2 — Aportes e Investimentos (status de cada destino + variação patrimonial)
-    # --------------------------------------------------------------------------
-    # v2.4 — render real (era stub). Card "aportes_status" lista cada destino
-    # com KPI strip (5 slots: destinos, concluídos, total realizado, meta, %),
-    # card "investimentos_delta" mostra variação por bloco (David/Mariana/USD…).
-    # Conclusion lê narrativas[t2_aportes].conclusion (LLM E5.N) com fallback
-    # determinístico (deriva de dashboard.aportes).
-    - id: "T2"
-      title: "Aportes e Investimentos"
-      enabled: true
-      collapsible: true
-      data_source: "dashboard.aportes + dashboard.investimentos_delta"
-      charts: []
-      cards:
-        - id: "aportes_status"
-          enabled: true
-          variant: "feature"
-          size: "full"
-        - id: "investimentos_delta"
-          enabled: true
-          variant: "feature"
-          size: "full"
-      # Report Premium UI v2.8 — comparisons + changelog ativos via SnapshotChangelogBuilder (ADR-148).
-      comparisons:
-        - id: "comparisons_t2"
-          enabled: true
-      changelog:
-        - id: "changelog_t2"
-          enabled: true
-
-    # --------------------------------------------------------------------------
-    # T3 — Checklist de Tarefas (filtros: todas/pendentes/feitas/vencidas)
-    # --------------------------------------------------------------------------
-    - id: "T3"
-      title: "Checklist de Tarefas"
-      enabled: true
-      collapsible: true
-      data_source: "dashboard.tarefas + dashboard.tarefas_status"
-      charts: []
-      cards: []
-      # Report Premium UI v2.8 — comparisons + changelog ativos via SnapshotChangelogBuilder (ADR-148).
-      comparisons:
-        - id: "comparisons_t3"
-          enabled: true
-      changelog:
-        - id: "changelog_t3"
-          enabled: true
-
-    # --------------------------------------------------------------------------
-    # T4 — Alertas e Pendências
-    # --------------------------------------------------------------------------
-    - id: "T4"
-      title: "Alertas e Pendências"
-      enabled: true
-      collapsible: true
-      data_source: "dashboard.alertas"
-      charts: []
-      cards: []
-
-    # --------------------------------------------------------------------------
-    # T5 — Próximos Passos (timeline 15 dias)
-    # --------------------------------------------------------------------------
-    - id: "T5"
-      title: "Próximos Passos"
-      enabled: true
-      collapsible: true
-      data_source: "dashboard.proximos_15d"
-      charts: []
-      cards: []
-      # Report Premium UI v2.8 — comparisons + changelog ativos via SnapshotChangelogBuilder (ADR-148).
-      comparisons:
-        - id: "comparisons_t5"
-          enabled: true
-      changelog:
-        - id: "changelog_t5"
-          enabled: true
-
-    # --------------------------------------------------------------------------
-    # T6 — Notas e Observações
-    # --------------------------------------------------------------------------
-    - id: "T6"
-      title: "Notas e Observações"
-      enabled: true
-      collapsible: true
-      data_source: "dashboard.notas"
-      charts: []
-      cards: []
-
-    # --------------------------------------------------------------------------
-    # plano_de_acao — Plano de Ação (Decisões editoriais — A7.2a · ADR-136)
-    # --------------------------------------------------------------------------
-    # Decision aggregate event-sourced. Lê de
-    # /api/v1/workspaces/{id}/decisions; renderer = PlanoDeAcaoSection.
-    # Substitui o caderno legado em config/decisions.md (removido em A7.2a).
-    - id: "plano_de_acao"
-      title: "Plano de Ação"
-      enabled: true
-      collapsible: true
-      data_source: "decisions"
-      charts: []
-      cards: []
 
 # ==============================================================================
 # MODO USA (U1-U4) — Projeto Mudança EUA

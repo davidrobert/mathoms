@@ -5,7 +5,6 @@ import type { ReportMode } from "@/generated/report-layout";
 
 export const VALID_MODES = new Set<ReportMode>([
   "estrategico",
-  "tatico",
   "usa",
 ]);
 

@@ -19,7 +19,8 @@ export type NavDensity = "default" | "compact";
 
 /** Acima desse total de links no modo ativo, faixa entra em modo compacto:
  * apenas o `link.num` aparece; o label só expande no item ativo (scroll-spy).
- * Estratégico tem 15 alvos → compacta; Tático (6) e USA (4) ficam normais.
+ * Estratégico tem 16 alvos (com plano_de_acao) → compacta; USA (4) fica normal.
+ * ADR-151 (Direção E): Modo Tático removido.
  */
 const COMPACT_THRESHOLD = 8;
 
@@ -30,7 +31,6 @@ export interface ReportTopNavProps {
   readonly actions?: ReactNode;
   readonly groupsByMode: {
     readonly estrategico: readonly NavGroup[];
-    readonly tatico: readonly NavGroup[];
     readonly usa: readonly NavGroup[];
   };
   /** Container do scroll observado para active link. Default: window. */

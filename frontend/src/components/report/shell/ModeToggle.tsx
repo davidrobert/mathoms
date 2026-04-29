@@ -5,7 +5,6 @@ import type { ReportMode } from "@/generated/report-layout";
 
 const LABEL: Record<ReportMode, string> = {
   estrategico: "Estratégico",
-  tatico: "Tático",
   usa: "USA",
 };
 
@@ -13,6 +12,7 @@ const LABEL: Record<ReportMode, string> = {
  *
  * Matching `.mode-toggle` EXEMPLO_DE_RELATORIO.html linhas 799-805.
  * Sync bidirecional URL ↔ state já vive no provider.
+ * ADR-151 (Direção E): Modo Tático removido — sobram Estratégico + USA.
  */
 export function ModeToggle({
   className,
@@ -22,7 +22,7 @@ export function ModeToggle({
   readonly compact?: boolean;
 }) {
   const { mode, setMode } = useReportMode();
-  const modes: readonly ReportMode[] = ["estrategico", "tatico", "usa"];
+  const modes: readonly ReportMode[] = ["estrategico", "usa"];
 
   return (
     <div

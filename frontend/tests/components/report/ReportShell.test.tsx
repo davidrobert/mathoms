@@ -90,7 +90,8 @@ describe("ReportShell", () => {
     expect(link).toHaveAttribute("href", `/pipeline?run=${encodeURIComponent(runId)}`);
   });
 
-  it("mostra seletor de modo (estratégico/tático)", () => {
+  it("mostra seletor de modo (estratégico/EUA)", () => {
+    // ADR-151 (Direção E): Modo Tático removido — sobram Estratégico + EUA.
     const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
     render(
       wrap(
@@ -106,8 +107,10 @@ describe("ReportShell", () => {
     expect(
       screen.getByRole("tab", { name: "Estratégico", selected: true }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Tático" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "EUA" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "Tático" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renderiza seções migradas sem stubs no modo estratégico", () => {

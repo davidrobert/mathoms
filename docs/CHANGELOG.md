@@ -6,6 +6,39 @@
 
 ## [Unreleased]
 
+- **Direção E — Onda 2 + Onda 3: redesign de interfaces (2026-04-28/29):**
+  Brainstorm convergiu em Direção E (refinada por product-designer +
+  financial-planner). Modelo mental novo: **Relatório = foto + análise**
+  (gera sugestões), **`/plano` = one-page executivo** (KPIs + metas +
+  Decisions), **`/acao` = superfície dinâmica** (Inbox de sugestões +
+  Tasks + Timeline + Notas). `/dashboard` será absorvido pelo `/plano`
+  em onda futura.
+
+  **Onda 2 entregue (UI Decisions em `/plano`):** 6 componentes novos
+  em `frontend/src/app/(app)/plano/_components/` (DecisionsSection,
+  DecisionCard, DecisionFormDialog, DecisionSupersedeDialog,
+  DecisionStatusBadge, decisionsCopy) — primeira UI de gestão exposta
+  ao usuário para o aggregate Decision (ADR-136 entregue em A7.5 sem
+  UI). Hook `useDecisions` estendido com `create()`. Copy PT-BR de
+  leigo (Pendente→A decidir, Decidido→Em vigor, Executado→Aplicada,
+  Superseded→Substituída) — esconde vocabulário event-sourced.
+  Rationale obrigatório (≥10 chars) implementa deliberação consciente
+  exigida por Cerbasi/AUVP. 11 testes para helpers puros. Branch
+  `agent/decisions-ui-plano/20260428-1654`.
+
+  **Onda 3 entregue (remoção do Modo Tático do relatório,
+  [ADR-151](DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)):**
+  Modo Tático (T1-T6) removido do relatório nativo React. `tatico:`
+  removido de `config/report_layout.yaml`; `plano_de_acao` movido para
+  `estrategico:` (apêndice "Decisões em Vigor no Período").
+  `TaticoSections.tsx` (494 LOC) e `aportesAdapter.ts` deletados.
+  `ReportShell`/`ModeContext`/`ModeProvider`/`ModeToggle`/
+  `ReportActions`/`ReportTopNav` simplificados — `ReportMode` reduzido
+  a `'estrategico' | 'usa'`. ADR-117 e ADR-123 marcadas como
+  parcialmente superseded. Tabelas `kanban_items` e `report_notes`
+  permanecem no DB durante janela transitória (migração para `tasks` +
+  `workspace_notes` é Onda 1 futura).
+
 - **Test charts — lint anti-regressão `--chart-N: oklch(…)` (2026-04-27):**
   Follow-up do CAVEAT registrado no fix `de2c00a` (barras pretas RDM).
   Novo spec em

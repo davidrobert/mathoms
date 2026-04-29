@@ -21,17 +21,16 @@ interface ReportActionsProps {
 
 const MODE_LABELS: Record<ReportMode, string> = {
   estrategico: "Estratégico",
-  tatico: "Tático",
   usa: "EUA",
 };
 
 const MODE_TOOLTIPS: Record<ReportMode, string> = {
   estrategico: "Visão patrimonial e estratégica de longo prazo",
-  tatico: "Tarefas, aportes e fluxo operacional do período",
   usa: "Cenários e planos para mudança aos EUA",
 };
 
-const VISIBLE_MODES: readonly ReportMode[] = ["estrategico", "tatico", "usa"];
+// ADR-151 (Direção E): Modo Tático removido — sobram Estratégico + USA.
+const VISIBLE_MODES: readonly ReportMode[] = ["estrategico", "usa"];
 
 /** Action zone do header unificado: Modo (3 segmentos) + TOC + Print + PDF.
  *

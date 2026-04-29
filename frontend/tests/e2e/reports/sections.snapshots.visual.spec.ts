@@ -13,10 +13,11 @@
  * Cobertura:
  * - shell global (cover, premissas) × {light, dark}
  * - Estratégico: S1-S10 + APP_A-E × {light, dark}
- * - Tático: T1-T6 × {light, dark} (deep-link `?mode=tatico`)
  * - USA: U1-U4 × {light, dark} (deep-link `?mode=usa`)
  *
- * v2.2b: troca de modo via URL `?mode=tatico|usa` (lida por
+ * ADR-151 (Direção E): Modo Tático removido — sobram Estratégico + USA.
+ *
+ * v2.2b: troca de modo via URL `?mode=usa` (lida por
  * `ReportModeProvider`) em vez de click — evita brittleness do toggle
  * (role="tab" + label fora do botão).
  *
@@ -31,13 +32,12 @@ const VIEWPORT = { width: 1280, height: 800 };
 
 const STRATEGIC_SECTIONS = ["S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10"];
 const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
-const TATICO_SECTIONS = ["T1", "T2", "T3", "T4", "T5", "T6"];
 const USA_SECTIONS = ["U1", "U2", "U3", "U4"];
 
 const THEMES = ["light", "dark"] as const;
 type Theme = (typeof THEMES)[number];
 
-type Mode = "estrategico" | "tatico" | "usa";
+type Mode = "estrategico" | "usa";
 
 async function setupReport(
   page: Page,
@@ -52,7 +52,7 @@ async function setupReport(
 
   const { workspaceId, reportId } = await mockReportPage(page);
   await page.setViewportSize(VIEWPORT);
-  // v2.2b — modo via URL (`?mode=tatico|usa`) em vez de click no toggle.
+  // v2.2b — modo via URL (`?mode=usa`) em vez de click no toggle.
   // ReportModeProvider lê searchParams na montagem (deep-link). Evita
   // brittleness de role="tab" + label dentro do TooltipTrigger sem
   // aria-label, que quebrava `getByRole("button", { name: /Tático|USA/i })`.
@@ -127,19 +127,6 @@ test.describe("Snapshots — cover (hero)", () => {
         },
       );
     });
-  }
-});
-
-// ─── Tático ────────────────────────────────────────────────────────────
-
-test.describe("Snapshots — modo tático", () => {
-  for (const theme of THEMES) {
-    for (const sectionId of TATICO_SECTIONS) {
-      test(`${sectionId} — ${theme}`, async ({ page }) => {
-        await setupReport(page, theme, "tatico");
-        await snapshotSection(page, sectionId, theme);
-      });
-    }
   }
 });
 

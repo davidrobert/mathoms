@@ -16,7 +16,7 @@ import { useReportMode } from "@/components/report/ReportModeContext";
 function Probe() {
   const { mode, setMode } = useReportMode();
   return (
-    <button type="button" onClick={() => setMode("tatico")}>
+    <button type="button" onClick={() => setMode("usa")}>
       mode:{mode}
     </button>
   );
@@ -25,11 +25,11 @@ function Probe() {
 describe("StaticReportModeProvider", () => {
   it("expõe mode da prop", () => {
     render(
-      <StaticReportModeProvider mode="tatico">
+      <StaticReportModeProvider mode="usa">
         <Probe />
       </StaticReportModeProvider>,
     );
-    expect(screen.getByRole("button")).toHaveTextContent("mode:tatico");
+    expect(screen.getByRole("button")).toHaveTextContent("mode:usa");
   });
 
   it("setMode é no-op (não explode)", () => {

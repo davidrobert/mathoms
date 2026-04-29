@@ -270,11 +270,12 @@ export type ChartConclusions = Record<string, string>;
 export type SectionSummaries = Record<string, string>;
 
 // ──────────────────────────────────────────────────────────────────────
-// v2.4 — Tático T2 (Aportes e Investimentos)
+// Aportes e Investimentos (dashboard)
 //
 // Shape espelha o `dashboard.aportes` + `dashboard.investimentos_delta`
-// produzidos pelo E5 (paridade com EXEMPLO_DE_RELATORIO.html — bloco
-// `dash-aportes`). Determinístico; nenhum campo novo no pipeline.
+// produzidos pelo E5. Determinístico; nenhum campo novo no pipeline.
+// Originalmente consumido pelo Tático T2 (removido em ADR-149); agora
+// vive em `/dashboard` e potencialmente `/acao` (Direção E).
 // ──────────────────────────────────────────────────────────────────────
 
 /** Item de aporte planejado/executado por destino (CDB, Tesouro, ETF…). */
@@ -292,10 +293,10 @@ export interface InvestimentoDeltaItem {
   readonly atual: number;
 }
 
-/** Subset tipado do `dashboard` consumido pelas seções táticas T1-T6.
- *
- * Mantém-se aberto via fallback `[key: string]: unknown` porque outras
- * lanes (T1, T3, T5) leem chaves não cobertas por este arquivo. */
+/** Subset tipado do `dashboard` consumido pelo `/dashboard` e seções
+ * de aportes/investimentos. Mantém-se aberto via `[key: string]: unknown`
+ * porque o E5 ainda emite chaves não cobertas (proximos_15d, alertas,
+ * tarefas, notas) — Direção E moverá esses para /acao via Onda 4+. */
 export interface DashboardData {
   readonly aportes?: Record<string, AporteItem>;
   readonly investimentos_delta?: Record<string, InvestimentoDeltaItem>;

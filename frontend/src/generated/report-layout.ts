@@ -20,7 +20,7 @@ export type CardVariant =
 
 export type CardSize = 'full' | 'half';
 
-export type ReportMode = 'estrategico' | 'tatico' | 'usa';
+export type ReportMode = 'estrategico' | 'usa';
 
 export type TopBorder = 'danger' | 'accent';
 
@@ -114,7 +114,6 @@ export interface NavGroupSpec {
 
 export interface NavigationSpec {
   estrategico?: NavGroupSpec[];
-  tatico?: NavGroupSpec[];
   usa?: NavGroupSpec[];
 }
 
@@ -123,10 +122,6 @@ export interface ReportLayout {
   estrategico: {
     sections: SectionSpec[];
     appendices?: AppendixSpec[];
-  };
-  tatico: {
-    kpis?: KpiSpec[];
-    sections: SectionSpec[];
   };
   usa: {
     sections: SectionSpec[];
@@ -207,6 +202,10 @@ export const LAYOUT: ReportLayout = {
           {
             "section_id": "S10",
             "num": "10"
+          },
+          {
+            "section_id": "plano_de_acao",
+            "num": "11"
           }
         ]
       },
@@ -237,36 +236,6 @@ export const LAYOUT: ReportLayout = {
             "section_id": "APP_E",
             "num": "E",
             "is_appendix": true
-          }
-        ]
-      }
-    ],
-    "tatico": [
-      {
-        "links": [
-          {
-            "section_id": "T1",
-            "num": "T1"
-          },
-          {
-            "section_id": "T2",
-            "num": "T2"
-          },
-          {
-            "section_id": "T3",
-            "num": "T3"
-          },
-          {
-            "section_id": "T4",
-            "num": "T4"
-          },
-          {
-            "section_id": "T5",
-            "num": "T5"
-          },
-          {
-            "section_id": "T6",
-            "num": "T6"
           }
         ]
       }
@@ -624,6 +593,16 @@ export const LAYOUT: ReportLayout = {
             "size": "full"
           }
         ]
+      },
+      {
+        "id": "plano_de_acao",
+        "title": "Plano de Ação — Decisões em Vigor",
+        "enabled": true,
+        "summary": true,
+        "divider_before": true,
+        "data_source": "decisions",
+        "charts": [],
+        "cards": []
       }
     ],
     "appendices": [
@@ -708,154 +687,6 @@ export const LAYOUT: ReportLayout = {
             "size": "full"
           }
         ]
-      }
-    ]
-  },
-  "tatico": {
-    "kpis": [
-      {
-        "id": "patrimonio_delta",
-        "label": "Patrimônio Δ",
-        "enabled": true
-      },
-      {
-        "id": "aportes_check",
-        "label": "Aportes ✓",
-        "enabled": true
-      },
-      {
-        "id": "despesas_alerta",
-        "label": "Despesas Alerta",
-        "enabled": true
-      },
-      {
-        "id": "tarefas_pct",
-        "label": "Tarefas %",
-        "enabled": true
-      },
-      {
-        "id": "alerta_1",
-        "label": "Alerta Crítico 1",
-        "enabled": true
-      },
-      {
-        "id": "alerta_2",
-        "label": "Alerta Crítico 2",
-        "enabled": true
-      }
-    ],
-    "sections": [
-      {
-        "id": "T1",
-        "title": "Fluxo Operacional — Despesas vs Tetos",
-        "enabled": true,
-        "collapsible": true,
-        "data_source": "dashboard.despesas_por_categoria",
-        "charts": [],
-        "cards": []
-      },
-      {
-        "id": "T2",
-        "title": "Aportes e Investimentos",
-        "enabled": true,
-        "collapsible": true,
-        "data_source": "dashboard.aportes + dashboard.investimentos_delta",
-        "charts": [],
-        "cards": [
-          {
-            "id": "aportes_status",
-            "enabled": true,
-            "variant": "feature",
-            "size": "full"
-          },
-          {
-            "id": "investimentos_delta",
-            "enabled": true,
-            "variant": "feature",
-            "size": "full"
-          }
-        ],
-        "comparisons": [
-          {
-            "id": "comparisons_t2",
-            "enabled": true
-          }
-        ],
-        "changelog": [
-          {
-            "id": "changelog_t2",
-            "enabled": true
-          }
-        ]
-      },
-      {
-        "id": "T3",
-        "title": "Checklist de Tarefas",
-        "enabled": true,
-        "collapsible": true,
-        "data_source": "dashboard.tarefas + dashboard.tarefas_status",
-        "charts": [],
-        "cards": [],
-        "comparisons": [
-          {
-            "id": "comparisons_t3",
-            "enabled": true
-          }
-        ],
-        "changelog": [
-          {
-            "id": "changelog_t3",
-            "enabled": true
-          }
-        ]
-      },
-      {
-        "id": "T4",
-        "title": "Alertas e Pendências",
-        "enabled": true,
-        "collapsible": true,
-        "data_source": "dashboard.alertas",
-        "charts": [],
-        "cards": []
-      },
-      {
-        "id": "T5",
-        "title": "Próximos Passos",
-        "enabled": true,
-        "collapsible": true,
-        "data_source": "dashboard.proximos_15d",
-        "charts": [],
-        "cards": [],
-        "comparisons": [
-          {
-            "id": "comparisons_t5",
-            "enabled": true
-          }
-        ],
-        "changelog": [
-          {
-            "id": "changelog_t5",
-            "enabled": true
-          }
-        ]
-      },
-      {
-        "id": "T6",
-        "title": "Notas e Observações",
-        "enabled": true,
-        "collapsible": true,
-        "data_source": "dashboard.notas",
-        "charts": [],
-        "cards": []
-      },
-      {
-        "id": "plano_de_acao",
-        "title": "Plano de Ação",
-        "enabled": true,
-        "collapsible": true,
-        "data_source": "decisions",
-        "charts": [],
-        "cards": []
       }
     ]
   },
@@ -1114,7 +945,7 @@ export const LAYOUT: ReportLayout = {
   "version_fallback": "v5.3"
 } as ReportLayout;
 
-export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "aportes_status", "investimentos_delta", "nclex_roadmap", "simulacao_mariana"] as const;
+export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "nclex_roadmap", "simulacao_mariana"] as const;
 export type CardId = (typeof ALL_CARD_IDS)[number];
 
 export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "bubble_riscos", "top5_decisoes", "custos_f1f2", "cenarios_cambiais", "mariana_cenarios_usa"] as const;

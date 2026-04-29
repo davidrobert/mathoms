@@ -79,7 +79,7 @@ def _collect_ids(sections: list[dict[str, Any]], key: str) -> list[str]:
 
 def render_ts(layout: dict[str, Any]) -> str:
     all_sections = (
-        layout["estrategico"]["sections"] + layout["tatico"]["sections"] + layout["usa"]["sections"]
+        layout["estrategico"]["sections"] + layout["usa"]["sections"]
     )
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")
@@ -102,7 +102,7 @@ def render_ts(layout: dict[str, Any]) -> str:
         "",
         "export type CardSize = 'full' | 'half';",
         "",
-        "export type ReportMode = 'estrategico' | 'tatico' | 'usa';",
+        "export type ReportMode = 'estrategico' | 'usa';",
         "",
         "export type TopBorder = 'danger' | 'accent';",
         "",
@@ -196,7 +196,6 @@ def render_ts(layout: dict[str, Any]) -> str:
         "",
         "export interface NavigationSpec {",
         "  estrategico?: NavGroupSpec[];",
-        "  tatico?: NavGroupSpec[];",
         "  usa?: NavGroupSpec[];",
         "}",
         "",
@@ -205,10 +204,6 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  estrategico: {",
         "    sections: SectionSpec[];",
         "    appendices?: AppendixSpec[];",
-        "  };",
-        "  tatico: {",
-        "    kpis?: KpiSpec[];",
-        "    sections: SectionSpec[];",
         "  };",
         "  usa: {",
         "    sections: SectionSpec[];",
@@ -264,7 +259,7 @@ CardVariant = Literal[
 
 CardSize = Literal["full", "half"]
 
-ReportMode = Literal["estrategico", "tatico", "usa"]
+ReportMode = Literal["estrategico", "usa"]
 
 TopBorder = Literal["danger", "accent"]
 
@@ -365,18 +360,12 @@ class NavGroupSpec(_Base):
 
 class NavigationSpec(_Base):
     estrategico: list[NavGroupSpec] = []
-    tatico: list[NavGroupSpec] = []
     usa: list[NavGroupSpec] = []
 
 
 class Estrategico(_Base):
     sections: list[SectionSpec]
     appendices: list[AppendixSpec] = []
-
-
-class Tatico(_Base):
-    kpis: list[KpiSpec] = []
-    sections: list[SectionSpec]
 
 
 class Usa(_Base):
@@ -388,7 +377,6 @@ class ReportLayout(BaseModel):
 
     version: str
     estrategico: Estrategico
-    tatico: Tatico
     usa: Usa
     cover: CoverSpec | None = None
     navigation: NavigationSpec | None = None
@@ -403,7 +391,7 @@ class ReportLayout(BaseModel):
 
 def render_py(layout: dict[str, Any]) -> str:
     all_sections = (
-        layout["estrategico"]["sections"] + layout["tatico"]["sections"] + layout["usa"]["sections"]
+        layout["estrategico"]["sections"] + layout["usa"]["sections"]
     )
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")

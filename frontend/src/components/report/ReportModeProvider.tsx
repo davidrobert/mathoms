@@ -16,10 +16,12 @@ import {
 
 /** F9 · F3.2 — Provider com sync bidirecional URL ↔ state.
  *
- * - Lê `?mode=tatico` da URL na montagem (deep-link de modo)
+ * - Lê `?mode=usa` da URL na montagem (deep-link de modo)
  * - Atualiza `?mode=` quando o usuário troca via seletor no header
  * - Preserva hash existente (?mode=usa#S3 funciona)
  * - Modo inválido na URL → fallback para `estrategico`
+ *
+ * ADR-151 (Direção E): Modo Tático removido; sobram Estratégico + USA.
  */
 export function ReportModeProvider({
   initialMode = "estrategico",

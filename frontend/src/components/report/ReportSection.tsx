@@ -7,7 +7,7 @@ interface ReportSectionProps {
   /** Mode gate — se setado e ≠ do modo ativo, a seção não é renderizada.
    *  Para F1.1 o gate é feito no shell (loop do layout); este prop é
    *  reservado para F3.2. */
-  mode?: "estrategico" | "tatico" | "usa";
+  mode?: "estrategico" | "usa";
   children: ReactNode;
   className?: string;
 }

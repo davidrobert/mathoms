@@ -1,8 +1,10 @@
 /**
  * ADR-117 · Fase 6 — adapter proximos_15d → TimelineItem[].
  *
- * E5 produz lista de ações da timeline (normalmente `dashboard.proximos_15d`
- * no tático). Shape solto; aqui normalizamos para o primitivo Timeline.
+ * E5 produz lista de ações da timeline em `dashboard.proximos_15d`.
+ * Shape solto; aqui normalizamos para o primitivo Timeline.
+ * ADR-151 (Direção E): consumidor original (Tático T5) removido;
+ * primitivo continua disponível para `/acao` (Onda 6).
  */
 import type { TimelineItem, TimelineStatus } from "@/components/report/ui";
 import type { ReportAnalysisData } from "@/lib/api";

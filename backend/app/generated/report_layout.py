@@ -24,7 +24,7 @@ CardVariant = Literal[
 
 CardSize = Literal["full", "half"]
 
-ReportMode = Literal["estrategico", "tatico", "usa"]
+ReportMode = Literal["estrategico", "usa"]
 
 TopBorder = Literal["danger", "accent"]
 
@@ -125,18 +125,12 @@ class NavGroupSpec(_Base):
 
 class NavigationSpec(_Base):
     estrategico: list[NavGroupSpec] = []
-    tatico: list[NavGroupSpec] = []
     usa: list[NavGroupSpec] = []
 
 
 class Estrategico(_Base):
     sections: list[SectionSpec]
     appendices: list[AppendixSpec] = []
-
-
-class Tatico(_Base):
-    kpis: list[KpiSpec] = []
-    sections: list[SectionSpec]
 
 
 class Usa(_Base):
@@ -148,7 +142,6 @@ class ReportLayout(BaseModel):
 
     version: str
     estrategico: Estrategico
-    tatico: Tatico
     usa: Usa
     cover: CoverSpec | None = None
     navigation: NavigationSpec | None = None
@@ -175,7 +168,9 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                           {'section_id': 'S8', 'num': '8'},
                                                           {'section_id': 'S9', 'num': '9'}]},
                                          {   'label': 'Síntese',
-                                             'links': [{'section_id': 'S10', 'num': '10'}]},
+                                             'links': [   {'section_id': 'S10', 'num': '10'},
+                                                          {   'section_id': 'plano_de_acao',
+                                                              'num': '11'}]},
                                          {   'label': 'Apêndices',
                                              'links': [   {   'section_id': 'APP_A',
                                                               'num': 'A',
@@ -192,12 +187,6 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                           {   'section_id': 'APP_E',
                                                               'num': 'E',
                                                               'is_appendix': True}]}],
-                      'tatico': [   {   'links': [   {'section_id': 'T1', 'num': 'T1'},
-                                                     {'section_id': 'T2', 'num': 'T2'},
-                                                     {'section_id': 'T3', 'num': 'T3'},
-                                                     {'section_id': 'T4', 'num': 'T4'},
-                                                     {'section_id': 'T5', 'num': 'T5'},
-                                                     {'section_id': 'T6', 'num': 'T6'}]}],
                       'usa': [   {   'links': [   {'section_id': 'U1', 'num': 'U1'},
                                                   {'section_id': 'U2', 'num': 'U2'},
                                                   {'section_id': 'U3', 'num': 'U3'},
@@ -390,7 +379,15 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                         {   'id': 'equilibrio_cerbasi_ref',
                                                             'enabled': False,
                                                             'variant': 'highlight',
-                                                            'size': 'full'}]}],
+                                                            'size': 'full'}]},
+                                       {   'id': 'plano_de_acao',
+                                           'title': 'Plano de Ação — Decisões em Vigor',
+                                           'enabled': True,
+                                           'summary': True,
+                                           'divider_before': True,
+                                           'data_source': 'decisions',
+                                           'charts': [],
+                                           'cards': []}],
                        'appendices': [   {   'id': 'APP_A',
                                              'title': 'Definições e Siglas',
                                              'enabled': True},
@@ -437,77 +434,6 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                               'enabled': True,
                                                               'variant': 'neutral',
                                                               'size': 'full'}]}]},
-    'tatico': {   'kpis': [   {'id': 'patrimonio_delta', 'label': 'Patrimônio Δ', 'enabled': True},
-                              {'id': 'aportes_check', 'label': 'Aportes ✓', 'enabled': True},
-                              {   'id': 'despesas_alerta',
-                                  'label': 'Despesas Alerta',
-                                  'enabled': True},
-                              {'id': 'tarefas_pct', 'label': 'Tarefas %', 'enabled': True},
-                              {'id': 'alerta_1', 'label': 'Alerta Crítico 1', 'enabled': True},
-                              {'id': 'alerta_2', 'label': 'Alerta Crítico 2', 'enabled': True}],
-                  'sections': [   {   'id': 'T1',
-                                      'title': 'Fluxo Operacional — Despesas vs Tetos',
-                                      'enabled': True,
-                                      'collapsible': True,
-                                      'data_source': 'dashboard.despesas_por_categoria',
-                                      'charts': [],
-                                      'cards': []},
-                                  {   'id': 'T2',
-                                      'title': 'Aportes e Investimentos',
-                                      'enabled': True,
-                                      'collapsible': True,
-                                      'data_source': 'dashboard.aportes + '
-                                                     'dashboard.investimentos_delta',
-                                      'charts': [],
-                                      'cards': [   {   'id': 'aportes_status',
-                                                       'enabled': True,
-                                                       'variant': 'feature',
-                                                       'size': 'full'},
-                                                   {   'id': 'investimentos_delta',
-                                                       'enabled': True,
-                                                       'variant': 'feature',
-                                                       'size': 'full'}],
-                                      'comparisons': [{'id': 'comparisons_t2', 'enabled': True}],
-                                      'changelog': [{'id': 'changelog_t2', 'enabled': True}]},
-                                  {   'id': 'T3',
-                                      'title': 'Checklist de Tarefas',
-                                      'enabled': True,
-                                      'collapsible': True,
-                                      'data_source': 'dashboard.tarefas + dashboard.tarefas_status',
-                                      'charts': [],
-                                      'cards': [],
-                                      'comparisons': [{'id': 'comparisons_t3', 'enabled': True}],
-                                      'changelog': [{'id': 'changelog_t3', 'enabled': True}]},
-                                  {   'id': 'T4',
-                                      'title': 'Alertas e Pendências',
-                                      'enabled': True,
-                                      'collapsible': True,
-                                      'data_source': 'dashboard.alertas',
-                                      'charts': [],
-                                      'cards': []},
-                                  {   'id': 'T5',
-                                      'title': 'Próximos Passos',
-                                      'enabled': True,
-                                      'collapsible': True,
-                                      'data_source': 'dashboard.proximos_15d',
-                                      'charts': [],
-                                      'cards': [],
-                                      'comparisons': [{'id': 'comparisons_t5', 'enabled': True}],
-                                      'changelog': [{'id': 'changelog_t5', 'enabled': True}]},
-                                  {   'id': 'T6',
-                                      'title': 'Notas e Observações',
-                                      'enabled': True,
-                                      'collapsible': True,
-                                      'data_source': 'dashboard.notas',
-                                      'charts': [],
-                                      'cards': []},
-                                  {   'id': 'plano_de_acao',
-                                      'title': 'Plano de Ação',
-                                      'enabled': True,
-                                      'collapsible': True,
-                                      'data_source': 'decisions',
-                                      'charts': [],
-                                      'cards': []}]},
     'usa': {   'sections': [   {   'id': 'U1',
                                    'title': 'Mudança EUA — Estrutura F1/F2 e Custos',
                                    'enabled': True,
@@ -677,5 +603,5 @@ LAYOUT_DICT: dict = {   'version': '1.2',
 
 LAYOUT: ReportLayout = ReportLayout.model_validate(LAYOUT_DICT)
 
-ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'investimentos_classe', 'kpi_rentabilidade', 'estrategia_aporte', 'contrafluxo', 'previdencia_pgbl', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref', 'aportes_status', 'investimentos_delta', 'nclex_roadmap', 'simulacao_mariana')
+ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'investimentos_classe', 'kpi_rentabilidade', 'estrategia_aporte', 'contrafluxo', 'previdencia_pgbl', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref', 'nclex_roadmap', 'simulacao_mariana')
 ALL_CHART_IDS: tuple[str, ...] = ('patrimonio_doughnut', 'waterfall_if', 'score_gauge', 'fluxo_mensal', 'receita_bar', 'despesas_doughnut', 'receita_despesa_mensal', 'viagens', 'alocacao_atual', 'alocacao_alvo', 'top15_ativos', 'mariana_cenarios', 'yield_imoveis', 'projecao_3cenarios', 'renda_passiva', 'impostos_pj', 'bubble_riscos', 'top5_decisoes', 'custos_f1f2', 'cenarios_cambiais', 'mariana_cenarios_usa')
