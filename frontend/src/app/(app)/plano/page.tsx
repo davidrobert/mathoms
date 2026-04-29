@@ -18,14 +18,15 @@ import { useWorkspace } from "@/lib/WorkspaceProvider";
 import { DecisionsSection } from "./_components/DecisionsSection";
 import { IFEmptyHero, IFHeroCard } from "./_components/IFHeroCard";
 import { LinkedTasksSection } from "./_components/LinkedTasksSection";
+import { PlanoKpiRow } from "./_components/PlanoKpiRow";
+import { SuggestionsBanner } from "./_components/SuggestionsBanner";
 import { SupportGoalsRow } from "./_components/SupportGoalsRow";
 import { usePlanoOverview } from "./_components/usePlanoOverview";
 
 export default function PlanoPage() {
   const { workspace, isLoading: wsLoading } = useWorkspace();
-  const { goals, linkedTasks, progress, loading, error } = usePlanoOverview(
-    workspace?.id
-  );
+  const { goals, linkedTasks, progress, patrimonio, loading, error } =
+    usePlanoOverview(workspace?.id);
 
   if (wsLoading || (workspace?.id && loading)) {
     return <PlanoLoadingState />;
@@ -45,8 +46,18 @@ export default function PlanoPage() {
     <div className="mx-auto max-w-6xl px-6 py-8">
       <PageHeader
         title="Meu Plano"
-        description="Metas financeiras e progresso"
+        description="Onde você está hoje, onde quer chegar"
       />
+
+      <PlanoKpiRow
+        patrimonio={patrimonio}
+        ifGoal={ifGoal}
+        ifProgress={progress}
+        aporteGoal={goals.aporteGoal}
+        loading={false}
+      />
+
+      <SuggestionsBanner workspaceId={workspace.id} />
 
       {ifGoal ? (
         <IFHeroCard goal={ifGoal} progress={progress} />

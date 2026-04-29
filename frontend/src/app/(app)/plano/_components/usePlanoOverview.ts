@@ -34,6 +34,8 @@ interface UsePlanoOverviewResult {
   goals: PlanoGoals;
   linkedTasks: TaskResponse[];
   progress: IFProgress | null;
+  /** Patrimônio líquido do último relatório disponível. Direção E · Onda 4. */
+  patrimonio: number | null;
   loading: boolean;
   error: string | null;
 }
@@ -42,6 +44,7 @@ interface PlanoSetters {
   setGoals: (g: PlanoGoals) => void;
   setLinkedTasks: (t: TaskResponse[]) => void;
   setProgress: (p: IFProgress | null) => void;
+  setPatrimonio: (n: number | null) => void;
   setLoading: (b: boolean) => void;
   setError: (s: string | null) => void;
 }
@@ -59,6 +62,7 @@ export function usePlanoOverview(
   const [goals, setGoals] = useState<PlanoGoals>(EMPTY_GOALS);
   const [linkedTasks, setLinkedTasks] = useState<TaskResponse[]>([]);
   const [progress, setProgress] = useState<IFProgress | null>(null);
+  const [patrimonio, setPatrimonio] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,6 +73,7 @@ export function usePlanoOverview(
       setGoals,
       setLinkedTasks,
       setProgress,
+      setPatrimonio,
       setLoading,
       setError,
     };
@@ -78,7 +83,7 @@ export function usePlanoOverview(
     };
   }, [workspaceId]);
 
-  return { goals, linkedTasks, progress, loading, error };
+  return { goals, linkedTasks, progress, patrimonio, loading, error };
 }
 
 async function runPlanoLoad(
@@ -93,10 +98,15 @@ async function runPlanoLoad(
     if (isCancelled()) return;
     setters.setGoals(loadedGoals);
 
-    if (loadedGoals.ifGoal) {
+    const latestPatrimonio = await loadLatestPatrimonio(wsId);
+    if (isCancelled()) return;
+    setters.setPatrimonio(latestPatrimonio);
+
+    if (loadedGoals.ifGoal && latestPatrimonio != null) {
       const [tasks, ifProgress] = await loadIFExtras(
         wsId,
-        loadedGoals.ifGoal
+        loadedGoals.ifGoal,
+        latestPatrimonio
       );
       if (isCancelled()) return;
       setters.setLinkedTasks(tasks);
@@ -106,6 +116,16 @@ async function runPlanoLoad(
     if (!isCancelled()) setters.setError(errorMessage(err));
   } finally {
     if (!isCancelled()) setters.setLoading(false);
+  }
+}
+
+async function loadLatestPatrimonio(wsId: string): Promise<number | null> {
+  try {
+    const { reports } = await listReports(wsId);
+    const latest = reports.find((r) => r.patrimonio_liquido != null);
+    return latest?.patrimonio_liquido ?? null;
+  } catch {
+    return null;
   }
 }
 
@@ -136,31 +156,18 @@ async function loadAllGoals(wsId: string): Promise<PlanoGoals> {
 
 async function loadIFExtras(
   wsId: string,
-  ifGoal: IFGoalResponse
+  ifGoal: IFGoalResponse,
+  patrimonio: number
 ): Promise<[TaskResponse[], IFProgress | null]> {
   const [tasksResult, progressResult] = await Promise.allSettled([
     listTasksForGoal(wsId, ifGoal.id, false),
-    loadIFProgress(wsId, ifGoal),
+    computeIFProgress(wsId, ifGoal, patrimonio),
   ]);
   const tasks =
     tasksResult.status === "fulfilled" ? tasksResult.value.tasks : [];
   const ifProgress =
     progressResult.status === "fulfilled" ? progressResult.value : null;
   return [tasks, ifProgress];
-}
-
-async function loadIFProgress(
-  wsId: string,
-  goalData: IFGoalResponse
-): Promise<IFProgress | null> {
-  try {
-    const { reports } = await listReports(wsId);
-    const latest = reports.find((r) => r.patrimonio_liquido != null);
-    if (!latest?.patrimonio_liquido) return null;
-    return await computeIFProgress(wsId, goalData, latest.patrimonio_liquido);
-  } catch {
-    return null;
-  }
 }
 
 async function computeIFProgress(
