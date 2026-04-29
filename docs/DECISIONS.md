@@ -7379,7 +7379,7 @@ durante o brainstorm da Direção E concluiu:
 
 **Referências de código:**
 
-- `backend/alembic/versions/e9f0a1b2c3d4_adr154_kanban_to_task_workspace_notes.py` — migration M1.
+- `backend/alembic/versions/f0a1b2c3d4e5_adr154_kanban_to_task_workspace_notes.py` — migration M1.
 - `backend/app/models/task.py` — colunas + enums novos.
 - `backend/app/models/workspace_note.py` — aggregate novo.
 - `backend/app/repositories/workspace_notes_repository.py`,
