@@ -36,9 +36,7 @@ async def _delete_report_collab(db: AsyncSession, report_ids: list[str]) -> None
 async def _delete_artifacts(db: AsyncSession, artifact_ids: list[int]) -> int:
     if not artifact_ids:
         return 0
-    result = await db.execute(
-        delete(PipelineArtifact).where(PipelineArtifact.id.in_(artifact_ids))
-    )
+    result = await db.execute(delete(PipelineArtifact).where(PipelineArtifact.id.in_(artifact_ids)))
     return result.rowcount or 0
 
 
@@ -86,7 +84,9 @@ async def _collect(db: AsyncSession, scope: PurgeScope) -> tuple[list[Report], l
     artifact_ids = [r.analysis_artifact_id for r in reports if r.analysis_artifact_id is not None]
     ctx = await resolve_scope_context(db, scope)
     summary = _build_summary(
-        reports, artifact_ids, scope,
+        reports,
+        artifact_ids,
+        scope,
         {"owner_email": ctx.owner_email, "workspace_names": list(ctx.workspace_names)},
     )
     return reports, artifact_ids, summary

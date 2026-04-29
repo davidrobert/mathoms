@@ -13,6 +13,7 @@ import type {
   HardDeleteUserResponse,
   MetricsResponse,
   PurgeDocumentsResponse,
+  PurgeReportsResponse,
   ResetPasswordResponse,
   SetDeveloperFlagResponse,
   UpdateUserEmailResponse,
@@ -131,6 +132,16 @@ export const api = {
     preview: boolean;
   }) =>
     request<PurgeDocumentsResponse>("/documents/purge", {
+      method: "POST",
+      body: scope,
+    }),
+
+  purgeReports: (scope: {
+    user_id?: string;
+    workspace_id?: string;
+    preview: boolean;
+  }) =>
+    request<PurgeReportsResponse>("/reports/purge", {
       method: "POST",
       body: scope,
     }),

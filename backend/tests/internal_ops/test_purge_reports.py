@@ -31,11 +31,7 @@ async def _make_artifact(db, *, run, stage: str, key: str) -> PipelineArtifact:
 
 async def _add_report_collab(db, *, ws_id: str, report_id: str) -> None:
     db.add(ReportNotes(workspace_id=ws_id, report_id=report_id, content="anotação"))
-    db.add(
-        KanbanItem(
-            workspace_id=ws_id, report_id=report_id, titulo="Tarefa", coluna="a_fazer"
-        )
-    )
+    db.add(KanbanItem(workspace_id=ws_id, report_id=report_id, titulo="Tarefa", coluna="a_fazer"))
     await db.flush()
 
 
@@ -73,46 +69,51 @@ async def _setup_full_report(db, owner=None) -> tuple[object, int, int]:
     return ws, e5.id, e2.id
 
 
+async def _scalars_all(db, stmt):
+    return (await db.execute(stmt)).scalars().all()
+
+
 @pytest.mark.asyncio
 async def test_purge_reports_by_workspace_deletes_rows_and_e5(db, audit_path: Path) -> None:
     ws, e5_id, e2_id = await _setup_full_report(db)
     await db.commit()
-
     result = await purge_reports(
         db, scope=PurgeScope(workspace_id=ws.id), actor="ops1", preview=False
     )
     await db.commit()
-
     assert result.ok and result.details["count"] == 1
     assert result.details["artifacts_removed"] == 1
-    assert (await db.execute(select(Report).where(Report.workspace_id == ws.id))).scalars().all() == []
-    assert (await db.execute(select(ReportNotes).where(ReportNotes.workspace_id == ws.id))).scalars().all() == []
-    assert (await db.execute(select(KanbanItem).where(KanbanItem.workspace_id == ws.id))).scalars().all() == []
-    assert (await db.execute(select(PipelineArtifact).where(PipelineArtifact.id == e5_id))).scalar_one_or_none() is None
-    assert (await db.execute(select(PipelineArtifact).where(PipelineArtifact.id == e2_id))).scalar_one_or_none() is not None
+    assert await _scalars_all(db, select(Report).where(Report.workspace_id == ws.id)) == []
+    assert await _scalars_all(db, select(ReportNotes).where(ReportNotes.workspace_id == ws.id)) == []
+    assert await _scalars_all(db, select(KanbanItem).where(KanbanItem.workspace_id == ws.id)) == []
+    e5 = await _scalars_all(db, select(PipelineArtifact).where(PipelineArtifact.id == e5_id))
+    e2 = await _scalars_all(db, select(PipelineArtifact).where(PipelineArtifact.id == e2_id))
+    assert e5 == [] and len(e2) == 1
     assert read_audit(path=audit_path)[0]["action"] == "report.purge"
 
 
-@pytest.mark.asyncio
-async def test_purge_reports_by_user_expands_to_owner_workspaces(db, audit_path: Path) -> None:
+async def _setup_two_users(db) -> tuple[object, object, object, object]:
     user = await make_user(db)
     ws_a = await make_workspace(db, owner=user, name="WS A")
     ws_b = await make_workspace(db, owner=user, name="WS B")
     ws_other = await make_workspace(db, owner=await make_user(db))
-    await make_report(db, workspace=ws_a)
-    await make_report(db, workspace=ws_b)
-    await make_report(db, workspace=ws_other)
-    await db.commit()
+    for w in (ws_a, ws_b, ws_other):
+        await make_report(db, workspace=w)
+    return user, ws_a, ws_b, ws_other
 
-    result = await purge_reports(
-        db, scope=PurgeScope(user_id=user.id), actor="ops1", preview=False
-    )
-    await db.commit()
 
+@pytest.mark.asyncio
+async def test_purge_reports_by_user_expands_to_owner_workspaces(db, audit_path: Path) -> None:
+    user, ws_a, ws_b, ws_other = await _setup_two_users(db)
+    await db.commit()
+    result = await purge_reports(db, scope=PurgeScope(user_id=user.id), actor="ops1", preview=False)
+    await db.commit()
     assert result.ok and result.details["count"] == 2
     assert set(result.details["scope_context"]["workspace_names"]) == {"WS A", "WS B"}
-    user_remaining = (await db.execute(select(Report).where(Report.workspace_id.in_([ws_a.id, ws_b.id])))).scalars().all()
-    other = (await db.execute(select(Report).where(Report.workspace_id == ws_other.id))).scalars().all()
+    user_remaining = await _scalars_all(
+        db, select(Report).where(Report.workspace_id.in_([ws_a.id, ws_b.id]))
+    )
+    other = await _scalars_all(db, select(Report).where(Report.workspace_id == ws_other.id))
     assert user_remaining == [] and len(other) == 1
 
 

@@ -59,11 +59,28 @@ export interface UpdateUserProfileResponse {
   fields: string[];
 }
 
+export interface ScopeContext {
+  owner_email: string | null;
+  workspace_names: string[];
+}
+
 export interface PurgeDocumentsResponse {
   preview: boolean;
   count: number;
   ids: string[];
+  runs_to_remove: number;
+  runs_removed: number | null;
   blobs_removed: number | null;
+  scope_context: ScopeContext | null;
+}
+
+export interface PurgeReportsResponse {
+  preview: boolean;
+  count: number;
+  ids: string[];
+  artifacts_to_remove: number;
+  artifacts_removed: number | null;
+  scope_context: ScopeContext | null;
 }
 
 export interface DeleteDocumentResponse {

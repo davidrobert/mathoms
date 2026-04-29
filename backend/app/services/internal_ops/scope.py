@@ -28,9 +28,7 @@ async def resolve_workspace_ids(db: AsyncSession, scope: PurgeScope) -> list[str
     if scope.workspace_id:
         return [scope.workspace_id]
     if scope.user_id:
-        rows = await db.execute(
-            select(Workspace.id).where(Workspace.owner_id == scope.user_id)
-        )
+        rows = await db.execute(select(Workspace.id).where(Workspace.owner_id == scope.user_id))
         return [r[0] for r in rows.all()]
     return []
 

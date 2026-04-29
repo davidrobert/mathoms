@@ -85,40 +85,30 @@ async def test_purge_preview_does_not_delete(db, audit_path: Path) -> None:
     assert read_audit(path=audit_path) == []
 
 
-@pytest.mark.asyncio
-async def test_purge_cascades_pipeline_runs_and_artifacts(db, audit_path: Path) -> None:
-    """Purge de docs limpa pipeline_runs do escopo (cascade pega artefatos)."""
+async def _setup_doc_with_artifact(db) -> object:
     user = await make_user(db)
     ws = await make_workspace(db, owner=user)
     await make_document(db, workspace=ws)
     run = await make_run(db, workspace=ws)
-    db.add(
-        PipelineArtifact(
-            workspace_id=ws.id,
-            pipeline_run_id=run.id,
-            stage="E2",
-            artifact_key="bank",
-            content_json={"transactions": []},
-        )
-    )
-    await db.commit()
+    db.add(PipelineArtifact(
+        workspace_id=ws.id, pipeline_run_id=run.id, stage="E2",
+        artifact_key="bank", content_json={"transactions": []},
+    ))
+    return ws
 
+
+@pytest.mark.asyncio
+async def test_purge_cascades_pipeline_runs_and_artifacts(db, audit_path: Path) -> None:
+    """Purge de docs limpa pipeline_runs do escopo (cascade pega artefatos)."""
+    ws = await _setup_doc_with_artifact(db)
+    await db.commit()
     result = await purge_documents(
         db, scope=PurgeScope(workspace_id=ws.id), actor="ops1", preview=False
     )
     await db.commit()
-
     assert result.ok and result.details["runs_removed"] == 1
-    runs = (
-        (await db.execute(select(PipelineRun).where(PipelineRun.workspace_id == ws.id)))
-        .scalars()
-        .all()
-    )
-    arts = (
-        (await db.execute(select(PipelineArtifact).where(PipelineArtifact.workspace_id == ws.id)))
-        .scalars()
-        .all()
-    )
+    runs = (await db.execute(select(PipelineRun).where(PipelineRun.workspace_id == ws.id))).scalars().all()
+    arts = (await db.execute(select(PipelineArtifact).where(PipelineArtifact.workspace_id == ws.id))).scalars().all()
     assert runs == [] and arts == []
 
 
