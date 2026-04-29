@@ -10,10 +10,11 @@ import type {
 } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 
-import type { IFProgress } from "./usePlanoOverview";
+import type { IFProgress, PatrimonioSnapshot } from "./usePlanoOverview";
 
 interface PlanoKpiRowProps {
-  patrimonio: number | null;
+  /** Onda 7 #4 (ADR-156) — fonte única de patrimônio em /plano. */
+  patrimonioSnapshot: PatrimonioSnapshot | null;
   ifGoal: IFGoalResponse | null;
   ifProgress: IFProgress | null;
   aporteGoal: AporteGoalResponse | null;
@@ -27,7 +28,7 @@ interface PlanoKpiRowProps {
  * configurada). Cada KPI degrada para "—" se a fonte não está pronta.
  */
 export function PlanoKpiRow({
-  patrimonio,
+  patrimonioSnapshot,
   ifGoal,
   ifProgress,
   aporteGoal,
@@ -38,7 +39,7 @@ export function PlanoKpiRow({
     <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
       <KPICard
         label="Patrimônio líquido"
-        value={formatPatrimonio(patrimonio)}
+        value={formatPatrimonio(patrimonioSnapshot)}
         icon={Wallet}
         emphasis="primary"
       />
@@ -69,8 +70,8 @@ function KpiRowSkeleton() {
   );
 }
 
-function formatPatrimonio(value: number | null): string {
-  return value == null ? "—" : formatCurrency(value);
+function formatPatrimonio(snapshot: PatrimonioSnapshot | null): string {
+  return snapshot == null ? "—" : formatCurrency(snapshot.value);
 }
 
 function formatIfProgress(progress: IFProgress | null): string {

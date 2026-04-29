@@ -17,14 +17,22 @@ import type { IFProgress } from "./usePlanoOverview";
 interface IFHeroCardProps {
   goal: IFGoalResponse;
   progress: IFProgress | null;
+  /** Onda 7 #4 (ADR-156) — patrimônio vem de `usePlanoOverview.patrimonio_snapshot.value`. */
+  patrimonio: number | null;
 }
 
-export function IFHeroCard({ goal, progress }: IFHeroCardProps) {
+export function IFHeroCard({ goal, progress, patrimonio }: IFHeroCardProps) {
   return (
     <Card className="mb-6">
       <CardContent className="py-6">
         <IFHeroHeader goal={goal} />
-        {progress && <IFHeroProgress goal={goal} progress={progress} />}
+        {progress && patrimonio != null && (
+          <IFHeroProgress
+            goal={goal}
+            progress={progress}
+            patrimonio={patrimonio}
+          />
+        )}
         <div className="mt-6 border-t border-border" />
         <IFHeroKPIs goal={goal} />
         <IFHeroParams goal={goal} />
@@ -65,17 +73,22 @@ function IFHeroHeader({ goal }: { goal: IFGoalResponse }) {
 function IFHeroProgress({
   goal,
   progress,
+  patrimonio,
 }: {
   goal: IFGoalResponse;
   progress: IFProgress;
+  patrimonio: number;
 }) {
   const meta = goal.derived.if_meta_brl;
   return (
     <div className="mt-5">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-heading text-3xl font-semibold leading-none tabular-nums">
-            {formatCurrency(progress.patrimonio)}
+          <p
+            className="font-heading text-3xl font-semibold leading-none tabular-nums"
+            data-testid="if-hero-patrimonio"
+          >
+            {formatCurrency(patrimonio)}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             de{" "}

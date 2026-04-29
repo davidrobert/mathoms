@@ -27,15 +27,25 @@ export interface PlanoGoals {
 export interface IFProgress {
   pct: number;
   faltante: number;
-  patrimonio: number;
+}
+
+/** Direção E · Onda 7 #4 (ADR-156) — fonte única de patrimônio em /plano.
+ *
+ * Toda exibição de patrimônio em /plano (KPI row + Hero IF) consome
+ * `patrimonio_snapshot.value` deste hook. Não recompute em outro lugar
+ * nem peça `progress.patrimonio` — o campo foi removido do `IFProgress`.
+ */
+export interface PatrimonioSnapshot {
+  value: number;
+  asOf: string;
+  sourceReportId: string;
 }
 
 interface UsePlanoOverviewResult {
   goals: PlanoGoals;
   linkedTasks: TaskResponse[];
   progress: IFProgress | null;
-  /** Patrimônio líquido do último relatório disponível. Direção E · Onda 4. */
-  patrimonio: number | null;
+  patrimonio_snapshot: PatrimonioSnapshot | null;
   loading: boolean;
   error: string | null;
 }
@@ -44,7 +54,7 @@ interface PlanoSetters {
   setGoals: (g: PlanoGoals) => void;
   setLinkedTasks: (t: TaskResponse[]) => void;
   setProgress: (p: IFProgress | null) => void;
-  setPatrimonio: (n: number | null) => void;
+  setSnapshot: (s: PatrimonioSnapshot | null) => void;
   setLoading: (b: boolean) => void;
   setError: (s: string | null) => void;
 }
@@ -62,7 +72,7 @@ export function usePlanoOverview(
   const [goals, setGoals] = useState<PlanoGoals>(EMPTY_GOALS);
   const [linkedTasks, setLinkedTasks] = useState<TaskResponse[]>([]);
   const [progress, setProgress] = useState<IFProgress | null>(null);
-  const [patrimonio, setPatrimonio] = useState<number | null>(null);
+  const [snapshot, setSnapshot] = useState<PatrimonioSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,7 +83,7 @@ export function usePlanoOverview(
       setGoals,
       setLinkedTasks,
       setProgress,
-      setPatrimonio,
+      setSnapshot,
       setLoading,
       setError,
     };
@@ -83,7 +93,14 @@ export function usePlanoOverview(
     };
   }, [workspaceId]);
 
-  return { goals, linkedTasks, progress, patrimonio, loading, error };
+  return {
+    goals,
+    linkedTasks,
+    progress,
+    patrimonio_snapshot: snapshot,
+    loading,
+    error,
+  };
 }
 
 async function runPlanoLoad(
@@ -98,15 +115,15 @@ async function runPlanoLoad(
     if (isCancelled()) return;
     setters.setGoals(loadedGoals);
 
-    const latestPatrimonio = await loadLatestPatrimonio(wsId);
+    const snapshot = await loadLatestPatrimonioSnapshot(wsId);
     if (isCancelled()) return;
-    setters.setPatrimonio(latestPatrimonio);
+    setters.setSnapshot(snapshot);
 
-    if (loadedGoals.ifGoal && latestPatrimonio != null) {
+    if (loadedGoals.ifGoal && snapshot != null) {
       const [tasks, ifProgress] = await loadIFExtras(
         wsId,
         loadedGoals.ifGoal,
-        latestPatrimonio
+        snapshot.value
       );
       if (isCancelled()) return;
       setters.setLinkedTasks(tasks);
@@ -119,11 +136,18 @@ async function runPlanoLoad(
   }
 }
 
-async function loadLatestPatrimonio(wsId: string): Promise<number | null> {
+async function loadLatestPatrimonioSnapshot(
+  wsId: string
+): Promise<PatrimonioSnapshot | null> {
   try {
     const { reports } = await listReports(wsId);
     const latest = reports.find((r) => r.patrimonio_liquido != null);
-    return latest?.patrimonio_liquido ?? null;
+    if (!latest || latest.patrimonio_liquido == null) return null;
+    return {
+      value: latest.patrimonio_liquido,
+      asOf: latest.created_at,
+      sourceReportId: latest.id,
+    };
   } catch {
     return null;
   }
@@ -185,6 +209,5 @@ async function computeIFProgress(
   return {
     pct: result.percentual_conquistado,
     faltante: result.faltante_brl,
-    patrimonio,
   };
 }
