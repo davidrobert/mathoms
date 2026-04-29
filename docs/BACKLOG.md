@@ -6,7 +6,52 @@
 >
 > **Legenda de prioridade:** **P0** bloqueante • **P1** importante • **P2** nice-to-have
 >
-> **Última atualização:** 2026-04-29 (**Direção E — Ondas 2+3+4+6 ✅
+> **Última atualização:** 2026-04-29 (**Direção E pós-revisão de produto:
+> Ondas 7/8/9 abertas** — revisão executada com `product-designer` +
+> `financial-planner` + análise de PM identificou 5 bloqueadores P0 que
+> impedem o ritual mensal funcionar ponta-a-ponta + 6 lacunas
+> metodológicas (Cerbasi não coberto) + 5 inconsistências de design
+> system. **3 ondas dedicadas** com prompts self-contained
+> (paralelizáveis com gating na Onda 7 #4 single-source patrimônio):
+>
+> - **Onda 7 P0 bloqueadores** (~3d) — reordenar `/plano` (Estratégia →
+>   Plano de Ação → Mês corrente collapsible); `/acao` default = Inbox
+>   quando há pendentes; fix anchor `#SUG-XXX` do relatório → Inbox;
+>   single-source `patrimonio_snapshot`; `<OnboardingHero/>` para
+>   workspace zero. Prompt: [track_onda_7_p0_blockers.md](agent_prompts/track_onda_7_p0_blockers.md).
+>   Branch: `agent/onda-7-p0-blockers/*`. **Recomendado executar primeiro.**
+> - **Onda 8 Coerência metodológica** (~5-7d) — 6 novas regras
+>   Suggestion (endividamento, lifestyle creep, seguros, concentração
+>   instituição, custo essencial vs inflação, renda passiva Perini);
+>   Decisions atualizam Goals via event projection (ADR-158); Decision
+>   congela `context_snapshot` ao aceitar (ADR-159); Decision → Task
+>   automática com templates `derived_from`; SuggestionCard borda
+>   colorida + sort por severidade; SuggestionsBanner usa `maxSeverity`
+>   real. Prompt: [track_onda_8_methodology_coherence.md](agent_prompts/track_onda_8_methodology_coherence.md).
+>   Branch: `agent/onda-8-methodology-coherence/*`. Depende parcial
+>   de Onda 7 #4.
+> - **Onda 9 Design system polish + mobile** (~3d) — `<SectionHeading/>`
+>   primitivo (4 patterns H2 → 1); `<EmptyState/>` primitivo (5
+>   patterns → 1); `<SegmentedTabs/>` primitivo (3 patterns → 1); dedup
+>   tarefas Upcoming/Linked com filter param em `/acao`; badge
+>   sugestões pendentes no AppShell `/acao`; **kill Timeline tab** (sem
+>   fonte de dados — placeholder ensinante virou ruído); mobile
+>   collapsibles + tap targets + Playwright iPhone 13. Prompt:
+>   [track_onda_9_design_system_polish.md](agent_prompts/track_onda_9_design_system_polish.md).
+>   Branch: `agent/onda-9-design-system-polish/*`. Independente —
+>   pode rodar em paralelo.
+>
+> **Decisões de produto travadas em 2026-04-29** (incorporadas nos
+> prompts): (i) `/plano` usa **collapsibles** (não tabs) para preservar
+> ritual matinal de "ler tudo de uma vez" com Estratégia + Plano de
+> Ação aberto e Mês corrente colapsado por default; (ii) Inbox
+> **continua tab dentro de `/acao`** (não vira rota top-level) —
+> visibilidade preservada via badge no AppShell; (iii) Tasks aceitam
+> ambos ad-hoc e derivadas com campo `derived_from: decision|suggestion|adhoc`
+> + métrica "% executadas com Decision pai"; (iv) Timeline tab em
+> `/acao` removida (sem fonte estável); (v) Seguros em v1 apenas como
+> regra de Suggestion (gap detector) — módulo de gestão é pós-GA.
+> · **Direção E — Ondas 2+3+4+6 ✅
 > entregues em `main`** — redesign de interfaces após brainstorm com
 > product-designer + financial-planner. **Onda 2** (`21fb94d`): UI de
 > gestão de Decisions D01-D15 em `/plano` (primeira UI exposta para o
