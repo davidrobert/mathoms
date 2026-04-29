@@ -1,7 +1,7 @@
 """ADR-154 (M1): Task expand (board_*, origin_report_id) + workspace_notes table.
 
-Revision ID: e9f0a1b2c3d4
-Revises: d8e9f0a1b2c3
+Revision ID: f0a1b2c3d4e5
+Revises: e9f0a1b2c3d4
 Create Date: 2026-04-29
 
 ADR-154 (Direção E · Onda 1): funde ``KanbanItem`` (ADR-123) no aggregate
@@ -35,8 +35,8 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "e9f0a1b2c3d4"
-down_revision: Union[str, None] = "d8e9f0a1b2c3"
+revision: str = "f0a1b2c3d4e5"
+down_revision: Union[str, None] = "e9f0a1b2c3d4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
