@@ -26,12 +26,26 @@
 > contadores; Tarefas migrado de `/plano-de-acao/page.tsx` (332 LOC
 > monolítico) decomposto em sub-componentes; Inbox/Timeline/Notas como
 > placeholders ensinantes até Ondas 5 e 1; `/plano-de-acao` vira
-> redirect 308; label "Plano de Ação" → "Ação" no AppShell. **Próximas
-> ondas (paralelizáveis em branches separadas):** Onda 5 — Suggestion
-> aggregate full-stack (~5-7d, prompt em
-> [docs/agent_prompts/track_onda_5_suggestion_aggregate.md](agent_prompts/track_onda_5_suggestion_aggregate.md));
-> Onda 1 — migration `kanban_items` + `report_notes` → `tasks` +
-> `workspace_notes` (~3-4d, prompt em
+> redirect 308; label "Plano de Ação" → "Ação" no AppShell. **Onda 5** (`60924d7`/`7e9e449`/`dd958c0`):
+> aggregate `Suggestion` full-stack
+> ([ADR-153](DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples))
+> — peça central que liga relatório → `/acao` Inbox → Decision.
+> Backend: model + migration + repo + 8 use cases + router REST com
+> 7 endpoints. Aceitar cria Decision via use case canônico (ADR-136)
+> com evento `derivation` para rastreabilidade. Pipeline: 5 regras
+> determinísticas (TRS desalinhada, reserva insuficiente, alocação
+> fora do alvo, aporte abaixo da meta, dolarização atrasada), cap=6,
+> dedup_key com buckets que toleram ruído. Frontend: hook
+> `useSuggestions` + `useSuggestionsCount` real (substitui stub),
+> `SuggestionCard` em `/acao` com Aceitar/Modificar/Descartar via
+> dialogs locais, `SuggestionCallout` inline em S2/S7 + agregador
+> "Próximos passos" no fim do relatório. 51 testes (40 backend + 11
+> frontend); pre-existing CI red consertado de quebra (schema
+> `tatico` requirement + `test_report_layout_codegen.py` desatualizado
+> da Onda 3 — pipeline tests skipados em main por path-filter, expostos
+> só agora). **Próxima onda paralela:** Onda 1 — migration
+> `kanban_items` + `report_notes` → `tasks` + `workspace_notes`
+> (~3-4d, prompt em
 > [docs/agent_prompts/track_onda_1_kanban_task_migration.md](agent_prompts/track_onda_1_kanban_task_migration.md)).
 > Workspace Allen perde temporariamente UI de Kanban tactical e
 > Notas-do-relatório até Onda 1 mergeada (tabelas DB intactas; nada

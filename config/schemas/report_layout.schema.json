@@ -4,7 +4,7 @@
   "title": "Report Layout",
   "description": "Schema do config/report_layout.yaml — fonte de verdade da estrutura do relatório (seções, cards, charts). Validado em pre-commit e CI (ADR-076).",
   "type": "object",
-  "required": ["version", "estrategico", "tatico", "usa"],
+  "required": ["version", "estrategico", "usa"],
   "additionalProperties": true,
 
   "$defs": {

@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 37
+**Total de tabelas:** 38
 
 ---
 
@@ -39,6 +39,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`report_notes`](#reportnotes)
 - [`reports`](#reports)
 - [`stage_reviews`](#stagereviews)
+- [`suggestions`](#suggestions)
 - [`task_attachments`](#taskattachments)
 - [`task_suggestions`](#tasksuggestions)
 - [`tasks`](#tasks)
@@ -669,6 +670,43 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_stage_reviews_pipeline_run_id` (pipeline_run_id)
+
+### `suggestions`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id |
+| `report_id` | `VARCHAR(36)` | yes | — | FK→reports.id |
+| `section_id` | `VARCHAR(32)` | no | — | — |
+| `kind` | `VARCHAR(64)` | no | — | — |
+| `origin` | `VARCHAR(32)` | no | `'deterministic'` | — |
+| `severity` | `VARCHAR(16)` | no | — | — |
+| `title` | `VARCHAR(500)` | no | — | — |
+| `rationale` | `TEXT` | no | — | — |
+| `amount_brl_cents` | `BIGINT` | yes | — | — |
+| `dedup_key` | `VARCHAR(64)` | no | — | — |
+| `status` | `VARCHAR(32)` | no | `'Pendente'` | — |
+| `accepted_decision_id` | `VARCHAR(36)` | yes | — | FK→decisions.id |
+| `dismissed_reason` | `VARCHAR(32)` | yes | — | — |
+| `accepted_at` | `DATETIME` | yes | — | — |
+| `dismissed_at` | `DATETIME` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (accepted_decision_id) REFERENCES decisions.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (report_id) REFERENCES reports.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, dedup_key, status) — `uq_sugagg_ws_dedup_status`
+
+**Indexes:**
+
+- `ix_sugagg_workspace_id` (workspace_id)
+- `ix_sugagg_ws_dedup` (workspace_id, dedup_key)
+- `ix_sugagg_ws_section` (workspace_id, section_id)
+- `ix_sugagg_ws_status` (workspace_id, status)
 
 ### `task_attachments`
 
@@ -1424,6 +1462,31 @@ type StageReview struct {
 	ReviewerNotes *string `db:"reviewer_notes" json:"reviewer_notes"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	ReviewedAt *time.Time `db:"reviewed_at" json:"reviewed_at"`
+}
+```
+
+### `suggestions` → `type Suggestion struct`
+
+```go
+type Suggestion struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	ReportId *string `db:"report_id" json:"report_id"`
+	SectionId string `db:"section_id" json:"section_id"`
+	Kind string `db:"kind" json:"kind"`
+	Origin string `db:"origin" json:"origin"`
+	Severity string `db:"severity" json:"severity"`
+	Title string `db:"title" json:"title"`
+	Rationale string `db:"rationale" json:"rationale"`
+	AmountBrlCents *int64 `db:"amount_brl_cents" json:"amount_brl_cents"`
+	DedupKey string `db:"dedup_key" json:"dedup_key"`
+	Status string `db:"status" json:"status"`
+	AcceptedDecisionId *string `db:"accepted_decision_id" json:"accepted_decision_id"`
+	DismissedReason *string `db:"dismissed_reason" json:"dismissed_reason"`
+	AcceptedAt *time.Time `db:"accepted_at" json:"accepted_at"`
+	DismissedAt *time.Time `db:"dismissed_at" json:"dismissed_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 ```
 

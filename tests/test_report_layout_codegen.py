@@ -48,10 +48,12 @@ class TestSchema:
 
 
 class TestCodegenYAML:
-    def test_yaml_has_three_modes(self, layout):
+    def test_yaml_has_two_modes(self, layout):
+        # ADR-151 (Onda 3 da Direção E) — Modo Tático removido. Restam
+        # `estrategico` e `usa`.
         assert "estrategico" in layout
-        assert "tatico" in layout
         assert "usa" in layout
+        assert "tatico" not in layout
 
     def test_version_is_string(self, layout):
         assert isinstance(layout["version"], str)
@@ -69,9 +71,7 @@ class TestCodegenYAML:
             "top-accent",
         }
         all_sections = (
-            layout["estrategico"]["sections"]
-            + layout["tatico"]["sections"]
-            + layout["usa"]["sections"]
+            layout["estrategico"]["sections"] + layout["usa"]["sections"]
         )
         for section in all_sections:
             for card in section.get("cards", []) or []:
@@ -85,9 +85,7 @@ class TestCodegenYAML:
         tokens = json.loads((ROOT / "design-tokens" / "tokens.json").read_text())
         allowed = set(tokens["card_variants"].keys())
         all_sections = (
-            layout["estrategico"]["sections"]
-            + layout["tatico"]["sections"]
-            + layout["usa"]["sections"]
+            layout["estrategico"]["sections"] + layout["usa"]["sections"]
         )
         used: set[str] = set()
         for section in all_sections:
