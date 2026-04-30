@@ -221,9 +221,13 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
         </CardContent>
       </Card>
 
-      {/* Member Cards */}
+      {/* Member Cards — ordem hierárquica: Titular → Cônjuge → Filho → Dependente */}
       <div className="space-y-3">
-        {members.map((m) => {
+        {[...members].sort((a, b) => {
+          const ra = ROLES.findIndex((r) => r.value === a.role);
+          const rb = ROLES.findIndex((r) => r.value === b.role);
+          return (ra === -1 ? ROLES.length : ra) - (rb === -1 ? ROLES.length : rb) || a.order - b.order;
+        }).map((m) => {
           const rowKey = m.id ?? m.key;
           const isExpanded = expandedRowKey === rowKey;
           return (
