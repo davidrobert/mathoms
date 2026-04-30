@@ -22,12 +22,16 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Path, status
+from fastapi import APIRouter, HTTPException, Path, Response, status
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/reports/{report_id}",
     tags=["report-collab-legacy"],
 )
+
+# Endpoints sempre lançam 410 — sucesso nunca acontece, declarar
+# response_class=Response satisfaz ADR-102 R18 sem mentir sobre shape.
+_GONE_KW = {"status_code": status.HTTP_410_GONE, "response_class": Response}
 
 
 _GONE_NOTES = {
@@ -55,7 +59,7 @@ def _gone(detail: dict) -> HTTPException:
     return HTTPException(status_code=status.HTTP_410_GONE, detail=detail)
 
 
-@router.get("/notes")
+@router.get("/notes", **_GONE_KW)
 async def get_notes_gone(
     workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
@@ -63,7 +67,7 @@ async def get_notes_gone(
     raise _gone(_GONE_NOTES)
 
 
-@router.put("/notes")
+@router.put("/notes", **_GONE_KW)
 async def put_notes_gone(
     workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
@@ -71,7 +75,7 @@ async def put_notes_gone(
     raise _gone(_GONE_NOTES)
 
 
-@router.get("/kanban")
+@router.get("/kanban", **_GONE_KW)
 async def list_kanban_gone(
     workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
@@ -79,7 +83,7 @@ async def list_kanban_gone(
     raise _gone(_GONE_KANBAN)
 
 
-@router.post("/kanban")
+@router.post("/kanban", **_GONE_KW)
 async def create_kanban_gone(
     workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
@@ -87,7 +91,7 @@ async def create_kanban_gone(
     raise _gone(_GONE_KANBAN)
 
 
-@router.patch("/kanban/{item_id}")
+@router.patch("/kanban/{item_id}", **_GONE_KW)
 async def update_kanban_gone(
     workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],
@@ -96,7 +100,7 @@ async def update_kanban_gone(
     raise _gone(_GONE_KANBAN)
 
 
-@router.delete("/kanban/{item_id}")
+@router.delete("/kanban/{item_id}", **_GONE_KW)
 async def delete_kanban_gone(
     workspace_id: Annotated[str, Path()],
     report_id: Annotated[str, Path()],

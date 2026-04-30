@@ -12,6 +12,8 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 ## Índice
 
+- [`_legacy_kanban_items`](#legacykanbanitems)
+- [`_legacy_report_notes`](#legacyreportnotes)
 - [`audit_logs`](#auditlogs)
 - [`bank_accounts`](#bankaccounts)
 - [`categories`](#categories)
@@ -26,7 +28,6 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`goals`](#goals)
 - [`institution_catalog`](#institutioncatalog)
 - [`institution_configs`](#institutionconfigs)
-- [`kanban_items`](#kanbanitems)
 - [`llm_configs`](#llmconfigs)
 - [`market_rates`](#marketrates)
 - [`notifications`](#notifications)
@@ -36,7 +37,6 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`pipeline_runs`](#pipelineruns)
 - [`pipeline_stage_logs`](#pipelinestagelogs)
 - [`report_layouts`](#reportlayouts)
-- [`report_notes`](#reportnotes)
 - [`reports`](#reports)
 - [`stage_reviews`](#stagereviews)
 - [`suggestions`](#suggestions)
@@ -55,6 +55,59 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 ---
 
 ## Tabelas
+
+### `_legacy_kanban_items`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `report_id` | `VARCHAR(36)` | no | — | FK→reports.id, INDEX |
+| `titulo` | `VARCHAR(500)` | no | — | — |
+| `coluna` | `VARCHAR(32)` | no | `'a_fazer'` | — |
+| `prioridade` | `VARCHAR(16)` | yes | — | — |
+| `prazo` | `DATE` | yes | — | — |
+| `categoria` | `VARCHAR(64)` | yes | — | — |
+| `essencial` | `VARCHAR(1)` | yes | — | — |
+| `ordem` | `INTEGER` | no | `0` | — |
+| `created_by` | `VARCHAR(36)` | yes | — | FK→users.id |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (created_by) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (report_id) REFERENCES reports.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix__legacy_kanban_items_report_id` (report_id)
+- `ix__legacy_kanban_items_workspace_id` (workspace_id)
+- `ix_kanban_items_ws_report_col` (workspace_id, report_id, coluna)
+
+### `_legacy_report_notes`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `report_id` | `VARCHAR(36)` | no | — | FK→reports.id |
+| `author_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
+| `content` | `TEXT` | no | `''` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (author_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (report_id) REFERENCES reports.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, report_id) — `uq_report_notes_ws_report`
+
+**Indexes:**
+
+- `ix__legacy_report_notes_workspace_id` (workspace_id)
 
 ### `audit_logs`
 
@@ -380,36 +433,6 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - UNIQUE `ix_institution_configs_workspace_id` (workspace_id)
 
-### `kanban_items`
-
-| Column | Type | Nullable | Default | Tags |
-|---|---|---|---|---|
-| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
-| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
-| `report_id` | `VARCHAR(36)` | no | — | FK→reports.id, INDEX |
-| `titulo` | `VARCHAR(500)` | no | — | — |
-| `coluna` | `VARCHAR(32)` | no | `'a_fazer'` | — |
-| `prioridade` | `VARCHAR(16)` | yes | — | — |
-| `prazo` | `DATE` | yes | — | — |
-| `categoria` | `VARCHAR(64)` | yes | — | — |
-| `essencial` | `VARCHAR(1)` | yes | — | — |
-| `ordem` | `INTEGER` | no | `0` | — |
-| `created_by` | `VARCHAR(36)` | yes | — | FK→users.id |
-| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
-| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
-
-**Constraints:**
-
-- FOREIGN KEY (created_by) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
-- FOREIGN KEY (report_id) REFERENCES reports.id ON DELETE CASCADE — `(unnamed)`
-- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
-
-**Indexes:**
-
-- `ix_kanban_items_report_id` (report_id)
-- `ix_kanban_items_workspace_id` (workspace_id)
-- `ix_kanban_items_ws_report_col` (workspace_id, report_id, coluna)
-
 ### `llm_configs`
 
 | Column | Type | Nullable | Default | Tags |
@@ -603,29 +626,6 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - UNIQUE `ix_report_layouts_workspace_id` (workspace_id)
-
-### `report_notes`
-
-| Column | Type | Nullable | Default | Tags |
-|---|---|---|---|---|
-| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
-| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
-| `report_id` | `VARCHAR(36)` | no | — | FK→reports.id |
-| `author_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
-| `content` | `TEXT` | no | `''` | — |
-| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
-| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
-
-**Constraints:**
-
-- FOREIGN KEY (author_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
-- FOREIGN KEY (report_id) REFERENCES reports.id ON DELETE CASCADE — `(unnamed)`
-- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
-- UNIQUE (workspace_id, report_id) — `uq_report_notes_ws_report`
-
-**Indexes:**
-
-- `ix_report_notes_workspace_id` (workspace_id)
 
 ### `reports`
 
@@ -1068,6 +1068,40 @@ import (
 )
 ```
 
+### `_legacy_kanban_items` → `type LegacyKanbanItem struct`
+
+```go
+type LegacyKanbanItem struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	ReportId string `db:"report_id" json:"report_id"`
+	Titulo string `db:"titulo" json:"titulo"`
+	Coluna string `db:"coluna" json:"coluna"`
+	Prioridade *string `db:"prioridade" json:"prioridade"`
+	Prazo *time.Time `db:"prazo" json:"prazo"`
+	Categoria *string `db:"categoria" json:"categoria"`
+	Essencial *string `db:"essencial" json:"essencial"`
+	Ordem int `db:"ordem" json:"ordem"`
+	CreatedBy *string `db:"created_by" json:"created_by"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `_legacy_report_notes` → `type LegacyReportNote struct`
+
+```go
+type LegacyReportNote struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	ReportId string `db:"report_id" json:"report_id"`
+	AuthorUserId *string `db:"author_user_id" json:"author_user_id"`
+	Content string `db:"content" json:"content"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
 ### `audit_logs` → `type AuditLog struct`
 
 ```go
@@ -1294,26 +1328,6 @@ type InstitutionConfig struct {
 }
 ```
 
-### `kanban_items` → `type KanbanItem struct`
-
-```go
-type KanbanItem struct {
-	Id string `db:"id" json:"id"`
-	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
-	ReportId string `db:"report_id" json:"report_id"`
-	Titulo string `db:"titulo" json:"titulo"`
-	Coluna string `db:"coluna" json:"coluna"`
-	Prioridade *string `db:"prioridade" json:"prioridade"`
-	Prazo *time.Time `db:"prazo" json:"prazo"`
-	Categoria *string `db:"categoria" json:"categoria"`
-	Essencial *string `db:"essencial" json:"essencial"`
-	Ordem int `db:"ordem" json:"ordem"`
-	CreatedBy *string `db:"created_by" json:"created_by"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
-}
-```
-
 ### `llm_configs` → `type LLMConfig struct`
 
 ```go
@@ -1443,20 +1457,6 @@ type ReportLayout struct {
 	Id string `db:"id" json:"id"`
 	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
 	ConfigJson json.RawMessage `db:"config_json" json:"config_json"`
-	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
-}
-```
-
-### `report_notes` → `type ReportNote struct`
-
-```go
-type ReportNote struct {
-	Id string `db:"id" json:"id"`
-	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
-	ReportId string `db:"report_id" json:"report_id"`
-	AuthorUserId *string `db:"author_user_id" json:"author_user_id"`
-	Content string `db:"content" json:"content"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 ```
