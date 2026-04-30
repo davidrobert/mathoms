@@ -43,11 +43,11 @@ cd mathoms.ai
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Instalar pipeline + backend (modo editable)
-pip install -e ".[dev]"
-
-# Instalar dependências que não estão no pyproject
-pip install pytz pikepdf openpyxl xlrd
+# Instalar pipeline + backend + deps de dev/test (canônico)
+# requirements-dev.txt puxa requirements.txt + backend/requirements.txt
+# + pytest-asyncio/cov + reportlab. Em conjunto com `-e .` deixa a suíte
+# `pytest tests` e `pytest backend/tests` prontas.
+pip install -e . -r requirements-dev.txt
 
 # Frontend
 cd frontend && npm install && cd ..
@@ -67,6 +67,37 @@ python3 dev/codegen_report_layout.py
 # Playwright chromium (para PDF server-side — opcional em dev)
 pip install playwright && playwright install chromium
 ```
+
+---
+
+## 1.2. Pre-commit hooks
+
+```bash
+pip install pre-commit
+pre-commit install --install-hooks
+pre-commit install --hook-type commit-msg
+```
+
+Os hooks rodam `dev/check_forbidden_paths.py`, `dev/validate_commit_msg.py`,
+ruff, lint anti-PII, etc. — mesma lógica que `dev/commit.py` aplica.
+
+**Se aparecer `Cowardly refusing to install hooks with core.hooksPath set`:**
+algum clone antigo (ex.: `fin-current`) deixou `core.hooksPath` apontando para
+fora deste repo. Confirme onde está setado:
+
+```bash
+git config --show-origin --get core.hooksPath
+```
+
+Se o origin for `~/.gitconfig` ou o `.git/config` deste repo, e não há outra
+ferramenta dependendo dele, remova:
+
+```bash
+git config --unset-all core.hooksPath          # local
+git config --global --unset-all core.hooksPath # global (se foi de lá)
+```
+
+Depois rode `pre-commit install --install-hooks` de novo.
 
 ---
 
@@ -348,11 +379,12 @@ Provavelmente a `MATHOMS_FERNET_KEY` mudou entre o save e o pipeline run. Re-sal
 
 Instale `xlrd`: `pip install xlrd`
 
-### "No module named 'pytz'" / "pikepdf"
+### "No module named 'pytz'" / "pikepdf" / "pydantic" / "reportlab"
 
-Dependências faltando. Instalar:
+Dependências de dev/test faltando — você provavelmente rodou `pip install -e ".[dev]"` (extra mínimo). Use o caminho canônico:
+
 ```bash
-pip install pytz pikepdf openpyxl xlrd
+pip install -e . -r requirements-dev.txt
 ```
 
 ### Frontend build quebrando com erro TypeScript

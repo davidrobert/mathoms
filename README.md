@@ -58,8 +58,7 @@ Pré-requisitos: **Python 3.11+**, **Node 18+**, **Redis** (ex.: `brew install r
 python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
-pip install -e ".[dev]"
-pip install -r backend/requirements.txt   # FastAPI, SQLAlchemy, Celery, cryptography…
+pip install -e . -r requirements-dev.txt  # pipeline editable + backend + pytest plugins + reportlab
 
 cd frontend && npm install && cd ..
 

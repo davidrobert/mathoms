@@ -1,7 +1,7 @@
 # Makefile — Mathoms AI dev tooling (A6b.5)
 #
 # Targets de smoke test: smoke-up, smoke-down, smoke-reset, smoke-seed, smoke-logs
-# Prerequisite: pip install -e ".[dev]" + npm install em frontend/
+# Prerequisite: pip install -e . -r requirements-dev.txt + npm install em frontend/
 #
 # Todos os processos locais (backend, worker, frontend) escrevem logs em
 # _smoke_pids/<service>.log e guardam PID em _smoke_pids/<service>.pid.
@@ -140,8 +140,8 @@ dev-bootstrap:
 	   python3 -m venv .venv; \
 	   echo "   ✓ .venv criada"; \
 	 else echo "   ✓ .venv presente"; fi
-	@echo "▶  Instalando deps Python (pip install -e .[dev])…"
-	@$(VENV)/pip install -q -e ".[dev]"
+	@echo "▶  Instalando deps Python (pip install -e . -r requirements-dev.txt)…"
+	@$(VENV)/pip install -q -e . -r requirements-dev.txt
 	@echo "▶  Instalando deps frontend…"
 	@npm --prefix frontend install --silent
 	@npm --prefix frontend-ops install --silent
