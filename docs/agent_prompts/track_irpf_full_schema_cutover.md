@@ -3,7 +3,7 @@
 > **Lane ID:** irpf-full-schema-cutover
 > **Branch prefix:** `agent/irpf-full-schema-cutover/*`
 > **Depende de:** [track_irpf_full_schema.md](track_irpf_full_schema.md) ✅ (backend + analyzer + E5 wire em `main`) **+** [track_irpf_full_schema_goldens.md](track_irpf_full_schema_goldens.md) ✅ (goldens byte-byte cobrindo paridade) **+** ≥3 declarações reais processadas com paridade `bens_direitos[]` E1.5↔E1.6 byte-byte tolerância 0,01 BRL ([ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) sub-decisão 8).
-> **Conflita com:** `pipeline/stages/consolidate_baseline.py`, `pipeline/stages/extract_baseline.py`, `pipeline/domain/services/baseline_normalizer.py`, `scripts/e5_analyze.py` (consumidor de baseline), `tests/test_e5_golden_execution.py` (golden de paridade — pode mudar).
+> **Conflita com:** `pipeline/stages/consolidate_baseline.py`, `pipeline/stages/extract_baseline.py`, `pipeline/domain/services/baseline_normalizer.py`, `scripts/e5_analyze.py` (consumidor de baseline), `tests/test_e5_golden_execution.py` (golden de paridade — pode mudar). **Se alterar `pipeline/stage_spec.STAGE_RENAME_MAP`** (e.g., novo alias, marcar E1.5 deprecated): também `frontend/src/lib/pipelineStageNames.ts::LEGACY_TO_DESCRIPTIVE` (mirror, gate em `tests/test_frontend_stage_rename_parity.py` — pre-commit **não** detecta).
 > **Onda:** **bloqueante** — todas as outras tracks IRPF (UI, goldens) precisam estar mergeadas antes.
 > **ADR:** **OBRIGATÓRIA** — nova ADR registra a decisão de virar default + impacto em paridade legado/novo. Provavelmente `ADR-NNN — Cutover E1.5 → E1.6 (Bens & Direitos)`.
 > **Supervisão:** **G1 (`senior-cto`)** ADR + estratégia de cutover + rollback plan · **G2 (`data-engineer`)** schema/contract migration · **CTO sign-off** antes de virar default global · **G0 (`financial-planner`)** se houver mudança de classificação de Bens & Direitos no relatório.
@@ -45,6 +45,7 @@ ADR-157 sub-decisão 8 deixou explícito: **cutover é fora da lane backend** e 
 4. **Flag por workspace, não global** primeiro — gradual rollout. Ativar para workspaces de teste, depois canários, depois default.
 5. **ADR antes de codar** — gate G1.
 6. **Stateless** ([ADR-111](../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)): a flag é lida por request/run via `WorkspaceContext`, sem cache em memória.
+7. **Stage rename parity** — se mexer em `pipeline/stage_spec.STAGE_RENAME_MAP` (alias novo, deprecação), atualizar **no mesmo PR** `frontend/src/lib/pipelineStageNames.ts::LEGACY_TO_DESCRIPTIVE`. Pre-commit não cobre — só `pytest tests/test_frontend_stage_rename_parity.py` quebra. Caso real recente: lane `irpf-full-schema` adicionou `E1.6: extract_irpf_full` no backend e a parity ficou pendente até a UI lane fixar (commit `8f2e145`).
 
 ---
 
@@ -174,6 +175,7 @@ Goldens: rodar `tests/test_e5_golden_execution.py` com workspace flag `True` e c
 - [ ] G0 (`financial-planner`) revisou impacto em classificação de bens
 - [ ] `pre-commit run --all-files` passa
 - [ ] `pytest tests -q` + `pytest backend/tests -q` passam
+- [ ] `pytest tests/test_frontend_stage_rename_parity.py` passa (verifica espelho `pipelineStageNames.ts` ↔ `STAGE_RENAME_MAP`)
 - [ ] `cd frontend && npm test -- --run` passa
 - [ ] Test de paridade `bens_direitos[]` E1.5↔E1.6 passa byte-byte (tolerância 0,01 BRL) em ≥3 fixtures sintéticas + ≥1 real anonimizada
 - [ ] Test de E5 golden com flag `True` produz output equivalente ao golden atual (modulo arredondamento aceito)
