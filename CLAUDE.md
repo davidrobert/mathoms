@@ -862,6 +862,7 @@ Sufixos de etapa por fase do pipeline:
 | `-1b_unified`       | E1 (unificação)     | `members-1b_unified.json`                               |
 | `-1c_enriched`      | E1 (enriquecimento) | `members-1c_enriched.md`                                |
 | `-1.5_consolidated` | E1.5 (baseline)     | `baseline_patrimonial-1.5_consolidated.json`            |
+| `-1.6_irpf_full`    | E1.6 (`extract_irpf_full`) | `irpfdeclaracaodavid2024-1.6_irpf_full.json`     |
 | `-2_extract`        | E2 (extração)       | `itau_extratoconta_202601_202604-2_extract.json`        |
 | `-3_reconciled`     | E3 (reconciliação)  | `itau_extratoconta_BRL_202212_202604-3_reconciled.json` |
 | `-4_unified`        | E4 (categorização)  | `despesas-4_unified.json`                               |

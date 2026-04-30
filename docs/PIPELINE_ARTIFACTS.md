@@ -11,6 +11,7 @@
 | `e4_unified.schema.json` | `processed/E4_unified/*-4_unified.json` | `scripts/e4_categorize.py` (`save_json`) |
 | `e5_analysis.schema.json` | `processed/E5_analysis/analise_financeira-5_analysis.json` | `scripts/e5_analyze.py` (write principal) |
 | `baseline_patrimonial.schema.json` | baseline E1.5 | `e4_categorize` (baseline) — validação dedicada pode evoluir |
+| `e16_irpf_full.schema.json` | `processed/E2_extracts/*-1.6_irpf_full.json` (E1.6 / `extract_irpf_full`) | `pipeline/stages/extract_irpf_full.py` via `validate_e16_output` (anti-PII + reconcile cross-field, ADR-157) |
 
 **Política:** modo default **warn** (`pipeline.json`); CI roda subset com `MATHOMS_PIPELINE_SCHEMA_MODE=strict` nos testes de `validate_artifact`. Stubs E2 só para LLM (`requires_llm_fallback`) não passam por schema para evitar ruído.
 

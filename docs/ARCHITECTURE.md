@@ -302,6 +302,7 @@ módulo enforcer.
 | Programas de milhagem — método de valuation universal + storage workspace-scoped (`<workspace>/notes/milhas.md`, gitignored) | `scripts/e5_analyze.py::parse_milhas_md_content` (docstring) | [ADR-147](DECISIONS.md#adr-147--milhas-valuation-methodology-universal--storage-workspace-scoped) |
 | Decisões de planejamento patrimonial (event-sourced) | `backend/app/models/decision.py::Decision` + `DecisionEvent` | [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) |
 | Parâmetros fiscais (IRPF, lucro presumido, PGBL) versionados por ano | `backend/app/models/fiscal_parameter.py::FiscalParameter` | [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
+| IRPF completo (renda + imposto + dependentes + dedutíveis) — KPIs renda anual líquida, alíquota dual, capacidade PGBL, split trabalho×capital | `pipeline/llm/schemas/e16_irpf_full.py::IRPFFullOutput` + `pipeline/domain/services/irpf_analyzer.py::IRPFAnalyzer` | [ADR-157](DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) |
 | Câmbio + indexadores temporais | `backend/app/models/market_rate.py::MarketRate` | [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
 | Códigos de tipo de documento + roteamento E0 | `scripts/e0_route.py::DOC_TYPE_PATTERNS` | — |
 | Naming pattern de artefatos (`[entidade]_[tipo]_[periodo]-N_stage.ext`) | `CLAUDE.md §Convenções de naming de artefatos` | — |
