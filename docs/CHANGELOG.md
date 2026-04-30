@@ -6,6 +6,35 @@
 
 ## [Unreleased]
 
+- **test(pipeline): IRPF full schema goldens — A8.2 sub-lane (2026-04-30):**
+  3 fixtures sintéticas (`tests/fixtures/llm_golden/e16_irpf_full_{completo,simplificado,edge_cases}.json`)
+  para regressão byte-byte do stage E1.6 (`extract_irpf_full`, ADR-157).
+  Cobertura de edge cases: rendimento exterior multi-moeda (USD+EUR),
+  dependente sem CPF + dependente filho universitário 23 anos,
+  dívida sem amortização (`valor_inicial == valor_final`), modelo
+  simplificado sem PGBL (RFB), reconcile `ir_pago` ≈ Σ retidos PJ/PF
+  com tolerância 0,02 BRL. **Origem 100% sintética** — zero PII real,
+  CPFs sempre `***.***.***-XX`, nomes "Test User", valores realistas
+  mas fictícios. Sign-off G0 (financial-planner) com paridade RFB 2024
+  tabela progressiva (`ir_devido = base × 0,275 − 10.740,98` na faixa
+  27,5%); G2 (data-engineer) com cobertura adicional do enum fallback
+  `99_outro` em rendimentos isentos e do sandtrap `simplificado + PGBL`
+  (warning) via mutate-in-test. 30 testes novos: 22 em `TestE16Goldens`
+  ([tests/test_llm_golden.py](../tests/test_llm_golden.py)) cobrindo
+  schema parse + validator zero-error + anti-PII re-scan + reconcile
+  + KPIs explícitos do `IRPFAnalyzer` (renda 371.800,00, tributável
+  310.300,00, ir_pago 48.080,00, alíquotas 15.49% / 12.93%, PGBL
+  capacidade 7.236, split trabalho 320k / capital 46,8k); 8 em
+  `tests/test_extract_irpf_full_stage.py` cobrindo skips, paridade
+  semântica de persistência via roundtrip Pydantic, preservação de
+  confidence baixa, strip de sufixo `-0_original`, e cap de
+  confidence em 0.7 quando reconcile diverge. `FakeStructuredLLMClient`
+  novo em [tests/fakes/llm.py](../tests/fakes/llm.py) — stand-in
+  reutilizável para `LLMService.call` em qualquer stage de extração.
+  Bump de prompt LLM agora é detectado por `prompt_version` pinned
+  nas fixtures.
+  [ADR-157](DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)
+
 - **feat(report): seções IRPF no relatório premium — UI lane (2026-04-30):**
   materializa os 6 KPIs do `IRPFAnalyzer` (já em produção via E5 try-read)
   em duas seções novas do shell nativo: **S_IRPF_RENDA** (renda anual e
