@@ -48,6 +48,7 @@ _STAGE_TO_DIR: dict[str, str] = {
     "E1.5c": "E2_extracts",  # baseline vive em E2_extracts (convenção aceita)
     "E1.5": "E2_extracts",  # baseline bruto também
     "E1.5a": "E2_extracts",  # extrato per-IRPF (1 arquivo por documento)
+    "extract_irpf_full": "E2_extracts",  # E1.6 — IRPF completo (ADR-157)
     "E2": "E2_extracts",  # extratos + faturas compartilham pasta
     "E2-faturas": "E2_extracts",
     "E2-extratos": "E2_extracts",
@@ -67,6 +68,7 @@ _STAGE_TO_SUFFIX: dict[str, str] = {
     "E1.5c": "-1.5_consolidated.json",
     "E1.5": "-1.5_baseline.json",
     "E1.5a": "-1.5a_extract.json",
+    "extract_irpf_full": "-1.6_irpf_full.json",  # ADR-157
     "E2": "-2_extract.json",
     "E2-faturas": "-2_extract.json",
     "E2-extratos": "-2_extract.json",

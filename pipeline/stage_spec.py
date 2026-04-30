@@ -125,6 +125,12 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
     "consolidate_baseline": StageSpec(
         "consolidate_baseline", reads=("extract_baseline",), writes=("consolidate_baseline",)
     ),
+    # ADR-157: stage paralelo a `extract_baseline` que captura todo conteúdo
+    # financeiro do IRPF. `reads=()` por design — `analyze_finances` faz try-read
+    # opcional para sobreviver workspaces sem IRPF (G2 sign-off).
+    "extract_irpf_full": StageSpec(
+        "extract_irpf_full", writes=("extract_irpf_full",), is_llm=True, tier="premium"
+    ),
     "extract_invoices": StageSpec("extract_invoices", writes=("extract_invoices",)),
     "extract_statements": StageSpec("extract_statements", writes=("extract_statements",)),
     "extract_with_llm": StageSpec(
@@ -182,6 +188,7 @@ FULL_ORDER: list[str] = [
     "extract_members",
     "extract_baseline",
     "consolidate_baseline",
+    "extract_irpf_full",  # ADR-157 — agrupado com docs de ano-base (junto de E1.5)
     "extract_invoices",
     "extract_statements",
     "extract_with_llm",
