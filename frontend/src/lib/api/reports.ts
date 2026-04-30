@@ -97,6 +97,9 @@ export interface ReportAnalysisData {
   /** v2.9 · ADR-144 — LLM-driven section summaries (id → texto). */
   section_summaries?: Record<string, string>;
   review_metadata?: Record<string, unknown>;
+  /** ADR-157 — KPIs IRPF (renda, alíquota, PGBL, split trabalho×capital, evolução).
+   *  Ausente quando o workspace não tem declaração IRPF processada. */
+  irpf_kpis?: Record<string, unknown>;
   // Extensibilidade para chaves ainda não tipadas
   [key: string]: unknown;
 }
