@@ -5,10 +5,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Callable, Optional
+from dataclasses import dataclass, field
+from typing import Any, Callable, Optional
+
+from pydantic import BaseModel
 
 from pipeline.domain.services.section_summary_generator import LLMRawResponse
+from pipeline.llm.litellm_client import LLMCallResult
 from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
 
 
@@ -55,3 +58,32 @@ def make_fake_fallback(text: str = "fallback determinístico") -> Callable:
         return text
 
     return _fallback
+
+
+@dataclass
+class FakeStructuredLLMClient:
+    """Stand-in para `LLMService.call` — output Pydantic pré-programado, sem API."""
+
+    output: BaseModel
+    tokens_in: int = 1500
+    tokens_out: int = 800
+    duration_ms: int = 2500
+    provider: str = "fake"
+    model: str = "fake-llm"
+    calls: int = 0
+    last_kwargs: dict[str, Any] = field(default_factory=dict)
+
+    def call(self, **kwargs) -> LLMCallResult:
+        self.calls += 1
+        self.last_kwargs = kwargs
+        return LLMCallResult(
+            output=self.output,
+            provider=self.provider,
+            model=self.model,
+            tokens_in=self.tokens_in,
+            tokens_out=self.tokens_out,
+            total_tokens=self.tokens_in + self.tokens_out,
+            cost_estimate_usd=0.0165,
+            duration_ms=self.duration_ms,
+            retries_used=0,
+        )
