@@ -530,3 +530,163 @@ class TestCreateReportFromOutput:
                 await db.execute(select(Report).where(Report.workspace_id == ws_id))
             ).scalar_one()
             assert report.period == "2026-04"
+
+
+class TestPersistAggregateSuggestions:
+    """ADR-153 (Direção E · Onda 5): _persist_aggregate_suggestions
+    deve gerar Suggestions a partir do snapshot E5 do Report — sem
+    isso, /acao Inbox e SuggestionCallout no relatório ficam vazios."""
+
+    @pytest.mark.asyncio
+    async def test_creates_suggestion_when_rule_triggers(self, workspace_with_run, tmp_path):
+        """Snapshot com reserva de emergência insuficiente → cria Suggestion."""
+        from sqlalchemy import select
+
+        from backend.app.models.pipeline_artifact import PipelineArtifact
+        from backend.app.models.suggestion import Suggestion
+        from backend.app.tasks.pipeline_task import (
+            _create_report_from_output,
+            _persist_aggregate_suggestions,
+        )
+
+        ws_id = workspace_with_run["workspace_id"]
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
+
+        # reserva 1.5 meses (< 3 → severity="danger") + gap de 30k
+        snapshot = {
+            "reserva_emergencia": {"meses_cobertura": 1.5, "gap_brl": 30000.0},
+        }
+        async with Session() as db:
+            db.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=run_id,
+                    stage="E5",
+                    artifact_key="analise_financeira",
+                    content_json=snapshot,
+                )
+            )
+            await db.commit()
+
+        _create_report_from_output(ws_id, run_id, tmp_path / "tenant")
+        _persist_aggregate_suggestions(ws_id, run_id)
+
+        async with Session() as db:
+            sugs = (
+                (await db.execute(select(Suggestion).where(Suggestion.workspace_id == ws_id)))
+                .scalars()
+                .all()
+            )
+            assert len(sugs) == 1
+            assert sugs[0].kind == "reserva_insuficiente"
+            assert sugs[0].severity == "danger"
+            assert sugs[0].status == "Pendente"
+            assert sugs[0].amount_brl_cents == 30000 * 100
+            assert sugs[0].report_id is not None
+
+    @pytest.mark.asyncio
+    async def test_idempotent_on_second_run(self, workspace_with_run, tmp_path):
+        """Rodar duas vezes não duplica — Pendente existente bloqueia (ADR-153 §2)."""
+        from sqlalchemy import select
+
+        from backend.app.models.pipeline_artifact import PipelineArtifact
+        from backend.app.models.suggestion import Suggestion
+        from backend.app.tasks.pipeline_task import (
+            _create_report_from_output,
+            _persist_aggregate_suggestions,
+        )
+
+        ws_id = workspace_with_run["workspace_id"]
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
+
+        async with Session() as db:
+            db.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=run_id,
+                    stage="E5",
+                    artifact_key="analise_financeira",
+                    content_json={
+                        "reserva_emergencia": {"meses_cobertura": 1.5, "gap_brl": 30000.0},
+                    },
+                )
+            )
+            await db.commit()
+
+        _create_report_from_output(ws_id, run_id, tmp_path / "tenant")
+        _persist_aggregate_suggestions(ws_id, run_id)
+        _persist_aggregate_suggestions(ws_id, run_id)  # 2x
+
+        async with Session() as db:
+            sugs = (
+                (await db.execute(select(Suggestion).where(Suggestion.workspace_id == ws_id)))
+                .scalars()
+                .all()
+            )
+            assert len(sugs) == 1  # dedup bloqueou a 2ª
+
+    @pytest.mark.asyncio
+    async def test_no_artifact_no_suggestions(self, workspace_with_run, tmp_path):
+        """Sem artefato E5 → não cria Suggestion (best-effort, sem erro)."""
+        from sqlalchemy import select
+
+        from backend.app.models.suggestion import Suggestion
+        from backend.app.tasks.pipeline_task import _persist_aggregate_suggestions
+
+        ws_id = workspace_with_run["workspace_id"]
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
+
+        _persist_aggregate_suggestions(ws_id, run_id)
+
+        async with Session() as db:
+            sugs = (
+                (await db.execute(select(Suggestion).where(Suggestion.workspace_id == ws_id)))
+                .scalars()
+                .all()
+            )
+            assert sugs == []
+
+    @pytest.mark.asyncio
+    async def test_no_drafts_when_snapshot_clean(self, workspace_with_run, tmp_path):
+        """Snapshot saudável (nenhuma regra dispara) → 0 Suggestions, sem erro."""
+        from sqlalchemy import select
+
+        from backend.app.models.pipeline_artifact import PipelineArtifact
+        from backend.app.models.suggestion import Suggestion
+        from backend.app.tasks.pipeline_task import (
+            _create_report_from_output,
+            _persist_aggregate_suggestions,
+        )
+
+        ws_id = workspace_with_run["workspace_id"]
+        run_id = workspace_with_run["run_id"]
+        Session = workspace_with_run["session"]
+
+        async with Session() as db:
+            db.add(
+                PipelineArtifact(
+                    workspace_id=ws_id,
+                    pipeline_run_id=run_id,
+                    stage="E5",
+                    artifact_key="analise_financeira",
+                    content_json={
+                        # Reserva acima do alvo, sem outras regras
+                        "reserva_emergencia": {"meses_cobertura": 12.0, "gap_brl": 0.0},
+                    },
+                )
+            )
+            await db.commit()
+
+        _create_report_from_output(ws_id, run_id, tmp_path / "tenant")
+        _persist_aggregate_suggestions(ws_id, run_id)
+
+        async with Session() as db:
+            sugs = (
+                (await db.execute(select(Suggestion).where(Suggestion.workspace_id == ws_id)))
+                .scalars()
+                .all()
+            )
+            assert sugs == []

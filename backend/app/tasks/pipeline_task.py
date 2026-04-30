@@ -198,6 +198,124 @@ def _persist_llm_suggestions(ws_id: str, run_id: str, tenant_root: Path) -> None
             logger.info("Saved %d suggestions", saved)
 
 
+def _persist_aggregate_suggestions(ws_id: str, run_id: str) -> None:
+    """ADR-153: re-gera Suggestions a partir do snapshot E5 do Report (idempotente)."""
+    # Sync espelha o use case async `regenerate_for_report` — mesmo motivo de
+    # `_persist_llm_suggestions`: asyncio.run() em gevent crasha.
+    # Dedup via `dedup_key` segue ADR-153 §2.
+    import logging
+
+    from sqlalchemy import select
+
+    from backend.app.models.suggestion import Suggestion
+    from backend.app.schemas.dto.decision.mapper import brl_to_cents
+    from pipeline.domain.services.suggestion_generator import (
+        DISMISS_RESPECT_WINDOW_DAYS,
+        SUGGESTION_CAP,
+        SuggestionGenerator,
+        SuggestionGeneratorConfig,
+    )
+
+    sugg_logger = logging.getLogger("pipeline_task.suggestions_aggregate")
+
+    artifact = _find_latest_analysis_artifact(ws_id, run_id)
+    if artifact is None:
+        return
+
+    snapshot = artifact.get("content_json")
+    if not isinstance(snapshot, dict) or not snapshot:
+        return
+
+    drafts = SuggestionGenerator(SuggestionGeneratorConfig()).generate(snapshot)[:SUGGESTION_CAP]
+    if not drafts:
+        sugg_logger.info("regen_suggestions: ws=%s run=%s no_drafts", ws_id, run_id)
+        return
+
+    with SyncSessionLocal() as db:
+        report = (
+            db.execute(
+                select(Report).where(
+                    Report.workspace_id == ws_id,
+                    Report.pipeline_run_id == run_id,
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if report is None:
+            sugg_logger.warning(
+                "regen_suggestions_skipped: no Report row for ws=%s run=%s",
+                ws_id,
+                run_id,
+            )
+            return
+
+        now = datetime.now(timezone.utc)
+        created = 0
+        for draft in drafts:
+            existing = (
+                db.execute(
+                    select(Suggestion)
+                    .where(
+                        Suggestion.workspace_id == ws_id,
+                        Suggestion.dedup_key == draft.dedup_key,
+                    )
+                    .order_by(Suggestion.created_at.desc())
+                )
+                .scalars()
+                .all()
+            )
+            if _suggestion_should_skip(
+                list(existing), now=now, window_days=DISMISS_RESPECT_WINDOW_DAYS
+            ):
+                continue
+            db.add(
+                Suggestion(
+                    workspace_id=ws_id,
+                    report_id=report.id,
+                    section_id=draft.section_id,
+                    kind=draft.kind,
+                    origin=draft.origin,
+                    severity=draft.severity,
+                    title=draft.title,
+                    rationale=draft.rationale,
+                    amount_brl_cents=brl_to_cents(draft.amount_brl),
+                    dedup_key=draft.dedup_key,
+                    status="Pendente",
+                )
+            )
+            created += 1
+        if created:
+            db.commit()
+            sugg_logger.info(
+                "regen_suggestions: ws=%s run=%s created=%d total_drafts=%d",
+                ws_id,
+                run_id,
+                created,
+                len(drafts),
+            )
+
+
+def _suggestion_should_skip(existing, *, now, window_days):
+    # Política de dedup ADR-153 §2 — espelha
+    # ``backend.app.application.suggestions.regenerate_for_report._should_skip``.
+    # Duplicação aceita: chamadores em sync (Celery worker) e async (endpoint).
+    return any(
+        _suggestion_row_blocks(row, now=now, window_days=window_days) for row in existing or []
+    )
+
+
+def _suggestion_row_blocks(row, *, now, window_days):
+    if row.status in ("Pendente", "Aceita", "Modificada"):
+        return True
+    if row.status != "Descartada":
+        return False
+    if row.dismissed_at is None:
+        return True
+    age_days = (now - row.dismissed_at).total_seconds() / 86400
+    return age_days < window_days
+
+
 def _find_latest_analysis_artifact(ws_id: str, run_id: str):
     """Localiza o artefato E5 (``stage='E5'``, ``artifact_key='analise_financeira'``)
     para o run especificado. ADR-131: substitui ``_find_latest_analysis_json``
@@ -818,6 +936,14 @@ def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
         _persist_llm_suggestions(ws_id, run_id, tenant_root)
     except Exception as exc:
         post_logger.warning("Failed to persist LLM suggestions: %s", exc)
+
+    # ADR-153 / Direção E · Onda 5: re-gera aggregate Suggestion a partir
+    # do snapshot E5 do Report (idempotente). Sem isso, /acao Inbox e
+    # SuggestionCallout no relatório ficam vazios após cada run.
+    try:
+        _persist_aggregate_suggestions(ws_id, run_id)
+    except Exception as exc:
+        post_logger.warning("Failed to persist aggregate suggestions: %s", exc)
 
 
 def _close_artifact_session(artifact_session, run_id: str) -> None:
