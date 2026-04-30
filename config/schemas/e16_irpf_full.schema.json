@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IRPF Full Output (E1.6)",
+  "description": "Schema completo de declaração IRPF — pareado com pipeline.llm.schemas.e16_irpf_full.IRPFFullOutput. Wire de dinheiro: string decimal (ADR-090). Top-level lenient (additionalProperties: true) para sobreviver shape novo de PDF; sub-models strict.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "contribuinte",
+    "imposto_apurado",
+    "confidence"
+  ],
+  "properties": {
+    "contribuinte": { "$ref": "#/$defs/contribuinte" },
+    "rendimentos_pj": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fontePagadoraPJ" }
+    },
+    "rendimentos_pf": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fontePagadoraPF" }
+    },
+    "rendimentos_exterior": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/rendimentoExterior" }
+    },
+    "rendimentos_isentos": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/rendimentoIsento" }
+    },
+    "rendimentos_tributacao_exclusiva": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/rendimentoTribExclusiva" }
+    },
+    "pagamentos_efetuados": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pagamentoDedutivel" }
+    },
+    "dividas_onus": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dividaOnusReal" }
+    },
+    "imposto_apurado": { "$ref": "#/$defs/impostoApurado" },
+    "dependentes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dependente" }
+    },
+    "bens_direitos": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/patrimonialItem" }
+    },
+    "confidence": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "notes": { "type": ["string", "null"] },
+    "prompt_version": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "moneyDecimal": {
+      "type": "string",
+      "pattern": "^-?\\d+(\\.\\d{1,2})?$",
+      "description": "Decimal monetário em string com até 2 casas. Wire ADR-090."
+    },
+    "moneyDecimalNullable": {
+      "anyOf": [
+        { "$ref": "#/$defs/moneyDecimal" },
+        { "type": "null" }
+      ]
+    },
+    "cpfMasked": {
+      "type": "string",
+      "pattern": "^\\*{3}\\.\\*{3}\\.\\*{3}-\\d{2}$"
+    },
+    "cnpj": {
+      "type": "string",
+      "pattern": "^[\\d*]{2}\\.[\\d*]{3}\\.[\\d*]{3}/[\\d*]{4}-[\\d*]{2}$"
+    },
+    "cpfOrCnpjMasked": {
+      "type": "string",
+      "pattern": "^(?:\\*{3}\\.\\*{3}\\.\\*{3}-\\d{2}|[\\d*]{2}\\.[\\d*]{3}\\.[\\d*]{3}/[\\d*]{4}-[\\d*]{2})$"
+    },
+    "isoDate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "modelo": {
+      "type": "string",
+      "enum": ["completo", "simplificado"]
+    },
+    "natureza": {
+      "type": "string",
+      "enum": ["titular", "dependente_titular"]
+    },
+    "relacaoDependente": {
+      "type": "string",
+      "enum": [
+        "conjuge_companheiro",
+        "filho_filha",
+        "enteado_enteada",
+        "pai_mae",
+        "avo",
+        "irmao_irma",
+        "bisavo",
+        "neto_neta",
+        "bisneto_bisneta",
+        "sogro_sogra",
+        "menor_pobre",
+        "tutelado",
+        "incapaz",
+        "outro"
+      ]
+    },
+    "codigoRendimentoIsento": {
+      "type": "string",
+      "enum": ["10", "11", "12", "13", "04", "05", "09", "14", "99_outro"]
+    },
+    "codigoRendimentoTribExclusiva": {
+      "type": "string",
+      "enum": ["11", "10", "06", "12", "99_outro"]
+    },
+    "codigoPagamentoDedutivel": {
+      "type": "string",
+      "enum": ["10", "11", "30", "31", "33", "35", "36", "37", "40", "50", "60", "99_outro"]
+    },
+    "contribuinte": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpf_masked", "nome", "ano_base", "exercicio", "modelo", "natureza"],
+      "properties": {
+        "cpf_masked": { "$ref": "#/$defs/cpfMasked" },
+        "nome": { "type": "string", "minLength": 1 },
+        "ano_base": { "type": "integer", "minimum": 2000, "maximum": 2100 },
+        "exercicio": { "type": "integer", "minimum": 2000, "maximum": 2100 },
+        "modelo": { "$ref": "#/$defs/modelo" },
+        "natureza": { "$ref": "#/$defs/natureza" }
+      }
+    },
+    "fontePagadoraPJ": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cnpj",
+        "nome",
+        "rendimentos_tributaveis_brl",
+        "contrib_previdenciaria_brl",
+        "ir_retido_brl"
+      ],
+      "properties": {
+        "cnpj": { "$ref": "#/$defs/cnpj" },
+        "nome": { "type": "string", "minLength": 1 },
+        "rendimentos_tributaveis_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "contrib_previdenciaria_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "ir_retido_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "decimo_terceiro_bruto_brl": { "$ref": "#/$defs/moneyDecimalNullable" },
+        "decimo_terceiro_ir_retido_brl": { "$ref": "#/$defs/moneyDecimalNullable" }
+      }
+    },
+    "fontePagadoraPF": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pagador_nome", "valor_brl", "ir_recolhido_brl"],
+      "properties": {
+        "pagador_cpf_masked": {
+          "anyOf": [{ "$ref": "#/$defs/cpfMasked" }, { "type": "null" }]
+        },
+        "pagador_nome": { "type": "string", "minLength": 1 },
+        "valor_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "ir_recolhido_brl": { "$ref": "#/$defs/moneyDecimal" }
+      }
+    },
+    "rendimentoExterior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pais",
+        "pagador",
+        "valor_origem",
+        "moeda_origem",
+        "taxa_conversao",
+        "data_conversao",
+        "valor_brl"
+      ],
+      "properties": {
+        "pais": { "type": "string", "minLength": 2 },
+        "pagador": { "type": "string", "minLength": 1 },
+        "valor_origem": { "$ref": "#/$defs/moneyDecimal" },
+        "moeda_origem": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "taxa_conversao": { "$ref": "#/$defs/moneyDecimal" },
+        "data_conversao": { "$ref": "#/$defs/isoDate" },
+        "valor_brl": { "$ref": "#/$defs/moneyDecimal" }
+      }
+    },
+    "rendimentoIsento": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codigo_rfb", "descricao", "valor_brl"],
+      "properties": {
+        "codigo_rfb": { "$ref": "#/$defs/codigoRendimentoIsento" },
+        "descricao": { "type": "string", "minLength": 1 },
+        "valor_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "fonte": { "type": ["string", "null"] }
+      }
+    },
+    "rendimentoTribExclusiva": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codigo_rfb", "descricao", "valor_brl"],
+      "properties": {
+        "codigo_rfb": { "$ref": "#/$defs/codigoRendimentoTribExclusiva" },
+        "descricao": { "type": "string", "minLength": 1 },
+        "valor_brl": { "$ref": "#/$defs/moneyDecimal" }
+      }
+    },
+    "pagamentoDedutivel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codigo_rfb", "beneficiario_nome", "valor_pago_brl", "valor_dedutivel_brl"],
+      "properties": {
+        "codigo_rfb": { "$ref": "#/$defs/codigoPagamentoDedutivel" },
+        "beneficiario_nome": { "type": "string", "minLength": 1 },
+        "beneficiario_cpf_cnpj_masked": {
+          "anyOf": [{ "$ref": "#/$defs/cpfOrCnpjMasked" }, { "type": "null" }]
+        },
+        "valor_pago_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "valor_dedutivel_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "teto_aplicado": { "type": "boolean" }
+      }
+    },
+    "dividaOnusReal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codigo_rfb", "discriminacao", "valor_inicial_brl", "valor_final_brl"],
+      "properties": {
+        "codigo_rfb": { "type": "string", "minLength": 1 },
+        "discriminacao": { "type": "string", "minLength": 1 },
+        "valor_inicial_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "valor_final_brl": { "$ref": "#/$defs/moneyDecimal" }
+      }
+    },
+    "impostoApurado": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_calculo_brl",
+        "ir_devido_brl",
+        "deducoes_totais_brl",
+        "ir_pago_brl"
+      ],
+      "properties": {
+        "base_calculo_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "ir_devido_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "deducoes_totais_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "ir_pago_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "ir_a_pagar_brl": { "$ref": "#/$defs/moneyDecimalNullable" },
+        "ir_a_restituir_brl": { "$ref": "#/$defs/moneyDecimalNullable" }
+      }
+    },
+    "dependente": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nome", "relacao"],
+      "properties": {
+        "cpf_masked": {
+          "anyOf": [{ "$ref": "#/$defs/cpfMasked" }, { "type": "null" }]
+        },
+        "nome": { "type": "string", "minLength": 1 },
+        "relacao": { "$ref": "#/$defs/relacaoDependente" },
+        "data_nascimento": {
+          "anyOf": [{ "$ref": "#/$defs/isoDate" }, { "type": "null" }]
+        }
+      }
+    },
+    "patrimonialItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codigo", "descricao", "categoria", "valor_brl", "membro_key", "ano"],
+      "properties": {
+        "codigo": { "type": "string", "minLength": 1 },
+        "descricao": { "type": "string", "minLength": 1 },
+        "categoria": { "type": "string", "minLength": 1 },
+        "instituicao": { "type": ["string", "null"] },
+        "valor_brl": { "$ref": "#/$defs/moneyDecimal" },
+        "membro_key": { "type": "string", "minLength": 1 },
+        "ano": { "type": "integer", "minimum": 2000, "maximum": 2100 }
+      }
+    }
+  }
+}
