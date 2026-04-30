@@ -191,6 +191,14 @@ export const LAYOUT: ReportLayout = {
             "num": "8"
           },
           {
+            "section_id": "S_IRPF_RENDA",
+            "num": "8.1"
+          },
+          {
+            "section_id": "S_IRPF_OTIMIZACAO",
+            "num": "8.2"
+          },
+          {
             "section_id": "S9",
             "num": "9"
           }
@@ -544,6 +552,71 @@ export const LAYOUT: ReportLayout = {
         "cards": []
       },
       {
+        "id": "S_IRPF_RENDA",
+        "title": "Renda Anual e Impostos",
+        "enabled": true,
+        "summary": true,
+        "divider_before": true,
+        "charts": [
+          {
+            "id": "renda_evolucao_multi_anos",
+            "enabled": true,
+            "conclusion": true
+          },
+          {
+            "id": "aliquota_efetiva_dual_gauge",
+            "enabled": true,
+            "conclusion": true
+          }
+        ],
+        "cards": [
+          {
+            "id": "renda_anual_familiar",
+            "enabled": true,
+            "variant": "feature",
+            "size": "half"
+          },
+          {
+            "id": "ir_pago_total",
+            "enabled": true,
+            "variant": "feature",
+            "size": "half"
+          },
+          {
+            "id": "split_trabalho_capital",
+            "enabled": true,
+            "variant": "feature",
+            "size": "full"
+          }
+        ]
+      },
+      {
+        "id": "S_IRPF_OTIMIZACAO",
+        "title": "Otimização Tributária",
+        "enabled": true,
+        "summary": true,
+        "cards": [
+          {
+            "id": "pgbl_capacidade",
+            "enabled": true,
+            "variant": "warn",
+            "size": "half"
+          },
+          {
+            "id": "dependentes_status",
+            "enabled": true,
+            "variant": "feature",
+            "size": "half"
+          },
+          {
+            "id": "dedutiveis_subutilizados",
+            "enabled": true,
+            "variant": "warn",
+            "size": "full"
+          }
+        ]
+      },
+      {
         "id": "S9",
         "title": "Riscos e Proteção — Seguros Críticos",
         "enabled": true,
@@ -805,7 +878,9 @@ export const LAYOUT: ReportLayout = {
     "top5_decisoes": "chart-top5-decisoes",
     "mariana_cenarios": "chart-mariana-cenarios",
     "mariana_cenarios_usa": "chart-mariana-cenarios-usa",
-    "viagens": "chart-viagens"
+    "viagens": "chart-viagens",
+    "renda_evolucao_multi_anos": "chart-renda-evolucao-multi-anos",
+    "aliquota_efetiva_dual_gauge": "chart-aliquota-efetiva-dual-gauge"
   },
   "chart_titles": {
     "patrimonio_doughnut": "Composição Patrimonial",
@@ -828,7 +903,9 @@ export const LAYOUT: ReportLayout = {
     "top5_decisoes": "Top 5 Decisões de Impacto",
     "mariana_cenarios": "Cenários IF — Cônjuge",
     "mariana_cenarios_usa": "Cenários IF — Cônjuge",
-    "viagens": "Orçamento de Viagens"
+    "viagens": "Orçamento de Viagens",
+    "renda_evolucao_multi_anos": "Evolução da Renda — Multi-anos",
+    "aliquota_efetiva_dual_gauge": "Alíquota Efetiva — RFB e Cerbasi"
   },
   "section_charts": {
     "1": [
@@ -945,8 +1022,8 @@ export const LAYOUT: ReportLayout = {
   "version_fallback": "v5.3"
 } as ReportLayout;
 
-export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "nclex_roadmap", "simulacao_mariana"] as const;
+export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "dependentes_status", "dedutiveis_subutilizados", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "nclex_roadmap", "simulacao_mariana"] as const;
 export type CardId = (typeof ALL_CARD_IDS)[number];
 
-export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "bubble_riscos", "top5_decisoes", "custos_f1f2", "cenarios_cambiais", "mariana_cenarios_usa"] as const;
+export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes", "custos_f1f2", "cenarios_cambiais", "mariana_cenarios_usa"] as const;
 export type ChartId = (typeof ALL_CHART_IDS)[number];

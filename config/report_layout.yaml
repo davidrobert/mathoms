@@ -84,6 +84,8 @@ navigation:
         - {section_id: "S4", num: "4"}
         - {section_id: "S7", num: "7"}
         - {section_id: "S8", num: "8"}
+        - {section_id: "S_IRPF_RENDA", num: "8.1"}
+        - {section_id: "S_IRPF_OTIMIZACAO", num: "8.2"}
         - {section_id: "S9", num: "9"}
     - label: "Síntese"
       links:
@@ -327,6 +329,63 @@ estrategico:
           conclusion: true
           period_toggle: true
       cards: []
+
+    # --------------------------------------------------------------------------
+    # S_IRPF_RENDA — Renda anual e impostos (ADR-157 · IRPF Full Schema)
+    # Consome `output.irpf_kpis` produzido por IRPFAnalyzer (E5).
+    # Workspaces sem declaração IRPF: a seção inteira é omitida pelo
+    # componente (IrpfRendaSection retorna null se kpis ausente).
+    # --------------------------------------------------------------------------
+    - id: "S_IRPF_RENDA"
+      title: "Renda Anual e Impostos"
+      enabled: true
+      summary: true
+      divider_before: true
+      charts:
+        - id: "renda_evolucao_multi_anos"
+          enabled: true
+          conclusion: true
+        - id: "aliquota_efetiva_dual_gauge"
+          enabled: true
+          conclusion: true
+      cards:
+        - id: "renda_anual_familiar"
+          enabled: true
+          variant: "feature"
+          size: "half"
+        - id: "ir_pago_total"
+          enabled: true
+          variant: "feature"
+          size: "half"
+        - id: "split_trabalho_capital"
+          enabled: true
+          variant: "feature"
+          size: "full"
+
+    # --------------------------------------------------------------------------
+    # S_IRPF_OTIMIZACAO — Otimização tributária (ADR-157 · IRPF Full Schema)
+    # PGBL não usado, dependentes ociosos, dedutíveis subutilizados.
+    # G0 (financial-planner) sign-off necessário para copy: a "capacidade
+    # PGBL não usada" é informação, não recomendação automática (regras INSS,
+    # modelo simplificado vs. completo, perfil do contribuinte).
+    # --------------------------------------------------------------------------
+    - id: "S_IRPF_OTIMIZACAO"
+      title: "Otimização Tributária"
+      enabled: true
+      summary: true
+      cards:
+        - id: "pgbl_capacidade"
+          enabled: true
+          variant: "warn"
+          size: "half"
+        - id: "dependentes_status"
+          enabled: true
+          variant: "feature"
+          size: "half"
+        - id: "dedutiveis_subutilizados"
+          enabled: true
+          variant: "warn"
+          size: "full"
 
     # --------------------------------------------------------------------------
     # S9 — Riscos e Proteção
@@ -578,6 +637,8 @@ chart_canvas_map:
   mariana_cenarios: "chart-mariana-cenarios"
   mariana_cenarios_usa: "chart-mariana-cenarios-usa"
   viagens: "chart-viagens"
+  renda_evolucao_multi_anos: "chart-renda-evolucao-multi-anos"
+  aliquota_efetiva_dual_gauge: "chart-aliquota-efetiva-dual-gauge"
 
 # ==============================================================================
 # MAPEAMENTO: chart key → título amigável para exibição
@@ -604,6 +665,8 @@ chart_titles:
   mariana_cenarios: "Cenários IF — Cônjuge"
   mariana_cenarios_usa: "Cenários IF — Cônjuge"
   viagens: "Orçamento de Viagens"
+  renda_evolucao_multi_anos: "Evolução da Renda — Multi-anos"
+  aliquota_efetiva_dual_gauge: "Alíquota Efetiva — RFB e Cerbasi"
 
 # ==============================================================================
 # MAPEAMENTO: seção → charts (número da seção → lista de chart keys)
