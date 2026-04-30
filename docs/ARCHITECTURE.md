@@ -830,7 +830,7 @@ Goldens E3/E4/E5/E5.N preservam paridade byte-a-byte vs pré-A7
 ## 10. Estrutura de pastas
 
 ```
-fin-current/
+mathoms.ai/
 ├── backend/
 │   ├── app/
 │   │   ├── api/               # 17 routers REST + WebSocket
@@ -979,7 +979,7 @@ descontinuar o renderer HTML server-side; React em `/reports/[id]` é
 
 | Dado                                              | Onde vive                                                   | Persistido por                                                  |
 | ------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------- |
-| Código-fonte + docs                               | Git (`github.com/.../fin-current`)                          | Desenvolvedor via `git commit`                                  |
+| Código-fonte + docs                               | Git (`github.com/davidrobert/mathoms`)                      | Desenvolvedor via `git commit`                                  |
 | Schema do banco                                   | Migrations Alembic (`backend/alembic/versions/`)            | Desenvolvedor (`alembic revision`)                              |
 | Config global (fallback de todo tenant)           | `config/*.{json,yaml,md}`                                   | Versionado no repo                                              |
 | **Usuário** (email, senha hash)                   | `users` (DB)                                                | `POST /auth/register`                                           |

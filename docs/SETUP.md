@@ -36,8 +36,8 @@ redis-cli --version # >= 7
 ## 1. Clone e instalação
 
 ```bash
-git clone <repo> fin-current
-cd fin-current
+git clone <repo> mathoms.ai
+cd mathoms.ai
 
 # Python virtualenv
 python3 -m venv .venv
