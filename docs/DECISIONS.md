@@ -7203,6 +7203,19 @@ Decisões de design pendentes (ver track):
    - Generator vive em `pipeline/domain/services/suggestion_generator.py`
      (puro, deterministic, sem I/O); backend importa do pipeline,
      que é a direção permitida.
+
+   > **Nota (2026-04-29):** o trigger original assumia chamada manual
+   > do endpoint, o que deixou `/acao` Inbox vazio após cada run
+   > completo (nenhum consumidor disparava). A regra **boundary**
+   > ("pipeline não importa backend") segue valendo, mas **não veta**
+   > disparar do post-processing do Celery worker — `_run_post_processing`
+   > já roda dentro de `backend/app/tasks/pipeline_task.py` (backend→backend,
+   > boundary intacto). Adicionado `_persist_aggregate_suggestions`
+   > sync chamado após `_create_report_from_output` na mesma janela
+   > best-effort de `_persist_llm_suggestions` (idempotência mantida via
+   > `dedup_key`; falha aqui só gera warning, não aborta o run). O
+   > endpoint REST continua disponível como ponto de re-execução manual
+   > (debug, smoke test, regerar após mudança nas regras).
 7. **Endpoints REST canônicos:**
 
    ```
