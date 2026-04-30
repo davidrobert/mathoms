@@ -58,6 +58,7 @@ STAGE_RENAME_MAP: dict[str, str] = {
     "E1": "extract_members",
     "E1.5": "extract_baseline",
     "E1.5c": "consolidate_baseline",
+    "E1.6": "extract_irpf_full",  # ADR-157 — alias mantido por simetria com E1.5/E1.5c
     "E2-faturas": "extract_invoices",
     "E2-extratos": "extract_statements",
     "E2-llm": "extract_with_llm",

@@ -41,6 +41,7 @@ EXPECTED_DESCRIPTIVE_STAGES = {
     "extract_members",
     "extract_baseline",
     "consolidate_baseline",
+    "extract_irpf_full",
     "extract_invoices",
     "extract_statements",
     "extract_with_llm",
