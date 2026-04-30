@@ -143,6 +143,141 @@ class TestE2LLMGoldenFile:
             assert inv["value_brl"] > 0
 
 
+class TestE16Goldens:
+    """Goldens E1.6 — schema parses, validator accepts, analyzer KPIs match (ADR-157)."""
+
+    FIXTURE_NAMES = ("completo", "simplificado", "edge_cases")
+
+    @pytest.fixture
+    def fixtures(self):
+        return {
+            name: json.loads((GOLDEN_DIR / f"e16_irpf_full_{name}.json").read_text())
+            for name in self.FIXTURE_NAMES
+        }
+
+    @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
+    def test_schema_parses(self, fixtures, fixture_name):
+        from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
+
+        IRPFFullOutput.model_validate(fixtures[fixture_name])
+
+    @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
+    def test_validator_accepts_no_errors(self, fixtures, fixture_name):
+        from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
+        from pipeline.llm.validators import validate_e16_output
+
+        out = IRPFFullOutput.model_validate(fixtures[fixture_name])
+        result = validate_e16_output(out)
+        assert result.valid, f"{fixture_name} errors: {result.errors}"
+
+    @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
+    def test_no_unmasked_cpf_in_free_text(self, fixtures, fixture_name):
+        import re
+
+        cpf_re = re.compile(r"\b\d{3}\.\d{3}\.\d{3}-\d{2}\b")
+        eleven_digits = re.compile(r"\b\d{11}\b")
+        text_blob = json.dumps(fixtures[fixture_name])
+        assert not cpf_re.search(text_blob), f"{fixture_name} has unmasked CPF literal"
+        assert not eleven_digits.search(text_blob), f"{fixture_name} has 11-digit run (CPF-shaped)"
+
+    @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
+    def test_prompt_version_pinned(self, fixtures, fixture_name):
+        assert fixtures[fixture_name]["prompt_version"] == "e16-v1.0.0"
+
+    @pytest.mark.parametrize("fixture_name", FIXTURE_NAMES)
+    def test_reconcile_ir_pago_within_tolerance(self, fixtures, fixture_name):
+        from decimal import Decimal
+
+        d = fixtures[fixture_name]
+        soma = Decimal("0")
+        for fp in d["rendimentos_pj"]:
+            soma += Decimal(fp["ir_retido_brl"])
+            if fp.get("decimo_terceiro_ir_retido_brl") is not None:
+                soma += Decimal(fp["decimo_terceiro_ir_retido_brl"])
+        for fp in d["rendimentos_pf"]:
+            soma += Decimal(fp["ir_recolhido_brl"])
+        ir_pago = Decimal(d["imposto_apurado"]["ir_pago_brl"])
+        assert abs(ir_pago - soma) <= Decimal(
+            "0.02"
+        ), f"{fixture_name}: ir_pago={ir_pago} vs soma_retidos={soma}"
+
+    def test_completo_renda_e_aliquotas(self, fixtures):
+        from decimal import Decimal
+
+        from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
+
+        a = IRPFAnalyzer.from_payloads([fixtures["completo"]])
+        assert a.anos_base_disponiveis() == [2024]
+        assert a.renda_anual_familiar(2024) == Decimal("371800.00")
+        assert a.rendimentos_tributaveis(2024) == Decimal("310300.00")
+        assert a.ir_pago_total(2024) == Decimal("47700.00")
+        assert a.renda_liquida_familiar(2024) == Decimal("298100.00")
+        ali = a.aliquotas(2024)
+        assert round(ali.sobre_tributavel_pct, 2) == Decimal("15.37")
+        assert round(ali.sobre_total_pct, 2) == Decimal("12.83")
+
+    def test_completo_split_pgbl_dependentes(self, fixtures):
+        from decimal import Decimal
+
+        from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
+
+        a = IRPFAnalyzer.from_payloads([fixtures["completo"]])
+        assert a.contrib_previdenciaria_total(2024) == Decimal("8000.00")
+        assert a.pensao_alimenticia_paga(2024) == Decimal("18000.00")
+        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("7236.0000")
+        sp = a.split_trabalho_vs_capital(2024)
+        assert sp.trabalho_brl == Decimal("320000.00")
+        assert sp.capital_brl == Decimal("46800.00")
+        assert len(a.dependentes_validos(2024)) == 2
+
+    def test_simplificado_pgbl_capacity_zero(self, fixtures):
+        from decimal import Decimal
+
+        from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
+
+        a = IRPFAnalyzer.from_payloads([fixtures["simplificado"]])
+        # Modelo simplificado nunca usa PGBL — capacidade deve ser zero por design (G0).
+        assert a.pgbl_capacidade_dedutivel(2024) == Decimal("0")
+        assert a.renda_anual_familiar(2024) == Decimal("81500.00")
+        assert a.ir_pago_total(2024) == Decimal("3000.00")
+        # Nenhum dependente.
+        assert a.dependentes_validos(2024) == []
+
+    def test_edge_cases_multi_currency_exterior(self, fixtures):
+        from decimal import Decimal
+
+        from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
+
+        a = IRPFAnalyzer.from_payloads([fixtures["edge_cases"]])
+        # PJ 180k + 13º exclusiva 15k = 195k trabalho; exterior USD+EUR = 43.150 capital.
+        sp = a.split_trabalho_vs_capital(2024)
+        assert sp.trabalho_brl == Decimal("195000.00")
+        assert sp.capital_brl == Decimal("43150.00")
+        # Confidence baixo permitido — não bloqueia parse.
+        assert fixtures["edge_cases"]["confidence"] == 0.82
+        # Dois dependentes (1 sem CPF, 1 com CPF — universitária <24 anos).
+        deps = a.dependentes_validos(2024)
+        assert len(deps) == 2
+        cpf_present = [d.cpf_masked for d in deps]
+        assert None in cpf_present
+        assert any(c is not None for c in cpf_present)
+
+    def test_evolucao_renda_multi_year(self, fixtures):
+        from decimal import Decimal
+
+        from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
+
+        # Combinar fixture completo (ano 2024) com edge_cases reescrito p/ 2023.
+        completo = fixtures["completo"]
+        edge_2023 = json.loads(json.dumps(fixtures["edge_cases"]))
+        edge_2023["contribuinte"]["ano_base"] = 2023
+        edge_2023["contribuinte"]["exercicio"] = 2024
+        a = IRPFAnalyzer.from_payloads([completo, edge_2023])
+        ev = a.evolucao_renda_anos()
+        assert ev[2024] == Decimal("371800.00")
+        assert ev[2023] == Decimal("238150.00")
+
+
 class TestE7ReviewGoldenFile:
     @pytest.fixture
     def golden_data(self):
