@@ -15,7 +15,7 @@
       "contrib_previdenciaria_brl": "8000.00",
       "ir_retido_brl": "38000.00",
       "decimo_terceiro_bruto_brl": "20000.00",
-      "decimo_terceiro_ir_retido_brl": "1500.00"
+      "decimo_terceiro_ir_retido_brl": "1880.00"
     },
     {
       "cnpj": "33.444.555/0001-66",
@@ -119,11 +119,11 @@
   ],
   "imposto_apurado": {
     "base_calculo_brl": "200000.00",
-    "ir_devido_brl": "45000.00",
+    "ir_devido_brl": "44259.02",
     "deducoes_totais_brl": "110300.00",
-    "ir_pago_brl": "47700.00",
+    "ir_pago_brl": "48080.00",
     "ir_a_pagar_brl": null,
-    "ir_a_restituir_brl": "2700.00"
+    "ir_a_restituir_brl": "3820.98"
   },
   "dependentes": [
     {

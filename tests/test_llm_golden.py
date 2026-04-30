@@ -210,11 +210,12 @@ class TestE16Goldens:
         assert a.anos_base_disponiveis() == [2024]
         assert a.renda_anual_familiar(2024) == Decimal("371800.00")
         assert a.rendimentos_tributaveis(2024) == Decimal("310300.00")
-        assert a.ir_pago_total(2024) == Decimal("47700.00")
-        assert a.renda_liquida_familiar(2024) == Decimal("298100.00")
+        # ir_pago = 38000 (PJ) + 1880 (13º RFB tabela exclusiva) + 5500 (PJ) + 2700 (PF) = 48080.
+        assert a.ir_pago_total(2024) == Decimal("48080.00")
+        assert a.renda_liquida_familiar(2024) == Decimal("297720.00")
         ali = a.aliquotas(2024)
-        assert round(ali.sobre_tributavel_pct, 2) == Decimal("15.37")
-        assert round(ali.sobre_total_pct, 2) == Decimal("12.83")
+        assert round(ali.sobre_tributavel_pct, 2) == Decimal("15.49")
+        assert round(ali.sobre_total_pct, 2) == Decimal("12.93")
 
     def test_completo_split_pgbl_dependentes(self, fixtures):
         from decimal import Decimal
@@ -262,6 +263,33 @@ class TestE16Goldens:
         assert None in cpf_present
         assert any(c is not None for c in cpf_present)
 
+    def test_simplificado_with_pgbl_emits_warning(self, fixtures):
+        """Sandtrap: simplificado + PGBL deve disparar warning (G2 coverage gap)."""
+        from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
+        from pipeline.llm.validators import validate_e16_output
+
+        mutated = json.loads(json.dumps(fixtures["simplificado"]))
+        mutated["pagamentos_efetuados"] = [
+            {
+                "codigo_rfb": "36",
+                "beneficiario_nome": "Itau Previdencia",
+                "beneficiario_cpf_cnpj_masked": "60.701.190/0001-04",
+                "valor_pago_brl": "20000.00",
+                "valor_dedutivel_brl": "20000.00",
+                "teto_aplicado": False,
+            }
+        ]
+        out = IRPFFullOutput.model_validate(mutated)
+        result = validate_e16_output(out)
+        assert result.valid, f"unexpected errors: {result.errors}"
+        assert any("simplificado" in w and "PGBL" in w for w in result.warnings)
+
+    def test_codigo_99_outro_fallback_in_edge_cases(self, fixtures):
+        """Coverage do enum fallback `99_outro` (G2 coverage gap)."""
+        edge = fixtures["edge_cases"]
+        codigos = [r["codigo_rfb"] for r in edge["rendimentos_isentos"]]
+        assert "99_outro" in codigos, "edge_cases deve exercitar `99_outro` fallback"
+
     def test_evolucao_renda_multi_year(self, fixtures):
         from decimal import Decimal
 
@@ -275,7 +303,8 @@ class TestE16Goldens:
         a = IRPFAnalyzer.from_payloads([completo, edge_2023])
         ev = a.evolucao_renda_anos()
         assert ev[2024] == Decimal("371800.00")
-        assert ev[2023] == Decimal("238150.00")
+        # 2023 = trib (180k+25.75k+17.4k) + isento (99_outro 8k) + exclusiva (13º 15k) = 246.150,00.
+        assert ev[2023] == Decimal("246150.00")
 
 
 class TestE7ReviewGoldenFile:

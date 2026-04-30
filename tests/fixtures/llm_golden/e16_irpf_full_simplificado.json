@@ -31,10 +31,10 @@
   "dividas_onus": [],
   "imposto_apurado": {
     "base_calculo_brl": "63245.66",
-    "ir_devido_brl": "8200.00",
+    "ir_devido_brl": "6651.58",
     "deducoes_totais_brl": "16754.34",
     "ir_pago_brl": "3000.00",
-    "ir_a_pagar_brl": "5200.00",
+    "ir_a_pagar_brl": "3651.58",
     "ir_a_restituir_brl": null
   },
   "dependentes": [],

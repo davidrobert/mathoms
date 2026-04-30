@@ -39,7 +39,14 @@
       "valor_brl": "17400.00"
     }
   ],
-  "rendimentos_isentos": [],
+  "rendimentos_isentos": [
+    {
+      "codigo_rfb": "99_outro",
+      "descricao": "Indenizacao por acordo trabalhista atipico (codigo nao mapeado pelo prompt)",
+      "valor_brl": "8000.00",
+      "fonte": "Empresa anterior"
+    }
+  ],
   "rendimentos_tributacao_exclusiva": [
     {
       "codigo_rfb": "11",
@@ -58,10 +65,10 @@
   ],
   "imposto_apurado": {
     "base_calculo_brl": "180000.00",
-    "ir_devido_brl": "38000.00",
+    "ir_devido_brl": "38759.02",
     "deducoes_totais_brl": "43150.00",
     "ir_pago_brl": "26000.00",
-    "ir_a_pagar_brl": "12000.00",
+    "ir_a_pagar_brl": "12759.02",
     "ir_a_restituir_brl": null
   },
   "dependentes": [
@@ -75,7 +82,7 @@
       "cpf_masked": "***.***.***-66",
       "nome": "Beatriz Test User",
       "relacao": "filho_filha",
-      "data_nascimento": "2003-09-15"
+      "data_nascimento": "2002-09-15"
     }
   ],
   "bens_direitos": [
