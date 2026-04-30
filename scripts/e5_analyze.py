@@ -2276,7 +2276,7 @@ def parse_milhas_md_content(text: str) -> Dict[str, Any]:
     display_programas = [
         p for p in programas if p["saldo_pontos"] > 0 or p["valor_estimado_brl"] > 0
     ]
-    registered_names = [f'{p["programa"]} ({p["titular"]})' for p in programas]
+    registered_names = [f"{p['programa']} ({p['titular']})" for p in programas]
 
     total_valor = sum(p["valor_estimado_brl"] for p in display_programas)
     total_economia = sum(p["economia_periodo_brl"] for p in display_programas)
@@ -3026,6 +3026,49 @@ def _e5_run_sanity_checks(legacy: Dict[str, Any]):
     return warnings
 
 
+def _e5_read_irpf_payloads(store) -> list[dict] | None:
+    try:
+        keys = store.list_keys("extract_irpf_full")
+    except Exception:
+        return None
+    if not keys:
+        return None
+    payloads = [p for p in (store.read("extract_irpf_full", k) for k in keys) if p]
+    return payloads or None
+
+
+def _e5_kpis_from_analyzer(analyzer, ultimo: int) -> Dict[str, Any]:
+    ali = analyzer.aliquotas(ultimo)
+    sp = analyzer.split_trabalho_vs_capital(ultimo)
+    return {
+        "ano_base": ultimo,
+        "anos_disponiveis": analyzer.anos_base_disponiveis(),
+        "renda_anual_familiar_brl": str(analyzer.renda_anual_familiar(ultimo)),
+        "renda_liquida_familiar_brl": str(analyzer.renda_liquida_familiar(ultimo)),
+        "ir_pago_total_brl": str(analyzer.ir_pago_total(ultimo)),
+        "aliquota_sobre_tributavel_pct": str(round(ali.sobre_tributavel_pct, 2)),
+        "aliquota_sobre_total_pct": str(round(ali.sobre_total_pct, 2)),
+        "pgbl_capacidade_dedutivel_brl": str(analyzer.pgbl_capacidade_dedutivel(ultimo)),
+        "split_trabalho_brl": str(sp.trabalho_brl),
+        "split_capital_brl": str(sp.capital_brl),
+        "evolucao_renda_anos": {str(k): str(v) for k, v in analyzer.evolucao_renda_anos().items()},
+    }
+
+
+def _e5_load_irpf_kpis(store) -> Dict[str, Any] | None:
+    """Try-read opcional de extract_irpf_full (ADR-157). Retorna None se ausente."""
+    payloads = _e5_read_irpf_payloads(store)
+    if not payloads:
+        return None
+    from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
+
+    analyzer = IRPFAnalyzer.from_payloads(payloads)
+    anos = analyzer.anos_base_disponiveis()
+    if not anos:
+        return None
+    return _e5_kpis_from_analyzer(analyzer, anos[-1])
+
+
 def _e5_compose_output(
     legacy: Dict[str, Any],
     *,
@@ -3034,6 +3077,7 @@ def _e5_compose_output(
     tarefas_status_parsed,
     programa_milhas,
     existing_narrativas,
+    irpf_kpis: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
 
@@ -3061,6 +3105,7 @@ def _e5_compose_output(
         tarefas=tarefas_parsed if tarefas_parsed else None,
         tarefas_status=tarefas_status_parsed if tarefas_status_parsed else None,
         existing_narrativas=existing_narrativas,
+        irpf_kpis=irpf_kpis,
     )
     return build_e5_output(output_inputs)
 
@@ -3142,6 +3187,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
     programa_milhas = parse_milhas_md(milhas_content)
 
     warnings = _e5_run_sanity_checks(legacy)
+    irpf_kpis = _e5_load_irpf_kpis(store)
     output = _e5_compose_output(
         legacy,
         periodo_dados=periodo_dados,
@@ -3149,6 +3195,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         tarefas_status_parsed=tarefas_status_parsed,
         programa_milhas=programa_milhas,
         existing_narrativas=existing_narrativas,
+        irpf_kpis=irpf_kpis,
     )
     _e5_persist(store, ctx, output)
     _e5_print_summary(legacy)

@@ -160,9 +160,7 @@ def build_default_tarefas_status(pontos_urgentes: list[dict[str, Any]]) -> dict[
 
 def build_alertas(score: dict[str, Any], ratios: dict[str, Any]) -> list[str]:
     """Monta lista de alertas para o template JS (paridade linha 2548-2550)."""
-    alertas = [
-        f"Score financeiro: {score.get('valor', 0)}/10 " f"({score.get('classificacao', '')})"
-    ]
+    alertas = [f"Score financeiro: {score.get('valor', 0)}/10 ({score.get('classificacao', '')})"]
     if ratios.get("rentabilidade_pct") == "N/D":
         alertas.append("Rentabilidade: N/D")
     return alertas
@@ -204,6 +202,9 @@ class E5OutputInputs:
     tarefas: list[dict[str, Any]] | None = None
     tarefas_status: dict[str, str] | None = None
     existing_narrativas: dict[str, Any] | None = None
+    # E1.6 (extract_irpf_full) — try-read opcional. Quando ausente, output
+    # omite a chave `irpf_kpis` (workspaces sem IRPF). ADR-157.
+    irpf_kpis: dict[str, Any] | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -251,5 +252,9 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
     # Preserva narrativas (E5.N enriquece em run posterior).
     if inputs.existing_narrativas is not None:
         output["narrativas"] = inputs.existing_narrativas
+
+    # ADR-157: KPIs do IRPF aparecem no output só quando E1.6 produziu artefato.
+    if inputs.irpf_kpis is not None:
+        output["irpf_kpis"] = inputs.irpf_kpis
 
     return output
