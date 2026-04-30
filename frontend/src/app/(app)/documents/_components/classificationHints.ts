@@ -6,6 +6,7 @@ const CLASSIFICATION_LOW_CONFIDENCE = 0.7;
 
 export function isClassificationUncertain(doc: DocumentResponse): boolean {
   if (!isDocumentClassifiedOk(doc.status)) return false;
+  if (doc.pipeline_e2_extract_ok) return false;
   if (doc.needs_review) return true;
   const c = doc.classification_confidence;
   return c != null && c < CLASSIFICATION_LOW_CONFIDENCE;

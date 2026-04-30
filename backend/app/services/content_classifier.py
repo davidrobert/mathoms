@@ -197,8 +197,26 @@ TYPE_RULES: tuple[TypeRule, ...] = (
     TypeRule(
         code="irpfrecibo",
         dest_group="income_tax_br",
-        required=(_c(r"Recibo\s*de\s*Entrega.*IRPF|IRPF.*Recibo\s*de\s*Entrega"),),
-        supporting=(_c(r"N[uú]mero\s*do\s*Recibo"),),
+        # Recibos da RFB usam formulações variáveis: alguns dizem "Recibo de Entrega
+        # da Declaração de Imposto sobre a Renda da Pessoa Física" (sem a sigla "IRPF"
+        # inline), outros "Recibo da Entrega da Declaração IRPF". Aceitamos qualquer
+        # combinação "Recibo (de|da) Entrega" próxima a "Declaração", "Imposto (de|sobre a)
+        # Renda" ou "IRPF" — incluindo a forma curta "Recibo da Declaração".
+        required=(
+            _c(
+                r"Recibo\s*(?:de|da)\s*Entrega.*"
+                r"(?:IRPF|Declara[çc][ãa]o|Imposto\s*(?:de|sobre\s*a)\s*Renda|Pessoa\s*F[ií]sica)"
+                r"|Recibo\s*da\s*Declara[çc][ãa]o\s*(?:de\s*)?(?:IRPF|Imposto\s*(?:de|sobre\s*a)\s*Renda)"
+                r"|IRPF.*Recibo\s*de\s*Entrega"
+            ),
+        ),
+        supporting=(
+            _c(r"N[uú]mero\s*do\s*Recibo"),
+            _c(r"Hash\s*do\s*Recibo"),
+            _c(r"Modelo\s*(?:Completo|Simplificado)"),
+            _c(r"Exerc[ií]cio\s*20\d{2}"),
+            _c(r"Recibo\s*da\s*Declara[çc][ãa]o"),
+        ),
         priority=1,
     ),
     TypeRule(

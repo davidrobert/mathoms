@@ -177,6 +177,8 @@ def apply_pipeline_e2_sync_to_documents(
                 if not has_extract and db is not None and doc.workspace_id:
                     has_extract = has_e15a_artifact_in_db(db, doc.workspace_id, fname)
                 doc.pipeline_e2_extract_ok = has_extract
+                if has_extract and doc.needs_review:
+                    doc.needs_review = False
             else:
                 doc.pipeline_e2_extract_ok = None
             doc.pipeline_extract_notes = None
@@ -190,6 +192,10 @@ def apply_pipeline_e2_sync_to_documents(
             has_extract = has_e2_artifact_in_db(db, doc.workspace_id, fname)
         doc.pipeline_e2_extract_ok = has_extract
         doc.pipeline_extract_notes = _read_extract_notes(extract_path) if extract_path else None
+        # Successful artefact extraction confirms the upload-time classification
+        # was correct enough — clear the "incerta" flag set by the LLM fallback.
+        if has_extract and doc.needs_review:
+            doc.needs_review = False
         if doc.status == DocumentStatus.ready:
             doc.status = DocumentStatus.processed
 

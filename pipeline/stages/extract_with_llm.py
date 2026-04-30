@@ -84,13 +84,16 @@ def _find_unprocessed_docs(ctx: WorkspaceContext, store=None) -> list[Path]:
                 if _e2_extract_stem(f) not in e2_existing:
                     candidates.append(f)
 
-    for subdir_name in ("income_tax_br", "real_estate", "vehicles"):
+    # `income_tax_br` é processado exclusivamente por E1.5 (baseline patrimonial).
+    # O schema do E2-llm (transactions + investments) não tem campos para rendimentos,
+    # imposto, dependentes ou despesas dedutíveis — rodar IRPF aqui produz JSON vazio
+    # e gasta LLM. Mantemos `real_estate` e `vehicles` porque podem conter docs
+    # sem parser determinístico que viram informações úteis (saldo, posição).
+    for subdir_name in ("real_estate", "vehicles"):
         subdir = ctx.data_dir / subdir_name
         if subdir.exists():
             for f in sorted(subdir.rglob("*")):
                 if f.is_file() and f.suffix.lower() in extensions:
-                    # Must mirror financial_statements: skip when E2 JSON already exists,
-                    # otherwise every run re-sends all IRPF/informes to the LLM (very slow).
                     if _e2_extract_stem(f) not in e2_existing:
                         candidates.append(f)
 

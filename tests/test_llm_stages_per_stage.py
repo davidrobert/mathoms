@@ -247,6 +247,30 @@ class TestE2LLMStage:
         docs = _find_unprocessed_docs(ctx, store)
         assert docs == []
 
+    def test_find_unprocessed_docs_never_scans_income_tax_br(self, tmp_path):
+        """E1.5 cuida de IRPF; o schema do E2-llm não cobre rendimentos/imposto.
+        Mesmo sem extract existente, income_tax_br não deve aparecer na fila."""
+        ctx = make_llm_ctx(tmp_path)
+        irpf_dir = tmp_path / "data" / "income_tax_br"
+        irpf_dir.mkdir(parents=True)
+        (irpf_dir / "receitafederal_irpfdeclaracao_2024.pdf").write_text("x")
+        (irpf_dir / "receitafederal_irpfrecibo_2024.pdf").write_text("x")
+
+        # Mantemos um doc em real_estate para garantir que o scan não foi
+        # cortado totalmente — só income_tax_br foi removido.
+        re_dir = tmp_path / "data" / "real_estate"
+        re_dir.mkdir(parents=True)
+        (re_dir / "imovel_2024.pdf").write_text("x")
+
+        store = ctx.get_artifact_store()
+        from pipeline.stages.extract_with_llm import _find_unprocessed_docs
+
+        docs = _find_unprocessed_docs(ctx, store)
+        names = [d.name for d in docs]
+        assert "imovel_2024.pdf" in names
+        assert "receitafederal_irpfdeclaracao_2024.pdf" not in names
+        assert "receitafederal_irpfrecibo_2024.pdf" not in names
+
 
 # ══════════════════════════════════════════════════════════════════════════
 # A6a — CRITÉRIOS ESTRUTURAIS (ADR-105)

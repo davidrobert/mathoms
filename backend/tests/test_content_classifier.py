@@ -161,6 +161,22 @@ Rendimentos Tributáveis: R$ 12.000,00
 Isentos e Não Tributáveis: R$ 450,00
 """
 
+# Recibo de entrega gerado pelo PGD/e-CAC. O texto canônico não contém
+# a sigla "IRPF" inline — usa "Imposto sobre a Renda da Pessoa Física".
+# Esse formato fazia o regex antigo falhar e cair no LLM fallback.
+IRPF_RECIBO_RFB = """
+Receita Federal do Brasil
+Recibo de Entrega da Declaração de Imposto sobre a Renda da Pessoa Física
+Exercício 2025
+Ano-calendário 2024
+
+Modelo Completo
+Número do Recibo: 12.34.56.78.90
+Hash do Recibo: ABC123DEF456
+Data e horário de transmissão: 30/04/2025 14:22:11
+"""
+
+
 BANKOFAMERICA_STATEMENT = """
 Bank of America
 Account Statement
@@ -277,6 +293,21 @@ class TestTypeDetection:
         rule, *_ = detect_type_by_content(IRPF_INFORME_RENDIMENTOS)
         assert rule is not None
         assert rule.code == "informerendimentos"
+
+    def test_irpf_recibo_imposto_sobre_a_renda(self):
+        """Recibo PGD moderno: 'Imposto sobre a Renda' (sem 'IRPF' inline) deve casar."""
+        rule, req, sup = detect_type_by_content(IRPF_RECIBO_RFB)
+        assert rule is not None
+        assert rule.code == "irpfrecibo"
+        assert req >= 1 and sup >= 1
+
+    def test_irpf_recibo_full_classify_high_confidence(self):
+        """Após o afrouxamento da regex, recibo da RFB classifica com confidence
+        ≥ 0.7 — ou seja, sem precisar de LLM fallback."""
+        result = classify_text(IRPF_RECIBO_RFB)
+        assert result.doc_type == "irpfrecibo"
+        assert result.institution == "receitafederal"
+        assert result.confidence >= 0.7
 
     def test_bankofamerica_statement(self):
         rule, *_ = detect_type_by_content(BANKOFAMERICA_STATEMENT)

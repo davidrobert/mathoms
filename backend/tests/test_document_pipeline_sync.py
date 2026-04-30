@@ -145,6 +145,62 @@ def test_apply_pipeline_e2_sync_e2_false_when_neither_disk_nor_db(tmp_path: Path
     assert doc.pipeline_e2_extract_ok is False
 
 
+def _flagged_doc(stored_path: str, doc_type: DocumentType) -> Document:
+    return Document(
+        workspace_id="ws-1",
+        original_name=Path(stored_path).name,
+        stored_path=stored_path,
+        status=DocumentStatus.ready,
+        doc_type=doc_type,
+        file_size_bytes=1,
+        needs_review=True,
+        classification_confidence=0.6,
+    )
+
+
+_WHEN = datetime(2026, 4, 30, 12, 0, tzinfo=timezone.utc)
+
+
+def test_apply_pipeline_e2_sync_clears_needs_review_when_e2_extracted(tmp_path: Path) -> None:
+    """E2 extract bem-sucedido confirma classificação — limpa flag 'incerta'."""
+    doc = _flagged_doc("data/bank/foo-0_original.pdf", DocumentType.bank_statement)
+    e2 = tmp_path / "processed" / "E2_extracts"
+    e2.mkdir(parents=True)
+    (e2 / "foo-2_extract.json").write_text("{}")
+    apply_pipeline_e2_sync_to_documents([doc], tmp_path, _WHEN)
+    assert doc.pipeline_e2_extract_ok is True
+    assert doc.needs_review is False
+
+
+def test_apply_pipeline_e2_sync_keeps_needs_review_when_no_extract(tmp_path: Path) -> None:
+    """Sem extract artefato, o flag de incerteza permanece — UI segue avisando."""
+    doc = _flagged_doc("data/bank/x-0_original.pdf", DocumentType.bank_statement)
+    (tmp_path / "processed" / "E2_extracts").mkdir(parents=True)
+    apply_pipeline_e2_sync_to_documents([doc], tmp_path, _WHEN)
+    assert doc.pipeline_e2_extract_ok is False
+    assert doc.needs_review is True
+
+
+def test_apply_pipeline_e2_sync_clears_needs_review_for_irpf_e15a(tmp_path: Path) -> None:
+    """IRPF com E1.5a artefato (DB) → limpa needs_review do upload-time."""
+    from unittest.mock import MagicMock, patch
+
+    doc = _flagged_doc(
+        "data/income_tax_br/receitafederal_irpfrecibo_2025-0_original.pdf",
+        DocumentType.irpf,
+    )
+    (tmp_path / "processed" / "E2_extracts").mkdir(parents=True)
+    fake_repo = MagicMock()
+    fake_repo.get_latest_for_workspace.return_value = MagicMock()
+    with patch(
+        "backend.app.services.document_pipeline_sync.PipelineArtifactRepository",
+        return_value=fake_repo,
+    ):
+        apply_pipeline_e2_sync_to_documents([doc], tmp_path, _WHEN, db=MagicMock())
+    assert doc.pipeline_e2_extract_ok is True
+    assert doc.needs_review is False
+
+
 def test_apply_pipeline_e2_sync_skips_needs_password(tmp_path: Path) -> None:
     when = datetime(2026, 4, 17, 12, 0, tzinfo=timezone.utc)
     doc = Document(
