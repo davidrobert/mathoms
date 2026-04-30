@@ -7,7 +7,6 @@ import { Spinner } from "@/components/Spinner";
 import pkg from "../../../package.json";
 import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
-import type { ReportAnalysisData } from "@/lib/api";
 import { formatPeriodCoverPtBR } from "@/lib/format";
 import { ExecutiveSummarySection } from "./ExecutiveSummarySection";
 import { ReportPremissasBlock } from "./ReportPremissasBlock";
@@ -16,30 +15,9 @@ import { ReportToc, type TocGroup } from "./ReportToc";
 import { ReportSection } from "./ReportSection";
 import { ReportSectionStub } from "./ReportSectionStub";
 import { useReportMode } from "./ReportModeProvider";
-import { S1PatrimonioSection } from "./sections/S1PatrimonioSection";
-import { S2FluxoCaixaSection } from "./sections/S2FluxoCaixaSection";
-import { S3InvestimentosSection } from "./sections/S3InvestimentosSection";
-import { S4RealEstateSection } from "./sections/S4RealEstateSection";
-import { S7IndependenciaSection } from "./sections/S7IndependenciaSection";
-import { S8PrevidenciaSection } from "./sections/S8PrevidenciaSection";
-import { S9RiscosSection } from "./sections/S9RiscosSection";
-import { S10SinteseSection } from "./sections/S10SinteseSection";
-import { PlanoDeAcaoSection } from "./sections/PlanoDeAcao";
+import { MigratedSection, MIGRATED_SECTIONS } from "./MigratedSection";
 import { SuggestionCalloutSummary } from "./sections/SuggestionCallout";
-import { ApendiceASection } from "./sections/ApendiceASection";
-import {
-  ApendiceBSection,
-  ApendiceCSection,
-  ApendiceDSection,
-  ApendiceESection,
-} from "./sections/ApendicesSections";
 import { PerfilFamiliaCard } from "./cards";
-import {
-  U1MudancaEuaSection,
-  U2GreenCardSection,
-  U3NclexSection,
-  U4SimulacaoMarianaSection,
-} from "./sections/UsaSections";
 import {
   ReportActions,
   ReportCover,
@@ -73,19 +51,6 @@ function formatGeneratedAtPtBR(iso: string): string {
   const mm = String(d.getMinutes()).padStart(2, "0");
   return `${day} ${month} ${year}, ${hh}h${mm}`;
 }
-
-/** Todas as seções de todos os modos estão migradas (F2.A–H + Fase D).
- * ADR-151 (Direção E): Modo Tático removido — T1-T6 não são mais renderizados. */
-const MIGRATED_SECTIONS = new Set([
-  // Estratégico
-  "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10",
-  // USA
-  "U1", "U2", "U3", "U4",
-  // A7.2a · ADR-136 — Plano de Ação (Decision aggregate, agora no Estratégico)
-  "plano_de_acao",
-  // Apêndices
-  "APP_A", "APP_B", "APP_C", "APP_D", "APP_E",
-]);
 
 interface ReportShellProps {
   reportId: string;
@@ -434,59 +399,4 @@ export function ReportShell({
       <FloatingNav tocGroups={tocGroups} />
     </div>
   );
-}
-
-/** Dispatcher para seções migradas. Cada lote F2.A–F2.H adiciona um case. */
-function MigratedSection({
-  sectionId,
-  data,
-  workspaceId,
-}: {
-  sectionId: string;
-  data: ReportAnalysisData;
-  workspaceId: string;
-}) {
-  switch (sectionId) {
-    case "S1":
-      return <S1PatrimonioSection data={data} />;
-    case "S2":
-      return <S2FluxoCaixaSection data={data} workspaceId={workspaceId} />;
-    case "S3":
-      return <S3InvestimentosSection data={data} />;
-    case "S4":
-      return <S4RealEstateSection data={data} />;
-    case "S7":
-      return <S7IndependenciaSection data={data} workspaceId={workspaceId} />;
-    case "S8":
-      return <S8PrevidenciaSection data={data} />;
-    case "S9":
-      return <S9RiscosSection data={data} />;
-    case "S10":
-      return <S10SinteseSection data={data} />;
-    // USA
-    case "U1":
-      return <U1MudancaEuaSection data={data} />;
-    case "U2":
-      return <U2GreenCardSection data={data} />;
-    case "U3":
-      return <U3NclexSection data={data} />;
-    case "U4":
-      return <U4SimulacaoMarianaSection data={data} />;
-    // A7.2a · ADR-136 — Plano de Ação (Decisões editoriais)
-    case "plano_de_acao":
-      return <PlanoDeAcaoSection workspaceId={workspaceId} />;
-    // Apêndices
-    case "APP_A":
-      return <ApendiceASection data={data} />;
-    case "APP_B":
-      return <ApendiceBSection data={data} />;
-    case "APP_C":
-      return <ApendiceCSection data={data} />;
-    case "APP_D":
-      return <ApendiceDSection data={data} />;
-    case "APP_E":
-      return <ApendiceESection data={data} />;
-    default:
-      return null;
-  }
 }
