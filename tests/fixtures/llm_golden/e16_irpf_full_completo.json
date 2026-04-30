@@ -1,0 +1,192 @@
+{
+  "contribuinte": {
+    "cpf_masked": "***.***.***-99",
+    "nome": "Test User Completo",
+    "ano_base": 2024,
+    "exercicio": 2025,
+    "modelo": "completo",
+    "natureza": "titular"
+  },
+  "rendimentos_pj": [
+    {
+      "cnpj": "12.345.678/0001-90",
+      "nome": "ACME TECH LTDA",
+      "rendimentos_tributaveis_brl": "240000.00",
+      "contrib_previdenciaria_brl": "8000.00",
+      "ir_retido_brl": "38000.00",
+      "decimo_terceiro_bruto_brl": "20000.00",
+      "decimo_terceiro_ir_retido_brl": "1500.00"
+    },
+    {
+      "cnpj": "33.444.555/0001-66",
+      "nome": "BANCO XPTO S.A.",
+      "rendimentos_tributaveis_brl": "30000.00",
+      "contrib_previdenciaria_brl": "0.00",
+      "ir_retido_brl": "5500.00"
+    }
+  ],
+  "rendimentos_pf": [
+    {
+      "pagador_cpf_masked": "***.***.***-77",
+      "pagador_nome": "Inquilino Ficcional A",
+      "valor_brl": "30000.00",
+      "ir_recolhido_brl": "2700.00"
+    }
+  ],
+  "rendimentos_exterior": [
+    {
+      "pais": "USA",
+      "pagador": "Stripe Atlas LLC",
+      "valor_origem": "2000.00",
+      "moeda_origem": "USD",
+      "taxa_conversao": "5.15",
+      "data_conversao": "2024-12-15",
+      "valor_brl": "10300.00"
+    }
+  ],
+  "rendimentos_isentos": [
+    {
+      "codigo_rfb": "09",
+      "descricao": "Lucros distribuidos por ACME TECH LTDA",
+      "valor_brl": "25000.00",
+      "fonte": "ACME TECH LTDA"
+    },
+    {
+      "codigo_rfb": "04",
+      "descricao": "Saque FGTS",
+      "valor_brl": "5000.00",
+      "fonte": "Caixa Economica Federal"
+    }
+  ],
+  "rendimentos_tributacao_exclusiva": [
+    {
+      "codigo_rfb": "11",
+      "descricao": "13o salario ACME TECH LTDA",
+      "valor_brl": "20000.00"
+    },
+    {
+      "codigo_rfb": "10",
+      "descricao": "Juros sobre Capital Proprio Banco XPTO",
+      "valor_brl": "3500.00"
+    },
+    {
+      "codigo_rfb": "12",
+      "descricao": "Rendimentos de aplicacoes financeiras CDB",
+      "valor_brl": "8000.00"
+    }
+  ],
+  "pagamentos_efetuados": [
+    {
+      "codigo_rfb": "36",
+      "beneficiario_nome": "Itau Previdencia",
+      "beneficiario_cpf_cnpj_masked": "60.701.190/0001-04",
+      "valor_pago_brl": "30000.00",
+      "valor_dedutivel_brl": "30000.00",
+      "teto_aplicado": false
+    },
+    {
+      "codigo_rfb": "10",
+      "beneficiario_nome": "Hospital Albert Einstein",
+      "beneficiario_cpf_cnpj_masked": "60.765.823/0001-30",
+      "valor_pago_brl": "12000.00",
+      "valor_dedutivel_brl": "12000.00",
+      "teto_aplicado": false
+    },
+    {
+      "codigo_rfb": "11",
+      "beneficiario_nome": "Colegio Bandeirantes",
+      "beneficiario_cpf_cnpj_masked": "60.756.998/0001-92",
+      "valor_pago_brl": "8000.00",
+      "valor_dedutivel_brl": "3561.50",
+      "teto_aplicado": true
+    },
+    {
+      "codigo_rfb": "30",
+      "beneficiario_nome": "Ex-Conjuge Ficcional",
+      "beneficiario_cpf_cnpj_masked": "***.***.***-55",
+      "valor_pago_brl": "18000.00",
+      "valor_dedutivel_brl": "18000.00",
+      "teto_aplicado": false
+    }
+  ],
+  "dividas_onus": [
+    {
+      "codigo_rfb": "11",
+      "discriminacao": "Financiamento imobiliario apto Av Paulista",
+      "valor_inicial_brl": "350000.00",
+      "valor_final_brl": "320000.00"
+    }
+  ],
+  "imposto_apurado": {
+    "base_calculo_brl": "200000.00",
+    "ir_devido_brl": "45000.00",
+    "deducoes_totais_brl": "110300.00",
+    "ir_pago_brl": "47700.00",
+    "ir_a_pagar_brl": null,
+    "ir_a_restituir_brl": "2700.00"
+  },
+  "dependentes": [
+    {
+      "cpf_masked": "***.***.***-88",
+      "nome": "Pedro Test User",
+      "relacao": "filho_filha",
+      "data_nascimento": "2016-05-12"
+    },
+    {
+      "cpf_masked": null,
+      "nome": "Sofia Test User",
+      "relacao": "filho_filha",
+      "data_nascimento": "2020-08-22"
+    }
+  ],
+  "bens_direitos": [
+    {
+      "codigo": "11",
+      "descricao": "Apartamento Av Paulista 120m2 fictcio",
+      "categoria": "imovel",
+      "instituicao": null,
+      "valor_brl": "850000.00",
+      "membro_key": "test_user_completo",
+      "ano": 2024
+    },
+    {
+      "codigo": "21",
+      "descricao": "Honda Civic 2022 placa XXX0X00",
+      "categoria": "veiculo",
+      "instituicao": null,
+      "valor_brl": "110000.00",
+      "membro_key": "test_user_completo",
+      "ano": 2024
+    },
+    {
+      "codigo": "61",
+      "descricao": "Conta corrente Itau Ag 0001 CC 12345",
+      "categoria": "conta_corrente",
+      "instituicao": "itau",
+      "valor_brl": "25000.00",
+      "membro_key": "test_user_completo",
+      "ano": 2024
+    },
+    {
+      "codigo": "41",
+      "descricao": "CDB BTG Pactual DI 100% CDI",
+      "categoria": "investimento",
+      "instituicao": "btgpactual",
+      "valor_brl": "80000.00",
+      "membro_key": "test_user_completo",
+      "ano": 2024
+    },
+    {
+      "codigo": "97",
+      "descricao": "VGBL Itau Previdencia",
+      "categoria": "previdencia",
+      "instituicao": "itau",
+      "valor_brl": "50000.00",
+      "membro_key": "test_user_completo",
+      "ano": 2024
+    }
+  ],
+  "confidence": 1.0,
+  "notes": "Declaracao sintetica completa para teste golden E1.6. Todos os blocos preenchidos.",
+  "prompt_version": "e16-v1.0.0"
+}

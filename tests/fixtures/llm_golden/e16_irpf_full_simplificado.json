@@ -1,0 +1,73 @@
+{
+  "contribuinte": {
+    "cpf_masked": "***.***.***-88",
+    "nome": "Test User Simplificado",
+    "ano_base": 2024,
+    "exercicio": 2025,
+    "modelo": "simplificado",
+    "natureza": "titular"
+  },
+  "rendimentos_pj": [
+    {
+      "cnpj": "44.555.666/0001-77",
+      "nome": "Empresa Simples LTDA",
+      "rendimentos_tributaveis_brl": "80000.00",
+      "contrib_previdenciaria_brl": "4800.00",
+      "ir_retido_brl": "3000.00"
+    }
+  ],
+  "rendimentos_pf": [],
+  "rendimentos_exterior": [],
+  "rendimentos_isentos": [
+    {
+      "codigo_rfb": "04",
+      "descricao": "Saque FGTS rescisao",
+      "valor_brl": "1500.00",
+      "fonte": "Caixa Economica Federal"
+    }
+  ],
+  "rendimentos_tributacao_exclusiva": [],
+  "pagamentos_efetuados": [],
+  "dividas_onus": [],
+  "imposto_apurado": {
+    "base_calculo_brl": "63245.66",
+    "ir_devido_brl": "8200.00",
+    "deducoes_totais_brl": "16754.34",
+    "ir_pago_brl": "3000.00",
+    "ir_a_pagar_brl": "5200.00",
+    "ir_a_restituir_brl": null
+  },
+  "dependentes": [],
+  "bens_direitos": [
+    {
+      "codigo": "61",
+      "descricao": "Conta corrente Nubank",
+      "categoria": "conta_corrente",
+      "instituicao": "nubank",
+      "valor_brl": "8000.00",
+      "membro_key": "test_user_simplificado",
+      "ano": 2024
+    },
+    {
+      "codigo": "41",
+      "descricao": "Poupanca Caixa Ag 0001 CC 99999",
+      "categoria": "poupanca",
+      "instituicao": "caixa",
+      "valor_brl": "5000.00",
+      "membro_key": "test_user_simplificado",
+      "ano": 2024
+    },
+    {
+      "codigo": "21",
+      "descricao": "Volkswagen Gol 2018 placa YYY1Y11",
+      "categoria": "veiculo",
+      "instituicao": null,
+      "valor_brl": "35000.00",
+      "membro_key": "test_user_simplificado",
+      "ano": 2024
+    }
+  ],
+  "confidence": 0.92,
+  "notes": "Modelo simplificado: desconto padrao de 20% aplicado (cap R$ 16.754,34 em 2024). PGBL nao deduzido por design RFB.",
+  "prompt_version": "e16-v1.0.0"
+}

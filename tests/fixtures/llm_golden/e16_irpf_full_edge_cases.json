@@ -1,0 +1,104 @@
+{
+  "contribuinte": {
+    "cpf_masked": "***.***.***-77",
+    "nome": "Test User Edge",
+    "ano_base": 2024,
+    "exercicio": 2025,
+    "modelo": "completo",
+    "natureza": "titular"
+  },
+  "rendimentos_pj": [
+    {
+      "cnpj": "55.666.777/0001-88",
+      "nome": "Edge Case Tech LTDA",
+      "rendimentos_tributaveis_brl": "180000.00",
+      "contrib_previdenciaria_brl": "7200.00",
+      "ir_retido_brl": "25000.00",
+      "decimo_terceiro_bruto_brl": "15000.00",
+      "decimo_terceiro_ir_retido_brl": "1000.00"
+    }
+  ],
+  "rendimentos_pf": [],
+  "rendimentos_exterior": [
+    {
+      "pais": "USA",
+      "pagador": "Upwork Inc.",
+      "valor_origem": "5000.00",
+      "moeda_origem": "USD",
+      "taxa_conversao": "5.15",
+      "data_conversao": "2024-08-15",
+      "valor_brl": "25750.00"
+    },
+    {
+      "pais": "DEU",
+      "pagador": "SAP SE",
+      "valor_origem": "3000.00",
+      "moeda_origem": "EUR",
+      "taxa_conversao": "5.80",
+      "data_conversao": "2024-11-30",
+      "valor_brl": "17400.00"
+    }
+  ],
+  "rendimentos_isentos": [],
+  "rendimentos_tributacao_exclusiva": [
+    {
+      "codigo_rfb": "11",
+      "descricao": "13o salario Edge Case Tech",
+      "valor_brl": "15000.00"
+    }
+  ],
+  "pagamentos_efetuados": [],
+  "dividas_onus": [
+    {
+      "codigo_rfb": "12",
+      "discriminacao": "Carro financiado parado (sem amortizacao em 2024)",
+      "valor_inicial_brl": "45000.00",
+      "valor_final_brl": "45000.00"
+    }
+  ],
+  "imposto_apurado": {
+    "base_calculo_brl": "180000.00",
+    "ir_devido_brl": "38000.00",
+    "deducoes_totais_brl": "43150.00",
+    "ir_pago_brl": "26000.00",
+    "ir_a_pagar_brl": "12000.00",
+    "ir_a_restituir_brl": null
+  },
+  "dependentes": [
+    {
+      "cpf_masked": null,
+      "nome": "Lucas Test User",
+      "relacao": "filho_filha",
+      "data_nascimento": "2019-03-10"
+    },
+    {
+      "cpf_masked": "***.***.***-66",
+      "nome": "Beatriz Test User",
+      "relacao": "filho_filha",
+      "data_nascimento": "2003-09-15"
+    }
+  ],
+  "bens_direitos": [
+    {
+      "codigo": "21",
+      "descricao": "Toyota Corolla 2020 placa ZZZ2Z22",
+      "categoria": "veiculo",
+      "instituicao": null,
+      "valor_brl": "90000.00",
+      "membro_key": "test_user_edge",
+      "ano": 2024
+    },
+    {
+      "codigo": "61",
+      "descricao": "Conta corrente Bradesco",
+      "categoria": "conta_corrente",
+      "instituicao": "bradesco",
+      "valor_brl": "12000.00",
+      "membro_key": "test_user_edge",
+      "ano": 2024
+    }
+  ],
+  "confidence": 0.82,
+  "notes": "Edge cases: 2 rendimentos exterior em moedas distintas (USD, EUR); dependente sem CPF + dependente filho universitario (23 anos); divida sem amortizacao no ano. Confidence 0.82 sinaliza extracao com warnings de prompt.",
+  "prompt_version": "e16-v1.0.0"
+}
