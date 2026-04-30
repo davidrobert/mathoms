@@ -1,17 +1,15 @@
-"""Compatibility validators — ensure LLM stage outputs conform to downstream expectations.
-
-E1 output must be consumable by config/family_members.json consumers.
-E1.5 and E2-llm outputs must be consumable by E3 (reconciliation).
-"""
+"""Compatibility validators — ensure LLM stage outputs conform to downstream expectations."""
 
 from __future__ import annotations
 
 import re
+from decimal import Decimal
 from typing import Any
 
 from pipeline.llm.schemas.e1_members import MembersExtractOutput
 from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
 from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
+from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
 VALID_ROLES = {"titular", "conjuge", "filho", "dependente"}
 VALID_ACCOUNT_TYPES = {"extratoconta", "cartao_credito", "investimento", "poupanca"}
@@ -188,4 +186,139 @@ def validate_e2_llm_output(output: LLMExtractOutput) -> ValidationResult:
     if output.period and not PERIOD_RE.match(output.period):
         r.warn(f"E2-llm: period should be YYYYMM, got '{output.period}'")
 
+    return r
+
+
+# =============================================================================
+# E1.6 — IRPF full schema validator (ADR-157)
+# =============================================================================
+#
+# Camadas:
+#  1. Anti-PII: regex CPF/CNPJ não-mascarado em qualquer string field fora dos
+#     campos `*_masked`/`cnpj` da fonte PJ. Match → erro abortivo (recusa payload).
+#  2. Reconciliação cross-field: ir_pago_brl ≈ sum retidos PJ + sum carnê-leão.
+#     Tolerância 0,02 BRL (ADR-097/D5). Fora da janela → warning + pede que o
+#     stage runner cap em 0,7 a confidence.
+#  3. Sandtraps: aliquota XOR (a pagar / a restituir), 13º duplo, modelo
+#     simplificado vs PGBL.
+
+_CPF_LITERAL_RE = re.compile(r"\b\d{3}\.\d{3}\.\d{3}-\d{2}\b")
+_CPF_LITERAL_RE_LOOSE = re.compile(r"\b\d{11}\b")  # CPF sem máscara (11 dígitos)
+_E16_RECONCILE_TOLERANCE = Decimal("0.02")
+
+
+def _has_unmasked_cpf(text: str) -> bool:
+    if _CPF_LITERAL_RE.search(text):
+        return True
+    # 11-dígito match: tolerar se for CNPJ-ish? CPF em PII tem exatamente 11 dígitos.
+    if _CPF_LITERAL_RE_LOOSE.search(text):
+        return True
+    return False
+
+
+def _scan_free_text_fields_for_pii(output: IRPFFullOutput, r: ValidationResult) -> None:
+    """Anti-PII em campos livres (notes, descricao, discriminacao) — ADR-157 sub-decisão 5."""
+    notes = output.notes or ""
+    if _has_unmasked_cpf(notes):
+        r.error("E1.6: campo 'notes' contém CPF não-mascarado (PII)")
+
+    for i, item in enumerate(output.rendimentos_isentos):
+        if _has_unmasked_cpf(item.descricao) or (item.fonte and _has_unmasked_cpf(item.fonte)):
+            r.error(f"E1.6: rendimentos_isentos[{i}] contém CPF não-mascarado em campo livre")
+    for i, item in enumerate(output.rendimentos_tributacao_exclusiva):
+        if _has_unmasked_cpf(item.descricao):
+            r.error(
+                f"E1.6: rendimentos_tributacao_exclusiva[{i}] contém CPF não-mascarado em descricao"
+            )
+    for i, item in enumerate(output.dividas_onus):
+        if _has_unmasked_cpf(item.discriminacao):
+            r.error(f"E1.6: dividas_onus[{i}] contém CPF não-mascarado em discriminacao")
+    for i, item in enumerate(output.bens_direitos):
+        if _has_unmasked_cpf(item.descricao):
+            r.error(f"E1.6: bens_direitos[{i}] contém CPF não-mascarado em descricao")
+
+
+def _reconcile_ir_pago(output: IRPFFullOutput, r: ValidationResult) -> None:
+    """ADR-157 sub-decisão 6: ir_pago_brl ≈ sum retidos com tolerância 0,02 BRL."""
+    soma_retidos = Decimal("0")
+    for fp in output.rendimentos_pj:
+        soma_retidos += fp.ir_retido_brl
+        if fp.decimo_terceiro_ir_retido_brl is not None:
+            soma_retidos += fp.decimo_terceiro_ir_retido_brl
+    for fp in output.rendimentos_pf:
+        soma_retidos += fp.ir_recolhido_brl
+
+    diff = abs(output.imposto_apurado.ir_pago_brl - soma_retidos)
+    if diff > _E16_RECONCILE_TOLERANCE:
+        r.warn(
+            f"E1.6: ir_pago_brl ({output.imposto_apurado.ir_pago_brl}) divergente da "
+            f"soma de retidos ({soma_retidos}); diff={diff} > tol={_E16_RECONCILE_TOLERANCE}. "
+            f"Confidence será cap em 0.7 pelo stage runner."
+        )
+
+
+def _validate_imposto_xor(output: IRPFFullOutput, r: ValidationResult) -> None:
+    imp = output.imposto_apurado
+    a_pagar = imp.ir_a_pagar_brl or Decimal("0")
+    a_restituir = imp.ir_a_restituir_brl or Decimal("0")
+    if a_pagar > 0 and a_restituir > 0:
+        r.error(
+            f"E1.6: ir_a_pagar_brl ({a_pagar}) e ir_a_restituir_brl ({a_restituir}) "
+            f"ambos > 0 — exclusivos por design"
+        )
+
+
+def _validate_pgbl_simplificado(output: IRPFFullOutput, r: ValidationResult) -> None:
+    """G0 sign-off: simplificado não tem direito a deduzir PGBL."""
+    if output.contribuinte.modelo.value != "simplificado":
+        return
+    for i, p in enumerate(output.pagamentos_efetuados):
+        if p.codigo_rfb.value == "36" and p.valor_dedutivel_brl > 0:
+            r.warn(
+                f"E1.6: pagamento[{i}] PGBL com valor_dedutivel_brl={p.valor_dedutivel_brl} "
+                f"em modelo simplificado — dedução não aceita pela RFB"
+            )
+
+
+def _validate_dependente_idade(output: IRPFFullOutput, r: ValidationResult) -> None:
+    from datetime import date
+
+    today = date.today()
+    for i, dep in enumerate(output.dependentes):
+        if dep.relacao.value != "filho_filha":
+            continue
+        if dep.data_nascimento is None:
+            continue
+        idade = (today - dep.data_nascimento).days // 365
+        if idade > 24:
+            r.warn(
+                f"E1.6: dependente[{i}] '{dep.nome}' (filho) tem {idade} anos — "
+                f"idade fora do limite RFB (21 ou 24 se universitário)"
+            )
+
+
+def _validate_confidence_and_identification(output: IRPFFullOutput, r: ValidationResult) -> None:
+    if output.confidence < 0:
+        r.error(f"E1.6: confidence {output.confidence} < 0")
+    if output.confidence > 1:
+        r.error(f"E1.6: confidence {output.confidence} > 1")
+    contrib = output.contribuinte
+    if contrib.exercicio < contrib.ano_base:
+        r.error(f"E1.6: exercicio ({contrib.exercicio}) deve ser >= ano_base ({contrib.ano_base})")
+    if contrib.exercicio > contrib.ano_base + 1:
+        r.warn(
+            f"E1.6: exercicio ({contrib.exercicio}) muito posterior ao "
+            f"ano_base ({contrib.ano_base}) — geralmente diferem em 1"
+        )
+
+
+def validate_e16_output(output: IRPFFullOutput) -> ValidationResult:
+    """Valida E1.6 — anti-PII em campos livres + reconciliação + sandtraps (ADR-157)."""
+    r = ValidationResult()
+    _validate_confidence_and_identification(output, r)
+    _scan_free_text_fields_for_pii(output, r)
+    _reconcile_ir_pago(output, r)
+    _validate_imposto_xor(output, r)
+    _validate_pgbl_simplificado(output, r)
+    _validate_dependente_idade(output, r)
     return r
