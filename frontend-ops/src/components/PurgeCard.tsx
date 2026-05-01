@@ -22,6 +22,7 @@ interface PurgeCardProps<T extends PurgePreviewBase> {
   flashCopy: (result: T) => string;
   onPreview: (scope: { user_id?: string; workspace_id?: string; preview: boolean }) => Promise<T>;
   renderPreviewExtras?: (preview: T) => ReactNode;
+  renderId?: (id: string, preview: T) => ReactNode;
   onAfterPurge?: () => void;
 }
 
@@ -60,6 +61,7 @@ export function PurgeCard<T extends PurgePreviewBase>({
   flashCopy,
   onPreview,
   renderPreviewExtras,
+  renderId,
   onAfterPurge,
 }: PurgeCardProps<T>) {
   const [scope, setScope] = useState<Scope>("user");
@@ -175,7 +177,7 @@ export function PurgeCard<T extends PurgePreviewBase>({
                 <ul className="font-mono text-xs text-surface-muted-fg max-h-64 overflow-y-auto space-y-0.5">
                   {idsPage.map((rowId) => (
                     <li key={rowId} className="py-0.5">
-                      {rowId}
+                      {renderId && preview ? renderId(rowId, preview) : rowId}
                     </li>
                   ))}
                 </ul>

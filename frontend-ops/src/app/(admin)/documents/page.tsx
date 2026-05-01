@@ -57,6 +57,17 @@ export default function DocumentsPage() {
               </div>
             )
           }
+          renderId={(id, p) => {
+            const name = p.items?.find((it) => it.id === id)?.name;
+            return name ? (
+              <span className="flex flex-wrap gap-x-2">
+                <span className="text-surface-fg">{name}</span>
+                <span className="text-surface-muted-fg">{id}</span>
+              </span>
+            ) : (
+              id
+            );
+          }}
           confirmCopy={(p) => (
             <p>
               Vai apagar <strong>{p.count}</strong> documento(s),{" "}

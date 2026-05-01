@@ -64,10 +64,16 @@ export interface ScopeContext {
   workspace_names: string[];
 }
 
+export interface PurgeDocumentItem {
+  id: string;
+  name: string;
+}
+
 export interface PurgeDocumentsResponse {
   preview: boolean;
   count: number;
   ids: string[];
+  items: PurgeDocumentItem[];
   runs_to_remove: number;
   runs_removed: number | null;
   blobs_removed: number | null;

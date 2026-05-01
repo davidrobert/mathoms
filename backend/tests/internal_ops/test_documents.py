@@ -77,9 +77,10 @@ async def test_purge_preview_does_not_delete(db, audit_path: Path) -> None:
     )
     await db.commit()
 
-    assert result.ok and result.details["preview"] is True
-    assert result.details["count"] == 2
+    assert result.ok and result.details["preview"] is True and result.details["count"] == 2
     assert set(result.details["ids"]) == {d1.id, d2.id}
+    items = {(it["id"], it["name"]) for it in result.details["items"]}
+    assert items == {(d1.id, d1.original_name), (d2.id, d2.original_name)}
     assert result.details["scope_context"]["owner_email"] == user.email
     assert result.details["scope_context"]["workspace_names"] == [ws.name]
     assert read_audit(path=audit_path) == []

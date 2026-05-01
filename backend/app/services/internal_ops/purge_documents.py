@@ -68,6 +68,7 @@ def _build_summary(
     return {
         "count": len(docs),
         "ids": [d.id for d in docs],
+        "items": [{"id": d.id, "name": d.original_name} for d in docs],
         "runs_to_remove": len(run_ids),
         "scope": {"user_id": scope.user_id, "workspace_id": scope.workspace_id},
         "scope_context": context_dict,

@@ -12,6 +12,7 @@ from backend.app.core.internal_ops_auth import (
 )
 from backend.app.schemas.admin import (
     DeleteDocumentResponse,
+    PurgeDocumentItemDTO,
     PurgeDocumentsRequest,
     PurgeDocumentsResponse,
     ScopeContextDTO,
@@ -40,6 +41,10 @@ def _to_purge_response(details: dict) -> PurgeDocumentsResponse:
         preview=details["preview"],
         count=details["count"],
         ids=list(details["ids"]),
+        items=[
+            PurgeDocumentItemDTO(id=item["id"], name=item["name"])
+            for item in details.get("items", [])
+        ],
         runs_to_remove=details.get("runs_to_remove", 0),
         runs_removed=details.get("runs_removed"),
         blobs_removed=details.get("blobs_removed"),

@@ -5122,6 +5122,24 @@
         "title": "PipelineStageStatus",
         "type": "string"
       },
+      "PurgeDocumentItemDTO": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "PurgeDocumentItemDTO",
+        "type": "object"
+      },
       "PurgeDocumentsRequest": {
         "properties": {
           "preview": {
@@ -5177,6 +5195,13 @@
               "type": "string"
             },
             "title": "Ids",
+            "type": "array"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PurgeDocumentItemDTO"
+            },
+            "title": "Items",
             "type": "array"
           },
           "preview": {
