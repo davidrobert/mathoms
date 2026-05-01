@@ -118,6 +118,12 @@ class TestOrchestratorLogic:
         assert runner is not None, "E7-review should have a runner"
         assert callable(runner)
 
+    def test_every_full_order_stage_has_runner(self):
+        from pipeline.orchestrator import FULL_ORDER, _get_stage_runner
+
+        missing = [s for s in FULL_ORDER if _get_stage_runner(s) is None]
+        assert not missing, f"FULL_ORDER stages without runner: {missing}"
+
     def test_pipeline_result_summary(self):
         from pipeline import PipelineResult, StageResult
 
