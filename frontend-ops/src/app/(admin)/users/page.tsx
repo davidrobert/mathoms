@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, TextInput } from "@/components/ui";
 import { api, AdminApiError } from "@/lib/api";
 import { useAuthGuard } from "@/lib/auth-guard";
@@ -19,6 +19,23 @@ interface OpenAction {
   kind: ActionKind;
 }
 
+type SortKey = "email" | "full_name" | "id" | "is_active" | "is_developer";
+type SortDirection = "asc" | "desc";
+
+interface SortState {
+  key: SortKey;
+  direction: SortDirection;
+}
+
+function compareUsers(a: AdminUserSummary, b: AdminUserSummary, key: SortKey): number {
+  const av = a[key];
+  const bv = b[key];
+  if (typeof av === "boolean" && typeof bv === "boolean") {
+    return av === bv ? 0 : av ? -1 : 1;
+  }
+  return String(av).localeCompare(String(bv), "pt-BR", { sensitivity: "base" });
+}
+
 export default function UsersPage() {
   const { principal } = useAuthGuard();
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
@@ -32,6 +49,21 @@ export default function UsersPage() {
   const [workspacesByUser, setWorkspacesByUser] = useState<
     Record<string, UserWorkspace[] | "loading" | "error">
   >({});
+  const [sort, setSort] = useState<SortState | null>(null);
+
+  function toggleSort(key: SortKey): void {
+    setSort((prev) => {
+      if (!prev || prev.key !== key) return { key, direction: "asc" };
+      if (prev.direction === "asc") return { key, direction: "desc" };
+      return null;
+    });
+  }
+
+  const sortedUsers = useMemo(() => {
+    if (!sort) return users;
+    const factor = sort.direction === "asc" ? 1 : -1;
+    return [...users].sort((a, b) => compareUsers(a, b, sort.key) * factor);
+  }, [users, sort]);
 
   async function copyId(id: string): Promise<void> {
     await navigator.clipboard.writeText(id);
@@ -134,11 +166,11 @@ export default function UsersPage() {
         <table className="w-full text-sm">
           <thead className="bg-surface-muted text-surface-muted-fg">
             <tr>
-              <th className="text-left px-4 py-2 font-medium">E-mail</th>
-              <th className="text-left px-4 py-2 font-medium">Nome</th>
-              <th className="text-left px-4 py-2 font-medium">ID</th>
-              <th className="text-left px-4 py-2 font-medium">Status</th>
-              <th className="text-left px-4 py-2 font-medium">Dev</th>
+              <SortableHeader label="E-mail" sortKey="email" sort={sort} onToggle={toggleSort} />
+              <SortableHeader label="Nome" sortKey="full_name" sort={sort} onToggle={toggleSort} />
+              <SortableHeader label="ID" sortKey="id" sort={sort} onToggle={toggleSort} />
+              <SortableHeader label="Status" sortKey="is_active" sort={sort} onToggle={toggleSort} />
+              <SortableHeader label="Dev" sortKey="is_developer" sort={sort} onToggle={toggleSort} />
               <th className="text-right px-4 py-2 font-medium">Ações</th>
             </tr>
           </thead>
@@ -157,7 +189,7 @@ export default function UsersPage() {
                 </td>
               </tr>
             )}
-            {users.map((u) => (
+            {sortedUsers.map((u) => (
               <Fragment key={u.id}>
               <tr className="border-t border-surface-border">
                 <td className="px-4 py-2">
@@ -260,6 +292,44 @@ export default function UsersPage() {
         />
       )}
     </section>
+  );
+}
+
+function SortableHeader({
+  label,
+  sortKey,
+  sort,
+  onToggle,
+}: {
+  label: string;
+  sortKey: SortKey;
+  sort: SortState | null;
+  onToggle: (key: SortKey) => void;
+}) {
+  const active = sort?.key === sortKey;
+  const indicator = active ? (sort.direction === "asc" ? "▲" : "▼") : "↕";
+  const ariaSort = active ? (sort.direction === "asc" ? "ascending" : "descending") : "none";
+  return (
+    <th
+      scope="col"
+      aria-sort={ariaSort}
+      className="text-left px-4 py-2 font-medium"
+    >
+      <button
+        type="button"
+        onClick={() => onToggle(sortKey)}
+        className="inline-flex items-center gap-1 hover:text-brand-primary"
+        title={`Ordenar por ${label}`}
+      >
+        <span>{label}</span>
+        <span
+          aria-hidden="true"
+          className={active ? "text-brand-primary text-xs" : "text-surface-muted-fg/60 text-xs"}
+        >
+          {indicator}
+        </span>
+      </button>
+    </th>
   );
 }
 
