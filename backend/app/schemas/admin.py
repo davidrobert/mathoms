@@ -117,10 +117,16 @@ class PurgeDocumentsRequest(BaseModel):
     preview: bool = True
 
 
+class PurgeDocumentItemDTO(BaseModel):
+    id: str
+    name: str
+
+
 class PurgeDocumentsResponse(BaseModel):
     preview: bool
     count: int
     ids: list[str]
+    items: list[PurgeDocumentItemDTO] = Field(default_factory=list)
     runs_to_remove: int = 0
     runs_removed: int | None = None
     blobs_removed: int | None = None

@@ -24,15 +24,14 @@ async def test_purge_preview(
 
     await _with_cookie(client, ops_session_token_superadmin)
     resp = await client.post(
-        "/admin/documents/purge",
-        json={"workspace_id": ws.id, "preview": True},
+        "/admin/documents/purge", json={"workspace_id": ws.id, "preview": True}
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["preview"] is True
-    assert body["count"] == 2
+    assert body["preview"] is True and body["count"] == 2 and body["blobs_removed"] is None
     assert set(body["ids"]) == {d1.id, d2.id}
-    assert body["blobs_removed"] is None
+    items = {(it["id"], it["name"]) for it in body["items"]}
+    assert items == {(d1.id, d1.original_name), (d2.id, d2.original_name)}
 
 
 @pytest.mark.asyncio
