@@ -1,15 +1,43 @@
-# Makefile — Mathoms AI dev tooling (A6b.5)
+# Makefile — Mathoms AI dev tooling
 #
-# Targets de smoke test: smoke-up, smoke-down, smoke-reset, smoke-seed, smoke-logs
-# Prerequisite: pip install -e . -r requirements-dev.txt + npm install em frontend/
+# Rode `make` ou `make help` para listar todos os targets disponíveis.
 #
-# Todos os processos locais (backend, worker, frontend) escrevem logs em
-# _smoke_pids/<service>.log e guardam PID em _smoke_pids/<service>.pid.
-# _smoke_pids/ está no .gitignore.
+# Setup canônico: pip install -e . -r requirements-dev.txt + npm install em
+# frontend/ + frontend-ops/. Logs e PIDs locais ficam em _smoke_pids/ e
+# _dev_pids/ (ambos no .gitignore).
 
 SHELL := /bin/bash
 VENV  := .venv/bin
 PYTHON := $(VENV)/python
+
+.DEFAULT_GOAL := help
+
+# ---------------------------------------------------------------------------
+# Help
+# ---------------------------------------------------------------------------
+
+.PHONY: help
+
+## help: Lista todos os targets disponíveis (target default)
+help:
+	@awk ' \
+	BEGIN { \
+	  printf "\n\033[1mMathoms AI — make targets\033[0m\n"; \
+	  printf "Uso: \033[36mmake <target>\033[0m\n"; \
+	} \
+	/^# ---+ *$$/ { in_box = !in_box; if (in_box) sect = 0; next; } \
+	in_box && !sect && /^# [A-Z]/ { \
+	  s = $$0; sub(/^# /, "", s); \
+	  printf "\n\033[33m%s\033[0m\n", s; \
+	  sect = 1; \
+	} \
+	/^## [a-zA-Z][a-zA-Z0-9_-]+:/ { \
+	  line = $$0; sub(/^## /, "", line); \
+	  c = index(line, ":"); \
+	  printf "  \033[36m%-32s\033[0m %s\n", substr(line, 1, c-1), substr(line, c+2); \
+	} \
+	END { print ""; } \
+	' $(MAKEFILE_LIST)
 
 # ---------------------------------------------------------------------------
 # Smoke test
@@ -90,8 +118,9 @@ smoke-dirs:
 	@mkdir -p $(SMOKE_DIR) $(SMOKE_STORAGE)
 
 # ---------------------------------------------------------------------------
-# Dev stack — sobe os 6 serviços de desenvolvimento local em background
+# Dev stack
 #
+# Sobe os 6 serviços de desenvolvimento local em background.
 # Diferente de `smoke-*`, este preserva `.env` e `mathoms.db` reais.
 # Targets:
 #   make dev-bootstrap       First-run: venv, deps, .env, codegen
@@ -374,22 +403,46 @@ dev-reset-env:
 # Dev helpers
 # ---------------------------------------------------------------------------
 
-.PHONY: test lint format check-boundaries update-openapi-snapshot update-pipeline-service-openapi update-db-schema-reference
+.PHONY: test test-all test-pipeline test-backend test-frontend test-e2e \
+        lint format precommit check-boundaries \
+        update-openapi-snapshot update-pipeline-service-openapi update-db-schema-reference
 
-## test: Roda pytest com cobertura
-test:
+## test: Alias de test-all (pipeline + backend)
+test: test-all
+
+## test-all: Roda suíte Python completa — pipeline + backend
+test-all: test-pipeline test-backend
+
+## test-pipeline: pytest tests/ -q (pipeline determinístico, ADR-097/E1.6)
+test-pipeline:
 	$(PYTHON) -m pytest tests/ -q --deselect=tests/test_stage_wrappers.py::TestContextIntegration::test_default_has_processed_dirs
 
-## lint: Roda ruff
+## test-backend: pytest backend/tests/ -q (FastAPI + repos + integration)
+test-backend:
+	$(PYTHON) -m pytest backend/tests/ -q
+
+## test-frontend: cd frontend && npm test -- --run (Vitest unit)
+test-frontend:
+	@cd frontend && npm test -- --run
+
+## test-e2e: cd frontend && npm run test:e2e (Playwright @critical)
+test-e2e:
+	@cd frontend && npm run test:e2e
+
+## lint: ruff check . (gate bloqueante — selectores E/F/I/W)
 lint:
 	$(VENV)/ruff check .
 
-## format: Aplica black + ruff --fix
+## format: ruff format . + ruff check --fix . (formatter canônico, ADR-114)
 format:
-	$(VENV)/black .
+	$(VENV)/ruff format .
 	$(VENV)/ruff check --fix .
 
-## check-boundaries: Verifica que pipeline/ não importa framework
+## precommit: pre-commit run --all-files (mesmos hooks aplicados no git)
+precommit:
+	$(VENV)/pre-commit run --all-files
+
+## check-boundaries: Verifica que pipeline/ não importa fastapi/celery/sqlalchemy
 check-boundaries:
 	$(PYTHON) dev/check_pipeline_boundaries.py
 
@@ -456,3 +509,32 @@ go-test:
 
 ## go-all: fmt + lint + test Go
 go-all: go-fmt go-lint go-test
+
+# ---------------------------------------------------------------------------
+# Alembic — DB migrations
+#
+# Usa backend/alembic.ini com paths absolutos (%(here)s) — pode rodar de
+# qualquer cwd. F6.5E.4: env.py rejeita SQLite com path relativo.
+# ---------------------------------------------------------------------------
+
+.PHONY: migrate migrate-current migrate-history migrate-revision
+
+## migrate: alembic upgrade head (aplica migrations pendentes)
+migrate:
+	$(VENV)/alembic -c backend/alembic.ini upgrade head
+
+## migrate-current: Mostra revisão atual do DB
+migrate-current:
+	$(VENV)/alembic -c backend/alembic.ini current
+
+## migrate-history: Histórico de revisões com detalhes
+migrate-history:
+	$(VENV)/alembic -c backend/alembic.ini history --verbose
+
+## migrate-revision: Cria nova revisão autogenerate (uso: make migrate-revision M="msg")
+migrate-revision:
+	@if [ -z "$(M)" ]; then \
+	   echo "❌ Faltou mensagem. Uso: make migrate-revision M=\"descrição da migration\""; \
+	   exit 1; \
+	 fi
+	$(VENV)/alembic -c backend/alembic.ini revision --autogenerate -m "$(M)"
