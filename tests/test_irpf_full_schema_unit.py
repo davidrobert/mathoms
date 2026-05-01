@@ -104,7 +104,7 @@ class TestSchemaSerialization:
 
         with pytest.raises(ValidationError):
             Contribuinte(
-                cpf_masked="123.456.789-01",
+                cpf_masked="000.000.000-00",
                 nome="X",
                 ano_base=2024,
                 exercicio=2025,
@@ -136,7 +136,7 @@ class TestSchemaSerialization:
 class TestValidatorAntiPii:
     def test_unmasked_cpf_in_notes_rejected(self):
         out = _build_minimal()
-        out.notes = "CPF: 123.456.789-01 vazado"
+        out.notes = "CPF: 000.000.000-00 vazado"
         r = validate_e16_output(out)
         assert any("notes" in e and "CPF" in e for e in r.errors)
 
@@ -145,7 +145,7 @@ class TestValidatorAntiPii:
         out.rendimentos_isentos.append(
             RendimentoIsento(
                 codigo_rfb=CodigoRendimentoIsento.lucros_dividendos,
-                descricao="Pago para 123.456.789-01",
+                descricao="Pago para 000.000.000-00",
                 valor_brl="100",
             )
         )
