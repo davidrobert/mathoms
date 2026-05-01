@@ -44,6 +44,7 @@ from backend.app.api.workspaces import (
 )
 from backend.app.api.ws import router as ws_router
 from backend.app.application.base.errors import (
+    AccountLockedError,
     AuthenticationError,
     ConflictError,
     NotFoundError,
@@ -115,6 +116,18 @@ async def _handle_validation(request: Request, exc: DomainValidationError) -> JS
 @app.exception_handler(AuthenticationError)
 async def _handle_auth(request: Request, exc: AuthenticationError) -> JSONResponse:
     return JSONResponse(status_code=401, content={"detail": str(exc)})
+
+
+# 7B.13 — brute-force lockout. Mais específico que AuthenticationError; FastAPI
+# casa pela classe exata, então este handler ganha sempre que a exceção for
+# AccountLockedError (subclasse).
+@app.exception_handler(AccountLockedError)
+async def _handle_account_locked(request: Request, exc: AccountLockedError) -> JSONResponse:
+    return JSONResponse(
+        status_code=429,
+        content={"detail": {"code": exc.code or "account_locked", "message": str(exc)}},
+        headers={"Retry-After": str(exc.retry_after_s)},
+    )
 
 
 _INVITATION_ERROR_STATUS = {

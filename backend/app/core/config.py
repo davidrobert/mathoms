@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24h
     ALGORITHM: str = "HS256"
 
+    # 7B.13 — brute-force lockout em /auth/login. Cooldown escalonado por
+    # e-mail; contador em Redis (ADR-111). Override via env para tuning.
+    BRUTE_FORCE_THRESHOLD: int = 5
+    BRUTE_FORCE_LOCKOUT_DURATIONS_S: list[int] = [60, 300, 900, 3600]  # 1m → 5m → 15m → 1h
+
     # Database (SQLite for dev, PostgreSQL for prod).
     # F6.5E.4: default usa caminho ABSOLUTO derivado de _PROJECT_ROOT para
     # eliminar ambiguidade de cwd (mesmo bug que motivou o guard em

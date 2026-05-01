@@ -37,3 +37,13 @@ class ValidationError(DomainError):
 
 class AuthenticationError(DomainError):
     """Credenciais inválidas ou ausentes. Router → 401."""
+
+
+class AccountLockedError(AuthenticationError):
+    """Conta bloqueada por excesso de tentativas (7B.13). Router → 429 + Retry-After."""
+
+    def __init__(
+        self, message: str, *, retry_after_s: int, code: str | None = "account_locked"
+    ) -> None:
+        super().__init__(message, code=code)
+        self.retry_after_s = int(retry_after_s)
