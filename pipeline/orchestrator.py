@@ -153,6 +153,10 @@ def _get_stage_runner(stage: str) -> Callable:
         from pipeline.stages.consolidate_baseline import run
 
         return run
+    if stage == "extract_irpf_full":
+        from pipeline.stages.extract_irpf_full import run
+
+        return run
     if stage == "extract_with_llm":
         from pipeline.stages.extract_with_llm import run
 
