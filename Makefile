@@ -359,17 +359,32 @@ dev-kill-stale:
 	@echo "▶  Matando processos órfãos nas portas dev…"
 	@killed=0; \
 	 for port in 8000 8001 3000 3100; do \
-	   pids=$$(lsof -ti tcp:$$port 2>/dev/null); \
+	   pids=$$(lsof -ti tcp:$$port -sTCP:LISTEN 2>/dev/null); \
 	   if [ -n "$$pids" ]; then \
 	     for pid in $$pids; do \
 	       cmd=$$(ps -p $$pid -o comm= 2>/dev/null | head -1); \
 	       echo "   ✓ porta $$port → kill $$pid ($$cmd)"; \
-	       kill $$pid 2>/dev/null || kill -9 $$pid 2>/dev/null; \
+	       kill $$pid 2>/dev/null; \
+	       for i in 1 2 3 4 5; do kill -0 $$pid 2>/dev/null || break; sleep 0.2; done; \
+	       if kill -0 $$pid 2>/dev/null; then \
+	         echo "      · SIGTERM ignorado, escalando para SIGKILL"; \
+	         kill -9 $$pid 2>/dev/null; \
+	       fi; \
 	       killed=$$((killed+1)); \
 	     done; \
 	   fi; \
 	 done; \
 	 if [ $$killed -eq 0 ]; then echo "   · nenhum órfão encontrado"; fi
+	@for d in frontend frontend-ops; do \
+	   lock=$(CURDIR)/$$d/.next/dev/lock; \
+	   if [ -f $$lock ]; then \
+	     pid=$$(python3 -c "import json,sys; print(json.load(open('$$lock')).get('pid',''))" 2>/dev/null); \
+	     if [ -n "$$pid" ] && ! kill -0 $$pid 2>/dev/null; then \
+	       echo "   ✓ $$d/.next/dev/lock órfão (pid=$$pid morto) → removido"; \
+	       rm -f $$lock; \
+	     fi; \
+	   fi; \
+	 done
 	@rm -rf $(CURDIR)/$(DEV_DIR)
 	@echo "  ✅ Stale kill completo. 'make dev-up' para subir novamente."
 
