@@ -124,6 +124,19 @@ class TestOrchestratorLogic:
         missing = [s for s in FULL_ORDER if _get_stage_runner(s) is None]
         assert not missing, f"FULL_ORDER stages without runner: {missing}"
 
+    def test_stage_runners_cover_registry(self):
+        """`_STAGE_RUNNERS` deve cobrir exatamente `STAGE_REGISTRY` — invariante
+        validada em import-time por `_assert_runners_cover_registry`. O teste
+        existe para falhar com mensagem clara quando alguém adiciona stage no
+        registry sem o runner correspondente (ou vice-versa)."""
+        from pipeline.orchestrator import _STAGE_RUNNERS
+        from pipeline.stage_spec import STAGE_REGISTRY
+
+        assert set(_STAGE_RUNNERS) == set(STAGE_REGISTRY), (
+            f"sync gap: registry-only={set(STAGE_REGISTRY) - set(_STAGE_RUNNERS)} "
+            f"runners-only={set(_STAGE_RUNNERS) - set(STAGE_REGISTRY)}"
+        )
+
     def test_pipeline_result_summary(self):
         from pipeline import PipelineResult, StageResult
 

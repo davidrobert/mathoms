@@ -122,82 +122,61 @@ def _build_from_map_descriptive_with_legacy() -> Dict[str, List[str]]:
 FROM_MAP: Dict[str, List[str]] = _build_from_map_descriptive_with_legacy()
 
 
-def _get_stage_runner(stage: str) -> Callable:
+# Registry declarativo: stage descritivo → (módulo, atributo).
+# Manter sincronizado com STAGE_REGISTRY — a guard `_assert_runners_cover_registry`
+# falha import se divergir, eliminando a classe de bug "stage no registry mas
+# sem runner" que recorreu em b0024c7 (extract_irpf_full).
+_STAGE_RUNNERS: Dict[str, tuple[str, str]] = {
+    "unlock_documents": ("pipeline.stages.unlock_documents", "run"),
+    "audit_documents": ("pipeline.stages.audit_documents", "run"),
+    "route_documents": ("pipeline.stages.route_documents", "run"),
+    "extract_members": ("pipeline.stages.extract_members", "run"),
+    "extract_baseline": ("pipeline.stages.extract_baseline", "run"),
+    "consolidate_baseline": ("pipeline.stages.consolidate_baseline", "run"),
+    "extract_irpf_full": ("pipeline.stages.extract_irpf_full", "run"),
+    "extract_invoices": ("pipeline.stages.extract_invoices", "run"),
+    "extract_statements": ("pipeline.stages.extract_statements", "run"),
+    "extract_with_llm": ("pipeline.stages.extract_with_llm", "run"),
+    "reconcile_transactions": ("pipeline.stages.reconcile_transactions", "run"),
+    "categorize_transactions": ("pipeline.stages.categorize_transactions", "run"),
+    "analyze_finances": ("pipeline.stages.analyze_finances", "run"),
+    "generate_narratives": ("pipeline.stages.generate_narratives", "run"),
+    "validate_cross": ("pipeline.stages.e7", "run_crossval"),
+    "review_finances": ("pipeline.stages.review_finances", "run"),
+    "apply_review": ("pipeline.stages.e7", "run_apply"),
+}
+
+
+def _assert_runners_cover_registry() -> None:
+    """Falha import se ``STAGE_REGISTRY`` e ``_STAGE_RUNNERS`` divergirem."""
+    registry_keys = set(STAGE_REGISTRY)
+    runner_keys = set(_STAGE_RUNNERS)
+    missing = registry_keys - runner_keys
+    extra = runner_keys - registry_keys
+    if missing or extra:
+        raise RuntimeError(
+            "Pipeline stage registries divergiram (sync STAGE_REGISTRY ↔ _STAGE_RUNNERS). "
+            f"Stages sem runner: {sorted(missing)}. Runners sem stage: {sorted(extra)}."
+        )
+
+
+_assert_runners_cover_registry()
+
+
+def _get_stage_runner(stage: str) -> Optional[Callable]:
     """Lazy-import do runner correto para cada stage.
 
     Aceita nomes legados (``"E3"``) ou descritivos (``"reconcile_transactions"``)
     via ``resolve_stage_name``.
     """
+    import importlib
+
     stage = resolve_stage_name(stage)
-    if stage == "unlock_documents":
-        from pipeline.stages.unlock_documents import run
-
-        return run
-    if stage == "audit_documents":
-        from pipeline.stages.audit_documents import run
-
-        return run
-    if stage == "route_documents":
-        from pipeline.stages.route_documents import run
-
-        return run
-    if stage == "extract_members":
-        from pipeline.stages.extract_members import run
-
-        return run
-    if stage == "extract_baseline":
-        from pipeline.stages.extract_baseline import run
-
-        return run
-    if stage == "consolidate_baseline":
-        from pipeline.stages.consolidate_baseline import run
-
-        return run
-    if stage == "extract_irpf_full":
-        from pipeline.stages.extract_irpf_full import run
-
-        return run
-    if stage == "extract_with_llm":
-        from pipeline.stages.extract_with_llm import run
-
-        return run
-    if stage == "extract_invoices":
-        from pipeline.stages.extract_invoices import run
-
-        return run
-    if stage == "extract_statements":
-        from pipeline.stages.extract_statements import run
-
-        return run
-    if stage == "reconcile_transactions":
-        from pipeline.stages.reconcile_transactions import run
-
-        return run
-    if stage == "categorize_transactions":
-        from pipeline.stages.categorize_transactions import run
-
-        return run
-    if stage == "analyze_finances":
-        from pipeline.stages.analyze_finances import run
-
-        return run
-    if stage == "generate_narratives":
-        from pipeline.stages.generate_narratives import run
-
-        return run
-    if stage == "validate_cross":
-        from pipeline.stages.e7 import run_crossval
-
-        return run_crossval
-    if stage == "review_finances":
-        from pipeline.stages.review_finances import run
-
-        return run
-    if stage == "apply_review":
-        from pipeline.stages.e7 import run_apply
-
-        return run_apply
-    return None
+    spec = _STAGE_RUNNERS.get(stage)
+    if spec is None:
+        return None
+    module_path, attr = spec
+    return getattr(importlib.import_module(module_path), attr)
 
 
 def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
