@@ -63,7 +63,11 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const [error, setError] = useState("");
   const [cancelOpen, setCancelOpen] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Bumpado por QUALQUER sinal de vida do WS (eventos + heartbeats) — detecta conexão morta.
   const lastWsEventRef = useRef<number>(Date.now());
+  // Bumpado SÓ por eventos de progresso (`stage_*`), não por heartbeats —
+  // detecta worker travado mesmo com WS saudável.
+  const lastProgressEventRef = useRef<number>(Date.now());
   // ADR-119 item 6 — timestamp do último `stage_activity` por stage.
   const lastActivityByStageRef = useRef<Record<string, number>>({});
   const [lastFailedRun, setLastFailedRun] = useState<PipelineRunResponse | null>(null);
@@ -77,7 +81,11 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const token = typeof window !== "undefined" ? getToken() : null;
 
   const handleWSEvent = useCallback((event: PipelineEvent) => {
-    lastWsEventRef.current = Date.now();
+    const now = Date.now();
+    lastWsEventRef.current = now;
+    // `usePipelineWS` filtra heartbeats antes de chamar `onEvent`, então
+    // qualquer evento que chega aqui é progresso real do pipeline.
+    lastProgressEventRef.current = now;
 
     // ADR-093 / F9.2: normaliza legacy stage IDs (E2-extratos, E1.5…)
     // que ainda chegam de emissores em pipeline/stages/*.py.
@@ -268,7 +276,9 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
       const run = await triggerPipeline(workspace.id, { from_stage: fromStage, skip_llm: !isPremium, incremental });
       setActiveRun(run);
       setRuns((prev) => [run, ...prev]);
-      lastWsEventRef.current = Date.now();
+      const now = Date.now();
+      lastWsEventRef.current = now;
+      lastProgressEventRef.current = now;
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Erro ao iniciar pipeline");
     } finally {
@@ -343,6 +353,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
             run={activeRun}
             wsStatus={wsStatus}
             lastWsEventRef={lastWsEventRef}
+            lastProgressEventRef={lastProgressEventRef}
             lastActivityByStageRef={lastActivityByStageRef}
             liveStageActivity={liveStageActivity}
             onCancel={() => setCancelOpen(true)}
