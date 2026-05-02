@@ -14,6 +14,7 @@ import type {
 } from "@/lib/api";
 import { formatDuration, formatElapsed } from "@/lib/format";
 import {
+  computePhaseProgress,
   computePhaseStates,
   PIPELINE_PHASES,
   getPhase,
@@ -24,18 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConnectionChip } from "./ConnectionChip";
 import { StageRow } from "./StageRow";
-
-const STALL_PENDING_MS = 30_000;
-const STALL_RUNNING_MS = 60_000;
-
-interface StallProps {
-  isPending: boolean;
-  isRunning: boolean;
-  hasNoStages: boolean;
-  startedAt: string;
-  lastWsEventRef: React.RefObject<number>;
-  wsStatus: string;
-}
+import { useStallWarning } from "./useStallWarning";
 
 function useElapsedClock(startedAt: string) {
   const [elapsed, setElapsed] = useState(() => formatElapsed(startedAt));
@@ -44,33 +34,6 @@ function useElapsedClock(startedAt: string) {
     return () => clearInterval(id);
   }, [startedAt]);
   return elapsed;
-}
-
-function useStallWarning(p: StallProps): string | null {
-  const [warning, setWarning] = useState<string | null>(null);
-  useEffect(() => {
-    const id = setInterval(() => {
-      const now = Date.now();
-      const runAge = now - new Date(p.startedAt).getTime();
-      const sinceLastWs = now - p.lastWsEventRef.current;
-
-      if (p.isPending && p.hasNoStages && runAge > STALL_PENDING_MS) {
-        setWarning(
-          "O processamento está aguardando há mais de 30s. Pode haver um problema na fila de execução."
-        );
-      } else if (p.isRunning && sinceLastWs > STALL_RUNNING_MS) {
-        setWarning(
-          p.wsStatus === "connected"
-            ? "Sem sinal do servidor há mais de 1 min. Se o indicador mostrar “Tempo real”, aguarde; caso contrário, verifique a conexão."
-            : "Sem atualizações recentes. O processamento pode estar lento."
-        );
-      } else {
-        setWarning(null);
-      }
-    }, 1000);
-    return () => clearInterval(id);
-  }, [p.isPending, p.isRunning, p.hasNoStages, p.startedAt, p.lastWsEventRef, p.wsStatus]);
-  return warning;
 }
 
 function RunHeader({
@@ -285,6 +248,7 @@ export function ActiveRunCard({
   run,
   wsStatus,
   lastWsEventRef,
+  lastProgressEventRef,
   lastActivityByStageRef,
   liveStageActivity,
   onCancel,
@@ -292,6 +256,7 @@ export function ActiveRunCard({
   run: PipelineRunResponse;
   wsStatus: string;
   lastWsEventRef: React.RefObject<number>;
+  lastProgressEventRef: React.RefObject<number>;
   lastActivityByStageRef: React.RefObject<Record<string, number>>;
   liveStageActivity: PipelineStageActivity | null;
   onCancel: () => void;
@@ -300,11 +265,20 @@ export function ActiveRunCard({
     (s) => s.status === "completed" || s.status === "skipped" || s.status === "skipped_free_tier"
   ).length;
   const totalStages = run.stage_logs.length;
-  /** Só etapas já finalizadas — evita "80%" no início de uma etapa longa (o WS reporta % ao entrar na etapa). */
-  const pct = totalStages > 0 ? Math.round((completedCount / totalStages) * 100) : 0;
   const isPending = run.status === "pending";
   const isRunning = run.status === "running" || run.status === "resuming";
+  const isActive = isPending || isRunning;
   const hasNoStages = totalStages === 0;
+
+  // Agrupamento em 4 fases narrativas (ADR-068)
+  const phaseStates = computePhaseStates(run.stage_logs, run.current_stage, run.status);
+  // Progresso baseado em fases (não em sub-stages técnicos): casa com o
+  // stepper "Fase N de 4" e evita 100% prematuro quando stage_logs ainda
+  // não inclui a próxima etapa.
+  const phasePct = computePhaseProgress(phaseStates);
+  // Cap em 99% enquanto a execução está ativa — 100% só é honesto quando
+  // o status efetivamente vira `completed`.
+  const pct = isActive ? Math.min(99, phasePct) : phasePct;
 
   const elapsed = useElapsedClock(run.started_at);
   const stallWarning = useStallWarning({
@@ -313,11 +287,10 @@ export function ActiveRunCard({
     hasNoStages,
     startedAt: run.started_at,
     lastWsEventRef,
+    lastProgressEventRef,
+    liveStageActivity,
     wsStatus,
   });
-
-  // Agrupamento em 4 fases narrativas (ADR-068)
-  const phaseStates = computePhaseStates(run.stage_logs, run.current_stage, run.status);
   const activePhase = run.current_stage
     ? getPhase(run.current_stage)
     : isPending

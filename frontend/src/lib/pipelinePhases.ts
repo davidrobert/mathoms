@@ -171,3 +171,38 @@ export function computePhaseStates(
     return { phase, status, completedStages, totalStages };
   });
 }
+
+/**
+ * Progresso global derivado das 4 fases narrativas (não dos sub-stages
+ * técnicos). Casa a leitura do stepper (`Fase 2 de 4`) com a barra de
+ * progresso, evitando que stage_logs incompletos do backend produzam
+ * 100% prematuramente.
+ *
+ * Contribuição por fase:
+ *  - completed → 1.0
+ *  - active|needs_review → 0.5 + 0.5 × (completedStages / totalStages)
+ *    (mínimo 0.5 — fase ativa nunca conta como "vazia")
+ *  - failed → completedStages / totalStages (mantém posição até onde foi)
+ *  - pending → 0
+ *
+ * Retorna percentual inteiro ∈ [0..100].
+ */
+export function computePhaseProgress(states: readonly PhaseState[]): number {
+  if (states.length === 0) return 0;
+  let acc = 0;
+  for (const s of states) {
+    if (s.status === "completed") {
+      acc += 1;
+    } else if (s.status === "active" || s.status === "needs_review") {
+      const ratio = s.totalStages > 0
+        ? Math.min(1, s.completedStages / s.totalStages)
+        : 0;
+      acc += 0.5 + 0.5 * ratio;
+    } else if (s.status === "failed") {
+      acc += s.totalStages > 0
+        ? Math.min(1, s.completedStages / s.totalStages)
+        : 0;
+    }
+  }
+  return Math.round((acc / states.length) * 100);
+}
