@@ -8,17 +8,14 @@ import {
   listPipelineRuns,
   getPipelineRun,
   cancelPipelineRun,
-  resumePipelineRun,
-  listStageReviews,
-  submitStageReview,
   listDocuments,
+  listStageReviews,
   getNewDocCount,
   getLLMTier,
   getToken,
   type PipelineRunResponse,
   type PipelineEvent,
   type PipelineStageActivity,
-  type StageReviewResponse,
   ApiError,
 } from "@/lib/api";
 import { getIFGoal } from "@/lib/api/goals";
@@ -71,9 +68,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const lastActivityByStageRef = useRef<Record<string, number>>({});
   const [lastFailedRun, setLastFailedRun] = useState<PipelineRunResponse | null>(null);
   const [isPremium, setIsPremium] = useState(false);
-  const [resuming, setResuming] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const [pendingReviews, setPendingReviews] = useState<StageReviewResponse[]>([]);
+  const [pendingReviewCount, setPendingReviewCount] = useState<number>(0);
   const [liveStageActivity, setLiveStageActivity] =
     useState<PipelineStageActivity | null>(null);
   /** `null` enquanto carrega; `false` = sem meta IF configurada — bloqueia trigger. */
@@ -213,26 +208,22 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
     if (!activeRun) setLiveStageActivity(null);
   }, [activeRun]);
 
-  // Caminho A · stop-gap: carrega StageReviews quando run pausa em needs_review.
-  // Limpa quando muda de run ou status sai de needs_review.
+  // Conta revisões pendentes quando o run pausa em needs_review.
+  // ADR-158 — NeedsReviewCard agora aponta para tela dedicada e exibe
+  // contagem; aprovação acontece em /pipeline/runs/[id]/reviews.
   useEffect(() => {
-    if (!activeRun || activeRun.status !== "needs_review") {
-      setPendingReviews([]);
+    if (activeRun?.status !== "needs_review") {
+      setPendingReviewCount(0);
       return;
     }
     let cancelled = false;
     listStageReviews(workspace.id, activeRun.id)
       .then((reviews) => {
         if (cancelled) return;
-        setPendingReviews(reviews.filter((r) => r.status === "pending"));
+        setPendingReviewCount(reviews.filter((r) => r.status === "pending").length);
       })
-      .catch(() => {
-        if (cancelled) return;
-        setPendingReviews([]);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [activeRun?.id, activeRun?.status, workspace.id]);
 
   useEffect(() => {
@@ -287,7 +278,6 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
 
   async function handleCancel() {
     if (!activeRun) return;
-    setCancelling(true);
     try {
       await cancelPipelineRun(workspace.id, activeRun.id);
       const updated = await getPipelineRun(workspace.id, activeRun.id);
@@ -295,39 +285,6 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
       setRuns((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Erro ao cancelar");
-    } finally {
-      setCancelling(false);
-    }
-  }
-
-  async function handleResume() {
-    if (!activeRun) return;
-    setResuming(true);
-    try {
-      // Caminho A · stop-gap: aprova todos os StageReviews pending antes de
-      // retomar. resume_run recusa enquanto há review com status=pending
-      // (backend/app/application/pipeline_run/resume_run.py:21-30).
-      const reviews = await listStageReviews(workspace.id, activeRun.id);
-      const pending = reviews.filter((r) => r.status === "pending");
-      for (const review of pending) {
-        try {
-          await submitStageReview(workspace.id, activeRun.id, review.id, {
-            action: "approve",
-            reviewer_notes: "Auto-aprovado via 'Aprovar mesmo assim e continuar'",
-          });
-        } catch (err) {
-          // 409 "Review já processado" → race entre 2 abas/cliques; segue.
-          if (!(err instanceof ApiError && err.status === 409)) throw err;
-        }
-      }
-
-      await resumePipelineRun(workspace.id, activeRun.id);
-      toast.success("Pipeline retomado", { duration: 3000 });
-      await reload();
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.detail : "Erro ao retomar pipeline");
-    } finally {
-      setResuming(false);
     }
   }
 
@@ -396,11 +353,8 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           <NeedsReviewCard
             runId={activeRun.id}
             pausedAtStage={activeRun.paused_at_stage}
-            pendingReviews={pendingReviews}
-            resuming={resuming}
-            cancelling={cancelling}
-            onResume={handleResume}
-            onCancel={handleCancel}
+            pendingCount={pendingReviewCount}
+            onCancel={() => setCancelOpen(true)}
           />
         )}
 
