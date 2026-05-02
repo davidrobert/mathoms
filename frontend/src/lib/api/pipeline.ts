@@ -135,7 +135,38 @@ export async function resumePipelineRun(workspaceId: string, runId: string): Pro
   return apiFetch(`/workspaces/${workspaceId}/pipeline/runs/${runId}/resume`, { method: "POST" });
 }
 
-export async function listStageReviews(workspaceId: string, runId: string): Promise<unknown[]> {
+// ─── Stage Review ───
+
+/** Status do StageReview no backend (`backend/app/models/stage_review.py`). */
+export type StageReviewStatus = "pending" | "approved" | "edited";
+
+/** Shape da resposta de `GET /reviews` e `POST /reviews/{id}` — espelha
+ * `backend/app/schemas/pipeline.StageReviewResponse`. */
+export interface StageReviewResponse {
+  id: string;
+  pipeline_run_id: string;
+  stage: string;
+  status: StageReviewStatus;
+  original_output_json: Record<string, unknown> | null;
+  edited_output_json: Record<string, unknown> | null;
+  validation_errors: string | null;
+  reviewer_notes: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+/** Body de `POST /reviews/{id}` — espelha
+ * `backend/app/schemas/pipeline.StageReviewActionRequest`. */
+export interface StageReviewActionRequest {
+  action: "approve" | "edit";
+  edited_output_json?: Record<string, unknown>;
+  reviewer_notes?: string;
+}
+
+export async function listStageReviews(
+  workspaceId: string,
+  runId: string
+): Promise<StageReviewResponse[]> {
   return apiFetch(`/workspaces/${workspaceId}/pipeline/runs/${runId}/reviews`);
 }
 
@@ -143,8 +174,8 @@ export async function submitStageReview(
   workspaceId: string,
   runId: string,
   reviewId: string,
-  data: { action: string; edited_output?: Record<string, unknown>; notes?: string }
-): Promise<unknown> {
+  data: StageReviewActionRequest
+): Promise<StageReviewResponse> {
   return apiFetch(`/workspaces/${workspaceId}/pipeline/runs/${runId}/reviews/${reviewId}`, {
     method: "POST",
     body: JSON.stringify(data),
