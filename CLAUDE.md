@@ -485,11 +485,16 @@ precisa pedir aprovação; é obrigatório anunciar** cada operação git em
 1-2 linhas (ex.: "Commit `abc1234` — `feat(...): ...`", "Push para
 `agent/x/y` (5 commits)", "PR #123 aberto: `<título>`").
 
-**Push direto em `main` é proibido.** Repository Ruleset enforça PR-flow;
-mesmo bypass-de-emergência exige justificativa explícita do usuário e
-nunca é o caminho default. CI deve rodar e ficar verde antes do merge —
-auto-merge fica habilitado para que o GitHub mergeie sozinho quando os
-checks passam.
+**Push direto em `main` é proibido.** Repository Ruleset
+`main-protection` (id `15884038`, gerenciado via
+`gh api repos/davidrobert/mathoms/rulesets`) enforça PR-flow exigindo
+`pull_request` + `required_linear_history` + `required_status_checks`
+(`All checks green` + `Title (Conventional Commits)`) +
+`non_fast_forward` + `deletion`. Bypass de emergência via admin é
+auditável e exige justificativa explícita do usuário — nunca é o caminho
+default. CI deve rodar e ficar verde antes do merge; auto-merge fica
+habilitado para que o GitHub mergeie sozinho quando os checks passam
+(`gh pr merge <N> --squash --auto`).
 
 ### Protocolo obrigatório
 
@@ -980,4 +985,6 @@ Conteúdo que **era** duplicado neste arquivo e agora vive em sua fonte
 | Testes — estratégia e fixtures                      | [docs/TESTING.md](docs/TESTING.md)                                                         |
 | Tenancy (multi-workspace)                           | [docs/tenancy.md](docs/tenancy.md)                                                         |
 | DB schema de referência (auto-gerado)               | [docs/DB_SCHEMA_REFERENCE.md](docs/DB_SCHEMA_REFERENCE.md)                                 |
+| Fluxo de PR (humano + agente) — branch naming, template, gates locais + CI, Dependabot, stale bot | [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) |
+| Política de disclosure de vulnerabilidades (LGPD)   | [SECURITY.md](SECURITY.md)                                                                  |
 | Plano canônico do shell Report Premium — v1 (10 fases ✅) + v2 §17 (🚧, ondas A-F paralelizadas), paridade React com EXEMPLO_DE_RELATORIO.html, único renderer pós-ADR-129 | [docs/REPORT_PREMIUM_PLAN.md](docs/REPORT_PREMIUM_PLAN.md)                      |
