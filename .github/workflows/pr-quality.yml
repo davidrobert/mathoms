@@ -1,0 +1,144 @@
+# PR Quality — gates de padronização visual de PR.
+#
+# Roda em todo PR contra main e enforça:
+# 1. title-lint  — título do PR segue Conventional Commits (espelha
+#                  dev/validate_commit_msg.py). Vira commit message no
+#                  squash-merge, então tem que ser limpo.
+# 2. auto-label  — adiciona labels `area:*` e `dependency` por path
+#                  alterado (config: .github/labeler.yml).
+# 3. size-label  — adiciona label `size:XS|S|M|L|XL` baseado em linhas
+#                  modificadas. Comenta quando >XL pedindo split.
+#
+# Não bloqueia merge sozinho — `title-lint` deve virar required check via
+# Repository Ruleset (Onda 1). `auto-label` e `size-label` são informativos.
+#
+# Permissions: declaração no workflow level. Em repo privado pessoal não
+# há fork PR (só branches do mesmo repo), então `pull_request` (não
+# `pull_request_target`) é seguro.
+
+name: PR Quality
+
+on:
+  pull_request:
+    branches: [main]
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+      - ready_for_review
+
+permissions:
+  pull-requests: write
+  contents: read
+
+concurrency:
+  group: pr-quality-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  title-lint:
+    name: Title (Conventional Commits)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Validate PR title
+        # amannn/action-semantic-pull-request@v5.5.3
+        # TODO(onda-3): SHA-pin alinhado com o padrão de tj-actions e
+        # astral-sh/setup-uv em ci.yml.
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Espelha prefixos aceitos por dev/validate_commit_msg.py.
+          # `update` e os legacy `pipeline|config|E*|pre-reset` ficam de
+          # fora aqui — quem quiser legacy commita direto e o squash usa
+          # o título do PR (sempre conventional). Janela de transição
+          # natural sem quebrar histórico.
+          types: |
+            feat
+            fix
+            refactor
+            perf
+            test
+            chore
+            backend
+            frontend
+            api
+            db
+            infra
+            ci
+            docs
+          # Escopo opcional: feat(api): ... ou apenas feat: ...
+          requireScope: false
+          # Bloqueia subjects vazios ou muito curtos como "fix" ou "Update X".
+          subjectPattern: ^[A-Za-z0-9].{4,}$
+          subjectPatternError: |
+            O subject do PR deve começar com letra/dígito e ter pelo menos 5 caracteres.
+
+            Exemplos válidos:
+              feat(api): adiciona endpoint /v1/reports/export
+              fix(pipeline): aborta E3 quando saldo inicial vem como NaN
+
+            Exemplos inválidos:
+              fix: bug                  ← muito curto
+              feat: !@#                 ← não começa com letra/dígito
+
+  auto-label:
+    name: Auto-label by path
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    # Labeler precisa de pull-requests: write (já no workflow level).
+    steps:
+      - name: Apply area:* + dependency labels
+        # actions/labeler@v5.0.0
+        uses: actions/labeler@v5
+        with:
+          configuration-path: .github/labeler.yml
+          # sync-labels=true remove labels obsoletas quando o PR não
+          # bate mais o glob (ex.: revisor remove arquivos de uma área).
+          sync-labels: true
+
+  size-label:
+    name: Size label
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Apply size label
+        # CodelyTV/pr-size-labeler@v1
+        # TODO(onda-3): SHA-pin.
+        uses: CodelyTV/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: 'size:XS'
+          xs_max_size: '20'
+          s_label: 'size:S'
+          s_max_size: '100'
+          m_label: 'size:M'
+          m_max_size: '300'
+          l_label: 'size:L'
+          l_max_size: '600'
+          xl_label: 'size:XL'
+          # Não falha o job em XL — só comenta. Decisão de aceitar PR
+          # grande é humana. Mitigação real virá em revisor (humano ou
+          # CODEOWNERS) quando o size:XL aparecer.
+          fail_if_xl: 'false'
+          message_if_xl: |
+            ## ⚠️ PR grande (>600 linhas modificadas)
+
+            PRs grandes são mais difíceis de revisar e arriscados de reverter.
+            Se possível, considere quebrar em commits/PRs menores
+            (CLAUDE.md §Git e commits: "Diff >300 linhas ou 3+ camadas → quebre em commits sequenciais").
+
+            Se o tamanho é justificado (refactor cross-cutting, codegen, migração de schema),
+            adicione um comentário explicando o porquê para acelerar o review.
+          files_to_ignore: |
+            'frontend/package-lock.json'
+            'frontend/src/generated/**'
+            'backend/app/generated/**'
+            'docs/DB_SCHEMA_REFERENCE.md'
+            'backend/app/openapi_snapshot.json'
+            'frontend/openapi-snapshot.json'
+            '**/*.snap'
+            '**/__snapshots__/**'
+            'dev/code_style_baseline.json'

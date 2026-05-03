@@ -1,0 +1,120 @@
+# Dependabot — atualização automática de dependências.
+#
+# Estratégia: agressivo em patch/minor (auto-mergeable quando CI verde),
+# manual em major (PR fica open para review).
+#
+# Updates abrem PR contra `main` com label `dependency` (já criada via
+# Onda 2) e prefixo `chore(deps):` no commit. Auto-labeler em pr-quality.yml
+# também adiciona `dependency` por path (defense-in-depth).
+
+version: 2
+updates:
+  # ----------------------------------------------------------------------
+  # Python — pipeline + backend
+  # ----------------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels: ["dependency", "area:pipeline"]
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      pytest:
+        patterns: ["pytest*"]
+      ruff-and-types:
+        patterns: ["ruff", "mypy", "types-*"]
+      patch-and-minor:
+        update-types: ["patch", "minor"]
+        # Excluir dos grupos as deps que historicamente quebram (LLM SDKs,
+        # SQLAlchemy, Pydantic) — major e minor ficam em PR isolado para
+        # review caso-a-caso.
+        exclude-patterns:
+          - "anthropic"
+          - "openai"
+          - "sqlalchemy"
+          - "pydantic"
+          - "alembic"
+          - "celery"
+
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels: ["dependency", "area:backend"]
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      patch-and-minor:
+        update-types: ["patch", "minor"]
+        exclude-patterns:
+          - "anthropic"
+          - "openai"
+          - "sqlalchemy"
+          - "pydantic"
+          - "alembic"
+          - "celery"
+          - "fastapi"
+
+  # ----------------------------------------------------------------------
+  # npm — frontend
+  # ----------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels: ["dependency", "area:frontend"]
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      next-and-react:
+        patterns: ["next", "react", "react-*", "@types/react*"]
+      eslint-and-types:
+        patterns: ["eslint*", "@typescript-eslint/*", "@types/*", "prettier*"]
+      vitest-and-test:
+        patterns: ["vitest", "@vitest/*", "@testing-library/*", "@playwright/*", "playwright"]
+      patch-and-minor:
+        update-types: ["patch", "minor"]
+        # Major bumps de Next/React/Tailwind: PR isolado.
+        exclude-patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "tailwindcss"
+
+  # ----------------------------------------------------------------------
+  # GitHub Actions — pin updates
+  # ----------------------------------------------------------------------
+  # CRÍTICO: ci.yml usa SHA-pin para tj-actions e astral-sh/setup-uv
+  # (CVE-2025-30066 / mar/2025). Dependabot atualiza esses SHAs quando
+  # nova versão sai, e o PR mostra changelog para review.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels: ["dependency", "area:ci"]
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      actions-patch-and-minor:
+        update-types: ["patch", "minor"]

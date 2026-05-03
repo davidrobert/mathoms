@@ -89,24 +89,26 @@ existe.
 
 ---
 
-## "Concluído" = commit mergeado em `main` com CI verde
+## "Concluído" = PR mergeado em `main` (squash) com CI verde
 
 Uma tarefa **só é concluída** quando:
 
-1. `git fetch origin && git log origin/main --oneline | head -5` mostra o
-   commit final em `origin/main`
-2. CI está verde nesse commit
+1. PR foi mergeado via **squash** em `origin/main`
+2. CI está verde no commit-merge resultante (`gh pr view <N> --json mergeCommit,mergedAt`)
+3. `git fetch origin && git log origin/main --oneline | head -5` mostra
+   o commit-merge
 
 **Não conta como concluído:**
 
 - Commit apenas local, mesmo com suíte verde localmente
-- Branch pushed sem merge — "aguardando review/CI" continua `in_progress`
-- Trabalho em worktree/branch de agente ainda não integrado a `main`
+- Branch `agent/*` pushada sem PR aberto
+- PR aberto mas ainda não mergeado — "aguardando CI/review" continua `in_progress`
+- PR mergeado com CI **vermelho ou pulado** — pegou pular gate, é regressão
 
-**Ao reportar estado, seja explícito:** "commitado e pushed na branch X,
-aguardando merge" ≠ "mergeado em `main` (commit `abc1234`)". Se rastreia a
-tarefa em TodoWrite, `BACKLOG.md` ou plano, só marque `completed` **após o
-merge confirmado**; até lá, `in_progress`.
+**Ao reportar estado, seja explícito:** "PR #123 aberto, CI rodando" ≠
+"PR #123 mergeado em `main` (commit `abc1234`)". Se rastreia a tarefa em
+TodoWrite, `BACKLOG.md` ou plano, só marque `completed` **após o merge
+confirmado**; até lá, `in_progress`.
 
 **Why:** commits locais e branches pendentes se perdem (reset, conflito de
 rebase, PR abandonado). Outros agentes só podem confiar que o trabalho
@@ -476,11 +478,18 @@ Dev local: `localhost:3000` (app) + `localhost:8000` (api). Detalhes:
 Merge em `main` é o único marco de conclusão — ver
 **"Concluído"** acima.
 
-**Autonomia autorizada:** agentes **podem e devem** criar branches, fazer
-commits e dar push, inclusive em `main` quando a suíte está verde. **Não
+**Autonomia autorizada:** agentes **podem e devem** criar branches
+`agent/<slug>/<yyyyMMdd-HHmm>`, fazer commits, pushar a branch e
+**abrir PR** contra `main` quando a suíte local estiver verde. **Não
 precisa pedir aprovação; é obrigatório anunciar** cada operação git em
 1-2 linhas (ex.: "Commit `abc1234` — `feat(...): ...`", "Push para
-`main` (5 commits, CI disparado)").
+`agent/x/y` (5 commits)", "PR #123 aberto: `<título>`").
+
+**Push direto em `main` é proibido.** Repository Ruleset enforça PR-flow;
+mesmo bypass-de-emergência exige justificativa explícita do usuário e
+nunca é o caminho default. CI deve rodar e ficar verde antes do merge —
+auto-merge fica habilitado para que o GitHub mergeie sozinho quando os
+checks passam.
 
 ### Protocolo obrigatório
 
@@ -511,7 +520,8 @@ precisa pedir aprovação; é obrigatório anunciar** cada operação git em
    plans — pule `pytest`/`npm test`/`npm run test:e2e`. `pre-commit run
    --all-files` **continua obrigatório** (PII, paths proibidos, commit
    msg). Se o diff mistura doc + código, rode a suíte completa.
-5. **Pre-push drift check** — imediatamente antes de `git push origin main`:
+5. **Pre-push drift check** — antes de abrir/atualizar PR (rebase para
+   garantir merge fast-forward + linear history):
 
    ```bash
    git fetch origin
@@ -520,11 +530,13 @@ precisa pedir aprovação; é obrigatório anunciar** cada operação git em
      git rebase origin/main            # re-sincroniza
      pytest backend/tests -q           # regressão silenciosa de rebase
    fi
+   git push origin "$(git branch --show-current)"
    ```
 
-   Pushar sem esse check produz (a) `push` rejeitado por non-fast-forward
-   ou (b) tentação de `--force` — ambos proibidos em `main`. Enforçado
-   também como hook pre-push em `dev/check_main_drift.py`.
+   PR sem rebase pode ficar com merge-conflict no GitHub UI ou perder
+   linear history exigida pelo Ruleset. Hook pre-push em
+   `dev/check_main_drift.py` avisa em branches `agent/*` e bloqueia
+   tentativa de push direto em `main` (defesa em profundidade).
 6. **Sync periódico em sessão longa** — em sessão >1h de trabalho ativo,
    rode `git fetch origin && git log --oneline HEAD..origin/main` a cada
    ~30min. Se `origin/main` moveu ≥1 commit, rebase incremental na sua
@@ -649,13 +661,32 @@ externos. Se já está numa branch `agent/*`, não recrie — continue nela.
   é seguro.
 - `git diff --stat` >150 linhas sem commit → **commite agora**.
 
-### Push para `main`
+### Abrir PR e mergear em `main`
 
-1. `git fetch origin && git rebase origin/main` na sua branch.
+1. `git fetch origin && git rebase origin/main` na sua branch `agent/*`.
 2. Rode a suíte **depois** do rebase (não antes). Quebrou pós-rebase →
-   investigue e corrija antes de push.
-3. `git push origin main` — **fast-forward only**. Se falhar por
-   non-fast-forward, **não force** — refaça o rebase.
+   investigue e corrija antes de pushar.
+3. `git push origin agent/<slug>/<ts>` — push para sua branch (nunca em `main`).
+4. **Abra PR** contra `main`:
+   ```bash
+   gh pr create --base main --title "<conventional commit>" --body "$(cat <<'EOF'
+   ## Sumário
+   - …
+   ## Como testar
+   1. …
+   EOF
+   )"
+   ```
+   Template completo em `.github/PULL_REQUEST_TEMPLATE.md` é injetado
+   automaticamente; preencha o checklist.
+5. **Aguarde CI verde** — job `All checks green` é gate obrigatório.
+6. **Habilite auto-merge** (`gh pr merge <N> --squash --auto`) ou peça
+   review se PR não-trivial. **Squash é o único método** — preserva
+   `main` linear, e commit message vira título do PR (Conventional Commits).
+7. Após merge: `git fetch origin && git log -1 origin/main` confirma o
+   commit-merge. Em sua máquina: `git checkout main && git pull
+   --ff-only && git branch -d agent/<slug>/<ts>` (auto-delete remoto
+   também ocorre).
 
 ### Hotspots de documentação
 
@@ -686,8 +717,12 @@ Demais regras:
 
 ### Proibido
 
+- **`git push origin main`** direto — Repository Ruleset enforça
+  PR-flow. Bypass exige autorização explícita do owner; nunca é default.
 - **`git push --force`** / `--force-with-lease` em `main`. Em branches
-  próprias pré-push inicial, aceitável para limpar histórico.
+  próprias pré-PR, aceitável para limpar histórico antes de pushar.
+- **Merge commits em `main`** — apenas squash-merge é permitido (config
+  do repo). Mantém histórico linear.
 - **`git commit --no-verify`** ou skip de hooks — hooks bloqueiam dados
   sensíveis. Falhou legitimamente → **corrija a causa**, nunca bypasse.
 - **`git commit --amend`** em commits já pushados — crie novo commit
@@ -696,6 +731,9 @@ Demais regras:
   local quando outros agentes estão ativos no mesmo working tree**. Caso
   contrário, apaga working tree de outros. Para ressincronizar com
   remoto sem destruir, prefira `git pull --ff-only origin main`.
+- **`gh pr merge --admin`** ou bypass de Ruleset sem aprovação explícita
+  do owner. Mesmo em "fix urgente", abrir PR com label `security`
+  + auto-merge é o caminho.
 - **`git config`** — não alterar configuração global/local do git.
 - **Paths proibidos no staging** — ver "Regras críticas › Paths proibidos".
 - **Dados sensíveis** em commits, docstrings ou fixtures.
@@ -732,15 +770,28 @@ você ia adicionar numa resolução anterior:
 Se os commits pendentes têm sobreposição ruim (ex.: C3 duplica C1+C2),
 use `git rebase -i` e faça `squash`/`fixup` **antes** de continuar.
 
-### Se CI quebra após push para `main`
+### Se CI quebra em PR aberto
 
-1. **Anuncie imediatamente** — "CI quebrou no commit `abc1234` (job X).
-   Investigando."
-2. **Fix-forward** (novo commit) preferível a revert se o fix é trivial
-   (<10 min).
-3. **Revert** se vai demorar — deixa `main` verde; branch nova para o
-   fix real.
-4. **Nunca** deixe `main` quebrada overnight sem comunicar.
+1. Investigue o job que falhou — `gh pr checks <N>` lista. Logs em
+   `gh run view <run-id> --log-failed`.
+2. Reproduza local: pra falha de teste, rode o teste específico; pra
+   falha de lint, rode `pre-commit run --all-files`.
+3. Fix em novo commit na branch (não rebase em commits pushados —
+   `--force-with-lease` em branch agent/* aceitável **se ninguém mais
+   abriu PR baseado nela**).
+4. Push triggera novo CI run; auto-merge re-avalia.
+
+### Se CI quebra em `main` (após merge de PR)
+
+Sinal raro com Ruleset ativo (`All checks green` é gate), mas pode acontecer
+com flaky tests, drift de deps externos ou ambiente.
+
+1. **Anuncie imediatamente** — "CI quebrou em `main` no commit `abc1234`
+   (job X). Investigando."
+2. **Revert** preferível a fix-forward — `gh pr create` com revert
+   commit, mergea rápido. `main` volta a verde, fix real vem em PR
+   separado.
+3. **Nunca** deixe `main` quebrada overnight sem comunicar.
 
 ### Prefixos aceitos de mensagem
 

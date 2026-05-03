@@ -1,0 +1,80 @@
+name: 🐛 Bug report
+description: Algo está quebrado ou comportando de forma inesperada
+labels: [bug, needs-review]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar. Quanto mais específico, mais rápido o fix.
+
+        > 🔒 **Vulnerabilidade de segurança?** Não abra issue pública —
+        > siga o protocolo em [SECURITY.md](../../blob/main/SECURITY.md).
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Resumo
+      description: Em 1-2 linhas — o que aconteceu?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Como reproduzir
+      description: Passos exatos. Inclua dados sintéticos (não reais).
+      placeholder: |
+        1. Subir ambiente com `make dev`
+        2. Acessar `/reports/<id>`
+        3. Clicar em "Exportar PDF"
+        4. Erro X aparece no console
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado vs. real
+      description: O que deveria acontecer e o que de fato aconteceu.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área afetada
+      options:
+        - backend (API, Celery, repos)
+        - frontend (Next.js, relatório)
+        - pipeline (E0-E5, scripts)
+        - db (migrations, schema)
+        - infra/ci
+        - docs
+        - outro / não sei
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: Ambiente
+      description: dev local / staging / prod / outro
+      placeholder: dev local
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: |
+        Cole aqui dentro de blocos ```. **Anonimize CPF, valores reais e
+        nomes de pessoa.** Use `999.999.999-99` para CPF e `1.234,56` para
+        valores quando precisar de exemplo.
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto adicional
+      description: ADR relacionada, PR que introduziu, hipótese de causa, runs CI relevantes.
