@@ -60,6 +60,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # TODO(cicd-onda-3): mover para `${{ secrets.MATHOMS_FERNET_KEY }}` após
+  # owner gerar nova key e rodar:
+  #   python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+  #   gh secret set MATHOMS_FERNET_KEY --body "<nova-key>"
+  # Migração é ADR-109-sensitive (auth portability) — exige decisão humana.
   MATHOMS_FERNET_KEY: "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA="
   PYTHONDONTWRITEBYTECODE: "1"
 
