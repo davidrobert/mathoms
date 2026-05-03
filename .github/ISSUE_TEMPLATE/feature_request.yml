@@ -1,0 +1,55 @@
+name: ✨ Feature / melhoria
+description: Proposta de nova capacidade ou melhoria de existente
+labels: [enhancement, needs-review]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Roadmap canônico vive em [docs/BACKLOG.md](../../blob/main/docs/BACKLOG.md).
+        Use esta issue para discussão antes de virar lane do sprint.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema
+      description: Que dor ou oportunidade isso endereça? Quem é afetado?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta
+      description: O que você está propondo construir/mudar.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: O que mais você considerou e por que descartou (ou ainda não decidiu).
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Escopo
+      options:
+        - quick win (<1 dia)
+        - feature pequena (≤1 sprint)
+        - lane completa (multi-sprint)
+        - precisa investigação (RFC/ADR antes)
+    validations:
+      required: true
+
+  - type: textarea
+    id: success
+    attributes:
+      label: Critério de aceite
+      description: Como saber que está pronto? Métrica observável quando possível.
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Referências
+      description: ADRs relevantes, plans, PRs anteriores, links externos.

@@ -1,0 +1,88 @@
+# Auto-label de PR por path. Consumido por .github/workflows/pr-quality.yml
+# (job `auto-label`) via actions/labeler@v5.
+#
+# Sintaxe v5: cada label tem uma lista de matchers. Cada matcher é um
+# objeto `changed-files` com `any-glob-to-any-file` (ANY arquivo bate)
+# ou `all-globs-to-all-files` (TODOS os arquivos batem).
+#
+# Manter alinhado com a matriz `changes` em ci.yml para coerência.
+
+'area:backend':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'backend/**'
+          - 'requirements.txt'
+
+'area:frontend':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'frontend/**'
+
+'area:pipeline':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pipeline/**'
+          - 'scripts/**'
+          - 'tests/**'
+          - 'config/**.json'
+          - 'config/**.yaml'
+          - 'config/**.yml'
+          - 'config/schemas/**'
+
+'area:docs':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - '*.md'
+          - '!**/CHANGELOG.md'
+
+'area:db':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'backend/alembic/**'
+          - 'backend/app/models/**'
+
+'area:ci':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - '.pre-commit-config.yaml'
+          - 'dev/**'
+
+'area:design-system':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'design-tokens/**'
+          - 'config/report_layout.yaml'
+          - 'frontend/src/styles/**'
+
+'area:adr':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/DECISIONS.md'
+
+'area:go':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**.go'
+          - 'go.work'
+          - 'go.work.sum'
+          - 'services/**'
+          - '.golangci.yml'
+
+'area:tests':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'tests/**'
+          - 'backend/tests/**'
+          - 'frontend/tests/**'
+
+dependency:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'requirements.txt'
+          - 'backend/requirements.txt'
+          - 'frontend/package.json'
+          - 'frontend/package-lock.json'
+          - 'go.work'
+          - 'go.work.sum'

@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📋 Backlog / Roadmap
+    url: https://github.com/davidrobert/mathoms/blob/main/docs/BACKLOG.md
+    about: Sprint atual, lanes ativas, ondas de paralelização. Antes de abrir feature request, veja se já está planejada.
+  - name: 📚 ADRs / Decisões
+    url: https://github.com/davidrobert/mathoms/blob/main/docs/DECISIONS.md
+    about: Decisões arquiteturais e rationale. Consulte antes de propor mudança não-trivial.
+  - name: 🏗 Arquitetura
+    url: https://github.com/davidrobert/mathoms/blob/main/docs/ARCHITECTURE.md
+    about: Stack, modelo de dados, stages do pipeline, domínios.
+  - name: 🔒 Vulnerabilidade de segurança
+    url: https://github.com/davidrobert/mathoms/blob/main/SECURITY.md
+    about: Não abra issue pública — siga o protocolo de disclosure.
