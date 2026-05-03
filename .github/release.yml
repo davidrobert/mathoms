@@ -1,0 +1,54 @@
+# Configuração de release notes auto-geradas (GitHub UI: "Generate
+# release notes" ou `gh release create --generate-notes`). Categoriza
+# PRs mergeados desde a tag anterior por label.
+#
+# Ver https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    labels:
+      - duplicate
+      - invalid
+      - wontfix
+      - dependency  # bumps automatizados não viram nota de release; só trends
+    authors:
+      - dependabot
+      - dependabot[bot]
+
+  categories:
+    - title: 🚨 Breaking Changes
+      labels:
+        - breaking
+    - title: ✨ Features
+      labels:
+        - enhancement
+        - "area:backend"
+        - "area:frontend"
+        - "area:pipeline"
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+    - title: 🔒 Security
+      labels:
+        - security
+    - title: 🏗 Infraestrutura / CI
+      labels:
+        - "area:ci"
+        - "area:db"
+    - title: 🎨 Design System
+      labels:
+        - "area:design-system"
+    - title: 📚 Documentação
+      labels:
+        - documentation
+        - "area:docs"
+        - "area:adr"
+    - title: 🧹 Tech debt / refactor
+      labels:
+        - tech-debt
+    - title: 🧪 Testes
+      labels:
+        - "area:tests"
+    - title: Outros
+      labels:
+        - "*"
