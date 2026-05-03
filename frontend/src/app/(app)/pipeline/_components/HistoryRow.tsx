@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, ArrowRight, RefreshCw } from "lucide-react";
 import type { PipelineRunResponse } from "@/lib/api";
 import { formatDate, formatDuration, runStatusLabel, stageName } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -108,6 +108,15 @@ export function HistoryRow({
             onRetryFrom={onRetryFrom}
             triggering={triggering}
           />
+        )}
+        {run.status === "needs_review" && (
+          <Link
+            href={`/pipeline/runs/${run.id}/reviews`}
+            className="inline-flex items-center gap-1 text-xs text-warning underline-offset-2 hover:underline"
+          >
+            Revisar
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         )}
         {run.report_id && (
           <Link
