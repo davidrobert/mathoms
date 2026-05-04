@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy import false as sa_false
@@ -25,6 +26,12 @@ class User(Base):
     # JWT carrega `tv` claim; `decode_access_token` rejeita tokens stale.
     token_version: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
+    )
+    # LGPD Art. 18, VI — direito à eliminação. Soft-delete com grace de 30
+    # dias; cron `process_user_deletions` finaliza o hard-delete depois.
+    # `auth_login` deve negar autenticação enquanto este campo está set.
+    deletion_requested_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

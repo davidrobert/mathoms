@@ -5,6 +5,11 @@ from backend.app.models.category_template import (
     WorkspaceCategoryOverride,
 )
 from backend.app.models.config_blob import InstitutionConfig, PipelineConfig, ReportLayout
+from backend.app.models.data_export_request import (
+    VALID_DATA_EXPORT_STATUSES,
+    DataExportRequest,
+    DataExportRequestStatus,
+)
 from backend.app.models.decision import (
     VALID_DECISION_EVENT_TYPES,
     VALID_DECISION_STATUSES,
@@ -134,6 +139,9 @@ __all__ = [
     "TransactionOverride",
     "Notification",
     "AuditLog",
+    "DataExportRequest",
+    "DataExportRequestStatus",
+    "VALID_DATA_EXPORT_STATUSES",
     "PipelineArtifact",
     "ReportNotes",
     "KanbanItem",

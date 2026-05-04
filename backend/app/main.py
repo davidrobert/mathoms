@@ -27,6 +27,7 @@ from backend.app.api.feature_flags import router as feature_flags_router
 from backend.app.api.goals import router as goals_router
 from backend.app.api.invitations import router as invitations_router
 from backend.app.api.llm import router as llm_router
+from backend.app.api.me import router as me_router
 from backend.app.api.notifications import router as notifications_router
 from backend.app.api.pipeline import router as pipeline_router
 from backend.app.api.reports import router as reports_router
@@ -197,6 +198,7 @@ _ALL_ROUTERS = (
     tasks_router,
     workspace_notes_router,
     feature_flags_router,
+    me_router,
 )
 
 for _router in _ALL_ROUTERS:

@@ -1792,6 +1792,110 @@
         "title": "DashboardResponse",
         "type": "object"
       },
+      "DataExportCreatedResponse": {
+        "properties": {
+          "eta_minutes": {
+            "title": "Eta Minutes",
+            "type": "integer"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "status",
+          "eta_minutes"
+        ],
+        "title": "DataExportCreatedResponse",
+        "type": "object"
+      },
+      "DataExportStatusResponse": {
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "download_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Download Url"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "file_size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Size Bytes"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "status",
+          "created_at"
+        ],
+        "title": "DataExportStatusResponse",
+        "type": "object"
+      },
       "DecisionCreateCommand": {
         "additionalProperties": false,
         "description": "Cria nova ``Decision`` (status inicial = ``Pendente`` se omitido).",
@@ -2131,6 +2235,54 @@
           "blob_removed"
         ],
         "title": "DeleteDocumentResponse",
+        "type": "object"
+      },
+      "DeletionCanceledResponse": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "message"
+        ],
+        "title": "DeletionCanceledResponse",
+        "type": "object"
+      },
+      "DeletionRequestResponse": {
+        "properties": {
+          "deletion_requested_at": {
+            "format": "date-time",
+            "title": "Deletion Requested At",
+            "type": "string"
+          },
+          "hard_delete_after": {
+            "format": "date-time",
+            "title": "Hard Delete After",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "deletion_requested_at",
+          "hard_delete_after",
+          "message"
+        ],
+        "title": "DeletionRequestResponse",
         "type": "object"
       },
       "DismissSuggestionCommand": {
@@ -10109,6 +10261,182 @@
         "summary": "Aceita o convite e cria membership",
         "tags": [
           "invitations"
+        ]
+      }
+    },
+    "/api/v1/me/data-export": {
+      "post": {
+        "description": "LGPD Art. 18, V \u2014 solicita pacote port\u00e1vel dos dados do titular.",
+        "operationId": "request_data_export_api_v1_me_data_export_post",
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataExportCreatedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Request Data Export",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/v1/me/data-export/{request_id}": {
+      "get": {
+        "operationId": "get_data_export_status_api_v1_me_data_export__request_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataExportStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Data Export Status",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/v1/me/data-export/{request_id}/download": {
+      "get": {
+        "description": "One-shot download. Marca `downloaded` e remove tar.gz ap\u00f3s servir.",
+        "operationId": "download_data_export_api_v1_me_data_export__request_id__download_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "minLength": 8,
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Download Data Export",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/v1/me/delete-request": {
+      "delete": {
+        "operationId": "cancel_account_deletion_api_v1_me_delete_request_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionCanceledResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cancel Account Deletion",
+        "tags": [
+          "me"
+        ]
+      },
+      "post": {
+        "description": "LGPD Art. 18, VI \u2014 soft-delete + grace 30d, bumps token_version.",
+        "operationId": "request_account_deletion_api_v1_me_delete_request_post",
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionRequestResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Request Account Deletion",
+        "tags": [
+          "me"
         ]
       }
     },

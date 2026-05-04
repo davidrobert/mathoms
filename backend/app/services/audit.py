@@ -62,6 +62,16 @@ class AuditAction(str, enum.Enum):
     vault_password_add = "vault.password.add"
     vault_password_delete = "vault.password.delete"
 
+    # LGPD self-service (Art. 18 — direitos do titular)
+    lgpd_export_requested = "lgpd.export_requested"
+    lgpd_export_ready = "lgpd.export_ready"
+    lgpd_export_failed = "lgpd.export_failed"
+    lgpd_export_downloaded = "lgpd.export_downloaded"
+    lgpd_export_expired = "lgpd.export_expired"
+    lgpd_deletion_requested = "lgpd.deletion_requested"
+    lgpd_deletion_canceled = "lgpd.deletion_canceled"
+    lgpd_deletion_completed = "lgpd.deletion_completed"
+
 
 def client_meta(request: Optional[Request] = None) -> tuple[Optional[str], Optional[str]]:
     """Extrai (ip, user_agent) de um Request FastAPI.
