@@ -17,6 +17,8 @@ from typing import Any, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 
+from pipeline.llm.pricing import MODEL_PRICING, estimate_cost_usd
+
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
@@ -77,6 +79,10 @@ class LLMCallResult:
     cost_estimate_usd: float = 0.0
     duration_ms: int = 0
     retries_used: int = 0
+    # False quando o modelo não está em ``_MODEL_PRICING``: ``cost_estimate_usd``
+    # é 0.0 por convenção mas representa "desconhecido", não "grátis". Distingue
+    # provedor sem custo (Ollama local) de pricing missing (modelo novo não-mapeado).
+    cost_known: bool = True
 
 
 @dataclass
@@ -373,7 +379,8 @@ class LLMService:
                     tokens_in=tokens_in,
                     tokens_out=tokens_out,
                     total_tokens=tokens_in + tokens_out,
-                    cost_estimate_usd=cost,
+                    cost_estimate_usd=cost if cost is not None else 0.0,
+                    cost_known=cost is not None,
                     duration_ms=elapsed,
                     retries_used=retries_used,
                 )
@@ -460,29 +467,11 @@ class LLMService:
             retryable=False,
         )
 
-    def _estimate_cost(self, tokens_in: int, tokens_out: int) -> float:
-        """Rough cost estimate based on well-known model pricing."""
-        pricing = _MODEL_PRICING.get(self._config.model_name)
-        if not pricing:
-            for prefix, rates in _MODEL_PRICING.items():
-                if prefix in self._config.model_name:
-                    pricing = rates
-                    break
-        if not pricing:
-            return 0.0
-
-        return (tokens_in * pricing["input"] + tokens_out * pricing["output"]) / 1_000_000
+    def _estimate_cost(self, tokens_in: int, tokens_out: int) -> Optional[float]:
+        """Custo estimado em USD; ``None`` se modelo desconhecido (ver pricing.py)."""
+        return estimate_cost_usd(self._config.model_name, tokens_in, tokens_out)
 
 
-_MODEL_PRICING: dict[str, dict[str, float]] = {
-    "claude-sonnet-4-20250514": {"input": 3.0, "output": 15.0},
-    "claude-3-5-sonnet": {"input": 3.0, "output": 15.0},
-    "claude-3-haiku": {"input": 0.25, "output": 1.25},
-    "claude-3-opus": {"input": 15.0, "output": 75.0},
-    "gpt-4o": {"input": 2.5, "output": 10.0},
-    "gpt-4o-mini": {"input": 0.15, "output": 0.6},
-    "gpt-4-turbo": {"input": 10.0, "output": 30.0},
-    "gpt-3.5-turbo": {"input": 0.5, "output": 1.5},
-    "deepseek-chat": {"input": 0.14, "output": 0.28},
-    "deepseek-reasoner": {"input": 0.55, "output": 2.19},
-}
+# Compat: ``_MODEL_PRICING`` mantido como alias do módulo ``pricing`` para
+# call-sites legados (testes). Source of truth: ``pipeline.llm.pricing``.
+_MODEL_PRICING = MODEL_PRICING
