@@ -48,6 +48,7 @@ celery_app.conf.update(
     include=[
         "backend.app.tasks.pipeline_task",
         "backend.app.tasks.periodic_tasks",
+        "backend.app.tasks.lgpd_export",
     ],
     # F8.4 / ADR-074 — beat schedule para tarefas periódicas.
     # Start beat: celery -A backend.app.worker beat -l info
@@ -55,6 +56,19 @@ celery_app.conf.update(
         "scan-deadlines-daily": {
             "task": "fin.scan_all_deadlines",
             "schedule": 86400.0,  # diário (24h em segundos)
+        },
+        # LGPD self-service — expira tar.gz de exports passados do prazo
+        # de download (default 7d). Roda a cada 6h para reduzir janela de
+        # acesso ao arquivo já vencido.
+        "lgpd-expire-data-exports": {
+            "task": "fin.lgpd.expire_data_exports",
+            "schedule": 21600.0,  # 6h
+        },
+        # LGPD Art. 18, VI — finaliza hard-delete de users marcados >30d
+        # (DELETION_GRACE_DAYS em periodic_tasks).
+        "lgpd-process-user-deletions": {
+            "task": "fin.lgpd.process_user_deletions",
+            "schedule": 86400.0,  # diário
         },
     },
 )
