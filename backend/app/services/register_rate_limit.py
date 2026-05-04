@@ -14,11 +14,12 @@ _TTL_S = 3600
 
 
 def _resolve_limit() -> int:
+    """Lê limite por hora do env. ``0`` ou negativo desabilita o rate limit."""
     raw = os.environ.get("MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR")
-    if not raw:
+    if raw is None:
         return _DEFAULT_LIMIT_PER_HOUR
     try:
-        return max(1, int(raw))
+        return int(raw)
     except ValueError:
         return _DEFAULT_LIMIT_PER_HOUR
 
@@ -47,8 +48,8 @@ def _incr_and_check(client, ip: str) -> tuple[bool, int]:
 
 
 def check_register_rate(ip: Optional[str] = None) -> tuple[bool, int]:
-    """Retorna (allowed, retry_after_s). Falha aberta sem IP/sem Redis."""
-    if not ip:
+    """Retorna (allowed, retry_after_s). Falha aberta sem IP/sem Redis/limite ≤0."""
+    if not ip or _resolve_limit() <= 0:
         return True, 0
     client = _resolve_client()
     if client is None:

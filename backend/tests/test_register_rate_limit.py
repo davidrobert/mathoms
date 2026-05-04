@@ -28,7 +28,12 @@ class _FakeRedis:
 
 
 @pytest.fixture
-def fake_redis() -> _FakeRedis:
+def fake_redis(monkeypatch) -> _FakeRedis:
+    """Fake Redis + reativa rate limit (conftest desabilita por default)."""
+    monkeypatch.setenv(
+        "MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR",
+        str(rate_module._DEFAULT_LIMIT_PER_HOUR),
+    )
     fake = _FakeRedis()
     with patch.object(rate_module, "_resolve_client", return_value=fake):
         yield fake
