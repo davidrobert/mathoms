@@ -256,6 +256,10 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `supersedes_id` | `VARCHAR(36)` | yes | — | FK→decisions.id |
 | `decided_at` | `DATE` | yes | — | — |
 | `executed_at` | `DATE` | yes | — | — |
+| `target_field` | `VARCHAR(64)` | yes | — | — |
+| `target_value` | `VARCHAR(128)` | yes | — | — |
+| `target_value_type` | `VARCHAR(8)` | yes | — | — |
+| `context_snapshot` | `JSON` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
@@ -711,6 +715,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `report_id` | `VARCHAR(36)` | yes | — | FK→reports.id |
 | `section_id` | `VARCHAR(32)` | no | — | — |
 | `kind` | `VARCHAR(64)` | no | — | — |
+| `category` | `VARCHAR(32)` | yes | — | — |
 | `origin` | `VARCHAR(32)` | no | `'deterministic'` | — |
 | `severity` | `VARCHAR(16)` | no | — | — |
 | `title` | `VARCHAR(500)` | no | — | — |
@@ -815,6 +820,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `assigned_to` | `VARCHAR(36)` | yes | — | FK→family_members.id |
 | `created_from` | `VARCHAR(32)` | no | `'manual'` | — |
 | `source_suggestion_id` | `VARCHAR(36)` | yes | — | — |
+| `derived_from_decision_id` | `VARCHAR(36)` | yes | — | FK→decisions.id, INDEX |
 | `board_column` | `VARCHAR(32)` | yes | — | — |
 | `board_order` | `INTEGER` | yes | — | — |
 | `urgency` | `VARCHAR(8)` | yes | — | — |
@@ -830,6 +836,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - FOREIGN KEY (assigned_to) REFERENCES family_members.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (created_by) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (derived_from_decision_id) REFERENCES decisions.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (origin_report_id) REFERENCES reports.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (parent_task_id) REFERENCES tasks.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (related_goal_id) REFERENCES goals.id ON DELETE SET NULL — `(unnamed)`
@@ -840,6 +847,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - `ix_tasks_category` (category)
 - `ix_tasks_deadline_date` (deadline_date)
+- `ix_tasks_derived_from_decision_id` (derived_from_decision_id)
 - `ix_tasks_parent_task_id` (parent_task_id)
 - `ix_tasks_priority` (priority)
 - `ix_tasks_status` (status)
@@ -1058,6 +1066,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `category_templates.default_keywords`
 - `category_templates.metadata_json`
 - `decision_events.payload`
+- `decisions.context_snapshot`
 - `documents.classification_meta`
 - `family_members.extra`
 - `feature_flags.flags_json`
@@ -1236,6 +1245,10 @@ type Decision struct {
 	SupersedesId *string `db:"supersedes_id" json:"supersedes_id"`
 	DecidedAt *time.Time `db:"decided_at" json:"decided_at"`
 	ExecutedAt *time.Time `db:"executed_at" json:"executed_at"`
+	TargetField *string `db:"target_field" json:"target_field"`
+	TargetValue *string `db:"target_value" json:"target_value"`
+	TargetValueType *string `db:"target_value_type" json:"target_value_type"`
+	ContextSnapshot json.RawMessage `db:"context_snapshot" json:"context_snapshot"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
@@ -1555,6 +1568,7 @@ type Suggestion struct {
 	ReportId *string `db:"report_id" json:"report_id"`
 	SectionId string `db:"section_id" json:"section_id"`
 	Kind string `db:"kind" json:"kind"`
+	Category *string `db:"category" json:"category"`
 	Origin string `db:"origin" json:"origin"`
 	Severity string `db:"severity" json:"severity"`
 	Title string `db:"title" json:"title"`
@@ -1628,6 +1642,7 @@ type Task struct {
 	AssignedTo *string `db:"assigned_to" json:"assigned_to"`
 	CreatedFrom string `db:"created_from" json:"created_from"`
 	SourceSuggestionId *string `db:"source_suggestion_id" json:"source_suggestion_id"`
+	DerivedFromDecisionId *string `db:"derived_from_decision_id" json:"derived_from_decision_id"`
 	BoardColumn *string `db:"board_column" json:"board_column"`
 	BoardOrder *int `db:"board_order" json:"board_order"`
 	Urgency *string `db:"urgency" json:"urgency"`

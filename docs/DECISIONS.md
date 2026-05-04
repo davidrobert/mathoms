@@ -8004,7 +8004,7 @@ Sources: [pluggy.ai/en/pricing](https://www.pluggy.ai/en/pricing), [belvo.com/pl
 
 2. **Schema `context_snapshot`** é JSONB **não-validado** por Pydantic — payload evolui livre conforme novos KPIs entram no relatório. Apenas chaves "padronizadas" (acima) são consumidas pela UI; chaves desconhecidas ficam disponíveis para auditoria via API mas não são exibidas.
 
-3. **Migration `f1a2b3c4d5e6_adr163`**: adiciona `decisions.context_snapshot JSONB nullable`. Decisions pré-migration ficam `NULL` — UI degrada para "contexto não capturado".
+3. **Migration `e0f1a2b3c4d5_adr162_163`**: adiciona `decisions.context_snapshot JSONB nullable` (no mesmo migration que os campos `target_*` do ADR-162 — ambos tocam `decisions` e foram aplicados juntos). Decisions pré-migration ficam `NULL` — UI degrada para "contexto não capturado".
 
 4. **Não congela TUDO do snapshot.** Apenas KPIs editoriais relevantes (5-7 campos). Snapshot bruto (~24 campos top-level) seria payload pesado e maioria irrelevante para auditoria.
 
