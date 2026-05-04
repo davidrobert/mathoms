@@ -56,6 +56,7 @@ export function DecisionsSection({ workspaceId }: DecisionsSectionProps) {
         loading={loading}
         decisions={decisions}
         filtered={filtered}
+        workspaceId={workspaceId}
         onNew={handleNew}
         onEdit={handleEdit}
         onSupersede={setSupersedeTarget}
@@ -114,6 +115,7 @@ interface DecisionsBodyProps {
   loading: boolean;
   decisions: ReadonlyArray<Decision>;
   filtered: ReadonlyArray<Decision>;
+  workspaceId: string;
   onNew: () => void;
   onEdit: (decision: Decision) => void;
   onSupersede: (decision: Decision) => void;
@@ -125,6 +127,7 @@ function DecisionsBody({
   loading,
   decisions,
   filtered,
+  workspaceId,
   onNew,
   onEdit,
   onSupersede,
@@ -151,6 +154,7 @@ function DecisionsBody({
           <DecisionCard
             decision={d}
             allDecisions={decisions}
+            workspaceId={workspaceId}
             onEdit={onEdit}
             onSupersede={onSupersede}
             onMarkDecided={onMarkDecided}

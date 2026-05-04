@@ -39,6 +39,8 @@ export interface TaskResponse {
   assigned_to: string | null;
   created_from: TaskCreatedFrom;
   source_suggestion_id: string | null;
+  /** ADR-162 (Onda 8 #3) — sinaliza Tasks geradas a partir de Decision. */
+  derived_from_decision_id: string | null;
   completed_at: string | null;
   cancelled_at: string | null;
   created_by: string | null;
@@ -64,6 +66,8 @@ export interface TaskCreateBody {
   related_goal_id?: string | null;
   assigned_to?: string | null;
   number?: number;
+  /** ADR-162 (Onda 8 #3) — Tasks geradas via DecisionCard "Gerar tarefas". */
+  derived_from_decision_id?: string | null;
 }
 
 export interface TaskUpdateBody {

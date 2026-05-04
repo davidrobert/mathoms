@@ -146,6 +146,15 @@ class Task(Base):
 
     created_from: Mapped[str] = mapped_column(String(32), nullable=False, default="manual")
     source_suggestion_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    # ADR-162 (Onda 8 #3) — Tasks geradas a partir de Decision (botão
+    # "Gerar tarefas" no DecisionCard). Sinaliza aderência metodológica
+    # ("X% das tarefas vêm de decisão").
+    derived_from_decision_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("decisions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     # ADR-154: Kanban view; NULL = task fora do board. Backfill preserva coluna.
     board_column: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)

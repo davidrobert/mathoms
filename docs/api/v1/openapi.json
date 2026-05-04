@@ -6665,6 +6665,17 @@
             ],
             "title": "Deadline Label"
           },
+          "derived_from_decision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derived From Decision Id"
+          },
           "description": {
             "anyOf": [
               {
@@ -6971,6 +6982,17 @@
             ],
             "title": "Deadline Label"
           },
+          "derived_from_decision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derived From Decision Id"
+          },
           "description": {
             "anyOf": [
               {
@@ -7269,6 +7291,17 @@
               }
             ],
             "title": "Deadline Label"
+          },
+          "derived_from_decision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derived From Decision Id"
           },
           "description": {
             "anyOf": [

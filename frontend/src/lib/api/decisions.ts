@@ -12,6 +12,18 @@ export type DecisionStatus =
   | "Descartado"
   | "Superseded";
 
+/** ADR-162 — caminho dot-notation indicando qual campo de Goal a
+ * Decision atualiza ao virar Executada. */
+export type DecisionTargetField =
+  | "goal.if.trs_pct"
+  | "goal.if.renda_passiva_mensal_brl"
+  | "goal.if.horizonte_anos"
+  | "goal.aporte.meta_aporte_mensal_brl"
+  | "goal.dolar.meta_usd"
+  | "goal.dolar.aporte_mensal_brl";
+
+export type DecisionTargetValueType = "pct" | "brl" | "int" | "str";
+
 export interface Decision {
   id: string;
   workspace_id: string;
@@ -24,6 +36,12 @@ export interface Decision {
   supersedes_id: string | null;
   decided_at: string | null;
   executed_at: string | null;
+  /** ADR-162 — projection target. */
+  target_field: DecisionTargetField | string | null;
+  target_value: string | null;
+  target_value_type: DecisionTargetValueType | string | null;
+  /** ADR-163 — KPIs frozen do relatório-fonte da Suggestion. */
+  context_snapshot: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,6 +58,13 @@ export interface DecisionCreatePayload {
   amount_brl?: string | null;
   status?: DecisionStatus;
   decided_at?: string | null;
+  /** ADR-162 — projection target. */
+  target_field?: DecisionTargetField | string | null;
+  target_value?: string | null;
+  target_value_type?: DecisionTargetValueType | null;
+  /** ADR-163 — KPIs frozen do relatório-fonte (preenchido auto pelo
+   * backend ao aceitar Suggestion; UI raramente passa). */
+  context_snapshot?: Record<string, unknown> | null;
 }
 
 export interface DecisionUpdatePayload {
