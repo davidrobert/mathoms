@@ -1,7 +1,7 @@
 {
   "audit_version": "1.0",
-  "generated_at": "2026-05-04T21:07:12Z",
-  "git_commit": "9d4dddd691c5152829d64ce78feaf63741cb2a01",
+  "generated_at": "2026-05-04T21:38:15Z",
+  "git_commit": "04d7b90c161842a86e6a01e80e37453429f8e6fe",
   "offenders": [
     {
       "allowlisted": false,
@@ -3226,8 +3226,8 @@
       "id": "P3-0083",
       "identifier": "generate.snapshot",
       "length": 1,
-      "line_end": 44,
-      "line_start": 44,
+      "line_end": 45,
+      "line_start": 45,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3238,8 +3238,8 @@
       "id": "P3-0084",
       "identifier": "_safe_apply.snapshot",
       "length": 1,
-      "line_end": 55,
-      "line_start": 55,
+      "line_end": 56,
+      "line_start": 56,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3286,8 +3286,8 @@
       "id": "P3-0088",
       "identifier": "rule_alocacao_fora_alvo.snapshot",
       "length": 1,
-      "line_end": 143,
-      "line_start": 143,
+      "line_end": 175,
+      "line_start": 175,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3298,8 +3298,8 @@
       "id": "P3-0089",
       "identifier": "rule_aporte_abaixo_meta.snapshot",
       "length": 1,
-      "line_end": 193,
-      "line_start": 193,
+      "line_end": 293,
+      "line_start": 293,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3310,8 +3310,8 @@
       "id": "P3-0090",
       "identifier": "rule_dolarizacao_atrasada.snapshot",
       "length": 1,
-      "line_end": 225,
-      "line_start": 225,
+      "line_end": 325,
+      "line_start": 325,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3322,8 +3322,8 @@
       "id": "P3-0091",
       "identifier": "_resolve_dolar_field.return",
       "length": 1,
-      "line_end": 251,
-      "line_start": 251,
+      "line_end": 351,
+      "line_start": 351,
       "message": "Dict[str, Any] em return de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3334,8 +3334,8 @@
       "id": "P3-0092",
       "identifier": "_resolve_dolar_field.snapshot",
       "length": 1,
-      "line_end": 251,
-      "line_start": 251,
+      "line_end": 351,
+      "line_start": 351,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3346,8 +3346,8 @@
       "id": "P3-0093",
       "identifier": "rule_endividamento_perigoso.snapshot",
       "length": 1,
-      "line_end": 269,
-      "line_start": 269,
+      "line_end": 369,
+      "line_start": 369,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3358,8 +3358,8 @@
       "id": "P3-0094",
       "identifier": "rule_taxa_poupanca_caindo.snapshot",
       "length": 1,
-      "line_end": 326,
-      "line_start": 326,
+      "line_end": 426,
+      "line_start": 426,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3370,8 +3370,8 @@
       "id": "P3-0095",
       "identifier": "rule_seguros_insuficientes.snapshot",
       "length": 1,
-      "line_end": 370,
-      "line_start": 370,
+      "line_end": 470,
+      "line_start": 470,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3382,8 +3382,8 @@
       "id": "P3-0096",
       "identifier": "rule_concentracao_instituicao.snapshot",
       "length": 1,
-      "line_end": 405,
-      "line_start": 405,
+      "line_end": 505,
+      "line_start": 505,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3394,8 +3394,8 @@
       "id": "P3-0097",
       "identifier": "_institutional_breakdown.snapshot",
       "length": 1,
-      "line_end": 438,
-      "line_start": 438,
+      "line_end": 538,
+      "line_start": 538,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3406,8 +3406,8 @@
       "id": "P3-0098",
       "identifier": "rule_lifestyle_creep.snapshot",
       "length": 1,
-      "line_end": 451,
-      "line_start": 451,
+      "line_end": 551,
+      "line_start": 551,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -3418,8 +3418,8 @@
       "id": "P3-0099",
       "identifier": "rule_renda_passiva_real_baixa.snapshot",
       "length": 1,
-      "line_end": 490,
-      "line_start": 490,
+      "line_end": 590,
+      "line_start": 590,
       "message": "Dict[str, Any] em snapshot de boundary; use Pydantic/DTO tipado",
       "severity": "high"
     },
@@ -10853,18 +10853,6 @@
     },
     {
       "allowlisted": false,
-      "category": "T2_ts_long_files",
-      "file": "frontend/src/app/(app)/acao/_components/SuggestionCard.tsx",
-      "id": "T2-0001",
-      "identifier": "SuggestionCard.tsx",
-      "length": 501,
-      "line_end": 501,
-      "line_start": 1,
-      "message": "TS file 501 lines; max 500",
-      "severity": "med"
-    },
-    {
-      "allowlisted": false,
       "category": "T3_ts_long_functions",
       "file": "frontend/src/app/(app)/pipeline/_components/ActiveRunCard.tsx",
       "id": "T3-0007",
@@ -10918,8 +10906,8 @@
       "id": "T3-0011",
       "identifier": "IFEmptyHero",
       "length": 26,
-      "line_end": 262,
-      "line_start": 237,
+      "line_end": 273,
+      "line_start": 248,
       "message": "TS function 26 lines; max 20 (heur\u00edstica brace-matched)",
       "severity": "med"
     },
@@ -10990,8 +10978,8 @@
       "id": "T3-0017",
       "identifier": "useDashboardData",
       "length": 22,
-      "line_end": 253,
-      "line_start": 232,
+      "line_end": 257,
+      "line_start": 236,
       "message": "TS function 22 lines; max 20 (heur\u00edstica brace-matched)",
       "severity": "med"
     },
@@ -12369,10 +12357,10 @@
       "file": "pipeline/domain/services/suggestion_rules.py",
       "id": "P2-0020",
       "identifier": "suggestion_rules.py",
-      "length": 545,
-      "line_end": 545,
+      "length": 645,
+      "line_end": 645,
       "line_start": 1,
-      "message": "File 545 lines; max 500 (CLAUDE.md 'Arquivos \u2264500 linhas')",
+      "message": "File 645 lines; max 500 (CLAUDE.md 'Arquivos \u2264500 linhas')",
       "severity": "med"
     },
     {
@@ -12405,10 +12393,10 @@
       "file": "pipeline/domain/services/suggestion_rules.py",
       "id": "P1-0762",
       "identifier": "rule_alocacao_fora_alvo",
-      "length": 30,
-      "line_end": 171,
-      "line_start": 142,
-      "message": "Function 30 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
+      "length": 40,
+      "line_end": 213,
+      "line_start": 174,
+      "message": "Function 40 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
     {
@@ -12418,8 +12406,8 @@
       "id": "P1-0763",
       "identifier": "rule_aporte_abaixo_meta",
       "length": 30,
-      "line_end": 221,
-      "line_start": 192,
+      "line_end": 321,
+      "line_start": 292,
       "message": "Function 30 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -12430,8 +12418,8 @@
       "id": "P1-0764",
       "identifier": "rule_dolarizacao_atrasada",
       "length": 25,
-      "line_end": 248,
-      "line_start": 224,
+      "line_end": 348,
+      "line_start": 324,
       "message": "Function 25 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -12442,8 +12430,8 @@
       "id": "P1-0765",
       "identifier": "rule_endividamento_perigoso",
       "length": 27,
-      "line_end": 294,
-      "line_start": 268,
+      "line_end": 394,
+      "line_start": 368,
       "message": "Function 27 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -12454,8 +12442,8 @@
       "id": "P1-0766",
       "identifier": "_endividamento_rationale",
       "length": 26,
-      "line_end": 322,
-      "line_start": 297,
+      "line_end": 422,
+      "line_start": 397,
       "message": "Function 26 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -12466,8 +12454,8 @@
       "id": "P1-0767",
       "identifier": "rule_taxa_poupanca_caindo",
       "length": 32,
-      "line_end": 356,
-      "line_start": 325,
+      "line_end": 456,
+      "line_start": 425,
       "message": "Function 32 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -12478,8 +12466,8 @@
       "id": "P1-0768",
       "identifier": "rule_seguros_insuficientes",
       "length": 33,
-      "line_end": 401,
-      "line_start": 369,
+      "line_end": 501,
+      "line_start": 469,
       "message": "Function 33 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -12490,8 +12478,8 @@
       "id": "P1-0769",
       "identifier": "rule_concentracao_instituicao",
       "length": 32,
-      "line_end": 435,
-      "line_start": 404,
+      "line_end": 535,
+      "line_start": 504,
       "message": "Function 32 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -12502,8 +12490,8 @@
       "id": "P1-0770",
       "identifier": "rule_lifestyle_creep",
       "length": 37,
-      "line_end": 486,
-      "line_start": 450,
+      "line_end": 586,
+      "line_start": 550,
       "message": "Function 37 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -12514,8 +12502,8 @@
       "id": "P1-0771",
       "identifier": "rule_renda_passiva_real_baixa",
       "length": 34,
-      "line_end": 522,
-      "line_start": 489,
+      "line_end": 622,
+      "line_start": 589,
       "message": "Function 34 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -14165,13 +14153,25 @@
     },
     {
       "allowlisted": false,
+      "category": "P2_long_files",
+      "file": "tests/test_suggestion_generator.py",
+      "id": "P2-0027",
+      "identifier": "test_suggestion_generator.py",
+      "length": 551,
+      "line_end": 551,
+      "line_start": 1,
+      "message": "File 551 lines; max 500 (CLAUDE.md 'Arquivos \u2264500 linhas')",
+      "severity": "med"
+    },
+    {
+      "allowlisted": false,
       "category": "P1_long_functions",
       "file": "tests/test_suggestion_generator.py",
       "id": "P1-0903",
       "identifier": "test_all_v2_rules_have_dedup_key_stable_across_runs",
       "length": 26,
-      "line_end": 449,
-      "line_start": 424,
+      "line_end": 508,
+      "line_start": 483,
       "message": "Function 26 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -14182,8 +14182,8 @@
       "id": "P1-0904",
       "identifier": "test_all_11_rules_can_coexist_under_cap",
       "length": 40,
-      "line_end": 491,
-      "line_start": 452,
+      "line_end": 550,
+      "line_start": 511,
       "message": "Function 40 lines; max 20 (CLAUDE.md 'Fun\u00e7\u00f5es 4-20 linhas')",
       "severity": "med"
     },
@@ -14287,7 +14287,7 @@
       "allowlisted": false,
       "category": "P2_long_files",
       "file": "tests/unit/pipeline/test_e3_reconciler_adapter.py",
-      "id": "P2-0027",
+      "id": "P2-0028",
       "identifier": "test_e3_reconciler_adapter.py",
       "length": 583,
       "line_end": 583,
@@ -14491,7 +14491,7 @@
       "allowlisted": false,
       "category": "P2_long_files",
       "file": "tests/unit/pipeline/test_e5_analyzer_adapter.py",
-      "id": "P2-0028",
+      "id": "P2-0029",
       "identifier": "test_e5_analyzer_adapter.py",
       "length": 670,
       "line_end": 670,
@@ -14743,7 +14743,7 @@
       "allowlisted": false,
       "category": "P2_long_files",
       "file": "tests/unit/pipeline/test_patrimonio_calculator.py",
-      "id": "P2-0029",
+      "id": "P2-0030",
       "identifier": "test_patrimonio_calculator.py",
       "length": 756,
       "line_end": 756,
@@ -14863,7 +14863,7 @@
       "allowlisted": false,
       "category": "P2_long_files",
       "file": "tests/unit/pipeline/test_patrimonio_resolvers.py",
-      "id": "P2-0030",
+      "id": "P2-0031",
       "identifier": "test_patrimonio_resolvers.py",
       "length": 679,
       "line_end": 679,
@@ -25365,7 +25365,7 @@
       "file": "pipeline/domain/services/suggestion_generator.py",
       "id": "P7-0754",
       "identifier": "<module>",
-      "length": 12,
+      "length": 13,
       "line_end": 1,
       "line_start": 1,
       "message": "Docstring multi-par\u00e1grafo; preferir 1-linha de intent",
@@ -30188,11 +30188,11 @@
   "summary": {
     "files_scanned": {
       "python": 917,
-      "typescript": 358
+      "typescript": 361
     },
     "offenders_by_category": {
       "P1_long_functions": 993,
-      "P2_long_files": 30,
+      "P2_long_files": 31,
       "P3_dict_str_any_boundary": 99,
       "P4_optional_no_default": 14,
       "P5_float_money": 67,
@@ -30200,7 +30200,6 @@
       "P7_multiparagraph_docstring": 965,
       "P8_what_comments": 43,
       "P9_deep_nesting": 218,
-      "T2_ts_long_files": 1,
       "T3_ts_long_functions": 43,
       "T5_ts_hex_colors": 32
     },
@@ -30222,7 +30221,6 @@
         "P9_deep_nesting": 18
       },
       "frontend/": {
-        "T2_ts_long_files": 1,
         "T3_ts_long_functions": 43,
         "T5_ts_hex_colors": 32
       },
@@ -30244,7 +30242,7 @@
       },
       "tests/": {
         "P1_long_functions": 120,
-        "P2_long_files": 4,
+        "P2_long_files": 5,
         "P5_float_money": 12,
         "P7_multiparagraph_docstring": 53,
         "P9_deep_nesting": 8
