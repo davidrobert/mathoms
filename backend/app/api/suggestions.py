@@ -121,6 +121,7 @@ async def accept_suggestion(
         suggestion_repo=suggestion_repo_dep,
         decision_repo=decision_repo_dep,
         actor=_actor_id(user),
+        db=db,  # ADR-163 — context_snapshot do relatório-fonte
     )
     await db.commit()
     return response
@@ -147,6 +148,7 @@ async def modify_suggestion(
         suggestion_repo=suggestion_repo_dep,
         decision_repo=decision_repo_dep,
         actor=_actor_id(user),
+        db=db,  # ADR-163 — context_snapshot do relatório-fonte
     )
     await db.commit()
     return response

@@ -48,8 +48,11 @@ VALID_DECISION_STATUSES: frozenset[str] = frozenset(
 )
 
 VALID_DECISION_EVENT_TYPES: frozenset[str] = frozenset(
-    {"Created", "StatusChanged", "Superseded", "Executed", "Updated"}
+    {"Created", "StatusChanged", "Superseded", "Executed", "Updated", "GoalProjected"}
 )
+
+# ADR-162 — tipos de valor aceitos no `target_value` para parsing.
+VALID_TARGET_VALUE_TYPES: frozenset[str] = frozenset({"pct", "brl", "int", "str"})
 
 
 class Decision(Base):
@@ -76,6 +79,15 @@ class Decision(Base):
     )
     decided_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     executed_at: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    # ADR-162 — projection target. Quando populado, marcar Decision como
+    # ``Executado`` cria nova versão do Goal correspondente na mesma
+    # transação. Ver `backend.app.services.decision_goal_projection`.
+    target_field: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    target_value: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    target_value_type: Mapped[Optional[str]] = mapped_column(String(8), nullable=True)
+    # ADR-163 — KPIs frozen do relatório que originou a Suggestion (quando
+    # Decision veio de aceitar Suggestion). JSON livre para evoluir.
+    context_snapshot: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

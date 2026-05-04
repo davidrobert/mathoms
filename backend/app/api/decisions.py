@@ -134,6 +134,7 @@ async def execute_decision(
         decision_id=decision_id,
         repo=repo,
         actor=_actor_id(user),
+        db=db,  # ADR-162 — projection sobre Goals na mesma transação
     )
     await db.commit()
     return response

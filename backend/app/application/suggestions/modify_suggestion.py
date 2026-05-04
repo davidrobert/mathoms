@@ -8,6 +8,8 @@ no histórico.
 
 from __future__ import annotations
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.app.application.decisions._protocols import (
     DecisionRepositoryProtocol,
 )
@@ -16,6 +18,7 @@ from backend.app.application.suggestions._protocols import (
 )
 from backend.app.application.suggestions.accept_suggestion import (
     _apply_acceptance,
+    _build_context_snapshot,
     _create_decision_from,
     _load_pending,
 )
@@ -36,11 +39,13 @@ async def modify_suggestion(
     suggestion_repo: SuggestionRepositoryProtocol,
     decision_repo: DecisionRepositoryProtocol,
     actor: str,
+    db: AsyncSession | None = None,
 ) -> SuggestionResponse:
     suggestion = await _load_pending(workspace_id, suggestion_id, suggestion_repo)
     final_amount = (
         cmd.amount_brl if cmd.amount_brl is not None else cents_to_brl(suggestion.amount_brl_cents)
     )
+    snapshot = await _build_context_snapshot(suggestion, db=db)
     accept_cmd = AcceptSuggestionCommand(decision_code=cmd.decision_code, note=cmd.note)
     decision = await _create_decision_from(
         suggestion,
@@ -51,6 +56,7 @@ async def modify_suggestion(
         workspace_id=workspace_id,
         modified_title=cmd.title,
         modified_rationale=cmd.rationale,
+        context_snapshot=snapshot,
     )
     _apply_acceptance(suggestion, decision_id=decision.id, target_status="Modificada")
     await suggestion_repo.add(suggestion)

@@ -36,6 +36,10 @@ async def create_decision(
         amount_brl_cents=brl_to_cents(cmd.amount_brl),
         status=cmd.status,
         decided_at=cmd.decided_at,
+        target_field=cmd.target_field,
+        target_value=cmd.target_value,
+        target_value_type=cmd.target_value_type,
+        context_snapshot=cmd.context_snapshot,
     )
     added = await repo.add(decision)
     await _emit_created_event(repo, added, actor=actor)
