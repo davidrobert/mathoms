@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, Pencil, Replace } from "lucide-react";
+import { ArrowRight, ListPlus, Pencil, Replace } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,11 +10,13 @@ import { MonetaryValue } from "@/components/report/MonetaryValue";
 import { ApiError, type Decision, type DecisionStatus } from "@/lib/api";
 
 import { DecisionStatusBadge } from "./DecisionStatusBadge";
+import { GenerateTasksDialog } from "./GenerateTasksDialog";
 import { findSupersededBy, formatDecisionDate } from "./decisionsCopy";
 
 interface DecisionCardProps {
   decision: Decision;
   allDecisions: ReadonlyArray<Decision>;
+  workspaceId: string;
   onEdit: (decision: Decision) => void;
   onSupersede: (decision: Decision) => void;
   onMarkDecided: (decisionId: string) => Promise<void>;
@@ -24,11 +26,13 @@ interface DecisionCardProps {
 export function DecisionCard({
   decision,
   allDecisions,
+  workspaceId,
   onEdit,
   onSupersede,
   onMarkDecided,
   onExecute,
 }: DecisionCardProps) {
+  const [generateOpen, setGenerateOpen] = useState(false);
   return (
     <Card className="transition-colors hover:border-border">
       <CardContent className="flex flex-col gap-3 py-4">
@@ -39,6 +43,7 @@ export function DecisionCard({
             {decision.rationale}
           </p>
         )}
+        <DecisionContextSnapshot decision={decision} />
         <DecisionDates decision={decision} />
         <DecisionRelations decision={decision} allDecisions={allDecisions} />
         <DecisionActions
@@ -47,9 +52,45 @@ export function DecisionCard({
           onSupersede={onSupersede}
           onMarkDecided={onMarkDecided}
           onExecute={onExecute}
+          onGenerateTasks={() => setGenerateOpen(true)}
         />
       </CardContent>
+      <GenerateTasksDialog
+        workspaceId={workspaceId}
+        decision={decision}
+        open={generateOpen}
+        onOpenChange={setGenerateOpen}
+      />
     </Card>
+  );
+}
+
+function DecisionContextSnapshot({ decision }: { decision: Decision }) {
+  // ADR-163 — exibe KPIs frozen do relatório-fonte quando presentes.
+  // Valores são "do momento da aceitação", não atuais.
+  const snap = decision.context_snapshot;
+  if (!snap || typeof snap !== "object") return null;
+  const patrimonio =
+    typeof snap.patrimonio_brl === "number" ? snap.patrimonio_brl : null;
+  const ifProgress =
+    typeof snap.if_progress_pct === "number" ? snap.if_progress_pct : null;
+  const trs =
+    typeof snap.trs_pct_when_decided === "number"
+      ? snap.trs_pct_when_decided
+      : null;
+  if (patrimonio === null && ifProgress === null && trs === null) return null;
+  return (
+    <p className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
+      Decidida com base em:
+      {patrimonio !== null && (
+        <>
+          <span> Patrimônio </span>
+          <MonetaryValue value={patrimonio} size="body" />
+        </>
+      )}
+      {ifProgress !== null && <span>· IF {ifProgress.toFixed(0)}%</span>}
+      {trs !== null && <span>· TRS {trs.toFixed(1)}%</span>}
+    </p>
   );
 }
 
@@ -130,6 +171,7 @@ interface DecisionActionsProps {
   onSupersede: (decision: Decision) => void;
   onMarkDecided: (decisionId: string) => Promise<void>;
   onExecute: (decisionId: string) => Promise<void>;
+  onGenerateTasks: () => void;
 }
 
 type ActionKind = "decide" | "execute";
@@ -201,7 +243,12 @@ function PrimaryActions({
   return null;
 }
 
-function SecondaryActions({ decision, onEdit, onSupersede }: DecisionActionsProps) {
+function SecondaryActions({
+  decision,
+  onEdit,
+  onSupersede,
+  onGenerateTasks,
+}: DecisionActionsProps) {
   return (
     <>
       {canEdit(decision.status) && (
@@ -214,6 +261,14 @@ function SecondaryActions({ decision, onEdit, onSupersede }: DecisionActionsProp
         <Button size="sm" variant="ghost" onClick={() => onSupersede(decision)}>
           <Replace className="mr-1 h-3.5 w-3.5" />
           Substituir
+        </Button>
+      )}
+      {/* ADR-162 (Onda 8 #3) — botão "Gerar tarefas" disponível assim que
+          a decisão é firmada (Decidido) ou aplicada (Executado). */}
+      {(decision.status === "Decidido" || decision.status === "Executado") && (
+        <Button size="sm" variant="ghost" onClick={onGenerateTasks}>
+          <ListPlus className="mr-1 h-3.5 w-3.5" />
+          Gerar tarefas
         </Button>
       )}
     </>

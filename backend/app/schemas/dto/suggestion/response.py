@@ -23,6 +23,7 @@ class SuggestionResponse(BaseModel):
     report_id: Optional[str] = None
     section_id: str
     kind: str
+    category: Optional[str] = None  # ADR-161 — agrupamento semântico
     origin: str
     severity: str
     title: str
@@ -55,3 +56,17 @@ class SuggestionRegenerateResponse(BaseModel):
     skipped_cap: int
     total_drafts: int
     suggestions: list[SuggestionResponse]
+
+
+class SuggestionsSummaryResponse(BaseModel):
+    """Sumário de sugestões pendentes (ADR-161 · Onda 8 #5).
+
+    Substitui ``SuggestionCountResponse`` em call-sites que precisam
+    refletir severidade (banner em /plano). Retorna ``count``,
+    ``max_severity`` (severidade dominante para tom do banner) e
+    ``by_category`` (contagem agrupada para hover/filtros).
+    """
+
+    count: int
+    max_severity: Optional[str] = None  # "danger" | "warning" | "info" | None
+    by_category: dict[str, int] = {}  # noqa: RUF012

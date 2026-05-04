@@ -26,8 +26,9 @@ def gen() -> SuggestionGenerator:
     return SuggestionGenerator(SuggestionGeneratorConfig())
 
 
-def test_constants_match_adr_153():
-    assert SUGGESTION_CAP == 6
+def test_constants_match_adr_161():
+    # ADR-161 (Onda 8): cap sobe de 6 → 8 com 11 regras candidatas.
+    assert SUGGESTION_CAP == 8
     assert DISMISS_RESPECT_WINDOW_DAYS == 90
 
 
@@ -261,3 +262,289 @@ def test_alocacao_rationale_degrada_sem_pcts(gen):
     assert "renda_variavel" in d.rationale
     assert "atual" not in d.rationale  # não inventa números
     assert "| Classe |" not in d.rationale  # sem tabela quando dados faltam
+
+
+# =============================================================================
+# ADR-161 (Onda 8) — 6 regras canônicas v2 (Cerbasi/AUVP/Perini completos)
+# =============================================================================
+
+
+def test_category_is_inferred_from_kind():
+    """Category é auto-derivada via KIND_TO_CATEGORY se não explicitada."""
+    d = SuggestionDraft(
+        section_id="S2",
+        kind="reserva_insuficiente",
+        severity="warning",
+        title="t",
+        rationale="r",
+        dedup_key="abcd1234",
+    )
+    assert d.category == "protecao"
+
+
+def test_endividamento_perigoso_pct_acima_30(gen):
+    """Cerbasi/AUVP — dívidas > 30% do bruto dispara `danger`."""
+    snapshot = {"endividamento": {"percentual_patrimonio": 35.0, "total_dividas": 350_000.0}}
+    drafts = gen.generate(snapshot)
+    d = next(d for d in drafts if d.kind == "endividamento_perigoso")
+    assert d.severity == "danger"
+    assert d.category == "endividamento"
+    assert d.amount_brl == Decimal("350000.00")
+
+
+def test_endividamento_perigoso_carry_negativo(gen):
+    """Custo > retorno esperado dispara mesmo com %patrimônio baixo."""
+    snapshot = {
+        "endividamento": {
+            "percentual_patrimonio": 10.0,  # baixo
+            "total_dividas": 50_000.0,
+            "custo_medio_pct_aa": 18.0,  # alto
+        },
+        "goals": {"retorno_esperado_pct_aa": 8.0},  # menor que custo
+    }
+    drafts = gen.generate(snapshot)
+    d = next(d for d in drafts if d.kind == "endividamento_perigoso")
+    assert d.severity == "danger"
+    assert "custo médio" in d.rationale.lower() or "carrego" in d.rationale.lower()
+
+
+def test_endividamento_dentro_limite_skips(gen):
+    snapshot = {"endividamento": {"percentual_patrimonio": 15.0, "total_dividas": 50_000.0}}
+    assert all(d.kind != "endividamento_perigoso" for d in gen.generate(snapshot))
+
+
+def test_taxa_poupanca_caindo_2_quedas_consecutivas(gen):
+    """Cerbasi · comportamental — duas quedas >5pp consecutivas."""
+    # 4 trimestres: 30% → 24% (-6pp) → 18% (-6pp) → 17% (-1pp)
+    # Janela analisada: últimos 3 trimestres (consecutive_quarters+1=3) = [24, 18, 17]
+    # Quedas: 24→18 = -6 (queda) ✓, 18→17 = -1 (não queda)
+    # → drops_consecutive sai 1, depois reset a 0 → não dispara
+    # Quero exatamente 2 consecutivas → [30, 24, 18]
+    snapshot = {
+        "fluxo_caixa": {
+            "taxa_poupanca_trimestral_historico": [30.0, 24.0, 18.0],
+        }
+    }
+    drafts = gen.generate(snapshot)
+    d = next(d for d in drafts if d.kind == "taxa_poupanca_caindo")
+    assert d.severity == "warning"
+    assert d.category == "comportamental"
+
+
+def test_taxa_poupanca_uma_queda_so_skips(gen):
+    """1 queda + estável → não dispara (precisa 2 consecutivas)."""
+    snapshot = {
+        "fluxo_caixa": {
+            "taxa_poupanca_trimestral_historico": [30.0, 24.0, 23.0],
+        }
+    }
+    assert all(d.kind != "taxa_poupanca_caindo" for d in gen.generate(snapshot))
+
+
+def test_taxa_poupanca_historico_curto_skips(gen):
+    """Histórico < 3 trimestres → skip silencioso."""
+    snapshot = {"fluxo_caixa": {"taxa_poupanca_trimestral_historico": [30.0, 24.0]}}
+    assert all(d.kind != "taxa_poupanca_caindo" for d in gen.generate(snapshot))
+
+
+def test_seguros_insuficientes_renda_pj_alta_sem_seguro(gen):
+    """Renda PJ > 50k AND vida_invalidez=False → danger."""
+    snapshot = {
+        "fluxo_caixa": {"renda_pj_mensal": 80_000.0},
+        "seguros": {"vida_invalidez": False},
+    }
+    drafts = gen.generate(snapshot)
+    d = next(d for d in drafts if d.kind == "seguros_insuficientes")
+    assert d.severity == "danger"
+    assert d.category == "protecao"
+
+
+def test_seguros_com_protecao_skips(gen):
+    snapshot = {
+        "fluxo_caixa": {"renda_pj_mensal": 80_000.0},
+        "seguros": {"vida_invalidez": True},
+    }
+    assert all(d.kind != "seguros_insuficientes" for d in gen.generate(snapshot))
+
+
+def test_seguros_sem_campo_seguros_skips_silenciosamente(gen):
+    """Sem snapshot.seguros → não inferir ausência (falso-positivo)."""
+    snapshot = {"fluxo_caixa": {"renda_pj_mensal": 80_000.0}}
+    assert all(d.kind != "seguros_insuficientes" for d in gen.generate(snapshot))
+
+
+def test_concentracao_instituicao_acima_40_pct(gen):
+    """AUVP — algum banco > 40% do investível."""
+    snapshot = {
+        "patrimonio": {
+            "por_instituicao": {
+                "btgpactual": 600_000.0,  # 60% — fora do limite
+                "itau": 200_000.0,
+                "xpinvestimentos": 200_000.0,
+            }
+        }
+    }
+    drafts = gen.generate(snapshot)
+    d = next(d for d in drafts if d.kind == "concentracao_instituicao")
+    assert d.severity == "warning"
+    assert "btgpactual" in d.title.lower()
+    assert d.category == "carteira"
+
+
+def test_concentracao_distribuida_skips(gen):
+    snapshot = {
+        "patrimonio": {
+            "por_instituicao": {
+                "btgpactual": 350_000.0,  # 35% — dentro do limite
+                "itau": 350_000.0,
+                "xpinvestimentos": 300_000.0,
+            }
+        }
+    }
+    assert all(d.kind != "concentracao_instituicao" for d in gen.generate(snapshot))
+
+
+def test_lifestyle_creep_acima_inflacao_x1_5(gen):
+    """Cerbasi/Perini — despesa essencial cresce 12% em 6m vs 5% inflação (×1.5=7.5%)."""
+    snapshot = {
+        "fluxo_caixa": {
+            "despesa_essencial_historico": [
+                10_000.0,
+                10_500.0,
+                10_800.0,
+                11_000.0,
+                11_300.0,
+                11_200.0,  # +12% vs primeiro
+            ]
+        },
+        "inflacao": {"acumulada_pct_no_periodo": 5.0},  # 5% × 1.5 = 7.5pp threshold
+    }
+    drafts = gen.generate(snapshot)
+    d = next(d for d in drafts if d.kind == "lifestyle_creep")
+    assert d.severity == "warning"
+    assert d.category == "comportamental"
+
+
+def test_lifestyle_creep_dentro_inflacao_skips(gen):
+    snapshot = {
+        "fluxo_caixa": {
+            "despesa_essencial_historico": [
+                10_000.0,
+                10_100.0,
+                10_200.0,
+                10_300.0,
+                10_400.0,
+                10_500.0,  # +5% vs primeiro
+            ]
+        },
+        "inflacao": {"acumulada_pct_no_periodo": 5.0},
+    }
+    assert all(d.kind != "lifestyle_creep" for d in gen.generate(snapshot))
+
+
+def test_renda_passiva_real_baixa_progresso_alto_renda_baixa(gen):
+    """Perini "300" — IF 60% mas renda passiva cobre só 20% do custo."""
+    snapshot = {
+        "goals": {"progresso_if_pct": 60.0},
+        "fluxo_caixa": {
+            "renda_passiva_mensal_atual": 4_000.0,
+            "despesa_mensal_media": 20_000.0,  # 20% cobertura
+        },
+    }
+    drafts = gen.generate(snapshot)
+    d = next(d for d in drafts if d.kind == "renda_passiva_real_baixa")
+    assert d.severity == "info"
+    assert d.category == "alvo_if"
+
+
+def test_renda_passiva_progresso_baixo_skips(gen):
+    """IF < 50% → skip (alvo Perini só faz sentido após metade do plano)."""
+    snapshot = {
+        "goals": {"progresso_if_pct": 30.0},
+        "fluxo_caixa": {
+            "renda_passiva_mensal_atual": 1_000.0,
+            "despesa_mensal_media": 20_000.0,
+        },
+    }
+    assert all(d.kind != "renda_passiva_real_baixa" for d in gen.generate(snapshot))
+
+
+def test_renda_passiva_cobertura_acima_meta_skips(gen):
+    snapshot = {
+        "goals": {"progresso_if_pct": 70.0},
+        "fluxo_caixa": {
+            "renda_passiva_mensal_atual": 8_000.0,
+            "despesa_mensal_media": 20_000.0,  # 40% cobertura — acima do alvo 30%
+        },
+    }
+    assert all(d.kind != "renda_passiva_real_baixa" for d in gen.generate(snapshot))
+
+
+def test_all_v2_rules_have_dedup_key_stable_across_runs(gen):
+    """Estabilidade de dedup_key para todas as regras v2 (idempotência ADR-153)."""
+    snapshot = {
+        "endividamento": {"percentual_patrimonio": 35.0, "total_dividas": 350_000.0},
+        "fluxo_caixa": {
+            "taxa_poupanca_trimestral_historico": [30.0, 24.0, 18.0],
+            "renda_pj_mensal": 80_000.0,
+            "despesa_essencial_historico": [10_000, 10_500, 10_800, 11_000, 11_300, 11_200],
+            "renda_passiva_mensal_atual": 4_000.0,
+            "despesa_mensal_media": 20_000.0,
+        },
+        "seguros": {"vida_invalidez": False},
+        "patrimonio": {"por_instituicao": {"btgpactual": 600_000.0, "itau": 200_000.0}},
+        "inflacao": {"acumulada_pct_no_periodo": 5.0},
+        "goals": {"progresso_if_pct": 60.0},
+    }
+    drafts1 = {d.kind: d.dedup_key for d in gen.generate(snapshot)}
+    drafts2 = {d.kind: d.dedup_key for d in gen.generate(snapshot)}
+    assert drafts1 == drafts2
+    # All 6 v2 rules fired
+    assert "endividamento_perigoso" in drafts1
+    assert "taxa_poupanca_caindo" in drafts1
+    assert "seguros_insuficientes" in drafts1
+    assert "concentracao_instituicao" in drafts1
+    assert "lifestyle_creep" in drafts1
+    assert "renda_passiva_real_baixa" in drafts1
+
+
+def test_all_11_rules_can_coexist_under_cap(gen):
+    """Smoke: 11 regras possíveis, cap=8 trunca para 8."""
+    snapshot = {
+        # v1
+        "goals": {
+            "taxa_retirada_efetiva_pct": 5.0,
+            "progresso_if_pct": 60.0,
+            "retorno_esperado_pct_aa": 8.0,
+        },
+        "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},
+        "investimentos": {"desvios_alvo": [{"classe": "X", "desvio_pp": 30.0}]},
+        "fluxo_caixa": {
+            "aporte_medio_3m": 100.0,
+            "aporte_meta_mensal": 1000.0,
+            "taxa_poupanca_trimestral_historico": [30.0, 24.0, 18.0],
+            "renda_pj_mensal": 80_000.0,
+            "despesa_essencial_historico": [10_000, 10_500, 10_800, 11_000, 11_300, 11_200],
+            "renda_passiva_mensal_atual": 4_000.0,
+            "despesa_mensal_media": 20_000.0,
+        },
+        "dolarizacao": {"cobertura_pct": 0.0, "meta_pct": 50.0},
+        # v2
+        "endividamento": {
+            "percentual_patrimonio": 35.0,
+            "total_dividas": 350_000.0,
+            "custo_medio_pct_aa": 18.0,
+        },
+        "seguros": {"vida_invalidez": False},
+        "patrimonio": {"por_instituicao": {"btgpactual": 600_000.0, "itau": 200_000.0}},
+        "inflacao": {"acumulada_pct_no_periodo": 5.0},
+    }
+    drafts = gen.generate(snapshot)
+    assert len(drafts) == SUGGESTION_CAP  # ranqueado e truncado em 8
+    # Todas dangers vêm primeiro
+    severities = [d.severity for d in drafts]
+    severity_rank = {"danger": 3, "warning": 2, "info": 1}
+    assert all(
+        severity_rank[severities[i]] >= severity_rank[severities[i + 1]]
+        for i in range(len(severities) - 1)
+    )

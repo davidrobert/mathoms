@@ -13,7 +13,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from backend.app.models.decision import VALID_DECISION_STATUSES
+from backend.app.models.decision import VALID_DECISION_STATUSES, VALID_TARGET_VALUE_TYPES
 
 
 class DecisionCreateCommand(BaseModel):
@@ -29,12 +29,29 @@ class DecisionCreateCommand(BaseModel):
     )
     status: str = "Pendente"
     decided_at: Optional[date] = None
+    # ADR-162 — projection target.
+    target_field: Optional[str] = Field(None, max_length=64)
+    target_value: Optional[str] = Field(None, max_length=128)
+    target_value_type: Optional[str] = Field(None, max_length=8)
+    # ADR-163 — KPIs frozen do relatório-fonte.
+    context_snapshot: Optional[dict] = None
 
     @field_validator("status")
     @classmethod
     def _validate_status(cls, v: str) -> str:
         if v not in VALID_DECISION_STATUSES:
             raise ValueError(f"status inválido: {v!r}; aceitos: {sorted(VALID_DECISION_STATUSES)}")
+        return v
+
+    @field_validator("target_value_type")
+    @classmethod
+    def _validate_target_value_type(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if v not in VALID_TARGET_VALUE_TYPES:
+            raise ValueError(
+                f"target_value_type inválido: {v!r}; aceitos: {sorted(VALID_TARGET_VALUE_TYPES)}"
+            )
         return v
 
 

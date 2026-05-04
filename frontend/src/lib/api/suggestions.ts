@@ -18,11 +18,27 @@ export type SuggestionSeverity = "info" | "warning" | "danger";
 export type SuggestionAggregateOrigin = "deterministic" | "llm";
 
 export type SuggestionKind =
+  // v1 (ADR-153)
   | "trs_desalinhada"
   | "reserva_insuficiente"
   | "alocacao_fora_alvo"
   | "aporte_abaixo_meta"
-  | "dolarizacao_atrasada";
+  | "dolarizacao_atrasada"
+  // v2 (ADR-161 — Onda 8)
+  | "endividamento_perigoso"
+  | "taxa_poupanca_caindo"
+  | "seguros_insuficientes"
+  | "concentracao_instituicao"
+  | "lifestyle_creep"
+  | "renda_passiva_real_baixa";
+
+export type SuggestionCategory =
+  | "alvo_if"
+  | "carteira"
+  | "protecao"
+  | "comportamental"
+  | "endividamento"
+  | "usa_plano";
 
 export type DismissReason =
   | "ja_considerei"
@@ -45,6 +61,8 @@ export interface Suggestion {
   report_id: string | null;
   section_id: string;
   kind: SuggestionKind | string;
+  /** ADR-161 — agrupamento semântico cross-kind. Null em registros pré-migration. */
+  category: SuggestionCategory | string | null;
   origin: SuggestionAggregateOrigin | string;
   severity: SuggestionSeverity;
   title: string;
@@ -68,6 +86,15 @@ export interface SuggestionListResponse {
 export interface SuggestionCountResponse {
   count: number;
   status: string | null;
+}
+
+/** ADR-161 (Onda 8 #5) — sumário com severidade dominante e contagem
+ * por categoria. Substitui `SuggestionCountResponse` em call-sites que
+ * precisam refletir severidade na UI (banner em /plano). */
+export interface SuggestionsSummaryResponse {
+  count: number;
+  max_severity: SuggestionSeverity | null;
+  by_category: Record<string, number>;
 }
 
 export interface SuggestionRegenerateResponse {
@@ -112,6 +139,14 @@ export async function countSuggestions(
 ): Promise<SuggestionCountResponse> {
   return apiFetch<SuggestionCountResponse>(
     `/workspaces/${workspaceId}/suggestions/count?status=${encodeURIComponent(status)}`,
+  );
+}
+
+export async function getSuggestionsSummary(
+  workspaceId: string,
+): Promise<SuggestionsSummaryResponse> {
+  return apiFetch<SuggestionsSummaryResponse>(
+    `/workspaces/${workspaceId}/suggestions/summary`,
   );
 }
 

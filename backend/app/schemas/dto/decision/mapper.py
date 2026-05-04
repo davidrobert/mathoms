@@ -41,6 +41,10 @@ def decision_to_response(decision: Decision) -> DecisionResponse:
         supersedes_id=decision.supersedes_id,
         decided_at=decision.decided_at,
         executed_at=decision.executed_at,
+        target_field=decision.target_field,
+        target_value=decision.target_value,
+        target_value_type=decision.target_value_type,
+        context_snapshot=decision.context_snapshot,
         created_at=decision.created_at,
         updated_at=decision.updated_at,
     )

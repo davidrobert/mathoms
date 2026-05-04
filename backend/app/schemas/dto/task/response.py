@@ -35,6 +35,8 @@ class TaskBase(BaseModel):
     related_transaction_id: Optional[str] = None
     related_goal_id: Optional[str] = None
     assigned_to: Optional[str] = None
+    # ADR-162 (Onda 8 #3) — Tasks geradas via DecisionCard "Gerar tarefas".
+    derived_from_decision_id: Optional[str] = None
 
 
 class TaskResponse(TaskBase):

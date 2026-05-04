@@ -29,6 +29,12 @@ class DecisionResponse(BaseModel):
     supersedes_id: Optional[str] = None
     decided_at: Optional[date] = None
     executed_at: Optional[date] = None
+    # ADR-162 — projection target (visível para UI mostrar "Atualiza Goal X").
+    target_field: Optional[str] = None
+    target_value: Optional[str] = None
+    target_value_type: Optional[str] = None
+    # ADR-163 — KPIs frozen do relatório-fonte da Suggestion.
+    context_snapshot: Optional[dict] = None
     created_at: datetime
     updated_at: datetime
 

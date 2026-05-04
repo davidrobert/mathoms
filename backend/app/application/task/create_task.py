@@ -52,6 +52,7 @@ async def create_task(
         related_transaction_id=cmd.related_transaction_id,
         related_goal_id=cmd.related_goal_id,
         assigned_to=cmd.assigned_to,
+        derived_from_decision_id=cmd.derived_from_decision_id,
         created_by=created_by,
         created_from=created_from,
         source_suggestion_id=source_suggestion_id,

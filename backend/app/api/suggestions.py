@@ -29,6 +29,9 @@ from backend.app.application.suggestions import (
     dismiss_suggestion as _uc_dismiss_suggestion,
 )
 from backend.app.application.suggestions import (
+    get_pending_summary as _uc_get_pending_summary,
+)
+from backend.app.application.suggestions import (
     get_suggestion as _uc_get_suggestion,
 )
 from backend.app.application.suggestions import (
@@ -56,6 +59,7 @@ from backend.app.schemas.dto.suggestion import (
     SuggestionListResponse,
     SuggestionRegenerateResponse,
     SuggestionResponse,
+    SuggestionsSummaryResponse,
 )
 
 router = APIRouter(prefix="/workspaces/{workspace_id}", tags=["suggestions"])
@@ -91,6 +95,15 @@ async def count_suggestions(
     return await _uc_count_suggestions(workspace.id, status=status_filter, repo=repo)
 
 
+@router.get("/suggestions/summary", response_model=SuggestionsSummaryResponse)
+async def suggestions_summary(
+    workspace: Workspace = Depends(get_current_workspace),
+    repo: SuggestionRepository = Depends(_suggestion_repo),
+) -> SuggestionsSummaryResponse:
+    """ADR-161 — sumário de pendentes (count + max_severity + by_category)."""
+    return await _uc_get_pending_summary(workspace.id, repo=repo)
+
+
 @router.get("/suggestions/{suggestion_id}", response_model=SuggestionResponse)
 async def get_suggestion(
     suggestion_id: str,
@@ -121,6 +134,7 @@ async def accept_suggestion(
         suggestion_repo=suggestion_repo_dep,
         decision_repo=decision_repo_dep,
         actor=_actor_id(user),
+        db=db,  # ADR-163 — context_snapshot do relatório-fonte
     )
     await db.commit()
     return response
@@ -147,6 +161,7 @@ async def modify_suggestion(
         suggestion_repo=suggestion_repo_dep,
         decision_repo=decision_repo_dep,
         actor=_actor_id(user),
+        db=db,  # ADR-163 — context_snapshot do relatório-fonte
     )
     await db.commit()
     return response

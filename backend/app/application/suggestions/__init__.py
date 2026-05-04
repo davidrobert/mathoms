@@ -9,11 +9,13 @@ from backend.app.application.suggestions.modify_suggestion import modify_suggest
 from backend.app.application.suggestions.regenerate_for_report import (
     regenerate_for_report,
 )
+from backend.app.application.suggestions.summary import get_pending_summary
 
 __all__ = [
     "accept_suggestion",
     "count_suggestions",
     "dismiss_suggestion",
+    "get_pending_summary",
     "get_suggestion",
     "list_suggestions",
     "modify_suggestion",
