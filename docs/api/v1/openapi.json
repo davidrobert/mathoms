@@ -1818,6 +1818,18 @@
             "title": "Code",
             "type": "string"
           },
+          "context_snapshot": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Snapshot"
+          },
           "decided_at": {
             "anyOf": [
               {
@@ -1845,6 +1857,42 @@
             "default": "Pendente",
             "title": "Status",
             "type": "string"
+          },
+          "target_field": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Field"
+          },
+          "target_value": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Value"
+          },
+          "target_value_type": {
+            "anyOf": [
+              {
+                "maxLength": 8,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Value Type"
           },
           "title": {
             "maxLength": 500,
@@ -1932,6 +1980,18 @@
             "title": "Code",
             "type": "string"
           },
+          "context_snapshot": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Snapshot"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -1990,6 +2050,39 @@
               }
             ],
             "title": "Supersedes Id"
+          },
+          "target_field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Field"
+          },
+          "target_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Value"
+          },
+          "target_value_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Value Type"
           },
           "title": {
             "title": "Title",
@@ -6285,6 +6378,17 @@
             ],
             "title": "Amount Brl"
           },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -6380,6 +6484,39 @@
           "updated_at"
         ],
         "title": "SuggestionResponse",
+        "type": "object"
+      },
+      "SuggestionsSummaryResponse": {
+        "description": "Sum\u00e1rio de sugest\u00f5es pendentes (ADR-161 \u00b7 Onda 8 #5).\n\nSubstitui ``SuggestionCountResponse`` em call-sites que precisam\nrefletir severidade (banner em /plano). Retorna ``count``,\n``max_severity`` (severidade dominante para tom do banner) e\n``by_category`` (contagem agrupada para hover/filtros).",
+        "properties": {
+          "by_category": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "default": {},
+            "title": "By Category",
+            "type": "object"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "max_severity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Severity"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "SuggestionsSummaryResponse",
         "type": "object"
       },
       "TaskAttachmentListResponse": {
@@ -15911,6 +16048,54 @@
           }
         ],
         "summary": "Count Suggestions",
+        "tags": [
+          "suggestions"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/suggestions/summary": {
+      "get": {
+        "description": "ADR-161 \u2014 sum\u00e1rio de pendentes (count + max_severity + by_category).",
+        "operationId": "suggestions_summary_api_v1_workspaces__workspace_id__suggestions_summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsSummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Suggestions Summary",
         "tags": [
           "suggestions"
         ]

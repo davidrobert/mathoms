@@ -63,7 +63,12 @@ export function SuggestionCard({
     <Card
       id={`SUG-${suggestion.id}`}
       data-suggestion-id={suggestion.id}
-      className="scroll-mt-24 target:ring-2 target:ring-brand-500 target:ring-offset-2"
+      className={[
+        "scroll-mt-24 target:ring-2 target:ring-brand-500 target:ring-offset-2",
+        // ADR-161 (Onda 8 #4) — borda esquerda colorida por severidade,
+        // antes definida em SEVERITY_CONFIG.cls mas nunca aplicada ao Card.
+        SEVERITY_BORDER[suggestion.severity] ?? SEVERITY_BORDER.info,
+      ].join(" ")}
     >
       <CardContent className="flex flex-col gap-3 py-4">
         <SeverityRow suggestion={suggestion} />
@@ -130,6 +135,15 @@ const SEVERITY_CONFIG: Record<
     Icon: AlertOctagon,
     cls: "border-l-red-500 text-red-700 dark:text-red-300",
   },
+};
+
+// ADR-161 (Onda 8 #4) — classes Tailwind aplicadas ao Card root para
+// borda esquerda colorida visível. Separadas de SEVERITY_CONFIG.cls
+// (que mistura ícone+texto) para evitar acoplamento.
+const SEVERITY_BORDER: Record<SuggestionSeverity, string> = {
+  danger: "border-l-4 border-l-red-500",
+  warning: "border-l-4 border-l-amber-500",
+  info: "border-l-4 border-l-sky-500",
 };
 
 function SeverityRow({ suggestion }: { suggestion: Suggestion }) {

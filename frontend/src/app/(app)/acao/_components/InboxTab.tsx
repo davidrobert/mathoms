@@ -138,9 +138,13 @@ function InboxBody({
   if (suggestions.length === 0) {
     return <InboxEmpty filter={filter} />;
   }
+  // ADR-161 (Onda 8 #4) — sort por severidade desc, depois created_at desc.
+  // Cards `danger` aparecem primeiro; entre mesma severidade, mais recente
+  // primeiro. Estável: mesmo input → mesma ordem.
+  const sorted = [...suggestions].sort(suggestionSortComparator);
   return (
     <div className="flex flex-col gap-3">
-      {suggestions.map((s) => (
+      {sorted.map((s) => (
         <SuggestionCard
           key={s.id}
           suggestion={s}
@@ -196,4 +200,14 @@ export function computeNextDecisionCode(existing: ReadonlyArray<string>): string
     .filter((n) => Number.isFinite(n));
   const next = (numbers.length === 0 ? 0 : Math.max(...numbers)) + 1;
   return `D${String(next).padStart(2, "0")}`;
+}
+
+const SEVERITY_RANK: Record<string, number> = { danger: 3, warning: 2, info: 1 };
+
+/** ADR-161 (Onda 8 #4) — comparator estável: severity desc → created_at desc. */
+export function suggestionSortComparator(a: Suggestion, b: Suggestion): number {
+  const sa = SEVERITY_RANK[a.severity] ?? 0;
+  const sb = SEVERITY_RANK[b.severity] ?? 0;
+  if (sa !== sb) return sb - sa;
+  return (b.created_at ?? "").localeCompare(a.created_at ?? "");
 }
