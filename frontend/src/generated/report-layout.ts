@@ -600,18 +600,6 @@ export const LAYOUT: ReportLayout = {
             "id": "pgbl_capacidade",
             "enabled": true,
             "variant": "warn",
-            "size": "half"
-          },
-          {
-            "id": "dependentes_status",
-            "enabled": true,
-            "variant": "feature",
-            "size": "half"
-          },
-          {
-            "id": "dedutiveis_subutilizados",
-            "enabled": true,
-            "variant": "warn",
             "size": "full"
           }
         ]
@@ -1022,7 +1010,7 @@ export const LAYOUT: ReportLayout = {
   "version_fallback": "v5.3"
 } as ReportLayout;
 
-export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "dependentes_status", "dedutiveis_subutilizados", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "nclex_roadmap", "simulacao_mariana"] as const;
+export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "nclex_roadmap", "simulacao_mariana"] as const;
 export type CardId = (typeof ALL_CARD_IDS)[number];
 
 export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes", "custos_f1f2", "cenarios_cambiais", "mariana_cenarios_usa"] as const;
