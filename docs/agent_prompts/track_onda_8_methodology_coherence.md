@@ -10,6 +10,12 @@
 > **Esforço estimado:** ~5-7 dias (6 itens, médio risco — toca pipeline
 > E5, modelo de Decision, design system).
 > **Prioridade:** P1 — coerência completa do produto.
+>
+> **Atualização 2026-05-04:** ADRs renumeradas para 161/162/163
+> (157/158/159 já mergearam em main). Coexiste com Suggestion
+> `concentracao_imobiliaria_alta` da ADR-160 — não é duplicata da regra
+> 9 "concentração por instituição" (uma é classe de ativo, outra é
+> instituição financeira).
 
 ---
 
@@ -67,7 +73,7 @@ Suggestion + dedup por `(workspace, category, period)`.
   `tests/test_suggestion_generator.py` cobrindo cada regra
 - Validação com financial-planner que regras são corretas para alta
   renda PJ + família
-- ADR-157 "Regras canônicas de Suggestion v2"
+- ADR-161 "Regras canônicas de Suggestion v2"
 - Custo: ~3 dias
 
 ### 2. Decisions atualizam Goals (event projection)
@@ -99,7 +105,7 @@ class Decision(Base):
   `target_field="goal.if.trs_pct", target_value="4.0"` → marcar
   Executada → Goal nova versão tem TRS=4.0%
 - Test integração novo
-- ADR-158 "Decisions como event projection sobre Goals"
+- ADR-162 "Decisions como event projection sobre Goals"
 - Migration Alembic adiciona campos
 - Custo: ~2 dias
 
@@ -241,7 +247,7 @@ no momento da aceitação:
 1. **Phase 1 (~3 dias):** itens #1 (6 regras Suggestion) — backend +
    pipeline E5 + tests + financial-planner validation.
 2. **Phase 2 (~2 dias):** item #2 (Decisions → Goals projection) —
-   ADR-158 + migration + use case.
+   ADR-162 + migration + use case.
 3. **Phase 3 (~1 dia):** item #6 (context_snapshot na Decision).
 4. **Phase 4 (~1 dia):** itens #3 (Decision → Task) + #4 (severidade
    visual) + #5 (banner real).
@@ -267,7 +273,7 @@ no momento da aceitação:
 - [ ] SuggestionCard com severidade visual; banner reflete
   `maxSeverity`
 - [ ] Vitest + pytest verde
-- [ ] ADR-157 + ADR-158 + ADR-159 (context_snapshot)
+- [ ] ADR-161 + ADR-162 + ADR-163 (context_snapshot)
 - [ ] CHANGELOG entry
 - [ ] Pre-commit verde, code-style baseline mantido
 
@@ -276,10 +282,10 @@ no momento da aceitação:
 - Partir de `origin/main` pós-Onda 7 (ideal) ou pós-Direção E (OK)
 - Branch: `agent/onda-8-methodology-coherence/<yyyyMMdd-HHmm>`
 - Commits sugeridos:
-  1. `feat(suggestions): 6 regras canônicas v2 (ADR-157)`
-  2. `feat(decisions): event projection sobre Goals (ADR-158)`
+  1. `feat(suggestions): 6 regras canônicas v2 (ADR-161)`
+  2. `feat(decisions): event projection sobre Goals (ADR-162)`
   3. `feat(decisions): context_snapshot ao aceitar (ADR-159)`
   4. `feat(decisions): "Gerar tarefas" com templates derived_from`
   5. `fix(suggestions): borda colorida + sort por severidade`
   6. `feat(suggestions): banner com maxSeverity real`
-  7. `docs(adr): ADR-157 + ADR-158 + ADR-159 + CHANGELOG`
+  7. `docs(adr): ADR-161 + ADR-162 + ADR-159 + CHANGELOG`
