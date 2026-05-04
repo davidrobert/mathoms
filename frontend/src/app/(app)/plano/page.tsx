@@ -66,7 +66,7 @@ export default function PlanoPage() {
     !ifGoal && zero.decisionCount === 0 && zero.taskCount === 0;
   if (isWorkspaceZero) {
     return (
-      <div className="mx-auto max-w-6xl px-6 py-8">
+      <div className="mx-auto max-w-content px-6 py-8">
         <PageHeader
           title="Meu Plano"
           description="Sua vida financeira — onde está, onde vai, o que está em jogo"
@@ -91,7 +91,7 @@ export default function PlanoPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader
         title="Meu Plano"
         description="Sua vida financeira — onde está, onde vai, o que está em jogo"
@@ -254,7 +254,7 @@ function useDashboardData(workspaceId: string | undefined): DashboardState {
 
 function PlanoLoadingState() {
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader title="Meu Plano" description="Carregando..." />
       <Skeleton className="mb-6 h-56 rounded-xl" />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -268,7 +268,7 @@ function PlanoLoadingState() {
 
 function PlanoErrorState({ error }: { error: string }) {
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader title="Meu Plano" />
       <Card>
         <CardContent className="py-12">
@@ -292,7 +292,7 @@ function PlanoErrorState({ error }: { error: string }) {
 
 function PlanoNoWorkspaceState() {
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader title="Meu Plano" />
       <Card>
         <CardContent className="py-12 text-center">

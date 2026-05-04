@@ -41,7 +41,7 @@ function ReportsPageContent({ workspace }: { workspace: UserWorkspace }) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader
         title="Relatórios"
         description="Histórico de relatórios financeiros gerados pelo pipeline"

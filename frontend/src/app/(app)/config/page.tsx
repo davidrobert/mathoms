@@ -26,7 +26,7 @@ const TABS = [
 
 export default function ConfigPage() {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader
         title="Configurações"
         description="Membros do relatório, quem tem acesso ao app (Acessos), categorias, pipeline e layout"

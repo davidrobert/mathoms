@@ -327,7 +327,7 @@ function TransactionsContent() {
   const summary = data?.summary;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader
         title="Transações"
         description="Explore e gerencie todas as transações financeiras"
