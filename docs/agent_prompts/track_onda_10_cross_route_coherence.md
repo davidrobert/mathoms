@@ -1,8 +1,9 @@
 # Track — Onda 10: coerência cross-rota (/plano · /acao · /reports)
 
-> **Status:** ☐ aberta · independente de Onda 8 (lógica vs UI distinta);
-> pode rodar em paralelo se cuidar do hotspot `SuggestionCard.tsx`
-> (Onda 8 #4 muda mesmo arquivo — coordenar ordem de merge).
+> **Status:** ✅ entregue 2026-05-04 · branch
+> `agent/onda-10-cross-route-coherence/20260504-1721` · 7 commits squash-merged
+> via PR. Onda 8 (UI semantics dos drafts + 6 regras novas) é independente
+> e segue separada.
 >
 > **Contexto:** prompt self-contained para nova sessão Claude Code.
 > Branch: `agent/onda-10-cross-route-coherence/<yyyyMMdd-HHmm>`,
