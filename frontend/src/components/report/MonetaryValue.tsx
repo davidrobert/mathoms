@@ -2,6 +2,28 @@ import { cn } from "@/lib/cn";
 
 export type Currency = "BRL" | "USD";
 
+/** Onda 10 #1 — tamanhos canônicos para valores monetários cross-rota.
+ *
+ * - `hero`: número-protagonista (Patrimônio em /plano IFHeroCard,
+ *   gauge equivalente no relatório). Display extra-bold 4xl.
+ * - `kpi`: KPI de coluna ou card (PlanoKpiRow, ReservaEmergenciaCard).
+ *   Mono bold 3.5xl — alinha em grade.
+ * - `body`: default — herda o `font-size` do contêiner pai (cuidado
+ *   regressivo: nenhum tamanho explícito é forçado, preservando
+ *   call-sites pré-Onda 10).
+ *
+ * `hero`/`kpi` aplicam `text-style-*` do design-tokens (`tokens.css`
+ * §text-style-hero/kpi-value). Cores via `signed` continuam agnósticas
+ * ao size.
+ */
+export type MonetaryValueSize = "hero" | "kpi" | "body";
+
+const SIZE_CLASS: Record<MonetaryValueSize, string> = {
+  hero: "text-style-hero",
+  kpi: "text-style-kpi-value",
+  body: "font-mono",
+};
+
 interface MonetaryValueProps {
   value: number | null | undefined;
   currency?: Currency;
@@ -13,23 +35,30 @@ interface MonetaryValueProps {
   fractionDigits?: number;
   /** Destaca sinal (verde positivo, vermelho negativo). */
   signed?: boolean;
+  /** Tipografia canônica — ver `MonetaryValueSize`. Default: `body`. */
+  size?: MonetaryValueSize;
   /** Tooltip nativo — útil em compact p/ exibir valor completo. */
   title?: string;
   className?: string;
+  /** Test hook (Vitest/Playwright). */
+  "data-testid"?: string;
 }
 
-/** F9 · ADR-076 · F1.1 — Exibe valor monetário com tipografia canônica.
+/** F9 · ADR-076 · F1.1 + Onda 10 #1 — Exibe valor monetário com
+ * tipografia canônica.
  *
  * Regras:
- * - font-mono + tabular-nums para alinhamento em colunas
+ * - tabular-nums para alinhamento em colunas
  * - locale pt-BR (vírgula decimal, ponto milhar)
  * - nullable safe: renderiza "—" se null/undefined
+ * - `size` aplica `text-style-*` do design-tokens (família + size + weight)
  *
  * Uso:
- *   <MonetaryValue value={1234567.89} />         → R$ 1.234.567,89
- *   <MonetaryValue value={-500} signed />        → em vermelho, com sinal
- *   <MonetaryValue value={1_500_000} compact />  → R$ 1,50 mi
- *   <MonetaryValue value={null} />               → —
+ *   <MonetaryValue value={1234567.89} />              → corpo (mono sm)
+ *   <MonetaryValue value={1234567.89} size="hero" />  → display 4xl
+ *   <MonetaryValue value={-500} signed />             → em vermelho
+ *   <MonetaryValue value={1_500_000} compact />       → R$ 1,50 mi
+ *   <MonetaryValue value={null} />                    → —
  */
 export function MonetaryValue({
   value,
@@ -38,11 +67,21 @@ export function MonetaryValue({
   hideSymbol = false,
   fractionDigits = 2,
   signed = false,
+  size = "body",
   title,
   className,
+  "data-testid": dataTestId,
 }: MonetaryValueProps) {
+  const sizeClass = SIZE_CLASS[size];
   if (value === null || value === undefined || Number.isNaN(value)) {
-    return <span className={cn("font-mono tabular-nums text-muted-foreground", className)}>—</span>;
+    return (
+      <span
+        className={cn(sizeClass, "tabular-nums text-muted-foreground", className)}
+        data-testid={dataTestId}
+      >
+        —
+      </span>
+    );
   }
 
   const locale = currency === "BRL" ? "pt-BR" : "en-US";
@@ -64,7 +103,11 @@ export function MonetaryValue({
     : undefined;
 
   return (
-    <span className={cn("font-mono tabular-nums", colorClass, className)} title={title}>
+    <span
+      className={cn(sizeClass, "tabular-nums", colorClass, className)}
+      title={title}
+      data-testid={dataTestId}
+    >
       {signed && value > 0 ? "+" : ""}
       {formatted}
     </span>

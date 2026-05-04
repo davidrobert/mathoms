@@ -4,33 +4,35 @@
 // Aceitar/Modificar/Descartar via dialogs locais. "Aceitar" cria
 // Decision (ADR-136) com código informado pelo usuário; status passa
 // a Aceita. "Descartar" exige um motivo controlado (5 chips).
+//
+// Onda 10 #3 — backward link para a seção do relatório que originou
+// a sugestão. Dialogs movidos para `SuggestionDialogs.tsx`.
 
 import { useState } from "react";
-import { toast } from "sonner";
-import { AlertOctagon, AlertTriangle, ArrowRight, Info, Pencil, X } from "lucide-react";
+import Link from "next/link";
+import {
+  AlertOctagon,
+  AlertTriangle,
+  ArrowRight,
+  ExternalLink,
+  Info,
+  Pencil,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  ApiError,
-  DISMISS_REASON_LABELS,
-  type DismissReason,
   type Suggestion,
   type SuggestionSeverity,
 } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 
+import {
+  AcceptDialog,
+  DismissDialog,
+  ModifyDialog,
+} from "./SuggestionDialogs";
 import {
   type AcceptHandler,
   type DismissHandler,
@@ -72,6 +74,7 @@ export function SuggestionCard({
           {suggestion.rationale}
         </p>
         <SuggestionMeta suggestion={suggestion} />
+        <SuggestionReportLink suggestion={suggestion} />
         {suggestion.status === "Pendente" && (
           <SuggestionActions
             onAccept={() => setAcceptOpen(true)}
@@ -163,6 +166,25 @@ function SuggestionMeta({ suggestion }: { suggestion: Suggestion }) {
   );
 }
 
+/** Onda 10 #3 — backward link para a seção do relatório que originou
+ * a sugestão. Onda 7 #3 entregou forward (relatório → /acao#SUG-XXX);
+ * sem o caminho de volta a sugestão fica órfã do contexto. Quando
+ * `report_id` é null (sugestão sem relatório de origem, edge case),
+ * o link é omitido — não renderizamos um item disabled. */
+function SuggestionReportLink({ suggestion }: { suggestion: Suggestion }) {
+  if (!suggestion.report_id) return null;
+  return (
+    <Link
+      href={`/reports/${suggestion.report_id}#${suggestion.section_id}`}
+      data-testid="suggestion-report-backlink"
+      className="inline-flex items-center gap-1.5 self-start text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline"
+    >
+      Ver no relatório do mês · §{suggestion.section_id}
+      <ExternalLink className="h-3 w-3" aria-hidden />
+    </Link>
+  );
+}
+
 function SuggestionActions({
   onAccept,
   onModify,
@@ -191,296 +213,6 @@ function SuggestionActions({
         <X className="mr-1 h-3.5 w-3.5" />
         Descartar
       </Button>
-    </div>
-  );
-}
-
-interface AcceptDialogProps {
-  suggestion: Suggestion;
-  nextDecisionCode: string;
-  open: boolean;
-  onOpenChange: (b: boolean) => void;
-  onAccept: AcceptHandler;
-}
-
-function AcceptDialog({
-  suggestion,
-  nextDecisionCode,
-  open,
-  onOpenChange,
-  onAccept,
-}: AcceptDialogProps) {
-  const [code, setCode] = useState(nextDecisionCode);
-  const [busy, setBusy] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.match(/^D\d{1,3}$/)) {
-      toast.error("Código deve ser D + número (ex.: D01)");
-      return;
-    }
-    setBusy(true);
-    try {
-      await onAccept(suggestion.id, { decision_code: code });
-      toast.success(`Decisão ${code} criada`);
-      onOpenChange(false);
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.detail : "Erro ao aceitar");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <DialogHeader>
-            <DialogTitle>Aceitar sugestão</DialogTitle>
-            <DialogDescription>
-              Vai criar uma decisão no plano com o conteúdo da sugestão.
-              Você pode revisar/editar depois em /plano.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
-            <p className="text-xs font-medium">{suggestion.title}</p>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium">Código da decisão</Label>
-            <Input
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder={nextDecisionCode}
-              maxLength={10}
-              required
-              autoFocus
-            />
-            <p className="text-[11px] text-muted-foreground">
-              Sugerido: {nextDecisionCode}
-            </p>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={busy}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={busy}>
-              {busy ? "Aceitando…" : "Aceitar"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-interface ModifyDialogProps {
-  suggestion: Suggestion;
-  nextDecisionCode: string;
-  open: boolean;
-  onOpenChange: (b: boolean) => void;
-  onModify: ModifyHandler;
-}
-
-function ModifyDialog({
-  suggestion,
-  nextDecisionCode,
-  open,
-  onOpenChange,
-  onModify,
-}: ModifyDialogProps) {
-  const [code, setCode] = useState(nextDecisionCode);
-  const [title, setTitle] = useState(suggestion.title);
-  const [rationale, setRationale] = useState(suggestion.rationale);
-  const [amount, setAmount] = useState(suggestion.amount_brl ?? "");
-  const [busy, setBusy] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.match(/^D\d{1,3}$/)) {
-      toast.error("Código deve ser D + número (ex.: D01)");
-      return;
-    }
-    setBusy(true);
-    try {
-      await onModify(suggestion.id, {
-        decision_code: code,
-        title: title !== suggestion.title ? title : undefined,
-        rationale: rationale !== suggestion.rationale ? rationale : undefined,
-        amount_brl: amount !== (suggestion.amount_brl ?? "") ? amount || null : undefined,
-      });
-      toast.success(`Decisão ${code} criada com modificações`);
-      onOpenChange(false);
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.detail : "Erro ao modificar");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <DialogHeader>
-            <DialogTitle>Modificar e aceitar</DialogTitle>
-            <DialogDescription>
-              Customize título, motivo ou valor antes de virar uma decisão.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-3">
-            <Field label="Código">
-              <Input
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                maxLength={10}
-                required
-              />
-            </Field>
-            <Field label="Título">
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={500}
-                required
-              />
-            </Field>
-            <Field label="Motivo">
-              <Textarea
-                value={rationale}
-                onChange={(e) => setRationale(e.target.value)}
-                rows={3}
-              />
-            </Field>
-            <Field label="Valor (R$)" hint="Opcional">
-              <Input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </Field>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={busy}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={busy}>
-              {busy ? "Salvando…" : "Aceitar com modificação"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-interface DismissDialogProps {
-  suggestion: Suggestion;
-  open: boolean;
-  onOpenChange: (b: boolean) => void;
-  onDismiss: DismissHandler;
-}
-
-function DismissDialog({
-  suggestion,
-  open,
-  onOpenChange,
-  onDismiss,
-}: DismissDialogProps) {
-  const [reason, setReason] = useState<DismissReason | "">("");
-  const [busy, setBusy] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reason) {
-      toast.error("Selecione um motivo");
-      return;
-    }
-    setBusy(true);
-    try {
-      await onDismiss(suggestion.id, { reason });
-      toast.success("Sugestão descartada");
-      onOpenChange(false);
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.detail : "Erro ao descartar");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <DialogHeader>
-            <DialogTitle>Descartar sugestão</DialogTitle>
-            <DialogDescription>
-              Vamos guardar o motivo para não sugerir o mesmo de novo
-              tão cedo.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {(Object.keys(DISMISS_REASON_LABELS) as DismissReason[]).map(
-              (key) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setReason(key)}
-                  className={[
-                    "rounded-md border px-3 py-2 text-left text-xs transition-colors",
-                    reason === key
-                      ? "border-foreground bg-muted/50"
-                      : "border-border hover:border-muted-foreground/50",
-                  ].join(" ")}
-                >
-                  {DISMISS_REASON_LABELS[key]}
-                </button>
-              ),
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={busy}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={busy || !reason} variant="default">
-              {busy ? "Descartando…" : "Descartar"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-interface FieldProps {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}
-
-function Field({ label, hint, children }: FieldProps) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Label className="text-xs font-medium">{label}</Label>
-      {children}
-      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Target, TrendingUp, Wallet } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -26,6 +27,10 @@ interface PlanoKpiRowProps {
  * 3 KPIs essenciais: patrimônio líquido (do último relatório),
  * progresso da IF (se meta configurada), aporte mensal alvo (se meta
  * configurada). Cada KPI degrada para "—" se a fonte não está pronta.
+ *
+ * Onda 10 #2 — quando há um Report disponível, cada KPI vira link para
+ * a seção do relatório que aprofunda o número (Patrimônio → §S1, IF →
+ * §S7, Aporte → §S2). Padrão de scroll+highlight reusado de Onda 7 #3.
  */
 export function PlanoKpiRow({
   patrimonioSnapshot,
@@ -35,27 +40,67 @@ export function PlanoKpiRow({
   loading,
 }: PlanoKpiRowProps) {
   if (loading) return <KpiRowSkeleton />;
+  const reportId = patrimonioSnapshot?.sourceReportId ?? null;
   return (
     <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <KPICard
+      <KpiLinkCard
+        reportId={reportId}
+        sectionId="S1"
         label="Patrimônio líquido"
-        value={formatPatrimonio(patrimonioSnapshot)}
-        icon={Wallet}
-        emphasis="primary"
-      />
-      <KPICard
-        label="Progresso IF"
-        value={formatIfProgress(ifProgress)}
-        icon={Target}
-        emphasis="secondary"
-      />
-      <KPICard
+      >
+        <KPICard
+          label="Patrimônio líquido"
+          value={formatPatrimonio(patrimonioSnapshot)}
+          icon={Wallet}
+          emphasis="primary"
+        />
+      </KpiLinkCard>
+      <KpiLinkCard reportId={reportId} sectionId="S7" label="Progresso IF">
+        <KPICard
+          label="Progresso IF"
+          value={formatIfProgress(ifProgress)}
+          icon={Target}
+          emphasis="secondary"
+        />
+      </KpiLinkCard>
+      <KpiLinkCard
+        reportId={reportId}
+        sectionId="S2"
         label="Aporte mensal alvo"
-        value={formatAporteMeta(ifGoal, aporteGoal)}
-        icon={TrendingUp}
-        emphasis="secondary"
-      />
+      >
+        <KPICard
+          label="Aporte mensal alvo"
+          value={formatAporteMeta(ifGoal, aporteGoal)}
+          icon={TrendingUp}
+          emphasis="secondary"
+        />
+      </KpiLinkCard>
     </div>
+  );
+}
+
+interface KpiLinkCardProps {
+  reportId: string | null;
+  sectionId: string;
+  label: string;
+  children: React.ReactNode;
+}
+
+function KpiLinkCard({
+  reportId,
+  sectionId,
+  label,
+  children,
+}: KpiLinkCardProps) {
+  if (!reportId) return <>{children}</>;
+  return (
+    <Link
+      href={`/reports/${reportId}#${sectionId}`}
+      aria-label={`${label} — ver no relatório §${sectionId}`}
+      className="block rounded-[var(--radius-card)] transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+    >
+      {children}
+    </Link>
   );
 }
 
