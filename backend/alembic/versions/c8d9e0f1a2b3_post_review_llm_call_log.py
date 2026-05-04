@@ -1,21 +1,19 @@
-"""post-review: workspaces.monthly_llm_budget_usd + tabela llm_call_log.
+"""post-review: workspaces.monthly_llm_budget_usd + tabela llm_call_log + merge heads.
 
-Revision ID: a5b6c7d8e9f0
-Revises: z4a5b6c7d8e9
+Revision ID: c8d9e0f1a2b3
+Revises: a0b1c2d3e4f5, a5b6c7d8e9f0
 Create Date: 2026-05-04
 
-Endereça oportunidade 0.3 do post-review: BYOK premium gerava custo
-invisível em telemetria; sem cap por workspace, bug em retry pode
-multiplicar conta sem alerta.
+Endereça oportunidade 0.3 do post-review (BYOK invisível em telemetria) e,
+de quebra, colapsa as 2 heads paralelas de main:
+- ``a5b6c7d8e9f0`` (seed category_template v1, ADR-137 / A7.3)
+- ``a0b1c2d3e4f5`` (ADR-154 M2 sunset legacy)
 
 Mudanças schema:
 - ``workspaces.monthly_llm_budget_usd`` Numeric(10,2) NOT NULL default 5.00.
-  Default conservador (free tier); Premium customiza via UI admin.
 - Nova tabela ``llm_call_log``: 1 linha por chamada LLM agregada por
   (workspace_id, stage, model_name) com tokens/custo/duração/timestamp.
-  Custo em Numeric(12,6) — dinheiro nunca é float em DB (ADR-090 mirror).
-- 2 índices compostos para suportar agregações tipo
-  "spend_in_period(workspace_id, since)" sem table scan.
+- 5 índices para suportar agregações por (workspace, period, model).
 """
 
 from typing import Sequence, Union
@@ -23,8 +21,9 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "a5b6c7d8e9f0"
-down_revision: Union[str, Sequence[str], None] = "z4a5b6c7d8e9"
+revision: str = "c8d9e0f1a2b3"
+# Tupla colapsa as 2 heads pré-existentes em main para evitar drift.
+down_revision: Union[str, Sequence[str], None] = ("a0b1c2d3e4f5", "a5b6c7d8e9f0")
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
