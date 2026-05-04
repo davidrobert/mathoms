@@ -13,8 +13,9 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CalendarClock, Inbox, ListTodo, StickyNote } from "lucide-react";
+import { CalendarClock, Inbox, ListTodo, Sparkles, StickyNote } from "lucide-react";
 
+import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -30,6 +31,7 @@ import { InboxTab } from "./_components/InboxTab";
 import { NotasTab } from "./_components/NotasTab";
 import { TasksTab } from "./_components/TasksTab";
 import { TimelineTab } from "./_components/TimelineTab";
+import { useAcaoZeroSignals } from "./_components/useAcaoZeroSignals";
 import { useSuggestionsCount } from "../plano/_components/useSuggestionsCount";
 
 type TabId = "inbox" | "tarefas" | "timeline" | "notas";
@@ -68,11 +70,33 @@ function AcaoPageInner() {
   const urlTab = parseTabId(searchParams?.get("tab"));
   const { count: pending, loading: pendingLoading } = useSuggestionsCount(workspace?.id);
   const { tab, onTabChange } = useTabSelection({ urlTab, pending, pendingLoading });
+  const zero = useAcaoZeroSignals(workspace?.id);
   useScrollToHashCard(tab);
 
   if (wsLoading) return <AcaoLoadingState />;
   if (!workspace) return <NoWorkspaceState />;
+  if (zero.isZero) return <AcaoZeroState />;
   return <AcaoLoaded workspaceId={workspace.id} tab={tab} onTabChange={onTabChange} />;
+}
+
+/** Onda 10 #6 — workspace zero (sem pending/tasks/notes) cai aqui em
+ * vez de mostrar `<TasksTab/>` placeholder. /plano é a entrada canônica
+ * (OnboardingHero) — aqui só apontamos para lá. */
+function AcaoZeroState() {
+  return (
+    <div className="mx-auto max-w-content px-6 py-8">
+      <PageHeader
+        title="Ação"
+        description="O que fazer agora — sugestões, tarefas, próximos passos, notas"
+      />
+      <EmptyState
+        icon={Sparkles}
+        title="Comece pela tela inicial"
+        description="Configure sua meta de Independência Financeira em /plano para destravar sugestões e tarefas — elas aparecem aqui depois do primeiro relatório."
+        action={{ label: "Ir para /plano", href: "/plano" }}
+      />
+    </div>
+  );
 }
 
 interface AcaoLoadedProps {
