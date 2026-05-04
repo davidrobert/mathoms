@@ -6,6 +6,47 @@
 
 ## [Unreleased]
 
+- **feat(ui): Onda 10 — coerência cross-rota /plano · /reports · /acao
+  (2026-05-04):** 6 fixes UI fecham os gaps de navegação entre as 3 telas
+  críticas do ritual mensal do casal usuário identificados na revisão
+  multi-agente (`product-designer` 2026-05-04).
+  1. `<MonetaryValue/>` ganha prop `size={"hero"|"kpi"|"body"}` que aplica
+     `text-style-hero` / `text-style-kpi-value` do design-tokens.
+     `<IFHeroCard/>` Patrimônio migra para `size="hero"` — chega à mesma
+     fonte do `<HeroKpiGrid/>` em /reports. Demais `formatCurrency()` em
+     JSX dentro de `(app)/plano/_components/**` substituídos por
+     `<MonetaryValue/>` (zero ofensores no grep gate).
+  2. CTA primário "Abrir relatório de {mês}" via `<ReportLinkAction/>`
+     nas actions do `<PageHeader/>` de /plano. Workspace sem Report → CTA
+     outline "Gerar relatório" → /documents. Cada KPI da `<PlanoKpiRow/>`
+     vira `<Link>` para a seção do relatório que aprofunda o número
+     (Patrimônio → §S1, IF → §S7, Aporte → §S2).
+  3. `<SuggestionReportLink/>` adiciona backward link "Ver no relatório
+     do mês · §{section_id}" no card da Inbox em /acao — fecha o ciclo
+     forward (Onda 7 #3) ↔ backward. Dialogs (Accept/Modify/Dismiss)
+     extraídos para `SuggestionDialogs.tsx` para manter `SuggestionCard.tsx`
+     ≤500 linhas.
+  4. `<SuggestionCallout/>` migra de Tailwind utilities (`border-l-sky-500`,
+     `bg-amber-50`, `text-red-900`) para tokens semânticos
+     `var(--semantic-info-financial | --semantic-alert | --semantic-loss)`
+     com `color-mix(in oklab, ...)`. Dark mode resolve automaticamente
+     pelo `tokens.css`.
+  5. `suggestion_generator.py` enriquece `rationale` das regras 2
+     (reserva insuficiente) e 3 (alocação fora do alvo): gap em BRL +
+     ETA com aporte mensal projetado (regra 2); atual/alvo/Δ + tabela
+     markdown de classes + sugestão de próximo aporte (regra 3). Helper
+     `_format_brl()` formata Decimal em padrão BR sem locale do sistema.
+     Defensivo — degrada para versão curta se snapshot incompleto.
+     Cobertura: 4 testes novos em `tests/test_suggestion_generator.py`
+     (24 total, todos verdes).
+  6. /acao em workspace zero (pending+tasks+notes = 0) cai em
+     `<EmptyState/>` apontando para /plano (entrada canônica do
+     `<OnboardingHero/>`). Hook novo `useAcaoZeroSignals(workspaceId)`
+     compõe os 3 sinais.
+  Track: [docs/agent_prompts/track_onda_10_cross_route_coherence.md](agent_prompts/track_onda_10_cross_route_coherence.md).
+  Onda 8 (UI semantics dos drafts + 6 regras novas) é independente e
+  segue separada — vide [track_onda_8_methodology_coherence.md](agent_prompts/track_onda_8_methodology_coherence.md).
+
 - **test(pipeline): IRPF full schema goldens — A8.2 sub-lane (2026-04-30):**
   3 fixtures sintéticas (`tests/fixtures/llm_golden/e16_irpf_full_{completo,simplificado,edge_cases}.json`)
   para regressão byte-byte do stage E1.6 (`extract_irpf_full`, ADR-157).
