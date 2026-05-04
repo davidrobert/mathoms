@@ -61,12 +61,24 @@ VALID_DISMISS_REASONS: frozenset[str] = frozenset(
 
 VALID_SUGGESTION_KINDS: frozenset[str] = frozenset(
     {
+        # v1 (ADR-153)
         "trs_desalinhada",
         "reserva_insuficiente",
         "alocacao_fora_alvo",
         "aporte_abaixo_meta",
         "dolarizacao_atrasada",
+        # v2 (ADR-161 — Onda 8)
+        "endividamento_perigoso",
+        "taxa_poupanca_caindo",
+        "seguros_insuficientes",
+        "concentracao_instituicao",
+        "lifestyle_creep",
+        "renda_passiva_real_baixa",
     }
+)
+
+VALID_SUGGESTION_CATEGORIES: frozenset[str] = frozenset(
+    {"alvo_if", "carteira", "protecao", "comportamental", "endividamento", "usa_plano"}
 )
 
 
@@ -88,6 +100,10 @@ class Suggestion(Base):
     )
     section_id: Mapped[str] = mapped_column(String(32), nullable=False)
     kind: Mapped[str] = mapped_column(String(64), nullable=False)
+    # ADR-161: agrupamento semântico cross-kind (ex.: trs_desalinhada e
+    # aporte_abaixo_meta são ambos `alvo_if`). Nullable para compat com
+    # registros pré-migration.
+    category: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     origin: Mapped[str] = mapped_column(String(32), nullable=False, default="deterministic")
     severity: Mapped[str] = mapped_column(String(16), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)

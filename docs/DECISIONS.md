@@ -114,7 +114,7 @@
 [D140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) [D141](#adr-141--goal-alocação-alvo-schema-v2-7-classes-auvp) [D142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)
 
 **Outras:**
-[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-proposto) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap)
+[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-proposto) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion)
 
 <!-- ADR-TOC-END -->
 
@@ -7876,6 +7876,153 @@ Sources: [pluggy.ai/en/pricing](https://www.pluggy.ai/en/pricing), [belvo.com/pl
 4. **Subcategoria de aluguel por imóvel-key** em `categorization.json` + UI de mapeamento. Substitui rateio proporcional por dado real.
 5. **Anomaly detection sazonal de inadimplência** (ação A2) — iteração 2 da feature.
 6. **Fatores de redução IR Lei 11.196/05 art. 40** para imóveis antigos — refinamento de A2.
+
+---
+
+## ADR-161 — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos)
+
+**Status:** Decidido (Onda 8) • **Data:** 2026-05-04 • **Relaciona** [ADR-153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples), [ADR-156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7).
+
+**Contexto:** ADR-153 entregou 5 regras determinísticas no `SuggestionGenerator` (TRS desalinhada, reserva insuficiente, alocação fora de alvo, aporte abaixo da meta, dolarização atrasada). Revisão de produto 2026-04-29 (sign-off financial-planner) identificou que essas 5 regras cobrem **AUVP+Perini puros**, mas faltam 6 sinais consagrados em Cerbasi (proteção/comportamental/endividamento) e Perini "300" (renda passiva real) para o produto endereçar família alta-renda PJ por completo. Cap de 6 sugestões/relatório força exclusão prematura quando regras escalam.
+
+**Decisão:** Adicionar 6 regras canônicas v2 no gerador determinístico, subir `SUGGESTION_CAP` de 6 → 8, e introduzir campo `category` (string, nullable) para agrupamento semântico cross-kind.
+
+**Sub-decisões:**
+
+1. **6 regras v2** (todas defensivas — snapshot incompleto ⇒ skip silencioso, sem warning):
+
+   | Kind | Trigger | Severity | Methodology | Snapshot fields |
+   |---|---|---|---|---|
+   | `endividamento_perigoso` | `endividamento.percentual_patrimonio > 30%` OR `custo_medio_pct_aa > goals.retorno_esperado_pct_aa` | `danger` | Cerbasi/AUVP | `endividamento.{percentual_patrimonio, total_dividas, custo_medio_pct_aa}`, `goals.retorno_esperado_pct_aa` |
+   | `taxa_poupanca_caindo` | 2 quedas trimestrais consecutivas >5pp | `warning` | Cerbasi · comportamental | `fluxo_caixa.taxa_poupanca_trimestral_historico: list[float]` |
+   | `seguros_insuficientes` | `renda_pj_mensal > R$50k` AND `seguros.vida_invalidez != True` | `danger` | Cerbasi · proteção | `fluxo_caixa.renda_pj_mensal`, `seguros.vida_invalidez` |
+   | `concentracao_instituicao` | algum banco com `>40%` do investível | `warning` | AUVP | `patrimonio.por_instituicao` ou `investimentos.por_instituicao: dict[str, float]` |
+   | `lifestyle_creep` | despesa essencial cresce >1.5x inflação acumulada por 6m | `warning` | Cerbasi/Perini | `fluxo_caixa.despesa_essencial_historico: list[float]`, `inflacao.acumulada_pct_no_periodo` |
+   | `renda_passiva_real_baixa` | `progresso_if > 50%` AND `renda_passiva/custo_vida < 30%` | `info` | Perini "300" | `goals.progresso_if_pct`, `fluxo_caixa.{renda_passiva_mensal_atual, despesa_mensal_media}` |
+
+2. **Cap revisado: 6 → 8.** Com 11 regras candidatas, cap=6 forçaria exclusão de itens relevantes. 8 mantém densidade controlada da UI e dá folga para ranking.
+
+3. **Campo `category`** (`alvo_if`, `carteira`, `protecao`, `comportamental`, `endividamento`, `usa_plano`) auto-derivado via `KIND_TO_CATEGORY` em `pipeline/domain/types/suggestion.py`. Persistido em `suggestions.category` (String(32) nullable, migration `d9e0f1a2b3c4`). Habilita:
+   - Sumário por categoria (`SuggestionsSummaryResponse.by_category` — Onda 8 #5).
+   - Futura dedup cross-kind (TRS desalinhada + aporte_abaixo_meta são ambos `alvo_if`).
+   - Filtros UI/relatório por dimensão metodológica.
+
+4. **Defensividade reforçada.** Cada regra verifica presença de **todos** os campos antes de derivar. Falha graciosamente: rule retorna `None`, generator continua com as outras. Pipeline pode evoluir snapshot (adicionar `por_instituicao`, `seguros`, `inflacao`, `taxa_poupanca_trimestral_historico`) sem coordenação com generator — regras passam a disparar automaticamente.
+
+5. **Não-mudanças:** dedup_key continua **per-kind** (não cross-kind por category). Mudar isso é semântica frágil — dispensa para Onda 9+.
+
+**Consequências:**
+
+- ✅ Cobertura metodológica completa (Cerbasi/AUVP/Perini) sem dependência LLM — gerador continua determinístico, testável, idempotente.
+- ✅ Backward-compatible: `category` é nullable; campos novos no snapshot são opcionais (skip silencioso). Migration aditiva sem backfill.
+- ✅ 6 testes determinísticos por regra v2 (`tests/test_suggestion_generator.py`) + smoke test 11-regras-coexistindo. Total: 39 testes verdes.
+- ⚠️ Pipeline E5 ainda não popula `taxa_poupanca_trimestral_historico`, `por_instituicao`, `seguros`, `inflacao`, `despesa_essencial_historico`, `renda_passiva_mensal_atual`. Regras v2 ficam latentes até enriquecimento — débito documentado em Follow-ups #1.
+- ⚠️ Ranking só por `(severity, amount)` — não considera category. Casos onde 4 regras `protecao` aparecem juntas pode dominar. Refinamento opcional (Onda 9): boost para 1ª de cada category.
+- ❌ Ranking baseado em LLM/contexto fica fora — v2 deliberadamente determinístico.
+
+**Follow-ups:**
+
+1. **Pipeline E5 enrichment** — popular os 6 campos snapshot novos a partir de séries históricas E3/E4 e configs (institutions snapshot, IRPF income, inflation index Brapi). Track separado: cada campo é independente.
+2. **Cross-kind dedup por category** — quando 2+ regras de mesma `category` disparam, ranking pode escolher só a mais severa OU agregar copy.
+3. **UI badges de category** — chip colorido na SuggestionCard mostrando "Proteção" / "Carteira" / etc. (Onda 9 polish).
+
+---
+
+## ADR-162 — Decisions como event projection sobre Goals
+
+**Status:** Decidido (Onda 8) • **Data:** 2026-05-04 • **Relaciona** [ADR-073](#adr-073--goals-como-entidade-versionada-não-config-estático), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples).
+
+**Contexto:** Decisões e Goals vivem em órbitas separadas no produto. Aceitar uma sugestão `trs_desalinhada`, criar `Decision D03 — "Reduzir TRS para 4%"`, marcá-la `Executada` **não atualiza** o Goal IF correspondente — usuário precisa abrir `/plano/metas` e editar o TRS manualmente. Resulta em divergência: Decision diz "TRS=4%", Goal vigente diz "TRS=4.5%", relatório usa Goal e contradiz a Decision exibida.
+
+**Decisão:** Quando uma Decision com `target_field` populado é marcada `Executada`, o use case `mark_executed` dispara automaticamente `goal_service.create_goal_version(...)` na **mesma transação**, criando nova versão do Goal correspondente com `params_json.derived_from_decision_id = <decision.id>`.
+
+**Sub-decisões:**
+
+1. **Schema da Decision** — adicionar 3 campos nullable (migration `e0f1a2b3c4d5_adr162`):
+   - `target_field: String(64)` — caminho dot-notation (`goal.if.trs_pct`, `goal.aporte.meta_aporte_mensal_brl`).
+   - `target_value: String(64)` — valor decimal/string serializado (parse no use case por `target_value_type`).
+   - `target_value_type: String(8)` — `pct` | `brl` | `int` | `str`. Necessário para parsing seguro (BRL vai a Decimal, pct a float).
+
+2. **Mapping `target_field → goal_type + param_path`** vive em `backend/app/services/decision_goal_projection.py` (módulo novo). Tabela centralizada:
+
+   ```python
+   PROJECTIONS = {
+       "goal.if.trs_pct": ("INDEPENDENCIA_FINANCEIRA", "trs_pct"),
+       "goal.if.renda_passiva_mensal_brl": ("INDEPENDENCIA_FINANCEIRA", "renda_passiva_mensal_brl"),
+       "goal.aporte.meta_aporte_mensal_brl": ("APORTE_MENSAL", "meta_aporte_mensal_brl"),
+       "goal.dolar.meta_usd": ("DOLARIZACAO", "meta_usd"),
+       "goal.alocacao": ("ALOCACAO_ALVO", "<full_replace>"),
+   }
+   ```
+
+3. **Atomicidade:** projeção corre na mesma `db.transaction()` do `mark_executed`. Falha de `create_goal_version` (ex.: validation Pydantic) faz rollback do `Executed` event — Decision continua `Decidido` e usuário vê erro com motivo.
+
+4. **`derived_from_decision_id`** popula `params_json.meta.derived_from_decision_id` (não coluna nova) — preserva schema flexível do Goal e habilita query "histórico de Goals que vieram de Decisions" via JSON query.
+
+5. **`target_field == None` continua funcionando.** Decisions sem target ("decidi conversar com consultor", "manter posição") simplesmente não disparam projection — comportamento legado preservado.
+
+**Consequências:**
+
+- ✅ Decisões finalmente fecham o loop com Goals — usuário aceita Sugestão, marca Executada, relatório seguinte reflete novo TRS sem ação manual.
+- ✅ Auditoria completa: `Decision.id` rastreável até Goal version criada via `params_json.meta.derived_from_decision_id`.
+- ✅ Preservação de legado: Decisions sem `target_field` continuam terminais; nada quebra.
+- ⚠️ Mapping `PROJECTIONS` é tabela pequena mas precisa manutenção quando novos goal types entrarem. Tabela é o ponto explícito de evolução — não há mágica.
+- ⚠️ Falha em `create_goal_version` reverte `mark_executed` — usuário pode achar que "marcar executado falhou misteriosamente". UX precisa toast com causa raiz (Pydantic field error).
+- ❌ Não suporta projection complexa (ex.: Decision afetando múltiplos Goals). Caso surja, virar event-bus separado — não bloquear MVP.
+
+**Follow-ups:**
+
+1. UI mostra "Decisão D03 → Goal IF v4" no DecisionCard quando expandido (rastreabilidade visual).
+2. Goal version novo aparece no histórico em `/plano/metas` com badge "Derivada de D03".
+3. Roadmap: webhook/notification quando Goal mudar via Decision (post-action confirmation).
+
+---
+
+## ADR-163 — Decision congela `context_snapshot` ao aceitar Suggestion
+
+**Status:** Decidido (Onda 8) • **Data:** 2026-05-04 • **Relaciona** [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples), [ADR-161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos).
+
+**Contexto:** Race condition temporal: Suggestion gerada em fevereiro com `progresso_if=42%` aceita em maio quando o KPI virou 48%. Decision referencia Suggestion fevereiro mas decisão foi tomada com base no contexto de fevereiro — depois fica perdido qual era o estado quando a decisão foi tomada. Usuário lê DecisionCard em julho e não consegue auditar "o que estava acontecendo quando a decidi?".
+
+**Decisão:** Ao aceitar uma Suggestion (`accept_suggestion` use case), a Decision criada recebe um campo `context_snapshot: JSONB` populado com KPIs do **relatório que originou a Suggestion** (não estado atual do workspace) — congelando o "porquê" da decisão.
+
+**Schema:**
+
+```json
+{
+  "patrimonio_brl": 1234567.89,
+  "if_progress_pct": 42.0,
+  "trs_pct_when_decided": 4.5,
+  "report_id": "rep-abc",
+  "report_period": "2026-02"
+}
+```
+
+**Sub-decisões:**
+
+1. **Origem dos dados:** lê do `report.analysis_artifact.content_json` referenciado em `suggestion.report_id`. Se `report_id` é `NULL` (Suggestion legada) ou snapshot não tem o KPI → campo fica `null` no JSON, não bloqueia aceitação.
+
+2. **Schema `context_snapshot`** é JSONB **não-validado** por Pydantic — payload evolui livre conforme novos KPIs entram no relatório. Apenas chaves "padronizadas" (acima) são consumidas pela UI; chaves desconhecidas ficam disponíveis para auditoria via API mas não são exibidas.
+
+3. **Migration `f1a2b3c4d5e6_adr163`**: adiciona `decisions.context_snapshot JSONB nullable`. Decisions pré-migration ficam `NULL` — UI degrada para "contexto não capturado".
+
+4. **Não congela TUDO do snapshot.** Apenas KPIs editoriais relevantes (5-7 campos). Snapshot bruto (~24 campos top-level) seria payload pesado e maioria irrelevante para auditoria.
+
+5. **DecisionCard exibe "Decidida com base em: Patrimônio R$ 1,2M, IF 42%, TRS 4.5%"** no expand quando `context_snapshot` popula. Esses são os valores **frozen** — não os atuais.
+
+**Consequências:**
+
+- ✅ Auditoria temporal: Decision sempre carrega o "porquê" original. Útil para revisões trimestrais e supersede chain (ADR-136).
+- ✅ Mínimo overhead — JSONB com 5 campos numéricos é <100 bytes. Sem índice (não consultado por valor).
+- ✅ Backward-compatible: NULL para Decisions legadas; UI degrada graciosamente.
+- ⚠️ Suggestion sem `report_id` → snapshot vazio. Aceitável (Suggestion editada manualmente sem origem rastreável).
+- ⚠️ Schema JSONB livre exige cuidado em consumo: UI/API precisa lidar com chaves ausentes. Compensado pela exibição opt-in (só mostra se field existir).
+- ❌ Não captura state derivado de outros aggregates (Tasks, Notes) — fora do escopo MVP.
+
+**Follow-ups:**
+
+1. Snapshot enrichment quando Decision é editada (não só na aceitação) — caso usuário re-decide com novo contexto. Defer para Onda 9.
+2. Diff visual "Decidida com base em X% / Hoje está Y%" — comparativo automático entre `context_snapshot.if_progress_pct` e Goal vigente. Requer cross-aggregate query, defer.
 
 ---
 

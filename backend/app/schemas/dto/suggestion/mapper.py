@@ -17,6 +17,7 @@ def suggestion_to_response(suggestion: Suggestion) -> SuggestionResponse:
         report_id=suggestion.report_id,
         section_id=suggestion.section_id,
         kind=suggestion.kind,
+        category=suggestion.category,
         origin=suggestion.origin,
         severity=suggestion.severity,
         title=suggestion.title,

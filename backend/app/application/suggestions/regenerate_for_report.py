@@ -91,6 +91,7 @@ async def _persist_drafts(
             report_id=report_id,
             section_id=draft.section_id,
             kind=draft.kind,
+            category=draft.category,
             origin=draft.origin,
             severity=draft.severity,
             title=draft.title,

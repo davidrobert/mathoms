@@ -16,6 +16,7 @@ from backend.app.schemas.dto.suggestion.response import (
     SuggestionListResponse,
     SuggestionRegenerateResponse,
     SuggestionResponse,
+    SuggestionsSummaryResponse,
 )
 
 __all__ = [
@@ -27,6 +28,7 @@ __all__ = [
     "SuggestionListResponse",
     "SuggestionRegenerateResponse",
     "SuggestionResponse",
+    "SuggestionsSummaryResponse",
     "brl_to_cents",
     "cents_to_brl",
     "suggestion_to_response",
