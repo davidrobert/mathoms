@@ -16,38 +16,57 @@ import { AlertOctagon, AlertTriangle, ArrowRight, Info } from "lucide-react";
 import type { Suggestion, SuggestionSeverity } from "@/lib/api";
 import { useSuggestions } from "@/hooks/useSuggestions";
 
+/** Onda 10 #4 — severidades canalizadas pelos tokens semânticos do
+ * design-system (`tokens.css` §--semantic-*). Mapeamento:
+ *
+ * - `info`    → `--semantic-info-financial` (azul informativo)
+ * - `warning` → `--semantic-alert`           (laranja de atenção)
+ * - `danger`  → `--semantic-loss`            (vermelho de perda/risco)
+ *
+ * Fonte do bg: `color-mix(in oklab, <tone> 8-10%, transparent)` —
+ * mesma técnica adotada por `<EstrategiaAporteCard/>`,
+ * `<ReportShell/>` (§warn) e demais cards do relatório. Dark mode
+ * derivado automaticamente via `tokens.css` (não precisa de
+ * `dark:` aliases).
+ */
 const SEVERITY_VARIANTS: Record<
   SuggestionSeverity,
   {
     label: string;
     Icon: typeof Info;
-    border: string;
-    text: string;
-    bg: string;
+    /** CSS var do tom — usado em border-left, text-color e mix de bg. */
+    tokenVar: string;
+    /** Fallback de bg-mix percentual (warn precisa um pouco mais que info/danger). */
+    bgMixPct: number;
   }
 > = {
   info: {
     label: "Informativo",
     Icon: Info,
-    border: "border-l-sky-500",
-    text: "text-sky-900 dark:text-sky-100",
-    bg: "bg-sky-50/60 dark:bg-sky-900/20",
+    tokenVar: "var(--semantic-info-financial)",
+    bgMixPct: 8,
   },
   warning: {
     label: "Atenção",
     Icon: AlertTriangle,
-    border: "border-l-amber-500",
-    text: "text-amber-900 dark:text-amber-100",
-    bg: "bg-amber-50/60 dark:bg-amber-900/20",
+    tokenVar: "var(--semantic-alert)",
+    bgMixPct: 10,
   },
   danger: {
     label: "Ação urgente",
     Icon: AlertOctagon,
-    border: "border-l-red-500",
-    text: "text-red-900 dark:text-red-100",
-    bg: "bg-red-50/60 dark:bg-red-900/20",
+    tokenVar: "var(--semantic-loss)",
+    bgMixPct: 10,
   },
 };
+
+function severityStyle(tokenVar: string, bgMixPct: number) {
+  return {
+    borderLeftColor: tokenVar,
+    color: tokenVar,
+    backgroundColor: `color-mix(in oklab, ${tokenVar} ${bgMixPct}%, transparent)`,
+  } as const;
+}
 
 interface SuggestionCalloutInlineProps {
   /** Filtra `suggestions` por section_id (ex.: "S7"). */
@@ -89,20 +108,27 @@ function SuggestionItem({
   const variant =
     SEVERITY_VARIANTS[suggestion.severity] ?? SEVERITY_VARIANTS.info;
   const Icon = variant.Icon;
+  const tone = severityStyle(variant.tokenVar, variant.bgMixPct);
   return (
     <div
       role="note"
       aria-label={`Sugestão (${variant.label}): ${suggestion.title}`}
-      className={[
-        "flex items-start justify-between gap-3 rounded-md border-l-[3px] border border-border px-4 py-3",
-        variant.border,
-        variant.bg,
-      ].join(" ")}
+      className="flex items-start justify-between gap-3 rounded-md border border-border border-l-[3px] px-4 py-3"
+      style={{
+        borderLeftColor: tone.borderLeftColor,
+        backgroundColor: tone.backgroundColor,
+      }}
     >
       <div className="flex items-start gap-3">
-        <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${variant.text}`} />
+        <Icon
+          className="mt-0.5 h-4 w-4 shrink-0"
+          style={{ color: tone.color }}
+        />
         <div>
-          <p className={`text-xs font-semibold uppercase tracking-wide ${variant.text}`}>
+          <p
+            className="text-xs font-semibold uppercase tracking-wide"
+            style={{ color: tone.color }}
+          >
             {variant.label}
           </p>
           <p className="text-sm font-medium leading-snug">{suggestion.title}</p>
@@ -164,7 +190,10 @@ export function SuggestionCalloutSummary({
           const Icon = variant.Icon;
           return (
             <li key={s.id} className="flex items-start gap-3">
-              <Icon className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${variant.text}`} />
+              <Icon
+                className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                style={{ color: variant.tokenVar }}
+              />
               <div className="flex-1">
                 <p className="text-sm font-medium">{s.title}</p>
                 <Link
