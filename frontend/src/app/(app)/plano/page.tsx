@@ -34,6 +34,7 @@ import { IFEmptyHero, IFHeroCard } from "./_components/IFHeroCard";
 import { LinkedTasksSection } from "./_components/LinkedTasksSection";
 import { OnboardingHero } from "./_components/OnboardingHero";
 import { PlanoKpiRow } from "./_components/PlanoKpiRow";
+import { ReportLinkAction } from "./_components/ReportLinkAction";
 import { SuggestionsBanner } from "./_components/SuggestionsBanner";
 import { SupportGoalsRow } from "./_components/SupportGoalsRow";
 import { usePlanoOverview } from "./_components/usePlanoOverview";
@@ -96,11 +97,14 @@ export default function PlanoPage() {
         title="Meu Plano"
         description="Sua vida financeira — onde está, onde vai, o que está em jogo"
         actions={
-          <HeaderActions
-            dataFreshness={dashboard.data?.data_freshness}
-            loading={dashboard.loading}
-            onRefresh={dashboard.load}
-          />
+          <>
+            <ReportLinkAction snapshot={overview.patrimonio_snapshot} />
+            <HeaderActions
+              dataFreshness={dashboard.data?.data_freshness}
+              loading={dashboard.loading}
+              onRefresh={dashboard.load}
+            />
+          </>
         }
       />
 
