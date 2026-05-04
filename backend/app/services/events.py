@@ -31,7 +31,9 @@ def _get_redis():
 
             from backend.app.core.config import settings
 
-            _redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+            # Pub/Sub vai no Redis de cache — broker pode usar policy noeviction
+            # (preserva mensagens Celery), cache aceita LRU.
+            _redis_client = redis.Redis.from_url(settings.cache_redis_url, decode_responses=True)
             _redis_client.ping()
         except Exception as exc:
             logger.warning("Redis unavailable, events will be no-ops: %s", exc)

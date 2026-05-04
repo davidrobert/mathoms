@@ -51,7 +51,7 @@ async def _subscribe(websocket: WebSocket, run_id: str):
     try:
         import redis.asyncio as aioredis
 
-        redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        redis_client = aioredis.from_url(settings.cache_redis_url, decode_responses=True)
         redis_sub = redis_client.pubsub()
         await redis_sub.subscribe(f"pipeline:{run_id}")
         return redis_client, redis_sub
