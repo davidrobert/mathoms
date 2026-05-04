@@ -6,11 +6,11 @@ import { ArrowRight, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MonetaryValue } from "@/components/report/MonetaryValue";
 import {
   ifMonthlyContributionDisplay,
   type IFGoalResponse,
 } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
 
 import type { IFProgress } from "./usePlanoOverview";
 
@@ -84,17 +84,14 @@ function IFHeroProgress({
     <div className="mt-5">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="min-w-0">
-          <p
-            className="font-heading text-3xl font-semibold leading-none tabular-nums"
+          <MonetaryValue
+            value={patrimonio}
+            size="hero"
+            className="block leading-none"
             data-testid="if-hero-patrimonio"
-          >
-            {formatCurrency(patrimonio)}
-          </p>
+          />
           <p className="mt-1 text-xs text-muted-foreground">
-            de{" "}
-            <span className="font-mono tabular-nums">
-              {formatCurrency(meta)}
-            </span>
+            de <MonetaryValue value={meta} />
           </p>
         </div>
         <p className="font-mono text-2xl font-semibold tabular-nums">
@@ -108,11 +105,7 @@ function IFHeroProgress({
         />
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Faltam{" "}
-        <span className="font-mono tabular-nums">
-          {formatCurrency(progress.faltante)}
-        </span>{" "}
-        para a meta
+        Faltam <MonetaryValue value={progress.faltante} /> para a meta
       </p>
     </div>
   );
@@ -132,22 +125,36 @@ function IFHeroKPIs({ goal }: { goal: IFGoalResponse }) {
     <dl className="mt-6 grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-y-0 sm:divide-x">
       <KPIColumn
         label="Patrimônio-alvo"
-        value={formatCurrency(d.if_meta_brl)}
+        value={<MonetaryValue value={d.if_meta_brl} />}
         position="first"
       />
       <KPIColumn
         label="Renda passiva projetada"
-        value={`${formatCurrency(i.renda_passiva_mensal_brl)}/mês`}
+        value={
+          <>
+            <MonetaryValue value={i.renda_passiva_mensal_brl} />
+            /mês
+          </>
+        }
         position="middle"
       />
       <KPIColumn
         label="Aporte mensal necessário"
-        value={`${formatCurrency(aporteDisplay)}/mês`}
+        value={
+          <>
+            <MonetaryValue value={aporteDisplay} />
+            /mês
+          </>
+        }
         position="last"
         footnote={
-          showCenarioZero && d.patrimonio_atual_utilizado_brl != null
-            ? `partindo de zero: ${formatCurrency(d.aporte_necessario_mensal_brl)}/mês`
-            : undefined
+          showCenarioZero && d.patrimonio_atual_utilizado_brl != null ? (
+            <>
+              partindo de zero:{" "}
+              <MonetaryValue value={d.aporte_necessario_mensal_brl} />
+              /mês
+            </>
+          ) : undefined
         }
       />
     </dl>
@@ -156,9 +163,9 @@ function IFHeroKPIs({ goal }: { goal: IFGoalResponse }) {
 
 interface KPIColumnProps {
   label: string;
-  value: string;
+  value: React.ReactNode;
   position: "first" | "middle" | "last";
-  footnote?: string;
+  footnote?: React.ReactNode;
 }
 
 function KPIColumn({ label, value, position, footnote }: KPIColumnProps) {
@@ -171,9 +178,7 @@ function KPIColumn({ label, value, position, footnote }: KPIColumnProps) {
   return (
     <div className={padding}>
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1 font-mono text-lg font-medium tabular-nums">
-        {value}
-      </dd>
+      <dd className="mt-1 text-lg font-medium tabular-nums">{value}</dd>
       {footnote && (
         <p className="mt-0.5 text-[11px] text-muted-foreground">{footnote}</p>
       )}
@@ -203,14 +208,20 @@ function IFHeroParams({ goal }: { goal: IFGoalResponse }) {
         <ParamItem label="Horizonte" value={`${i.horizonte_anos} anos`} />
         <ParamItem
           label={`Meta conservadora (${conservadoraPct}%)`}
-          value={formatCurrency(d.if_meta_conservadora_brl)}
+          value={<MonetaryValue value={d.if_meta_conservadora_brl} />}
         />
       </dl>
     </details>
   );
 }
 
-function ParamItem({ label, value }: { label: string; value: string }) {
+function ParamItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
     <div>
       <dt className="text-muted-foreground">{label}</dt>

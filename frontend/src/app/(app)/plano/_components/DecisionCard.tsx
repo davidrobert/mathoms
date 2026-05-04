@@ -6,8 +6,8 @@ import { ArrowRight, Pencil, Replace } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MonetaryValue } from "@/components/report/MonetaryValue";
 import { ApiError, type Decision, type DecisionStatus } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
 
 import { DecisionStatusBadge } from "./DecisionStatusBadge";
 import { findSupersededBy, formatDecisionDate } from "./decisionsCopy";
@@ -65,8 +65,8 @@ function DecisionCardHeader({ decision }: { decision: Decision }) {
         <DecisionStatusBadge status={decision.status} />
       </div>
       {amount !== null && (
-        <p className="font-mono text-sm font-medium tabular-nums">
-          {formatCurrency(amount)}
+        <p className="text-sm font-medium">
+          <MonetaryValue value={amount} />
         </p>
       )}
     </div>
