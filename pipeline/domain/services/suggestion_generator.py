@@ -154,12 +154,12 @@ def _rule_reserva_insuficiente(
     if meses is None or meses >= cfg.reserva_target_meses:
         return None
     gap_brl = _as_decimal(reserva.get("gap_brl"))
-    title = f"Reforçar reserva de emergência até {cfg.reserva_target_meses} meses"
-    rationale = (
-        f"Cobertura atual está em {meses:.1f} meses de despesa — "
-        f"alvo é {cfg.reserva_target_meses} meses (Perini/Cerbasi). "
-        f"Gap protege o plano contra choque de renda."
+    fluxo = _as_dict(snapshot.get("fluxo_caixa"))
+    aporte_mensal = _as_decimal(fluxo.get("aporte_meta_mensal")) or _as_decimal(
+        fluxo.get("aporte_medio_3m")
     )
+    title = f"Reforçar reserva de emergência até {cfg.reserva_target_meses} meses"
+    rationale = _build_reserva_rationale(meses, cfg.reserva_target_meses, gap_brl, aporte_mensal)
     severity = "danger" if meses < 3 else "warning"
     return SuggestionDraft(
         section_id="S2",
@@ -169,10 +169,39 @@ def _rule_reserva_insuficiente(
         title=title,
         rationale=rationale,
         amount_brl=gap_brl,
-        dedup_key=_dedup_key(
-            "reserva_insuficiente",
-            bucket=_meses_bucket(meses),
-        ),
+        dedup_key=_dedup_key("reserva_insuficiente", bucket=_meses_bucket(meses)),
+    )
+
+
+def _build_reserva_rationale(
+    meses_atual: float,
+    meses_alvo: int,
+    gap_brl: Decimal | None,
+    aporte_mensal: Decimal | None,
+) -> str:
+    """Onda 10 #5 — rationale enriquecido com gap + ETA do aporte mensal."""
+    base = (
+        f"Sua reserva atual cobre {meses_atual:.1f} meses de custo essencial, "
+        f"abaixo do alvo de {meses_alvo} meses (Perini/Cerbasi)."
+    )
+    if gap_brl is None or gap_brl <= 0:
+        return base + " Reforçar protege o plano contra choque de renda."
+    parts = [base, f"Faltam **{_format_brl(gap_brl)}**."]
+    parts.append(_reserva_aporte_clause(gap_brl, aporte_mensal))
+    return " ".join(p for p in parts if p)
+
+
+def _reserva_aporte_clause(gap_brl: Decimal, aporte_mensal: Decimal | None) -> str:
+    """ETA + CTA quando o aporte está disponível; texto curto caso contrário."""
+    if aporte_mensal is None or aporte_mensal <= 0:
+        return "Reforçar protege o plano contra choque de renda."
+    meses = max(int((gap_brl / aporte_mensal).to_integral_value()), 1)
+    aporte_brl = _format_brl(aporte_mensal)
+    return (
+        f"Aportando {aporte_brl}/mês, completa em ~{meses} meses. "
+        f"**Próximo passo:** elevar aporte mensal para reserva ou direcionar "
+        f"o próximo aporte de {aporte_brl} integralmente para Tesouro Selic / "
+        "CDB liquidez diária."
     )
 
 
@@ -183,26 +212,28 @@ def _rule_alocacao_fora_alvo(
     if not investimentos:
         return None
     desvios = _as_list(investimentos.get("desvios_alvo"))
-    if not desvios:
-        return None
-    pior = max(
-        desvios,
-        key=lambda d: abs(_as_float(_as_dict(d).get("desvio_pp")) or 0.0),
-        default=None,
-    )
+    pior = _pick_worst_desvio(desvios)
     if pior is None:
         return None
-    pior_dict = _as_dict(pior)
-    desvio_pp = _as_float(pior_dict.get("desvio_pp"))
+    desvio_pp = _as_float(pior.get("desvio_pp"))
     if desvio_pp is None or abs(desvio_pp) <= cfg.alocacao_drift_pp:
         return None
-    classe = pior_dict.get("classe", "alocação")
+    classe = str(pior.get("classe", "alocação"))
     direcao = "reduzir" if desvio_pp > 0 else "aumentar"
     title = f"Rebalancear alocação: {direcao} {classe} ({desvio_pp:+.0f}pp)"
-    rationale = (
-        f"Classe {classe} está {abs(desvio_pp):.0f}pp {direcao}da do alvo. "
-        f"Drift acima da tolerância ({cfg.alocacao_drift_pp:.0f}pp) merece aporte "
-        f"direcionado ou rebalanceamento."
+    fluxo = _as_dict(snapshot.get("fluxo_caixa"))
+    proximo_aporte = _as_decimal(fluxo.get("aporte_meta_mensal")) or _as_decimal(
+        fluxo.get("aporte_medio_3m")
+    )
+    rationale = _build_alocacao_rationale(
+        classe,
+        desvio_pp,
+        direcao,
+        _as_float(pior.get("atual_pct")),
+        _as_float(pior.get("alvo_pct")),
+        proximo_aporte,
+        desvios,
+        cfg.alocacao_drift_pp,
     )
     return SuggestionDraft(
         section_id="S3",
@@ -217,6 +248,82 @@ def _rule_alocacao_fora_alvo(
             bucket=f"{classe}|{_pct_bucket(desvio_pp, step=2.5)}",
         ),
     )
+
+
+def _pick_worst_desvio(desvios: list[Any]) -> dict[str, Any] | None:
+    """Maior |desvio_pp| da lista; None se vazio."""
+    if not desvios:
+        return None
+    pior = max(desvios, key=lambda d: abs(_as_float(_as_dict(d).get("desvio_pp")) or 0.0))
+    return _as_dict(pior) or None
+
+
+def _build_alocacao_rationale(
+    classe: str,
+    desvio_pp: float,
+    direcao: str,
+    atual_pct: float | None,
+    alvo_pct: float | None,
+    proximo_aporte: Decimal | None,
+    desvios: list[Any],
+    drift_pp: float,
+) -> str:
+    """Onda 10 #5 — head + drift + CTA + tabela markdown (cada parte opcional)."""
+    head = _alocacao_head(classe, desvio_pp, direcao, atual_pct, alvo_pct)
+    drift = f"Drift acima da tolerância ({drift_pp:.0f}pp)."
+    cta = _alocacao_cta(classe, proximo_aporte)
+    table = _format_alocacao_table(desvios)
+    return "\n\n".join(p for p in (head, drift, cta, table) if p)
+
+
+def _alocacao_cta(classe: str, proximo_aporte: Decimal | None) -> str:
+    """CTA "Próximo aporte" — vazio quando o aporte mensal não está disponível."""
+    if proximo_aporte is None or proximo_aporte <= 0:
+        return ""
+    return (
+        f"**Próximo passo:** o próximo aporte de {_format_brl(proximo_aporte)} "
+        f"pode ir integralmente para **{classe}** e iniciar o rebalanceamento."
+    )
+
+
+def _alocacao_head(
+    classe: str,
+    desvio_pp: float,
+    direcao: str,
+    atual_pct: float | None,
+    alvo_pct: float | None,
+) -> str:
+    """Frase cabeçalho — anexa atual/alvo se disponível."""
+    head = f"Classe **{classe}** está {abs(desvio_pp):.1f}pp {direcao}da do alvo"
+    if atual_pct is not None and alvo_pct is not None:
+        return head + f" (atual {atual_pct:.1f}% vs alvo {alvo_pct:.1f}%)."
+    return head + "."
+
+
+def _format_alocacao_table(desvios: list[Any]) -> str:
+    """Tabela markdown atual/alvo/Δ — só se >=2 entradas com pcts."""
+    rows: list[str] = []
+    for entry in desvios:
+        d = _as_dict(entry)
+        atual = _as_float(d.get("atual_pct"))
+        alvo = _as_float(d.get("alvo_pct"))
+        desvio = _as_float(d.get("desvio_pp"))
+        if atual is None or alvo is None or desvio is None:
+            continue
+        classe = str(d.get("classe", "—"))
+        rows.append(f"| {classe} | {atual:.1f}% | {alvo:.1f}% | {desvio:+.1f}pp |")
+    if len(rows) < 2:
+        return ""
+    header = "| Classe | Atual | Alvo | Δ |\n| --- | --- | --- | --- |"
+    return "**Distribuição atual vs alvo:**\n\n" + header + "\n" + "\n".join(rows)
+
+
+def _format_brl(value: Decimal) -> str:
+    """Decimal monetário em formato BR (R$ 1.234,56) sem depender de locale."""
+    quantized = value.quantize(Decimal("0.01"))
+    formatted = f"{quantized:,.2f}"
+    swapped = formatted.replace(",", "_TMP_").replace(".", ",").replace("_TMP_", ".")
+    return f"R$ {swapped}"
 
 
 def _rule_aporte_abaixo_meta(

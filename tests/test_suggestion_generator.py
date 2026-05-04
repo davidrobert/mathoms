@@ -202,3 +202,62 @@ def test_drafts_are_immutable():
     )
     with pytest.raises((AttributeError, Exception)):  # frozen dataclass
         d.title = "outro"  # type: ignore[misc]
+
+
+# =============================================================================
+# Onda 10 #5 — body_md enriquecido nas regras 2 e 3
+# =============================================================================
+
+
+def test_reserva_rationale_enriquecido_com_gap_e_aporte(gen):
+    """Regra 2 — gap + aporte mensal + ETA aparecem no rationale."""
+    snapshot = {
+        "reserva_emergencia": {"meses_cobertura": 2.0, "gap_brl": 9000.0},
+        "fluxo_caixa": {"aporte_meta_mensal": 3000.0},
+    }
+    d = next(d for d in gen.generate(snapshot) if d.kind == "reserva_insuficiente")
+    assert "R$ 9.000,00" in d.rationale  # gap formatado BR
+    assert "R$ 3.000,00" in d.rationale  # aporte mensal projetado
+    assert "~3 meses" in d.rationale  # ETA = 9000 / 3000 = 3
+    assert "Próximo passo" in d.rationale  # call-to-action explícito
+
+
+def test_reserva_rationale_degrada_quando_aporte_ausente(gen):
+    """Sem fluxo_caixa, ainda funciona — só perde a parte de ETA."""
+    snapshot = {
+        "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},
+    }
+    d = next(d for d in gen.generate(snapshot) if d.kind == "reserva_insuficiente")
+    assert "R$ 9.000,00" in d.rationale  # gap ainda aparece
+    assert "Próximo passo" not in d.rationale  # CTA é condicional ao aporte
+
+
+_ALOCACAO_FULL_SNAPSHOT = {
+    "investimentos": {
+        "desvios_alvo": [
+            {"classe": "renda_variavel", "desvio_pp": -15.0, "atual_pct": 25.0, "alvo_pct": 40.0},
+            {"classe": "renda_fixa", "desvio_pp": 15.0, "atual_pct": 75.0, "alvo_pct": 60.0},
+        ]
+    },
+    "fluxo_caixa": {"aporte_meta_mensal": 2500.0},
+}
+
+
+def test_alocacao_rationale_inclui_atual_alvo_quando_disponivel(gen):
+    d = next(d for d in gen.generate(_ALOCACAO_FULL_SNAPSHOT) if d.kind == "alocacao_fora_alvo")
+    assert "renda_variavel" in d.rationale
+    assert "atual 25.0%" in d.rationale and "alvo 40.0%" in d.rationale
+    assert "R$ 2.500,00" in d.rationale
+    assert "| Classe | Atual | Alvo | Δ |" in d.rationale
+    assert "renda_fixa" in d.rationale
+
+
+def test_alocacao_rationale_degrada_sem_pcts(gen):
+    """Snapshot legado (só desvio_pp) não quebra — cai no rationale curto."""
+    snapshot = {
+        "investimentos": {"desvios_alvo": [{"classe": "renda_variavel", "desvio_pp": -15.0}]}
+    }
+    d = next(d for d in gen.generate(snapshot) if d.kind == "alocacao_fora_alvo")
+    assert "renda_variavel" in d.rationale
+    assert "atual" not in d.rationale  # não inventa números
+    assert "| Classe |" not in d.rationale  # sem tabela quando dados faltam
