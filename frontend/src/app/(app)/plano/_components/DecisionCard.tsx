@@ -70,20 +70,26 @@ function DecisionContextSnapshot({ decision }: { decision: Decision }) {
   // Valores são "do momento da aceitação", não atuais.
   const snap = decision.context_snapshot;
   if (!snap || typeof snap !== "object") return null;
-  const parts: string[] = [];
-  if (typeof snap.patrimonio_brl === "number") {
-    parts.push(`Patrimônio R$ ${formatCurrency(snap.patrimonio_brl)}`);
-  }
-  if (typeof snap.if_progress_pct === "number") {
-    parts.push(`IF ${snap.if_progress_pct.toFixed(0)}%`);
-  }
-  if (typeof snap.trs_pct_when_decided === "number") {
-    parts.push(`TRS ${snap.trs_pct_when_decided.toFixed(1)}%`);
-  }
-  if (parts.length === 0) return null;
+  const patrimonio =
+    typeof snap.patrimonio_brl === "number" ? snap.patrimonio_brl : null;
+  const ifProgress =
+    typeof snap.if_progress_pct === "number" ? snap.if_progress_pct : null;
+  const trs =
+    typeof snap.trs_pct_when_decided === "number"
+      ? snap.trs_pct_when_decided
+      : null;
+  if (patrimonio === null && ifProgress === null && trs === null) return null;
   return (
-    <p className="text-[11px] text-muted-foreground">
-      Decidida com base em: {parts.join(" · ")}
+    <p className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
+      Decidida com base em:
+      {patrimonio !== null && (
+        <>
+          <span> Patrimônio </span>
+          <MonetaryValue value={patrimonio} size="body" />
+        </>
+      )}
+      {ifProgress !== null && <span>· IF {ifProgress.toFixed(0)}%</span>}
+      {trs !== null && <span>· TRS {trs.toFixed(1)}%</span>}
     </p>
   );
 }
