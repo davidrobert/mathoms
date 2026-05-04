@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -10,6 +11,19 @@ if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
 logger = logging.getLogger("mathoms.pipeline.e16")
+
+# Reda CPF em filenames antes de virar log JSON. Usa lookarounds em vez de \b
+# para tolerar underscore (filename clássico tipo "decl_99988877766.pdf").
+_FILENAME_CPF_MASKED = re.compile(r"(?<!\d)\d{3}\.\d{3}\.\d{3}-\d{2}(?!\d)")
+_FILENAME_CPF_LOOSE = re.compile(r"(?<!\d)\d{11}(?!\d)")
+
+
+def _redact_filename_pii(name: str) -> str:
+    """Mascara CPF (com ou sem pontuação) em nomes de arquivo antes de logar."""
+    name = _FILENAME_CPF_MASKED.sub("<cpf-redacted>", name)
+    name = _FILENAME_CPF_LOOSE.sub("<cpf-redacted>", name)
+    return name
+
 
 # Mesma justificativa de E1.5: payload IRPF é grande e completions abaixo de
 # 16k truncam structured output.
@@ -156,7 +170,7 @@ def _log_run(doc_name: str, ws_id: str, payload: dict, result) -> None:
         "extract_irpf_full",
         extra={
             "workspace_id": ws_id,
-            "doc": doc_name,
+            "doc": _redact_filename_pii(doc_name),
             "ano_base": ano_base,
             "tokens_in": result.tokens_in,
             "tokens_out": result.tokens_out,

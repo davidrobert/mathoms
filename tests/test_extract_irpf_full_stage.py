@@ -42,6 +42,27 @@ def _seed_irpf_pdf(tmp_path: Path, doc_name: str) -> None:
     (irpf_dir / doc_name).write_text("conteudo ficticio do PDF de IRPF")
 
 
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("irpfdeclaracao_2024.pdf", "irpfdeclaracao_2024.pdf"),
+        (
+            "irpfdeclaracao_jose_silva_99988877766.pdf",
+            "irpfdeclaracao_jose_silva_<cpf-redacted>.pdf",
+        ),
+        (
+            "decl_123.456.789-00.pdf",
+            "decl_<cpf-redacted>.pdf",
+        ),
+        ("ano_2024_doc.pdf", "ano_2024_doc.pdf"),  # 4 dígitos isolados não casam
+    ],
+)
+def test_redact_filename_pii(raw: str, expected: str) -> None:
+    from pipeline.stages.extract_irpf_full import _redact_filename_pii
+
+    assert _redact_filename_pii(raw) == expected
+
+
 def _build_setup(tmp_path: Path, fixture_name: str, doc_name: str):
     from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
 
