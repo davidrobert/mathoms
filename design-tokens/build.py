@@ -131,6 +131,13 @@ def _static_tokens_block(tokens: dict[str, Any], *, emit_fonts: bool) -> list[st
         lines.append(f"    --space-{_kebab(k)}: {v};")
     lines.append("")
 
+    # layout (largura máxima de conteúdo cross-rota)
+    layout = tokens.get("layout", {})
+    for k, v in layout.items():
+        lines.append(f"    --layout-{_kebab(k)}: {v};")
+    if layout:
+        lines.append("")
+
     # radius
     for k, v in tokens["radius"].items():
         lines.append(f"    --radius-{_kebab(k)}: {v};")
@@ -279,6 +286,10 @@ def _theme_inline_block(tokens: dict[str, Any]) -> list[str]:
     # radius
     for k in tokens["radius"]:
         lines.append(f"    --radius-{_kebab(k)}: var(--radius-{_kebab(k)});")
+    lines.append("")
+    # layout — wire content_max em --container-content (Tailwind v4 → max-w-content)
+    if "content_max" in tokens.get("layout", {}):
+        lines.append("    --container-content: var(--layout-content-max);")
     lines.append("}")
 
     # text styles — CSS utility classes from composite tokens

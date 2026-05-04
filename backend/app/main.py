@@ -243,6 +243,19 @@ async def health() -> dict:
     except Exception as exc:
         checks["redis"] = f"error: {exc}"
 
+    # Cache pode ser instância separada (broker noeviction × cache LRU).
+    # Em dev cache_redis_url == REDIS_URL → mesmo ping; em prod são 2 hosts.
+    if settings.cache_redis_url != settings.REDIS_URL:
+        try:
+            import redis.asyncio as aioredis
+
+            r = aioredis.from_url(settings.cache_redis_url, decode_responses=True)
+            await r.ping()
+            checks["redis_cache"] = "ok"
+            await r.close()
+        except Exception as exc:
+            checks["redis_cache"] = f"error: {exc}"
+
     try:
         from backend.app.worker import celery_app
 

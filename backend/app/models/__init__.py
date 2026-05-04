@@ -17,6 +17,7 @@ from backend.app.models.feature_flag import FeatureFlag
 from backend.app.models.fiscal_parameter import FiscalParameter
 from backend.app.models.goal import VALID_GOAL_TYPES, Goal
 from backend.app.models.institution_catalog import InstitutionCatalog
+from backend.app.models.llm_call_log import LLMCallLog
 from backend.app.models.llm_config import LLMConfig
 from backend.app.models.market_rate import MarketRate
 from backend.app.models.notification import Notification
@@ -126,6 +127,7 @@ __all__ = [
     "VALID_SUGGESTION_ORIGINS",
     "VALID_SUGGESTION_KINDS",
     "VALID_DISMISS_REASONS",
+    "LLMCallLog",
     "LLMConfig",
     "StageReview",
     "StageReviewStatus",

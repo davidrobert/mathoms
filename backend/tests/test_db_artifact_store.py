@@ -415,6 +415,55 @@ async def test_workspace_fallback_isolated_by_workspace(db: AsyncSession):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "stage",
+    [
+        # Legacy names (escritos hoje por extract_members/extract_baseline/etc)
+        "E1",
+        "E1.5",
+        "E1.5a",
+        "E1.5c",
+        # Descritivos equivalentes (compat F9.2 → F9.6)
+        "extract_members",
+        "extract_baseline",
+        "consolidate_baseline",
+        # ADR-157 — IRPF só existe em forma descritiva
+        "extract_irpf_full",
+    ],
+)
+async def test_workspace_scoped_stages_fall_back_cross_run(db: AsyncSession, stage: str):
+    """Cada stage workspace-scoped resolve cross-run por workspace.
+
+    Regressão A8: ``extract_irpf_full`` (ADR-157) escreve/lê em forma descritiva
+    e não estava na frozenset, então run novo sem reprocessar IRPF perdia IRPF
+    da última run silenciosamente. Inclui descritivos legacy-equivalentes para
+    proteger cutover parcial F9.2 → F9.6.
+    """
+    ws_id, run_a = await _seed_ws_and_run(db, email=f"ws-scope-{stage.replace('.', '-')}@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write(stage, "ref_key", {"v": "ws_scoped"})
+            s.commit()
+
+            store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+            return store_b.read(stage, "ref_key")
+
+    raw = await db.connection()
+    payload = await raw.run_sync(_do)
+    assert payload is not None, f"stage {stage} deveria fazer fallback workspace-wide"
+    assert payload["v"] == "ws_scoped"
+
+
+@pytest.mark.asyncio
 async def test_current_run_takes_precedence_over_workspace_fallback(db: AsyncSession):
     """Quando o run atual tem o artefato, fallback NÃO é consultado."""
     ws_id, run_a = await _seed_ws_and_run(db, email="precedence@test.com")

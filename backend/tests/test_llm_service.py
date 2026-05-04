@@ -158,9 +158,12 @@ class TestCostEstimation:
         assert abs(cost - expected) < 0.0001
 
     def test_unknown_model(self):
+        """Modelo desconhecido retorna ``None`` (não 0) — distingue 'desconhecido'
+        de 'grátis' (Ollama local) e força flagrar drift de pricing.
+        """
         svc = LLMService(LLMConfig(model_name="custom-model-v9"))
         cost = svc._estimate_cost(1000, 500)
-        assert cost == 0.0
+        assert cost is None
 
     def test_partial_match(self):
         svc = LLMService(LLMConfig(model_name="gpt-4o-2024-08-06"))

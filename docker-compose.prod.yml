@@ -52,15 +52,35 @@ services:
       retries: 10
     restart: unless-stopped
 
-  redis:
+  # Redis BROKER — Celery message queue + result backend.
+  # Policy `noeviction`: cheia → comandos write retornam erro (cliente sabe).
+  # `allkeys-lru` aqui evictava mensagens Celery silenciosamente sob pico —
+  # jobs sumiam, run ficava em "queued" eterno. Bug crítico de produção.
+  redis-broker:
     image: redis:7-alpine
     command: >
       redis-server
       --appendonly yes
       --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
+      --maxmemory-policy noeviction
     volumes:
       - mathoms_redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Redis CACHE — Pub/Sub (pipeline progress, eventos), cache ephemeral.
+  # Policy `allkeys-lru`: pode evictar; consumidores tratam miss como recompute.
+  # Pub/Sub não é afetado por maxmemory (mensagens não persistem como keys).
+  redis-cache:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
       interval: 10s
@@ -81,7 +101,8 @@ services:
       # Constrói a partir das partes do .env.prod.local — evita duplicar a
       # senha em duas variáveis e mantém uma fonte única (POSTGRES_PASSWORD).
       MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      MATHOMS_REDIS_URL: redis://redis:6379/0
+      MATHOMS_REDIS_URL: redis://redis-broker:6379/0
+      MATHOMS_REDIS_CACHE_URL: redis://redis-cache:6379/0
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
@@ -89,7 +110,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-broker:
+        condition: service_healthy
+      redis-cache:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
@@ -109,13 +132,16 @@ services:
       - .env.prod.local
     environment:
       MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      MATHOMS_REDIS_URL: redis://redis:6379/0
+      MATHOMS_REDIS_URL: redis://redis-broker:6379/0
+      MATHOMS_REDIS_CACHE_URL: redis://redis-cache:6379/0
     volumes:
       - mathoms_storage:/app/storage
     depends_on:
       api:
         condition: service_healthy
-      redis:
+      redis-broker:
+        condition: service_healthy
+      redis-cache:
         condition: service_healthy
     healthcheck:
       # Worker não expõe HTTP; healthcheck do Dockerfile (curl /health)
@@ -131,11 +157,14 @@ services:
       - .env.prod.local
     environment:
       MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      MATHOMS_REDIS_URL: redis://redis:6379/0
+      MATHOMS_REDIS_URL: redis://redis-broker:6379/0
+      MATHOMS_REDIS_CACHE_URL: redis://redis-cache:6379/0
     depends_on:
       api:
         condition: service_healthy
-      redis:
+      redis-broker:
+        condition: service_healthy
+      redis-cache:
         condition: service_healthy
     healthcheck:
       disable: true

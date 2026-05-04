@@ -210,3 +210,27 @@ class AuditListResponse(BaseModel):
 
 class AdminErrorResponse(BaseModel):
     detail: str
+
+
+class WorkspaceLLMSpendDTO(BaseModel):
+    """Spend snapshot de um workspace na janela consultada."""
+
+    workspace_id: str
+    workspace_name: str | None = None
+    monthly_budget_usd: str  # Decimal serializado como string (wire ADR-090)
+    period_start: str
+    period_end: str
+    call_count: int
+    total_tokens_in: int
+    total_tokens_out: int
+    total_cost_usd: str  # Decimal serializado como string
+    unknown_cost_calls: int
+    pct_of_budget: float  # 0.0 a >1.0 (acima do orçamento) — para alarme
+    over_budget: bool
+
+
+class LLMSpendByWorkspaceResponse(BaseModel):
+    period_days: int
+    period_start: str
+    period_end: str
+    items: list[WorkspaceLLMSpendDTO]

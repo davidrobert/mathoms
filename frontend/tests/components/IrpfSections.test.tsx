@@ -57,14 +57,20 @@ describe("<IrpfOtimizacaoSection />", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("renderiza cards quando irpf_kpis válido", () => {
+  it("renderiza apenas card PGBL quando irpf_kpis válido", () => {
+    // Cards "Dependentes Declarados" e "Dedutíveis Subutilizados" foram removidos
+    // até IRPFAnalyzer emitir números reais (eram prose-only). Spawn task aberta.
     const data = { irpf_kpis: KPIS_PAYLOAD } as unknown as ReportAnalysisData;
     render(<IrpfOtimizacaoSection data={data} />);
     expect(
       screen.getByRole("heading", { level: 2, name: /Otimização Tributária/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 3, name: /Capacidade PGBL/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: /Dependentes Declarados/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: /Dedutíveis Subutilizados/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /Dependentes Declarados/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /Dedutíveis Subutilizados/i }),
+    ).toBeNull();
   });
 });

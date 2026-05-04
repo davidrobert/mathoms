@@ -2,9 +2,10 @@
 
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -26,6 +27,13 @@ class Workspace(Base):
     # None → usa flag global MATHOMS_USE_DB_ARTIFACTS; True → força DB; False → força Disk.
     use_db_artifacts_override: Mapped[Optional[bool]] = mapped_column(
         Boolean, nullable=True, default=None
+    )
+
+    # FinOps (post-review fix 0.3): cap mensal de gasto LLM em USD para alarme.
+    # Default 5.0 (free tier conservador); Premium pode subir via UI admin.
+    # NÃO bloqueia chamadas — só dispara alerta no endpoint /v1/admin/llm-cost.
+    monthly_llm_budget_usd: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), nullable=False, default=Decimal("5.00"), server_default="5.00"
     )
 
     # Soft-delete (P1.2 · ADR-072). When not null, workspace is in "deleted"

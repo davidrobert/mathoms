@@ -56,7 +56,7 @@ export default function AcaoPage() {
 
 function AcaoLoadingState() {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader title="Ação" description="Carregando..." />
     </div>
   );
@@ -83,7 +83,7 @@ interface AcaoLoadedProps {
 
 function AcaoLoaded({ workspaceId, tab, onTabChange }: AcaoLoadedProps) {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader
         title="Ação"
         description="O que fazer agora — sugestões, tarefas, próximos passos, notas"
@@ -145,7 +145,7 @@ function useScrollToHashCard(tab: TabId) {
 
 function NoWorkspaceState() {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <PageHeader title="Ação" />
       <Card>
         <CardContent className="py-12 text-center text-muted-foreground">

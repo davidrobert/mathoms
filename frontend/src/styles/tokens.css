@@ -52,6 +52,8 @@
     --space-5xl: 3rem;
     --space-6xl: 4rem;
 
+    --layout-content-max: 72rem;
+
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
@@ -473,6 +475,8 @@
     --radius-xl: var(--radius-xl);
     --radius-card: var(--radius-card);
     --radius-pill: var(--radius-pill);
+
+    --container-content: var(--layout-content-max);
 }
 
 /* Text styles — composições tipográficas semânticas (ADR-076) */

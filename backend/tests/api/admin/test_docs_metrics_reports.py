@@ -69,6 +69,44 @@ async def test_metrics(
     assert body["period_days"] == 30
 
 
+async def _seed_over_budget_call(db, ws_id: str) -> None:
+    """Grava 1 LLM call com cost > default budget ($5) — força over_budget=True."""
+    from decimal import Decimal
+
+    from backend.app.repositories.llm_call_log_repository import LLMCallLogRepository
+
+    await LLMCallLogRepository(db).record(
+        workspace_id=ws_id,
+        stage="extract_irpf_full",
+        model_name="claude-opus-4",
+        tokens_in=10000,
+        tokens_out=5000,
+        cost_usd=Decimal("6.50"),
+        cost_known=True,
+        duration_ms=8000,
+    )
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_llm_cost_by_workspace_aggregates(
+    ops_session_token_superadmin, admin_ui_enabled, ops_yaml, client, db
+) -> None:
+    """Endpoint /admin/llm-cost-by-workspace: agrega gasto por ws + flag over_budget."""
+    u = await make_user(db)
+    ws = await make_workspace(db, owner=u)
+    await _seed_over_budget_call(db, ws.id)
+
+    await _with_cookie(client, ops_session_token_superadmin)
+    resp = await client.get("/admin/llm-cost-by-workspace?period_days=30")
+    assert resp.status_code == 200
+    item = next(it for it in resp.json()["items"] if it["workspace_id"] == ws.id)
+    assert item["call_count"] == 1
+    assert item["total_cost_usd"].startswith("6.5")
+    assert item["over_budget"] is True
+    assert item["pct_of_budget"] >= 1.0
+
+
 @pytest.mark.asyncio
 async def test_audit_endpoint(
     ops_session_token_superadmin, admin_ui_enabled, ops_yaml, audit_path, client

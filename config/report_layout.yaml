@@ -364,10 +364,12 @@ estrategico:
 
     # --------------------------------------------------------------------------
     # S_IRPF_OTIMIZACAO — Otimização tributária (ADR-157 · IRPF Full Schema)
-    # PGBL não usado, dependentes ociosos, dedutíveis subutilizados.
-    # G0 (financial-planner) sign-off necessário para copy: a "capacidade
-    # PGBL não usada" é informação, não recomendação automática (regras INSS,
-    # modelo simplificado vs. completo, perfil do contribuinte).
+    # Hoje publica só o card PGBL (números reais). Cards "Dependentes Declarados"
+    # e "Dedutíveis Subutilizados" foram removidos em 2026-05 por publicarem
+    # apenas texto explicativo sem dados — Premium não pode mostrar "análise
+    # entra em próxima iteração". Voltam quando IRPFAnalyzer emitir
+    # `dependentes_count` + `dedutiveis_por_categoria`. G0 (financial-planner)
+    # sign-off necessário antes de reativar — recomendação caso-a-caso.
     # --------------------------------------------------------------------------
     - id: "S_IRPF_OTIMIZACAO"
       title: "Otimização Tributária"
@@ -375,14 +377,6 @@ estrategico:
       summary: true
       cards:
         - id: "pgbl_capacidade"
-          enabled: true
-          variant: "warn"
-          size: "half"
-        - id: "dependentes_status"
-          enabled: true
-          variant: "feature"
-          size: "half"
-        - id: "dedutiveis_subutilizados"
           enabled: true
           variant: "warn"
           size: "full"

@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 39
+**Total de tabelas:** 40
 
 ---
 
@@ -28,6 +28,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`goals`](#goals)
 - [`institution_catalog`](#institutioncatalog)
 - [`institution_configs`](#institutionconfigs)
+- [`llm_call_log`](#llmcalllog)
 - [`llm_configs`](#llmconfigs)
 - [`market_rates`](#marketrates)
 - [`notifications`](#notifications)
@@ -432,6 +433,35 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - UNIQUE `ix_institution_configs_workspace_id` (workspace_id)
+
+### `llm_call_log`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `stage` | `VARCHAR(64)` | no | — | — |
+| `model_name` | `VARCHAR(120)` | no | — | — |
+| `prompt_version` | `VARCHAR(40)` | yes | — | — |
+| `tokens_in` | `INTEGER` | no | `0` | — |
+| `tokens_out` | `INTEGER` | no | `0` | — |
+| `cost_usd` | `NUMERIC(12, 6)` | no | `Decimal('0.000000')` | — |
+| `cost_known` | `BOOLEAN` | no | `True` | — |
+| `duration_ms` | `INTEGER` | no | `0` | — |
+| `pipeline_run_id` | `VARCHAR(36)` | yes | — | INDEX |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | INDEX |
+
+**Constraints:**
+
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_llm_call_log_created_at` (created_at)
+- `ix_llm_call_log_pipeline_run_id` (pipeline_run_id)
+- `ix_llm_call_log_workspace_id` (workspace_id)
+- `ix_llm_call_log_ws_created` (workspace_id, created_at)
+- `ix_llm_call_log_ws_model_created` (workspace_id, model_name, created_at)
 
 ### `llm_configs`
 
@@ -985,6 +1015,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `owner_id` | `VARCHAR(36)` | no | — | FK→users.id |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `use_db_artifacts_override` | `BOOLEAN` | yes | — | — |
+| `monthly_llm_budget_usd` | `NUMERIC(10, 2)` | no | server: `5.00` | — |
 | `deleted_at` | `DATETIME` | yes | — | INDEX |
 
 **Constraints:**
@@ -1325,6 +1356,25 @@ type InstitutionConfig struct {
 	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
 	ConfigJson json.RawMessage `db:"config_json" json:"config_json"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `llm_call_log` → `type LlmCallLog struct`
+
+```go
+type LlmCallLog struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	Stage string `db:"stage" json:"stage"`
+	ModelName string `db:"model_name" json:"model_name"`
+	PromptVersion *string `db:"prompt_version" json:"prompt_version"`
+	TokensIn int `db:"tokens_in" json:"tokens_in"`
+	TokensOut int `db:"tokens_out" json:"tokens_out"`
+	CostUsd decimal.Decimal `db:"cost_usd" json:"cost_usd"`
+	CostKnown bool `db:"cost_known" json:"cost_known"`
+	DurationMs int `db:"duration_ms" json:"duration_ms"`
+	PipelineRunId *string `db:"pipeline_run_id" json:"pipeline_run_id"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
 
@@ -1704,6 +1754,7 @@ type Workspace struct {
 	OwnerId string `db:"owner_id" json:"owner_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UseDbArtifactsOverride *bool `db:"use_db_artifacts_override" json:"use_db_artifacts_override"`
+	MonthlyLlmBudgetUsd decimal.Decimal `db:"monthly_llm_budget_usd" json:"monthly_llm_budget_usd"`
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
 }
 ```

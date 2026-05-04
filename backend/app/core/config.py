@@ -34,8 +34,16 @@ class Settings(BaseSettings):
     # backend/alembic/env.py). Em prod sempre setar MATHOMS_DATABASE_URL.
     DATABASE_URL: str = f"sqlite+aiosqlite:///{_PROJECT_ROOT / 'mathoms.db'}"
 
-    # Redis (Celery broker + result backend + Pub/Sub)
+    # Redis broker (Celery + result backend). Em produção deve apontar para
+    # instância com policy `noeviction` — eviction LRU evicta mensagens da
+    # fila como se fossem cache, perdendo jobs silenciosamente.
     REDIS_URL: str = "redis://localhost:6379/0"
+
+    # Redis cache (Pub/Sub + pipeline progress + ephemeral cache). Em produção
+    # aponta para instância separada com policy `allkeys-lru`. Em dev/teste
+    # default coincide com REDIS_URL (mesmo Redis serve broker e cache).
+    # Reading order: setting explícita > REDIS_URL.
+    REDIS_CACHE_URL: str = ""
 
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
@@ -94,6 +102,11 @@ class Settings(BaseSettings):
     def sync_database_url(self) -> str:
         """Sync DB URL for background threads (replace async driver)."""
         return self.DATABASE_URL.replace("+aiosqlite", "").replace("+asyncpg", "")
+
+    @property
+    def cache_redis_url(self) -> str:
+        """Resolve Redis URL para cache/pubsub; default cai no broker em dev."""
+        return self.REDIS_CACHE_URL or self.REDIS_URL
 
 
 settings = Settings()

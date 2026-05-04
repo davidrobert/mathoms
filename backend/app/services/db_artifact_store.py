@@ -18,10 +18,10 @@ write-lock em SQLite quando stages gravavam milhares de artefatos em série.
 Semântica:
     - ``write`` é upsert por ``(pipeline_run_id, stage, artifact_key)``.
     - ``read`` devolve o artefato do ``pipeline_run_id`` fixado no construtor.
-      Para stages em ``_WORKSPACE_SCOPED_STAGES`` (E1, E1.5, E1.5a, E1.5c —
-      datasets de referência por workspace, ADR-132), faz fallback para o
-      artefato mais recente do workspace quando o run atual não tem o key.
-      Para leitura cross-run arbitrária use ``PipelineArtifactRepository``.
+      Para stages em ``_WORKSPACE_SCOPED_STAGES`` (datasets de referência por
+      workspace, ADR-132 + ADR-157), faz fallback para o artefato mais recente
+      do workspace quando o run atual não tem o key. Para leitura cross-run
+      arbitrária use ``PipelineArtifactRepository``.
     - ``list_keys`` devolve distinct keys no workspace (cross-run) para o stage.
     - ``delete_stage`` remove apenas os artefatos do run atual — runs
       anteriores permanecem intocadas.
@@ -35,7 +35,25 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
 
-_WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset({"E1", "E1.5", "E1.5a", "E1.5c"})
+_WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset(
+    {
+        # Legacy names — escritos literalmente por extract_members/extract_baseline
+        # /consolidate_baseline durante a janela F9.2 → F9.6 (ADR-093).
+        "E1",
+        "E1.5",
+        "E1.5a",
+        "E1.5c",
+        # Descritivos equivalentes — protege contra cutover parcial onde algum
+        # caller começa a usar nome descritivo antes da migration Alembic F9.3.
+        "extract_members",
+        "extract_baseline",
+        "consolidate_baseline",
+        # ADR-157 — escrito/lido em forma descritiva desde o dia 1 (E1.6 não
+        # passa pelo legado). Sem entrada aqui, run que não reprocessa IRPF
+        # perde IRPF da última run silenciosamente.
+        "extract_irpf_full",
+    }
+)
 """Stages cujo artefato é dataset de **referência** (lifecycle por workspace,
 não por run). ``read()`` faz fallback para o artefato mais recente do
 workspace quando o ``pipeline_run_id`` atual não tem o key.
@@ -44,6 +62,9 @@ Critério de inclusão: artefato é gerado por evento de domínio (upload de
 IRPF, edição de family_members) e deve sobreviver entre runs sem custo de
 reprocessamento. Stages run-scoped (E2/E3/E4/E5) **não** entram aqui —
 cada run é dono dos próprios outputs.
+
+Inclui legacy + descritivo durante a janela de compat F9.2 → F9.6 (ADR-093).
+``extract_irpf_full`` (ADR-157) só existe em forma descritiva.
 
 Mudança aqui exige ADR (origem: ADR-132).
 """

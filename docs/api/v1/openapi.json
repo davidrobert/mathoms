@@ -4251,6 +4251,37 @@
         "title": "LLMConfigTestResponse",
         "type": "object"
       },
+      "LLMSpendByWorkspaceResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceLLMSpendDTO"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "period_days": {
+            "title": "Period Days",
+            "type": "integer"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_start": {
+            "title": "Period Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_days",
+          "period_start",
+          "period_end",
+          "items"
+        ],
+        "title": "LLMSpendByWorkspaceResponse",
+        "type": "object"
+      },
       "LLMTierResponse": {
         "description": "Current tier based on LLM config validity.",
         "properties": {
@@ -8168,6 +8199,81 @@
         "title": "VaultResponse",
         "type": "object"
       },
+      "WorkspaceLLMSpendDTO": {
+        "description": "Spend snapshot de um workspace na janela consultada.",
+        "properties": {
+          "call_count": {
+            "title": "Call Count",
+            "type": "integer"
+          },
+          "monthly_budget_usd": {
+            "title": "Monthly Budget Usd",
+            "type": "string"
+          },
+          "over_budget": {
+            "title": "Over Budget",
+            "type": "boolean"
+          },
+          "pct_of_budget": {
+            "title": "Pct Of Budget",
+            "type": "number"
+          },
+          "period_end": {
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_start": {
+            "title": "Period Start",
+            "type": "string"
+          },
+          "total_cost_usd": {
+            "title": "Total Cost Usd",
+            "type": "string"
+          },
+          "total_tokens_in": {
+            "title": "Total Tokens In",
+            "type": "integer"
+          },
+          "total_tokens_out": {
+            "title": "Total Tokens Out",
+            "type": "integer"
+          },
+          "unknown_cost_calls": {
+            "title": "Unknown Cost Calls",
+            "type": "integer"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          },
+          "workspace_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Name"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "monthly_budget_usd",
+          "period_start",
+          "period_end",
+          "call_count",
+          "total_tokens_in",
+          "total_tokens_out",
+          "total_cost_usd",
+          "unknown_cost_calls",
+          "pct_of_budget",
+          "over_budget"
+        ],
+        "title": "WorkspaceLLMSpendDTO",
+        "type": "object"
+      },
       "WorkspaceNoteCreateCommand": {
         "additionalProperties": false,
         "description": "Cria nova nota livre no workspace.",
@@ -8609,6 +8715,84 @@
           }
         },
         "summary": "Delete One",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/llm-cost-by-workspace": {
+      "get": {
+        "description": "Gasto LLM por workspace em USD na janela. Inclui pct_of_budget para alarme.",
+        "operationId": "llm_cost_by_workspace_admin_llm_cost_by_workspace_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 365,
+              "minimum": 1,
+              "title": "Period Days",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ops_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ops Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LLMSpendByWorkspaceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Llm Cost By Workspace",
         "tags": [
           "admin"
         ]

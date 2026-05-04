@@ -113,7 +113,7 @@ function ReviewDetailContent({
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-5xl px-6 py-8">
+      <div className="mx-auto max-w-content px-6 py-8">
         <Skeleton className="mb-4 h-8 w-1/3" />
         <Skeleton className="h-[60vh] w-full" />
       </div>
@@ -138,7 +138,7 @@ function ReviewDetailContent({
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8">
       <ReviewDetailHeader review={review} runId={runId} />
 
       <div className="grid gap-6 lg:grid-cols-2">

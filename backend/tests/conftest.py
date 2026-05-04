@@ -131,6 +131,12 @@ def event_loop():
     loop.close()
 
 
+@pytest.fixture(autouse=True)
+def _disable_register_rate_limit(monkeypatch):
+    """Desabilita o rate limit de /auth/register em todos os tests; específicos reativam via monkeypatch local."""
+    monkeypatch.setenv("MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR", "0")
+
+
 @pytest_asyncio.fixture(autouse=True)
 async def setup_db():
     """Recreate schema before every test and drop after.
