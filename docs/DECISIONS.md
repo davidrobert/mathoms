@@ -114,7 +114,7 @@
 [D140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) [D141](#adr-141--goal-alocação-alvo-schema-v2-7-classes-auvp) [D142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)
 
 **Outras:**
-[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-proposto) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion)
+[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-proposto) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion) [D164](#adr-164--carteira-de-renda-e-taxa-de-retirada-efetiva)
 
 <!-- ADR-TOC-END -->
 
@@ -8023,6 +8023,59 @@ Sources: [pluggy.ai/en/pricing](https://www.pluggy.ai/en/pricing), [belvo.com/pl
 
 1. Snapshot enrichment quando Decision é editada (não só na aceitação) — caso usuário re-decide com novo contexto. Defer para Onda 9.
 2. Diff visual "Decidida com base em X% / Hoje está Y%" — comparativo automático entre `context_snapshot.if_progress_pct` e Goal vigente. Requer cross-aggregate query, defer.
+
+---
+
+## ADR-164 — Carteira de renda e taxa de retirada efetiva
+
+**Status:** Decidido (A8.3) • **Data:** 2026-05-05 • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples), [ADR-157](#adr-157--schema-irpf-completo-stage-extract_irpf_full).
+
+**Contexto:** A Independência Financeira do Perini só fecha quando o produto confronta **TRS meta** (5%/4% — D15) com **TRS efetiva** (yield real do patrimônio investido). Hoje o pipeline mostra apenas projeção: `if_projector.py` calcula `renda_passiva_estimada_4pct = investivel * 4%`, e `ratios_calculator.rentabilidade_pct` ficou `"N/D"` desde A5a. A regra `rule_trs_desalinhada` em `suggestion_rules.py` está dormente — espera `goals.taxa_retirada_efetiva_pct` populado, ninguém popula. O resultado é que o relatório premium não responde a "minha carteira sustenta retirada hoje?" — o que é a pergunta canônica do Perini.
+
+**Decisão:** Introduzir o conceito de **carteira de renda** (`patrimonio_gerador_brl`) e **TRS efetiva** (`renda_passiva_anual_observada / patrimonio_gerador_brl × 100`) como métricas de primeira-classe no E5/S7. PR-A entrega o `PassiveIncomeCalculator`, PR-B re-classifica aluguéis (trabalho → capital) no `IRPFAnalyzer`, PR-C wire ao adapter + UI no S7 + esta ADR.
+
+**Sub-decisões:**
+
+1. **Carteira de renda (`patrimonio_gerador_brl`)** — denominador da TRS efetiva.
+   - **Inclusos sempre:** `investimentos_titular` + `investimentos_conjuge` + caixa excedente acima da reserva de emergência.
+   - **Inclusos por config (default ON):** `imoveis_investimento`.
+   - **Inclusos com yield 0% (sinal pedagógico):** cripto sem staking, ações growth sem dividendo, PGBL/VGBL em acumulação. Excluí-los mascararia concentração.
+   - **Excluídos sempre:** residência principal, veículos, derivativos, parcela de caixa = reserva alvo.
+
+2. **Renda passiva observada** — agregado por bucket RFB do IRPF do último ano-base (`IRPFAnalyzer.declarations_for_year`):
+   - Dividendos (cod 09 isentos), JCP (cod 10 exclusiva), aplicações (cod 12 isentos + exclusiva), ganho de capital (cod 06 exclusiva), exterior (`rendimentos_exterior`), aluguéis (delta `split_trabalho_vs_capital.capital_brl − explicit`).
+
+3. **Aluguéis re-classificados de trabalho → capital** — Perini classifica aluguel como capital imobiliário; AUVP idem. Manter em `_bucket_trabalho` era artefato. Impacto: `split_trabalho_vs_capital`, `irpf_renda` chart e S8 mudam para todo workspace com aluguel declarado. Migração: nenhuma — recomputação automática no próximo run E5.
+
+4. **Yield 0% explícito** para cripto/growth/PGBL é o sinal pedagógico — usuário vê "BTC: R$ 200k gerador, R$ 0/ano". Esconder esses ativos faria a TRS efetiva subir artificialmente e mascararia concentração. Trinity Study e Perini não excluem growth do denominador.
+
+5. **Filtro de fase em `rule_trs_desalinhada`** — regra só dispara com `goals.if_pct >= 50`. Em acumulação, TRS alta artificial (denominador pequeno, IRPF antigo declarando carteira ínfima vs. atual) não é sinal real de retirada acima do sustentável. Risco evitado: ruído tóxico em todos os iniciantes do dogfood.
+
+6. **Terminologia UI ≠ chave JSON** — UI usa "Carteira de renda" (financial-planner referência) e "Patrimônio investido" (Cerbasi referência); backend usa `patrimonio_gerador_brl` (estável, semanticamente preciso). Não cruzar — UI evolui linguagem, JSON evolui esquema, e ambos escapam de quebras mútuas.
+
+**Mitigações UX obrigatórias** (validadas pelo financial-planner — sem elas, M1 induz erro #1 do iniciante "vender growth para perseguir DY"):
+
+- Renda passiva R$/mês visível **antes** do %.
+- Tooltip via ``Info`` icon ao lado do label "TRS efetiva" (WCAG 2.1.1 + 1.4.13).
+- Caption permanente quando ``progresso < 50`` substitui tooltip como veículo principal.
+- Tom ``warning`` no card "Em acumuladores" + sublabel "&gt;40% subestima TRS" (loop visual com `AcumuladoresBanner`).
+- ``DefasagemWarningBanner`` quando IRPF tem ≥ 15 meses (CTA "Importar IRPF mais recente").
+
+**Consequências:**
+
+- ✅ Regra dormente `rule_trs_desalinhada` finalmente dispara — com filtro de fase evita ruído.
+- ✅ S7 responde "minha carteira sustenta retirada hoje?" com dado real, não estimativa.
+- ✅ Status enum (`ok` / `sem_irpf` / `gerador_zero`) trata empty states como first-class — métrica errada > sem métrica.
+- ✅ `PassiveIncomeCalculator` é service puro (R9/ISP), testável sem rede/DB. 15+ unit tests cobrem cada bucket + cada filtro de patrimônio + 3 cenários de acumuladores.
+- ⚠️ Aluguéis no bucket capital muda `split_trabalho_vs_capital` em produção — chart `irpf_renda` e S8 vão exibir números diferentes para todo workspace com aluguel declarado. Documentado como decisão consciente, não regression.
+- ⚠️ TRS efetiva exibida sem mitigações induz erro do iniciante; mitigações UX (caption permanente em acumulação, tom condicionado à fase, banner acumuladores) não são opcionais.
+- ❌ Yield-on-cost por classe (FII vs ação vs renda fixa) fica para M3 (premium) — escopo M1 fechado em agregado total + 6 fontes para chart v2.
+
+**Follow-ups:**
+
+1. **Yield-on-cost por classe** (M3) — decompor TRS efetiva por classe de ativo (FII / dividendos / renda fixa / exterior) com benchmark Perini por bucket. Habilita `rule_trs_baixa_em_aproximacao` (oposta da `rule_trs_desalinhada`).
+2. **Pro-rata em edge cases** — imóvel uso misto, ouro físico, USD em conta exterior. v1 é binário; v2 pode introduzir factor de exposição.
+3. **Refatoração dos 18 hex hardcoded de Onda 9** — não introduzimos novos hex em S7, mas baseline existente continua. Track separado.
 
 ---
 

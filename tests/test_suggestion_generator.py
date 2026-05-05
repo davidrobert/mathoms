@@ -36,8 +36,11 @@ def test_empty_snapshot_returns_no_drafts(gen):
     assert gen.generate({}) == []
 
 
-def test_trs_desalinhada_warns_when_above_threshold(gen):
-    snapshot = {"goals": {"taxa_retirada_efetiva_pct": 5.0}}  # 5% > 4% * 1.15 = 4.6%
+def test_trs_desalinhada_warns_when_above_threshold_and_phase_if(gen):
+    # A8.3 — regra exige progresso IF ≥ 50% (fase de independência).
+    snapshot = {
+        "goals": {"taxa_retirada_efetiva_pct": 5.0, "if_pct": 60.0},
+    }  # 5% > 4% * 1.15 = 4.6% E progresso ≥ 50.
     drafts = gen.generate(snapshot)
     kinds = [d.kind for d in drafts]
     assert "trs_desalinhada" in kinds
@@ -47,8 +50,19 @@ def test_trs_desalinhada_warns_when_above_threshold(gen):
 
 
 def test_trs_within_threshold_skips(gen):
-    snapshot = {"goals": {"taxa_retirada_efetiva_pct": 4.5}}  # within 15% of 4%
+    snapshot = {
+        "goals": {"taxa_retirada_efetiva_pct": 4.5, "if_pct": 60.0},
+    }  # within 15% of 4%
     assert all(d.kind != "trs_desalinhada" for d in gen.generate(snapshot))
+
+
+def test_trs_desalinhada_silent_in_acumulacao_phase(gen):
+    """A8.3 — em acumulação (if_pct < 50) TRS alta não dispara warning."""
+    snapshot = {
+        "goals": {"taxa_retirada_efetiva_pct": 6.0, "if_pct": 25.0},
+    }  # TRS efetiva passa do threshold 4.6% mas if_pct < 50.
+    drafts = gen.generate(snapshot)
+    assert all(d.kind != "trs_desalinhada" for d in drafts)
 
 
 def test_reserva_insuficiente_danger_below_3_meses(gen):
@@ -127,7 +141,10 @@ def test_dolarizacao_dentro_drift_skips(gen):
 def test_ranking_severity_first_then_amount(gen):
     """5 regras dispara, todas → ordem deve ser danger > warning > info."""
     snapshot = {
-        "goals": {"taxa_retirada_efetiva_pct": 5.0},  # warning
+        "goals": {
+            "taxa_retirada_efetiva_pct": 5.0,
+            "if_pct": 60.0,  # A8.3: TRS desalinhada exige fase IF.
+        },  # warning
         "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},  # danger
         "investimentos": {"desvios_alvo": [{"classe": "X", "desvio_pp": 30.0}]},  # info
         "fluxo_caixa": {"aporte_medio_3m": 100.0, "aporte_meta_mensal": 1000.0},  # warning
@@ -145,7 +162,7 @@ def test_ranking_severity_first_then_amount(gen):
 def test_cap_truncates_at_six(gen):
     """Se 5 regras dispararem, cap=6 não trunca; teste defensivo."""
     snapshot = {
-        "goals": {"taxa_retirada_efetiva_pct": 5.0},
+        "goals": {"taxa_retirada_efetiva_pct": 5.0, "if_pct": 60.0},
         "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},
         "investimentos": {"desvios_alvo": [{"classe": "X", "desvio_pp": 30.0}]},
         "fluxo_caixa": {"aporte_medio_3m": 100.0, "aporte_meta_mensal": 1000.0},
@@ -172,9 +189,9 @@ def test_dedup_key_changes_with_material_diff(gen):
 
 
 def test_dedup_key_stable_for_small_drift(gen):
-    """TRS 4.8% vs 4.95% — mesmo bucket 0.5pp → mesma key."""
-    s1 = {"goals": {"taxa_retirada_efetiva_pct": 4.8}}
-    s2 = {"goals": {"taxa_retirada_efetiva_pct": 4.95}}
+    """TRS 4.8% vs 4.95% — mesmo bucket 0.5pp → mesma key (com if_pct ≥ 50)."""
+    s1 = {"goals": {"taxa_retirada_efetiva_pct": 4.8, "if_pct": 60.0}}
+    s2 = {"goals": {"taxa_retirada_efetiva_pct": 4.95, "if_pct": 60.0}}
     d1 = next(d for d in gen.generate(s1) if d.kind == "trs_desalinhada")
     d2 = next(d for d in gen.generate(s2) if d.kind == "trs_desalinhada")
     assert d1.dedup_key == d2.dedup_key
@@ -514,7 +531,8 @@ def test_all_11_rules_can_coexist_under_cap(gen):
         # v1
         "goals": {
             "taxa_retirada_efetiva_pct": 5.0,
-            "progresso_if_pct": 60.0,
+            "if_pct": 60.0,  # A8.3: trs_desalinhada exige fase IF.
+            "progresso_if_pct": 60.0,  # alvo da regra renda_passiva_real_baixa.
             "retorno_esperado_pct_aa": 8.0,
         },
         "reserva_emergencia": {"meses_cobertura": 1.0, "gap_brl": 9000.0},

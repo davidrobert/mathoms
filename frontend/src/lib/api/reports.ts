@@ -100,8 +100,36 @@ export interface ReportAnalysisData {
   /** ADR-157 — KPIs IRPF (renda, alíquota, PGBL, split trabalho×capital, evolução).
    *  Ausente quando o workspace não tem declaração IRPF processada. */
   irpf_kpis?: Record<string, unknown>;
+  /** A8.3 — TRS efetiva e carteira de renda. Sempre presente; ``status``
+   * controla render (ok = KPIs · sem_irpf | gerador_zero = empty state). */
+  passive_income?: PassiveIncomeData;
   // Extensibilidade para chaves ainda não tipadas
   [key: string]: unknown;
+}
+
+/** A8.3 — TRS efetiva, renda passiva observada e carteira de renda.
+ *
+ * Renderizado em S7. ``status`` decide o caminho da UI:
+ * - ``ok``: 4 KPIs + caption permanente em acumulação + banners condicionais.
+ * - ``sem_irpf``: empty state com CTA "Importar IRPF".
+ * - ``gerador_zero``: empty state explicando que TRS exige patrimônio investido. */
+export interface PassiveIncomeData {
+  status: "ok" | "sem_irpf" | "gerador_zero";
+  renda_passiva_anual_brl: number;
+  renda_passiva_mensal_brl: number;
+  renda_passiva_por_fonte_brl: {
+    dividendos: number;
+    jcp: number;
+    aplicacoes: number;
+    ganho_capital: number;
+    exterior: number;
+    alugueis: number;
+  };
+  patrimonio_gerador_brl: number;
+  trs_efetiva_pct: number;
+  ano_referencia_irpf: number | null;
+  defasagem_meses: number | null;
+  acumuladores_pct_gerador: number;
 }
 
 // ─── Reports ───

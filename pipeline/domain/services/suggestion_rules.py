@@ -86,10 +86,13 @@ def _dedup_key(kind: str, *, bucket: str) -> str:
 def rule_trs_desalinhada(
     snapshot: dict[str, Any], cfg: SuggestionGeneratorConfig
 ) -> SuggestionDraft | None:
-    """TRS efetiva > alvo + 15% (Perini/AUVP)."""
+    """TRS efetiva > alvo + 15% E progresso ≥ 50% (Perini/AUVP · A8.3 filtro de fase)."""
     goals = _as_dict(snapshot.get("goals"))
     trs_atual = _as_float(goals.get("taxa_retirada_efetiva_pct"))
     if trs_atual is None:
+        return None
+    progresso = _as_float(goals.get("if_pct")) or 0.0
+    if progresso < 50.0:
         return None
     target = cfg.trs_target_pct
     threshold = target * (1 + cfg.trs_drift_tolerance_pct)
