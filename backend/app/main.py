@@ -53,7 +53,6 @@ from backend.app.application.base.errors import (
     ValidationError as DomainValidationError,
 )
 from backend.app.core.config import settings
-from backend.app.core.database import init_db
 from backend.app.core.logging import setup_logging
 from backend.app.core.otel import instrument_fastapi, setup_otel
 from backend.app.middleware.correlation import CorrelationIdMiddleware
@@ -72,7 +71,6 @@ setup_otel(service_name="mathoms-api")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     instrument_fastapi(app)
-    await init_db()
     yield
 
 

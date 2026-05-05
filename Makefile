@@ -160,6 +160,9 @@ smoke-up: smoke-dirs
 	$(call check_port_free,$(PORT_FRONTEND))
 	@echo "▶  Starting Redis (docker compose)…"
 	@docker compose -f docker-compose.smoke.yml up -d --wait
+	@echo "▶  Aplicando migrations no smoke DB…"
+	@MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
+	 $(ALEMBIC) upgrade head
 	@echo "▶  Starting backend API (porta $(PORT_API))…"
 	@FERNET_KEY="$(ephemeral_fernet)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
@@ -308,8 +311,8 @@ dev-pull:
 	@npm --prefix frontend-ops install --silent
 	@echo "  ✅ Pull completo. 'make dev-restart' para reiniciar serviços."
 
-## dev-up: Sobe os 6 serviços em background
-dev-up: dev-dirs dev-redis-up dev-api-up dev-worker-up dev-frontend-up dev-ops-api-up dev-frontend-ops-up
+## dev-up: Sobe os 6 serviços em background (migrate roda antes p/ evitar drift)
+dev-up: dev-dirs migrate dev-redis-up dev-api-up dev-worker-up dev-frontend-up dev-ops-api-up dev-frontend-ops-up
 	@echo ""
 	@echo "  ✅ Dev stack subido (6 serviços):"
 	@echo "     Redis:        redis://localhost:6379/0"
