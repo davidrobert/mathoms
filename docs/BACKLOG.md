@@ -1295,29 +1295,31 @@ Detalhes virão quando A7 fechar; este stub serve para registrar débito técnic
 
 ## Sprint A9 — Multi-front improvements (2026-05-05)
 
-**Status global (2026-05-05):** ✅ entregue — 10 frentes paralelas fechadas em 1 dia (PRs #46–#56).
+**Status global (2026-05-05):** ✅ entregue — 11 frentes paralelas fechadas em 1 dia (PRs #46–#56 + #60). Inclui advance delivery LGPD Art. 18 V+VI (Bloco 0.6 P2/P3).
 
-**Objetivo (1 frase):** estabilizar qualidade cross-cutting (stage names, calculators, testes E2E, DB legacy tables, content_classifier monolith) enquanto avança UX (Onda 9 design system mobile), simulação estocástica de IF (N3 Monte Carlo) e compat migratória (F9.3 Alembic).
+**Objetivo (1 frase):** estabilizar qualidade cross-cutting (stage names, calculators, testes E2E, DB legacy tables, content_classifier monolith) enquanto avança UX (Onda 9 design system mobile), simulação estocástica de IF (N3 Monte Carlo), compat migratória (F9.3 Alembic) e LGPD self-service (portabilidade + eliminação).
 
 ### Lanes A9
 
 | Lane | PR | Descrição | Status |
 | --- | --- | --- | --- |
-| **B1** fix canonical stage names em artifact_reader | [#47](https://github.com/davidrobert/mathoms/pull/47) | `dashboard_service` `"E5"` → `"analyze_finances"`, `transaction_service` `"E4"` → `"categorize_transactions"` (ADR-093). B2 (dispatcher stub test rename) absorvido neste PR. | 🚧 CI rodando, auto-merge |
+| **B1** fix canonical stage names em artifact_reader | [#47](https://github.com/davidrobert/mathoms/pull/47) | `dashboard_service` `"E5"` → `"analyze_finances"`, `transaction_service` `"E4"` → `"categorize_transactions"` (ADR-093). B2 (dispatcher stub test rename) absorvido neste PR. | ✅ mergeado |
 | **B3** fix stale selectors E2E vault + config-round-trip | [#48](https://github.com/davidrobert/mathoms/pull/48) | Seletores obsoletos em specs vault e config-round-trip corrigidos; suíte E2E crítica verde. | ✅ mergeado |
-| **B5** deprecate `calculators.py` | [#46](https://github.com/davidrobert/mathoms/pull/46) | Redirect de exports legados para serviços canônicos em `pipeline/domain/services/`; CI verde. | 🚧 auto-merge |
+| **B5** deprecate `calculators.py` | [#46](https://github.com/davidrobert/mathoms/pull/46) | Redirect de exports legados para serviços canônicos em `pipeline/domain/services/`; CI verde. | ✅ mergeado |
 | **B6** feat `FreeTierSkippedBanner` | [#49](https://github.com/davidrobert/mathoms/pull/49) | Alert amber dismissível no pipeline monitor quando stages premium são pulados no free tier. | ✅ mergeado |
-| **B7** feat DB M3 drop legacy tables (ADR-154) | [#56](https://github.com/davidrobert/mathoms/pull/56) | Alembic M3: drop `_legacy_kanban_items` + `_legacy_report_notes`; limpeza de modelos SQLAlchemy e rotas API correspondentes. | 🚧 CI verde, auto-merge |
+| **B7** feat DB M3 drop legacy tables (ADR-154) | [#56](https://github.com/davidrobert/mathoms/pull/56) | Alembic M3: drop `_legacy_kanban_items` + `_legacy_report_notes`; limpeza de modelos SQLAlchemy e rotas API correspondentes. | ✅ mergeado |
 | **P1** feat Onda 9 design system + mobile | [#51](https://github.com/davidrobert/mathoms/pull/51) | Primitivos `SectionHeading`, `EmptyState`, `SegmentedTabs`; collapsibles mobile em /plano; badge Inbox pending em AppShell; kill `TimelineTab`. | ✅ mergeado |
-| **N3 PR-A** feat `IFProjector` v2 Monte Carlo | [#52](https://github.com/davidrobert/mathoms/pull/52) | `IFProjector` v2 com simulação Monte Carlo P10/P50/P90; `IFMonteCarloConfig`, `MonteCarloIFResult`, `run_monte_carlo_if()`, cone paths. | 🚧 CI re-running, auto-merge |
-| **N3 PR-B+C** feat `IFConeChart` + wire E5 | [#55](https://github.com/davidrobert/mathoms/pull/55) | Chart.js `IFConeChart` com bandas P10/P50/P90 + linha Meta IF em S7; E5 exporta `monte_carlo_if` key no output JSON. | 🚧 CI re-running, auto-merge |
+| **N3 PR-A** feat `IFProjector` v2 Monte Carlo | [#52](https://github.com/davidrobert/mathoms/pull/52) | `IFProjector` v2 com simulação Monte Carlo P10/P50/P90; `IFMonteCarloConfig`, `MonteCarloIFResult`, `run_monte_carlo_if()`, cone paths. | ✅ mergeado |
+| **N3 PR-B+C** feat `IFConeChart` + wire E5 | [#55](https://github.com/davidrobert/mathoms/pull/55) | Chart.js `IFConeChart` com bandas P10/P50/P90 + linha Meta IF em S7; E5 exporta `monte_carlo_if` key no output JSON. | ✅ mergeado |
 | **A1 (F9.3)** feat Alembic stage rename migration | [#53](https://github.com/davidrobert/mathoms/pull/53) | Migration `q5r6s7t8u9v0` sincronizada com `STAGE_RENAME_MAP`; add `E1.6→extract_irpf_full`, remove `E6`/`E6-final`; 5 testes; runbook em `docs/runbooks/f9_3_alembic_upgrade.md` (ADR-093). | ✅ mergeado |
-| **A2** refactor `content_classifier` | [#50](https://github.com/davidrobert/mathoms/pull/50) | Monolito 727 LOC decomposto em 3 módulos focados: `institution_classifier`, `type_classifier`, `period_extractor`. CI verde. | 🚧 auto-merge |
+| **A2** refactor `content_classifier` | [#50](https://github.com/davidrobert/mathoms/pull/50) | Monolito 727 LOC decomposto em 3 módulos focados: `institution_classifier`, `type_classifier`, `period_extractor`. CI verde. | ✅ mergeado |
+| **Bloco 0.6 P2/P3** LGPD self-service + tenancy gate | [#60](https://github.com/davidrobert/mathoms/pull/60) | 5 endpoints `/api/v1/me/*` (export, download, delete-request, cancel); worker Celery NDJSON tar.gz; migration `c3d4e5f6a7b8`; tenancy isolation gate `test_tenancy_isolation.py`; `SECURITY.md` (Art. 18 V+VI). Advance de F7B.7+7B.8. | ✅ mergeado |
 
 **Notas de coordenação:**
 - B2 absorvido em B1 (dispatcher stub test rename era trivial). B4 (visual regression S1) foi parte do trabalho de baseline visual da Onda 9 — rastreado em entradas existentes do BACKLOG.
 - N3 Monte Carlo não tem ADR formal ainda — candidato a ADR-165 na próxima sessão de review financeiro.
 - F9.4 destravada após A1 (F9.3) mergear.
+- **Sprint A9 100% fechada em 2026-05-05** — 11 PRs (#46–#56 + #60) mergeados em `main`.
 
 ---
 
@@ -1482,8 +1484,8 @@ lógicos — a defesa é app-level + audit + retenção.
 | 7B.4  | Session security (JWT 15min + refresh 7d httpOnly, rotation, revogação on password change, frontend interceptor) | P0 | 16h | ☐ |
 | 7B.5  | Audit log (model `AuditEntry`, middleware para write ops, todas ações sensíveis)                     | P0   | 6h   | ☐      |
 | 7B.6  | LGPD — Termos + Privacy (páginas `/terms` `/privacy`, aceite obrigatório, `accepted_at`)             | P0   | 4h   | ☐      |
-| 7B.7  | LGPD — Exclusão (`DELETE /api/account`, cascade completo, confirmação dupla + audit)                 | P0   | 8h   | ☐      |
-| 7B.8  | LGPD — Portabilidade (`GET /api/account/export`, ZIP com dados pessoais, download link temporário)   | P1   | 6h   | ☐      |
+| 7B.7  | LGPD — Exclusão (`DELETE /api/account`, cascade completo, confirmação dupla + audit)                 | P0   | 8h   | ✅ Advance delivery [#60](https://github.com/davidrobert/mathoms/pull/60) — `POST /me/delete-request` (soft-delete 30d, bumps `token_version`, `lgpd.deletion_*` audit) + `DELETE /me/delete-request` (cancel); cron `fin.lgpd.process_user_deletions` (24h, grace 30d). Pendente: UI stepper (7B.10) |
+| 7B.8  | LGPD — Portabilidade (`GET /api/account/export`, ZIP com dados pessoais, download link temporário)   | P1   | 6h   | ✅ Advance delivery [#60](https://github.com/davidrobert/mathoms/pull/60) — `POST /me/data-export` → worker Celery NDJSON tar.gz → `GET /me/data-export/{id}/download` (token 1-shot TTL 7d); cron `fin.lgpd.expire_data_exports` (6h). |
 | 7B.9  | Storage cleanup (retention 90 dias, Celery periodic task, soft-delete)                               | P1   | 4h   | ☐      |
 | 7B.10 | UX de produção (rate limit toast, LGPD delete stepper, export notification, maintenance page)        | P1   | 4h   | ☐      |
 | 7B.11 | **Email verification** no registro (token 24h, link em email, bloqueio de login até verificar, reenvio) — **sem isso GA é impossível** | P0 | 6h | ☐ |
