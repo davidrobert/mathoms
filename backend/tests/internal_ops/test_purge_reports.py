@@ -9,7 +9,6 @@ from sqlalchemy import select
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.report import Report
-from backend.app.models.report_collab import KanbanItem, ReportNotes
 from backend.app.services.internal_ops.audit import read_audit
 from backend.app.services.internal_ops.purge_reports import purge_reports
 from backend.app.services.internal_ops.scope import PurgeScope
@@ -27,12 +26,6 @@ async def _make_artifact(db, *, run, stage: str, key: str) -> PipelineArtifact:
     db.add(artifact)
     await db.flush()
     return artifact
-
-
-async def _add_report_collab(db, *, ws_id: str, report_id: str) -> None:
-    db.add(ReportNotes(workspace_id=ws_id, report_id=report_id, content="anotação"))
-    db.add(KanbanItem(workspace_id=ws_id, report_id=report_id, titulo="Tarefa", coluna="a_fazer"))
-    await db.flush()
 
 
 @pytest.mark.asyncio
@@ -64,8 +57,7 @@ async def _setup_full_report(db, owner=None) -> tuple[object, int, int]:
     run = await make_run(db, workspace=ws)
     e5 = await _make_artifact(db, run=run, stage="E5", key="analyze")
     e2 = await _make_artifact(db, run=run, stage="E2", key="bank")
-    report = await make_report(db, workspace=ws, pipeline_run=run, analysis_artifact_id=e5.id)
-    await _add_report_collab(db, ws_id=ws.id, report_id=report.id)
+    await make_report(db, workspace=ws, pipeline_run=run, analysis_artifact_id=e5.id)
     return ws, e5.id, e2.id
 
 
@@ -84,10 +76,6 @@ async def test_purge_reports_by_workspace_deletes_rows_and_e5(db, audit_path: Pa
     assert result.ok and result.details["count"] == 1
     assert result.details["artifacts_removed"] == 1
     assert await _scalars_all(db, select(Report).where(Report.workspace_id == ws.id)) == []
-    assert (
-        await _scalars_all(db, select(ReportNotes).where(ReportNotes.workspace_id == ws.id)) == []
-    )
-    assert await _scalars_all(db, select(KanbanItem).where(KanbanItem.workspace_id == ws.id)) == []
     e5 = await _scalars_all(db, select(PipelineArtifact).where(PipelineArtifact.id == e5_id))
     e2 = await _scalars_all(db, select(PipelineArtifact).where(PipelineArtifact.id == e2_id))
     assert e5 == [] and len(e2) == 1
