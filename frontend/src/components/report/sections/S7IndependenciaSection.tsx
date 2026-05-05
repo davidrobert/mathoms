@@ -6,8 +6,21 @@ import { SuggestionCalloutInline } from "./SuggestionCallout";
 import { PrevidenciaPgblCard, type PrevidenciaPgblData } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { AcumuladoresBanner } from "../AcumuladoresBanner";
+import { DefasagemWarningBanner } from "../DefasagemWarningBanner";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { formatCurrency } from "@/lib/format";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
-import type { ReportAnalysisData } from "@/lib/api";
+import { EmptyState } from "@/components/EmptyState";
+import { FileText, Wallet } from "lucide-react";
+import type { PassiveIncomeData, ReportAnalysisData } from "@/lib/api";
+
+const PHASE_INDEPENDENCIA = 95;
+const PHASE_ACUMULACAO = 50;
+const ACUMULADORES_THRESHOLD = 40;
+const DEFASAGEM_INFO_THRESHOLD = 6;
+const DEFASAGEM_WARNING_THRESHOLD = 15;
+const APROXIMACAO_YIELD_RATIO = 0.7;
 
 /** F9 · F2.E — Seção S7 (Independência Financeira). */
 export function S7IndependenciaSection({
@@ -21,6 +34,7 @@ export function S7IndependenciaSection({
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const previdencia = data.previdencia_pgbl as unknown as PrevidenciaPgblData | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
+  const passiveIncome = data.passive_income;
 
   return (
     <ReportSection id="S7" title="Independência Financeira — Projeção de Longo Prazo">
@@ -50,6 +64,12 @@ export function S7IndependenciaSection({
         </div>
       )}
 
+      <PassiveIncomeBlock
+        passiveIncome={passiveIncome}
+        progressoIfPct={(goals?.if_pct as number | undefined) ?? 0}
+        trsMetaPct={(goals?.trs_pct as number | undefined) ?? 5.0}
+      />
+
       <div className="md:col-span-2">
         <PrevidenciaPgblCard previdencia={previdencia} />
       </div>
@@ -57,11 +77,222 @@ export function S7IndependenciaSection({
   );
 }
 
-function Stat({ label, value }: { label: string; value: React.ReactNode }) {
+function Stat({
+  label,
+  value,
+  sublabel,
+  tone = "neutral",
+}: {
+  label: React.ReactNode;
+  value: React.ReactNode;
+  sublabel?: React.ReactNode;
+  tone?: "neutral" | "positive" | "warning";
+}) {
+  const toneClass =
+    tone === "warning"
+      ? "border-[var(--semantic-warning)]"
+      : tone === "positive"
+        ? "border-[var(--semantic-success)]"
+        : "border-[var(--surface-border)]";
   return (
-    <div className="rounded-[var(--radius-card)] border border-[var(--surface-border)] bg-[var(--surface-card)] p-4">
+    <div className={`rounded-[var(--radius-card)] border ${toneClass} bg-[var(--surface-card)] p-4`}>
       <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">{label}</p>
       <p className="mt-1 text-lg font-semibold">{value}</p>
+      {sublabel && (
+        <div className="mt-1 text-xs text-[var(--surface-muted-foreground)]">{sublabel}</div>
+      )}
     </div>
   );
+}
+
+/** A8.3 — Bloco de KPIs de TRS efetiva (4 cards) + caption + 2 banners + empty states. */
+function PassiveIncomeBlock({
+  passiveIncome,
+  progressoIfPct,
+  trsMetaPct,
+}: {
+  passiveIncome: PassiveIncomeData | undefined;
+  progressoIfPct: number;
+  trsMetaPct: number;
+}) {
+  if (!passiveIncome) return null;
+  if (passiveIncome.status === "sem_irpf") return <SemIrpfEmptyState />;
+  if (passiveIncome.status === "gerador_zero") return <GeradorZeroEmptyState />;
+  return (
+    <PassiveIncomeOkBlock
+      data={passiveIncome}
+      progressoIfPct={progressoIfPct}
+      trsMetaPct={trsMetaPct}
+    />
+  );
+}
+
+function PassiveIncomeOkBlock({
+  data,
+  progressoIfPct,
+  trsMetaPct,
+}: {
+  data: PassiveIncomeData;
+  progressoIfPct: number;
+  trsMetaPct: number;
+}) {
+  const acumuladoresPct = data.acumuladores_pct_gerador;
+  const defasagem = data.defasagem_meses ?? 0;
+  return (
+    <>
+      <div className="md:col-span-2 grid grid-cols-1 gap-4 md:grid-cols-4">
+        <RendaPassivaStat data={data} />
+        <PatrimonioGeradorStat data={data} />
+        <TrsEfetivaStat
+          data={data}
+          progressoIfPct={progressoIfPct}
+          trsMetaPct={trsMetaPct}
+        />
+        <AcumuladoresStat acumuladoresPct={acumuladoresPct} />
+      </div>
+
+      {progressoIfPct < PHASE_ACUMULACAO && (
+        <p className="text-xs text-[var(--surface-muted-foreground)] mt-2">
+          Carteira em acumulação — yield baixo é esperado nesta fase. Retorno total
+          inclui valorização, não só dividendo.
+        </p>
+      )}
+
+      {acumuladoresPct > ACUMULADORES_THRESHOLD && (
+        <AcumuladoresBanner pct={acumuladoresPct} />
+      )}
+      {defasagem >= DEFASAGEM_WARNING_THRESHOLD && (
+        <DefasagemWarningBanner ano={data.ano_referencia_irpf} meses={defasagem} />
+      )}
+    </>
+  );
+}
+
+function RendaPassivaStat({ data }: { data: PassiveIncomeData }) {
+  return (
+    <Stat
+      label="Renda passiva"
+      value={
+        <span className="inline-flex items-baseline gap-1">
+          <MonetaryValue value={data.renda_passiva_mensal_brl} compact />
+          <span className="text-xs text-[var(--surface-muted-foreground)]">/mês</span>
+        </span>
+      }
+      sublabel={
+        <span className="text-sm">
+          {formatCurrency(data.renda_passiva_anual_brl)} / ano
+        </span>
+      }
+    />
+  );
+}
+
+function PatrimonioGeradorStat({ data }: { data: PassiveIncomeData }) {
+  return (
+    <Stat
+      label="Patrimônio investido"
+      value={<MonetaryValue value={data.patrimonio_gerador_brl} compact />}
+    />
+  );
+}
+
+function TrsEfetivaStat({
+  data,
+  progressoIfPct,
+  trsMetaPct,
+}: {
+  data: PassiveIncomeData;
+  progressoIfPct: number;
+  trsMetaPct: number;
+}) {
+  const tone = trsTone(data.trs_efetiva_pct, trsMetaPct, progressoIfPct);
+  const defasagem = data.defasagem_meses ?? 0;
+  return (
+    <Stat
+      label={
+        <span className="inline-flex items-center gap-1">
+          TRS efetiva
+          <InfoTooltip
+            ariaLabel="Sobre TRS efetiva"
+            content="Yield observado vs. meta de retirada sustentável (5% Perini; piso conservador 4% Trinity Study)."
+          />
+        </span>
+      }
+      value={`${data.trs_efetiva_pct.toFixed(1)}%`}
+      tone={tone}
+      sublabel={
+        <>
+          Meta {trsMetaPct.toFixed(1).replace(".", ",")}%
+          {defasagem >= DEFASAGEM_INFO_THRESHOLD && (
+            <span className="block text-xs text-[var(--surface-muted-foreground)] mt-1">
+              IRPF {data.ano_referencia_irpf} · {defasagem}m de defasagem
+            </span>
+          )}
+        </>
+      }
+    />
+  );
+}
+
+function AcumuladoresStat({ acumuladoresPct }: { acumuladoresPct: number }) {
+  const isHigh = acumuladoresPct > ACUMULADORES_THRESHOLD;
+  const isZero = acumuladoresPct === 0;
+  return (
+    <Stat
+      label="Em acumuladores"
+      value={
+        <span
+          className={isZero ? "text-[var(--surface-muted-foreground)]" : undefined}
+        >
+          {`${acumuladoresPct.toFixed(0)}%`}
+        </span>
+      }
+      tone={isHigh ? "warning" : "neutral"}
+      sublabel={
+        isZero
+          ? "Sem ETFs/fundos acumuladores"
+          : isHigh
+            ? (
+              <span className="text-[var(--semantic-warning)]">
+                &gt;40% subestima TRS
+              </span>
+            )
+            : "ETFs/fundos sem distribuição"
+      }
+    />
+  );
+}
+
+function SemIrpfEmptyState() {
+  return (
+    <EmptyState
+      icon={FileText}
+      title="Importe seu IRPF para calcular a TRS efetiva"
+      description="Sem a declaração, exibimos só a projeção. Com IRPF importado, calculamos sua renda passiva real (dividendos, JCP, aluguéis) sobre a carteira atual. Aceita PDF da Receita ou .DEC."
+      action={{ href: "/documents", label: "Importar IRPF" }}
+    />
+  );
+}
+
+function GeradorZeroEmptyState() {
+  return (
+    <EmptyState
+      icon={Wallet}
+      title="TRS efetiva começa quando há patrimônio investido"
+      description="Ainda não identificamos ativos geradores de renda na sua carteira. Esta métrica passa a fazer sentido com os primeiros aportes — até lá, foque na meta de aporte mensal e na reserva de emergência."
+    />
+  );
+}
+
+/** A8.3 — Tom condicionado à fase do plano (Perini · D4). */
+export function trsTone(
+  efetiva: number,
+  meta: number,
+  progresso: number,
+): "neutral" | "positive" | "warning" {
+  if (progresso < PHASE_ACUMULACAO) return "neutral";
+  if (progresso < PHASE_INDEPENDENCIA) {
+    return efetiva >= meta * APROXIMACAO_YIELD_RATIO ? "neutral" : "warning";
+  }
+  return efetiva >= meta ? "positive" : "warning";
 }
