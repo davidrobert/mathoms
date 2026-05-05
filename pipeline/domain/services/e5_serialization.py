@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Mapping
 
+from pipeline.domain.services.if_projector import MonteCarloIFResult
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
 
 # Aliases para boundaries do output legacy (paridade com pattern de
@@ -218,6 +219,8 @@ class E5OutputInputs:
     # Status ``"sem_irpf"``/``"gerador_zero"`` não enriquece — UI lida via
     # ``passive_income`` no top-level (chave separada).
     passive_income: PassiveIncomeResult | None = None
+    # N3 — Monte Carlo IF cone P10/P50/P90. None quando if_projection indisponível.
+    monte_carlo_if: MonteCarloIFResult | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -276,6 +279,23 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
     # mesmo nos casos de empty state (status ``sem_irpf``/``gerador_zero``).
     if inputs.passive_income is not None:
         output["passive_income"] = _passive_income_to_dict(inputs.passive_income)
+
+    # N3: Monte Carlo IF — cone P10/P50/P90 + caminhos ano→BRL.
+    if inputs.monte_carlo_if is not None:
+        mc = inputs.monte_carlo_if
+        output["if_monte_carlo"] = {
+            "p10_ano_if": mc.p10_ano_if,
+            "p50_ano_if": mc.p50_ano_if,
+            "p90_ano_if": mc.p90_ano_if,
+            "prob_if_ate_idade_meta": mc.prob_if_ate_idade_meta,
+            "idade_meta_usada": mc.idade_meta_usada,
+            "sigma_usado": mc.sigma_usado,
+            "exibir_cone": mc.exibir_cone,
+            "motivo_sem_cone": mc.motivo_sem_cone,
+            "caminho_p10": [list(p) for p in mc.caminho_p10],
+            "caminho_p50": [list(p) for p in mc.caminho_p50],
+            "caminho_p90": [list(p) for p in mc.caminho_p90],
+        }
 
     return output
 
