@@ -124,7 +124,7 @@ async def test_dispatch_sync_without_deps_passes_empty_mapping():
     assert captured["deps"] == {}
 
 
-def test_enqueue_async_not_yet_implemented():
-    # Stub intencional — caminho async será ativado em slice dedicado.
-    with pytest.raises(NotImplementedError):
+def test_enqueue_async_is_intentional_stub():
+    """Stub intencional — será implementado em slice dedicado (ADR-115)."""
+    with pytest.raises(NotImplementedError, match="ADR-115"):
         enqueue_async(_OrderEvent())
