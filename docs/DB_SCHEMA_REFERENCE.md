@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 38
+**Total de tabelas:** 39
 
 ---
 
@@ -17,6 +17,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`categories`](#categories)
 - [`category_keywords`](#categorykeywords)
 - [`category_templates`](#categorytemplates)
+- [`data_export_requests`](#dataexportrequests)
 - [`decision_events`](#decisionevents)
 - [`decisions`](#decisions)
 - [`documents`](#documents)
@@ -166,6 +167,33 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - `ix_category_templates_key` (key)
 - `ix_category_templates_template_version` (template_version)
+
+### `data_export_requests`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `user_id` | `VARCHAR(36)` | no | — | FK→users.id, INDEX |
+| `status` | `VARCHAR(16)` | no | server: `pending` | INDEX |
+| `download_token` | `VARCHAR(96)` | yes | — | UNIQUE |
+| `expires_at` | `DATETIME` | yes | — | INDEX |
+| `file_path` | `VARCHAR(512)` | yes | — | — |
+| `file_size_bytes` | `BIGINT` | yes | — | — |
+| `error_message` | `TEXT` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | INDEX |
+| `completed_at` | `DATETIME` | yes | — | — |
+
+**Constraints:**
+
+- FOREIGN KEY (user_id) REFERENCES users.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (download_token) — `(unnamed)`
+
+**Indexes:**
+
+- `ix_data_export_requests_created_at` (created_at)
+- `ix_data_export_requests_expires_at` (expires_at)
+- `ix_data_export_requests_status` (status)
+- `ix_data_export_requests_user_id` (user_id)
 
 ### `decision_events`
 
@@ -852,10 +880,12 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `is_active` | `BOOLEAN` | no | `True` | — |
 | `is_developer` | `BOOLEAN` | no | server: `false` | — |
 | `token_version` | `INTEGER` | no | server: `0` | — |
+| `deletion_requested_at` | `DATETIME` | yes | — | INDEX |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Indexes:**
 
+- `ix_users_deletion_requested_at` (deletion_requested_at)
 - UNIQUE `ix_users_email` (email)
 
 ### `workspace_category_overrides`
@@ -1126,6 +1156,23 @@ type CategoryTemplate struct {
 	MetadataJson json.RawMessage `db:"metadata_json" json:"metadata_json"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `data_export_requests` → `type DataExportRequest struct`
+
+```go
+type DataExportRequest struct {
+	Id string `db:"id" json:"id"`
+	UserId string `db:"user_id" json:"user_id"`
+	Status string `db:"status" json:"status"`
+	DownloadToken *string `db:"download_token" json:"download_token"`
+	ExpiresAt *time.Time `db:"expires_at" json:"expires_at"`
+	FilePath *string `db:"file_path" json:"file_path"`
+	FileSizeBytes *int64 `db:"file_size_bytes" json:"file_size_bytes"`
+	ErrorMessage *string `db:"error_message" json:"error_message"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	CompletedAt *time.Time `db:"completed_at" json:"completed_at"`
 }
 ```
 
@@ -1604,6 +1651,7 @@ type User struct {
 	IsActive bool `db:"is_active" json:"is_active"`
 	IsDeveloper bool `db:"is_developer" json:"is_developer"`
 	TokenVersion int `db:"token_version" json:"token_version"`
+	DeletionRequestedAt *time.Time `db:"deletion_requested_at" json:"deletion_requested_at"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```

@@ -100,6 +100,41 @@ frontend/tests/hooks/useReportData.test.tsx  # F9 — 6 tests (hook)
 
 ---
 
+## Tenancy isolation
+
+Duas suítes complementares protegem multi-tenant:
+
+- [backend/tests/test_multi_tenant_isolation.py](../backend/tests/test_multi_tenant_isolation.py)
+  — domínio-a-domínio. Para cada agregado (members, categories,
+  documents, vault, pipeline runs, reports, transactions, LLM config,
+  notifications), seeda 2 workspaces com dados distintos e prova que
+  endpoints autenticados como user A nunca devolvem payload de user B.
+
+- [backend/tests/integration/test_tenancy_isolation.py](../backend/tests/integration/test_tenancy_isolation.py)
+  — estrutural. Roda 3 gates:
+  1. **Fuzz por path-param**: itera todas as rotas
+     `/api/v1/workspaces/{workspace_id}/...` e tenta acesso cross-tenant;
+     toda response ≠ 403/404/410/409/405/400 (sem 200) é vazamento.
+  2. **AST scan**: toda função decorada `@router.get/post/...` que
+     declara parâmetro `workspace_id` precisa ter
+     `Depends(get_current_workspace)` (ou `require_*role` derivado).
+     Whitelist de exceções em `_TENANCY_EXEMPTIONS` (sunset endpoints
+     ADR-129/154 que sempre retornam 410).
+  3. **Path-id cross-tenant**: GET `/documents/{id}/extract-json` de
+     user B autenticado como A retorna 403/404 — nunca 200.
+
+Quando adicionar endpoint novo `/workspaces/{workspace_id}/...`:
+- A dependência `Depends(get_current_workspace)` é obrigatória.
+- O AST scan vai falhar sem ela; o fuzz vai falhar com 200.
+- Para sunset (410-only), some o nome em `_TENANCY_EXEMPTIONS`.
+
+LGPD self-service (`/api/v1/me/data-export*`, `/me/delete-request`) tem
+suíte dedicada em [backend/tests/test_lgpd_self_service.py](../backend/tests/test_lgpd_self_service.py)
+— inclui audit trail, TTL de download, cooldown de export, soft-then-hard
+delete via cron e rejeição cross-tenant do `request_id`.
+
+---
+
 ## Como rodar
 
 ### Backend

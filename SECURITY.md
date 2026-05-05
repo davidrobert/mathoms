@@ -111,3 +111,51 @@ podem expor PII de produção são **automaticamente** classificadas como
 **Críticas** ou **Altas**, com SLA correspondente.
 
 Para dúvidas sobre tratamento de dados / LGPD: `david@mathoms.ai`.
+
+---
+
+## Direitos do titular LGPD (Art. 18)
+
+Mathoms expõe self-service para os direitos garantidos pela LGPD —
+qualquer usuário autenticado pode exercer sem precisar abrir ticket.
+
+### Portabilidade (V) — `/api/v1/me/data-export`
+
+- `POST /api/v1/me/data-export` (202): dispara empacotamento assíncrono.
+  Cooldown de 1h evita storm; retorna 409 se já há request em andamento
+  ou um `ready` recente.
+- `GET /api/v1/me/data-export/{request_id}` (200): polling de status.
+  Quando `status=ready`, retorna `download_url` com token assinado.
+- `GET /api/v1/me/data-export/{request_id}/download?token=...` (200):
+  streaming do tar.gz. **One-shot** — após servir, o arquivo é apagado
+  e o token invalidado. TTL de 7 dias (cron `expire_data_exports`
+  ativa retorno 410 e remove arquivos vencidos).
+
+Conteúdo do arquivo: NDJSON tar.gz com `manifest.json` (schema), uma
+linha por row em cada tabela vinculada ao usuário (User, Workspaces de
+membership, documentos/reports/tasks/decisions/goals/notes/sugestões/
+contas bancárias/categorias/pipeline_runs/notifications, audit logs).
+**Excluído:** hash de senha (LGPD não obriga); ciphertext Fernet de
+PasswordVault (chaves protegidas).
+
+### Eliminação (VI) — `/api/v1/me/delete-request`
+
+- `POST /api/v1/me/delete-request` (202): soft-delete imediato. `User`
+  recebe `deletion_requested_at = now()` e `token_version` é incrementado
+  (logout forçado em todas as sessões). Cron diário `process_user_deletions`
+  finaliza hard-delete após **30 dias de grace**, cascateando para
+  workspaces (ON DELETE CASCADE).
+- `DELETE /api/v1/me/delete-request` (200): cancela enquanto ainda dentro
+  do grace. User precisa re-logar (token bumped) para chamar este
+  endpoint.
+
+Após hard-delete, registros de `AuditLog` permanecem com
+`actor_user_id=NULL` e `details.user_email_hash=<sha256[:16]>` —
+anonimização compatível com LGPD §V (preserva trilha de auditoria sem
+PII em claro).
+
+### Auditoria
+
+Toda transição (`requested`, `ready`, `downloaded`, `expired`, `failed`,
+`deletion_*`) é registrada em `audit_logs` com IP/UA. Owner do workspace
+pode consultar via `GET /api/v1/workspaces/{id}/audit?action=lgpd.*`.
