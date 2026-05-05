@@ -335,6 +335,7 @@ querystring.
 
 ## 9. Referências
 
+- [runbooks/f9_3_alembic_upgrade.md](runbooks/f9_3_alembic_upgrade.md) — F9.3 stage rename migration (pré-check + backup + rollback)
 - [SLO.md](SLO.md) — SLOs e SLAs de comunicação
 - [BACKLOG.md](BACKLOG.md) — 7E (operational readiness) · F7F-Local
 - [SMOKE_TEST.md](SMOKE_TEST.md) — verificações manuais pré-release

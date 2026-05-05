@@ -13,7 +13,8 @@ import { formatCurrency } from "@/lib/format";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import { EmptyState } from "@/components/EmptyState";
 import { FileText, Wallet } from "lucide-react";
-import type { PassiveIncomeData, ReportAnalysisData } from "@/lib/api";
+import type { IFMonteCarloData, PassiveIncomeData, ReportAnalysisData } from "@/lib/api";
+import { IFConeConeChart } from "../charts/IFConeConeChart";
 
 const PHASE_INDEPENDENCIA = 95;
 const PHASE_ACUMULACAO = 50;
@@ -35,6 +36,7 @@ export function S7IndependenciaSection({
   const previdencia = data.previdencia_pgbl as unknown as PrevidenciaPgblData | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
   const passiveIncome = data.passive_income;
+  const monteCarloIF = data.if_monte_carlo;
 
   return (
     <ReportSection id="S7" title="Independência Financeira — Projeção de Longo Prazo">
@@ -63,6 +65,11 @@ export function S7IndependenciaSection({
           <Stat label="Gap" value={<MonetaryValue value={goals.if_gap as number | undefined} compact />} />
         </div>
       )}
+
+      <IFMonteCarloBlock
+        monteCarloIF={monteCarloIF}
+        metaIf={goals?.if_meta as number | undefined}
+      />
 
       <PassiveIncomeBlock
         passiveIncome={passiveIncome}
@@ -101,6 +108,47 @@ function Stat({
       {sublabel && (
         <div className="mt-1 text-xs text-[var(--surface-muted-foreground)]">{sublabel}</div>
       )}
+    </div>
+  );
+}
+
+/** N3 — Bloco do cone de probabilidade Monte Carlo (P10/P50/P90). */
+function IFMonteCarloBlock({
+  monteCarloIF,
+  metaIf,
+}: {
+  monteCarloIF: IFMonteCarloData | undefined;
+  metaIf: number | undefined;
+}) {
+  if (!monteCarloIF) return null;
+
+  if (!monteCarloIF.exibir_cone) {
+    if (!monteCarloIF.motivo_sem_cone) return null;
+    return (
+      <p className="text-xs text-[var(--surface-muted-foreground)] md:col-span-2 italic">
+        {monteCarloIF.motivo_sem_cone}
+      </p>
+    );
+  }
+
+  return (
+    <div className="md:col-span-2">
+      <p className="text-sm font-medium mb-1">
+        Cone de probabilidade — IF (Monte Carlo)
+      </p>
+      <p className="text-xs text-[var(--surface-muted-foreground)] mb-3">
+        Projeção estocástica com volatilidade de{" "}
+        {(monteCarloIF.sigma_usado * 100).toFixed(0)}% a.a. Probabilidade de
+        atingir IF até a idade {monteCarloIF.idade_meta_usada}:{" "}
+        <strong>{(monteCarloIF.prob_if_ate_idade_meta * 100).toFixed(0)}%</strong>
+      </p>
+      <IFConeConeChart
+        caminhoP10={monteCarloIF.caminho_p10}
+        caminhoP50={monteCarloIF.caminho_p50}
+        caminhoP90={monteCarloIF.caminho_p90}
+        metaIf={metaIf}
+        data-testid="s7-if-cone-chart"
+      />
     </div>
   );
 }

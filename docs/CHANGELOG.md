@@ -6,6 +6,26 @@
 
 ## [Unreleased]
 
+- **feat(ui): Onda 9 — design system polish + mobile (2026-05-05):**
+  Unificação de 3 primitivos de design system + 2 fixes de produto + ergonomia mobile.
+  Entregue em 1 PR (#51):
+  - **SectionHeading:** novo primitivo unificando 4 patterns de H2 em `/plano`
+  - **EmptyState:** novo primitivo com layouts card/inline/hero unificando 5 patterns
+  - **SegmentedTabs:** novo primitivo com variantes pill/segment unificando 3 patterns de filter-tab
+  - **Badge Inbox pending:** AppShell mostra contagem de sugestões pendentes em `/acao`
+  - **Kill Timeline tab:** tab placeholder removida de `/acao`; TimelineTab.tsx deletado
+  - **Mobile collapsibles:** seção 'Plano de Ação' em `/plano` colapsada por default;
+    spec Playwright iPhone 13 (390x844px) valida estado inicial colapsado
+
+- **feat(db): F9.3 — Alembic stage rename migration validada (ADR-093) (2026-05-05):**
+  `q5r6s7t8u9v0_rename_stage_identifiers.py` sincronizado com `STAGE_RENAME_MAP`:
+  add `"E1.6" → "extract_irpf_full"` (ADR-157); remove `"E6"` e `"E6-final"`
+  (ADR-129 — renderer descontinuado). Pre-check `_check_unknown_stages` aborta
+  com `RuntimeError` se banco tiver stages desconhecidos; skip automático em
+  modo offline (SQL generation). 5 testes em `backend/tests/test_stage_rename_migration.py`
+  exercitam upgrade/downgrade/idempotência via Alembic programático + SQLite.
+  Runbook em `docs/runbooks/f9_3_alembic_upgrade.md`. F9.4 destravada.
+
 - **feat(report): Lane A8.3 — TRS efetiva + carteira de renda em S7 (2026-05-05):**
   Independência Financeira agora confronta **TRS meta** (5%/4% — D15) com
   **TRS efetiva** (yield real do patrimônio investido) — antes só projeção.
@@ -37,6 +57,59 @@
   18 cenários (3 fases × 2 acumuladores × 3 defasagens) cobertos via Vitest;
   5 unit tests novos no adapter; 1 test de regra silenciosa em acumulação +
   4 fixtures atualizadas com `if_pct: 60` no `test_suggestion_generator`.
+
+- **feat(pipeline): N3 — IFProjector v2 Monte Carlo + IFConeChart (2026-05-05):**
+  Simulação estocástica de Independência Financeira com 3 percentis.
+  Entregue em 2 PRs:
+  - **PR-A (#52):** `IFProjector` v2 com `run_monte_carlo_if()`: 1 000
+    trajetórias, distribuição normal em retorno (`mean±std`), `IFMonteCarloConfig`
+    (tipado, valor object), `MonteCarloIFResult` com `p10`/`p50`/`p90` cone
+    paths + `years_to_if` por percentil.
+  - **PR-B+C (#55):** Chart.js `IFConeChart` em S7 com 3 bandas coloridas
+    P10/P50/P90 + linha "Meta IF"; E5 exporta `monte_carlo_if` key no
+    output JSON para consumo frontend. CI re-running, auto-merge habilitado.
+  Nota: ADR formal para Monte Carlo (candidato ADR-165) pendente de sign-off
+  G0 (financial-planner) — regras de domínio precisam de revisão antes de
+  formalizar hipóteses de retorno.
+
+- **refactor(backend): decompose content_classifier monolith (2026-05-05):**
+  Módulo `content_classifier.py` com 727 LOC decomposto em 3 módulos
+  focados sem alteração de comportamento: `institution_classifier` (lógica
+  de regex + banco), `type_classifier` (mapeamento doc_type), `period_extractor`
+  (parsing de período). PR [#50](https://github.com/davidrobert/mathoms/pull/50),
+  CI verde, auto-merge. Desbloqueia manutenção independente dos 3 domínios
+  de classificação.
+
+- **fix(backend): canonical stage names em artifact_reader (2026-05-05):**
+  `dashboard_service.py` usava `"E5"` (legado) em vez de `"analyze_finances"`;
+  `transaction_service.py` usava `"E4"` em vez de `"categorize_transactions"`.
+  Corrigido para nomes descritivos (ADR-093). B2 (renomear dispatcher stub
+  test) absorvido no mesmo PR [#47](https://github.com/davidrobert/mathoms/pull/47).
+  CI rodando, auto-merge habilitado.
+
+- **refactor(pipeline): deprecate calculators.py (2026-05-05):**
+  PR [#46](https://github.com/davidrobert/mathoms/pull/46). Exports legados
+  de `calculators.py` redirecionados para serviços canônicos em
+  `pipeline/domain/services/`. Sem quebra de import externo — módulo continua
+  importável com deprecation warning. CI verde, auto-merge.
+
+- **test(e2e): fix stale selectors em vault e config-round-trip (2026-05-05):**
+  PR [#48](https://github.com/davidrobert/mathoms/pull/48). Seletores obsoletos
+  nas specs Playwright `vault.spec.ts` e `config-round-trip.spec.ts` atualizados
+  para DOM atual. Suíte E2E `@critical` volta a passar sem flaky.
+
+- **feat(frontend): FreeTierSkippedBanner no pipeline monitor (2026-05-05):**
+  PR [#49](https://github.com/davidrobert/mathoms/pull/49). Alert amber
+  dismissível aparece no monitor de pipeline quando stages premium são
+  detectados como pulados (status `skipped` no free tier). Usa `EmptyState`
+  primitivo entregue na Onda 9.
+
+- **feat(db): M3 drop _legacy_kanban_items + _legacy_report_notes (ADR-154) (2026-05-05):**
+  PR [#56](https://github.com/davidrobert/mathoms/pull/56). Migration Alembic M3
+  remove tabelas legadas `_legacy_kanban_items` e `_legacy_report_notes`
+  (bridge criado pela ADR-154 em sprint anterior, agora confirmado sem
+  leitores). Modelos SQLAlchemy e rotas API correspondentes limpos.
+  CI verde, auto-merge.
 
 - **feat(suggestions+decisions): Onda 8 — coerência metodológica (2026-05-04):**
   Fecha 6 gaps identificados na revisão de produto 2026-04-29:

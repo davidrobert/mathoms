@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ListFilter, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { SegmentedTabs } from "@/components/ui/SegmentedTabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TaskCard } from "@/components/tasks/TaskCard";
@@ -214,30 +215,21 @@ const VIEW_LABEL: Record<ViewMode, string> = {
   category: "Por categoria",
 };
 
-interface ViewToggleProps {
-  value: ViewMode;
-  onChange: (v: ViewMode) => void;
-}
+const VIEW_OPTIONS: ReadonlyArray<{ value: ViewMode; label: string }> = [
+  { value: "priority", label: VIEW_LABEL.priority },
+  { value: "deadline", label: VIEW_LABEL.deadline },
+  { value: "category", label: VIEW_LABEL.category },
+];
 
-function ViewToggle({ value, onChange }: ViewToggleProps) {
+function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMode) => void }) {
   return (
-    <div className="flex gap-1 rounded-lg bg-muted p-1 text-sm">
-      {(["priority", "deadline", "category"] as const).map((v) => (
-        <button
-          key={v}
-          type="button"
-          onClick={() => onChange(v)}
-          className={
-            "rounded px-3 py-1 transition " +
-            (value === v
-              ? "bg-background font-medium shadow-sm"
-              : "text-muted-foreground hover:text-foreground")
-          }
-        >
-          {VIEW_LABEL[v]}
-        </button>
-      ))}
-    </div>
+    <SegmentedTabs
+      value={value}
+      onChange={onChange}
+      options={VIEW_OPTIONS}
+      ariaLabel="Modo de visualização"
+      variant="segment"
+    />
   );
 }
 

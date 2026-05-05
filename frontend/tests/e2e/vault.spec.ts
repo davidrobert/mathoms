@@ -32,10 +32,7 @@ test.describe("Vault + Unlock", () => {
     await expect(page.getByText(label)).not.toBeVisible({ timeout: 5_000 });
   });
 
-  // Quarentena: locator de "Tentar desbloquear" / mensagem de retorno mudou
-  // após redesign da página /vault. TODO: atualizar seletores ou cobrir via
-  // integration test se a UI ainda está em iteração.
-  test.skip("retry-unlock com vault vazio mostra mensagem 'nenhum desbloqueado'", async ({
+  test("retry-unlock mostra mensagem quando nenhum documento é desbloqueado", async ({
     page,
     request,
   }, info) => {
@@ -52,7 +49,8 @@ test.describe("Vault + Unlock", () => {
     await expect(page.getByText(label)).toBeVisible();
 
     // Retry-unlock (sem docs protegidos, retorna 0 desbloqueados)
-    await page.getByRole("button", { name: /Tentar desbloquear/ }).click();
+    // Botão atual: "Tentar desbloquear documentos pendentes"
+    await page.getByRole("button", { name: /Tentar desbloquear documentos/ }).click();
     await expect(
       page.getByText(/Nenhum documento conseguiu ser desbloqueado/),
     ).toBeVisible({ timeout: 10_000 });

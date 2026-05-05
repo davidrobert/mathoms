@@ -41,6 +41,11 @@ import {
   getDismissedFailedRunId,
   setDismissedFailedRunId,
 } from "./_components/dismissedFailedRun";
+import { FreeTierSkippedBanner } from "./_components/FreeTierSkippedBanner";
+import {
+  getDismissedFreeTierRunId,
+  setDismissedFreeTierRunId,
+} from "./_components/dismissedFreeTierBanner";
 
 const ACTIVE_STATUSES = new Set(["pending", "running", "resuming"]);
 
@@ -72,6 +77,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   const lastActivityByStageRef = useRef<Record<string, number>>({});
   const [lastFailedRun, setLastFailedRun] = useState<PipelineRunResponse | null>(null);
   const [isPremium, setIsPremium] = useState(false);
+  const [freeTierSkippedRun, setFreeTierSkippedRun] = useState<PipelineRunResponse | null>(null);
   const [pendingReviewCount, setPendingReviewCount] = useState<number>(0);
   const [liveStageActivity, setLiveStageActivity] =
     useState<PipelineStageActivity | null>(null);
@@ -197,6 +203,15 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           // No more failed runs — clear stale dismissal.
           setDismissedFailedRunId(null);
         }
+
+        const recentCompleted = runsData.runs.find((r) => r.status === "completed");
+        const dismissedFreeTierId = getDismissedFreeTierRunId();
+        if (recentCompleted && recentCompleted.id !== dismissedFreeTierId) {
+          const skipped = recentCompleted.stage_logs?.filter(
+            (s) => s.status === "skipped_free_tier"
+          ) ?? [];
+          if (skipped.length > 0) setFreeTierSkippedRun(recentCompleted);
+        }
       }
     } catch {
       setListDataOk(false);
@@ -271,6 +286,7 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
   async function handleTrigger(fromStage?: string, incremental?: boolean) {
     setError("");
     setLastFailedRun(null);
+    setFreeTierSkippedRun(null);
     setTriggering(true);
     try {
       const run = await triggerPipeline(workspace.id, { from_stage: fromStage, skip_llm: !isPremium, incremental });
@@ -373,6 +389,21 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           <div className="mb-6 rounded-lg bg-gain/10 p-4 text-center text-sm text-gain">
             Relatório gerado com sucesso! Redirecionando...
           </div>
+        )}
+
+        {freeTierSkippedRun && (
+          <FreeTierSkippedBanner
+            runId={freeTierSkippedRun.id}
+            skippedStageCount={
+              freeTierSkippedRun.stage_logs?.filter(
+                (s) => s.status === "skipped_free_tier"
+              ).length ?? 0
+            }
+            onDismiss={() => {
+              setDismissedFreeTierRunId(freeTierSkippedRun.id);
+              setFreeTierSkippedRun(null);
+            }}
+          />
         )}
 
         <RunHistoryList

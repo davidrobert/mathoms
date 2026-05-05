@@ -8,6 +8,7 @@ import type {
   DolarGoalResponse,
 } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 
 import { GoalCard, type GoalCardProps } from "./GoalCard";
 
@@ -29,9 +30,7 @@ export function SupportGoalsRow({
   ];
   return (
     <section className="mb-6">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Metas de suporte
-      </h2>
+      <SectionHeading label="Metas de suporte" />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((p) => (
           <GoalCard key={p.title} {...p} />
