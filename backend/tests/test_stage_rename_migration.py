@@ -1,214 +1,198 @@
-"""Tests — ``q5r6s7t8u9v0_rename_stage_identifiers`` (Fase 9.3 · ADR-093).
-
-Valida a função ``apply_rename(bind, mapping)`` sem invocar o CLI do alembic.
-Cobre:
-- ``upgrade`` renomeia todas as linhas com nomes legados.
-- ``downgrade`` restaura os nomes legados (reversibilidade).
-- Idempotência: rodar ``upgrade`` duas vezes não duplica/corrompe.
-- Tabela vazia é no-op válido.
-- Colunas não-``stage`` ficam intactas.
-"""
+"""Tests para a migration q5r6s7t8u9v0 — rename stage identifiers (ADR-093 F9.3)."""
 
 from __future__ import annotations
 
-import importlib.util
+import os
+import tempfile
 from pathlib import Path
 
 import pytest
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+import sqlalchemy as sa
+from alembic.command import downgrade, upgrade
+from alembic.config import Config
+from sqlalchemy.engine import Engine
 
-from backend.app.core.security import hash_password
-from backend.app.models import (
-    PipelineArtifact,
-    PipelineRun,
-    PipelineRunStatus,
-    PipelineStageLog,
-    PipelineStageStatus,
-    User,
-    Workspace,
-)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ALEMBIC_INI = PROJECT_ROOT / "backend" / "alembic.ini"
+ALEMBIC_DIR = PROJECT_ROOT / "backend" / "alembic"
 
-MIGRATION_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "alembic"
-    / "versions"
-    / "q5r6s7t8u9v0_rename_stage_identifiers.py"
-)
+# Revision that creates pipeline_artifacts + pipeline_stage_logs (parent).
+PARENT_REVISION = "p4q5r6s7t8u9"
+TARGET_REVISION = "q5r6s7t8u9v0"
 
 
-def _load_migration():
-    spec = importlib.util.spec_from_file_location("q5r6s7t8u9v0_rename", MIGRATION_PATH)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)  # type: ignore[union-attr]
-    return mod
+@pytest.fixture
+def alembic_engine(monkeypatch):
+    """SQLite file + Alembic config upgraded to PARENT_REVISION.
+
+    Pattern mirrors test_alembic_guardrails.py: inject MATHOMS_DATABASE_URL
+    + patch settings so env.py sees the test DB, not the production one.
+    Yields (sync_engine, alembic_cfg).
+    """
+    fd, db_path_str = tempfile.mkstemp(suffix=".db", prefix="f93_test_")
+    os.close(fd)
+    db_path = Path(db_path_str)
+
+    async_url = f"sqlite+aiosqlite:///{db_path}"
+    sync_url = f"sqlite:///{db_path}"
+
+    monkeypatch.setenv("MATHOMS_DATABASE_URL", async_url)
+
+    from backend.app.core import config as core_config
+
+    core_config.settings.DATABASE_URL = async_url
+
+    cfg = Config(str(ALEMBIC_INI))
+    cfg.set_main_option("script_location", str(ALEMBIC_DIR))
+    cfg.set_main_option("sqlalchemy.url", async_url)
+
+    upgrade(cfg, PARENT_REVISION)
+
+    engine = sa.create_engine(sync_url)
+    yield engine, cfg
+
+    engine.dispose()
+    try:
+        db_path.unlink()
+    except FileNotFoundError:
+        pass
 
 
-async def _seed_ws_and_run(db: AsyncSession, *, email: str):
-    user = User(email=email, hashed_password=hash_password("p"), full_name="M")
-    db.add(user)
-    await db.flush()
-    ws = Workspace(name="WS", owner_id=user.id)
-    db.add(ws)
-    await db.flush()
-    run = PipelineRun(workspace_id=ws.id, status=PipelineRunStatus.completed)
-    db.add(run)
-    await db.flush()
-    return ws.id, run.id
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
-async def test_upgrade_renames_all_known_stages(db: AsyncSession):
-    mod = _load_migration()
-    ws_id, run_id = await _seed_ws_and_run(db, email="mig1@test.com")
-
-    for i, old in enumerate(mod.STAGE_RENAME):
-        db.add(
-            PipelineArtifact(
-                workspace_id=ws_id,
-                pipeline_run_id=run_id,
-                stage=old,
-                artifact_key=f"k{i}",
-                content_json={"i": i},
-            )
-        )
-        if old != "E5-revised":
-            db.add(
-                PipelineStageLog(
-                    pipeline_run_id=run_id,
-                    stage=old,
-                    status=PipelineStageStatus.completed,
-                )
-            )
-    await db.commit()
-
-    def _apply(sync_conn):
-        mod.apply_rename(sync_conn, mod.STAGE_RENAME)
-
-    raw = await db.connection()
-    await raw.run_sync(_apply)
-
-    for old, new in mod.STAGE_RENAME.items():
-        rows_old = (
-            (await db.execute(select(PipelineArtifact).where(PipelineArtifact.stage == old)))
-            .scalars()
-            .all()
-        )
-        assert rows_old == [], f"Sobrevivente '{old}'"
-        rows_new = (
-            (await db.execute(select(PipelineArtifact).where(PipelineArtifact.stage == new)))
-            .scalars()
-            .all()
-        )
-        assert len(rows_new) == 1
-
-
-@pytest.mark.asyncio
-async def test_downgrade_restores_legacy_names(db: AsyncSession):
-    mod = _load_migration()
-    ws_id, run_id = await _seed_ws_and_run(db, email="mig2@test.com")
-
-    for i, (old, new) in enumerate(mod.STAGE_RENAME.items()):
-        db.add(
-            PipelineArtifact(
-                workspace_id=ws_id,
-                pipeline_run_id=run_id,
-                stage=new,
-                artifact_key=f"k{i}",
-                content_json={},
-            )
-        )
-    await db.commit()
-
-    def _apply(sync_conn):
-        reverse = {new: old for old, new in mod.STAGE_RENAME.items()}
-        mod.apply_rename(sync_conn, reverse)
-
-    raw = await db.connection()
-    await raw.run_sync(_apply)
-
-    for old, new in mod.STAGE_RENAME.items():
-        rows_new = (
-            (await db.execute(select(PipelineArtifact).where(PipelineArtifact.stage == new)))
-            .scalars()
-            .all()
-        )
-        assert rows_new == []
-        rows_old = (
-            (await db.execute(select(PipelineArtifact).where(PipelineArtifact.stage == old)))
-            .scalars()
-            .all()
-        )
-        assert len(rows_old) == 1
-
-
-@pytest.mark.asyncio
-async def test_migration_is_idempotent(db: AsyncSession):
-    mod = _load_migration()
-    ws_id, run_id = await _seed_ws_and_run(db, email="mig3@test.com")
-    db.add(
-        PipelineArtifact(
-            workspace_id=ws_id,
-            pipeline_run_id=run_id,
-            stage="E3",
-            artifact_key="k",
-            content_json={},
-        )
+def _insert_artifact(conn, stage: str, run_id: str = "run-1") -> None:
+    conn.execute(
+        sa.text(
+            "INSERT INTO pipeline_artifacts "
+            "(workspace_id, pipeline_run_id, stage, artifact_key, content_json, created_at) "
+            "VALUES ('ws-1', :run_id, :stage, 'key-1', '{}', CURRENT_TIMESTAMP)"
+        ),
+        {"stage": stage, "run_id": run_id},
     )
-    await db.commit()
-
-    def _apply(sync_conn):
-        mod.apply_rename(sync_conn, mod.STAGE_RENAME)
-
-    raw = await db.connection()
-    await raw.run_sync(_apply)
-    await raw.run_sync(_apply)
-
-    rows = (await db.execute(select(PipelineArtifact))).scalars().all()
-    assert len(rows) == 1
-    assert rows[0].stage == "reconcile_transactions"
 
 
-@pytest.mark.asyncio
-async def test_migration_handles_empty_table(db: AsyncSession):
-    mod = _load_migration()
-
-    def _apply(sync_conn):
-        mod.apply_rename(sync_conn, mod.STAGE_RENAME)
-
-    raw = await db.connection()
-    await raw.run_sync(_apply)
-
-    rows = (await db.execute(select(PipelineArtifact))).scalars().all()
-    assert rows == []
-
-
-@pytest.mark.asyncio
-async def test_migration_preserves_non_stage_columns(db: AsyncSession):
-    mod = _load_migration()
-    ws_id, run_id = await _seed_ws_and_run(db, email="mig5@test.com")
-    db.add(
-        PipelineArtifact(
-            workspace_id=ws_id,
-            pipeline_run_id=run_id,
-            stage="E5",
-            artifact_key="analise",
-            content_json={"score": 82, "detail": [1, 2, 3]},
-            schema_version="v1",
-            byte_size=1234,
-        )
+def _insert_stage_log(conn, stage: str) -> None:
+    conn.execute(
+        sa.text(
+            "INSERT INTO pipeline_stage_logs "
+            "(id, pipeline_run_id, stage, status, started_at) "
+            "VALUES (:id, 'run-1', :stage, 'success', CURRENT_TIMESTAMP)"
+        ),
+        {"id": f"log-{stage}", "stage": stage},
     )
-    await db.commit()
 
-    def _apply(sync_conn):
-        mod.apply_rename(sync_conn, mod.STAGE_RENAME)
 
-    raw = await db.connection()
-    await raw.run_sync(_apply)
+def _stages_in_artifacts(conn) -> set[str]:
+    result = conn.execute(sa.text("SELECT DISTINCT stage FROM pipeline_artifacts"))
+    return {row[0] for row in result}
 
-    row = (await db.execute(select(PipelineArtifact))).scalar_one()
-    assert row.stage == "analyze_finances"
-    assert row.artifact_key == "analise"
-    assert row.content_json == {"score": 82, "detail": [1, 2, 3]}
-    assert row.schema_version == "v1"
-    assert row.byte_size == 1234
+
+def _stages_in_logs(conn) -> set[str]:
+    result = conn.execute(sa.text("SELECT DISTINCT stage FROM pipeline_stage_logs"))
+    return {row[0] for row in result}
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+
+def test_upgrade_renames_pipeline_artifacts_rows(alembic_engine):
+    engine, cfg = alembic_engine
+
+    with engine.begin() as conn:
+        _insert_artifact(conn, "E3", run_id="run-1")
+        _insert_artifact(conn, "E5", run_id="run-2")
+        _insert_artifact(conn, "E5.N", run_id="run-3")
+
+    upgrade(cfg, TARGET_REVISION)
+
+    with engine.connect() as conn:
+        stages = _stages_in_artifacts(conn)
+
+    assert "reconcile_transactions" in stages
+    assert "analyze_finances" in stages
+    assert "generate_narratives" in stages
+    assert "E3" not in stages
+    assert "E5" not in stages
+    assert "E5.N" not in stages
+
+
+def test_upgrade_renames_pipeline_stage_logs_rows(alembic_engine):
+    engine, cfg = alembic_engine
+
+    with engine.begin() as conn:
+        _insert_stage_log(conn, "E3")
+        _insert_stage_log(conn, "E5")
+        _insert_stage_log(conn, "E5.N")
+
+    upgrade(cfg, TARGET_REVISION)
+
+    with engine.connect() as conn:
+        stages = _stages_in_logs(conn)
+
+    assert "reconcile_transactions" in stages
+    assert "analyze_finances" in stages
+    assert "generate_narratives" in stages
+    assert "E3" not in stages
+    assert "E5" not in stages
+    assert "E5.N" not in stages
+
+
+def test_upgrade_aborts_on_unknown_stage(alembic_engine):
+    engine, cfg = alembic_engine
+
+    with engine.begin() as conn:
+        _insert_artifact(conn, "E99-fake")
+
+    with pytest.raises(RuntimeError, match="Unknown stage values"):
+        upgrade(cfg, TARGET_REVISION)
+
+
+def test_upgrade_is_idempotent(alembic_engine):
+    engine, cfg = alembic_engine
+
+    with engine.begin() as conn:
+        _insert_artifact(conn, "E3")
+
+    upgrade(cfg, TARGET_REVISION)
+
+    with engine.connect() as conn:
+        stages_after_first = _stages_in_artifacts(conn)
+
+    # Second upgrade is a no-op — descriptive names don't match legacy keys.
+    upgrade(cfg, TARGET_REVISION)
+
+    with engine.connect() as conn:
+        stages_after_second = _stages_in_artifacts(conn)
+
+    assert stages_after_first == stages_after_second
+    assert "reconcile_transactions" in stages_after_second
+
+
+def test_downgrade_restores_legacy_names(alembic_engine):
+    engine, cfg = alembic_engine
+
+    with engine.begin() as conn:
+        _insert_artifact(conn, "E3")
+        _insert_stage_log(conn, "E5")
+
+    upgrade(cfg, TARGET_REVISION)
+
+    with engine.connect() as conn:
+        assert "reconcile_transactions" in _stages_in_artifacts(conn)
+        assert "analyze_finances" in _stages_in_logs(conn)
+
+    downgrade(cfg, PARENT_REVISION)
+
+    with engine.connect() as conn:
+        artifact_stages = _stages_in_artifacts(conn)
+        log_stages = _stages_in_logs(conn)
+
+    assert "E3" in artifact_stages
+    assert "reconcile_transactions" not in artifact_stages
+    assert "E5" in log_stages
+    assert "analyze_finances" not in log_stages

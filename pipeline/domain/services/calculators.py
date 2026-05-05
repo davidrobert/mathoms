@@ -19,6 +19,13 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Iterable
 
+# DEPRECATED: classes migradas para módulos dedicados. Remover em F10.
+# Módulos canônicos têm interfaces distintas (Money/BankStatement vs float/dict):
+#   CashFlowAggregator        → sem equivalente direto (CashFlowBuilder usa ClassifiedTransaction)
+#   PatrimonioCalculator      → patrimonio_calculator (PatrimonioInputs → dict)
+#   EmergencyReserveCalculator → reserva_emergencia_calculator (fluxo/patrimônio dicts)
+#   FinancialScoreCalculator  → financial_score_calculator (0-10, dict, 5 componentes)
+# Imports diretos deste módulo devem migrar para os módulos canônicos acima.
 from pipeline.domain.models.document import BankStatement, BaselinePatrimonial
 from pipeline.domain.models.transaction import Money, Transaction
 
