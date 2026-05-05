@@ -223,6 +223,39 @@ caixa). Não confundir com Cofrinhos atrelados a CDI longo.
 
 ---
 
+## TRS EFETIVA (Métrica core · A8.3)
+
+**TRS efetiva** = renda passiva anual observada / patrimônio investido
+(carteira de renda) × 100. Renda passiva agrega dividendos isentos
+(cod RFB 09), JCP exclusiva (10), aplicações exclusiva (12), ganho de
+capital exclusiva (06), rendimentos exterior e aluguéis (rendimentos
+PF/PJ classificados como aluguel) — fonte: IRPF analyzer (último
+ano-base disponível). **Aluguéis foram realocados de trabalho para
+capital** para coerência metodológica (Perini classifica aluguel como
+capital imobiliário; AUVP idem) — ver
+[ADR-164](../docs/DECISIONS.md#adr-164--carteira-de-renda-e-taxa-de-retirada-efetiva)
+§Re-classificação.
+
+**Carteira de renda** (chave interna `patrimonio_gerador_brl`) exclui
+residência principal, veículos, derivativos e parcela de caixa
+correspondente à reserva de emergência. Inclui (mesmo com yield
+observado zero): cripto, ações growth e PGBL/VGBL em acumulação —
+yield 0% explícito é o sinal pedagógico, não erro.
+
+Confronto com **TRS meta** (5% Perini realista / 4% Trinity pessimista
+— decisão D15) sinaliza adequação da carteira como geradora de renda
+**na fase atual**: warning visual condicionado a `progresso ≥ 50%`
+(em acumulação, yield baixo é esperado).
+
+> **Mitigação obrigatória do erro #1 do iniciante** (Perini): TRS
+> efetiva exibida sem contexto induz a vender growth para perseguir
+> DY, sacrificando retorno total. Por isso S7 exibe (i) renda passiva
+> em R$/mês antes do %, (ii) caption permanente em acumulação, (iii)
+> banner explicativo quando >40% da carteira de renda está em
+> acumuladores (BOVA11, IVVB11, IVV…), (iv) tom condicionado à fase.
+
+---
+
 ## PREMISSAS ECONÔMICAS
 
 | Variável | Pessimista | Realista (base) | Otimista | Atual (abr/2026) |
