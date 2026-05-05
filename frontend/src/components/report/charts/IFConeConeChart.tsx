@@ -32,7 +32,7 @@ export function IFConeConeChart({
   metaIf,
   ...rest
 }: IFConeChartProps) {
-  const { labels, data } = useMemo<{
+  const { data } = useMemo<{
     labels: string[];
     data: ChartData<"line">;
   }>(() => {
