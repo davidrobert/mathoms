@@ -3,17 +3,16 @@
 /**
  * /acao — superfície dinâmica de ação (Direção E · Onda 6 · ADR-152).
  *
- * Renomeada de `/plano-de-acao` em ADR-152. Tabs: Inbox · Tarefas ·
- * Timeline · Notas. Topo fixo de status agrega contadores.
+ * Renomeada de `/plano-de-acao` em ADR-152. Tabs: Inbox · Tarefas · Notas. Topo fixo de status agrega contadores.
  *
  * Default (Onda 7 #2): tab Inbox quando há sugestões pendentes; senão
- * Tarefas. URL `?tab=inbox|tarefas|timeline|notas` sempre vence (deep-
+ * Tarefas. URL `?tab=inbox|tarefas|notas` sempre vence (deep-
  * link do relatório → /acao?tab=inbox#SUG-XXX).
  */
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CalendarClock, Inbox, ListTodo, Sparkles, StickyNote } from "lucide-react";
+import { Inbox, ListTodo, Sparkles, StickyNote } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
@@ -30,17 +29,15 @@ import { ActionStatusBar } from "./_components/ActionStatusBar";
 import { InboxTab } from "./_components/InboxTab";
 import { NotasTab } from "./_components/NotasTab";
 import { TasksTab } from "./_components/TasksTab";
-import { TimelineTab } from "./_components/TimelineTab";
 import { useAcaoZeroSignals } from "./_components/useAcaoZeroSignals";
 import { useSuggestionsCount } from "../plano/_components/useSuggestionsCount";
 
-type TabId = "inbox" | "tarefas" | "timeline" | "notas";
+type TabId = "inbox" | "tarefas" | "notas";
 
 const FALLBACK_TAB: TabId = "tarefas";
 const VALID_TAB_IDS: ReadonlySet<string> = new Set([
   "inbox",
   "tarefas",
-  "timeline",
   "notas",
 ]);
 
@@ -198,10 +195,7 @@ function AcaoTabs({ tab, onTabChange, workspaceId }: AcaoTabsProps) {
           <ListTodo className="h-3.5 w-3.5" />
           Tarefas
         </TabsTrigger>
-        <TabsTrigger value="timeline">
-          <CalendarClock className="h-3.5 w-3.5" />
-          Timeline
-        </TabsTrigger>
+
         <TabsTrigger value="notas">
           <StickyNote className="h-3.5 w-3.5" />
           Notas
@@ -213,9 +207,7 @@ function AcaoTabs({ tab, onTabChange, workspaceId }: AcaoTabsProps) {
       <TabsContent value="tarefas">
         <TasksTab workspaceId={workspaceId} />
       </TabsContent>
-      <TabsContent value="timeline">
-        <TimelineTab workspaceId={workspaceId} />
-      </TabsContent>
+
       <TabsContent value="notas">
         <NotasTab workspaceId={workspaceId} />
       </TabsContent>
