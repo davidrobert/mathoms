@@ -227,8 +227,11 @@ class TestE16Goldens:
         assert a.pensao_alimenticia_paga(2024) == Decimal("18000.00")
         assert a.pgbl_capacidade_dedutivel(2024) == Decimal("7236.0000")
         sp = a.split_trabalho_vs_capital(2024)
-        assert sp.trabalho_brl == Decimal("320000.00")
-        assert sp.capital_brl == Decimal("46800.00")
+        # A8.3 PR-B: aluguéis PF (R$ 30.000 — Inquilino Ficcional A) saíram
+        # de trabalho e entraram em capital (Perini/AUVP capital imobiliário).
+        # Trabalho 320000 → 290000 (-30000); capital 46800 → 76800 (+30000).
+        assert sp.trabalho_brl == Decimal("290000.00")
+        assert sp.capital_brl == Decimal("76800.00")
         assert len(a.dependentes_validos(2024)) == 2
 
     def test_simplificado_pgbl_capacity_zero(self, fixtures):

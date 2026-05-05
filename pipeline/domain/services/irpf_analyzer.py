@@ -136,7 +136,7 @@ class IRPFAnalyzer:
         return max(capacidade, Decimal("0"))
 
     def split_trabalho_vs_capital(self, ano: int) -> RendaSplit:
-        """Trabalho = PJ + PF + 13º exclusiva; Capital = isentos 09/12 + exclusiva 06/10/12."""
+        """Trabalho = PJ + 13º exclusiva; Capital = aluguéis PF + isentos 09/12 + exclusiva 06/10/12 + exterior."""
         decls = self._by_year(ano)
         trabalho = _sum(_bucket_trabalho(d) for d in decls)
         capital = _sum(_bucket_capital(d) for d in decls)
@@ -201,15 +201,23 @@ def _pgbl_aportado(d: IRPFFullOutput) -> Decimal:
     )
 
 
+def _alugueis_pf(d: IRPFFullOutput) -> Decimal:
+    # rendimentos_pf é o bucket canônico de aluguel recebido (PF→PF carnê-leão)
+    # — schema docstring de FontePagadoraPF e prompt e16. Perini classifica
+    # aluguel como capital imobiliário (AUVP idem); manter em trabalho era
+    # artefato de implementação inicial. Re-classificação documentada na
+    # ADR-NNN da lane A8.3 TRS real.
+    return _sum(fp.valor_brl for fp in d.rendimentos_pf)
+
+
 def _bucket_trabalho(d: IRPFFullOutput) -> Decimal:
     pj = _sum(fp.rendimentos_tributaveis_brl for fp in d.rendimentos_pj)
-    pf_servico = _sum(fp.valor_brl for fp in d.rendimentos_pf)
     decimo_terceiro = _sum(
         r.valor_brl
         for r in d.rendimentos_tributacao_exclusiva
         if r.codigo_rfb.value in _TRABALHO_EXCLUSIVA
     )
-    return pj + pf_servico + decimo_terceiro
+    return pj + decimo_terceiro
 
 
 def _bucket_capital(d: IRPFFullOutput) -> Decimal:
@@ -222,7 +230,7 @@ def _bucket_capital(d: IRPFFullOutput) -> Decimal:
         if r.codigo_rfb.value in _CAPITAL_EXCLUSIVA
     )
     exterior = _sum(fp.valor_brl for fp in d.rendimentos_exterior)
-    return isentos + exclusiva + exterior
+    return isentos + exclusiva + exterior + _alugueis_pf(d)
 
 
 __all__ = ["IRPFAnalyzer", "RendaSplit", "AliquotaPair", "PGBL_TETO_PCT"]
