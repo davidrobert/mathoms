@@ -25,7 +25,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { UpcomingTasksWidget } from "@/components/tasks/UpcomingTasksWidget";
 import { getDashboard, type DashboardResponse } from "@/lib/api";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
@@ -135,18 +134,25 @@ export default function PlanoPage() {
         alocacaoGoal={overview.goals.alocacaoGoal}
       />
 
-      <div className="my-8 flex items-center gap-3">
-        <SectionHeading label="Plano de Ação" className="mb-0 flex-none" />
-        <div className="flex-1 border-t border-border" />
-      </div>
+      <details className="group my-8">
+        <summary className="flex cursor-pointer list-none items-center gap-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
+          <ChevronOpenIcon />
+          Plano de Ação
+          <span className="hidden text-[10px] font-normal normal-case tracking-normal opacity-70 sm:inline">
+            (decisões · tarefas — abra para ver)
+          </span>
+          <div className="flex-1 border-t border-border" />
+        </summary>
+        <div className="mt-4">
+          <DecisionsSection workspaceId={workspace.id} />
 
-      <DecisionsSection workspaceId={workspace.id} />
+          <div className="mt-6">
+            <UpcomingTasksWidget />
+          </div>
 
-      <div className="mt-6">
-        <UpcomingTasksWidget />
-      </div>
-
-      {ifGoal && <LinkedTasksSection tasks={overview.linkedTasks} />}
+          {ifGoal && <LinkedTasksSection tasks={overview.linkedTasks} />}
+        </div>
+      </details>
 
       <CurrentMonthDetails
         loading={dashboard.loading}
