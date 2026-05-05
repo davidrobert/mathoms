@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.report import Report
-from backend.app.models.report_collab import KanbanItem, ReportNotes
 from backend.app.services.internal_ops.audit import AuditRecord, append_audit
 from backend.app.services.internal_ops.results import OpResult
 from backend.app.services.internal_ops.scope import (
@@ -24,13 +23,6 @@ async def _target_reports(db: AsyncSession, ws_ids: list[str]) -> list[Report]:
         return []
     stmt = select(Report).where(Report.workspace_id.in_(ws_ids))
     return list((await db.execute(stmt)).scalars().all())
-
-
-async def _delete_report_collab(db: AsyncSession, report_ids: list[str]) -> None:
-    if not report_ids:
-        return
-    await db.execute(delete(ReportNotes).where(ReportNotes.report_id.in_(report_ids)))
-    await db.execute(delete(KanbanItem).where(KanbanItem.report_id.in_(report_ids)))
 
 
 async def _delete_artifacts(db: AsyncSession, artifact_ids: list[int]) -> int:
@@ -70,7 +62,6 @@ def _audit_purge(actor: str, scope: PurgeScope, summary: dict, artifacts_removed
 
 async def _execute_purge(db: AsyncSession, reports: list[Report], artifact_ids: list[int]) -> int:
     report_ids = [r.id for r in reports]
-    await _delete_report_collab(db, report_ids)
     if report_ids:
         await db.execute(delete(Report).where(Report.id.in_(report_ids)))
     artifacts_removed = await _delete_artifacts(db, artifact_ids)
