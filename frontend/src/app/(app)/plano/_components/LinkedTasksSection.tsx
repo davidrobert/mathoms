@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ListTodo, Sparkles } from "lucide-react";
+import { ArrowRight, ListTodo } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TaskDeadlineBadge } from "@/components/tasks/TaskDeadlineBadge";
@@ -48,32 +49,16 @@ export function LinkedTasksSection({ tasks }: LinkedTasksSectionProps) {
 
 function EmptyLinkedTasks() {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-muted/20 px-4 py-6 text-center">
-      <ListTodo className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
-      <p className="text-sm text-muted-foreground">
-        Nenhuma tarefa ligada a esta meta.
-      </p>
-      <div className="mt-3 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
-        <Button
-          variant="outline"
-          size="sm"
-          nativeButton={false}
-          render={<Link href="/acao" />}
-        >
-          <ListTodo className="mr-1.5 h-3.5 w-3.5" />
-          Criar tarefa manual
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          nativeButton={false}
-          render={<Link href="/acao/sugestoes" />}
-        >
-          <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-          Ver sugestões automáticas
-        </Button>
-      </div>
-    </div>
+    <EmptyState
+      icon={ListTodo}
+      title="Nenhuma tarefa ligada a esta meta."
+      description="Crie tarefas em /acao e ligue-as à meta de IF para acompanhar o progresso aqui."
+      layout="inline"
+      ctas={[
+        { label: "Criar tarefa manual", href: "/acao", variant: "secondary" },
+        { label: "Ver sugestões automáticas", href: "/acao/sugestoes", variant: "secondary" },
+      ]}
+    />
   );
 }
 

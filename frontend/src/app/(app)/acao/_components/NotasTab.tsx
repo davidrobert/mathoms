@@ -10,6 +10,7 @@ import { Pin, PinOff, Plus, StickyNote, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,7 +38,16 @@ export function NotasTab({ workspaceId }: NotasTabProps) {
         </Card>
       )}
       {state.notes.length === 0 ? (
-        <EmptyState />
+        <Card>
+          <CardContent className="py-0">
+            <EmptyState
+              icon={StickyNote}
+              title="Nenhuma nota"
+              description='Use "Nova nota" para registrar contexto livre — decisões em rascunho, agenda do casal, observações que ainda não viraram tarefa ou Decision.'
+              layout="card"
+            />
+          </CardContent>
+        </Card>
       ) : (
         <ul className="flex flex-col gap-3">
           {state.notes.map((note) => (
@@ -66,23 +76,6 @@ function NotasHeader({ onCreate }: { onCreate: () => void | Promise<unknown> }) 
         <Plus className="mr-1.5 h-4 w-4" /> Nova nota
       </Button>
     </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <Card>
-      <CardContent className="py-12">
-        <div className="mx-auto max-w-md text-center">
-          <StickyNote className="mx-auto mb-4 h-10 w-10 text-muted-foreground/50" />
-          <h2 className="font-heading text-lg font-semibold">Nenhuma nota</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Use “Nova nota” para registrar contexto livre — decisões em rascunho, agenda do
-            casal, observações que ainda não viraram tarefa ou Decision.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 

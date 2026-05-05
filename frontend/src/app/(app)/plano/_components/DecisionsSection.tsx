@@ -220,20 +220,13 @@ function StatusFilters({ value, onChange }: StatusFiltersProps) {
 
 function DecisionsEmptyState({ onNew }: { onNew: () => void }) {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-muted/20 px-4 py-8 text-center">
-      <Scale className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
-      <p className="text-sm font-medium">
-        Nenhuma decisão de plano registrada.
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Quando mudar alocação alvo, aporte mensal ou objetivo de IF, registre
-        aqui — você terá histórico do porquê.
-      </p>
-      <Button size="sm" variant="outline" className="mt-4" onClick={onNew}>
-        <Plus className="mr-1 h-3.5 w-3.5" />
-        Registrar primeira decisão
-      </Button>
-    </div>
+    <EmptyState
+      icon={Scale}
+      title="Nenhuma decisão de plano registrada."
+      description="Quando mudar alocação alvo, aporte mensal ou objetivo de IF, registre aqui — você terá histórico do porquê."
+      layout="inline"
+      ctas={[{ label: "Registrar primeira decisão", onClick: onNew, variant: "secondary" }]}
+    />
   );
 }
 
