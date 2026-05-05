@@ -5,6 +5,7 @@
 
 export * from "./api/core";
 export * from "./api/auth";
+export * from "./api/authErrorMessages";
 export * from "./api/reports";
 export * from "./api/documents";
 export * from "./api/vault";

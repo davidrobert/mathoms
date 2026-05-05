@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { register, setToken, ApiError } from "@/lib/api";
+import { register, setToken, registerErrorMessage, type AuthErrorMessage } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,23 +19,20 @@ export function RegisterForm({ nextUrl }: { nextUrl: string }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<AuthErrorMessage | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
+    setError(null);
     setLoading(true);
     try {
       const data = await register(email, password, fullName);
       setToken(data.access_token);
       router.push(nextUrl);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.status === 409 ? "Este email já está cadastrado" : err.detail);
-      } else {
-        setError("Erro de conexão. Tente novamente.");
-      }
+      console.error("[register] failed", err);
+      setError(registerErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -48,7 +45,16 @@ export function RegisterForm({ nextUrl }: { nextUrl: string }) {
       </CardHeader>
       <CardContent>
         {error && (
-          <div className="mb-4 rounded-lg bg-loss/10 p-3 text-sm text-loss">{error}</div>
+          <div
+            role="alert"
+            aria-live="polite"
+            className="mb-4 rounded-lg border border-loss/30 bg-loss/10 p-3 text-sm"
+          >
+            <p className="font-medium text-loss">{error.headline}</p>
+            {error.hint && (
+              <p className="mt-1 text-muted-foreground">{error.hint}</p>
+            )}
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">

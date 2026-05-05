@@ -71,7 +71,7 @@ describe("LoginPage", () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 
-  it("500 mostra detail do servidor", async () => {
+  it("500 mostra mensagem amigável + hint (não vaza detail bruto)", async () => {
     server.use(
       http.post("/api/v1/auth/login", () =>
         HttpResponse.json({ detail: "Servidor indisponível" }, { status: 500 }),
@@ -84,8 +84,57 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: /entrar/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Servidor indisponível/i)).toBeInTheDocument();
+      expect(screen.getByText(/Erro temporário no servidor/i)).toBeInTheDocument();
     });
+    expect(screen.getByText(/Tente novamente em instantes/i)).toBeInTheDocument();
+    // detail bruto NÃO deve vazar pra UI
+    expect(screen.queryByText("Servidor indisponível")).not.toBeInTheDocument();
+  });
+
+  it("500 com body sem detail (proxy/HTML) cai no fallback amigável", async () => {
+    // Reproduz o cenário da screenshot: body não-JSON → apiFetch monta
+    // `detail = "HTTP 500"`. Não pode aparecer literal pro usuário.
+    server.use(
+      http.post("/api/v1/auth/login", () =>
+        HttpResponse.text("<!doctype html>...", { status: 500 }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await user.type(screen.getByLabelText(/email/i), "u@test.com");
+    await user.type(screen.getByLabelText(/senha/i), "x");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Erro temporário no servidor/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/HTTP 500/)).not.toBeInTheDocument();
+  });
+
+  it("429 com code=account_locked exibe headline + hint do servidor", async () => {
+    server.use(
+      http.post("/api/v1/auth/login", () =>
+        HttpResponse.json(
+          {
+            detail: {
+              code: "account_locked",
+              message: "Conta bloqueada por excesso de tentativas. Tente novamente em 60s.",
+            },
+          },
+          { status: 429 },
+        ),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await user.type(screen.getByLabelText(/email/i), "u@test.com");
+    await user.type(screen.getByLabelText(/senha/i), "x");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Conta temporariamente bloqueada/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Tente novamente em 60s/i)).toBeInTheDocument();
   });
 
   it("erro de rede mostra 'Erro de conexão'", async () => {
