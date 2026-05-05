@@ -35,7 +35,7 @@ def fake_artifacts(monkeypatch):
 
 def test_duplicate_physical_transactions_get_unique_row_ids(fake_artifacts):
     dup = _tx("Latte", "-12.50")
-    fake_artifacts[("E4", "despesas")] = _payload([dup, dict(dup), dict(dup)])
+    fake_artifacts[("categorize_transactions", "despesas")] = _payload([dup, dict(dup), dict(dup)])
 
     txs = load_transactions("ws-1", "/tmp/tenant")
 
@@ -47,7 +47,7 @@ def test_duplicate_physical_transactions_get_unique_row_ids(fake_artifacts):
 
 def test_distinct_transactions_get_distinct_hashes_and_row_ids(fake_artifacts):
     items = [_tx("Latte", "-12.50"), _tx("Uber", "-22.00", banco="itau", data="2026-04-16")]
-    fake_artifacts[("E4", "despesas")] = _payload(items)
+    fake_artifacts[("categorize_transactions", "despesas")] = _payload(items)
 
     txs = load_transactions("ws-1", "/tmp/tenant")
 
@@ -57,7 +57,7 @@ def test_distinct_transactions_get_distinct_hashes_and_row_ids(fake_artifacts):
 
 def test_row_id_counter_independent_across_categories(fake_artifacts):
     dup = _tx("Pix recebido", "100.00")
-    fake_artifacts[("E4", "receitas")] = _payload([dup, dict(dup)])
+    fake_artifacts[("categorize_transactions", "receitas")] = _payload([dup, dict(dup)])
 
     txs = load_transactions("ws-1", "/tmp/tenant")
 

@@ -78,17 +78,17 @@ async def test_all_user_facing_readers_prefer_db_when_disk_empty(db, tmp_path: P
 
     artifacts = [
         (
-            "E5",
+            "analyze_finances",
             "analise_financeira",
             {"patrimonio": {"bruto": 4_308_452.40, "liquido": 3_084_154.94}},
         ),
         (
-            "E4",
+            "categorize_transactions",
             "receitas",
             {"dados": {"salarios": [{"data": "2026-04-01", "descricao": "Folha", "valor": 10000}]}},
         ),
         (
-            "E4",
+            "categorize_transactions",
             "despesas",
             {
                 "dados": {
