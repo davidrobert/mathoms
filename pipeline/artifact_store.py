@@ -82,6 +82,7 @@ _STAGE_TO_SUFFIX: dict[str, str] = {
     "E5": "-5_analysis.json",
     "analyze_finances": "-5_analysis.json",  # F9.2 descriptive alias
     "E5.N": "-5n_narrativas.json",
+    "generate_narratives": "-5n_narrativas.json",  # F9.2 descriptive alias
     "E7": "-7_review.json",
     "E7-crossval": "-7_crossval.json",
     "E7-review": "-7_review.json",
