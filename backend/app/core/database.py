@@ -88,6 +88,9 @@ async def get_db():
 
 
 async def init_db():
-    """Create all tables (dev only — production uses Alembic)."""
+    """Bootstrap de DB efêmero (smoke test / fixture). Não usar no lifespan da API."""
+    # create_all() bypassa alembic_version — usar fora de smoke/teste causa
+    # schema drift que faz `alembic upgrade head` quebrar em migration posterior.
+    # Caminho canônico de schema é `make migrate`.
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
