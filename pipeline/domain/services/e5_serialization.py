@@ -14,7 +14,15 @@ Funções puras, sem I/O.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from decimal import Decimal
+from typing import Any, Mapping
+
+from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
+
+# Aliases para boundaries do output legacy (paridade com pattern de
+# ``ratios_calculator.py`` — Mapping[str, Any] não dispara P3).
+_GoalsPayload = Mapping[str, Any]
+_FontesPayload = Mapping[str, Decimal]
 
 # =============================================================================
 # Constantes de chave (paridade com legado)
@@ -205,6 +213,11 @@ class E5OutputInputs:
     # E1.6 (extract_irpf_full) — try-read opcional. Quando ausente, output
     # omite a chave `irpf_kpis` (workspaces sem IRPF). ADR-157.
     irpf_kpis: dict[str, Any] | None = None
+    # A8.3 — KPIs de TRS efetiva + carteira de renda. Quando ``status == "ok"``,
+    # ``goals`` é enriquecido com 7 chaves (taxa_retirada_efetiva_pct, …).
+    # Status ``"sem_irpf"``/``"gerador_zero"`` não enriquece — UI lida via
+    # ``passive_income`` no top-level (chave separada).
+    passive_income: PassiveIncomeResult | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -224,11 +237,13 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
 
     alertas = build_alertas(inputs.score, inputs.ratios)
 
+    goals_enriched = _enrich_goals_with_passive_income(inputs.goals, inputs.passive_income)
+
     output: dict[str, Any] = {
         "periodo_dados": inputs.periodo_dados,
         "data_analise": inputs.data_analise,
         "patrimonio": inputs.patrimonio,
-        "goals": inputs.goals,
+        "goals": goals_enriched,
         "fluxo_caixa": inputs.fluxo,
         "ratios": inputs.ratios,
         "score": inputs.score,
@@ -257,4 +272,50 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
     if inputs.irpf_kpis is not None:
         output["irpf_kpis"] = inputs.irpf_kpis
 
+    # A8.3: top-level ``passive_income`` para UI ler status + 6 fontes
+    # mesmo nos casos de empty state (status ``sem_irpf``/``gerador_zero``).
+    if inputs.passive_income is not None:
+        output["passive_income"] = _passive_income_to_dict(inputs.passive_income)
+
     return output
+
+
+# =============================================================================
+# A8.3 — TRS efetiva (Lane A8.3 PR-C)
+# =============================================================================
+
+
+def _enrich_goals_with_passive_income(
+    goals: _GoalsPayload, passive_income: PassiveIncomeResult | None
+) -> _GoalsPayload:
+    """Adiciona 7 KPIs de TRS efetiva ao ``goals`` quando status ``"ok"``."""
+    if passive_income is None or passive_income.status != "ok":
+        return dict(goals or {})
+    enriched = dict(goals or {})
+    enriched["taxa_retirada_efetiva_pct"] = float(passive_income.trs_efetiva_pct)
+    enriched["renda_passiva_anual_observada_brl"] = float(passive_income.renda_passiva_anual_brl)
+    enriched["renda_passiva_mensal_observada_brl"] = float(passive_income.renda_passiva_mensal_brl)
+    enriched["patrimonio_gerador_brl"] = float(passive_income.patrimonio_gerador_brl)
+    enriched["acumuladores_pct_gerador"] = float(passive_income.acumuladores_pct_gerador)
+    enriched["ano_referencia_irpf"] = passive_income.ano_referencia_irpf
+    enriched["defasagem_meses"] = passive_income.defasagem_meses
+    return enriched
+
+
+def _passive_income_to_dict(pi: PassiveIncomeResult) -> _GoalsPayload:
+    """Serializa ``PassiveIncomeResult`` para o JSON top-level (UI consome)."""
+    return {
+        "status": pi.status,
+        "renda_passiva_anual_brl": float(pi.renda_passiva_anual_brl),
+        "renda_passiva_mensal_brl": float(pi.renda_passiva_mensal_brl),
+        "renda_passiva_por_fonte_brl": _decimals_to_float(pi.renda_passiva_por_fonte_brl),
+        "patrimonio_gerador_brl": float(pi.patrimonio_gerador_brl),
+        "trs_efetiva_pct": float(pi.trs_efetiva_pct),
+        "ano_referencia_irpf": pi.ano_referencia_irpf,
+        "defasagem_meses": pi.defasagem_meses,
+        "acumuladores_pct_gerador": float(pi.acumuladores_pct_gerador),
+    }
+
+
+def _decimals_to_float(d: _FontesPayload) -> dict[str, float]:
+    return {k: float(v) for k, v in d.items()}
