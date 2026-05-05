@@ -224,7 +224,9 @@ def _pack_workspaces(db: Session, tar: tarfile.TarFile, workspace_ids: list[str]
 def _pack_invitations(db: Session, tar: tarfile.TarFile, user: User) -> dict[str, Any]:
     rows = (
         db.execute(
-            select(WorkspaceInvitation).where(
+            select(
+                WorkspaceInvitation
+            ).where(  # tenancy: global — LGPD export abrange todos os workspaces do usuário
                 (WorkspaceInvitation.invited_by == user.id)
                 | (WorkspaceInvitation.email == user.email)
             )
