@@ -14,7 +14,7 @@
  *
  * `/dashboard` agora redireciona 308 para `/plano` (ADR-155, Direção E
  * consolidação). `/acao` permanece como superfície dinâmica de execução
- * (Inbox, Tarefas, Timeline, Notas).
+ * (Inbox, Tarefas, Notas).
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -134,15 +134,25 @@ export default function PlanoPage() {
         alocacaoGoal={overview.goals.alocacaoGoal}
       />
 
-      <SectionDivider label="Plano de Ação" />
+      <details className="group my-8">
+        <summary className="flex cursor-pointer list-none items-center gap-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
+          <ChevronOpenIcon />
+          Plano de Ação
+          <span className="hidden text-[10px] font-normal normal-case tracking-normal opacity-70 sm:inline">
+            (decisões · tarefas — abra para ver)
+          </span>
+          <div className="flex-1 border-t border-border" />
+        </summary>
+        <div className="mt-4">
+          <DecisionsSection workspaceId={workspace.id} />
 
-      <DecisionsSection workspaceId={workspace.id} />
+          <div className="mt-6">
+            <UpcomingTasksWidget />
+          </div>
 
-      <div className="mt-6">
-        <UpcomingTasksWidget />
-      </div>
-
-      {ifGoal && <LinkedTasksSection tasks={overview.linkedTasks} />}
+          {ifGoal && <LinkedTasksSection tasks={overview.linkedTasks} />}
+        </div>
+      </details>
 
       <CurrentMonthDetails
         loading={dashboard.loading}
@@ -150,17 +160,6 @@ export default function PlanoPage() {
         onBarClick={handleBarClick}
         onSliceClick={handleSliceClick}
       />
-    </div>
-  );
-}
-
-function SectionDivider({ label }: { label: string }) {
-  return (
-    <div className="my-8 flex items-center gap-3">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </h2>
-      <div className="flex-1 border-t border-border" />
     </div>
   );
 }

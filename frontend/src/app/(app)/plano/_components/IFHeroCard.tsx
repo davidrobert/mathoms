@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Target } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MonetaryValue } from "@/components/report/MonetaryValue";
@@ -248,25 +249,14 @@ function ChevronIcon() {
 export function IFEmptyHero() {
   return (
     <Card className="mb-6 border-dashed">
-      <CardContent className="py-10">
-        <div className="mx-auto max-w-lg text-center">
-          <Target className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-          <h2 className="font-heading text-lg font-semibold">
-            Configure sua meta de Independência Financeira
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Defina renda passiva-alvo, retorno esperado e horizonte. A partir
-            daí o Mathoms calcula patrimônio-alvo, aporte necessário e
-            acompanha seu progresso a cada relatório.
-          </p>
-          <Button
-            nativeButton={false}
-            render={<Link href="/plano/meta-if/wizard" />}
-            className="mt-6"
-          >
-            Começar <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+      <CardContent className="py-0">
+        <EmptyState
+          icon={Target}
+          title="Configure sua meta de Independência Financeira"
+          description="Defina renda passiva-alvo, retorno esperado e horizonte. A partir daí o Mathoms calcula patrimônio-alvo, aporte necessário e acompanha seu progresso a cada relatório."
+          layout="hero"
+          ctas={[{ label: "Começar", href: "/plano/meta-if/wizard" }]}
+        />
       </CardContent>
     </Card>
   );

@@ -5,6 +5,7 @@ import { Plus, Scale } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { useDecisions } from "@/hooks/useDecisions";
 import { ApiError, type Decision } from "@/lib/api";
 
@@ -41,12 +42,27 @@ export function DecisionsSection({ workspaceId }: DecisionsSectionProps) {
   const handleMarkDecided = async (decisionId: string) =>
     markDecided(decisionId, update);
 
+  const pendingCount = countByStatus(decisions, "Pendente");
+  const pendingBadge =
+    pendingCount > 0 ? (
+      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+        {pendingCount} a decidir
+      </span>
+    ) : undefined;
+
   return (
     <section className="mt-8">
-      <DecisionsHeader
-        total={decisions.length}
-        pending={countByStatus(decisions, "Pendente")}
-        onNew={handleNew}
+      <SectionHeading
+        icon={Scale}
+        label="Decisões de plano"
+        count={decisions.length > 0 ? decisions.length : undefined}
+        badge={pendingBadge}
+        action={
+          <Button size="sm" variant="outline" onClick={handleNew}>
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            Nova decisão
+          </Button>
+        }
       />
       {decisions.length > 0 && (
         <StatusFilters value={filter} onChange={setFilter} />
@@ -166,89 +182,29 @@ function DecisionsBody({
   );
 }
 
-interface DecisionsHeaderProps {
-  total: number;
-  pending: number;
-  onNew: () => void;
-}
 
-function DecisionsHeader({ total, pending, onNew }: DecisionsHeaderProps) {
+
+function StatusFilters({ value, onChange }: { value: DecisionStatusFilter; onChange: (next: DecisionStatusFilter) => void }) {
+  const options = STATUS_FILTER_ORDER.map((o) => ({ value: o, label: decisionStatusFilterLabel(o) }));
   return (
-    <div className="mb-3 flex items-center justify-between">
-      <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        <Scale className="h-3.5 w-3.5" />
-        Decisões de plano
-        {total > 0 && (
-          <span className="ml-1 font-mono text-xs tabular-nums normal-case">
-            ({total})
-          </span>
-        )}
-        {pending > 0 && (
-          <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium normal-case text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
-            {pending} a decidir
-          </span>
-        )}
-      </h2>
-      <Button size="sm" variant="outline" onClick={onNew}>
-        <Plus className="mr-1 h-3.5 w-3.5" />
-        Nova decisão
-      </Button>
-    </div>
-  );
-}
-
-interface StatusFiltersProps {
-  value: DecisionStatusFilter;
-  onChange: (next: DecisionStatusFilter) => void;
-}
-
-function StatusFilters({ value, onChange }: StatusFiltersProps) {
-  return (
-    <div
-      role="tablist"
-      aria-label="Filtrar decisões"
-      className="flex flex-wrap gap-2"
-    >
-      {STATUS_FILTER_ORDER.map((option) => {
-        const active = value === option;
-        return (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={active}
-            key={option}
-            onClick={() => onChange(option)}
-            className={[
-              "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
-              active
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-transparent text-foreground border-border hover:bg-muted",
-            ].join(" ")}
-          >
-            {decisionStatusFilterLabel(option)}
-          </button>
-        );
-      })}
-    </div>
+    <SegmentedTabs
+      value={value}
+      onChange={onChange}
+      options={options}
+      ariaLabel="Filtrar decisões"
+    />
   );
 }
 
 function DecisionsEmptyState({ onNew }: { onNew: () => void }) {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-muted/20 px-4 py-8 text-center">
-      <Scale className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
-      <p className="text-sm font-medium">
-        Nenhuma decisão de plano registrada.
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Quando mudar alocação alvo, aporte mensal ou objetivo de IF, registre
-        aqui — você terá histórico do porquê.
-      </p>
-      <Button size="sm" variant="outline" className="mt-4" onClick={onNew}>
-        <Plus className="mr-1 h-3.5 w-3.5" />
-        Registrar primeira decisão
-      </Button>
-    </div>
+    <EmptyState
+      icon={Scale}
+      title="Nenhuma decisão de plano registrada."
+      description="Quando mudar alocação alvo, aporte mensal ou objetivo de IF, registre aqui — você terá histórico do porquê."
+      layout="inline"
+      ctas={[{ label: "Registrar primeira decisão", onClick: onNew, variant: "secondary" }]}
+    />
   );
 }
 

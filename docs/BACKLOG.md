@@ -31,7 +31,7 @@
 >   real. Prompt: [track_onda_8_methodology_coherence.md](agent_prompts/track_onda_8_methodology_coherence.md).
 >   Branch: `agent/onda-8-methodology-coherence/*`. Depende parcial
 >   de Onda 7 #4.
-> - **Onda 9 Design system polish + mobile** (~3d) — `<SectionHeading/>`
+> - **Onda 9 Design system polish + mobile** ✅ **entregue** (PR #51) — `<SectionHeading/>`
 >   primitivo (4 patterns H2 → 1); `<EmptyState/>` primitivo (5
 >   patterns → 1); `<SegmentedTabs/>` primitivo (3 patterns → 1); dedup
 >   tarefas Upcoming/Linked com filter param em `/acao`; badge

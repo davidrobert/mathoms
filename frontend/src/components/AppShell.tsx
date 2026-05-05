@@ -5,6 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { getMe, clearToken, type UserResponse } from "@/lib/api";
+import { useWorkspace } from "@/lib/WorkspaceProvider";
+import { useSuggestionsCount } from "@/app/(app)/plano/_components/useSuggestionsCount";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -69,6 +71,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { workspace } = useWorkspace();
+  const { count: pendingCount } = useSuggestionsCount(workspace?.id);
 
   useEffect(() => {
     getMe()
@@ -136,6 +140,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")}
                       />
                       {item.label}
+                      {item.href === "/acao" && pendingCount > 0 && (
+                        <span className="ml-auto rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                          {pendingCount > 99 ? "99+" : pendingCount}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}

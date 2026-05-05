@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { Lightbulb, Sparkles } from "lucide-react";
+import { Lightbulb } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useDecisions } from "@/hooks/useDecisions";
 import { useSuggestions } from "@/hooks/useSuggestions";
 import type { Suggestion, SuggestionAggregateStatus } from "@/lib/api";
@@ -64,35 +63,14 @@ export function InboxTab({ workspaceId }: InboxTabProps) {
   );
 }
 
-interface FilterBarProps {
-  value: FilterValue;
-  onChange: (v: FilterValue) => void;
-}
-
-function FilterBar({ value, onChange }: FilterBarProps) {
+function FilterBar({ value, onChange }: { value: FilterValue; onChange: (v: FilterValue) => void }) {
   return (
-    <div
-      role="tablist"
-      aria-label="Filtrar sugestões"
-      className="flex flex-wrap gap-1.5 text-xs"
-    >
-      {FILTER_TABS.map((tab) => (
-        <button
-          key={tab.value}
-          role="tab"
-          aria-selected={value === tab.value}
-          onClick={() => onChange(tab.value)}
-          className={[
-            "rounded-full border px-3 py-1 transition-colors",
-            value === tab.value
-              ? "border-foreground bg-foreground text-background"
-              : "border-border hover:border-muted-foreground/50",
-          ].join(" ")}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
+    <SegmentedTabs
+      value={value}
+      onChange={onChange}
+      options={FILTER_TABS}
+      ariaLabel="Filtrar sugestões"
+    />
   );
 }
 
@@ -162,32 +140,22 @@ function InboxEmpty({ filter }: { filter: FilterValue }) {
   const isPendente = filter === "Pendente";
   return (
     <Card>
-      <CardContent className="py-12">
-        <div className="mx-auto max-w-md text-center">
-          <Lightbulb className="mx-auto mb-4 h-10 w-10 text-muted-foreground/50" />
-          <h2 className="font-heading text-lg font-semibold">
-            {isPendente
-              ? "Sem sugestões pendentes"
-              : "Nenhuma sugestão neste filtro"}
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {isPendente
+      <CardContent className="py-0">
+        <EmptyState
+          icon={Lightbulb}
+          title={isPendente ? "Sem sugestões pendentes" : "Nenhuma sugestão neste filtro"}
+          description={
+            isPendente
               ? "Após cada relatório, sugestões acionáveis aparecerão aqui para você aceitar, modificar ou descartar — viram decisões ligadas à origem no relatório."
-              : "Mude o filtro acima para ver sugestões em outros estados."}
-          </p>
-          {isPendente && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-6"
-              nativeButton={false}
-              render={<Link href="/acao/sugestoes" />}
-            >
-              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-              Ver sugestões de tarefas (LLM)
-            </Button>
-          )}
-        </div>
+              : "Mude o filtro acima para ver sugestões em outros estados."
+          }
+          layout="card"
+          ctas={
+            isPendente
+              ? [{ label: "Ver sugestões de tarefas (LLM)", href: "/acao/sugestoes", variant: "secondary" }]
+              : undefined
+          }
+        />
       </CardContent>
     </Card>
   );
