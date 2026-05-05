@@ -55,7 +55,10 @@ _STAGE_TO_DIR: dict[str, str] = {
     "E2-llm": "E2_extracts",
     "E3": "E3_reconciled",
     "E4": "E4_unified",
+    "categorize_transactions": "E4_unified",  # F9.2 descriptive alias
     "E5": "E5_analysis",
+    "analyze_finances": "E5_analysis",  # F9.2 descriptive alias
+    "generate_narratives": "E5_analysis",  # F9.2 descriptive alias (narrativas ficam junto)
     "E5.N": "E5_analysis",  # narrativas ficam junto da análise
     "E7": "E7_review",  # crossval + review
     "E7-crossval": "E7_review",
@@ -75,7 +78,9 @@ _STAGE_TO_SUFFIX: dict[str, str] = {
     "E2-llm": "-2_extract.json",
     "E3": "-3_reconciled.json",
     "E4": "-4_unified.json",
+    "categorize_transactions": "-4_unified.json",  # F9.2 descriptive alias
     "E5": "-5_analysis.json",
+    "analyze_finances": "-5_analysis.json",  # F9.2 descriptive alias
     "E5.N": "-5n_narrativas.json",
     "E7": "-7_review.json",
     "E7-crossval": "-7_crossval.json",
