@@ -87,6 +87,10 @@ class IRPFAnalyzer:
     def anos_base_disponiveis(self) -> list[int]:
         return sorted({d.contribuinte.ano_base for d in self._decls})
 
+    def declarations_for_year(self, ano: int) -> list[IRPFFullOutput]:
+        """Acesso público às declarações filtradas por ano-base (consumido por outros services)."""
+        return list(self._by_year(ano))
+
     def renda_anual_familiar(self, ano: int) -> Decimal:
         """Soma rendimentos brutos da família (titular + cônjuge) no ano-base."""
         decls = self._by_year(ano)
