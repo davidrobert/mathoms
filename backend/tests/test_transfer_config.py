@@ -103,7 +103,7 @@ def _artifact(workspace_id: str, run_id: str, key: str, content: dict):
     return PipelineArtifact(
         workspace_id=workspace_id,
         pipeline_run_id=run_id,
-        stage="E4",
+        stage="categorize_transactions",
         artifact_key=key,
         content_json=content,
     )

@@ -7,6 +7,7 @@ from typing import Any
 
 from backend.app.schemas.dashboard import DashboardAlert, DashboardChart, DashboardKPI
 from backend.app.services.artifact_reader import read_latest_artifact
+from pipeline.stage_spec import resolve_stage_name
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,10 @@ logger = logging.getLogger(__name__)
 def load_e5_analysis(workspace_id: str, tenant_root: str) -> dict[str, Any] | None:
     """Lê E5 analysis do DB (preferência) com fallback em disco."""
     return read_latest_artifact(
-        workspace_id, stage="E5", key="analise_financeira", tenant_root=tenant_root
+        workspace_id,
+        stage=resolve_stage_name("E5"),
+        key="analise_financeira",
+        tenant_root=tenant_root,
     )
 
 

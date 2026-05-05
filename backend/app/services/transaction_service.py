@@ -9,6 +9,7 @@ from typing import Any, Optional
 
 from backend.app.schemas.transactions import TransactionItem, TransactionSummary
 from backend.app.services.artifact_reader import read_latest_artifact
+from pipeline.stage_spec import resolve_stage_name
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +35,12 @@ def _flatten_e4_payload(data: dict | None, tx_type: str) -> list[dict]:
 
 
 def load_transactions(workspace_id: str, tenant_root: str) -> list[TransactionItem]:
+    _stage = resolve_stage_name("E4")
     receitas_payload = read_latest_artifact(
-        workspace_id, stage="E4", key="receitas", tenant_root=tenant_root
+        workspace_id, stage=_stage, key="receitas", tenant_root=tenant_root
     )
     despesas_payload = read_latest_artifact(
-        workspace_id, stage="E4", key="despesas", tenant_root=tenant_root
+        workspace_id, stage=_stage, key="despesas", tenant_root=tenant_root
     )
 
     raw_receitas = _flatten_e4_payload(receitas_payload, "receita")
