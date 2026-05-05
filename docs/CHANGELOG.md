@@ -6,6 +6,17 @@
 
 ## [Unreleased]
 
+- **feat(ui): Onda 9 — design system polish + mobile (2026-05-05):**
+  Unificação de 3 primitivos de design system + 2 fixes de produto + ergonomia mobile.
+  Entregue em 1 PR (#51):
+  - **SectionHeading:** novo primitivo unificando 4 patterns de H2 em `/plano`
+  - **EmptyState:** novo primitivo com layouts card/inline/hero unificando 5 patterns
+  - **SegmentedTabs:** novo primitivo com variantes pill/segment unificando 3 patterns de filter-tab
+  - **Badge Inbox pending:** AppShell mostra contagem de sugestões pendentes em `/acao`
+  - **Kill Timeline tab:** tab placeholder removida de `/acao`; TimelineTab.tsx deletado
+  - **Mobile collapsibles:** seção 'Plano de Ação' em `/plano` colapsada por default;
+    spec Playwright iPhone 13 (390x844px) valida estado inicial colapsado
+
 - **feat(report): Lane A8.3 — TRS efetiva + carteira de renda em S7 (2026-05-05):**
   Independência Financeira agora confronta **TRS meta** (5%/4% — D15) com
   **TRS efetiva** (yield real do patrimônio investido) — antes só projeção.
