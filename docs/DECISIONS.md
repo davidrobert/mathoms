@@ -2288,8 +2288,12 @@ mantém o sistema consistente, rename antecipado cria estado misto perigoso.
 **F9.2 T1 ✅ (2026-04-25)** — `STAGE_REGISTRY` keys descritivas +
 `resolve_stage_name`/`to_legacy_stage_name` helpers + compat reverso;
 T2-T5 (substituição de strings literais em call-sites) abertas como
-follow-ups incrementais
+follow-ups incrementais · **F9.3 ✅ (2026-05-05)** — migration validada e testada
 **Data:** 2026-04-19 • **Plano:** Fase 9 inteira
+
+> **Nota (2026-05-05):** F9.3 fechada — `q5r6s7t8u9v0` sincronizado com `STAGE_RENAME_MAP`
+> (add E1.6/remove E6/E6-final); pre-check aborta em stage desconhecido; 5 testes em
+> `backend/tests/test_stage_rename_migration.py`; runbook em `docs/runbooks/f9_3_alembic_upgrade.md`.
 
 **Contexto:** Os identificadores legados (`"E0-audit"`, `"E1.5c"`, `"E2-faturas"`,
 `"E5"`, `"E7-apply"`…) são posicionais e opacos sem contexto. Aparecem em

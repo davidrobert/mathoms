@@ -17,6 +17,15 @@
   - **Mobile collapsibles:** seção 'Plano de Ação' em `/plano` colapsada por default;
     spec Playwright iPhone 13 (390x844px) valida estado inicial colapsado
 
+- **feat(db): F9.3 — Alembic stage rename migration validada (ADR-093) (2026-05-05):**
+  `q5r6s7t8u9v0_rename_stage_identifiers.py` sincronizado com `STAGE_RENAME_MAP`:
+  add `"E1.6" → "extract_irpf_full"` (ADR-157); remove `"E6"` e `"E6-final"`
+  (ADR-129 — renderer descontinuado). Pre-check `_check_unknown_stages` aborta
+  com `RuntimeError` se banco tiver stages desconhecidos; skip automático em
+  modo offline (SQL generation). 5 testes em `backend/tests/test_stage_rename_migration.py`
+  exercitam upgrade/downgrade/idempotência via Alembic programático + SQLite.
+  Runbook em `docs/runbooks/f9_3_alembic_upgrade.md`. F9.4 destravada.
+
 - **feat(report): Lane A8.3 — TRS efetiva + carteira de renda em S7 (2026-05-05):**
   Independência Financeira agora confronta **TRS meta** (5%/4% — D15) com
   **TRS efetiva** (yield real do patrimônio investido) — antes só projeção.
