@@ -63,35 +63,14 @@ export function InboxTab({ workspaceId }: InboxTabProps) {
   );
 }
 
-interface FilterBarProps {
-  value: FilterValue;
-  onChange: (v: FilterValue) => void;
-}
-
-function FilterBar({ value, onChange }: FilterBarProps) {
+function FilterBar({ value, onChange }: { value: FilterValue; onChange: (v: FilterValue) => void }) {
   return (
-    <div
-      role="tablist"
-      aria-label="Filtrar sugestões"
-      className="flex flex-wrap gap-1.5 text-xs"
-    >
-      {FILTER_TABS.map((tab) => (
-        <button
-          key={tab.value}
-          role="tab"
-          aria-selected={value === tab.value}
-          onClick={() => onChange(tab.value)}
-          className={[
-            "rounded-full border px-3 py-1 transition-colors",
-            value === tab.value
-              ? "border-foreground bg-foreground text-background"
-              : "border-border hover:border-muted-foreground/50",
-          ].join(" ")}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
+    <SegmentedTabs
+      value={value}
+      onChange={onChange}
+      options={FILTER_TABS}
+      ariaLabel="Filtrar sugestões"
+    />
   );
 }
 

@@ -182,39 +182,17 @@ function DecisionsBody({
   );
 }
 
-interface StatusFiltersProps {
-  value: DecisionStatusFilter;
-  onChange: (next: DecisionStatusFilter) => void;
-}
 
-function StatusFilters({ value, onChange }: StatusFiltersProps) {
+
+function StatusFilters({ value, onChange }: { value: DecisionStatusFilter; onChange: (next: DecisionStatusFilter) => void }) {
+  const options = STATUS_FILTER_ORDER.map((o) => ({ value: o, label: decisionStatusFilterLabel(o) }));
   return (
-    <div
-      role="tablist"
-      aria-label="Filtrar decisões"
-      className="flex flex-wrap gap-2"
-    >
-      {STATUS_FILTER_ORDER.map((option) => {
-        const active = value === option;
-        return (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={active}
-            key={option}
-            onClick={() => onChange(option)}
-            className={[
-              "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
-              active
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-transparent text-foreground border-border hover:bg-muted",
-            ].join(" ")}
-          >
-            {decisionStatusFilterLabel(option)}
-          </button>
-        );
-      })}
-    </div>
+    <SegmentedTabs
+      value={value}
+      onChange={onChange}
+      options={options}
+      ariaLabel="Filtrar decisões"
+    />
   );
 }
 
