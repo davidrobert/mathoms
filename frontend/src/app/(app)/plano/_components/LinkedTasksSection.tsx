@@ -5,6 +5,7 @@ import { ArrowRight, ListTodo, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TaskDeadlineBadge } from "@/components/tasks/TaskDeadlineBadge";
 import { TaskPriorityChip } from "@/components/tasks/TaskPriorityChip";
 import { TaskStatusPill } from "@/components/tasks/TaskStatusPill";
@@ -17,7 +18,21 @@ interface LinkedTasksSectionProps {
 export function LinkedTasksSection({ tasks }: LinkedTasksSectionProps) {
   return (
     <section className="mt-8">
-      <LinkedTasksHeader count={tasks.length} />
+      <SectionHeading
+        icon={ListTodo}
+        label="Tarefas que destravam esta meta"
+        count={tasks.length > 0 ? tasks.length : undefined}
+        action={
+          <Button
+            variant="ghost"
+            size="xs"
+            nativeButton={false}
+            render={<Link href="/acao" />}
+          >
+            Ver todas <ArrowRight className="ml-1 h-3 w-3" />
+          </Button>
+        }
+      />
       {tasks.length === 0 ? (
         <EmptyLinkedTasks />
       ) : (
@@ -28,30 +43,6 @@ export function LinkedTasksSection({ tasks }: LinkedTasksSectionProps) {
         </ul>
       )}
     </section>
-  );
-}
-
-function LinkedTasksHeader({ count }: { count: number }) {
-  return (
-    <div className="mb-3 flex items-center justify-between">
-      <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        <ListTodo className="h-3.5 w-3.5" />
-        Tarefas que destravam esta meta
-        {count > 0 && (
-          <span className="ml-1 font-mono text-xs tabular-nums normal-case">
-            ({count})
-          </span>
-        )}
-      </h2>
-      <Button
-        variant="ghost"
-        size="xs"
-        nativeButton={false}
-        render={<Link href="/acao" />}
-      >
-        Ver todas <ArrowRight className="ml-1 h-3 w-3" />
-      </Button>
-    </div>
   );
 }
 

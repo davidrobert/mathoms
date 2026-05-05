@@ -14,7 +14,7 @@
  *
  * `/dashboard` agora redireciona 308 para `/plano` (ADR-155, Direção E
  * consolidação). `/acao` permanece como superfície dinâmica de execução
- * (Inbox, Tarefas, Timeline, Notas).
+ * (Inbox, Tarefas, Notas).
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -25,6 +25,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { UpcomingTasksWidget } from "@/components/tasks/UpcomingTasksWidget";
 import { getDashboard, type DashboardResponse } from "@/lib/api";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
@@ -134,7 +135,10 @@ export default function PlanoPage() {
         alocacaoGoal={overview.goals.alocacaoGoal}
       />
 
-      <SectionDivider label="Plano de Ação" />
+      <div className="my-8 flex items-center gap-3">
+        <SectionHeading label="Plano de Ação" className="mb-0 flex-none" />
+        <div className="flex-1 border-t border-border" />
+      </div>
 
       <DecisionsSection workspaceId={workspace.id} />
 
@@ -150,17 +154,6 @@ export default function PlanoPage() {
         onBarClick={handleBarClick}
         onSliceClick={handleSliceClick}
       />
-    </div>
-  );
-}
-
-function SectionDivider({ label }: { label: string }) {
-  return (
-    <div className="my-8 flex items-center gap-3">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </h2>
-      <div className="flex-1 border-t border-border" />
     </div>
   );
 }
