@@ -667,3 +667,133 @@ class TestA75TypedCambio:
         )
         total, _ = adapter._load_caixa_from_e3(store)
         assert total == 6500.0
+
+
+# ─────────────────────────────────────────────────────────────────────
+# A8.3 PR-C — IRPF + PassiveIncomeCalculator wire
+# ─────────────────────────────────────────────────────────────────────
+
+
+_IRPF_CONTRIB = {
+    "cpf_masked": "***.***.***-99",
+    "nome": "David",
+    "modelo": "completo",
+    "natureza": "titular",
+}
+_IRPF_IMPOSTO = {
+    "base_calculo_brl": "0",
+    "ir_devido_brl": "0",
+    "deducoes_totais_brl": "0",
+    "ir_pago_brl": "0",
+}
+_IRPF_ISENTO_DIV_12K = {
+    "codigo_rfb": "09",
+    "descricao": "Lucros e dividendos",
+    "valor_brl": "12000.00",
+}
+
+
+def _irpf_payload(ano_base: int) -> dict:
+    return {
+        "contribuinte": {**_IRPF_CONTRIB, "ano_base": ano_base, "exercicio": ano_base + 1},
+        "rendimentos_pj": [],
+        "rendimentos_pf": [],
+        "rendimentos_exterior": [],
+        "rendimentos_isentos": [_IRPF_ISENTO_DIV_12K],
+        "rendimentos_tributacao_exclusiva": [],
+        "pagamentos_efetuados": [],
+        "bens_e_direitos": [],
+        "dividas_e_onus": [],
+        "doacoes_efetuadas": [],
+        "espolio": [],
+        "dependentes": [],
+        "imposto_apurado": _IRPF_IMPOSTO,
+        "confidence": 0.95,
+    }
+
+
+def _seed_irpf_full(store: InMemoryArtifactStore, *, ano_base: int = 2024) -> None:
+    """Seed payload mínimo de extract_irpf_full com cod 09 (dividendos R$ 12k)."""
+    store.seed("extract_irpf_full", f"david_{ano_base}-1.6_irpf_full", _irpf_payload(ano_base))
+
+
+_GOALS_TRS_5 = {"independencia_financeira": {"if_meta": 5_000_000, "trs_pct": 5.0}}
+
+
+def _adapter_a83(reference_date: date | None = None) -> E5AnalyzerAdapter:
+    """Adapter padrão para os testes A8.3 (David titular, TRS 5%)."""
+    return E5AnalyzerAdapter.from_configs(
+        goals=_GOALS_TRS_5,
+        titular_dob=_DAVID_DOB,
+        reference_date=reference_date,
+    )
+
+
+class TestPassiveIncomeWiring:
+    """Item 3 da Lane A8.3 PR-C — adapter integra IRPF + PassiveIncomeCalculator."""
+
+    def test_passive_income_status_ok_when_irpf_present(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        _seed_irpf_full(store, ano_base=2024)
+
+        result = _adapter_a83(date(2025, 6, 1)).analyze_via_store(store)
+
+        assert result.passive_income is not None
+        assert result.passive_income.status == "ok"
+        assert result.passive_income.ano_referencia_irpf == 2024
+        assert result.passive_income.renda_passiva_anual_brl == Decimal("12000.00")
+        assert result.passive_income.trs_efetiva_pct > Decimal("0")
+
+    def test_passive_income_status_sem_irpf_when_no_artifact(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+
+        result = _adapter_a83().analyze_via_store(store)
+
+        assert result.passive_income is not None
+        assert result.passive_income.status == "sem_irpf"
+        assert result.passive_income.renda_passiva_anual_brl == Decimal("0")
+        assert result.passive_income.trs_efetiva_pct == Decimal("0")
+
+    def test_acumuladores_pct_high_when_holdings_match(self):
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        _seed_irpf_full(store, ano_base=2024)
+        store.seed("E4", "investimentos", _ivvb11_holdings_300k())
+
+        result = _adapter_a83(date(2025, 6, 1)).analyze_via_store(store)
+
+        assert result.passive_income is not None
+        assert result.passive_income.status == "ok"
+        # IVVB11 é detectado como acumulador — pct > 0 mostra heurística viva.
+        assert result.passive_income.acumuladores_pct_gerador > Decimal("0")
+
+    def test_ratios_rentabilidade_populated_when_passive_income_ok(self):
+        """Item 4 sanity: ratios.rentabilidade_pct sai do placeholder 'N/D'."""
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+        _seed_irpf_full(store, ano_base=2024)
+
+        result = _adapter_a83(date(2025, 6, 1)).analyze_via_store(store)
+
+        assert result.ratios.rentabilidade_pct is not None
+        assert result.ratios.to_legacy_dict()["rentabilidade_pct"] != "N/D"
+
+    def test_ratios_rentabilidade_nd_when_no_irpf(self):
+        """Sem IRPF → rentabilidade volta a 'N/D' no legacy dict (back-compat)."""
+        store = InMemoryArtifactStore()
+        _seed_minimal(store)
+
+        result = _adapter_a83().analyze_via_store(store)
+
+        assert result.ratios.to_legacy_dict()["rentabilidade_pct"] == "N/D"
+
+
+def _ivvb11_holdings_300k() -> dict:
+    return {
+        "total_geral": 500_000,
+        "n_posicoes": 1,
+        "total_por_membro": {"david": 500_000, "mariana": 0},
+        "dados": [{"nome": "IVVB11", "tipo": "etf", "valor_atual": 300_000.0}],
+    }

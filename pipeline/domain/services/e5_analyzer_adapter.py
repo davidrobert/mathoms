@@ -89,9 +89,15 @@ from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesAnalyzer,
     InvestimentosClassesConfig,
 )
+from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
 from pipeline.domain.services.orcamento_calculator import (
     OrcamentoProspectivo,
     OrcamentoProspectivoCalculator,
+)
+from pipeline.domain.services.passive_income_calculator import (
+    PassiveIncomeCalculator,
+    PassiveIncomeConfig,
+    PassiveIncomeResult,
 )
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
 from pipeline.domain.services.patrimonio_types import (
@@ -136,6 +142,7 @@ _E4_DESPESAS_KEY = "despesas"
 _E4_FLUXO_KEY = "fluxo_mensal_detalhado"
 _E4_PATRIMONIO_KEY = "patrimonio"
 _E4_INVESTIMENTOS_KEY = "investimentos"
+_IRPF_FULL_STAGE = "extract_irpf_full"
 
 
 # =============================================================================
@@ -182,6 +189,11 @@ class E5AnalysisResult:
     diagnosticos: tuple[DiagnosticoItem, ...]
     pontos_fortes: tuple[PontoForteItem, ...]
     pontos_urgentes: tuple[PontoUrgenteItem, ...]
+    # A8.3 — TRS efetiva + carteira de renda (None quando workspace sem IRPF
+    # extract_irpf_full artifact; status `"sem_irpf"` ou `"gerador_zero"`
+    # quando IRPF presente mas inputs insuficientes — UI do S7 trata cada
+    # caso com empty state específico).
+    passive_income: PassiveIncomeResult | None = None
 
 
 # =============================================================================
@@ -227,6 +239,8 @@ class E5AnalyzerAdapter:
         diagnostico_analyzer: DiagnosticoComportamentalAnalyzer | None = None,
         pontos_fortes_analyzer: PontosFortesAnalyzer | None = None,
         pontos_urgentes_analyzer: PontosUrgentesAnalyzer | None = None,
+        passive_income_calculator: PassiveIncomeCalculator | None = None,
+        reference_date: date | None = None,
     ) -> None:
         self._identity = member_identity or MemberIdentity(
             titular_key="david",
@@ -267,6 +281,10 @@ class E5AnalyzerAdapter:
         self._diagnostico = diagnostico_analyzer or DiagnosticoComportamentalAnalyzer()
         self._pontos_fortes = pontos_fortes_analyzer or PontosFortesAnalyzer()
         self._pontos_urgentes = pontos_urgentes_analyzer or PontosUrgentesAnalyzer()
+        self._passive_income = passive_income_calculator or PassiveIncomeCalculator(
+            PassiveIncomeConfig()
+        )
+        self._reference_date = reference_date or date.today()
 
     # -- Factory --
 
@@ -384,6 +402,10 @@ class E5AnalyzerAdapter:
             pontos_urgentes_analyzer=PontosUrgentesAnalyzer(
                 PontosUrgentesConfig.from_scoring(scoring)
             ),
+            passive_income_calculator=PassiveIncomeCalculator(
+                _passive_income_config_from_goals(goals)
+            ),
+            reference_date=reference_date,
         )
 
     # -- API --
@@ -426,8 +448,19 @@ class E5AnalyzerAdapter:
             )
         )
 
-        # 6. Ratios (consome ``bruto``/``dividas``/``investivel`` do dict full).
-        ratios_result = self._ratios.calculate(fluxo_legacy, patrimonio_full)
+        # 6a. IRPF + passive income (carteira de renda + TRS efetiva · A8.3).
+        irpf_analyzer = _try_load_irpf_analyzer(store)
+        passive_income = self._compute_passive_income(
+            irpf_analyzer, patrimonio_full, investimentos_raw, fluxo_legacy
+        )
+
+        # 6b. Ratios (consome ``bruto``/``dividas``/``investivel`` do dict full).
+        ratios_result = self._ratios.calculate(
+            fluxo_legacy,
+            patrimonio_full,
+            passive_income=passive_income,
+            irpf=irpf_analyzer,
+        )
         ratios_dict = ratios_result.to_legacy_dict()
 
         # 7. IF projection (se config disponível).
@@ -532,6 +565,28 @@ class E5AnalyzerAdapter:
             diagnosticos=tuple(diagnosticos),
             pontos_fortes=tuple(pontos_fortes),
             pontos_urgentes=tuple(pontos_urgentes),
+            passive_income=passive_income,
+        )
+
+    # -- Helpers de wiring --
+
+    def _compute_passive_income(
+        self,
+        irpf_analyzer: IRPFAnalyzer | None,
+        patrimonio_full: dict,
+        investimentos_raw: dict,
+        fluxo_legacy: dict,
+    ) -> PassiveIncomeResult:
+        """Wraps ``PassiveIncomeCalculator.calculate`` extraindo despesa do fluxo."""
+        despesa_mensal_media = Decimal(
+            str(fluxo_legacy.get("janela_12m", {}).get("despesa_mensal_media") or 0)
+        )
+        return self._passive_income.calculate(
+            irpf=irpf_analyzer,
+            patrimonio=patrimonio_full,
+            investimentos_atuais=investimentos_raw,
+            reference_date=self._reference_date,
+            despesa_mensal_media_brl=despesa_mensal_media,
         )
 
     # -- Helpers de config --
@@ -664,3 +719,41 @@ class E5AnalyzerAdapter:
             )
 
         return round(total_brl, 2), detalhes
+
+
+# =============================================================================
+# Helpers de wiring A8.3 (IRPF + PassiveIncomeCalculator)
+# =============================================================================
+
+
+def _read_irpf_payloads(store: ArtifactStore) -> list[dict]:
+    """Try-read de ``extract_irpf_full`` artifacts — lista vazia se ausente."""
+    try:
+        keys = list(store.list_keys(_IRPF_FULL_STAGE))
+    except Exception:
+        return []
+    return [p for p in (store.read(_IRPF_FULL_STAGE, k) for k in keys) if p]
+
+
+def _try_load_irpf_analyzer(store: ArtifactStore) -> IRPFAnalyzer | None:
+    """Lê ``extract_irpf_full`` opcionalmente — paridade com ``_e5_load_irpf_kpis``."""
+    payloads = _read_irpf_payloads(store)
+    if not payloads:
+        return None
+    try:
+        analyzer = IRPFAnalyzer.from_payloads(payloads)
+    except Exception:
+        return None
+    return analyzer if analyzer.anos_base_disponiveis() else None
+
+
+def _passive_income_config_from_goals(goals: dict | None) -> PassiveIncomeConfig:
+    """Constrói ``PassiveIncomeConfig`` lendo ``trs_pct`` de ``independencia_financeira``."""
+    if_block = (goals or {}).get("independencia_financeira") or {}
+    trs_pct_raw = if_block.get("trs_pct")
+    if trs_pct_raw is None:
+        return PassiveIncomeConfig()
+    try:
+        return PassiveIncomeConfig(trs_meta_pct=Decimal(str(trs_pct_raw)))
+    except Exception:
+        return PassiveIncomeConfig()
