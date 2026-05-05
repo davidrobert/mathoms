@@ -80,9 +80,12 @@ from pipeline.domain.services.fluxo_caixa_enricher import (
     FluxoEnricherConfig,
 )
 from pipeline.domain.services.if_projector import (
+    IFMonteCarloConfig,
     IFProjection,
     IFProjector,
     IFProjectorConfig,
+    MonteCarloIFResult,
+    run_monte_carlo_if,
 )
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesAnalysis,
@@ -194,6 +197,8 @@ class E5AnalysisResult:
     # quando IRPF presente mas inputs insuficientes — UI do S7 trata cada
     # caso com empty state específico).
     passive_income: PassiveIncomeResult | None = None
+    # N3 — Monte Carlo IF com cone P10/P50/P90 (None quando if_projection é None).
+    monte_carlo_if: MonteCarloIFResult | None = None
 
 
 # =============================================================================
@@ -228,6 +233,7 @@ class E5AnalyzerAdapter:
         member_resolver: E5MemberResolver | None = None,
         fluxo_enricher: FluxoCaixaEnricher | None = None,
         if_projector: IFProjector | None = None,
+        if_projector_config: IFProjectorConfig | None = None,
         ratios_calculator: RatiosCalculator | None = None,
         orcamento_calculator: OrcamentoProspectivoCalculator | None = None,
         endividamento_analyzer: EndividamentoAnalyzer | None = None,
@@ -270,6 +276,7 @@ class E5AnalyzerAdapter:
         self._member_resolver = member_resolver or E5MemberResolver()
         self._fluxo_enricher = fluxo_enricher or FluxoCaixaEnricher()
         self._if_projector = if_projector
+        self._if_projector_config = if_projector_config
         self._ratios = ratios_calculator or RatiosCalculator()
         self._orcamento = orcamento_calculator or OrcamentoProspectivoCalculator()
         self._endividamento = endividamento_analyzer or EndividamentoAnalyzer()
@@ -333,6 +340,7 @@ class E5AnalyzerAdapter:
         investment_banks = cls._load_investment_banks(institutions)
 
         if_projector: IFProjector | None = None
+        if_projector_config_built: IFProjectorConfig | None = None
         if titular_dob is not None and goals:
             try:
                 if_cfg = IFProjectorConfig.from_configs(
@@ -344,6 +352,7 @@ class E5AnalyzerAdapter:
                     conjuge_key=member_cfg.conjuge_key,
                 )
                 if_projector = IFProjector(if_cfg)
+                if_projector_config_built = if_cfg
             except ValueError:
                 if_projector = None
 
@@ -379,6 +388,7 @@ class E5AnalyzerAdapter:
                 FluxoEnricherConfig.from_categorization(categorization)
             ),
             if_projector=if_projector,
+            if_projector_config=if_projector_config_built,
             endividamento_analyzer=EndividamentoAnalyzer(),
             previdencia_analyzer=PrevidenciaAnalyzer(
                 PrevidenciaConfig.from_fiscal_parameters(fiscal_parameters)
@@ -468,6 +478,29 @@ class E5AnalyzerAdapter:
         if self._if_projector is not None:
             if_projection = self._if_projector.project(
                 investivel=float(patrimonio_full.get("investivel", 0))
+            )
+
+        # 7b. Monte Carlo IF — cone P10/P50/P90 (N3).
+        monte_carlo_if: MonteCarloIFResult | None = None
+        if if_projection is not None and self._if_projector_config is not None:
+            _cfg = self._if_projector_config
+            _investivel = float(patrimonio_full.get("investivel", 0))
+            _mc_cfg = IFMonteCarloConfig(
+                patrimonio_investivel=Decimal(str(max(0.0, _investivel))),
+                meta_if=Decimal(str(max(0.0, _cfg.if_meta))),
+                retorno_real_esperado=_cfg.retorno_real_anual_pct / 100.0,
+            )
+            _idade_atual = (self._reference_date.year - _cfg.titular_dob.year) - (
+                1
+                if (self._reference_date.month, self._reference_date.day)
+                < (_cfg.titular_dob.month, _cfg.titular_dob.day)
+                else 0
+            )
+            monte_carlo_if = run_monte_carlo_if(
+                _mc_cfg,
+                ano_base=self._reference_date.year,
+                idade_titular_atual=_idade_atual,
+                idade_meta_if=if_projection.idade_titular_if,
             )
 
         # 8. Reserva emergência (paridade com ``analyze_reserva_emergencia``).
@@ -566,6 +599,7 @@ class E5AnalyzerAdapter:
             pontos_fortes=tuple(pontos_fortes),
             pontos_urgentes=tuple(pontos_urgentes),
             passive_income=passive_income,
+            monte_carlo_if=monte_carlo_if,
         )
 
     # -- Helpers de wiring --

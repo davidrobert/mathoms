@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
 
@@ -319,6 +319,7 @@ class IFMonteCarloConfig:
     n_simulacoes: int = 10_000
     horizonte_anos: int = 40
     seed: int | None = None
+    ano_base: int = 2026
 
 
 @dataclass(frozen=True)
@@ -333,6 +334,10 @@ class MonteCarloIFResult:
     sigma_usado: float
     exibir_cone: bool
     motivo_sem_cone: str | None = None
+    # Cone paths — list of (year, brl_value) sorted by year; empty when exibir_cone=False.
+    caminho_p10: tuple[tuple[int, float], ...] = field(default_factory=tuple)
+    caminho_p50: tuple[tuple[int, float], ...] = field(default_factory=tuple)
+    caminho_p90: tuple[tuple[int, float], ...] = field(default_factory=tuple)
 
 
 def _lognormal_params(r: float, sigma: float) -> tuple[float, float]:
@@ -348,8 +353,8 @@ def _simular_caminhos(
     config: IFMonteCarloConfig,
     mu_log: float,
     sigma_log: float,
-) -> tuple[list[int], int, np.ndarray, np.ndarray]:
-    """Roda simulações vetorizadas; retorna (anos_atingiu, n_total, argmax, mask)."""
+) -> tuple[list[int], int, np.ndarray, np.ndarray, np.ndarray]:
+    """Roda simulações vetorizadas; retorna (anos_atingiu, n_total, argmax, mask, patrimonios)."""
     rng = np.random.default_rng(config.seed)
     n, h = config.n_simulacoes, config.horizonte_anos
     log_retornos = rng.normal(mu_log, sigma_log, (n, h))
@@ -358,7 +363,7 @@ def _simular_caminhos(
     primeiro_true = np.argmax(atingiu, axis=1)
     alguma_vez = atingiu.any(axis=1)
     anos = (primeiro_true[alguma_vez] + 1).tolist()
-    return anos, n, primeiro_true, alguma_vez
+    return anos, n, primeiro_true, alguma_vez, patrimonios
 
 
 def _gate_exibicao(if_pct: float, p50_anos: int) -> tuple[bool, str | None]:
@@ -374,6 +379,23 @@ def _calcular_percentis(anos: list[int]) -> tuple[int, int, int]:
     """Retorna (P10, P50, P90) em anos."""
     arr = np.array(anos)
     return int(np.percentile(arr, 10)), int(np.percentile(arr, 50)), int(np.percentile(arr, 90))
+
+
+def _calcular_caminhos_percentis(
+    patrimonios: np.ndarray, ano_base: int
+) -> tuple[
+    tuple[tuple[int, float], ...], tuple[tuple[int, float], ...], tuple[tuple[int, float], ...]
+]:
+    """Séries P10/P50/P90 de patrimônio por ano; patrimonios shape (n, horizonte)."""
+    horizonte = patrimonios.shape[1]
+    p10_vals = np.percentile(patrimonios, 10, axis=0)
+    p50_vals = np.percentile(patrimonios, 50, axis=0)
+    p90_vals = np.percentile(patrimonios, 90, axis=0)
+    anos_abs = [ano_base + t + 1 for t in range(horizonte)]
+    caminho_p10 = tuple((ano, float(v)) for ano, v in zip(anos_abs, p10_vals))
+    caminho_p50 = tuple((ano, float(v)) for ano, v in zip(anos_abs, p50_vals))
+    caminho_p90 = tuple((ano, float(v)) for ano, v in zip(anos_abs, p90_vals))
+    return caminho_p10, caminho_p50, caminho_p90
 
 
 def _prob_ate_meta(
@@ -416,23 +438,24 @@ def _mc_core(
     fv: float,
     config: IFMonteCarloConfig,
     horizonte_meta: int,
-) -> tuple[tuple[int, int, int], bool, str | None, float] | None:
-    """Roda simulações e retorna (percentis, exibir, motivo, prob) ou None."""
+) -> tuple[tuple[int, int, int], bool, str | None, float, np.ndarray] | None:
+    """Roda simulações e retorna (percentis, exibir, motivo, prob, patrimonios) ou None."""
     mu_log, sigma_log = _lognormal_params(config.retorno_real_esperado, config.sigma_anual)
-    anos, n, p_true, alguma_vez = _simular_caminhos(pv, fv, config, mu_log, sigma_log)
+    anos, n, p_true, alguma_vez, patrimonios = _simular_caminhos(pv, fv, config, mu_log, sigma_log)
     if not anos:
         return None
     percentis = _calcular_percentis(anos)
     exibir, motivo = _gate_exibicao(pv / fv, percentis[1])
     prob = _prob_ate_meta(alguma_vez, p_true, max(0, horizonte_meta), n)
-    return percentis, exibir, motivo, prob
+    return percentis, exibir, motivo, prob, patrimonios
 
 
 def _build_mc_result(
     core: tuple, config: IFMonteCarloConfig, ano_base: int, idade_meta_if: int
 ) -> MonteCarloIFResult:
-    percentis, exibir, motivo, prob = core
+    percentis, exibir, motivo, prob, patrimonios = core
     p10, p50, p90 = _anos_if(percentis, ano_base, exibir)
+    cp = _calcular_caminhos_percentis(patrimonios, ano_base) if exibir else ((), (), ())
     return MonteCarloIFResult(
         p10_ano_if=p10,
         p50_ano_if=p50,
@@ -442,6 +465,9 @@ def _build_mc_result(
         sigma_usado=config.sigma_anual,
         exibir_cone=exibir,
         motivo_sem_cone=motivo,
+        caminho_p10=cp[0],
+        caminho_p50=cp[1],
+        caminho_p90=cp[2],
     )
 
 

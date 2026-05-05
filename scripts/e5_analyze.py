@@ -3079,6 +3079,7 @@ def _e5_compose_output(
     existing_narrativas,
     irpf_kpis: Dict[str, Any] | None = None,
     passive_income=None,
+    monte_carlo_if=None,
 ) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
 
@@ -3108,6 +3109,7 @@ def _e5_compose_output(
         existing_narrativas=existing_narrativas,
         irpf_kpis=irpf_kpis,
         passive_income=passive_income,
+        monte_carlo_if=monte_carlo_if,
     )
     return build_e5_output(output_inputs)
 
@@ -3199,6 +3201,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         existing_narrativas=existing_narrativas,
         irpf_kpis=irpf_kpis,
         passive_income=result.passive_income,
+        monte_carlo_if=result.monte_carlo_if,
     )
     _e5_persist(store, ctx, output)
     _e5_print_summary(legacy)
