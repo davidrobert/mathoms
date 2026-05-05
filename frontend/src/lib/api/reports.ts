@@ -103,8 +103,29 @@ export interface ReportAnalysisData {
   /** A8.3 — TRS efetiva e carteira de renda. Sempre presente; ``status``
    * controla render (ok = KPIs · sem_irpf | gerador_zero = empty state). */
   passive_income?: PassiveIncomeData;
+  /** N3 — Monte Carlo IF com cone P10/P50/P90. Presente quando workspace
+   * tem meta IF configurada. ``exibir_cone`` controla se o chart aparece. */
+  if_monte_carlo?: IFMonteCarloData;
   // Extensibilidade para chaves ainda não tipadas
   [key: string]: unknown;
+}
+
+/** N3 — Monte Carlo IF: cone de probabilidade P10/P50/P90.
+ *
+ * ``exibir_cone`` false → mostrar apenas ``motivo_sem_cone`` (se presente).
+ * ``caminho_p*`` são séries [ano_absoluto, valor_brl] para o Chart.js. */
+export interface IFMonteCarloData {
+  p10_ano_if: number | null;
+  p50_ano_if: number | null;
+  p90_ano_if: number | null;
+  prob_if_ate_idade_meta: number;
+  idade_meta_usada: number;
+  sigma_usado: number;
+  exibir_cone: boolean;
+  motivo_sem_cone: string | null;
+  caminho_p10: [number, number][];
+  caminho_p50: [number, number][];
+  caminho_p90: [number, number][];
 }
 
 /** A8.3 — TRS efetiva, renda passiva observada e carteira de renda.
