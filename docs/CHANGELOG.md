@@ -6,6 +6,20 @@
 
 ## [Unreleased]
 
+- **fix(pipeline): modo incremental respeitado por stages globais E1 (ADR-169 · 2026-05-06):**
+  Antes: clicar "Processar somente novos" reprocessava todas as declarações
+  IRPF do workspace via LLM em `extract_irpf_full` (~7m + ~$0,70 cada — ADR-157),
+  além de re-rodar `extract_members` e `extract_baseline` sobre todos os docs.
+  Causa: ADR-080 limitou incremental a E0→E2; globals adicionados depois
+  (ADR-105/127/157) ignoravam a flag.
+  Fix: helper `pipeline/incremental.py` propaga `ctx.incremental_doc_paths`
+  per-stage com semântica adaptada — `extract_irpf_full` filtra per-doc,
+  `extract_baseline` filtra per-doc + agrega `E1.5a` do store
+  (preservando paridade do consolidado), `extract_members` skipa quando
+  zero overlap. Caso real do screenshot (5 IRPFs, 0 novos): de ~$3,50 +
+  40min para `{"skipped": true}`. Cobertura de regressão em
+  `tests/pipeline/test_incremental_globals.py` (20 testes).
+
 - **refactor(report): _extract_top_institutions usa fonte canônica + schema E5 ganha instituicoes_por_membro/n_imoveis_total (2026-05-06):**
   Cleanup pós-PR #87. `scripts/e5n_narrativas.py::_extract_top_institutions`
   deixou de ler `processed/E4_unified/investimentos-4_unified.json` **e**
@@ -49,6 +63,11 @@
   Tests: `frontend/tests/components/report/usaSections.test.tsx` **deletado**; `dataAdapters.test.ts::U2 Green Card` substituído por `APP_C estresse`; `sections.snapshots.visual.spec.ts` perde describe USA + USA_SECTIONS + 8 baselines; `a11y.@critical.spec.ts` perde describe USA + USA_SECTIONS.
   Prompts: `config/prompts/section_summaries.yaml::U1`/`U2` removidos; `chart_conclusions.yaml::mariana_cenarios`/`mariana_cenarios_usa` substituídos por `cenarios_conjuge`.
   ADR-168 (Decidido) registrada em `docs/DECISIONS.md` — supersede parcial ADR-117/123, conclui agenda ADR-151.
+
+- **chore(docs,config): A8.4 PR5 — limpeza editorial final de copy USA-related (2026-05-06):**
+  Limpeza editorial de strings família-específicas em docs de spec/methodology que sobreviveram à remoção do Modo USA (PR4): `config/methodology.md` §E5.6 reescrito de "Plano EUA" para "Imóveis e proteção patrimonial" — refs F1/F2/Green Card/NCLEX removidas, com nota apontando para ADR-168. `config/report_spec.md` (1774 LOC): substituídos exemplos de fixtures "Mariana" → "Cônjuge" via sed; Seções 5 (F1/F2 EUA) e 6 (Green Card) detalhadas (~58 LOC) substituídas por nota concisa; Apêndice E NCLEX Roadmap + Simulação Cônjuge removidos; chart #17 `cenarios_mariana` (canvas `chart-mariana-cenarios`) → `cenarios_conjuge` (canvas `chart-cenarios-conjuge`); tabelas resumo de seções/charts/templates limpas.
+  Critério de aceite global: `grep -ri "Mariana\|NCLEX\|Green Card\|EB2-NIW\|F1/F2"` em `config/`, `pipeline/`, `scripts/`, `backend/`, `frontend/src/`, `docs/` → **0 hits** (excluindo `_archive/`, ADRs históricas com banner de supersedure, e marcadores `<!-- A8.4 PR4 -->` deixados como audit trail).
+  Iniciativa A8.4 (Cenários de Estresse) **encerrada** após 6 PRs sequenciais (#78 docs · #80 rename schema · #81 gate + analyzer · #82 APP_C UX · #83 delete Modo USA · este PR5). 3 ADRs registradas: ADR-166 (schema estável `cenarios_conjuge`), ADR-167 (eligibility gate domain service), ADR-168 (remoção do Modo USA).
 
 - **refactor(pipeline): A8.4 PR2 — eligibility gate + analyzer reduzido a 1 cenário (ADR-167) (2026-05-06):**
   `CenariosConjugeAnalyzer` reduzido de 3 cenários família-específicos ("Sem Trabalhar", "Com NCLEX", "Com NCLEX + Green Card") para **1 cenário universal** "Sem renda do cônjuge". `_LABELS = ("Sem renda do cônjuge",)`. Removidos do `CenariosConjugeConfig`: defaults USD/cambio (`renda_rn_minima_usd`, `renda_rn_maxima_usd`, `cambio_usd_brl`, `surplus_share_pct`, `surplus_cap_pct`); helpers `_resumo_s2`/`_resumo_s3`; premissas `renda_nclex_*`, `renda_gc_*`, `recovery_*_pct`. `from_configs(taxas=..., cambio_usd_brl=...)` simplificado para `from_configs(goals=..., titular_dob=..., ...)` — pipeline interno sem dependência de USD pós PR2.
