@@ -156,6 +156,17 @@ def run(ctx: WorkspaceContext) -> dict:
     if not docs:
         return {"skipped": True, "reason": "No IRPF/patrimony documents found"}
 
+    # ADR-169: em modo incremental, processa apenas docs novos. Cada IRPF
+    # tem seu artefato E1.5a próprio; o agregado E1.5 é recombinado a partir
+    # do store (novos + existentes) abaixo, preservando paridade.
+    if ctx.incremental:
+        from pipeline.incremental import filter_to_incremental
+
+        filtered = filter_to_incremental(ctx, docs)
+        if not filtered:
+            return {"skipped": True, "reason": "incremental: no new IRPF/patrimony documents"}
+        docs = filtered
+
     extractor = DocumentTextExtractor(max_chars=80_000)
     selected = docs[:_MAX_DOCS_PER_RUN]
 
@@ -256,7 +267,17 @@ def run(ctx: WorkspaceContext) -> dict:
         phase="finalizing",
     )
 
-    combined = _aggregate_baselines(per_file_baselines)
+    # ADR-169: em modo incremental, agrega lendo todos E1.5a do store
+    # (existentes não-tocados + novos escritos acima). Em modo full, agrega
+    # apenas os processados na run — preserva paridade com comportamento
+    # legado e evita reincluir E1.5a órfão de doc removido pelo usuário.
+    if ctx.incremental:
+        baselines_for_aggregate = [
+            b for b in (store.read("E1.5a", k) for k in store.list_keys("E1.5a")) if b is not None
+        ]
+    else:
+        baselines_for_aggregate = per_file_baselines
+    combined = _aggregate_baselines(baselines_for_aggregate)
 
     # A6a (ADR-105): escreve via ArtifactStore em vez de disco direto.
     # Stage "E1.5" → E2_extracts/baseline_patrimonial-1.5_baseline.json

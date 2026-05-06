@@ -81,6 +81,19 @@ def run(ctx: WorkspaceContext) -> dict:
     if not docs:
         return {"skipped": True, "reason": "No personal documents found"}
 
+    # ADR-169: em modo incremental, ``extract_members`` produz UM agregado
+    # (members-1b_unified.json) por run. Sem layer per-doc no store, merge
+    # seguro entre run anterior e novos docs exigiria LLM extra de
+    # consolidação — fora de escopo desta lane. Skip total quando nenhum
+    # doc novo é "personal"; preserva o agregado existente. Quando há ao
+    # menos um novo, roda full sobre todos os docs (paridade com modo
+    # full — texto concatenado de até 10 docs).
+    if ctx.incremental:
+        from pipeline.incremental import has_incremental_overlap
+
+        if not has_incremental_overlap(ctx, docs):
+            return {"skipped": True, "reason": "incremental: no new personal documents"}
+
     extractor = DocumentTextExtractor(max_chars=80_000)
     docs_text_parts = []
     for doc in docs[:10]:
