@@ -201,6 +201,42 @@ def test_apply_pipeline_e2_sync_clears_needs_review_for_irpf_e15a(tmp_path: Path
     assert doc.needs_review is False
 
 
+def test_apply_pipeline_e2_sync_investment_report_none_when_no_extract(tmp_path: Path) -> None:
+    """investment_report sem extract → None ("Processado"), não False ("Sem extrato")."""
+    when = datetime(2026, 5, 6, 12, 0, tzinfo=timezone.utc)
+    doc = Document(
+        workspace_id="ws-1",
+        original_name="itau_investimentosposicao_2026-0_original.xls",
+        stored_path="data/financial_statements/itau_investimentosposicao_2026-0_original.xls",
+        status=DocumentStatus.ready,
+        doc_type=DocumentType.investment_report,
+        file_size_bytes=1,
+    )
+    (tmp_path / "processed" / "E2_extracts").mkdir(parents=True)
+    apply_pipeline_e2_sync_to_documents([doc], tmp_path, when)
+    assert doc.pipeline_e2_extract_ok is None
+    assert doc.status == DocumentStatus.processed
+
+
+def test_apply_pipeline_e2_sync_investment_report_true_when_extract_present(tmp_path: Path) -> None:
+    """investment_report com extract artefato → True ("Extraído")."""
+    when = datetime(2026, 5, 6, 12, 0, tzinfo=timezone.utc)
+    doc = Document(
+        workspace_id="ws-1",
+        original_name="itau_investimentosposicao_2026-0_original.xls",
+        stored_path="data/financial_statements/itau_investimentosposicao_2026-0_original.xls",
+        status=DocumentStatus.ready,
+        doc_type=DocumentType.investment_report,
+        file_size_bytes=1,
+    )
+    e2 = tmp_path / "processed" / "E2_extracts"
+    e2.mkdir(parents=True)
+    (e2 / "itau_investimentosposicao_2026-2_extract.json").write_text("{}")
+
+    apply_pipeline_e2_sync_to_documents([doc], tmp_path, when)
+    assert doc.pipeline_e2_extract_ok is True
+
+
 def test_apply_pipeline_e2_sync_skips_needs_password(tmp_path: Path) -> None:
     when = datetime(2026, 4, 17, 12, 0, tzinfo=timezone.utc)
     doc = Document(

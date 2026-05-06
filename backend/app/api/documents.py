@@ -48,6 +48,9 @@ from backend.app.schemas.dto.document import (
     document_to_response,
 )
 from backend.app.services.audit import AuditAction, client_meta
+from backend.app.services.document_canonical_rename import (
+    maybe_rename_after_manual_override,
+)
 from backend.app.services.document_extract_json_service import (
     DocumentExtractError,
     read_document_extract_json,
@@ -237,6 +240,7 @@ async def _apply_classification_update(
 
     _apply_classification_fields(doc, updates, actor_user_id)
     _invalidate_e2_if_needed(doc, updates)
+    await maybe_rename_after_manual_override(doc, updates, workspace_id, _storage)
     return document_to_response(doc)
 
 
