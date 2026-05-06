@@ -190,6 +190,15 @@ class ChartsNarrator:
         M: dict[str, Any],
         ctx: NarrativasContext,
     ) -> dict[str, Any]:
+        _yield_potencial_min = M.get("yield_imoveis_potencial_pct_min") or 0
+        _yield_potencial_max = M.get("yield_imoveis_potencial_pct_max") or 0
+        if _yield_potencial_min or _yield_potencial_max:
+            _yield_potencial_clause = (
+                f" com potencial de {fmt_num(_yield_potencial_min)}-{fmt_num(_yield_potencial_max)}% "
+                "após otimização de contratos"
+            )
+        else:
+            _yield_potencial_clause = ""
         return {
             "projecao_3cenarios": {
                 "context": (
@@ -229,8 +238,7 @@ class ChartsNarrator:
                     "versus aluguel recebido mensalizado."
                 ),
                 "conclusion": (
-                    f"Yield atual de {fmt_num(M['yield_imoveis_pct'])}% com potencial de "
-                    f"{fmt_num(M['yield_imoveis_potencial_pct_min'])}-{fmt_num(M['yield_imoveis_potencial_pct_max'])}% após otimização de contratos. "
+                    f"Yield atual de {fmt_num(M['yield_imoveis_pct'])}%{_yield_potencial_clause}. "
                     "Imóveis funcionam como hedge inflacionário e fonte de renda complementar."
                 ),
             },
