@@ -257,7 +257,7 @@ class ChartsNarrator:
             },
         }
 
-    # ── Cenários cônjuge (chart 15, chave dinâmica ctx.key_cenarios_section) ─
+    # ── Cenário de estresse "Sem renda do cônjuge" (ADR-167) ──────────────
     def _narrate_cenarios_conjuge(
         self,
         M: dict[str, Any],
@@ -267,42 +267,36 @@ class ChartsNarrator:
         _cm_aportes: list,
         _cm_anos: list,
     ) -> dict[str, Any]:
-        # Cenários cônjuge — lambda preserved for paridade com legado.
+        # ADR-167: 1 cenário universal "Sem renda do cônjuge". Sem dependência
+        # de USD/cambio. Quando metrics ainda não populadas (workspace solteiro
+        # ou pré-PR2), retorna texto mínimo.
+        if not _cm_prazos:
+            return {
+                "context": "Cenário de estresse não aplicável a este workspace.",
+                "conclusion": "",
+            }
+        aporte = _cm_aportes[0] if _cm_aportes else 0
+        prazo = _cm_prazos[0]
+        ano_if = _cm_anos[0] if _cm_anos else ""
+        fator = M.get("cm_fator_reduzido", 0)
+        prazo_base = M.get("if_prazo_anos", 0)
+        delta_anos = prazo - prazo_base if prazo_base else 0
         return {
             "context": (
-                f"Três cenários projetam o impacto da carreira de {ctx.conjuge_nome} no prazo para independência financeira. "
-                f"Premissas: meta IF de {fmt_currency(M['if_meta'])}, patrimônio investível de {fmt_currency(M['patrimonio_investivel'])}, "
-                f"retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. e câmbio de R$ {fmt_num(M['cambio_usd_brl'], 2)}/USD. "
-                f"Atualmente {ctx.conjuge_nome} ganha {fmt_currency(M['cm_salario_clt_brl'])}/mês ({_conj.get('regime', 'CLT')} {_conj.get('empregador_curto', '')}); "
-                f"a renda nos EUA como RN ({fmt_usd(M['cm_renda_nclex_usd'])}-{fmt_usd(M['cm_renda_gc_usd'])}/mês = "
-                f"{fmt_currency(M['cm_renda_nclex_brl'])}-{fmt_currency(M['cm_renda_gc_brl'])}/mês) "
-                + (
-                    f"supera a renda CLT atual em {fmt_num(M['cm_renda_nclex_brl'] / M['cm_salario_clt_brl'], 1)}x a {fmt_num(M['cm_renda_gc_brl'] / M['cm_salario_clt_brl'], 1)}x, "
-                    "permitindo aportes acima da meta-base."
-                    if M["cm_salario_clt_brl"] > 0
-                    and M["cm_renda_nclex_brl"] > M["cm_salario_clt_brl"]
-                    else f"repõe {fmt_num(M['cm_recovery_nclex_pct'], 0)}-{fmt_num(M['cm_recovery_gc_pct'], 0)}% da renda CLT atual."
-                )
+                f"Cenário de estresse 'Sem renda do cônjuge'. "
+                f"Premissas: meta IF de {fmt_currency(M['if_meta'])}, "
+                f"patrimônio investível de {fmt_currency(M['patrimonio_investivel'])}, "
+                f"retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a. "
+                f"Atualmente {ctx.conjuge_nome} contribui com {fmt_currency(M['cm_salario_clt_brl'])}/mês."
             ),
             "conclusion": (
-                (
-                    f"<strong>Cenário 1 — Sem Trabalhar:</strong> aporte reduzido para {fmt_currency(_cm_aportes[0])}/mês "
-                    f"({fmt_num(M['cm_fator_reduzido'] * 100, 0)}% do aporte-base). IF em {fmt_num(_cm_prazos[0], 0)} anos ({_cm_anos[0]}). "
-                    f"Cenário mais conservador — custo de oportunidade de +{fmt_num(_cm_prazos[0] - M['if_prazo_anos'], 0)} anos em relação ao cenário-base.<br>"
-                    f"<strong>Cenário 2 — Com NCLEX (RN nos EUA):</strong> renda de {fmt_usd(M['cm_renda_nclex_usd'])}/mês "
-                    f"({fmt_currency(M['cm_renda_nclex_brl'])}/mês), "
-                    f"aporte sobe para {fmt_currency(_cm_aportes[1])}/mês. IF em {fmt_num(_cm_prazos[1], 0)} anos ({_cm_anos[1]}). "
-                    f"A aprovação no NCLEX é o divisor de águas — a renda americana supera o CLT atual e permite aportes acima da meta-base.<br>"
-                    f"<strong>Cenário 3 — NCLEX + Green Card:</strong> potencial pleno de {fmt_usd(M['cm_renda_gc_usd'])}/mês "
-                    f"({fmt_currency(M['cm_renda_gc_brl'])}/mês), "
-                    f"aporte de {fmt_currency(_cm_aportes[2])}/mês. IF em {fmt_num(_cm_prazos[2], 0)} anos ({_cm_anos[2]}). "
-                    f"Acelera a IF em {fmt_num(_cm_prazos[0] - _cm_prazos[2], 0)} anos vs cenário sem trabalhar. "
-                    f"Crescimento salarial de {M['f1f2_crescimento_salarial']}%/ano pode fechar o gap de renda em poucos anos."
-                )
-                if len(_cm_prazos) >= 3
-                else (
-                    f"Cenário EUA com {fmt_usd(M[ctx.key_renda_conjuge_eua_proj])}/mês = {fmt_currency(M['renda_eua_projetada_brl'])}/mês. "
-                    f"Compensado por: integração com patrimônio de {ctx.titular_nome}, renda PJ remota e aluguel em BRL."
+                f"<strong>Sem renda do cônjuge:</strong> aporte cai para "
+                f"{fmt_currency(aporte)}/mês ({fmt_num(fator * 100, 0)}% do aporte-base). "
+                f"IF em {fmt_num(prazo, 0)} anos ({ano_if})"
+                + (
+                    f" — custo de oportunidade de +{fmt_num(delta_anos, 0)} anos em relação ao cenário base."
+                    if delta_anos > 0
+                    else "."
                 )
             ),
         }

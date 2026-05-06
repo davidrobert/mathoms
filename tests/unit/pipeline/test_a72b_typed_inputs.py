@@ -72,36 +72,9 @@ class TestPrevidenciaFromFiscalParameters:
 
 
 # ---------------------------------------------------------------------------
-# CenariosConjugeConfig.from_configs com cambio_usd_brl typed
+# CenariosConjugeConfig — A7.2b typed cambio removido em A8.4 PR2 (ADR-167):
+# analyzer não depende mais de USD/cambio, só de aporte_base/fator_reduzido.
 # ---------------------------------------------------------------------------
-
-
-class TestCenariosConjugeWithTypedCambio:
-    def test_typed_cambio_overrides_dict_fallback(self):
-        cfg = CenariosConjugeConfig.from_configs(
-            taxas={"cambio_usd_brl": 5.50},  # legacy
-            cambio_usd_brl=Decimal("6.00"),  # A7.2b typed
-            titular_dob=_DAVID_DOB,
-        )
-        assert cfg.cambio_usd_brl == 6.0
-
-    def test_dict_fallback_when_no_typed_value(self):
-        cfg = CenariosConjugeConfig.from_configs(
-            taxas={"cambio_usd_brl": 5.50},
-            titular_dob=_DAVID_DOB,
-        )
-        assert cfg.cambio_usd_brl == 5.5
-
-    def test_default_when_neither_provided(self):
-        cfg = CenariosConjugeConfig.from_configs(titular_dob=_DAVID_DOB)
-        assert cfg.cambio_usd_brl == 5.80
-
-    def test_accepts_float_for_cambio(self):
-        cfg = CenariosConjugeConfig.from_configs(
-            cambio_usd_brl=5.75,
-            titular_dob=_DAVID_DOB,
-        )
-        assert cfg.cambio_usd_brl == 5.75
 
 
 # ---------------------------------------------------------------------------

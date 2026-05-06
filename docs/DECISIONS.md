@@ -8210,7 +8210,7 @@ psql -c "SELECT COUNT(*) FROM pipeline_artifacts
 
 ## ADR-167 — Eligibility gate de cenário do cônjuge no domain service
 
-**Status:** Proposto (A8.4 PR2) • **Data:** 2026-05-06 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5).
+**Status:** Decidido (A8.4 PR2) • **Data:** 2026-05-06 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5).
 
 **Contexto:** O analyzer `cenarios_conjuge_analyzer.py` (PR2 reduz a 1 cenário "Sem renda do cônjuge") computa stress test de IF para casais com 2 rendas. Aplicar universalmente — para solteiros, casais com 1 renda, ou famílias onde cônjuge tem renda <15% — gera ruído: tabela com cenário irrelevante, narrativa LLM forçada, APP_C ocupando página em PDF premium sem servir o cliente. financial-planner (consultado em A8.4 / 2026-05-06) é taxativo: cenário é universal **conditionado**, não universal **obrigatório**.
 

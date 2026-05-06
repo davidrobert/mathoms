@@ -1,27 +1,11 @@
-"""CenariosConjugeAnalyzer — 3 cenários de IF para trajetória do cônjuge
-(Sessão A5c · Fase 8).
-
-Extrai ``analyze_cenarios_conjuge`` (e5_analyze.py:2181) em domain service
-puro. Computa aporte mensal e prazo IF em 3 cenários:
-
-1. **Sem Trabalhar** — cônjuge sem renda; aporte reduzido por ``fator_reduzido``.
-2. **Com NCLEX** — cônjuge trabalha como RN com ``renda_rn_minima_usd``.
-3. **Com NCLEX + Green Card** — ``renda_rn_maxima_usd``.
-
-Modelo de aporte: recupera a fração do aporte habilitada pelo cônjuge
-proporcional à renda nova, e adiciona 50% do surplus acima do salário CLT
-(cap em 50% do aporte base).
-
-Função pura; todos os parâmetros via :class:`CenariosConjugeConfig` (R9/ISP).
-"""
+"""CenariosConjugeAnalyzer — cenário de estresse "Sem renda do cônjuge" (ADR-167)."""
 
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal
-from typing import Any
+from typing import Any, Mapping
 
 _TODAY_FALLBACK = date(2026, 4, 19)
 
@@ -51,15 +35,12 @@ def _calculate_age(dob: date, reference_date: date) -> int:
 
 @dataclass(frozen=True)
 class CenariosConjugeConfig:
-    """Todos os parâmetros dos 3 cenários, tipados (R9/ISP).
+    """Parâmetros do cenário de estresse, tipados (R9/ISP).
 
     Sources no legado:
     - ``retorno_real_anual_pct`` ← ``goals.json::independencia_financeira.retorno_real_anual_pct``
     - ``aporte_base`` ← ``goals.json::aportes.meta_aporte_mensal``
     - ``fator_reduzido`` ← ``goals.json::simulacao.aporte_reduzido_fator``
-    - ``cambio_usd_brl`` ← ``taxas.json::cambio_usd_brl``
-    - ``renda_rn_minima_usd`` / ``renda_rn_maxima_usd`` ← ``goals.json::cenarios_conjuge``
-      (fallback: ``mariana_eua`` para compat)
     - ``titular_dob``/``titular_key``/``conjuge_key``/``conjuge_nome`` — family config
     """
 
@@ -67,56 +48,33 @@ class CenariosConjugeConfig:
     retorno_real_anual_pct: float = 6.0
     aporte_base: float = 0.0
     fator_reduzido: float = 0.66
-    cambio_usd_brl: float = 5.80
-    renda_rn_minima_usd: float = 4000.0
-    renda_rn_maxima_usd: float = 7000.0
-    titular_key: str = "david"
-    conjuge_key: str = "mariana"
-    conjuge_nome: str = "Mariana"
+    titular_key: str = "titular"
+    conjuge_key: str = "conjuge"
+    conjuge_nome: str = "Cônjuge"
     reference_date: date = _TODAY_FALLBACK
-    surplus_share_pct: float = 50.0
-    surplus_cap_pct: float = 50.0  # cap em % do aporte_base
 
     @classmethod
     def from_configs(
         cls,
         *,
         goals: dict | None = None,
-        taxas: dict | None = None,
         titular_dob: date,
-        titular_key: str = "david",
-        conjuge_key: str = "mariana",
-        conjuge_nome: str = "Mariana",
+        titular_key: str = "titular",
+        conjuge_key: str = "conjuge",
+        conjuge_nome: str = "Cônjuge",
         reference_date: date | None = None,
-        cambio_usd_brl: Decimal | float | None = None,
     ) -> "CenariosConjugeConfig":
-        """Constrói config; ``cambio_usd_brl`` (Decimal/float) tem prioridade sobre ``taxas``.
-
-        Caller A7.2b passa ``cambio_usd_brl`` resolvido via
-        ``ConfigStore.get_market_rate("USD/BRL", ctx.report_date)``. Caller
-        legado pode continuar passando ``taxas={"cambio_usd_brl": 5.80}``
-        durante a janela de cutover.
-        """
+        """Constrói config (ADR-167; pós-A8.4 PR2 sem dependência de USD/cambio)."""
         g = goals or {}
         if_cfg = g.get("independencia_financeira", {}) or {}
         aportes = g.get("aportes", {}) or {}
         sim = g.get("simulacao", {}) or {}
-        mar = g.get("cenarios_conjuge") or g.get("mariana_eua", {}) or {}
-        taxas_d = taxas or {}
-
-        if cambio_usd_brl is not None:
-            cambio = float(cambio_usd_brl)
-        else:
-            cambio = _safe_float(taxas_d.get("cambio_usd_brl", 5.80))
 
         return cls(
             titular_dob=titular_dob,
             retorno_real_anual_pct=_safe_float(if_cfg.get("retorno_real_anual_pct", 6.0)),
             aporte_base=_safe_float(aportes.get("meta_aporte_mensal", 0)),
             fator_reduzido=_safe_float(sim.get("aporte_reduzido_fator", 0.66)),
-            cambio_usd_brl=cambio,
-            renda_rn_minima_usd=_safe_float(mar.get("renda_rn_minima_usd", 4000)),
-            renda_rn_maxima_usd=_safe_float(mar.get("renda_rn_maxima_usd", 7000)),
             titular_key=titular_key,
             conjuge_key=conjuge_key,
             conjuge_nome=conjuge_nome,
@@ -174,9 +132,9 @@ class CenariosConjugeResult:
 
 
 class CenariosConjugeAnalyzer:
-    """Computa 3 cenários de trajetória IF para o cônjuge."""
+    """Computa o cenário de estresse 'Sem renda do cônjuge' (ADR-167)."""
 
-    _LABELS = ("Sem Trabalhar", "Com NCLEX", "Com NCLEX + Green Card")
+    _LABEL = "Sem renda do cônjuge"
 
     def __init__(self, config: CenariosConjugeConfig) -> None:
         self._config = config
@@ -196,85 +154,31 @@ class CenariosConjugeAnalyzer:
 
         salario_conjuge_brl = self._extract_salario_conjuge(fluxo)
 
-        # Cenário 1 — Sem trabalhar.
-        aporte_s1 = round(cfg.aporte_base * cfg.fator_reduzido, 2)
-        prazo_s1 = round(self._compute_prazo(investivel, meta_if, r, aporte_s1), 1)
+        aporte = round(cfg.aporte_base * cfg.fator_reduzido, 2)
+        prazo = round(self._compute_prazo(investivel, meta_if, r, aporte), 1)
+        ano_if = cfg.reference_date.year + int(prazo)
+        idade_titular = _calculate_age(cfg.titular_dob, cfg.reference_date) + int(prazo)
 
-        aporte_conjuge_fraction = cfg.aporte_base * (1 - cfg.fator_reduzido)
-
-        def _compute_aporte(renda_nova_brl: float) -> tuple[float, float]:
-            if salario_conjuge_brl > 0:
-                recovery = min(1.0, renda_nova_brl / salario_conjuge_brl)
-            else:
-                recovery = 1.0 if renda_nova_brl > 0 else 0.0
-            base = aporte_s1 + aporte_conjuge_fraction * recovery
-            surplus = max(0.0, renda_nova_brl - salario_conjuge_brl)
-            extra = min(
-                surplus * (cfg.surplus_share_pct / 100.0),
-                cfg.aporte_base * (cfg.surplus_cap_pct / 100.0),
-            )
-            return round(base + extra, 2), recovery
-
-        renda_nclex_brl = cfg.renda_rn_minima_usd * cfg.cambio_usd_brl
-        aporte_s2, recovery_nclex = _compute_aporte(renda_nclex_brl)
-        prazo_s2 = round(self._compute_prazo(investivel, meta_if, r, aporte_s2), 1)
-
-        renda_gc_brl = cfg.renda_rn_maxima_usd * cfg.cambio_usd_brl
-        aporte_s3, recovery_gc = _compute_aporte(renda_gc_brl)
-        prazo_s3 = round(self._compute_prazo(investivel, meta_if, r, aporte_s3), 1)
-
-        prazos = (prazo_s1, prazo_s2, prazo_s3)
-        aportes = (aporte_s1, aporte_s2, aporte_s3)
-        anos_if = tuple(cfg.reference_date.year + int(p) for p in prazos)
-        idade_titular = tuple(
-            _calculate_age(cfg.titular_dob, cfg.reference_date) + int(p) for p in prazos
-        )
-
-        cenarios = (
-            self._build_cenario(
-                0,
-                aportes,
-                prazos,
-                anos_if,
-                idade_titular,
-                resumo=self._resumo_s1(aportes[0], prazos[0], anos_if[0]),
-            ),
-            self._build_cenario(
-                1,
-                aportes,
-                prazos,
-                anos_if,
-                idade_titular,
-                resumo=self._resumo_s2(aportes[1], prazos[1], anos_if[1]),
-            ),
-            self._build_cenario(
-                2,
-                aportes,
-                prazos,
-                anos_if,
-                idade_titular,
-                resumo=self._resumo_s3(aportes[2], prazos[2], anos_if[2]),
-            ),
+        cenario = CenarioItem(
+            nome=self._LABEL,
+            aporte_mensal=aporte,
+            prazo_if_anos=prazo,
+            ano_if=ano_if,
+            idade_titular=idade_titular,
+            resumo=self._resumo(aporte, prazo, ano_if),
         )
 
         premissas: dict[str, Any] = {
             "meta_if": meta_if,
             "investivel_atual": investivel,
             "retorno_real_anual_pct": cfg.retorno_real_anual_pct,
-            "cambio_usd_brl": cfg.cambio_usd_brl,
             "aporte_base": cfg.aporte_base,
             "fator_reduzido": cfg.fator_reduzido,
-            "renda_nclex_usd": cfg.renda_rn_minima_usd,
-            "renda_nclex_brl": round(renda_nclex_brl, 2),
-            "renda_gc_usd": cfg.renda_rn_maxima_usd,
-            "renda_gc_brl": round(renda_gc_brl, 2),
             f"salario_{cfg.conjuge_key}_clt_brl": salario_conjuge_brl,
-            "recovery_nclex_pct": round(recovery_nclex * 100, 1),
-            "recovery_gc_pct": round(recovery_gc * 100, 1),
         }
 
         return CenariosConjugeResult(
-            cenarios=cenarios,
+            cenarios=(cenario,),
             premissas=premissas,
             titular_key=cfg.titular_key,
         )
@@ -282,7 +186,7 @@ class CenariosConjugeAnalyzer:
     # -- Helpers --
 
     def _extract_salario_conjuge(self, fluxo: dict[str, Any]) -> float:
-        """Tira a mediana dos valores não-zero do dataset CLT do cônjuge."""
+        """Mediana dos valores não-zero do dataset CLT do cônjuge."""
         cfg = self._config
         rmd = (fluxo or {}).get("receita_despesa_mensal_detalhado", {}) or {}
         for ds in rmd.get("receita_datasets", []) or []:
@@ -291,7 +195,7 @@ class CenariosConjugeAnalyzer:
                 nonzero = [_safe_float(v) for v in ds.get("data", []) if _safe_float(v) > 0]
                 if nonzero:
                     s = sorted(nonzero)
-                    return s[len(s) // 2]  # mediana aproximada
+                    return s[len(s) // 2]
         return 0.0
 
     @staticmethod
@@ -304,48 +208,65 @@ class CenariosConjugeAnalyzer:
             if denominator > 0 and numerator / denominator > 0:
                 n_meses = math.log(numerator / denominator) / math.log(1 + r)
                 return max(0.0, n_meses / 12)
-        # Paridade: legado emite ``999`` (int) como sentinela.
-        # ``round(int, 1)`` preserva o int, essencial para o golden
-        # golden comparador por ``json.dumps`` (``999`` ≠ ``"999.0"``).
+        # Sentinela legada: 999 (int) preservado para paridade dos goldens.
         return 999
 
-    def _build_cenario(
-        self,
-        i: int,
-        aportes: tuple,
-        prazos: tuple,
-        anos_if: tuple,
-        idades: tuple,
-        *,
-        resumo: str,
-    ) -> CenarioItem:
-        return CenarioItem(
-            nome=self._LABELS[i],
-            aporte_mensal=aportes[i],
-            prazo_if_anos=prazos[i],
-            ano_if=anos_if[i],
-            idade_titular=idades[i],
-            resumo=resumo,
-        )
-
-    def _resumo_s1(self, aporte: float, prazo: float, ano_if: int) -> str:
+    def _resumo(self, aporte: float, prazo: float, ano_if: int) -> str:
         cfg = self._config
         return (
-            f"Sem renda da {cfg.conjuge_nome}, aporte cai para R$ {aporte:,.0f}/mês "
+            f"Sem renda do cônjuge, aporte cai para R$ {aporte:,.0f}/mês "
             f"({cfg.fator_reduzido:.0%} do base). IF em {prazo:.0f} anos ({ano_if})."
         )
 
-    def _resumo_s2(self, aporte: float, prazo: float, ano_if: int) -> str:
-        cfg = self._config
-        return (
-            f"{cfg.conjuge_nome} como RN (US$ {cfg.renda_rn_minima_usd:,.0f}/mês), "
-            f"aporte sobe para R$ {aporte:,.0f}/mês. IF em {prazo:.0f} anos ({ano_if})."
-        )
 
-    def _resumo_s3(self, aporte: float, prazo: float, ano_if: int) -> str:
-        cfg = self._config
-        return (
-            f"{cfg.conjuge_nome} como RN sênior/Green Card "
-            f"(US$ {cfg.renda_rn_maxima_usd:,.0f}/mês), aporte de R$ {aporte:,.0f}/mês. "
-            f"IF em {prazo:.0f} anos ({ano_if})."
-        )
+# =============================================================================
+# Eligibility gate (ADR-167)
+# =============================================================================
+
+
+def should_render_conjuge_scenarios(
+    *,
+    family_members: Mapping[str, Any],
+    fluxo: Mapping[str, Any],
+    goals: Mapping[str, Any],
+) -> bool:
+    """Decide se o cenário 'cônjuge sem trabalhar' é elegível para o workspace (ADR-167).
+
+    Regra Cerbasi/Perini: meta IF presente E ≥2 membros com renda recorrente E
+    renda do cônjuge ≥15% da renda familiar total. Solteiro / 1 renda / casal
+    sem meta IF / casal 95/5 → False (sem o que stressar / impacto < ruído).
+    """
+    if _safe_float((goals or {}).get("if_meta", 0)) <= 0:
+        return False
+
+    membros = (family_members or {}).get("membros", {}) or {}
+    titular_key = (family_members or {}).get("titular", "") or ""
+    conjuge_key = next(
+        (k for k, v in membros.items() if isinstance(v, dict) and v.get("papel") == "conjuge"),
+        "",
+    )
+    if not titular_key or not conjuge_key:
+        return False
+
+    rmd = (fluxo or {}).get("receita_despesa_mensal_detalhado", {}) or {}
+    datasets = rmd.get("receita_datasets", []) or []
+
+    def _sum_label(role_name: str) -> float:
+        total = 0.0
+        for ds in datasets:
+            label = str(ds.get("label", "")).lower()
+            if role_name and role_name in label:
+                total += sum(_safe_float(v) for v in ds.get("data", []) if _safe_float(v) > 0)
+        return total
+
+    titular_nome = (membros.get(titular_key, {}) or {}).get("nome_curto", titular_key).lower()
+    conjuge_nome = (membros.get(conjuge_key, {}) or {}).get("nome_curto", conjuge_key).lower()
+
+    renda_titular = _sum_label(titular_nome)
+    renda_conjuge = _sum_label(conjuge_nome)
+    renda_familiar = renda_titular + renda_conjuge
+
+    if renda_titular <= 0 or renda_conjuge <= 0 or renda_familiar <= 0:
+        return False
+
+    return (renda_conjuge / renda_familiar) >= 0.15
