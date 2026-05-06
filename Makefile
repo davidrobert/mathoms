@@ -246,6 +246,7 @@ smoke-dirs:
 #   make dev-down            Mata todos os processos
 #   make dev-restart         down && up
 #   make dev-restart-worker  Restart só do worker (após mudar pipeline/)
+#   make dev-fresh           Reset completo: kill-stale + pull + clean + up + status
 #   make dev-status          ✅/❌ por serviço (PID + porta listening)
 #   make dev-logs            tail -f de todos (SVC=api para um só)
 #   make dev-kill-stale      Mata órfãos em 8000/8001/3000/3100 + limpa pids
@@ -255,7 +256,7 @@ smoke-dirs:
 # ---------------------------------------------------------------------------
 
 .PHONY: dev-bootstrap dev-pull dev-up dev-down dev-restart dev-restart-worker \
-        dev-status dev-logs dev-reset-env dev-dirs dev-kill-stale \
+        dev-fresh dev-status dev-logs dev-reset-env dev-dirs dev-kill-stale \
         dev-redis-up dev-api-up dev-worker-up dev-frontend-up \
         dev-ops-api-up dev-frontend-ops-up
 
@@ -407,6 +408,25 @@ dev-restart-worker:
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
 	@$(MAKE) -s dev-worker-up
 	@echo "  ✅ Worker reiniciado."
+
+## dev-fresh: Reset completo — kill-stale + pull + clean + up + status
+##            Workflow padrão: "fechar tudo, atualizar, limpar caches, subir limpo".
+##            Requer working tree limpo (validado em pre-flight antes de matar nada).
+dev-fresh: _dev-fresh-preflight dev-kill-stale dev-pull clean-all dev-up
+	@$(MAKE) -s dev-status
+
+# Privado: valida working tree limpo ANTES de dev-kill-stale.
+# Sem isso, tree sujo abortaria no dev-pull com a stack já morta.
+.PHONY: _dev-fresh-preflight
+_dev-fresh-preflight:
+	@echo "▶  Pre-flight (dev-fresh): working tree…"
+	@if ! git diff --quiet || ! git diff --cached --quiet; then \
+	   echo "   ❌ Working tree sujo. Commit ou stash antes de rodar dev-fresh."; \
+	   echo "      (sem isso, dev-kill-stale derrubaria a stack e dev-pull abortaria,"; \
+	   echo "       deixando você sem nada rodando.)"; \
+	   exit 1; \
+	 fi
+	@echo "   ✓ Working tree limpo"
 
 ## dev-status: Health check de cada serviço (PID alive + porta listening)
 dev-status:
