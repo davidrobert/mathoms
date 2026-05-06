@@ -272,7 +272,7 @@ async def seed(
     return 0
 
 
-def main() -> int:
+def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     grp = parser.add_mutually_exclusive_group(required=True)
     grp.add_argument("--dry-run", action="store_true")
@@ -288,7 +288,11 @@ def main() -> int:
             "config/goals.json se existir, senão _archive/pre-f8-cutover-2026-04-15/config/goals.json."
         ),
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = _parse_args()
     return asyncio.run(
         seed(
             apply=args.apply,
