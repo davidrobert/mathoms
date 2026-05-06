@@ -32,7 +32,7 @@
     },
     "investimentos": {
       "type": "object",
-      "description": "Investimentos por classe (tabela_classes/total) + ranking dos 15 maiores ativos individuais (top_ativos).",
+      "description": "Investimentos por classe (tabela_classes/total) + ranking dos 15 maiores ativos individuais (top_ativos) + instituições por membro (instituicoes_por_membro) + contagem de imóveis (n_imoveis_total).",
       "properties": {
         "tabela_classes": {
           "type": "array",
@@ -85,6 +85,28 @@
             },
             "additionalProperties": false
           }
+        },
+        "instituicoes_por_membro": {
+          "type": "array",
+          "description": "Instituições de investimento agrupadas por membro (produzido por InstituicoesPorMembroAnalyzer; lê o mesmo bens_por_membro de TopAtivosAnalyzer).",
+          "items": {
+            "type": "object",
+            "required": ["membro", "instituicoes"],
+            "properties": {
+              "membro": {"type": "string", "minLength": 1},
+              "instituicoes": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1},
+                "uniqueItems": true
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "n_imoveis_total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Contagem total de imóveis em bens_por_membro (residência + investimento) — paridade com o legado _extract_top_institutions."
         }
       }
     }

@@ -31,6 +31,11 @@ _IMOVEL_VALID = {
 }
 _TOP_ATIVO_INVALID_CLASSE = {**_TOP_ATIVO_VALID, "classe": "ClasseDesconhecida"}
 
+_INST_VALID = [
+    {"membro": "david", "instituicoes": ["Btg", "Itau"]},
+    {"membro": "mariana", "instituicoes": ["Xp"]},
+]
+
 
 def _e5_with_top_ativos(*items):
     return {
@@ -41,6 +46,18 @@ def _e5_with_top_ativos(*items):
             "tabela_classes": [{"categoria": "Renda Fixa", "valor": 800000, "pct": 80.0}],
             "total": 1000000,
             "top_ativos": list(items),
+        },
+    }
+
+
+def _e5_with_instituicoes(por_membro, n_imoveis=0):
+    return {
+        "score": {"valor": 6.8, "classificacao": "Bom"},
+        "patrimonio": {"bruto": 5000000, "liquido": 4000000},
+        "fluxo_caixa": {},
+        "investimentos": {
+            "instituicoes_por_membro": por_membro,
+            "n_imoveis_total": n_imoveis,
         },
     }
 
@@ -107,6 +124,19 @@ class TestValidateArtifact:
     def test_invalid_top_ativos_strict_mode_rejects_unknown_classe(self, tmp_path, monkeypatch):
         monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
         data = _e5_with_top_ativos(_TOP_ATIVO_INVALID_CLASSE)
+        path = tmp_path / "test.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e5_analysis.schema.json") is False
+
+    def test_valid_e5_with_instituicoes_por_membro(self, tmp_path):
+        data = _e5_with_instituicoes(_INST_VALID, n_imoveis=2)
+        path = tmp_path / "test.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e5_analysis.schema.json") is True
+
+    def test_invalid_instituicoes_strict_mode_rejects_duplicate(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        data = _e5_with_instituicoes([{"membro": "david", "instituicoes": ["Btg", "Btg"]}])
         path = tmp_path / "test.json"
         path.write_text(json.dumps(data))
         assert validate_artifact(path, "e5_analysis.schema.json") is False

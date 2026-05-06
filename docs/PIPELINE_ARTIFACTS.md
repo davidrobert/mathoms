@@ -60,6 +60,8 @@ Implementado em `tests/test_e5_golden_execution.py`: mesmo fluxo de dados que o 
 - `tabela_classes`: agregação por classe de ativo (saída de `InvestimentosClassesAnalyzer`).
 - `total`: soma da carteira.
 - `top_ativos`: ranking dos ≤15 maiores ativos individuais (saída de `TopAtivosAnalyzer`, companion de A5b). Cada item: `{posicao, nome, classe, membro, instituicao, valor, pct_carteira, tipo_origem}`. Item fechado por `additionalProperties:false` no schema; enums em `classe` (6 valores) e `tipo_origem` (`investimento`/`imovel`). Coerente com `tabela_classes` por consumir o mesmo `bens_por_membro` que o aggregator de classes. Consumido pelo card `Top15AtivosCard` em S3 (frontend) e por `_find_top_asset` em `e5n_narrativas.py` para narrativa do chart.
+- `instituicoes_por_membro`: lista de `{membro, instituicoes[]}` com instituições de investimento agrupadas (saída de `InstituicoesPorMembroAnalyzer`). Capitalizadas e dedup; `additionalProperties:false` no item; `uniqueItems:true` na lista de instituições. Mesmo `bens_por_membro` das outras agregações.
+- `n_imoveis_total`: contagem total de imóveis em `bens_por_membro` (residência + investimento). Paridade com o legado `_extract_top_institutions`. Consumido por `summaries_narrator`, `charts_narrator` e `perfil_familia_narrator` via `M['n_imoveis']`.
 
 ## Golden de execução E5.N
 
