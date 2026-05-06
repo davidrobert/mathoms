@@ -13,13 +13,9 @@
  * Cobertura:
  * - shell global (cover, premissas) × {light, dark}
  * - Estratégico: S1-S10 + APP_A-E × {light, dark}
- * - USA: U1-U4 × {light, dark} (deep-link `?mode=usa`)
  *
- * ADR-151 (Direção E): Modo Tático removido — sobram Estratégico + USA.
- *
- * v2.2b: troca de modo via URL `?mode=usa` (lida por
- * `ReportModeProvider`) em vez de click — evita brittleness do toggle
- * (role="tab" + label fora do botão).
+ * ADR-151 (Direção E): Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA
+ * removido — Estratégico é o modo único.
  *
  * Baselines vivem em `tests/e2e/reports/__snapshots__/sections.snapshots.visual.spec.ts/`.
  * Atualização: `npm run test:e2e -- --project=visual --grep sections.snapshots --update-snapshots`
@@ -32,18 +28,11 @@ const VIEWPORT = { width: 1280, height: 800 };
 
 const STRATEGIC_SECTIONS = ["S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10"];
 const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
-const USA_SECTIONS = ["U1", "U2", "U3", "U4"];
 
 const THEMES = ["light", "dark"] as const;
 type Theme = (typeof THEMES)[number];
 
-type Mode = "estrategico" | "usa";
-
-async function setupReport(
-  page: Page,
-  theme: Theme,
-  mode: Mode = "estrategico",
-): Promise<void> {
+async function setupReport(page: Page, theme: Theme): Promise<void> {
   // next-themes lê localStorage key="theme" antes do mount — injetar
   // ANTES de qualquer goto evita flash light → dark no snapshot.
   await page.addInitScript((t) => {
@@ -52,14 +41,7 @@ async function setupReport(
 
   const { workspaceId, reportId } = await mockReportPage(page);
   await page.setViewportSize(VIEWPORT);
-  // v2.2b — modo via URL (`?mode=usa`) em vez de click no toggle.
-  // ReportModeProvider lê searchParams na montagem (deep-link). Evita
-  // brittleness de role="tab" + label dentro do TooltipTrigger sem
-  // aria-label, que quebrava `getByRole("button", { name: /Tático|USA/i })`.
-  const modeParam = mode === "estrategico" ? "" : `&mode=${mode}`;
-  await page.goto(
-    `/reports/${reportId}?workspace=${workspaceId}${modeParam}`,
-  );
+  await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
   await waitForReportReady(page);
 
   // Aguarda chart canvases renderizarem (chart.js anima por default;
@@ -130,20 +112,5 @@ test.describe("Snapshots — cover (hero)", () => {
   }
 });
 
-// ─── USA ──────────────────────────────────────────────────────────────
-//
-// v2.2b completa — modo USA re-habilitado (decisão de produto retomada).
-// U1-U4 com `enabled: true` em `config/report_layout.yaml`; aba "EUA"
-// visível no tablist (`ReportActions.VISIBLE_MODES`). Helper
-// `setupReport(..., "usa")` navega via deep-link `?mode=usa`.
-
-test.describe("Snapshots — modo USA", () => {
-  for (const theme of THEMES) {
-    for (const sectionId of USA_SECTIONS) {
-      test(`${sectionId} — ${theme}`, async ({ page }) => {
-        await setupReport(page, theme, "usa");
-        await snapshotSection(page, sectionId, theme);
-      });
-    }
-  }
-});
+// ADR-168 (A8.4 PR4): Modo USA removido — bloco USA `test.describe` deletado.
+// Modo Estratégico cobre 100% do relatório.

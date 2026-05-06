@@ -71,9 +71,9 @@ interface ReportShellProps {
   familySurname?: string | null;
 }
 
-function selectSections(mode: "estrategico" | "usa"): SectionSpec[] {
-  if (mode === "estrategico") return LAYOUT.estrategico.sections;
-  return LAYOUT.usa.sections;
+function selectSections(_mode: "estrategico"): SectionSpec[] {
+  // ADR-168 (A8.4 PR4): Modo USA removido. Modo Estratégico é único.
+  return LAYOUT.estrategico.sections;
 }
 
 /** Mapa section_id → title para lookup rápido (usado pelo buildNavGroups). */
@@ -81,7 +81,6 @@ function buildTitleMap(): Record<string, string> {
   const map: Record<string, string> = {};
   for (const s of LAYOUT.estrategico.sections) map[s.id] = s.title;
   for (const a of LAYOUT.estrategico.appendices ?? []) map[a.id] = a.title;
-  for (const s of LAYOUT.usa.sections) map[s.id] = s.title;
   return map;
 }
 
@@ -97,7 +96,6 @@ function shortLabel(title: string): string {
  */
 function buildNavGroups(): {
   estrategico: NavGroup[];
-  usa: NavGroup[];
 } {
   const titles = buildTitleMap();
   const nav = LAYOUT.navigation;
@@ -114,7 +112,6 @@ function buildNavGroups(): {
       }));
     return {
       estrategico: mapGroup(nav.estrategico),
-      usa: nav.usa ? mapGroup(nav.usa) : [],
     };
   }
 
@@ -124,13 +121,6 @@ function buildNavGroups(): {
     estrategico: [
       {
         links: strategic.map((s) => ({ id: s.id, label: shortLabel(s.title), num: s.id })),
-      },
-    ],
-    usa: [
-      {
-        links: LAYOUT.usa.sections
-          .filter((s) => s.enabled)
-          .map((s) => ({ id: s.id, label: shortLabel(s.title), num: s.id })),
       },
     ],
   };

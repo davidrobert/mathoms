@@ -31,7 +31,6 @@ export interface ReportTopNavProps {
   readonly actions?: ReactNode;
   readonly groupsByMode: {
     readonly estrategico: readonly NavGroup[];
-    readonly usa: readonly NavGroup[];
   };
   /** Container do scroll observado para active link. Default: window. */
   readonly scrollRoot?: HTMLElement | null;

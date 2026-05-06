@@ -13,8 +13,7 @@ import { mockReportPage, waitForReportReady } from "../helpers/mock-report";
 
 const STRATEGIC_SECTIONS = ["S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10"];
 const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
-// ADR-151 (Direção E): Modo Tático removido — bloco T1-T6 retirado do relatório.
-const USA_SECTIONS = ["U1", "U2", "U3", "U4"];
+// ADR-151 (Direção E): Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA removido.
 
 test.describe("Report a11y @critical", () => {
   test("relatório completo (modo estratégico) sem violações critical+serious", async ({
@@ -58,28 +57,4 @@ test.describe("Report a11y @critical", () => {
   }
 });
 
-test.describe("Report a11y modo USA @critical", () => {
-  for (const sectionId of USA_SECTIONS) {
-    test(`seção ${sectionId} sem violações critical+serious`, async ({ page }) => {
-      const { workspaceId, reportId } = await mockReportPage(page);
-      await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
-      await waitForReportReady(page);
-
-      const modeBtn = page
-        .getByRole("button", { name: /USA|EUA/i })
-        .first();
-      if (await modeBtn.isVisible().catch(() => false)) {
-        await modeBtn.click();
-        await page.waitForTimeout(200);
-      }
-
-      const selector = `section#${sectionId}[data-report-section]`;
-      const exists = await page.locator(selector).count();
-      if (exists === 0) {
-        test.skip(true, `seção ${sectionId} não montada — ModeToggle pode ter mudado de UI`);
-        return;
-      }
-      await expectNoA11yViolations(page, { selector });
-    });
-  }
-});
+// ADR-168 (A8.4 PR4): Modo USA removido — bloco describe USA deletado.

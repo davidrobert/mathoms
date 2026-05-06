@@ -154,16 +154,13 @@ const FALLBACKS: Record<string, string> = {
   alocacao_atual: "Distribuição atual da carteira.",
   alocacao_alvo: "Alocação alvo recomendada.",
   top15_ativos: "Ativos de maior exposição na carteira.",
-  mariana_cenarios: "Projeção de independência financeira.",
-  mariana_cenarios_usa: "Projeção no contexto EUA.",
+  cenarios_conjuge: "Cenário de estresse — sem renda do cônjuge.",
   yield_imoveis: "Rendimento dos imóveis comparado ao CDI.",
   projecao_3cenarios: "Projeção patrimonial por cenário.",
   renda_passiva: "Progresso da renda passiva rumo à meta.",
   impostos_pj: "Composição tributária PJ.",
   bubble_riscos: "Matriz de riscos priorizados.",
   top5_decisoes: "Próximas decisões de alto impacto.",
-  custos_f1f2: "Custos de mudança EUA.",
-  cenarios_cambiais: "Cenários cambiais considerados.",
 };
 
 /** Gera texto de conclusão determinístico para o chart. Null → oculta box. */
@@ -213,13 +210,9 @@ const SECTION_SUMMARIES: Record<
       ? `Síntese: score ${format(score, "num")} (${classe ?? "—"}). Pontos fortes e urgências consolidados.`
       : "Síntese dos pontos fortes e urgências do ciclo.";
   },
-  U1: () => "Estrutura F1/F2 e custos da transição para os EUA.",
-  U2: () => "Green Card EB2-NIW e compliance.",
-  U3: () => "Roadmap para o NCLEX-RN.",
-  U4: () => "Cenários de independência financeira do cônjuge.",
   APP_A: () => "Glossário de termos financeiros e categorias patrimoniais.",
   APP_B: () => "Premissas econômicas e metodologias que fundamentam as projeções.",
-  APP_C: () => "Cenários alternativos considerados no ciclo.",
+  APP_C: () => "Cenários de estresse para validar a margem de segurança do plano.",
   APP_D: () => "Referências metodológicas e lineage dos dados.",
   APP_E: () => "Histórico de ciclos e próximos passos do roadmap.",
 };

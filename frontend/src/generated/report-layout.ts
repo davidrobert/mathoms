@@ -20,7 +20,7 @@ export type CardVariant =
 
 export type CardSize = 'full' | 'half';
 
-export type ReportMode = 'estrategico' | 'usa';
+export type ReportMode = 'estrategico';
 
 export type TopBorder = 'danger' | 'accent';
 
@@ -114,7 +114,6 @@ export interface NavGroupSpec {
 
 export interface NavigationSpec {
   estrategico?: NavGroupSpec[];
-  usa?: NavGroupSpec[];
 }
 
 export interface ReportLayout {
@@ -122,9 +121,6 @@ export interface ReportLayout {
   estrategico: {
     sections: SectionSpec[];
     appendices?: AppendixSpec[];
-  };
-  usa: {
-    sections: SectionSpec[];
   };
   cover?: CoverSpec;
   navigation?: NavigationSpec;
@@ -244,28 +240,6 @@ export const LAYOUT: ReportLayout = {
             "section_id": "APP_E",
             "num": "E",
             "is_appendix": true
-          }
-        ]
-      }
-    ],
-    "usa": [
-      {
-        "links": [
-          {
-            "section_id": "U1",
-            "num": "U1"
-          },
-          {
-            "section_id": "U2",
-            "num": "U2"
-          },
-          {
-            "section_id": "U3",
-            "num": "U3"
-          },
-          {
-            "section_id": "U4",
-            "num": "U4"
           }
         ]
       }
@@ -696,13 +670,7 @@ export const LAYOUT: ReportLayout = {
         "title": "Cenários de Estresse",
         "enabled": true,
         "optional": true,
-        "charts": [
-          {
-            "id": "cenarios_cambiais",
-            "enabled": false,
-            "conclusion": true
-          }
-        ],
+        "charts": [],
         "cards": [
           {
             "id": "sensibilidade_ativos",
@@ -752,78 +720,6 @@ export const LAYOUT: ReportLayout = {
       }
     ]
   },
-  "usa": {
-    "sections": [
-      {
-        "id": "U1",
-        "title": "Mudança EUA — Estrutura F1/F2 e Custos",
-        "enabled": true,
-        "summary": true,
-        "charts": [
-          {
-            "id": "custos_f1f2",
-            "enabled": true,
-            "conclusion": true
-          }
-        ],
-        "cards": []
-      },
-      {
-        "id": "U2",
-        "title": "Green Card — EB2-NIW e Compliance",
-        "enabled": true,
-        "summary": true,
-        "divider_before": true,
-        "charts": [
-          {
-            "id": "cenarios_cambiais",
-            "enabled": true,
-            "conclusion": true
-          }
-        ],
-        "cards": []
-      },
-      {
-        "id": "U3",
-        "title": "NCLEX Roadmap — Licenciamento RN",
-        "enabled": true,
-        "summary": true,
-        "divider_before": true,
-        "charts": [],
-        "cards": [
-          {
-            "id": "nclex_roadmap",
-            "enabled": true,
-            "variant": "feature",
-            "size": "full"
-          }
-        ]
-      },
-      {
-        "id": "U4",
-        "title": "Simulação — Cônjuge Sem Trabalhar",
-        "enabled": true,
-        "summary": true,
-        "divider_before": true,
-        "charts": [
-          {
-            "id": "mariana_cenarios_usa",
-            "enabled": true,
-            "conclusion": true
-          }
-        ],
-        "cards": [
-          {
-            "id": "simulacao_mariana",
-            "enabled": true,
-            "variant": "warn",
-            "size": "full",
-            "top_border": "accent"
-          }
-        ]
-      }
-    ]
-  },
   "chart_palette": [
     "#1A3A5C",
     "#2A9D8F",
@@ -858,15 +754,12 @@ export const LAYOUT: ReportLayout = {
     "alocacao_alvo": "chart-alocacao-alvo",
     "top15_ativos": "chart-top15-ativos",
     "yield_imoveis": "chart-yield-imoveis",
-    "custos_f1f2": "chart-custos-f1f2",
-    "cenarios_cambiais": "chart-cenarios-cambiais",
     "projecao_3cenarios": "chart-projecao-3cenarios",
     "renda_passiva": "chart-renda-passiva",
     "impostos_pj": "chart-impostos-pj",
     "bubble_riscos": "chart-bubble-riscos",
     "top5_decisoes": "chart-top5-decisoes",
     "cenarios_conjuge": "chart-cenarios-conjuge",
-    "mariana_cenarios_usa": "chart-mariana-cenarios-usa",
     "viagens": "chart-viagens",
     "renda_evolucao_multi_anos": "chart-renda-evolucao-multi-anos",
     "aliquota_efetiva_dual_gauge": "chart-aliquota-efetiva-dual-gauge"
@@ -883,15 +776,12 @@ export const LAYOUT: ReportLayout = {
     "alocacao_alvo": "Alocação Alvo",
     "top15_ativos": "Top 15 Ativos Financeiros",
     "yield_imoveis": "Rentabilidade dos Imóveis (Yield) vs CDI",
-    "custos_f1f2": "Custos Mensais F1/F2",
-    "cenarios_cambiais": "Cenários Cambiais",
     "projecao_3cenarios": "Projeção Patrimonial — 3 Cenários",
     "renda_passiva": "Renda Passiva — Progresso até a Meta",
     "impostos_pj": "Tributário PJ — Cascata Fiscal",
     "bubble_riscos": "Mapa de Riscos",
     "top5_decisoes": "Top 5 Decisões de Impacto",
     "cenarios_conjuge": "Cenários de Estresse — Sem renda do cônjuge",
-    "mariana_cenarios_usa": "Cenários IF — Cônjuge",
     "viagens": "Orçamento de Viagens",
     "renda_evolucao_multi_anos": "Evolução da Renda — Multi-anos",
     "aliquota_efetiva_dual_gauge": "Alíquota Efetiva — RFB e Cerbasi"
@@ -930,17 +820,6 @@ export const LAYOUT: ReportLayout = {
     ],
     "10": [
       "top5_decisoes"
-    ]
-  },
-  "usa_section_charts": {
-    "1": [
-      "custos_f1f2"
-    ],
-    "2": [
-      "cenarios_cambiais"
-    ],
-    "4": [
-      "mariana_cenarios_usa"
     ]
   },
   "dark_mode": {
@@ -1011,8 +890,8 @@ export const LAYOUT: ReportLayout = {
   "version_fallback": "v5.3"
 } as ReportLayout;
 
-export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "nclex_roadmap", "simulacao_mariana"] as const;
+export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref"] as const;
 export type CardId = (typeof ALL_CARD_IDS)[number];
 
-export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes", "custos_f1f2", "cenarios_cambiais", "mariana_cenarios_usa"] as const;
+export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes"] as const;
 export type ChartId = (typeof ALL_CHART_IDS)[number];

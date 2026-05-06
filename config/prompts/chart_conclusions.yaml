@@ -81,10 +81,6 @@ templates:
     template: "Cenário de estresse: ausência da renda do cônjuge afeta o prazo até a IF."
     fallback: "Cenário de estresse — sem renda do cônjuge."
 
-  mariana_cenarios_usa:
-    template: "Cenários de independência financeira do cônjuge no contexto EUA."
-    fallback: "Projeção no contexto EUA."
-
   # ---- S4 Real Estate ----------------------------------------------------
   yield_imoveis:
     template: "Rentabilidade agregada dos imóveis vs CDI do período."
