@@ -1,9 +1,11 @@
-"""Unit tests para `_resolve_e0_for_rename` (PATCH /documents/{id} rename canônico) — evita "Sem extrato" enganoso quando filename misclassified é reclassificado manualmente."""
+"""Unit tests para `resolve_e0_for_rename` (PATCH /documents/{id} rename canônico) — evita "Sem extrato" enganoso quando filename misclassified é reclassificado manualmente."""
 
 from __future__ import annotations
 
-from backend.app.api.documents import _resolve_e0_for_rename
 from backend.app.models.document import Document, DocumentType
+from backend.app.services.document_canonical_rename import (
+    resolve_e0_for_rename as _resolve_e0_for_rename,
+)
 
 
 def _doc(doc_type: DocumentType, stored_path: str) -> Document:
