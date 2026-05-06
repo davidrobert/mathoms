@@ -229,11 +229,11 @@ class ConsumoConscienteCalculator:
         cfg = self._config
         if n_candidates > 0:
             return (
-                f"Identificados {n_candidates} gastos pontuais ≥ R$ {cfg.consumo_min:,.0f} no período. "
-                f"O total de R$ {total_pontuais:,.2f} equivale a "
+                f"Identificados {n_candidates} gastos pontuais ≥ R$ {cfg.consumo_min:,.0f} "
+                f"no período analisado. O total de R$ {total_pontuais:,.2f} equivale a "
                 f"{equivalente_meses:.1f} meses de aporte."
             )
         return (
-            f"Nenhum gasto pontual relevante ≥ R$ {cfg.consumo_min:,.0f} identificado no período — "
-            "padrão de consumo dentro dos limites recorrentes."
+            f"Nenhum gasto pontual relevante ≥ R$ {cfg.consumo_min:,.0f} identificado "
+            "no período analisado — padrão de consumo dentro dos limites recorrentes."
         )

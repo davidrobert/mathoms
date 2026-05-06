@@ -2478,13 +2478,14 @@ def analyze_consumo_consciente(fluxo: Dict[str, Any], despesas: Dict[str, Any]) 
 
     if itens:
         analise = (
-            f"Identificados {len(pontual_candidates)} gastos pontuais ≥ R$ {_consumo_min:,.0f} no período. "
-            f"O total de R$ {total_pontuais:,.2f} equivale a {equivalente_meses_aporte:.1f} meses de aporte."
+            f"Identificados {len(pontual_candidates)} gastos pontuais ≥ R$ {_consumo_min:,.0f} "
+            f"no período analisado. O total de R$ {total_pontuais:,.2f} equivale a "
+            f"{equivalente_meses_aporte:.1f} meses de aporte."
         )
     else:
         analise = (
-            f"Nenhum gasto pontual relevante ≥ R$ {_consumo_min:,.0f} identificado no período — "
-            "padrão de consumo dentro dos limites recorrentes."
+            f"Nenhum gasto pontual relevante ≥ R$ {_consumo_min:,.0f} identificado "
+            "no período analisado — padrão de consumo dentro dos limites recorrentes."
         )
 
     print(f"  ✓ Pontual candidates: {len(pontual_candidates)}, total: R$ {total_pontuais:,.2f}")
