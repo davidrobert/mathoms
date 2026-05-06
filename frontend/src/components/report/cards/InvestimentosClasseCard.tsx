@@ -2,7 +2,7 @@ import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 
 export interface InvestimentosClasseData {
-  tabela_classes?: Array<{ classe: string; valor: number; pct: number }>;
+  tabela_classes?: Array<{ categoria: string; valor: number; pct: number }>;
   total?: number;
 }
 
@@ -42,7 +42,7 @@ export function InvestimentosClasseCard({ investimentos }: InvestimentosClasseCa
           <tbody>
             {rows.map((r, i) => (
               <tr key={`classe-${i}`} className="border-b border-[var(--surface-border)]/40 last:border-0">
-                <td className="py-2">{r.classe}</td>
+                <td className="py-2">{r.categoria}</td>
                 <td className="py-2 text-right"><MonetaryValue value={r.valor} /></td>
                 <td className="py-2 text-right font-mono tabular-nums text-[var(--surface-muted-foreground)]">{r.pct.toFixed(1)}%</td>
               </tr>
