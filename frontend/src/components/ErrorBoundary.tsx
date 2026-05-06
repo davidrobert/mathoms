@@ -67,13 +67,14 @@ function DefaultFallback({ error, reset }: { error: Error; reset: () => void }) 
     >
       <AlertCircle className="mb-4 h-10 w-10 text-destructive" aria-hidden="true" />
       <h2 className="text-lg font-semibold text-foreground">
-        Algo deu errado ao renderizar esta página
+        Não conseguimos carregar esta página
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        {error.message || "Erro desconhecido. Tente recarregar ou reportar o problema."}
+        Tivemos um problema inesperado. Tente novamente — se continuar, recarregue
+        o app ou avise nossa equipe que registramos o erro.
       </p>
       <div className="mt-6 flex gap-3">
-        <Button onClick={reset}>Recarregar</Button>
+        <Button onClick={reset}>Tentar novamente</Button>
         <Button
           variant="outline"
           onClick={() => {
@@ -82,9 +83,17 @@ function DefaultFallback({ error, reset }: { error: Error; reset: () => void }) 
             }
           }}
         >
-          Ir para Meu Plano
+          Voltar para Meu Plano
         </Button>
       </div>
+      <details className="mt-6 w-full text-left text-xs text-muted-foreground/80">
+        <summary className="cursor-pointer select-none hover:text-muted-foreground">
+          Detalhes técnicos
+        </summary>
+        <pre className="mt-2 overflow-x-auto rounded-md bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
+          {error.name}: {error.message || "erro desconhecido"}
+        </pre>
+      </details>
     </div>
   );
 }
