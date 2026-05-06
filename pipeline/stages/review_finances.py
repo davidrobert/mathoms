@@ -56,7 +56,7 @@ _E5_SUBKEYS = {
     "endividamento": ("total_dividas", "percentual_patrimonio", "dividas"),
     "investimentos": ("total", "tabela_classes"),
     "consumo_consciente": ("folga_mensal", "folga_pct", "analise"),
-    "cenarios_mariana": ("labels", "prazos_if", "anos_if", "premissas"),
+    "cenarios_conjuge": ("labels", "prazos_if", "anos_if", "premissas"),
     "narrativas": ("perfil_familia", "strategic_insights", "inconsistencies_review"),
 }
 

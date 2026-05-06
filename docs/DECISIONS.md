@@ -114,7 +114,7 @@
 [D140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) [D141](#adr-141--goal-alocação-alvo-schema-v2-7-classes-auvp) [D142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)
 
 **Outras:**
-[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-proposto) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion) [D164](#adr-164--carteira-de-renda-e-taxa-de-retirada-efetiva) [D165](#adr-165--validationissue-estruturado-em-validationresult-e-stagereview)
+[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-proposto) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion) [D164](#adr-164--carteira-de-renda-e-taxa-de-retirada-efetiva) [D165](#adr-165--validationissue-estruturado-em-validationresult-e-stagereview) [D166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) [D167](#adr-167--eligibility-gate-de-cenário-do-cônjuge-no-domain-service)
 
 <!-- ADR-TOC-END -->
 
@@ -8161,6 +8161,103 @@ class ValidationIssue:
 3. Cache do `summary` em Redis se P99 do `GET /reviews` subir >10ms — apenas se métrica disparar.
 4. Codegen de `ValidationIssue` TS a partir do schema Python no boundary backend↔frontend (substitui escrita manual em `lib/api/pipeline.ts`).
 5. Lint rule custom `no-string-validation-error` para `pipeline/llm/validators.py` (pré-commit).
+## ADR-166 — Schema estável `cenarios_conjuge` no payload E5
+
+**Status:** Decidido (A8.4) • **Data:** 2026-05-06 • **Relaciona** [ADR-076](#adr-076--design-tokens-unificados-site--relatório), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-144](#adr-144--section_summaries-llm-driven-em-e5-com-cache--fallback-determinístico-v29).
+
+**Contexto:** O payload E5 usava chave dinâmica derivada do `_CONJUGE_KEY` do workspace: `f"cenarios_{_CONJUGE_KEY}"` produzia `cenarios_mariana` no workspace piloto, `cenarios_ana` em outro hipotético. O serializer (`pipeline/domain/services/e5_serialization.py:266`) recebia `cenarios_conjuge_key` como parâmetro mutável; producer real (`scripts/e5_analyze.py:147`) computava o key via `_CONJUGE_KEY`. Frontend hardcodava `cenarios_mariana` em 3 components + types. A divergência era estrutural — pipeline interno já tratava com chave fixa `cenarios_conjuge` (default no `E5SerializationInputs`), apenas a serialização final acoplava ao workspace.
+
+ADR-143 (methodology = code) é taxativa: chaves universais devem ser fixas; conteúdo workspace fica no DB ou em `notes/`. Acoplar key de payload a config de workspace é exatamente o anti-padrão que ADR-143 combate. Frontend lendo `cenarios_mariana` em workspace que tem `_CONJUGE_KEY="ana"` falha silenciosamente — outro sintoma da chave dinâmica.
+
+**Decisão:** Chave de payload E5 passa a ser literal **`cenarios_conjuge`**, fixa, não-configurável. Todos os 5 sites do producer (`e5_serialization.py`, `e5_analyze.py:147,3105`, `e5n_narrativas.py:68`, `narrativas/context.py:59`) emitem ou esperam `"cenarios_conjuge"` literal. O campo `cenarios_conjuge_key` é removido do `E5SerializationInputs` (era variável; vira impossível).
+
+Frontend mantém **fallback dual-key transitório** (`data.cenarios_conjuge ?? data.cenarios_mariana`) durante PR1 → PR3 para suportar artifacts E5 antigos em `pipeline_artifacts.content_json`. Após backfill em prod (script `dev/backfill_e5_universal_keys.py`, idempotente), PR3 remove o fallback.
+
+LLM cache (ADR-144) **invalida automaticamente** porque `compute_snapshot_hash(section_payload)` muda quando a key muda — re-narração de S7/T5 acontece naturalmente; custo: ~2 chamadas LLM por workspace × N workspaces.
+
+**Não toca** `key_cenarios_section` (em `narrativas/context.py:67`, derivado de `f"{conjuge_key}_cenarios"`) — é chave de seção de narrativas, distinta do bloco de cenários do payload, fora deste escopo.
+
+**Consequências:**
+
+- ✅ Payload E5 universal: workspace com qualquer `_CONJUGE_KEY` emite `cenarios_conjuge`; frontend lê chave única.
+- ✅ Test inverter `test_cenarios_conjuge_usa_key_configuravel` → `test_cenarios_conjuge_usa_chave_universal_estavel` documenta que a chave é fixa pós-PR1; remoção do parâmetro variável é regressão-bloqueada por dataclass shape.
+- ✅ Sem schema migration de DB — `pipeline_artifacts.content_json` é JSON cru sem index sobre a chave. `MATHOMS_SCHEMA_VERSION` não aplicável (endpoint `/reports/{id}/data` retorna `{type: object}`).
+- ✅ OpenAPI snapshot inalterado.
+- ⚠️ Workspaces com artifacts E5 antigos têm `cenarios_mariana` no JSON; frontend depende do fallback até backfill rodar. Janela: PR1 mergeado → backfill manual → PR3 remove fallback.
+- ⚠️ Logging `INFO` em `mathoms.pipeline.e5_serialization` (`extra={"key": "cenarios_conjuge", "has_data": ...}`) confirma migração via Loki/Cloudwatch.
+
+**Backfill operacional:**
+
+```bash
+# Pós-merge PR1, antes de PR3:
+python -m dev.backfill_e5_universal_keys
+# Idempotente. Itera workspaces com last_report_at < PR1_merge_time
+# e dispara `analyze_finances`. LLM cache re-narrate S7/T5.
+
+# Validação:
+psql -c "SELECT COUNT(*) FROM pipeline_artifacts
+         WHERE stage IN ('E5','analyze_finances')
+           AND content_json::text LIKE '%cenarios_mariana%';"
+# Esperado: 0 antes de mergear PR3.
+```
+
+**Follow-ups:**
+
+1. PR3 (A8.4) remove fallback dual-key no frontend. Pré-requisito: backfill rodado, query acima zerada.
+2. `key_cenarios_section` (`{conjuge_key}_cenarios`) — outro rename, ADR separada quando justificado.
+
+---
+
+## ADR-167 — Eligibility gate de cenário do cônjuge no domain service
+
+**Status:** Proposto (A8.4 PR2) • **Data:** 2026-05-06 • **Relaciona** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5).
+
+**Contexto:** O analyzer `cenarios_conjuge_analyzer.py` (PR2 reduz a 1 cenário "Sem renda do cônjuge") computa stress test de IF para casais com 2 rendas. Aplicar universalmente — para solteiros, casais com 1 renda, ou famílias onde cônjuge tem renda <15% — gera ruído: tabela com cenário irrelevante, narrativa LLM forçada, APP_C ocupando página em PDF premium sem servir o cliente. financial-planner (consultado em A8.4 / 2026-05-06) é taxativo: cenário é universal **conditionado**, não universal **obrigatório**.
+
+**Decisão:** Função pura `should_render_conjuge_scenarios(family_members, fluxo, goals) -> bool` no domain service (`pipeline/domain/services/cenarios_conjuge_analyzer.py`) decide se o bloco entra no payload. Pipeline E5 omite o bloco quando `False`. Frontend só checa presença (`if (!data.cenarios_conjuge) return null`) — zero lógica de elegibilidade duplicada em TS (ADR-143 combate drift backend↔frontend).
+
+**Critérios de elegibilidade (universal, Cerbasi/Perini, ≤20 linhas):**
+
+```python
+def should_render_conjuge_scenarios(*, family_members, fluxo, goals) -> bool:
+    """ADR-167: cenário 'cônjuge sem trabalhar' é elegível?
+
+    Critérios:
+    - Meta IF presente (if_meta > 0)
+    - ≥2 membros com renda recorrente
+    - Renda do cônjuge ≥15% da renda familiar total
+
+    Casos:
+      Solteiro / 1 renda                → False (sem o que stressar)
+      Casal sem meta IF                 → False (sem âncora de impacto)
+      Casal 95/5 (cônjuge < 15%)         → False (impacto < ruído)
+      Casal 70/30 + meta IF              → True
+      Casal 60/40 + meta IF              → True
+    """
+```
+
+**Alternativas avaliadas:**
+
+- (a) Frontend decide (sempre recebe payload, oculta quando vazio) — duplica regra em TS; risco de drift que ADR-143 combate.
+- (b) `section_summary_orchestrator` decide quais seções listar — orchestrator é seção-level, gate é chart-level; granularidade errada.
+- (c) **Pipeline E5 emite ou omite** ✅ — uma camada decide; frontend confia no payload.
+
+**Consequências:**
+
+- ✅ Regra co-localizada com enforcer (ADR-143).
+- ✅ APP_C dinâmico: workspace solteiro → APP_C ausente; workspace casal 70/30 → APP_C presente.
+- ✅ Numeração estável A/B/C/D/E preservada — APP_C oculto não recompõe APP_D para "C" (D4 do plano A8.4).
+- ⚠️ Mudança de elegibilidade entre ciclos do mesmo workspace (ex.: cônjuge passa a ter renda) muda payload — esperado e desejável; planner explica ao cliente.
+
+**Critério de aceite (PR2):**
+
+- 4 unit tests cobrindo: 1 renda, 2 rendas casal elegível, 2 rendas solteiro, casal sem renda do cônjuge.
+- Workspace de teste com 1 renda → payload sem `cenarios_conjuge`.
+- Workspace de teste com 2 rendas 70/30 + meta IF → payload com `cenarios_conjuge` (1 cenário).
+
+**Follow-ups:**
+
+1. Cenários adicionais (perda de renda do titular, aposentadoria antecipada) propostos pelo financial-planner — backlog futuro (A8.4 §8 backlog).
 
 ---
 

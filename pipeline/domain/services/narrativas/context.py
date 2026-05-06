@@ -27,6 +27,8 @@ class NarrativasContext:
     # Keys derivadas (paridade com globals legados)
     key_inv_titular: str
     key_inv_conjuge: str
+    # `cenarios_conjuge` é chave estável universal pós-ADR-166 — `from_family_config`
+    # injeta o literal; campo permanece no value object por simetria com as demais.
     key_cenarios_conjuge: str
     key_idade_titular_if: str
     key_sal_conjuge: str
@@ -56,7 +58,7 @@ class NarrativasContext:
             conjuge_nome=conjuge_nome,
             key_inv_titular=f"investimentos_{titular_key}",
             key_inv_conjuge=f"investimentos_{conjuge_key}",
-            key_cenarios_conjuge=f"cenarios_{conjuge_key}",
+            key_cenarios_conjuge="cenarios_conjuge",  # ADR-166: chave estável
             key_idade_titular_if=f"idade_{titular_key}_if",
             key_sal_conjuge=f"salario_{conjuge_key}",
             key_inst_titular=f"{titular_key}_instituicoes",

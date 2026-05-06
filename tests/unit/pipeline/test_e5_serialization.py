@@ -255,14 +255,14 @@ class TestBuildOutput:
         assert len(out["tarefas"]) == 1
         assert out["tarefas"][0]["t"] == "Reforçar reserva"
 
-    def test_cenarios_conjuge_usa_key_configuravel(self):
-        inp = _inputs(
-            cenarios_conjuge={"cenarios": [1, 2, 3]},
-            cenarios_conjuge_key="cenarios_ana",
-        )
+    def test_cenarios_conjuge_usa_chave_universal_estavel(self):
+        """ADR-166: chave do payload é literal `cenarios_conjuge`, fixa e não-configurável."""
+        inp = _inputs(cenarios_conjuge={"cenarios": [1, 2, 3]})
         out = build_e5_output(inp)
-        assert "cenarios_ana" in out
-        assert "cenarios_conjuge" not in out
+        assert "cenarios_conjuge" in out
+        assert out["cenarios_conjuge"] == {"cenarios": [1, 2, 3]}
+        # Garantir que o campo configurável foi removido do dataclass.
+        assert not hasattr(inp, "cenarios_conjuge_key")
 
     def test_narrativas_preservada_quando_existing(self):
         inp = _inputs(existing_narrativas={"resumo": "texto antigo"})

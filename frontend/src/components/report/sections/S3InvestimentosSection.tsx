@@ -30,7 +30,11 @@ interface Ratios {
 export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
   const inv = data.investimentos as unknown as InvestimentosBlock | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
-  const cenarios = data.cenarios_mariana as { aportes?: number[]; labels?: string[] } | undefined;
+  // ADR-166 (A8.4): chave estável `cenarios_conjuge`; fallback `cenarios_mariana`
+  // mantido transitório até PR3 (A8.4) após backfill em prod.
+  const cenarios = (data.cenarios_conjuge ?? data.cenarios_mariana) as
+    | { aportes?: number[]; labels?: string[] }
+    | undefined;
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const ratios = data.ratios as unknown as Ratios | undefined;

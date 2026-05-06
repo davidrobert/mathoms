@@ -155,15 +155,16 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
   );
 }
 
-/** ADR-117/122 · Fase 10 — APP_C: Cenários Alternativos.
+/** ADR-117/122 · Fase 10 + ADR-166 (A8.4) — APP_C: Cenários Alternativos.
  *
- * Resume cenário atual vs alternativo. Usa data.cenarios_mariana ou
- * data.programa_milhas; fallback "sem cenários" se ausentes.
+ * Resume cenário atual vs alternativo. Lê `data.cenarios_conjuge` (chave
+ * estável universal pós ADR-166) com fallback para `data.cenarios_mariana`
+ * (legado, removido em PR3 A8.4 após backfill em prod).
  */
 export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = getNarrativas(data);
   const fallback = deriveSectionSummary("APP_C", data);
-  const cenarios = data.cenarios_mariana as
+  const cenarios = (data.cenarios_conjuge ?? data.cenarios_mariana) as
     | {
         labels?: string[];
         aportes?: number[];
