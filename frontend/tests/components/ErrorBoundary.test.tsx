@@ -38,12 +38,14 @@ describe("<ErrorBoundary />", () => {
       </ErrorBoundary>,
     );
     expect(screen.getByRole("alert")).toBeInTheDocument();
-    expect(screen.getByText(/Algo deu errado/)).toBeInTheDocument();
+    expect(screen.getByText(/Não conseguimos carregar esta página/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Tentar novamente/ })).toBeInTheDocument();
+    // Detalhes técnicos ficam atrás de <details> — texto presente no DOM
+    expect(screen.getByText("Detalhes técnicos")).toBeInTheDocument();
     expect(screen.getByText(/Chart quebrou/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Recarregar/ })).toBeInTheDocument();
   });
 
-  it("botão 'Recarregar' reseta state e re-renderiza children", async () => {
+  it("botão 'Tentar novamente' reseta state e re-renderiza children", async () => {
     const user = userEvent.setup();
     let crashNow = true;
     function Toggle() {
@@ -55,10 +57,10 @@ describe("<ErrorBoundary />", () => {
         <Toggle />
       </ErrorBoundary>,
     );
-    expect(screen.getByText(/Algo deu errado/)).toBeInTheDocument();
+    expect(screen.getByText(/Não conseguimos carregar esta página/)).toBeInTheDocument();
 
     crashNow = false;
-    await user.click(screen.getByRole("button", { name: /Recarregar/ }));
+    await user.click(screen.getByRole("button", { name: /Tentar novamente/ }));
     expect(screen.getByText("recuperado")).toBeInTheDocument();
   });
 
@@ -102,6 +104,6 @@ describe("<ErrorBoundary />", () => {
       </div>,
     );
     expect(screen.getByText("sibling intacto")).toBeInTheDocument();
-    expect(screen.getByText(/Algo deu errado/)).toBeInTheDocument();
+    expect(screen.getByText(/Não conseguimos carregar esta página/)).toBeInTheDocument();
   });
 });
