@@ -28,6 +28,7 @@ logger = logging.getLogger("mathoms.llm.section_summaries")
 _PROMPT_YAML = "config/prompts/section_summaries.yaml"
 
 #: Section IDs cobertos por LLM em v2.9 — paridade com YAML.
+#: ADR-168 (A8.4 PR4): U1/U2 removidos com Modo USA.
 SUPPORTED_SECTION_IDS: tuple[str, ...] = (
     "S1",
     "S2",
@@ -40,8 +41,6 @@ SUPPORTED_SECTION_IDS: tuple[str, ...] = (
     "T2",
     "T3",
     "T5",
-    "U1",
-    "U2",
 )
 
 
@@ -110,8 +109,6 @@ _GENERIC_FALLBACK: dict[str, str] = {
     "T2": "Cobertura da meta de aportes do ciclo.",
     "T3": "Tributação tática do ciclo.",
     "T5": "Cenários e simulações considerados.",
-    "U1": "Estrutura F1/F2 e custos da transição para os EUA.",
-    "U2": "Green Card EB2-NIW e compliance.",
 }
 
 
@@ -236,13 +233,11 @@ _SECTION_KEYS: dict[str, tuple[str, ...]] = {
     "S2": ("fluxo_caixa", "diagnostico_comportamental"),
     "S3": ("investimentos",),
     "S4": ("patrimonio",),
-    "S7": ("cenarios_mariana", "ratios"),
+    "S7": ("cenarios_conjuge", "ratios"),
     "S8": ("previdencia_pgbl", "ratios"),
     "S9": ("alertas", "pontos_urgentes"),
     "S10": ("score", "pontos_fortes", "pontos_urgentes"),
     "T2": ("goals", "investimentos"),
     "T3": ("ratios",),
-    "T5": ("cenarios_mariana",),
-    "U1": ("goals", "fluxo_caixa"),
-    "U2": ("goals",),
+    "T5": ("cenarios_conjuge",),
 }

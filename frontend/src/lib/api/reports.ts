@@ -89,7 +89,9 @@ export interface ReportAnalysisData {
   tarefas_status?: Record<string, unknown>;
   investimentos?: Record<string, unknown>;
   equilibrio_cerbasi?: Record<string, unknown>;
-  cenarios_mariana?: Record<string, unknown>;
+  /** ADR-166 (A8.4): chave estável universal. Bloco populado quando o gate
+   *  `should_render_conjuge_scenarios` (ADR-167) retorna True. */
+  cenarios_conjuge?: Record<string, unknown>;
   programa_milhas?: Record<string, unknown>;
   alertas?: unknown[];
   consumo_consciente?: Record<string, unknown>;

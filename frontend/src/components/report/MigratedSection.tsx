@@ -17,20 +17,13 @@ import {
   ApendiceDSection,
   ApendiceESection,
 } from "./sections/ApendicesSections";
-import {
-  U1MudancaEuaSection,
-  U2GreenCardSection,
-  U3NclexSection,
-  U4SimulacaoMarianaSection,
-} from "./sections/UsaSections";
 
 /** Conjunto de IDs de seções com renderer concreto. Mantém o shell desacoplado
  *  do dispatcher. ADR-157 inclui as seções IRPF (degrada gracioso quando
- *  workspaces não têm `irpf_kpis`). */
+ *  workspaces não têm `irpf_kpis`). Modo USA (U1-U4) removido em ADR-168. */
 export const MIGRATED_SECTIONS: ReadonlySet<string> = new Set([
   "S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10",
   "S_IRPF_RENDA", "S_IRPF_OTIMIZACAO",
-  "U1", "U2", "U3", "U4",
   "plano_de_acao",
   "APP_A", "APP_B", "APP_C", "APP_D", "APP_E",
 ]);
@@ -69,14 +62,6 @@ export function MigratedSection({
       return <S9RiscosSection data={data} />;
     case "S10":
       return <S10SinteseSection data={data} />;
-    case "U1":
-      return <U1MudancaEuaSection data={data} />;
-    case "U2":
-      return <U2GreenCardSection data={data} />;
-    case "U3":
-      return <U3NclexSection data={data} />;
-    case "U4":
-      return <U4SimulacaoMarianaSection data={data} />;
     case "plano_de_acao":
       return <PlanoDeAcaoSection workspaceId={workspaceId} />;
     case "APP_A":

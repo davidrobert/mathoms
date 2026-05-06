@@ -362,15 +362,15 @@ class E5AnalyzerAdapter:
             # cônjuge, ``conjuge_key``/``conjuge_nome`` ficam vazios — o que
             # reflete nas chaves ``salario__clt_brl`` etc. Não impomos
             # default ``"mariana"`` aqui para preservar o output do legado.
+            # ADR-167 (A8.4 PR2): analyzer simplificado — sem dependência de
+            # USD/cambio. ``taxas``/``cambio_usd_brl`` deixam de fluir aqui.
             cenarios_cfg = CenariosConjugeConfig.from_configs(
                 goals=goals,
-                taxas=taxas,
                 titular_dob=titular_dob,
                 titular_key=member_cfg.titular_key,
                 conjuge_key=member_cfg.conjuge_key,
                 conjuge_nome=(member_cfg.conjuge_key or "").title(),
                 reference_date=reference_date,
-                cambio_usd_brl=cambio_usd_brl,
             )
             cenarios_analyzer = CenariosConjugeAnalyzer(cenarios_cfg)
 

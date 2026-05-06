@@ -78,7 +78,7 @@ def _collect_ids(sections: list[dict[str, Any]], key: str) -> list[str]:
 
 
 def render_ts(layout: dict[str, Any]) -> str:
-    all_sections = layout["estrategico"]["sections"] + layout["usa"]["sections"]
+    all_sections = layout["estrategico"]["sections"]
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")
 
@@ -100,7 +100,7 @@ def render_ts(layout: dict[str, Any]) -> str:
         "",
         "export type CardSize = 'full' | 'half';",
         "",
-        "export type ReportMode = 'estrategico' | 'usa';",
+        "export type ReportMode = 'estrategico';",
         "",
         "export type TopBorder = 'danger' | 'accent';",
         "",
@@ -194,7 +194,6 @@ def render_ts(layout: dict[str, Any]) -> str:
         "",
         "export interface NavigationSpec {",
         "  estrategico?: NavGroupSpec[];",
-        "  usa?: NavGroupSpec[];",
         "}",
         "",
         "export interface ReportLayout {",
@@ -202,9 +201,6 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  estrategico: {",
         "    sections: SectionSpec[];",
         "    appendices?: AppendixSpec[];",
-        "  };",
-        "  usa: {",
-        "    sections: SectionSpec[];",
         "  };",
         "  cover?: CoverSpec;",
         "  navigation?: NavigationSpec;",
@@ -257,7 +253,7 @@ CardVariant = Literal[
 
 CardSize = Literal["full", "half"]
 
-ReportMode = Literal["estrategico", "usa"]
+ReportMode = Literal["estrategico"]
 
 TopBorder = Literal["danger", "accent"]
 
@@ -358,7 +354,6 @@ class NavGroupSpec(_Base):
 
 class NavigationSpec(_Base):
     estrategico: list[NavGroupSpec] = []
-    usa: list[NavGroupSpec] = []
 
 
 class Estrategico(_Base):
@@ -366,16 +361,11 @@ class Estrategico(_Base):
     appendices: list[AppendixSpec] = []
 
 
-class Usa(_Base):
-    sections: list[SectionSpec]
-
-
 class ReportLayout(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     version: str
     estrategico: Estrategico
-    usa: Usa
     cover: CoverSpec | None = None
     navigation: NavigationSpec | None = None
     footer: bool | None = None
@@ -388,7 +378,7 @@ class ReportLayout(BaseModel):
 
 
 def render_py(layout: dict[str, Any]) -> str:
-    all_sections = layout["estrategico"]["sections"] + layout["usa"]["sections"]
+    all_sections = layout["estrategico"]["sections"]
     all_cards = _collect_ids(all_sections, "cards")
     all_charts = _collect_ids(all_sections, "charts")
 

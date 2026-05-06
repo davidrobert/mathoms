@@ -691,6 +691,10 @@ def _record_stage_needs_review(
     result,
     elapsed_ms: int,
 ) -> None:
+    validation = result.detail.get("validation", {}) if result.detail else {}
+    legacy_text = "\n".join(validation.get("errors", []))
+    structured_issues = validation.get("issues") or None  # ADR-165 onda 2
+
     with SyncSessionLocal() as db:
         stage_log = db.get(PipelineStageLog, log_id)
         stage_log.status = PipelineStageStatus.needs_review
@@ -703,7 +707,8 @@ def _record_stage_needs_review(
                 stage=stage_name,
                 status=StageReviewStatus.pending,
                 original_output_json=result.detail,
-                validation_errors="\n".join(result.detail["validation"].get("errors", [])),
+                validation_errors=legacy_text,
+                validation_issues=structured_issues,
             )
         )
         run = db.get(PipelineRun, run_id)

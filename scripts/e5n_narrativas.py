@@ -65,7 +65,6 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
 
     _KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}"
     _KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}"
-    _KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
     _KEY_IDADE_TITULAR_IF = f"idade_{_TITULAR_KEY}_if"
     _KEY_SAL_CONJUGE = f"salario_{_CONJUGE_KEY}"
     _KEY_INST_TITULAR = f"{_TITULAR_KEY}_instituicoes"
@@ -118,7 +117,6 @@ _TITULAR_NOME: str = ""
 _CONJUGE_NOME: str = ""
 _KEY_INV_TITULAR: str = "investimentos_"
 _KEY_INV_CONJUGE: str = "investimentos_"
-_KEY_CENARIOS_CONJUGE: str = "cenarios_"
 _KEY_IDADE_TITULAR_IF: str = "idade__if"
 _KEY_SAL_CONJUGE: str = "salario_"
 _KEY_INST_TITULAR: str = "_instituicoes"
@@ -360,7 +358,7 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
     decisoes = goals_cfg.get("decisoes_prioritarias", [])
 
     # --- Cenários cônjuge (computed by E5) ---
-    cm = e5_data.get(_KEY_CENARIOS_CONJUGE, {})
+    cm = e5_data.get("cenarios_conjuge", {})
 
     # --- Computed percentages (Cat. A) ---
     despesas_nao_id = desp_cat.get("nao_identificado", 0)

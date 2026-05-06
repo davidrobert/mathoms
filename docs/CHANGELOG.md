@@ -6,6 +6,42 @@
 
 ## [Unreleased]
 
+- **refactor(report,frontend,config): A8.4 PR4 — remoção do Modo USA inteiro (ADR-168) (2026-05-06):**
+  Modo USA do relatório (U1 Mudança EUA F1/F2 + U2 Green Card EB2-NIW + U3 NCLEX Roadmap + U4 Simulação Mariana Sem Trabalhar) **deletado por completo**, ancorando em ADR-151 (modos opcionais sem cliente real são lastro). ReportMode passa de `'estrategico' | 'usa'` para literal único `'estrategico'`.
+  YAML: `config/report_layout.yaml` — bloco `usa:` (4 seções) removido; `nav.usa` removido; charts USA-only deletados de `chart_canvas_map`/`chart_titles`/`section_charts` (`mariana_cenarios_usa`, `custos_f1f2`, `cenarios_cambiais`); `usa_section_charts` deletado; comentários do registry de cards (NCLEX/Mariana) limpos. `chart_canvas_map.mariana_cenarios` renomeado para `cenarios_conjuge`.
+  Codegen `dev/codegen_report_layout.py` simplificado: `render_ts`/`render_py` dropam `layout["usa"]["sections"]`; `ReportMode = Literal["estrategico"]`; `NavigationSpec.usa` removido; `Usa` Pydantic class deletada. `frontend/src/generated/report-layout.ts` + `backend/app/generated/report_layout.py` regenerados.
+  Frontend: `UsaSections.tsx` **deletado** (494 LOC); `MigratedSection.tsx` perde imports U1-U4 + cases; `ReportShell.tsx::selectSections` aceita só `'estrategico'`; `buildNavGroups` retorna `{estrategico}` apenas; `ReportTopNav::groupsByMode` reduzido; `ReportActions::VISIBLE_MODES`/`MODE_LABELS`/`MODE_TOOLTIPS` reduzidos; `ModeToggle::modes` reduzido; `ReportSection::mode` literal único; `ReportModeContext::VALID_MODES` reduzido; comentário no `MigratedSection` referencia ADR-168. `conclusionUtils.ts`: U1-U4 + `mariana_cenarios_usa` + `custos_f1f2` + `cenarios_cambiais` removidos; `mariana_cenarios` renomeado para `cenarios_conjuge`. `ApendiceASection.tsx`: glossário FBAR/FATCA/PFIC/EB2-NIW/NCLEX-RN removido (ficou família-específico). `SuggestionCallout.tsx`: comentário S2/S7/U1 → S2/S7.
+  Tests: `frontend/tests/components/report/usaSections.test.tsx` **deletado**; `dataAdapters.test.ts::U2 Green Card` substituído por `APP_C estresse`; `sections.snapshots.visual.spec.ts` perde describe USA + USA_SECTIONS + 8 baselines; `a11y.@critical.spec.ts` perde describe USA + USA_SECTIONS.
+  Prompts: `config/prompts/section_summaries.yaml::U1`/`U2` removidos; `chart_conclusions.yaml::mariana_cenarios`/`mariana_cenarios_usa` substituídos por `cenarios_conjuge`.
+  ADR-168 (Decidido) registrada em `docs/DECISIONS.md` — supersede parcial ADR-117/123, conclui agenda ADR-151.
+
+- **refactor(pipeline): A8.4 PR2 — eligibility gate + analyzer reduzido a 1 cenário (ADR-167) (2026-05-06):**
+  `CenariosConjugeAnalyzer` reduzido de 3 cenários família-específicos ("Sem Trabalhar", "Com NCLEX", "Com NCLEX + Green Card") para **1 cenário universal** "Sem renda do cônjuge". `_LABELS = ("Sem renda do cônjuge",)`. Removidos do `CenariosConjugeConfig`: defaults USD/cambio (`renda_rn_minima_usd`, `renda_rn_maxima_usd`, `cambio_usd_brl`, `surplus_share_pct`, `surplus_cap_pct`); helpers `_resumo_s2`/`_resumo_s3`; premissas `renda_nclex_*`, `renda_gc_*`, `recovery_*_pct`. `from_configs(taxas=..., cambio_usd_brl=...)` simplificado para `from_configs(goals=..., titular_dob=..., ...)` — pipeline interno sem dependência de USD pós PR2.
+  Nova função pura `should_render_conjuge_scenarios(*, family_members, fluxo, goals) -> bool` no mesmo domain service (ADR-167) decide elegibilidade: meta IF presente E ≥2 membros com renda recorrente E renda do cônjuge ≥15% da renda familiar total. Pipeline E5 omite o bloco quando `False`; frontend só checa presença. **5 casos canônicos cobertos por unit tests** (solteiro, casal sem meta IF, casal 95/5, casal 70/30 elegível, casal sem renda do cônjuge).
+  `pipeline/domain/services/e5_analyzer_adapter.py:365` atualizado: `CenariosConjugeConfig.from_configs` invocado sem `taxas`/`cambio_usd_brl`. Tests dependentes ajustados: `tests/unit/pipeline/test_a72b_typed_inputs.py::TestCenariosConjugeWithTypedCambio` removida (4 tests da feature A7.2b — `cambio_usd_brl` no analyzer — não existe mais); `tests/unit/pipeline/test_cenarios_conjuge_analyzer.py` reescrito (260 → 240 LOC, 16 tests cobrindo 1 cenário + gate). Pipeline 1750/1750 verde (+16 vs PR1).
+  ADR-167 movida para Status `Decidido (A8.4 PR2)`.
+
+- **refactor(pipeline,backend,frontend): A8.4 PR1 — schema estável `cenarios_conjuge` no payload E5 (ADR-166) (2026-05-06):**
+  Chave do bloco "Cenários do cônjuge" no JSON E5 passa de `cenarios_{_CONJUGE_KEY}` (workspace-dependent — gerava `cenarios_mariana` no piloto, `cenarios_ana` em hipotético) para literal universal `cenarios_conjuge`. **5 sites do producer atualizados** atomicamente: `pipeline/domain/services/e5_serialization.py` (campo `cenarios_conjuge_key` removido do dataclass; chave literal no dict), `scripts/e5_analyze.py:147,3105` (global `_KEY_CENARIOS_CONJUGE` + kwarg removidos), `scripts/e5n_narrativas.py:68,121,363` (mesma limpeza), `pipeline/domain/services/narrativas/context.py:59` (`key_cenarios_conjuge="cenarios_conjuge"` literal pós ADR-166). Consumers atualizados: `pipeline/stages/review_finances.py:59` (`_E5_SUBKEYS`), `backend/app/services/section_summary_orchestrator.py:239,245` (S7/T5).
+  Frontend mantém **fallback dual-key transitório** (`data.cenarios_conjuge ?? data.cenarios_mariana`) em 3 components (ApendicesSections, S3InvestimentosSection, UsaSections) + types em `frontend/src/lib/api/reports.ts` durante PR1→PR3; `cenarios_mariana` marcado `@deprecated`. Fixtures: `frontend/tests/components/report/{apendices,usaSections}.test.tsx`, `frontend/tests/e2e/fixtures/reports/medium.json:117` migradas para chave nova.
+  Tests Python: `tests/unit/pipeline/test_e5_serialization.py:258-265` invertido — `test_cenarios_conjuge_usa_key_configuravel` → `test_cenarios_conjuge_usa_chave_universal_estavel` (documenta que campo configurável foi removido; regressão-bloqueada por dataclass shape). Pipeline 1734/1734 + backend 1593/1593 verdes.
+  Logging `INFO` em `mathoms.pipeline.e5_serialization` (`extra={"key": "cenarios_conjuge", "has_data": ...}`) para confirmar migração via Loki/Cloudwatch.
+  **Sem mudanças em DB/schema:** `pipeline_artifacts.content_json` é JSON cru sem index; OpenAPI snapshot inalterado (`/reports/{id}/data` retorna `{type: object}`); LLM cache (ADR-144) invalida sozinho via hash de payload. **Backfill operacional:** novo script `dev/backfill_e5_universal_keys.py` (idempotente) re-roda `analyze_finances` em workspaces com chave legada após o merge do PR1, antes do PR3 remover o fallback. ADR-166 + ADR-167 (eligibility gate, status Proposto para PR2) registradas em `docs/DECISIONS.md`. Glossary `docs/ARCHITECTURE.md §4.1` atualizada.
+
+- **docs(plan): A8.4 Cenários de Estresse — plano canônico + lane no BACKLOG (2026-05-06):**
+  [docs/CENARIOS_ESTRESSE_PLAN.md](CENARIOS_ESTRESSE_PLAN.md) entregue como SOT da iniciativa
+  "remover prototipagem família-específica + APP_C universal". 4 especialistas consultados em
+  paralelo (financial-planner, product-designer, senior-cto, data-engineer); decisões D1-D5
+  fixadas; 6 PRs sequenciais escopados (PR0 docs · PR1 schema rename `cenarios_mariana` →
+  `cenarios_conjuge` em 5 sites · PR2 gate de elegibilidade `should_render_conjuge_scenarios`
+  + analyzer reduzido a 1 cenário · PR3 frontend lê chave nova + APP_C "Cenários de Estresse"
+  com hide-when-empty + numeração estável A/B/C/D/E + visualização comparativa lado-a-lado
+  base vs estresse · PR4 delete Modo USA U1-U4 inteiro · PR5 limpeza). 3 ADRs alvo: ADR-165
+  (remoção Modo USA, supersede parcial ADR-117/123, conclui agenda ADR-151), ADR-166
+  (schema estável `cenarios_conjuge` no payload E5, ancora ADR-143 + ADR-076), ADR-167
+  (eligibility gate no domain service, ancora ADR-143). Lane A8.4 aberta no
+  [BACKLOG.md](BACKLOG.md#sprint-a8--continuação-multi-tenant-aberta-após-a7-fechar-2026-04-27).
+
 - **feat(db): B7 M3 — DROP _legacy_kanban_items + _legacy_report_notes + model cleanup (ADR-154) (2026-05-05):**
   Migration final após 7 dias de validação pós-M2 (2026-04-29). `_legacy_kanban_items` e
   `_legacy_report_notes` DROPadas. Cleanup de todos os artefatos dependentes:

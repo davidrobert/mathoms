@@ -87,8 +87,8 @@ describe("deriveSectionSummary()", () => {
     expect(deriveSectionSummary("S10", data)).toContain("Excelente");
   });
 
-  it("U2 é template simples sem interpolação", () => {
-    expect(deriveSectionSummary("U2", {} as ReportAnalysisData)).toContain("Green Card");
+  it("APP_C é template simples sem interpolação", () => {
+    expect(deriveSectionSummary("APP_C", {} as ReportAnalysisData)).toContain("estresse");
   });
 
   it("Seção desconhecida retorna null", () => {

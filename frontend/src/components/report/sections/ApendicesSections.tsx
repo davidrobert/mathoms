@@ -3,9 +3,13 @@
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
 import { SectionSummary } from "../SectionSummary";
-import { ChangelogList, type ChangelogEntry } from "../ui/ChangelogList";
+import { StressScenarioCard } from "../cards/StressScenarioCard";
+import {
+  SnapshotChangelogList,
+  type SnapshotChangelogEntryView,
+} from "../ui/SnapshotChangelogList";
 import { deriveSectionSummary } from "../utils/conclusionUtils";
-import type { ReportAnalysisData } from "@/lib/api";
+import type { ChangelogEntryRead, ReportAnalysisData } from "@/lib/api";
 
 function getNarrativas(data: ReportAnalysisData): Record<string, unknown> | undefined {
   return data.narrativas as Record<string, unknown> | undefined;
@@ -152,20 +156,28 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
   );
 }
 
-/** ADR-117/122 · Fase 10 — APP_C: Cenários Alternativos.
+/** ADR-167 (A8.4 PR3) — APP_C: Cenários de Estresse.
  *
- * Resume cenário atual vs alternativo. Usa data.cenarios_mariana ou
- * data.programa_milhas; fallback "sem cenários" se ausentes.
+ * Hide-when-empty com numeração estável: quando `data.cenarios_conjuge`
+ * (e `data.programa_milhas`) ausentes, seção retorna `null` — APP_D
+ * permanece rotulado "D" porque a numeração no YAML é literal, não
+ * recomputada.
+ *
+ * Visualização (D3 do plano A8.4): comparativo lado-a-lado base vs.
+ * cenário de estresse com delta explícito + parágrafo "Leitura:" para
+ * justificar o stress test em tom não-alarmista (CVM/Susep).
  */
 export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = getNarrativas(data);
   const fallback = deriveSectionSummary("APP_C", data);
-  const cenarios = data.cenarios_mariana as
+  const cenarios = data.cenarios_conjuge as
     | {
         labels?: string[];
         aportes?: number[];
         prazos_if?: number[];
         anos_if?: number[];
+        cenarios?: Array<{ aporte_mensal?: number; prazo_if_anos?: number; ano_if?: number; resumo?: string }>;
+        premissas?: { aporte_base?: number };
       }
     | undefined;
   const milhas = data.programa_milhas as
@@ -175,34 +187,30 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
         observacao?: string;
       }
     | undefined;
+  const goals = data.goals as { if_prazo_anos?: number; if_ano?: number } | undefined;
 
   const hasCenarios = !!cenarios?.labels && cenarios.labels.length > 0;
   const hasMilhas =
     !!milhas && (milhas.saldo_total != null || milhas.valor_estimado != null);
 
+  // ADR-167 hide-when-empty: workspace inelegível (gate retorna False) →
+  // seção some completamente. Numeração A/B/D/E preservada.
+  if (!hasCenarios && !hasMilhas) {
+    return null;
+  }
+
   return (
-    <ReportSection id="APP_C" title="Apêndice C — Cenários Alternativos">
+    <ReportSection id="APP_C" title="Apêndice C — Cenários de Estresse">
+      <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
+        Como o seu plano se comporta se uma premissa central mudar. Não são
+        previsões — são testes de resiliência para validar a margem de
+        segurança do plano atual.
+      </p>
       <SectionSummary narrativas={narrativas} sectionId="APP_C" />
       <SectionFallback narrativas={narrativas} sectionId="APP_C" text={fallback} />
 
       {hasCenarios && (
-        <ReportCard variant="feature" title="Cenários IF — Cônjuge" size="full">
-          <SimpleTable
-            headers={["Cenário", "Aporte/mês", "Prazo (anos)", "Ano IF"]}
-            rows={(cenarios?.labels ?? []).map((label, i) => [
-              label,
-              cenarios?.aportes?.[i] != null
-                ? cenarios.aportes[i].toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                    maximumFractionDigits: 0,
-                  })
-                : "—",
-              cenarios?.prazos_if?.[i]?.toFixed(1) ?? "—",
-              cenarios?.anos_if?.[i] ?? "—",
-            ])}
-          />
-        </ReportCard>
+        <StressScenarioCard cenarios={cenarios!} goals={goals} />
       )}
 
       {hasMilhas && (
@@ -240,17 +248,10 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
           )}
         </ReportCard>
       )}
-
-      {!hasCenarios && !hasMilhas && (
-        <ReportCard variant="neutral" title="Cenários Alternativos" size="full">
-          <p className="text-sm text-[var(--surface-muted-foreground)]">
-            Sem cenários alternativos registrados neste ciclo.
-          </p>
-        </ReportCard>
-      )}
     </ReportSection>
   );
 }
+
 
 /** ADR-117/122 · Fase 10 — APP_D: Referências e Fontes.
  *
@@ -317,34 +318,27 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
   );
 }
 
-interface ChangelogEntryData {
-  readonly id?: string;
-  readonly headline?: string;
-  readonly meta?: string;
-  readonly severity?: "info" | "change" | "highlight";
+function toEntryView(entry: ChangelogEntryRead): SnapshotChangelogEntryView {
+  return {
+    section_id: entry.section_id,
+    summary: entry.summary,
+    delta_signal: entry.delta_signal,
+    delta_pct: entry.delta_pct,
+  };
 }
 
 /** ADR-117/122 · Fase 10 — APP_E: Próximos Ciclos e Roadmap.
  *
- * Renderiza ChangelogList consumindo narrativas.changelog quando presente;
- * caso contrário, mostra empty state positivo.
+ * Consolida `data.changelog` (v2.8 · ADR-148) em "Histórico de Ciclos" — uma
+ * leitura panorâmica das mudanças do ciclo, complementar aos diffs por seção
+ * em S1/S2/S3/T2/T3/T5. `null` (primeiro relatório) e `[]` (nada acima do
+ * threshold) renderizam mensagens distintas — D3 da ADR-148.
  */
 export function ApendiceESection({ data }: { data: ReportAnalysisData }) {
   const narrativas = getNarrativas(data);
   const fallback = deriveSectionSummary("APP_E", data);
-  const changelogRaw = narrativas?.changelog as
-    | { ciclo?: string; entries?: ChangelogEntryData[] }
-    | undefined;
-
-  const entries: ChangelogEntry[] =
-    changelogRaw?.entries
-      ?.filter((e): e is ChangelogEntryData => !!e && !!e.headline)
-      .map((e, i) => ({
-        id: e.id ?? `changelog-${i}`,
-        headline: e.headline ?? "",
-        meta: e.meta,
-        severity: e.severity ?? "change",
-      })) ?? [];
+  const changelog = data.changelog;
+  const entries = (changelog ?? []).map(toEntryView);
 
   return (
     <ReportSection id="APP_E" title="Apêndice E — Próximos Ciclos e Roadmap">
@@ -353,11 +347,12 @@ export function ApendiceESection({ data }: { data: ReportAnalysisData }) {
 
       <ReportCard variant="highlight" title="Histórico de Ciclos" size="full">
         {entries.length > 0 ? (
-          <ChangelogList ciclo={changelogRaw?.ciclo} entries={entries} />
+          <SnapshotChangelogList entries={entries} />
         ) : (
           <p className="text-sm text-[var(--surface-muted-foreground)]">
-            Sem histórico de ciclos ainda — este é o primeiro relatório
-            publicado ou o snapshot não inclui changelog.
+            {changelog === null || changelog === undefined
+              ? "Primeiro relatório do workspace — sem comparativo com ciclo anterior."
+              : "Nenhuma mudança material desde o último relatório."}
           </p>
         )}
       </ReportCard>

@@ -60,27 +60,46 @@ describe("ApendiceBSection", () => {
   });
 });
 
-describe("ApendiceCSection", () => {
-  it("mostra empty state quando sem cenários", () => {
-    render(<ApendiceCSection data={emptyData()} />);
-    expect(
-      screen.getByText(/Sem cenários alternativos registrados/),
-    ).toBeInTheDocument();
+describe("ApendiceCSection (ADR-167 · A8.4 PR3)", () => {
+  it("retorna null (hide-when-empty) quando sem cenários e sem milhas", () => {
+    const { container } = render(<ApendiceCSection data={emptyData()} />);
+    expect(container.firstChild).toBeNull();
   });
 
-  it("renderiza tabela de cenários quando cenarios_mariana presente", () => {
+  it("renderiza visualização comparativa base vs estresse quando cenarios_conjuge presente", () => {
     const data = {
-      cenarios_mariana: {
-        labels: ["Base", "Stress"],
-        aportes: [5000, 3000],
-        prazos_if: [12.3, 18.7],
-        anos_if: [2038, 2044],
+      cenarios_conjuge: {
+        labels: ["Sem renda do cônjuge"],
+        aportes: [18500],
+        prazos_if: [19.5],
+        anos_if: [2046],
+        premissas: { aporte_base: 12000 },
+      },
+      goals: { if_prazo_anos: 14.2, if_ano: 2040 },
+    } as unknown as ReportAnalysisData;
+    render(<ApendiceCSection data={data} />);
+    expect(screen.getByText(/Apêndice C — Cenários de Estresse/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Premissa testada: Sem renda do cônjuge/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Cenário base/)).toBeInTheDocument();
+    expect(screen.getByText(/Cenário de estresse/)).toBeInTheDocument();
+    expect(screen.getByText(/Leitura:/)).toBeInTheDocument();
+  });
+
+  it("renderiza copy não-alarmista no subtítulo (CVM/Susep)", () => {
+    const data = {
+      cenarios_conjuge: {
+        labels: ["Sem renda do cônjuge"],
+        aportes: [10000],
+        prazos_if: [15],
+        anos_if: [2041],
+        premissas: { aporte_base: 8000 },
       },
     } as unknown as ReportAnalysisData;
     render(<ApendiceCSection data={data} />);
-    expect(screen.getByText("Base")).toBeInTheDocument();
-    expect(screen.getByText("Stress")).toBeInTheDocument();
-    expect(screen.getByText("12.3")).toBeInTheDocument();
+    expect(screen.getByText(/Não são previsões/)).toBeInTheDocument();
+    expect(screen.getByText(/testes de resiliência/)).toBeInTheDocument();
   });
 });
 
@@ -109,26 +128,52 @@ describe("ApendiceDSection", () => {
 });
 
 describe("ApendiceESection", () => {
-  it("mostra empty state quando sem changelog", () => {
+  it("primeiro relatório (changelog ausente) mostra copy de primeiro ciclo", () => {
     render(<ApendiceESection data={emptyData()} />);
-    expect(screen.getByText(/Sem histórico de ciclos ainda/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Primeiro relatório do workspace/),
+    ).toBeInTheDocument();
   });
 
-  it("renderiza ChangelogList quando narrativas.changelog presente", () => {
+  it("changelog null (sem ciclo anterior) usa copy de primeiro relatório", () => {
+    const data = { changelog: null } as unknown as ReportAnalysisData;
+    render(<ApendiceESection data={data} />);
+    expect(
+      screen.getByText(/Primeiro relatório do workspace/),
+    ).toBeInTheDocument();
+  });
+
+  it("changelog vazio (nada acima do threshold) usa copy de sem mudança material", () => {
+    const data = { changelog: [] } as unknown as ReportAnalysisData;
+    render(<ApendiceESection data={data} />);
+    expect(
+      screen.getByText(/Nenhuma mudança material desde o último relatório/),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza SnapshotChangelogList consolidado quando data.changelog tem entries (v2.8 · ADR-148)", () => {
     const data = {
-      narrativas: {
-        changelog: {
-          ciclo: "Ciclo Abr/2026",
-          entries: [
-            { id: "e1", headline: "Reserva atingiu 12 meses", severity: "highlight" },
-            { id: "e2", headline: "Alocação ajustada +5% IPCA+" },
-          ],
+      changelog: [
+        {
+          section_id: "S1",
+          summary: "Patrimônio Líquido avançou 20,0% no mês",
+          delta_signal: "up",
+          delta_pct: 20,
         },
-      },
+        {
+          section_id: "T5",
+          summary: "Despesas Totais subiu 8,5% no mês",
+          delta_signal: "up",
+          delta_pct: 8.5,
+        },
+      ],
     } as unknown as ReportAnalysisData;
     render(<ApendiceESection data={data} />);
-    expect(screen.getByText("Ciclo Abr/2026")).toBeInTheDocument();
-    expect(screen.getByText("Reserva atingiu 12 meses")).toBeInTheDocument();
-    expect(screen.getByText("Alocação ajustada +5% IPCA+")).toBeInTheDocument();
+    expect(
+      screen.getByText("Patrimônio Líquido avançou 20,0% no mês"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Despesas Totais subiu 8,5% no mês"),
+    ).toBeInTheDocument();
   });
 });

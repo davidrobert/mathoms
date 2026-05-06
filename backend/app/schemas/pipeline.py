@@ -1,12 +1,17 @@
 """Pydantic schemas for Pipeline execution endpoints."""
 
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Literal, Optional, Union
 
-from pydantic import BaseModel, field_serializer, field_validator
+from pydantic import BaseModel, computed_field, field_serializer, field_validator
 
 from backend.app.models.pipeline_run import PipelineRunStatus, PipelineStageStatus
 from backend.app.models.stage_review import StageReviewStatus
+
+# ADR-165: context aceita primitivos serializáveis em JSON. Todos os codes
+# atuais (e16.*) usam apenas str/int/float/bool/None — ver
+# `pipeline/llm/validators.py`. Nested dict não é permitido no boundary.
+ValidationContextValue = Union[str, int, float, bool, None]
 
 VALID_FROM_STAGES = {"E0", "E1", "E2", "E3", "E4", "E5", "E5.N", "E7"}
 
@@ -47,6 +52,34 @@ class PipelineStageLogResponse(BaseModel):
         return v.isoformat()
 
 
+class ValidationIssueDTO(BaseModel):
+    """ADR-165 onda 2: representação API de `pipeline.llm.validators.ValidationIssue`."""
+
+    code: str
+    severity: Literal["error", "warning"]
+    path: Optional[str] = None
+    context: dict[str, ValidationContextValue] = {}
+    legacy_message: str = ""
+
+
+def _summarize_issues(issues: list[ValidationIssueDTO]) -> str:
+    """Frase curta derivada de issues (ADR-165 D4) — fallback para clientes não-onda3."""
+    if not issues:
+        return ""
+    errors = [i for i in issues if i.severity == "error"]
+    warnings = [i for i in issues if i.severity == "warning"]
+    if len(errors) == 1 and not warnings:
+        return errors[0].legacy_message or errors[0].code
+    if not errors and len(warnings) == 1:
+        return warnings[0].legacy_message or warnings[0].code
+    parts = []
+    if errors:
+        parts.append(f"{len(errors)} erro(s)")
+    if warnings:
+        parts.append(f"{len(warnings)} aviso(s)")
+    return " + ".join(parts) + " na revisão"
+
+
 class StageReviewResponse(BaseModel):
     id: str
     pipeline_run_id: str
@@ -55,11 +88,18 @@ class StageReviewResponse(BaseModel):
     original_output_json: Optional[dict] = None
     edited_output_json: Optional[dict] = None
     validation_errors: Optional[str] = None
+    validation_issues: Optional[list[ValidationIssueDTO]] = None
     reviewer_notes: Optional[str] = None
     created_at: datetime
     reviewed_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def summary(self) -> str:
+        """Frase curta derivada (ADR-165 D4) — não persistida; recomputada por GET."""
+        return _summarize_issues(self.validation_issues or [])
 
 
 class StageReviewActionRequest(BaseModel):
