@@ -286,7 +286,7 @@ Decisões de domínio (financial-planner):
 | `docs/CENARIOS_ESTRESSE_PLAN.md` | **Este arquivo** — fonte canônica do plano | PR0 |
 | `docs/BACKLOG.md` | Adicionar lane "Cenários de Estresse" no Sprint A8 (ou onda equivalente) | PR0 |
 | `docs/CHANGELOG.md` | Entradas por PR | PR1-PR5 (cada um) |
-| `docs/DECISIONS.md` | ADR-165, ADR-166, ADR-167 + ToC | PR1, PR2, PR4 |
+| `docs/DECISIONS.md` | ADR-168, ADR-166, ADR-167 + ToC | PR1, PR2, PR4 |
 | `docs/ARCHITECTURE.md §4.1 Domain glossary` | Adicionar `cenarios_conjuge` ao glossário | PR1 |
 | `docs/REPORT_PREMIUM_PLAN.md` | Verificar referências a APP_C; atualizar se mencionar título antigo | PR3 |
 | `_archive/` (manual histórico) | **Não tocar** | — |
@@ -308,7 +308,7 @@ Decisões de domínio (financial-planner):
 
 **Critério de aceite:**
 - `pre-commit run --all-files` verde
-- `python3 dev/check_adr_anchors.py` verde (ADR-165/166/167 ainda não criadas; sem-âncora aceito)
+- `python3 dev/check_adr_anchors.py` verde (ADR-168/166/167 ainda não criadas; sem-âncora aceito)
 - Auto-merge habilitado (docs-only não exige CI)
 
 ### PR1 · rename schema `cenarios_mariana` → `cenarios_conjuge`
@@ -446,7 +446,7 @@ Decisões de domínio (financial-planner):
 - `frontend/tests/components/report/dataAdapters.test.ts` — remover refs USA
 - `config/prompts/section_summaries.yaml:470-480` — remover bloco U2
 - `config/prompts/chart_conclusions.yaml:84` — remover `mariana_cenarios_usa`
-- ADR-165: Remoção do Modo USA do relatório (supersede parcial ADR-117/123 + conclui agenda ADR-151)
+- ADR-168: Remoção do Modo USA do relatório (supersede parcial ADR-117/123 + conclui agenda ADR-151)
 - `docs/CHANGELOG.md` entrada
 - Atualizar `docs/REPORT_PREMIUM_PLAN.md` se referencia U1-U4
 
@@ -481,7 +481,7 @@ Decisões de domínio (financial-planner):
 
 ## 7. ADRs novas
 
-### ADR-165 — Remoção do Modo USA do relatório
+### ADR-168 — Remoção do Modo USA do relatório
 
 **Sprint host:** A8 (post-Onda 7/8/9) · **Status:** Decidido (PR4) · **Supersedes:** parcial ADR-117/ADR-123 (modos opcionais) · **Relacionada:** ADR-151 (modo Tático removido por mesma rationale)
 
@@ -608,10 +608,14 @@ Após PR5 mergeado:
 | `should_render_conjuge_scenarios()` | Função pura de elegibilidade; gate no domain service | `pipeline/domain/services/cenarios_conjuge_analyzer.py` |
 | Cenários de Estresse | Apêndice C do relatório premium; condicional ao gate de elegibilidade | `frontend/src/components/report/sections/ApendicesSections.tsx`, `config/report_layout.yaml` (APP_C) |
 | Hide-when-empty + numeração estável | Padrão UX: APP_C ausente quando inelegível, mas APP_D continua rotulado "D" (numeração A/B/C/D/E literal, não recomputada) | `config/report_layout.yaml`, `frontend/src/components/report/ReportToc.tsx` |
-| Modo USA | Antiga modalidade do relatório (U1-U4) — removida em PR4 | (deletado em ADR-165) |
+| Modo USA | Antiga modalidade do relatório (U1-U4) — removida em PR4 | (deletado em ADR-168) |
 
 ---
 
 ## Histórico
 
 - **2026-05-06:** plano criado (PR0). Especialistas consultados: financial-planner, product-designer, senior-cto, data-engineer.
+- **2026-05-06:** PR0 mergeado em `main` (commit `a4d956e`).
+- **2026-05-06:** PR1 aberto ([#80](https://github.com/davidrobert/mathoms/pull/80)) — schema rename `cenarios_conjuge` + ADR-166 Decidido + ADR-167 Proposto. Pipeline 1734/1734 + backend 1593/1593 verdes localmente.
+- **2026-05-06:** PR2 implementado — analyzer reduzido a 1 cenário + `should_render_conjuge_scenarios()` + ADR-167 Decidido. Pipeline 1750/1750 verde (+16 do gate).
+- **2026-05-06:** ADR-168 alvo do PR4 ("Remoção do Modo USA") **renumerada para ADR-168** — slot 165 foi tomado por outro PR (#79, ValidationIssue) durante a janela de execução desta iniciativa.
