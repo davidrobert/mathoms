@@ -140,6 +140,16 @@ export async function resumePipelineRun(workspaceId: string, runId: string): Pro
 /** Status do StageReview no backend (`backend/app/models/stage_review.py`). */
 export type StageReviewStatus = "pending" | "approved" | "edited";
 
+/** Issue de validação estruturada (ADR-165) — espelha
+ * `backend/app/schemas/pipeline.ValidationIssueDTO`. */
+export interface ValidationIssue {
+  code: string;
+  severity: "error" | "warning";
+  path: string | null;
+  context: Record<string, string | number | boolean | null>;
+  legacy_message: string;
+}
+
 /** Shape da resposta de `GET /reviews` e `POST /reviews/{id}` — espelha
  * `backend/app/schemas/pipeline.StageReviewResponse`. */
 export interface StageReviewResponse {
@@ -150,6 +160,10 @@ export interface StageReviewResponse {
   original_output_json: Record<string, unknown> | null;
   edited_output_json: Record<string, unknown> | null;
   validation_errors: string | null;
+  /** ADR-165 onda 2: lista estruturada de issues. NULL para reviews pré-cutover. */
+  validation_issues: ValidationIssue[] | null;
+  /** ADR-165 onda 2: frase curta derivada das issues no DTO. */
+  summary: string;
   reviewer_notes: string | null;
   created_at: string;
   reviewed_at: string | null;
