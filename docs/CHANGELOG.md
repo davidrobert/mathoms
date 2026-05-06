@@ -6,6 +6,22 @@
 
 ## [Unreleased]
 
+- **refactor(report): _find_top_asset usa fonte canônica top_ativos + schema E5 declara contrato (2026-05-06):**
+  Cleanup pós-PR #77. `scripts/e5n_narrativas.py::_find_top_asset` deixou de
+  ler `processed/E4_unified/investimentos-4_unified.json` (fonte legada
+  divergente do baseline consolidado v1.5) e passou a ler
+  `e5_data["investimentos"]["top_ativos"][0]` — populado pelo
+  `TopAtivosAnalyzer` (PR #77), coerente com `tabela_classes` e
+  `patrimonio_investivel` por consumir o mesmo `bens_por_membro`. Elimina
+  a categoria de bug "(R$ 0,00 de )" mesmo quando E4 stage está ausente.
+  `config/schemas/e5_analysis.schema.json` ganha definição formal do bloco
+  `investimentos` (`tabela_classes`, `total`, `top_ativos`) com `top_ativos`
+  como array de até 15 itens, `additionalProperties:false` no item, enums
+  para `classe` (6 valores) e `tipo_origem` (`investimento`/`imovel`),
+  `posicao 1..15`, `pct_carteira 0..100`. Aditivo — backward compat em modo
+  `warn` (default) e `strict`. 5 unit tests novos (`test_e5n_find_top_asset.py`)
+  + 2 schema tests positivos/negativos.
+
 - **refactor(report,frontend,config): A8.4 PR4 — remoção do Modo USA inteiro (ADR-168) (2026-05-06):**
   Modo USA do relatório (U1 Mudança EUA F1/F2 + U2 Green Card EB2-NIW + U3 NCLEX Roadmap + U4 Simulação Mariana Sem Trabalhar) **deletado por completo**, ancorando em ADR-151 (modos opcionais sem cliente real são lastro). ReportMode passa de `'estrategico' | 'usa'` para literal único `'estrategico'`.
   YAML: `config/report_layout.yaml` — bloco `usa:` (4 seções) removido; `nav.usa` removido; charts USA-only deletados de `chart_canvas_map`/`chart_titles`/`section_charts` (`mariana_cenarios_usa`, `custos_f1f2`, `cenarios_cambiais`); `usa_section_charts` deletado; comentários do registry de cards (NCLEX/Mariana) limpos. `chart_canvas_map.mariana_cenarios` renomeado para `cenarios_conjuge`.
