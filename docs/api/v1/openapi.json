@@ -6379,6 +6379,12 @@
           "status": {
             "$ref": "#/components/schemas/StageReviewStatus"
           },
+          "summary": {
+            "description": "Frase curta derivada (ADR-165 D4) \u2014 n\u00e3o persistida; recomputada por GET.",
+            "readOnly": true,
+            "title": "Summary",
+            "type": "string"
+          },
           "validation_errors": {
             "anyOf": [
               {
@@ -6389,6 +6395,20 @@
               }
             ],
             "title": "Validation Errors"
+          },
+          "validation_issues": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ValidationIssueDTO"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validation Issues"
           }
         },
         "required": [
@@ -6396,7 +6416,8 @@
           "pipeline_run_id",
           "stage",
           "status",
-          "created_at"
+          "created_at",
+          "summary"
         ],
         "title": "StageReviewResponse",
         "type": "object"
@@ -8452,6 +8473,69 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "ValidationIssueDTO": {
+        "description": "ADR-165 onda 2: representa\u00e7\u00e3o API de `pipeline.llm.validators.ValidationIssue`.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "context": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Context",
+            "type": "object"
+          },
+          "legacy_message": {
+            "default": "",
+            "title": "Legacy Message",
+            "type": "string"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ],
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "severity"
+        ],
+        "title": "ValidationIssueDTO",
         "type": "object"
       },
       "VaultCreateRequest": {
