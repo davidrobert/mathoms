@@ -40,6 +40,12 @@ from backend.app.services.goal_service import (
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 GOALS_JSON_PATH = REPO_ROOT / "config" / "goals.json"
+# F8 cutover (2026-04-15) arquivou `config/goals.json`; este script é a única
+# via de seed para PLANNING_CONTEXT (sem UI até que ADR-126 ganhe sucessor).
+# Fallback para o arquivado preserva o seed funcional pós-cutover.
+GOALS_JSON_ARCHIVE_PATH = (
+    REPO_ROOT / "_archive" / "pre-f8-cutover-2026-04-15" / "config" / "goals.json"
+)
 FAMILY_SURNAME_MATCH = "Ferreira Campos"
 
 logger = logging.getLogger("seed_goals_full")
@@ -111,13 +117,29 @@ async def seed(
     apply: bool,
     workspace_id: str | None,
     force_replace: bool,
+    source_json: Path | None = None,
 ) -> int:
-    if not GOALS_JSON_PATH.exists():
-        logger.error("goals.json não encontrado: %s", GOALS_JSON_PATH)
+    if source_json is not None:
+        source_path = source_json
+    elif GOALS_JSON_PATH.exists():
+        source_path = GOALS_JSON_PATH
+    elif GOALS_JSON_ARCHIVE_PATH.exists():
+        source_path = GOALS_JSON_ARCHIVE_PATH
+        logger.info(
+            "config/goals.json ausente (F8 cutover) — usando arquivo arquivado: %s",
+            source_path,
+        )
+    else:
+        logger.error(
+            "Nenhum goals.json encontrado (nem em %s nem em %s). "
+            "Use --source-json para apontar um arquivo explícito.",
+            GOALS_JSON_PATH,
+            GOALS_JSON_ARCHIVE_PATH,
+        )
         return 1
 
-    goals_data = json.loads(GOALS_JSON_PATH.read_text(encoding="utf-8"))
-    logger.info("Loaded goals.json (%d top-level keys)", len(goals_data))
+    goals_data = json.loads(source_path.read_text(encoding="utf-8"))
+    logger.info("Loaded %s (%d top-level keys)", source_path.name, len(goals_data))
 
     async with AsyncSessionLocal() as db:
         if workspace_id:
@@ -257,12 +279,22 @@ def main() -> int:
     grp.add_argument("--apply", action="store_true")
     parser.add_argument("--workspace-id", default=None)
     parser.add_argument("--force-replace", action="store_true")
+    parser.add_argument(
+        "--source-json",
+        type=Path,
+        default=None,
+        help=(
+            "Caminho explícito para goals.json (override). Default: "
+            "config/goals.json se existir, senão _archive/pre-f8-cutover-2026-04-15/config/goals.json."
+        ),
+    )
     args = parser.parse_args()
     return asyncio.run(
         seed(
             apply=args.apply,
             workspace_id=args.workspace_id,
             force_replace=args.force_replace,
+            source_json=args.source_json,
         )
     )
 
