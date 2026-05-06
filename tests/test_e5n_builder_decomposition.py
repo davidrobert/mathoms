@@ -294,6 +294,48 @@ def test_builder_output_passes_validator():
     assert is_valid, f"Validação falhou: {errors}"
 
 
+def test_yield_imoveis_omits_potencial_when_min_max_zero():
+    """Quando workspace não traz `imoveis.yield_potencial_pct_*` no
+    PLANNING_CONTEXT (defaults 0/0), narrador deve omitir a frase
+    "com potencial de 0-0% após otimização" — render "0-0%" é regressão."""
+    builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
+    metrics = _build_metrics()
+    metrics["yield_imoveis_potencial_pct_min"] = 0
+    metrics["yield_imoveis_potencial_pct_max"] = 0
+    out = builder.build(metrics, _FAMILY_BASE, today=date(2026, 4, 20))
+    conclusion = out["charts"]["yield_imoveis"]["conclusion"]
+    assert "0-0%" not in conclusion
+    assert "potencial de" not in conclusion
+    assert "otimização de contratos" not in conclusion
+    assert "Yield atual" in conclusion
+    assert "hedge inflacionário" in conclusion
+
+
+def test_yield_imoveis_omits_potencial_when_min_max_none():
+    """Mesma regressão para None (PLANNING_CONTEXT.imoveis ausente,
+    `dict.get(..., 0)` cobre, mas `or 0` cobre None caso seed grave null)."""
+    builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
+    metrics = _build_metrics()
+    metrics["yield_imoveis_potencial_pct_min"] = None
+    metrics["yield_imoveis_potencial_pct_max"] = None
+    out = builder.build(metrics, _FAMILY_BASE, today=date(2026, 4, 20))
+    conclusion = out["charts"]["yield_imoveis"]["conclusion"]
+    assert "N/D" not in conclusion
+    assert "potencial de" not in conclusion
+
+
+def test_yield_imoveis_renders_potencial_when_min_max_present():
+    """Caminho feliz — preserva narrativa quando dados estão presentes."""
+    builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
+    metrics = _build_metrics()
+    metrics["yield_imoveis_potencial_pct_min"] = 4
+    metrics["yield_imoveis_potencial_pct_max"] = 6
+    out = builder.build(metrics, _FAMILY_BASE, today=date(2026, 4, 20))
+    conclusion = out["charts"]["yield_imoveis"]["conclusion"]
+    assert "potencial de 4-6%" in conclusion
+    assert "otimização de contratos" in conclusion
+
+
 # ----------------------------------------------------------------------
 # 2. Dynamic keys — troca de nomes propaga
 # ----------------------------------------------------------------------

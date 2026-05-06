@@ -25,6 +25,15 @@ import {
   ValidationErrorsPanel,
 } from "../_components/ValidationErrorsPanel";
 
+/** Extrai o segmento "leaf" do JSONPath para casar com data-json-path do JsonViewer.
+ * Ex.: `$.dividas_onus[0].discriminacao` → `discriminacao`. */
+function stripJsonPath(path: string): string {
+  const cleaned = path.replace(/\$\.?/, "").replace(/\[\d+\]/g, "");
+  const segs = cleaned.split(".");
+  const leaf = segs[segs.length - 1] ?? "";
+  return leaf;
+}
+
 export default function ReviewDetailPage() {
   const { workspace } = useWorkspace();
   const params = useParams<{ runId: string; reviewId: string }>();
@@ -77,10 +86,18 @@ function ReviewDetailContent({
     load();
   }, [load]);
 
-  const errorPaths = useMemo(
-    () => extractErrorPaths(review?.validation_errors ?? null),
-    [review?.validation_errors],
-  );
+  const errorPaths = useMemo(() => {
+    const issues = review?.validation_issues;
+    if (issues && issues.length > 0) {
+      // ADR-165: paths estruturados são confiáveis, não precisamos da heurística regex.
+      const paths = new Set<string>();
+      for (const issue of issues) {
+        if (issue.path) paths.add(stripJsonPath(issue.path));
+      }
+      return paths;
+    }
+    return extractErrorPaths(review?.validation_errors ?? null);
+  }, [review?.validation_issues, review?.validation_errors]);
 
   const handleSubmit = useCallback(
     async (req: StageReviewActionRequest) => {
@@ -158,7 +175,8 @@ function ReviewDetailContent({
               Erros de validação
             </h2>
             <ValidationErrorsPanel
-              errors={review.validation_errors}
+              issues={review.validation_issues}
+              errorsLegacy={review.validation_errors}
               onErrorClick={(path) => {
                 const el = document.querySelector(`[data-json-path="${path}"]`);
                 if (el && "scrollIntoView" in el) {
