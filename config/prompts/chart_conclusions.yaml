@@ -77,9 +77,9 @@ templates:
     template: "Top 15 ativos concentram a maior parte dos investimentos financeiros."
     fallback: "Ativos de maior exposição na carteira."
 
-  mariana_cenarios:
-    template: "Cenários de independência financeira do cônjuge."
-    fallback: "Projeção de independência financeira."
+  cenarios_conjuge:
+    template: "Cenário de estresse: ausência da renda do cônjuge afeta o prazo até a IF."
+    fallback: "Cenário de estresse — sem renda do cônjuge."
 
   mariana_cenarios_usa:
     template: "Cenários de independência financeira do cônjuge no contexto EUA."
