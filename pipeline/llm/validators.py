@@ -111,130 +111,490 @@ class ValidationResult:
         }
 
 
+# Tabela code → (severity, path, base_ctx). Helper `_emit_e1` injeta extras
+# do call-site via kwargs e produz issue + legacy_message juntos.
+_E1_RULES: dict[str, tuple[Severity, str, dict[str, Any]]] = {
+    "e1.members.empty": (
+        "error",
+        "$.members",
+        {"section": "members", "section_label": "Membros da família"},
+    ),
+    "e1.member.invalid_key": (
+        "error",
+        "$.members[].key",
+        {"section": "members", "section_label": "Membros da família", "field": "key"},
+    ),
+    "e1.member.duplicate_key": (
+        "error",
+        "$.members[].key",
+        {"section": "members", "section_label": "Membros da família", "field": "key"},
+    ),
+    "e1.member.empty_full_name": (
+        "error",
+        "$.members[].full_name",
+        {"section": "members", "section_label": "Membros da família", "field": "full_name"},
+    ),
+    "e1.member.empty_short_name": (
+        "error",
+        "$.members[].short_name",
+        {"section": "members", "section_label": "Membros da família", "field": "short_name"},
+    ),
+    "e1.member.unexpected_role": (
+        "warning",
+        "$.members[].role",
+        {"section": "members", "section_label": "Membros da família", "field": "role"},
+    ),
+    "e1.member.invalid_cpf": (
+        "warning",
+        "$.members[].cpf",
+        {"section": "members", "section_label": "Membros da família", "field": "cpf"},
+    ),
+    "e1.member.invalid_birth_date": (
+        "warning",
+        "$.members[].birth_date",
+        {"section": "members", "section_label": "Membros da família", "field": "birth_date"},
+    ),
+    "e1.account.missing_institution": (
+        "warning",
+        "$.members[].accounts[].institution_code",
+        {
+            "section": "members",
+            "section_label": "Membros da família",
+            "field": "institution_code",
+        },
+    ),
+    "e1.account.non_standard_type": (
+        "warning",
+        "$.members[].accounts[].account_type",
+        {"section": "members", "section_label": "Membros da família", "field": "account_type"},
+    ),
+    "e1.titular.unknown_key": (
+        "error",
+        "$.titular_key",
+        {"section": "titular", "section_label": "Titular", "field": "titular_key"},
+    ),
+    "e1.titular.missing": (
+        "warning",
+        "$.members[].role",
+        {"section": "titular", "section_label": "Titular"},
+    ),
+    "e1.titular.multiple": (
+        "warning",
+        "$.members[].role",
+        {"section": "titular", "section_label": "Titular"},
+    ),
+}
+
+
+def _emit_e1(r: ValidationResult, code: str, msg: str, **extras: Any) -> None:
+    severity, path, base_ctx = _E1_RULES[code]
+    r.add_issue(
+        code=code,
+        severity=severity,
+        path=path,
+        context={**base_ctx, **extras},
+        legacy_message=msg,
+    )
+
+
+def _validate_e1_member_keys(m: Any, keys_seen: set[str], r: ValidationResult) -> None:
+    if not m.key or not m.key.islower() or " " in m.key:
+        _emit_e1(
+            r,
+            "e1.member.invalid_key",
+            f"E1: member key must be lowercase without spaces: '{m.key}'",
+            member_key=m.key,
+        )
+    if m.key in keys_seen:
+        _emit_e1(
+            r, "e1.member.duplicate_key", f"E1: duplicate member key: '{m.key}'", member_key=m.key
+        )
+
+
+def _validate_e1_member_names(m: Any, r: ValidationResult) -> None:
+    if not m.full_name.strip():
+        _emit_e1(
+            r,
+            "e1.member.empty_full_name",
+            f"E1: member '{m.key}' has empty full_name",
+            member_key=m.key,
+        )
+    if not m.short_name.strip():
+        _emit_e1(
+            r,
+            "e1.member.empty_short_name",
+            f"E1: member '{m.key}' has empty short_name",
+            member_key=m.key,
+        )
+
+
+def _validate_e1_member_attrs(m: Any, r: ValidationResult) -> None:
+    if m.role not in VALID_ROLES:
+        _emit_e1(
+            r,
+            "e1.member.unexpected_role",
+            f"E1: member '{m.key}' has unexpected role '{m.role}'",
+            member_key=m.key,
+            role=m.role,
+        )
+    if m.cpf and (len(m.cpf) != 11 or not m.cpf.isdigit()):
+        _emit_e1(
+            r,
+            "e1.member.invalid_cpf",
+            f"E1: member '{m.key}' CPF should be 11 digits, got '{m.cpf}'",
+            member_key=m.key,
+        )
+    if m.birth_date and not DATE_RE.match(m.birth_date):
+        _emit_e1(
+            r,
+            "e1.member.invalid_birth_date",
+            f"E1: member '{m.key}' birth_date not YYYY-MM-DD: '{m.birth_date}'",
+            member_key=m.key,
+        )
+
+
+def _validate_e1_member_accounts(m: Any, r: ValidationResult) -> None:
+    for acc in m.accounts:
+        if not acc.institution_code:
+            _emit_e1(
+                r,
+                "e1.account.missing_institution",
+                f"E1: member '{m.key}' has account with empty institution_code",
+                member_key=m.key,
+            )
+        if acc.account_type not in VALID_ACCOUNT_TYPES:
+            _emit_e1(
+                r,
+                "e1.account.non_standard_type",
+                f"E1: member '{m.key}' account type '{acc.account_type}' is non-standard",
+                member_key=m.key,
+                account_type=acc.account_type,
+            )
+
+
+def _validate_e1_member(m: Any, keys_seen: set[str], r: ValidationResult) -> None:
+    _validate_e1_member_keys(m, keys_seen, r)
+    _validate_e1_member_names(m, r)
+    _validate_e1_member_attrs(m, r)
+    _validate_e1_member_accounts(m, r)
+
+
+def _validate_e1_titular(output: Any, keys_seen: set[str], r: ValidationResult) -> None:
+    if output.titular_key and output.titular_key not in keys_seen:
+        _emit_e1(
+            r,
+            "e1.titular.unknown_key",
+            f"E1: titular_key '{output.titular_key}' not in extracted members",
+            titular_key=output.titular_key,
+        )
+    titular_count = sum(1 for m in output.members if m.role == "titular")
+    if titular_count == 0:
+        _emit_e1(r, "e1.titular.missing", "E1: no member with role 'titular' found")
+    if titular_count > 1:
+        _emit_e1(r, "e1.titular.multiple", "E1: multiple members with role 'titular'")
+
+
 def validate_e1_output(output: MembersExtractOutput) -> ValidationResult:
     """Validate E1 output for compatibility with family_members.json format."""
     r = ValidationResult()
-
     if not output.members:
-        r.error("E1: no members extracted")
+        _emit_e1(r, "e1.members.empty", "E1: no members extracted")
         return r
-
     keys_seen: set[str] = set()
     for m in output.members:
-        if not m.key or not m.key.islower() or " " in m.key:
-            r.error(f"E1: member key must be lowercase without spaces: '{m.key}'")
-        if m.key in keys_seen:
-            r.error(f"E1: duplicate member key: '{m.key}'")
+        _validate_e1_member(m, keys_seen, r)
         keys_seen.add(m.key)
-
-        if not m.full_name.strip():
-            r.error(f"E1: member '{m.key}' has empty full_name")
-        if not m.short_name.strip():
-            r.error(f"E1: member '{m.key}' has empty short_name")
-
-        if m.role not in VALID_ROLES:
-            r.warn(f"E1: member '{m.key}' has unexpected role '{m.role}'")
-
-        if m.cpf and (len(m.cpf) != 11 or not m.cpf.isdigit()):
-            r.warn(f"E1: member '{m.key}' CPF should be 11 digits, got '{m.cpf}'")
-
-        if m.birth_date and not DATE_RE.match(m.birth_date):
-            r.warn(f"E1: member '{m.key}' birth_date not YYYY-MM-DD: '{m.birth_date}'")
-
-        for acc in m.accounts:
-            if not acc.institution_code:
-                r.warn(f"E1: member '{m.key}' has account with empty institution_code")
-            if acc.account_type not in VALID_ACCOUNT_TYPES:
-                r.warn(f"E1: member '{m.key}' account type '{acc.account_type}' is non-standard")
-
-    if output.titular_key and output.titular_key not in keys_seen:
-        r.error(f"E1: titular_key '{output.titular_key}' not in extracted members")
-
-    titular_count = sum(1 for m in output.members if m.role == "titular")
-    if titular_count == 0:
-        r.warn("E1: no member with role 'titular' found")
-    if titular_count > 1:
-        r.warn("E1: multiple members with role 'titular'")
-
+    _validate_e1_titular(output, keys_seen, r)
     return r
+
+
+_E15_ITEMS = {"section": "items", "section_label": "Itens patrimoniais"}
+_E15_TOTALS = {"section": "totals", "section_label": "Totais patrimoniais"}
+_E15_CONTRIB = {"section": "contribuinte", "section_label": "Identificação"}
+
+_E15_RULES: dict[str, tuple[Severity, dict[str, Any]]] = {
+    "e15.items.empty": ("warning", _E15_ITEMS),
+    "e15.item.empty_code": ("warning", {**_E15_ITEMS, "field": "code"}),
+    "e15.item.empty_description": ("warning", {**_E15_ITEMS, "field": "description"}),
+    "e15.item.non_standard_category": ("warning", {**_E15_ITEMS, "field": "category"}),
+    "e15.item.missing_member_key": ("error", {**_E15_ITEMS, "field": "member_key"}),
+    "e15.item.invalid_year": ("warning", {**_E15_ITEMS, "field": "year"}),
+    "e15.totals.assets_mismatch": ("warning", {**_E15_TOTALS, "field": "total_assets_brl"}),
+    "e15.totals.net_worth_mismatch": ("warning", {**_E15_TOTALS, "field": "net_worth_brl"}),
+    "e15.contribuinte.invalid_reference_year": (
+        "error",
+        {**_E15_CONTRIB, "field": "reference_year"},
+    ),
+}
+
+
+def _emit_e15(r: ValidationResult, code: str, msg: str, *, path: str, **extras: Any) -> None:
+    severity, base_ctx = _E15_RULES[code]
+    r.add_issue(
+        code=code, severity=severity, path=path, context={**base_ctx, **extras}, legacy_message=msg
+    )
+
+
+def _validate_e15_item_strings(i: int, item: Any, r: ValidationResult) -> None:
+    if not item.code:
+        _emit_e15(
+            r,
+            "e15.item.empty_code",
+            f"E1.5: item[{i}] has empty code",
+            path=f"$.items[{i}].code",
+            index=i,
+        )
+    if not item.description.strip():
+        _emit_e15(
+            r,
+            "e15.item.empty_description",
+            f"E1.5: item[{i}] has empty description",
+            path=f"$.items[{i}].description",
+            index=i,
+        )
+    if item.category not in VALID_CATEGORIES:
+        _emit_e15(
+            r,
+            "e15.item.non_standard_category",
+            f"E1.5: item[{i}] category '{item.category}' is non-standard",
+            path=f"$.items[{i}].category",
+            index=i,
+            category=item.category,
+        )
+
+
+def _validate_e15_item_required(i: int, item: Any, r: ValidationResult) -> None:
+    if not item.member_key:
+        _emit_e15(
+            r,
+            "e15.item.missing_member_key",
+            f"E1.5: item[{i}] missing member_key",
+            path=f"$.items[{i}].member_key",
+            index=i,
+        )
+    if item.year < 2000 or item.year > 2100:
+        _emit_e15(
+            r,
+            "e15.item.invalid_year",
+            f"E1.5: item[{i}] year {item.year} seems invalid",
+            path=f"$.items[{i}].year",
+            index=i,
+            year=item.year,
+        )
+
+
+def _validate_e15_item(i: int, item: Any, r: ValidationResult) -> None:
+    _validate_e15_item_strings(i, item, r)
+    _validate_e15_item_required(i, item, r)
+
+
+def _emit_e15_assets_mismatch(output: Any, computed: float, r: ValidationResult) -> None:
+    _emit_e15(
+        r,
+        "e15.totals.assets_mismatch",
+        f"E1.5: total_assets_brl ({output.total_assets_brl}) doesn't match "
+        f"sum of positive items ({computed})",
+        path="$.total_assets_brl",
+        total_assets_brl=str(output.total_assets_brl),
+        computed_assets_brl=str(computed),
+    )
+
+
+def _validate_e15_totals(output: Any, r: ValidationResult) -> None:
+    if not output.items:
+        return
+    computed = sum(i.value_brl for i in output.items if i.value_brl > 0)
+    if abs(computed - output.total_assets_brl) > 1.0:
+        _emit_e15_assets_mismatch(output, computed, r)
+    nw_diff = abs(output.net_worth_brl - (output.total_assets_brl - output.total_liabilities_brl))
+    if output.net_worth_brl != 0 and nw_diff > 1.0:
+        _emit_e15(
+            r,
+            "e15.totals.net_worth_mismatch",
+            "E1.5: net_worth_brl doesn't match total_assets - total_liabilities",
+            path="$.net_worth_brl",
+        )
 
 
 def validate_e15_output(output: BaselinePatrimonialOutput) -> ValidationResult:
     """Validate E1.5 output for compatibility with E3 input and baseline format."""
     r = ValidationResult()
-
     if not output.items:
-        r.warn("E1.5: no patrimonial items extracted")
-
+        _emit_e15(r, "e15.items.empty", "E1.5: no patrimonial items extracted", path="$.items")
     for i, item in enumerate(output.items):
-        if not item.code:
-            r.warn(f"E1.5: item[{i}] has empty code")
-        if not item.description.strip():
-            r.warn(f"E1.5: item[{i}] has empty description")
-        if item.category not in VALID_CATEGORIES:
-            r.warn(f"E1.5: item[{i}] category '{item.category}' is non-standard")
-        if not item.member_key:
-            r.error(f"E1.5: item[{i}] missing member_key")
-        if item.year < 2000 or item.year > 2100:
-            r.warn(f"E1.5: item[{i}] year {item.year} seems invalid")
+        _validate_e15_item(i, item, r)
+    _validate_e15_totals(output, r)
+    if not output.reference_year or output.reference_year < 2000:
+        _emit_e15(
+            r,
+            "e15.contribuinte.invalid_reference_year",
+            f"E1.5: invalid reference_year: {output.reference_year}",
+            path="$.reference_year",
+            reference_year=output.reference_year,
+        )
+    return r
 
-    computed_assets = sum(i.value_brl for i in output.items if i.value_brl > 0)
-    computed_liabs = sum(abs(i.value_brl) for i in output.items if i.value_brl < 0)
 
-    if output.items and abs(computed_assets - output.total_assets_brl) > 1.0:
-        r.warn(
-            f"E1.5: total_assets_brl ({output.total_assets_brl}) doesn't match "
-            f"sum of positive items ({computed_assets})"
+_E2LLM_TX = {"section": "transactions", "section_label": "Transações"}
+_E2LLM_INV = {"section": "investments", "section_label": "Investimentos"}
+_E2LLM_META = {"section": "metadata", "section_label": "Metadados"}
+
+_E2LLM_RULES: dict[str, tuple[Severity, dict[str, Any]]] = {
+    "e2llm.missing.source_file": ("error", {**_E2LLM_META, "field": "source_file"}),
+    "e2llm.missing.institution": ("error", {**_E2LLM_META, "field": "institution"}),
+    "e2llm.empty.no_data": ("warning", _E2LLM_META),
+    "e2llm.invalid_period_format": ("warning", {**_E2LLM_META, "field": "period"}),
+    "e2llm.transaction.invalid_date": ("error", {**_E2LLM_TX, "field": "date"}),
+    "e2llm.transaction.empty_description": ("warning", {**_E2LLM_TX, "field": "description"}),
+    "e2llm.transaction.zero_amount": ("warning", {**_E2LLM_TX, "field": "amount"}),
+    "e2llm.investment.non_standard_type": ("warning", {**_E2LLM_INV, "field": "type"}),
+    "e2llm.investment.missing_institution": ("warning", {**_E2LLM_INV, "field": "institution"}),
+    "e2llm.investment.non_positive_value": ("warning", {**_E2LLM_INV, "field": "value_brl"}),
+    "e2llm.investment.invalid_applied_date": ("warning", {**_E2LLM_INV, "field": "applied_date"}),
+    "e2llm.investment.invalid_maturity_date": (
+        "warning",
+        {**_E2LLM_INV, "field": "maturity_date"},
+    ),
+}
+
+
+def _emit_e2llm(r: ValidationResult, code: str, msg: str, *, path: str, **extras: Any) -> None:
+    severity, base_ctx = _E2LLM_RULES[code]
+    r.add_issue(
+        code=code, severity=severity, path=path, context={**base_ctx, **extras}, legacy_message=msg
+    )
+
+
+def _validate_e2_transaction_date(i: int, t: Any, r: ValidationResult) -> None:
+    if not DATE_RE.match(t.date):
+        _emit_e2llm(
+            r,
+            "e2llm.transaction.invalid_date",
+            f"E2-llm: transaction[{i}] date not YYYY-MM-DD: '{t.date}'",
+            path=f"$.transactions[{i}].date",
+            index=i,
+            date=t.date,
         )
 
-    if (
-        output.net_worth_brl != 0
-        and abs(output.net_worth_brl - (output.total_assets_brl - output.total_liabilities_brl))
-        > 1.0
-    ):
-        r.warn("E1.5: net_worth_brl doesn't match total_assets - total_liabilities")
 
-    if not output.reference_year or output.reference_year < 2000:
-        r.error(f"E1.5: invalid reference_year: {output.reference_year}")
+def _validate_e2_transaction_content(i: int, t: Any, r: ValidationResult) -> None:
+    if not t.description.strip():
+        _emit_e2llm(
+            r,
+            "e2llm.transaction.empty_description",
+            f"E2-llm: transaction[{i}] has empty description",
+            path=f"$.transactions[{i}].description",
+            index=i,
+        )
+    if t.amount == 0:
+        _emit_e2llm(
+            r,
+            "e2llm.transaction.zero_amount",
+            f"E2-llm: transaction[{i}] has zero amount",
+            path=f"$.transactions[{i}].amount",
+            index=i,
+        )
 
-    return r
+
+def _validate_e2_transaction(i: int, t: Any, r: ValidationResult) -> None:
+    _validate_e2_transaction_date(i, t, r)
+    _validate_e2_transaction_content(i, t, r)
+
+
+def _validate_e2_investment_basics(i: int, inv: Any, r: ValidationResult) -> None:
+    if inv.type not in VALID_INVESTMENT_TYPES:
+        _emit_e2llm(
+            r,
+            "e2llm.investment.non_standard_type",
+            f"E2-llm: investment[{i}] type '{inv.type}' is non-standard",
+            path=f"$.investments[{i}].type",
+            index=i,
+            type_value=inv.type,
+        )
+    if not inv.institution:
+        _emit_e2llm(
+            r,
+            "e2llm.investment.missing_institution",
+            f"E2-llm: investment[{i}] missing institution",
+            path=f"$.investments[{i}].institution",
+            index=i,
+        )
+    if inv.value_brl <= 0:
+        _emit_e2llm(
+            r,
+            "e2llm.investment.non_positive_value",
+            f"E2-llm: investment[{i}] has non-positive value",
+            path=f"$.investments[{i}].value_brl",
+            index=i,
+        )
+
+
+def _validate_e2_investment_dates(i: int, inv: Any, r: ValidationResult) -> None:
+    if inv.applied_date and not DATE_RE.match(inv.applied_date):
+        _emit_e2llm(
+            r,
+            "e2llm.investment.invalid_applied_date",
+            f"E2-llm: investment[{i}] applied_date not YYYY-MM-DD",
+            path=f"$.investments[{i}].applied_date",
+            index=i,
+        )
+    if inv.maturity_date and not DATE_RE.match(inv.maturity_date):
+        _emit_e2llm(
+            r,
+            "e2llm.investment.invalid_maturity_date",
+            f"E2-llm: investment[{i}] maturity_date not YYYY-MM-DD",
+            path=f"$.investments[{i}].maturity_date",
+            index=i,
+        )
+
+
+def _validate_e2_investment(i: int, inv: Any, r: ValidationResult) -> None:
+    _validate_e2_investment_basics(i, inv, r)
+    _validate_e2_investment_dates(i, inv, r)
+
+
+def _validate_e2llm_required(output: Any, r: ValidationResult) -> None:
+    if not output.source_file:
+        _emit_e2llm(
+            r, "e2llm.missing.source_file", "E2-llm: missing source_file", path="$.source_file"
+        )
+    if not output.institution:
+        _emit_e2llm(
+            r, "e2llm.missing.institution", "E2-llm: missing institution", path="$.institution"
+        )
+
+
+def _validate_e2llm_envelope(output: Any, r: ValidationResult) -> None:
+    if not output.transactions and not output.investments:
+        _emit_e2llm(
+            r,
+            "e2llm.empty.no_data",
+            "E2-llm: no transactions and no investments extracted",
+            path="$",
+        )
+    if output.period and not PERIOD_RE.match(output.period):
+        _emit_e2llm(
+            r,
+            "e2llm.invalid_period_format",
+            f"E2-llm: period should be YYYYMM, got '{output.period}'",
+            path="$.period",
+            period=output.period,
+        )
+
+
+def _validate_e2llm_metadata(output: Any, r: ValidationResult) -> None:
+    _validate_e2llm_required(output, r)
+    _validate_e2llm_envelope(output, r)
 
 
 def validate_e2_llm_output(output: LLMExtractOutput) -> ValidationResult:
     """Validate E2-llm output for compatibility with E3 reconciliation input."""
     r = ValidationResult()
-
-    if not output.source_file:
-        r.error("E2-llm: missing source_file")
-    if not output.institution:
-        r.error("E2-llm: missing institution")
-
-    if not output.transactions and not output.investments:
-        r.warn("E2-llm: no transactions and no investments extracted")
-
+    _validate_e2llm_metadata(output, r)
     for i, t in enumerate(output.transactions):
-        if not DATE_RE.match(t.date):
-            r.error(f"E2-llm: transaction[{i}] date not YYYY-MM-DD: '{t.date}'")
-        if not t.description.strip():
-            r.warn(f"E2-llm: transaction[{i}] has empty description")
-        if t.amount == 0:
-            r.warn(f"E2-llm: transaction[{i}] has zero amount")
-
+        _validate_e2_transaction(i, t, r)
     for i, inv in enumerate(output.investments):
-        if inv.type not in VALID_INVESTMENT_TYPES:
-            r.warn(f"E2-llm: investment[{i}] type '{inv.type}' is non-standard")
-        if not inv.institution:
-            r.warn(f"E2-llm: investment[{i}] missing institution")
-        if inv.value_brl <= 0:
-            r.warn(f"E2-llm: investment[{i}] has non-positive value")
-        if inv.applied_date and not DATE_RE.match(inv.applied_date):
-            r.warn(f"E2-llm: investment[{i}] applied_date not YYYY-MM-DD")
-        if inv.maturity_date and not DATE_RE.match(inv.maturity_date):
-            r.warn(f"E2-llm: investment[{i}] maturity_date not YYYY-MM-DD")
-
-    if output.period and not PERIOD_RE.match(output.period):
-        r.warn(f"E2-llm: period should be YYYYMM, got '{output.period}'")
-
+        _validate_e2_investment(i, inv, r)
     return r
 
 
