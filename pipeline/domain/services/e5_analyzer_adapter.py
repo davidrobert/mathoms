@@ -133,6 +133,11 @@ from pipeline.domain.services.reserva_emergencia_calculator import (
     EmergencyReserveCalculator,
     ReservaEmergenciaConfig,
 )
+from pipeline.domain.services.top_ativos_analyzer import (
+    TopAtivosAnalyzer,
+    TopAtivosConfig,
+    TopAtivosResult,
+)
 from pipeline.domain.types.config import FiscalParameters
 
 # =============================================================================
@@ -199,6 +204,9 @@ class E5AnalysisResult:
     passive_income: PassiveIncomeResult | None = None
     # N3 — Monte Carlo IF com cone P10/P50/P90 (None quando if_projection é None).
     monte_carlo_if: MonteCarloIFResult | None = None
+    # Top 15 ativos individuais (companion de investimentos_classes). None
+    # quando o analyzer não foi injetado (paridade legacy).
+    top_ativos: TopAtivosResult | None = None
 
 
 # =============================================================================
@@ -239,6 +247,7 @@ class E5AnalyzerAdapter:
         endividamento_analyzer: EndividamentoAnalyzer | None = None,
         previdencia_analyzer: PrevidenciaAnalyzer | None = None,
         investimentos_classes_analyzer: InvestimentosClassesAnalyzer | None = None,
+        top_ativos_analyzer: TopAtivosAnalyzer | None = None,
         consumo_calculator: ConsumoConscienteCalculator | None = None,
         equilibrio_analyzer: EquilibrioCerbasiAnalyzer | None = None,
         cenarios_analyzer: CenariosConjugeAnalyzer | None = None,
@@ -282,6 +291,7 @@ class E5AnalyzerAdapter:
         self._endividamento = endividamento_analyzer or EndividamentoAnalyzer()
         self._previdencia = previdencia_analyzer or PrevidenciaAnalyzer()
         self._inv_classes = investimentos_classes_analyzer or InvestimentosClassesAnalyzer()
+        self._top_ativos = top_ativos_analyzer or TopAtivosAnalyzer()
         self._consumo = consumo_calculator or ConsumoConscienteCalculator()
         self._equilibrio = equilibrio_analyzer or EquilibrioCerbasiAnalyzer()
         self._cenarios = cenarios_analyzer
@@ -398,6 +408,7 @@ class E5AnalyzerAdapter:
             investimentos_classes_analyzer=InvestimentosClassesAnalyzer(
                 InvestimentosClassesConfig.from_configs(scoring=scoring)
             ),
+            top_ativos_analyzer=TopAtivosAnalyzer(TopAtivosConfig.from_configs(scoring=scoring)),
             consumo_calculator=ConsumoConscienteCalculator(
                 ConsumoConscienteConfig.from_configs(scoring=scoring, goals=goals)
             ),
@@ -534,12 +545,17 @@ class E5AnalyzerAdapter:
         # 12. Previdência.
         previdencia = self._previdencia.analyze(fluxo_legacy)
 
-        # 13. Investimentos por classe.
-        bens_list = [
-            (members.titular_data.get("bens") or members.titular_data),
-            (members.conjuge_data.get("bens") or members.conjuge_data),
-        ]
+        # 13. Investimentos por classe + Top 15 ativos individuais.
+        titular_bens = members.titular_data.get("bens") or members.titular_data
+        conjuge_bens = members.conjuge_data.get("bens") or members.conjuge_data
+        bens_list = [titular_bens, conjuge_bens]
         investimentos_classes = self._inv_classes.analyze(bens_list)
+        top_ativos = self._top_ativos.analyze(
+            [
+                (members.titular_key, titular_bens),
+                (members.conjuge_key, conjuge_bens),
+            ]
+        )
 
         # 14. Consumo consciente.
         consumo = self._consumo.calculate(fluxo_legacy, despesas)
@@ -592,6 +608,7 @@ class E5AnalyzerAdapter:
             endividamento=endividamento,
             previdencia=previdencia,
             investimentos_classes=investimentos_classes,
+            top_ativos=top_ativos,
             consumo_consciente=consumo,
             equilibrio_cerbasi=equilibrio,
             cenarios_conjuge=cenarios,

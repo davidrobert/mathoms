@@ -26,6 +26,8 @@ export { EstrategiaAporteCard } from "./EstrategiaAporteCard";
 export type { EstrategiaAporteData } from "./EstrategiaAporteCard";
 export { InvestimentosClasseCard } from "./InvestimentosClasseCard";
 export type { InvestimentosClasseData } from "./InvestimentosClasseCard";
+export { Top15AtivosCard } from "./Top15AtivosCard";
+export type { Top15AtivosData, TopAtivo } from "./Top15AtivosCard";
 export { OrcamentoProspectivoCard } from "./OrcamentoProspectivoCard";
 export { PatrimonioCategoriasCard } from "./PatrimonioCategoriasCard";
 export { PerfilFamiliaCard } from "./PerfilFamiliaCard";
