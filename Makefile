@@ -634,7 +634,15 @@ update-db-schema-reference:
 
 .PHONY: go-fmt go-lint go-test go-all
 
-GO_FILES := $(shell find . -type f -name "*.go" -not -path "./node_modules/*" -not -path "./.git/*" 2>/dev/null)
+GO_FILES = $(shell find . \
+	-path ./node_modules -prune -o \
+	-path ./.git -prune -o \
+	-path ./.venv -prune -o \
+	-path './*/node_modules' -prune -o \
+	-path './*/.next' -prune -o \
+	-path ./storage -prune -o \
+	-path ./_archive -prune -o \
+	-type f -name '*.go' -print 2>/dev/null)
 
 ## go-fmt: gofmt -s -w em todos os .go (no-op se não houver)
 go-fmt:
