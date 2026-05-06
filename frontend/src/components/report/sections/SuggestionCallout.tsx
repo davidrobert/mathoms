@@ -2,7 +2,7 @@
 
 // Direção E · Onda 5 · ADR-153 — callout de Suggestion no relatório.
 //
-// Renderizado **inline** dentro de uma seção (S2/S7/U1...) filtrando
+// Renderizado **inline** dentro de uma seção (S2/S7/...) filtrando
 // suggestions pelo `section_id`. Fora da seção, o agregador
 // `<SuggestionCalloutSummary/>` mostra a lista de "Próximos passos".
 //

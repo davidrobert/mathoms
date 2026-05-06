@@ -3,6 +3,7 @@
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
 import { SectionSummary } from "../SectionSummary";
+import { StressScenarioCard } from "../cards/StressScenarioCard";
 import {
   SnapshotChangelogList,
   type SnapshotChangelogEntryView,
@@ -206,21 +207,28 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
   );
 }
 
-/** ADR-117/122 · Fase 10 + ADR-166 (A8.4) — APP_C: Cenários Alternativos.
+/** ADR-167 (A8.4 PR3) — APP_C: Cenários de Estresse.
  *
- * Resume cenário atual vs alternativo. Lê `data.cenarios_conjuge` (chave
- * estável universal pós ADR-166) com fallback para `data.cenarios_mariana`
- * (legado, removido em PR3 A8.4 após backfill em prod).
+ * Hide-when-empty com numeração estável: quando `data.cenarios_conjuge`
+ * (e `data.programa_milhas`) ausentes, seção retorna `null` — APP_D
+ * permanece rotulado "D" porque a numeração no YAML é literal, não
+ * recomputada.
+ *
+ * Visualização (D3 do plano A8.4): comparativo lado-a-lado base vs.
+ * cenário de estresse com delta explícito + parágrafo "Leitura:" para
+ * justificar o stress test em tom não-alarmista (CVM/Susep).
  */
 export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = getNarrativas(data);
   const fallback = deriveSectionSummary("APP_C", data);
-  const cenarios = (data.cenarios_conjuge ?? data.cenarios_mariana) as
+  const cenarios = data.cenarios_conjuge as
     | {
         labels?: string[];
         aportes?: number[];
         prazos_if?: number[];
         anos_if?: number[];
+        cenarios?: Array<{ aporte_mensal?: number; prazo_if_anos?: number; ano_if?: number; resumo?: string }>;
+        premissas?: { aporte_base?: number };
       }
     | undefined;
   const milhas = data.programa_milhas as
@@ -230,34 +238,30 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
         observacao?: string;
       }
     | undefined;
+  const goals = data.goals as { if_prazo_anos?: number; if_ano?: number } | undefined;
 
   const hasCenarios = !!cenarios?.labels && cenarios.labels.length > 0;
   const hasMilhas =
     !!milhas && (milhas.saldo_total != null || milhas.valor_estimado != null);
 
+  // ADR-167 hide-when-empty: workspace inelegível (gate retorna False) →
+  // seção some completamente. Numeração A/B/D/E preservada.
+  if (!hasCenarios && !hasMilhas) {
+    return null;
+  }
+
   return (
-    <ReportSection id="APP_C" title="Apêndice C — Cenários Alternativos">
+    <ReportSection id="APP_C" title="Apêndice C — Cenários de Estresse">
+      <p className="md:col-span-2 text-sm text-[var(--surface-muted-foreground)]">
+        Como o seu plano se comporta se uma premissa central mudar. Não são
+        previsões — são testes de resiliência para validar a margem de
+        segurança do plano atual.
+      </p>
       <SectionSummary narrativas={narrativas} sectionId="APP_C" />
       <SectionFallback narrativas={narrativas} sectionId="APP_C" text={fallback} />
 
       {hasCenarios && (
-        <ReportCard variant="feature" title="Cenários IF — Cônjuge" size="full">
-          <SimpleTable
-            headers={["Cenário", "Aporte/mês", "Prazo (anos)", "Ano IF"]}
-            rows={(cenarios?.labels ?? []).map((label, i) => [
-              label,
-              cenarios?.aportes?.[i] != null
-                ? cenarios.aportes[i].toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                    maximumFractionDigits: 0,
-                  })
-                : "—",
-              cenarios?.prazos_if?.[i]?.toFixed(1) ?? "—",
-              cenarios?.anos_if?.[i] ?? "—",
-            ])}
-          />
-        </ReportCard>
+        <StressScenarioCard cenarios={cenarios!} goals={goals} />
       )}
 
       {hasMilhas && (
@@ -295,17 +299,10 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
           )}
         </ReportCard>
       )}
-
-      {!hasCenarios && !hasMilhas && (
-        <ReportCard variant="neutral" title="Cenários Alternativos" size="full">
-          <p className="text-sm text-[var(--surface-muted-foreground)]">
-            Sem cenários alternativos registrados neste ciclo.
-          </p>
-        </ReportCard>
-      )}
     </ReportSection>
   );
 }
+
 
 /** ADR-117/122 · Fase 10 — APP_D: Referências e Fontes.
  *

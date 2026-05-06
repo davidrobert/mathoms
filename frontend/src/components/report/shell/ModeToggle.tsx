@@ -5,14 +5,13 @@ import type { ReportMode } from "@/generated/report-layout";
 
 const LABEL: Record<ReportMode, string> = {
   estrategico: "Estratégico",
-  usa: "USA",
 };
 
 /** ADR-117 · Fase 4 — toggle de modo integrado com ReportModeProvider.
  *
- * Matching `.mode-toggle` EXEMPLO_DE_RELATORIO.html linhas 799-805.
- * Sync bidirecional URL ↔ state já vive no provider.
- * ADR-151 (Direção E): Modo Tático removido — sobram Estratégico + USA.
+ * ADR-151 (Direção E): Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA
+ * removido. Modo Estratégico é único — toggle permanece como ponto de
+ * extensão para futuro modo internacional generalizado.
  */
 export function ModeToggle({
   className,
@@ -22,7 +21,7 @@ export function ModeToggle({
   readonly compact?: boolean;
 }) {
   const { mode, setMode } = useReportMode();
-  const modes: readonly ReportMode[] = ["estrategico", "usa"];
+  const modes: readonly ReportMode[] = ["estrategico"];
 
   return (
     <div

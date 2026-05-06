@@ -94,10 +94,10 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 - **Inputs:** `investimentos-4_unified.json`, `patrimonio-4_unified.json`
 - **Outputs:** Bloco `estrategia_investimentos` no E5 JSON — Rentabilidade, benchmark acumulado, fundamentalista, contrafluxo, consolidação corretoras.
 
-**E5.6 — Plano EUA (→ seções 4-6 do relatório: Imóveis + F1/F2 + Green Card)**
-- **Objetivo:** Projetar custos e sobras para fases EUA, yield imóveis, proteção patrimonial.
+**E5.6 — Imóveis e proteção patrimonial (→ seção 4 do relatório)**
+- **Objetivo:** Yield de imóveis vs CDI + 5 riscos proteção patrimonial.
 - **Inputs:** `patrimonio-4_unified.json`, `config/goals.json`, `decisions.md`
-- **Outputs:** Bloco `plano_eua` no E5 JSON — Custos F1/F2, cenários cambiais, 5 riscos proteção, yield imóveis vs CDI, NCLEX roadmap.
+- **Outputs:** Bloco `protecao_patrimonial` no E5 JSON — Yield imóveis vs CDI + matriz de riscos. (Seções USA — F1/F2, Green Card, NCLEX — removidas em A8.4 PR4 / ADR-168.)
 
 **E5.7 — Riscos e Seguros (→ seção 9 do relatório)**
 - **Objetivo:** Mapear 10 riscos, bubble chart, tabela seguros.

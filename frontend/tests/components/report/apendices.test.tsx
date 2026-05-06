@@ -106,27 +106,46 @@ describe("ApendiceBSection", () => {
   });
 });
 
-describe("ApendiceCSection", () => {
-  it("mostra empty state quando sem cenários", () => {
-    render(<ApendiceCSection data={emptyData()} />);
-    expect(
-      screen.getByText(/Sem cenários alternativos registrados/),
-    ).toBeInTheDocument();
+describe("ApendiceCSection (ADR-167 · A8.4 PR3)", () => {
+  it("retorna null (hide-when-empty) quando sem cenários e sem milhas", () => {
+    const { container } = render(<ApendiceCSection data={emptyData()} />);
+    expect(container.firstChild).toBeNull();
   });
 
-  it("renderiza tabela de cenários quando cenarios_conjuge presente (ADR-166)", () => {
+  it("renderiza visualização comparativa base vs estresse quando cenarios_conjuge presente", () => {
     const data = {
       cenarios_conjuge: {
-        labels: ["Base", "Stress"],
-        aportes: [5000, 3000],
-        prazos_if: [12.3, 18.7],
-        anos_if: [2038, 2044],
+        labels: ["Sem renda do cônjuge"],
+        aportes: [18500],
+        prazos_if: [19.5],
+        anos_if: [2046],
+        premissas: { aporte_base: 12000 },
+      },
+      goals: { if_prazo_anos: 14.2, if_ano: 2040 },
+    } as unknown as ReportAnalysisData;
+    render(<ApendiceCSection data={data} />);
+    expect(screen.getByText(/Apêndice C — Cenários de Estresse/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Premissa testada: Sem renda do cônjuge/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Cenário base/)).toBeInTheDocument();
+    expect(screen.getByText(/Cenário de estresse/)).toBeInTheDocument();
+    expect(screen.getByText(/Leitura:/)).toBeInTheDocument();
+  });
+
+  it("renderiza copy não-alarmista no subtítulo (CVM/Susep)", () => {
+    const data = {
+      cenarios_conjuge: {
+        labels: ["Sem renda do cônjuge"],
+        aportes: [10000],
+        prazos_if: [15],
+        anos_if: [2041],
+        premissas: { aporte_base: 8000 },
       },
     } as unknown as ReportAnalysisData;
     render(<ApendiceCSection data={data} />);
-    expect(screen.getByText("Base")).toBeInTheDocument();
-    expect(screen.getByText("Stress")).toBeInTheDocument();
-    expect(screen.getByText("12.3")).toBeInTheDocument();
+    expect(screen.getByText(/Não são previsões/)).toBeInTheDocument();
+    expect(screen.getByText(/testes de resiliência/)).toBeInTheDocument();
   });
 });
 
