@@ -155,6 +155,10 @@
         "id": {"type": "string", "minLength": 1},
         "title": {"type": "string", "minLength": 1},
         "enabled": {"type": "boolean"},
+        "optional": {
+          "type": "boolean",
+          "description": "ADR-167 (A8.4 PR3) — apêndice condicional: renderer omite a página inteira (seção + entrada no TOC) quando o componente retorna null. Numeração A/B/C/D/E permanece literal (não recomputada)."
+        },
         "charts": {
           "type": "array",
           "items": {"$ref": "#/$defs/chartSpec"},
