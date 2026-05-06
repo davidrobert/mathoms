@@ -2977,6 +2977,8 @@ def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
     investimentos_dict = result.investimentos_classes.to_legacy_dict()
     if getattr(result, "top_ativos", None) is not None:
         investimentos_dict["top_ativos"] = [a.to_dict() for a in result.top_ativos.top_ativos]
+    if getattr(result, "instituicoes_por_membro", None) is not None:
+        investimentos_dict.update(result.instituicoes_por_membro.to_legacy_dict())
     return {
         "patrimonio": result.patrimonio_full,
         "investimentos_classes": investimentos_dict,

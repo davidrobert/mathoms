@@ -102,6 +102,12 @@ from pipeline.domain.services.income_origin_resolver import (
     IncomeOriginConfig,
     IncomeOriginResolver,
 )
+from pipeline.domain.services.instituicoes_por_membro_analyzer import (
+    InstituicoesPorMembroAnalyzer,
+    InstituicoesPorMembroConfig,
+    InstituicoesPorMembroResult,
+    MembroInstituicoes,
+)
 from pipeline.domain.services.internal_transfer_detector import (
     InternalTransferConfig,
     InternalTransferDetector,
@@ -252,9 +258,13 @@ __all__ = [
     "PrevidenciaAnalyzer",
     "PrevidenciaConfig",
     "ClasseAtivo",
+    "InstituicoesPorMembroAnalyzer",
+    "InstituicoesPorMembroConfig",
+    "InstituicoesPorMembroResult",
     "InvestimentosClassesAnalysis",
     "InvestimentosClassesAnalyzer",
     "InvestimentosClassesConfig",
+    "MembroInstituicoes",
     "TopAtivo",
     "TopAtivosAnalyzer",
     "TopAtivosConfig",
