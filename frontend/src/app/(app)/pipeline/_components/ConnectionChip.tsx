@@ -12,7 +12,7 @@ function ConnectedChip() {
     <Tooltip>
       <TooltipTrigger
         render={
-          <span className="inline-flex items-center gap-1 rounded-full bg-gain/10 px-2 py-0.5 text-[10px] font-medium text-gain cursor-default" />
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-gain/10 px-2 py-0.5 text-[10px] font-medium text-gain cursor-default" />
         }
       >
         <Wifi className="h-2.5 w-2.5" />
@@ -25,7 +25,7 @@ function ConnectedChip() {
 
 function ConnectingChip() {
   return (
-    <span className="inline-flex animate-pulse items-center gap-1 rounded-full bg-alert/10 px-2 py-0.5 text-[10px] font-medium text-alert">
+    <span className="inline-flex shrink-0 animate-pulse items-center gap-1 whitespace-nowrap rounded-full bg-alert/10 px-2 py-0.5 text-[10px] font-medium text-alert">
       <Wifi className="h-2.5 w-2.5" />
       Conectando...
     </span>
@@ -37,7 +37,7 @@ function PollingChip() {
     <Tooltip>
       <TooltipTrigger
         render={
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground cursor-default" />
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground cursor-default" />
         }
       >
         <WifiOff className="h-2.5 w-2.5" />
