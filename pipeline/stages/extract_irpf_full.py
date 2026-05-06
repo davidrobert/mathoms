@@ -241,7 +241,7 @@ def _select_runnable_docs(ctx: WorkspaceContext):
     docs = _find_irpf_declarations(ctx)
     if not docs:
         return {"skipped": True, "reason": "No IRPF declarations found"}
-    # ADR-159: em modo incremental, processa apenas as declarações cujo
+    # ADR-169: em modo incremental, processa apenas as declarações cujo
     # stem está em ``ctx.incremental_doc_paths``. Cada IRPF tem seu próprio
     # artefato (``_artifact_key_for(doc)``); declarações já processadas
     # permanecem no store sem reprocessamento.

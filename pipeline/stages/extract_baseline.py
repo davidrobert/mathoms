@@ -156,7 +156,7 @@ def run(ctx: WorkspaceContext) -> dict:
     if not docs:
         return {"skipped": True, "reason": "No IRPF/patrimony documents found"}
 
-    # ADR-159: em modo incremental, processa apenas docs novos. Cada IRPF
+    # ADR-169: em modo incremental, processa apenas docs novos. Cada IRPF
     # tem seu artefato E1.5a próprio; o agregado E1.5 é recombinado a partir
     # do store (novos + existentes) abaixo, preservando paridade.
     if ctx.incremental:
@@ -267,7 +267,7 @@ def run(ctx: WorkspaceContext) -> dict:
         phase="finalizing",
     )
 
-    # ADR-159: em modo incremental, agrega lendo todos E1.5a do store
+    # ADR-169: em modo incremental, agrega lendo todos E1.5a do store
     # (existentes não-tocados + novos escritos acima). Em modo full, agrega
     # apenas os processados na run — preserva paridade com comportamento
     # legado e evita reincluir E1.5a órfão de doc removido pelo usuário.

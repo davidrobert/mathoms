@@ -81,7 +81,7 @@ def run(ctx: WorkspaceContext) -> dict:
     if not docs:
         return {"skipped": True, "reason": "No personal documents found"}
 
-    # ADR-159: em modo incremental, ``extract_members`` produz UM agregado
+    # ADR-169: em modo incremental, ``extract_members`` produz UM agregado
     # (members-1b_unified.json) por run. Sem layer per-doc no store, merge
     # seguro entre run anterior e novos docs exigiria LLM extra de
     # consolidação — fora de escopo desta lane. Skip total quando nenhum

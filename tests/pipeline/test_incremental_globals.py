@@ -1,4 +1,4 @@
-"""Tests para extensão do modo incremental aos stages globais E1 (ADR-159)."""
+"""Tests para extensão do modo incremental aos stages globais E1 (ADR-169)."""
 
 from __future__ import annotations
 

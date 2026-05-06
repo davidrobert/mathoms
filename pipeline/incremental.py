@@ -1,4 +1,4 @@
-"""Helpers de modo incremental para stages globais E1 (ADR-080 + ADR-159)."""
+"""Helpers de modo incremental para stages globais E1 (ADR-080 + ADR-169)."""
 
 from __future__ import annotations
 
