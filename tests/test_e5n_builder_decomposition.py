@@ -336,6 +336,31 @@ def test_yield_imoveis_renders_potencial_when_min_max_present():
     assert "otimização de contratos" in conclusion
 
 
+def test_top15_ativos_conclusion_omits_maior_ativo_when_data_missing():
+    # Regressão: bug visível no relatório quando _find_top_asset cai no fallback
+    # (E4 ausente) — narrador renderizava "(R$ 0,00 de ) é o maior ativo individual".
+    builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
+    metrics = _build_metrics() | {
+        "top_asset_nome": "",
+        "top_asset_valor": 0,
+        "top_asset_membro": "",
+    }
+    out = builder.build(metrics, _FAMILY_BASE, today=date(2026, 4, 20))
+    conclusion = out["charts"]["top15_ativos"]["conclusion"]
+    assert "R$ 0,00" not in conclusion
+    assert "é o maior ativo individual" not in conclusion
+    assert "diversificação" in conclusion
+
+
+def test_top15_ativos_conclusion_uses_data_when_present():
+    builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
+    out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
+    conclusion = out["charts"]["top15_ativos"]["conclusion"]
+    assert "IPCA+ 2045" in conclusion
+    assert "Alice" in conclusion
+    assert "é o maior ativo individual" in conclusion
+
+
 # ----------------------------------------------------------------------
 # 2. Dynamic keys — troca de nomes propaga
 # ----------------------------------------------------------------------

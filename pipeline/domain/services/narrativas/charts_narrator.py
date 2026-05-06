@@ -13,7 +13,7 @@ de inserção no dict final mantida (insertion-order do Python 3.7+).
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
@@ -22,6 +22,24 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_percent,
     fmt_usd,
 )
+
+_DIVERSIFICACAO_LINE = (
+    "Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
+)
+
+
+def _conclusion_top15_ativos(M: Mapping[str, Any]) -> str:
+    # Quando _find_top_asset não localiza o maior ativo (E4 ausente, dados vazios),
+    # omitimos a frase "X é o maior ativo" — evita render "(R$ 0,00 de )".
+    nome = (M.get("top_asset_nome") or "").strip()
+    valor = M.get("top_asset_valor") or 0
+    membro = (M.get("top_asset_membro") or "").strip()
+    if not nome or valor <= 0 or not membro:
+        return _DIVERSIFICACAO_LINE
+    return (
+        f"{nome} ({fmt_currency(valor)} de {membro.capitalize()}) é o maior ativo individual. "
+        + _DIVERSIFICACAO_LINE
+    )
 
 
 class ChartsNarrator:
@@ -246,10 +264,7 @@ class ChartsNarrator:
                 "context": (
                     f"Ranking dos 15 maiores ativos financeiros individuais da família, totalizando {fmt_currency(M['patrimonio_investivel'])} em investimentos."
                 ),
-                "conclusion": (
-                    f"{M['top_asset_nome']} ({fmt_currency(M['top_asset_valor'])} de {M['top_asset_membro'].capitalize()}) é o maior ativo individual. "
-                    "Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
-                ),
+                "conclusion": _conclusion_top15_ativos(M),
             },
             "impostos_pj": {
                 "context": (
