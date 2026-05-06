@@ -24,7 +24,7 @@ CardVariant = Literal[
 
 CardSize = Literal["full", "half"]
 
-ReportMode = Literal["estrategico", "usa"]
+ReportMode = Literal["estrategico"]
 
 TopBorder = Literal["danger", "accent"]
 
@@ -125,7 +125,6 @@ class NavGroupSpec(_Base):
 
 class NavigationSpec(_Base):
     estrategico: list[NavGroupSpec] = []
-    usa: list[NavGroupSpec] = []
 
 
 class Estrategico(_Base):
@@ -133,16 +132,11 @@ class Estrategico(_Base):
     appendices: list[AppendixSpec] = []
 
 
-class Usa(_Base):
-    sections: list[SectionSpec]
-
-
 class ReportLayout(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     version: str
     estrategico: Estrategico
-    usa: Usa
     cover: CoverSpec | None = None
     navigation: NavigationSpec | None = None
     footer: bool | None = None
@@ -190,11 +184,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                               'is_appendix': True},
                                                           {   'section_id': 'APP_E',
                                                               'num': 'E',
-                                                              'is_appendix': True}]}],
-                      'usa': [   {   'links': [   {'section_id': 'U1', 'num': 'U1'},
-                                                  {'section_id': 'U2', 'num': 'U2'},
-                                                  {'section_id': 'U3', 'num': 'U3'},
-                                                  {'section_id': 'U4', 'num': 'U4'}]}]},
+                                                              'is_appendix': True}]}]},
     'footer': True,
     'export_toolbar': True,
     'estrategico': {   'sections': [   {   'id': 'S1',
@@ -441,9 +431,7 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                              'title': 'Cenários de Estresse',
                                              'enabled': True,
                                              'optional': True,
-                                             'charts': [   {   'id': 'cenarios_cambiais',
-                                                               'enabled': False,
-                                                               'conclusion': True}],
+                                             'charts': [],
                                              'cards': [   {   'id': 'sensibilidade_ativos',
                                                               'enabled': True,
                                                               'variant': 'feature',
@@ -470,46 +458,6 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                               'enabled': True,
                                                               'variant': 'neutral',
                                                               'size': 'full'}]}]},
-    'usa': {   'sections': [   {   'id': 'U1',
-                                   'title': 'Mudança EUA — Estrutura F1/F2 e Custos',
-                                   'enabled': True,
-                                   'summary': True,
-                                   'charts': [   {   'id': 'custos_f1f2',
-                                                     'enabled': True,
-                                                     'conclusion': True}],
-                                   'cards': []},
-                               {   'id': 'U2',
-                                   'title': 'Green Card — EB2-NIW e Compliance',
-                                   'enabled': True,
-                                   'summary': True,
-                                   'divider_before': True,
-                                   'charts': [   {   'id': 'cenarios_cambiais',
-                                                     'enabled': True,
-                                                     'conclusion': True}],
-                                   'cards': []},
-                               {   'id': 'U3',
-                                   'title': 'NCLEX Roadmap — Licenciamento RN',
-                                   'enabled': True,
-                                   'summary': True,
-                                   'divider_before': True,
-                                   'charts': [],
-                                   'cards': [   {   'id': 'nclex_roadmap',
-                                                    'enabled': True,
-                                                    'variant': 'feature',
-                                                    'size': 'full'}]},
-                               {   'id': 'U4',
-                                   'title': 'Simulação — Cônjuge Sem Trabalhar',
-                                   'enabled': True,
-                                   'summary': True,
-                                   'divider_before': True,
-                                   'charts': [   {   'id': 'mariana_cenarios_usa',
-                                                     'enabled': True,
-                                                     'conclusion': True}],
-                                   'cards': [   {   'id': 'simulacao_mariana',
-                                                    'enabled': True,
-                                                    'variant': 'warn',
-                                                    'size': 'full',
-                                                    'top_border': 'accent'}]}]},
     'chart_palette': [   '#1A3A5C',
                          '#2A9D8F',
                          '#15803D',
@@ -541,15 +489,12 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                             'alocacao_alvo': 'chart-alocacao-alvo',
                             'top15_ativos': 'chart-top15-ativos',
                             'yield_imoveis': 'chart-yield-imoveis',
-                            'custos_f1f2': 'chart-custos-f1f2',
-                            'cenarios_cambiais': 'chart-cenarios-cambiais',
                             'projecao_3cenarios': 'chart-projecao-3cenarios',
                             'renda_passiva': 'chart-renda-passiva',
                             'impostos_pj': 'chart-impostos-pj',
                             'bubble_riscos': 'chart-bubble-riscos',
                             'top5_decisoes': 'chart-top5-decisoes',
                             'cenarios_conjuge': 'chart-cenarios-conjuge',
-                            'mariana_cenarios_usa': 'chart-mariana-cenarios-usa',
                             'viagens': 'chart-viagens',
                             'renda_evolucao_multi_anos': 'chart-renda-evolucao-multi-anos',
                             'aliquota_efetiva_dual_gauge': 'chart-aliquota-efetiva-dual-gauge'},
@@ -564,15 +509,12 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                         'alocacao_alvo': 'Alocação Alvo',
                         'top15_ativos': 'Top 15 Ativos Financeiros',
                         'yield_imoveis': 'Rentabilidade dos Imóveis (Yield) vs CDI',
-                        'custos_f1f2': 'Custos Mensais F1/F2',
-                        'cenarios_cambiais': 'Cenários Cambiais',
                         'projecao_3cenarios': 'Projeção Patrimonial — 3 Cenários',
                         'renda_passiva': 'Renda Passiva — Progresso até a Meta',
                         'impostos_pj': 'Tributário PJ — Cascata Fiscal',
                         'bubble_riscos': 'Mapa de Riscos',
                         'top5_decisoes': 'Top 5 Decisões de Impacto',
                         'cenarios_conjuge': 'Cenários de Estresse — Sem renda do cônjuge',
-                        'mariana_cenarios_usa': 'Cenários IF — Cônjuge',
                         'viagens': 'Orçamento de Viagens',
                         'renda_evolucao_multi_anos': 'Evolução da Renda — Multi-anos',
                         'aliquota_efetiva_dual_gauge': 'Alíquota Efetiva — RFB e Cerbasi'},
@@ -592,9 +534,6 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                           8: ['impostos_pj'],
                           9: ['bubble_riscos'],
                           10: ['top5_decisoes']},
-    'usa_section_charts': {   1: ['custos_f1f2'],
-                              2: ['cenarios_cambiais'],
-                              4: ['mariana_cenarios_usa']},
     'dark_mode': {   'css_vars': {   'color-bg': '#0F172A',
                                      'color-surface': '#1E293B',
                                      'color-text': '#E2E8F0',
@@ -643,5 +582,5 @@ LAYOUT_DICT: dict = {   'version': '1.2',
 
 LAYOUT: ReportLayout = ReportLayout.model_validate(LAYOUT_DICT)
 
-ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'investimentos_classe', 'kpi_rentabilidade', 'estrategia_aporte', 'contrafluxo', 'previdencia_pgbl', 'renda_anual_familiar', 'ir_pago_total', 'split_trabalho_capital', 'pgbl_capacidade', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref', 'nclex_roadmap', 'simulacao_mariana')
-ALL_CHART_IDS: tuple[str, ...] = ('patrimonio_doughnut', 'waterfall_if', 'score_gauge', 'fluxo_mensal', 'receita_bar', 'despesas_doughnut', 'receita_despesa_mensal', 'viagens', 'alocacao_atual', 'alocacao_alvo', 'top15_ativos', 'cenarios_conjuge', 'yield_imoveis', 'projecao_3cenarios', 'renda_passiva', 'impostos_pj', 'renda_evolucao_multi_anos', 'aliquota_efetiva_dual_gauge', 'bubble_riscos', 'top5_decisoes', 'custos_f1f2', 'cenarios_cambiais', 'mariana_cenarios_usa')
+ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'investimentos_classe', 'kpi_rentabilidade', 'estrategia_aporte', 'contrafluxo', 'previdencia_pgbl', 'renda_anual_familiar', 'ir_pago_total', 'split_trabalho_capital', 'pgbl_capacidade', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref')
+ALL_CHART_IDS: tuple[str, ...] = ('patrimonio_doughnut', 'waterfall_if', 'score_gauge', 'fluxo_mensal', 'receita_bar', 'despesas_doughnut', 'receita_despesa_mensal', 'viagens', 'alocacao_atual', 'alocacao_alvo', 'top15_ativos', 'cenarios_conjuge', 'yield_imoveis', 'projecao_3cenarios', 'renda_passiva', 'impostos_pj', 'renda_evolucao_multi_anos', 'aliquota_efetiva_dual_gauge', 'bubble_riscos', 'top5_decisoes')

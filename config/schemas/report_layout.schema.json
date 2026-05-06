@@ -4,7 +4,7 @@
   "title": "Report Layout",
   "description": "Schema do config/report_layout.yaml — fonte de verdade da estrutura do relatório (seções, cards, charts). Validado em pre-commit e CI (ADR-076).",
   "type": "object",
-  "required": ["version", "estrategico", "usa"],
+  "required": ["version", "estrategico"],
   "additionalProperties": true,
 
   "$defs": {
@@ -220,9 +220,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "estrategico": {"type": "array", "items": {"$ref": "#/$defs/navGroupSpec"}},
-        "tatico": {"type": "array", "items": {"$ref": "#/$defs/navGroupSpec"}},
-        "usa": {"type": "array", "items": {"$ref": "#/$defs/navGroupSpec"}}
+        "estrategico": {"type": "array", "items": {"$ref": "#/$defs/navGroupSpec"}}
       }
     },
     "kpiSpec": {
@@ -256,34 +254,6 @@
         "appendices": {
           "type": "array",
           "items": {"$ref": "#/$defs/appendixSpec"}
-        }
-      }
-    },
-
-    "tatico": {
-      "type": "object",
-      "required": ["sections"],
-      "additionalProperties": false,
-      "properties": {
-        "kpis": {
-          "type": "array",
-          "items": {"$ref": "#/$defs/kpiSpec"}
-        },
-        "sections": {
-          "type": "array",
-          "items": {"$ref": "#/$defs/sectionSpec"}
-        }
-      }
-    },
-
-    "usa": {
-      "type": "object",
-      "required": ["sections"],
-      "additionalProperties": false,
-      "properties": {
-        "sections": {
-          "type": "array",
-          "items": {"$ref": "#/$defs/sectionSpec"}
         }
       }
     },

@@ -618,6 +618,6 @@ Após PR5 mergeado:
 - **2026-05-06:** PR0 mergeado em `main` (commit `a4d956e`).
 - **2026-05-06:** PR1 mergeado em `main` (#80, commit `a8c2666`) — schema rename `cenarios_conjuge` + ADR-166 Decidido.
 - **2026-05-06:** ADR-168 alvo do PR4 ("Remoção do Modo USA") **renumerada para ADR-168** — slot 165 foi tomado por outro PR (#79, ValidationIssue) durante a janela de execução desta iniciativa.
-- **2026-05-06:** PR2 mergeado em `main` (#81, commit `1d33411`) — analyzer reduzido a 1 cenário + gate de elegibilidade ADR-167 Decidido.
-- **2026-05-06:** PR3 implementado — APP_C "Cenários de Estresse" com hide-when-empty + visualização comparativa lado-a-lado base vs estresse + `StressScenarioCard` extraído.
-- **2026-05-06:** PR5 mergeado em `main` (#85, commit `bed2975`) — limpeza editorial em `config/methodology.md` e `config/report_spec.md` (mergeou antes de PR3/PR4 porque conteúdo não conflitava).
+- **2026-05-06:** PR3 mergeable em `main` (#82, em queue de auto-merge) — APP_C "Cenários de Estresse" com hide-when-empty + visualização comparativa.
+- **2026-05-06:** PR4 implementado — Modo USA (U1-U4) inteiro deletado + ADR-168 Decidido (supersede parcial ADR-117/123, conclui agenda ADR-151). ReportMode reduzido a literal único `'estrategico'`.
+- **2026-05-06:** PR5 mergeado em `main` (#85, commit `bed2975`) — limpeza editorial em `config/methodology.md` e `config/report_spec.md`.
