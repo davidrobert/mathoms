@@ -6,6 +6,7 @@ from backend.app.models.document import DocumentType
 from backend.app.services.document_classification import (
     ClassificationResult,
     classification_can_route_to_data,
+    document_type_to_e0_dest,
     map_e0_doc_type_to_document_type,
 )
 
@@ -42,6 +43,35 @@ def test_needs_review_blocks_route():
             "e0_doc_type": "extratocontabrl",
         }
     )
+
+
+def test_document_type_to_e0_dest_roundtrip():
+    """Reverse mapping precisa casar com forward mapping para todo tipo suportado."""
+    cases = [
+        DocumentType.bank_statement,
+        DocumentType.credit_card_bill,
+        DocumentType.investment_report,
+        DocumentType.irpf,
+    ]
+    for dt in cases:
+        e0_dest = document_type_to_e0_dest(dt)
+        assert e0_dest is not None, f"Sem reverse mapping para {dt}"
+        e0_code, dest_group = e0_dest
+        assert dest_group  # truthy
+        assert map_e0_doc_type_to_document_type(e0_code) == dt
+
+
+def test_document_type_to_e0_dest_returns_none_for_other():
+    assert document_type_to_e0_dest(DocumentType.other) is None
+    assert document_type_to_e0_dest(DocumentType.e1_members_json) is None
+    assert document_type_to_e0_dest(DocumentType.e1_5_baseline_json) is None
+
+
+def test_document_type_to_e0_dest_investment_uses_canonical_code():
+    """Investment_report → ``investimentosposicao`` (não cdb*); E2 reconhece esse prefixo."""
+    e0_code, dest_group = document_type_to_e0_dest(DocumentType.investment_report)
+    assert e0_code == "investimentosposicao"
+    assert dest_group == "financial_statements"
 
 
 def test_classification_result_roundtrip_dict():

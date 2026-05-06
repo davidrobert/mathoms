@@ -2975,9 +2975,12 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
 
 def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
     """Converte sub-resultados tipados em dicts legacy-shaped."""
+    investimentos_dict = result.investimentos_classes.to_legacy_dict()
+    if getattr(result, "top_ativos", None) is not None:
+        investimentos_dict["top_ativos"] = [a.to_dict() for a in result.top_ativos.top_ativos]
     return {
         "patrimonio": result.patrimonio_full,
-        "investimentos_classes": result.investimentos_classes.to_legacy_dict(),
+        "investimentos_classes": investimentos_dict,
         "fluxo": result.fluxo_enriched.to_legacy_dict(),
         "goals": result.if_projection.to_legacy_dict() if result.if_projection else {},
         "ratios": result.ratios.to_legacy_dict(),

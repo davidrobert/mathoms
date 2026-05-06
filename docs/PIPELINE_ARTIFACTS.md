@@ -53,6 +53,14 @@ Implementado em `tests/test_e4_golden_execution.py`: tenant mínimo (`categoriza
 
 Implementado em `tests/test_e5_golden_execution.py`: mesmo fluxo de dados que o golden E4 (E3 fixture → `e4_categorize.main`) com `config/goals.json` mínimo (`if_meta`, `trs_pct`) e cópias de `scoring.json`, `parametros_fiscais.json`, `taxas.json` do repositório → `e5_analyze.main` → `processed/E5_analysis/analise_financeira-5_analysis.json` + `jsonschema` + `validate_artifact`. Cenário misto: `test_e5_execution_mixed_receita_despesa` (mesma fixture E3 com despesa). Cenário com baseline: `test_e5_execution_with_baseline_patrimonial` — totais de patrimônio batem com o fixture (`dividas[]` com `saldo_31_12` por ano, necessário para o E5 somar dívidas por membro).
 
+### Bloco `investimentos` no E5 JSON
+
+`output["investimentos"]` (escrito por `e5_serialization.build_e5_output`) carrega:
+
+- `tabela_classes`: agregação por classe de ativo (saída de `InvestimentosClassesAnalyzer`).
+- `total`: soma da carteira.
+- `top_ativos`: ranking dos ≤15 maiores ativos individuais (saída de `TopAtivosAnalyzer`, companion de A5b). Cada item: `{posicao, nome, classe, membro, instituicao, valor, pct_carteira, tipo_origem}`. Item fechado por `additionalProperties:false` no schema; enums em `classe` (6 valores) e `tipo_origem` (`investimento`/`imovel`). Coerente com `tabela_classes` por consumir o mesmo `bens_por_membro` que o aggregator de classes. Consumido pelo card `Top15AtivosCard` em S3 (frontend) e por `_find_top_asset` em `e5n_narrativas.py` para narrativa do chart.
+
 ## Golden de execução E5.N
 
 Implementado em `tests/test_e5n_golden_execution.py`: mesmo cenário mínimo que o golden E5 (helper `_build_e5_workspace` — evita depender de `pytest_plugins` entre módulos) → `e4_categorize.main` → `e5_analyze.main` → `e5n_narrativas.main` → `analise_financeira-5_analysis.json` passa a incluir `narrativas` (`perfil_familia`, `summaries`, `charts`). O teste chama `validate_narrativas` **antes** do `finally` que repõe os globals do `e5n_narrativas` (o chart dinâmico `{cônjuge}_cenarios` depende de `family_members.json` do tenant). Segundo cenário: **`test_e5n_execution_narrativas_with_conjuge_chart`** — membro com `papel: conjuge` → presença de `ana_cenarios` em `narrativas.charts`.

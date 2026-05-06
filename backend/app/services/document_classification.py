@@ -105,6 +105,22 @@ def map_e0_doc_type_to_document_type(e0_doc_type: str) -> DocumentType:
     return DocumentType.other
 
 
+# Reverse mapping: cada DocumentType → (e0_doc_type canônico, dest_group).
+# Usado quando o usuário corrige doc_type via PATCH e o arquivo precisa ser
+# renomeado para o filename canônico que o pipeline reconhece.
+_DOCUMENT_TYPE_TO_E0_DEST: dict[DocumentType, tuple[str, str]] = {
+    DocumentType.bank_statement: ("extratoconta", "financial_statements"),
+    DocumentType.credit_card_bill: ("fatura", "financial_statements"),
+    DocumentType.investment_report: ("investimentosposicao", "financial_statements"),
+    DocumentType.irpf: ("irpfdeclaracao", "income_tax_br"),
+}
+
+
+def document_type_to_e0_dest(doc_type: DocumentType) -> tuple[str, str] | None:
+    """Reverse de :func:`map_e0_doc_type_to_document_type` para rename pós-override (None para tipos sem padrão canônico: ``other``, ``e1_*_json``)."""
+    return _DOCUMENT_TYPE_TO_E0_DEST.get(doc_type)
+
+
 class ClassificationResult(BaseModel):
     """Resultado canônico do classificador (contrato P2)."""
 

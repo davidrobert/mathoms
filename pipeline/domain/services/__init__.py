@@ -171,6 +171,12 @@ from pipeline.domain.services.statement_preprocessor import (
     PeriodDerivationWarning,
     StatementPeriodNormalizer,
 )
+from pipeline.domain.services.top_ativos_analyzer import (
+    TopAtivo,
+    TopAtivosAnalyzer,
+    TopAtivosConfig,
+    TopAtivosResult,
+)
 from pipeline.domain.services.transaction_classifier import (
     ClassifiedTransaction,
     ClassifierConfig,
@@ -249,6 +255,10 @@ __all__ = [
     "InvestimentosClassesAnalysis",
     "InvestimentosClassesAnalyzer",
     "InvestimentosClassesConfig",
+    "TopAtivo",
+    "TopAtivosAnalyzer",
+    "TopAtivosConfig",
+    "TopAtivosResult",
     "ConsumoConsciente",
     "ConsumoConscienteCalculator",
     "ConsumoConscienteConfig",

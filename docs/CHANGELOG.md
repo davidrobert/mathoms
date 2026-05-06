@@ -6,6 +6,22 @@
 
 ## [Unreleased]
 
+- **refactor(report): _find_top_asset usa fonte canônica top_ativos + schema E5 declara contrato (2026-05-06):**
+  Cleanup pós-PR #77. `scripts/e5n_narrativas.py::_find_top_asset` deixou de
+  ler `processed/E4_unified/investimentos-4_unified.json` (fonte legada
+  divergente do baseline consolidado v1.5) e passou a ler
+  `e5_data["investimentos"]["top_ativos"][0]` — populado pelo
+  `TopAtivosAnalyzer` (PR #77), coerente com `tabela_classes` e
+  `patrimonio_investivel` por consumir o mesmo `bens_por_membro`. Elimina
+  a categoria de bug "(R$ 0,00 de )" mesmo quando E4 stage está ausente.
+  `config/schemas/e5_analysis.schema.json` ganha definição formal do bloco
+  `investimentos` (`tabela_classes`, `total`, `top_ativos`) com `top_ativos`
+  como array de até 15 itens, `additionalProperties:false` no item, enums
+  para `classe` (6 valores) e `tipo_origem` (`investimento`/`imovel`),
+  `posicao 1..15`, `pct_carteira 0..100`. Aditivo — backward compat em modo
+  `warn` (default) e `strict`. 5 unit tests novos (`test_e5n_find_top_asset.py`)
+  + 2 schema tests positivos/negativos.
+
 - **refactor(report,frontend,config): A8.4 PR4 — remoção do Modo USA inteiro (ADR-168) (2026-05-06):**
   Modo USA do relatório (U1 Mudança EUA F1/F2 + U2 Green Card EB2-NIW + U3 NCLEX Roadmap + U4 Simulação Mariana Sem Trabalhar) **deletado por completo**, ancorando em ADR-151 (modos opcionais sem cliente real são lastro). ReportMode passa de `'estrategico' | 'usa'` para literal único `'estrategico'`.
   YAML: `config/report_layout.yaml` — bloco `usa:` (4 seções) removido; `nav.usa` removido; charts USA-only deletados de `chart_canvas_map`/`chart_titles`/`section_charts` (`mariana_cenarios_usa`, `custos_f1f2`, `cenarios_cambiais`); `usa_section_charts` deletado; comentários do registry de cards (NCLEX/Mariana) limpos. `chart_canvas_map.mariana_cenarios` renomeado para `cenarios_conjuge`.
@@ -41,6 +57,30 @@
   (schema estável `cenarios_conjuge` no payload E5, ancora ADR-143 + ADR-076), ADR-167
   (eligibility gate no domain service, ancora ADR-143). Lane A8.4 aberta no
   [BACKLOG.md](BACKLOG.md#sprint-a8--continuação-multi-tenant-aberta-após-a7-fechar-2026-04-27).
+
+- **fix(documents): "Sem extrato" enganoso em investment_report misclassificado (2026-05-06):**
+  Filename `itau_extratoconta_*.xls` cujo conteúdo é Posição de Investimentos
+  (override de classificação OU PATCH manual) ficava com badge "Sem extrato"
+  porque (a) `pipeline_e2_extract_ok=False` era setado mesmo para `investment_report`
+  sem extract, e (b) `update_document_classification` mudava `doc_type` no DB
+  mas mantinha o filename antigo, fazendo E2 rotear para `parse_itau_xls`
+  (que falha por sheet `Lançamentos` ausente) em vez do E2-LLM.
+  - **A — sync**: `_OPTIONAL_E2_EXTRACT_TYPE_VALUES = {"investment_report"}`
+    em [backend/app/services/document_pipeline_sync.py](backend/app/services/document_pipeline_sync.py) —
+    sem extract → `pipeline_e2_extract_ok=None` ("Processado"), em vez de
+    `False` ("Sem extrato"). Com extract → `True` ("Extraído") como antes.
+  - **B — rename canônico no PATCH**: `_maybe_rename_after_manual_override`
+    em [backend/app/api/documents.py](backend/app/api/documents.py) chama
+    `rename_to_canonical` quando `doc_type`/`bank_code`/`period` mudam.
+    Reverse mapping `document_type_to_e0_dest()` em
+    [backend/app/services/document_classification.py](backend/app/services/document_classification.py).
+    Preserva e0_doc_type existente quando ele ainda casa com o novo
+    `DocumentType` (ex.: `informerendimentos*` continua válido para IRPF —
+    sem churn de path desnecessário).
+  - Cobertura: 8 testes unitários novos em
+    [backend/tests/test_documents_rename_helper.py](backend/tests/test_documents_rename_helper.py),
+    2 em [backend/tests/test_document_pipeline_sync.py](backend/tests/test_document_pipeline_sync.py),
+    3 em [backend/tests/test_document_classification.py](backend/tests/test_document_classification.py).
 
 - **feat(db): B7 M3 — DROP _legacy_kanban_items + _legacy_report_notes + model cleanup (ADR-154) (2026-05-05):**
   Migration final após 7 dias de validação pós-M2 (2026-04-29). `_legacy_kanban_items` e
