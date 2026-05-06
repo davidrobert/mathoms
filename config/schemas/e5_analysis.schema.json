@@ -29,6 +29,64 @@
     },
     "goals": {
       "type": "object"
+    },
+    "investimentos": {
+      "type": "object",
+      "description": "Investimentos por classe (tabela_classes/total) + ranking dos 15 maiores ativos individuais (top_ativos).",
+      "properties": {
+        "tabela_classes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["categoria", "valor", "pct"],
+            "properties": {
+              "categoria": {"type": "string"},
+              "valor": {"type": "number"},
+              "pct": {"type": "number"}
+            }
+          }
+        },
+        "total": {"type": "number"},
+        "top_ativos": {
+          "type": "array",
+          "maxItems": 15,
+          "description": "Ranking determinístico produzido por TopAtivosAnalyzer; coerente com tabela_classes (mesmo bens_por_membro).",
+          "items": {
+            "type": "object",
+            "required": [
+              "posicao",
+              "nome",
+              "classe",
+              "membro",
+              "instituicao",
+              "valor",
+              "pct_carteira",
+              "tipo_origem"
+            ],
+            "properties": {
+              "posicao": {"type": "integer", "minimum": 1, "maximum": 15},
+              "nome": {"type": "string", "minLength": 1},
+              "classe": {
+                "type": "string",
+                "enum": [
+                  "Renda Fixa",
+                  "Ações",
+                  "Cripto",
+                  "Contas Bancárias",
+                  "Imóveis Investimento",
+                  "Outros"
+                ]
+              },
+              "membro": {"type": "string"},
+              "instituicao": {"type": "string"},
+              "valor": {"type": "number", "minimum": 0},
+              "pct_carteira": {"type": "number", "minimum": 0, "maximum": 100},
+              "tipo_origem": {"type": "string", "enum": ["investimento", "imovel"]}
+            },
+            "additionalProperties": false
+          }
+        }
+      }
     }
   },
   "additionalProperties": true
