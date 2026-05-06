@@ -6,6 +6,20 @@
 
 ## [Unreleased]
 
+- **docs(plan): A8.4 Cenários de Estresse — plano canônico + lane no BACKLOG (2026-05-06):**
+  [docs/CENARIOS_ESTRESSE_PLAN.md](CENARIOS_ESTRESSE_PLAN.md) entregue como SOT da iniciativa
+  "remover prototipagem família-específica + APP_C universal". 4 especialistas consultados em
+  paralelo (financial-planner, product-designer, senior-cto, data-engineer); decisões D1-D5
+  fixadas; 6 PRs sequenciais escopados (PR0 docs · PR1 schema rename `cenarios_mariana` →
+  `cenarios_conjuge` em 5 sites · PR2 gate de elegibilidade `should_render_conjuge_scenarios`
+  + analyzer reduzido a 1 cenário · PR3 frontend lê chave nova + APP_C "Cenários de Estresse"
+  com hide-when-empty + numeração estável A/B/C/D/E + visualização comparativa lado-a-lado
+  base vs estresse · PR4 delete Modo USA U1-U4 inteiro · PR5 limpeza). 3 ADRs alvo: ADR-165
+  (remoção Modo USA, supersede parcial ADR-117/123, conclui agenda ADR-151), ADR-166
+  (schema estável `cenarios_conjuge` no payload E5, ancora ADR-143 + ADR-076), ADR-167
+  (eligibility gate no domain service, ancora ADR-143). Lane A8.4 aberta no
+  [BACKLOG.md](BACKLOG.md#sprint-a8--continuação-multi-tenant-aberta-após-a7-fechar-2026-04-27).
+
 - **feat(db): B7 M3 — DROP _legacy_kanban_items + _legacy_report_notes + model cleanup (ADR-154) (2026-05-05):**
   Migration final após 7 dias de validação pós-M2 (2026-04-29). `_legacy_kanban_items` e
   `_legacy_report_notes` DROPadas. Cleanup de todos os artefatos dependentes:
