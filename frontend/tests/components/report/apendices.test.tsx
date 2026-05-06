@@ -40,23 +40,69 @@ describe("ApendiceBSection", () => {
   it("renderiza fallback + metodologias com data vazia", () => {
     render(<ApendiceBSection data={emptyData()} />);
     expect(screen.getByText(/Apêndice B/)).toBeInTheDocument();
+    expect(screen.getByText(/Metas vigentes neste ciclo/)).toBeInTheDocument();
     expect(
-      screen.getByText(/Premissas econômicas não registradas/),
+      screen.getByText(/Nenhuma meta vigente neste ciclo/),
     ).toBeInTheDocument();
     expect(screen.getByText(/Bruno Perini/)).toBeInTheDocument();
     expect(screen.getByText(/Gustavo Cerbasi/)).toBeInTheDocument();
   });
 
-  it("lista snapshot de premissas quando presente em goals", () => {
+  it("lista metas vigentes humanizadas a partir do snapshot", () => {
     const data = {
       goals: {
-        premissas_snapshot: { inflacao: "4.5%", selic: "14.25%" },
+        premissas_snapshot: {
+          schema: 1,
+          captured_at: "2026-05-06T13:17:05.995102+00:00",
+          goals_json_sha256:
+            "1cd0f0c15dd5097769280f6357c9928a98a1ac8b83add4847a689232445c1b38",
+          active_goals: [
+            {
+              type: "APORTE_MENSAL",
+              id: "501e998a-5515-46f2-b35d-f5a6c8759059",
+              effective_from: "2026-04-27",
+            },
+            {
+              type: "DOLARIZACAO",
+              id: "faaf754c-4718-43bd-90fd-d183edcf213c",
+              effective_from: "2026-04-27",
+            },
+            {
+              type: "INDEPENDENCIA_FINANCEIRA",
+              id: "8e574a00-f246-4138-a7bf-75445b3f1332",
+              effective_from: "2026-04-26",
+            },
+          ],
+        },
       },
     } as unknown as ReportAnalysisData;
     render(<ApendiceBSection data={data} />);
-    expect(screen.getByText("inflacao")).toBeInTheDocument();
-    expect(screen.getByText("4.5%")).toBeInTheDocument();
-    expect(screen.getByText("selic")).toBeInTheDocument();
+    expect(screen.getByText("Aporte mensal")).toBeInTheDocument();
+    expect(screen.getByText("Dolarização da carteira")).toBeInTheDocument();
+    expect(screen.getByText("Independência Financeira")).toBeInTheDocument();
+    expect(screen.getAllByText(/Vigente desde 27\/04\/2026/)).toHaveLength(2);
+    expect(screen.getByText(/Vigente desde 26\/04\/2026/)).toBeInTheDocument();
+    expect(screen.getByText(/Snapshot capturado em/)).toBeInTheDocument();
+    expect(screen.queryByText(/1cd0f0c15dd5097769280f6357c9928a/)).toBeNull();
+    expect(screen.queryByText(/goals_json_sha256/)).toBeNull();
+  });
+
+  it("mostra empty state quando snapshot existe mas active_goals vazio", () => {
+    const data = {
+      goals: {
+        premissas_snapshot: {
+          schema: 1,
+          captured_at: "2026-05-06T13:17:05.995102+00:00",
+          goals_json_sha256: null,
+          active_goals: [],
+        },
+      },
+    } as unknown as ReportAnalysisData;
+    render(<ApendiceBSection data={data} />);
+    expect(
+      screen.getByText(/Nenhuma meta vigente neste ciclo/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Snapshot capturado em/)).toBeInTheDocument();
   });
 });
 
