@@ -16,7 +16,9 @@ ADR-115). Router nivel porque composites não passam por use case fino.
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
+from functools import partial
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
@@ -29,12 +31,13 @@ from backend.app.application.document import (
 from backend.app.application.document import (
     list_workspace_documents as _uc_list_workspace_documents,
 )
+from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace, require_write_role
 from backend.app.events import dispatch_sync
 from backend.app.events.domain import AuditLogEvent
-from backend.app.models.document import Document, DocumentStatus
+from backend.app.models.document import Document, DocumentStatus, DocumentType
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.document_repository import DocumentRepository
@@ -48,6 +51,11 @@ from backend.app.schemas.dto.document import (
     document_to_response,
 )
 from backend.app.services.audit import AuditAction, client_meta
+from backend.app.services.canonical_routing import rename_to_canonical
+from backend.app.services.document_classification import (
+    document_type_to_e0_dest,
+    map_e0_doc_type_to_document_type,
+)
 from backend.app.services.document_extract_json_service import (
     DocumentExtractError,
     read_document_extract_json,
@@ -237,6 +245,7 @@ async def _apply_classification_update(
 
     _apply_classification_fields(doc, updates, actor_user_id)
     _invalidate_e2_if_needed(doc, updates)
+    await _maybe_rename_after_manual_override(doc, updates, workspace_id)
     return document_to_response(doc)
 
 
@@ -268,6 +277,63 @@ def _invalidate_e2_if_needed(doc: Document, updates: dict) -> None:
     doc.pipeline_e2_extract_ok = None
     if doc.status == DocumentStatus.processed:
         doc.status = DocumentStatus.ready
+
+
+def _normalize_doc_type(value) -> DocumentType | None:
+    if isinstance(value, str):
+        try:
+            return DocumentType(value)
+        except ValueError:
+            return None
+    return value
+
+
+def _resolve_e0_for_rename(doc: Document) -> tuple[str, str] | None:
+    """Preserva e0_doc_type atual do filename se ainda casa com o novo doc_type — caso contrário usa o canônico do reverse map."""
+    new_dt = _normalize_doc_type(doc.doc_type)
+    if new_dt is None:
+        return None
+    from scripts.e0_route import detect_doc_type as _detect_e0
+
+    fname = (doc.stored_path or "").rsplit("/", 1)[-1]
+    if fname:
+        detected = _detect_e0(fname)
+        if detected and map_e0_doc_type_to_document_type(detected[0]) == new_dt:
+            return detected[0], detected[1]
+    return document_type_to_e0_dest(new_dt)
+
+
+async def _maybe_rename_after_manual_override(
+    doc: Document, updates: dict, workspace_id: str
+) -> None:
+    """Renomeia arquivo após PATCH quando doc_type/bank_code/period mudou (espelha bulk reclassify, evita "Sem extrato" enganoso por filename desalinhado)."""
+    if not (updates.keys() & {"doc_type", "bank_code", "period"}) or not doc.stored_path:
+        return
+    abs_path = _storage.abs_stored_file(workspace_id, doc.stored_path)
+    if abs_path is None or not abs_path.exists():
+        return
+    e0_dest = _resolve_e0_for_rename(doc)
+    if e0_dest is None:
+        return
+    rename_result = await asyncio.get_event_loop().run_in_executor(
+        None,
+        partial(
+            rename_to_canonical,
+            abs_path,
+            _storage.tenant_root(workspace_id),
+            settings.PIPELINE_ROOT,
+            dest_group=e0_dest[1],
+            e0_doc_type=e0_dest[0],
+            institution=doc.bank_code,
+            period=doc.period,
+            classification_meta=doc.classification_meta or {},
+            content_hash=doc.content_hash,
+        ),
+    )
+    if rename_result is not None:
+        abs_new, rel_new = rename_result
+        doc.stored_path = rel_new
+        doc.original_name = abs_new.name
 
 
 @router.delete(

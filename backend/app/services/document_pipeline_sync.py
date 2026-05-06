@@ -22,6 +22,15 @@ from backend.app.repositories.pipeline_artifact_repository import PipelineArtifa
 _NO_E2_EXTRACT_TYPE_VALUES = {"irpf", "e1_members_json", "e1_5_baseline_json"}
 _IRPF_E15A_EXTRACT_TYPES = {"irpf"}
 
+# Doc types onde o extract E2 é **opcional** — quando presente, registramos
+# True (badge "Extraído"); quando ausente, registramos None (badge "Processado")
+# em vez de False ("Sem extrato"). Investimentos são roteados pelo E2 só
+# quando o filename casa `investimentosposicao`/`carteirarenda`/`cdb*`; uploads
+# rotulados como investimento mas com filename misclassified (ex.: Itaú XLS
+# nomeado como `extratoconta` mas com posição de carteira) ficavam reportados
+# como "Sem extrato" enganosamente.
+_OPTIONAL_E2_EXTRACT_TYPE_VALUES = {"investment_report"}
+
 # Stages onde E2 grava per-doc no DB (espelho de scripts/e2_extract.run_with_store).
 # E2-llm é stub determinístico que registra arquivos delegados ao wrapper LLM.
 _E2_DB_STAGES = ("E2-extratos", "E2-faturas", "E2-llm")
@@ -190,7 +199,11 @@ def apply_pipeline_e2_sync_to_documents(
         has_extract = extract_path is not None
         if not has_extract and db is not None and doc.workspace_id:
             has_extract = has_e2_artifact_in_db(db, doc.workspace_id, fname)
-        doc.pipeline_e2_extract_ok = has_extract
+
+        if doc_type_val in _OPTIONAL_E2_EXTRACT_TYPE_VALUES and not has_extract:
+            doc.pipeline_e2_extract_ok = None
+        else:
+            doc.pipeline_e2_extract_ok = has_extract
         doc.pipeline_extract_notes = _read_extract_notes(extract_path) if extract_path else None
         # Successful artefact extraction confirms the upload-time classification
         # was correct enough — clear the "incerta" flag set by the LLM fallback.

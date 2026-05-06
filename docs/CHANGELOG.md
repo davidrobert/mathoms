@@ -42,6 +42,30 @@
   (eligibility gate no domain service, ancora ADR-143). Lane A8.4 aberta no
   [BACKLOG.md](BACKLOG.md#sprint-a8--continuação-multi-tenant-aberta-após-a7-fechar-2026-04-27).
 
+- **fix(documents): "Sem extrato" enganoso em investment_report misclassificado (2026-05-06):**
+  Filename `itau_extratoconta_*.xls` cujo conteúdo é Posição de Investimentos
+  (override de classificação OU PATCH manual) ficava com badge "Sem extrato"
+  porque (a) `pipeline_e2_extract_ok=False` era setado mesmo para `investment_report`
+  sem extract, e (b) `update_document_classification` mudava `doc_type` no DB
+  mas mantinha o filename antigo, fazendo E2 rotear para `parse_itau_xls`
+  (que falha por sheet `Lançamentos` ausente) em vez do E2-LLM.
+  - **A — sync**: `_OPTIONAL_E2_EXTRACT_TYPE_VALUES = {"investment_report"}`
+    em [backend/app/services/document_pipeline_sync.py](backend/app/services/document_pipeline_sync.py) —
+    sem extract → `pipeline_e2_extract_ok=None` ("Processado"), em vez de
+    `False` ("Sem extrato"). Com extract → `True` ("Extraído") como antes.
+  - **B — rename canônico no PATCH**: `_maybe_rename_after_manual_override`
+    em [backend/app/api/documents.py](backend/app/api/documents.py) chama
+    `rename_to_canonical` quando `doc_type`/`bank_code`/`period` mudam.
+    Reverse mapping `document_type_to_e0_dest()` em
+    [backend/app/services/document_classification.py](backend/app/services/document_classification.py).
+    Preserva e0_doc_type existente quando ele ainda casa com o novo
+    `DocumentType` (ex.: `informerendimentos*` continua válido para IRPF —
+    sem churn de path desnecessário).
+  - Cobertura: 8 testes unitários novos em
+    [backend/tests/test_documents_rename_helper.py](backend/tests/test_documents_rename_helper.py),
+    2 em [backend/tests/test_document_pipeline_sync.py](backend/tests/test_document_pipeline_sync.py),
+    3 em [backend/tests/test_document_classification.py](backend/tests/test_document_classification.py).
+
 - **feat(db): B7 M3 — DROP _legacy_kanban_items + _legacy_report_notes + model cleanup (ADR-154) (2026-05-05):**
   Migration final após 7 dias de validação pós-M2 (2026-04-29). `_legacy_kanban_items` e
   `_legacy_report_notes` DROPadas. Cleanup de todos os artefatos dependentes:
