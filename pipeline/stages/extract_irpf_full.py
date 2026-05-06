@@ -236,9 +236,20 @@ def _build_result_summary(loop_result: dict) -> dict:
 
 
 def _select_runnable_docs(ctx: WorkspaceContext):
+    from pipeline.incremental import filter_to_incremental
+
     docs = _find_irpf_declarations(ctx)
     if not docs:
         return {"skipped": True, "reason": "No IRPF declarations found"}
+    # ADR-159: em modo incremental, processa apenas as declarações cujo
+    # stem está em ``ctx.incremental_doc_paths``. Cada IRPF tem seu próprio
+    # artefato (``_artifact_key_for(doc)``); declarações já processadas
+    # permanecem no store sem reprocessamento.
+    if ctx.incremental:
+        filtered = filter_to_incremental(ctx, docs)
+        if not filtered:
+            return {"skipped": True, "reason": "incremental: no new IRPF declarations"}
+        docs = filtered
     docs_with_text = _extract_texts(docs)
     if not docs_with_text:
         return {"skipped": True, "reason": "No extractable text in IRPF declarations"}
