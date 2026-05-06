@@ -63,9 +63,9 @@ describe("U3NclexSection", () => {
 });
 
 describe("U4SimulacaoMarianaSection", () => {
-  it("renderiza fallback + tabela de cenários quando presente", () => {
+  it("renderiza fallback + tabela de cenários quando presente (ADR-166: chave cenarios_conjuge)", () => {
     const data = {
-      cenarios_mariana: {
+      cenarios_conjuge: {
         labels: ["Cenário A", "Cenário B"],
         aportes: [1000, 2000],
         prazos_if: [20.5, 15.2],

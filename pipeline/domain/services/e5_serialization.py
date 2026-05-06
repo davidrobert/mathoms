@@ -13,12 +13,15 @@ Funções puras, sem I/O.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Mapping
 
 from pipeline.domain.services.if_projector import MonteCarloIFResult
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
+
+_logger = logging.getLogger("mathoms.pipeline.e5_serialization")
 
 # Aliases para boundaries do output legacy (paridade com pattern de
 # ``ratios_calculator.py`` — Mapping[str, Any] não dispara P3).
@@ -206,7 +209,6 @@ class E5OutputInputs:
     consumo: dict[str, Any]
     diagnostico: list[dict[str, Any]]
     cenarios_conjuge: dict[str, Any]
-    cenarios_conjuge_key: str = "cenarios_conjuge"
     programa_milhas: dict[str, Any] | None = None
     tarefas: list[dict[str, Any]] | None = None
     tarefas_status: dict[str, str] | None = None
@@ -263,9 +265,15 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
         "alertas": alertas,
         "consumo_consciente": inputs.consumo,
         "diagnostico_comportamental": inputs.diagnostico,
-        inputs.cenarios_conjuge_key: inputs.cenarios_conjuge,
+        "cenarios_conjuge": inputs.cenarios_conjuge,
         "programa_milhas": inputs.programa_milhas or {},
     }
+
+    # ADR-166: chave estável universal — confirma em prod que payload migrou.
+    _logger.info(
+        "e5.cenarios_key",
+        extra={"key": "cenarios_conjuge", "has_data": bool(inputs.cenarios_conjuge)},
+    )
 
     # Preserva narrativas (E5.N enriquece em run posterior).
     if inputs.existing_narrativas is not None:

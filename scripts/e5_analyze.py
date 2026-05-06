@@ -65,7 +65,7 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     global GOALS_CONFIG, SCORING_CONFIG, FISCAL_CONFIG, FAMILY_CONFIG
     global _TITULAR_KEY, _MEMBROS, _CONJUGE_KEY
     global _TITULAR_NOME, _CONJUGE_NOME
-    global _KEY_INV_TITULAR, _KEY_INV_CONJUGE, _KEY_CENARIOS_CONJUGE
+    global _KEY_INV_TITULAR, _KEY_INV_CONJUGE
 
     SCRIPTS_DIR = base_dir / "scripts"
     PROJECT_DIR = base_dir
@@ -144,7 +144,6 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
 
     _KEY_INV_TITULAR = f"investimentos_{_TITULAR_KEY}"
     _KEY_INV_CONJUGE = f"investimentos_{_CONJUGE_KEY}"
-    _KEY_CENARIOS_CONJUGE = f"cenarios_{_CONJUGE_KEY}"
 
 
 # =============================================================================
@@ -200,7 +199,6 @@ _TITULAR_NOME: str = ""
 _CONJUGE_NOME: str = ""
 _KEY_INV_TITULAR: str = "investimentos_"
 _KEY_INV_CONJUGE: str = "investimentos_"
-_KEY_CENARIOS_CONJUGE: str = "cenarios_"
 
 
 # ============================================================================
@@ -3102,7 +3100,6 @@ def _e5_compose_output(
         consumo=legacy["consumo"],
         diagnostico=legacy["diagnostico"],
         cenarios_conjuge=legacy["cenarios_conjuge"],
-        cenarios_conjuge_key=_KEY_CENARIOS_CONJUGE,
         programa_milhas=programa_milhas,
         tarefas=tarefas_parsed if tarefas_parsed else None,
         tarefas_status=tarefas_status_parsed if tarefas_status_parsed else None,

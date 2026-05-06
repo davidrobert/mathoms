@@ -307,6 +307,7 @@ módulo enforcer.
 | Códigos de tipo de documento + roteamento E0 | `scripts/e0_route.py::DOC_TYPE_PATTERNS` | — |
 | Naming pattern de artefatos (`[entidade]_[tipo]_[periodo]-N_stage.ext`) | `CLAUDE.md §Convenções de naming de artefatos` | — |
 | Money policy (`Decimal` string · `int64` cents · nunca float) | `pipeline/domain/models/transaction.py::Money` | [ADR-090](DECISIONS.md#adr-090--money-nunca-é-float) |
+| Cenário de estresse "cônjuge sem trabalhar" — chave de payload `cenarios_conjuge` (universal estável, ADR-166) | `pipeline/domain/services/cenarios_conjuge_analyzer.py::CenariosConjugeAnalyzer` + `pipeline/domain/services/e5_serialization.py::build_e5_output` | [ADR-166](DECISIONS.md#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) |
 
 **Regra geral:** nada de regras de produto em markdown editorial. Toda
 regra que o código enforce vive no código (docstring) + ADR (porquê);

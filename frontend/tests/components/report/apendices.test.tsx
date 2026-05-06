@@ -68,9 +68,9 @@ describe("ApendiceCSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza tabela de cenários quando cenarios_mariana presente", () => {
+  it("renderiza tabela de cenários quando cenarios_conjuge presente (ADR-166)", () => {
     const data = {
-      cenarios_mariana: {
+      cenarios_conjuge: {
         labels: ["Base", "Stress"],
         aportes: [5000, 3000],
         prazos_if: [12.3, 18.7],
