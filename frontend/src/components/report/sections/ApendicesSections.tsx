@@ -9,6 +9,30 @@ import {
 } from "../ui/SnapshotChangelogList";
 import { deriveSectionSummary } from "../utils/conclusionUtils";
 import type { ChangelogEntryRead, ReportAnalysisData } from "@/lib/api";
+import { formatDate } from "@/lib/format";
+import {
+  formatGoalVigenciaDate,
+  humanizeGoalType,
+} from "@/lib/goalPremissas";
+
+interface ActiveGoalRef {
+  readonly type: string;
+  readonly id?: string;
+  readonly effective_from?: string;
+}
+
+interface PremissasSnapshotShape {
+  readonly schema?: number;
+  readonly captured_at?: string;
+  readonly goals_json_sha256?: string | null;
+  readonly active_goals?: ReadonlyArray<ActiveGoalRef>;
+}
+
+function safeFormatDate(iso: string): string | null {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return formatDate(iso);
+}
 
 function getNarrativas(data: ReportAnalysisData): Record<string, unknown> | undefined {
   return data.narrativas as Record<string, unknown> | undefined;
@@ -69,45 +93,72 @@ function SimpleTable({
   );
 }
 
+function MetasVigentesCard({
+  snapshot,
+}: {
+  snapshot: PremissasSnapshotShape | null;
+}) {
+  const activeGoals: ReadonlyArray<ActiveGoalRef> = snapshot?.active_goals ?? [];
+  const capturedAtLabel = snapshot?.captured_at
+    ? safeFormatDate(snapshot.captured_at)
+    : null;
+
+  return (
+    <ReportCard variant="feature" title="Metas vigentes neste ciclo" size="full">
+      {activeGoals.length > 0 ? (
+        <ul className="divide-y divide-[var(--surface-border)]/40">
+          {activeGoals.map((g, i) => (
+            <li
+              key={g.id ?? `${g.type}-${i}`}
+              className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3 first:pt-0 last:pb-0"
+            >
+              <span className="font-display font-semibold text-[var(--surface-foreground)]">
+                {humanizeGoalType(g.type)}
+              </span>
+              {g.effective_from && (
+                <span className="text-sm text-[var(--surface-muted-foreground)]">
+                  Vigente desde {formatGoalVigenciaDate(g.effective_from)}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-[var(--surface-muted-foreground)]">
+          Nenhuma meta vigente neste ciclo. Cadastre metas em{" "}
+          <strong>Plano &gt; Metas</strong> para acompanhar progresso nos
+          próximos relatórios.
+        </p>
+      )}
+      {capturedAtLabel && (
+        <p className="mt-4 text-xs text-[var(--surface-muted-foreground)]">
+          Snapshot capturado em {capturedAtLabel}.
+        </p>
+      )}
+    </ReportCard>
+  );
+}
+
 /** ADR-117/122 · Fase 10 — APP_B: Premissas e Metodologia.
  *
- * Lista premissas do snapshot E5 (goals.premissas_snapshot) quando presentes
+ * Lista metas vigentes do snapshot E5 (goals.premissas_snapshot.active_goals)
  * + metodologias estáticas (Perini / Cerbasi / AUVP / Score próprio).
  */
 export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = getNarrativas(data);
   const fallback = deriveSectionSummary("APP_B", data);
   const goals = data.goals as Record<string, unknown> | undefined;
-  const snapshot =
+  const snapshot: PremissasSnapshotShape | null =
     goals && typeof goals === "object" && goals.premissas_snapshot != null
-      ? (goals.premissas_snapshot as Record<string, unknown>)
+      ? (goals.premissas_snapshot as PremissasSnapshotShape)
       : null;
-
-  const snapshotRows: Array<[string, string]> = snapshot
-    ? Object.entries(snapshot).map(([k, v]) => [
-        k,
-        typeof v === "object" && v != null ? JSON.stringify(v) : String(v),
-      ])
-    : [];
 
   return (
     <ReportSection id="APP_B" title="Apêndice B — Premissas e Metodologia">
       <SectionSummary narrativas={narrativas} sectionId="APP_B" />
       <SectionFallback narrativas={narrativas} sectionId="APP_B" text={fallback} />
 
-      <ReportCard variant="feature" title="Premissas Econômicas" size="full">
-        {snapshotRows.length > 0 ? (
-          <SimpleTable
-            headers={["Variável", "Valor"]}
-            rows={snapshotRows}
-          />
-        ) : (
-          <p className="text-sm text-[var(--surface-muted-foreground)]">
-            Premissas econômicas não registradas neste ciclo. Serão exibidas
-            quando o snapshot de metas for gerado junto ao relatório.
-          </p>
-        )}
-      </ReportCard>
+      <MetasVigentesCard snapshot={snapshot} />
 
       <ReportCard variant="neutral" title="Metodologias Utilizadas" size="full">
         <div className="space-y-4 text-sm text-[var(--surface-foreground)]">
