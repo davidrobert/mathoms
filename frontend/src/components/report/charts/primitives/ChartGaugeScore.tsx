@@ -291,6 +291,19 @@ function ScoreOverlay({ value, max, classeLabel, classeKey }: OverlayProps) {
       <div
         style={{
           fontFamily: "var(--font-display)",
+          fontWeight: 700,
+          fontSize: "clamp(11px, 2.1cqw, 14px)",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: `var(--score-classe-${classeKey})`,
+        }}
+      >
+        {classeLabel}
+      </div>
+      <div
+        style={{
+          marginTop: 6,
+          fontFamily: "var(--font-display)",
           fontWeight: 800,
           fontSize: "clamp(20px, 4.6cqw, 36px)",
           color: "var(--surface-foreground)",
@@ -309,19 +322,6 @@ function ScoreOverlay({ value, max, classeLabel, classeKey }: OverlayProps) {
         >
           / {max}
         </span>
-      </div>
-      <div
-        style={{
-          marginTop: 6,
-          fontFamily: "var(--font-display)",
-          fontWeight: 700,
-          fontSize: "clamp(11px, 2.1cqw, 14px)",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: `var(--score-classe-${classeKey})`,
-        }}
-      >
-        {classeLabel}
       </div>
     </div>
   );
