@@ -520,6 +520,19 @@ def classify_by_llm(filepath: Path) -> dict | None:
         log("INFO", f"Imagem detectada: '{filename}' — usando visão LLM")
 
     member_options = " | ".join(MEMBER_NAMES) if MEMBER_NAMES else "unknown"
+
+    # Bloco de conteúdo: quando visão é usada (PDF imagem-only ou JPG/PNG), o
+    # arquivo é anexado em `_build_llm_messages` e o prompt referencia isso por
+    # placeholder. Construir o bloco antes da f-string evita o anti-pattern de
+    # `prompt.replace(preview, ...)` com `preview=""` (em JPG), que mangle todo
+    # o prompt — `str.replace("", X)` insere X entre cada caractere.
+    if needs_vision:
+        content_block = "[Conteúdo visual enviado acima]"
+    elif preview.strip():
+        content_block = preview
+    else:
+        content_block = "[arquivo sem conteúdo extraível]"
+
     prompt = f"""Analise o arquivo abaixo e classifique para roteamento no pipeline financeiro familiar.
 
 Nome do arquivo: {filename}
@@ -528,7 +541,7 @@ Tamanho: {filepath.stat().st_size} bytes
 
 Conteúdo (preview):
 ---
-{preview if not is_image_pdf else "[PDF somente-imagem — conteúdo visual acima]"}
+{content_block}
 ---
 
 Classifique o arquivo retornando APENAS um JSON válido (sem markdown) com estes campos:
@@ -550,19 +563,6 @@ Regras:
 """
 
     import time
-
-    # Substituir placeholder no prompt quando usando visão
-    visual_placeholder = "[Conteúdo visual enviado acima]"
-    if needs_vision:
-        prompt = prompt.replace(
-            preview if not is_image_pdf else "[PDF somente-imagem — conteúdo visual acima]",
-            visual_placeholder,
-        )
-        # Garantir que o placeholder aparece mesmo se preview era string vazia
-        prompt = prompt.replace(
-            "---\n\n---",
-            f"---\n{visual_placeholder}\n---",
-        )
 
     messages = _build_llm_messages(filepath, preview, prompt)
     client = anthropic.Anthropic(api_key=api_key, timeout=30.0)

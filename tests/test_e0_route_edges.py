@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Edge-case unit tests for E0-route helpers (7D.1)."""
 
+import json
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.e0_route import _validate_period, build_final_name, extract_period
+from scripts.e0_route import _validate_period, build_final_name, classify_by_llm, extract_period
 
 
 class TestValidatePeriod:
@@ -130,3 +132,65 @@ class TestBuildFinalNameContentHash:
             content_hash="1234567890ab" + "0" * 52,
         )
         assert name.startswith("1234567890ab_titular_holerite_202604")
+
+
+_FAKE_LLM_JSON = {
+    "institution": "c6bank",
+    "doc_type": "extratoconta",
+    "dest_group": "financial_statements",
+    "period": "202601",
+    "member": None,
+    "final_name": "c6bank_extratoconta_202601-0_original.jpg",
+    "confidence": 0.95,
+}
+
+
+def _fake_anthropic_client(captured: list) -> MagicMock:
+    client = MagicMock()
+    response = MagicMock()
+    response.content = [MagicMock(text=json.dumps(_FAKE_LLM_JSON))]
+    client.messages.create.side_effect = lambda **kw: captured.append(kw["messages"]) or response
+    return client
+
+
+def _extract_prompt_text(messages: list) -> str:
+    content = messages[0]["content"]
+    blocks = content if isinstance(content, list) else [{"type": "text", "text": content}]
+    return next(b["text"] for b in blocks if b.get("type") == "text")
+
+
+def _run_classify_by_llm_with_image(tmp_path: Path, ext: str, monkeypatch) -> list:
+    img = tmp_path / f"002{ext}"
+    img.write_bytes(b"\xff\xd8\xff\xe0fake-jpeg-bytes")
+    captured: list = []
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-fake-key")
+    with patch("anthropic.Anthropic", return_value=_fake_anthropic_client(captured)):
+        classify_by_llm(img)
+    assert captured, "LLM should have been called"
+    return captured[0]
+
+
+class TestClassifyByLlmImagePrompt:
+    """Regressão: prompt de visão para JPG/PNG não pode ser mangled (str.replace('', X) bug)."""
+
+    def test_jpg_prompt_is_not_mangled(self, tmp_path, monkeypatch):
+        messages = _run_classify_by_llm_with_image(tmp_path, ".jpg", monkeypatch)
+        prompt_text = _extract_prompt_text(messages)
+        # Bug antigo: placeholder repetido entre caracteres. Sadio: aparece 1×.
+        count = prompt_text.count("[Conteúdo visual enviado acima]")
+        assert count == 1, f"Prompt mangled — placeholder×{count}, len={len(prompt_text)}"
+        assert len(prompt_text) < 5000
+        assert "Analise o arquivo abaixo" in prompt_text
+        assert "Classifique o arquivo retornando APENAS um JSON" in prompt_text
+
+    def test_jpg_image_attached_via_vision_api(self, tmp_path, monkeypatch):
+        messages = _run_classify_by_llm_with_image(tmp_path, ".jpg", monkeypatch)
+        image_blocks = [b for b in messages[0]["content"] if b.get("type") == "image"]
+        assert len(image_blocks) == 1
+        assert image_blocks[0]["source"]["media_type"] == "image/jpeg"
+
+    def test_png_prompt_is_not_mangled(self, tmp_path, monkeypatch):
+        messages = _run_classify_by_llm_with_image(tmp_path, ".png", monkeypatch)
+        prompt_text = _extract_prompt_text(messages)
+        assert prompt_text.count("[Conteúdo visual enviado acima]") == 1
+        assert len(prompt_text) < 5000
