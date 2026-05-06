@@ -8,13 +8,18 @@ import { useConsumoPontuais } from "@/hooks/useConsumoPontuais";
 import type { Period } from "@/lib/periodUtils";
 import type { ConsumoConscienteData } from "@/types/report-analysis";
 
-/** F9 · F2.B · S2 — Card "Consumo Consciente" com toggle de período.
- *  KPIs do E5 no topo; lista de gastos pontuais ≥ R$2k abaixo por período.
+/** F9 · F2.B · S2 — Card "Consumo Consciente".
+ *  KPIs do E5 no topo (janela completa de análise); lista de gastos pontuais
+ *  ≥ R$2k abaixo, com toggle de período próprio (afeta só a lista).
  *
  *  A lista vem do endpoint /reports/consumo-pontuais — backend aplica
  *  threshold + filtro de transferência interna (família) via
  *  InternalTransferDetector, evitando que PIX entre contas próprias
  *  apareçam como gasto.
+ *
+ *  O toggle vive ao lado do título da lista (não no header do card) para
+ *  evitar leitura ambígua: KPIs e a frase analítica do E5 refletem a
+ *  janela completa, enquanto a lista responde ao período selecionado.
  */
 export function ConsumoConscienteCard({
   consumo,
@@ -25,11 +30,7 @@ export function ConsumoConscienteCard({
   const { items: pontuais, isLoading } = useConsumoPontuais(period);
 
   return (
-    <ReportCard
-      variant="success"
-      title="Consumo Consciente"
-      headerRight={<PeriodToggle value={period} onChange={setPeriod} />}
-    >
+    <ReportCard variant="success" title="Consumo Consciente">
       {consumo ? (
         <div className="space-y-4">
           <dl className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
@@ -83,9 +84,12 @@ export function ConsumoConscienteCard({
       )}
 
       <div className="mt-4 border-t border-[var(--surface-border)] pt-4">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--surface-muted-foreground)]">
-          Gastos pontuais ≥ R$2k · {period.toUpperCase()}
-        </p>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--surface-muted-foreground)]">
+            Gastos pontuais ≥ R$2k
+          </p>
+          <PeriodToggle value={period} onChange={setPeriod} />
+        </div>
         {pontuais.length === 0 && !isLoading ? (
           <p className="text-sm text-[var(--surface-muted-foreground)]">
             Nenhum gasto pontual encontrado neste período.
