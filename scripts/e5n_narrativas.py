@@ -158,30 +158,17 @@ def _load_taxas():
 
 
 def _find_top_asset(e5_data: dict) -> dict:
-    """Find the largest individual financial asset from E4 investimentos.
-
-    Returns dict with 'nome', 'valor', 'membro', 'instituicao'.
-    Falls back to 'tipo (instituicao)' when nome is empty.
-    """
-    inv_path = PROJECT_DIR / "processed" / "E4_unified" / "investimentos-4_unified.json"
-    if inv_path.exists():
-        with open(inv_path, "r", encoding="utf-8") as f:
-            inv = json.load(f)
-        dados = inv.get("dados", [])
-        if dados:
-            top = max(dados, key=lambda d: d.get("valor_atual", 0))
-            nome = top.get("nome", "").strip()
-            if not nome:
-                tipo = top.get("tipo", "Investimento")
-                inst = top.get("instituicao", "").capitalize()
-                nome = f"{tipo} ({inst})" if inst else tipo
-            return {
-                "nome": nome,
-                "valor": top.get("valor_atual", 0),
-                "membro": top.get("membro", ""),
-                "instituicao": top.get("instituicao", ""),
-            }
-    return {"nome": "", "valor": 0, "membro": "", "instituicao": ""}
+    """Lê o maior ativo individual de ``e5_data["investimentos"]["top_ativos"][0]`` (fonte canônica TopAtivosAnalyzer; substituiu leitura legacy do E4 disk artifact)."""
+    top_ativos = (e5_data.get("investimentos") or {}).get("top_ativos") or []
+    if not top_ativos:
+        return {"nome": "", "valor": 0, "membro": "", "instituicao": ""}
+    top = top_ativos[0]
+    return {
+        "nome": top.get("nome", ""),
+        "valor": top.get("valor", 0),
+        "membro": top.get("membro", ""),
+        "instituicao": top.get("instituicao", ""),
+    }
 
 
 def _extract_top_institutions(e5_data: dict) -> dict:
