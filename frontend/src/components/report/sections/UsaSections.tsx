@@ -100,16 +100,14 @@ export function U4SimulacaoMarianaSection({
 }) {
   const narrativas = getNarrativas(data);
   const fallback = deriveSectionSummary("U4", data);
-  // ADR-166 (A8.4): chave estável `cenarios_conjuge`; fallback `cenarios_mariana`
-  // legado mantido até PR3 (A8.4) após backfill em prod. Esta seção será
-  // deletada inteira em PR4 (A8.4 — remoção do Modo USA).
-  const cenarios = (data.cenarios_conjuge ?? data.cenarios_mariana) as
+  // ADR-166 (A8.4 PR3): chave estável universal `cenarios_conjuge`.
+  // Esta seção inteira será deletada em PR4 (A8.4 — remoção do Modo USA).
+  const cenarios = data.cenarios_conjuge as
     | {
         labels?: string[];
         aportes?: number[];
         prazos_if?: number[];
         anos_if?: number[];
-        idade_david_if?: number[];
       }
     | undefined;
 

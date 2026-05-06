@@ -238,7 +238,7 @@ estrategico:
         - id: "top15_ativos"
           enabled: true
           conclusion: true
-        - id: "mariana_cenarios"
+        - id: "cenarios_conjuge"
           enabled: true
           conclusion: true
         # S3.viagens listado em chart_canvas_map mas ausente da seção
@@ -454,8 +454,12 @@ estrategico:
         - {id: "premissas_economicas", enabled: true, variant: "feature", size: "full"}
         - {id: "metodologias", enabled: true, variant: "neutral", size: "full"}
     - id: "APP_C"
-      title: "Cenários de Sensibilidade"
+      # ADR-167 (A8.4 PR3): "Cenários de Estresse" — opcional, hide-when-empty
+      # com numeração estável A/B/C/D/E. Renderer omite a página inteira
+      # (seção + entrada no TOC) quando `data.cenarios_conjuge` ausente.
+      title: "Cenários de Estresse"
       enabled: true
+      optional: true
       charts:
         - {id: "cenarios_cambiais", enabled: false, conclusion: true}
       cards:
@@ -628,7 +632,7 @@ chart_canvas_map:
   impostos_pj: "chart-impostos-pj"
   bubble_riscos: "chart-bubble-riscos"
   top5_decisoes: "chart-top5-decisoes"
-  mariana_cenarios: "chart-mariana-cenarios"
+  cenarios_conjuge: "chart-cenarios-conjuge"
   mariana_cenarios_usa: "chart-mariana-cenarios-usa"
   viagens: "chart-viagens"
   renda_evolucao_multi_anos: "chart-renda-evolucao-multi-anos"
@@ -656,7 +660,7 @@ chart_titles:
   impostos_pj: "Tributário PJ — Cascata Fiscal"
   bubble_riscos: "Mapa de Riscos"
   top5_decisoes: "Top 5 Decisões de Impacto"
-  mariana_cenarios: "Cenários IF — Cônjuge"
+  cenarios_conjuge: "Cenários de Estresse — Sem renda do cônjuge"
   mariana_cenarios_usa: "Cenários IF — Cônjuge"
   viagens: "Orçamento de Viagens"
   renda_evolucao_multi_anos: "Evolução da Renda — Multi-anos"
@@ -668,7 +672,7 @@ chart_titles:
 section_charts:
   1: ["patrimonio_doughnut", "waterfall_if"]
   2: ["fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "score_gauge"]
-  3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "viagens"]
+  3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "viagens"]
   4: ["yield_imoveis"]
   7: ["projecao_3cenarios", "renda_passiva"]
   8: ["impostos_pj"]

@@ -444,7 +444,7 @@ export const LAYOUT: ReportLayout = {
             "conclusion": true
           },
           {
-            "id": "mariana_cenarios",
+            "id": "cenarios_conjuge",
             "enabled": true,
             "conclusion": true
           },
@@ -693,8 +693,9 @@ export const LAYOUT: ReportLayout = {
       },
       {
         "id": "APP_C",
-        "title": "Cenários de Sensibilidade",
+        "title": "Cenários de Estresse",
         "enabled": true,
+        "optional": true,
         "charts": [
           {
             "id": "cenarios_cambiais",
@@ -864,7 +865,7 @@ export const LAYOUT: ReportLayout = {
     "impostos_pj": "chart-impostos-pj",
     "bubble_riscos": "chart-bubble-riscos",
     "top5_decisoes": "chart-top5-decisoes",
-    "mariana_cenarios": "chart-mariana-cenarios",
+    "cenarios_conjuge": "chart-cenarios-conjuge",
     "mariana_cenarios_usa": "chart-mariana-cenarios-usa",
     "viagens": "chart-viagens",
     "renda_evolucao_multi_anos": "chart-renda-evolucao-multi-anos",
@@ -889,7 +890,7 @@ export const LAYOUT: ReportLayout = {
     "impostos_pj": "Tributário PJ — Cascata Fiscal",
     "bubble_riscos": "Mapa de Riscos",
     "top5_decisoes": "Top 5 Decisões de Impacto",
-    "mariana_cenarios": "Cenários IF — Cônjuge",
+    "cenarios_conjuge": "Cenários de Estresse — Sem renda do cônjuge",
     "mariana_cenarios_usa": "Cenários IF — Cônjuge",
     "viagens": "Orçamento de Viagens",
     "renda_evolucao_multi_anos": "Evolução da Renda — Multi-anos",
@@ -911,7 +912,7 @@ export const LAYOUT: ReportLayout = {
       "alocacao_atual",
       "alocacao_alvo",
       "top15_ativos",
-      "mariana_cenarios",
+      "cenarios_conjuge",
       "viagens"
     ],
     "4": [
@@ -1013,5 +1014,5 @@ export const LAYOUT: ReportLayout = {
 export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref", "nclex_roadmap", "simulacao_mariana"] as const;
 export type CardId = (typeof ALL_CARD_IDS)[number];
 
-export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes", "custos_f1f2", "cenarios_cambiais", "mariana_cenarios_usa"] as const;
+export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes", "custos_f1f2", "cenarios_cambiais", "mariana_cenarios_usa"] as const;
 export type ChartId = (typeof ALL_CHART_IDS)[number];
