@@ -30,9 +30,8 @@ interface Ratios {
 export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
   const inv = data.investimentos as unknown as InvestimentosBlock | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
-  // ADR-166 (A8.4): chave estável `cenarios_conjuge`; fallback `cenarios_mariana`
-  // mantido transitório até PR3 (A8.4) após backfill em prod.
-  const cenarios = (data.cenarios_conjuge ?? data.cenarios_mariana) as
+  // ADR-166 (A8.4 PR3): fallback dual-key removido — chave universal estável.
+  const cenarios = data.cenarios_conjuge as
     | { aportes?: number[]; labels?: string[] }
     | undefined;
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
@@ -70,10 +69,10 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
         fallbackConclusion={deriveChartConclusion("top15_ativos", data)}
       />
       <NarrativeChartCard
-        chartId="mariana_cenarios"
-        title="Cenários IF — Cônjuge"
+        chartId="cenarios_conjuge"
+        title="Cenários de Estresse — Sem renda do cônjuge"
         narratives={charts}
-        fallbackConclusion={deriveChartConclusion("mariana_cenarios", data)}
+        fallbackConclusion={deriveChartConclusion("cenarios_conjuge", data)}
       />
 
       <div className="md:col-span-2">

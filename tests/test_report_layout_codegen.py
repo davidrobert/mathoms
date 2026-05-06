@@ -48,12 +48,12 @@ class TestSchema:
 
 
 class TestCodegenYAML:
-    def test_yaml_has_two_modes(self, layout):
-        # ADR-151 (Onda 3 da Direção E) — Modo Tático removido. Restam
-        # `estrategico` e `usa`.
+    def test_yaml_has_single_mode(self, layout):
+        # ADR-151 — Modo Tático removido. ADR-168 (A8.4 PR4) — Modo USA removido.
+        # Estratégico é o modo único.
         assert "estrategico" in layout
-        assert "usa" in layout
         assert "tatico" not in layout
+        assert "usa" not in layout
 
     def test_version_is_string(self, layout):
         assert isinstance(layout["version"], str)
@@ -70,7 +70,7 @@ class TestCodegenYAML:
             "top-danger",
             "top-accent",
         }
-        all_sections = layout["estrategico"]["sections"] + layout["usa"]["sections"]
+        all_sections = layout["estrategico"]["sections"]
         for section in all_sections:
             for card in section.get("cards", []) or []:
                 if "variant" in card:
@@ -82,7 +82,7 @@ class TestCodegenYAML:
         """Variantes usadas no YAML devem existir em design-tokens/tokens.json."""
         tokens = json.loads((ROOT / "design-tokens" / "tokens.json").read_text())
         allowed = set(tokens["card_variants"].keys())
-        all_sections = layout["estrategico"]["sections"] + layout["usa"]["sections"]
+        all_sections = layout["estrategico"]["sections"]
         used: set[str] = set()
         for section in all_sections:
             for card in section.get("cards", []) or []:

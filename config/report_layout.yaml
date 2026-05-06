@@ -98,12 +98,6 @@ navigation:
         - {section_id: "APP_C", num: "C", is_appendix: true}
         - {section_id: "APP_D", num: "D", is_appendix: true}
         - {section_id: "APP_E", num: "E", is_appendix: true}
-  usa:
-    - links:
-        - {section_id: "U1", num: "U1"}
-        - {section_id: "U2", num: "U2"}
-        - {section_id: "U3", num: "U3"}
-        - {section_id: "U4", num: "U4"}
 
 # ==============================================================================
 # FLAGS GLOBAIS (ADR-117 · Fase 5)
@@ -238,7 +232,7 @@ estrategico:
         - id: "top15_ativos"
           enabled: true
           conclusion: true
-        - id: "mariana_cenarios"
+        - id: "cenarios_conjuge"
           enabled: true
           conclusion: true
         # S3.viagens listado em chart_canvas_map mas ausente da seção
@@ -287,11 +281,9 @@ estrategico:
       cards: []
 
     # --------------------------------------------------------------------------
-    # NOTA — IDs S5 e S6 não existem por design.
-    # No protótipo histórico (`EXEMPLO_DE_RELATORIO.html`) S5/S6 cobriam
-    # contexto USA; em 2026-04-26 (lane v2.3) decidiu-se migrá-los para
-    # U1/U2 do modo USA (ver app_b/U1/U2 abaixo + REPORT_PREMIUM_PLAN.md
-    # §17.5). IDs S5/S6 ficam reservados/queimados — não reciclar.
+    # NOTA — IDs S5 e S6 não existem por design (reservados/queimados; não
+    # reciclar). Modo USA (que abrigava U1/U2 ex-S5/S6) foi removido em
+    # ADR-168 (A8.4 PR4) — modo opcional sem cliente real é lastro.
     # --------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------
@@ -454,10 +446,13 @@ estrategico:
         - {id: "premissas_economicas", enabled: true, variant: "feature", size: "full"}
         - {id: "metodologias", enabled: true, variant: "neutral", size: "full"}
     - id: "APP_C"
-      title: "Cenários de Sensibilidade"
+      # ADR-167 (A8.4 PR3): "Cenários de Estresse" — opcional, hide-when-empty
+      # com numeração estável A/B/C/D/E. Renderer omite a página inteira
+      # (seção + entrada no TOC) quando `data.cenarios_conjuge` ausente.
+      title: "Cenários de Estresse"
       enabled: true
-      charts:
-        - {id: "cenarios_cambiais", enabled: false, conclusion: true}
+      optional: true
+      charts: []
       cards:
         - {id: "sensibilidade_ativos", enabled: true, variant: "feature", size: "full"}
     - id: "APP_D"
@@ -472,77 +467,6 @@ estrategico:
       cards:
         - {id: "proximos_ciclos", enabled: true, variant: "highlight", size: "full"}
         - {id: "disclaimers", enabled: true, variant: "neutral", size: "full"}
-
-# ==============================================================================
-# MODO USA (U1-U4) — Projeto Mudança EUA
-# ==============================================================================
-# Seções exclusivas do modo USA: F1/F2, Green Card, NCLEX e Simulação Mariana.
-# Anteriormente S5 e S6 no modo Estratégico + cards do Apêndice E.
-# ==============================================================================
-usa:
-
-  sections:
-
-    # --------------------------------------------------------------------------
-    # U1 — Mudança EUA (F1/F2) — ex-S5
-    # --------------------------------------------------------------------------
-    - id: "U1"
-      title: "Mudança EUA — Estrutura F1/F2 e Custos"
-      enabled: true
-      summary: true
-      charts:
-        - id: "custos_f1f2"
-          enabled: true
-          conclusion: true
-      cards: []
-
-    # --------------------------------------------------------------------------
-    # U2 — Green Card — ex-S6
-    # --------------------------------------------------------------------------
-    - id: "U2"
-      title: "Green Card — EB2-NIW e Compliance"
-      enabled: true
-      summary: true
-      divider_before: true
-      charts:
-        - id: "cenarios_cambiais"
-          enabled: true
-          conclusion: true
-      cards: []
-
-    # --------------------------------------------------------------------------
-    # U3 — NCLEX Roadmap
-    # --------------------------------------------------------------------------
-    - id: "U3"
-      title: "NCLEX Roadmap — Licenciamento RN"
-      enabled: true
-      summary: true
-      divider_before: true
-      charts: []
-      cards:
-        - id: "nclex_roadmap"
-          enabled: true
-          variant: "feature"
-          size: "full"
-
-    # --------------------------------------------------------------------------
-    # U4 — Simulação Mariana Sem Trabalhar
-    # --------------------------------------------------------------------------
-    - id: "U4"
-      title: "Simulação — Cônjuge Sem Trabalhar"
-      enabled: true
-      summary: true
-      divider_before: true
-      charts:
-        - id: "mariana_cenarios_usa"
-          enabled: true
-          conclusion: true
-      cards:
-        - id: "simulacao_mariana"
-          enabled: true
-          variant: "warn"
-          size: "full"
-          top_border: "accent"
 
 # ==============================================================================
 # REGISTRY DE CARDS DISPONÍVEIS
@@ -569,16 +493,12 @@ usa:
 # pontos_urgentes             | build_pontos_urgentes_card()            | S10
 # equilibrio_cerbasi          | build_equilibrio_cerbasi_card()         | S10
 #
-# nclex_roadmap               | build_nclex_roadmap_card()              | U3
-# simulacao_mariana            | build_simulacao_mariana_card()           | U4
-#
-# CHARTS DISPONÍVEIS (21 total):
+# CHARTS DISPONÍVEIS:
 # patrimonio_doughnut, waterfall_if, fluxo_mensal, receita_bar,
 # despesas_doughnut, receita_despesa_mensal, score_gauge,
-# alocacao_atual, alocacao_alvo, top15_ativos, mariana_cenarios,
-# viagens, yield_imoveis, custos_f1f2, cenarios_cambiais,
-# projecao_3cenarios, renda_passiva, impostos_pj, bubble_riscos,
-# top5_decisoes, mariana_cenarios_usa
+# alocacao_atual, alocacao_alvo, top15_ativos, cenarios_conjuge,
+# viagens, yield_imoveis, projecao_3cenarios, renda_passiva,
+# impostos_pj, bubble_riscos, top5_decisoes
 
 # ==============================================================================
 # PALETA DE CORES DOS GRÁFICOS
@@ -621,15 +541,12 @@ chart_canvas_map:
   alocacao_alvo: "chart-alocacao-alvo"
   top15_ativos: "chart-top15-ativos"
   yield_imoveis: "chart-yield-imoveis"
-  custos_f1f2: "chart-custos-f1f2"
-  cenarios_cambiais: "chart-cenarios-cambiais"
   projecao_3cenarios: "chart-projecao-3cenarios"
   renda_passiva: "chart-renda-passiva"
   impostos_pj: "chart-impostos-pj"
   bubble_riscos: "chart-bubble-riscos"
   top5_decisoes: "chart-top5-decisoes"
-  mariana_cenarios: "chart-mariana-cenarios"
-  mariana_cenarios_usa: "chart-mariana-cenarios-usa"
+  cenarios_conjuge: "chart-cenarios-conjuge"
   viagens: "chart-viagens"
   renda_evolucao_multi_anos: "chart-renda-evolucao-multi-anos"
   aliquota_efetiva_dual_gauge: "chart-aliquota-efetiva-dual-gauge"
@@ -649,15 +566,12 @@ chart_titles:
   alocacao_alvo: "Alocação Alvo"
   top15_ativos: "Top 15 Ativos Financeiros"
   yield_imoveis: "Rentabilidade dos Imóveis (Yield) vs CDI"
-  custos_f1f2: "Custos Mensais F1/F2"
-  cenarios_cambiais: "Cenários Cambiais"
   projecao_3cenarios: "Projeção Patrimonial — 3 Cenários"
   renda_passiva: "Renda Passiva — Progresso até a Meta"
   impostos_pj: "Tributário PJ — Cascata Fiscal"
   bubble_riscos: "Mapa de Riscos"
   top5_decisoes: "Top 5 Decisões de Impacto"
-  mariana_cenarios: "Cenários IF — Cônjuge"
-  mariana_cenarios_usa: "Cenários IF — Cônjuge"
+  cenarios_conjuge: "Cenários de Estresse — Sem renda do cônjuge"
   viagens: "Orçamento de Viagens"
   renda_evolucao_multi_anos: "Evolução da Renda — Multi-anos"
   aliquota_efetiva_dual_gauge: "Alíquota Efetiva — RFB e Cerbasi"
@@ -668,17 +582,12 @@ chart_titles:
 section_charts:
   1: ["patrimonio_doughnut", "waterfall_if"]
   2: ["fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "score_gauge"]
-  3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "mariana_cenarios", "viagens"]
+  3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "viagens"]
   4: ["yield_imoveis"]
   7: ["projecao_3cenarios", "renda_passiva"]
   8: ["impostos_pj"]
   9: ["bubble_riscos"]
   10: ["top5_decisoes"]
-
-usa_section_charts:
-  1: ["custos_f1f2"]
-  2: ["cenarios_cambiais"]
-  4: ["mariana_cenarios_usa"]
 
 # ==============================================================================
 # DARK MODE — cores CSS (consumidas pelo design system / tokens.css)

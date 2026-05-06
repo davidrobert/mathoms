@@ -107,9 +107,13 @@ describe("ReportShell", () => {
     expect(
       screen.getByRole("tab", { name: "Estratégico", selected: true }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "EUA" })).toBeInTheDocument();
+    // ADR-151: Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA removido.
+    // Modo Estratégico é único.
     expect(
       screen.queryByRole("tab", { name: "Tático" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "EUA" }),
     ).not.toBeInTheDocument();
   });
 
