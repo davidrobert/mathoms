@@ -172,45 +172,21 @@ def _find_top_asset(e5_data: dict) -> dict:
 
 
 def _extract_top_institutions(e5_data: dict) -> dict:
-    """Extract investment institutions per member from E4 investimentos.
-
-    Returns dict with '{member}_inst' for each member, plus 'n_imoveis'.
-    Member keys are loaded from family_members.json config.
-    """
+    """Lê instituições por membro + n_imoveis de ``e5_data["investimentos"]`` (fonte canônica InstituicoesPorMembroAnalyzer; substituiu leitura legacy de E4 disk artifacts)."""
     _titular = FAMILY.get("titular", "")
     _membros = FAMILY.get("membros", {})
     _conjuge = next((k for k, v in _membros.items() if v.get("papel") == "conjuge"), None)
 
-    inv_path = PROJECT_DIR / "processed" / "E4_unified" / "investimentos-4_unified.json"
-    titular_inst, conjuge_inst = set(), set()
-    if inv_path.exists():
-        with open(inv_path, "r", encoding="utf-8") as f:
-            inv = json.load(f)
-        for d in inv.get("dados", []):
-            inst = d.get("instituicao", "").strip()
-            membro = d.get("membro", "")
-            if not inst:
-                continue
-            if membro == _titular:
-                titular_inst.add(inst.capitalize())
-            elif _conjuge and membro == _conjuge:
-                conjuge_inst.add(inst.capitalize())
-
-    # Count imoveis from patrimonio
-    pat_path = PROJECT_DIR / "processed" / "E4_unified" / "patrimonio-4_unified.json"
-    n_imoveis = 0
-    if pat_path.exists():
-        with open(pat_path, "r", encoding="utf-8") as f:
-            pat = json.load(f)
-        imoveis = pat.get("bens_imoveis_consolidados", [])
-        if not imoveis:
-            imoveis = pat.get("imoveis_consolidados", [])
-        n_imoveis = len(imoveis)
-
+    inv_block = e5_data.get("investimentos") or {}
+    by_member = {
+        entry.get("membro", ""): list(entry.get("instituicoes") or [])
+        for entry in inv_block.get("instituicoes_por_membro") or []
+        if isinstance(entry, dict)
+    }
     return {
-        "titular_inst": sorted(titular_inst),
-        "conjuge_inst": sorted(conjuge_inst),
-        "n_imoveis": n_imoveis,
+        "titular_inst": sorted(by_member.get(_titular, [])),
+        "conjuge_inst": sorted(by_member.get(_conjuge, [])) if _conjuge else [],
+        "n_imoveis": int(inv_block.get("n_imoveis_total", 0)),
     }
 
 
