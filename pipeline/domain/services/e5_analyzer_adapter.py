@@ -87,6 +87,11 @@ from pipeline.domain.services.if_projector import (
     MonteCarloIFResult,
     run_monte_carlo_if,
 )
+from pipeline.domain.services.instituicoes_por_membro_analyzer import (
+    InstituicoesPorMembroAnalyzer,
+    InstituicoesPorMembroConfig,
+    InstituicoesPorMembroResult,
+)
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesAnalysis,
     InvestimentosClassesAnalyzer,
@@ -207,6 +212,9 @@ class E5AnalysisResult:
     # Top 15 ativos individuais (companion de investimentos_classes). None
     # quando o analyzer não foi injetado (paridade legacy).
     top_ativos: TopAtivosResult | None = None
+    # Instituições agrupadas por membro + total de imóveis. Companion de
+    # investimentos_classes; substitui leitura legacy de E4 disk artifacts.
+    instituicoes_por_membro: InstituicoesPorMembroResult | None = None
 
 
 # =============================================================================
@@ -248,6 +256,7 @@ class E5AnalyzerAdapter:
         previdencia_analyzer: PrevidenciaAnalyzer | None = None,
         investimentos_classes_analyzer: InvestimentosClassesAnalyzer | None = None,
         top_ativos_analyzer: TopAtivosAnalyzer | None = None,
+        instituicoes_analyzer: InstituicoesPorMembroAnalyzer | None = None,
         consumo_calculator: ConsumoConscienteCalculator | None = None,
         equilibrio_analyzer: EquilibrioCerbasiAnalyzer | None = None,
         cenarios_analyzer: CenariosConjugeAnalyzer | None = None,
@@ -292,6 +301,7 @@ class E5AnalyzerAdapter:
         self._previdencia = previdencia_analyzer or PrevidenciaAnalyzer()
         self._inv_classes = investimentos_classes_analyzer or InvestimentosClassesAnalyzer()
         self._top_ativos = top_ativos_analyzer or TopAtivosAnalyzer()
+        self._instituicoes = instituicoes_analyzer or InstituicoesPorMembroAnalyzer()
         self._consumo = consumo_calculator or ConsumoConscienteCalculator()
         self._equilibrio = equilibrio_analyzer or EquilibrioCerbasiAnalyzer()
         self._cenarios = cenarios_analyzer
@@ -409,6 +419,9 @@ class E5AnalyzerAdapter:
                 InvestimentosClassesConfig.from_configs(scoring=scoring)
             ),
             top_ativos_analyzer=TopAtivosAnalyzer(TopAtivosConfig.from_configs(scoring=scoring)),
+            instituicoes_analyzer=InstituicoesPorMembroAnalyzer(
+                InstituicoesPorMembroConfig.from_configs()
+            ),
             consumo_calculator=ConsumoConscienteCalculator(
                 ConsumoConscienteConfig.from_configs(scoring=scoring, goals=goals)
             ),
@@ -545,17 +558,17 @@ class E5AnalyzerAdapter:
         # 12. Previdência.
         previdencia = self._previdencia.analyze(fluxo_legacy)
 
-        # 13. Investimentos por classe + Top 15 ativos individuais.
+        # 13. Investimentos por classe + Top 15 ativos + instituições por membro.
         titular_bens = members.titular_data.get("bens") or members.titular_data
         conjuge_bens = members.conjuge_data.get("bens") or members.conjuge_data
         bens_list = [titular_bens, conjuge_bens]
+        bens_por_membro = [
+            (members.titular_key, titular_bens),
+            (members.conjuge_key, conjuge_bens),
+        ]
         investimentos_classes = self._inv_classes.analyze(bens_list)
-        top_ativos = self._top_ativos.analyze(
-            [
-                (members.titular_key, titular_bens),
-                (members.conjuge_key, conjuge_bens),
-            ]
-        )
+        top_ativos = self._top_ativos.analyze(bens_por_membro)
+        instituicoes = self._instituicoes.analyze(bens_por_membro)
 
         # 14. Consumo consciente.
         consumo = self._consumo.calculate(fluxo_legacy, despesas)
@@ -609,6 +622,7 @@ class E5AnalyzerAdapter:
             previdencia=previdencia,
             investimentos_classes=investimentos_classes,
             top_ativos=top_ativos,
+            instituicoes_por_membro=instituicoes,
             consumo_consciente=consumo,
             equilibrio_cerbasi=equilibrio,
             cenarios_conjuge=cenarios,
