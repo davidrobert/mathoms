@@ -6,6 +6,25 @@
 
 ## [Unreleased]
 
+- **refactor(report): _extract_top_institutions usa fonte canônica + schema E5 ganha instituicoes_por_membro/n_imoveis_total (2026-05-06):**
+  Cleanup pós-PR #87. `scripts/e5n_narrativas.py::_extract_top_institutions`
+  deixou de ler `processed/E4_unified/investimentos-4_unified.json` **e**
+  `patrimonio-4_unified.json` (2 disk reads legacy, divergem do baseline
+  consolidado v1.5 quando E4 ausente) e passou a ler
+  `e5_data["investimentos"]["instituicoes_por_membro"]` +
+  `n_imoveis_total` — populados pelo novo
+  `InstituicoesPorMembroAnalyzer` (companion de `TopAtivosAnalyzer`,
+  consome o mesmo `bens_por_membro`). Shape de retorno preservado
+  (`titular_inst`/`conjuge_inst`/`n_imoveis`) para compat com
+  `summaries_narrator.py`, `charts_narrator.py` e
+  `perfil_familia_narrator.py`. `config/schemas/e5_analysis.schema.json`
+  ganha `investimentos.instituicoes_por_membro` (lista de
+  `{membro, instituicoes[]}` com `additionalProperties:false` e
+  `uniqueItems:true`) + `n_imoveis_total` (integer ≥0). 12 unit tests do
+  analyzer + 5 tests de regressão da função migrada + 2 schema tests
+  positivos/negativos. Aditivo — backward compat em modo `warn` (default)
+  e `strict`.
+
 - **refactor(report): _find_top_asset usa fonte canônica top_ativos + schema E5 declara contrato (2026-05-06):**
   Cleanup pós-PR #77. `scripts/e5n_narrativas.py::_find_top_asset` deixou de
   ler `processed/E4_unified/investimentos-4_unified.json` (fonte legada
