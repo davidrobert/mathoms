@@ -5,6 +5,7 @@ import { Lightbulb } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SegmentedTabs } from "@/components/ui/SegmentedTabs";
 import { useDecisions } from "@/hooks/useDecisions";
 import { useSuggestions } from "@/hooks/useSuggestions";
 import type { Suggestion, SuggestionAggregateStatus } from "@/lib/api";
