@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 
 from pipeline.llm.schemas.e1_members import MembersExtractOutput
 from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
@@ -37,28 +38,76 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 PERIOD_RE = re.compile(r"^\d{6}$")
 
 
+Severity = Literal["error", "warning"]
+
+
+@dataclass(frozen=True)
+class ValidationIssue:
+    """Issue de validação estruturada (ADR-165) — code+path+context+legacy_message."""
+
+    code: str
+    severity: Severity
+    path: str | None = None
+    context: dict[str, Any] = field(default_factory=dict)
+    legacy_message: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "code": self.code,
+            "severity": self.severity,
+            "path": self.path,
+            "context": self.context,
+            "legacy_message": self.legacy_message,
+        }
+
+
 class ValidationResult:
-    """Accumulates validation errors and warnings."""
+    """Acumula errors/warnings (legado) + issues estruturadas (ADR-165)."""
 
     def __init__(self):
         self.errors: list[str] = []
         self.warnings: list[str] = []
+        self.issues: list[ValidationIssue] = []
 
     @property
     def valid(self) -> bool:
         return len(self.errors) == 0
 
     def error(self, msg: str) -> None:
-        self.errors.append(msg)
+        # [deprecated ADR-165] string livre — migrar para add_issue(code=...)
+        self.add_issue(code="legacy.unmigrated", severity="error", legacy_message=msg)
 
     def warn(self, msg: str) -> None:
-        self.warnings.append(msg)
+        # [deprecated ADR-165] string livre — migrar para add_issue(code=...)
+        self.add_issue(code="legacy.unmigrated", severity="warning", legacy_message=msg)
+
+    def add_issue(
+        self,
+        *,
+        code: str,
+        severity: Severity,
+        legacy_message: str,
+        path: str | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> None:
+        bucket = self.errors if severity == "error" else self.warnings
+        bucket.append(legacy_message)
+        self.issues.append(
+            ValidationIssue(
+                code=code,
+                severity=severity,
+                path=path,
+                context=dict(context or {}),
+                legacy_message=legacy_message,
+            )
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "valid": self.valid,
             "errors": self.errors,
             "warnings": self.warnings,
+            "issues": [i.to_dict() for i in self.issues],
         }
 
 
@@ -216,45 +265,179 @@ def _has_unmasked_cpf(text: str) -> bool:
     return False
 
 
-def _scan_free_text_fields_for_pii(output: IRPFFullOutput, r: ValidationResult) -> None:
-    """Anti-PII em campos livres (notes, descricao, discriminacao) — ADR-157 sub-decisão 5."""
-    notes = output.notes or ""
-    if _has_unmasked_cpf(notes):
-        r.error("E1.6: campo 'notes' contém CPF não-mascarado (PII)")
+def _emit_pii_cpf(
+    r: ValidationResult,
+    *,
+    section: str,
+    section_label: str,
+    field_name: str,
+    path: str,
+    legacy_msg: str,
+    index: int | None = None,
+) -> None:
+    ctx: dict[str, Any] = {"section": section, "section_label": section_label, "field": field_name}
+    if index is not None:
+        ctx["index"] = index
+    r.add_issue(
+        code="e16.pii.unmasked_cpf",
+        severity="error",
+        path=path,
+        context=ctx,
+        legacy_message=legacy_msg,
+    )
 
+
+def _scan_pii_notes(output: IRPFFullOutput, r: ValidationResult) -> None:
+    if not _has_unmasked_cpf(output.notes or ""):
+        return
+    _emit_pii_cpf(
+        r,
+        section="notes",
+        section_label="Notas gerais",
+        field_name="notes",
+        path="$.notes",
+        legacy_msg="E1.6: campo 'notes' contém CPF não-mascarado (PII)",
+    )
+
+
+def _scan_pii_rendimentos_isentos(output: IRPFFullOutput, r: ValidationResult) -> None:
     for i, item in enumerate(output.rendimentos_isentos):
-        if _has_unmasked_cpf(item.descricao) or (item.fonte and _has_unmasked_cpf(item.fonte)):
-            r.error(f"E1.6: rendimentos_isentos[{i}] contém CPF não-mascarado em campo livre")
+        if not (
+            _has_unmasked_cpf(item.descricao) or (item.fonte and _has_unmasked_cpf(item.fonte))
+        ):
+            continue
+        _emit_pii_cpf(
+            r,
+            section="rendimentos_isentos",
+            section_label="Rendimentos isentos",
+            field_name="descricao_or_fonte",
+            path=f"$.rendimentos_isentos[{i}]",
+            index=i,
+            legacy_msg=f"E1.6: rendimentos_isentos[{i}] contém CPF não-mascarado em campo livre",
+        )
+
+
+def _scan_pii_rendimentos_tributacao_exclusiva(output: IRPFFullOutput, r: ValidationResult) -> None:
     for i, item in enumerate(output.rendimentos_tributacao_exclusiva):
-        if _has_unmasked_cpf(item.descricao):
-            r.error(
+        if not _has_unmasked_cpf(item.descricao):
+            continue
+        _emit_pii_cpf(
+            r,
+            section="rendimentos_tributacao_exclusiva",
+            section_label="Rendimentos com tributação exclusiva",
+            field_name="descricao",
+            path=f"$.rendimentos_tributacao_exclusiva[{i}].descricao",
+            index=i,
+            legacy_msg=(
                 f"E1.6: rendimentos_tributacao_exclusiva[{i}] contém CPF não-mascarado em descricao"
-            )
+            ),
+        )
+
+
+def _scan_pii_dividas_onus(output: IRPFFullOutput, r: ValidationResult) -> None:
     for i, item in enumerate(output.dividas_onus):
-        if _has_unmasked_cpf(item.discriminacao):
-            r.error(f"E1.6: dividas_onus[{i}] contém CPF não-mascarado em discriminacao")
+        if not _has_unmasked_cpf(item.discriminacao):
+            continue
+        _emit_pii_cpf(
+            r,
+            section="dividas_onus",
+            section_label="Dívidas e ônus",
+            field_name="discriminacao",
+            path=f"$.dividas_onus[{i}].discriminacao",
+            index=i,
+            legacy_msg=f"E1.6: dividas_onus[{i}] contém CPF não-mascarado em discriminacao",
+        )
+
+
+def _scan_pii_bens_direitos(output: IRPFFullOutput, r: ValidationResult) -> None:
     for i, item in enumerate(output.bens_direitos):
-        if _has_unmasked_cpf(item.descricao):
-            r.error(f"E1.6: bens_direitos[{i}] contém CPF não-mascarado em descricao")
+        if not _has_unmasked_cpf(item.descricao):
+            continue
+        _emit_pii_cpf(
+            r,
+            section="bens_direitos",
+            section_label="Bens e direitos",
+            field_name="descricao",
+            path=f"$.bens_direitos[{i}].descricao",
+            index=i,
+            legacy_msg=f"E1.6: bens_direitos[{i}] contém CPF não-mascarado em descricao",
+        )
+
+
+def _scan_free_text_fields_for_pii(output: IRPFFullOutput, r: ValidationResult) -> None:
+    """Anti-PII em campos livres (ADR-157 D5) — colapsa em e16.pii.unmasked_cpf."""
+    _scan_pii_notes(output, r)
+    _scan_pii_rendimentos_isentos(output, r)
+    _scan_pii_rendimentos_tributacao_exclusiva(output, r)
+    _scan_pii_dividas_onus(output, r)
+    _scan_pii_bens_direitos(output, r)
+
+
+def _soma_retidos_irpf(output: IRPFFullOutput) -> Decimal:
+    soma = Decimal("0")
+    for fp in output.rendimentos_pj:
+        soma += fp.ir_retido_brl
+        if fp.decimo_terceiro_ir_retido_brl is not None:
+            soma += fp.decimo_terceiro_ir_retido_brl
+    for fp in output.rendimentos_pf:
+        soma += fp.ir_recolhido_brl
+    return soma
+
+
+_RECONCILE_BASE_CTX = {
+    "section": "imposto_apurado",
+    "section_label": "Imposto apurado",
+    "field": "ir_pago_brl",
+}
+
+
+def _emit_reconcile_div(
+    r: ValidationResult, ir_pago: Decimal, soma: Decimal, diff: Decimal
+) -> None:
+    tol = _E16_RECONCILE_TOLERANCE
+    r.add_issue(
+        code="e16.reconcile.ir_pago_divergente",
+        severity="warning",
+        path="$.imposto_apurado.ir_pago_brl",
+        context={
+            **_RECONCILE_BASE_CTX,
+            "ir_pago_brl": str(ir_pago),
+            "soma_retidos_brl": str(soma),
+            "diff_brl": str(diff),
+            "tolerance_brl": str(tol),
+        },
+        legacy_message=(
+            f"E1.6: ir_pago_brl ({ir_pago}) divergente da soma de retidos ({soma}); "
+            f"diff={diff} > tol={tol}. Confidence será cap em 0.7 pelo stage runner."
+        ),
+    )
 
 
 def _reconcile_ir_pago(output: IRPFFullOutput, r: ValidationResult) -> None:
     """ADR-157 sub-decisão 6: ir_pago_brl ≈ sum retidos com tolerância 0,02 BRL."""
-    soma_retidos = Decimal("0")
-    for fp in output.rendimentos_pj:
-        soma_retidos += fp.ir_retido_brl
-        if fp.decimo_terceiro_ir_retido_brl is not None:
-            soma_retidos += fp.decimo_terceiro_ir_retido_brl
-    for fp in output.rendimentos_pf:
-        soma_retidos += fp.ir_recolhido_brl
-
-    diff = abs(output.imposto_apurado.ir_pago_brl - soma_retidos)
+    soma = _soma_retidos_irpf(output)
+    ir_pago = output.imposto_apurado.ir_pago_brl
+    diff = abs(ir_pago - soma)
     if diff > _E16_RECONCILE_TOLERANCE:
-        r.warn(
-            f"E1.6: ir_pago_brl ({output.imposto_apurado.ir_pago_brl}) divergente da "
-            f"soma de retidos ({soma_retidos}); diff={diff} > tol={_E16_RECONCILE_TOLERANCE}. "
-            f"Confidence será cap em 0.7 pelo stage runner."
-        )
+        _emit_reconcile_div(r, ir_pago, soma, diff)
+
+
+def _emit_imposto_xor(r: ValidationResult, a_pagar: Decimal, a_restituir: Decimal) -> None:
+    r.add_issue(
+        code="e16.imposto.exclusivos_simultaneos",
+        severity="error",
+        path="$.imposto_apurado",
+        context={
+            "section": "imposto_apurado",
+            "section_label": "Imposto apurado",
+            "ir_a_pagar_brl": str(a_pagar),
+            "ir_a_restituir_brl": str(a_restituir),
+        },
+        legacy_message=(
+            f"E1.6: ir_a_pagar_brl ({a_pagar}) e ir_a_restituir_brl ({a_restituir}) "
+            f"ambos > 0 — exclusivos por design"
+        ),
+    )
 
 
 def _validate_imposto_xor(output: IRPFFullOutput, r: ValidationResult) -> None:
@@ -262,10 +445,25 @@ def _validate_imposto_xor(output: IRPFFullOutput, r: ValidationResult) -> None:
     a_pagar = imp.ir_a_pagar_brl or Decimal("0")
     a_restituir = imp.ir_a_restituir_brl or Decimal("0")
     if a_pagar > 0 and a_restituir > 0:
-        r.error(
-            f"E1.6: ir_a_pagar_brl ({a_pagar}) e ir_a_restituir_brl ({a_restituir}) "
-            f"ambos > 0 — exclusivos por design"
-        )
+        _emit_imposto_xor(r, a_pagar, a_restituir)
+
+
+def _emit_pgbl_simplificado(r: ValidationResult, i: int, valor: Decimal) -> None:
+    r.add_issue(
+        code="e16.pgbl.deducao_em_simplificado",
+        severity="warning",
+        path=f"$.pagamentos_efetuados[{i}]",
+        context={
+            "section": "pagamentos_efetuados",
+            "section_label": "Pagamentos efetuados (PGBL)",
+            "index": i,
+            "valor_dedutivel_brl": str(valor),
+        },
+        legacy_message=(
+            f"E1.6: pagamento[{i}] PGBL com valor_dedutivel_brl={valor} "
+            f"em modelo simplificado — dedução não aceita pela RFB"
+        ),
+    )
 
 
 def _validate_pgbl_simplificado(output: IRPFFullOutput, r: ValidationResult) -> None:
@@ -274,10 +472,26 @@ def _validate_pgbl_simplificado(output: IRPFFullOutput, r: ValidationResult) -> 
         return
     for i, p in enumerate(output.pagamentos_efetuados):
         if p.codigo_rfb.value == "36" and p.valor_dedutivel_brl > 0:
-            r.warn(
-                f"E1.6: pagamento[{i}] PGBL com valor_dedutivel_brl={p.valor_dedutivel_brl} "
-                f"em modelo simplificado — dedução não aceita pela RFB"
-            )
+            _emit_pgbl_simplificado(r, i, p.valor_dedutivel_brl)
+
+
+def _emit_dependente_idade(r: ValidationResult, i: int, nome: str, idade: int) -> None:
+    r.add_issue(
+        code="e16.dependente.idade_acima_do_limite",
+        severity="warning",
+        path=f"$.dependentes[{i}]",
+        context={
+            "section": "dependentes",
+            "section_label": "Dependentes",
+            "index": i,
+            "nome": nome,
+            "idade": idade,
+        },
+        legacy_message=(
+            f"E1.6: dependente[{i}] '{nome}' (filho) tem {idade} anos — "
+            f"idade fora do limite RFB (21 ou 24 se universitário)"
+        ),
+    )
 
 
 def _validate_dependente_idade(output: IRPFFullOutput, r: ValidationResult) -> None:
@@ -285,31 +499,84 @@ def _validate_dependente_idade(output: IRPFFullOutput, r: ValidationResult) -> N
 
     today = date.today()
     for i, dep in enumerate(output.dependentes):
-        if dep.relacao.value != "filho_filha":
-            continue
-        if dep.data_nascimento is None:
+        if dep.relacao.value != "filho_filha" or dep.data_nascimento is None:
             continue
         idade = (today - dep.data_nascimento).days // 365
         if idade > 24:
-            r.warn(
-                f"E1.6: dependente[{i}] '{dep.nome}' (filho) tem {idade} anos — "
-                f"idade fora do limite RFB (21 ou 24 se universitário)"
-            )
+            _emit_dependente_idade(r, i, dep.nome, idade)
+
+
+_CONFIDENCE_BASE_CTX = {
+    "section": "identification",
+    "section_label": "Identificação",
+    "field": "confidence",
+}
+
+
+def _emit_confidence_oor(r: ValidationResult, c: float, *, bound: str, expected: int) -> None:
+    op = "<" if bound == "min" else ">"
+    r.add_issue(
+        code="e16.confidence.out_of_range",
+        severity="error",
+        path="$.confidence",
+        context={
+            **_CONFIDENCE_BASE_CTX,
+            "confidence": c,
+            "bound": bound,
+            f"expected_{bound}": expected,
+        },
+        legacy_message=f"E1.6: confidence {c} {op} {expected}",
+    )
+
+
+def _validate_confidence_range(output: IRPFFullOutput, r: ValidationResult) -> None:
+    c = output.confidence
+    if c < 0:
+        _emit_confidence_oor(r, c, bound="min", expected=0)
+    if c > 1:
+        _emit_confidence_oor(r, c, bound="max", expected=1)
+
+
+_EXERCICIO_BASE_CTX = {
+    "section": "contribuinte",
+    "section_label": "Contribuinte",
+    "field": "exercicio",
+}
+
+
+def _emit_exercicio_anterior(r: ValidationResult, e: int, a: int) -> None:
+    r.add_issue(
+        code="e16.contribuinte.exercicio_anterior_a_ano_base",
+        severity="error",
+        path="$.contribuinte.exercicio",
+        context={**_EXERCICIO_BASE_CTX, "exercicio": e, "ano_base": a},
+        legacy_message=f"E1.6: exercicio ({e}) deve ser >= ano_base ({a})",
+    )
+
+
+def _emit_exercicio_distante(r: ValidationResult, e: int, a: int) -> None:
+    r.add_issue(
+        code="e16.contribuinte.exercicio_distante_de_ano_base",
+        severity="warning",
+        path="$.contribuinte.exercicio",
+        context={**_EXERCICIO_BASE_CTX, "exercicio": e, "ano_base": a},
+        legacy_message=(
+            f"E1.6: exercicio ({e}) muito posterior ao ano_base ({a}) — geralmente diferem em 1"
+        ),
+    )
+
+
+def _validate_exercicio_vs_ano_base(output: IRPFFullOutput, r: ValidationResult) -> None:
+    e, a = output.contribuinte.exercicio, output.contribuinte.ano_base
+    if e < a:
+        _emit_exercicio_anterior(r, e, a)
+    if e > a + 1:
+        _emit_exercicio_distante(r, e, a)
 
 
 def _validate_confidence_and_identification(output: IRPFFullOutput, r: ValidationResult) -> None:
-    if output.confidence < 0:
-        r.error(f"E1.6: confidence {output.confidence} < 0")
-    if output.confidence > 1:
-        r.error(f"E1.6: confidence {output.confidence} > 1")
-    contrib = output.contribuinte
-    if contrib.exercicio < contrib.ano_base:
-        r.error(f"E1.6: exercicio ({contrib.exercicio}) deve ser >= ano_base ({contrib.ano_base})")
-    if contrib.exercicio > contrib.ano_base + 1:
-        r.warn(
-            f"E1.6: exercicio ({contrib.exercicio}) muito posterior ao "
-            f"ano_base ({contrib.ano_base}) — geralmente diferem em 1"
-        )
+    _validate_confidence_range(output, r)
+    _validate_exercicio_vs_ano_base(output, r)
 
 
 def validate_e16_output(output: IRPFFullOutput) -> ValidationResult:
