@@ -187,8 +187,7 @@ Portanto, ao gerar o conteúdo dos placeholders:
 | `secao-2` | Fluxo de Caixa e Orçamento | Receita 7 camadas + despesas doughnut + **Receita vs Despesa mês a mês** (stacked bar `chart-receita-despesa-mensal`: 3 stacks receita PJ/CLT/Aluguéis + 1 stack despesa s/ financeiro, período dinâmico do fluxo_mensal_detalhado, fonte: receitas + despesas E3 monthly_breakdown) + score gauge (5 faixas + needle) + **Orçamento Prospectivo** (card obrigatório `.card-feature`, tabela 13+ categorias com tetos de `definitions.md`, fonte: `orcamento_prospectivo` do E4) + **Consumo Consciente** (card obrigatório) + **Diagnóstico de Comportamento Financeiro** (card obrigatório, tabela Padrão/Evidência/Mudança, fonte: `diagnostico_comportamental[]` do E4) |
 | `secao-3` | Investimentos e Rendimentos | 3.1 Rentabilidade (4 KPIs + benchmark acumulado) · 3.2 Estratégia aporte (R$22,3k: R$20k investimentos + R$1,8k PGBL + R$500 DCA Crypto + **Contrafluxo AUVP** — quadro didático Selic↑→Prefixado, Selic↓→IPCA+, regra prática + coluna liquidez + nota validação vs alocação alvo) · 3.3 Card **Ações Diretas — Rico** (tabela: Ativo/Qtd/PM/Cotação/Valor/P&L/Situação — dados de `rico_investimentosposicao`, PM de `lots` no E3 ou IRPF, total + notas de lote) · 3.4 Análise ativos (top 15 + fundamentalista PM/lotes + marcação mercado IPCA+ + crypto 1% + FIIs ref.) · 3.5 Consolidação corretoras |
 | `secao-4` | Imóveis e Bens | Card **Patrimônio Imobiliário** (tabela #/Imóvel/Área/Dono/Compra/IRPF/Aluguel/Status + linha resumo com totais) + yield vs CDI + custo oportunidade + simulação Barão→FIIs + 5 FIIs referência com disclaimer. Fonte: `patrimonio-3_unified.json` / `imoveis-3_unified.json` + XLSX + IRPF |
-| `secao-5` | F1/F2 EUA | Stacked bar custos USD + checklist status DECIDIDO/PENDENTE |
-| `secao-6` | Green Card | Cenários cambiais + dolarização + proteção patrimonial 5 riscos |
+<!-- A8.4 PR4 (ADR-168): Seções 5 (F1/F2 EUA) e 6 (Green Card) removidas — Modo USA descontinuado. -->
 | `secao-7` | Independência Financeira | TRS didática + rentabilidade 6% real + projeção 3 cenários + renda passiva por fonte + projeção 2035 8 fontes com disclaimer + card **Previdência PGBL** (obrigatório — portabilidade, benefício fiscal 12%, projeção acumulação, de `previdencia_pgbl` do E4) |
 | `secao-8` | Tributário | DAS irregular + Simples vs LP + PGBL portabilidade + carnê-leão passo-a-passo 7 etapas + calendário |
 | `secao-9` | Riscos e Proteção | Bubble chart (X=Probabilidade, Y=Impacto, Raio=Severidade) + **Seguros** (vida, DIT, residencial — cobertura atual vs recomendada, gap analysis) + top 3 mitigações + planejamento sucessório (testamentos BR + procuração duradoura + holding + guardianship EUA) |
@@ -197,7 +196,7 @@ Portanto, ao gerar o conteúdo dos placeholders:
 | `apendice-b` | Premissas e Metodologia | Inflação, câmbio, rentabilidade real, taxa desconto, horizonte, fonte de cada premissa. Metodologias: Bruno Perini (IF number), Cerbasi (equilíbrio), AUVP (contrafluxo/Cerrado). |
 | `apendice-c` | Cenários de Sensibilidade | Tabela otimista/base/pessimista para IF, cambial, Selic, imóveis. Stress-test: "e se Selic cair a 8%?", "e se USD a 6,50?" |
 | `apendice-d` | Referências e Recursos | Links, livros, ferramentas, contatos de assessores. Bruno Perini (Viver de Renda), Cerbasi (Casais Inteligentes), AUVP (plataforma). |
-| `apendice-e` | Próximos Ciclos e Roadmap | Tarefas priorizadas (usar classes `priority-badge priority-{alta,media,baixa}` — ver "Regra obrigatória: Badges de Prioridade") + Viagens e Milhas (R$45k orçamento) + NCLEX Roadmap (7 etapas) + Simulação Mariana + calendário próximo ciclo |
+| `apendice-e` | Próximos Ciclos e Roadmap | Tarefas priorizadas (usar classes `priority-badge priority-{alta,media,baixa}` — ver "Regra obrigatória: Badges de Prioridade") + Viagens e Milhas (orçamento) + calendário próximo ciclo |
 
 ### Card obrigatório: Orçamento Prospectivo (dentro de `secao-2` — OBRIGATÓRIO)
 
@@ -309,7 +308,7 @@ Portanto, ao gerar o conteúdo dos placeholders:
   "folga_pct": 24.2,
   "pontuais_exemplos": "TV, Vivara, Awada",
   "categorias": [
-    {"codigo": "moradia", "emoji": "🏠", "categoria": "Moradia (sem financiamento)", "media_real": 2405, "teto": 2500, "pct_renda": 3.2, "observacao": "SABESP + Enel + condos Mariana"},
+    {"codigo": "moradia", "emoji": "🏠", "categoria": "Moradia (sem financiamento)", "media_real": 2405, "teto": 2500, "pct_renda": 3.2, "observacao": "SABESP + Enel + condos do imóvel"},
     {"codigo": "alimentacao", "emoji": "🍽", "categoria": "Alimentação", "media_real": 4254, "teto": 4500, "pct_renda": 5.7, "observacao": "Super + restaurantes + delivery + padarias"},
     {"codigo": "saude", "emoji": "🏥", "categoria": "Saúde", "media_real": 4818, "teto": 3000, "pct_renda": 3.8, "observacao": "Normalizado (excl. Awada R$14,9k pontual)"},
     {"codigo": "servicos_domesticos", "emoji": "🧹", "categoria": "Serviços domésticos", "media_real": 3854, "teto": 4000, "pct_renda": 5.1, "observacao": "Suecia + Eliane + Nathalia"},
@@ -451,7 +450,7 @@ Portanto, ao gerar o conteúdo dos placeholders:
   },
   {
     "padrao": "Impostos pagos de forma irregular",
-    "evidencia": "DAS pago em 4 lotes irregulares (incluindo por contas pessoais), gerando multas. Carnê-leão David e Mariana: zero em 2025. QuintoAndar não retém IRRF.",
+    "evidencia": "DAS pago em 4 lotes irregulares (incluindo por contas pessoais), gerando multas. Carnê-leão Titular e Cônjuge: zero em 2025. QuintoAndar não retém IRRF.",
     "mudanca_sugerida": "AccountTech configurar DAS automático dia 20. Carnê-leão mensal para ambos via Carnê-Leão Web (ver Seção 8). Todo imposto sai da conta certa (PJ para PJ, PF para PF)."
   },
   {
@@ -571,7 +570,7 @@ A seção 3 contém **5 subsseções**, das quais **3 blocos são OBRIGATÓRIOS*
     {"nome": "Itaú (Cofrinhos + PGBL)", "valor": 225207, "ret_anual": 13.5, "ret_mensal": 1.07, "pct_cdi": 98},
     {"nome": "Santander (3 CDBs)", "valor": 299478, "ret_anual": 13.5, "ret_mensal": 1.07, "pct_cdi": 98},
     {"nome": "Rico (fundos + ações + caixa)", "valor": 278917, "ret_anual": 8.0, "ret_mensal": 0.64, "pct_cdi": 58},
-    {"nome": "BTG Pactual (Mariana)", "valor": 375385, "ret_anual": 10.8, "ret_mensal": 0.86, "pct_cdi": 79},
+    {"nome": "BTG Pactual (Cônjuge)", "valor": 375385, "ret_anual": 10.8, "ret_mensal": 0.86, "pct_cdi": 79},
     {"nome": "PicPay (RDB)", "valor": 53757, "ret_anual": 13.1, "ret_mensal": 0.59, "pct_cdi": 95},
     {"nome": "Caixa / USD", "valor": 51802, "ret_anual": 3.0, "ret_mensal": 0.25, "pct_cdi": 22}
   ],
@@ -921,7 +920,7 @@ As seções abaixo tinham apenas descrição de uma linha na tabela de seções.
 "patrimonio": {
   "imoveis": [
     {"num": 1, "descricao": "Apt. Barão de Jaceguai 71m²", "area_m2": 71, "titular": "David", "data_compra": "2014-03", "valor_irpf": 297000, "valor_estimado": 550000, "aluguel_mensal": 3200, "yield_anual_pct": 6.98, "status": "Alugado"},
-    {"num": 2, "descricao": "Apt. Sabiá 51m²", "area_m2": 51, "titular": "Mariana", "data_compra": "2017-06", "valor_irpf": 230000, "valor_estimado": 400000, "aluguel_mensal": 2500, "yield_anual_pct": 7.50, "status": "Alugado"}
+    {"num": 2, "descricao": "Apt. Sabiá 51m²", "area_m2": 51, "titular": "Cônjuge", "data_compra": "2017-06", "valor_irpf": 230000, "valor_estimado": 400000, "aluguel_mensal": 2500, "yield_anual_pct": 7.50, "status": "Alugado"}
   ],
   "total_irpf": 1200000,
   "total_estimado": 2100000,
@@ -932,64 +931,14 @@ As seções abaixo tinham apenas descrição de uma linha na tabela de seções.
 
 ---
 
-### Seção 5 — F1/F2 EUA (`secao-5`)
-
-**Fonte de dados:** `life_plan/life_plan_goals.md` (seção F1/F2), E4 cálculos de custos.
-
-**Estrutura de conteúdo:**
-1. **Stacked bar `chart-custos-eua`:** custos mensais em USD por categoria (tuition, moradia, saúde, transporte, alimentação), com tooltip mostrando equivalente BRL
-2. **Checklist de status:** tabela com itens DECIDIDO/PENDENTE para cada etapa do processo F1/F2
-
-```html
-<div class="chart-container">
-  <p class="chart-context">Custos mensais estimados da fase F1/F2, baseados no plano de vida atualizado em {{data_life_plan}}.</p>
-  <canvas id="chart-custos-eua" data-type="bar-stacked"></canvas>
-  <p class="chart-conclusion">{{conclusao_custos}}</p>
-</div>
-
-<div class="card">
-  <div class="card-title">Checklist F1/F2 — Status das Decisões</div>
-  <table>
-    <thead><tr><th>ITEM</th><th>STATUS</th><th>DETALHE</th><th>PRAZO</th></tr></thead>
-    <tbody>
-      <!-- Para cada item em f1f2_checklist[] -->
-      <tr><td>{{item}}</td><td><span class="priority-badge priority-{{cor}}">{{status}}</span></td><td>{{detalhe}}</td><td>{{prazo}}</td></tr>
-    </tbody>
-  </table>
-</div>
-```
+<!--
+A8.4 PR4 (ADR-168): Seções 5 (F1/F2 EUA) e 6 (Green Card) removidas.
+Modo USA descontinuado — Estratégico é o modo único do relatório premium.
+Seções S5 e S6 ficam reservadas/queimadas (não reciclar).
+-->
 
 ---
 
-### Seção 6 — Green Card (`secao-6`)
-
-**Fonte de dados:** `life_plan/life_plan_goals.md` (seção Green Card), E4 cenários cambiais.
-
-**Estrutura de conteúdo:**
-1. **Gráfico `chart-cenarios-cambio`:** bar agrupado com sobra mensal por cenário cambial (USD 4.50 / 5.50 / 6.50), com e sem renda Mariana
-2. **Card Dolarização:** estratégia de exposição ao dólar (Wise + IVVB11 + ativos USD)
-3. **Card Proteção Patrimonial — 5 Riscos:** tabela com risco cambial, fiscal, migratório, saúde, e carreira + mitigações
-
-```html
-<div class="chart-container">
-  <p class="chart-context">Simulação de fluxo de caixa mensal nos EUA em 3 cenários de câmbio.</p>
-  <canvas id="chart-cenarios-cambio" data-type="bar-grouped"></canvas>
-  <p class="chart-conclusion">{{conclusao_cambio}}</p>
-</div>
-
-<div class="card card-highlight">
-  <div class="card-title">Proteção Patrimonial — 5 Riscos da Migração</div>
-  <table>
-    <thead><tr><th>RISCO</th><th>PROBABILIDADE</th><th>IMPACTO</th><th>MITIGAÇÃO</th></tr></thead>
-    <tbody>
-      <!-- Para cada item em riscos_migracao[] -->
-      <tr><td><strong>{{risco}}</strong></td><td>{{probabilidade}}</td><td>{{impacto}}</td><td>{{mitigacao}}</td></tr>
-    </tbody>
-  </table>
-</div>
-```
-
----
 
 ### Seção 8 — Tributário (`secao-8`)
 
@@ -1125,12 +1074,14 @@ Card 2 — Metodologias: 3 sub-seções (Bruno Perini: número IF = despesa anua
 
 ### Apêndice E — Próximos Ciclos e Roadmap (`apendice-e`)
 
-**Estrutura (5 blocos):**
+**Estrutura (3 blocos):**
 1. **Tarefas priorizadas:** tabela com colunas #, Tarefa, Prioridade (usar badges `priority-badge`), Responsável, Prazo, Status. Fonte: `tarefas[]`
-2. **Viagens e Milhas:** gráfico `chart-viagens` + 3 mini-KPIs (orçamento anual R$45k, gasto confirmado, milhas acumuladas)
-3. **NCLEX Roadmap:** 7 etapas com status (Mariana)
-4. **Simulação Mariana:** gráfico `chart-mariana-cenarios` (aporte vs anos até IF)
-5. **Calendário próximo ciclo:** tabela data/evento/responsável
+2. **Viagens e Milhas:** gráfico `chart-viagens` + 3 mini-KPIs (orçamento anual, gasto confirmado, milhas acumuladas)
+3. **Calendário próximo ciclo:** tabela data/evento/responsável
+
+<!-- A8.4 PR4 (ADR-168): NCLEX Roadmap + Simulação Cônjuge (USA-specific) removidos.
+     Cenário "cônjuge sem trabalhar" generalizado vive em APP_C (ADR-167) -->
+
 
 ---
 
@@ -1184,7 +1135,7 @@ Card 2 — Metodologias: 3 sub-seções (Bruno Perini: número IF = despesa anua
   "renda_15a": 0,
   "renda_20a": 0,
   "status_portabilidade": "Pendente — avaliar fundos disponíveis",
-  "recomendacao": "Calcular renda tributável real (CLT Mariana + pro-labore David) e confirmar se aporte atual atinge o teto de 12%."
+  "recomendacao": "Calcular renda tributável real (CLT Cônjuge + pro-labore David) e confirmar se aporte atual atinge o teto de 12%."
 }
 ```
 
@@ -1333,7 +1284,7 @@ Sempre que o E5 gerar uma tabela com coluna "Prioridade" (tarefas, pontos urgent
 ]
 ```
 
-**Campos obrigatórios:** `id` (int sequencial), `descricao` (string), `categoria` (uma de: `tributario`, `investimentos`, `seguros`, `fluxo_caixa`, `patrimonio`, `planejamento`, `documentos`, `emergencia`), `p` (prioridade: `alta`/`media`/`baixa`), `prazo` (ISO date ou `"imediato"`), `responsavel` (`"David"`, `"Mariana"`, `"Ambos"`), `status` (`"pendente"`, `"em_andamento"`, `"concluida"`), `secao_ref` (seção do relatório), `gatilho` (critério que gerou a tarefa).
+**Campos obrigatórios:** `id` (int sequencial), `descricao` (string), `categoria` (uma de: `tributario`, `investimentos`, `seguros`, `fluxo_caixa`, `patrimonio`, `planejamento`, `documentos`, `emergencia`), `p` (prioridade: `alta`/`media`/`baixa`), `prazo` (ISO date ou `"imediato"`), `responsavel` (`"David"`, `"Cônjuge"`, `"Ambos"`), `status` (`"pendente"`, `"em_andamento"`, `"concluida"`), `secao_ref` (seção do relatório), `gatilho` (critério que gerou a tarefa).
 
 ---
 
@@ -1465,9 +1416,9 @@ Sempre que o E5 gerar uma tabela com coluna "Prioridade" (tarefas, pontos urgent
 
 ### Schemas de Datasets de Gráficos Faltantes
 
-**Chart #17 — `cenarios_mariana` (canvas: `chart-mariana-cenarios`):**
+**Chart #17 — `cenarios_conjuge` (canvas: `chart-cenarios-conjuge`) — ADR-166/167:**
 ```json
-"cenarios_mariana": {
+"cenarios_conjuge": {
   "labels": ["R$ 5k/mês", "R$ 10k/mês", "R$ 15k/mês", "R$ 20k/mês"],
   "data": [28, 19, 14, 11],
   "meta_label": "Anos até IF",
@@ -1608,14 +1559,13 @@ Modo padrão definido em `report-data.meta.modo_padrao`:
 | 7 | Doughnut | Alocação ALVO |
 | 8 | Bar horizontal | Top 15 ativos financeiros por valor |
 | 9 | Bar | Yield anual por imóvel vs CDI |
-| 10 | Bar stacked | Custos mensais fase F1/F2 (tooltip R$8.919 BR) |
-| 11 | Bar agrupado | Sobra mensal por cenário cambial (Green Card) |
+<!-- A8.4 PR4 (ADR-168): charts 10 (custos_f1f2) e 11 (cenarios_cambiais) removidos. -->
 | 12 | Line (3 séries) | Projeção patrimonial 3 cenários (começa R$3,65M) |
 | 13 | Bar | Renda passiva atual vs meta (por fonte + gap) |
 | 14 | Bar | Impostos PJ mês a mês vs ideal |
 | 15 | Bubble | Mapa de riscos (X=Probabilidade, Y=Impacto, Raio=Severidade) |
 | 16 | Bar horizontal | Top 5 decisões impacto 1 ano vs 10 anos |
-| 17 | Bar + Line | Cenários IF Mariana (aporte vs anos) |
+| 17 | Bar + Line | Cenários IF Cônjuge (aporte vs anos) |
 | 18 | Table/Chart | Performance dos Top Ativos (top 5-10 com nome, valor, retorno acumulado, retorno vs benchmark, indicador visual) |
 | 19 | Bar horizontal stacked | Viagens: gasto confirmado vs disponível + 3 mini-KPIs |
 
@@ -1641,7 +1591,7 @@ Modo padrão definido em `report-data.meta.modo_padrao`:
 | 14 | `chart-impostos-pj` | `impostos_pj` | S8 |
 | 15 | `chart-mapa-riscos` | `riscos_bubble` | S9 |
 | 16 | `chart-decisoes-impacto` | `decisoes` | S10 |
-| 17 | `chart-mariana-cenarios` | `cenarios_mariana` | App E |
+| 17 | `chart-cenarios-conjuge` | `cenarios_conjuge` | App C / S3 |
 | 18 | `chart-performance-ativos` | `performance_ativos` | S3 |
 | 19 | `chart-viagens` | `viagens` | App E |
 
@@ -1688,8 +1638,7 @@ Tabela consolidada de todas as chaves obrigatórias no JSON embutido no relatór
 | `{{CONTENT_S2}}` | Fluxo de Caixa e Orçamento | Receita camadas + despesas doughnut + receita vs despesa mensal + score gauge + orçamento prospectivo + consumo consciente + diagnóstico comportamental | `chart-receita-camadas`, `chart-despesas-doughnut`, `chart-receita-despesa-mensal`, `chart-score-gauge` |
 | `{{CONTENT_S3}}` | Investimentos e Rendimentos | 3.1 KPIs rentabilidade + 3.2 estratégia aporte + contrafluxo + 3.3 ações diretas + 3.4 análise ativos + 3.5 consolidação | `chart-alocacao-atual`, `chart-alocacao-alvo`, `chart-top-ativos`, `chart-performance-ativos` |
 | `{{CONTENT_S4}}` | Imóveis e Bens | Patrimônio imobiliário tabela + yield vs CDI + custo oportunidade + simulação FIIs | `chart-yield-imoveis` |
-| `{{CONTENT_S5}}` | F1/F2 EUA | Custos USD stacked bar + checklist | `chart-custos-eua` |
-| `{{CONTENT_S6}}` | Green Card | Cenários cambiais + dolarização + proteção 5 riscos | `chart-cenarios-cambio` |
+<!-- A8.4 PR4 (ADR-168): templates CONTENT_S5/S6 removidos com Modo USA. -->
 | `{{CONTENT_S7}}` | Independência Financeira | TRS + projeção 3 cenários + renda passiva + projeção 2035 + previdência PGBL | `chart-projecao-patrimonial`, `chart-renda-passiva` |
 | `{{CONTENT_S8}}` | Tributário | DAS + Simples vs LP + PGBL portabilidade + carnê-leão + calendário | `chart-impostos-pj` |
 | `{{CONTENT_S9}}` | Riscos e Proteção | Bubble chart riscos + seguros + top 3 mitigações + sucessório | `chart-mapa-riscos` |
@@ -1698,7 +1647,7 @@ Tabela consolidada de todas as chaves obrigatórias no JSON embutido no relatór
 | `{{CONTENT_APP_B}}` | Premissas e Metodologia | Premissas + metodologias (Perini/Cerbasi/AUVP) | — |
 | `{{CONTENT_APP_C}}` | Cenários de Sensibilidade | Tabela otimista/base/pessimista + stress-tests | `chart-cenarios-if` |
 | `{{CONTENT_APP_D}}` | Referências e Recursos | Links, livros, ferramentas, contatos | — |
-| `{{CONTENT_APP_E}}` | Próximos Ciclos e Roadmap | Tarefas + viagens + NCLEX + simulação Mariana + calendário | `chart-viagens` |
+| `{{CONTENT_APP_E}}` | Próximos Ciclos e Roadmap | Tarefas + viagens + calendário | `chart-viagens` |
 
 **REGRA CRÍTICA:** Se o E5 detectar que o conteúdo gerado para `{{CONTENT_SN}}` não corresponde ao tema do H1 da seção N (conforme tabela acima), DEVE parar e corrigir o mapeamento antes de continuar. Nunca injetar conteúdo de uma seção no placeholder de outra.
 
@@ -1760,7 +1709,7 @@ O relatório HTML é gerado em 8 blocos sequenciais para respeitar limites de ou
 1. **Bloco 1:** `<head>` completo (CSS + meta) + Cover hero + 8 KPIs + Perfil família + KPIs Táticos
 2. **Bloco 2:** Nav sticky + Seções 1-2 (Patrimônio + Fluxo)
 3. **Bloco 3:** Seção 3 (Investimentos completa)
-4. **Bloco 4:** Seções 4-6 (Imóveis + F1/F2 + Green Card)
+4. **Bloco 4:** Seção 4 (Imóveis e Bens). Seções 5-6 (F1/F2 EUA, Green Card) removidas em A8.4 PR4 (ADR-168).
 5. **Bloco 5:** Seções 7-9 (IF + Tributário + Riscos)
 6. **Bloco 6:** Seção 10 + Apêndices A-E
 7. **Bloco 7:** Seções Táticas D1-D6 (HTML skeleton) + `report-data` JSON

@@ -619,3 +619,4 @@ Após PR5 mergeado:
 - **2026-05-06:** PR1 aberto ([#80](https://github.com/davidrobert/mathoms/pull/80)) — schema rename `cenarios_conjuge` + ADR-166 Decidido + ADR-167 Proposto. Pipeline 1734/1734 + backend 1593/1593 verdes localmente.
 - **2026-05-06:** PR2 implementado — analyzer reduzido a 1 cenário + `should_render_conjuge_scenarios()` + ADR-167 Decidido. Pipeline 1750/1750 verde (+16 do gate).
 - **2026-05-06:** ADR-168 alvo do PR4 ("Remoção do Modo USA") **renumerada para ADR-168** — slot 165 foi tomado por outro PR (#79, ValidationIssue) durante a janela de execução desta iniciativa.
+- **2026-05-06:** PR5 implementado — limpeza editorial em `config/methodology.md` (§E5.6 reescrito, refs F1/F2/Green Card/NCLEX removidas) e `config/report_spec.md` (Seções 5/6 detalhadas + Apêndice E NCLEX/Mariana + chart 17 `cenarios_mariana` → `cenarios_conjuge` + tabelas resumo limpas).
