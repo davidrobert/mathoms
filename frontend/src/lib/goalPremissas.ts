@@ -29,6 +29,17 @@ export function formatGoalVigenciaDate(iso: string): string {
   return `${day}/${m}/${y}`;
 }
 
+const GOAL_TYPE_LABELS: Record<string, string> = {
+  INDEPENDENCIA_FINANCEIRA: "Independência Financeira",
+  APORTE_MENSAL: "Aporte mensal",
+  DOLARIZACAO: "Dolarização da carteira",
+  ALOCACAO_ALVO: "Alocação-alvo da carteira",
+};
+
+export function humanizeGoalType(type: string): string {
+  return GOAL_TYPE_LABELS[type] ?? type;
+}
+
 export function buildIFPremissasRows(
   inputs: IFGoalInputs,
   derived: IFGoalDerived | null
