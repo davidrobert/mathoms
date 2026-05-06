@@ -7,15 +7,17 @@ import {
   ContrafluxoCard,
   EstrategiaAporteCard,
   InvestimentosClasseCard,
+  Top15AtivosCard,
   type ContrafluxoData,
   type EstrategiaAporteData,
   type InvestimentosClasseData,
+  type Top15AtivosData,
 } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
 
-interface InvestimentosBlock extends InvestimentosClasseData {
+interface InvestimentosBlock extends InvestimentosClasseData, Top15AtivosData {
   estrategia_aporte?: EstrategiaAporteData;
   contrafluxo?: ContrafluxoData;
   cdi_anual?: number;
@@ -61,13 +63,8 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
         fallbackConclusion={deriveChartConclusion("alocacao_alvo", data)}
       />
 
-      {/* Demais charts — full width */}
-      <NarrativeChartCard
-        chartId="top15_ativos"
-        title="Top 15 Ativos Financeiros"
-        narratives={charts}
-        fallbackConclusion={deriveChartConclusion("top15_ativos", data)}
-      />
+      {/* Top 15 ativos — ranking estruturado (substitui NarrativeChartCard). */}
+      <Top15AtivosCard data={inv} />
       <NarrativeChartCard
         chartId="cenarios_conjuge"
         title="Cenários de Estresse — Sem renda do cônjuge"
