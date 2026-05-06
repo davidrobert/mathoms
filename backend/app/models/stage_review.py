@@ -34,6 +34,9 @@ class StageReview(Base):
     original_output_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     edited_output_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     validation_errors: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # ADR-165 onda 2: lista de ValidationIssue serializada (code/severity/path/context/legacy_message).
+    # NULL para reviews pré-cutover — UI faz fallback para `validation_errors`.
+    validation_issues: Mapped[Optional[list[dict]]] = mapped_column(JSON, nullable=True)
     reviewer_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
