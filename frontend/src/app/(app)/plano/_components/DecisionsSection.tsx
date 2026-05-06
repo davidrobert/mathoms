@@ -5,7 +5,9 @@ import { Plus, Scale } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SegmentedTabs } from "@/components/ui/SegmentedTabs";
 import { useDecisions } from "@/hooks/useDecisions";
 import { ApiError, type Decision } from "@/lib/api";
 
