@@ -73,6 +73,15 @@ deles:
   time-to-market, soberania de dados (LGPD), risco de fornecedor.
   Invoque antes de adotar SaaS/lib/framework não-trivial ou ao ouvir
   "vamos construir do zero" sem comparativo.
+- **[product-manager](.claude/agents/product-manager.md)** — gestão de
+  produto, OKRs, métricas de saúde (NSM/AARRR/HEART), curadoria de
+  BACKLOG/ROADMAP, planejamento de Sprints, redação de planos canônicos
+  e `track_*.md`, priorização (RICE/WSJF/MoSCoV/Kano), engenharia de
+  prompts para LLM em produção, e organização de Wiki/Second-Brain
+  (PARA/Zettelkasten/LYT) em Markdown. Invoque ao revisar lane,
+  refinar plano em `docs/<TOPIC>_PLAN.md`, definir KPI/OKR, priorizar
+  débito vs. feature, validar prompt de LLM produção, ou estruturar
+  Wiki interna.
 
 Cada arquivo `.claude/agents/<nome>.md` tem o briefing completo.
 **Não duplique** o briefing aqui — leia direto.
