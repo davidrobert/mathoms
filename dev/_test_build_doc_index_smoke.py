@@ -98,6 +98,8 @@ def _make_test_lane(
     status: str = "open",
     plan: str | None = None,
     title: str = "",
+    priority: str | None = None,
+    branch_slug: str | None = None,
 ):
     """Helper para construir Note lane in-memory sem tocar disco."""
     raw: dict[str, Any] = {
@@ -109,6 +111,10 @@ def _make_test_lane(
     }
     if plan is not None:
         raw["plan"] = plan
+    if priority is not None:
+        raw["priority"] = priority
+    if branch_slug is not None:
+        raw["branch_slug"] = branch_slug
     return note_cls(
         path=DOCS / f"sprint/{sprint}/lanes/{id_}.md",
         id=id_,
@@ -364,17 +370,53 @@ def _print_failures(failures: list[str]) -> None:
         print(f"  - {f}", file=sys.stderr)
 
 
-def _print_success(total: int, has_plan: bool) -> None:
+def _print_success(total: int, has_plan: bool, has_sprint: bool) -> None:
     """Imprime mensagem de sucesso com lista de testes rodados."""
     plan_msg = (
         ", plan-empty, plan-rich, plan-idemp, plan-with-lanes, plan-status-order"
         if has_plan
         else ""
     )
+    sprint_msg = (
+        ", sprint-no-lanes, sprint-ready, sprint-picks-max, "
+        "sprint-letter-priority, sprint-wave-agg, sprint-empty-status, sprint-idemp"
+        if has_sprint
+        else ""
+    )
     print(
         f"✓ {total} smoke tests passaram "
-        f"(vault vazio, 1 ADR, _load, override, status, idemp, ordem{plan_msg})."
+        f"(vault vazio, 1 ADR, _load, override, status, idemp, ordem{plan_msg}{sprint_msg})."
     )
+
+
+def _maybe_run_sprint_tests(sprint_build_fn, note_cls: type) -> tuple[list[str], int]:
+    """Importa e roda os 7 smoke tests do SPRINT_CURRENT se o build_fn foi passado."""
+    if sprint_build_fn is None:
+        return [], 0
+    try:
+        from _test_sprint_current_smoke import run_sprint_smoke_tests
+    except ModuleNotFoundError:  # pragma: no cover
+        from dev._test_sprint_current_smoke import run_sprint_smoke_tests
+    return run_sprint_smoke_tests(sprint_build_fn, note_cls), 7
+
+
+def _maybe_run_plan_tests(plan_build_fn, note_cls: type) -> tuple[list[str], int]:
+    """Roda os 5 smoke tests do PLAN_PROGRESS se o build_fn foi passado."""
+    if plan_build_fn is None:
+        return [], 0
+    return _run_plan_smoke_tests(plan_build_fn, note_cls), 5
+
+
+def _collect_all_failures(
+    note_cls, build_fn, load_fn, category_fn, plan_build_fn, sprint_build_fn
+) -> tuple[list[str], int, int]:
+    """Roda os 3 grupos de smoke (ADR + plan + sprint). Retorna (falhas, plan_tests, sprint_tests)."""
+    failures = _run_adr_smoke_tests(build_fn, load_fn, category_fn, note_cls)
+    plan_failures, plan_tests = _maybe_run_plan_tests(plan_build_fn, note_cls)
+    sprint_failures, sprint_tests = _maybe_run_sprint_tests(sprint_build_fn, note_cls)
+    failures.extend(plan_failures)
+    failures.extend(sprint_failures)
+    return failures, plan_tests, sprint_tests
 
 
 def run_smoke_tests(
@@ -384,15 +426,16 @@ def run_smoke_tests(
     load_fn,
     category_fn,
     plan_build_fn=None,
+    sprint_build_fn=None,
 ) -> int:
     """Roda smoke tests; print errors em stderr; return 0 ok / 1 falha."""
-    failures = _run_adr_smoke_tests(build_fn, load_fn, category_fn, note_cls)
-    plan_tests = 0
-    if plan_build_fn is not None:
-        failures.extend(_run_plan_smoke_tests(plan_build_fn, note_cls))
-        plan_tests = 5
+    failures, plan_tests, sprint_tests = _collect_all_failures(
+        note_cls, build_fn, load_fn, category_fn, plan_build_fn, sprint_build_fn
+    )
     if failures:
         _print_failures(failures)
         return 1
-    _print_success(7 + plan_tests, plan_build_fn is not None)
+    _print_success(
+        7 + plan_tests + sprint_tests, plan_build_fn is not None, sprint_build_fn is not None
+    )
     return 0
