@@ -33,12 +33,12 @@ docs/
 ├── _schemas/              ← JSON Schemas para frontmatter
 ├── adr/                   ← 175 ADRs atomizadas (após F2)
 ├── sprint/                ← lanes + tracks por sprint (após F4)
-├── plan/                  ← planos canônicos multi-fase (após F3)
-├── reference/             ← docs estáveis (PHASES, RUNBOOK, ARCHITECTURE…)
-├── archive/               ← planos arquivados, manual histórico
-├── DECISIONS.md           ← shim → adr/ (após F2)
-├── BACKLOG.md             ← shim → _MOC/SPRINTS-active.md (após F4)
-└── CHANGELOG.md           ← shim → sprint/<X>/changelog/ (após F5)
+├── plan/                  ← planos canônicos multi-fase (5 abertos)
+├── reference/             ← docs estáveis (PHASES, PRODUCT, ARCHITECTURE, …)
+├── archive/               ← planos arquivados, backups pré-shim, manual histórico
+├── DECISIONS.md           ← shim → adr/ + _MOC/_generated/ADR_INDEX.md
+├── BACKLOG.md             ← shim → _MOC/SPRINTS-active.md + sprint/<X>/lanes/
+└── CHANGELOG.md           ← shim → _MOC/_generated/CHANGELOG_RECENT.md + sprint/<X>/changelog/
 ```
 
 ## Como navegar (Obsidian)
@@ -51,21 +51,18 @@ docs/
 
 Dataview é **opcional** — vault funciona sem. Habilite só se quiser queries SQL-like sobre frontmatter.
 
-## Estado atual (Fase 1)
+## Estado atual
 
-A migração documental está em **Fase 1 (Foundation)** do plano DOC_REORG ([ADR-182](../DECISIONS.md#adr-182--vault-de-documentação-operacional-obsidian-friendly-em-docs), status `Proposto`).
+DOC_REORG ([ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md)) **Decidido (Sprint A11.5)** — vault GA. Conteúdo populado:
 
-Entregáveis F1 (em ordem):
-- [x] F1.A — 6 JSON Schemas em `_schemas/`
-- [x] F1.B — `dev/build_doc_index.py` v1 + 6 stubs `_MOC/_generated/`
-- [x] F1.C — `dev/validate_frontmatter.py`
-- [x] F1.D — `dev/check_doc_links.py`
-- [x] F1.E — `dev/check_doc_filename_id.py`
-- [x] F1.F — `dev/benchmark_doc_token_cost.py` + baseline em `tests/benchmarks/`
-- [x] F1.G — ADR exemplo migrada ([[ADR-090]] — Decimal money) + MOCs editoriais
-- [ ] F1.H — Pre-commit hooks + snapshot test ativos
+- **175 ADRs** atomizadas em `adr/` ([índice](_generated/ADR_INDEX.md))
+- **74 lanes** em 8 sprints A6/A7/A8/A9/A10/A11/F7/F9 + F11/F12 (futuro) ([sprint atual](_generated/SPRINT_CURRENT.md))
+- **62 tracks** em `sprint/<X>/tracks/`
+- **5 plans** em `plan/<SLUG>/_README.md` ([status](PLANS-active.md))
+- **167 changelog entries** em `sprint/<X>/changelog/` ([últimos 14 dias](_generated/CHANGELOG_RECENT.md))
 
-A vault só fica **populada** a partir da F2 (175 ADRs migradas) e F4 (lanes em `sprint/<X>/`). Hoje (F1), o vault tem 1 ADR exemplo + stubs gerados — suficiente para validar gates.
+Próximas evoluções:
+- Crítica 1 do PM review (2026-05-07): backfill de taxonomia (`area/*`, `methodology/*`, `priority/*`) em 174 ADRs (hoje só 1 tem taxonomia rica). Depois: domain rules em `reference/rules/<slug>.md`.
 
 ## Convenções rígidas (não negociáveis)
 

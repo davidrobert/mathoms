@@ -208,9 +208,14 @@ def build_changelog_recent_md(notes: list[Note]) -> str:
 
 
 def build_roadmap_md(notes: list[Note]) -> str:
-    """Gera ROADMAP.md — tabela F0-F11; stub mínimo até Fase 5 do plano."""
+    """Gera ROADMAP.md — referência leve para `docs/reference/PHASES.md` (fonte estável)."""
     lines = _header("Roadmap F0-F11")
-    lines.append("_Tabela populada na Fase 5 do plano (extração de `docs/reference/PHASES.md`)._")
+    lines.append("Tabela completa em [`docs/reference/PHASES.md`](../../reference/PHASES.md).")
+    lines.append("")
+    lines.append(
+        "Sprint corrente em [`SPRINT_CURRENT.md`](SPRINT_CURRENT.md); planos abertos em "
+        "[`PLAN_PROGRESS.md`](PLAN_PROGRESS.md)."
+    )
     return _join(lines)
 
 
