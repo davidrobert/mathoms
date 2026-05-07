@@ -34,13 +34,15 @@ que exportam via HTTP (`/tasks/export.md`, futuro `/goals/export.json`).
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, TypedDict
 
-from sqlalchemy import select
+from sqlalchemy import case, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SyncSession
 
+from backend.app.models.decision import Decision
 from backend.app.models.goal import Goal
+from backend.app.models.risk import Risk
 from backend.app.models.task import Task
 from backend.app.services import task_service
 
@@ -60,6 +62,133 @@ _IF_GOAL_TAXA_RETIRADA_NOTA = (
     "(Trinity Study) é referência acadêmica conservadora. Cálculo "
     "IF: investivel * trs_pct / 12."
 )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Projeções para o relatório (Sprint A10.5)
+# ═══════════════════════════════════════════════════════════════════════
+# Card S10 ("Top 5 Decisões de Impacto") e bubble chart S9 ("Riscos
+# Prioritários") deixam de ler strings hardcoded da bag PLANNING_CONTEXT
+# e passam a consumir projeções do `Decision` (ADR-179) e `Risk`
+# (ADR-178) aggregates. Pipeline boundary preservado: SQLAlchemy mora
+# aqui (backend.services.*); narradores em `pipeline/**` consomem listas
+# já materializadas via `goals_payload`. A10.6 troca dict legacy por
+# `GoalsBundle` tipado e remove a bag inteira (ADR-180).
+
+
+class DecisionTop5Item(TypedDict):
+    """Projeção de `Decision` para o card S10. ``impact_1y_brl_cents`` em cents (ADR-090)."""
+
+    title: str
+    rationale: Optional[str]
+    impact_1y_brl_cents: Optional[int]
+    horizon: str
+    status: str
+
+
+class RiskBubbleItem(TypedDict):
+    """Projeção de `Risk` para o bubble chart S9 (8 entradas máx)."""
+
+    name: str
+    code: str
+    probability: Optional[str]
+    impact_level: str
+    impact_brl_cents: Optional[int]
+
+
+# ADR-178 §RiskRepository — mesmas tabelas de rank usadas no listing
+# canônico (ascendente: 0 = mais grave). Projeção do bubble usa essas
+# tabelas para reproduzir a ordenação editorial.
+_RISK_IMPACT_RANK = {"crítico": 0, "alto": 1, "médio": 2, "baixo": 3}
+_RISK_PROBABILITY_RANK = {"alta": 0, "média": 1, "baixa": 2}
+
+# ADR-179 — top 5 lê apenas Decisions decididas/pendentes que importam
+# para o ciclo de execução curto (6-12m). Outras horizons aparecem em
+# tela `/plano`, não no relatório S10.
+_TOP5_DECISION_HORIZON: str = "short_6_12m"
+_TOP5_DECISION_STATUSES: tuple[str, ...] = ("Decidido", "Pendente")
+_TOP5_DECISION_LIMIT: int = 5
+_RISK_BUBBLE_LIMIT: int = 8
+
+
+def _decision_to_top5_item(decision: Decision) -> DecisionTop5Item:
+    return {
+        "title": decision.title,
+        "rationale": decision.rationale,
+        "impact_1y_brl_cents": decision.impact_1y_brl_cents,
+        "horizon": decision.horizon,
+        "status": decision.status,
+    }
+
+
+def _risk_to_bubble_item(risk: Risk) -> RiskBubbleItem:
+    return {
+        "name": risk.name,
+        "code": risk.code,
+        "probability": risk.probability,
+        "impact_level": risk.impact_level,
+        "impact_brl_cents": risk.impact_brl_cents,
+    }
+
+
+def _top5_decisions_stmt(workspace_id: str):
+    """Statement compartilhado entre as vias sync/async (ADR-179 ordering)."""
+    return (
+        select(Decision)
+        .where(
+            Decision.workspace_id == workspace_id,
+            Decision.horizon == _TOP5_DECISION_HORIZON,
+            Decision.status.in_(_TOP5_DECISION_STATUSES),
+        )
+        .order_by(
+            Decision.priority.is_(None).asc(),
+            Decision.priority.asc(),
+            Decision.impact_1y_brl_cents.is_(None).asc(),
+            Decision.impact_1y_brl_cents.desc(),
+            Decision.code.asc(),
+        )
+        .limit(_TOP5_DECISION_LIMIT)
+    )
+
+
+def _risks_bubble_stmt(workspace_id: str):
+    """Statement compartilhado (espelha RiskRepository, ADR-178)."""
+    impact_order = case(_RISK_IMPACT_RANK, value=Risk.impact_level, else_=99)
+    prob_order = case(_RISK_PROBABILITY_RANK, value=Risk.probability, else_=99)
+    return (
+        select(Risk)
+        .where(Risk.workspace_id == workspace_id)
+        .order_by(impact_order.asc(), prob_order.asc(), Risk.code.asc())
+        .limit(_RISK_BUBBLE_LIMIT)
+    )
+
+
+def _project_top5_decisions_sync(workspace_id: str, *, db: SyncSession) -> list[DecisionTop5Item]:
+    """Sync — card S10."""
+    decisions = list(db.execute(_top5_decisions_stmt(workspace_id)).scalars().all())
+    return [_decision_to_top5_item(d) for d in decisions]
+
+
+def _project_risks_bubble_sync(workspace_id: str, *, db: SyncSession) -> list[RiskBubbleItem]:
+    """Sync — bubble chart S9."""
+    risks = list(db.execute(_risks_bubble_stmt(workspace_id)).scalars().all())
+    return [_risk_to_bubble_item(r) for r in risks]
+
+
+async def _project_top5_decisions_async(
+    workspace_id: str, *, db: AsyncSession
+) -> list[DecisionTop5Item]:
+    """Async — card S10."""
+    result = await db.execute(_top5_decisions_stmt(workspace_id))
+    return [_decision_to_top5_item(d) for d in result.scalars().all()]
+
+
+async def _project_risks_bubble_async(
+    workspace_id: str, *, db: AsyncSession
+) -> list[RiskBubbleItem]:
+    """Async — bubble chart S9."""
+    result = await db.execute(_risks_bubble_stmt(workspace_id))
+    return [_risk_to_bubble_item(r) for r in result.scalars().all()]
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -197,6 +326,11 @@ def build_goals_payload_sync(
         return _current_goal_sync(ws, gtype, db=db)
 
     _merge_goals_into_payload(payload, workspace_id, _getter)
+    # ADR-178/179 (Sprint A10.5) — projeções para card S10 e bubble S9.
+    # Sempre presentes (lista vazia se DB sem registros). Sobrescrevem
+    # legacy_extras se o workspace tem aggregates populados.
+    payload["top5_decisoes_projection"] = _project_top5_decisions_sync(workspace_id, db=db)
+    payload["risks_projection"] = _project_risks_bubble_sync(workspace_id, db=db)
     payload["_adapter_version"] = 2
     return payload
 
@@ -235,6 +369,9 @@ async def build_goals_payload(
     payload: dict[str, Any] = dict(legacy_extras or {})
     goals_by_type = await _goals_by_type_async(workspace_id, db=db)
     _apply_goals_to_payload(payload, goals_by_type)
+    # ADR-178/179 (Sprint A10.5) — projeções via mesmas queries da via sync.
+    payload["top5_decisoes_projection"] = await _project_top5_decisions_async(workspace_id, db=db)
+    payload["risks_projection"] = await _project_risks_bubble_async(workspace_id, db=db)
     payload["_adapter_version"] = 2
     return payload
 
@@ -359,7 +496,7 @@ def _md_priority_section_lines(priority: str, tasks: list[Task]) -> list[str]:
         status = _TASK_STATUS_LEGACY_LABEL.get(t.status, t.status)
         title = t.title.replace("|", "\\|")
         lines.append(
-            f"| {t.number} | {title} | {t.category} | {prazo} | " f"{status} | {t.ref or '—'} |"
+            f"| {t.number} | {title} | {t.category} | {prazo} | {status} | {t.ref or '—'} |"
         )
     lines.extend(["", "---", ""])
     return lines

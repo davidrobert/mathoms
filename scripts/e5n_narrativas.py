@@ -244,6 +244,32 @@ def _safe_div(a, b, default=0):
     return a / b if b else default
 
 
+def _select_decisoes_for_charts(goals_cfg: dict) -> list[str]:
+    """Sprint A10.5 — preferência ``top5_decisoes_projection`` (Decision aggregate); fallback bag legacy."""
+    projection = goals_cfg.get("top5_decisoes_projection")
+    if not projection:
+        return goals_cfg.get("decisoes_prioritarias", [])
+    return [
+        item.get("title", "") for item in projection if isinstance(item, dict) and item.get("title")
+    ]
+
+
+def _select_riscos_for_charts(goals_cfg: dict) -> list[dict]:
+    """Sprint A10.5 — preferência ``risks_projection`` (Risk aggregate); fallback bag legacy."""
+    projection = goals_cfg.get("risks_projection")
+    if not projection:
+        return goals_cfg.get("riscos_prioritarios", [])
+    return [
+        {
+            "nome": item.get("name", ""),
+            "prob": item.get("probability") or "",
+            "impacto": item.get("impact_level", ""),
+        }
+        for item in projection
+        if isinstance(item, dict) and item.get("name")
+    ]
+
+
 def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | None = None) -> dict:
     """Extract METRICS dict from E5 JSON + config/goals.json + computed values.
 
@@ -317,8 +343,15 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
     seguros = goals_cfg.get("seguros", {})
     trib_cfg = goals_cfg.get("tributario", {})
     aloc_alvo = goals_cfg.get("alocacao_alvo", {})
-    riscos = goals_cfg.get("riscos_prioritarios", [])
-    decisoes = goals_cfg.get("decisoes_prioritarias", [])
+    # ADR-178/179 (Sprint A10.5) — `top5_decisoes_projection` e
+    # `risks_projection` são projeções injetadas pelo `pipeline_adapter`
+    # a partir dos aggregates `Decision`/`Risk`. Quando ausentes (workspace
+    # sem aggregates ou pipeline standalone sem backend), fallback para
+    # bag legado da PLANNING_CONTEXT (`riscos_prioritarios`/
+    # `decisoes_prioritarias`). A10.6 deleta o fallback ao trocar
+    # `goals_cfg` por `GoalsBundle` tipado (ADR-180).
+    riscos = _select_riscos_for_charts(goals_cfg)
+    decisoes = _select_decisoes_for_charts(goals_cfg)
 
     # --- Rules-as-code (ADR-177): thresholds metodológicos universais ---
     # Imports locais por simetria com convenção do módulo (paths/config
