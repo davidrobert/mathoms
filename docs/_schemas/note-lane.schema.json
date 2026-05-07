@@ -9,8 +9,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^[A-Z]\\d+(\\.\\d+[a-z]?)*$",
-      "description": "Identificador estável da lane. Ex.: A10.2, A6g.7, F9.2, A10.2a."
+      "pattern": "^[A-Z]\\d+[a-z]*(?:-[a-z][a-z0-9-]*)?(?:\\.[a-z0-9][a-z0-9-]*)*$",
+      "description": "Identificador estável da lane. Ex.: A10.2, A6g.7, F9.2, A10.2a, A6a, A6e.events, A6e.events-followup, A6-ux.livestep, A6-readers.dbfirst, A6-human, F11.1."
     },
     "type": {
       "const": "lane"
