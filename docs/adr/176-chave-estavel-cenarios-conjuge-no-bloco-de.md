@@ -50,4 +50,4 @@ A justificativa que destrava o follow-up é a mesma de ADR-166: ADR-143 (methodo
 
 **Implementação:** PR único. Vira `Decidido (A8.4)` no merge — completa o follow-up #2 de ADR-166.
 
-**Referências:** [ADR-166 §Follow-ups item 2](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5), [docs/ARCHITECTURE.md §4.1 Domain glossary](ARCHITECTURE.md).
+**Referências:** [ADR-166 §Follow-ups item 2](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5), [docs/reference/ARCHITECTURE.md §4.1 Domain glossary](ARCHITECTURE.md).

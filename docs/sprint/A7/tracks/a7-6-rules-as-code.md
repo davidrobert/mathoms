@@ -37,7 +37,7 @@ A A7.4 (mergeada) moveu 4 arquivos de `config/` → `docs/methodology/` mas a mo
 
 | Arquivo | Linhas | Hits cliente-específicos | Onde a regra universal vive (ou viveria) |
 |---|---|---|---|
-| `definitions.md` | 505 | 59 | DB schema (`FamilyMember`, `BankAccount`, `Category`) + glossário em `docs/ARCHITECTURE.md` |
+| `definitions.md` | 505 | 59 | DB schema (`FamilyMember`, `BankAccount`, `Category`) + glossário em `docs/reference/ARCHITECTURE.md` |
 | `regras_composicao_patrimonial.md` | 234 | 19 + valores BRL | Função classificadora em `pipeline/domain/services/cash_flow_builder.py` (ou similar) |
 | `source_hierarchy.md` | 150 | 19 | `pipeline/domain/services/income_origin_resolver.py` |
 | `milhas.md` | 95 | 5 | `scripts/e5_analyze.py::parse_milhas_md` (lê o markdown em runtime — anti-padrão) |
@@ -83,11 +83,11 @@ Drafts em `docs/DECISIONS.md` (status: Proposto → Decidido após CTO sign-off)
 Status: a maior parte do conteúdo **duplica DB schema** (membros, instituições, categorias, contas bancárias). A migração é principalmente de exclusão.
 
 1. Mapear cada seção de `definitions.md` para uma das fontes:
-   - DB models (`FamilyMember`, `BankAccount`, `Institution*`, `Category*`, etc.) — referenciar via `docs/DB_SCHEMA_REFERENCE.md`.
+   - DB models (`FamilyMember`, `BankAccount`, `Institution*`, `Category*`, etc.) — referenciar via `docs/reference/DB_SCHEMA_REFERENCE.md`.
    - Enum docstrings (papéis: titular/conjuge/dependente/etc.) — docstring na coluna `FamilyMember.role`.
    - Convenções de naming/path do pipeline — já estão em CLAUDE.md §Convenções.
    - **Conteúdo cliente-específico** (David's Itaú, valores) — descartar (já está em DB/BankAccount rows).
-2. Adicionar seção curta em `docs/ARCHITECTURE.md` (e.g., §"Domain glossary") com 1 parágrafo + links para DB schema + link para ADR-143 (regra geral) e ADR-145/146 (especificidades).
+2. Adicionar seção curta em `docs/reference/ARCHITECTURE.md` (e.g., §"Domain glossary") com 1 parágrafo + links para DB schema + link para ADR-143 (regra geral) e ADR-145/146 (especificidades).
 3. `git rm docs/methodology/definitions.md`.
 4. Atualizar referências em `CLAUDE.md §Fontes de verdade` e `docs/agent_prompts/*` (A7.4 já atualizou alguns; reauditar com grep).
 5. Tests: nenhum runtime impacto (definitions.md não é parseada). Confirmar via `grep -rn 'definitions\.md' pipeline/ scripts/ backend/` retorna zero hits após cleanup.

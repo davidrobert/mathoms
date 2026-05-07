@@ -229,7 +229,7 @@ git push origin HEAD:main
    - DB `pipeline_artifacts.stage` **inalterado** — F9.3 (Alembic) endereça.
      Janela: app lê rows legadas via `resolve_stage_name`.
    ```
-3. **`docs/ARCHITECTURE.md` §7 e §10** — atualizar tabelas/refs de stages.
+3. **`docs/reference/ARCHITECTURE.md` §7 e §10** — atualizar tabelas/refs de stages.
 4. **`docs/DECISIONS.md`** ADR-093 — nota datada "F9.2 fechada YYYY-MM-DD".
 5. **`CLAUDE.md` §Regras críticas › "Stage identifiers — use nomes legados até F9 (ADR-093)"** — atualizar para refletir nova realidade: "Em F9.2+ código de produção usa nomes descritivos; `resolve_stage_name(name)` aceita ambos durante janela de compat até F9.6".
 6. Commit docs separado: `docs(f9): F9.2 strings descritivas, F9.3 destravada (ADR-093)`.
@@ -250,4 +250,4 @@ git push origin HEAD:main
 - F9.1 (prereq): [track_f9_1_pipeline_stages_rename.md](track_f9_1_pipeline_stages_rename.md)
 - F9.3 (próximo): [track_f9_3_alembic_migration.md](track_f9_3_alembic_migration.md)
 - ADR-093: `docs/DECISIONS.md:2228`
-- Auditoria F9.0: `docs/audits/f9_audit_<date>.md` (lista exata de strings).
+- Auditoria F9.0: `docs/archive/audits/f9_audit_<date>.md` (lista exata de strings).

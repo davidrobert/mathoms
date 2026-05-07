@@ -207,7 +207,7 @@ Redis + Postgres:
 | Worker A morre durante request | Requests em worker B continuam; Celery tasks em andamento reenfileiram (`task_reject_on_worker_lost=True`) |
 
 **Teste de integração** cobre os 4 primeiros cenários.
-Cenário 5 (fail-over) é manual — runbook em `docs/RUNBOOK.md`.
+Cenário 5 (fail-over) é manual — runbook em `docs/reference/RUNBOOK.md`.
 
 ---
 

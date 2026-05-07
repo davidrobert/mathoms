@@ -25,4 +25,4 @@ tags:
   - `backend/tests/test_kanban_to_task_backfill.py`: teste de paridade M1 removido (tabelas não existem mais)
   - `backend/tests/test_alembic_guardrails.py`: `IRREVERSIBLE_MIGRATIONS` + lógica de floor parcial para suportar DROP sem downgrade
   - `frontend/src/lib/api/reports.ts`: 6 funções deprecated (`getReportNotes`, `putReportNotes`, `listKanbanItems`, `createKanbanItem`, `updateKanbanItem`, `deleteKanbanItem`) + tipos (`ReportNotesPayload`, `KanbanItem*`) removidos
-  - `docs/DB_SCHEMA_REFERENCE.md` regenerado — tabelas `_legacy_*` ausentes
+  - `docs/reference/DB_SCHEMA_REFERENCE.md` regenerado — tabelas `_legacy_*` ausentes

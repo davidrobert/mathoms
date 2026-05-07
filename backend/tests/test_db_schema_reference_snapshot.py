@@ -1,4 +1,4 @@
-"""Snapshot test — ``docs/DB_SCHEMA_REFERENCE.md`` bate com o schema atual.
+"""Snapshot test — ``docs/reference/DB_SCHEMA_REFERENCE.md`` bate com o schema atual.
 
 A6f.4 (ADR-102 · R20): o doc de referência é gerado por
 ``dev/generate_db_schema_reference.py`` introspeccionando ``Base.metadata``.
@@ -42,7 +42,7 @@ def test_db_schema_reference_snapshot_matches_metadata() -> None:
             difflib.unified_diff(
                 committed.splitlines(keepends=True),
                 current.splitlines(keepends=True),
-                fromfile="docs/DB_SCHEMA_REFERENCE.md (committed)",
+                fromfile="docs/reference/DB_SCHEMA_REFERENCE.md (committed)",
                 tofile="generate() (current)",
                 n=3,
             )

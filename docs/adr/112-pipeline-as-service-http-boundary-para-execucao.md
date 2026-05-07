@@ -62,7 +62,7 @@ mudança de wire format.
 **Consequências:**
 
 - ✅ Fronteira language-neutral real — OpenAPI snapshot em
-  `docs/api/v1/pipeline-service.openapi.json` é fonte de verdade; qualquer
+  `docs/reference/api/v1/pipeline-service.openapi.json` é fonte de verdade; qualquer
   cliente pode consumir.
 - ✅ `backend/app/tasks/pipeline_task.py` zero `from pipeline.orchestrator`
   imports — gate enforçável por grep + revisão de PR.
@@ -98,7 +98,7 @@ mudança de wire format.
 
 - `pipeline-service/app/**` — FastAPI app, contratos, services.
 - `backend/app/services/pipeline_client.py` — Protocol + 2 implementações.
-- `docs/api/v1/pipeline-service.openapi.json` — snapshot do contrato.
+- `docs/reference/api/v1/pipeline-service.openapi.json` — snapshot do contrato.
 - `docker-compose.pipeline-service.yml` — compose overlay para smoke.
 - `Makefile` — `update-pipeline-service-openapi` target e composição
   automática com `update-openapi-snapshot`.

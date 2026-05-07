@@ -661,7 +661,7 @@ R18-R20 (ADR-102):
 - Toda resposta JSON de endpoint tem schema declarado via `response_model`
   (Pydantic) ou `response_class` explícito (`FileResponse`,
   `StreamingResponse`, `HTMLResponse`, `PlainTextResponse`, `Response`).
-- Snapshot completo em [`docs/api/v1/openapi.json`](api/v1/openapi.json) —
+- Snapshot completo em [`docs/reference/api/v1/openapi.json`](api/v1/openapi.json) —
   committed e validado por [`test_openapi_snapshot.py`](../backend/tests/test_openapi_snapshot.py)
   (A6f.2).
 - Estrutural [`test_openapi_response_models.py`](../backend/tests/test_openapi_response_models.py)

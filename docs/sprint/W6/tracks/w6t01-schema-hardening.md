@@ -17,7 +17,7 @@ tags:
 
 > **Lane ID:** `w6t01-schema-hardening`
 > **Branch prefix:** `agent/w6t01-schema-hardening/<sub>/<yyyyMMdd-HHmm>`
-> **Plano canônico:** [PLATFORM_REVIEW_PLAN.md §W6-T01](../PLATFORM_REVIEW_PLAN.md)
+> **Plano canônico:** [plan/PLATFORM_REVIEW/_README.md §W6-T01](../plan/PLATFORM_REVIEW/_README.md)
 > **Onda:** Wave 6 (paraleliza com Wave 5)
 > **Severity:** P1 · **Effort:** L (3 sub-PRs sequenciais)
 > **Owner:** data-engineer

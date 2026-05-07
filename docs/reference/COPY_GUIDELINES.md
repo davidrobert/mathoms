@@ -63,7 +63,7 @@ remover por concisão.
 >
 > Gera, em F12.6b, `config/i18n_glossary.yaml` com as traduções
 > normativas para os 9 demais locales (ver
-> [I18N_PLAN.md §6.2](I18N_PLAN.md)).
+> [plan/I18N/_README.md §6.2](plan/I18N/_README.md)).
 
 | Termo canônico | Definição (1 linha) | Capitalização | Abreviação aceita | Sinônimos a **evitar** |
 | --- | --- | --- | --- | --- |
@@ -434,7 +434,7 @@ o problema (de cima para baixo).
 ## 12. Como contribuir
 
 1. Mudança de termo / regra de formato: **PR com diff em
-   `docs/COPY_GUIDELINES.md`** + sincronização nos docs derivados
+   `docs/reference/COPY_GUIDELINES.md`** + sincronização nos docs derivados
    (§11). Aprovação: **product-designer** (revisor) +
    **financial-planner** (quando termo afetar metodologia).
 2. Mudança grande de tom (ex.: adicionar `tu` em algum contexto):

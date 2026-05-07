@@ -122,7 +122,7 @@ sqlite3 ../mathoms.db "SELECT DISTINCT stage FROM pipeline_artifacts;"
 # (resolve_stage_name lê descritivo direto; legado não existe mais)
 ```
 
-### 4. Procedimento de pré-deploy — `docs/runbooks/f9_3_alembic_upgrade.md`
+### 4. Procedimento de pré-deploy — `docs/reference/runbooks/f9_3_alembic_upgrade.md`
 
 Runbook curto (~50 linhas):
 1. Backup obrigatório.
@@ -145,7 +145,7 @@ git checkout -b agent/f9-stage-rename/3-alembic/$(date +%Y%m%d-%H%M)
 pytest backend/tests/test_stage_rename_migration.py -q
 
 # 3. Smoke local (mathoms.db dev)
-# 4. Escrever docs/runbooks/f9_3_alembic_upgrade.md
+# 4. Escrever docs/reference/runbooks/f9_3_alembic_upgrade.md
 
 # Gate
 pre-commit run --all-files
@@ -170,7 +170,7 @@ git push origin HEAD:main
 - [ ] Idempotência: `alembic upgrade head` 2× = no-op na 2ª.
 - [ ] Downgrade restaura keys legadas (testado).
 - [ ] Smoke local com `mathoms.db` dev: zero erro pós-upgrade; relatório renderiza normal.
-- [ ] `docs/runbooks/f9_3_alembic_upgrade.md` documenta procedimento + rollback.
+- [ ] `docs/reference/runbooks/f9_3_alembic_upgrade.md` documenta procedimento + rollback.
 - [ ] BACKLOG + CHANGELOG atualizados.
 
 ---
@@ -196,12 +196,12 @@ git push origin HEAD:main
      dos identificadores legados para descritivos.
    - 5 testes em `backend/tests/test_stage_rename_migration.py`:
      upgrade/downgrade/idempotência/sanity.
-   - `docs/runbooks/f9_3_alembic_upgrade.md`: procedimento pré-deploy +
+   - `docs/reference/runbooks/f9_3_alembic_upgrade.md`: procedimento pré-deploy +
      rollback.
    - Smoke dev: rows do mathoms.db migradas; app continua funcional via
      `resolve_stage_name`.
    ```
-3. **`docs/RUNBOOK.md`** — referenciar o novo runbook.
+3. **`docs/reference/RUNBOOK.md`** — referenciar o novo runbook.
 4. **`docs/DECISIONS.md`** ADR-093 — nota datada "F9.3 fechada YYYY-MM-DD".
 5. Commit docs separado: `docs(f9): F9.3 alembic + runbook, F9.4 destravada (ADR-093)`.
 

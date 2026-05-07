@@ -55,7 +55,7 @@ size_lines: 48
 - Migration alembic: criar tabela `workspace_members`; backfill `(workspace_id, owner_id, 'owner', NULL, created_at)` para todo `Workspace` existente.
 - `backend/app/core/tenancy.py` com `get_current_workspace(workspace_id: UUID, user = Depends(get_current_user), db = Depends(get_db))`.
 - `scripts/lint/check_workspace_scoping.py` + job `tenancy-lint` no CI.
-- Documentação em `docs/tenancy.md` (criar) com exemplos de do/don't.
+- Documentação em `docs/reference/tenancy.md` (criar) com exemplos de do/don't.
 
 **Débito explícito (fora do escopo desta ADR):**
 - RBAC granular por papel (`read_only`, `approver`, `admin`) — endereçar quando primeiro consultor pedir.

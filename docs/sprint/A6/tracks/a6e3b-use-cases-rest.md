@@ -208,7 +208,7 @@ backend/app/application/
 
 - `docs/CHANGELOG.md [Unreleased]`: A6e.3b — 28+ use cases, 70+ tests, 6 aggregates no total na application layer.
 - `docs/BACKLOG.md`: A6e.3b ☐ → ✅; atualizar "Restante" no topo do Sprint A6 (remover A6e.3b, promover A6e.4 para pickable sem restrição).
-- `docs/ARCHITECTURE.md §17` se menciona estado da application layer — sincronizar.
+- `docs/reference/ARCHITECTURE.md §17` se menciona estado da application layer — sincronizar.
 - Considerar ADR-113 (ou próximo livre) se emergir padrão novo (ex.: sub-aggregate como função-grupo; cross-aggregate validation via Protocol) — opcional.
 
 **Commit 4:** `docs(a6e.3b): CHANGELOG + BACKLOG — application layer completa`

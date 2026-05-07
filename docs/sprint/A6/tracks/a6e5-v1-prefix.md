@@ -111,7 +111,7 @@ export const API_BASE = "/api";
 Consumido por todos os `frontend/src/lib/api/<domain>.ts` via
 `import { API_BASE, apiFetch } from "./core"`. **Ponto único.**
 
-**OpenAPI snapshot:** `docs/api/v1/openapi.json` (já vive sob `/v1/` — a
+**OpenAPI snapshot:** `docs/reference/api/v1/openapi.json` (já vive sob `/v1/` — a
 pasta está pronta; o runtime ainda não casa).
 
 **Testes que consomem prefix:**
@@ -236,7 +236,7 @@ Uma linha. Resto dos `lib/api/*.ts` já usa `API_BASE`, sem literal.
    - `servers: [...]` aparece com `/api/v1`
    - Paths canônicos aparecem sob `/api/v1/*` (mudança em massa)
    - **Nada** sob `/api/` nas paths (alias excluído via `include_in_schema=False`)
-2. Validar OpenAPI: `jq '.info.version' docs/api/v1/openapi.json` → `"1.0.0"`.
+2. Validar OpenAPI: `jq '.info.version' docs/reference/api/v1/openapi.json` → `"1.0.0"`.
 3. `pytest backend/tests/test_openapi_snapshot.py -q` deve passar após o
    commit (o teste valida que runtime == snapshot).
 
@@ -261,9 +261,9 @@ Uma linha. Resto dos `lib/api/*.ts` já usa `API_BASE`, sem literal.
    `/api/v1`, alias `/api` deprecated, OpenAPI v1.0.0, frontend migrado.
 2. `docs/BACKLOG.md` — Lanes abertas: `A6e.5 ☐ aberta` → `✅ entregue
    <data>`. Atualizar sumário "Restante" no topo do Sprint A6.
-3. `docs/ARCHITECTURE.md §18` — confirmar que URLs estão sincronizadas
+3. `docs/reference/ARCHITECTURE.md §18` — confirmar que URLs estão sincronizadas
    com runtime. Se diverge, corrija.
-4. `docs/RUNBOOK.md` (se mencionar `/api/` bare) — adicione nota de
+4. `docs/reference/RUNBOOK.md` (se mencionar `/api/` bare) — adicione nota de
    deprecação.
 5. Considerar **ADR-112** (ou número vago seguinte) documentando a
    decisão "aliás legado até F7A" — opcional mas recomendado.
@@ -276,9 +276,9 @@ Uma linha. Resto dos `lib/api/*.ts` já usa `API_BASE`, sem literal.
 
 - [ ] `curl -I http://localhost:8000/api/v1/health` retorna 200, **sem** `Deprecation` header.
 - [ ] `curl -I http://localhost:8000/api/health` retorna 200 + `Deprecation: true` + `Sunset: ...` + `Link: </api/v1>; rel="successor-version"`.
-- [ ] `jq '.info.version' docs/api/v1/openapi.json` = `"1.0.0"`.
-- [ ] `jq '.servers[0].url' docs/api/v1/openapi.json` = `"/api/v1"`.
-- [ ] `jq '[.paths | keys[] | select(startswith("/api/") and (startswith("/api/v1") | not))] | length' docs/api/v1/openapi.json` = `0` (alias não aparece no snapshot).
+- [ ] `jq '.info.version' docs/reference/api/v1/openapi.json` = `"1.0.0"`.
+- [ ] `jq '.servers[0].url' docs/reference/api/v1/openapi.json` = `"/api/v1"`.
+- [ ] `jq '[.paths | keys[] | select(startswith("/api/") and (startswith("/api/v1") | not))] | length' docs/reference/api/v1/openapi.json` = `0` (alias não aparece no snapshot).
 - [ ] `grep -rn "\"/api\"" backend/app/ frontend/src/ | grep -v "LEGACY\|test_legacy\|api/v1"` = 0 (nenhum hardcode bare `/api` sobrou fora do alias).
 - [ ] `grep -n "API_PREFIX\b" backend/app/main.py` usa `settings.API_PREFIX` (nenhum literal `/api` no registry).
 - [ ] `pytest backend/tests/ -q` zero regressão.
@@ -362,7 +362,7 @@ git log -5 --oneline origin/main -- \
   backend/app/main.py \
   backend/app/core/config.py \
   frontend/src/lib/api/core.ts \
-  docs/api/v1/openapi.json
+  docs/reference/api/v1/openapi.json
 ```
 
 Se qualquer um dos 4 mudou <30min atrás por outra lane, espere 2min,

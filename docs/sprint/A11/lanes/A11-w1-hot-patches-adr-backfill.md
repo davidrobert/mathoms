@@ -23,7 +23,7 @@ tags:
 
 - **Onda:** 1 (5d)
 - **Depende de:** —
-- **Plano:** [PLAN §W1](PLATFORM_REVIEW_PLAN.md#wave-1--hot-patches--adr-backfill-sprint-imediato-5-dias-dev)
+- **Plano:** [PLAN §W1](plan/PLATFORM_REVIEW/_README.md#wave-1--hot-patches--adr-backfill-sprint-imediato-5-dias-dev)
 
 ## Status (legado)
 

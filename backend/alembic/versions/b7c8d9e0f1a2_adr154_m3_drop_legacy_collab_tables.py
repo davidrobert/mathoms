@@ -28,7 +28,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # Cannot recreate the tables with all their constraints via downgrade —
-    # use backup restore if rollback is needed (see docs/runbooks/f9_3_alembic_upgrade.md for pattern).
+    # use backup restore if rollback is needed (see docs/reference/runbooks/f9_3_alembic_upgrade.md for pattern).
     raise NotImplementedError(
         "M3 downgrade is not supported — restore from backup taken before M3 upgrade."
     )

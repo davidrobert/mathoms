@@ -21,7 +21,7 @@ make update-openapi-snapshot
 # equivalente a:
 # python -c 'import json; from backend.app.main import app; \
 #   print(json.dumps(app.openapi(), indent=2, sort_keys=True))' \
-#   > docs/api/v1/openapi.json
+#   > docs/reference/api/v1/openapi.json
 ```
 
 Depois comite o diff. Se não o fizer, `test_openapi_snapshot.py` falhará no CI.

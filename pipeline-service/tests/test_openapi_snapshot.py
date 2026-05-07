@@ -1,4 +1,4 @@
-"""Snapshot — ``docs/api/v1/pipeline-service.openapi.json`` stays in sync.
+"""Snapshot — ``docs/reference/api/v1/pipeline-service.openapi.json`` stays in sync.
 
 Same contract as `backend/tests/test_openapi_snapshot.py`: changing the
 pipeline-service spec must land together with a snapshot refresh
@@ -34,7 +34,7 @@ def test_openapi_snapshot_matches_committed_file() -> None:
             difflib.unified_diff(
                 committed.splitlines(keepends=True),
                 current_text.splitlines(keepends=True),
-                fromfile="docs/api/v1/pipeline-service.openapi.json",
+                fromfile="docs/reference/api/v1/pipeline-service.openapi.json",
                 tofile="create_app().openapi() (current)",
                 n=3,
             )

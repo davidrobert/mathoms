@@ -31,7 +31,7 @@ size_lines: 33
 - **Env:** `MATHOMS_FERNET_KEYS=key_new,key_old` (CSV; primeiro = key de encrypt; demais = decrypt-only).
 - **Vault**: `MultiFernet([Fernet(k) for k in keys])` substitui `Fernet`. Decrypts existentes funcionam; novos secrets usam `key_new`.
 - **Celery task `rotate_fernet_secrets`:** itera `EncryptedSecret` em batches de 100; faz `decrypt → encrypt(key_new) → update`. Idempotente, resumível.
-- **Runbook em `docs/runbooks/fernet_rotation.md`:** procedure passo-a-passo (gerar key, deploy com 2 keys, rodar Celery, validar count, deploy com 1 key).
+- **Runbook em `docs/reference/runbooks/fernet_rotation.md`:** procedure passo-a-passo (gerar key, deploy com 2 keys, rodar Celery, validar count, deploy com 1 key).
 - **Drill em staging trimestral** registrado em RUNBOOK.
 
 **Consequências:**
@@ -44,4 +44,4 @@ size_lines: 33
 
 **Implementação:** lane W3-T04. Vira `Decidido (W3-T04)` no merge.
 
-**Referências:** [PLATFORM_REVIEW_PLAN.md §W3-T04](PLATFORM_REVIEW_PLAN.md), finding SR-003.
+**Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T04](plan/PLATFORM_REVIEW/_README.md), finding SR-003.

@@ -356,7 +356,7 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 ## Referências
 
-- Baseline: `docs/audits/code_style_audit_20260421.md`
+- Baseline: `docs/archive/audits/code_style_audit_20260421.md`
 - Regras: `CLAUDE.md §Code style` + §Testes
 - Padrão de fake: `pipeline/artifact_store.py::InMemoryArtifactStore`
 - Factories backend: `backend/tests/factories/builders.py`

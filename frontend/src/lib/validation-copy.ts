@@ -1,7 +1,7 @@
 /**
  * Copy user-facing para ValidationIssue (ADR-165 onda 3).
  *
- * Convenções (docs/COPY_GUIDELINES.md):
+ * Convenções (docs/reference/COPY_GUIDELINES.md):
  * - PT-BR, segunda pessoa de respeito.
  * - Sem jargão de implementação.
  * - Sem emoji, sem exclamação.

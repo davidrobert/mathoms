@@ -178,7 +178,7 @@ git push origin HEAD:main
      — F9.2 endereça.
    - Goldens E3/E4/E5/E5.N/E7 verdes; zero regressão.
    ```
-3. **`docs/ARCHITECTURE.md` §7** — se houver tabela de stages com filenames,
+3. **`docs/reference/ARCHITECTURE.md` §7** — se houver tabela de stages com filenames,
    atualizar (provavelmente sim).
 4. **`docs/DECISIONS.md`** ADR-093 — nota "F9.1 fechada YYYY-MM-DD".
 5. Commit docs separado: `docs(f9): F9.1 rename pipeline/stages, F9.2 destravada (ADR-093)`.

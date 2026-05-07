@@ -27,9 +27,9 @@ Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas inst
 | Documento | Conteúdo |
 | --------- | --------- |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Visão, proposta de valor, público-alvo |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Stack, modelo de dados, fluxos, pastas |
-| [docs/tenancy.md](docs/tenancy.md) | Workspaces, isolamento, convites |
-| [docs/SETUP.md](docs/SETUP.md) | Setup local, env, Redis, Celery, LLM |
+| [docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md) | Stack, modelo de dados, fluxos, pastas |
+| [docs/reference/tenancy.md](docs/reference/tenancy.md) | Workspaces, isolamento, convites |
+| [docs/reference/SETUP.md](docs/reference/SETUP.md) | Setup local, env, Redis, Celery, LLM |
 
 ### Execução e decisões
 
@@ -44,7 +44,7 @@ Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas inst
 
 | Documento | Conteúdo |
 | --------- | --------- |
-| [docs/TESTING.md](docs/TESTING.md) | Como rodar testes, CI, mocks |
+| [docs/reference/TESTING.md](docs/reference/TESTING.md) | Como rodar testes, CI, mocks |
 | [CLAUDE.md](CLAUDE.md) | Instruções para assistentes de código / convenções do repo |
 
 ---
@@ -85,7 +85,7 @@ make dev-down        # mata tudo (preserva .env e mathoms.db)
 
 Abrir **http://localhost:3000** · API: **http://localhost:8000/docs** · Login após `make dev-bootstrap`: `admin@mathoms.ai` / `admin123`.
 
-Detalhes dos targets, `dev-pull`, `dev-restart-worker`, `dev-reset-env` e fallback manual de 4 terminais: **[docs/SETUP.md §4](docs/SETUP.md)**. Migrations Alembic, Playwright/PDF, troubleshooting: idem.
+Detalhes dos targets, `dev-pull`, `dev-restart-worker`, `dev-reset-env` e fallback manual de 4 terminais: **[docs/reference/SETUP.md §4](docs/reference/SETUP.md)**. Migrations Alembic, Playwright/PDF, troubleshooting: idem.
 
 ### Console interno local (F7F-Local · IA-0)
 
@@ -94,7 +94,7 @@ reset de senha, toggle `is_developer` e leitura de métricas/relatórios em
 **dev/staging** — app Next separada em `frontend-ops/`, bind `127.0.0.1:3100`,
 rotas `/admin/*` no backend só sobem com flag explícita.
 
-Setup inicial do operador (ver **[docs/RUNBOOK.md §7](docs/RUNBOOK.md)** para detalhes):
+Setup inicial do operador (ver **[docs/reference/RUNBOOK.md §7](docs/reference/RUNBOOK.md)** para detalhes):
 
 ```bash
 # 1. Gerar hash da senha (≥6 chars em dev; use ≥12 fora de localhost)
@@ -120,4 +120,4 @@ separada; console local é bloqueado por flag + bind + guard de `ENVIRONMENT=pro
 
 ## Contribuindo
 
-Antes de abrir um PR, leia [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) (wrappers do pipeline, multi-tenant). Para testes e CI, [docs/TESTING.md](docs/TESTING.md). Commits e paths sensíveis: [CLAUDE.md](CLAUDE.md) e hooks em `dev/`.
+Antes de abrir um PR, leia [docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) (wrappers do pipeline, multi-tenant). Para testes e CI, [docs/reference/TESTING.md](docs/reference/TESTING.md). Commits e paths sensíveis: [CLAUDE.md](CLAUDE.md) e hooks em `dev/`.

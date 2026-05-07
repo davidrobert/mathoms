@@ -42,5 +42,5 @@ tags:
   esperado em `expect(diffPixels).toBeLessThanOrEqual(500)`. Branch
   fechada sem merge logo após. Run de baseline-generation:
   `25003003442` (job `73218060762`, conclusion=success). Refs:
-  [REPORT_PREMIUM_PLAN.md §11.1](REPORT_PREMIUM_PLAN.md) ·
+  [plan/REPORT_PREMIUM/_README.md §11.1](plan/REPORT_PREMIUM/_README.md) ·
   [track_report_v2.md §3 v2.10](agent_prompts/track_report_v2.md).

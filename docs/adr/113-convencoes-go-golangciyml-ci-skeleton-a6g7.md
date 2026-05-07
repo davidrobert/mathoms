@@ -88,7 +88,7 @@ referencia, não duplica.
 - `forbidigo`/`depguard` rules em `.golangci.yml` — A6g.6, depois que
   houver `.go` para calibrar sem ruído.
 - Codegen Go do OpenAPI via `oapi-codegen` consumindo
-  `docs/api/v1/pipeline-service.openapi.json` — A6g.7b ou parte do
+  `docs/reference/api/v1/pipeline-service.openapi.json` — A6g.7b ou parte do
   primeiro PR produtivo.
 - Hook `pre-commit` local para `gofmt`/`go vet`/`golangci-lint` —
   A6g.6 (`.pre-commit-config.yaml` ganha entrada Go paralela às

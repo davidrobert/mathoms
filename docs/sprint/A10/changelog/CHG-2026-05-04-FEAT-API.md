@@ -41,5 +41,5 @@ tags:
   no ws de B), AST scan que exige `Depends(get_current_workspace)` em
   toda função com `workspace_id` (whitelist 6 sunset endpoints
   ADR-129/154), e fuzz path-id em `/documents/{id}/extract-json`. Doc
-  em [docs/TESTING.md §Tenancy isolation](TESTING.md). Snapshot
+  em [docs/reference/TESTING.md §Tenancy isolation](TESTING.md). Snapshot
   OpenAPI + DB schema reference regenerados.

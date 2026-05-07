@@ -136,7 +136,7 @@ jobs:
             'frontend/package-lock.json'
             'frontend/src/generated/**'
             'backend/app/generated/**'
-            'docs/DB_SCHEMA_REFERENCE.md'
+            'docs/reference/DB_SCHEMA_REFERENCE.md'
             'backend/app/openapi_snapshot.json'
             'frontend/openapi-snapshot.json'
             '**/*.snap'

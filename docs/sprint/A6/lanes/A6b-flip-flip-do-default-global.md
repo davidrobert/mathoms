@@ -27,4 +27,4 @@ tags:
 | A6b.flip.3 | Docs atualizadas (`CLAUDE.md`, `SETUP.md`, `ARCHITECTURE.md` §17.3/§ArtifactStore, `STATELESS_AUDIT.md`, `runbooks/cutover.md` header) | P0 | 30min | ✅ |
 | A6b.flip.4 | ADR-118 registrada + `CHANGELOG.md [Unreleased]` | P0 | 20min | ✅ |
 
-**Checkpoint A6b.flip:** ✅ Default `True` em `main`; rollback via `MATHOMS_USE_DB_ARTIFACTS=false` + redeploy (runbook `docs/runbooks/cutover.md §Rollback`).
+**Checkpoint A6b.flip:** ✅ Default `True` em `main`; rollback via `MATHOMS_USE_DB_ARTIFACTS=false` + redeploy (runbook `docs/reference/runbooks/cutover.md §Rollback`).

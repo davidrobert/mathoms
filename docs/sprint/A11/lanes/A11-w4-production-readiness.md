@@ -22,7 +22,7 @@ tags:
 
 - **Onda:** 4 (10d)
 - **Depende de:** W3 ✅ + drill backup
-- **Plano:** [PLAN §W4](PLATFORM_REVIEW_PLAN.md#wave-4--production-readiness-sprint-3-10-dias-dev)
+- **Plano:** [PLAN §W4](plan/PLATFORM_REVIEW/_README.md#wave-4--production-readiness-sprint-3-10-dias-dev)
 
 ## Status (legado)
 

@@ -22,7 +22,7 @@ tags:
 
 - **Onda:** 6 (12d)
 - **Depende de:** W3 (T02 → W6-T02)
-- **Plano:** [PLAN §W6](PLATFORM_REVIEW_PLAN.md#wave-6--tech-debt-cleanup-sprint-5-12-dias-dev)
+- **Plano:** [PLAN §W6](plan/PLATFORM_REVIEW/_README.md#wave-6--tech-debt-cleanup-sprint-5-12-dias-dev)
 
 ## Status (legado)
 

@@ -26,4 +26,4 @@ tags:
 | 7C.4 | Sentry setup (backend + frontend, DSN, environment tags, release tracking, perf 10%)           | P1   | 4h   | ☐      |
 | 7C.5 | Structured logging (structlog JSON prod, request_id UUID, Celery task_id correlation)          | P1   | 4h   | ☐      |
 | 7C.6 | Uptime monitoring (UptimeRobot, /health + frontend, email alerts)                              | P1   | 1h   | ☐      |
-| 7C.7 | Runbook (`docs/RUNBOOK.md` — deploy, rollback, backup, secret rotation, scaling, first week)   | P1   | 5h   | ☐      |
+| 7C.7 | Runbook (`docs/reference/RUNBOOK.md` — deploy, rollback, backup, secret rotation, scaling, first week)   | P1   | 5h   | ☐      |

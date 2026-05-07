@@ -41,4 +41,4 @@ No inventário típico de `data/financial_statements/`, os PDFs C6 costumam ser 
 - **`tests/fixtures/pdfs/`** (se existir): histórico de só sintéticos — não misturar PDFs “reais redigidos” lá sem alinhar o time.
 - **Sintético obrigatório no dia a dia:** continua sendo `tests/fixtures/pdf_generator.py` + `tests/test_e2_synthetic_pdf_parsers.py`.
 
-Ver [PIPELINE_ARTIFACTS.md](../../../docs/PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado*.
+Ver [PIPELINE_ARTIFACTS.md](../../../docs/reference/PIPELINE_ARTIFACTS.md) § *E2 — sintético e real anonimizado*.

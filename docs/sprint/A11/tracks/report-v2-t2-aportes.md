@@ -32,7 +32,7 @@ tags:
 > **Sprint:** Report Premium UI · v2
 > **Índice de prompts:** [README.md](README.md)
 > **Fonte de verdade:**
-> - [REPORT_PREMIUM_PLAN.md §17 — v2 roadmap](../REPORT_PREMIUM_PLAN.md)
+> - [plan/REPORT_PREMIUM/_README.md §17 — v2 roadmap](../plan/REPORT_PREMIUM/_README.md)
 > - [BACKLOG.md — Report Premium UI v2 lanes](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
 > - Auditoria 2026-04-25 §3.2 (origem do escopo)
 > - Meta-prompt: [track_report_v2.md](track_report_v2.md)
@@ -130,7 +130,7 @@ acumulado). Reaproveita primitivo já testado.
   catch sometimes; verifique manualmente).
 - **Sem reabrir T1/T3/T5/T6.** Eles funcionam — só toque T2.
 - **Pre-flight de hotspot** se editar `BACKLOG.md` ou
-  `REPORT_PREMIUM_PLAN.md` (CLAUDE.md §Hotspots).
+  `plan/REPORT_PREMIUM/_README.md` (CLAUDE.md §Hotspots).
 
 ---
 
@@ -226,7 +226,7 @@ test("T2 Aportes — render KPIs e chart", async ({ page }) => {
 - [BACKLOG.md](../BACKLOG.md) — marcar `report-v2-t2-aportes` ✅,
   remover "T2 Aportes seção real" da lista de débitos da seção
   Report Premium UI.
-- [REPORT_PREMIUM_PLAN.md §17](../REPORT_PREMIUM_PLAN.md) — atualizar
+- [plan/REPORT_PREMIUM/_README.md §17](../plan/REPORT_PREMIUM/_README.md) — atualizar
   status v2.4.
 - [CHANGELOG.md](../CHANGELOG.md) — entrada `feat(report): T2 Aportes
   com KPIs + chart combo (v2.4 · ADR-13X se aplicável)`.

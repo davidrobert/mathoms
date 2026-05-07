@@ -597,7 +597,7 @@ Cada seção migra em **4 commits sequenciais**:
 ### 9.3 Kanban (T3) — atenção especial
 
 - `<Kanban>` `<KanbanColumn>` `<KanbanCard>` em `components/report/ui/kanban/`.
-- Props aceitam `onItemMove?` — **não persistir** por ora (sem backend). Estado local + localStorage com chave `mathoms:kanban:<reportId>`. Esse é um desvio de stateless: **aceitável porque é client-only**. Documentar em `docs/STATELESS_AUDIT.md`.
+- Props aceitam `onItemMove?` — **não persistir** por ora (sem backend). Estado local + localStorage com chave `mathoms:kanban:<reportId>`. Esse é um desvio de stateless: **aceitável porque é client-only**. Documentar em `docs/reference/STATELESS_AUDIT.md`.
 - Drag-and-drop: `@dnd-kit/core` (leve, bem-mantido). Adicionar em `frontend/package.json`.
 
 ### 9.4 T6 Notas
@@ -729,14 +729,14 @@ Atualizar, cada um em commit separado:
 
 - `docs/DECISIONS.md` — ADR-117 (design premium), ADR-118 (Chart.js), ADR-119 (notas localStorage), ADR-120 (kanban localStorage). Numeração real depende do estado no momento.
 - `docs/CHANGELOG.md` — entrada "Premium report UI (A6g.X · ADR-117..120)".
-- `docs/ARCHITECTURE.md §10` — nova estrutura `components/report/{ui,charts,sections,shell}`.
-- `docs/RUNBOOK.md` — como toggle de tema, onde localStorage é limpo, como regerar `e6` standalone.
+- `docs/reference/ARCHITECTURE.md §10` — nova estrutura `components/report/{ui,charts,sections,shell}`.
+- `docs/reference/RUNBOOK.md` — como toggle de tema, onde localStorage é limpo, como regerar `e6` standalone.
 - `docs/BACKLOG.md` — mover a sprint para `CHANGELOG`.
 - `CLAUDE.md` — adicionar na tabela "Onde procurar contexto" referência ao novo design system de relatório.
 
 ### 12.3 Smoke test humano
 
-Seguir `docs/SMOKE_TEST_HUMAN.md` com adições:
+Seguir `docs/reference/SMOKE_TEST_HUMAN.md` com adições:
 - Abrir 3 relatórios reais (tamanhos diferentes).
 - Togglear tema, modo, period em cada.
 - Exportar PDF.

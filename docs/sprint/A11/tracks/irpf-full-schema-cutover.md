@@ -148,7 +148,7 @@ Goldens: rodar `tests/test_e5_golden_execution.py` com workspace flag `True` e c
 
 - ADR-NNN.
 - `docs/CHANGELOG.md` entrada datada.
-- `docs/ARCHITECTURE.md §Fluxo de runtime` atualizado se short-circuit altera diagrama.
+- `docs/reference/ARCHITECTURE.md §Fluxo de runtime` atualizado se short-circuit altera diagrama.
 - `docs/BACKLOG.md` A8.2 sub-lane `irpf-full-schema-cutover` ✅.
 - `CLAUDE.md` §Feature flag — adicionar entrada `MATHOMS_E16_SUPERSEDES_E15_BENS` no padrão de `MATHOMS_USE_DB_ARTIFACTS`.
 

@@ -17,7 +17,7 @@ tags:
 
 > **Lane ID:** A6g.4
 > **Branch prefix:** `agent/a6g4-frontend-style/*`
-> **Depende de:** A6g.1 ✅ (baseline de ofensores em `docs/audits/`)
+> **Depende de:** A6g.1 ✅ (baseline de ofensores em `docs/archive/audits/`)
 > **Paralelo com:** A6g.2 pipeline sweep (zero overlap — toca só `scripts/` + `pipeline/`)
 > **Conflita com:** commits simultâneos em `frontend/src/`
 > **Onda:** 1
@@ -26,7 +26,7 @@ tags:
 
 > **Objetivo:** aplicar o `## Code style` do CLAUDE.md ao TypeScript em
 > `frontend/src/`, consumindo o baseline de ofensores já catalogado em
-> `docs/audits/code_style_audit_20260421.md` (A6g.1 ✅).
+> `docs/archive/audits/code_style_audit_20260421.md` (A6g.1 ✅).
 >
 > **Por que esse slice agora:** A6g.1 deixou 53 ofensores de frontend
 > ranqueados (9 T1 any, 7 T2 long files, 24 T3 long functions, 1 T4
@@ -62,7 +62,7 @@ Do CLAUDE.md `## Code style`:
 
 ## Baseline (entrada)
 
-Consulte `docs/audits/code_style_audit_20260421.md`. Categorias frontend
+Consulte `docs/archive/audits/code_style_audit_20260421.md`. Categorias frontend
 (T1-T5) totalizam **53 ofensores** distribuídos em ~10 arquivos.
 
 ### T1 — `any` explícito (9 high)
@@ -329,7 +329,7 @@ git push origin HEAD:main
 - [ ] `npm test -- --run` passa sem novos failures
 - [ ] `npm run test:e2e` passa (pode ter 1 retry em teste flaky
       não-relacionado)
-- [ ] `docs/audits/code_style_audit_<novadata>.md` regenerado e commitado
+- [ ] `docs/archive/audits/code_style_audit_<novadata>.md` regenerado e commitado
       se for rodar novo snapshot (opcional; prompt padrão é não substituir)
 - [ ] Pelo menos 6 commits atômicos em `origin/main` fast-forward
 - [ ] `docs/CHANGELOG.md [Unreleased]` tem entrada A6g.4 1ª rodada com

@@ -83,7 +83,7 @@ estrutura:
 
 Interface sugerida: `python dev/audit_stage_references.py --format {json,md} --output-dir <path>`.
 Default `--output-dir _scratch/` (output **é** ephemeral — o artefato durável
-é o resumo em `docs/audits/`, não o dump bruto).
+é o resumo em `docs/archive/audits/`, não o dump bruto).
 
 Output esperado em `<output-dir>/stage_audit_<YYYYMMDD>.{json,md}`:
 - Total de ocorrências por categoria.
@@ -127,7 +127,7 @@ Comparar com `STAGE_RENAME_MAP.keys()`. Qualquer stage não mapeado é
 investigação obrigatória **antes de prosseguir** — provavelmente débito de
 ADR-129 (E6/E6-final residual) ou stage ad-hoc esquecido.
 
-### 4. Relatório executivo — `docs/audits/f9_audit_<YYYYMMDD>.md`
+### 4. Relatório executivo — `docs/archive/audits/f9_audit_<YYYYMMDD>.md`
 
 **Artefato durável** (commitado, não em `_scratch/`). Resumo de 1 página:
 contagens por categoria, lista de blockers (se houver), estimativa de
@@ -154,7 +154,7 @@ git checkout -b agent/f9-stage-rename/0-audit/$(date +%Y%m%d-%H%M)
 pytest tests/unit/pipeline/test_stage_spec.py -q
 
 # 4. DB sanity check (se mathoms.db existir local)
-# 5. Escrever docs/audits/f9_audit_<YYYYMMDD>.md (resumo durável)
+# 5. Escrever docs/archive/audits/f9_audit_<YYYYMMDD>.md (resumo durável)
 
 # Gates
 pre-commit run --all-files
@@ -173,7 +173,7 @@ git push origin HEAD:main
 ## Critérios de aceite (binários)
 
 - [ ] `dev/audit_stage_references.py` commitado em `main` e roda em <10s (`python dev/audit_stage_references.py --format md --output-dir _scratch/` produz output).
-- [ ] `docs/audits/f9_audit_<YYYYMMDD>.md` commitado com resumo + contagens + blockers.
+- [ ] `docs/archive/audits/f9_audit_<YYYYMMDD>.md` commitado com resumo + contagens + blockers.
 - [ ] `test_rename_map_covers_all_legacy_names` + `test_rename_map_targets_are_unique` passando em verde.
 - [ ] Tabela "stage encontrado vs mapeado" no resumo tem 100% de cobertura — zero "Não".
 - [ ] DB local: `SELECT DISTINCT stage FROM pipeline_artifacts` retorna apenas keys de `STAGE_RENAME_MAP` (ou DB vazio) — registrado no resumo.
@@ -181,7 +181,7 @@ git push origin HEAD:main
 
 **Nota:** dumps brutos em `_scratch/stage_audit_<date>.{json,md}` são
 gitignored (ephemeral) e **não** são gate — qualquer um re-gera rodando
-o script. O gate é o resumo em `docs/audits/`.
+o script. O gate é o resumo em `docs/archive/audits/`.
 
 ---
 
@@ -201,13 +201,13 @@ Antes de push final, no **mesmo turno**:
 1. **`docs/BACKLOG.md`** — na linha da lane "F9 stage rename em bloco" (§Lanes
    abertas agora), atualize status: `🚧 F9.0 ✅ — auditoria fechada YYYY-MM-DD,
    N ocorrências mapeadas, zero blockers; F9.1 destravada`. Inclua link para
-   `docs/audits/f9_audit_<date>.md`.
+   `docs/archive/audits/f9_audit_<date>.md`.
 2. **`docs/CHANGELOG.md`** — adicione entrada datada:
    ```markdown
    ### 2026-MM-DD — F9.0 audit ADR-093
 
    - `dev/audit_stage_references.py` (ferramenta reutilizável) +
-     `docs/audits/f9_audit_<date>.md` (resumo):
+     `docs/archive/audits/f9_audit_<date>.md` (resumo):
      N ocorrências de identificadores legados mapeadas em K categorias.
    - `tests/unit/pipeline/test_stage_spec.py`: testes de exhaustividade e
      unicidade do `STAGE_RENAME_MAP`.

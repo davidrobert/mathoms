@@ -193,8 +193,8 @@ git push origin HEAD:main
      `resolve_stage_name`.
    - Goldens verdes; zero regressão.
    ```
-3. **`docs/SETUP.md` / `docs/RUNBOOK.md`** — comandos `python -m scripts.e3_reconcile` se citados, atualizar para descritivo (referência primária); manter nota "alias `e3_reconcile` ainda aceita até F9.6".
-4. **`docs/PIPELINE_ARTIFACTS.md`** — qualquer referência a script por nome.
+3. **`docs/reference/SETUP.md` / `docs/reference/RUNBOOK.md`** — comandos `python -m scripts.e3_reconcile` se citados, atualizar para descritivo (referência primária); manter nota "alias `e3_reconcile` ainda aceita até F9.6".
+4. **`docs/reference/PIPELINE_ARTIFACTS.md`** — qualquer referência a script por nome.
 5. **`CLAUDE.md` §Convenções de código do pipeline** — atualizar tabela "Scripts em `scripts/` seguem `eN_nome.py`": após F9.4, padrão é descritivo; aliases legados `eN_*.py` deprecados.
 6. **`docs/DECISIONS.md`** ADR-093 — nota "F9.4 fechada YYYY-MM-DD".
 7. Commit docs separado: `docs(f9): F9.4 scripts rename + compat, F9.5 destravada (ADR-093)`.
@@ -214,4 +214,4 @@ git push origin HEAD:main
 - F9.3 (prereq): [track_f9_3_alembic_migration.md](track_f9_3_alembic_migration.md)
 - F9.5 (próximo): [track_f9_5_guardrail_hardfail.md](track_f9_5_guardrail_hardfail.md)
 - ADR-093: `docs/DECISIONS.md:2228`
-- Auditoria F9.0: `docs/audits/f9_audit_<date>.md`
+- Auditoria F9.0: `docs/archive/audits/f9_audit_<date>.md`

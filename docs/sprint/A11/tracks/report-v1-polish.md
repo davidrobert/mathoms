@@ -19,19 +19,19 @@ tags:
 > **Branch prefix:** `agent/report-v1-polish/<yyyyMMdd-HHmm>`
 > **Depende de:** `adr-129-e6-kill` ✅ (fatia 6/6 mergeada — sem isso, RUNBOOK e ARCHITECTURE descreveriam estado obsoleto)
 > **Paralelo com:** `report-a11y-finalize` (independente — esta lane é docs/checklist; a outra é código + CI). Output do `report-a11y-finalize` enriquece o smoke humano desta lane se chegar antes.
-> **Conflita com:** qualquer agente editando `CLAUDE.md`, `docs/ARCHITECTURE.md` (§10), `docs/RUNBOOK.md`, `docs/SMOKE_TEST.md`, `docs/CHANGELOG.md`. Pre-flight obrigatório (ver CLAUDE.md §"Hotspots de documentação").
+> **Conflita com:** qualquer agente editando `CLAUDE.md`, `docs/reference/ARCHITECTURE.md` (§10), `docs/reference/RUNBOOK.md`, `docs/reference/SMOKE_TEST.md`, `docs/CHANGELOG.md`. Pre-flight obrigatório (ver CLAUDE.md §"Hotspots de documentação").
 > **Sprint:** Report Premium UI · resíduo Fase 13
 > **Índice de prompts:** [README.md](README.md)
 > **Fonte de verdade:**
 > - [BACKLOG.md — pickup table](../BACKLOG.md#lanes-abertas-agora--pickup-table) (linha `report-v1-polish`)
-> - [REPORT_PREMIUM_PLAN.md §12](../REPORT_PREMIUM_PLAN.md) (Fase 13 original — itens não absorvidos pela ADR-129)
+> - [plan/REPORT_PREMIUM/_README.md §12](../plan/REPORT_PREMIUM/_README.md) (Fase 13 original — itens não absorvidos pela ADR-129)
 > - [BACKLOG.md — tabela Report Premium UI](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) (10 fases ✅ + 11/12/13 redirecionadas)
 
 > **Objetivo (1 frase):** consolidar o "anúncio de v1" do Report Premium —
 > smoke test humano dedicado, milestone no CHANGELOG, ARCHITECTURE/RUNBOOK
 > alinhados com o estado pós-[ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side),
 > CLAUDE.md apontando para o plano — fechando os 5 itens da Fase 13 do
-> [PLAN §12](../REPORT_PREMIUM_PLAN.md) que não foram absorvidos pela
+> [PLAN §12](../plan/REPORT_PREMIUM/_README.md) que não foram absorvidos pela
 > remoção do `e6_render.py`.
 
 ---
@@ -56,7 +56,7 @@ exemplo, único renderer agora" — nunca foi escrito como milestone:
   modos `estrategico`/`tatico`/`usa` que existem desde F4, nem dark/
   light em todas as seções.
 - **CLAUDE.md** §"Onde procurar contexto" tem entrada para
-  `REPORT_PREMIUM_PLAN.md` em uma única linha — acessível, mas não
+  `plan/REPORT_PREMIUM/_README.md` em uma única linha — acessível, mas não
   destaca que é o doc canônico do shell pós-Fase 10.
 
 Fechar essa lane = "Report Premium v1 oficialmente entregue". Sem isso,
@@ -72,8 +72,8 @@ Esta lane toca **5 hotspots de documentação simultaneamente**. Antes de
 
 ```bash
 git fetch origin
-git log -10 --oneline origin/main -- CLAUDE.md docs/ARCHITECTURE.md \
-  docs/RUNBOOK.md docs/SMOKE_TEST.md docs/CHANGELOG.md docs/BACKLOG.md
+git log -10 --oneline origin/main -- CLAUDE.md docs/reference/ARCHITECTURE.md \
+  docs/reference/RUNBOOK.md docs/reference/SMOKE_TEST.md docs/CHANGELOG.md docs/BACKLOG.md
 ```
 
 Se algum desses foi tocado nas últimas **30 minutos** por outro autor,
@@ -131,7 +131,7 @@ o **único renderer** do relatório.
 
 - **10 fases entregues** (F0–F10) entre 2026-04-XX e 2026-04-XX, do
   discovery aos apêndices A–E. Detalhe por fase: ver tabela em
-  [REPORT_PREMIUM_PLAN.md §X](REPORT_PREMIUM_PLAN.md) ou em
+  [plan/REPORT_PREMIUM/_README.md §X](plan/REPORT_PREMIUM/_README.md) ou em
   [BACKLOG.md › Report Premium UI](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
 - **Renderer HTML server-side descontinuado** via
   [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side):
@@ -149,7 +149,7 @@ Confira datas exatas via `git log` antes de fixar.
 
 ### 2. ARCHITECTURE §10 — tree atualizado
 
-**Arquivo:** `docs/ARCHITECTURE.md`
+**Arquivo:** `docs/reference/ARCHITECTURE.md`
 
 Localizar §10 (estrutura de diretórios). Atualizar bloco
 `frontend/src/components/report/` para refletir tree real pós-Fase 10.
@@ -169,7 +169,7 @@ de modo: `ReportModeProvider` (dinâmico) +
 
 ### 3. RUNBOOK — seção "Debug da rota `/reports/[id]`"
 
-**Arquivo:** `docs/RUNBOOK.md`
+**Arquivo:** `docs/reference/RUNBOOK.md`
 
 Seção nova (ordem sugerida: depois de "Pipeline troubleshooting",
 antes de "DB ops"). Conteúdo:
@@ -190,7 +190,7 @@ antes de "DB ops"). Conteúdo:
 
 ### 4. SMOKE_TEST — seção dedicada Report Premium
 
-**Arquivo:** `docs/SMOKE_TEST.md` (ou `SMOKE_TEST_HUMAN.md`, o que for
+**Arquivo:** `docs/reference/SMOKE_TEST.md` (ou `SMOKE_TEST_HUMAN.md`, o que for
 canônico hoje — confira)
 
 Seção nova (cerca de 15-20 itens). Estrutura sugerida:
@@ -235,13 +235,13 @@ Itens exatos calibrados pelo dono — defaults acima são partida.
 **Arquivo:** `CLAUDE.md`
 
 Localizar tabela "Onde procurar contexto adicional". Conferir se a
-linha apontando para `REPORT_PREMIUM_PLAN.md` existe (mais provável
+linha apontando para `plan/REPORT_PREMIUM/_README.md` existe (mais provável
 que sim — adicionada em fase recente). Se sim, **não duplique**;
 ajuste a descrição para refletir que é o doc canônico do shell v1.
 Se não existir, adicionar:
 
 ```markdown
-| Plano de execução — Report Premium UI v1 (paridade React com EXEMPLO_DE_RELATORIO.html, 10 fases ✅) | [docs/REPORT_PREMIUM_PLAN.md](docs/REPORT_PREMIUM_PLAN.md) |
+| Plano de execução — Report Premium UI v1 (paridade React com EXEMPLO_DE_RELATORIO.html, 10 fases ✅) | [docs/plan/REPORT_PREMIUM/_README.md](docs/plan/REPORT_PREMIUM/_README.md) |
 ```
 
 ### 6. BACKLOG — fechar a lane

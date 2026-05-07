@@ -37,7 +37,7 @@ tags:
 
 - **CLAUDE.md §Code style › Go** já define regras (sem `interface{}`/`any`, errors tipados, `int64` cents, interfaces definidas no consumer). Sem linter, convenção é letra morta.
 - **A6f.1 ✅** prova que `pipeline-service/` pode rodar isolado por HTTP. Candidato natural para reescrita Go (latência, footprint, facilidade de deploy estático). Quem fizer a reescrita precisa de linter pronto — senão perde tempo configurando no meio do PR.
-- **ADR-102 R19-R20** (language-neutral) exige OpenAPI estável; reescrita Go consome `docs/api/v1/openapi.json` via codegen (`oapi-codegen`). Skeleton do generator entra aqui.
+- **ADR-102 R19-R20** (language-neutral) exige OpenAPI estável; reescrita Go consome `docs/reference/api/v1/openapi.json` via codegen (`oapi-codegen`). Skeleton do generator entra aqui.
 - **A6g.6** (enforcement) precisa de linter Go ativo para gating uniforme (Python ruff + TS eslint + Go golangci).
 - Baixo custo, destrava o futuro sem bloquear ninguém.
 
@@ -66,7 +66,7 @@ Do CLAUDE.md §Code style › Go:
 - `.github/workflows/ci.yml` — Python + frontend.
 - `Makefile` — targets `test`, `lint`, `format`, `check-boundaries`, `update-openapi-snapshot`.
 - `.pre-commit-config.yaml` — hooks Python/TS.
-- `docs/api/v1/openapi.json` — contrato estável (ADR-102).
+- `docs/reference/api/v1/openapi.json` — contrato estável (ADR-102).
 
 **Candidato de serviço Go (não é escopo desta lane, só referência):** `pipeline-service/` atual (FastAPI, A6f.1) — ~8 endpoints, stateless, faz chamada para Celery worker. Latência e startup são críticos → Go é a escolha natural pós-validação.
 

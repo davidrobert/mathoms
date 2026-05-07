@@ -28,9 +28,9 @@
 - [[CHG-2026-05-06-A8-4-1]] — chore(docs,config): A8.4 PR5 — limpeza editorial final de copy USA-related (2026-05-06). - **chore(docs,config): A8.4 PR5 — limpeza editorial final de copy USA-related (2026-05-06):** Limpeza editorial de strings família-específicas em docs de spec/ (lane [[A8.4]])
 - [[CHG-2026-05-06-A8-4-2]] — refactor(pipeline): A8.4 PR2 — eligibility gate + analyzer reduzido a 1 cenário (ADR-167) (2026-05-06). - **refactor(pipeline): A8.4 PR2 — eligibility gate + analyzer reduzido a 1 cenário (ADR-167) (2026-05-06):** `CenariosConjugeAnalyzer` reduzido de 3 cenários f (lane [[A8.4]])
 - [[CHG-2026-05-06-A8-4-3]] — refactor(pipeline,backend,frontend): A8.4 PR1 — schema estável `cenarios_conjuge` no payload E5 (ADR-166) (2026-05-06). - **refactor(pipeline,backend,frontend): A8.4 PR1 — schema estável `cenarios_conjuge` no payload E5 (ADR-166) (2026-05-06):** Chave do bloco "Cenários do cônjug (lane [[A8.4]])
-- [[CHG-2026-05-06-A8-4-4]] — docs(plan): A8.4 Cenários de Estresse — plano canônico + lane no BACKLOG (2026-05-06). - **docs(plan): A8.4 Cenários de Estresse — plano canônico + lane no BACKLOG (2026-05-06):** [docs/CENARIOS_ESTRESSE_PLAN.md](CENARIOS_ESTRESSE_PLAN.md) entregu (lane [[A8.4]])
+- [[CHG-2026-05-06-A8-4-4]] — docs(plan): A8.4 Cenários de Estresse — plano canônico + lane no BACKLOG (2026-05-06). - **docs(plan): A8.4 Cenários de Estresse — plano canônico + lane no BACKLOG (2026-05-06):** [docs/plan/CENARIOS_ESTRESSE/_README.md](plan/CENARIOS_ESTRESSE/_README.md) entregu (lane [[A8.4]])
 - [[CHG-2026-05-06-DOCS-DECISIONS]] — docs(decisions,plan): ADR backfill Wave 1 + CLAUDE.md sync (W1-T03 + W1-T06 · 2026-05-06). - **docs(decisions,plan): ADR backfill Wave 1 + CLAUDE.md sync (W1-T03 + W1-T06 · 2026-05-06):** Backfill de 6 ADRs `Proposto` — ADR-170 (refresh tokens family-
-- [[CHG-2026-05-06-FEAT-FRONTEND]] — feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06). - **feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06):** Onda 1 do `PLATFORM_REVIEW_PLAN.md` — fecha cluster PD-001/002/005/023.
+- [[CHG-2026-05-06-FEAT-FRONTEND]] — feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06). - **feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06):** Onda 1 do `plan/PLATFORM_REVIEW/_README.md` — fecha cluster PD-001/002/005/023.
 - [[CHG-2026-05-06-FEAT-SCHEMAS]] — feat(schemas): cenarios_conjuge formal em e5_analysis.schema (W1-T08 · 2026-05-06). - **feat(schemas): cenarios_conjuge formal em e5_analysis.schema (W1-T08 · 2026-05-06):** Fecha gap deixado por ADR-166 — `CenariosConjugeAnalyzer.to_legacy_dic
 - [[CHG-2026-05-06-FIX-BACKEND]] — fix(backend): PDF semaphore (BB-009) + SECRET_KEY fail-fast prod (SR-022 · 2026-05-06). - **fix(backend): PDF semaphore (BB-009) + SECRET_KEY fail-fast prod (SR-022 · 2026-05-06):** W1-T04 + W1-T05 do PLATFORM_REVIEW_PLAN.
 - [[CHG-2026-05-06-FIX-DOCUMENTS]] — fix(documents): "Sem extrato" enganoso em investment_report misclassificado (2026-05-06). - **fix(documents): "Sem extrato" enganoso em investment_report misclassificado (2026-05-06):** Filename `itau_extratoconta_*.xls` cujo conteúdo é Posição de In
@@ -125,7 +125,7 @@
 - [[CHG-2026-04-25-A10-LANE-LIVESTEP-EMIT-S-1]] — Lane `livestep-emit-stages` E2-llm — concorrente (2026-04-25). - **Lane `livestep-emit-stages` E2-llm — concorrente (2026-04-25):** sétimo emissor migrado para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-livestep-pa
 - [[CHG-2026-04-25-A10-LANE-LIVESTEP-EMIT-S-2]] — Lane `livestep-emit-stages` E4 + E5 — batch (2026-04-25). - **Lane `livestep-emit-stages` E4 + E5 — batch (2026-04-25):** quinto e sexto emissores migrados para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-lives
 - [[CHG-2026-04-25-A10-LANE-LIVESTEP-EMIT-S-3]] — Lane `livestep-emit-stages` E1 + E1.5c — mecânicas (2026-04-25). - **Lane `livestep-emit-stages` E1 + E1.5c — mecânicas (2026-04-25):** terceiro e quarto emissores migrados para o contrato [ADR-119](DECISIONS.md#adr-119--cont
-- [[CHG-2026-04-25-A10-LANE-REPORT-A11Y-FIN]] — Lane `report-a11y-finalize` item 5 (2026-04-25). - **Lane `report-a11y-finalize` item 5 (2026-04-25):** checklist WCAG 2.1 AA operacional em [`docs/REPORT_A11Y_CHECKLIST.md`](REPORT_A11Y_CHECKLIST.md).
+- [[CHG-2026-04-25-A10-LANE-REPORT-A11Y-FIN]] — Lane `report-a11y-finalize` item 5 (2026-04-25). - **Lane `report-a11y-finalize` item 5 (2026-04-25):** checklist WCAG 2.1 AA operacional em [`docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md`](REPORT_A11Y_CHECKLIST.md).
 - [[CHG-2026-04-25-A10-LANE-REPORT-A11Y-FIN-1]] — Lane `report-a11y-finalize` item 6 (2026-04-25). - **Lane `report-a11y-finalize` item 6 (2026-04-25):** gate empírico validado.
 - [[CHG-2026-04-25-F1-1]] — Report Premium UI v1. Marco: shell React `/reports/[id]` atinge paridade visual com `EXEMPLO_DE_RELATORIO.html` (raiz do repo) e se torna o **único renderer** do relatório. (lane [[F1.1]])
 - [[CHG-2026-04-25-F11-2C]] — Lane `livestep-emit-stages` E2 (2026-04-25). - **Lane `livestep-emit-stages` E2 (2026-04-25):** segundo emissor migrado para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas) (após E1.5 em `3bc9d25`). (lane [[F11.2c]])
@@ -135,7 +135,7 @@
 
 ## 2026-04-24 (1 entries)
 
-- [[CHG-2026-04-24-F9-0]] — F9.0 audit ADR-093. - `dev/audit_stage_references.py` (ferramenta reutilizável) + `docs/audits/f9_audit_20260424.md` (resumo): 3468 ocorrências de identificadores legados mapeadas (lane [[F9.0]])
+- [[CHG-2026-04-24-F9-0]] — F9.0 audit ADR-093. - `dev/audit_stage_references.py` (ferramenta reutilizável) + `docs/archive/audits/f9_audit_20260424.md` (resumo): 3468 ocorrências de identificadores legados mapeadas (lane [[F9.0]])
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

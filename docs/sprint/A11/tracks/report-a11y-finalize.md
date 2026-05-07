@@ -24,7 +24,7 @@ tags:
 > **Índice de prompts:** [README.md](README.md)
 > **Fonte de verdade:**
 > - [BACKLOG.md — pickup table](../BACKLOG.md#lanes-abertas-agora--pickup-table) (linha `report-a11y-finalize`)
-> - [REPORT_PREMIUM_PLAN.md §11](../REPORT_PREMIUM_PLAN.md) (Fase 12 original — itens não-E6 que sobreviveram)
+> - [plan/REPORT_PREMIUM/_README.md §11](../plan/REPORT_PREMIUM/_README.md) (Fase 12 original — itens não-E6 que sobreviveram)
 > - [F11.2c](../BACKLOG.md#f112--hierarquia-de-números) e [F11.3](../BACKLOG.md#f113--print--pdf-como-entregável-de-consultoria) (itens já entregues, contexto)
 > - [batch2.14](../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes) (checklist WCAG — output desta lane)
 
@@ -108,7 +108,7 @@ está aberto: "que seções saem em <767px? Kanban vira lista?". Há duas
 saídas:
 
 - **Dentro desta lane:** snapshots adicionais em viewport mobile + spec
-  Markdown em `docs/REPORT_PREMIUM_PLAN.md` Delta novo. **+1.5 dia**.
+  Markdown em `docs/plan/REPORT_PREMIUM/_README.md` Delta novo. **+1.5 dia**.
 - **Fora:** lane separada `report-mobile-spec` futura. Esta lane gateia
   só desktop + tablet largo (1280×800).
 
@@ -205,7 +205,7 @@ Thresholds em D2. Job separado dos outros para isolar custo.
 
 ### 5. Checklist WCAG operacional
 
-**Arquivo:** `docs/REPORT_A11Y_CHECKLIST.md` (novo).
+**Arquivo:** `docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md` (novo).
 
 Tabela por seção × WCAG 2.1 AA criterion (1.4.3 contrast,
 2.1.1 keyboard, 2.4.3 focus order, 2.4.7 focus visible, 4.1.2 name/role/
@@ -227,7 +227,7 @@ sobrar fica como "checklist humano". Absorve [batch2.14](../BACKLOG.md#docs-revi
    incluídos.
 2. Suíte de snapshots verde local; commit de baseline mergeado.
 3. Lighthouse CI passa thresholds em D2 contra fixture `medium`.
-4. `docs/REPORT_A11Y_CHECKLIST.md` mergeado, lane fechada no BACKLOG.
+4. `docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md` mergeado, lane fechada no BACKLOG.
 5. **Teste empírico do gate:** abrir PR descartável adicionando
    `<button>` sem `aria-label` num card; CI **deve falhar**. Reverter
    o PR e referenciá-lo no commit final ("gate validado por PR

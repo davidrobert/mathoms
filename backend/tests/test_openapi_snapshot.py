@@ -1,11 +1,11 @@
-"""Snapshot test — ``docs/api/v1/openapi.json`` bate com o spec atual.
+"""Snapshot test — ``docs/reference/api/v1/openapi.json`` bate com o spec atual.
 
 A6f.2 (ADR-102 · R18): o snapshot é o contrato canônico. Qualquer mudança
 não-intencional no OpenAPI (novo campo, remoção de campo, tipo alterado)
 deve ser capturada aqui antes de ir para produção.
 
 Se este teste falha, rode ``make update-openapi-snapshot`` (ou regenere
-manualmente — ver `docs/api/v1/README.md`) e comite o diff.
+manualmente — ver `docs/reference/api/v1/README.md`) e comite o diff.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ def test_openapi_snapshot_matches_committed_file() -> None:
             difflib.unified_diff(
                 committed_text.splitlines(keepends=True),
                 current_text.splitlines(keepends=True),
-                fromfile="docs/api/v1/openapi.json",
+                fromfile="docs/reference/api/v1/openapi.json",
                 tofile="app.openapi() (current)",
                 n=3,
             )

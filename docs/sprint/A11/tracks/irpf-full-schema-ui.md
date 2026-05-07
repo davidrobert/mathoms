@@ -183,7 +183,7 @@ Plugar nas 2 sections novas via `ReportSection` (padrão estabelecido em S1, S2�
 
 ### F. Documentação
 
-- Atualizar [docs/REPORT_PREMIUM_PLAN.md §17](../REPORT_PREMIUM_PLAN.md) (se aplicável) com as 2 seções novas.
+- Atualizar [docs/plan/REPORT_PREMIUM/_README.md §17](../plan/REPORT_PREMIUM/_README.md) (se aplicável) com as 2 seções novas.
 - `docs/CHANGELOG.md` entrada datada quando mergear.
 - Marcar lane A8.2 ✅ no BACKLOG.
 

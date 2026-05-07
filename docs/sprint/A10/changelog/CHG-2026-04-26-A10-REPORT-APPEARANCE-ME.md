@@ -58,7 +58,7 @@ tags:
   contábil/operacional ("Fechamento Abril 2026") com período
   triplicado. Decisões finais sintetizadas após review cruzado de
   financial-planner (Perini/Cerbasi/AUVP) + product-designer (a11y/
-  hierarquia/densidade), em `docs/REPORT_PREMIUM_PLAN.md` §§17.6-17.8:
+  hierarquia/densidade), em `docs/plan/REPORT_PREMIUM/_README.md` §§17.6-17.8:
 
   - ✅ **v2.F.3c** — PDF filename composto no backend
     ([download_pdf.py](backend/app/application/report/download_pdf.py)

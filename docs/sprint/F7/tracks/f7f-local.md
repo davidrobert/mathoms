@@ -125,7 +125,7 @@ Todos greenfield, zero conflito com outras lanes se o escopo for respeitado:
 6. **S2.f** Tela **Relatórios** — lista read-only filtrada por email/`user_id`; link abre JSON/HTML em aba separada.
 7. **S2.g** `docker-compose.dev.yml` — service `frontend-ops` em `127.0.0.1:3100` (se já existir compose; senão documenta que F7A.3 vai incluir).
 
-**Gate S2:** `cd frontend-ops && npm run lint && npm run build` verde; smoke manual local (iniciar backend + frontend-ops, logar, executar uma anonimização em usuário de fixture); `docs/RUNBOOK.md` atualizado com URL/flag/rotação.
+**Gate S2:** `cd frontend-ops && npm run lint && npm run build` verde; smoke manual local (iniciar backend + frontend-ops, logar, executar uma anonimização em usuário de fixture); `docs/reference/RUNBOOK.md` atualizado com URL/flag/rotação.
 
 ### Slice 3 — 7F.10–7F.17 (refino das telas por área)
 
@@ -203,7 +203,7 @@ python3 dev/check_forbidden_names.py
 - [ ] `7F.16` — editar email/full_name/is_active; mudança de email bumpa `token_version` e invalida JWTs existentes; colisão de email retorna 409.
 - [ ] `7F.17` — exclusão individual de documento funciona; blob + DB em sync; audit grava hash/nome do arquivo.
 - [ ] `docker-compose.dev.yml` ou `README.md` documenta como subir `frontend-ops` em `127.0.0.1:3100`.
-- [ ] `docs/RUNBOOK.md` seção "Console interno local" — como adicionar operador (gerar bcrypt + editar yaml), rotação de credenciais, bloqueio em produção.
+- [ ] `docs/reference/RUNBOOK.md` seção "Console interno local" — como adicionar operador (gerar bcrypt + editar yaml), rotação de credenciais, bloqueio em produção.
 - [ ] `config/internal_operators.yaml` no `.gitignore` + ALLOWLIST de `dev/check_forbidden_paths.py` + `.example` commitado.
 - [ ] `.env.local.example` ganha `INTERNAL_OPS_UI_ENABLED`, `INTERNAL_OPS_SESSION_SECRET`, `INTERNAL_OPS_UI_PORT`.
 - [ ] OpenAPI snapshot atualizado.

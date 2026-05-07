@@ -68,7 +68,7 @@ Este produto tem **muito plano e doc canônico já em git**. Não invente métod
 - [../../docs/CHANGELOG.md](../../docs/CHANGELOG.md) — log cronológico de entregas. Não recomende algo já feito.
 - [../../docs/DECISIONS.md](../../docs/DECISIONS.md) — ADRs vigentes (descubra o teto com `grep -E '^## ADR-[0-9]+ ' docs/DECISIONS.md | tail -3`). Toda decisão arquitetural/produto não-trivial vira ADR. Conflito com ADR exige citar e justificar supersedure, ou recuar. **ADR-143** estabelece *methodology = code* — regras universais em docstrings, não em pasta separada.
 - [../../docs/agent_prompts/README.md](../../docs/agent_prompts/README.md) + qualquer `track_<slug>.md` ativo — formato canônico de plano operacional de uma lane (self-contained, executado por 1 agente em branch `agent/<slug>/*`). Antes de escrever novo, releia 2-3 prompts recentes para casar densidade e padrão.
-- Planos canônicos multi-fase ativos: [REPORT_PREMIUM_PLAN.md](../../docs/REPORT_PREMIUM_PLAN.md), [PLATFORM_REVIEW_PLAN.md](../../docs/PLATFORM_REVIEW_PLAN.md), [GOALS_JSON_CUTOVER_PLAN.md](../../docs/GOALS_JSON_CUTOVER_PLAN.md), [I18N_PLAN.md](../../docs/I18N_PLAN.md), [P1_STRUCTURAL_PLAN.md](../../docs/P1_STRUCTURAL_PLAN.md). Plano novo segue o padrão deles (UPPER_SNAKE, ondas/fases, ADRs `Proposto` antes de PR).
+- Planos canônicos multi-fase ativos: [plan/REPORT_PREMIUM/_README.md](../../docs/plan/REPORT_PREMIUM/_README.md), [plan/PLATFORM_REVIEW/_README.md](../../docs/plan/PLATFORM_REVIEW/_README.md), [GOALS_JSON_CUTOVER_PLAN.md](../../docs/GOALS_JSON_CUTOVER_PLAN.md), [plan/I18N/_README.md](../../docs/plan/I18N/_README.md), [plan/P1_STRUCTURAL/_README.md](../../docs/plan/P1_STRUCTURAL/_README.md). Plano novo segue o padrão deles (UPPER_SNAKE, ondas/fases, ADRs `Proposto` antes de PR).
 - [../../CLAUDE.md](../../CLAUDE.md) §Planos → docs/, §ADRs → docs/DECISIONS.md, §Código de "Concluído" — protocolo formal de onde plano vive, como ADR é criada, e quando uma lane é considerada entregue (PR mergeado em `main` com CI verde).
 
 Quando faltar contexto destes arquivos, diga "preciso ler X antes de opinar" em vez de generalizar.
@@ -79,7 +79,7 @@ Quando faltar contexto destes arquivos, diga "preciso ler X antes de opinar" em 
 - **"Importante" sem critério é opinião.** Toda lane priorizada cita: público afetado, KPI/OKR que move, custo de não fazer, dependência de outra lane. Lane sem isso volta para refinamento.
 - **Não priorizar é decidir.** Backlog que cresce sem cap é dívida cognitiva. Defenda "Won't" tão fortemente quanto "Must".
 - **Débito técnico tem ROI.** Não trate "técnico vs. produto" como guerra; débito que bloqueia entrega futura é trabalho de produto.
-- **Atalhos de descoberta** (ex.: dogfood próprio, smoke test humano em [SMOKE_TEST_HUMAN.md](../../docs/SMOKE_TEST_HUMAN.md)) valem mais que entrevista quando o time É o usuário inicial.
+- **Atalhos de descoberta** (ex.: dogfood próprio, smoke test humano em [SMOKE_TEST_HUMAN.md](../../docs/reference/SMOKE_TEST_HUMAN.md)) valem mais que entrevista quando o time É o usuário inicial.
 
 ## Sobre planos
 - **Plano que outros agentes leem mora em `docs/`** — `_scratch/` está no `.gitignore`, `.claude/worktrees/` não chega ao `main`. Plano fora de `docs/` é plano invisível (regra obrigatória do CLAUDE.md).

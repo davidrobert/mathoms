@@ -29,7 +29,7 @@ tags:
 > **Sprint:** Report Premium UI · v2
 > **Índice de prompts:** [README.md](README.md)
 > **Fonte de verdade:**
-> - [REPORT_PREMIUM_PLAN.md §0.2 #4 + §17](../REPORT_PREMIUM_PLAN.md)
+> - [plan/REPORT_PREMIUM/_README.md §0.2 #4 + §17](../plan/REPORT_PREMIUM/_README.md)
 >   (delta original "comparisons/changelog diferidos para v2 — depende
 >   de SnapshotChangelogBuilder")
 > - [BACKLOG.md — Report Premium UI v2 lanes](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
@@ -132,7 +132,7 @@ Sem ADR, a próxima rotação de equipe não saberá decidir.
 - **Sem LLM nesta lane.** Builder é puro cálculo. Narrativas LLM são
   v2.9 (independente).
 - **Pre-flight de hotspot** se editar `BACKLOG.md`,
-  `REPORT_PREMIUM_PLAN.md`, `CHANGELOG.md`, `DECISIONS.md`.
+  `plan/REPORT_PREMIUM/_README.md`, `CHANGELOG.md`, `DECISIONS.md`.
 
 ---
 
@@ -287,7 +287,7 @@ backend service consome, retorno do endpoint bate.
 - [BACKLOG.md](../BACKLOG.md) — marcar v2.D.1 ✅, marcar v2.8 ✅,
   remover "comparisons e changelog" da lista de débitos da seção
   Report Premium UI.
-- [REPORT_PREMIUM_PLAN.md §17](../REPORT_PREMIUM_PLAN.md) — atualizar.
+- [plan/REPORT_PREMIUM/_README.md §17](../plan/REPORT_PREMIUM/_README.md) — atualizar.
 - [CHANGELOG.md](../CHANGELOG.md) — entrada `feat(report):
   SnapshotChangelogBuilder + comparisons/changelog ativados (v2.D.1 +
   v2.8 · ADR-13X)`.

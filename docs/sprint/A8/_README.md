@@ -34,5 +34,5 @@ Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes/). Tracks opera
 
 ## Fontes canônicas
 
-- [docs/CENARIOS_ESTRESSE_PLAN.md](../../CENARIOS_ESTRESSE_PLAN.md) — plano A8.4.
+- [docs/plan/CENARIOS_ESTRESSE/_README.md](../../plan/CENARIOS_ESTRESSE/_README.md) — plano A8.4.
 - Track IRPF: [`tracks/irpf-full-schema.md`](tracks/irpf-full-schema.md), [`tracks/irpf-full-schema-goldens.md`](tracks/irpf-full-schema-goldens.md), [`tracks/irpf-full-schema-ui.md`](tracks/irpf-full-schema-ui.md).

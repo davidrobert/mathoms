@@ -47,4 +47,4 @@ size_lines: 36
 
 **Implementação:** lane W4-T01. Vira `Decidido (W4-T01)` no merge.
 
-**Referências:** [PLATFORM_REVIEW_PLAN.md §W4-T01](PLATFORM_REVIEW_PLAN.md), findings SR-004, BB-007.
+**Referências:** [plan/PLATFORM_REVIEW/_README.md §W4-T01](plan/PLATFORM_REVIEW/_README.md), findings SR-004, BB-007.

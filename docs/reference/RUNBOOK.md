@@ -243,7 +243,7 @@ cd frontend && npm run dev   # http://localhost:3000
 Login → seleciona workspace que tem ao menos 1 run completa (até E5).
 `/reports` lista relatórios; click abre `/reports/<report_id>`.
 
-Workspace seed sem runs reais: rodar fluxo do `docs/SMOKE_TEST_HUMAN.md`
+Workspace seed sem runs reais: rodar fluxo do `docs/reference/SMOKE_TEST_HUMAN.md`
 §2 (gera relatório a partir de fixtures).
 
 ### 8.2 localStorage do shell
@@ -340,6 +340,6 @@ querystring.
 - [BACKLOG.md](BACKLOG.md) — 7E (operational readiness) · F7F-Local
 - [SMOKE_TEST.md](SMOKE_TEST.md) — verificações manuais pré-release
 - [SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) — runbook de smoke humano
-- [REPORT_PREMIUM_PLAN.md](REPORT_PREMIUM_PLAN.md) — plano canônico do shell v1
+- [plan/REPORT_PREMIUM/_README.md](plan/REPORT_PREMIUM/_README.md) — plano canônico do shell v1
 - [ADR-116](DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) — decisões de design F7F-Local
 - [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) — descontinuação do renderer HTML server-side

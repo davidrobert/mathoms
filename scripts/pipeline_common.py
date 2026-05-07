@@ -13,7 +13,7 @@ implícita na raiz do repositório. É obrigatório definir a variável de ambie
 (``backend.app.main``, workers, ``pytest`` conftests, ``pipeline.run_dev``)
 fazem ``setdefault`` para a raiz do repo **apenas** para carregar configs
 partilhados em desenvolvimento; para pipeline sobre um tenant real, use
-``export`` ou ``--root`` (ver docs/SETUP.md).
+``export`` ou ``--root`` (ver docs/reference/SETUP.md).
 
 Usage:
     from scripts.pipeline_common import (
@@ -97,7 +97,7 @@ Example:
 Offline runner:
   python -m pipeline.run_dev --root /path/to/tenant
 
-See docs/SETUP.md (MATHOMS_WORKSPACE_ROOT).
+See docs/reference/SETUP.md (MATHOMS_WORKSPACE_ROOT).
 """
 
 

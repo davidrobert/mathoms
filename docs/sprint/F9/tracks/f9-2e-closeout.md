@@ -51,7 +51,7 @@ source ../../../.venv/bin/activate
 python dev/audit_stage_references.py --skip-db --output-dir _scratch/
 ```
 
-Compare com baseline `docs/audits/f9_audit_20260424.md`. Esperado:
+Compare com baseline `docs/archive/audits/f9_audit_20260424.md`. Esperado:
 - `code_string` reduziu drasticamente (~1353 → ≤300)
 - Categoria `doc_string` mantém número alto (intencional — `docs/**` histórico
   preserva legacy para contexto)
@@ -75,9 +75,9 @@ Cada hit precisa cair em uma das categorias:
 Se sobrar algo fora dessas categorias, **adicione fix em commit separado**
 ou abra issue/lane específica.
 
-### 3. Atualizar `docs/audits/f9_audit_<YYYYMMDD>.md`
+### 3. Atualizar `docs/archive/audits/f9_audit_<YYYYMMDD>.md`
 
-Crie novo arquivo `docs/audits/f9_audit_pos_f9_2_<YYYYMMDD>.md` com:
+Crie novo arquivo `docs/archive/audits/f9_audit_pos_f9_2_<YYYYMMDD>.md` com:
 - Tabela de redução por categoria (baseline vs pós-F9.2)
 - Lista de hits residuais classificados por (a)/(b)/(c)/(d)
 - Confirmação "F9.2 fechada — F9.3 destravada"
@@ -105,7 +105,7 @@ Entrada nova no topo:
   (remoção em F9.6).
 - DB `pipeline_artifacts.stage` **inalterado** — F9.3 (Alembic) endereça em
   fatia separada. Janela: app lê rows legadas via `resolve_stage_name`.
-- Audit pós-F9.2: `docs/audits/f9_audit_pos_f9_2_<date>.md`.
+- Audit pós-F9.2: `docs/archive/audits/f9_audit_pos_f9_2_<date>.md`.
 - Goldens: <regenerados se aplicável> | intactos.
 ```
 
@@ -157,7 +157,7 @@ pre-commit run --all-files
 ## Commit + push
 
 ```bash
-git add docs/audits/ docs/BACKLOG.md docs/CHANGELOG.md docs/DECISIONS.md \
+git add docs/archive/audits/ docs/BACKLOG.md docs/CHANGELOG.md docs/DECISIONS.md \
         CLAUDE.md docs/agent_prompts/README.md
 
 git commit -m "$(cat <<'EOF'
@@ -167,7 +167,7 @@ Closeout das sub-fatias T1+2a+2b+2c+2d. STAGE_REGISTRY usa nomes
 descritivos; STAGE_RENAME_MAP é compat reverso. DB rows ainda legadas
 (F9.3 endereça). CLI e_reset.py emite deprecação em --from <legacy>.
 
-Audit pós: docs/audits/f9_audit_pos_f9_2_<date>.md
+Audit pós: docs/archive/audits/f9_audit_pos_f9_2_<date>.md
 EOF
 )"
 
@@ -179,7 +179,7 @@ git push origin HEAD:main
 
 ## Critérios de aceite
 
-- [ ] Audit re-rodado e arquivado em `docs/audits/`.
+- [ ] Audit re-rodado e arquivado em `docs/archive/audits/`.
 - [ ] Strings residuais em `pipeline/`/`backend/app/`/`scripts/` todas justificadas.
 - [ ] BACKLOG marca F9.2 ✅ + F9.3 destravada.
 - [ ] CHANGELOG tem entrada datada.

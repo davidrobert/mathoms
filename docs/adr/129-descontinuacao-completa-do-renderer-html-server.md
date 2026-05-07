@@ -45,7 +45,7 @@ cliente.
 O relatório nativo React em `frontend/src/components/report/**` já é o
 renderer primário desde [ADR-078](#adr-078--render-nativo-react--e6-como-exportador-standalone)
 e ganhou paridade visual com `EXEMPLO_DE_RELATORIO.html` via Fases 0-10
-do [Report Premium Plan](REPORT_PREMIUM_PLAN.md).
+do [Report Premium Plan](plan/REPORT_PREMIUM/_README.md).
 
 **Decisão:** **Descontinuar completamente o renderer HTML server-side.**
 Nenhum Python renderiza relatório; nenhum endpoint HTTP serve HTML de
@@ -166,7 +166,7 @@ Escopo concreto da remoção (executado em PR sequencial pós-ADR):
 8. Docs: remove `docs/e6_render_readme.md`; atualiza ARCHITECTURE.md
    (§7 tabela de stages, §8 data flow, §10 tree de dirs, §11
    persistência), CLAUDE.md (§Design System, §Convenções do pipeline),
-   ROADMAP.md (crítical path), REPORT_PREMIUM_PLAN.md (Fases 11/12/13
+   ROADMAP.md (crítical path), plan/REPORT_PREMIUM/_README.md (Fases 11/12/13
    canceladas/redirecionadas), BACKLOG.md (remove lane + marca
    concluída a sub-sprint).
 

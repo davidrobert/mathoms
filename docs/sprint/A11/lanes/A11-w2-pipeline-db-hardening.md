@@ -24,7 +24,7 @@ tags:
 
 - **Onda:** 2 (7d)
 - **Depende de:** W1 P0 ✅
-- **Plano:** [PLAN §W2](PLATFORM_REVIEW_PLAN.md#wave-2--pipeline--db-hardening-sprint-1-7-dias-dev)
+- **Plano:** [PLAN §W2](plan/PLATFORM_REVIEW/_README.md#wave-2--pipeline--db-hardening-sprint-1-7-dias-dev)
 
 ## Status (legado)
 

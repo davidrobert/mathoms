@@ -50,6 +50,6 @@ tags:
   - [ADR-154](DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1)
     ganha banner "M2 sunset entregue" + reescreve seção "Migration
     M1 → M2 → M3" (3 fases agora).
-  - `docs/RUNBOOK.md` atualizado: localStorage `notas:*` e `kanban:*`
+  - `docs/reference/RUNBOOK.md` atualizado: localStorage `notas:*` e `kanban:*`
     chaves agora marcadas como "endpoints retornam 410 Gone desde
     ADR-154 M2".

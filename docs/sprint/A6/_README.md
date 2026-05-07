@@ -29,7 +29,7 @@ Mapa de dependências em [waves.md](waves.md) — 4 ondas serializadas (estrutur
 
 ## Fontes canônicas
 
-- [docs/ARCHITECTURE.md §17](../../ARCHITECTURE.md) — arquitetura alvo pós-A6.
-- [docs/TESTING.md](../../TESTING.md) — critérios de aceite por fase.
-- [docs/runbooks/cutover.md](../../runbooks/cutover.md) — runbook de cutover.
-- [docs/SMOKE_TEST_HUMAN.md](../../SMOKE_TEST_HUMAN.md) — gate humano A6-human.
+- [docs/reference/ARCHITECTURE.md §17](../../ARCHITECTURE.md) — arquitetura alvo pós-A6.
+- [docs/reference/TESTING.md](../../TESTING.md) — critérios de aceite por fase.
+- [docs/reference/runbooks/cutover.md](../../runbooks/cutover.md) — runbook de cutover.
+- [docs/reference/SMOKE_TEST_HUMAN.md](../../SMOKE_TEST_HUMAN.md) — gate humano A6-human.

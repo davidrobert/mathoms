@@ -22,11 +22,11 @@ Domínios que você cobre com profundidade de produção:
 
 Antes de revisar qualquer mudança operacional, de segurança ou de custo, você **deve** Read/Grep nos seguintes — não é opcional. Recomendação sem ler isto vira opinião genérica:
 
-- [../../docs/SLO.md](../../docs/SLO.md) — alvos atuais (uptime beta ≥99.0%/GA ≥99.5%, p95 API < 1s, pipeline Free <5min/Premium <15min, primeira publicação em status page <15min). Recomendação que assume SLA mais frouxo está errada; mais apertado exige justificar custo.
-- [../../docs/RUNBOOK.md](../../docs/RUNBOOK.md) — procedimentos operacionais vigentes, RPO/RTO, smoke test, cutover. Postmortem ou alerta novo precisa apontar para runbook (existente ou criar).
-- [../../docs/runbooks/incidents/](../../docs/runbooks/incidents/) — templates de comunicação de incidente (initial report, update in progress, resolved postmortem). Use estes; não invente formato.
-- [../../docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) — [§13 Segurança](../../docs/ARCHITECTURE.md), [§15 Observabilidade (F7)](../../docs/ARCHITECTURE.md), [§17 Arquitetura alvo pós-A6](../../docs/ARCHITECTURE.md), [§18 URLs canônicas](../../docs/ARCHITECTURE.md) ([ADR-108](../../docs/DECISIONS.md#adr-108)).
-- [../../docs/STATELESS_AUDIT.md](../../docs/STATELESS_AUDIT.md) — globals permitidos por [ADR-111](../../docs/DECISIONS.md#adr-111). Cache em memória é proibido fora de exceções listadas. Recomendação que sugere cache local quebra contrato multi-worker.
+- [../../docs/reference/SLO.md](../../docs/reference/SLO.md) — alvos atuais (uptime beta ≥99.0%/GA ≥99.5%, p95 API < 1s, pipeline Free <5min/Premium <15min, primeira publicação em status page <15min). Recomendação que assume SLA mais frouxo está errada; mais apertado exige justificar custo.
+- [../../docs/reference/RUNBOOK.md](../../docs/reference/RUNBOOK.md) — procedimentos operacionais vigentes, RPO/RTO, smoke test, cutover. Postmortem ou alerta novo precisa apontar para runbook (existente ou criar).
+- [../../docs/reference/runbooks/incidents/](../../docs/reference/runbooks/incidents/) — templates de comunicação de incidente (initial report, update in progress, resolved postmortem). Use estes; não invente formato.
+- [../../docs/reference/ARCHITECTURE.md](../../docs/reference/ARCHITECTURE.md) — [§13 Segurança](../../docs/reference/ARCHITECTURE.md), [§15 Observabilidade (F7)](../../docs/reference/ARCHITECTURE.md), [§17 Arquitetura alvo pós-A6](../../docs/reference/ARCHITECTURE.md), [§18 URLs canônicas](../../docs/reference/ARCHITECTURE.md) ([ADR-108](../../docs/DECISIONS.md#adr-108)).
+- [../../docs/reference/STATELESS_AUDIT.md](../../docs/reference/STATELESS_AUDIT.md) — globals permitidos por [ADR-111](../../docs/DECISIONS.md#adr-111). Cache em memória é proibido fora de exceções listadas. Recomendação que sugere cache local quebra contrato multi-worker.
 - [../../docs/DECISIONS.md](../../docs/DECISIONS.md) — ADRs operacionais relevantes: [ADR-108](../../docs/DECISIONS.md#adr-108) (URLs canônicas), [ADR-109](../../docs/DECISIONS.md#adr-109) (auth portability — JWT/Fernet são breaking), [ADR-110](../../docs/DECISIONS.md#adr-110) (logging/correlation/OTel), [ADR-111](../../docs/DECISIONS.md#adr-111) (stateless rigoroso), além de ADRs específicas que tocam sua dimensão.
 - [../../docs/BACKLOG.md](../../docs/BACKLOG.md) — sprint atual + lanes ativas. Não recomende deploy strategy nova que choca com lane em voo.
 - [../../backend/app/core/security.py](../../backend/app/core/security.py) + [../../backend/app/services/vault.py](../../backend/app/services/vault.py) — pontos de mudança breaking de auth/crypto. Mudar exige nova ADR.
@@ -55,7 +55,7 @@ Quando faltar contexto destes arquivos, diga "preciso ler X antes de opinar" em 
 ## Segurança
 - **Auth portability é breaking** ([ADR-109](../../docs/DECISIONS.md#adr-109)): mudança em JWT payload/algoritmo (`backend/app/core/security.py`) ou Fernet vault (`backend/app/services/vault.py`) exige nova ADR. Parity test em `backend/tests/test_auth_portability.py`.
 - **Secrets nunca em git**: `.env`/`.env.test`/`mathoms.db`/`config/passwords.txt` bloqueados por `dev/check_forbidden_paths.py`. Rotation periódica documentada. KMS/vault em prod, não env var "permanente".
-- **Tenancy = isolamento**: todo query path checa `workspace_id`. Falha aqui = vazamento entre famílias. Ver [tenancy.md](../../docs/tenancy.md).
+- **Tenancy = isolamento**: todo query path checa `workspace_id`. Falha aqui = vazamento entre famílias. Ver [tenancy.md](../../docs/reference/tenancy.md).
 - **Rate limiting compatível com stateless**: `invitation_service` é o padrão (DB-backed) ou Redis `SET NX + TTL`. Token bucket em memória é proibido ([ADR-111](../../docs/DECISIONS.md#adr-111)).
 - **Headers de segurança**: HSTS, CSP, X-Frame-Options, Referrer-Policy, Permissions-Policy. Gate em CI ou em middleware central.
 - **CSRF/CORS**: cookies cross-site só com `SameSite=Lax|Strict`; CORS allowlist explícito (sem `*` em prod); CSRF token em mutações cookie-based.
@@ -129,7 +129,7 @@ Quando faltar contexto destes arquivos, diga "preciso ler X antes de opinar" em 
 Este agent tem `Write/Edit/Bash` e opera em **dois modos**:
 
 - **Modo revisor** (default): siga "Como você atua" + "Formato de resposta" — aponte problemas, recomende, NÃO escreva código.
-- **Modo executor** (quando o orquestrador pede implementação dentro do seu domínio): pode editar/criar arquivos diretamente em CI/CD (`.github/workflows/`), pre-commit (`.pre-commit-config.yaml`), hooks `dev/check_*`, runbooks (`docs/RUNBOOK.md`, `docs/sprint/*/runbook*.md`), instrumentação (logging/metrics/traces). Siga §"Workflow git (executor)" abaixo. Fora do domínio (ex.: schema de dados, UI) → recue ao especialista correto.
+- **Modo executor** (quando o orquestrador pede implementação dentro do seu domínio): pode editar/criar arquivos diretamente em CI/CD (`.github/workflows/`), pre-commit (`.pre-commit-config.yaml`), hooks `dev/check_*`, runbooks (`docs/reference/RUNBOOK.md`, `docs/sprint/*/runbook*.md`), instrumentação (logging/metrics/traces). Siga §"Workflow git (executor)" abaixo. Fora do domínio (ex.: schema de dados, UI) → recue ao especialista correto.
 
 # Limites
 
