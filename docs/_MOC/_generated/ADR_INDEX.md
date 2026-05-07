@@ -1,184 +1,315 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# Índice de ADRs
+# ADR_INDEX — Índice de Architectural Decision Records
 
-## area/outras
+Volta para [`00-INDEX`](../00-INDEX.md).
 
-| id | status | título | path |
-| --- | --- | --- | --- |
-| ADR-001 | Decidido | SQLAlchemy 2.0 como ORM | `adr/001-sqlalchemy-20-como-orm.md` |
-| ADR-002 | Decidido | Filesystem local para storage | `adr/002-filesystem-local-para-storage.md` |
-| ADR-003 | Decidido | JWT custom para auth | `adr/003-jwt-custom-para-auth.md` |
-| ADR-005 | Decidido | VPS Hetzner para produção | `adr/005-vps-hetzner-para-producao.md` |
-| ADR-006 | Decidido | Monorepo | `adr/006-monorepo.md` |
-| ADR-007 | Decidido | Fernet app-level para criptografia | `adr/007-fernet-app-level-para-criptografia.md` |
-| ADR-013 | Decidido | "Wrap, Don't Rewrite" pattern | `adr/013-wrap-dont-rewrite-pattern.md` |
-| ADR-014 | Decidido | Threading para execução background | `adr/014-threading-para-execucao-background.md` |
-| ADR-015 | Decidido | Vault por workspace | `adr/015-vault-por-workspace.md` |
-| ADR-016 | Decidido | E0-route automático no upload | `adr/016-e0-route-automatico-no-upload.md` |
-| ADR-017 | Decidido | Sync session em background threads | `adr/017-sync-session-em-background-threads.md` |
-| ADR-018 | Decidido | `config_dir` override em `for_tenant()` | `adr/018-config-dir-override-em-for-tenant.md` |
-| ADR-019 | Decidido | `STORAGE_ROOT` via env var | `adr/019-storage-root-via-env-var.md` |
-| ADR-020 | Decidido | Materializar config em disco | `adr/020-materializar-config-em-disco.md` |
-| ADR-021 | Decidido | 5 configs editáveis | `adr/021-5-configs-editaveis.md` |
-| ADR-022 | Decidido | Fallback seletivo de config | `adr/022-fallback-seletivo-de-config.md` |
-| ADR-023 | Decidido | Import/export JSON de config | `adr/023-importexport-json-de-config.md` |
-| ADR-024 | Decidido | LiteLLM como proxy universal | `adr/024-litellm-como-proxy-universal.md` |
-| ADR-025 | Decidido | BYOK (Bring Your Own Key) | `adr/025-byok-bring-your-own-key.md` |
-| ADR-026 | Decidido | Instructor + Pydantic para structured output | `adr/026-instructor-pydantic-para-structured-output.md` |
-| ADR-027 | Decidido | Retry → needs_review em falha de validação | `adr/027-retry-needs-review-em-falha-de-validacao.md` |
-| ADR-028 | Decidido | E7 full scope na Fase 4 | `adr/028-e7-full-scope-na-fase-4.md` |
-| ADR-029 | Decidido | Alembic para migrations | `adr/029-alembic-para-migrations.md` |
-| ADR-029-TQ | Decidido | Celery + Redis | `adr/029-tq-celery-redis.md` |
-| ADR-030 | Decidido | Cancelamento cooperativo via `threading.Event` | `adr/030-cancelamento-cooperativo-via-threadingevent.md` |
-| ADR-030-WS | Decidido | WebSocket + polling fallback | `adr/030-ws-websocket-polling-fallback.md` |
-| ADR-031 | Decidido | Redis para queue + pub/sub | `adr/031-redis-para-queue-pubsub.md` |
-| ADR-032 | Decidido | Cancel stage-boundary | `adr/032-cancel-stage-boundary.md` |
-| ADR-033 | Decidido | React components para report | `adr/033-react-components-para-report.md` |
-| ADR-034 | Decidido | Dashboard completo com alertas | `adr/034-dashboard-completo-com-alertas.md` |
-| ADR-035 | Decidido | `@media print` para PDF export | `adr/035-media-print-para-pdf-export.md` |
-| ADR-037 | Decidido | Recharts para charts | `adr/037-recharts-para-charts.md` |
-| ADR-038 | Decidido | Docker volume para storage prod | `adr/038-docker-volume-para-storage-prod.md` |
-| ADR-039 | Decidido | Dual DB: SQLite (dev) + PostgreSQL (prod) | `adr/039-dual-db-sqlite-dev-postgresql-prod.md` |
-| ADR-040 | Decidido | Billing adiado para pós-launch | `adr/040-billing-adiado-para-pos-launch.md` |
-| ADR-041 | Decidido | Traefik como reverse proxy | `adr/041-traefik-como-reverse-proxy.md` |
-| ADR-042 | Decidido | Design system antes da Fase 5 | `adr/042-design-system-antes-da-fase-5.md` |
-| ADR-043 | Decidido | shadcn/ui como component library | `adr/043-shadcnui-como-component-library.md` |
-| ADR-044 | Decidido | Transaction Explorer como core | `adr/044-transaction-explorer-como-core.md` |
-| ADR-045 | Decidido | Data lineage via tooltip | `adr/045-data-lineage-via-tooltip.md` |
-| ADR-046 | Decidido | Responsivo sem PWA obrigatório | `adr/046-responsivo-sem-pwa-obrigatorio.md` |
-| ADR-047 | Decidido | Category override em vez de reconciliação UI | `adr/047-category-override-em-vez-de-reconciliacao-ui.md` |
-| ADR-050 | Decidido | Tailwind v4 `@theme inline` | `adr/050-tailwind-v4-theme-inline.md` |
-| ADR-051 | Decidido | Geist fonts | `adr/051-geist-fonts.md` |
-| ADR-052 | Decidido | Lucide React para ícones | `adr/052-lucide-react-para-icones.md` |
-| ADR-053 | Decidido | `Intl` nativo para datas | `adr/053-intl-nativo-para-datas.md` |
-| ADR-054 | Decidido | Migração incremental de pages | `adr/054-migracao-incremental-de-pages.md` |
-| ADR-055 | Decidido | Coverage target: ≥85% line + ≥95% new code | `adr/055-coverage-target-85-line-95-new-code.md` |
-| ADR-056 | Decidido | Rolling restart em vez de blue-green | `adr/056-rolling-restart-em-vez-de-blue-green.md` |
-| ADR-057 | Decidido | JWT 15min + refresh 7d | `adr/057-jwt-15min-refresh-7d.md` |
-| ADR-058 | Decidido | VPS CX32 para sizing | `adr/058-vps-cx32-para-sizing.md` |
-| ADR-059 | Decidido | Docker image CVE scan no CI | `adr/059-docker-image-cve-scan-no-ci.md` |
-| ADR-060 | Decidido | Fernet dual-key para secret rotation | `adr/060-fernet-dual-key-para-secret-rotation.md` |
-| ADR-061 | Decidido | Telemetria privacy-first | `adr/061-telemetria-privacy-first.md` |
-| ADR-062 | Decidido | Frontend testing em fase dedicada (6.5) | `adr/062-frontend-testing-em-fase-dedicada-65.md` |
-| ADR-063 | Decidido | Hardening fintech em sub-fase 6.5D | `adr/063-hardening-fintech-em-sub-fase-65d.md` |
-| ADR-064 | Decidido | Backend hardening em sub-fase 6.5E | `adr/064-backend-hardening-em-sub-fase-65e.md` |
-| ADR-065 | Decidido | Sub-fase 7E Operational Readiness | `adr/065-sub-fase-7e-operational-readiness.md` |
-| ADR-066 | Decidido | Auth flows completos e prompt injection em 7B (bloqueadores de beta) | `adr/066-auth-flows-completos-e-prompt-injection-em-7b.md` |
-| ADR-067 | Decidido | Test infrastructure em sub-fase 6.5F | `adr/067-test-infrastructure-em-sub-fase-65f.md` |
-| ADR-068 | Decidido | Códigos internos do pipeline nunca vazam na UI | `adr/068-codigos-internos-do-pipeline-nunca-vazam-na-ui.md` |
-| ADR-069 | Decidido | MSW sync strategy: manual + lint CI (não codegen) | `adr/069-msw-sync-strategy-manual-lint-ci-nao-codegen.md` |
-| ADR-070 | Decidido | Premium LLM E2E: mock default + nightly real opt-in | `adr/070-premium-llm-e2e-mock-default-nightly-real-opt-in.md` |
-| ADR-071 | Decidido | Playwright workspace isolation: email unique por worker | `adr/071-playwright-workspace-isolation-email-unique-por.md` |
-| ADR-072 | Decidido | Multi-tenancy: `workspace_id` scoping explícito + `WorkspaceMember` para multi-família | `adr/072-multi-tenancy-workspace-id-scoping-explicito.md` |
-| ADR-073 | Decidido | Goals como entidade versionada (não config estático) | `adr/073-goals-como-entidade-versionada-nao-config-estatico.md` |
-| ADR-074 | Decidido | Tasks como entidade de 1ª classe (fora do relatório) | `adr/074-tasks-como-entidade-de-1a-classe-fora-do-relatorio.md` |
-| ADR-075 | Decidido | Cutover CLI → Web: estratégia de transição faseada com adapters | `adr/075-cutover-cli-web-estrategia-de-transicao-faseada.md` |
-| ADR-076 | Decidido | Design Tokens Unificados Site ↔ Relatório | `adr/076-design-tokens-unificados-site-relatorio.md` |
-| ADR-077 | Decidido | Pipeline adapter como contrato de cutover (CLI → Web) | `adr/077-pipeline-adapter-como-contrato-de-cutover-cli-web.md` |
-| ADR-078 | Decidido | Render Nativo React + E6 como Exportador Standalone | `adr/078-render-nativo-react-e6-como-exportador-standalone.md` |
-| ADR-079 | Decidido | Content-first classification no upload web | `adr/079-content-first-classification-no-upload-web.md` |
-| ADR-080 | Decidido | Pipeline incremental: extrair só docs novos, consolidar full | `adr/080-pipeline-incremental-extrair-so-docs-novos.md` |
-| ADR-081 | Decidido | Classificação de documentos unificada (P2) | `adr/081-classificacao-de-documentos-unificada-p2.md` |
-| ADR-082 | Decidido | PipelineArtifact: artefatos computacionais no banco | `adr/082-pipelineartifact-artefatos-computacionais-no-banco.md` |
-| ADR-083 | Decidido | ArtifactStore: abstração de I/O para artefatos | `adr/083-artifactstore-abstracao-de-io-para-artefatos.md` |
-| ADR-084 | Decidido | Content-addressed uploads | `adr/084-content-addressed-uploads.md` |
-| ADR-085 | Decidido | Eliminar materialização de config em disco | `adr/085-eliminar-materializacao-de-config-em-disco.md` |
-| ADR-086 | Decidido | MaterializationBridge: adapter temporário | `adr/086-materializationbridge-adapter-temporario.md` |
-| ADR-087 | Decidido | StageSpec: dependências declarativas | `adr/087-stagespec-dependencias-declarativas.md` |
-| ADR-088 | Decidido | StageConfig: configuração imutável por parâmetro | `adr/088-stageconfig-configuracao-imutavel-por-parametro.md` |
-| ADR-089 | Decidido | pipeline/domain/: camada de domínio isolada de I/O | `adr/089-pipelinedomain-camada-de-dominio-isolada-de-io.md` |
-| ADR-090 | Decidido | Decimal para valores monetários | `adr/090-decimal-para-valores-monetarios.md` |
-| ADR-091 | Decidido | Pydantic para domain objects com coleções | `adr/091-pydantic-para-domain-objects-com-colecoes.md` |
-| ADR-092 | Proposto | Renomear scripts para nomes descritivos de domínio | `adr/092-renomear-scripts-para-nomes-descritivos-de-dominio.md` |
-| ADR-093 | Decidido | Rename completo de identificadores de stage (Opção A) | `adr/093-rename-completo-de-identificadores-de-stage.md` |
-| ADR-094 | Decidido | Report: single-active vs. versionado | `adr/094-report-single-active-vs-versionado.md` |
-| ADR-095 | Proposto | Segurança de `content_json` (LGPD) | `adr/095-seguranca-de-content-json-lgpd.md` |
-| ADR-096 | Proposto | Observabilidade de cutover | `adr/096-observabilidade-de-cutover.md` |
-| ADR-097 | Decidido | Extract-then-refactor: estratégia de decomposição de `e3_reconcile.py` | `adr/097-extract-then-refactor-estrategia-de-decomposicao.md` |
-| ADR-098 | Decidido | Caminho B pragmático vs puro: nomenclatura oficial | `adr/098-caminho-b-pragmatico-vs-puro-nomenclatura-oficial.md` |
-| ADR-099 | Decidido | Reuse de `analyze_*` legadas em `main_with_store` (decisão de A5d/A5e) | `adr/099-reuse-de-analyze-legadas-em-main-with-store.md` |
-| ADR-100 | Decidido | A6d commitment: fechar Caminho B puro nos 5 stages pragmáticos | `adr/100-a6d-commitment-fechar-caminho-b-puro-nos-5.md` |
-| ADR-101 | Decidido | Princípios R12-R17: DDD/SOLID no backend API (A6e) | `adr/101-principios-r12-r17-dddsolid-no-backend-api-a6e.md` |
-| ADR-102 | Decidido | Princípios R18-R20: language-neutral boundaries (A6f) | `adr/102-principios-r18-r20-language-neutral-boundaries-a6f.md` |
-| ADR-103 | Decidido | Teste manual como gate antes de remoção do bridge (A6b.5 + A6-human) | `adr/103-teste-manual-como-gate-antes-de-remocao-do.md` |
-| ADR-104 | Decidido | E1.5c em Caminho B pragmático (Sessão A5f) | `adr/104-e15c-em-caminho-b-pragmatico-sessao-a5f.md` |
-| ADR-105 | Decidido | LLM stages escrevem via ArtifactStore; E1 e E7-review LLM não migram (A6a) | `adr/105-llm-stages-escrevem-via-artifactstore-e1-e-e7.md` |
-| ADR-106 | Decidido | Opt-in DB artifacts por workspace + DBArtifactStore no Celery task (A6b) | `adr/106-opt-in-db-artifacts-por-workspace.md` |
-| ADR-107 | Decidido | Remoção de `MaterializationBridge` e `stage_runner_compat` (A6c.1-2) | `adr/107-remocao-de-materializationbridge-e-stage-runner.md` |
-| ADR-108 | Decidido | Estratégia de subdomínios `mathoms.ai` + Cloudflare DNS | `adr/108-estrategia-de-subdominios-mathomsai-cloudflare-dns.md` |
-| ADR-109 | Decidido | Auth portability: JWT HS256 + Fernet documentados como contratos portáveis (A6f.5a) | `adr/109-auth-portability-jwt-hs256-fernet-documentados.md` |
-| ADR-110 | Decidido | Structured JSON logging + OpenTelemetry bootstrap (A6f.3) | `adr/110-structured-json-logging-opentelemetry-bootstrap.md` |
-| ADR-111 | Decidido | Stateless-rigoroso: padrão e gate empírico (A6f.6) | `adr/111-stateless-rigoroso-padrao-e-gate-empirico-a6f6.md` |
-| ADR-112 | Decidido | Pipeline-as-Service: HTTP boundary para execução de stages (A6f.1) | `adr/112-pipeline-as-service-http-boundary-para-execucao.md` |
-| ADR-113 | Decidido | Convenções Go: `.golangci.yml` + CI + skeleton (A6g.7) | `adr/113-convencoes-go-golangciyml-ci-skeleton-a6g7.md` |
-| ADR-114 | Decidido | Enforcement automatizado de code style: gates imediatos + progressivos (A6g.6) | `adr/114-enforcement-automatizado-de-code-style-gates.md` |
-| ADR-115 | Decidido | Domain events tipados: arquitetura e boundaries (A6e.events) | `adr/115-domain-events-tipados-arquitetura-e-boundaries.md` |
-| ADR-116 | Decidido | F7F-Local: stack Next separada + anonimização default + auth yaml+bcrypt+JWT (F7F-Local) | `adr/116-f7f-local-stack-next-separada-anonimizacao.md` |
-| ADR-117 | Decidido | Report Premium UI baseline (paridade com EXEMPLO_DE_RELATORIO.html) | `adr/117-report-premium-ui-baseline-paridade-com-exemplo.md` |
-| ADR-118 | Decidido | Flip do default `MATHOMS_USE_DB_ARTIFACTS` para `True` | `adr/118-flip-do-default-mathoms-use-db-artifacts-para-true.md` |
-| ADR-119 | Decidido | Contrato `LiveStep` para progresso de etapas do pipeline | `adr/119-contrato-livestep-para-progresso-de-etapas-do.md` |
-| ADR-120 | Decidido | Readers user-facing consultam `ArtifactStore` (DB-first) com fallback disco | `adr/120-readers-user-facing-consultam-artifactstore-db.md` |
-| ADR-121 | Decidido | Typography base 13px com override configurável | `adr/121-typography-base-13px-com-override-configuravel.md` |
-| ADR-122 | Decidido | `chart_conclusions` e `section_summaries` em modo híbrido (template + LLM) | `adr/122-chart-conclusions-e-section-summaries-em-modo.md` |
-| ADR-123 | Decidido | Notas (T6) e Kanban (T3) persistidos no backend | `adr/123-notas-t6-e-kanban-t3-persistidos-no-backend.md` |
-| ADR-124 | Decidido | `scripts/e6_render.py` aposentado em favor de SSR standalone do Next | `adr/124-scriptse6-renderpy-aposentado-em-favor-de-ssr.md` |
-| ADR-125 | Decidido | Workspace sharing: convites, viewer role, forced logout | `adr/125-workspace-sharing-convites-viewer-role-forced.md` |
-| ADR-126 | Decidido | Multi-tenant Goals completos (APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO) | `adr/126-multi-tenant-goals-completos-aporte-mensal.md` |
-| ADR-127 | Decidido | E1 members persiste via ArtifactStore | `adr/127-e1-members-persiste-via-artifactstore.md` |
-| ADR-128 | Decidido | E7-review-llm lê/escreve via `ArtifactStore` | `adr/128-e7-review-llm-leescreve-via-artifactstore.md` |
-| ADR-129 | Decidido | Descontinuação completa do renderer HTML server-side | `adr/129-descontinuacao-completa-do-renderer-html-server.md` |
-| ADR-130 | Proposto | Internacionalização com `next-intl` + persistência em `users.locale` | `adr/130-internacionalizacao-com-next-intl-persistencia.md` |
-| ADR-131 | Decidido | `Report` referencia `pipeline_artifact` por FK (drop `analysis_json_path`) | `adr/131-report-referencia-pipeline-artifact-por-fk-drop.md` |
-| ADR-132 | Decidido | Lifecycle scoping de `pipeline_artifacts` (workspace vs run) | `adr/132-lifecycle-scoping-de-pipeline-artifacts.md` |
-| ADR-133 | Decidido | `transferencias_internas` modelado em `transfer_configs` (workspace-scoped) | `adr/133-transferencias-internas-modelado-em-transfer.md` |
-| ADR-134 | Decidido | `ConfigStore`: protocolo de leitura tipado (pipeline + backend) | `adr/134-configstore-protocolo-de-leitura-tipado-pipeline.md` |
-| ADR-135 | Decidido | Versionamento temporal de séries fiscais e câmbio | `adr/135-versionamento-temporal-de-series-fiscais-e-cambio.md` |
-| ADR-136 | Decidido | `Decision` aggregate event-sourced com supersede chain | `adr/136-decision-aggregate-event-sourced-com-supersede.md` |
-| ADR-137 | Decidido | Catalog + override resolver para `categorization` e `institutions` | `adr/137-catalog-override-resolver-para-categorization-e.md` |
-| ADR-138 | Decidido | Protocolo de supervisão CTO para Sprint A7 | `adr/138-protocolo-de-supervisao-cto-para-sprint-a7.md` |
-| ADR-139 | Decidido | Finalização migração Recharts→Chart.js em /reports/** | `adr/139-finalizacao-migracao-rechartschartjs-em-reports.md` |
-| ADR-140 | Roadmap | Goal IF schema v2 (renda passiva atual + IF meta líquida) | `adr/140-goal-if-schema-v2-renda-passiva-atual-if-meta.md` |
-| ADR-141 | Roadmap | Goal alocação-alvo schema v2 (7 classes AUVP) | `adr/141-goal-alocacao-alvo-schema-v2-7-classes-auvp.md` |
-| ADR-142 | Decidido | Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem | `adr/142-toggle-imoveis-no-if-em-pipelinejson-invariante.md` |
-| ADR-143 | Decidido | `docs/methodology/` é rules-as-code (Sprint A7.6) | `adr/143-docsmethodology-e-rules-as-code-sprint-a76.md` |
-| ADR-144 | Decidido | `section_summaries` LLM-driven em E5 com cache + fallback determinístico (v2.9) | `adr/144-section-summaries-llm-driven-em-e5-com-cache.md` |
-| ADR-145 | Decidido | 7 categorias canonical da composição patrimonial | `adr/145-7-categorias-canonical-da-composicao-patrimonial.md` |
-| ADR-146 | Decidido | E3 source hierarchy + `BankAccount.source_tier` schema | `adr/146-e3-source-hierarchy-bankaccountsource-tier-schema.md` |
-| ADR-147 | Decidido | Milhas: valuation methodology universal + storage workspace-scoped | `adr/147-milhas-valuation-methodology-universal-storage.md` |
-| ADR-148 | Decidido | `SnapshotChangelogBuilder`: comparações mês-a-mês de relatório | `adr/148-snapshotchangelogbuilder-comparacoes-mes-a-mes.md` |
-| ADR-149 | Decidido | `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) | `adr/149-configreport-layoutyaml-permanece-como-asset-de.md` |
-| ADR-150 | Roadmap | Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap | `adr/150-estrategia-de-port-go-do-pipeline-service.md` |
-| ADR-151 | Decidido | Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) | `adr/151-remocao-do-modo-tatico-do-relatorio-direcao-e-do.md` |
-| ADR-152 | Decidido | `/plano-de-acao` renomeada para `/acao` com tabs (Direção E · Onda 6) | `adr/152-plano-de-acao-renomeada-para-acao-com-tabs.md` |
-| ADR-153 | Decidido | `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples | `adr/153-suggestion-aggregate-direcao-e-onda-5-proposal.md` |
-| ADR-154 | Decidido | Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) | `adr/154-fusao-kanbanitem-em-task-migracao-reportnotes.md` |
-| ADR-155 | Decidido | `/dashboard` absorvido por `/plano` (Direção E consolidação) | `adr/155-dashboard-absorvido-por-plano-direcao-e.md` |
-| ADR-156 | Decidido | Patrimônio em `/plano` é single-source via `patrimonio_snapshot` (Direção E · Onda 7) | `adr/156-patrimonio-em-plano-e-single-source-via.md` |
-| ADR-157 | Decidido | Schema IRPF completo (stage `extract_irpf_full`) | `adr/157-schema-irpf-completo-stage-extract-irpf-full.md` |
-| ADR-158 | Decidido | Pipeline review screen — UI dedicada para aprovar/editar `StageReview` | `adr/158-pipeline-review-screen-ui-dedicada-para.md` |
-| ADR-159 | Roadmap | Aggregator banking BR (Open Finance) — adiar adoção até gatilhos materializarem | `adr/159-aggregator-banking-br-open-finance-adiar-adocao.md` |
-| ADR-160 | Roadmap | Eficiência tributária imóvel direto vs FII no relatório premium (Roadmap) | `adr/160-eficiencia-tributaria-imovel-direto-vs-fii-no.md` |
-| ADR-161 | Decidido | Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) | `adr/161-regras-canonicas-de-suggestion-v2.md` |
-| ADR-162 | Decidido | Decisions como event projection sobre Goals | `adr/162-decisions-como-event-projection-sobre-goals.md` |
-| ADR-163 | Decidido | Decision congela `context_snapshot` ao aceitar Suggestion | `adr/163-decision-congela-context-snapshot-ao-aceitar.md` |
-| ADR-164 | Decidido | Carteira de renda e taxa de retirada efetiva | `adr/164-carteira-de-renda-e-taxa-de-retirada-efetiva.md` |
-| ADR-165 | Decidido | `ValidationIssue` estruturado em `ValidationResult` e `StageReview` | `adr/165-validationissue-estruturado-em-validationresult.md` |
-| ADR-166 | Decidido | Schema estável `cenarios_conjuge` no payload E5 | `adr/166-schema-estavel-cenarios-conjuge-no-payload-e5.md` |
-| ADR-167 | Decidido | Eligibility gate de cenário do cônjuge no domain service | `adr/167-eligibility-gate-de-cenario-do-conjuge-no-domain.md` |
-| ADR-168 | Decidido | Remoção do Modo USA do relatório | `adr/168-remocao-do-modo-usa-do-relatorio.md` |
-| ADR-169 | Decidido | Modo incremental estendido aos stages globais E1 | `adr/169-modo-incremental-estendido-aos-stages-globais-e1.md` |
-| ADR-170 | Proposto | Refresh tokens com httpOnly cookie e family-based revocation | `adr/170-refresh-tokens-com-httponly-cookie-e-family.md` |
-| ADR-171 | Proposto | Fernet rotation operacionalizada via MultiFernet | `adr/171-fernet-rotation-operacionalizada-via-multifernet.md` |
-| ADR-172 | Proposto | Stuck-runs detector via heartbeat + Celery beat | `adr/172-stuck-runs-detector-via-heartbeat-celery-beat.md` |
-| ADR-173 | Proposto | LLM budget hard-stop + LLMCallLog populada universal | `adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md` |
-| ADR-174 | Proposto | Off-site backup criptografado em Cloudflare R2 + restore drill | `adr/174-off-site-backup-criptografado-em-cloudflare-r2.md` |
-| ADR-175 | Proposto | Prompt injection defense em camadas (sanitize + system clause + Pydantic strict) | `adr/175-prompt-injection-defense-em-camadas-sanitize.md` |
-| ADR-176 | Proposto | Chave estável `cenarios_conjuge` no bloco de narrativas E5.N | `adr/176-chave-estavel-cenarios-conjuge-no-bloco-de.md` |
-| ADR-177 | Decidido | Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`) | `adr/177-thresholds-e-referencias-metodologicas-como.md` |
-| ADR-178 | Decidido | `Risk` aggregate workspace-scoped | `adr/178-risk-aggregate-workspace-scoped.md` |
-| ADR-179 | Decidido | `Decision` aggregate — extensão de schema (`impact_1y/10y`, `horizon`, `priority`) | `adr/179-decision-aggregate-extensao-de-schema-impact.md` |
-| ADR-180 | Decidido | `goals.json` cutover final via `StageConfig.config_store` extendido | `adr/180-goalsjson-cutover-final-via-stageconfigconfig.md` |
-| ADR-181 | Decidido | `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py` | `adr/181-goalsjson-removido-de-archive-e-adicionado-a.md` |
-| ADR-182 | Proposto | Vault de documentação operacional Obsidian-friendly em `docs/` | `adr/182-vault-de-documentacao-operacional-obsidian.md` |
+175 ADRs (ADR-001 a ADR-182) em [`docs/adr/`](../../adr/).
+
+## Sumário por status
+
+- **Decidido**: 158
+- **Proposto**: 12
+- **Roadmap**: 5
+
+## Fundação
+
+### Decidido (6)
+
+- [[ADR-001]] — SQLAlchemy 2.0 como ORM · phase F1
+- [[ADR-002]] — Filesystem local para storage · phase F2
+- [[ADR-003]] — JWT custom para auth · phase F1
+- [[ADR-005]] — VPS Hetzner para produção · phase F7
+- [[ADR-006]] — Monorepo · phase F0
+- [[ADR-013]] — "Wrap, Don't Rewrite" pattern · phase F0
+
+## Persistência
+
+### Decidido (3)
+
+- [[ADR-029]] — Alembic para migrations · phase F2
+- [[ADR-038]] — Docker volume para storage prod · phase F7
+- [[ADR-039]] — Dual DB: SQLite (dev) + PostgreSQL (prod) · phase F7
+
+### Proposto (1)
+
+- [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet
+
+## Pipeline
+
+### Decidido (12)
+
+- [[ADR-014]] — Threading para execução background · phase F2
+- [[ADR-015]] — Vault por workspace · phase F2
+- [[ADR-016]] — E0-route automático no upload · phase F2
+- [[ADR-017]] — Sync session em background threads · phase F2
+- [[ADR-018]] — `config_dir` override em `for_tenant()` · phase F2
+- [[ADR-019]] — `STORAGE_ROOT` via env var · phase F2
+- [[ADR-030]] — Cancelamento cooperativo via `threading.Event` · phase F2
+- [[ADR-030-WS]] — WebSocket + polling fallback · phase F5
+- [[ADR-075]] — Cutover CLI → Web: estratégia de transição faseada com adapters · phase F8
+- [[ADR-079]] — Content-first classification no upload web
+- [[ADR-080]] — Pipeline incremental: extrair só docs novos, consolidar full · phase F7
+- [[ADR-081]] — Classificação de documentos unificada (P2)
+
+## Config (materialização legada)
+
+### Decidido (4)
+
+- [[ADR-020]] — Materializar config em disco · phase F3
+- [[ADR-021]] — 5 configs editáveis · phase F3
+- [[ADR-022]] — Fallback seletivo de config · phase F3
+- [[ADR-023]] — Import/export JSON de config · phase F3
+
+## LLM
+
+### Decidido (5)
+
+- [[ADR-024]] — LiteLLM como proxy universal · phase F4
+- [[ADR-025]] — BYOK (Bring Your Own Key) · phase F4
+- [[ADR-026]] — Instructor + Pydantic para structured output · phase F4
+- [[ADR-027]] — Retry → needs_review em falha de validação · phase F4
+- [[ADR-028]] — E7 full scope na Fase 4 · phase F4
+
+## Task Queue
+
+### Decidido (3)
+
+- [[ADR-029-TQ]] — Celery + Redis · phase F5
+- [[ADR-031]] — Redis para queue + pub/sub · phase F5
+- [[ADR-032]] — Cancel stage-boundary · phase F5
+
+### Proposto (1)
+
+- [[ADR-172]] — Stuck-runs detector via heartbeat + Celery beat
+
+## Frontend / Design
+
+### Decidido (16)
+
+- [[ADR-033]] — React components para report · phase F6
+- [[ADR-034]] — Dashboard completo com alertas · phase F6
+- [[ADR-035]] — `@media print` para PDF export · phase F6
+- [[ADR-037]] — Recharts para charts · phase F6
+- [[ADR-042]] — Design system antes da Fase 5 · phase F4.5
+- [[ADR-043]] — shadcn/ui como component library · phase F4.5
+- [[ADR-044]] — Transaction Explorer como core · phase F6
+- [[ADR-045]] — Data lineage via tooltip · phase F6
+- [[ADR-046]] — Responsivo sem PWA obrigatório · phase F6
+- [[ADR-047]] — Category override em vez de reconciliação UI · phase F6
+- [[ADR-050]] — Tailwind v4 `@theme inline` · phase F4.5
+- [[ADR-051]] — Geist fonts · phase F4.5
+- [[ADR-052]] — Lucide React para ícones · phase F4.5
+- [[ADR-053]] — `Intl` nativo para datas · phase F4.5
+- [[ADR-054]] — Migração incremental de pages · phase F4.5
+- [[ADR-139]] — Finalização migração Recharts→Chart.js em /reports/** · phase Onda v2.E concluída
+
+## Produção & Infra (F7)
+
+### Decidido (12)
+
+- [[ADR-007]] — Fernet app-level para criptografia · phase F4→F7
+- [[ADR-040]] — Billing adiado para pós-launch · phase F7
+- [[ADR-041]] — Traefik como reverse proxy · phase F7
+- [[ADR-055]] — Coverage target: ≥85% line + ≥95% new code · phase F7
+- [[ADR-056]] — Rolling restart em vez de blue-green · phase F7
+- [[ADR-057]] — JWT 15min + refresh 7d · phase F7
+- [[ADR-058]] — VPS CX32 para sizing · phase F7
+- [[ADR-059]] — Docker image CVE scan no CI · phase F7
+- [[ADR-060]] — Fernet dual-key para secret rotation · phase F7
+- [[ADR-061]] — Telemetria privacy-first · phase F7
+- [[ADR-108]] — Estratégia de subdomínios `mathoms.ai` + Cloudflare DNS
+- [[ADR-116]] — F7F-Local: stack Next separada + anonimização default + auth yaml+bcrypt+JWT (F7F-Local) · phase F7F-Local
+
+## Testing
+
+### Decidido (7)
+
+- [[ADR-062]] — Frontend testing em fase dedicada (6.5)
+- [[ADR-063]] — Hardening fintech em sub-fase 6.5D
+- [[ADR-064]] — Backend hardening em sub-fase 6.5E
+- [[ADR-067]] — Test infrastructure em sub-fase 6.5F
+- [[ADR-069]] — MSW sync strategy: manual + lint CI (não codegen)
+- [[ADR-070]] — Premium LLM E2E: mock default + nightly real opt-in
+- [[ADR-071]] — Playwright workspace isolation: email unique por worker
+
+## Operations
+
+### Decidido (2)
+
+- [[ADR-065]] — Sub-fase 7E Operational Readiness
+- [[ADR-066]] — Auth flows completos e prompt injection em 7B (bloqueadores de beta)
+
+## UX / Linguagem
+
+### Decidido (1)
+
+- [[ADR-068]] — Códigos internos do pipeline nunca vazam na UI
+
+## Multi-tenancy (F8)
+
+### Decidido (1)
+
+- [[ADR-072]] — Multi-tenancy: `workspace_id` scoping explícito + `WorkspaceMember` para multi-família · phase F8
+
+## Goals & Tasks (F8)
+
+### Decidido (3)
+
+- [[ADR-073]] — Goals como entidade versionada (não config estático) · phase F8
+- [[ADR-074]] — Tasks como entidade de 1ª classe (fora do relatório) · phase F8
+- [[ADR-077]] — Pipeline adapter como contrato de cutover (CLI → Web) · phase F8.4
+
+## Design System & Render (F9 / Report Premium)
+
+### Decidido (11)
+
+- [[ADR-076]] — Design Tokens Unificados Site ↔ Relatório · phase F9
+- [[ADR-078]] — Render Nativo React + E6 como Exportador Standalone · phase F9
+- [[ADR-121]] — Typography base 13px com override configurável · phase Fase 0
+- [[ADR-122]] — `chart_conclusions` e `section_summaries` em modo híbrido (template + LLM) · phase Fase 0
+- [[ADR-123]] — Notas (T6) e Kanban (T3) persistidos no backend · phase Fase 0
+- [[ADR-124]] — `scripts/e6_render.py` aposentado em favor de SSR standalone do Next · phase Fase 0
+- [[ADR-125]] — Workspace sharing: convites, viewer role, forced logout · phase F9
+- [[ADR-126]] — Multi-tenant Goals completos (APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO) · phase F8.5
+- [[ADR-127]] — E1 members persiste via ArtifactStore
+- [[ADR-128]] — E7-review-llm lê/escreve via `ArtifactStore` · phase A6-cleanup
+- [[ADR-129]] — Descontinuação completa do renderer HTML server-side
+
+## Pipeline DDD/SOLID + Infra+Domínio (Sprint A6)
+
+### Decidido (34)
+
+- [[ADR-082]] — PipelineArtifact: artefatos computacionais no banco
+- [[ADR-083]] — ArtifactStore: abstração de I/O para artefatos
+- [[ADR-084]] — Content-addressed uploads
+- [[ADR-085]] — Eliminar materialização de config em disco · phase parcial — implementação na Fase 4
+- [[ADR-086]] — MaterializationBridge: adapter temporário
+- [[ADR-087]] — StageSpec: dependências declarativas
+- [[ADR-088]] — StageConfig: configuração imutável por parâmetro
+- [[ADR-089]] — pipeline/domain/: camada de domínio isolada de I/O
+- [[ADR-090]] — Decimal para valores monetários
+- [[ADR-091]] — Pydantic para domain objects com coleções
+- [[ADR-093]] — Rename completo de identificadores de stage (Opção A) · phase F9 · execução em andamento
+- [[ADR-094]] — Report: single-active vs. versionado · phase single-active para F9; evolução planejada
+- [[ADR-097]] — Extract-then-refactor: estratégia de decomposição de `e3_reconcile.py`
+- [[ADR-098]] — Caminho B pragmático vs puro: nomenclatura oficial
+- [[ADR-099]] — Reuse de `analyze_*` legadas em `main_with_store` (decisão de A5d/A5e)
+- [[ADR-100]] — A6d commitment: fechar Caminho B puro nos 5 stages pragmáticos
+- [[ADR-101]] — Princípios R12-R17: DDD/SOLID no backend API (A6e)
+- [[ADR-102]] — Princípios R18-R20: language-neutral boundaries (A6f)
+- [[ADR-103]] — Teste manual como gate antes de remoção do bridge (A6b.5 + A6-human)
+- [[ADR-104]] — E1.5c em Caminho B pragmático (Sessão A5f) · phase A5f
+- [[ADR-105]] — LLM stages escrevem via ArtifactStore; E1 e E7-review LLM não migram (A6a) · phase A6a
+- [[ADR-106]] — Opt-in DB artifacts por workspace + DBArtifactStore no Celery task (A6b) · phase A6b
+- [[ADR-107]] — Remoção de `MaterializationBridge` e `stage_runner_compat` (A6c.1-2)
+- [[ADR-109]] — Auth portability: JWT HS256 + Fernet documentados como contratos portáveis (A6f.5a)
+- [[ADR-110]] — Structured JSON logging + OpenTelemetry bootstrap (A6f.3)
+- [[ADR-111]] — Stateless-rigoroso: padrão e gate empírico (A6f.6) · phase A6f.6
+- [[ADR-112]] — Pipeline-as-Service: HTTP boundary para execução de stages (A6f.1) · phase A6f.1
+- [[ADR-113]] — Convenções Go: `.golangci.yml` + CI + skeleton (A6g.7) · phase A6g.7
+- [[ADR-114]] — Enforcement automatizado de code style: gates imediatos + progressivos (A6g.6) · phase A6g.6
+- [[ADR-115]] — Domain events tipados: arquitetura e boundaries (A6e.events) · phase A6e.events
+- [[ADR-117]] — Report Premium UI baseline (paridade com EXEMPLO_DE_RELATORIO.html) · phase Fase 0 do plano
+- [[ADR-118]] — Flip do default `MATHOMS_USE_DB_ARTIFACTS` para `True` · phase A6
+- [[ADR-119]] — Contrato `LiveStep` para progresso de etapas do pipeline · phase A6-ux
+- [[ADR-120]] — Readers user-facing consultam `ArtifactStore` (DB-first) com fallback disco · phase A6
+
+### Proposto (3)
+
+- [[ADR-092]] — Renomear scripts para nomes descritivos de domínio · phase execução na Fase 9 pós-Caminho B dos stages
+- [[ADR-095]] — Segurança de `content_json` (LGPD) · phase execução distribuída em Fases 1-4 do plano
+- [[ADR-096]] — Observabilidade de cutover · phase execução paralela à Fase 2
+
+## Internacionalização (F12)
+
+### Proposto (1)
+
+- [[ADR-130]] — Internacionalização com `next-intl` + persistência em `users.locale` · phase F12
+
+## Report Premium (F-pós, ondas v1/v2)
+
+### Decidido (5)
+
+- [[ADR-131]] — `Report` referencia `pipeline_artifact` por FK (drop `analysis_json_path`)
+- [[ADR-132]] — Lifecycle scoping de `pipeline_artifacts` (workspace vs run)
+- [[ADR-133]] — `transferencias_internas` modelado em `transfer_configs` (workspace-scoped)
+- [[ADR-144]] — `section_summaries` LLM-driven em E5 com cache + fallback determinístico (v2.9) · phase Fase 1 — fundação arquitetural; implementação em Fase 2 sob lane v2.9
+- [[ADR-148]] — `SnapshotChangelogBuilder`: comparações mês-a-mês de relatório · phase Onda v2.D · v2.D.1
+
+## Sprint A7 — Rules-as-Code & Cutover
+
+### Decidido (9)
+
+- [[ADR-134]] — `ConfigStore`: protocolo de leitura tipado (pipeline + backend) · phase Sprint A7
+- [[ADR-135]] — Versionamento temporal de séries fiscais e câmbio · phase Sprint A7
+- [[ADR-136]] — `Decision` aggregate event-sourced com supersede chain · phase Sprint A7
+- [[ADR-137]] — Catalog + override resolver para `categorization` e `institutions` · phase Sprint A7
+- [[ADR-138]] — Protocolo de supervisão CTO para Sprint A7 · phase Sprint A7
+- [[ADR-143]] — `docs/methodology/` é rules-as-code (Sprint A7.6) · phase Sprint A7.6 · CTO sign-off 2026-04-27
+- [[ADR-145]] — 7 categorias canonical da composição patrimonial · phase Sprint A7.6 · CTO sign-off 2026-04-27
+- [[ADR-146]] — E3 source hierarchy + `BankAccount.source_tier` schema · phase Sprint A7.6 · CTO sign-off 2026-04-27
+- [[ADR-147]] — Milhas: valuation methodology universal + storage workspace-scoped · phase Sprint A7.6 · CTO sign-off 2026-04-27
+
+## Decisões metodológicas pós-auditoria (Roadmap v2)
+
+### Decidido (1)
+
+- [[ADR-142]] — Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem
+
+### Roadmap (2)
+
+- [[ADR-140]] — Goal IF schema v2 (renda passiva atual + IF meta líquida)
+- [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP)
+
+## Sprint A10 — `goals.json` cutover final
+
+### Decidido (5)
+
+- [[ADR-177]] — Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`) · phase Sprint A10.2
+- [[ADR-178]] — `Risk` aggregate workspace-scoped · phase Sprint A10.4
+- [[ADR-179]] — `Decision` aggregate — extensão de schema (`impact_1y/10y`, `horizon`, `priority`) · phase Sprint A10.3
+- [[ADR-180]] — `goals.json` cutover final via `StageConfig.config_store` extendido · phase Sprint A10.6
+- [[ADR-181]] — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py` · phase Sprint A10.8
+
+## Outras
+
+### Decidido (18)
+
+- [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
+- [[ADR-151]] — Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) · phase Direção E · Onda 3
+- [[ADR-152]] — `/plano-de-acao` renomeada para `/acao` com tabs (Direção E · Onda 6) · phase Direção E · Onda 6
+- [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
+- [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
+- [[ADR-155]] — `/dashboard` absorvido por `/plano` (Direção E consolidação) · phase Direção E · consolidação
+- [[ADR-156]] — Patrimônio em `/plano` é single-source via `patrimonio_snapshot` (Direção E · Onda 7) · phase Direção E · Onda 7
+- [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
+- [[ADR-158]] — Pipeline review screen — UI dedicada para aprovar/editar `StageReview` · phase Sprint A8 · Lane pipeline-review-screen
+- [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
+- [[ADR-162]] — Decisions como event projection sobre Goals · phase Onda 8
+- [[ADR-163]] — Decision congela `context_snapshot` ao aceitar Suggestion · phase Onda 8
+- [[ADR-164]] — Carteira de renda e taxa de retirada efetiva · phase A8.3
+- [[ADR-165]] — `ValidationIssue` estruturado em `ValidationResult` e `StageReview`
+- [[ADR-166]] — Schema estável `cenarios_conjuge` no payload E5 · phase A8.4
+- [[ADR-167]] — Eligibility gate de cenário do cônjuge no domain service · phase A8.4 PR2
+- [[ADR-168]] — Remoção do Modo USA do relatório · phase A8.4 PR4
+- [[ADR-169]] — Modo incremental estendido aos stages globais E1
+
+### Proposto (6)
+
+- [[ADR-170]] — Refresh tokens com httpOnly cookie e family-based revocation
+- [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
+- [[ADR-174]] — Off-site backup criptografado em Cloudflare R2 + restore drill
+- [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
+- [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
+- [[ADR-182]] — Vault de documentação operacional Obsidian-friendly em `docs/`
+
+### Roadmap (3)
+
+- [[ADR-150]] — Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap · phase deferido em W6-T06, 2026-05-07
+- [[ADR-159]] — Aggregator banking BR (Open Finance) — adiar adoção até gatilhos materializarem
+- [[ADR-160]] — Eficiência tributária imóvel direto vs FII no relatório premium (Roadmap)
+
+---
+> Regenerar: `python3 dev/build_doc_index.py --inline`
