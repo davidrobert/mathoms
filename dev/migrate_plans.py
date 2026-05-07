@@ -175,33 +175,30 @@ def _quote_if_needed(value: str) -> str:
     return value
 
 
+def _scalar_lines(spec: PlanSpec) -> list[str]:
+    pause_reason = "null" if spec.pause_reason is None else _quote_if_needed(spec.pause_reason)
+    return [
+        f"id: {spec.plan_id}",
+        "type: plan",
+        f"title: {_quote_if_needed(spec.title)}",
+        f"status: {spec.status}",
+        f"created_at: {spec.created_at}",
+        f"last_review: {LAST_REVIEW}",
+        f"sprint_origem: {_format_optional(spec.sprint_origem)}",
+        f"sprint_atual: {_format_optional(spec.sprint_atual)}",
+        f"sprints_envolvidas: {_format_yaml_list(spec.sprints_envolvidas)}",
+        f"paused_at: {_format_optional(spec.paused_at)}",
+        f"pause_reason: {pause_reason}",
+        f"adrs_canonical: {_format_yaml_str_list(spec.adrs_canonical)}",
+    ]
+
+
 def build_frontmatter(spec: PlanSpec) -> str:
     """Constrói o bloco YAML frontmatter conforme note-plan.schema.json."""
-    status_tag = f"status/{spec.status.replace('_', '-')}"
-    tags: list[str] = ["type/plan", status_tag, *spec.extra_tags]
-
-    lines: list[str] = ["---"]
-    lines.append(f"id: {spec.plan_id}")
-    lines.append("type: plan")
-    lines.append(f"title: {_quote_if_needed(spec.title)}")
-    lines.append(f"status: {spec.status}")
-    lines.append(f"created_at: {spec.created_at}")
-    lines.append(f"last_review: {LAST_REVIEW}")
-    lines.append(f"sprint_origem: {_format_optional(spec.sprint_origem)}")
-    lines.append(f"sprint_atual: {_format_optional(spec.sprint_atual)}")
-    lines.append(f"sprints_envolvidas: {_format_yaml_list(spec.sprints_envolvidas)}")
-    lines.append(f"paused_at: {_format_optional(spec.paused_at)}")
-    pause_reason_render = (
-        "null" if spec.pause_reason is None else _quote_if_needed(spec.pause_reason)
-    )
-    lines.append(f"pause_reason: {pause_reason_render}")
-    lines.append(f"adrs_canonical: {_format_yaml_str_list(spec.adrs_canonical)}")
-    lines.append("tags:")
-    for tag in tags:
-        lines.append(f"  - {tag}")
-    lines.append("---")
-    lines.append("")  # linha em branco entre frontmatter e body
-    return "\n".join(lines) + "\n"
+    tags = ["type/plan", f"status/{spec.status.replace('_', '-')}", *spec.extra_tags]
+    tag_lines = [f"  - {tag}" for tag in tags]
+    body = ["---", *_scalar_lines(spec), "tags:", *tag_lines, "---", ""]
+    return "\n".join(body) + "\n"
 
 
 def _run_git(*args: str, dry_run: bool = False) -> None:
@@ -213,77 +210,77 @@ def _run_git(*args: str, dry_run: bool = False) -> None:
     subprocess.run(cmd, check=True)
 
 
-def migrate_one(spec: PlanSpec, *, dry_run: bool) -> str:
-    """Migra 1 plano. Retorna mensagem de status humana."""
+def _move_legacy(spec: PlanSpec, target: Path, *, dry_run: bool) -> tuple[Path, Path]:
     legacy = DOCS / spec.legacy_filename
-    target_dir = PLAN_DIR / spec.slug_upper
-    target = target_dir / "_README.md"
-
-    if target.exists():
-        return f"  ✓ {spec.plan_id}: já migrado em {target.relative_to(REPO_ROOT)}"
-
     if not legacy.exists():
         raise FileNotFoundError(
             f"plano legado ausente: {legacy.relative_to(REPO_ROOT)} (spec={spec.plan_id})"
         )
-
     if not dry_run:
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-    # `git mv` preserva history. Tem que rodar antes de editar conteúdo.
+        target.parent.mkdir(parents=True, exist_ok=True)
     rel_legacy = legacy.relative_to(REPO_ROOT)
     rel_target = target.relative_to(REPO_ROOT)
     _run_git("mv", str(rel_legacy), str(rel_target), dry_run=dry_run)
+    return rel_legacy, rel_target
 
+
+def _replace_frontmatter(target: Path, frontmatter: str) -> None:
+    body = target.read_text(encoding="utf-8")
+    target.write_text(frontmatter + _strip_existing_frontmatter(body), encoding="utf-8")
+
+
+def migrate_one(spec: PlanSpec, *, dry_run: bool) -> str:
+    """Migra 1 plano. Retorna mensagem de status humana."""
+    target = PLAN_DIR / spec.slug_upper / "_README.md"
+    if target.exists():
+        return f"  ✓ {spec.plan_id}: já migrado em {target.relative_to(REPO_ROOT)}"
+    rel_legacy, rel_target = _move_legacy(spec, target, dry_run=dry_run)
     if dry_run:
         return f"  [dry-run] {spec.plan_id}: {rel_legacy} → {rel_target} (frontmatter pendente)"
-
-    # Lê o conteúdo já no destino, descarta frontmatter pré-existente
-    # (ex.: PLATFORM_REVIEW_PLAN.md tinha YAML custom não-schema-compliant)
-    # e injeta o frontmatter canônico.
-    body = target.read_text(encoding="utf-8")
-    body_clean = _strip_existing_frontmatter(body)
-    frontmatter = build_frontmatter(spec)
-    target.write_text(frontmatter + body_clean, encoding="utf-8")
-
+    _replace_frontmatter(target, build_frontmatter(spec))
     return f"  ✓ {spec.plan_id}: {rel_legacy} → {rel_target}"
 
 
+def _validate_paused(spec: PlanSpec) -> None:
+    if spec.status == "paused" and (not spec.paused_at or not spec.pause_reason):
+        raise ValueError(
+            f"{spec.plan_id}: status=paused requer paused_at e pause_reason "
+            f"(paused_at={spec.paused_at!r}, pause_reason={spec.pause_reason!r})"
+        )
+
+
+def _validate_created_at(spec: PlanSpec) -> None:
+    try:
+        date.fromisoformat(spec.created_at)
+    except ValueError as exc:
+        raise ValueError(f"{spec.plan_id}: created_at inválido — {exc}") from exc
+
+
 def _validate_specs() -> None:
-    """Sanity check: status `paused` exige paused_at + pause_reason."""
+    """Sanity check: status `paused` exige paused_at + pause_reason; created_at ISO."""
     for spec in PLAN_SPECS:
-        if spec.status == "paused":
-            if not spec.paused_at or not spec.pause_reason:
-                raise ValueError(
-                    f"{spec.plan_id}: status=paused requer paused_at e pause_reason "
-                    f"(paused_at={spec.paused_at!r}, pause_reason={spec.pause_reason!r})"
-                )
-        # Validação simples do formato date.
-        try:
-            date.fromisoformat(spec.created_at)
-        except ValueError as exc:
-            raise ValueError(f"{spec.plan_id}: created_at inválido — {exc}") from exc
+        _validate_paused(spec)
+        _validate_created_at(spec)
 
 
-def main() -> int:
+def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument(
         "--dry-run",
         action="store_true",
         help="imprime ações sem executar git mv nem reescrita",
     )
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+def main() -> int:
+    args = _parse_args()
     _validate_specs()
-
     print(f"Migrando {len(PLAN_SPECS)} plano(s) → docs/plan/<SLUG>/_README.md")
     if args.dry_run:
         print("(dry-run)")
-
     for spec in PLAN_SPECS:
-        msg = migrate_one(spec, dry_run=args.dry_run)
-        print(msg)
-
+        print(migrate_one(spec, dry_run=args.dry_run))
     print("\nFeito.")
     return 0
 
