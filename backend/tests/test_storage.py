@@ -75,6 +75,51 @@ class TestStorageService:
             ok, _ = self.service.validate_file(f"file{ext}", 1024)
             assert ok, f"Extension {ext} should be valid"
 
+    def test_validate_file_xls_ole2_magic_passes(self):
+        ole2 = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 16
+        ok, msg = self.service.validate_file("extrato.xls", len(ole2), content=ole2)
+        assert ok is True, msg
+
+    def test_validate_file_xls_html_passes(self):
+        # Bradesco/BB/Santander/Itaú "XLS" = Microsoft Office HTML format.
+        html_xls = (
+            b'<html xmlns:o="urn:schemas-microsoft-com:office:office" '
+            b'xmlns:x="urn:schemas-microsoft-com:office:excel">'
+            b"<body><table><tr><td>data</td></tr></table></body></html>"
+        )
+        ok, msg = self.service.validate_file("extrato.xls", len(html_xls), content=html_xls)
+        assert ok is True, msg
+
+    def test_validate_file_xls_html_uppercase_passes(self):
+        html_xls = b"<HTML><BODY>data</BODY></HTML>"
+        ok, msg = self.service.validate_file("extrato.xls", len(html_xls), content=html_xls)
+        assert ok is True, msg
+
+    def test_validate_file_xls_html_with_doctype_passes(self):
+        html_xls = b"<!DOCTYPE html><html><body><table></table></body></html>"
+        ok, msg = self.service.validate_file("extrato.xls", len(html_xls), content=html_xls)
+        assert ok is True, msg
+
+    def test_validate_file_xls_html_with_xml_decl_passes(self):
+        # SpreadsheetML 2003 (.xml renomeado .xls)
+        html_xls = b'<?xml version="1.0"?><Workbook></Workbook>'
+        ok, msg = self.service.validate_file("extrato.xls", len(html_xls), content=html_xls)
+        assert ok is True, msg
+
+    def test_validate_file_xls_garbage_still_rejected(self):
+        garbage = b"GIF89a" + b"\x00" * 16  # GIF mascarado de .xls
+        ok, msg = self.service.validate_file("fake.xls", len(garbage), content=garbage)
+        assert ok is False
+        assert "não corresponde" in msg
+
+    def test_validate_file_xlsx_html_still_rejected(self):
+        # HTML disguise é tolerado SÓ para .xls (formato histórico).
+        # .xlsx exige ZIP genuíno.
+        html = b"<html><body>not a real xlsx</body></html>"
+        ok, msg = self.service.validate_file("fake.xlsx", len(html), content=html)
+        assert ok is False
+        assert "não corresponde" in msg
+
     def test_save_to_inbox(self):
         self.service.ensure_tenant_dirs(self.ws_id)
         path = self.service.save_to_inbox(self.ws_id, "extrato.pdf", b"fake-pdf-content")
