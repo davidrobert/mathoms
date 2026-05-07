@@ -101,6 +101,46 @@ Depois rode `pre-commit install --install-hooks` de novo.
 
 ---
 
+## 1.3. Configuração git recomendada (anti-branch-órfã)
+
+Agentes criam branches `agent/<slug>/<ts>` que viram squash-merge → branch
+remota auto-deletada → checkout local fica parado em ref morta. Sintoma:
+`make dev-fresh` quebra com `no such ref was fetched`.
+
+**Configure uma vez, vale para sempre:**
+
+```bash
+# Auto-prune das refs deletadas no remoto a cada `git fetch`.
+# Sem isso, origin/agent/<slug>/<ts> fica como zumbi local mesmo após
+# o GitHub deletar a branch remota.
+git config --local fetch.prune true
+
+# Alias `git sweep`: deleta locais cuja upstream sumiu (post-merge).
+# É destrutivo (-D), por isso fica como comando explícito, não automático.
+git config --local alias.sweep '!git fetch -p && \
+  git for-each-ref --format="%(refname:short) %(upstream:track)" refs/heads \
+  | awk "/\\[gone\\]/ {print \$1}" \
+  | xargs -r -n1 git branch -D'
+```
+
+**Uso após merge de PR:**
+
+```bash
+git checkout main && git pull --ff-only && git sweep
+```
+
+**Detecção proativa** (já wired no `make dev-fresh`):
+
+```bash
+make stale-check     # avisa se HEAD está em agent/* órfã + mostra one-liner
+```
+
+Se você ignorou o aviso e caiu na quebra do `dev-pull`, o próprio target
+agora detecta o caso e te dá a one-liner de correção (ver
+`Makefile:dev-pull`).
+
+---
+
 ## 2. Variáveis de ambiente
 
 Na raiz do repositório existe **`.env.example`** com todas as variáveis documentadas (valores seguros para commit).

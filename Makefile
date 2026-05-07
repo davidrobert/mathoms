@@ -304,9 +304,34 @@ dev-pull:
 	   echo "   ❌ Working tree sujo. Commit ou stash antes."; \
 	   exit 1; \
 	 fi
-	@echo "▶  git fetch + git pull --ff-only…"
-	@git fetch origin
-	@git pull --ff-only
+	@echo "▶  git fetch --prune + git pull --ff-only…"
+	@git fetch origin --prune
+	@CURRENT_BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
+	 UPSTREAM_NAME=$$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true); \
+	 if [ -z "$$UPSTREAM_NAME" ]; then \
+	   case "$$CURRENT_BRANCH" in agent/*) \
+	     echo "   ❌ Branch '$$CURRENT_BRANCH' sem upstream remoto."; \
+	     echo "      Provavelmente uma branch agent/* cuja PR já foi mergeada e"; \
+	     echo "      auto-deletada no GitHub. Limpe e volte para main:"; \
+	     echo ""; \
+	     echo "        git checkout main && git pull --ff-only \\"; \
+	     echo "          && git branch -D $$CURRENT_BRANCH"; \
+	     echo ""; \
+	     exit 1 ;; \
+	   esac; \
+	   echo "   ⚠️  '$$CURRENT_BRANCH' sem upstream — pulando pull."; \
+	 elif ! git rev-parse --verify --quiet "$$UPSTREAM_NAME" >/dev/null; then \
+	   echo "   ❌ Upstream '$$UPSTREAM_NAME' não existe mais (branch deletada no remoto)."; \
+	   echo "      Provavelmente PR mergeada (squash) e branch auto-deletada."; \
+	   echo "      Limpe e volte para main:"; \
+	   echo ""; \
+	   echo "        git checkout main && git pull --ff-only \\"; \
+	   echo "          && git branch -D $$CURRENT_BRANCH"; \
+	   echo ""; \
+	   exit 1; \
+	 else \
+	   git pull --ff-only; \
+	 fi
 	@echo "▶  npm install (frontend + frontend-ops)…"
 	@npm --prefix frontend install --silent
 	@npm --prefix frontend-ops install --silent
@@ -427,6 +452,12 @@ _dev-fresh-preflight:
 	   exit 1; \
 	 fi
 	@echo "   ✓ Working tree limpo"
+	@python3 dev/check_post_merge_cleanup.py
+
+## stale-check: avisa se HEAD está em agent/* órfã (PR já mergeada / branch deletada)
+.PHONY: stale-check
+stale-check:
+	@python3 dev/check_post_merge_cleanup.py
 
 ## dev-status: Health check de cada serviço (PID alive + porta listening)
 dev-status:
