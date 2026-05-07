@@ -63,23 +63,27 @@ def detect_actual_mime(content: bytes) -> str | None:
     return None
 
 
-def _validate_magic_number(filename: str, content: bytes) -> tuple[bool, str]:
-    """Verify content prefix matches expected magic bytes for its extension.
+def _looks_like_xls_html(content: bytes) -> bool:
+    # BR banks (Bradesco, BB, Santander, Itaú em alguns relatórios) exportam
+    # "XLS" como `<html xmlns:o="urn:schemas-microsoft-com:office:office">...`
+    # — Excel abre nativo, mas magic bytes são HTML/XML, não OLE2/ZIP. O
+    # parser E2 (e2/banks/itau.py:parse_itau_cdb_html_xls) já lida com isso.
+    head = content[:64].lstrip().lower()
+    return head.startswith((b"<html", b"<!doc", b"<?xml"))
 
-    Returns (ok, reason). Unknown extensions (csv/json) always pass since
-    they have no reliable magic. Content shorter than the smallest known
-    signature is rejected as "malformed".
-    """
+
+def _validate_magic_number(filename: str, content: bytes) -> tuple[bool, str]:
+    """Verify content prefix matches expected magic for the extension."""
     ext = Path(filename).suffix.lower()
     expected = _MAGIC_SIGNATURES.get(ext)
     if expected is None:
         return True, ""
     if not content:
         return False, "Arquivo vazio"
-    for sig in expected:
-        if content.startswith(sig):
-            return True, ""
-    # Hex preview of first few bytes to aid debugging without leaking content
+    if any(content.startswith(sig) for sig in expected):
+        return True, ""
+    if ext == ".xls" and _looks_like_xls_html(content):
+        return True, ""
     preview = content[:8].hex()
     return False, (f"Conteúdo não corresponde à extensão {ext} " f"(bytes iniciais: {preview})")
 
