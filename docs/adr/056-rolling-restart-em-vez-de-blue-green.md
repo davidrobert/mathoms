@@ -1,0 +1,24 @@
+---
+id: ADR-056
+type: adr
+title: "Rolling restart em vez de blue-green"
+status: Decidido
+phase: "F7"
+date: "1970-01-01"
+relates_to: []
+supersedes: []
+superseded_by: []
+aliases: ["ADR 056"]
+tags:
+  - type/adr
+  - status/decidido
+size_lines: 9
+---
+
+# ADR-056 — Rolling restart em vez de blue-green
+
+**Status:** Decidido (F7)
+
+**Decisão:** `docker compose pull && up -d` com health check pós-deploy + rollback automático.
+
+**Rationale:** Blue-green real requer 2 VPS (overkill para dogfood). Downtime <30s é aceitável.

@@ -325,34 +325,48 @@ no próprio prompt; arquivar só quando o prompt deixa de fazer sentido
 
 ---
 
-## ADRs → `docs/DECISIONS.md`
+## ADRs → notas atômicas em `docs/adr/` (ADR-182 · F2)
 
-Toda decisão arquitetural ou de produto não-trivial vira ADR. Convenções
-canonicas em [docs/DECISIONS.md §Cheat-sheet](docs/DECISIONS.md):
+Toda decisão arquitetural ou de produto não-trivial vira ADR. Pós-F2 do
+DOC_REORG, ADRs vivem como notas atômicas em [`docs/adr/NNN-slug.md`](docs/adr/),
+uma por arquivo, com frontmatter validado por JSON Schema
+(`docs/_schemas/note-adr.schema.json`). [`docs/DECISIONS.md`](docs/DECISIONS.md)
+é shim de ~220 linhas que preserva âncoras históricas para PRs antigos.
 
-- **Heading:** `## ADR-NNN — Título descritivo` (3 dígitos zero-padded).
-  Não criar sufixos `-XX` (`-TQ`/`-WS` são apenas históricos).
-- **Status:** apenas 3 valores aceitos pelo
-  [`dev/validate_adr_format.py`](dev/validate_adr_format.py):
-  `Decidido`, `Proposto`, `Roadmap`. Sufixos de fase em parênteses são
-  livres (`Decidido (F8.4)`, `Decidido (Sprint A7.6)`).
-- **Anchor link:** copy-paste do título real, **nunca** reinventado.
-  Use `python3 dev/check_adr_anchors.py --suggest` para gerar.
-- **Supersedure bidirecional:** ao criar ADR-Y que substitui ADR-X,
-  declare `**Supersedes** ADR-X` em Y **e** adicione banner
-  `> **Nota (YYYY-MM-DD):** parcialmente superseded por ADR-Y` em X.
-- **ToC:** rode `python3 dev/build_adr_toc.py --inline` após adicionar
-  uma ADR. Categoria pode ser ajustada via override em `OVERRIDES` no
-  script.
-- **Tamanho:** ADR > 150 linhas exige justificativa explícita ou split
-  (mover detalhes operacionais para `track_*.md` ou doc operacional).
+Convenções:
 
-**Gates de validação** (rodar antes de commit em `docs/DECISIONS.md`):
+- **Filename:** `NNN-<slug>.md` (3 dígitos zero-padded + slug derivado do
+  título, lowercase ASCII, hífens). Sufixos legados (`ADR-029-TQ`,
+  `ADR-102-WS`) viram `029-tq-...md` / `102-ws-...md`.
+- **Frontmatter obrigatório:** `id` (`ADR-NNN`), `type: adr`, `title`,
+  `status` (`Decidido` | `Proposto` | `Roadmap`), `date` (string ISO,
+  com aspas).
+- **Status sufixo de fase:** vai em campo `phase:` (ex.: `Decidido (F8.4)`
+  → `status: Decidido`, `phase: F8.4`). Schemas + `validate_frontmatter`
+  enforçam.
+- **Tags hierárquicas:** `type/adr` obrigatória; `status/<lc>` automática;
+  opcional `area/<dominio>`, `phase/<fase>`, `methodology/<m>`.
+- **Anchor histórico:** copy-paste do slug GH em `docs/DECISIONS.md`
+  shim (PR antigo continua clickable). Use
+  `python3 dev/check_adr_anchors.py --suggest` para gerar slug novo.
+- **Supersedure bidirecional:** ADR-Y supersede ADR-X → declare
+  `supersedes: ["[[ADR-X]]"]` em Y E `superseded_by: ["[[ADR-Y]]"]`
+  em X (frontmatter).
+- **Tamanho:** `size_lines` no frontmatter (auto-gerado). ADR > 150
+  linhas → justificativa explícita ou split.
+- **ÍNDICE:** [`docs/_MOC/_generated/ADR_INDEX.md`](docs/_MOC/_generated/ADR_INDEX.md)
+  é auto-gerado por `dev/build_doc_index.py` (categoria + status). Nunca
+  editar manualmente.
+
+**Gates de validação** (pré-commit cobre todos):
 
 ```bash
-python3 dev/check_adr_anchors.py        # slugs GitHub Slugger válidos
-python3 dev/build_adr_toc.py --check    # ToC sincronizado
-python3 dev/validate_adr_format.py      # formato Status/Data/seções
+python3 dev/validate_frontmatter.py     # frontmatter contra schemas
+python3 dev/check_doc_filename_id.py    # filename ↔ id
+python3 dev/check_doc_links.py          # wikilinks resolvem
+python3 dev/check_adr_anchors.py        # anchors históricos + slug
+python3 dev/build_doc_index.py --check  # _generated/ sincronizado
+python3 dev/validate_adr_format.py      # formato Status/Data (legado, mantido)
 ```
 
 ### Política operacional — ADR `Proposto` antes de PR P0/P1
@@ -1017,7 +1031,7 @@ Conteúdo que **era** duplicado neste arquivo e agora vive em sua fonte
 | Arquitetura alvo pós-A6 (migração infra+domínio)    | [docs/ARCHITECTURE.md §17](docs/ARCHITECTURE.md)                                           |
 | Sprint atual da migração (A5f, A6a-f, A6-human, A6c, A6d…) | [docs/BACKLOG.md — Sprint A6](docs/BACKLOG.md)                                      |
 | Log cronológico de entregas (sessões A1–A6f por data) | [docs/CHANGELOG.md](docs/CHANGELOG.md)                                                   |
-| ADRs (001–148+) e rationale de decisões — ToC categorizado no topo, gates em [dev/check_adr_anchors.py](dev/check_adr_anchors.py), [dev/build_adr_toc.py](dev/build_adr_toc.py), [dev/validate_adr_format.py](dev/validate_adr_format.py); cheat-sheet de criação no preâmbulo do arquivo + protocolo em §"ADRs → docs/DECISIONS.md" deste CLAUDE.md | [docs/DECISIONS.md](docs/DECISIONS.md)                       |
+| ADRs (001–182+) — notas atômicas em `docs/adr/NNN-slug.md` (ADR-182 · F2). Índice agrupado por categoria + status: [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) (auto-gerado por `dev/build_doc_index.py`). Gates: `dev/validate_frontmatter.py`, `dev/check_doc_filename_id.py`, `dev/check_doc_links.py`, `dev/check_adr_anchors.py`. Protocolo em §"ADRs → notas atômicas em docs/adr/" deste CLAUDE.md. [docs/DECISIONS.md](docs/DECISIONS.md) é shim com âncoras históricas | [docs/adr/](docs/adr/) |
 | Domínios e URLs públicas (ADR-108)                  | [docs/ARCHITECTURE.md §18](docs/ARCHITECTURE.md)                                           |
 | Smoke test humano (gate pré-A6c)                    | [docs/SMOKE_TEST_HUMAN.md](docs/SMOKE_TEST_HUMAN.md)                                       |
 | Artefatos de pipeline + schemas                     | [docs/PIPELINE_ARTIFACTS.md](docs/PIPELINE_ARTIFACTS.md)                                   |
