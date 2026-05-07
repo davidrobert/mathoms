@@ -117,7 +117,7 @@
 [D177](#adr-177--thresholds-e-referências-metodológicas-como-código-rules-as-code-consolidation-goalsjson) [D178](#adr-178--risk-aggregate-workspace-scoped) [D179](#adr-179--decision-aggregate--extensão-de-schema-impact_1y10y-horizon-priority) [D180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido) [D181](#adr-181--goalsjson-removido-de-_archive-e-adicionado-a-devcheck_forbidden_pathspy)
 
 **Outras:**
-[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-deferido-para-roadmap) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion) [D164](#adr-164--carteira-de-renda-e-taxa-de-retirada-efetiva) [D165](#adr-165--validationissue-estruturado-em-validationresult-e-stagereview) [D166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) [D167](#adr-167--eligibility-gate-de-cenário-do-cônjuge-no-domain-service) [D168](#adr-168--remoção-do-modo-usa-do-relatório) [D169](#adr-169--modo-incremental-estendido-aos-stages-globais-e1) [D170](#adr-170--refresh-tokens-com-httponly-cookie-e-family-based-revocation) [D173](#adr-173--llm-budget-hard-stop--llmcalllog-populada-universal) [D174](#adr-174--off-site-backup-criptografado-em-cloudflare-r2--restore-drill) [D175](#adr-175--prompt-injection-defense-em-camadas-sanitize--system-clause--pydantic-strict) [D176](#adr-176--chave-estável-cenarios_conjuge-no-bloco-de-narrativas-e5n)
+[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-deferido-para-roadmap) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion) [D164](#adr-164--carteira-de-renda-e-taxa-de-retirada-efetiva) [D165](#adr-165--validationissue-estruturado-em-validationresult-e-stagereview) [D166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) [D167](#adr-167--eligibility-gate-de-cenário-do-cônjuge-no-domain-service) [D168](#adr-168--remoção-do-modo-usa-do-relatório) [D169](#adr-169--modo-incremental-estendido-aos-stages-globais-e1) [D170](#adr-170--refresh-tokens-com-httponly-cookie-e-family-based-revocation) [D173](#adr-173--llm-budget-hard-stop--llmcalllog-populada-universal) [D174](#adr-174--off-site-backup-criptografado-em-cloudflare-r2--restore-drill) [D175](#adr-175--prompt-injection-defense-em-camadas-sanitize--system-clause--pydantic-strict) [D176](#adr-176--chave-estável-cenarios_conjuge-no-bloco-de-narrativas-e5n) [D182](#adr-182--vault-de-documentação-operacional-obsidian-friendly-em-docs)
 
 <!-- ADR-TOC-END -->
 
@@ -8948,6 +8948,73 @@ Arquivo arquivado em F8.4 (2026-04-15), runtime materialization removida em A10.
 - [ ] Sprint A10 status global em BACKLOG marcado ✅.
 
 **Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §6.2](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.8).
+
+---
+
+## ADR-182 — Vault de documentação operacional Obsidian-friendly em `docs/`
+
+**Status:** Proposto • **Data:** 2026-05-07 • **Relaciona** [ADR-076](#adr-076--design-tokens-unificados-site--relatório), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a), [ADR-114](#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
+
+**Contexto:** A documentação operacional cresceu para ~24k linhas distribuídas em 70+ arquivos. Métricas medidas (2026-05-07): `DECISIONS.md` 8.973 linhas / 175 ADRs (~155k tokens), `CHANGELOG.md` 6.923 linhas (~130k tokens), `BACKLOG.md` 2.358 linhas (~47k tokens), 57 tracks em `agent_prompts/` (~12k linhas) com ~30 linhas de "regras inegociáveis" duplicadas em cada um, 7 `<TOPIC>_PLAN.md` (~4k linhas), `CLAUDE.md` 1.011 linhas injetadas em **toda** sessão LLM.
+
+Drift confirmado entre 4 fontes: `ROADMAP.md` linha 6 diz "Sprint A7 entregue", `BACKLOG.md` linha 9 diz "Direção E em curso", `CHANGELOG.md` linha 9 diz "Sprint A10 Wave 1", `README.md` linha 5 idem. Status duplicado em 3-4 lugares com horas de atraso entre updates. Cabeçalhos de tracks repetem invariantes do `CLAUDE.md` (~1.700 linhas duplicadas em 57 arquivos) e driftam silenciosamente quando ADRs canônicas mudam.
+
+Custo de tokens medido por operação típica (cenário "agente pega lane, executa"): adicionar lane no BACKLOG ≈ 50k lidos; atualizar status de lane ≈ 80k (precisa cross-checar 2-3 fontes); adicionar entrada no CHANGELOG ≈ 130k (lê arquivo gigante para inserir bullet); descobrir lanes prontas ≈ 56k. LLM consome 30-200k tokens em queries de leitura/listagem antes de produzir uma linha.
+
+Brainstorm em [`_scratch/doc-reorg-brainstorm-cto.md`](../_scratch/doc-reorg-brainstorm-cto.md) (lente estrutural) e `_scratch/doc-reorg-brainstorm-data.md` (lente de consumo por LLM, retornado inline) avaliou 4 modelos arquiteturais. Recomendação convergente: vault Obsidian-friendly com notas atômicas + frontmatter YAML + índices materializados.
+
+**Decisão:** Reorganizar documentação operacional como vault Obsidian-friendly **em `docs/` (raiz preservada)**, com:
+
+1. **Notas atômicas com frontmatter YAML** por tipo: `adr`, `lane`, `plan`, `changelog-entry`, `track`, `domain-rule`. Filename = ID estável (`adr/090-decimal-money.md`, `sprint/A10/lanes/A10-2-rules-as-code.md`).
+2. **IDs estáveis** com regex validada por gate: `ADR-NNN`, `<sprint>.<num>[<letra>]`, `PLAN-<slug>`, `CHG-YYYY-MM-DD-<scope>`, `TRACK-<slug>`, `RULE-<slug>`.
+3. **Wikilinks `[[X]]`** dentro da vault (graph view + backlinks); markdown links em `CLAUDE.md`, `README.md` e PRs externos (rendering GitHub).
+4. **Tags hierárquicas** consultáveis sem plugin: `type/`, `area/`, `sprint/`, `status/`, `priority/`, `methodology/`.
+5. **Índices em duas camadas** com separação física rígida:
+   - `docs/_MOC/_generated/` — índices auto-regenerados por `dev/build_doc_index.py` (INDEX, ADR_INDEX, SPRINT_CURRENT, CHANGELOG_RECENT, ROADMAP, PLAN_PROGRESS). Snapshot test bloqueia drift.
+   - `docs/_MOC/` — índices editoriais manuais (`00-INDEX.md` entry-point, `SPRINTS-active.md` overview narrativo, `PLANS-active.md` curating de status).
+6. **Plano e Sprint ortogonais via frontmatter**: lane tem `sprint: A10` (FK obrigatória) e `plan: PLAN-X` (FK opcional). Índice gerado `PLAN_PROGRESS.md` agrega lanes por plano.
+7. **Dataview opt-in** — vault funciona sem ele; aceita como aceleração.
+8. **`CLAUDE.md` permanece na raiz fora da vault**, mas perde tabelas de status (Sprint A7/A10/Direção E) e §Hotspots; passa a apontar para paths estáveis (`docs/_MOC/_generated/SPRINT_CURRENT.md`) cujo conteúdo é dinâmico.
+9. **`README.md`, `ROADMAP.md`, `PRODUCT.md` ajustados:**
+   - `README.md`: remove status duplicado (linha 5); aponta para `docs/_MOC/_generated/ROADMAP.md`.
+   - `ROADMAP.md`: deletado (cabeçalho narrativo é deadcode); tabela "Visão geral das fases F0-F11" migra para `docs/reference/PHASES.md` (evergreen).
+   - `PRODUCT.md`: move para `docs/reference/PRODUCT.md`.
+10. **Codegen idempotente com snapshot test** seguindo padrão consolidado em ADR-076 (design tokens YAML→TS) e ADR-109 (OpenAPI snapshot). Pre-commit + CI.
+11. **Schema validation** com JSON Schema em `docs/_schemas/note-*.schema.json`, alinhado com `config/schemas/*.schema.json` existente.
+
+Migração em 5 fases sequenciais (~26-28h em ~3 dias calendário), detalhada em [`docs/DOC_REORG_PLAN.md`](DOC_REORG_PLAN.md). Janelas de pausa explícitas para fases 2 (split DECISIONS, ~24h) e 4 (split BACKLOG, ~24-48h).
+
+**Alternativas consideradas:**
+
+1. **Vault em pasta nova `vault/`** — quebra ~50 paths hardcoded em CLAUDE.md, scripts `dev/`, GitHub workflows, prompts em sessões antigas. Custo de migração desproporcional ao ganho conceitual. **Rejeitada.**
+2. **Mega-arquivos com frontmatter inline** (Modelo B do brainstorm CTO) — mantém DECISIONS/BACKLOG/CHANGELOG, adiciona frontmatter por seção, índice gerado. Não resolve nenhuma das 5 sobreposições diagnosticadas; vault Obsidian fica funcional só com Dataview (viola requisito explícito); ROI negativo. **Rejeitada.**
+3. **Zettelkasten radical** (Modelo C — ~400 notas atômicas, invariantes do CLAUDE.md viram zettels) — arquiteturalmente mais elegante, mas custo de migração 50-70h + disciplina contínua de hygiene Zettelkasten que time de 1-3 devs não sustenta. **Rejeitada.**
+4. **Hub-and-spoke / dual-source** (Modelo D — mantém mega-arquivos como source-of-truth, gera vault zettel por codegen) — duplica fonte de verdade, drift duplo, edição humana descartada na vault gerada. **Rejeitada.**
+5. **Adicionar SQLite layer** (M4 do data-engineer — `docs/_MOC/_generated/notes.sqlite` para queries grafo/agregação) — útil para queries cross-cutting (ex.: "ADRs sobre auth superseded em 2025-2026"); ganho marginal vs complexidade extra. **Adiada para sprint posterior** quando aparecer demanda concreta.
+
+**Trade-offs explícitos:**
+
+- **Ganho de tokens (estimado por benchmark de 6 queries):** queries comuns (status de sprint, lanes prontas, o-que-mudou-na-semana) reduzem 90-99%; deep-dive cross-ADR reduz 40-50% sem SQLite. Ordem de magnitude validada nos 2 brainstorms.
+- **Janela de migração:** ~28h em ~3 dias calendário; pausas obrigatórias 24-48h em hotspots durante Fases 2 e 4.
+- **Volume de arquivos:** +250 arquivos em `docs/` (175 adr/ + ~70 lanes + 7 plans + ~40 outros). `ls` CLI fica menos amigável; mitigação: tags hierárquicas + Obsidian + MOCs.
+- **Wikilinks `[[X]]` não renderizam clicáveis no GitHub.** Mitigação: convenção mista — wikilinks dentro da vault, markdown links em CLAUDE.md/README/PRs (consumo externo).
+- **Disciplina contínua:** frontmatter sempre populado, status sempre atualizado. Gates protegem ~80% (schema, links, supersedure, stale detector); ~20% depende de cultura.
+- **Compatibilidade externa:** shims em `DECISIONS.md`, `BACKLOG.md`, `CHANGELOG.md` preservam paths hardcoded em PRs antigos, prompts em sessões anteriores e referências externas.
+
+**Critério de aceite (gate de promoção `Proposto` → `Decidido`):**
+
+- [ ] Plano executivo `docs/DOC_REORG_PLAN.md` revisado e aprovado pelo usuário.
+- [ ] Fase 1 entregue: schemas JSON em `docs/_schemas/`, `dev/build_doc_index.py`, `dev/validate_frontmatter.py`, `dev/check_doc_links.py`, ADR exemplo migrada com gates verdes.
+- [ ] Fases 2-5 entregues conforme `docs/DOC_REORG_PLAN.md` com critério de aceite mensurável por fase.
+- [ ] Snapshot test `tests/test_doc_indexes_snapshot.py` verde (índices em `_MOC/_generated/` regenerados sem drift).
+- [ ] Token-cost-benchmark roda em CI: queries Q2/Q3/Q7 do brainstorm (lanes prontas, o-que-mudou-na-semana, sprint atual) reduzem ≥90%. Baseline e meta documentados em `tests/benchmarks/doc_token_cost.json`.
+- [ ] Vault abre no Obsidian out-of-the-box: smoke test manual confirma graph view, backlinks, painel de tags, busca por path/tag funcionando sem plugin obrigatório (Dataview opcional).
+- [ ] CLAUDE.md §"Onde procurar contexto adicional" atualizado com novos paths estáveis; §Hotspots removido (não há mais hotspots de 6k linhas).
+- [ ] `README.md`, `PRODUCT.md`, `ROADMAP.md` ajustados conforme decisão item 9.
+- [ ] Drift zero entre status de sprint: única fonte é `docs/sprint/<current>/_README.md` (frontmatter `status`); demais fontes derivam.
+- [ ] Product-manager review da UX final da vault (graph view, taxonomia de tags, onboarding) antes de promoção a `Decidido`.
+
+**Plano de implementação:** [docs/DOC_REORG_PLAN.md](DOC_REORG_PLAN.md).
 
 ---
 
