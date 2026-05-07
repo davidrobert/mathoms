@@ -3,4 +3,6 @@
 
 # Roadmap F0-F11
 
-_Tabela populada na Fase 5 do plano (extração de `docs/reference/PHASES.md`)._
+Tabela completa em [`docs/reference/PHASES.md`](../../reference/PHASES.md).
+
+Sprint corrente em [`SPRINT_CURRENT.md`](SPRINT_CURRENT.md); planos abertos em [`PLAN_PROGRESS.md`](PLAN_PROGRESS.md).

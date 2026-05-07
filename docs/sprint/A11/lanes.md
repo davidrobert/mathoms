@@ -4,12 +4,12 @@
 
 | Wave | Title | Status | Tasks | Esforço |
 |---|---|---|---|---|
-| [[A11.W1]] | Hot patches + ADR backfill | shipped | 8 | 5d |
-| [[A11.W2]] | Pipeline + DB hardening | ready | 6 | 7d |
-| [[A11.W3]] | Auth + LLM ops + Email | blocked | 5 | 12d |
-| [[A11.W4]] | Production readiness | blocked | 5 | 10d |
-| [[A11.W5]] | Frontend + Methodology | ready | 5 | 10d |
-| [[A11.W6]] | Tech debt cleanup | blocked-parcial | 6 | 12d |
+| [[A11.w1]] | Hot patches + ADR backfill | shipped | 8 | 5d |
+| [[A11.w2]] | Pipeline + DB hardening | ready | 6 | 7d |
+| [[A11.w3]] | Auth + LLM ops + Email | blocked | 5 | 12d |
+| [[A11.w4]] | Production readiness | blocked | 5 | 10d |
+| [[A11.w5]] | Frontend + Methodology | ready | 5 | 10d |
+| [[A11.w6]] | Tech debt cleanup | blocked-parcial | 6 | 12d |
 
 ## Status detalhado por wave
 
