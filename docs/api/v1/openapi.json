@@ -1946,6 +1946,65 @@
             ],
             "title": "Decided At"
           },
+          "horizon": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Horizonte temporal: short_6_12m | medium_1_3y | long_5y_plus.",
+            "title": "Horizon"
+          },
+          "impact_10y_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Impacto financeiro em 10 anos (BRL string).",
+            "title": "Impact 10Y Brl"
+          },
+          "impact_1y_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Impacto financeiro em 1 ano (BRL string).",
+            "title": "Impact 1Y Brl"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "1..99 (1 = mais urgente).",
+            "title": "Priority"
+          },
           "rationale": {
             "anyOf": [
               {
@@ -2125,9 +2184,48 @@
             ],
             "title": "Executed At"
           },
+          "horizon": {
+            "title": "Horizon",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "impact_10y_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact 10Y Brl"
+          },
+          "impact_1y_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact 1Y Brl"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
           },
           "rationale": {
             "anyOf": [
@@ -2208,6 +2306,7 @@
           "code",
           "title",
           "status",
+          "horizon",
           "created_at",
           "updated_at"
         ],
@@ -2272,6 +2371,61 @@
               }
             ],
             "title": "Decided At"
+          },
+          "horizon": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizon"
+          },
+          "impact_10y_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact 10Y Brl"
+          },
+          "impact_1y_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact 1Y Brl"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
           },
           "rationale": {
             "anyOf": [

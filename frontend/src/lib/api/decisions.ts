@@ -24,6 +24,21 @@ export type DecisionTargetField =
 
 export type DecisionTargetValueType = "pct" | "brl" | "int" | "str";
 
+/** ADR-179 — horizonte temporal da Decision. Default ``short_6_12m``. */
+export type DecisionHorizon = "short_6_12m" | "medium_1_3y" | "long_5y_plus";
+
+export const DECISION_HORIZON_LABEL: Record<DecisionHorizon, string> = {
+  short_6_12m: "Curto (6–12 meses)",
+  medium_1_3y: "Médio (1–3 anos)",
+  long_5y_plus: "Longo (5+ anos)",
+};
+
+export const DECISION_HORIZON_ORDER: ReadonlyArray<DecisionHorizon> = [
+  "short_6_12m",
+  "medium_1_3y",
+  "long_5y_plus",
+];
+
 export interface Decision {
   id: string;
   workspace_id: string;
@@ -42,6 +57,12 @@ export interface Decision {
   target_value_type: DecisionTargetValueType | string | null;
   /** ADR-163 — KPIs frozen do relatório-fonte da Suggestion. */
   context_snapshot: Record<string, unknown> | null;
+  /** ADR-179 — quantificação de impacto + horizonte + prioridade. */
+  impact_1y_brl: string | null;
+  impact_10y_brl: string | null;
+  horizon: DecisionHorizon;
+  /** 1..99; null ordena por impact_1y DESC NULLS LAST no card S10. */
+  priority: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -65,6 +86,11 @@ export interface DecisionCreatePayload {
   /** ADR-163 — KPIs frozen do relatório-fonte (preenchido auto pelo
    * backend ao aceitar Suggestion; UI raramente passa). */
   context_snapshot?: Record<string, unknown> | null;
+  /** ADR-179 — quantificação de impacto + horizonte + prioridade. */
+  impact_1y_brl?: string | null;
+  impact_10y_brl?: string | null;
+  horizon?: DecisionHorizon;
+  priority?: number | null;
 }
 
 export interface DecisionUpdatePayload {
@@ -73,6 +99,11 @@ export interface DecisionUpdatePayload {
   amount_brl?: string | null;
   status?: DecisionStatus;
   decided_at?: string | null;
+  /** ADR-179. */
+  impact_1y_brl?: string | null;
+  impact_10y_brl?: string | null;
+  horizon?: DecisionHorizon;
+  priority?: number | null;
 }
 
 export interface DecisionExecutePayload {

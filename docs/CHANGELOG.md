@@ -8,6 +8,48 @@
 
 ### Sprint A10 (Wave 2)
 
+- **A10.3 ✅** Decision schema extension (ADR-179 → `Decidido (Sprint A10.3)`).
+  Alembic non-breaking adiciona 4 colunas a `decisions`:
+  `impact_1y_brl_cents` (BIGINT NULL), `impact_10y_brl_cents` (BIGINT NULL),
+  `horizon` (VARCHAR(16) NOT NULL DEFAULT `'short_6_12m'`,
+  enum `{short_6_12m, medium_1_3y, long_5y_plus}`),
+  `priority` (SMALLINT NULL). Index `ix_decisions_ws_horizon
+  (workspace_id, horizon)` para query do card S10. Default `horizon`
+  permite registros pré-A10.3 continuarem servíveis sem backfill
+  obrigatório.
+
+  DTO Pydantic (`DecisionCreateCommand`, `DecisionUpdateCommand`,
+  `DecisionResponse`) e mapper atualizados — `impact_*_brl_cents` ↔
+  `impact_*_brl` (Decimal string) seguindo ADR-090. Use cases
+  (`create_decision`, `update_decision`) propagam os 4 campos com diff
+  no evento `Updated`. Endpoints `/workspaces/{ws}/decisions` aceitam
+  os 4 campos (Optional onde apropriado). Validação `priority` em
+  1..99; validação `horizon` contra `VALID_DECISION_HORIZONS`.
+
+  UI form em [`DecisionFormDialog.tsx`](../frontend/src/app/(app)/plano/_components/DecisionFormDialog.tsx)
+  ganha 4 inputs novos (impacto 1y/10y monetários, select horizonte,
+  number priority — extraídos para `DecisionImpactFields.tsx` por SRP).
+  Cliente API tipado (`Decision`, `DecisionCreatePayload`,
+  `DecisionUpdatePayload`) reflete shape novo.
+
+  Migrator backfill heurístico opcional em
+  [`backend/app/scripts/backfill_decision_impact.py`](../backend/app/scripts/backfill_decision_impact.py)
+  (`--dry-run` é default seguro): popula `impact_1y_brl_cents` a partir
+  de `amount_brl_cents` quando target é `goal.aporte.meta_aporte_mensal_brl`
+  ou `goal.dolar.aporte_mensal_brl` (× 12) ou quando Decision está
+  `Decidido`/`Executado` sem `target_field` (assume valor único).
+  `impact_10y_brl` permanece manual (premissa de extrapolação pertence
+  ao consultor). Idempotente.
+
+  OpenAPI snapshot e `DB_SCHEMA_REFERENCE.md` regenerados. Tests novos
+  em `backend/tests/test_decision_extension.py` (16 specs cobrindo
+  default horizon, validação enum/priority, round-trip dos 4 campos,
+  PATCH per-campo, mapper cents→Decimal, heurística do backfill,
+  ordenação determinística por `priority NULLS LAST` →
+  `impact_1y DESC NULLS LAST`).
+
+  Habilita lane A10.5 (Top5/Bubble como projeção do `Decision` aggregate).
+
 - **A10.4 ✅** `Risk` aggregate (ADR-178 → `Decidido (Sprint A10.4)`).
   Novo modelo `risks` workspace-scoped paralelo a `Decision` (ADR-136).
   Estrutura `{name, code, rationale, probability, impact_level,

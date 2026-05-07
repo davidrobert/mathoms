@@ -13,7 +13,16 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from backend.app.models.decision import VALID_DECISION_STATUSES, VALID_TARGET_VALUE_TYPES
+from backend.app.models.decision import (
+    VALID_DECISION_HORIZONS,
+    VALID_DECISION_STATUSES,
+    VALID_TARGET_VALUE_TYPES,
+)
+
+# ADR-179 — bounds de ``priority`` (sem persistência específica; SMALLINT
+# aceita -32k..+32k mas UI/UX só faz sentido em 1..99).
+_PRIORITY_MIN: int = 1
+_PRIORITY_MAX: int = 99
 
 
 class DecisionCreateCommand(BaseModel):
@@ -35,6 +44,21 @@ class DecisionCreateCommand(BaseModel):
     target_value_type: Optional[str] = Field(None, max_length=8)
     # ADR-163 — KPIs frozen do relatório-fonte.
     context_snapshot: Optional[dict] = None
+    # ADR-179 — quantificação + horizonte + prioridade.
+    impact_1y_brl: Optional[Decimal] = Field(
+        None, description="Impacto financeiro em 1 ano (BRL string)."
+    )
+    impact_10y_brl: Optional[Decimal] = Field(
+        None, description="Impacto financeiro em 10 anos (BRL string)."
+    )
+    horizon: Optional[str] = Field(
+        None,
+        max_length=16,
+        description="Horizonte temporal: short_6_12m | medium_1_3y | long_5y_plus.",
+    )
+    priority: Optional[int] = Field(
+        None, ge=_PRIORITY_MIN, le=_PRIORITY_MAX, description="1..99 (1 = mais urgente)."
+    )
 
     @field_validator("status")
     @classmethod
@@ -54,6 +78,16 @@ class DecisionCreateCommand(BaseModel):
             )
         return v
 
+    @field_validator("horizon")
+    @classmethod
+    # WHY Optional sem default: Pydantic field_validator (assinatura imposta).
+    def _validate_horizon(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if v not in VALID_DECISION_HORIZONS:
+            raise ValueError(f"horizon inválido: {v!r}; aceitos: {sorted(VALID_DECISION_HORIZONS)}")
+        return v
+
 
 class DecisionUpdateCommand(BaseModel):
     """Atualiza campos editoriais. Status muda via /execute ou /supersede."""
@@ -65,6 +99,11 @@ class DecisionUpdateCommand(BaseModel):
     amount_brl: Optional[Decimal] = None
     status: Optional[str] = None
     decided_at: Optional[date] = None
+    # ADR-179
+    impact_1y_brl: Optional[Decimal] = None
+    impact_10y_brl: Optional[Decimal] = None
+    horizon: Optional[str] = Field(None, max_length=16)
+    priority: Optional[int] = Field(None, ge=_PRIORITY_MIN, le=_PRIORITY_MAX)
 
     @field_validator("status")
     @classmethod
@@ -73,6 +112,16 @@ class DecisionUpdateCommand(BaseModel):
             return v
         if v not in VALID_DECISION_STATUSES:
             raise ValueError(f"status inválido: {v!r}; aceitos: {sorted(VALID_DECISION_STATUSES)}")
+        return v
+
+    @field_validator("horizon")
+    @classmethod
+    # WHY Optional sem default: Pydantic field_validator (assinatura imposta).
+    def _validate_horizon(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if v not in VALID_DECISION_HORIZONS:
+            raise ValueError(f"horizon inválido: {v!r}; aceitos: {sorted(VALID_DECISION_HORIZONS)}")
         return v
 
 

@@ -234,6 +234,10 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `target_value` | `VARCHAR(128)` | yes | — | — |
 | `target_value_type` | `VARCHAR(8)` | yes | — | — |
 | `context_snapshot` | `JSON` | yes | — | — |
+| `impact_1y_brl_cents` | `BIGINT` | yes | — | — |
+| `impact_10y_brl_cents` | `BIGINT` | yes | — | — |
+| `horizon` | `VARCHAR(16)` | no | server: `short_6_12m` | — |
+| `priority` | `SMALLINT` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
@@ -246,6 +250,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_decisions_workspace_id` (workspace_id)
+- `ix_decisions_ws_horizon` (workspace_id, horizon)
 - `ix_decisions_ws_status` (workspace_id, status)
 
 ### `documents`
@@ -1239,6 +1244,10 @@ type Decision struct {
 	TargetValue *string `db:"target_value" json:"target_value"`
 	TargetValueType *string `db:"target_value_type" json:"target_value_type"`
 	ContextSnapshot json.RawMessage `db:"context_snapshot" json:"context_snapshot"`
+	Impact1yBrlCents *int64 `db:"impact_1y_brl_cents" json:"impact_1y_brl_cents"`
+	Impact10yBrlCents *int64 `db:"impact_10y_brl_cents" json:"impact_10y_brl_cents"`
+	Horizon string `db:"horizon" json:"horizon"`
+	Priority *string `db:"priority" json:"priority"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }

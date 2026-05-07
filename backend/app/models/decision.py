@@ -35,6 +35,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    SmallInteger,
     String,
     Text,
     UniqueConstraint,
@@ -53,6 +54,11 @@ VALID_DECISION_EVENT_TYPES: frozenset[str] = frozenset(
 
 # ADR-162 — tipos de valor aceitos no `target_value` para parsing.
 VALID_TARGET_VALUE_TYPES: frozenset[str] = frozenset({"pct", "brl", "int", "str"})
+
+# ADR-179 — horizonte temporal da Decision. Default ``short_6_12m``
+# permite migration non-breaking sobre Decisions pré-A10.3.
+VALID_DECISION_HORIZONS: frozenset[str] = frozenset({"short_6_12m", "medium_1_3y", "long_5y_plus"})
+DEFAULT_DECISION_HORIZON: str = "short_6_12m"
 
 
 class Decision(Base):
@@ -88,6 +94,18 @@ class Decision(Base):
     # ADR-163 — KPIs frozen do relatório que originou a Suggestion (quando
     # Decision veio de aceitar Suggestion). JSON livre para evoluir.
     context_snapshot: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    # ADR-179 — quantificação de impacto (1y/10y), horizonte e prioridade
+    # manual. Habilita ordenação justificável do card S10 ("Top 5 Decisões
+    # de Impacto") via projeção sobre o aggregate (lane A10.5).
+    impact_1y_brl_cents: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    impact_10y_brl_cents: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    horizon: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+        server_default=DEFAULT_DECISION_HORIZON,
+        default=DEFAULT_DECISION_HORIZON,
+    )
+    priority: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -116,6 +134,9 @@ class Decision(Base):
     __table_args__ = (
         UniqueConstraint("workspace_id", "code", name="uq_decisions_workspace_code"),
         Index("ix_decisions_ws_status", "workspace_id", "status"),
+        # ADR-179 — query do card S10 filtra por horizon=short_6_12m
+        # ordenado por impact_1y. Index acelera ordenação por workspace.
+        Index("ix_decisions_ws_horizon", "workspace_id", "horizon"),
     )
 
     def __repr__(self) -> str:  # pragma: no cover
