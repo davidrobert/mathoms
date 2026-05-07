@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-6 planos detectados em [`docs/plan/`](../../plan/).
+5 planos detectados em [`docs/plan/`](../../plan/).
 
 _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/`._
 
@@ -17,13 +17,6 @@ _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/
 - Sprints envolvidas: A8, A11
 - Lanes: _(aguardando F4)_
 - ADRs canônicas: —
-
-### PLAN-doc-reorg — Reorganização da documentação operacional como vault Obsidian-friendly
-
-- Status: `in_progress` · Sprint atual: A11
-- Sprints envolvidas: A11
-- Lanes: _(aguardando F4)_
-- ADRs canônicas: [[ADR-182]]
 
 ### PLAN-platform-review — Platform Review Plan — 2026-05-06
 

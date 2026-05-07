@@ -735,26 +735,10 @@ externos. Se já está numa branch `agent/*`, não recrie — continue nela.
 
 ### Hotspots de documentação
 
-> **🚧 JANELA DE PAUSA ATIVA — `docs/BACKLOG.md` (Fase 4 do DOC_REORG, ADR-182)**
->
-> **Início:** 2026-05-07 16:30 UTC · **Fim previsto:** 2026-05-08 16:30 UTC (24h).
->
-> ✅ **Fase 3** (62 tracks + 6 plans migrados) **fechou 2026-05-07 16:00 UTC**
-> (PR [#126](https://github.com/davidrobert/mathoms/pull/126), merge `bfdb6ad`).
-> Tracks vivem em `docs/sprint/<X>/tracks/`; plans em `docs/plan/<SLUG>/`.
->
-> **Fase 4 ativa:** split de `docs/BACKLOG.md` (2358 linhas, 68 lanes em 6 sprints)
-> em `docs/sprint/<X>/lanes/<id>.md` com frontmatter, `_README.md`, `lanes.md`
-> e `waves.md` por sprint. **Pickup novo deve aguardar fim da janela** — após
-> F4, fonte canônica de pickup é `docs/_MOC/_generated/SPRINT_CURRENT.md`.
->
-> **Tarefas que PRECISAM tocar BACKLOG.md durante a janela:**
-> 1. Verifique conflito iminente: `git fetch origin && git log origin/main --oneline -- docs/BACKLOG.md | head -5`.
-> 2. Coordene via PR comment com owner do F4 (`agent/doc-reorg-f4-*`).
-> 3. Hot-fix de produção: PR com label `priority/p0`; owner rebasea após merge.
+> ✅ **DOC_REORG (ADR-182) concluído em 2026-05-07.** As 5 fases entregues:
+> F1 (foundation) · F2 (split DECISIONS → 175 ADRs em `docs/adr/`) · F3 (62 tracks + 6 plans) · F4 (35 lanes + 18 sprint MOCs) · F5 (167 changelog entries + cleanup raiz). DECISIONS.md, BACKLOG.md, CHANGELOG.md são shims com âncoras históricas; ROADMAP.md deletado (substituído por `docs/reference/PHASES.md`); PRODUCT.md movido para `docs/reference/`.
 
-`CLAUDE.md`, `CHANGELOG.md`, `BACKLOG.md`, `DECISIONS.md` são editados em
-quase toda sessão — colisão entre agentes é garantida se todos concorrem.
+`CLAUDE.md` é o único hotspot que continua editado em toda sessão.
 
 **Pre-flight obrigatório antes de tocar qualquer hotspot:**
 

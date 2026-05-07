@@ -36,32 +36,32 @@
   "latest": {
     "Q1": {
       "measured_at": "2026-05-07",
-      "phase": "F4",
+      "phase": "F5",
       "tokens": 797
     },
     "Q2": {
       "measured_at": "2026-05-07",
-      "phase": "F4",
+      "phase": "F5",
       "tokens": 797
     },
     "Q3": {
       "measured_at": "2026-05-07",
-      "phase": "F4",
-      "tokens": 113284
+      "phase": "F5",
+      "tokens": 573
     },
     "Q4": {
       "measured_at": "2026-05-07",
-      "phase": "F4",
-      "tokens": 113284
+      "phase": "F5",
+      "tokens": 573
     },
     "Q5": {
       "measured_at": "2026-05-07",
-      "phase": "F4",
-      "tokens": 2021
+      "phase": "F5",
+      "tokens": 1369
     },
     "Q6": {
       "measured_at": "2026-05-07",
-      "phase": "F4",
+      "phase": "F5",
       "tokens": 596
     }
   },

@@ -2,9 +2,9 @@
 
 > Envie extratos e documentos financeiros. Obtenha um retrato consolidado da família em minutos — não em semanas de planilha.
 
-**Status:** Dogfood interno · **Fase 9 (produto)** ✅ entregue — relatório nativo React, design tokens, workspace sharing · **Sprint A6** ✅ encerrada (transversal infra+domínio) · **Sprint A7 — Config DB Cutover** ✅ entregue 2026-04-27 (7 lanes; plano arquivado em [docs/archive/CONFIG_CUTOVER_PLAN-2026-04-27.md](docs/archive/CONFIG_CUTOVER_PLAN-2026-04-27.md)) · Épico transversal **F9 stage rename** (≠ Fase 9 do produto) parcial — ver [docs/ROADMAP.md](docs/ROADMAP.md) · Próxima fase: **F7** (produção, LGPD, ops).
+**Status:** Dogfood interno · **Roadmap:** [docs/reference/PHASES.md](docs/reference/PHASES.md) · **Sprint atual:** [docs/_MOC/SPRINTS-active.md](docs/_MOC/SPRINTS-active.md).
 
-**Produção (em configuração):** `app.mathoms.ai` · API: `api.mathoms.ai/v1/` · Console interno: `ops.mathoms.ai` · Docs: `docs.mathoms.ai` · Status: `status.mathoms.ai` · Landing: `mathoms.ai`. Ver [ADR-108](docs/DECISIONS.md#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns).
+**Produção (em configuração):** `app.mathoms.ai` · API: `api.mathoms.ai/v1/` · Console interno: `ops.mathoms.ai` · Docs: `docs.mathoms.ai` · Status: `status.mathoms.ai` · Landing: `mathoms.ai`. Ver [ADR-108](docs/adr/108-estrategia-de-subdominios-mathomsai-cloudflare-dns.md).
 
 ---
 

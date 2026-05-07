@@ -2,7 +2,8 @@
 id: ADR-182
 type: adr
 title: "Vault de documentação operacional Obsidian-friendly em `docs/`"
-status: Proposto
+status: Decidido
+phase: A11.5
 date: "2026-05-07"
 relates_to: ["[[ADR-076]]", "[[ADR-109]]", "[[ADR-114]]", "[[ADR-143]]"]
 supersedes: []
@@ -10,13 +11,14 @@ superseded_by: []
 aliases: ["ADR 182"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
+  - phase/a11-5
 size_lines: 66
 ---
 
 # ADR-182 — Vault de documentação operacional Obsidian-friendly em `docs/`
 
-**Status:** Proposto • **Data:** 2026-05-07 • **Relaciona** [ADR-076](#adr-076--design-tokens-unificados-site--relatório), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a), [ADR-114](#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
+**Status:** Decidido (Sprint A11.5) • **Data:** 2026-05-07 • **Relaciona** [ADR-076](#adr-076--design-tokens-unificados-site--relatório), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a), [ADR-114](#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76).
 
 **Contexto:** A documentação operacional cresceu para ~24k linhas distribuídas em 70+ arquivos. Métricas medidas (2026-05-07): `DECISIONS.md` 8.973 linhas / 175 ADRs (~155k tokens), `CHANGELOG.md` 6.923 linhas (~130k tokens), `BACKLOG.md` 2.358 linhas (~47k tokens), 57 tracks em `agent_prompts/` (~12k linhas) com ~30 linhas de "regras inegociáveis" duplicadas em cada um, 7 `<TOPIC>_PLAN.md` (~4k linhas), `CLAUDE.md` 1.011 linhas injetadas em **toda** sessão LLM.
 

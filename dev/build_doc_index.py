@@ -8,7 +8,6 @@ import difflib
 import re
 import sys
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -155,14 +154,15 @@ def build_index_md(notes: list[Note]) -> str:
     return _join(lines)
 
 
-# Renderers vivem em _adr_index_renderer.py + _plan_progress_renderer.py para manter
-# este módulo <500 linhas (guideline CLAUDE.md). F2.F deletará dev/build_adr_toc.py.
+# Renderers vivem em _<name>_renderer.py para manter este módulo <500 linhas
+# (guideline CLAUDE.md). F2.F deletará dev/build_adr_toc.py.
 try:
     from _adr_index_renderer import (  # noqa: E402
         _load_adr_categories,
         category_for_adr,
         render_adr_index,
     )
+    from _changelog_recent_renderer import render_changelog_recent  # noqa: E402
     from _plan_progress_renderer import render_plan_progress  # noqa: E402
     from _sprint_current_renderer import render_sprint_current  # noqa: E402
 except ModuleNotFoundError:  # pragma: no cover
@@ -171,6 +171,7 @@ except ModuleNotFoundError:  # pragma: no cover
         category_for_adr,
         render_adr_index,
     )
+    from dev._changelog_recent_renderer import render_changelog_recent  # noqa: E402
     from dev._plan_progress_renderer import render_plan_progress  # noqa: E402
     from dev._sprint_current_renderer import render_sprint_current  # noqa: E402
 
@@ -200,60 +201,10 @@ def build_sprint_current_md(notes: list[Note]) -> str:
     return _join(render_sprint_current(lanes, available, _header))
 
 
-def _entry_date(note: Note) -> date | None:
-    """Lê `date:` do frontmatter e normaliza para `datetime.date`."""
-    raw = note.raw.get("date")
-    if isinstance(raw, date) and not isinstance(raw, datetime):
-        return raw
-    if isinstance(raw, datetime):
-        return raw.date()
-    if isinstance(raw, str):
-        try:
-            return datetime.strptime(raw, "%Y-%m-%d").date()
-        except ValueError:
-            return None
-    return None
-
-
-def _group_entries_by_day(entries: list[Note], cutoff: date) -> dict[date, list[Note]]:
-    """Agrupa entradas com `date >= cutoff` por dia. Entradas sem data válida são ignoradas."""
-    by_day: dict[date, list[Note]] = {}
-    for note in entries:
-        d = _entry_date(note)
-        if d is None or d < cutoff:
-            continue
-        by_day.setdefault(d, []).append(note)
-    return by_day
-
-
-def _render_changelog_days(by_day: dict[date, list[Note]]) -> list[str]:
-    """Renderiza dias em ordem decrescente, com entries ordenados por id."""
-    out: list[str] = []
-    for day in sorted(by_day, reverse=True):
-        out.append(f"## {day.isoformat()}")
-        out.append("")
-        for note in sorted(by_day[day], key=lambda n: n.id):
-            out.append(f"- **{note.id}** — {note.title} (`{_rel_path(note)}`)")
-        out.append("")
-    return out
-
-
 def build_changelog_recent_md(notes: list[Note]) -> str:
     """Gera CHANGELOG_RECENT.md — entries dos últimos 14 dias agregados por dia."""
-    lines = _header("Changelog — últimos 14 dias")
     entries = [n for n in notes if n.type == "changelog-entry"]
-    if not entries:
-        lines.append(
-            "_Nenhuma entrada de changelog na vault ainda "
-            "(Fase 5 do plano popula `docs/sprint/<X>/changelog/`)._"
-        )
-        return _join(lines)
-    by_day = _group_entries_by_day(entries, date.today() - timedelta(days=14))
-    if not by_day:
-        lines.append("_Sem entradas nos últimos 14 dias._")
-        return _join(lines)
-    lines.extend(_render_changelog_days(by_day))
-    return _join(lines)
+    return _join(render_changelog_recent(entries, _header))
 
 
 def build_roadmap_md(notes: list[Note]) -> str:
@@ -367,6 +318,11 @@ def _build_sprint_current_in_memory(notes: list[Note]) -> str:
     return _join(render_sprint_current(lanes, set(), _header))
 
 
+def _build_changelog_recent_with_today(entries: list[Note], today) -> str:
+    """Variant injetável de today (usada por smoke tests para janela determinística)."""
+    return _join(render_changelog_recent(entries, _header, today_fn=lambda: today))
+
+
 def _run_self_test() -> int:
     """Roda smoke tests inline (definidos em _test_build_doc_index_smoke.py)."""
     try:
@@ -380,6 +336,7 @@ def _run_self_test() -> int:
         category_fn=category_for_adr,
         plan_build_fn=build_plan_progress_md,
         sprint_build_fn=_build_sprint_current_in_memory,
+        changelog_build_fn=_build_changelog_recent_with_today,
     )
 
 
