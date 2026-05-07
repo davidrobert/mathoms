@@ -222,3 +222,44 @@ class TestExtractIrpfFullReconcileFailure:
         persisted = ctx.get_artifact_store().read("extract_irpf_full", "irpfdeclaracaobad2024")
         assert persisted["confidence"] == pytest.approx(0.7)
         assert persisted["needs_review"] is True
+
+
+class TestExtractIrpfFullValidationIssuesPropagation:
+    """ADR-165 onda 2 hotfix — `result.detail.validation.issues` deve estar populado.
+
+    Bug original (#79–#88): stage produzia apenas `errors`/`warnings` strings;
+    `_record_stage_needs_review` lia `validation.get("issues")` e gravava NULL,
+    fazendo o card cair no fallback `validation_errors.split("\\n")[0].slice(80)`.
+    """
+
+    def _build_pii_fixture(self) -> dict:
+        fixture = _load_fixture("completo")
+        # Injeta CPF não-mascarado em discriminacao para disparar e16.pii.unmasked_cpf.
+        fixture["dividas_onus"][0]["discriminacao"] = "Empréstimo de 000.000.000-00"
+        return fixture
+
+    @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract")
+    @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
+    def test_issues_propagated_in_result_detail(self, _mock_ensure, mock_extract, tmp_path):
+        from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
+
+        ctx = make_llm_ctx(tmp_path)
+        _seed_irpf_pdf(tmp_path, "irpfdeclaracaopii2024.pdf")
+        fixture = self._build_pii_fixture()
+        fake = FakeStructuredLLMClient(output=IRPFFullOutput.model_validate(fixture))
+        mock_extract.return_value = "fake"
+
+        result = _run_with_fake(ctx, fake)
+
+        # Issues estruturadas devem aparecer no result.detail (consumido pelo runner).
+        assert (
+            "issues" in result["validation"]
+        ), "Bug ADR-165: stage não propaga issues; runner grava NULL no DB e UI cai no fallback string"
+        issues = result["validation"]["issues"]
+        assert any(
+            i["code"] == "e16.pii.unmasked_cpf" for i in issues
+        ), f"e16.pii.unmasked_cpf esperado em issues; got codes={[i['code'] for i in issues]}"
+        # legacy_message preservado para backwards-compat com errors list.
+        assert any(
+            "dividas_onus[0]" in i["legacy_message"] for i in issues
+        ), "legacy_message deve manter byte-equality com errors list"

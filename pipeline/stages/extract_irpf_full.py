@@ -187,6 +187,7 @@ def _new_accumulator() -> dict:
         "cost_usd": 0.0,
         "errors": [],
         "warnings": [],
+        "issues": [],  # ADR-165: ValidationIssue dicts agregadas cross-doc
     }
 
 
@@ -205,6 +206,7 @@ def _persist_and_accumulate(
     v = payload.get("validation") or {}
     acc["errors"].extend(v.get("errors", []))
     acc["warnings"].extend(v.get("warnings", []))
+    acc["issues"].extend(v.get("issues", []))
 
 
 def _process_loop(docs_with_text, ctx, service, config, prompt_version, ws_id, estimated) -> dict:
@@ -231,6 +233,7 @@ def _build_result_summary(loop_result: dict) -> dict:
             "valid": not loop_result["errors"],
             "errors": loop_result["errors"],
             "warnings": loop_result["warnings"],
+            "issues": loop_result["issues"],
         },
     }
 
