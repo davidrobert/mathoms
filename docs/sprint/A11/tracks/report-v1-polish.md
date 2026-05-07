@@ -126,7 +126,7 @@ Entrada nova em `[Unreleased]` ou seção dedicada do dia:
 ### Report Premium UI v1 (2026-04-XX)
 
 Marco: shell React `/reports/[id]` atinge paridade visual com
-[`EXEMPLO_DE_RELATORIO.html`](../EXEMPLO_DE_RELATORIO.html) e se torna
+[`EXEMPLO_DE_RELATORIO.html`](../../../plan/REPORT_PREMIUM/EXEMPLO_DE_RELATORIO.html) e se torna
 o **único renderer** do relatório.
 
 - **10 fases entregues** (F0–F10) entre 2026-04-XX e 2026-04-XX, do
