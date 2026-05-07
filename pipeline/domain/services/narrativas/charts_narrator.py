@@ -78,7 +78,7 @@ class ChartsNarrator:
             **self._narrate_patrimonio_aloc(M, ctx, _imovel_acima),
             **self._narrate_fluxo_receita(M, _fontes_receita),
             **self._narrate_projecao_if(M, ctx),
-            ctx.key_cenarios_section: self._narrate_cenarios_conjuge(
+            ctx.key_cenarios_conjuge: self._narrate_cenarios_conjuge(
                 M,
                 ctx,
                 _conj,

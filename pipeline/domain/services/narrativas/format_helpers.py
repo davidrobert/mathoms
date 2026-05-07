@@ -85,15 +85,9 @@ def fmt_usd(value) -> str:
 
 
 def validate_narrativas(
-    narrativas_obj: dict, cenarios_section_key: str = "mariana_cenarios"
+    narrativas_obj: dict, cenarios_section_key: str = "cenarios_conjuge"
 ) -> tuple[bool, list[str]]:
-    """Validate narrativas object against E5.N spec rules.
-
-    ``cenarios_section_key`` aceita override para suporte a contexto
-    dinâmico (antes ``_KEY_CENARIOS_SECTION`` era global de módulo).
-
-    Returns: (is_valid, errors_list)
-    """
+    """Validate narrativas E5.N. ``cenarios_section_key`` default fixado por ADR-176; parâmetro mantido por compat reversa."""
     errors: list[str] = []
 
     if "perfil_familia" not in narrativas_obj:

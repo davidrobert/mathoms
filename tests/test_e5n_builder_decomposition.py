@@ -273,7 +273,7 @@ def test_builder_charts_has_all_20_required_keys():
         "yield_imoveis",
         "top15_ativos",
         "impostos_pj",
-        ctx.key_cenarios_section,  # ← chave dinâmica
+        "cenarios_conjuge",  # ADR-176: chave universal estável (era <conjuge>_cenarios)
         "custos_f1f2",
         "viagens",
         "cenarios_cambiais",
@@ -288,9 +288,10 @@ def test_builder_charts_has_all_20_required_keys():
 
 def test_builder_output_passes_validator():
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
-    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
     out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
-    is_valid, errors = validate_narrativas(out, cenarios_section_key=ctx.key_cenarios_section)
+    # ADR-176: validate_narrativas usa default "cenarios_conjuge" — não há
+    # mais chave dinâmica para repassar.
+    is_valid, errors = validate_narrativas(out)
     assert is_valid, f"Validação falhou: {errors}"
 
 
@@ -381,16 +382,18 @@ def test_context_dynamic_keys_change_with_family():
     assert ctx.conjuge_nome == "Yolanda"
     assert ctx.key_inv_titular == "investimentos_xavier"
     assert ctx.key_inv_conjuge == "investimentos_yolanda"
-    assert ctx.key_cenarios_section == "yolanda_cenarios"
+    # ADR-176: chave de cenários é universal, não derivada do cônjuge.
+    assert ctx.key_cenarios_conjuge == "cenarios_conjuge"
 
 
-def test_builder_charts_key_cenarios_uses_conjuge_name():
-    """Bloco de cenários cônjuge recebe chave ``<conjuge>_cenarios``."""
+def test_builder_charts_key_cenarios_uses_universal_key():
+    """ADR-176: chart de cenários cônjuge usa chave universal ``cenarios_conjuge`` — regressão-bloqueada (frontend lê essa key fixa)."""
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
     out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
-    # conjuge_key = "bob" → bloco deve ser "bob_cenarios".
-    assert "bob_cenarios" in out["charts"]
-    assert out["charts"]["bob_cenarios"]["context"]
+    assert "cenarios_conjuge" in out["charts"]
+    assert out["charts"]["cenarios_conjuge"]["context"]
+    # Garantia explícita: nenhuma chave derivada de membro permanece.
+    assert "bob_cenarios" not in out["charts"]
 
 
 # ----------------------------------------------------------------------
@@ -485,4 +488,4 @@ def test_sub_narrators_are_exported():
         ],
         ["d1", "d2", "d3", "d4"],
     )
-    assert "score_gauge" in ch and ctx.key_cenarios_section in ch
+    assert "score_gauge" in ch and ctx.key_cenarios_conjuge in ch
