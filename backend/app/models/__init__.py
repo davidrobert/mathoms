@@ -35,6 +35,12 @@ from backend.app.models.pipeline_run import (
     PipelineStageStatus,
 )
 from backend.app.models.report import Report
+from backend.app.models.risk import (
+    VALID_RISK_IMPACT_LEVELS,
+    VALID_RISK_PROBABILITIES,
+    VALID_RISK_STATUSES,
+    Risk,
+)
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.models.suggestion import (
     VALID_DISMISS_REASONS,
@@ -136,4 +142,8 @@ __all__ = [
     "DataExportRequestStatus",
     "VALID_DATA_EXPORT_STATUSES",
     "PipelineArtifact",
+    "Risk",
+    "VALID_RISK_IMPACT_LEVELS",
+    "VALID_RISK_PROBABILITIES",
+    "VALID_RISK_STATUSES",
 ]

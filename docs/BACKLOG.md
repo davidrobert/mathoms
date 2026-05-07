@@ -1353,7 +1353,7 @@ Detalhes do diagnóstico (inventário de 22 chaves, leitores vivos, dead data AD
 | **A10.1** Dead-data deletion + ADR-168 narrativas órfãs | `a10-1-dead-data` | [§2.3 + §5.1](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 1 | A10.2 | 1d | ☐ proposta |
 | **A10.2** Rules-as-code consolidation (ADR-177) | `a10-2-rules-as-code` | [§2.2 chaves U/M/O + ADR-177](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 1 | A10.1 | 1d | 🚧 PR aberto |
 | **A10.3** Decision schema extension (ADR-179) | `a10-3-decision-extension` | [§3.3 + ADR-179](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 2 | A10.4, A10.7 | 1.5d | ☐ proposta |
-| **A10.4** `Risk` aggregate (ADR-178) | `a10-4-risk-aggregate` | [§3.4 + ADR-178](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 2 | A10.3, A10.7 | 2d | ☐ proposta |
+| **A10.4** `Risk` aggregate (ADR-178) | `a10-4-risk-aggregate` | [§3.4 + ADR-178](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 2 | A10.3, A10.7 | 2d | 🚧 PR aberto |
 | **A10.7** Seed refactor + `tributario` migration | `a10-7-seed-refactor` | [§3.5 + §2.2 tributario](GOALS_JSON_CUTOVER_PLAN.md) | A10.1 + A10.2 ✅ | 2 | A10.3, A10.4 | 1d | ☐ proposta |
 | **A10.5** Top5 + Bubble como projeção (charts_narrator switch) | `a10-5-projections` | [§3.3 + §6.2 + §7.1](GOALS_JSON_CUTOVER_PLAN.md) | A10.3 + A10.4 ✅ | 3 | A10.6 | 1d | ☐ proposta |
 | **A10.6** Pipeline cutover via `StageConfig.config_store` (ADR-180) | `a10-6-stage-config-bundle` | [§3.1 + §3.2 + ADR-180](GOALS_JSON_CUTOVER_PLAN.md) | A10.1 + A10.2 + A10.3 + A10.4 ✅ | 3 | A10.5 | 1.5d | ☐ proposta |
