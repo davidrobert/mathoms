@@ -36,7 +36,9 @@ _FAMILY_E5 = {
     },
 }
 
-# Cobre o chart dinâmico `{membro}_cenarios` em `validate_narrativas` / `build_narrativas`
+# ADR-176: chave universal `cenarios_conjuge` no bloco de narrativas — fixture
+# mantida para verificar que workspace com cônjuge produz a mesma chave estável
+# que workspace minimal (regressão da chave dinâmica `<membro>_cenarios`).
 _FAMILY_E5_CONJUGE = {
     "titular": "david",
     "membros": {
@@ -96,7 +98,8 @@ def e5_tenant_minimal(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def e5n_tenant_with_conjuge(tmp_path: Path) -> Path:
-    """Como o mínimo, com membro `papel: conjuge` — chave de chart `ana_cenarios`."""
+    """Como o mínimo, com membro `papel: conjuge` — chave de chart fixa
+    `cenarios_conjuge` desde ADR-176 (era `ana_cenarios` antes)."""
     return _build_e5_workspace(tmp_path, _FAMILY_E5_CONJUGE)
 
 
@@ -129,7 +132,7 @@ def test_e5n_execution_injects_narrativas(e5_tenant_minimal: Path):
 
 
 def test_e5n_execution_narrativas_with_conjuge_chart(e5n_tenant_with_conjuge: Path):
-    """Com cônjuge em `family_members`, o chart obrigatório passa a ser `ana_cenarios` (não só `_cenarios`)."""
+    """ADR-176: workspace com cônjuge produz chart obrigatório ``cenarios_conjuge`` (chave universal, não mais ``<membro>_cenarios``)."""
     from pipeline.context import WorkspaceContext
     from scripts.e4_categorize import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
@@ -152,6 +155,9 @@ def test_e5n_execution_narrativas_with_conjuge_chart(e5n_tenant_with_conjuge: Pa
 
     assert narr is not None
     assert narr_ok, val_errors
-    assert "ana_cenarios" in narr.get("charts", {})
+    charts = narr.get("charts", {})
+    assert "cenarios_conjuge" in charts
+    # Garantia explícita: nenhuma chave derivada de membro permanece.
+    assert "ana_cenarios" not in charts
 
     assert_qa_log_md(e5n_tenant_with_conjuge)

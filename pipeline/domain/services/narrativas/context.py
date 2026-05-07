@@ -27,8 +27,9 @@ class NarrativasContext:
     # Keys derivadas (paridade com globals legados)
     key_inv_titular: str
     key_inv_conjuge: str
-    # `cenarios_conjuge` é chave estável universal pós-ADR-166 — `from_family_config`
-    # injeta o literal; campo permanece no value object por simetria com as demais.
+    # `cenarios_conjuge` é chave estável universal: ADR-166 fixou no payload E5,
+    # ADR-176 fixou também no bloco de narrativas E5.N (era `<conjuge>_cenarios`).
+    # `from_family_config` injeta o literal; campo é a única fonte para narrators.
     key_cenarios_conjuge: str
     key_idade_titular_if: str
     key_sal_conjuge: str
@@ -37,7 +38,6 @@ class NarrativasContext:
     key_f1f2_titular: str
     key_f1f2_conjuge: str
     key_renda_conjuge_eua_proj: str
-    key_cenarios_section: str
 
     @classmethod
     def from_family_config(cls, family: dict[str, Any]) -> "NarrativasContext":
@@ -58,7 +58,7 @@ class NarrativasContext:
             conjuge_nome=conjuge_nome,
             key_inv_titular=f"investimentos_{titular_key}",
             key_inv_conjuge=f"investimentos_{conjuge_key}",
-            key_cenarios_conjuge="cenarios_conjuge",  # ADR-166: chave estável
+            key_cenarios_conjuge="cenarios_conjuge",  # ADR-166 + ADR-176: chave estável universal
             key_idade_titular_if=f"idade_{titular_key}_if",
             key_sal_conjuge=f"salario_{conjuge_key}",
             key_inst_titular=f"{titular_key}_instituicoes",
@@ -66,5 +66,4 @@ class NarrativasContext:
             key_f1f2_titular=f"f1f2_estrategia_{titular_key}",
             key_f1f2_conjuge=f"f1f2_estrategia_{conjuge_key}",
             key_renda_conjuge_eua_proj=f"renda_{conjuge_key}_eua_projetada",
-            key_cenarios_section=f"{conjuge_key}_cenarios",
         )

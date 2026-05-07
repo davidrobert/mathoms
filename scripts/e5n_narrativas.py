@@ -72,7 +72,8 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     _KEY_F1F2_TITULAR = f"f1f2_estrategia_{_TITULAR_KEY}"
     _KEY_F1F2_CONJUGE = f"f1f2_estrategia_{_CONJUGE_KEY}"
     _KEY_RENDA_CONJUGE_EUA_PROJ = f"renda_{_CONJUGE_KEY}_eua_projetada"
-    _KEY_CENARIOS_SECTION = f"{_CONJUGE_KEY}_cenarios"
+    # ADR-166 + ADR-176: chave universal estável; não mais derivada de _CONJUGE_KEY.
+    _KEY_CENARIOS_SECTION = "cenarios_conjuge"
 
     FISCAL = _load_fiscal()
     _CLT_SOURCE_LABELS = list(_CATEGORIZATION.get("clt_source_mapping", {}).values())
@@ -124,7 +125,7 @@ _KEY_INST_CONJUGE: str = "_instituicoes"
 _KEY_F1F2_TITULAR: str = "f1f2_estrategia_"
 _KEY_F1F2_CONJUGE: str = "f1f2_estrategia_"
 _KEY_RENDA_CONJUGE_EUA_PROJ: str = "renda__eua_projetada"
-_KEY_CENARIOS_SECTION: str = "_cenarios"
+_KEY_CENARIOS_SECTION: str = "cenarios_conjuge"
 
 
 # METRICS will be loaded from E5 JSON at runtime (no more hardcoding)
@@ -561,9 +562,9 @@ from pipeline.domain.services.narrativas.format_helpers import (
 def validate_narrativas(narrativas_obj):
     """Delegates para ``pipeline.domain.services.narrativas.validate_narrativas``.
 
-    Injeta a ``cenarios_section`` key dinâmica do módulo
-    (``_KEY_CENARIOS_SECTION``, ex.: ``"mariana_cenarios"``), preservando
-    paridade com o legado sem depender de globals no helper.
+    Repassa ``_KEY_CENARIOS_SECTION``, fixado em ``"cenarios_conjuge"``
+    desde ADR-176 (era ``f"{_CONJUGE_KEY}_cenarios"`` antes). Mantido
+    como entry-point legado.
     """
     return _validate_narrativas_impl(narrativas_obj, cenarios_section_key=_KEY_CENARIOS_SECTION)
 
