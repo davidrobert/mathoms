@@ -71,14 +71,16 @@ def measure_q5() -> QueryResult:
 
 
 def measure_q6() -> QueryResult:
-    """Q6: planos não finalizados → todos *_PLAN.md em docs/."""
-    plans = sorted(DOCS.glob("*PLAN.md"))
-    chars = sum(len(p.read_text(encoding="utf-8")) for p in plans)
-    return QueryResult(
-        chars_to_tokens(chars),
-        chars,
-        [str(p.relative_to(ROOT)) for p in plans],
-    )
+    """Q6: planos não finalizados → legacy *PLAN.md ou _MOC/PLANS-active.md pós-F3."""
+    plans_legacy = sorted(DOCS.glob("*PLAN.md"))
+    if plans_legacy:
+        chars = sum(len(p.read_text(encoding="utf-8")) for p in plans_legacy)
+        files = [str(p.relative_to(ROOT)) for p in plans_legacy]
+    else:
+        moc = DOCS / "_MOC" / "PLANS-active.md"
+        chars = len(moc.read_text(encoding="utf-8")) if moc.exists() else 0
+        files = ["docs/_MOC/PLANS-active.md"] if chars else []
+    return QueryResult(chars_to_tokens(chars), chars, files)
 
 
 MEASURERS: dict[str, Callable[[], QueryResult]] = {

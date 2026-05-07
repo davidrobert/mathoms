@@ -180,6 +180,48 @@
 | ADR-180 | adr | Decidido |  | `goals.json` cutover final via `StageConfig.config_store` extendido | `adr/180-goalsjson-cutover-final-via-stageconfigconfig.md` |
 | ADR-181 | adr | Decidido |  | `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py` | `adr/181-goalsjson-removido-de-archive-e-adicionado-a.md` |
 | ADR-182 | adr | Proposto |  | Vault de documentação operacional Obsidian-friendly em `docs/` | `adr/182-vault-de-documentacao-operacional-obsidian.md` |
+| ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
+| A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
+| A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
+| A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
+| A6-ux.livestep | lane | shipped | A6 | Contrato `LiveStep` | `sprint/A6/lanes/A6-ux-livestep-contrato-livestep.md` |
+| A6a | lane | shipped | A6 | LLM stages escrevendo via `ArtifactStore` | `sprint/A6/lanes/A6a-llm-stages-escrevendo-via-artifactstore.md` |
+| A6b | lane | shipped | A6 | Ativar `USE_DB_ARTIFACTS=true` + validar end-to-end | `sprint/A6/lanes/A6b-ativar-use-db-artifacts-true-validar-end.md` |
+| A6b.5 | lane | shipped | A6 | Preparação para teste humano (ADR-103) | `sprint/A6/lanes/A6b-5-preparacao-para-teste-humano.md` |
+| A6b.flip | lane | shipped | A6 | Flip do default global | `sprint/A6/lanes/A6b-flip-flip-do-default-global.md` |
+| A6c | lane | shipped | A6 | Deletar bridge + legados | `sprint/A6/lanes/A6c-deletar-bridge-legados.md` |
+| A6d | lane | shipped | A6 | Fechar Caminho B puro nos 5 stages pragmáticos (ADR-100) | `sprint/A6/lanes/A6d-fechar-caminho-b-puro-nos-5-stages.md` |
+| A6e | lane | in_progress | A6 | DDD/SOLID no backend API (ADR-101, R12-R17) | `sprint/A6/lanes/A6e-ddd-solid-no-backend-api.md` |
+| A6f | lane | shipped | A6 | Language-neutral boundaries (ADR-102, R18-R20) | `sprint/A6/lanes/A6f-language-neutral-boundaries.md` |
+| A6g | lane | in_progress | A6 | Code Style Sweep (CLAUDE.md §Code style) | `sprint/A6/lanes/A6g-code-style-sweep.md` |
+| F11.1 | lane | shipped | F11 | Mental model: “vida financeira” × “relatório deste mês” | `sprint/F11/lanes/F11-1-mental-model-vida-financeira-relatorio-deste-mes.md` |
+| F11.2 | lane | shipped | F11 | Hierarquia de números | `sprint/F11/lanes/F11-2-hierarquia-de-numeros.md` |
+| F11.3 | lane | shipped | F11 | Print / PDF como entregável de consultoria | `sprint/F11/lanes/F11-3-print-pdf-como-entregavel-de-consultoria.md` |
+| F11.4 | lane | shipped | F11 | Transparência na UI: origem da informação | `sprint/F11/lanes/F11-4-transparencia-na-ui-origem-da-informacao.md` |
+| F11.5 | lane | shipped | F11 | Transparência na UI: `needs_review` e trilha LLM | `sprint/F11/lanes/F11-5-transparencia-na-ui-needs-review-e-trilha.md` |
+| F11.6 | lane | shipped | F11 | Metadados de premissas (metas e relatório) | `sprint/F11/lanes/F11-6-metadados-de-premissas.md` |
+| F11.7 | lane | in_progress | F11 | Ligação explícita entre número e regra | `sprint/F11/lanes/F11-7-ligacao-explicita-entre-numero-e-regra.md` |
+| F11.8 | lane | shipped | F11 | Command palette / atalhos | `sprint/F11/lanes/F11-8-command-palette-atalhos.md` |
+| F12.1 | lane | shipped | F12 | Fundação i18n no frontend | `sprint/F12/lanes/F12-1-fundacao-i18n-no-frontend.md` |
+| F12.2 | lane | open | F12 | Refactor de `format.ts` e `<MonetaryValue/>` | `sprint/F12/lanes/F12-2-refactor-de-format-ts-e-monetaryvalue.md` |
+| F12.3 | lane | open | F12 | Persistência da escolha (DB + JWT) | `sprint/F12/lanes/F12-3-persistencia-da-escolha.md` |
+| F12.4 | lane | open | F12 | Codegen do report layout multilíngue | `sprint/F12/lanes/F12-4-codegen-do-report-layout-multilingue.md` |
+| F12.5 | lane | open | F12 | Backend user-facing strings | `sprint/F12/lanes/F12-5-backend-user-facing-strings.md` |
+| F12.6 | lane | open | F12 | Tradução do relatório (bulk, paralelizável) | `sprint/F12/lanes/F12-6-traducao-do-relatorio.md` |
+| F12.7 | lane | open | F12 | RTL polish (`ar`) — **fora do escopo F12 atual** | `sprint/F12/lanes/F12-7-rtl-polish-fora-do-escopo-f12-atual.md` |
+| F12.8 | lane | shipped | F12 | QA + E2E multi-locale | `sprint/F12/lanes/F12-8-qa-e2e-multi-locale.md` |
+| F7.a | lane | shipped | F7 | Docker + Deploy + HTTPS (semana 1-2) | `sprint/F7/lanes/F7-a-docker-deploy-https.md` |
+| F7.b | lane | shipped | F7 | Security Hardening + LGPD (semana 2-3) | `sprint/F7/lanes/F7-b-security-hardening-lgpd.md` |
+| F7.c | lane | open | F7 | CI/CD + Observabilidade (semana 3-4) | `sprint/F7/lanes/F7-c-ci-cd-observabilidade.md` |
+| F7.d | lane | shipped | F7 | Quality Gate + Launch Readiness (semana 4-6 + 2 sem dogfood) | `sprint/F7/lanes/F7-d-quality-gate-launch-readiness.md` |
+| F7.e | lane | shipped | F7 | Operational Readiness (semana 6-7, ~2 semanas) | `sprint/F7/lanes/F7-e-operational-readiness.md` |
+| F7.f | lane | shipped | F7 | Console interno (operadores) | `sprint/F7/lanes/F7-f-console-interno.md` |
+| MOC-sprint-a10 | moc |  |  | Sprint A10 — goals.json cutover final | `sprint/A10/_README.md` |
+| MOC-sprint-a11 | moc |  |  | Sprint A11 — Platform review execution | `sprint/A11/_README.md` |
+| MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
+| MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
+| MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
+| MOC-sprint-a9 | moc |  |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
 | PLAN-cenarios-estresse | plan | in_progress |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-doc-reorg | plan | in_progress |  | Reorganização da documentação operacional como vault Obsidian-friendly | `plan/DOC_REORG/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |

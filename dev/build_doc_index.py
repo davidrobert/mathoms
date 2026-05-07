@@ -164,6 +164,7 @@ try:
         render_adr_index,
     )
     from _plan_progress_renderer import render_plan_progress  # noqa: E402
+    from _sprint_current_renderer import render_sprint_current  # noqa: E402
 except ModuleNotFoundError:  # pragma: no cover
     from dev._adr_index_renderer import (  # noqa: E402
         _load_adr_categories,
@@ -171,6 +172,7 @@ except ModuleNotFoundError:  # pragma: no cover
         render_adr_index,
     )
     from dev._plan_progress_renderer import render_plan_progress  # noqa: E402
+    from dev._sprint_current_renderer import render_sprint_current  # noqa: E402
 
 
 def build_adr_index_md(notes: list[Note]) -> str:
@@ -179,50 +181,23 @@ def build_adr_index_md(notes: list[Note]) -> str:
     return _join(render_adr_index(adrs, _header))
 
 
-def _detect_current_sprint(docs_root: Path) -> str | None:
-    """Diretório `docs/sprint/<X>/` com maior número (ex.: `A11` > `A10`)."""
+def _available_sprint_dirs(docs_root: Path) -> set[str]:
+    """Conjunto de diretórios `docs/sprint/<X>/` que casam com SPRINT_DIR_RE."""
     sprint_root = docs_root / "sprint"
     if not sprint_root.is_dir():
-        return None
-    candidates: list[tuple[str, int, str]] = []
-    for child in sprint_root.iterdir():
-        if not child.is_dir():
-            continue
-        match = SPRINT_DIR_RE.match(child.name)
-        if not match:
-            continue
-        candidates.append((match.group(1), int(match.group(2)), child.name))
-    if not candidates:
-        return None
-    return max(candidates, key=lambda c: (c[0], c[1]))[2]
-
-
-def _format_lane_rows(lanes: list[Note]) -> list[str]:
-    """Constrói as linhas de tabela para um conjunto de lanes ordenadas por id."""
-    rows = ["| id | status | priority | título | path |", "| --- | --- | --- | --- | --- |"]
-    for note in sorted(lanes, key=lambda n: n.id):
-        priority = str(note.raw.get("priority", ""))
-        rows.append(
-            f"| {note.id} | {note.status} | {priority} | {note.title} | `{_rel_path(note)}` |"
-        )
-    return rows
+        return set()
+    return {
+        child.name
+        for child in sprint_root.iterdir()
+        if child.is_dir() and SPRINT_DIR_RE.match(child.name)
+    }
 
 
 def build_sprint_current_md(notes: list[Note]) -> str:
-    """Gera SPRINT_CURRENT.md — lanes da sprint corrente; stub se nenhuma sprint indexada."""
-    lines = _header("Sprint corrente — lanes ativas")
-    current = _detect_current_sprint(DOCS)
-    if current is None:
-        lines.append("_Nenhuma sprint indexada (Fase 4 do plano popula `docs/sprint/`)._")
-        return _join(lines)
-    lines.append(f"_Sprint detectada: **{current}**._")
-    lines.append("")
-    lanes = [n for n in notes if n.type == "lane" and n.sprint == current]
-    if not lanes:
-        lines.append("_Nenhuma lane com frontmatter na sprint corrente ainda._")
-        return _join(lines)
-    lines.extend(_format_lane_rows(lanes))
-    return _join(lines)
+    """Gera SPRINT_CURRENT.md — lanes ready/open/in_progress da sprint corrente."""
+    lanes = [n for n in notes if n.type == "lane"]
+    available = _available_sprint_dirs(DOCS)
+    return _join(render_sprint_current(lanes, available, _header))
 
 
 def _entry_date(note: Note) -> date | None:
@@ -386,6 +361,12 @@ def _run_inline() -> int:
     return 0
 
 
+def _build_sprint_current_in_memory(notes: list[Note]) -> str:
+    """Variant de build_sprint_current_md sem IO de disco (usada por smoke tests)."""
+    lanes = [n for n in notes if n.type == "lane"]
+    return _join(render_sprint_current(lanes, set(), _header))
+
+
 def _run_self_test() -> int:
     """Roda smoke tests inline (definidos em _test_build_doc_index_smoke.py)."""
     try:
@@ -398,6 +379,7 @@ def _run_self_test() -> int:
         load_fn=_load_adr_categories,
         category_fn=category_for_adr,
         plan_build_fn=build_plan_progress_md,
+        sprint_build_fn=_build_sprint_current_in_memory,
     )
 
 
