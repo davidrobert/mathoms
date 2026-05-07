@@ -8205,6 +8205,13 @@ psql -c "SELECT COUNT(*) FROM pipeline_artifacts
 
 1. PR3 (A8.4) remove fallback dual-key no frontend. Pré-requisito: backfill rodado, query acima zerada.
 2. `key_cenarios_section` (`{conjuge_key}_cenarios`) — outro rename, ADR separada quando justificado.
+3. ✅ **W1-T08 (PLATFORM_REVIEW_PLAN, 2026-05-06):** schema E5 declara
+   `cenarios_conjuge` formalmente — `properties.cenarios_conjuge` em
+   [config/schemas/e5_analysis.schema.json](../config/schemas/e5_analysis.schema.json)
+   (paridade `to_legacy_dict()`; `patternProperties` para
+   `idade_<titular>_if`/`idade_<titular>` cobre titular_key arbitrário).
+   Cobertura em `tests/test_schema_validation.py`. Modo continua `warn`;
+   cutover `strict` é W6-T01.
 
 ---
 

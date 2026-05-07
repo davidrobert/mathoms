@@ -59,7 +59,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W1-T05 | SECRET_KEY fail-fast prod | 1 | ready | sre-devops | P0 | XS | — |
 | W1-T06 | ADR backfill (6 ADRs proposed) | 1 | done | senior-cto | P1 | S | — |
 | W1-T07 | Endividamento `retorno_esperado_pct_aa` | 1 | ready | financial-planner | P1 | S | — |
-| W1-T08 | Schema E5 cenarios_conjuge formal | 1 | ready | data-engineer | P1 | S | — |
+| W1-T08 | Schema E5 cenarios_conjuge formal | 1 | done | data-engineer | P1 | S | — |
 | W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | blocked | data-engineer | P0 | M | W1-T06 (ADR-170) |
 | W2-T02 | SR-001/013 Security headers + CORS strict | 2 | blocked | sre-devops | P0 | S | W1-T05 |
 | W2-T03 | SR-005 CVE + gitleaks + GH secret scanning | 2 | blocked | sre-devops | P0 | S | — |
@@ -263,7 +263,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** —
 - **severity:** P1
 - **effort:** S (~6h)
-- **status:** ready
+- **status:** done
 - **related_findings:** DE-006 (parcial — só cenarios_conjuge nesta task), ADR-166
 - **files_touched:**
   - `config/schemas/e5_analysis.schema.json` (declarar `cenarios_conjuge`, outros blocos top-level)
