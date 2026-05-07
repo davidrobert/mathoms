@@ -732,22 +732,19 @@ externos. Se já está numa branch `agent/*`, não recrie — continue nela.
 
 ### Hotspots de documentação
 
-> **🚧 JANELA DE PAUSA ATIVA — `docs/DECISIONS.md` (Fase 2 do DOC_REORG, ADR-182)**
+> **🚧 JANELA DE AVISO — `docs/agent_prompts/` + `docs/*_PLAN.md` (Fase 3 do DOC_REORG, ADR-182)**
 >
-> **Início:** 2026-05-07 14:50 UTC · **Fim previsto:** 2026-05-08 14:50 UTC.
+> **Início:** 2026-05-07 15:30 UTC · **Fim previsto:** 2026-05-08 03:30 UTC (12h).
 >
-> Durante esta janela, **nenhum agente deve abrir PR que toque
-> `docs/DECISIONS.md`**. A Fase 2 do plano [DOC_REORG](docs/DOC_REORG_PLAN.md)
-> (ADR-182) faz split do arquivo em 175 ADRs atomizadas em `docs/adr/` +
-> shim de ~50 linhas. Edits paralelos seriam rebaseados out-of-band.
+> ✅ **Fase 2** (split DECISIONS.md em 175 ADRs) **fechou 2026-05-07 15:23 UTC**
+> (PR [#124](https://github.com/davidrobert/mathoms/pull/124), merge `e9d1ef6`).
+> ADRs vivem em [docs/adr/](docs/adr/); DECISIONS.md é shim com âncoras históricas.
 >
-> **Tarefas que precisam editar DECISIONS.md durante a janela:**
-> 1. Verifique se há merge conflict iminente: `git fetch origin &&
->    git log origin/main --oneline -- docs/DECISIONS.md | head -5`.
-> 2. Coordene via PR comment ou Slack com o owner do F2 (orquestrador
->    `agent/doc-reorg-f2-*`).
-> 3. Em emergência (hot-fix de ADR `Decidido` que entra em produção),
->    abra PR com label `priority/p0` — owner do F2 rebasea após o merge.
+> **Fase 3 ativa:** migração de 62 tracks (`docs/agent_prompts/track_*.md`) para
+> `docs/sprint/<X>/tracks/` e 5 plans (`docs/*_PLAN.md`) para `docs/plan/<SLUG>/`.
+> Agentes com lane aberta cujo prompt aponta para `docs/agent_prompts/`:
+> **atualize path** quando reabrir sessão. Em PR paralelo que mexe com plan,
+> coordene com owner do F3 (`agent/doc-reorg-f3-*`).
 
 `CLAUDE.md`, `CHANGELOG.md`, `BACKLOG.md`, `DECISIONS.md` são editados em
 quase toda sessão — colisão entre agentes é garantida se todos concorrem.
