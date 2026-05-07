@@ -73,18 +73,6 @@ async def _check_preconditions() -> list[str]:
         if task_count == 0:
             failures.append("Nenhuma Task no DB (rode o seed primeiro)")
 
-        # PLANNING_CONTEXT — opcional pós-A10.7 (seed não cria mais a bag;
-        # A10.6/ADR-180 removerá o tipo do `VALID_GOAL_TYPES`). Mantemos
-        # a checagem como aviso para workspaces históricos que ainda
-        # carregam o registro.
-        ctx_stmt = select(Goal).where(
-            Goal.workspace_id == ws.id,
-            Goal.type == "PLANNING_CONTEXT",
-            Goal.effective_to.is_(None),
-        )
-        if (await db.execute(ctx_stmt)).scalar_one_or_none() is None:
-            logger.info("  [info] Goal PLANNING_CONTEXT ausente — esperado pós-A10.7.")
-
     return failures
 
 

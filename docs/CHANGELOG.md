@@ -8,6 +8,29 @@
 
 ### Sprint A10 (Wave 3)
 
+- **A10.6 ✅** Pipeline cutover via `StageConfig.config_store` extendido
+  (ADR-180 → `Decidido (Sprint A10.6)`). `GoalsBundle` TypedDict em
+  `pipeline/domain/goals_bundle.py` (sem import SQLAlchemy/FastAPI/Celery —
+  boundary verde). `build_goals_payload_sync`/`build_goals_payload`
+  retornam shape tipado. `_materialize_adapter_configs`
+  (`pipeline_task.py:56-99`) **deletado** e substituído por
+  `_materialize_tarefas_md` (apenas tarefas.md continua em filesystem,
+  texto livre fora do bundle). `_load_goals()` em `e5_analyze.py:166` +
+  `e5n_narrativas.py:105` **deletados** — pipeline lê via
+  `ctx.load_config("goals.json")` resolvido contra `config_overrides`
+  populados por `build_config_overrides_from_db`. `goals.json` físico
+  **nunca mais escrito em filesystem**. Helpers
+  `_select_decisoes_for_charts` / `_select_riscos_for_charts` (A10.5
+  fallback legacy) **deletados** — bundle direto. `PLANNING_CONTEXT`
+  Goal type **removido** de `VALID_GOAL_TYPES` (resíduo pós-A10.7;
+  campos migraram para Decision/Risk aggregates, rules-as-code,
+  business_profile). Gate empírico em
+  `tests/test_e5_pipeline_no_filesystem_goals.py` (6 testes) +
+  `backend/tests/test_goals_bundle.py` (8 testes). Goldens E5/E5.N
+  verdes byte-a-byte. Fecha checkbox aberto há 7 meses na ADR-077
+  ("100% dos campos lidos por E5/E5.N/E6"). Habilita A10.8 (cutover
+  final + forbidden_paths, ADR-181).
+
 - **A10.5 ✅** Top5 + Bubble como projeção (charts_narrator switch).
   Card S10 "Top 5 Decisões de Impacto" e bubble chart S9 "Riscos
   Prioritários" leem `Decision`/`Risk` aggregates via projeção em
