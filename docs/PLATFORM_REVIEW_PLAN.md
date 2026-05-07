@@ -54,10 +54,10 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 |----|-------|------|--------|-------|----------|--------|------|
 | W1-T01 | Tokens fantasma + CSS gate | 1 | ready | product-designer | P0 | M | — |
 | W1-T02 | Suggestion regras dormentes (FP-001/2/3) | 1 | ready | financial-planner | P0 | XS | — |
-| W1-T03 | CLAUDE.md sync (parity test) | 1 | ready | senior-cto | P0 | XS | — |
+| W1-T03 | CLAUDE.md sync (parity test) | 1 | done | senior-cto | P0 | XS | — |
 | W1-T04 | PDF concurrency semaphore | 1 | ready | sre-devops | P0 | XS | — |
 | W1-T05 | SECRET_KEY fail-fast prod | 1 | ready | sre-devops | P0 | XS | — |
-| W1-T06 | ADR backfill (6 ADRs proposed) | 1 | ready | senior-cto | P1 | S | — |
+| W1-T06 | ADR backfill (6 ADRs proposed) | 1 | done | senior-cto | P1 | S | — |
 | W1-T07 | Endividamento `retorno_esperado_pct_aa` | 1 | ready | financial-planner | P1 | S | — |
 | W1-T08 | Schema E5 cenarios_conjuge formal | 1 | ready | data-engineer | P1 | S | — |
 | W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | blocked | data-engineer | P0 | M | W1-T06 (ADR-170) |

@@ -6,6 +6,17 @@
 
 ## [Unreleased]
 
+- **docs(decisions,plan): ADR backfill Wave 1 + CLAUDE.md sync (W1-T03 + W1-T06 · 2026-05-06):**
+  Backfill de 6 ADRs `Proposto` — ADR-170 (refresh tokens family-revocation, fecha SR-002),
+  ADR-171 (Fernet rotation MultiFernet, fecha SR-003), ADR-172 (stuck-runs heartbeat,
+  fecha SR-007), ADR-173 (LLM budget hard-stop + LLMCallLog universal, fecha SR-006/DE-013),
+  ADR-174 (off-site backup R2 + restore drill, fecha SR-004/BB-007), ADR-175
+  (prompt injection defense camadas, fecha SR-009). Cada uma vira `Decidido` no merge da
+  lane W2/W3/W4 correspondente. CLAUDE.md ganha §"ADR Proposto antes de PR P0/P1" como
+  política operacional (lição Trade-off 5). Sync de §Code style › Testes substitui
+  referência a `test_e3_main_with_store_parity.py` (deletado em A6c.3) por
+  `test_e3_golden_execution.py` + ponteiro para débito DE-005 em W6-T01.
+
 - **fix(pipeline): modo incremental respeitado por stages globais E1 (ADR-169 · 2026-05-06):**
   Antes: clicar "Processar somente novos" reprocessava todas as declarações
   IRPF do workspace via LLM em `extract_irpf_full` (~7m + ~$0,70 cada — ADR-157),

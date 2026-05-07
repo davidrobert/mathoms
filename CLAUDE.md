@@ -203,8 +203,12 @@ mistura doc + código, a regra normal volta a valer.
   `InMemoryArtifactStore`), não `MagicMock` inline.
 - **DB em testes: nunca mocar.** SQLite em memória ou fixtures Alembic-aware
   (incidente histórico: mock/prod drift mascarou migration quebrada).
-- **Goldens de paridade** (Caminho B): legado ↔ novo, tolerância `0.01` BRL
-  em whitelist monetária. Padrão: `tests/test_e3_main_with_store_parity.py`.
+- **Goldens de execução** (pós-A6c.3): runs canônicos com schema validation
+  em `tests/test_e{3,4,5}_golden_execution.py`. Goldens de paridade
+  legado↔novo (Caminho A vs Caminho B) foram descontinuados em A6c.3 quando
+  Caminho A foi removido. Re-construção de baselines snapshot é débito
+  rastreado em [docs/PLATFORM_REVIEW_PLAN.md](docs/PLATFORM_REVIEW_PLAN.md)
+  §W6-T01 (DE-005).
 - Endpoint JSON novo → teste + rodar `make update-openapi-snapshot`
   (ADR-109).
 
@@ -347,6 +351,22 @@ python3 dev/check_adr_anchors.py        # slugs GitHub Slugger válidos
 python3 dev/build_adr_toc.py --check    # ToC sincronizado
 python3 dev/validate_adr_format.py      # formato Status/Data/seções
 ```
+
+### Política operacional — ADR `Proposto` antes de PR P0/P1
+
+**Toda task P0/P1 com escopo arquitetural** (modelo de DB, contrato API,
+fornecedor externo, política de segurança, mudança em invariante crítico
+como ADR-090/097/111) **DEVE abrir ADR `Proposto` antes do PR de
+implementação**. PR de implementação referencia ADR explicitamente e
+flippa para `Decidido (Sprint XX.Y)` no merge.
+
+**Custo:** ~30min/feature de raciocínio arquitetural. **Ganho:**
+rastreabilidade, menos dead code shipping, gate de sanidade antes de
+escrever código (lição 2026-05 — ver
+[docs/PLATFORM_REVIEW_PLAN.md](docs/PLATFORM_REVIEW_PLAN.md) §Trade-off 5).
+
+**Não aplica a:** bugs, hot-fixes, doc-only, refactor mecânico já
+coberto por ADR existente.
 
 ---
 
