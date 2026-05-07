@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
-"""Valida frontmatter YAML de notas em docs/ contra schemas em docs/_schemas/.
-
-Carrega o schema correto via mapping `type:` → `note-<type>.schema.json` e
-valida com `jsonschema`. Aceita lista de paths (modo pre-commit) ou varre
-`docs/` (modo CI). Exit 0 se tudo verde, 1 se há erros.
-
-Casos de borda:
-    - sem frontmatter        → silent skip (default); --strict eleva a erro
-    - frontmatter sem `type:`→ silent skip (default); --strict eleva a erro
-    - `type:` não mapeado    → silent skip (default); --strict eleva a erro
-    - YAML inválido          → erro sempre
-    - schema ausente em _schemas/ → erro hard
-"""
+"""Valida frontmatter YAML de notas em docs/ contra schemas em docs/_schemas/ (ADR-182, F1.C)."""
+# Carrega schema via mapping type: → note-<type>.schema.json. Aceita paths
+# (pre-commit) ou varre docs/ (CI). Sem frontmatter / type não-mapeado / YAML
+# inválido → silent skip default; --strict eleva todos a erro. Schema ausente
+# → erro hard.
 
 from __future__ import annotations
 
@@ -67,11 +59,7 @@ def load_schemas() -> dict[str, dict]:
 
 
 def parse_frontmatter(md_path: Path) -> dict | None:
-    """Extrai bloco YAML entre `---` ... `---` no topo do arquivo.
-
-    Retorna None se ausente. Levanta ValueError se YAML inválido ou bloco
-    malformado.
-    """
+    """Extrai YAML entre `---` ... `---`. None se ausente; ValueError se inválido."""
     content = md_path.read_text(encoding="utf-8")
     if not content.startswith("---"):
         return None

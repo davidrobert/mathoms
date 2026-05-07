@@ -1,24 +1,8 @@
 #!/usr/bin/env python3
-"""Verifica que filename de cada nota em docs/ casa com `id:` do frontmatter.
-
-Gate da Fase 1 do plano `docs/DOC_REORG_PLAN.md` (ADR-182). No vault
-Obsidian-friendly, filename é o ID com lowercase do slug — renomear o
-arquivo equivale a renomear a nota. Este script detecta divergência
-entre o `id:` declarado no frontmatter YAML e o filename real.
-
-Suporte rigoroso:
-  - `type: adr`  → `adr/NNN(-X)?-<slug>.md`
-  - `type: lane` → `sprint/<X>/lanes/<id-com-hifen>-<slug>.md`
-
-Suporte best-effort (warning, não falha):
-  - `type: plan`            → `plan/<UPPER_SLUG>/_README.md`
-  - `type: track`           → `<id-sem-prefixo-track>-<slug>.md`
-  - `type: changelog-entry` → `<id-lowercase>.md` ou `<id>.md`
-  - `type: domain-rule`     → `<id-sem-prefixo-rule>.md` ou `<slug>.md`
-
-Diretórios excluídos (mesma exclusão de F1.B/C/D):
-`_MOC/_generated/`, `_schemas/`, `archive/`, `agent_prompts/`.
-"""
+"""Verifica que filename de cada nota em docs/ casa com `id:` do frontmatter (ADR-182, F1.E)."""
+# Strict para adr/lane (245 notas em F2/F4); best-effort com --strict-warnings
+# para plan/track/changelog-entry/domain-rule. Exclui _MOC/_generated, _schemas,
+# archive, agent_prompts.
 
 from __future__ import annotations
 
@@ -179,15 +163,9 @@ LENIENT_TYPES = {"plan", "track", "changelog-entry", "domain-rule"}
 
 
 def check_note(md_path: Path, fm: dict) -> tuple[str | None, str | None]:
-    """Valida uma nota.
-
-    Retorna (erro_hard, warning_lenient). Ambos podem ser None.
-
-    Notas sem `id:` E sem `type:` são tratadas como legado pré-migração
-    (ex.: planos canônicos antigos com frontmatter editorial). O gate
-    de filename ↔ id ignora; `dev/validate_frontmatter.py` é o gate
-    responsável por exigir frontmatter completo nas notas migradas.
-    """
+    """Valida nota; retorna (erro_hard, warning_lenient) — ambos podem ser None."""
+    # Notas sem id E sem type são legado pré-migração; este gate ignora
+    # (validate_frontmatter.py é o responsável por exigir frontmatter completo).
     note_id = fm.get("id")
     note_type = fm.get("type")
     if not note_id and not note_type:
@@ -281,31 +259,24 @@ def _format_warning(md_path: Path, fm: dict, warn: str) -> str:
     return f"! {rel} (id={note_id}): {warn}"
 
 
-def main() -> int:
+def _build_argparser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
-        "paths",
-        nargs="*",
-        help="Arquivos `.md` ou diretórios a verificar. Default: docs/.",
-    )
+    ap.add_argument("paths", nargs="*", help="Arquivos .md ou diretórios. Default: docs/.")
     ap.add_argument(
         "--strict-warnings",
         action="store_true",
-        help="Trata warnings de tipos best-effort (plan/track/changelog/domain-rule) como erro.",
+        help="Promove warnings (plan/track/changelog/domain-rule) a erro.",
     )
-    args = ap.parse_args()
+    return ap
 
-    md_files = _resolve_input_paths(args.paths)
+
+def _scan_notes(md_files: list[Path]) -> tuple[list[str], list[str], int]:
     errors: list[str] = []
     warnings: list[str] = []
     checked = 0
-
     for md in md_files:
         fm = parse_frontmatter(md)
-        if fm is None:
-            continue  # Sem frontmatter — fora do escopo do gate.
-        # Pula notas legado (frontmatter editorial sem `id:`/`type:`).
-        if not fm.get("id") and not fm.get("type"):
+        if fm is None or (not fm.get("id") and not fm.get("type")):
             continue
         checked += 1
         err, warn = check_note(md, fm)
@@ -313,27 +284,24 @@ def main() -> int:
             errors.append(_format_error(md, fm, err))
         if warn:
             warnings.append(_format_warning(md, fm, warn))
+    return errors, warnings, checked
 
+
+def main() -> int:
+    args = _build_argparser().parse_args()
+    md_files = _resolve_input_paths(args.paths)
+    errors, warnings, checked = _scan_notes(md_files)
     for w in warnings:
         print(w, file=sys.stderr)
     for e in errors:
         print(e, file=sys.stderr)
-
     if args.strict_warnings:
         errors.extend(warnings)
-        warnings = []
-
     if errors:
-        print(
-            f"\n✗ {len(errors)} divergência(s) entre filename e id em {checked} nota(s) verificada(s).",
-            file=sys.stderr,
-        )
+        print(f"\n✗ {len(errors)} divergência(s) em {checked} nota(s).", file=sys.stderr)
         return 1
-
     if checked == 0:
-        # Vault vazio → exit 0 silencioso.
         return 0
-
     print(f"✓ {checked} nota(s) validada(s). Filenames batem com IDs.")
     return 0
 
