@@ -313,7 +313,7 @@ class ChartsNarrator:
                 f"Atualmente {ctx.conjuge_nome} contribui com {fmt_currency(M['cm_salario_clt_brl'])}/mês."
             ),
             "conclusion": (
-                f"<strong>Sem renda do cônjuge:</strong> aporte cai para "
+                f"Sem renda do cônjuge: aporte cai para "
                 f"{fmt_currency(aporte)}/mês ({fmt_num(fator * 100, 0)}% do aporte-base). "
                 f"IF em {fmt_num(prazo, 0)} anos ({ano_if})"
                 + (
