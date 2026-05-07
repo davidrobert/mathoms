@@ -17,6 +17,7 @@ import * as fc from "fast-check";
 
 import {
   bankLabel,
+  docEffectiveStatus,
   docStatusLabel,
   isDocumentClassifiedOk,
   docTypeLabel,
@@ -338,6 +339,88 @@ describe("docStatusLabel()", () => {
   it("status desconhecido fallback para neutral", () => {
     const out = docStatusLabel("xyz_unknown" as any);
     expect(out.variant).toBe("neutral");
+  });
+});
+
+describe("docEffectiveStatus()", () => {
+  it("status=error → Erro", () => {
+    expect(docEffectiveStatus({ status: "error" })).toEqual({ label: "Erro", variant: "error" });
+  });
+
+  it("status=needs_password → Aguarda senha", () => {
+    expect(docEffectiveStatus({ status: "needs_password" })).toEqual({
+      label: "Aguarda senha",
+      variant: "warning",
+    });
+  });
+
+  it.each(["uploaded", "unlocking", "classifying"] as DocumentStatus[])(
+    "status=%s → Recebido",
+    (status) => {
+      expect(docEffectiveStatus({ status })).toEqual({ label: "Recebido", variant: "neutral" });
+    },
+  );
+
+  it("status=processing → Analisando", () => {
+    expect(docEffectiveStatus({ status: "processing" })).toEqual({
+      label: "Analisando",
+      variant: "info",
+    });
+  });
+
+  it("ready + sem needs_review → Pronto", () => {
+    expect(docEffectiveStatus({ status: "ready", needs_review: false })).toEqual({
+      label: "Pronto",
+      variant: "info",
+    });
+  });
+
+  it("ready + needs_review + tipo conhecido → Revisar (warning)", () => {
+    expect(
+      docEffectiveStatus({ status: "ready", needs_review: true, doc_type: "bank_statement" }),
+    ).toEqual({ label: "Revisar", variant: "warning" });
+  });
+
+  it("ready + needs_review + doc_type=other → Não classificado (muted)", () => {
+    expect(
+      docEffectiveStatus({ status: "ready", needs_review: true, doc_type: "other" }),
+    ).toEqual({ label: "Não classificado", variant: "muted" });
+  });
+
+  it("ready + needs_review sem doc_type → Revisar (fallback warning)", () => {
+    expect(docEffectiveStatus({ status: "ready", needs_review: true })).toEqual({
+      label: "Revisar",
+      variant: "warning",
+    });
+  });
+
+  it("processed + pipeline_e2_extract_ok=true → Extraído", () => {
+    expect(
+      docEffectiveStatus({ status: "processed", pipeline_e2_extract_ok: true }),
+    ).toEqual({ label: "Extraído", variant: "success" });
+  });
+
+  it("processed + needs_review + doc_type=other → Não classificado (muted)", () => {
+    expect(
+      docEffectiveStatus({
+        status: "processed",
+        pipeline_e2_extract_ok: false,
+        needs_review: true,
+        doc_type: "other",
+      }),
+    ).toEqual({ label: "Não classificado", variant: "muted" });
+  });
+
+  it("processed + pipeline_e2_extract_ok=false sem needs_review → Sem extrato", () => {
+    expect(
+      docEffectiveStatus({ status: "processed", pipeline_e2_extract_ok: false }),
+    ).toEqual({ label: "Sem extrato", variant: "neutral" });
+  });
+
+  it("processed + pipeline_e2_extract_ok=null (IRPF/members) → Processado", () => {
+    expect(
+      docEffectiveStatus({ status: "processed", pipeline_e2_extract_ok: null }),
+    ).toEqual({ label: "Processado", variant: "success" });
   });
 });
 
