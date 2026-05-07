@@ -155,33 +155,26 @@ def build_index_md(notes: list[Note]) -> str:
     return _join(lines)
 
 
-def _adr_area_from_tags(tags: tuple[str, ...]) -> str:
-    """Extrai primeira tag `area/*` como categoria; fallback `outras`."""
-    for tag in tags:
-        if tag.startswith("area/"):
-            return tag.removeprefix("area/")
-    return "outras"
+# Categorização e renderer ADR_INDEX vivem em _adr_index_renderer.py para manter
+# este módulo <500 linhas (guideline CLAUDE.md). F2.F deletará dev/build_adr_toc.py.
+try:
+    from _adr_index_renderer import (  # noqa: E402
+        _load_adr_categories,
+        category_for_adr,
+        render_adr_index,
+    )
+except ModuleNotFoundError:  # pragma: no cover
+    from dev._adr_index_renderer import (  # noqa: E402
+        _load_adr_categories,
+        category_for_adr,
+        render_adr_index,
+    )
 
 
 def build_adr_index_md(notes: list[Note]) -> str:
-    """Gera ADR_INDEX.md — ADRs agrupadas por área (tag area/*) e status."""
-    lines = _header("Índice de ADRs")
+    """Gera ADR_INDEX.md — ADRs agrupadas por categoria + status com sumário."""
     adrs = [n for n in notes if n.type == "adr"]
-    if not adrs:
-        lines.append("_Nenhuma ADR migrada para a vault ainda (Fase 2 do plano)._")
-        return _join(lines)
-    by_area: dict[str, list[Note]] = {}
-    for note in adrs:
-        by_area.setdefault(_adr_area_from_tags(note.tags), []).append(note)
-    for area in sorted(by_area):
-        lines.append(f"## area/{area}")
-        lines.append("")
-        lines.append("| id | status | título | path |")
-        lines.append("| --- | --- | --- | --- |")
-        for note in sorted(by_area[area], key=lambda n: n.id):
-            lines.append(f"| {note.id} | {note.status} | {note.title} | `{_rel_path(note)}` |")
-        lines.append("")
-    return _join(lines)
+    return _join(render_adr_index(adrs, _header))
 
 
 def _detect_current_sprint(docs_root: Path) -> str | None:
@@ -411,8 +404,22 @@ def _run_inline() -> int:
     return 0
 
 
+def _run_self_test() -> int:
+    """Roda smoke tests inline (definidos em _test_build_doc_index_smoke.py)."""
+    try:
+        from _test_build_doc_index_smoke import run_smoke_tests
+    except ModuleNotFoundError:  # pragma: no cover
+        from dev._test_build_doc_index_smoke import run_smoke_tests
+    return run_smoke_tests(
+        note_cls=Note,
+        build_fn=build_adr_index_md,
+        load_fn=_load_adr_categories,
+        category_fn=category_for_adr,
+    )
+
+
 def _build_parser() -> argparse.ArgumentParser:
-    """Define a CLI com flags `--check` e `--inline` mutuamente exclusivas."""
+    """Define a CLI com flags `--check`, `--inline` e `--self-test` mutuamente exclusivas."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument(
         "--check",
@@ -424,19 +431,27 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="regenera in-place sobrescrevendo os 6 arquivos",
     )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="roda smoke tests inline da categorização de ADRs",
+    )
     return parser
 
 
 def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
-    if args.check and args.inline:
-        print("erro: --check e --inline são mutuamente exclusivos.", file=sys.stderr)
+    flags_set = sum(int(f) for f in (args.check, args.inline, args.self_test))
+    if flags_set > 1:
+        print("erro: --check, --inline e --self-test são mutuamente exclusivas.", file=sys.stderr)
         return 2
     if args.check:
         return _run_check()
     if args.inline:
         return _run_inline()
+    if args.self_test:
+        return _run_self_test()
     parser.print_help()
     return 0
 
