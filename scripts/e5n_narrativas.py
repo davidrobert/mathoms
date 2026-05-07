@@ -315,11 +315,21 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
     seguros = goals_cfg.get("seguros", {})
     mar_eua = goals_cfg.get("cenarios_conjuge", goals_cfg.get("mariana_eua", {}))
     trib_cfg = goals_cfg.get("tributario", {})
-    imov_cfg = goals_cfg.get("imoveis", {})
-    thresholds = goals_cfg.get("thresholds", {})
     aloc_alvo = goals_cfg.get("alocacao_alvo", {})
     riscos = goals_cfg.get("riscos_prioritarios", [])
     decisoes = goals_cfg.get("decisoes_prioritarias", [])
+
+    # --- Rules-as-code (ADR-177): thresholds metodológicos universais ---
+    # Imports locais por simetria com convenção do módulo (paths/config
+    # também são late-bound). Substitui leituras de
+    # ``goals_cfg["imoveis"]`` e ``goals_cfg["thresholds"]``.
+    from pipeline.domain.services.methodology_constants import (
+        EQUITY_PCT_ALVO_DEFAULT_MAX,
+        EQUITY_PCT_ALVO_DEFAULT_MIN,
+        IMOVEL_PCT_PATRIMONIO_IDEAL,
+        YIELD_POTENCIAL_FII_BR_PCT_MAX,
+        YIELD_POTENCIAL_FII_BR_PCT_MIN,
+    )
 
     # --- Cenários cônjuge (computed by E5) ---
     cm = e5_data.get("cenarios_conjuge", {})
@@ -507,13 +517,13 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
         "contador_canal": trib_cfg.get("contador_canal_pagamento", ""),
         "regime_obs": trib_cfg.get("regime_obs", ""),
         "holding_prazo": trib_cfg.get("holding_avaliacao_prazo", ""),
-        # === config/goals.json: imóveis ===
-        "yield_imoveis_potencial_pct_min": imov_cfg.get("yield_potencial_pct_min", 0),
-        "yield_imoveis_potencial_pct_max": imov_cfg.get("yield_potencial_pct_max", 0),
-        # === config/goals.json: thresholds & alocação ===
-        "threshold_imovel_pct": thresholds.get("imovel_pct_patrimonio_ideal", 50),
-        "equity_alvo_min": thresholds.get("equity_pct_alvo_min", 20),
-        "equity_alvo_max": thresholds.get("equity_pct_alvo_max", 25),
+        # === imóveis (rules-as-code, ADR-177) ===
+        "yield_imoveis_potencial_pct_min": float(YIELD_POTENCIAL_FII_BR_PCT_MIN),
+        "yield_imoveis_potencial_pct_max": float(YIELD_POTENCIAL_FII_BR_PCT_MAX),
+        # === thresholds (rules-as-code, ADR-177) & alocação ===
+        "threshold_imovel_pct": float(IMOVEL_PCT_PATRIMONIO_IDEAL),
+        "equity_alvo_min": float(EQUITY_PCT_ALVO_DEFAULT_MIN),
+        "equity_alvo_max": float(EQUITY_PCT_ALVO_DEFAULT_MAX),
         "aloc_rf_pct": aloc_alvo.get("renda_fixa_pct", 50),
         "aloc_acoes_pct": aloc_alvo.get("acoes_pct", 25),
         "aloc_imoveis_pct": aloc_alvo.get("imoveis_reits_pct", 15),
