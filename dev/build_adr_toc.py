@@ -257,6 +257,10 @@ OVERRIDES: dict[int, str] = {
     179: "Sprint A10 — `goals.json` cutover final",  # Decision schema extension
     180: "Sprint A10 — `goals.json` cutover final",  # StageConfig bundle cutover
     181: "Sprint A10 — `goals.json` cutover final",  # cleanup _archive + forbidden_paths
+    # Override força "Outras" porque keyword "vault" pegaria categoria "Pipeline"
+    # (ADR-015 "vault por workspace"). Quando cluster docs/vault crescer, criar
+    # categoria própria via CATEGORIES (OVERRIDES sozinho não cria categoria nova).
+    182: "Outras",  # ADR-182 vault de documentação operacional Obsidian-friendly
 }
 
 
