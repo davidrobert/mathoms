@@ -35,6 +35,7 @@ docs/
 ├── sprint/                ← lanes + tracks por sprint (após F4)
 ├── plan/                  ← planos canônicos multi-fase (5 abertos)
 ├── reference/             ← docs estáveis (PHASES, PRODUCT, ARCHITECTURE, …)
+│   └── rules/             ← domain rules (rules-as-code, ADR-143/177)
 ├── archive/               ← planos arquivados, backups pré-shim, manual histórico
 ├── DECISIONS.md           ← shim → adr/ + _MOC/_generated/ADR_INDEX.md
 ├── BACKLOG.md             ← shim → _MOC/SPRINTS-active.md + sprint/<X>/lanes/
@@ -60,9 +61,10 @@ DOC_REORG ([ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md)) 
 - **62 tracks** em `sprint/<X>/tracks/`
 - **5 plans** em `plan/<SLUG>/_README.md` ([status](PLANS-active.md))
 - **167 changelog entries** em `sprint/<X>/changelog/` ([últimos 14 dias](_generated/CHANGELOG_RECENT.md))
+- **7 domain rules** em `reference/rules/RULE-*.md` (Onda 1 — TRS, composição patrimonial, alocação AUVP, IF, `imoveis_no_if`, cenário cônjuge, concentração imobiliária; bootstrap PR 4 pós-DOC_REORG)
 
 Próximas evoluções:
-- Crítica 1 do PM review (2026-05-07): backfill de taxonomia (`area/*`, `methodology/*`, `priority/*`) em 174 ADRs (hoje só 1 tem taxonomia rica). Depois: domain rules em `reference/rules/<slug>.md`.
+- Crítica 1 do PM review (2026-05-07): backfill de taxonomia (`area/*`, `methodology/*`, `priority/*`) em 174 ADRs (hoje só 1 tem taxonomia rica). PR 4 (em curso): domain rules em `reference/rules/<slug>.md` — Onda 1 entregue (7 RULEs); Onda 2/3 do inventário do `financial-planner` ficam para PRs subsequentes.
 
 ## Convenções rígidas (não negociáveis)
 
