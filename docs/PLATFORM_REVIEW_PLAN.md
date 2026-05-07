@@ -37,10 +37,10 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 |----|-------|--------|----------|-------------|---------|
 | ~~**W1-T01**~~ | ✅ Tokens fantasma + Tailwind classes inexistentes (CSS gate) | M | P0 | product-designer | DONE 2026-05-06 |
 | **W1-T02** | Suggestion regras dormentes — fix XS de FP-001/FP-002/FP-003 | XS | P0 | financial-planner | Onda 8 declarada concluída tem 3 regras dead/dead-code; fix de XS effort |
-| **W1-T03** | CLAUDE.md inconsistência (parity test path) — sync com realidade | XS | P0 | senior-cto | Doc cita arquivo deletado em A6c.3; agentes confundem |
-| **W1-T04** | PDF concurrency semaphore (`asyncio.Semaphore(2)`) | XS | P0 | sre-devops | OOM garantido em 4 PDFs simultâneos em CX32 (8GB) |
-| **W1-T05** | SECRET_KEY fail-fast em prod (model_validator) | XS | P0 | sre-devops | Default literal aceitável → JWT forge bypass se env esquecida |
-| **W1-T06** | ADR backfill (6 ADRs proposed para SR-002/004/003/007/006/009) | S | P1 | senior-cto | Política "ADR antes de PR P0" — destrava plano todo sem custo de implementação |
+| ~~**W1-T03**~~ | ~~CLAUDE.md inconsistência (parity test path) — sync com realidade~~ | ~~XS~~ | ~~P0~~ | ~~senior-cto~~ | **DONE 2026-05-06** — sync de §Code style › Testes |
+| ~~**W1-T04**~~ | ~~PDF concurrency semaphore (`asyncio.Semaphore(2)`)~~ | ~~XS~~ | ~~P0~~ | ~~sre-devops~~ | **DONE 2026-05-06** — `MATHOMS_PDF_CONCURRENCY=2` + singleton lazy |
+| ~~**W1-T05**~~ | ~~SECRET_KEY fail-fast em prod (model_validator)~~ | ~~XS~~ | ~~P0~~ | ~~sre-devops~~ | **DONE 2026-05-06** — `model_validator` rejeita defaults/sqlite em prod |
+| ~~**W1-T06**~~ | ~~ADR backfill (6 ADRs proposed para SR-002/004/003/007/006/009)~~ | ~~S~~ | ~~P1~~ | ~~senior-cto~~ | **DONE 2026-05-06** — 6 ADRs em status Proposto |
 | **W1-T07** | Endividamento `retorno_esperado_pct_aa` emitido pelo IFProjector | S | P1 | financial-planner | Regra Cerbasi/AUVP carry-trade dead até campo existir |
 | **W1-T08** | Schema E5 — declarar `cenarios_conjuge` formal + outros blocos não declarados | S | P1 | data-engineer | Schemas permissivos mascaram drift; ADR-148 já bumpou parcial |
 
@@ -55,8 +55,8 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W1-T01 | Tokens fantasma + CSS gate | 1 | done | product-designer | P0 | M | — |
 | W1-T02 | Suggestion regras dormentes (FP-001/2/3) | 1 | ready | financial-planner | P0 | XS | — |
 | W1-T03 | CLAUDE.md sync (parity test) | 1 | done | senior-cto | P0 | XS | — |
-| W1-T04 | PDF concurrency semaphore | 1 | ready | sre-devops | P0 | XS | — |
-| W1-T05 | SECRET_KEY fail-fast prod | 1 | ready | sre-devops | P0 | XS | — |
+| W1-T04 | PDF concurrency semaphore | 1 | done | sre-devops | P0 | XS | — |
+| W1-T05 | SECRET_KEY fail-fast prod | 1 | done | sre-devops | P0 | XS | — |
 | W1-T06 | ADR backfill (6 ADRs proposed) | 1 | done | senior-cto | P1 | S | — |
 | W1-T07 | Endividamento `retorno_esperado_pct_aa` | 1 | ready | financial-planner | P1 | S | — |
 | W1-T08 | Schema E5 cenarios_conjuge formal | 1 | done | data-engineer | P1 | S | — |
@@ -186,7 +186,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** —
 - **severity:** P0
 - **effort:** XS (~1h)
-- **status:** ready
+- **status:** done (2026-05-06)
 - **related_findings:** BB-009
 - **files_touched:**
   - `backend/app/services/pdf_renderer.py` (asyncio.Semaphore + env config)
@@ -204,7 +204,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** —
 - **severity:** P0
 - **effort:** XS (~1h)
-- **status:** ready
+- **status:** done (2026-05-06)
 - **related_findings:** SR-022, SR-021
 - **files_touched:**
   - `backend/app/core/config.py` (`@model_validator(mode="after")`)

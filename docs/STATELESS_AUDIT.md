@@ -54,6 +54,7 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | `services/pipeline_adapter.py:153` | `_GOAL_TYPE_MAP` | `dict` | ✅ imutável |
 | `services/task_attachment_service.py:29` | `_SUBDIR` | `str` | ✅ imutável |
 | `services/pdf_renderer.py:27` | `_PLAYWRIGHT_AVAILABLE` | `Optional[bool]` lazy | ⚠️ mutável mas **idempotente** — cada worker descobre o mesmo resultado independente |
+| `services/pdf_renderer.py` (W1-T04 · 2026-05-06) | `_pdf_semaphore` | `asyncio.Semaphore \| None` lazy | ✅ categoria (b) — recurso **local** ao worker (concorrência intra-process), não estado de negócio. Cada worker cria seu Semaphore lendo `settings.MATHOMS_PDF_CONCURRENCY` (mesmo valor → mesmo cap). Não acumula entre requests; protege RAM do Chromium contra OOM em CX32 (8GB). |
 | `services/events.py:16` | `_redis_client` | Redis connection lazy singleton | ✅ pattern aceito — cada worker tem sua conexão para o Redis compartilhado |
 | `services/vault.py:48` | `_singleton` | `VaultService` lazy singleton | ✅ mesma lógica — cada worker inicializa o seu, interop zero necessário |
 | `core/database.py:11` | `engine` | `AsyncEngine` module-level | ✅ SQLAlchemy pool; cada worker tem seu pool para o DB compartilhado |
