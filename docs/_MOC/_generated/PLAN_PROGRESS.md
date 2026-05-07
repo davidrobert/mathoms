@@ -1,6 +1,11 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# Progresso por plano multi-fase
+# PLAN_PROGRESS — Status agregado de planos canônicos
 
-_Nenhuma lane com `plan:` declarado ainda (Fases 3-4 do plano popularão)._
+Volta para [`00-INDEX`](../00-INDEX.md).
+
+_0 planos em `docs/plan/` — Fase 3 do plano DOC_REORG popula 6+ planos._
+
+---
+> Regenerar: `python3 dev/build_doc_index.py --inline`
