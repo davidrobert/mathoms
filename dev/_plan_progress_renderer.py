@@ -2,8 +2,8 @@
 
 # Mantém build_doc_index.py <500 linhas (guideline CLAUDE.md). Recebe notas via
 # Protocol estrutural (PlanLike/LaneLike) — não importa Note do orquestrador, evita ciclo.
-# Spec: docs/DOC_REORG_PLAN.md §6.3 (F3.C). Hoje (F3 antes de F4) lanes ainda não foram
-# migradas para sprint/<X>/lanes/ — output reporta "Lanes: (aguardando F4)" por plano.
+# Spec original: docs/archive/DOC_REORG_PLAN-2026-05-07.md §6.3 (F3.C). Pós-F4, lanes
+# já existem em sprint/<X>/lanes/ — output enumera lanes por plano com status.
 
 from __future__ import annotations
 

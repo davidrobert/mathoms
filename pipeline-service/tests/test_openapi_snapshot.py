@@ -12,7 +12,7 @@ from pathlib import Path
 
 _SERVICE_ROOT = Path(__file__).resolve().parent.parent
 _REPO_ROOT = _SERVICE_ROOT.parent
-_SNAPSHOT_PATH = _REPO_ROOT / "docs" / "api" / "v1" / "pipeline-service.openapi.json"
+_SNAPSHOT_PATH = _REPO_ROOT / "docs" / "reference" / "api" / "v1" / "pipeline-service.openapi.json"
 
 
 def test_openapi_snapshot_matches_committed_file() -> None:

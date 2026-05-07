@@ -16,7 +16,7 @@ from pathlib import Path
 from backend.app.main import app
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_SNAPSHOT_PATH = _REPO_ROOT / "docs" / "api" / "v1" / "openapi.json"
+_SNAPSHOT_PATH = _REPO_ROOT / "docs" / "reference" / "api" / "v1" / "openapi.json"
 
 
 def test_openapi_snapshot_matches_committed_file() -> None:

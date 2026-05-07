@@ -51,7 +51,7 @@ from sqlalchemy.types import JSON, DateTime, Enum, PickleType, TypeDecorator  # 
 import backend.app.models  # noqa: E402,F401
 from backend.app.core.database import Base  # noqa: E402
 
-SNAPSHOT_PATH = _REPO_ROOT / "docs" / "DB_SCHEMA_REFERENCE.md"
+SNAPSHOT_PATH = _REPO_ROOT / "docs" / "reference" / "DB_SCHEMA_REFERENCE.md"
 
 
 # ---------------------------------------------------------------------------
