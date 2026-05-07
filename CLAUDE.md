@@ -718,6 +718,23 @@ externos. Se já está numa branch `agent/*`, não recrie — continue nela.
 
 ### Hotspots de documentação
 
+> **🚧 JANELA DE PAUSA ATIVA — `docs/DECISIONS.md` (Fase 2 do DOC_REORG, ADR-182)**
+>
+> **Início:** 2026-05-07 14:50 UTC · **Fim previsto:** 2026-05-08 14:50 UTC.
+>
+> Durante esta janela, **nenhum agente deve abrir PR que toque
+> `docs/DECISIONS.md`**. A Fase 2 do plano [DOC_REORG](docs/DOC_REORG_PLAN.md)
+> (ADR-182) faz split do arquivo em 175 ADRs atomizadas em `docs/adr/` +
+> shim de ~50 linhas. Edits paralelos seriam rebaseados out-of-band.
+>
+> **Tarefas que precisam editar DECISIONS.md durante a janela:**
+> 1. Verifique se há merge conflict iminente: `git fetch origin &&
+>    git log origin/main --oneline -- docs/DECISIONS.md | head -5`.
+> 2. Coordene via PR comment ou Slack com o owner do F2 (orquestrador
+>    `agent/doc-reorg-f2-*`).
+> 3. Em emergência (hot-fix de ADR `Decidido` que entra em produção),
+>    abra PR com label `priority/p0` — owner do F2 rebasea após o merge.
+
 `CLAUDE.md`, `CHANGELOG.md`, `BACKLOG.md`, `DECISIONS.md` são editados em
 quase toda sessão — colisão entre agentes é garantida se todos concorrem.
 
