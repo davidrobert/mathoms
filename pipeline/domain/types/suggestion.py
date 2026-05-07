@@ -29,17 +29,16 @@ Category = Literal[
     "protecao",  # reserva emergência, seguros
     "comportamental",  # taxa poupança, lifestyle creep
     "endividamento",  # dívidas perigosas
-    "usa_plano",  # dolarização, plano de mudança
 ]
 
 # Mapeamento canônico kind → category (ADR-161 §dedup).
+# FP-003: `dolarizacao_atrasada` removida — USA modo deletado em ADR-168.
 KIND_TO_CATEGORY: dict[str, Category] = {
     # v1 (ADR-153)
     "trs_desalinhada": "alvo_if",
     "reserva_insuficiente": "protecao",
     "alocacao_fora_alvo": "carteira",
     "aporte_abaixo_meta": "alvo_if",
-    "dolarizacao_atrasada": "usa_plano",
     # v2 (ADR-161 — Cerbasi/AUVP completos)
     "endividamento_perigoso": "endividamento",
     "taxa_poupanca_caindo": "comportamental",
@@ -51,9 +50,7 @@ KIND_TO_CATEGORY: dict[str, Category] = {
 
 VALID_KINDS = frozenset(KIND_TO_CATEGORY.keys())
 
-VALID_CATEGORIES = frozenset(
-    {"alvo_if", "carteira", "protecao", "comportamental", "endividamento", "usa_plano"}
-)
+VALID_CATEGORIES = frozenset({"alvo_if", "carteira", "protecao", "comportamental", "endividamento"})
 
 
 @dataclass(frozen=True)

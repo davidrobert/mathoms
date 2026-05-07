@@ -125,17 +125,22 @@ def test_aporte_em_dia_skips(gen):
     assert all(d.kind != "aporte_abaixo_meta" for d in gen.generate(snapshot))
 
 
-def test_dolarizacao_atrasada_quando_drift_acima_threshold(gen):
+def test_dolarizacao_atrasada_removed_from_all_rules():
+    """FP-003: regra removida (ADR-168 — Modo USA removido)."""
+    from pipeline.domain.services.suggestion_rules import ALL_RULES
+    from pipeline.domain.types.suggestion import KIND_TO_CATEGORY, VALID_KINDS
+
+    rule_names = {r.__name__ for r in ALL_RULES}
+    assert "rule_dolarizacao_atrasada" not in rule_names
+    assert "dolarizacao_atrasada" not in KIND_TO_CATEGORY
+    assert "dolarizacao_atrasada" not in VALID_KINDS
+
+
+def test_dolarizacao_snapshot_silently_ignored(gen):
+    """FP-003: snapshot com `dolarizacao` não dispara nada (regra removida)."""
     snapshot = {"dolarizacao": {"cobertura_pct": 20.0, "meta_pct": 50.0}}
     drafts = gen.generate(snapshot)
-    d = next(d for d in drafts if d.kind == "dolarizacao_atrasada")
-    assert d.section_id == "U1"
-    assert "30pp" in d.title
-
-
-def test_dolarizacao_dentro_drift_skips(gen):
-    snapshot = {"dolarizacao": {"cobertura_pct": 40.0, "meta_pct": 50.0}}
-    assert all(d.kind != "dolarizacao_atrasada" for d in gen.generate(snapshot))
+    assert all(d.kind != "dolarizacao_atrasada" for d in drafts)
 
 
 def test_ranking_severity_first_then_amount(gen):
@@ -525,8 +530,8 @@ def test_all_v2_rules_have_dedup_key_stable_across_runs(gen):
     assert "renda_passiva_real_baixa" in drafts1
 
 
-def test_all_11_rules_can_coexist_under_cap(gen):
-    """Smoke: 11 regras possíveis, cap=8 trunca para 8."""
+def test_all_10_rules_can_coexist_under_cap(gen):
+    """Smoke: 10 regras possíveis (FP-003 removeu dolarizacao), cap=8 trunca para 8."""
     snapshot = {
         # v1
         "goals": {

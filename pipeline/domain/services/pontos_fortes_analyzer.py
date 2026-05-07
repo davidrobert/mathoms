@@ -229,8 +229,13 @@ class PontosFortesAnalyzer:
                 )
             )
 
-        # 7. Progresso IF
-        progresso = _safe_float((goals or {}).get("progresso_pct", 0))
+        # 7. Progresso IF — FP-002 alias defensivo. Adapter passa
+        # `goals={"if_pct": IFProjection.if_pct}` (paridade com nome
+        # canônico do IFProjector); legado lia `progresso_pct` que nunca
+        # era populado, deixando o ponto forte dormente.
+        progresso = _safe_float(
+            (goals or {}).get("if_pct") or (goals or {}).get("progresso_pct") or 0
+        )
         if progresso >= cfg.progresso_if_min_pct:
             out.append(
                 PontoForteItem(

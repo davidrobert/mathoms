@@ -66,7 +66,7 @@ VALID_SUGGESTION_KINDS: frozenset[str] = frozenset(
         "reserva_insuficiente",
         "alocacao_fora_alvo",
         "aporte_abaixo_meta",
-        "dolarizacao_atrasada",
+        # FP-003: dolarizacao_atrasada removida (ADR-168 — Modo USA removido).
         # v2 (ADR-161 — Onda 8)
         "endividamento_perigoso",
         "taxa_poupanca_caindo",
@@ -78,7 +78,7 @@ VALID_SUGGESTION_KINDS: frozenset[str] = frozenset(
 )
 
 VALID_SUGGESTION_CATEGORIES: frozenset[str] = frozenset(
-    {"alvo_if", "carteira", "protecao", "comportamental", "endividamento", "usa_plano"}
+    {"alvo_if", "carteira", "protecao", "comportamental", "endividamento"}
 )
 
 
