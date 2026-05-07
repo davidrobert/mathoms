@@ -11,9 +11,11 @@ Requisitos:
     pip install playwright
     playwright install chromium   (ou via Dockerfile)
 
-NOTA: Playwright consome ~200MB de RAM por renderização. Em produção,
-limitar concorrência (semaphore ou fila dedicada). Para MVP/beta,
-renderização síncrona é aceitável.
+NOTA: Playwright consome ~200MB de RAM por renderização. Concorrência
+limitada via `asyncio.Semaphore` singleton (W1-T04 · BB-009) — default
+2 simultâneas (`MATHOMS_PDF_CONCURRENCY`, range 1-8). Sem o cap, 4+
+PDFs concorrentes em CX32 (8GB RAM) causam OOM. Singleton segue ADR-111
+categoria b (recurso local idempotente, não estado de negócio).
 """
 
 from __future__ import annotations
@@ -26,6 +28,22 @@ logger = logging.getLogger(__name__)
 
 # Lazy import — Playwright pode não estar instalado em ambientes leves (CI unit tests).
 _PLAYWRIGHT_AVAILABLE: Optional[bool] = None
+
+# W1-T04 · Lazy singleton semaphore — limita renders simultâneos para
+# evitar OOM. Idempotente cross-worker: cada worker cria o seu próprio,
+# protegendo seus recursos locais. Lê valor de settings.MATHOMS_PDF_CONCURRENCY
+# no primeiro acquire. ADR-111 §exceção (b).
+_pdf_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_pdf_semaphore() -> asyncio.Semaphore:
+    """Retorna o semaphore lazy-init. Lê concorrência de settings."""
+    global _pdf_semaphore
+    if _pdf_semaphore is None:
+        from backend.app.core.config import settings
+
+        _pdf_semaphore = asyncio.Semaphore(settings.MATHOMS_PDF_CONCURRENCY)
+    return _pdf_semaphore
 
 
 def _check_playwright() -> bool:
@@ -76,46 +94,48 @@ async def render_pdf(
 
     from playwright.async_api import async_playwright
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        try:
-            page = await browser.new_page()
+    semaphore = _get_pdf_semaphore()
+    async with semaphore:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            try:
+                page = await browser.new_page()
 
-            # Injeta Bearer token no header de todas as requisições da page
-            await page.set_extra_http_headers(
-                {
-                    "Authorization": f"Bearer {bearer_token}",
-                }
-            )
+                # Injeta Bearer token no header de todas as requisições da page
+                await page.set_extra_http_headers(
+                    {
+                        "Authorization": f"Bearer {bearer_token}",
+                    }
+                )
 
-            # Navega para a rota de relatório com query ?print=1 para ativar
-            # o modo print do frontend (se implementado; caso contrário, o
-            # print CSS media query faz o trabalho)
-            url = report_url if "?" in report_url else f"{report_url}?print=1"
-            await page.goto(url, wait_until="networkidle", timeout=timeout_ms)
+                # Navega para a rota de relatório com query ?print=1 para ativar
+                # o modo print do frontend (se implementado; caso contrário, o
+                # print CSS media query faz o trabalho)
+                url = report_url if "?" in report_url else f"{report_url}?print=1"
+                await page.goto(url, wait_until="networkidle", timeout=timeout_ms)
 
-            # Estado terminal da rota (sucesso F9+, legado pré-F9, ou erro de metadados).
-            ready_timeout = max(5_000, timeout_ms - 3_000)
-            await page.wait_for_function(
-                """() => !!document.querySelector('[data-report-ready="true"]')"""
-                """ || !!document.querySelector('[data-report-pdf-legacy="1"]')"""
-                """ || !!document.querySelector('[data-report-pdf-error="1"]')""",
-                timeout=ready_timeout,
-            )
+                # Estado terminal da rota (sucesso F9+, legado pré-F9, ou erro de metadados).
+                ready_timeout = max(5_000, timeout_ms - 3_000)
+                await page.wait_for_function(
+                    """() => !!document.querySelector('[data-report-ready="true"]')"""
+                    """ || !!document.querySelector('[data-report-pdf-legacy="1"]')"""
+                    """ || !!document.querySelector('[data-report-pdf-error="1"]')""",
+                    timeout=ready_timeout,
+                )
 
-            # Recharts / layout assíncronos
-            await page.wait_for_timeout(2000)
+                # Recharts / layout assíncronos
+                await page.wait_for_timeout(2000)
 
-            pdf_bytes = await page.pdf(
-                format=format,
-                print_background=print_background,
-                margin={
-                    "top": "15mm",
-                    "right": "12mm",
-                    "bottom": "15mm",
-                    "left": "12mm",
-                },
-            )
-            return pdf_bytes
-        finally:
-            await browser.close()
+                pdf_bytes = await page.pdf(
+                    format=format,
+                    print_background=print_background,
+                    margin={
+                        "top": "15mm",
+                        "right": "12mm",
+                        "bottom": "15mm",
+                        "left": "12mm",
+                    },
+                )
+                return pdf_bytes
+            finally:
+                await browser.close()
