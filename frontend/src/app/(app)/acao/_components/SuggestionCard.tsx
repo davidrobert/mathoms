@@ -64,7 +64,7 @@ export function SuggestionCard({
       id={`SUG-${suggestion.id}`}
       data-suggestion-id={suggestion.id}
       className={[
-        "scroll-mt-24 target:ring-2 target:ring-brand-500 target:ring-offset-2",
+        "scroll-mt-24 target:ring-2 target:ring-[var(--brand-info)] target:ring-offset-2",
         // ADR-161 (Onda 8 #4) — borda esquerda colorida por severidade,
         // antes definida em SEVERITY_CONFIG.cls mas nunca aplicada ao Card.
         SEVERITY_BORDER[suggestion.severity] ?? SEVERITY_BORDER.info,
