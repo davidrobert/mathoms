@@ -1421,10 +1421,13 @@ Ao abrir `/reports/{id}`, o usuário experimenta uma quebra visual perceptível 
 
 **Status:** Decidido (F8.4) • **Data:** 2026-04-15
 
-> **Nota (2026-05-06):** §"Contrato de cutover" parcialmente superseded por
-> [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido).
-> O checkbox "100% dos campos lidos pelo E5/E5.N/E6" será marcado ✅
-> quando ADR-180 (Sprint A10) virar `Decidido` — fecha débito de 7 meses.
+> **Nota (2026-05-07):** ✅ Fechado por
+> [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido)
+> (Sprint A10.6) e
+> [ADR-181](#adr-181--goalsjson-removido-de-_archive-e-adicionado-a-devcheck_forbidden_pathspy)
+> (Sprint A10.8). Checkbox "Contrato de cutover" marcado. Sprint A10
+> entregou os 22 campos do `goals.json` em destinos canônicos (DB
+> aggregates, rules-as-code, frontend estático ou deletados).
 
 **Contexto:** As 4 fases anteriores (F8.0–F8.3) criaram entidades `Goal`, `Task`, `TaskSuggestion`, `TaskAttachment`, `FeatureFlag` no DB, endpoints REST, UI completa e testes. O pipeline legado (E5, E5.N, E6) continua lendo de `config/goals.json` e `config/tarefas.md`. O cutover precisa de uma ponte que permita ao pipeline operar via DB sem reescrevê-lo. Esta ADR formaliza o contrato dessa ponte.
 
@@ -1438,7 +1441,7 @@ Ao abrir `/reports/{id}`, o usuário experimenta uma quebra visual perceptível 
 4. **Snapshot automático** (ADR-074 §F8.3): `pipeline_task._create_report_from_output` chama `build_snapshot_sync` — relatórios novos nascem com foto imutável das tasks.
 
 **Contrato de cutover** — a remoção de `config/goals.json` e `config/tarefas.md` do repo acontece quando:
-- [ ] O adapter cobre 100% dos campos lidos pelo E5/E5.N/E6 (seção `independencia_financeira` migrada em F8.1; `aportes`, `alocacao_alvo`, `dolarizacao` types adicionados em F8.4; restante de goals.json via `legacy_extras` parameter até cobertura total)
+- [x] O adapter cobre 100% dos campos lidos pelo E5/E5.N/E6 (seção `independencia_financeira` migrada em F8.1; `aportes`, `alocacao_alvo`, `dolarizacao` types adicionados em F8.4; restante de `goals.json` consolidado em Sprint A10 via `Decision`/`Risk` aggregates, rules-as-code (ADR-177), `Workspace.business_profile_json`, ou deleção de dead-data ADR-168 — checkbox fechado por ADR-180 (A10.6) + ADR-181 (A10.8) em 2026-05-07)
 - [ ] Feature flag `tasks_v2_enabled` default ON para todas as workspaces
 - [ ] Pipeline roda ciclo completo E0→E7 consumindo adapter (não arquivo) sem regressão
 - [ ] Backup dos Grupo A (`_archive/pre-f8-cutover/`) + tag git
@@ -8332,7 +8335,7 @@ A regra de domínio "cenário cônjuge sem trabalhar" sobrevive como **capabilit
 > `summaries_narrator.py`, `charts_narrator.py`, `perfil_familia_narrator.py`,
 > `e5n_narrativas.py` serão limpas em **Sprint A10 lane A10.1** (cleanup
 > débito ADR-168). Plano canônico:
-> [GOALS_JSON_CUTOVER_PLAN.md §2.3](GOALS_JSON_CUTOVER_PLAN.md).
+> [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §2.3](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
 ---
 
@@ -8639,7 +8642,7 @@ A justificativa que destrava o follow-up é a mesma de ADR-166: ADR-143 (methodo
 
 ## ADR-177 — Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`)
 
-**Status:** Decidido (Sprint A10.2) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Aplica** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §2.2 chaves U/M/O](GOALS_JSON_CUTOVER_PLAN.md).
+**Status:** Decidido (Sprint A10.2) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Aplica** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §2.2 chaves U/M/O](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
 **Contexto:** O `config/goals.json` (arquivado em F8.4 mas ainda materializado em runtime por [`pipeline_task.py::_materialize_adapter_configs`](../backend/app/tasks/pipeline_task.py:56)) carrega 22 chaves heterogêneas. Inventário decisional do plano canônico classificou 7 delas como **universais (U) / metodológicas (M) / operacionais (O)** — não variam por cliente, são thresholds ou referências de mercado. ADR-143 (Sprint A7.6) já estabeleceu doutrina: regras universais de produto vivem em **docstrings + constantes em módulos enforcers** + ADR canônica como rationale. JSON externo para esses valores é o anti-padrão exato que ADR-143 combate — vira mock-config-driven pois ninguém edita o arquivo em produção.
 
@@ -8678,13 +8681,13 @@ A justificativa que destrava o follow-up é a mesma de ADR-166: ADR-143 (methodo
 - [ ] Tests unitários afirmam invariantes: `IMOVEL_PCT_PATRIMONIO_IDEAL == 50`, `STRESS_TEST_IMOVEL_QUEDA_PCT == 20`, etc.
 - [ ] `grep -r "goals_cfg\[\"thresholds\"\]\[\"imovel_pct" backend/ pipeline/` retorna zero.
 
-**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §2.2](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.2).
+**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §2.2](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.2).
 
 ---
 
 ## ADR-178 — `Risk` aggregate workspace-scoped
 
-**Status:** Decidido (Sprint A10.4) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §3.4](GOALS_JSON_CUTOVER_PLAN.md).
+**Status:** Decidido (Sprint A10.4) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.4](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
 **Contexto:** O bubble chart S9 ("Riscos Prioritários") do relatório premium hoje renderiza 8 dicts hardcoded prob×impacto vindos de `goals_cfg["riscos_prioritarios"]` (chave do `goals.json` arquivado, materializada em runtime). Não há aggregate por trás: usuário não pode editar; consultor não pode parametrizar por workspace; tenancy quebrada (workspace novo não-Ferreira-Campos vê dados alheios via seed). Conceito é distinto de `Decision` (ADR-136): Decision = ação a tomar; Risk = evento incerto. Sobreposição semântica existe ("decisão de contratar seguro" vs "risco de não ter seguro") mas direção é oposta — tratá-los como mesma entidade colapsa o link causa↔mitigação.
 
@@ -8739,13 +8742,13 @@ class Risk(Base):
 - [ ] Bubble chart S9 lê `Risk` via projeção; `goals_cfg["riscos_prioritarios"]` deletado em A10.6.
 - [ ] Tests: `backend/tests/test_risk_aggregate.py` (~30 specs) cobrindo 6 use cases + tenancy + link com Decision.
 
-**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §3.4](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.4).
+**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.4](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.4).
 
 ---
 
 ## ADR-179 — `Decision` aggregate — extensão de schema (`impact_1y/10y`, `horizon`, `priority`)
 
-**Status:** Decidido (Sprint A10.3) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Estende** [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain) • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §3.3](GOALS_JSON_CUTOVER_PLAN.md).
+**Status:** Decidido (Sprint A10.3) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Estende** [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain) • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.3](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
 **Contexto:** Card S10 do relatório premium ("Top 5 Decisões de Impacto") hoje renderiza string editorial Ferreira-Campos vinda de `goals_cfg["top5_decisoes"]` (concatenação f-string em `charts_narrator.py:382-393`). `Decision` aggregate (ADR-136) tem aggregate event-sourced + UI `/plano` desde Sprint A7, mas o card S10 ignora — duas fontes de verdade para o mesmo conceito. Para fazer S10 consultar o aggregate via projeção (lane A10.5), faltam 4 atributos críticos: **quantificação de impacto** (1y/10y), **horizonte** temporal e **prioridade manual** do consultor.
 
@@ -8785,13 +8788,13 @@ Decision em produção tem registros com `amount_brl_cents` populado mas sem ess
 - [ ] Tests `backend/tests/test_decision_extension.py` (~10 specs) cobrindo migration backward-compat, ordenação `priority NULL` → `impact_1y DESC NULLS LAST`, validação `horizon` enum.
 - [ ] Endpoint `/decisions/{id}` aceita registros legados sem os 4 campos (Optional retorna null no DTO).
 
-**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §3.3](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.3).
+**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.3](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.3).
 
 ---
 
 ## ADR-180 — `goals.json` cutover final via `StageConfig.config_store` extendido
 
-**Status:** Decidido (Sprint A10.6) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Supersedes** [ADR-077](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web) §"Contrato de cutover" (checkbox "100% dos campos lidos pelo E5/E5.N/E6") • **Relaciona** [ADR-088](#adr-088--stageconfig-configuração-imutável-por-parâmetro), [ADR-089](#adr-089--pipelinedomain-camada-de-domínio-isolada-de-io), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §3.1-3.2](GOALS_JSON_CUTOVER_PLAN.md).
+**Status:** Decidido (Sprint A10.6) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Supersedes** [ADR-077](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web) §"Contrato de cutover" (checkbox "100% dos campos lidos pelo E5/E5.N/E6") • **Relaciona** [ADR-088](#adr-088--stageconfig-configuração-imutável-por-parâmetro), [ADR-089](#adr-089--pipelinedomain-camada-de-domínio-isolada-de-io), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.1-3.2](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
 **Contexto:** F8.4 (2026-04-15) arquivou `config/goals.json` em `_archive/pre-f8-cutover-2026-04-15/`, mas [`pipeline_task.py::_materialize_adapter_configs`](../backend/app/tasks/pipeline_task.py:56) passou a **materializar `goals.json` em runtime** dentro de `tenant_root/config/` para que E5/E5.N continuassem lendo via filesystem. O DB virou bridge, não fonte primária. ADR-077 §"Contrato de cutover" tem checkbox aberto há 7 meses sobre "100% dos campos lidos por E5/E5.N/E6". Esta sprint fecha.
 
@@ -8839,13 +8842,13 @@ class GoalsBundle(TypedDict):
 - [ ] Goldens E5/E5.N verdes byte-a-byte em ciclo Ferreira-Campos pós-cutover (PR de reset dedicado se diff justificado).
 - [ ] ADR-077 §"Contrato de cutover" — checkbox "100% dos campos lidos pelo E5/E5.N/E6" marcado ✅ quando ADR-180 vira `Decidido`.
 
-**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §3.1-3.2](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.6).
+**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.1-3.2](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.6).
 
 ---
 
 ## ADR-181 — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py`
 
-**Status:** Proposto • **Data:** 2026-05-06 • **Relaciona** [ADR-077](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web), [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §6.2](GOALS_JSON_CUTOVER_PLAN.md).
+**Status:** Decidido (Sprint A10.8) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Relaciona** [ADR-077](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web), [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido). **Origem:** Sprint A10 W0 — `archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §6.2` (arquivado em [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)).
 
 **Contexto:** Após ADR-180 fechar a leitura runtime de `goals.json`, o arquivo arquivado `_archive/pre-f8-cutover-2026-04-15/config/goals.json` perde valor referencial — todas as 22 chaves migraram para `Decision`/`Risk` aggregates, rules-as-code (ADR-177), Goal types existentes ou foram deletadas como dead-data (ADR-168 cleanup). Manter o arquivo arquivado convida confusão: futuro engenheiro abrindo `_archive/` pode pensar que é referência viva. A semântica correta é cleanup final + bloqueio de recriação acidental no path original.
 
@@ -8896,7 +8899,7 @@ Arquivo arquivado em F8.4 (2026-04-15), runtime materialization removida em A10.
 - [ ] ADR-180 vira `Decidido (Sprint A10)`; ADR-181 idem.
 - [ ] Sprint A10 status global em BACKLOG marcado ✅.
 
-**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §6.2](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.8).
+**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §6.2](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.8).
 
 ---
 

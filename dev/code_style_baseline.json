@@ -483,18 +483,6 @@
       "allowlisted": false
     },
     {
-      "id": "P1-0029",
-      "category": "P1_long_functions",
-      "severity": "high",
-      "file": "backend/app/scripts/validate_adapter_parity.py",
-      "line_start": 87,
-      "line_end": 137,
-      "length": 51,
-      "identifier": "validate",
-      "message": "Function 51 lines; max 20 (CLAUDE.md 'Funções 4-20 linhas')",
-      "allowlisted": false
-    },
-    {
       "id": "P1-0030",
       "category": "P1_long_functions",
       "severity": "high",
@@ -6624,18 +6612,6 @@
       "length": 24,
       "identifier": "seed_default_risks",
       "message": "Function 24 lines; max 20 (CLAUDE.md 'Funções 4-20 linhas')",
-      "allowlisted": false
-    },
-    {
-      "id": "P1-0374",
-      "category": "P1_long_functions",
-      "severity": "med",
-      "file": "backend/app/scripts/validate_adapter_parity.py",
-      "line_start": 53,
-      "line_end": 84,
-      "length": 32,
-      "identifier": "_deep_compare",
-      "message": "Function 32 lines; max 20 (CLAUDE.md 'Funções 4-20 linhas')",
       "allowlisted": false
     },
     {
@@ -19164,30 +19140,6 @@
       "length": 10,
       "identifier": "<module>",
       "message": "Docstring multi-parágrafo; preferir 1-linha de intent",
-      "allowlisted": false
-    },
-    {
-      "id": "P7-0293",
-      "category": "P7_multiparagraph_docstring",
-      "severity": "low",
-      "file": "backend/app/scripts/validate_adapter_parity.py",
-      "line_start": 1,
-      "line_end": 1,
-      "length": 17,
-      "identifier": "<module>",
-      "message": "Docstring multi-parágrafo; preferir 1-linha de intent",
-      "allowlisted": false
-    },
-    {
-      "id": "P9-0013",
-      "category": "P9_deep_nesting",
-      "severity": "low",
-      "file": "backend/app/scripts/validate_adapter_parity.py",
-      "line_start": 53,
-      "line_end": 84,
-      "length": 4,
-      "identifier": "_deep_compare",
-      "message": "Nesting depth 4; máx 2 (3 aceitável só em parsing)",
       "allowlisted": false
     },
     {

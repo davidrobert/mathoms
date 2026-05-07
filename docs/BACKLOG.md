@@ -119,7 +119,7 @@
 - [Sprint A7 — Config DB Cutover](#sprint-a7--config-db-cutover-cli-legacy-removal) ← **sprint atual** · plano em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md); 7 lanes, multi-agente paralelo, supervisão CTO
   - [Lanes A7 — pickup table](#lanes-a7--pickup-table) ← **agente começa aqui**
   - [Ondas A7 — mapa de dependências](#ondas-a7--mapa-de-dependências)
-- [Sprint A10 — `goals.json` cutover final](#sprint-a10--goalsjson-cutover-final-proposta-2026-05-06) 🚧 plano em [GOALS_JSON_CUTOVER_PLAN.md](GOALS_JSON_CUTOVER_PLAN.md); 9 lanes em 4 ondas, paralela a A11
+- [Sprint A10 — `goals.json` cutover final](#sprint-a10--goalsjson-cutover-final-proposta-2026-05-06) 🚧 plano em [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md); 9 lanes em 4 ondas, paralela a A11
 - [Sprint A11 — Platform review execution](#sprint-a11--platform-review-execution-origem-2026-05-06) 🚧 plano em [PLATFORM_REVIEW_PLAN.md](PLATFORM_REVIEW_PLAN.md); 32 tasks em 6 ondas, W1 ✅ entregue
 - [F7 — Produção + LGPD](#f7--produção--lgpd) ← **integra §15 LGPD + §16 Obs do plano A6**
   - [7A-dev — Fatia mínima local-first (pré-Hetzner)](#7a-dev--fatia-mínima-local-first-pré-hetzner--✅-local-fechado-2026-04-26-·--dev9-aguardando-vps) ← **✅ local fechado · dev.9 aguarda VPS**
@@ -1328,10 +1328,10 @@ Detalhes virão quando A7 fechar; este stub serve para registrar débito técnic
 
 ## Sprint A10 — `goals.json` cutover final (proposta 2026-05-06)
 
-**Plano canônico:** [docs/GOALS_JSON_CUTOVER_PLAN.md](GOALS_JSON_CUTOVER_PLAN.md) — 10 seções, 9 lanes em 4 ondas, 5 ADRs propostos (ADR-177 a ADR-181 — sequência renumerada após ADR-176 ser tomada por outra entrega no mesmo dia), supervisão CTO.
+**Plano canônico:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) — 10 seções, 9 lanes em 4 ondas, 5 ADRs propostos (ADR-177 a ADR-181 — sequência renumerada após ADR-176 ser tomada por outra entrega no mesmo dia), supervisão CTO.
 **ADRs propostos:** ADR-177 (rules-as-code consolidation `goals.json`), ADR-178 (`Risk` aggregate), ADR-179 (`Decision` schema extension), ADR-180 (StageConfig bundle + cutover, **supersedes** parcial ADR-077), ADR-181 (`forbidden_paths` + delete archived).
 **Especialistas G0:** `senior-cto` ✅ + `financial-planner` ✅ (consultados 2026-05-06).
-**Status global (2026-05-07):** 🚧 Onda 3 fechando — A10.0/1/2/3/4/5/7 ✅ em `main` (PRs #104/#108/#107/#113/#116/#117/#118); A10.6 PR aberto. Falta A10.8 (Wave 4).
+**Status global (2026-05-07):** ✅ entregue — 9/9 lanes em `main` (PRs #104, #107, #108, #113, #116, #117, #118, #119, #122). ADR-077 §"Contrato de cutover" fechado por ADR-180 (A10.6) + ADR-181 (A10.8). `config/goals.json` é path proibido em `dev/check_forbidden_paths.py`. Plano canônico arquivado em [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md). Débito de 7 meses encerrado.
 **Objetivo (1 frase):** fechar o último frente da migração `config/*.json` → DB-first iniciada em A7, eliminando `goals.json` (arquivado) como fonte de dados em runtime e migrando as 18 chaves residuais para `Decision`/`Risk` aggregates, rules-as-code, ou deleção (dead data ADR-168).
 **Princípios não-negociáveis:** (P1) ADR-077 checkbox marcado ao fim; (P2) `pipeline/**` não importa SQLAlchemy/FastAPI (boundary check); (P3) money sempre Decimal/cents (ADR-090); (P4) goldens E5/E5.N verdes byte-a-byte salvo PR de reset dedicado e justificado; (P5) ADR `Proposto` antes de PR de implementação (ADR-138); (P6) tenancy correta — `seed_goals_workspace.py` sem hardcode de `family_surname`; (P7) `_archive/.../goals.json` deletado, não re-arquivado.
 **Supervisão:** padrão A7 (gates G1 ADR draft / G2 schema review / G3 PR pré-merge / G4 wave boundary).
@@ -1340,7 +1340,7 @@ Detalhes virão quando A7 fechar; este stub serve para registrar débito técnic
 
 Sprint A7 (entregue 2026-04-27) era "config cutover" e atacou 5 JSONs + `decisions.md` + `docs/methodology/`, **mas bypassou `config/goals.json`** — apenas arquivado em `_archive/pre-f8-cutover-2026-04-15/`. [pipeline_task.py:78-86](../backend/app/tasks/pipeline_task.py:78) ainda materializa `goals.json` físico em runtime para os scripts E5/E5.N lerem via filesystem; o card "Top 5 Decisões de Impacto" (S10) renderiza string hardcoded Ferreira-Campos vinda do arquivo arquivado, ignorando o `Decision` aggregate que existe e tem UI em `/plano`. ADR-077 tem checkbox aberto há 7 meses sobre "100% cobertura de campos lidos por E5/E5.N/E6". Esta sprint fecha o débito.
 
-Detalhes do diagnóstico (inventário de 22 chaves, leitores vivos, dead data ADR-168 órfã) em [GOALS_JSON_CUTOVER_PLAN.md §1-2](GOALS_JSON_CUTOVER_PLAN.md).
+Detalhes do diagnóstico (inventário de 22 chaves, leitores vivos, dead data ADR-168 órfã) em [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §1-2](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
 ### Lanes A10 — pickup table
 
@@ -1349,15 +1349,15 @@ Detalhes do diagnóstico (inventário de 22 chaves, leitores vivos, dead data AD
 
 | Lane | Branch slug | Plano | Depende de | Onda | Paralelo com | Esforço | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| **A10.0** ADRs Proposto batch (ADR-177..181) | `a10-0-adrs` | [GOALS_JSON_CUTOVER_PLAN.md §4](GOALS_JSON_CUTOVER_PLAN.md) | — | 0 (bloqueante) | — | 0.5d | ✅ entregue (PR #104, `a59312a`) |
-| **A10.1** Dead-data deletion + ADR-168 narrativas órfãs | `a10-1-dead-data` | [§2.3 + §5.1](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 1 | A10.2 | 1d | ✅ entregue (PR #108, `6c97349`) |
-| **A10.2** Rules-as-code consolidation (ADR-177) | `a10-2-rules-as-code` | [§2.2 chaves U/M/O + ADR-177](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 1 | A10.1 | 1d | ✅ entregue (PR #107, `1125ba5`) |
-| **A10.3** Decision schema extension (ADR-179) | `a10-3-decision-extension` | [§3.3 + ADR-179](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 2 | A10.4, A10.7 | 1.5d | ✅ entregue (PR #113, `ae934f8`) |
-| **A10.4** `Risk` aggregate (ADR-178) | `a10-4-risk-aggregate` | [§3.4 + ADR-178](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 2 | A10.3, A10.7 | 2d | ✅ entregue (PR #116, `e325119`) |
-| **A10.7** Seed refactor + `tributario` migration | `a10-7-seed-refactor` | [§3.5 + §2.2 tributario](GOALS_JSON_CUTOVER_PLAN.md) | A10.1 + A10.2 ✅ | 2 | A10.3, A10.4 | 1d | ✅ entregue (PR #118, `4b2f97b`) |
-| **A10.5** Top5 + Bubble como projeção (charts_narrator switch) | `a10-5-projections` | [§3.3 + §6.2 + §7.1](GOALS_JSON_CUTOVER_PLAN.md) | A10.3 + A10.4 ✅ | 3 | A10.6 | 1d | 🚧 PR #117 aberto (auto-merge) |
-| **A10.6** Pipeline cutover via `StageConfig.config_store` (ADR-180) | `a10-6-stage-config-bundle` | [§3.1 + §3.2 + ADR-180](GOALS_JSON_CUTOVER_PLAN.md) | A10.1 + A10.2 + A10.3 + A10.4 ✅ | 3 | A10.5 | 1.5d | 🚧 PR aberto |
-| **A10.8** Final cutover + `forbidden_paths` (ADR-181) | `a10-8-cutover-final` | [§6 + ADR-181](GOALS_JSON_CUTOVER_PLAN.md) | TODAS ✅ | 4 (bloqueante) | — | 0.5d | ☐ proposta |
+| **A10.0** ADRs Proposto batch (ADR-177..181) | `a10-0-adrs` | [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §4](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) | — | 0 (bloqueante) | — | 0.5d | ✅ entregue (PR #104, `a59312a`) |
+| **A10.1** Dead-data deletion + ADR-168 narrativas órfãs | `a10-1-dead-data` | [§2.3 + §5.1](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) | A10.0 ✅ | 1 | A10.2 | 1d | ✅ entregue (PR #108, `6c97349`) |
+| **A10.2** Rules-as-code consolidation (ADR-177) | `a10-2-rules-as-code` | [§2.2 chaves U/M/O + ADR-177](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) | A10.0 ✅ | 1 | A10.1 | 1d | ✅ entregue (PR #107, `1125ba5`) |
+| **A10.3** Decision schema extension (ADR-179) | `a10-3-decision-extension` | [§3.3 + ADR-179](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) | A10.0 ✅ | 2 | A10.4, A10.7 | 1.5d | ✅ entregue (PR #113, `ae934f8`) |
+| **A10.4** `Risk` aggregate (ADR-178) | `a10-4-risk-aggregate` | [§3.4 + ADR-178](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) | A10.0 ✅ | 2 | A10.3, A10.7 | 2d | ✅ entregue (PR #116, `e325119`) |
+| **A10.7** Seed refactor + `tributario` migration | `a10-7-seed-refactor` | [§3.5 + §2.2 tributario](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) | A10.1 + A10.2 ✅ | 2 | A10.3, A10.4 | 1d | ✅ entregue (PR #118, `4b2f97b`) |
+| **A10.5** Top5 + Bubble como projeção (charts_narrator switch) | `a10-5-projections` | [§3.3 + §6.2 + §7.1](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) | A10.3 + A10.4 ✅ | 3 | A10.6 | 1d | ✅ entregue (PR #117, `e7df21f`) |
+| **A10.6** Pipeline cutover via `StageConfig.config_store` (ADR-180) | `a10-6-stage-config-bundle` | [§3.1 + §3.2 + ADR-180](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) | A10.1 + A10.2 + A10.3 + A10.4 ✅ | 3 | A10.5 | 1.5d | ✅ entregue (PR #119, `856735d`) |
+| **A10.8** Final cutover + `forbidden_paths` (ADR-181) | `a10-8-cutover-final` | [§6 + ADR-181](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) | TODAS ✅ | 4 (bloqueante) | — | 0.5d | 🚧 PR aberto |
 
 **Esforço total estimado:** ~10 dias trabalho ativo. Wall-clock ~5-7 dias com 2-3 agentes paralelos.
 
@@ -1440,13 +1440,13 @@ Detalhes do diagnóstico (inventário de 22 chaves, leitores vivos, dead data AD
 ### Coordenação multi-agente A10
 
 - **Pickup checks idênticos** ao Sprint A6/A7: `git worktree list` + `git for-each-ref refs/remotes/origin/agent/`. Lane com prefix `a10-*` em uso = pegue outra.
-- **Hotspots críticos durante a sprint:** `docs/BACKLOG.md`, `docs/CHANGELOG.md`, `docs/GOALS_JSON_CUTOVER_PLAN.md`, `docs/DECISIONS.md` (5 ADRs novas), `backend/alembic/versions/` (3 migrations em Onda 2). Aplicar protocolo §Hotspots de documentação do CLAUDE.md (anunciar, commit ≤5min, doc separada do código).
+- **Hotspots críticos durante a sprint:** `docs/BACKLOG.md`, `docs/CHANGELOG.md`, `docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md`, `docs/DECISIONS.md` (5 ADRs novas), `backend/alembic/versions/` (3 migrations em Onda 2). Aplicar protocolo §Hotspots de documentação do CLAUDE.md (anunciar, commit ≤5min, doc separada do código).
 - **Cross-lane hotspots esperados:**
   - **Onda 1**: `backend/app/scripts/seed_goals_full_ferreira_campos.py` (A10.1 deleta chaves H; A10.2 migra rules. Sequenciar: A10.1 mergeia primeiro, A10.2 rebase).
   - **Onda 2**: 3 migrations Alembic simultâneas (A10.3 + A10.4 + A10.7). Solução: merge migration explícita no fim, ou serializar a ordem dentro da onda.
   - **Onda 3**: `pipeline/domain/services/narrativas/charts_narrator.py` (A10.5 reescreve narrador `top5_decisoes`; A10.6 troca leitura de goals_cfg → bundle). Sequenciar A10.5 → A10.6 dentro da onda 3 ou usar branches divergentes com merge consciente.
 - **CTO supervision** segue padrão A7 (4 gates). Agente que terminou anuncia "branch pronta para review" em CHANGELOG `[Unreleased]` + atualiza status na tabela acima para 🚧 G3 e **para de mexer** até receber APROVADO/BLOQUEADO.
-- **Re-sync periódico em sessão >1h** (CLAUDE.md): `git fetch origin && git log --oneline HEAD..origin/main` a cada ~30min. Se outra lane A10 mergeou, releia [GOALS_JSON_CUTOVER_PLAN.md](GOALS_JSON_CUTOVER_PLAN.md) — princípios podem ter ganhado nuance.
+- **Re-sync periódico em sessão >1h** (CLAUDE.md): `git fetch origin && git log --oneline HEAD..origin/main` a cada ~30min. Se outra lane A10 mergeou, releia [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) — princípios podem ter ganhado nuance.
 
 ### Definition of Done — Sprint A10
 

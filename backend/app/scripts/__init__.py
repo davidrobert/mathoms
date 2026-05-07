@@ -7,6 +7,8 @@ leem ficheiros devem usar :meth:`backend.app.services.storage.StorageService.abs
 - ``backfill_content_hash`` — preenche ``content_hash`` em linhas antigas
 - ``reclassify_documents`` — reexecuta o classificador content-first
 - ``reset_documents`` — apaga linhas ``documents`` e limpa dirs de tenant (destructivo)
-- ``cutover_execute`` / ``validate_adapter_parity`` — cutover ADR-077
+- ``cutover_execute`` — cutover ADR-077 (paridade
+  ``validate_adapter_parity`` removida em Sprint A10.8 / ADR-181 após
+  ``goals.json`` arquivado ser deletado)
 - ``seed_*`` — dados de exemplo Ferreira Campos
 """

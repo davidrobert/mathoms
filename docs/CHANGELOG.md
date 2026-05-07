@@ -6,6 +6,30 @@
 
 ## [Unreleased]
 
+### Sprint A10 (Wave 4)
+
+- **A10.8 ✅** Cutover final + `forbidden_paths` (ADR-181 →
+  `Decidido (Sprint A10.8)`). Sprint A10 fechada — 9/9 lanes em `main`,
+  débito de 7 meses do checkbox ADR-077 §"Contrato de cutover" encerrado.
+  - `_archive/pre-f8-cutover-2026-04-15/config/goals.json` deletado;
+    substituído por `goals.json.MIGRATED.md` com mapa das 22 chaves
+    originais → destinos canônicos (DB aggregates, rules-as-code,
+    `Workspace.business_profile_json`, frontend estático ou deletadas).
+  - `config/goals.json` adicionado a `dev/check_forbidden_paths.py` —
+    recriação no path original bloqueada por hook `pre-commit`,
+    consistente com cluster A7 (`categorization.json`,
+    `family_members.json`, `institutions.json`, `parametros_fiscais.json`,
+    `taxas.json`).
+  - `backend/app/scripts/validate_adapter_parity.py` deletado — script
+    de paridade DB ↔ arquivo arquivado tornou-se não-funcional após
+    deletion. Referência em `ROADMAP.md` §F8.4 ajustada;
+    `backend/app/scripts/__init__.py` docstring corrigida.
+  - **ADR-077** §"Contrato de cutover" — banner atualizado para "✅
+    Fechado por ADR-180 (A10.6) + ADR-181 (A10.8)" e checkbox marcado.
+  - Plano canônico `docs/GOALS_JSON_CUTOVER_PLAN.md` arquivado em
+    `docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md`; entrada em
+    `docs/archive/README.md`.
+
 ### Sprint A10 (Wave 3)
 
 - **A10.6 ✅** Pipeline cutover via `StageConfig.config_store` extendido
@@ -216,7 +240,7 @@
 - **ADR-180** Proposto — `goals.json` cutover final via `StageConfig.config_store` extendido. **Supersedes** parcial ADR-077 §"Contrato de cutover"; `_materialize_adapter_configs` e `_load_goals()` deletados; pipeline lê `GoalsBundle` tipado.
 - **ADR-181** Proposto — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py`. Cleanup final Sprint A10; arquivo arquivado substituído por `goals.json.MIGRATED.md` com mapa chave→destino.
 
-Plano canônico: [GOALS_JSON_CUTOVER_PLAN.md](GOALS_JSON_CUTOVER_PLAN.md). Banners de supersedure/extends adicionados em ADR-077, ADR-136, ADR-168.
+Plano canônico: [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md). Banners de supersedure/extends adicionados em ADR-077, ADR-136, ADR-168.
 
 - **fix(pipeline): regras suggestion dormentes + carry-trade endividamento (W1-T02 + W1-T07 · 2026-05-06):**
   Findings FP-001/2/3/9 do platform review. **W1-T02 — regras Onda 8

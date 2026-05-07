@@ -62,6 +62,12 @@ FORBIDDEN_FILES = (
     "config/institutions.json",
     "config/parametros_fiscais.json",
     "config/taxas.json",
+    # A10.8 (ADR-181): último JSON do cluster `config/*.json` migrado.
+    # ADR-180 (Sprint A10.6) eliminou materialização runtime; arquivo
+    # arquivado em `_archive/.../goals.json` deletado em A10.8 e
+    # substituído por `goals.json.MIGRATED.md`. Recriação no path
+    # original violaria o cutover — ADR-077 checkbox fechado.
+    "config/goals.json",
 )
 
 # Basenames bloqueados em qualquer diretório (regressão: backend/.env vazou
