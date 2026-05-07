@@ -215,6 +215,17 @@ CATEGORIES: list[tuple[str, list[str], list[range]]] = [
         ],
         [range(140, 143)],
     ),
+    (
+        "Sprint A10 — `goals.json` cutover final",
+        [
+            "rules-as-code consolidation goals.json",
+            "risk aggregate workspace-scoped",
+            "decision aggregate — extensão de schema",
+            "goals.json cutover final via stageconfig",
+            "goals.json removido de `_archive/`",
+        ],
+        [range(177, 182)],
+    ),
 ]
 
 
@@ -241,6 +252,11 @@ OVERRIDES: dict[int, str] = {
     139: "Frontend / Design",
     144: "Report Premium (F-pós, ondas v1/v2)",
     148: "Report Premium (F-pós, ondas v1/v2)",
+    177: "Sprint A10 — `goals.json` cutover final",  # rules-as-code consolidation
+    178: "Sprint A10 — `goals.json` cutover final",  # Risk aggregate
+    179: "Sprint A10 — `goals.json` cutover final",  # Decision schema extension
+    180: "Sprint A10 — `goals.json` cutover final",  # StageConfig bundle cutover
+    181: "Sprint A10 — `goals.json` cutover final",  # cleanup _archive + forbidden_paths
 }
 
 

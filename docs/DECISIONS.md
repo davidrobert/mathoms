@@ -113,6 +113,9 @@
 **Decisões metodológicas pós-auditoria (Roadmap v2):**
 [D140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) [D141](#adr-141--goal-alocação-alvo-schema-v2-7-classes-auvp) [D142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)
 
+**Sprint A10 — `goals.json` cutover final:**
+[D177](#adr-177--thresholds-e-referências-metodológicas-como-código-rules-as-code-consolidation-goalsjson) [D178](#adr-178--risk-aggregate-workspace-scoped) [D179](#adr-179--decision-aggregate--extensão-de-schema-impact_1y10y-horizon-priority) [D180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido) [D181](#adr-181--goalsjson-removido-de-_archive-e-adicionado-a-devcheck_forbidden_pathspy)
+
 **Outras:**
 [D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-proposto) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion) [D164](#adr-164--carteira-de-renda-e-taxa-de-retirada-efetiva) [D165](#adr-165--validationissue-estruturado-em-validationresult-e-stagereview) [D166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) [D167](#adr-167--eligibility-gate-de-cenário-do-cônjuge-no-domain-service) [D168](#adr-168--remoção-do-modo-usa-do-relatório) [D169](#adr-169--modo-incremental-estendido-aos-stages-globais-e1) [D170](#adr-170--refresh-tokens-com-httponly-cookie-e-family-based-revocation) [D173](#adr-173--llm-budget-hard-stop--llmcalllog-populada-universal) [D174](#adr-174--off-site-backup-criptografado-em-cloudflare-r2--restore-drill) [D175](#adr-175--prompt-injection-defense-em-camadas-sanitize--system-clause--pydantic-strict) [D176](#adr-176--chave-estável-cenarios_conjuge-no-bloco-de-narrativas-e5n)
 
@@ -1417,6 +1420,11 @@ Ao abrir `/reports/{id}`, o usuário experimenta uma quebra visual perceptível 
 ## ADR-077 — Pipeline adapter como contrato de cutover (CLI → Web)
 
 **Status:** Decidido (F8.4) • **Data:** 2026-04-15
+
+> **Nota (2026-05-06):** §"Contrato de cutover" parcialmente superseded por
+> [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido).
+> O checkbox "100% dos campos lidos pelo E5/E5.N/E6" será marcado ✅
+> quando ADR-180 (Sprint A10) virar `Decidido` — fecha débito de 7 meses.
 
 **Contexto:** As 4 fases anteriores (F8.0–F8.3) criaram entidades `Goal`, `Task`, `TaskSuggestion`, `TaskAttachment`, `FeatureFlag` no DB, endpoints REST, UI completa e testes. O pipeline legado (E5, E5.N, E6) continua lendo de `config/goals.json` e `config/tarefas.md`. O cutover precisa de uma ponte que permita ao pipeline operar via DB sem reescrevê-lo. Esta ADR formaliza o contrato dessa ponte.
 
@@ -5717,6 +5725,12 @@ Money continua [ADR-090](#adr-090--decimal-para-valores-monetários):
 [ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents),
 [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend).
 
+> **Nota (2026-05-06):** estendida por
+> [ADR-179](#adr-179--decision-aggregate--extensão-de-schema-impact_1y10y-horizon-priority)
+> (Sprint A10) — schema ganha `impact_1y_brl_cents`, `impact_10y_brl_cents`,
+> `horizon`, `priority` via Alembic non-breaking. Aggregate event-sourced
+> permanece; extensão é additive.
+
 **Contexto:** `config/decisions.md` é um caderno editorial do cliente —
 **não** ADRs arquiteturais. Contém 15 itens (D01..D15) com:
 
@@ -8313,6 +8327,13 @@ A regra de domínio "cenário cônjuge sem trabalhar" sobrevive como **capabilit
 1. Strings/copy USA-related em `config/methodology.md`, `config/report_spec.md`, comentários em código — limpeza final em PR5 (A8.4).
 2. Quando segundo cliente internacional aparecer, abrir nova ADR para "Modo Internacional" generalizado, com requisitos validados pelo cliente (não especulação).
 
+> **Nota (2026-05-06):** narrativas órfãs (`custo_fase_f1f2`, `f1f2_visto`,
+> `sobra_mensal_f1f2`, `mariana_eua`, `nclex_*`) ainda referenciadas em
+> `summaries_narrator.py`, `charts_narrator.py`, `perfil_familia_narrator.py`,
+> `e5n_narrativas.py` serão limpas em **Sprint A10 lane A10.1** (cleanup
+> débito ADR-168). Plano canônico:
+> [GOALS_JSON_CUTOVER_PLAN.md §2.3](GOALS_JSON_CUTOVER_PLAN.md).
+
 ---
 
 ## ADR-169 — Modo incremental estendido aos stages globais E1
@@ -8613,6 +8634,269 @@ A justificativa que destrava o follow-up é a mesma de ADR-166: ADR-143 (methodo
 **Implementação:** PR único. Vira `Decidido (A8.4)` no merge — completa o follow-up #2 de ADR-166.
 
 **Referências:** [ADR-166 §Follow-ups item 2](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5), [docs/ARCHITECTURE.md §4.1 Domain glossary](ARCHITECTURE.md).
+
+---
+
+## ADR-177 — Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`)
+
+**Status:** Proposto • **Data:** 2026-05-06 • **Aplica** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §2.2 chaves U/M/O](GOALS_JSON_CUTOVER_PLAN.md).
+
+**Contexto:** O `config/goals.json` (arquivado em F8.4 mas ainda materializado em runtime por [`pipeline_task.py::_materialize_adapter_configs`](../backend/app/tasks/pipeline_task.py:56)) carrega 22 chaves heterogêneas. Inventário decisional do plano canônico classificou 7 delas como **universais (U) / metodológicas (M) / operacionais (O)** — não variam por cliente, são thresholds ou referências de mercado. ADR-143 (Sprint A7.6) já estabeleceu doutrina: regras universais de produto vivem em **docstrings + constantes em módulos enforcers** + ADR canônica como rationale. JSON externo para esses valores é o anti-padrão exato que ADR-143 combate — vira mock-config-driven pois ninguém edita o arquivo em produção.
+
+**Chaves no escopo:**
+
+- `imoveis.yield_potencial_pct_min/max` (4-6% FII/imóvel BR — referência de mercado).
+- `thresholds.imovel_pct_patrimonio_ideal: 50` (concentração imobiliária; convergente Perini passivo + AUVP).
+- `thresholds.equity_pct_alvo_min/max` (range default por perfil; override por cliente cabe em Goal `ALOCACAO_ALVO` existente como `target_min_pct`/`target_max_pct` opcional).
+- `simulacao.aporte_reduzido_fator: 0.66` (heurística "cônjuge 66%"; convergente Cerbasi renda dupla — já tem default no código).
+- `stress_test_imovel_queda_pct: 20` (threshold metodológico stress test imobiliário).
+- `dashboard.aporte_match_keywords` — **VIVO** em [`task_progress_service.py:63`](../backend/app/services/task_progress_service.py:63); migra para constante imutável `_APORTE_MATCH_KEYWORDS` no módulo.
+- `referencias.{livros, ferramentas, contatos_templates}` (bibliografia/ferramentas/templates de perfil — frontend estático em página Sobre/Metodologia).
+- `calendario_fallback[]` (template estático por horizonte; itens USA-only filtrados após ADR-168).
+
+**Não-objetivo:** chaves cliente-específicas (`aportes`, `independencia_financeira`, `dolarizacao`, `alocacao_alvo` — já têm Goal type) ficam fora. `tetos_orcamentarios`, `viagens.teto_anual`, `tributario` também ficam fora (deletados em A10.1 ou migrados em A10.7).
+
+**Decisão:** Migrar as 7 chaves para rules-as-code (constantes em módulos enforcers + docstring justificando a fonte) ou conteúdo estático no frontend (`/sobre`, `/metodologia`). Cada constante referenciada via `**Aplica** ADR-177` em docstring local. `goals.json` deixa de ser fonte para esses valores ao final da Sprint A10.
+
+**Alternativas consideradas:**
+
+1. **Manter `goals.json` como source of truth via `ConfigStore.get_methodology_thresholds()`** — perpetua mock-config-driven; ninguém edita em produção; ADR-143 já provou que o caminho é código + ADR.
+2. **Tabela DB versionada por data (estilo `fiscal_parameters` ADR-135)** — overkill para 7 thresholds que não mudam por workspace nem por data fiscal. Custo de migration + repo + UI sem ganho concreto.
+3. **Constantes em módulos + docstrings + ADR (escolhida)** — alinhada com ADR-143; zero infra; muda via PR + revisão; gates de PR já cobrem.
+
+**Trade-offs explícitos:**
+
+- **Ganho:** consolidação numa única doutrina (ADR-143); deleta 7 chaves do goals.json sem perder rastreabilidade; testes de regressão validam invariantes (ex.: `imovel_pct_patrimonio_ideal == 50` em test).
+- **Custo:** mudar threshold exige PR (vs. edit em JSON). Aceito — esses valores **devem** passar por revisão; se vão para JSON acessível ao consultor, vira ADR e Goal type dedicado quando demanda materializar.
+- **Risco:** pequeno. `aporte_match_keywords` é o único leitor vivo (já mapeado); demais não têm leitor após cleanup.
+
+**Critério de aceite:**
+
+- [ ] 7 chaves `imoveis.yield_potencial_pct_*`, `thresholds.imovel_pct_patrimonio_ideal`, `thresholds.equity_pct_alvo_*`, `simulacao.aporte_reduzido_fator`, `stress_test_imovel_queda_pct`, `dashboard.aporte_match_keywords`, `referencias.*`, `calendario_fallback[]` migradas — cada constante em módulo enforcer (backend/pipeline) ou static content frontend.
+- [ ] `dashboard.aporte_match_keywords` em `task_progress_service.py` lido via `_APORTE_MATCH_KEYWORDS` constante imutável; nenhum `goals_cfg["dashboard"]["aporte_match_keywords"]` remanescente.
+- [ ] `referencias.{livros, ferramentas, contatos_templates}` viraram conteúdo estático em `frontend/src/app/(public)/metodologia/page.tsx` (ou similar) — sem leitura de arquivo.
+- [ ] Tests unitários afirmam invariantes: `IMOVEL_PCT_PATRIMONIO_IDEAL == 50`, `STRESS_TEST_IMOVEL_QUEDA_PCT == 20`, etc.
+- [ ] `grep -r "goals_cfg\[\"thresholds\"\]\[\"imovel_pct" backend/ pipeline/` retorna zero.
+
+**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §2.2](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.2).
+
+---
+
+## ADR-178 — `Risk` aggregate workspace-scoped
+
+**Status:** Proposto • **Data:** 2026-05-06 • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §3.4](GOALS_JSON_CUTOVER_PLAN.md).
+
+**Contexto:** O bubble chart S9 ("Riscos Prioritários") do relatório premium hoje renderiza 8 dicts hardcoded prob×impacto vindos de `goals_cfg["riscos_prioritarios"]` (chave do `goals.json` arquivado, materializada em runtime). Não há aggregate por trás: usuário não pode editar; consultor não pode parametrizar por workspace; tenancy quebrada (workspace novo não-Ferreira-Campos vê dados alheios via seed). Conceito é distinto de `Decision` (ADR-136): Decision = ação a tomar; Risk = evento incerto. Sobreposição semântica existe ("decisão de contratar seguro" vs "risco de não ter seguro") mas direção é oposta — tratá-los como mesma entidade colapsa o link causa↔mitigação.
+
+A literatura Cerbasi cataloga 5 riscos universais que todo provedor enfrenta — morte, invalidez, doença grave, desemprego, longevidade — todos com probabilidade variável e impacto financeiro mensurável. Para cliente piloto há também riscos específicos (concentração PJ, cambial, sucessório, iliquidez) que **não** se prestam a seed universal.
+
+**Decisão:** Criar aggregate `Risk` workspace-scoped, paralelo a `Decision` (ADR-136). Modelo proposto:
+
+```python
+class Risk(Base):
+    __tablename__ = "risks"
+    id: UUID
+    workspace_id: UUID  # FK → workspaces.id
+    code: str            # slug estável (ex.: "morte_provedor")
+    name: str
+    rationale: str
+    probability: Enum["baixa", "média", "alta"]   # qualitativo
+    impact_level: Enum["baixo", "médio", "alto", "crítico"]
+    impact_brl_cents: BigInteger | None  # ADR-090
+    status: Enum["Ativo", "Mitigado", "Aceito", "Descartado"]
+    mitigations_decision_ids: JSON  # array de Decision.id (link semântico)
+    created_at, updated_at
+```
+
+**Seed template universal (não-cliente):** 5 riscos Cerbasi com `status="Ativo"` e `probability=null` (cliente preenche). Workspace novo recebe os 5 automaticamente. Riscos cliente-específicos são adicionados via UI pelo consultor/cliente, não seedados.
+
+**Bubble chart S9** vira projeção: lê `Risk` aggregate ordenado por (`impact_level`, `probability`).
+
+**Use cases canônicos (UI mínima de listagem):** `create_risk`, `update_risk`, `link_mitigation` (associa Decision como mitigação), `unlink_mitigation`, `change_status`, `archive_risk`.
+
+**Alternativas consideradas:**
+
+1. **Reusar `Decision` aggregate com `kind="risk"`** — colapsa duas direções semânticas (ação a tomar vs. evento incerto); supersede chain de Decision não modela "risco mitigado" naturalmente; UI mistura conceitos.
+2. **Tabela CRUD pura (`risks` sem aggregate ddd)** — ok para v1, mas perde uniformidade com `Decision`; futuro `RiskEvent` (probabilidade variando ao longo do tempo) exigiria refactor. Aceitável de novo se v1 não tem demand de event-sourced.
+3. **Aggregate workspace-scoped DDD-shaped (escolhida)** — paralelo a Decision, link semântico via `mitigations_decision_ids`, room para event-sourcing se demanda materializar. Pequena sobre-engenharia para v1; payback em sprints futuras quando UI rica de Risk entrar.
+4. **Sem aggregate — apenas seed estático Cerbasi como `goals.json[riscos_prioritarios]` rules-as-code (ADR-143)** — perde tenancy; cliente não pode editar; consultor não parametriza por workspace.
+
+**Trade-offs explícitos:**
+
+- **Ganho:** tenancy correta; cliente edita seus riscos; consultor parametriza; bubble chart S9 fica funcional para qualquer workspace; `Decision` ↔ `Risk` link explícito documenta cause-effect.
+- **Custo:** novo aggregate (model + repo + 6 use cases + endpoints + UI mínima + seed template + Alembic). ~2d estimados. Decisão event-sourced **não** estendida ao Risk (CRUD com `updated_at` basta para v1 — escopado como ADR-136 fez para Decision: "**escopado a este aggregate apenas**").
+- **Risco:** Decision↔Risk sobreposição semântica confunde usuário. Mitigação: docstring no aggregate + copy UI explicita "Decisão = ação; Risco = evento incerto". Link via `mitigations_decision_ids` torna a relação navegável.
+
+**Critério de aceite:**
+
+- [ ] `backend/app/models/risk.py` com `Risk` aggregate, FK `workspace_id`, JSON `mitigations_decision_ids`.
+- [ ] Alembic migration aplicada (tabela `risks` + index workspace_id).
+- [ ] Repo `RiskRepository` + 6 use cases em `backend/app/application/risks/`.
+- [ ] Endpoints `POST/GET/PATCH /risks` com `response_model` explícito (ADR-102 R18).
+- [ ] OpenAPI snapshot regenerado (`make update-openapi-snapshot`).
+- [ ] Seed template Cerbasi (5 riscos universais) em `backend/app/scripts/seed_risk_template.py` aplicado a workspaces novos.
+- [ ] UI mínima de listagem em `/plano` (ou `/riscos` dedicada — TBD lane A10.4).
+- [ ] Bubble chart S9 lê `Risk` via projeção; `goals_cfg["riscos_prioritarios"]` deletado em A10.6.
+- [ ] Tests: `backend/tests/test_risk_aggregate.py` (~30 specs) cobrindo 6 use cases + tenancy + link com Decision.
+
+**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §3.4](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.4).
+
+---
+
+## ADR-179 — `Decision` aggregate — extensão de schema (`impact_1y/10y`, `horizon`, `priority`)
+
+**Status:** Proposto • **Data:** 2026-05-06 • **Estende** [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain) • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §3.3](GOALS_JSON_CUTOVER_PLAN.md).
+
+**Contexto:** Card S10 do relatório premium ("Top 5 Decisões de Impacto") hoje renderiza string editorial Ferreira-Campos vinda de `goals_cfg["top5_decisoes"]` (concatenação f-string em `charts_narrator.py:382-393`). `Decision` aggregate (ADR-136) tem aggregate event-sourced + UI `/plano` desde Sprint A7, mas o card S10 ignora — duas fontes de verdade para o mesmo conceito. Para fazer S10 consultar o aggregate via projeção (lane A10.5), faltam 4 atributos críticos: **quantificação de impacto** (1y/10y), **horizonte** temporal e **prioridade manual** do consultor.
+
+Decision em produção tem registros com `amount_brl_cents` populado mas sem essas 4 colunas. Migration **non-breaking** com defaults sensatos é o caminho — registros existentes continuam servíveis; backfill heurístico opcional via migrator dedicado.
+
+**Decisão:** Adicionar 4 colunas a `backend/app/models/decision.py` via Alembic non-breaking:
+
+- `impact_1y_brl_cents: BIGINT NULL` — impacto financeiro projetado em 1 ano (ADR-090: cents).
+- `impact_10y_brl_cents: BIGINT NULL` — idem 10 anos.
+- `horizon: VARCHAR(16) NOT NULL DEFAULT 'short_6_12m'` — enum `{short_6_12m, medium_1_3y, long_5y_plus}`. Default permite query do card S10 sem migrator pesado para Decisions existentes.
+- `priority: SMALLINT NULL` — ordenação manual do consultor; nulo ordena por `impact_1y_brl_cents DESC NULLS LAST`.
+
+**Migrator dedicado:** `backend/app/scripts/backfill_decision_impact.py` com `--dry-run` aplica heurística — aporte mensal × 12 quando aplicável; seguro = cobertura; etc. Backfill é **opcional** — endpoint `/decisions/{id}` aceita ausência dos campos (DTO opcionais).
+
+**DTO + UI form** atualizam para receber/exibir os 4 campos. OpenAPI snapshot regerado.
+
+**Alternativas consideradas:**
+
+1. **Continuar com `amount_brl_cents` único + ordenar por ele** — não diferencia "ação que paga em 1 ano" de "ação que paga em 10 anos"; consultor humano ordena diferente em horizonte curto vs. longo.
+2. **Tabela paralela `decision_impact_projections` (one-to-one)** — over-normalization para 4 colunas opcionais sem múltiplas projeções por Decision. Custo de join sem ganho.
+3. **Estender Decision diretamente (escolhida)** — non-breaking; defaults sensatos; backfill opcional; minimal cirurgia em DTO/repo/UI.
+4. **`priority` como `kind="numeric"` event no aggregate event-sourced ADR-136** — possível mas overkill; prioridade manual do consultor não precisa de log de eventos. Aceitável de novo se UX validar uso.
+
+**Trade-offs explícitos:**
+
+- **Ganho:** card S10 deixa de ler string hardcoded (lane A10.5); consultor parametriza horizonte e prioridade pela UI; ordenação justificável (`impact_1y DESC` para curto prazo, `impact_10y DESC` para longo).
+- **Custo:** Alembic migration + DTO + UI form + migrator backfill (~1.5d). Goldens E5/E5.N podem mudar ordenação do top 5 — risco alto de paridade (mitigado em A10.5 com PR de reset dedicado ao goldens se necessário).
+- **Risco:** 3 migrations Alembic simultâneas (A10.3 + A10.4 + A10.7 na mesma onda) — heads collision. Mitigação: serializar dependência ou merge migration explícita.
+
+**Critério de aceite:**
+
+- [ ] Alembic migration adiciona 4 colunas a `decisions` (nullable + default `horizon='short_6_12m'`).
+- [ ] DTOs `DecisionRead`, `DecisionUpdate`, `DecisionCreate` recebem os 4 campos novos (Pydantic Optional onde apropriado).
+- [ ] UI form em `/plano` exibe e edita `impact_1y_brl_cents`, `impact_10y_brl_cents`, `horizon` (select), `priority` (input).
+- [ ] OpenAPI snapshot regenerado (`make update-openapi-snapshot`).
+- [ ] `backend/app/scripts/backfill_decision_impact.py` com `--dry-run` validado em staging antes de aplicar em prod.
+- [ ] Tests `backend/tests/test_decision_extension.py` (~10 specs) cobrindo migration backward-compat, ordenação `priority NULL` → `impact_1y DESC NULLS LAST`, validação `horizon` enum.
+- [ ] Endpoint `/decisions/{id}` aceita registros legados sem os 4 campos (Optional retorna null no DTO).
+
+**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §3.3](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.3).
+
+---
+
+## ADR-180 — `goals.json` cutover final via `StageConfig.config_store` extendido
+
+**Status:** Proposto • **Data:** 2026-05-06 • **Supersedes** [ADR-077](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web) §"Contrato de cutover" (checkbox "100% dos campos lidos pelo E5/E5.N/E6") • **Relaciona** [ADR-088](#adr-088--stageconfig-configuração-imutável-por-parâmetro), [ADR-089](#adr-089--pipelinedomain-camada-de-domínio-isolada-de-io), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §3.1-3.2](GOALS_JSON_CUTOVER_PLAN.md).
+
+**Contexto:** F8.4 (2026-04-15) arquivou `config/goals.json` em `_archive/pre-f8-cutover-2026-04-15/`, mas [`pipeline_task.py::_materialize_adapter_configs`](../backend/app/tasks/pipeline_task.py:56) passou a **materializar `goals.json` em runtime** dentro de `tenant_root/config/` para que E5/E5.N continuassem lendo via filesystem. O DB virou bridge, não fonte primária. ADR-077 §"Contrato de cutover" tem checkbox aberto há 7 meses sobre "100% dos campos lidos por E5/E5.N/E6". Esta sprint fecha.
+
+A ADR-134 (Sprint A7.0) entregou `WorkspaceContext.config_overrides` lendo via `DBConfigStore` — padrão estabelecido. A pergunta é: estender o `ConfigStore` Protocol existente, ou criar `AnalyzerInputs` por stage? Plano canônico decidiu pelo primeiro: consistência com ADR-134, mínima cirurgia (vs. 11 sites em E5 + 2 em E5.N + 4 em domain services), `pipeline/**` continua sem importar `fastapi`/`celery`/`sqlalchemy` (boundary check ADR-101 R5 verde).
+
+**Decisão:** Estender `ConfigStore` Protocol com método `get_goals_bundle(workspace_id) -> GoalsBundle`, onde `GoalsBundle` é `TypedDict` com chaves tipadas resolvidas. Shape proposto (refinado durante implementação na lane A10.6):
+
+```python
+class GoalsBundle(TypedDict):
+    aporte: AporteGoalInputs
+    if_meta: IFGoalInputs
+    dolarizacao: DolarizacaoGoalInputs
+    alocacao: AlocacaoGoalInputs
+    seguros: SegurosGoalInputs            # A10.6 (Goal type SEGUROS, sem ADR — sub-1h)
+    decisoes_top5: list[DecisionProjection]  # A10.5 (projeção do Decision aggregate)
+    riscos_top: list[RiskProjection]      # A10.5 (projeção do Risk aggregate ADR-178)
+```
+
+`pipeline_adapter.build_goals_payload_sync` (existente) é refatorado para retornar `GoalsBundle` ao invés de dict legacy-shaped. `_materialize_adapter_configs` em `pipeline_task.py:56-99` é **deletado**. `_load_goals()` em `scripts/e5_analyze.py:166` e `scripts/e5n_narrativas.py:105` deletados. `goals.json` físico **nunca mais escrito em filesystem**.
+
+`pipeline/**` continua sem importar `fastapi`/`celery`/`sqlalchemy` — bundle é dict tipado simples; adapter (em `backend/app/services/`) faz a montagem.
+
+**Alternativas consideradas:**
+
+1. **`AnalyzerInputs` por stage (DTO específico de cada analyzer)** — refatora 11 sites em E5 + 2 em E5.N + 4 em domain services. Alto custo, ganho marginal (DTOs locais são já value objects ADR-089). Rejeitada.
+2. **Manter `_materialize_adapter_configs` mas escrever em diretório efêmero (tmpfs)** — não resolve débito ADR-077; apenas esconde; bridge perpetuado.
+3. **Estender `ConfigStore.get_goals_bundle` (escolhida)** — consistência com ADR-134; mínima cirurgia; bundle tipado pode evoluir incrementalmente; boundary check verde.
+4. **Endpoint REST `/v1/workspaces/{id}/goals_bundle` chamado por subprocess do pipeline** — adiciona round-trip HTTP em path crítico; complexidade desnecessária dado que pipeline já recebe `WorkspaceContext` via `StageConfig`.
+
+**Trade-offs explícitos:**
+
+- **Ganho:** débito ADR-077 fechado; `goals.json` físico nunca mais escrito; pipeline lê tipado; `GoalsBundle` evolui via PR (vs. dict shape implícito); tenancy correta (sem materialização de Ferreira-Campos para outros workspaces).
+- **Custo:** lane A10.6 estimada em 1.5d; goldens E5/E5.N podem regredir byte-a-byte se `pipeline_adapter.build_goals_payload_sync` mudar shape de algum subdict (mitigação: PR de paridade rigorosa; PR de reset dedicado se mudança for justificada).
+- **Risco:** ordem de cleanup importa — A10.6 deve mergear depois de A10.1+A10.2+A10.3+A10.4 para o bundle não ter chaves residuais ou ausentes.
+
+**Critério de aceite:**
+
+- [ ] `ConfigStore` Protocol com método `get_goals_bundle(workspace_id) -> GoalsBundle` (TypedDict tipado).
+- [ ] `pipeline_adapter.build_goals_payload_sync` retorna `GoalsBundle`, não dict legacy-shaped.
+- [ ] `_materialize_adapter_configs` em `pipeline_task.py` **deletado**.
+- [ ] `_load_goals()` em `scripts/e5_analyze.py` e `scripts/e5n_narrativas.py` **deletados**.
+- [ ] `grep -r "goals.json" backend/app/tasks/` retorna zero hits.
+- [ ] `dev/check_pipeline_boundaries.py` verde (pipeline não importa `fastapi`/`celery`/`sqlalchemy`).
+- [ ] Novo gate empírico `tests/test_e5_pipeline_no_filesystem_goals.py` afirma que `e5_analyze` + `e5n_narrativas` rodam sem `goals.json` em filesystem.
+- [ ] Goldens E5/E5.N verdes byte-a-byte em ciclo Ferreira-Campos pós-cutover (PR de reset dedicado se diff justificado).
+- [ ] ADR-077 §"Contrato de cutover" — checkbox "100% dos campos lidos pelo E5/E5.N/E6" marcado ✅ quando ADR-180 vira `Decidido`.
+
+**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §3.1-3.2](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.6).
+
+---
+
+## ADR-181 — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py`
+
+**Status:** Proposto • **Data:** 2026-05-06 • **Relaciona** [ADR-077](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web), [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §6.2](GOALS_JSON_CUTOVER_PLAN.md).
+
+**Contexto:** Após ADR-180 fechar a leitura runtime de `goals.json`, o arquivo arquivado `_archive/pre-f8-cutover-2026-04-15/config/goals.json` perde valor referencial — todas as 22 chaves migraram para `Decision`/`Risk` aggregates, rules-as-code (ADR-177), Goal types existentes ou foram deletadas como dead-data (ADR-168 cleanup). Manter o arquivo arquivado convida confusão: futuro engenheiro abrindo `_archive/` pode pensar que é referência viva. A semântica correta é cleanup final + bloqueio de recriação acidental no path original.
+
+ADR-077 (Sprint A7) bloqueou 5 arquivos `config/*.json` migrados via `dev/check_forbidden_paths.py`. `goals.json` é o último desse cluster — fechá-lo encerra Sprint A10 e o débito de Sprint A7.
+
+**Decisão:** No PR final da Sprint A10 (lane A10.8):
+
+1. **Deletar** `_archive/pre-f8-cutover-2026-04-15/config/goals.json` (`git rm`).
+2. **Substituir** por `_archive/pre-f8-cutover-2026-04-15/config/goals.json.MIGRATED.md` documentando o **mapa chave→destino** das 22 chaves (formato similar ao [ADR-168 banner em ADR-117](#adr-117--report-premium-ui-baseline-paridade-com-exemplo_de_relatoriohtml)).
+3. **Adicionar** `config/goals.json` (path original) a `dev/check_forbidden_paths.py` — hook bloqueia recriação acidental.
+4. **Não criar** novo Goal type `BUDGET_CEILING` (delete `tetos_orcamentarios` + `viagens.teto_anual` em A10.1 sem replacement; ressurreita em sprint dedicada quando UI de orçamento entrar).
+
+`goals.json.MIGRATED.md` formato esperado:
+
+```markdown
+# goals.json — mapa de migração (Sprint A10, 2026-05-XX)
+
+Arquivo arquivado em F8.4 (2026-04-15), runtime materialization removida em A10.6 (ADR-180), arquivo deletado em A10.8 (esta).
+
+## Mapa chave → destino
+
+| Chave do legado | Destino | ADR/Lane |
+|---|---|---|
+| `aportes` | Goal type `APORTE_MENSAL` | F8.4 (existente) |
+| `independencia_financeira` | Goal type `INDEPENDENCIA_FINANCEIRA` | F8.1 (existente) |
+| ... (22 entries totais) ... |
+```
+
+**Alternativas consideradas:**
+
+1. **Manter `_archive/.../goals.json` como referência histórica** — a referência histórica é o conteúdo do arquivo na revisão git da F8.4 (`git show <commit>:config/goals.json`); manter cópia em `_archive/` duplica histórico e convida confusão.
+2. **Criar Goal type `BUDGET_CEILING` agora** — sem UI de orçamento concreta, abstração prematura (CLAUDE.md §Code style: "três linhas similares > abstração prematura"). Ressurreita quando feature materializar.
+3. **Deletar + bloquear path + escrever `MIGRATED.md` (escolhida)** — cleanup completo; rastro mínimo necessário; bloqueio impede recriação acidental.
+
+**Trade-offs explícitos:**
+
+- **Ganho:** Sprint A10 fechada com cleanup final; ADR-077 checkbox marcado; futuro engenheiro vê `MIGRATED.md` quando procura `goals.json` no `_archive/` e entende o que aconteceu.
+- **Custo:** ~0.5d (PR de cleanup com mapa documentado).
+- **Risco:** baixo. Nenhum leitor vivo após A10.6 (validado pelo gate empírico ADR-180).
+
+**Critério de aceite:**
+
+- [ ] `_archive/pre-f8-cutover-2026-04-15/config/goals.json` deletado via `git rm`.
+- [ ] `_archive/pre-f8-cutover-2026-04-15/config/goals.json.MIGRATED.md` criado com mapa de 22 chaves → destinos.
+- [ ] `config/goals.json` adicionado a `dev/check_forbidden_paths.py`.
+- [ ] Hook `pre-commit` bloqueia tentativa de criar `config/goals.json` (validado por test).
+- [ ] ADR-077 checkbox "100% dos campos lidos pelo E5/E5.N/E6" marcado ✅ + linha "Fechado por ADR-180" adicionada.
+- [ ] ADR-180 vira `Decidido (Sprint A10)`; ADR-181 idem.
+- [ ] Sprint A10 status global em BACKLOG marcado ✅.
+
+**Plano de implementação:** [docs/GOALS_JSON_CUTOVER_PLAN.md §6.2](GOALS_JSON_CUTOVER_PLAN.md) (lane A10.8).
 
 ---
 

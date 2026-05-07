@@ -6,6 +6,16 @@
 
 ## [Unreleased]
 
+### Sprint A10 (Wave 0 — A10.0)
+
+- **ADR-177** Proposto — Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`). Aplica ADR-143; migra 7 chaves U/M/O do legado para constantes em módulos enforcers + frontend estático.
+- **ADR-178** Proposto — `Risk` aggregate workspace-scoped. Modelo paralelo a `Decision` (ADR-136); seed Cerbasi 5 riscos universais; bubble chart S9 vira projeção; link via `mitigations_decision_ids`.
+- **ADR-179** Proposto — `Decision` aggregate — extensão de schema (`impact_1y/10y_brl_cents`, `horizon`, `priority`). Estende ADR-136 via Alembic non-breaking; migrator backfill heurístico opcional.
+- **ADR-180** Proposto — `goals.json` cutover final via `StageConfig.config_store` extendido. **Supersedes** parcial ADR-077 §"Contrato de cutover"; `_materialize_adapter_configs` e `_load_goals()` deletados; pipeline lê `GoalsBundle` tipado.
+- **ADR-181** Proposto — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py`. Cleanup final Sprint A10; arquivo arquivado substituído por `goals.json.MIGRATED.md` com mapa chave→destino.
+
+Plano canônico: [GOALS_JSON_CUTOVER_PLAN.md](GOALS_JSON_CUTOVER_PLAN.md). Banners de supersedure/extends adicionados em ADR-077, ADR-136, ADR-168.
+
 - **fix(pipeline): regras suggestion dormentes + carry-trade endividamento (W1-T02 + W1-T07 · 2026-05-06):**
   Findings FP-001/2/3/9 do platform review. **W1-T02 — regras Onda 8
   dormentes:** (a) FP-001 `rule_renda_passiva_real_baixa` ganha alias
