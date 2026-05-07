@@ -9,8 +9,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 101"]
 tags:
-  - type/adr
+  - area/backend
+  - area/persistence
+  - area/pipeline
+  - phase/a6e
   - status/decidido
+  - type/adr
 size_lines: 53
 ---
 

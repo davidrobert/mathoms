@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 179"]
 tags:
-  - type/adr
+  - area/backend
+  - area/money
+  - area/persistence
   - status/decidido
+  - type/adr
 size_lines: 45
 ---
 

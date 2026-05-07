@@ -273,43 +273,97 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-180]] — `goals.json` cutover final via `StageConfig.config_store` extendido · phase Sprint A10.6
 - [[ADR-181]] — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py` · phase Sprint A10.8
 
-## Outras
+## auth
 
-### Decidido (19)
-
-- [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
-- [[ADR-151]] — Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) · phase Direção E · Onda 3
-- [[ADR-152]] — `/plano-de-acao` renomeada para `/acao` com tabs (Direção E · Onda 6) · phase Direção E · Onda 6
-- [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
-- [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
-- [[ADR-155]] — `/dashboard` absorvido por `/plano` (Direção E consolidação) · phase Direção E · consolidação
-- [[ADR-156]] — Patrimônio em `/plano` é single-source via `patrimonio_snapshot` (Direção E · Onda 7) · phase Direção E · Onda 7
-- [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
-- [[ADR-158]] — Pipeline review screen — UI dedicada para aprovar/editar `StageReview` · phase Sprint A8 · Lane pipeline-review-screen
-- [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
-- [[ADR-162]] — Decisions como event projection sobre Goals · phase Onda 8
-- [[ADR-163]] — Decision congela `context_snapshot` ao aceitar Suggestion · phase Onda 8
-- [[ADR-164]] — Carteira de renda e taxa de retirada efetiva · phase A8.3
-- [[ADR-165]] — `ValidationIssue` estruturado em `ValidationResult` e `StageReview`
-- [[ADR-166]] — Schema estável `cenarios_conjuge` no payload E5 · phase A8.4
-- [[ADR-167]] — Eligibility gate de cenário do cônjuge no domain service · phase A8.4 PR2
-- [[ADR-168]] — Remoção do Modo USA do relatório · phase A8.4 PR4
-- [[ADR-169]] — Modo incremental estendido aos stages globais E1
-- [[ADR-182]] — Vault de documentação operacional Obsidian-friendly em `docs/` · phase A11.5
-
-### Proposto (5)
+### Proposto (1)
 
 - [[ADR-170]] — Refresh tokens com httpOnly cookie e family-based revocation
-- [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
-- [[ADR-174]] — Off-site backup criptografado em Cloudflare R2 + restore drill
+
+## backend
+
+### Decidido (4)
+
+- [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
+- [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
+- [[ADR-162]] — Decisions como event projection sobre Goals · phase Onda 8
+- [[ADR-167]] — Eligibility gate de cenário do cônjuge no domain service · phase A8.4 PR2
+
+### Proposto (1)
+
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
+
+## frontend
+
+### Decidido (6)
+
+- [[ADR-151]] — Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) · phase Direção E · Onda 3
+- [[ADR-152]] — `/plano-de-acao` renomeada para `/acao` com tabs (Direção E · Onda 6) · phase Direção E · Onda 6
+- [[ADR-155]] — `/dashboard` absorvido por `/plano` (Direção E consolidação) · phase Direção E · consolidação
+- [[ADR-156]] — Patrimônio em `/plano` é single-source via `patrimonio_snapshot` (Direção E · Onda 7) · phase Direção E · Onda 7
+- [[ADR-158]] — Pipeline review screen — UI dedicada para aprovar/editar `StageReview` · phase Sprint A8 · Lane pipeline-review-screen
+- [[ADR-168]] — Remoção do Modo USA do relatório · phase A8.4 PR4
+
+### Proposto (1)
+
 - [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
 
-### Roadmap (3)
+## llm
+
+### Decidido (4)
+
+- [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
+- [[ADR-157]] — Schema IRPF completo (stage `extract_irpf_full`) · phase Sprint A8 · Lane irpf-full-schema
+- [[ADR-165]] — `ValidationIssue` estruturado em `ValidationResult` e `StageReview`
+- [[ADR-169]] — Modo incremental estendido aos stages globais E1
+
+### Proposto (1)
+
+- [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
+
+## money
+
+### Decidido (1)
+
+- [[ADR-164]] — Carteira de renda e taxa de retirada efetiva · phase A8.3
+
+### Roadmap (1)
+
+- [[ADR-160]] — Eficiência tributária imóvel direto vs FII no relatório premium (Roadmap)
+
+## multitenancy
+
+### Decidido (1)
+
+- [[ADR-166]] — Schema estável `cenarios_conjuge` no payload E5 · phase A8.4
+
+### Roadmap (2)
 
 - [[ADR-150]] — Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap · phase deferido em W6-T06, 2026-05-07
 - [[ADR-159]] — Aggregator banking BR (Open Finance) — adiar adoção até gatilhos materializarem
-- [[ADR-160]] — Eficiência tributária imóvel direto vs FII no relatório premium (Roadmap)
+
+## ops
+
+### Proposto (1)
+
+- [[ADR-174]] — Off-site backup criptografado em Cloudflare R2 + restore drill
+
+## persistence
+
+### Decidido (1)
+
+- [[ADR-163]] — Decision congela `context_snapshot` ao aceitar Suggestion · phase Onda 8
+
+## pipeline
+
+### Decidido (1)
+
+- [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
+
+## Outras
+
+### Decidido (1)
+
+- [[ADR-182]] — Vault de documentação operacional Obsidian-friendly em `docs/` · phase A11.5
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

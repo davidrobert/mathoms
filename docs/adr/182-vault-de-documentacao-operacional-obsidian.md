@@ -10,9 +10,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 182"]
 tags:
-  - type/adr
-  - status/decidido
+  - area/auth
+  - area/docs
+  - area/persistence
   - phase/a11-5
+  - status/decidido
+  - type/adr
 size_lines: 66
 ---
 

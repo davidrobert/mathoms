@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 121"]
 tags:
-  - type/adr
+  - area/frontend
+  - area/persistence
+  - area/report
   - status/decidido
+  - type/adr
 size_lines: 63
 ---
 

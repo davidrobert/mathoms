@@ -10,8 +10,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 145"]
 tags:
-  - type/adr
+  - area/report
+  - methodology/auvp
+  - methodology/cerbasi
+  - methodology/perini
   - status/decidido
+  - type/adr
 size_lines: 39
 ---
 

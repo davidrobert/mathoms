@@ -10,8 +10,14 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 164"]
 tags:
-  - type/adr
+  - area/money
+  - area/persistence
+  - area/pipeline
+  - methodology/auvp
+  - methodology/cerbasi
+  - methodology/perini
   - status/decidido
+  - type/adr
 size_lines: 52
 ---
 

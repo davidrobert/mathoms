@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 130"]
 tags:
-  - type/adr
+  - area/auth
+  - area/frontend
+  - area/persistence
   - status/proposto
+  - type/adr
 size_lines: 127
 ---
 

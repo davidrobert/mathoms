@@ -10,8 +10,10 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 060"]
 tags:
-  - type/adr
+  - area/auth
+  - area/security
   - status/decidido
+  - type/adr
 size_lines: 15
 ---
 

@@ -10,8 +10,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 153"]
 tags:
-  - type/adr
+  - area/backend
+  - area/multitenancy
+  - area/pipeline
+  - methodology/perini
   - status/decidido
+  - type/adr
 size_lines: 156
 ---
 

@@ -9,8 +9,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 171"]
 tags:
-  - type/adr
+  - area/auth
+  - area/ops
+  - area/security
   - status/proposto
+  - type/adr
 size_lines: 33
 ---
 

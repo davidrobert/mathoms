@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 150"]
 tags:
-  - type/adr
+  - area/multitenancy
+  - area/observability
+  - area/pipeline
   - status/roadmap
+  - type/adr
 size_lines: 159
 ---
 

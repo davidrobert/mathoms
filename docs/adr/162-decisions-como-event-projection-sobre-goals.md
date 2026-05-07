@@ -10,8 +10,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 162"]
 tags:
-  - type/adr
+  - area/backend
+  - area/money
+  - area/persistence
+  - methodology/perini
   - status/decidido
+  - type/adr
 size_lines: 49
 ---
 

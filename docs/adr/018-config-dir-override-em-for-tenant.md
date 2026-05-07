@@ -10,8 +10,9 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 018"]
 tags:
-  - type/adr
+  - area/multitenancy
   - status/decidido
+  - type/adr
 size_lines: 7
 ---
 

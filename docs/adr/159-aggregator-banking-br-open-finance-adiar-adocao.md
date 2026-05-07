@@ -9,8 +9,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 159"]
 tags:
-  - type/adr
+  - area/multitenancy
+  - area/persistence
+  - area/pipeline
   - status/roadmap
+  - type/adr
 size_lines: 71
 ---
 

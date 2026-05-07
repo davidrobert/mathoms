@@ -10,8 +10,14 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 177"]
 tags:
-  - type/adr
+  - area/frontend
+  - area/methodology
+  - area/pipeline
+  - methodology/auvp
+  - methodology/cerbasi
+  - methodology/perini
   - status/decidido
+  - type/adr
 size_lines: 44
 ---
 
