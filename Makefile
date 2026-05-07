@@ -94,6 +94,30 @@ define kill_pid_safe
 	 fi
 endef
 
+# Mata QUALQUER celery worker de backend.app.worker que não saia via PID file.
+# Use antes de subir worker novo — pidfile cobre só o último master, mas
+# masters anteriores (sessão que crashou, terminal fechado sem make dev-down,
+# split-brain entre worktrees) ficam vivos no broker e processam tasks com
+# código antigo (issue #103). Sem porta para detectar via dev-kill-stale.
+define kill_celery_orphans
+	@orphans="$$(pgrep -f 'celery -A backend.app.worker worker' 2>/dev/null || true)"; \
+	 if [ -n "$$orphans" ]; then \
+	   echo "   ⚠ celery workers órfãos detectados (PIDs: $$(echo $$orphans | tr '\n' ' ')) — matando…"; \
+	   echo "$$orphans" | xargs kill 2>/dev/null || true; \
+	   for i in 1 2 3 4 5 6 7 8 9 10; do \
+	     pgrep -f 'celery -A backend.app.worker worker' >/dev/null 2>&1 || break; \
+	     sleep 0.2; \
+	   done; \
+	   stragglers="$$(pgrep -f 'celery -A backend.app.worker worker' 2>/dev/null || true)"; \
+	   if [ -n "$$stragglers" ]; then \
+	     echo "$$stragglers" | xargs kill -9 2>/dev/null || true; \
+	     echo "   ✓ órfãos forçados via SIGKILL"; \
+	   else \
+	     echo "   ✓ órfãos parados"; \
+	   fi; \
+	 fi
+endef
+
 # Gera Fernet key efêmera válida via venv. Ecoa para stdout. Aborta com
 # mensagem clara se cryptography não está instalado (sem fallback inválido,
 # que mascarava bug em produção do smoke).
@@ -174,12 +198,16 @@ smoke-up: smoke-dirs
 	   > $(CURDIR)/$(SMOKE_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/api.pid; \
 	 echo "$$FERNET_KEY" > $(CURDIR)/$(SMOKE_DIR)/fernet.key
 	@echo "▶  Starting Celery worker…"
-	@FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
+	$(call kill_celery_orphans)
+	@TS=$$(date +%s); \
+	 FERNET_KEY="$$(cat $(CURDIR)/$(SMOKE_DIR)/fernet.key)"; \
 	 MATHOMS_DATABASE_URL="sqlite+aiosqlite:///$(CURDIR)/$(SMOKE_DB)" \
 	 MATHOMS_STORAGE_ROOT="$(CURDIR)/$(SMOKE_STORAGE)" \
 	 MATHOMS_REDIS_URL="redis://localhost:6379/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 nohup $(VENV)/celery -A backend.app.worker worker \
+	   --hostname="celery-smoke@%h-$$TS" \
+	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
 	   > $(CURDIR)/$(SMOKE_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/worker.pid
 	@echo "▶  Starting frontend (porta $(PORT_FRONTEND))…"
@@ -372,8 +400,12 @@ dev-api-up: dev-dirs
 	   > $(CURDIR)/$(DEV_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/api.pid
 
 dev-worker-up: dev-dirs
-	@echo "▶  Subindo Celery worker (concurrency=2)…"
-	@nohup $(VENV)/celery -A backend.app.worker worker \
+	@echo "▶  Subindo Celery worker (concurrency=2, max-tasks-per-child=200)…"
+	$(call kill_celery_orphans)
+	@TS=$$(date +%s); \
+	 nohup $(VENV)/celery -A backend.app.worker worker \
+	   --hostname="celery-dev@%h-$$TS" \
+	   --max-tasks-per-child=200 \
 	   --loglevel=info --concurrency=2 \
 	   > $(CURDIR)/$(DEV_DIR)/worker.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/worker.pid
 
@@ -410,6 +442,7 @@ dev-down:
 	@echo "▶  Parando serviços de dev…"
 	$(call kill_pid_safe,api,$(CURDIR)/$(DEV_DIR)/api.pid)
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
+	$(call kill_celery_orphans)
 	$(call kill_pid_safe,frontend,$(CURDIR)/$(DEV_DIR)/frontend.pid)
 	$(call kill_pid_safe,ops-api,$(CURDIR)/$(DEV_DIR)/ops-api.pid)
 	$(call kill_pid_safe,frontend-ops,$(CURDIR)/$(DEV_DIR)/frontend-ops.pid)
@@ -431,6 +464,7 @@ dev-restart: dev-down dev-up
 ## dev-restart-worker: Restart só do worker (após mudar pipeline/ ou tasks/)
 dev-restart-worker:
 	$(call kill_pid_safe,worker,$(CURDIR)/$(DEV_DIR)/worker.pid)
+	$(call kill_celery_orphans)
 	@$(MAKE) -s dev-worker-up
 	@echo "  ✅ Worker reiniciado."
 
@@ -529,6 +563,7 @@ dev-kill-stale:
 	     fi; \
 	   fi; \
 	 done
+	$(call kill_celery_orphans)
 	@rm -rf $(CURDIR)/$(DEV_DIR)
 	@echo "  ✅ Stale kill completo. 'make dev-up' para subir novamente."
 
