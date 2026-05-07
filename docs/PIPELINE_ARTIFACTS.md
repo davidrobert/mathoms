@@ -63,6 +63,34 @@ Implementado em `tests/test_e5_golden_execution.py`: mesmo fluxo de dados que o 
 - `instituicoes_por_membro`: lista de `{membro, instituicoes[]}` com instituições de investimento agrupadas (saída de `InstituicoesPorMembroAnalyzer`). Capitalizadas e dedup; `additionalProperties:false` no item; `uniqueItems:true` na lista de instituições. Mesmo `bens_por_membro` das outras agregações.
 - `n_imoveis_total`: contagem total de imóveis em `bens_por_membro` (residência + investimento). Paridade com o legado `_extract_top_institutions`. Consumido por `summaries_narrator`, `charts_narrator` e `perfil_familia_narrator` via `M['n_imoveis']`.
 
+### Bloco `cenarios_conjuge` no E5 JSON (ADR-166 + ADR-167)
+
+`output["cenarios_conjuge"]` (escrito por `e5_serialization.build_e5_output`,
+populado por `CenariosConjugeAnalyzer.to_legacy_dict()` em
+`pipeline/domain/services/cenarios_conjuge_analyzer.py`):
+
+- `labels: list[str]`, `aportes: list[float]`, `prazos_if: list[float]`,
+  `anos_if: list[int]` — vetores paralelos por cenário (atualmente fixo
+  em 1 cenário "Sem renda do cônjuge").
+- `idade_<titular_key>_if: list[int]` — chave dinâmica
+  (titular_key vem de `family_members`); declarada via
+  `patternProperties` no schema. Sem upper bound — sentinela legada
+  `prazo=999` propaga para idade>120.
+- `premissas: object` com `meta_if`, `investivel_atual`,
+  `retorno_real_anual_pct`, `aporte_base`, `fator_reduzido`,
+  `salario_<conjuge_key>_clt_brl`.
+- `cenarios: list[object]` — cada item tem `nome`, `aporte_mensal`,
+  `prazo_if_anos`, `ano_if`, `resumo` (obrigatórios em strict) +
+  `idade_<titular_key>` (chave dinâmica via `patternProperties`).
+- Eligibility gate (ADR-167) emite `{}` quando workspace não-elegível
+  (solteiro / 1 renda / casal sem meta IF / casal 95-5). Schema aceita
+  o objeto vazio.
+
+Declarado formalmente em
+[config/schemas/e5_analysis.schema.json](../config/schemas/e5_analysis.schema.json)
+desde W1-T08 (PLATFORM_REVIEW_PLAN, 2026-05-06). Modo `warn` ativo;
+cutover `strict` é W6-T01.
+
 ## Golden de execução E5.N
 
 Implementado em `tests/test_e5n_golden_execution.py`: mesmo cenário mínimo que o golden E5 (helper `_build_e5_workspace` — evita depender de `pytest_plugins` entre módulos) → `e4_categorize.main` → `e5_analyze.main` → `e5n_narrativas.main` → `analise_financeira-5_analysis.json` passa a incluir `narrativas` (`perfil_familia`, `summaries`, `charts`). O teste chama `validate_narrativas` **antes** do `finally` que repõe os globals do `e5n_narrativas` (o chart dinâmico `{cônjuge}_cenarios` depende de `family_members.json` do tenant). Segundo cenário: **`test_e5n_execution_narrativas_with_conjuge_chart`** — membro com `papel: conjuge` → presença de `ana_cenarios` em `narrativas.charts`.
