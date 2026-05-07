@@ -6,6 +6,18 @@
 
 ## [Unreleased]
 
+### Sprint A10 (Wave 2)
+
+- **A10.4 ✅** `Risk` aggregate (ADR-178 → `Decidido (Sprint A10.4)`).
+  Novo modelo `risks` workspace-scoped paralelo a `Decision` (ADR-136).
+  Estrutura `{name, code, rationale, probability, impact_level,
+  impact_brl_cents, status, mitigations_decision_ids[]}`. 6 use
+  cases canônicos + 7 endpoints REST. Seed Cerbasi 5 riscos
+  universais (`morte`, `invalidez`, `doenca_grave`, `desemprego`,
+  `longevidade`) em `seed_workspace_risks.py` (não executado
+  automaticamente). UI lista mínima em frontend (Bubble chart S9
+  passa a ler na A10.5).
+
 ### Sprint A10 (Wave 1 — A10.2)
 
 - **A10.2 ✅** Rules-as-code consolidation (ADR-177 → `Decidido (Sprint A10.2)`).
