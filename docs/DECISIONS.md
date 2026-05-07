@@ -7927,6 +7927,10 @@ Sources: [pluggy.ai/en/pricing](https://www.pluggy.ai/en/pricing), [belvo.com/pl
 **Follow-ups:**
 
 1. **Pipeline E5 enrichment** — popular os 6 campos snapshot novos a partir de séries históricas E3/E4 e configs (institutions snapshot, IRPF income, inflation index Brapi). Track separado: cada campo é independente.
+   - ✅ **FP-001** (W1-T02 · 2026-05-06) — `rule_renda_passiva_real_baixa` ganha alias defensivo `if_pct ↔ progresso_if_pct` + `goals.renda_passiva_mensal_observada_brl` (snapshot real expõe `if_pct`, paridade com `IFProjection.to_legacy_dict`).
+   - ✅ **FP-002** (W1-T02 · 2026-05-06) — `e5_analyzer_adapter` agora passa `goals={"if_pct": if_projection.if_pct}` para `PontosFortesAnalyzer`; ponto forte "Caminho para IF" dispara para `if_pct ≥ 20`.
+   - ✅ **FP-003** (W1-T02 · 2026-05-06) — `rule_dolarizacao_atrasada` removida (dead rule pós-ADR-168 USA modo removal). `KIND_TO_CATEGORY` + `VALID_SUGGESTION_KINDS` + `VALID_SUGGESTION_CATEGORIES` purgados de `usa_plano`.
+   - ✅ **FP-009** (W1-T07 · 2026-05-06) — `IFProjection.to_legacy_dict` emite `retorno_esperado_pct_aa` (== `IFProjectorConfig.retorno_real_anual_pct`); `rule_endividamento_perigoso` ativa carry-trade trigger via `CARRY_TRADE_MARGIN_PP=1.0` (Cerbasi · Equilíbrio Financeiro). Refinamento ADR-161 (FP-004) alinhará retorno esperado com retorno ponderado da carteira atual.
 2. **Cross-kind dedup por category** — quando 2+ regras de mesma `category` disparam, ranking pode escolher só a mais severa OU agregar copy.
 3. **UI badges de category** — chip colorido na SuggestionCard mostrando "Proteção" / "Carteira" / etc. (Onda 9 polish).
 

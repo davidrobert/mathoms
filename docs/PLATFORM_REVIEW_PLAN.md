@@ -4,7 +4,7 @@ created: 2026-05-06
 status: active
 waves: 6
 total_tasks: 32
-ready_tasks: 8
+ready_tasks: 3
 last_synced_with_main: cc532aa
 ---
 
@@ -35,14 +35,14 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 
 | ID | Title | Effort | Severity | Owner agent | Why now |
 |----|-------|--------|----------|-------------|---------|
-| ~~**W1-T01**~~ | ✅ Tokens fantasma + Tailwind classes inexistentes (CSS gate) | M | P0 | product-designer | DONE 2026-05-06 |
-| **W1-T02** | Suggestion regras dormentes — fix XS de FP-001/FP-002/FP-003 | XS | P0 | financial-planner | Onda 8 declarada concluída tem 3 regras dead/dead-code; fix de XS effort |
-| ~~**W1-T03**~~ | ~~CLAUDE.md inconsistência (parity test path) — sync com realidade~~ | ~~XS~~ | ~~P0~~ | ~~senior-cto~~ | **DONE 2026-05-06** — sync de §Code style › Testes |
-| ~~**W1-T04**~~ | ~~PDF concurrency semaphore (`asyncio.Semaphore(2)`)~~ | ~~XS~~ | ~~P0~~ | ~~sre-devops~~ | **DONE 2026-05-06** — `MATHOMS_PDF_CONCURRENCY=2` + singleton lazy |
-| ~~**W1-T05**~~ | ~~SECRET_KEY fail-fast em prod (model_validator)~~ | ~~XS~~ | ~~P0~~ | ~~sre-devops~~ | **DONE 2026-05-06** — `model_validator` rejeita defaults/sqlite em prod |
-| ~~**W1-T06**~~ | ~~ADR backfill (6 ADRs proposed para SR-002/004/003/007/006/009)~~ | ~~S~~ | ~~P1~~ | ~~senior-cto~~ | **DONE 2026-05-06** — 6 ADRs em status Proposto |
-| **W1-T07** | Endividamento `retorno_esperado_pct_aa` emitido pelo IFProjector | S | P1 | financial-planner | Regra Cerbasi/AUVP carry-trade dead até campo existir |
-| **W1-T08** | Schema E5 — declarar `cenarios_conjuge` formal + outros blocos não declarados | S | P1 | data-engineer | Schemas permissivos mascaram drift; ADR-148 já bumpou parcial |
+| ~~**W1-T01**~~ ✅ | Tokens fantasma + Tailwind classes inexistentes (CSS gate) | M | P0 | product-designer | DONE 2026-05-06 (PR #95) |
+| ~~**W1-T02**~~ ✅ | Suggestion regras dormentes — fix XS de FP-001/FP-002/FP-003 | XS | P0 | financial-planner | DONE 2026-05-06 (PR #98) — alias defensivo + adapter + dead rule removida |
+| ~~**W1-T03**~~ ✅ | CLAUDE.md inconsistência (parity test path) — sync com realidade | XS | P0 | senior-cto | DONE 2026-05-06 (PR #94) |
+| ~~**W1-T04**~~ ✅ | PDF concurrency semaphore (`asyncio.Semaphore(2)`) | XS | P0 | sre-devops | DONE 2026-05-06 (PR #97) — `MATHOMS_PDF_CONCURRENCY=2` + singleton lazy |
+| ~~**W1-T05**~~ ✅ | SECRET_KEY fail-fast em prod (model_validator) | XS | P0 | sre-devops | DONE 2026-05-06 (PR #97) — `model_validator` rejeita defaults/sqlite em prod |
+| ~~**W1-T06**~~ ✅ | ADR backfill (6 ADRs proposed para SR-002/004/003/007/006/009) | S | P1 | senior-cto | DONE 2026-05-06 (PR #94) — 6 ADRs em status Proposto |
+| ~~**W1-T07**~~ ✅ | Endividamento `retorno_esperado_pct_aa` emitido pelo IFProjector | S | P1 | financial-planner | DONE 2026-05-06 (PR #98) — `to_legacy_dict` + carry-trade trigger |
+| ~~**W1-T08**~~ ✅ | Schema E5 — declarar `cenarios_conjuge` formal + outros blocos não declarados | S | P1 | data-engineer | DONE 2026-05-06 (PR #96) — bloco formal + 18 outros top-level shallow |
 
 Qualquer dessas pode ser pegue agora — todas independentes.
 
@@ -53,12 +53,12 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | ID | Title | Wave | Status | Owner | Severity | Effort | Deps |
 |----|-------|------|--------|-------|----------|--------|------|
 | W1-T01 | Tokens fantasma + CSS gate | 1 | done | product-designer | P0 | M | — |
-| W1-T02 | Suggestion regras dormentes (FP-001/2/3) | 1 | ready | financial-planner | P0 | XS | — |
+| W1-T02 | Suggestion regras dormentes (FP-001/2/3) | 1 | done | financial-planner | P0 | XS | — |
 | W1-T03 | CLAUDE.md sync (parity test) | 1 | done | senior-cto | P0 | XS | — |
 | W1-T04 | PDF concurrency semaphore | 1 | done | sre-devops | P0 | XS | — |
 | W1-T05 | SECRET_KEY fail-fast prod | 1 | done | sre-devops | P0 | XS | — |
 | W1-T06 | ADR backfill (6 ADRs proposed) | 1 | done | senior-cto | P1 | S | — |
-| W1-T07 | Endividamento `retorno_esperado_pct_aa` | 1 | ready | financial-planner | P1 | S | — |
+| W1-T07 | Endividamento `retorno_esperado_pct_aa` | 1 | done | financial-planner | P1 | S | — |
 | W1-T08 | Schema E5 cenarios_conjuge formal | 1 | done | data-engineer | P1 | S | — |
 | W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | blocked | data-engineer | P0 | M | W1-T06 (ADR-170) |
 | W2-T02 | SR-001/013 Security headers + CORS strict | 2 | blocked | sre-devops | P0 | S | W1-T05 |
@@ -147,21 +147,22 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** —
 - **severity:** P0
 - **effort:** XS (~3h)
-- **status:** ready
+- **status:** done (2026-05-06, combined PR with W1-T07)
 - **related_findings:** FP-001, FP-002, FP-003
-- **paired_doc_task:** atualizar ADR-168 §Follow-ups
+- **paired_doc_task:** ADR-161 §Follow-ups #1 (Pipeline E5 enrichment) marca FP-001/2/3 ✅
 - **files_touched:**
   - `pipeline/domain/services/suggestion_rules.py` (FP-001 alias defensivo + FP-003 remover dead rule)
   - `pipeline/domain/services/pontos_fortes_analyzer.py` (FP-002 ler `goals.if_pct`)
   - `pipeline/domain/services/e5_analyzer_adapter.py` (FP-002 passar `goals={"if_pct": ...}`)
   - `pipeline/domain/types/suggestion.py` (FP-003 remover `dolarizacao_atrasada` de KIND_TO_CATEGORY)
-  - `tests/unit/pipeline/test_suggestion_rules.py` (adicionar e2e com snapshot real do build_e5_output)
+  - `backend/app/models/suggestion.py` (FP-003 sync VALID_SUGGESTION_KINDS + VALID_SUGGESTION_CATEGORIES)
+  - `tests/unit/pipeline/test_suggestion_rules.py` + `tests/test_e5_to_suggestion_e2e.py` (NOVOS)
 - **acceptance_criteria:**
-  - [ ] Teste e2e em `tests/test_e5_to_suggestion_e2e.py` usa snapshot real produzido por `build_e5_output` (não mock).
-  - [ ] Regra `rule_renda_passiva_real_baixa` dispara para workspace fictício com `if_pct≥50`.
-  - [ ] Pontos fortes "Caminho para IF" aparece para workspace com `if_pct≥20`.
-  - [ ] `rule_dolarizacao_atrasada` ausente de `ALL_RULES`.
-  - [ ] ADR-168 §Follow-ups atualizada com este item ✅.
+  - [x] Teste e2e em `tests/test_e5_to_suggestion_e2e.py` usa snapshot real produzido por `build_e5_output` (não mock).
+  - [x] Regra `rule_renda_passiva_real_baixa` dispara para workspace fictício com `if_pct≥50`.
+  - [x] Pontos fortes "Caminho para IF" aparece para workspace com `if_pct≥20`.
+  - [x] `rule_dolarizacao_atrasada` ausente de `ALL_RULES`.
+  - [x] ADR-161 §Follow-ups atualizada com este item ✅ (ADR-168 é USA modo removal — ADR canônica das regras é 161).
 
 ### [W1-T03] CLAUDE.md sync — parity test inconsistência
 
@@ -245,16 +246,16 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** —
 - **severity:** P1
 - **effort:** S (~4h)
-- **status:** ready
+- **status:** done (2026-05-06, combined PR with W1-T02)
 - **related_findings:** FP-009
 - **files_touched:**
-  - `pipeline/domain/services/if_projector.py` (`to_legacy_dict` adiciona retorno_esperado_pct_aa)
-  - `pipeline/domain/services/suggestion_rules.py` (FP-009 — comparar custo vs retorno)
-  - `tests/unit/pipeline/test_suggestion_rules.py` (regression)
+  - `pipeline/domain/services/if_projector.py` (`to_legacy_dict` adiciona retorno_esperado_pct_aa + campo dataclass)
+  - `pipeline/domain/services/suggestion_rules.py` (FP-009 — `CARRY_TRADE_MARGIN_PP=1.0` constante + comparar custo > retorno + 1pp)
+  - `tests/unit/pipeline/test_suggestion_rules.py` + `tests/test_e5_to_suggestion_e2e.py` (regression e2e)
 - **acceptance_criteria:**
-  - [ ] `IFProjection.to_legacy_dict()` emite `retorno_esperado_pct_aa: float`.
-  - [ ] Trigger carry-trade do `rule_endividamento_perigoso` dispara em snapshot real.
-  - [ ] Teste e2e com cenário: dívida 25%a.a. + retorno_esperado 12% → regra dispara.
+  - [x] `IFProjection.to_legacy_dict()` emite `retorno_esperado_pct_aa: float` (== `IFProjectorConfig.retorno_real_anual_pct`; alinhamento com retorno ponderado da carteira fica para FP-004).
+  - [x] Trigger carry-trade do `rule_endividamento_perigoso` dispara em snapshot real.
+  - [x] Teste e2e com cenário: dívida 25%a.a. + retorno_esperado 12% → regra dispara.
 
 ### [W1-T08] Schema E5 cenarios_conjuge + outros blocos formais
 
