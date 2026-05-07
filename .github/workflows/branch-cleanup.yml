@@ -1,0 +1,104 @@
+# Branch cleanup report — lista branches `agent/*` stale mensalmente (W6-T04, CTO-014).
+#
+# Em multi-agente, branches `agent/<slug>/<ts>` acumulam quando agentes
+# abandonam trabalho ou quando o squash-merge não dispara o auto-delete
+# (ex.: PR fechado sem merge). Este workflow não deleta — abre/atualiza
+# uma issue com a lista, deixando a decisão pro humano.
+#
+# Trigger: 1º dia de cada mês, 06:00 UTC. Dispatch manual via UI.
+
+name: Branch cleanup report
+
+on:
+  schedule:
+    # 06:00 UTC = 03:00 BRT, dia 1 de cada mês.
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  list-stale-branches:
+    name: List stale agent/* branches
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect stale branches
+        id: detect
+        env:
+          # Branch é "stale" se sem commit há >30 dias.
+          STALE_DAYS: "30"
+        run: |
+          set -euo pipefail
+          THRESHOLD=$(date -u -d "${STALE_DAYS} days ago" +%s)
+          REPORT_FILE="$(mktemp)"
+          {
+            echo "## Branches \`agent/*\` stale (>${STALE_DAYS}d sem commit)"
+            echo ""
+            echo "Geradas por agentes em sessões anteriores. Decida:"
+            echo "1. Trabalho mergeado em \`main\` mas branch órfã → \`git push origin --delete <branch>\`."
+            echo "2. Trabalho não-mergeado mas relevante → retomar OU arquivar (\`git tag archive/<branch>\` antes de deletar)."
+            echo "3. Trabalho abandonado → deletar."
+            echo ""
+            echo "| Branch | Última atividade | Último commit |"
+            echo "| --- | --- | --- |"
+            git for-each-ref \
+              --sort=committerdate \
+              --format='%(refname:short)|%(committerdate:iso-strict)|%(committerdate:unix)|%(subject)' \
+              refs/remotes/origin/agent/ \
+            | while IFS='|' read -r ref iso unix subject; do
+                if [ "$unix" -lt "$THRESHOLD" ]; then
+                  # Remove o prefixo `origin/` para o link funcionar no GitHub UI.
+                  branch="${ref#origin/}"
+                  # Escapa pipe no subject (raro, mas pode quebrar a tabela).
+                  safe_subject="${subject//|/\\|}"
+                  echo "| \`${branch}\` | ${iso} | ${safe_subject} |"
+                fi
+              done
+          } > "$REPORT_FILE"
+
+          {
+            echo "report<<EOF"
+            cat "$REPORT_FILE"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          # Conta linhas de tabela (excluindo header) — se 0, abortar issue.
+          count=$(grep -c '^| `' "$REPORT_FILE" || true)
+          echo "stale_count=$count" >> "$GITHUB_OUTPUT"
+          echo "Encontradas $count branches stale"
+
+      - name: Open or update issue
+        if: steps.detect.outputs.stale_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPORT: ${{ steps.detect.outputs.report }}
+          STALE_COUNT: ${{ steps.detect.outputs.stale_count }}
+        run: |
+          set -euo pipefail
+          TITLE="Branch hygiene: ${STALE_COUNT} agent/* branches stale"
+          # Procura issue aberta com mesmo prefixo de título (idempotente entre runs).
+          existing=$(gh issue list \
+            --state open \
+            --label "branch-cleanup" \
+            --search 'in:title "Branch hygiene"' \
+            --json number,title \
+            --jq '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$REPORT"
+            echo "Comentado em issue #$existing"
+          else
+            gh issue create \
+              --title "$TITLE" \
+              --label "branch-cleanup,tech-debt" \
+              --body "$REPORT"
+            echo "Issue criada"
+          fi
