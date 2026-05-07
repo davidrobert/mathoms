@@ -1,8 +1,11 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# Sprint corrente — lanes ativas
+# SPRINT_CURRENT — Lanes da sprint corrente — A11
 
-_Sprint detectada: **W6**._
+Volta para [`00-INDEX`](../00-INDEX.md).
 
-_Nenhuma lane com frontmatter na sprint corrente ainda._
+_Sprint corrente é **A11**, mas nenhuma lane com frontmatter foi indexada ainda (Fase 4.A do DOC_REORG popula)._
+
+---
+> Regenerar: `python3 dev/build_doc_index.py --inline`
