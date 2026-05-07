@@ -159,7 +159,10 @@ jobs:
           version: "0.5.x"
 
       - name: Install lint deps (via uv)
-        run: uv pip install --system pre-commit ruff==0.6.0 pytest
+        # ADR-182: jsonschema + pyyaml para os hooks doc-* da vault Obsidian
+        # (validate_frontmatter, check_doc_links, check_doc_filename_id,
+        # build_doc_index, benchmark_doc_token_cost).
+        run: uv pip install --system pre-commit ruff==0.6.0 pytest jsonschema pyyaml
 
       - name: pre-commit (all files)
         run: pre-commit run --all-files

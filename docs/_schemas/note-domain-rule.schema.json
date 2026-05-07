@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mathoms.ai/schemas/note-domain-rule.schema.json",
+  "title": "Frontmatter de nota Domain Rule (rules-as-code, ADR-143)",
+  "description": "Valida o bloco YAML no topo de docs/reference/rules/<slug>.md. Spec: docs/DOC_REORG_PLAN.md §3.6. Migração contínua — rules novas vão direto, rules existentes em docs/ARCHITECTURE.md §4.1 migram quando ADR canônica for editada.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "type", "concept", "canonical_adr"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^RULE-[a-z0-9-]+$",
+      "description": "Ex.: RULE-trs-efetiva, RULE-money-decimal."
+    },
+    "type": {
+      "const": "domain-rule"
+    },
+    "concept": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Conceito de domínio em português. Ex.: 'TRS efetiva', 'Reserva de emergência'."
+    },
+    "methodology": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["perini", "cerbasi", "auvp"]
+      },
+      "description": "Metodologias que tratam este conceito."
+    },
+    "canonical_adr": {
+      "type": "string",
+      "pattern": "^\\[\\[ADR-\\d{3}(-[A-Z]+)?\\]\\]$",
+      "description": "Wikilink para a ADR que define a regra. Ex.: [[ADR-164]]."
+    },
+    "enforcer_modules": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "Path relativo ao repo. Ex.: pipeline/domain/services/passive_income_calculator.py."
+      }
+    },
+    "formula_ref": {
+      "type": ["string", "null"],
+      "description": "Referência opcional a doc com a fórmula. Ex.: FORMULAS.md#trs-efetiva."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(type|area|sprint|status|priority|methodology|phase|breaking)/[a-z0-9][a-z0-9-]*$"
+      }
+    }
+  }
+}

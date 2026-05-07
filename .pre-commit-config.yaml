@@ -176,3 +176,42 @@ repos:
         language: system
         files: ^(CLAUDE\.md|\.claude/agents/.*\.md)$
         pass_filenames: false
+
+      # --------------------------------------------------------------------
+      # Gates da vault Obsidian-friendly (Fase 1 do plano DOC_REORG, ADR-182)
+      # Acionados quando arquivos da vault mudam (notas, schemas, MOCs).
+      # --------------------------------------------------------------------
+      - id: doc-frontmatter
+        name: "docs/: frontmatter YAML válido contra docs/_schemas/"
+        entry: python3 dev/validate_frontmatter.py
+        language: system
+        files: ^docs/.*\.md$
+        pass_filenames: true
+
+      - id: doc-filename-id
+        name: "docs/: filename casa com id: do frontmatter"
+        entry: python3 dev/check_doc_filename_id.py
+        language: system
+        files: ^docs/.*\.md$
+        pass_filenames: true
+
+      - id: doc-links
+        name: "docs/: wikilinks [[X]] resolvem"
+        entry: python3 dev/check_doc_links.py
+        language: system
+        files: ^docs/.*\.md$
+        pass_filenames: false
+
+      - id: doc-index
+        name: "docs/_MOC/_generated/ regenerado por dev/build_doc_index.py"
+        entry: python3 dev/build_doc_index.py --check
+        language: system
+        files: ^docs/.*\.md$
+        pass_filenames: false
+
+      - id: doc-token-cost
+        name: "docs/: benchmark de tokens sem regressão >5% vs latest"
+        entry: python3 dev/benchmark_doc_token_cost.py --check
+        language: system
+        files: ^docs/.*\.md$
+        pass_filenames: false
