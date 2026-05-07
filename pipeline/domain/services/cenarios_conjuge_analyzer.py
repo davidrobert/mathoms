@@ -7,7 +7,15 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any, Mapping
 
+from pipeline.domain.services.methodology_constants import (
+    APORTE_REDUZIDO_FATOR_CONJUGE,
+)
+
 _TODAY_FALLBACK = date(2026, 4, 19)
+
+# Default float exposto por ergonomia (dataclass field exige imutável simples).
+# Decimal canônico vive em ``methodology_constants`` (ADR-177).
+_APORTE_REDUZIDO_FATOR_DEFAULT: float = float(APORTE_REDUZIDO_FATOR_CONJUGE)
 
 
 def _safe_float(val) -> float:
@@ -37,17 +45,18 @@ def _calculate_age(dob: date, reference_date: date) -> int:
 class CenariosConjugeConfig:
     """Parâmetros do cenário de estresse, tipados (R9/ISP).
 
-    Sources no legado:
+    Sources:
     - ``retorno_real_anual_pct`` ← ``goals.json::independencia_financeira.retorno_real_anual_pct``
     - ``aporte_base`` ← ``goals.json::aportes.meta_aporte_mensal``
-    - ``fator_reduzido`` ← ``goals.json::simulacao.aporte_reduzido_fator``
+    - ``fator_reduzido`` ← rules-as-code (``APORTE_REDUZIDO_FATOR_CONJUGE``,
+      ADR-177); override por argumento aceito para testes.
     - ``titular_dob``/``titular_key``/``conjuge_key``/``conjuge_nome`` — family config
     """
 
     titular_dob: date
     retorno_real_anual_pct: float = 6.0
     aporte_base: float = 0.0
-    fator_reduzido: float = 0.66
+    fator_reduzido: float = _APORTE_REDUZIDO_FATOR_DEFAULT
     titular_key: str = "titular"
     conjuge_key: str = "conjuge"
     conjuge_nome: str = "Cônjuge"
@@ -68,13 +77,12 @@ class CenariosConjugeConfig:
         g = goals or {}
         if_cfg = g.get("independencia_financeira", {}) or {}
         aportes = g.get("aportes", {}) or {}
-        sim = g.get("simulacao", {}) or {}
 
         return cls(
             titular_dob=titular_dob,
             retorno_real_anual_pct=_safe_float(if_cfg.get("retorno_real_anual_pct", 6.0)),
             aporte_base=_safe_float(aportes.get("meta_aporte_mensal", 0)),
-            fator_reduzido=_safe_float(sim.get("aporte_reduzido_fator", 0.66)),
+            fator_reduzido=_APORTE_REDUZIDO_FATOR_DEFAULT,
             titular_key=titular_key,
             conjuge_key=conjuge_key,
             conjuge_nome=conjuge_nome,

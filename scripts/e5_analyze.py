@@ -2579,17 +2579,20 @@ def analyze_cenarios_conjuge(
 
     Scenarios:
       1. Sem Trabalhar — conjuge doesn't work in the US. Aporte reduced by
-         simulacao.aporte_reduzido_fator from goals.json.
+         ``APORTE_REDUZIDO_FATOR_CONJUGE`` (rules-as-code, ADR-177).
       2. Com NCLEX — conjuge works as RN at renda_rn_minima_usd (converted to BRL).
       3. Com NCLEX + Green Card — Full earning potential at renda_rn_maxima_usd.
 
     Each scenario computes: aporte_mensal (BRL), prazo_if (years), ano_if, resumo.
     """
+    from pipeline.domain.services.methodology_constants import (
+        APORTE_REDUZIDO_FATOR_CONJUGE,
+    )
+
     print(f"[E5.14b] Analyzing cenários IF — {_CONJUGE_NOME}...")
 
     _if_cfg = GOALS_CONFIG.get("independencia_financeira", {})
     _aportes_cfg = GOALS_CONFIG.get("aportes", {})
-    _sim_cfg = GOALS_CONFIG.get("simulacao", {})
     _mar_cfg = GOALS_CONFIG.get("cenarios_conjuge", GOALS_CONFIG.get("mariana_eua", {}))
     _taxas_path = PROJECT_DIR / "config" / "taxas.json"
 
@@ -2599,7 +2602,7 @@ def analyze_cenarios_conjuge(
     r = (1 + retorno_real_anual) ** (1 / 12) - 1
 
     aporte_base = safe_float(_aportes_cfg.get("meta_aporte_mensal", 0))
-    fator_reduzido = safe_float(_sim_cfg.get("aporte_reduzido_fator", 0.66))
+    fator_reduzido = float(APORTE_REDUZIDO_FATOR_CONJUGE)
 
     cambio = 5.80
     if _taxas_path.exists():
