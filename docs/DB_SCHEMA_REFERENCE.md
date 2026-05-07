@@ -1035,6 +1035,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `use_db_artifacts_override` | `BOOLEAN` | yes | — | — |
 | `monthly_llm_budget_usd` | `NUMERIC(10, 2)` | no | server: `5.00` | — |
 | `deleted_at` | `DATETIME` | yes | — | INDEX |
+| `business_profile_json` | `JSON` | yes | — | — |
 
 **Constraints:**
 
@@ -1100,6 +1101,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `task_suggestions.proposed_payload`
 - `transfer_configs.config_json`
 - `workspace_category_overrides.keywords_override`
+- `workspaces.business_profile_json`
 
 ---
 
@@ -1791,5 +1793,6 @@ type Workspace struct {
 	UseDbArtifactsOverride *bool `db:"use_db_artifacts_override" json:"use_db_artifacts_override"`
 	MonthlyLlmBudgetUsd decimal.Decimal `db:"monthly_llm_budget_usd" json:"monthly_llm_budget_usd"`
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
+	BusinessProfileJson json.RawMessage `db:"business_profile_json" json:"business_profile_json"`
 }
 ```

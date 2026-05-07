@@ -1166,6 +1166,105 @@
         "title": "Body_upload_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments_post",
         "type": "object"
       },
+      "BusinessProfile": {
+        "additionalProperties": false,
+        "description": "Perfil tribut\u00e1rio/PJ do workspace (todos campos opcionais at\u00e9 consultor preencher).",
+        "properties": {
+          "contador": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nome ou contato do contador respons\u00e1vel (texto livre).",
+            "title": "Contador"
+          },
+          "holding_prazo_meses": {
+            "anyOf": [
+              {
+                "maximum": 240.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Prazo (em meses) para constituir holding patrimonial.",
+            "title": "Holding Prazo Meses"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "enum": [
+                  "mei",
+                  "lucro_presumido",
+                  "lucro_real",
+                  "simples"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Regime tribut\u00e1rio PJ atual.",
+            "title": "Regime"
+          }
+        },
+        "title": "BusinessProfile",
+        "type": "object"
+      },
+      "BusinessProfileResponse": {
+        "description": "Resposta do GET/PATCH \u2014 espelha shape de `BusinessProfile`.",
+        "properties": {
+          "contador": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contador"
+          },
+          "holding_prazo_meses": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holding Prazo Meses"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "enum": [
+                  "mei",
+                  "lucro_presumido",
+                  "lucro_real",
+                  "simples"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regime"
+          }
+        },
+        "title": "BusinessProfileResponse",
+        "type": "object"
+      },
       "CategoryCreateCommand": {
         "description": "Input do ``POST /categories``.",
         "properties": {
@@ -11230,6 +11329,110 @@
         "summary": "List Audit Logs",
         "tags": [
           "audit"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/business-profile": {
+      "get": {
+        "description": "Retorna o perfil tribut\u00e1rio/PJ. Default vazio se nunca preenchido.",
+        "operationId": "get_business_profile_api_v1_workspaces__workspace_id__business_profile_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Business Profile",
+        "tags": [
+          "workspaces"
+        ]
+      },
+      "patch": {
+        "description": "Substitui o perfil tribut\u00e1rio (replace, n\u00e3o merge \u2014 shape simples).",
+        "operationId": "update_business_profile_api_v1_workspaces__workspace_id__business_profile_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Business Profile",
+        "tags": [
+          "workspaces"
         ]
       }
     },
