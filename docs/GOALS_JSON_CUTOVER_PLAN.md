@@ -122,20 +122,20 @@ revisão CTO + financial-planner. Tipo metodológico (FP):
 |---|---|---|---|---|
 | `decisoes_prioritarias` | D | **Projeção de `Decision`** | Já existe aggregate (ADR-136); narrativa S10 consulta `Decision` ordenado por `impact_score DESC` filtrado por `horizon=short` e `status IN (Decidido, Pendente)`. AUVP: Plano de Ação por aporte. | A10.5 |
 | `top5_decisoes` | D | **Projeção de `Decision` + extensão schema** | Mesmo aggregate; `impact_1y_brl_cents`/`impact_10y_brl_cents` adicionados ao `Decision` (Alembic). Cliente quantifica direto na UI `/plano`. | A10.3 + A10.5 |
-| `riscos_prioritarios` | C+U mix | **Novo aggregate `Risk`** (ADR-177) | Estrutura `{name, probability, impact, mitigations: Decision[]}` distinta de Decision. Seed com 5 riscos universais Cerbasi (morte/invalidez/doença/longevidade/desemprego) como template; cliente edita. Bubble chart S9 vira projeção. | A10.4 |
-| `seguros` (vida_term_min/max) | U+C híbrido | **Goal type `SEGUROS`** + heurística rules-as-code | Fórmula "10× renda anual" (Cerbasi) é universal — vai docstring + ADR-176; valor-alvo R$ é cliente-específico — Goal type leve. | A10.6 |
+| `riscos_prioritarios` | C+U mix | **Novo aggregate `Risk`** (ADR-178) | Estrutura `{name, probability, impact, mitigations: Decision[]}` distinta de Decision. Seed com 5 riscos universais Cerbasi (morte/invalidez/doença/longevidade/desemprego) como template; cliente edita. Bubble chart S9 vira projeção. | A10.4 |
+| `seguros` (vida_term_min/max) | U+C híbrido | **Goal type `SEGUROS`** + heurística rules-as-code | Fórmula "10× renda anual" (Cerbasi) é universal — vai docstring + ADR-177; valor-alvo R$ é cliente-específico — Goal type leve. | A10.6 |
 | `tetos_orcamentarios` | C | **Deletar agora; ressurreita em sprint dedicada quando houver UI** | Zero leitor vivo (E6 morto, ADR-129; nenhum frontend novo lê). Conceito Cerbasi sobrevive, mas criar Goal type sem feature definida viola "no premature abstraction" (CLAUDE.md §Code style). | A10.1 |
 | `viagens.teto_anual` | C | **Deletar com `tetos_orcamentarios`** | Mesmo destino futuro (categoria de orçamento), mesmo princípio. | A10.1 |
 | `tributario` (contador, regime, holding_prazo) | C | **Campo em `Workspace.business_profile_json` (JSON simples)** | Cliente PJ específico; aggregate dedicado é overkill. JSON livre no Workspace é suficiente até demanda concreta. Holding prazo vira campo de Decision opcional. | A10.7 |
-| `imoveis` (yield_potencial_pct_min/max) | U | **Rules-as-code** (constante em módulo + ADR-176) | Yield bruto FII/imóvel BR (4-6%) é referência de mercado. Não varia por cliente. | A10.2 |
-| `thresholds.imovel_pct_patrimonio_ideal: 50` | U | **Rules-as-code** (ADR-176) | Concentração imobiliária >50% = bandeira. Convergente Perini (passivo) + AUVP (concentração). | A10.2 |
+| `imoveis` (yield_potencial_pct_min/max) | U | **Rules-as-code** (constante em módulo + ADR-177) | Yield bruto FII/imóvel BR (4-6%) é referência de mercado. Não varia por cliente. | A10.2 |
+| `thresholds.imovel_pct_patrimonio_ideal: 50` | U | **Rules-as-code** (ADR-177) | Concentração imobiliária >50% = bandeira. Convergente Perini (passivo) + AUVP (concentração). | A10.2 |
 | `thresholds.equity_pct_alvo_min/max` | U/C | **Rules-as-code (default) + override em `ALOCACAO_ALVO`** | Range default por perfil em rules-as-code; override por cliente já cabe em Goal `ALOCACAO_ALVO` existente (extensão `target_min_pct`/`target_max_pct` opcional). | A10.2 |
-| `simulacao.aporte_reduzido_fator: 0.66` | U | **Rules-as-code** (constante em `cenarios_conjuge_analyzer.py` + ADR-176) | Heurística "cônjuge 66%" — sem ancoragem direta em livro mas convergente com Cerbasi (renda dupla). Já tem default no código. | A10.2 |
-| `stress_test_imovel_queda_pct: 20` | U | **Rules-as-code** (constante em stress test service + ADR-176) | Threshold metodológico de stress test imobiliário. | A10.2 |
+| `simulacao.aporte_reduzido_fator: 0.66` | U | **Rules-as-code** (constante em `cenarios_conjuge_analyzer.py` + ADR-177) | Heurística "cônjuge 66%" — sem ancoragem direta em livro mas convergente com Cerbasi (renda dupla). Já tem default no código. | A10.2 |
+| `stress_test_imovel_queda_pct: 20` | U | **Rules-as-code** (constante em stress test service + ADR-177) | Threshold metodológico de stress test imobiliário. | A10.2 |
 | `referencias.livros` | M | **Conteúdo estático no frontend** (página Sobre/Metodologia) | Bibliografia Perini/Cerbasi/Nigro/Clason/Kiyosaki — não muda por cliente. | A10.2 |
 | `referencias.ferramentas` | M | **Conteúdo estático no frontend** | 9 sites/apps de mercado — idem. | A10.2 |
 | `referencias.contatos_templates` | M+C | **Template estático no frontend** | Perfis profissionais (advogado, CPA, corretor) são templates. Contato real do cliente fica em `notes/<ws>/contatos.md` (bridge tipo ADR-147 milhas) até demanda de aggregate `Contact`. | A10.2 |
-| `calendario_fallback[]` | O+M | **Rules-as-code** (template estático em módulo + ADR-176) | Itens-template por horizonte ("Imediato"/"Próximo mês"/etc). Filtrar entries USA-only após ADR-168. | A10.2 |
+| `calendario_fallback[]` | O+M | **Rules-as-code** (template estático em módulo + ADR-177) | Itens-template por horizonte ("Imediato"/"Próximo mês"/etc). Filtrar entries USA-only após ADR-168. | A10.2 |
 | `dashboard.aporte_match_keywords` | O | **Constante em módulo backend** | **VIVO** em [`task_progress_service.py:63`](../backend/app/services/task_progress_service.py:63). Migrar para constante imutável `_APORTE_MATCH_KEYWORDS` no módulo. | A10.2 |
 | `dashboard.category_labels` | O | **i18n no frontend** | Labels PT-BR — fica no codegen ou em `frontend/src/i18n/`. | A10.2 |
 | `dashboard.{thresholds,cycle_thresholds,...}` | O | **Rules-as-code** (constantes no módulo onde o threshold vive) | Operacional do dashboard E6 morto. Migrar **só** o que `task_progress_service` usa; resto deleta. | A10.2 |
@@ -179,7 +179,7 @@ chaves continuaram pendurar — verificável em
   cirurgia, mantendo `pipeline/**` sem import de `fastapi`/`celery`/
   `sqlalchemy` (boundary check ADR continua verde).
 
-**Shape proposto** (a refinar em ADR-179):
+**Shape proposto** (a refinar em ADR-180):
 
 ```python
 class GoalsBundle(TypedDict):
@@ -203,7 +203,7 @@ para retornar `GoalsBundle` ao invés de dict legacy-shaped.
 `GoalsBundle` via `StageConfig`. Consequência: `goals.json` físico
 **nunca mais escrito em filesystem**.
 
-### 3.3 Decision aggregate — extensão de schema (ADR-178)
+### 3.3 Decision aggregate — extensão de schema (ADR-179)
 
 [backend/app/models/decision.py](../backend/app/models/decision.py)
 hoje tem: `code, title, rationale, amount_brl_cents, status, supersedes_id,
@@ -226,7 +226,7 @@ Migrator preenche `impact_1y_brl_cents` a partir de
 seguro = cobertura; etc.) — **PR separado de paridade goldens** se
 narrativa S10 mudar.
 
-### 3.4 Risk aggregate (ADR-177)
+### 3.4 Risk aggregate (ADR-178)
 
 Modelo paralelo a `Decision`:
 
@@ -272,15 +272,15 @@ demonstração interna; produção usa wizard de onboarding.
 
 ## 4. ADRs propostos
 
-Próxima ADR livre: **ADR-176** (última = ADR-175).
+Próxima ADR livre: **ADR-177** (última = ADR-175).
 
 | ADR | Título | Escopo | Supersedes |
 |---|---|---|---|
-| **ADR-176** | Thresholds e referências metodológicas como código (rules-as-code consolidation goals.json) | 7 chaves U/M/O do goals.json viram docstrings + constantes em módulo. Aplica ADR-143. | — |
-| **ADR-177** | `Risk` aggregate workspace-scoped | Novo aggregate paralelo a `Decision`. Estrutura prob×impacto + link via `mitigations_decision_ids`. Seed Cerbasi 5 riscos universais. | — |
-| **ADR-178** | Decision aggregate — extensão de schema (impact_1y/10y, horizon, priority) | Alembic adiciona 4 colunas; DTO + UI form; backfill heurístico em migrator dedicado. Estende ADR-136. | — |
-| **ADR-179** | `goals.json` cutover final via `StageConfig.config_store` extendido | `GoalsBundle: TypedDict` montado pelo adapter; pipeline para de materializar `goals.json`; `_load_goals()` deletado. **Fecha checkbox** ADR-077. | (parcial) ADR-077 |
-| **ADR-180** | `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py` | Cleanup final. Substitui arquivo arquivado por `goals.json.MIGRATED.md` documentando destino de cada chave. | — |
+| **ADR-177** | Thresholds e referências metodológicas como código (rules-as-code consolidation goals.json) | 7 chaves U/M/O do goals.json viram docstrings + constantes em módulo. Aplica ADR-143. | — |
+| **ADR-178** | `Risk` aggregate workspace-scoped | Novo aggregate paralelo a `Decision`. Estrutura prob×impacto + link via `mitigations_decision_ids`. Seed Cerbasi 5 riscos universais. | — |
+| **ADR-179** | Decision aggregate — extensão de schema (impact_1y/10y, horizon, priority) | Alembic adiciona 4 colunas; DTO + UI form; backfill heurístico em migrator dedicado. Estende ADR-136. | — |
+| **ADR-180** | `goals.json` cutover final via `StageConfig.config_store` extendido | `GoalsBundle: TypedDict` montado pelo adapter; pipeline para de materializar `goals.json`; `_load_goals()` deletado. **Fecha checkbox** ADR-077. | (parcial) ADR-077 |
+| **ADR-181** | `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py` | Cleanup final. Substitui arquivo arquivado por `goals.json.MIGRATED.md` documentando destino de cada chave. | — |
 
 **Decisão sobre ADR para `SEGUROS` Goal type:** dispensável (sub-1h,
 padrão estabelecido pelos 4 Goal types existentes). PR direto sem ADR.
@@ -299,15 +299,15 @@ quando UI de orçamento entrar no roadmap.
 
 | Lane | Slug | Wave | Depende de | Paralelo com | Esforço | Owner |
 |---|---|---|---|---|---|---|
-| **A10.0** ADRs Proposto batch (ADR-176 a ADR-180) | `a10-0-adrs` | W0 | — | — | 0.5d | senior-cto |
+| **A10.0** ADRs Proposto batch (ADR-177 a ADR-181) | `a10-0-adrs` | W0 | — | — | 0.5d | senior-cto |
 | **A10.1** Dead-data + ADR-168 cleanup débito | `a10-1-dead-data` | W1 | A10.0 ✅ | A10.2 | 1d | engenheiro |
-| **A10.2** Rules-as-code consolidation (ADR-176) | `a10-2-rules-as-code` | W1 | A10.0 ✅ | A10.1 | 1d | engenheiro |
-| **A10.3** Decision schema extension (ADR-178) | `a10-3-decision-extension` | W2 | A10.0 ✅ | A10.4, A10.7 | 1.5d | engenheiro |
-| **A10.4** `Risk` aggregate (ADR-177) | `a10-4-risk-aggregate` | W2 | A10.0 ✅ | A10.3, A10.7 | 2d | engenheiro |
+| **A10.2** Rules-as-code consolidation (ADR-177) | `a10-2-rules-as-code` | W1 | A10.0 ✅ | A10.1 | 1d | engenheiro |
+| **A10.3** Decision schema extension (ADR-179) | `a10-3-decision-extension` | W2 | A10.0 ✅ | A10.4, A10.7 | 1.5d | engenheiro |
+| **A10.4** `Risk` aggregate (ADR-178) | `a10-4-risk-aggregate` | W2 | A10.0 ✅ | A10.3, A10.7 | 2d | engenheiro |
 | **A10.7** Seed refactor + tributario migration | `a10-7-seed-refactor` | W2 | A10.1 + A10.2 ✅ | A10.3, A10.4 | 1d | engenheiro |
 | **A10.5** Top5 + Bubble como projeção (charts_narrator switch) | `a10-5-projections` | W3 | A10.3 + A10.4 ✅ | A10.6 | 1d | engenheiro |
-| **A10.6** Pipeline cutover (StageConfig bundle, ADR-179) | `a10-6-stage-config-bundle` | W3 | A10.1 + A10.2 + A10.3 + A10.4 ✅ | A10.5 | 1.5d | engenheiro |
-| **A10.8** Final cutover + forbidden_paths (ADR-180) | `a10-8-cutover-final` | W4 | TODAS ✅ | — | 0.5d | engenheiro |
+| **A10.6** Pipeline cutover (StageConfig bundle, ADR-180) | `a10-6-stage-config-bundle` | W3 | A10.1 + A10.2 + A10.3 + A10.4 ✅ | A10.5 | 1.5d | engenheiro |
+| **A10.8** Final cutover + forbidden_paths (ADR-181) | `a10-8-cutover-final` | W4 | TODAS ✅ | — | 0.5d | engenheiro |
 
 **Esforço estimado total:** ~10 dias de trabalho ativo. Wall-clock
 ~5-7 dias com paralelismo de 2-3 agentes.
@@ -318,7 +318,7 @@ quando UI de orçamento entrar no roadmap.
 ╔════════════════════════════════════════════════════════════════════╗
 ║ ONDA 0 — ADRs Propostos (1 lane, BLOQUEANTE)                       ║
 ╠════════════════════════════════════════════════════════════════════╣
-║  A10.0  Batch ADR-176..180 em status "Proposto"                    ║
+║  A10.0  Batch ADR-177..180 em status "Proposto"                    ║
 ║         Reusa esqueleto + ToC + gates dev/check_adr_*               ║
 ╚════════════════════════════════════════════════════════════════════╝
                               │
@@ -329,7 +329,7 @@ quando UI de orçamento entrar no roadmap.
 ║  A10.1  Dead-data deletion + ADR-168 narrativas órfãs              ║
 ║          (scripts/e5n_narrativas.py, narradores E5.N,              ║
 ║           seed_goals_full_ferreira_campos.py — chaves H)           ║
-║  A10.2  Rules-as-code consolidation (ADR-176)                      ║
+║  A10.2  Rules-as-code consolidation (ADR-177)                      ║
 ║          (constantes em módulos + docstrings + frontend estático)  ║
 ║                                                                    ║
 ║  Hotspot: backend/app/services/task_progress_service.py            ║
@@ -340,9 +340,9 @@ quando UI de orçamento entrar no roadmap.
 ╔════════════════════════════════════════════════════════════════════╗
 ║ ONDA 2 — Aggregate work (3 lanes simultâneas)                      ║
 ╠════════════════════════════════════════════════════════════════════╣
-║  A10.3  Decision schema extension (ADR-178)                        ║
+║  A10.3  Decision schema extension (ADR-179)                        ║
 ║          Alembic + DTO + UI form 4 campos novos                    ║
-║  A10.4  Risk aggregate (ADR-177)                                   ║
+║  A10.4  Risk aggregate (ADR-178)                                   ║
 ║          Model + repo + 6 use cases + UI mínima + seed Cerbasi     ║
 ║  A10.7  Seed refactor + Workspace.business_profile_json            ║
 ║          seed_goals_workspace.py + tributario migration            ║
@@ -358,7 +358,7 @@ quando UI de orçamento entrar no roadmap.
 ║  A10.5  Top5/Bubble projections                                    ║
 ║          charts_narrator.py:382 lê Decision/Risk aggregates        ║
 ║          remove decisoes_prioritarias/top5_decisoes/riscos da bag  ║
-║  A10.6  StageConfig bundle (ADR-179)                               ║
+║  A10.6  StageConfig bundle (ADR-180)                               ║
 ║          GoalsBundle TypedDict + adapter retorno tipado            ║
 ║          E5/E5.N/conjuge_analyzer leem do bundle                   ║
 ║          _materialize_adapter_configs deletado                     ║
@@ -373,7 +373,7 @@ quando UI de orçamento entrar no roadmap.
 ╠════════════════════════════════════════════════════════════════════╣
 ║  A10.8  config/goals.json adicionado a check_forbidden_paths.py    ║
 ║          _archive/.../goals.json deletado                          ║
-║          ADR-077 checkbox marcado; ADR-179 → Decidido               ║
+║          ADR-077 checkbox marcado; ADR-180 → Decidido               ║
 ║          Substituir arquivo por goals.json.MIGRATED.md             ║
 ╚════════════════════════════════════════════════════════════════════╝
 ```
@@ -418,9 +418,9 @@ Sprint A10 só fecha quando **todos** os itens abaixo são verde:
 
 ### 6.3 ADRs e governança
 
-- [ ] ADR-176 a ADR-180 todos `Decidido` (saíram de `Proposto`).
+- [ ] ADR-177 a ADR-181 todos `Decidido` (saíram de `Proposto`).
 - [ ] ADR-077 com checkbox ✅ marcado e referência cruzada para
-  ADR-179 ("Fechado por").
+  ADR-180 ("Fechado por").
 - [ ] CHANGELOG `[Unreleased]` com entrada Sprint A10 + ADRs.
 - [ ] BACKLOG Sprint A10 com todas as 9 lanes ✅.
 
@@ -490,7 +490,7 @@ sem `impact_1y_brl_cents`/`impact_10y_brl_cents`/`horizon`/`priority`.
 Confusão semântica: "decisão de contratar seguro" vs "risco de não
 ter seguro" são conceitos relacionados.
 
-**Mitigação:** ADR-177 explicita: Decision = ação a tomar; Risk =
+**Mitigação:** ADR-178 explicita: Decision = ação a tomar; Risk =
 evento incerto. Link via `Risk.mitigations_decision_ids: list[str]`.
 Documentação no aggregate.
 
@@ -529,14 +529,14 @@ grep -r "_materialize_adapter_configs" backend/app/ | wc -l   # = 0
 grep -r "goals.json" backend/app/tasks/ | wc -l              # = 0
 
 # 4. Verificar ADRs Decididos
-grep -A 2 "^## ADR-176" docs/DECISIONS.md | grep "Decidido"
 grep -A 2 "^## ADR-177" docs/DECISIONS.md | grep "Decidido"
 grep -A 2 "^## ADR-178" docs/DECISIONS.md | grep "Decidido"
 grep -A 2 "^## ADR-179" docs/DECISIONS.md | grep "Decidido"
 grep -A 2 "^## ADR-180" docs/DECISIONS.md | grep "Decidido"
+grep -A 2 "^## ADR-181" docs/DECISIONS.md | grep "Decidido"
 
 # 5. Verificar ADR-077 fechada
-grep "Fechado por.*ADR-179" docs/DECISIONS.md
+grep "Fechado por.*ADR-180" docs/DECISIONS.md
 
 # 6. Verificar testes
 pytest tests -q                                  # pipeline
@@ -575,8 +575,8 @@ em BACKLOG (Sprint A11+):
 - **Supersedes parcial** ADR-077 (checkbox aberto sobre 100% cobertura
   de campos lidos pelo E5/E5.N/E6).
 - **Estende** ADR-136 (Decision aggregate — extensão de schema em
-  ADR-178).
-- **Aplica** ADR-143 (rules-as-code) em ADR-176.
+  ADR-179).
+- **Aplica** ADR-143 (rules-as-code) em ADR-177.
 - **Cleanup débito de** ADR-168 (Modo USA removido — narrativas órfãs
   em A10.1).
 - **Padrão herdado de** ADR-138 (supervisão CTO Sprint A7) — gates
