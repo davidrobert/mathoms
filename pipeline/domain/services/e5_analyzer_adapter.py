@@ -589,18 +589,19 @@ class E5AnalyzerAdapter:
         diagnosticos = self._diagnostico.analyze(fluxo_legacy, ratios_dict)
 
         # 18. Pontos fortes + urgentes (agora com score/reserva REAIS).
-        #     Paridade com legado: ``analyze_pontos_fortes`` lê
-        #     ``goals["progresso_pct"]`` mas ``analyze_goals`` emite
-        #     ``if_pct`` (não ``progresso_pct``), então na prática o check
-        #     sempre usa fallback ``0``. Espelhamos esse comportamento
-        #     passando ``goals={}`` até que o analyzer novo aceite ``if_pct``.
+        #     FP-002: passamos `goals={"if_pct": ...}` para o analyzer
+        #     ativar o ponto forte "Caminho para Independência Financeira"
+        #     (cobertura ≥ 20%). Anteriormente passava `{}` por paridade
+        #     com legado bug — analyzer agora aceita `if_pct` (alias
+        #     defensivo cobre `progresso_pct` também).
+        pontos_fortes_goals = {"if_pct": if_projection.if_pct} if if_projection is not None else {}
         pontos_fortes = self._pontos_fortes.analyze(
             score=score,
             ratios=ratios_dict,
             patrimonio=patrimonio_full,
             fluxo=fluxo_legacy,
             reserva=reserva,
-            goals={},
+            goals=pontos_fortes_goals,
         )
         pontos_urgentes = self._pontos_urgentes.analyze(ratios_dict, reserva, patrimonio_full)
 

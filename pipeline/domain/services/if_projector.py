@@ -183,6 +183,9 @@ class IFProjection:
     idade_titular_if: int
     ano_if: int
     renda_passiva_estimada_4pct: float
+    # FP-009 — retorno real esperado %a.a. (== `retorno_real_anual_pct`).
+    # Consumido por `rule_endividamento_perigoso` (carry-trade trigger).
+    retorno_esperado_pct_aa: float = 6.0
     idade_conjuge_if: int | None = None
     titular_key: str = "david"
     conjuge_key: str = ""
@@ -199,6 +202,8 @@ class IFProjection:
             "david_idade_if": self.idade_titular_if,
             "ano_if": self.ano_if,
             "renda_passiva_estimada_4pct": round(self.renda_passiva_estimada_4pct, 2),
+            # FP-009: alinhamento com retorno ponderado da carteira fica para FP-004.
+            "retorno_esperado_pct_aa": round(self.retorno_esperado_pct_aa, 2),
         }
         if self.idade_conjuge_if is not None and self.conjuge_key:
             out[f"idade_{self.conjuge_key}_if"] = self.idade_conjuge_if
@@ -270,6 +275,7 @@ class IFProjector:
             idade_conjuge_if=idade_conjuge_if,
             ano_if=ano_if,
             renda_passiva_estimada_4pct=renda_passiva_current,
+            retorno_esperado_pct_aa=cfg.retorno_real_anual_pct,
             titular_key=cfg.titular_key,
             conjuge_key=cfg.conjuge_key,
         )

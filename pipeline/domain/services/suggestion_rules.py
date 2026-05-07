@@ -324,43 +324,8 @@ def rule_aporte_abaixo_meta(
     )
 
 
-def rule_dolarizacao_atrasada(
-    snapshot: dict[str, Any], cfg: SuggestionGeneratorConfig
-) -> SuggestionDraft | None:
-    """Cobertura USD < meta − 15pp (USA plan)."""
-    dolar = _resolve_dolar_field(snapshot)
-    cobertura = _as_float(dolar.get("cobertura_pct"))
-    meta = _as_float(dolar.get("meta_pct"))
-    if cobertura is None or meta is None:
-        return None
-    drift = meta - cobertura
-    if drift <= cfg.dolar_drift_pp:
-        return None
-    rationale = (
-        f"Cobertura USD em {cobertura:.0f}% — meta é {meta:.0f}%. "
-        f"Drift de {drift:.0f}pp acima da tolerância ({cfg.dolar_drift_pp:.0f}pp). "
-        f"Acelerar aportes em USD reduz risco cambial do plano de mudança."
-    )
-    return SuggestionDraft(
-        section_id="U1",
-        kind="dolarizacao_atrasada",
-        severity="info",
-        title=f"Acelerar conversão para USD (gap {drift:.0f}pp)",
-        rationale=rationale,
-        dedup_key=_dedup_key("dolarizacao_atrasada", bucket=_pct_bucket(drift, step=5.0)),
-    )
-
-
-def _resolve_dolar_field(snapshot: dict[str, Any]) -> dict[str, Any]:
-    direct = snapshot.get("dolarizacao")
-    if isinstance(direct, dict):
-        return direct
-    usa = snapshot.get("usa")
-    if isinstance(usa, dict):
-        nested = usa.get("dolarizacao")
-        if isinstance(nested, dict):
-            return nested
-    return {}
+# FP-003 — `rule_dolarizacao_atrasada` removida (USA modo removido em ADR-168).
+# Section_id "U1" não existe mais no relatório; regra produzia drafts órfãos.
 
 
 # =============================================================================
@@ -368,10 +333,18 @@ def _resolve_dolar_field(snapshot: dict[str, Any]) -> dict[str, Any]:
 # =============================================================================
 
 
+CARRY_TRADE_MARGIN_PP: float = 1.0
+"""Margem de segurança (pp) sobre o retorno esperado antes de disparar
+carry-trade. Cerbasi (Equilíbrio Financeiro): 'dívida cara > retorno
+esperado é destruição de patrimônio'. Margem evita falso-positivo
+quando custo está marginalmente acima (ruído de medição/spread).
+"""
+
+
 def rule_endividamento_perigoso(
     snapshot: dict[str, Any], cfg: SuggestionGeneratorConfig
 ) -> SuggestionDraft | None:
-    """Dívidas > 30% do bruto OU custo > retorno esperado (Cerbasi/AUVP)."""
+    """Dívidas > 30% do bruto OU carry-trade (custo > retorno + 1pp · FP-009)."""
     endiv = _as_dict(snapshot.get("endividamento"))
     if not endiv:
         return None
@@ -379,7 +352,9 @@ def rule_endividamento_perigoso(
     custo = _as_float(endiv.get("custo_medio_pct_aa"))
     retorno = _as_float(_as_dict(snapshot.get("goals")).get("retorno_esperado_pct_aa"))
     triggered_pct = pct is not None and pct > cfg.endividamento_max_pct_patrimonio
-    triggered_carry = custo is not None and retorno is not None and custo > retorno
+    triggered_carry = (
+        custo is not None and retorno is not None and custo > retorno + CARRY_TRADE_MARGIN_PP
+    )
     if not (triggered_pct or triggered_carry):
         return None
     razao = _endividamento_rationale(cfg, pct, custo, retorno, triggered_pct, triggered_carry)
@@ -410,7 +385,8 @@ def _endividamento_rationale(
             f"Dívidas representam {pct:.0f}% do patrimônio bruto "
             f"(alvo ≤{cfg.endividamento_max_pct_patrimonio:.0f}%) **e** "
             f"custo médio ({custo:.1f}% a.a.) supera o retorno esperado "
-            f"({retorno:.1f}% a.a.). Carrego negativo composto."
+            f"({retorno:.1f}% a.a. + {CARRY_TRADE_MARGIN_PP:.0f}pp de margem). "
+            f"Carrego negativo composto."
         )
     if triggered_pct:
         return (
@@ -420,8 +396,8 @@ def _endividamento_rationale(
         )
     return (
         f"Custo médio das dívidas ({custo:.1f}% a.a.) está acima do "
-        f"retorno esperado ({retorno:.1f}% a.a.). "
-        f"Patrimônio sangra silenciosamente — quitar é prioridade."
+        f"retorno esperado ({retorno:.1f}% a.a. + {CARRY_TRADE_MARGIN_PP:.0f}pp "
+        f"de margem). Patrimônio sangra silenciosamente — quitar é prioridade."
     )
 
 
@@ -595,9 +571,24 @@ def rule_renda_passiva_real_baixa(
     """IF >50% mas renda passiva cobre <30% do custo de vida (Perini "300")."""
     goals = _as_dict(snapshot.get("goals"))
     fluxo = _as_dict(snapshot.get("fluxo_caixa"))
+    # FP-001 — alias defensivo: snapshot real produzido por `build_e5_output`
+    # expõe `if_pct` (paridade com IFProjection.to_legacy_dict). Aceitar os
+    # dois nomes evita regra dormente quando o pipeline E5 alimenta direto.
     progresso = _as_float(goals.get("progresso_if_pct"))
+    if progresso is None:
+        progresso = _as_float(goals.get("if_pct"))
+    # FP-001 — alias defensivo: snapshot real expõe renda passiva observada
+    # em `goals.renda_passiva_mensal_observada_brl` (PassiveIncomeCalculator
+    # · A8.3); legado/testes ainda usam `fluxo.renda_passiva_mensal_atual`.
     renda_passiva = _as_float(fluxo.get("renda_passiva_mensal_atual"))
+    if renda_passiva is None:
+        renda_passiva = _as_float(goals.get("renda_passiva_mensal_observada_brl"))
+    # `despesa_mensal_media` está no top-level do fluxo enriquecido. Em snapshots
+    # antigos pode estar em `fluxo.janela_12m.despesa_mensal_media`.
     custo_vida = _as_float(fluxo.get("despesa_mensal_media"))
+    if custo_vida is None:
+        janela = _as_dict(fluxo.get("janela_12m"))
+        custo_vida = _as_float(janela.get("despesa_mensal_media"))
     if progresso is None or renda_passiva is None or custo_vida is None:
         return None
     if custo_vida <= 0 or progresso < cfg.renda_passiva_min_progresso_if_pct:
@@ -636,7 +627,7 @@ ALL_RULES = (
     rule_reserva_insuficiente,
     rule_alocacao_fora_alvo,
     rule_aporte_abaixo_meta,
-    rule_dolarizacao_atrasada,
+    # FP-003: rule_dolarizacao_atrasada removida (ADR-168 — Modo USA removido).
     # v2 (ADR-161)
     rule_endividamento_perigoso,
     rule_taxa_poupanca_caindo,
