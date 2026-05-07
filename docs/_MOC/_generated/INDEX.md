@@ -348,6 +348,13 @@
 | CHG-2026-05-07-ADR-179 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-179.md` |
 | CHG-2026-05-07-ADR-180 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-180.md` |
 | CHG-2026-05-07-ADR-181 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-181.md` |
+| RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
+| RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |
+| RULE-composicao-patrimonial-7-categorias | domain-rule |  |  |  | `reference/rules/rule-composicao-patrimonial-7-categorias.md` |
+| RULE-concentracao-imobiliaria | domain-rule |  |  |  | `reference/rules/rule-concentracao-imobiliaria.md` |
+| RULE-imoveis-no-if | domain-rule |  |  |  | `reference/rules/rule-imoveis-no-if.md` |
+| RULE-independencia-financeira | domain-rule |  |  |  | `reference/rules/rule-independencia-financeira.md` |
+| RULE-trs-efetiva | domain-rule |  |  |  | `reference/rules/rule-trs-efetiva.md` |
 | A10.0 | lane | shipped | A10 | ADRs Proposto batch (ADR-177..181) | `sprint/A10/lanes/A10-0-adrs-proposto-batch.md` |
 | A10.1 | lane | shipped | A10 | Dead-data deletion + ADR-168 narrativas órfãs | `sprint/A10/lanes/A10-1-dead-data-deletion-adr-168-narrativas-orfas.md` |
 | A10.2 | lane | shipped | A10 | Rules-as-code consolidation (ADR-177) | `sprint/A10/lanes/A10-2-rules-as-code-consolidation.md` |
