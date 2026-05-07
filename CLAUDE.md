@@ -732,19 +732,23 @@ externos. Se já está numa branch `agent/*`, não recrie — continue nela.
 
 ### Hotspots de documentação
 
-> **🚧 JANELA DE AVISO — `docs/agent_prompts/` + `docs/*_PLAN.md` (Fase 3 do DOC_REORG, ADR-182)**
+> **🚧 JANELA DE PAUSA ATIVA — `docs/BACKLOG.md` (Fase 4 do DOC_REORG, ADR-182)**
 >
-> **Início:** 2026-05-07 15:30 UTC · **Fim previsto:** 2026-05-08 03:30 UTC (12h).
+> **Início:** 2026-05-07 16:30 UTC · **Fim previsto:** 2026-05-08 16:30 UTC (24h).
 >
-> ✅ **Fase 2** (split DECISIONS.md em 175 ADRs) **fechou 2026-05-07 15:23 UTC**
-> (PR [#124](https://github.com/davidrobert/mathoms/pull/124), merge `e9d1ef6`).
-> ADRs vivem em [docs/adr/](docs/adr/); DECISIONS.md é shim com âncoras históricas.
+> ✅ **Fase 3** (62 tracks + 6 plans migrados) **fechou 2026-05-07 16:00 UTC**
+> (PR [#126](https://github.com/davidrobert/mathoms/pull/126), merge `bfdb6ad`).
+> Tracks vivem em `docs/sprint/<X>/tracks/`; plans em `docs/plan/<SLUG>/`.
 >
-> **Fase 3 ativa:** migração de 62 tracks (`docs/agent_prompts/track_*.md`) para
-> `docs/sprint/<X>/tracks/` e 5 plans (`docs/*_PLAN.md`) para `docs/plan/<SLUG>/`.
-> Agentes com lane aberta cujo prompt aponta para `docs/agent_prompts/`:
-> **atualize path** quando reabrir sessão. Em PR paralelo que mexe com plan,
-> coordene com owner do F3 (`agent/doc-reorg-f3-*`).
+> **Fase 4 ativa:** split de `docs/BACKLOG.md` (2358 linhas, 68 lanes em 6 sprints)
+> em `docs/sprint/<X>/lanes/<id>.md` com frontmatter, `_README.md`, `lanes.md`
+> e `waves.md` por sprint. **Pickup novo deve aguardar fim da janela** — após
+> F4, fonte canônica de pickup é `docs/_MOC/_generated/SPRINT_CURRENT.md`.
+>
+> **Tarefas que PRECISAM tocar BACKLOG.md durante a janela:**
+> 1. Verifique conflito iminente: `git fetch origin && git log origin/main --oneline -- docs/BACKLOG.md | head -5`.
+> 2. Coordene via PR comment com owner do F4 (`agent/doc-reorg-f4-*`).
+> 3. Hot-fix de produção: PR com label `priority/p0`; owner rebasea após merge.
 
 `CLAUDE.md`, `CHANGELOG.md`, `BACKLOG.md`, `DECISIONS.md` são editados em
 quase toda sessão — colisão entre agentes é garantida se todos concorrem.
