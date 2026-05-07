@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mathoms.ai/schemas/note-plan.schema.json",
+  "title": "Frontmatter de nota Plan (plano canônico multi-fase)",
+  "description": "Valida o bloco YAML no topo de docs/plan/<SLUG>/_README.md. Spec: docs/DOC_REORG_PLAN.md §3.3.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "type", "title", "status", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^PLAN-[a-z0-9-]+$",
+      "description": "Identificador estável do plano. Ex.: PLAN-doc-reorg, PLAN-report-premium."
+    },
+    "type": {
+      "const": "plan"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "in_progress", "paused", "done", "cancelled"]
+    },
+    "sprint_origem": {
+      "type": ["string", "null"],
+      "pattern": "^[A-Z]\\d+$",
+      "description": "Sprint que iniciou o plano."
+    },
+    "sprint_atual": {
+      "type": ["string", "null"],
+      "pattern": "^[A-Z]\\d+$",
+      "description": "Editorial — sprint que está executando agora. Atualizado quando sprint mover."
+    },
+    "sprints_envolvidas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z]\\d+$"
+      },
+      "description": "Auto-derivado das lanes; gate avisa se diverge da realidade."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "last_review": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Editorial — última revisão de status."
+    },
+    "paused_at": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "pause_reason": {
+      "type": ["string", "null"]
+    },
+    "adrs_canonical": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\[\\[.+\\]\\]$"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(type|area|sprint|status|priority|methodology|phase|breaking)/[a-z0-9][a-z0-9-]*$"
+      }
+    }
+  }
+}

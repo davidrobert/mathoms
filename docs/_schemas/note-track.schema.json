@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mathoms.ai/schemas/note-track.schema.json",
+  "title": "Frontmatter de nota Track (prompt de execução por agente)",
+  "description": "Valida o bloco YAML no topo de docs/sprint/<X>/tracks/<slug>.md ou docs/plan/<X>/tracks/<slug>.md. Spec: docs/DOC_REORG_PLAN.md §3.5.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "type", "title", "status"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^TRACK-[a-z0-9-]+$",
+      "description": "Ex.: TRACK-a10-2-rules-as-code."
+    },
+    "type": {
+      "const": "track"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane": {
+      "type": ["string", "null"],
+      "pattern": "^\\[\\[.+\\]\\]$"
+    },
+    "sprint": {
+      "type": ["string", "null"],
+      "pattern": "^[A-Z]\\d+$"
+    },
+    "plan": {
+      "type": ["string", "null"],
+      "pattern": "^PLAN-[a-z0-9-]+$"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ready", "consumed", "cancelled"]
+    },
+    "created_at": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "consumed_at": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "agent_role": {
+      "type": ["string", "null"],
+      "description": "Subagent que consome o track. Ex.: senior-cto, data-engineer."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(type|area|sprint|status|priority|methodology|phase|breaking)/[a-z0-9][a-z0-9-]*$"
+      }
+    }
+  }
+}

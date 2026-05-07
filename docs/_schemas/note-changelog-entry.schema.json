@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mathoms.ai/schemas/note-changelog-entry.schema.json",
+  "title": "Frontmatter de entrada do changelog (1 por PR mergeado)",
+  "description": "Valida o bloco YAML no topo de docs/sprint/<X>/changelog/<id>.md. Spec: docs/DOC_REORG_PLAN.md §3.4.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "type", "date", "summary"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^CHG-\\d{4}-\\d{2}-\\d{2}-[A-Z0-9-]+$",
+      "description": "Ex.: CHG-2026-05-07-A10-2. Scope é UPPERCASE+digits+hífen."
+    },
+    "type": {
+      "const": "changelog-entry"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "sprint": {
+      "type": ["string", "null"],
+      "pattern": "^[A-Z]\\d+$"
+    },
+    "lane": {
+      "type": ["string", "null"],
+      "pattern": "^\\[\\[.+\\]\\]$",
+      "description": "Wikilink opcional para a lane que originou esta entrada."
+    },
+    "adrs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\[\\[.+\\]\\]$"
+      }
+    },
+    "prs": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "commits": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{7,40}$",
+        "description": "Hash curto ou completo do commit-merge em main."
+      }
+    },
+    "breaking": {
+      "type": "boolean"
+    },
+    "files_touched": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Texto livre. Multi-linha aceito (block scalar | no YAML)."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(type|area|sprint|status|priority|methodology|phase|breaking)/[a-z0-9][a-z0-9-]*$"
+      }
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mathoms.ai/schemas/note-adr.schema.json",
+  "title": "Frontmatter de nota ADR (Architectural Decision Record)",
+  "description": "Valida o bloco YAML no topo de docs/adr/NNN-slug.md. Spec: docs/DOC_REORG_PLAN.md §3.1. additionalProperties=true para permitir campos editoriais não-canônicos.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "type", "title", "status", "date"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ADR-\\d{3}(-[A-Z]+)?$",
+      "description": "Identificador estável da ADR. Ex.: ADR-090, ADR-090-X (sufixo legado)."
+    },
+    "type": {
+      "const": "adr"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["Decidido", "Proposto", "Roadmap"],
+      "description": "Aderente a dev/validate_adr_format.py. Sufixos de fase em parênteses no campo phase, não aqui."
+    },
+    "phase": {
+      "type": "string",
+      "description": "Fase/sprint que decidiu. Ex.: A5b, F8.4, Sprint A7.6. Livre."
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data ISO de decisão (YYYY-MM-DD). Quote no YAML para evitar coerção a datetime.date pelo PyYAML."
+    },
+    "domain": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Tags livres de área de domínio (ex.: pipeline, backend, money)."
+    },
+    "supersedes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\[\\[.+\\]\\]$",
+        "description": "Wikilink Obsidian para outra ADR. Ex.: [[ADR-076]]."
+      }
+    },
+    "superseded_by": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\[\\[.+\\]\\]$"
+      }
+    },
+    "relates_to": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\[\\[.+\\]\\]$"
+      }
+    },
+    "aliases": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Aliases para autocomplete Obsidian."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(type|area|sprint|status|priority|methodology|phase|breaking)/[a-z0-9][a-z0-9-]*$"
+      },
+      "description": "Tags hierárquicas. Ex.: type/adr, area/money, status/decidido."
+    },
+    "size_lines": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Auto-gerado por dev/build_doc_index.py. Alerta se >150 (ADR muito longa, considerar split)."
+    }
+  }
+}

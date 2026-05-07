@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mathoms.ai/schemas/note-lane.schema.json",
+  "title": "Frontmatter de nota Lane (linha do BACKLOG)",
+  "description": "Valida o bloco YAML no topo de docs/sprint/<X>/lanes/<id>.md. Spec: docs/DOC_REORG_PLAN.md §3.2. Ortogonal a plan via FK opcional.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "type", "title", "sprint", "status"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z]\\d+(\\.\\d+[a-z]?)*$",
+      "description": "Identificador estável da lane. Ex.: A10.2, A6g.7, F9.2, A10.2a."
+    },
+    "type": {
+      "const": "lane"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sprint": {
+      "type": "string",
+      "pattern": "^[A-Z]\\d+$",
+      "description": "FK obrigatória para sprint. Ex.: A10, A6, F9."
+    },
+    "plan": {
+      "type": ["string", "null"],
+      "pattern": "^PLAN-[a-z0-9-]+$",
+      "description": "FK opcional para plano (uma lane participa no máximo de 1 plano)."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["planned", "open", "in_progress", "blocked", "shipped", "cancelled"]
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["P0", "P1", "P2"]
+    },
+    "branch_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Slug usado no nome da branch agent/<slug>/<ts>."
+    },
+    "ship_date": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "ship_pr": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    },
+    "adrs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\[\\[.+\\]\\]$"
+      },
+      "description": "Wikilinks para ADRs canônicas que esta lane implementa."
+    },
+    "prompt": {
+      "type": ["string", "null"],
+      "pattern": "^\\[\\[.+\\]\\]$",
+      "description": "Wikilink opcional para track (sprint/<X>/tracks/<slug>)."
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\[\\[.+\\]\\]$"
+      }
+    },
+    "parallel_with": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^\\[\\[.+\\]\\]$"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(type|area|sprint|status|priority|methodology|phase|breaking)/[a-z0-9][a-z0-9-]*$"
+      }
+    }
+  }
+}
