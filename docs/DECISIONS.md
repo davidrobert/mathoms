@@ -117,7 +117,7 @@
 [D177](#adr-177--thresholds-e-referências-metodológicas-como-código-rules-as-code-consolidation-goalsjson) [D178](#adr-178--risk-aggregate-workspace-scoped) [D179](#adr-179--decision-aggregate--extensão-de-schema-impact_1y10y-horizon-priority) [D180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido) [D181](#adr-181--goalsjson-removido-de-_archive-e-adicionado-a-devcheck_forbidden_pathspy)
 
 **Outras:**
-[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-proposto) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion) [D164](#adr-164--carteira-de-renda-e-taxa-de-retirada-efetiva) [D165](#adr-165--validationissue-estruturado-em-validationresult-e-stagereview) [D166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) [D167](#adr-167--eligibility-gate-de-cenário-do-cônjuge-no-domain-service) [D168](#adr-168--remoção-do-modo-usa-do-relatório) [D169](#adr-169--modo-incremental-estendido-aos-stages-globais-e1) [D170](#adr-170--refresh-tokens-com-httponly-cookie-e-family-based-revocation) [D173](#adr-173--llm-budget-hard-stop--llmcalllog-populada-universal) [D174](#adr-174--off-site-backup-criptografado-em-cloudflare-r2--restore-drill) [D175](#adr-175--prompt-injection-defense-em-camadas-sanitize--system-clause--pydantic-strict) [D176](#adr-176--chave-estável-cenarios_conjuge-no-bloco-de-narrativas-e5n)
+[D149](#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80) [D150](#adr-150--estratégia-de-port-go-do-pipeline-service-caminho-1-shell-only-via-subprocess-como-default-deferido-para-roadmap) [D151](#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces) [D152](#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6) [D153](#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) [D154](#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) [D155](#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação) [D156](#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) [D157](#adr-157--schema-irpf-completo-stage-extract_irpf_full) [D158](#adr-158--pipeline-review-screen--ui-dedicada-para-aprovareditar-stagereview) [D159](#adr-159--aggregator-banking-br-open-finance--adiar-adoção-até-gatilhos-materializarem) [D160](#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap) [D161](#adr-161--regras-canônicas-de-suggestion-v2-cerbasiauvpperini-completos) [D162](#adr-162--decisions-como-event-projection-sobre-goals) [D163](#adr-163--decision-congela-context_snapshot-ao-aceitar-suggestion) [D164](#adr-164--carteira-de-renda-e-taxa-de-retirada-efetiva) [D165](#adr-165--validationissue-estruturado-em-validationresult-e-stagereview) [D166](#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) [D167](#adr-167--eligibility-gate-de-cenário-do-cônjuge-no-domain-service) [D168](#adr-168--remoção-do-modo-usa-do-relatório) [D169](#adr-169--modo-incremental-estendido-aos-stages-globais-e1) [D170](#adr-170--refresh-tokens-com-httponly-cookie-e-family-based-revocation) [D173](#adr-173--llm-budget-hard-stop--llmcalllog-populada-universal) [D174](#adr-174--off-site-backup-criptografado-em-cloudflare-r2--restore-drill) [D175](#adr-175--prompt-injection-defense-em-camadas-sanitize--system-clause--pydantic-strict) [D176](#adr-176--chave-estável-cenarios_conjuge-no-bloco-de-narrativas-e5n)
 
 <!-- ADR-TOC-END -->
 
@@ -6847,9 +6847,57 @@ Arquivos atualmente em `config/` que cumprem o critério:
 
 ---
 
-## ADR-150 — Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default proposto
+## ADR-150 — Estratégia de port Go do `pipeline-service`: Caminho 1 (shell-only via subprocess) como default deferido para Roadmap
 
-**Status:** Proposto • **Data:** 2026-04-27 • **Relaciona** [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1), [ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-093](#adr-093--rename-completo-de-identificadores-de-stage-opção-a), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a).
+**Status:** Roadmap (deferido em W6-T06, 2026-05-07) • **Data:** 2026-04-27 (proposta) → 2026-05-07 (Roadmap) • **Relaciona** [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1), [ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-093](#adr-093--rename-completo-de-identificadores-de-stage-opção-a), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a).
+
+> **Decisão W6-T06 (2026-05-07):** Caminho 1 **continua sendo o default escolhido**
+> quando algum gatilho disparar — a estratégia de port (layout, pré-requisitos,
+> cutover) abaixo permanece autoritativa. O que muda é o status: sai de
+> `Proposto indefinido` para `Roadmap` com critério de destrava explícito e
+> revisita agendada. **Não há lane A6h aberta.** Skeleton Go preventivo
+> ([ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7)) **fica
+> mantido** — custo de manutenção é ~zero (CI workflow é no-op via
+> `hashFiles('**/*.go') != ''`, `make go-all` retorna 0 em repo sem `.go`,
+> `.golangci.yml` + `go.work` somam ~70 LOC de config). Deletar perderia
+> opção sem benefício mensurável; manter preserva a propriedade-chave de
+> ADR-113 (primeiro PR Go produtivo não perde tempo configurando guardrails).
+>
+> **Critério de destrava (qualquer um autoriza arrancar Caminho 1):** os 4
+> gatilhos numerados no §"Quando port se justifica" abaixo permanecem válidos.
+> Adicionalmente, esta ADR é **revisitada em 2027-Q2 ou ao atingir 100
+> workspaces ativos pagantes** (o que vier primeiro), independente dos
+> gatilhos — momento em que custo operacional do `pipeline-service` Python
+> deve ter série temporal de prod suficiente para refalsificar os thresholds
+> originais (que foram colocados sem dados de prod em 2026-04).
+>
+> Razões da decisão (W6-T06):
+>
+> 1. **Nenhum gatilho está ativo hoje** (~10 workspaces, single-instance,
+>    `/health` p99 174ms container — não é hot path; stages levam minutos
+>    LLM-bound, overhead HTTP é ruído).
+> 2. **Nenhuma feature pendente do BACKLOG depende de Caminho 1** — Sprint
+>    A10 (goals.json cutover), F7 (produção + LGPD), F11 (confiança beta→GA),
+>    F12 (i18n), Report Premium são todas feature work em Python/TS sem
+>    requisito de footprint Go.
+> 3. **Capacidade do time** (1 dev humano + agentes) está alocada em A10/F7
+>    pelos próximos 2-3 meses. Caminho 1 é multi-week com 5 pré-requisitos
+>    hard (A2.fix, A3.cli, A3.cli.otel, A3.cli.benchmark, A3.codegen) — não
+>    cabe em paralelo.
+> 4. **LGPD/soberania não é argumento técnico para Go** — runtime Python
+>    em VPS BR atende ao mesmo requisito de localidade. PII handling vive
+>    no domain layer Python independente da linguagem do shell.
+> 5. **Skeleton Go preventivo é assimétrico:** custo de manter
+>    (CI no-op, lint config dormente) é desprezível; custo de recriar (ADR
+>    nova, calibração de linter, debate de convenções no PR produtivo) é
+>    real. ADR-113 já registrou explicitamente esta postura "infra
+>    preventiva sem disparar port" — `Roadmap` é coerente com ela.
+>
+> Diferença em relação a `Rejeitada`: rejeitar exigiria nova ADR caso
+> qualquer gatilho dispare no futuro, pagando o custo de raciocínio
+> arquitetural duas vezes. Diferença em relação a `Decidido`: aceitar
+> dispararia lane A6h em conflito direto com sprints ativos. **`Roadmap`
+> elimina o pior estado (`Proposto` indefinido) sem destruir a opção.**
 
 **Contexto:** [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1) estabeleceu o `pipeline-service/` como FastAPI standalone com contrato HTTP versionado, justamente para que uma reescrita Go fosse possível sem retrabalho de fronteira. [ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) entregou `.golangci.yml`, CI workflow e skeleton `services/`. Falta a decisão estratégica: **se** e **como** disparar o port, e em que ordem.
 
