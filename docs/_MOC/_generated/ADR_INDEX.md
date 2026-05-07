@@ -3,4 +3,8 @@
 
 # Índice de ADRs
 
-_Nenhuma ADR migrada para a vault ainda (Fase 2 do plano)._
+## area/money
+
+| id | status | título | path |
+| --- | --- | --- | --- |
+| ADR-090 | Decidido | Decimal para valores monetários | `adr/090-decimal-money.md` |

@@ -153,6 +153,13 @@ def _strip_html_comments(text: str) -> str:
     return re.sub(r"<!--.*?-->", _blank, text, flags=re.DOTALL)
 
 
+def _strip_inline_code(text: str) -> str:
+    """Apaga conteúdo de código inline (entre backticks) preservando linhas."""
+    # Regex: 1+ backticks abrindo, conteúdo sem o mesmo número de backticks, fechando.
+    # Simples para o caso comum de single-backtick (que cobre `[[X]]` em prosa).
+    return re.sub(r"`[^`\n]+`", lambda m: " " * len(m.group(0)), text)
+
+
 def _strip_frontmatter_preserving_lines(text: str) -> str:
     """Remove conteúdo do frontmatter mas preserva número de linhas."""
     match = FRONTMATTER_RE.match(text)
@@ -174,11 +181,12 @@ def _refs_from_line(source: Path, line: str, lineno: int) -> list[WikilinkRef]:
 
 
 def extract_wikilinks(md_path: Path) -> list[WikilinkRef]:
-    """Extrai wikilinks da nota, ignorando código e comentários HTML."""
+    """Extrai wikilinks da nota, ignorando código (block + inline) e comentários HTML."""
     raw = md_path.read_text(encoding="utf-8")
     text = _strip_frontmatter_preserving_lines(raw)
     text = _strip_html_comments(text)
     text = _strip_code_blocks(text)
+    text = _strip_inline_code(text)
     refs: list[WikilinkRef] = []
     for lineno, line in enumerate(text.splitlines(), start=1):
         refs.extend(_refs_from_line(md_path, line, lineno))

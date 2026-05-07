@@ -16,9 +16,10 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS = REPO_ROOT / "docs"
 
-# Diretórios excluídos da varredura (gerados, schemas, históricos, prompts).
+# Diretórios excluídos da varredura (índices, schemas, históricos, prompts).
+# _MOC/ inteiro (não só _generated/) — MOCs editoriais e gerados não têm id formal.
 EXCLUDED_DIRS = (
-    DOCS / "_MOC" / "_generated",
+    DOCS / "_MOC",
     DOCS / "_schemas",
     DOCS / "archive",
     DOCS / "agent_prompts",

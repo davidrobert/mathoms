@@ -3,4 +3,6 @@
 
 # Índice geral da vault
 
-_Nenhuma nota com frontmatter indexada ainda._
+| id | type | status | sprint | título | path |
+| --- | --- | --- | --- | --- | --- |
+| ADR-090 | adr | Decidido |  | Decimal para valores monetários | `adr/090-decimal-money.md` |
