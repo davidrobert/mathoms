@@ -193,6 +193,7 @@ def run(ctx: WorkspaceContext) -> dict:
     total_cost_usd = 0.0
     errors: list[str] = []
     warnings: list[str] = []
+    issues: list[dict] = []  # ADR-165: ValidationIssue dicts agregadas cross-doc
     total = len(docs_with_text)
 
     estimated = ctx.stage_duration_estimates.get("E1.5")
@@ -241,6 +242,8 @@ def run(ctx: WorkspaceContext) -> dict:
             errors.extend(validation.errors)
         if validation.warnings:
             warnings.extend(validation.warnings)
+        if validation.issues:
+            issues.extend(i.to_dict() for i in validation.issues)
 
         emit_item_progress(
             ctx.pipeline_run_id,
@@ -303,6 +306,7 @@ def run(ctx: WorkspaceContext) -> dict:
             "valid": not errors,
             "errors": errors,
             "warnings": warnings,
+            "issues": issues,
         },
         "files_processed": len(per_file_baselines),
     }
