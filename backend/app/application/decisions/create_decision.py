@@ -28,19 +28,27 @@ async def create_decision(
             code="duplicate_code",
         )
 
-    decision = Decision(
-        workspace_id=workspace_id,
-        code=cmd.code,
-        title=cmd.title,
-        rationale=cmd.rationale,
-        amount_brl_cents=brl_to_cents(cmd.amount_brl),
-        status=cmd.status,
-        decided_at=cmd.decided_at,
-        target_field=cmd.target_field,
-        target_value=cmd.target_value,
-        target_value_type=cmd.target_value_type,
-        context_snapshot=cmd.context_snapshot,
-    )
+    # ADR-179 — horizon tem default no model; só passa explícito se cmd
+    # traz valor (Pydantic deixa None quando omitido).
+    decision_kwargs: dict = {
+        "workspace_id": workspace_id,
+        "code": cmd.code,
+        "title": cmd.title,
+        "rationale": cmd.rationale,
+        "amount_brl_cents": brl_to_cents(cmd.amount_brl),
+        "status": cmd.status,
+        "decided_at": cmd.decided_at,
+        "target_field": cmd.target_field,
+        "target_value": cmd.target_value,
+        "target_value_type": cmd.target_value_type,
+        "context_snapshot": cmd.context_snapshot,
+        "impact_1y_brl_cents": brl_to_cents(cmd.impact_1y_brl),
+        "impact_10y_brl_cents": brl_to_cents(cmd.impact_10y_brl),
+        "priority": cmd.priority,
+    }
+    if cmd.horizon is not None:
+        decision_kwargs["horizon"] = cmd.horizon
+    decision = Decision(**decision_kwargs)
     added = await repo.add(decision)
     await _emit_created_event(repo, added, actor=actor)
     return decision_to_response(added)

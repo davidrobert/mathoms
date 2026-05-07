@@ -59,6 +59,23 @@ def _apply_patch(decision: Decision, cmd: DecisionUpdateCommand) -> dict:
     if cmd.decided_at is not None and cmd.decided_at != decision.decided_at:
         diff["decided_at"] = cmd.decided_at.isoformat()
         decision.decided_at = cmd.decided_at
+    # ADR-179 — quantificação de impacto + horizonte + prioridade.
+    if cmd.impact_1y_brl is not None:
+        new_cents_1y = brl_to_cents(cmd.impact_1y_brl)
+        if new_cents_1y != decision.impact_1y_brl_cents:
+            diff["impact_1y_brl_cents"] = new_cents_1y
+            decision.impact_1y_brl_cents = new_cents_1y
+    if cmd.impact_10y_brl is not None:
+        new_cents_10y = brl_to_cents(cmd.impact_10y_brl)
+        if new_cents_10y != decision.impact_10y_brl_cents:
+            diff["impact_10y_brl_cents"] = new_cents_10y
+            decision.impact_10y_brl_cents = new_cents_10y
+    if cmd.horizon is not None and cmd.horizon != decision.horizon:
+        diff["horizon"] = cmd.horizon
+        decision.horizon = cmd.horizon
+    if cmd.priority is not None and cmd.priority != decision.priority:
+        diff["priority"] = cmd.priority
+        decision.priority = cmd.priority
     return diff
 
 

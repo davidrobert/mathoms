@@ -26,9 +26,12 @@ import {
   ApiError,
   type Decision,
   type DecisionCreatePayload,
+  type DecisionHorizon,
   type DecisionStatus,
   type DecisionUpdatePayload,
 } from "@/lib/api";
+
+import { DecisionImpactFields, parsePriority } from "./DecisionImpactFields";
 
 const RATIONALE_MIN = 10;
 const TITLE_MIN = 3;
@@ -74,7 +77,14 @@ interface FormValues {
   rationale: string;
   amountBrl: string;
   status: DecisionStatus;
+  // ADR-179
+  impact1yBrl: string;
+  impact10yBrl: string;
+  horizon: DecisionHorizon;
+  priority: string; // input type=number — string para preservar empty
 }
+
+const DEFAULT_HORIZON: DecisionHorizon = "short_6_12m";
 
 function DialogFormBody({
   mode,
@@ -113,6 +123,11 @@ interface Setters {
   setRationale: (v: string) => void;
   setAmountBrl: (v: string) => void;
   setStatus: (v: DecisionStatus) => void;
+  // ADR-179
+  setImpact1yBrl: (v: string) => void;
+  setImpact10yBrl: (v: string) => void;
+  setHorizon: (v: DecisionHorizon) => void;
+  setPriority: (v: string) => void;
 }
 
 function useDecisionFormState(mode: DecisionFormMode): {
@@ -124,16 +139,34 @@ function useDecisionFormState(mode: DecisionFormMode): {
   const [rationale, setRationale] = useState(initialRationale(mode));
   const [amountBrl, setAmountBrl] = useState(initialAmount(mode));
   const [status, setStatus] = useState<DecisionStatus>(initialStatus(mode));
+  const [impact1yBrl, setImpact1yBrl] = useState(initialImpact1y(mode));
+  const [impact10yBrl, setImpact10yBrl] = useState(initialImpact10y(mode));
+  const [horizon, setHorizon] = useState<DecisionHorizon>(initialHorizon(mode));
+  const [priority, setPriority] = useState(initialPriority(mode));
   useEffect(() => {
     setCode(initialCode(mode));
     setTitle(initialTitle(mode));
     setRationale(initialRationale(mode));
     setAmountBrl(initialAmount(mode));
     setStatus(initialStatus(mode));
+    setImpact1yBrl(initialImpact1y(mode));
+    setImpact10yBrl(initialImpact10y(mode));
+    setHorizon(initialHorizon(mode));
+    setPriority(initialPriority(mode));
   }, [mode]);
   return {
-    values: { code, title, rationale, amountBrl, status },
-    setters: { setCode, setTitle, setRationale, setAmountBrl, setStatus },
+    values: { code, title, rationale, amountBrl, status, impact1yBrl, impact10yBrl, horizon, priority },
+    setters: {
+      setCode,
+      setTitle,
+      setRationale,
+      setAmountBrl,
+      setStatus,
+      setImpact1yBrl,
+      setImpact10yBrl,
+      setHorizon,
+      setPriority,
+    },
   };
 }
 
@@ -172,25 +205,33 @@ function useDecisionFormSubmit({
   return { busy, errorMsg, handleSubmit };
 }
 
+function buildDecisionPayload(values: FormValues) {
+  return {
+    title: values.title,
+    rationale: values.rationale,
+    amount_brl: values.amountBrl || null,
+    status: values.status,
+    impact_1y_brl: values.impact1yBrl || null,
+    impact_10y_brl: values.impact10yBrl || null,
+    horizon: values.horizon,
+    priority: parsePriority(values.priority),
+  };
+}
+
 async function persistDecision(
   mode: DecisionFormMode,
   values: FormValues,
   onCreate: DecisionFormDialogProps["onCreate"],
   onUpdate: DecisionFormDialogProps["onUpdate"],
 ): Promise<void> {
-  const payload = {
-    title: values.title,
-    rationale: values.rationale,
-    amount_brl: values.amountBrl || null,
-    status: values.status,
-  };
+  const payload = buildDecisionPayload(values);
   if (mode.kind === "create") {
     await onCreate({ code: values.code, ...payload });
     toast.success("Decisão registrada");
-  } else {
-    await onUpdate(mode.decision.id, payload);
-    toast.success("Decisão atualizada");
+    return;
   }
+  await onUpdate(mode.decision.id, payload);
+  toast.success("Decisão atualizada");
 }
 
 function DecisionFormHeader({ mode }: { mode: DecisionFormMode }) {
@@ -250,6 +291,7 @@ function DecisionFormFields({ mode, values, setters }: FieldsProps) {
         />
       </FormField>
       <AmountAndStatusFields values={values} setters={setters} />
+      <DecisionImpactFields values={values} setters={setters} />
     </>
   );
 }
@@ -359,6 +401,24 @@ function initialAmount(mode: DecisionFormMode): string {
 function initialStatus(mode: DecisionFormMode): DecisionStatus {
   if (mode.kind === "create") return "Pendente";
   return isCreatable(mode.decision.status) ? mode.decision.status : "Pendente";
+}
+
+// ADR-179 — inicializadores dos 4 campos novos (impacto + horizonte + prioridade).
+function initialImpact1y(mode: DecisionFormMode): string {
+  return mode.kind === "create" ? "" : (mode.decision.impact_1y_brl ?? "");
+}
+
+function initialImpact10y(mode: DecisionFormMode): string {
+  return mode.kind === "create" ? "" : (mode.decision.impact_10y_brl ?? "");
+}
+
+function initialHorizon(mode: DecisionFormMode): DecisionHorizon {
+  return mode.kind === "create" ? DEFAULT_HORIZON : mode.decision.horizon;
+}
+
+function initialPriority(mode: DecisionFormMode): string {
+  if (mode.kind === "create") return "";
+  return mode.decision.priority === null ? "" : String(mode.decision.priority);
 }
 
 function isCreatable(s: DecisionStatus): s is CreatableStatus {

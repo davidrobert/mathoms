@@ -11,7 +11,9 @@ from backend.app.models.data_export_request import (
     DataExportRequestStatus,
 )
 from backend.app.models.decision import (
+    DEFAULT_DECISION_HORIZON,
     VALID_DECISION_EVENT_TYPES,
+    VALID_DECISION_HORIZONS,
     VALID_DECISION_STATUSES,
     Decision,
     DecisionEvent,
@@ -35,6 +37,12 @@ from backend.app.models.pipeline_run import (
     PipelineStageStatus,
 )
 from backend.app.models.report import Report
+from backend.app.models.risk import (
+    VALID_RISK_IMPACT_LEVELS,
+    VALID_RISK_PROBABILITIES,
+    VALID_RISK_STATUSES,
+    Risk,
+)
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.models.suggestion import (
     VALID_DISMISS_REASONS,
@@ -119,6 +127,8 @@ __all__ = [
     "DecisionEvent",
     "VALID_DECISION_STATUSES",
     "VALID_DECISION_EVENT_TYPES",
+    "VALID_DECISION_HORIZONS",
+    "DEFAULT_DECISION_HORIZON",
     "Suggestion",
     "VALID_SUGGESTION_AGGREGATE_STATUSES",
     "VALID_SUGGESTION_SEVERITIES",
@@ -136,4 +146,8 @@ __all__ = [
     "DataExportRequestStatus",
     "VALID_DATA_EXPORT_STATUSES",
     "PipelineArtifact",
+    "Risk",
+    "VALID_RISK_IMPACT_LEVELS",
+    "VALID_RISK_PROBABILITIES",
+    "VALID_RISK_STATUSES",
 ]

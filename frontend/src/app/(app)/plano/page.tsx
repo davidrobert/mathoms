@@ -30,6 +30,7 @@ import { getDashboard, type DashboardResponse } from "@/lib/api";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 
 import { DecisionsSection } from "./_components/DecisionsSection";
+import { RisksSection } from "./_components/RisksSection";
 import { IFEmptyHero, IFHeroCard } from "./_components/IFHeroCard";
 import { LinkedTasksSection } from "./_components/LinkedTasksSection";
 import { OnboardingHero } from "./_components/OnboardingHero";
@@ -145,6 +146,8 @@ export default function PlanoPage() {
         </summary>
         <div className="mt-4">
           <DecisionsSection workspaceId={workspace.id} />
+
+          <RisksSection workspaceId={workspace.id} />
 
           <div className="mt-6">
             <UpcomingTasksWidget />

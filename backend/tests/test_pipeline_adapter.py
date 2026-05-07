@@ -57,17 +57,17 @@ async def test_goals_payload_without_if_returns_empty_section(db):
 
 
 @pytest.mark.asyncio
-async def test_goals_payload_merges_legacy_extras(db):
-    """legacy_extras são preservados sem sobrescrever o que vem do DB."""
+async def test_goals_payload_only_db_sourced(db):
+    """ADR-180 (A10.6): bundle só contém o que está no DB; sem legacy_extras."""
     ws = await factories.make_workspace(db)
     await factories.make_if_goal(db, workspace=ws)
     await db.commit()
 
-    legacy = {"aportes": {"meta_aporte_mensal": 20000}, "dolarizacao": {"meta_usd": 20000}}
-    payload = await build_goals_payload(ws.id, db=db, legacy_extras=legacy)
-    assert "aportes" in payload
-    assert "dolarizacao" in payload
+    payload = await build_goals_payload(ws.id, db=db)
     assert "independencia_financeira" in payload  # do DB
+    # Workspace sem APORTE/DOLAR Goal → seções ausentes (não vem de legacy).
+    assert "aportes" not in payload
+    assert "dolarizacao" not in payload
 
 
 @pytest.mark.asyncio
@@ -216,7 +216,7 @@ async def test_build_config_overrides_includes_categorization(db):
 
 @pytest.mark.asyncio
 async def test_build_config_overrides_skips_empty_workspace(db):
-    """Workspace sem nenhum config row → overrides vazio."""
+    """Workspace sem nenhum config row → overrides só com ``goals.json`` mínimo (ADR-180)."""
     from backend.app.core.database import SyncSessionLocal
     from backend.app.services.pipeline_adapter import build_config_overrides_from_db
 
@@ -225,7 +225,9 @@ async def test_build_config_overrides_skips_empty_workspace(db):
 
     with SyncSessionLocal() as sync_db:
         overrides = build_config_overrides_from_db(ws.id, db=sync_db)
-    assert overrides == {}
+    # ADR-180 (A10.6): ``goals.json`` sempre presente como ``GoalsBundle`` mínimo.
+    assert set(overrides.keys()) == {"goals.json"}
+    assert overrides["goals.json"]["_adapter_version"] == 2
 
 
 @pytest.mark.asyncio

@@ -40,3 +40,25 @@ ConfigStore protocol → A7.5 cleanup final), supervisão CTO em 4 gates.
 (catalog+override, event-sourced Decision, versionamento temporal de
 séries fiscais), ondas paralelas com supervisão CTO, ou genealogia de
 bridges (`FileConfigStore`, `materialize_config`) já removidos.
+
+---
+
+## GOALS_JSON_CUTOVER_PLAN-2026-05-07.md
+
+Plano canônico da Sprint A10 — cutover final do último frente de
+`config/*.json` → DB-first iniciada em A7. 10 seções, 9 lanes em 4 ondas,
+5 ADRs propostos (ADR-177 a ADR-181), supervisão CTO em 4 gates.
+
+**Arquivado em:** 2026-05-07 (Sprint A10 ✅ entregue — 9/9 lanes em `main`
+no mesmo ciclo de pickup, fechando débito de 7 meses do checkbox ADR-077
+§"Contrato de cutover").
+
+**Substituído por:** ADRs 177–181 em [../DECISIONS.md](../DECISIONS.md),
+entrada Sprint A10 (Waves 0-4) em [../CHANGELOG.md](../CHANGELOG.md),
+gate `config/goals.json` em `dev/check_forbidden_paths.py`, e
+`_archive/pre-f8-cutover-2026-04-15/config/goals.json.MIGRATED.md` com
+mapa das 22 chaves → destinos.
+
+**Quando consultar:** rationale histórico do inventário decisional de 22
+chaves, design de `GoalsBundle` TypedDict, dependências entre ondas, ou
+arqueologia do débito de 7 meses sobre cobertura `goals.json`.

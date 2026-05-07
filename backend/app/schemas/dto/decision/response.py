@@ -35,6 +35,14 @@ class DecisionResponse(BaseModel):
     target_value_type: Optional[str] = None
     # ADR-163 — KPIs frozen do relatório-fonte da Suggestion.
     context_snapshot: Optional[dict] = None
+    # ADR-179 — quantificação de impacto + horizonte + prioridade.
+    # ``impact_*_brl`` em string decimal (cents convertidos no mapper);
+    # ``horizon`` sempre presente (default ``short_6_12m``); ``priority``
+    # opcional (NULL ordena por impact_1y DESC NULLS LAST no card S10).
+    impact_1y_brl: Optional[Decimal] = None
+    impact_10y_brl: Optional[Decimal] = None
+    horizon: str
+    priority: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

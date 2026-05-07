@@ -32,6 +32,7 @@ from backend.app.api.notifications import router as notifications_router
 from backend.app.api.pipeline import router as pipeline_router
 from backend.app.api.reports import router as reports_router
 from backend.app.api.reports_collab import router as reports_collab_router
+from backend.app.api.risks import router as risks_router
 from backend.app.api.suggestions import router as suggestions_router
 from backend.app.api.tasks import router as tasks_router
 from backend.app.api.transactions import router as transactions_router
@@ -189,6 +190,7 @@ _ALL_ROUTERS = (
     audit_router,
     goals_router,
     decisions_router,
+    risks_router,
     suggestions_router,
     workspaces_router,
     workspaces_tenant_router,

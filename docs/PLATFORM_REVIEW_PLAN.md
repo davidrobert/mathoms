@@ -78,17 +78,17 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W4-T03 | SR-011 + BB-015 Sentry SaaS EU + frontend hookup | 4 | blocked | sre-devops | P1 | S | — |
 | W4-T04 | SR-018 Rate limit endpoints LLM/upload/pipeline | 4 | blocked | sre-devops | P1 | M | — |
 | W4-T05 | BB-002 + SR-017 + SR-028 Status page + alertas + drill | 4 | blocked | sre-devops | P1 | M | W4-T03 |
-| W5-T01 | A11y onda — scope=col + role=progressbar + aria-label charts + reduced-motion | 5 | blocked | product-designer | P1 | S | W1-T01 |
+| W5-T01 | A11y onda — scope=col + role=progressbar + aria-label charts + reduced-motion | 5 | scoped (track) | product-designer | P1 | S | W1-T01 |
 | W5-T02 | PD-004 + BB-011 Recharts → Chart.js residual em S1 | 5 | blocked | product-designer | P1 | M | W5-T01 |
-| W5-T03 | MonetaryValue migration (PD-006/010/011/012/013) | 5 | blocked | product-designer | P1 | M | W1-T01 |
-| W5-T04 | FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | 5 | blocked | financial-planner | P1 | L | W1-T07 |
-| W5-T05 | FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais) | 5 | blocked | financial-planner | P1 | L | — |
-| W6-T01 | DE schema hardening (E5 strict + 7 sub-schemas E4 + ADR-090 wire compliance) | 6 | blocked | data-engineer | P1 | L | — |
+| W5-T03 | MonetaryValue migration (PD-006/010/011/012/013) | 5 | scoped (track) | product-designer | P1 | M | W1-T01 |
+| W5-T04 | FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | 5 | scoped (track) | financial-planner | P1 | L | W1-T07 |
+| W5-T05 | FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais) | 5 | scoped (track) | financial-planner | P1 | L | — |
+| W6-T01 | DE schema hardening (E5 strict + 7 sub-schemas E4 + ADR-090 wire compliance) | 6 | scoped (track) | data-engineer | P1 | L | — |
 | W6-T02 | MLOps universal hooks (DE-001/004/008/019 — meta-ADR) | 6 | blocked | data-engineer | P1 | L | W3-T01 |
 | W6-T03 | F9.4/F9.5/F9.6 stage rename cleanup + ALLOWED_PREFIXES | 6 | blocked | data-engineer | P2 | M | — |
-| W6-T04 | Doc hygiene (BACKLOG split + CHANGELOG retention + CLAUDE.md slim) | 6 | blocked | senior-cto | P2 | M | W1-T03 |
-| W6-T05 | DE-017 + DE-010 Pipeline artifacts retention + cascade-on-delete | 6 | blocked | data-engineer | P2 | M | — |
-| W6-T06 | CTO-001 ADR-150 decisão (Caminho 1 / rejeitada / adiada) | 6 | blocked | senior-cto | P1 | S decidir + L se Caminho 1 | — |
+| W6-T04 | Doc hygiene (BACKLOG split + CHANGELOG retention + CLAUDE.md slim) | 6 | in_progress (PR #111) | senior-cto | P2 | M | W1-T03 |
+| W6-T05 | DE-017 + DE-010 Pipeline artifacts retention + cascade-on-delete | 6 | scoped (track) | data-engineer | P2 | M | — |
+| W6-T06 | CTO-001 ADR-150 decisão (Caminho 1 / rejeitada / adiada) | 6 | in_progress (PR #110, decidido Caminho 3 — Roadmap) | senior-cto | P1 | S decidir + L se Caminho 1 | — |
 
 ---
 
@@ -437,6 +437,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T01
 - **severity:** P1 · **effort:** S · **owner:** product-designer
+- **status:** scoped — track em [agent_prompts/track_w5t01_a11y.md](agent_prompts/track_w5t01_a11y.md)
 - **files_touched:** 13 arquivos com `<th>`, IFHeroCard, EquilibrioCerbasiCard, Kpi, charts Recharts, globals.css
 - **related_findings:** PD-007, PD-014, PD-015, PD-021
 - **acceptance_criteria:** axe-core sobe para `moderate` em a11y.@critical.spec.ts e mantém verde; primitivo `<ProgressBar/>` extraído.
@@ -452,6 +453,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T01
 - **severity:** P1 · **effort:** M · **owner:** product-designer
+- **status:** scoped — track em [agent_prompts/track_w5t03_monetary_value.md](agent_prompts/track_w5t03_monetary_value.md). Inventário concreto: 9 wrappers monetários + 9 toLocaleString = 18 call-sites (excede estimativa de 11).
 - **files_touched:** 11+ cards/components (Endividamento, Reserva, IRPF×4, EstrategiaAporte, SupportGoalsRow, KPICard etc.)
 - **related_findings:** PD-006, PD-010, PD-011, PD-012, PD-013
 - **acceptance_criteria:** todos consomem `<MonetaryValue size="kpi"/>`; sem `font-mono text-Xxl tabular-nums` redundante; sem `toLocaleString()` direto em strings monetárias; `formatCurrency()` usado quando precisa string.
@@ -460,6 +462,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T07
 - **severity:** P1 · **effort:** L (~7-10 dias paralelizáveis) · **owner:** financial-planner
+- **status:** scoped — track em [agent_prompts/track_w5t04_adr161_enrichment.md](agent_prompts/track_w5t04_adr161_enrichment.md). Sub-PR #5 (renda_passiva_real_baixa) recomendado primeiro como gate de validação; #2 (seguros) maior valor para usuário final mas custo alto (paralelizar em background).
 - **files_touched:** `pipeline/domain/services/{cash_flow_builder,instituicoes_por_membro_analyzer,fluxo_caixa_enricher}.py`, novo `WorkspaceInsurance` model + migration + endpoints, `MarketRate` IPCA reader
 - **acceptance_criteria:** 5 regras dormentes (`taxa_poupanca_caindo`, `seguros_insuficientes`, `concentracao_instituicao`, `lifestyle_creep`, `renda_passiva_real_baixa`) disparam em snapshot real; teste e2e em `tests/test_e5_to_suggestion_e2e.py`.
 
@@ -467,6 +470,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** —
 - **severity:** P1 · **effort:** L (~5-7 dias) · **owner:** financial-planner
+- **status:** scoped — track em [agent_prompts/track_w5t05_goal_if_v2.md](agent_prompts/track_w5t05_goal_if_v2.md). Caminho recomendado: cutover agora (Trade-off 2 ratificado); override `imoveis_no_if` por workspace fica fora desta lane (débito ADR-142).
 - **files_touched:** `pipeline/domain/services/if_projector.py`, `pipeline/domain/services/passive_income_calculator.py`, `pipeline/domain/services/patrimonio_calculator.py`, `backend/app/services/goal_service.py`, frontend `useGoalIF.ts`
 - **acceptance_criteria:** PR-A IFProjector emite v1+v2 lado-a-lado (additive); PR-B Frontend lê v2 (v1 fallback); PR-C drop v1 (controlled breaking); `progresso_if` muda denominador para `if_meta_liquida`; toggle `imoveis_no_if` por workspace.
 
@@ -481,6 +485,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T08
 - **severity:** P1 · **effort:** L · **owner:** data-engineer
+- **status:** scoped — track em [agent_prompts/track_w6t01_schema_hardening.md](agent_prompts/track_w6t01_schema_hardening.md). 3 sub-PRs sequenciais (Foundation codegen → E4 split + read-side compat → strict cutover).
 - **related_findings:** DE-006, DE-007, DE-014, DE-018, DE-020, DE-021, DE-012, DE-005
 - **files_touched:** `config/schemas/*.schema.json` (7 novos para E4 split + e5_narrativas + e7_review + e7_crossval), `pipeline/domain/services/*_serialization.py` (gravar Decimal string), `dev/backfill_money_decimal.py` (NOVO)
 - **acceptance_criteria:** schemas declaram top-level strict; `e7_review.schema.json` + `e5_narrativas.schema.json` + `validate_cross.schema.json` auto-gerados de Pydantic; ADR-090 wire compliance em todos os 5 schemas monetários; modo `strict` flippado como default.
@@ -505,7 +510,8 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T03
 - **severity:** P2 · **effort:** M · **owner:** senior-cto
-- **related_findings:** CTO-002, CTO-007, CTO-008, CTO-014
+- **status:** in_progress — [PR #111](https://github.com/davidrobert/mathoms/pull/111) aberto com auto-merge squash. Entregues: `dev/build_subagent_catalog.py`, `dev/check_subagent_catalog.py`, hook pre-commit, `.github/workflows/branch-cleanup.yml`, `docs/agent_prompts/archive/`. **Adiados** para follow-up dedicado: split BACKLOG (<500 linhas) + archive CHANGELOG pré-A6 (varredura por sprint).
+- **related_findings:** CTO-002 (parcial), CTO-007 (atendido), CTO-008 (atendido), CTO-014 (atendido)
 - **files_touched:** split de BACKLOG.md em `docs/SPRINTS/<sprint>.md`, archive de CHANGELOG.md pré-A6, `dev/build_subagent_catalog.py` (NOVO), `dev/check_subagent_catalog.py` (NOVO), `.github/workflows/branch-cleanup.yml` (NOVO), CONTRIBUTING.md
 - **acceptance_criteria:** BACKLOG.md < 500 linhas; CHANGELOG.md últimos 90d; agent_prompts/archive/; subagent catalog auto-gerado; script branch-cleanup mensal.
 
@@ -513,6 +519,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** —
 - **severity:** P2 · **effort:** M · **owner:** data-engineer
+- **status:** scoped — track em [agent_prompts/track_w6t05_artifacts_retention.md](agent_prompts/track_w6t05_artifacts_retention.md). 5 PRs sequenciais (estrutura → backfill schema_version → write path → prune task → cascade test). Hotspot `db_artifact_store.write` colide com W2-T01 (Fernet) — coordenar.
 - **related_findings:** DE-010, DE-011, DE-017, DE-022
 - **files_touched:** Alembic migration adicionando `retention_until` + cascade FK, `backend/app/tasks/prune_artifacts.py` (NOVO), `backend/app/services/document_pipeline_sync.py` (delete_by_document_id cascade)
 - **acceptance_criteria:** retention configurável (90d run-scoped, NULL workspace-scoped); celery beat task daily; FK ON DELETE CASCADE para Document → pipeline_artifacts; schema_version bumpado em writes.
@@ -521,6 +528,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** —
 - **severity:** P1 · **effort:** S decidir + L se Caminho 1 · **owner:** senior-cto
+- **status:** in_progress — [PR #110](https://github.com/davidrobert/mathoms/pull/110) aberto com auto-merge squash. **Decisão: Caminho 3 (Adiar)** — ADR-150 → `Roadmap`. Skeleton Go (~70 LOC) mantido dormente; revisita 2027-Q2 OU 100 workspaces ativos pagantes (o que vier primeiro). Trade-off 6 resolvido sem ação adicional.
 - **files_touched:** `docs/DECISIONS.md` ADR-150 status, `services/` ou `pipeline-service/` (depende decisão)
 - **acceptance_criteria:** sessão CTO + senior-cto + sre-devops decide Caminho 1 / rejeitada / adiada; ADR-150 atualizada; se Caminho 1: lane A6h aberta com 3 PRs; se rejeitada: skeleton Go deletado.
 
@@ -686,3 +694,4 @@ Antes de pegar W2+, executar:
 ## Histórico
 
 - **2026-05-06** — plano criado a partir de revisão multi-agente (138 findings consolidados em 32 tasks).
+- **2026-05-07** — orquestração Wave 5 + Wave 6 (8 tasks unblocked em paralelo). 6 tasks com track docs criados em `docs/agent_prompts/track_w{5,6}t*.md` (W5-T01/T03/T04/T05, W6-T01/T05). 2 tasks executadas: W6-T04 (PR #111 — subagent catalog auto-gen + branch-cleanup) e W6-T06 (PR #110 — ADR-150 → Roadmap, Caminho 3). 3 tasks permanecem bloqueadas (W5-T02 dep W5-T01, W6-T02 dep W3-T01, W6-T03 dep W2-T06).

@@ -40,7 +40,6 @@ from backend.app.services.events import (
     publish_stage_started,
 )
 from backend.app.services.pipeline_adapter import (
-    build_goals_payload_sync,
     build_tarefas_md_sync,
     build_tasks_payload_sync,
 )
@@ -53,64 +52,35 @@ from backend.app.worker import celery_app
 logger = logging.getLogger(__name__)
 
 
-def _materialize_adapter_configs(ws_id: str, ctx, config_dir: Path) -> None:
-    """ADR-077: materializa `goals.json` e `tarefas.md` gerados pelo
-    pipeline adapter a partir do DB → filesystem do tenant.
+def _materialize_tarefas_md(ws_id: str, ctx) -> None:
+    """ADR-077 + ADR-180: materializa apenas ``tarefas.md`` no tenant config dir.
 
-    Scripts do pipeline (E5, E5.N, E6) continuam lendo de filesystem —
-    zero refactor neles. O adapter gera payloads idênticos ao formato
-    legado, mas a fonte de verdade é o DB.
-
-    Se o workspace não tem dados no DB (ex: primeiro run antes do seed),
-    preserva os arquivos originais que vieram do config_dir (fallback).
+    ``GoalsBundle`` saiu da materialização em A10.6 e agora vem via
+    ``ctx.config_overrides`` populado por ``build_config_overrides_from_db``.
+    ``tarefas.md`` continua materializado (texto livre, fora do escopo do
+    bundle tipado).
 
     Best-effort: exceções são logadas mas não interrompem o pipeline.
     """
-    import json
     import logging
 
     logger = logging.getLogger("pipeline_task.materialize")
 
     try:
         with SyncSessionLocal() as db:
-            # -- goals.json --
-            # Carrega o legado como base e sobrescreve com dados do DB
-            legacy_goals_path = config_dir / "goals.json"
-            legacy_extras = {}
-            if legacy_goals_path.exists():
-                try:
-                    legacy_extras = json.loads(legacy_goals_path.read_text(encoding="utf-8"))
-                except (json.JSONDecodeError, OSError):
-                    pass
-
-            goals_payload = build_goals_payload_sync(ws_id, db=db, legacy_extras=legacy_extras)
-
-            # Materializa no config_dir do context (pode ser tenant_root/config/
-            # ou o config_dir global — depende do setup). Se é o global, grava
-            # em tenant_root/config/ para não poluir o original.
+            md = build_tarefas_md_sync(ws_id, db=db)
+            if not md.strip():
+                logger.info("No tasks in DB — keeping original tarefas.md")
+                return
             target_config_dir = ctx.config_dir
             target_config_dir.mkdir(parents=True, exist_ok=True)
-
-            goals_out = target_config_dir / "goals.json"
-            goals_out.write_text(
-                json.dumps(goals_payload, indent=2, ensure_ascii=False),
-                encoding="utf-8",
-            )
-            logger.info("Materialized goals.json → %s", goals_out)
-
-            # -- tarefas.md --
-            md = build_tarefas_md_sync(ws_id, db=db)
-            if md.strip():
-                tarefas_out = target_config_dir / "tarefas.md"
-                tarefas_out.write_text(md, encoding="utf-8")
-                logger.info("Materialized tarefas.md → %s", tarefas_out)
-            else:
-                logger.info("No tasks in DB — keeping original tarefas.md")
-
+            tarefas_out = target_config_dir / "tarefas.md"
+            tarefas_out.write_text(md, encoding="utf-8")
+            logger.info("Materialized tarefas.md → %s", tarefas_out)
     except Exception as exc:  # noqa: BLE001
         logger.warning(
-            "Failed to materialize adapter configs for ws=%s: %s. "
-            "Pipeline will use original config files (fallback).",
+            "Failed to materialize tarefas.md for ws=%s: %s. "
+            "Pipeline will use original tarefas.md (fallback).",
             ws_id,
             exc,
         )
@@ -1049,11 +1019,10 @@ def run_pipeline_task(
     )
 
     try:
-        # ADR-077 / F8.4: materializa payloads do adapter como arquivos no
-        # tenant config dir ANTES de rodar o pipeline. Os scripts (E5, E5.N,
-        # E6) continuam lendo de filesystem — zero refactor neles. O adapter
-        # gera o mesmo formato de `goals.json` e `tarefas.md` a partir do DB.
-        _materialize_adapter_configs(ws_id, ctx, config_dir)
+        # ADR-077 + ADR-180: configs DB-first vêm via ``ctx.config_overrides``
+        # (montado por ``build_config_overrides_from_db``); apenas ``tarefas.md``
+        # ainda é materializado em filesystem (texto livre fora do bundle tipado).
+        _materialize_tarefas_md(ws_id, ctx)
 
         if not _mark_run_started(run_id, tier, self.request.id):
             return {"status": "error", "detail": "Run not found"}
