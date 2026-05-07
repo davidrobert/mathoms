@@ -216,6 +216,12 @@
 | F7.d | lane | shipped | F7 | Quality Gate + Launch Readiness (semana 4-6 + 2 sem dogfood) | `sprint/F7/lanes/F7-d-quality-gate-launch-readiness.md` |
 | F7.e | lane | shipped | F7 | Operational Readiness (semana 6-7, ~2 semanas) | `sprint/F7/lanes/F7-e-operational-readiness.md` |
 | F7.f | lane | shipped | F7 | Console interno (operadores) | `sprint/F7/lanes/F7-f-console-interno.md` |
+| MOC-sprint-a10 | moc |  |  | Sprint A10 — goals.json cutover final | `sprint/A10/_README.md` |
+| MOC-sprint-a11 | moc |  |  | Sprint A11 — Platform review execution | `sprint/A11/_README.md` |
+| MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
+| MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
+| MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
+| MOC-sprint-a9 | moc |  |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
 | PLAN-cenarios-estresse | plan | in_progress |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-doc-reorg | plan | in_progress |  | Reorganização da documentação operacional como vault Obsidian-friendly | `plan/DOC_REORG/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
