@@ -17,7 +17,7 @@ tags:
 
 > **Lane ID:** `w5t03-monetaryvalue`
 > **Branch prefix:** `agent/w5t03-monetaryvalue/<yyyyMMdd-HHmm>`
-> **Plano canônico:** [PLATFORM_REVIEW_PLAN.md §W5-T03](../PLATFORM_REVIEW_PLAN.md)
+> **Plano canônico:** [plan/PLATFORM_REVIEW/_README.md §W5-T03](../plan/PLATFORM_REVIEW/_README.md)
 > **Onda:** Wave 5 (paraleliza com W5-T01 — não toca os mesmos arquivos)
 > **Severity:** P1 · **Effort:** M (~1 dia, PR único)
 > **Owner:** product-designer

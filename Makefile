@@ -320,7 +320,7 @@ dev-bootstrap:
 	   echo "   ⚠️  config/internal_operators.yaml não existe."; \
 	   echo "      Login no console interno (3100) falhará até criá-lo."; \
 	   echo "      Gere senha: python3 scripts/hash_ops_pw.py"; \
-	   echo "      Detalhes: docs/RUNBOOK.md §7.2."; \
+	   echo "      Detalhes: docs/reference/RUNBOOK.md §7.2."; \
 	 fi
 	@echo ""
 	@echo "  ✅ Bootstrap completo. 'make dev-up' para subir o stack."
@@ -663,31 +663,31 @@ check-boundaries:
 
 .PHONY: update-openapi-snapshot update-pipeline-service-openapi update-db-schema-reference
 
-## update-openapi-snapshot: Regenera docs/api/v1/openapi.json (A6f.2 · ADR-102)
+## update-openapi-snapshot: Regenera docs/reference/api/v1/openapi.json (A6f.2 · ADR-102)
 update-openapi-snapshot: update-pipeline-service-openapi
-	@mkdir -p docs/api/v1
+	@mkdir -p docs/reference/api/v1
 	@FERNET_KEY="$${MATHOMS_FERNET_KEY:-$(ephemeral_fernet)}"; \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 $(PYTHON) -c 'import json; from backend.app.main import app; \
 	   print(json.dumps(app.openapi(), indent=2, sort_keys=True))' \
-	 > docs/api/v1/openapi.json
-	@echo "✓ docs/api/v1/openapi.json regenerado. Comite o diff."
+	 > docs/reference/api/v1/openapi.json
+	@echo "✓ docs/reference/api/v1/openapi.json regenerado. Comite o diff."
 
-## update-pipeline-service-openapi: Regenera docs/api/v1/pipeline-service.openapi.json (A6f.1 · ADR-112)
+## update-pipeline-service-openapi: Regenera docs/reference/api/v1/pipeline-service.openapi.json (A6f.1 · ADR-112)
 update-pipeline-service-openapi:
-	@mkdir -p docs/api/v1
+	@mkdir -p docs/reference/api/v1
 	@PYTHONPATH="$(CURDIR)/pipeline-service:$(CURDIR)" \
 	 $(PYTHON) -c 'import json; from app.main import create_app; \
 	   print(json.dumps(create_app().openapi(), indent=2, sort_keys=True))' \
-	 > docs/api/v1/pipeline-service.openapi.json
-	@echo "✓ docs/api/v1/pipeline-service.openapi.json regenerado. Comite o diff."
+	 > docs/reference/api/v1/pipeline-service.openapi.json
+	@echo "✓ docs/reference/api/v1/pipeline-service.openapi.json regenerado. Comite o diff."
 
-## update-db-schema-reference: Regenera docs/DB_SCHEMA_REFERENCE.md (A6f.4 · ADR-102 R20)
+## update-db-schema-reference: Regenera docs/reference/DB_SCHEMA_REFERENCE.md (A6f.4 · ADR-102 R20)
 update-db-schema-reference:
 	@FERNET_KEY="$${MATHOMS_FERNET_KEY:-$(ephemeral_fernet)}"; \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
-	 $(PYTHON) dev/generate_db_schema_reference.py > docs/DB_SCHEMA_REFERENCE.md
-	@echo "✓ docs/DB_SCHEMA_REFERENCE.md regenerado. Comite o diff."
+	 $(PYTHON) dev/generate_db_schema_reference.py > docs/reference/DB_SCHEMA_REFERENCE.md
+	@echo "✓ docs/reference/DB_SCHEMA_REFERENCE.md regenerado. Comite o diff."
 
 # ---------------------------------------------------------------------------
 # Go (A6g.7 — ADR-113)

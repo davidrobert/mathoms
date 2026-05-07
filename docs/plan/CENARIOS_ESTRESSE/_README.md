@@ -301,12 +301,12 @@ Decisões de domínio (financial-planner):
 
 | Arquivo | Mudança | PR |
 |---|---|---|
-| `docs/CENARIOS_ESTRESSE_PLAN.md` | **Este arquivo** — fonte canônica do plano | PR0 |
+| `docs/plan/CENARIOS_ESTRESSE/_README.md` | **Este arquivo** — fonte canônica do plano | PR0 |
 | `docs/BACKLOG.md` | Adicionar lane "Cenários de Estresse" no Sprint A8 (ou onda equivalente) | PR0 |
 | `docs/CHANGELOG.md` | Entradas por PR | PR1-PR5 (cada um) |
 | `docs/DECISIONS.md` | ADR-168, ADR-166, ADR-167 + ToC | PR1, PR2, PR4 |
-| `docs/ARCHITECTURE.md §4.1 Domain glossary` | Adicionar `cenarios_conjuge` ao glossário | PR1 |
-| `docs/REPORT_PREMIUM_PLAN.md` | Verificar referências a APP_C; atualizar se mencionar título antigo | PR3 |
+| `docs/reference/ARCHITECTURE.md §4.1 Domain glossary` | Adicionar `cenarios_conjuge` ao glossário | PR1 |
+| `docs/plan/REPORT_PREMIUM/_README.md` | Verificar referências a APP_C; atualizar se mencionar título antigo | PR3 |
 | `_archive/` (manual histórico) | **Não tocar** | — |
 
 ---
@@ -320,7 +320,7 @@ Decisões de domínio (financial-planner):
 **Branch:** `agent/cenarios-estresse-docs/20260506-1430` · **Tipo:** docs-only · **Risco:** baixo
 
 **Escopo:**
-- Adiciona `docs/CENARIOS_ESTRESSE_PLAN.md` (este arquivo)
+- Adiciona `docs/plan/CENARIOS_ESTRESSE/_README.md` (este arquivo)
 - Adiciona lane no `docs/BACKLOG.md`
 - Adiciona entrada no `docs/CHANGELOG.md`
 
@@ -397,7 +397,7 @@ Decisões de domínio (financial-planner):
 - `tests/unit/pipeline/test_cenarios_conjuge_analyzer.py` — adicionar 4 casos de `should_render` (1 renda, 2 rendas casal, 2 rendas solteiro, casal sem renda do cônjuge)
 - `tests/test_e5n_builder_decomposition.py` — limpar fixtures família-específicas
 - ADR-167: eligibility gate de cenário do cônjuge no domain service
-- `docs/ARCHITECTURE.md §4.1 Domain glossary` — entrada `should_render_conjuge_scenarios()`
+- `docs/reference/ARCHITECTURE.md §4.1 Domain glossary` — entrada `should_render_conjuge_scenarios()`
 
 **Critério de aceite:**
 - `pytest tests -q` verde
@@ -466,7 +466,7 @@ Decisões de domínio (financial-planner):
 - `config/prompts/chart_conclusions.yaml:84` — remover `mariana_cenarios_usa`
 - ADR-168: Remoção do Modo USA do relatório (supersede parcial ADR-117/123 + conclui agenda ADR-151)
 - `docs/CHANGELOG.md` entrada
-- Atualizar `docs/REPORT_PREMIUM_PLAN.md` se referencia U1-U4
+- Atualizar `docs/plan/REPORT_PREMIUM/_README.md` se referencia U1-U4
 
 **Critério de aceite:**
 - `pytest backend/tests -q` verde

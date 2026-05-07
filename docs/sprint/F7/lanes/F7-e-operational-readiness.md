@@ -32,7 +32,7 @@ tags:
 | #     | Tarefa                                                                                                                                       | Prio | Est. | Status |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
 | 7E.2  | **Restore drill quarterly**: documentado em RUNBOOK; executar pré-beta; gravar tempo real (RTO efetivo); checklist de validação pós-restore | P0 | 3h | ☐ |
-| 7E.3  | **RPO/RTO declarados**: docs/SLO.md com targets (RPO=24h, RTO=4h propostos para dogfood; RPO=1h, RTO=1h para beta)                          | P0 | 1h | ☐ |
+| 7E.3  | **RPO/RTO declarados**: docs/reference/SLO.md com targets (RPO=24h, RTO=4h propostos para dogfood; RPO=1h, RTO=1h para beta)                          | P0 | 1h | ☐ |
 | 7E.4  | **Off-site backup** (S3 BR ou Backblaze B2): pg_dump diário replicado fora do Hetzner; rotação 30d off-site; restore testado de off-site    | P0 | 4h | ☐ |
 | 7E.5  | **FERNET_KEY loss recovery**: procedure documentado em RUNBOOK; teste em ambiente staging que simula key perdida; backup criptografado da key em local separado (ex: 1Password vault) | P0 | 3h | ☐ |
 
@@ -42,7 +42,7 @@ tags:
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
 | 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ✅ Sprint A: `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL` + `StatusPageFooter` (login, register, invite, AppShell); provisão da ferramenta continua no deploy — ver [RUNBOOK.md](RUNBOOK.md#2-status-page-7e6) |
 | 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces — integra **IA-2** do [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) (protegida por **7F.2–7F.4**) | P1 | 6h | ☐ |
-| 7E.8  | **SLOs/SLAs declarados** em `docs/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ✅ Sprint A: [SLO.md](SLO.md) (alvos + SLA comunicação incidente); burn rate Sentry continua em 7C |
+| 7E.8  | **SLOs/SLAs declarados** em `docs/reference/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ✅ Sprint A: [SLO.md](SLO.md) (alvos + SLA comunicação incidente); burn rate Sentry continua em 7C |
 
 #### 7E.D — Comunicação de incidentes
 

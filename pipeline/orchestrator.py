@@ -202,7 +202,7 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
       segue ``bool(detail["success"])``. O ``detail`` completo é preservado em
       ``StageResult.detail`` (erros parciais, métricas, etc.).
 
-    Documentação: ``docs/ARCHITECTURE.md`` (seção *Padrões arquiteturais*).
+    Documentação: ``docs/reference/ARCHITECTURE.md`` (seção *Padrões arquiteturais*).
     """
     import io
     import sys

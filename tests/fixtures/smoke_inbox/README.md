@@ -34,4 +34,4 @@ Estes arquivos **não são gerados automaticamente** por limitações técnicas
 - XLSX de banco → testar parser XLSX do Itaú/Santander
 - IRPF simulado → testar E1.5 (LLM, requer API key)
 
-Consulte `docs/SMOKE_TEST_HUMAN.md` §3 para instruções de como providenciá-los.
+Consulte `docs/reference/SMOKE_TEST_HUMAN.md` §3 para instruções de como providenciá-los.

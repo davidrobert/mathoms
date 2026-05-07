@@ -22,7 +22,7 @@ tags:
     `[data-report-scope]` sem accessible name".
   - Após `git checkout` da regressão: 28/28 verde de novo.
   - Evidência arquivada em
-    [`docs/REPORT_A11Y_GATE_PROOF.md`](REPORT_A11Y_GATE_PROOF.md) (não
+    [`docs/plan/REPORT_PREMIUM/A11Y_GATE_PROOF.md`](REPORT_A11Y_GATE_PROOF.md) (não
     em commit msg, que rota com o tempo).
   - Resíduos da lane: items 3 (snapshots por seção × tema) e 5
     (checklist WCAG operacional).

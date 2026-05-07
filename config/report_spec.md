@@ -143,7 +143,7 @@ Se `chart-context` ou `chart-conclusion` não tiver texto, OMITIR a tag inteira.
   6. Gap Indep. Financeira
   7. **Prazo Indep. Financeira (hero)**
   8. **Score Financeiro (hero)**
-- **Labels:** "Independência Financeira" em headings; "Indep. Financeira" em label compacto. "IF" apenas em variáveis técnicas, no Apêndice A (glossário) e como fallback em viewport ≤320px. Regra completa em [docs/COPY_GUIDELINES.md §3.1](../docs/COPY_GUIDELINES.md).
+- **Labels:** "Independência Financeira" em headings; "Indep. Financeira" em label compacto. "IF" apenas em variáveis técnicas, no Apêndice A (glossário) e como fallback em viewport ≤320px. Regra completa em [docs/reference/COPY_GUIDELINES.md §3.1](../docs/reference/COPY_GUIDELINES.md).
 
 ---
 

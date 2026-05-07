@@ -19,7 +19,7 @@ tags:
 > **Branch prefix:** `agent/platform-review/*`
 > **Depende de:** —
 > **Paralelo com:** qualquer lane de código (não toca código fora de
-> `_scratch/` e `docs/PLATFORM_REVIEW_PLAN.md`)
+> `_scratch/` e `docs/plan/PLATFORM_REVIEW/_README.md`)
 > **Conflita com:** outra sessão `agent/platform-review/*` ativa (1
 > revisão por vez)
 > **Onda:** independente
@@ -32,7 +32,7 @@ tags:
 > de execução resumível por outros agentes em sessões futuras.
 >
 > **Não-objetivo:** mudanças de código nesta sessão. Único output
-> commitado em `main` é `docs/PLATFORM_REVIEW_PLAN.md`.
+> commitado em `main` é `docs/plan/PLATFORM_REVIEW/_README.md`.
 
 ---
 
@@ -47,12 +47,12 @@ Antes de qualquer delegação, leia e cite explicitamente no consolidado
 quais documentos foram considerados:
 
 - [CLAUDE.md](../../CLAUDE.md) — invariantes do repo
-- [docs/ARCHITECTURE.md](../ARCHITECTURE.md) — stack, stages, domain glossary (§4.1)
+- [docs/reference/ARCHITECTURE.md](../ARCHITECTURE.md) — stack, stages, domain glossary (§4.1)
 - [docs/DECISIONS.md](../DECISIONS.md) — ADRs 001-148+ (use ToC categorizado)
 - [docs/BACKLOG.md](../BACKLOG.md) — sprint atual + lanes ocupadas
 - [docs/CHANGELOG.md](../CHANGELOG.md) — últimos 30 dias de entregas
-- [docs/STATELESS_AUDIT.md](../STATELESS_AUDIT.md) — globais permitidos (ADR-111)
-- [docs/PIPELINE_ARTIFACTS.md](../PIPELINE_ARTIFACTS.md) + `config/schemas/`
+- [docs/reference/STATELESS_AUDIT.md](../STATELESS_AUDIT.md) — globais permitidos (ADR-111)
+- [docs/reference/PIPELINE_ARTIFACTS.md](../PIPELINE_ARTIFACTS.md) + `config/schemas/`
 - `pipeline/stage_spec.py` — `STAGE_REGISTRY` canônico (nomes descritivos pós-F9.2)
 
 **Regra de dedupe:** se um achado já tem ADR aceita, BACKLOG entry
@@ -189,7 +189,7 @@ Output: `_scratch/review-YYYY-MM-DD/consolidated-findings.md`
 
 ## Plano de execução
 
-**Local:** `docs/PLATFORM_REVIEW_PLAN.md` (canonical multi-phase
+**Local:** `docs/plan/PLATFORM_REVIEW/_README.md` (canonical multi-phase
 conforme convenção UPPER_SNAKE de [CLAUDE.md §"Planos → docs/"](../../CLAUDE.md#planos--docs-nunca-_scratch-nunca-claude)).
 
 ### Frontmatter (parseável)
@@ -296,7 +296,7 @@ mais focado (cite os achados que ele perdeu).
 
 1. `_scratch/review-YYYY-MM-DD/findings-{data-engineer,financial-planner,product-designer,sre-devops,build-vs-buy,senior-cto}.md`
 2. `_scratch/review-YYYY-MM-DD/consolidated-findings.md`
-3. `docs/PLATFORM_REVIEW_PLAN.md` (commitado, único artefato no `main`)
+3. `docs/plan/PLATFORM_REVIEW/_README.md` (commitado, único artefato no `main`)
 4. **Resumo executivo no chat** (≤300 palavras):
    - Top 5 P0/P1 com link para finding
    - Próximas 3 waves (`W1`, `W2`, `W3`) com 1 linha cada
@@ -317,7 +317,7 @@ mais focado (cite os achados que ele perdeu).
    `_scratch/` é gitignored, mas estrutura pode ser commitada via
    `.gitkeep` se quiser estado intermediário inspecionável; pular
    normalmente)
-2. `docs(plan): add PLATFORM_REVIEW_PLAN.md (revisão YYYY-MM-DD)` —
+2. `docs(plan): add plan/PLATFORM_REVIEW/_README.md (revisão YYYY-MM-DD)` —
    único commit que vai para `main`. Diff exclusivamente em `docs/`,
    então CI gates de código não se aplicam ([CLAUDE.md §"Concluído"](../../CLAUDE.md#concluído--pr-mergeado-em-main-squash-com-ci-verde)
    exceção docs-only).

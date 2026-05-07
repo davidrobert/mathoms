@@ -41,7 +41,7 @@ consolidadas em [ADR-113](../docs/DECISIONS.md#adr-113). Resumo:
 
 `pipeline-service/` (FastAPI Python, A6f.1 · ADR-112) é o candidato
 natural à reescrita: stateless rigoroso, contrato HTTP documentado em
-`docs/api/v1/pipeline-service.openapi.json`, sem dependência
+`docs/reference/api/v1/pipeline-service.openapi.json`, sem dependência
 Python-to-Python via broker. Quando a decisão for tomada, abra ADR
 própria e crie `services/pipeline-service-go/` com `go.mod` + entry em
 `cmd/pipeline-service/main.go`.
@@ -62,4 +62,4 @@ própria e crie `services/pipeline-service-go/` com `go.mod` + entry em
   HTTP que destravou esta preparação).
 - [ADR-113](../docs/DECISIONS.md#adr-113) — Go conventions (este repo).
 - [CLAUDE.md §Code style › Go](../CLAUDE.md#code-style).
-- [ARCHITECTURE §17](../docs/ARCHITECTURE.md) — arquitetura alvo pós-A6.
+- [ARCHITECTURE §17](../docs/reference/ARCHITECTURE.md) — arquitetura alvo pós-A6.

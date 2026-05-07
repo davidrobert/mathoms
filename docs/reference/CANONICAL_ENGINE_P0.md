@@ -10,7 +10,7 @@
 | Área | Onde está hoje | Risco de drift | Ação recomendada |
 | --- | --- | --- | --- |
 | **Classificação no upload web** | `backend/app/services/content_classifier.py` (texto + metadados; LLM opcional no fluxo chamador) | Médio vs batch | Manter contrato de saída alinhado ao que o pipeline espera (`doc_type`, `bank_code`, `period`); renomeio físico via `canonical_routing` + `e0_route.build_final_name` |
-| **Classificação no pipeline (inbox / E0-route)** | `scripts/e0_route.py` — heurísticas por **nome de arquivo** e roteamento de pastas | Médio vs web | Evoluir para API única de classificação no núcleo (ver [P1_STRUCTURAL_PLAN.md](P1_STRUCTURAL_PLAN.md)); até lá, documentar duas entradas (fila web vs pasta `data/`) |
+| **Classificação no pipeline (inbox / E0-route)** | `scripts/e0_route.py` — heurísticas por **nome de arquivo** e roteamento de pastas | Médio vs web | Evoluir para API única de classificação no núcleo (ver [plan/P1_STRUCTURAL/_README.md](plan/P1_STRUCTURAL/_README.md)); até lá, documentar duas entradas (fila web vs pasta `data/`) |
 | **Reclassificação manual / correção** | `documents.reclassify` + `canonical_routing.rename_to_canonical` | Baixo | Continua como adaptador sobre o mesmo modelo de classificação |
 | **Goals / tasks / membros no E5** | `pipeline_adapter.py` (DB → JSON) vs arquivos legado sob feature flags | Baixo pós-cutover | Fechar checklist [ADR-077](DECISIONS.md#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web); eliminar dual-source |
 | **Validação JSON entre estágios** | `scripts/pipeline_common.validate_artifact` + validações locais (ex.: `e4_categorize.validate_baseline_schema`) | Baixo | Centralizar política de validação; ver §3 |
@@ -61,7 +61,7 @@
 1. **Job CI** com strict já roda em `test_schema_validation.py`; expandir conforme novos goldens.
 2. E3–E5: schema + validação pós-write + goldens de execução (`tests/test_e3_golden_execution.py`, `tests/test_e4_golden_execution.py`, `tests/test_e5_golden_execution.py`) — ver [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md).
 
-**Próximo passo:** [P1_STRUCTURAL_PLAN.md](P1_STRUCTURAL_PLAN.md) (job CI + política strict seletiva).
+**Próximo passo:** [plan/P1_STRUCTURAL/_README.md](plan/P1_STRUCTURAL/_README.md) (job CI + política strict seletiva).
 
 ---
 
@@ -99,4 +99,4 @@
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Pipeline stages, services, execução offline
 - [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) — checklist de validação por artefato
 - [DECISIONS.md](DECISIONS.md) — ADR-013, 075, 077, 079, 080
-- [P1_STRUCTURAL_PLAN.md](P1_STRUCTURAL_PLAN.md) — fase estrutural P1 (concluída)
+- [plan/P1_STRUCTURAL/_README.md](plan/P1_STRUCTURAL/_README.md) — fase estrutural P1 (concluída)

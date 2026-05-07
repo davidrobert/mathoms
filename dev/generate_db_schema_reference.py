@@ -1,4 +1,4 @@
-"""Gerador de ``docs/DB_SCHEMA_REFERENCE.md`` (A6f.4 · ADR-102 R20).
+"""Gerador de ``docs/reference/DB_SCHEMA_REFERENCE.md`` (A6f.4 · ADR-102 R20).
 
 Introspecciona ``Base.metadata`` após importar todos os models em
 ``backend/app/models/`` e emite um markdown determinístico com:
@@ -17,7 +17,7 @@ O output é determinístico: mesma entrada = mesmo byte output. O teste
 disco com o output atual.
 
 Rode via ``make update-db-schema-reference`` ou direto:
-``python dev/generate_db_schema_reference.py > docs/DB_SCHEMA_REFERENCE.md``.
+``python dev/generate_db_schema_reference.py > docs/reference/DB_SCHEMA_REFERENCE.md``.
 """
 
 from __future__ import annotations
@@ -51,7 +51,7 @@ from sqlalchemy.types import JSON, DateTime, Enum, PickleType, TypeDecorator  # 
 import backend.app.models  # noqa: E402,F401
 from backend.app.core.database import Base  # noqa: E402
 
-SNAPSHOT_PATH = _REPO_ROOT / "docs" / "DB_SCHEMA_REFERENCE.md"
+SNAPSHOT_PATH = _REPO_ROOT / "docs" / "reference" / "DB_SCHEMA_REFERENCE.md"
 
 
 # ---------------------------------------------------------------------------
@@ -357,7 +357,7 @@ def generate() -> str:
         "Não edite manualmente — rode `make update-db-schema-reference` e "
         "comite o diff.\n>\n"
         "> **Última regeneração:** consulte `git log -1 --format=%cs -- "
-        "docs/DB_SCHEMA_REFERENCE.md`. O conteúdo é determinístico "
+        "docs/reference/DB_SCHEMA_REFERENCE.md`. O conteúdo é determinístico "
         "(mesmo `Base.metadata` ⇒ mesmos bytes — verificado por "
         "`backend/tests/test_db_schema_reference_snapshot.py`), por isso "
         "não embutimos `datetime.now()` no header.\n\n"

@@ -18,7 +18,7 @@ tags:
 
 
 > Removida do plano enquanto `ar`/`he` estiverem fora do escopo
-> (ver §11 do [I18N_PLAN.md](I18N_PLAN.md)). CSS logical properties
+> (ver §11 do [plan/I18N/_README.md](plan/I18N/_README.md)). CSS logical properties
 > permanecem **recomendadas** em código novo (decisão #10 do ADR-130)
 > para reduzir custo quando RTL voltar como ticket dedicado.
 > Estimativa preservada: ~12h auditoria + snapshots.

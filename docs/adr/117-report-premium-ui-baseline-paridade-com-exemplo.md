@@ -32,10 +32,10 @@ mas visualmente ficam muito atrás do template interno
 card variants, section dividers, KPI hero, score gauge, period toggle,
 kanban tático, e print CSS polido. Produto pede paridade visual com o
 template para transmitir qualidade profissional. Discovery da Fase 0
-produziu `docs/REPORT_PREMIUM_GAPS.md`.
+produziu `docs/plan/REPORT_PREMIUM/GAPS.md`.
 
 **Decisão:** Executar o plano de 14 fases documentado em
-`docs/REPORT_PREMIUM_PLAN.md` que eleva `/reports/[id]` e o export
+`docs/plan/REPORT_PREMIUM/_README.md` que eleva `/reports/[id]` e o export
 standalone ao nível do template. Biblioteca de charts em
 `components/report/**`: **Chart.js 4 + react-chartjs-2 + datalabels**
 (mantém Recharts fora de `/reports/**`). Dark mode obrigatório. Cover

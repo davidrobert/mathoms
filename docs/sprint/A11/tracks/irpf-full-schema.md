@@ -274,8 +274,8 @@ Fixture: `tests/fixtures/irpf_2024_anonimizado.pdf` + `tests/fixtures/expected/i
 ### K. Documentação
 
 1. ADR (entrega A)
-2. `docs/PIPELINE_ARTIFACTS.md` ganha entrada E1.6
-3. `docs/ARCHITECTURE.md §4.1 Domain glossary` ganha entrada "IRPF completo (renda + imposto + dependentes)"
+2. `docs/reference/PIPELINE_ARTIFACTS.md` ganha entrada E1.6
+3. `docs/reference/ARCHITECTURE.md §4.1 Domain glossary` ganha entrada "IRPF completo (renda + imposto + dependentes)"
 4. `docs/CHANGELOG.md` entrada datada quando mergear
 5. `docs/BACKLOG.md` linha da lane (se ainda existir tabela ativa)
 6. Atualizar `CLAUDE.md` § "Convenções de naming de artefatos" com sufixo `-1.6_irpf_full`

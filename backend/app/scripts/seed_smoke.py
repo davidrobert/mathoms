@@ -179,7 +179,7 @@ async def main(force: bool = False) -> None:
     print("  Docs: http://localhost:8000/api/docs")
     print()
     print("  Próximo passo: abra http://localhost:3000 e faça login.")
-    print("  Consulte docs/SMOKE_TEST_HUMAN.md para o checklist completo.")
+    print("  Consulte docs/reference/SMOKE_TEST_HUMAN.md para o checklist completo.")
     print("=" * 60)
 
 

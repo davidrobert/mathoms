@@ -9,9 +9,9 @@
 > - Sprint atual + lanes prontas · [docs/_MOC/_generated/SPRINT_CURRENT.md](docs/_MOC/_generated/SPRINT_CURRENT.md) (auto) + [docs/_MOC/SPRINTS-active.md](docs/_MOC/SPRINTS-active.md) (editorial); BACKLOG.md é shim
 > - Log cronológico de entregas · [docs/CHANGELOG.md](docs/CHANGELOG.md)
 > - ADRs (vault atomizado) · [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) + [docs/adr/](docs/adr/); DECISIONS.md é shim
-> - Arquitetura técnica (stack, models, stages, pastas) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-> - Setup dev · [docs/SETUP.md](docs/SETUP.md)
-> - Runbook operacional · [docs/RUNBOOK.md](docs/RUNBOOK.md)
+> - Arquitetura técnica (stack, models, stages, pastas) · [docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md)
+> - Setup dev · [docs/reference/SETUP.md](docs/reference/SETUP.md)
+> - Runbook operacional · [docs/reference/RUNBOOK.md](docs/reference/RUNBOOK.md)
 >
 > Instruções de agente em subpastas prevalecem quando conflitam com este arquivo.
 
@@ -210,7 +210,7 @@ mistura doc + código, a regra normal volta a valer.
   em `tests/test_e{3,4,5}_golden_execution.py`. Goldens de paridade
   legado↔novo (Caminho A vs Caminho B) foram descontinuados em A6c.3 quando
   Caminho A foi removido. Re-construção de baselines snapshot é débito
-  rastreado em [docs/PLATFORM_REVIEW_PLAN.md](docs/PLATFORM_REVIEW_PLAN.md)
+  rastreado em [docs/plan/PLATFORM_REVIEW/_README.md](docs/plan/PLATFORM_REVIEW/_README.md)
   §W6-T01 (DE-005).
 - Endpoint JSON novo → teste + rodar `make update-openapi-snapshot`
   (ADR-109).
@@ -296,7 +296,7 @@ nunca chega ao `main`. Plano fora de `docs/` = plano invisível.
   entrada na tabela do [docs/agent_prompts/README.md](docs/agent_prompts/README.md).
 - **Canônico multi-fase** → `docs/<TOPIC>_PLAN.md`. Feature grande que
   atravessa várias lanes/sprints. Nome em **UPPER_SNAKE**:
-  `REPORT_PREMIUM_PLAN.md`, `I18N_PLAN.md`, `P1_STRUCTURAL_PLAN.md`.
+  `plan/REPORT_PREMIUM/_README.md`, `plan/I18N/_README.md`, `plan/P1_STRUCTURAL/_README.md`.
   Linke da tabela "Onde procurar contexto adicional" abaixo se virar
   fonte de verdade.
 
@@ -380,7 +380,7 @@ flippa para `Decidido (Sprint XX.Y)` no merge.
 **Custo:** ~30min/feature de raciocínio arquitetural. **Ganho:**
 rastreabilidade, menos dead code shipping, gate de sanidade antes de
 escrever código (lição 2026-05 — ver
-[docs/PLATFORM_REVIEW_PLAN.md](docs/PLATFORM_REVIEW_PLAN.md) §Trade-off 5).
+[docs/plan/PLATFORM_REVIEW/_README.md](docs/plan/PLATFORM_REVIEW/_README.md) §Trade-off 5).
 
 **Não aplica a:** bugs, hot-fixes, doc-only, refactor mecânico já
 coberto por ADR existente.
@@ -405,7 +405,7 @@ Dados cliente vivem em **DB** (estruturado) ou
 `<workspace>/notes/` (gitignored, livre). **`docs/methodology/` é path
 proibido** desde A7.6 — `dev/check_forbidden_paths.py` bloqueia recriação.
 Para encontrar a regra de um conceito de domínio, comece pelo índice em
-[docs/ARCHITECTURE.md §4.1 Domain glossary](docs/ARCHITECTURE.md).
+[docs/reference/ARCHITECTURE.md §4.1 Domain glossary](docs/reference/ARCHITECTURE.md).
 
 ### Pipeline não importa framework
 
@@ -479,7 +479,7 @@ Cache vai para Redis; rate limit vai para DB (padrão `invitation_service`)
 ou Redis `SET NX + TTL` — nunca token bucket em memória.
 
 Ao adicionar global novo, registre entrada em
-[docs/STATELESS_AUDIT.md](docs/STATELESS_AUDIT.md) §2 — se não couber em
+[docs/reference/STATELESS_AUDIT.md](docs/reference/STATELESS_AUDIT.md) §2 — se não couber em
 (a) ou (b), **não** adicione. Gate empírico:
 `backend/tests/integration/test_multi_worker_concurrency.py`.
 
@@ -506,7 +506,7 @@ migrados para DB: `categorization.json`, `family_members.json`,
 Produto: `app.mathoms.ai` · API: `api.mathoms.ai/v1/...` · Console interno:
 `ops.mathoms.ai` · Landing: `mathoms.ai`. Staging: `*.staging.mathoms.ai`.
 Dev local: `localhost:3000` (app) + `localhost:8000` (api). Detalhes:
-[docs/ARCHITECTURE.md §18](docs/ARCHITECTURE.md).
+[docs/reference/ARCHITECTURE.md §18](docs/reference/ARCHITECTURE.md).
 
 ---
 
@@ -788,7 +788,7 @@ Demais regras:
 ### Ferramentas
 
 - Proteção é do `pre-commit`, não do caminho do commit. Setup:
-  [docs/SETUP.md](docs/SETUP.md). `git commit` direto e `dev/commit.py`
+  [docs/reference/SETUP.md](docs/reference/SETUP.md). `git commit` direto e `dev/commit.py`
   passam pelos mesmos guardrails.
 - `dev/commit.py` é atalho opcional com `--dry-run` + push integrado.
   Vive em `dev/` (não em `scripts/`) para não se confundir com etapas do
@@ -856,7 +856,7 @@ Consulte antes de inferir regras de domínio ou layout:
 
 | Recurso                           | Função                                                                    |
 | --------------------------------- | ------------------------------------------------------------------------- |
-| `docs/ARCHITECTURE.md §4.1 Domain glossary` | Índice de regras de domínio (rules-as-code, ADR-143) — aponta para o módulo enforcer + ADR canônica de cada conceito |
+| `docs/reference/ARCHITECTURE.md §4.1 Domain glossary` | Índice de regras de domínio (rules-as-code, ADR-143) — aponta para o módulo enforcer + ADR canônica de cada conceito |
 | `config/pipeline.json`            | Parâmetros operacionais (inclui `report_version`, schema validation)      |
 | `config/report_layout.yaml`       | Seções e componentes do relatório (com comentários inline) — source-of-truth do codegen `dev/codegen_report_layout.py` (ADR-076) |
 | `config/schemas/*.schema.json`    | Contratos JSON por etapa                                                  |
@@ -999,8 +999,8 @@ Para outras decisões idiossincráticas, consulte [docs/DECISIONS.md](docs/DECIS
 Agente use `--help` nos scripts para descobrir flags. Comandos canônicos
 de teste estão em §Code style › Testes. Para ops avançadas (smoke test,
 seed, cutover DB, comparação disk↔DB), ver
-[docs/RUNBOOK.md](docs/RUNBOOK.md) e
-[docs/SMOKE_TEST_HUMAN.md](docs/SMOKE_TEST_HUMAN.md). CLI do pipeline
+[docs/reference/RUNBOOK.md](docs/reference/RUNBOOK.md) e
+[docs/reference/SMOKE_TEST_HUMAN.md](docs/reference/SMOKE_TEST_HUMAN.md). CLI do pipeline
 (`scripts/e0_audit.py`, `scripts/e2_extract.py`, `scripts/e_reset.py`…):
 cada script expõe `--help`.
 
@@ -1013,22 +1013,22 @@ Conteúdo que **era** duplicado neste arquivo e agora vive em sua fonte
 
 | Pergunta                                            | Onde olhar                                                                                 |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Estrutura de diretórios completa (backend/pipeline/frontend/…) | [docs/ARCHITECTURE.md §10](docs/ARCHITECTURE.md)                               |
-| Tabela completa de stages + `FULL_ORDER` + `DETERMINISTIC_ORDER` | [docs/ARCHITECTURE.md §7](docs/ARCHITECTURE.md)                              |
-| Modo incremental (ADR-080) — API, filtragem, UI     | [docs/ARCHITECTURE.md §7](docs/ARCHITECTURE.md)                                            |
-| Arquitetura alvo pós-A6 (migração infra+domínio)    | [docs/ARCHITECTURE.md §17](docs/ARCHITECTURE.md)                                           |
+| Estrutura de diretórios completa (backend/pipeline/frontend/…) | [docs/reference/ARCHITECTURE.md §10](docs/reference/ARCHITECTURE.md)                               |
+| Tabela completa de stages + `FULL_ORDER` + `DETERMINISTIC_ORDER` | [docs/reference/ARCHITECTURE.md §7](docs/reference/ARCHITECTURE.md)                              |
+| Modo incremental (ADR-080) — API, filtragem, UI     | [docs/reference/ARCHITECTURE.md §7](docs/reference/ARCHITECTURE.md)                                            |
+| Arquitetura alvo pós-A6 (migração infra+domínio)    | [docs/reference/ARCHITECTURE.md §17](docs/reference/ARCHITECTURE.md)                                           |
 | Sprint atual + lanes prontas — vault atomizado pós-F4 (ADR-182). [`docs/_MOC/_generated/SPRINT_CURRENT.md`](docs/_MOC/_generated/SPRINT_CURRENT.md) (auto, filtra `status: ready/open/in_progress`) + [`docs/_MOC/SPRINTS-active.md`](docs/_MOC/SPRINTS-active.md) (editorial). Detalhe por sprint: [`docs/sprint/<X>/_README.md`](docs/sprint/A11/_README.md). Detalhe por lane: `docs/sprint/<X>/lanes/<id>.md`. [docs/BACKLOG.md](docs/BACKLOG.md) é shim. | [docs/sprint/](docs/sprint/) |
 | Log cronológico de entregas (sessões A1–A6f por data) | [docs/CHANGELOG.md](docs/CHANGELOG.md)                                                   |
 | ADRs (001–182+) — notas atômicas em `docs/adr/NNN-slug.md` (ADR-182 · F2). Índice agrupado por categoria + status: [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) (auto-gerado por `dev/build_doc_index.py`). Gates: `dev/validate_frontmatter.py`, `dev/check_doc_filename_id.py`, `dev/check_doc_links.py`, `dev/check_adr_anchors.py`. Protocolo em §"ADRs → notas atômicas em docs/adr/" deste CLAUDE.md. [docs/DECISIONS.md](docs/DECISIONS.md) é shim com âncoras históricas | [docs/adr/](docs/adr/) |
-| Domínios e URLs públicas (ADR-108)                  | [docs/ARCHITECTURE.md §18](docs/ARCHITECTURE.md)                                           |
-| Smoke test humano (gate pré-A6c)                    | [docs/SMOKE_TEST_HUMAN.md](docs/SMOKE_TEST_HUMAN.md)                                       |
-| Artefatos de pipeline + schemas                     | [docs/PIPELINE_ARTIFACTS.md](docs/PIPELINE_ARTIFACTS.md)                                   |
-| Motor canônico P0/P1                                | [docs/CANONICAL_ENGINE_P0.md](docs/CANONICAL_ENGINE_P0.md)                                 |
-| Testes — estratégia e fixtures                      | [docs/TESTING.md](docs/TESTING.md)                                                         |
-| Tenancy (multi-workspace)                           | [docs/tenancy.md](docs/tenancy.md)                                                         |
-| DB schema de referência (auto-gerado)               | [docs/DB_SCHEMA_REFERENCE.md](docs/DB_SCHEMA_REFERENCE.md)                                 |
+| Domínios e URLs públicas (ADR-108)                  | [docs/reference/ARCHITECTURE.md §18](docs/reference/ARCHITECTURE.md)                                           |
+| Smoke test humano (gate pré-A6c)                    | [docs/reference/SMOKE_TEST_HUMAN.md](docs/reference/SMOKE_TEST_HUMAN.md)                                       |
+| Artefatos de pipeline + schemas                     | [docs/reference/PIPELINE_ARTIFACTS.md](docs/reference/PIPELINE_ARTIFACTS.md)                                   |
+| Motor canônico P0/P1                                | [docs/reference/CANONICAL_ENGINE_P0.md](docs/reference/CANONICAL_ENGINE_P0.md)                                 |
+| Testes — estratégia e fixtures                      | [docs/reference/TESTING.md](docs/reference/TESTING.md)                                                         |
+| Tenancy (multi-workspace)                           | [docs/reference/tenancy.md](docs/reference/tenancy.md)                                                         |
+| DB schema de referência (auto-gerado)               | [docs/reference/DB_SCHEMA_REFERENCE.md](docs/reference/DB_SCHEMA_REFERENCE.md)                                 |
 | Fluxo de PR (humano + agente) — branch naming, template, gates locais + CI, Dependabot, stale bot | [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) |
 | Política de disclosure de vulnerabilidades (LGPD)   | [SECURITY.md](SECURITY.md)                                                                  |
-| Plano canônico do shell Report Premium — v1 (10 fases ✅) + v2 §17 (🚧, ondas A-F paralelizadas), paridade React com EXEMPLO_DE_RELATORIO.html, único renderer pós-ADR-129 | [docs/REPORT_PREMIUM_PLAN.md](docs/REPORT_PREMIUM_PLAN.md)                      |
+| Plano canônico do shell Report Premium — v1 (10 fases ✅) + v2 §17 (🚧, ondas A-F paralelizadas), paridade React com EXEMPLO_DE_RELATORIO.html, único renderer pós-ADR-129 | [docs/plan/REPORT_PREMIUM/_README.md](docs/plan/REPORT_PREMIUM/_README.md)                      |
 | Cutover final `config/goals.json` (Sprint A10, ✅ entregue 2026-05-07) — 9 lanes em 4 ondas, 5 ADRs (ADR-177 a ADR-181), 22 chaves do legado migradas para destinos canônicos; fechou checkbox ADR-077 §"Contrato de cutover" após 7 meses | [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) |
-| Platform review canônico (Sprint A11, origem 2026-05-06) — 32 tasks em 6 ondas, 138 findings consolidados de revisão multi-agente (data-engineer + financial-planner + product-designer + sre-devops + build-vs-buy + senior-cto), 6 ADRs Proposto (ADR-170 a ADR-175), W1 ✅ entregue | [docs/PLATFORM_REVIEW_PLAN.md](docs/PLATFORM_REVIEW_PLAN.md) |
+| Platform review canônico (Sprint A11, origem 2026-05-06) — 32 tasks em 6 ondas, 138 findings consolidados de revisão multi-agente (data-engineer + financial-planner + product-designer + sre-devops + build-vs-buy + senior-cto), 6 ADRs Proposto (ADR-170 a ADR-175), W1 ✅ entregue | [docs/plan/PLATFORM_REVIEW/_README.md](docs/plan/PLATFORM_REVIEW/_README.md) |

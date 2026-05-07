@@ -29,7 +29,7 @@ escolha, suporte a CJK (zh-CN, ja, ko), pluralização (ru 4 formas),
 e como integrar com o codegen do `report_layout.yaml`.
 
 A revisão de 2026-04-26 retira `hi`/`ar`/`bn`/`id` do escopo F12
-(reentram via §11 do I18N_PLAN.md quando re-priorizados) e adiciona
+(reentram via §11 do plan/I18N/_README.md quando re-priorizados) e adiciona
 `de`/`ja`/`ko`. Sem `ar` no escopo atual, RTL deixa de ser
 pré-requisito; com `ja`/`ko` entrando, CJK expande de 1 para 3
 scripts mas as fontes seguem condicionais.
@@ -95,7 +95,7 @@ como **P0 bloqueante** — precisa fechar antes das demais lanes
 F12.2/3/4/5 começarem.
 
 Detalhamento operacional, fases (F12.1–F12.8), critérios de aceite,
-riscos e estimativas em [docs/I18N_PLAN.md](I18N_PLAN.md).
+riscos e estimativas em [docs/plan/I18N/_README.md](plan/I18N/_README.md).
 
 **Consequências:**
 
@@ -122,7 +122,7 @@ riscos e estimativas em [docs/I18N_PLAN.md](I18N_PLAN.md).
   ressincronizar `config.ts`/`fonts.ts`/`messages/`/`middleware.ts`/
   `tests/i18n/foundation.test.tsx` antes das demais lanes.
 - ❌ RTL (`ar`/`he`) sai do escopo F12 — reentra como ticket
-  dedicado quando re-priorizado (ver §11 do I18N_PLAN.md).
+  dedicado quando re-priorizado (ver §11 do plan/I18N/_README.md).
 - ❌ Indic (`hi`/`bn`) e SE-Asia (`id`) saem do escopo F12 — mesma
   via de reentrada.
 - ❌ SEO multilíngue não suportado (cookie-based). Aceito — app é

@@ -22,7 +22,7 @@ tags:
 
 - **Onda:** 5 (10d)
 - **Depende de:** W1 ✅ (parcial)
-- **Plano:** [PLAN §W5](PLATFORM_REVIEW_PLAN.md#wave-5--frontend--methodology-sprint-4-10-dias-dev)
+- **Plano:** [PLAN §W5](plan/PLATFORM_REVIEW/_README.md#wave-5--frontend--methodology-sprint-4-10-dias-dev)
 
 ## Status (legado)
 

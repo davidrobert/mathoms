@@ -1,6 +1,6 @@
 // Espelho TypeScript dos DTOs de backend/app/schemas/admin.py (ADR-116).
 // Mantenha em sincronia manual enquanto codegen OpenAPI não cobrir /admin/*.
-// Fonte de verdade: docs/api/v1/openapi.json + backend/app/schemas/admin.py.
+// Fonte de verdade: docs/reference/api/v1/openapi.json + backend/app/schemas/admin.py.
 
 export type AdminRole = "superadmin" | "ops" | string;
 

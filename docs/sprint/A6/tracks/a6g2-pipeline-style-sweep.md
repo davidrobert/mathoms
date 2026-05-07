@@ -17,7 +17,7 @@ tags:
 
 > **Lane ID:** A6g.2
 > **Branch prefix:** `agent/a6g2-pipeline-style/*`
-> **Depende de:** A6g.1 ✅ (baseline de ofensores em `docs/audits/`)
+> **Depende de:** A6g.1 ✅ (baseline de ofensores em `docs/archive/audits/`)
 > **Paralelo com:** A6g.4 frontend sweep (zero overlap — toca só `frontend/src/`)
 > **Conflita com:** commits simultâneos em `scripts/`, `pipeline/`, `tests/fixtures/`
 > **Onda:** 1
@@ -26,7 +26,7 @@ tags:
 
 > **Objetivo:** aplicar o `## Code style` do CLAUDE.md ao Python em
 > `scripts/`, `pipeline/` e `tests/fixtures/`, consumindo o baseline de
-> ofensores já catalogado em `docs/audits/code_style_audit_20260421.md`
+> ofensores já catalogado em `docs/archive/audits/code_style_audit_20260421.md`
 > (A6g.1 ✅).
 >
 > **Por que defensivo:** o pipeline tem **goldens de paridade** em E3,
@@ -253,7 +253,7 @@ pytest backend/tests -q 2>&1 | tail -5
 ```bash
 python dev/audit_code_style.py --format json --output-dir _scratch/
 grep -c '"category":' _scratch/code_style_audit_*.json
-# total inicial = 2047 (confere com docs/audits/code_style_audit_20260421.md)
+# total inicial = 2047 (confere com docs/archive/audits/code_style_audit_20260421.md)
 ```
 
 Cada commit seu deve **reduzir** o contador de P1/P2 sem aumentar
@@ -459,7 +459,7 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 ## Referências
 
-- Baseline de ofensores: `docs/audits/code_style_audit_20260421.md`
+- Baseline de ofensores: `docs/archive/audits/code_style_audit_20260421.md`
 - Regras de style: `CLAUDE.md §## Code style`
 - Modelo de prompt frontend paralelo:
   `docs/agent_prompts/track_a6g4_frontend_style_sweep.md`

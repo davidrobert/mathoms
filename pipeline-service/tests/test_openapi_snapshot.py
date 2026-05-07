@@ -1,4 +1,4 @@
-"""Snapshot — ``docs/api/v1/pipeline-service.openapi.json`` stays in sync.
+"""Snapshot — ``docs/reference/api/v1/pipeline-service.openapi.json`` stays in sync.
 
 Same contract as `backend/tests/test_openapi_snapshot.py`: changing the
 pipeline-service spec must land together with a snapshot refresh
@@ -12,7 +12,7 @@ from pathlib import Path
 
 _SERVICE_ROOT = Path(__file__).resolve().parent.parent
 _REPO_ROOT = _SERVICE_ROOT.parent
-_SNAPSHOT_PATH = _REPO_ROOT / "docs" / "api" / "v1" / "pipeline-service.openapi.json"
+_SNAPSHOT_PATH = _REPO_ROOT / "docs" / "reference" / "api" / "v1" / "pipeline-service.openapi.json"
 
 
 def test_openapi_snapshot_matches_committed_file() -> None:
@@ -34,7 +34,7 @@ def test_openapi_snapshot_matches_committed_file() -> None:
             difflib.unified_diff(
                 committed.splitlines(keepends=True),
                 current_text.splitlines(keepends=True),
-                fromfile="docs/api/v1/pipeline-service.openapi.json",
+                fromfile="docs/reference/api/v1/pipeline-service.openapi.json",
                 tofile="create_app().openapi() (current)",
                 n=3,
             )

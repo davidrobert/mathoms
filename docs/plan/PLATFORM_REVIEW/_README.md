@@ -378,7 +378,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** W1-T06 (ADR-171)
 - **owner:** sre-devops
 - **severity:** P0 · **effort:** M
-- **files_touched:** `backend/app/services/vault.py`, `backend/app/tasks/rotate_fernet_secrets.py` (NOVO), `docs/runbooks/fernet_rotation.md` (NOVO)
+- **files_touched:** `backend/app/services/vault.py`, `backend/app/tasks/rotate_fernet_secrets.py` (NOVO), `docs/reference/runbooks/fernet_rotation.md` (NOVO)
 - **acceptance_criteria:** MultiFernet aceita `MATHOMS_FERNET_KEYS=new,old`; Celery task re-encripta secrets; runbook documenta procedure passo-a-passo; staging rotation drill.
 
 ### [W3-T05] SR-009 Prompt injection defense
@@ -401,14 +401,14 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T06 (ADR-174)
 - **severity:** P0 · **effort:** M · **owner:** sre-devops
-- **files_touched:** `dev/backup_postgres.sh` (NOVO), `dev/restore_drill.sh` (NOVO), `backend/app/services/storage/r2_adapter.py` (NOVO), `docs/runbooks/disaster_recovery.md` (NOVO)
+- **files_touched:** `dev/backup_postgres.sh` (NOVO), `dev/restore_drill.sh` (NOVO), `backend/app/services/storage/r2_adapter.py` (NOVO), `docs/reference/runbooks/disaster_recovery.md` (NOVO)
 - **acceptance_criteria:** cron daily pg_dump → gpg encrypt → R2 (eu-central); 5 query-canário em restore drill; RPO=24h documentado; staging drill executado e registrado em RUNBOOK §4.
 
 ### [W4-T02] SR-010 Coolify webhook + SHA-pinned + dev.9
 
 - **deps:** W2-T03
 - **severity:** P0 · **effort:** M · **owner:** sre-devops
-- **files_touched:** `.github/workflows/deploy.yml` (NOVO build-and-push GHCR), `docker-compose.prod.yml` (referenciar SHA tags), `docs/runbooks/coolify_deploy.md` (NOVO)
+- **files_touched:** `.github/workflows/deploy.yml` (NOVO build-and-push GHCR), `docker-compose.prod.yml` (referenciar SHA tags), `docs/reference/runbooks/coolify_deploy.md` (NOVO)
 - **acceptance_criteria:** GHCR push tag `sha-<commit>`; Coolify webhook em main após CI verde; smoke remoto pós-deploy com curl /health; rollback automático se falha.
 
 ### [W4-T03] SR-011 + BB-015 Sentry SaaS EU + frontend hookup
@@ -429,7 +429,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W4-T03
 - **severity:** P1 · **effort:** M · **owner:** sre-devops
-- **files_touched:** Instatus signup + status.mathoms.ai DNS, `docs/runbooks/alerts/<N>.md` (NOVO), UptimeRobot setup
+- **files_touched:** Instatus signup + status.mathoms.ai DNS, `docs/reference/runbooks/alerts/<N>.md` (NOVO), UptimeRobot setup
 - **acceptance_criteria:** UptimeRobot 5min /health; Instatus free com 3 services (api, app, ops); Sentry alertas wired com burn rate rules; drill incidente executado e registrado.
 
 ---
@@ -622,7 +622,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 +   em `tests/test_e{3,4,5}_golden_execution.py`. Goldens de paridade
 +   legado↔novo (Caminho A vs Caminho B) foram descontinuados em A6c.3
 +   quando Caminho A foi removido. Para regression de output exato,
-+   ver `docs/PLATFORM_REVIEW_PLAN.md` §W6-T01 (re-construir baselines snapshot).
++   ver `docs/plan/PLATFORM_REVIEW/_README.md` §W6-T01 (re-construir baselines snapshot).
 ```
 
 ### Patch 2 — Adicionar §"ADR Proposto antes de PR P0/P1" (W1-T06)
@@ -637,7 +637,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 + implementação referencia ADR explicitamente e flippa para `Decidido (Sprint XX.Y)`
 + no merge. Custo: ~30min/feature. Ganho: rastreabilidade arquitetural,
 + menos dead code shipping (lição aprendida 2026-05 — ver
-+ `docs/PLATFORM_REVIEW_PLAN.md` §Trade-off 5).
++ `docs/plan/PLATFORM_REVIEW/_README.md` §Trade-off 5).
 ```
 
 ### Patch 3 — Adicionar §Hotspots: limite agente humano 5 worktrees (W6-T04)

@@ -26,7 +26,7 @@ follow-ups incrementais · **F9.3 ✅ (2026-05-05)** — migration validada e te
 
 > **Nota (2026-05-05):** F9.3 fechada — `q5r6s7t8u9v0` sincronizado com `STAGE_RENAME_MAP`
 > (add E1.6/remove E6/E6-final); pre-check aborta em stage desconhecido; 5 testes em
-> `backend/tests/test_stage_rename_migration.py`; runbook em `docs/runbooks/f9_3_alembic_upgrade.md`.
+> `backend/tests/test_stage_rename_migration.py`; runbook em `docs/reference/runbooks/f9_3_alembic_upgrade.md`.
 
 **Contexto:** Os identificadores legados (`"E0-audit"`, `"E1.5c"`, `"E2-faturas"`,
 `"E5"`, `"E7-apply"`…) são posicionais e opacos sem contexto. Aparecem em
@@ -39,7 +39,7 @@ exige coordenação entre código, DB, dev-ops e docs.
 
 1. **9.0** ✅ (2026-04-24) — Auditoria: `dev/audit_stage_references.py`
    (ferramenta reutilizável) + resumo durável em
-   [`docs/audits/f9_audit_20260424.md`](audits/f9_audit_20260424.md);
+   [`docs/archive/audits/f9_audit_20260424.md`](audits/f9_audit_20260424.md);
    3468 ocorrências mapeadas em 6 categorias, zero blockers. Testes
    `test_covers_all_legacy_names` + `test_is_bijective` em
    `tests/unit/pipeline/test_stage_spec.py` garantem `STAGE_RENAME_MAP`

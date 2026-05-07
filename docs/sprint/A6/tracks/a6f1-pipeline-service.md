@@ -176,8 +176,8 @@ Feature flag `MATHOMS_PIPELINE_SERVICE_URL` (env var, não config):
 
 - `docker-compose.pipeline-service.yml` adiciona serviço `pipeline-service` na rede do `smoke.yml`.
 - `make smoke-up` passa a subir pipeline-service também; `GET /health` do backend reporta `pipeline_service_url` + `pipeline_service_reachable`.
-- OpenAPI de pipeline-service gerado: `make update-openapi-snapshot` inclui `docs/api/v1/pipeline-service.openapi.json` (novo).
-- `docs/ARCHITECTURE.md §17` (arquitetura alvo pós-A6): adicionar diagrama com pipeline-service HTTP boundary.
+- OpenAPI de pipeline-service gerado: `make update-openapi-snapshot` inclui `docs/reference/api/v1/pipeline-service.openapi.json` (novo).
+- `docs/reference/ARCHITECTURE.md §17` (arquitetura alvo pós-A6): adicionar diagrama com pipeline-service HTTP boundary.
 - `docs/DECISIONS.md`: ADR-112 (novo) formaliza contrato HTTP + protocolo WS de eventos.
 
 **Gate:**
@@ -222,7 +222,7 @@ git checkout -b agent/a6f1-pipeline-service/$(date +%Y%m%d-%H%M)
 ```bash
 pytest tests -q 2>&1 | tail -3
 pytest backend/tests -q 2>&1 | tail -3
-make update-openapi-snapshot && git diff --stat docs/api/
+make update-openapi-snapshot && git diff --stat docs/reference/api/
 # anotar baseline; qualquer falha nova pós-refactor = rollback
 ```
 
@@ -235,7 +235,7 @@ pre-commit run --all-files
 pytest pipeline-service/tests -q
 pytest backend/tests -q                 # com e sem MATHOMS_PIPELINE_SERVICE_URL setada
 pytest tests -q                         # pipeline package intacto
-make update-openapi-snapshot && git diff docs/api/
+make update-openapi-snapshot && git diff docs/reference/api/
 
 # Drift check antes de push
 git fetch origin

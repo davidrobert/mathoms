@@ -83,7 +83,7 @@ tags:
 
 **Dependências e notas:**
 - **7F.A1 exige artefatos E1.5/E5** — só funciona para usuários com pipeline rodado ao menos 1x; UI mostra estado vazio "sem dados de análise" para contas novas.
-- **Health score é heurística, não verdade absoluta** — documentar limitações em [docs/CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) ou ADR da 7F.A2; qualquer mudança de fórmula exige bump de versão + recomputação de histórico.
+- **Health score é heurística, não verdade absoluta** — documentar limitações em [docs/reference/CANONICAL_ENGINE_P0.md](CANONICAL_ENGINE_P0.md) ou ADR da 7F.A2; qualquer mudança de fórmula exige bump de versão + recomputação de histórico.
 - **Comparação com peers** (fase 2 mencionada no Fluxo 6) exige base anonimizada — **fora do MVP**, entra depois de termos volume (>100 usuários com E5 rodado).
 - **Quando F7F-Remote subir:** rotas `/admin/analyst/*` migram para `/api/internal/analyst/*` com OAuth staff (7F.2) e RBAC granular (7F.3) — superfície e UX ficam idênticas, só a auth muda.
 
@@ -99,7 +99,7 @@ tags:
 | 7F.2  | **Auth interna MVP:** credencial separada do JWT cliente (ex.: allowlist email + senha/secret rotativo, ou OAuth Google Workspace restrito a domínio da empresa); sessão não reutiliza cookie do app | P0 | 8h | ☐ |
 | 7F.3  | **RBAC interno** (`internal_ops`, `internal_support`, …) + dependency FastAPI + testes 403 entre papéis | P1 | 6h | ☐ |
 | 7F.4  | **Prefixo `/api/internal/`** (ou equivalente) protegido por env + testes; nenhuma rota interna em build do cliente sem flag explícita | P0 | 4h | ☐ |
-| 7F.5  | **Documentação:** ao concluir **7C.7** (`docs/RUNBOOK.md`), incluir secção console interno — quem acessa, rotação de credenciais, revogação de acesso staff | P1 | 1h | ☐ |
+| 7F.5  | **Documentação:** ao concluir **7C.7** (`docs/reference/RUNBOOK.md`), incluir secção console interno — quem acessa, rotação de credenciais, revogação de acesso staff | P1 | 1h | ☐ |
 | 7F.6  | **CS:** busca por email / `user_id` → workspaces, roles, convites (somente metadados); toda consulta auditada | P2 | 8h | ☐ |
 | 7F.7  | **CS:** endpoint + UI para **support bundle** JSON (diagnóstico redigido, sem valores/PII por padrão) | P2 | 6h | ☐ |
 | 7F.8  | **Financeiro (pós-billing):** links read-only Stripe + export CSV contábil — depende de billing real (F10 / roadmap) | P2 | TBD | ☐ |

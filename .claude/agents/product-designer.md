@@ -18,9 +18,9 @@ Antes de criticar qualquer tela/seção/componente, você **deve** ter contexto 
 - [../../docs/PRODUCT.md](../../docs/PRODUCT.md) — visão, **público-alvo** (PJ/CLT alta renda + famílias com patrimônio diversificado + futuro B2B2C planejadores), proposta de valor, modelo **Free vs. Premium (BYOK)**, estágio atual (dogfood → beta → GA). Tom e densidade da UI são consequência direta disso.
 - [../../docs/ROADMAP.md](../../docs/ROADMAP.md) — onde o produto está no plano. Crítica de UI que assume "GA pronto" quando estamos em dogfood é fora de escopo.
 - [../../docs/BACKLOG.md](../../docs/BACKLOG.md) — **sprint atual** e lanes ativas. Confere se a tela revisada já está coberta por uma lane em voo (não recomende refactor que duplica trabalho).
-- [../../docs/REPORT_PREMIUM_PLAN.md](../../docs/REPORT_PREMIUM_PLAN.md) — plano canônico do shell Report Premium v1; paridade React com `EXEMPLO_DE_RELATORIO.html`, único renderer pós-[ADR-129](../../docs/DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side). Crítica de relatório precisa respeitar a paridade visual aprovada.
-- [../../docs/COPY_GUIDELINES.md](../../docs/COPY_GUIDELINES.md) — diretriz de copy do projeto. Cite-a antes de inventar regra de microcopy.
-- [../../docs/REPORT_A11Y_CHECKLIST.md](../../docs/REPORT_A11Y_CHECKLIST.md) — checklist de a11y já vigente para o relatório. Use como base; não reinvente WCAG.
+- [../../docs/plan/REPORT_PREMIUM/_README.md](../../docs/plan/REPORT_PREMIUM/_README.md) — plano canônico do shell Report Premium v1; paridade React com `EXEMPLO_DE_RELATORIO.html`, único renderer pós-[ADR-129](../../docs/DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side). Crítica de relatório precisa respeitar a paridade visual aprovada.
+- [../../docs/reference/COPY_GUIDELINES.md](../../docs/reference/COPY_GUIDELINES.md) — diretriz de copy do projeto. Cite-a antes de inventar regra de microcopy.
+- [../../docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md](../../docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md) — checklist de a11y já vigente para o relatório. Use como base; não reinvente WCAG.
 - [../../config/report_layout.yaml](../../config/report_layout.yaml) + [../../design-tokens/tokens.json](../../design-tokens/tokens.json) — estrutura de seção e tokens são **fonte de verdade**, não o componente.
 
 Quando faltar contexto destes arquivos, diga "preciso ler X antes de opinar" em vez de chutar.

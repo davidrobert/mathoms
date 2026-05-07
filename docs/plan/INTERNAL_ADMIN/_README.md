@@ -1,4 +1,23 @@
-# Mathoms AI — Console interno (operadores)
+---
+id: PLAN-internal-admin
+type: plan
+title: Console interno (operadores) — IA-0 a IA-4
+status: in_progress
+sprint_origem: F7
+sprint_atual: A11
+sprints_envolvidas: [F7, A11]
+created_at: "2026-04-22"
+last_review: "2026-05-07"
+paused_at: null
+pause_reason: null
+adrs_canonical: ["[[ADR-116]]"]
+tags:
+  - type/plan
+  - status/in-progress
+  - area/ops
+---
+
+# PLAN-INTERNAL-ADMIN — Console interno (operadores)
 
 > Interface administrativa para **quem opera o produto** (CEO, Operações, Atendimento, Financeiro, Legal/LGPD), distinta do app do cliente (`/config` do workspace).
 >

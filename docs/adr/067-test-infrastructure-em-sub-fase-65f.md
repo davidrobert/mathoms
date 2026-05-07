@@ -30,7 +30,7 @@ size_lines: 57
 8. **Long-running pipeline em E2E:** pipeline real = 5-15min; Playwright timeout = 30s → 6.5C.0 e 6.5C.3 dão timeout sem estratégia
 9. **Premium tier LLM em E2E:** chama Anthropic real (caro, key em CI)? Mocka? Decisão pendente
 10. **Synthetic PDF generator:** 6.5D.7 cita "PDFs sintéticos versionados" sem dizer **como gera**; cada banco tem layout próprio
-11. **`docs/TESTING.md` ausente:** investimento de 4 semanas sem doc de onboarding = código que ninguém mantém
+11. **`docs/reference/TESTING.md` ausente:** investimento de 4 semanas sem doc de onboarding = código que ninguém mantém
 
 Esses não são "nice-to-have" — são pré-requisitos sem os quais 6.5A-E entregam testes que **viram débito técnico em 3 meses**.
 
@@ -43,7 +43,7 @@ Esses não são "nice-to-have" — são pré-requisitos sem os quais 6.5A-E entr
 - **6.5F.A Backend test infrastructure:** DB isolation, factories backend, backend-real spec, long-running pipeline strategy
 - **6.5F.B Frontend test infrastructure:** MSW sync strategy, parallelization + workspace isolation, factories frontend
 - **6.5F.C CI/Process:** flaky policy, CI artifacts (vídeo+trace), snapshot review process, premium LLM E2E decision
-- **6.5F.D Documentação + tooling:** synthetic PDF generator (11 bancos), `docs/TESTING.md`, pre-commit hooks
+- **6.5F.D Documentação + tooling:** synthetic PDF generator (11 bancos), `docs/reference/TESTING.md`, pre-commit hooks
 
 **Critérios de aceite adicionais em F6.5:**
 - DB isolation green, factories adotadas em 100% novos tests

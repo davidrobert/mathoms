@@ -39,7 +39,7 @@ incremental), rollback do bridge removido exige revert.
 - Seed de dados (2 workspaces, 2 users) + fixtures comitadas em
   `tests/fixtures/smoke_inbox/` (extratos, faturas, IRPFs, ambíguos,
   duplicatas, PDF com senha, life plan)
-- `docs/SMOKE_TEST_HUMAN.md` exaustivo (setup + matriz features + cenários
+- `docs/reference/SMOKE_TEST_HUMAN.md` exaustivo (setup + matriz features + cenários
   parametrizados + template bug report + troubleshooting)
 - Observabilidade mínima (health check, admin console, logs agregados,
   indicador visual "Artifact store: DB/Disk")

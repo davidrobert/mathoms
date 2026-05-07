@@ -35,7 +35,7 @@ async def get_if_goal(
 - Aceitar `workspace_id` como query param ou body. Use sempre path param
   para manter a URL como fonte única de identificação do tenant.
 - Confiar que a FK do model "é suficiente" — sempre filtre explicitamente
-  por `workspace_id` no service layer (ver `docs/tenancy.md`).
+  por `workspace_id` no service layer (ver `docs/reference/tenancy.md`).
 """
 
 from __future__ import annotations

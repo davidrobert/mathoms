@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-5 planos detectados em [`docs/plan/`](../../plan/).
+6 planos detectados em [`docs/plan/`](../../plan/).
 
 _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/`._
 
@@ -17,6 +17,13 @@ _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/
 - Sprints envolvidas: A8, A11
 - Lanes: _(aguardando F4)_
 - ADRs canônicas: —
+
+### PLAN-internal-admin — Console interno (operadores) — IA-0 a IA-4
+
+- Status: `in_progress` · Sprint atual: A11
+- Sprints envolvidas: F7, A11
+- Lanes: _(aguardando F4)_
+- ADRs canônicas: [[ADR-116]]
 
 ### PLAN-platform-review — Platform Review Plan — 2026-05-06
 

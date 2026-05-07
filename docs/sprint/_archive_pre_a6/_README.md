@@ -25,7 +25,7 @@ Bloco zero da reordenação CTO (ver discussão em conselho 2026-04-15): toda a 
 - **6.5F.3** [`docker-compose.test.yml`](../docker-compose.test.yml) (PG 5433 + Redis 6380, isolados do dev) + scripts `test_backend_up.sh`/`test_backend_down.sh` + `.env.test` gitignored
 - **6.5F.7** Frontend factories type-safe em [`frontend/tests/factories/`](../frontend/tests/factories/) (12 builders alinhados com `lib/api.ts`)
 - **6.5F.12** Gerador determinístico de PDFs sintéticos para 14 códigos (`BankCode`) em [`tests/fixtures/pdf_generator.py`](../tests/fixtures/pdf_generator.py) (reportlab; CPF placeholder LGPD-safe)
-- **6.5F.13** Esqueleto de [`docs/TESTING.md`](TESTING.md) com TL;DR, comandos, FAQ
+- **6.5F.13** Esqueleto de [`docs/reference/TESTING.md`](TESTING.md) com TL;DR, comandos, FAQ
 - Smoke test [`frontend/tests/bootstrap.test.tsx`](../frontend/tests/bootstrap.test.tsx) cobrindo Vitest + jsdom + jest-dom + MSW + factories: **7/7 passando em 941ms**
 
 **Bugs pré-existentes detectados durante validação** (entrarão em 6.5E.8 anti-regression bank):
@@ -45,7 +45,7 @@ Segundo bloco da reordenação CTO: blindar a fronteira DB → pipeline contra a
   - [`backend/alembic.ini`](../backend/alembic.ini): URL agora usa `%(here)s/../mathoms.db` (absoluto)
   - [`backend/alembic/env.py`](../backend/alembic/env.py): guard que rejeita SQLite com path relativo (com bypass `MATHOMS_ALEMBIC_ALLOW_RELATIVE_SQLITE=1` para tests)
   - [`backend/app/core/config.py`](../backend/app/core/config.py): `DATABASE_URL` default agora absoluto via `_PROJECT_ROOT`
-  - [`docs/SETUP.md`](SETUP.md): seção "Migrations (Alembic)" documentando políticas
+  - [`docs/reference/SETUP.md`](SETUP.md): seção "Migrations (Alembic)" documentando políticas
 - **6.5E.1 + 6.5E.5** [`backend/tests/test_serializers_round_trip.py`](../backend/tests/test_serializers_round_trip.py) — **15 testes** cobrindo:
   - `serialize_family_members` round-trip + 4 cenários anti-regressão BUG-015 (com/sem surname, com/sem members, round-trip por disco)
   - `serialize_categorization` (expense/income separation)
@@ -240,7 +240,7 @@ Sétimo bloco da reordenação CTO. E2E coverage via Playwright + Smoke checklis
 - **6.5C.8** [`error-auth.spec.ts`](../frontend/tests/e2e/error-auth.spec.ts) — 5 tests @critical (sem token → /login, token inválido → clearToken, 404, /login sempre acessível)
 - **6.5C.9** [`notifications.spec.ts`](../frontend/tests/e2e/notifications.spec.ts) — 2 tests (bell opens sheet)
 
-**Smoke Checklist** ([`docs/SMOKE_TEST.md`](SMOKE_TEST.md)): 13 seções, 70+ checks manuais. Inclui:
+**Smoke Checklist** ([`docs/reference/SMOKE_TEST.md`](SMOKE_TEST.md)): 13 seções, 70+ checks manuais. Inclui:
 - Seção 8 (Multi-tenant) e 12 (LGPD pré-beta) com gates de rollback
 - Checks dedicados às regressões: **BUG-015** (cover com surname), **BUG-007** (skip_llm tier), **ADR-068** (fases narrativas, zero códigos E* na UI)
 
@@ -265,7 +265,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 - **6.5E.7** [`backend/tests/test_materialize_concurrency.py`](../backend/tests/test_materialize_concurrency.py) — **3 tests** (2 workspaces paralelos / idempotency mesmo ws / 10 workspaces simultâneos com `ThreadPoolExecutor`). SQLite file-based + `check_same_thread=False` para thread-safety.
 - **6.5F.5** [ADR-069 MSW sync](DECISIONS.md#adr-069--msw-sync-strategy-manual--lint-ci-não-codegen) + [`frontend/scripts/msw-lint.mjs`](../frontend/scripts/msw-lint.mjs) — AST regex sobre `http.<method>("/api/...")` em handlers.ts vs `openapi.json` do backend; `--spec`, `--allow-extra`, filtro de WS endpoints.
 - **6.5F.6** [ADR-071 Workspace isolation](DECISIONS.md#adr-071--playwright-workspace-isolation-email-unique-por-worker) — email-per-worker decision ratificada; implementação já estava em Bootstrap (`userForWorker(info)` usa `parallelIndex` + `STAMP`).
-- **6.5F.8** Flaky test policy em [`docs/TESTING.md#flaky-test-policy--f65f8`](TESTING.md#flaky-test-policy--f65f8) — `retries: 2` CI / 0 local (já em `playwright.config.ts`), quarentena via `test.skip(true, "flaky: TODO BUG-XXX")`, plano de report semanal.
+- **6.5F.8** Flaky test policy em [`docs/reference/TESTING.md#flaky-test-policy--f65f8`](TESTING.md#flaky-test-policy--f65f8) — `retries: 2` CI / 0 local (já em `playwright.config.ts`), quarentena via `test.skip(true, "flaky: TODO BUG-XXX")`, plano de report semanal.
 - **6.5F.9** CI reporter expandido em [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
   - `actions/upload-artifact@v4` para playwright-report (30d), backend-coverage (14d), frontend-vitest-results (14d)
   - `actions/github-script@v7` posta comment em PRs com link para o artifact
@@ -332,10 +332,10 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | 6.5C.7  | E2E Fluxo 6 — Dark mode persistência                                | P0   | 2h   | ✅ Bloco 5 (1 test @critical) |
 | 6.5C.8  | E2E Fluxo 7 — Error handling e auth redirect                        | P0   | 2h   | ✅ Bloco 5 (5 tests @critical: sem token, invalid token, 404, /login) |
 | 6.5C.9  | E2E Fluxo 8 — Notifications (bell + Sheet + mark read)              | P1   | 2h   | ✅ Bloco 5 (2 tests) |
-| 6.5C.10 | Smoke test checklist (`docs/SMOKE_TEST.md`, 30+ checks) — incluir seção LGPD pré-beta: nenhum dado real em fixtures, audit do localStorage pós-logout | P0 | 3h | ✅ Bloco 5 ([`docs/SMOKE_TEST.md`](SMOKE_TEST.md): 13 seções, 70+ checks, LGPD + anti-regressions) |
+| 6.5C.10 | Smoke test checklist (`docs/reference/SMOKE_TEST.md`, 30+ checks) — incluir seção LGPD pré-beta: nenhum dado real em fixtures, audit do localStorage pós-logout | P0 | 3h | ✅ Bloco 5 ([`docs/reference/SMOKE_TEST.md`](SMOKE_TEST.md): 13 seções, 70+ checks, LGPD + anti-regressions) |
 | 6.5C.11 | CI integration (GH Actions com PostgreSQL + Redis services)         | P0   | 3h   | ✅ Bloco 5 ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml): 7 jobs; E2E com PG+Redis services e Playwright cross-browser condicional) |
 
-**Checkpoint:** ~25-30 E2E tests green cobrindo Golden Path + 8 fluxos críticos. `docs/SMOKE_TEST.md` criado. **Golden Path (6.5C.0) é o gate sagrado:** se ele falha, deploy não sai — independente do resto.
+**Checkpoint:** ~25-30 E2E tests green cobrindo Golden Path + 8 fluxos críticos. `docs/reference/SMOKE_TEST.md` criado. **Golden Path (6.5C.0) é o gate sagrado:** se ele falha, deploy não sai — independente do resto.
 
 ## 6.5D — Hardening Fintech (semana 2-3, 3-4 dias)
 
@@ -405,7 +405,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 
 | #       | Tarefa                                                                                                                                                            | Prio | Est. | Status |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 6.5F.8  | **Flaky test policy**: Playwright `retries: 2` em CI/0 em local; quarentena via `test.skip(true, "flaky: TODO BUG-XXX")`; CI gera report de testes flaky semanal  | P0 | 2h | ✅ Bloco 6 (seção em [`docs/TESTING.md`](TESTING.md#flaky-test-policy--f65f8) — `retries: 2` já configurado em `playwright.config.ts`; pattern de quarentena documentado) |
+| 6.5F.8  | **Flaky test policy**: Playwright `retries: 2` em CI/0 em local; quarentena via `test.skip(true, "flaky: TODO BUG-XXX")`; CI gera report de testes flaky semanal  | P0 | 2h | ✅ Bloco 6 (seção em [`docs/reference/TESTING.md`](TESTING.md#flaky-test-policy--f65f8) — `retries: 2` já configurado em `playwright.config.ts`; pattern de quarentena documentado) |
 | 6.5F.9  | **CI test reporter + artifacts**: HTML report, vídeo + trace on failure, JUnit XML, retention 30 dias, link automático em PR comment via GH Actions               | P0 | 3h | ✅ Bloco 6 ([`ci.yml`](../.github/workflows/ci.yml) com `actions/upload-artifact@v4` retention=30d + `actions/github-script@v7` posting comentário automático em PR com link; tabela de artifacts em [`TESTING.md`](TESTING.md#como-debugar-falha-em-ci)) |
 | 6.5F.10 | **Snapshot review process**: seção em `TESTING.md` "Visual regression updates"; PR template com checkbox "snapshots intencionais? screenshot do diff?"; CODEOWNERS para `tests/__snapshots__/` | P1 | 2h | ✅ Bloco 6 ([`.github/CODEOWNERS`](../.github/CODEOWNERS) com `/frontend/tests/e2e/__snapshots__/` + seção em [`TESTING.md`](TESTING.md#como-atualizar-snapshot-visual-regression--f65f10)) |
 | 6.5F.11 | **Premium tier LLM E2E decisão**: ADR + impl (mock LiteLLM em CI default; `--real-llm` flag para nightly opt-in com Anthropic key em secret); custo monitorado | P0 | 3h | ✅ Bloco 6 ([ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) + [`backend/tests/fixtures/llm_mock.py`](../backend/tests/fixtures/llm_mock.py) com fixtures por stage + `MATHOMS_LLM_MOCK=1` env no CI + nightly opt-in documentado em TESTING.md) |
@@ -415,7 +415,7 @@ Oitavo e **último bloco da F6.5**: ADRs de infraestrutura de teste + scripts de
 | #       | Tarefa                                                                                                                                                                                          | Prio | Est. | Status |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
 | 6.5F.12 | **Synthetic PDF generator** em `tests/fixtures/pdf_generator.py` (`reportlab` ou `weasyprint`): 1 template por banco (14 códigos em `BankCode`), gera fatura + extrato; CI regenera fixtures determinísticas; substitui qualquer PDF real em `tests/` | P0 | 6h | ✅ Bootstrap (gerador implementado; regenerador determinístico em sub-task posterior) |
-| 6.5F.13 | **`docs/TESTING.md` contributor guide**: como rodar (backend + frontend), como adicionar test (factory pattern, fixture pattern), como debugar falha CI (artifacts, vídeo, trace), como atualizar snapshot, FAQ, tabela de comandos | P0 | 4h | 🚧 Esqueleto (preenchido ao longo de F6.5) |
+| 6.5F.13 | **`docs/reference/TESTING.md` contributor guide**: como rodar (backend + frontend), como adicionar test (factory pattern, fixture pattern), como debugar falha CI (artifacts, vídeo, trace), como atualizar snapshot, FAQ, tabela de comandos | P0 | 4h | 🚧 Esqueleto (preenchido ao longo de F6.5) |
 | 6.5F.14 | **Pre-commit hooks** (`pre-commit` + `husky`): lint + format obrigatórios; opcional: rodar unit tests rápidos (<5s); opt-out via `--no-verify` documentado mas desencorajado | P1 | 2h | ✅ Entregue em commit `a7a055d` (`.pre-commit-config.yaml` + `dev/check_forbidden_paths.py` + `dev/validate_commit_msg.py` — paths proibidos, prefixos, trailing whitespace, merge conflict, private key detection) |
 
 **Checkpoint:** DB isolation green • factories adotadas em 100% novos tests • backend-real CI roda em <3min • CI artifacts com vídeo+trace acessíveis em PR • `TESTING.md` cobre 100% dos cenários de novo contributor • PDFs sintéticos para 11 bancos versionados • premium LLM E2E definido (mock + nightly real) • snapshot review processado.

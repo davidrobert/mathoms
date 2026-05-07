@@ -1,6 +1,6 @@
 """Multi-worker concurrency integration test — A6f.6 (ADR-111).
 
-Valida empiricamente o que o `docs/STATELESS_AUDIT.md` afirma no papel:
+Valida empiricamente o que o `docs/reference/STATELESS_AUDIT.md` afirma no papel:
 a stack backend sobrevive a N uvicorn workers + M Celery workers
 compartilhando o mesmo Redis + Postgres, sem nenhuma refatoração adicional.
 
@@ -14,8 +14,8 @@ valida JWT contra `SECRET_KEY` de módulo, e faz pub/sub via Redis.
 
 A garantia de isolamento real entre processos é propriedade do framework
 (FastAPI + Celery) — não algo que a camada da aplicação possa quebrar
-se seguir as regras R19 (ver `docs/STATELESS_AUDIT.md`). Runbook para
-teste manual multi-processo em `docs/RUNBOOK.md` (cenário fail-over).
+se seguir as regras R19 (ver `docs/reference/STATELESS_AUDIT.md`). Runbook para
+teste manual multi-processo em `docs/reference/RUNBOOK.md` (cenário fail-over).
 
 Cenários cobertos
 -----------------

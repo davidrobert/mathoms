@@ -58,7 +58,7 @@
 ## Coordenação multi-agente A11
 
 - Branches usam prefix `agent/platform-review-w<N>-t<NN>/<timestamp>` (ex.: `agent/platform-review-w2-t01/20260510-0930`).
-- **Hotspot principal:** [docs/PLATFORM_REVIEW_PLAN.md](../../PLATFORM_REVIEW_PLAN.md) — atualizar frontmatter `ready_tasks` quando wave fecha + status na tabela de cada wave + adicionar checkbox ✅ na seção da wave.
+- **Hotspot principal:** [docs/plan/PLATFORM_REVIEW/_README.md](../../plan/PLATFORM_REVIEW/_README.md) — atualizar frontmatter `ready_tasks` quando wave fecha + status na tabela de cada wave + adicionar checkbox ✅ na seção da wave.
 - **Hotspots secundários:** este BACKLOG (linha de status na tabela A11), `docs/CHANGELOG.md` (entry por PR mergeado referenciando W<N>-T<NN>).
 - **CTO supervision** segue padrão A7/A10 (4 gates). Wave boundary review obrigatório antes de destravar wave seguinte.
-- **Re-sync periódico em sessão >1h:** `git fetch origin && git log --oneline HEAD..origin/main` a cada ~30min. Se outra task A11 mergeou, releia [PLATFORM_REVIEW_PLAN.md §<wave em curso>](../../PLATFORM_REVIEW_PLAN.md).
+- **Re-sync periódico em sessão >1h:** `git fetch origin && git log --oneline HEAD..origin/main` a cada ~30min. Se outra task A11 mergeou, releia [plan/PLATFORM_REVIEW/_README.md §<wave em curso>](../../plan/PLATFORM_REVIEW/_README.md).

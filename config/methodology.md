@@ -82,7 +82,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 - **Objetivo:** Número da IF, gap, prazo em 3 cenários.
 - **Inputs:** `patrimonio-4_unified.json`, `config/goals.json`
 - **Outputs:** Bloco `independencia_financeira` no E5 JSON — Projeção 3 cenários, renda passiva 2035 por 8 fontes com disclaimer, card TRS didático.
-- **Terminologia:** Usar "Independência Financeira" (não "IF") nos títulos. Regra completa de capitalização e abreviação em [docs/COPY_GUIDELINES.md §3.1](../docs/COPY_GUIDELINES.md).
+- **Terminologia:** Usar "Independência Financeira" (não "IF") nos títulos. Regra completa de capitalização e abreviação em [docs/reference/COPY_GUIDELINES.md §3.1](../docs/reference/COPY_GUIDELINES.md).
 
 **E5.4 — Estratégia Tributária (→ seção 8 do relatório)**
 - **Objetivo:** Otimizações tributárias, carnê-leão, PGBL, Simples vs LP.

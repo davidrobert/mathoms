@@ -8,7 +8,7 @@ Convenções de código, regras de domínio e arquitetura vivem em
 
 ## Setup rápido
 
-Ver [`docs/SETUP.md`](../docs/SETUP.md) para instalação completa
+Ver [`docs/reference/SETUP.md`](../docs/reference/SETUP.md) para instalação completa
 (Python 3.13, Node 20, Postgres 16, Redis 7, pre-commit hooks).
 
 ```bash
@@ -99,10 +99,10 @@ pre-commit install --hook-type pre-push
 
 | Para...                                     | Veja                                  |
 | ------------------------------------------- | ------------------------------------- |
-| Stack, modelo de dados, stages do pipeline  | `docs/ARCHITECTURE.md`                |
+| Stack, modelo de dados, stages do pipeline  | `docs/reference/ARCHITECTURE.md`                |
 | Sprint atual e roadmap                      | `docs/BACKLOG.md`                     |
 | Decisões arquiteturais (ADRs)               | `docs/DECISIONS.md`                   |
-| Setup dev local                             | `docs/SETUP.md`                       |
-| Operações em prod (runbook)                 | `docs/RUNBOOK.md`                     |
+| Setup dev local                             | `docs/reference/SETUP.md`                       |
+| Operações em prod (runbook)                 | `docs/reference/RUNBOOK.md`                     |
 | Histórico de entregas                       | `docs/CHANGELOG.md`                   |
 | Convenções de código + domínio              | `CLAUDE.md`                           |

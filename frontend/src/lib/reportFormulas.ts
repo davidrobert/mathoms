@@ -1,6 +1,6 @@
 /**
  * F11.7a — catálogo mínimo “número ↔ regra” (texto curto; referência ao motor E5).
- * Mantido alinhado a docs/FORMULAS.md.
+ * Mantido alinhado a docs/reference/FORMULAS.md.
  */
 export interface ReportFormulaEntry {
   id: string;

@@ -13,7 +13,7 @@ aliases: ["A11", "Sprint A11"]
 
 Executar os 32 itens consolidados da revisão de plataforma 2026-05-06 — fechar P0 latentes em main (tokens fantasma, regras dormentes, PII em pipeline_artifacts), destravar produção pública (F7B/F7E security + email + backup), e quitar 3 grandes débitos arquiteturais (schemas E5 strict, MLOps universal hooks, F9 cleanup).
 
-**Plano canônico:** [docs/PLATFORM_REVIEW_PLAN.md](../../PLATFORM_REVIEW_PLAN.md) — 32 tasks em 6 ondas, 138 findings consolidados, 6 trade-offs CTO registrados, coverage matrix por stage.
+**Plano canônico:** [docs/plan/PLATFORM_REVIEW/_README.md](../../plan/PLATFORM_REVIEW/_README.md) — 32 tasks em 6 ondas, 138 findings consolidados, 6 trade-offs CTO registrados, coverage matrix por stage.
 
 **ADRs propostos pela revisão:** ADR-170 (refresh tokens) · ADR-171 (Fernet rotation MultiFernet) · ADR-172 (stuck-runs heartbeat) · ADR-173 (LLM budget hard-stop + LLMCallLog) · ADR-174 (off-site backup R2) · ADR-175 (prompt injection defense) — todos `Proposto` ([entregue em W1-T06](https://github.com/davidrobert/mathoms/pull/92)).
 
@@ -23,7 +23,7 @@ Executar os 32 itens consolidados da revisão de plataforma 2026-05-06 — fecha
 
 ## Por que esta sprint existe
 
-A revisão multi-agente 2026-05-06 ([PR #92](https://github.com/davidrobert/mathoms/pull/92)) levantou 138 findings que são complementares à Sprint A10 (`goals.json` cutover) — A10 fecha 1 frente específica, A11 ataca o resto da plataforma (security pré-prod, observabilidade, schema hardening, frontend a11y, metodologia financeira). Sem entrada índice no BACKLOG, agente futuro descobriria o trabalho só por arqueologia em `docs/PLATFORM_REVIEW_PLAN.md`.
+A revisão multi-agente 2026-05-06 ([PR #92](https://github.com/davidrobert/mathoms/pull/92)) levantou 138 findings que são complementares à Sprint A10 (`goals.json` cutover) — A10 fecha 1 frente específica, A11 ataca o resto da plataforma (security pré-prod, observabilidade, schema hardening, frontend a11y, metodologia financeira). Sem entrada índice no BACKLOG, agente futuro descobriria o trabalho só por arqueologia em `docs/plan/PLATFORM_REVIEW/_README.md`.
 
 **ADR-077 checkbox** (rules-as-code completude) será fechado por Sprint A10, não A11. **A11 destrava após A10 fechar?** Não — sprints são paralelas, owners distintos, coordenação via hotspots compartilhados (DECISIONS.md, CHANGELOG.md, BACKLOG.md, Alembic migrations).
 
@@ -45,7 +45,7 @@ Mapa de dependências em [waves.md](waves.md) — 6 waves: W1 Hot patches (✅) 
 # 2. Coverage gaps documentados foram revisados (E0/E1.5c/E7-crossval/E7-apply)
 #    OU explicitamente adiados para Sprint A12+ via ADR
 # 3. Plano arquivado:
-git mv docs/PLATFORM_REVIEW_PLAN.md docs/archive/PLATFORM_REVIEW_PLAN-YYYY-MM-DD.md
+git mv docs/plan/PLATFORM_REVIEW/_README.md docs/archive/PLATFORM_REVIEW_PLAN-YYYY-MM-DD.md
 # 4. Esta seção marcada ✅ entregue + entrada em docs/archive/README.md
 # 5. Todas as ADRs 170-175 + ADRs novas geradas pelas waves em status `Decidido (Sprint A11.W<N>)`
 ```
@@ -53,6 +53,6 @@ git mv docs/PLATFORM_REVIEW_PLAN.md docs/archive/PLATFORM_REVIEW_PLAN-YYYY-MM-DD
 ## Coordenação multi-agente A11
 
 - **Pickup checks idênticos** ao Sprint A6/A7/A10. Branches usam prefix `agent/platform-review-w<N>-t<NN>/<timestamp>` (ex.: `agent/platform-review-w2-t01/20260510-0930`).
-- **Hotspot principal:** [docs/PLATFORM_REVIEW_PLAN.md](../../PLATFORM_REVIEW_PLAN.md) — quando wave fecha, atualizar `frontmatter.ready_tasks` + status na tabela de cada wave + adicionar checkbox ✅ na seção da wave. Manter NEXT UP sincronizado.
+- **Hotspot principal:** [docs/plan/PLATFORM_REVIEW/_README.md](../../plan/PLATFORM_REVIEW/_README.md) — quando wave fecha, atualizar `frontmatter.ready_tasks` + status na tabela de cada wave + adicionar checkbox ✅ na seção da wave. Manter NEXT UP sincronizado.
 - **CTO supervision** segue padrão A7/A10 (4 gates). Wave boundary review obrigatório antes de destravar wave seguinte.
-- **Trade-offs registrados:** se discordar de uma decisão CTO em [§Trade-offs registrados do PLAN](../../PLATFORM_REVIEW_PLAN.md#trade-offs-registrados-decisões-cto), abrir issue antes de implementar conflitando.
+- **Trade-offs registrados:** se discordar de uma decisão CTO em [§Trade-offs registrados do PLAN](../../plan/PLATFORM_REVIEW/_README.md#trade-offs-registrados-decisões-cto), abrir issue antes de implementar conflitando.

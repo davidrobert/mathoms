@@ -154,7 +154,7 @@ git checkout -b agent/f9-stage-rename/6-cleanup/$(date +%Y%m%d-%H%M)
 # 0. Audit consumidores
 grep -rn "resolve_stage_name\|STAGE_RENAME_MAP\|from scripts.e[0-9]\|--from E[0-9]" \
   --include="*.py" --include="*.md" --include="*.yaml" --include="*.json" \
-  | grep -v "_archive/\|docs/audits/\|backend/alembic/" | tee _scratch/f9_6_audit.txt
+  | grep -v "_archive/\|docs/archive/audits/\|backend/alembic/" | tee _scratch/f9_6_audit.txt
 
 # Inspecionar — qualquer match em runtime fora das ilhas previstas é blocker
 
@@ -226,8 +226,8 @@ git push origin HEAD:main
    `analyze_finances`…). Nomes legados (`E3`, `E5`…) só sobrevivem em ADRs
    históricas e na migration `q5r6s7t8u9v0`. `STAGE_RENAME_MAP` é apenas
    referência."
-5. **`docs/ARCHITECTURE.md` §7 e §10** — checar e atualizar se ainda menciona compat.
-6. **`docs/RUNBOOK.md`** — comandos com nomes descritivos.
+5. **`docs/reference/ARCHITECTURE.md` §7 e §10** — checar e atualizar se ainda menciona compat.
+6. **`docs/reference/RUNBOOK.md`** — comandos com nomes descritivos.
 7. **`docs/agent_prompts/README.md`** — opcional: marcar lane F9 como concluída.
 8. Commit docs final: `docs(f9): Fase 9 fechada — ADR-093 implementada`.
 

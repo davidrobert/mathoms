@@ -69,7 +69,7 @@ size_lines: 159
 
 **Contexto:** [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1) estabeleceu o `pipeline-service/` como FastAPI standalone com contrato HTTP versionado, justamente para que uma reescrita Go fosse possível sem retrabalho de fronteira. [ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) entregou `.golangci.yml`, CI workflow e skeleton `services/`. Falta a decisão estratégica: **se** e **como** disparar o port, e em que ordem.
 
-A2 (entregue em [docs/PERFORMANCE_BASELINE.md](PERFORMANCE_BASELINE.md), 2026-04-27) e A1 (entregue em [docs/GO_PORT_DEPS.md](GO_PORT_DEPS.md), 2026-04-27) deram a base empírica:
+A2 (entregue em [docs/reference/PERFORMANCE_BASELINE.md](PERFORMANCE_BASELINE.md), 2026-04-27) e A1 (entregue em [docs/reference/GO_PORT_DEPS.md](GO_PORT_DEPS.md), 2026-04-27) deram a base empírica:
 
 1. **Shell HTTP é pequeno** — 532 LOC Python em 14 arquivos; importa **5 símbolos** de `pipeline.*` (`WorkspaceContext`, `_run_stage`, `LLM_STAGES`, `StageResult`, `STAGE_REGISTRY`) e 1 import opcional de `backend.*` (`setup_logging` com fallback).
 2. **Domínio é grande** — 17.823 LOC em `pipeline/`, dos quais ~13.077 LOC em 61 arquivos de `pipeline/domain/services/`. Goldens de paridade BRL `0.01` ([ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy)) cobrem a regressão de cálculo monetário, mas exigiriam port 1-a-1 numa rewrite completa.
@@ -99,7 +99,7 @@ Hoje, nenhum dos quatro está ativo.
 
 1. **Caminho 1 é o default proposto** quando algum dos 4 gatilhos disparar. Razões:
    - Entrega 90% do ganho operacional (image size, cold start, deploy estático) com 5% do custo do Caminho 3.
-   - Mantém domínio Python intacto — goldens, ADR-090/097/090 e regras de domínio em [docs/ARCHITECTURE.md §4.1 Domain glossary](ARCHITECTURE.md) continuam autoridade única.
+   - Mantém domínio Python intacto — goldens, ADR-090/097/090 e regras de domínio em [docs/reference/ARCHITECTURE.md §4.1 Domain glossary](ARCHITECTURE.md) continuam autoridade única.
    - Cutover gradual já desenhado em [ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1): backend usa `PipelineServiceClient` Protocol; flip de `MATHOMS_PIPELINE_SERVICE_URL` aponta para o serviço Go sem código novo no backend.
 
 2. **Caminho 3 fica deferido** até que evidência empírica de gargalo CPU-bound nos stages exista. Sem A2.1 (smoke real medindo RSS/CPU/duração por stage), "GIL é o problema" é especulação. Se a evidência aparecer, abrir nova ADR (ADR-151+) que justifique e supersede esta.
@@ -111,7 +111,7 @@ Hoje, nenhum dos quatro está ativo.
    - **A3.cli** — adicionar entry-point CLI no orchestrator: `python -m pipeline.orchestrator run-stage <stage> --workspace <path> --run-id <id> [--config-dir <path>] [--incremental] [--incremental-doc <path>...]`. Output JSON estruturado em stdout (mesmo shape de `StageResult`), erros estruturados em stderr. Sem CLI, Caminho 1 vira hack de import dinâmico, não interface estável.
    - **A3.cli.otel** *(sub-pré-requisito hard)* — entry-point CLI lê `TRACEPARENT` do env e instancia span filho via OTel context propagation, mantendo o trace contínuo entre Go (parent) e Python (child). Sem isso, gate de paridade do §7 não cobre traces e regressão de latência em produção fica invisível.
    - **A3.cli.benchmark** *(gate empírico)* — após A3.cli + A3.cli.otel, medir cold start real do `python -m pipeline.orchestrator run-stage` num venv com deps típicas (`pipeline.*`, `pipeline.llm.*`, fallback opcional `backend.app.core.logging`). **Se cold start mediano >500ms**, Caminho 2 (worker pool warm) volta à mesa **antes** do primeiro PR Go produtivo — não depois. Boot Python real não é o `python -c` vazio (~50ms); é o re-import da árvore de domínio, que A2 não mediu (pipeline-service local importa lazy dentro de funções).
-   - **A3.codegen** — codegen Go via `oapi-codegen` consumindo [docs/api/v1/pipeline-service.openapi.json](api/v1/pipeline-service.openapi.json) para `services/pipeline-service-go/internal/contracts/`. Snapshot test garante regen limpo.
+   - **A3.codegen** — codegen Go via `oapi-codegen` consumindo [docs/reference/api/v1/pipeline-service.openapi.json](api/v1/pipeline-service.openapi.json) para `services/pipeline-service-go/internal/contracts/`. Snapshot test garante regen limpo.
 
 5. **Layout do serviço Go (quando criado):**
    ```
@@ -137,7 +137,7 @@ Hoje, nenhum dos quatro está ativo.
 7. **Cutover.** Um único toggle, sem flag de produto:
    - `MATHOMS_PIPELINE_SERVICE_URL` apontando para `pipeline-service-go` em staging primeiro, depois prod por workspace via reverse proxy ou env var por instância.
    - **Gate técnico:** 3 runs E0→E5 completos contra workspaces controlados, paridade byte-a-byte de artefatos finais, WS events e atributos de span OTel (com TRACEPARENT propagado — ver A3.cli.otel).
-   - **Gate humano** *(obrigatório, não pulável)*: 1 workspace real, smoke humano completo seguindo o protocolo de [docs/SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) (precedente: A6b.5 / [ADR-103](#adr-103--teste-manual-como-gate-antes-de-remoção-do-bridge-a6b5--a6-human)) — validação visual do relatório final em `/reports/[id]` antes de flip prod. Sem isso, divergência semântica que escapa de paridade byte-a-byte (formatação de narrativa, copy de status) chega ao cliente.
+   - **Gate humano** *(obrigatório, não pulável)*: 1 workspace real, smoke humano completo seguindo o protocolo de [docs/reference/SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) (precedente: A6b.5 / [ADR-103](#adr-103--teste-manual-como-gate-antes-de-remoção-do-bridge-a6b5--a6-human)) — validação visual do relatório final em `/reports/[id]` antes de flip prod. Sem isso, divergência semântica que escapa de paridade byte-a-byte (formatação de narrativa, copy de status) chega ao cliente.
    - Backend permanece dono do `DBArtifactStore`; serviço Go fala `DiskArtifactStore` apenas — mantém fronteira fina ([ADR-112](#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1)).
 
 8. **Coexistência.** Python `pipeline-service/` permanece como fallback durante cutover. Decommission do `pipeline-service/` Python só após **≥2 semanas calendário** em prod com Go-shell sem rollback e sem regressão de paridade documentada (artefatos final ou WS events). Decommission é slice próprio com ADR de remoção, similar a [ADR-107](#adr-107--remoção-de-materializationbridge-e-stage_runner_compat-a6c1-2) bridge removal.
@@ -167,8 +167,8 @@ Hoje, nenhum dos quatro está ativo.
 
 **Artefatos:**
 
-- [docs/GO_PORT_DEPS.md](GO_PORT_DEPS.md) — A1, inventário de dependências.
-- [docs/PERFORMANCE_BASELINE.md](PERFORMANCE_BASELINE.md) — A2, baseline empírico.
-- [docs/api/v1/pipeline-service.openapi.json](api/v1/pipeline-service.openapi.json) — contrato HTTP fonte de verdade.
+- [docs/reference/GO_PORT_DEPS.md](GO_PORT_DEPS.md) — A1, inventário de dependências.
+- [docs/reference/PERFORMANCE_BASELINE.md](PERFORMANCE_BASELINE.md) — A2, baseline empírico.
+- [docs/reference/api/v1/pipeline-service.openapi.json](api/v1/pipeline-service.openapi.json) — contrato HTTP fonte de verdade.
 - [services/](../services/) — skeleton Go ([ADR-113](#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7)).
 - [.golangci.yml](../.golangci.yml), [.github/workflows/go.yml](../.github/workflows/go.yml), [Makefile](../Makefile) `go-*` targets — infra preventiva pronta.

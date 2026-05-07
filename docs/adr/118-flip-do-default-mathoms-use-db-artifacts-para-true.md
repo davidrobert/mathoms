@@ -45,7 +45,7 @@ cutover antes de redeploy global — reverso ficou NOOP após flip).
 - ✅ Eliminado job CI duplicado (`backend-tests-db-artifacts`) — ~15min/push
   economizados.
 - ⚠️ **Rollback:** setar `MATHOMS_USE_DB_ARTIFACTS=false` + redeploy
-  (runbook `docs/runbooks/cutover.md §Rollback`). Runbook mantido como
+  (runbook `docs/reference/runbooks/cutover.md §Rollback`). Runbook mantido como
   referência histórica e procedimento de emergência.
 - ⚠️ Workspaces com `use_db_artifacts_override=TRUE` ficam com valor
   redundante mas correto — limpeza é housekeeping opcional, não obrigatório.

@@ -7,7 +7,7 @@ contact_links:
     url: https://github.com/davidrobert/mathoms/blob/main/docs/DECISIONS.md
     about: Decisões arquiteturais e rationale. Consulte antes de propor mudança não-trivial.
   - name: 🏗 Arquitetura
-    url: https://github.com/davidrobert/mathoms/blob/main/docs/ARCHITECTURE.md
+    url: https://github.com/davidrobert/mathoms/blob/main/docs/reference/ARCHITECTURE.md
     about: Stack, modelo de dados, stages do pipeline, domínios.
   - name: 🔒 Vulnerabilidade de segurança
     url: https://github.com/davidrobert/mathoms/blob/main/SECURITY.md

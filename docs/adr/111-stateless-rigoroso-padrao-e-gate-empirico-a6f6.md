@@ -27,7 +27,7 @@ aplicação *requer* que um request pertença ao mesmo worker do anterior. Um
 segundo uvicorn worker entrar em produção.
 
 A6f.6 foi planejada como refactor preventivo (mover WS para Redis pub/sub,
-migrar rate limit para DB, etc.). Durante o audit `docs/STATELESS_AUDIT.md`,
+migrar rate limit para DB, etc.). Durante o audit `docs/reference/STATELESS_AUDIT.md`,
 concluímos que **o backend já está multi-worker-safe**:
 
 - `@lru_cache`/`cached_property` em `backend/app/`: 0 ocorrências.
@@ -70,7 +70,7 @@ decisões anteriores. A contribuição de A6f.6 passa a ser:
 
 **Decisão:**
 
-1. `docs/STATELESS_AUDIT.md` é o catálogo canônico — qualquer novo
+1. `docs/reference/STATELESS_AUDIT.md` é o catálogo canônico — qualquer novo
    global de módulo entra nessa tabela com veredito (imutável,
    idempotente, ou **proibido**).
 2. `backend/tests/integration/test_multi_worker_concurrency.py` é o gate
@@ -99,7 +99,7 @@ decisões anteriores. A contribuição de A6f.6 passa a ser:
    aceito** (capability probe idempotente cross-worker) — documentado no
    audit §2.
 5. **Runbook de fail-over manual** (cenário 5 — worker A morre durante
-   request) referenciado em `docs/RUNBOOK.md`; não é parte do gate
+   request) referenciado em `docs/reference/RUNBOOK.md`; não é parte do gate
    automatizado porque depende de infra real.
 
 **Contratos a manter:**
@@ -124,7 +124,7 @@ decisões anteriores. A contribuição de A6f.6 passa a ser:
 - ✅ Regra de oro documentada para novos módulos (audit + §R19 do
   ADR-102 + regra operacional no CLAUDE.md).
 - ⚠️ Teste usa **fakeredis** + `AsyncClient` duplicado, não processos
-  reais. Runbook manual (`docs/RUNBOOK.md` — a criar) cobre fail-over.
+  reais. Runbook manual (`docs/reference/RUNBOOK.md` — a criar) cobre fail-over.
 - ⚠️ `MATHOMS_USE_DB_ARTIFACTS=False` (default **na época deste ADR**;
   flipado para `True` em
   [ADR-118](#adr-118--flip-do-default-mathoms_use_db_artifacts-para-true)
@@ -138,7 +138,7 @@ decisões anteriores. A contribuição de A6f.6 passa a ser:
 
 **Artefatos:**
 
-- [docs/STATELESS_AUDIT.md](STATELESS_AUDIT.md) — catálogo de 10 seções
+- [docs/reference/STATELESS_AUDIT.md](STATELESS_AUDIT.md) — catálogo de 10 seções
   com veredito por arquivo + gap list.
 - [backend/tests/integration/test_multi_worker_concurrency.py](../backend/tests/integration/test_multi_worker_concurrency.py) —
   5 tests, 1.05s, sem Redis/Postgres reais.

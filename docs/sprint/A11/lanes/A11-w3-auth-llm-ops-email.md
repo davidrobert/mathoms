@@ -22,7 +22,7 @@ tags:
 
 - **Onda:** 3 (12d)
 - **Depende de:** W2 ✅
-- **Plano:** [PLAN §W3](PLATFORM_REVIEW_PLAN.md#wave-3--auth--llm-ops--email-sprint-2-12-dias-dev)
+- **Plano:** [PLAN §W3](plan/PLATFORM_REVIEW/_README.md#wave-3--auth--llm-ops--email-sprint-2-12-dias-dev)
 
 ## Status (legado)
 

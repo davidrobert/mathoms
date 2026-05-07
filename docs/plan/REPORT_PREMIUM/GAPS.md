@@ -1,11 +1,11 @@
 # Report Premium — Phase 0 Gap Inventory
 
-> **Fonte:** execução da Fase 0 do [docs/REPORT_PREMIUM_PLAN.md](REPORT_PREMIUM_PLAN.md).
+> **Fonte:** execução da Fase 0 do [docs/plan/REPORT_PREMIUM/_README.md](plan/REPORT_PREMIUM/_README.md).
 > **Produzido por:** agente dedicado (Opus 4.7 1M, worktree isolado, ~1h30 de discovery).
 > **Data:** 2026-04-23.
 > **Status:** ✅ RESOLVIDO — 13 Open Questions respondidas pelo usuário em 2026-04-23;
 > decisões formalizadas em ADR-117, 121, 122, 123, ~~124~~. Fase 1 unlocked.
-> Deltas aplicados ao plano — ver [REPORT_PREMIUM_PLAN.md §Deltas](REPORT_PREMIUM_PLAN.md).
+> Deltas aplicados ao plano — ver [plan/REPORT_PREMIUM/_README.md §Deltas](plan/REPORT_PREMIUM/_README.md).
 >
 > ⚠️ **Update 2026-04-29 (Direção E · Onda 3):** Modo Tático removido
 > do relatório ([ADR-151](DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)).

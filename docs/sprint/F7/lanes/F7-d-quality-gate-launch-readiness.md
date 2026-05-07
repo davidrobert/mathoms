@@ -26,7 +26,7 @@ tags:
 | 7D.4  | CI integra frontend tests (Vitest + Playwright da F6.5) no pipeline de deploy                    | P0   | 1h   | ☐      |
 | 7D.5  | Frontend E2E com PostgreSQL prod DB (ajustar fixtures)                                           | P1   | 2h   | ☐      |
 | 7D.6  | Testes de UX de produção (rate limit toast, LGPD delete, export notification, maintenance)      | P1   | 3h   | ☐      |
-| 7D.7  | Performance baseline (`time` pipeline E2E, p50/p95 API endpoints, `docs/PERFORMANCE_BASELINE.md`)| P1   | 3h   | ☐      |
+| 7D.7  | Performance baseline (`time` pipeline E2E, p50/p95 API endpoints, `docs/reference/PERFORMANCE_BASELINE.md`)| P1   | 3h   | ☐      |
 | 7D.8  | Coverage integration (CI gate, Codecov, badge README, target ≥85% line / ≥75% branch)           | P0   | 3h   | ☐      |
 | 7D.9  | Telemetria básica (tabela `UsageMetric`, privacy-first, dashboard query simples)                 | P1   | 4h   | ☐      |
 | 7D.10 | Pre-launch checklist (smoke test prod, backup restore, rollback test, SSL Labs grade A)          | P0   | 3h   | ☐      |

@@ -364,6 +364,6 @@ A lane `report-mobile-impl` pode dar como concluída quando:
 - Decisão fonte: D3 em [agent_prompts/track_report_a11y_finalize.md](agent_prompts/track_report_a11y_finalize.md)
 - Backlog item: [batch2.13](BACKLOG.md)
 - Renderer único pós ADR-129: [DECISIONS.md ADR-129](DECISIONS.md)
-- Plano-mãe: [REPORT_PREMIUM_PLAN.md §17.10](REPORT_PREMIUM_PLAN.md)
+- Plano-mãe: [plan/REPORT_PREMIUM/_README.md §17.10](plan/REPORT_PREMIUM/_README.md)
 - Fallback Kanban v2.7 (base): `frontend/src/app/globals.css:178`
 - A11y checklist: [REPORT_A11Y_CHECKLIST.md](REPORT_A11Y_CHECKLIST.md)

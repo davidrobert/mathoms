@@ -28,7 +28,7 @@ tags:
 > **Índice de prompts:** [README.md](README.md)
 > **Fonte de verdade:**
 > - [BACKLOG.md — Report Premium UI v2 lanes](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
-> - [REPORT_PREMIUM_PLAN.md §17 — v2 roadmap](../REPORT_PREMIUM_PLAN.md)
+> - [plan/REPORT_PREMIUM/_README.md §17 — v2 roadmap](../plan/REPORT_PREMIUM/_README.md)
 > - [DECISIONS.md ADR-117](../DECISIONS.md) — Chart.js para `/reports/**`
 > - Meta-prompt v2: [track_report_v2.md](track_report_v2.md)
 

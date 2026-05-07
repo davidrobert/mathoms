@@ -22,7 +22,7 @@ tags:
 > **Conflita com:** commits simultâneos em `backend/app/services/*.py`, `backend/app/repositories/*.py`, `backend/app/models/*.py`, `backend/app/schemas/*.py`, `backend/app/tasks/*.py`, `backend/app/core/*.py`. Se A6e.3c estiver ativa, coordenar por arquivo.
 > **Onda:** 3
 > **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style) · [docs/audits/](../audits/) · ADR-114 (enforcement)
+> **Fonte de verdade:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style) · [docs/archive/audits/](../audits/) · ADR-114 (enforcement)
 
 > **Objetivo:** aplicar §Code style em `backend/app/` **fora do escopo
 > de outras lanes** — services, repositories, models, schemas (não-DTO

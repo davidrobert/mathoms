@@ -4,7 +4,7 @@ type: changelog-entry
 date: "2026-04-25"
 sprint: A10
 summary: |
-  Lane `report-a11y-finalize` item 5 (2026-04-25). - **Lane `report-a11y-finalize` item 5 (2026-04-25):** checklist WCAG 2.1 AA operacional em [`docs/REPORT_A11Y_CHECKLIST.md`](REPORT_A11Y_CHECKLIST.md).
+  Lane `report-a11y-finalize` item 5 (2026-04-25). - **Lane `report-a11y-finalize` item 5 (2026-04-25):** checklist WCAG 2.1 AA operacional em [`docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md`](REPORT_A11Y_CHECKLIST.md).
 tags:
   - type/changelog-entry
   - sprint/a10
@@ -14,7 +14,7 @@ tags:
 # Lane `report-a11y-finalize` item 5 (2026-04-25)
 
 - **Lane `report-a11y-finalize` item 5 (2026-04-25):** checklist WCAG
-  2.1 AA operacional em [`docs/REPORT_A11Y_CHECKLIST.md`](REPORT_A11Y_CHECKLIST.md).
+  2.1 AA operacional em [`docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md`](REPORT_A11Y_CHECKLIST.md).
   Tabela seção × critério (1.4.3 contraste, 2.1.1 teclado, 2.4.3 ordem
   de foco, 2.4.7 foco visível, 4.1.2 nome/papel/valor) com cobertura
   automática (✅ via gate) vs checklist humano (👁 obrigatório no PR)

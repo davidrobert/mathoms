@@ -22,11 +22,11 @@ Antes de recomendar build, buy, ou híbrido, você **deve** entender o estágio 
 - [../../docs/PRODUCT.md](../../docs/PRODUCT.md) — visão, público-alvo (PJ/CLT alta renda + famílias com patrimônio diversificado + futuro B2B2C planejadores), proposta de valor, modelo **Free vs. Premium (BYOK)**, estágio atual (dogfood → beta → GA). Build vs. buy depende disso: pré-PMF tolera mais "buy" para velocidade; pós-PMF justifica build em diferenciador.
 - [../../docs/ROADMAP.md](../../docs/ROADMAP.md) — onde o produto está. Recomendação que assume "GA pronto" em dogfood é fora de escopo.
 - [../../docs/BACKLOG.md](../../docs/BACKLOG.md) — sprint atual + lanes ativas + tamanho do time. "Vamos construir X" precisa caber no time real, não em time hipotético.
-- [../../docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) — [§1 Stack](../../docs/ARCHITECTURE.md), [§17 Arquitetura alvo pós-A6](../../docs/ARCHITECTURE.md), [§18 URLs canônicas](../../docs/ARCHITECTURE.md). Dependência nova precisa caber no stack ou justificar expansão.
+- [../../docs/reference/ARCHITECTURE.md](../../docs/reference/ARCHITECTURE.md) — [§1 Stack](../../docs/reference/ARCHITECTURE.md), [§17 Arquitetura alvo pós-A6](../../docs/reference/ARCHITECTURE.md), [§18 URLs canônicas](../../docs/reference/ARCHITECTURE.md). Dependência nova precisa caber no stack ou justificar expansão.
 - [../../docs/DECISIONS.md](../../docs/DECISIONS.md) — ADRs vigentes podem **já ter decidido** build vs. buy de algo adjacente. Antes de propor, `grep` por nome do vendor/lib e por categoria (auth, queue, storage, monitoring, LLM provider).
-- [../../docs/SLO.md](../../docs/SLO.md) — alvos de uptime/latência. SaaS adotado precisa **superar** os SLOs internos (vendor com SLA 99% não compõe com nosso 99.5%).
-- [../../docs/STATELESS_AUDIT.md](../../docs/STATELESS_AUDIT.md) + [ADR-111](../../docs/DECISIONS.md#adr-111) — invariantes que dependência nova **deve** respeitar (cache em Redis, rate limit em DB/Redis SET NX, sem estado mutável local).
-- [../../docs/tenancy.md](../../docs/tenancy.md) — multi-tenant. Vendor que não isola por tenant adequadamente é vermelho.
+- [../../docs/reference/SLO.md](../../docs/reference/SLO.md) — alvos de uptime/latência. SaaS adotado precisa **superar** os SLOs internos (vendor com SLA 99% não compõe com nosso 99.5%).
+- [../../docs/reference/STATELESS_AUDIT.md](../../docs/reference/STATELESS_AUDIT.md) + [ADR-111](../../docs/DECISIONS.md#adr-111) — invariantes que dependência nova **deve** respeitar (cache em Redis, rate limit em DB/Redis SET NX, sem estado mutável local).
+- [../../docs/reference/tenancy.md](../../docs/reference/tenancy.md) — multi-tenant. Vendor que não isola por tenant adequadamente é vermelho.
 - [../../pyproject.toml](../../pyproject.toml) + [../../frontend/package.json](../../frontend/package.json) — dependências já no projeto. Nova dep que sobrepõe existente é vermelho.
 
 Para vendors/libs específicos, faça **pesquisa atual** (WebSearch/WebFetch) sobre: pricing público, status de funding/aquisição, churn de versão, comunidade (GitHub stars/issues/last commit/SOC2/ISO/LGPD compliance), incidentes recentes (status page).

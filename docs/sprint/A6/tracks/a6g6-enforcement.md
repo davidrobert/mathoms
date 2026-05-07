@@ -22,7 +22,7 @@ tags:
 > **Conflita com:** commits simultâneos em `.pre-commit-config.yaml`, `pyproject.toml`, `.github/workflows/ci.yml`, `frontend/package.json`. Nenhuma outra lane ativa toca esses — safe.
 > **Onda:** 3
 > **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style) · [docs/audits/](../audits/) baseline A6g.1
+> **Fonte de verdade:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style) · [docs/archive/audits/](../audits/) baseline A6g.1
 
 > **Objetivo:** transformar as regras do CLAUDE.md §Code style em **gates
 > automatizados** (pre-commit + CI + testes AST) que impedem regressão
@@ -427,7 +427,7 @@ git fetch origin && git log --oneline HEAD..origin/main
 ## Referências
 
 - [CLAUDE.md §Code style](../../CLAUDE.md#code-style) — fonte das regras
-- [docs/audits/](../audits/) — baseline A6g.1 (2171 ofensores)
+- [docs/archive/audits/](../audits/) — baseline A6g.1 (2171 ofensores)
 - [BACKLOG §A6g](../BACKLOG.md) — trilho completo de sweeps
 - **Ruff** — https://docs.astral.sh/ruff/rules/
 - **ESLint flat config** — https://eslint.org/docs/latest/use/configure/configuration-files-new

@@ -60,7 +60,7 @@ backend/tests/factories/        # data builders (make_user, make_workspace, ...)
 backend/tests/conftest.py       # DB isolation, client/auth_client fixtures
 backend/tests/test_premissas_snapshot.py  # F11.6b — snapshot goals.json + metas ativas
 backend/tests/test_openapi_response_models.py  # A6f.2 — estrutural: endpoint JSON tem response_model/response_class
-backend/tests/test_openapi_snapshot.py  # A6f.2 — snapshot diff determinístico (docs/api/v1/openapi.json)
+backend/tests/test_openapi_snapshot.py  # A6f.2 — snapshot diff determinístico (docs/reference/api/v1/openapi.json)
 backend/tests/test_auth_portability.py  # A6f.5a — 12 parity tests JWT HS256 + Fernet (ADR-109)
 
 frontend/tests/                 # Vitest (unit + integration)
@@ -595,7 +595,7 @@ em 2026-04-21).
 - [ ] `MaterializationBridge` removido (zero usos confirmados por grep antes de remover)
 - [ ] `_init_config()` global removido de todos os scripts (zero chamadas confirmadas)
 - [ ] CLAUDE.md sem menções a `e*_` como convenção de naming de stage
-- [ ] `docs/ARCHITECTURE.md` reflete estado final (stages com novos nomes)
+- [ ] `docs/reference/ARCHITECTURE.md` reflete estado final (stages com novos nomes)
 - [ ] ADR-093 formalizado em `docs/DECISIONS.md`
 - [ ] Zero regressão em CI
 

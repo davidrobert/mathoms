@@ -23,7 +23,7 @@ tags:
 > **Índice de prompts:** [README.md](README.md)
 > **Fonte de verdade:**
 > - [BACKLOG.md — Report Premium UI v2 roadmap](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
-> - [REPORT_PREMIUM_PLAN.md §17 v2 roadmap](../REPORT_PREMIUM_PLAN.md)
+> - [plan/REPORT_PREMIUM/_README.md §17 v2 roadmap](../plan/REPORT_PREMIUM/_README.md)
 > - Auditoria 2026-04-25 (origem do escopo): `_scratch/REPORT_PREMIUM_v2_audit.md`
 >   ou recompor via §1 deste prompt.
 
@@ -90,7 +90,7 @@ ONDA v2.D — enabler estrutural (sequencial, destrava v2.8)
 | Par | Pode rodar simultâneo? | Motivo |
 |-----|------------------------|--------|
 | v2.1 ↔ v2.2 | ✅ Sim | YAML/BACKLOG vs CI workflow — zero overlap |
-| v2.1 ↔ v2.3 | ⚠ Coordenar | Ambas tocam `BACKLOG.md` e `REPORT_PREMIUM_PLAN.md` — usar protocolo de hotspot do CLAUDE.md (commits atômicos + push imediato) |
+| v2.1 ↔ v2.3 | ⚠ Coordenar | Ambas tocam `BACKLOG.md` e `plan/REPORT_PREMIUM/_README.md` — usar protocolo de hotspot do CLAUDE.md (commits atômicos + push imediato) |
 | v2.2 ↔ v2.3 | ✅ Sim | Independentes |
 | v2.4 ↔ v2.5 | ❌ Não | Ambas mexem em `frontend/src/types/report-analysis.ts` e potencialmente nas mesmas seções — fazer v2.5 antes destrava v2.4 |
 | v2.4 ↔ v2.6 | ✅ Sim | Sections vs cards/ — disjuntos |
@@ -157,7 +157,7 @@ estão pendentes de trigger manual via `workflow_dispatch`.
 
 **Entrega:**
 1. `gh workflow run frontend-visual --ref main -f run_visual=true`
-   (ou nome real do workflow — ver [docs/REPORT_VISUAL_SNAPSHOTS.md](../REPORT_VISUAL_SNAPSHOTS.md)).
+   (ou nome real do workflow — ver [docs/plan/REPORT_PREMIUM/VISUAL_SNAPSHOTS.md](../REPORT_VISUAL_SNAPSHOTS.md)).
 2. Baixar artefato com PNGs Linux gerados.
 3. Revisar visualmente os 48 PNGs (light + dark × 24 seções) — qualquer
    render quebrado, `npm run test:e2e -- --update-snapshots` local
@@ -177,7 +177,7 @@ estão pendentes de trigger manual via `workflow_dispatch`.
 **Esforço:** S (≤4h, mais investigação que código)
 **Prio:** P1 (não bloqueia mas confunde quem lê o plano)
 
-**Problema:** [REPORT_PREMIUM_PLAN.md §9.2](../REPORT_PREMIUM_PLAN.md)
+**Problema:** [plan/REPORT_PREMIUM/_README.md §9.2](../plan/REPORT_PREMIUM/_README.md)
 lista ordem de migração "S1→S2→S3→**S7**→S4→S8→S9→S10" — pula S5 e S6.
 Não há `S5*Section.tsx` nem `S6*Section.tsx`. Status ambíguo.
 
@@ -342,7 +342,7 @@ determinísticos em `deriveSectionSummary`". Plano §0.1 #5 prometia
 **Esforço:** R (1-2 dias)
 **Prio:** P2
 
-**Problema:** [REPORT_PREMIUM_PLAN.md §11.1](../REPORT_PREMIUM_PLAN.md)
+**Problema:** [plan/REPORT_PREMIUM/_README.md §11.1](../plan/REPORT_PREMIUM/_README.md)
 detalha `.chart-print-img` (canvas → PNG fallback). Existe
 [report-print.css](../../frontend/src/components/report/report-print.css)
 mas não há Playwright comparando PDF Chrome contra baseline.
@@ -406,7 +406,7 @@ existe snapshot t-1; senão, hidden gracefully.
 - **Branch `agent/report-v2-<lane>/<ts>`** — sub-slug por lane (não use
   `report-premium` que já foi v1).
 - **Pre-flight de hotspot** obrigatório quando tocar `BACKLOG.md`,
-  `REPORT_PREMIUM_PLAN.md`, `CHANGELOG.md`, `DECISIONS.md` (CLAUDE.md
+  `plan/REPORT_PREMIUM/_README.md`, `CHANGELOG.md`, `DECISIONS.md` (CLAUDE.md
   §Hotspots de documentação).
 - **Sem `any`/`Dict[str, Any]`** fora de boundary. Sem `float` em
   dinheiro (ADR-090). Sem `git --force`/`--no-verify`/`--amend`

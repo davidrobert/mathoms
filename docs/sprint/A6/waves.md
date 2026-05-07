@@ -15,7 +15,7 @@
 ║                                                                       ║
 ║  [A6e Task]  ✅ entregue 2026-04-21 (A6e.7) — 3 sub-agregados        ║
 ║  [A6e Goal]  ✅ entregue 2026-04-21                                   ║
-║  [A6g.1 audit] ✅ entregue — baseline em docs/audits/                ║
+║  [A6g.1 audit] ✅ entregue — baseline em docs/archive/audits/                ║
 ║  [A6f.1 pipeline-service] NÃO entra aqui — fica na Onda 2.           ║
 ║  [A6g.3 backend sweep] prefere pós-A6e.4 (routers finos). Onda 2.    ║
 ╚═══════════════════════════════════════════════════════════════════════╝

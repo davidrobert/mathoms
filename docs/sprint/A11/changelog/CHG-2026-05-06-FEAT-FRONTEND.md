@@ -4,7 +4,7 @@ type: changelog-entry
 date: "2026-05-06"
 sprint: A11
 summary: |
-  feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06). - **feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06):** Onda 1 do `PLATFORM_REVIEW_PLAN.md` — fecha cluster PD-001/002/005/023.
+  feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06). - **feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06):** Onda 1 do `plan/PLATFORM_REVIEW/_README.md` — fecha cluster PD-001/002/005/023.
 tags:
   - type/changelog-entry
   - sprint/a11
@@ -14,7 +14,7 @@ tags:
 # feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06)
 
 - **feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06):**
-  Onda 1 do `PLATFORM_REVIEW_PLAN.md` — fecha cluster PD-001/002/005/023.
+  Onda 1 do `plan/PLATFORM_REVIEW/_README.md` — fecha cluster PD-001/002/005/023.
   Antes: `var(--semantic-danger|success|warning)` e `var(--brand-secondary)`
   consumidos em 7 arquivos do relatório premium / plano / ação resolviam
   para `unset` (cor herdada do parent ou preto), apesar de aparentarem
