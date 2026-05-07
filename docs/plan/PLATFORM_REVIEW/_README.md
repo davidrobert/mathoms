@@ -1,13 +1,19 @@
 ---
-plan: platform-review
-created: 2026-05-06
-status: active
-waves: 6
-total_tasks: 32
-completed_tasks: 8
-ready_tasks: 0
-last_synced_with_main: dcc4326
-sprint_in_backlog: A11
+id: PLAN-platform-review
+type: plan
+title: Platform Review Plan — 2026-05-06
+status: in_progress
+created_at: 2026-05-06
+last_review: 2026-05-07
+sprint_origem: A11
+sprint_atual: A11
+sprints_envolvidas: [A11]
+paused_at: null
+pause_reason: null
+adrs_canonical: []
+tags:
+  - type/plan
+  - status/in-progress
 ---
 
 # Platform Review Plan — 2026-05-06

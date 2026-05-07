@@ -1,3 +1,21 @@
+---
+id: PLAN-p1-structural
+type: plan
+title: P1 — Plano estrutural (motor canônico + pipeline offline)
+status: paused
+created_at: 2026-04-17
+last_review: 2026-05-07
+sprint_origem: null
+sprint_atual: null
+sprints_envolvidas: []
+paused_at: 2026-05-06
+pause_reason: Substituído por PLAN-platform-review (revisão multi-agente 2026-05-06).
+adrs_canonical: []
+tags:
+  - type/plan
+  - status/paused
+---
+
 # P1 — Plano estrutural (motor canônico + pipeline offline)
 
 > **Escopo:** apenas decisões **estruturais** (pacotes, runners, CI, fronteiras). Regras de negócio novas ficam fora deste documento.

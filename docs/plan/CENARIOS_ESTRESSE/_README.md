@@ -1,3 +1,21 @@
+---
+id: PLAN-cenarios-estresse
+type: plan
+title: Cenários de Estresse — plano canônico
+status: in_progress
+created_at: 2026-05-06
+last_review: 2026-05-07
+sprint_origem: A8
+sprint_atual: A11
+sprints_envolvidas: [A8, A11]
+paused_at: null
+pause_reason: null
+adrs_canonical: []
+tags:
+  - type/plan
+  - status/in-progress
+---
+
 # Cenários de Estresse — plano canônico
 
 > **Status:** 🚧 Em execução · **Iniciado:** 2026-05-06 · **Sprint host:** A8 (segue pós-Onda 7/8/9)

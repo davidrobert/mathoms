@@ -1,3 +1,21 @@
+---
+id: PLAN-i18n
+type: plan
+title: Internacionalização (i18n)
+status: paused
+created_at: 2026-04-25
+last_review: 2026-05-07
+sprint_origem: null
+sprint_atual: null
+sprints_envolvidas: []
+paused_at: 2026-04-26
+pause_reason: Aguarda definição de produto sobre locales prioritários (F12 do roadmap).
+adrs_canonical: ["[[ADR-130]]"]
+tags:
+  - type/plan
+  - status/paused
+---
+
 # Plano canônico — Internacionalização (i18n)
 
 > **Status:** Proposto · **Data:** 2026-04-25

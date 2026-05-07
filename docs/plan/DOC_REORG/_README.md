@@ -1,3 +1,21 @@
+---
+id: PLAN-doc-reorg
+type: plan
+title: Reorganização da documentação operacional como vault Obsidian-friendly
+status: in_progress
+created_at: 2026-05-07
+last_review: 2026-05-07
+sprint_origem: A11
+sprint_atual: A11
+sprints_envolvidas: [A11]
+paused_at: null
+pause_reason: null
+adrs_canonical: ["[[ADR-182]]"]
+tags:
+  - type/plan
+  - status/in-progress
+---
+
 # Plano executivo — Reorganização da documentação operacional como vault Obsidian-friendly
 
 > **Status:** Proposto · **ADR canônica:** [ADR-182](DECISIONS.md#adr-182--vault-de-documentação-operacional-obsidian-friendly-em-docs) · **Owner:** senior-cto + data-engineer

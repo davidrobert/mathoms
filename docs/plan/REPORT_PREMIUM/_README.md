@@ -1,3 +1,21 @@
+---
+id: PLAN-report-premium
+type: plan
+title: 'Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html`'
+status: in_progress
+created_at: 2026-04-23
+last_review: 2026-05-07
+sprint_origem: null
+sprint_atual: null
+sprints_envolvidas: []
+paused_at: null
+pause_reason: null
+adrs_canonical: ["[[ADR-117]]", "[[ADR-129]]"]
+tags:
+  - type/plan
+  - status/in-progress
+---
+
 # Plano — Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html`
 
 > ⚠️ **Status do plano (2026-04-29 · documento vivo · escopo dual v1+v2):**
