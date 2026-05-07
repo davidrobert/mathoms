@@ -2280,6 +2280,16 @@ Adiados conscientemente. São features de aquisição/marketing/polish pós-laun
 
 ---
 
+## Ops hygiene — followups operacionais
+
+| # | Item | Status | Refs |
+| --- | --- | --- | --- |
+| ops.1 | Celery worker stale após merge — masters paralelos sem `--hostname`/`--max-tasks-per-child` processavam tasks com código antigo silenciosamente. Quick-wins entregues em `dev-worker-up`/`smoke-up`/`dev-down`/`dev-restart-worker`/`dev-kill-stale` (helper `kill_celery_orphans` + flags). | 🚧 quick-wins entregues, prod hardening pendente | [#103](https://github.com/davidrobert/mathoms/issues/103) |
+
+> **O que fica em aberto após os quick-wins:** logar SHA do código no startup do worker (telemetria pós-fato), rolling restart com healthcheck por SHA em prod, e doc no RUNBOOK. Pegar quando F7C/D forem para prod.
+
+---
+
 ## Como trabalhar com o backlog
 
 1. **Uma fase por vez.** F6.5 precisa terminar antes de começar F7.
