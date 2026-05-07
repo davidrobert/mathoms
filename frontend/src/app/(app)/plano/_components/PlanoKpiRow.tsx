@@ -97,7 +97,7 @@ function KpiLinkCard({
     <Link
       href={`/reports/${reportId}#${sectionId}`}
       aria-label={`${label} — ver no relatório §${sectionId}`}
-      className="block rounded-[var(--radius-card)] transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+      className="block rounded-[var(--radius-card)] transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-info)]"
     >
       {children}
     </Link>

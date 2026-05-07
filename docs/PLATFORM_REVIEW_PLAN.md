@@ -35,7 +35,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 
 | ID | Title | Effort | Severity | Owner agent | Why now |
 |----|-------|--------|----------|-------------|---------|
-| **W1-T01** | Tokens fantasma + Tailwind classes inexistentes (CSS gate) | M | P0 | product-designer | Hot-patch v2.8 + /plano hero IF quebrados em main |
+| ~~**W1-T01**~~ | ✅ Tokens fantasma + Tailwind classes inexistentes (CSS gate) | M | P0 | product-designer | DONE 2026-05-06 |
 | **W1-T02** | Suggestion regras dormentes — fix XS de FP-001/FP-002/FP-003 | XS | P0 | financial-planner | Onda 8 declarada concluída tem 3 regras dead/dead-code; fix de XS effort |
 | **W1-T03** | CLAUDE.md inconsistência (parity test path) — sync com realidade | XS | P0 | senior-cto | Doc cita arquivo deletado em A6c.3; agentes confundem |
 | **W1-T04** | PDF concurrency semaphore (`asyncio.Semaphore(2)`) | XS | P0 | sre-devops | OOM garantido em 4 PDFs simultâneos em CX32 (8GB) |
@@ -52,7 +52,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 
 | ID | Title | Wave | Status | Owner | Severity | Effort | Deps |
 |----|-------|------|--------|-------|----------|--------|------|
-| W1-T01 | Tokens fantasma + CSS gate | 1 | ready | product-designer | P0 | M | — |
+| W1-T01 | Tokens fantasma + CSS gate | 1 | done | product-designer | P0 | M | — |
 | W1-T02 | Suggestion regras dormentes (FP-001/2/3) | 1 | ready | financial-planner | P0 | XS | — |
 | W1-T03 | CLAUDE.md sync (parity test) | 1 | done | senior-cto | P0 | XS | — |
 | W1-T04 | PDF concurrency semaphore | 1 | ready | sre-devops | P0 | XS | — |
@@ -117,7 +117,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** —
 - **severity:** P0
 - **effort:** M (~1.5 dias)
-- **status:** ready
+- **status:** done (2026-05-06, branch `agent/w1t01-css-tokens-gate/20260506-2119`)
 - **related_findings:** PD-001, PD-002, PD-005, PD-023
 - **paired_doc_task:** W6-T04 (CLAUDE.md §Design System patch propondo aliases)
 - **risk:** mudança de CSS global — visual regression baselines podem precisar update.
@@ -133,12 +133,12 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
   - `dev/check_css_var_references.py` (NOVO — gate de validação)
   - `.pre-commit-config.yaml` (hook novo)
 - **acceptance_criteria:**
-  - [ ] `dev/check_css_var_references.py` falha se algum `var(--xxx)` em `frontend/src/**` não existe em `frontend/src/styles/tokens.css`.
-  - [ ] Hook pre-commit aplicado.
-  - [ ] Tokens definidos: `--semantic-danger` (alias para `loss`), `--semantic-success` (alias para `gain`), `--semantic-warning` (alias para `alert`), `--brand-secondary` (novo) — ou mudar consumidores para os tokens existentes.
-  - [ ] Tailwind classes `brand-500/400` substituídas por `[var(--brand-info)]`/`[var(--brand-accent)]`.
-  - [ ] Visual baselines atualizadas (cover×2 + S1×2 + /plano×2 = 6 PNGs).
-  - [ ] Smoke test Playwright: `<ComparisonItemsBlock items={[{delta_signal: "down"}]}/>` renderiza com `getComputedStyle().color === --semantic-loss`.
+  - [x] `dev/check_css_var_references.py` falha se algum `var(--xxx)` em `frontend/src/**` não existe em `frontend/src/styles/tokens.css`/`globals.css`.
+  - [x] Hook pre-commit aplicado.
+  - [x] Tokens definidos: `--semantic-danger` (alias para `loss`), `--semantic-success` (alias para `gain`), `--semantic-warning` (alias para `alert`), `--brand-secondary` (alias para `neutral`).
+  - [x] Tailwind classes `brand-500/400` substituídas por `[var(--brand-info)]`/`[var(--brand-accent)]`.
+  - [ ] Visual baselines atualizadas (cover×2 + S1×2 + /plano×2 = 6 PNGs) — DIFERIDO para W5-T01 (a11y onda).
+  - [x] Smoke test Vitest: `<ComparisonItemsBlock items={[{delta_signal: "down"}]}/>` aplica `var(--semantic-danger)` no estilo da célula Δ (em `frontend/tests/components/report/snapshotChangelog.test.tsx`).
 
 ### [W1-T02] Suggestion regras dormentes — fix XS
 

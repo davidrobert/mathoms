@@ -6,7 +6,7 @@
  * Source: design-tokens/tokens.json
  * Regenerate: python design-tokens/build.py
  *
- * Version: 1.2.0
+ * Version: 1.3.0
  * ===================================================================== */
 
 :root {
@@ -83,6 +83,7 @@
     --brand-warning-foreground: #1A3A5C;
     --brand-neutral: #457B9D;
     --brand-info: #1E6E8F;
+    --brand-secondary: #457B9D;
 
     --surface-background: #FFFFFF;
     --surface-foreground: #0F172A;
@@ -103,6 +104,9 @@
     --semantic-alert: #F4A261;
     --semantic-neutral-financial: #64748B;
     --semantic-info-financial: #1E6E8F;
+    --semantic-success: #15803D;
+    --semantic-danger: #B91C1C;
+    --semantic-warning: #F4A261;
 
     --chart-1: #1A3A5C;
     --chart-2: #15803D;
@@ -146,6 +150,7 @@
     --brand-warning-foreground: #1C1917;
     --brand-neutral: #94A3B8;
     --brand-info: #5CC8F0;
+    --brand-secondary: #94A3B8;
 
     --surface-background: #0F172A;
     --surface-foreground: #F8FAFC;
@@ -166,6 +171,9 @@
     --semantic-alert: #FDBA74;
     --semantic-neutral-financial: #94A3B8;
     --semantic-info-financial: #5CC8F0;
+    --semantic-success: #4ADE80;
+    --semantic-danger: #FB7185;
+    --semantic-warning: #FDBA74;
 
     --chart-1: #7EB8DA;
     --chart-2: #4ADE80;

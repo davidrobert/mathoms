@@ -101,7 +101,7 @@ function IFHeroProgress({
       </div>
       <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-400 transition-all duration-700"
+          className="h-full rounded-full bg-gradient-to-r from-[var(--brand-info)] to-[var(--brand-accent)] transition-all duration-700"
           style={{ width: `${Math.min(progress.pct, 100)}%` }}
         />
       </div>

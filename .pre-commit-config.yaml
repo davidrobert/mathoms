@@ -96,6 +96,17 @@ repos:
         # Roda apenas quando arquivos relevantes mudam
         files: '^(design-tokens/tokens\.json|frontend/src/styles/tokens\.css|config/templates/_tokens\.css)$'
 
+      - id: check-css-var-references
+        # W1-T01 — bloqueia var(--xxx) que não existe em tokens.css/globals.css.
+        # Cluster PD-001/002/005/023: tokens fantasma (semantic-danger,
+        # semantic-success, semantic-warning, brand-secondary) só viraram
+        # CSS válido depois das aliases em tokens.json (ADR-076).
+        name: "CSS var(--xxx) references must exist in tokens.css/globals.css"
+        entry: python3 dev/check_css_var_references.py
+        language: system
+        pass_filenames: false
+        files: '^(frontend/src/.*\.(tsx|ts|css)|frontend/src/styles/tokens\.css|frontend/src/app/globals\.css|design-tokens/tokens\.json)$'
+
       - id: report-layout-codegen
         name: "Report layout codegen (TS/Pydantic) em sync com YAML (ADR-076)"
         entry: python3 dev/codegen_report_layout.py --check

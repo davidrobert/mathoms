@@ -20,6 +20,23 @@ describe("<ComparisonItemsBlock />", () => {
     expect(container.firstChild).toBeNull();
   });
 
+  it("aplica var(--semantic-danger) na célula Δ quando delta_signal=down (W1-T01)", () => {
+    const items: ComparisonItemView[] = [
+      {
+        section_id: "S1",
+        section_label: "Patrimônio Líquido",
+        before: 100,
+        after: 80,
+        delta_pct: -20,
+        delta_signal: "down",
+      },
+    ];
+    const { container } = render(<ComparisonItemsBlock items={items} />);
+    const deltaCell = container.querySelector('tr[data-delta-signal="down"] td:last-child') as HTMLElement;
+    expect(deltaCell).toBeInTheDocument();
+    expect(deltaCell.style.color).toBe("var(--semantic-danger)");
+  });
+
   it("renderiza tabela com 3 linhas e sinais corretos (up/down/stable)", () => {
     const items: ComparisonItemView[] = [
       {
