@@ -1,21 +1,4 @@
-"""Regression test — Sprint A10.1 (ADR-168 cleanup).
-
-Garante que chaves dead-data do Modo USA descontinuado em A8.4 PR4
-(ADR-168) não voltem a ser populadas no PLANNING_CONTEXT do seed nem
-referenciadas pelas narrativas E5.N.
-
-Cenários cobertos:
-1. Seed `_SKIP_SECTIONS` filtra chaves H (`fase_f1f2`, `mariana_eua`,
-   `nclex_*`, `investimentos_blocos`, `aportes_destinos_detalhados`).
-2. Output de `E5NarrativasBuilder` não menciona "F1/F2", "Modo USA",
-   "NCLEX", "EUA", "Green Card" em nenhuma seção (perfil_familia,
-   summaries, charts).
-3. `validate_narrativas` não exige `custos_f1f2` nem
-   `cenarios_cambiais` (charts removidos do report_spec.md desde
-   A8.4 PR4).
-4. `NarrativasContext.from_family_config` não tem mais campos
-   `key_f1f2_*` ou `key_renda_conjuge_eua_proj`.
-"""
+"""Regressão A10.1: chaves dead-data ADR-168 (Modo USA) não voltam no seed/narrativas E5.N."""
 
 from __future__ import annotations
 
