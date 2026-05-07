@@ -68,6 +68,15 @@ _SKIP_SECTIONS = {
     # NB: `dashboard` foi inicialmente classificado como config operacional,
     # mas E6 lê `GOALS_CONFIG.get("dashboard", {})` — precisa estar no
     # adapter output. Vai para PLANNING_CONTEXT.
+    # Sprint A10.1 (cleanup débito ADR-168 — Modo USA removido em A8.4 PR4):
+    # 6 chaves dead-data sem leitor vivo após remoção das narrativas órfãs
+    # em E5.N. Inventário em GOALS_JSON_CUTOVER_PLAN.md §2.3.
+    "fase_f1f2",
+    "mariana_eua",
+    "nclex_roadmap",
+    "nclex_estimativa_meses",
+    "investimentos_blocos",
+    "aportes_destinos_detalhados",
 }
 
 
