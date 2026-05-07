@@ -140,9 +140,12 @@ ADRs em movimento.
   cobrir <gap>. Próxima invocação no domínio <Y> deve usar `<slug>`."
 - **Devolva o turno ao principal** para commit — não rode `git` durante
   a criação. O agente principal segue o protocolo padrão da §Git em
-  [`CLAUDE.md`](../../CLAUDE.md) e atualiza `CLAUDE.md` §Subagentes
-  adicionando entrada na lista. Sem essa atualização, o orquestrador não
-  sabe que o agente existe.
+  [`CLAUDE.md`](../../CLAUDE.md) e roda
+  `python3 dev/build_subagent_catalog.py --inline` para regenerar o bloco
+  `<!-- BEGIN auto-gen subagent catalog -->` em `CLAUDE.md` a partir do
+  frontmatter `description`, depois commita os dois arquivos juntos. Sem
+  essa atualização, o orquestrador não sabe que o agente existe. O hook
+  `subagent-catalog` (pre-commit) falha se a lista ficar dessincronizada.
 
 # Formato de resposta
 

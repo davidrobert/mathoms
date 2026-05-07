@@ -44,44 +44,35 @@ Em [.claude/agents/](.claude/agents/) há revisores com domínio próprio.
 Invoque via Agent tool antes de opinar em decisões que caem no escopo
 deles:
 
-- **[financial-planner](.claude/agents/financial-planner.md)** — regras
-  de domínio, métricas, recomendações financeiras (Perini/Cerbasi/AUVP).
-  Antes de propor KPI novo, mudar fórmula de
-  [FORMULAS.md](docs/FORMULAS.md), ou criar seção de relatório com
-  dimensão financeira.
-- **[product-designer](.claude/agents/product-designer.md)** — UI/UX,
-  copy, acessibilidade, aderência ao design system. Antes de propor
-  tela nova, mudar componente do relatório, ou decidir
-  copy/visualização.
-- **[senior-cto](.claude/agents/senior-cto.md)** — arquitetura, ADRs,
-  design de API, modelagem de domínio, trade-offs estruturais. Antes de
-  propor refactor cross-cutting, nova ADR, ou migração.
-- **[data-engineer](.claude/agents/data-engineer.md)** — modelagem de DB,
-  migrations, schemas de pipeline, paridade legado↔novo, MLOps/LLMOps
-  (eval, drift, custo). Antes de propor migration não-trivial, novo
-  stage, mudança em `config/schemas/`, eval de LLM, ou decidir onde
-  dado vive (DB vs. blob vs. cache).
-- **[sre-devops](.claude/agents/sre-devops.md)** — confiabilidade
-  (SLO/runbook/postmortem), segurança aplicada (auth, secrets, tenancy,
-  headers), FinOps (custo de cloud/LLM), observabilidade
-  (logs/metrics/traces/alertas), DR/backup, CI/CD/deploy. Antes de
-  propor mudança em CI/CD, alerta novo, mudança em segurança/auth,
-  política de backup, capacity planning, ou redução de custo.
-- **[build-vs-buy](.claude/agents/build-vs-buy.md)** — decisão
-  build-vs-buy de dependência substantiva (auth, queue, error tracking,
-  banking aggregator, OCR, LLM provider, etc.). Avalia TCO, lock-in,
-  time-to-market, soberania de dados (LGPD), risco de fornecedor.
-  Invoque antes de adotar SaaS/lib/framework não-trivial ou ao ouvir
-  "vamos construir do zero" sem comparativo.
-- **[product-manager](.claude/agents/product-manager.md)** — gestão de
-  produto, OKRs, métricas de saúde (NSM/AARRR/HEART), curadoria de
-  BACKLOG/ROADMAP, planejamento de Sprints, redação de planos canônicos
-  e `track_*.md`, priorização (RICE/WSJF/MoSCoV/Kano), engenharia de
-  prompts para LLM em produção, e organização de Wiki/Second-Brain
-  (PARA/Zettelkasten/LYT) em Markdown. Invoque ao revisar lane,
-  refinar plano em `docs/<TOPIC>_PLAN.md`, definir KPI/OKR, priorizar
-  débito vs. feature, validar prompt de LLM produção, ou estruturar
-  Wiki interna.
+<!-- BEGIN auto-gen subagent catalog -->
+
+<!-- Esta lista é auto-gerada por dev/build_subagent_catalog.py. -->
+<!-- Para editar, modifique .claude/agents/<slug>.md (frontmatter `description`) e rode: -->
+<!--   python3 dev/build_subagent_catalog.py --inline -->
+
+- **[build-vs-buy](.claude/agents/build-vs-buy.md)** — Especialista sênior em estratégia de produtos e serviços de tecnologia, focado em decisão **build vs. buy** (construir in-house vs. adotar SaaS/lib/framework/serviço gerenciado pronto).
+  Use ao avaliar adoção/substituição de dependência substantiva — auth provider, error tracking, queue, DB managed, search, payment, banking aggregator, OCR/parsing, LLM provider, analytics, CMS, design system de terceiros, observability stack, feature flag service, e correlatos.
+  NÃO invoque para libs triviais (utility lib < $5k esforço comparável), bugs, ou decisões de UI puras.
+- **[data-engineer](.claude/agents/data-engineer.md)** — Engenheiro de Dados sênior com 15+ anos em modelagem de bancos relacionais, data lakes, pipelines ETL/ELT, MLOps e LLMOps.
+  Use para revisar schema de DB (modelos SQLAlchemy, índices, partitioning, FKs, migrations Alembic), contratos de dados entre stages do pipeline (E0→E7), idempotência e backfill, schema evolution (JSON Schema em `config/schemas/`, snapshot OpenAPI), política de retenção de artefatos, paridade legado↔novo (goldens), eval/drift/custo de LLM, e arquitetura de armazenamento (DB vs. blob store vs. cache).
+  NÃO invoque para bugs de UI, decisões puramente arquiteturais cross-cutting (use senior-cto), ou regras de domínio financeiro (use financial-planner).
+- **[financial-planner](.claude/agents/financial-planner.md)** — Especialista sênior em planejamento financeiro e patrimonial brasileiro.
+  Use para revisar requisitos, features, regras de domínio e UX do Mathoms sob a ótica de metodologias consagradas (Viver de Renda / Bruno Perini, Equilíbrio Financeiro / Gustavo Cerbasi, AUVP / Raul Sena).
+  NÃO invoque para bugs puros de código, CI, ou mudanças técnicas sem dimensão de produto.
+- **[product-designer](.claude/agents/product-designer.md)** — Product Designer sênior especializado em fintech, dashboards financeiros e relatórios de planejamento patrimonial.
+  Use para revisar telas, fluxos, componentes, hierarquia de informação, tipografia, uso do design system, acessibilidade (WCAG), responsividade, e clareza de dados financeiros (tabelas, gráficos, valores monetários).
+  NÃO invoque para bugs de lógica, mudanças de backend sem UI, ou decisões puramente arquiteturais.
+- **[product-manager](.claude/agents/product-manager.md)** — Product Manager sênior com 20+ anos em gestão de produto, OKRs, métricas de saúde (North Star, AARRR, HEART), curadoria de BACKLOG, ROADMAP (Now/Next/Later), planejamento de Sprints, redação de planos canônicos multi-fase, priorização (RICE/WSJF/MoSCoV/Kano), e engenharia de prompts para LLMs. Especialista em Obsidian, Second-Brain (PARA, Zettelkasten, LYT) e organização de informação em Markdown/Wikis.
+  Use para revisar lane do BACKLOG, refinar plano em `docs/<TOPIC>_PLAN.
+  NÃO invoque para regras de domínio financeiro (use `financial-planner`), UX/UI (`product-designer`), arquitetura (`senior-cto`), ou bugs de código.
+- **[senior-cto](.claude/agents/senior-cto.md)** — CTO sênior com 20+ anos de experiência em arquitetura de software, sistemas distribuídos, IA/LLMs, DDD, Design Patterns, OO, TDD e SOLID. Especialista em Go, Python, TypeScript e JavaScript.
+  Use para revisar decisões arquiteturais, ADRs, design de API, modelagem de domínio, escolhas de stack, estratégia de testes, boundaries entre serviços, trade-offs de performance/consistência/complexidade, e PRs de grande impacto.
+  NÃO invoque para typos, bugs triviais, ou tarefas já bem definidas.
+- **[sre-devops](.claude/agents/sre-devops.md)** — Engenheiro SRE/DevOps sênior com 15+ anos em confiabilidade de SaaS multi-tenant, segurança aplicada, FinOps, observabilidade e operação de produto em produção.
+  Use para revisar SLO/SLA, runbooks, postmortems, deploy strategy (blue/green, canary, rollback), CI/CD, secrets management, política de backup/DR, hardening (auth, rate limit, CSRF/CORS, headers, JWT, Fernet vault), surface de pen-test, capacity planning, instrumentação (logs estruturados, métricas, traces, alertas) e custo de cloud (FinOps — sizing, autoscaling, retention, cold storage, modelo de cobrança LLM/blob/DB).
+  NÃO invoque para bugs puros de domínio, UX, ou regras financeiras de produto (use financial-planner).
+
+<!-- END auto-gen subagent catalog -->
 
 Cada arquivo `.claude/agents/<nome>.md` tem o briefing completo.
 **Não duplique** o briefing aqui — leia direto.
@@ -92,9 +83,12 @@ de domínio recorrente não coberto pelos atuais. Critérios e protocolo
 em [.claude/agents/senior-cto.md](.claude/agents/senior-cto.md)
 §Criação de novos especialistas. Esqueleto para novo agente:
 [.claude/agents/_TEMPLATE.md](.claude/agents/_TEMPLATE.md). Após o
-senior-cto criar o arquivo, o agente principal commita e adiciona entrada
-nesta lista — sem essa atualização, o orquestrador não sabe que o agente
-existe.
+senior-cto criar o arquivo, o agente principal roda
+`python3 dev/build_subagent_catalog.py --inline` para regenerar o bloco
+acima a partir do frontmatter `description` e commita CLAUDE.md +
+`.claude/agents/<slug>.md` juntos — sem essa atualização, o orquestrador
+não sabe que o agente existe. O hook `subagent-catalog` (pre-commit)
+falha se a lista ficar dessincronizada.
 
 ---
 

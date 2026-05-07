@@ -164,3 +164,15 @@ repos:
         language: system
         files: ^docs/DECISIONS\.md$
         pass_filenames: false
+
+      # --------------------------------------------------------------------
+      # Gate de subagent catalog (W6-T04): CLAUDE.md sincronizado com
+      # `.claude/agents/*.md` (frontmatter `description`).
+      # Re-gen: `python3 dev/build_subagent_catalog.py --inline`.
+      # --------------------------------------------------------------------
+      - id: subagent-catalog
+        name: "CLAUDE.md: catálogo de subagentes sincronizado com .claude/agents/"
+        entry: python3 dev/check_subagent_catalog.py
+        language: system
+        files: ^(CLAUDE\.md|\.claude/agents/.*\.md)$
+        pass_filenames: false
