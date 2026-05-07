@@ -29,7 +29,7 @@ FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
 # IDs por tipo (espelha tabela §4.1 do DOC_REORG_PLAN.md).
 ADR_ID_RE = re.compile(r"^ADR-(\d{3})(?:-([A-Z]+))?$")
-LANE_ID_RE = re.compile(r"^([A-Z]\d+(?:\.\d+[a-z]?)*)$")
+LANE_ID_RE = re.compile(r"^([A-Z]\d+[a-z]*(?:-[a-z][a-z0-9-]*)?(?:\.[a-z0-9][a-z0-9-]*)*)$")
 PLAN_ID_RE = re.compile(r"^PLAN-([a-z0-9-]+)$")
 TRACK_ID_RE = re.compile(r"^TRACK-([a-z0-9-]+)$")
 CHG_ID_RE = re.compile(r"^CHG-(\d{4}-\d{2}-\d{2})-([A-Z0-9-]+)$")
