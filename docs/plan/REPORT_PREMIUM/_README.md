@@ -51,7 +51,7 @@ tags:
 > export server-side.
 >
 > **Audiência:** LLM executor (agente Claude em worktree próprio).
-> **Referência visual:** `EXEMPLO_DE_RELATORIO.html` (raiz do repo, 10 024 linhas).
+> **Referência visual:** [`EXEMPLO_DE_RELATORIO.html`](EXEMPLO_DE_RELATORIO.html) (10 024 linhas, mockup HTML co-localizado neste plano).
 > **Referência atual (viva):** `frontend/src/components/report/**`,
 > `design-tokens/tokens.json`, `config/report_layout.yaml`.
 > **Referência histórica (removida na execução da ADR-129):**
