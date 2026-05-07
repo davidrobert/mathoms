@@ -141,6 +141,19 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: code-style-baseline-prepush
+        # Defesa em profundidade: pre-commit por arquivo (acima) detecta
+        # ofensores no diff atual; este pre-push roda baseline cumulativo
+        # sobre a branch inteira. Cherry-pick de N commits paralelos pode
+        # passar individualmente mas regredir o agregado — observado em
+        # F3/F4 do DOC_REORG (ADR-182). +3-5s no push.
+        name: "pre-push: code-style baseline (cumulativo, pega regressão de cherry-pick composto)"
+        entry: python3 dev/check_code_style_regression.py
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
+
       # --------------------------------------------------------------------
       # Gates de DECISIONS.md (Sprint A7 · F0/F4/F8 do plano de correção)
       # --------------------------------------------------------------------
