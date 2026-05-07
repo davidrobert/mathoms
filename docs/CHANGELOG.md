@@ -6,6 +6,43 @@
 
 ## [Unreleased]
 
+### Sprint A10 (Wave 1 — A10.2)
+
+- **A10.2 ✅** Rules-as-code consolidation (ADR-177 → `Decidido (Sprint A10.2)`).
+  Cinco chaves U/M/O com leitor vivo migradas para constantes em
+  [`pipeline/domain/services/methodology_constants.py`](../pipeline/domain/services/methodology_constants.py)
+  (Decimal por ADR-090):
+  - `imoveis.yield_potencial_pct_min/max` (4-6%)
+  - `thresholds.imovel_pct_patrimonio_ideal` (50%)
+  - `thresholds.equity_pct_alvo_min/max` (20-25%)
+  - `simulacao.aporte_reduzido_fator` (0.66)
+
+  Sites tocados: `scripts/e5n_narrativas.py::load_metrics`,
+  `pipeline/domain/services/cenarios_conjuge_analyzer.py`, e
+  `scripts/e5_analyze.py::analyze_cenarios_conjuge` agora ignoram lookups
+  do `goals.json` legado para essas chaves — constante sempre vence
+  (gate intencional de revisão por PR).
+
+  `dashboard.aporte_match_keywords` migrado para constante imutável
+  `_APORTE_MATCH_KEYWORDS: tuple[str, ...]` em
+  [`backend/app/services/task_progress_service.py`](../backend/app/services/task_progress_service.py)
+  — `_load_aporte_keywords_from_config()` (filesystem fallback) e
+  `_DEFAULT_APORTE_KEYWORDS` removidos.
+
+  `stress_test_imovel_queda_pct` constante criada por simetria de ADR;
+  zero leitor vivo no momento do cutover, valor documentado para uso
+  futuro do stress test analyzer (lane futura).
+
+  Chaves `referencias.{livros,ferramentas,contatos_templates}`,
+  `dashboard.category_labels`, `calendario_fallback[]` e
+  `dashboard.{cycle_thresholds,...}` — **zero leitor vivo no codebase**.
+  Frontend estático (`/sobre`, `/metodologia`) ainda não existe;
+  cleanup adiado para sprint dedicada quando essas páginas existirem
+  (follow-up A11+).
+
+  Tests: `tests/test_methodology_constants.py` (5 invariantes Decimal);
+  goldens E5/E5.N verdes byte-a-byte.
+
 ### Sprint A10 (Wave 0 — A10.0)
 
 - **ADR-177** Proposto — Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`). Aplica ADR-143; migra 7 chaves U/M/O do legado para constantes em módulos enforcers + frontend estático.

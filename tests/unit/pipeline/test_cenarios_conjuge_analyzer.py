@@ -58,17 +58,18 @@ def _fluxo_salario_conjuge(valor: float = 8_000, label: str = "Receita CLT Bob")
 
 class TestConfig:
     def test_from_configs_extrai_defaults(self):
+        # ADR-177: ``fator_reduzido`` é rules-as-code, ignora simulacao.aporte_reduzido_fator do goals.
         cfg = CenariosConjugeConfig.from_configs(
             goals={
                 "independencia_financeira": {"retorno_real_anual_pct": 7.0},
                 "aportes": {"meta_aporte_mensal": 20_000},
-                "simulacao": {"aporte_reduzido_fator": 0.5},
+                "simulacao": {"aporte_reduzido_fator": 0.5},  # ignorado pós-ADR-177
             },
             titular_dob=_TITULAR_DOB,
         )
         assert cfg.retorno_real_anual_pct == 7.0
         assert cfg.aporte_base == 20_000
-        assert cfg.fator_reduzido == 0.5
+        assert cfg.fator_reduzido == 0.66  # constante rules-as-code (ADR-177)
 
     def test_from_configs_aceita_goals_minimo(self):
         cfg = CenariosConjugeConfig.from_configs(
