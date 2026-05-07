@@ -118,8 +118,8 @@ Detalhes completos: **[BACKLOG.md#f65--frontend-testing--qa](BACKLOG.md#f65--fro
 ```bash
 python -m backend.app.scripts.seed_if_goal_ferreira_campos --apply
 python -m backend.app.scripts.seed_tasks_ferreira_campos --apply
-python -m backend.app.scripts.seed_goals_full_ferreira_campos --apply
-python -m backend.app.scripts.validate_adapter_parity
+python -m backend.app.scripts.seed_goals_workspace --workspace-id <UUID> --demo --apply
+# (validate_adapter_parity removido em Sprint A10.8 / ADR-181)
 python -m backend.app.scripts.cutover_execute --apply
 ```
 

@@ -1166,6 +1166,105 @@
         "title": "Body_upload_task_attachment_api_v1_workspaces__workspace_id__tasks__task_id__attachments_post",
         "type": "object"
       },
+      "BusinessProfile": {
+        "additionalProperties": false,
+        "description": "Perfil tribut\u00e1rio/PJ do workspace (todos campos opcionais at\u00e9 consultor preencher).",
+        "properties": {
+          "contador": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nome ou contato do contador respons\u00e1vel (texto livre).",
+            "title": "Contador"
+          },
+          "holding_prazo_meses": {
+            "anyOf": [
+              {
+                "maximum": 240.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Prazo (em meses) para constituir holding patrimonial.",
+            "title": "Holding Prazo Meses"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "enum": [
+                  "mei",
+                  "lucro_presumido",
+                  "lucro_real",
+                  "simples"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Regime tribut\u00e1rio PJ atual.",
+            "title": "Regime"
+          }
+        },
+        "title": "BusinessProfile",
+        "type": "object"
+      },
+      "BusinessProfileResponse": {
+        "description": "Resposta do GET/PATCH \u2014 espelha shape de `BusinessProfile`.",
+        "properties": {
+          "contador": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contador"
+          },
+          "holding_prazo_meses": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holding Prazo Meses"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "enum": [
+                  "mei",
+                  "lucro_presumido",
+                  "lucro_real",
+                  "simples"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regime"
+          }
+        },
+        "title": "BusinessProfileResponse",
+        "type": "object"
+      },
       "CategoryCreateCommand": {
         "description": "Input do ``POST /categories``.",
         "properties": {
@@ -1946,6 +2045,65 @@
             ],
             "title": "Decided At"
           },
+          "horizon": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Horizonte temporal: short_6_12m | medium_1_3y | long_5y_plus.",
+            "title": "Horizon"
+          },
+          "impact_10y_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Impacto financeiro em 10 anos (BRL string).",
+            "title": "Impact 10Y Brl"
+          },
+          "impact_1y_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Impacto financeiro em 1 ano (BRL string).",
+            "title": "Impact 1Y Brl"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "1..99 (1 = mais urgente).",
+            "title": "Priority"
+          },
           "rationale": {
             "anyOf": [
               {
@@ -2125,9 +2283,48 @@
             ],
             "title": "Executed At"
           },
+          "horizon": {
+            "title": "Horizon",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "impact_10y_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact 10Y Brl"
+          },
+          "impact_1y_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact 1Y Brl"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
           },
           "rationale": {
             "anyOf": [
@@ -2208,6 +2405,7 @@
           "code",
           "title",
           "status",
+          "horizon",
           "created_at",
           "updated_at"
         ],
@@ -2272,6 +2470,61 @@
               }
             ],
             "title": "Decided At"
+          },
+          "horizon": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizon"
+          },
+          "impact_10y_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact 10Y Brl"
+          },
+          "impact_1y_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact 1Y Brl"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "maximum": 99.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
           },
           "rationale": {
             "anyOf": [
@@ -6169,6 +6422,288 @@
           "temp_password"
         ],
         "title": "ResetPasswordResponse",
+        "type": "object"
+      },
+      "RiskCreateCommand": {
+        "additionalProperties": false,
+        "description": "Cria novo ``Risk`` (status default = ``Ativo``).",
+        "properties": {
+          "code": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "impact_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Impacto em BRL (string decimal). Convertido para cents.",
+            "title": "Impact Brl"
+          },
+          "impact_level": {
+            "minLength": 1,
+            "title": "Impact Level",
+            "type": "string"
+          },
+          "mitigations_decision_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mitigations Decision Ids",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "probability": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probability"
+          },
+          "rationale": {
+            "minLength": 10,
+            "title": "Rationale",
+            "type": "string"
+          },
+          "status": {
+            "default": "Ativo",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "rationale",
+          "impact_level"
+        ],
+        "title": "RiskCreateCommand",
+        "type": "object"
+      },
+      "RiskListResponse": {
+        "description": "Wrapper pagina\u00e7\u00e3o-ready para ``GET /risks``.",
+        "properties": {
+          "risks": {
+            "items": {
+              "$ref": "#/components/schemas/RiskResponse"
+            },
+            "title": "Risks",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "risks",
+          "total"
+        ],
+        "title": "RiskListResponse",
+        "type": "object"
+      },
+      "RiskMitigationLinkCommand": {
+        "additionalProperties": false,
+        "description": "Adiciona uma Decision como mitiga\u00e7\u00e3o do Risk.",
+        "properties": {
+          "decision_id": {
+            "maxLength": 36,
+            "minLength": 36,
+            "title": "Decision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision_id"
+        ],
+        "title": "RiskMitigationLinkCommand",
+        "type": "object"
+      },
+      "RiskResponse": {
+        "description": "Risk projetado \u2014 o que a UI consome.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "impact_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact Brl"
+          },
+          "impact_level": {
+            "title": "Impact Level",
+            "type": "string"
+          },
+          "mitigations_decision_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mitigations Decision Ids",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "probability": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probability"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "code",
+          "name",
+          "rationale",
+          "impact_level",
+          "status",
+          "mitigations_decision_ids",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RiskResponse",
+        "type": "object"
+      },
+      "RiskUpdateCommand": {
+        "additionalProperties": false,
+        "description": "Atualiza campos editoriais do Risk.",
+        "properties": {
+          "impact_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact Brl"
+          },
+          "impact_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact Level"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "probability": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probability"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "minLength": 10,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "RiskUpdateCommand",
         "type": "object"
       },
       "RunActionResponse": {
@@ -10794,6 +11329,110 @@
         "summary": "List Audit Logs",
         "tags": [
           "audit"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/business-profile": {
+      "get": {
+        "description": "Retorna o perfil tribut\u00e1rio/PJ. Default vazio se nunca preenchido.",
+        "operationId": "get_business_profile_api_v1_workspaces__workspace_id__business_profile_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Business Profile",
+        "tags": [
+          "workspaces"
+        ]
+      },
+      "patch": {
+        "description": "Substitui o perfil tribut\u00e1rio (replace, n\u00e3o merge \u2014 shape simples).",
+        "operationId": "update_business_profile_api_v1_workspaces__workspace_id__business_profile_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Business Profile",
+        "tags": [
+          "workspaces"
         ]
       }
     },
@@ -16368,6 +17007,406 @@
         "summary": "Get Report Tasks",
         "tags": [
           "reports"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/risks": {
+      "get": {
+        "operationId": "list_risks_api_v1_workspaces__workspace_id__risks_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Risks",
+        "tags": [
+          "risks"
+        ]
+      },
+      "post": {
+        "operationId": "create_risk_api_v1_workspaces__workspace_id__risks_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RiskCreateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Risk",
+        "tags": [
+          "risks"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/risks/{risk_id}": {
+      "delete": {
+        "operationId": "delete_risk_api_v1_workspaces__workspace_id__risks__risk_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "risk_id",
+            "required": true,
+            "schema": {
+              "title": "Risk Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Risk",
+        "tags": [
+          "risks"
+        ]
+      },
+      "get": {
+        "operationId": "get_risk_api_v1_workspaces__workspace_id__risks__risk_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "risk_id",
+            "required": true,
+            "schema": {
+              "title": "Risk Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Risk",
+        "tags": [
+          "risks"
+        ]
+      },
+      "patch": {
+        "operationId": "update_risk_api_v1_workspaces__workspace_id__risks__risk_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "risk_id",
+            "required": true,
+            "schema": {
+              "title": "Risk Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RiskUpdateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Risk",
+        "tags": [
+          "risks"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/risks/{risk_id}/mitigations": {
+      "post": {
+        "operationId": "link_mitigation_api_v1_workspaces__workspace_id__risks__risk_id__mitigations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "risk_id",
+            "required": true,
+            "schema": {
+              "title": "Risk Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RiskMitigationLinkCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Link Mitigation",
+        "tags": [
+          "risks"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/risks/{risk_id}/mitigations/{decision_id}": {
+      "delete": {
+        "operationId": "unlink_mitigation_api_v1_workspaces__workspace_id__risks__risk_id__mitigations__decision_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "risk_id",
+            "required": true,
+            "schema": {
+              "title": "Risk Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "decision_id",
+            "required": true,
+            "schema": {
+              "title": "Decision Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Unlink Mitigation",
+        "tags": [
+          "risks"
         ]
       }
     },

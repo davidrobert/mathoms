@@ -6,7 +6,162 @@
 
 ## [Unreleased]
 
-### Sprint A10 (Wave 1 — A10.2)
+### Sprint A10 (Wave 4)
+
+- **A10.8 ✅** Cutover final + `forbidden_paths` (ADR-181 →
+  `Decidido (Sprint A10.8)`). Sprint A10 fechada — 9/9 lanes em `main`,
+  débito de 7 meses do checkbox ADR-077 §"Contrato de cutover" encerrado.
+  - `_archive/pre-f8-cutover-2026-04-15/config/goals.json` deletado;
+    substituído por `goals.json.MIGRATED.md` com mapa das 22 chaves
+    originais → destinos canônicos (DB aggregates, rules-as-code,
+    `Workspace.business_profile_json`, frontend estático ou deletadas).
+  - `config/goals.json` adicionado a `dev/check_forbidden_paths.py` —
+    recriação no path original bloqueada por hook `pre-commit`,
+    consistente com cluster A7 (`categorization.json`,
+    `family_members.json`, `institutions.json`, `parametros_fiscais.json`,
+    `taxas.json`).
+  - `backend/app/scripts/validate_adapter_parity.py` deletado — script
+    de paridade DB ↔ arquivo arquivado tornou-se não-funcional após
+    deletion. Referência em `ROADMAP.md` §F8.4 ajustada;
+    `backend/app/scripts/__init__.py` docstring corrigida.
+  - **ADR-077** §"Contrato de cutover" — banner atualizado para "✅
+    Fechado por ADR-180 (A10.6) + ADR-181 (A10.8)" e checkbox marcado.
+  - Plano canônico `docs/GOALS_JSON_CUTOVER_PLAN.md` arquivado em
+    `docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md`; entrada em
+    `docs/archive/README.md`.
+
+### Sprint A10 (Wave 3)
+
+- **A10.6 ✅** Pipeline cutover via `StageConfig.config_store` extendido
+  (ADR-180 → `Decidido (Sprint A10.6)`). `GoalsBundle` TypedDict em
+  `pipeline/domain/goals_bundle.py` (sem import SQLAlchemy/FastAPI/Celery —
+  boundary verde). `build_goals_payload_sync`/`build_goals_payload`
+  retornam shape tipado. `_materialize_adapter_configs`
+  (`pipeline_task.py:56-99`) **deletado** e substituído por
+  `_materialize_tarefas_md` (apenas tarefas.md continua em filesystem,
+  texto livre fora do bundle). `_load_goals()` em `e5_analyze.py:166` +
+  `e5n_narrativas.py:105` **deletados** — pipeline lê via
+  `ctx.load_config("goals.json")` resolvido contra `config_overrides`
+  populados por `build_config_overrides_from_db`. `goals.json` físico
+  **nunca mais escrito em filesystem**. Helpers
+  `_select_decisoes_for_charts` / `_select_riscos_for_charts` (A10.5
+  fallback legacy) **deletados** — bundle direto. `PLANNING_CONTEXT`
+  Goal type **removido** de `VALID_GOAL_TYPES` (resíduo pós-A10.7;
+  campos migraram para Decision/Risk aggregates, rules-as-code,
+  business_profile). Gate empírico em
+  `tests/test_e5_pipeline_no_filesystem_goals.py` (6 testes) +
+  `backend/tests/test_goals_bundle.py` (8 testes). Goldens E5/E5.N
+  verdes byte-a-byte. Fecha checkbox aberto há 7 meses na ADR-077
+  ("100% dos campos lidos por E5/E5.N/E6"). Habilita A10.8 (cutover
+  final + forbidden_paths, ADR-181).
+
+- **A10.5 ✅** Top5 + Bubble como projeção (charts_narrator switch).
+  Card S10 "Top 5 Decisões de Impacto" e bubble chart S9 "Riscos
+  Prioritários" leem `Decision`/`Risk` aggregates via projeção em
+  `pipeline_adapter`, não mais bag `PLANNING_CONTEXT` hardcoded.
+  Adapter injeta `top5_decisoes_projection` e `risks_projection` no
+  payload; `e5n_narrativas` prefere as projeções com fallback gracioso
+  para `decisoes_prioritarias`/`riscos_prioritarios` legados (A10.6
+  remove o fallback ao trocar dict legacy por `GoalsBundle`, ADR-180).
+  Ordenação Decision: `priority NULLS LAST → impact_1y_brl_cents DESC
+  NULLS LAST → code` (ADR-179 §card S10 query); ordenação Risk:
+  `(impact_level, probability)` ascendente espelhando `RiskRepository`
+  (ADR-178). Filtros: `horizon=short_6_12m, status IN (Decidido,
+  Pendente)` para top 5; nenhum filtro para riscos. Limites: 5 e 8.
+  Seed Ferreira-Campos para de despejar as 3 chaves legadas em
+  `PLANNING_CONTEXT` (ficam na projeção via DB). Goldens E5/E5.N
+  verdes byte-a-byte — fallback empty list preserva paridade quando
+  workspace não tem aggregates. 14 testes novos em
+  `backend/tests/test_pipeline_adapter_projections.py` cobrem shape,
+  ordenação, filtragem, limites, isolamento cross-workspace.
+
+### Sprint A10 (Wave 2)
+
+- **A10.7 ✅** Seed refactor + `Workspace.business_profile_json` (Sprint A10.7).
+  `seed_goals_full_ferreira_campos.py` → `seed_goals_workspace.py`
+  (renomeado via `git mv`; sem hardcode `family_surname == "Ferreira Campos"`;
+  `--workspace-id` obrigatório; sem leitura de `_archive/.../goals.json` —
+  fixtures declarativas inline). Modo `--demo` opcional carrega valores
+  fictícios herdados do `goals.json` arquivado para reproduzir ambiente
+  histórico Ferreira-Campos. `PLANNING_CONTEXT` continua em
+  `VALID_GOAL_TYPES` até A10.6/ADR-180 deletar a bag inteira via
+  `GoalsBundle` — esta lane apenas para de criar registros do tipo.
+
+  Chave `tributario` (`{contador, regime, holding_prazo}`) sai da bag
+  legacy `goals.json` e vira `Workspace.business_profile_json` (JSON
+  nullable; Alembic non-breaking `b1a2c3d4e5f7_business_profile_json_a10_7`).
+  Pydantic `BusinessProfile` (em `backend/app/schemas/business_profile.py`)
+  valida shape com `extra=forbid`: `contador: str | None`,
+  `regime: Literal["mei", "lucro_presumido", "lucro_real", "simples"] | None`,
+  `holding_prazo_meses: int | None` (0..240). Endpoints
+  `GET/PATCH /v1/workspaces/{ws}/business-profile` em
+  [`api/workspaces.py`](../backend/app/api/workspaces.py) com
+  `response_model` explícito (ADR-102 R18). PATCH é replace, não merge —
+  shape simples documenta o trade-off.
+
+  UI rica fica em sprint posterior (follow-up A11+); por ora consultor
+  edita via API direta. Tests: `backend/tests/test_business_profile.py`
+  (12 specs cobrindo validação Pydantic, GET default, PATCH persiste,
+  PATCH replace clears, regime inválido → 422, prazo negativo → 422,
+  extra field → 422, persistência DB).
+
+  `cutover_execute.py` atualizado para citar o seed novo; precondição
+  `PLANNING_CONTEXT` virou aviso (não bloqueia). OpenAPI snapshot
+  regenerado.
+
+- **A10.3 ✅** Decision schema extension (ADR-179 → `Decidido (Sprint A10.3)`).
+  Alembic non-breaking adiciona 4 colunas a `decisions`:
+  `impact_1y_brl_cents` (BIGINT NULL), `impact_10y_brl_cents` (BIGINT NULL),
+  `horizon` (VARCHAR(16) NOT NULL DEFAULT `'short_6_12m'`,
+  enum `{short_6_12m, medium_1_3y, long_5y_plus}`),
+  `priority` (SMALLINT NULL). Index `ix_decisions_ws_horizon
+  (workspace_id, horizon)` para query do card S10. Default `horizon`
+  permite registros pré-A10.3 continuarem servíveis sem backfill
+  obrigatório.
+
+  DTO Pydantic (`DecisionCreateCommand`, `DecisionUpdateCommand`,
+  `DecisionResponse`) e mapper atualizados — `impact_*_brl_cents` ↔
+  `impact_*_brl` (Decimal string) seguindo ADR-090. Use cases
+  (`create_decision`, `update_decision`) propagam os 4 campos com diff
+  no evento `Updated`. Endpoints `/workspaces/{ws}/decisions` aceitam
+  os 4 campos (Optional onde apropriado). Validação `priority` em
+  1..99; validação `horizon` contra `VALID_DECISION_HORIZONS`.
+
+  UI form em [`DecisionFormDialog.tsx`](../frontend/src/app/(app)/plano/_components/DecisionFormDialog.tsx)
+  ganha 4 inputs novos (impacto 1y/10y monetários, select horizonte,
+  number priority — extraídos para `DecisionImpactFields.tsx` por SRP).
+  Cliente API tipado (`Decision`, `DecisionCreatePayload`,
+  `DecisionUpdatePayload`) reflete shape novo.
+
+  Migrator backfill heurístico opcional em
+  [`backend/app/scripts/backfill_decision_impact.py`](../backend/app/scripts/backfill_decision_impact.py)
+  (`--dry-run` é default seguro): popula `impact_1y_brl_cents` a partir
+  de `amount_brl_cents` quando target é `goal.aporte.meta_aporte_mensal_brl`
+  ou `goal.dolar.aporte_mensal_brl` (× 12) ou quando Decision está
+  `Decidido`/`Executado` sem `target_field` (assume valor único).
+  `impact_10y_brl` permanece manual (premissa de extrapolação pertence
+  ao consultor). Idempotente.
+
+  OpenAPI snapshot e `DB_SCHEMA_REFERENCE.md` regenerados. Tests novos
+  em `backend/tests/test_decision_extension.py` (16 specs cobrindo
+  default horizon, validação enum/priority, round-trip dos 4 campos,
+  PATCH per-campo, mapper cents→Decimal, heurística do backfill,
+  ordenação determinística por `priority NULLS LAST` →
+  `impact_1y DESC NULLS LAST`).
+
+  Habilita lane A10.5 (Top5/Bubble como projeção do `Decision` aggregate).
+
+- **A10.4 ✅** `Risk` aggregate (ADR-178 → `Decidido (Sprint A10.4)`).
+  Novo modelo `risks` workspace-scoped paralelo a `Decision` (ADR-136).
+  Estrutura `{name, code, rationale, probability, impact_level,
+  impact_brl_cents, status, mitigations_decision_ids[]}`. 6 use
+  cases canônicos + 7 endpoints REST. Seed Cerbasi 5 riscos
+  universais (`morte`, `invalidez`, `doenca_grave`, `desemprego`,
+  `longevidade`) em `seed_workspace_risks.py` (não executado
+  automaticamente). UI lista mínima em frontend (Bubble chart S9
+  passa a ler na A10.5).
+
+### Sprint A10 (Wave 1)
 
 - **A10.2 ✅** Rules-as-code consolidation (ADR-177 → `Decidido (Sprint A10.2)`).
   Cinco chaves U/M/O com leitor vivo migradas para constantes em
@@ -43,6 +198,40 @@
   Tests: `tests/test_methodology_constants.py` (5 invariantes Decimal);
   goldens E5/E5.N verdes byte-a-byte.
 
+- **A10.1 ✅** Dead-data deletion + ADR-168 cleanup narrativas órfãs.
+  Cleanup débito do ADR-168 (Modo USA removido em A8.4 PR4) cujas chaves
+  continuavam sendo populadas pelo seed e consumidas pelas narrativas
+  E5.N — código zumbi.
+  - **Seed (`backend/app/scripts/seed_goals_full_ferreira_campos.py`):**
+    6 chaves H adicionadas a `_SKIP_SECTIONS` (filtradas do
+    PLANNING_CONTEXT no cutover): `fase_f1f2`, `mariana_eua`,
+    `nclex_roadmap`, `nclex_estimativa_meses`, `investimentos_blocos`,
+    `aportes_destinos_detalhados`.
+  - **Narrativas E5.N** — 4 narradores limpos:
+    - `summaries_narrator.py` — `s5` reescrito sem citar EUA/F1/F2.
+    - `charts_narrator.py` — `_narrate_fase_eua` deletado; substituído
+      por `_narrate_viagens` (preserva apenas chart `viagens` vivo, sem
+      EUA). `fmt_usd` removido do import.
+    - `perfil_familia_narrator.py` — `right` reescrito sem plano EUA;
+      3 parágrafos focados em IF, patrimônio e score.
+    - `e5n_narrativas.py` — globais `_KEY_F1F2_*`,
+      `_KEY_RENDA_CONJUGE_EUA_PROJ` removidos; ~15 chaves de metrics
+      f1f2/EUA/nclex deletadas do dict de retorno.
+    - `format_helpers.py` — `custos_f1f2` e `cenarios_cambiais`
+      removidos da `required_charts` do validator (charts já marcados
+      como removidos no `report_spec.md` desde A8.4 PR4).
+    - `context.py` — `key_f1f2_titular`, `key_f1f2_conjuge`,
+      `key_renda_conjuge_eua_proj` deletados do `NarrativasContext`.
+  - **Tests:**
+    - `tests/test_e5n_no_dead_data.py` (novo, 17 asserts em 5 grupos
+      parametrizados): garante seed filtra chaves H, output de
+      narrativas não contém substrings dead-data ("F1/F2", "Modo USA",
+      "NCLEX", "Green Card", "Anderson University", etc.), validator
+      não exige charts removidos, builder não quebra com chaves
+      dead-data ausentes em metrics.
+    - `tests/test_e5n_builder_decomposition.py` — `expected` de 20
+      charts atualizado para 18 (sem `custos_f1f2`/`cenarios_cambiais`).
+
 ### Sprint A10 (Wave 0 — A10.0)
 
 - **ADR-177** Proposto — Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`). Aplica ADR-143; migra 7 chaves U/M/O do legado para constantes em módulos enforcers + frontend estático.
@@ -51,7 +240,7 @@
 - **ADR-180** Proposto — `goals.json` cutover final via `StageConfig.config_store` extendido. **Supersedes** parcial ADR-077 §"Contrato de cutover"; `_materialize_adapter_configs` e `_load_goals()` deletados; pipeline lê `GoalsBundle` tipado.
 - **ADR-181** Proposto — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py`. Cleanup final Sprint A10; arquivo arquivado substituído por `goals.json.MIGRATED.md` com mapa chave→destino.
 
-Plano canônico: [GOALS_JSON_CUTOVER_PLAN.md](GOALS_JSON_CUTOVER_PLAN.md). Banners de supersedure/extends adicionados em ADR-077, ADR-136, ADR-168.
+Plano canônico: [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md). Banners de supersedure/extends adicionados em ADR-077, ADR-136, ADR-168.
 
 - **fix(pipeline): regras suggestion dormentes + carry-trade endividamento (W1-T02 + W1-T07 · 2026-05-06):**
   Findings FP-001/2/3/9 do platform review. **W1-T02 — regras Onda 8

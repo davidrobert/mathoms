@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -42,6 +42,11 @@ class Workspace(Base):
     deleted_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True, index=True
     )
+
+    # Sprint A10.7 — perfil tributário/PJ do cliente (substitui chave
+    # `tributario` da bag PLANNING_CONTEXT do legado goals.json). JSON
+    # livre validado por `BusinessProfile` Pydantic no boundary HTTP.
+    business_profile_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True, default=None)
 
     owner = relationship("User", back_populates="workspaces")
     reports = relationship("Report", back_populates="workspace", cascade="all, delete-orphan")

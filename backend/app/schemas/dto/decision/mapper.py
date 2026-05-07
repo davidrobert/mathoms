@@ -28,25 +28,36 @@ def brl_to_cents(brl: Optional[Decimal]) -> Optional[int]:
     return int((Decimal(brl) * Decimal(100)).quantize(Decimal("1")))
 
 
+# Atributos copiados 1:1 (sem conversão) de Decision para DecisionResponse.
+# Money fields (cents → Decimal) e fields ADR-179 são tratados separadamente.
+_DIRECT_FIELDS: tuple[str, ...] = (
+    "id",
+    "workspace_id",
+    "code",
+    "title",
+    "rationale",
+    "status",
+    "supersedes_id",
+    "decided_at",
+    "executed_at",
+    "target_field",
+    "target_value",
+    "target_value_type",
+    "context_snapshot",
+    "horizon",
+    "priority",
+    "created_at",
+    "updated_at",
+)
+
+
 def decision_to_response(decision: Decision) -> DecisionResponse:
-    """Decision row → DTO. Converte cents → Decimal BRL no wire."""
+    """Decision row → DTO. Converte cents → Decimal BRL (ADR-090, ADR-179)."""
     return DecisionResponse(
-        id=decision.id,
-        workspace_id=decision.workspace_id,
-        code=decision.code,
-        title=decision.title,
-        rationale=decision.rationale,
+        **{f: getattr(decision, f) for f in _DIRECT_FIELDS},
         amount_brl=cents_to_brl(decision.amount_brl_cents),
-        status=decision.status,
-        supersedes_id=decision.supersedes_id,
-        decided_at=decision.decided_at,
-        executed_at=decision.executed_at,
-        target_field=decision.target_field,
-        target_value=decision.target_value,
-        target_value_type=decision.target_value_type,
-        context_snapshot=decision.context_snapshot,
-        created_at=decision.created_at,
-        updated_at=decision.updated_at,
+        impact_1y_brl=cents_to_brl(decision.impact_1y_brl_cents),
+        impact_10y_brl=cents_to_brl(decision.impact_10y_brl_cents),
     )
 
 

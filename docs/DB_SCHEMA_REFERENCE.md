@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 39
+**Total de tabelas:** 40
 
 ---
 
@@ -38,6 +38,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`pipeline_stage_logs`](#pipelinestagelogs)
 - [`report_layouts`](#reportlayouts)
 - [`reports`](#reports)
+- [`risks`](#risks)
 - [`stage_reviews`](#stagereviews)
 - [`suggestions`](#suggestions)
 - [`task_attachments`](#taskattachments)
@@ -233,6 +234,10 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `target_value` | `VARCHAR(128)` | yes | — | — |
 | `target_value_type` | `VARCHAR(8)` | yes | — | — |
 | `context_snapshot` | `JSON` | yes | — | — |
+| `impact_1y_brl_cents` | `BIGINT` | yes | — | — |
+| `impact_10y_brl_cents` | `BIGINT` | yes | — | — |
+| `horizon` | `VARCHAR(16)` | no | server: `short_6_12m` | — |
+| `priority` | `SMALLINT` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
@@ -245,6 +250,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_decisions_workspace_id` (workspace_id)
+- `ix_decisions_ws_horizon` (workspace_id, horizon)
 - `ix_decisions_ws_status` (workspace_id, status)
 
 ### `documents`
@@ -656,6 +662,34 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - FOREIGN KEY (pipeline_run_id) REFERENCES pipeline_runs.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 
+### `risks`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `code` | `VARCHAR(64)` | no | — | — |
+| `name` | `VARCHAR(200)` | no | — | — |
+| `rationale` | `TEXT` | no | — | — |
+| `probability` | `VARCHAR(16)` | yes | — | — |
+| `impact_level` | `VARCHAR(16)` | no | — | — |
+| `impact_brl_cents` | `BIGINT` | yes | — | — |
+| `status` | `VARCHAR(32)` | no | `'Ativo'` | — |
+| `mitigations_decision_ids` | `JSON` | no | callable: `list` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, code) — `uq_risks_workspace_code`
+
+**Indexes:**
+
+- `ix_risks_workspace_id` (workspace_id)
+- `ix_risks_ws_impact` (workspace_id, impact_level)
+- `ix_risks_ws_status` (workspace_id, status)
+
 ### `stage_reviews`
 
 | Column | Type | Nullable | Default | Tags |
@@ -1001,6 +1035,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `use_db_artifacts_override` | `BOOLEAN` | yes | — | — |
 | `monthly_llm_budget_usd` | `NUMERIC(10, 2)` | no | server: `5.00` | — |
 | `deleted_at` | `DATETIME` | yes | — | INDEX |
+| `business_profile_json` | `JSON` | yes | — | — |
 
 **Constraints:**
 
@@ -1059,12 +1094,14 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `report_layouts.config_json`
 - `reports.premissas_snapshot_json`
 - `reports.tasks_snapshot_json`
+- `risks.mitigations_decision_ids`
 - `stage_reviews.edited_output_json`
 - `stage_reviews.original_output_json`
 - `stage_reviews.validation_issues`
 - `task_suggestions.proposed_payload`
 - `transfer_configs.config_json`
 - `workspace_category_overrides.keywords_override`
+- `workspaces.business_profile_json`
 
 ---
 
@@ -1209,6 +1246,10 @@ type Decision struct {
 	TargetValue *string `db:"target_value" json:"target_value"`
 	TargetValueType *string `db:"target_value_type" json:"target_value_type"`
 	ContextSnapshot json.RawMessage `db:"context_snapshot" json:"context_snapshot"`
+	Impact1yBrlCents *int64 `db:"impact_1y_brl_cents" json:"impact_1y_brl_cents"`
+	Impact10yBrlCents *int64 `db:"impact_10y_brl_cents" json:"impact_10y_brl_cents"`
+	Horizon string `db:"horizon" json:"horizon"`
+	Priority *string `db:"priority" json:"priority"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
@@ -1502,6 +1543,25 @@ type Report struct {
 }
 ```
 
+### `risks` → `type Risk struct`
+
+```go
+type Risk struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	Code string `db:"code" json:"code"`
+	Name string `db:"name" json:"name"`
+	Rationale string `db:"rationale" json:"rationale"`
+	Probability *string `db:"probability" json:"probability"`
+	ImpactLevel string `db:"impact_level" json:"impact_level"`
+	ImpactBrlCents *int64 `db:"impact_brl_cents" json:"impact_brl_cents"`
+	Status string `db:"status" json:"status"`
+	MitigationsDecisionIds json.RawMessage `db:"mitigations_decision_ids" json:"mitigations_decision_ids"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
 ### `stage_reviews` → `type StageReview struct`
 
 ```go
@@ -1733,5 +1793,6 @@ type Workspace struct {
 	UseDbArtifactsOverride *bool `db:"use_db_artifacts_override" json:"use_db_artifacts_override"`
 	MonthlyLlmBudgetUsd decimal.Decimal `db:"monthly_llm_budget_usd" json:"monthly_llm_budget_usd"`
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
+	BusinessProfileJson json.RawMessage `db:"business_profile_json" json:"business_profile_json"`
 }
 ```

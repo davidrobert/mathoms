@@ -254,7 +254,10 @@ def test_builder_perfil_familia_has_left_and_right():
         assert "<ul" not in pf[side].lower()
 
 
-def test_builder_charts_has_all_20_required_keys():
+def test_builder_charts_has_all_18_required_keys():
+    """ADR-168 cleanup (Sprint A10.1): charts custos_f1f2 e cenarios_cambiais
+    removidos junto com as narrativas órfãs do Modo USA descontinuado em
+    A8.4 PR4."""
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
     ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
     out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
@@ -274,9 +277,7 @@ def test_builder_charts_has_all_20_required_keys():
         "top15_ativos",
         "impostos_pj",
         "cenarios_conjuge",  # ADR-176: chave universal estável (era <conjuge>_cenarios)
-        "custos_f1f2",
         "viagens",
-        "cenarios_cambiais",
         "bubble_riscos",
         "top5_decisoes",
     }

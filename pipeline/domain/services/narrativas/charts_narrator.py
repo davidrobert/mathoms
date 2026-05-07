@@ -20,7 +20,6 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_currency,
     fmt_num,
     fmt_percent,
-    fmt_usd,
 )
 
 _DIVERSIFICACAO_LINE = (
@@ -86,7 +85,7 @@ class ChartsNarrator:
                 _cm_aportes,
                 _cm_anos,
             ),
-            **self._narrate_fase_eua(M),
+            **self._narrate_viagens(M),
             **self._narrate_riscos_decisoes(M, riscos, _riscos_top3, decisoes),
         }
 
@@ -313,7 +312,7 @@ class ChartsNarrator:
                 f"Atualmente {ctx.conjuge_nome} contribui com {fmt_currency(M['cm_salario_clt_brl'])}/mês."
             ),
             "conclusion": (
-                f"<strong>Sem renda do cônjuge:</strong> aporte cai para "
+                f"Sem renda do cônjuge: aporte cai para "
                 f"{fmt_currency(aporte)}/mês ({fmt_num(fator * 100, 0)}% do aporte-base). "
                 f"IF em {fmt_num(prazo, 0)} anos ({ano_if})"
                 + (
@@ -324,35 +323,20 @@ class ChartsNarrator:
             ),
         }
 
-    # ── Grupo 4: Fase F1/F2 nos EUA (charts 16-18) ─────────────────────
-    def _narrate_fase_eua(self, M: dict[str, Any]) -> dict[str, Any]:
+    # ── Grupo 4: Viagens (chart 19) ─────────────────────────────────────
+    # ADR-168 cleanup (Sprint A10.1): `custos_f1f2` e `cenarios_cambiais`
+    # removidos — eram dead-data específica do Modo USA descontinuado em
+    # A8.4 PR4. Apenas `viagens` permanece (chart vivo no report_layout).
+    def _narrate_viagens(self, M: dict[str, Any]) -> dict[str, Any]:
         return {
-            "custos_f1f2": {
-                "context": (
-                    f"Estimativa de custos mensais na fase {M['f1f2_visto']} nos EUA: tuition + living + viagens BR = {fmt_currency(M['custo_fase_f1f2'])}/mês."
-                ),
-                "conclusion": (
-                    f"Sobra projetada: {fmt_currency(M['sobra_mensal_f1f2'])}/mês ({fmt_currency(M['receita_recorrente_mensal'])} - {fmt_currency(M['custo_fase_f1f2'])})."
-                ),
-            },
             "viagens": {
                 "context": (
                     "Padrão de despesas com viagens identificado nos extratos, estimando frequência e custo médio."
                 ),
                 "conclusion": (
-                    f"Viagens para EUA estimadas em {fmt_currency(M['custo_viagem_minimo'])}-{fmt_currency(M['custo_viagem_maximo'])} por viagem. "
-                    f"Frequência média de {fmt_num(M['viagens_anuais_estimadas'], 0)} viagens/ano para acompanhamento do processo {M['f1f2_visto']}."
-                ),
-            },
-            "cenarios_cambiais": {
-                "context": (
-                    f"Exposição cambial atual ({fmt_usd(M['poupanca_cambial_actual_usd'])}) e meta pré-EUA ({fmt_usd(M['poupanca_cambial_meta_usd'])}), "
-                    f"considerando câmbio de R$ {fmt_num(M['cambio_usd_brl'], 2)}/USD."
-                ),
-                "conclusion": (
-                    f"Gap de {fmt_usd(M['poupanca_cambial_gap_usd'])} com aporte atual de {fmt_currency(M['aporte_cambial_mensal'])}/mês em Wise, "
-                    f"atingindo meta em {M['meses_para_cambial']} meses. "
-                    "Risco mitigado por diversificação USD/EUR, renda PJ em BRL e flexibilidade de data de mudança."
+                    f"Frequência média de {fmt_num(M.get('viagens_anuais_estimadas', 0), 0)} viagens/ano "
+                    f"com custo unitário entre {fmt_currency(M.get('custo_viagem_minimo', 0))} e "
+                    f"{fmt_currency(M.get('custo_viagem_maximo', 0))} — orçamento incorporado ao planejamento de fluxo de caixa."
                 ),
             },
         }
