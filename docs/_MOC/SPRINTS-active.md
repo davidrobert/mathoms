@@ -15,8 +15,8 @@ aliases: ["SPRINTS-active", "sprints-active"]
 32 tasks em 6 ondas, 138 findings consolidados de revisão multi-agente (data-engineer + financial-planner + product-designer + sre-devops + build-vs-buy + senior-cto), 6 ADRs Proposto (ADR-170 a ADR-175).
 
 - **W1** ✅ entregue.
-- **W2-W6** abertas conforme [docs/PLATFORM_REVIEW_PLAN.md](../PLATFORM_REVIEW_PLAN.md) (vai migrar para `plan/PLATFORM_REVIEW/_README.md` em F3).
-- **A11.docreorg** (esta lane): execução do plano DOC_REORG ([ADR-182](../DECISIONS.md#adr-182--vault-de-documentação-operacional-obsidian-friendly-em-docs)).
+- **W2-W6** abertas conforme [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md).
+- **A11.docreorg** (esta lane): execução do plano [DOC_REORG](../plan/DOC_REORG/_README.md) ([ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md)).
 
 ## Pickup — antes de pegar lane
 
@@ -36,4 +36,4 @@ aliases: ["SPRINTS-active", "sprints-active"]
 | A9 | done | Multi-front improvements. |
 | A10 | done | `goals.json` cutover final ([ADR-090](../adr/090-decimal-money.md) supersedes parcial). |
 
-> Detalhe completo migra para `sprint/<X>/_README.md` na F4. Hoje (F1), permanece em [BACKLOG](../BACKLOG.md) (legado).
+> Tracks por sprint disponíveis em [`docs/sprint/A6/tracks/`](../sprint/A6/tracks/), [`A7/tracks/`](../sprint/A7/tracks/), [`A8/tracks/`](../sprint/A8/tracks/), [`A11/tracks/`](../sprint/A11/tracks/), [`F7/tracks/`](../sprint/F7/tracks/), [`F9/tracks/`](../sprint/F9/tracks/), [`W5/tracks/`](../sprint/W5/tracks/), [`W6/tracks/`](../sprint/W6/tracks/). Lanes ainda em [BACKLOG](../BACKLOG.md) (legado); migração em F4.

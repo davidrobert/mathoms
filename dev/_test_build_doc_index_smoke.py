@@ -22,7 +22,7 @@ def _make_test_note(
     tags: tuple[str, ...] = (),
     phase: str | None = None,
 ):
-    """Helper para construir Note in-memory sem tocar disco."""
+    """Helper para construir Note ADR in-memory sem tocar disco."""
     raw: dict[str, Any] = {"id": id_, "type": "adr", "status": status, "title": title}
     if phase is not None:
         raw["phase"] = phase
@@ -34,6 +34,90 @@ def _make_test_note(
         status=status,
         title=title,
         tags=tags,
+        raw=raw,
+    )
+
+
+def _build_plan_raw(
+    id_: str,
+    status: str,
+    title: str,
+    extras: dict[str, Any],
+) -> dict[str, Any]:
+    """Monta o dict `raw` (frontmatter) para um plan, omitindo chaves None/vazias."""
+    raw: dict[str, Any] = {"id": id_, "type": "plan", "status": status, "title": title}
+    for key, value in extras.items():
+        if value is None or value == ():
+            continue
+        raw[key] = list(value) if isinstance(value, tuple) else value
+    return raw
+
+
+def _make_test_plan(
+    note_cls: type,
+    *,
+    id_: str,
+    status: str = "in_progress",
+    title: str = "",
+    sprint_atual: str | None = None,
+    sprints_envolvidas: tuple[str, ...] = (),
+    adrs_canonical: tuple[str, ...] = (),
+    paused_at: str | None = None,
+    pause_reason: str | None = None,
+):
+    """Helper para construir Note plan in-memory sem tocar disco."""
+    raw = _build_plan_raw(
+        id_,
+        status,
+        title,
+        {
+            "sprint_atual": sprint_atual,
+            "sprints_envolvidas": sprints_envolvidas,
+            "adrs_canonical": adrs_canonical,
+            "paused_at": paused_at,
+            "pause_reason": pause_reason,
+        },
+    )
+    slug = id_.removeprefix("PLAN-").upper()
+    return note_cls(
+        path=DOCS / f"plan/{slug}/_README.md",
+        id=id_,
+        type="plan",
+        status=status,
+        title=title,
+        tags=(),
+        raw=raw,
+    )
+
+
+def _make_test_lane(
+    note_cls: type,
+    *,
+    id_: str,
+    sprint: str,
+    status: str = "open",
+    plan: str | None = None,
+    title: str = "",
+):
+    """Helper para construir Note lane in-memory sem tocar disco."""
+    raw: dict[str, Any] = {
+        "id": id_,
+        "type": "lane",
+        "status": status,
+        "title": title,
+        "sprint": sprint,
+    }
+    if plan is not None:
+        raw["plan"] = plan
+    return note_cls(
+        path=DOCS / f"sprint/{sprint}/lanes/{id_}.md",
+        id=id_,
+        type="lane",
+        status=status,
+        title=title,
+        sprint=sprint,
+        plan=plan,
+        tags=(),
         raw=raw,
     )
 
@@ -130,8 +214,117 @@ def _assert_deterministic_order(build_fn: Callable[[list], str], note_cls: type)
     return []
 
 
-def run_smoke_tests(*, note_cls: type, build_fn, load_fn, category_fn) -> int:
-    """Roda os 7 smoke tests; print errors em stderr; return 0 ok / 1 falha."""
+_PLAN_RICH_FRAGMENTS: tuple[str, ...] = (
+    "2 planos detectados",
+    "## Em execução (`in_progress`)",
+    "## Pausados (`paused`)",
+    "### PLAN-x — Plano X",
+    "### PLAN-y — Plano Y",
+    "Status: `in_progress`",
+    "Status: `paused`",
+    "Sprint atual: A11",
+    "ADRs canônicas: [[ADR-182]]",
+    "Pausado em: 2026-04-15 · Razão: aguarda OKR FY26",
+    "_Lanes serão linkadas após Fase 4",
+)
+
+
+def _assert_plan_empty_vault(plan_build_fn: Callable[[list], str]) -> list[str]:
+    """Test 8: vault sem plans — output coerente (stub)."""
+    out = plan_build_fn([])
+    bad: list[str] = []
+    if "0 planos em" not in out:
+        bad.append("test8: empty vault — sem mensagem '0 planos em'")
+    if "## Em execução" in out:
+        bad.append("test8: empty vault — não deveria ter seção de status")
+    return bad
+
+
+def _rich_plan_fixture(note_cls: type) -> list:
+    """2 plans (in_progress + paused) usados pelo test 9."""
+    return [
+        _make_test_plan(
+            note_cls,
+            id_="PLAN-x",
+            status="in_progress",
+            title="Plano X",
+            sprint_atual="A11",
+            sprints_envolvidas=("A11",),
+            adrs_canonical=("[[ADR-182]]",),
+        ),
+        _make_test_plan(
+            note_cls,
+            id_="PLAN-y",
+            status="paused",
+            title="Plano Y",
+            paused_at="2026-04-15",
+            pause_reason="aguarda OKR FY26",
+        ),
+    ]
+
+
+def _assert_plan_rich(plan_build_fn: Callable[[list], str], note_cls: type) -> list[str]:
+    """Test 9: 2 plans em status diferentes + lanes vazias — fragmentos editoriais."""
+    out = plan_build_fn(_rich_plan_fixture(note_cls))
+    return [f"test9: fragmento ausente: {f!r}" for f in _PLAN_RICH_FRAGMENTS if f not in out]
+
+
+def _plan_with_lanes_fixture(note_cls: type) -> list:
+    """1 plan + 4 lanes (3 ligadas, 1 de outro plano) usados pelo test 10."""
+    plan = _make_test_plan(
+        note_cls,
+        id_="PLAN-z",
+        status="in_progress",
+        title="Plano Z",
+        sprint_atual="A11",
+    )
+    lanes = [
+        _make_test_lane(note_cls, id_="A11.1", sprint="A11", status="shipped", plan="PLAN-z"),
+        _make_test_lane(note_cls, id_="A11.2", sprint="A11", status="in_progress", plan="PLAN-z"),
+        _make_test_lane(note_cls, id_="A11.3", sprint="A10", status="open", plan="PLAN-z"),
+        _make_test_lane(note_cls, id_="A11.4", sprint="A11", status="open", plan="OTHER-PLAN"),
+    ]
+    return [plan, *lanes]
+
+
+def _assert_plan_with_lanes(plan_build_fn: Callable[[list], str], note_cls: type) -> list[str]:
+    """Test 10: plan + lanes ligadas — contagem por status correta + sprints derivadas."""
+    out = plan_build_fn(_plan_with_lanes_fixture(note_cls))
+    bad: list[str] = []
+    if "1 done · 1 in_progress · 1 open · 0 blocked" not in out:
+        bad.append("test10: contagem de lanes errada (esperado 1 done · 1 in_progress · 1 open)")
+    if "Sprints envolvidas: A10, A11" not in out:
+        bad.append("test10: sprints derivadas das lanes erradas (esperado A10, A11)")
+    if "_Lanes serão linkadas após Fase 4" in out:
+        bad.append("test10: aviso F4 não deveria aparecer (vault tem lanes)")
+    return bad
+
+
+def _assert_plan_status_order(plan_build_fn: Callable[[list], str], note_cls: type) -> list[str]:
+    """Test 11: ordem editorial in_progress > paused > done > cancelled."""
+    plans = [
+        _make_test_plan(note_cls, id_="PLAN-c", status="cancelled", title="C"),
+        _make_test_plan(note_cls, id_="PLAN-d", status="done", title="D"),
+        _make_test_plan(note_cls, id_="PLAN-p", status="paused", title="P"),
+        _make_test_plan(note_cls, id_="PLAN-i", status="in_progress", title="I"),
+    ]
+    out = plan_build_fn(plans)
+    p_ip = out.find("## Em execução")
+    p_paused = out.find("## Pausados")
+    p_done = out.find("## Concluídos")
+    p_cancelled = out.find("## Cancelados")
+    if not (0 < p_ip < p_paused < p_done < p_cancelled):
+        return [
+            "test11: ordem editorial errada "
+            f"(in_progress={p_ip}, paused={p_paused}, done={p_done}, cancelled={p_cancelled})"
+        ]
+    return []
+
+
+def _run_adr_smoke_tests(
+    build_fn: Callable, load_fn: Callable, category_fn: Callable, note_cls: type
+) -> list[str]:
+    """7 smoke tests do ADR_INDEX (mantidos do baseline F2.C)."""
     failures: list[str] = []
     failures.extend(_assert_empty_vault(build_fn))
     failures.extend(_assert_single_adr(build_fn, note_cls))
@@ -142,10 +335,64 @@ def run_smoke_tests(*, note_cls: type, build_fn, load_fn, category_fn) -> int:
     if build_fn(notes) != out:
         failures.append("test6: build_adr_index_md NÃO é idempotente")
     failures.extend(_assert_deterministic_order(build_fn, note_cls))
+    return failures
+
+
+def _assert_plan_idempotency(plan_build_fn: Callable, note_cls: type) -> list[str]:
+    """Test 10b: build_plan_progress_md determinístico — 2x mesmo input = mesmo output."""
+    sample = [_make_test_plan(note_cls, id_="PLAN-x", status="in_progress", title="X")]
+    if plan_build_fn(sample) != plan_build_fn(sample):
+        return ["plan-idemp: build_plan_progress_md NÃO é idempotente"]
+    return []
+
+
+def _run_plan_smoke_tests(plan_build_fn: Callable, note_cls: type) -> list[str]:
+    """5 smoke tests do PLAN_PROGRESS (F3.C)."""
+    failures: list[str] = []
+    failures.extend(_assert_plan_empty_vault(plan_build_fn))
+    failures.extend(_assert_plan_rich(plan_build_fn, note_cls))
+    failures.extend(_assert_plan_idempotency(plan_build_fn, note_cls))
+    failures.extend(_assert_plan_with_lanes(plan_build_fn, note_cls))
+    failures.extend(_assert_plan_status_order(plan_build_fn, note_cls))
+    return failures
+
+
+def _print_failures(failures: list[str]) -> None:
+    """Imprime falhas em stderr (helper de output)."""
+    print("✗ smoke tests falharam:", file=sys.stderr)
+    for f in failures:
+        print(f"  - {f}", file=sys.stderr)
+
+
+def _print_success(total: int, has_plan: bool) -> None:
+    """Imprime mensagem de sucesso com lista de testes rodados."""
+    plan_msg = (
+        ", plan-empty, plan-rich, plan-idemp, plan-with-lanes, plan-status-order"
+        if has_plan
+        else ""
+    )
+    print(
+        f"✓ {total} smoke tests passaram "
+        f"(vault vazio, 1 ADR, _load, override, status, idemp, ordem{plan_msg})."
+    )
+
+
+def run_smoke_tests(
+    *,
+    note_cls: type,
+    build_fn,
+    load_fn,
+    category_fn,
+    plan_build_fn=None,
+) -> int:
+    """Roda smoke tests; print errors em stderr; return 0 ok / 1 falha."""
+    failures = _run_adr_smoke_tests(build_fn, load_fn, category_fn, note_cls)
+    plan_tests = 0
+    if plan_build_fn is not None:
+        failures.extend(_run_plan_smoke_tests(plan_build_fn, note_cls))
+        plan_tests = 5
     if failures:
-        print("✗ smoke tests falharam:", file=sys.stderr)
-        for f in failures:
-            print(f"  - {f}", file=sys.stderr)
+        _print_failures(failures)
         return 1
-    print("✓ 7 smoke tests passaram (vault vazio, 1 ADR, _load, override, status, idemp, ordem).")
+    _print_success(7 + plan_tests, plan_build_fn is not None)
     return 0

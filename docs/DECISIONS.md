@@ -14,7 +14,7 @@
 1. Crie `docs/adr/NNN-<slug>.md` (NNN = 3 dígitos zero-padded, próximo número livre).
 2. Frontmatter obrigatório: `id` (`ADR-NNN`), `type: adr`, `title`, `status` (`Decidido` | `Proposto` | `Roadmap`), `date` (string ISO, com aspas).
 3. Tags: `type/adr`, `status/<status-lowercase>`, opcional `area/<dominio>`, `phase/<fase>`.
-4. Body: contexto → decisão → consequências (ver `docs/DOC_REORG_PLAN.md` §3.1).
+4. Body: contexto → decisão → consequências (ver `docs/plan/DOC_REORG/_README.md` §3.1).
 5. Validação: `python3 dev/validate_frontmatter.py docs/adr/NNN-<slug>.md`.
 6. Regenere índice: `python3 dev/build_doc_index.py --inline`.
 

@@ -155,7 +155,7 @@ def build_index_md(notes: list[Note]) -> str:
     return _join(lines)
 
 
-# Categorização e renderer ADR_INDEX vivem em _adr_index_renderer.py para manter
+# Renderers vivem em _adr_index_renderer.py + _plan_progress_renderer.py para manter
 # este módulo <500 linhas (guideline CLAUDE.md). F2.F deletará dev/build_adr_toc.py.
 try:
     from _adr_index_renderer import (  # noqa: E402
@@ -163,12 +163,14 @@ try:
         category_for_adr,
         render_adr_index,
     )
+    from _plan_progress_renderer import render_plan_progress  # noqa: E402
 except ModuleNotFoundError:  # pragma: no cover
     from dev._adr_index_renderer import (  # noqa: E402
         _load_adr_categories,
         category_for_adr,
         render_adr_index,
     )
+    from dev._plan_progress_renderer import render_plan_progress  # noqa: E402
 
 
 def build_adr_index_md(notes: list[Note]) -> str:
@@ -286,31 +288,11 @@ def build_roadmap_md(notes: list[Note]) -> str:
     return _join(lines)
 
 
-def _plan_progress_row(plan_id: str, entries: list[Note]) -> str:
-    """Conta lanes por status conhecido e formata uma linha da tabela de progresso."""
-    shipped = sum(1 for n in entries if n.status == "shipped")
-    in_progress = sum(1 for n in entries if n.status == "in_progress")
-    open_ = sum(1 for n in entries if n.status == "open")
-    others = len(entries) - shipped - in_progress - open_
-    return f"| {plan_id} | {len(entries)} | {shipped} | {in_progress} | {open_} | {others} |"
-
-
 def build_plan_progress_md(notes: list[Note]) -> str:
-    """Gera PLAN_PROGRESS.md — agrega lanes por plano (campo `plan:` do frontmatter)."""
-    lines = _header("Progresso por plano multi-fase")
-    lanes = [n for n in notes if n.type == "lane" and n.plan]
-    if not lanes:
-        lines.append("_Nenhuma lane com `plan:` declarado ainda (Fases 3-4 do plano popularão)._")
-        return _join(lines)
-    by_plan: dict[str, list[Note]] = {}
-    for note in lanes:
-        assert note.plan is not None
-        by_plan.setdefault(note.plan, []).append(note)
-    lines.append("| plano | total | shipped | in_progress | open | outras |")
-    lines.append("| --- | --- | --- | --- | --- | --- |")
-    for plan_id in sorted(by_plan):
-        lines.append(_plan_progress_row(plan_id, by_plan[plan_id]))
-    return _join(lines)
+    """Gera PLAN_PROGRESS.md — sub-agrupa plans por status + lista lanes por plano."""
+    plans = [n for n in notes if n.type == "plan"]
+    lanes = [n for n in notes if n.type == "lane"]
+    return _join(render_plan_progress(plans, lanes, _header))
 
 
 def regenerate_all(docs_root: Path) -> dict[str, str]:
@@ -415,6 +397,7 @@ def _run_self_test() -> int:
         build_fn=build_adr_index_md,
         load_fn=_load_adr_categories,
         category_fn=category_for_adr,
+        plan_build_fn=build_plan_progress_md,
     )
 
 

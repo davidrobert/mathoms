@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://mathoms.ai/schemas/note-adr.schema.json",
   "title": "Frontmatter de nota ADR (Architectural Decision Record)",
-  "description": "Valida o bloco YAML no topo de docs/adr/NNN-slug.md. Spec: docs/DOC_REORG_PLAN.md §3.1. additionalProperties=true para permitir campos editoriais não-canônicos.",
+  "description": "Valida o bloco YAML no topo de docs/adr/NNN-slug.md. Spec: docs/plan/DOC_REORG/_README.md §3.1. additionalProperties=true para permitir campos editoriais não-canônicos.",
   "type": "object",
   "additionalProperties": true,
   "required": ["id", "type", "title", "status", "date"],

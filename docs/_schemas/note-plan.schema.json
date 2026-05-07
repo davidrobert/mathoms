@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://mathoms.ai/schemas/note-plan.schema.json",
   "title": "Frontmatter de nota Plan (plano canônico multi-fase)",
-  "description": "Valida o bloco YAML no topo de docs/plan/<SLUG>/_README.md. Spec: docs/DOC_REORG_PLAN.md §3.3.",
+  "description": "Valida o bloco YAML no topo de docs/plan/<SLUG>/_README.md. Spec: docs/plan/DOC_REORG/_README.md §3.3.",
   "type": "object",
   "additionalProperties": true,
   "required": ["id", "type", "title", "status", "created_at"],
