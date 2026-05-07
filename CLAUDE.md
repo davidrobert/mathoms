@@ -1008,3 +1008,4 @@ Conteúdo que **era** duplicado neste arquivo e agora vive em sua fonte
 | Fluxo de PR (humano + agente) — branch naming, template, gates locais + CI, Dependabot, stale bot | [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) |
 | Política de disclosure de vulnerabilidades (LGPD)   | [SECURITY.md](SECURITY.md)                                                                  |
 | Plano canônico do shell Report Premium — v1 (10 fases ✅) + v2 §17 (🚧, ondas A-F paralelizadas), paridade React com EXEMPLO_DE_RELATORIO.html, único renderer pós-ADR-129 | [docs/REPORT_PREMIUM_PLAN.md](docs/REPORT_PREMIUM_PLAN.md)                      |
+| Cutover final `config/goals.json` (Sprint A10, proposta 2026-05-06) — 9 lanes em 4 ondas, 5 ADRs (ADR-176 a ADR-180), inventário de 22 chaves do legado, fecha checkbox ADR-077 | [docs/GOALS_JSON_CUTOVER_PLAN.md](docs/GOALS_JSON_CUTOVER_PLAN.md)              |
