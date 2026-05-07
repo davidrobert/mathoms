@@ -5,8 +5,9 @@ Heurística de detecção:
 - Target extraído via regex BRL do title (ex: "R$ 20k/mês", "R$ 20.000").
   Se não encontrado, usa `goals.aportes.meta_aporte_mensal` do goals.json
   via adapter (F8.4 trará isso nativo; por ora, target=None se não parseável).
-- Keywords de matching vêm de `config/goals.json` →
-  `dashboard.aporte_match_keywords.<destino>` (cofrinhos, tesouro, etc.).
+- Keywords de matching: `_APORTE_MATCH_KEYWORDS` (rules-as-code, ADR-177).
+  Migrou de `config/goals.json::dashboard.aporte_match_keywords` para
+  constante imutável em A10.2 (gate intencional de revisão por PR).
 
 Transações são carregadas via `transaction_service.load_transactions`
 (filesystem E4). Futuramente (F8.4+) virá do DB direto.
@@ -17,19 +18,20 @@ não cobre a task, e a UI esconde o card.
 
 from __future__ import annotations
 
-import json
 import re
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
 from typing import Optional
 
 from backend.app.models.task import Task
 from backend.app.schemas.task import TaskProgress
 from backend.app.services.transaction_service import load_transactions
 
-# Keywords default caso `config/goals.json` não esteja acessível.
-_DEFAULT_APORTE_KEYWORDS: list[str] = [
+# Keywords de matching de aporte mensal — migradas de
+# ``goals.json::dashboard.aporte_match_keywords`` (ADR-177, Sprint A10.2).
+# Buckets originais (cofrinhos / tesouro / ivvb11 / wise) achatados em
+# tupla — consumo é "matched any keyword", não por bucket.
+_APORTE_MATCH_KEYWORDS: tuple[str, ...] = (
     "aporte",
     "cofrinho",
     "cofrinhos",
@@ -38,38 +40,16 @@ _DEFAULT_APORTE_KEYWORDS: list[str] = [
     "tesouro",
     "ipca+",
     "ipca +",
+    "td ipca",
     "ivvb11",
     "ivvb",
     "wise",
     "s&p",
     "sp500",
-]
-
-
-def _load_aporte_keywords_from_config(tenant_root: Optional[str] = None) -> list[str]:
-    """Tenta ler config/goals.json do tenant. Se ausente ou malformado,
-    volta para default."""
-    if not tenant_root:
-        return _DEFAULT_APORTE_KEYWORDS
-    path = Path(tenant_root) / "config" / "goals.json"
-    if not path.exists():
-        # tenta caminho do repo (single-tenant legado)
-        repo_path = Path(__file__).resolve().parents[3] / "config" / "goals.json"
-        if not repo_path.exists():
-            return _DEFAULT_APORTE_KEYWORDS
-        path = repo_path
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        buckets = data.get("dashboard", {}).get("aporte_match_keywords", {}) or {}
-        if not buckets:
-            return _DEFAULT_APORTE_KEYWORDS
-        out: list[str] = []
-        for lst in buckets.values():
-            if isinstance(lst, list):
-                out.extend(str(k).lower() for k in lst)
-        return out or _DEFAULT_APORTE_KEYWORDS
-    except (json.JSONDecodeError, OSError):
-        return _DEFAULT_APORTE_KEYWORDS
+    "usd",
+    "dolar",
+    "dólar",
+)
 
 
 # Regex para extrair valor BRL do title. Cobre: R$ 20k, R$20.000, R$ 1.234,56,
@@ -233,11 +213,14 @@ def compute_progress(
 
     target = _parse_brl_target(task.title)
     period_start, period_end = _current_month_period()
-    keywords = _load_aporte_keywords_from_config(tenant_root)
 
     executed, matched_count, matched_keywords_set = (
         _match_transactions_by_keyword(
-            workspace_id, tenant_root, keywords, period_start, period_end
+            workspace_id,
+            tenant_root,
+            list(_APORTE_MATCH_KEYWORDS),
+            period_start,
+            period_end,
         )
         if tenant_root and workspace_id
         else (Decimal("0"), 0, set())

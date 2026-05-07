@@ -8639,7 +8639,7 @@ A justificativa que destrava o follow-up é a mesma de ADR-166: ADR-143 (methodo
 
 ## ADR-177 — Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`)
 
-**Status:** Proposto • **Data:** 2026-05-06 • **Aplica** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §2.2 chaves U/M/O](GOALS_JSON_CUTOVER_PLAN.md).
+**Status:** Decidido (Sprint A10.2) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Aplica** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [GOALS_JSON_CUTOVER_PLAN.md §2.2 chaves U/M/O](GOALS_JSON_CUTOVER_PLAN.md).
 
 **Contexto:** O `config/goals.json` (arquivado em F8.4 mas ainda materializado em runtime por [`pipeline_task.py::_materialize_adapter_configs`](../backend/app/tasks/pipeline_task.py:56)) carrega 22 chaves heterogêneas. Inventário decisional do plano canônico classificou 7 delas como **universais (U) / metodológicas (M) / operacionais (O)** — não variam por cliente, são thresholds ou referências de mercado. ADR-143 (Sprint A7.6) já estabeleceu doutrina: regras universais de produto vivem em **docstrings + constantes em módulos enforcers** + ADR canônica como rationale. JSON externo para esses valores é o anti-padrão exato que ADR-143 combate — vira mock-config-driven pois ninguém edita o arquivo em produção.
 
