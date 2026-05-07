@@ -101,20 +101,23 @@ class PerfilFamiliaNarrator:
             f"{_endereco.get('cidade', '')}.</p>"
         )
 
+        # ADR-168 cleanup (Sprint A10.1): primeiro parágrafo reescrito sem
+        # EUA. Antes citava plano de mudança via visto F1/F2 + custo da
+        # fase USA — chaves dead-data do Modo USA removido em A8.4 PR4.
+        # Refoca em IF (já era o segundo parágrafo) e amplia panorama.
         right = (
-            f"<p>Plano de vida centrado na mudança para os EUA via visto {M['f1f2_visto']} "
-            f"({M['f1f2_universidade']}), seguido de Green Card por {M['f1f2_green_card_via']}. "
-            f"{M[ctx.key_f1f2_titular]}; {M[ctx.key_f1f2_conjuge]}. "
-            f"Custo projetado: {fmt_currency(M['custo_fase_f1f2'])}/mês, com sobra de "
-            f"{fmt_currency(M['sobra_mensal_f1f2'])}/mês.</p>\n"
-            f"<p>Meta IF: {fmt_currency(M['if_meta'])} (TRS {fmt_num(M['if_trs_pct'], 0)}%, renda passiva de {fmt_currency(M['if_renda_passiva_meta'])}/mês). "
+            f"<p>Meta de independência financeira de {fmt_currency(M['if_meta'])} (TRS {fmt_num(M['if_trs_pct'], 0)}%, "
+            f"renda passiva de {fmt_currency(M['if_renda_passiva_meta'])}/mês). "
             f"Patrimônio investível atual de {fmt_currency(M['patrimonio_investivel'])} ({fmt_percent(M['progresso_if'])} da meta). "
             f"Com aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a., "
-            f"prazo de {M['anos_para_if_calculo']} anos ({ctx.titular_nome} {M[ctx.key_idade_titular_if]} anos, {M['if_ano']}).</p>\n"
+            f"prazo realista de {M['anos_para_if_calculo']} anos ({ctx.titular_nome} {M[ctx.key_idade_titular_if]} anos, {M['if_ano']}).</p>\n"
             f"<p>Patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])}: "
             f"{M['n_imoveis']} imóveis ({fmt_currency(M['residencia'])} residência + {fmt_currency(M['imoveis_investimento'])} investimento), "
             f"carteiras {ctx.titular_nome} ({fmt_currency(M[ctx.key_inv_titular])}) e {ctx.conjuge_nome} ({fmt_currency(M[ctx.key_inv_conjuge])}). "
-            f"Endividamento de {fmt_percent(M['taxa_endividamento'])} — saudável.</p>"
+            f"Endividamento de {fmt_percent(M['taxa_endividamento'])} — saudável.</p>\n"
+            f"<p>Carteira diversificada entre {M['diversificacao']} categorias de ativos. "
+            f"Score financeiro de {fmt_num(M['score'])}/10 ({M['score_label']}), com taxa de poupança recorrente de {fmt_percent(M['taxa_poupanca'])} "
+            f"e cobertura de {fmt_num(M['cobertura_meses'])} meses de despesas — base sólida para o plano IF.</p>"
         )
 
         return {"left": left, "right": right}
