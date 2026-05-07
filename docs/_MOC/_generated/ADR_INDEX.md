@@ -189,7 +189,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-087]] — StageSpec: dependências declarativas
 - [[ADR-088]] — StageConfig: configuração imutável por parâmetro
 - [[ADR-089]] — pipeline/domain/: camada de domínio isolada de I/O
-- [[ADR-090]] — Decimal para valores monetários
+- [[ADR-090]] — Decimal para valores monetários · phase F5.2
 - [[ADR-091]] — Pydantic para domain objects com coleções
 - [[ADR-093]] — Rename completo de identificadores de stage (Opção A) · phase F9 · execução em andamento
 - [[ADR-094]] — Report: single-active vs. versionado · phase single-active para F9; evolução planejada

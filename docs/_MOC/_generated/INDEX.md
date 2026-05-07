@@ -87,7 +87,7 @@
 | ADR-087 | adr | Decidido |  | StageSpec: dependências declarativas | `adr/087-stagespec-dependencias-declarativas.md` |
 | ADR-088 | adr | Decidido |  | StageConfig: configuração imutável por parâmetro | `adr/088-stageconfig-configuracao-imutavel-por-parametro.md` |
 | ADR-089 | adr | Decidido |  | pipeline/domain/: camada de domínio isolada de I/O | `adr/089-pipelinedomain-camada-de-dominio-isolada-de-io.md` |
-| ADR-090 | adr | Decidido |  | Decimal para valores monetários | `adr/090-decimal-para-valores-monetarios.md` |
+| ADR-090 | adr | Decidido |  | Decimal para valores monetários | `adr/090-decimal-money.md` |
 | ADR-091 | adr | Decidido |  | Pydantic para domain objects com coleções | `adr/091-pydantic-para-domain-objects-com-colecoes.md` |
 | ADR-092 | adr | Proposto |  | Renomear scripts para nomes descritivos de domínio | `adr/092-renomear-scripts-para-nomes-descritivos-de-dominio.md` |
 | ADR-093 | adr | Decidido |  | Rename completo de identificadores de stage (Opção A) | `adr/093-rename-completo-de-identificadores-de-stage.md` |

@@ -151,12 +151,9 @@ repos:
         files: ^docs/DECISIONS\.md$
         pass_filenames: false
 
-      - id: adr-toc
-        name: "DECISIONS.md: ToC sincronizado com headings"
-        entry: python3 dev/build_adr_toc.py --check
-        language: system
-        files: ^docs/DECISIONS\.md$
-        pass_filenames: false
+      # adr-toc removido em F2.F (DOC_REORG / ADR-182): ToC inline em
+      # DECISIONS.md foi substituído por _MOC/_generated/ADR_INDEX.md
+      # gerado por dev/build_doc_index.py (gate doc-index, mais acima).
 
       - id: adr-format
         name: "DECISIONS.md: formato Status/Data + estrutura mínima"
