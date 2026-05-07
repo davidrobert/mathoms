@@ -1,23 +1,22 @@
 ---
 id: ADR-090
 type: adr
-title: Decimal para valores monetários
+title: "Decimal para valores monetários"
 status: Decidido
-phase: F5.2
 date: "2026-04-19"
-domain: [pipeline, backend, money]
-relates_to: ["[[ADR-097]]", "[[ADR-111]]", "[[ADR-114]]"]
-aliases: ["ADR 090", "Decimal money", "Money Decimal"]
+relates_to: []
+supersedes: []
+superseded_by: []
+aliases: ["ADR 090"]
 tags:
   - type/adr
-  - area/money
-  - area/pipeline
-  - area/backend
   - status/decidido
-  - phase/f5-2
+size_lines: 76
 ---
 
 # ADR-090 — Decimal para valores monetários
+
+**Status:** Decidido • **Data:** 2026-04-19 • **Plano:** Fase 5.2
 
 **Contexto:** `float` tem imprecisão binária — `0.1 + 0.2` é
 `0.30000000000000004`. Somas de centenas de transações acumulam erro.
@@ -48,7 +47,7 @@ Regras firmes:
 
 **Follow-ups (2026-04-22, pós-A6g.6 enforcement):**
 
-- **A6g.6** ([ADR-114](../DECISIONS.md#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6) ✅) instala `dev/check_float_money.py` + detector P5
+- **A6g.6** (ADR-114 ✅) instala `dev/check_float_money.py` + detector P5
   no audit que catalogam os ofensores ainda em `float` (13 em
   `backend/app/` no snapshot 2026-04-22: 7 goal DTOs + 4 transactions +
   1 tolerance + 1 helper).

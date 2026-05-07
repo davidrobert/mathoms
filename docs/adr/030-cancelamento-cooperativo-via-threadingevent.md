@@ -1,0 +1,24 @@
+---
+id: ADR-030
+type: adr
+title: "Cancelamento cooperativo via `threading.Event`"
+status: Decidido
+phase: "F2"
+date: "1970-01-01"
+relates_to: []
+supersedes: []
+superseded_by: []
+aliases: ["ADR 030"]
+tags:
+  - type/adr
+  - status/decidido
+size_lines: 9
+---
+
+# ADR-030 — Cancelamento cooperativo via `threading.Event`
+
+**Status:** Decidido (F2) → Substituído por [D32](#adr-032--cancel-stage-boundary)
+
+**Decisão inicial:** Cooperative cancel via `threading.Event` entre stages.
+
+**Evolução (F5):** Substituído por DB flag + Celery revoke. Mesmo princípio (stage-boundary).
