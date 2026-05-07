@@ -1,0 +1,145 @@
+{
+  "$schema": "doc-token-cost-benchmark/v1",
+  "baseline_2026_05_07": {
+    "Q1": {
+      "approximation": "ceil(chars/4)",
+      "chars": 319661,
+      "tokens": 79916
+    },
+    "Q2": {
+      "approximation": "ceil(chars/4)",
+      "chars": 319661,
+      "tokens": 79916
+    },
+    "Q3": {
+      "approximation": "ceil(chars/4)",
+      "chars": 453136,
+      "tokens": 113284
+    },
+    "Q4": {
+      "approximation": "ceil(chars/4)",
+      "chars": 453136,
+      "tokens": 113284
+    },
+    "Q5": {
+      "approximation": "ceil(chars/4)",
+      "chars": 324557,
+      "tokens": 81140
+    },
+    "Q6": {
+      "approximation": "ceil(chars/4)",
+      "chars": 218661,
+      "tokens": 54666
+    }
+  },
+  "description": "Custo em tokens de queries-benchmark sobre docs/ (ADR-182). tokens = ceil(chars/4).",
+  "latest": {
+    "Q1": {
+      "measured_at": "2026-05-07",
+      "phase": "F1",
+      "tokens": 79916
+    },
+    "Q2": {
+      "measured_at": "2026-05-07",
+      "phase": "F1",
+      "tokens": 79916
+    },
+    "Q3": {
+      "measured_at": "2026-05-07",
+      "phase": "F1",
+      "tokens": 113284
+    },
+    "Q4": {
+      "measured_at": "2026-05-07",
+      "phase": "F1",
+      "tokens": 113284
+    },
+    "Q5": {
+      "measured_at": "2026-05-07",
+      "phase": "F1",
+      "tokens": 81140
+    },
+    "Q6": {
+      "measured_at": "2026-05-07",
+      "phase": "F1",
+      "tokens": 54666
+    }
+  },
+  "queries": {
+    "Q1": {
+      "files_read": [
+        "docs/BACKLOG.md"
+      ],
+      "name": "Adicionar lane no BACKLOG",
+      "operation": "leitura completa para inserir 1 lane"
+    },
+    "Q2": {
+      "files_read": [
+        "docs/BACKLOG.md"
+      ],
+      "name": "Atualizar status de lane",
+      "operation": "leitura completa para achar seção e editar"
+    },
+    "Q3": {
+      "files_read": [
+        "docs/CHANGELOG.md"
+      ],
+      "name": "Adicionar entrada no CHANGELOG",
+      "operation": "leitura completa para inserir bullet do dia"
+    },
+    "Q4": {
+      "files_read": [
+        "docs/CHANGELOG.md"
+      ],
+      "name": "Atualizar entrada do CHANGELOG",
+      "operation": "leitura completa para achar entrada e editar"
+    },
+    "Q5": {
+      "files_read": [
+        "docs/BACKLOG.md",
+        "docs/CHANGELOG.md (last 100 lines)"
+      ],
+      "name": "Descobrir lanes prontas para pickup",
+      "operation": "cross-check estado entre BACKLOG e CHANGELOG recente"
+    },
+    "Q6": {
+      "files_read": [
+        "docs/*PLAN.md"
+      ],
+      "name": "Listar planos não finalizados",
+      "operation": "leitura de todos os planos para descobrir status"
+    }
+  },
+  "target": {
+    "Q1": {
+      "rationale": "lê só sprint/<X>/_README.md + cria nova lane atômica",
+      "reduction_pct": 94,
+      "tokens": 3000
+    },
+    "Q2": {
+      "rationale": "lê só sprint/<X>/lanes/<id>.md",
+      "reduction_pct": 99,
+      "tokens": 1000
+    },
+    "Q3": {
+      "rationale": "cria changelog/<id>.md atômico",
+      "reduction_pct": 99,
+      "tokens": 1000
+    },
+    "Q4": {
+      "rationale": "edita entrada atômica",
+      "reduction_pct": 99.6,
+      "tokens": 500
+    },
+    "Q5": {
+      "rationale": "lê _MOC/_generated/SPRINT_CURRENT.md filtrado",
+      "reduction_pct": 98,
+      "tokens": 1000
+    },
+    "Q6": {
+      "rationale": "lê _MOC/PLANS-active.md (status sem expandir)",
+      "reduction_pct": 80,
+      "tokens": 1000
+    }
+  }
+}
