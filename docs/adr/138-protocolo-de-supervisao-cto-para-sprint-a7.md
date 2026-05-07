@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 138"]
 tags:
-  - type/adr
+  - area/persistence
+  - area/pipeline
+  - area/testing
   - status/decidido
+  - type/adr
 size_lines: 78
 ---
 

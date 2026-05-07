@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 116"]
 tags:
-  - type/adr
+  - area/auth
+  - area/ops
+  - area/persistence
   - status/decidido
+  - type/adr
 size_lines: 196
 ---
 

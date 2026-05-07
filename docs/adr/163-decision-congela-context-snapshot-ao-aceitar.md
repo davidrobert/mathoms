@@ -10,8 +10,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 163"]
 tags:
-  - type/adr
+  - area/persistence
+  - methodology/auvp
+  - methodology/cerbasi
+  - methodology/perini
   - status/decidido
+  - type/adr
 size_lines: 47
 ---
 

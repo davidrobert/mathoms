@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: ["[[ADR-144]]"]
 aliases: ["ADR 122"]
 tags:
-  - type/adr
+  - area/llm
+  - area/pipeline
+  - area/report
   - status/decidido
+  - type/adr
 size_lines: 46
 ---
 

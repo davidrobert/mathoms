@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 112"]
 tags:
-  - type/adr
+  - area/backend
+  - area/ops
+  - area/pipeline
   - status/decidido
+  - type/adr
 size_lines: 89
 ---
 

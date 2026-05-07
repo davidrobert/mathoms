@@ -9,8 +9,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 108"]
 tags:
-  - type/adr
+  - area/multitenancy
+  - area/ops
+  - area/security
   - status/decidido
+  - type/adr
 size_lines: 105
 ---
 

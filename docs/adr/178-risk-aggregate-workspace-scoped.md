@@ -10,8 +10,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 178"]
 tags:
-  - type/adr
+  - area/backend
+  - area/multitenancy
+  - area/persistence
+  - methodology/cerbasi
   - status/decidido
+  - type/adr
 size_lines: 60
 ---
 

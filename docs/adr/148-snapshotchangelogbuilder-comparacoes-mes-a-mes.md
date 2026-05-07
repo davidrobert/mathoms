@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 148"]
 tags:
-  - type/adr
+  - area/multitenancy
+  - area/pipeline
+  - area/report
   - status/decidido
+  - type/adr
 size_lines: 248
 ---
 

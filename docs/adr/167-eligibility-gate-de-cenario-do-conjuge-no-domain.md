@@ -10,8 +10,13 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 167"]
 tags:
-  - type/adr
+  - area/backend
+  - area/multitenancy
+  - area/pipeline
+  - methodology/cerbasi
+  - methodology/perini
   - status/decidido
+  - type/adr
 size_lines: 52
 ---
 

@@ -10,8 +10,9 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 005"]
 tags:
-  - type/adr
+  - area/ops
   - status/decidido
+  - type/adr
 size_lines: 17
 ---
 

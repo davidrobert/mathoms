@@ -10,8 +10,11 @@ supersedes: ["[[ADR-117]]", "[[ADR-123]]"]
 superseded_by: []
 aliases: ["ADR 168"]
 tags:
-  - type/adr
+  - area/frontend
+  - area/report
+  - area/testing
   - status/decidido
+  - type/adr
 size_lines: 45
 ---
 

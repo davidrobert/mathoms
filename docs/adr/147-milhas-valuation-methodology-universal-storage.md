@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 147"]
 tags:
-  - type/adr
+  - area/money
+  - area/multitenancy
+  - area/persistence
   - status/decidido
+  - type/adr
 size_lines: 42
 ---
 

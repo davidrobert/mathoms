@@ -9,8 +9,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 089"]
 tags:
-  - type/adr
+  - area/money
+  - area/pipeline
+  - area/testing
   - status/decidido
+  - type/adr
 size_lines: 50
 ---
 

@@ -9,8 +9,15 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 160"]
 tags:
-  - type/adr
+  - area/money
+  - area/pipeline
+  - area/report
+  - methodology/auvp
+  - methodology/cerbasi
+  - methodology/perini
+  - phase/a2
   - status/roadmap
+  - type/adr
 size_lines: 72
 ---
 

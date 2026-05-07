@@ -10,8 +10,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 136"]
 tags:
-  - type/adr
+  - area/money
+  - area/multitenancy
+  - area/persistence
+  - methodology/perini
   - status/decidido
+  - type/adr
 size_lines: 119
 ---
 

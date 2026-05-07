@@ -9,8 +9,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 173"]
 tags:
-  - type/adr
+  - area/llm
+  - area/money
+  - area/multitenancy
   - status/proposto
+  - type/adr
 size_lines: 35
 ---
 

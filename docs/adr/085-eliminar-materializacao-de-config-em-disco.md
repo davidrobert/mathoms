@@ -10,8 +10,10 @@ supersedes: ["[[ADR-020]]"]
 superseded_by: []
 aliases: ["ADR 085"]
 tags:
-  - type/adr
+  - area/persistence
+  - area/pipeline
   - status/decidido
+  - type/adr
 size_lines: 32
 ---
 

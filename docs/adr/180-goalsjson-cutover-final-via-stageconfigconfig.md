@@ -10,8 +10,11 @@ supersedes: ["[[ADR-077]]"]
 superseded_by: []
 aliases: ["ADR 180"]
 tags:
-  - type/adr
+  - area/backend
+  - area/persistence
+  - area/pipeline
   - status/decidido
+  - type/adr
 size_lines: 53
 ---
 

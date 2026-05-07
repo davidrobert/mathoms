@@ -10,8 +10,9 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 024"]
 tags:
-  - type/adr
+  - area/llm
   - status/decidido
+  - type/adr
 size_lines: 12
 ---
 

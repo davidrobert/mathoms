@@ -10,8 +10,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 161"]
 tags:
-  - type/adr
+  - area/pipeline
+  - methodology/auvp
+  - methodology/cerbasi
+  - methodology/perini
   - status/decidido
+  - type/adr
 size_lines: 52
 ---
 

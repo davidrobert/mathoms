@@ -9,8 +9,13 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 142"]
 tags:
-  - type/adr
+  - area/multitenancy
+  - area/persistence
+  - area/pipeline
+  - methodology/perini
+  - phase/a7-6
   - status/decidido
+  - type/adr
 size_lines: 30
 ---
 

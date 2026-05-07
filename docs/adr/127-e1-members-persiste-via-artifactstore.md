@@ -9,8 +9,10 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 127"]
 tags:
-  - type/adr
+  - area/multitenancy
+  - area/pipeline
   - status/decidido
+  - type/adr
 size_lines: 54
 ---
 

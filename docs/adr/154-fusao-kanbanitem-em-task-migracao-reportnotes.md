@@ -10,8 +10,11 @@ supersedes: ["[[ADR-123]]"]
 superseded_by: []
 aliases: ["ADR 154"]
 tags:
-  - type/adr
+  - area/backend
+  - area/multitenancy
+  - area/persistence
   - status/decidido
+  - type/adr
 size_lines: 156
 ---
 

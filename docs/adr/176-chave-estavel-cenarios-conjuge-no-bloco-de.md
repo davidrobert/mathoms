@@ -9,8 +9,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 176"]
 tags:
-  - type/adr
+  - area/frontend
+  - area/pipeline
+  - area/report
+  - phase/a8-4
   - status/proposto
+  - type/adr
 size_lines: 39
 ---
 

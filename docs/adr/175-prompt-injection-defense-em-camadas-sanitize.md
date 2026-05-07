@@ -9,8 +9,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 175"]
 tags:
-  - type/adr
+  - area/backend
+  - area/llm
+  - area/pipeline
   - status/proposto
+  - type/adr
 size_lines: 34
 ---
 

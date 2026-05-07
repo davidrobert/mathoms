@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 137"]
 tags:
-  - type/adr
+  - area/backend
+  - area/multitenancy
+  - area/persistence
   - status/decidido
+  - type/adr
 size_lines: 119
 ---
 

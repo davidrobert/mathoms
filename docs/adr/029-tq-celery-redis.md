@@ -10,8 +10,10 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 029-TQ"]
 tags:
-  - type/adr
+  - area/backend
+  - area/pipeline
   - status/decidido
+  - type/adr
 size_lines: 19
 ---
 

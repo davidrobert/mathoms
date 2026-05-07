@@ -10,8 +10,11 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 094"]
 tags:
-  - type/adr
+  - area/persistence
+  - area/pipeline
+  - area/report
   - status/decidido
+  - type/adr
 size_lines: 40
 ---
 

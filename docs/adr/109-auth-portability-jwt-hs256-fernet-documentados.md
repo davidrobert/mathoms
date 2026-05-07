@@ -9,8 +9,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 109"]
 tags:
-  - type/adr
+  - area/auth
+  - area/llm
+  - area/persistence
+  - phase/a6f-5a
   - status/decidido
+  - type/adr
 size_lines: 79
 ---
 

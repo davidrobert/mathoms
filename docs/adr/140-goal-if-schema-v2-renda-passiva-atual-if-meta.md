@@ -9,8 +9,12 @@ supersedes: []
 superseded_by: []
 aliases: ["ADR 140"]
 tags:
-  - type/adr
+  - area/money
+  - area/persistence
+  - methodology/auvp
+  - methodology/perini
   - status/roadmap
+  - type/adr
 size_lines: 37
 ---
 
