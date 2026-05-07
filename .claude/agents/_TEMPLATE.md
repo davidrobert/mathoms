@@ -22,6 +22,15 @@ Critérios de quando criar novo agente: ver `senior-cto.md`
 name: <slug-kebab>
 description: <Papel sênior em DOMÍNIO>. Use para <X, Y, Z>. Invoque ao <verbo + contexto que dispara invocação>. NÃO invoque para <escopo fora — bugs triviais, tarefas já bem definidas, dimensão coberta por outro agente>.
 tools: Read, Grep, Glob, WebSearch, WebFetch
+# ↑ Toolset default: revisor (read-only).
+# Para agent EXECUTOR (escreve no domínio dele): Read, Edit, Write, Grep, Glob, Bash, WebSearch, WebFetch.
+# Critério: dê Write/Edit/Bash quando a expertise do agent inclui código/configs/scripts do domínio
+# (ex.: data-engineer escreve schemas/migrations; sre-devops escreve CI/hooks; product-designer
+# escreve CSS/tokens). Mantenha read-only quando o output natural é opinião/critique/proposta
+# (ex.: financial-planner aponta regras; senior-cto reconcilia trade-offs e implementa;
+# build-vs-buy nunca implementa por design).
+# Em modo executor, inclua §"Modos de operação" + §"Workflow git (executor)" no fim do papel
+# — ver data-engineer.md / sre-devops.md como referência.
 model: opus
 ---
 
