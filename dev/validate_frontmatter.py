@@ -58,6 +58,21 @@ def load_schemas() -> dict[str, dict]:
     return loaded
 
 
+def _coerce_dates_to_iso(value):
+    """Converte datetime.date/datetime → ISO string recursivamente. Schemas usam format: date."""
+    import datetime as _dt
+
+    if isinstance(value, _dt.datetime):
+        return value.date().isoformat()
+    if isinstance(value, _dt.date):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {k: _coerce_dates_to_iso(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_coerce_dates_to_iso(v) for v in value]
+    return value
+
+
 def parse_frontmatter(md_path: Path) -> dict | None:
     """Extrai YAML entre `---` ... `---`. None se ausente; ValueError se inválido."""
     content = md_path.read_text(encoding="utf-8")
@@ -77,7 +92,7 @@ def parse_frontmatter(md_path: Path) -> dict | None:
         raise ValueError(
             f"frontmatter deve ser mapping YAML, recebido: {type(data).__name__}={data!r}"
         )
-    return data
+    return _coerce_dates_to_iso(data)
 
 
 def _format_path(path_parts: Iterable[str | int]) -> str:
