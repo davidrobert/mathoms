@@ -176,6 +176,9 @@ function ActionsCell({
   onRequestDelete: (d: DocumentResponse) => void;
 }) {
   const inlineable = isInlineableContentType(doc.content_type);
+  // Documento "Outro" precisa de reclassificação manual antes do pipeline aceitá-lo.
+  // CTA inline torna a ação descobrível sem perder o lápis nas demais linhas.
+  const needsReclassify = doc.doc_type === "other" && !!doc.needs_review;
   return (
     <TableCell className="align-middle">
       <div className="flex items-center gap-0.5">
@@ -211,16 +214,30 @@ function ActionsCell({
         ) : (
           <span className="inline-flex h-8 w-8" aria-hidden />
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onEdit(doc)}
-          className="text-muted-foreground hover:text-foreground"
-          aria-label={`Editar classificação de ${doc.original_name}`}
-          title="Editar tipo e instituição"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
+        {needsReclassify ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(doc)}
+            className="border-info-financial/40 text-info-financial hover:bg-info-financial/10 hover:text-info-financial"
+            aria-label={`Reclassificar ${doc.original_name}`}
+            title="Definir tipo e instituição manualmente"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            <span>Reclassificar</span>
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(doc)}
+            className="text-muted-foreground hover:text-foreground"
+            aria-label={`Editar classificação de ${doc.original_name}`}
+            title="Editar tipo e instituição"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"

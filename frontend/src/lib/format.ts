@@ -227,19 +227,19 @@ export function docStatusLabel(status: DocumentStatus): StatusLabel {
 }
 
 /**
- * Estado efetivo do documento — derivado de status + pipeline_e2_extract_ok + needs_review.
+ * Estado efetivo do documento — derivado de status + pipeline_e2_extract_ok + needs_review + doc_type.
  *
- * Sequência: Recebido → Aguarda senha → Revisar → Pronto → Extraído / Sem extrato
- *
- * Uso: substitui docStatusLabel() na listagem de documentos para comunicar
- * ao usuário o que cada documento representa e qual ação (se houver) é necessária.
+ * Sequência: Recebido → Aguarda senha → Não classificado / Revisar → Pronto → Extraído / Sem extrato.
+ * "Não classificado" (muted) sinaliza doc_type=other — pipeline jamais aceita até reclassificação manual.
+ * "Revisar" (warning) sinaliza tipo conhecido com baixa confiança — pipeline pode rodar após validação.
  */
 export function docEffectiveStatus(doc: {
   status: DocumentStatus;
   pipeline_e2_extract_ok?: boolean | null;
   needs_review?: boolean | null;
+  doc_type?: DocumentType | null;
 }): StatusLabel {
-  const { status, pipeline_e2_extract_ok, needs_review } = doc;
+  const { status, pipeline_e2_extract_ok, needs_review, doc_type } = doc;
 
   if (status === "error") {
     return { label: "Erro", variant: "error" };
@@ -254,14 +254,15 @@ export function docEffectiveStatus(doc: {
     return { label: "Analisando", variant: "info" };
   }
   if (status === "ready") {
+    if (needs_review && doc_type === "other") return { label: "Não classificado", variant: "muted" };
     if (needs_review) return { label: "Revisar", variant: "warning" };
     return { label: "Pronto", variant: "info" };
   }
   if (status === "processed") {
     if (pipeline_e2_extract_ok) return { label: "Extraído", variant: "success" };
+    if (needs_review && doc_type === "other") return { label: "Não classificado", variant: "muted" };
     if (needs_review) return { label: "Revisar", variant: "warning" };
-    // pipeline_e2_extract_ok === false → ran but no extract found (e.g. parse failure)
-    // pipeline_e2_extract_ok === null  → N/A (IRPF, members JSON — no E2 extract expected)
+    // pipeline_e2_extract_ok===false: pipeline rodou sem extrato; null: N/A (IRPF, members JSON).
     if (pipeline_e2_extract_ok === false) return { label: "Sem extrato", variant: "neutral" };
     return { label: "Processado", variant: "success" };
   }
