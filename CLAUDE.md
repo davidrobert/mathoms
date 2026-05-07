@@ -6,9 +6,9 @@
 >
 > **Referências dinâmicas (leia sob demanda):**
 >
-> - Sprint atual + roadmap · [docs/BACKLOG.md](docs/BACKLOG.md)
+> - Sprint atual + lanes prontas · [docs/_MOC/_generated/SPRINT_CURRENT.md](docs/_MOC/_generated/SPRINT_CURRENT.md) (auto) + [docs/_MOC/SPRINTS-active.md](docs/_MOC/SPRINTS-active.md) (editorial); BACKLOG.md é shim
 > - Log cronológico de entregas · [docs/CHANGELOG.md](docs/CHANGELOG.md)
-> - Decisões arquiteturais (ADRs) · [docs/DECISIONS.md](docs/DECISIONS.md)
+> - ADRs (vault atomizado) · [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) + [docs/adr/](docs/adr/); DECISIONS.md é shim
 > - Arquitetura técnica (stack, models, stages, pastas) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 > - Setup dev · [docs/SETUP.md](docs/SETUP.md)
 > - Runbook operacional · [docs/RUNBOOK.md](docs/RUNBOOK.md)
@@ -657,11 +657,14 @@ Regras de pickup:
   `git diff origin/main...<branch>` para entender onde parou, e
   continue OU abra nova branch (`agent/<slug>/<novo-ts>`) partindo de
   `origin/main`.
-- **Sprint atual + lanes abertas**: [docs/BACKLOG.md §Sprint A6](docs/BACKLOG.md)
-  tem o diagrama de ondas e a tabela de lanes. Essa é a fonte única;
-  ROADMAP aponta para lá. A tabela marca lanes 🚧 ocupadas com o slug
-  da branch ativa — mas **não confie só nela**: confirme com os 2
-  comandos acima (a tabela pode estar desatualizada).
+- **Sprint atual + lanes prontas**: [docs/_MOC/_generated/SPRINT_CURRENT.md](docs/_MOC/_generated/SPRINT_CURRENT.md)
+  é fonte única (auto-gerado por `dev/build_doc_index.py`, filtra
+  `status: ready/open/in_progress` da sprint corrente). Visão narrativa:
+  [docs/_MOC/SPRINTS-active.md](docs/_MOC/SPRINTS-active.md). Detalhe por
+  sprint: `docs/sprint/<X>/_README.md`. Detalhe por lane: `docs/sprint/<X>/lanes/<id>.md`.
+  Como o SPRINT_CURRENT é regenerado a cada commit que toca lanes, pode
+  ter atraso de poucos minutos vs realidade — confirme com os 2 comandos
+  acima antes do pickup.
 
 ### Naming de branch
 
@@ -1030,7 +1033,7 @@ Conteúdo que **era** duplicado neste arquivo e agora vive em sua fonte
 | Tabela completa de stages + `FULL_ORDER` + `DETERMINISTIC_ORDER` | [docs/ARCHITECTURE.md §7](docs/ARCHITECTURE.md)                              |
 | Modo incremental (ADR-080) — API, filtragem, UI     | [docs/ARCHITECTURE.md §7](docs/ARCHITECTURE.md)                                            |
 | Arquitetura alvo pós-A6 (migração infra+domínio)    | [docs/ARCHITECTURE.md §17](docs/ARCHITECTURE.md)                                           |
-| Sprint atual da migração (A5f, A6a-f, A6-human, A6c, A6d…) | [docs/BACKLOG.md — Sprint A6](docs/BACKLOG.md)                                      |
+| Sprint atual + lanes prontas — vault atomizado pós-F4 (ADR-182). [`docs/_MOC/_generated/SPRINT_CURRENT.md`](docs/_MOC/_generated/SPRINT_CURRENT.md) (auto, filtra `status: ready/open/in_progress`) + [`docs/_MOC/SPRINTS-active.md`](docs/_MOC/SPRINTS-active.md) (editorial). Detalhe por sprint: [`docs/sprint/<X>/_README.md`](docs/sprint/A11/_README.md). Detalhe por lane: `docs/sprint/<X>/lanes/<id>.md`. [docs/BACKLOG.md](docs/BACKLOG.md) é shim. | [docs/sprint/](docs/sprint/) |
 | Log cronológico de entregas (sessões A1–A6f por data) | [docs/CHANGELOG.md](docs/CHANGELOG.md)                                                   |
 | ADRs (001–182+) — notas atômicas em `docs/adr/NNN-slug.md` (ADR-182 · F2). Índice agrupado por categoria + status: [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) (auto-gerado por `dev/build_doc_index.py`). Gates: `dev/validate_frontmatter.py`, `dev/check_doc_filename_id.py`, `dev/check_doc_links.py`, `dev/check_adr_anchors.py`. Protocolo em §"ADRs → notas atômicas em docs/adr/" deste CLAUDE.md. [docs/DECISIONS.md](docs/DECISIONS.md) é shim com âncoras históricas | [docs/adr/](docs/adr/) |
 | Domínios e URLs públicas (ADR-108)                  | [docs/ARCHITECTURE.md §18](docs/ARCHITECTURE.md)                                           |
