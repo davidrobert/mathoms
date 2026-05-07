@@ -370,22 +370,27 @@ def _print_failures(failures: list[str]) -> None:
         print(f"  - {f}", file=sys.stderr)
 
 
-def _print_success(total: int, has_plan: bool, has_sprint: bool) -> None:
-    """Imprime mensagem de sucesso com lista de testes rodados."""
-    plan_msg = (
-        ", plan-empty, plan-rich, plan-idemp, plan-with-lanes, plan-status-order"
-        if has_plan
-        else ""
-    )
-    sprint_msg = (
+_OPTIONAL_GROUP_LABELS: dict[str, str] = {
+    "plan": ", plan-empty, plan-rich, plan-idemp, plan-with-lanes, plan-status-order",
+    "sprint": (
         ", sprint-no-lanes, sprint-ready, sprint-picks-max, "
         "sprint-letter-priority, sprint-wave-agg, sprint-empty-status, sprint-idemp"
-        if has_sprint
-        else ""
+    ),
+    "changelog": (
+        ", changelog-empty, changelog-today, changelog-old-filtered, "
+        "changelog-grouping, changelog-summary, changelog-no-lane, changelog-idemp"
+    ),
+}
+
+
+def _print_success(total: int, enabled_groups: set[str]) -> None:
+    """Imprime mensagem de sucesso com lista de testes rodados."""
+    suffix = "".join(
+        _OPTIONAL_GROUP_LABELS[k] for k in ("plan", "sprint", "changelog") if k in enabled_groups
     )
     print(
         f"✓ {total} smoke tests passaram "
-        f"(vault vazio, 1 ADR, _load, override, status, idemp, ordem{plan_msg}{sprint_msg})."
+        f"(vault vazio, 1 ADR, _load, override, status, idemp, ordem{suffix})."
     )
 
 
@@ -407,16 +412,36 @@ def _maybe_run_plan_tests(plan_build_fn, note_cls: type) -> tuple[list[str], int
     return _run_plan_smoke_tests(plan_build_fn, note_cls), 5
 
 
-def _collect_all_failures(
-    note_cls, build_fn, load_fn, category_fn, plan_build_fn, sprint_build_fn
-) -> tuple[list[str], int, int]:
-    """Roda os 3 grupos de smoke (ADR + plan + sprint). Retorna (falhas, plan_tests, sprint_tests)."""
-    failures = _run_adr_smoke_tests(build_fn, load_fn, category_fn, note_cls)
-    plan_failures, plan_tests = _maybe_run_plan_tests(plan_build_fn, note_cls)
-    sprint_failures, sprint_tests = _maybe_run_sprint_tests(sprint_build_fn, note_cls)
-    failures.extend(plan_failures)
-    failures.extend(sprint_failures)
-    return failures, plan_tests, sprint_tests
+def _maybe_run_changelog_tests(changelog_build_fn, note_cls: type) -> tuple[list[str], int]:
+    """Importa e roda os 7 smoke tests do CHANGELOG_RECENT se o build_fn foi passado."""
+    if changelog_build_fn is None:
+        return [], 0
+    try:
+        from _test_changelog_recent_smoke import run_changelog_smoke_tests
+    except ModuleNotFoundError:  # pragma: no cover
+        from dev._test_changelog_recent_smoke import run_changelog_smoke_tests
+    return run_changelog_smoke_tests(changelog_build_fn, note_cls), 7
+
+
+_OPTIONAL_RUNNERS: tuple[tuple[str, Callable], ...] = (
+    ("plan", _maybe_run_plan_tests),
+    ("sprint", _maybe_run_sprint_tests),
+    ("changelog", _maybe_run_changelog_tests),
+)
+
+
+def _collect_optional(optional_fns: dict, note_cls: type) -> tuple[list[str], int, set[str]]:
+    """Roda os 3 grupos opcionais; retorna (failures, count_extra, enabled_keys)."""
+    failures: list[str] = []
+    total_extra = 0
+    enabled: set[str] = set()
+    for key, runner in _OPTIONAL_RUNNERS:
+        group_failures, group_tests = runner(optional_fns[key], note_cls)
+        failures.extend(group_failures)
+        total_extra += group_tests
+        if optional_fns[key] is not None:
+            enabled.add(key)
+    return failures, total_extra, enabled
 
 
 def run_smoke_tests(
@@ -427,15 +452,15 @@ def run_smoke_tests(
     category_fn,
     plan_build_fn=None,
     sprint_build_fn=None,
+    changelog_build_fn=None,
 ) -> int:
     """Roda smoke tests; print errors em stderr; return 0 ok / 1 falha."""
-    failures, plan_tests, sprint_tests = _collect_all_failures(
-        note_cls, build_fn, load_fn, category_fn, plan_build_fn, sprint_build_fn
-    )
+    optional = {"plan": plan_build_fn, "sprint": sprint_build_fn, "changelog": changelog_build_fn}
+    failures = _run_adr_smoke_tests(build_fn, load_fn, category_fn, note_cls)
+    extra_failures, extra_total, enabled = _collect_optional(optional, note_cls)
+    failures.extend(extra_failures)
     if failures:
         _print_failures(failures)
         return 1
-    _print_success(
-        7 + plan_tests + sprint_tests, plan_build_fn is not None, sprint_build_fn is not None
-    )
+    _print_success(7 + extra_total, enabled)
     return 0
