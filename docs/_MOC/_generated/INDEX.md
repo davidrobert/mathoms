@@ -180,3 +180,65 @@
 | ADR-180 | adr | Decidido |  | `goals.json` cutover final via `StageConfig.config_store` extendido | `adr/180-goalsjson-cutover-final-via-stageconfigconfig.md` |
 | ADR-181 | adr | Decidido |  | `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py` | `adr/181-goalsjson-removido-de-archive-e-adicionado-a.md` |
 | ADR-182 | adr | Proposto |  | Vault de documentação operacional Obsidian-friendly em `docs/` | `adr/182-vault-de-documentacao-operacional-obsidian.md` |
+| TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
+| TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
+| TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |
+| TRACK-a6e4-thin-routers | track | consumed | A6 | Track A6e.4 — Routers finos (17 routers × ≤50 linhas) | `sprint/A6/tracks/a6e4-thin-routers.md` |
+| TRACK-a6e5-v1-prefix | track | consumed | A6 | Track A6e.5 — `/api/v1/` prefix + aliases + OpenAPI versionado | `sprint/A6/tracks/a6e5-v1-prefix.md` |
+| TRACK-a6f1-pipeline-service | track | consumed | A6 | Track A6f.1 — Pipeline-as-Service (HTTP boundary) | `sprint/A6/tracks/a6f1-pipeline-service.md` |
+| TRACK-a6g2-pipeline-style-sweep | track | consumed | A6 | Track A6g.2 — Pipeline Code Style Sweep | `sprint/A6/tracks/a6g2-pipeline-style-sweep.md` |
+| TRACK-a6g3-backend-style-sweep | track | consumed | A6 | Track A6g.3 — Backend Python code style sweep | `sprint/A6/tracks/a6g3-backend-style-sweep.md` |
+| TRACK-a6g3b-decimal-money-migration | track | consumed | A6 | Track A6g.3b — Migração completa `float` → `Decimal` em money DTOs + math | `sprint/A6/tracks/a6g3b-decimal-money-migration.md` |
+| TRACK-a6g4-frontend-style-sweep | track | consumed | A6 | Track A6g.4 — Frontend Code Style Sweep | `sprint/A6/tracks/a6g4-frontend-style-sweep.md` |
+| TRACK-a6g5-tests-sweep | track | consumed | A6 | Track A6g.5 — Tests Sweep (fakes nomeados + nomes descritivos) | `sprint/A6/tracks/a6g5-tests-sweep.md` |
+| TRACK-a6g6-enforcement | track | consumed | A6 | Track A6g.6 — Enforcement automatizado de code style | `sprint/A6/tracks/a6g6-enforcement.md` |
+| TRACK-a6g7-go-prep | track | consumed | A6 | Track A6g.7 — Go prep (golangci-lint + CI job + skeleton convention) | `sprint/A6/tracks/a6g7-go-prep.md` |
+| TRACK-a7-0-config-store | track | consumed | A7 | Track A7.0 — `ConfigStore` protocol + adapters | `sprint/A7/tracks/a7-0-config-store.md` |
+| TRACK-a7-1-cutover-materialize | track | consumed | A7 | Track A7.1 — Cutover `materialize_config` → `ConfigStore` | `sprint/A7/tracks/a7-1-cutover-materialize.md` |
+| TRACK-a7-2a-decision-aggregate | track | consumed | A7 | Track A7.2a — `Decision` aggregate (event-sourced) + migrator + tela Plano de Ação | `sprint/A7/tracks/a7-2a-decision-aggregate.md` |
+| TRACK-a7-2b-fiscal-market-tables | track | consumed | A7 | Track A7.2b — Tabelas globais `fiscal_parameters` + `market_rates` versionadas | `sprint/A7/tracks/a7-2b-fiscal-market-tables.md` |
+| TRACK-a7-3-catalog-override | track | consumed | A7 | Track A7.3 — Catalog + Override resolver (categorization + institutions) | `sprint/A7/tracks/a7-3-catalog-override.md` |
+| TRACK-a7-4-methodology-docs | track | consumed | A7 | Track A7.4 — Documentação metodológica → `docs/methodology/` | `sprint/A7/tracks/a7-4-methodology-docs.md` |
+| TRACK-a7-5-cleanup | track | consumed | A7 | Track A7.5 — Cleanup final (deletar `config/` + bridges) | `sprint/A7/tracks/a7-5-cleanup.md` |
+| TRACK-a7-6-rules-as-code | track | consumed | A7 | Track A7.6 — Rules-as-code: dissolver `docs/methodology/` | `sprint/A7/tracks/a7-6-rules-as-code.md` |
+| TRACK-a8-trs-real | track | consumed | A8 | Track — A8 TRS real (renda passiva observada + Taxa de Retirada Sustentável efetiva) | `sprint/A8/tracks/a8-trs-real.md` |
+| TRACK-f7f-local | track | consumed | F7 | Track F7F-Local — Console interno pré-produção (IA-0) | `sprint/F7/tracks/f7f-local.md` |
+| TRACK-f9-0-audit | track | consumed | F9 | Track F9.0 — Auditoria de referências aos identificadores legados | `sprint/F9/tracks/f9-0-audit.md` |
+| TRACK-f9-1-pipeline-stages-rename | track | consumed | F9 | Track F9.1 — `git mv pipeline/stages/e*.py` → nomes descritivos | `sprint/F9/tracks/f9-1-pipeline-stages-rename.md` |
+| TRACK-f9-2-string-literals | track | consumed | F9 | Track F9.2 — Substituir strings literais `"E*"` em código de produção | `sprint/F9/tracks/f9-2-string-literals.md` |
+| TRACK-f9-2a-pipeline-core-strings | track | consumed | F9 | Track F9.2a — Strings descritivas em `pipeline/` (resíduo) | `sprint/F9/tracks/f9-2a-pipeline-core-strings.md` |
+| TRACK-f9-2b-scripts-strings | track | consumed | F9 | Track F9.2b — Strings descritivas em `scripts/` (excluindo `e_reset.py`) | `sprint/F9/tracks/f9-2b-scripts-strings.md` |
+| TRACK-f9-2c-e-reset-deprecation | track | consumed | F9 | Track F9.2c — `scripts/e_reset.py` deprecation warning + flip interno | `sprint/F9/tracks/f9-2c-e-reset-deprecation.md` |
+| TRACK-f9-2d-backend-tests | track | consumed | F9 | Track F9.2d — Strings descritivas em `backend/app/` residual + tests não-golden | `sprint/F9/tracks/f9-2d-backend-tests.md` |
+| TRACK-f9-2e-closeout | track | consumed | F9 | Track F9.2e — Closeout F9.2 (audit final + docs + destrava F9.3) | `sprint/F9/tracks/f9-2e-closeout.md` |
+| TRACK-f9-3-alembic-migration | track | consumed | F9 | Track F9.3 — Alembic migration: rename `pipeline_artifacts.stage` em massa | `sprint/F9/tracks/f9-3-alembic-migration.md` |
+| TRACK-f9-4-scripts-rename | track | consumed | F9 | Track F9.4 — `git mv scripts/e*.py` → descritivos + alias CLI compat | `sprint/F9/tracks/f9-4-scripts-rename.md` |
+| TRACK-f9-5-guardrail-hardfail | track | consumed | F9 | Track F9.5 — Guardrail hard-fail contra identificadores legados | `sprint/F9/tracks/f9-5-guardrail-hardfail.md` |
+| TRACK-f9-6-cleanup | track | consumed | F9 | Track F9.6 — Cleanup final: remover wrappers compat, aliases e globals legados | `sprint/F9/tracks/f9-6-cleanup.md` |
+| TRACK-irpf-full-schema | track | consumed | A11 | Track IRPF Full Schema — extração completa de declaração de IRPF (E1.6) | `sprint/A11/tracks/irpf-full-schema.md` |
+| TRACK-irpf-full-schema-cutover | track | consumed | A11 | Track IRPF Full Schema Cutover — flag `MATHOMS_E16_SUPERSEDES_E15_BENS` | `sprint/A11/tracks/irpf-full-schema-cutover.md` |
+| TRACK-irpf-full-schema-goldens | track | consumed | A11 | Track IRPF Full Schema Goldens — fixtures + golden tests byte-byte | `sprint/A11/tracks/irpf-full-schema-goldens.md` |
+| TRACK-irpf-full-schema-ui | track | consumed | A11 | Track IRPF Full Schema UI — relatório premium consome KPIs do E1.6 | `sprint/A11/tracks/irpf-full-schema-ui.md` |
+| TRACK-onda-1-kanban-task-migration | track | consumed | A11 | Track — Onda 1: Migration `kanban_items` + `report_notes` → `tasks` + `workspace_notes` | `sprint/A11/tracks/onda-1-kanban-task-migration.md` |
+| TRACK-onda-10-cross-route-coherence | track | consumed | A11 | Track — Onda 10: coerência cross-rota (/plano · /acao · /reports) | `sprint/A11/tracks/onda-10-cross-route-coherence.md` |
+| TRACK-onda-5-suggestion-aggregate | track | consumed | A11 | Track — Onda 5: Suggestion aggregate full-stack (Direção E) | `sprint/A11/tracks/onda-5-suggestion-aggregate.md` |
+| TRACK-onda-7-p0-blockers | track | consumed | A11 | Track — Onda 7: bloqueadores P0 da Direção E (pós-revisão de produto) | `sprint/A11/tracks/onda-7-p0-blockers.md` |
+| TRACK-onda-8-methodology-coherence | track | consumed | A11 | Track — Onda 8: coerência metodológica (Cerbasi/AUVP/Perini completos) | `sprint/A11/tracks/onda-8-methodology-coherence.md` |
+| TRACK-onda-9-design-system-polish | track | consumed | A11 | Track — Onda 9: design system polish + dedup tarefas + mobile | `sprint/A11/tracks/onda-9-design-system-polish.md` |
+| TRACK-pipeline-review-quick-unblock | track | consumed | A11 | Track Pipeline Review — Quick Unblock (caminho A) | `sprint/A11/tracks/pipeline-review-quick-unblock.md` |
+| TRACK-pipeline-review-screen | track | consumed | A11 | Track Pipeline Review — Tela de revisão real (caminho B) | `sprint/A11/tracks/pipeline-review-screen.md` |
+| TRACK-platform-review | track | consumed | A11 | Track Platform Review — Orquestração Multi-Agent (revisão + plano) | `sprint/A11/tracks/platform-review.md` |
+| TRACK-real-estate-efficiency | track | consumed | A11 | Track — Real estate efficiency feature (ADR-160) | `sprint/A11/tracks/real-estate-efficiency.md` |
+| TRACK-report-a11y-finalize | track | consumed | A11 | Track Report a11y + Playwright finalize — resíduo F12 do Report Premium | `sprint/A11/tracks/report-a11y-finalize.md` |
+| TRACK-report-appearance-menu | track | consumed | A11 | Track Report Appearance Menu — refinement ADR-121 Fase 4 | `sprint/A11/tracks/report-appearance-menu.md` |
+| TRACK-report-v1-polish | track | consumed | A11 | Track Report Premium v1 polish — resíduo F13 do Report Premium | `sprint/A11/tracks/report-v1-polish.md` |
+| TRACK-report-v2 | track | consumed | A11 | Track Report Premium UI v2 — meta-prompt + roadmap de execução | `sprint/A11/tracks/report-v2.md` |
+| TRACK-report-v2-changelog-engine | track | consumed | A11 | Track Report v2.D.1 + v2.8 — Snapshot changelog engine + comparisons/changelog ON | `sprint/A11/tracks/report-v2-changelog-engine.md` |
+| TRACK-report-v2-charts-ux | track | consumed | A11 | Track Report v2.E — Charts UX (paridade visual final dos charts) | `sprint/A11/tracks/report-v2-charts-ux.md` |
+| TRACK-report-v2-t2-aportes | track | consumed | A11 | Track Report v2.4 — T2 Aportes seção real | `sprint/A11/tracks/report-v2-t2-aportes.md` |
+| TRACK-w5t01-a11y | track | consumed | W5 | Track W5-T01 — A11y onda: scope=col + role=progressbar + aria-label charts + reduced-motion | `sprint/W5/tracks/w5t01-a11y.md` |
+| TRACK-w5t03-monetary-value | track | consumed | W5 | Track W5-T03 — `<MonetaryValue size="kpi">` migration | `sprint/W5/tracks/w5t03-monetary-value.md` |
+| TRACK-w5t04-adr161-enrichment | track | consumed | W5 | Track W5-T04 — FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | `sprint/W5/tracks/w5t04-adr161-enrichment.md` |
+| TRACK-w5t05-goal-if-v2 | track | consumed | W5 | Track W5-T05 — Goal IF v2 cutover (3 PRs sequenciais) | `sprint/W5/tracks/w5t05-goal-if-v2.md` |
+| TRACK-w6t01-schema-hardening | track | consumed | W6 | Track W6-T01 — Schema hardening (E5 strict + 7 sub-schemas E4 + ADR-090 wire) | `sprint/W6/tracks/w6t01-schema-hardening.md` |
+| TRACK-w6t05-artifacts-retention | track | consumed | W6 | Track W6-T05 — Pipeline artifacts retention + cascade-on-delete | `sprint/W6/tracks/w6t05-artifacts-retention.md` |

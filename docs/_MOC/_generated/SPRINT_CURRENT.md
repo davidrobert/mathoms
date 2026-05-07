@@ -3,4 +3,6 @@
 
 # Sprint corrente — lanes ativas
 
-_Nenhuma sprint indexada (Fase 4 do plano popula `docs/sprint/`)._
+_Sprint detectada: **W6**._
+
+_Nenhuma lane com frontmatter na sprint corrente ainda._
