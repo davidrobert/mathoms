@@ -1,10 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "E5 Analysis",
-  "description": "Schema mínimo para analise_financeira-5_analysis.json. Valida presença dos blocos principais de análise.",
+  "description": "Schema do artefato analise_financeira-5_analysis.json. Declara blocos top-level produzidos por build_e5_output (pipeline/domain/services/e5_serialization.py). Mantém additionalProperties=true por enquanto — flip para strict é W6-T01 do PLATFORM_REVIEW_PLAN.md.",
   "type": "object",
   "required": ["score", "patrimonio", "fluxo_caixa"],
   "properties": {
+    "periodo_dados": {"type": "string"},
+    "data_analise": {"type": "string"},
     "score": {
       "type": "object",
       "required": ["valor", "classificacao"],
@@ -29,6 +31,89 @@
     },
     "goals": {
       "type": "object"
+    },
+    "orcamento_prospectivo": {"type": "object"},
+    "reserva_emergencia": {"type": "object"},
+    "endividamento": {"type": "object"},
+    "previdencia_pgbl": {"type": "object"},
+    "pontos_fortes": {"type": "array"},
+    "pontos_urgentes": {"type": "array"},
+    "equilibrio_cerbasi": {"type": "object"},
+    "tarefas": {"type": "array"},
+    "tarefas_status": {"type": "object"},
+    "alertas": {"type": "array"},
+    "consumo_consciente": {"type": "object"},
+    "diagnostico_comportamental": {"type": "array"},
+    "programa_milhas": {"type": "object"},
+    "narrativas": {"type": "object"},
+    "irpf_kpis": {"type": "object"},
+    "passive_income": {"type": "object"},
+    "if_monte_carlo": {"type": "object"},
+    "cenarios_conjuge": {
+      "type": "object",
+      "description": "Cenário de estresse 'Sem renda do cônjuge' (ADR-166 chave universal + ADR-167 eligibility gate). Produzido por CenariosConjugeAnalyzer.to_legacy_dict() em pipeline/domain/services/cenarios_conjuge_analyzer.py. Pode ser objeto vazio ({}) quando o gate de elegibilidade rejeita o workspace (solteiro / 1 renda / casal sem meta IF / casal 95-5).",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Nomes dos cenários — atualmente fixo em ['Sem renda do cônjuge']."
+        },
+        "aportes": {
+          "type": "array",
+          "items": {"type": "number", "minimum": 0},
+          "description": "Aporte mensal em BRL para cada cenário, paralelo a labels/prazos_if/anos_if."
+        },
+        "prazos_if": {
+          "type": "array",
+          "items": {"type": "number", "minimum": 0},
+          "description": "Prazo até IF em anos. Sentinela 999 (legacy) quando aporte=0 e investivel<meta."
+        },
+        "anos_if": {
+          "type": "array",
+          "items": {"type": "integer"},
+          "description": "Ano calendário projetado da IF (reference_date.year + prazo_if)."
+        },
+        "premissas": {
+          "type": "object",
+          "description": "Premissas usadas no cálculo (meta_if, investivel_atual, retorno_real_anual_pct, aporte_base, fator_reduzido, salario_<conjuge_key>_clt_brl). Chave salario_*_clt_brl é dinâmica por workspace.",
+          "properties": {
+            "meta_if": {"type": "number"},
+            "investivel_atual": {"type": "number"},
+            "retorno_real_anual_pct": {"type": "number"},
+            "aporte_base": {"type": "number"},
+            "fator_reduzido": {"type": "number"}
+          }
+        },
+        "cenarios": {
+          "type": "array",
+          "description": "Lista detalhada de cada cenário. CenarioItem.to_dict() inclui chave dinâmica idade_<titular_key> além dos campos fixos.",
+          "items": {
+            "type": "object",
+            "required": ["nome", "aporte_mensal", "prazo_if_anos", "ano_if", "resumo"],
+            "properties": {
+              "nome": {"type": "string", "minLength": 1},
+              "aporte_mensal": {"type": "number", "minimum": 0},
+              "prazo_if_anos": {"type": "number", "minimum": 0},
+              "ano_if": {"type": "integer"},
+              "resumo": {"type": "string", "minLength": 1}
+            },
+            "patternProperties": {
+              "^idade_[a-z_][a-z0-9_]*$": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Idade do titular no ano IF projetado. Sem upper bound porque a sentinela legada prazo=999 (impossível de atingir IF) propaga para idade = age + 999, valores >120 sinalizam não-atingimento."
+              }
+            }
+          }
+        }
+      },
+      "patternProperties": {
+        "^idade_[a-z_][a-z0-9_]*_if$": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 0},
+          "description": "Idade do titular projetada por cenário; chave dinâmica idade_<titular_key>_if. Sem upper bound — sentinela prazo=999 propaga para valores >120."
+        }
+      }
     },
     "investimentos": {
       "type": "object",

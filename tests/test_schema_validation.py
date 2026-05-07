@@ -37,6 +37,124 @@ _INST_VALID = [
 ]
 
 
+_E5_BUILD_DEFAULTS = {
+    "periodo_dados": "2026-01 a 2026-12",
+    "data_analise": "2026-04-19",
+    "patrimonio": {"bruto": 1_500_000, "liquido": 1_200_000},
+    "goals": {"if_meta": 5_000_000},
+    "fluxo": {"receita_total": 100_000},
+    "ratios": {"taxa_poupanca_recorrente_pct": 30},
+    "score": {"valor": 7.0, "classificacao": "Bom"},
+    "orcamento": {"total": 5000},
+    "reserva": {"cobertura_meses": 12},
+    "endividamento": {"total_dividas": 0},
+    "previdencia": {"status": "N/D"},
+    "pontos_fortes": [{"titulo": "Score Positivo"}],
+    "pontos_urgentes": [{"acao": "X", "prioridade": "Alta", "prazo": "Imediato", "impacto": "Y"}],
+    "investimentos_classes": {"total": 500_000, "tabela_classes": []},
+    "equilibrio_cerbasi": {"classificacao": "Equilibrado"},
+    "consumo": {"total_pontuais": 0},
+    "diagnostico": [],
+}
+
+_FLUXO_REAL_CONJUGE = {
+    "receita_despesa_mensal_detalhado": {
+        "receita_datasets": [{"label": "Receita CLT Mariana", "data": [8000] * 12}]
+    }
+}
+
+
+def _build_real_cenarios_conjuge_config():
+    """Constrói CenariosConjugeConfig com defaults da ADR-167 (titular david / cônjuge mariana)."""
+    from datetime import date
+
+    from pipeline.domain.services.cenarios_conjuge_analyzer import CenariosConjugeConfig
+
+    return CenariosConjugeConfig(
+        titular_dob=date(1985, 6, 15),
+        retorno_real_anual_pct=6.0,
+        aporte_base=15_000,
+        fator_reduzido=0.66,
+        titular_key="david",
+        conjuge_key="mariana",
+        conjuge_nome="Mariana",
+        reference_date=date(2026, 4, 19),
+    )
+
+
+def _cenarios_conjuge_real_payload():
+    """Roda CenariosConjugeAnalyzer real e retorna to_legacy_dict (ADR-166/167)."""
+    from pipeline.domain.services.cenarios_conjuge_analyzer import CenariosConjugeAnalyzer
+
+    analyzer = CenariosConjugeAnalyzer(_build_real_cenarios_conjuge_config())
+    result = analyzer.analyze(
+        patrimonio={"investivel": 1_200_000},
+        goals={"if_meta": 5_000_000},
+        fluxo=_FLUXO_REAL_CONJUGE,
+    )
+    return result.to_legacy_dict()
+
+
+def _build_e5_with_cenarios(cenarios_payload):
+    """Monta E5OutputInputs minimal e chama build_e5_output (paridade pipeline ↔ schema)."""
+    from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
+
+    inputs = E5OutputInputs(**_E5_BUILD_DEFAULTS, cenarios_conjuge=cenarios_payload)
+    return build_e5_output(inputs)
+
+
+def _cenarios_conjuge_with_titular(titular_key: str):
+    """Sintetiza payload cenarios_conjuge com titular_key arbitrário (testa patternProperties)."""
+    return {
+        "labels": ["Sem renda do cônjuge"],
+        "aportes": [5000.0],
+        "prazos_if": [20.0],
+        "anos_if": [2046],
+        f"idade_{titular_key}_if": [60],
+        "premissas": {"meta_if": 3_000_000.0},
+        "cenarios": [
+            {
+                "nome": "Sem renda do cônjuge",
+                "aporte_mensal": 5000.0,
+                "prazo_if_anos": 20.0,
+                "ano_if": 2046,
+                f"idade_{titular_key}": 60,
+                "resumo": "...",
+            }
+        ],
+    }
+
+
+# ADR-166 + ADR-167 — payload real produzido por
+# CenariosConjugeAnalyzer.to_legacy_dict() em
+# pipeline/domain/services/cenarios_conjuge_analyzer.py.
+_CENARIOS_CONJUGE_VALID = {
+    "labels": ["Sem renda do cônjuge"],
+    "aportes": [9900.0],
+    "prazos_if": [12.5],
+    "anos_if": [2038],
+    "idade_david_if": [55],
+    "premissas": {
+        "meta_if": 5_000_000.0,
+        "investivel_atual": 1_200_000.0,
+        "retorno_real_anual_pct": 6.0,
+        "aporte_base": 15_000.0,
+        "fator_reduzido": 0.66,
+        "salario_mariana_clt_brl": 8000.0,
+    },
+    "cenarios": [
+        {
+            "nome": "Sem renda do cônjuge",
+            "aporte_mensal": 9900.0,
+            "prazo_if_anos": 12.5,
+            "ano_if": 2038,
+            "idade_david": 55,
+            "resumo": "Sem renda do cônjuge, aporte cai para R$ 9.900/mês (66% do base). IF em 13 anos (2038).",
+        }
+    ],
+}
+
+
 def _e5_with_top_ativos(*items):
     return {
         "score": {"valor": 6.8, "classificacao": "Bom"},
@@ -140,6 +258,102 @@ class TestValidateArtifact:
         path = tmp_path / "test.json"
         path.write_text(json.dumps(data))
         assert validate_artifact(path, "e5_analysis.schema.json") is False
+
+    # ---- ADR-166 + ADR-167: cenarios_conjuge formal ---------------------------
+
+    def test_e5_schema_accepts_cenarios_conjuge_payload(self, tmp_path):
+        """Payload real do CenariosConjugeAnalyzer passa em strict (ADR-166)."""
+        data = {
+            "score": {"valor": 6.8, "classificacao": "Bom"},
+            "patrimonio": {"bruto": 5000000, "liquido": 4000000},
+            "fluxo_caixa": {},
+            "cenarios_conjuge": _CENARIOS_CONJUGE_VALID,
+        }
+        path = tmp_path / "e5.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e5_analysis.schema.json") is True
+
+    def test_e5_schema_accepts_empty_cenarios_conjuge(self, tmp_path):
+        """Eligibility gate (ADR-167) emite {} quando workspace não-elegível."""
+        data = {
+            "score": {"valor": 6.8, "classificacao": "Bom"},
+            "patrimonio": {"bruto": 5000000, "liquido": 4000000},
+            "fluxo_caixa": {},
+            "cenarios_conjuge": {},
+        }
+        path = tmp_path / "e5.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e5_analysis.schema.json") is True
+
+    def test_e5_schema_rejects_cenarios_conjuge_wrong_type(self, tmp_path, monkeypatch):
+        """cenarios_conjuge deve ser object — string falha em strict."""
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        data = {
+            "score": {"valor": 6.8, "classificacao": "Bom"},
+            "patrimonio": {"bruto": 5000000, "liquido": 4000000},
+            "fluxo_caixa": {},
+            "cenarios_conjuge": "not_an_object",
+        }
+        path = tmp_path / "e5.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e5_analysis.schema.json") is False
+
+    def test_e5_schema_rejects_cenarios_aporte_negativo(self, tmp_path, monkeypatch):
+        """aporte_mensal não pode ser negativo em strict."""
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        bad_cenario = dict(_CENARIOS_CONJUGE_VALID)
+        bad_cenario["cenarios"] = [
+            {**_CENARIOS_CONJUGE_VALID["cenarios"][0], "aporte_mensal": -100.0}
+        ]
+        data = {
+            "score": {"valor": 6.8, "classificacao": "Bom"},
+            "patrimonio": {"bruto": 5000000, "liquido": 4000000},
+            "fluxo_caixa": {},
+            "cenarios_conjuge": bad_cenario,
+        }
+        path = tmp_path / "e5.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e5_analysis.schema.json") is False
+
+    def test_e5_schema_rejects_cenario_sem_required_field(self, tmp_path, monkeypatch):
+        """cenarios[*] precisa de nome/aporte_mensal/prazo_if_anos/ano_if/resumo em strict."""
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        bad_cenario = {
+            "cenarios": [
+                {"nome": "Sem renda do cônjuge", "aporte_mensal": 9900.0}
+                # falta prazo_if_anos, ano_if, resumo
+            ]
+        }
+        data = {
+            "score": {"valor": 6.8, "classificacao": "Bom"},
+            "patrimonio": {"bruto": 5000000, "liquido": 4000000},
+            "fluxo_caixa": {},
+            "cenarios_conjuge": bad_cenario,
+        }
+        path = tmp_path / "e5.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e5_analysis.schema.json") is False
+
+    def test_e5_schema_aceita_idade_dynamic_key(self, tmp_path, monkeypatch):
+        """patternProperties idade_<titular>_if e idade_<titular> aceitam qualquer titular_key."""
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        data = {
+            "score": {"valor": 6.8, "classificacao": "Bom"},
+            "patrimonio": {"bruto": 1_000_000, "liquido": 800_000},
+            "fluxo_caixa": {},
+            "cenarios_conjuge": _cenarios_conjuge_with_titular("alice"),
+        }
+        path = tmp_path / "e5.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e5_analysis.schema.json") is True
+
+    def test_e5_schema_validates_real_build_e5_output(self, tmp_path):
+        """build_e5_output(real_inputs) produz payload aceito pelo schema (paridade)."""
+        cenarios_payload = _cenarios_conjuge_real_payload()
+        payload = _build_e5_with_cenarios(cenarios_payload)
+        path = tmp_path / "real_e5.json"
+        path.write_text(json.dumps(payload, default=str))
+        assert validate_artifact(path, "e5_analysis.schema.json") is True
 
     def test_valid_e3_reconciled(self, tmp_path):
         data = {
