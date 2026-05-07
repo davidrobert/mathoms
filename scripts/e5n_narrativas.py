@@ -137,15 +137,6 @@ class _MetricsProxy(dict):
 METRICS = _MetricsProxy()
 
 
-def _load_goals():
-    """Load strategic goals config."""
-    if GOALS_CONFIG_PATH.exists():
-        with open(GOALS_CONFIG_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    print(f"  [WARN] goals.json não encontrado em {GOALS_CONFIG_PATH}")
-    return {}
-
-
 def _load_taxas():
     """Load market rates config."""
     if TAXAS_CONFIG_PATH.exists():
@@ -244,21 +235,17 @@ def _safe_div(a, b, default=0):
     return a / b if b else default
 
 
-def _select_decisoes_for_charts(goals_cfg: dict) -> list[str]:
-    """Sprint A10.5 — preferência ``top5_decisoes_projection`` (Decision aggregate); fallback bag legacy."""
-    projection = goals_cfg.get("top5_decisoes_projection")
-    if not projection:
-        return goals_cfg.get("decisoes_prioritarias", [])
+def _decisoes_titles_from_bundle(goals_cfg: dict) -> list[str]:
+    """Lê títulos do ``top5_decisoes_projection`` do ``GoalsBundle`` (ADR-180)."""
+    projection = goals_cfg.get("top5_decisoes_projection") or []
     return [
         item.get("title", "") for item in projection if isinstance(item, dict) and item.get("title")
     ]
 
 
-def _select_riscos_for_charts(goals_cfg: dict) -> list[dict]:
-    """Sprint A10.5 — preferência ``risks_projection`` (Risk aggregate); fallback bag legacy."""
-    projection = goals_cfg.get("risks_projection")
-    if not projection:
-        return goals_cfg.get("riscos_prioritarios", [])
+def _riscos_items_from_bundle(goals_cfg: dict) -> list[dict]:
+    """Lê itens do ``risks_projection`` do ``GoalsBundle`` (ADR-180)."""
+    projection = goals_cfg.get("risks_projection") or []
     return [
         {
             "nome": item.get("name", ""),
@@ -270,19 +257,26 @@ def _select_riscos_for_charts(goals_cfg: dict) -> list[dict]:
     ]
 
 
-def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | None = None) -> dict:
-    """Extract METRICS dict from E5 JSON + config/goals.json + computed values.
+def load_metrics_from_e5(
+    e5_data: dict,
+    *,
+    cambio_usd_brl: Decimal | float | None = None,
+    goals_cfg: dict | None = None,
+) -> dict:
+    """Extract METRICS dict from E5 JSON + ``GoalsBundle`` + computed values.
 
     Sources:
       - E5 JSON: patrimônio, goals, fluxo_caixa, ratios, score, etc.
-      - config/goals.json: strategic targets (aportes, IF, F1/F2, seguros, etc.)
+      - ``goals_cfg`` (``GoalsBundle``, ADR-180): aportes, IF, seguros, etc.
+        Caller passa via ``ctx.load_config("goals.json")``; default ``{}``.
       - config/taxas.json: câmbio, CDI, SELIC, IPCA
       - Computed: yield, salary median, USD savings, derived ratios
 
     A7.5: ``cambio_usd_brl`` (Decimal/float) tem prioridade sobre ``taxas.json``
     quando passado pelo caller (resolvido via ``ConfigStore.get_market_rate``).
     """
-    goals_cfg = _load_goals()
+    if goals_cfg is None:
+        goals_cfg = {}
     taxas_cfg = _load_taxas()
     if cambio_usd_brl is not None:
         taxas_cfg = {**taxas_cfg, "cambio_usd_brl": float(cambio_usd_brl)}
@@ -343,15 +337,13 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
     seguros = goals_cfg.get("seguros", {})
     trib_cfg = goals_cfg.get("tributario", {})
     aloc_alvo = goals_cfg.get("alocacao_alvo", {})
-    # ADR-178/179 (Sprint A10.5) — `top5_decisoes_projection` e
-    # `risks_projection` são projeções injetadas pelo `pipeline_adapter`
-    # a partir dos aggregates `Decision`/`Risk`. Quando ausentes (workspace
-    # sem aggregates ou pipeline standalone sem backend), fallback para
-    # bag legado da PLANNING_CONTEXT (`riscos_prioritarios`/
-    # `decisoes_prioritarias`). A10.6 deleta o fallback ao trocar
-    # `goals_cfg` por `GoalsBundle` tipado (ADR-180).
-    riscos = _select_riscos_for_charts(goals_cfg)
-    decisoes = _select_decisoes_for_charts(goals_cfg)
+    # ADR-180 (Sprint A10.6) — `goals_cfg` é o ``GoalsBundle`` montado pelo
+    # pipeline_adapter. ``top5_decisoes_projection``/``risks_projection`` são
+    # projeções A10.5 sempre presentes (lista vazia se DB sem registros);
+    # fallback legacy (``riscos_prioritarios``/``decisoes_prioritarias``)
+    # foi removido com a deleção do PLANNING_CONTEXT bag.
+    riscos = _riscos_items_from_bundle(goals_cfg)
+    decisoes = _decisoes_titles_from_bundle(goals_cfg)
 
     # --- Rules-as-code (ADR-177): thresholds metodológicos universais ---
     # Imports locais por simetria com convenção do módulo (paths/config
@@ -628,10 +620,17 @@ def _e5n_load_e5(store) -> dict | None:
 
 
 def _e5n_load_metrics(
-    e5_data: dict, *, cambio_usd_brl: Decimal | float | None = None
+    e5_data: dict,
+    *,
+    cambio_usd_brl: Decimal | float | None = None,
+    goals_cfg: dict | None = None,
 ) -> _MetricsProxy:
     global METRICS
-    METRICS = load_metrics_from_e5(e5_data, cambio_usd_brl=cambio_usd_brl)
+    METRICS = load_metrics_from_e5(
+        e5_data,
+        cambio_usd_brl=cambio_usd_brl,
+        goals_cfg=goals_cfg,
+    )
     none_count = sum(1 for v in METRICS.values() if v is None)
     if none_count > 0:
         print(f"  [WARN] {none_count} métricas com valor None após carregamento do E5")
@@ -723,7 +722,10 @@ def main_with_store(ctx) -> dict:
         return {"success": False, "reason": "e5_not_found"}
 
     cambio_usd_brl = _resolve_cambio_via_config_store(ctx)
-    _e5n_load_metrics(e5_data, cambio_usd_brl=cambio_usd_brl)
+    # ADR-180 (Sprint A10.6): ``goals.json`` agora vem de ``ctx.config_overrides``
+    # (``GoalsBundle`` montado pelo pipeline_adapter) — não mais de filesystem.
+    goals_cfg = ctx.load_config("goals.json")
+    _e5n_load_metrics(e5_data, cambio_usd_brl=cambio_usd_brl, goals_cfg=goals_cfg)
     narrativas, errors = _e5n_build_and_validate()
     if narrativas is None:
         return {"success": False, "reason": "validation_failed", "errors": errors}

@@ -1,10 +1,10 @@
-"""Pipeline adapter — contrato ADR-075 para transição CLI → Web.
+"""Pipeline adapter — contrato ADR-075/ADR-180 para transição CLI → Web.
 
-Scripts do pipeline legado (E5, E5.N, E6) leem `config/goals.json` e
-`config/tarefas.md` para renderizar o relatório. Durante a transição
-para DB-as-source-of-truth, este módulo expõe funções que reconstroem
-esses payloads a partir do DB no formato **idêntico** ao legado —
-permitindo que os scripts continuem funcionando sem conhecer o DB.
+Scripts do pipeline legado (E5, E5.N) consomem o `goals.json` via
+``ctx.load_config("goals.json")`` (resolvido contra ``config_overrides``,
+populados por ``build_config_overrides_from_db``). ADR-180 (Sprint A10.6):
+``build_goals_payload_sync`` retorna ``GoalsBundle`` tipado; o arquivo
+``goals.json`` físico nunca mais é escrito em filesystem.
 
 Uso típico (dentro do worker):
 
@@ -14,19 +14,11 @@ Uso típico (dentro do worker):
         build_tarefas_md_sync,
     )
 
-    goals = build_goals_payload_sync(workspace_id, db=db)
-    # → dict compatível com json.load(open("config/goals.json"))
+    bundle = build_goals_payload_sync(workspace_id, db=db)
+    # → GoalsBundle (TypedDict) — dict-shaped, mesmas keys do legado.
 
     md = build_tarefas_md_sync(workspace_id, db=db)
-    # → string com o mesmo layout do config/tarefas.md atual
-
-Contrato documentado em:
-  - ADR-075 (DECISIONS.md)
-  - docs/cutover_pipeline.md (F4.1 — a criar)
-
-A ÚNICA coisa fora do DB que ainda é lida de filesystem são **seeds
-de produto** (Grupo B do ADR-075): institutions.json, categorization
-keywords, parametros_fiscais.json. Esses permanecem.
+    # → string com o mesmo layout do config/tarefas.md atual.
 
 Versões assíncronas (`build_*`) também existem — úteis para endpoints
 que exportam via HTTP (`/tasks/export.md`, futuro `/goals/export.json`).
@@ -45,6 +37,7 @@ from backend.app.models.goal import Goal
 from backend.app.models.risk import Risk
 from backend.app.models.task import Task
 from backend.app.services import task_service
+from pipeline.domain.goals_bundle import GoalsBundle
 
 # Status traduzido do vocabulário interno para o usado pelo E5 legado (MD).
 _TASK_STATUS_LEGACY_LABEL: dict[str, str] = {
@@ -192,7 +185,7 @@ async def _project_risks_bubble_async(
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# Goals payload (compatível com `config/goals.json`)
+# Goals payload — ``GoalsBundle`` (TypedDict) consumido por E5/E5.N (ADR-180)
 # ═══════════════════════════════════════════════════════════════════════
 
 
@@ -276,8 +269,7 @@ def _serialize_alocacao_goal(goal: Goal) -> dict[str, Any]:
     }
 
 
-# Mapa tipo → (chave no goals.json, serializador).
-# PLANNING_CONTEXT não aparece aqui — é tratado separadamente.
+# Mapa tipo → (chave no GoalsBundle, serializador).
 _GOAL_TYPE_MAP: dict[str, tuple[str, Any]] = {
     "INDEPENDENCIA_FINANCEIRA": ("independencia_financeira", _serialize_if_goal),
     "APORTE_MENSAL": ("aportes", _serialize_aporte_goal),
@@ -291,48 +283,37 @@ def _merge_goals_into_payload(
     workspace_id: str,
     goal_getter,
 ) -> None:
-    """Genérico: para cada Goal type no DB, serializa e injeta no payload."""
+    """Para cada Goal type conhecido no DB, serializa e injeta no payload (ADR-180)."""
     for goal_type, (key, serializer) in _GOAL_TYPE_MAP.items():
         goal = goal_getter(workspace_id, goal_type)
         if goal is not None:
             payload[key] = serializer(goal)
-
-    # PLANNING_CONTEXT: blob genérico cujas chaves são mergidas diretamente
-    ctx_goal = goal_getter(workspace_id, "PLANNING_CONTEXT")
-    if ctx_goal and ctx_goal.params_json:
-        ctx_data = ctx_goal.params_json.get("inputs", ctx_goal.params_json)
-        for k, v in ctx_data.items():
-            if k not in payload and not k.startswith("_"):
-                payload[k] = v
 
 
 def build_goals_payload_sync(
     workspace_id: str,
     *,
     db: SyncSession,
-    legacy_extras: Optional[dict[str, Any]] = None,
-) -> dict[str, Any]:
-    """Reconstrói o dict do `goals.json` a partir do DB (sync — worker).
+) -> GoalsBundle:
+    """Reconstrói o ``GoalsBundle`` do workspace a partir do DB (sync — worker, ADR-180).
 
-    Prioridade: DB > legacy_extras. Seções no DB sobrescrevem as do legado.
-    Se o workspace tem PLANNING_CONTEXT, suas chaves são mergidas no
-    top-level (cobrindo fase_f1f2, seguros, tributario, etc.)
-
-    Se `legacy_extras` é None e o DB está vazio, retorna dict mínimo.
+    Workspace sem dados retorna bundle mínimo só com projeções A10.5 vazias e
+    ``_adapter_version=2``; seções dos goals (``independencia_financeira``,
+    ``aportes``, ``dolarizacao``, ``alocacao_alvo``) só aparecem se há Goal
+    vigente no DB.
     """
-    payload: dict[str, Any] = dict(legacy_extras or {})
+    payload: dict[str, Any] = {}
 
     def _getter(ws, gtype):
         return _current_goal_sync(ws, gtype, db=db)
 
     _merge_goals_into_payload(payload, workspace_id, _getter)
     # ADR-178/179 (Sprint A10.5) — projeções para card S10 e bubble S9.
-    # Sempre presentes (lista vazia se DB sem registros). Sobrescrevem
-    # legacy_extras se o workspace tem aggregates populados.
+    # Sempre presentes (lista vazia se DB sem registros).
     payload["top5_decisoes_projection"] = _project_top5_decisions_sync(workspace_id, db=db)
     payload["risks_projection"] = _project_risks_bubble_sync(workspace_id, db=db)
     payload["_adapter_version"] = 2
-    return payload
+    return payload  # type: ignore[return-value]
 
 
 async def _goals_by_type_async(workspace_id: str, *, db: AsyncSession) -> dict[str, Goal]:
@@ -346,34 +327,27 @@ async def _goals_by_type_async(workspace_id: str, *, db: AsyncSession) -> dict[s
 
 
 def _apply_goals_to_payload(payload: dict[str, Any], goals_by_type: dict[str, Goal]) -> None:
-    """Serializa goals conhecidos + merge PLANNING_CONTEXT no payload."""
+    """Serializa goals conhecidos no payload (ADR-180)."""
     for goal_type, (key, serializer) in _GOAL_TYPE_MAP.items():
         goal = goals_by_type.get(goal_type)
         if goal is not None:
             payload[key] = serializer(goal)
-    ctx_goal = goals_by_type.get("PLANNING_CONTEXT")
-    if ctx_goal and ctx_goal.params_json:
-        ctx_data = ctx_goal.params_json.get("inputs", ctx_goal.params_json)
-        for k, v in ctx_data.items():
-            if k not in payload and not k.startswith("_"):
-                payload[k] = v
 
 
 async def build_goals_payload(
     workspace_id: str,
     *,
     db: AsyncSession,
-    legacy_extras: Optional[dict[str, Any]] = None,
-) -> dict[str, Any]:
-    """Versão async. Mesmo contrato que a versão sync."""
-    payload: dict[str, Any] = dict(legacy_extras or {})
+) -> GoalsBundle:
+    """Versão async. Mesmo contrato que a versão sync (ADR-180)."""
+    payload: dict[str, Any] = {}
     goals_by_type = await _goals_by_type_async(workspace_id, db=db)
     _apply_goals_to_payload(payload, goals_by_type)
     # ADR-178/179 (Sprint A10.5) — projeções via mesmas queries da via sync.
     payload["top5_decisoes_projection"] = await _project_top5_decisions_async(workspace_id, db=db)
     payload["risks_projection"] = await _project_risks_bubble_async(workspace_id, db=db)
     payload["_adapter_version"] = 2
-    return payload
+    return payload  # type: ignore[return-value]
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -576,12 +550,14 @@ def _family_members_override(workspace_id: str, db: SyncSession) -> dict[str, An
 
 
 def build_config_overrides_from_db(workspace_id: str, *, db: SyncSession) -> dict[str, Any]:
-    """Pré-serializa configs A7.1+A7.3 do DB para ``WorkspaceContext.config_overrides``.
+    """Pré-serializa configs do DB para ``WorkspaceContext.config_overrides``.
 
     A7.3 (ADR-137): ``categorization.json`` agora vem do resolver
-    (template global + overrides do workspace) + auxiliary metadata
-    (pj_source_mapping, internal_transfer_patterns…) do row reservado.
+    (template global + overrides do workspace) + auxiliary metadata.
     ``institutions.json`` vem do ``institution_catalog`` global.
+    A10.6 (ADR-180): ``goals.json`` agora é o ``GoalsBundle`` montado
+    a partir de Goal/Decision/Risk aggregates — substitui materialização
+    em filesystem (deletada na lane A10.6).
     """
     from backend.app.services.config_materializer import serialize_report_layout
 
@@ -590,6 +566,7 @@ def build_config_overrides_from_db(workspace_id: str, *, db: SyncSession) -> dic
         "categorization.json": _categorization_override(workspace_id, db),
         "institutions.json": _institutions_override(db),
         "report_layout.yaml": serialize_report_layout(workspace_id, db),
+        "goals.json": dict(build_goals_payload_sync(workspace_id, db=db)),
     }
     return {k: v for k, v in sources.items() if v is not None}
 

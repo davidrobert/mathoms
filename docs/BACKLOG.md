@@ -1331,7 +1331,7 @@ Detalhes virão quando A7 fechar; este stub serve para registrar débito técnic
 **Plano canônico:** [docs/GOALS_JSON_CUTOVER_PLAN.md](GOALS_JSON_CUTOVER_PLAN.md) — 10 seções, 9 lanes em 4 ondas, 5 ADRs propostos (ADR-177 a ADR-181 — sequência renumerada após ADR-176 ser tomada por outra entrega no mesmo dia), supervisão CTO.
 **ADRs propostos:** ADR-177 (rules-as-code consolidation `goals.json`), ADR-178 (`Risk` aggregate), ADR-179 (`Decision` schema extension), ADR-180 (StageConfig bundle + cutover, **supersedes** parcial ADR-077), ADR-181 (`forbidden_paths` + delete archived).
 **Especialistas G0:** `senior-cto` ✅ + `financial-planner` ✅ (consultados 2026-05-06).
-**Status global (2026-05-07):** 🚧 Onda 3 em curso — A10.0/1/2/3/4/7 ✅ em `main` (PRs #104/#108/#107/#113/#116/#118); A10.5 (#117) auto-merge ativo. Falta A10.6 (Wave 3) e A10.8 (Wave 4).
+**Status global (2026-05-07):** 🚧 Onda 3 fechando — A10.0/1/2/3/4/5/7 ✅ em `main` (PRs #104/#108/#107/#113/#116/#117/#118); A10.6 PR aberto. Falta A10.8 (Wave 4).
 **Objetivo (1 frase):** fechar o último frente da migração `config/*.json` → DB-first iniciada em A7, eliminando `goals.json` (arquivado) como fonte de dados em runtime e migrando as 18 chaves residuais para `Decision`/`Risk` aggregates, rules-as-code, ou deleção (dead data ADR-168).
 **Princípios não-negociáveis:** (P1) ADR-077 checkbox marcado ao fim; (P2) `pipeline/**` não importa SQLAlchemy/FastAPI (boundary check); (P3) money sempre Decimal/cents (ADR-090); (P4) goldens E5/E5.N verdes byte-a-byte salvo PR de reset dedicado e justificado; (P5) ADR `Proposto` antes de PR de implementação (ADR-138); (P6) tenancy correta — `seed_goals_workspace.py` sem hardcode de `family_surname`; (P7) `_archive/.../goals.json` deletado, não re-arquivado.
 **Supervisão:** padrão A7 (gates G1 ADR draft / G2 schema review / G3 PR pré-merge / G4 wave boundary).
@@ -1356,7 +1356,7 @@ Detalhes do diagnóstico (inventário de 22 chaves, leitores vivos, dead data AD
 | **A10.4** `Risk` aggregate (ADR-178) | `a10-4-risk-aggregate` | [§3.4 + ADR-178](GOALS_JSON_CUTOVER_PLAN.md) | A10.0 ✅ | 2 | A10.3, A10.7 | 2d | ✅ entregue (PR #116, `e325119`) |
 | **A10.7** Seed refactor + `tributario` migration | `a10-7-seed-refactor` | [§3.5 + §2.2 tributario](GOALS_JSON_CUTOVER_PLAN.md) | A10.1 + A10.2 ✅ | 2 | A10.3, A10.4 | 1d | ✅ entregue (PR #118, `4b2f97b`) |
 | **A10.5** Top5 + Bubble como projeção (charts_narrator switch) | `a10-5-projections` | [§3.3 + §6.2 + §7.1](GOALS_JSON_CUTOVER_PLAN.md) | A10.3 + A10.4 ✅ | 3 | A10.6 | 1d | 🚧 PR #117 aberto (auto-merge) |
-| **A10.6** Pipeline cutover via `StageConfig.config_store` (ADR-180) | `a10-6-stage-config-bundle` | [§3.1 + §3.2 + ADR-180](GOALS_JSON_CUTOVER_PLAN.md) | A10.1 + A10.2 + A10.3 + A10.4 ✅ | 3 | A10.5 | 1.5d | ☐ proposta |
+| **A10.6** Pipeline cutover via `StageConfig.config_store` (ADR-180) | `a10-6-stage-config-bundle` | [§3.1 + §3.2 + ADR-180](GOALS_JSON_CUTOVER_PLAN.md) | A10.1 + A10.2 + A10.3 + A10.4 ✅ | 3 | A10.5 | 1.5d | 🚧 PR aberto |
 | **A10.8** Final cutover + `forbidden_paths` (ADR-181) | `a10-8-cutover-final` | [§6 + ADR-181](GOALS_JSON_CUTOVER_PLAN.md) | TODAS ✅ | 4 (bloqueante) | — | 0.5d | ☐ proposta |
 
 **Esforço total estimado:** ~10 dias trabalho ativo. Wall-clock ~5-7 dias com 2-3 agentes paralelos.

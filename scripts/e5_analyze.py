@@ -131,7 +131,9 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
             "receita_restituicao",
         }
 
-    GOALS_CONFIG = _load_json_config(CONFIG_GOALS)
+    # ADR-180 (Sprint A10.6): ``goals.json`` lida via ``ctx`` (overrides DB-first);
+    # filesystem fallback só para CLI/standalone sem backend.
+    GOALS_CONFIG = _read_e5_config_blob("goals.json", CONFIG_GOALS, ctx)
     SCORING_CONFIG = _load_json_config(CONFIG_SCORING)
     FISCAL_CONFIG = _load_json_config(CONFIG_FISCAL)
     FAMILY_CONFIG = fm
