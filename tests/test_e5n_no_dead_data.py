@@ -198,14 +198,22 @@ def _build_minimal_metrics() -> dict[str, Any]:
     }
 
 
-def test_seed_skip_sections_includes_dead_data_keys():
-    """Seed do PLANNING_CONTEXT filtra todas as 6 chaves H da Sprint A10.1."""
-    from backend.app.scripts.seed_goals_full_ferreira_campos import _SKIP_SECTIONS
+def test_seed_does_not_reference_dead_data_keys():
+    """A10.7: seed declarativo (sem `_SKIP_SECTIONS`); chaves H não podem voltar por construção."""
+    from pathlib import Path
 
+    seed_path = (
+        Path(__file__).resolve().parent.parent
+        / "backend"
+        / "app"
+        / "scripts"
+        / "seed_goals_workspace.py"
+    )
+    seed_source = seed_path.read_text(encoding="utf-8")
     for key in DEAD_DATA_KEYS_SEED:
-        assert key in _SKIP_SECTIONS, (
-            f"Chave dead-data '{key}' deve estar em _SKIP_SECTIONS para "
-            f"ser filtrada do PLANNING_CONTEXT no seed."
+        assert key not in seed_source, (
+            f"Chave dead-data '{key}' aparece em seed_goals_workspace.py — "
+            f"código zumbi do Modo USA voltou (ADR-168). Sprint A10.1+A10.7."
         )
 
 

@@ -73,14 +73,17 @@ async def _check_preconditions() -> list[str]:
         if task_count == 0:
             failures.append("Nenhuma Task no DB (rode o seed primeiro)")
 
-        # PLANNING_CONTEXT?
+        # PLANNING_CONTEXT — opcional pós-A10.7 (seed não cria mais a bag;
+        # A10.6/ADR-180 removerá o tipo do `VALID_GOAL_TYPES`). Mantemos
+        # a checagem como aviso para workspaces históricos que ainda
+        # carregam o registro.
         ctx_stmt = select(Goal).where(
             Goal.workspace_id == ws.id,
             Goal.type == "PLANNING_CONTEXT",
             Goal.effective_to.is_(None),
         )
         if (await db.execute(ctx_stmt)).scalar_one_or_none() is None:
-            failures.append("Goal PLANNING_CONTEXT não encontrado (rode seed_goals_full)")
+            logger.info("  [info] Goal PLANNING_CONTEXT ausente — esperado pós-A10.7.")
 
     return failures
 
@@ -122,7 +125,8 @@ async def cutover(*, apply: bool) -> int:
             "Seeds disponíveis:\n"
             "  python -m backend.app.scripts.seed_if_goal_ferreira_campos --apply\n"
             "  python -m backend.app.scripts.seed_tasks_ferreira_campos --apply\n"
-            "  python -m backend.app.scripts.seed_goals_full_ferreira_campos --apply"
+            "  python -m backend.app.scripts.seed_goals_workspace "
+            "--workspace-id <UUID> --demo --apply"
         )
         return 1
 
@@ -139,9 +143,7 @@ async def cutover(*, apply: bool) -> int:
         logger.info("")
         logger.info("Próximos passos:")
         logger.info("  1. git add -A")
-        logger.info(
-            '  2. git commit -m "cutover: remove config/goals.json + ' 'tarefas.md (ADR-077)"'
-        )
+        logger.info('  2. git commit -m "cutover: remove config/goals.json + tarefas.md (ADR-077)"')
         logger.info("  3. Validar pipeline completo E0→E7 contra workspace de teste")
         logger.info("  4. git tag f8-cutover-complete")
     else:

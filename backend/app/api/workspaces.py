@@ -43,9 +43,17 @@ from backend.app.application.workspace._dtos import (
 )
 from backend.app.core.database import get_db
 from backend.app.core.deps import get_current_user
-from backend.app.core.tenancy import get_current_workspace, require_member_admin_role
+from backend.app.core.tenancy import (
+    get_current_workspace,
+    require_member_admin_role,
+    require_write_role,
+)
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
+from backend.app.schemas.business_profile import (
+    BusinessProfile,
+    BusinessProfileResponse,
+)
 from backend.app.schemas.workspace_members import (
     InvitationCreateRequest,
     InvitationCreateResponse,
@@ -161,3 +169,35 @@ async def revoke_invitation_endpoint(
     db: AsyncSession = Depends(get_db),
 ) -> None:
     await _revoke_invitation(workspace.id, invitation_id, actor=actor, request=request, db=db)
+
+
+# ─── /workspaces/{ws}/business-profile (Sprint A10.7) ──────────────────
+# Substitui a chave `tributario` da bag PLANNING_CONTEXT (legado
+# goals.json). JSON livre validado por `BusinessProfile` Pydantic.
+
+
+@tenant_router.get("/business-profile", response_model=BusinessProfileResponse)
+async def get_business_profile(
+    workspace: Workspace = Depends(get_current_workspace),
+) -> BusinessProfileResponse:
+    """Retorna o perfil tributário/PJ. Default vazio se nunca preenchido."""
+    raw = workspace.business_profile_json or {}
+    return BusinessProfileResponse(**raw)
+
+
+@tenant_router.patch(
+    "/business-profile",
+    response_model=BusinessProfileResponse,
+    dependencies=[Depends(require_write_role)],
+)
+async def update_business_profile(
+    payload: BusinessProfile,
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+) -> BusinessProfileResponse:
+    """Substitui o perfil tributário (replace, não merge — shape simples)."""
+    workspace.business_profile_json = payload.model_dump(exclude_none=False)
+    db.add(workspace)
+    await db.commit()
+    await db.refresh(workspace)
+    return BusinessProfileResponse(**(workspace.business_profile_json or {}))
