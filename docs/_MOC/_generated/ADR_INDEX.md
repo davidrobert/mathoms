@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 158
-- **Proposto**: 12
+- **Decidido**: 159
+- **Proposto**: 11
 - **Roadmap**: 5
 
 ## Fundação
@@ -275,7 +275,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Outras
 
-### Decidido (18)
+### Decidido (19)
 
 - [[ADR-149]] — `config/report_layout.yaml` permanece como asset de produto (Sprint A8.0) · phase Sprint A8.0
 - [[ADR-151]] — Remoção do Modo Tático do relatório (Direção E do redesign de interfaces) · phase Direção E · Onda 3
@@ -295,15 +295,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-167]] — Eligibility gate de cenário do cônjuge no domain service · phase A8.4 PR2
 - [[ADR-168]] — Remoção do Modo USA do relatório · phase A8.4 PR4
 - [[ADR-169]] — Modo incremental estendido aos stages globais E1
+- [[ADR-182]] — Vault de documentação operacional Obsidian-friendly em `docs/` · phase A11.5
 
-### Proposto (6)
+### Proposto (5)
 
 - [[ADR-170]] — Refresh tokens com httpOnly cookie e family-based revocation
 - [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
 - [[ADR-174]] — Off-site backup criptografado em Cloudflare R2 + restore drill
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
 - [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
-- [[ADR-182]] — Vault de documentação operacional Obsidian-friendly em `docs/`
 
 ### Roadmap (3)
 

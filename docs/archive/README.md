@@ -62,3 +62,29 @@ mapa das 22 chaves → destinos.
 **Quando consultar:** rationale histórico do inventário decisional de 22
 chaves, design de `GoalsBundle` TypedDict, dependências entre ondas, ou
 arqueologia do débito de 7 meses sobre cobertura `goals.json`.
+
+---
+
+## DOC_REORG_PLAN-2026-05-07.md
+
+Plano canônico da reorganização documental (ADR-182). 5 fases em ~3 dias
+calendário, atomização de DECISIONS.md (175 ADRs), BACKLOG.md (35 lanes
++ 18 sprint MOCs), CHANGELOG.md (167 entries), tracks (62) e plans (6),
+com gates pre-commit + snapshot test + benchmark de tokens.
+
+**Arquivado em:** 2026-05-07
+
+**Substituído por:**
+- **[../adr/](../adr/)** + [../_MOC/_generated/ADR_INDEX.md](../_MOC/_generated/ADR_INDEX.md) (ADRs atomizadas, índice agrupado por categoria/status)
+- **[../sprint/](../sprint/)** + [../_MOC/SPRINTS-active.md](../_MOC/SPRINTS-active.md) + [../_MOC/_generated/SPRINT_CURRENT.md](../_MOC/_generated/SPRINT_CURRENT.md) (lanes/tracks/changelog por sprint)
+- **[../plan/](../plan/)** + [../_MOC/PLANS-active.md](../_MOC/PLANS-active.md) (planos canônicos abertos)
+- **[../reference/PHASES.md](../reference/PHASES.md)** + [../reference/PRODUCT.md](../reference/PRODUCT.md) (docs estáveis)
+
+**Quando consultar:** rationale histórico das 5 fases, decisões de granularidade (lanes per-H3 vs per-table; changelog per-bullet vs per-PR), gaps conhecidos (F4.A.followup), trade-offs aceitos.
+
+**Métricas finais:**
+- DECISIONS.md: 9040 → 219 linhas (−97.6%)
+- BACKLOG.md: 2358 → 49 linhas (−97.9%)
+- CHANGELOG.md: 6923 → ~50 linhas (−99.3%)
+- Notas atômicas: 0 → ~445 (175 adr + 6 plan + 62 track + 35 lane + 167 changelog)
+- Token-cost-benchmark Q1/Q2/Q5/Q6: redução ≥97%; Q3/Q4 cai com F5.
