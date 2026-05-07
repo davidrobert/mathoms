@@ -40,8 +40,7 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     global _KEY_INV_TITULAR, _KEY_INV_CONJUGE, _KEY_CENARIOS_CONJUGE
     global _KEY_IDADE_TITULAR_IF, _KEY_SAL_CONJUGE
     global _KEY_INST_TITULAR, _KEY_INST_CONJUGE
-    global _KEY_F1F2_TITULAR, _KEY_F1F2_CONJUGE
-    global _KEY_RENDA_CONJUGE_EUA_PROJ, _KEY_CENARIOS_SECTION
+    global _KEY_CENARIOS_SECTION
 
     SCRIPTS_DIR = base_dir / "scripts"
     PROJECT_DIR = base_dir
@@ -69,11 +68,11 @@ def _init_config(base_dir: Path, *, ctx=None) -> None:
     _KEY_SAL_CONJUGE = f"salario_{_CONJUGE_KEY}"
     _KEY_INST_TITULAR = f"{_TITULAR_KEY}_instituicoes"
     _KEY_INST_CONJUGE = f"{_CONJUGE_KEY}_instituicoes"
-    _KEY_F1F2_TITULAR = f"f1f2_estrategia_{_TITULAR_KEY}"
-    _KEY_F1F2_CONJUGE = f"f1f2_estrategia_{_CONJUGE_KEY}"
-    _KEY_RENDA_CONJUGE_EUA_PROJ = f"renda_{_CONJUGE_KEY}_eua_projetada"
     # ADR-166 + ADR-176: chave universal estável; não mais derivada de _CONJUGE_KEY.
     _KEY_CENARIOS_SECTION = "cenarios_conjuge"
+    # ADR-168 cleanup (Sprint A10.1): _KEY_F1F2_TITULAR, _KEY_F1F2_CONJUGE,
+    # _KEY_RENDA_CONJUGE_EUA_PROJ removidos — globals do Modo USA descontinuado
+    # em A8.4 PR4 sem leitor após cirurgia das narrativas órfãs.
 
     FISCAL = _load_fiscal()
     _CLT_SOURCE_LABELS = list(_CATEGORIZATION.get("clt_source_mapping", {}).values())
@@ -122,9 +121,6 @@ _KEY_IDADE_TITULAR_IF: str = "idade__if"
 _KEY_SAL_CONJUGE: str = "salario_"
 _KEY_INST_TITULAR: str = "_instituicoes"
 _KEY_INST_CONJUGE: str = "_instituicoes"
-_KEY_F1F2_TITULAR: str = "f1f2_estrategia_"
-_KEY_F1F2_CONJUGE: str = "f1f2_estrategia_"
-_KEY_RENDA_CONJUGE_EUA_PROJ: str = "renda__eua_projetada"
 _KEY_CENARIOS_SECTION: str = "cenarios_conjuge"
 
 
@@ -310,10 +306,15 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
     # --- From goals.json ---
     aportes = goals_cfg.get("aportes", {})
     dist = aportes.get("distribuicao", {})
+    # ADR-168 cleanup (Sprint A10.1): `fase_f1f2` ainda lida para 3 campos
+    # de viagem (custo_viagem_minimo/maximo, viagens_anuais_estimadas)
+    # consumidos pelo chart `viagens` — outras chaves do Modo USA foram
+    # removidas. `mariana_eua`/`cenarios_conjuge` (renda_rn_*) removidas.
+    # Quando o seed (A10.1+) não popular essas seções, `f1f2.get(...)`
+    # retorna 0 sem quebrar narrativas.
     f1f2 = goals_cfg.get("fase_f1f2", {})
     dolar = goals_cfg.get("dolarizacao", {})
     seguros = goals_cfg.get("seguros", {})
-    mar_eua = goals_cfg.get("cenarios_conjuge", goals_cfg.get("mariana_eua", {}))
     trib_cfg = goals_cfg.get("tributario", {})
     aloc_alvo = goals_cfg.get("alocacao_alvo", {})
     riscos = goals_cfg.get("riscos_prioritarios", [])
@@ -359,8 +360,6 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
     prazo_anos = goals.get("prazo_anos_realista", 0)
 
     meta_aporte_mensal = aportes.get("meta_aporte_mensal", 0)
-    custo_fase_f1f2 = f1f2.get("custo_mensal_estimado", 0)
-    sobra_mensal_f1f2 = receita_recorrente_mensal - custo_fase_f1f2
 
     # --- USD savings computed from E3 saldos per bank ---
     usd_saldos = _compute_usd_saldos_per_bank(e5_data)
@@ -372,14 +371,8 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
     aporte_cambial_usd = _safe_div(aporte_cambial_brl, cambio)
     meses_cambial = int(_safe_div(gap_usd, aporte_cambial_usd)) if aporte_cambial_usd > 0 else 0
 
-    # Cônjuge EUA vs CLT computation
-    renda_eua_projetada_usd = mar_eua.get("renda_rn_projetada_usd", 0)
-    renda_eua_projetada_brl = renda_eua_projetada_usd * cambio
-    pct_renda_eua_vs_clt = (
-        round((1 - _safe_div(renda_eua_projetada_brl, salario_conjuge)) * 100, 0)
-        if salario_conjuge
-        else 0
-    )
+    # ADR-168 cleanup (Sprint A10.1): cálculo de `renda_eua_projetada_*` e
+    # `pct_renda_eua_vs_clt` removidos — chaves dead-data do Modo USA.
 
     # Accumulated contributions projection
     aportes_acum_prazo = meta_aporte_mensal * 12 * prazo_anos if prazo_anos else 0
@@ -450,18 +443,15 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
         "pct_despesas_nao_id": pct_despesas_nao_id,
         "pct_das_receita_pj": pct_das_receita_pj,
         "pct_renda_passiva_meta": pct_renda_passiva_meta,
-        "pct_renda_eua_vs_clt": pct_renda_eua_vs_clt,
         # === Computed from E5 data ===
         _KEY_SAL_CONJUGE: salario_conjuge,
         "receita_aluguel_anual": round(receita_aluguel_anual, 2),
         "yield_imoveis_pct": yield_imoveis_pct,
-        "sobra_mensal_f1f2": round(sobra_mensal_f1f2, 2),
         "das_anual_estimado": round(das_anual, 2),
         "receita_pj_anual": round(receita_pj_anual, 2),
         "das_aliquota_pct": round(das_aliquota_pct * 100, 1),
         "anos_para_if_calculo": round(prazo_anos),
         "aportes_acum_prazo": round(aportes_acum_prazo, 0),
-        "renda_eua_projetada_brl": round(renda_eua_projetada_brl, 0),
         # === Computed: top asset & institutions (from E4) ===
         "top_asset_nome": top_asset["nome"],
         "top_asset_valor": top_asset["valor"],
@@ -492,24 +482,16 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
         "if_trs_pct": if_cfg.get("trs_pct", 5.0),
         "if_renda_passiva_meta": renda_passiva_meta,
         "if_retorno_real_pct": if_cfg.get("retorno_real_anual_pct", 6.0),
-        # === config/goals.json: F1/F2 phase ===
-        "custo_fase_f1f2": custo_fase_f1f2,
+        # === config/goals.json: viagens (chart vivo — único campo F1/F2 preservado) ===
+        # ADR-168 cleanup (Sprint A10.1): demais campos de fase_f1f2,
+        # mariana_eua/cenarios_conjuge (renda_rn_*) removidos. Chave
+        # `fase_f1f2` em goals.json passou a ser dead-data filtrada do seed.
         "custo_viagem_minimo": f1f2.get("custo_viagem_minimo", 0),
         "custo_viagem_maximo": f1f2.get("custo_viagem_maximo", 0),
         "viagens_anuais_estimadas": f1f2.get("viagens_anuais_estimadas", 0),
-        "f1f2_universidade": f1f2.get("universidade", ""),
-        "f1f2_visto": f1f2.get("visto", "F1/F2"),
-        "f1f2_green_card_via": f1f2.get("green_card_via", "EB2-NIW"),
-        _KEY_F1F2_TITULAR: f1f2.get(f"estrategia_{_TITULAR_KEY}", ""),
-        _KEY_F1F2_CONJUGE: f1f2.get(f"estrategia_{_CONJUGE_KEY}", ""),
-        "f1f2_crescimento_salarial": f1f2.get("crescimento_salarial_eua_pct", "3-4"),
         # === config/goals.json: seguros ===
         "seguro_vida_minimo": seguros.get("vida_term_minimo", 0),
         "seguro_vida_maximo": seguros.get("vida_term_maximo", 0),
-        # === config/goals.json: cônjuge EUA ===
-        f"renda_{_CONJUGE_KEY}_eua_minima": mar_eua.get("renda_rn_minima_usd", 0),
-        f"renda_{_CONJUGE_KEY}_eua_maxima": mar_eua.get("renda_rn_maxima_usd", 0),
-        _KEY_RENDA_CONJUGE_EUA_PROJ: renda_eua_projetada_usd,
         # === Tributário (calculado a partir de parametros_fiscais.json + dados reais) ===
         "das_mensal_estimado": round(das_mensal, 2),
         "contador_mensal": trib_cfg.get("contador_mensal", 0),
@@ -542,13 +524,12 @@ def load_metrics_from_e5(e5_data: dict, *, cambio_usd_brl: Decimal | float | Non
         f"cm_idade_{_TITULAR_KEY}": cm.get(f"idade_{_TITULAR_KEY}_if", []),
         "cm_cenarios": cm.get("cenarios", []),
         "cm_fator_reduzido": cm.get("premissas", {}).get("fator_reduzido", 0.66),
-        "cm_renda_nclex_usd": cm.get("premissas", {}).get("renda_nclex_usd", 4000),
-        "cm_renda_nclex_brl": cm.get("premissas", {}).get("renda_nclex_brl", 0),
-        "cm_renda_gc_usd": cm.get("premissas", {}).get("renda_gc_usd", 7000),
-        "cm_renda_gc_brl": cm.get("premissas", {}).get("renda_gc_brl", 0),
         "cm_salario_clt_brl": cm.get("premissas", {}).get(f"salario_{_CONJUGE_KEY}_clt_brl", 0),
-        "cm_recovery_nclex_pct": cm.get("premissas", {}).get("recovery_nclex_pct", 0),
-        "cm_recovery_gc_pct": cm.get("premissas", {}).get("recovery_gc_pct", 0),
+        # ADR-168 cleanup (Sprint A10.1): cm_renda_nclex_*, cm_renda_gc_*,
+        # cm_recovery_nclex_pct, cm_recovery_gc_pct removidos — premissas
+        # NCLEX/Green Card do Modo USA descontinuado em A8.4 PR4 (ADR-167
+        # já reduziu cenários do analyzer para 1 universal "Sem renda do
+        # cônjuge"; este dict era débito remanescente).
     }
 
 

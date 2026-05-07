@@ -75,12 +75,16 @@ class SummariesNarrator:
                 f"apartamentos alugados com renda de {fmt_currency(M['receita_aluguel_anual'])}/ano ({fmt_currency(M['receita_aluguel'] / M['n_meses_periodo'] if M['n_meses_periodo'] else 0)}/mês). "
                 f"Yield bruto dos imóveis de investimento estimado em {fmt_num(M['yield_imoveis_pct'])}% (receita/valor total)."
             ),
+            # ADR-168 cleanup (Sprint A10.1): s5 reescrito sem EUA. Antes
+            # citava custo fase F1/F2, sobra mensal e viagens-EUA — todas
+            # chaves dead-data do Modo USA removido em A8.4 PR4. Refoca
+            # em viagens genéricas (chart vivo) + sobra de fluxo de caixa.
             "s5": (
-                f"Mudança para os EUA via visto {M['f1f2_visto']} ({M['f1f2_universidade']}), "
-                f"com custo mensal estimado de {fmt_currency(M['custo_fase_f1f2'])}. "
-                f"Sobra projetada de {fmt_currency(M['sobra_mensal_f1f2'])}/mês "
-                f"({fmt_currency(M['receita_recorrente_mensal'])} receita − {fmt_currency(M['custo_fase_f1f2'])} custos). "
-                f"Viagens estimadas: {fmt_num(M['viagens_anuais_estimadas'], 0)}/ano a {fmt_currency(M['custo_viagem_minimo'])}-{fmt_currency(M['custo_viagem_maximo'])} cada."
+                f"Orçamento anual de viagens estimado em {fmt_num(M.get('viagens_anuais_estimadas', 0), 0)} viagens/ano "
+                f"com custo unitário entre {fmt_currency(M.get('custo_viagem_minimo', 0))} e "
+                f"{fmt_currency(M.get('custo_viagem_maximo', 0))}. "
+                f"Receita recorrente de {fmt_currency(M['receita_recorrente_mensal'])}/mês cobre as despesas mensais médias "
+                f"de {fmt_currency(M['despesa_mensal_media'])}, gerando sobra para aportes e reserva de viagens."
             ),
             "s6": (
                 f"Exposição cambial: {fmt_usd(M['wise_usd'])} em Wise, {fmt_usd(M['bofa_usd'])} em Bank of America. "

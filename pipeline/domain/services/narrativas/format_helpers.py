@@ -131,6 +131,10 @@ def validate_narrativas(
             elif not summaries[s_key]:
                 errors.append(f"summaries.{s_key} is empty")
 
+    # ADR-168 cleanup (Sprint A10.1): `custos_f1f2` e `cenarios_cambiais`
+    # removidos da required list — charts marcados como removidos no
+    # report_spec.md desde A8.4 PR4, mas o validator continuava exigindo
+    # presença, mantendo as narrativas órfãs vivas.
     required_charts = [
         "score_gauge",
         "patrimonio_doughnut",
@@ -147,9 +151,7 @@ def validate_narrativas(
         "top15_ativos",
         "impostos_pj",
         cenarios_section_key,
-        "custos_f1f2",
         "viagens",
-        "cenarios_cambiais",
         "bubble_riscos",
         "top5_decisoes",
     ]

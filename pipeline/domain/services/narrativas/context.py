@@ -35,9 +35,9 @@ class NarrativasContext:
     key_sal_conjuge: str
     key_inst_titular: str
     key_inst_conjuge: str
-    key_f1f2_titular: str
-    key_f1f2_conjuge: str
-    key_renda_conjuge_eua_proj: str
+    # ADR-168 cleanup (Sprint A10.1): `key_f1f2_titular`, `key_f1f2_conjuge` e
+    # `key_renda_conjuge_eua_proj` removidos — metadados do Modo USA descontinuado
+    # em A8.4 PR4 que não tinham leitor após remoção das narrativas órfãs em E5.N.
 
     @classmethod
     def from_family_config(cls, family: dict[str, Any]) -> "NarrativasContext":
@@ -63,7 +63,4 @@ class NarrativasContext:
             key_sal_conjuge=f"salario_{conjuge_key}",
             key_inst_titular=f"{titular_key}_instituicoes",
             key_inst_conjuge=f"{conjuge_key}_instituicoes",
-            key_f1f2_titular=f"f1f2_estrategia_{titular_key}",
-            key_f1f2_conjuge=f"f1f2_estrategia_{conjuge_key}",
-            key_renda_conjuge_eua_proj=f"renda_{conjuge_key}_eua_projetada",
         )
