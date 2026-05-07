@@ -5,7 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-_Sprint corrente é **A11**, mas nenhuma lane com frontmatter foi indexada ainda (Fase 4.A do DOC_REORG popula)._
+2 open.
+
+## Open (2)
+
+- [[A11.w2]] — Pipeline + DB hardening (6 tasks) · priority P0
+- [[A11.w5]] — Frontend + Methodology (5 tasks, paralelo W6)
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

@@ -348,6 +348,21 @@
 | CHG-2026-05-07-ADR-179 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-179.md` |
 | CHG-2026-05-07-ADR-180 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-180.md` |
 | CHG-2026-05-07-ADR-181 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-181.md` |
+| A10.0 | lane | shipped | A10 | ADRs Proposto batch (ADR-177..181) | `sprint/A10/lanes/A10-0-adrs-proposto-batch.md` |
+| A10.1 | lane | shipped | A10 | Dead-data deletion + ADR-168 narrativas órfãs | `sprint/A10/lanes/A10-1-dead-data-deletion-adr-168-narrativas-orfas.md` |
+| A10.2 | lane | shipped | A10 | Rules-as-code consolidation (ADR-177) | `sprint/A10/lanes/A10-2-rules-as-code-consolidation.md` |
+| A10.3 | lane | shipped | A10 | Decision schema extension (ADR-179) | `sprint/A10/lanes/A10-3-decision-schema-extension.md` |
+| A10.4 | lane | shipped | A10 | `Risk` aggregate (ADR-178) | `sprint/A10/lanes/A10-4-risk-aggregate.md` |
+| A10.5 | lane | shipped | A10 | Top5 + Bubble como projeção (charts_narrator switch) | `sprint/A10/lanes/A10-5-top5-bubble-como-projecao.md` |
+| A10.6 | lane | shipped | A10 | Pipeline cutover via `StageConfig.config_store` (ADR-180) | `sprint/A10/lanes/A10-6-pipeline-cutover-via-stageconfig-config-store.md` |
+| A10.7 | lane | shipped | A10 | Seed refactor + `tributario` migration | `sprint/A10/lanes/A10-7-seed-refactor-tributario-migration.md` |
+| A10.8 | lane | in_progress | A10 | Final cutover + `forbidden_paths` (ADR-181) | `sprint/A10/lanes/A10-8-final-cutover-forbidden-paths.md` |
+| A11.w1 | lane | shipped | A11 | Hot patches + ADR backfill (8 tasks) | `sprint/A11/lanes/A11-w1-hot-patches-adr-backfill.md` |
+| A11.w2 | lane | open | A11 | Pipeline + DB hardening (6 tasks) | `sprint/A11/lanes/A11-w2-pipeline-db-hardening.md` |
+| A11.w3 | lane | blocked | A11 | Auth + LLM ops + Email (5 tasks) | `sprint/A11/lanes/A11-w3-auth-llm-ops-email.md` |
+| A11.w4 | lane | blocked | A11 | Production readiness (5 tasks) | `sprint/A11/lanes/A11-w4-production-readiness.md` |
+| A11.w5 | lane | open | A11 | Frontend + Methodology (5 tasks, paralelo W6) | `sprint/A11/lanes/A11-w5-frontend-methodology.md` |
+| A11.w6 | lane | blocked | A11 | Tech debt cleanup (6 tasks) | `sprint/A11/lanes/A11-w6-tech-debt-cleanup.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -361,6 +376,30 @@
 | A6e | lane | in_progress | A6 | DDD/SOLID no backend API (ADR-101, R12-R17) | `sprint/A6/lanes/A6e-ddd-solid-no-backend-api.md` |
 | A6f | lane | shipped | A6 | Language-neutral boundaries (ADR-102, R18-R20) | `sprint/A6/lanes/A6f-language-neutral-boundaries.md` |
 | A6g | lane | in_progress | A6 | Code Style Sweep (CLAUDE.md §Code style) | `sprint/A6/lanes/A6g-code-style-sweep.md` |
+| A7.0 | lane | shipped | A7 | ConfigStore protocol + adapters | `sprint/A7/lanes/A7-0-configstore-protocol-adapters.md` |
+| A7.1 | lane | shipped | A7 | Cutover `materialize_config` → ConfigStore | `sprint/A7/lanes/A7-1-cutover-materialize-config-configstore.md` |
+| A7.2a | lane | shipped | A7 | Decision aggregate (event-sourced) + migrator + UI Plano de Ação | `sprint/A7/lanes/A7-2a-decision-aggregate-migrator-ui-plano-de-acao.md` |
+| A7.2b | lane | shipped | A7 | Tabelas globais `fiscal_parameters` + `market_rates` versionadas | `sprint/A7/lanes/A7-2b-tabelas-globais-fiscal-parameters-market-rates-versionadas.md` |
+| A7.3 | lane | shipped | A7 | Catalog + Override resolver (categorization + institutions) | `sprint/A7/lanes/A7-3-catalog-override-resolver.md` |
+| A7.4 | lane | shipped | A7 | Metodologia → `docs/methodology/` (4 `.md` movidos) | `sprint/A7/lanes/A7-4-metodologia-docs-methodology.md` |
+| A7.5 | lane | shipped | A7 | Cleanup final (deletar `config/` + bridges) | `sprint/A7/lanes/A7-5-cleanup-final.md` |
+| A7.6 | lane | shipped | A7 | Rules-as-code (dissolver `docs/methodology/`) | `sprint/A7/lanes/A7-6-rules-as-code.md` |
+| A8.0 | lane | shipped | A8 | Follow-ups A7 (3 itens herdados de CTO G4 sign-off) | `sprint/A8/lanes/A8-0-follow-ups-a7.md` |
+| A8.1 | lane | planned | A8 | MileageProgram aggregate (DB + API + UI) | `sprint/A8/lanes/A8-1-mileageprogram-aggregate.md` |
+| A8.2 | lane | shipped | A8 | IRPF full schema (E1.6 — pipeline + analyzer + E5 wire) | `sprint/A8/lanes/A8-2-irpf-full-schema.md` |
+| A8.3 | lane | shipped | A8 | TRS real — Carteira de renda + Taxa de Retirada Sustentável efetiva (S7) | `sprint/A8/lanes/A8-3-trs-real-carteira-de-renda-taxa-de.md` |
+| A8.4 | lane | in_progress | A8 | Cenários de Estresse — remoção de prototipagem família-específica + APP_C universal | `sprint/A8/lanes/A8-4-cenarios-de-estresse-remocao-de-prototipagem-familia.md` |
+| A9.0.6-p2-p3 | lane | shipped | A9 | LGPD self-service + tenancy gate | `sprint/A9/lanes/A9-0-6-p2-p3-lgpd-self-service-tenancy-gate.md` |
+| A9.a1 | lane | shipped | A9 | feat Alembic stage rename migration | `sprint/A9/lanes/A9-a1-feat-alembic-stage-rename-migration.md` |
+| A9.a2 | lane | shipped | A9 | refactor `content_classifier` | `sprint/A9/lanes/A9-a2-refactor-content-classifier.md` |
+| A9.b1 | lane | shipped | A9 | fix canonical stage names em artifact_reader | `sprint/A9/lanes/A9-b1-fix-canonical-stage-names-em-artifact-reader.md` |
+| A9.b3 | lane | shipped | A9 | fix stale selectors E2E vault + config-round-trip | `sprint/A9/lanes/A9-b3-fix-stale-selectors-e2e-vault-config-round.md` |
+| A9.b5 | lane | shipped | A9 | deprecate `calculators.py` | `sprint/A9/lanes/A9-b5-deprecate-calculators-py.md` |
+| A9.b6 | lane | shipped | A9 | feat `FreeTierSkippedBanner` | `sprint/A9/lanes/A9-b6-feat-freetierskippedbanner.md` |
+| A9.b7 | lane | shipped | A9 | feat DB M3 drop legacy tables (ADR-154) | `sprint/A9/lanes/A9-b7-feat-db-m3-drop-legacy-tables.md` |
+| A9.n3-pr-a | lane | shipped | A9 | feat `IFProjector` v2 Monte Carlo | `sprint/A9/lanes/A9-n3-pr-a-feat-ifprojector-v2-monte-carlo.md` |
+| A9.n3-pr-bc | lane | shipped | A9 | feat `IFConeChart` + wire E5 | `sprint/A9/lanes/A9-n3-pr-bc-feat-ifconechart-wire-e5.md` |
+| A9.p1 | lane | shipped | A9 | feat Onda 9 design system + mobile | `sprint/A9/lanes/A9-p1-feat-onda-9-design-system-mobile.md` |
 | F11.1 | lane | shipped | F11 | Mental model: “vida financeira” × “relatório deste mês” | `sprint/F11/lanes/F11-1-mental-model-vida-financeira-relatorio-deste-mes.md` |
 | F11.2 | lane | shipped | F11 | Hierarquia de números | `sprint/F11/lanes/F11-2-hierarquia-de-numeros.md` |
 | F11.3 | lane | shipped | F11 | Print / PDF como entregável de consultoria | `sprint/F11/lanes/F11-3-print-pdf-como-entregavel-de-consultoria.md` |
