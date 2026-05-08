@@ -784,7 +784,7 @@ export const LAYOUT: ReportLayout = {
     "cenarios_conjuge": "Cenários de Estresse — Sem renda do cônjuge",
     "viagens": "Orçamento de Viagens",
     "renda_evolucao_multi_anos": "Evolução da Renda — Multi-anos",
-    "aliquota_efetiva_dual_gauge": "Alíquota Efetiva — RFB e Cerbasi"
+    "aliquota_efetiva_dual_gauge": "Alíquota Efetiva — RFB e Renda Total"
   },
   "section_charts": {
     "1": [
