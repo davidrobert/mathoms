@@ -262,7 +262,7 @@ function TrsEfetivaStat({
           TRS efetiva
           <InfoTooltip
             ariaLabel="Sobre TRS efetiva"
-            content="Yield observado vs. meta de retirada sustentável (5% Perini; piso conservador 4% Trinity Study)."
+            content="Yield observado vs. meta de retirada sustentável (alvo 5% — padrão de mercado; piso conservador 4% — Trinity Study)."
           />
         </span>
       }

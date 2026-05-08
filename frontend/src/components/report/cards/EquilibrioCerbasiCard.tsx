@@ -11,7 +11,7 @@ export function EquilibrioCerbasiCard({
 }) {
   if (!equilibrio) {
     return (
-      <ReportCard variant="highlight" size="half" title="Equilíbrio Financeiro">
+      <ReportCard variant="highlight" size="half" title="Equilíbrio entre Presente e Futuro">
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           Dados de equilíbrio não disponíveis.
         </p>
@@ -23,7 +23,7 @@ export function EquilibrioCerbasiCard({
   const pctFuturo = equilibrio.pct_futuro ?? 0;
 
   return (
-    <ReportCard variant="highlight" size="half" title="Equilíbrio Financeiro">
+    <ReportCard variant="highlight" size="half" title="Equilíbrio entre Presente e Futuro">
       <div className="space-y-4">
         {/* Barra visual presente vs futuro */}
         <div>

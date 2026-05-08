@@ -52,7 +52,7 @@ export function AliquotaDualGauge({ kpis, conclusion }: AliquotaDualGaugeProps) 
   return (
     <ReportCard
       variant="neutral"
-      title="Alíquota Efetiva — RFB e Cerbasi"
+      title="Alíquota Efetiva — RFB e Renda Total"
       conclusion={conclusion}
     >
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -65,7 +65,7 @@ export function AliquotaDualGauge({ kpis, conclusion }: AliquotaDualGaugeProps) 
         <GaugePanel
           value={sobreTotal}
           label="Sobre total"
-          caption="Visão Cerbasi: IR sobre renda total (incluindo isentos e exclusiva). Tipicamente menor."
+          caption="Visão sobre renda total: IR pago dividido pela renda total declarada (incluindo isentos e exclusiva). Tipicamente menor."
           fillColor={theme.accent}
         />
       </div>
