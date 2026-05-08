@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-6 planos detectados em [`docs/plan/`](../../plan/).
+7 planos detectados em [`docs/plan/`](../../plan/).
 
 _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/`._
 
@@ -56,6 +56,15 @@ _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/
 - Lanes: _(aguardando F4)_
 - ADRs canônicas: —
 - Pausado em: 2026-05-06 · Razão: Substituído por PLAN-platform-review (revisão multi-agente 2026-05-06).
+
+## Rascunhos (`draft`)
+
+### PLAN-competitive-pierre — Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento
+
+- Status: `draft` · Sprint atual: A11
+- Sprints envolvidas: A11
+- Lanes: _(aguardando F4)_
+- ADRs canônicas: —
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
