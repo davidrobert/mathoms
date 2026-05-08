@@ -72,7 +72,7 @@ remover por concisão.
 | **Patrimônio líquido** | Soma de ativos − passivos (dívidas) | minúsculo em corpo | — | `total`, `valor total`, `riqueza` |
 | **Patrimônio bruto** | Soma de todos os ativos sem deduzir dívidas | minúsculo em corpo | — | `patrimônio total` (ambíguo) |
 | **Patrimônio investível** | Termo umbrella — **prefira as 3 formas precisas abaixo** quando o contexto importar (score, IF, projeção). | minúsculo em corpo | — | `capital`, `investido` |
-| **Patrimônio investível financeiro** | `cat_3 + cat_4 + cat_5 + cat_6` — apenas ativos financeiros líquidos. **Métrica Perini/AUVP canônica para `progresso_if`.** | minúsculo em corpo | — | — |
+| **Patrimônio investível financeiro** | `cat_3 + cat_4 + cat_5 + cat_6` — apenas ativos financeiros líquidos. **Métrica canônica para `progresso_if`** — alinhada ao padrão consagrado de planejamento patrimonial brasileiro (atribuição interna admitida; ver §13). | minúsculo em corpo | — | — |
 | **Patrimônio investível total** | `bruto − cat_1 − cat_7` — exclui residência principal e veículos. Inclui imóveis de investimento. Métrica retro-compat. | minúsculo em corpo | — | — |
 | **Patrimônio investível efetivo** | `investivel_financeiro + (cat_2 if workspace.imoveis_no_if else 0)` — métrica usada de fato no score `progresso_if` (ver [ADR-142](DECISIONS.md#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)). | minúsculo em corpo | — | — |
 | **Aporte** | Valor mensal direcionado a investimentos para compor o número da IF | minúsculo em corpo | — | `contribuição`, `poupança`, `economia` |
@@ -95,7 +95,7 @@ remover por concisão.
 | **Renda variável** | Classe de ativos com retorno não-contratado (ações, ETFs, FIIs) | minúsculo em corpo | `RV` só em label de gráfico | — |
 | **FII** | Fundo de Investimento Imobiliário | maiúsculo (sigla); plural `FIIs` | — | `fundo imobiliário` (aceito em prosa, mas FII no card) |
 | **REIT** | Real Estate Investment Trust (equivalente americano do FII) | maiúsculo (sigla); plural `REITs` | — | — |
-| **Contrafluxo** | Estratégia AUVP de alocar contra a tendência da Selic (Selic↑ → prefixado; Selic↓ → IPCA+) | minúsculo em corpo; "Contrafluxo AUVP" como card title | — | `contracorrente` |
+| **Alocação contracíclica** | Estratégia de renda fixa que se adapta ao ciclo da Selic — Selic↑ → prioriza prefixados; Selic↓ → prioriza IPCA+ longos. Captura prêmio de marcação a mercado em ativos de duração média/longa. | minúsculo em corpo; "Alocação Contracíclica" em card title | — | `contrafluxo` (origem branded — ver §13); `contracorrente` |
 | **CDI / Selic / IPCA+** | Indexadores de renda fixa | maiúsculo (sigla) | — | — |
 | **Carnê-leão** | Recolhimento mensal de IRPF sobre rendimentos isentos/sem retenção (aluguéis) | minúsculo, com hífen | — | `carne-leão` (sem hífen, errado) |
 | **Holerite** | Demonstrativo de pagamento CLT | minúsculo em corpo | — | `contracheque` (regional) |
@@ -416,9 +416,11 @@ Em ordem decrescente de autoridade quando dois docs divergirem:
 2. **Este documento (`COPY_GUIDELINES.md`)** — fonte de verdade
    para tom, terminologia e formato.
 3. **`config/methodology.md`** — fonte de verdade para metodologia
-   e regras financeiras (Perini/Cerbasi/AUVP). Conflito de
-   *nome* perde para o §2 deste guia; conflito de *fórmula* vence
-   sempre.
+   e regras financeiras consagradas de planejamento patrimonial
+   brasileiro. Conflito de *nome* perde para o §2 deste guia;
+   conflito de *fórmula* vence sempre. Atribuição direta a autores
+   /metodologias-pilar é admitida internamente (config rationale,
+   docstrings, ADRs) — **proibida em copy user-facing** (§13).
 4. **`config/report_layout.yaml`** — labels canônicos do relatório.
    Atualizar para alinhar com §2 quando divergir.
 5. **`docs/methodology/definitions.md`** — definições operacionais (categorias,
@@ -443,3 +445,96 @@ o problema (de cima para baixo).
    `@yyyy-mm-dd` antes de mergear o feature, mesmo que provisória.
 4. Conflito não-resolvido: abrir issue marcando ambos os agentes
    acima.
+
+---
+
+## 13. Sigilo de fontes metodológicas (LEGAL/IP — bloqueante)
+
+Mathoms baseia-se em metodologias consagradas de planejamento
+patrimonial brasileiro, mas **não tem licença/autorização** das obras,
+marcas pessoais ou cursos dos autores que as codificaram. Toda copy
+user-facing (escopo de §10 col. ✅) **DEVE** evitar atribuição direta —
+uso público sem licença é violação de marca pessoal/curso e cria
+dependência reputacional não-sustentável (sinaliza "advisor terceirizado"
+em vez de "metodologia própria validada").
+
+Política e racional consolidados em
+[.claude/agents/gtm-strategist.md](../../.claude/agents/gtm-strategist.md)
+§"Princípios inegociáveis › Sigilo de fontes metodológicas".
+
+### 13.1 Termos proibidos em superfície pública
+
+Não use em UI cliente, relatório `/reports/[id]`, e-mail transacional,
+PDF exportado, landing `mathoms.ai`, blog, social, materiais de
+imprensa, pitch deck, comparativo competitivo, ToS / privacy policy:
+
+- **Nomes próprios:** "Bruno Perini", "Gustavo Cerbasi", "Raul Sena"
+- **Marcas / canais / cursos:** "Viver de Renda", "AUVP", "Equilíbrio
+  Financeiro", "Casais Inteligentes"
+- **Endossos atribuídos:** "baseado em [autor]", "metodologia [marca]",
+  "estilo [autor]", "[autor] recomenda"
+- **Capturas, citações, frases atribuídas** (mesmo parafraseadas
+  reconhecíveis)
+
+### 13.2 Substituições canônicas
+
+| Em vez de (proibido público) | Use |
+| --- | --- |
+| "Metodologia AUVP / Perini / Cerbasi" | "Metodologia consagrada de planejamento patrimonial brasileiro" / "Padrão de mercado de wealth management" / "Regras estruturadas que planejadores CFP aplicam" |
+| "Contrafluxo AUVP" / "Contrafluxo" | "Alocação contracíclica" / "Estratégia adaptativa à curva de juros" |
+| "Independência financeira (Perini)" | "Independência financeira" (conceito é genérico — não atribuir) |
+| "Viver de Renda" | "Patrimônio gerador de renda" / "Renda passiva sustentada" |
+| "Estilo Cerbasi para casal" | "Planejamento patrimonial do casal" / "Decisão financeira a quatro mãos" |
+| "Equilíbrio Financeiro (Cerbasi)" | "Equilíbrio entre presente e futuro" / "Balanço presente-futuro" |
+| "Visão Cerbasi" (em alíquota / IRPF) | "Visão sobre renda total" / "Alíquota sobre renda total declarada" |
+
+### 13.3 Auditoria obrigatória antes de mergear
+
+Antes de mergear PR que toque superfície user-facing (§10 col. ✅):
+
+```bash
+grep -i -E 'perini|cerbasi|auvp|raul[ _]sena|bruno[ _]perini|gustavo[ _]cerbasi|viver[ _]de[ _]renda|equil[ií]brio[ _]financeiro|casais[ _]inteligentes' <arquivos>
+```
+
+Resultado ≠ vazio em arquivo user-facing = **bloqueia merge**. CI gate
+automatizado é débito explícito (lane `sigilo-grep-ci-gate`, P1) — até
+entrar, é responsabilidade do reviewer.
+
+### 13.4 Atribuição interna (PERMITIDA)
+
+Em código, docstrings, type names, ADRs, planos `docs/plan/*`,
+briefings de agente (`.claude/agents/financial-planner.md`,
+`.claude/agents/gtm-strategist.md`), `config/scoring.json` `_comment`,
+`config/methodology.md`, CLAUDE.md, CHANGELOG, este próprio doc em
+seções de rationale/hierarquia: **atribuição é PERMITIDA** — é como o
+time raciocina sobre domínio.
+
+ADR-143 (methodology = code) consolida o padrão: regra vive em
+docstring co-localizada com enforcer; nome do autor ajuda a discutir
+trade-offs internamente sem nunca virar prescrição pública. Class
+names como `EquilibrioCerbasiAnalyzer`, ids internos como
+`equilibrio_cerbasi`, e variantes técnicas como `tone="cerbasi"`
+**permanecem** — só não devem aparecer como string user-facing.
+
+### 13.5 Débitos rastreados
+
+Cleanup do legado contaminado é P0 separado deste guide:
+
+- **Frontend:** `frontend/src/components/report/sections/ApendicesSections.tsx`
+  (bios de autores em apêndice do relatório), `cards/ContrafluxoCard.tsx`,
+  `cards/EquilibrioCerbasiCard.tsx`, `cards/IrpfSplitTrabalhoCapitalCard.tsx`
+  (caption "Métrica Perini"), `charts/AliquotaDualGauge.tsx` (title
+  "RFB e Cerbasi"), `sections/S7IndependenciaSection.tsx` (tooltip
+  "5% Perini"). Track sugerido: `report-sigilo-frontend-cleanup`.
+- **CI gate:** automatizar §13.3 como hook pre-commit + gate em CI.
+  Track sugerido: `sigilo-grep-ci-gate`.
+- **Drift doc-vs-code:** após esta entrada, §2 prescreve "Alocação
+  contracíclica" mas frontend ainda renderiza "Contrafluxo" (em
+  `ContrafluxoCard.tsx`); resolvido no track `report-sigilo-frontend-cleanup`.
+
+### 13.6 Fim da regra
+
+Esta regra perdura **até existir contrato de licenciamento explícito**,
+registrado em ADR. Sem isso, nenhuma exceção — nem em pitch para
+investidor, nem em comparativo competitivo, nem em material para
+imprensa especializada.
