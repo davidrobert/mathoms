@@ -59,6 +59,9 @@ deles:
 - **[financial-planner](.claude/agents/financial-planner.md)** — Especialista sênior em planejamento financeiro e patrimonial brasileiro.
   Use para revisar requisitos, features, regras de domínio e UX do Mathoms sob a ótica de metodologias consagradas (Viver de Renda / Bruno Perini, Equilíbrio Financeiro / Gustavo Cerbasi, AUVP / Raul Sena).
   NÃO invoque para bugs puros de código, CI, ou mudanças técnicas sem dimensão de produto.
+- **[gtm-strategist](.claude/agents/gtm-strategist.md)** — Estrategista sênior de posicionamento, narrativa de marca, pricing strategy, GTM (go-to-market) e resposta competitiva, com 15+ anos em B2C/B2B2C SaaS e fintech/wealth-tech. Domina frameworks de positioning (April Dunford), segmentação/adoção (Geoffrey Moore), pricing baseado em valor (Madhavan Ramanujam), JTBD (Christensen/Ulwick) e canais (SEO/conteúdo/embaixadores/parcerias).
+  Use para definir pilares narrativos antes de copy de landing, escolher estrutura de pricing (free vs. trial vs. paywall), responder estrategicamente a concorrente, refinar ICP/segmentação, decidir canais GTM, ou enquadrar diferenciação competitiva.
+  NÃO invoque para execução de copy/UI (use `product-designer`), priorização de sprint (use `product-manager`), regras de domínio financeiro (use `financial-planner`), arquitetura técnica (use `senior-cto`), ou adoção de SaaS específico (use `build-vs-buy`).
 - **[product-designer](.claude/agents/product-designer.md)** — Product Designer sênior especializado em fintech, dashboards financeiros e relatórios de planejamento patrimonial.
   Use para revisar telas, fluxos, componentes, hierarquia de informação, tipografia, uso do design system, acessibilidade (WCAG), responsividade, e clareza de dados financeiros (tabelas, gráficos, valores monetários).
   NÃO invoque para bugs de lógica, mudanças de backend sem UI, ou decisões puramente arquiteturais.
