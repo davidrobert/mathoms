@@ -82,6 +82,19 @@ repos:
         # Não queremos restringir por tipo — queremos ver TODOS os paths
         types: [file]
 
+      - id: sigilo-terms
+        # §13 sigilo metodológico (LEGAL/IP) — bloqueia atribuição pública de
+        # Perini/Cerbasi/AUVP/etc. em superfície user-facing (frontend/src/app/
+        # + frontend/src/components/, exclusões em §13.4 do COPY_GUIDELINES).
+        # Mathoms não tem licença das marcas; uso público viola direito de
+        # marca pessoal/curso. Atribuição interna (docstrings, types, ids,
+        # variant keys, dev playground) é PERMITIDA.
+        name: "Bloqueia menção pública de fontes metodológicas (§13 COPY_GUIDELINES)"
+        entry: python3 dev/check_sigilo_terms.py
+        language: system
+        pass_filenames: true
+        files: ^frontend/src/(app|components)/.*\.(ts|tsx)$
+
       - id: commit-msg-format
         name: "Valida prefixo de mensagem de commit"
         entry: python dev/validate_commit_msg.py
