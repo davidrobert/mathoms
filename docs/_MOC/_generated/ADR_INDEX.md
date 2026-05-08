@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-175 ADRs (ADR-001 a ADR-182) em [`docs/adr/`](../../adr/).
+176 ADRs (ADR-001 a ADR-183) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 159
-- **Proposto**: 11
+- **Proposto**: 12
 - **Roadmap**: 5
 
 ## Fundação
@@ -319,6 +319,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (1)
 
 - [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
+
+## marketing
+
+### Proposto (1)
+
+- [[ADR-183]] — Pilares narrativos da landing — reposicionamento Mathoms 2026 (Fase 4.B COMPETITIVE_PIERRE) · phase A11
 
 ## money
 
