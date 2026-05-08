@@ -488,17 +488,42 @@ imprensa, pitch deck, comparativo competitivo, ToS / privacy policy:
 | "Equilíbrio Financeiro (Cerbasi)" | "Equilíbrio entre presente e futuro" / "Balanço presente-futuro" |
 | "Visão Cerbasi" (em alíquota / IRPF) | "Visão sobre renda total" / "Alíquota sobre renda total declarada" |
 
-### 13.3 Auditoria obrigatória antes de mergear
+### 13.3 Auditoria automática (CI gate)
 
-Antes de mergear PR que toque superfície user-facing (§10 col. ✅):
+Hook pre-commit `sigilo-terms` em [.pre-commit-config.yaml](../../.pre-commit-config.yaml)
+executa [dev/check_sigilo_terms.py](../../dev/check_sigilo_terms.py) em
+todo arquivo staged dentro de `frontend/src/(app|components)/**/*.{ts,tsx}`.
+Mesma lógica roda em CI via job `Lint (pre-commit + …)` — defense in depth.
+
+Detecção:
+
+- **Match case-sensitive com word boundary**: `\bCerbasi\b`, `\bPerini\b`,
+  `\bAUVP\b`, `\bBruno Perini\b`, `\bGustavo Cerbasi\b`, `\bRaul Sena\b`,
+  `\bViver de Renda\b`, `\bEquilíbrio Financeiro\b`, `\bCasais Inteligentes\b`.
+- **Comentários (block + line) são strippados** antes do match — atribuição
+  em docstring é §13.4 PERMITIDA.
+- **Identifiers** como `EquilibrioCerbasiCard`, `EquilibrioCerbasiData`
+  passam (Cerbasi não está em word boundary — alfanumérico em ambos lados).
+- **Variant keys** lowercase como `tone="cerbasi"` passam (case-sensitive).
+
+Exclusões hardcoded no script (§13.4 surface internal-only):
+
+- `frontend/src/app/(app)/reports/_dev/` — playground
+- `frontend/src/components/report/ui/NotasInsightsGrid.tsx` — variant keys
+- `frontend/src/components/report/cards/index.ts` — barrel exports
+
+Reviewers continuam responsáveis por **outros surfaces** ainda fora do
+scope automatizado: e-mail templates, PDF generators standalone (fora do
+relatório React), landing pública futura, materiais de imprensa, pitch
+decks. Expandir escopo do hook quando essas surfaces forem materializadas.
+
+Comando manual (debug ou auditoria ad-hoc):
 
 ```bash
-grep -i -E 'perini|cerbasi|auvp|raul[ _]sena|bruno[ _]perini|gustavo[ _]cerbasi|viver[ _]de[ _]renda|equil[ií]brio[ _]financeiro|casais[ _]inteligentes' <arquivos>
+python3 dev/check_sigilo_terms.py --all
+# ou em arquivos específicos:
+python3 dev/check_sigilo_terms.py frontend/src/components/report/MyCard.tsx
 ```
-
-Resultado ≠ vazio em arquivo user-facing = **bloqueia merge**. CI gate
-automatizado é débito explícito (lane `sigilo-grep-ci-gate`, P1) — até
-entrar, é responsabilidade do reviewer.
 
 ### 13.4 Atribuição interna (PERMITIDA)
 
@@ -516,21 +541,30 @@ names como `EquilibrioCerbasiAnalyzer`, ids internos como
 `equilibrio_cerbasi`, e variantes técnicas como `tone="cerbasi"`
 **permanecem** — só não devem aparecer como string user-facing.
 
-### 13.5 Débitos rastreados
+### 13.5 Histórico e débitos abertos
 
-Cleanup do legado contaminado é P0 separado deste guide:
+Cleanup do legado e automação foram entregues em sequência:
 
-- **Frontend:** `frontend/src/components/report/sections/ApendicesSections.tsx`
-  (bios de autores em apêndice do relatório), `cards/ContrafluxoCard.tsx`,
-  `cards/EquilibrioCerbasiCard.tsx`, `cards/IrpfSplitTrabalhoCapitalCard.tsx`
-  (caption "Métrica Perini"), `charts/AliquotaDualGauge.tsx` (title
-  "RFB e Cerbasi"), `sections/S7IndependenciaSection.tsx` (tooltip
-  "5% Perini"). Track sugerido: `report-sigilo-frontend-cleanup`.
-- **CI gate:** automatizar §13.3 como hook pre-commit + gate em CI.
-  Track sugerido: `sigilo-grep-ci-gate`.
-- **Drift doc-vs-code:** após esta entrada, §2 prescreve "Alocação
-  contracíclica" mas frontend ainda renderiza "Contrafluxo" (em
-  `ContrafluxoCard.tsx`); resolvido no track `report-sigilo-frontend-cleanup`.
+- ✅ **Frontend (#139, 2026-05-08):** apêndices, cards e tooltips
+  (`ApendicesSections.tsx`, `ContrafluxoCard.tsx`, `EquilibrioCerbasiCard.tsx`,
+  `IrpfSplitTrabalhoCapitalCard.tsx`, `AliquotaDualGauge.tsx`,
+  `S7IndependenciaSection.tsx`) limpos.
+- ✅ **CI gate (este PR):** hook `sigilo-terms` automatiza §13.3 em
+  pre-commit + CI sobre `frontend/src/(app|components)/**/*.{ts,tsx}`.
+
+**Surfaces ainda fora do scope automatizado** — auditoria manual do
+reviewer, expandir o hook quando materializarem:
+
+- E-mail templates transacionais (quando criados em `backend/app/services/email/`).
+- PDF generators standalone fora do relatório React (não há hoje;
+  print do relatório é via Playwright na mesma rota — coberto).
+- Landing pública (`mathoms.ai`) — fora deste repo até decisão de stack.
+- Pitch decks, materiais de imprensa, comparativos competitivos —
+  arquivos `.pdf`/`.pptx` ou `.md` em `docs/_marketing/` (não existe
+  hoje; criar com gate antes de produzir conteúdo).
+- API responses backend — Python emite estruturado; risco baixo, mas
+  expandir hook para `backend/app/services/**/*.py` se começar a emitir
+  copy renderizada direto.
 
 ### 13.6 Fim da regra
 

@@ -25,7 +25,7 @@ const GLOSSARIO: Array<{ termo: string; definicao: string }> = [
   { termo: "DY", definicao: "Dividend Yield — rendimento de dividendos/rendimentos de um ativo, expresso como percentual anual sobre o preço." },
   { termo: "P/L", definicao: "Preço/Lucro — múltiplo que relaciona o preço de uma ação ao lucro por ação. Indica quantos anos de lucro o mercado está pagando." },
   { termo: "PM", definicao: "Preço Médio — custo médio de aquisição de um ativo, usado para cálculo de IR sobre ganho de capital." },
-  { termo: "Contrafluxo", definicao: "Estratégia de investimento da metodologia AUVP: comprar ativos atrelados ao indexador que está em baixa (ex: IPCA+ quando Selic está alta)." },
+  { termo: "Alocação contracíclica", definicao: "Estratégia de investimento que prioriza o indexador de renda fixa fora do ciclo aquecido (ex.: IPCA+ longos quando a Selic está alta), capturando prêmio de marcação a mercado quando o ciclo inverte." },
   { termo: "IRPF", definicao: "Imposto de Renda Pessoa Física — imposto federal sobre a renda de pessoas físicas no Brasil." },
   { termo: "IOF", definicao: "Imposto sobre Operações Financeiras — imposto federal sobre câmbio, crédito, seguros e títulos." },
   { termo: "Carnê-Leão", definicao: "Recolhimento mensal obrigatório de IR sobre rendimentos recebidos de pessoas físicas ou do exterior, via DARF." },
