@@ -57,7 +57,7 @@ export function IrpfSplitTrabalhoCapitalCard({
       <div className="space-y-4">
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           Decomposição da renda familiar entre fonte trabalho (salários, autônomo,
-          13º) e fonte capital (lucros, JCP, aplicações, exterior). Métrica Perini.
+          13º) e fonte capital (lucros, JCP, aplicações, exterior).
         </p>
         {total > 0 && (
           <div

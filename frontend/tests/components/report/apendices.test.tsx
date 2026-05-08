@@ -37,15 +37,16 @@ describe("ApendiceASection", () => {
 });
 
 describe("ApendiceBSection", () => {
-  it("renderiza fallback + metodologias com data vazia", () => {
+  it("renderiza fallback + pilares metodológicos com data vazia", () => {
     render(<ApendiceBSection data={emptyData()} />);
     expect(screen.getByText(/Apêndice B/)).toBeInTheDocument();
     expect(screen.getByText(/Metas vigentes neste ciclo/)).toBeInTheDocument();
     expect(
       screen.getByText(/Nenhuma meta vigente neste ciclo/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Bruno Perini/)).toBeInTheDocument();
-    expect(screen.getByText(/Gustavo Cerbasi/)).toBeInTheDocument();
+    expect(screen.getByText(/Patrimônio gerador de renda/)).toBeInTheDocument();
+    expect(screen.getByText(/Equilíbrio entre presente e futuro/)).toBeInTheDocument();
+    expect(screen.getByText(/Alocação contracíclica/)).toBeInTheDocument();
   });
 
   it("lista metas vigentes humanizadas a partir do snapshot", () => {
@@ -150,10 +151,10 @@ describe("ApendiceCSection (ADR-167 · A8.4 PR3)", () => {
 });
 
 describe("ApendiceDSection", () => {
-  it("lista metodologias e indica lineage ausente", () => {
+  it("lista pilares metodológicos e indica lineage ausente", () => {
     render(<ApendiceDSection data={emptyData()} />);
     expect(screen.getByText(/Apêndice D/)).toBeInTheDocument();
-    expect(screen.getByText(/Bruno Perini/)).toBeInTheDocument();
+    expect(screen.getByText(/Patrimônio gerador de renda/)).toBeInTheDocument();
     expect(
       screen.getByText(/Sem informação de lineage disponível/),
     ).toBeInTheDocument();

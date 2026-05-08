@@ -22,12 +22,14 @@ const CENARIO_LABELS: Record<string, string> = {
 
 const CENARIO_ACOES: Record<string, string> = {
   pessimista: "Manter IPCA+ até vencimento; aumentar prefixados longos.",
-  base: "Manter estratégia atual (contrafluxo IPCA+).",
+  base: "Manter estratégia atual (alocação contracíclica em IPCA+).",
   otimista: "Aumentar CDBs pós-fixados curtos; evitar IPCA+ longo novo.",
 };
 
-/** F9 · F2.C · S3 — Card "Contrafluxo" (AUVP Raul Sena).
+/** F9 · F2.C · S3 — Card "Alocação Contracíclica".
  *  Exibe Selic/CDI atuais e tabela de sensibilidade por cenário.
+ *  Component name (`ContrafluxoCard`) e id de layout (`contrafluxo`)
+ *  permanecem como identificadores técnicos internos (§13.4 COPY_GUIDELINES).
  */
 export function ContrafluxoCard({ contrafluxo, cdi_anual }: ContrafluxoCardProps) {
   const selic = contrafluxo?.selic_atual;
@@ -44,13 +46,13 @@ export function ContrafluxoCard({ contrafluxo, cdi_anual }: ContrafluxoCardProps
   const cenarioKeys = cenarios ? Object.keys(cenarios) : [];
 
   return (
-    <ReportCard variant="primary" title="Contrafluxo">
+    <ReportCard variant="primary" title="Alocação Contracíclica">
       {subtitle && (
         <p className="mb-4 text-sm text-[var(--surface-muted-foreground)]">{subtitle}</p>
       )}
 
       <p className="mb-4 text-sm text-[var(--surface-foreground)]">
-        Estratégia AUVP: investir no indexador que está fora de moda. Com Selic alta, prefixados e IPCA+ oferecem melhor relação risco/retorno. Quando a Selic cair, os IPCA+ longos valorizam via marcação a mercado.
+        Estratégia de alocação contracíclica: priorizar o indexador que está fora do ciclo aquecido. Com Selic alta, prefixados e IPCA+ oferecem melhor relação risco/retorno. Quando a Selic cai, os IPCA+ longos valorizam via marcação a mercado.
       </p>
 
       {cenarioKeys.length > 0 && (

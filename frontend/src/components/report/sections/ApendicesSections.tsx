@@ -161,10 +161,14 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
 
       <MetasVigentesCard snapshot={snapshot} />
 
-      <ReportCard variant="neutral" title="Metodologias Utilizadas" size="full">
+      <ReportCard variant="neutral" title="Pilares Metodológicos" size="full">
         <div className="space-y-4 text-sm text-[var(--surface-foreground)]">
+          <p className="text-[var(--surface-muted-foreground)]">
+            Este relatório aplica regras consagradas de planejamento
+            patrimonial brasileiro, organizadas em pilares complementares.
+          </p>
           <section>
-            <h4 className="font-display font-semibold">Bruno Perini — Viver de Renda</h4>
+            <h4 className="font-display font-semibold">Patrimônio gerador de renda</h4>
             <p className="text-[var(--surface-muted-foreground)]">
               Número da Independência Financeira = despesa anual desejada ÷ TRS.
               Projeção de prazo com aporte constante e juros compostos sobre
@@ -173,7 +177,7 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
           </section>
           <section>
             <h4 className="font-display font-semibold">
-              Gustavo Cerbasi — Equilíbrio Presente × Futuro
+              Equilíbrio entre presente e futuro
             </h4>
             <p className="text-[var(--surface-muted-foreground)]">
               Classificação comportamental dos gastos: proporção ideal ~70%
@@ -183,17 +187,17 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
           </section>
           <section>
             <h4 className="font-display font-semibold">
-              Raul Sena / AUVP — Contrafluxo
+              Alocação contracíclica e análise fundamentalista
             </h4>
             <p className="text-[var(--surface-muted-foreground)]">
-              Comprar ativos atrelados ao indexador fora de moda; análise
-              fundamentalista em ações (P/L, ROE, DY) e FIIs (DY, vacância,
-              P/VP).
+              Priorizar indexadores de renda fixa fora do ciclo aquecido;
+              análise fundamentalista em ações (P/L, ROE, DY) e FIIs (DY,
+              vacância, P/VP).
             </p>
           </section>
           <section>
             <h4 className="font-display font-semibold">
-              Score Financeiro — Metodologia Própria
+              Score Financeiro Mathoms — metodologia própria
             </h4>
             <p className="text-[var(--surface-muted-foreground)]">
               Média ponderada de 5 componentes (0–10): Taxa de Poupança (2,0),
@@ -319,13 +323,13 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
       <SectionSummary narrativas={narrativas} sectionId="APP_D" />
       <SectionFallback narrativas={narrativas} sectionId="APP_D" text={fallback} />
 
-      <ReportCard variant="neutral" title="Metodologias Referenciadas" size="half">
+      <ReportCard variant="neutral" title="Pilares Metodológicos" size="half">
         <SimpleTable
-          headers={["Autor / Método", "Tema"]}
+          headers={["Pilar", "Aplicação"]}
           rows={[
-            ["Bruno Perini (Viver de Renda)", "Independência financeira e montagem de carteira"],
-            ["Gustavo Cerbasi", "Equilíbrio presente × futuro, comportamento financeiro"],
-            ["Raul Sena / AUVP", "Contrafluxo e análise fundamentalista"],
+            ["Patrimônio gerador de renda", "Independência financeira e montagem de carteira"],
+            ["Equilíbrio presente × futuro", "Comportamento financeiro do casal e família"],
+            ["Alocação contracíclica + análise fundamentalista", "Otimização de classes de ativos"],
             ["Score Mathoms", "Metodologia própria (5 componentes ponderados)"],
           ]}
         />
