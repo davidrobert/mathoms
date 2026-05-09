@@ -46,6 +46,21 @@ N/A.
 - [ ] Frontend E2E (se mexeu em fluxo `@critical`): `cd frontend && npm run test:e2e` verde
 - [ ] Bug fix? Adicionei teste que falha sem o fix.
 
+## Mexeu no relatório?
+<!--
+  Aplique se o diff toca `frontend/src/components/report/**`,
+  `frontend/src/app/reports/**`, `config/report_layout.yaml`,
+  `design-tokens/**`, ou fixtures/specs do relatório. Histórico de
+  regressão pós-merge (#147, #148, #150, #151) levou a este gate.
+  CI auto-trigger do `frontend-visual` em paths do relatório cobre
+  o pixel-diff; este checklist cobre o que o pixel não pega.
+-->
+- [ ] Job `frontend-visual` rodou e está verde (auto-trigger em paths do relatório). Falhou? Diff baixado em `report-visual-snapshots`, baseline atualizada via `gh workflow run CI -f run_visual=true -f update_visual_baselines=true` se a mudança é intencional.
+- [ ] Mudança visível em UI? Invoquei o subagente `product-designer` para revisar copy / hierarquia / densidade / tokens (`Agent(subagent_type="product-designer", …)`). Justificativa caso N/A:
+- [ ] Validei manualmente em **light + dark** com pelo menos uma das fixtures de variância: `medium`, `long-strings`, `large-values`, `sparse-data` (`frontend/tests/e2e/fixtures/reports/`).
+- [ ] Não usei hex literal — toda cor via `var(--brand-*)` / `var(--surface-*)` / `var(--semantic-*)`.
+- [ ] Valores monetários via `<MonetaryValue/>` (font-mono + tabular-nums).
+
 ## Breaking change
 <!-- Marque ⚠️ acima se sim. Descreva: o que quebra, plano de migração, deprecation window. -->
 N/A.
