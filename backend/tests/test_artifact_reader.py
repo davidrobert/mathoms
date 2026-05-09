@@ -51,6 +51,27 @@ def test_read_finds_legacy_row_when_caller_uses_descriptive(tmp_path: Path) -> N
     assert calls == ["categorize_transactions", "E4"]
 
 
+def test_read_finds_descriptive_row_when_caller_uses_legacy(tmp_path: Path) -> None:
+    """ADR-093 (direção inversa): pós-F9.3 (Alembic re-key DB→descritivo),
+    callers que ainda passam ``"E5"`` devem continuar achando o row.
+    """
+    artifact = MagicMock(content_json={"score": {"valor": 78}})
+
+    def fake_lookup(workspace_id, *, stage, artifact_key):
+        return artifact if stage == "analyze_finances" else None
+
+    fake_repo = MagicMock()
+    fake_repo.get_latest_for_workspace.side_effect = fake_lookup
+    with patch(
+        "backend.app.services.artifact_reader.PipelineArtifactRepository",
+        return_value=fake_repo,
+    ):
+        result = read_latest_artifact(
+            "ws-1", stage="E5", key="analise_financeira", tenant_root=tmp_path
+        )
+    assert result == {"score": {"valor": 78}}
+
+
 def test_read_falls_back_to_disk_when_db_empty(tmp_path: Path) -> None:
     """DB vazio + disco presente → lê disco (back-compat DiskArtifactStore)."""
     disk_dir = tmp_path / "processed" / "E5_analysis"
