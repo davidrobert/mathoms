@@ -1,23 +1,18 @@
 "use client";
 
 // A7.2a · ADR-136 — Plano de Ação (Decisões editoriais).
-// Lista as decisões do workspace ordenadas por code, com filtro por status
-// e CTA "Marcar como executada" para Decisões em status "Decidido".
+// Renderização **read-only** das decisões em vigor. O relatório é um
+// snapshot (ADR-149); ações editoriais (criar/editar/marcar como executada)
+// vivem em /acao (ADR-152). Por isso a seção apenas lista decisões e
+// expõe um link "Gerenciar em /acao →" para o módulo editorial.
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 import { ReportSection } from "../../ReportSection";
 import { MonetaryValue } from "../../MonetaryValue";
 import { useDecisions } from "@/hooks/useDecisions";
 import type { Decision, DecisionStatus } from "@/lib/api";
-
-const STATUS_FILTERS: ReadonlyArray<DecisionStatus | "Todos"> = [
-  "Todos",
-  "Pendente",
-  "Decidido",
-  "Executado",
-  "Superseded",
-];
 
 const STATUS_BADGE_CLASS: Record<DecisionStatus, string> = {
   Pendente: "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200",
@@ -31,78 +26,52 @@ interface PlanoDeAcaoSectionProps {
   workspaceId: string | undefined;
 }
 
-/** F9 · A7.2a · ADR-136 — Tabela do Plano de Ação (decisions aggregate). */
+/** F9 · A7.2a · ADR-136 — Tabela read-only do Plano de Ação. */
 export function PlanoDeAcaoSection({ workspaceId }: PlanoDeAcaoSectionProps) {
-  const { decisions, loading, error, execute } = useDecisions(workspaceId);
-  const [statusFilter, setStatusFilter] = useState<DecisionStatus | "Todos">("Todos");
-
-  const filtered = useMemo(
-    () =>
-      statusFilter === "Todos"
-        ? decisions
-        : decisions.filter((d) => d.status === statusFilter),
-    [decisions, statusFilter],
-  );
+  const { decisions, loading, error } = useDecisions(workspaceId);
 
   return (
     <ReportSection id="plano_de_acao" title="Plano de Ação">
       <div className="md:col-span-2 flex flex-col gap-4">
-        <StatusFilters value={statusFilter} onChange={setStatusFilter} />
+        <ManageInAcaoLink />
         {error && (
           <p className="text-sm text-[var(--semantic-danger)]">{error}</p>
         )}
         {loading ? (
           <p className="text-sm text-[var(--surface-muted-foreground)]">Carregando…</p>
         ) : (
-          <DecisionTable rows={filtered} onExecute={execute} />
+          <DecisionTable rows={decisions} />
         )}
       </div>
     </ReportSection>
   );
 }
 
-interface StatusFiltersProps {
-  value: DecisionStatus | "Todos";
-  onChange: (next: DecisionStatus | "Todos") => void;
-}
-
-function StatusFilters({ value, onChange }: StatusFiltersProps) {
+/** Link discreto para o módulo editorial (/acao). No PDF degrada para
+ *  texto simples — aceitável: o relatório é leitura por design. */
+function ManageInAcaoLink() {
   return (
-    <div role="tablist" aria-label="Filtrar decisões por status" className="flex flex-wrap gap-2">
-      {STATUS_FILTERS.map((option) => {
-        const active = value === option;
-        return (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={active}
-            key={option}
-            onClick={() => onChange(option)}
-            className={[
-              "px-3 py-1 rounded-full text-xs font-medium transition-colors border",
-              active
-                ? "bg-[var(--brand-primary)] text-white border-[var(--brand-primary)]"
-                : "bg-transparent text-[var(--surface-foreground)] border-[var(--surface-border)] hover:bg-[var(--surface-muted)]",
-            ].join(" ")}
-          >
-            {option}
-          </button>
-        );
-      })}
+    <div className="flex justify-end">
+      <Link
+        href="/acao"
+        className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline"
+      >
+        Gerenciar em /acao
+        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+      </Link>
     </div>
   );
 }
 
 interface DecisionTableProps {
   rows: Decision[];
-  onExecute: (decisionId: string) => Promise<void>;
 }
 
-function DecisionTable({ rows, onExecute }: DecisionTableProps) {
+function DecisionTable({ rows }: DecisionTableProps) {
   if (rows.length === 0) {
     return (
       <p className="text-sm text-[var(--surface-muted-foreground)]">
-        Nenhuma decisão registrada nesse filtro.
+        Nenhuma decisão registrada.
       </p>
     );
   }
@@ -119,12 +88,11 @@ function DecisionTable({ rows, onExecute }: DecisionTableProps) {
             <th className="py-2 pr-4">Supersede</th>
             <th className="py-2 pr-4">Decidida</th>
             <th className="py-2 pr-4">Executada</th>
-            <th className="py-2 pr-4 sr-only">Ações</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((d) => (
-            <DecisionRow key={d.id} decision={d} onExecute={onExecute} />
+            <DecisionRow key={d.id} decision={d} />
           ))}
         </tbody>
       </table>
@@ -134,10 +102,9 @@ function DecisionTable({ rows, onExecute }: DecisionTableProps) {
 
 interface DecisionRowProps {
   decision: Decision;
-  onExecute: (decisionId: string) => Promise<void>;
 }
 
-function DecisionRow({ decision, onExecute }: DecisionRowProps) {
+function DecisionRow({ decision }: DecisionRowProps) {
   const amount = decision.amount_brl !== null ? Number(decision.amount_brl) : null;
   return (
     <tr className="border-t border-[var(--surface-border)]">
@@ -154,11 +121,6 @@ function DecisionRow({ decision, onExecute }: DecisionRowProps) {
       </td>
       <td className="py-2 pr-4 text-xs">{decision.decided_at ?? "—"}</td>
       <td className="py-2 pr-4 text-xs">{decision.executed_at ?? "—"}</td>
-      <td className="py-2 pr-4 text-right">
-        {decision.status === "Decidido" && (
-          <ExecuteButton decisionId={decision.id} onExecute={onExecute} />
-        )}
-      </td>
     </tr>
   );
 }
@@ -177,32 +139,5 @@ function StatusBadge({ status }: StatusBadgeProps) {
     >
       {status}
     </span>
-  );
-}
-
-interface ExecuteButtonProps {
-  decisionId: string;
-  onExecute: (decisionId: string) => Promise<void>;
-}
-
-function ExecuteButton({ decisionId, onExecute }: ExecuteButtonProps) {
-  const [busy, setBusy] = useState(false);
-  const handle = async () => {
-    setBusy(true);
-    try {
-      await onExecute(decisionId);
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <button
-      type="button"
-      disabled={busy}
-      onClick={handle}
-      className="text-xs px-2 py-1 rounded border border-[var(--surface-border)] hover:bg-[var(--surface-muted)] disabled:opacity-50"
-    >
-      {busy ? "Executando…" : "Marcar como executada"}
-    </button>
   );
 }
