@@ -63,11 +63,12 @@ function applyRejected(err: unknown, handlers: FetchHandlers): void {
 function runFetch(
   workspaceId: string,
   period: ConsumoPontuaisPeriod,
+  anchorDate: string | undefined,
   handlers: FetchHandlers,
 ): () => void {
   let cancelled = false;
   handlers.setIsLoading(true);
-  getConsumoPontuais(workspaceId, period)
+  getConsumoPontuais(workspaceId, period, anchorDate)
     .then((res) => !cancelled && applyResolved(res, handlers))
     .catch((err: unknown) => !cancelled && applyRejected(err, handlers))
     .finally(() => !cancelled && handlers.setIsLoading(false));
@@ -76,22 +77,26 @@ function runFetch(
   };
 }
 
-/** Fetch da lista de gastos pontuais ≥ R$2k já filtrada pelo backend. */
+function toIsoDate(d: Date | undefined): string | undefined {
+  return d ? d.toISOString().split("T")[0] : undefined;
+}
+
+/** Fetch gastos pontuais ≥ R$2k filtrados; `anchorDate` evita janela vazia em datasets antigos (PR #150). */
 export function useConsumoPontuais(
   period: ConsumoPontuaisPeriod,
+  anchorDate?: Date,
 ): UseConsumoPontuaisResult {
   const { workspace } = useWorkspace();
   const [data, setData] = useState<ConsumoState>(EMPTY);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const anchorIso = toIsoDate(anchorDate);
   useEffect(() => {
     if (!workspace) {
       setIsLoading(false);
       return;
     }
-    return runFetch(workspace.id, period, { setData, setError, setIsLoading });
-  }, [workspace, period]);
-
+    return runFetch(workspace.id, period, anchorIso, { setData, setError, setIsLoading });
+  }, [workspace, period, anchorIso]);
   return { ...data, isLoading, error };
 }

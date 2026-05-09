@@ -32,9 +32,25 @@ def test_resolve_period_dates_invalid_raises():
         _resolve_period_dates("1y")
 
 
-def _despesa(descricao: str, qtd, *, categoria: str = "nao_identificado") -> dict:
+def test_resolve_period_dates_anchor_overrides_today():
+    """anchor_date ancora date_to no fim do dataset (paridade PR #150)."""
+    today = datetime(2026, 5, 9, tzinfo=timezone.utc).date()
+    anchor = datetime(2025, 11, 30, tzinfo=timezone.utc).date()
+    date_from, date_to = _resolve_period_dates("3m", today=today, anchor_date=anchor)
+    assert date_to == "2025-11-30"
+    assert date_from < date_to
+    assert date_from.startswith("2025-")
+
+
+def _despesa(
+    descricao: str,
+    qtd,
+    *,
+    categoria: str = "nao_identificado",
+    data: str | None = None,
+) -> dict:
     return {
-        "data": datetime.now(timezone.utc).date().isoformat(),
+        "data": data or datetime.now(timezone.utc).date().isoformat(),
         "descricao": descricao,
         "valor": qtd,
         "banco": "itau",
@@ -120,6 +136,40 @@ async def test_consumo_pontuais_filters_below_threshold(auth_client: AsyncClient
     data = resp.json()
     assert data["total"] == 1
     assert data["items"][0]["descricao"] == "GRANDE COMPRA"
+
+
+async def _seed_old_despesa(auth_client, db) -> None:
+    despesas = [_despesa("GASTO ANTIGO GRANDE", 5000.0, categoria="alimentacao", data="2025-11-15")]
+    await _seed_e4_despesas(db, auth_client.ws_id, despesas)
+    await _seed_transfer_config(db, auth_client.ws_id)
+
+
+@pytest.mark.asyncio
+async def test_consumo_pontuais_old_dataset_returns_empty_without_anchor(
+    auth_client: AsyncClient, db
+):
+    """Sem ``anchor_date``, dados de 2025-11 caem fora da janela 3m ancorada em hoje."""
+    await _seed_old_despesa(auth_client, db)
+    resp = await auth_client.get(
+        f"/api/workspaces/{auth_client.ws_id}/reports/consumo-pontuais?period=3m"
+    )
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 0
+
+
+@pytest.mark.asyncio
+async def test_consumo_pontuais_anchor_date_unblocks_old_dataset(auth_client: AsyncClient, db):
+    """Com ``anchor_date=2025-11-30`` a janela passa a cobrir o dataset (paridade PR #150)."""
+    await _seed_old_despesa(auth_client, db)
+    resp = await auth_client.get(
+        f"/api/workspaces/{auth_client.ws_id}/reports/consumo-pontuais"
+        "?period=3m&anchor_date=2025-11-30"
+    )
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["date_to"] == "2025-11-30"
+    assert data["items"][0]["descricao"] == "GASTO ANTIGO GRANDE"
 
 
 @pytest.mark.asyncio
