@@ -559,12 +559,16 @@ class E5AnalyzerAdapter:
         previdencia = self._previdencia.analyze(fluxo_legacy)
 
         # 13. Investimentos por classe + Top 15 ativos + instituições por membro.
+        #     Usa nomes de exibição (titular_nome/conjuge_nome) — paridade com
+        #     endividamento (linhas 552-554). O campo ``membro`` no JSON sai
+        #     como "David"/"Mariana" (de ``family_members.nome_curto``), não
+        #     como o key cru "david_robert_..." — relatório consome direto.
         titular_bens = members.titular_data.get("bens") or members.titular_data
         conjuge_bens = members.conjuge_data.get("bens") or members.conjuge_data
         bens_list = [titular_bens, conjuge_bens]
         bens_por_membro = [
-            (members.titular_key, titular_bens),
-            (members.conjuge_key, conjuge_bens),
+            (self._identity.titular_nome, titular_bens),
+            (self._identity.conjuge_nome, conjuge_bens),
         ]
         investimentos_classes = self._inv_classes.analyze(bens_list)
         top_ativos = self._top_ativos.analyze(bens_por_membro)
