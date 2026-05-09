@@ -16,35 +16,44 @@ const FONTE_LABELS: Record<string, string> = {
   outras_receitas: "Outras receitas",
 };
 
-/** F9 · F2.A · S1 — Card "Receitas por Fonte" com toggle de período. */
+/** F9 · F2.A · S1 — Card "Receitas por Fonte" com toggle de período.
+ *
+ * `anchorDate` (opcional) ancora a janela 3M/6M/12M/YTD no fim do dataset
+ * — passa-se o último mês de `fluxo.receita_despesa_mensal_detalhado.labels`.
+ * Sem âncora, cai no `fluxo.por_fonte` (E5 estático). Com âncora e janela
+ * vazia, mostra "Sem dados" em vez de fallback. */
 export function ReceitasFonteCard({
   fluxo,
+  anchorDate,
 }: {
   fluxo: FluxoCaixaSummary | undefined;
+  anchorDate?: Date;
 }) {
   const [period, setPeriod] = useState<Period>("3m");
-  const { transactions, isLoading } = usePeriodTransactions(period);
+  const { transactions, isLoading } = usePeriodTransactions(period, anchorDate);
 
-  const numMonths = getPeriodMonths(period);
+  const numMonths = getPeriodMonths(period, anchorDate);
 
-  const entries = useMemo(() => {
+  const { entries, isLiveData } = useMemo(() => {
     if (transactions.length > 0) {
       const agg = aggregateReceitas(transactions);
-      return Object.entries(agg)
+      const sorted = Object.entries(agg)
         .filter(([, v]) => v > 0)
         .sort(([, a], [, b]) => b - a) as Array<[string, number]>;
+      return { entries: sorted, isLiveData: true };
     }
-    // fallback to E5 data while loading or if no transactions
+    if (anchorDate && !isLoading) {
+      // Anchor presente + load concluído + transactions vazia = janela
+      // genuinamente vazia. Não cair em E5 estático.
+      return { entries: [] as Array<[string, number]>, isLiveData: true };
+    }
     const porFonte = fluxo?.por_fonte ?? {};
-    return (
-      Object.entries(porFonte)
-        .filter(([, v]) => typeof v === "number" && v > 0)
-        .sort(([, a], [, b]) => (b as number) - (a as number)) as Array<[string, number]>
-    );
-  }, [transactions, fluxo]);
+    const sorted = Object.entries(porFonte)
+      .filter(([, v]) => typeof v === "number" && v > 0)
+      .sort(([, a], [, b]) => (b as number) - (a as number)) as Array<[string, number]>;
+    return { entries: sorted, isLiveData: false };
+  }, [transactions, fluxo, anchorDate, isLoading]);
 
-  // For period view, show monthly average; for E5 fallback show total
-  const isLiveData = transactions.length > 0;
   const displayEntries: Array<[string, number]> = isLiveData
     ? entries.map(([k, v]) => [k, v / numMonths])
     : entries;
