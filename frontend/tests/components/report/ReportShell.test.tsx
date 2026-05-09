@@ -90,8 +90,10 @@ describe("ReportShell", () => {
     expect(link).toHaveAttribute("href", `/pipeline?run=${encodeURIComponent(runId)}`);
   });
 
-  it("mostra seletor de modo (estratégico/EUA)", () => {
-    // ADR-151 (Direção E): Modo Tático removido — sobram Estratégico + EUA.
+  it("oculta seletor de modo quando há apenas um modo visível", () => {
+    // ADR-151 (Direção E): Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA removido.
+    // Modo Estratégico é único — `ReportActions` auto-oculta o tablist
+    // (VISIBLE_MODES.length === 1). Reativar exige adicionar entry em VISIBLE_MODES.
     const state: UseReportDataState = { status: "success", data: SAMPLE_DATA };
     render(
       wrap(
@@ -105,16 +107,17 @@ describe("ReportShell", () => {
       ),
     );
     expect(
-      screen.getByRole("tab", { name: "Estratégico", selected: true }),
-    ).toBeInTheDocument();
-    // ADR-151: Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA removido.
-    // Modo Estratégico é único.
+      screen.queryByRole("tablist", { name: "Modo de visualização" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("tab", { name: "Estratégico" }),
+    ).toBeNull();
     expect(
       screen.queryByRole("tab", { name: "Tático" }),
-    ).not.toBeInTheDocument();
+    ).toBeNull();
     expect(
       screen.queryByRole("tab", { name: "EUA" }),
-    ).not.toBeInTheDocument();
+    ).toBeNull();
   });
 
   it("renderiza seções migradas sem stubs no modo estratégico", () => {
