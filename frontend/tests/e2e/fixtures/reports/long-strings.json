@@ -160,6 +160,11 @@
     "padrao_vida": 0.15
   },
   "cenarios_conjuge": {},
+  "programa_milhas": {
+    "saldo_total": 320000,
+    "valor_estimado": 8000,
+    "observacao": "Programa Smiles + Latam Pass consolidado, com estratégia de transferência bonificada via cartão de crédito premium para viagens em família com tarifa promocional"
+  },
   "orcamento_prospectivo": {},
   "pontos_fortes": [
     { "titulo": "Diversificação patrimonial sólida com múltiplas classes de ativos balanceadas estrategicamente entre renda fixa indexada à inflação e renda variável local e internacional" }

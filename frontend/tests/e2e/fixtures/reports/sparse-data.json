@@ -110,6 +110,10 @@
     "padrao_vida": 0.1
   },
   "cenarios_conjuge": {},
+  "programa_milhas": {
+    "saldo_total": 18000,
+    "valor_estimado": 450
+  },
   "orcamento_prospectivo": {},
   "pontos_fortes": [
     { "titulo": "Sem dívidas" }
