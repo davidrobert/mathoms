@@ -36,18 +36,12 @@ function classeColor(classe: string): string {
   return CLASSE_TOKEN[classe] ?? "var(--surface-muted-foreground)";
 }
 
-function firstName(membro: string): string {
-  if (!membro) return "—";
-  const trimmed = membro.trim();
-  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
-}
-
 function ClasseBadge({ classe }: { classe: string }) {
   const color = classeColor(classe);
   return (
     <span
       aria-label={`Classe: ${classe}`}
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+      className="inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium"
       style={{
         color,
         backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`,
@@ -55,6 +49,37 @@ function ClasseBadge({ classe }: { classe: string }) {
     >
       {classe}
     </span>
+  );
+}
+
+function PctCarteiraCell({
+  pct,
+  color,
+  alpha,
+}: {
+  pct: number;
+  color: string;
+  alpha: string;
+}) {
+  const clamped = Math.min(Math.max(pct, 0), 100);
+  return (
+    <div className="flex items-center justify-end gap-3">
+      <div
+        className="relative h-1.5 w-[110px] overflow-hidden rounded-full bg-[var(--surface-border)]/40"
+        aria-hidden="true"
+      >
+        <div
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{
+            width: `${clamped}%`,
+            backgroundColor: `color-mix(in srgb, ${color} ${alpha}, transparent)`,
+          }}
+        />
+      </div>
+      <span className="w-12 text-right font-mono text-xs tabular-nums">
+        {pct.toFixed(1)}%
+      </span>
+    </div>
   );
 }
 
@@ -105,25 +130,25 @@ export function Top15AtivosCard({ data }: Top15AtivosCardProps) {
             <tr className="border-b border-[var(--surface-border)] text-left">
               <th
                 scope="col"
-                className="w-8 pb-2 font-display text-xs font-semibold text-[var(--surface-muted-foreground)]"
+                className="w-8 pb-2 pr-2 font-display text-xs font-semibold text-[var(--surface-muted-foreground)]"
               >
                 #
               </th>
-              <th scope="col" className="pb-2 font-display font-semibold">
+              <th scope="col" className="pb-2 pr-4 font-display font-semibold">
                 Ativo
               </th>
-              <th scope="col" className="pb-2 font-display font-semibold">
+              <th scope="col" className="pb-2 pr-4 font-display font-semibold">
                 Classe
               </th>
               <th
                 scope="col"
-                className="hidden pb-2 font-display font-semibold md:table-cell"
+                className="hidden whitespace-nowrap pb-2 pr-4 font-display font-semibold md:table-cell"
               >
                 Membro
               </th>
               <th
                 scope="col"
-                className="pb-2 text-right font-display font-semibold"
+                className="pb-2 pr-4 text-right font-display font-semibold"
               >
                 Valor
               </th>
@@ -145,10 +170,10 @@ export function Top15AtivosCard({ data }: Top15AtivosCardProps) {
                   key={`top-${r.posicao}`}
                   className="border-b border-[var(--surface-border)]/40 last:border-0"
                 >
-                  <td className="py-2 font-mono text-xs tabular-nums text-[var(--surface-muted-foreground)]">
+                  <td className="py-2 pr-2 font-mono text-xs tabular-nums text-[var(--surface-muted-foreground)]">
                     {r.posicao}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2 pr-4">
                     <div
                       className={cn(
                         "leading-tight",
@@ -163,28 +188,21 @@ export function Top15AtivosCard({ data }: Top15AtivosCardProps) {
                       </div>
                     )}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2 pr-4">
                     <ClasseBadge classe={r.classe} />
                   </td>
-                  <td className="hidden py-2 text-[var(--surface-muted-foreground)] md:table-cell">
-                    {firstName(r.membro)}
+                  <td className="hidden whitespace-nowrap py-2 pr-4 text-[var(--surface-muted-foreground)] md:table-cell">
+                    {r.membro || "—"}
                   </td>
-                  <td className="py-2 text-right">
+                  <td className="py-2 pr-4 text-right">
                     <MonetaryValue value={r.valor} />
                   </td>
                   <td className="py-2">
-                    <div className="relative h-5 w-full" aria-hidden="true">
-                      <div
-                        className="absolute inset-y-0 right-0 rounded-sm"
-                        style={{
-                          width: `${Math.max(r.pct_carteira, 0)}%`,
-                          backgroundColor: `color-mix(in srgb, ${barColor} ${alpha}, transparent)`,
-                        }}
-                      />
-                      <span className="relative z-10 flex h-full items-center justify-end pr-1 font-mono text-xs tabular-nums">
-                        {r.pct_carteira.toFixed(1)}%
-                      </span>
-                    </div>
+                    <PctCarteiraCell
+                      pct={r.pct_carteira}
+                      color={barColor}
+                      alpha={alpha}
+                    />
                   </td>
                 </tr>
               );
