@@ -479,6 +479,7 @@
 | TRACK-f9-4-scripts-rename | track | consumed | F9 | Track F9.4 — `git mv scripts/e*.py` → descritivos + alias CLI compat | `sprint/F9/tracks/f9-4-scripts-rename.md` |
 | TRACK-f9-5-guardrail-hardfail | track | consumed | F9 | Track F9.5 — Guardrail hard-fail contra identificadores legados | `sprint/F9/tracks/f9-5-guardrail-hardfail.md` |
 | TRACK-f9-6-cleanup | track | consumed | F9 | Track F9.6 — Cleanup final: remover wrappers compat, aliases e globals legados | `sprint/F9/tracks/f9-6-cleanup.md` |
+| TRACK-gtm-landing-copy-rewrite | track | ready | A11 | Track GTM Landing Copy Rewrite — Fase 4.B COMPETITIVE_PIERRE (operational skeleton) | `sprint/A11/tracks/gtm-landing-copy-rewrite.md` |
 | TRACK-irpf-full-schema | track | consumed | A11 | Track IRPF Full Schema — extração completa de declaração de IRPF (E1.6) | `sprint/A11/tracks/irpf-full-schema.md` |
 | TRACK-irpf-full-schema-cutover | track | consumed | A11 | Track IRPF Full Schema Cutover — flag `MATHOMS_E16_SUPERSEDES_E15_BENS` | `sprint/A11/tracks/irpf-full-schema-cutover.md` |
 | TRACK-irpf-full-schema-goldens | track | consumed | A11 | Track IRPF Full Schema Goldens — fixtures + golden tests byte-byte | `sprint/A11/tracks/irpf-full-schema-goldens.md` |

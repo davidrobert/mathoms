@@ -10,7 +10,8 @@ created_at: "2026-05-08"
 last_review: "2026-05-08"
 paused_at: null
 pause_reason: null
-adrs_canonical: []
+adrs_canonical:
+  - "[[ADR-183]]"
 tags:
   - type/plan
   - status/draft
@@ -261,6 +262,7 @@ IDs concretos serão atribuídos no commit que abre cada ADR (próximo livre em 
 ### 8.1 Já criados
 
 - [docs/sprint/A11/tracks/competitor-pierre-poc.md](../../sprint/A11/tracks/competitor-pierre-poc.md) — Fase 1 spike, status `ready`.
+- [docs/sprint/A11/tracks/gtm-landing-copy-rewrite.md](../../sprint/A11/tracks/gtm-landing-copy-rewrite.md) — Fase 4.B operational skeleton, status `ready`. Ancorado em [[ADR-183]] (PR-A); este é o PR-B da sequência operacional. PR-C (copy literal pelo `product-designer`) e PR-D (publicação) seguem em sessões próprias.
 
 ### 8.2 A criar (por fase, conforme avanço)
 
@@ -273,7 +275,7 @@ IDs concretos serão atribuídos no commit que abre cada ADR (próximo livre em 
 | `chat-report-spike.md` | 3.B | após 3.A fechar | `senior-cto` + `financial-planner` |
 | `chat-report-mvp.md` | 3.C | após ADR 3.B mergeada e [ADR-173] live | `senior-cto` |
 | `gtm-segment-research.md` | 4.A | desde dia 1 (paralelo) | CEO + `product-manager` |
-| `gtm-landing-copy-rewrite.md` | 4.B | após Fase 2 ou 3 visíveis (beta) | CEO + `product-designer` |
+| ~~`gtm-landing-copy-rewrite.md`~~ | 4.B | ✅ criado (ver §8.1) — soft launch viável imediato sem comparativo + chat hero conforme [[ADR-183]] §"Dependências de gate" | CEO + `product-designer` |
 | `gtm-pricing-repositioning.md` | 4.C | após 4.A | CEO + `product-manager` |
 
 Nomenclatura segue padrão atual (`docs/sprint/<X>/tracks/<slug>.md` com frontmatter `note-track`). IDs serão definidos quando o track for materializado.
@@ -283,6 +285,7 @@ Nomenclatura segue padrão atual (`docs/sprint/<X>/tracks/<slug>.md` com frontma
 ## 9. Atualizações deste documento
 
 - **2026-05-08:** plano criado em `draft`. Fase 1 track materializado. Fases 2-4 descritas em alto nível, esperando dossiê da Fase 1 para refinar.
+- **2026-05-08:** Fase 4.B PR-A → [[ADR-183]] mergeada como `Proposto` (#141). Fase 4.B PR-B → [`gtm-landing-copy-rewrite.md`](../../sprint/A11/tracks/gtm-landing-copy-rewrite.md) materializado em `status: ready`. Confirmado em [[ADR-183]] §"Dependências de gate" que soft launch P1+P2+P3+P4 é viável imediatamente — gate Fase 2/3 beta aplica-se apenas a comparativo (4.E) e narrativa AI conversacional. Próximos: PR-C (copy literal — `product-designer`), PR-D (publicação — CEO + designer), PR-E (flip ADR-183 para `Decidido`).
 
 Próxima revisão prevista: ao fechamento do dossiê da Fase 1 (estimado até 2026-05-15). Atualizar `last_review` + `status: in_progress` + `adrs_canonical` quando a primeira ADR mergear.
 

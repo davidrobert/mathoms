@@ -17,7 +17,7 @@ aliases: ["SPRINTS-active", "sprints-active"]
 - **W1** ✅ entregue.
 - **W2-W6** abertas conforme [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md).
 - **A11.docreorg** (esta lane): execução do plano [DOC_REORG](../plan/DOC_REORG/_README.md) ([ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md)).
-- **A11.competitive-pierre** (novo, 2026-05-08): resposta competitiva a [Pierre Finance](https://lp.pierre.finance/) (CloudWalk) — quatro fases (recon POC, Mathoms-as-MCP, chat sobre relatório, reposicionamento brand). Plano em [plan/COMPETITIVE_PIERRE/_README.md](../plan/COMPETITIVE_PIERRE/_README.md). Track Fase 1 ready: [competitor-pierre-poc](../sprint/A11/tracks/competitor-pierre-poc.md).
+- **A11.competitive-pierre** (novo, 2026-05-08): resposta competitiva a [Pierre Finance](https://lp.pierre.finance/) (CloudWalk) — quatro fases (recon POC, Mathoms-as-MCP, chat sobre relatório, reposicionamento brand). Plano em [plan/COMPETITIVE_PIERRE/_README.md](../plan/COMPETITIVE_PIERRE/_README.md). Tracks ready: [competitor-pierre-poc](../sprint/A11/tracks/competitor-pierre-poc.md) (Fase 1) · [gtm-landing-copy-rewrite](../sprint/A11/tracks/gtm-landing-copy-rewrite.md) (Fase 4.B skeleton, ancorada em [ADR-183](../adr/183-landing-positioning-pillars-2026.md)).
 
 ## Pickup — antes de pegar lane
 
