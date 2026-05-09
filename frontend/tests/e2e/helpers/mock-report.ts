@@ -162,6 +162,14 @@ export async function mockReportPage(
       return json(route, { suggestions: [], total: 0 });
     }
 
+    // ADR-136 — `useDecisions` em `PlanoDeAcaoSection` faz
+    // `setDecisions(resp.decisions)` sem guard. Mesmo padrão de
+    // failure mode: catch-all `{}` produz `decisions = undefined` e
+    // `.length`/`.filter()` em `DecisionTable` dispara ErrorBoundary.
+    if (path.match(/\/workspaces\/[^/]+\/decisions$/)) {
+      return json(route, { decisions: [], total: 0 });
+    }
+
     // ADR-148 — `useConsumoPontuais` consome este endpoint em S2 (card
     // ConsumoConscienteCard). Sem esta rota, o catch-all `{}` quebrava
     // o shape e disparava ErrorBoundary, derrubando o `<article>` inteiro
