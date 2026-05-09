@@ -78,4 +78,31 @@ describe("useConsumoPontuais", () => {
     expect(result.current.error).toBeTruthy();
     expect(result.current.items).toEqual([]);
   });
+
+  it("propaga anchorDate como query param ?anchor_date=YYYY-MM-DD", async () => {
+    // Paridade com PR #150: sem ancora, workspaces antigos retornam vazio
+    // porque backend ancora date_to em "hoje". Hook precisa enviar o
+    // anchor_date para o endpoint reaproveitar a janela do dataset.
+    let capturedUrl = "";
+    server.use(
+      http.get(`${API}/workspaces/${WS_ID}/reports/consumo-pontuais`, ({ request }) => {
+        capturedUrl = request.url;
+        return HttpResponse.json({
+          period: "3m",
+          date_from: "2025-08-30",
+          date_to: "2025-11-30",
+          items: [],
+          total: 0,
+          total_valor: 0,
+        });
+      }),
+    );
+    const anchor = new Date(Date.UTC(2025, 10, 30));
+    const { result } = renderHook(() => useConsumoPontuais("3m", anchor), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(capturedUrl).toContain("anchor_date=2025-11-30");
+    expect(capturedUrl).toContain("period=3m");
+  });
 });

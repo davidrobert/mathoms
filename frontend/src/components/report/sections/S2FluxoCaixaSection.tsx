@@ -88,7 +88,7 @@ export function S2FluxoCaixaSection({
         <OrcamentoProspectivoCard orcamento={orcamento} anchorDate={anchorDate} />
       </div>
       <div className="md:col-span-2">
-        <ConsumoConscienteCard consumo={consumo} />
+        <ConsumoConscienteCard consumo={consumo} anchorDate={anchorDate} />
       </div>
       <DiagnosticoComportamentalCard diagnostico={diagnostico} />
       <EquilibrioCerbasiCard equilibrio={equilibrio} />

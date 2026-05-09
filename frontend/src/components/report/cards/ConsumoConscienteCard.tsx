@@ -23,11 +23,13 @@ import type { ConsumoConscienteData } from "@/types/report-analysis";
  */
 export function ConsumoConscienteCard({
   consumo,
+  anchorDate,
 }: {
   consumo: ConsumoConscienteData | undefined;
+  anchorDate?: Date;
 }) {
   const [period, setPeriod] = useState<Period>("3m");
-  const { items: pontuais, isLoading } = useConsumoPontuais(period);
+  const { items: pontuais, isLoading } = useConsumoPontuais(period, anchorDate);
 
   return (
     <ReportCard variant="success" title="Consumo Consciente">

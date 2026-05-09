@@ -30,12 +30,17 @@ def _period_start(period: str, today: date) -> date:
     return today.replace(month=1, day=1)
 
 
-def _resolve_period_dates(period: str, today: date | None = None) -> tuple[str, str]:
-    """Replica ``frontend/src/lib/periodUtils.ts::getPeriodDates``."""
+def _resolve_period_dates(
+    period: str,
+    today: date | None = None,
+    *,
+    anchor_date: date | None = None,
+) -> tuple[str, str]:
+    """Replica ``frontend/src/lib/periodUtils.ts::getPeriodDates`` (anchor_date evita janela vazia em dados antigos · PR #150)."""
     if period not in VALID_PERIODS:
         raise ValueError(f"period inválido: {period!r} — esperado um de {VALID_PERIODS}")
-    today = today or datetime.now(timezone.utc).date()
-    return _period_start(period, today).isoformat(), today.isoformat()
+    end = anchor_date or today or datetime.now(timezone.utc).date()
+    return _period_start(period, end).isoformat(), end.isoformat()
 
 
 def _is_pontual(
@@ -94,13 +99,13 @@ async def list_consumo_pontuais(
     *,
     period: str,
     detector: InternalTransferDetector,
-    threshold: Decimal | None = None,
+    threshold: Decimal = _DEFAULT_THRESHOLD,
+    anchor_date: date | None = None,
     db: AsyncSession,
 ) -> ConsumoPontuaisResponse:
-    threshold_value = threshold if threshold is not None else _DEFAULT_THRESHOLD
-    date_from, date_to = _resolve_period_dates(period)
+    date_from, date_to = _resolve_period_dates(period, anchor_date=anchor_date)
     transactions = await _load_window(workspace_id, date_from=date_from, date_to=date_to, db=db)
-    pontuais = _filter_and_sort(transactions, threshold=threshold_value, detector=detector)
+    pontuais = _filter_and_sort(transactions, threshold=threshold, detector=detector)
     return ConsumoPontuaisResponse(
         period=period,
         date_from=date_from,
