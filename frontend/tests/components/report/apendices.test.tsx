@@ -203,13 +203,15 @@ describe("ApendiceESection", () => {
       changelog: [
         {
           section_id: "S1",
-          summary: "Patrimônio Líquido avançou 20,0% no mês",
+          summary:
+            "Patrimônio líquido cresceu R$ 200.000,00 desde o relatório anterior (+20,0%)",
           delta_signal: "up",
           delta_pct: 20,
         },
         {
           section_id: "T5",
-          summary: "Despesas Totais subiu 8,5% no mês",
+          summary:
+            "Despesas totais subiram R$ 8.500,00 desde o relatório anterior (+8,5%)",
           delta_signal: "up",
           delta_pct: 8.5,
         },
@@ -217,10 +219,14 @@ describe("ApendiceESection", () => {
     } as unknown as ReportAnalysisData;
     render(<ApendiceESection data={data} />);
     expect(
-      screen.getByText("Patrimônio Líquido avançou 20,0% no mês"),
+      screen.getByText(
+        "Patrimônio líquido cresceu R$ 200.000,00 desde o relatório anterior (+20,0%)",
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Despesas Totais subiu 8,5% no mês"),
+      screen.getByText(
+        "Despesas totais subiram R$ 8.500,00 desde o relatório anterior (+8,5%)",
+      ),
     ).toBeInTheDocument();
   });
 });
