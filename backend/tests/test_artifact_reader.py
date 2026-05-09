@@ -28,6 +28,29 @@ def test_read_returns_db_payload_when_present(tmp_path: Path) -> None:
     )
 
 
+def _fake_legacy_e4_row(workspace_id, *, stage, artifact_key):
+    """Side effect: simula DB com row em formato legado (`"E4"` only)."""
+    if stage == "E4" and artifact_key == "despesas":
+        return MagicMock(content_json={"dados": {"saude": [{"valor": 11400}]}})
+    return None
+
+
+def test_read_finds_legacy_row_when_caller_uses_descriptive(tmp_path: Path) -> None:
+    """ADR-093: caller passa nome descritivo, DB tem nome legado."""
+    fake_repo = MagicMock()
+    fake_repo.get_latest_for_workspace.side_effect = _fake_legacy_e4_row
+    with patch(
+        "backend.app.services.artifact_reader.PipelineArtifactRepository",
+        return_value=fake_repo,
+    ):
+        result = read_latest_artifact(
+            "ws-1", stage="categorize_transactions", key="despesas", tenant_root=tmp_path
+        )
+    assert result == {"dados": {"saude": [{"valor": 11400}]}}
+    calls = [c.kwargs["stage"] for c in fake_repo.get_latest_for_workspace.call_args_list]
+    assert calls == ["categorize_transactions", "E4"]
+
+
 def test_read_falls_back_to_disk_when_db_empty(tmp_path: Path) -> None:
     """DB vazio + disco presente → lê disco (back-compat DiskArtifactStore)."""
     disk_dir = tmp_path / "processed" / "E5_analysis"
