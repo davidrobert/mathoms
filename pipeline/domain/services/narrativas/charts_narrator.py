@@ -359,7 +359,7 @@ class ChartsNarrator:
                 "conclusion": (
                     "Riscos prioritários: "
                     + ", ".join(
-                        f"({i+1}) {r.get('nome', '')} ({r.get('prob', '')} prob., {r.get('impacto', '')} impacto)"
+                        f"({i + 1}) {r.get('nome', '')} ({r.get('prob', '')} prob., {r.get('impacto', '')} impacto)"
                         for i, r in enumerate(_riscos_top3)
                     )
                     + f". Ação: CPA expatriado + seguro term R$ {M['seguro_vida_minimo'] // 1_000_000}-{M['seguro_vida_maximo'] // 1_000_000}M."
@@ -374,7 +374,9 @@ class ChartsNarrator:
                     f"Prioridade 1: Aporte mensal {fmt_currency(M['meta_aporte_mensal'])} com divisão "
                     f"({fmt_currency(M['aporte_cofrinhos'])} Cofrinhos, {fmt_currency(M['aporte_ipca_plus'])} IPCA+, "
                     f"{fmt_currency(M['aporte_ivvb11'])} IVVB11, {fmt_currency(M['aporte_wise_usd'])} Wise USD). "
-                    + ". ".join(f"Prioridade {i+2}: {d}" for i, d in enumerate(decisoes[1:5]))
+                    + ". ".join(
+                        f"Prioridade {i + 2}: {d.rstrip('.')}" for i, d in enumerate(decisoes[1:5])
+                    )
                 ),
             },
         }

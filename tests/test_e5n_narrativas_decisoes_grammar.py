@@ -73,6 +73,19 @@ def test_top5_decisoes_conclusion_no_double_period_when_many_decisoes():
     assert not conclusion.rstrip().endswith("..")
 
 
+def test_top5_decisoes_conclusion_strips_inline_periods_in_decisoes():
+    """Itens de `decisoes[1:5]` já terminados em '.' não devem gerar '..'
+    no meio do texto após o `". ".join(...)`. Reportado pelo product-designer
+    review do PR original — `["d1.", "d2."]` produzia ".. " inline.
+    """
+    out = _narrate_charts(["d0", "Holding patrimonial.", "CPA expatriado.", "ITR."])
+    conclusion = out["top5_decisoes"]["conclusion"]
+    assert ".." not in conclusion
+    assert "Prioridade 2: Holding patrimonial. " in conclusion
+    assert "Prioridade 3: CPA expatriado" in conclusion
+    assert "Prioridade 4: ITR." in conclusion
+
+
 # ── summaries.s10 ──────────────────────────────────────────────────────
 
 
