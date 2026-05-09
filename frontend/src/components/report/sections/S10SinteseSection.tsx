@@ -4,7 +4,6 @@ import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { PontosFortesCard, PontosUrgentesCard } from "../cards";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
-import { ChartConclusion } from "../charts/primitives";
 import {
   deriveChartConclusion,
   deriveSectionSummary,
@@ -21,7 +20,6 @@ export function S10SinteseSection({ data }: { data: ReportAnalysisData }) {
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
 
   const summaryFallback = deriveSectionSummary("S10", data);
-  const chartConclusion = deriveChartConclusion("top5_decisoes", data);
 
   return (
     <ReportSection id="S10" title="Síntese Estratégica — Tarefas e Score">
@@ -38,8 +36,8 @@ export function S10SinteseSection({ data }: { data: ReportAnalysisData }) {
           chartId="top5_decisoes"
           title="Top 5 Decisões de Impacto"
           narratives={charts}
+          fallbackConclusion={deriveChartConclusion("top5_decisoes", data)}
         />
-        {chartConclusion && <ChartConclusion>{chartConclusion}</ChartConclusion>}
       </div>
 
       <PontosFortesCard pontos={data.pontos_fortes as unknown[] | undefined} />
