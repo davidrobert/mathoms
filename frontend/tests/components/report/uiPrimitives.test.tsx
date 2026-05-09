@@ -6,7 +6,7 @@
  * roles ARIA corretos, computação de status (deadlineStatus), handlers.
  */
 import { describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import {
@@ -26,12 +26,7 @@ import {
   DeadlineBadge,
   deadlineStatus,
   EffortBadge,
-  Timeline,
   ChangelogList,
-  Kanban,
-  NotasCard,
-  NotasInsightsGrid,
-  NotasInsightCard,
 } from "@/components/report/ui";
 
 describe("<Alert />", () => {
@@ -195,20 +190,6 @@ describe("deadlineStatus()", () => {
   });
 });
 
-describe("<Timeline />", () => {
-  it("renderiza <ol> com N items", () => {
-    render(
-      <Timeline
-        items={[
-          { id: "1", date: "24/04", action: "A", status: "feito" },
-          { id: "2", date: "25/04", action: "B", status: "pendente" },
-        ]}
-      />,
-    );
-    expect(screen.getByRole("list").children.length).toBe(2);
-  });
-});
-
 describe("<ChangelogList />", () => {
   it("renderiza ciclo + entries", () => {
     render(
@@ -219,100 +200,5 @@ describe("<ChangelogList />", () => {
     );
     expect(screen.getByText("Q2/2026")).toBeInTheDocument();
     expect(screen.getByText("Mudou X")).toBeInTheDocument();
-  });
-});
-
-describe("<Kanban />", () => {
-  const sampleItems = [
-    { id: "1", titulo: "A", coluna: "a_fazer" as const },
-    { id: "2", titulo: "B", coluna: "em_andamento" as const },
-    { id: "3", titulo: "C", coluna: "concluido" as const },
-  ];
-
-  it("distribui items em 3 colunas e chama onMove via fallback button", async () => {
-    const onMove = vi.fn();
-    const user = userEvent.setup();
-    render(<Kanban onMove={onMove} items={sampleItems} />);
-    expect(screen.getByText("A")).toBeInTheDocument();
-    expect(screen.getByText("B")).toBeInTheDocument();
-    expect(screen.getByText("C")).toBeInTheDocument();
-    await user.click(screen.getAllByLabelText(/Mover para Em andamento/i)[0]);
-    expect(onMove).toHaveBeenCalledWith("1", "em_andamento");
-  });
-
-  it("v2.7 — DnD wiring: cada coluna é um drop zone", () => {
-    render(<Kanban onMove={vi.fn()} items={sampleItems} />);
-    const board = document.querySelector("[data-kanban-board]");
-    expect(board).not.toBeNull();
-    expect(
-      document.querySelectorAll('[data-kanban-column]').length,
-    ).toBe(3);
-    expect(
-      document.querySelector('[data-kanban-column="a_fazer"]'),
-    ).not.toBeNull();
-    expect(
-      document.querySelector('[data-kanban-column="em_andamento"]'),
-    ).not.toBeNull();
-    expect(
-      document.querySelector('[data-kanban-column="concluido"]'),
-    ).not.toBeNull();
-  });
-
-  it("v2.7 — DnD wiring: cada card é arrastável (data-kanban-item presente)", () => {
-    render(<Kanban onMove={vi.fn()} items={sampleItems} />);
-    const cards = document.querySelectorAll("[data-kanban-item]");
-    expect(cards.length).toBe(3);
-    const ids = Array.from(cards).map((el) =>
-      el.getAttribute("data-item-id"),
-    );
-    expect(ids).toEqual(["1", "2", "3"]);
-  });
-
-  it("v2.7 — sem onMove, drag não chama nada (read-only)", () => {
-    render(<Kanban items={sampleItems} />);
-    expect(
-      document.querySelector('[data-kanban-move-buttons]'),
-    ).toBeNull();
-  });
-});
-
-describe("<NotasCard />", () => {
-  it("chama onChange após debounce", async () => {
-    const onChange = vi.fn();
-    vi.useFakeTimers();
-    const { rerender } = render(
-      <NotasCard value="" onChange={onChange} debounceMs={200} />,
-    );
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-    fireEvent.change(textarea, { target: { value: "oi" } });
-    expect(onChange).not.toHaveBeenCalled();
-    await act(async () => {
-      vi.advanceTimersByTime(250);
-    });
-    expect(onChange).toHaveBeenCalledWith("oi");
-    vi.useRealTimers();
-    rerender(<NotasCard value="oi" onChange={onChange} />);
-  });
-  it("maxChars trunca input", () => {
-    const onChange = vi.fn();
-    render(<NotasCard value="" onChange={onChange} maxChars={3} />);
-    const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-    fireEvent.change(textarea, { target: { value: "abcdef" } });
-    expect(textarea.value).toBe("abc");
-  });
-});
-
-describe("<NotasInsightsGrid />", () => {
-  it("renderiza 3 insight cards", () => {
-    render(
-      <NotasInsightsGrid>
-        <NotasInsightCard tone="score" label="A" value="1" />
-        <NotasInsightCard tone="cerbasi" label="B" value="2" />
-        <NotasInsightCard tone="periodo" label="C" value="3" />
-      </NotasInsightsGrid>,
-    );
-    expect(screen.getByText("A")).toBeInTheDocument();
-    expect(screen.getByText("B")).toBeInTheDocument();
-    expect(screen.getByText("C")).toBeInTheDocument();
   });
 });

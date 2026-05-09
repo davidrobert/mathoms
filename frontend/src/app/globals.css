@@ -143,16 +143,6 @@
   display: none !important;
 }
 
-/* v2.7 — Kanban DnD: botões "→ Coluna" como fallback mobile.
- * DnD via @dnd-kit/core funciona bem com mouse mas exige long-press
- * em touch (conflita com scroll natural). Mantemos os botões visíveis
- * só em viewports estreitos onde DnD não é confiável. */
-@media (min-width: 768px) {
-  [data-kanban-move-buttons] {
-    display: none !important;
-  }
-}
-
 @media print {
   nav,
   .no-print,

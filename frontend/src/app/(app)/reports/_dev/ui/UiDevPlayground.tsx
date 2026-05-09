@@ -18,26 +18,11 @@ import {
   PriorityBadge,
   DeadlineBadge,
   EffortBadge,
-  Timeline,
   ChangelogList,
-  Kanban,
-  NotasCard,
-  NotasInsightsGrid,
-  NotasInsightCard,
-  type KanbanItem,
 } from "@/components/report/ui";
-
-const KANBAN_ITEMS: KanbanItem[] = [
-  { id: "1", titulo: "Rebalancear RF", coluna: "a_fazer", prioridade: "alta", prazoIso: "2026-05-01", categoria: "Investimentos" },
-  { id: "2", titulo: "Revisar PGBL", coluna: "em_andamento", prioridade: "media", prazoIso: "2026-04-28" },
-  { id: "3", titulo: "Atualizar orçamento", coluna: "concluido", prioridade: "baixa" },
-  { id: "4", titulo: "Consultar imposto", coluna: "a_fazer", prioridade: "media", prazoIso: "2026-04-25" },
-];
 
 export function UiDevPlayground() {
   const [collapsed, setCollapsed] = useState(false);
-  const [notas, setNotas] = useState("");
-  const [kanban, setKanban] = useState(KANBAN_ITEMS);
 
   return (
     <div
@@ -168,17 +153,6 @@ export function UiDevPlayground() {
       </section>
 
       <section>
-        <h2>Timeline</h2>
-        <Timeline
-          items={[
-            { id: "t1", date: "24/04", action: "Revisar alocação RF", status: "pendente" },
-            { id: "t2", date: "28/04", action: "Rebalanceamento trimestral", status: "aguardando" },
-            { id: "t3", date: "02/05", action: "Fechar IRPF", status: "feito" },
-          ]}
-        />
-      </section>
-
-      <section>
         <h2>Changelog</h2>
         <ChangelogList
           ciclo="Ciclo 2026-Q2"
@@ -188,36 +162,6 @@ export function UiDevPlayground() {
             { id: "c3", headline: "Reserva de emergência atingiu 12×", severity: "info" },
           ]}
         />
-      </section>
-
-      <section>
-        <h2>Kanban (UI-only — backend wiring em Fase 8)</h2>
-        <Kanban
-          items={kanban}
-          onMove={(id, to) =>
-            setKanban((prev) =>
-              prev.map((i) => (i.id === id ? { ...i, coluna: to } : i)),
-            )
-          }
-        />
-      </section>
-
-      <section>
-        <h2>Notas</h2>
-        <NotasInsightsGrid>
-          <NotasInsightCard tone="score" label="Score" value="7.8" sub="Bom" />
-          <NotasInsightCard tone="cerbasi" label="Presente / Futuro" value="60/40" sub="equilibrado" />
-          <NotasInsightCard tone="periodo" label="Próximo ciclo" value="Q3 2026" />
-        </NotasInsightsGrid>
-        <div style={{ marginTop: 16 }}>
-          <NotasCard
-            value={notas}
-            onChange={setNotas}
-            saveState="saved"
-            onCopyMarkdown={() => navigator.clipboard?.writeText(notas)}
-            onClear={() => setNotas("")}
-          />
-        </div>
       </section>
     </div>
   );
