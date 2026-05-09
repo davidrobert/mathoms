@@ -8,7 +8,7 @@
 | ADR-001 | adr | Decidido |  | SQLAlchemy 2.0 como ORM | `adr/001-sqlalchemy-20-como-orm.md` |
 | ADR-002 | adr | Decidido |  | Filesystem local para storage | `adr/002-filesystem-local-para-storage.md` |
 | ADR-003 | adr | Decidido |  | JWT custom para auth | `adr/003-jwt-custom-para-auth.md` |
-| ADR-005 | adr | Decidido |  | VPS Hetzner para produção | `adr/005-vps-hetzner-para-producao.md` |
+| ADR-005 | adr | Proposto |  | VPS Hetzner para produção | `adr/005-vps-hetzner-para-producao.md` |
 | ADR-006 | adr | Decidido |  | Monorepo | `adr/006-monorepo.md` |
 | ADR-007 | adr | Decidido |  | Fernet app-level para criptografia | `adr/007-fernet-app-level-para-criptografia.md` |
 | ADR-013 | adr | Decidido |  | "Wrap, Don't Rewrite" pattern | `adr/013-wrap-dont-rewrite-pattern.md` |
@@ -55,7 +55,7 @@
 | ADR-055 | adr | Decidido |  | Coverage target: ≥85% line + ≥95% new code | `adr/055-coverage-target-85-line-95-new-code.md` |
 | ADR-056 | adr | Decidido |  | Rolling restart em vez de blue-green | `adr/056-rolling-restart-em-vez-de-blue-green.md` |
 | ADR-057 | adr | Decidido |  | JWT 15min + refresh 7d | `adr/057-jwt-15min-refresh-7d.md` |
-| ADR-058 | adr | Decidido |  | VPS CX32 para sizing | `adr/058-vps-cx32-para-sizing.md` |
+| ADR-058 | adr | Proposto |  | VPS CX32 para sizing | `adr/058-vps-cx32-para-sizing.md` |
 | ADR-059 | adr | Decidido |  | Docker image CVE scan no CI | `adr/059-docker-image-cve-scan-no-ci.md` |
 | ADR-060 | adr | Decidido |  | Fernet dual-key para secret rotation | `adr/060-fernet-dual-key-para-secret-rotation.md` |
 | ADR-061 | adr | Decidido |  | Telemetria privacy-first | `adr/061-telemetria-privacy-first.md` |
@@ -181,6 +181,7 @@
 | ADR-181 | adr | Decidido |  | `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py` | `adr/181-goalsjson-removido-de-archive-e-adicionado-a.md` |
 | ADR-182 | adr | Decidido |  | Vault de documentação operacional Obsidian-friendly em `docs/` | `adr/182-vault-de-documentacao-operacional-obsidian.md` |
 | ADR-183 | adr | Proposto |  | Pilares narrativos da landing — reposicionamento Mathoms 2026 (Fase 4.B COMPETITIVE_PIERRE) | `adr/183-landing-positioning-pillars-2026.md` |
+| ADR-184 | adr | Proposto |  | Stack da landing estática (Hugo + CF Pages) | `adr/184-landing-static-stack-2026.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -481,6 +482,7 @@
 | TRACK-f9-5-guardrail-hardfail | track | consumed | F9 | Track F9.5 — Guardrail hard-fail contra identificadores legados | `sprint/F9/tracks/f9-5-guardrail-hardfail.md` |
 | TRACK-f9-6-cleanup | track | consumed | F9 | Track F9.6 — Cleanup final: remover wrappers compat, aliases e globals legados | `sprint/F9/tracks/f9-6-cleanup.md` |
 | TRACK-gtm-landing-copy-rewrite | track | ready | A11 | Track GTM Landing Copy Rewrite — Fase 4.B COMPETITIVE_PIERRE (operational skeleton) | `sprint/A11/tracks/gtm-landing-copy-rewrite.md` |
+| TRACK-gtm-landing-publish-static | track | ready | A11 | Track GTM Landing Publish Static — PR-D-A Fase 4.B COMPETITIVE_PIERRE | `sprint/A11/tracks/gtm-landing-publish-static.md` |
 | TRACK-irpf-full-schema | track | consumed | A11 | Track IRPF Full Schema — extração completa de declaração de IRPF (E1.6) | `sprint/A11/tracks/irpf-full-schema.md` |
 | TRACK-irpf-full-schema-cutover | track | consumed | A11 | Track IRPF Full Schema Cutover — flag `MATHOMS_E16_SUPERSEDES_E15_BENS` | `sprint/A11/tracks/irpf-full-schema-cutover.md` |
 | TRACK-irpf-full-schema-goldens | track | consumed | A11 | Track IRPF Full Schema Goldens — fixtures + golden tests byte-byte | `sprint/A11/tracks/irpf-full-schema-goldens.md` |

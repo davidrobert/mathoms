@@ -5,24 +5,27 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-176 ADRs (ADR-001 a ADR-183) em [`docs/adr/`](../../adr/).
+177 ADRs (ADR-001 a ADR-184) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 159
-- **Proposto**: 12
+- **Decidido**: 157
+- **Proposto**: 15
 - **Roadmap**: 5
 
 ## Fundação
 
-### Decidido (6)
+### Decidido (5)
 
 - [[ADR-001]] — SQLAlchemy 2.0 como ORM · phase F1
 - [[ADR-002]] — Filesystem local para storage · phase F2
 - [[ADR-003]] — JWT custom para auth · phase F1
-- [[ADR-005]] — VPS Hetzner para produção · phase F7
 - [[ADR-006]] — Monorepo · phase F0
 - [[ADR-013]] — "Wrap, Don't Rewrite" pattern · phase F0
+
+### Proposto (1)
+
+- [[ADR-005]] — VPS Hetzner para produção · phase F7
 
 ## Persistência
 
@@ -107,7 +110,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Produção & Infra (F7)
 
-### Decidido (12)
+### Decidido (11)
 
 - [[ADR-007]] — Fernet app-level para criptografia · phase F4→F7
 - [[ADR-040]] — Billing adiado para pós-launch · phase F7
@@ -115,12 +118,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-055]] — Coverage target: ≥85% line + ≥95% new code · phase F7
 - [[ADR-056]] — Rolling restart em vez de blue-green · phase F7
 - [[ADR-057]] — JWT 15min + refresh 7d · phase F7
-- [[ADR-058]] — VPS CX32 para sizing · phase F7
 - [[ADR-059]] — Docker image CVE scan no CI · phase F7
 - [[ADR-060]] — Fernet dual-key para secret rotation · phase F7
 - [[ADR-061]] — Telemetria privacy-first · phase F7
 - [[ADR-108]] — Estratégia de subdomínios `mathoms.ai` + Cloudflare DNS
 - [[ADR-116]] — F7F-Local: stack Next separada + anonimização default + auth yaml+bcrypt+JWT (F7F-Local) · phase F7F-Local
+
+### Proposto (1)
+
+- [[ADR-058]] — VPS CX32 para sizing · phase F7
 
 ## Testing
 
@@ -322,9 +328,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## marketing
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-183]] — Pilares narrativos da landing — reposicionamento Mathoms 2026 (Fase 4.B COMPETITIVE_PIERRE) · phase A11
+- [[ADR-184]] — Stack da landing estática (Hugo + CF Pages) · phase A11
 
 ## money
 

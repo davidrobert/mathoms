@@ -65,14 +65,22 @@ staging, dev). Alternativas consideradas:
    prefix.
 
 5. **DNS = Cloudflare** (domínio já está lá):
-   - Wildcard `*.mathoms.ai` → A record do VPS Hetzner (proxy
-     Cloudflare **desligado** para `app/api/ops` — evita double-TLS e
-     WebSocket issues; **ligado** para `mathoms.ai` apex e `docs.` —
-     CDN/WAF grátis).
+   - **(Sugestão, condicional a [[ADR-005]] / [[ADR-058]] — ambas
+     `Proposto`)** Wildcard `*.mathoms.ai` → A record do VPS Hetzner
+     (proxy Cloudflare **desligado** para `app/api/ops` — evita double-TLS
+     e WebSocket issues; **ligado** para `mathoms.ai` apex e `docs.` —
+     CDN/WAF grátis). Caso a decisão de hosting de backend seja fechada
+     em outra direção (Cloud Run, Fly.io, etc.), esta linha é revisitada
+     no momento da decisão. **A landing estática (`mathoms.ai` apex) já
+     publica via Cloudflare Pages — ver [[ADR-184]]; não depende de
+     [[ADR-005]].**
    - `*.staging.mathoms.ai` → mesmo VPS (ou ambiente separado quando
      crescer).
    - TLS via Let's Encrypt DNS-01 challenge (Traefik + Cloudflare API
-     token com permissão `Zone:DNS:Edit`).
+     token com permissão `Zone:DNS:Edit`) — aplicável **a partir do
+     momento que** o hosting de backend for decidido com Traefik no path.
+     Para a landing estática (`mathoms.ai` apex via CF Pages), TLS é
+     Universal SSL automático do Cloudflare (não precisa Let's Encrypt).
    - `www.mathoms.ai` → 301 apex.
 
 6. **Cookies e sessão:**
