@@ -1,9 +1,9 @@
 /**
- * ADR-117/122/123 · Fase 6 — testes dos adapters de dados.
+ * ADR-117/122 · Fase 6 — testes dos adapters de dados.
  *
- * Cobre conclusionUtils, kanbanAdapter, timelineAdapter e priorityMap —
- * derivadores determinísticos frontend-side que alimentam os primitives
- * das Fases 3/4 até o E5 entregar os campos nativamente.
+ * Cobre conclusionUtils e priorityMap — derivadores determinísticos
+ * frontend-side que alimentam os primitives das Fases 3/4 até o E5
+ * entregar os campos nativamente.
  */
 import { describe, expect, it } from "vitest";
 
@@ -11,8 +11,6 @@ import {
   deriveChartConclusion,
   deriveSectionSummary,
 } from "@/components/report/utils/conclusionUtils";
-import { adaptTarefasToKanban } from "@/components/report/utils/kanbanAdapter";
-import { adaptProximos15dToTimeline } from "@/components/report/utils/timelineAdapter";
 import { priorityFromEffort } from "@/components/report/utils/priorityMap";
 import type { ReportAnalysisData } from "@/lib/api";
 
@@ -142,71 +140,10 @@ describe("priorityFromEffort()", () => {
   });
 });
 
-// ─── kanbanAdapter ──────────────────────────────────────────────────
-
-describe("adaptTarefasToKanban()", () => {
-  it("mapeia essencial→prioridade e status→coluna", () => {
-    const data = {
-      tarefas: [
-        { id: 1, titulo: "Rebalancear", essencial: "S", status: "a_fazer", prazo: "2026-05-01" },
-        { id: 2, titulo: "IRPF", essencial: "R", status: "em_andamento" },
-        { id: 3, titulo: "Revisar orçamento", essencial: "O", status: "feito" },
-      ],
-    } as unknown as ReportAnalysisData;
-    const items = adaptTarefasToKanban(data);
-    expect(items).toHaveLength(3);
-    expect(items[0]).toMatchObject({ coluna: "a_fazer", prioridade: "alta", prazoIso: "2026-05-01" });
-    expect(items[1]).toMatchObject({ coluna: "em_andamento", prioridade: "media" });
-    expect(items[2]).toMatchObject({ coluna: "concluido", prioridade: "baixa" });
-  });
-
-  it("ignora entries sem titulo", () => {
-    const data = { tarefas: [{ id: 1 }, { titulo: "OK" }] } as unknown as ReportAnalysisData;
-    expect(adaptTarefasToKanban(data)).toHaveLength(1);
-  });
-
-  it("retorna [] quando data.tarefas ausente", () => {
-    expect(adaptTarefasToKanban({} as ReportAnalysisData)).toEqual([]);
-  });
-});
-
-// ─── timelineAdapter ────────────────────────────────────────────────
-
-describe("adaptProximos15dToTimeline()", () => {
-  it("normaliza shapes diferentes (data|date|data_iso + acao|action|descricao)", () => {
-    const data = {
-      proximos_15d: [
-        { data: "2026-04-28", acao: "Fechar aporte", status: "pendente" },
-        { date: "2026-05-02", action: "Revisar IRPF", status: "aguardando" },
-        { data_iso: "2026-05-10", descricao: "Reunião consultor", status: "feito" },
-      ],
-    } as unknown as ReportAnalysisData;
-    const items = adaptProximos15dToTimeline(data);
-    expect(items).toHaveLength(3);
-    expect(items[0]).toMatchObject({ status: "pendente" });
-    expect(items[1]).toMatchObject({ status: "aguardando" });
-    expect(items[2]).toMatchObject({ status: "feito" });
-  });
-
-  it("formata data para pt-BR (DD/MM)", () => {
-    const data = {
-      proximos_15d: [{ data: "2026-04-28", acao: "X" }],
-    } as unknown as ReportAnalysisData;
-    expect(adaptProximos15dToTimeline(data)[0].date).toBe("28/04");
-  });
-
-  it("busca em dashboard.proximos_15d também", () => {
-    const data = {
-      dashboard: { proximos_15d: [{ data: "2026-05-01", acao: "Y" }] },
-    } as unknown as ReportAnalysisData;
-    expect(adaptProximos15dToTimeline(data)).toHaveLength(1);
-  });
-
-  it("sem fonte retorna []", () => {
-    expect(adaptProximos15dToTimeline({} as ReportAnalysisData)).toEqual([]);
-  });
-});
-
 // ─── aportesAdapter ─────────────────────────────────────────────────
 // ADR-151 (Direção E): aportesAdapter removido junto com Tático T2.
 // Lógica de aportes agora vive em /plano (SupportGoalsRow) e /dashboard.
+//
+// PR2 (pós ADR-151/154): kanbanAdapter e timelineAdapter removidos junto
+// com primitivos órfãos Kanban/Timeline/Notas* (consumidor único era
+// `_dev/ui/UiDevPlayground.tsx`).

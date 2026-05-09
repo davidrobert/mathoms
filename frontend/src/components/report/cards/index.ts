@@ -2,7 +2,7 @@
  * Section-composer cards do relatório premium.
  *
  * Camada **acima** dos primitivos `ui/` (`Alert`, `Badge`, `Kpi`, `ScoreCard`,
- * `Timeline`…) e **abaixo** dos `sections/` (S1, S2, …). Cada card aqui:
+ * `ChangelogList`…) e **abaixo** dos `sections/` (S1, S2, …). Cada card aqui:
  *
  *   - assume um shape de dados específico do DTO (`PatrimonioData`,
  *     `OrcamentoProspectivoData`, `EquilibrioCerbasiData`…);

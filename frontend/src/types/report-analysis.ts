@@ -244,26 +244,6 @@ export interface CoverMetaItem {
   readonly value: string | number;
 }
 
-/** Kanban items persistidos (ADR-123). Até Fase 6.5 entregar endpoints,
- *  adapter deriva de `tarefas[]`. */
-export interface KanbanItemData {
-  readonly id: string;
-  readonly titulo: string;
-  readonly prioridade?: "alta" | "media" | "baixa";
-  readonly prazo_iso?: string;
-  readonly coluna: "a_fazer" | "em_andamento" | "concluido";
-  readonly categoria?: string;
-  readonly essencial?: "S" | "R" | "O";
-}
-
-/** Timeline item (T5) — ADR-117 GAPS Tabela C #14. */
-export interface TimelineItemData {
-  readonly id: string;
-  readonly data_iso: string;
-  readonly acao: string;
-  readonly status?: "feito" | "pendente" | "aguardando";
-}
-
 /** Dicionários textuais híbridos (ADR-122). Fase 6 entrega versão
  *  derivada frontend-side; LLM fallback fica para revisão Q11. */
 export type ChartConclusions = Record<string, string>;
