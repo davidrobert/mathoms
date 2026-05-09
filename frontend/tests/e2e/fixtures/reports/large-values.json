@@ -151,11 +151,6 @@
     "padrao_vida": 0.1
   },
   "cenarios_conjuge": {},
-  "programa_milhas": {
-    "saldo_total": 12500000,
-    "valor_estimado": 250000,
-    "observacao": "Saldo elevado refletindo gastos corporativos do titular PJ"
-  },
   "orcamento_prospectivo": {},
   "pontos_fortes": [
     { "titulo": "Patrimônio líquido robusto" },
