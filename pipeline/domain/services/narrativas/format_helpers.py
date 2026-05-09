@@ -69,6 +69,21 @@ def fmt_num(value, decimals: int = 1) -> str:
     return f"{value:.{decimals}f}".replace(".", ",")
 
 
+def pluralize(n: int, singular: str, plural: str) -> str:
+    """Retorna ``singular`` se ``n == 1``, ``plural`` caso contrário."""
+    return singular if n == 1 else plural
+
+
+def ensure_period(s: str) -> str:
+    """Termina ``s`` com '.' sem duplicar; '.!?' (após rstrip) ficam; vazio→vazio."""
+    stripped = s.rstrip()
+    if not stripped:
+        return ""
+    if stripped[-1] in ".!?":
+        return stripped
+    return stripped + "."
+
+
 def fmt_usd(value) -> str:
     """Format USD value: US$ X,Yk or US$ X. Returns 'N/D' for None."""
     if value is None:

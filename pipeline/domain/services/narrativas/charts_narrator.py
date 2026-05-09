@@ -17,9 +17,11 @@ from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
+    ensure_period,
     fmt_currency,
     fmt_num,
     fmt_percent,
+    pluralize,
 )
 
 _DIVERSIFICACAO_LINE = (
@@ -365,14 +367,14 @@ class ChartsNarrator:
             },
             "top5_decisoes": {
                 "context": (
-                    f"{len(decisoes)} decisões estratégicas de curto prazo (6-12 meses) para otimizar a trajetória até IF."
+                    f"{len(decisoes)} {pluralize(len(decisoes), 'decisão estratégica', 'decisões estratégicas')} "
+                    "de curto prazo (6-12 meses) para otimizar a trajetória até IF."
                 ),
-                "conclusion": (
+                "conclusion": ensure_period(
                     f"Prioridade 1: Aporte mensal {fmt_currency(M['meta_aporte_mensal'])} com divisão "
                     f"({fmt_currency(M['aporte_cofrinhos'])} Cofrinhos, {fmt_currency(M['aporte_ipca_plus'])} IPCA+, "
                     f"{fmt_currency(M['aporte_ivvb11'])} IVVB11, {fmt_currency(M['aporte_wise_usd'])} Wise USD). "
                     + ". ".join(f"Prioridade {i+2}: {d}" for i, d in enumerate(decisoes[1:5]))
-                    + "."
                 ),
             },
         }
