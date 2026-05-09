@@ -6,7 +6,9 @@
 # 3. backend-tests (pytest em backend/tests/) com Redis service + venv cache
 # 4. frontend-lint + frontend-tests (ESLint + Vitest)
 # 5. frontend-e2e (Playwright + backend real) — opt-in via label `e2e`
-# 6. frontend-visual (Playwright snapshots) — opt-in via label `visual`
+# 6. frontend-visual (Playwright snapshots) — auto em PR que toca
+#    superfície do relatório (filter group `report`); label `visual` ou
+#    workflow_dispatch como override manual.
 #
 # Movido para nightly.yml (não bloqueia merge):
 # - frontend-lighthouse — perf/a11y/bp/seo é métrica, não correctness.
@@ -89,6 +91,7 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend_any_changed }}
       pipeline: ${{ steps.filter.outputs.pipeline_any_changed }}
       any_code: ${{ steps.filter.outputs.any_code_any_changed }}
+      report: ${{ steps.filter.outputs.report_any_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -129,6 +132,24 @@ jobs:
               - '!.claude/**'
               - '!_archive/**'
               - '!_scratch/**'
+            # `report` é subset de `frontend` para gating do job
+            # frontend-visual (snapshots ~50 PNGs). Auto-trigger aqui
+            # substitui label manual `visual` para PRs que efetivamente
+            # tocam superfície do relatório — captura regressões antes
+            # do merge sem custo em PRs de outras áreas.
+            # Mudança no próprio workflow → roda tudo (mesma lógica de backend/frontend).
+            report:
+              - 'frontend/src/components/report/**'
+              - 'frontend/src/app/reports/**'
+              - 'frontend/src/lib/api/reports*.ts'
+              - 'frontend/src/types/report*.ts'
+              - 'frontend/src/generated/report-layout.ts'
+              - 'frontend/tests/e2e/reports/**'
+              - 'frontend/tests/e2e/fixtures/reports/**'
+              - 'frontend/tests/e2e/helpers/mock-report.ts'
+              - 'config/report_layout.yaml'
+              - 'design-tokens/**'
+              - '.github/workflows/ci.yml'
 
   lint-all:
     # Job consolidado (era 5 jobs separados: lint, ruff, code-style-regression,
@@ -534,16 +555,23 @@ jobs:
 
   frontend-visual:
     # Lane report-a11y-finalize item 3 — snapshots por seção (light+dark),
-    # ~50 baselines no projeto `visual` do Playwright. Opt-in via label
-    # `visual` ou workflow_dispatch (lento + baselines OS-específicas).
+    # ~50 baselines no projeto `visual` do Playwright. Auto-trigger em PRs
+    # que tocam superfície do relatório (filter group `report`); fallback
+    # para label `visual` ou workflow_dispatch para forçar quando o filtro
+    # de área não cobre (ex.: dependência transversal). Baselines OS-
+    # específicas → roda só em runner Linux.
+    # Motivação do auto-trigger: regressões visuais (#147, #148, #150,
+    # #151) escaparam para main porque o gate era opt-in via label.
     # Decisão D3: spec mobile fica fora desta lane (lane futura).
     name: Frontend visual snapshots (relatório nativo)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: changes
-    # Opt-in via label `visual` ou workflow_dispatch — preserva
-    # comportamento prévio. Filtro de área não se aplica (label é gate).
+    # Auto-trigger em PRs que tocam o relatório; label `visual` e
+    # workflow_dispatch permanecem como override manual para casos onde o
+    # filtro de área não se aplica.
     if: |
+      needs.changes.outputs.report == 'true' ||
       contains(github.event.pull_request.labels.*.name, 'visual') ||
       (github.event_name == 'workflow_dispatch' && inputs.run_visual)
     defaults:
@@ -585,8 +613,13 @@ jobs:
           PW_VISUAL: "1"
           # `mock-report.ts` cobre /api/v1/** sem precisar de backend real;
           # webServer ainda precisa subir Next em :3000 (default do Playwright).
+          # Grep `sections\.` casa `sections.snapshots.visual.spec.ts` (snapshots
+          # com baselines) + `sections.fixtures.smoke.visual.spec.ts` (smoke
+          # sem baseline, fixture variants). Atualizar baselines só faz
+          # sentido para o spec de snapshots — `--update-snapshots` é noop
+          # no smoke spec.
           UPDATE_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines && '--update-snapshots' || '' }}
-        run: npm run test:e2e -- --project=visual --grep sections.snapshots $UPDATE_FLAG
+        run: npm run test:e2e -- --project=visual --grep "sections\." $UPDATE_FLAG
 
       - name: Locate generated baselines (debug)
         if: always() && github.event_name == 'workflow_dispatch' && inputs.update_visual_baselines
