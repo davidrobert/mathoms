@@ -16,14 +16,21 @@ interface UsePeriodTransactionsResult {
  * Busca transações do workspace para o período selecionado.
  * Usa o endpoint GET /transactions com filtros date_from/date_to.
  * Máximo 500 transações por período (suficiente para uso familiar).
+ *
+ * `anchorDate` ancora o fim da janela no último mês com dados do dataset
+ * (default: hoje). Sem âncora, dados antigos do workspace caem em janelas
+ * vazias relativas a "hoje" e o consumidor degrada para fallback estático.
  */
 export function usePeriodTransactions(
   period: Period,
+  anchorDate?: Date,
 ): UsePeriodTransactionsResult {
   const { workspace } = useWorkspace();
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const anchorKey = anchorDate?.getTime();
 
   useEffect(() => {
     if (!workspace) {
@@ -32,7 +39,7 @@ export function usePeriodTransactions(
     }
 
     setIsLoading(true);
-    const { date_from, date_to } = getPeriodDates(period);
+    const { date_from, date_to } = getPeriodDates(period, anchorDate);
 
     listTransactions(workspace.id, {
       date_from,
@@ -52,7 +59,10 @@ export function usePeriodTransactions(
       .finally(() => {
         setIsLoading(false);
       });
-  }, [workspace, period]);
+    // anchorKey é serialização estável de anchorDate; o objeto Date pode mudar
+    // de identidade a cada render do parent sem mudança real de valor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace, period, anchorKey]);
 
   return { transactions, isLoading, error };
 }

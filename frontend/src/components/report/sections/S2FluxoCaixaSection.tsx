@@ -22,6 +22,7 @@ import type {
   DiagnosticoComportamental,
   EquilibrioCerbasiData,
 } from "@/types/report-analysis";
+import { parseChartMonthLabel } from "@/lib/periodUtils";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 
 /** F9 · F2.B — Seção S2 (Fluxo de Caixa — Receitas e Despesas).
@@ -57,6 +58,14 @@ export function S2FluxoCaixaSection({
   const getConclusion = (id: string): string | undefined =>
     narrativas?.[id]?.conclusion ?? deriveChartConclusion(id, data) ?? undefined;
 
+  /** Última label do dataset mensal vira anchor para period toggles dos cards
+   * — paridade com `usePeriodWindow` dos charts (evita janela vazia quando
+   * dados são mais antigos que "hoje"). */
+  const datasetLabels = fluxo?.receita_despesa_mensal_detalhado?.labels;
+  const anchorDate = datasetLabels && datasetLabels.length > 0
+    ? parseChartMonthLabel(datasetLabels[datasetLabels.length - 1]) ?? undefined
+    : undefined;
+
   return (
     <ReportSection id="S2" title="Fluxo de Caixa — Receitas e Despesas">
       <SectionSummary narrativas={narrativas} sectionId="S2" />
@@ -76,7 +85,7 @@ export function S2FluxoCaixaSection({
 
       {/* Cards */}
       <div className="md:col-span-2">
-        <OrcamentoProspectivoCard orcamento={orcamento} />
+        <OrcamentoProspectivoCard orcamento={orcamento} anchorDate={anchorDate} />
       </div>
       <div className="md:col-span-2">
         <ConsumoConscienteCard consumo={consumo} />
