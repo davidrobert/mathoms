@@ -1,0 +1,172 @@
+{
+  "periodo_dados": "2026-01 a 2026-04",
+  "data_analise": "2026-04-25",
+  "patrimonio": {
+    "bruto": 87500000,
+    "liquido": 64200000,
+    "categorias": [
+      { "nome": "Imóveis", "valor": 42000000, "percentual": 65.4 },
+      { "nome": "Renda Fixa", "valor": 12500000, "percentual": 19.5 },
+      { "nome": "Renda Variável", "valor": 7800000, "percentual": 12.1 },
+      { "nome": "Caixa", "valor": 1900000, "percentual": 3.0 }
+    ]
+  },
+  "score": {
+    "valor": 91,
+    "max": 100,
+    "classificacao": "Excelente",
+    "componentes": []
+  },
+  "fluxo_caixa": {
+    "receitas_totais": 3600000,
+    "despesas_totais": 1450000,
+    "saldo": 2150000,
+    "receita_despesa_mensal_detalhado": {
+      "labels": [
+        "26/01", "26/02", "26/03", "26/04", "26/05", "26/06",
+        "26/07", "26/08", "26/09", "26/10", "26/11", "26/12",
+        "27/01", "27/02"
+      ],
+      "totais_receita": [
+        285000, 290000, 295000, 280000, 285000, 295000,
+        300000, 290000, 295000, 305000, 310000, 320000,
+        315000, 320000
+      ],
+      "totais_despesa": [
+        110000, 115000, 120000, 105000, 115000, 120000,
+        125000, 110000, 115000, 130000, 135000, 140000,
+        125000, 130000
+      ],
+      "receita_datasets": [
+        {
+          "label": "Pró-labore",
+          "data": [
+            180000, 185000, 190000, 175000, 180000, 190000,
+            195000, 185000, 190000, 200000, 205000, 215000,
+            210000, 215000
+          ],
+          "backgroundColor": "#15803D"
+        },
+        {
+          "label": "Aluguéis",
+          "data": [
+            105000, 105000, 105000, 105000, 105000, 105000,
+            105000, 105000, 105000, 105000, 105000, 105000,
+            105000, 105000
+          ],
+          "backgroundColor": "#0891B2"
+        }
+      ],
+      "despesa_datasets": [
+        {
+          "label": "Moradia",
+          "data": [
+            45000, 50000, 55000, 40000, 50000, 55000,
+            60000, 45000, 50000, 65000, 70000, 75000,
+            55000, 60000
+          ],
+          "backgroundColor": "#B91C1C"
+        },
+        {
+          "label": "Alimentação",
+          "data": [
+            35000, 35000, 35000, 35000, 35000, 35000,
+            35000, 35000, 35000, 35000, 35000, 35000,
+            35000, 35000
+          ],
+          "backgroundColor": "#F4A261"
+        },
+        {
+          "label": "Transporte",
+          "data": [
+            30000, 30000, 30000, 30000, 30000, 30000,
+            30000, 30000, 30000, 30000, 30000, 30000,
+            30000, 30000
+          ],
+          "backgroundColor": "#6D28D9"
+        }
+      ]
+    }
+  },
+  "ratios": {
+    "taxa_poupanca": 0.6,
+    "endividamento": 0.28
+  },
+  "reserva_emergencia": {
+    "atual": 5400000,
+    "meta": 4350000,
+    "meses_cobertos": 22.3
+  },
+  "endividamento": {
+    "total_dividas": 23300000,
+    "percentual_patrimonio": 36.3,
+    "dividas": [
+      { "descricao": "Financiamento Imobiliário Comercial", "valor": 18500000, "taxa": 11.25 },
+      { "descricao": "Crédito Empresarial PJ", "valor": 4800000, "taxa": 13.75 }
+    ]
+  },
+  "previdencia_pgbl": {
+    "saldo": 2300000
+  },
+  "investimentos": {
+    "total": 22200000,
+    "alocacao_atual": [],
+    "alocacao_alvo": [],
+    "top_ativos": [
+      {
+        "posicao": 1,
+        "nome": "Tesouro IPCA+ 2045",
+        "classe": "Renda Fixa",
+        "membro": "Titular Fixture",
+        "instituicao": "BTG Pactual",
+        "valor": 8500000,
+        "pct_carteira": 38.3,
+        "tipo_origem": "investimento"
+      },
+      {
+        "posicao": 2,
+        "nome": "VALE3",
+        "classe": "Ações",
+        "membro": "Titular Fixture",
+        "instituicao": "XP",
+        "valor": 4200000,
+        "pct_carteira": 18.9,
+        "tipo_origem": "investimento"
+      },
+      {
+        "posicao": 3,
+        "nome": "Imóvel comercial Itaim",
+        "classe": "Imóveis Investimento",
+        "membro": "Família",
+        "instituicao": "—",
+        "valor": 3100000,
+        "pct_carteira": 14.0,
+        "tipo_origem": "imovel"
+      }
+    ]
+  },
+  "equilibrio_cerbasi": {
+    "presente": 0.4,
+    "futuro": 0.5,
+    "padrao_vida": 0.1
+  },
+  "cenarios_conjuge": {},
+  "orcamento_prospectivo": {},
+  "pontos_fortes": [
+    { "titulo": "Patrimônio líquido robusto" },
+    { "titulo": "Taxa de poupança elevada" }
+  ],
+  "pontos_urgentes": [
+    { "titulo": "Endividamento acima de 30% do patrimônio" }
+  ],
+  "tarefas": [
+    { "titulo": "Avaliar quitação antecipada de financiamento", "prazo": "2026-06-30" }
+  ],
+  "diagnostico_comportamental": [
+    { "categoria": "Disciplina", "nota": 9 }
+  ],
+  "tarefas_status": {},
+  "narrativas": {
+    "perfil_familia": "Patrimônio em fase de consolidação avançada; foco em otimização tributária e proteção patrimonial."
+  }
+}

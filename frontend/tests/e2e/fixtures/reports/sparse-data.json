@@ -1,0 +1,131 @@
+{
+  "periodo_dados": "2025-08 a 2026-04",
+  "data_analise": "2026-04-25",
+  "patrimonio": {
+    "bruto": 320000,
+    "liquido": 285000,
+    "categorias": [
+      { "nome": "Renda Fixa", "valor": 200000, "percentual": 70.2 },
+      { "nome": "Caixa", "valor": 85000, "percentual": 29.8 }
+    ]
+  },
+  "score": {
+    "valor": 62,
+    "max": 100,
+    "classificacao": "Regular",
+    "componentes": []
+  },
+  "fluxo_caixa": {
+    "receitas_totais": 64000,
+    "despesas_totais": 51000,
+    "saldo": 13000,
+    "receita_despesa_mensal_detalhado": {
+      "labels": [
+        "25/08", "25/09", "25/10", "25/11", "25/12",
+        "26/01", "26/02", "26/03", "26/04"
+      ],
+      "totais_receita": [
+        0, 0, 0, 0, 0,
+        12000, 12500, 13000, 26500
+      ],
+      "totais_despesa": [
+        0, 0, 0, 0, 0,
+        9000, 10000, 11000, 21000
+      ],
+      "receita_datasets": [
+        {
+          "label": "Salário",
+          "data": [
+            0, 0, 0, 0, 0,
+            10000, 10500, 11000, 22000
+          ],
+          "backgroundColor": "#15803D"
+        },
+        {
+          "label": "Outros",
+          "data": [
+            0, 0, 0, 0, 0,
+            2000, 2000, 2000, 4500
+          ],
+          "backgroundColor": "#0891B2"
+        }
+      ],
+      "despesa_datasets": [
+        {
+          "label": "Moradia",
+          "data": [
+            0, 0, 0, 0, 0,
+            5000, 5500, 6000, 11000
+          ],
+          "backgroundColor": "#B91C1C"
+        },
+        {
+          "label": "Alimentação",
+          "data": [
+            0, 0, 0, 0, 0,
+            4000, 4500, 5000, 10000
+          ],
+          "backgroundColor": "#F4A261"
+        }
+      ]
+    }
+  },
+  "ratios": {
+    "taxa_poupanca": 0.2,
+    "endividamento": 0.0
+  },
+  "reserva_emergencia": {
+    "atual": 30000,
+    "meta": 60000,
+    "meses_cobertos": 2.5
+  },
+  "endividamento": {
+    "total_dividas": 0,
+    "percentual_patrimonio": 0,
+    "dividas": []
+  },
+  "previdencia_pgbl": {
+    "saldo": 0
+  },
+  "investimentos": {
+    "total": 200000,
+    "alocacao_atual": [],
+    "alocacao_alvo": [],
+    "top_ativos": [
+      {
+        "posicao": 1,
+        "nome": "Tesouro Selic 2029",
+        "classe": "Renda Fixa",
+        "membro": "Único titular",
+        "instituicao": "Tesouro Direto",
+        "valor": 200000,
+        "pct_carteira": 100.0,
+        "tipo_origem": "investimento"
+      }
+    ]
+  },
+  "equilibrio_cerbasi": {
+    "presente": 0.7,
+    "futuro": 0.2,
+    "padrao_vida": 0.1
+  },
+  "cenarios_conjuge": {},
+  "orcamento_prospectivo": {},
+  "pontos_fortes": [
+    { "titulo": "Sem dívidas" }
+  ],
+  "pontos_urgentes": [
+    { "titulo": "Reserva de emergência abaixo de 6 meses" },
+    { "titulo": "Concentração total em renda fixa" }
+  ],
+  "tarefas": [
+    { "titulo": "Construir reserva até 6 meses de despesa", "prazo": "2026-12-31" }
+  ],
+  "diagnostico_comportamental": [
+    { "categoria": "Disciplina", "nota": 6 }
+  ],
+  "tarefas_status": {},
+  "narrativas": {
+    "perfil_familia": "Início de jornada de planejamento; histórico de dados curto (4 meses ativos)."
+  }
+}

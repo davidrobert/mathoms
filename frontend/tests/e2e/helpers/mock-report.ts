@@ -13,9 +13,15 @@ import type { ReportResponse } from "@/lib/api";
  * token injetado em localStorage, o shell renderiza com fixture
  * sintética.
  *
- * Fixture única (`medium.json`): densidade média, zero PII. `small`/
- * `large` ficam para uma futura iteração de snapshots por densidade.
+ * Fixtures cobrem variância de dado real para evitar regressões pontuais
+ * (overflow, anchoring, long strings) que escapam ao baseline `medium`:
+ *
+ * - `medium`         — densidade média, zero PII (fixture canônica)
+ * - `long-strings`   — nomes/descrições longas (Top 15 ativos, dívidas)
+ * - `large-values`   — totais grandes (R$ XX.XXX.XXX) → overflow em cards
+ * - `sparse-data`    — datasets curtos / cauda longa (period anchoring)
  */
+export type FixtureName = "medium" | "long-strings" | "large-values" | "sparse-data";
 
 const FIXTURES_DIR = join(__dirname, "..", "fixtures", "reports");
 
@@ -25,10 +31,10 @@ export const MOCK_REPORT_ID = "report-fixture-medium";
 interface MockOptions {
   reportId?: string;
   workspaceId?: string;
-  fixture?: "medium";
+  fixture?: FixtureName;
 }
 
-function loadFixture(name: "medium"): unknown {
+function loadFixture(name: FixtureName): unknown {
   const raw = readFileSync(join(FIXTURES_DIR, `${name}.json`), "utf-8");
   return JSON.parse(raw);
 }
