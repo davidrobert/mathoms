@@ -16413,6 +16413,25 @@
               "title": "Period",
               "type": "string"
             }
+          },
+          {
+            "description": "Ancora ``date_to`` no fim do dataset (default: hoje UTC). Evita janela vazia em workspaces com dados antigos.",
+            "in": "query",
+            "name": "anchor_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ancora ``date_to`` no fim do dataset (default: hoje UTC). Evita janela vazia em workspaces com dados antigos.",
+              "title": "Anchor Date"
+            }
           }
         ],
         "responses": {
