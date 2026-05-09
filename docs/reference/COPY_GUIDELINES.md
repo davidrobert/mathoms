@@ -492,7 +492,15 @@ imprensa, pitch deck, comparativo competitivo, ToS / privacy policy:
 
 Hook pre-commit `sigilo-terms` em [.pre-commit-config.yaml](../../.pre-commit-config.yaml)
 executa [dev/check_sigilo_terms.py](../../dev/check_sigilo_terms.py) em
-todo arquivo staged dentro de `frontend/src/(app|components)/**/*.{ts,tsx}`.
+todo arquivo staged dentro das surfaces user-facing cobertas:
+
+- `frontend/src/(app|components)/**/*.{ts,tsx}` — UI cliente (cobertura inicial #140).
+- `docs/_marketing/**/*.md` — drafts de copy comercial (landing, e-mail,
+  comparativo, pitch). Cobertura adicionada em PR-C da Fase 4.B
+  ([[ADR-183]], 2026-05-09); o sufixo `.md` é user-facing **somente** sob
+  esse prefixo. Resto de `docs/` continua interno (atribuição §13.4
+  permitida em ADRs, planos, runbooks).
+
 Mesma lógica roda em CI via job `Lint (pre-commit + …)` — defense in depth.
 
 Detecção:
@@ -500,8 +508,12 @@ Detecção:
 - **Match case-sensitive com word boundary**: `\bCerbasi\b`, `\bPerini\b`,
   `\bAUVP\b`, `\bBruno Perini\b`, `\bGustavo Cerbasi\b`, `\bRaul Sena\b`,
   `\bViver de Renda\b`, `\bEquilíbrio Financeiro\b`, `\bCasais Inteligentes\b`.
-- **Comentários (block + line) são strippados** antes do match — atribuição
-  em docstring é §13.4 PERMITIDA.
+- **Comentários são strippados** antes do match — atribuição em docstring é
+  §13.4 PERMITIDA. Stripping cobre:
+  - JS/TS: block `/* … */` + line `//`.
+  - Markdown: HTML `<!-- … -->` + fenced code blocks (` ``` … ``` `).
+  - Inline code Markdown (`` `…` ``) é **preservado** — geralmente contém
+    identificador técnico, não copy renderizada.
 - **Identifiers** como `EquilibrioCerbasiCard`, `EquilibrioCerbasiData`
   passam (Cerbasi não está em word boundary — alfanumérico em ambos lados).
 - **Variant keys** lowercase como `tone="cerbasi"` passam (case-sensitive).
@@ -511,11 +523,14 @@ Exclusões hardcoded no script (§13.4 surface internal-only):
 - `frontend/src/app/(app)/reports/_dev/` — playground
 - `frontend/src/components/report/ui/NotasInsightsGrid.tsx` — variant keys
 - `frontend/src/components/report/cards/index.ts` — barrel exports
+- `docs/_marketing/_README.md` — descritivo interno do diretório
 
 Reviewers continuam responsáveis por **outros surfaces** ainda fora do
-scope automatizado: e-mail templates, PDF generators standalone (fora do
-relatório React), landing pública futura, materiais de imprensa, pitch
-decks. Expandir escopo do hook quando essas surfaces forem materializadas.
+scope automatizado: e-mail templates renderizados (quando
+`backend/app/services/email/` for materializado), landing pública
+`mathoms.ai` em produção (fora deste repo até decisão de stack),
+materiais de imprensa em `.pdf`/`.pptx`. Expandir escopo do hook quando
+essas surfaces forem materializadas.
 
 Comando manual (debug ou auditoria ad-hoc):
 
@@ -549,19 +564,27 @@ Cleanup do legado e automação foram entregues em sequência:
   (`ApendicesSections.tsx`, `ContrafluxoCard.tsx`, `EquilibrioCerbasiCard.tsx`,
   `IrpfSplitTrabalhoCapitalCard.tsx`, `AliquotaDualGauge.tsx`,
   `S7IndependenciaSection.tsx`) limpos.
-- ✅ **CI gate (este PR):** hook `sigilo-terms` automatiza §13.3 em
-  pre-commit + CI sobre `frontend/src/(app|components)/**/*.{ts,tsx}`.
+- ✅ **CI gate frontend (#140, 2026-05-08):** hook `sigilo-terms`
+  automatiza §13.3 em pre-commit + CI sobre
+  `frontend/src/(app|components)/**/*.{ts,tsx}`.
+- ✅ **Marketing drafts (PR-C Fase 4.B / [[ADR-183]], 2026-05-09):**
+  hook `sigilo-terms` expandido para `docs/_marketing/**/*.md`. Surface
+  nasce gated — drafts de landing, e-mail, comparativo competitivo e
+  pitch em Markdown não passam por revisão humana sem o hook bloquear
+  hits §13.1.
 
 **Surfaces ainda fora do scope automatizado** — auditoria manual do
 reviewer, expandir o hook quando materializarem:
 
-- E-mail templates transacionais (quando criados em `backend/app/services/email/`).
+- E-mail templates transacionais renderizados (quando
+  `backend/app/services/email/` for criado — drafts já cobertos via
+  `docs/_marketing/`).
 - PDF generators standalone fora do relatório React (não há hoje;
   print do relatório é via Playwright na mesma rota — coberto).
-- Landing pública (`mathoms.ai`) — fora deste repo até decisão de stack.
-- Pitch decks, materiais de imprensa, comparativos competitivos —
-  arquivos `.pdf`/`.pptx` ou `.md` em `docs/_marketing/` (não existe
-  hoje; criar com gate antes de produzir conteúdo).
+- Landing pública (`mathoms.ai`) em produção — fora deste repo até
+  decisão de stack/CMS (Fase 4.B PR-D).
+- Pitch decks, materiais de imprensa em formato `.pdf`/`.pptx` —
+  binários fora do escopo de regex; revisão humana antes de exportar.
 - API responses backend — Python emite estruturado; risco baixo, mas
   expandir hook para `backend/app/services/**/*.py` se começar a emitir
   copy renderizada direto.
