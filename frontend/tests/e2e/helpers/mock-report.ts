@@ -152,6 +152,16 @@ export async function mockReportPage(
         },
       });
     }
+    // ADR-153 — `useSuggestions` (consumido por `<SuggestionCalloutInline/>`
+    // dentro do AppLayout) faz `setSuggestions(resp.suggestions)` sem
+    // guard. Sem esta rota, o catch-all `{}` produz `suggestions = undefined`
+    // e o `.filter()` na seção dispara ErrorBoundary, derrubando o
+    // `<article data-report-ready>` em **todas** as fixture variants
+    // (regressão entrou junto com o spec smoke fixture-variants em #157).
+    if (path.match(/\/workspaces\/[^/]+\/suggestions$/)) {
+      return json(route, { suggestions: [], total: 0 });
+    }
+
     // ADR-148 — `useConsumoPontuais` consome este endpoint em S2 (card
     // ConsumoConscienteCard). Sem esta rota, o catch-all `{}` quebrava
     // o shape e disparava ErrorBoundary, derrubando o `<article>` inteiro
