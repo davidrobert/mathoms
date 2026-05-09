@@ -42,13 +42,22 @@ describe("<Top15AtivosCard />", () => {
     expect(screen.getByText("30.0%")).toBeInTheDocument();
   });
 
-  it("capitaliza primeiro nome do membro", () => {
+  it("renderiza membro como veio do backend (display name de family_members.nome_curto)", () => {
     render(
       <Top15AtivosCard
-        data={{ top_ativos: [ativo({ membro: "mariana" })] }}
+        data={{ top_ativos: [ativo({ membro: "Mariana" })] }}
       />,
     );
     expect(screen.getByText("Mariana")).toBeInTheDocument();
+  });
+
+  it("renderiza '—' quando membro vem vazio (workspace sem cônjuge)", () => {
+    render(
+      <Top15AtivosCard
+        data={{ top_ativos: [ativo({ membro: "" })] }}
+      />,
+    );
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("conclusion alerta quando top1 concentra > 25% (concentração de risco)", () => {
