@@ -2,7 +2,7 @@
  * Unit tests — PlanoDeAcaoSection (A7.2a · ADR-136 · ADR-152)
  *
  * Pós PR3 (read-only no relatório): a seção lista decisões em modo
- * leitura e expõe link "Gerenciar em /acao →". Filtros de status e CTA
+ * leitura e expõe link "Gerenciar Plano de Ação". Filtros de status e CTA
  * "Marcar como executada" foram movidos para /acao — aqui validamos
  * **ausência** desses elementos write-mode.
  *
@@ -69,7 +69,7 @@ describe("<PlanoDeAcaoSection /> @A7.2a", () => {
     expect(screen.getByText("Pendente")).toBeInTheDocument();
   });
 
-  it("expõe link 'Gerenciar em /acao →' no header da seção", async () => {
+  it("expõe link 'Gerenciar Plano de Ação' no header da seção", async () => {
     server.use(
       http.get(`${API}/workspaces/:wsId/decisions`, () =>
         HttpResponse.json({ decisions: [], total: 0 }),
@@ -78,7 +78,7 @@ describe("<PlanoDeAcaoSection /> @A7.2a", () => {
 
     render(<PlanoDeAcaoSection workspaceId={WS_ID} />);
 
-    const link = await screen.findByRole("link", { name: /gerenciar em \/acao/i });
+    const link = await screen.findByRole("link", { name: /gerenciar plano de ação/i });
     expect(link).toHaveAttribute("href", "/acao");
   });
 

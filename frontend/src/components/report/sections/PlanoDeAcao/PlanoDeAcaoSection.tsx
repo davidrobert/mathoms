@@ -4,7 +4,7 @@
 // Renderização **read-only** das decisões em vigor. O relatório é um
 // snapshot (ADR-149); ações editoriais (criar/editar/marcar como executada)
 // vivem em /acao (ADR-152). Por isso a seção apenas lista decisões e
-// expõe um link "Gerenciar em /acao →" para o módulo editorial.
+// expõe um link "Gerenciar Plano de Ação" para o módulo editorial.
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -56,7 +56,7 @@ function ManageInAcaoLink() {
         href="/acao"
         className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline"
       >
-        Gerenciar em /acao
+        Gerenciar Plano de Ação
         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
       </Link>
     </div>
