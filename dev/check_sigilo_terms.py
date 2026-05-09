@@ -15,12 +15,20 @@ Substituições canônicas: §13.2.
 Atribuição **interna** (filenames, types, ids, docstrings, comentários,
 config rationale) é PERMITIDA — §13.4. Por isso este hook:
 
-  1. Restringe surface a `frontend/src/app/` + `frontend/src/components/`
-     (paths user-facing).
+  1. Restringe surface a:
+       - `frontend/src/app/` + `frontend/src/components/` (UI cliente)
+       - `docs/_marketing/` (drafts de copy comercial — landing, e-mail,
+         pitch, comparativo competitivo). Suffix `.md` é user-facing
+         **somente** sob esse prefixo; o resto de `docs/` continua interno
+         (ADRs, planos, runbooks atribuem livremente — §13.4).
   2. Exclui paths internal-only conhecidos (types, api contract, generated,
-     dev playground, variant-key components, barrel exports).
-  3. Strip comentários (block `/* */` + line `//`) antes do grep — atribuição
-     em docstring permanece OK.
+     dev playground, variant-key components, barrel exports, `_README.md`
+     de `docs/_marketing/` cuja função é descritiva interna).
+  3. Strip comentários antes do grep — atribuição em docstring permanece OK:
+       - JS/TS: block `/* */` + line `//`.
+       - Markdown: HTML `<!-- … -->` (block) + fenced code blocks
+         (``` … ```). Inline code `` `…` `` é preservado (geralmente
+         identificador técnico, não copy renderizada).
   4. Match case-sensitive com word boundaries: `Cerbasi` (capital C) bloqueia
      "Visão Cerbasi" mas não `tone="cerbasi"` (variant key) nem
      `EquilibrioCerbasiCard` (identifier).
@@ -76,11 +84,18 @@ SUBSTITUTIONS = {
 # ---------------------------------------------------------------------------
 # Surface user-facing — arquivos onde o hook FAIL se encontrar termos.
 # ---------------------------------------------------------------------------
-USER_FACING_PREFIXES = (
-    "frontend/src/app/",
-    "frontend/src/components/",
+# Pares (prefix, suffix) que descrevem a surface user-facing. Cada par é
+# enforçado em conjunto: arquivo é user-facing se algum par casa.
+USER_FACING_RULES = (
+    ("frontend/src/app/", (".tsx", ".ts")),
+    ("frontend/src/components/", (".tsx", ".ts")),
+    ("docs/_marketing/", (".md",)),
 )
-USER_FACING_SUFFIXES = (".tsx", ".ts")
+
+# Compat: união planar dos prefixes/suffixes para callers que ainda esperam
+# tuplas separadas (rglob e similares).
+USER_FACING_PREFIXES = tuple(prefix for prefix, _ in USER_FACING_RULES)
+USER_FACING_SUFFIXES = tuple(sorted({s for _, suffixes in USER_FACING_RULES for s in suffixes}))
 
 # Exclusões — paths internal-only por convenção (§13.4 atribuição PERMITIDA).
 EXCLUDED_PREFIXES = ("frontend/src/app/(app)/reports/_dev/",)
@@ -90,6 +105,8 @@ EXCLUDED_FILES = frozenset(
         "frontend/src/components/report/ui/NotasInsightsGrid.tsx",
         # Barrel exports — re-exporta nomes de componentes internos.
         "frontend/src/components/report/cards/index.ts",
+        # README descritivo interno do diretório de drafts marketing.
+        "docs/_marketing/_README.md",
     }
 )
 
@@ -99,29 +116,47 @@ EXCLUDED_FILES = frozenset(
 # ---------------------------------------------------------------------------
 BLOCK_COMMENT_RE = re.compile(r"/\*[\s\S]*?\*/", re.MULTILINE)
 LINE_COMMENT_RE = re.compile(r"//[^\n]*", re.MULTILINE)
+HTML_COMMENT_RE = re.compile(r"<!--[\s\S]*?-->", re.MULTILINE)
+FENCED_CODE_RE = re.compile(r"^```[\s\S]*?^```", re.MULTILINE)
 
 
 def is_user_facing(rel_path: str) -> bool:
-    """True se rel_path é user-facing e não excluído."""
-    if not rel_path.endswith(USER_FACING_SUFFIXES):
-        return False
-    if not any(rel_path.startswith(p) for p in USER_FACING_PREFIXES):
-        return False
+    """True se rel_path casa algum (prefix, suffix) de USER_FACING_RULES e
+    não está excluído."""
     if any(rel_path.startswith(p) for p in EXCLUDED_PREFIXES):
         return False
     if rel_path in EXCLUDED_FILES:
         return False
-    return True
+    for prefix, suffixes in USER_FACING_RULES:
+        if rel_path.startswith(prefix) and rel_path.endswith(suffixes):
+            return True
+    return False
 
 
-def strip_comments(content: str) -> str:
-    """Remove block + line comments. Preserva número de linhas (substitui
-    block por quebras) para line numbers nos hits permanecerem precisos."""
+def _is_markdown(rel_path: str) -> bool:
+    return rel_path.endswith(".md")
 
-    def block_to_lines(match: re.Match[str]) -> str:
-        return "\n" * match.group(0).count("\n")
 
-    no_block = BLOCK_COMMENT_RE.sub(block_to_lines, content)
+def _block_to_blank_lines(match: re.Match[str]) -> str:
+    """Substitui block por quebras de linha — preserva line numbers nos hits."""
+    return "\n" * match.group(0).count("\n")
+
+
+def strip_comments(content: str, *, markdown: bool = False) -> str:
+    """Remove comentários antes do grep.
+
+    JS/TS: block `/* */` + line `//`.
+    Markdown: HTML `<!-- ... -->` + fenced code blocks (``` ... ```).
+    Inline code `` `…` `` é preservado intencionalmente — geralmente
+    contém identificador técnico, não copy renderizada.
+
+    Substitui blocos por quebras de linha para que line numbers nos hits
+    permaneçam corretos.
+    """
+    if markdown:
+        no_html = HTML_COMMENT_RE.sub(_block_to_blank_lines, content)
+        return FENCED_CODE_RE.sub(_block_to_blank_lines, no_html)
+    no_block = BLOCK_COMMENT_RE.sub(_block_to_blank_lines, content)
     return LINE_COMMENT_RE.sub("", no_block)
 
 
@@ -157,19 +192,19 @@ def check_file(path: Path) -> list[tuple[int, str, str]]:
         content = path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
         return []
-    stripped = strip_comments(content)
+    stripped = strip_comments(content, markdown=_is_markdown(relpath(path)))
     raw_hits = _scan_for_hits(stripped.splitlines(), content.splitlines())
     return _dedupe(raw_hits)
 
 
 def _collect_all_user_facing() -> list[Path]:
-    """rglob em todas as user-facing prefixes."""
+    """rglob em cada (prefix, suffix) de USER_FACING_RULES."""
     candidates: list[Path] = []
-    for prefix in USER_FACING_PREFIXES:
+    for prefix, suffixes in USER_FACING_RULES:
         base = REPO_ROOT / prefix
         if not base.exists():
             continue
-        for suffix in USER_FACING_SUFFIXES:
+        for suffix in suffixes:
             candidates.extend(base.rglob(f"*{suffix}"))
     return sorted(p for p in candidates if p.is_file())
 

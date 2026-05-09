@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-102 entries entre 2026-04-24 e 2026-05-07.
+101 entries entre 2026-04-25 e 2026-05-07.
 
 ## 2026-05-07 (14 entries)
 
@@ -132,10 +132,6 @@
 - [[CHG-2026-04-25-F9-1]] — F9.1 pipeline/stages rename (ADR-093). - `git mv` em 14 wrappers de `pipeline/stages/e*.py` para nomes descritivos conforme `STAGE_RENAME_MAP`: `audit_documents`, `unlock_documents`, `route_documents (lane [[F9.1]])
 - [[CHG-2026-04-25-F9-2]] — F9.2 resíduo split em 5 sub-fatias (ADR-093). - T1 fechado em main; T2-T5 organizados em prompts auto-contidos para execução em sessões distintas: - **F9.2a** pipeline core (`artifact_store` + `llm/*` + `st (lane [[F9.2]])
 - [[CHG-2026-04-25-F9-2-1]] — F9.2 T1 STAGE_REGISTRY descritivo + compat reverso (ADR-093). - `pipeline/stage_spec.py` — `STAGE_REGISTRY`, `FULL_ORDER`, `DETERMINISTIC_ORDER`, `VIRTUAL_ARTIFACT_STAGES` agora usam keys descritivas (`reconcile_transactio (lane [[F9.2]])
-
-## 2026-04-24 (1 entries)
-
-- [[CHG-2026-04-24-F9-0]] — F9.0 audit ADR-093. - `dev/audit_stage_references.py` (ferramenta reutilizável) + `docs/archive/audits/f9_audit_20260424.md` (resumo): 3468 ocorrências de identificadores legados mapeadas (lane [[F9.0]])
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
