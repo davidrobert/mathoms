@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, Query, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -60,9 +62,16 @@ async def list_reports(
     return await _list_reports(workspace.id, db=db)
 
 
+_ANCHOR_DESC = (
+    "Ancora ``date_to`` no fim do dataset (default: hoje UTC). "
+    "Evita janela vazia em workspaces com dados antigos."
+)
+
+
 @router.get("/consumo-pontuais", response_model=ConsumoPontuaisResponse)
 async def list_consumo_pontuais(
     period: str = Query("3m", pattern=r"^(3m|6m|12m|ytd)$"),
+    anchor_date: date | None = Query(None, description=_ANCHOR_DESC),
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
 ) -> ConsumoPontuaisResponse:
@@ -70,7 +79,9 @@ async def list_consumo_pontuais(
     detector = await resolve_internal_transfer_detector(
         workspace.id, repo=ConfigBlobRepository(db), defaults=_defaults
     )
-    return await _list_consumo_pontuais(workspace.id, period=period, detector=detector, db=db)
+    return await _list_consumo_pontuais(
+        workspace.id, period=period, detector=detector, anchor_date=anchor_date, db=db
+    )
 
 
 @router.get("/{report_id}", response_model=ReportResponse)

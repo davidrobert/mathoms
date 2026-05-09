@@ -206,8 +206,11 @@ export type ConsumoPontuaisPeriod = "3m" | "6m" | "12m" | "ytd";
 export async function getConsumoPontuais(
   workspaceId: string,
   period: ConsumoPontuaisPeriod,
+  anchorDate?: string,
 ): Promise<ConsumoPontuaisResponse> {
+  const qs = new URLSearchParams({ period });
+  if (anchorDate) qs.set("anchor_date", anchorDate);
   return apiFetch(
-    `/workspaces/${workspaceId}/reports/consumo-pontuais?period=${period}`,
+    `/workspaces/${workspaceId}/reports/consumo-pontuais?${qs.toString()}`,
   );
 }
