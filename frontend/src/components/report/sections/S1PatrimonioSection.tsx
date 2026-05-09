@@ -19,6 +19,7 @@ import type {
   EndividamentoData,
   FluxoCaixaSummary,
 } from "@/types/report-analysis";
+import { parseChartMonthLabel } from "@/lib/periodUtils";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 
 interface S1Props {
@@ -44,6 +45,13 @@ export function S1PatrimonioSection({ data }: S1Props) {
   /** ADR-117/122 — narrativa explícita do E5.N > fallback determinístico da Fase 6. */
   const getConclusion = (id: string): string | undefined =>
     narrativas?.[id]?.conclusion ?? deriveChartConclusion(id, data) ?? undefined;
+
+  /** Última label do dataset mensal vira anchor para period toggle do card de
+   * receitas — paridade com `usePeriodWindow` dos charts. */
+  const datasetLabels = fluxo?.receita_despesa_mensal_detalhado?.labels;
+  const anchorDate = datasetLabels && datasetLabels.length > 0
+    ? parseChartMonthLabel(datasetLabels[datasetLabels.length - 1]) ?? undefined
+    : undefined;
 
   return (
     <ReportSection id="S1" title="Patrimônio — Estrutura e Composição">
@@ -79,7 +87,7 @@ export function S1PatrimonioSection({ data }: S1Props) {
         <PatrimonioCategoriasCard patrimonio={patrimonio} />
       </div>
       <div className="md:col-span-2">
-        <ReceitasFonteCard fluxo={fluxo} />
+        <ReceitasFonteCard fluxo={fluxo} anchorDate={anchorDate} />
       </div>
       <ReservaEmergenciaCard reserva={reserva} />
       <EndividamentoCard endividamento={endividamento} />

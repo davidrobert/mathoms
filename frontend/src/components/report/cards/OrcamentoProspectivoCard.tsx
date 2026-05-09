@@ -32,16 +32,23 @@ const CATEGORY_LABELS: Record<string, string> = {
   melhoria_reforma: "Melhoria e reforma",
 };
 
-/** F9 · F2.B · S2 — Card "Orçamento Prospectivo" com toggle de período. */
+/** F9 · F2.B · S2 — Card "Orçamento Prospectivo" com toggle de período.
+ *
+ * `anchorDate` (opcional) ancora a janela 3M/6M/12M/YTD no fim do dataset
+ * — passa-se o último mês de `fluxo.receita_despesa_mensal_detalhado.labels`.
+ * Sem âncora, cai no `orcamento.categorias` (E5 estático). Com âncora e
+ * janela vazia, mostra "Sem transações em [período]" em vez de fallback. */
 export function OrcamentoProspectivoCard({
   orcamento,
+  anchorDate,
 }: {
   orcamento: OrcamentoProspectivoData | undefined;
+  anchorDate?: Date;
 }) {
   const [period, setPeriod] = useState<Period>("3m");
-  const { transactions, isLoading } = usePeriodTransactions(period);
+  const { transactions, isLoading } = usePeriodTransactions(period, anchorDate);
 
-  const numMonths = getPeriodMonths(period);
+  const numMonths = getPeriodMonths(period, anchorDate);
 
   const { entries, total, isLiveData } = useMemo(() => {
     if (transactions.length > 0) {
@@ -52,13 +59,21 @@ export function OrcamentoProspectivoCard({
       const t = sorted.reduce((sum, [, v]) => sum + v, 0);
       return { entries: sorted, total: t, isLiveData: true };
     }
-    // fallback to E5
+    if (anchorDate && !isLoading) {
+      // Anchor presente + load concluído + transactions vazia = janela
+      // genuinamente vazia. Não cair em E5 estático (mascararia o toggle).
+      return {
+        entries: [] as Array<[string, number]>,
+        total: 0,
+        isLiveData: true,
+      };
+    }
     const categorias = orcamento?.categorias ?? {};
     const sorted = Object.entries(categorias)
       .filter(([, v]) => v > 0)
       .sort(([, a], [, b]) => b - a) as Array<[string, number]>;
     return { entries: sorted, total: orcamento?.total ?? 0, isLiveData: false };
-  }, [transactions, orcamento, numMonths]);
+  }, [transactions, orcamento, numMonths, anchorDate, isLoading]);
 
   // Pareto cumulative %
   let acumulado = 0;

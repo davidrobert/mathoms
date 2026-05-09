@@ -53,7 +53,7 @@ test.describe("Report Premium · v2.8 comparisons + changelog @critical", () => 
         {
           section_id: "S1",
           summary:
-            "Patrimônio Líquido cresceu 20,0% desde o relatório anterior",
+            "Patrimônio líquido cresceu R$ 200.000,00 desde o relatório anterior (+20,0%)",
           delta_signal: "up",
           delta_pct: 20.0,
         },
@@ -177,7 +177,7 @@ test.describe("Report Premium · v2.8 comparisons + changelog @critical", () => 
     // SnapshotChangelogList em S1 mostra a summary determinística.
     await expect(
       diff.getByText(
-        /Patrimônio Líquido cresceu 20,0% desde o relatório anterior/,
+        /Patrimônio líquido cresceu R\$ 200\.000,00 desde o relatório anterior \(\+20,0%\)/,
       ),
     ).toBeVisible();
   });

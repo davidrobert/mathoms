@@ -6,11 +6,20 @@ from decimal import Decimal
 
 from pipeline.domain.types.snapshot_changelog import ComparisonItem
 
-# Templates por (delta_signal/cenário) × (polaridade da seção).
+# Templates por (delta_signal/cenário) × (polaridade) × (número).
 # Polaridade: "asset" = mais é melhor (S1, S2, S3, T2)
 #             "expense" = mais não é necessariamente melhor (T5)
-# Verbos neutros ("subiu/recuou/avançou") evitam viés em despesas;
-# variação na cauda temporal evita repetição em listas longas.
+# Verbos polaridade-aware ("cresceu/recuou" para asset, "subiu/recuou"
+# para expense) evitam viés positivo em despesas. `section_label_inline`
+# aplica sentence case (primeira palavra em maiúscula, demais em
+# minúscula) para que a prosa fique gramaticalmente correta — o card
+# acima continua usando o label em Title Case como header.
+#
+# Número detectado por heurística pt-BR (`_is_plural`): última palavra
+# do label termina em "s" ⇒ plural. Cobre os labels default
+# ("Aportes" plural, "Despesas Totais" plural; "Patrimônio Líquido",
+# "Receita Total", "Patrimônio Bruto" singulares). Override de label via
+# `SnapshotChangelogConfig.section_labels` herda o mesmo critério.
 
 SECTION_POLARITY: dict[str, str] = {
     "S1": "asset",
@@ -20,31 +29,87 @@ SECTION_POLARITY: dict[str, str] = {
     "T5": "expense",
 }
 
-TEMPLATES: dict[tuple[str, str], str] = {
-    ("up", "asset"): "{section_label} avançou {pct_str} no mês",
-    ("up", "expense"): "{section_label} subiu {pct_str} no mês",
-    ("down", "asset"): "{section_label} recuou {pct_str} no mês",
-    ("down", "expense"): "{section_label} recuou {pct_str} no mês",
-    ("stable", "asset"): "{section_label} sem variação relevante no mês",
-    ("stable", "expense"): "{section_label} sem variação relevante no mês",
-    ("from_zero", "asset"): "{section_label} passou a registrar {after_brl} (antes sem valor)",
-    ("from_zero", "expense"): "{section_label} passou a registrar {after_brl} (antes sem valor)",
-    ("to_zero", "asset"): "{section_label} zerou neste relatório",
-    ("to_zero", "expense"): "{section_label} zerou neste relatório",
-    ("both_zero", "asset"): "{section_label} segue sem valor registrado",
-    ("both_zero", "expense"): "{section_label} segue sem valor registrado",
+# (template_key, polarity, number) → template string.
+# Em `stable`/`from_zero`/`to_zero`/`both_zero`, polarity é irrelevante
+# (formas idênticas) — entradas duplicadas mantidas por simetria do lookup.
+TEMPLATES: dict[tuple[str, str, str], str] = {
+    # ----- up / asset -----
+    ("up", "asset", "singular"): (
+        "{section_label_inline} cresceu {delta_brl} desde o relatório anterior (+{pct_str})"
+    ),
+    ("up", "asset", "plural"): (
+        "{section_label_inline} cresceram {delta_brl} desde o relatório anterior (+{pct_str})"
+    ),
+    # ----- up / expense -----
+    ("up", "expense", "singular"): (
+        "{section_label_inline} subiu {delta_brl} desde o relatório anterior (+{pct_str})"
+    ),
+    ("up", "expense", "plural"): (
+        "{section_label_inline} subiram {delta_brl} desde o relatório anterior (+{pct_str})"
+    ),
+    # ----- down (asset == expense) -----
+    ("down", "asset", "singular"): (
+        "{section_label_inline} recuou {delta_brl} desde o relatório anterior (−{pct_str})"
+    ),
+    ("down", "asset", "plural"): (
+        "{section_label_inline} recuaram {delta_brl} desde o relatório anterior (−{pct_str})"
+    ),
+    ("down", "expense", "singular"): (
+        "{section_label_inline} recuou {delta_brl} desde o relatório anterior (−{pct_str})"
+    ),
+    ("down", "expense", "plural"): (
+        "{section_label_inline} recuaram {delta_brl} desde o relatório anterior (−{pct_str})"
+    ),
+    # ----- stable -----
+    ("stable", "asset", "singular"): (
+        "{section_label_inline} sem variação relevante desde o relatório anterior"
+    ),
+    ("stable", "asset", "plural"): (
+        "{section_label_inline} sem variação relevante desde o relatório anterior"
+    ),
+    ("stable", "expense", "singular"): (
+        "{section_label_inline} sem variação relevante desde o relatório anterior"
+    ),
+    ("stable", "expense", "plural"): (
+        "{section_label_inline} sem variação relevante desde o relatório anterior"
+    ),
+    # ----- from_zero -----
+    ("from_zero", "asset", "singular"): (
+        "{section_label_inline} passou a registrar {after_brl} (antes sem valor)"
+    ),
+    ("from_zero", "asset", "plural"): (
+        "{section_label_inline} passaram a registrar {after_brl} (antes sem valor)"
+    ),
+    ("from_zero", "expense", "singular"): (
+        "{section_label_inline} passou a registrar {after_brl} (antes sem valor)"
+    ),
+    ("from_zero", "expense", "plural"): (
+        "{section_label_inline} passaram a registrar {after_brl} (antes sem valor)"
+    ),
+    # ----- to_zero -----
+    ("to_zero", "asset", "singular"): "{section_label_inline} zerou neste relatório",
+    ("to_zero", "asset", "plural"): "{section_label_inline} zeraram neste relatório",
+    ("to_zero", "expense", "singular"): "{section_label_inline} zerou neste relatório",
+    ("to_zero", "expense", "plural"): "{section_label_inline} zeraram neste relatório",
+    # ----- both_zero -----
+    ("both_zero", "asset", "singular"): "{section_label_inline} segue sem valor registrado",
+    ("both_zero", "asset", "plural"): "{section_label_inline} seguem sem valor registrado",
+    ("both_zero", "expense", "singular"): "{section_label_inline} segue sem valor registrado",
+    ("both_zero", "expense", "plural"): "{section_label_inline} seguem sem valor registrado",
 }
 
 
 def format_summary(item: ComparisonItem) -> str:
-    """Render de `ChangelogEntry.summary` por template determinístico."""
+    """Render de `ChangelogEntry.summary` por template determinístico (verbo carrega sinal; `delta_brl` absoluto)."""
     template_key = _select_template(item)
     polarity = SECTION_POLARITY.get(item.section_id, "asset")
-    template = TEMPLATES[(template_key, polarity)]
+    number = "plural" if _is_plural(item.section_label) else "singular"
+    template = TEMPLATES[(template_key, polarity, number)]
     return template.format(
-        section_label=item.section_label,
+        section_label_inline=_to_sentence_case(item.section_label),
         pct_str=_format_pct(item.delta_pct),
         after_brl=_format_brl(item.after),
+        delta_brl=_format_brl(abs(item.after - item.before)),
     )
 
 
@@ -68,13 +133,27 @@ def _format_pct(delta_pct: Decimal | None) -> str:
 
 
 def _format_brl(value: Decimal) -> str:
-    """Formata `Decimal` BRL pt-BR `R$ 1.234,56`."""
-    sign = "-" if value < 0 else ""
+    """Formata `Decimal` BRL pt-BR `R$ 1.234,56` (sinal `−` quando negativo)."""
+    sign = "−" if value < 0 else ""
     abs_val = abs(value).quantize(Decimal("0.01"))
     int_part, _, frac_part = f"{abs_val:f}".partition(".")
     int_with_sep = _group_thousands(int_part)
     frac_part = (frac_part + "00")[:2]
     return f"R$ {sign}{int_with_sep},{frac_part}"
+
+
+def _to_sentence_case(label: str) -> str:
+    """`'Patrimônio Líquido'` → `'Patrimônio líquido'` (primeira palavra capitalizada)."""
+    parts = label.split(" ", 1)
+    if len(parts) == 1:
+        return parts[0]
+    return parts[0] + " " + parts[1].lower()
+
+
+def _is_plural(label: str) -> bool:
+    """Heurística pt-BR: última palavra termina em `'s'` ⇒ plural (cobre labels default; falsos-positivos `'Lápis'`/`'Ônibus'` aceitáveis em finanças)."""
+    last_word = label.split()[-1] if label.strip() else ""
+    return last_word.lower().endswith("s")
 
 
 def _group_thousands(int_str: str) -> str:
@@ -85,4 +164,10 @@ def _group_thousands(int_str: str) -> str:
     return ".".join(reversed(chunks))
 
 
-__all__ = ["SECTION_POLARITY", "TEMPLATES", "format_summary"]
+__all__ = [
+    "SECTION_POLARITY",
+    "TEMPLATES",
+    "_is_plural",
+    "_to_sentence_case",
+    "format_summary",
+]

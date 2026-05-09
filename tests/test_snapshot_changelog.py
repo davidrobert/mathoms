@@ -71,23 +71,21 @@ def test_cenario_1_primeiro_relatorio_sem_prev():
 
 
 def test_cenario_2_delta_acima_threshold():
-    """5% > 0,5% → 1 item up + 1 entry up para S1."""
+    """5% > 0,5% → 1 item up + 1 entry up para S1 (verb asset = 'cresceu')."""
     prev = _make_snapshot(period="202603", content=_content(patrimonio_liquido=1000))
     curr = _make_snapshot(period="202604", content=_content(patrimonio_liquido=1050))
     config = SnapshotChangelogConfig(sections_to_compare=("S1",))
     result = build_comparison(prev, curr, config)
     assert result.has_previous is True
-    assert len(result.items) == 1
     item = result.items[0]
-    assert item.section_id == "S1"
-    assert item.before == Decimal("1000")
-    assert item.after == Decimal("1050")
+    assert (item.section_id, item.before, item.after) == ("S1", Decimal("1000"), Decimal("1050"))
     assert item.delta_signal == "up"
     assert item.delta_pct == Decimal("5.00")
-    assert len(result.entries) == 1
-    assert result.entries[0].section_id == "S1"
-    assert "avançou" in result.entries[0].summary
-    assert "5,0%" in result.entries[0].summary
+    summary = result.entries[0].summary
+    assert summary.startswith("Patrimônio líquido cresceu ")
+    assert "R$ 50,00" in summary
+    assert "desde o relatório anterior" in summary
+    assert "(+5,0%)" in summary
 
 
 # ---------- Cenário 3: delta abaixo do threshold ----------
@@ -108,15 +106,20 @@ def test_cenario_3_delta_abaixo_threshold():
 
 
 def test_cenario_4_delta_negativo():
-    """-3% → 1 item down + 1 entry down."""
+    """-3% → 1 item down + 1 entry down (delta_brl com sinal U+2212 'minus sign')."""
     prev = _make_snapshot(period="202603", content=_content(patrimonio_liquido=1000))
     curr = _make_snapshot(period="202604", content=_content(patrimonio_liquido=970))
     config = SnapshotChangelogConfig(sections_to_compare=("S1",))
     result = build_comparison(prev, curr, config)
     assert result.items[0].delta_signal == "down"
     assert result.items[0].delta_pct == Decimal("-3")
-    assert "recuou" in result.entries[0].summary
-    assert "3,0%" in result.entries[0].summary
+    summary = result.entries[0].summary
+    assert summary.startswith("Patrimônio líquido recuou ")
+    # delta_brl em valor absoluto (verbo carrega direção); sinal só no pct.
+    assert "R$ 30,00" in summary
+    assert "R$ −30,00" not in summary
+    assert "desde o relatório anterior" in summary
+    assert "(−3,0%)" in summary
 
 
 # ---------- Cenário 5: override por seção (thresholds=) ----------
@@ -223,8 +226,12 @@ def test_cenario_9_expense_polarity_t5_usa_subiu():
     assert result.items[0].delta_signal == "up"
     assert result.items[0].delta_pct == Decimal("10.00")
     summary = result.entries[0].summary
-    assert "subiu" in summary
-    assert "avançou" not in summary
+    # Despesas Totais é plural → "subiram", não "subiu"; despesa não usa "cresceram".
+    assert summary.startswith("Despesas totais subiram ")
+    assert "cresceram" not in summary
+    assert "avançaram" not in summary
+    assert "R$ 100,00" in summary
+    assert "(+10,0%)" in summary
 
 
 # ---------- Defesa: section_id desconhecido ----------
@@ -255,7 +262,7 @@ def test_default_sections_compare_5_secoes():
 
 
 def test_label_override_via_config():
-    """`section_labels={"S1": "Patrimônio"}` sobrescreve default."""
+    """`section_labels={"S1": "Riqueza Líquida"}` sobrescreve default; prosa em sentence case."""
     prev = _make_snapshot(period="202603", content=_content(patrimonio_liquido=1000))
     curr = _make_snapshot(period="202604", content=_content(patrimonio_liquido=1050))
     config = SnapshotChangelogConfig(
@@ -263,5 +270,48 @@ def test_label_override_via_config():
         section_labels={"S1": "Riqueza Líquida"},
     )
     result = build_comparison(prev, curr, config)
+    # Card preserva Title Case do override; prosa do callout aplica sentence case.
     assert result.items[0].section_label == "Riqueza Líquida"
-    assert "Riqueza Líquida" in result.entries[0].summary
+    assert result.entries[0].summary.startswith("Riqueza líquida cresceu ")
+
+
+# ---------- Regressões de copy (2026-05-09) ----------
+
+
+def test_summary_nao_usa_no_mes_ambiguo():
+    """Trava regressão da ancoragem temporal: prosa nunca usa `'no mês'` solto."""
+    prev = _make_snapshot(period="202603", content=_full_content(scale=1))
+    curr = _make_snapshot(period="202604", content=_full_content(scale=2))
+    result = build_comparison(prev, curr, SnapshotChangelogConfig())
+    for entry in result.entries:
+        assert " no mês" not in entry.summary, (
+            f"section={entry.section_id} summary={entry.summary!r} "
+            "ambiguo — usar 'desde o relatório anterior'"
+        )
+        assert "desde o relatório anterior" in entry.summary or "neste relatório" in entry.summary
+
+
+def _aportes_only(invest: float) -> dict[str, Any]:
+    """`content_json` cobrindo só T2 (aportes), demais 0."""
+    return {
+        "patrimonio": {"liquido": 0, "bruto": 0},
+        "fluxo_caixa": {"receita_total": 0, "despesa_total": 0, "investimentos_total": invest},
+    }
+
+
+def test_summary_label_unica_palavra_plural_concorda_verbo():
+    """`'Aportes'` (single-token plural) → verbo plural (`'cresceram'`)."""
+    prev = _make_snapshot(period="202603", content=_aportes_only(1000))
+    curr = _make_snapshot(period="202604", content=_aportes_only(1500))
+    result = build_comparison(prev, curr, SnapshotChangelogConfig(sections_to_compare=("T2",)))
+    summary = result.entries[0].summary
+    assert summary.startswith("Aportes cresceram ")
+    assert "cresceu" not in summary
+
+
+def test_summary_to_zero_plural_usa_zeraram():
+    """Label plural em to_zero → `'zeraram'`, não `'zerou'`."""
+    prev = _make_snapshot(period="202603", content=_aportes_only(1000))
+    curr = _make_snapshot(period="202604", content=_aportes_only(0))
+    result = build_comparison(prev, curr, SnapshotChangelogConfig(sections_to_compare=("T2",)))
+    assert result.entries[0].summary == "Aportes zeraram neste relatório"
