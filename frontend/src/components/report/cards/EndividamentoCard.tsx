@@ -34,23 +34,19 @@ export function EndividamentoCard({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-                Total de dívidas
-              </p>
-              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-                <MonetaryValue value={total} />
-              </p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
-                % do patrimônio
-              </p>
-              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-                {pct.toFixed(1)}%
-              </p>
-            </div>
+          <div>
+            <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
+              Total de dívidas
+            </p>
+            <p className="mt-1 font-mono text-3xl font-semibold tabular-nums">
+              <MonetaryValue value={total} />
+            </p>
+            <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">
+              <span className="font-mono tabular-nums">
+                {pct.toFixed(1).replace(".", ",")}%
+              </span>{" "}
+              do patrimônio
+            </p>
           </div>
 
           {dividas.length > 0 && (
