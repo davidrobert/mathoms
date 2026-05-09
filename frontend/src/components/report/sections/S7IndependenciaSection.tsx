@@ -1,5 +1,6 @@
 "use client";
 
+import { ReportCard } from "../ReportCard";
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { SuggestionCalloutInline } from "./SuggestionCallout";
@@ -132,11 +133,12 @@ function IFMonteCarloBlock({
   }
 
   return (
-    <div className="md:col-span-2">
-      <p className="text-sm font-medium mb-1">
-        Cone de probabilidade — IF (Monte Carlo)
-      </p>
-      <p className="text-xs text-[var(--surface-muted-foreground)] mb-3">
+    <ReportCard
+      variant="feature"
+      size="full"
+      title="Cone de probabilidade — IF (Monte Carlo)"
+    >
+      <p className="mb-3 text-xs text-[var(--surface-muted-foreground)]">
         Projeção estocástica com volatilidade de{" "}
         {(monteCarloIF.sigma_usado * 100).toFixed(0)}% a.a. Probabilidade de
         atingir IF até a idade {monteCarloIF.idade_meta_usada}:{" "}
@@ -149,7 +151,7 @@ function IFMonteCarloBlock({
         metaIf={metaIf}
         data-testid="s7-if-cone-chart"
       />
-    </div>
+    </ReportCard>
   );
 }
 
