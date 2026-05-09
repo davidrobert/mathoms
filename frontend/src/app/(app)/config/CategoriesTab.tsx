@@ -23,6 +23,7 @@ import { Trash2, Plus } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import type { UserWorkspace } from "@/lib/api";
+import { formatCurrency } from "@/lib/format";
 
 export default function CategoriesTab() {
   const { workspace } = useWorkspace();
@@ -294,7 +295,7 @@ function CategoryCard({ cat, isEditing, onToggleEdit, onDelete, onSaveKeywords, 
             <span className="text-sm font-medium">{cat.name}</span>
             <span className="ml-2 text-xs text-muted-foreground">({cat.code})</span>
             {cat.monthly_cap != null && (
-              <span className="ml-2 text-xs text-alert">Teto: R$ {cat.monthly_cap.toLocaleString("pt-BR")}</span>
+              <span className="ml-2 text-xs text-alert">Teto: {formatCurrency(cat.monthly_cap)}</span>
             )}
           </div>
           <span className="text-xs text-muted-foreground">{cat.keywords.length} keywords</span>

@@ -38,9 +38,7 @@ function SinglePointFallback({ point, conclusion }: { point: YearPoint; conclusi
         <p className="text-xs uppercase tracking-wide text-[var(--surface-muted-foreground)]">
           Ano-base {point.year}
         </p>
-        <p className="font-mono text-3xl font-semibold tabular-nums">
-          <MonetaryValue value={point.value} />
-        </p>
+        <MonetaryValue value={point.value} size="kpi" />
         <p className="text-xs leading-relaxed text-[var(--surface-muted-foreground)]">
           A comparação multi-anos aparece a partir de duas declarações processadas.
         </p>

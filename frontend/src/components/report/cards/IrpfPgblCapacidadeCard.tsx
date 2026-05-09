@@ -31,9 +31,7 @@ export function IrpfPgblCapacidadeCard({
       <div className="space-y-3">
         {semCapacidade ? (
           <>
-            <p className="font-mono text-2xl font-semibold tabular-nums">
-              <MonetaryValue value={0} />
-            </p>
+            <MonetaryValue value={0} size="kpi" />
             <p className="text-sm text-[var(--surface-muted-foreground)]">
               Sem capacidade dedutível adicional em {kpis.ano_base} — modelo
               simplificado ou aporte já no teto de 12% da renda tributável.
@@ -45,9 +43,7 @@ export function IrpfPgblCapacidadeCard({
               <p className="text-xs uppercase tracking-wide text-[var(--surface-muted-foreground)]">
                 Espaço dedutível remanescente · {kpis.ano_base}
               </p>
-              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-                <MonetaryValue value={capacidade} />
-              </p>
+              <MonetaryValue value={capacidade} size="kpi" className="mt-1" />
             </div>
             <p className="text-xs leading-relaxed text-[var(--surface-muted-foreground)]">
               Diferença entre 12% da renda tributável e os aportes PGBL já

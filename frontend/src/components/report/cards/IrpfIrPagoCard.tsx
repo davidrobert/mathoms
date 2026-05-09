@@ -29,9 +29,7 @@ export function IrpfIrPagoCard({ kpis, variant = "feature" }: IrpfIrPagoCardProp
           <p className="text-xs uppercase tracking-wide text-[var(--surface-muted-foreground)]">
             Total recolhido · {kpis.ano_base}
           </p>
-          <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-            <MonetaryValue value={ir} />
-          </p>
+          <MonetaryValue value={ir} size="kpi" className="mt-1" />
         </div>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>

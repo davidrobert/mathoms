@@ -23,9 +23,7 @@ function SplitLegend({ label, value, pct, swatchClass }: SplitLegendProps) {
         {label}
       </dt>
       <dd className="mt-1">
-        <p className="font-mono text-lg font-semibold tabular-nums">
-          <MonetaryValue value={value} />
-        </p>
+        <MonetaryValue value={value} size="kpi" />
         <p className="font-mono text-xs tabular-nums text-[var(--surface-muted-foreground)]">
           {pct.toFixed(1).replace(".", ",")}% do total
         </p>

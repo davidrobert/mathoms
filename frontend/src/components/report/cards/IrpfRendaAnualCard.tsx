@@ -20,17 +20,13 @@ export function IrpfRendaAnualCard({ kpis, variant = "feature" }: IrpfRendaAnual
           <p className="text-xs uppercase tracking-wide text-[var(--surface-muted-foreground)]">
             Bruta · {kpis.ano_base}
           </p>
-          <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-            <MonetaryValue value={bruta} />
-          </p>
+          <MonetaryValue value={bruta} size="kpi" className="mt-1" />
         </div>
         <div>
           <p className="text-xs uppercase tracking-wide text-[var(--surface-muted-foreground)]">
             Líquida (após IR, INSS e pensão)
           </p>
-          <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-[var(--semantic-gain)]">
-            <MonetaryValue value={liquida} />
-          </p>
+          <MonetaryValue value={liquida} size="kpi" className="mt-1 text-[var(--semantic-gain)]" />
         </div>
       </div>
     </ReportCard>

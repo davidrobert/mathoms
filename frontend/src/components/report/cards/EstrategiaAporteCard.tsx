@@ -1,5 +1,6 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
+import { formatCurrency } from "@/lib/format";
 
 interface DestinoAporte {
   destino: string;
@@ -44,7 +45,7 @@ export function EstrategiaAporteCard({
     const total = estrategia!.total_aporte ?? destinos.reduce((s, d) => s + d.valor, 0);
     const subtitle = [
       estrategia?.total_aporte !== undefined
-        ? `Aporte mensal de R$ ${total.toLocaleString("pt-BR")} no dia ${estrategia.dia_aporte ?? "?"} de cada mês`
+        ? `Aporte mensal de ${formatCurrency(total)} no dia ${estrategia.dia_aporte ?? "?"} de cada mês`
         : null,
       estrategia?.periodo_inicio ? `A partir de ${estrategia.periodo_inicio}` : null,
     ]

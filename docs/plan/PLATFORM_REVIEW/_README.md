@@ -462,6 +462,8 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **status:** scoped — track em [agent_prompts/track_w5t03_monetary_value.md](agent_prompts/track_w5t03_monetary_value.md). Inventário concreto: 9 wrappers monetários + 9 toLocaleString = 18 call-sites (excede estimativa de 11).
 - **files_touched:** 11+ cards/components (Endividamento, Reserva, IRPF×4, EstrategiaAporte, SupportGoalsRow, KPICard etc.)
 - **related_findings:** PD-006, PD-010, PD-011, PD-012, PD-013
+- **decision:** não criar `formatCurrencyInt()` nem `size="kpi-sub"` nesta task; manter `formatCurrency()` canônico e `size="kpi"` único para fechar consistência antes de nova granularidade tipográfica.
+- **follow_up:** PD-022 — criar primitivo `<TabularValue/>`/`<Pct/>` para wrappers não-monetários (`%`, meses, contagens) deixados fora desta task.
 - **acceptance_criteria:** todos consomem `<MonetaryValue size="kpi"/>`; sem `font-mono text-Xxl tabular-nums` redundante; sem `toLocaleString()` direto em strings monetárias; `formatCurrency()` usado quando precisa string.
 
 ### [W5-T04] FP-004 ADR-161 enrichment (5 sub-PRs)

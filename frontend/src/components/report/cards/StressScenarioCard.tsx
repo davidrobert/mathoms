@@ -7,6 +7,7 @@
  * "Leitura:" justificando o stress test em tom não-alarmista.
  */
 import { ReportCard } from "../ReportCard";
+import { formatCurrency } from "@/lib/format";
 
 type StressCenarios = {
   labels?: string[];
@@ -20,11 +21,7 @@ type StressGoals = { if_prazo_anos?: number; if_ano?: number };
 
 function fmtBRL(v: number | null | undefined): string {
   if (v == null) return "—";
-  return v.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  return formatCurrency(v);
 }
 
 function fmtAnosMeses(prazo: number | null | undefined): string {

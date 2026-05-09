@@ -9,8 +9,9 @@ import {
   type SnapshotChangelogEntryView,
 } from "../ui/SnapshotChangelogList";
 import { deriveSectionSummary } from "../utils/conclusionUtils";
+import { MonetaryValue } from "../MonetaryValue";
 import type { ChangelogEntryRead, ReportAnalysisData } from "@/lib/api";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatNumber } from "@/lib/format";
 import {
   formatGoalVigenciaDate,
   humanizeGoalType,
@@ -277,7 +278,7 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
                   Saldo total
                 </dt>
                 <dd className="font-mono tabular-nums">
-                  {milhas.saldo_total.toLocaleString("pt-BR")}
+                  {formatNumber(milhas.saldo_total, 0)} pts
                 </dd>
               </div>
             )}
@@ -286,12 +287,8 @@ export function ApendiceCSection({ data }: { data: ReportAnalysisData }) {
                 <dt className="text-xs text-[var(--surface-muted-foreground)]">
                   Valor estimado
                 </dt>
-                <dd className="font-mono tabular-nums">
-                  {milhas.valor_estimado.toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                    maximumFractionDigits: 0,
-                  })}
+                <dd>
+                  <MonetaryValue value={milhas.valor_estimado} fractionDigits={0} />
                 </dd>
               </div>
             )}

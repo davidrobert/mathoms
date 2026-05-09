@@ -174,7 +174,7 @@ export default function DolarizacaoWizardPage() {
                     onClick={() => setMetaUsd(preset)}
                     type="button"
                   >
-                    US$ {preset.toLocaleString("pt-BR")}
+                    {formatCurrency(preset, "USD")}
                   </Button>
                 ))}
               </div>
@@ -225,7 +225,7 @@ export default function DolarizacaoWizardPage() {
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Meta USD</dt>
                   <dd className="font-mono tabular-nums font-semibold">
-                    US$ {metaUsd.toLocaleString("pt-BR")}
+                    {formatCurrency(metaUsd, "USD")}
                   </dd>
                 </div>
                 <div className="flex justify-between">

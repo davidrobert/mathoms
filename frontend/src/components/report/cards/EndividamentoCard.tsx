@@ -25,9 +25,7 @@ export function EndividamentoCard({
     >
       {semDividas ? (
         <div className="space-y-2">
-          <p className="font-mono text-3xl font-semibold tabular-nums text-[var(--semantic-gain)]">
-            R$ 0,00
-          </p>
+          <MonetaryValue value={0} size="kpi" className="text-[var(--semantic-gain)]" />
           <p className="text-sm text-[var(--surface-muted-foreground)]">
             {endividamento?.detalhe ?? "Sem dívidas identificadas neste período."}
           </p>
@@ -39,9 +37,7 @@ export function EndividamentoCard({
               <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">
                 Total de dívidas
               </p>
-              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-                <MonetaryValue value={total} />
-              </p>
+              <MonetaryValue value={total} size="kpi" className="mt-1" />
             </div>
             <div>
               <p className="text-xs uppercase tracking-wider text-[var(--surface-muted-foreground)]">

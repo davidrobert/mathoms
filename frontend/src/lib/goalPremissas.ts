@@ -125,7 +125,7 @@ export function buildDolarPremissasRows(
   const rows: PremissaRow[] = [
     {
       label: "Meta em USD",
-      value: `US$ ${inputs.meta_usd.toLocaleString("pt-BR")}`,
+      value: formatCurrency(inputs.meta_usd, "USD"),
     },
     {
       label: "Aporte mensal (BRL)",

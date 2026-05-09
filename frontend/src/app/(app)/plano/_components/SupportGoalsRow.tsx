@@ -62,7 +62,7 @@ function dolarCardProps(goal: DolarGoalResponse | null): GoalCardProps {
     configured: !!goal,
     href: goal ? "/plano/dolarizacao" : "/plano/dolarizacao/wizard",
     value: goal
-      ? `US$ ${goal.inputs.meta_usd.toLocaleString("pt-BR")}`
+      ? formatCurrency(goal.inputs.meta_usd, "USD")
       : undefined,
     subtitle: goal
       ? `~${goal.derived.horizonte_estimado_meses} meses`
