@@ -87,13 +87,15 @@ describe("<SnapshotChangelogList />", () => {
     const entries: SnapshotChangelogEntryView[] = [
       {
         section_id: "S1",
-        summary: "Patrimônio Líquido cresceu 10,0% desde o relatório anterior",
+        summary:
+          "Patrimônio líquido cresceu R$ 100.000,00 desde o relatório anterior (+10,0%)",
         delta_signal: "up",
         delta_pct: 10.0,
       },
       {
         section_id: "S2",
-        summary: "Receita Total caiu 10,0% desde o relatório anterior",
+        summary:
+          "Receita total recuou R$ 24.000,00 desde o relatório anterior (−10,0%)",
         delta_signal: "down",
         delta_pct: -10.0,
       },
@@ -102,10 +104,10 @@ describe("<SnapshotChangelogList />", () => {
     const items = screen.getAllByRole("listitem");
     expect(items.length).toBe(2);
     expect(
-      screen.getByText(/Patrimônio Líquido cresceu 10,0%/),
+      screen.getByText(/Patrimônio líquido cresceu R\$ 100\.000,00/),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Receita Total caiu 10,0%/),
+      screen.getByText(/Receita total recuou R\$ 24\.000,00/),
     ).toBeInTheDocument();
   });
 });

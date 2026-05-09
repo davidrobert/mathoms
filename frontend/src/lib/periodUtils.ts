@@ -9,37 +9,78 @@ export const PERIOD_LABELS: Record<Period, string> = {
   ytd: "YTD",
 };
 
-/** Retorna date_from e date_to (YYYY-MM-DD) para o período selecionado. */
-export function getPeriodDates(period: Period): {
+const PT_BR_MONTHS: Record<string, number> = {
+  jan: 1,
+  fev: 2,
+  mar: 3,
+  abr: 4,
+  mai: 5,
+  jun: 6,
+  jul: 7,
+  ago: 8,
+  set: 9,
+  out: 10,
+  nov: 11,
+  dez: 12,
+};
+
+/** Aceita "YY/MM" (ex.: "26/04") ou "mes/aa" pt-BR (ex.: "abr/26") e retorna
+ * o último dia do mês como Date. Mesmo formato consumido por
+ * `usePeriodWindow` em charts (paridade de ancora chart ↔ card). */
+export function parseChartMonthLabel(label: string): Date | null {
+  const trimmed = label.trim().toLowerCase();
+  const numeric = /^(\d{2})\/(\d{2})$/.exec(trimmed);
+  if (numeric) {
+    const yy = Number(numeric[1]);
+    const mm = Number(numeric[2]);
+    if (mm >= 1 && mm <= 12) return new Date(2000 + yy, mm, 0);
+    return null;
+  }
+  const named = /^([a-zç]{3})\/(\d{2})$/.exec(trimmed);
+  if (named) {
+    const month = PT_BR_MONTHS[named[1]];
+    if (!month) return null;
+    return new Date(2000 + Number(named[2]), month, 0);
+  }
+  return null;
+}
+
+/** Retorna date_from e date_to (YYYY-MM-DD) para o período selecionado.
+ * `anchorDate` ancora o `date_to` no fim da janela de dados (default: hoje). */
+export function getPeriodDates(
+  period: Period,
+  anchorDate?: Date,
+): {
   date_from: string;
   date_to: string;
 } {
-  const today = new Date();
-  const start = new Date(today);
+  const end = anchorDate ?? new Date();
+  const start = new Date(end);
 
   switch (period) {
     case "3m":
-      start.setMonth(today.getMonth() - 3);
+      start.setMonth(end.getMonth() - 3);
       break;
     case "6m":
-      start.setMonth(today.getMonth() - 6);
+      start.setMonth(end.getMonth() - 6);
       break;
     case "12m":
-      start.setFullYear(today.getFullYear() - 1);
+      start.setFullYear(end.getFullYear() - 1);
       break;
     case "ytd":
-      start.setMonth(0, 1);
+      start.setFullYear(end.getFullYear(), 0, 1);
       break;
   }
 
   return {
     date_from: start.toISOString().split("T")[0],
-    date_to: today.toISOString().split("T")[0],
+    date_to: end.toISOString().split("T")[0],
   };
 }
 
-/** Número aproximado de meses no período (para calcular médias mensais). */
-export function getPeriodMonths(period: Period): number {
+/** Número aproximado de meses no período (para calcular médias mensais).
+ * `anchorDate` define o "ano/mês corrente" do YTD (default: hoje). */
+export function getPeriodMonths(period: Period, anchorDate?: Date): number {
   switch (period) {
     case "3m":
       return 3;
@@ -47,8 +88,10 @@ export function getPeriodMonths(period: Period): number {
       return 6;
     case "12m":
       return 12;
-    case "ytd":
-      return Math.max(1, new Date().getMonth() + 1);
+    case "ytd": {
+      const ref = anchorDate ?? new Date();
+      return Math.max(1, ref.getMonth() + 1);
+    }
   }
 }
 
