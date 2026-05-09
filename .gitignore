@@ -19,6 +19,9 @@ config/passwords.txt
 # Scratch — artefatos temporários de pipeline (scripts, relatórios, logs)
 _scratch/
 
+# Codex — estado local de agente, sessões, caches e worktrees
+.codex/
+
 # Python
 __pycache__/
 *.pyc
