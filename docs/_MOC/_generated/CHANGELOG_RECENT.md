@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-101 entries entre 2026-04-25 e 2026-05-07.
+88 entries entre 2026-04-26 e 2026-05-07.
 
 ## 2026-05-07 (14 entries)
 
@@ -116,22 +116,6 @@
 - [[CHG-2026-04-26-A7-0]] — A7.0 ConfigStore protocol + adapters — ✅ entregue (2026-04-26). - **A7.0 ConfigStore protocol + adapters — ✅ entregue (2026-04-26):** Onda 1 da Sprint A7 fechada em 7 commits sequenciais. (lane [[A7.0]])
 - [[CHG-2026-04-26-A7-0-1]] — Sprint A7 aberta — Config DB Cutover (CLI legacy removal) (2026-04-26) — 🚧 Onda 1 ✅ · Onda 2 destravada. - **Sprint A7 aberta — Config DB Cutover (CLI legacy removal) (2026-04-26) — 🚧 Onda 1 ✅ · Onda 2 destravada:** Plano canônico em [CONFIG_CUTOVER_PLAN.md](CONFIG (lane [[A7.0]])
 - [[CHG-2026-04-26-F12-1E]] — CI — otimização de uso GitHub Actions (2026-04-26) — ✅. - **CI — otimização de uso GitHub Actions (2026-04-26) — ✅:** workflow `.github/workflows/ci.yml` agora skipa jobs irrelevantes via [`dorny/paths-filter@v3`](https://github.com/dorny/paths-filter). (lane [[F12.1e]])
-
-## 2026-04-25 (13 entries)
-
-- [[CHG-2026-04-25-A10-A6G-2B-T3-PIPELINE-S]] — A6g.2b T3 pipeline scripts decomp (goldens-safe). - **5 scripts com goldens** decompostos em orchestrators finos + helpers nomeados, paridade byte-a-byte preservada (1458 pipeline tests verdes em todos os commi
-- [[CHG-2026-04-25-A10-A6G-3-R3-BACKEND-SWE]] — A6g.3 r3 backend sweep final (A6g 100% fechado). - **5 HIGH P1** (≥40 linhas) nos alvos finais da rodada 3 eliminados.
-- [[CHG-2026-04-25-A10-LANE-LIVESTEP-EMIT-S]] — Lane `livestep-emit-stages` E3 — adapter instrumentado (2026-04-25). - **Lane `livestep-emit-stages` E3 — adapter instrumentado (2026-04-25):** oitavo emissor migrado para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-lives
-- [[CHG-2026-04-25-A10-LANE-LIVESTEP-EMIT-S-1]] — Lane `livestep-emit-stages` E2-llm — concorrente (2026-04-25). - **Lane `livestep-emit-stages` E2-llm — concorrente (2026-04-25):** sétimo emissor migrado para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-livestep-pa
-- [[CHG-2026-04-25-A10-LANE-LIVESTEP-EMIT-S-2]] — Lane `livestep-emit-stages` E4 + E5 — batch (2026-04-25). - **Lane `livestep-emit-stages` E4 + E5 — batch (2026-04-25):** quinto e sexto emissores migrados para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-lives
-- [[CHG-2026-04-25-A10-LANE-LIVESTEP-EMIT-S-3]] — Lane `livestep-emit-stages` E1 + E1.5c — mecânicas (2026-04-25). - **Lane `livestep-emit-stages` E1 + E1.5c — mecânicas (2026-04-25):** terceiro e quarto emissores migrados para o contrato [ADR-119](DECISIONS.md#adr-119--cont
-- [[CHG-2026-04-25-A10-LANE-REPORT-A11Y-FIN]] — Lane `report-a11y-finalize` item 5 (2026-04-25). - **Lane `report-a11y-finalize` item 5 (2026-04-25):** checklist WCAG 2.1 AA operacional em [`docs/plan/REPORT_PREMIUM/A11Y_CHECKLIST.md`](REPORT_A11Y_CHECKLIST.md).
-- [[CHG-2026-04-25-A10-LANE-REPORT-A11Y-FIN-1]] — Lane `report-a11y-finalize` item 6 (2026-04-25). - **Lane `report-a11y-finalize` item 6 (2026-04-25):** gate empírico validado.
-- [[CHG-2026-04-25-F1-1]] — Report Premium UI v1. Marco: shell React `/reports/[id]` atinge paridade visual com `EXEMPLO_DE_RELATORIO.html` (raiz do repo) e se torna o **único renderer** do relatório. (lane [[F1.1]])
-- [[CHG-2026-04-25-F11-2C]] — Lane `livestep-emit-stages` E2 (2026-04-25). - **Lane `livestep-emit-stages` E2 (2026-04-25):** segundo emissor migrado para o contrato [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas) (após E1.5 em `3bc9d25`). (lane [[F11.2c]])
-- [[CHG-2026-04-25-F9-1]] — F9.1 pipeline/stages rename (ADR-093). - `git mv` em 14 wrappers de `pipeline/stages/e*.py` para nomes descritivos conforme `STAGE_RENAME_MAP`: `audit_documents`, `unlock_documents`, `route_documents (lane [[F9.1]])
-- [[CHG-2026-04-25-F9-2]] — F9.2 resíduo split em 5 sub-fatias (ADR-093). - T1 fechado em main; T2-T5 organizados em prompts auto-contidos para execução em sessões distintas: - **F9.2a** pipeline core (`artifact_store` + `llm/*` + `st (lane [[F9.2]])
-- [[CHG-2026-04-25-F9-2-1]] — F9.2 T1 STAGE_REGISTRY descritivo + compat reverso (ADR-093). - `pipeline/stage_spec.py` — `STAGE_REGISTRY`, `FULL_ORDER`, `DETERMINISTIC_ORDER`, `VIRTUAL_ARTIFACT_STAGES` agora usam keys descritivas (`reconcile_transactio (lane [[F9.2]])
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
