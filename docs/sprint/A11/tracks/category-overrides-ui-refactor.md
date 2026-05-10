@@ -43,6 +43,19 @@ Hoje [frontend/src/app/(app)/config/CategoriesTab.tsx](../../../../frontend/src/
 - Sinal v2 desatualizada: ícone `AlertCircle` (`var(--semantic-warning)`) sem CTA — só visual.
 - Botão "Adicionar categoria" sai em V1 (custom é feature separada).
 
+## Coordenação cross-lane (PM, 2026-05-10)
+
+**Hook arquitetural reservado para futura V2.A do [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md) §V2.A.** Custo marginal: ≤30min.
+
+A sub-tab "Regras promovidas" (V2.A do learning loop, condicional a sinais de tração ≥30% adoção / revert_rate ≤15% / ≥10 workspaces em 60d) vai morar **na mesma `CategoriesTab.tsx`** que esta W4 está refatorando. Para não pagar refactor estrutural duas vezes:
+
+- A tela deve usar **tabs/subnav extensível** (`<TabsList>` ou equivalente shadcn renderizado a partir de **array configurável** de `{id, label, content}`) — não layout flat hard-coded com 1 lista.
+- V1 expõe **1 entrada** ("Categorias", o conteúdo desta W4). V2.A adiciona "Regras promovidas" sem refactor estrutural.
+- **Não implementar** a sub-tab nem nenhum estado relacionado a `categorization_rules` — V1 NÃO toca o conceito de regra aprendida (ADR-186 / phase A12).
+- Aceitação: code review do `product-designer` + leitura do componente confirmam que adicionar uma 2ª tab daqui 60d é **diff de array**, não refactor de layout.
+
+Justificativa: PM review 2026-05-10 manteve A11.cat-overrides-ux e A12.cat-learning-loop em sprints separadas (gate dogfood do learning loop é kill switch real, A11 sobrecarregada com PLATFORM_REVIEW). Hook estrutural é o único acoplamento positivo entre as duas lanes — barateia retrabalho V2.A condicional sem importar risco da feature experimental.
+
 ## Escopo
 
 ### Frontend — read path
@@ -91,6 +104,7 @@ Hoje [frontend/src/app/(app)/config/CategoriesTab.tsx](../../../../frontend/src/
 - [ ] Vitest novo: render workspace novo mostra 24 categorias; render com override mostra badge.
 - [ ] Playwright `@critical`: edit cap → save → reload → cap persistido.
 - [ ] `dev/check_css_var_references.py` verde (sem `var(--xxx)` fantasma).
+- [ ] Tabs/subnav em `CategoriesTab.tsx` renderizados a partir de **array configurável** de `{id, label, content}` (1 entrada em V1) — hook para V2.A do [PLAN-cat-learning-loop](../../../plan/CAT_LEARNING_LOOP/_README.md). Verificado em code review do `product-designer`.
 
 ## Arquivos esperados
 
