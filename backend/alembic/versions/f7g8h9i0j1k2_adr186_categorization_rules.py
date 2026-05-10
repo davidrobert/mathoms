@@ -15,6 +15,10 @@
 #    ``categorization_rules.id`` (``ON DELETE SET NULL``).
 #
 # P1 não muda comportamento do pipeline E4 (P2 consome).
+#
+# SQLite-specific (offline SQL): ``batch_alter_table`` recria a tabela; precisa
+# de ``copy_from`` com snapshot estático do schema pré/pós para suportar
+# ``alembic upgrade head --sql`` (ver ``test_offline_sql_generation_works``).
 
 from typing import Sequence, Union
 
@@ -27,10 +31,91 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+_FK_RULE_ID_NAME = "fk_transaction_overrides_rule_id"
+
+
+def _common_columns() -> list[sa.Column]:
+    """Colunas inalteradas de ``transaction_overrides`` — pré e pós."""
+    return [
+        sa.Column("id", sa.String(length=36), primary_key=True),
+        sa.Column(
+            "workspace_id",
+            sa.String(length=36),
+            sa.ForeignKey("workspaces.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
+        sa.Column("transaction_hash", sa.String(length=64), nullable=False, index=True),
+        sa.Column("original_category", sa.String(length=255), nullable=False),
+        sa.Column("new_category", sa.String(length=255), nullable=False),
+        sa.Column("notes", sa.Text(), nullable=True),
+        sa.Column("reviewed", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
+    ]
+
+
+def _table_pre() -> sa.Table:
+    """Snapshot pré-upgrade — sem ``source`` nem ``rule_id``."""
+    md = sa.MetaData()
+    return sa.Table(
+        "transaction_overrides",
+        md,
+        *_common_columns(),
+        sa.UniqueConstraint("workspace_id", "transaction_hash", name="uq_override_ws_hash"),
+    )
+
+
+def _table_mid() -> sa.Table:
+    """Snapshot intermediário — pós-add ``source``, antes de ``rule_id``."""
+    md = sa.MetaData()
+    return sa.Table(
+        "transaction_overrides",
+        md,
+        *_common_columns(),
+        sa.Column(
+            "source",
+            sa.String(length=20),
+            nullable=False,
+            server_default=sa.text("'manual'"),
+        ),
+        sa.UniqueConstraint("workspace_id", "transaction_hash", name="uq_override_ws_hash"),
+    )
+
+
+def _table_post() -> sa.Table:
+    """Snapshot pós-upgrade — com ``source`` + ``rule_id`` + FK."""
+    md = sa.MetaData()
+    return sa.Table(
+        "transaction_overrides",
+        md,
+        *_common_columns(),
+        sa.Column(
+            "source",
+            sa.String(length=20),
+            nullable=False,
+            server_default=sa.text("'manual'"),
+        ),
+        sa.Column(
+            "rule_id",
+            sa.String(length=36),
+            sa.ForeignKey(
+                "categorization_rules.id",
+                ondelete="SET NULL",
+                name=_FK_RULE_ID_NAME,
+            ),
+            nullable=True,
+        ),
+        sa.UniqueConstraint("workspace_id", "transaction_hash", name="uq_override_ws_hash"),
+    )
+
+
 def upgrade() -> None:
     """Add ``source`` + ``rule_id`` to transaction_overrides; create categorization_rules."""
     # 1) transaction_overrides.source — default 'manual' cobre backfill.
-    with op.batch_alter_table("transaction_overrides") as batch_op:
+    with op.batch_alter_table(
+        "transaction_overrides",
+        copy_from=_table_pre(),
+    ) as batch_op:
         batch_op.add_column(
             sa.Column(
                 "source",
@@ -128,7 +213,10 @@ def upgrade() -> None:
     # 3) transaction_overrides.rule_id — FK opcional para auditoria.
     # Single batch: add_column + FK constraint (ambos exigem rebuild da
     # tabela em SQLite). Index é op separada após o batch fechar.
-    with op.batch_alter_table("transaction_overrides") as batch_op:
+    with op.batch_alter_table(
+        "transaction_overrides",
+        copy_from=_table_mid(),
+    ) as batch_op:
         batch_op.add_column(
             sa.Column(
                 "rule_id",
@@ -137,7 +225,7 @@ def upgrade() -> None:
             )
         )
         batch_op.create_foreign_key(
-            "fk_transaction_overrides_rule_id",
+            _FK_RULE_ID_NAME,
             "categorization_rules",
             ["rule_id"],
             ["id"],
@@ -158,7 +246,10 @@ def downgrade() -> None:
     # safety em DBs onde a criação anterior falhou parcialmente.
     op.execute("DROP INDEX IF EXISTS ix_transaction_overrides_rule_id")
 
-    with op.batch_alter_table("transaction_overrides") as batch_op:
+    with op.batch_alter_table(
+        "transaction_overrides",
+        copy_from=_table_post(),
+    ) as batch_op:
         batch_op.drop_column("rule_id")
 
     op.drop_index(
@@ -175,5 +266,8 @@ def downgrade() -> None:
     )
     op.drop_table("categorization_rules")
 
-    with op.batch_alter_table("transaction_overrides") as batch_op:
+    with op.batch_alter_table(
+        "transaction_overrides",
+        copy_from=_table_mid(),
+    ) as batch_op:
         batch_op.drop_column("source")
