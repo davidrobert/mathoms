@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-8 planos detectados em [`docs/plan/`](../../plan/).
+9 planos detectados em [`docs/plan/`](../../plan/).
 
 _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/`._
 
@@ -58,6 +58,13 @@ _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/
 - Pausado em: 2026-05-06 · Razão: Substituído por PLAN-platform-review (revisão multi-agente 2026-05-06).
 
 ## Rascunhos (`draft`)
+
+### PLAN-cat-learning-loop — Categorization Learning Loop — promoção de override de transação para regra
+
+- Status: `draft` · Sprint atual: A12
+- Sprints envolvidas: A12
+- Lanes: _(aguardando F4)_
+- ADRs canônicas: [[ADR-186]]
 
 ### PLAN-category-overrides-ux — Category Overrides UX — V1 (24 default-only)
 
