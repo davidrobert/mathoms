@@ -90,6 +90,18 @@ describe("XSS smoke — F6.5D.6", () => {
 
   it("category.name com <img onerror> renderiza escapado", async () => {
     server.use(
+      // A11.W4: CategoriesTab agora consome `/category-overrides/resolved`
+      // (moderno, A7.3). Mantém legacy mock como fallback caso reverter.
+      http.get(
+        "/api/v1/workspaces/:workspaceId/config/category-overrides/resolved",
+        () =>
+          HttpResponse.json({
+            categories: [makeCategory({ name: XSS_IMG })],
+            total: 1,
+            template_version_used: 1,
+            latest_template_version: 1,
+          }),
+      ),
       http.get("/api/v1/workspaces/:workspaceId/config/categories", () =>
         HttpResponse.json({
           categories: [makeCategory({ name: XSS_IMG })],

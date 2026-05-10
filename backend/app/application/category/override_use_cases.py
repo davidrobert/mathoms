@@ -30,8 +30,8 @@ from backend.app.schemas.dto.category import (
 from backend.app.services.category_resolver import (
     METADATA_TEMPLATE_KEY,
     ResolvedCategory,
-    _get_active_template_version,
-    _get_latest_template_version,
+    get_active_template_version,
+    get_latest_template_version,
     resolve_categories,
 )
 
@@ -39,7 +39,7 @@ from backend.app.services.category_resolver import (
 async def list_categories_resolved(workspace_id: str, *, db: AsyncSession) -> CategoryListResponse:
     """``GET /categories`` — template + overrides mergeados + sinal de v desatualizada (ADR-185 §4)."""
     resolved, latest_version = await db.run_sync(
-        lambda s: (resolve_categories(workspace_id, s), _get_latest_template_version(s))
+        lambda s: (resolve_categories(workspace_id, s), get_latest_template_version(s))
     )
     overrides = await WorkspaceCategoryOverrideRepository(db).list_by_workspace(workspace_id)
     override_id_by_key = {ov.template_key: ov.id for ov in overrides}
@@ -51,7 +51,7 @@ async def list_categories_resolved(workspace_id: str, *, db: AsyncSession) -> Ca
     return CategoryListResponse(
         categories=items,
         total=len(items),
-        template_version_used=_get_active_template_version(),
+        template_version_used=get_active_template_version(),
         latest_template_version=latest_version,
     )
 
@@ -62,8 +62,9 @@ async def upsert_category_override(
     *,
     workspace_id: str,
     db: AsyncSession,
+    current_user_id: str | None = None,
 ) -> CategoryResponse:
-    """``PUT /categories/{key}`` — escreve em ``workspace_category_overrides``."""
+    """``PUT /categories/{key}`` — escreve em ``workspace_category_overrides``; ``current_user_id`` popula audit ADR-185 §4."""
     resolved = await db.run_sync(
         lambda sync_session: resolve_categories(workspace_id, sync_session)
     )
@@ -82,6 +83,7 @@ async def upsert_category_override(
             cmd.monthly_cap, by_key[template_key].monthly_cap_brl_cents
         ),
         disabled=False,
+        updated_by_user_id=current_user_id,
     )
     override_id = await CategoryOverrideService(db).upsert(config)
     refreshed = await db.run_sync(
@@ -96,9 +98,12 @@ async def disable_category_override(
     *,
     workspace_id: str,
     db: AsyncSession,
+    current_user_id: str | None = None,
 ) -> None:
     """``DELETE /categories/{key}`` — desabilita categoria via override.disabled=True."""
-    await CategoryOverrideService(db).disable(workspace_id, template_key)
+    await CategoryOverrideService(db).disable(
+        workspace_id, template_key, updated_by_user_id=current_user_id
+    )
 
 
 async def reset_category_override(
@@ -106,6 +111,7 @@ async def reset_category_override(
     *,
     workspace_id: str,
     db: AsyncSession,
+    current_user_id: str | None = None,  # noqa: ARG001 — reset apaga row, audit não aplica
 ) -> None:
     """``DELETE /categories/{key}/override`` — apaga override; volta ao template default."""
     await CategoryOverrideService(db).reset(workspace_id, template_key)

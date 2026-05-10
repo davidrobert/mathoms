@@ -1,28 +1,62 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+/**
+ * CategoriesTab — A11.cat-overrides-ux W4 (PLAN-category-overrides-ux).
+ *
+ * Read-path: `/config/category-overrides/resolved` (template global v1 +
+ * overrides do workspace, A7.3 · ADR-137). Antes era `/config/categories`
+ * (legacy) — workspace novo abria lista vazia. Esta refatoração fecha a
+ * feature V1 (24 categorias default-only) com persistência via tabela
+ * `workspace_category_overrides`.
+ *
+ * Tabs/subnav é renderizada a partir de array configurável (1 entrada em
+ * V1) — hook estrutural para sub-tab "Regras promovidas" do A12 learning
+ * loop (gate dogfood). Adicionar 2ª tab daqui 60d é diff de array.
+ */
+
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  listCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
+  disableCategoryOverride,
+  listCategoriesResolved,
   reclassifyExpenses,
+  resetCategoryOverride,
+  upsertCategoryOverride,
   type CategoryConfig,
+  type CategoryListResponseV2,
   ApiError,
 } from "@/lib/api";
-import Link from "next/link";
+import { toast } from "sonner";
 import { Spinner } from "@/components/Spinner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { StatusBadge } from "@/components/StatusBadge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Trash2, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import type { UserWorkspace } from "@/lib/api";
+import { CategoryRow, type ResolvedRow } from "./_categories/CategoryRow";
+import {
+  CategoriesHeader,
+  type CategoryFilter,
+} from "./_categories/CategoriesHeader";
+import {
+  ReclassifyBanner,
+  type ReclassifyStatus,
+} from "./_categories/ReclassifyBanner";
+
+// ─── Tipos auxiliares ───────────────────────────────────────────────────
+
+/** Forma de cada entrada do array de tabs.
+ *
+ * Hook estrutural para A12.cat-learning-loop (V2.A · "Regras promovidas").
+ * Adicionar nova entrada NÃO exige refactor de layout — é diff de array.
+ */
+interface CategoryTabSpec {
+  id: string;
+  label: string;
+  content: ReactNode;
+}
+
+// ─── Componente raiz ─────────────────────────────────────────────────────
 
 export default function CategoriesTab() {
   const { workspace } = useWorkspace();
@@ -33,21 +67,22 @@ export default function CategoriesTab() {
 function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
   const { user } = useCurrentUser();
   const isDeveloper = user?.is_developer ?? false;
-  const [categories, setCategories] = useState<CategoryConfig[]>([]);
+
+  const [data, setData] = useState<CategoryListResponseV2 | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [showAdd, setShowAdd] = useState(false);
-  const [filter, setFilter] = useState<"all" | "expense" | "income">("all");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<CategoryConfig | null>(null);
+  const [filter, setFilter] = useState<CategoryFilter>("all");
+  const [showOnlyCustomized, setShowOnlyCustomized] = useState(false);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [resetTarget, setResetTarget] = useState<CategoryConfig | null>(null);
   const [reclassifying, setReclassifying] = useState(false);
-  const [reclassifyStatus, setReclassifyStatus] = useState<"idle" | "success" | "conflict" | "error">("idle");
+  const [reclassifyStatus, setReclassifyStatus] =
+    useState<ReclassifyStatus>("idle");
 
   const reload = useCallback(async () => {
     try {
-      const data = await listCategories(workspace.id);
-      setCategories(data.categories);
+      const fresh = await listCategoriesResolved(workspace.id);
+      setData(fresh);
     } catch {
       setError("Erro ao carregar categorias");
     } finally {
@@ -59,65 +94,94 @@ function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
     reload();
   }, [reload]);
 
-  const filtered = categories.filter(
-    (c) => filter === "all" || c.category_type === filter
-  );
-  const expenses = categories.filter((c) => c.category_type === "expense");
-  const incomes = categories.filter((c) => c.category_type === "income");
+  // O endpoint `/resolved` mergeia template + override antes de devolver,
+  // não temos `default_keywords` separado no DTO atual — derivamos pelo
+  // campo `keywords`. Em V2 do DTO o backend deve carregar
+  // `default_keywords` por categoria explicitamente.
+  const rows: ResolvedRow[] = useMemo(() => {
+    if (!data) return [];
+    return data.categories.map((cat) => ({
+      cat,
+      defaultKeywords: cat.keywords,
+      isCustomized: cat.id != null,
+    }));
+  }, [data]);
 
-  async function handleCreate(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(""); setSuccess("");
-    const fd = new FormData(e.currentTarget);
-    const kwStr = fd.get("keywords") as string;
+  const filtered = rows.filter((r) => {
+    const typeOk = filter === "all" || r.cat.category_type === filter;
+    const customOk = !showOnlyCustomized || r.isCustomized;
+    return typeOk && customOk;
+  });
+  const expenses = rows.filter((r) => r.cat.category_type === "expense");
+  const incomes = rows.filter((r) => r.cat.category_type === "income");
+  const customizedCount = rows.filter((r) => r.isCustomized).length;
+  const isOutdatedTemplate =
+    data != null && data.template_version_used < data.latest_template_version;
+
+  async function handleSaveCap(cat: CategoryConfig, value: string) {
     try {
-      await createCategory(workspace.id, {
-        code: fd.get("code") as string,
-        name: fd.get("name") as string,
-        category_type: fd.get("category_type") as "expense" | "income",
-        monthly_cap: fd.get("monthly_cap") ? Number(fd.get("monthly_cap")) : undefined,
-        order: categories.length,
-        keywords: kwStr ? kwStr.split(",").map((k) => k.trim()).filter(Boolean) : [],
-      });
-      setSuccess("Categoria adicionada!");
-      setShowAdd(false);
+      const cap = value === "" ? null : Number(value);
+      await upsertCategoryOverride(workspace.id, cat.code, { monthly_cap: cap }, "cap");
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.detail : "Erro ao adicionar");
+      setError(err instanceof ApiError ? err.detail : "Erro ao atualizar teto");
     }
   }
 
-  async function handleDelete() {
-    if (!deleteTarget?.id) return;
+  async function handleSaveLabel(cat: CategoryConfig, value: string) {
+    if (value === cat.name || value.trim() === "") return;
     try {
-      await deleteCategory(workspace.id, deleteTarget.id);
+      await upsertCategoryOverride(workspace.id, cat.code, { name: value }, "label");
       await reload();
-    } catch { setError("Erro ao remover"); }
-    setDeleteTarget(null);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.detail : "Erro ao atualizar nome");
+    }
   }
 
-  async function handleSaveKeywords(cat: CategoryConfig, newKeywords: string[]) {
-    if (!cat.id) {
-      setError("Esta categoria ainda não foi salva no banco. Remova e recrie para editar keywords.");
-      return;
-    }
+  async function handleSaveKeywords(cat: CategoryConfig, kws: string[]) {
     try {
-      await updateCategory(workspace.id, cat.id, { keywords: newKeywords });
-      setEditingId(null);
+      await upsertCategoryOverride(workspace.id, cat.code, { keywords: kws }, "keywords");
       await reload();
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Erro ao atualizar keywords");
     }
   }
 
-  async function handleUpdateCap(cat: CategoryConfig, val: string) {
-    if (!cat.id) return;
+  async function handleToggleActive(cat: CategoryConfig, nextActive: boolean) {
     try {
-      await updateCategory(workspace.id, cat.id, { monthly_cap: val ? Number(val) : null });
+      if (nextActive) {
+        await resetCategoryOverride(workspace.id, cat.code);
+      } else {
+        await disableCategoryOverride(workspace.id, cat.code);
+      }
       await reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.detail : "Erro ao atualizar teto");
+      setError(err instanceof ApiError ? err.detail : "Erro ao alternar categoria");
     }
+  }
+
+  async function handleResetConfirmed(cat: CategoryConfig) {
+    try {
+      await resetCategoryOverride(workspace.id, cat.code);
+      await reload();
+      // V1 oferece undo só como copy ("Padrão restaurado") sem ação reversa.
+      // V2 do learning loop pode capturar pre-state e restaurar.
+      toast.success("Padrão restaurado", {
+        description: `${cat.name} voltou às keywords default.`,
+        duration: 8000,
+      });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.detail : "Erro ao restaurar padrão");
+    }
+    setResetTarget(null);
+  }
+
+  function requestReset(cat: CategoryConfig) {
+    if (!hasCustomKeywords(cat)) {
+      void handleResetConfirmed(cat);
+      return;
+    }
+    setResetTarget(cat);
   }
 
   async function handleReclassify() {
@@ -145,205 +209,118 @@ function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
     );
   }
 
-  return (
-    <div>
+  const categoriesContent = (
+    <div className="space-y-4">
       {error && (
-        <div className="mb-4 rounded-lg bg-loss/10 p-3 text-sm text-loss">
-          {error} <button onClick={() => setError("")} className="ml-2 underline">fechar</button>
-        </div>
-      )}
-      {success && (
-        <div className="mb-4 rounded-lg bg-gain/10 p-3 text-sm text-gain">
-          {success} <button onClick={() => setSuccess("")} className="ml-2 underline">fechar</button>
+        <div className="rounded-lg bg-loss/10 p-3 text-sm text-loss">
+          {error}{" "}
+          <button onClick={() => setError("")} className="ml-2 underline">
+            fechar
+          </button>
         </div>
       )}
 
-      {/* Stats + Filter */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex gap-2 text-xs">
-          <StatusBadge variant="error">{expenses.length} despesas</StatusBadge>
-          <StatusBadge variant="success">{incomes.length} receitas</StatusBadge>
-          <StatusBadge variant="neutral">
-            {categories.reduce((s, c) => s + c.keywords.length, 0)} keywords total
-          </StatusBadge>
-        </div>
-        <div className="flex gap-1 rounded-lg border border-border p-0.5 text-xs">
-          {(["all", "expense", "income"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`rounded-md px-2.5 py-1 transition ${
-                filter === f ? "bg-card shadow-sm font-medium" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {f === "all" ? "Todas" : f === "expense" ? "Despesas" : "Receitas"}
-            </button>
-          ))}
-        </div>
-      </div>
+      <CategoriesHeader
+        expensesCount={expenses.length}
+        incomesCount={incomes.length}
+        customizedCount={customizedCount}
+        filter={filter}
+        onFilterChange={setFilter}
+        showOnlyCustomized={showOnlyCustomized}
+        onShowOnlyCustomizedChange={setShowOnlyCustomized}
+      />
 
-      {/* Category List */}
       <div className="space-y-2">
-        {filtered.map((cat) => (
-          <CategoryCard
-            key={cat.id ?? cat.code}
-            cat={cat}
-            isEditing={editingId === cat.id}
-            onToggleEdit={() => setEditingId(editingId === cat.id ? null : cat.id ?? null)}
-            onDelete={() => setDeleteTarget(cat)}
-            onSaveKeywords={(kws) => handleSaveKeywords(cat, kws)}
-            onUpdateCap={(val) => handleUpdateCap(cat, val)}
+        {filtered.length === 0 && (
+          <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            {showOnlyCustomized
+              ? "Nenhuma categoria foi personalizada ainda. Edite o teto, nome ou keywords para criar uma personalização."
+              : "Nenhuma categoria encontrada para este filtro."}
+          </div>
+        )}
+        {filtered.map((row) => (
+          <CategoryRow
+            key={row.cat.code}
+            row={row}
+            isEditing={editingKey === row.cat.code}
+            isOutdated={isOutdatedTemplate}
+            onToggleEdit={() =>
+              setEditingKey(editingKey === row.cat.code ? null : row.cat.code)
+            }
+            onToggleActive={(next) => handleToggleActive(row.cat, next)}
+            onSaveCap={(val) => handleSaveCap(row.cat, val)}
+            onSaveLabel={(val) => handleSaveLabel(row.cat, val)}
+            onSaveKeywords={(kws) => handleSaveKeywords(row.cat, kws)}
+            onReset={() => requestReset(row.cat)}
           />
         ))}
       </div>
 
-      {/* Add */}
-      {showAdd ? (
-        <form onSubmit={handleCreate} className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-3">
-          <h3 className="font-medium">Nova Categoria</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <Input name="code" placeholder="Código (ex: moradia)" required />
-            <Input name="name" placeholder="Nome (ex: Moradia)" required />
-            <select name="category_type" required className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-              <option value="expense">Despesa</option>
-              <option value="income">Receita</option>
-            </select>
-            <Input name="monthly_cap" type="number" step="0.01" placeholder="Teto mensal (opcional)" />
-          </div>
-          <Textarea name="keywords" placeholder="Keywords separadas por vírgula" rows={2} />
-          <div className="flex gap-2">
-            <Button type="submit">Salvar</Button>
-            <Button type="button" variant="outline" onClick={() => setShowAdd(false)}>Cancelar</Button>
-          </div>
-        </form>
-      ) : (
-        <Button variant="outline" className="mt-4 w-full border-dashed" onClick={() => setShowAdd(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar categoria
-        </Button>
-      )}
-
-      {/* Reclassify banner — dev-only (gating por is_developer) */}
       {isDeveloper && (
-      <div className="mt-6 rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium">Recategorizar e gerar novo relatório</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Aplica as keywords editadas a todas as transações (despesas e receitas), refaz a análise e cria um relatório novo no histórico. Os relatórios anteriores ficam preservados.
-            </p>
-            {reclassifyStatus === "success" && (
-              <p className="text-xs text-gain mt-1">
-                Recategorização iniciada. O novo relatório aparecerá no histórico ao concluir.{" "}
-                <Link href="/pipeline" className="underline">Ver progresso.</Link>
-              </p>
-            )}
-            {reclassifyStatus === "conflict" && (
-              <p className="text-xs text-alert mt-1">
-                Já há um reprocessamento em andamento.{" "}
-                <Link href="/pipeline" className="underline">Ver progresso.</Link>
-              </p>
-            )}
-            {reclassifyStatus === "error" && (
-              <p className="text-xs text-loss mt-1">Não foi possível iniciar a recategorização. Tente novamente em instantes.</p>
-            )}
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleReclassify}
-            disabled={reclassifying}
-            className="shrink-0"
-          >
-            {reclassifying ? <Spinner size="sm" className="mr-2" /> : null}
-            Recategorizar transações
-          </Button>
-        </div>
-      </div>
+        <ReclassifyBanner
+          reclassifying={reclassifying}
+          status={reclassifyStatus}
+          onReclassify={handleReclassify}
+        />
       )}
 
       <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title={`Remover "${deleteTarget?.name}" e suas ${deleteTarget?.keywords.length ?? 0} keywords?`}
-        confirmLabel="Remover"
+        open={!!resetTarget}
+        onOpenChange={(open) => !open && setResetTarget(null)}
+        title={`Restaurar "${resetTarget?.name}" ao padrão?`}
+        description={
+          resetTarget
+            ? `Isto descartará suas ${resetTarget.keywords.length} keywords personalizadas e voltará às keywords default do template.`
+            : undefined
+        }
+        confirmLabel="Restaurar padrão"
         variant="destructive"
-        onConfirm={handleDelete}
+        onConfirm={() => resetTarget && handleResetConfirmed(resetTarget)}
       />
     </div>
   );
-}
 
-function CategoryCard({ cat, isEditing, onToggleEdit, onDelete, onSaveKeywords, onUpdateCap }: {
-  cat: CategoryConfig;
-  isEditing: boolean;
-  onToggleEdit: () => void;
-  onDelete: () => void;
-  onSaveKeywords: (kws: string[]) => void;
-  onUpdateCap: (val: string) => void;
-}) {
-  const [kwText, setKwText] = useState(cat.keywords.join(", "));
-  const isExpense = cat.category_type === "expense";
+  // Hook extensível: array de tabs (V1 = 1 entrada).
+  // A12.cat-learning-loop V2.A insere uma 2ª entrada aqui (sub-tab
+  // "Regras promovidas") condicional ao gate dogfood.
+  const tabs: CategoryTabSpec[] = [
+    { id: "categories", label: "Categorias", content: categoriesContent },
+  ];
 
   return (
-    <Card>
-      <CardContent className="p-0">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <span className={`inline-flex h-2 w-2 rounded-full ${isExpense ? "bg-loss" : "bg-gain"}`} />
-          <div className="flex-1">
-            <span className="text-sm font-medium">{cat.name}</span>
-            <span className="ml-2 text-xs text-muted-foreground">({cat.code})</span>
-            {cat.monthly_cap != null && (
-              <span className="ml-2 text-xs text-alert">Teto: R$ {cat.monthly_cap.toLocaleString("pt-BR")}</span>
-            )}
-          </div>
-          <span className="text-xs text-muted-foreground">{cat.keywords.length} keywords</span>
-          <Button variant="outline" size="sm" onClick={onToggleEdit}>
-            {isEditing ? "Fechar" : "Editar"}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-destructive"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-
-        {isEditing && (
-          <div className="border-t border-border px-4 py-3 space-y-3">
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <Label className="mb-1 text-xs text-muted-foreground">Teto mensal (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  defaultValue={cat.monthly_cap ?? ""}
-                  placeholder="Sem teto"
-                  onBlur={(e) => onUpdateCap(e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <Label className="mb-1 text-xs text-muted-foreground">Keywords (separadas por vírgula)</Label>
-              <Textarea
-                value={kwText}
-                onChange={(e) => setKwText(e.target.value)}
-                rows={3}
-                className="font-mono text-xs"
-              />
-              <Button
-                size="sm"
-                className="mt-2"
-                onClick={() => onSaveKeywords(kwText.split(",").map((k) => k.trim()).filter(Boolean))}
-              >
-                Salvar keywords
-              </Button>
-            </div>
-          </div>
+    <TooltipProvider>
+      <div>
+        {tabs.length === 1 ? (
+          tabs[0].content
+        ) : (
+          <Tabs defaultValue={tabs[0].id} className="w-full">
+            <TabsList>
+              {tabs.map((t) => (
+                <TabsTrigger key={t.id} value={t.id}>
+                  {t.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {tabs.map((t) => (
+              <TabsContent key={t.id} value={t.id}>
+                {t.content}
+              </TabsContent>
+            ))}
+          </Tabs>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </TooltipProvider>
   );
+}
+
+/** Heurística para decidir se reset destrói trabalho do usuário.
+ *
+ * Como o DTO atual mergeia template + override, não temos o
+ * `default_keywords` separado — usamos `isCustomized` (id != null) como
+ * sinal seguro: qualquer categoria com row em
+ * `workspace_category_overrides` pode ter keywords custom; modal de
+ * confirmação cobre o falso-positivo.
+ */
+function hasCustomKeywords(cat: CategoryConfig): boolean {
+  return cat.id != null;
 }

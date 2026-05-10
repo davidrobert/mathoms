@@ -2,9 +2,10 @@
 id: ADR-185
 type: adr
 title: "Política de edição e evolução de overrides de `category_templates`"
-status: Proposto
-phase: A11
+status: Decidido
+phase: A11.cat-overrides
 date: "2026-05-10"
+decided_at: "2026-05-10"
 relates_to:
   - "[[ADR-091]]"
   - "[[ADR-097]]"
@@ -18,7 +19,7 @@ tags:
   - area/categorization
   - area/backend
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -60,8 +61,8 @@ abrimos a feature de UX de edição:
    ([backend/app/repositories/workspace_category_override_repository.py](../../backend/app/repositories/workspace_category_override_repository.py))
    **não invalida** `category_cache`
    ([backend/app/services/category_cache.py](../../backend/app/services/category_cache.py))
-   após commit. TTL é 300s — em prod, edição de override fica stale por
-   até 5 min no E4.
+   após commit. TTL é 86400s (24h) — em prod, edição de override fica
+   stale por até 24h no E4 sem invalidação ativa.
 4. **Audit mínimo.** Sem coluna de quem editou; padrão Decision A7.2a
    (event-sourced) seria caro pra MVP.
 5. **Teste de migration v1→v2.** Não há fixture; primeira release v2
@@ -151,9 +152,10 @@ de metadata aterrissar, isolar em tabela própria
   que recebe `CategoryOverrideConfig` (value object frozen, ADR-097 D3),
   orquestra: chama repo → commit → `category_cache.invalidate(workspace_id)`
   → log estruturado `mathoms.app.category_override.*` (ADR-110).
-- Falha de invalidação **loga warning, não falha o write** (TTL natural
-  de 300s cuida). Janela aceita: stale ≤ 100 ms entre commit e cache
-  cleared.
+- Falha de invalidação **loga warning, não falha o write**. TTL é
+  safety-net longo (86400s / 24h em `_RESOLVED_TTL_SECONDS`) — invariante
+  de correção é write-through invalidation pós-commit. Janela aceita:
+  stale ≤ 100 ms entre commit e cache cleared.
 - API endpoints
   ([backend/app/api/category_overrides.py](../../backend/app/api/category_overrides.py))
   consomem o service, não o repo direto.
@@ -274,14 +276,24 @@ completo entra quando consultor profissional pedir.
 
 ## Critério de aceite (desta ADR)
 
-- [ ] ADR-185 publicada em `docs/adr/185-politica-de-overrides-de-categoria.md`
-      com `status: Proposto`, `phase: A11`, `date: '2026-05-10'`.
-- [ ] Wikilink bidirecional: ADR-185 ↔ ADR-137 (frontmatter `relates_to`).
-- [ ] `pre-commit run --all-files` verde (frontmatter, filename↔id, links,
+- [x] ADR-185 publicada em `docs/adr/185-politica-de-overrides-de-categoria.md`
+      com `status: Decidido`, `phase: A11.cat-overrides`, `date: '2026-05-10'`,
+      `decided_at: '2026-05-10'`.
+- [x] Wikilink bidirecional: ADR-185 ↔ ADR-137 (frontmatter `relates_to`).
+- [x] `pre-commit run --all-files` verde (frontmatter, filename↔id, links,
       anchors, formato).
-- [ ] PR de implementação (W1+W2+W4 do plano) referencia ADR-185 nos
-      bodies; status flipa para `Decidido (Sprint A11.cat-overrides)` no
-      merge da última onda.
+- [x] PR de implementação (W1+W2+W4 do plano) referencia ADR-185 nos
+      bodies; status flippado para `Decidido (Sprint A11.cat-overrides)` no
+      merge da W4 (lane completa).
+
+## Histórico
+
+- **2026-05-10 · Proposto.** Discussão entre dono + `product-designer` +
+  `data-engineer` + `product-manager` originou as 5 decisões pendentes
+  herdadas de ADR-137.
+- **2026-05-10 · Decidido (Sprint A11.cat-overrides).** Após W1 (PR #187,
+  cache invalidation), W2 (PR #186, schema delta + DTO), W3 (PR #182,
+  ADR Proposto), W4 fecha a feature V1 com UI moderna; flip pós-merge.
 
 ## Ligações
 

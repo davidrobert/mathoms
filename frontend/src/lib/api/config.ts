@@ -129,6 +129,99 @@ export async function deleteCategory(workspaceId: string, id: string): Promise<v
   return apiFetch(`/workspaces/${workspaceId}/config/categories/${id}`, { method: "DELETE" });
 }
 
+// ─── Config: Category Overrides (modern · A7.3 · ADR-137 · ADR-185) ───
+//
+// W4 do PLAN-category-overrides-ux: read+write path consome o template
+// global versionado + overrides por workspace. Read inclui sinal de v
+// desatualizada (`template_version_used` < `latest_template_version`).
+
+/** Wrapper do GET /category-overrides/resolved.
+ *
+ * Carrega `template_version_used` (ativa no resolver) e
+ * `latest_template_version` (MAX(category_templates.template_version)).
+ * UI mostra `AlertCircle` quando `used < latest` (sem CTA — só visual).
+ */
+export interface CategoryListResponseV2 {
+  categories: CategoryConfig[];
+  total: number;
+  template_version_used: number;
+  latest_template_version: number;
+}
+
+export async function listCategoriesResolved(
+  workspaceId: string,
+): Promise<CategoryListResponseV2> {
+  return apiFetch(`/workspaces/${workspaceId}/config/category-overrides/resolved`);
+}
+
+/** Telemetria estruturada — sem PII (workspace_id é UUID, não CPF/email).
+ *
+ * `field_changed` documenta qual dimensão da edição mudou (label/cap/keywords/active),
+ * usado no learning loop V2.A para entender padrões de personalização.
+ */
+type CategoryOverrideField = "label" | "cap" | "keywords" | "active";
+
+function logOverrideEvent(
+  action: "created" | "reset" | "disabled",
+  workspaceId: string,
+  templateKey: string,
+  fieldChanged?: CategoryOverrideField,
+): void {
+  // ADR-110 logging — channel mathoms.frontend.category_override.
+  // Sem PII; payload mínimo. Console é o ponto de extração até o frontend
+  // ter coletor estruturado dedicado.
+  if (typeof window === "undefined") return;
+  const payload = {
+    event: `category_override.${action}`,
+    workspace_id: workspaceId,
+    template_key: templateKey,
+    ...(fieldChanged ? { field_changed: fieldChanged } : {}),
+  };
+  console.info("[mathoms.event]", JSON.stringify(payload));
+}
+
+export async function upsertCategoryOverride(
+  workspaceId: string,
+  templateKey: string,
+  data: {
+    name?: string;
+    monthly_cap?: number | null;
+    keywords?: string[];
+  },
+  fieldChanged?: CategoryOverrideField,
+): Promise<CategoryConfig> {
+  const result = await apiFetch<CategoryConfig>(
+    `/workspaces/${workspaceId}/config/category-overrides/${encodeURIComponent(templateKey)}`,
+    { method: "PUT", body: JSON.stringify(data) },
+  );
+  logOverrideEvent("created", workspaceId, templateKey, fieldChanged);
+  return result;
+}
+
+export async function disableCategoryOverride(
+  workspaceId: string,
+  templateKey: string,
+): Promise<{ template_key: string; status: string }> {
+  const result = await apiFetch<{ template_key: string; status: string }>(
+    `/workspaces/${workspaceId}/config/category-overrides/${encodeURIComponent(templateKey)}`,
+    { method: "DELETE" },
+  );
+  logOverrideEvent("disabled", workspaceId, templateKey, "active");
+  return result;
+}
+
+export async function resetCategoryOverride(
+  workspaceId: string,
+  templateKey: string,
+): Promise<{ template_key: string; status: string }> {
+  const result = await apiFetch<{ template_key: string; status: string }>(
+    `/workspaces/${workspaceId}/config/category-overrides/${encodeURIComponent(templateKey)}/reset`,
+    { method: "POST" },
+  );
+  logOverrideEvent("reset", workspaceId, templateKey);
+  return result;
+}
+
 // ─── Config: Pipeline / Institutions / Report Layout ───
 
 export async function getPipelineConfig(workspaceId: string): Promise<PipelineConfigData> {

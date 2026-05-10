@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 157
-- **Proposto**: 18
+- **Decidido**: 158
+- **Proposto**: 17
 - **Roadmap**: 5
 
 ## Fundação
@@ -300,9 +300,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## categorization
 
-### Proposto (2)
+### Decidido (1)
 
-- [[ADR-185]] — Política de edição e evolução de overrides de `category_templates` · phase A11
+- [[ADR-185]] — Política de edição e evolução de overrides de `category_templates` · phase A11.cat-overrides
+
+### Proposto (1)
+
 - [[ADR-186]] — Promoção de override de transação para regra de categorização (learning loop) · phase A12
 
 ## frontend

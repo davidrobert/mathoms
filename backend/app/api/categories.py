@@ -7,7 +7,7 @@ traduzidos para HTTP por handlers globais em ``main.py``.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.category import (
@@ -42,12 +42,22 @@ def _get_repo(db: AsyncSession = Depends(get_db)) -> CategoryRepository:
 
 @router.get("/categories", response_model=CategoryListResponse)
 async def list_categories(
+    response: Response,
     workspace: Workspace = Depends(get_current_workspace),
     repo: CategoryRepository = Depends(_get_repo),
 ) -> CategoryListResponse:
     # A8.0: `config/categorization.json` deletado em A7.5; workspace sem rows
     # retorna lista vazia. A7.3 catalog/override é o caminho moderno; este
     # endpoint legacy continua para compat frontend até migração futura.
+    #
+    # A11.W4: header ``Deprecation: true`` (RFC 9745) sinaliza drift; sunset
+    # fica em lane futura ``A12.cat-legacy-sunset``. Frontend já consome
+    # ``/category-overrides/resolved``.
+    response.headers["Deprecation"] = "true"
+    response.headers["Link"] = (
+        "</api/workspaces/{workspace_id}/config/category-overrides/resolved>; "
+        'rel="successor-version"'
+    )
     return await uc_list_categories(workspace.id, repo=repo)
 
 

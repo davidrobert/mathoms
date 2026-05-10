@@ -19,7 +19,9 @@ from backend.app.application.category.override_use_cases import (
     upsert_category_override,
 )
 from backend.app.core.database import get_db
+from backend.app.core.deps import get_current_user
 from backend.app.core.tenancy import get_current_workspace
+from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.dto.category import (
     CategoryListResponse,
@@ -60,10 +62,17 @@ async def upsert_override(
     template_key: str,
     body: CategoryUpdateCommand,
     workspace: Workspace = Depends(get_current_workspace),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> CategoryResponse:
     """Cria/atualiza override do workspace para a ``template_key`` dada."""
-    return await upsert_category_override(template_key, body, workspace_id=workspace.id, db=db)
+    return await upsert_category_override(
+        template_key,
+        body,
+        workspace_id=workspace.id,
+        db=db,
+        current_user_id=current_user.id,
+    )
 
 
 @router.delete(
@@ -73,10 +82,16 @@ async def upsert_override(
 async def disable_override(
     template_key: str,
     workspace: Workspace = Depends(get_current_workspace),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> CategoryOverrideStatus:
     """Desabilita categoria via override.disabled=True (não apaga o override)."""
-    await disable_category_override(template_key, workspace_id=workspace.id, db=db)
+    await disable_category_override(
+        template_key,
+        workspace_id=workspace.id,
+        db=db,
+        current_user_id=current_user.id,
+    )
     return CategoryOverrideStatus(template_key=template_key, status="disabled")
 
 
@@ -88,8 +103,14 @@ async def disable_override(
 async def reset_override(
     template_key: str,
     workspace: Workspace = Depends(get_current_workspace),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> CategoryOverrideStatus:
     """Apaga override → categoria volta ao default do template."""
-    await reset_category_override(template_key, workspace_id=workspace.id, db=db)
+    await reset_category_override(
+        template_key,
+        workspace_id=workspace.id,
+        db=db,
+        current_user_id=current_user.id,
+    )
     return CategoryOverrideStatus(template_key=template_key, status="reset")

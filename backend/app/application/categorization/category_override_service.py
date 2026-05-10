@@ -45,18 +45,30 @@ class CategoryOverrideService:
             keywords_override=config.keywords_override,
             monthly_cap_brl_cents_override=config.monthly_cap_brl_cents_override,
             disabled=config.disabled,
+            updated_by_user_id=config.updated_by_user_id,
         )
         await self._session.commit()
         await self._session.refresh(override)
         _invalidate_cache(config, action="upsert")
         return override.id
 
-    async def disable(self, workspace_id: str, template_key: str) -> None:
+    async def disable(
+        self,
+        workspace_id: str,
+        template_key: str,
+        *,
+        updated_by_user_id: Optional[str] = None,
+    ) -> None:
         """Oculta categoria via override.disabled=True (mantém row para auditoria)."""
         config = CategoryOverrideConfig(
-            workspace_id=workspace_id, template_key=template_key, disabled=True
+            workspace_id=workspace_id,
+            template_key=template_key,
+            disabled=True,
+            updated_by_user_id=updated_by_user_id,
         )
-        await self._repo.upsert(workspace_id, template_key, disabled=True)
+        await self._repo.upsert(
+            workspace_id, template_key, disabled=True, updated_by_user_id=updated_by_user_id
+        )
         await self._session.commit()
         _invalidate_cache(config, action="disable")
 
