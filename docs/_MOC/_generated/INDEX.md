@@ -182,7 +182,7 @@
 | ADR-182 | adr | Decidido |  | Vault de documentação operacional Obsidian-friendly em `docs/` | `adr/182-vault-de-documentacao-operacional-obsidian.md` |
 | ADR-183 | adr | Proposto |  | Pilares narrativos da landing — reposicionamento Mathoms 2026 (Fase 4.B COMPETITIVE_PIERRE) | `adr/183-landing-positioning-pillars-2026.md` |
 | ADR-184 | adr | Proposto |  | Stack da landing estática (Hugo + CF Pages) | `adr/184-landing-static-stack-2026.md` |
-| ADR-186 | adr | Proposto |  | Relatório publicado é imutável — conceito de mês fechado | `adr/186-relatorio-publicado-imutavel-mes-fechado.md` |
+| ADR-186 | adr | Decidido |  | Relatório publicado é imutável — conceito de mês fechado | `adr/186-relatorio-publicado-imutavel-mes-fechado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -351,6 +351,7 @@
 | CHG-2026-05-07-ADR-179 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-179.md` |
 | CHG-2026-05-07-ADR-180 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-180.md` |
 | CHG-2026-05-07-ADR-181 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-181.md` |
+| CHG-2026-05-10-FEAT-REPORT-PUBLICATION | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-10-FEAT-REPORT-PUBLICATION.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
 | RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |
 | RULE-composicao-patrimonial-7-categorias | domain-rule |  |  |  | `reference/rules/rule-composicao-patrimonial-7-categorias.md` |
@@ -367,7 +368,7 @@
 | A10.6 | lane | shipped | A10 | Pipeline cutover via `StageConfig.config_store` (ADR-180) | `sprint/A10/lanes/A10-6-pipeline-cutover-via-stageconfig-config-store.md` |
 | A10.7 | lane | shipped | A10 | Seed refactor + `tributario` migration | `sprint/A10/lanes/A10-7-seed-refactor-tributario-migration.md` |
 | A10.8 | lane | in_progress | A10 | Final cutover + `forbidden_paths` (ADR-181) | `sprint/A10/lanes/A10-8-final-cutover-forbidden-paths.md` |
-| A11.report-publication | lane | open | A11 | Report publication — mês fechado imutável | `sprint/A11/lanes/A11-report-publication-month-closed.md` |
+| A11.report-publication | lane | shipped | A11 | Report publication — mês fechado imutável | `sprint/A11/lanes/A11-report-publication-month-closed.md` |
 | A11.w1 | lane | shipped | A11 | Hot patches + ADR backfill (8 tasks) | `sprint/A11/lanes/A11-w1-hot-patches-adr-backfill.md` |
 | A11.w2 | lane | open | A11 | Pipeline + DB hardening (6 tasks) | `sprint/A11/lanes/A11-w2-pipeline-db-hardening.md` |
 | A11.w3 | lane | blocked | A11 | Auth + LLM ops + Email (5 tasks) | `sprint/A11/lanes/A11-w3-auth-llm-ops-email.md` |
@@ -501,7 +502,7 @@
 | TRACK-real-estate-efficiency | track | consumed | A11 | Track — Real estate efficiency feature (ADR-160) | `sprint/A11/tracks/real-estate-efficiency.md` |
 | TRACK-report-a11y-finalize | track | consumed | A11 | Track Report a11y + Playwright finalize — resíduo F12 do Report Premium | `sprint/A11/tracks/report-a11y-finalize.md` |
 | TRACK-report-appearance-menu | track | consumed | A11 | Track Report Appearance Menu — refinement ADR-121 Fase 4 | `sprint/A11/tracks/report-appearance-menu.md` |
-| TRACK-report-publication-impl | track | ready | A11 | Report publication — schema + API + helper (mês fechado imutável) | `sprint/A11/tracks/report-publication-impl.md` |
+| TRACK-report-publication-impl | track | consumed | A11 | Report publication — schema + API + helper (mês fechado imutável) | `sprint/A11/tracks/report-publication-impl.md` |
 | TRACK-report-v1-polish | track | consumed | A11 | Track Report Premium v1 polish — resíduo F13 do Report Premium | `sprint/A11/tracks/report-v1-polish.md` |
 | TRACK-report-v2 | track | consumed | A11 | Track Report Premium UI v2 — meta-prompt + roadmap de execução | `sprint/A11/tracks/report-v2.md` |
 | TRACK-report-v2-changelog-engine | track | consumed | A11 | Track Report v2.D.1 + v2.8 — Snapshot changelog engine + comparisons/changelog ON | `sprint/A11/tracks/report-v2-changelog-engine.md` |

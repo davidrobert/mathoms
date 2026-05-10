@@ -3,17 +3,17 @@ id: A11.report-publication
 type: lane
 title: "Report publication — mês fechado imutável"
 sprint: A11
-status: open
+status: shipped
 aliases: ["A11.REPORT_PUBLICATION", "A11 report publication"]
 priority: P1
 depends_on: []
-parallel_with: ["[[A11.w2]]", "[[A11.w5]]", "[[A11.competitive-pierre]]"]
+parallel_with: ["[[A11.w2]]", "[[A11.w5]]"]
 adrs_canonical:
   - "[[ADR-186]]"
 tags:
   - type/lane
   - sprint/a11
-  - status/open
+  - status/shipped
   - priority/p1
   - area/report
   - area/methodology

@@ -5,11 +5,10 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-3 open.
+2 open.
 
-## Open (3)
+## Open (2)
 
-- [[A11.report-publication]] — Report publication — mês fechado imutável · priority P1
 - [[A11.w2]] — Pipeline + DB hardening (6 tasks) · priority P0
 - [[A11.w5]] — Frontend + Methodology (5 tasks, paralelo W6)
 

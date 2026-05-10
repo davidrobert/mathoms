@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-88 entries entre 2026-04-26 e 2026-05-07.
+89 entries entre 2026-04-26 e 2026-05-10.
+
+## 2026-05-10 (1 entries)
+
+- [[CHG-2026-05-10-FEAT-REPORT-PUBLICATION]] — feat(report): conceito de mês fechado imutável — tabela report_publications, (lane [[A11.report-publication]])
 
 ## 2026-05-07 (14 entries)
 

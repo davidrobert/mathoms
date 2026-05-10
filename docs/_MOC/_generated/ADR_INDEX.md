@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 157
-- **Proposto**: 16
+- **Decidido**: 158
+- **Proposto**: 15
 - **Roadmap**: 5
 
 ## Fundação
@@ -374,9 +374,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## report
 
-### Proposto (1)
+### Decidido (1)
 
-- [[ADR-186]] — Relatório publicado é imutável — conceito de mês fechado · phase A11
+- [[ADR-186]] — Relatório publicado é imutável — conceito de mês fechado · phase A11.report-publication
 
 ## Outras
 

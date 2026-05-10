@@ -2,8 +2,8 @@
 id: ADR-186
 type: adr
 title: "Relatório publicado é imutável — conceito de mês fechado"
-status: Proposto
-phase: A11
+status: Decidido
+phase: A11.report-publication
 date: "2026-05-10"
 relates_to:
   - "[[ADR-129]]"
@@ -16,7 +16,7 @@ tags:
   - area/report
   - area/methodology
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

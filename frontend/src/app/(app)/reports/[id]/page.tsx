@@ -7,6 +7,7 @@ import { getReport, type ReportResponse, ApiError } from "@/lib/api";
 import { useReportData } from "@/hooks/useReportData";
 import { ReportModeProvider } from "@/components/report/ReportModeProvider";
 import { ReportShell } from "@/components/report/ReportShell";
+import { MonthClosedBanner } from "@/components/report/MonthClosedBanner";
 // F3.2: print CSS carregado apenas nesta rota
 import "@/components/report/report-print.css";
 import { Spinner } from "@/components/Spinner";
@@ -150,6 +151,7 @@ function ReportPageContent({ workspace }: { workspace: UserWorkspace }) {
   return (
     <TooltipProvider>
       <ReportModeProvider initialMode="estrategico">
+        <MonthClosedBanner workspaceId={workspace.id} period={report!.period} />
         <ReportShell
           reportId={reportId}
           workspaceId={workspace.id}
