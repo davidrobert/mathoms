@@ -389,31 +389,89 @@ CI pode rodar workflow `nightly-flaky-report.yml` (a criar) que lista tests com 
 
 **Política:** snapshots são artefatos versionados. Mudança em snapshot = mudança visual intencional. Requer revisão manual.
 
-### Workflow
+**Onde vivem:**
+- `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/` — 48 PNGs (estratégico S1-S10 + apêndices APP_A-E + cover, light + dark). Linux-only via job `frontend-visual` (suffix `-linux.png`).
+- `frontend/tests/e2e/reports/__snapshots__/` — print PDF baseline.
+
+### Por que **não** rodar local em macOS
+
+`sections.snapshots.visual.spec.ts` está documentado:
+> _Atualização: ... em CI Linux, nunca local em macOS — pixel rendering diverge._
+
+Font hinting + antialiasing + chart.js canvas variam entre Darwin e Linux mesmo no mesmo Chromium. Baselines geradas em macOS quebram CI Linux e vice-versa.
+
+### Workflow correto (`workflow_dispatch`)
 
 ```bash
-# 1. Rodar local com --update-snapshots (revisar o diff ANTES)
-cd frontend
-npm run test:e2e -- --update-snapshots tests/e2e/<spec>.visual.spec.ts
+# 1. Estar numa branch agent/* com a mudança visual já commitada e pushada.
+git push origin agent/<slug>/<ts>
 
-# 2. Inspecionar os PNG novos
-ls -la tests/e2e/__snapshots__/
+# 2. Disparar regen em runner Linux:
+gh workflow run CI \
+  --repo davidrobert/mathoms \
+  --ref agent/<slug>/<ts> \
+  -f run_visual=true \
+  -f update_visual_baselines=true
 
-# 3. Commitar os snapshots JUNTO com o código da mudança visual
-#    (não em PR separado; revisor precisa do contexto)
-git add tests/e2e/__snapshots__/
-git add src/components/<mudança>
-git commit -m "feat(design): <mudança visual> + snapshots atualizados"
+# 3. Aguardar conclusão (~5-7min). Job intencionalmente termina como
+#    `failure` quando --update-snapshots é passado — isso é esperado;
+#    o que importa é o artefato.
+gh run view <run-id> --json conclusion --jq .conclusion
+
+# 4. Baixar artefato:
+gh run download <run-id> \
+  --repo davidrobert/mathoms \
+  --name report-visual-baselines-generated \
+  --dir /tmp/baselines
+
+# 5. Identificar baselines mudadas (não copiar tudo às cegas):
+SRC=/tmp/baselines/e2e/reports/sections.snapshots.visual.spec.ts-snapshots
+DST=frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots
+for f in $SRC/*.png; do
+  n=$(basename $f)
+  cmp -s "$f" "$DST/$n" 2>/dev/null || echo "CHANGED: $n"
+done
+
+# 6. Copiar e commitar JUNTO com o código da mudança visual:
+cp $SRC/*.png $DST/
+git add $DST/
+git commit -m "test(visual): refresh N baselines pós-<mudança>"
 ```
+
+### Tolerância — `maxDiffPixelRatio` proporcional
+
+Spec usa `maxDiffPixelRatio: 0.025` (2.5%) em vez de `maxDiffPixels` absoluto. Razão: chart.js canvas tem variance natural de 1-2% entre runs no mesmo runner Linux (antialiasing de paths, tooltip positioning, font hinting). Threshold absoluto de 200px (~0.007% em S2) gerava flake crônico.
+
+**Cuidado ao combinar com `maxDiffPixels` absoluto:** Playwright usa `Math.min(absoluto, ratio×area)`. O piso absoluto anula o ratio em imagens grandes. Use **só** ratio.
+
+### Layout PR + regen no MESMO PR (anti-débito)
+
+PRs que alteram dimensões/layout do `<article>` do report devem:
+1. Fazer a mudança em código.
+2. Disparar `workflow_dispatch` com `update_visual_baselines=true` na mesma branch.
+3. Commitar os baselines refreshed no mesmo PR.
+
+Anti-padrão histórico (#147, #148, #150, #151, #153, #155, #169, #160): cada um disse "snapshot precisará ser regenerado em CI" e mergeou sem fazer. Resultado: gate visual ficou crônicamente vermelho em main, e PRs subsequentes herdaram débito que não introduziram. PR #174 (2026-05-10) fechou ~24 baselines de drift acumulado.
+
+### Hooks/cards consumidores de API — guard obrigatório
+
+Hooks que fazem `setX(resp.X)` sem guard quebram o relatório inteiro via ErrorBoundary quando shape parcial chega (mock incompleto, backend degradado, retorno parcial em alta carga). Padrão correto:
+
+```ts
+setSuggestions(Array.isArray(resp?.suggestions) ? resp.suggestions : []);
+```
+
+Já aplicado em `useSuggestions`/`useDecisions` (PR #165). Aplicar a todo hook novo que consume lista do backend.
 
 ### PR template checkbox
 
-Toda PR que altera `tests/e2e/__snapshots__/` deve marcar:
+Toda PR que altera `frontend/tests/e2e/reports/*-snapshots/` deve marcar:
 
 ```markdown
-- [ ] Snapshots atualizados são **intencionais** (change visual esperada)
-- [ ] Incluí screenshot do diff na descrição do PR (antes/depois)
-- [ ] Testei em light + dark mode local
+- [ ] Baselines refreshed via `workflow_dispatch` em runner Linux (não local em macOS)
+- [ ] Diff contra baselines anteriores é **intencional** (change visual esperada)
+- [ ] Refresh está no MESMO PR da mudança visual (não follow-up)
+- [ ] Testei mentalmente light + dark
 ```
 
 ### CODEOWNERS
@@ -421,7 +479,7 @@ Toda PR que altera `tests/e2e/__snapshots__/` deve marcar:
 `.github/CODEOWNERS` requer review de designer (ou founder) para mudanças em snapshots:
 
 ```
-/frontend/tests/e2e/__snapshots__/ @davidrobert
+/frontend/tests/e2e/reports/*-snapshots/ @davidrobert
 ```
 
 ---
