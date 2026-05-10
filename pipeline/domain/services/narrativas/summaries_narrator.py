@@ -17,6 +17,7 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_num,
     fmt_percent,
     fmt_usd,
+    pluralize,
 )
 
 
@@ -38,17 +39,21 @@ class SummariesNarrator:
         M = metrics
         _endereco = family.get("endereco", {}) or {}
 
+        _n_dec = len(decisoes)
+        _dec_label = pluralize(
+            _n_dec, "decisão estratégica prioritária", "decisões estratégicas prioritárias"
+        )
         s10 = (
             (
-                f"{len(decisoes)} decisões estratégicas prioritárias: iniciar aporte mensal de {fmt_currency(M['meta_aporte_mensal'])} "
+                f"{_n_dec} {_dec_label}: iniciar aporte mensal de {fmt_currency(M['meta_aporte_mensal'])} "
                 f"({fmt_currency(M['aporte_cofrinhos'])} Cofrinhos, {fmt_currency(M['aporte_ipca_plus'])} IPCA+, "
                 f"{fmt_currency(M['aporte_ivvb11'])} IVVB11, {fmt_currency(M['aporte_wise_usd'])} Wise USD), "
                 + ", ".join(decisoes[1:4])
                 + "."
             )
-            if len(decisoes) > 3
+            if _n_dec > 3
             else (
-                f"{len(decisoes)} decisões estratégicas prioritárias: iniciar aporte mensal de "
+                f"{_n_dec} {_dec_label}: iniciar aporte mensal de "
                 f"{fmt_currency(M['meta_aporte_mensal'])}."
             )
         )
