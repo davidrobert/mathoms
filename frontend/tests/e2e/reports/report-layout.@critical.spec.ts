@@ -94,4 +94,69 @@ test.describe("Report shell layout @critical", () => {
       `FAB z-index (${stacking.fabZ}) deve ser ≥ TopNav z-index (${stacking.topnavZ}) para não sumir atrás do header sticky`,
     ).toBeGreaterThanOrEqual(stacking.topnavZ);
   });
+
+  test('Desktop: "Voltar ao topo" aparece após scroll e funciona', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1512, height: 945 });
+    const { workspaceId, reportId } = await mockReportPage(page);
+    await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+    await waitForReportReady(page);
+
+    const backToTop = page.getByRole("button", { name: /Voltar ao topo/i });
+
+    // Estado inicial: invisível
+    await expect(backToTop).toHaveAttribute("data-visible", "false");
+
+    // Rola além do limiar showAfter=400px. FloatingNav resolve o scroll
+    // container automaticamente: no AppShell atual o `<main>` declara
+    // overflow-y mas se estica para conteúdo (scrollHeight==clientHeight),
+    // logo quem rola de fato é o `window`/body.
+    await page.evaluate(() => window.scrollTo({ top: 1500 }));
+
+    // FAB aparece após o listener detectar o scroll
+    await expect(backToTop).toHaveAttribute("data-visible", "true");
+
+    // Click → volta ao topo via scrollTo do scroll container resolvido
+    await backToTop.click();
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), { timeout: 3000 })
+      .toBeLessThan(50);
+    await expect(backToTop).toHaveAttribute("data-visible", "false");
+  });
+
+  test("Mobile (390×844): FAB Índice abre dialog do TOC", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const { workspaceId, reportId } = await mockReportPage(page);
+    await page.goto(`/reports/${reportId}?workspace=${workspaceId}`);
+    await waitForReportReady(page);
+
+    const indexBtn = page.getByRole("button", {
+      name: /Abrir índice do relatório/i,
+    });
+    await expect(indexBtn).toBeVisible();
+
+    const dialogOpen = await page.evaluate(() => {
+      const d = document.querySelector(
+        'dialog[aria-label="Índice do relatório"]',
+      ) as HTMLDialogElement | null;
+      return d?.open ?? false;
+    });
+    expect(dialogOpen).toBe(false);
+
+    await indexBtn.click();
+
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const d = document.querySelector(
+              'dialog[aria-label="Índice do relatório"]',
+            ) as HTMLDialogElement | null;
+            return d?.open ?? false;
+          }),
+        { timeout: 2000 },
+      )
+      .toBe(true);
+  });
 });
