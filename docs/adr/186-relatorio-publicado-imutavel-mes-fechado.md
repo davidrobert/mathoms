@@ -119,14 +119,53 @@ com janela de "edição quente" antes.
 
 ## Critério de aceite
 
-- [ ] Tabela `report_publications` criada via Alembic.
-- [ ] Endpoint `POST /workspaces/{ws}/reports/{period}/publish` +
+- [x] Tabela `report_publications` criada via Alembic.
+- [x] Endpoint `POST /workspaces/{ws}/reports/{period}/publish` +
       `DELETE` (unpublish) com `response_model` explícito ([[ADR-109]]).
-- [ ] Helper `is_month_closed()` documentado + testes unitários.
-- [ ] Indicador visual de "mês fechado" no relatório (badge cinza no
-      header da seção mensal).
-- [ ] Documentação `docs/reference/REPORT_PUBLICATION.md` explicando
+- [x] Helper `is_month_closed()` documentado + testes unitários.
+- [x] Indicador visual de "mês fechado" no relatório (banner cinza V1
+      acima do shell). Badge por seção fica como débito V2.
+- [x] Documentação `docs/reference/REPORT_PUBLICATION.md` explicando
       semântica + invariantes.
+
+## Débitos não-bloqueantes (gate triplo 2026-05-10)
+
+Aprovação com ressalvas — débitos rastreáveis para sprint posterior:
+
+**Engenharia de dados:**
+- Wrap `repo.add` em `IntegrityError → ConflictError` no service para
+  cobrir race condition entre `get_active` e `add` em Postgres
+  multi-worker. Hoje confiamos no check prévio + partial unique;
+  na prática vai 500 antes do conflict handler.
+- `compute_immutable_hash`: passar `allow_nan=False` em `json.dumps`
+  para falhar cedo se snapshot E7 emitir `NaN`/`Infinity` (JSON inválido).
+- Teste de regressão de hash com `Decimal("1234.56")` serializado +
+  roundtrip via JSONB para garantir estabilidade quando o snapshot
+  contém Money strings.
+- Documentar em `REPORT_PUBLICATION.md`: (a) `actor` em `unpublish_month`
+  é reservado V2 (não persistido em V1); (b) FK `ON DELETE RESTRICT`
+  exige despublicar antes de purgar artefato (cleanup futuro).
+
+**UX / produto:**
+- Estender `<Alert/>` com `severity="neutral"` e migrar `MonthClosedBanner`
+  para o componente do design system (V1 usa div custom por ausência
+  dessa severity).
+- Hash visível em recibo de publicação (rodapé PDF + audit modal em
+  `/config`), não inline na UI do relatório.
+- Badge "Publicado" no header de cada seção S1–S7 quando dados vêm de
+  snapshot (reforço local em scroll longo).
+- SSR/skeleton no banner para eliminar flash assíncrono pós-shell.
+- CTA "Despublicar" (com confirmação destrutiva) restrita a
+  planejador/owner em `/config` — não inline no banner.
+- Validar com 3-5 entrevistas premium antes de auto-publish V2 (risco
+  de quebra de trust se sistema fecha sozinho durante análise).
+- Granularidade sub-mensal para "cenário comparativo congelado"
+  (snapshot ad-hoc por data) — pode exigir esquema separado.
+
+**Comunicação ao cliente:**
+- Backfill manual para clientes legados documentado em release notes
+  da A11 ("workspaces existentes ficam abertos por default; suporte
+  pode marcar mês fechado retroativo a pedido").
 
 ## Handoffs
 

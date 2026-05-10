@@ -56,20 +56,21 @@ export function MonthClosedBanner({ workspaceId, period }: MonthClosedBannerProp
       style={{
         marginTop: 12,
         marginBottom: 12,
-        padding: "10px 14px",
-        borderRadius: 8,
+        padding: "14px 18px",
+        borderRadius: "var(--radius-lg, 8px)",
         background: "var(--surface-muted)",
         color: "var(--surface-muted-foreground)",
+        borderLeft: "4px solid var(--surface-muted-foreground)",
         display: "flex",
-        alignItems: "center",
-        gap: 8,
-        fontSize: "0.875rem",
+        alignItems: "flex-start",
+        gap: 12,
+        fontSize: "var(--report-font-size-base, 13px)",
       }}
     >
-      <Lock className="h-4 w-4" aria-hidden="true" />
+      <Lock className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
       <span>
-        Relatório publicado em {formatPublishedAt(publication.published_at)}.
-        Mudanças retroativas bloqueadas para este mês.
+        Relatório fechado em {formatPublishedAt(publication.published_at)}.
+        Esta é a foto do mês — alterações futuras não modificam o que você já recebeu.
       </span>
     </div>
   );
