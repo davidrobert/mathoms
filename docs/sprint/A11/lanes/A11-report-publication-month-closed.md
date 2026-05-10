@@ -9,7 +9,7 @@ priority: P1
 depends_on: []
 parallel_with: ["[[A11.w2]]", "[[A11.w5]]", "[[A11.competitive-pierre]]"]
 adrs_canonical:
-  - "[[ADR-187]]"
+  - "[[ADR-186]]"
 tags:
   - type/lane
   - sprint/a11
@@ -27,12 +27,12 @@ tags:
 > declarado, cenários comparativos, e — quando entrar — a feature
 > `cat-learning-loop` em A12.
 >
-> Decisão arquitetural: [[ADR-187]].
+> Decisão arquitetural: [[ADR-186]].
 
 ## Origem
 
 Co-design `financial-planner` (sessão 2026-05-10) flagou que
-re-categorização retroativa proposta em [[ADR-186]] (learning loop)
+re-categorização retroativa proposta em ADR de learning loop (em rascunho — A12) (learning loop)
 viola snapshot do mês fechado AUVP. Sem conceito de imutabilidade
 temporal, regra criada em maio mudaria gráficos de janeiro, quebrando
 contrato implícito com cliente.
@@ -60,7 +60,7 @@ Mergeia em `main` com:
 - Snapshot OpenAPI atualizado ([[ADR-109]]).
 - Doc `docs/reference/REPORT_PUBLICATION.md` criada.
 - Banner UI mínimo no relatório aparece quando publicação viva.
-- [[ADR-187]] flippada para `Decidido (A11.report-publication)`.
+- [[ADR-186]] flippada para `Decidido (A11.report-publication)`.
 
 ## Status
 

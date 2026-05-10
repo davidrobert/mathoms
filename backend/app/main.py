@@ -30,6 +30,7 @@ from backend.app.api.llm import router as llm_router
 from backend.app.api.me import router as me_router
 from backend.app.api.notifications import router as notifications_router
 from backend.app.api.pipeline import router as pipeline_router
+from backend.app.api.report_publications import router as report_publications_router
 from backend.app.api.reports import router as reports_router
 from backend.app.api.reports_collab import router as reports_collab_router
 from backend.app.api.risks import router as risks_router
@@ -173,6 +174,7 @@ async def _handle_membership(request: Request, exc: MembershipError) -> JSONResp
 #      include_in_schema=False para não poluir o snapshot. Remoção em F7A.
 _ALL_ROUTERS = (
     auth_router,
+    report_publications_router,
     reports_router,
     reports_collab_router,
     vault_router,

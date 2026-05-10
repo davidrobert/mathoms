@@ -30,9 +30,9 @@ tags:
 > **Time-box:** ≤3 dias eng (1 backend + 0,5 frontend para badge mínimo)
 > **Owner sugerido:** `data-engineer` (lead) + `senior-cto` (review API +
 > contrato de imutabilidade)
-> **Decisão arquitetural:** [[ADR-187]]
-> **Habilita** (mas não é mais "fase 0 de"): [[A12.cat-learning-loop]]
-> ([[ADR-186]]) — pré-requisito externo para P2 daquela lane.
+> **Decisão arquitetural:** [[ADR-186]]
+> **Habilita** (mas não é mais "fase 0 de"): A12.cat-learning-loop (lane futura)
+> (ADR de learning loop (em rascunho — A12)) — pré-requisito externo para P2 daquela lane.
 > **Reusabilidade:** mesma invariante atende Decision aggregate, IRPF
 > declarado, cenários comparativos congelados.
 > **Fonte de verdade das regras:** [CLAUDE.md](../../../../CLAUDE.md)
@@ -47,7 +47,7 @@ para qualquer mutação retroativa em dados consolidados.
 
 **Não-objetivos:**
 
-- Não tocar pipeline E4 (consumidor real entra em [[A12.cat-learning-loop]]).
+- Não tocar pipeline E4 (consumidor real entra em A12.cat-learning-loop (lane futura)).
 - Não tocar categorização (schema dessas tabelas é A12 P1).
 - Não auto-publicar (manual V1; auto-publish fica em backlog futuro).
 - Não escrever UI completa de "publicar mês" (só o banner de leitura V1;
@@ -56,7 +56,7 @@ para qualquer mutação retroativa em dados consolidados.
 ## 2. Por que esta lane existe
 
 Co-design `financial-planner` (sessão 2026-05-10) flagou que
-re-categorização retroativa proposta em [[ADR-186]] (learning loop)
+re-categorização retroativa proposta em ADR de learning loop (em rascunho — A12) (learning loop)
 viola snapshot do mês fechado AUVP. Sem barreira temporal, regras criadas
 em maio mudariam gráficos de janeiro, quebrando contrato implícito com
 cliente.
@@ -70,10 +70,10 @@ razões:
    congelados.
 2. **Custo isolado:** 3d eng cabe entre W2 e W3 do PLATFORM_REVIEW sem
    roubar capacidade de hardening.
-3. **Desacopla:** [[A12.cat-learning-loop]] passa a depender de invariante
+3. **Desacopla:** A12.cat-learning-loop (lane futura) passa a depender de invariante
    já em produção, não de fase própria — reduz risco de slippage cruzado.
 
-Ver [[ADR-187]] para racional arquitetural completo.
+Ver [[ADR-186]] para racional arquitetural completo.
 
 ## 3. Entregáveis
 
@@ -180,7 +180,7 @@ class ReportPublicationResponse(BaseModel):
 - Semântica: "publicação viva" vs "despublicada".
 - Default policy: workspace sem linha → mês está em aberto.
 - Quem chama `is_month_closed`: lista atual + futura
-  ([[ADR-186]] §D2 será o primeiro consumidor real em P2).
+  (ADR de learning loop (em rascunho — A12) §D2 será o primeiro consumidor real em P2).
 - Como publicar/despublicar via API.
 - Como o hash é calculado (SHA-256 do snapshot E7 normalizado).
 
@@ -201,14 +201,14 @@ class ReportPublicationResponse(BaseModel):
       §1 ou §10.
 - [ ] Banner UI no relatório aparece quando há publicação viva (teste
       manual + Playwright `@critical` opcional).
-- [ ] [[ADR-187]] flippada para `Decidido (A11.report-publication)`
+- [ ] [[ADR-186]] flippada para `Decidido (A11.report-publication)`
       no PR de merge.
-- [ ] PR description linka `[[ADR-187]]` e `[[A11.report-publication]]`.
+- [ ] PR description linka `[[ADR-186]]` e `[[A11.report-publication]]`.
 
 ## 5. Fora do escopo (não tocar)
 
 - **Não tocar `pipeline/`** — `is_month_closed` é consumido em
-  [[A12.cat-learning-loop]] P3 pelo backend, não pelo pipeline.
+  A12.cat-learning-loop (lane futura) P3 pelo backend, não pelo pipeline.
 - **Não tocar `categorization_*`** — schema dessas tabelas é A12 P1.
 - **Não auto-publicar** — manual V1 (auto-publish fica em backlog futuro).
 - **Não escrever UI de "publicar mês"** — só o banner de leitura V1.
@@ -255,11 +255,11 @@ pre-commit run --all-files
   conceito de mês fechado imutável (ADR-186)").
 - Sinalizar em `docs/sprint/A12/_README.md` §Pré-requisitos externos
   que A11.report-publication mergeou — destrava P2 de
-  [[A12.cat-learning-loop]].
+  A12.cat-learning-loop (lane futura).
 
 ## 9. Por que vale a pena
 
-Habilita [[ADR-186]] (learning loop em A12) sem violar confiança do
+Habilita ADR de learning loop (em rascunho — A12) (learning loop em A12) sem violar confiança do
 cliente (lição Mint: auto-promote silencioso destrói credibilidade).
 Conceito reusável para futuras invariantes (Decision histórica imutável,
 recomendação fiscal arquivada, cenário comparativo congelado). Custo:

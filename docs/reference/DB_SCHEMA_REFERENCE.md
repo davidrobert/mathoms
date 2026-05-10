@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 40
+**Total de tabelas:** 41
 
 ---
 
@@ -37,6 +37,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`pipeline_runs`](#pipelineruns)
 - [`pipeline_stage_logs`](#pipelinestagelogs)
 - [`report_layouts`](#reportlayouts)
+- [`report_publications`](#reportpublications)
 - [`reports`](#reports)
 - [`risks`](#risks)
 - [`stage_reviews`](#stagereviews)
@@ -640,6 +641,32 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - UNIQUE `ix_report_layouts_workspace_id` (workspace_id)
+
+### `report_publications`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id |
+| `period_yyyymm` | `VARCHAR(6)` | no | — | — |
+| `artifact_id` | `INTEGER` | no | — | FK→pipeline_artifacts.id |
+| `published_at` | `DATETIME` | no | — | — |
+| `published_by` | `VARCHAR(64)` | no | — | — |
+| `immutable_hash` | `VARCHAR(64)` | no | — | — |
+| `unpublished_at` | `DATETIME` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- CHECK (`length(period_yyyymm) = 6`) — `ck_report_publications_period_len`
+- FOREIGN KEY (artifact_id) REFERENCES pipeline_artifacts.id ON DELETE RESTRICT — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_report_publications_workspace_id` (workspace_id)
+- `ix_report_publications_workspace_period` (workspace_id, period_yyyymm)
+- UNIQUE `uq_report_publications_active` (workspace_id, period_yyyymm)
 
 ### `reports`
 
@@ -1522,6 +1549,22 @@ type ReportLayout struct {
 	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
 	ConfigJson json.RawMessage `db:"config_json" json:"config_json"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `report_publications` → `type ReportPublication struct`
+
+```go
+type ReportPublication struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	PeriodYyyymm string `db:"period_yyyymm" json:"period_yyyymm"`
+	ArtifactId int `db:"artifact_id" json:"artifact_id"`
+	PublishedAt time.Time `db:"published_at" json:"published_at"`
+	PublishedBy string `db:"published_by" json:"published_by"`
+	ImmutableHash string `db:"immutable_hash" json:"immutable_hash"`
+	UnpublishedAt *time.Time `db:"unpublished_at" json:"unpublished_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
 
