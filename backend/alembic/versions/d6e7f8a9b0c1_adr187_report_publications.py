@@ -1,7 +1,7 @@
 """ADR-187: report_publications — mês fechado imutável.
 
 Revision ID: d6e7f8a9b0c1
-Revises: c5d6e7f8a9b1
+Revises: c5d6e7f8a9b0
 Create Date: 2026-05-10
 
 ADR-187 (A11.report-publication): introduz tabela ``report_publications``
@@ -22,7 +22,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "d6e7f8a9b0c1"
-down_revision: Union[str, Sequence[str], None] = "c5d6e7f8a9b1"
+down_revision: Union[str, Sequence[str], None] = "c5d6e7f8a9b0"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
