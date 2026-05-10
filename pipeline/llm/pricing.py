@@ -6,8 +6,11 @@ import logging
 from typing import Optional
 
 MODEL_PRICING: dict[str, dict[str, float]] = {
-    # Anthropic — Claude 4.x family (2026)
-    "claude-opus-4-7": {"input": 15.0, "output": 75.0},
+    # Anthropic — Claude 4.x family (2026; preços oficiais docs.anthropic.com)
+    "claude-opus-4-7": {"input": 5.0, "output": 25.0},
+    "claude-opus-4-6": {"input": 5.0, "output": 25.0},
+    "claude-opus-4-5": {"input": 5.0, "output": 25.0},
+    "claude-opus-4-1": {"input": 15.0, "output": 75.0},
     "claude-opus-4": {"input": 15.0, "output": 75.0},
     "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
     "claude-sonnet-4-5": {"input": 3.0, "output": 15.0},
@@ -20,15 +23,29 @@ MODEL_PRICING: dict[str, dict[str, float]] = {
     "claude-3-5-haiku": {"input": 1.0, "output": 5.0},
     "claude-3-haiku": {"input": 0.25, "output": 1.25},
     "claude-3-opus": {"input": 15.0, "output": 75.0},
-    # OpenAI
+    # OpenAI — GPT-5.x family (2026)
+    "gpt-5.5": {"input": 5.0, "output": 30.0},
+    "gpt-5.5-pro": {"input": 30.0, "output": 180.0},
+    "gpt-5.4": {"input": 2.5, "output": 15.0},
+    "gpt-5.4-pro": {"input": 30.0, "output": 180.0},
+    "gpt-5.4-mini": {"input": 0.75, "output": 4.5},
+    "gpt-5.4-nano": {"input": 0.20, "output": 1.25},
+    "gpt-5": {"input": 1.25, "output": 10.0},
+    "gpt-5-mini": {"input": 0.25, "output": 2.0},
+    "gpt-5-nano": {"input": 0.05, "output": 0.40},
+    # OpenAI — o-series (reasoning)
+    "o3": {"input": 2.0, "output": 8.0},
+    "o3-pro": {"input": 20.0, "output": 80.0},
+    "o1-preview": {"input": 15.0, "output": 60.0},
+    "o1-mini": {"input": 3.0, "output": 12.0},
+    # OpenAI — GPT-4.x (legados)
     "gpt-4o": {"input": 2.5, "output": 10.0},
     "gpt-4o-mini": {"input": 0.15, "output": 0.6},
     "gpt-4-turbo": {"input": 10.0, "output": 30.0},
     "gpt-4.1": {"input": 2.0, "output": 8.0},
     "gpt-4.1-mini": {"input": 0.4, "output": 1.6},
+    "gpt-4.1-nano": {"input": 0.10, "output": 0.40},
     "gpt-3.5-turbo": {"input": 0.5, "output": 1.5},
-    "o1-preview": {"input": 15.0, "output": 60.0},
-    "o1-mini": {"input": 3.0, "output": 12.0},
     # DeepSeek
     "deepseek-chat": {"input": 0.14, "output": 0.28},
     "deepseek-reasoner": {"input": 0.55, "output": 2.19},
