@@ -44,8 +44,9 @@ class WorkspaceCategoryOverrideRepository:
         keywords_override: Optional[list[str]] = None,
         monthly_cap_brl_cents_override: Optional[int] = None,
         disabled: bool = False,
+        updated_by_user_id: Optional[str] = None,
     ) -> WorkspaceCategoryOverride:
-        """Insere ou atualiza override; (workspace_id, template_key) é unique. Caller comita."""
+        """Insere/atualiza override; ``updated_by_user_id`` populado quando caller tem ``current_user`` (audit ADR-185 §4)."""
         existing = await self.get_by_template_key(workspace_id, template_key)
         target = existing or WorkspaceCategoryOverride(
             workspace_id=workspace_id, template_key=template_key
@@ -54,6 +55,8 @@ class WorkspaceCategoryOverrideRepository:
         target.keywords_override = keywords_override
         target.monthly_cap_brl_cents_override = monthly_cap_brl_cents_override
         target.disabled = disabled
+        if updated_by_user_id is not None:
+            target.updated_by_user_id = updated_by_user_id
         if existing is None:
             self._session.add(target)
         await self._session.flush()

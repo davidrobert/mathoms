@@ -7,10 +7,11 @@ from datetime import datetime, timezone
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.security import create_access_token
-from backend.app.models.category_template import CategoryTemplate
+from backend.app.models.category_template import CategoryTemplate, WorkspaceCategoryOverride
 from backend.tests import factories
 
 
@@ -227,3 +228,44 @@ async def test_reset_with_no_existing_override_is_noop(db: AsyncSession, client:
     await _seed_template(db)
     resp = await client.post(f"/api/workspaces/{ws_id}/config/category-overrides/moradia/reset")
     assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_upsert_records_updated_by_user_id(db: AsyncSession, client: AsyncClient):
+    """A11.W4: API layer cabea ``current_user.id`` ao repo (audit ADR-185 §4)."""
+    user_id, ws_id = await _auth(db, client)
+    await _seed_template(db)
+    resp = await client.put(
+        f"/api/workspaces/{ws_id}/config/category-overrides/moradia",
+        json={"name": "Custom"},
+    )
+    assert resp.status_code == 200
+
+    # Query DB direct — confirma que coluna nasceu populada vs NULL.
+    result = await db.execute(
+        select(WorkspaceCategoryOverride).where(
+            WorkspaceCategoryOverride.workspace_id == ws_id,
+            WorkspaceCategoryOverride.template_key == "moradia",
+        )
+    )
+    row = result.scalar_one()
+    assert row.updated_by_user_id == user_id
+
+
+@pytest.mark.asyncio
+async def test_disable_records_updated_by_user_id(db: AsyncSession, client: AsyncClient):
+    """A11.W4: DELETE também registra audit."""
+    user_id, ws_id = await _auth(db, client)
+    await _seed_template(db)
+    resp = await client.delete(f"/api/workspaces/{ws_id}/config/category-overrides/moradia")
+    assert resp.status_code == 200
+
+    result = await db.execute(
+        select(WorkspaceCategoryOverride).where(
+            WorkspaceCategoryOverride.workspace_id == ws_id,
+            WorkspaceCategoryOverride.template_key == "moradia",
+        )
+    )
+    row = result.scalar_one()
+    assert row.updated_by_user_id == user_id
+    assert row.disabled is True
