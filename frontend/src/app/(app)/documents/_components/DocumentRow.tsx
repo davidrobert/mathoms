@@ -13,7 +13,7 @@ import {
 import type { DocumentResponse } from "@/lib/api";
 import {
   docEffectiveStatus,
-  docTypeLabel,
+  docSubtypeLabel,
   documentDisplayLabel,
   formatBytes,
   formatDate,
@@ -85,7 +85,7 @@ function DocTypeCell({ doc, uncertain }: { doc: DocumentResponse; uncertain: boo
             uncertain ? "text-foreground" : "text-foreground/75",
           )}
         >
-          {docTypeLabel(doc.doc_type)}
+          {docSubtypeLabel(doc.e0_doc_type, doc.doc_type)}
         </span>
         {uncertain && (
           <Tooltip>

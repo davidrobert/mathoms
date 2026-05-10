@@ -101,9 +101,15 @@ def _empty_classification(
     )
 
 
+_RFB_AUTHORED_RULES = frozenset({"irpfdeclaracao", "irpfrecibo"})
+
+
 def _resolve_institution(rule: TypeRule, detected: str | None) -> str | None:
-    # IRPF lista contas bancárias em "Bens e Direitos" — regex de banco bate primeiro
-    if rule.dest_group == "income_tax_br":
+    # Apenas declaração e recibo são emitidos PELA RFB. Informes de rendimentos
+    # são emitidos pela fonte pagadora (banco, administradora) — preservar o
+    # emissor real. Override existe porque a declaração lista bancos em "Bens e
+    # Direitos" e o regex de banco bateria primeiro.
+    if rule.code in _RFB_AUTHORED_RULES:
         return "receitafederal"
     return detected
 

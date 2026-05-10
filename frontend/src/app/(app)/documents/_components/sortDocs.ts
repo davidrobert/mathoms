@@ -1,5 +1,5 @@
 import type { DocumentResponse } from "@/lib/api";
-import { docTypeLabel, institutionLabel } from "@/lib/format";
+import { docSubtypeLabel, institutionLabel } from "@/lib/format";
 import { mimeLabel } from "./fileFormat";
 import type { SortDir, SortKey } from "./SortableHead";
 
@@ -8,7 +8,7 @@ function extractSortValue(doc: DocumentResponse, key: SortKey): string {
     case "original_name":
       return doc.original_name ?? "";
     case "doc_type":
-      return docTypeLabel(doc.doc_type);
+      return docSubtypeLabel(doc.e0_doc_type, doc.doc_type);
     case "content_type":
       return mimeLabel(doc.content_type);
     case "bank_code":
