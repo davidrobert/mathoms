@@ -12,6 +12,10 @@ const LABEL: Record<ReportMode, string> = {
  * ADR-151 (Direção E): Modo Tático removido. ADR-168 (A8.4 PR4): Modo USA
  * removido. Modo Estratégico é único — toggle permanece como ponto de
  * extensão para futuro modo internacional generalizado.
+ *
+ * Cleanup pós-A10: enquanto `modes.length <= 1`, o toggle se auto-oculta
+ * (early-return). Repopular `modes` reativa o tablist sem nenhuma outra
+ * mudança no componente.
  */
 export function ModeToggle({
   className,
@@ -22,6 +26,8 @@ export function ModeToggle({
 }) {
   const { mode, setMode } = useReportMode();
   const modes: readonly ReportMode[] = ["estrategico"];
+
+  if (modes.length <= 1) return null;
 
   return (
     <div
