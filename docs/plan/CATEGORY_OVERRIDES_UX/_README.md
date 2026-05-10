@@ -73,6 +73,7 @@ tags:
 - Audit log event-sourced de mudanças — `updated_by_user_id` cobre necessidade mínima; padrão Decision A7.2a só quando consultor profissional pedir.
 - Sunset do endpoint legacy `/config/categories` — separar para lane `A12.cat-legacy-sunset`.
 - Migration v1→v2 do template — só fixture de teste pending; v2 entra quando o produto pedir.
+- Sub-tab "Regras promovidas" (consumida por V2.A do [PLAN-cat-learning-loop](../CAT_LEARNING_LOOP/_README.md) §V2.A) — V1 deixa **hook estrutural** em tabs extensíveis no `CategoriesTab.tsx` (array configurável de `{id, label, content}`, 1 entrada em V1), mas **não implementa** lista de regras nem mutations. Detalhes em [W4 track §Coordenação cross-lane](../../sprint/A11/tracks/category-overrides-ui-refactor.md).
 
 ## Decisões pré-acordadas
 

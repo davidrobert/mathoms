@@ -239,6 +239,15 @@ workspaces ativos + revert_rate baixo + feedback positivo dogfood):
 
 ### V2.A — Frontend `/config → Categorias`: Regras promovidas + Sugestões
 
+> **Pré-condição estrutural (PM review 2026-05-10):** `CategoriesTab.tsx`
+> deve estar com **tabs/subnav extensíveis** (array configurável de
+> `{id, label, content}`) entregue na W4 da [PLAN-category-overrides-ux](../CATEGORY_OVERRIDES_UX/_README.md)
+> — coordenação documentada no [track W4 §Coordenação cross-lane](../../sprint/A11/tracks/category-overrides-ui-refactor.md).
+> Se hook estrutural **não** existe quando V2 promover (ex.: a tab nasceu
+> flat por engano e o gate de aceitação não pegou), somar **+1d eng** ao
+> custo desta fase para refactor da estrutura antes de adicionar a
+> sub-tab.
+
 - Sub-tab "Regras promovidas" em `CategoriesTab.tsx`: lista paginada
   com `keyword`, `target_category`, `applied_count`, `revert_count`,
   origem; botão "Reverter regra"; botão "Pausar".
