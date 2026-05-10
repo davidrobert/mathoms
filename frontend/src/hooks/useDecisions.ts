@@ -85,6 +85,10 @@ function useDecisionsReload({
       // Boundary defensivo (paridade `useSuggestions`): contrato declara
       // `decisions: Decision[]`, blindamos contra mock/backend devolvendo
       // shape vazio para evitar `.length` em undefined no DecisionTable.
+      if (!Array.isArray(resp?.decisions)) {
+        // Drift de contrato: log para detectar em prod sem assustar usuário.
+        console.warn("[useDecisions] resp.decisions não é array:", resp);
+      }
       setDecisions(Array.isArray(resp?.decisions) ? resp.decisions : []);
     } catch (err) {
       setError(describeError(err, "Erro ao carregar decisões"));

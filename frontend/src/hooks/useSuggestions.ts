@@ -102,6 +102,10 @@ function useReload({
       // por contrato (SuggestionListResponse), mas blindamos contra mock
       // genérico que retorne `{}` ou backend deslocando shape — evita
       // ErrorBoundary em SuggestionCalloutInline.filter() (callsite).
+      if (!Array.isArray(resp?.suggestions)) {
+        // Drift de contrato: log para detectar em prod sem assustar usuário.
+        console.warn("[useSuggestions] resp.suggestions não é array:", resp);
+      }
       setSuggestions(Array.isArray(resp?.suggestions) ? resp.suggestions : []);
     } catch (err) {
       setError(describeError(err, "Erro ao carregar sugestões"));
