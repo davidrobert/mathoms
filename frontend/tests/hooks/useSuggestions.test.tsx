@@ -145,4 +145,20 @@ describe("useSuggestions", () => {
     expect(result.current.error).toBeTruthy();
     expect(result.current.suggestions).toEqual([]);
   });
+
+  it("response sem campo `suggestions` degrada para [] (não derruba consumer)", async () => {
+    // Regressão: catch-all do mock-report.ts e/ou bug do backend que
+    // retorne shape diferente de `{ suggestions: [...] }` derrubava
+    // SuggestionCalloutInline com `Cannot read properties of undefined
+    // (reading 'filter')`, escalando ao ErrorBoundary global do relatório.
+    server.use(
+      http.get(`${API}/workspaces/${WS_ID}/suggestions`, () =>
+        HttpResponse.json({}),
+      ),
+    );
+    const { result } = renderHook(() => useSuggestions(WS_ID, "Pendente"));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.suggestions).toEqual([]);
+    expect(result.current.error).toBe("");
+  });
 });

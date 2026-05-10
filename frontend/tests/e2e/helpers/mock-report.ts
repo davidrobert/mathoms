@@ -170,6 +170,25 @@ export async function mockReportPage(
     if (path.includes("/dashboard")) {
       return json(route, {});
     }
+    // ADR-153/161 — `useSuggestions` (SuggestionCalloutInline em S2/S7/...)
+    // e `getSuggestionsSummary`/`countSuggestions` (banners em /plano).
+    // Catch-all `{}` quebrava `resp.suggestions.filter()` em
+    // SuggestionCalloutInline → ErrorBoundary global → snapshot tests
+    // skipam silenciosamente, smoke spec falha em `data-report-ready`.
+    if (path.endsWith("/suggestions") || path.includes("/suggestions?")) {
+      return json(route, { suggestions: [], total: 0 });
+    }
+    if (path.endsWith("/suggestions/count")) {
+      return json(route, { count: 0 });
+    }
+    if (path.endsWith("/suggestions/summary")) {
+      return json(route, { count: 0, max_severity: null, by_category: {} });
+    }
+    // ADR-136 — `useDecisions` em PlanoDeAcaoSection. Mesmo motivo dos
+    // `/suggestions`: catch-all sem `decisions` quebrava `.filter()`.
+    if (path.endsWith("/decisions") || path.includes("/decisions?")) {
+      return json(route, { decisions: [], total: 0 });
+    }
 
     return json(route, {});
   });
