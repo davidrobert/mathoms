@@ -1,4 +1,4 @@
-"""Repository: ``WorkspaceCategoryOverride`` async (usado pela API CRUD A7.3 · ADR-137)."""
+"""``WorkspaceCategoryOverride`` async CRUD (ADR-137 · A7.3 · A11.W1) — thin; service orquestra commit/cache."""
 
 from __future__ import annotations
 
@@ -45,38 +45,29 @@ class WorkspaceCategoryOverrideRepository:
         monthly_cap_brl_cents_override: Optional[int] = None,
         disabled: bool = False,
     ) -> WorkspaceCategoryOverride:
-        """Insere ou atualiza override; (workspace_id, template_key) é unique."""
+        """Insere ou atualiza override; (workspace_id, template_key) é unique. Caller comita."""
         existing = await self.get_by_template_key(workspace_id, template_key)
+        target = existing or WorkspaceCategoryOverride(
+            workspace_id=workspace_id, template_key=template_key
+        )
+        target.label_override = label_override
+        target.keywords_override = keywords_override
+        target.monthly_cap_brl_cents_override = monthly_cap_brl_cents_override
+        target.disabled = disabled
         if existing is None:
-            new_override = WorkspaceCategoryOverride(
-                workspace_id=workspace_id,
-                template_key=template_key,
-                label_override=label_override,
-                keywords_override=keywords_override,
-                monthly_cap_brl_cents_override=monthly_cap_brl_cents_override,
-                disabled=disabled,
-            )
-            self._session.add(new_override)
-            await self._session.commit()
-            await self._session.refresh(new_override)
-            return new_override
-        existing.label_override = label_override
-        existing.keywords_override = keywords_override
-        existing.monthly_cap_brl_cents_override = monthly_cap_brl_cents_override
-        existing.disabled = disabled
-        await self._session.commit()
-        await self._session.refresh(existing)
-        return existing
+            self._session.add(target)
+        await self._session.flush()
+        return target
 
     async def delete(self, override: WorkspaceCategoryOverride) -> None:
-        """Apagar override → workspace volta ao default do template."""
+        """Apaga override → workspace volta ao default do template. Caller comita."""
         await self._session.delete(override)
-        await self._session.commit()
+        await self._session.flush()
 
     async def delete_all_in_workspace(self, workspace_id: str) -> int:
-        """Apaga todos os overrides do workspace (usado em testes / reset)."""
+        """Apaga todos os overrides do workspace; usado em testes/reset. Caller comita."""
         rows = await self.list_by_workspace(workspace_id)
         for row in rows:
             await self._session.delete(row)
-        await self._session.commit()
+        await self._session.flush()
         return len(rows)
