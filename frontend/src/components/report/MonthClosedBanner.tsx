@@ -26,7 +26,7 @@ function formatPublishedAt(iso: string): string {
   }
 }
 
-/** ADR-186 — banner cinza V1: avisa que o mês está fechado e mudanças retroativas estão bloqueadas. */
+/** ADR-187 — banner cinza V1: avisa que o mês está fechado e mudanças retroativas estão bloqueadas. */
 export function MonthClosedBanner({ workspaceId, period }: MonthClosedBannerProps) {
   const periodYyyymm = normalizePeriodYyyymm(period);
   const [publication, setPublication] = useState<ReportPublicationResponse | null>(null);

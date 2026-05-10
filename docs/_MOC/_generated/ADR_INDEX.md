@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-178 ADRs (ADR-001 a ADR-186) em [`docs/adr/`](../../adr/).
+177 ADRs (ADR-001 a ADR-184) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 158
+- **Decidido**: 157
 - **Proposto**: 15
 - **Roadmap**: 5
 
@@ -371,12 +371,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Decidido (1)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
-
-## report
-
-### Decidido (1)
-
-- [[ADR-186]] — Relatório publicado é imutável — conceito de mês fechado · phase A11.report-publication
 
 ## Outras
 

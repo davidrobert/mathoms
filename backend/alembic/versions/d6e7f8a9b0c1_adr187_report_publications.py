@@ -1,10 +1,10 @@
-"""ADR-186: report_publications — mês fechado imutável.
+"""ADR-187: report_publications — mês fechado imutável.
 
 Revision ID: d6e7f8a9b0c1
 Revises: c5d6e7f8a9b1
 Create Date: 2026-05-10
 
-ADR-186 (A11.report-publication): introduz tabela ``report_publications``
+ADR-187 (A11.report-publication): introduz tabela ``report_publications``
 como evento explícito, imutável e auditável de "relatório publicado /
 mês fechado".
 

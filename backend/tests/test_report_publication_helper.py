@@ -1,4 +1,4 @@
-"""Unit tests do helper canônico ``is_month_closed`` + serviço (ADR-186)."""
+"""Unit tests do helper canônico ``is_month_closed`` + serviço (ADR-187)."""
 
 from __future__ import annotations
 

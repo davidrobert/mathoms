@@ -1,4 +1,4 @@
-"""Report publications API — ADR-186 (mês fechado imutável)."""
+"""Report publications API — ADR-187 (mês fechado imutável)."""
 
 from __future__ import annotations
 

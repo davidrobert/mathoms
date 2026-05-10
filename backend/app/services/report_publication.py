@@ -1,4 +1,4 @@
-"""ReportPublication service — ADR-186 (mês fechado imutável)."""
+"""ReportPublication service — ADR-187 (mês fechado imutável)."""
 
 from __future__ import annotations
 

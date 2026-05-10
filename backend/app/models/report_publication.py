@@ -1,4 +1,4 @@
-"""ReportPublication model — ADR-186 (mês fechado imutável)."""
+"""ReportPublication model — ADR-187 (mês fechado imutável)."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from backend.app.core.database import Base
 
 
 class ReportPublication(Base):
-    """Publicação de relatório (mês fechado) — ADR-186."""
+    """Publicação de relatório (mês fechado) — ADR-187."""
 
     __tablename__ = "report_publications"
 

@@ -1,4 +1,4 @@
-"""ReportPublicationRepository — persistência de ``ReportPublication`` (ADR-186)."""
+"""ReportPublicationRepository — persistência de ``ReportPublication`` (ADR-187)."""
 
 from __future__ import annotations
 

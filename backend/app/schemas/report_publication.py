@@ -1,4 +1,4 @@
-"""Schemas Pydantic para ``report_publications`` (ADR-186 · ADR-109)."""
+"""Schemas Pydantic para ``report_publications`` (ADR-187 · ADR-109)."""
 
 from __future__ import annotations
 

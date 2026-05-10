@@ -1,4 +1,4 @@
-/** Report publications API client (ADR-186). */
+/** Report publications API client (ADR-187). */
 
 import { apiFetch } from "./core";
 

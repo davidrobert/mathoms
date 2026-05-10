@@ -5,11 +5,11 @@ date: "2026-05-10"
 sprint: A11
 lane: "[[A11.report-publication]]"
 adrs:
-  - "[[ADR-186]]"
+  - "[[ADR-187]]"
 summary: |
   feat(report): conceito de mês fechado imutável — tabela report_publications,
   helper canônico is_month_closed, endpoints publish/unpublish/list e banner UI
-  (ADR-186, lane A11.report-publication).
+  (ADR-187, lane A11.report-publication).
 tags:
   - type/changelog-entry
   - sprint/a11
@@ -17,7 +17,7 @@ tags:
   - area/methodology
 ---
 
-# feat(report): mês fechado imutável (ADR-186)
+# feat(report): mês fechado imutável (ADR-187)
 
 Lane standalone A11.report-publication entrega evento explícito,
 imutável e auditável de "relatório publicado / mês fechado". Habilita

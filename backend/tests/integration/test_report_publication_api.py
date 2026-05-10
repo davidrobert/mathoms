@@ -1,4 +1,4 @@
-"""Integration tests da Report Publications API (ADR-186)."""
+"""Integration tests da Report Publications API (ADR-187)."""
 
 from __future__ import annotations
 

@@ -1,7 +1,7 @@
-# Report publication — mês fechado imutável (ADR-186)
+# Report publication — mês fechado imutável (ADR-187)
 
 > Source-of-truth da semântica e dos invariantes.
-> Decisão arquitetural: [ADR-186](../adr/186-relatorio-publicado-imutavel-mes-fechado.md).
+> Decisão arquitetural: [ADR-187](../adr/187-relatorio-publicado-imutavel-mes-fechado.md).
 
 ## Conceito
 
@@ -50,7 +50,7 @@ snapshot E7 normalizado:
 
 Estável entre runs idênticos: re-publicar com mesmo conteúdo produz
 mesmo hash. Mudança real altera hash — detecta tentativa de
-"re-publicar com diferente" silenciosamente (ADR-186 alternativa B).
+"re-publicar com diferente" silenciosamente (ADR-187 alternativa B).
 
 ## Helper canônico — `is_month_closed`
 
@@ -64,7 +64,7 @@ closed = await is_month_closed(workspace_id, "202601", db=db)
 
 | Caller | Uso |
 |---|---|
-| ADR-186 V1 | Banner UI no relatório (`MonthClosedBanner`) e API. |
+| ADR-187 V1 | Banner UI no relatório (`MonthClosedBanner`) e API. |
 | Learning loop (futuro, A12) | Pré-condição para re-categorizar transação retroativa via promoção de regra. |
 | Decision aggregate (futuro) | Bloquear edição de Decision após mês fechado. |
 | IRPF declarado (futuro) | Congelar dedução fiscal na publicação. |
@@ -92,7 +92,7 @@ mês" em `/config` ou no header do relatório) entra em sprint posterior.
 
 ## Onde está o código
 
-- Migration: `backend/alembic/versions/d6e7f8a9b0c1_adr186_report_publications.py`.
+- Migration: `backend/alembic/versions/d6e7f8a9b0c1_adr187_report_publications.py`.
 - Model: `backend/app/models/report_publication.py`.
 - Repository: `backend/app/repositories/report_publication_repository.py`.
 - Service: `backend/app/services/report_publication.py`.
