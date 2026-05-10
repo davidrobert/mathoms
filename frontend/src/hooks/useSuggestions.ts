@@ -98,7 +98,7 @@ function useReload({
     setError("");
     try {
       const resp = await apiList(workspaceId, status);
-      setSuggestions(resp.suggestions);
+      setSuggestions(Array.isArray(resp?.suggestions) ? resp.suggestions : []);
     } catch (err) {
       setError(describeError(err, "Erro ao carregar sugestões"));
     } finally {

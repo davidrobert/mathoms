@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable, Protocol
 
 _CHANGELOG_RECENT_TITLE = "CHANGELOG_RECENT — últimos 14 dias"
@@ -116,10 +116,17 @@ def _render_no_entries(header_fn: Callable[[str], list[str]]) -> list[str]:
     return lines
 
 
+def _today_utc() -> date:
+    """Data corrente em UTC — runner CI vs. dev local (BRT) divergiam ao
+    redor da meia-noite UTC, causando drift recorrente em
+    `CHANGELOG_RECENT.md` (run [25615590101](https://github.com/davidrobert/mathoms/actions/runs/25615590101))."""
+    return datetime.now(timezone.utc).date()
+
+
 def render_changelog_recent(
     entries: list[ChangelogEntryLike],
     header_fn: Callable[[str], list[str]],
-    today_fn: Callable[[], date] = date.today,
+    today_fn: Callable[[], date] = _today_utc,
 ) -> list[str]:
     """Monta as linhas do CHANGELOG_RECENT.md — entrypoint do renderer."""
     if not entries:
