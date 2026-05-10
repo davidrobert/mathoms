@@ -78,6 +78,13 @@ class WorkspaceCategoryOverride(Base):
     keywords_override: Mapped[Optional[list[str]]] = mapped_column(JSON, nullable=True)
     monthly_cap_brl_cents_override: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     disabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # ADR-185 §4 — audit mínima de quem editou; nullable para registros legados
+    # e para writes server-side sem ``current_user``.
+    updated_by_user_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

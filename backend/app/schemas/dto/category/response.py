@@ -39,7 +39,25 @@ class CategoryResponse(BaseModel):
 
 
 class CategoryListResponse(BaseModel):
-    """Wrapper paginação-ready para ``GET /categories``."""
+    """Wrapper para ``GET /categories``; carrega versão de template usada vs. latest (ADR-185 §4)."""
 
+    # ``template_version_used`` / ``latest_template_version`` são metadados da
+    # resolução (não da entidade), por isso moram no wire-shape e não no
+    # domain ``ResolvedCategory``. UI sinaliza v desatualizada quando
+    # ``used < latest`` (sem CTA, só visual — W4).
     categories: list[CategoryResponse]
     total: int
+    template_version_used: int = Field(
+        default=1,
+        ge=1,
+        description="Versão do template ativa para esta resolução.",
+    )
+    latest_template_version: int = Field(
+        default=1,
+        ge=1,
+        description=(
+            "Maior ``template_version`` em ``category_templates``. "
+            "Quando ``template_version_used < latest_template_version`` a UI "
+            "mostra sinal de v desatualizada (sem CTA)."
+        ),
+    )

@@ -76,6 +76,53 @@ async def test_list_resolved_returns_empty_when_no_template(db: AsyncSession, cl
 
 
 @pytest.mark.asyncio
+async def test_list_resolved_includes_template_version_fields(
+    db: AsyncSession, client: AsyncClient
+):
+    """ADR-185 §4: DTO carrega ``template_version_used`` + ``latest_template_version``."""
+    _, ws_id = await _auth(db, client)
+    await _seed_template(db)
+    resp = await client.get(f"/api/workspaces/{ws_id}/config/category-overrides/resolved")
+    assert resp.status_code == 200
+    payload = resp.json()
+    # ``ACTIVE_TEMPLATE_VERSION = 1``; seed só tem v1 → ambos iguais.
+    assert payload["template_version_used"] == 1
+    assert payload["latest_template_version"] == 1
+
+
+async def _seed_v2_row(db: AsyncSession) -> None:
+    """Adiciona 1 row em ``category_templates`` com ``template_version=2`` (sem cobrir v1)."""
+    db.add(
+        CategoryTemplate(
+            id=str(uuid.uuid4()),
+            template_version=2,
+            key="moradia",
+            label="Moradia (v2)",
+            category_type="expense",
+            default_keywords=["ALUGUEL"],
+            sort_order=1,
+            metadata_json={},
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+    )
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_list_resolved_signals_outdated_when_v2_seeded(db: AsyncSession, client: AsyncClient):
+    """v2 seedada com workspace em v1 ⇒ ``used < latest`` (UI mostra sinal sem CTA)."""
+    _, ws_id = await _auth(db, client)
+    await _seed_template(db)
+    await _seed_v2_row(db)
+    resp = await client.get(f"/api/workspaces/{ws_id}/config/category-overrides/resolved")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["template_version_used"] == 1
+    assert payload["latest_template_version"] == 2
+
+
+@pytest.mark.asyncio
 async def test_upsert_creates_override_with_keywords(db: AsyncSession, client: AsyncClient):
     _, ws_id = await _auth(db, client)
     await _seed_template(db)

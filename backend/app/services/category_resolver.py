@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from backend.app.models.category_template import (
@@ -26,6 +26,19 @@ from backend.app.services import category_cache
 METADATA_TEMPLATE_KEY = "__categorization_metadata__"
 
 ACTIVE_TEMPLATE_VERSION = 1
+
+
+def _get_active_template_version() -> int:
+    """Versão do template ativa no resolver (ADR-185 §4; futura feature-flag por workspace)."""
+    return ACTIVE_TEMPLATE_VERSION
+
+
+def _get_latest_template_version(db: Session) -> int:
+    """``MAX(category_templates.template_version)`` — sinal de v desatualizada (ADR-185 §4)."""
+    latest = db.execute(select(func.max(CategoryTemplate.template_version))).scalar()
+    if latest is None:
+        return ACTIVE_TEMPLATE_VERSION
+    return int(latest)
 
 
 @dataclass(frozen=True)
