@@ -31,14 +31,9 @@ export function ReportSection({
       data-report-section
     >
       <header className="mb-6 border-b border-[var(--surface-border)] pb-3">
-        <div className="flex items-baseline gap-3">
-          <span className="font-mono text-sm font-medium text-[var(--brand-primary)]">
-            {id}
-          </span>
-          <h2 className="font-display text-2xl font-bold text-[var(--surface-foreground)]">
-            {title}
-          </h2>
-        </div>
+        <h2 className="font-display text-2xl font-bold text-[var(--surface-foreground)]">
+          {title}
+        </h2>
       </header>
       <div className="grid gap-6 md:grid-cols-2">{children}</div>
     </section>

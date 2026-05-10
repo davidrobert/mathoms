@@ -64,8 +64,17 @@ async function snapshotSection(
   await expect(page.locator(selector)).toHaveScreenshot(
     `${sectionId}.${theme}.png`,
     {
-      // Tolerância — chart.js + tabular-nums podem variar em ~100px.
-      maxDiffPixels: 200,
+      // Tolerância proporcional — chart.js canvas tem não-determinismo
+      // inerente entre runs no mesmo runner Linux (~1-2% da imagem em
+      // antialiasing de paths, tooltip positioning, font hinting). Threshold
+      // anterior `maxDiffPixels: 200` (~0.007% em S2) gerava flake crônico:
+      // PRs #147-#165 mergeavam com gate red mesmo sem regressão real.
+      // 2.5% via `maxDiffPixelRatio` captura mudanças estruturais
+      // (ex.: +35px de altura = 7% diff em S1) sem perseguir variance
+      // de subpixel do canvas. NÃO combinar com `maxDiffPixels` absoluto
+      // — Playwright usa `Math.min(absoluto, ratio×area)`, então o piso
+      // absoluto anula o ratio em imagens grandes.
+      maxDiffPixelRatio: 0.025,
       // Mascarar elementos cuja renderização exata não importa para
       // detecção de regressão estrutural (ex.: timestamps).
       mask: [page.locator("[data-mask-snapshot]")],
