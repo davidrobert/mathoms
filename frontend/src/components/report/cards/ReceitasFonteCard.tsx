@@ -8,11 +8,18 @@ import { usePeriodTransactions } from "@/hooks/usePeriodTransactions";
 import { aggregateReceitas, getPeriodMonths, type Period } from "@/lib/periodUtils";
 import type { FluxoCaixaSummary } from "@/types/report-analysis";
 
+// Cobertura: todas as categorias de receita produzidas pelo pipeline
+// (`pipeline/domain/services/income_origin_resolver.py::_DEFAULT_STATIC_ORIGINS`
+// + `receita_clt`/`receita_pj` resolvidos dinamicamente).
 const FONTE_LABELS: Record<string, string> = {
   receita_clt: "CLT",
   receita_pj: "PJ",
   receita_aluguel: "Aluguéis",
   receita_investimento: "Rendimentos de Investimento",
+  receita_resgate: "Resgates de Aplicações",
+  receita_venda_ativo: "Venda de Ativo",
+  receita_fgts: "FGTS",
+  receita_restituicao: "Restituições",
   outras_receitas: "Outras receitas",
 };
 
