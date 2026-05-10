@@ -284,31 +284,14 @@ const DOC_TYPE_MAP: Record<DocumentType, string> = {
   other: "Outro",
 };
 
+export {
+  E0_DOC_TYPE_MAP,
+  docSubtypeLabel,
+  documentDisplayLabel,
+} from "./documentTypeLabels";
+
 export function docTypeLabel(type: DocumentType | null): string {
   return type ? DOC_TYPE_MAP[type] ?? type : "—";
-}
-
-/**
- * Rótulo de negócio derivado dos campos classificados — `Bradesco · Extrato · mar/2026`.
- *
- * Retorna `null` somente quando faltam dados (sem bank_code E sem doc_type útil).
- * Incerteza de classificação (`needs_review`, confidence baixo) é comunicada
- * pelo ícone ⚠ e pelo status "Revisar" — não aqui. Se a grid já mostra a
- * instituição na coluna "Instituição", faz sentido usá-la também no título.
- */
-export function documentDisplayLabel(doc: {
-  doc_type: DocumentType | null;
-  bank_code: string | null;
-  period: string | null;
-}): string | null {
-  const inst = doc.bank_code ? institutionLabel(doc.bank_code) : null;
-  const type = doc.doc_type && doc.doc_type !== "other" ? docTypeLabel(doc.doc_type) : null;
-  if (!inst && !type) return null;
-  const period = doc.period ? formatDocPeriod(doc.period) : null;
-  const parts = [inst, type, period && period !== "—" ? period : null].filter(
-    (p): p is string => !!p,
-  );
-  return parts.length >= 1 ? parts.join(" · ") : null;
 }
 
 const BANK_NAMES: Record<string, string> = {

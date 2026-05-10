@@ -608,6 +608,26 @@ class TestNewPatterns:
         assert result.dest_group == "income_tax_br"
         assert result.confidence >= 0.7
 
+    def test_quintoandar_comprovante_preserves_real_emitter(self):
+        """Informe de aluguéis NÃO é declaração IRPF — emissor é o QuintoAndar,
+        não a Receita Federal. Override genérico de ``income_tax_br`` foi
+        estreitado (PR seguinte ao #166) para apenas declaração/recibo."""
+        result = classify_text(QUINTOANDAR_COMPROVANTE_ALUGUEIS)
+        assert result.institution == "quintoandar"
+
+    def test_irpf_recibo_preserves_receitafederal_emitter(self):
+        """Recibo IRPF é genuinamente emitido pela RFB — override deve continuar."""
+        result = classify_text(IRPF_RECIBO_RFB)
+        assert result.doc_type == "irpfrecibo"
+        assert result.institution == "receitafederal"
+
+    def test_informe_rendimentos_bancario_preserves_real_bank(self):
+        """Informe de rendimentos bancário (Bradesco, Itaú…) preserva o banco
+        emissor — sem virar 'receitafederal' por causa do dest_group."""
+        result = classify_text(IRPF_INFORME_RENDIMENTOS)
+        assert result.doc_type == "informerendimentos"
+        assert result.institution == "bradesco"
+
     def test_c6_invest_institution(self):
         """'C6 Invest' no app → c6bank."""
         assert detect_institution_by_content(C6_INVEST_CDB) == "c6bank"

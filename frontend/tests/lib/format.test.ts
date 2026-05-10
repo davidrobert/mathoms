@@ -20,6 +20,7 @@ import {
   docEffectiveStatus,
   docStatusLabel,
   isDocumentClassifiedOk,
+  docSubtypeLabel,
   docTypeLabel,
   documentDisplayLabel,
   fileFormatLabel,
@@ -444,6 +445,24 @@ describe("docTypeLabel()", () => {
   });
 });
 
+describe("docSubtypeLabel()", () => {
+  it("informerendimentosaluguel → 'Informe de aluguéis (IRPF)'", () => {
+    expect(docSubtypeLabel("informerendimentosaluguel", "irpf")).toBe("Informe de aluguéis (IRPF)");
+  });
+  it("informerendimentos → 'Informe de rendimentos (IRPF)'", () => {
+    expect(docSubtypeLabel("informerendimentos", "irpf")).toBe("Informe de rendimentos (IRPF)");
+  });
+  it("irpfdeclaracao → 'Declaração IRPF'", () => {
+    expect(docSubtypeLabel("irpfdeclaracao", "irpf")).toBe("Declaração IRPF");
+  });
+  it("e0_doc_type desconhecido → fallback para docTypeLabel(doc_type)", () => {
+    expect(docSubtypeLabel("subtipo_xyz", "bank_statement" as DocumentType)).toBe("Extrato");
+  });
+  it("e0_doc_type null → fallback para docTypeLabel(doc_type)", () => {
+    expect(docSubtypeLabel(null, "credit_card_bill" as DocumentType)).toBe("Fatura");
+  });
+});
+
 describe("bankLabel()", () => {
   it.each([
     ["itau", "Itaú"],
@@ -691,6 +710,26 @@ describe("documentDisplayLabel()", () => {
     expect(
       documentDisplayLabel({ doc_type: "other", bank_code: null, period: null }),
     ).toBeNull();
+  });
+
+  it("usa label do e0_doc_type quando presente — 'Informe de aluguéis (IRPF)'", () => {
+    const out = documentDisplayLabel({
+      doc_type: "irpf",
+      e0_doc_type: "informerendimentosaluguel",
+      bank_code: "quintoandar",
+      period: "2025",
+    });
+    expect(out).toBe("QuintoAndar · Informe de aluguéis (IRPF) · 2025");
+  });
+
+  it("e0_doc_type desconhecido cai pro doc_type genérico", () => {
+    const out = documentDisplayLabel({
+      doc_type: "irpf",
+      e0_doc_type: "subtipo_que_nao_existe",
+      bank_code: "bradesco",
+      period: "2025",
+    });
+    expect(out).toBe("Bradesco · IRPF · 2025");
   });
 
   it("retorna null se nenhum campo presente", () => {
