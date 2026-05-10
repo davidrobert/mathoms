@@ -5,14 +5,14 @@ title: "Report publication — schema + API + helper (mês fechado imutável)"
 lane: "[[A11.report-publication]]"
 sprint: A11
 plan: null
-status: ready
+status: consumed
 created_at: "2026-05-10"
-consumed_at: null
+consumed_at: "2026-05-10"
 agent_role: data-engineer + senior-cto
 tags:
   - type/track
   - sprint/a11
-  - status/ready
+  - status/consumed
   - area/report
   - area/methodology
   - phase/a11
