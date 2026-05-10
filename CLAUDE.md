@@ -80,6 +80,49 @@ deles:
 Cada arquivo `.claude/agents/<nome>.md` tem o briefing completo.
 **Não duplique** o briefing aqui — leia direto.
 
+### Protocolo de delegação
+
+**Co-design > review.** Invoque o especialista ao **planejar** a mudança
+(antes de codar) — com premissas + opções + recomendação inicial — não
+ao final pra "carimbar" PR pronto. O briefing rende mais quando o custo
+de mudar de direção ainda é baixo; consultar tarde produz rubber-stamp
+ou retrabalho caro.
+
+**Gatilhos obrigatórios** — antes de propor decisão/PR que envolva:
+
+| Mudança proposta | Especialista |
+| --- | --- |
+| Dinheiro, fórmula, threshold de domínio, alocação, dívida, reserva, IF, metodologia (Perini/Cerbasi/AUVP) | `financial-planner` |
+| Schema DB, migration Alembic não-trivial, contrato `config/schemas/*`, contrato entre stages (E0→E7), eval/retenção de LLM | `data-engineer` |
+| Componente novo no relatório, copy de produto, escolha de gráfico, hierarquia de informação, design token novo | `product-designer` |
+| ADR `Proposto` P0/P1, design de API, modelagem de domínio, refactor estrutural, boundary entre serviços | `senior-cto` |
+| Adoção/substituição de SaaS substantivo (auth, queue, OCR, LLM provider, observability, payment, banking aggregator) | `build-vs-buy` |
+| Pricing, posicionamento, narrativa, ICP/segmentação, resposta competitiva | `gtm-strategist` |
+| Plano canônico (`docs/<TOPIC>_PLAN.md`), curadoria BACKLOG/SPRINT, OKR/KPI, prompt LLM produção | `product-manager` |
+| Política CI/CD, secrets, alerta novo, política de backup/RPO/RTO, capacity, FinOps, hardening | `sre-devops` |
+
+Múltiplos gatilhos → invoque os especialistas em **paralelo** (1 mensagem,
+N `Agent` calls). Brief mínimo: contexto + premissas + opções consideradas
++ recomendação inicial + pergunta clara ("objeção? trade-off perdido?
+ADR ignorada?"). **NÃO peça código** ao especialista — peça **decisão
+ou revisão**. Execução é do agente principal.
+
+**NÃO delegue para:**
+
+- Bug fix simples (≤30 linhas, com teste de regressão).
+- Refactor mecânico, rename, typo, cleanup, diff formatter-only.
+- Codegen automático (`frontend/src/generated/`, OpenAPI snapshot,
+  `design-tokens/build.py`, `dev/codegen_report_layout.py`).
+- Mudança que apenas conforma a uma ADR já decidida sem reabrir a
+  decisão.
+- Mesmo especialista, mesmo escopo, mesma sessão — não re-invoque
+  só pra carimbar.
+
+**Anti-loop.** Objeção do especialista → **1 rodada** de ajuste no plano.
+Se a objeção persistir, escale para `senior-cto` que **decide e fecha**.
+Sem ping-pong: o custo de bloquear o trabalho excede o ganho de mais
+uma rodada.
+
 **Catálogo extensível.** O senior-cto tem autonomia (`Write`/`Edit` em
 `.claude/agents/`) para criar novo especialista quando identificar gap
 de domínio recorrente não coberto pelos atuais. Critérios e protocolo
