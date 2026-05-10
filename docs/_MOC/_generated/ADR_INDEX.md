@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-177 ADRs (ADR-001 a ADR-184) em [`docs/adr/`](../../adr/).
+178 ADRs (ADR-001 a ADR-185) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 157
-- **Proposto**: 15
+- **Proposto**: 16
 - **Roadmap**: 5
 
 ## Fundação
@@ -297,6 +297,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (1)
 
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
+
+## categorization
+
+### Proposto (1)
+
+- [[ADR-185]] — Política de edição e evolução de overrides de `category_templates` · phase A11
 
 ## frontend
 

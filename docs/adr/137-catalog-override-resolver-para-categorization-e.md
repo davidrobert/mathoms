@@ -5,7 +5,7 @@ title: "Catalog + override resolver para `categorization` e `institutions`"
 status: Decidido
 phase: "Sprint A7"
 date: "2026-04-26"
-relates_to: ["[[ADR-097]]"]
+relates_to: ["[[ADR-097]]", "[[ADR-185]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 137"]

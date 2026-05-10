@@ -182,6 +182,7 @@
 | ADR-182 | adr | Decidido |  | Vault de documentação operacional Obsidian-friendly em `docs/` | `adr/182-vault-de-documentacao-operacional-obsidian.md` |
 | ADR-183 | adr | Proposto |  | Pilares narrativos da landing — reposicionamento Mathoms 2026 (Fase 4.B COMPETITIVE_PIERRE) | `adr/183-landing-positioning-pillars-2026.md` |
 | ADR-184 | adr | Proposto |  | Stack da landing estática (Hugo + CF Pages) | `adr/184-landing-static-stack-2026.md` |
+| ADR-185 | adr | Proposto |  | Política de edição e evolução de overrides de `category_templates` | `adr/185-politica-de-overrides-de-categoria.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
