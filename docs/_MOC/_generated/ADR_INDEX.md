@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-178 ADRs (ADR-001 a ADR-185) em [`docs/adr/`](../../adr/).
+180 ADRs (ADR-001 a ADR-187) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 157
-- **Proposto**: 16
+- **Proposto**: 18
 - **Roadmap**: 5
 
 ## Fundação
@@ -300,9 +300,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## categorization
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-185]] — Política de edição e evolução de overrides de `category_templates` · phase A11
+- [[ADR-186]] — Promoção de override de transação para regra de categorização (learning loop) · phase A12
 
 ## frontend
 
@@ -377,6 +378,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Decidido (1)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
+
+## report
+
+### Proposto (1)
+
+- [[ADR-187]] — Relatório publicado é imutável — conceito de mês fechado · phase A11
 
 ## Outras
 
