@@ -145,4 +145,22 @@ describe("useSuggestions", () => {
     expect(result.current.error).toBeTruthy();
     expect(result.current.suggestions).toEqual([]);
   });
+
+  // Regressão: backend/mock genérico devolvendo shape vazio (`{}`) sem
+  // o campo `suggestions` — anteriormente fazia `setSuggestions(undefined)`
+  // → callout filtrava em `undefined.filter()` e disparava ErrorBoundary
+  // (visto em `frontend-visual` job antes do guard PR #157).
+  // Boundary do hook agora coage para `[]` quando shape vem inválido.
+  it("blinda contra resposta sem campo `suggestions`", async () => {
+    server.use(
+      http.get(`${API}/workspaces/${WS_ID}/suggestions`, () =>
+        // shape "vazio" — simula mock catch-all genérico
+        HttpResponse.json({}),
+      ),
+    );
+    const { result } = renderHook(() => useSuggestions(WS_ID, "Pendente"));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.suggestions).toEqual([]);
+    expect(Array.isArray(result.current.suggestions)).toBe(true);
+  });
 });

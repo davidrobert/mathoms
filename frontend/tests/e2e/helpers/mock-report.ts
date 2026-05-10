@@ -167,6 +167,21 @@ export async function mockReportPage(
         total_valor: 0,
       });
     }
+    // ADR-153 — `useSuggestions` (callout S2/S7 + agregador "Próximos
+    // passos") consome este endpoint. Sem rota explícita, catch-all `{}`
+    // fazia `setSuggestions(undefined)` → ErrorBoundary em
+    // `SuggestionCalloutInline.filter()`.
+    if (path.endsWith("/suggestions") || path.endsWith("/suggestions/summary")) {
+      if (path.endsWith("/summary")) {
+        return json(route, { count: 0, max_severity: null, by_category: {} });
+      }
+      return json(route, { suggestions: [], total: 0 });
+    }
+    // ADR-136 — `useDecisions` (Plano de Ação section) consome este
+    // endpoint. Mesma família do bug acima: catch-all `{}` derruba o shell.
+    if (path.endsWith("/decisions")) {
+      return json(route, { decisions: [], total: 0 });
+    }
     if (path.includes("/dashboard")) {
       return json(route, {});
     }

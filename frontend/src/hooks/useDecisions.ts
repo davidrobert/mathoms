@@ -82,7 +82,10 @@ function useDecisionsReload({
     setError("");
     try {
       const resp = await listDecisions(workspaceId);
-      setDecisions(resp.decisions);
+      // Boundary defensivo (paridade `useSuggestions`): contrato declara
+      // `decisions: Decision[]`, blindamos contra mock/backend devolvendo
+      // shape vazio para evitar `.length` em undefined no DecisionTable.
+      setDecisions(Array.isArray(resp?.decisions) ? resp.decisions : []);
     } catch (err) {
       setError(describeError(err, "Erro ao carregar decisões"));
     } finally {

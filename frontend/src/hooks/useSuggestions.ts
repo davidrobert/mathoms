@@ -98,7 +98,11 @@ function useReload({
     setError("");
     try {
       const resp = await apiList(workspaceId, status);
-      setSuggestions(resp.suggestions);
+      // Boundary defensivo: backend deve sempre devolver `suggestions: []`
+      // por contrato (SuggestionListResponse), mas blindamos contra mock
+      // genérico que retorne `{}` ou backend deslocando shape — evita
+      // ErrorBoundary em SuggestionCalloutInline.filter() (callsite).
+      setSuggestions(Array.isArray(resp?.suggestions) ? resp.suggestions : []);
     } catch (err) {
       setError(describeError(err, "Erro ao carregar sugestões"));
     } finally {
