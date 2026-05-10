@@ -1,8 +1,4 @@
-"""Regressão: concordância singular/plural e pontuação dupla em top5_decisoes / s10.
-
-Estende cobertura para imóveis (`s4`, `perfil_familia`) e riscos (`s9`):
-todos compartilham o mesmo padrão `f"{n} <plural>"` que falhava em n=1.
-"""
+"""Regressão: concordância singular/plural e pontuação dupla em top5_decisoes / s10 + s4 + s9 + perfil_familia + bubble_riscos."""
 
 from __future__ import annotations
 
