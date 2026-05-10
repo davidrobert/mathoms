@@ -15,6 +15,27 @@ export interface FloatingTocGroup {
   readonly entries: readonly FloatingTocLink[];
 }
 
+/** Sobe a árvore DOM a partir de `el` até o primeiro ancestral que **rola
+ * de fato** (`overflowY` em `auto`/`scroll` E `scrollHeight > clientHeight`).
+ * Cai em `window` quando nenhum ancestral interno está rolando — caso típico
+ * do AppShell, onde `<main className="overflow-y-auto">` declara o overflow
+ * mas se estica para acomodar conteúdo (sem max-height no flex parent), e
+ * quem rola de fato é o `<body>`/`<html>`. */
+function findScrollContainer(el: HTMLElement): HTMLElement | Window {
+  let cur: HTMLElement | null = el.parentElement;
+  while (cur && cur !== document.documentElement) {
+    const overflowY = getComputedStyle(cur).overflowY;
+    if (
+      (overflowY === "auto" || overflowY === "scroll") &&
+      cur.scrollHeight > cur.clientHeight
+    ) {
+      return cur;
+    }
+    cur = cur.parentElement;
+  }
+  return window;
+}
+
 /** ADR-117 · Fase 4 — botões flutuantes Back-to-top + Go-to-bottom + Índice mobile.
  *
  * Matching `.back-to-top` + `.go-to-bottom` EXEMPLO_DE_RELATORIO.html
@@ -23,6 +44,12 @@ export interface FloatingTocGroup {
  * Botão "Índice" (3º FAB) só aparece em `<lg` (≤1023px), onde a sidebar
  * `ReportToc` está escondida e a faixa do topo pode ter overflow.
  * Drawer usa `<dialog>` nativo (Esc + backdrop click sem JS extra).
+ *
+ * Scroll target: prop `scrollTarget` tem precedência; sem ela, resolve
+ * automaticamente subindo o DOM tree do FAB até o primeiro ancestral
+ * scrollable. Default era `window`, mas o scroll real do AppShell é do
+ * `<main className="flex-1 overflow-y-auto">` — por isso os FABs nunca
+ * apareciam até este fix.
  */
 export function FloatingNav({
   showAfter = 400,
@@ -36,7 +63,11 @@ export function FloatingNav({
   const [showBack, setShowBack] = useState(false);
   const [showBottom, setShowBottom] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [resolvedTarget, setResolvedTarget] = useState<
+    HTMLElement | Window | null
+  >(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const backTopBtnRef = useRef<HTMLButtonElement>(null);
 
   const totalEntries = useMemo(
     () => tocGroups?.reduce((acc, g) => acc + g.entries.length, 0) ?? 0,
@@ -53,23 +84,31 @@ export function FloatingNav({
   }, []);
 
   useEffect(() => {
-    const target = scrollTarget ?? (typeof window !== "undefined" ? window : null);
-    if (!target) return;
+    if (typeof window === "undefined") return;
+    if (scrollTarget) {
+      setResolvedTarget(scrollTarget);
+      return;
+    }
+    const anchor = backTopBtnRef.current;
+    setResolvedTarget(anchor ? findScrollContainer(anchor) : window);
+  }, [scrollTarget]);
+
+  useEffect(() => {
+    if (!resolvedTarget) return;
+    const target = resolvedTarget;
     let frame = 0;
 
+    const isWindow = target === window;
     const update = () => {
-      const scrollTop =
-        target === window
-          ? window.scrollY
-          : (target as HTMLElement).scrollTop;
-      const scrollHeight =
-        target === window
-          ? document.documentElement.scrollHeight
-          : (target as HTMLElement).scrollHeight;
-      const clientHeight =
-        target === window
-          ? window.innerHeight
-          : (target as HTMLElement).clientHeight;
+      const scrollTop = isWindow
+        ? window.scrollY
+        : (target as HTMLElement).scrollTop;
+      const scrollHeight = isWindow
+        ? document.documentElement.scrollHeight
+        : (target as HTMLElement).scrollHeight;
+      const clientHeight = isWindow
+        ? window.innerHeight
+        : (target as HTMLElement).clientHeight;
       setShowBack(scrollTop > showAfter);
       setShowBottom(scrollTop + clientHeight < scrollHeight - showAfter);
     };
@@ -88,18 +127,22 @@ export function FloatingNav({
       target.removeEventListener("scroll", onScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [scrollTarget, showAfter]);
+  }, [resolvedTarget, showAfter]);
 
   const scrollTo = (where: "top" | "bottom") => {
-    const target = scrollTarget ?? null;
+    const target = resolvedTarget ?? window;
+    const isWindow = target === window;
     const top =
       where === "top"
         ? 0
-        : target
-          ? target.scrollHeight
-          : document.documentElement.scrollHeight;
-    if (target) target.scrollTo({ top, behavior: "smooth" });
-    else window.scrollTo({ top, behavior: "smooth" });
+        : isWindow
+          ? document.documentElement.scrollHeight
+          : (target as HTMLElement).scrollHeight;
+    if (isWindow) {
+      window.scrollTo({ top, behavior: "smooth" });
+    } else {
+      (target as HTMLElement).scrollTo({ top, behavior: "smooth" });
+    }
   };
 
   const openIndex = () => dialogRef.current?.showModal();
@@ -117,6 +160,7 @@ export function FloatingNav({
   return (
     <>
       <button
+        ref={backTopBtnRef}
         type="button"
         aria-label="Voltar ao topo"
         onClick={() => scrollTo("top")}
