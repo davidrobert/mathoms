@@ -475,6 +475,7 @@
 | TRACK-a7-5-cleanup | track | consumed | A7 | Track A7.5 — Cleanup final (deletar `config/` + bridges) | `sprint/A7/tracks/a7-5-cleanup.md` |
 | TRACK-a7-6-rules-as-code | track | consumed | A7 | Track A7.6 — Rules-as-code: dissolver `docs/methodology/` | `sprint/A7/tracks/a7-6-rules-as-code.md` |
 | TRACK-a8-trs-real | track | consumed | A8 | Track — A8 TRS real (renda passiva observada + Taxa de Retirada Sustentável efetiva) | `sprint/A8/tracks/a8-trs-real.md` |
+| TRACK-cat-learning-loop-p1-schema | track | ready | A12 | Track Cat Learning Loop P1 — Schema (transaction_overrides.source + categorization_rules) | `sprint/A12/tracks/cat-learning-loop-p1-schema.md` |
 | TRACK-category-overrides-cache-fix | track | consumed | A11 | Track Category Overrides W1 — Cache invalidation + CategoryOverrideService | `sprint/A11/tracks/category-overrides-cache-fix.md` |
 | TRACK-category-overrides-policy-adr | track | consumed | A11 | Track Category Overrides W3 — ADR-185 Proposto (política + escopo + invariantes) | `sprint/A11/tracks/category-overrides-policy-adr.md` |
 | TRACK-category-overrides-schema-delta | track | consumed | A11 | Track Category Overrides W2 — Schema delta (updated_by_user_id + DTO version fields) | `sprint/A11/tracks/category-overrides-schema-delta.md` |

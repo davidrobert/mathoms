@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 41
+**Total de tabelas:** 42
 
 ---
 
@@ -15,6 +15,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`audit_logs`](#auditlogs)
 - [`bank_accounts`](#bankaccounts)
 - [`categories`](#categories)
+- [`categorization_rules`](#categorizationrules)
 - [`category_keywords`](#categorykeywords)
 - [`category_templates`](#categorytemplates)
 - [`data_export_requests`](#dataexportrequests)
@@ -127,6 +128,33 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_categories_workspace_id` (workspace_id)
+
+### `categorization_rules`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `keyword` | `VARCHAR(255)` | no | — | — |
+| `target_category` | `VARCHAR(255)` | no | — | — |
+| `priority` | `INTEGER` | no | server: `100` | — |
+| `enabled` | `BOOLEAN` | no | server: `1` | — |
+| `origin_override_id` | `VARCHAR(36)` | yes | — | — |
+| `created_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
+| `applied_count` | `INTEGER` | no | server: `0` | — |
+| `revert_count` | `INTEGER` | no | server: `0` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (created_by_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, keyword, target_category) — `uq_cat_rules_ws_keyword_target`
+
+**Indexes:**
+
+- `ix_categorization_rules_workspace_id` (workspace_id)
 
 ### `category_keywords`
 
@@ -902,15 +930,19 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `new_category` | `VARCHAR(255)` | no | — | — |
 | `notes` | `TEXT` | yes | — | — |
 | `reviewed` | `BOOLEAN` | no | `True` | — |
+| `source` | `VARCHAR(20)` | no | server: `manual` | — |
+| `rule_id` | `VARCHAR(36)` | yes | — | FK→categorization_rules.id, INDEX |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Constraints:**
 
+- FOREIGN KEY (rule_id) REFERENCES categorization_rules.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 - UNIQUE (workspace_id, transaction_hash) — `uq_override_ws_hash`
 
 **Indexes:**
 
+- `ix_transaction_overrides_rule_id` (rule_id)
 - `ix_transaction_overrides_transaction_hash` (transaction_hash)
 - `ix_transaction_overrides_workspace_id` (workspace_id)
 
@@ -1195,6 +1227,25 @@ type Category struct {
 	MonthlyCap *float64 `db:"monthly_cap" json:"monthly_cap"`
 	Order int `db:"order" json:"order"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `categorization_rules` → `type CategorizationRule struct`
+
+```go
+type CategorizationRule struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	Keyword string `db:"keyword" json:"keyword"`
+	TargetCategory string `db:"target_category" json:"target_category"`
+	Priority int `db:"priority" json:"priority"`
+	Enabled bool `db:"enabled" json:"enabled"`
+	OriginOverrideId *string `db:"origin_override_id" json:"origin_override_id"`
+	CreatedByUserId *string `db:"created_by_user_id" json:"created_by_user_id"`
+	AppliedCount int `db:"applied_count" json:"applied_count"`
+	RevertCount int `db:"revert_count" json:"revert_count"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 ```
 
@@ -1732,6 +1783,8 @@ type TransactionOverride struct {
 	NewCategory string `db:"new_category" json:"new_category"`
 	Notes *string `db:"notes" json:"notes"`
 	Reviewed bool `db:"reviewed" json:"reviewed"`
+	Source string `db:"source" json:"source"`
+	RuleId *string `db:"rule_id" json:"rule_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
