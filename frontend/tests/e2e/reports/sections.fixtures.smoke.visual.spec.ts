@@ -35,7 +35,14 @@ const THEMES = ["light", "dark"] as const;
 type Theme = (typeof THEMES)[number];
 
 const STRATEGIC_SECTIONS = ["S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10"];
-const APPENDICES = ["APP_A", "APP_B", "APP_C", "APP_D", "APP_E"];
+// APP_C é hide-when-empty (ADR-167): renderiza só quando o workspace tem
+// `cenarios_conjuge.labels` ou `programa_milhas` populados — fixtures
+// sintéticas omitem esses campos, então a seção corretamente retorna
+// null. Tratá-la como required quebra o smoke; tratá-la como optional
+// (count <= 1) mantém o gate "no ErrorBoundary regression" sem confundir
+// "deliberadamente oculta" com "quebrada".
+const APPENDICES_REQUIRED = ["APP_A", "APP_B", "APP_D", "APP_E"];
+const APPENDICES_OPTIONAL = ["APP_C"];
 
 async function setupReport(
   page: Page,
@@ -79,13 +86,23 @@ test.describe("Smoke — fixture variants (sem snapshot, só estrutural)", () =>
           }),
         ).toHaveCount(0);
 
-        // (c) todas as seções estratégicas + apêndices presentes
-        for (const id of [...STRATEGIC_SECTIONS, ...APPENDICES]) {
+        // (c) todas as seções estratégicas + apêndices required presentes
+        for (const id of [...STRATEGIC_SECTIONS, ...APPENDICES_REQUIRED]) {
           const node = page.locator(`section#${id}[data-report-section]`);
           await expect(
             node,
             `seção ${id} faltando para fixture ${fixture}/${theme}`,
           ).toHaveCount(1);
+        }
+        // Hide-when-empty: aceitar 0 ou 1.
+        for (const id of APPENDICES_OPTIONAL) {
+          const count = await page
+            .locator(`section#${id}[data-report-section]`)
+            .count();
+          expect(
+            count,
+            `seção ${id} (hide-when-empty) deve renderizar 0 ou 1 vez para fixture ${fixture}/${theme}`,
+          ).toBeLessThanOrEqual(1);
         }
 
         // (d) zero erros não-suprimidos no console — pega React render

@@ -82,7 +82,7 @@ function useDecisionsReload({
     setError("");
     try {
       const resp = await listDecisions(workspaceId);
-      setDecisions(resp.decisions);
+      setDecisions(Array.isArray(resp?.decisions) ? resp.decisions : []);
     } catch (err) {
       setError(describeError(err, "Erro ao carregar decisões"));
     } finally {
