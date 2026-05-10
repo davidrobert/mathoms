@@ -56,19 +56,28 @@ const PROVIDERS = [
 
 const MODELS_BY_PROVIDER: Record<string, { value: string; label: string }[]> = {
   anthropic: [
-    { value: "claude-opus-4-6", label: "Claude Opus 4.6" },
+    { value: "claude-opus-4-7", label: "Claude Opus 4.7" },
     { value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6" },
     { value: "claude-haiku-4-5", label: "Claude Haiku 4.5" },
+    { value: "claude-opus-4-6", label: "Claude Opus 4.6" },
     { value: "claude-sonnet-4-5", label: "Claude Sonnet 4.5" },
     { value: "claude-opus-4-5", label: "Claude Opus 4.5" },
   ],
   openai: [
+    { value: "gpt-5.5", label: "GPT-5.5" },
+    { value: "gpt-5.5-pro", label: "GPT-5.5 Pro" },
+    { value: "gpt-5.4", label: "GPT-5.4" },
+    { value: "gpt-5.4-mini", label: "GPT-5.4 Mini" },
+    { value: "gpt-5.4-nano", label: "GPT-5.4 Nano" },
+    { value: "gpt-5", label: "GPT-5" },
+    { value: "gpt-5-mini", label: "GPT-5 Mini" },
+    { value: "gpt-5-nano", label: "GPT-5 Nano" },
+    { value: "o3", label: "o3" },
+    { value: "o3-pro", label: "o3 Pro" },
+    { value: "gpt-4.1", label: "GPT-4.1" },
+    { value: "gpt-4.1-mini", label: "GPT-4.1 Mini" },
     { value: "gpt-4o", label: "GPT-4o" },
     { value: "gpt-4o-mini", label: "GPT-4o Mini" },
-    { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
-    { value: "o3", label: "o3" },
-    { value: "o3-mini", label: "o3 Mini" },
-    { value: "o4-mini", label: "o4 Mini" },
   ],
   google: [
     { value: "gemini/gemini-2.5-pro", label: "Gemini 2.5 Pro" },
@@ -81,8 +90,11 @@ const MODELS_BY_PROVIDER: Record<string, { value: string; label: string }[]> = {
     { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B" },
   ],
   openrouter: [
-    { value: "anthropic/claude-opus-4-6", label: "Claude Opus 4.6" },
+    { value: "anthropic/claude-opus-4-7", label: "Claude Opus 4.7" },
     { value: "anthropic/claude-sonnet-4-6", label: "Claude Sonnet 4.6" },
+    { value: "anthropic/claude-haiku-4-5", label: "Claude Haiku 4.5" },
+    { value: "openai/gpt-5.5", label: "GPT-5.5" },
+    { value: "openai/gpt-5", label: "GPT-5" },
     { value: "openai/gpt-4o", label: "GPT-4o" },
     { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro" },
   ],
@@ -331,7 +343,7 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
               {customModel || availableModels.length === 0 ? (
                 <Input
                   id="llm-model"
-                  placeholder="ex: claude-opus-4-6, gpt-4o"
+                  placeholder="ex: claude-opus-4-7, gpt-5.5"
                   value={modelName}
                   onChange={(e) => setModelName(e.target.value)}
                 />
