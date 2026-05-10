@@ -182,6 +182,9 @@
 | ADR-182 | adr | Decidido |  | Vault de documentação operacional Obsidian-friendly em `docs/` | `adr/182-vault-de-documentacao-operacional-obsidian.md` |
 | ADR-183 | adr | Proposto |  | Pilares narrativos da landing — reposicionamento Mathoms 2026 (Fase 4.B COMPETITIVE_PIERRE) | `adr/183-landing-positioning-pillars-2026.md` |
 | ADR-184 | adr | Proposto |  | Stack da landing estática (Hugo + CF Pages) | `adr/184-landing-static-stack-2026.md` |
+| ADR-185 | adr | Proposto |  | Política de edição e evolução de overrides de `category_templates` | `adr/185-politica-de-overrides-de-categoria.md` |
+| ADR-186 | adr | Proposto |  | Promoção de override de transação para regra de categorização (learning loop) | `adr/186-promocao-override-transacao-para-regra-categorizacao.md` |
+| ADR-187 | adr | Proposto |  | Relatório publicado é imutável — conceito de mês fechado | `adr/187-relatorio-publicado-imutavel-mes-fechado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -367,12 +370,14 @@
 | A10.6 | lane | shipped | A10 | Pipeline cutover via `StageConfig.config_store` (ADR-180) | `sprint/A10/lanes/A10-6-pipeline-cutover-via-stageconfig-config-store.md` |
 | A10.7 | lane | shipped | A10 | Seed refactor + `tributario` migration | `sprint/A10/lanes/A10-7-seed-refactor-tributario-migration.md` |
 | A10.8 | lane | in_progress | A10 | Final cutover + `forbidden_paths` (ADR-181) | `sprint/A10/lanes/A10-8-final-cutover-forbidden-paths.md` |
+| A11.report-publication | lane | shipped | A11 | Report publication — mês fechado imutável | `sprint/A11/lanes/A11-report-publication-month-closed.md` |
 | A11.w1 | lane | shipped | A11 | Hot patches + ADR backfill (8 tasks) | `sprint/A11/lanes/A11-w1-hot-patches-adr-backfill.md` |
 | A11.w2 | lane | open | A11 | Pipeline + DB hardening (6 tasks) | `sprint/A11/lanes/A11-w2-pipeline-db-hardening.md` |
 | A11.w3 | lane | blocked | A11 | Auth + LLM ops + Email (5 tasks) | `sprint/A11/lanes/A11-w3-auth-llm-ops-email.md` |
 | A11.w4 | lane | blocked | A11 | Production readiness (5 tasks) | `sprint/A11/lanes/A11-w4-production-readiness.md` |
 | A11.w5 | lane | open | A11 | Frontend + Methodology (5 tasks, paralelo W6) | `sprint/A11/lanes/A11-w5-frontend-methodology.md` |
 | A11.w6 | lane | blocked | A11 | Tech debt cleanup (6 tasks) | `sprint/A11/lanes/A11-w6-tech-debt-cleanup.md` |
+| A12.cat-learning-loop | lane | planned | A12 | Categorization Learning Loop — promoção de override em regra | `sprint/A12/lanes/A12-cat-learning-loop-override-to-rule.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -435,10 +440,13 @@
 | MARKETING-landing-copy-draft-v1 | marketing-draft | draft |  | Landing copy draft v1 — pilares ADR-183 (Fase 4.B COMPETITIVE_PIERRE) | `_marketing/landing-copy-draft-v1.md` |
 | MOC-sprint-a10 | moc |  |  | Sprint A10 — goals.json cutover final | `sprint/A10/_README.md` |
 | MOC-sprint-a11 | moc |  |  | Sprint A11 — Platform review execution | `sprint/A11/_README.md` |
+| MOC-sprint-a12 | moc |  |  | Sprint A12 — Categorization learning loop + post-A11 follow-up | `sprint/A12/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
 | MOC-sprint-a9 | moc |  |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
+| PLAN-cat-learning-loop | plan | draft |  | Categorization Learning Loop — promoção de override de transação para regra | `plan/CAT_LEARNING_LOOP/_README.md` |
+| PLAN-category-overrides-ux | plan | draft |  | Category Overrides UX — V1 (24 default-only) | `plan/CATEGORY_OVERRIDES_UX/_README.md` |
 | PLAN-cenarios-estresse | plan | in_progress |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | draft |  | Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
@@ -468,6 +476,10 @@
 | TRACK-a7-5-cleanup | track | consumed | A7 | Track A7.5 — Cleanup final (deletar `config/` + bridges) | `sprint/A7/tracks/a7-5-cleanup.md` |
 | TRACK-a7-6-rules-as-code | track | consumed | A7 | Track A7.6 — Rules-as-code: dissolver `docs/methodology/` | `sprint/A7/tracks/a7-6-rules-as-code.md` |
 | TRACK-a8-trs-real | track | consumed | A8 | Track — A8 TRS real (renda passiva observada + Taxa de Retirada Sustentável efetiva) | `sprint/A8/tracks/a8-trs-real.md` |
+| TRACK-category-overrides-cache-fix | track | ready | A11 | Track Category Overrides W1 — Cache invalidation + CategoryOverrideService | `sprint/A11/tracks/category-overrides-cache-fix.md` |
+| TRACK-category-overrides-policy-adr | track | ready | A11 | Track Category Overrides W3 — ADR-185 Proposto (política + escopo + invariantes) | `sprint/A11/tracks/category-overrides-policy-adr.md` |
+| TRACK-category-overrides-schema-delta | track | ready | A11 | Track Category Overrides W2 — Schema delta (updated_by_user_id + DTO version fields) | `sprint/A11/tracks/category-overrides-schema-delta.md` |
+| TRACK-category-overrides-ui-refactor | track | ready | A11 | Track Category Overrides W4 — UI refactor (CategoriesTab + useCategoriesAndMembers) | `sprint/A11/tracks/category-overrides-ui-refactor.md` |
 | TRACK-competitor-pierre-poc | track | ready | A11 | Track Competitor POC — Pierre Finance API + MCP benchmark | `sprint/A11/tracks/competitor-pierre-poc.md` |
 | TRACK-f7f-local | track | consumed | F7 | Track F7F-Local — Console interno pré-produção (IA-0) | `sprint/F7/tracks/f7f-local.md` |
 | TRACK-f9-0-audit | track | consumed | F9 | Track F9.0 — Auditoria de referências aos identificadores legados | `sprint/F9/tracks/f9-0-audit.md` |
@@ -500,6 +512,7 @@
 | TRACK-real-estate-efficiency | track | consumed | A11 | Track — Real estate efficiency feature (ADR-160) | `sprint/A11/tracks/real-estate-efficiency.md` |
 | TRACK-report-a11y-finalize | track | consumed | A11 | Track Report a11y + Playwright finalize — resíduo F12 do Report Premium | `sprint/A11/tracks/report-a11y-finalize.md` |
 | TRACK-report-appearance-menu | track | consumed | A11 | Track Report Appearance Menu — refinement ADR-121 Fase 4 | `sprint/A11/tracks/report-appearance-menu.md` |
+| TRACK-report-publication-impl | track | consumed | A11 | Report publication — schema + API + helper (mês fechado imutável) | `sprint/A11/tracks/report-publication-impl.md` |
 | TRACK-report-v1-polish | track | consumed | A11 | Track Report Premium v1 polish — resíduo F13 do Report Premium | `sprint/A11/tracks/report-v1-polish.md` |
 | TRACK-report-v2 | track | consumed | A11 | Track Report Premium UI v2 — meta-prompt + roadmap de execução | `sprint/A11/tracks/report-v2.md` |
 | TRACK-report-v2-changelog-engine | track | consumed | A11 | Track Report v2.D.1 + v2.8 — Snapshot changelog engine + comparisons/changelog ON | `sprint/A11/tracks/report-v2-changelog-engine.md` |
