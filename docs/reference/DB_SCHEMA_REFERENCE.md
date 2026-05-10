@@ -703,7 +703,6 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `edited_output_json` | `JSON` | yes | — | — |
 | `validation_errors` | `TEXT` | yes | — | — |
 | `validation_issues` | `JSON` | yes | — | — |
-| `reviewer_notes` | `TEXT` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `reviewed_at` | `DATETIME` | yes | — | — |
 
@@ -1575,7 +1574,6 @@ type StageReview struct {
 	EditedOutputJson json.RawMessage `db:"edited_output_json" json:"edited_output_json"`
 	ValidationErrors *string `db:"validation_errors" json:"validation_errors"`
 	ValidationIssues json.RawMessage `db:"validation_issues" json:"validation_issues"`
-	ReviewerNotes *string `db:"reviewer_notes" json:"reviewer_notes"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	ReviewedAt *time.Time `db:"reviewed_at" json:"reviewed_at"`
 }

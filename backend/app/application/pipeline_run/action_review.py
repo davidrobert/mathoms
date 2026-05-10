@@ -34,7 +34,6 @@ async def action_review(
         review.status = StageReviewStatus.edited
         review.edited_output_json = body.edited_output_json
 
-    review.reviewer_notes = body.reviewer_notes
     review.reviewed_at = datetime.now(timezone.utc)
 
     await db.commit()

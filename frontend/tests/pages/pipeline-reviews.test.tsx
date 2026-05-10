@@ -64,7 +64,6 @@ const REVIEW_PENDING = {
   original_output_json: { campo_a: "valor", campo_b: 42 },
   edited_output_json: null,
   validation_errors: "campo_a: obrigatório\ncampo_b: deve ser positivo",
-  reviewer_notes: null,
   created_at: "2026-04-15T12:00:00Z",
   reviewed_at: null,
 };

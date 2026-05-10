@@ -182,12 +182,11 @@ async def test_approve_review(client: AsyncClient, db: AsyncSession):
 
     resp = await client.post(
         f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
-        json={"action": "approve", "reviewer_notes": "Looks good"},
+        json={"action": "approve"},
     )
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "approved"
-    assert data["reviewer_notes"] == "Looks good"
     assert data["reviewed_at"] is not None
 
 
@@ -199,7 +198,7 @@ async def test_edit_review(client: AsyncClient, db: AsyncSession):
     edited = {"members": [{"key": "david", "full_name": "David FC"}]}
     resp = await client.post(
         f"/api/workspaces/{ws_id}/pipeline/runs/{run_id}/reviews/{review_id}",
-        json={"action": "edit", "edited_output_json": edited, "reviewer_notes": "Fixed name"},
+        json={"action": "edit", "edited_output_json": edited},
     )
     assert resp.status_code == 200
     data = resp.json()
