@@ -1,12 +1,17 @@
-"""TransactionOverride model — user corrections to auto-categorized transactions."""
+"""TransactionOverride — user corrections + ``source``/``rule_id`` (ADR-186 A12 P1)."""
 
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
+
+OVERRIDE_SOURCE_MANUAL: str = "manual"
+OVERRIDE_SOURCE_RULE: str = "rule"
+VALID_OVERRIDE_SOURCES: frozenset[str] = frozenset({OVERRIDE_SOURCE_MANUAL, OVERRIDE_SOURCE_RULE})
 
 
 class TransactionOverride(Base):
@@ -24,6 +29,15 @@ class TransactionOverride(Base):
     new_category: Mapped[str] = mapped_column(String(255), nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
     reviewed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    source: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=OVERRIDE_SOURCE_MANUAL, server_default="manual"
+    )
+    rule_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("categorization_rules.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

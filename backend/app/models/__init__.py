@@ -1,4 +1,5 @@
 from backend.app.models.audit_log import AuditLog
+from backend.app.models.categorization_rule import CategorizationRule
 from backend.app.models.category import Category, CategoryKeyword
 from backend.app.models.category_template import (
     CategoryTemplate,
@@ -67,7 +68,12 @@ from backend.app.models.task import (
     TaskAttachment,
     TaskSuggestion,
 )
-from backend.app.models.transaction_override import TransactionOverride
+from backend.app.models.transaction_override import (
+    OVERRIDE_SOURCE_MANUAL,
+    OVERRIDE_SOURCE_RULE,
+    VALID_OVERRIDE_SOURCES,
+    TransactionOverride,
+)
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.models.workspace_invitation import WorkspaceInvitation
@@ -141,6 +147,10 @@ __all__ = [
     "StageReview",
     "StageReviewStatus",
     "TransactionOverride",
+    "OVERRIDE_SOURCE_MANUAL",
+    "OVERRIDE_SOURCE_RULE",
+    "VALID_OVERRIDE_SOURCES",
+    "CategorizationRule",
     "Notification",
     "AuditLog",
     "DataExportRequest",
