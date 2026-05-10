@@ -1320,7 +1320,7 @@
         "type": "object"
       },
       "CategoryListResponse": {
-        "description": "Wrapper pagina\u00e7\u00e3o-ready para ``GET /categories``.",
+        "description": "Wrapper para ``GET /categories``; carrega vers\u00e3o de template usada vs. latest (ADR-185 \u00a74).",
         "properties": {
           "categories": {
             "items": {
@@ -1328,6 +1328,20 @@
             },
             "title": "Categories",
             "type": "array"
+          },
+          "latest_template_version": {
+            "default": 1,
+            "description": "Maior ``template_version`` em ``category_templates``. Quando ``template_version_used < latest_template_version`` a UI mostra sinal de v desatualizada (sem CTA).",
+            "minimum": 1.0,
+            "title": "Latest Template Version",
+            "type": "integer"
+          },
+          "template_version_used": {
+            "default": 1,
+            "description": "Vers\u00e3o do template ativa para esta resolu\u00e7\u00e3o.",
+            "minimum": 1.0,
+            "title": "Template Version Used",
+            "type": "integer"
           },
           "total": {
             "title": "Total",

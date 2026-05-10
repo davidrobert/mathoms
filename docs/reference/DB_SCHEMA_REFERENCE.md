@@ -961,11 +961,13 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `keywords_override` | `JSON` | yes | — | — |
 | `monthly_cap_brl_cents_override` | `BIGINT` | yes | — | — |
 | `disabled` | `BOOLEAN` | no | `False` | — |
+| `updated_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Constraints:**
 
+- FOREIGN KEY (updated_by_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 - UNIQUE (workspace_id, template_key) — `uq_ws_cat_override_ws_key`
 
@@ -1772,6 +1774,7 @@ type WorkspaceCategoryOverride struct {
 	KeywordsOverride json.RawMessage `db:"keywords_override" json:"keywords_override"`
 	MonthlyCapBrlCentsOverride *int64 `db:"monthly_cap_brl_cents_override" json:"monthly_cap_brl_cents_override"`
 	Disabled bool `db:"disabled" json:"disabled"`
+	UpdatedByUserId *string `db:"updated_by_user_id" json:"updated_by_user_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }

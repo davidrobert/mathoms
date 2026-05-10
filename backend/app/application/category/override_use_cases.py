@@ -22,14 +22,16 @@ from backend.app.services import category_cache
 from backend.app.services.category_resolver import (
     METADATA_TEMPLATE_KEY,
     ResolvedCategory,
+    _get_active_template_version,
+    _get_latest_template_version,
     resolve_categories,
 )
 
 
 async def list_categories_resolved(workspace_id: str, *, db: AsyncSession) -> CategoryListResponse:
-    """``GET /categories`` — retorna template + overrides mergeados."""
-    resolved = await db.run_sync(
-        lambda sync_session: resolve_categories(workspace_id, sync_session)
+    """``GET /categories`` — template + overrides mergeados + sinal de v desatualizada (ADR-185 §4)."""
+    resolved, latest_version = await db.run_sync(
+        lambda s: (resolve_categories(workspace_id, s), _get_latest_template_version(s))
     )
     overrides = await WorkspaceCategoryOverrideRepository(db).list_by_workspace(workspace_id)
     override_id_by_key = {ov.template_key: ov.id for ov in overrides}
@@ -38,7 +40,12 @@ async def list_categories_resolved(workspace_id: str, *, db: AsyncSession) -> Ca
         for c in resolved
         if c.key != METADATA_TEMPLATE_KEY
     ]
-    return CategoryListResponse(categories=items, total=len(items))
+    return CategoryListResponse(
+        categories=items,
+        total=len(items),
+        template_version_used=_get_active_template_version(),
+        latest_template_version=latest_version,
+    )
 
 
 async def upsert_category_override(
