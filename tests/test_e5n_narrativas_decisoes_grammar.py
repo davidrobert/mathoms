@@ -1,4 +1,4 @@
-"""Regressão: concordância singular/plural e pontuação dupla em top5_decisoes / s10."""
+"""Regressão: concordância singular/plural e pontuação dupla em top5_decisoes / s10 + s4 + s9 + perfil_familia + bubble_riscos."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from typing import Any
 from pipeline.domain.services.narrativas import (
     ChartsNarrator,
     NarrativasContext,
+    PerfilFamiliaNarrator,
     SummariesNarrator,
     ensure_period,
     pluralize,
@@ -109,6 +110,124 @@ def test_summaries_s10_plural_when_multiple_decisoes():
     )
     s10 = summaries["s10"]
     assert "4 decisões estratégicas prioritárias" in s10
+
+
+# ── summaries.s4 (imóveis) ─────────────────────────────────────────────
+
+
+def _narrate_summary(n_imoveis: int, riscos: list[str]) -> dict[str, str]:
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    metrics = _build_metrics()
+    metrics["n_imoveis"] = n_imoveis
+    return SummariesNarrator(ctx).narrate(metrics, _FAMILY_BASE, riscos, ["Aporte"])
+
+
+def test_summaries_s4_singular_when_one_imovel():
+    s4 = _narrate_summary(1, ["risco1"])["s4"]
+    assert "1 imóvel no portfólio" in s4
+    assert "1 imóveis" not in s4
+
+
+def test_summaries_s4_plural_when_multiple_imoveis():
+    s4 = _narrate_summary(3, ["risco1"])["s4"]
+    assert "3 imóveis no portfólio" in s4
+
+
+# ── summaries.s9 (riscos) ──────────────────────────────────────────────
+
+
+def test_summaries_s9_singular_when_one_risco():
+    s9 = _narrate_summary(2, ["risco_unico"])["s9"]
+    assert "1 risco prioritário" in s9
+    assert "1 riscos" not in s9
+
+
+def test_summaries_s9_plural_when_multiple_riscos():
+    s9 = _narrate_summary(2, ["r1", "r2", "r3"])["s9"]
+    assert "3 riscos prioritários" in s9
+
+
+# ── perfil_familia (imóveis no <p>) ────────────────────────────────────
+
+
+def _narrate_perfil(n_imoveis: int) -> dict[str, str]:
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    metrics = _build_metrics()
+    metrics["n_imoveis"] = n_imoveis
+    return PerfilFamiliaNarrator(ctx).narrate(metrics, _FAMILY_BASE, today=date(2026, 4, 20))
+
+
+def test_perfil_familia_singular_when_one_imovel():
+    right = _narrate_perfil(1)["right"]
+    # n=1: sem breakdown — "1 imóvel," (vírgula imediata, ressalva financial-planner)
+    assert "1 imóvel," in right
+    assert "1 imóveis" not in right
+
+
+def test_perfil_familia_plural_when_multiple_imoveis():
+    right = _narrate_perfil(3)["right"]
+    assert "3 imóveis " in right
+
+
+def test_perfil_familia_omits_breakdown_when_one_imovel():
+    """Ressalva financial-planner: `1 imóvel (R$ X residência + R$ Y investimento)`
+    é contraditório (2 papéis num só imóvel). n=1 deve omitir o parêntese."""
+    right = _narrate_perfil(1)["right"]
+    assert "1 imóvel," in right
+    assert "residência +" not in right
+    assert "investimento)" not in right
+
+
+def test_perfil_familia_keeps_breakdown_when_multiple_imoveis():
+    right = _narrate_perfil(2)["right"]
+    assert "residência +" in right
+    assert "investimento)" in right
+
+
+# ── charts.bubble_riscos (escape designer review) ──────────────────────
+
+
+def test_bubble_riscos_singular_when_one_risco():
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    out = ChartsNarrator(ctx).narrate(
+        _build_metrics(),
+        _FAMILY_BASE,
+        [{"nome": "r1", "prob": "a", "impacto": "a"}],
+        ["d1"],
+    )
+    context = out["bubble_riscos"]["context"]
+    assert "1 risco crítico" in context
+    assert "1 riscos" not in context
+
+
+def test_bubble_riscos_plural_when_multiple_riscos():
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    riscos = [{"nome": f"r{i}", "prob": "a", "impacto": "a"} for i in range(3)]
+    out = ChartsNarrator(ctx).narrate(_build_metrics(), _FAMILY_BASE, riscos, ["d1"])
+    context = out["bubble_riscos"]["context"]
+    assert "3 riscos críticos" in context
+
+
+# ── perfil_familia.gatos (escape designer review) ──────────────────────
+
+
+def test_perfil_familia_gatos_singular_when_one_pet():
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    family = {**_FAMILY_BASE, "pets": ["Mimi"]}
+    left = PerfilFamiliaNarrator(ctx).narrate(_build_metrics(), family, today=date(2026, 4, 20))[
+        "left"
+    ]
+    assert "1 gato " in left
+    assert "1 gatos" not in left
+
+
+def test_perfil_familia_gatos_plural_when_multiple_pets():
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    family = {**_FAMILY_BASE, "pets": ["Mimi", "Rex"]}
+    left = PerfilFamiliaNarrator(ctx).narrate(_build_metrics(), family, today=date(2026, 4, 20))[
+        "left"
+    ]
+    assert "2 gatos " in left
 
 
 # ── format_helpers unitários ───────────────────────────────────────────

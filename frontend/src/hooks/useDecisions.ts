@@ -82,6 +82,11 @@ function useDecisionsReload({
     setError("");
     try {
       const resp = await listDecisions(workspaceId);
+      if (!Array.isArray(resp?.decisions)) {
+        // Drift de contrato (paridade `useSuggestions`): HTTP 200 sem
+        // `decisions[]`. Loga sem propagar erro (degrada para []).
+        console.warn("[useDecisions] resp.decisions não é array:", resp);
+      }
       setDecisions(Array.isArray(resp?.decisions) ? resp.decisions : []);
     } catch (err) {
       setError(describeError(err, "Erro ao carregar decisões"));

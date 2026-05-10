@@ -228,24 +228,24 @@ function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
       <div className="mt-6 rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium">Aplicar alterações nas transações</p>
+            <p className="text-sm font-medium">Recategorizar e gerar novo relatório</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Mudanças em keywords só têm efeito após reclassificar. As etapas E4→E7 serão reprocessadas.
+              Aplica as keywords editadas a todas as transações (despesas e receitas), refaz a análise e cria um relatório novo no histórico. Os relatórios anteriores ficam preservados.
             </p>
             {reclassifyStatus === "success" && (
               <p className="text-xs text-gain mt-1">
-                Reclassificação iniciada.{" "}
-                <Link href="/pipeline" className="underline">Acompanhe o progresso.</Link>
+                Recategorização iniciada. O novo relatório aparecerá no histórico ao concluir.{" "}
+                <Link href="/pipeline" className="underline">Ver progresso.</Link>
               </p>
             )}
             {reclassifyStatus === "conflict" && (
               <p className="text-xs text-alert mt-1">
-                Já existe uma execução em andamento.{" "}
-                <Link href="/pipeline" className="underline">Ver pipeline.</Link>
+                Já há um reprocessamento em andamento.{" "}
+                <Link href="/pipeline" className="underline">Ver progresso.</Link>
               </p>
             )}
             {reclassifyStatus === "error" && (
-              <p className="text-xs text-loss mt-1">Erro ao iniciar reclassificação. Tente novamente.</p>
+              <p className="text-xs text-loss mt-1">Não foi possível iniciar a recategorização. Tente novamente em instantes.</p>
             )}
           </div>
           <Button
@@ -256,7 +256,7 @@ function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
             className="shrink-0"
           >
             {reclassifying ? <Spinner size="sm" className="mr-2" /> : null}
-            Reclassificar Despesas
+            Recategorizar transações
           </Button>
         </div>
       </div>
