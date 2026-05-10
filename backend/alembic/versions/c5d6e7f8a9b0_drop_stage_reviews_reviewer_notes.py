@@ -1,7 +1,7 @@
 """drop stage_reviews.reviewer_notes (dead column).
 
 Revision ID: c5d6e7f8a9b0
-Revises: a4b5c6d7e8f9, b1a2c3d4e5f7
+Revises: a4b5c6d7e8f9, c5d6e7f8a9b1
 Create Date: 2026-05-09
 
 A coluna `stage_reviews.reviewer_notes` (Phase 4 schema inicial) era
@@ -11,8 +11,11 @@ textarea no frontend, o campo no DTO de request/response e a atribuição
 no use case `action_review`. Este migration dropa a coluna fechando o
 ciclo de cleanup.
 
-Também merge dos dois heads paralelos (`a4b5c6d7e8f9` risk aggregate
-A10.4 e `b1a2c3d4e5f7` business profile JSON A10.7).
+Também merge de heads paralelos: `a4b5c6d7e8f9` (risk aggregate A10.4)
+e `c5d6e7f8a9b1` (backfill error doc content_hash, hot-fix do dedupe —
+PR #168), que por sua vez descende de `b1a2c3d4e5f7` (business profile
+JSON A10.7). Encadear `c5d6e7f8a9b1` no segundo pai em vez de
+`b1a2c3d4e5f7` cobre os três heads sem alterar a semântica do upgrade.
 """
 
 from __future__ import annotations
@@ -23,7 +26,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "c5d6e7f8a9b0"
-down_revision: Union[str, Sequence[str], None] = ("a4b5c6d7e8f9", "b1a2c3d4e5f7")
+down_revision: Union[str, Sequence[str], None] = ("a4b5c6d7e8f9", "c5d6e7f8a9b1")
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
