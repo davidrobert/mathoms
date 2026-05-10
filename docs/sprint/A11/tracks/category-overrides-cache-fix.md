@@ -4,14 +4,14 @@ type: track
 title: "Track Category Overrides W1 — Cache invalidation + CategoryOverrideService"
 sprint: A11
 plan: PLAN-category-overrides-ux
-status: ready
+status: consumed
 created_at: "2026-05-10"
-consumed_at: null
+consumed_at: "2026-05-10"
 agent_role: senior-cto
 tags:
   - type/track
   - sprint/a11
-  - status/ready
+  - status/consumed
   - area/categorization
   - area/backend
 ---

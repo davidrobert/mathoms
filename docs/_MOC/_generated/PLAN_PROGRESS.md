@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-9 planos detectados em [`docs/plan/`](../../plan/).
+8 planos detectados em [`docs/plan/`](../../plan/).
 
 _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/`._
 
@@ -65,13 +65,6 @@ _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/
 - Sprints envolvidas: A12
 - Lanes: _(aguardando F4)_
 - ADRs canônicas: [[ADR-186]]
-
-### PLAN-category-overrides-ux — Category Overrides UX — V1 (24 default-only)
-
-- Status: `draft` · Sprint atual: A11
-- Sprints envolvidas: A11
-- Lanes: _(aguardando F4)_
-- ADRs canônicas: —
 
 ### PLAN-competitive-pierre — Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento
 
