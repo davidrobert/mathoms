@@ -16,16 +16,25 @@ from backend.app.schemas.dto.document.response import DocumentResponse
 
 
 def document_to_response(document: Document) -> DocumentResponse:
-    """Converte ORM ``Document`` → DTO de resposta.
+    """Converte ORM ``Document`` → DTO de resposta. Deriva ``e0_doc_type`` do meta."""
+    response = DocumentResponse.model_validate(document)
+    response.e0_doc_type = _extract_e0_doc_type(document.classification_meta)
+    return response
 
-    Equivalente a ``DocumentResponse.model_validate(document)`` — por
-    ter ``from_attributes=True`` no config, o Pydantic lê cada atributo
-    do ORM. Usar a função nomeada é preferível por três motivos:
 
-    1. Simétrico aos outros agregados A6e (category, family_member,
-       config_blob).
-    2. Único ponto para futuras divergências DTO ↔ ORM (ex.: formatar
-       ``classification_meta`` ou embutir ``stored_path`` relativo).
-    3. Testável isoladamente sem instanciar um Pydantic validator.
+def _extract_e0_doc_type(meta: dict | None) -> str | None:
+    """Lê o subtipo (E0 code) do ``classification_meta``.
+
+    Hierarquia: ``content.doc_type`` (regex) tem precedência sobre ``llm.doc_type``
+    (LLM fallback). Sem column dedicada no DB para evitar migration; meta é JSON
+    populado por ``classify_document``.
     """
-    return DocumentResponse.model_validate(document)
+    if not meta:
+        return None
+    content = meta.get("content")
+    if isinstance(content, dict) and content.get("doc_type"):
+        return str(content["doc_type"])
+    llm = meta.get("llm")
+    if isinstance(llm, dict) and llm.get("doc_type"):
+        return str(llm["doc_type"])
+    return None
