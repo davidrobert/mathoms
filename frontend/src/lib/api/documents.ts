@@ -27,6 +27,7 @@ export interface DocumentResponse {
   original_name: string;
   stored_path: string | null;
   doc_type: DocumentType | null;
+  e0_doc_type?: string | null;
   bank_code: string | null;
   period: string | null;
   status: DocumentStatus;

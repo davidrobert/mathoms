@@ -289,6 +289,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_documents_possible_duplicate_of_id` (possible_duplicate_of_id)
 - `ix_documents_status` (status)
 - `ix_documents_workspace_id` (workspace_id)
+- UNIQUE `ux_documents_workspace_content_hash` (workspace_id, content_hash)
 
 ### `family_members`
 

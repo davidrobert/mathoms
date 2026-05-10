@@ -24,6 +24,7 @@ class DocumentResponse(BaseModel):
     original_name: str
     stored_path: Optional[str] = None
     doc_type: Optional[DocumentType] = None
+    e0_doc_type: Optional[str] = None
     bank_code: Optional[str] = None
     period: Optional[str] = None
     status: DocumentStatus

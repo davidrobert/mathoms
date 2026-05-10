@@ -22,7 +22,7 @@ import pytest
 
 from backend.app.models.document import DocumentStatus, DocumentType
 from backend.app.schemas.dto.document.command import DocumentUpdateCommand
-from backend.app.schemas.dto.document.mapper import document_to_response
+from backend.app.schemas.dto.document.mapper import _extract_e0_doc_type, document_to_response
 
 
 def _fake_doc(**overrides) -> SimpleNamespace:
@@ -92,6 +92,20 @@ class TestDocumentToResponse:
 
         assert resp.doc_type == DocumentType.credit_card_bill
         assert resp.status == DocumentStatus.needs_password
+
+    def test_e0_doc_type_derived_from_meta_content(self):
+        meta = {"content": {"doc_type": "informerendimentosaluguel"}, "confidence": 1.0}
+        resp = document_to_response(_fake_doc(classification_meta=meta))
+        assert resp.e0_doc_type == "informerendimentosaluguel"
+
+    def test_e0_doc_type_falls_back_to_llm_when_content_empty(self):
+        meta = {"content": {"doc_type": None}, "llm": {"doc_type": "extratoconta"}}
+        resp = document_to_response(_fake_doc(classification_meta=meta))
+        assert resp.e0_doc_type == "extratoconta"
+
+    def test_e0_doc_type_none_when_meta_absent(self):
+        resp = document_to_response(_fake_doc(classification_meta=None))
+        assert resp.e0_doc_type is None
 
     def test_all_optional_fields_none(self):
         doc = _fake_doc(
@@ -165,6 +179,19 @@ class TestDocumentToResponse:
 
         assert resp.status == DocumentStatus.error
         assert resp.error_message == "Arquivo corrompido no upload"
+
+
+class TestExtractE0DocType:
+    def test_returns_none_when_meta_missing(self):
+        assert _extract_e0_doc_type(None) is None
+        assert _extract_e0_doc_type({}) is None
+
+    def test_prefers_content_over_llm(self):
+        meta = {
+            "content": {"doc_type": "informerendimentosaluguel"},
+            "llm": {"doc_type": "outro"},
+        }
+        assert _extract_e0_doc_type(meta) == "informerendimentosaluguel"
 
 
 class TestDocumentUpdateCommand:
