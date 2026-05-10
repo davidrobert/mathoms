@@ -83,6 +83,16 @@ class PerfilFamiliaNarrator:
         _cidadanias = _filho.get("cidadania", []) or []
         _cidadanias_str = " e ".join(_cidadanias) if _cidadanias else ""
 
+        # `1 imóvel (R$ X residência + R$ Y investimento)` é semanticamente
+        # contraditório — soa como "2 papéis num único imóvel". Quando há
+        # ≥2 imóveis, a divisão informa; n=1 omitimos o breakdown.
+        # (Ressalva financial-planner review do bundle de followups.)
+        _imoveis_breakdown = (
+            f" ({fmt_currency(M['residencia'])} residência + {fmt_currency(M['imoveis_investimento'])} investimento)"
+            if M["n_imoveis"] >= 2
+            else ""
+        )
+
         left = (
             f"<p>{_tit.get('nome_completo', '')}, {_titular_age} anos, "
             f"é {_tit.get('profissao', '')} ({_tit.get('descricao_empresa', '')}). "
@@ -97,7 +107,7 @@ class PerfilFamiliaNarrator:
             f"<p>{_filho.get('nome_completo', '')} nasceu em "
             f"{_filho.get('local_nascimento', '')} e possui dupla cidadania {_cidadanias_str}. "
             "Primeiro filho do casal, é peça central no planejamento internacional da família.</p>\n"
-            f"<p>A família conta com {len(_pets)} gatos — {_pets_str} — na residência da "
+            f"<p>A família conta com {len(_pets)} {pluralize(len(_pets), 'gato', 'gatos')} — {_pets_str} — na residência da "
             f"{_endereco.get('rua', '')}, {_endereco.get('bairro', '')}, "
             f"{_endereco.get('cidade', '')}.</p>"
         )
@@ -113,7 +123,7 @@ class PerfilFamiliaNarrator:
             f"Com aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a., "
             f"prazo realista de {M['anos_para_if_calculo']} anos ({ctx.titular_nome} {M[ctx.key_idade_titular_if]} anos, {M['if_ano']}).</p>\n"
             f"<p>Patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])}: "
-            f"{M['n_imoveis']} {pluralize(M['n_imoveis'], 'imóvel', 'imóveis')} ({fmt_currency(M['residencia'])} residência + {fmt_currency(M['imoveis_investimento'])} investimento), "
+            f"{M['n_imoveis']} {pluralize(M['n_imoveis'], 'imóvel', 'imóveis')}{_imoveis_breakdown}, "
             f"carteiras {ctx.titular_nome} ({fmt_currency(M[ctx.key_inv_titular])}) e {ctx.conjuge_nome} ({fmt_currency(M[ctx.key_inv_conjuge])}). "
             f"Endividamento de {fmt_percent(M['taxa_endividamento'])} — saudável.</p>\n"
             f"<p>Carteira diversificada entre {M['diversificacao']} categorias de ativos. "

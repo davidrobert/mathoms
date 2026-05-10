@@ -354,7 +354,8 @@ class ChartsNarrator:
         return {
             "bubble_riscos": {
                 "context": (
-                    f"Identificação de {len(riscos)} riscos críticos de compliance e proteção ao plano IF, com probabilidade e impacto."
+                    f"Identificação de {len(riscos)} {pluralize(len(riscos), 'risco crítico', 'riscos críticos')} "
+                    "de compliance e proteção ao plano IF, com probabilidade e impacto."
                 ),
                 "conclusion": (
                     "Riscos prioritários: "

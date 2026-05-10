@@ -163,13 +163,75 @@ def _narrate_perfil(n_imoveis: int) -> dict[str, str]:
 
 def test_perfil_familia_singular_when_one_imovel():
     right = _narrate_perfil(1)["right"]
-    assert "1 imóvel " in right
+    # n=1: sem breakdown — "1 imóvel," (vírgula imediata, ressalva financial-planner)
+    assert "1 imóvel," in right
     assert "1 imóveis" not in right
 
 
 def test_perfil_familia_plural_when_multiple_imoveis():
     right = _narrate_perfil(3)["right"]
     assert "3 imóveis " in right
+
+
+def test_perfil_familia_omits_breakdown_when_one_imovel():
+    """Ressalva financial-planner: `1 imóvel (R$ X residência + R$ Y investimento)`
+    é contraditório (2 papéis num só imóvel). n=1 deve omitir o parêntese."""
+    right = _narrate_perfil(1)["right"]
+    assert "1 imóvel," in right
+    assert "residência +" not in right
+    assert "investimento)" not in right
+
+
+def test_perfil_familia_keeps_breakdown_when_multiple_imoveis():
+    right = _narrate_perfil(2)["right"]
+    assert "residência +" in right
+    assert "investimento)" in right
+
+
+# ── charts.bubble_riscos (escape designer review) ──────────────────────
+
+
+def test_bubble_riscos_singular_when_one_risco():
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    out = ChartsNarrator(ctx).narrate(
+        _build_metrics(),
+        _FAMILY_BASE,
+        [{"nome": "r1", "prob": "a", "impacto": "a"}],
+        ["d1"],
+    )
+    context = out["bubble_riscos"]["context"]
+    assert "1 risco crítico" in context
+    assert "1 riscos" not in context
+
+
+def test_bubble_riscos_plural_when_multiple_riscos():
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    riscos = [{"nome": f"r{i}", "prob": "a", "impacto": "a"} for i in range(3)]
+    out = ChartsNarrator(ctx).narrate(_build_metrics(), _FAMILY_BASE, riscos, ["d1"])
+    context = out["bubble_riscos"]["context"]
+    assert "3 riscos críticos" in context
+
+
+# ── perfil_familia.gatos (escape designer review) ──────────────────────
+
+
+def test_perfil_familia_gatos_singular_when_one_pet():
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    family = {**_FAMILY_BASE, "pets": ["Mimi"]}
+    left = PerfilFamiliaNarrator(ctx).narrate(_build_metrics(), family, today=date(2026, 4, 20))[
+        "left"
+    ]
+    assert "1 gato " in left
+    assert "1 gatos" not in left
+
+
+def test_perfil_familia_gatos_plural_when_multiple_pets():
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    family = {**_FAMILY_BASE, "pets": ["Mimi", "Rex"]}
+    left = PerfilFamiliaNarrator(ctx).narrate(_build_metrics(), family, today=date(2026, 4, 20))[
+        "left"
+    ]
+    assert "2 gatos " in left
 
 
 # ── format_helpers unitários ───────────────────────────────────────────
