@@ -222,7 +222,7 @@ export function ReportShell({
 
   return (
     <div
-      className="flex h-[calc(100vh-3.5rem)] flex-col lg:h-screen"
+      className="flex flex-col"
       data-report-scope
       data-font-scale={fontScale}
     >
@@ -262,7 +262,7 @@ export function ReportShell({
         }
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex">
         {sidebarOpen && (
           <div className="hidden md:block">
             <ReportToc groups={tocGroups} />
@@ -271,7 +271,7 @@ export function ReportShell({
 
         <main
           id="report-main"
-          className="relative flex-1 overflow-y-auto bg-[var(--surface-background)]"
+          className="relative min-w-0 flex-1 bg-[var(--surface-background)]"
         >
           {dataState.status === "loading" && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--surface-background)]/80">

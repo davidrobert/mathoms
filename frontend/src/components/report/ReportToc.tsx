@@ -129,7 +129,7 @@ export function ReportToc({ groups }: ReportTocProps) {
   }, []);
 
   return (
-    <aside className="sidebar-toc no-print hidden w-60 shrink-0 overflow-y-auto border-r border-[var(--surface-border)] bg-[var(--surface-card)] p-3 lg:block">
+    <aside className="sidebar-toc no-print hidden w-60 shrink-0 self-start border-r border-[var(--surface-border)] bg-[var(--surface-card)] p-3 lg:sticky lg:top-[var(--report-topnav-h,52px)] lg:block lg:max-h-[calc(100vh-var(--report-topnav-h,52px))] lg:overflow-y-auto">
       <p className="mb-3 px-2 font-display text-xs font-semibold uppercase tracking-wider text-[var(--surface-muted-foreground)]">
         Capítulos
       </p>
