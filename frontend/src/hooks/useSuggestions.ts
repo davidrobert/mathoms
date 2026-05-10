@@ -98,6 +98,11 @@ function useReload({
     setError("");
     try {
       const resp = await apiList(workspaceId, status);
+      if (!Array.isArray(resp?.suggestions)) {
+        // Drift de contrato: HTTP 200 mas sem `suggestions[]`. Loga p/
+        // detectar em prod sem propagar erro ao usuário (degrada para []).
+        console.warn("[useSuggestions] resp.suggestions não é array:", resp);
+      }
       setSuggestions(Array.isArray(resp?.suggestions) ? resp.suggestions : []);
     } catch (err) {
       setError(describeError(err, "Erro ao carregar sugestões"));

@@ -34,10 +34,14 @@ export function PlanoDeAcaoSection({ workspaceId }: PlanoDeAcaoSectionProps) {
     <ReportSection id="plano_de_acao" title="Plano de Ação">
       <div className="md:col-span-2 flex flex-col gap-4">
         <ManageInAcaoLink />
-        {error && (
-          <p className="text-sm text-[var(--semantic-danger)]">{error}</p>
-        )}
-        {loading ? (
+        {error ? (
+          // Erro de fetch: copy explícita pra não confundir com "vazio"
+          // (lição do review do financial-planner — Cerbasi: cliente
+          // não pode confundir "plano em dia" com "falha de carga").
+          <p className="text-sm text-[var(--semantic-danger)]">
+            Não foi possível carregar — atualize a página.
+          </p>
+        ) : loading ? (
           <p className="text-sm text-[var(--surface-muted-foreground)]">Carregando…</p>
         ) : (
           <DecisionTable rows={decisions} />
@@ -70,8 +74,10 @@ interface DecisionTableProps {
 function DecisionTable({ rows }: DecisionTableProps) {
   if (rows.length === 0) {
     return (
+      // Empty state pedagógico (Cerbasi): aponta para o próximo passo do
+      // ciclo em vez de só relatar ausência ("Nenhuma decisão registrada").
       <p className="text-sm text-[var(--surface-muted-foreground)]">
-        Nenhuma decisão registrada.
+        Nenhuma decisão pendente neste ciclo. Revise no próximo fechamento.
       </p>
     );
   }
