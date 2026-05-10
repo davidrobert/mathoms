@@ -4,14 +4,14 @@ type: track
 title: "Track Category Overrides W3 — ADR-185 Proposto (política + escopo + invariantes)"
 sprint: A11
 plan: PLAN-category-overrides-ux
-status: ready
+status: consumed
 created_at: "2026-05-10"
-consumed_at: null
+consumed_at: "2026-05-10"
 agent_role: product-manager
 tags:
   - type/track
   - sprint/a11
-  - status/ready
+  - status/consumed
   - area/categorization
   - area/adr
 ---

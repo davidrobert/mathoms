@@ -65,6 +65,31 @@ arqueologia do débito de 7 meses sobre cobertura `goals.json`.
 
 ---
 
+## CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md
+
+Plano canônico da Sprint A11.cat-overrides-ux — V1 da UX de overrides de
+categoria (24 default-only, template v1 ADR-137). 4 ondas em paralelo
+(cache fix → schema delta → ADR Proposto → UI refactor), 1 ADR canônica
+(ADR-185), corrigia tela vazia em workspace novo + bug latente de cache
+stale (300s TTL).
+
+**Arquivado em:** 2026-05-10 (Sprint A11.cat-overrides-ux ✅ entregue —
+4/4 PRs em `main` no mesmo ciclo, fechando gap entre endpoints
+`/config/category-overrides/*` modernos e UI legacy `/config/categories`).
+
+**Substituído por:** [ADR-185](../adr/185-categorization-template-versioning-overrides.md)
+(`Decidido (A11.cat-overrides)`), PR #187 (W1 cache invalidation), PR #186
+(W2 schema delta `updated_by_user_id`), PR #182 (W3 ADR-185 Proposto),
+PR #189 (W4 UI refactor + flip ADR-185 para Decidido).
+
+**Quando consultar:** rationale histórico da política v1→v2 sem
+`template_version_pinned` (migrations codificam preserve/rename/disable),
+escopo 24 default-only com não-objetivos (custom categories, audit
+event-sourced, sunset legacy endpoint), diff client-side de keywords em
+3 estados, hook estrutural de tabs extensíveis para V2.A do learning loop.
+
+---
+
 ## DOC_REORG_PLAN-2026-05-07.md
 
 Plano canônico da reorganização documental (ADR-182). 5 fases em ~3 dias
