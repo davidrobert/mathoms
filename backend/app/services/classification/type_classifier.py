@@ -84,8 +84,14 @@ TYPE_RULES: tuple[TypeRule, ...] = (
     TypeRule(
         code="informerendimentosaluguel",
         dest_group="income_tax_br",
-        required=(_c(r"Informe.*Rendiment"), _c(r"Aluguel|Locat[áa]rio|Loca[çc][ãa]o")),
-        supporting=(_c(r"Rendimento\s*Bruto"),),
+        # QuintoAndar emite o comprovante anual de rendimentos do locador com o
+        # cabeçalho "Comprovante anual de rendimentos de aluguéis" — equivalente
+        # ao informe IRPF, mas usa "Comprovante" no lugar de "Informe".
+        required=(
+            _c(r"Informe.*Rendiment|Comprovante\s*anual\s*de\s*rendimentos"),
+            _c(r"Aluguel|Locat[áa]rio|Loca[çc][ãa]o"),
+        ),
+        supporting=(_c(r"Rendimento\s*(Bruto|L[íi]quido)"),),
         priority=2,
     ),
     TypeRule(

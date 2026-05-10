@@ -10,6 +10,7 @@ metadados em ``classification_meta`` (inclui ``confidence`` e ``needs_review``).
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -47,6 +48,17 @@ _PERMANENT_ERROR_NAMES = frozenset(
         "APIKeyError",
     }
 )
+
+
+def _llm_prerequisites_skip_reason() -> str | None:
+    """Pré-cheque silencioso: ``sdk_not_installed`` | ``missing_api_key`` | ``None``."""
+    try:
+        import anthropic  # noqa: F401
+    except ImportError:
+        return "sdk_not_installed"
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return "missing_api_key"
+    return None
 
 
 def _classify_llm_error(exc: BaseException) -> str:
@@ -177,24 +189,33 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
     confidence = content_result.confidence
 
     if use_llm and confidence < _CONTENT_CONFIDENCE_THRESHOLD:
-        llm_result = None
-        try:
-            llm_result = classify_by_llm(file_path)
-        except Exception as exc:  # noqa: BLE001 — não derrubar upload
-            kind = _classify_llm_error(exc)
-            meta["llm_error"] = f"{type(exc).__name__}: {str(exc)[:200]}"
-            meta["llm_error_kind"] = kind
+        skip_reason = _llm_prerequisites_skip_reason()
+        if skip_reason is not None:
+            meta["llm_skipped_reason"] = skip_reason
+        else:
+            llm_result = None
+            try:
+                llm_result = classify_by_llm(file_path)
+            except Exception as exc:  # noqa: BLE001 — não derrubar upload
+                kind = _classify_llm_error(exc)
+                meta["llm_error"] = f"{type(exc).__name__}: {str(exc)[:200]}"
+                meta["llm_error_kind"] = kind
 
-        if llm_result:
-            meta["llm"] = llm_result
-            llm_confidence = float(llm_result.get("confidence", 0.0) or 0.0)
-            if llm_confidence > confidence:
-                best_type = llm_result.get("doc_type") or best_type
-                best_institution = llm_result.get("institution") or best_institution
-                best_period = llm_result.get("period") or best_period
-                best_dest_group = llm_result.get("dest_group") or best_dest_group
-                confidence = llm_confidence
-                meta["source"] = "llm_fallback"
+            if llm_result:
+                meta["llm"] = llm_result
+                llm_confidence = float(llm_result.get("confidence", 0.0) or 0.0)
+                if llm_confidence > confidence:
+                    best_type = llm_result.get("doc_type") or best_type
+                    best_institution = llm_result.get("institution") or best_institution
+                    best_period = llm_result.get("period") or best_period
+                    best_dest_group = llm_result.get("dest_group") or best_dest_group
+                    confidence = llm_confidence
+                    meta["source"] = "llm_fallback"
+            elif "llm_error" not in meta:
+                # classify_by_llm devolveu None sem exceção: confidence < threshold,
+                # JSON inválido, retries esgotados, ou import/key falhou dentro do
+                # script. Marca explicitamente p/ diferenciar de "LLM nem foi chamado".
+                meta["llm_skipped_reason"] = "no_result"
 
     needs_review = confidence < _REVIEW_CONFIDENCE_THRESHOLD
     if content_result.force_review:

@@ -509,6 +509,19 @@ QUINTOANDAR_FATURA_PDF = (
     "QuintoAndar\n"
 )
 
+# PDF do comprovante anual de rendimentos do locador (QuintoAndar).
+# Cabeçalho real (3 páginas, gerado por wkhtmltopdf) — equivalente ao
+# "Informe de Rendimentos" tradicional, mas o título usa "Comprovante" em
+# vez de "Informe", então a regra antiga falhava.
+QUINTOANDAR_COMPROVANTE_ALUGUEIS = (
+    "Comprovante anual de rendimentos de aluguéis    Ano-calendário 2025\n"
+    "A tabela abaixo contém o valor bruto dos aluguéis pagos e os descontos.\n"
+    "Mês  Valor do aluguel  Descontos  Rendimento líquido\n"
+    "Janeiro  R$ 1.489,65  R$ 126,62  R$ 1.363,03\n"
+    "Beneficiário do rendimento (Locador): Fulano de Tal\n"
+    "www.quintoandar.com.br\n"
+)
+
 # CDB do C6 Bank via app (sem razão social completa, mas tem "C6 Invest").
 C6_INVEST_CDB = (
     "Real R$ 6.930,11\n"
@@ -583,6 +596,17 @@ class TestNewPatterns:
         result = classify_text(QUINTOANDAR_FATURA_PDF)
         assert result.doc_type == "faturaaluguel"
         assert result.institution == "quintoandar"
+
+    def test_quintoandar_comprovante_anual_rendimentos(self):
+        """'Comprovante anual de rendimentos de aluguéis' (informe IRPF do
+        locador, formato canônico do QuintoAndar) deve casar a regra
+        ``informerendimentosaluguel`` com confidence alta — sem precisar de
+        LLM fallback. Caso real: 070.pdf/071.pdf eram classificados como
+        ``other`` + needs_review por nenhuma regra casar antes."""
+        result = classify_text(QUINTOANDAR_COMPROVANTE_ALUGUEIS)
+        assert result.doc_type == "informerendimentosaluguel"
+        assert result.dest_group == "income_tax_br"
+        assert result.confidence >= 0.7
 
     def test_c6_invest_institution(self):
         """'C6 Invest' no app → c6bank."""
