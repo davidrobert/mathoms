@@ -97,8 +97,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <CommandPalette />
       {/* Sidebar */}
       <aside
+        data-app-sidebar
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-56 flex-col border-r border-border bg-card transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-border bg-card transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -178,16 +179,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/20 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/20 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Mobile FAB — substitui o header em telas <lg. */}
+      {/* Mobile FAB — substitui o header em telas <lg.
+       * z-40 (acima do ReportTopNav z-30) para não sumir atrás do header sticky
+       * de páginas que renderizam top-nav próprio (ex.: /reports/[id]). */}
       <Button
         variant="outline"
         size="icon"
-        className="fixed left-3 top-3 z-30 h-10 w-10 shadow-md lg:hidden"
+        className="fixed left-3 top-3 z-40 h-10 w-10 shadow-md lg:hidden"
         onClick={() => setMobileOpen(true)}
         aria-label="Abrir menu"
       >
