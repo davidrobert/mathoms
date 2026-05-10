@@ -18,10 +18,12 @@ from pipeline.domain.services.narrativas.builder import E5NarrativasBuilder
 from pipeline.domain.services.narrativas.charts_narrator import ChartsNarrator
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
+    ensure_period,
     fmt_currency,
     fmt_num,
     fmt_percent,
     fmt_usd,
+    pluralize,
     validate_narrativas,
 )
 from pipeline.domain.services.narrativas.perfil_familia_narrator import (
@@ -37,9 +39,11 @@ __all__ = [
     "PerfilFamiliaNarrator",
     "SummariesNarrator",
     "ChartsNarrator",
+    "ensure_period",
     "fmt_currency",
     "fmt_num",
     "fmt_percent",
     "fmt_usd",
+    "pluralize",
     "validate_narrativas",
 ]
