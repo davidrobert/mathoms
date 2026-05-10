@@ -3,6 +3,11 @@
 Frontend mantém contrato estável (``CategoryListResponse``); backend grava em
 ``workspace_category_overrides`` em vez de ``categories``. ``code`` no DTO
 mapeia para ``template_key``; ``id`` no DTO é o id do override (quando existe).
+
+Pós-A11.W1: orquestração (commit + cache invalidation) vive em
+``CategoryOverrideService``. Este módulo é a fronteira HTTP→domínio que
+traduz DTOs em ``CategoryOverrideConfig`` e re-resolve a categoria depois
+do write para devolver a representação fresh ao caller.
 """
 
 from __future__ import annotations
@@ -10,6 +15,10 @@ from __future__ import annotations
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.base.errors import NotFoundError
+from backend.app.application.categorization import (
+    CategoryOverrideConfig,
+    CategoryOverrideService,
+)
 from backend.app.repositories.workspace_category_override_repository import (
     WorkspaceCategoryOverrideRepository,
 )
@@ -18,7 +27,6 @@ from backend.app.schemas.dto.category import (
     CategoryResponse,
     CategoryUpdateCommand,
 )
-from backend.app.services import category_cache
 from backend.app.services.category_resolver import (
     METADATA_TEMPLATE_KEY,
     ResolvedCategory,
@@ -65,9 +73,9 @@ async def upsert_category_override(
             f"Categoria '{template_key}' não está no template global",
             code="category_not_in_template",
         )
-    overrides = await WorkspaceCategoryOverrideRepository(db).upsert(
-        workspace_id,
-        template_key,
+    config = CategoryOverrideConfig(
+        workspace_id=workspace_id,
+        template_key=template_key,
         label_override=_diff_or_none(cmd.name, by_key[template_key].label),
         keywords_override=_keywords_diff(cmd.keywords, by_key[template_key].keywords),
         monthly_cap_brl_cents_override=_cap_diff(
@@ -75,12 +83,12 @@ async def upsert_category_override(
         ),
         disabled=False,
     )
-    category_cache.invalidate_resolved_categories(workspace_id)
+    override_id = await CategoryOverrideService(db).upsert(config)
     refreshed = await db.run_sync(
         lambda sync_session: resolve_categories(workspace_id, sync_session)
     )
     new_by_key = {c.key: c for c in refreshed}
-    return _resolved_to_response(new_by_key[template_key], overrides.id)
+    return _resolved_to_response(new_by_key[template_key], override_id)
 
 
 async def disable_category_override(
@@ -90,13 +98,7 @@ async def disable_category_override(
     db: AsyncSession,
 ) -> None:
     """``DELETE /categories/{key}`` — desabilita categoria via override.disabled=True."""
-    repo = WorkspaceCategoryOverrideRepository(db)
-    await repo.upsert(
-        workspace_id,
-        template_key,
-        disabled=True,
-    )
-    category_cache.invalidate_resolved_categories(workspace_id)
+    await CategoryOverrideService(db).disable(workspace_id, template_key)
 
 
 async def reset_category_override(
@@ -106,12 +108,7 @@ async def reset_category_override(
     db: AsyncSession,
 ) -> None:
     """``DELETE /categories/{key}/override`` — apaga override; volta ao template default."""
-    repo = WorkspaceCategoryOverrideRepository(db)
-    existing = await repo.get_by_template_key(workspace_id, template_key)
-    if existing is None:
-        return
-    await repo.delete(existing)
-    category_cache.invalidate_resolved_categories(workspace_id)
+    await CategoryOverrideService(db).reset(workspace_id, template_key)
 
 
 def _diff_or_none(value: str | None, default: str) -> str | None:
