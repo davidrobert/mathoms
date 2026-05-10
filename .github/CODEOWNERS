@@ -5,9 +5,13 @@
 # Default: founder aprova tudo se ninguém mais foi pingado
 *                                          @davidrobert
 
-# Visual regression snapshots — mudanças exigem review deliberado
-/frontend/tests/e2e/__snapshots__/         @davidrobert
-/frontend/tests/e2e/*.visual.spec.ts       @davidrobert
+# Visual regression snapshots — mudanças exigem review deliberado.
+# Path antigo `/frontend/tests/e2e/__snapshots__/` ficou stale (Playwright
+# usa o nome do spec como sufixo); rule atualizada em PR #174 (2026-05-10)
+# para casar onde os PNGs realmente vivem.
+/frontend/tests/e2e/reports/*-snapshots/   @davidrobert
+/frontend/tests/e2e/reports/__snapshots__/ @davidrobert
+/frontend/tests/e2e/**/*.visual.spec.ts    @davidrobert
 
 # Migrations Alembic — mudanças de schema exigem revisão sistemática
 /backend/alembic/versions/                 @davidrobert
