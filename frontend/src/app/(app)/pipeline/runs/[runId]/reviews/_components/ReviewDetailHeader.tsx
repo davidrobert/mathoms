@@ -42,10 +42,15 @@ export function ReviewDetailHeader({
           {STATUS_LABEL[review.status]}
         </span>
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Stage: <span className="font-mono">{review.stage}</span> · Review ID:{" "}
-        <span className="font-mono">{review.id}</span>
-      </p>
+      <details className="mt-1 text-xs text-muted-foreground">
+        <summary className="cursor-pointer select-none hover:text-foreground">
+          Detalhes técnicos
+        </summary>
+        <p className="mt-1 pl-1">
+          Stage: <span className="font-mono">{review.stage}</span> · Review ID:{" "}
+          <span className="font-mono">{review.id}</span>
+        </p>
+      </details>
     </header>
   );
 }
