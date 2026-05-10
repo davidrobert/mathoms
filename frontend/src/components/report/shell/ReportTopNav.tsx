@@ -91,7 +91,9 @@ export function ReportTopNav({
       style={{
         position: "sticky",
         top: 0,
-        zIndex: 100,
+        zIndex: 30,
+        minHeight: "var(--report-topnav-h, 52px)",
+        boxSizing: "border-box",
         background: "var(--report-gradient-nav-sticky)",
         borderBottom: "1px solid rgba(255,255,255,0.08)",
         boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
