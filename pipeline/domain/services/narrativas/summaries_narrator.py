@@ -76,7 +76,7 @@ class SummariesNarrator:
                 f"{ctx.conjuge_nome} possui {fmt_currency(M[ctx.key_inv_conjuge])} concentrados em {M[ctx.key_inst_conjuge]}."
             ),
             "s4": (
-                f"{M['n_imoveis']} imóveis no portfólio: residência na {_endereco.get('rua', '')} ({fmt_currency(M['residencia'])}), "
+                f"{M['n_imoveis']} {pluralize(M['n_imoveis'], 'imóvel', 'imóveis')} no portfólio: residência na {_endereco.get('rua', '')} ({fmt_currency(M['residencia'])}), "
                 f"apartamentos alugados com renda de {fmt_currency(M['receita_aluguel_anual'])}/ano ({fmt_currency(M['receita_aluguel'] / M['n_meses_periodo'] if M['n_meses_periodo'] else 0)}/mês). "
                 f"Yield bruto dos imóveis de investimento estimado em {fmt_num(M['yield_imoveis_pct'])}% (receita/valor total)."
             ),
@@ -112,7 +112,7 @@ class SummariesNarrator:
                 "Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA expatriado antes da mudança."
             ),
             "s9": (
-                f"{len(riscos_nomes)} riscos prioritários: {', '.join(riscos_nomes[:3])}. "
+                f"{len(riscos_nomes)} {pluralize(len(riscos_nomes), 'risco prioritário', 'riscos prioritários')}: {', '.join(riscos_nomes[:3])}. "
                 f"Seguros de vida e invalidez inexistentes — classificados como urgentes. "
                 f"Cobertura recomendada: R$ {M['seguro_vida_minimo'] // 1_000_000}-{M['seguro_vida_maximo'] // 1_000_000}M em seguro term. "
                 "Planejamento sucessório em estágio inicial."

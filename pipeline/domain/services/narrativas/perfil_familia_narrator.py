@@ -17,6 +17,7 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_currency,
     fmt_num,
     fmt_percent,
+    pluralize,
 )
 
 # Max chars per <p> — enforçado pelo validator E5.N (V_PERFIL_MAX_CHARS).
@@ -112,7 +113,7 @@ class PerfilFamiliaNarrator:
             f"Com aportes de {fmt_currency(M['meta_aporte_mensal'])}/mês e retorno real de {fmt_num(M['if_retorno_real_pct'], 0)}% a.a., "
             f"prazo realista de {M['anos_para_if_calculo']} anos ({ctx.titular_nome} {M[ctx.key_idade_titular_if]} anos, {M['if_ano']}).</p>\n"
             f"<p>Patrimônio bruto de {fmt_currency(M['patrimonio_bruto'])}: "
-            f"{M['n_imoveis']} imóveis ({fmt_currency(M['residencia'])} residência + {fmt_currency(M['imoveis_investimento'])} investimento), "
+            f"{M['n_imoveis']} {pluralize(M['n_imoveis'], 'imóvel', 'imóveis')} ({fmt_currency(M['residencia'])} residência + {fmt_currency(M['imoveis_investimento'])} investimento), "
             f"carteiras {ctx.titular_nome} ({fmt_currency(M[ctx.key_inv_titular])}) e {ctx.conjuge_nome} ({fmt_currency(M[ctx.key_inv_conjuge])}). "
             f"Endividamento de {fmt_percent(M['taxa_endividamento'])} — saudável.</p>\n"
             f"<p>Carteira diversificada entre {M['diversificacao']} categorias de ativos. "

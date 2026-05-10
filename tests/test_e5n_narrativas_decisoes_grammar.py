@@ -1,4 +1,8 @@
-"""Regressão: concordância singular/plural e pontuação dupla em top5_decisoes / s10."""
+"""Regressão: concordância singular/plural e pontuação dupla em top5_decisoes / s10.
+
+Estende cobertura para imóveis (`s4`, `perfil_familia`) e riscos (`s9`):
+todos compartilham o mesmo padrão `f"{n} <plural>"` que falhava em n=1.
+"""
 
 from __future__ import annotations
 
@@ -8,6 +12,7 @@ from typing import Any
 from pipeline.domain.services.narrativas import (
     ChartsNarrator,
     NarrativasContext,
+    PerfilFamiliaNarrator,
     SummariesNarrator,
     ensure_period,
     pluralize,
@@ -109,6 +114,62 @@ def test_summaries_s10_plural_when_multiple_decisoes():
     )
     s10 = summaries["s10"]
     assert "4 decisões estratégicas prioritárias" in s10
+
+
+# ── summaries.s4 (imóveis) ─────────────────────────────────────────────
+
+
+def _narrate_summary(n_imoveis: int, riscos: list[str]) -> dict[str, str]:
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    metrics = _build_metrics()
+    metrics["n_imoveis"] = n_imoveis
+    return SummariesNarrator(ctx).narrate(metrics, _FAMILY_BASE, riscos, ["Aporte"])
+
+
+def test_summaries_s4_singular_when_one_imovel():
+    s4 = _narrate_summary(1, ["risco1"])["s4"]
+    assert "1 imóvel no portfólio" in s4
+    assert "1 imóveis" not in s4
+
+
+def test_summaries_s4_plural_when_multiple_imoveis():
+    s4 = _narrate_summary(3, ["risco1"])["s4"]
+    assert "3 imóveis no portfólio" in s4
+
+
+# ── summaries.s9 (riscos) ──────────────────────────────────────────────
+
+
+def test_summaries_s9_singular_when_one_risco():
+    s9 = _narrate_summary(2, ["risco_unico"])["s9"]
+    assert "1 risco prioritário" in s9
+    assert "1 riscos" not in s9
+
+
+def test_summaries_s9_plural_when_multiple_riscos():
+    s9 = _narrate_summary(2, ["r1", "r2", "r3"])["s9"]
+    assert "3 riscos prioritários" in s9
+
+
+# ── perfil_familia (imóveis no <p>) ────────────────────────────────────
+
+
+def _narrate_perfil(n_imoveis: int) -> dict[str, str]:
+    ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
+    metrics = _build_metrics()
+    metrics["n_imoveis"] = n_imoveis
+    return PerfilFamiliaNarrator(ctx).narrate(metrics, _FAMILY_BASE, today=date(2026, 4, 20))
+
+
+def test_perfil_familia_singular_when_one_imovel():
+    right = _narrate_perfil(1)["right"]
+    assert "1 imóvel " in right
+    assert "1 imóveis" not in right
+
+
+def test_perfil_familia_plural_when_multiple_imoveis():
+    right = _narrate_perfil(3)["right"]
+    assert "3 imóveis " in right
 
 
 # ── format_helpers unitários ───────────────────────────────────────────
