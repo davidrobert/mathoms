@@ -1,13 +1,16 @@
 /**
- * Unit tests — PlanoDeAcaoSection (A7.2a · ADR-136)
+ * Unit tests — PlanoDeAcaoSection (A7.2a · ADR-136 · ADR-152)
  *
- * Cobre: load → render rows → filtra por status → CTA execute chama POST.
- * MSW intercepta /workspaces/:id/decisions[/:id/execute].
+ * Pós PR3 (read-only no relatório): a seção lista decisões em modo
+ * leitura e expõe link "Gerenciar Plano de Ação". Filtros de status e CTA
+ * "Marcar como executada" foram movidos para /acao — aqui validamos
+ * **ausência** desses elementos write-mode.
+ *
+ * MSW intercepta /workspaces/:id/decisions.
  */
 import { describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 
 import { PlanoDeAcaoSection } from "@/components/report/sections/PlanoDeAcao";
 import { server } from "../mocks/server";
@@ -62,21 +65,31 @@ describe("<PlanoDeAcaoSection /> @A7.2a", () => {
     });
     expect(screen.getByText("Quitar dívida fictícia")).toBeInTheDocument();
     expect(screen.getByText("D02")).toBeInTheDocument();
-    // Status badges (não confundir com tabs do filtro — ambos têm os labels)
-    expect(screen.getAllByText("Decidido").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Pendente").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Decidido")).toBeInTheDocument();
+    expect(screen.getByText("Pendente")).toBeInTheDocument();
   });
 
-  it("filtra por status quando o usuário clica num tab", async () => {
-    const user = userEvent.setup();
+  it("expõe link 'Gerenciar Plano de Ação' no header da seção", async () => {
+    server.use(
+      http.get(`${API}/workspaces/:wsId/decisions`, () =>
+        HttpResponse.json({ decisions: [], total: 0 }),
+      ),
+    );
+
+    render(<PlanoDeAcaoSection workspaceId={WS_ID} />);
+
+    const link = await screen.findByRole("link", { name: /gerenciar plano de ação/i });
+    expect(link).toHaveAttribute("href", "/acao");
+  });
+
+  it("não expõe filtros de status nem CTA write (read-only no relatório)", async () => {
     server.use(
       http.get(`${API}/workspaces/:wsId/decisions`, () =>
         HttpResponse.json({
           decisions: [
             makeDecision({ id: "d1", code: "D01", status: "Decidido", title: "Decidida X" }),
-            makeDecision({ id: "d2", code: "D02", status: "Pendente", title: "Pendente Y" }),
           ],
-          total: 2,
+          total: 1,
         }),
       ),
     );
@@ -85,43 +98,12 @@ describe("<PlanoDeAcaoSection /> @A7.2a", () => {
 
     await waitFor(() => expect(screen.getByText("Decidida X")).toBeInTheDocument());
 
-    await user.click(screen.getByRole("tab", { name: "Pendente" }));
-
-    expect(screen.queryByText("Decidida X")).toBeNull();
-    expect(screen.getByText("Pendente Y")).toBeInTheDocument();
-  });
-
-  it("CTA 'Marcar como executada' chama POST /execute para Decidido", async () => {
-    const user = userEvent.setup();
-    let executeCalled = false;
-    server.use(
-      http.get(`${API}/workspaces/:wsId/decisions`, () =>
-        HttpResponse.json({
-          decisions: [
-            makeDecision({ id: "d1", code: "D01", status: "Decidido", title: "T" }),
-          ],
-          total: 1,
-        }),
-      ),
-      http.post(`${API}/workspaces/:wsId/decisions/:id/execute`, () => {
-        executeCalled = true;
-        return HttpResponse.json(
-          makeDecision({
-            id: "d1",
-            code: "D01",
-            status: "Executado",
-            executed_at: "2026-04-27",
-            title: "T",
-          }),
-        );
-      }),
-    );
-
-    render(<PlanoDeAcaoSection workspaceId={WS_ID} />);
-
-    const btn = await screen.findByRole("button", { name: /marcar como executada/i });
-    await user.click(btn);
-
-    await waitFor(() => expect(executeCalled).toBe(true));
+    // Tabs de filtro: gone.
+    expect(screen.queryByRole("tab", { name: "Pendente" })).toBeNull();
+    expect(screen.queryByRole("tablist")).toBeNull();
+    // CTA write: gone.
+    expect(
+      screen.queryByRole("button", { name: /marcar como executada/i }),
+    ).toBeNull();
   });
 });

@@ -55,6 +55,11 @@
     --alert: oklch(0.68 0.16 75);
     --info-financial: oklch(0.55 0.15 250);
 
+    /* Report shell layout — altura fixa do ReportTopNav sticky.
+     * Consumida pelo `<aside class="sidebar-toc">` para ancorar
+     * `lg:sticky lg:top-[var(--report-topnav-h)]` logo abaixo do topnav. */
+    --report-topnav-h: 52px;
+
     /* Sidebar */
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
