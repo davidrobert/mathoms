@@ -2794,6 +2794,17 @@
               }
             ]
           },
+          "e0_doc_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "E0 Doc Type"
+          },
           "error_message": {
             "anyOf": [
               {
