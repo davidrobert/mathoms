@@ -6826,17 +6826,6 @@
               }
             ],
             "title": "Edited Output Json"
-          },
-          "reviewer_notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reviewer Notes"
           }
         },
         "required": [
@@ -6895,17 +6884,6 @@
               }
             ],
             "title": "Reviewed At"
-          },
-          "reviewer_notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reviewer Notes"
           },
           "stage": {
             "title": "Stage",

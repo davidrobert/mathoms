@@ -164,7 +164,6 @@ export interface StageReviewResponse {
   validation_issues: ValidationIssue[] | null;
   /** ADR-165 onda 2: frase curta derivada das issues no DTO. */
   summary: string;
-  reviewer_notes: string | null;
   created_at: string;
   reviewed_at: string | null;
 }
@@ -174,7 +173,6 @@ export interface StageReviewResponse {
 export interface StageReviewActionRequest {
   action: "approve" | "edit";
   edited_output_json?: Record<string, unknown>;
-  reviewer_notes?: string;
 }
 
 export async function listStageReviews(

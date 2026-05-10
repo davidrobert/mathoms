@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Check, Pencil, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/Spinner";
 import type { StageReviewActionRequest, StageReviewResponse } from "@/lib/api";
 
@@ -23,7 +22,6 @@ export function ReviewActions({
 }) {
   const [mode, setMode] = useState<Mode>("idle");
   const [edited, setEdited] = useState<Record<string, unknown> | null>(null);
-  const [notes, setNotes] = useState("");
 
   const isPending = review.status === "pending";
 
@@ -37,39 +35,16 @@ export function ReviewActions({
   }
 
   async function handleApprove() {
-    await onSubmit({
-      action: "approve",
-      reviewer_notes: notes.trim() ? notes.trim() : undefined,
-    });
+    await onSubmit({ action: "approve" });
   }
 
   async function handleEdit() {
     if (!edited) return;
-    await onSubmit({
-      action: "edit",
-      edited_output_json: edited,
-      reviewer_notes: notes.trim() ? notes.trim() : undefined,
-    });
+    await onSubmit({ action: "edit", edited_output_json: edited });
   }
 
   return (
     <section aria-label="Ações da revisão" className="space-y-4">
-      <div className="space-y-2">
-        <label
-          htmlFor="reviewer-notes"
-          className="block text-sm font-medium text-foreground"
-        >
-          Notas do revisor (opcional)
-        </label>
-        <Textarea
-          id="reviewer-notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-          placeholder="Comentários sobre o que foi conferido ou alterado…"
-        />
-      </div>
-
       {mode === "idle" && (
         <div className="flex flex-wrap gap-2">
           <Button onClick={handleApprove} disabled={submitting}>

@@ -89,7 +89,6 @@ class StageReviewResponse(BaseModel):
     edited_output_json: Optional[dict] = None
     validation_errors: Optional[str] = None
     validation_issues: Optional[list[ValidationIssueDTO]] = None
-    reviewer_notes: Optional[str] = None
     created_at: datetime
     reviewed_at: Optional[datetime] = None
 
@@ -105,7 +104,6 @@ class StageReviewResponse(BaseModel):
 class StageReviewActionRequest(BaseModel):
     action: str  # "approve" or "edit"
     edited_output_json: Optional[dict] = None
-    reviewer_notes: Optional[str] = None
 
     @field_validator("action")
     @classmethod

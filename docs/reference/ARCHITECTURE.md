@@ -260,7 +260,7 @@ LLMConfig
 StageReview
   id (UUID), pipeline_run_id (FK), stage_name
   status (pending|approved|edited)
-  output_json, edited_output_json, reviewer_notes, reviewed_at
+  output_json, edited_output_json, reviewed_at
 
 TransactionOverride
   id (UUID), workspace_id (FK, indexed), transaction_hash (indexed)
