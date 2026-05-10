@@ -368,7 +368,6 @@ export function ReportShell({
                         sectionId={a.id}
                         data={dataState.data}
                         workspaceId={workspaceId}
-                        reportId={reportId}
                       />
                     ) : null,
                   )}
