@@ -121,13 +121,22 @@ async def _process_single_upload(
     filename = upload_file.filename or "unknown"
     content = await upload_file.read()
     actual_mime = detect_actual_mime(content) or upload_file.content_type
+    content_hash = hashlib.sha256(content).hexdigest()
 
     if await _record_validation_failure(
-        filename, content, actual_mime, workspace_id, storage, repo, created
+        filename,
+        content,
+        actual_mime,
+        content_hash=content_hash,
+        workspace_id=workspace_id,
+        db=db,
+        storage=storage,
+        repo=repo,
+        created=created,
+        skipped=skipped,
     ):
         return
 
-    content_hash = hashlib.sha256(content).hexdigest()
     doc = await _insert_with_savepoint(
         filename=filename,
         content=content,
@@ -159,37 +168,47 @@ async def _record_validation_failure(
     filename: str,
     content: bytes,
     actual_mime: str | None,
+    *,
+    content_hash: str,
     workspace_id: str,
+    db: AsyncSession,
     storage: StorageService,
     repo: DocumentRepository,
     created: list[Document],
+    skipped: list[str],
 ) -> bool:
+    """Persiste documento ``status=error`` quando validação falha ou conteúdo vazio.
+
+    O ``content_hash`` é gravado mesmo em registros de erro — caso contrário
+    o partial unique index ``ux_documents_workspace_content_hash``
+    (``WHERE content_hash IS NOT NULL``) não bloqueia re-upload das mesmas
+    bytes. INSERT vai num savepoint para que colisão de hash com doc
+    pré-existente seja capturada como skipped em vez de propagar
+    ``IntegrityError`` no commit do batch.
+    """
     ok, err_msg = storage.validate_file(filename, len(content), content=content)
-    if not ok:
+    if ok and len(content) > 0:
+        return False
+    if len(content) == 0:
+        err_msg = "Arquivo vazio"
+
+    savepoint = await db.begin_nested()
+    try:
         doc = Document(
             workspace_id=workspace_id,
             original_name=filename,
             status=DocumentStatus.error,
             file_size_bytes=len(content),
             content_type=actual_mime,
+            content_hash=content_hash,
             error_message=err_msg,
         )
-        await repo.add(doc, flush=False)
+        await repo.add(doc)
         created.append(doc)
-        return True
-    if len(content) == 0:
-        doc = Document(
-            workspace_id=workspace_id,
-            original_name=filename,
-            status=DocumentStatus.error,
-            file_size_bytes=0,
-            content_type=actual_mime,
-            error_message="Arquivo vazio",
-        )
-        await repo.add(doc, flush=False)
-        created.append(doc)
-        return True
-    return False
+    except IntegrityError:
+        await savepoint.rollback()
+        skipped.append(filename)
+    return True
 
 
 async def _insert_with_savepoint(

@@ -4,7 +4,19 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from backend.app.core.database import Base
@@ -195,6 +207,21 @@ class Document(Base):
     # Notes/warnings from the E2 extract JSON (notas[] field). Stored as newline-separated
     # text so the listing can surface errors without reading files on every request.
     pipeline_extract_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Partial unique index — paridade com migration f1a2b3c4d5e6. Espelhar
+    # aqui é necessário para que ``Base.metadata.create_all`` (usado em
+    # tests e ``backfill_artifacts_from_disk``) crie a constraint; caso
+    # contrário, o dedupe atômico só vale em ambientes que rodam Alembic.
+    __table_args__ = (
+        Index(
+            "ux_documents_workspace_content_hash",
+            "workspace_id",
+            "content_hash",
+            unique=True,
+            sqlite_where=text("content_hash IS NOT NULL"),
+            postgresql_where=text("content_hash IS NOT NULL"),
+        ),
+    )
 
     workspace = relationship("Workspace", back_populates="documents")
 

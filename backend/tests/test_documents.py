@@ -124,6 +124,84 @@ async def test_upload_empty_file(auth_client: AsyncClient):
     assert "vazio" in doc["error_message"].lower()
 
 
+# ---------------------------------------------------------------------------
+# Dedupe — regression coverage for validation-failure + content_hash leak.
+#
+# Bug: ``_record_validation_failure`` historicamente persistia ``Document``
+# com ``content_hash=NULL``, e o partial unique index
+# ``ux_documents_workspace_content_hash WHERE content_hash IS NOT NULL`` não
+# bloqueava re-upload das mesmas bytes. Resultado em produção: usuário fez
+# upload de ``082.xls`` → "Erro" (NULL hash) → re-upload mais tarde passou
+# como "Não classificado" sem ser deduplicado.
+# ---------------------------------------------------------------------------
+
+
+async def _upload_exe(auth_client: AsyncClient, name: str, payload: bytes):
+    return await auth_client.post(
+        f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        files=[("files", (name, io.BytesIO(payload), "application/octet-stream"))],
+    )
+
+
+@pytest.mark.asyncio
+async def test_re_upload_after_validation_error_is_skipped(auth_client: AsyncClient):
+    """Mesmas bytes em dois uploads que falham validação → segundo é skipped."""
+    payload = b"malware-bytes-for-test"
+    first = await _upload_exe(auth_client, "virus.exe", payload)
+    assert first.status_code == 201
+    assert first.json()["documents"][0]["status"] == "error"
+
+    second = await _upload_exe(auth_client, "virus.exe", payload)
+    assert second.status_code == 201
+    body2 = second.json()
+    assert body2["total_uploaded"] == 0
+    assert body2["total_skipped"] == 1
+    assert "virus.exe" in body2["skipped_duplicates"]
+
+
+@pytest.mark.asyncio
+async def test_valid_upload_after_validation_error_blocked_by_hash(auth_client: AsyncClient):
+    """Mesmo content_hash, validação distinta — segundo upload (válido) é deduplicado."""
+    payload = b"date,description,value\n2026-01-01,Test,100.00\n"
+    first = await auth_client.post(
+        f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        files=[("files", ("data.exe", io.BytesIO(payload), "application/octet-stream"))],
+    )
+    assert first.status_code == 201
+    assert first.json()["documents"][0]["status"] == "error"
+
+    with patch(_PROC, side_effect=_mock_process):
+        second = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+            files=[("files", ("data.csv", io.BytesIO(payload), "text/csv"))],
+        )
+    assert second.status_code == 201
+    body2 = second.json()
+    assert body2["total_uploaded"] == 0
+    assert body2["total_skipped"] == 1
+    assert "data.csv" in body2["skipped_duplicates"]
+
+
+@pytest.mark.asyncio
+async def test_re_upload_empty_file_is_skipped(auth_client: AsyncClient):
+    """Arquivo vazio também é content-addressed: SHA-256 de bytes vazios é determinístico."""
+    first = await auth_client.post(
+        f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        files=[("files", ("empty.csv", io.BytesIO(b""), "text/csv"))],
+    )
+    assert first.status_code == 201
+    assert first.json()["documents"][0]["status"] == "error"
+
+    second = await auth_client.post(
+        f"/api/workspaces/{auth_client.ws_id}/documents/upload",
+        files=[("files", ("empty.csv", io.BytesIO(b""), "text/csv"))],
+    )
+    assert second.status_code == 201
+    body2 = second.json()
+    assert body2["total_uploaded"] == 0
+    assert body2["total_skipped"] == 1
+
+
 @pytest.mark.asyncio
 async def test_upload_json_e1_members(auth_client: AsyncClient):
     members_json = json.dumps({"membros": [{"nome": "David", "cpf": "123"}]}).encode()
