@@ -1,7 +1,7 @@
 """ADR-186 A12 P1: categorization_rules + transaction_overrides.source/rule_id."""
 
 # Revision ID: f7g8h9i0j1k2
-# Revises: d6e7f8a9b0c1
+# Revises: a9b0c1d2e3f4
 # Create Date: 2026-05-10
 #
 # Schema base do learning loop (ADR-186 §D3). 3 mudanças atômicas:
@@ -26,7 +26,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "f7g8h9i0j1k2"
-down_revision: Union[str, Sequence[str], None] = "d6e7f8a9b0c1"
+down_revision: Union[str, Sequence[str], None] = "a9b0c1d2e3f4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
