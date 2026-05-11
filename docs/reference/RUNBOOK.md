@@ -107,6 +107,52 @@ def downgrade():
 
 Verificar no `downgrade()` da migration alvo **antes** de aplicar.
 
+### 5.3 Workspace cleanup (single-tenant cleanup)
+
+Pré-produção, Mathoms roda single-tenant (apenas `5@5.com`). Workspaces
+residuais de smoke runs / fixtures E2E / contas de teste antigas acumulam
+no DB e geram drift em queries de admin/dashboard. Para zerar essa cauda
+preservando apenas a keep list:
+
+```bash
+# 1. Dry-run (sem efeito) — confirma o que será deletado:
+python3 dev/purge_test_workspaces.py
+
+# 2. Backup do DB ANTES do apply (responsabilidade do operador):
+cp mathoms.db mathoms.db.bak-$(date +%Y%m%d-%H%M)
+
+# 3. Apply destrutivo — exige confirmação interativa "DELETE-ALL":
+python3 dev/purge_test_workspaces.py --apply
+
+# 4. Apply + remove storage/<workspace_id>/ em disco (DiskArtifactStore mode):
+python3 dev/purge_test_workspaces.py --apply --include-blob-store
+
+# 5. Customizar keep list (cumulativo; aceita múltiplos --keep):
+python3 dev/purge_test_workspaces.py --keep 5@5.com --keep admin@mathoms.ai
+```
+
+Caveats:
+
+- **Irreversível.** Backup do DB antes de `--apply` é responsabilidade do
+  operador — o script não cria snapshot automático.
+- Remove workspaces, pipeline_artifacts (onde vivem as transactions
+  reconciliadas), overrides, rules, reports, audits, decisões (Plano de
+  Ação · ADR-136), tasks, documentos, membros/convites, password vault,
+  configs per-workspace, e usuários órfãos (owners cujos workspaces foram
+  todos deletados E que não têm membership em workspace preservado).
+- **Não** afeta config global: `category_template`, `institution_catalog`,
+  `fiscal_parameters`, `market_rates`, `alembic_version`.
+- **Não** dropa colunas/FKs/tabelas — schema permanece intacto.
+- **Não** roda em CI; script ad-hoc para ops pré-produção.
+- Defense in depth: `--apply` ativa `PRAGMA foreign_keys=ON` e exige
+  confirmação digitada `DELETE-ALL` no prompt (impossível disparar
+  acidentalmente em script automatizado sem TTY).
+
+Quando o produto virar multi-tenant esse script deixa de fazer sentido —
+neste ponto a operação canônica passa a ser soft-delete por workspace
+(`Workspace.deleted_at` + janitor job de 30 dias · ADR-072). Marcar como
+obsoleto e arquivar quando essa transição acontecer.
+
 ---
 
 ## 6. Rotação de segredos e escalação
