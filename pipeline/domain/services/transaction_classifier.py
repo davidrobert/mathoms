@@ -34,6 +34,7 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Iterable
 
+from pipeline.domain.services.categorization_service import CategorizationRulesV2
 from pipeline.domain.services.income_origin_resolver import (
     IncomeOriginConfig,
     IncomeOriginResolver,
@@ -115,6 +116,11 @@ class ClassifierConfig:
 
     Compõe configs de 3 services + regras de keywords. Usa ``frozen=True``
     para garantir imutabilidade; recebe via ``from_configs`` que lê os JSONs.
+
+    Pós-A12.P2 (ADR-186 §D5): aceita ``learned_rules_v2`` opcional. Quando
+    presente e não-vazio, classifier consulta learned rules **antes** do
+    fallback de template keywords. Workspace sem regras (default ``None``)
+    → comportamento legado preservado (paridade goldens).
     """
 
     expense_keywords: dict[str, list[str]] = field(default_factory=dict)
@@ -125,6 +131,9 @@ class ClassifierConfig:
     # v4.8/#3.2): receitas → "outras_receitas"; despesas → "nao_identificado".
     default_income_category: str = "outras_receitas"
     default_expense_category: str = "nao_identificado"
+    # ADR-186 §D5 — regras workspace-aprendidas (já ordenadas estavelmente).
+    # None = workspace sem regras (paridade legado). Adapter constrói via DB.
+    learned_rules_v2: CategorizationRulesV2 | None = None
 
     @classmethod
     def from_configs(
@@ -170,6 +179,12 @@ class ClassifiedTransaction:
     ``valor``: positivo para receitas/despesas/transferências (mesmo que o
         original fosse negativo em débito) — paridade com
         ``e4_categorize.process_transactions`` linha 718 (``valor_abs``).
+
+    ``learned_rule_id`` (ADR-186 §D5 · A12.P2): UUID da ``categorization_rules``
+    que casou e produziu ``categoria``. ``None`` quando categoria veio do
+    template ou do fallback. Audit-only no pipeline; adapter backend usa
+    para criar ``TransactionOverride(source='rule', rule_id=...)`` +
+    bumpar ``applied_count``.
     """
 
     kind: str  # receita | despesa | transferencia
@@ -183,6 +198,7 @@ class ClassifiedTransaction:
     tipo: str  # credito | debito
     categoria: str | None = None  # None para transferências
     origem: str | None = None  # só em receitas
+    learned_rule_id: str | None = None  # ADR-186 §D5 (A12.P2)
 
     def to_legacy_dict(self) -> dict:
         """Serializa no schema usado pelo `process_transactions` legado."""
@@ -300,9 +316,18 @@ class TransactionClassifier:
                 tipo=tipo or "debito",
             )
 
+        # ADR-186 §D5 (A12.P2) — learned_rules têm prioridade sobre template.
+        # Match estável (sort por priority desc, len(keyword) desc, created_at
+        # asc, id asc — aplicado pelo adapter). Workspace sem regras = no-op.
+        learned_match = self._learned_rules_match(descricao_raw)
+
         # 2. Crédito → receita.
         if tipo == "credito":
-            categoria = self._income_matcher.category_of(descricao_raw)
+            if learned_match is not None:
+                categoria, learned_id = learned_match
+            else:
+                categoria = self._income_matcher.category_of(descricao_raw)
+                learned_id = None
             if not categoria:
                 categoria = self._config.default_income_category
             origem = self._origin_resolver.resolve_for_category(categoria, descricao_raw)
@@ -318,10 +343,15 @@ class TransactionClassifier:
                 tipo=tipo,
                 categoria=categoria,
                 origem=origem,
+                learned_rule_id=learned_id,
             )
 
         # 3. Débito (ou fatura sem tipo) → despesa, com fallback de transferência.
-        categoria_exp = self._expense_matcher.category_of(descricao_raw)
+        if learned_match is not None:
+            categoria_exp, learned_id = learned_match
+        else:
+            categoria_exp = self._expense_matcher.category_of(descricao_raw)
+            learned_id = None
         if categoria_exp is None:
             # Segundo check de transferência interna (paridade com v5.1, linha
             # 697): algumas descrições só batem em transferência via `banco`.
@@ -352,4 +382,13 @@ class TransactionClassifier:
             titular=titular,
             tipo=tipo or "debito",
             categoria=categoria_exp,
+            learned_rule_id=learned_id,
         )
+
+    # ADR-186 §D5 (A12.P2) — helper interno isolado para testabilidade.
+    def _learned_rules_match(self, descricao_raw: str) -> tuple[str, str] | None:
+        """Retorna ``(target_category, rule_id)`` se alguma learned_rule casa."""
+        rules_v2 = self._config.learned_rules_v2
+        if rules_v2 is None or not rules_v2.learned_rules:
+            return None
+        return rules_v2.match(descricao_raw)

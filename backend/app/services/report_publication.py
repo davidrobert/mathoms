@@ -11,6 +11,7 @@ from typing import Any, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from backend.app.application.base.errors import (
     ConflictError,
@@ -68,6 +69,22 @@ async def is_month_closed(
     repo = ReportPublicationRepository(db)
     publication = await repo.get_active(workspace_id, period_yyyymm)
     return publication is not None
+
+
+def is_month_closed_sync(
+    workspace_id: str,
+    period_yyyymm: str,
+    *,
+    db: Session,
+) -> bool:
+    """Sync version of :func:`is_month_closed` — pipeline E4 (ADR-187 A12.P2)."""
+    _validate_period(period_yyyymm)
+    stmt = select(ReportPublication).where(
+        ReportPublication.workspace_id == workspace_id,
+        ReportPublication.period_yyyymm == period_yyyymm,
+        ReportPublication.unpublished_at.is_(None),
+    )
+    return db.execute(stmt).scalar_one_or_none() is not None
 
 
 async def _load_artifact(

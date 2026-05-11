@@ -1,12 +1,10 @@
-"""CategorizationService — lógica pura de categorização por keywords (Fase 7 · R9/ISP).
-
-Recebe :class:`CategorizationRules` (não ``StageConfig``). Keywords são
-normalizados para uppercase na construção.
-"""
+"""CategorizationService + CategorizationRulesV2 (learning loop, ADR-186 §D5)."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from datetime import datetime
+from typing import Mapping
 
 from pipeline.domain.models.transaction import Transaction
 
@@ -31,11 +29,7 @@ class CategorizationRules:
 
 
 class CategorizationService:
-    """Categoriza ``Transaction`` por match de keyword em ``description``.
-
-    Função pura: ``categorize`` retorna uma nova lista — jamais muta as
-    transações originais (usa ``dataclasses.replace``).
-    """
+    """Categoriza ``Transaction`` por match de keyword (pure, retorna nova lista)."""
 
     def __init__(self, rules: CategorizationRules):
         self._rules = rules.rules
@@ -49,3 +43,57 @@ class CategorizationService:
             if any(kw in desc for kw in keywords):
                 return replace(t, category=category)
         return t
+
+
+# =============================================================================
+# ADR-186 A12.P2 — CategorizationRulesV2 (learned rules + template fallback)
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class LearnedRule:
+    """Regra promovida (ADR-186 §D5). ``keyword`` já uppercase."""
+
+    id: str
+    keyword: str
+    target_category: str
+    priority: int
+    created_at: datetime  # tz-aware
+
+
+def _sort_key(rule: LearnedRule) -> tuple[int, int, datetime, str]:
+    """Sort estável (priority desc, len(keyword) desc, created_at asc, id asc)."""
+    return (-rule.priority, -len(rule.keyword), rule.created_at, rule.id)
+
+
+@dataclass(frozen=True)
+class CategorizationRulesV2:
+    """Template + learned rules (ADR-186 §D5). ``learned_rules`` já ordenadas."""
+
+    template_keywords: Mapping[str, tuple[str, ...]]
+    learned_rules: tuple[LearnedRule, ...]
+
+    @classmethod
+    def from_template_and_learned(
+        cls,
+        template_keywords: Mapping[str, tuple[str, ...]] | None,
+        learned_rules: tuple[LearnedRule, ...] | list[LearnedRule] | None,
+    ) -> "CategorizationRulesV2":
+        """Factory com sort estável (defensivo)."""
+        sorted_learned = tuple(sorted(learned_rules or (), key=_sort_key))
+        return cls(
+            template_keywords=template_keywords or {},
+            learned_rules=sorted_learned,
+        )
+
+    def match(self, narrative: str) -> tuple[str, str] | None:
+        """``(target_category, rule_id)`` da 1ª regra que casa, senão ``None``."""
+        if not self.learned_rules:
+            return None
+        narrative_upper = (narrative or "").upper()
+        if not narrative_upper:
+            return None
+        for rule in self.learned_rules:
+            if rule.keyword in narrative_upper:
+                return (rule.target_category, rule.id)
+        return None

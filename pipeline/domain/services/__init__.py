@@ -37,7 +37,9 @@ from pipeline.domain.services.cash_flow_builder import (
 )
 from pipeline.domain.services.categorization_service import (
     CategorizationRules,
+    CategorizationRulesV2,
     CategorizationService,
+    LearnedRule,
 )
 from pipeline.domain.services.cenarios_conjuge_analyzer import (
     CenarioItem,
@@ -216,7 +218,9 @@ __all__ = [
     "PeriodDerivationWarning",
     "StatementPeriodNormalizer",
     "CategorizationRules",
+    "CategorizationRulesV2",
     "CategorizationService",
+    "LearnedRule",
     "IncomeOriginConfig",
     "IncomeOriginResolver",
     "InternalTransferConfig",
