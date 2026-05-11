@@ -14,6 +14,7 @@ import { formatDate } from "@/lib/format";
 import {
   formatGoalVigenciaDate,
   humanizeGoalType,
+  isDisplayableGoalType,
 } from "@/lib/goalPremissas";
 
 interface ActiveGoalRef {
@@ -99,7 +100,11 @@ function MetasVigentesCard({
 }: {
   snapshot: PremissasSnapshotShape | null;
 }) {
-  const activeGoals: ReadonlyArray<ActiveGoalRef> = snapshot?.active_goals ?? [];
+  // Filtra tipos não-canônicos (resíduo pré-ADR-180 — ex.: PLANNING_CONTEXT
+  // em snapshots de relatórios gerados antes do fix backend).
+  const activeGoals: ReadonlyArray<ActiveGoalRef> = (
+    snapshot?.active_goals ?? []
+  ).filter((g) => isDisplayableGoalType(g.type));
   const capturedAtLabel = snapshot?.captured_at
     ? safeFormatDate(snapshot.captured_at)
     : null;

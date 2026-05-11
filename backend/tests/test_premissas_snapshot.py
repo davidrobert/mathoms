@@ -59,3 +59,26 @@ def test_snapshot_includes_active_goals_without_goals_file(
     assert out["active_goals"][0]["type"] == "INDEPENDENCIA_FINANCEIRA"
     assert out["active_goals"][0]["id"] == "goal-1"
     assert "2026-01-15" in out["active_goals"][0]["effective_from"]
+
+
+def test_snapshot_filters_out_non_canonical_goal_types(tmp_path: Path):
+    """ADR-180 (A10.6): linhas órfãs com ``type = "PLANNING_CONTEXT"``
+    (ou qualquer tipo fora de ``VALID_GOAL_TYPES``) permanecem vigentes no
+    DB em workspaces seedados pré-cutover. Não devem vazar para o relatório.
+    """
+    canonical = FakeGoal(
+        type="INDEPENDENCIA_FINANCEIRA",
+        id="goal-canonical",
+        effective_from=datetime(2026, 1, 15, tzinfo=timezone.utc),
+    )
+    legacy = FakeGoal(
+        type="PLANNING_CONTEXT",
+        id="goal-legacy",
+        effective_from=datetime(2025, 11, 1, tzinfo=timezone.utc),
+    )
+    session = FakeScalarSession(rows=[canonical, legacy])
+
+    out = build_premissas_snapshot_sync("ws-1", tmp_path, session)
+    assert out is not None
+    types = [g["type"] for g in out["active_goals"]]
+    assert types == ["INDEPENDENCIA_FINANCEIRA"]
