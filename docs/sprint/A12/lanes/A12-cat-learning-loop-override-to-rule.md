@@ -11,6 +11,7 @@ parallel_with: []
 plan_canonical: "[[PLAN-cat-learning-loop]]"
 adrs_canonical:
   - "[[ADR-186]]"
+  - "[[ADR-188]]"
 tags:
   - type/lane
   - sprint/a12
@@ -43,11 +44,9 @@ DOC_REORG; feature nova de 19d roubaria capacidade de hardening de produção).
 
 1. ☑ **P1 — Schema** (`transaction_overrides.source` +
    `categorization_rules`). Shipped — PR #188, commit `2a36388`, 2026-05-10.
-2. ☐ **P2 — Pipeline E4** (`CategorizationRulesV2`). Track ready —
-   `cat-learning-loop-p2-pipeline.md`. Pré-req A11.report-publication
-   ✅ (PR #185).
-3. ☐ **P3 — Backend API** (preview/commit/revert). Track criado quando P2
-   mergear.
+2. ☑ **P2 — Pipeline E4** (`CategorizationRulesV2`). Shipped — PR #194, commit `ab69414`, 2026-05-11.
+3. ☐ **P3 — Backend API** (preview/commit/revert + schema evolution). Track ready —
+   `cat-learning-loop-p3-backend-api.md`. ADR P3 Proposto: [[ADR-188]] (soft-delete + partial unique + revert_count split).
 4. ☐ **Gate dogfood** (entre P3 e P4). Critério: 5 regras criadas no
    workspace do CEO em ≤7d com `revert_rate ≤ 30%`. Custo: 0,5d. Bloqueia
    P4 se falhar — força reavaliar feature antes de investir em UX polida.
@@ -84,6 +83,6 @@ Cada fase mergeia em `main` com:
 
 ☑ A11.report-publication mergeado em `main` (PR #185, commit `182308a`, 2026-05-10) — pré-requisito atendido.
 ☑ P1 (Schema) shipped — PR #188, commit `2a36388`, 2026-05-10.
-☐ P2 (Pipeline E4) — track `cat-learning-loop-p2-pipeline.md` ready, próxima fase.
-☐ P3 (Backend API) — track criado quando P2 mergear.
-☐ P4 (Frontend) — track criado se gate dogfood passar entre P3 e P4.
+☑ P2 (Pipeline E4) shipped — PR #194, commit `ab69414`, 2026-05-11.
+☐ P3 (Backend API) — track `cat-learning-loop-p3-backend-api.md` ready, próxima fase. [[ADR-188]] Proposto consolida 7 ressalvas do gate triple P2.
+☐ P4 (Frontend) — track criado se gate dogfood passar entre PR2 e PR3 do track P3.
