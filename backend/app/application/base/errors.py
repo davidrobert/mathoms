@@ -47,3 +47,7 @@ class AccountLockedError(AuthenticationError):
     ) -> None:
         super().__init__(message, code=code)
         self.retry_after_s = int(retry_after_s)
+
+
+class PreconditionFailedError(DomainError):
+    """Pré-condição não atendida (feature flag off, etc). Router → 403."""

@@ -32,3 +32,10 @@ class CategorizationRuleCreate(BaseModel):
         max_length=36,
         description="ID do TransactionOverride que originou esta regra (auditoria).",
     )
+    confirmed_visualized_months_impact: bool = Field(
+        False,
+        description=(
+            "Placeholder P4 — UI confirma impacto em meses visualizados. "
+            "Mantido em PR2 para não breaking change quando P4 ligar."
+        ),
+    )
