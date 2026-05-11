@@ -13,6 +13,7 @@
 - [[CHG-2026-05-11-FEAT-FRONTEND-RENTABILIDADE]] — feat(frontend): card Rentabilidade rebrandeado — TRS efetiva full-width + KPI hero (lane [[A11.w5]])
 - [[CHG-2026-05-11-FEAT-PIPELINE-RENTABILIDADE]] — feat(pipeline): card Rentabilidade — TRS efetiva enriquecida + cobertura (lane [[A11.w5]])
 - [[CHG-2026-05-11-FEAT-REPORT]] — feat(report): PGBL diagnóstico tipificado em 4 estados substitui métrica (lane [[TRACK-pgbl-card-diagnostico]])
+- [[CHG-2026-05-11-FEAT-REPORT-ALOCACAO]] — feat(report): card AlocacaoAtualVsAlvoCard substitui 3 cards S3 (Fase A (lane [[A12.alocacao-v2]])
 
 ## 2026-05-10 (2 entries)
 

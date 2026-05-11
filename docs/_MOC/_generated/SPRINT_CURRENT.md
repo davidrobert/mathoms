@@ -5,7 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1 in_progress.
+1 open · 1 in_progress.
+
+## Open (1)
+
+- [[A12.alocacao-v2]] — Alocação-alvo schema v1→v2 (7 classes AUVP, desvio backend-driven) · priority P2
 
 ## In progress (1)
 

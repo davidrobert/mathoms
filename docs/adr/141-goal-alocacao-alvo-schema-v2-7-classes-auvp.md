@@ -2,9 +2,10 @@
 id: ADR-141
 type: adr
 title: "Goal alocação-alvo schema v2 (7 classes AUVP)"
-status: Roadmap
+status: Proposto
 date: "2026-04-27"
-relates_to: ["[[ADR-075]]", "[[ADR-140]]"]
+phase: A12
+relates_to: ["[[ADR-075]]", "[[ADR-140]]", "[[ADR-193]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 141"]
@@ -13,14 +14,14 @@ tags:
   - area/money
   - area/persistence
   - methodology/auvp
-  - status/roadmap
+  - status/proposto
   - type/adr
-size_lines: 42
+size_lines: 75
 ---
 
 # ADR-141 — Goal alocação-alvo schema v2 (7 classes AUVP)
 
-**Status:** Roadmap • **Data:** 2026-04-27 • **Implementação:** schema candidato em `config/schemas/goal.alocacao_alvo.v2.schema.json`; backend (`pipeline_adapter._serialize_alocacao_goal`), frontend (`plano/alocacao/page.tsx`) e seeds operam em v1.
+**Status:** Proposto (A12) • **Data:** 2026-04-27, promoção Roadmap→Proposto em 2026-05-11 • **Implementação:** schema candidato em `config/schemas/goal.alocacao_alvo.v2.schema.json`; backend (`pipeline_adapter._serialize_alocacao_goal`), frontend (`plano/alocacao/page.tsx`) e seeds operam em v1. Card de relatório S3 (`AlocacaoAtualVsAlvoCard`) entregue em A11 calcula desvio client-side sobre v1 — débito explícito desta ADR.
 
 **Contexto:** Auditoria multi-agente (rodada 1, item 9; rodada 2, item B2) identificou que a caracterização da AUVP em [methodology.md](../config/methodology.md) e nos schemas era reducionista. AUVP é **alocação multi-classe + rebalanceamento por aporte via Diagrama do Cerrado** — não "fundamentalista + FIIs" como dizia v1 do `methodology.md`. O schema v1 de alocação-alvo (`renda_fixa_pct`, `acoes_pct`, `imoveis_reits_pct`, `liquidez_usd_pct` — 4 buckets) cola RF pré/pós/IPCA em um único bucket e mistura ações BR com internacionais — perde o que é distintivo na metodologia.
 
@@ -57,4 +58,19 @@ Mais:
 - Métrica `desvio_max_pct` é nova — KPI AUVP autêntico, sinaliza onde alocar próximo aporte (princípio Diagrama do Cerrado).
 - Públicos com patrimônios pequenos (<R$100k) podem achar 7 classes excessivas — produto pode oferecer "modo simples" (4 buckets) como toggle, mas a fonte de verdade é v2.
 
-**Relaciona-se a:** [ADR-075](#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) (origem do schema v1), [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida). Caracterização correta da AUVP em [`.claude/agents/financial-planner.md`](../.claude/agents/financial-planner.md). KPI `desvio_max_pct` documentado em [FORMULAS.md §Alocação](FORMULAS.md).
+**Débito de Fase A (A11 · 2026-05-11):** O card `AlocacaoAtualVsAlvoCard` (S3) entregue na promoção Roadmap→Proposto desta ADR roda o cálculo de desvio client-side em `frontend/src/components/report/utils/alocacaoBucketMapper.ts` agregando 10 buckets canônicos ([ADR-193](193-taxonomia-classes-ativo-e5.md)) em 4 buckets v1. Decisões pragmáticas validadas pelo financial-planner:
+
+- **Caixa** é exibido como "Reserva" separada e **excluído do denominador do desvio** (reserva ≠ investimento).
+- **Cripto + Outros** vão para linha "Fora do alvo" (alvo=0, desvio positivo) — não fundem em ações.
+- **Previdência → Renda Fixa**, **Fundos → Ações**, **Internacional → Liquidez USD** são aproximações documentadas no rodapé do card.
+
+Itens a remover/migrar ao implementar v2 (escopo da lane Fase B em A12):
+
+1. `frontend/src/components/report/utils/alocacaoBucketMapper.ts` — substituído por `derived.desvio_por_classe` vindo do backend.
+2. `frontend/src/components/report/utils/conclusionUtils.ts` `buildAlocacaoFooter` — substituído por templates consumindo `derived.desvio_max_pct`.
+3. Tombstones em `config/report_layout.yaml` S3 (entries `alocacao_atual`, `alocacao_alvo` em `charts:` e `investimentos_classe` em `cards:` com `enabled: false`).
+4. `chart_canvas_map` entries `alocacao_atual` e `alocacao_alvo` (dead-code latente desde ADR-129).
+5. Migração `pipeline_adapter._serialize_alocacao_goal` para emitir v2 (com `derived.*`).
+6. Seed `backend/app/scripts/seed_goals_workspace.py` (atualmente escreve `rf_pct/rv_pct/alternativos_pct` — inconsistente com serializer; fixar como parte da migração).
+
+**Relaciona-se a:** [ADR-075](075-cutover-cli-web.md) (origem do schema v1), [ADR-140](140-goal-if-schema-v2.md), [ADR-193](193-taxonomia-classes-ativo-e5.md) (taxonomia 10 buckets canônicos no E5). Caracterização correta da AUVP em [`.claude/agents/financial-planner.md`](../.claude/agents/financial-planner.md).
