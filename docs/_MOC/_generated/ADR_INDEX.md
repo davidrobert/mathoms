@@ -10,8 +10,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ## Sumário por status
 
 - **Decidido**: 162
-- **Proposto**: 19
-- **Roadmap**: 5
+- **Proposto**: 20
+- **Roadmap**: 4
 
 ## Fundação
 
@@ -264,10 +264,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-142]] — Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem
 
-### Roadmap (2)
+### Proposto (1)
+
+- [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP) · phase A12
+
+### Roadmap (1)
 
 - [[ADR-140]] — Goal IF schema v2 (renda passiva atual + IF meta líquida)
-- [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP)
 
 ## Sprint A10 — `goals.json` cutover final
 

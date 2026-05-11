@@ -138,7 +138,7 @@
 | ADR-138 | adr | Decidido |  | Protocolo de supervisão CTO para Sprint A7 | `adr/138-protocolo-de-supervisao-cto-para-sprint-a7.md` |
 | ADR-139 | adr | Decidido |  | Finalização migração Recharts→Chart.js em /reports/** | `adr/139-finalizacao-migracao-rechartschartjs-em-reports.md` |
 | ADR-140 | adr | Roadmap |  | Goal IF schema v2 (renda passiva atual + IF meta líquida) | `adr/140-goal-if-schema-v2-renda-passiva-atual-if-meta.md` |
-| ADR-141 | adr | Roadmap |  | Goal alocação-alvo schema v2 (7 classes AUVP) | `adr/141-goal-alocacao-alvo-schema-v2-7-classes-auvp.md` |
+| ADR-141 | adr | Proposto |  | Goal alocação-alvo schema v2 (7 classes AUVP) | `adr/141-goal-alocacao-alvo-schema-v2-7-classes-auvp.md` |
 | ADR-142 | adr | Decidido |  | Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem | `adr/142-toggle-imoveis-no-if-em-pipelinejson-invariante.md` |
 | ADR-143 | adr | Decidido |  | `docs/methodology/` é rules-as-code (Sprint A7.6) | `adr/143-docsmethodology-e-rules-as-code-sprint-a76.md` |
 | ADR-144 | adr | Decidido |  | `section_summaries` LLM-driven em E5 com cache + fallback determinístico (v2.9) | `adr/144-section-summaries-llm-driven-em-e5-com-cache.md` |
@@ -367,6 +367,7 @@
 | CHG-2026-05-11-FEAT-FRONTEND-RENTABILIDADE | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-FRONTEND-RENTABILIDADE.md` |
 | CHG-2026-05-11-FEAT-PIPELINE-RENTABILIDADE | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-PIPELINE-RENTABILIDADE.md` |
 | CHG-2026-05-11-FEAT-REPORT | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-REPORT.md` |
+| CHG-2026-05-11-FEAT-REPORT-ALOCACAO | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-REPORT-ALOCACAO.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
 | RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |
 | RULE-composicao-patrimonial-7-categorias | domain-rule |  |  |  | `reference/rules/rule-composicao-patrimonial-7-categorias.md` |
@@ -390,6 +391,7 @@
 | A11.w4 | lane | blocked | A11 | Production readiness (5 tasks) | `sprint/A11/lanes/A11-w4-production-readiness.md` |
 | A11.w5 | lane | open | A11 | Frontend + Methodology (5 tasks, paralelo W6) | `sprint/A11/lanes/A11-w5-frontend-methodology.md` |
 | A11.w6 | lane | blocked | A11 | Tech debt cleanup (6 tasks) | `sprint/A11/lanes/A11-w6-tech-debt-cleanup.md` |
+| A12.alocacao-v2 | lane | open | A12 | Alocação-alvo schema v1→v2 (7 classes AUVP, desvio backend-driven) | `sprint/A12/lanes/A12-alocacao-v2-migration.md` |
 | A12.cat-learning-loop | lane | in_progress | A12 | Categorization Learning Loop — promoção de override em regra | `sprint/A12/lanes/A12-cat-learning-loop-override-to-rule.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
@@ -490,6 +492,7 @@
 | TRACK-a7-5-cleanup | track | consumed | A7 | Track A7.5 — Cleanup final (deletar `config/` + bridges) | `sprint/A7/tracks/a7-5-cleanup.md` |
 | TRACK-a7-6-rules-as-code | track | consumed | A7 | Track A7.6 — Rules-as-code: dissolver `docs/methodology/` | `sprint/A7/tracks/a7-6-rules-as-code.md` |
 | TRACK-a8-trs-real | track | consumed | A8 | Track — A8 TRS real (renda passiva observada + Taxa de Retirada Sustentável efetiva) | `sprint/A8/tracks/a8-trs-real.md` |
+| TRACK-alocacao-v2-7-classes-migration | track | ready | A12 | Track Alocação v2 — migração schema 4→7 classes e desvio backend-driven | `sprint/A12/tracks/alocacao-v2-7-classes-migration.md` |
 | TRACK-cat-learning-loop-p1-schema | track | ready | A12 | Track Cat Learning Loop P1 — Schema (transaction_overrides.source + categorization_rules) | `sprint/A12/tracks/cat-learning-loop-p1-schema.md` |
 | TRACK-cat-learning-loop-p2-pipeline | track | ready | A12 | Track Cat Learning Loop P2 — Pipeline E4 (CategorizationRulesV2 + adapter) | `sprint/A12/tracks/cat-learning-loop-p2-pipeline.md` |
 | TRACK-cat-learning-loop-p3-backend-api | track | ready | A12 | Track Cat Learning Loop P3 — Backend API + schema evolution | `sprint/A12/tracks/cat-learning-loop-p3-backend-api.md` |

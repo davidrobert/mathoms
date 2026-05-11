@@ -16,6 +16,8 @@
  * pertencem a esta camada por design — decisão registrada em v2.6
  * (2026-04-27) e em [REPORT_PREMIUM_PLAN.md §17.9](../../../../../docs/REPORT_PREMIUM_PLAN.md).
  */
+export { AlocacaoAtualVsAlvoCard } from "./AlocacaoAtualVsAlvoCard";
+export type { AlocacaoAtualVsAlvoCardProps } from "./AlocacaoAtualVsAlvoCard";
 export { ConsumoConscienteCard } from "./ConsumoConscienteCard";
 export { ContrafluxoCard } from "./ContrafluxoCard";
 export type { ContrafluxoData } from "./ContrafluxoCard";
@@ -24,6 +26,8 @@ export { EndividamentoCard } from "./EndividamentoCard";
 export { EquilibrioCerbasiCard } from "./EquilibrioCerbasiCard";
 export { EstrategiaAporteCard } from "./EstrategiaAporteCard";
 export type { EstrategiaAporteData } from "./EstrategiaAporteCard";
+// InvestimentosClasseCard substituído por AlocacaoAtualVsAlvoCard em A11 (2026-05-11).
+// Removido em Fase B com migração v1→v2 (ADR-141).
 export { InvestimentosClasseCard } from "./InvestimentosClasseCard";
 export type { InvestimentosClasseData } from "./InvestimentosClasseCard";
 export { Top15AtivosCard } from "./Top15AtivosCard";
