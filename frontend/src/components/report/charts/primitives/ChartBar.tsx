@@ -78,7 +78,9 @@ export function ChartBar({
           grid: { color: theme.grid, display: horizontal },
           ticks: {
             color: theme.textMuted,
-            callback: (v) => (horizontal ? v : formatValue(Number(v))),
+            // horizontal: Y é eixo categórico — usa default (renderiza a label string).
+            // vertical: Y é eixo de valor — formata como moeda.
+            ...(horizontal ? {} : { callback: (v: number | string) => formatValue(Number(v)) }),
           },
         },
       },
