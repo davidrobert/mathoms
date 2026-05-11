@@ -40,6 +40,13 @@ export function humanizeGoalType(type: string): string {
   return GOAL_TYPE_LABELS[type] ?? type;
 }
 
+/** Goal types que devem aparecer no card "Metas vigentes neste ciclo".
+ * Mantém pareado com `VALID_GOAL_TYPES` do backend (ADR-073 + ADR-180).
+ */
+export function isDisplayableGoalType(type: string): boolean {
+  return type in GOAL_TYPE_LABELS;
+}
+
 export function buildIFPremissasRows(
   inputs: IFGoalInputs,
   derived: IFGoalDerived | null

@@ -9,7 +9,7 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.app.models.goal import Goal
+from backend.app.models.goal import VALID_GOAL_TYPES, Goal
 
 
 def build_premissas_snapshot_sync(
@@ -33,6 +33,9 @@ def build_premissas_snapshot_sync(
         Goal.effective_to.is_(None),
     )
     goals = list(db.scalars(stmt).all())
+    # Filtra tipos removidos do contrato (ex.: PLANNING_CONTEXT pós-ADR-180):
+    # linhas órfãs em workspaces seedados antes de A10.6 não devem vazar para o
+    # relatório.
     active_refs = [
         {
             "type": g.type,
@@ -40,6 +43,7 @@ def build_premissas_snapshot_sync(
             "effective_from": g.effective_from.isoformat(),
         }
         for g in goals
+        if g.type in VALID_GOAL_TYPES
     ]
 
     if sha256 is None and not active_refs:
