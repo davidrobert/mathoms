@@ -9,7 +9,7 @@ Função pura sobre ``metrics`` + ``family`` + ``NarrativasContext``.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Mapping
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import (
@@ -111,11 +111,41 @@ class SummariesNarrator:
                 f"Avaliação de holding patrimonial pendente para {M['holding_prazo']}. "
                 "Obrigações fiscais EUA (FBAR, Form 8938, PFIC) requerem CPA expatriado antes da mudança."
             ),
-            "s9": (
-                f"{len(riscos_nomes)} {pluralize(len(riscos_nomes), 'risco prioritário', 'riscos prioritários')}: {', '.join(riscos_nomes[:3])}. "
-                f"Seguros de vida e invalidez inexistentes — classificados como urgentes. "
-                f"Cobertura recomendada: R$ {M['seguro_vida_minimo'] // 1_000_000}-{M['seguro_vida_maximo'] // 1_000_000}M em seguro term. "
-                "Planejamento sucessório em estágio inicial."
-            ),
+            "s9": _summary_s9(M, riscos_nomes),
             "s10": s10,
         }
+
+
+# ADR-192 T01 D4: empty state coerente — workspace sem Risk cadastrado não pode
+# render "0 riscos prioritários: . Cobertura recomendada: R$ 0-0M em seguro term."
+_S9_EMPTY = (
+    "Nenhum risco prioritário cadastrado para este workspace. "
+    "Mapeie suas exposições críticas (seguros de vida, invalidez, sucessório, "
+    "compliance internacional) na tela /plano para destravar a análise de cobertura."
+)
+_S9_COBERTURA_FALLBACK = (
+    "Cobertura recomendada: faixa a definir após mapeamento de dependentes e renda líquida. "
+)
+
+
+def _s9_cobertura_line(M: Mapping[str, Any]) -> str:
+    minimo = M.get("seguro_vida_minimo") or 0
+    maximo = M.get("seguro_vida_maximo") or 0
+    if minimo <= 0 and maximo <= 0:
+        return _S9_COBERTURA_FALLBACK
+    return (
+        f"Cobertura recomendada: R$ {minimo // 1_000_000}-{maximo // 1_000_000}M em seguro term. "
+    )
+
+
+def _summary_s9(M: Mapping[str, Any], riscos_nomes: list[str]) -> str:
+    if not riscos_nomes:
+        return _S9_EMPTY
+    nomes_top3 = ", ".join(riscos_nomes[:3])
+    n_label = pluralize(len(riscos_nomes), "risco prioritário", "riscos prioritários")
+    return (
+        f"{len(riscos_nomes)} {n_label}: {nomes_top3}. "
+        "Seguros de vida e invalidez inexistentes — classificados como urgentes. "
+        f"{_s9_cobertura_line(M)}"
+        "Planejamento sucessório em estágio inicial."
+    )
