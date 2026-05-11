@@ -90,6 +90,23 @@ Valores de referência estão em [SLO.md](SLO.md). Procedimentos de backup, rest
 
 Para apagar **toda** a base de utilizadores e ficheiros de tenant (cenário de teste “primeiro utilizador”, base descartável), usar o CLI documentado em [SETUP.md — Reset completo da plataforma](SETUP.md#reset-completo-da-plataforma-cli). **Não** usar em produção com dados reais.
 
+### 5.2 Rollback de seed de `category_template`
+
+Ao reverter migration que inseriu nova `template_version` (`alembic downgrade <ver>`),
+o `downgrade()` **DEVE** chamar `category_cache.invalidate_latest_template_version()`
+explicitamente. Sem isso, cache Redis fica stale por até 15min (TTL) e a API
+responde com `latest_template_version` apontando para a versão revertida.
+
+```python
+from backend.app.services import category_cache
+
+def downgrade():
+    op.execute("DELETE FROM category_templates WHERE template_version = N")
+    category_cache.invalidate_latest_template_version()
+```
+
+Verificar no `downgrade()` da migration alvo **antes** de aplicar.
+
 ---
 
 ## 6. Rotação de segredos e escalação

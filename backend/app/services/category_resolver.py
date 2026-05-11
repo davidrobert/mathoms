@@ -34,7 +34,7 @@ def get_active_template_version() -> int:
 
 
 def get_latest_template_version(db: Session) -> int:
-    """``MAX(category_templates.template_version)`` cacheado em Redis (TTL 1h, invalidado por seed Alembic — ADR-185 §4)."""
+    """``MAX(category_templates.template_version)`` cacheado em Redis (TTL 15min, invalidado por seed Alembic — ADR-185 §4)."""
     cached = category_cache.get_latest_template_version()
     if cached is not None:
         return cached
