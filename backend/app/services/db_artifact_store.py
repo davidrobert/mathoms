@@ -92,6 +92,13 @@ class DBArtifactStore:
     def pipeline_run_id(self) -> str:
         return self._pipeline_run_id
 
+    @property
+    def session(self) -> Session:
+        """Expõe a `Session` injetada — call-sites que precisam compartilhar a
+        mesma transação (ex.: learning loop E4 em `scripts/e4_categorize.py`)
+        leem aqui em vez de `store._session` (ressalva senior-cto, A12.P2)."""
+        return self._session
+
     def _get(self, stage: str, key: str) -> Optional[PipelineArtifact]:
         return (
             self._session.query(PipelineArtifact)

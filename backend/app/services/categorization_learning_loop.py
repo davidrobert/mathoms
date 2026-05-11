@@ -107,9 +107,18 @@ class _LoopState:
     closed_months_cache: dict[str, bool]
 
 
+def _is_sticky(existing, tx) -> bool:
+    # sticky intra-run: regra anterior na run casou esta txn — 1ª regra (sort) vence.
+    if existing is None:
+        return False
+    if existing.source == OVERRIDE_SOURCE_MANUAL:
+        return True
+    return existing.source == OVERRIDE_SOURCE_RULE and existing.rule_id != tx.learned_rule_id
+
+
 def _check_skip(tx, existing, state: _LoopState) -> str | None:
     """``'skipped_sticky'`` | ``'skipped_closed_month'`` | None."""
-    if existing is not None and existing.source == OVERRIDE_SOURCE_MANUAL:
+    if _is_sticky(existing, tx):
         return "skipped_sticky"
     period = _period_from_data(tx.data)
     if period and _is_month_closed_cached(
@@ -120,11 +129,10 @@ def _check_skip(tx, existing, state: _LoopState) -> str | None:
 
 
 def _upsert_rule_override(tx, tx_hash: str, existing, state: _LoopState) -> None:
-    """Idempotente: update se ``source='rule'`` já existe, senão INSERT."""
+    """Idempotente: update se ``source='rule'`` (mesma regra) já existe, senão INSERT."""
     if existing is not None and existing.source == OVERRIDE_SOURCE_RULE:
-        if existing.rule_id != tx.learned_rule_id or existing.new_category != tx.categoria:
+        if existing.new_category != tx.categoria:
             existing.new_category = tx.categoria
-            existing.rule_id = tx.learned_rule_id
         return
     ovr = _make_rule_override(workspace_id=state.workspace_id, tx_hash=tx_hash, tx=tx)
     state.db.add(ovr)

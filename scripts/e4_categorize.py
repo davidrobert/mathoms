@@ -1045,7 +1045,7 @@ def _e4_load_learned_rules(ctx, store):
         return None, None
     if not isinstance(store, DBArtifactStore):
         return None, None
-    db = store._session  # mesma sessão = mesma transação = mesmo flush
+    db = store.session  # mesma sessão = mesma transação = mesmo flush
     return load_categorization_rules_v2(workspace_id=ctx.workspace_id, db=db), db
 
 
