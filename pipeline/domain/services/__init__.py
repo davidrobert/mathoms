@@ -36,6 +36,8 @@ from pipeline.domain.services.cash_flow_builder import (
     ReceitasUnified,
 )
 from pipeline.domain.services.categorization_service import (
+    RULE_HARD_CAP,
+    RULE_SOFT_CAP,
     CategorizationRules,
     CategorizationRulesV2,
     CategorizationService,
@@ -221,6 +223,8 @@ __all__ = [
     "CategorizationRulesV2",
     "CategorizationService",
     "LearnedRule",
+    "RULE_HARD_CAP",
+    "RULE_SOFT_CAP",
     "IncomeOriginConfig",
     "IncomeOriginResolver",
     "InternalTransferConfig",

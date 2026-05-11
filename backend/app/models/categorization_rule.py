@@ -63,7 +63,16 @@ class CategorizationRule(Base):
     applied_count: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )
-    revert_count: Mapped[int] = mapped_column(
+    # ADR-188 §D3 — split de ``revert_count`` em 2 sinais distintos.
+    # ``revert_count_manual_edit`` = override 'rule' virou 'manual' com
+    # categoria diferente (KPI "regra ruim" — sinal FORTE).
+    # ``revert_count_rule_disabled`` = DELETE /rules/{id} sem evidência de
+    # qualidade ruim (sinal FRACO "abandono"). Só o primeiro entra no KPI
+    # ``% reversão`` da ADR-186 §D6.
+    revert_count_manual_edit: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    revert_count_rule_disabled: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )
     created_at: Mapped[datetime] = mapped_column(
@@ -77,3 +86,7 @@ class CategorizationRule(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+    # ADR-188 §D1 — soft-delete (consultor B2B2C revisa histórico). Cascade
+    # soft-delete em ``transaction_overrides.source='rule'`` é responsabilidade
+    # do service em DELETE /rules/{id} (PR2).
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)

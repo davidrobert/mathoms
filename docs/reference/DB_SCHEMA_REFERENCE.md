@@ -142,9 +142,11 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `origin_override_id` | `VARCHAR(36)` | yes | — | — |
 | `created_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
 | `applied_count` | `INTEGER` | no | server: `0` | — |
-| `revert_count` | `INTEGER` | no | server: `0` | — |
+| `revert_count_manual_edit` | `INTEGER` | no | server: `0` | — |
+| `revert_count_rule_disabled` | `INTEGER` | no | server: `0` | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `deleted_at` | `DATETIME` | yes | — | — |
 
 **Constraints:**
 
@@ -933,6 +935,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `source` | `VARCHAR(20)` | no | server: `manual` | — |
 | `rule_id` | `VARCHAR(36)` | yes | — | FK→categorization_rules.id, INDEX |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `deleted_at` | `DATETIME` | yes | — | — |
 
 **Constraints:**
 
@@ -1097,6 +1100,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `monthly_llm_budget_usd` | `NUMERIC(10, 2)` | no | server: `5.00` | — |
 | `deleted_at` | `DATETIME` | yes | — | INDEX |
 | `business_profile_json` | `JSON` | yes | — | — |
+| `rule_cap_override` | `INTEGER` | yes | — | — |
 
 **Constraints:**
 
@@ -1243,9 +1247,11 @@ type CategorizationRule struct {
 	OriginOverrideId *string `db:"origin_override_id" json:"origin_override_id"`
 	CreatedByUserId *string `db:"created_by_user_id" json:"created_by_user_id"`
 	AppliedCount int `db:"applied_count" json:"applied_count"`
-	RevertCount int `db:"revert_count" json:"revert_count"`
+	RevertCountManualEdit int `db:"revert_count_manual_edit" json:"revert_count_manual_edit"`
+	RevertCountRuleDisabled int `db:"revert_count_rule_disabled" json:"revert_count_rule_disabled"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
 }
 ```
 
@@ -1786,6 +1792,7 @@ type TransactionOverride struct {
 	Source string `db:"source" json:"source"`
 	RuleId *string `db:"rule_id" json:"rule_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
 }
 ```
 
@@ -1892,5 +1899,6 @@ type Workspace struct {
 	MonthlyLlmBudgetUsd decimal.Decimal `db:"monthly_llm_budget_usd" json:"monthly_llm_budget_usd"`
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
 	BusinessProfileJson json.RawMessage `db:"business_profile_json" json:"business_profile_json"`
+	RuleCapOverride *int `db:"rule_cap_override" json:"rule_cap_override"`
 }
 ```

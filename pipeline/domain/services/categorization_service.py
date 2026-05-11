@@ -8,6 +8,13 @@ from typing import Mapping
 
 from pipeline.domain.models.transaction import Transaction
 
+# ADR-188 §D6 — Caps compartilhados entre adapter (P2) + endpoint (P3).
+# Mantidos em ``pipeline/domain/services/`` (puro domínio, boundary-safe) para
+# que backend e pipeline leiam do mesmo lugar — drift impossível.
+# Override por workspace via ``workspaces.rule_cap_override`` (B2B2C consultor).
+RULE_HARD_CAP: int = 200
+RULE_SOFT_CAP: int = 50
+
 
 @dataclass(frozen=True)
 class CategorizationRules:

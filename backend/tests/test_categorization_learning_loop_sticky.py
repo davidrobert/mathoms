@@ -110,3 +110,99 @@ def test_period_from_data_returns_none_for_invalid_input():
     assert _period_from_data("") is None
     assert _period_from_data("abc-de-fg") is None
     assert _period_from_data("20") is None
+
+
+# ─────────────────────────────────────────────────────────────────────
+# ADR-188 §D4 — INSERT ... ON CONFLICT race protection
+# ─────────────────────────────────────────────────────────────────────
+
+
+def _race_setup(sync_db, ws_id):
+    rule = _insert_rule(
+        sync_db,
+        workspace_id=ws_id,
+        keyword="MERCADO PAGO IFOOD",
+        target_category="Alimentacao",
+    )
+    sync_db.commit()
+    tx = _make_tx(
+        descricao="PIX MERCADO PAGO IFOOD",
+        rule_id=rule.id,
+        categoria="Alimentacao",
+    )
+    return rule, tx
+
+
+def _run_two_concurrent_sessions(ws_id: str, tx) -> tuple:
+    """2 sessions sequenciais simulam pre-load anterior ao commit da outra."""
+    with SyncSessionLocal() as s1, SyncSessionLocal() as s2:
+        stats_1 = apply_learning_loop(workspace_id=ws_id, classified=[tx], db=s1)
+        s1.commit()
+        stats_2 = apply_learning_loop(workspace_id=ws_id, classified=[tx], db=s2)
+        s2.commit()
+    return stats_1, stats_2
+
+
+@pytest.mark.asyncio
+async def test_on_conflict_safety_net_simulated_concurrent_insert(db):
+    """2 sessions paralelas → 1 override final (sem IntegrityError) — ADR-188 §D4."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+    with SyncSessionLocal() as setup_db:
+        rule, tx = _race_setup(setup_db, ws.id)
+    stats_1, stats_2 = _run_two_concurrent_sessions(ws.id, tx)
+    assert stats_1.applied == 1
+    # s2 também conta como applied (executou INSERT), mas o ON CONFLICT
+    # converteu em UPDATE — não duplicou linha.
+    assert stats_2.applied == 1
+    with SyncSessionLocal() as check_db:
+        overrides = _count_rule_overrides(check_db, ws.id)
+        assert len(overrides) == 1
+        assert overrides[0].rule_id == rule.id
+        assert overrides[0].new_category == "Alimentacao"
+
+
+def _seed_manual_override(sync_db, ws_id: str, tx_seed) -> None:
+    """Insere manual override para o hash de ``tx_seed`` antes do loop rodar."""
+    from backend.app.services.categorization_learning_loop import _tx_hash
+
+    manual = TransactionOverride(
+        workspace_id=ws_id,
+        transaction_hash=_tx_hash(tx_seed),
+        original_category="Alimentacao",
+        new_category="Alimentacao",
+        source="manual",
+        rule_id=None,
+        reviewed=True,
+    )
+    sync_db.add(manual)
+    sync_db.commit()
+
+
+def _list_overrides(sync_db, ws_id: str) -> list[TransactionOverride]:
+    from sqlalchemy import select
+
+    return list(
+        sync_db.execute(
+            select(TransactionOverride).where(TransactionOverride.workspace_id == ws_id)
+        ).scalars()
+    )
+
+
+@pytest.mark.asyncio
+async def test_on_conflict_does_not_overwrite_manual(db):
+    """Manual override → rule INSERT cai em sticky-skip; manual intocado (ADR-186 §D2)."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+    with SyncSessionLocal() as sync_db:
+        rule = _insert_rule(sync_db, workspace_id=ws.id, keyword="IFOOD", target_category="Lazer")
+        tx_seed = _make_tx(descricao="PIX IFOOD", rule_id=rule.id, categoria="Lazer")
+        _seed_manual_override(sync_db, ws.id, tx_seed)
+        stats = apply_learning_loop(workspace_id=ws.id, classified=[tx_seed], db=sync_db)
+        sync_db.commit()
+        rows = _list_overrides(sync_db, ws.id)
+        assert len(rows) == 1
+        assert rows[0].source == "manual"
+        assert rows[0].new_category == "Alimentacao"
+        assert stats.skipped_sticky == 1
+        assert stats.applied == 0

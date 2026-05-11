@@ -22,6 +22,8 @@ class CategorizationRuleResponse(BaseModel):
     origin_override_id: Optional[str] = None
     created_by_user_id: Optional[str] = None
     applied_count: int
-    revert_count: int
+    # ADR-188 §D3 — split de ``revert_count`` em 2 sinais distintos.
+    revert_count_manual_edit: int
+    revert_count_rule_disabled: int
     created_at: datetime
     updated_at: datetime
