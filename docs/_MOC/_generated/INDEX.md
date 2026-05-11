@@ -364,6 +364,7 @@
 | CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-BACKEND | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-BACKEND.md` |
 | CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-FRONTEND | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-FRONTEND.md` |
 | CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-PIPELINE | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-PIPELINE.md` |
+| CHG-2026-05-11-FEAT-FRONTEND-RENTABILIDADE | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-FRONTEND-RENTABILIDADE.md` |
 | CHG-2026-05-11-FEAT-PIPELINE-RENTABILIDADE | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-PIPELINE-RENTABILIDADE.md` |
 | CHG-2026-05-11-FEAT-REPORT | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-REPORT.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -466,7 +467,7 @@
 | PLAN-platform-review | plan | in_progress |  | Platform Review Plan — 2026-05-06 | `plan/PLATFORM_REVIEW/_README.md` |
 | PLAN-report-premium | plan | in_progress |  | Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html` | `plan/REPORT_PREMIUM/_README.md` |
 | PLAN-snapshot-changelog-v3 | plan | in_progress |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `plan/SNAPSHOT_CHANGELOG_V3/_README.md` |
-| TRACK-a11-w5-t06-rentabilidade-card | track | ready | A11 | Card S3 Rentabilidade — rebrand TRS efetiva + enriquecimento + cobertura essencial | `sprint/A11/tracks/a11-w5-t06-rentabilidade-card.md` |
+| TRACK-a11-w5-t06-rentabilidade-card | track | consumed | A11 | Card S3 Rentabilidade — rebrand TRS efetiva + enriquecimento + cobertura essencial | `sprint/A11/tracks/a11-w5-t06-rentabilidade-card.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |
