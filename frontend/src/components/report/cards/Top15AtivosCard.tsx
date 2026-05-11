@@ -24,10 +24,15 @@ interface Top15AtivosCardProps {
 }
 
 const CLASSE_TOKEN: Record<string, string> = {
-  "Renda Fixa": "var(--brand-info)",
-  "Ações": "var(--brand-primary)",
+  // Taxonomia canônica de 10 buckets (ADR-193).
   Cripto: "var(--semantic-warning)",
-  "Contas Bancárias": "var(--surface-muted-foreground)",
+  Previdência: "var(--brand-secondary)",
+  FIIs: "var(--brand-secondary)",
+  Internacional: "var(--brand-info)",
+  "Ações BR": "var(--brand-primary)",
+  "Renda Fixa": "var(--brand-info)",
+  Fundos: "var(--brand-primary)",
+  Caixa: "var(--surface-muted-foreground)",
   "Imóveis Investimento": "var(--brand-secondary)",
   Outros: "var(--surface-muted-foreground)",
 };

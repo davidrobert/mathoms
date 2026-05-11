@@ -32,13 +32,17 @@ const GLOSSARIO: Array<{ termo: string; definicao: string }> = [
 ];
 
 const CATEGORIAS_PATRIMONIAIS: Array<{ categoria: string; descricao: string }> = [
-  { categoria: "Patrimônio Bruto", descricao: "Soma de todos os ativos: imóveis, veículos, investimentos, criptos, contas bancárias, empresas." },
+  { categoria: "Patrimônio Bruto", descricao: "Soma de todos os ativos: imóveis, veículos, investimentos, criptos, caixa, empresas." },
   { categoria: "Patrimônio Investível", descricao: "Patrimônio Bruto − imóvel de residência − veículos. São os ativos que geram ou podem gerar renda passiva." },
-  { categoria: "Renda Fixa", descricao: "CDBs, Tesouro Direto, LCIs, LCAs, debêntures, fundos RF, poupança." },
-  { categoria: "Renda Variável", descricao: "Ações, FIIs, ETFs, fundos multimercado, BDRs." },
+  { categoria: "Renda Fixa", descricao: "CDBs, RDBs, Tesouro Direto, LCIs, LCAs, debêntures, CRI/CRA, poupança." },
+  { categoria: "Ações BR", descricao: "Ações domésticas, ETFs BR, participação societária listada." },
+  { categoria: "FIIs", descricao: "Fundos imobiliários (tijolo e papel) — geram renda passiva isenta de IR para PF." },
+  { categoria: "Fundos", descricao: "FIC, FIM, FIA, fundos multimercado e fundos de ações abertos." },
+  { categoria: "Internacional", descricao: "ETFs globais (IVVB11, S&P500), ações em USD, contas em moeda estrangeira (Wise, BofA)." },
+  { categoria: "Previdência", descricao: "PGBL e VGBL — veículos de aposentadoria com benefício tributário." },
+  { categoria: "Cripto", descricao: "Bitcoin, Ethereum e demais ativos digitais." },
+  { categoria: "Caixa", descricao: "Saldos em contas correntes, contas digitais (PicPay, Nubank) e liquidez operacional em BRL." },
   { categoria: "Imóveis (investimento)", descricao: "Imóveis não-residenciais que geram aluguel ou valorização." },
-  { categoria: "Criptomoedas", descricao: "Bitcoin, Ethereum e demais ativos digitais." },
-  { categoria: "Contas Bancárias", descricao: "Saldos em contas correntes, poupança e contas digitais." },
   { categoria: "Reserva de Emergência", descricao: "Parcela líquida (resgate D+0 a D+2) destinada a cobrir 6–12 meses de despesas." },
 ];
 

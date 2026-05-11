@@ -193,14 +193,48 @@ _CLASSIFICATION_INVS = [
 
 class TestClassificacao:
     def test_classifies_using_inv_classes_keywords(self):
+        # ADR-193 — usa taxonomia canônica de 10 buckets unificada com
+        # InvestimentosClassesAnalyzer via asset_classifier.classify_asset.
         r = TopAtivosAnalyzer().analyze(
             _entries(("david", _bens(investimentos=_CLASSIFICATION_INVS)))
         )
         by_nome = {a.nome: a.classe for a in r.top_ativos}
-        assert by_nome["X"] == "Ações"
+        assert by_nome["X"] == "Ações BR"
         assert by_nome["Y"] == "Renda Fixa"
         assert by_nome["Z"] == "Cripto"
         assert by_nome["W"] == "Outros"
+
+    def test_classifies_using_descricao_when_tipo_generic(self):
+        r = TopAtivosAnalyzer().analyze(
+            _entries(
+                (
+                    "david",
+                    _bens(
+                        investimentos=[
+                            {
+                                "tipo": "investimento",
+                                "descricao": "ACOES - ITSA4",
+                                "valor": 10_000,
+                                "nome": "ITSA4",
+                            }
+                        ]
+                    ),
+                )
+            )
+        )
+        assert r.top_ativos[0].classe == "Ações BR"
+
+    def test_handles_underscored_tipo(self):
+        # Bug ADR-193 — `tipo='renda_fixa'` precisa virar Renda Fixa.
+        r = TopAtivosAnalyzer().analyze(
+            _entries(
+                (
+                    "david",
+                    _bens(investimentos=[{"tipo": "renda_fixa", "valor": 50_000, "nome": "RF"}]),
+                )
+            )
+        )
+        assert r.top_ativos[0].classe == "Renda Fixa"
 
 
 class TestSerialization:

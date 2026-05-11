@@ -170,11 +170,18 @@ def build_default_tarefas_status(pontos_urgentes: list[dict[str, Any]]) -> dict[
     return {str(i + 1): "pendente" for i in range(len(pontos_urgentes or []))}
 
 
-def build_alertas(score: dict[str, Any], ratios: dict[str, Any]) -> list[str]:
-    """Monta lista de alertas para o template JS (paridade linha 2548-2550)."""
+def build_alertas(
+    score: dict[str, Any],
+    ratios: dict[str, Any],
+    investimentos_warnings: list[str] | None = None,
+) -> list[str]:
+    """Monta lista de alertas para o template JS (paridade linha 2548-2550)
+    + warnings de classificação de ativos (ADR-193 — `OutrosExcessivoWarning`)."""
     alertas = [f"Score financeiro: {score.get('valor', 0)}/10 ({score.get('classificacao', '')})"]
     if ratios.get("rentabilidade_pct") == "N/D":
         alertas.append("Rentabilidade: N/D")
+    if investimentos_warnings:
+        alertas.extend(investimentos_warnings)
     return alertas
 
 
@@ -223,6 +230,9 @@ class E5OutputInputs:
     passive_income: PassiveIncomeResult | None = None
     # N3 — Monte Carlo IF cone P10/P50/P90. None quando if_projection indisponível.
     monte_carlo_if: MonteCarloIFResult | None = None
+    # ADR-193 — warnings de classificação de ativos (e.g. `Outros` > 5%).
+    # Propagado para `alertas[]` via `build_alertas`.
+    investimentos_warnings: list[str] | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -240,7 +250,7 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
         else build_default_tarefas_status(inputs.pontos_urgentes)
     )
 
-    alertas = build_alertas(inputs.score, inputs.ratios)
+    alertas = build_alertas(inputs.score, inputs.ratios, inputs.investimentos_warnings)
 
     goals_enriched = _enrich_goals_with_passive_income(inputs.goals, inputs.passive_income)
 
