@@ -3,7 +3,7 @@ id: A12.cat-learning-loop
 type: lane
 title: "Categorization Learning Loop — promoção de override em regra"
 sprint: A12
-status: planned
+status: in_progress
 aliases: ["A12.CAT_LEARNING_LOOP", "A12 cat learning loop"]
 priority: P1
 depends_on: ["[[A11.report-publication]]"]
@@ -14,7 +14,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a12
-  - status/planned
+  - status/in-progress
   - priority/p1
   - area/categorization
   - area/methodology
@@ -41,17 +41,17 @@ DOC_REORG; feature nova de 19d roubaria capacidade de hardening de produção).
 
 ## Sequência (MVP V1)
 
-1. **P1 — Schema** (`transaction_overrides.source` +
-   `categorization_rules`). Track criado quando A12 abrir + P0 externo
-   da `A11.report-publication` estiver em curso.
-2. **P2 — Pipeline E4** (`CategorizationRulesV2`). Track criado quando
-   P1 mergear E `A11.report-publication` mergear.
-3. **P3 — Backend API** (preview/commit/revert). Track criado quando P2
+1. ☑ **P1 — Schema** (`transaction_overrides.source` +
+   `categorization_rules`). Shipped — PR #188, commit `2a36388`, 2026-05-10.
+2. ☐ **P2 — Pipeline E4** (`CategorizationRulesV2`). Track ready —
+   `cat-learning-loop-p2-pipeline.md`. Pré-req A11.report-publication
+   ✅ (PR #185).
+3. ☐ **P3 — Backend API** (preview/commit/revert). Track criado quando P2
    mergear.
-4. **Gate dogfood** (entre P3 e P4). Critério: 5 regras criadas no
+4. ☐ **Gate dogfood** (entre P3 e P4). Critério: 5 regras criadas no
    workspace do CEO em ≤7d com `revert_rate ≤ 30%`. Custo: 0,5d. Bloqueia
    P4 se falhar — força reavaliar feature antes de investir em UX polida.
-5. **P4 — Frontend `/transactions`** (toast + side-panel +
+5. ☐ **P4 — Frontend `/transactions`** (toast + side-panel +
    highlight-to-extract). Track criado se gate dogfood passou.
 
 ## V2 (pós-tração)
@@ -82,6 +82,8 @@ Cada fase mergeia em `main` com:
 
 ## Status atual
 
-☐ candidate (sprint A12 abre quando A11 fechar)
-☐ Pré-req externo: [[A11.report-publication]] ainda em ready
-☐ P1-P4: tracks criados quando sprint abrir
+☑ A11.report-publication mergeado em `main` (PR #185, commit `182308a`, 2026-05-10) — pré-requisito atendido.
+☑ P1 (Schema) shipped — PR #188, commit `2a36388`, 2026-05-10.
+☐ P2 (Pipeline E4) — track `cat-learning-loop-p2-pipeline.md` ready, próxima fase.
+☐ P3 (Backend API) — track criado quando P2 mergear.
+☐ P4 (Frontend) — track criado se gate dogfood passar entre P3 e P4.

@@ -5,11 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-Nenhuma lane prontidão atual.
+1 in_progress.
 
-## Todas as lanes da sprint (para inspeção)
-
-### planned (1)
+## In progress (1)
 
 - [[A12.cat-learning-loop]] — Categorization Learning Loop — promoção de override em regra · priority P1
 

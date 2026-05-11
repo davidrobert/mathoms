@@ -157,6 +157,15 @@ conflitos resolvidos por priority). Misturar os dois quebra a separação
 semântica de [[ADR-137]] e dificulta auditoria. **Pipeline E4 lê os
 dois e mergeia** — ver D5.
 
+**Soft reference `origin_override_id`** (decisão P1, 2026-05-10):
+implementado em P1 sem FK formal por restrição SQLite — FK formal
+criaria ciclo com `transaction_overrides.rule_id` que SQLAlchemy/Alembic
+não conseguem ordenar em DROP/sort/offline-SQL. Direção viva da relação
+é `transaction_overrides.rule_id` (FK formal). `origin_override_id` é
+audit-only — soft delete do override original deixa o id zumbi, aceito
+porque a regra preserva rastreabilidade da intenção. FK formal opcional
+em P3 quando target PG-only ([[ADR-128]]).
+
 **Mudança 3 — coluna `published_at` em `pipeline_artifacts`** (ou tabela
 nova `report_publications`): contrato de imutabilidade. Detalhe em
 [ADR-186 Proposto].
