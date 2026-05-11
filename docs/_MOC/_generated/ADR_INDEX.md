@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-184 ADRs (ADR-001 a ADR-191) em [`docs/adr/`](../../adr/).
+185 ADRs (ADR-001 a ADR-192) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 160
-- **Proposto**: 19
+- **Proposto**: 20
 - **Roadmap**: 5
 
 ## Fundação
@@ -294,9 +294,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-162]] — Decisions como event projection sobre Goals · phase Onda 8
 - [[ADR-167]] — Eligibility gate de cenário do cônjuge no domain service · phase A8.4 PR2
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
+- [[ADR-192]] — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) · phase Sprint A11.s9-protection
 
 ## categorization
 

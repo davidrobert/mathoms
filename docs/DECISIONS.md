@@ -217,3 +217,4 @@ PRs antigos linkam `docs/DECISIONS.md#adr-NNN-...` (slug GitHub Slugger). Os anc
 <a id="adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido"></a> [ADR-180](adr/180-goalsjson-cutover-final-via-stageconfigconfig.md)
 <a id="adr-181--goalsjson-removido-de-_archive-e-adicionado-a-devcheck_forbidden_pathspy"></a> [ADR-181](adr/181-goalsjson-removido-de-archive-e-adicionado-a.md)
 <a id="adr-182--vault-de-documentação-operacional-obsidian-friendly-em-docs"></a> [ADR-182](adr/182-vault-de-documentacao-operacional-obsidian.md)
+<a id="adr-192--protection-aggregate--protectionbundle-seção-9-riscos-e-proteção"></a> [ADR-192](adr/192-protection-aggregate-protectionbundle-secao-9.md)
