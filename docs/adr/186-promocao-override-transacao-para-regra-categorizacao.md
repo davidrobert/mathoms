@@ -2,9 +2,10 @@
 id: ADR-186
 type: adr
 title: "Promoção de override de transação para regra de categorização (learning loop)"
-status: Proposto
-phase: A12
+status: Decidido
+phase: A12.P2
 date: "2026-05-10"
+decided_at: "2026-05-11"
 relates_to:
   - "[[ADR-047]]"
   - "[[ADR-081]]"
@@ -21,7 +22,7 @@ tags:
   - area/pipeline
   - area/methodology
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -354,3 +355,16 @@ Métricas mínimas (Prometheus/structured logs `mathoms.categorization.*`):
   (D3 estende sem misturar semântica).
 - [[ADR-143]] — methodology = code (regras são domínio enforçável, com
   ADR canônica + docstring co-localizada no service).
+
+## Histórico
+
+- 2026-05-10 — Proposto. Gate triple (financial-planner + product-designer
+  + senior-cto) na sessão 2026-05-10.
+- 2026-05-10 — P1 implementado em #188 (schema: `categorization_rules` +
+  `transaction_overrides.source` + `transaction_overrides.rule_id`; soft-ref
+  `origin_override_id` por restrição SQLite — §D3).
+- 2026-05-11 — P2 implementado em #194 (pipeline E4: `CategorizationRulesV2`
+  + adapter + learning loop com sticky-manual + sticky intra-run + mês
+  fechado + counter bump na mesma `Session.flush()`). Flip para Decidido
+  pós-gate triple de review (financial-planner + data-engineer + senior-cto).
+- P3/P4 (endpoints HTTP + UI `/transactions`) seguem em lanes separadas.

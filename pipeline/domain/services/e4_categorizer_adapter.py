@@ -30,6 +30,7 @@ from pipeline.domain.services.baseline_normalizer import (
     NormalizedBaseline,
 )
 from pipeline.domain.services.cash_flow_builder import CashFlow, CashFlowBuilder
+from pipeline.domain.services.categorization_service import CategorizationRulesV2
 from pipeline.domain.services.investments_consolidator import (
     ConsolidatedInvestments,
     InvestmentsConsolidator,
@@ -117,10 +118,17 @@ class E4CategorizerAdapter:
         *,
         categorization: dict | None = None,
         family: dict | None = None,
+        learned_rules_v2: CategorizationRulesV2 | None = None,
     ) -> "E4CategorizerAdapter":
-        """Constrói o adapter a partir dos dicts de config. Ajuda a reduzir
-        o `main_with_store` a poucas linhas quando chegar a Sessão A4b.
+        """Constrói o adapter a partir dos dicts de config.
+
+        ``learned_rules_v2`` (ADR-186 §D5 · A12.P2): regras workspace-aprendidas
+        — injetar quando ``ctx.workspace_id`` está disponível (via adapter
+        ``backend/app/services/categorization_rules_adapter.py``). Default
+        ``None`` preserva paridade legado (workspaces sem regras).
         """
+        from dataclasses import replace
+
         from pipeline.domain.services.investments_consolidator import (
             InvestmentsConsolidatorConfig,
         )
@@ -129,6 +137,8 @@ class E4CategorizerAdapter:
             categorization=categorization,
             family=family,
         )
+        if learned_rules_v2 is not None:
+            classifier_cfg = replace(classifier_cfg, learned_rules_v2=learned_rules_v2)
         inv_cfg = InvestmentsConsolidatorConfig.from_family(family=family)
         return cls(
             classifier=TransactionClassifier(classifier_cfg),

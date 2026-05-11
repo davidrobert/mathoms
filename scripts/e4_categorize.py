@@ -1012,8 +1012,13 @@ def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
 # ============================================================================
 
 
-def _e4_build_adapter(ctx):
-    """Carrega configs + monta E4CategorizerAdapter."""
+def _e4_build_adapter(ctx, *, learned_rules_v2=None):
+    """Carrega configs + monta E4CategorizerAdapter.
+
+    ``learned_rules_v2`` (ADR-186 §D5 · A12.P2): regras workspace-aprendidas
+    injetadas (já carregadas do DB pelo backend adapter). ``None`` = workspace
+    sem regras OU execução CLI/golden (sem ``ctx.workspace_id``).
+    """
     from pipeline.domain.services.e4_categorizer_adapter import E4CategorizerAdapter
 
     categorization_cfg = ctx.load_config("categorization.json")
@@ -1022,8 +1027,45 @@ def _e4_build_adapter(ctx):
     adapter = E4CategorizerAdapter.from_configs(
         categorization=categorization_cfg,
         family=family_cfg,
+        learned_rules_v2=learned_rules_v2,
     )
     return adapter, categorization_cfg, pipeline_cfg
+
+
+def _e4_load_learned_rules(ctx, store):
+    """Carrega ``CategorizationRulesV2`` do DB se workspace + DBArtifactStore."""
+    if ctx.workspace_id is None:
+        return None, None
+    try:
+        from backend.app.services.categorization_rules_adapter import (
+            load_categorization_rules_v2,
+        )
+        from backend.app.services.db_artifact_store import DBArtifactStore
+    except ImportError:
+        return None, None
+    if not isinstance(store, DBArtifactStore):
+        return None, None
+    db = store.session  # mesma sessão = mesma transação = mesmo flush
+    return load_categorization_rules_v2(workspace_id=ctx.workspace_id, db=db), db
+
+
+def _e4_run_learning_loop(ctx, db_session, learned_rules_v2, result) -> Optional[Dict[str, int]]:
+    """Aplica learning loop (sticky-manual + mês-fechado). ``None`` se sem regras."""
+    if db_session is None or learned_rules_v2 is None or not learned_rules_v2.learned_rules:
+        return None
+    from backend.app.services.categorization_learning_loop import apply_learning_loop
+
+    stats = apply_learning_loop(
+        workspace_id=ctx.workspace_id,
+        classified=result.classified,
+        db=db_session,
+    ).to_dict()
+    print(
+        f"[E4.2b] Learning loop: matches={stats['matches_total']} "
+        f"applied={stats['applied']} skipped_sticky={stats['skipped_sticky']} "
+        f"skipped_closed_month={stats['skipped_closed_month']}"
+    )
+    return stats
 
 
 def _e4_persist_artifacts(store, ctx, result) -> List[str]:
@@ -1108,15 +1150,31 @@ def main_with_store(ctx) -> Dict[str, Any]:
 
     Coexiste com ``main(root_dir)`` legado. Lê E3/E2/baseline e escreve E4 via
     store. Paridade coberta por ``tests/test_e4_golden_execution.py``.
+
+    A12.P2 (ADR-186 §D5): se ``ctx.workspace_id`` está setado e o store é DB,
+    carrega ``CategorizationRulesV2`` do workspace e aplica o learning loop
+    pós-categorize (cria ``TransactionOverride(source='rule')`` + bumpa
+    ``applied_count``). Workspace sem regras = no-op.
     """
     print("=" * 80)
     print("E4 CATEGORIZATION STAGE — Caminho B (main_with_store)")
     print("=" * 80)
 
-    adapter, categorization_cfg, pipeline_cfg = _e4_build_adapter(ctx)
     store = ctx.get_artifact_store()
     print(f"[E4.0] Workspace root: {ctx.root}")
     print(f"[E4.0] Store impl:     {type(store).__name__}")
+
+    # ADR-186 §D5 (A12.P2) — carrega learned rules antes do adapter.
+    learned_rules_v2, db_session = _e4_load_learned_rules(ctx, store)
+    if learned_rules_v2 is not None and learned_rules_v2.learned_rules:
+        print(
+            f"[E4.0] Loaded {len(learned_rules_v2.learned_rules)} learned_rules "
+            f"(workspace {ctx.workspace_id})"
+        )
+
+    adapter, categorization_cfg, pipeline_cfg = _e4_build_adapter(
+        ctx, learned_rules_v2=learned_rules_v2
+    )
 
     result = adapter.categorize_via_store(store)
     print(
@@ -1125,6 +1183,9 @@ def main_with_store(ctx) -> Dict[str, Any]:
         f"{result.cash_flow.transferencias_count} internal transfers"
     )
 
+    # ADR-186 §D5 + ADR-187 — learning loop pós-categorize (sticky + mês fechado).
+    learning_stats = _e4_run_learning_loop(ctx, db_session, learned_rules_v2, result)
+
     written_filenames = _e4_persist_artifacts(store, ctx, result)
     _e4_write_qa_sidecar(ctx, result, pipeline_cfg, categorization_cfg)
 
@@ -1132,7 +1193,10 @@ def main_with_store(ctx) -> Dict[str, Any]:
         print(f"  {aviso}")
 
     _e4_print_summary(result)
-    return _e4_build_result_dict(written_filenames, result)
+    summary = _e4_build_result_dict(written_filenames, result)
+    if learning_stats is not None:
+        summary["learning_loop"] = learning_stats
+    return summary
 
 
 def _write_qa_log_e4(
