@@ -27,7 +27,53 @@
       "type": "object"
     },
     "ratios": {
-      "type": "object"
+      "type": "object",
+      "description": "Ratios financeiros (RatiosCalculator.to_legacy_dict). Track T06 / ADR-191 adicionou objeto aninhado 'rentabilidade' com contexto (ano-base, defasagem, meta, cobertura essencial, status). Campo flat 'rentabilidade_pct' permanece como atalho back-compat (ADR-191 §D2 — sem rename interno).",
+      "properties": {
+        "rentabilidade": {
+          "description": "Card Rentabilidade — TRS efetiva + contexto + cobertura essencial via renda passiva (ADR-191 §D3/D4). 'null' apenas quando passive_income é omitido (caller decide).",
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "required": [
+                "valor_pct",
+                "ano_base",
+                "defasagem_meses",
+                "meta_pct",
+                "cobertura_despesa_essencial_pct",
+                "status"
+              ],
+              "properties": {
+                "valor_pct": {
+                  "description": "TRS efetiva (% a.a.). 'null' quando status indica indisponibilidade.",
+                  "type": ["number", "null"]
+                },
+                "ano_base": {
+                  "description": "Ano-base IRPF do dado consumido.",
+                  "type": ["integer", "null"]
+                },
+                "defasagem_meses": {
+                  "description": "Meses entre 01-jan(ano_base+1) e reference_date — flag de envelhecimento.",
+                  "type": ["integer", "null"]
+                },
+                "meta_pct": {
+                  "description": "Meta de referência consagrada (default 5,0% a.a.).",
+                  "type": "number"
+                },
+                "cobertura_despesa_essencial_pct": {
+                  "description": "renda_passiva_mensal / custo_essencial_mensal × 100. 'null' quando status != 'ok'.",
+                  "type": ["number", "null"]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["ok", "sem_irpf", "gerador_zero", "sem_dados_essencial"]
+                }
+              }
+            }
+          ]
+        }
+      }
     },
     "goals": {
       "type": "object"

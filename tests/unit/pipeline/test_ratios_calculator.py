@@ -20,6 +20,8 @@ from pipeline.domain.services.passive_income_calculator import (  # noqa: E402
 from pipeline.domain.services.ratios_calculator import (  # noqa: E402
     FinancialRatios,
     RatiosCalculator,
+    RentabilidadeConfig,
+    RentabilidadeRatio,
 )
 from pipeline.llm.schemas.e16_irpf_full import (  # noqa: E402
     CodigoRendimentoIsento,
@@ -35,25 +37,18 @@ from pipeline.llm.schemas.e16_irpf_full import (  # noqa: E402
 )
 
 
-def _fluxo_with_janela(
-    *,
-    receita_recorrente: float = 120_000,
-    receita_total: float = 130_000,
-    despesa_total: float = 60_000,
-    despesa_mensal_media: float = 5_000,
-    periodo: str = "2025-04 a 2026-03",
-    n_meses: int = 12,
-) -> dict:
-    return {
-        "janela_12m": {
-            "receita_recorrente": receita_recorrente,
-            "receita_total": receita_total,
-            "despesa_total": despesa_total,
-            "despesa_mensal_media": despesa_mensal_media,
-            "periodo": periodo,
-            "n_meses": n_meses,
-        }
+def _fluxo_with_janela(*, despesa_mensal_essencial: float = 0.0, **overrides) -> dict:
+    base = {
+        "receita_recorrente": 120_000,
+        "receita_total": 130_000,
+        "despesa_total": 60_000,
+        "despesa_mensal_media": 5_000,
+        "despesa_mensal_essencial": despesa_mensal_essencial,
+        "periodo": "2025-04 a 2026-03",
+        "n_meses": 12,
     }
+    base.update(overrides)
+    return {"janela_12m": base}
 
 
 def _patrimonio(
@@ -303,3 +298,100 @@ class TestRegression:
         assert d["rentabilidade_pct"] == "N/D"
         assert d["aliquota_efetiva_ir_pct"] == "N/D"
         assert isinstance(r.taxa_poupanca_recorrente_pct, float)
+
+
+# ---------------------------------------------------------------------------
+# Track T06 / [[ADR-191]] §D3+D4 — Card Rentabilidade aninhado (4 status)
+# ---------------------------------------------------------------------------
+
+
+class TestRentabilidadeNestedRatio:
+    """``FinancialRatios.rentabilidade`` aninhado cobre 4 status do enum."""
+
+    def test_status_sem_irpf_quando_passive_income_sem_irpf(self):
+        pi = make_passive_income(status="sem_irpf", ano=None)
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade is not None
+        assert r.rentabilidade.status == "sem_irpf"
+        assert r.rentabilidade.valor_pct is None
+        assert r.rentabilidade.ano_base is None
+        assert r.rentabilidade.defasagem_meses is None
+        assert r.rentabilidade.cobertura_despesa_essencial_pct is None
+        assert r.rentabilidade.meta_pct == Decimal("5.0")
+
+    def test_status_gerador_zero_preserva_ano_base_e_defasagem(self):
+        pi = make_passive_income(status="gerador_zero")
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade is not None
+        assert r.rentabilidade.status == "gerador_zero"
+        assert r.rentabilidade.valor_pct is None
+        assert r.rentabilidade.ano_base == 2024
+        assert r.rentabilidade.defasagem_meses == 4
+        assert r.rentabilidade.cobertura_despesa_essencial_pct is None
+
+    def test_status_sem_dados_essencial_quando_essencial_zero(self):
+        # passive_income=ok mas window.despesa_mensal_essencial=0 → status flagado;
+        # valor_pct ainda é exposto (UI mostra TRS, omite cobertura).
+        pi = make_passive_income(status="ok", trs_pct="3.25")
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=0), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade is not None
+        assert r.rentabilidade.status == "sem_dados_essencial"
+        assert r.rentabilidade.valor_pct == Decimal("3.25")
+        assert r.rentabilidade.cobertura_despesa_essencial_pct is None
+
+    def test_status_ok_calcula_cobertura(self):
+        # renda_passiva_mensal=833.33 / essencial=4000 = 20.83%
+        pi = make_passive_income(status="ok", trs_pct="3.25")
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade is not None
+        assert r.rentabilidade.status == "ok"
+        assert r.rentabilidade.valor_pct == Decimal("3.25")
+        assert r.rentabilidade.cobertura_despesa_essencial_pct == Decimal("20.83")
+        assert r.rentabilidade.ano_base == 2024
+        assert r.rentabilidade.defasagem_meses == 4
+
+    def test_meta_pct_pode_ser_customizada_via_config(self):
+        pi = make_passive_income(status="sem_irpf", ano=None)
+        calc = RatiosCalculator(RentabilidadeConfig(meta_pct=Decimal("4.0")))
+        r = calc.calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
+        )
+        assert r.rentabilidade is not None
+        assert r.rentabilidade.meta_pct == Decimal("4.0")
+
+    def test_rentabilidade_none_quando_passive_income_omitido(self):
+        # Sem passive_income, o shape aninhado é None — UI render placeholder.
+        r = RatiosCalculator().calculate(_fluxo_with_janela(), _patrimonio())
+        assert r.rentabilidade is None
+
+    def test_to_legacy_dict_serializa_rentabilidade_aninhado(self):
+        pi = make_passive_income(status="ok", trs_pct="3.25")
+        r = RatiosCalculator().calculate(
+            _fluxo_with_janela(despesa_mensal_essencial=4000), _patrimonio(), passive_income=pi
+        )
+        d = r.to_legacy_dict()
+        assert "rentabilidade" in d
+        ren = d["rentabilidade"]
+        assert ren is not None
+        assert ren["status"] == "ok"
+        assert ren["valor_pct"] == pytest.approx(3.25)
+        assert ren["ano_base"] == 2024
+        assert ren["defasagem_meses"] == 4
+        assert ren["meta_pct"] == pytest.approx(5.0)
+        assert ren["cobertura_despesa_essencial_pct"] == pytest.approx(20.83)
+        # back-compat: campo flat preservado em paralelo.
+        assert d["rentabilidade_pct"] == "3.25"
+
+    def test_to_legacy_dict_serializa_none_quando_passive_income_omitido(self):
+        r = RatiosCalculator().calculate(_fluxo_with_janela(), _patrimonio())
+        d = r.to_legacy_dict()
+        assert d["rentabilidade"] is None
+        assert d["rentabilidade_pct"] == "N/D"

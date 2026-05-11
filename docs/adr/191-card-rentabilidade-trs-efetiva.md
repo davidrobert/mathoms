@@ -2,7 +2,7 @@
 id: ADR-191
 type: adr
 title: "Card Rentabilidade do relatório expõe TRS efetiva — não retorno total"
-status: Proposto
+status: Decidido
 phase: A11.W5
 date: "2026-05-11"
 relates_to:
@@ -19,7 +19,7 @@ tags:
   - area/frontend
   - area/methodology
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -174,5 +174,5 @@ débito latente vs FORMULAS.md §Reserva. Issue separada rastreia o fix
 - Doc canônico: [FORMULAS.md §TRS efetiva e renda passiva](../reference/FORMULAS.md)
   (a criar no PR-A)
 
-**Status pós-merge:** flippa para `Decidido (A11.W5)` quando PR-A da
-lane W5-T06 mergear em `main`.
+**Status:** `Decidido (A11.W5)` — flipped no merge do PR-A da lane W5-T06.
+PR-B (rebrand UI) consome o shape novo.

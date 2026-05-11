@@ -405,7 +405,7 @@ class E5AnalyzerAdapter:
             investment_banks=investment_banks,
             member_resolver=E5MemberResolver(member_cfg),
             fluxo_enricher=FluxoCaixaEnricher(
-                FluxoEnricherConfig.from_categorization(categorization)
+                FluxoEnricherConfig.from_configs(categorization=categorization, scoring=scoring)
             ),
             if_projector=if_projector,
             if_projector_config=if_projector_config_built,
