@@ -189,6 +189,7 @@
 | ADR-189 | adr | Proposto |  | PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária | `adr/189-pgbl-diagnostico-tipificado-substitui-metrica-monovalor.md` |
 | ADR-190 | adr | Proposto |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `adr/190-snapshot-changelog-v3-metricas-cadencia-decomposicao.md` |
 | ADR-191 | adr | Proposto |  | Card Rentabilidade do relatório expõe TRS efetiva — não retorno total | `adr/191-card-rentabilidade-trs-efetiva.md` |
+| ADR-192 | adr | Proposto |  | `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) | `adr/192-protection-aggregate-protectionbundle-secao-9.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -531,6 +532,7 @@
 | TRACK-report-v2-changelog-engine | track | consumed | A11 | Track Report v2.D.1 + v2.8 — Snapshot changelog engine + comparisons/changelog ON | `sprint/A11/tracks/report-v2-changelog-engine.md` |
 | TRACK-report-v2-charts-ux | track | consumed | A11 | Track Report v2.E — Charts UX (paridade visual final dos charts) | `sprint/A11/tracks/report-v2-charts-ux.md` |
 | TRACK-report-v2-t2-aportes | track | consumed | A11 | Track Report v2.4 — T2 Aportes seção real | `sprint/A11/tracks/report-v2-t2-aportes.md` |
+| TRACK-s9-riscos-expansion | track | ready | A11 | Track S9 Riscos e Proteção — Expansão completa (Protection aggregate + ProtectionBundle + 5 blocos UI) | `sprint/A11/tracks/s9-riscos-expansion.md` |
 | TRACK-w5t01-a11y | track | consumed | W5 | Track W5-T01 — A11y onda: scope=col + role=progressbar + aria-label charts + reduced-motion | `sprint/W5/tracks/w5t01-a11y.md` |
 | TRACK-w5t03-monetary-value | track | consumed | W5 | Track W5-T03 — `<MonetaryValue size="kpi">` migration | `sprint/W5/tracks/w5t03-monetary-value.md` |
 | TRACK-w5t04-adr161-enrichment | track | consumed | W5 | Track W5-T04 — FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | `sprint/W5/tracks/w5t04-adr161-enrichment.md` |

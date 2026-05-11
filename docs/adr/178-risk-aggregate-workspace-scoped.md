@@ -5,7 +5,7 @@ title: "`Risk` aggregate workspace-scoped"
 status: Decidido
 phase: "Sprint A10.4"
 date: "2026-05-06"
-relates_to: ["[[ADR-090]]", "[[ADR-101]]", "[[ADR-115]]", "[[ADR-136]]", "[[ADR-143]]"]
+relates_to: ["[[ADR-090]]", "[[ADR-101]]", "[[ADR-115]]", "[[ADR-136]]", "[[ADR-143]]", "[[ADR-192]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 178"]
