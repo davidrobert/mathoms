@@ -1,7 +1,7 @@
 {
   "audit_version": "1.0",
-  "generated_at": "2026-05-11T22:20:27Z",
-  "git_commit": "9b8b3d5935d7971f7ce49dae7f00959b57cab50e",
+  "generated_at": "2026-05-11T22:46:54Z",
+  "git_commit": "f31c3031a3858f9efd5059263cd670f18d0ee70a",
   "offenders": [
     {
       "allowlisted": false,
@@ -30920,7 +30920,7 @@
   "summary": {
     "files_scanned": {
       "python": 1087,
-      "typescript": 382
+      "typescript": 384
     },
     "offenders_by_category": {
       "P1_long_functions": 1046,
