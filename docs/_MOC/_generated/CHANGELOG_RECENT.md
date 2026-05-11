@@ -3,10 +3,17 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-83 entries entre 2026-04-27 e 2026-05-10.
+87 entries entre 2026-04-27 e 2026-05-11.
 
-## 2026-05-10 (1 entries)
+## 2026-05-11 (3 entries)
 
+- [[CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-BACKEND]] — feat(api): backend API completo do learning loop — preview, commit, (lane [[A12.cat-learning-loop]])
+- [[CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-FRONTEND]] — feat(frontend): P4 learning loop UI mínima (toast + modal + badge) + (lane [[A12.cat-learning-loop]])
+- [[CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-PIPELINE]] — feat(pipeline): CategorizationRulesV2 com ordem de match estável, (lane [[A12.cat-learning-loop]])
+
+## 2026-05-10 (2 entries)
+
+- [[CHG-2026-05-10-FEAT-CAT-LEARNING-LOOP-SCHEMA]] — feat(db): tabela categorization_rules + transaction_overrides.source/rule_id — (lane [[A12.cat-learning-loop]])
 - [[CHG-2026-05-10-FEAT-REPORT-PUBLICATION]] — feat(report): conceito de mês fechado imutável — tabela report_publications, (lane [[A11.report-publication]])
 
 ## 2026-05-07 (14 entries)

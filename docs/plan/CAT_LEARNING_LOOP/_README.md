@@ -98,8 +98,10 @@ Track: [report-publication-impl](../../sprint/A11/tracks/report-publication-impl
   - PR #196 — Schema delta (`996ced6`)
   - PR #197 — Endpoints + telemetria (`8faac98`)
   - PR #198 — Async Celery + perf hardening (`d660daf`) — [[ADR-188]] Decidida
-- **Gate dogfood** ⏳ próximo passo (CEO + PM, 7d wall-clock — ver [docs/reference/RUNBOOK.md §9](../../reference/RUNBOOK.md))
-- **P4 Frontend** ⏳ condicional ao gate dogfood
+- **Housekeeping pós-P3** ✅ shipped 2026-05-11 (PR #199 lane status, #200 handoff PM, #201 purge script single-tenant)
+- **Gate técnico dogfood** ✅ shipped (PR #202, `db3002e`, 2026-05-11) — `scripts/dogfood_gate_a12.py` + fixture 2880tx/24m, verdict inicial **PASS 11/11** invariantes
+- **P4 Frontend (UI mínima)** ✅ shipped (PR #203, `ff7fbf2`, 2026-05-11) — toast + modal `CreateRuleDialog` + badge "Regra" + heatmap mês fechado + feature flag `learning_loop_enabled`. **Escopo reduzido**: sem side-panel/highlight-to-extract (V2)
+- **Gate dogfood humano** ⏳ próximo passo (CEO no `5@5.com`, 7d wall-clock — ver [docs/reference/RUNBOOK.md §9](../../reference/RUNBOOK.md))
 - **V2.A/B/C** ⏳ pós-tração (fora MVP V1)
 
 ## Fases (MVP V1)
@@ -109,12 +111,12 @@ Track: [report-publication-impl](../../sprint/A11/tracks/report-publication-impl
 | **P1** | ✅ | Schema: `transaction_overrides.source` + `categorization_rules` | data-engineer | A12 abrir | 2d eng |
 | **P2** | ✅ | Pipeline E4: `CategorizationRulesV2` + ordem de match + paridade | senior-cto + data-engineer | P1 ✅ + [[A11.report-publication]] ✅ | 3d eng |
 | **P3** | ✅ | Backend API: preview + commit + revert + telemetria mínima (4 contadores) | senior-cto | P2 ✅ | 3d eng |
-| **Gate** | ⏳ | **Dogfood validation** (CLI/admin no workspace do CEO) | CEO + product-manager | P3 ✅ | 0,5d + 7d wall-clock |
-| **P4** | ⏳ | Frontend `/transactions`: toast + side-panel + highlight-to-extract | product-designer (design) + frontend (impl) | Gate dogfood ✅ | 4d eng |
+| **Gate técnico** | ✅ | `scripts/dogfood_gate_a12.py` (smoke E2E + 11 invariantes) | sre-devops + data-engineer | P3 ✅ | 0,5d |
+| **P4 (UI mínima)** | ✅ | Frontend `/transactions`: toast + modal + badge + heatmap (single-tenant) | frontend + product-designer | Gate técnico ✅ | 2d eng |
+| **Gate humano** | ⏳ | Dogfood real no workspace `5@5.com` — 5 regras / 7d / revert ≤30% | CEO + product-manager | P4 ✅ | 7d wall-clock |
 
-**Total estimado MVP V1:** 12,5d eng (cortado de 19d original).
-**Wall-clock realista:** 2-3 semanas + 1 semana dogfood = 3-4 semanas
-total.
+**Total estimado MVP V1:** ~11d eng + 7d wall-clock dogfood. UI cortada
+para 2d (de 4d originais) por escopo reduzido vs side-panel/highlight-to-extract.
 
 ### P1 — Schema base (transaction_overrides + categorization_rules)
 
@@ -363,14 +365,14 @@ revert_rate baixo e manual_override saudável.
   precisar de ajuste em casos extremos (ex.: cliente pede re-cálculo
   retroativo explícito).
 
-## Status atual
+## Status atual (atualizado 2026-05-11)
 
 - [[ADR-186]] **Decidida (A12.P2)** — confirmada no merge do PR #194 (2026-05-11).
 - [[ADR-187]] **Decidida (A11.report-publication)** — mergeada em `main` via PR #185 (2026-05-10).
 - [[ADR-188]] **Decidida (A12.P3)** — schema evolution + soft-delete + partial unique + revert_count split, confirmada no merge do PR #198 (2026-05-11).
 - A11 lane: [[A11.report-publication]] ✅ entregue (PR #185).
-- A12 lane: [[A12.cat-learning-loop]] **in_progress** — P1/P2/P3 ✅; gate dogfood pendente.
-- Tracks P1/P2/P3: consumidos (PRs #188/#194/#195-#198). Track P4: criado se gate dogfood passar.
+- A12 lane: [[A12.cat-learning-loop]] **in_progress** — P1/P2/P3/gate técnico/P4 mínima ✅; **gate dogfood humano** pendente (CEO 7d wall-clock).
+- Tracks P1/P2/P3: consumidos (PRs #188/#194/#195-#198). P4 não tem track formal — shipped direto via PR #203 com escopo mínimo single-tenant.
 
 ## Conclusão / arquivamento
 

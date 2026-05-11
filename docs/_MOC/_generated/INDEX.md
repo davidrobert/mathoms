@@ -354,7 +354,11 @@
 | CHG-2026-05-07-ADR-179 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-179.md` |
 | CHG-2026-05-07-ADR-180 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-180.md` |
 | CHG-2026-05-07-ADR-181 | changelog-entry |  | A10 |  | `sprint/A10/changelog/CHG-2026-05-07-ADR-181.md` |
+| CHG-2026-05-10-FEAT-CAT-LEARNING-LOOP-SCHEMA | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-10-FEAT-CAT-LEARNING-LOOP-SCHEMA.md` |
 | CHG-2026-05-10-FEAT-REPORT-PUBLICATION | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-10-FEAT-REPORT-PUBLICATION.md` |
+| CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-BACKEND | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-BACKEND.md` |
+| CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-FRONTEND | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-FRONTEND.md` |
+| CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-PIPELINE | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-PIPELINE.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
 | RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |
 | RULE-composicao-patrimonial-7-categorias | domain-rule |  |  |  | `reference/rules/rule-composicao-patrimonial-7-categorias.md` |

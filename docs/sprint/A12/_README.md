@@ -7,7 +7,9 @@ aliases: ["A12", "Sprint A12"]
 
 # Sprint A12 — Categorization learning loop + post-A11 follow-up (origem 2026-05-10)
 
-> **Status:** candidate — abre quando A11 fechar (W2-W6 + report-publication + competitive-pierre).
+> **Status:** in_progress (desde 2026-05-10) — lane única ativa
+> `A12.cat-learning-loop` com P1-P4 (UI mínima) + gate técnico shipped.
+> Gate dogfood humano (7d wall-clock) é o último bloqueio para fechar DoD.
 
 ## Resumo
 
@@ -73,11 +75,14 @@ empurra continuação para A12.
 
 Esta sprint fecha quando:
 
-- [[ADR-186]] flippada para `Decidido (A12)`.
-- P1-P4 mergeados em `main` com gates verdes.
-- Gate dogfood passou.
-- KPIs `mathoms.categorization.*` instrumentados (versão MVP).
-- Plano canônico arquivado em `docs/archive/CAT_LEARNING_LOOP-YYYY-MM-DD.md`.
+- ☑ [[ADR-186]] flippada para `Decidido (A12)` — confirmada PR #194 (2026-05-11).
+- ☑ [[ADR-188]] flippada para `Decidido (A12)` — confirmada PR #198 (2026-05-11).
+- ☑ P1-P4 (UI mínima) mergeados em `main` com gates verdes (PRs #188/#194/#195-#198/#203).
+- ☑ Gate técnico dogfood com verdict PASS (PR #202, 11/11 invariantes).
+- ☐ Gate dogfood humano passou (CEO 7d wall-clock no `5@5.com`).
+- ☑ KPIs `mathoms.categorization.*` instrumentados na versão MVP (P3 backend).
+- ☐ Plano canônico arquivado em `docs/archive/CAT_LEARNING_LOOP-YYYY-MM-DD.md`.
 
-V2 (P5 inbox de sugestões + P6 detector offline + alertas SRE) entra em
-sprint posterior, condicional a sinais positivos da feature MVP.
+V2 (P5 inbox de sugestões + P6 detector offline + alertas SRE +
+side-panel 480px + highlight-to-extract) entra em sprint posterior,
+condicional a sinais positivos da feature MVP.
