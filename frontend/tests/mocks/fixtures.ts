@@ -160,6 +160,7 @@ const transactions: TransactionItem[] = [
     titular: "Founder",
     moeda: "BRL",
     transaction_hash: "h-1",
+    row_id: "h-1:0",
     is_overridden: false,
   },
   {
@@ -173,6 +174,7 @@ const transactions: TransactionItem[] = [
     titular: "Founder",
     moeda: "BRL",
     transaction_hash: "h-2",
+    row_id: "h-2:0",
     is_overridden: false,
   },
 ];

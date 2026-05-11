@@ -313,4 +313,67 @@ export const handlers = [
       },
     }),
   ),
+
+  // ─── Feature flags (default: all off — tests opt-in via server.use) ───
+  http.get(`${API}/workspaces/:workspaceId/feature-flags`, () =>
+    HttpResponse.json({
+      flags: {
+        learning_loop_enabled: false,
+        tasks_v2_enabled: false,
+      },
+    }),
+  ),
+
+  // ─── Categorization Rules — learning loop (A12 P3/P4) ───
+  http.post(
+    `${API}/workspaces/:workspaceId/categorization/rules/preview`,
+    () =>
+      HttpResponse.json({
+        matches_total: 12,
+        matches_in_closed_months: 3,
+        matches_with_manual_override: 1,
+        matches_blocked_internal_transfers: 0,
+        matches_amount_total_brl_cents: 284_000,
+        matches_by_month: { "202604": 8, "202603": 4 },
+        conflicts: [],
+        low_risk: true,
+        requires_user_confirmation: false,
+        warnings: [],
+      }),
+  ),
+  http.post(`${API}/workspaces/:workspaceId/categorization/rules`, () =>
+    HttpResponse.json(
+      {
+        id: "rule-1",
+        workspace_id: "ws-1",
+        keyword: "MERCADO PAGO IFOOD",
+        target_category: "Alimentação",
+        priority: 100,
+        enabled: true,
+        origin_override_id: null,
+        created_by_user_id: "user-1",
+        applied_count: 8,
+        revert_count_manual_edit: 0,
+        revert_count_rule_disabled: 0,
+        created_at: "2026-05-11T00:00:00Z",
+        updated_at: "2026-05-11T00:00:00Z",
+      },
+      { status: 201 },
+    ),
+  ),
+  http.get(
+    `${API}/workspaces/:workspaceId/categorization/rules/:ruleId/apply-status`,
+    () =>
+      HttpResponse.json({
+        rule_id: "rule-1",
+        workspace_id: "ws-1",
+        status: "completed",
+        job_id: "job-1",
+        started_at: null,
+        completed_at: "2026-05-11T00:01:00Z",
+        applied_count: 32,
+        failed_count: 0,
+        error: null,
+      }),
+  ),
 ];

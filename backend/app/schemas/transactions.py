@@ -8,7 +8,7 @@ a semântica da moeda fica no label).
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -34,6 +34,9 @@ class TransactionItem(BaseModel):
     # logical repete entre linhas distintas.
     row_id: str
     is_overridden: bool = False
+    # ADR-186/188 (A12 P4) — origem do override; ``None`` quando não há.
+    # UI mostra badge "Categorizada por regra" quando ``rule``.
+    override_source: Optional[Literal["manual", "rule"]] = None
 
 
 class TransactionSummary(BaseModel):

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Pencil, Undo2, X } from "lucide-react";
+import { Check, Pencil, Sparkles, Undo2, X } from "lucide-react";
 import type { TransactionItem } from "@/lib/api";
 import { bankLabel, formatCurrency, formatDateShort } from "@/lib/format";
 import { cn } from "@/lib/cn";
@@ -68,6 +68,7 @@ function CategoryBadge({
   onStartEdit: (tx: TransactionItem) => void;
   onRemoveOverride: (hash: string) => void;
 }) {
+  const isRuleOrigin = tx.is_overridden && tx.override_source === "rule";
   return (
     <span className="inline-flex items-center gap-1">
       <Badge
@@ -78,7 +79,20 @@ function CategoryBadge({
         {tx.categoria || "—"}
         <Pencil className="ml-0.5 h-2.5 w-2.5 opacity-50" />
       </Badge>
-      {tx.is_overridden && (
+      {isRuleOrigin && (
+        // A12 P4 — sinal visual de origem ``rule`` (ADR-186/188).
+        <Badge
+          variant="secondary"
+          aria-label="Categorizada automaticamente por regra"
+          title="Categorizada automaticamente pela regra. Editar a categoria desta transação preserva sua escolha (sticky)."
+          data-testid="rule-source-badge"
+          className="h-4 gap-0.5 px-1 text-[10px]"
+        >
+          <Sparkles className="h-2.5 w-2.5" />
+          Regra
+        </Badge>
+      )}
+      {tx.is_overridden && tx.override_source !== "rule" && (
         <span className="inline-flex items-center gap-0.5">
           <Badge variant="secondary" className="h-4 px-1 text-[10px]">
             editado
