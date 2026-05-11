@@ -62,13 +62,24 @@ class CategorizationRuleRepository:
             )
         )
 
-    def bump_revert_count(self, *, rule_id: str, delta: int = 1) -> None:
-        """Incrementa ``revert_count`` (sinal de extração ruim quando >20%)."""
+    def bump_revert_count_manual_edit(self, *, rule_id: str, delta: int = 1) -> None:
+        """KPI "regra ruim" (§D3): override 'rule' virou 'manual' com categoria diferente."""
         self._session.execute(
             update(CategorizationRule)
             .where(CategorizationRule.id == rule_id)
             .values(
-                revert_count=CategorizationRule.revert_count + delta,
+                revert_count_manual_edit=(CategorizationRule.revert_count_manual_edit + delta),
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+
+    def bump_revert_count_rule_disabled(self, *, rule_id: str, delta: int = 1) -> None:
+        """Sinal FRACO de abandono (§D3): ``DELETE /rules/{id}`` (soft-delete)."""
+        self._session.execute(
+            update(CategorizationRule)
+            .where(CategorizationRule.id == rule_id)
+            .values(
+                revert_count_rule_disabled=(CategorizationRule.revert_count_rule_disabled + delta),
                 updated_at=datetime.now(timezone.utc),
             )
         )

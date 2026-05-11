@@ -1,9 +1,11 @@
-"""Learning loop pós-E4: aplica ``TransactionOverride(source='rule')`` (ADR-186 §D5)."""
+"""Learning loop pós-E4: aplica ``TransactionOverride(source='rule')`` (ADR-186 §D5 / ADR-188 §D4)."""
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
-from typing import Iterable
+from datetime import datetime, timezone
+from typing import Any, Iterable
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -62,31 +64,18 @@ def _tx_hash(tx: ClassifiedTransaction) -> str:
 
 
 def _preload_overrides(db: Session, workspace_id: str) -> dict[str, TransactionOverride]:
-    """Pre-carrega todos overrides do workspace — protege sticky-manual + idempotência."""
+    """Overrides ATIVOS (``deleted_at IS NULL`` · ADR-188 §D1) por transaction_hash."""
     rows = (
         db.execute(
             select(TransactionOverride).where(
                 TransactionOverride.workspace_id == workspace_id,
+                TransactionOverride.deleted_at.is_(None),
             )
         )
         .scalars()
         .all()
     )
     return {ovr.transaction_hash: ovr for ovr in rows}
-
-
-def _make_rule_override(
-    *, workspace_id: str, tx_hash: str, tx: ClassifiedTransaction
-) -> TransactionOverride:
-    """``original_category`` = ``new_category`` (P3 revert hard-deleta a linha)."""
-    return TransactionOverride(
-        workspace_id=workspace_id,
-        transaction_hash=tx_hash,
-        original_category=tx.categoria,
-        new_category=tx.categoria,
-        source=OVERRIDE_SOURCE_RULE,
-        rule_id=tx.learned_rule_id,
-    )
 
 
 def _is_month_closed_cached(
@@ -128,15 +117,78 @@ def _check_skip(tx, existing, state: _LoopState) -> str | None:
     return None
 
 
+def _build_insert_values(
+    *, workspace_id: str, tx_hash: str, tx: ClassifiedTransaction
+) -> dict[str, Any]:
+    """Valores para INSERT ... ON CONFLICT (``orig == new`` por contrato P3)."""
+    return {
+        "id": str(uuid.uuid4()),
+        "workspace_id": workspace_id,
+        "transaction_hash": tx_hash,
+        "original_category": tx.categoria,
+        "new_category": tx.categoria,
+        "source": OVERRIDE_SOURCE_RULE,
+        "rule_id": tx.learned_rule_id,
+        "reviewed": True,
+        "created_at": datetime.now(timezone.utc),
+        "deleted_at": None,
+    }
+
+
+def _dialect_insert(db: Session):
+    """Dialect-aware ``insert(...)`` — SQLite e Postgres ambos suportam ON CONFLICT."""
+    dialect_name = db.bind.dialect.name if db.bind else "sqlite"
+    if dialect_name == "postgresql":
+        from sqlalchemy.dialects.postgresql import insert as dialect_insert
+    else:
+        # SQLite (≥3.24) supports ON CONFLICT; tests + dev use SQLite.
+        from sqlalchemy.dialects.sqlite import insert as dialect_insert
+    return dialect_insert
+
+
+def _upsert_via_on_conflict(state: _LoopState, values: dict[str, Any]) -> None:
+    """``INSERT ... ON CONFLICT DO UPDATE`` safety net contra race (ADR-188 §D4)."""
+    dialect_insert = _dialect_insert(state.db)
+    stmt = dialect_insert(TransactionOverride.__table__).values(**values)
+    update_set = {
+        "rule_id": stmt.excluded.rule_id,
+        "new_category": stmt.excluded.new_category,
+        "original_category": stmt.excluded.original_category,
+    }
+    stmt = stmt.on_conflict_do_update(
+        index_elements=["workspace_id", "transaction_hash"],
+        set_=update_set,
+        where=TransactionOverride.__table__.c.source == OVERRIDE_SOURCE_RULE,
+    )
+    state.db.execute(stmt)
+
+
+def _reflect_in_loop_state(state: _LoopState, values: dict[str, Any]) -> None:
+    """Espelha INSERT no ``existing_by_hash`` — sticky intra-run (fix #194)."""
+    ovr = TransactionOverride(
+        id=values["id"],
+        workspace_id=values["workspace_id"],
+        transaction_hash=values["transaction_hash"],
+        original_category=values["original_category"],
+        new_category=values["new_category"],
+        source=values["source"],
+        rule_id=values["rule_id"],
+        reviewed=values["reviewed"],
+        created_at=values["created_at"],
+        deleted_at=None,
+    )
+    state.existing_by_hash[values["transaction_hash"]] = ovr
+
+
 def _upsert_rule_override(tx, tx_hash: str, existing, state: _LoopState) -> None:
-    """Idempotente: update se ``source='rule'`` (mesma regra) já existe, senão INSERT."""
+    """Pre-load + skip + ``ON CONFLICT DO UPDATE`` safety net (ADR-188 §D4)."""
     if existing is not None and existing.source == OVERRIDE_SOURCE_RULE:
         if existing.new_category != tx.categoria:
             existing.new_category = tx.categoria
         return
-    ovr = _make_rule_override(workspace_id=state.workspace_id, tx_hash=tx_hash, tx=tx)
-    state.db.add(ovr)
-    state.existing_by_hash[tx_hash] = ovr
+    values = _build_insert_values(workspace_id=state.workspace_id, tx_hash=tx_hash, tx=tx)
+    _upsert_via_on_conflict(state, values)
+    _reflect_in_loop_state(state, values)
 
 
 def _process_one(tx: ClassifiedTransaction, state: _LoopState) -> str:
@@ -155,8 +207,10 @@ def _bump_counters_same_flush(db: Session, applied_per_rule: dict[str, int]) -> 
     if not applied_per_rule:
         return
     repo = CategorizationRuleRepository(db)
-    for rule_id, delta in applied_per_rule.items():
-        repo.bump_applied_count(rule_id=rule_id, delta=delta)
+    # Ordem determinística (ADR-188 §5 risk row — evita deadlock em UPDATE
+    # CASE WHEN N regras concorrentes).
+    for rule_id in sorted(applied_per_rule):
+        repo.bump_applied_count(rule_id=rule_id, delta=applied_per_rule[rule_id])
     db.flush()
 
 
@@ -178,7 +232,7 @@ def apply_learning_loop(
     classified: Iterable[ClassifiedTransaction],
     db: Session,
 ) -> LearningLoopStats:
-    """Cria ``TransactionOverride(source='rule')`` por match (ADR-186/187)."""
+    """Cria ``TransactionOverride(source='rule')`` por match (ADR-186/187/188)."""
     matched = [t for t in classified if t.learned_rule_id is not None]
     if not matched:
         return LearningLoopStats()

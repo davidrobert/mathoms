@@ -1,4 +1,4 @@
-"""Adapter backend→pipeline para ``CategorizationRulesV2`` — cap 200 (ADR-186 §D5)."""
+"""Adapter backend→pipeline para ``CategorizationRulesV2`` — cap 200 (ADR-186/188 §D5/D6)."""
 
 from __future__ import annotations
 
@@ -9,31 +9,29 @@ from backend.app.repositories.categorization_rule_repository import (
     CategorizationRuleRepository,
 )
 from pipeline.domain.services.categorization_service import (
+    RULE_HARD_CAP,
+    RULE_SOFT_CAP,
     CategorizationRulesV2,
     LearnedRule,
 )
 
 logger = get_logger("categorization.rules_adapter")
 
-# ADR-186 §"Hard limit MVP" — soft warning ≥50, hard cap 200.
-_SOFT_WARN_THRESHOLD = 50
-_HARD_CAP = 200
-
 
 def _enforce_cap_and_warn(rows: list, workspace_id: str) -> list:
-    """Hard cap N=200 + soft warning ≥50 (ADR-186)."""
+    """Hard cap + soft warning (caps em ``pipeline.domain.services.categorization_service`` · §D6)."""
     total = len(rows)
-    if total >= _HARD_CAP:
+    if total >= RULE_HARD_CAP:
         logger.warning(
             "categorization.rules_adapter.cap_exceeded",
             extra={
                 "workspace_id": workspace_id,
                 "total_rules": total,
-                "hard_cap": _HARD_CAP,
+                "hard_cap": RULE_HARD_CAP,
             },
         )
-        return rows[:_HARD_CAP]
-    if total >= _SOFT_WARN_THRESHOLD:
+        return rows[:RULE_HARD_CAP]
+    if total >= RULE_SOFT_CAP:
         logger.info(
             "categorization.rules_adapter.approaching_cap",
             extra={"workspace_id": workspace_id, "total_rules": total},

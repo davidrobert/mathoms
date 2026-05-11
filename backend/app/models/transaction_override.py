@@ -1,4 +1,4 @@
-"""TransactionOverride — user corrections + ``source``/``rule_id`` (ADR-186 A12 P1)."""
+"""TransactionOverride — user corrections + ``source``/``rule_id``/``deleted_at`` (ADR-186/188 A12)."""
 
 import uuid
 from datetime import datetime, timezone
@@ -18,6 +18,10 @@ class TransactionOverride(Base):
     __tablename__ = "transaction_overrides"
     __table_args__ = (
         UniqueConstraint("workspace_id", "transaction_hash", name="uq_override_ws_hash"),
+        # Partial unique race-protection (ADR-188 §D2) is enforced via a
+        # partial index criada na migration a2b3c4d5e6f7 — não declarável
+        # diretamente em __table_args__ porque SQLAlchemy não expressa
+        # WHERE em UniqueConstraint. Documentado para descoberta.
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -41,5 +45,9 @@ class TransactionOverride(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+    # ADR-188 §D1 — soft-delete preserva histórico para consultor B2B2C.
+    # Read-path E4 deve consumir via view ``transaction_overrides_active``
+    # (filtra ``deleted_at IS NULL``).
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     workspace = relationship("Workspace", back_populates="transaction_overrides")
