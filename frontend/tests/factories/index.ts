@@ -251,6 +251,7 @@ export function makeTransaction(
     titular: "Founder",
     moeda: "BRL",
     transaction_hash: `h-${n}`,
+    row_id: `h-${n}:0`,
     is_overridden: false,
     ...overrides,
   };

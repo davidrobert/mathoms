@@ -72,23 +72,27 @@ def load_transactions(workspace_id: str, tenant_root: str) -> list[TransactionIt
     return items
 
 
+def _apply_one_override(tx: TransactionItem, override: Any) -> TransactionItem:
+    return tx.model_copy(
+        update={
+            "categoria": override.new_category,
+            "is_overridden": True,
+            "override_source": getattr(override, "source", "manual"),
+        }
+    )
+
+
 def apply_overrides(
     transactions: list[TransactionItem],
     overrides_map: dict[str, Any],
 ) -> list[TransactionItem]:
-    """Apply DB overrides to transaction list, mutating category in-place."""
-    result = []
-    for tx in transactions:
-        if tx.transaction_hash in overrides_map:
-            override = overrides_map[tx.transaction_hash]
-            tx = tx.model_copy(
-                update={
-                    "categoria": override.new_category,
-                    "is_overridden": True,
-                }
-            )
-        result.append(tx)
-    return result
+    """Aplica overrides (A12 P4 propaga ``source`` para badge da UI)."""
+    return [
+        _apply_one_override(tx, overrides_map[tx.transaction_hash])
+        if tx.transaction_hash in overrides_map
+        else tx
+        for tx in transactions
+    ]
 
 
 def filter_transactions(

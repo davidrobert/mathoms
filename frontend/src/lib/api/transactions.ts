@@ -15,6 +15,9 @@ export interface TransactionItem {
   transaction_hash: string;
   row_id: string;
   is_overridden: boolean;
+  /** Origem do override quando ``is_overridden=true`` (ADR-186/188 · A12 P4).
+   *  ``"rule"`` dispara badge "Categorizada por regra"; ``"manual"`` é silencioso. */
+  override_source?: "manual" | "rule" | null;
 }
 
 export interface TransactionSummary {

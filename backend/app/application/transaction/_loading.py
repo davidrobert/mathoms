@@ -20,8 +20,13 @@ def _tenant_root(workspace_id: str) -> str:
 
 
 async def load_overrides_map(workspace_id: str, db: AsyncSession) -> dict[str, TransactionOverride]:
+    # ADR-188 §D1 — soft-delete preserva histórico; read-path ignora linhas
+    # com ``deleted_at IS NOT NULL`` para manter paridade com o pipeline.
     result = await db.execute(
-        select(TransactionOverride).where(TransactionOverride.workspace_id == workspace_id)
+        select(TransactionOverride).where(
+            TransactionOverride.workspace_id == workspace_id,
+            TransactionOverride.deleted_at.is_(None),
+        )
     )
     return {o.transaction_hash: o for o in result.scalars().all()}
 

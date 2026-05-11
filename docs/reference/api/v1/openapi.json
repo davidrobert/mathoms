@@ -9013,6 +9013,21 @@
             ],
             "title": "Origem"
           },
+          "override_source": {
+            "anyOf": [
+              {
+                "enum": [
+                  "manual",
+                  "rule"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Source"
+          },
           "row_id": {
             "title": "Row Id",
             "type": "string"

@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
@@ -20,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
+import { useFeatureFlags } from "@/lib/useFeatureFlags";
 
 import { FiltersPanel, type FilterKey, type FilterState } from "./_components/FiltersPanel";
 import { SummaryBar } from "./_components/SummaryBar";
@@ -28,7 +30,11 @@ import { Pagination } from "./_components/Pagination";
 import { exportTransactions } from "./_components/exportTransactions";
 import { useTransactionsFetch } from "./_components/useTransactionsFetch";
 import { useCategoriesAndMembers } from "./_components/useCategoriesAndMembers";
-import { useCategoryOverride } from "./_components/useCategoryOverride";
+import {
+  useCategoryOverride,
+  type LastOverrideContext,
+} from "./_components/useCategoryOverride";
+import { CreateRuleDialog } from "./_components/CreateRuleDialog";
 
 const PAGE_SIZE = 50;
 
@@ -269,10 +275,37 @@ function TransactionsContent() {
     page,
     pageSize: PAGE_SIZE,
   });
+
+  // A12 P4 — feature gating; sem flag, fluxo segue normal sem toast/modal/badge.
+  const { isEnabled: isFeatureEnabled } = useFeatureFlags(workspace!.id);
+  const learningLoopOn = isFeatureEnabled("learning_loop_enabled");
+
+  const [ruleDialogOpen, setRuleDialogOpen] = useState(false);
+  const [ruleDialogContext, setRuleDialogContext] =
+    useState<LastOverrideContext | null>(null);
+
+  function handleOpenRuleDialog(ctx: LastOverrideContext) {
+    setRuleDialogContext(ctx);
+    setRuleDialogOpen(true);
+  }
+
+  function handleOverrideSaved(ctx: LastOverrideContext) {
+    if (!learningLoopOn) return;
+    // Toast com CTA "Criar regra" — duração ~8s, dispensável.
+    toast(`Categoria atualizada · "${ctx.newCategory}"`, {
+      duration: 8000,
+      action: {
+        label: "Criar regra",
+        onClick: () => handleOpenRuleDialog(ctx),
+      },
+    });
+  }
+
   const override = useCategoryOverride({
     workspaceId: workspace!.id,
     onAfterChange: fetchData,
     onError: setError,
+    onSaved: handleOverrideSaved,
   });
 
   const pushParams = useCallback(
@@ -392,6 +425,18 @@ function TransactionsContent() {
             onGoPage={goPage}
           />
         </>
+      )}
+
+      {learningLoopOn && ruleDialogContext && (
+        <CreateRuleDialog
+          open={ruleDialogOpen}
+          onOpenChange={setRuleDialogOpen}
+          workspaceId={workspace!.id}
+          defaultKeyword={ruleDialogContext.transactionDescription}
+          defaultTargetCategory={ruleDialogContext.newCategory}
+          categoryOptions={categoryOptions}
+          onCreated={fetchData}
+        />
       )}
     </div>
   );
