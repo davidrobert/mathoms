@@ -18085,7 +18085,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/protection-bundle": {
       "get": {
-        "description": "Bundle agregado consumido pelo renderer S9 (ADR-192 \u00a7D2).\n\nSkeleton em T02 \u2014 ``gap_analysis``/``recommendations``/\n``auto_inferred_risks``/``methodology_thresholds`` populados em T03\npelos 5 calculators determin\u00edsticos.",
+        "description": "Bundle agregado consumido pelo renderer S9 (ADR-192 \u00a7D2).",
         "operationId": "get_protection_bundle_api_v1_workspaces__workspace_id__protection_bundle_get",
         "parameters": [
           {
