@@ -15,6 +15,7 @@ export type CardVariant =
   | 'critical'
   | 'primary'
   | 'neutral'
+  | 'info'
   | 'top-danger'
   | 'top-accent';
 
@@ -573,8 +574,8 @@ export const LAYOUT: ReportLayout = {
           {
             "id": "pgbl_capacidade",
             "enabled": true,
-            "variant": "warn",
-            "size": "full"
+            "variant": "info",
+            "size": "half"
           }
         ]
       },

@@ -1,9 +1,10 @@
-"""IRPFAnalyzer — KPIs derivados de declarações IRPF (ADR-157)."""
+"""IRPFAnalyzer — KPIs derivados de declarações IRPF (ADR-157, ADR-189)."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
+from enum import Enum
 from typing import Iterable
 
 from pipeline.llm.schemas.e16_irpf_full import (
@@ -12,6 +13,24 @@ from pipeline.llm.schemas.e16_irpf_full import (
     CodigoRendimentoTribExclusiva,
     IRPFFullOutput,
 )
+
+
+class PgblStatus(str, Enum):
+    """ADR-189: diagnóstico tipificado da capacidade PGBL (4 estados)."""
+
+    capacidade_disponivel = "capacidade_disponivel"
+    modelo_simplificado = "modelo_simplificado"
+    no_teto = "no_teto"
+    sem_renda_tributavel = "sem_renda_tributavel"
+
+
+@dataclass(frozen=True)
+class PgblResumo:
+    """ADR-189 §D2: aporte e teto dedutível no ano."""
+
+    aportado_brl: Decimal
+    teto_brl: Decimal
+
 
 # Mapa de buckets para split trabalho×capital (Perini).
 # Códigos isentos de capital: lucros (09), poupança/rendimentos (12).
@@ -139,6 +158,28 @@ class IRPFAnalyzer:
             capacidade += (tributavel * PGBL_TETO_PCT) - ja_aportado
         return max(capacidade, Decimal("0"))
 
+    def pgbl_resumo(self, ano: int) -> PgblResumo:
+        """ADR-189 §D2: aporte total + teto dedutível (12% × tributável das completas)."""
+        decls = self._by_year(ano)
+        aportado = _sum(_pgbl_aportado(d) for d in decls)
+        teto = _sum(
+            _renda_tributavel(d) * PGBL_TETO_PCT
+            for d in decls
+            if d.contribuinte.modelo.value != "simplificado"
+        )
+        return PgblResumo(aportado_brl=aportado, teto_brl=teto)
+
+    def pgbl_status(self, ano: int) -> PgblStatus:
+        """ADR-189: classifica o ano em um dos 4 estados de capacidade PGBL."""
+        decls = self._by_year(ano)
+        if decls and all(d.contribuinte.modelo.value == "simplificado" for d in decls):
+            return PgblStatus.modelo_simplificado
+        if self.rendimentos_tributaveis(ano) == Decimal("0"):
+            return PgblStatus.sem_renda_tributavel
+        if self.pgbl_capacidade_dedutivel(ano) > Decimal("0"):
+            return PgblStatus.capacidade_disponivel
+        return PgblStatus.no_teto
+
     def split_trabalho_vs_capital(self, ano: int) -> RendaSplit:
         """Trabalho = PJ + 13º exclusiva; Capital = aluguéis PF + isentos 09/12 + exclusiva 06/10/12 + exterior."""
         decls = self._by_year(ano)
@@ -237,4 +278,11 @@ def _bucket_capital(d: IRPFFullOutput) -> Decimal:
     return isentos + exclusiva + exterior + _alugueis_pf(d)
 
 
-__all__ = ["IRPFAnalyzer", "RendaSplit", "AliquotaPair", "PGBL_TETO_PCT"]
+__all__ = [
+    "IRPFAnalyzer",
+    "RendaSplit",
+    "AliquotaPair",
+    "PGBL_TETO_PCT",
+    "PgblStatus",
+    "PgblResumo",
+]

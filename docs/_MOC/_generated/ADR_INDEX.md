@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 160
-- **Proposto**: 21
+- **Decidido**: 161
+- **Proposto**: 20
 - **Roadmap**: 5
 
 ## Fundação
@@ -324,7 +324,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## irpf
 
-### Proposto (1)
+### Decidido (1)
 
 - [[ADR-189]] — PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária · phase A11
 

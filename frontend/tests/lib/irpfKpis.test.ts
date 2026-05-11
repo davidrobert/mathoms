@@ -16,6 +16,9 @@ const VALID_KPIS: IrpfKpis = {
   aliquota_sobre_tributavel_pct: "17.50",
   aliquota_sobre_total_pct: "13.20",
   pgbl_capacidade_dedutivel_brl: "14000.00",
+  pgbl_status: "capacidade_disponivel",
+  pgbl_aportado_brl: "4000.00",
+  pgbl_teto_brl: "18000.00",
   split_trabalho_brl: "100000.00",
   split_capital_brl: "50000.00",
   evolucao_renda_anos: { "2022": "120000.00", "2023": "135000.00", "2024": "150000.00" },
@@ -59,6 +62,11 @@ describe("isIrpfKpis", () => {
   it("rejeita objeto faltando campo obrigatório", () => {
     const { aliquota_sobre_total_pct: _drop, ...partial } = VALID_KPIS;
     expect(isIrpfKpis(partial)).toBe(false);
+  });
+
+  it("rejeita pgbl_status fora do enum (ADR-189)", () => {
+    expect(isIrpfKpis({ ...VALID_KPIS, pgbl_status: "deprecado" })).toBe(false);
+    expect(isIrpfKpis({ ...VALID_KPIS, pgbl_status: 42 })).toBe(false);
   });
 });
 

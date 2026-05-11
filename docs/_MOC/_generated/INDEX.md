@@ -186,7 +186,7 @@
 | ADR-186 | adr | Decidido |  | Promoção de override de transação para regra de categorização (learning loop) | `adr/186-promocao-override-transacao-para-regra-categorizacao.md` |
 | ADR-187 | adr | Proposto |  | Relatório publicado é imutável — conceito de mês fechado | `adr/187-relatorio-publicado-imutavel-mes-fechado.md` |
 | ADR-188 | adr | Decidido |  | Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) | `adr/188-evolucao-schema-e-semantica-learning-loop-p3.md` |
-| ADR-189 | adr | Proposto |  | PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária | `adr/189-pgbl-diagnostico-tipificado-substitui-metrica-monovalor.md` |
+| ADR-189 | adr | Decidido |  | PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária | `adr/189-pgbl-diagnostico-tipificado-substitui-metrica-monovalor.md` |
 | ADR-190 | adr | Proposto |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `adr/190-snapshot-changelog-v3-metricas-cadencia-decomposicao.md` |
 | ADR-191 | adr | Proposto |  | Card Rentabilidade do relatório expõe TRS efetiva — não retorno total | `adr/191-card-rentabilidade-trs-efetiva.md` |
 | ADR-192 | adr | Proposto |  | `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) | `adr/192-protection-aggregate-protectionbundle-secao-9.md` |
@@ -364,6 +364,7 @@
 | CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-BACKEND | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-BACKEND.md` |
 | CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-FRONTEND | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-FRONTEND.md` |
 | CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-PIPELINE | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-PIPELINE.md` |
+| CHG-2026-05-11-FEAT-REPORT | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-REPORT.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
 | RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |
 | RULE-composicao-patrimonial-7-categorias | domain-rule |  |  |  | `reference/rules/rule-composicao-patrimonial-7-categorias.md` |
@@ -520,7 +521,7 @@
 | TRACK-onda-7-p0-blockers | track | consumed | A11 | Track — Onda 7: bloqueadores P0 da Direção E (pós-revisão de produto) | `sprint/A11/tracks/onda-7-p0-blockers.md` |
 | TRACK-onda-8-methodology-coherence | track | consumed | A11 | Track — Onda 8: coerência metodológica (Cerbasi/AUVP/Perini completos) | `sprint/A11/tracks/onda-8-methodology-coherence.md` |
 | TRACK-onda-9-design-system-polish | track | consumed | A11 | Track — Onda 9: design system polish + dedup tarefas + mobile | `sprint/A11/tracks/onda-9-design-system-polish.md` |
-| TRACK-pgbl-card-diagnostico | track | ready | A11 | Track PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card | `sprint/A11/tracks/pgbl-card-diagnostico.md` |
+| TRACK-pgbl-card-diagnostico | track | consumed | A11 | Track PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card | `sprint/A11/tracks/pgbl-card-diagnostico.md` |
 | TRACK-pipeline-review-quick-unblock | track | consumed | A11 | Track Pipeline Review — Quick Unblock (caminho A) | `sprint/A11/tracks/pipeline-review-quick-unblock.md` |
 | TRACK-pipeline-review-screen | track | consumed | A11 | Track Pipeline Review — Tela de revisão real (caminho B) | `sprint/A11/tracks/pipeline-review-screen.md` |
 | TRACK-platform-review | track | consumed | A11 | Track Platform Review — Orquestração Multi-Agent (revisão + plano) | `sprint/A11/tracks/platform-review.md` |

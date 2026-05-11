@@ -2,7 +2,7 @@
 id: ADR-189
 type: adr
 title: "PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária"
-status: Proposto
+status: Decidido
 phase: "A11"
 date: "2026-05-11"
 relates_to:
@@ -21,7 +21,7 @@ tags:
   - methodology/auvp
   - methodology/cerbasi
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

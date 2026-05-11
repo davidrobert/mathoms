@@ -383,6 +383,13 @@
     padding: var(--space-2xl);
     background-clip: padding-box;
 }
+.card-variant-info {
+    border-left: 4px solid var(--brand-info);
+    background: var(--surface-card);
+    border-radius: var(--radius-card);
+    padding: var(--space-2xl);
+    background-clip: padding-box;
+}
 .card-variant-top-danger {
     border-top: 4px solid var(--semantic-loss);
     background: var(--surface-card);

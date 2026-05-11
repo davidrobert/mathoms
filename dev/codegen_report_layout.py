@@ -95,6 +95,7 @@ def render_ts(layout: dict[str, Any]) -> str:
         "  | 'critical'",
         "  | 'primary'",
         "  | 'neutral'",
+        "  | 'info'",
         "  | 'top-danger'",
         "  | 'top-accent';",
         "",
@@ -247,6 +248,7 @@ CardVariant = Literal[
     "critical",
     "primary",
     "neutral",
+    "info",
     "top-danger",
     "top-accent",
 ]
