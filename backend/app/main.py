@@ -52,6 +52,7 @@ from backend.app.application.base.errors import (
     AuthenticationError,
     ConflictError,
     NotFoundError,
+    PreconditionFailedError,
 )
 from backend.app.application.base.errors import (
     ValidationError as DomainValidationError,
@@ -118,6 +119,19 @@ async def _handle_validation(request: Request, exc: DomainValidationError) -> JS
 @app.exception_handler(AuthenticationError)
 async def _handle_auth(request: Request, exc: AuthenticationError) -> JSONResponse:
     return JSONResponse(status_code=401, content={"detail": str(exc)})
+
+
+# ADR-188 PR3 senior-cto R2: ``PreconditionFailedError`` deixa de ser dead
+# code — usado pelo gate de feature flag em ``categorization_rules`` (gate
+# dogfood) e disponível para outros use cases que precisem 403 tipado.
+@app.exception_handler(PreconditionFailedError)
+async def _handle_precondition_failed(
+    request: Request, exc: PreconditionFailedError
+) -> JSONResponse:
+    body: dict = {"message": str(exc)}
+    if exc.code:
+        body["code"] = exc.code
+    return JSONResponse(status_code=403, content={"detail": body})
 
 
 # 7B.13 — brute-force lockout. Mais específico que AuthenticationError; FastAPI

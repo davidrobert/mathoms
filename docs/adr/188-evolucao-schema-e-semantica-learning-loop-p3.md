@@ -2,7 +2,7 @@
 id: ADR-188
 type: adr
 title: "Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split)"
-status: Proposto
+status: Decidido
 phase: "A12.P3"
 date: "2026-05-11"
 relates_to:
@@ -17,7 +17,7 @@ tags:
   - area/backend
   - methodology/auvp
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -238,5 +238,14 @@ Esta ADR **não toca** as 3 invariantes-chave do learning loop:
   `financial-planner`) consolida ressalvas em **ADR-188 Proposto**.
   Schema evolution + telemetry semantics + cap contract +
   conflict disclosure.
-- **TBD** — Flip para `Decidido (Sprint A12.P3)` no merge do PR estrutural
-  (PR1 ou PR2 do track P3, definir conforme avanço).
+- **2026-05-11** — PR1 (#196) shippa schema delta (soft-delete, partial
+  unique, view, ON CONFLICT) + P2 adapter migrado para `ON CONFLICT`.
+- **2026-05-11** — PR2 (#197) shippa services + 5 endpoints + 4 telemetria
+  + 24 testes integration + feature flag `learning_loop_enabled` (default
+  off, gate dogfood).
+- **2026-05-11** — PR3 shippa async Celery apply (>500 matches), perf
+  hardening (norm_desc cache, scoped overrides query, partial index
+  read-path), sort canônico shared (`sort_rules_canonical` em pipeline
+  domain), Aho-Corasick opt-in via `MATHOMS_RULE_MATCH_AHO_CORASICK`,
+  `PreconditionFailedError` handler 403. **Flip Proposto → Decidido
+  (A12.P3)**.

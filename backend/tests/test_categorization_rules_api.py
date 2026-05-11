@@ -685,3 +685,110 @@ async def test_endpoints_return_403_when_flag_disabled(db: AsyncSession, client:
     resp = await client.get(_api(ws.id))
     assert resp.status_code == 403
     assert resp.json()["detail"]["code"] == "learning_loop_disabled"
+
+
+# ─── PR3: async apply (>SYNC_APPLY_THRESHOLD) ──────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_create_rule_returns_202_when_estimate_exceeds_threshold(
+    db: AsyncSession, client: AsyncClient
+):
+    """>``SYNC_APPLY_THRESHOLD`` matches → 202 + ``job_id`` + status pending.
+
+    Não dispara Celery (mock ``delay``), apenas valida path do endpoint.
+    """
+    from unittest.mock import patch
+
+    _, ws_id = await _auth(db, client)
+    items = [_mk_tx(data="2026-04-15", descricao=f"UBER {i}", valor="10.00") for i in range(501)]
+    await _seed_e4_artifact(db, ws_id=ws_id, despesas_items=items)
+
+    with (
+        patch(
+            "backend.app.tasks.categorization_apply.apply_rule_retroactive_task.delay"
+        ) as m_delay,
+        patch("backend.app.services.rule_apply_state.mark_pending") as m_mark,
+    ):
+        resp = await client.post(
+            _api(ws_id),
+            json={"keyword": "UBER", "target_category": "Transporte · App"},
+        )
+    assert resp.status_code == 202, resp.text
+    payload = resp.json()
+    assert payload["status"] == "pending"
+    assert payload["rule_id"]
+    assert payload["job_id"]
+    assert "background" in payload["message"].lower()
+    m_delay.assert_called_once()
+    m_mark.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_create_rule_returns_201_when_estimate_within_threshold(
+    db: AsyncSession, client: AsyncClient
+):
+    """≤threshold matches → 201 (path sync continua funcional)."""
+    _, ws_id = await _auth(db, client)
+    items = [_mk_tx(data="2026-04-15", descricao=f"NETFLIX {i}") for i in range(3)]
+    await _seed_e4_artifact(db, ws_id=ws_id, despesas_items=items)
+
+    resp = await client.post(
+        _api(ws_id),
+        json={"keyword": "NETFLIX", "target_category": "Lazer"},
+    )
+    assert resp.status_code == 201, resp.text
+    assert resp.json()["keyword"] == "NETFLIX"
+
+
+@pytest.mark.asyncio
+async def test_get_apply_status_returns_unknown_when_never_dispatched(
+    db: AsyncSession, client: AsyncClient
+):
+    """Rule criada via path sync nunca passou pelo Celery → status ``unknown``."""
+    _, ws_id = await _auth(db, client)
+    await _seed_e4_artifact(db, ws_id=ws_id, despesas_items=[])
+    rule_id = await _post_create_rule(client, ws_id, keyword="NETFLIX")
+    resp = await client.get(f"{_api(ws_id)}/{rule_id}/apply-status")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "unknown"
+
+
+@pytest.mark.asyncio
+async def test_get_apply_status_reflects_pending_state(db: AsyncSession, client: AsyncClient):
+    """``mark_pending`` + GET → status pending + job_id."""
+    from unittest.mock import patch
+
+    _, ws_id = await _auth(db, client)
+    rule_id = "rule-x"
+    with patch(
+        "backend.app.services.rule_apply_state.get_status",
+        return_value={
+            "status": "pending",
+            "job_id": "job-1",
+            "started_at": "2026-05-11T00:00:00+00:00",
+            "applied_count": 0,
+            "failed_count": 0,
+        },
+    ):
+        resp = await client.get(f"{_api(ws_id)}/{rule_id}/apply-status")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["status"] == "pending"
+    assert payload["job_id"] == "job-1"
+
+
+@pytest.mark.asyncio
+async def test_precondition_failed_returns_403_with_code(db: AsyncSession, client: AsyncClient):
+    """ADR-188 PR3 senior-cto R2: 403 vem do handler ``PreconditionFailedError``."""
+    user = await factories.make_user(db)
+    ws = await factories.make_workspace(db, owner=user)
+    await db.commit()
+    token = create_access_token(user.id)
+    client.headers["Authorization"] = f"Bearer {token}"
+
+    resp = await client.get(_api(ws.id))
+    assert resp.status_code == 403
+    detail = resp.json()["detail"]
+    assert detail.get("code") == "learning_loop_disabled"
+    assert "learning_loop_disabled" not in detail["message"]  # message é descritivo

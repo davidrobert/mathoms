@@ -31,6 +31,7 @@ from backend.app.services.report_publication import is_month_closed_sync
 from pipeline.domain.services.categorization_service import (
     CategorizationRulesV2,
     LearnedRule,
+    normalize_narrative,
 )
 from pipeline.domain.services.internal_transfer_detector import (
     InternalTransferConfig,
@@ -138,8 +139,8 @@ class _PreviewCtx:
 
 
 def _is_match(tx: TransactionItem, ctx: _PreviewCtx) -> bool:
-    """``True`` se a regra sintética casa com a narrativa da transação."""
-    return ctx.rules.match(tx.descricao) is not None
+    """``True`` se a regra casa — usa ``normalize_narrative`` 1×/tx (PR3 R1)."""
+    return ctx.rules.match_normalized(normalize_narrative(tx.descricao)) is not None
 
 
 def _classify_match(

@@ -776,6 +776,41 @@
         "title": "AporteGoalUpsertCommand",
         "type": "object"
       },
+      "AsyncRuleCreatedResponse": {
+        "description": "202 do ``POST /rules`` quando matches >``SYNC_APPLY_THRESHOLD`` \u2014 mensagem amig\u00e1vel (financial-planner).",
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "status": {
+            "const": "pending",
+            "default": "pending",
+            "title": "Status",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "workspace_id",
+          "job_id",
+          "message"
+        ],
+        "title": "AsyncRuleCreatedResponse",
+        "type": "object"
+      },
       "AuditEntryDTO": {
         "properties": {
           "action": {
@@ -6985,6 +7020,90 @@
         "title": "RiskUpdateCommand",
         "type": "object"
       },
+      "RuleApplyStatusResponse": {
+        "description": "``GET /rules/{rule_id}/apply-status`` \u2014 espelha hash Redis ``apply_status``.",
+        "properties": {
+          "applied_count": {
+            "default": 0,
+            "title": "Applied Count",
+            "type": "integer"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "failed_count": {
+            "default": 0,
+            "title": "Failed Count",
+            "type": "integer"
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "completed",
+              "failed",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "workspace_id",
+          "status"
+        ],
+        "title": "RuleApplyStatusResponse",
+        "type": "object"
+      },
       "RulePreviewRequest": {
         "additionalProperties": false,
         "description": "Input do preview \u2014 regra sint\u00e9tica + janela opcional de per\u00edodo.",
@@ -11967,7 +12086,7 @@
         ]
       },
       "post": {
-        "description": "Cria regra + apply retroativo s\u00edncrono (\u2264500 overrides).",
+        "description": "Cria regra \u2014 \u2264500 matches inline (201); >500 dispara Celery (202 + job_id) (ADR-188 PR3).",
         "operationId": "create_rule_endpoint_api_v1_workspaces__workspace_id__categorization_rules_post",
         "parameters": [
           {
@@ -11995,11 +12114,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategorizationRuleResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/CategorizationRuleResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AsyncRuleCreatedResponse"
+                    }
+                  ],
+                  "title": "Response Create Rule Endpoint Api V1 Workspaces  Workspace Id  Categorization Rules Post"
                 }
               }
             },
             "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncRuleCreatedResponse"
+                }
+              }
+            },
+            "description": "Apply retroativo deferido para Celery worker."
           },
           "422": {
             "content": {
@@ -12128,6 +12265,64 @@
           }
         ],
         "summary": "Delete Rule Endpoint",
+        "tags": [
+          "categorization",
+          "learning-loop"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/categorization/rules/{rule_id}/apply-status": {
+      "get": {
+        "description": "Status do apply retroativo async \u2014 ``unknown`` se job nunca foi disparado (ADR-188 PR3).",
+        "operationId": "get_apply_status_endpoint_api_v1_workspaces__workspace_id__categorization_rules__rule_id__apply_status_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "title": "Rule Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleApplyStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Apply Status Endpoint",
         "tags": [
           "categorization",
           "learning-loop"

@@ -185,7 +185,7 @@
 | ADR-185 | adr | Decidido |  | Política de edição e evolução de overrides de `category_templates` | `adr/185-politica-de-overrides-de-categoria.md` |
 | ADR-186 | adr | Decidido |  | Promoção de override de transação para regra de categorização (learning loop) | `adr/186-promocao-override-transacao-para-regra-categorizacao.md` |
 | ADR-187 | adr | Proposto |  | Relatório publicado é imutável — conceito de mês fechado | `adr/187-relatorio-publicado-imutavel-mes-fechado.md` |
-| ADR-188 | adr | Proposto |  | Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) | `adr/188-evolucao-schema-e-semantica-learning-loop-p3.md` |
+| ADR-188 | adr | Decidido |  | Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) | `adr/188-evolucao-schema-e-semantica-learning-loop-p3.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

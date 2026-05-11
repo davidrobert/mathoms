@@ -1,5 +1,9 @@
 """DTOs do agregado ``CategorizationRule`` (ADR-186 §D3 · A12 P1/P3)."""
 
+from backend.app.schemas.dto.categorization_rule.apply_status import (
+    AsyncRuleCreatedResponse,
+    RuleApplyStatusResponse,
+)
 from backend.app.schemas.dto.categorization_rule.command import (
     CategorizationRuleCreate,
 )
@@ -18,9 +22,11 @@ from backend.app.schemas.dto.categorization_rule.response import (
 )
 
 __all__ = [
+    "AsyncRuleCreatedResponse",
     "CategorizationRuleCreate",
     "CategorizationRuleResponse",
     "ConflictEntry",
+    "RuleApplyStatusResponse",
     "RulePreviewRequest",
     "RulePreviewResponse",
     "RulesListMeta",
