@@ -20,6 +20,48 @@ describe("<ComparisonItemsBlock />", () => {
     expect(container.firstChild).toBeNull();
   });
 
+  it("renderiza título e caption default quando há ao menos 1 item (pós-revisão UX 2026-05-11)", () => {
+    const items: ComparisonItemView[] = [
+      {
+        section_id: "S1",
+        section_label: "Patrimônio Líquido",
+        before: 100,
+        after: 110,
+        delta_pct: 10,
+        delta_signal: "up",
+      },
+    ];
+    render(<ComparisonItemsBlock items={items} />);
+    expect(
+      screen.getByRole("heading", { level: 4, name: /Variação vs\. relatório anterior/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Comparando o último relatório publicado com o atual/i),
+    ).toBeInTheDocument();
+  });
+
+  it("aceita título e caption customizados via props", () => {
+    const items: ComparisonItemView[] = [
+      {
+        section_id: "S1",
+        section_label: "Patrimônio Líquido",
+        before: 100,
+        after: 110,
+        delta_pct: 10,
+        delta_signal: "up",
+      },
+    ];
+    render(
+      <ComparisonItemsBlock
+        items={items}
+        title="O que mudou (abr/2026)"
+        caption="Comparando março/2026 → abril/2026."
+      />,
+    );
+    expect(screen.getByRole("heading", { name: /O que mudou \(abr\/2026\)/i })).toBeInTheDocument();
+    expect(screen.getByText(/Comparando março\/2026 → abril\/2026\./i)).toBeInTheDocument();
+  });
+
   it("aplica var(--semantic-danger) na célula Δ quando delta_signal=down (W1-T01)", () => {
     const items: ComparisonItemView[] = [
       {
@@ -173,5 +215,58 @@ describe("<SectionSnapshotDiff />", () => {
     const { container } = render(<SectionSnapshotDiff sectionId="S1" data={data} />);
     // S1 não está em nenhum array; render nada.
     expect(container.firstChild).toBeNull();
+  });
+
+  it("filtra items com delta_signal=stable da seção (pós-revisão UX 2026-05-11)", () => {
+    // S1 tem só 1 item stable; sem entries no changelog (builder já filtra
+    // stable do changelog). Card não deve renderizar — linha com Δ 0,0%
+    // num card "o que mudou" é signal/noise péssimo.
+    const data = {
+      comparisons: [
+        {
+          section_id: "S1",
+          section_label: "Patrimônio Líquido",
+          before: 4_009_056.02,
+          after: 4_009_056.02,
+          delta_pct: 0.0,
+          delta_signal: "stable" as const,
+        },
+      ],
+      changelog: [],
+    };
+    const { container } = render(<SectionSnapshotDiff sectionId="S1" data={data} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("renderiza só os items não-stable quando seção mistura stable + up/down", () => {
+    const data = {
+      comparisons: [
+        {
+          section_id: "S1",
+          section_label: "Patrimônio Líquido",
+          before: 100,
+          after: 100,
+          delta_pct: 0.0,
+          delta_signal: "stable" as const,
+        },
+        {
+          section_id: "S1",
+          section_label: "Aportes",
+          before: 1_000,
+          after: 1_500,
+          delta_pct: 50.0,
+          delta_signal: "up" as const,
+        },
+      ],
+      changelog: [],
+    };
+    const { container } = render(<SectionSnapshotDiff sectionId="S1" data={data} />);
+    expect(screen.getByTestId("section-snapshot-diff-S1")).toBeInTheDocument();
+    // Stable suprimido — só 1 linha visível.
+    const rows = container.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(1);
+    expect(rows[0].getAttribute("data-delta-signal")).toBe("up");
+    expect(screen.queryByText("Patrimônio Líquido")).not.toBeInTheDocument();
+    expect(screen.getByText("Aportes")).toBeInTheDocument();
   });
 });

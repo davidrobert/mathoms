@@ -187,6 +187,7 @@
 | ADR-187 | adr | Proposto |  | Relatório publicado é imutável — conceito de mês fechado | `adr/187-relatorio-publicado-imutavel-mes-fechado.md` |
 | ADR-188 | adr | Decidido |  | Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) | `adr/188-evolucao-schema-e-semantica-learning-loop-p3.md` |
 | ADR-189 | adr | Proposto |  | PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária | `adr/189-pgbl-diagnostico-tipificado-substitui-metrica-monovalor.md` |
+| ADR-190 | adr | Proposto |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `adr/190-snapshot-changelog-v3-metricas-cadencia-decomposicao.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -459,6 +460,7 @@
 | PLAN-p1-structural | plan | paused |  | P1 — Plano estrutural (motor canônico + pipeline offline) | `plan/P1_STRUCTURAL/_README.md` |
 | PLAN-platform-review | plan | in_progress |  | Platform Review Plan — 2026-05-06 | `plan/PLATFORM_REVIEW/_README.md` |
 | PLAN-report-premium | plan | in_progress |  | Elevar `/reports/[id]` ao nível do `EXEMPLO_DE_RELATORIO.html` | `plan/REPORT_PREMIUM/_README.md` |
+| PLAN-snapshot-changelog-v3 | plan | in_progress |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `plan/SNAPSHOT_CHANGELOG_V3/_README.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |
