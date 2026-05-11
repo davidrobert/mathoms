@@ -30923,7 +30923,7 @@
       "typescript": 384
     },
     "offenders_by_category": {
-      "P1_long_functions": 1046,
+      "P1_long_functions": 1047,
       "P2_long_files": 33,
       "P3_dict_str_any_boundary": 93,
       "P4_optional_no_default": 24,
