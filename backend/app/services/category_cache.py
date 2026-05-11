@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 # TTL é guarda-redes para o caso (raro) do evento não chegar.
 _RESOLVED_TTL_SECONDS = 86400
 _TEMPLATE_TTL_SECONDS = 86400 * 30
+# 1h TTL para ``latest_template_version`` — valor global, muda raríssimo
+# (só em seed Alembic de novo template); TTL aceita janela curta de
+# staleness pós-deploy enquanto invalidação explícita não roda.
+_LATEST_TEMPLATE_VERSION_TTL_SECONDS = 3600
+_LATEST_TEMPLATE_VERSION_KEY = "categories:latest_template_version"
 
 
 def resolved_cache_key(workspace_id: str, template_version: int) -> str:
@@ -82,6 +87,30 @@ def store_template_cache(template_version: int, payload: list[dict]) -> None:
 def invalidate_template(template_version: int) -> None:
     """Invalida cache do template — chamar quando seed Alembic publica nova versão."""
     _redis_delete(template_cache_key(template_version))
+
+
+def get_latest_template_version() -> int | None:
+    """Lê ``MAX(template_version)`` cacheado (chave global). ``None`` em miss/parse-fail."""
+    raw = _redis_get(_LATEST_TEMPLATE_VERSION_KEY)
+    if raw is None:
+        return None
+    try:
+        return int(raw)
+    except (ValueError, TypeError) as exc:
+        logger.warning("latest_template_version cache parse failed: %s", exc)
+        return None
+
+
+def set_latest_template_version(version: int) -> None:
+    """Popula cache global de ``MAX(template_version)`` com TTL 1h."""
+    _redis_set(
+        _LATEST_TEMPLATE_VERSION_KEY, str(int(version)), _LATEST_TEMPLATE_VERSION_TTL_SECONDS
+    )
+
+
+def invalidate_latest_template_version() -> None:
+    """Apaga chave global — chamar em seed Alembic de novo ``category_template`` v(N+1)."""
+    _redis_delete(_LATEST_TEMPLATE_VERSION_KEY)
 
 
 # ---------------------------------------------------------------------------

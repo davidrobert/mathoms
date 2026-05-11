@@ -34,13 +34,14 @@ def get_active_template_version() -> int:
 
 
 def get_latest_template_version(db: Session) -> int:
-    """``MAX(category_templates.template_version)`` — sinal de v desatualizada (ADR-185 §4); FinOps follow-up: cache Redis 1h."""
-    # FinOps: hot read em ``GET /categories``; cachear no Redis com TTL 1h
-    # ou invalidar em seed migration quando volume crescer.
+    """``MAX(category_templates.template_version)`` cacheado em Redis (TTL 1h, invalidado por seed Alembic — ADR-185 §4)."""
+    cached = category_cache.get_latest_template_version()
+    if cached is not None:
+        return cached
     latest = db.execute(select(func.max(CategoryTemplate.template_version))).scalar()
-    if latest is None:
-        return ACTIVE_TEMPLATE_VERSION
-    return int(latest)
+    resolved = ACTIVE_TEMPLATE_VERSION if latest is None else int(latest)
+    category_cache.set_latest_template_version(resolved)
+    return resolved
 
 
 @dataclass(frozen=True)

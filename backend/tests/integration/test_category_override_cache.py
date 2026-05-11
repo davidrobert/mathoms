@@ -150,6 +150,44 @@ async def test_reset_invalidates_cache(
     assert next(c.label for c in after_reset if c.key == "moradia") == "Moradia"
 
 
+async def _prime_two_overrides(db: AsyncSession, ws_id: str) -> CategoryOverrideService:
+    service = CategoryOverrideService(db)
+    await service.upsert(
+        CategoryOverrideConfig(workspace_id=ws_id, template_key="moradia", label_override="Lar")
+    )
+    await service.upsert(
+        CategoryOverrideConfig(
+            workspace_id=ws_id, template_key="alimentacao", label_override="Comida"
+        )
+    )
+    return service
+
+
+@pytest.mark.asyncio
+async def test_reset_all_invalidates_cache(
+    db: AsyncSession, fake_redis: _FakeRedis, seeded_workspace
+) -> None:
+    _, ws = seeded_workspace
+    service = await _prime_two_overrides(db, ws.id)
+    await db.run_sync(lambda s: resolve_categories(ws.id, s))
+    assert _cached_keys(fake_redis)
+    count = await service.reset_all(ws.id)
+    assert count == 2
+    assert _cached_keys(fake_redis) == []
+    after = await db.run_sync(lambda s: resolve_categories(ws.id, s))
+    assert next(c.label for c in after if c.key == "moradia") == "Moradia"
+    assert next(c.label for c in after if c.key == "alimentacao") == "Alimentação"
+
+
+@pytest.mark.asyncio
+async def test_reset_all_no_overrides_is_noop(
+    db: AsyncSession, fake_redis: _FakeRedis, seeded_workspace
+) -> None:
+    _, ws = seeded_workspace
+    count = await CategoryOverrideService(db).reset_all(ws.id)
+    assert count == 0
+
+
 @pytest.mark.asyncio
 async def test_cache_failure_does_not_abort_write(
     db: AsyncSession, monkeypatch, seeded_workspace

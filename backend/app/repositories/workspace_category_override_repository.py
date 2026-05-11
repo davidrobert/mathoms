@@ -68,7 +68,7 @@ class WorkspaceCategoryOverrideRepository:
         await self._session.flush()
 
     async def delete_all_in_workspace(self, workspace_id: str) -> int:
-        """Apaga todos os overrides do workspace; usado em testes/reset. Caller comita."""
+        """Apaga todos os overrides do workspace; thin (flush, sem commit). Orquestração em ``CategoryOverrideService.reset_all``."""
         rows = await self.list_by_workspace(workspace_id)
         for row in rows:
             await self._session.delete(row)
