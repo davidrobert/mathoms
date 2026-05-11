@@ -2,21 +2,22 @@
 id: PLAN-cat-learning-loop
 type: plan
 title: "Categorization Learning Loop — promoção de override de transação para regra"
-status: draft
+status: in_progress
 sprint_origem: A12
 sprint_atual: A12
 sprints_envolvidas: ["A12"]
 created_at: "2026-05-10"
-last_review: "2026-05-10"
+last_review: "2026-05-11"
 adrs_canonical:
   - "[[ADR-186]]"
+  - "[[ADR-188]]"
 tags:
   - type/plan
   - area/categorization
   - area/pipeline
   - area/methodology
   - sprint/a12
-  - status/draft
+  - status/in-progress
 ---
 
 # Plano canônico — Categorization Learning Loop
@@ -88,15 +89,28 @@ paralelo com a impl de A11.report-publication.
 
 Track: [report-publication-impl](../../sprint/A11/tracks/report-publication-impl.md) ✅ ready em A11.
 
+## Status executivo
+
+- **P1 Schema** ✅ shipped (PR #188, commit `2a36388`, 2026-05-10)
+- **P2 Pipeline E4** ✅ shipped (PR #194, commit `ab69414`, 2026-05-11) — [[ADR-186]] Decidida
+- **P3 Backend API** ✅ shipped 2026-05-11:
+  - PR #195 — ADR-188 Proposto + track P3 (`7f5fe96`)
+  - PR #196 — Schema delta (`996ced6`)
+  - PR #197 — Endpoints + telemetria (`8faac98`)
+  - PR #198 — Async Celery + perf hardening (`d660daf`) — [[ADR-188]] Decidida
+- **Gate dogfood** ⏳ próximo passo (CEO + PM, 7d wall-clock — ver [docs/reference/RUNBOOK.md §9](../../reference/RUNBOOK.md))
+- **P4 Frontend** ⏳ condicional ao gate dogfood
+- **V2.A/B/C** ⏳ pós-tração (fora MVP V1)
+
 ## Fases (MVP V1)
 
-| Fase | Track | Owner | Dependências | Esforço |
-|---|---|---|---|---|
-| **P1** | Schema: `transaction_overrides.source` + `categorization_rules` | data-engineer | A12 abrir | 2d eng |
-| **P2** | Pipeline E4: `CategorizationRulesV2` + ordem de match + paridade | senior-cto + data-engineer | P1 ✅ + [[A11.report-publication]] ✅ | 3d eng |
-| **P3** | Backend API: preview + commit + revert + telemetria mínima (4 contadores) | senior-cto | P2 ✅ | 3d eng |
-| **Gate** | **Dogfood validation** (CLI/admin no workspace do CEO) | CEO + product-manager | P3 ✅ | 0,5d + 7d wall-clock |
-| **P4** | Frontend `/transactions`: toast + side-panel + highlight-to-extract | product-designer (design) + frontend (impl) | Gate dogfood ✅ | 4d eng |
+| Fase | Status | Track | Owner | Dependências | Esforço |
+|---|---|---|---|---|---|
+| **P1** | ✅ | Schema: `transaction_overrides.source` + `categorization_rules` | data-engineer | A12 abrir | 2d eng |
+| **P2** | ✅ | Pipeline E4: `CategorizationRulesV2` + ordem de match + paridade | senior-cto + data-engineer | P1 ✅ + [[A11.report-publication]] ✅ | 3d eng |
+| **P3** | ✅ | Backend API: preview + commit + revert + telemetria mínima (4 contadores) | senior-cto | P2 ✅ | 3d eng |
+| **Gate** | ⏳ | **Dogfood validation** (CLI/admin no workspace do CEO) | CEO + product-manager | P3 ✅ | 0,5d + 7d wall-clock |
+| **P4** | ⏳ | Frontend `/transactions`: toast + side-panel + highlight-to-extract | product-designer (design) + frontend (impl) | Gate dogfood ✅ | 4d eng |
 
 **Total estimado MVP V1:** 12,5d eng (cortado de 19d original).
 **Wall-clock realista:** 2-3 semanas + 1 semana dogfood = 3-4 semanas
@@ -351,16 +365,12 @@ revert_rate baixo e manual_override saudável.
 
 ## Status atual
 
-- [[ADR-186]] **Proposto** — aguarda revisão senior-cto + data-engineer
-  (no PR de P1 ou anterior).
-- [[ADR-187]] **Proposto** — aguarda revisão senior-cto + data-engineer
-  em [[A11.report-publication]] (lane separada, sprint A11).
-- A11 lane: [[A11.report-publication]] + track
-  [report-publication-impl](../../sprint/A11/tracks/report-publication-impl.md)
-  ✅ ready.
-- A12 lane: [[A12.cat-learning-loop]] candidate (sprint abre quando A11
-  fechar).
-- P1-P4 tracks de A12: criados ao abrir A12.
+- [[ADR-186]] **Decidida (A12.P2)** — confirmada no merge do PR #194 (2026-05-11).
+- [[ADR-187]] **Decidida (A11.report-publication)** — mergeada em `main` via PR #185 (2026-05-10).
+- [[ADR-188]] **Decidida (A12.P3)** — schema evolution + soft-delete + partial unique + revert_count split, confirmada no merge do PR #198 (2026-05-11).
+- A11 lane: [[A11.report-publication]] ✅ entregue (PR #185).
+- A12 lane: [[A12.cat-learning-loop]] **in_progress** — P1/P2/P3 ✅; gate dogfood pendente.
+- Tracks P1/P2/P3: consumidos (PRs #188/#194/#195-#198). Track P4: criado se gate dogfood passar.
 
 ## Conclusão / arquivamento
 

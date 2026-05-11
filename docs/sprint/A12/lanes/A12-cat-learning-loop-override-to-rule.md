@@ -83,6 +83,7 @@ Cada fase mergeia em `main` com:
 
 ☑ A11.report-publication mergeado em `main` (PR #185, commit `182308a`, 2026-05-10) — pré-requisito atendido.
 ☑ P1 (Schema) shipped — PR #188, commit `2a36388`, 2026-05-10.
-☑ P2 (Pipeline E4) shipped — PR #194, commit `ab69414`, 2026-05-11.
-☐ P3 (Backend API) — track `cat-learning-loop-p3-backend-api.md` ready, próxima fase. [[ADR-188]] Proposto consolida 7 ressalvas do gate triple P2.
-☐ P4 (Frontend) — track criado se gate dogfood passar entre PR2 e PR3 do track P3.
+☑ P2 (Pipeline E4) shipped — PR #194, commit `ab69414`, 2026-05-11. [[ADR-186]] Decidida.
+☑ P3 (Backend API) shipped — 4 PRs (#195 docs, #196 schema, #197 endpoints, #198 async/perf), último commit `d660daf`, 2026-05-11. [[ADR-188]] Decidida (consolida 7 ressalvas do gate triple P2 + R1-R8 data-eng PR2).
+☐ **Gate dogfood** — próximo passo. Owner: CEO + product-manager. 0,5d setup + 7d wall-clock. Critérios em [docs/reference/RUNBOOK.md §9](../../../reference/RUNBOOK.md). Bloqueia P4.
+☐ P4 (Frontend `/transactions`) — track criado se gate dogfood passar. Owner: product-designer + frontend. ~4d eng.

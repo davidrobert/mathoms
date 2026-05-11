@@ -11,6 +11,13 @@ _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/
 
 ## Em execução (`in_progress`)
 
+### PLAN-cat-learning-loop — Categorization Learning Loop — promoção de override de transação para regra
+
+- Status: `in_progress` · Sprint atual: A12
+- Sprints envolvidas: A12
+- Lanes: _(aguardando F4)_
+- ADRs canônicas: [[ADR-186]], [[ADR-188]]
+
 ### PLAN-cenarios-estresse — Cenários de Estresse — plano canônico
 
 - Status: `in_progress` · Sprint atual: A11
@@ -58,13 +65,6 @@ _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/
 - Pausado em: 2026-05-06 · Razão: Substituído por PLAN-platform-review (revisão multi-agente 2026-05-06).
 
 ## Rascunhos (`draft`)
-
-### PLAN-cat-learning-loop — Categorization Learning Loop — promoção de override de transação para regra
-
-- Status: `draft` · Sprint atual: A12
-- Sprints envolvidas: A12
-- Lanes: _(aguardando F4)_
-- ADRs canônicas: [[ADR-186]]
 
 ### PLAN-competitive-pierre — Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento
 
