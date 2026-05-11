@@ -5,8 +5,9 @@ title: "Card S3 Rentabilidade — rebrand TRS efetiva + enriquecimento + cobertu
 lane: "[[A11.w5]]"
 sprint: A11
 plan: PLAN-platform-review
-status: ready
+status: consumed
 created_at: "2026-05-11"
+completed_at: "2026-05-11"
 agent_role: data-engineer (PR-A lead) + product-designer (PR-B lead)
 tags:
   - type/track

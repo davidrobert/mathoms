@@ -7,6 +7,7 @@ import {
   ContrafluxoCard,
   EstrategiaAporteCard,
   InvestimentosClasseCard,
+  RentabilidadeCard,
   Top15AtivosCard,
   type ContrafluxoData,
   type EstrategiaAporteData,
@@ -16,16 +17,12 @@ import {
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import type { ReportAnalysisData } from "@/lib/api";
+import type { RatiosData } from "@/types/report-analysis";
 
 interface InvestimentosBlock extends InvestimentosClasseData, Top15AtivosData {
   estrategia_aporte?: EstrategiaAporteData;
   contrafluxo?: ContrafluxoData;
   cdi_anual?: number;
-}
-
-interface Ratios {
-  rentabilidade_pct?: number | string;
-  [key: string]: unknown;
 }
 
 /** F9 · F2.C — Seção S3 (Investimentos). */
@@ -38,10 +35,9 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
     | undefined;
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
-  const ratios = data.ratios as unknown as Ratios | undefined;
+  const ratios = data.ratios as unknown as RatiosData | undefined;
 
   const estrategiaAporte = inv?.estrategia_aporte;
-  const rentabilidade = ratios?.rentabilidade_pct;
 
   return (
     <ReportSection id="S3" title="Investimentos — Carteira Financeira">
@@ -88,16 +84,10 @@ export function S3InvestimentosSection({ data }: { data: ReportAnalysisData }) {
           cdi_anual={inv?.cdi_anual}
         />
       </div>
-      {ratios && (
-        <div className="md:col-span-2 rounded-[var(--radius-card)] border border-[var(--surface-border)] bg-[var(--surface-card)] p-6">
-          <h3 className="mb-2 font-display text-lg font-semibold">Rentabilidade</h3>
-          <p className="font-mono text-2xl tabular-nums">
-            {typeof rentabilidade === "number"
-              ? `${rentabilidade.toFixed(2)}%`
-              : String(rentabilidade ?? "N/D")}
-          </p>
-        </div>
-      )}
+
+      {/* Track T06 · ADR-191 — card Rentabilidade rebrandeado (TRS efetiva
+          full-width com cobertura essencial + ano-base + defasagem). */}
+      <RentabilidadeCard ratios={ratios} />
 
       {/* v2.8 (ADR-148) — comparisons + changelog vs relatório anterior. */}
       <SectionSnapshotDiff sectionId="S3" data={data} />
