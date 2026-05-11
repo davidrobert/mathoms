@@ -346,38 +346,93 @@ class ChartsNarrator:
     # ── Grupo 5: Riscos + decisões (charts 19-20) ──────────────────────
     def _narrate_riscos_decisoes(
         self,
-        M: dict[str, Any],
+        M: Mapping[str, Any],
         riscos: list[dict[str, Any]],
         _riscos_top3: list[dict[str, Any]],
         decisoes: list[str],
     ) -> dict[str, Any]:
         return {
-            "bubble_riscos": {
-                "context": (
-                    f"Identificação de {len(riscos)} {pluralize(len(riscos), 'risco crítico', 'riscos críticos')} "
-                    "de compliance e proteção ao plano IF, com probabilidade e impacto."
-                ),
-                "conclusion": (
-                    "Riscos prioritários: "
-                    + ", ".join(
-                        f"({i + 1}) {r.get('nome', '')} ({r.get('prob', '')} prob., {r.get('impacto', '')} impacto)"
-                        for i, r in enumerate(_riscos_top3)
-                    )
-                    + f". Ação: CPA expatriado + seguro term R$ {M['seguro_vida_minimo'] // 1_000_000}-{M['seguro_vida_maximo'] // 1_000_000}M."
-                ),
-            },
-            "top5_decisoes": {
-                "context": (
-                    f"{len(decisoes)} {pluralize(len(decisoes), 'decisão estratégica', 'decisões estratégicas')} "
-                    "de curto prazo (6-12 meses) para otimizar a trajetória até IF."
-                ),
-                "conclusion": ensure_period(
-                    f"Prioridade 1: Aporte mensal {fmt_currency(M['meta_aporte_mensal'])} com divisão "
-                    f"({fmt_currency(M['aporte_cofrinhos'])} Cofrinhos, {fmt_currency(M['aporte_ipca_plus'])} IPCA+, "
-                    f"{fmt_currency(M['aporte_ivvb11'])} IVVB11, {fmt_currency(M['aporte_wise_usd'])} Wise USD). "
-                    + ". ".join(
-                        f"Prioridade {i + 2}: {d.rstrip('.')}" for i, d in enumerate(decisoes[1:5])
-                    )
-                ),
-            },
+            "bubble_riscos": _narrate_bubble_riscos(M, riscos, _riscos_top3),
+            "top5_decisoes": _narrate_top5_decisoes(M, decisoes),
         }
+
+
+# ADR-192 T01: empty state coerente quando workspace não tem Risk cadastrado
+# (evita "Riscos prioritários: . Ação: CPA expatriado + seguro term R$ 0-0M.").
+_BUBBLE_EMPTY_CONTEXT = (
+    "Nenhum risco crítico de compliance ou proteção mapeado para este workspace. "
+    "Cadastre as exposições no Console para destravar o mapa de riscos."
+)
+_BUBBLE_EMPTY_CONCLUSION = (
+    "Sem riscos prioritários cadastrados. Próximo passo: registrar exposições "
+    "(seguro de vida, invalidez, sucessório, compliance) na tela /plano."
+)
+# Templates de ação indexados por (has_us_exposure, has_seguro_range). ADR-192 T01 D4:
+# perfil USA só é assumido quando `has_us_exposure` for explicitamente True.
+_ACTION_LINES: dict[tuple[bool, bool], str] = {
+    (True, True): "Ação: CPA expatriado + seguro term {range}.",
+    (
+        True,
+        False,
+    ): "Ação: CPA expatriado + contratação de seguro term (faixa de cobertura a definir).",
+    (False, True): "Ação: contratação de seguro term {range}.",
+    (False, False): "Ação: revisar mitigação de cada risco prioritário com corretor habilitado.",
+}
+
+
+def _fmt_seguro_vida_range(M: Mapping[str, Any]) -> str | None:
+    minimo = M.get("seguro_vida_minimo") or 0
+    maximo = M.get("seguro_vida_maximo") or 0
+    if minimo <= 0 and maximo <= 0:
+        return None
+    return f"R$ {minimo // 1_000_000}-{maximo // 1_000_000}M"
+
+
+def _format_priority_phrase(riscos_top3: list[dict[str, Any]]) -> str:
+    parts = (
+        f"({i + 1}) {r.get('nome', '')} ({r.get('prob', '')} prob., {r.get('impacto', '')} impacto)"
+        for i, r in enumerate(riscos_top3)
+    )
+    return f"Riscos prioritários: {', '.join(parts)}"
+
+
+def _pick_action_line(has_us_exposure: bool, seguro_range: str | None) -> str:
+    template = _ACTION_LINES[(has_us_exposure, bool(seguro_range))]
+    return template.format(range=seguro_range or "")
+
+
+def _narrate_bubble_riscos(
+    M: Mapping[str, Any],
+    riscos: list[dict[str, Any]],
+    riscos_top3: list[dict[str, Any]],
+) -> dict[str, str]:
+    if not riscos_top3:
+        return {
+            "data_state": "empty",
+            "context": _BUBBLE_EMPTY_CONTEXT,
+            "conclusion": _BUBBLE_EMPTY_CONCLUSION,
+        }
+    seguro_range = _fmt_seguro_vida_range(M)
+    has_us = bool(M.get("has_us_exposure"))
+    return {
+        "data_state": "ok",
+        "context": (
+            f"Identificação de {len(riscos)} {pluralize(len(riscos), 'risco crítico', 'riscos críticos')} "
+            "de compliance e proteção ao plano IF, com probabilidade e impacto."
+        ),
+        "conclusion": f"{_format_priority_phrase(riscos_top3)}. {_pick_action_line(has_us, seguro_range)}",
+    }
+
+
+def _narrate_top5_decisoes(M: Mapping[str, Any], decisoes: list[str]) -> dict[str, str]:
+    context = (
+        f"{len(decisoes)} {pluralize(len(decisoes), 'decisão estratégica', 'decisões estratégicas')} "
+        "de curto prazo (6-12 meses) para otimizar a trajetória até IF."
+    )
+    head = (
+        f"Prioridade 1: Aporte mensal {fmt_currency(M['meta_aporte_mensal'])} com divisão "
+        f"({fmt_currency(M['aporte_cofrinhos'])} Cofrinhos, {fmt_currency(M['aporte_ipca_plus'])} IPCA+, "
+        f"{fmt_currency(M['aporte_ivvb11'])} IVVB11, {fmt_currency(M['aporte_wise_usd'])} Wise USD). "
+    )
+    tail = ". ".join(f"Prioridade {i + 2}: {d.rstrip('.')}" for i, d in enumerate(decisoes[1:5]))
+    return {"context": context, "conclusion": ensure_period(head + tail)}
