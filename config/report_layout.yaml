@@ -356,12 +356,16 @@ estrategico:
 
     # --------------------------------------------------------------------------
     # S_IRPF_OTIMIZACAO — Otimização tributária (ADR-157 · IRPF Full Schema)
-    # Hoje publica só o card PGBL (números reais). Cards "Dependentes Declarados"
-    # e "Dedutíveis Subutilizados" foram removidos em 2026-05 por publicarem
-    # apenas texto explicativo sem dados — Premium não pode mostrar "análise
-    # entra em próxima iteração". Voltam quando IRPFAnalyzer emitir
-    # `dependentes_count` + `dedutiveis_por_categoria`. G0 (financial-planner)
-    # sign-off necessário antes de reativar — recomendação caso-a-caso.
+    # Hoje publica só o card PGBL — ADR-189 transformou-o em diagnóstico
+    # tipificado em 4 estados (capacidade_disponivel / modelo_simplificado /
+    # no_teto / sem_renda_tributavel), com copy literal congelada pelo G0
+    # financial-planner. Variante default `info` (estado positivo); o card
+    # resolve internamente a variante por estado (neutral / feature / neutral).
+    # Cards "Dependentes Declarados" e "Dedutíveis Subutilizados" foram
+    # removidos em 2026-05 por publicarem apenas texto explicativo sem dados.
+    # Voltam quando IRPFAnalyzer emitir `dependentes_count` +
+    # `dedutiveis_por_categoria`. G0 (financial-planner) sign-off necessário
+    # antes de reativar — recomendação caso-a-caso.
     # --------------------------------------------------------------------------
     - id: "S_IRPF_OTIMIZACAO"
       title: "Otimização Tributária"
@@ -370,8 +374,8 @@ estrategico:
       cards:
         - id: "pgbl_capacidade"
           enabled: true
-          variant: "warn"
-          size: "full"
+          variant: "info"
+          size: "half"
 
     # --------------------------------------------------------------------------
     # S9 — Riscos e Proteção

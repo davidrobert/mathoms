@@ -67,6 +67,7 @@ class TestCodegenYAML:
             "critical",
             "primary",
             "neutral",
+            "info",
             "top-danger",
             "top-accent",
         }

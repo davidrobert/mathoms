@@ -3,14 +3,14 @@ id: TRACK-pgbl-card-diagnostico
 type: track
 title: "Track PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card"
 sprint: A11
-status: ready
+status: consumed
 created_at: 2026-05-11
-consumed_at: null
+consumed_at: 2026-05-11
 agent_role: senior-cto
 tags:
   - type/track
   - sprint/a11
-  - status/ready
+  - status/consumed
   - area/irpf
   - area/frontend
   - area/report
