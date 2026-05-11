@@ -65,13 +65,18 @@ templates:
     fallback: "Orçamento e gastos de viagem no período."
 
   # ---- S3 Investimentos --------------------------------------------------
+  # A11 — consumidos como footer do card alocacao_atual_vs_alvo. Lógica
+  # dinâmica em frontend/src/components/report/utils/conclusionUtils.ts
+  # (buildDeterministicFooter). Formato imperativo, cap ≤200 chars, cita
+  # maior desvio + classe para próximo aporte. Banidos: "recomenda-se",
+  # "gradualmente", "sugere-se", "considerar", "talvez", "idealmente".
   alocacao_atual:
-    template: "Alocação atual: diversificada entre classes principais."
-    fallback: "Distribuição atual da carteira."
+    template: "Próximo aporte → <classe subalocada> (<desvio> pp vs alvo)."
+    fallback: "Defina sua alocação-alvo em /plano/alocacao para acompanhar desvio."
 
   alocacao_alvo:
-    template: "Alocação alvo proposta segundo perfil de risco."
-    fallback: "Alocação alvo recomendada."
+    template: "Carteira aderente ao alvo. Maior desvio: <desvio> pp em <classe>."
+    fallback: "Defina sua alocação-alvo em /plano/alocacao para acompanhar desvio."
 
   top15_ativos:
     template: "Top 15 ativos concentram a maior parte dos investimentos financeiros."

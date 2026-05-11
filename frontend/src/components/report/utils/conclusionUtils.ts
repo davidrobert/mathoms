@@ -11,6 +11,11 @@
  * enquanto; Q11 prevê revisão após Fase 12.
  */
 import type { ReportAnalysisData } from "@/lib/api";
+import {
+  aggregateAlocacao,
+  type AlocacaoAlvoV1,
+  type ClasseAtivoRow,
+} from "./alocacaoBucketMapper";
 
 const BRL = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -140,7 +145,60 @@ const BUILDERS: Record<string, Builder> = {
     if (typeof aliquota !== "number") return null;
     return `Carga fiscal efetiva do ano: ${format(aliquota, "pct")}.`;
   },
+
+  alocacao_atual: ({ data }) => buildAlocacaoFooter(data, "subalocada"),
+  alocacao_alvo: ({ data }) => buildAlocacaoFooter(data, "aderente"),
 };
+
+const PP = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+  signDisplay: "always",
+});
+
+function summarizeAlocacao(
+  data: ReportAnalysisData,
+): ReturnType<typeof aggregateAlocacao> | null {
+  const invest = getPath(data, "investimentos") as
+    | { tabela_classes?: ClasseAtivoRow[]; total?: number }
+    | undefined;
+  const alvo = getPath(data, "goals.alocacao_alvo") as AlocacaoAlvoV1 | undefined;
+  if (!invest?.tabela_classes || invest.tabela_classes.length === 0) return null;
+  const summary = aggregateAlocacao(invest.tabela_classes, alvo, invest.total ?? 0);
+  if (!summary.hasAlvo) return null;
+  return summary;
+}
+
+function maiorDesvioBucket(
+  summary: ReturnType<typeof aggregateAlocacao>,
+): { label: string; desvio_pp: number } | null {
+  return summary.buckets
+    .filter((b) => b.desvio_pp !== null)
+    .reduce<{ label: string; desvio_pp: number } | null>(
+      (m, c) =>
+        m === null || Math.abs(c.desvio_pp ?? 0) > Math.abs(m.desvio_pp)
+          ? { label: c.label, desvio_pp: c.desvio_pp as number }
+          : m,
+      null,
+    );
+}
+
+function buildAlocacaoFooter(
+  data: ReportAnalysisData,
+  mode: "subalocada" | "aderente",
+): string | null {
+  const summary = summarizeAlocacao(data);
+  if (summary === null) return null;
+  if (mode === "subalocada") {
+    const sub = summary.buckets.find((b) => b.id === summary.nextAporteBucket);
+    if (sub?.desvio_pp != null) {
+      return `Próximo aporte → ${sub.label} (${PP.format(sub.desvio_pp)} pp vs alvo).`;
+    }
+    return null;
+  }
+  const top = maiorDesvioBucket(summary);
+  return top ? `Maior desvio: ${PP.format(top.desvio_pp)} pp em ${top.label}.` : null;
+}
 
 const FALLBACKS: Record<string, string> = {
   patrimonio_doughnut: "Distribuição patrimonial por categoria.",
@@ -151,8 +209,8 @@ const FALLBACKS: Record<string, string> = {
   despesas_doughnut: "Distribuição das despesas por categoria.",
   receita_despesa_mensal: "Receita vs despesa ao longo do tempo.",
   viagens: "Orçamento e gastos de viagem no período.",
-  alocacao_atual: "Distribuição atual da carteira.",
-  alocacao_alvo: "Alocação alvo recomendada.",
+  alocacao_atual: "Defina sua alocação-alvo em /plano/alocacao para acompanhar desvio.",
+  alocacao_alvo: "Defina sua alocação-alvo em /plano/alocacao para acompanhar desvio.",
   top15_ativos: "Ativos de maior exposição na carteira.",
   cenarios_conjuge: "Cenário de estresse — sem renda do cônjuge.",
   yield_imoveis: "Rendimento dos imóveis comparado ao CDI.",
