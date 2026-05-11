@@ -3,9 +3,9 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-90 entries entre 2026-04-27 e 2026-05-11.
+91 entries entre 2026-04-27 e 2026-05-11.
 
-## 2026-05-11 (6 entries)
+## 2026-05-11 (7 entries)
 
 - [[CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-BACKEND]] — feat(api): backend API completo do learning loop — preview, commit, (lane [[A12.cat-learning-loop]])
 - [[CHG-2026-05-11-FEAT-CAT-LEARNING-LOOP-FRONTEND]] — feat(frontend): P4 learning loop UI mínima (toast + modal + badge) + (lane [[A12.cat-learning-loop]])
