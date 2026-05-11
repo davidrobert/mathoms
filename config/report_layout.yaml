@@ -221,12 +221,15 @@ estrategico:
       summary: true
       divider_before: true
       charts:
+        # Tombstone (A11 · 2026-05-11): conteúdo migrado para card
+        # `alocacao_atual_vs_alvo`. Narrativas continuam emitidas no E5N
+        # (consumidas como footer do novo card). Remoção em Fase B com v2 AUVP (ADR-141).
         - id: "alocacao_atual"
-          enabled: true
+          enabled: false
           row: "alocacao"
           conclusion: true
         - id: "alocacao_alvo"
-          enabled: true
+          enabled: false
           row: "alocacao"
           conclusion: true
         - id: "top15_ativos"
@@ -242,8 +245,14 @@ estrategico:
           enabled: false
           conclusion: true
       cards:
-        - id: "investimentos_classe"
+        - id: "alocacao_atual_vs_alvo"
           enabled: true
+          variant: "feature"
+          size: "full"
+        # Tombstone (A11 · 2026-05-11): substituído por `alocacao_atual_vs_alvo`.
+        # Mantido como referência; remoção em Fase B (ADR-141).
+        - id: "investimentos_classe"
+          enabled: false
           variant: "feature"
           size: "full"
         - id: "kpi_rentabilidade"
@@ -488,7 +497,8 @@ estrategico:
 # consumo_consciente          | build_consumo_consciente_card()         | S2
 # diagnostico_comportamental  | build_diagnostico_comportamental_card() | S2
 # milhas                      | build_milhas_card()                     | S2
-# investimentos_classe        | build_investimentos_classe_card()       | S3
+# alocacao_atual_vs_alvo      | <React-only: AlocacaoAtualVsAlvoCard>   | S3 (A11)
+# investimentos_classe        | build_investimentos_classe_card()       | S3 (tombstone)
 # kpi_rentabilidade           | (inline HTML block)                     | S3
 # estrategia_aporte           | build_estrategia_aporte_card()          | S3
 # contrafluxo                 | (inline HTML block)                     | S3
