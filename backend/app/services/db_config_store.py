@@ -134,6 +134,12 @@ class DBConfigStore:
         fiscal_cache.store_market_rate_cache(pair, observed_at, rate)
         return rate
 
+    def get_protection_bundle(self, workspace_id: str):
+        """Bundle de proteção (ADR-192). Skeleton T02 — calculators T03."""
+        from backend.app.services.pipeline_adapter import build_protection_bundle_sync
+
+        return build_protection_bundle_sync(workspace_id, db=self._session)
+
 
 def _merge_transfer_block(
     family_data: dict[str, Any], workspace_id: str, session: Session

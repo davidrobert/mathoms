@@ -79,6 +79,10 @@ class Risk(Base):
     # explicita N:M sem tabela auxiliar (ADR-178 §"Trade-offs": v1 sem
     # event-sourcing; lista direta é suficiente).
     mitigations_decision_ids: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    # Array of Protection.id (UUID strings). N:M opcional adicionada em
+    # ADR-192 — espelha ``mitigations_decision_ids``. Default NULL (sem
+    # backfill); UI futura T05 popula via "link to protection".
+    mitigation_protection_ids: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

@@ -5876,6 +5876,746 @@
         "title": "PipelineStageStatus",
         "type": "string"
       },
+      "ProtectionBundleResponse": {
+        "additionalProperties": false,
+        "description": "Bundle exposto via ``GET /workspaces/{id}/protection-bundle``.",
+        "properties": {
+          "adapter_version": {
+            "title": "Adapter Version",
+            "type": "integer"
+          },
+          "auto_inferred_risks": {
+            "items": {
+              "$ref": "#/components/schemas/RiskInferredResponse"
+            },
+            "title": "Auto Inferred Risks",
+            "type": "array"
+          },
+          "gap_analysis": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ProtectionGapItemResponse"
+            },
+            "title": "Gap Analysis",
+            "type": "object"
+          },
+          "has_us_exposure": {
+            "title": "Has Us Exposure",
+            "type": "boolean"
+          },
+          "methodology_thresholds": {
+            "$ref": "#/components/schemas/ProtectionThresholdsResponse"
+          },
+          "policies": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectionItemResponse"
+            },
+            "title": "Policies",
+            "type": "array"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectionRecommendationResponse"
+            },
+            "title": "Recommendations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "policies",
+          "gap_analysis",
+          "recommendations",
+          "auto_inferred_risks",
+          "methodology_thresholds",
+          "has_us_exposure",
+          "adapter_version"
+        ],
+        "title": "ProtectionBundleResponse",
+        "type": "object"
+      },
+      "ProtectionCancelCommand": {
+        "additionalProperties": false,
+        "description": "Cancela uma ap\u00f3lice (soft delete via ``status='Cancelada'``).",
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "ProtectionCancelCommand",
+        "type": "object"
+      },
+      "ProtectionCreateCommand": {
+        "additionalProperties": false,
+        "description": "Cria nova ap\u00f3lice (status default = ``Ativa``).",
+        "properties": {
+          "category": {
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Category",
+            "type": "string"
+          },
+          "coverage_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "description": "Capital segurado em BRL (string decimal).",
+            "title": "Coverage Brl"
+          },
+          "coverage_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Type"
+          },
+          "ends_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "holder_family_member_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "minLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holder Family Member Id"
+          },
+          "insurer": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurer"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "policy_ref": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Ref"
+          },
+          "premium_monthly_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Premium Monthly Brl"
+          },
+          "starts_at": {
+            "format": "date",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "status": {
+            "default": "Ativa",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category",
+          "coverage_brl",
+          "starts_at"
+        ],
+        "title": "ProtectionCreateCommand",
+        "type": "object"
+      },
+      "ProtectionGapItemResponse": {
+        "additionalProperties": false,
+        "description": "Gap por categoria (T03 popula via calculators).",
+        "properties": {
+          "actual_brl": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Actual Brl",
+            "type": "string"
+          },
+          "gap_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gap Brl"
+          },
+          "ideal_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ideal Brl"
+          },
+          "methodology": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Methodology"
+          }
+        },
+        "required": [
+          "actual_brl"
+        ],
+        "title": "ProtectionGapItemResponse",
+        "type": "object"
+      },
+      "ProtectionItemResponse": {
+        "additionalProperties": false,
+        "description": "Ap\u00f3lice agregada no bundle (subset do `ProtectionResponse`).",
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "coverage_brl": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Coverage Brl",
+            "type": "string"
+          },
+          "coverage_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Type"
+          },
+          "ends_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "holder_family_member_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holder Family Member Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "insurer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurer"
+          },
+          "premium_monthly_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Premium Monthly Brl"
+          },
+          "starts_at": {
+            "format": "date",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "coverage_brl",
+          "starts_at",
+          "status"
+        ],
+        "title": "ProtectionItemResponse",
+        "type": "object"
+      },
+      "ProtectionLinkToRiskCommand": {
+        "additionalProperties": false,
+        "description": "Vincula ap\u00f3lice como mitiga\u00e7\u00e3o de um Risk (ADR-192 \u00a7D1).",
+        "properties": {
+          "risk_id": {
+            "maxLength": 36,
+            "minLength": 36,
+            "title": "Risk Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "risk_id"
+        ],
+        "title": "ProtectionLinkToRiskCommand",
+        "type": "object"
+      },
+      "ProtectionListResponse": {
+        "description": "Wrapper pagina\u00e7\u00e3o-ready para ``GET /protections``.",
+        "properties": {
+          "protections": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectionResponse"
+            },
+            "title": "Protections",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "protections",
+          "total"
+        ],
+        "title": "ProtectionListResponse",
+        "type": "object"
+      },
+      "ProtectionRecommendationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category",
+          "rationale",
+          "priority"
+        ],
+        "title": "ProtectionRecommendationResponse",
+        "type": "object"
+      },
+      "ProtectionResponse": {
+        "description": "Ap\u00f3lice projetada \u2014 o que a UI consome.",
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "coverage_brl": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Coverage Brl",
+            "type": "string"
+          },
+          "coverage_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Type"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "ends_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "holder_family_member_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holder Family Member Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "insurer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurer"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "policy_ref_masked": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Ref Masked"
+          },
+          "premium_monthly_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Premium Monthly Brl"
+          },
+          "starts_at": {
+            "format": "date",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "category",
+          "coverage_brl",
+          "starts_at",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProtectionResponse",
+        "type": "object"
+      },
+      "ProtectionThresholdsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "estate_tax_threshold_usd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estate Tax Threshold Usd"
+          },
+          "fbar_threshold_usd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fbar Threshold Usd"
+          },
+          "life_insurance_multiple_renda_anual": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Life Insurance Multiple Renda Anual"
+          },
+          "reserva_meses_clt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reserva Meses Clt"
+          },
+          "reserva_meses_pj": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reserva Meses Pj"
+          },
+          "reserva_meses_socio_variavel": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reserva Meses Socio Variavel"
+          }
+        },
+        "title": "ProtectionThresholdsResponse",
+        "type": "object"
+      },
+      "ProtectionUpdateCommand": {
+        "additionalProperties": false,
+        "description": "Patch parcial dos campos editoriais.",
+        "properties": {
+          "coverage_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Brl"
+          },
+          "coverage_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Type"
+          },
+          "ends_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "holder_family_member_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "minLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holder Family Member Id"
+          },
+          "insurer": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurer"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "policy_ref": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Ref"
+          },
+          "premium_monthly_brl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Premium Monthly Brl"
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          }
+        },
+        "title": "ProtectionUpdateCommand",
+        "type": "object"
+      },
       "PurgeDocumentItemDTO": {
         "properties": {
           "id": {
@@ -6811,6 +7551,48 @@
           "impact_level"
         ],
         "title": "RiskCreateCommand",
+        "type": "object"
+      },
+      "RiskInferredResponse": {
+        "additionalProperties": false,
+        "description": "Risco inferido por calculator (T03 popula).",
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "estimated_impact_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Impact Brl"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "source_calculator": {
+            "title": "Source Calculator",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category",
+          "name",
+          "rationale",
+          "source_calculator"
+        ],
+        "title": "RiskInferredResponse",
         "type": "object"
       },
       "RiskListResponse": {
@@ -17298,6 +18080,473 @@
         "summary": "Action Review",
         "tags": [
           "pipeline"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/protection-bundle": {
+      "get": {
+        "description": "Bundle agregado consumido pelo renderer S9 (ADR-192 \u00a7D2).\n\nSkeleton em T02 \u2014 ``gap_analysis``/``recommendations``/\n``auto_inferred_risks``/``methodology_thresholds`` populados em T03\npelos 5 calculators determin\u00edsticos.",
+        "operationId": "get_protection_bundle_api_v1_workspaces__workspace_id__protection_bundle_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectionBundleResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Protection Bundle",
+        "tags": [
+          "protections"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/protections": {
+      "get": {
+        "operationId": "list_protections_api_v1_workspaces__workspace_id__protections_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectionListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Protections",
+        "tags": [
+          "protections"
+        ]
+      },
+      "post": {
+        "operationId": "create_protection_api_v1_workspaces__workspace_id__protections_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProtectionCreateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Protection",
+        "tags": [
+          "protections"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/protections/{protection_id}": {
+      "get": {
+        "operationId": "get_protection_api_v1_workspaces__workspace_id__protections__protection_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "protection_id",
+            "required": true,
+            "schema": {
+              "title": "Protection Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Protection",
+        "tags": [
+          "protections"
+        ]
+      },
+      "patch": {
+        "operationId": "update_protection_api_v1_workspaces__workspace_id__protections__protection_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "protection_id",
+            "required": true,
+            "schema": {
+              "title": "Protection Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProtectionUpdateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Protection",
+        "tags": [
+          "protections"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/protections/{protection_id}/cancel": {
+      "post": {
+        "operationId": "cancel_protection_api_v1_workspaces__workspace_id__protections__protection_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "protection_id",
+            "required": true,
+            "schema": {
+              "title": "Protection Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProtectionCancelCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cancel Protection",
+        "tags": [
+          "protections"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/protections/{protection_id}/risks": {
+      "post": {
+        "operationId": "link_to_risk_api_v1_workspaces__workspace_id__protections__protection_id__risks_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "protection_id",
+            "required": true,
+            "schema": {
+              "title": "Protection Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProtectionLinkToRiskCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Link To Risk",
+        "tags": [
+          "protections"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/protections/{protection_id}/risks/{risk_id}": {
+      "delete": {
+        "operationId": "unlink_from_risk_api_v1_workspaces__workspace_id__protections__protection_id__risks__risk_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "protection_id",
+            "required": true,
+            "schema": {
+              "title": "Protection Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "risk_id",
+            "required": true,
+            "schema": {
+              "title": "Risk Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Unlink From Risk",
+        "tags": [
+          "protections"
         ]
       }
     },

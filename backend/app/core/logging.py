@@ -42,6 +42,13 @@ SENSITIVE_FIELD_SUBSTRINGS: tuple[str, ...] = (
     "valor",
     "amount_brl",
     "saldo",
+    # ADR-192 — PII de apólice de seguro: número, valor segurado raw,
+    # nome do segurado. ``coverage_bucket`` (índice de faixa) é OK.
+    "policy_ref",
+    "policy_number",
+    "coverage_brl",
+    "premium_monthly_brl",
+    "holder_name",
 )
 
 REDACTED_PLACEHOLDER = "***"

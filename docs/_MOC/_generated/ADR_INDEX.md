@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 162
-- **Proposto**: 20
+- **Decidido**: 163
+- **Proposto**: 19
 - **Roadmap**: 4
 
 ## Fundação
@@ -290,17 +290,17 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (4)
+### Decidido (5)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
 - [[ADR-162]] — Decisions como event projection sobre Goals · phase Onda 8
 - [[ADR-167]] — Eligibility gate de cenário do cônjuge no domain service · phase A8.4 PR2
+- [[ADR-192]] — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) · phase Sprint A11.W5
 
-### Proposto (2)
+### Proposto (1)
 
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
-- [[ADR-192]] — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) · phase Sprint A11.s9-protection
 
 ## categorization
 

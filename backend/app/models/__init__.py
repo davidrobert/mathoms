@@ -37,6 +37,12 @@ from backend.app.models.pipeline_run import (
     PipelineStageLog,
     PipelineStageStatus,
 )
+from backend.app.models.protection import (
+    VALID_PROTECTION_CATEGORIES,
+    VALID_PROTECTION_COVERAGE_TYPES,
+    VALID_PROTECTION_STATUSES,
+    Protection,
+)
 from backend.app.models.report import Report
 from backend.app.models.report_publication import ReportPublication
 from backend.app.models.risk import (
@@ -162,4 +168,8 @@ __all__ = [
     "VALID_RISK_IMPACT_LEVELS",
     "VALID_RISK_PROBABILITIES",
     "VALID_RISK_STATUSES",
+    "Protection",
+    "VALID_PROTECTION_CATEGORIES",
+    "VALID_PROTECTION_COVERAGE_TYPES",
+    "VALID_PROTECTION_STATUSES",
 ]
