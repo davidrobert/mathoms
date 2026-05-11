@@ -84,6 +84,17 @@ class CategoryOverrideService:
             action="reset",
         )
 
+    async def reset_all(self, workspace_id: str) -> int:
+        """Apaga todos os overrides do workspace; invalida cache pós-commit. Retorna count."""
+        count = await self._repo.delete_all_in_workspace(workspace_id)
+        await self._session.commit()
+        if count > 0:
+            _invalidate_cache(
+                CategoryOverrideConfig(workspace_id=workspace_id, template_key="*"),
+                action="reset_all",
+            )
+        return count
+
 
 def _invalidate_cache(config: CategoryOverrideConfig, *, action: str) -> None:
     """Write-through pós-commit; falha de invalidação loga warning, não aborta o write."""
