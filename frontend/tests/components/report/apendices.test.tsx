@@ -88,6 +88,33 @@ describe("ApendiceBSection", () => {
     expect(screen.queryByText(/goals_json_sha256/)).toBeNull();
   });
 
+  it("filtra tipos não-canônicos do snapshot (ADR-180 — sem PLANNING_CONTEXT)", () => {
+    const data = {
+      goals: {
+        premissas_snapshot: {
+          schema: 1,
+          captured_at: "2026-05-06T13:17:05.995102+00:00",
+          goals_json_sha256: null,
+          active_goals: [
+            {
+              type: "INDEPENDENCIA_FINANCEIRA",
+              id: "goal-canonical",
+              effective_from: "2026-04-26",
+            },
+            {
+              type: "PLANNING_CONTEXT",
+              id: "goal-legacy",
+              effective_from: "2025-11-01",
+            },
+          ],
+        },
+      },
+    } as unknown as ReportAnalysisData;
+    render(<ApendiceBSection data={data} />);
+    expect(screen.getByText("Independência Financeira")).toBeInTheDocument();
+    expect(screen.queryByText(/PLANNING_CONTEXT/)).toBeNull();
+  });
+
   it("mostra empty state quando snapshot existe mas active_goals vazio", () => {
     const data = {
       goals: {
