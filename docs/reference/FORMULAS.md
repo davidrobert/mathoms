@@ -65,3 +65,58 @@ decimal.
 
 A UI nativa (`ReportPremissasBlock`) replica um subconjunto desta tabela
 para tooltips e o bloco "Premissas e como calculamos".
+
+## TRS efetiva e renda passiva
+
+Card "Rentabilidade" do relatório (seção S3) mostra **TRS efetiva** — yield
+observado de renda passiva sobre patrimônio gerador, **não retorno total**
+(yield + capital gain). Decisão arquitetural completa em
+[ADR-191](../adr/191-card-rentabilidade-trs-efetiva.md).
+
+| Conceito | Fórmula | Onde no código |
+| --- | --- | --- |
+| TRS efetiva (% a.a.) | `trs_efetiva_pct = renda_passiva_anual_brl / patrimonio_gerador_brl × 100`. Renda passiva observada via IRPF (dividendos isentos + JCP + aplicações + ganho de capital + exterior + aluguéis). Patrimônio gerador exclui residência principal, veículos, derivativos; inclui caixa-excedente (caixa − reserva-alvo). | E5 JSON · `passive_income.trs_efetiva_pct` · `ratios.rentabilidade.valor_pct` |
+| Meta TRS | Referência consagrada de **5% a.a.** (yield diversificado de carteira de renda). Configurável via `RentabilidadeConfig.meta_pct`. | `ratios.rentabilidade.meta_pct` |
+| Cobertura essencial via renda passiva (%) | `cobertura_despesa_essencial_pct = renda_passiva_mensal_brl / custo_essencial_mensal_brl × 100`. Tradução operacional: "renda passiva atual cobre N% do custo essencial". 100% = independência sobre o essencial. | `ratios.rentabilidade.cobertura_despesa_essencial_pct` |
+| Defasagem do dado (meses) | `defasagem_meses = (reference_date − 01-jan(ano_base + 1))`. Mede envelhecimento do IRPF consumido; >18 meses justifica empty state "dado defasado". | `passive_income.defasagem_meses` · `ratios.rentabilidade.defasagem_meses` |
+
+### Status do card
+
+`ratios.rentabilidade.status` é enum de 4 valores, derivado de
+`PassiveIncomeResult.status` cruzado com disponibilidade do
+`despesa_mensal_essencial`:
+
+| Status | Significado | UI |
+| --- | --- | --- |
+| `ok` | TRS válida + cobertura calculável. | Mostra valor, meta, cobertura, ano-base, defasagem. |
+| `sem_irpf` | Sem declaração IRPF carregada. | Empty state pedindo upload do IRPF. |
+| `gerador_zero` | Sem patrimônio gerador identificado. | Empty state explicando ausência de carteira de renda. |
+| `sem_dados_essencial` | TRS válida, mas `categorias_in` vazias ou fluxo sem categorias essenciais mapeadas. | Mostra valor + nota "cobertura essencial não disponível — categorização incompleta". |
+
+### Comparativos descartados (ADR-191 §D5 — não fazer)
+
+- **Sem CDI** no card: TRS efetiva é yield diversificado com tax-shield
+  parcial (dividendos isentos PF); CDI é taxa nominal pré-IR de RF.
+  Comparar induz mau comportamento ("se TRS < CDI, 100% Tesouro Selic
+  basta?" — falso, ignora valorização e diversificação).
+- **Sem retorno total da carteira** (yield + capital gain): exige NAV
+  histórico por holding, não calculado pelo pipeline E2/E3.
+- **Sem Trinity 4%** no card: Trinity é SWR de depleção do principal
+  (projeção de IF), incomparável com yield de fluxo observado. `trs_trinity_pct`
+  em `PassiveIncomeConfig` permanece para uso em projeções de IF, não neste card.
+
+### Custo essencial mensal — base da cobertura
+
+`custo_essencial_mensal_brl` é a soma das médias mensais das **9 categorias
+canônicas** declaradas em
+`scoring.json:reserva_emergencia._base_calculo.custo_essencial_mensal.categorias_in`
+(moradia, alimentação, transporte, saúde, seguros, serviços domésticos,
+educação, suporte familiar, financiamentos). Implementação:
+[`pipeline/domain/services/essential_expense_calculator.py`](../../pipeline/domain/services/essential_expense_calculator.py)
+(helper puro) + [`fluxo_caixa_enricher.py`](../../pipeline/domain/services/fluxo_caixa_enricher.py)
+(popula `fluxo.despesa_mensal_essencial` e `fluxo.janela_12m.despesa_mensal_essencial`).
+
+> **Débito conhecido (Track T06):** impostos não-PJ (IPTU, IPVA, IRPF)
+> declarados em `_base_calculo.custo_essencial_mensal.impostos.incluir`
+> ainda não cruzam com a origem do lançamento para distinguir PF vs PJ —
+> v1 trata como categoria comum quando aparece em `categorias_in`.

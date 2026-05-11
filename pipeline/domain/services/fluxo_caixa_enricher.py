@@ -17,8 +17,14 @@ Função pura. Config tipada (R9/ISP).
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from collections.abc import Iterable
+from dataclasses import dataclass, field, replace
+from decimal import Decimal
 from typing import Any
+
+from pipeline.domain.services.essential_expense_calculator import (
+    compute_custo_essencial_mensal,
+)
 
 
 def _safe_float(val) -> float:
@@ -66,19 +72,13 @@ _DEFAULT_ONE_TIME_ORIGIN_NAMES = frozenset(
 
 @dataclass(frozen=True)
 class FluxoEnricherConfig:
-    """Categorias e keywords para identificar receita one-time.
-
-    Sources no legado:
-    - ``one_time_categories`` ← ``categorization.json::one_time_income_categories``
-    - ``one_time_keywords`` ← ``categorization.json::one_time_income_keywords``
-    - ``one_time_origin_names`` ← hardcoded no legado (mapping de origens UI).
-    - ``janela_meses`` ← hardcoded 12 no legado.
-    """
+    """Categorias e keywords para identificar receita one-time + categorias essenciais."""
 
     one_time_categories: frozenset[str] = _DEFAULT_ONE_TIME_CATEGORIES
     one_time_keywords: tuple[str, ...] = _DEFAULT_ONE_TIME_KEYWORDS
     one_time_origin_names: frozenset[str] = _DEFAULT_ONE_TIME_ORIGIN_NAMES
     janela_meses: int = 12
+    essential_categories: frozenset[str] = frozenset()
 
     @classmethod
     def from_categorization(cls, categorization: dict | None = None) -> "FluxoEnricherConfig":
@@ -93,6 +93,29 @@ class FluxoEnricherConfig:
                 tuple(str(k).lower() for k in kws_raw) if kws_raw else _DEFAULT_ONE_TIME_KEYWORDS
             ),
         )
+
+    @classmethod
+    def from_configs(
+        cls,
+        *,
+        categorization: dict | None = None,
+        scoring: dict | None = None,
+    ) -> "FluxoEnricherConfig":
+        """Combina ``from_categorization`` (one-time) com ``categorias_in`` essenciais do scoring."""
+        base = cls.from_categorization(categorization)
+        essentials = frozenset(_extract_essential_categories(scoring))
+        return replace(base, essential_categories=essentials)
+
+
+def _extract_essential_categories(scoring: dict | None) -> Iterable[str]:
+    """Lê ``scoring.json::reserva_emergencia._base_calculo.custo_essencial_mensal.categorias_in``."""
+    if not scoring:
+        return ()
+    reserva = scoring.get("reserva_emergencia") or {}
+    base_calc = reserva.get("_base_calculo") or {}
+    custo = base_calc.get("custo_essencial_mensal") or {}
+    cats = custo.get("categorias_in") or []
+    return tuple(str(c) for c in cats)
 
 
 # =============================================================================
@@ -113,6 +136,11 @@ class Janela12m:
     fluxo_liquido: float
     taxa_poupanca_recorrente: float
     taxa_poupanca_total: float
+    # Track T06 / [[ADR-191]] §D4 — média mensal das despesas em
+    # ``categorias_in`` essenciais. Decimal (ADR-090: money nunca é float
+    # em código novo); serializado como float no ``to_dict`` por paridade
+    # com os demais campos legados desta dataclass.
+    despesa_mensal_essencial: Decimal = field(default_factory=lambda: Decimal("0"))
 
     def to_dict(self) -> dict:
         return {
@@ -127,6 +155,9 @@ class Janela12m:
             "fluxo_liquido": round(self.fluxo_liquido, 2),
             "taxa_poupanca_recorrente": round(self.taxa_poupanca_recorrente, 2),
             "taxa_poupanca_total": round(self.taxa_poupanca_total, 2),
+            "despesa_mensal_essencial": float(
+                self.despesa_mensal_essencial.quantize(Decimal("0.01"))
+            ),
         }
 
 
@@ -149,6 +180,10 @@ class FluxoCaixaEnriched:
     chart_totais_receita: tuple[float, ...]
     chart_totais_despesa: tuple[float, ...]
     janela_12m: Janela12m
+    # Track T06 — despesa média mensal das ``categorias_in`` no período
+    # completo. Decimal (ADR-090); serializado em float no legacy_dict
+    # por paridade com os demais campos desta dataclass.
+    despesa_mensal_essencial: Decimal = field(default_factory=lambda: Decimal("0"))
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -158,6 +193,9 @@ class FluxoCaixaEnriched:
             "receita_recorrente_mensal": round(self.receita_recorrente_mensal, 2),
             "despesa_total": round(self.despesa_total, 2),
             "despesa_mensal_media": round(self.despesa_mensal_media, 2),
+            "despesa_mensal_essencial": float(
+                self.despesa_mensal_essencial.quantize(Decimal("0.01"))
+            ),
             "fluxo_liquido": round(self.fluxo_liquido, 2),
             "por_fonte": {k: round(v, 2) for k, v in self.por_fonte.items()},
             "por_fonte_detalhado": {k: round(v, 2) for k, v in self.por_fonte_detalhado.items()},
@@ -179,6 +217,33 @@ class FluxoCaixaEnriched:
 # =============================================================================
 # Service
 # =============================================================================
+
+
+def _ratio_pct(numerator: float, denominator: float) -> float:
+    return (numerator / denominator * 100) if denominator > 0 else 0.0
+
+
+def _iter_entries(meses: list[str], por_mes: dict):
+    """Yield ``(key, valor)`` para todas as entries em ``por_mes`` exceto chave ``_total``."""
+    for mes in meses:
+        for key, valor in (por_mes.get(mes, {}) or {}).items():
+            if key == "_total":
+                continue
+            yield key, valor
+
+
+def _iter_with_total(meses: list[str], por_mes: dict):
+    """Yield ``(key|None, valor)`` — chave ``_total`` vira ``None`` para detectar fora do loop."""
+    for mes in meses:
+        for key, valor in (por_mes.get(mes, {}) or {}).items():
+            yield (None if key == "_total" else key), valor
+
+
+def _is_recorrente(origem: str, cfg: FluxoEnricherConfig) -> bool:
+    if origem in cfg.one_time_origin_names:
+        return False
+    lower = origem.lower()
+    return not any(kw in lower for kw in cfg.one_time_keywords)
 
 
 class FluxoCaixaEnricher:
@@ -208,6 +273,11 @@ class FluxoCaixaEnricher:
 
         por_fonte = dict((receitas or {}).get("totais_por_categoria", {}) or {})
         despesas_por_categoria = dict((despesas or {}).get("totais_por_categoria", {}) or {})
+
+        # Despesa essencial mensal — período completo (Track T06).
+        despesa_mensal_essencial = self._compute_essencial_mensal(
+            despesas_por_categoria, num_months
+        )
 
         # Chart.js datasets.
         chart_data = self._build_chart_datasets(fluxo_mensal, meses)
@@ -239,6 +309,7 @@ class FluxoCaixaEnricher:
             chart_totais_receita=chart_data["totais_receita"],
             chart_totais_despesa=chart_data["totais_despesa"],
             janela_12m=janela_12m,
+            despesa_mensal_essencial=despesa_mensal_essencial,
         )
 
     # -- Helpers --
@@ -331,57 +402,70 @@ class FluxoCaixaEnricher:
         cfg = self._config
         n_janela = min(cfg.janela_meses, len(meses))
         meses_12m = meses[-n_janela:] if n_janela > 0 else []
-        inicio = meses_12m[0] if meses_12m else ""
-        fim = meses_12m[-1] if meses_12m else ""
+        inicio, fim = (meses_12m[0], meses_12m[-1]) if meses_12m else ("", "")
 
         receita_por_mes = (fluxo_mensal or {}).get("receitas", {}).get("por_mes", {}) or {}
         despesa_por_mes = (fluxo_mensal or {}).get("despesas", {}).get("por_mes", {}) or {}
+        rec_bruto, rec_recorrente = self._accumulate_receita(meses_12m, receita_por_mes)
+        desp_bruto, desp_por_cat = self._accumulate_despesa(meses_12m, despesa_por_mes)
 
-        receita_total = 0.0
-        receita_recorrente = 0.0
-        despesa_total = 0.0
-
-        for mes in meses_12m:
-            mes_rec = receita_por_mes.get(mes, {}) or {}
-            for origem, valor in mes_rec.items():
-                if origem == "_total":
-                    continue
-                v = _safe_float(valor)
-                receita_total += v
-                if origem not in cfg.one_time_origin_names and not any(
-                    kw in origem.lower() for kw in cfg.one_time_keywords
-                ):
-                    receita_recorrente += v
-            mes_desp = despesa_por_mes.get(mes, {}) or {}
-            despesa_total += _safe_float(mes_desp.get("_total", 0))
-
-        receita_one_time = receita_total - receita_recorrente
-        receita_rec_mensal = receita_recorrente / n_janela if n_janela > 0 else 0.0
-        despesa_mensal_media = despesa_total / n_janela if n_janela > 0 else 0.0
-        fluxo_liquido = receita_total - despesa_total
-
-        taxa_rec = (
-            ((receita_recorrente - despesa_total) / receita_recorrente * 100)
-            if receita_recorrente > 0
-            else 0.0
-        )
-        taxa_tot = (
-            ((receita_total - despesa_total) / receita_total * 100) if receita_total > 0 else 0.0
-        )
-
+        receita_rec_mensal = rec_recorrente / n_janela if n_janela > 0 else 0.0
+        despesa_mensal_media = desp_bruto / n_janela if n_janela > 0 else 0.0
+        despesa_mensal_essencial = self._compute_essencial_mensal(desp_por_cat, n_janela)
         return Janela12m(
             periodo=f"{inicio} a {fim}",
             n_meses=n_janela,
-            receita_total=receita_total,
-            receita_recorrente=receita_recorrente,
-            receita_one_time=receita_one_time,
+            receita_total=rec_bruto,
+            receita_recorrente=rec_recorrente,
+            receita_one_time=rec_bruto - rec_recorrente,
             receita_recorrente_mensal=receita_rec_mensal,
-            despesa_total=despesa_total,
+            despesa_total=desp_bruto,
             despesa_mensal_media=despesa_mensal_media,
-            fluxo_liquido=fluxo_liquido,
-            taxa_poupanca_recorrente=taxa_rec,
-            taxa_poupanca_total=taxa_tot,
+            fluxo_liquido=rec_bruto - desp_bruto,
+            taxa_poupanca_recorrente=_ratio_pct(rec_recorrente - desp_bruto, rec_recorrente),
+            taxa_poupanca_total=_ratio_pct(rec_bruto - desp_bruto, rec_bruto),
+            despesa_mensal_essencial=despesa_mensal_essencial,
         )
+
+    def _accumulate_receita(
+        self, meses_12m: list[str], receita_por_mes: dict
+    ) -> tuple[float, float]:
+        """Returns ``(bruto, recorrente)`` — both são rate aggregations, não money."""
+        cfg = self._config
+        bruto = 0.0  # rate aggregation
+        recorrente = 0.0  # rate aggregation
+        for origem, valor in _iter_entries(meses_12m, receita_por_mes):
+            v = _safe_float(valor)
+            bruto += v
+            if _is_recorrente(origem, cfg):
+                recorrente += v
+        return bruto, recorrente
+
+    def _accumulate_despesa(
+        self, meses_12m: list[str], despesa_por_mes: dict
+    ) -> tuple[float, dict[str, float]]:
+        """Returns ``(bruto, por_categoria)`` — rate aggregations sobre o intervalo."""
+        bruto = 0.0  # rate aggregation
+        por_categoria: dict[str, float] = {}
+        for categoria, valor in _iter_with_total(meses_12m, despesa_por_mes):
+            if categoria is None:
+                bruto += _safe_float(valor)
+                continue
+            por_categoria[categoria] = por_categoria.get(categoria, 0.0) + _safe_float(valor)
+        return bruto, por_categoria
+
+    def _compute_essencial_mensal(
+        self, despesas_por_categoria: dict[str, float], num_months: int
+    ) -> Decimal:
+        """Aplica helper canônico sobre médias mensais por categoria (Track T06)."""
+        cfg = self._config
+        if not cfg.essential_categories or num_months <= 0:
+            return Decimal("0")
+        medias = {
+            cat: Decimal(str(_safe_float(total))) / Decimal(num_months)
+            for cat, total in despesas_por_categoria.items()
+        }
+        return compute_custo_essencial_mensal(medias, cfg.essential_categories)
 
     def _compute_por_fonte_detalhado(
         self, fluxo_mensal: dict, meses: list[str]

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any, Literal, Mapping
 
 from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
 from pipeline.domain.services.passive_income_calculator import PassiveIncomeResult
@@ -28,6 +28,12 @@ from pipeline.domain.services.passive_income_calculator import PassiveIncomeResu
 # triggar P3 (que pega ``Dict[str, Any]`` literal).
 _FluxoPayload = Mapping[str, Any]
 _PatrimonioPayload = Mapping[str, Any]
+
+RentabilidadeStatus = Literal["ok", "sem_irpf", "gerador_zero", "sem_dados_essencial"]
+
+_ZERO = Decimal("0")
+_HUNDRED = Decimal("100")
+_PCT_QUANTUM = Decimal("0.01")
 
 
 def _safe_float(val) -> float:
@@ -43,9 +49,57 @@ def _safe_float(val) -> float:
     return 0.0
 
 
+def _to_decimal(val) -> Decimal:
+    if val is None:
+        return _ZERO
+    if isinstance(val, Decimal):
+        return val
+    if isinstance(val, bool):
+        return _ZERO
+    if isinstance(val, (int, str)):
+        try:
+            return Decimal(val)
+        except Exception:
+            return _ZERO
+    if isinstance(val, float):
+        return Decimal(str(val))
+    return _ZERO
+
+
 # =============================================================================
 # Result
 # =============================================================================
+
+
+@dataclass(frozen=True)
+class RentabilidadeConfig:
+    """Parâmetros do card Rentabilidade ([[ADR-191]] §D3); ``meta_pct`` é 5% por padrão."""
+
+    meta_pct: Decimal = Decimal("5.0")
+
+
+@dataclass(frozen=True)
+class RentabilidadeRatio:
+    """Card Rentabilidade — TRS efetiva + ano-base + cobertura essencial + status ([[ADR-191]] §D3/D4)."""
+
+    valor_pct: Decimal | None
+    ano_base: int | None
+    defasagem_meses: int | None
+    meta_pct: Decimal
+    cobertura_despesa_essencial_pct: Decimal | None
+    status: RentabilidadeStatus
+
+    def to_dict(self) -> dict:
+        return {
+            "valor_pct": _serialize_decimal(self.valor_pct),
+            "ano_base": self.ano_base,
+            "defasagem_meses": self.defasagem_meses,
+            "meta_pct": _serialize_decimal(self.meta_pct),
+            "cobertura_despesa_essencial_pct": _serialize_decimal(
+                self.cobertura_despesa_essencial_pct
+            ),
+            "status": self.status,
+        }
 
 
 @dataclass(frozen=True)
@@ -60,6 +114,7 @@ class FinancialRatios:
     aliquota_efetiva_ir_pct: Decimal | None = None
     janela_referencia: str = "N/D"
     janela_n_meses: int = 0
+    rentabilidade: RentabilidadeRatio | None = None
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -71,12 +126,22 @@ class FinancialRatios:
             "aliquota_efetiva_ir_pct": _format_pct_or_nd(self.aliquota_efetiva_ir_pct),
             "janela_referencia": self.janela_referencia,
             "janela_n_meses": self.janela_n_meses,
+            "rentabilidade": (
+                self.rentabilidade.to_dict() if self.rentabilidade is not None else None
+            ),
         }
 
 
 def _format_pct_or_nd(value: Decimal | None) -> str:
     """Serializa Decimal como string com 2 casas; ``None`` vira ``"N/D"``."""
     return f"{value:.2f}" if value is not None else "N/D"
+
+
+def _serialize_decimal(value: Decimal | None) -> float | None:
+    """Decimal → float arredondado (2 casas) para JSON; ``None`` preservado."""
+    if value is None:
+        return None
+    return float(value.quantize(_PCT_QUANTUM))
 
 
 # =============================================================================
@@ -93,6 +158,9 @@ class RatiosCalculator:
     ``aliquota_efetiva_ir_pct`` é derivada de ``ir_pago_total / renda_total``
     quando ``irpf`` é fornecido com ano-base disponível.
     """
+
+    def __init__(self, rentabilidade_config: RentabilidadeConfig | None = None) -> None:
+        self._rentabilidade_config = rentabilidade_config or RentabilidadeConfig()
 
     def calculate(
         self,
@@ -115,6 +183,7 @@ class RatiosCalculator:
             aliquota_efetiva_ir_pct=_resolve_aliquota_ir(irpf, passive_income),
             janela_referencia=window.referencia,
             janela_n_meses=window.n_meses,
+            rentabilidade=_build_rentabilidade(passive_income, window, self._rentabilidade_config),
         )
 
 
@@ -125,12 +194,13 @@ class RatiosCalculator:
 
 @dataclass(frozen=True)
 class _Window:
-    """Janela de fluxo de caixa derivada (Decimal interno; serializa em float)."""
+    """Janela de fluxo de caixa derivada (Decimal interno; ``despesa_mensal_essencial_brl`` é 0 sem ``categorias_in``)."""
 
     receita_recorrente_brl: Decimal
     receita_total_brl: Decimal
     despesa_total_brl: Decimal
     despesa_mensal_media_brl: Decimal
+    despesa_mensal_essencial_brl: Decimal
     referencia: str
     n_meses: int
 
@@ -151,6 +221,9 @@ def _resolve_window(fluxo: _FluxoPayload) -> _Window:
         receita_total_brl=Decimal(str(_safe_float(src.get("receita_total", 0)))),
         despesa_total_brl=Decimal(str(_safe_float(src.get("despesa_total", 0)))),
         despesa_mensal_media_brl=Decimal(str(_safe_float(src.get("despesa_mensal_media", 0)))),
+        despesa_mensal_essencial_brl=Decimal(
+            str(_safe_float(src.get("despesa_mensal_essencial", 0)))
+        ),
         referencia=referencia,
         n_meses=n_meses,
     )
@@ -213,3 +286,62 @@ def _resolve_ano_base(irpf: IRPFAnalyzer, passive_income: PassiveIncomeResult | 
         return passive_income.ano_referencia_irpf
     anos = irpf.anos_base_disponiveis()
     return anos[-1] if anos else None
+
+
+def _build_rentabilidade(
+    passive_income: PassiveIncomeResult | None,
+    window: _Window,
+    config: RentabilidadeConfig,
+) -> RentabilidadeRatio | None:
+    """Compõe ``RentabilidadeRatio`` aninhado ([[ADR-191]] §D3/D4)."""
+    if passive_income is None:
+        return None
+    if passive_income.status == "sem_irpf":
+        return _rentabilidade_empty(config, status="sem_irpf")
+    if passive_income.status == "gerador_zero":
+        return _rentabilidade_empty(config, status="gerador_zero", pi=passive_income)
+    cobertura, status = _cobertura_essencial(
+        passive_income.renda_passiva_mensal_brl, window.despesa_mensal_essencial_brl
+    )
+    return _rentabilidade_ok(passive_income, config, cobertura, status)
+
+
+def _rentabilidade_ok(
+    pi: PassiveIncomeResult,
+    config: RentabilidadeConfig,
+    cobertura: Decimal | None,
+    status: RentabilidadeStatus,
+) -> RentabilidadeRatio:
+    return RentabilidadeRatio(
+        valor_pct=pi.trs_efetiva_pct,
+        ano_base=pi.ano_referencia_irpf,
+        defasagem_meses=pi.defasagem_meses,
+        meta_pct=config.meta_pct,
+        cobertura_despesa_essencial_pct=cobertura,
+        status=status,
+    )
+
+
+def _rentabilidade_empty(
+    config: RentabilidadeConfig,
+    *,
+    status: RentabilidadeStatus,
+    pi: PassiveIncomeResult | None = None,
+) -> RentabilidadeRatio:
+    return RentabilidadeRatio(
+        valor_pct=None,
+        ano_base=pi.ano_referencia_irpf if pi else None,
+        defasagem_meses=pi.defasagem_meses if pi else None,
+        meta_pct=config.meta_pct,
+        cobertura_despesa_essencial_pct=None,
+        status=status,
+    )
+
+
+def _cobertura_essencial(
+    renda_passiva_mensal: Decimal, despesa_mensal_essencial: Decimal
+) -> tuple[Decimal | None, RentabilidadeStatus]:
+    if despesa_mensal_essencial <= _ZERO:
+        return None, "sem_dados_essencial"
+    cobertura = (renda_passiva_mensal / despesa_mensal_essencial * _HUNDRED).quantize(_PCT_QUANTUM)
+    return cobertura, "ok"
