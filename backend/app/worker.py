@@ -49,6 +49,7 @@ celery_app.conf.update(
         "backend.app.tasks.pipeline_task",
         "backend.app.tasks.periodic_tasks",
         "backend.app.tasks.lgpd_export",
+        "backend.app.tasks.categorization_apply",
     ],
     # F8.4 / ADR-074 — beat schedule para tarefas periódicas.
     # Start beat: celery -A backend.app.worker beat -l info

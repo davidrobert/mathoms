@@ -9,6 +9,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from backend.app.models.categorization_rule import CategorizationRule
+from pipeline.domain.services.categorization_service import sort_rules_canonical
 
 
 class CategorizationRuleRepository:
@@ -31,11 +32,9 @@ class CategorizationRuleRepository:
         if enabled_only:
             stmt = stmt.where(CategorizationRule.enabled.is_(True))
         rows = self._session.execute(stmt).scalars().all()
-        # SQLite não tem suporte robusto a ORDER BY length(); ordenamos em Python.
-        return sorted(
-            rows,
-            key=lambda r: (-r.priority, -len(r.keyword), r.created_at),
-        )
+        # ADR-188 §5 risco #3 — sort canônico shared (pipeline domain) evita
+        # drift de tiebreaker entre adapter P2 e services backend P3.
+        return list(sort_rules_canonical(rows))
 
     def create(self, rule: CategorizationRule) -> CategorizationRule:
         """Persiste regra nova; ``flush`` para popular ``id`` sem fechar tx."""

@@ -1,9 +1,8 @@
-"""CRUD ``CategorizationRule`` + apply retroativo (ADR-186/188 · A12 P3 PR2)."""
+"""CRUD ``CategorizationRule`` + thin wrappers ao apply engine (ADR-186/188 · A12 P3 PR2/PR3)."""
 
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -15,23 +14,26 @@ from backend.app.application.base.errors import (
     NotFoundError,
     ValidationError,
 )
+from backend.app.application.categorization import _apply_engine
+from backend.app.application.categorization._apply_engine import (
+    ApplyTooLargeError as _EngineApplyTooLarge,
+)
+from backend.app.application.categorization._apply_engine import (
+    apply_retroactive_async_safe,
+    set_applied_count,
+)
+from backend.app.application.categorization._apply_engine import (
+    count_applied_overrides as _count_applied_overrides,
+)
 from backend.app.application.categorization._caps import (
     RULE_HARD_CAP,
     RULE_SOFT_CAP,
     SYNC_APPLY_THRESHOLD,
 )
 from backend.app.application.categorization.mappers import rule_to_response
-from backend.app.application.categorization.rule_preview_service import (
-    build_synthetic_rules,
-    period_from_data,
-)
 from backend.app.core.logging import get_logger
 from backend.app.models.categorization_rule import CategorizationRule
-from backend.app.models.transaction_override import (
-    OVERRIDE_SOURCE_MANUAL,
-    OVERRIDE_SOURCE_RULE,
-    TransactionOverride,
-)
+from backend.app.models.transaction_override import TransactionOverride
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.categorization_rule_repository import (
     CategorizationRuleRepository,
@@ -42,10 +44,26 @@ from backend.app.schemas.dto.categorization_rule import (
     RulesListResponse,
     WarningEntry,
 )
-from backend.app.services.report_publication import is_month_closed_sync
+from pipeline.domain.services.categorization_service import sort_rules_canonical
 from pipeline.domain.services.internal_transfer_detector import (
     InternalTransferDetector,
 )
+
+# Re-exports usados por tests (preserva imports legados).
+__all__ = [
+    "ApplyTooLargeError",
+    "HardCapExceededError",
+    "RuleAlreadyExistsError",
+    "apply_retroactive_async_safe",
+    "create_rule",
+    "create_rule_async",
+    "delete_rule",
+    "disable_rule",
+    "estimate_apply_matches",
+    "list_rules",
+    "set_applied_count",
+    "soft_cap_reached",
+]
 
 logger = get_logger("categorization.rule_mgmt")
 
@@ -81,7 +99,7 @@ class RuleAlreadyExistsError(ConflictError):
 
 
 class ApplyTooLargeError(ValidationError):
-    """Apply retroativo excede ``SYNC_APPLY_THRESHOLD`` — pendente PR3 async. Router → 422."""
+    """Apply retroativo excede ``SYNC_APPLY_THRESHOLD`` — router (PR3) troca por 202 async."""
 
     def __init__(self, *, expected_overrides: int) -> None:
         super().__init__(
@@ -93,7 +111,7 @@ class ApplyTooLargeError(ValidationError):
 
 
 # =============================================================================
-# CRUD
+# CRUD helpers (DB)
 # =============================================================================
 
 
@@ -123,125 +141,6 @@ def _find_existing_rule(
     return db.execute(stmt).scalar_one_or_none()
 
 
-def _existing_overrides_by_hash(db: Session, workspace_id: str) -> dict[str, TransactionOverride]:
-    """Overrides ativos por transaction_hash (sticky check)."""
-    rows = (
-        db.execute(
-            select(TransactionOverride).where(
-                TransactionOverride.workspace_id == workspace_id,
-                TransactionOverride.deleted_at.is_(None),
-            )
-        )
-        .scalars()
-        .all()
-    )
-    return {ovr.transaction_hash: ovr for ovr in rows}
-
-
-@dataclass
-class _ApplyCtx:
-    """Contexto do apply retroativo (R9)."""
-
-    workspace_id: str
-    rule: CategorizationRule
-    detector: InternalTransferDetector
-    db: Session
-    closed_cache: dict[str, bool]
-    existing_by_hash: dict[str, TransactionOverride]
-
-
-def _is_existing_sticky(
-    existing: Optional[TransactionOverride],  # None quando tx sem override prévio
-    rule_id: str,
-) -> bool:
-    """Existing override impede novo rule override (manual ou outra rule)."""
-    if existing is None:
-        return False
-    if existing.source == OVERRIDE_SOURCE_MANUAL:
-        return True
-    return existing.source == OVERRIDE_SOURCE_RULE and existing.rule_id != rule_id
-
-
-def _period_is_closed(
-    period: Optional[str],  # None se tx.data não puder ser parseado
-    ctx: _ApplyCtx,
-) -> bool:
-    if period is None:
-        return False
-    if period not in ctx.closed_cache:
-        ctx.closed_cache[period] = is_month_closed_sync(ctx.workspace_id, period, db=ctx.db)
-    return ctx.closed_cache[period]
-
-
-def _should_skip_for_apply(tx, ctx: _ApplyCtx) -> bool:
-    """Pula tx se: mês fechado, manual override, internal transfer, ou já tem rule override."""
-    if ctx.detector.is_internal_transfer(tx.descricao or "", banco=tx.banco or ""):
-        return True
-    if _is_existing_sticky(ctx.existing_by_hash.get(tx.transaction_hash), ctx.rule.id):
-        return True
-    return _period_is_closed(period_from_data(tx.data), ctx)
-
-
-def _build_override_values(tx, ctx: _ApplyCtx) -> dict:
-    """Valores para INSERT ``transaction_overrides(source='rule')`` — paridade learning_loop."""
-    return {
-        "id": str(uuid.uuid4()),
-        "workspace_id": ctx.workspace_id,
-        "transaction_hash": tx.transaction_hash,
-        "original_category": tx.categoria,
-        "new_category": ctx.rule.target_category,
-        "source": OVERRIDE_SOURCE_RULE,
-        "rule_id": ctx.rule.id,
-        "reviewed": True,
-        "created_at": datetime.now(timezone.utc),
-        "deleted_at": None,
-    }
-
-
-def _dialect_insert(db: Session):
-    """Dialect-aware ``insert(...)`` — copia do learning_loop."""
-    dialect_name = db.bind.dialect.name if db.bind else "sqlite"
-    if dialect_name == "postgresql":
-        from sqlalchemy.dialects.postgresql import insert as dialect_insert
-    else:
-        from sqlalchemy.dialects.sqlite import insert as dialect_insert
-    return dialect_insert
-
-
-def _upsert_rule_override(values: dict, db: Session) -> None:
-    """``INSERT ... ON CONFLICT DO UPDATE`` — paridade learning_loop (ADR-188 §D4)."""
-    dialect_insert = _dialect_insert(db)
-    stmt = dialect_insert(TransactionOverride.__table__).values(**values)
-    update_set = {
-        "rule_id": stmt.excluded.rule_id,
-        "new_category": stmt.excluded.new_category,
-        "original_category": stmt.excluded.original_category,
-    }
-    stmt = stmt.on_conflict_do_update(
-        index_elements=["workspace_id", "transaction_hash"],
-        set_=update_set,
-        where=TransactionOverride.__table__.c.source == OVERRIDE_SOURCE_RULE,
-    )
-    db.execute(stmt)
-
-
-def _filter_matching(rule: CategorizationRule, transactions: list) -> list:
-    """Aplica o builder sintético em massa; >threshold levanta erro tipado."""
-    rules = build_synthetic_rules(rule.keyword, rule.target_category)
-    matching = [t for t in transactions if rules.match(t.descricao) is not None]
-    if len(matching) > SYNC_APPLY_THRESHOLD:
-        raise ApplyTooLargeError(expected_overrides=len(matching))
-    return matching
-
-
-def _apply_one(tx, ctx: _ApplyCtx) -> bool:
-    """``True`` se aplicou; ``False`` se pulou (sticky/mês fechado/transfer)."""
-    if _should_skip_for_apply(tx, ctx):
-        return False
-    _upsert_rule_override(_build_override_values(tx, ctx), ctx.db)
-    return True
-
-
 def _apply_retroactive(
     *,
     workspace: Workspace,
@@ -250,20 +149,17 @@ def _apply_retroactive(
     transactions: list,
     db: Session,
 ) -> int:
-    """Apply em massa — paridade learning_loop. Retorna applied_count."""
-    matching = _filter_matching(rule, transactions)
-    ctx = _ApplyCtx(
-        workspace_id=workspace.id,
-        rule=rule,
-        detector=detector,
-        db=db,
-        closed_cache={},
-        existing_by_hash=_existing_overrides_by_hash(db, workspace.id),
-    )
-    applied = sum(1 for tx in matching if _apply_one(tx, ctx))
-    if applied > 0:
-        CategorizationRuleRepository(db).bump_applied_count(rule_id=rule.id, delta=applied)
-    return applied
+    """Thin wrapper sobre engine — traduz ``_EngineApplyTooLarge`` em erro tipado."""
+    try:
+        return _apply_engine.apply_retroactive_sync(
+            workspace_id=workspace.id,
+            rule=rule,
+            detector=detector,
+            transactions=transactions,
+            db=db,
+        )
+    except _EngineApplyTooLarge as exc:
+        raise ApplyTooLargeError(expected_overrides=exc.expected_overrides) from exc
 
 
 # =============================================================================
@@ -349,6 +245,51 @@ def create_rule(
     return rule_to_response(rule)
 
 
+def create_rule_async(
+    *,
+    workspace: Workspace,
+    keyword: str,
+    target_category: str,
+    priority: int,
+    user_id: Optional[str],
+    db: Session,
+) -> CategorizationRule:
+    """Cria regra **sem** apply retroativo — fluxo 202 PR3 dispara Celery (ADR-188 PR3)."""
+    _guard_create_preconditions(workspace, keyword, target_category, db)
+    rule = _make_rule(
+        workspace_id=workspace.id,
+        keyword=keyword,
+        target_category=target_category,
+        priority=priority,
+        user_id=user_id,
+    )
+    db.add(rule)
+    db.flush()
+    db.commit()
+    db.refresh(rule)
+    logger.info(
+        "categorization rule created (async apply pending)",
+        extra={
+            "workspace_id": rule.workspace_id,
+            "rule_id": rule.id,
+            "keyword": rule.keyword,
+            "target_category": rule.target_category,
+            "user_id": user_id,
+        },
+    )
+    return rule
+
+
+def estimate_apply_matches(
+    *,
+    keyword: str,
+    target_category: str,
+    transactions: list,
+) -> int:
+    """Conta matches sintéticos — usado pelo router p/ decidir sync vs async."""
+    return _apply_engine.count_matching(keyword, target_category, transactions)
+
+
 def disable_rule(*, workspace_id: str, rule_id: str, db: Session) -> None:
     """Toggle ``enabled=false`` (sem cascade overrides)."""
     rule = db.get(CategorizationRule, rule_id)
@@ -368,6 +309,8 @@ def _cascade_soft_delete_rule_overrides(
 ) -> None:
     """Soft-delete overrides ``source='rule'`` deste rule_id — preserva histórico."""
     from sqlalchemy import update as sa_update
+
+    from backend.app.models.transaction_override import OVERRIDE_SOURCE_RULE
 
     db.execute(
         sa_update(TransactionOverride)
@@ -408,7 +351,7 @@ def _validate_pagination(page: int, page_size: int) -> None:
 
 def _fetch_active_rules_sorted(
     workspace_id: str,
-    enabled: Optional[bool],  # None = sem filtro; True/False filtra enabled
+    enabled: Optional[bool],  # None = sem filtro; True/False filtra (semântica)
     db: Session,
 ) -> list[CategorizationRule]:
     base = select(CategorizationRule).where(
@@ -418,7 +361,8 @@ def _fetch_active_rules_sorted(
     if enabled is not None:
         base = base.where(CategorizationRule.enabled.is_(enabled))
     rows = db.execute(base).scalars().all()
-    return sorted(rows, key=lambda r: (-r.priority, -len(r.keyword), r.created_at))
+    # ADR-188 §5 risco #3: sort canônico shared (pipeline domain).
+    return list(sort_rules_canonical(rows))
 
 
 def _build_list_warnings(*, count_active: int, hard_cap: int) -> list[WarningEntry]:
@@ -462,3 +406,7 @@ def list_rules(
 def soft_cap_reached(*, workspace_id: str, db: Session) -> bool:
     """Helper p/ preview — true se workspace já no soft cap."""
     return _count_active_rules(db, workspace_id) >= RULE_SOFT_CAP
+
+
+# Backwards-compat shim — testes importam ``_count_applied_overrides`` daqui.
+__all__.append("_count_applied_overrides")

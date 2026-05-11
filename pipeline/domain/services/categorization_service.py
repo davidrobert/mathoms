@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, replace
 from datetime import datetime
-from typing import Mapping
+from typing import Iterable, Mapping, Protocol, TypeVar
 
 from pipeline.domain.models.transaction import Transaction
 
@@ -68,9 +69,34 @@ class LearnedRule:
     created_at: datetime  # tz-aware
 
 
-def _sort_key(rule: LearnedRule) -> tuple[int, int, datetime, str]:
-    """Sort estável (priority desc, len(keyword) desc, created_at asc, id asc)."""
+class _RuleSortable(Protocol):
+    """Protocol mínimo p/ ``sort_rules_canonical`` — vale para ``LearnedRule``
+    *e* SQLAlchemy ``CategorizationRule`` (ADR-188 §5 risco #3)."""
+
+    @property
+    def priority(self) -> int: ...
+
+    @property
+    def keyword(self) -> str: ...
+
+    @property
+    def created_at(self) -> datetime: ...
+
+    @property
+    def id(self) -> str: ...
+
+
+_R = TypeVar("_R", bound=_RuleSortable)
+
+
+def _sort_key(rule: _RuleSortable) -> tuple[int, int, datetime, str]:
+    """Sort estável shared adapter P2 ↔ services P3 (ADR-188 §5 #3)."""
     return (-rule.priority, -len(rule.keyword), rule.created_at, rule.id)
+
+
+def sort_rules_canonical(rules: Iterable[_R]) -> tuple[_R, ...]:
+    """Único helper de sort — aceita LearnedRule + ORM CategorizationRule (ADR-188 §5 #3)."""
+    return tuple(sorted(rules or (), key=_sort_key))
 
 
 @dataclass(frozen=True)
@@ -86,8 +112,8 @@ class CategorizationRulesV2:
         template_keywords: Mapping[str, tuple[str, ...]] | None,
         learned_rules: tuple[LearnedRule, ...] | list[LearnedRule] | None,
     ) -> "CategorizationRulesV2":
-        """Factory com sort estável (defensivo)."""
-        sorted_learned = tuple(sorted(learned_rules or (), key=_sort_key))
+        """Factory com sort canônico (defensivo)."""
+        sorted_learned = sort_rules_canonical(learned_rules or ())
         return cls(
             template_keywords=template_keywords or {},
             learned_rules=sorted_learned,
@@ -95,12 +121,89 @@ class CategorizationRulesV2:
 
     def match(self, narrative: str) -> tuple[str, str] | None:
         """``(target_category, rule_id)`` da 1ª regra que casa, senão ``None``."""
-        if not self.learned_rules:
+        return self.match_normalized(normalize_narrative(narrative))
+
+    def match_normalized(self, narrative_upper: str) -> tuple[str, str] | None:
+        """Match com narrative já uppercase — perf R1 (cache ``.upper()`` no caller); opt-in Aho-Corasick via env."""
+        if not self.learned_rules or not narrative_upper:
             return None
-        narrative_upper = (narrative or "").upper()
-        if not narrative_upper:
-            return None
+        if _aho_corasick_enabled() and len(self.learned_rules) > _AC_RULE_COUNT_THRESHOLD:
+            result = match_normalized_aho_corasick(narrative_upper, self.learned_rules)
+            if result is not None:
+                return result
+            # Caso lib ausente: fallback silencioso para loop linear abaixo.
         for rule in self.learned_rules:
             if rule.keyword in narrative_upper:
                 return (rule.target_category, rule.id)
         return None
+
+
+_AC_RULE_COUNT_THRESHOLD: int = 50
+
+
+def _aho_corasick_enabled() -> bool:
+    """``True`` se ``MATHOMS_RULE_MATCH_AHO_CORASICK=1`` — default off, lido por-request (ADR-111)."""
+    return os.environ.get("MATHOMS_RULE_MATCH_AHO_CORASICK") == "1"
+
+
+def normalize_narrative(narrative: str) -> str:
+    """Normaliza narrativa (uppercase) — pure helper compartilhado adapter/preview/apply (PR3 R1)."""
+    return (narrative or "").upper()
+
+
+# =============================================================================
+# ADR-188 PR3 — Aho-Corasick automaton opcional (feature-flagged)
+# =============================================================================
+
+
+def _try_build_aho_corasick(keywords: tuple[str, ...]):
+    """Tenta construir automaton ``pyahocorasick`` — ``None`` se lib ausente; build por-request (ADR-111)."""
+    try:
+        import ahocorasick  # type: ignore[import-not-found]
+    except ImportError:
+        return None
+    if not keywords:
+        return None
+    automaton = ahocorasick.Automaton()
+    for idx, kw in enumerate(keywords):
+        automaton.add_word(kw, (idx, kw))
+    automaton.make_automaton()
+    return automaton
+
+
+def _match_with_aho_corasick(
+    automaton,
+    narrative_upper: str,
+    rules: tuple[LearnedRule, ...],
+    keyword_to_rules: dict[str, list[int]],
+) -> tuple[str, str] | None:
+    """Acha primeiro match canônico — mantém sort ordering das regras."""
+    if not narrative_upper:
+        return None
+    matched_keywords: set[str] = set()
+    for _, (_, kw) in automaton.iter(narrative_upper):
+        matched_keywords.add(kw)
+    if not matched_keywords:
+        return None
+    # Itera regras (já ordenadas canonicamente) e devolve a 1ª cujo keyword
+    # apareceu no automaton — preserva sort: priority/len/created_at/id.
+    for rule in rules:
+        if rule.keyword in matched_keywords:
+            return (rule.target_category, rule.id)
+    return None
+
+
+def match_normalized_aho_corasick(
+    narrative_upper: str,
+    rules: tuple[LearnedRule, ...],
+) -> tuple[str, str] | None:
+    """Match via Aho-Corasick automaton — ``None`` se lib ausente; caller faz fallback."""
+    if not rules or not narrative_upper:
+        return None
+    keywords = tuple(rule.keyword for rule in rules)
+    automaton = _try_build_aho_corasick(keywords)
+    if automaton is None:
+        return None
+    # ``keyword_to_rules`` reservado para futura paralelização (passa para
+    # _match_with_aho_corasick mas não é usado no fluxo single-shot atual).
+    return _match_with_aho_corasick(automaton, narrative_upper, rules, {})

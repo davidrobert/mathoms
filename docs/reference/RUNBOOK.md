@@ -350,7 +350,103 @@ querystring.
 
 ---
 
-## 9. Referências
+## 9. Dogfood Learning Loop (A12.P3 · ADR-186/188)
+
+Gate dogfood do learning loop: CEO/sócio interno cria ≥5 regras em
+janela de 7 dias, mede revert rate, valida caveats antes de cutover
+global (default flip de `learning_loop_enabled`).
+
+### 9.1 Pré-reqs
+
+- **Feature flag** habilitada por workspace:
+
+  ```python
+  from backend.app.services.feature_flags_service import set_flag
+
+  await set_flag(ws_id, "learning_loop_enabled", True, db=db)
+  ```
+
+  Default global continua `False` (ADR-186 §D6, gate dogfood).
+- **Celery worker** rodando com `--concurrency=1` (race protection
+  P2/P3: partial unique + ON CONFLICT + sort canônico). Em produção,
+  >1 worker é válido — paridade testada em `test_multi_worker_concurrency`,
+  mas para dogfood single-tenant `1` simplifica observabilidade.
+- **Redis** disponível (`apply_status:*` hash + `apply_retroactive:*`
+  idempotency keys; sem Redis o status async degrada para `unknown`).
+
+### 9.2 CLI smoke (curl)
+
+```bash
+TOKEN=<JWT do dogfood user>
+WS=<workspace_id>
+
+# 1. Preview (não persiste)
+curl -X POST "$API/v1/workspaces/$WS/categorization/rules/preview" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"keyword":"UBER","target_category":"Transporte · App"}'
+
+# 2. Criar regra (sync se ≤500 matches → 201; async se >500 → 202)
+curl -X POST "$API/v1/workspaces/$WS/categorization/rules" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"keyword":"UBER","target_category":"Transporte · App","priority":100}'
+
+# 3. Status do apply async (se foi async)
+curl "$API/v1/workspaces/$WS/categorization/rules/<rule_id>/apply-status" \
+  -H "Authorization: Bearer $TOKEN"
+
+# 4. Listar regras
+curl "$API/v1/workspaces/$WS/categorization/rules?enabled=true" \
+  -H "Authorization: Bearer $TOKEN"
+
+# 5. Disable (toggle, sem cascade)
+curl -X POST "$API/v1/workspaces/$WS/categorization/rules/<rule_id>/disable" \
+  -H "Authorization: Bearer $TOKEN"
+
+# 6. Delete (soft + cascade overrides source='rule')
+curl -X DELETE "$API/v1/workspaces/$WS/categorization/rules/<rule_id>" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 9.3 Critério de aceite (7 dias wall-clock)
+
+- **≥5 regras persistentes** (não-deletadas) criadas pelo dogfood user.
+- **`revert_rate ≤ 30%`** — numerador `revert_count_manual_edit` por regra,
+  denominador `applied_count`. Disable não polui (ADR-188 §D3).
+- **≥3 regras com ≥3 matches retroativos cada** — sinal de que regra
+  pegou padrão real, não one-off.
+- **Entrevista qualitativa** (3 perguntas):
+  1. A regra apareceu na 1ª categoria certa do extrato?
+  2. Se você revisse hoje, reverteria?
+  3. Você criaria essa regra de novo?
+- **Tempo de confirmação do dialog `requires_user_confirmation`**:
+  se >70% dos preview com `requires_user_confirmation=true` confirmam
+  em <2s, sinal-ruído errado — UI está pedindo confirmação demais.
+
+### 9.4 Caveats (financial-planner gate triple)
+
+- **PIX cônjuge / split de conta** — detector de transferência interna
+  falha se cônjuge não está em `family_members`. Adicionar cônjuge ao
+  workspace **antes** de criar regras envolvendo categorias domésticas.
+- **Sazonalidade** — keywords mensais (13º salário, IPVA, IPTU) só são
+  testáveis 1×/ano. Dogfood de 7 dias **não vai cobrir** padrões anuais;
+  esperar regressão silenciosa em mês X.
+- **AUVP / contrafluxo / mês fechado** — `report_publications.published_at`
+  bloqueia override retroativo (ADR-187). Preview deve explicar
+  explicitamente: "3 matches em mês aberto, 47 em meses fechados — fechados
+  **não serão alterados**". Se UI não mostra, é P4 follow-up.
+- **Estorno blacklist** (deferred PR3+) — campo `transactions.is_reversed`
+  ainda não existe; pares de estorno não são detectados. Acompanhar manualmente
+  na lista de matches do preview. Track próprio quando dogfood pedir.
+
+### 9.5 Falha do gate → product-designer
+
+Se 4 dos 5 critérios falham, abrir track para `product-designer`
+revisitar extração de keywords (UI + microcopy). Sucesso → P4 frontend
+(react UI) entra na pilha.
+
+---
+
+## 10. Referências
 
 - [runbooks/f9_3_alembic_upgrade.md](runbooks/f9_3_alembic_upgrade.md) — F9.3 stage rename migration (pré-check + backup + rollback)
 - [SLO.md](SLO.md) — SLOs e SLAs de comunicação
