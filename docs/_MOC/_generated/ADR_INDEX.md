@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-183 ADRs (ADR-001 a ADR-190) em [`docs/adr/`](../../adr/).
+184 ADRs (ADR-001 a ADR-191) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 160
-- **Proposto**: 18
+- **Proposto**: 19
 - **Roadmap**: 5
 
 ## Fundação
@@ -388,10 +388,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## report
 
-### Proposto (2)
+### Proposto (3)
 
 - [[ADR-187]] — Relatório publicado é imutável — conceito de mês fechado · phase A11
 - [[ADR-190]] — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica · phase A11
+- [[ADR-191]] — Card Rentabilidade do relatório expõe TRS efetiva — não retorno total · phase A11.W5
 
 ## Outras
 
