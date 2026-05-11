@@ -490,6 +490,37 @@ Se 4 dos 5 critérios falham, abrir track para `product-designer`
 revisitar extração de keywords (UI + microcopy). Sucesso → P4 frontend
 (react UI) entra na pilha.
 
+### 9.6 Gate técnico (smoke E2E + invariantes)
+
+[scripts/dogfood_gate_a12.py](../../scripts/dogfood_gate_a12.py) roda
+gate **técnico** offline — independente do humano. Cria SQLite isolado
+em `_scratch/dogfood_gate_a12.db`, gera fixture realista (~2880 txs /
+24 meses), executa 5 regras (IFOOD / MERCADOLIVRE / UBER / PIX / "13"),
+simula ~20% de reverts, exercita soft + hard cap.
+
+```bash
+.venv/bin/python3 scripts/dogfood_gate_a12.py
+# Verdict: PASS | PARTIAL | FAIL
+# Relatório: _scratch/dogfood_gate_a12_report.md (+ .json)
+```
+
+**Não substitui o gate humano UX** — cobre apenas invariantes
+mensuráveis (ADR-186 §D2/§D6 + ADR-187 + ADR-188 §D3/§D5):
+
+- sticky manual override (não sobrescreve correção do usuário)
+- mês fechado enforce (ADR-187)
+- transferência interna blacklist (PIX/TED não vira "Transferência")
+- keyword warning (`keyword_too_short`)
+- `revert_rate ≤ 30%` computável
+- `applied_count - revert_count_manual_edit == COUNT(overrides ativos)`
+- soft cap (50) warning + hard cap (200) bloqueio
+
+Sinais qualitativos ("vou usar isso?", fadiga de dialog, expectativa
+metodológica) e entrevista §9.3 continuam por conta do gate humano.
+
+**Idempotente** — rodar 2× produz mesmo veredito (RNG seed fixo). Não
+toca `mathoms.db` de produção.
+
 ---
 
 ## 10. Referências
