@@ -1265,6 +1265,146 @@
         "title": "BusinessProfileResponse",
         "type": "object"
       },
+      "CategorizationRuleCreate": {
+        "additionalProperties": false,
+        "description": "Cria nova ``CategorizationRule`` (origem: promo\u00e7\u00e3o de override).",
+        "properties": {
+          "confirmed_visualized_months_impact": {
+            "default": false,
+            "description": "Placeholder P4 \u2014 UI confirma impacto em meses visualizados. Mantido em PR2 para n\u00e3o breaking change quando P4 ligar.",
+            "title": "Confirmed Visualized Months Impact",
+            "type": "boolean"
+          },
+          "keyword": {
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Keyword",
+            "type": "string"
+          },
+          "origin_override_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "minLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ID do TransactionOverride que originou esta regra (auditoria).",
+            "title": "Origin Override Id"
+          },
+          "priority": {
+            "default": 100,
+            "description": "Prioridade de match (maior ganha; default 100).",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "type": "integer"
+          },
+          "target_category": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Target Category",
+            "type": "string"
+          }
+        },
+        "required": [
+          "keyword",
+          "target_category"
+        ],
+        "title": "CategorizationRuleCreate",
+        "type": "object"
+      },
+      "CategorizationRuleResponse": {
+        "description": "Regra promovida \u2014 o que a UI consome.",
+        "properties": {
+          "applied_count": {
+            "title": "Applied Count",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "keyword": {
+            "title": "Keyword",
+            "type": "string"
+          },
+          "origin_override_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin Override Id"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "revert_count_manual_edit": {
+            "title": "Revert Count Manual Edit",
+            "type": "integer"
+          },
+          "revert_count_rule_disabled": {
+            "title": "Revert Count Rule Disabled",
+            "type": "integer"
+          },
+          "target_category": {
+            "title": "Target Category",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "keyword",
+          "target_category",
+          "priority",
+          "enabled",
+          "applied_count",
+          "revert_count_manual_edit",
+          "revert_count_rule_disabled",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CategorizationRuleResponse",
+        "type": "object"
+      },
       "CategoryCreateCommand": {
         "description": "Input do ``POST /categories``.",
         "properties": {
@@ -1654,6 +1794,31 @@
           "total"
         ],
         "title": "ConfigImportResponse",
+        "type": "object"
+      },
+      "ConflictEntry": {
+        "additionalProperties": false,
+        "description": "Regra ativa do workspace que j\u00e1 usa essa keyword (UI alerta).",
+        "properties": {
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "target_category": {
+            "title": "Target Category",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "target_category",
+          "priority"
+        ],
+        "title": "ConflictEntry",
         "type": "object"
       },
       "ConsumoPontuaisItem": {
@@ -6820,6 +6985,175 @@
         "title": "RiskUpdateCommand",
         "type": "object"
       },
+      "RulePreviewRequest": {
+        "additionalProperties": false,
+        "description": "Input do preview \u2014 regra sint\u00e9tica + janela opcional de per\u00edodo.",
+        "properties": {
+          "keyword": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Keyword",
+            "type": "string"
+          },
+          "period_window": {
+            "anyOf": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Window"
+          },
+          "target_category": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Target Category",
+            "type": "string"
+          }
+        },
+        "required": [
+          "keyword",
+          "target_category"
+        ],
+        "title": "RulePreviewRequest",
+        "type": "object"
+      },
+      "RulePreviewResponse": {
+        "additionalProperties": false,
+        "description": "Shape rico para UI decidir antes de POST / (ADR-188 \u00a7D5).",
+        "properties": {
+          "conflicts": {
+            "items": {
+              "$ref": "#/components/schemas/ConflictEntry"
+            },
+            "title": "Conflicts",
+            "type": "array"
+          },
+          "low_risk": {
+            "title": "Low Risk",
+            "type": "boolean"
+          },
+          "matches_amount_total_brl_cents": {
+            "title": "Matches Amount Total Brl Cents",
+            "type": "integer"
+          },
+          "matches_blocked_internal_transfers": {
+            "title": "Matches Blocked Internal Transfers",
+            "type": "integer"
+          },
+          "matches_by_month": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Matches By Month",
+            "type": "object"
+          },
+          "matches_in_closed_months": {
+            "title": "Matches In Closed Months",
+            "type": "integer"
+          },
+          "matches_total": {
+            "title": "Matches Total",
+            "type": "integer"
+          },
+          "matches_with_manual_override": {
+            "title": "Matches With Manual Override",
+            "type": "integer"
+          },
+          "requires_user_confirmation": {
+            "title": "Requires User Confirmation",
+            "type": "boolean"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/WarningEntry"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "matches_total",
+          "matches_in_closed_months",
+          "matches_with_manual_override",
+          "matches_blocked_internal_transfers",
+          "matches_amount_total_brl_cents",
+          "matches_by_month",
+          "conflicts",
+          "low_risk",
+          "requires_user_confirmation",
+          "warnings"
+        ],
+        "title": "RulePreviewResponse",
+        "type": "object"
+      },
+      "RulesListMeta": {
+        "additionalProperties": false,
+        "description": "Metadados de pagina\u00e7\u00e3o + caps (ADR-188 \u00a7D6).",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "hard_cap": {
+            "title": "Hard Cap",
+            "type": "integer"
+          },
+          "soft_cap": {
+            "title": "Soft Cap",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/WarningEntry"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "count",
+          "soft_cap",
+          "hard_cap",
+          "warnings"
+        ],
+        "title": "RulesListMeta",
+        "type": "object"
+      },
+      "RulesListResponse": {
+        "additionalProperties": false,
+        "description": "Lista paginada de regras + meta.",
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/RulesListMeta"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/CategorizationRuleResponse"
+            },
+            "title": "Rules",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rules",
+          "meta"
+        ],
+        "title": "RulesListResponse",
+        "type": "object"
+      },
       "RunActionResponse": {
         "description": "Resposta gen\u00e9rica de a\u00e7\u00f5es no run (cancel/resume).",
         "properties": {
@@ -9232,6 +9566,26 @@
         "title": "VaultResponse",
         "type": "object"
       },
+      "WarningEntry": {
+        "additionalProperties": false,
+        "description": "Aviso n\u00e3o-bloqueante (UI mostra mas permite continuar).",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "WarningEntry",
+        "type": "object"
+      },
       "WorkspaceLLMSpendDTO": {
         "description": "Spend snapshot de um workspace na janela consultada.",
         "properties": {
@@ -11525,6 +11879,309 @@
         "summary": "Update Business Profile",
         "tags": [
           "workspaces"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/categorization/rules": {
+      "get": {
+        "description": "Lista paginada de regras + meta (count, caps, warnings).",
+        "operationId": "list_rules_endpoint_api_v1_workspaces__workspace_id__categorization_rules_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "enabled",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Enabled"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RulesListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Rules Endpoint",
+        "tags": [
+          "categorization",
+          "learning-loop"
+        ]
+      },
+      "post": {
+        "description": "Cria regra + apply retroativo s\u00edncrono (\u2264500 overrides).",
+        "operationId": "create_rule_endpoint_api_v1_workspaces__workspace_id__categorization_rules_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategorizationRuleCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategorizationRuleResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Rule Endpoint",
+        "tags": [
+          "categorization",
+          "learning-loop"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/categorization/rules/preview": {
+      "post": {
+        "description": "Preview sem persist\u00eancia \u2014 UI decide antes de POST /.",
+        "operationId": "preview_rule_endpoint_api_v1_workspaces__workspace_id__categorization_rules_preview_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RulePreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RulePreviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Preview Rule Endpoint",
+        "tags": [
+          "categorization",
+          "learning-loop"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/categorization/rules/{rule_id}": {
+      "delete": {
+        "description": "Soft-delete rule + cascade ``transaction_overrides.source='rule'``.",
+        "operationId": "delete_rule_endpoint_api_v1_workspaces__workspace_id__categorization_rules__rule_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "title": "Rule Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Rule Endpoint",
+        "tags": [
+          "categorization",
+          "learning-loop"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/categorization/rules/{rule_id}/disable": {
+      "post": {
+        "description": "Toggle ``enabled=false`` \u2014 n\u00e3o cascadia overrides (idempotente).",
+        "operationId": "disable_rule_endpoint_api_v1_workspaces__workspace_id__categorization_rules__rule_id__disable_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "title": "Rule Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Disable Rule Endpoint",
+        "tags": [
+          "categorization",
+          "learning-loop"
         ]
       }
     },

@@ -40,6 +40,10 @@ DEFAULTS: dict[str, bool] = {
     "report_tasks_snapshot_enabled": True,
     # F8.3 — scan automático de prazos por cron beat.
     "task_deadline_notifications_enabled": True,
+    # A12 P3 — learning loop endpoints (ADR-186/188). Default False:
+    # gate dogfood (CEO ≥5 regras / 7d) decide cutover global. Por workspace
+    # via ``set_flag(..., 'learning_loop_enabled', True)``.
+    "learning_loop_enabled": False,
 }
 
 
