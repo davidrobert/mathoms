@@ -125,7 +125,21 @@
             "type": "object",
             "required": ["categoria", "valor", "pct"],
             "properties": {
-              "categoria": {"type": "string"},
+              "categoria": {
+                "type": "string",
+                "enum": [
+                  "Cripto",
+                  "Previdência",
+                  "FIIs",
+                  "Internacional",
+                  "Ações BR",
+                  "Renda Fixa",
+                  "Fundos",
+                  "Caixa",
+                  "Imóveis Investimento",
+                  "Outros"
+                ]
+              },
               "valor": {"type": "number"},
               "pct": {"type": "number"}
             }
@@ -135,7 +149,7 @@
         "top_ativos": {
           "type": "array",
           "maxItems": 15,
-          "description": "Ranking determinístico produzido por TopAtivosAnalyzer; coerente com tabela_classes (mesmo bens_por_membro).",
+          "description": "Ranking determinístico produzido por TopAtivosAnalyzer; coerente com tabela_classes (mesmo bens_por_membro). Enum de classe = BUCKETS canônicos (ADR-193).",
           "items": {
             "type": "object",
             "required": [
@@ -154,10 +168,14 @@
               "classe": {
                 "type": "string",
                 "enum": [
-                  "Renda Fixa",
-                  "Ações",
                   "Cripto",
-                  "Contas Bancárias",
+                  "Previdência",
+                  "FIIs",
+                  "Internacional",
+                  "Ações BR",
+                  "Renda Fixa",
+                  "Fundos",
+                  "Caixa",
                   "Imóveis Investimento",
                   "Outros"
                 ]

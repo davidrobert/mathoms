@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Mapping
 
+from pipeline.domain.services.asset_classifier import classify_asset
 from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
 )
@@ -155,12 +156,13 @@ class TopAtivosAnalyzer:
         if valor <= 0:
             return None
         tipo = str(inv.get("tipo") or "").strip()
+        descricao = str(inv.get("descricao") or inv.get("description") or "").strip()
         instituicao_raw = str(inv.get("instituicao") or "").strip()
         instituicao = instituicao_raw.capitalize() if instituicao_raw else ""
         nome = str(inv.get("nome") or "").strip() or self._fallback_nome(tipo, instituicao)
         return _Candidate(
             nome=nome,
-            classe=self._classify_tipo(tipo),
+            classe=self._classify(tipo, descricao, instituicao_raw),
             membro=member,
             instituicao=instituicao,
             valor=valor,
@@ -197,13 +199,15 @@ class TopAtivosAnalyzer:
             tipo_origem="imovel",
         )
 
-    def _classify_tipo(self, tipo: str) -> str:
-        tipo_lower = tipo.lower()
-        for classe in ("Ações", "Renda Fixa", "Cripto", "Contas Bancárias"):
-            keywords = self._config.classes_config.keywords_por_classe.get(classe, ())
-            if any(kw in tipo_lower for kw in keywords):
-                return classe
-        return "Outros"
+    def _classify(self, tipo: str, descricao: str, instituicao: str) -> str:
+        """Delega para :func:`classify_asset` — taxonomia ADR-193 unificada
+        com :class:`InvestimentosClassesAnalyzer`."""
+        return classify_asset(
+            tipo,
+            descricao,
+            instituicao,
+            keywords=self._config.classes_config.keywords_por_classe,
+        )
 
     @staticmethod
     def _fallback_nome(tipo: str, instituicao: str) -> str:

@@ -1758,109 +1758,6 @@ def analyze_reserva_emergencia(fluxo: Dict[str, Any], patrimonio: Dict[str, Any]
     }
 
 
-def analyze_investimentos_classes(baseline: Dict[str, Any]) -> Dict[str, Any]:
-    """Analyze investments by asset class from baseline data."""
-    print("[E5.7b] Analyzing investimentos por classe...")
-
-    david, mariana = _resolve_members(baseline)
-    david_bens = _get_bens(david)
-    mariana_bens = _get_bens(mariana)
-
-    # Asset class keywords loaded from scoring.json
-    _acl_kw = SCORING_CONFIG.get("asset_class_keywords", {})
-    _kw_acoes = _acl_kw.get("Ações", ["acoes", "ações", "itsa", "brkm", "petr", "etf", "ivvb"])
-    _kw_rf = _acl_kw.get(
-        "Renda Fixa",
-        [
-            "renda fixa",
-            "cdb",
-            "rdb",
-            "lci",
-            "lca",
-            "tesouro",
-            "debenture",
-            "certificado de deposito",
-        ],
-    )
-    _kw_cripto = _acl_kw.get("Cripto", ["cripto", "bitcoin", "ethereum", "binance"])
-    _kw_contas = _acl_kw.get("Contas Bancárias", ["banco", "picpay", "nubank", "saldo", "conta"])
-
-    classes = {
-        "Renda Fixa": 0.0,
-        "Ações": 0.0,
-        "Imóveis Investimento": 0.0,
-        "Cripto": 0.0,
-        "Contas Bancárias": 0.0,
-        "Outros": 0.0,
-    }
-
-    def classify_investment(tipo_str: str, valor: float):
-        tipo_lower = tipo_str.lower()
-        if any(kw in tipo_lower for kw in _kw_acoes):
-            classes["Ações"] += valor
-        elif any(kw in tipo_lower for kw in _kw_rf):
-            classes["Renda Fixa"] += valor
-        elif any(kw in tipo_lower for kw in _kw_cripto):
-            classes["Cripto"] += valor
-        elif any(kw in tipo_lower for kw in _kw_contas):
-            classes["Contas Bancárias"] += valor
-        else:
-            classes["Outros"] += valor
-
-    for inv in david_bens.get("investimentos", []):
-        tipo = inv.get("tipo", "")
-        valor = safe_float(inv.get("valor", inv.get("valor_31_12_ano_base", 0)))
-        if valor > 0:
-            classify_investment(tipo, valor)
-
-    for inv in mariana_bens.get("investimentos", []):
-        tipo = inv.get("tipo", "")
-        valor = safe_float(inv.get("valor", inv.get("valor_31_12_ano_base", 0)))
-        if valor > 0:
-            classify_investment(tipo, valor)
-
-    # Add cripto from top-level fields
-    classes["Cripto"] += safe_float(david_bens.get("criptos", 0))
-    classes["Cripto"] += safe_float(mariana_bens.get("criptos", 0))
-
-    # Add contas bancárias from top-level
-    contas_d = david_bens.get("contas_bancarias", 0)
-    if isinstance(contas_d, (int, float)):
-        classes["Contas Bancárias"] += safe_float(contas_d)
-    contas_m = mariana_bens.get("contas_bancarias", 0)
-    if isinstance(contas_m, (int, float)):
-        classes["Contas Bancárias"] += safe_float(contas_m)
-
-    _residencia_kw2 = (
-        FAMILY_CONFIG.get("membros", {})
-        .get(_TITULAR_KEY, {})
-        .get("residencia_principal_keyword", "")
-        .lower()
-    )
-    for imovel in david_bens.get("imoveis", []):
-        if not _residencia_kw2 or _residencia_kw2 not in _imovel_desc(imovel):
-            classes["Imóveis Investimento"] += _imovel_valor(imovel)
-    for imovel in mariana_bens.get("imoveis", []):
-        classes["Imóveis Investimento"] += _imovel_valor(imovel)
-
-    total = sum(classes.values())
-    tabela_classes = []
-    for cat, val in sorted(classes.items(), key=lambda x: x[1], reverse=True):
-        if val > 0:
-            tabela_classes.append(
-                {
-                    "categoria": cat,
-                    "valor": round(val, 2),
-                    "pct": round((val / total) * 100, 2) if total > 0 else 0,
-                }
-            )
-
-    return {
-        "tabela_classes": tabela_classes,
-        "total": round(total, 2),
-    }
-
-
 def analyze_endividamento(patrimonio: Dict[str, Any], baseline: Dict[str, Any]) -> Dict[str, Any]:
     """Analyze debt structure."""
     print("[E5.8] Analyzing endividamento...")
@@ -2985,9 +2882,13 @@ def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
         investimentos_dict["top_ativos"] = [a.to_dict() for a in result.top_ativos.top_ativos]
     if getattr(result, "instituicoes_por_membro", None) is not None:
         investimentos_dict.update(result.instituicoes_por_membro.to_legacy_dict())
+    investimentos_warnings = [
+        w.format() for w in (getattr(result.investimentos_classes, "warnings", ()) or ())
+    ]
     return {
         "patrimonio": result.patrimonio_full,
         "investimentos_classes": investimentos_dict,
+        "investimentos_warnings": investimentos_warnings,
         "fluxo": result.fluxo_enriched.to_legacy_dict(),
         "goals": result.if_projection.to_legacy_dict() if result.if_projection else {},
         "ratios": result.ratios.to_legacy_dict(),
@@ -3107,6 +3008,7 @@ def _e5_compose_output(
         pontos_fortes=legacy["pontos_fortes"],
         pontos_urgentes=legacy["pontos_urgentes"],
         investimentos_classes=legacy["investimentos_classes"],
+        investimentos_warnings=legacy.get("investimentos_warnings"),
         equilibrio_cerbasi=legacy["cerbasi"],
         consumo=legacy["consumo"],
         diagnostico=legacy["diagnostico"],

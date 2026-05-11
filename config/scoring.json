@@ -157,13 +157,14 @@
   },
 
   "asset_class_keywords": {
-    "_comment": "Keywords para classificação de investimentos por classe de ativo no E5.",
-    "Ações": ["acoes", "ações", "itsa", "brkm", "petr", "etf", "ivvb", "fii", "fiis"],
-    "Renda Fixa": ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "certificado de deposito", "cra", "cri", "cofrinhos"],
-    "Fundos": ["fundo", "fic", "fim", "fia", "alaska", "constellation", "western", "safari"],
-    "Cripto": ["cripto", "bitcoin", "ethereum", "binance", "btc", "eth"],
-    "Internacional": ["wise", "usd", "dolar", "ivvb11", "global", "bofa", "bank of america"],
+    "_comment": "Taxonomia canônica de 8 buckets financeiros (ADR-193). Avaliação em ordem de especialização: Cripto → Previdência → FIIs → Internacional → Ações BR → Renda Fixa → Fundos → Caixa. Ver pipeline/domain/services/asset_classifier.py para defaults e EVALUATION_ORDER. Imóveis Investimento + Outros são buckets terminais (sem keywords).",
+    "Cripto": ["cripto", "bitcoin", "ethereum", "binance", "btc", "eth", "hashdex"],
     "Previdência": ["pgbl", "vgbl", "previdencia", "previdência"],
-    "Contas Bancárias": ["banco", "picpay", "nubank", "saldo", "conta corrente"]
+    "FIIs": ["fii", "fiis", "fundo imobiliario", "fundo imobiliário"],
+    "Internacional": ["wise", "usd", "dolar", "dólar", "ivvb", "global", "bofa", "bank of america", "moeda estrangeira", "exterior"],
+    "Ações BR": ["acoes", "ações", "acao", "ação", "itsa", "brkm", "petr", "etf", "participacao societaria", "participação societária"],
+    "Renda Fixa": ["renda fixa", "cdb", "rdb", "lci", "lca", "tesouro", "debenture", "debênture", "certificado de deposito", "cra", "cri", "poupanca", "poupança", "cofrinhos"],
+    "Fundos": ["fic ", " fim", " fia", "fundo de investimento", "alaska", "constellation", "western", "safari", "dna energy"],
+    "Caixa": ["conta corrente", "picpay", "nubank", "saldo em conta", "conta de deposito"]
   }
 }
