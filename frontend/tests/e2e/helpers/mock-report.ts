@@ -208,6 +208,16 @@ export async function mockReportPage(
       return json(route, { decisions: [], total: 0 });
     }
 
+    // ADR-187 (#185) — `MonthClosedBanner` chama
+    // `/reports/{period}/publication`; backend retorna `null` quando mês
+    // está aberto (default). Sem esta rota, o catch-all `{}` produz
+    // `publication = {}` (truthy), banner renderiza com "Invalid Date" e
+    // 1-2px de reflow afetam canvas dos charts → baselines visuais
+    // quebram (ratio 0.03-0.04 px diff em S2/APP-A/APP-B etc).
+    if (path.match(/\/reports\/\d+\/publication$/)) {
+      return json(route, null);
+    }
+
     return json(route, {});
   });
 
