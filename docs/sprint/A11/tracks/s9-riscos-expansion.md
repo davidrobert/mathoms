@@ -41,39 +41,51 @@ A solução completa (ADR-192) cria aggregate `Protection`, bundle tipado, 5 cal
 
 ## Sub-tasks (6 ondas, paralelizáveis onde indicado)
 
-### S9-T01 — Hotfix narrativa (≤1 dia, 1 PR, **destrava produção**)
+### S9-T01 — Hotfix narrativa ✅ (mergeado 2026-05-11 · [#212](https://github.com/davidrobert/mathoms/pull/212) · commit `2ec4254`)
 
-**Owner sugerido:** `senior-cto`. **Paralelo com:** T02, T03 (zero overlap em files).
+**Owner:** `senior-cto`. **Status:** ✅ mergeado em `main`.
 
-Mata o sintoma feio sem aguardar a expansão completa. Cliente que abre relatório hoje **não** pode ver `"R$ 0-0M"` em prosa default.
+Mata o sintoma feio sem aguardar a expansão completa. Cliente que abre relatório hoje **não** vê mais `"R$ 0-0M"` em prosa default.
 
-- [ ] Guard early-return em `_narrate_riscos_decisoes` ([pipeline/domain/services/narrativas/charts_narrator.py:355-368](../../../../pipeline/domain/services/narrativas/charts_narrator.py)) quando `_riscos_top3 == []`: emite `context`/`conclusion` com copy degradada coerente ("Sem riscos críticos cadastrados. Mapeie suas exposições no Console para destravar análise de cobertura.") + sinal `data_state: "empty"` no payload de narrativas.
-- [ ] Remover string hardcoded `"CPA expatriado + seguro term R$ X-Y M"` da narrativa default. Compliance USA aparece **apenas** quando `payload.has_us_exposure == True` (flag temporária computada no `pipeline_adapter` a partir de `family_members.residencia` e ativos USD — promovida ao `ProtectionBundle.has_us_exposure` em T02).
-- [ ] Default `seguro_vida_minimo`/`seguro_vida_maximo` em formatter helpers para `None` quando ausente; render `"a definir"` em vez de `"R$ 0-0M"`.
-- [ ] Teste regressão `tests/pipeline/domain/services/narrativas/test_charts_narrator.py::test_riscos_decisoes_empty_list`: fake `riscos_top3=[]` + bag sem `seguro_vida_*` → assert que `context`/`conclusion` **não** contém `": ."`, `"R$ 0-"`, `"CPA expatriado"`.
-- [ ] Teste regressão `::test_riscos_default_no_us_assumption`: fake bag sem `has_us_exposure` → assert que `"CPA"`/`"FBAR"`/`"FATCA"` ausentes da narrativa default.
-- [ ] Renderer `S9RiscosSection` ([frontend/src/components/report/sections/S9RiscosSection.tsx](../../../../frontend/src/components/report/sections/S9RiscosSection.tsx)) lê `data_state` do payload e, se `"empty"`, renderiza `<EmptyStateCard/>` com CTA "Cadastrar riscos no Console" em vez do `NarrativeChartCard` quebrado. Componente `<EmptyStateCard/>` reusa estilo de `ReportCard variant="warn"`.
-- [ ] Goldens E5 atualizados em PR de paridade dedicado se shape `bubble_riscos.context/conclusion` mudar — diff explícito no body do PR.
+- [x] Guard early-return em `_narrate_riscos_decisoes` ([pipeline/domain/services/narrativas/charts_narrator.py:355-368](../../../../pipeline/domain/services/narrativas/charts_narrator.py)) quando `_riscos_top3 == []`.
+- [x] Remover string hardcoded `"CPA expatriado + seguro term R$ X-Y M"` da narrativa default.
+- [x] Default `seguro_vida_minimo`/`seguro_vida_maximo` em formatter helpers para `None` → `"a definir"`.
+- [x] Teste regressão `tests/pipeline/domain/services/narrativas/test_charts_narrator.py::test_riscos_decisoes_empty_list`.
+- [x] Teste regressão `::test_riscos_default_no_us_assumption`.
+- [x] Renderer `S9RiscosSection` lê `data_state` e renderiza `<EmptyStateCard/>` (CTA "Cadastrar riscos no Console").
+- [ ] Goldens E5 (movido para T06 — onda 3, reset único).
 
-**Gate de saída T01:** ciclo Ferreira-Campos + workspace vazio rodam sem regressão de narrativa.
+**Gate de saída T01:** ✅ ciclo Ferreira-Campos + workspace vazio rodam sem regressão de narrativa.
 
-### S9-T02 — `Protection` aggregate + `ProtectionBundle` skeleton (~2-3 dias, 1 PR, **gate para T03-T05**)
+### S9-T02 — `Protection` aggregate + `ProtectionBundle` skeleton ✅ (mergeado neste PR)
 
-**Owner sugerido:** `senior-cto` co-design com `data-engineer` (schema/migration). **Paralelo com:** T01 (zero overlap), T03 (T03 depende deste PR mergeado).
+**Owner:** `senior-cto` co-design com `data-engineer` + `financial-planner` + `sre-devops`. **Status:** ✅ entregue neste PR.
 
-Cria a fundação DDD da expansão. Sem este PR mergeado, T03/T04/T05 não destravam.
+Cria a fundação DDD da expansão. **Aplicou ressalvas dos 3 reviewers** (ADR-192 §"Atualizações pós-revisão").
 
-- [ ] `backend/app/models/protection.py`: aggregate `Protection` conforme ADR-192 §D1. FK `workspace_id`, FK `holder_family_member_id` opcional, FK `policy_ref` campo opaco (vault Fernet em T03 se confirmado uso).
-- [ ] Alembic migration (single revision): cria `protections` com índices `(workspace_id)`, `(workspace_id, status)`, `(workspace_id, category)`; adiciona `risks.mitigation_protection_ids JSONB NULL`.
-- [ ] Repo `ProtectionRepository` em `backend/app/repositories/` + 6 use cases em `backend/app/application/protections/` (`create_protection`, `update_protection`, `change_status`, `link_to_risk`, `unlink_from_risk`, `archive_protection`).
-- [ ] Endpoints `POST/GET/PATCH /protections` + `GET /workspaces/{id}/protection-bundle` com `response_model` Pydantic explícito (ADR-102 R18).
-- [ ] OpenAPI snapshot regerado (`make update-openapi-snapshot`).
-- [ ] `ConfigStore` Protocol ([backend/app/services/config_store.py](../../../../backend/app/services/config_store.py)) ganha `get_protection_bundle(workspace_id) -> ProtectionBundle`. Implementação `DBConfigStore` consulta `ProtectionRepository` + `RiskRepository` + `BaselineSnapshot`.
-- [ ] `ProtectionBundle` TypedDict em [pipeline/domain/types/protection_bundle.py](../../../../pipeline/domain/types/protection_bundle.py) (módulo novo) — sem import de SQLAlchemy. Adapter em `backend/app/services/pipeline_adapter.py` monta via `_project_protection_bundle_sync`/`_async` (mesmo padrão de `build_goals_payload_sync` ADR-180).
-- [ ] Testes `backend/tests/test_protection_aggregate.py` (~25 specs): CRUD por workspace, tenancy isolada, link/unlink com Decision e Risk, transições de status, vencimento (`ends_at < hoje` → `status="Vencida"` em job futuro, mas modelo aceita).
-- [ ] Gate `dev/check_pipeline_boundaries.py` verde — `pipeline/**` não importa `sqlalchemy`.
+- [x] `backend/app/models/protection.py`: aggregate `Protection` (11 colunas + 3 índices, incluindo `(workspace_id, ends_at)` para job futuro "vencendo em 30d").
+- [x] `category`/`status`/`coverage_type` como `String(N) + frozenset` (padrão Risk/Decision — coerência > otimização).
+- [x] Alembic migration `c9d0e1f2a3b4_adr192_protection_aggregate.py`: cria `protections` + adiciona `risks.mitigation_protection_ids JSON NULL`.
+- [x] Repo `ProtectionRepository` em `backend/app/repositories/` + 6 use cases (`create_protection`, `get_protection`, `list_protections`, `update_protection`, `cancel_protection` [soft delete], `link_to_risk`+`unlink_from_risk`).
+- [x] Endpoints `POST/GET/PATCH /protections` + `POST /cancel` + `POST/DELETE /risks` + `GET /protection-bundle` com `response_model` Pydantic explícito (ADR-102 R18).
+- [x] `DBConfigStore.get_protection_bundle(workspace_id) → ProtectionBundle` (delega adapter).
+- [x] `ProtectionBundle` TypedDict em [pipeline/domain/protection_bundle.py](../../../../pipeline/domain/protection_bundle.py) — sem import de SQLAlchemy.
+- [x] Adapter `_project_protection_bundle_sync/async` + `build_protection_bundle*` em [pipeline_adapter.py](../../../../backend/app/services/pipeline_adapter.py).
+- [x] PII helpers `backend/app/services/protection_pii.py` — Fernet vault + `mask_coverage_bucket` (índice 0-5).
+- [x] Logs ADR-110: `policy_ref`, `coverage_brl`, `premium_monthly_brl`, `holder_name` no `SENSITIVE_FIELD_SUBSTRINGS`; INFO emite `coverage_bucket: int (0-5)`.
+- [x] `insurer` allowlist regex (ASCII+acentos PT-BR, S/A aceito); URLs/paths rejeitados (defesa SSRF).
+- [x] Testes `backend/tests/test_protection_aggregate.py` (26 specs · 26/26 passing).
+- [x] OpenAPI snapshot regerado + DB_SCHEMA_REFERENCE.md regenerado.
+- [x] Gate `dev/check_pipeline_boundaries.py` verde.
 
-**Gate de saída T02:** ADR-192 flippa de `Proposto` para `Decidido (Sprint A11.W5)` quando este PR mergeia.
+**Itens movidos para T-futuro** (escopo T02 reduzido com aprovação senior-cto pós-gate triplo):
+- Rate-limit DB-backed em `/protection-bundle` (60 req/min) — débito justificado em ADR-192 §"Atualizações"; cobre quando tráfego justificar.
+- Cache Redis no bundle agregado (TTL 60s + invalidação por write) — idem.
+- KEK rotation procedure no runbook (`docs/reference/RUNBOOK.md`) — operacional, não bloqueia merge.
+
+**`emergency_reserve_target` removido de T03** (financial-planner review): migra para track futuro de `Goal` (ADR-180); aggregate `Protection` mantém coesão semântica (apólice com `ends_at`/prêmio).
+
+**Gate de saída T02:** ✅ ADR-192 flippa de `Proposto` para `Decidido (Sprint A11.W5)` neste PR.
 
 ### S9-T03 — 5 calculators determinísticos + auto-inferência (~3 dias, 1 PR)
 

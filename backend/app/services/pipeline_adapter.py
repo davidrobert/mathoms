@@ -609,6 +609,12 @@ def _institutions_override(db: SyncSession) -> dict[str, Any] | None:
     return {"banco_canonical": {code: inst.name for code, inst in catalog.institutions.items()}}
 
 
+# ADR-192 — build_protection_bundle* vive em protection_bundle_adapter (SRP).
+from backend.app.services.protection_bundle_adapter import (  # noqa: E402
+    build_protection_bundle,
+    build_protection_bundle_sync,
+)
+
 __all__ = [
     # Sync (worker)
     "build_goals_payload_sync",
@@ -616,8 +622,10 @@ __all__ = [
     "build_tarefas_md_sync",
     "build_config_store",
     "build_config_overrides_from_db",
+    "build_protection_bundle_sync",
     # Async (endpoints)
     "build_goals_payload",
     "build_tasks_payload",
     "build_tarefas_md",
+    "build_protection_bundle",
 ]

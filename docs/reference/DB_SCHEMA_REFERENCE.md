@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 42
+**Total de tabelas:** 43
 
 ---
 
@@ -37,6 +37,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`pipeline_configs`](#pipelineconfigs)
 - [`pipeline_runs`](#pipelineruns)
 - [`pipeline_stage_logs`](#pipelinestagelogs)
+- [`protections`](#protections)
 - [`report_layouts`](#reportlayouts)
 - [`report_publications`](#reportpublications)
 - [`reports`](#reports)
@@ -655,6 +656,38 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - `ix_pipeline_stage_logs_pipeline_run_id` (pipeline_run_id)
 
+### `protections`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `category` | `VARCHAR(32)` | no | — | — |
+| `holder_family_member_id` | `VARCHAR(36)` | yes | — | FK→family_members.id |
+| `insurer` | `VARCHAR(120)` | yes | — | — |
+| `policy_ref` | `TEXT` | yes | — | — |
+| `coverage_brl_cents` | `BIGINT` | no | — | — |
+| `premium_monthly_brl_cents` | `BIGINT` | yes | — | — |
+| `coverage_type` | `VARCHAR(16)` | yes | — | — |
+| `starts_at` | `DATE` | no | — | — |
+| `ends_at` | `DATE` | yes | — | — |
+| `status` | `VARCHAR(16)` | no | `'Ativa'` | — |
+| `notes` | `TEXT` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (holder_family_member_id) REFERENCES family_members.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_protections_workspace_id` (workspace_id)
+- `ix_protections_ws_category` (workspace_id, category)
+- `ix_protections_ws_ends_at` (workspace_id, ends_at)
+- `ix_protections_ws_status` (workspace_id, status)
+
 ### `report_layouts`
 
 | Column | Type | Nullable | Default | Tags |
@@ -734,6 +767,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `impact_brl_cents` | `BIGINT` | yes | — | — |
 | `status` | `VARCHAR(32)` | no | `'Ativo'` | — |
 | `mitigations_decision_ids` | `JSON` | no | callable: `list` | — |
+| `mitigation_protection_ids` | `JSON` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
@@ -1159,6 +1193,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 - `report_layouts.config_json`
 - `reports.premissas_snapshot_json`
 - `reports.tasks_snapshot_json`
+- `risks.mitigation_protection_ids`
 - `risks.mitigations_decision_ids`
 - `stage_reviews.edited_output_json`
 - `stage_reviews.original_output_json`
@@ -1600,6 +1635,28 @@ type PipelineStageLog struct {
 }
 ```
 
+### `protections` → `type Protection struct`
+
+```go
+type Protection struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	Category string `db:"category" json:"category"`
+	HolderFamilyMemberId *string `db:"holder_family_member_id" json:"holder_family_member_id"`
+	Insurer *string `db:"insurer" json:"insurer"`
+	PolicyRef *string `db:"policy_ref" json:"policy_ref"`
+	CoverageBrlCents int64 `db:"coverage_brl_cents" json:"coverage_brl_cents"`
+	PremiumMonthlyBrlCents *int64 `db:"premium_monthly_brl_cents" json:"premium_monthly_brl_cents"`
+	CoverageType *string `db:"coverage_type" json:"coverage_type"`
+	StartsAt time.Time `db:"starts_at" json:"starts_at"`
+	EndsAt *time.Time `db:"ends_at" json:"ends_at"`
+	Status string `db:"status" json:"status"`
+	Notes *string `db:"notes" json:"notes"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
 ### `report_layouts` → `type ReportLayout struct`
 
 ```go
@@ -1659,6 +1716,7 @@ type Risk struct {
 	ImpactBrlCents *int64 `db:"impact_brl_cents" json:"impact_brl_cents"`
 	Status string `db:"status" json:"status"`
 	MitigationsDecisionIds json.RawMessage `db:"mitigations_decision_ids" json:"mitigations_decision_ids"`
+	MitigationProtectionIds json.RawMessage `db:"mitigation_protection_ids" json:"mitigation_protection_ids"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }

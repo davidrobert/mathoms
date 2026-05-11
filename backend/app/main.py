@@ -31,6 +31,12 @@ from backend.app.api.llm import router as llm_router
 from backend.app.api.me import router as me_router
 from backend.app.api.notifications import router as notifications_router
 from backend.app.api.pipeline import router as pipeline_router
+from backend.app.api.protections import (
+    protection_bundle_router,
+)
+from backend.app.api.protections import (
+    router as protections_router,
+)
 from backend.app.api.report_publications import router as report_publications_router
 from backend.app.api.reports import router as reports_router
 from backend.app.api.reports_collab import router as reports_collab_router
@@ -209,6 +215,8 @@ _ALL_ROUTERS = (
     goals_router,
     decisions_router,
     risks_router,
+    protections_router,
+    protection_bundle_router,
     suggestions_router,
     workspaces_router,
     workspaces_tenant_router,

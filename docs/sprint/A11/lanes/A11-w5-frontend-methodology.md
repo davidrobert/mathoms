@@ -26,4 +26,11 @@ tags:
 
 ## Status (legado)
 
-☐ ready
+☑ in_progress
+
+## Sub-tracks ativos
+
+- **S9-Expansion** — track [s9-riscos-expansion](../tracks/s9-riscos-expansion.md), ADR canônica [[ADR-192]]:
+  - T01 ✅ ([#212](https://github.com/davidrobert/mathoms/pull/212), 2026-05-11)
+  - T02 ✅ (mergeando junto com flip ADR-192 para `Decidido`)
+  - T03–T06 pendentes (calculators + UI cards + cadastro + goldens)

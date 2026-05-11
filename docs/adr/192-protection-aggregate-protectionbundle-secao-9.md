@@ -2,8 +2,8 @@
 id: ADR-192
 type: adr
 title: "`Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção)"
-status: Proposto
-phase: "Sprint A11.s9-protection"
+status: Decidido
+phase: "Sprint A11.W5"
 date: "2026-05-11"
 relates_to:
   - "[[ADR-076]]"
@@ -28,13 +28,50 @@ tags:
   - area/multitenancy
   - methodology/cerbasi
   - methodology/perini
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
 # ADR-192 — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção)
 
-**Status:** Proposto (Sprint A11.s9-protection) • **Data:** 2026-05-11 • **Relaciona** [ADR-076](#adr-076--codegen-de-report-layout--single-source-yaml), [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-097](#adr-097--services-de-domínio-com-value-object-tipado-isp), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-110](#adr-110--logging-estruturado-json--otel-opt-in-a6f3), [ADR-111](#adr-111--backend-stateless-rigoroso-a6f6), [ADR-129](#adr-129--descontinuação-completa-do-renderer-html-server-side), [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-178](#adr-178--risk-aggregate-workspace-scoped), [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido). **Origem:** revisão multi-agente da Seção 9 em 2026-05-11 (`product-designer` + `financial-planner` + `senior-cto`); enquadra-se na onda W5 (Frontend + Methodology) de [Sprint A11](../sprint/A11/_README.md).
+**Status:** Decidido (Sprint A11.W5) • **Data:** 2026-05-11 • **Relaciona** [ADR-076](#adr-076--codegen-de-report-layout--single-source-yaml), [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-097](#adr-097--services-de-domínio-com-value-object-tipado-isp), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-110](#adr-110--logging-estruturado-json--otel-opt-in-a6f3), [ADR-111](#adr-111--backend-stateless-rigoroso-a6f6), [ADR-129](#adr-129--descontinuação-completa-do-renderer-html-server-side), [ADR-134](#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76), [ADR-178](#adr-178--risk-aggregate-workspace-scoped), [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido). **Origem:** revisão multi-agente da Seção 9 em 2026-05-11 (`product-designer` + `financial-planner` + `senior-cto`); enquadra-se na onda W5 (Frontend + Methodology) de [Sprint A11](../sprint/A11/_README.md).
+
+## Atualizações pós-revisão (gate triplo T02, 2026-05-11)
+
+Co-design dos 3 reviewers (`data-engineer`, `financial-planner`, `sre-devops`)
+gerou estas ressalvas, aplicadas neste PR de T02:
+
+- **`category`/`status` como `String(N) + frozenset`** (padrão `Risk`/`Decision`),
+  não Enum Postgres nativo. Coerência > otimização; categoria nova = 1 linha em
+  const, zero migration.
+- **Soft delete via `status="Cancelada"`**; hard delete reservado para
+  `/admin/lgpd-request` (T-futuro). Renomeado use case `archive_protection` →
+  `cancel_protection`.
+- **`emergency_reserve_target` removido de §D3** — é meta de liquidez, não
+  apólice. Migra para track futuro de `Goal` (ADR-180). Mantém aggregate
+  `Protection` coeso ("contrato com `ends_at` e prêmio"). Calculators T03
+  ficam em 4 (em vez de 5): life, disability, ITCMD, US-person.
+- **ITCMD/FBAR/Estate Tax thresholds vêm de `fiscal_parameters`** (ADR-135) por
+  `effective_date` — calculator T03 não pode hardcodar.
+- **`RiskInferred` lista branca**: apenas os 4 calculators determinísticos podem
+  emitir (holding/D&O/fideicomisso são recomendação fiduciária, fora de escopo).
+- **`coverage_type: Enum["term","whole","universal"]`** adicionado como **campo**
+  do aggregate (não nova categoria) — afeta gap analysis (term encerra; whole
+  acumula valor).
+- **Índice novo**: `(workspace_id, ends_at)` viabiliza job futuro "vencendo
+  em 30d" sem migration adicional.
+- **PII**: `policy_ref`, `coverage_brl`, `premium_monthly_brl`, `holder_name`
+  adicionados ao `SENSITIVE_FIELD_SUBSTRINGS` em
+  [`backend/app/core/logging.py`](../../backend/app/core/logging.py); logs em
+  INFO emitem `coverage_bucket: int (0-5)` via
+  [`mask_coverage_bucket`](../../backend/app/services/protection_pii.py).
+- **`insurer` allowlist regex** ASCII+acentos PT-BR + separadores comuns
+  (S/A aceito); URLs/paths rejeitados explicitamente (defesa SSRF).
+- **Disclaimer canônico T04** (texto canônico em §"Critério de aceite" abaixo):
+  cita corretor habilitado pela Susep + planejador CFP® + data fiscal vigente.
+- **Rate-limit/cache Redis no `/protection-bundle`** marcado como **débito
+  T-futuro** (T05 ou follow-up dedicado) — escopo T02 fica focado em modelo +
+  endpoints corretos; cache vira lane separada quando tráfego justificar.
 
 ## Contexto
 
@@ -100,17 +137,26 @@ class ProtectionBundle(TypedDict):
 
 ### D3 — Auto-inferência de risco via rules-as-code (ADR-143)
 
-Novo módulo `pipeline/domain/services/protection/` com 5 calculators determinísticos puros (sem `@lru_cache`, ADR-111):
+Novo módulo `pipeline/domain/services/protection/` com **4 calculators**
+determinísticos puros (sem `@lru_cache`, ADR-111):
 
 | Calculator | Fonte metodológica | Output |
 |---|---|---|
-| `life_insurance_coverage_ideal(family, debts, liquid_pl, age_brackets)` | Cerbasi + Perini | `Money.brl` |
-| `emergency_reserve_target(monthly_fixed_cost, income_stability)` | Cerbasi | `Money.brl` + meses-alvo |
+| `life_insurance_coverage_ideal(family, debts, liquid_pl, age_brackets)` | Cerbasi + Perini (default = `max` dos dois) | `Money.brl` |
 | `disability_coverage_gap(active_income_share, current_coverage, target_pct=0.6)` | Cerbasi | gap `Money.brl/mês` |
-| `itcmd_estimated(state_code, gross_estate)` | Sucessório BR | `Money.brl` por estado |
-| `compliance_risk_us_person(has_us_assets, has_us_income, thresholds)` | FBAR/FATCA/Estate Tax | lista de flags |
+| `itcmd_estimated(state_code, gross_estate, effective_date)` | Sucessório BR (alíquotas em `fiscal_parameters` por `effective_date`) | `Money.brl` por estado |
+| `compliance_risk_us_person(has_us_assets, has_us_income, us_tax_status, thresholds)` | FBAR/FATCA/Estate Tax (thresholds em `fiscal_parameters`) | lista de flags |
 
-Cada calculator emite `RiskInferred` (não persistido) quando o gap material existir — entra no `ProtectionBundle.auto_inferred_risks`, renderizado pelo S9 com badge "auto-inferido" e CTA "Confirmar como Risco" (que, ao ser clicado, persiste via `RiskRepository` ADR-178). Rules ainda revisáveis: persistir só na confirmação do cliente.
+`emergency_reserve_target` **não** está aqui — é meta de liquidez, domínio de
+`Goal` (ADR-180). Track futuro cobre.
+
+Cada calculator emite `RiskInferred` (não persistido) quando o gap material
+existir — entra no `ProtectionBundle.auto_inferred_risks`, renderizado pelo S9
+com badge "auto-inferido" e CTA "Confirmar como Risco" (cria `Risk` via
+`RiskRepository` ADR-178). Auto-inferência **lista branca**: apenas estes 4
+calculators podem emitir; instrumentos jurídicos (holding, fideicomisso,
+D&O) ficam **fora** porque exigem análise de caso (Mathoms não tem habilitação
+Susep/OAB).
 
 ### D4 — Política de empty state + narrativa default segura
 
@@ -157,4 +203,8 @@ Cada calculator emite `RiskInferred` (não persistido) quando o gap material exi
 
 ## Plano de implementação
 
-Lane S9-Expansion (Sprint A11.W5) — track operacional em [docs/sprint/A11/tracks/s9-riscos-expansion.md](../sprint/A11/tracks/s9-riscos-expansion.md), com 6 sub-tasks (S9-T01 hotfix → S9-T06 UI cadastro) em 3 ondas. Esta ADR é flippada para `Decidido (Sprint A11.W5)` quando o PR de S9-T02 (model + bundle + endpoints) mergear em `main`.
+Lane S9-Expansion (Sprint A11.W5) — track operacional em [docs/sprint/A11/tracks/s9-riscos-expansion.md](../sprint/A11/tracks/s9-riscos-expansion.md), com 6 sub-tasks (S9-T01 hotfix → S9-T06 UI cadastro) em 3 ondas.
+
+- **T01** ✅ mergeado em `main` em 2026-05-11 ([#212](https://github.com/davidrobert/mathoms/pull/212), commit `2ec4254`).
+- **T02** ✅ mergeado no PR que carrega esta ADR como `Decidido` — entrega aggregate `Protection`, repositório, 6 use cases (`create_protection`, `get_protection`, `list_protections`, `update_protection`, `cancel_protection`, `link_to_risk` + `unlink_from_risk`), endpoints `POST/GET/PATCH/DELETE /protections` + `GET /protection-bundle`, `ProtectionBundle` TypedDict, adapter `_project_protection_bundle_sync/async`, redaction de logs e helpers PII.
+- **T03–T06** aguardam pickup; track lista status atualizado.
