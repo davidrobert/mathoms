@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-89 entries entre 2026-04-26 e 2026-05-10.
+83 entries entre 2026-04-27 e 2026-05-10.
 
 ## 2026-05-10 (1 entries)
 
@@ -111,15 +111,6 @@
 - [[CHG-2026-04-27-A7-6-4]] — Report Premium UI v2.D.1 — `SnapshotChangelogBuilder` ✅ (2026-04-27). - **Report Premium UI v2.D.1 — `SnapshotChangelogBuilder` ✅ (2026-04-27):** Fundação determinística para os blocos `comparisons` e `changelog` que v2.1 plantou (lane [[A7.6]])
 - [[CHG-2026-04-27-A7-6-5]] — A7.6 — Rules-as-code (lane aberta 2026-04-27 → ✅ entregue mesmo dia). - **A7.6 — Rules-as-code (lane aberta 2026-04-27 → ✅ entregue mesmo dia):** ver entrada acima com detalhes completos da entrega. (lane [[A7.6]])
 - [[CHG-2026-04-27-A8-0]] — A8.0 Follow-ups A7 — ✅ entregue (2026-04-27). - **A8.0 Follow-ups A7 — ✅ entregue (2026-04-27):** 3 itens herdados de CTO G4 sign-off do PR #15 (Sprint A7 closeout). (lane [[A8.0]])
-
-## 2026-04-26 (6 entries)
-
-- [[CHG-2026-04-26-A10-CARD-CONSUMO-CONSCIE]] — Card "Consumo Consciente" — bug fix + ADR-133 (2026-04-26) — ✅. - **Card "Consumo Consciente" — bug fix + ADR-133 (2026-04-26) — ✅:** resolução do bug onde PIX entre contas próprias da família apareciam como gastos pontuais no card.
-- [[CHG-2026-04-26-A10-REPORT-APPEARANCE-ME]] — Report Appearance Menu — refinement [ADR-121](DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅. - **Report Appearance Menu — refinement [ADR-121](DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅:** Funde `FontSc
-- [[CHG-2026-04-26-A10-REPORT-PREMIUM-UI-V2]] — Report Premium UI v2 — Onda E (Charts UX) ✅ 8/8 (2026-04-26). - **Report Premium UI v2 — Onda E (Charts UX) ✅ 8/8 (2026-04-26):** Onda E fechou a migração Recharts→Chart.js dentro de `/reports/**` que [ADR-117](DECISIONS.m
-- [[CHG-2026-04-26-A7-0]] — A7.0 ConfigStore protocol + adapters — ✅ entregue (2026-04-26). - **A7.0 ConfigStore protocol + adapters — ✅ entregue (2026-04-26):** Onda 1 da Sprint A7 fechada em 7 commits sequenciais. (lane [[A7.0]])
-- [[CHG-2026-04-26-A7-0-1]] — Sprint A7 aberta — Config DB Cutover (CLI legacy removal) (2026-04-26) — 🚧 Onda 1 ✅ · Onda 2 destravada. - **Sprint A7 aberta — Config DB Cutover (CLI legacy removal) (2026-04-26) — 🚧 Onda 1 ✅ · Onda 2 destravada:** Plano canônico em [CONFIG_CUTOVER_PLAN.md](CONFIG (lane [[A7.0]])
-- [[CHG-2026-04-26-F12-1E]] — CI — otimização de uso GitHub Actions (2026-04-26) — ✅. - **CI — otimização de uso GitHub Actions (2026-04-26) — ✅:** workflow `.github/workflows/ci.yml` agora skipa jobs irrelevantes via [`dorny/paths-filter@v3`](https://github.com/dorny/paths-filter). (lane [[F12.1e]])
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
