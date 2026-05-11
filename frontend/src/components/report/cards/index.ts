@@ -36,6 +36,7 @@ export { PontosUrgentesCard } from "./PontosUrgentesCard";
 export { PrevidenciaPgblCard } from "./PrevidenciaPgblCard";
 export type { PrevidenciaPgblData } from "./PrevidenciaPgblCard";
 export { ReceitasFonteCard } from "./ReceitasFonteCard";
+export { RentabilidadeCard } from "./RentabilidadeCard";
 export { ReservaEmergenciaCard } from "./ReservaEmergenciaCard";
 export { IrpfRendaAnualCard } from "./IrpfRendaAnualCard";
 export { IrpfIrPagoCard } from "./IrpfIrPagoCard";

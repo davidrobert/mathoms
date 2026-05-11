@@ -74,6 +74,22 @@ export interface EndividamentoData {
   detalhe?: string;
 }
 
+/** Track T06 / ADR-191 §D3 — card Rentabilidade aninhado. */
+export type RentabilidadeStatus =
+  | "ok"
+  | "sem_irpf"
+  | "gerador_zero"
+  | "sem_dados_essencial";
+
+export interface RentabilidadeRatio {
+  valor_pct: number | null;
+  ano_base: number | null;
+  defasagem_meses: number | null;
+  meta_pct: number;
+  cobertura_despesa_essencial_pct: number | null;
+  status: RentabilidadeStatus;
+}
+
 export interface RatiosData {
   taxa_poupanca_recorrente_pct?: number;
   taxa_poupanca_total_pct?: number;
@@ -83,6 +99,8 @@ export interface RatiosData {
   aliquota_efetiva_ir_pct?: number | string;
   janela_referencia?: string;
   janela_n_meses?: number;
+  /** Track T06 — shape aninhado preferido. `null` quando passive_income é omitido (caller). */
+  rentabilidade?: RentabilidadeRatio | null;
 }
 
 export interface ScoreComponente {
