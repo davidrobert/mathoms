@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-8 planos detectados em [`docs/plan/`](../../plan/).
+9 planos detectados em [`docs/plan/`](../../plan/).
 
 _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/`._
 
@@ -45,6 +45,13 @@ _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/
 - Sprints envolvidas: —
 - Lanes: _(aguardando F4)_
 - ADRs canônicas: [[ADR-117]], [[ADR-129]]
+
+### PLAN-snapshot-changelog-v3 — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica
+
+- Status: `in_progress` · Sprint atual: A11
+- Sprints envolvidas: A11
+- Lanes: _(aguardando F4)_
+- ADRs canônicas: [[ADR-190]], [[ADR-148]]
 
 ## Pausados (`paused`)
 

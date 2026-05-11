@@ -2,8 +2,14 @@
  * Report Premium UI v2.8 (ADR-148) — wrapper que filtra `comparisons` +
  * `changelog` do payload E5 por `sectionId` e delega ao primitivo.
  *
- * Render condicional: payload `null` (primeiro relatório) ou seção sem
- * delta acima do threshold ⇒ renderiza nada.
+ * Render condicional: payload `null` (primeiro relatório) OU seção sem
+ * delta acima do threshold (todos os items `stable`) ⇒ renderiza nada.
+ *
+ * Filtragem `stable` (2026-05-11, pós-revisão product-designer): linha
+ * com Δ ≈ 0% num card de "o que mudou" é signal/noise péssimo. O builder
+ * já filtra `entries`; aqui filtramos `items` na mesma régua antes de
+ * passar ao primitivo. Plano canônico para redesign profundo:
+ * `docs/plan/SNAPSHOT_CHANGELOG_V3/_README.md`.
  */
 import type {
   ChangelogEntryRead,
@@ -51,7 +57,10 @@ export function SectionSnapshotDiff({
   if (!comparisons && !changelog) return null;
 
   const items =
-    comparisons?.filter((c) => c.section_id === sectionId).map(toItemView) ?? [];
+    comparisons
+      ?.filter((c) => c.section_id === sectionId)
+      .filter((c) => c.delta_signal !== "stable")
+      .map(toItemView) ?? [];
   const entries =
     changelog?.filter((e) => e.section_id === sectionId).map(toEntryView) ?? [];
 

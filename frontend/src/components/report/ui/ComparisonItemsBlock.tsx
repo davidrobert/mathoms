@@ -5,6 +5,9 @@
  *
  * Distinto de `ComparisonBlock` (1 par antes/depois free-form) — este aceita
  * a lista tipada do DTO Pydantic do backend.
+ *
+ * Título + caption são obrigatórios — sem moldura temporal a tabela não comunica
+ * o que compara (decisão tomada após revisão product-designer 2026-05-11).
  */
 import { MonetaryValue } from "../MonetaryValue";
 
@@ -31,6 +34,10 @@ const SIGNAL_GLYPH: Record<DeltaSignal, string> = {
   stable: "•",
 };
 
+const DEFAULT_TITLE = "Variação vs. relatório anterior";
+const DEFAULT_CAPTION =
+  "Comparando o último relatório publicado com o atual. Apenas variações relevantes são listadas.";
+
 function formatDeltaPct(pct: number | null): string {
   if (pct === null || !isFinite(pct)) return "—";
   const rounded = Math.abs(pct).toFixed(1).replace(".", ",");
@@ -40,9 +47,13 @@ function formatDeltaPct(pct: number | null): string {
 export function ComparisonItemsBlock({
   items,
   className,
+  title = DEFAULT_TITLE,
+  caption = DEFAULT_CAPTION,
 }: {
   readonly items: readonly ComparisonItemView[];
   readonly className?: string;
+  readonly title?: string;
+  readonly caption?: string;
 }) {
   if (!items || items.length === 0) return null;
   return (
@@ -58,6 +69,32 @@ export function ComparisonItemsBlock({
         margin: "var(--space-md, 12px) 0",
       }}
     >
+      <header style={{ marginBottom: "var(--space-sm, 8px)" }}>
+        <h4
+          style={{
+            margin: 0,
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--report-font-size-md, 14px)",
+            fontWeight: 700,
+            color: "var(--brand-primary)",
+            letterSpacing: "0.01em",
+          }}
+        >
+          {title}
+        </h4>
+        {caption ? (
+          <p
+            style={{
+              margin: "4px 0 0 0",
+              fontSize: "var(--report-font-size-sm, 12px)",
+              color: "var(--surface-muted-foreground)",
+              lineHeight: 1.4,
+            }}
+          >
+            {caption}
+          </p>
+        ) : null}
+      </header>
       <table
         style={{
           width: "100%",
