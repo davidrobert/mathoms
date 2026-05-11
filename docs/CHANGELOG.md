@@ -16,7 +16,8 @@
 
 | Sprint | Período | Entries | Path |
 |---|---|---|---|
-| A11 (atual) | 2026-05-06 — | 4+ | [docs/sprint/A11/changelog/](sprint/A11/changelog/) |
+| A12 (atual) | 2026-05-10 — | 4 | [docs/sprint/A12/changelog/](sprint/A12/changelog/) |
+| A11 | 2026-05-06 → 2026-05-10 | 5 | [docs/sprint/A11/changelog/](sprint/A11/changelog/) |
 | A10 | 2026-05-06 → 2026-05-07 | 83 | [docs/sprint/A10/changelog/](sprint/A10/changelog/) |
 | A8 | abertura 2026-04-27 | 1 | [docs/sprint/A8/changelog/](sprint/A8/changelog/) |
 | A7 | até 2026-04-27 | 10 | [docs/sprint/A7/changelog/](sprint/A7/changelog/) |
