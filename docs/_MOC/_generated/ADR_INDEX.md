@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-181 ADRs (ADR-001 a ADR-188) em [`docs/adr/`](../../adr/).
+182 ADRs (ADR-001 a ADR-189) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 160
-- **Proposto**: 16
+- **Proposto**: 17
 - **Roadmap**: 5
 
 ## Fundação
@@ -320,6 +320,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (1)
 
 - [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
+
+## irpf
+
+### Proposto (1)
+
+- [[ADR-189]] — PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária · phase A11
 
 ## llm
 

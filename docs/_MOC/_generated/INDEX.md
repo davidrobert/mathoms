@@ -186,6 +186,7 @@
 | ADR-186 | adr | Decidido |  | Promoção de override de transação para regra de categorização (learning loop) | `adr/186-promocao-override-transacao-para-regra-categorizacao.md` |
 | ADR-187 | adr | Proposto |  | Relatório publicado é imutável — conceito de mês fechado | `adr/187-relatorio-publicado-imutavel-mes-fechado.md` |
 | ADR-188 | adr | Decidido |  | Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) | `adr/188-evolucao-schema-e-semantica-learning-loop-p3.md` |
+| ADR-189 | adr | Proposto |  | PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária | `adr/189-pgbl-diagnostico-tipificado-substitui-metrica-monovalor.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -513,6 +514,7 @@
 | TRACK-onda-7-p0-blockers | track | consumed | A11 | Track — Onda 7: bloqueadores P0 da Direção E (pós-revisão de produto) | `sprint/A11/tracks/onda-7-p0-blockers.md` |
 | TRACK-onda-8-methodology-coherence | track | consumed | A11 | Track — Onda 8: coerência metodológica (Cerbasi/AUVP/Perini completos) | `sprint/A11/tracks/onda-8-methodology-coherence.md` |
 | TRACK-onda-9-design-system-polish | track | consumed | A11 | Track — Onda 9: design system polish + dedup tarefas + mobile | `sprint/A11/tracks/onda-9-design-system-polish.md` |
+| TRACK-pgbl-card-diagnostico | track | ready | A11 | Track PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card | `sprint/A11/tracks/pgbl-card-diagnostico.md` |
 | TRACK-pipeline-review-quick-unblock | track | consumed | A11 | Track Pipeline Review — Quick Unblock (caminho A) | `sprint/A11/tracks/pipeline-review-quick-unblock.md` |
 | TRACK-pipeline-review-screen | track | consumed | A11 | Track Pipeline Review — Tela de revisão real (caminho B) | `sprint/A11/tracks/pipeline-review-screen.md` |
 | TRACK-platform-review | track | consumed | A11 | Track Platform Review — Orquestração Multi-Agent (revisão + plano) | `sprint/A11/tracks/platform-review.md` |
