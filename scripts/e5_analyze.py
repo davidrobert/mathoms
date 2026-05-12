@@ -2948,9 +2948,18 @@ def _e5_read_irpf_payloads(store) -> list[dict] | None:
 
 
 def _e5_kpis_from_analyzer(analyzer, ultimo: int) -> Dict[str, Any]:
+    return {
+        **_e5_kpis_basicos(analyzer, ultimo),
+        **_e5_kpis_pgbl(analyzer, ultimo),
+        # ADR-194 — KPIs para cards reativados em S_IRPF_OTIMIZACAO
+        "dependentes": analyzer.dependentes_count(ultimo),
+        "dedutiveis_aplicados": analyzer.dedutiveis_aplicados(ultimo),
+    }
+
+
+def _e5_kpis_basicos(analyzer, ultimo: int) -> Dict[str, Any]:
     ali = analyzer.aliquotas(ultimo)
     sp = analyzer.split_trabalho_vs_capital(ultimo)
-    pgbl = analyzer.pgbl_resumo(ultimo)
     return {
         "ano_base": ultimo,
         "anos_disponiveis": analyzer.anos_base_disponiveis(),
@@ -2959,13 +2968,19 @@ def _e5_kpis_from_analyzer(analyzer, ultimo: int) -> Dict[str, Any]:
         "ir_pago_total_brl": str(analyzer.ir_pago_total(ultimo)),
         "aliquota_sobre_tributavel_pct": str(round(ali.sobre_tributavel_pct, 2)),
         "aliquota_sobre_total_pct": str(round(ali.sobre_total_pct, 2)),
+        "split_trabalho_brl": str(sp.trabalho_brl),
+        "split_capital_brl": str(sp.capital_brl),
+        "evolucao_renda_anos": {str(k): str(v) for k, v in analyzer.evolucao_renda_anos().items()},
+    }
+
+
+def _e5_kpis_pgbl(analyzer, ultimo: int) -> Dict[str, Any]:
+    pgbl = analyzer.pgbl_resumo(ultimo)
+    return {
         "pgbl_capacidade_dedutivel_brl": str(analyzer.pgbl_capacidade_dedutivel(ultimo)),
         "pgbl_status": analyzer.pgbl_status(ultimo).value,
         "pgbl_aportado_brl": str(pgbl.aportado_brl),
         "pgbl_teto_brl": str(pgbl.teto_brl),
-        "split_trabalho_brl": str(sp.trabalho_brl),
-        "split_capital_brl": str(sp.capital_brl),
-        "evolucao_renda_anos": {str(k): str(v) for k, v in analyzer.evolucao_renda_anos().items()},
     }
 
 
