@@ -2,7 +2,7 @@
 id: ADR-197
 type: adr
 title: "Estado modelo_simplificado expõe componentes elegíveis e redireciona para PGD/MIR (estende ADR-189 §4 Estado 2)"
-status: Proposto
+status: Decidido
 phase: "A12"
 date: "2026-05-12"
 relates_to:
@@ -23,7 +23,7 @@ tags:
   - methodology/auvp
   - methodology/cerbasi
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

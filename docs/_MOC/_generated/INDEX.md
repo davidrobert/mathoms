@@ -194,7 +194,7 @@
 | ADR-194 | adr | Decidido |  | Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO) | `adr/194-irpf-kpis-dependentes-dedutiveis-extension.md` |
 | ADR-195 | adr | Decidido |  | PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel | `adr/195-pgbl-threshold-auvp-modula-variante.md` |
 | ADR-196 | adr | Decidido |  | Reconciliação dos cards PGBL S7 (fluxo PJ inferido) × S_IRPF_OTIMIZACAO (IRPF declarado) por priorização condicional | `adr/196-reconciliacao-cards-pgbl-s7-irpf.md` |
-| ADR-197 | adr | Proposto |  | Estado modelo_simplificado expõe componentes elegíveis e redireciona para PGD/MIR (estende ADR-189 §4 Estado 2) | `adr/197-irpf-simplificado-componentes-elegiveis-pgd-mir.md` |
+| ADR-197 | adr | Decidido |  | Estado modelo_simplificado expõe componentes elegíveis e redireciona para PGD/MIR (estende ADR-189 §4 Estado 2) | `adr/197-irpf-simplificado-componentes-elegiveis-pgd-mir.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -375,6 +375,7 @@
 | CHG-2026-05-11-FEAT-S9-PROTECTION-AGGREGATE | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-S9-PROTECTION-AGGREGATE.md` |
 | CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT.md` |
 | CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL.md` |
+| CHG-2026-05-12-FEAT-IRPF-SIMPLIFICADO-COMPONENTES-PGD-MIR | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FEAT-IRPF-SIMPLIFICADO-COMPONENTES-PGD-MIR.md` |
 | CHG-2026-05-12-FEAT-PGBL-CARDS-RECONCILIATION | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FEAT-PGBL-CARDS-RECONCILIATION.md` |
 | CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION.md` |
 | CHG-2026-05-12-FEAT-S9-PROTECTION-CALCULATORS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-12-FEAT-S9-PROTECTION-CALCULATORS.md` |
