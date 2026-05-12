@@ -5,13 +5,25 @@ import {
   parseDecimalString,
   type DedutivelCategoria,
   type DedutivelLinha,
+  type PgblStatus,
 } from "@/types/irpf";
 
 interface IrpfDedutiveisAplicadosCardProps {
   dedutiveis: Partial<Record<DedutivelCategoria, DedutivelLinha>>;
   anoBase: number;
+  /** ADR-194 §6.4 — subtítulo varia por regime; simplificado/sem renda não deduziu. */
+  pgblStatus: PgblStatus;
   /** Variante default opcional; resolvida internamente por subutilização. */
   variantOverride?: CardVariant;
+}
+
+function resolveSubtitle(pgblStatus: PgblStatus, anoBase: number): string {
+  const eligibleOnly =
+    pgblStatus === "modelo_simplificado" || pgblStatus === "sem_renda_tributavel";
+  const lead = eligibleOnly
+    ? "Pagamentos elegíveis a dedução"
+    : "Valores deduzidos do imposto";
+  return `${lead} · ${anoBase}`;
 }
 
 const CATEGORIA_LABEL: Record<DedutivelCategoria, string> = {
@@ -57,18 +69,23 @@ function buildLinhas(
   return out;
 }
 
-/** ADR-194 §6.2 — Dedutíveis Aplicados por Categoria (factual, não-prescritivo).
+/** ADR-194 §6.2 + §6.4 — Dedutíveis Aplicados por Categoria (factual, não-prescritivo).
  *
  * Lista vertical com barra de progresso para Educação (única categoria com teto
  * fixo nesta iteração). Variante condicional `info`/`neutral` resolvida por
- * presença de subutilização. Copy literal congelada por G0 em 2026-05-12. */
+ * presença de subutilização. Subtítulo condicional ao regime (§6.4):
+ * simplificado/sem renda tributável usam "Pagamentos elegíveis a dedução";
+ * completa usa "Valores deduzidos do imposto". Copy literal congelada por
+ * G0 em 2026-05-12 (§6.3) + amend §6.4 mesmo dia. */
 export function IrpfDedutiveisAplicadosCard({
   dedutiveis,
   anoBase,
+  pgblStatus,
   variantOverride,
 }: IrpfDedutiveisAplicadosCardProps) {
   const linhas = buildLinhas(dedutiveis);
   const variant = resolveVariant(linhas, variantOverride);
+  const subtitle = resolveSubtitle(pgblStatus, anoBase);
 
   return (
     <ReportCard
@@ -78,7 +95,7 @@ export function IrpfDedutiveisAplicadosCard({
     >
       <div className="space-y-4">
         <p className="text-xs uppercase tracking-wide text-[var(--surface-muted-foreground)]">
-          Valores deduzidos do imposto · {anoBase}
+          {subtitle}
         </p>
 
         <dl

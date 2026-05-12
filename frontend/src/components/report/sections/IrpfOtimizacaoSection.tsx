@@ -38,6 +38,7 @@ export function IrpfOtimizacaoSection({ data }: { data: ReportAnalysisData }) {
         <IrpfDedutiveisAplicadosCard
           dedutiveis={kpis.dedutiveis_aplicados!}
           anoBase={kpis.ano_base}
+          pgblStatus={kpis.pgbl_status}
         />
       )}
     </ReportSection>
