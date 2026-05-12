@@ -2,7 +2,7 @@
 id: ADR-195
 type: adr
 title: "PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel"
-status: Proposto
+status: Decidido
 phase: "A12"
 date: "2026-05-12"
 relates_to:
@@ -21,7 +21,7 @@ tags:
   - methodology/auvp
   - methodology/cerbasi
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -328,3 +328,19 @@ Mergeada quando:
    ADR-189 (snapshot/string asserts).
 5. `CI verde` + pre-commit + sem mudança no backend.
 6. ADR flippa para `Decidido (A12)` no commit-merge.
+
+## §7.1 — Mergeada
+
+- PR: [apps#225](https://github.com/davidrobert/mathoms/pull/225) ·
+  squash-merge · commit `5766077` em `origin/main` · 2026-05-12.
+- Vitest (1ª passada local antes do PR): **40/40** nos arquivos
+  tocados; suíte completa **927/928** (1 skipped pré-existente);
+  CI verde no commit-merge (lint, ESLint, Vitest, visual snapshots
+  todos `SUCCESS`).
+- Pytest regressão `tests/test_irpf_analyzer_pgbl_status.py`:
+  **13/13** ([[ADR-189]] não regride — backend intocado).
+- Code style baseline: 0 regressão (decomposição
+  `evaluatePgblAuvpFit` → `indeterminado` / `tierResult` /
+  `classifyByAliquota` mantém todas as funções TS ≤ 20 linhas).
+- Changelog A12: [`CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT`](../sprint/A12/changelog/CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT.md).
+- Track consumido: [`TRACK-auvp-threshold-pgbl-variant`](../sprint/A12/tracks/auvp-threshold-pgbl-variant.md).
