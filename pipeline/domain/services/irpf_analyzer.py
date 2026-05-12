@@ -57,6 +57,24 @@ _PENSAO_PAGA_CODIGOS = frozenset(
 
 PGBL_TETO_PCT = Decimal("0.12")
 
+# Educação: teto fixo R$ 3.561,50 por pessoa (titular + cada dependente) —
+# Instrução Normativa RFB 1.500/2014, valor congelado pela RFB. ADR-194 §D5
+# anota o débito de migrar para fiscal_parameters table (ADR-135) quando RFB
+# atualizar; lookup por ano-base sai de escopo nesta lane.
+EDUCACAO_TETO_PER_PESSOA = Decimal("3561.50")
+
+# Pensão alimentícia: 3 variantes RFB (judicial, acordo extrajudicial,
+# escritura) consolidadas em 1 chave única no payload de saída — agregação
+# no serializer (não no analyzer, que permanece fiel ao schema E1.6).
+# ADR-194 §D4.
+_PENSAO_ALIMENTICIA_CODIGOS = frozenset(
+    {
+        CodigoPagamentoDedutivel.pensao_alimenticia_judicial.value,
+        CodigoPagamentoDedutivel.pensao_alimenticia_acordo_extrajudicial.value,
+        CodigoPagamentoDedutivel.pensao_alimenticia_escritura.value,
+    }
+)
+
 
 @dataclass(frozen=True)
 class RendaSplit:
@@ -197,6 +215,24 @@ class IRPFAnalyzer:
             out.extend(d.dependentes)
         return out
 
+    def dependentes_count(self, ano: int) -> dict:
+        """ADR-194 §D1: total + agregação por relação RFB (sparse)."""
+        deps = self.dependentes_validos(ano)
+        por_relacao: dict[str, int] = {}
+        for d in deps:
+            key = d.relacao.value
+            por_relacao[key] = por_relacao.get(key, 0) + 1
+        return {"count": len(deps), "por_relacao": por_relacao}
+
+    def dedutiveis_aplicados(self, ano: int) -> dict:
+        """ADR-194 §D2/D4/D5: 4 categorias sparse; PGBL excluído (ADR-189)."""
+        pagamentos = self._pagamentos_no_ano(ano)
+        educacao_teto = EDUCACAO_TETO_PER_PESSOA * (self.dependentes_count(ano)["count"] + 1)
+        return _build_dedutiveis_payload(pagamentos, educacao_teto)
+
+    def _pagamentos_no_ano(self, ano: int) -> list:
+        return [p for d in self._by_year(ano) for p in d.pagamentos_efetuados]
+
 
 # =============================================================================
 # Helpers (módulo-level — pure functions, sem estado)
@@ -265,6 +301,64 @@ def _bucket_trabalho(d: IRPFFullOutput) -> Decimal:
     return pj + decimo_terceiro
 
 
+def _sum_pagamentos_by_codes(pagamentos, codes: frozenset[str] | set[str]) -> dict:
+    """ADR-194 §D2: agrega pagamentos por código RFB; teto_aplicado é `any(...)`."""
+    filtrados = [p for p in pagamentos if p.codigo_rfb.value in codes]
+    utilizado = _sum(p.valor_dedutivel_brl for p in filtrados)
+    teto_aplicado = any(p.teto_aplicado for p in filtrados)
+    return {"utilizado": utilizado, "teto_aplicado": teto_aplicado}
+
+
+def _categoria_factual(utilizado: Decimal) -> dict | None:
+    """Linha de categoria sem teto legal (saúde/pensão/INSS) — ADR-194 §D2."""
+    if utilizado <= 0:
+        return None
+    return {"utilizado_brl": str(utilizado), "teto_brl": None, "teto_aplicado": False}
+
+
+def _categoria_educacao(agg: dict, teto: Decimal) -> dict | None:
+    """Linha de educação com teto agregado por pessoa — ADR-194 §D5."""
+    utilizado = agg["utilizado"]
+    if utilizado <= 0:
+        return None
+    teto_aplicado = agg["teto_aplicado"] or utilizado >= teto
+    return {
+        "utilizado_brl": str(utilizado),
+        "teto_brl": str(teto),
+        "teto_aplicado": teto_aplicado,
+    }
+
+
+_DEDUTIVEL_CODIGOS_FACTUAIS = {
+    "saude": frozenset({CodigoPagamentoDedutivel.saude.value}),
+    "pensao_alimenticia": _PENSAO_ALIMENTICIA_CODIGOS,
+    "previdencia_oficial": frozenset({CodigoPagamentoDedutivel.previdencia_oficial.value}),
+}
+_DEDUTIVEL_CODIGOS_EDUCACAO = frozenset({CodigoPagamentoDedutivel.educacao.value})
+
+
+def _build_dedutiveis_payload(pagamentos, educacao_teto: Decimal) -> dict:
+    """ADR-194 §D3/D4: monta payload sparse das 4 categorias publicáveis."""
+    out: dict[str, dict] = {}
+    for key, codes in _DEDUTIVEL_CODIGOS_FACTUAIS.items():
+        line = _categoria_factual(_sum_pagamentos_by_codes(pagamentos, codes)["utilizado"])
+        if line is not None:
+            out[key] = line
+    edu = _categoria_educacao(
+        _sum_pagamentos_by_codes(pagamentos, _DEDUTIVEL_CODIGOS_EDUCACAO),
+        educacao_teto,
+    )
+    if edu is not None:
+        out["educacao"] = edu
+    return _reorder_dedutiveis(out)
+
+
+def _reorder_dedutiveis(payload: dict) -> dict:
+    """ADR-194 §D8: ordem fixa saude→educacao→pensao→previdencia."""
+    ordem = ("saude", "educacao", "pensao_alimenticia", "previdencia_oficial")
+    return {k: payload[k] for k in ordem if k in payload}
+
+
 def _bucket_capital(d: IRPFFullOutput) -> Decimal:
     isentos = _sum(
         r.valor_brl for r in d.rendimentos_isentos if r.codigo_rfb.value in _CAPITAL_ISENTO
@@ -285,4 +379,5 @@ __all__ = [
     "PGBL_TETO_PCT",
     "PgblStatus",
     "PgblResumo",
+    "EDUCACAO_TETO_PER_PESSOA",
 ]
