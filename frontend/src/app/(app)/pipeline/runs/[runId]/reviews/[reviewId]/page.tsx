@@ -16,6 +16,7 @@ import { useWorkspace } from "@/lib/WorkspaceProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/cn";
 
 import { ReviewActions } from "../_components/ReviewActions";
 import { ReviewDetailHeader } from "../_components/ReviewDetailHeader";
@@ -99,6 +100,13 @@ function ReviewDetailContent({
     return extractErrorPaths(review?.validation_errors ?? null);
   }, [review?.validation_issues, review?.validation_errors]);
 
+  const errorCount = useMemo(
+    () =>
+      (review?.validation_issues ?? []).filter((i) => i.severity === "error")
+        .length,
+    [review?.validation_issues],
+  );
+
   const handleSubmit = useCallback(
     async (req: StageReviewActionRequest) => {
       setSubmitting(true);
@@ -155,10 +163,10 @@ function ReviewDetailContent({
   }
 
   return (
-    <div className="mx-auto max-w-content px-6 py-8">
+    <div className="mx-auto max-w-content px-6 py-8 pb-24 lg:pb-8">
       <ReviewDetailHeader review={review} runId={runId} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <section aria-label="Output original" className="space-y-3">
           <h2 className="text-sm font-medium text-foreground">
             Output original do stage
@@ -193,6 +201,15 @@ function ReviewDetailContent({
             review={review}
             submitting={submitting}
             onSubmit={handleSubmit}
+            errorCount={errorCount}
+            className={cn(
+              // Mobile (<lg): action bar fixo no fundo da viewport
+              "fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-4 py-3 backdrop-blur",
+              "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+              // Desktop (lg+): sticky no topo da coluna direita, sem chrome do action bar
+              "lg:sticky lg:top-4 lg:bottom-auto lg:inset-x-auto lg:self-start",
+              "lg:border-0 lg:bg-transparent lg:p-0 lg:pb-0 lg:backdrop-blur-none",
+            )}
           />
         </section>
       </div>
