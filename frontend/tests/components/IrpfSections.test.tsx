@@ -311,7 +311,7 @@ describe("<IrpfDedutiveisAplicadosCard /> · ADR-194 §6.4 — subtítulo condic
     expect(screen.queryByText(/Valores deduzidos do imposto/)).toBeNull();
   });
 
-  it("título, chips e disclaimer-rodapé inalterados em simplificado", () => {
+  it("título e disclaimer-rodapé inalterados em simplificado (chip 'Espaço de' vira 'Sem efeito neste regime' — ADR-198)", () => {
     render(
       <IrpfDedutiveisAplicadosCard
         dedutiveis={{
@@ -326,8 +326,130 @@ describe("<IrpfDedutiveisAplicadosCard /> · ADR-194 §6.4 — subtítulo condic
       screen.getByRole("heading", { level: 3, name: /Dedutíveis Aplicados por Categoria/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Sem teto legal/)).toBeInTheDocument();
-    expect(screen.getByText(/Espaço de/)).toBeInTheDocument();
+    expect(screen.queryByText(/Espaço de/)).toBeNull();
+    expect(screen.getByText("Sem efeito neste regime")).toBeInTheDocument();
     expect(screen.getByText(/não é recomendação/)).toBeInTheDocument();
+  });
+});
+
+describe("<IrpfDedutiveisAplicadosCard /> · ADR-198 — chip 'Espaço' condicional ao regime", () => {
+  const DEDUTIVEIS_COM_SUBUTILIZACAO = {
+    saude: { utilizado_brl: "10000.00", teto_brl: null, teto_aplicado: false },
+    educacao: { utilizado_brl: "2100.00", teto_brl: "3561.50", teto_aplicado: false },
+  };
+
+  it("modelo_simplificado: ramo subutilizado vira chip 'Sem efeito neste regime' (neutral)", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_COM_SUBUTILIZACAO}
+        anoBase={2024}
+        pgblStatus="modelo_simplificado"
+      />,
+    );
+    expect(screen.getByText("Sem efeito neste regime")).toBeInTheDocument();
+    expect(screen.queryByText(/Espaço de/)).toBeNull();
+    // Outros chips factuais permanecem
+    expect(screen.getByText(/Sem teto legal/)).toBeInTheDocument();
+  });
+
+  it("sem_renda_tributavel: ramo subutilizado vira chip 'Sem efeito neste regime' (neutral)", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_COM_SUBUTILIZACAO}
+        anoBase={2024}
+        pgblStatus="sem_renda_tributavel"
+      />,
+    );
+    expect(screen.getByText("Sem efeito neste regime")).toBeInTheDocument();
+    expect(screen.queryByText(/Espaço de/)).toBeNull();
+    expect(screen.getByText(/Sem teto legal/)).toBeInTheDocument();
+  });
+
+  it("capacidade_disponivel: chip 'Espaço de' preservado (regression guard)", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_COM_SUBUTILIZACAO}
+        anoBase={2024}
+        pgblStatus="capacidade_disponivel"
+      />,
+    );
+    expect(screen.getByText(/Espaço de/)).toBeInTheDocument();
+    expect(screen.queryByText("Sem efeito neste regime")).toBeNull();
+  });
+
+  it("no_teto: chip 'Espaço de' preservado em dedutíveis (no_teto é regime completa — ADR-189 Estado 3)", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_COM_SUBUTILIZACAO}
+        anoBase={2024}
+        pgblStatus="no_teto"
+      />,
+    );
+    expect(screen.getByText(/Espaço de/)).toBeInTheDocument();
+    expect(screen.queryByText("Sem efeito neste regime")).toBeNull();
+  });
+
+  it("modelo_simplificado: variante do card permanece 'neutral' mesmo com subutilização (ADR-198 §3.2)", () => {
+    const { container } = render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_COM_SUBUTILIZACAO}
+        anoBase={2024}
+        pgblStatus="modelo_simplificado"
+      />,
+    );
+    expect(container.querySelector(".card-variant-neutral")).not.toBeNull();
+    expect(container.querySelector(".card-variant-info")).toBeNull();
+  });
+
+  it("sem_renda_tributavel: variante do card permanece 'neutral' mesmo com subutilização (ADR-198 §3.2)", () => {
+    const { container } = render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_COM_SUBUTILIZACAO}
+        anoBase={2024}
+        pgblStatus="sem_renda_tributavel"
+      />,
+    );
+    expect(container.querySelector(".card-variant-neutral")).not.toBeNull();
+    expect(container.querySelector(".card-variant-info")).toBeNull();
+  });
+
+  it("capacidade_disponivel: variante escala para 'info' com subutilização (regression guard)", () => {
+    const { container } = render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_COM_SUBUTILIZACAO}
+        anoBase={2024}
+        pgblStatus="capacidade_disponivel"
+      />,
+    );
+    expect(container.querySelector(".card-variant-info")).not.toBeNull();
+  });
+
+  it("modelo_simplificado: chip 'No teto' preservado quando teto_aplicado=true (não vira 'Sem efeito neste regime')", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={{
+          educacao: { utilizado_brl: "3561.50", teto_brl: "3561.50", teto_aplicado: true },
+        }}
+        anoBase={2024}
+        pgblStatus="modelo_simplificado"
+      />,
+    );
+    expect(screen.getByText(/No teto/)).toBeInTheDocument();
+    expect(screen.queryByText("Sem efeito neste regime")).toBeNull();
+  });
+
+  it("sem_renda_tributavel: chip 'Sem teto legal' preservado (não vira 'Sem efeito neste regime')", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={{
+          saude: { utilizado_brl: "5000.00", teto_brl: null, teto_aplicado: false },
+        }}
+        anoBase={2024}
+        pgblStatus="sem_renda_tributavel"
+      />,
+    );
+    expect(screen.getByText(/Sem teto legal/)).toBeInTheDocument();
+    expect(screen.queryByText("Sem efeito neste regime")).toBeNull();
   });
 });
 
