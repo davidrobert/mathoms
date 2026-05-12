@@ -15,7 +15,7 @@ tags:
   - area/pipeline
   - status/decidido
   - type/adr
-size_lines: 53
+size_lines: 54
 ---
 
 # ADR-180 — `goals.json` cutover final via `StageConfig.config_store` extendido
@@ -67,5 +67,6 @@ class GoalsBundle(TypedDict):
 - [ ] Novo gate empírico `tests/test_e5_pipeline_no_filesystem_goals.py` afirma que `e5_analyze` + `e5n_narrativas` rodam sem `goals.json` em filesystem.
 - [ ] Goldens E5/E5.N verdes byte-a-byte em ciclo Ferreira-Campos pós-cutover (PR de reset dedicado se diff justificado).
 - [ ] ADR-077 §"Contrato de cutover" — checkbox "100% dos campos lidos pelo E5/E5.N/E6" marcado ✅ quando ADR-180 vira `Decidido`.
+- [ ] **Cleanup de dados** — rows `Goal` órfãs (`type ∉ VALID_GOAL_TYPES`, ex.: `PLANNING_CONTEXT`) com `effective_to IS NULL` em workspaces seedados pré-A10.6 fechadas via migration `d2c3d4e5f6a7_adr180_close_orphan_goal_types` (follow-up de [commit 0053d15](https://github.com/davidrobert/mathoms/commit/0053d15)). Filtros defensivos em `premissas_snapshot.build_premissas_snapshot_sync` e `MetasVigentesCard` mitigam até a migration rodar em prod.
 
 **Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.1-3.2](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.6).
