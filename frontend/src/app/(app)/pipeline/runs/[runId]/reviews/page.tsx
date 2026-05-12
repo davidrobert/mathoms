@@ -30,10 +30,8 @@ function ReviewListContent({
   workspaceId: string;
   runId: string;
 }) {
-  const { reviews, loading, error, resuming, reload } = useReviewList(
-    workspaceId,
-    runId,
-  );
+  const { reviews, loading, error, resuming, resumeError, canResume, reload, resume } =
+    useReviewList(workspaceId, runId);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
@@ -52,7 +50,14 @@ function ReviewListContent({
       {!loading && error && <ReviewListError error={error} onRetry={reload} />}
       {!loading && !error && reviews?.length === 0 && <ReviewListEmpty />}
       {!loading && !error && reviews && reviews.length > 0 && (
-        <ReviewListBody reviews={reviews} runId={runId} resuming={resuming} />
+        <ReviewListBody
+          reviews={reviews}
+          runId={runId}
+          resuming={resuming}
+          resumeError={resumeError}
+          canResume={canResume}
+          onResume={resume}
+        />
       )}
     </div>
   );
@@ -62,26 +67,100 @@ function ReviewListBody({
   reviews,
   runId,
   resuming,
+  resumeError,
+  canResume,
+  onResume,
 }: {
   reviews: StageReviewResponse[];
   runId: string;
   resuming: boolean;
+  resumeError: string | null;
+  canResume: boolean;
+  onResume: () => Promise<void>;
 }) {
   return (
-    <div className="space-y-3">
-      {resuming && (
-        <p
-          role="status"
-          className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground"
-        >
-          <Spinner size="sm" />
-          Retomando pipeline…
-        </p>
+    <div className="space-y-4">
+      {canResume && (
+        <ReadyToResumeCard
+          reviewCount={reviews.length}
+          resuming={resuming}
+          resumeError={resumeError}
+          onResume={onResume}
+        />
       )}
-      {reviews.map((r) => (
-        <ReviewListItem key={r.id} review={r} runId={runId} />
-      ))}
+      <div className="space-y-3">
+        {reviews.map((r) => (
+          <ReviewListItem key={r.id} review={r} runId={runId} />
+        ))}
+      </div>
     </div>
+  );
+}
+
+function ReadyToResumeCard({
+  reviewCount,
+  resuming,
+  resumeError,
+  onResume,
+}: {
+  reviewCount: number;
+  resuming: boolean;
+  resumeError: string | null;
+  onResume: () => Promise<void>;
+}) {
+  const reviewLabel =
+    reviewCount === 1 ? "1 revisão" : `${reviewCount} revisões`;
+
+  return (
+    <Card aria-live="polite">
+      <CardContent className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Tudo pronto para continuar</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Você concluiu {reviewLabel}. O pipeline vai retomar de onde parou e
+            isso costuma levar alguns minutos. Você pode acompanhar o progresso
+            ou voltar quando estiver pronto.
+          </p>
+        </div>
+        {resumeError && (
+          <p
+            role="alert"
+            className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+          >
+            Não foi possível retomar o pipeline: {resumeError}
+          </p>
+        )}
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            autoFocus
+            onClick={() => void onResume()}
+            disabled={resuming}
+            aria-busy={resuming}
+            size="lg"
+          >
+            {resuming ? (
+              <>
+                <Spinner size="sm" />
+                Retomando…
+              </>
+            ) : resumeError ? (
+              "Tentar novamente"
+            ) : (
+              "Retomar pipeline"
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            disabled={resuming}
+            nativeButton={false}
+            render={<Link href="/pipeline" />}
+          >
+            Voltar ao pipeline
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
