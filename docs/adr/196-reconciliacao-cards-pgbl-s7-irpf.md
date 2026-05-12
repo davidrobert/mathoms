@@ -2,7 +2,7 @@
 id: ADR-196
 type: adr
 title: "Reconciliação dos cards PGBL S7 (fluxo PJ inferido) × S_IRPF_OTIMIZACAO (IRPF declarado) por priorização condicional"
-status: Proposto
+status: Decidido
 phase: "A12"
 date: "2026-05-12"
 relates_to:
@@ -23,7 +23,7 @@ tags:
   - methodology/auvp
   - methodology/cerbasi
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
