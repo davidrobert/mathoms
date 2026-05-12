@@ -192,6 +192,7 @@
 | ADR-192 | adr | Decidido |  | `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) | `adr/192-protection-aggregate-protectionbundle-secao-9.md` |
 | ADR-193 | adr | Proposto |  | Taxonomia canônica de classes de ativo no E5 (10 buckets) | `adr/193-taxonomia-canonica-classes-de-ativo-no-e5.md` |
 | ADR-194 | adr | Decidido |  | Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO) | `adr/194-irpf-kpis-dependentes-dedutiveis-extension.md` |
+| ADR-195 | adr | Proposto |  | PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel | `adr/195-pgbl-threshold-auvp-modula-variante.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -496,6 +497,7 @@
 | TRACK-a7-6-rules-as-code | track | consumed | A7 | Track A7.6 — Rules-as-code: dissolver `docs/methodology/` | `sprint/A7/tracks/a7-6-rules-as-code.md` |
 | TRACK-a8-trs-real | track | consumed | A8 | Track — A8 TRS real (renda passiva observada + Taxa de Retirada Sustentável efetiva) | `sprint/A8/tracks/a8-trs-real.md` |
 | TRACK-alocacao-v2-7-classes-migration | track | ready | A12 | Track Alocação v2 — migração schema 4→7 classes e desvio backend-driven | `sprint/A12/tracks/alocacao-v2-7-classes-migration.md` |
+| TRACK-auvp-threshold-pgbl-variant | track | consumed | A12 | Track AUVP threshold modula variante PGBL (M2 do ADR-189) | `sprint/A12/tracks/auvp-threshold-pgbl-variant.md` |
 | TRACK-cat-learning-loop-p1-schema | track | ready | A12 | Track Cat Learning Loop P1 — Schema (transaction_overrides.source + categorization_rules) | `sprint/A12/tracks/cat-learning-loop-p1-schema.md` |
 | TRACK-cat-learning-loop-p2-pipeline | track | ready | A12 | Track Cat Learning Loop P2 — Pipeline E4 (CategorizationRulesV2 + adapter) | `sprint/A12/tracks/cat-learning-loop-p2-pipeline.md` |
 | TRACK-cat-learning-loop-p3-backend-api | track | ready | A12 | Track Cat Learning Loop P3 — Backend API + schema evolution | `sprint/A12/tracks/cat-learning-loop-p3-backend-api.md` |
