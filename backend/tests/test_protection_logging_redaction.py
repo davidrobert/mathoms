@@ -15,13 +15,8 @@ from backend.app.core.logging import MathomsJsonFormatter
 _RAW_POLICY = "POL-SECRET-9999-X9Q"
 
 
-@contextmanager
-def _capture_protection_logs():
-    """Substitui handlers do logger `mathoms.protection*` por StringIO buffer."""
-    logger = logging.getLogger("mathoms.protection")
-    saved_handlers = list(logger.handlers)
-    saved_level = logger.level
-    saved_propagate = logger.propagate
+def _install_buffer_handler(logger: logging.Logger) -> io.StringIO:
+    """Substitui handlers do logger por um StreamHandler em StringIO (JSON formatter)."""
     buf = io.StringIO()
     handler = logging.StreamHandler(buf)
     handler.setFormatter(MathomsJsonFormatter())
@@ -29,12 +24,23 @@ def _capture_protection_logs():
     logger.handlers = [handler]
     logger.setLevel(logging.INFO)
     logger.propagate = False
+    logger.disabled = False
+    return buf
+
+
+@contextmanager
+def _capture_protection_logs():
+    """Captura INFO do `mathoms.protection`, resilient a Manager.disable global."""
+    logger = logging.getLogger("mathoms.protection")
+    saved = (logger.handlers, logger.level, logger.propagate, logger.disabled)
+    saved_manager_disable = logging.root.manager.disable
+    buf = _install_buffer_handler(logger)
+    logging.root.manager.disable = logging.NOTSET  # restaura no finally
     try:
         yield buf
     finally:
-        logger.handlers = saved_handlers
-        logger.setLevel(saved_level)
-        logger.propagate = saved_propagate
+        logger.handlers, logger.level, logger.propagate, logger.disabled = saved
+        logging.root.manager.disable = saved_manager_disable
 
 
 def _make_payload() -> dict:
@@ -56,7 +62,7 @@ def _assert_response_redacted(body: dict) -> None:
 def _assert_logs_redacted(log_text: str) -> None:
     assert (
         "protection_created" in log_text
-    ), "esperava log estruturado 'protection_created' do POST /protections"
+    ), f"esperava log estruturado 'protection_created' do POST /protections; got: {log_text!r}"
     assert _RAW_POLICY not in log_text, f"policy_ref raw vazou em log INFO: {log_text!r}"
 
 
