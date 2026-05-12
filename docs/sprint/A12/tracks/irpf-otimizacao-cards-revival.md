@@ -3,13 +3,14 @@ id: TRACK-irpf-otimizacao-cards-revival
 type: track
 title: "Track IRPF Otimização — reativar cards Dependentes Declarados + Dedutíveis Subutilizados"
 sprint: A12
-status: ready
+status: consumed
 created_at: 2026-05-12
+consumed_at: 2026-05-12
 agent_role: senior-cto
 tags:
   - type/track
   - sprint/a12
-  - status/ready
+  - status/consumed
   - area/irpf
   - area/frontend
   - area/report

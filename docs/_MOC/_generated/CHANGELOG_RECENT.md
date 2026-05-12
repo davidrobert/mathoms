@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-61 entries entre 2026-04-29 e 2026-05-11.
+62 entries entre 2026-04-29 e 2026-05-12.
+
+## 2026-05-12 (1 entries)
+
+- [[CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL]] — feat(report): reativa cards Dependentes Declarados + Dedutíveis (lane [[TRACK-irpf-otimizacao-cards-revival]])
 
 ## 2026-05-11 (8 entries)
 
