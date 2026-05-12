@@ -192,7 +192,7 @@
 | ADR-192 | adr | Decidido |  | `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) | `adr/192-protection-aggregate-protectionbundle-secao-9.md` |
 | ADR-193 | adr | Proposto |  | Taxonomia canônica de classes de ativo no E5 (10 buckets) | `adr/193-taxonomia-canonica-classes-de-ativo-no-e5.md` |
 | ADR-194 | adr | Decidido |  | Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO) | `adr/194-irpf-kpis-dependentes-dedutiveis-extension.md` |
-| ADR-195 | adr | Proposto |  | PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel | `adr/195-pgbl-threshold-auvp-modula-variante.md` |
+| ADR-195 | adr | Decidido |  | PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel | `adr/195-pgbl-threshold-auvp-modula-variante.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -371,13 +371,21 @@
 | CHG-2026-05-11-FEAT-REPORT | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-REPORT.md` |
 | CHG-2026-05-11-FEAT-REPORT-ALOCACAO | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-REPORT-ALOCACAO.md` |
 | CHG-2026-05-11-FEAT-S9-PROTECTION-AGGREGATE | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-S9-PROTECTION-AGGREGATE.md` |
+| CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT.md` |
 | CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL.md` |
+| CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION.md` |
+| CHG-2026-05-12-FEAT-S9-PROTECTION-CALCULATORS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-12-FEAT-S9-PROTECTION-CALCULATORS.md` |
+| CHG-2026-05-12-TEST-S9-GOLDENS-CLOSE-TRACK | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-12-TEST-S9-GOLDENS-CLOSE-TRACK.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
 | RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |
+| RULE-compliance-risk-us-person | domain-rule |  |  |  | `reference/rules/compliance-risk-us-person.md` |
 | RULE-composicao-patrimonial-7-categorias | domain-rule |  |  |  | `reference/rules/rule-composicao-patrimonial-7-categorias.md` |
 | RULE-concentracao-imobiliaria | domain-rule |  |  |  | `reference/rules/rule-concentracao-imobiliaria.md` |
+| RULE-disability-coverage-gap | domain-rule |  |  |  | `reference/rules/disability-coverage-gap.md` |
 | RULE-imoveis-no-if | domain-rule |  |  |  | `reference/rules/rule-imoveis-no-if.md` |
 | RULE-independencia-financeira | domain-rule |  |  |  | `reference/rules/rule-independencia-financeira.md` |
+| RULE-itcmd-estimated | domain-rule |  |  |  | `reference/rules/itcmd-estimated.md` |
+| RULE-life-insurance-coverage | domain-rule |  |  |  | `reference/rules/life-insurance-coverage.md` |
 | RULE-trs-efetiva | domain-rule |  |  |  | `reference/rules/rule-trs-efetiva.md` |
 | A10.0 | lane | shipped | A10 | ADRs Proposto batch (ADR-177..181) | `sprint/A10/lanes/A10-0-adrs-proposto-batch.md` |
 | A10.1 | lane | shipped | A10 | Dead-data deletion + ADR-168 narrativas órfãs | `sprint/A10/lanes/A10-1-dead-data-deletion-adr-168-narrativas-orfas.md` |
@@ -545,7 +553,7 @@
 | TRACK-report-v2-changelog-engine | track | consumed | A11 | Track Report v2.D.1 + v2.8 — Snapshot changelog engine + comparisons/changelog ON | `sprint/A11/tracks/report-v2-changelog-engine.md` |
 | TRACK-report-v2-charts-ux | track | consumed | A11 | Track Report v2.E — Charts UX (paridade visual final dos charts) | `sprint/A11/tracks/report-v2-charts-ux.md` |
 | TRACK-report-v2-t2-aportes | track | consumed | A11 | Track Report v2.4 — T2 Aportes seção real | `sprint/A11/tracks/report-v2-t2-aportes.md` |
-| TRACK-s9-riscos-expansion | track | ready | A11 | Track S9 Riscos e Proteção — Expansão completa (Protection aggregate + ProtectionBundle + 5 blocos UI) | `sprint/A11/tracks/s9-riscos-expansion.md` |
+| TRACK-s9-riscos-expansion | track | consumed | A11 | Track S9 Riscos e Proteção — Expansão completa (Protection aggregate + ProtectionBundle + 5 blocos UI) | `sprint/A11/tracks/s9-riscos-expansion.md` |
 | TRACK-w5t01-a11y | track | consumed | W5 | Track W5-T01 — A11y onda: scope=col + role=progressbar + aria-label charts + reduced-motion | `sprint/W5/tracks/w5t01-a11y.md` |
 | TRACK-w5t03-monetary-value | track | consumed | W5 | Track W5-T03 — `<MonetaryValue size="kpi">` migration | `sprint/W5/tracks/w5t03-monetary-value.md` |
 | TRACK-w5t04-adr161-enrichment | track | consumed | W5 | Track W5-T04 — FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | `sprint/W5/tracks/w5t04-adr161-enrichment.md` |

@@ -34,6 +34,11 @@ class FamilyMember(Base):
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="titular")
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     extra: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    # ADR-192 §D4 — sinal estruturado de exposição fiscal americana, derivado
+    # via ``ProtectionBundle.has_us_exposure``. Codes aceitos a nível
+    # de aplicação: ``none`` (default), ``resident``,
+    # ``former_resident_within_10y``, ``greencard_expiring``, ``citizen``.
+    us_tax_status: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
