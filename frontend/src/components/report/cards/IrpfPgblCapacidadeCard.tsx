@@ -1,7 +1,12 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import type { CardVariant } from "@/generated/report-layout";
-import { parseDecimalString, type IrpfKpis, type PgblStatus } from "@/types/irpf";
+import {
+  parseDecimalString,
+  type DedutivelCategoria,
+  type IrpfKpis,
+  type PgblStatus,
+} from "@/types/irpf";
 import {
   evaluatePgblAuvpFit,
   type AuvpFitTier,
@@ -44,11 +49,70 @@ const VARIANT_BY_AUVP_TIER: Record<AuvpFitTier, CardVariant> = {
   indeterminado: "info",
 };
 
+/** ADR-197 §D3 — rótulos para a lista de componentes elegíveis no modelo
+ * completo (Estado 2). Categorias com valor zero ou ausente são omitidas. */
+const COMPONENTE_LABEL: Record<DedutivelCategoria, string> = {
+  saude: "Saúde",
+  educacao: "Educação",
+  previdencia_oficial: "Previdência oficial (INSS)",
+  pensao_alimenticia: "Pensão alimentícia",
+};
+
+const COMPONENTE_ORDEM: readonly DedutivelCategoria[] = [
+  "saude",
+  "educacao",
+  "previdencia_oficial",
+  "pensao_alimenticia",
+];
+
+type ComponenteElegivel =
+  | { kind: "money"; label: string; valueBrl: number }
+  | { kind: "count"; label: string; count: number };
+
+function dedutiveisComponentes(
+  kpis: IrpfKpis,
+): ComponenteElegivel[] {
+  const out: ComponenteElegivel[] = [];
+  const dedutiveis = kpis.dedutiveis_aplicados ?? {};
+  for (const key of COMPONENTE_ORDEM) {
+    const linha = dedutiveis[key];
+    if (!linha) continue;
+    const valor = parseDecimalString(linha.utilizado_brl) ?? 0;
+    if (valor > 0) {
+      out.push({ kind: "money", label: COMPONENTE_LABEL[key], valueBrl: valor });
+    }
+  }
+  return out;
+}
+
+/** ADR-197 §D3 — monta lista sparse de componentes elegíveis no modelo
+ * completo. Saúde / educação / INSS / pensão lidos de `dedutiveis_aplicados`;
+ * dependentes lidos de `dependentes.count`; PGBL aportado de `pgbl_aportado_brl`.
+ * Categoria com valor ≤ 0 ou ausente é omitida (lista sparse). */
+function buildComponentesElegiveis(kpis: IrpfKpis): ComponenteElegivel[] {
+  const out = dedutiveisComponentes(kpis);
+  const depCount = kpis.dependentes?.count ?? 0;
+  if (depCount > 0) {
+    out.push({ kind: "count", label: "Dependentes", count: depCount });
+  }
+  const pgblAportado = parseDecimalString(kpis.pgbl_aportado_brl) ?? 0;
+  if (pgblAportado > 0) {
+    out.push({ kind: "money", label: "PGBL aportado", valueBrl: pgblAportado });
+  }
+  return out;
+}
+
 /** ADR-157 / ADR-189 · S_IRPF_OTIMIZACAO — diagnóstico PGBL tipificado.
  * ADR-195 · A12 — dentro de `capacidade_disponivel`, threshold AUVP
  * sobre alíquota efetiva modula variante (`info`/`neutral`) e sufixo
  * factual do subtitle. Copy literal do parágrafo e disclaimer
  * preservadas (ADR-189 §6.1).
+ * ADR-197 · A12 — Estado 2 (`modelo_simplificado`) estendido com lista
+ * sparse de componentes elegíveis no modelo completo (saúde, educação,
+ * INSS, pensão, dependentes, PGBL aportado) + ponteiro factual ao PGD/MIR
+ * da Receita. Lista omitida quando todas as categorias são zero/ausentes;
+ * disclaimer NÃO-escalonado (preserva ADR-189 §D4 — disclaimer "Não é
+ * recomendação" continua restrito ao Estado 1).
  *
  * Switch sobre `kpis.pgbl_status` em 4 estados. Disclaimer "Não é
  * recomendação" fica restrito a `capacidade_disponivel`; `R$ 0,00` só no
@@ -115,6 +179,11 @@ export function IrpfPgblCapacidadeCard({
               contribuições a PGBL não geram dedução adicional. A capacidade
               de 12% só vale no modelo completo.
             </p>
+            <ComponentesElegiveisModeloCompleto kpis={kpis} />
+            <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
+              O programa da Receita (PGD/MIR) compara automaticamente os
+              dois modelos durante o preenchimento e sugere o mais vantajoso.
+            </p>
           </>
         )}
 
@@ -152,5 +221,38 @@ export function IrpfPgblCapacidadeCard({
         )}
       </div>
     </ReportCard>
+  );
+}
+
+/** ADR-197 §D3 — lista sparse de componentes elegíveis no modelo completo
+ * que não compõem a base de cálculo do simplificado. Renderiza nada se
+ * todas as categorias forem zero/ausentes (não há ruído visual para
+ * usuário simplificado sem gastos elegíveis). */
+function ComponentesElegiveisModeloCompleto({ kpis }: { kpis: IrpfKpis }) {
+  const componentes = buildComponentesElegiveis(kpis);
+  if (componentes.length === 0) return null;
+  return (
+    <div className="space-y-2">
+      <p className="text-xs uppercase tracking-wide text-[var(--surface-muted-foreground)]">
+        Componentes elegíveis no modelo completo
+      </p>
+      <dl className="divide-y divide-[var(--surface-border)] text-sm">
+        {componentes.map((c) => (
+          <div
+            key={c.label}
+            className="flex items-center justify-between gap-3 py-2"
+          >
+            <dt className="text-[var(--surface-foreground)]">{c.label}</dt>
+            <dd className="font-mono tabular-nums text-[var(--surface-foreground)]">
+              {c.kind === "money" ? (
+                <MonetaryValue value={c.valueBrl} />
+              ) : (
+                c.count
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   );
 }

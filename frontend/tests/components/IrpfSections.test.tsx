@@ -339,6 +339,126 @@ describe("<IrpfPgblCapacidadeCard /> · ADR-189 · 4 estados", () => {
     expect(heroLine?.textContent).toBe("—");
   });
 
+  describe("Estado 2 — ADR-197 · A12 · componentes elegíveis + ponteiro PGD/MIR", () => {
+    it("renderiza lista sparse com 4 dedutíveis + dependentes + PGBL aportado quando todos presentes", () => {
+      const kpis = withStatus("modelo_simplificado", {
+        pgbl_aportado_brl: "5000.00",
+        pgbl_teto_brl: "0",
+        dependentes: {
+          count: 2,
+          por_relacao: { conjuge_companheiro: 1, filho_filha: 1 },
+        },
+        dedutiveis_aplicados: {
+          saude: { utilizado_brl: "8420.00", teto_brl: null, teto_aplicado: false },
+          educacao: { utilizado_brl: "2100.00", teto_brl: "3561.50", teto_aplicado: false },
+          previdencia_oficial: { utilizado_brl: "6500.00", teto_brl: null, teto_aplicado: false },
+          pensao_alimenticia: { utilizado_brl: "1200.00", teto_brl: null, teto_aplicado: false },
+        },
+      });
+      render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(screen.getByText(/Componentes elegíveis no modelo completo/)).toBeInTheDocument();
+      expect(screen.getByText("Saúde")).toBeInTheDocument();
+      expect(screen.getByText("Educação")).toBeInTheDocument();
+      expect(screen.getByText("Previdência oficial (INSS)")).toBeInTheDocument();
+      expect(screen.getByText("Pensão alimentícia")).toBeInTheDocument();
+      expect(screen.getByText("Dependentes")).toBeInTheDocument();
+      expect(screen.getByText("PGBL aportado")).toBeInTheDocument();
+      expect(screen.getByText("2")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /O programa da Receita \(PGD\/MIR\) compara automaticamente os dois modelos/,
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("omite categorias com valor zero ou ausente (lista sparse)", () => {
+      const kpis = withStatus("modelo_simplificado", {
+        pgbl_aportado_brl: "0",
+        dedutiveis_aplicados: {
+          saude: { utilizado_brl: "8420.00", teto_brl: null, teto_aplicado: false },
+          educacao: { utilizado_brl: "0", teto_brl: "3561.50", teto_aplicado: false },
+        },
+      });
+      render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(screen.getByText(/Componentes elegíveis no modelo completo/)).toBeInTheDocument();
+      expect(screen.getByText("Saúde")).toBeInTheDocument();
+      expect(screen.queryByText("Educação")).toBeNull();
+      expect(screen.queryByText("Previdência oficial (INSS)")).toBeNull();
+      expect(screen.queryByText("Pensão alimentícia")).toBeNull();
+      expect(screen.queryByText("Dependentes")).toBeNull();
+      expect(screen.queryByText("PGBL aportado")).toBeNull();
+    });
+
+    it("renderiza PGBL aportado quando simplificado tem aporte mas zero dedutíveis (caso real ADR-196)", () => {
+      const kpis = withStatus("modelo_simplificado", {
+        pgbl_aportado_brl: "3000.00",
+        pgbl_teto_brl: "0",
+      });
+      render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(screen.getByText(/Componentes elegíveis no modelo completo/)).toBeInTheDocument();
+      expect(screen.getByText("PGBL aportado")).toBeInTheDocument();
+    });
+
+    it("omite a lista inteira quando todos os componentes são zero/ausentes (sem ruído visual)", () => {
+      const kpis = withStatus("modelo_simplificado", {
+        pgbl_aportado_brl: "0",
+      });
+      render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(screen.queryByText(/Componentes elegíveis no modelo completo/)).toBeNull();
+      expect(screen.queryByText("Saúde")).toBeNull();
+      expect(screen.queryByText("Dependentes")).toBeNull();
+    });
+
+    it("ponteiro PGD/MIR sempre presente no Estado 2, mesmo sem componentes elegíveis", () => {
+      const kpis = withStatus("modelo_simplificado", {
+        pgbl_aportado_brl: "0",
+      });
+      render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(
+        screen.getByText(
+          /O programa da Receita \(PGD\/MIR\) compara automaticamente os dois modelos/,
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("preserva variante neutral mesmo com lista completa (não escala para info)", () => {
+      const kpis = withStatus("modelo_simplificado", {
+        pgbl_aportado_brl: "5000.00",
+        dependentes: { count: 1, por_relacao: { filho_filha: 1 } },
+        dedutiveis_aplicados: {
+          saude: { utilizado_brl: "12000.00", teto_brl: null, teto_aplicado: false },
+        },
+      });
+      const { container } = render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(container.querySelector(".card-variant-neutral")).not.toBeNull();
+      expect(container.querySelector(".card-variant-info")).toBeNull();
+      expect(container.querySelector(".card-variant-feature")).toBeNull();
+    });
+
+    it("disclaimer 'Não é recomendação' permanece ausente mesmo com lista de componentes (ADR-189 §D4 preservado)", () => {
+      const kpis = withStatus("modelo_simplificado", {
+        pgbl_aportado_brl: "3000.00",
+        dedutiveis_aplicados: {
+          saude: { utilizado_brl: "8000.00", teto_brl: null, teto_aplicado: false },
+        },
+      });
+      render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(screen.queryByText(/Não é recomendação:/)).toBeNull();
+    });
+
+    it("hero permanece '—' mesmo com componentes presentes (zero monetário não aplicável)", () => {
+      const kpis = withStatus("modelo_simplificado", {
+        pgbl_aportado_brl: "5000.00",
+        dedutiveis_aplicados: {
+          saude: { utilizado_brl: "8000.00", teto_brl: null, teto_aplicado: false },
+        },
+      });
+      const { container } = render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      const heroLine = container.querySelector(".font-mono.text-2xl");
+      expect(heroLine?.textContent).toBe("—");
+    });
+  });
+
   it("Estado 3 — no_teto: variante feature, R$ 0,00, sem disclaimer", () => {
     const kpis = withStatus("no_teto", {
       pgbl_capacidade_dedutivel_brl: "0",
