@@ -46,3 +46,5 @@ export { IrpfRendaAnualCard } from "./IrpfRendaAnualCard";
 export { IrpfIrPagoCard } from "./IrpfIrPagoCard";
 export { IrpfSplitTrabalhoCapitalCard } from "./IrpfSplitTrabalhoCapitalCard";
 export { IrpfPgblCapacidadeCard } from "./IrpfPgblCapacidadeCard";
+export { IrpfDependentesCard } from "./IrpfDependentesCard";
+export { IrpfDedutiveisAplicadosCard } from "./IrpfDedutiveisAplicadosCard";
