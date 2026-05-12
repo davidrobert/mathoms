@@ -48,3 +48,21 @@ export { IrpfSplitTrabalhoCapitalCard } from "./IrpfSplitTrabalhoCapitalCard";
 export { IrpfPgblCapacidadeCard } from "./IrpfPgblCapacidadeCard";
 export { IrpfDependentesCard } from "./IrpfDependentesCard";
 export { IrpfDedutiveisAplicadosCard } from "./IrpfDedutiveisAplicadosCard";
+// S9-T04 (ADR-192 §D4) — Riscos e Proteção
+export { HeroGapProtecaoCard } from "./HeroGapProtecaoCard";
+export { CoberturaSegurosCard } from "./CoberturaSegurosCard";
+export { SucessaoCard } from "./SucessaoCard";
+export { AcoesMitigacaoCard } from "./AcoesMitigacaoCard";
+export type {
+  ProtectionBundle,
+  ProtectionItem,
+  ProtectionGapItem,
+  ProtectionRecommendation,
+  RiskInferred,
+  ProtectionThresholds,
+  ProtectionCategory,
+  ProtectionStatus,
+  CoverageType,
+  ProtectionPriority,
+  MitigationStatus,
+} from "./protectionBundle.types";

@@ -3,12 +3,13 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-63 entries entre 2026-04-29 e 2026-05-12.
+64 entries entre 2026-04-29 e 2026-05-12.
 
-## 2026-05-12 (2 entries)
+## 2026-05-12 (3 entries)
 
 - [[CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT]] — feat(report): threshold AUVP modula variante visual do card (lane [[TRACK-auvp-threshold-pgbl-variant]])
 - [[CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL]] — feat(report): reativa cards Dependentes Declarados + Dedutíveis (lane [[TRACK-irpf-otimizacao-cards-revival]])
+- [[CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION]] — feat(report): S9 expandida — 4 cards + bubble re-enquadrado (lane [[A11.w5]])
 
 ## 2026-05-11 (8 entries)
 

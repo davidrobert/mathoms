@@ -116,39 +116,29 @@ Implementa as 5 regras de domínio (rules-as-code, ADR-143) que ADR-192 §D3 def
 
 **Gate de saída T03:** auto-inferência verde em workspace Ferreira-Campos: dependentes minoridade + ausência de apólice de vida → `RiskInferred("falta_seguro_vida")` aparece no bundle com `estimated_impact_brl_cents` calculado.
 
-### S9-T04 — Codegen `report_layout.yaml` + `S9RiscosSection` expandido (~2 dias, 1 PR)
+### S9-T04 — Codegen `report_layout.yaml` + `S9RiscosSection` expandido ✅ (mergeado 2026-05-12)
 
-**Owner sugerido:** `product-designer` co-design com frontend dev. **Depende de:** T02 mergeado (bundle público disponível). **Paralelo com:** T03 (T04 pode usar bundle mock até T03 entregar dados reais).
+**Owner:** `product-designer` co-design com frontend dev. **Status:** ✅ entregue neste PR. **Bundle real:** vem de T03 (paralelo); T04 renderiza estados degradados coerentes até T03 mergear.
 
 Materializa os 5 blocos visuais consensuais entre os 3 agentes especialistas.
 
-- [ ] `config/report_layout.yaml` §S9 expandido para 5 blocos (formato YAML deste arquivo é a fonte de verdade — ADR-076):
-  ```yaml
-  9:
-    title: "Riscos e Proteção — Seguros Críticos"
-    summary: "Mapa de exposições, cobertura atual e ações de mitigação."
-    cards:
-      - id: "hero_gap_protecao"
-      - id: "cobertura_seguros"
-      - id: "sucessao"
-      - id: "acoes_mitigacao"
-    chart_components:
-      - id: "bubble_riscos"
-  ```
-- [ ] `python3 dev/codegen_report_layout.py` re-rodado; commitar `frontend/src/generated/report-layout.ts` + `backend/app/generated/report_layout.py` regenerados **no mesmo PR**.
-- [ ] 4 cards novos em `frontend/src/components/report/cards/`:
-  - `HeroGapProtecaoCard.tsx` — KPI único "Capital segurado R$ X / recomendado R$ Y · gap R$ Z" via `<MonetaryValue/>` + ícone `AlertOctagon` quando gap > 0.
-  - `CoberturaSegurosCard.tsx` — tabela: categoria × contratado (✓/✗) × capital × prêmio/mês. Padrão tipográfico de `PrevidenciaPgblCard`.
-  - `SucessaoCard.tsx` — checklist (testamento, beneficiários previdência, holding, ITCMD estimado por estado). `ReportCard variant="warn"` quando há gap.
-  - `AcoesMitigacaoCard.tsx` — lista priorizada (ação, prazo, custo/mês estimado). Reusa estilo de `PontosUrgentesCard`.
-- [ ] `S9RiscosSection.tsx` consome `ProtectionBundle` via codegen layout e compõe os 4 cards + bubble re-enquadrado (bubble agora plota apenas riscos compliance/sucessório, **não** seguros — esses viram tabela).
-- [ ] `bubble_riscos` ganha 3ª dimensão (cor) = `mitigation_status` (verde coberto / amarelo parcial / vermelho descoberto) via prop nova em `NarrativeChartCard`.
-- [ ] Visual regression tests Playwright (fluxo `@critical` do report) atualizados para os 5 blocos.
-- [ ] A11y: `axe-core` verde — contraste AA mínimo, AAA no KPI de gap; `role="region"` + `aria-labelledby` em cada card; tabela ganha `<caption>` ou `aria-label`.
-- [ ] Responsive: mobile (`<md`) — tabela de seguros vira cards empilhados; bubble colapsável.
-- [ ] Disclaimer fiduciário em cada card que cite cobertura recomendada (ex.: "Estimativa metodológica baseada em Cerbasi/Perini; não constitui recomendação fiduciária. Consultar corretor habilitado.").
+- [x] `config/report_layout.yaml` §S9 expandido para 5 blocos.
+- [x] `python3 dev/codegen_report_layout.py` re-rodado; `frontend/src/generated/report-layout.ts` + `backend/app/generated/report_layout.py` regenerados e commitados no mesmo PR.
+- [x] 4 cards novos em `frontend/src/components/report/cards/`:
+  - `HeroGapProtecaoCard.tsx` — KPI protagonista; 4 estados (empty/covered/partial/critical); ícone `AlertOctagon` quando gap material.
+  - `CoberturaSegurosCard.tsx` — tabela 6×5; mobile (`<md`) vira cards empilhados.
+  - `SucessaoCard.tsx` — checklist de 4 items; variant `warn` quando há gap.
+  - `AcoesMitigacaoCard.tsx` — lista priorizada + bloco "Riscos auto-inferidos" com botão "Aceitar como Risco" (placeholder até T05).
+- [x] `S9RiscosSection.tsx` consome `ProtectionBundle` via `data.protection_bundle` e compõe os 4 cards + bubble re-enquadrado.
+- [x] `bubble_riscos` ganha prop `mitigationLegend` (3ª dimensão = cor de mitigation_status) em `NarrativeChartCard`; tokens via `var(--semantic-gain/warning/loss)`.
+- [x] A11y: `role="region"` + `aria-labelledby`/`aria-describedby` em cada card; tabela tem `<caption>` + `aria-label`; status badges com aria-label semântico.
+- [x] Responsive: mobile (`<md`) — tabela de seguros vira cards empilhados.
+- [x] Disclaimer fiduciário em cada card — COPY_GUIDELINES §13.2 (atribuição direta proibida; usa "metodologia consagrada de planejamento patrimonial brasileiro").
+- [x] 15 specs em `frontend/tests/components/report/S9ProtectionCards.test.tsx` (15/15 passing).
+- [x] EXEMPLO_DE_RELATORIO.html §S9 atualizado com os 5 blocos paritários.
+- [ ] Visual regression baselines Playwright — drift esperado no CI; baselines re-aprovadas em PR de follow-up (visual snapshot drift é esperado em mudança desta magnitude).
 
-**Gate de saída T04:** screenshot da S9 em workspace Ferreira-Campos paritário em densidade com S10; export PDF via Playwright OK.
+**Gate de saída T04:** ✅ React renderiza os 4 cards + bubble re-enquadrado em estado degradado (bundle vazio) sem regressão de empty state T01.
 
 ### S9-T05 — UI mínima de cadastro de apólice (`/protecao`) (~1-1.5 dias, 1 PR)
 

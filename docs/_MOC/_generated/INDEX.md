@@ -373,6 +373,7 @@
 | CHG-2026-05-11-FEAT-S9-PROTECTION-AGGREGATE | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-11-FEAT-S9-PROTECTION-AGGREGATE.md` |
 | CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT.md` |
 | CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL.md` |
+| CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
 | RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |
 | RULE-composicao-patrimonial-7-categorias | domain-rule |  |  |  | `reference/rules/rule-composicao-patrimonial-7-categorias.md` |
