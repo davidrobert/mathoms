@@ -3,12 +3,13 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-66 entries entre 2026-04-29 e 2026-05-12.
+67 entries entre 2026-04-29 e 2026-05-12.
 
-## 2026-05-12 (5 entries)
+## 2026-05-12 (6 entries)
 
 - [[CHG-2026-05-12-FEAT-AUVP-THRESHOLD-PGBL-VARIANT]] — feat(report): threshold AUVP modula variante visual do card (lane [[TRACK-auvp-threshold-pgbl-variant]])
 - [[CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL]] — feat(report): reativa cards Dependentes Declarados + Dedutíveis (lane [[TRACK-irpf-otimizacao-cards-revival]])
+- [[CHG-2026-05-12-FEAT-PGBL-CARDS-RECONCILIATION]] — feat(frontend): reconciliação dos cards PGBL S7×IRPF — Card A
 - [[CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION]] — feat(report): S9 expandida — 4 cards + bubble re-enquadrado (lane [[A11.w5]])
 - [[CHG-2026-05-12-FEAT-S9-PROTECTION-CALCULATORS]] — feat(domain): 4 calculators determinísticos protection + auto-inferência (lane [[A11.w5]])
 - [[CHG-2026-05-12-TEST-S9-GOLDENS-CLOSE-TRACK]] — test(report): reset goldens E5 + paridade narrativa S9 (ADR-192, S9-T06) (lane [[A11.w5]])
