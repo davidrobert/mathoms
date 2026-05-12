@@ -337,6 +337,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `role` | `VARCHAR(20)` | no | `'titular'` | — |
 | `order` | `INTEGER` | no | `0` | — |
 | `extra` | `JSON` | yes | — | — |
+| `us_tax_status` | `VARCHAR(32)` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Constraints:**
@@ -1417,6 +1418,7 @@ type FamilyMember struct {
 	Role string `db:"role" json:"role"`
 	Order int `db:"order" json:"order"`
 	Extra json.RawMessage `db:"extra" json:"extra"`
+	UsTaxStatus *string `db:"us_tax_status" json:"us_tax_status"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```

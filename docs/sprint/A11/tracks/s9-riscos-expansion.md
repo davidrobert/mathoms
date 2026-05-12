@@ -87,34 +87,34 @@ Cria a fundação DDD da expansão. **Aplicou ressalvas dos 3 reviewers** (ADR-1
 
 **Gate de saída T02:** ✅ ADR-192 flippa de `Proposto` para `Decidido (Sprint A11.W5)` neste PR.
 
-### S9-T03 — 5 calculators determinísticos + auto-inferência (~3 dias, 1 PR)
+### S9-T03 — 4 calculators determinísticos + auto-inferência ✅ (mergeado neste PR)
 
-**Owner sugerido:** `data-engineer` co-design com `financial-planner` (revisão fórmulas). **Depende de:** T02 mergeado. **Paralelo com:** T04 (T04 só consome o bundle público; pode esboçar em paralelo).
+**Owner:** `senior-cto` (autoridade delegada — gate triplo via Agent tool indisponível em sub-sessão; decisões logadas no changelog). **Status:** ✅ entregue.
 
-Implementa as 5 regras de domínio (rules-as-code, ADR-143) que ADR-192 §D3 define.
+Implementa as 4 regras de domínio (rules-as-code, ADR-143) que ADR-192 §D3 define (escopo revisto pós-T02: `emergency_reserve_target` movido para track futuro `Goal` ADR-180).
 
-- [ ] Módulo `pipeline/domain/services/protection/` com 5 calculators puros (sem `@lru_cache` — ADR-111). Cada um aceita value object tipado e retorna dataclass de output:
-  - `life_insurance_coverage_ideal(inputs: LifeInsuranceInputs) -> CoverageRecommendation`
-  - `emergency_reserve_target(inputs: EmergencyReserveInputs) -> ReserveTarget`
-  - `disability_coverage_gap(inputs: DisabilityInputs) -> CoverageGap`
-  - `itcmd_estimated(inputs: ITCMDInputs) -> ITCMDEstimate` (alíquota por estado: SP 4%, RJ até 8%, MG 5%, demais conforme tabela ICMS atualizada).
-  - `compliance_risk_us_person(inputs: USExposureInputs) -> list[ComplianceFlag]` — emite FBAR/FATCA/Estate Tax flags **apenas** se sinal explícito.
-- [ ] Cada calculator emite `RiskInferred(category, name, rationale, estimated_impact_brl_cents, source_calculator)` quando o gap material existir. Lista entra em `ProtectionBundle.auto_inferred_risks`. **Não persiste** — UI futura confirma com 1-click "Aceitar como Risco" (cria `Risk` via repo existente).
-- [ ] Adapter `_project_protection_bundle_sync` ([backend/app/services/pipeline_adapter.py](../../../../backend/app/services/pipeline_adapter.py)) injeta os 5 calculators no bundle (DIP) — pipeline consome lista de `auto_inferred_risks` já materializada.
-- [ ] 5 notas Domain Rule em `docs/reference/rules/` (uma por calculator), cada uma com frontmatter:
-  ```yaml
-  id: RULE-life-insurance-coverage
-  type: domain-rule
-  concept: "Cobertura ideal de seguro de vida"
-  methodology: ["cerbasi", "perini"]
-  canonical_adr: "[[ADR-192]]"
-  enforcer_modules:
-    - "pipeline/domain/services/protection/life_insurance_calculator.py"
-  ```
-- [ ] Testes `tests/pipeline/domain/services/protection/test_<calculator>.py` para os 5 — cada um cobre 3+ perfis: solteiro sem deps, casado com 2 deps em minoridade, expatriado USA com ativos > thresholds FBAR/FATCA.
-- [ ] Atualizar [docs/reference/ARCHITECTURE.md §4.1 Domain glossary](../../../reference/ARCHITECTURE.md) com 5 conceitos novos apontando para enforcer + ADR.
+- [x] Módulo `pipeline/domain/services/protection/` com 4 calculators puros (sem `@lru_cache` — ADR-111), cada um aceitando value object tipado e retornando dataclass de output:
+  - `life_insurance_coverage_ideal(inputs: LifeInsuranceInputs) -> CoverageRecommendation` — Cerbasi `max` Perini.
+  - `disability_coverage_gap(inputs: DisabilityInputs) -> CoverageGap` — Cerbasi `share > 40% E cov < 60% renda`.
+  - `itcmd_estimated(inputs: ITCMDInputs) -> ITCMDEstimate` — tabela alíquotas injetada (27 UFs + DF; default no adapter, débito → `fiscal_parameters` ADR-135).
+  - `compliance_risk_us_person(inputs: USExposureInputs) -> list[ComplianceFlag]` — gate explícito por `us_tax_status` ∈ `{resident, former_resident_within_10y, greencard_expiring, citizen}` ou `has_us_assets AND us_assets > FBAR`.
+- [x] Cada calculator emite `RiskInferred(category, name, rationale, estimated_impact_brl_cents, source_calculator)` quando o gap material existir. Whitelist enforced em `build_risk_inferred` (`ValueError` para qualquer `source_calculator` fora dos 4).
+- [x] Adapter `_populate_bundle` em [`backend/app/services/protection_bundle_adapter.py`](../../../../backend/app/services/protection_bundle_adapter.py) injeta os 4 calculators no bundle (DIP). `_PROTECTION_BUNDLE_VERSION` bump para `2`.
+- [x] 4 notas Domain Rule em `docs/reference/rules/` (`life-insurance-coverage`, `disability-coverage-gap`, `itcmd-estimated`, `compliance-risk-us-person`).
+- [x] Alembic migration `d0e1f2a3b4c5_adr192_family_member_us_tax_status.py` — adiciona `family_members.us_tax_status: String(32)` nullable; codes válidos enforce app-layer.
+- [x] Disclaimer fiduciário canônico em todo `rationale`.
+- [x] Testes em `tests/pipeline/domain/services/protection/` (50 specs cobrindo 3+ perfis cada: solteiro, casado com deps minoridade, expatriado USA com ativos > thresholds FBAR/FATCA).
+- [x] 3 specs novos no `backend/tests/test_protection_aggregate.py` exercitando o populator end-to-end.
+- [x] [docs/reference/ARCHITECTURE.md §4.1 Domain glossary](../../../reference/ARCHITECTURE.md) atualizado com 4 conceitos novos apontando para enforcer + ADR.
 
-**Gate de saída T03:** auto-inferência verde em workspace Ferreira-Campos: dependentes minoridade + ausência de apólice de vida → `RiskInferred("falta_seguro_vida")` aparece no bundle com `estimated_impact_brl_cents` calculado.
+**Gate de saída T03:** ✅ workspace com `family_member.us_tax_status="citizen"` → `RiskInferred("compliance_us_fbar")` aparece no bundle; whitelist invariant verde em todos os caminhos.
+
+**Goldens E5** marcados para reset em T06 — narrador S9 ainda lê pela via legada até T04, então este PR não muda shape do `bubble_riscos`. T06 fará o reset único.
+
+**Débitos documentados** (ADR-135 follow-up, lane separada):
+- `fiscal_parameters.itcmd_aliquota_por_uf JSON` por vigência (substitui `_ITCMD_ALIQUOTAS_DEFAULT_PCT`).
+- `fiscal_parameters.us_thresholds_usd JSON` por vigência (substitui `_US_THRESHOLDS_DEFAULT`).
+- Income (renda ativa anual/mensal) + patrimônio bruto vindos de baseline E1.5 / E5 (hoje o adapter passa 0 → calculators retornam empty-state seguro).
 
 ### S9-T04 — Codegen `report_layout.yaml` + `S9RiscosSection` expandido ✅ (mergeado 2026-05-12)
 

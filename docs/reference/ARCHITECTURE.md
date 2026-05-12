@@ -309,6 +309,10 @@ módulo enforcer.
 | Money policy (`Decimal` string · `int64` cents · nunca float) | `pipeline/domain/models/transaction.py::Money` | [ADR-090](DECISIONS.md#adr-090--money-nunca-é-float) |
 | Cenário de estresse "cônjuge sem trabalhar" — chave de payload `cenarios_conjuge` (universal estável, ADR-166) | `pipeline/domain/services/cenarios_conjuge_analyzer.py::CenariosConjugeAnalyzer` + `pipeline/domain/services/e5_serialization.py::build_e5_output` | [ADR-166](DECISIONS.md#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) |
 | Mês fechado / relatório publicado (invariante temporal de imutabilidade) | `backend/app/services/report_publication.py::is_month_closed` + `ReportPublication` model | [ADR-187](adr/187-relatorio-publicado-imutavel-mes-fechado.md) — ver também [REPORT_PUBLICATION.md](REPORT_PUBLICATION.md) |
+| Cobertura ideal de seguro de vida (`max(Cerbasi, Perini)`) | `pipeline/domain/services/protection/life_insurance_coverage.py::life_insurance_coverage_ideal` ([rule](rules/life-insurance-coverage.md)) | [ADR-192](adr/192-protection-aggregate-protectionbundle-secao-9.md) |
+| Gap de cobertura de invalidez (Cerbasi · share renda ativa > 40% E cobertura < 60% renda) | `pipeline/domain/services/protection/disability_coverage.py::disability_coverage_gap` ([rule](rules/disability-coverage-gap.md)) | [ADR-192](adr/192-protection-aggregate-protectionbundle-secao-9.md) |
+| ITCMD estimado por UF (alíquota × patrimônio bruto, tabela injetada por `fiscal_parameters`) | `pipeline/domain/services/protection/itcmd_estimator.py::itcmd_estimated` ([rule](rules/itcmd-estimated.md)) | [ADR-192](adr/192-protection-aggregate-protectionbundle-secao-9.md) |
+| Compliance US-person (FBAR / FATCA / Estate Tax NRA, gate explícito por `us_tax_status`) | `pipeline/domain/services/protection/compliance_us_person.py::compliance_risk_us_person` ([rule](rules/compliance-risk-us-person.md)) | [ADR-192](adr/192-protection-aggregate-protectionbundle-secao-9.md) |
 
 **Regra geral:** nada de regras de produto em markdown editorial. Toda
 regra que o código enforce vive no código (docstring) + ADR (porquê);

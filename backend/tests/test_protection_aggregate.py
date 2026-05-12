@@ -440,7 +440,10 @@ async def test_bundle_skeleton_returns_empty_lists_when_no_policies(db, setup):
     assert bundle["recommendations"] == []
     assert bundle["auto_inferred_risks"] == []
     assert bundle["has_us_exposure"] is False
-    assert bundle["_adapter_version"] == 1
+    # T03 (ADR-192 §D3) bumpou adapter_version → 2 ao popular calculators.
+    # methodology_thresholds passa a vir preenchido com defaults.
+    assert bundle["_adapter_version"] == 2
+    assert bundle["methodology_thresholds"]["fbar_threshold_usd"] == 10_000
 
 
 @pytest.mark.asyncio
@@ -502,3 +505,66 @@ def test_logging_redacts_coverage_brl():
     redacted = _redact({"coverage_brl": "1000000.00", "coverage_bucket": 2})
     assert redacted["coverage_brl"] == "***"
     assert redacted["coverage_bucket"] == 2
+
+
+# ---------------------------------------------------------------------------
+# Bundle populator (T03) — calculators acopla pelo adapter
+# ---------------------------------------------------------------------------
+
+
+async def _add_titular_with_us_status(db, ws, us_tax_status: str):
+    from backend.app.models.family_member import FamilyMember
+
+    db.add(
+        FamilyMember(
+            workspace_id=ws.id,
+            key="titular",
+            full_name="Titular Teste",
+            short_name="T.",
+            role="titular",
+            us_tax_status=us_tax_status,
+        )
+    )
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_bundle_t03_us_exposure_from_family_member_us_tax_status(db, setup):
+    """ADR-192 §D4: ``has_us_exposure`` deriva de ``family_members.us_tax_status``."""
+    from backend.app.services.protection_bundle_adapter import _project_protection_bundle_async
+
+    ws, _, _ = setup
+    await _add_titular_with_us_status(db, ws, "citizen")
+    bundle = await _project_protection_bundle_async(ws.id, db=db)
+    assert bundle["has_us_exposure"] is True
+    fbar = [r for r in bundle["auto_inferred_risks"] if r.get("name") == "compliance_us_fbar"]
+    assert len(fbar) == 1
+    assert fbar[0]["source_calculator"] == "compliance_risk_us_person"
+
+
+@pytest.mark.asyncio
+async def test_bundle_t03_whitelist_invariant_apenas_4_calculators(db, setup):
+    """ADR-192 §D3: somente calculators whitelisted podem emitir RiskInferred."""
+    from backend.app.services.protection_bundle_adapter import _project_protection_bundle_async
+    from pipeline.domain.services.protection.risk_inferred import SOURCE_CALCULATORS_WHITELIST
+
+    ws, _, _ = setup
+    await _add_titular_with_us_status(db, ws, "resident")
+    bundle = await _project_protection_bundle_async(ws.id, db=db)
+    for risk in bundle["auto_inferred_risks"]:
+        assert risk["source_calculator"] in SOURCE_CALCULATORS_WHITELIST
+
+
+@pytest.mark.asyncio
+async def test_bundle_t03_thresholds_populados(db, setup):
+    """T03: bundle expõe thresholds default de ``fiscal_parameters``."""
+    from backend.app.services.protection_bundle_adapter import (
+        _project_protection_bundle_async,
+    )
+
+    ws, _, _ = setup
+    bundle = await _project_protection_bundle_async(ws.id, db=db)
+    thresholds = bundle["methodology_thresholds"]
+    assert thresholds["fbar_threshold_usd"] == 10_000
+    assert thresholds["estate_tax_threshold_usd"] == 60_000
+    assert thresholds["life_insurance_multiple_renda_anual"] == 10.0
