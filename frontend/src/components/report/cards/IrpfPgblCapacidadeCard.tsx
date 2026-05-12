@@ -2,11 +2,15 @@ import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import type { CardVariant } from "@/generated/report-layout";
 import { parseDecimalString, type IrpfKpis, type PgblStatus } from "@/types/irpf";
+import {
+  evaluatePgblAuvpFit,
+  type AuvpFitTier,
+} from "@/lib/irpf/pgbl-auvp-fit";
 
 interface IrpfPgblCapacidadeCardProps {
   kpis: IrpfKpis;
-  /** Variante default por estado (ADR-189 §D5) é resolvida internamente —
-   * prop fica como override opcional para futuras lanes (threshold AUVP). */
+  /** Override opcional — usado em snapshots/storybook. Em produção a
+   * variante é resolvida internamente (ADR-189 §D5 + ADR-195 §3 D3). */
   variant?: CardVariant;
 }
 
@@ -24,10 +28,29 @@ const SUBTITLE_BY_STATUS: Record<PgblStatus, string> = {
   sem_renda_tributavel: "Não se aplica",
 };
 
+/** ADR-195 §4 — sufixo factual do subtitle por tier AUVP. */
+const SUBTITLE_SUFFIX_BY_TIER: Record<AuvpFitTier, string> = {
+  auvp_aderente: " · alíquota efetiva alta",
+  neutro: " · alíquota efetiva intermediária",
+  abaixo: " · alíquota efetiva baixa",
+  indeterminado: "",
+};
+
+/** ADR-195 §3 D3 — apenas tier `abaixo` desce de `info` para `neutral`. */
+const VARIANT_BY_AUVP_TIER: Record<AuvpFitTier, CardVariant> = {
+  auvp_aderente: "info",
+  neutro: "info",
+  abaixo: "neutral",
+  indeterminado: "info",
+};
+
 /** ADR-157 / ADR-189 · S_IRPF_OTIMIZACAO — diagnóstico PGBL tipificado.
+ * ADR-195 · A12 — dentro de `capacidade_disponivel`, threshold AUVP
+ * sobre alíquota efetiva modula variante (`info`/`neutral`) e sufixo
+ * factual do subtitle. Copy literal do parágrafo e disclaimer
+ * preservadas (ADR-189 §6.1).
  *
- * Switch sobre `kpis.pgbl_status` em 4 estados (copy literal de ADR-189 §4,
- * congelada por G0 financial-planner em 2026-05-11). Disclaimer "Não é
+ * Switch sobre `kpis.pgbl_status` em 4 estados. Disclaimer "Não é
  * recomendação" fica restrito a `capacidade_disponivel`; `R$ 0,00` só no
  * `no_teto` (zero monetário real); estados `modelo_simplificado` e
  * `sem_renda_tributavel` rendem "—" (métrica não aplicável). */
@@ -36,17 +59,26 @@ export function IrpfPgblCapacidadeCard({
   variant,
 }: IrpfPgblCapacidadeCardProps) {
   const status = kpis.pgbl_status;
-  const resolvedVariant: CardVariant = variant ?? VARIANT_BY_STATUS[status];
   const anoBase = kpis.ano_base;
   const aportado = parseDecimalString(kpis.pgbl_aportado_brl) ?? 0;
   const teto = parseDecimalString(kpis.pgbl_teto_brl) ?? 0;
   const capacidade = parseDecimalString(kpis.pgbl_capacidade_dedutivel_brl) ?? 0;
+
+  const auvpFit =
+    status === "capacidade_disponivel" ? evaluatePgblAuvpFit(kpis) : null;
+  const resolvedVariant: CardVariant =
+    variant ??
+    (auvpFit
+      ? VARIANT_BY_AUVP_TIER[auvpFit.tier]
+      : VARIANT_BY_STATUS[status]);
+  const subtitleSuffix = auvpFit ? SUBTITLE_SUFFIX_BY_TIER[auvpFit.tier] : "";
 
   return (
     <ReportCard variant={resolvedVariant} size="half" title="Capacidade PGBL">
       <div className="space-y-3">
         <p className="text-xs uppercase tracking-wide text-[var(--surface-muted-foreground)]">
           {SUBTITLE_BY_STATUS[status]} · {anoBase}
+          {subtitleSuffix}
         </p>
 
         {status === "capacidade_disponivel" && (
