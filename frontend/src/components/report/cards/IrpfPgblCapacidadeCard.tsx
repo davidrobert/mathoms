@@ -106,7 +106,7 @@ export function IrpfPgblCapacidadeCard({
         {status === "modelo_simplificado" && (
           <>
             <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-[var(--surface-muted-foreground)]">
-              —
+              <span aria-label="Métrica não aplicável">—</span>
             </p>
             <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
               Você declarou pelo modelo simplificado em {anoBase} — neste
@@ -141,7 +141,7 @@ export function IrpfPgblCapacidadeCard({
         {status === "sem_renda_tributavel" && (
           <>
             <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-[var(--surface-muted-foreground)]">
-              —
+              <span aria-label="Métrica não aplicável">—</span>
             </p>
             <p className="text-sm leading-relaxed text-[var(--surface-muted-foreground)]">
               Em {anoBase}, sua declaração registrou apenas rendimentos
