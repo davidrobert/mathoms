@@ -11,7 +11,7 @@ import {
 interface IrpfDedutiveisAplicadosCardProps {
   dedutiveis: Partial<Record<DedutivelCategoria, DedutivelLinha>>;
   anoBase: number;
-  /** ADR-194 §6.4 — subtítulo varia por regime; simplificado/sem renda não deduziu. */
+  /** ADR-194 §6.4 + ADR-198 — subtítulo, variante e chip variam por regime. */
   pgblStatus: PgblStatus;
   /** Variante default opcional; resolvida internamente por subutilização. */
   variantOverride?: CardVariant;
@@ -48,11 +48,20 @@ function hasSubutilizacao(linha: DedutivelLinha): boolean {
   return utilizado < teto;
 }
 
+function semEfeitoFiscal(pgblStatus: PgblStatus): boolean {
+  return (
+    pgblStatus === "modelo_simplificado" ||
+    pgblStatus === "sem_renda_tributavel"
+  );
+}
+
 function resolveVariant(
   linhas: Array<[DedutivelCategoria, DedutivelLinha]>,
+  pgblStatus: PgblStatus,
   override?: CardVariant,
 ): CardVariant {
   if (override) return override;
+  if (semEfeitoFiscal(pgblStatus)) return "neutral";
   return linhas.some(([, l]) => hasSubutilizacao(l)) ? "info" : "neutral";
 }
 
@@ -69,14 +78,16 @@ function buildLinhas(
   return out;
 }
 
-/** ADR-194 §6.2 + §6.4 — Dedutíveis Aplicados por Categoria (factual, não-prescritivo).
+/** ADR-194 §6.2 + §6.4 + ADR-198 — Dedutíveis Aplicados por Categoria (factual, não-prescritivo).
  *
  * Lista vertical com barra de progresso para Educação (única categoria com teto
  * fixo nesta iteração). Variante condicional `info`/`neutral` resolvida por
  * presença de subutilização. Subtítulo condicional ao regime (§6.4):
  * simplificado/sem renda tributável usam "Pagamentos elegíveis a dedução";
- * completa usa "Valores deduzidos do imposto". Copy literal congelada por
- * G0 em 2026-05-12 (§6.3) + amend §6.4 mesmo dia. */
+ * completa usa "Valores deduzidos do imposto". Chip "Espaço de R$ X" também
+ * é condicional ao regime (ADR-198): em simplificado/sem renda tributável
+ * vira "Sem efeito neste regime" (neutral), sem implicar gap acionável.
+ * Copy literal congelada por G0 em 2026-05-12. */
 export function IrpfDedutiveisAplicadosCard({
   dedutiveis,
   anoBase,
@@ -84,7 +95,7 @@ export function IrpfDedutiveisAplicadosCard({
   variantOverride,
 }: IrpfDedutiveisAplicadosCardProps) {
   const linhas = buildLinhas(dedutiveis);
-  const variant = resolveVariant(linhas, variantOverride);
+  const variant = resolveVariant(linhas, pgblStatus, variantOverride);
   const subtitle = resolveSubtitle(pgblStatus, anoBase);
 
   return (
@@ -103,7 +114,12 @@ export function IrpfDedutiveisAplicadosCard({
           aria-label={`Dedutíveis aplicados em ${anoBase}`}
         >
           {linhas.map(([key, linha]) => (
-            <DedutivelLinhaRow key={key} categoria={key} linha={linha} />
+            <DedutivelLinhaRow
+              key={key}
+              categoria={key}
+              linha={linha}
+              pgblStatus={pgblStatus}
+            />
           ))}
         </dl>
 
@@ -123,9 +139,11 @@ export function IrpfDedutiveisAplicadosCard({
 function DedutivelLinhaRow({
   categoria,
   linha,
+  pgblStatus,
 }: {
   categoria: DedutivelCategoria;
   linha: DedutivelLinha;
+  pgblStatus: PgblStatus;
 }) {
   const utilizado = parseDecimalString(linha.utilizado_brl) ?? 0;
   const teto = linha.teto_brl !== null ? parseDecimalString(linha.teto_brl) ?? 0 : null;
@@ -144,7 +162,12 @@ function DedutivelLinhaRow({
           teto={teto}
         />
       </dd>
-      <DedutivelStatusChip linha={linha} utilizado={utilizado} teto={teto} />
+      <DedutivelStatusChip
+        linha={linha}
+        utilizado={utilizado}
+        teto={teto}
+        pgblStatus={pgblStatus}
+      />
     </div>
   );
 }
@@ -176,10 +199,12 @@ function DedutivelStatusChip({
   linha,
   utilizado,
   teto,
+  pgblStatus,
 }: {
   linha: DedutivelLinha;
   utilizado: number;
   teto: number | null;
+  pgblStatus: PgblStatus;
 }) {
   if (teto === null) {
     return (
@@ -192,6 +217,15 @@ function DedutivelStatusChip({
     return (
       <span className="rounded-full bg-[var(--surface-muted)] px-3 py-1 text-xs font-medium text-[var(--surface-muted-foreground)]">
         No teto
+      </span>
+    );
+  }
+  // ADR-198 — em simplificado/sem renda tributável, "Espaço de R$ X"
+  // implica gap acionável de IR que não existe nesse regime.
+  if (semEfeitoFiscal(pgblStatus)) {
+    return (
+      <span className="rounded-full bg-[var(--surface-muted)] px-3 py-1 text-xs font-medium text-[var(--surface-muted-foreground)]">
+        Sem efeito neste regime
       </span>
     );
   }

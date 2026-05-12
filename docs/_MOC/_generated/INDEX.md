@@ -195,6 +195,7 @@
 | ADR-195 | adr | Decidido |  | PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel | `adr/195-pgbl-threshold-auvp-modula-variante.md` |
 | ADR-196 | adr | Decidido |  | Reconciliação dos cards PGBL S7 (fluxo PJ inferido) × S_IRPF_OTIMIZACAO (IRPF declarado) por priorização condicional | `adr/196-reconciliacao-cards-pgbl-s7-irpf.md` |
 | ADR-197 | adr | Decidido |  | Estado modelo_simplificado expõe componentes elegíveis e redireciona para PGD/MIR (estende ADR-189 §4 Estado 2) | `adr/197-irpf-simplificado-componentes-elegiveis-pgd-mir.md` |
+| ADR-198 | adr | Decidido |  | Chip "Espaço de R$ X" condicional ao pgbl_status no card Dedutíveis Aplicados (encerra débito ADR-194 §6.4) | `adr/198-dedutiveis-chip-espaco-condicional-pgbl-status.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -379,6 +380,7 @@
 | CHG-2026-05-12-FEAT-PGBL-CARDS-RECONCILIATION | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FEAT-PGBL-CARDS-RECONCILIATION.md` |
 | CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-12-FEAT-REPORT-S9-EXPANSION.md` |
 | CHG-2026-05-12-FEAT-S9-PROTECTION-CALCULATORS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-12-FEAT-S9-PROTECTION-CALCULATORS.md` |
+| CHG-2026-05-12-FIX-IRPF-DEDUTIVEIS-CHIP-REGIME | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-12-FIX-IRPF-DEDUTIVEIS-CHIP-REGIME.md` |
 | CHG-2026-05-12-TEST-S9-GOLDENS-CLOSE-TRACK | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-12-TEST-S9-GOLDENS-CLOSE-TRACK.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
 | RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |

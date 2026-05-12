@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-190 ADRs (ADR-001 a ADR-197) em [`docs/adr/`](../../adr/).
+191 ADRs (ADR-001 a ADR-198) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 167
+- **Decidido**: 168
 - **Proposto**: 19
 - **Roadmap**: 4
 
@@ -327,13 +327,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## irpf
 
-### Decidido (5)
+### Decidido (6)
 
 - [[ADR-189]] — PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária · phase A11
 - [[ADR-194]] — Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO) · phase A12
 - [[ADR-195]] — PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel · phase A12
 - [[ADR-196]] — Reconciliação dos cards PGBL S7 (fluxo PJ inferido) × S_IRPF_OTIMIZACAO (IRPF declarado) por priorização condicional · phase A12
 - [[ADR-197]] — Estado modelo_simplificado expõe componentes elegíveis e redireciona para PGD/MIR (estende ADR-189 §4 Estado 2) · phase A12
+- [[ADR-198]] — Chip "Espaço de R$ X" condicional ao pgbl_status no card Dedutíveis Aplicados (encerra débito ADR-194 §6.4) · phase A12
 
 ## llm
 
