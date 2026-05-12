@@ -16,6 +16,12 @@ import { EmptyState } from "@/components/EmptyState";
 import { FileText, Wallet } from "lucide-react";
 import type { IFMonteCarloData, PassiveIncomeData, ReportAnalysisData } from "@/lib/api";
 import { IFConeConeChart } from "../charts/IFConeConeChart";
+import { useIrpfKpis } from "../hooks/useIrpfKpis";
+import {
+  derivePrimaryYear,
+  getPgblCardStrategy,
+  isInformativeMode,
+} from "@/lib/irpf/pgbl-card-strategy";
 
 const PHASE_INDEPENDENCIA = 95;
 const PHASE_ACUMULACAO = 50;
@@ -38,6 +44,10 @@ export function S7IndependenciaSection({
   const goals = data.goals as Record<string, unknown> | undefined;
   const passiveIncome = data.passive_income;
   const monteCarloIF = data.if_monte_carlo;
+  const irpfKpis = useIrpfKpis(data);
+  const labels = (data.fluxo_caixa as { receita_despesa_mensal_detalhado?: { labels?: string[] } } | undefined)
+    ?.receita_despesa_mensal_detalhado?.labels;
+  const pgblStrategy = getPgblCardStrategy(irpfKpis, derivePrimaryYear(labels));
 
   return (
     <ReportSection id="S7" title="Independência Financeira — Projeção de Longo Prazo">
@@ -78,8 +88,12 @@ export function S7IndependenciaSection({
         trsMetaPct={(goals?.trs_pct as number | undefined) ?? 5.0}
       />
 
-      <div className="md:col-span-2">
-        <PrevidenciaPgblCard previdencia={previdencia} />
+      <div className={isInformativeMode(pgblStrategy.mode) ? "md:col-span-1" : "md:col-span-2"}>
+        <PrevidenciaPgblCard
+          previdencia={previdencia}
+          mode={pgblStrategy.mode}
+          anoBase={pgblStrategy.anoBase ?? undefined}
+        />
       </div>
     </ReportSection>
   );
