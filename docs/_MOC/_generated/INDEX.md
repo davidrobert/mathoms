@@ -193,6 +193,7 @@
 | ADR-193 | adr | Proposto |  | Taxonomia canônica de classes de ativo no E5 (10 buckets) | `adr/193-taxonomia-canonica-classes-de-ativo-no-e5.md` |
 | ADR-194 | adr | Decidido |  | Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO) | `adr/194-irpf-kpis-dependentes-dedutiveis-extension.md` |
 | ADR-195 | adr | Decidido |  | PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel | `adr/195-pgbl-threshold-auvp-modula-variante.md` |
+| ADR-196 | adr | Proposto |  | Reconciliação dos cards PGBL S7 (fluxo PJ inferido) × S_IRPF_OTIMIZACAO (IRPF declarado) por priorização condicional | `adr/196-reconciliacao-cards-pgbl-s7-irpf.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
