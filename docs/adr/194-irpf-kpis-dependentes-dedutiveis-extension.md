@@ -400,6 +400,47 @@ mapeamento:
 
 Posição AUVP/Cerbasi preservada: diagnóstico cru sem prescrição.
 
+### §6.4 — Header condicional ao `pgbl_status` (amend 2026-05-12, pós-ADR-197)
+
+ADR-197 expôs no card PGBL Estado 2 a lista de componentes elegíveis
+no modelo completo. Em workspace com `pgbl_status == modelo_simplificado`
+ou `sem_renda_tributavel`, o header literal de §6.2 ("Valores deduzidos
+do imposto · {ano_base}") afirma efeito fiscal que não ocorreu — em
+simplificado, o desconto fixo substitui qualquer dedução legal; sem
+renda tributável, não há base de cálculo. Header passa a ser condicional:
+
+| `pgbl_status` | Subtítulo |
+|---|---|
+| `capacidade_disponivel` | "Valores deduzidos do imposto · {ano_base}" (inalterado) |
+| `no_teto` | "Valores deduzidos do imposto · {ano_base}" (inalterado) |
+| `modelo_simplificado` | "Pagamentos elegíveis a dedução · {ano_base}" |
+| `sem_renda_tributavel` | "Pagamentos elegíveis a dedução · {ano_base}" |
+
+Regra de transição agregada espelha [[ADR-189]] §3 D1 — workspace com
+qualquer declaração em modelo completo no ano resolve para o subtítulo
+original. Título do card ("Dedutíveis Aplicados por Categoria"),
+chips, barra de progresso e disclaimer-rodapé permanecem inalterados.
+
+**Rationale da copy "Pagamentos elegíveis a dedução":** "Elegíveis" é o
+termo técnico exato (espelha enum `PagamentoDedutivel` do schema E1.6),
+factual sobre natureza da despesa e neutro sobre efeito no IR daquele
+ano. Se o workspace mudar de regime no ano seguinte, os mesmos valores
+continuam "elegíveis" — copy serve as duas trajetórias temporais.
+Alternativas avaliadas: "potencial dedutibilidade" (rejeitada — tom
+hipotético), "informadas à Receita" (rejeitada — perde a informação
+relevante de que poderiam ter reduzido IR).
+
+**Débito imediato (lane separada):** chip "Espaço de R$ X" também
+implica gap acionável para reduzir IR — em simplificado é igualmente
+falso. Tratar em ADR separada (variante condicional do chip por
+`pgbl_status`); não bloqueia este amend.
+
+**G0 sign-off (`financial-planner` · 2026-05-12 · amend):** APROVADO.
+Posição AUVP/Cerbasi preservada — corrige afirmação factual incorreta
+que estava furando "diagnóstico cru sem prescrição". A omissão original
+no §6.2 (cobertura só do regime completa) foi falha de cobertura, não
+decisão contrária.
+
 ## §7 — Critério de aceite
 
 ADR flippa para `Decidido (Sprint A12)` quando:
