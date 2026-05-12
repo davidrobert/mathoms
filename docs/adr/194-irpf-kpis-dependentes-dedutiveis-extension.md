@@ -10,6 +10,7 @@ relates_to:
   - "[[ADR-189]]"
   - "[[ADR-076]]"
   - "[[ADR-090]]"
+  - "[[ADR-197]]"
 supersedes: []
 superseded_by: []
 aliases:
@@ -400,9 +401,9 @@ mapeamento:
 
 Posição AUVP/Cerbasi preservada: diagnóstico cru sem prescrição.
 
-### §6.4 — Header condicional ao `pgbl_status` (amend 2026-05-12, pós-ADR-197)
+### §6.4 — Header condicional ao `pgbl_status` (amend 2026-05-12, pós-[[ADR-197]])
 
-ADR-197 expôs no card PGBL Estado 2 a lista de componentes elegíveis
+[[ADR-197]] expôs no card PGBL Estado 2 a lista de componentes elegíveis
 no modelo completo. Em workspace com `pgbl_status == modelo_simplificado`
 ou `sem_renda_tributavel`, o header literal de §6.2 ("Valores deduzidos
 do imposto · {ano_base}") afirma efeito fiscal que não ocorreu — em
