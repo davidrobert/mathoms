@@ -394,7 +394,16 @@ estrategico:
           size: "full"
 
     # --------------------------------------------------------------------------
-    # S9 — Riscos e Proteção
+    # S9 — Riscos e Proteção (ADR-192 §D4 · S9-T04)
+    # 4 cards + 1 chart. Bubble re-enquadrado: plota apenas riscos
+    # compliance/sucessório; cobertura de seguros virou tabela em
+    # `cobertura_seguros`. Hierarquia (financial-planner + product-designer):
+    #   linha 1: hero_gap_protecao (full, KPI protagonista)
+    #   linha 2: cobertura_seguros (full, tabela densa por categoria)
+    #   linha 3: sucessao (half, warn quando há gap) + acoes_mitigacao (half)
+    #   linha 4: bubble_riscos (full, mapa de probabilidade × impacto)
+    # Disclaimer fiduciário canônico (ADR-192 §"Atualizações pós-revisão")
+    # obrigatório em cada card de cobertura recomendada.
     # --------------------------------------------------------------------------
     - id: "S9"
       title: "Riscos e Proteção — Seguros Críticos"
@@ -405,7 +414,23 @@ estrategico:
         - id: "bubble_riscos"
           enabled: true
           conclusion: true
-      cards: []
+      cards:
+        - id: "hero_gap_protecao"
+          enabled: true
+          variant: "critical"
+          size: "full"
+        - id: "cobertura_seguros"
+          enabled: true
+          variant: "feature"
+          size: "full"
+        - id: "sucessao"
+          enabled: true
+          variant: "warn"
+          size: "half"
+        - id: "acoes_mitigacao"
+          enabled: true
+          variant: "highlight"
+          size: "half"
 
     # --------------------------------------------------------------------------
     # S10 — Síntese Estratégica

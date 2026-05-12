@@ -2220,17 +2220,99 @@ tr.row-highlight-warn td { color: var(--alert-warning-text); }
 </div>
 </div>
 
-<!-- SEÇÃO 9 -->
+<!-- SEÇÃO 9 — ADR-192 §D4 (S9-T04): 4 cards + bubble re-enquadrado -->
 <div class="section" id="secao-9" data-mode="strategic">
 <div class="section-header">
-  <h1>9. Riscos e Proteção</h1>
+  <h1>9. Riscos e Proteção — Seguros Críticos</h1>
 </div>
-<div class="section-summary">8 riscos prioritários: Falta de seguro de vida/invalidez, FBAR/FATCA compliance, Estate Tax non-resident. Seguros de vida e invalidez inexistentes — classificados como urgentes. Cobertura recomendada: R$ 3-5M em seguro term. Planejamento sucessório em estágio inicial.</div>
+<div class="section-summary">Cobertura por categoria, gap de proteção em R$, planejamento sucessório (ITCMD por estado) e ações priorizadas de mitigação. Bubble re-enquadrado: apenas riscos compliance e sucessório (seguros viram tabela).</div>
+
+<!-- Card 1: Hero Gap de Proteção (KPI protagonista) -->
+<div class="card card-critical" role="region" aria-label="Resumo do gap de cobertura de seguros">
+  <div class="card-title">Gap de Proteção</div>
+  <div class="kpi-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:12px 0;">
+    <div>
+      <div style="font-size:0.7rem;text-transform:uppercase;color:#64748B;">Capital segurado</div>
+      <div class="kpi-value" style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.5rem;">R$ 0</div>
+    </div>
+    <div>
+      <div style="font-size:0.7rem;text-transform:uppercase;color:#64748B;">Recomendado</div>
+      <div class="kpi-value" style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.5rem;">R$ 3-5M</div>
+    </div>
+    <div>
+      <div style="font-size:0.7rem;text-transform:uppercase;color:#64748B;">Gap</div>
+      <div class="kpi-value" style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.5rem;color:#DC2626;">−R$ 3-5M</div>
+    </div>
+  </div>
+  <p style="font-size:0.75rem;color:#64748B;">Categorias com gap material: <strong>Vida, Invalidez</strong>.</p>
+  <p class="disclaimer" style="font-size:0.7rem;background:#F1F5F9;padding:8px;border-radius:6px;color:#475569;">
+    Estimativa baseada em metodologia consagrada de planejamento patrimonial brasileiro (wealth management); não constitui recomendação fiduciária. Consultar corretor habilitado pela Susep e planejador CFP®. Dados fiscais válidos para 2026-05-12.
+  </p>
+</div>
+
+<!-- Card 2: Cobertura por Categoria (tabela densa) -->
+<div class="card card-feature" role="region" aria-label="Tabela de cobertura por categoria">
+  <div class="card-title">Cobertura por Categoria</div>
+  <table style="width:100%;font-size:0.875rem;border-collapse:collapse;margin-top:8px;">
+    <caption class="sr-only">Status, capital segurado, prêmio mensal e vigência por categoria.</caption>
+    <thead>
+      <tr style="border-bottom:1px solid #E2E8F0;text-align:left;font-size:0.7rem;text-transform:uppercase;color:#64748B;">
+        <th>Categoria</th><th>Status</th><th style="text-align:right;">Capital</th><th style="text-align:right;">Prêmio/mês</th><th>Vigência</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row" style="font-weight:500;">Vida</th><td><span style="color:#DC2626;">✗ Ausente</span></td><td style="text-align:right;">—</td><td style="text-align:right;">—</td><td>—</td></tr>
+      <tr><th scope="row" style="font-weight:500;">Invalidez</th><td><span style="color:#DC2626;">✗ Ausente</span></td><td style="text-align:right;">—</td><td style="text-align:right;">—</td><td>—</td></tr>
+      <tr><th scope="row" style="font-weight:500;">Saúde</th><td><span style="color:#16A34A;">✓ Contratado</span></td><td style="text-align:right;">R$ 500k</td><td style="text-align:right;">R$ 1.200,00</td><td>2024 → 2027</td></tr>
+      <tr><th scope="row" style="font-weight:500;">Patrimonial</th><td><span style="color:#CA8A04;">◑ Parcial</span></td><td style="text-align:right;">R$ 1,2M</td><td style="text-align:right;">R$ 320,00</td><td>desde 2023</td></tr>
+      <tr><th scope="row" style="font-weight:500;">RC Profissional</th><td><span style="color:#DC2626;">✗ Ausente</span></td><td style="text-align:right;">—</td><td style="text-align:right;">—</td><td>—</td></tr>
+      <tr><th scope="row" style="font-weight:500;">Sucessório</th><td><span style="color:#DC2626;">✗ Ausente</span></td><td style="text-align:right;">—</td><td style="text-align:right;">—</td><td>—</td></tr>
+      <tr style="font-weight:600;border-top:1px solid #E2E8F0;"><th scope="row">Total</th><td></td><td style="text-align:right;">R$ 1,7M</td><td style="text-align:right;">R$ 1.520,00</td><td></td></tr>
+    </tbody>
+  </table>
+  <p class="disclaimer" style="font-size:0.7rem;background:#F1F5F9;padding:8px;border-radius:6px;color:#475569;margin-top:12px;">
+    Estimativa baseada em metodologia consagrada de planejamento patrimonial brasileiro (wealth management); não constitui recomendação fiduciária. Consultar corretor habilitado pela Susep e planejador CFP®. Dados fiscais válidos para 2026-05-12.
+  </p>
+</div>
+
+<!-- Card 3: Sucessão (half) -->
+<div class="card card-warn" role="region" aria-label="Checklist sucessório" style="display:inline-block;width:48%;vertical-align:top;margin-right:2%;">
+  <div class="card-title">Planejamento Sucessório</div>
+  <ul style="list-style:none;padding:0;margin:8px 0;">
+    <li>○ <strong>Testamento registrado em cartório</strong> — pendente</li>
+    <li>○ <strong>Beneficiários de previdência declarados</strong> — pendente</li>
+    <li>○ <strong>Holding patrimonial avaliada</strong> — consultar planejador CFP®</li>
+    <li>○ <strong>ITCMD estimado por estado</strong> — alíquota varia (SP 4%, RJ até 8%, MG 5%)</li>
+  </ul>
+  <p class="disclaimer" style="font-size:0.7rem;background:#F1F5F9;padding:8px;border-radius:6px;color:#475569;">
+    Estimativa metodológica baseada em metodologia sucessória BR; não constitui recomendação fiduciária. Consultar corretor habilitado pela Susep e planejador CFP®. Dados fiscais válidos para 2026-05-12.
+  </p>
+</div>
+
+<!-- Card 4: Ações de Mitigação (half) -->
+<div class="card card-highlight" role="region" aria-label="Ações de mitigação" style="display:inline-block;width:48%;vertical-align:top;">
+  <div class="card-title">Ações de Mitigação</div>
+  <ul style="list-style:none;padding:0;margin:8px 0;">
+    <li>⚠ <strong>Contratar seguro de vida term R$ 3-5M</strong> <span style="background:#FEE2E2;color:#DC2626;padding:2px 6px;border-radius:9999px;font-size:0.65rem;">ALTA</span></li>
+    <li>⚠ <strong>Contratar seguro de invalidez (60% renda)</strong> <span style="background:#FEE2E2;color:#DC2626;padding:2px 6px;border-radius:9999px;font-size:0.65rem;">ALTA</span></li>
+    <li>⚠ <strong>Lavrar testamento</strong> <span style="background:#FEF3C7;color:#CA8A04;padding:2px 6px;border-radius:9999px;font-size:0.65rem;">MÉDIA</span></li>
+  </ul>
+  <p class="disclaimer" style="font-size:0.7rem;background:#F1F5F9;padding:8px;border-radius:6px;color:#475569;">
+    Estimativa baseada em metodologia consagrada de planejamento patrimonial brasileiro (wealth management); não constitui recomendação fiduciária. Consultar corretor habilitado pela Susep e planejador CFP®. Dados fiscais válidos para 2026-05-12.
+  </p>
+</div>
+
+<!-- Chart: Mapa de Riscos (bubble re-enquadrado) -->
 <div class="chart-container">
-  <div class="card-title">Mapa de Riscos</div>
-  <p class="chart-context">Identificação de 8 riscos críticos de compliance e proteção ao plano IF, com probabilidade e impacto.</p>
+  <div class="card-title">Mapa de Riscos — Compliance e Sucessório</div>
+  <p class="chart-context">Riscos críticos de compliance (FBAR/FATCA, Estate Tax) e sucessório, com probabilidade × impacto. Seguros viraram tabela em "Cobertura por Categoria".</p>
+  <ul class="mitigation-legend" style="display:flex;gap:16px;font-size:0.75rem;margin:8px 0;list-style:none;padding:0;" aria-label="Legenda de status de mitigação">
+    <li><span style="display:inline-block;width:10px;height:10px;border-radius:9999px;background:#DC2626;"></span> Descoberto</li>
+    <li><span style="display:inline-block;width:10px;height:10px;border-radius:9999px;background:#CA8A04;"></span> Parcial</li>
+    <li><span style="display:inline-block;width:10px;height:10px;border-radius:9999px;background:#16A34A;"></span> Coberto</li>
+  </ul>
   <canvas id="chart-bubble-riscos"></canvas>
-  <p class="chart-conclusion" id="chart-bubble-riscos-conclusion">Riscos prioritários: (1) Falta de seguro de vida/invalidez (alta prob., crítico impacto), (2) FBAR/FATCA compliance (alta prob., alto impacto), (3) Estate Tax non-resident (média prob., alto impacto). Ação: CPA expatriado + seguro term R$ 3-5M.</p>
+  <p class="chart-conclusion" id="chart-bubble-riscos-conclusion">Riscos prioritários (compliance + sucessório): (1) FBAR/FATCA quando há exposição USA explícita (alta prob., alto impacto), (2) Estate Tax non-resident (média prob., alto impacto), (3) ITCMD não estimado (média prob., médio impacto). Cobertura de seguros tratada na tabela acima.</p>
 </div>
 </div>
 
