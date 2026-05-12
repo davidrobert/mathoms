@@ -1,21 +1,21 @@
-"""Adapter `ProtectionBundle` (ADR-192) — DB→TypedDict→Pydantic, SRP fora de `pipeline_adapter`."""
+"""Adapter ``ProtectionBundle`` (ADR-192 §D3) — boundary DB↔TypedDict↔Pydantic; delega populator a ``protection_bundle_populator`` (SRP)."""
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SyncSession
 
+from backend.app.models.family_member import FamilyMember
 from backend.app.models.protection import Protection
-from pipeline.domain.protection_bundle import (
-    ProtectionBundle,
-    ProtectionItem,
-    ProtectionThresholds,
-)
+from backend.app.models.workspace import Workspace
+from backend.app.services.protection_bundle_populator import populate_protection_bundle
+from pipeline.domain.protection_bundle import ProtectionBundle, ProtectionItem
 
-_PROTECTION_BUNDLE_VERSION: int = 1
+_PROTECTION_BUNDLE_VERSION: int = 2  # bump T03 — populator real
 
 
 def _protection_to_bundle_item(protection: Protection) -> ProtectionItem:
@@ -49,23 +49,27 @@ def _protections_active_stmt(workspace_id: str):
     )
 
 
-def _empty_bundle(items: list[ProtectionItem]) -> ProtectionBundle:
-    return {
-        "policies": items,
-        "gap_analysis": {},
-        "recommendations": [],
-        "auto_inferred_risks": [],
-        "methodology_thresholds": ProtectionThresholds(),
-        "has_us_exposure": False,
-        "_adapter_version": _PROTECTION_BUNDLE_VERSION,
-    }
+def _family_members_stmt(workspace_id: str):
+    return select(FamilyMember).where(FamilyMember.workspace_id == workspace_id)
+
+
+def _workspace_stmt(workspace_id: str):
+    return select(Workspace).where(Workspace.id == workspace_id)
 
 
 def _project_protection_bundle_sync(workspace_id: str, *, db: SyncSession) -> ProtectionBundle:
     """Sync — usado por workers/pipeline."""
     protections = list(db.execute(_protections_active_stmt(workspace_id)).scalars().all())
     items = [_protection_to_bundle_item(p) for p in protections]
-    return _empty_bundle(items)
+    members = list(db.execute(_family_members_stmt(workspace_id)).scalars().all())
+    workspace = db.execute(_workspace_stmt(workspace_id)).scalar_one_or_none()
+    return populate_protection_bundle(
+        items=items,
+        members=members,
+        workspace=workspace,
+        today=date.today(),
+        adapter_version=_PROTECTION_BUNDLE_VERSION,
+    )
 
 
 async def _project_protection_bundle_async(
@@ -74,7 +78,17 @@ async def _project_protection_bundle_async(
     """Async — usado por endpoints HTTP."""
     result = await db.execute(_protections_active_stmt(workspace_id))
     items = [_protection_to_bundle_item(p) for p in result.scalars().all()]
-    return _empty_bundle(items)
+    members_result = await db.execute(_family_members_stmt(workspace_id))
+    members = list(members_result.scalars().all())
+    ws_result = await db.execute(_workspace_stmt(workspace_id))
+    workspace = ws_result.scalar_one_or_none()
+    return populate_protection_bundle(
+        items=items,
+        members=members,
+        workspace=workspace,
+        today=date.today(),
+        adapter_version=_PROTECTION_BUNDLE_VERSION,
+    )
 
 
 def build_protection_bundle_sync(workspace_id: str, *, db: SyncSession) -> ProtectionBundle:
