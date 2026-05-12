@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-189 ADRs (ADR-001 a ADR-196) em [`docs/adr/`](../../adr/).
+190 ADRs (ADR-001 a ADR-197) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 166
-- **Proposto**: 19
+- **Proposto**: 20
 - **Roadmap**: 4
 
 ## Fundação
@@ -333,6 +333,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-194]] — Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO) · phase A12
 - [[ADR-195]] — PGBL: threshold AUVP (alíquota efetiva) modula variante visual no estado capacidade_disponivel · phase A12
 - [[ADR-196]] — Reconciliação dos cards PGBL S7 (fluxo PJ inferido) × S_IRPF_OTIMIZACAO (IRPF declarado) por priorização condicional · phase A12
+
+### Proposto (1)
+
+- [[ADR-197]] — Estado modelo_simplificado expõe componentes elegíveis e redireciona para PGD/MIR (estende ADR-189 §4 Estado 2) · phase A12
 
 ## llm
 
