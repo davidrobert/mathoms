@@ -259,6 +259,69 @@ describe("<IrpfPgblCapacidadeCard /> · ADR-189 · 4 estados", () => {
     expect(heroLine?.textContent).not.toBe("—");
   });
 
+  describe("Estado 1 — ADR-195 · A12 · threshold AUVP modula variante + sufixo subtitle", () => {
+    it("auvp_aderente (alíq >= 20%): variante info, sufixo 'alíquota efetiva alta', parágrafo + disclaimer intactos", () => {
+      const kpis = withStatus("capacidade_disponivel", {
+        aliquota_sobre_tributavel_pct: "22.50",
+        pgbl_capacidade_dedutivel_brl: "11600.00",
+      });
+      const { container } = render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(container.querySelector(".card-variant-info")).not.toBeNull();
+      expect(
+        screen.getByText(/Espaço dedutível remanescente · 2024 · alíquota efetiva alta/),
+      ).toBeInTheDocument();
+      // ADR-189 §4 Estado 1 — copy literal preservada (não há regressão)
+      expect(screen.getByText(/Não é recomendação:/)).toBeInTheDocument();
+      expect(screen.getByText(/tabela regressiva vs\. progressiva/)).toBeInTheDocument();
+    });
+
+    it("neutro (12% <= alíq < 20%): variante info, sufixo 'alíquota efetiva intermediária'", () => {
+      const kpis = withStatus("capacidade_disponivel", {
+        aliquota_sobre_tributavel_pct: "16.50",
+      });
+      const { container } = render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(container.querySelector(".card-variant-info")).not.toBeNull();
+      expect(
+        screen.getByText(
+          /Espaço dedutível remanescente · 2024 · alíquota efetiva intermediária/,
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Não é recomendação:/)).toBeInTheDocument();
+    });
+
+    it("abaixo (alíq < 12%): variante neutral, sufixo 'alíquota efetiva baixa', hero monetário preservado", () => {
+      const kpis = withStatus("capacidade_disponivel", {
+        aliquota_sobre_tributavel_pct: "7.50",
+        pgbl_capacidade_dedutivel_brl: "4500.00",
+      });
+      const { container } = render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(container.querySelector(".card-variant-neutral")).not.toBeNull();
+      expect(container.querySelector(".card-variant-info")).toBeNull();
+      expect(
+        screen.getByText(/Espaço dedutível remanescente · 2024 · alíquota efetiva baixa/),
+      ).toBeInTheDocument();
+      // Hero permanece colorido (não vira "—") — ADR-195 §3 D5
+      const heroLine = container.querySelector(".font-mono.text-2xl");
+      expect(heroLine?.textContent).not.toBe("—");
+      // Disclaimer e parágrafo ADR-189 §4 intactos
+      expect(screen.getByText(/Não é recomendação:/)).toBeInTheDocument();
+    });
+
+    it("indeterminado (alíquota inválida): fallback info, sem sufixo (ADR-195 §3 D5)", () => {
+      const kpis = withStatus("capacidade_disponivel", {
+        aliquota_sobre_tributavel_pct: "",
+      });
+      const { container } = render(<IrpfPgblCapacidadeCard kpis={kpis} />);
+      expect(container.querySelector(".card-variant-info")).not.toBeNull();
+      // Subtitle sem sufixo "alíquota efetiva ..."
+      expect(
+        screen.queryByText(/alíquota efetiva (alta|intermediária|baixa)/),
+      ).toBeNull();
+      // Subtitle base ainda presente
+      expect(screen.getByText(/Espaço dedutível remanescente · 2024/)).toBeInTheDocument();
+    });
+  });
+
   it("Estado 2 — modelo_simplificado: variante neutral, '—', sem disclaimer", () => {
     const kpis = withStatus("modelo_simplificado", {
       pgbl_capacidade_dedutivel_brl: "0",
