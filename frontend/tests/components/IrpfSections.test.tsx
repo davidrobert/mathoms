@@ -131,6 +131,21 @@ describe("<IrpfOtimizacaoSection />", () => {
       screen.queryByRole("heading", { level: 3, name: /Dedutíveis Aplicados/i }),
     ).toBeNull();
   });
+
+  it("propaga pgbl_status=modelo_simplificado para subtítulo do card Dedutíveis (ADR-194 §6.4)", () => {
+    const data = {
+      irpf_kpis: {
+        ...KPIS_BASE,
+        pgbl_status: "modelo_simplificado",
+        dedutiveis_aplicados: {
+          saude: { utilizado_brl: "10000.00", teto_brl: null, teto_aplicado: false },
+        },
+      },
+    } as unknown as ReportAnalysisData;
+    render(<IrpfOtimizacaoSection data={data} />);
+    expect(screen.getByText("Pagamentos elegíveis a dedução · 2024")).toBeInTheDocument();
+    expect(screen.queryByText(/Valores deduzidos do imposto/)).toBeNull();
+  });
 });
 
 describe("<IrpfDependentesCard /> · ADR-194 §6.1", () => {
@@ -181,6 +196,7 @@ describe("<IrpfDedutiveisAplicadosCard /> · ADR-194 §6.2", () => {
           },
         }}
         anoBase={2024}
+        pgblStatus="capacidade_disponivel"
       />,
     );
     expect(
@@ -206,6 +222,7 @@ describe("<IrpfDedutiveisAplicadosCard /> · ADR-194 §6.2", () => {
           saude: { utilizado_brl: "5000.00", teto_brl: null, teto_aplicado: false },
         }}
         anoBase={2024}
+        pgblStatus="capacidade_disponivel"
       />,
     );
     expect(container.querySelector(".card-variant-neutral")).not.toBeNull();
@@ -219,6 +236,7 @@ describe("<IrpfDedutiveisAplicadosCard /> · ADR-194 §6.2", () => {
           saude: { utilizado_brl: "10000.00", teto_brl: null, teto_aplicado: false },
         }}
         anoBase={2024}
+        pgblStatus="capacidade_disponivel"
       />,
     );
     expect(screen.queryByText("Educação")).toBeNull();
@@ -233,9 +251,83 @@ describe("<IrpfDedutiveisAplicadosCard /> · ADR-194 §6.2", () => {
           educacao: { utilizado_brl: "3561.50", teto_brl: "3561.50", teto_aplicado: true },
         }}
         anoBase={2024}
+        pgblStatus="capacidade_disponivel"
       />,
     );
     expect(screen.getByText(/No teto/)).toBeInTheDocument();
+  });
+});
+
+describe("<IrpfDedutiveisAplicadosCard /> · ADR-194 §6.4 — subtítulo condicional ao regime", () => {
+  const DEDUTIVEIS_FIXTURE = {
+    saude: { utilizado_brl: "10000.00", teto_brl: null, teto_aplicado: false },
+  };
+
+  it("capacidade_disponivel: subtítulo 'Valores deduzidos do imposto'", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_FIXTURE}
+        anoBase={2024}
+        pgblStatus="capacidade_disponivel"
+      />,
+    );
+    expect(screen.getByText("Valores deduzidos do imposto · 2024")).toBeInTheDocument();
+    expect(screen.queryByText(/Pagamentos elegíveis a dedução/)).toBeNull();
+  });
+
+  it("no_teto: subtítulo 'Valores deduzidos do imposto' (modelo completa)", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_FIXTURE}
+        anoBase={2024}
+        pgblStatus="no_teto"
+      />,
+    );
+    expect(screen.getByText("Valores deduzidos do imposto · 2024")).toBeInTheDocument();
+    expect(screen.queryByText(/Pagamentos elegíveis a dedução/)).toBeNull();
+  });
+
+  it("modelo_simplificado: subtítulo 'Pagamentos elegíveis a dedução' (não-deduzido)", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_FIXTURE}
+        anoBase={2024}
+        pgblStatus="modelo_simplificado"
+      />,
+    );
+    expect(screen.getByText("Pagamentos elegíveis a dedução · 2024")).toBeInTheDocument();
+    expect(screen.queryByText(/Valores deduzidos do imposto/)).toBeNull();
+  });
+
+  it("sem_renda_tributavel: subtítulo 'Pagamentos elegíveis a dedução' (sem base)", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={DEDUTIVEIS_FIXTURE}
+        anoBase={2024}
+        pgblStatus="sem_renda_tributavel"
+      />,
+    );
+    expect(screen.getByText("Pagamentos elegíveis a dedução · 2024")).toBeInTheDocument();
+    expect(screen.queryByText(/Valores deduzidos do imposto/)).toBeNull();
+  });
+
+  it("título, chips e disclaimer-rodapé inalterados em simplificado", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={{
+          saude: { utilizado_brl: "10000.00", teto_brl: null, teto_aplicado: false },
+          educacao: { utilizado_brl: "2100.00", teto_brl: "3561.50", teto_aplicado: false },
+        }}
+        anoBase={2024}
+        pgblStatus="modelo_simplificado"
+      />,
+    );
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Dedutíveis Aplicados por Categoria/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Sem teto legal/)).toBeInTheDocument();
+    expect(screen.getByText(/Espaço de/)).toBeInTheDocument();
+    expect(screen.getByText(/não é recomendação/)).toBeInTheDocument();
   });
 });
 
