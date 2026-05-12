@@ -191,6 +191,7 @@
 | ADR-191 | adr | Decidido |  | Card Rentabilidade do relatório expõe TRS efetiva — não retorno total | `adr/191-card-rentabilidade-trs-efetiva.md` |
 | ADR-192 | adr | Decidido |  | `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) | `adr/192-protection-aggregate-protectionbundle-secao-9.md` |
 | ADR-193 | adr | Proposto |  | Taxonomia canônica de classes de ativo no E5 (10 buckets) | `adr/193-taxonomia-canonica-classes-de-ativo-no-e5.md` |
+| ADR-194 | adr | Proposto |  | Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO) | `adr/194-irpf-kpis-dependentes-dedutiveis-extension.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -521,6 +522,7 @@
 | TRACK-irpf-full-schema-cutover | track | consumed | A11 | Track IRPF Full Schema Cutover — flag `MATHOMS_E16_SUPERSEDES_E15_BENS` | `sprint/A11/tracks/irpf-full-schema-cutover.md` |
 | TRACK-irpf-full-schema-goldens | track | consumed | A11 | Track IRPF Full Schema Goldens — fixtures + golden tests byte-byte | `sprint/A11/tracks/irpf-full-schema-goldens.md` |
 | TRACK-irpf-full-schema-ui | track | consumed | A11 | Track IRPF Full Schema UI — relatório premium consome KPIs do E1.6 | `sprint/A11/tracks/irpf-full-schema-ui.md` |
+| TRACK-irpf-otimizacao-cards-revival | track | ready | A12 | Track IRPF Otimização — reativar cards Dependentes Declarados + Dedutíveis Subutilizados | `sprint/A12/tracks/irpf-otimizacao-cards-revival.md` |
 | TRACK-onda-1-kanban-task-migration | track | consumed | A11 | Track — Onda 1: Migration `kanban_items` + `report_notes` → `tasks` + `workspace_notes` | `sprint/A11/tracks/onda-1-kanban-task-migration.md` |
 | TRACK-onda-10-cross-route-coherence | track | consumed | A11 | Track — Onda 10: coerência cross-rota (/plano · /acao · /reports) | `sprint/A11/tracks/onda-10-cross-route-coherence.md` |
 | TRACK-onda-5-suggestion-aggregate | track | consumed | A11 | Track — Onda 5: Suggestion aggregate full-stack (Direção E) | `sprint/A11/tracks/onda-5-suggestion-aggregate.md` |

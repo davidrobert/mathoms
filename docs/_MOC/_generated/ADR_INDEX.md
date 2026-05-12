@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-186 ADRs (ADR-001 a ADR-193) em [`docs/adr/`](../../adr/).
+187 ADRs (ADR-001 a ADR-194) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 163
-- **Proposto**: 19
+- **Proposto**: 20
 - **Roadmap**: 4
 
 ## Fundação
@@ -330,6 +330,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Decidido (1)
 
 - [[ADR-189]] — PGBL: diagnóstico tipificado (4 estados) substitui métrica monovalor no card de Otimização Tributária · phase A11
+
+### Proposto (1)
+
+- [[ADR-194]] — Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO) · phase A12
 
 ## llm
 
