@@ -7,7 +7,8 @@
  * - Submit aprovar chama POST com action:"approve".
  * - Submit editar serializa edição válida; bloqueia submit se JSON inválido.
  * - 409 em concorrência → estado atualizado, toast informativo (não erro).
- * - Auto-resume quando todas as revisões saem de pending.
+ * - Resume explícito: aparece quando nenhuma review fica pending, chama POST
+ *   /resume só após clique do usuário, mostra erro inline em falha.
  *
  * Mocks: WorkspaceProvider + useRouter (Next 13 app router) — convenção
  * existente em `pipeline.test.tsx`.
@@ -114,6 +115,97 @@ describe("ReviewListPage", () => {
     );
     expect(screen.getByLabelText("Status: Pendente")).toBeInTheDocument();
     expect(screen.getByLabelText("Status: Aprovado")).toBeInTheDocument();
+  });
+
+  it("todas reviews não-pending → card 'Tudo pronto' aparece com CTA retomar", async () => {
+    server.use(
+      http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId/reviews", () =>
+        HttpResponse.json([REVIEW_APPROVED]),
+      ),
+      http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId", () =>
+        HttpResponse.json(RUN_NEEDS_REVIEW),
+      ),
+    );
+    paramsMock.mockReturnValue({ runId: "run-1" });
+    render(<ReviewListPage />);
+    expect(
+      await screen.findByText(/Tudo pronto para continuar/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Retomar pipeline/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("ainda há review pending → card 'Tudo pronto' não aparece", async () => {
+    server.use(
+      http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId/reviews", () =>
+        HttpResponse.json([REVIEW_PENDING, REVIEW_APPROVED]),
+      ),
+      http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId", () =>
+        HttpResponse.json(RUN_NEEDS_REVIEW),
+      ),
+    );
+    paramsMock.mockReturnValue({ runId: "run-1" });
+    render(<ReviewListPage />);
+    await waitFor(() =>
+      expect(screen.getByLabelText("Status: Pendente")).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText(/Tudo pronto para continuar/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("clique em Retomar chama POST /resume e redireciona", async () => {
+    let resumeCalled = false;
+    server.use(
+      http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId/reviews", () =>
+        HttpResponse.json([REVIEW_APPROVED]),
+      ),
+      http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId", () =>
+        HttpResponse.json(RUN_NEEDS_REVIEW),
+      ),
+      http.post(
+        "/api/v1/workspaces/:wsId/pipeline/runs/:runId/resume",
+        () => {
+          resumeCalled = true;
+          return HttpResponse.json({ ...RUN_NEEDS_REVIEW, status: "running" });
+        },
+      ),
+    );
+    paramsMock.mockReturnValue({ runId: "run-1" });
+    const user = userEvent.setup();
+    render(<ReviewListPage />);
+    const btn = await screen.findByRole("button", { name: /Retomar pipeline/i });
+    await user.click(btn);
+    await waitFor(() => expect(resumeCalled).toBe(true));
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/pipeline"));
+  });
+
+  it("resume falha → mensagem de erro inline + botão 'Tentar novamente'", async () => {
+    server.use(
+      http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId/reviews", () =>
+        HttpResponse.json([REVIEW_APPROVED]),
+      ),
+      http.get("/api/v1/workspaces/:wsId/pipeline/runs/:runId", () =>
+        HttpResponse.json(RUN_NEEDS_REVIEW),
+      ),
+      http.post(
+        "/api/v1/workspaces/:wsId/pipeline/runs/:runId/resume",
+        () => HttpResponse.json({ detail: "worker offline" }, { status: 503 }),
+      ),
+    );
+    paramsMock.mockReturnValue({ runId: "run-1" });
+    const user = userEvent.setup();
+    render(<ReviewListPage />);
+    const btn = await screen.findByRole("button", { name: /Retomar pipeline/i });
+    await user.click(btn);
+    expect(
+      await screen.findByRole("alert"),
+    ).toHaveTextContent(/worker offline/i);
+    expect(
+      screen.getByRole("button", { name: /Tentar novamente/i }),
+    ).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
   });
 
   it("estado vazio → renderiza CTA voltar ao pipeline", async () => {
