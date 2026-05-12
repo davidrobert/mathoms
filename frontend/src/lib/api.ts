@@ -21,6 +21,7 @@ export * from "./api/feature-flags";
 export * from "./api/categorization-rules";
 export * from "./api/decisions";
 export * from "./api/risks";
+export * from "./api/protections";
 // Direção E · Onda 5 — re-export de suggestions usa nomes prefixados
 // `SuggestionAggregate*` para não colidir com `SuggestionStatus` de
 // `tasks.ts` (TaskSuggestion legado, lower-case `pending|approved|...`).
