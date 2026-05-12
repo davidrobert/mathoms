@@ -2,7 +2,7 @@
 id: ADR-194
 type: adr
 title: "Extensão de `irpf_kpis` com `dependentes` e `dedutiveis_aplicados` (reativação de 2 cards em S_IRPF_OTIMIZACAO)"
-status: Proposto
+status: Decidido
 phase: "A12"
 date: "2026-05-12"
 relates_to:
@@ -22,7 +22,7 @@ tags:
   - methodology/auvp
   - methodology/cerbasi
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
