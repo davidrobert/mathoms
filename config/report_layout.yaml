@@ -364,17 +364,16 @@ estrategico:
           size: "full"
 
     # --------------------------------------------------------------------------
-    # S_IRPF_OTIMIZACAO — Otimização tributária (ADR-157 · IRPF Full Schema)
-    # Hoje publica só o card PGBL — ADR-189 transformou-o em diagnóstico
-    # tipificado em 4 estados (capacidade_disponivel / modelo_simplificado /
-    # no_teto / sem_renda_tributavel), com copy literal congelada pelo G0
-    # financial-planner. Variante default `info` (estado positivo); o card
-    # resolve internamente a variante por estado (neutral / feature / neutral).
-    # Cards "Dependentes Declarados" e "Dedutíveis Subutilizados" foram
-    # removidos em 2026-05 por publicarem apenas texto explicativo sem dados.
-    # Voltam quando IRPFAnalyzer emitir `dependentes_count` +
-    # `dedutiveis_por_categoria`. G0 (financial-planner) sign-off necessário
-    # antes de reativar — recomendação caso-a-caso.
+    # S_IRPF_OTIMIZACAO — Otimização tributária (ADR-157, ADR-189, ADR-194)
+    # 3 cards: PGBL Capacidade (half — 4 estados internos, ADR-189) +
+    # Dependentes Declarados (half — factual, ADR-194 §6.1) +
+    # Dedutíveis Aplicados por Categoria (full — 4 categorias sparse, ADR-194 §6.2).
+    # Hierarquia visual (G4 product-designer): linha 1 = pareados half/half;
+    # linha 2 = denso full. Copy literal congelada por G0 (financial-planner)
+    # em ADR-194 §6.1 e §6.2; alterações exigem re-sign-off.
+    # Variantes resolvidas internamente: PGBL por status; Dedutíveis por
+    # presença de subutilização (info se há gap, neutral else). Dependentes
+    # fixo neutral. Empty-states escondem via guard em IrpfOtimizacaoSection.
     # --------------------------------------------------------------------------
     - id: "S_IRPF_OTIMIZACAO"
       title: "Otimização Tributária"
@@ -385,6 +384,14 @@ estrategico:
           enabled: true
           variant: "info"
           size: "half"
+        - id: "irpf_dependentes_declarados"
+          enabled: true
+          variant: "neutral"
+          size: "half"
+        - id: "irpf_dedutiveis_aplicados"
+          enabled: true
+          variant: "info"
+          size: "full"
 
     # --------------------------------------------------------------------------
     # S9 — Riscos e Proteção

@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-92 entries entre 2026-04-27 e 2026-05-11.
+62 entries entre 2026-04-29 e 2026-05-12.
+
+## 2026-05-12 (1 entries)
+
+- [[CHG-2026-05-12-FEAT-IRPF-OTIMIZACAO-CARDS-REVIVAL]] — feat(report): reativa cards Dependentes Declarados + Dedutíveis (lane [[TRACK-irpf-otimizacao-cards-revival]])
 
 ## 2026-05-11 (8 entries)
 
@@ -89,40 +93,6 @@
 - [[CHG-2026-04-29-A10-DIRE-O-E-ONDA-7-BLOQ]] — Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29). - **Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29):** os 5 fixes da [track_onda_7_p0_blockers.md](agent_prompts/track_onda_7_p0_blockers.md) entregu
 - [[CHG-2026-04-29-A10-DIRE-O-E-P-S-REVIS-O]] — Direção E pós-revisão de produto — Ondas 7/8/9 abertas (2026-04-29). - **Direção E pós-revisão de produto — Ondas 7/8/9 abertas (2026-04-29):** Revisão completa das interfaces consolidadas (Plano + Ação + Relatório) executada com
 - [[CHG-2026-04-29-FIX-SUGGESTIONS]] — fix(suggestions): auto-trigger no post-processing do pipeline (2026-04-29). - **fix(suggestions): auto-trigger no post-processing do pipeline (2026-04-29):** rodar o pipeline completo deixava `/acao` Inbox e `SuggestionCallout` do relat
-
-## 2026-04-27 (31 entries)
-
-- [[CHG-2026-04-27-A10-CI-FIX-VITEST-HANG-E]] — CI fix — Vitest hang em `ReceitaDespesaMensalChart.test.tsx` ✅ (2026-04-27). - **CI fix — Vitest hang em `ReceitaDespesaMensalChart.test.tsx` ✅ (2026-04-27):** Conserto definitivo do hang que cancelou o CI Frontend Vitest em 10min desde v2.E.6 (commit `6b09407`).
-- [[CHG-2026-04-27-A10-E2E-CRITICAL-D-BITO]] — E2E `@critical` débito ✅ resolvido (2026-04-27). - **E2E `@critical` débito ✅ resolvido (2026-04-27):** Lane separada lançada em paralelo (`a86a806e8da6d60f1`) foi cancelada após Lane 4+2 (`b47dd47`) descobrir
-- [[CHG-2026-04-27-A10-FIX-CHARTS-BARRAS-PR]] — Fix charts — barras pretas em ReceitaDespesaMensalChart (2026-04-27, [`de2c00a`](https://github.com/davidrobert/mathoms/commit/de2c00a)). - **Fix charts — barras pretas em ReceitaDespesaMensalChart (2026-04-27, [`de2c00a`](https://github.com/davidrobert/mathoms/commit/de2c00a)):** Bug visual repor
-- [[CHG-2026-04-27-A10-FIX-CHARTS-S2-CORES]] — Fix charts S2 — cores resolvidas + eixo Y (2026-04-27). - **Fix charts S2 — cores resolvidas + eixo Y (2026-04-27):** Bugs visuais reportados via screenshots de produção em `ReceitaDespesaMensalChart` e `FluxoMensalChart` (S2 — Fluxo de Caixa).
-- [[CHG-2026-04-27-A10-FIX-CHARTS-S2-EIXO-X]] — Fix charts S2 — eixo X yy/mm → MMM/aa pt-BR (2026-04-27, [`5eb956f`](https://github.com/davidrobert/mathoms/commit/5eb956f)). - **Fix charts S2 — eixo X yy/mm → MMM/aa pt-BR (2026-04-27, [`5eb956f`](https://github.com/davidrobert/mathoms/commit/5eb956f)):** Bug 3 do trio reportado pelo usuário.
-- [[CHG-2026-04-27-A10-REGRESS-O-VISUAL-FIX]] — Regressão visual fixada + rebaseline parcial (Items 4+2) ✅ (2026-04-27). - **Regressão visual fixada + rebaseline parcial (Items 4+2) ✅ (2026-04-27):** Item 4 fixou a regressão silenciosa que fazia 28 baselines visuais (cover×2 + S1-
-- [[CHG-2026-04-27-A10-REPORT-PREMIUM-UI-V2]] — Report Premium UI v2.2b completa — modo USA re-habilitado + 8 baselines U1-U4 ✅ (2026-04-27). - **Report Premium UI v2.2b completa — modo USA re-habilitado + 8 baselines U1-U4 ✅ (2026-04-27):** Decisão de produto autorizou retomar o modo USA.
-- [[CHG-2026-04-27-A10-REPORT-PREMIUM-UI-V2-1]] — Report Premium UI v2.D.1.1 + v2.9.1 — copy review entregue pelo product-designer ✅ (2026-04-27). - **Report Premium UI v2.D.1.1 + v2.9.1 — copy review entregue pelo product-designer ✅ (2026-04-27):** Cenário B fechou os dois débitos editoriais abertos durante a saída do v2.
-- [[CHG-2026-04-27-A10-REPORT-PREMIUM-UI-V2-2]] — Report Premium UI v2.8 — comparisons + changelog ativos no relatório ✅ (2026-04-27). - **Report Premium UI v2.8 — comparisons + changelog ativos no relatório ✅ (2026-04-27):** Conecta o `SnapshotChangelogBuilder` (v2.D.1 · [ADR-148](DECISIONS.md
-- [[CHG-2026-04-27-A10-REPORT-PREMIUM-UI-V2-3]] — Report Premium UI v2.9 — LLM section_summaries em E5 ✅ (2026-04-27). - **Report Premium UI v2.9 — LLM section_summaries em E5 ✅ (2026-04-27):** Fase 2 da [ADR-144](DECISIONS.md#adr-144--section_summaries-llm-driven-em-e5-com-cach
-- [[CHG-2026-04-27-A10-REPORT-PREMIUM-UI-V2-4]] — Report Premium UI v2.2b — fix `clickMode()` + 12 baselines Tático ✅ parcial (2026-04-27). - **Report Premium UI v2.2b — fix `clickMode()` + 12 baselines Tático ✅ parcial (2026-04-27):** Resíduo da v2.2 fechado parcialmente — Tático populado, USA bloqueado por decisão de produto.
-- [[CHG-2026-04-27-A10-REPORT-PREMIUM-UI-V2-5]] — Report Premium UI v2.4 — T2 Aportes seção real ✅ (2026-04-27). - **Report Premium UI v2.4 — T2 Aportes seção real ✅ (2026-04-27):** Substitui stub "estará disponível…" de `T2AportesSection` por seção real, fechando o débito
-- [[CHG-2026-04-27-A10-REPORT-PREMIUM-UI-V2-6]] — Report Premium UI v2 — v2.7 DnD real Kanban ✅ (2026-04-27). - **Report Premium UI v2 — v2.7 DnD real Kanban ✅ (2026-04-27):** Fecha o **débito #1 do BACKLOG** (declarado pré-v2: `@dnd-kit/core` não foi adicionado à v1; p
-- [[CHG-2026-04-27-A10-REPORT-PREMIUM-UI-V2-7]] — Report Premium UI v2 — v2.6 `cards/` cleanup ✅ (2026-04-27). - **Report Premium UI v2 — v2.6 `cards/` cleanup ✅ (2026-04-27):** Auditoria pós-v1 (2026-04-25) classificou `frontend/src/components/report/cards/` como "pré-F
-- [[CHG-2026-04-27-A10-SPEC-MOBILE-DO-RELAT]] — Spec mobile do relatório ✅ docs-only (2026-04-27). - **Spec mobile do relatório ✅ docs-only (2026-04-27):** D3 do `report-a11y-finalize` (deixada em aberto) e [batch2.13](BACKLOG.md) resolvidos com [REPORT_MOBIL
-- [[CHG-2026-04-27-A10-TEST-CHARTS-LINT-ANT]] — Test charts — lint anti-regressão `--chart-N: oklch(…)` (2026-04-27). - **Test charts — lint anti-regressão `--chart-N: oklch(…)` (2026-04-27):** Follow-up do CAVEAT registrado no fix `de2c00a` (barras pretas RDM).
-- [[CHG-2026-04-27-A10-V2-10-PDF-VISUAL-DIF]] — v2.10 ✅ PDF visual diff em Playwright (2026-04-27). - **v2.10 ✅ PDF visual diff em Playwright (2026-04-27):** spec novo [`frontend/tests/e2e/reports/print.@critical.spec.ts`](frontend/tests/e2e/reports/print.@cri
-- [[CHG-2026-04-27-A3-5]] — Auditoria multi-agente 2 rodadas — drift cleanup + unificação metodológica ✅ (2026-04-27). - **Auditoria multi-agente 2 rodadas — drift cleanup + unificação metodológica ✅ (2026-04-27):** Auditoria executada por 3 especialistas (senior-cto + product-d (lane [[A3.5]])
-- [[CHG-2026-04-27-A7-0]] — Sprint A7 ✅ entregue 2026-04-27 — Config DB Cutover (CLI legacy removal). - **Sprint A7 ✅ entregue 2026-04-27 — Config DB Cutover (CLI legacy removal):** 7 lanes mergeadas em `main` no mesmo dia (A7.0 → A7.6). (lane [[A7.0]])
-- [[CHG-2026-04-27-A7-1]] — A7.1 Cutover `materialize_config` → `ConfigStore` — ✅ entregue (2026-04-27). - **A7.1 Cutover `materialize_config` → `ConfigStore` — ✅ entregue (2026-04-27):** Onda 2 começa: configs A7.1 (categorization, family_members, institutions, re (lane [[A7.1]])
-- [[CHG-2026-04-27-A7-2A]] — A7.2a Decision aggregate (event-sourced) + migrator + Plano de Ação — ✅ entregue (2026-04-27). - **A7.2a Decision aggregate (event-sourced) + migrator + Plano de Ação — ✅ entregue (2026-04-27):** Onda 2 paralela com A7.1: caderno editorial em `config/deci (lane [[A7.2a]])
-- [[CHG-2026-04-27-A7-2B]] — A7.2b Tabelas globais `fiscal_parameters` + `market_rates` versionadas — ✅ entregue (2026-04-27). - **A7.2b Tabelas globais `fiscal_parameters` + `market_rates` versionadas — ✅ entregue (2026-04-27):** Onda 2 (paralela com A7.1, A7.2a, A7.4): séries fiscais (lane [[A7.2b]])
-- [[CHG-2026-04-27-A7-3]] — A7.3 Catalog + Override resolver (categorization + institutions) — ✅ entregue (2026-04-27). - **A7.3 Catalog + Override resolver (categorization + institutions) — ✅ entregue (2026-04-27):** Sprint A7 · Onda 3 · única lane · serial após A7.1 mergeada. (lane [[A7.3]])
-- [[CHG-2026-04-27-A7-4]] — A7.4 Metodologia → `docs/methodology/` — ✅ entregue (2026-04-27). - **A7.4 Metodologia → `docs/methodology/` — ✅ entregue (2026-04-27):** Reorganização editorial: 4 arquivos de documentação humana movidos de `config/` para `do (lane [[A7.4]])
-- [[CHG-2026-04-27-A7-6]] — DECISIONS.md cleanup — plano F0-F8 ✅ (2026-04-27). - **DECISIONS.md cleanup — plano F0-F8 ✅ (2026-04-27):** Plano de correção em 9 fases derivado da auditoria estrutural pelo `senior-cto`. (lane [[A7.6]])
-- [[CHG-2026-04-27-A7-6-1]] — `code_style_baseline.json` refresh — fecha débito P1+P7 herdado ✅ (2026-04-27, [`e90cbd9`](https://github.com/davidrobert/mathoms/commit/e90cbd9)). - **`code_style_baseline.json` refresh — fecha débito P1+P7 herdado ✅ (2026-04-27, [`e90cbd9`](https://github.com/davidrobert/mathoms/commit/e90cbd9)):** Baseli (lane [[A7.6]])
-- [[CHG-2026-04-27-A7-6-2]] — Report Premium UI v2 — saída ✅ (Cenário B fechou as 6 sub-lanes finais 2026-04-27). - **Report Premium UI v2 — saída ✅ (Cenário B fechou as 6 sub-lanes finais 2026-04-27):** 6 lanes em 2 ondas paralelas + recovery: v2.2b (Tático ✅, USA ⏸ produt (lane [[A7.6]])
-- [[CHG-2026-04-27-A7-6-3]] — A7.6 — Rules-as-code: dissolver `docs/methodology/` ✅ entregue (2026-04-27). - **A7.6 — Rules-as-code: dissolver `docs/methodology/` ✅ entregue (2026-04-27):** Branch `agent/a7-6-rules-as-code/20260427-1311`, 7 commits + baseline refresh, mergeados em `main`. (lane [[A7.6]])
-- [[CHG-2026-04-27-A7-6-4]] — Report Premium UI v2.D.1 — `SnapshotChangelogBuilder` ✅ (2026-04-27). - **Report Premium UI v2.D.1 — `SnapshotChangelogBuilder` ✅ (2026-04-27):** Fundação determinística para os blocos `comparisons` e `changelog` que v2.1 plantou (lane [[A7.6]])
-- [[CHG-2026-04-27-A7-6-5]] — A7.6 — Rules-as-code (lane aberta 2026-04-27 → ✅ entregue mesmo dia). - **A7.6 — Rules-as-code (lane aberta 2026-04-27 → ✅ entregue mesmo dia):** ver entrada acima com detalhes completos da entrega. (lane [[A7.6]])
-- [[CHG-2026-04-27-A8-0]] — A8.0 Follow-ups A7 — ✅ entregue (2026-04-27). - **A8.0 Follow-ups A7 — ✅ entregue (2026-04-27):** 3 itens herdados de CTO G4 sign-off do PR #15 (Sprint A7 closeout). (lane [[A8.0]])
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

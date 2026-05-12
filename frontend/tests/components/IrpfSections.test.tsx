@@ -14,7 +14,9 @@ import { render, screen } from "@testing-library/react";
 import { IrpfRendaSection } from "@/components/report/sections/IrpfRendaSection";
 import { IrpfOtimizacaoSection } from "@/components/report/sections/IrpfOtimizacaoSection";
 import { IrpfPgblCapacidadeCard } from "@/components/report/cards/IrpfPgblCapacidadeCard";
-import type { IrpfKpis, PgblStatus } from "@/types/irpf";
+import { IrpfDependentesCard } from "@/components/report/cards/IrpfDependentesCard";
+import { IrpfDedutiveisAplicadosCard } from "@/components/report/cards/IrpfDedutiveisAplicadosCard";
+import type { IrpfKpis, PgblStatus, DependentesKpi } from "@/types/irpf";
 import type { ReportAnalysisData } from "@/lib/api";
 
 const KPIS_BASE: IrpfKpis = {
@@ -69,9 +71,7 @@ describe("<IrpfOtimizacaoSection />", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("renderiza apenas card PGBL quando irpf_kpis válido", () => {
-    // Cards "Dependentes Declarados" e "Dedutíveis Subutilizados" foram
-    // removidos até IRPFAnalyzer emitir números reais (eram prose-only).
+  it("renderiza apenas PGBL quando dependentes e dedutiveis ausentes (ADR-194 degradação)", () => {
     const data = { irpf_kpis: KPIS_BASE } as unknown as ReportAnalysisData;
     render(<IrpfOtimizacaoSection data={data} />);
     expect(
@@ -82,8 +82,160 @@ describe("<IrpfOtimizacaoSection />", () => {
       screen.queryByRole("heading", { level: 3, name: /Dependentes Declarados/i }),
     ).toBeNull();
     expect(
-      screen.queryByRole("heading", { level: 3, name: /Dedutíveis Subutilizados/i }),
+      screen.queryByRole("heading", { level: 3, name: /Dedutíveis Aplicados/i }),
     ).toBeNull();
+  });
+
+  it("renderiza 3 cards quando dependentes + dedutiveis presentes (ADR-194)", () => {
+    const data = {
+      irpf_kpis: {
+        ...KPIS_BASE,
+        dependentes: {
+          count: 2,
+          por_relacao: { conjuge_companheiro: 1, filho_filha: 1 },
+        },
+        dedutiveis_aplicados: {
+          saude: { utilizado_brl: "12345.67", teto_brl: null, teto_aplicado: false },
+        },
+      },
+    } as unknown as ReportAnalysisData;
+    render(<IrpfOtimizacaoSection data={data} />);
+    expect(screen.getByRole("heading", { level: 3, name: /Capacidade PGBL/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Dependentes Declarados/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Dedutíveis Aplicados/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("esconde Dependentes quando count == 0 (ADR-194 §D9)", () => {
+    const data = {
+      irpf_kpis: {
+        ...KPIS_BASE,
+        dependentes: { count: 0, por_relacao: {} },
+      },
+    } as unknown as ReportAnalysisData;
+    render(<IrpfOtimizacaoSection data={data} />);
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /Dependentes Declarados/i }),
+    ).toBeNull();
+  });
+
+  it("esconde Dedutíveis quando payload vazio (ADR-194 §D9)", () => {
+    const data = {
+      irpf_kpis: { ...KPIS_BASE, dedutiveis_aplicados: {} },
+    } as unknown as ReportAnalysisData;
+    render(<IrpfOtimizacaoSection data={data} />);
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /Dedutíveis Aplicados/i }),
+    ).toBeNull();
+  });
+});
+
+describe("<IrpfDependentesCard /> · ADR-194 §6.1", () => {
+  const DEPS_BASE: DependentesKpi = {
+    count: 3,
+    por_relacao: { conjuge_companheiro: 1, filho_filha: 2 },
+  };
+
+  it("renderiza count + lista de relações com singular/plural", () => {
+    render(<IrpfDependentesCard dependentes={DEPS_BASE} anoBase={2024} />);
+    expect(screen.getByRole("heading", { level: 3, name: /Dependentes Declarados/i })).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Três dependentes declarados em 2024.*cônjuge · 1.*filho\/filha · 2/),
+    ).toBeInTheDocument();
+  });
+
+  it("aplica singular quando count == 1", () => {
+    const deps: DependentesKpi = { count: 1, por_relacao: { filho_filha: 1 } };
+    render(<IrpfDependentesCard dependentes={deps} anoBase={2024} />);
+    expect(screen.getByText(/Um dependente declarado em 2024.*filho\/filha · 1/)).toBeInTheDocument();
+  });
+
+  it("renderiza com variante neutral por default", () => {
+    const { container } = render(
+      <IrpfDependentesCard dependentes={DEPS_BASE} anoBase={2024} />,
+    );
+    expect(container.querySelector(".card-variant-neutral")).not.toBeNull();
+  });
+
+  it("não exibe disclaimer (factual puro sem prescrição)", () => {
+    render(<IrpfDependentesCard dependentes={DEPS_BASE} anoBase={2024} />);
+    expect(screen.queryByText(/Não é recomendação/)).toBeNull();
+  });
+});
+
+describe("<IrpfDedutiveisAplicadosCard /> · ADR-194 §6.2", () => {
+  it("renderiza linhas sparse com chips por status + disclaimer rodapé", () => {
+    const { container } = render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={{
+          saude: { utilizado_brl: "18420.00", teto_brl: null, teto_aplicado: false },
+          educacao: { utilizado_brl: "2100.00", teto_brl: "3561.50", teto_aplicado: false },
+          previdencia_oficial: {
+            utilizado_brl: "8176.00",
+            teto_brl: null,
+            teto_aplicado: false,
+          },
+        }}
+        anoBase={2024}
+      />,
+    );
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Dedutíveis Aplicados por Categoria/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Saúde")).toBeInTheDocument();
+    expect(screen.getByText("Educação")).toBeInTheDocument();
+    expect(screen.getByText("Previdência oficial (INSS)")).toBeInTheDocument();
+    // Disclaimer-rodapé presente
+    expect(screen.getByText(/não é recomendação/)).toBeInTheDocument();
+    // Variante info (há subutilização em educação)
+    expect(container.querySelector(".card-variant-info")).not.toBeNull();
+    // Chip "Sem teto legal" para saúde + INSS (2 linhas)
+    expect(screen.getAllByText(/Sem teto legal/).length).toBe(2);
+    // Chip "Espaço de ..." para educação
+    expect(screen.getByText(/Espaço de/)).toBeInTheDocument();
+  });
+
+  it("usa variante neutral quando todas linhas estão no teto/sem teto", () => {
+    const { container } = render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={{
+          saude: { utilizado_brl: "5000.00", teto_brl: null, teto_aplicado: false },
+        }}
+        anoBase={2024}
+      />,
+    );
+    expect(container.querySelector(".card-variant-neutral")).not.toBeNull();
+    expect(container.querySelector(".card-variant-info")).toBeNull();
+  });
+
+  it("omite linhas com utilizado == 0 (sparse)", () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={{
+          saude: { utilizado_brl: "10000.00", teto_brl: null, teto_aplicado: false },
+        }}
+        anoBase={2024}
+      />,
+    );
+    expect(screen.queryByText("Educação")).toBeNull();
+    expect(screen.queryByText("Pensão alimentícia")).toBeNull();
+    expect(screen.queryByText("Previdência oficial (INSS)")).toBeNull();
+  });
+
+  it('exibe chip "No teto" quando teto_aplicado=true', () => {
+    render(
+      <IrpfDedutiveisAplicadosCard
+        dedutiveis={{
+          educacao: { utilizado_brl: "3561.50", teto_brl: "3561.50", teto_aplicado: true },
+        }}
+        anoBase={2024}
+      />,
+    );
+    expect(screen.getByText(/No teto/)).toBeInTheDocument();
   });
 });
 

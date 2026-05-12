@@ -2,17 +2,22 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import { IrpfPgblCapacidadeCard } from "../cards";
+import {
+  IrpfDedutiveisAplicadosCard,
+  IrpfDependentesCard,
+  IrpfPgblCapacidadeCard,
+} from "../cards";
 import { useIrpfKpis } from "../hooks/useIrpfKpis";
 import type { ReportAnalysisData } from "@/lib/api";
+import type { IrpfKpis } from "@/types/irpf";
 
-/** ADR-157 · S_IRPF_OTIMIZACAO — Otimização tributária.
+/** ADR-157 + ADR-189 + ADR-194 · S_IRPF_OTIMIZACAO — Otimização tributária.
  *
- * Hoje publica apenas o card PGBL (números reais do `IRPFAnalyzer`). Cards
- * "Dependentes Declarados" e "Dedutíveis Subutilizados" foram removidos por
- * publicarem apenas texto explicativo sem dados — o produto Premium não pode
- * mostrar "análise entra em próxima iteração" como conteúdo. Voltam quando
- * `IRPFAnalyzer` emitir `dependentes_count` + `dedutiveis_por_categoria`. */
+ * 3 cards: PGBL Capacidade (half, 4 estados — ADR-189) + Dependentes
+ * Declarados (half, factual — ADR-194 §6.1) + Dedutíveis Aplicados por
+ * Categoria (full, 4 categorias sparse — ADR-194 §6.2). Cards "Dependentes"
+ * e "Dedutíveis" foram reativados em A12 (ADR-194) após removidos em 2026-05
+ * por serem prose-only. Guards escondem cards vazios sem regredir o PGBL. */
 export function IrpfOtimizacaoSection({ data }: { data: ReportAnalysisData }) {
   const kpis = useIrpfKpis(data);
   if (!kpis) return null;
@@ -23,6 +28,28 @@ export function IrpfOtimizacaoSection({ data }: { data: ReportAnalysisData }) {
     <ReportSection id="S_IRPF_OTIMIZACAO" title="Otimização Tributária">
       <SectionSummary narrativas={narrativas} sectionId="S_IRPF_OTIMIZACAO" />
       <IrpfPgblCapacidadeCard kpis={kpis} />
+      {shouldRenderDependentes(kpis) && (
+        <IrpfDependentesCard
+          dependentes={kpis.dependentes!}
+          anoBase={kpis.ano_base}
+        />
+      )}
+      {shouldRenderDedutiveis(kpis) && (
+        <IrpfDedutiveisAplicadosCard
+          dedutiveis={kpis.dedutiveis_aplicados!}
+          anoBase={kpis.ano_base}
+        />
+      )}
     </ReportSection>
   );
+}
+
+function shouldRenderDependentes(kpis: IrpfKpis): boolean {
+  return kpis.dependentes !== undefined && kpis.dependentes.count > 0;
+}
+
+function shouldRenderDedutiveis(kpis: IrpfKpis): boolean {
+  const dedutiveis = kpis.dedutiveis_aplicados;
+  if (!dedutiveis) return false;
+  return Object.keys(dedutiveis).length > 0;
 }
