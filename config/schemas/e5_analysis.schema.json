@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "E5 Analysis",
-  "description": "Schema do artefato analise_financeira-5_analysis.json. Declara blocos top-level produzidos por build_e5_output (pipeline/domain/services/e5_serialization.py). Mantém additionalProperties=true por enquanto — flip para strict é W6-T01 do PLATFORM_REVIEW_PLAN.md.",
+  "description": "Schema do artefato analise_financeira-5_analysis.json. Declara blocos top-level produzidos por build_e5_output (pipeline/domain/services/e5_serialization.py). Mantém additionalProperties=true por enquanto — flip para strict é W6-T01 do PLATFORM_REVIEW_PLAN.md. Convenção numérica de percentual (ADR-209): todo campo *_pct, pct_*, percentual_* neste schema é valor ABSOLUTO (44.7 = 44,7%); valores > 100 e < 1 são válidos. Exceções legadas serializadas como string com 2 casas decimais ou 'N/D': ratios.rentabilidade_pct, ratios.aliquota_efetiva_ir_pct, irpf_kpis.aliquota_sobre_tributavel_pct, irpf_kpis.aliquota_sobre_total_pct.",
   "type": "object",
   "required": ["score", "patrimonio", "fluxo_caixa"],
   "properties": {
@@ -28,7 +28,7 @@
     },
     "ratios": {
       "type": "object",
-      "description": "Ratios financeiros (RatiosCalculator.to_legacy_dict). Track T06 / ADR-191 adicionou objeto aninhado 'rentabilidade' com contexto (ano-base, defasagem, meta, cobertura essencial, status). Campo flat 'rentabilidade_pct' permanece como atalho back-compat (ADR-191 §D2 — sem rename interno).",
+      "description": "Ratios financeiros (RatiosCalculator.to_legacy_dict). Track T06 / ADR-191 adicionou objeto aninhado 'rentabilidade' com contexto (ano-base, defasagem, meta, cobertura essencial, status). Campo flat 'rentabilidade_pct' permanece como atalho back-compat (ADR-191 §D2 — sem rename interno). ADR-209: todo campo *_pct neste bloco é absoluto (44.7 = 44,7%); rentabilidade_pct e aliquota_efetiva_ir_pct vêm como STRING ('3.20' ou 'N/D').",
       "properties": {
         "rentabilidade": {
           "description": "Card Rentabilidade — TRS efetiva + contexto + cobertura essencial via renda passiva (ADR-191 §D3/D4). 'null' apenas quando passive_income é omitido (caller decide).",
@@ -46,7 +46,7 @@
               ],
               "properties": {
                 "valor_pct": {
-                  "description": "TRS efetiva (% a.a.). 'null' quando status indica indisponibilidade.",
+                  "description": "TRS efetiva (% a.a.) — percentual absoluto (4.7 = 4,7% a.a., ADR-209). 'null' quando status indica indisponibilidade. Valores < 1 (ex.: 0.5) são válidos para rentabilidades reais baixas.",
                   "type": ["number", "null"]
                 },
                 "ano_base": {
@@ -58,11 +58,11 @@
                   "type": ["integer", "null"]
                 },
                 "meta_pct": {
-                  "description": "Meta de referência consagrada (default 5,0% a.a.).",
+                  "description": "Meta de referência consagrada (default 5.0 = 5,0% a.a.) — percentual absoluto (ADR-209).",
                   "type": "number"
                 },
                 "cobertura_despesa_essencial_pct": {
-                  "description": "renda_passiva_mensal / custo_essencial_mensal × 100. 'null' quando status != 'ok'.",
+                  "description": "renda_passiva_mensal / custo_essencial_mensal × 100 — percentual absoluto (ADR-209). Valores > 100 são válidos e esperados (ex.: 350.0 = renda passiva cobre 3,5× a despesa). 'null' quando status != 'ok'.",
                   "type": ["number", "null"]
                 },
                 "status": {
@@ -125,7 +125,10 @@
           "properties": {
             "meta_if": {"type": "number"},
             "investivel_atual": {"type": "number"},
-            "retorno_real_anual_pct": {"type": "number"},
+            "retorno_real_anual_pct": {
+              "type": "number",
+              "description": "Retorno real anual esperado em % — percentual absoluto (4.0 = 4,0% a.a., ADR-209)."
+            },
             "aporte_base": {"type": "number"},
             "fator_reduzido": {"type": "number"}
           }
@@ -187,7 +190,10 @@
                 ]
               },
               "valor": {"type": "number"},
-              "pct": {"type": "number"}
+              "pct": {
+                "type": "number",
+                "description": "Percentual absoluto da classe sobre o total investível (44.7 = 44,7%, ADR-209). Soma do array ~100."
+              }
             }
           }
         },
@@ -229,7 +235,12 @@
               "membro": {"type": "string"},
               "instituicao": {"type": "string"},
               "valor": {"type": "number", "minimum": 0},
-              "pct_carteira": {"type": "number", "minimum": 0, "maximum": 100},
+              "pct_carteira": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Percentual absoluto do ativo sobre a carteira total (44.7 = 44,7%, ADR-209)."
+              },
               "tipo_origem": {"type": "string", "enum": ["investimento", "imovel"]}
             },
             "additionalProperties": false

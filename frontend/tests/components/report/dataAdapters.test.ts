@@ -17,12 +17,16 @@ import type { ReportAnalysisData } from "@/lib/api";
 // ─── conclusionUtils ────────────────────────────────────────────────
 
 describe("deriveChartConclusion()", () => {
-  it("patrimonio_doughnut interpola top categoria + pct + valor", () => {
+  it("patrimonio_doughnut interpola top categoria + pct absoluto + valor", () => {
+    // ADR-209: composicao[].pct é absoluto (50.0 = 50%, não 0.5).
+    // Fixture pré-ADR-209 usava 0.5 e a heurística value <= 1 ? * 100 escondia
+    // o bug. Removida a heurística, o fixture é alinhado ao contrato real do
+    // backend (patrimonio_calculator._apply_percentuals_largest_remainder).
     const data = {
       patrimonio: {
         composicao: [
-          { categoria: "Imóveis", valor: 500_000, pct: 0.5 },
-          { categoria: "Renda Fixa", valor: 300_000, pct: 0.3 },
+          { categoria: "Imóveis", valor: 500_000, pct: 50.0 },
+          { categoria: "Renda Fixa", valor: 300_000, pct: 30.0 },
         ],
       },
     } as unknown as ReportAnalysisData;

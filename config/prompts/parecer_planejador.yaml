@@ -25,7 +25,7 @@
 #   - ADR breaking quando DSL muda; tunning de paths/labels é editorial
 # ==============================================================================
 
-version: "1.0"
+version: "1.1"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -48,6 +48,7 @@ narrative_hints_global:
   - "NUNCA prescreva ativo específico (ticker). Parecer é orientativo metodológico, não recomendação de investimento."
   - "Quando confiança não for 'alta', evite linguagem prescritiva — descreva o quê, não o porquê especulado."
   - "Cite apenas números/categorias/fatos presentes no exec context ou retornados por tool. Se faltar, declare em campos_faltantes_pediria_se_iterasse."
+  - "Convenção numérica de percentual (ADR-209): TODOS os campos *_pct, pct_*, percentual_* são valores ABSOLUTOS (44.7 = 44,7%; nunca 4470% nem 0,447%). Valores > 100 são válidos quando semanticamente possível (cobertura_despesa_essencial_pct: 350.0 = renda passiva cobre 3,5× a despesa). Valores < 1 são válidos (valor_pct: 0.5 = 0,5% a.a.). Exceção: ratios.rentabilidade_pct, ratios.aliquota_efetiva_ir_pct, irpf_kpis.aliquota_sobre_tributavel_pct, irpf_kpis.aliquota_sobre_total_pct vêm como STRING ('22.50' ou 'N/D') — faça cast antes de operar; trate 'N/D' como indisponibilidade."
 
 # ==============================================================================
 # CONTEXT SECTIONS — projeção do E5 → exec context destilado

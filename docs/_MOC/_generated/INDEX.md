@@ -206,6 +206,7 @@
 | ADR-206 | adr | Proposto |  | Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) | `adr/206-telemetria-campo-faltante-parecer.md` |
 | ADR-207 | adr | Proposto |  | Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` | `adr/207-sigilo-metodologico-parecer-mapeamento-ancora-tema.md` |
 | ADR-208 | adr | Proposto |  | Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) | `adr/208-gating-parecer-holistico-free-vs-premium.md` |
+| ADR-209 | adr | Proposto |  | Convenção numérica de percentual no contrato E5 — valor absoluto | `adr/209-convencao-numerica-percentual-absoluto.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
