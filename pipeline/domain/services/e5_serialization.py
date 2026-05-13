@@ -110,13 +110,13 @@ def run_sanity_checks(
             )
         )
 
-    endiv = ratios.get("endividamento_pct", 0)
+    endiv = ratios.get("taxa_endividamento_pct", 0)
     if not isinstance(endiv, str):
         e = _coerce_number(endiv)
         if e > 200:
             warnings.append(
                 SanityWarning(
-                    "ratios.endividamento_pct",
+                    "ratios.taxa_endividamento_pct",
                     f"Endividamento acima de 200%: {e:.1f}%",
                 )
             )
