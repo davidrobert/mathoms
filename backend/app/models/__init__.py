@@ -37,6 +37,12 @@ from backend.app.models.pipeline_run import (
     PipelineStageLog,
     PipelineStageStatus,
 )
+from backend.app.models.pipeline_run_cost import PipelineRunCost
+from backend.app.models.planner_review import (
+    VALID_PLANNER_REVIEW_STATUSES,
+    VALID_TIERS,
+    PlannerReview,
+)
 from backend.app.models.protection import (
     VALID_PROTECTION_CATEGORIES,
     VALID_PROTECTION_COVERAGE_TYPES,
@@ -163,6 +169,10 @@ __all__ = [
     "DataExportRequestStatus",
     "VALID_DATA_EXPORT_STATUSES",
     "PipelineArtifact",
+    "PipelineRunCost",
+    "PlannerReview",
+    "VALID_PLANNER_REVIEW_STATUSES",
+    "VALID_TIERS",
     "ReportPublication",
     "Risk",
     "VALID_RISK_IMPACT_LEVELS",

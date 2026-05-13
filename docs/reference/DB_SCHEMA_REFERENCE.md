@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 43
+**Total de tabelas:** 45
 
 ---
 
@@ -35,8 +35,10 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`password_vault`](#passwordvault)
 - [`pipeline_artifacts`](#pipelineartifacts)
 - [`pipeline_configs`](#pipelineconfigs)
+- [`pipeline_run_costs`](#pipelineruncosts)
 - [`pipeline_runs`](#pipelineruns)
 - [`pipeline_stage_logs`](#pipelinestagelogs)
+- [`planner_review_metadata`](#plannerreviewmetadata)
 - [`protections`](#protections)
 - [`report_layouts`](#reportlayouts)
 - [`report_publications`](#reportpublications)
@@ -607,6 +609,34 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - UNIQUE `ix_pipeline_configs_workspace_id` (workspace_id)
 
+### `pipeline_run_costs`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `INTEGER` | no | — | PK |
+| `pipeline_run_id` | `VARCHAR(36)` | no | — | FK→pipeline_runs.id, INDEX |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `stage` | `VARCHAR(50)` | no | — | — |
+| `model_id` | `VARCHAR(100)` | no | — | — |
+| `tokens_in` | `INTEGER` | no | `0` | — |
+| `tokens_out` | `INTEGER` | no | `0` | — |
+| `cost_usd_cents` | `BIGINT` | no | `0` | — |
+| `latency_ms` | `INTEGER` | no | `0` | — |
+| `tool_iterations` | `INTEGER` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (pipeline_run_id) REFERENCES pipeline_runs.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_pipeline_run_costs_pipeline_run_id` (pipeline_run_id)
+- `ix_pipeline_run_costs_stage` (stage, created_at)
+- `ix_pipeline_run_costs_workspace_date` (workspace_id, created_at)
+- `ix_pipeline_run_costs_workspace_id` (workspace_id)
+
 ### `pipeline_runs`
 
 | Column | Type | Nullable | Default | Tags |
@@ -656,6 +686,56 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_pipeline_stage_logs_pipeline_run_id` (pipeline_run_id)
+
+### `planner_review_metadata`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `pipeline_run_id` | `VARCHAR(36)` | no | — | FK→pipeline_runs.id, INDEX |
+| `pipeline_artifact_id` | `INTEGER` | no | — | FK→pipeline_artifacts.id, UNIQUE, INDEX |
+| `e5_artifact_id` | `INTEGER` | no | — | FK→pipeline_artifacts.id, INDEX |
+| `status` | `VARCHAR(20)` | no | `'Pendente'` | INDEX |
+| `supersedes_id` | `VARCHAR(36)` | yes | — | FK→planner_review_metadata.id, INDEX |
+| `superseded_by_id` | `VARCHAR(36)` | yes | — | INDEX |
+| `persona_hash` | `VARCHAR(64)` | no | — | — |
+| `manifest_version` | `VARCHAR(20)` | no | — | — |
+| `schema_version` | `VARCHAR(20)` | no | — | — |
+| `model_id` | `VARCHAR(100)` | no | — | — |
+| `immutable_hash` | `VARCHAR(64)` | yes | — | — |
+| `tier_at_generation` | `VARCHAR(20)` | no | — | — |
+| `items_shown_count` | `INTEGER` | no | `0` | — |
+| `items_gated_count` | `INTEGER` | no | `0` | — |
+| `cost_usd_cents` | `BIGINT` | no | `0` | — |
+| `tokens_in` | `INTEGER` | no | `0` | — |
+| `tokens_out` | `INTEGER` | no | `0` | — |
+| `tool_iterations` | `INTEGER` | no | `0` | — |
+| `latency_ms` | `INTEGER` | no | `0` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | INDEX |
+| `published_at` | `DATETIME` | yes | — | — |
+| `superseded_at` | `DATETIME` | yes | — | — |
+
+**Constraints:**
+
+- FOREIGN KEY (e5_artifact_id) REFERENCES pipeline_artifacts.id ON DELETE RESTRICT — `(unnamed)`
+- FOREIGN KEY (pipeline_artifact_id) REFERENCES pipeline_artifacts.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (pipeline_run_id) REFERENCES pipeline_runs.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (supersedes_id) REFERENCES planner_review_metadata.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, pipeline_run_id) — `uq_planner_review_workspace_run`
+
+**Indexes:**
+
+- `ix_planner_review_metadata_created_at` (created_at)
+- `ix_planner_review_metadata_e5_artifact_id` (e5_artifact_id)
+- UNIQUE `ix_planner_review_metadata_pipeline_artifact_id` (pipeline_artifact_id)
+- `ix_planner_review_metadata_pipeline_run_id` (pipeline_run_id)
+- `ix_planner_review_metadata_status` (status)
+- `ix_planner_review_metadata_superseded_by_id` (superseded_by_id)
+- `ix_planner_review_metadata_supersedes_id` (supersedes_id)
+- `ix_planner_review_metadata_workspace_id` (workspace_id)
+- `ix_planner_review_workspace_status` (workspace_id, status)
 
 ### `protections`
 
@@ -1599,6 +1679,24 @@ type PipelineConfig struct {
 }
 ```
 
+### `pipeline_run_costs` → `type PipelineRunCost struct`
+
+```go
+type PipelineRunCost struct {
+	Id int `db:"id" json:"id"`
+	PipelineRunId string `db:"pipeline_run_id" json:"pipeline_run_id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	Stage string `db:"stage" json:"stage"`
+	ModelId string `db:"model_id" json:"model_id"`
+	TokensIn int `db:"tokens_in" json:"tokens_in"`
+	TokensOut int `db:"tokens_out" json:"tokens_out"`
+	CostUsdCents int64 `db:"cost_usd_cents" json:"cost_usd_cents"`
+	LatencyMs int `db:"latency_ms" json:"latency_ms"`
+	ToolIterations *int `db:"tool_iterations" json:"tool_iterations"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
 ### `pipeline_runs` → `type PipelineRun struct`
 
 ```go
@@ -1634,6 +1732,37 @@ type PipelineStageLog struct {
 	DurationMs *int `db:"duration_ms" json:"duration_ms"`
 	StartedAt time.Time `db:"started_at" json:"started_at"`
 	CompletedAt *time.Time `db:"completed_at" json:"completed_at"`
+}
+```
+
+### `planner_review_metadata` → `type PlannerReviewMetadata struct`
+
+```go
+type PlannerReviewMetadata struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	PipelineRunId string `db:"pipeline_run_id" json:"pipeline_run_id"`
+	PipelineArtifactId int `db:"pipeline_artifact_id" json:"pipeline_artifact_id"`
+	E5ArtifactId int `db:"e5_artifact_id" json:"e5_artifact_id"`
+	Status string `db:"status" json:"status"`
+	SupersedesId *string `db:"supersedes_id" json:"supersedes_id"`
+	SupersededById *string `db:"superseded_by_id" json:"superseded_by_id"`
+	PersonaHash string `db:"persona_hash" json:"persona_hash"`
+	ManifestVersion string `db:"manifest_version" json:"manifest_version"`
+	SchemaVersion string `db:"schema_version" json:"schema_version"`
+	ModelId string `db:"model_id" json:"model_id"`
+	ImmutableHash *string `db:"immutable_hash" json:"immutable_hash"`
+	TierAtGeneration string `db:"tier_at_generation" json:"tier_at_generation"`
+	ItemsShownCount int `db:"items_shown_count" json:"items_shown_count"`
+	ItemsGatedCount int `db:"items_gated_count" json:"items_gated_count"`
+	CostUsdCents int64 `db:"cost_usd_cents" json:"cost_usd_cents"`
+	TokensIn int `db:"tokens_in" json:"tokens_in"`
+	TokensOut int `db:"tokens_out" json:"tokens_out"`
+	ToolIterations int `db:"tool_iterations" json:"tool_iterations"`
+	LatencyMs int `db:"latency_ms" json:"latency_ms"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	PublishedAt *time.Time `db:"published_at" json:"published_at"`
+	SupersededAt *time.Time `db:"superseded_at" json:"superseded_at"`
 }
 ```
 
