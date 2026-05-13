@@ -5876,6 +5876,144 @@
         "title": "PipelineStageStatus",
         "type": "string"
       },
+      "PlannerReviewResponse": {
+        "description": "Parecer planejador \u2014 shape de resposta do endpoint stub (tier filtering vem no Ato 5).",
+        "properties": {
+          "content": {
+            "additionalProperties": true,
+            "title": "Content",
+            "type": "object"
+          },
+          "cost_usd_cents": {
+            "title": "Cost Usd Cents",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "immutable_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Immutable Hash"
+          },
+          "items_gated_count": {
+            "title": "Items Gated Count",
+            "type": "integer"
+          },
+          "items_shown_count": {
+            "title": "Items Shown Count",
+            "type": "integer"
+          },
+          "manifest_version": {
+            "title": "Manifest Version",
+            "type": "string"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "persona_hash": {
+            "title": "Persona Hash",
+            "type": "string"
+          },
+          "pipeline_run_id": {
+            "title": "Pipeline Run Id",
+            "type": "string"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "superseded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded At"
+          },
+          "superseded_by_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded By Id"
+          },
+          "supersedes_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Id"
+          },
+          "tier_at_generation": {
+            "title": "Tier At Generation",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "pipeline_run_id",
+          "status",
+          "persona_hash",
+          "manifest_version",
+          "schema_version",
+          "model_id",
+          "tier_at_generation",
+          "items_shown_count",
+          "items_gated_count",
+          "cost_usd_cents",
+          "created_at",
+          "content"
+        ],
+        "title": "PlannerReviewResponse",
+        "type": "object"
+      },
       "ProtectionBundleResponse": {
         "additionalProperties": false,
         "description": "Bundle exposto via ``GET /workspaces/{id}/protection-bundle``.",
@@ -19337,6 +19475,63 @@
         "summary": "Put Notes Gone",
         "tags": [
           "report-collab-legacy"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/planner-review": {
+      "get": {
+        "description": "Retorna o parecer planejador \u2014 stub do Ato 3, sempre 404 ``not_generated_yet``.",
+        "operationId": "get_planner_review_api_v1_workspaces__workspace_id__reports__report_id__planner_review_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannerReviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Planner Review",
+        "tags": [
+          "planner-review"
         ]
       }
     },
