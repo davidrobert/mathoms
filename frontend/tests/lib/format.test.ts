@@ -97,10 +97,16 @@ describe("formatCurrency()", () => {
 
 // ─── formatPercent ───────────────────────────────────────────────────
 
+// ADR-209: convenção absoluta — input é o número já em escala percentual
+// (44.7 = 44,7%, NÃO 0.447). Formatter não multiplica por 100.
 describe("formatPercent()", () => {
-  it("formata fração como percent BR", () => {
-    // Valor 0.156 → "15,6%" (Intl usa fração, não 0-100)
-    expect(norm(formatPercent(0.156))).toBe("15,6%");
+  it("formata valor absoluto como percent BR (não multiplica por 100)", () => {
+    expect(norm(formatPercent(15.6))).toBe("15,6%");
+  });
+
+  it("ADR-209: input 44.71 produz '44,71%' (não '4.471%')", () => {
+    expect(norm(formatPercent(44.71, 2))).toBe("44,71%");
+    expect(norm(formatPercent(44.71))).toBe("44,7%");
   });
 
   it("zero", () => {
@@ -108,11 +114,15 @@ describe("formatPercent()", () => {
   });
 
   it("negativo", () => {
-    expect(norm(formatPercent(-0.05))).toBe("-5,0%");
+    expect(norm(formatPercent(-5))).toBe("-5,0%");
   });
 
   it("custom decimals", () => {
-    expect(norm(formatPercent(0.12345, 3))).toBe("12,345%");
+    expect(norm(formatPercent(12.345, 3))).toBe("12,345%");
+  });
+
+  it("valor > 100 é válido (ex.: cobertura 3,5× = 350%)", () => {
+    expect(norm(formatPercent(350))).toBe("350,0%");
   });
 });
 
@@ -130,8 +140,8 @@ describe("formatDelta()", () => {
     expect(out).not.toContain("+-");
   });
 
-  it("inclui percentual quando passado", () => {
-    const out = norm(formatDelta(100, { percent: 0.25 }));
+  it("inclui percentual quando passado (ADR-209: absoluto)", () => {
+    const out = norm(formatDelta(100, { percent: 25 }));
     expect(out).toContain("+R$ 100,00");
     expect(out).toContain("(+25,0%)");
   });
@@ -605,12 +615,11 @@ describe("Property-based: BRL formatter (F6.5D.2)", () => {
     );
   });
 
-  it("formatPercent inverte sinal corretamente para qualquer fração", () => {
+  it("formatPercent (ADR-209 absoluto) inverte sinal e sempre termina em %", () => {
     fc.assert(
-      fc.property(fc.double({ min: -1, max: 1, noNaN: true }), (n) => {
+      fc.property(fc.double({ min: -100, max: 100, noNaN: true }), (n) => {
         const out = norm(formatPercent(n));
-        if (n < 0) expect(out).toMatch(/^-/);
-        // Sempre termina com %
+        if (n <= -0.05) expect(out).toMatch(/^-/);
         expect(out).toMatch(/%$/);
       }),
       { numRuns: 100 },
