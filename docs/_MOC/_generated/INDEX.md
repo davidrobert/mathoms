@@ -196,6 +196,16 @@
 | ADR-196 | adr | Decidido |  | Reconciliação dos cards PGBL S7 (fluxo PJ inferido) × S_IRPF_OTIMIZACAO (IRPF declarado) por priorização condicional | `adr/196-reconciliacao-cards-pgbl-s7-irpf.md` |
 | ADR-197 | adr | Decidido |  | Estado modelo_simplificado expõe componentes elegíveis e redireciona para PGD/MIR (estende ADR-189 §4 Estado 2) | `adr/197-irpf-simplificado-componentes-elegiveis-pgd-mir.md` |
 | ADR-198 | adr | Decidido |  | Chip "Espaço de R$ X" condicional ao pgbl_status no card Dedutíveis Aplicados (encerra débito ADR-194 §6.4) | `adr/198-dedutiveis-chip-espaco-condicional-pgbl-status.md` |
+| ADR-199 | adr | Proposto |  | Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced | `adr/199-parecer-planejador-supersede-review-finances.md` |
+| ADR-200 | adr | Proposto |  | Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml` | `adr/200-manifest-declarativo-parecer-context.md` |
+| ADR-201 | adr | Proposto |  | Persona do planejador como rules-as-code — `config/agents/planner_persona.md` | `adr/201-persona-planner-rules-as-code.md` |
+| ADR-202 | adr | Proposto |  | Output schema + invariantes do parecer — `parecer_planejador.schema.json` | `adr/202-output-schema-parecer-planejador.md` |
+| ADR-203 | adr | Proposto |  | Tool use híbrido + guardrails — drill-down sob demanda no parecer | `adr/203-tool-use-hibrido-drill-down-parecer.md` |
+| ADR-204 | adr | Proposto |  | Imutabilidade do parecer pós-publicação (estende ADR-187) | `adr/204-imutabilidade-parecer-pos-publicacao.md` |
+| ADR-205 | adr | Proposto |  | Boundary Python/Go — stages LLM permanecem Python; contratos imutáveis | `adr/205-boundary-python-go-stages-llm-permanecem-python.md` |
+| ADR-206 | adr | Proposto |  | Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) | `adr/206-telemetria-campo-faltante-parecer.md` |
+| ADR-207 | adr | Proposto |  | Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` | `adr/207-sigilo-metodologico-parecer-mapeamento-ancora-tema.md` |
+| ADR-208 | adr | Proposto |  | Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) | `adr/208-gating-parecer-holistico-free-vs-premium.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

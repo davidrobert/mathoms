@@ -7,7 +7,7 @@ phase: "A6-cleanup"
 date: "2026-04-24"
 relates_to: []
 supersedes: []
-superseded_by: []
+superseded_by: ["[[ADR-199]]"]
 aliases: ["ADR 128"]
 tags:
   - area/llm
@@ -20,6 +20,12 @@ size_lines: 40
 # ADR-128 — E7-review-llm lê/escreve via `ArtifactStore`
 
 **Status:** Decidido (A6-cleanup) • **Data:** 2026-04-24
+
+**Nota 2026-05-13:** Esta ADR será superseded por [[ADR-199]] (parecer
+planejador) durante execução do plano [`PLANNER_REVIEW`](../plan/PLANNER_REVIEW/_README.md).
+Artifact `("E7-review", "review_llm")` deixará de ser gerado quando
+`parecer_planejador` shipar. Pareceres antigos permanecem em
+`pipeline_artifacts` para auditoria; não serão deletados.
 
 **Contexto:** Após ADR-083 (ArtifactStore) e o cutover
 `MATHOMS_USE_DB_ARTIFACTS=True`, o stage `E7-review-llm`

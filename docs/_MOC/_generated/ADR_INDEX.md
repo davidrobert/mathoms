@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-191 ADRs (ADR-001 a ADR-198) em [`docs/adr/`](../../adr/).
+201 ADRs (ADR-001 a ADR-208) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 168
-- **Proposto**: 19
+- **Proposto**: 29
 - **Roadmap**: 4
 
 ## Fundação
@@ -124,9 +124,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-108]] — Estratégia de subdomínios `mathoms.ai` + Cloudflare DNS
 - [[ADR-116]] — F7F-Local: stack Next separada + anonimização default + auth yaml+bcrypt+JWT (F7F-Local) · phase F7F-Local
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-058]] — VPS CX32 para sizing · phase F7
+- [[ADR-206]] — Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 
 ## Testing
 
@@ -258,6 +259,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-146]] — E3 source hierarchy + `BankAccount.source_tier` schema · phase Sprint A7.6 · CTO sign-off 2026-04-27
 - [[ADR-147]] — Milhas: valuation methodology universal + storage workspace-scoped · phase Sprint A7.6 · CTO sign-off 2026-04-27
 
+### Proposto (1)
+
+- [[ADR-201]] — Persona do planejador como rules-as-code — `config/agents/planner_persona.md` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+
 ## Decisões metodológicas pós-auditoria (Roadmap v2)
 
 ### Decidido (1)
@@ -345,9 +350,17 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-165]] — `ValidationIssue` estruturado em `ValidationResult` e `StageReview`
 - [[ADR-169]] — Modo incremental estendido aos stages globais E1
 
-### Proposto (1)
+### Proposto (9)
 
 - [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
+- [[ADR-199]] — Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+- [[ADR-200]] — Manifest declarativo F5 do exec context — `config/prompts/parecer_planejador.yaml` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+- [[ADR-202]] — Output schema + invariantes do parecer — `parecer_planejador.schema.json` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+- [[ADR-203]] — Tool use híbrido + guardrails — drill-down sob demanda no parecer · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+- [[ADR-204]] — Imutabilidade do parecer pós-publicação (estende ADR-187) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+- [[ADR-205]] — Boundary Python/Go — stages LLM permanecem Python; contratos imutáveis · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+- [[ADR-207]] — Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+- [[ADR-208]] — Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 
 ## marketing
 
