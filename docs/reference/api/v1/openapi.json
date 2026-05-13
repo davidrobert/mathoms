@@ -3934,6 +3934,49 @@
         "title": "FlagsResponse",
         "type": "object"
       },
+      "GatedCounts": {
+        "additionalProperties": false,
+        "description": "Detalhe por bucket de quantos itens foram cortados pelo tier filter (UI teaser).",
+        "properties": {
+          "metricas": {
+            "default": 0,
+            "title": "Metricas",
+            "type": "integer"
+          },
+          "notas_metodologicas": {
+            "default": 0,
+            "title": "Notas Metodologicas",
+            "type": "integer"
+          },
+          "pontos_fortes": {
+            "default": 0,
+            "title": "Pontos Fortes",
+            "type": "integer"
+          },
+          "riscos": {
+            "default": 0,
+            "title": "Riscos",
+            "type": "integer"
+          },
+          "sugestoes_estrategicas": {
+            "default": 0,
+            "title": "Sugestoes Estrategicas",
+            "type": "integer"
+          },
+          "sugestoes_execucao": {
+            "default": 0,
+            "title": "Sugestoes Execucao",
+            "type": "integer"
+          },
+          "sugestoes_taticas": {
+            "default": 0,
+            "title": "Sugestoes Taticas",
+            "type": "integer"
+          }
+        },
+        "title": "GatedCounts",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -4439,6 +4482,36 @@
           "inputs"
         ],
         "title": "IFGoalUpsertCommand",
+        "type": "object"
+      },
+      "ImpactoEstimadoDTO": {
+        "additionalProperties": false,
+        "description": "Impacto estimado (LLM emite s\u00f3 com confianca='alta' \u2014 ADR-202 \u00a7D6).",
+        "properties": {
+          "caveat": {
+            "title": "Caveat",
+            "type": "string"
+          },
+          "unidade": {
+            "enum": [
+              "ano",
+              "mes"
+            ],
+            "title": "Unidade",
+            "type": "string"
+          },
+          "valor_estimado_brl": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Valor Estimado Brl",
+            "type": "string"
+          }
+        },
+        "required": [
+          "valor_estimado_brl",
+          "unidade",
+          "caveat"
+        ],
+        "title": "ImpactoEstimadoDTO",
         "type": "object"
       },
       "InstitutionConfigResponse": {
@@ -5155,6 +5228,83 @@
         "title": "MemberRoleUpdateRequest",
         "type": "object"
       },
+      "MetricaDTO": {
+        "additionalProperties": false,
+        "description": "M\u00e9trica observ\u00e1vel \u2014 sem ancora user-facing.",
+        "properties": {
+          "frequencia_revisao": {
+            "enum": [
+              "mensal",
+              "trimestral",
+              "semestral",
+              "anual"
+            ],
+            "title": "Frequencia Revisao",
+            "type": "string"
+          },
+          "nome": {
+            "title": "Nome",
+            "type": "string"
+          },
+          "section_id": {
+            "enum": [
+              "S1",
+              "S2",
+              "S3",
+              "S4",
+              "S7",
+              "S8",
+              "S_IRPF_RENDA",
+              "S_IRPF_OTIMIZACAO",
+              "S9",
+              "S10",
+              "S_parecer",
+              "plano_de_acao"
+            ],
+            "title": "Section Id",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          },
+          "tema_canonico": {
+            "anyOf": [
+              {
+                "enum": [
+                  "Prote\u00e7\u00e3o",
+                  "Aloca\u00e7\u00e3o",
+                  "Renda passiva",
+                  "Liquidez",
+                  "Custo tribut\u00e1rio",
+                  "Sa\u00fade de balan\u00e7o",
+                  "Diagn\u00f3stico de dados",
+                  "Equil\u00edbrio presente-futuro",
+                  "Converg\u00eancia metodol\u00f3gica"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tema Canonico"
+          },
+          "valor_atual": {
+            "title": "Valor Atual",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome",
+          "valor_atual",
+          "target",
+          "frequencia_revisao",
+          "section_id"
+        ],
+        "title": "MetricaDTO",
+        "type": "object"
+      },
       "MetricsResponse": {
         "properties": {
           "documents_needs_review": {
@@ -5304,6 +5454,44 @@
         "title": "NewDocCountResponse",
         "type": "object"
       },
+      "NotaMetodologicaDTO": {
+        "additionalProperties": false,
+        "description": "Nota metodol\u00f3gica \u2014 preserva `tema_canonico` (vez de ancora; ADR-207).",
+        "properties": {
+          "conteudo": {
+            "title": "Conteudo",
+            "type": "string"
+          },
+          "temas_canonicos": {
+            "items": {
+              "enum": [
+                "Prote\u00e7\u00e3o",
+                "Aloca\u00e7\u00e3o",
+                "Renda passiva",
+                "Liquidez",
+                "Custo tribut\u00e1rio",
+                "Sa\u00fade de balan\u00e7o",
+                "Diagn\u00f3stico de dados",
+                "Equil\u00edbrio presente-futuro",
+                "Converg\u00eancia metodol\u00f3gica"
+              ],
+              "type": "string"
+            },
+            "title": "Temas Canonicos",
+            "type": "array"
+          },
+          "titulo": {
+            "title": "Titulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "titulo",
+          "conteudo"
+        ],
+        "title": "NotaMetodologicaDTO",
+        "type": "object"
+      },
       "NotificationListResponse": {
         "properties": {
           "notifications": {
@@ -5408,6 +5596,126 @@
           "updated"
         ],
         "title": "NotificationsMarkedReadResponse",
+        "type": "object"
+      },
+      "ParecerContentMeta": {
+        "additionalProperties": false,
+        "description": "Meta de runtime do parecer \u2014 auditoria + funil de convers\u00e3o (ADR-208).",
+        "properties": {
+          "gated_counts": {
+            "$ref": "#/components/schemas/GatedCounts"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "string"
+          },
+          "manifest_version": {
+            "title": "Manifest Version",
+            "type": "string"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "persona_hash": {
+            "title": "Persona Hash",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "tier_at_generation": {
+            "enum": [
+              "free",
+              "premium"
+            ],
+            "title": "Tier At Generation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tier_at_generation",
+          "persona_hash",
+          "manifest_version",
+          "schema_version",
+          "model_id",
+          "generated_at"
+        ],
+        "title": "ParecerContentMeta",
+        "type": "object"
+      },
+      "ParecerPlanejadorContent": {
+        "additionalProperties": false,
+        "description": "Shape user-facing do parecer p\u00f3s-tier filter (DTO da resposta HTTP).",
+        "properties": {
+          "diagnostico_geral": {
+            "title": "Diagnostico Geral",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ParecerContentMeta"
+          },
+          "metricas": {
+            "items": {
+              "$ref": "#/components/schemas/MetricaDTO"
+            },
+            "title": "Metricas",
+            "type": "array"
+          },
+          "notas_metodologicas": {
+            "items": {
+              "$ref": "#/components/schemas/NotaMetodologicaDTO"
+            },
+            "title": "Notas Metodologicas",
+            "type": "array"
+          },
+          "pontos_fortes": {
+            "items": {
+              "$ref": "#/components/schemas/PontoForteDTO"
+            },
+            "title": "Pontos Fortes",
+            "type": "array"
+          },
+          "riscos": {
+            "items": {
+              "$ref": "#/components/schemas/RiscoDTO"
+            },
+            "title": "Riscos",
+            "type": "array"
+          },
+          "sugestoes_estrategicas": {
+            "items": {
+              "$ref": "#/components/schemas/SugestaoDTO"
+            },
+            "title": "Sugestoes Estrategicas",
+            "type": "array"
+          },
+          "sugestoes_execucao": {
+            "items": {
+              "$ref": "#/components/schemas/SugestaoDTO"
+            },
+            "title": "Sugestoes Execucao",
+            "type": "array"
+          },
+          "sugestoes_taticas": {
+            "items": {
+              "$ref": "#/components/schemas/SugestaoDTO"
+            },
+            "title": "Sugestoes Taticas",
+            "type": "array"
+          },
+          "version": {
+            "default": "1.0",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "diagnostico_geral",
+          "meta"
+        ],
+        "title": "ParecerPlanejadorContent",
         "type": "object"
       },
       "PipelineConfigResponse": {
@@ -5877,12 +6185,10 @@
         "type": "string"
       },
       "PlannerReviewResponse": {
-        "description": "Parecer planejador \u2014 shape de resposta do endpoint stub (tier filtering vem no Ato 5).",
+        "description": "Resposta do endpoint ``GET .../planner-review`` \u2014 metadados + conte\u00fado tipado.",
         "properties": {
           "content": {
-            "additionalProperties": true,
-            "title": "Content",
-            "type": "object"
+            "$ref": "#/components/schemas/ParecerPlanejadorContent"
           },
           "cost_usd_cents": {
             "title": "Cost Usd Cents",
@@ -5987,6 +6293,10 @@
             "title": "Supersedes Id"
           },
           "tier_at_generation": {
+            "enum": [
+              "free",
+              "premium"
+            ],
             "title": "Tier At Generation",
             "type": "string"
           },
@@ -6012,6 +6322,73 @@
           "content"
         ],
         "title": "PlannerReviewResponse",
+        "type": "object"
+      },
+      "PontoForteDTO": {
+        "additionalProperties": false,
+        "description": "Ponto forte user-facing \u2014 `ancora_metodologica` removida (sigilo \u00a713 \u00b7 ADR-207).",
+        "properties": {
+          "descricao": {
+            "title": "Descricao",
+            "type": "string"
+          },
+          "section_id": {
+            "anyOf": [
+              {
+                "enum": [
+                  "S1",
+                  "S2",
+                  "S3",
+                  "S4",
+                  "S7",
+                  "S8",
+                  "S_IRPF_RENDA",
+                  "S_IRPF_OTIMIZACAO",
+                  "S9",
+                  "S10",
+                  "S_parecer",
+                  "plano_de_acao"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Id"
+          },
+          "tema_canonico": {
+            "anyOf": [
+              {
+                "enum": [
+                  "Prote\u00e7\u00e3o",
+                  "Aloca\u00e7\u00e3o",
+                  "Renda passiva",
+                  "Liquidez",
+                  "Custo tribut\u00e1rio",
+                  "Sa\u00fade de balan\u00e7o",
+                  "Diagn\u00f3stico de dados",
+                  "Equil\u00edbrio presente-futuro",
+                  "Converg\u00eancia metodol\u00f3gica"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tema Canonico"
+          },
+          "titulo": {
+            "title": "Titulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "titulo",
+          "descricao"
+        ],
+        "title": "PontoForteDTO",
         "type": "object"
       },
       "ProtectionBundleResponse": {
@@ -7616,6 +7993,110 @@
         "title": "ResetPasswordResponse",
         "type": "object"
       },
+      "RiscoDTO": {
+        "additionalProperties": false,
+        "description": "Risco user-facing \u2014 sem ancora (sigilo \u00a713).",
+        "properties": {
+          "confianca": {
+            "anyOf": [
+              {
+                "enum": [
+                  "alta",
+                  "media",
+                  "baixa"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confianca"
+          },
+          "descricao": {
+            "title": "Descricao",
+            "type": "string"
+          },
+          "evidencia": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidencia"
+          },
+          "evidencia_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidencia Path"
+          },
+          "section_id": {
+            "enum": [
+              "S1",
+              "S2",
+              "S3",
+              "S4",
+              "S7",
+              "S8",
+              "S_IRPF_RENDA",
+              "S_IRPF_OTIMIZACAO",
+              "S9",
+              "S10",
+              "S_parecer",
+              "plano_de_acao"
+            ],
+            "title": "Section Id",
+            "type": "string"
+          },
+          "severidade": {
+            "enum": [
+              "Cr\u00edtica",
+              "Alta",
+              "M\u00e9dia",
+              "Baixa"
+            ],
+            "title": "Severidade",
+            "type": "string"
+          },
+          "tema_canonico": {
+            "enum": [
+              "Prote\u00e7\u00e3o",
+              "Aloca\u00e7\u00e3o",
+              "Renda passiva",
+              "Liquidez",
+              "Custo tribut\u00e1rio",
+              "Sa\u00fade de balan\u00e7o",
+              "Diagn\u00f3stico de dados",
+              "Equil\u00edbrio presente-futuro",
+              "Converg\u00eancia metodol\u00f3gica"
+            ],
+            "title": "Tema Canonico",
+            "type": "string"
+          },
+          "titulo": {
+            "title": "Titulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "severidade",
+          "titulo",
+          "descricao",
+          "tema_canonico",
+          "section_id"
+        ],
+        "title": "RiscoDTO",
+        "type": "object"
+      },
       "RiskCreateCommand": {
         "additionalProperties": false,
         "description": "Cria novo ``Risk`` (status default = ``Ativo``).",
@@ -8431,6 +8912,107 @@
         "title": "StageReviewStatus",
         "type": "string"
       },
+      "SugestaoDTO": {
+        "additionalProperties": false,
+        "description": "Sugest\u00e3o user-facing \u2014 `suggestion_dedup_key` exposto p/ promover->/acao.",
+        "properties": {
+          "acao": {
+            "title": "Acao",
+            "type": "string"
+          },
+          "confianca": {
+            "enum": [
+              "alta",
+              "media",
+              "baixa"
+            ],
+            "title": "Confianca",
+            "type": "string"
+          },
+          "evidencia_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidencia Path"
+          },
+          "impacto_estimado": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImpactoEstimadoDTO"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "impacto_qualitativo": {
+            "title": "Impacto Qualitativo",
+            "type": "string"
+          },
+          "prioridade": {
+            "enum": [
+              "P0",
+              "P1",
+              "P2"
+            ],
+            "title": "Prioridade",
+            "type": "string"
+          },
+          "section_id": {
+            "enum": [
+              "S1",
+              "S2",
+              "S3",
+              "S4",
+              "S7",
+              "S8",
+              "S_IRPF_RENDA",
+              "S_IRPF_OTIMIZACAO",
+              "S9",
+              "S10",
+              "S_parecer",
+              "plano_de_acao"
+            ],
+            "title": "Section Id",
+            "type": "string"
+          },
+          "suggestion_dedup_key": {
+            "title": "Suggestion Dedup Key",
+            "type": "string"
+          },
+          "tema_canonico": {
+            "enum": [
+              "Prote\u00e7\u00e3o",
+              "Aloca\u00e7\u00e3o",
+              "Renda passiva",
+              "Liquidez",
+              "Custo tribut\u00e1rio",
+              "Sa\u00fade de balan\u00e7o",
+              "Diagn\u00f3stico de dados",
+              "Equil\u00edbrio presente-futuro",
+              "Converg\u00eancia metodol\u00f3gica"
+            ],
+            "title": "Tema Canonico",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prioridade",
+          "acao",
+          "impacto_qualitativo",
+          "tema_canonico",
+          "confianca",
+          "section_id",
+          "suggestion_dedup_key"
+        ],
+        "title": "SugestaoDTO",
+        "type": "object"
+      },
       "SuggestionCountResponse": {
         "properties": {
           "count": {
@@ -8567,6 +9149,10 @@
             "title": "Created At",
             "type": "string"
           },
+          "dedup_key": {
+            "title": "Dedup Key",
+            "type": "string"
+          },
           "dismissed_at": {
             "anyOf": [
               {
@@ -8652,6 +9238,7 @@
           "severity",
           "title",
           "rationale",
+          "dedup_key",
           "status",
           "created_at",
           "updated_at"
@@ -19480,7 +20067,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/reports/{report_id}/planner-review": {
       "get": {
-        "description": "Retorna o parecer planejador \u2014 stub do Ato 3, sempre 404 ``not_generated_yet``.",
+        "description": "Retorna parecer com tier filter aplicado (ADR-199 + ADR-208).",
         "operationId": "get_planner_review_api_v1_workspaces__workspace_id__reports__report_id__planner_review_get",
         "parameters": [
           {
@@ -19530,6 +20117,63 @@
           }
         ],
         "summary": "Get Planner Review",
+        "tags": [
+          "planner-review"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/reports/{report_id}/planner-review/publish": {
+      "post": {
+        "description": "Transi\u00e7\u00e3o idempotente Gerado \u2192 Publicado. ADR-204 \u00a7D2.",
+        "operationId": "publish_planner_review_api_v1_workspaces__workspace_id__reports__report_id__planner_review_publish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannerReviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Publish Planner Review",
         "tags": [
           "planner-review"
         ]

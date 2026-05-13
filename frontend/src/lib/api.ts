@@ -26,4 +26,5 @@ export * from "./api/protections";
 // `SuggestionAggregate*` para não colidir com `SuggestionStatus` de
 // `tasks.ts` (TaskSuggestion legado, lower-case `pending|approved|...`).
 export * from "./api/suggestions";
+export * from "./api/planner-review";
 export * from "./api/workspace-notes";

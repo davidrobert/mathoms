@@ -1,5 +1,43 @@
-"""DTOs do aggregate ``PlannerReview`` (ADR-199)."""
+"""DTOs do aggregate ``PlannerReview`` (ADR-199 / ADR-208)."""
 
-from backend.app.schemas.dto.planner_review.response import PlannerReviewResponse
+from backend.app.schemas.dto.planner_review.response import (
+    Confianca,
+    FrequenciaRevisao,
+    GatedCounts,
+    ImpactoEstimadoDTO,
+    MetricaDTO,
+    NotaMetodologicaDTO,
+    ParecerContentMeta,
+    ParecerPlanejadorContent,
+    PlannerReviewResponse,
+    PontoForteDTO,
+    Prioridade,
+    RiscoDTO,
+    SectionId,
+    Severidade,
+    SugestaoDTO,
+    TemaCanonico,
+    Tier,
+    UnidadeImpacto,
+)
 
-__all__ = ["PlannerReviewResponse"]
+__all__ = [
+    "Confianca",
+    "FrequenciaRevisao",
+    "GatedCounts",
+    "ImpactoEstimadoDTO",
+    "MetricaDTO",
+    "NotaMetodologicaDTO",
+    "ParecerContentMeta",
+    "ParecerPlanejadorContent",
+    "PlannerReviewResponse",
+    "PontoForteDTO",
+    "Prioridade",
+    "RiscoDTO",
+    "SectionId",
+    "SugestaoDTO",
+    "Severidade",
+    "TemaCanonico",
+    "Tier",
+    "UnidadeImpacto",
+]

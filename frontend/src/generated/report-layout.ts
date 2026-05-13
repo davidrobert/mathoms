@@ -209,6 +209,10 @@ export const LAYOUT: ReportLayout = {
             "num": "10"
           },
           {
+            "section_id": "S_parecer",
+            "num": "10.1"
+          },
+          {
             "section_id": "plano_de_acao",
             "num": "11"
           }
@@ -672,6 +676,16 @@ export const LAYOUT: ReportLayout = {
             "size": "full"
           }
         ]
+      },
+      {
+        "id": "S_parecer",
+        "title": "Parecer do Planejador",
+        "enabled": true,
+        "summary": false,
+        "divider_before": true,
+        "data_source": "planner_review",
+        "charts": [],
+        "cards": []
       },
       {
         "id": "plano_de_acao",

@@ -53,6 +53,7 @@ function makeSug(
     title: "t",
     rationale: "r",
     amount_brl: null,
+    dedup_key: `dedup-${id}`,
     status: "Pendente",
     accepted_decision_id: null,
     dismissed_reason: null,

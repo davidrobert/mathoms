@@ -90,6 +90,7 @@ navigation:
     - label: "Síntese"
       links:
         - {section_id: "S10", num: "10"}
+        - {section_id: "S_parecer", num: "10.1"}
         - {section_id: "plano_de_acao", num: "11"}
     - label: "Apêndices"
       links:
@@ -459,6 +460,24 @@ estrategico:
           enabled: false
           variant: "highlight"
           size: "full"
+
+    # --------------------------------------------------------------------------
+    # S_parecer — Parecer do Planejador (ADR-199 · Ato 5)
+    # --------------------------------------------------------------------------
+    # Renderiza output orientativo do stage `review_finances_holistic`. Único
+    # consumer de PlannerReview (`pipeline_artifacts.stage = "E6-parecer"`).
+    # Free vê amostra teaser; Premium destrava plano completo (ADR-208 §D2).
+    # `x-planner-skip: true` é dica do destilador — não é input do parecer
+    # gerado por si mesmo. `data_source: "planner_review"` sinaliza renderer
+    # que esta seção lê o aggregate, não E5.
+    - id: "S_parecer"
+      title: "Parecer do Planejador"
+      enabled: true
+      summary: false
+      divider_before: true
+      data_source: "planner_review"
+      charts: []
+      cards: []
 
     # --------------------------------------------------------------------------
     # plano_de_acao — Decisões em Vigor no Período (A7.2a · ADR-136 · ADR-149)

@@ -23,6 +23,7 @@ def suggestion_to_response(suggestion: Suggestion) -> SuggestionResponse:
         title=suggestion.title,
         rationale=suggestion.rationale,
         amount_brl=cents_to_brl(suggestion.amount_brl_cents),
+        dedup_key=suggestion.dedup_key,
         status=suggestion.status,
         accepted_decision_id=suggestion.accepted_decision_id,
         dismissed_reason=suggestion.dismissed_reason,
