@@ -325,13 +325,14 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **files_touched:** `backend/alembic/versions/<NOVO>_pipeline_runs_heartbeat.py`, `backend/app/models/pipeline_run.py`, `backend/app/tasks/pipeline_task.py`, `backend/app/tasks/celery_beat_schedule.py`
 - **acceptance_criteria:** PipelineRun ganha `last_heartbeat_at`; stage start atualiza; beat task `fin.detect_stuck_runs` (5min) marca runs órfãs como `failed` com `failure_reason=heartbeat_timeout` + Notification + métrica.
 
-### [W2-T05] DE-002 + DE-008 review_finances/extract_with_llm incremental + PROMPT_VERSION
+### [W2-T05] DE-002 + DE-008 extract_with_llm incremental + PROMPT_VERSION
 
 - **deps:** —
-- **owner:** data-engineer · **severity:** P1 · **effort:** M
+- **owner:** data-engineer · **severity:** P1 · **effort:** S (escopo reduzido)
 - **related_findings:** DE-002, DE-008
-- **files_touched:** `pipeline/stages/{review_finances,extract_with_llm}.py`, `pipeline/llm/schemas/{e1_members,e15_baseline,e2_llm,e7_review}.py`, `dev/check_prompt_version_bumped.py` (NOVO)
-- **acceptance_criteria:** review_finances + extract_with_llm respeitam ctx.incremental; todos os 5 prompts LLM declaram PROMPT_VERSION; gate CI falha se diff em prompt sem bump.
+- **files_touched:** `pipeline/stages/extract_with_llm.py`, `pipeline/llm/schemas/{e1_members,e15_baseline,e2_llm}.py`, `dev/check_prompt_version_bumped.py` (NOVO)
+- **acceptance_criteria:** extract_with_llm respeita ctx.incremental; 4 prompts LLM (e1_members, e15_baseline, e2_llm, parecer_planejador) declaram PROMPT_VERSION; gate CI falha se diff em prompt sem bump.
+- **escopo_alterado:** 2026-05-13 — `review_finances` removido do escopo (será substituído pelo stage `parecer_planejador` em [PLANNER_REVIEW](../PLANNER_REVIEW/_README.md) Ato 4); `e7_review.py` schema deprecated junto. PROMPT_VERSION gate e `extract_with_llm` incremental permanecem (W3-T01 LLMCallLog continua usando esse gate).
 
 ### [W2-T06] DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases
 

@@ -37,9 +37,11 @@ tags:
 
 | Lane | Status | Owner | Notas |
 |---|---|---|---|
-| Ato 0 — Decisões pendentes resolvidas | proposed | `product-manager` | Tema canônico enum, hard caps, snooze_until |
-| Ato 1 — ADRs Proposto | proposed | `senior-cto` | ADR-mãe + filhas P0 (manifest, persona, schema) |
-| Pré-requisitos bloqueantes | proposed | varies | 4 bloqueios, ver §Pré-requisitos |
+| Ato 0 — Decisões fechadas | ready | `product-manager` | 5 decisões fechadas; pricing freemium decidido com `gtm-strategist` |
+| Ato 1 — ADRs Proposto (entra em A11) | ready | `senior-cto` | ADR-mãe + 9 filhas P0 (manifest, persona, schema, gating freemium) |
+| Atos 2-6 — Execução em A12 | proposed | varies | 23 tracks granularizados, ver §Tracks |
+| Pré-requisitos | partial | varies | PR-2 blocker Ato 4; PR-1/PR-3 gates Ato 5 |
+| PLATFORM_REVIEW W2-T05 escopado | done | — | `review_finances` removido; substituído pelo Ato 4 deste plano |
 
 ---
 
@@ -77,18 +79,20 @@ PR-4 já está resolvido (decisão: substituir). PR-1, PR-2, PR-3 são lanes té
 
 ---
 
-## Decisões pendentes (Ato 0)
+## Ato 0 — Decisões fechadas (2026-05-13)
 
-Resolver com `product-manager` + `financial-planner` antes de Ato 1.
+Decisões resolvidas após brainstorm + revisão `product-manager` + `gtm-strategist`. Cada uma vira input do Ato 1 (ADRs `Proposto`).
 
-| Decisão | Opções | Recomendação tentativa |
-|---|---|---|
-| Enum `tema_canonico` user-facing | `Proteção · Alocação · Renda passiva · Liquidez · Custo tributário · Saúde de balanço · Diagnóstico de dados · Equilíbrio presente-futuro · Convergência metodológica` (9 valores) | Adotar; co-design com `financial-planner` para fechar mapeamento `ancora_metodologica → tema_canonico` (1 ancora pode produzir vários temas dependendo do contexto da sugestão) |
-| Hard caps no schema do parecer | riscos ≤ N, sugestões ≤ N por horizonte, métricas ≤ N | riscos ≤ 12, sugestões ≤ 15 (5/5/5), métricas ≤ 10 |
-| Coluna `snooze_until` no `Suggestion` | Adicionar agora ou cortar ação "Adiar" do MVP | Adicionar; baixo custo, fecha gap UX |
-| Premium tier — parecer é gate de pricing? | Sim / Não / Híbrido (free recebe diagnóstico, premium recebe sugestões) | Pendente — invocar `gtm-strategist` |
-| Frequência de regeneração | Mensal automática / Sob demanda / Híbrido | Híbrido: gera 1× por relatório premium; usuário pode regenerar manualmente (rate-limited a 3/workspace/dia) |
-| Aterrissagem visual: seção nova `S_parecer` vs. expandir `S10` | Nova / Expandir | **Nova** — recomendação `product-designer` §Trade-off 1. S10 é síntese determinística; parecer é orientativo. Misturar dilui ambos. |
+| # | Decisão | Resolução | Owner |
+|---|---|---|---|
+| D-0.1 | Enum `tema_canonico` user-facing | **9 valores:** `Proteção · Alocação · Renda passiva · Liquidez · Custo tributário · Saúde de balanço · Diagnóstico de dados · Equilíbrio presente-futuro · Convergência metodológica`. Mapeamento `ancora_metodologica → tema_canonico` é 1:N (1 âncora produz tema dependendo do contexto). Co-design `financial-planner` no Ato 1 fecha mapeamento final. | `product-manager` (decidido) + `financial-planner` (validar) |
+| D-0.2 | Hard caps no schema | riscos ≤ 12, sugestões ≤ 15 (5/5/5 por horizonte), métricas ≤ 10. `product-designer` revisita mobile no Ato 5 — se houver overflow, baixa para 10/12/8. | `product-manager` (decidido) |
+| D-0.3 | Coluna `snooze_until` no `Suggestion` | **Adicionar.** ADR-186 tem precedente. Custo baixo, fecha gap UX da ação "Adiar por 3 meses". | `senior-cto` (modelo) |
+| D-0.4 | Premium tier — gating freemium | **Opção B+ (gtm-strategist):** Free recebe diagnóstico + 3 pontos fortes + 1 risco-amostra (severidade máxima) com teaser "+14 riscos no Premium". Premium destrava: 12 riscos + 15 sugestões + 10 métricas + notas + conversão sugestão→Decision/Task. Feature flag no aggregate (backend filtra antes de serializar). Pricing R$ 79-149/mês BYOK (âncora abaixo de 1 sessão CFP). Gate de revisão em 60 dias pós-beta: conversão free→Premium ≥ 8%, NRR ≥ 110%. **ADR `Proposto` obrigatória: `gating-parecer-holistico-free-vs-premium`.** | `gtm-strategist` (decidido) |
+| D-0.5 | Frequência de regeneração | Híbrido: 1× automático por relatório premium gerado; regeneração manual rate-limited a 3/workspace/dia. Cache Redis 7d por hash do E5. | `product-manager` (decidido) |
+| D-0.6 | Aterrissagem visual: seção nova vs. expandir S10 | **Seção nova `S_parecer`** (entre S10 e plano_de_acao, lane "Síntese"). S10 é síntese determinística; parecer é orientativo/datado. Misturar dilui ambos (recomendação `product-designer`). | `product-designer` (decidido) |
+
+Ato 0 mergeado neste PR (#240).
 
 ---
 
@@ -105,6 +109,7 @@ Resolver com `product-manager` + `financial-planner` antes de Ato 1.
 | ADR-filha-6 | Boundary Python/Go — stages LLM permanecem Python; contratos JSON são imutáveis | P1 | Proposto |
 | ADR-filha-7 | Telemetria de "campo faltante" como signal de evolução do manifest (estende ADR-188) | P2 | Proposto |
 | ADR-filha-8 | Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` (estende COPY_GUIDELINES §13) | P0 | Proposto |
+| ADR-filha-9 | Gating freemium do parecer holístico — Opção B+ (free=diagnóstico+amostra, premium=plano completo); pricing R$ 79-149/mês BYOK; gate revisão 60d | P0 | Proposto |
 
 ---
 
@@ -204,9 +209,9 @@ Cada ato é PR mergeável, CI verde, sem dependência circular.
 
 **Estimativa:** 5-7 dias.
 
-### Ato 5 — Renderer + telemetria + cutover
+### Ato 5 — Renderer + UX (split do escopo obeso original)
 
-**Escopo:**
+**Escopo (apenas aterrissagem visual + interação):**
 
 5a — **Seção `S_parecer` no `report_layout.yaml`:**
 - Novo section_id `S_parecer` com `x-planner-skip: true` (não é input do destilador)
@@ -240,33 +245,63 @@ Cada ato é PR mergeável, CI verde, sem dependência circular.
 
 5f — **Sigilo §13:** UI nunca cita Perini/Cerbasi/AUVP. Mostra `tema_canonico` (enum fechado de 9 valores). Frontend valida com `dev/check_sigilo_terms.py`.
 
-5g — **Telemetria M4:**
-- Tabela `planner_field_requests(date, field_path, count, workspace_id)`
-- Planner emite no output `campos_faltantes_pediria_se_iterasse[]`
-- Aggregate semanal → top 10 campos pedidos → input do tunning v2 do manifest
-- Review mensal no Now/Next/Later
+5g — **Gating freemium (ADR-filha-9):**
+- Backend filtra payload por `workspace.tier` ANTES de serializar (não vazar no front)
+- Free vê: diagnóstico + 3 pontos fortes + 1 risco amostra (severidade máxima) + teaser "+14 riscos no Premium"
+- Premium vê: tudo (12 riscos + 15 sugestões + 10 métricas + notas)
+- `PlannerReview.tier_at_generation` + `items_shown_count` + `items_gated_count` (instrumentação de funil)
 
-5h — **Smoke cross-provider weekly:**
-- CI roda 1× por semana com Anthropic + 1 outro provider (OpenAI ou Ollama)
-- Mesmas assertions estruturais
-- Detecta lock-in via tool use format (CTO-G6)
-
-5i — **Cutover:**
-- Feature flag promove `MATHOMS_ENABLE_PARECER_PLANEJADOR=true` para workspaces piloto
-- Deprecate `review_finances` no `STAGE_REGISTRY` (status `deprecated`)
-- Sprint+1: remove `review_finances` stage, prompt antigo, schema antigo
-- ADR-128 flippa para `Decidido (superseded by ADR-NNN)`
-
-**Critério de aceite:**
+**Critério de aceite Ato 5:**
 - Axe DevTools: 0 violations em desktop + mobile
 - Navegação por teclado: Tab atravessa Hero → cada sugestão → tabela métricas → notas em ordem visual
 - Screen reader testado (VoiceOver/NVDA)
 - Contraste P0/P1/P2 ≥ 4.5:1 em light e dark
 - E2E `@critical` Playwright: relatório gera com `S_parecer` renderizado, "Promover para ação" funciona
-- Smoke cross-provider verde
-- Telemetria populando
+- `dev/check_sigilo_terms.py` verde sobre `SParecer*.tsx`
+- Gating: free recebe payload reduzido; teste E2E com `tier=free` valida `items_gated_count > 0`
 
-**Estimativa:** 7-12 dias (incluindo handoff de design pra implementação).
+**Estimativa:** 5-7 dias.
+
+### Ato 6 — Telemetria + cutover + hardening (pós-shipping)
+
+**Escopo (operação + saúde de longo prazo):**
+
+6a — **Telemetria M4:**
+- Tabela `planner_field_requests(date, field_path, count, workspace_id)`
+- Planner emite no output `campos_faltantes_pediria_se_iterasse[]`
+- Aggregate semanal → top 10 campos pedidos → input do tunning v2 do manifest
+- Review mensal no Now/Next/Later
+
+6b — **Smoke cross-provider weekly:**
+- CI roda 1× por semana com Anthropic + 1 outro provider (OpenAI ou Ollama)
+- Mesmas assertions estruturais
+- Detecta lock-in via tool use format (CTO-G6)
+
+6c — **Golden mensal com LLM real:**
+- 1× por mês, modelo real (não mockado), 1 fixture canônico
+- Alerta se variação semântica > threshold vs N-1 (CTO-G1: persona drift)
+
+6d — **Cutover:**
+- Feature flag promove `MATHOMS_ENABLE_PARECER_PLANEJADOR=true` para workspaces piloto (dogfood CEO+PM, 2-3 ciclos)
+- Gate dogfood obrigatório antes de beta (espelha CAT_LEARNING_LOOP §gate dogfood)
+- Deprecate `review_finances` no `STAGE_REGISTRY` (status `deprecated`)
+- Sprint+1: remove `review_finances` stage, prompt antigo, schema antigo
+- ADR-128 flippa para `Decidido (superseded by ADR-NNN)`
+
+6e — **Gate de revisão 60d pós-beta (ADR-filha-9):**
+- Conversão free→Premium ≥ 8% em 60 dias de uso ativo
+- NRR cohort Q3 2026 ≥ 110%
+- Abaixo do threshold = revisar gating, não pricing
+
+**Critério de aceite Ato 6:**
+- `planner_field_requests` populando, dashboard semanal acessível
+- Smoke cross-provider verde por 4 semanas consecutivas
+- Golden mensal estabelecido com baseline
+- `review_finances` removido do código em sprint+1 após cutover
+- ADR-128 marcada `Decidido (superseded)`
+- Métricas de produto reportadas no review de 60d
+
+**Estimativa:** 4-6 dias spread across 2-3 sprints (não é caminho crítico do shipping).
 
 ---
 
@@ -313,6 +348,93 @@ Em ordem de severidade. Cada um tem mitigação concreta.
 
 ---
 
+## Métricas de produto (KPIs)
+
+Dashboard owner: `product-manager`. Instrumentação obrigatória — bloqueia merge do Ato 5 sem.
+
+### Leading (semanais — instrumentação em Atos 4-5)
+
+| Métrica | Target | Source |
+|---|---|---|
+| `planner_review_generation_rate` | ≥ 95% após 4 semanas | % relatórios premium com parecer gerado com sucesso |
+| `planner_review_section_open_rate` | ≥ 60% | % usuários que expandem ao menos 1 `<details>` em `S_parecer` |
+| `planner_review_p95_latency_ms` | ≤ 30s (cache miss); ≤ 500ms (cache hit) | observability |
+| `planner_review_cost_p50_usd` | ≤ $0.20/call | `pipeline_run_costs` aggregate |
+
+### Lagging (mensais — instrumentação no Ato 6)
+
+| Métrica | Target | Source |
+|---|---|---|
+| `suggestion_promotion_rate` | ≥ 15% | % `Suggestion(origin=llm)` que viraram `Task` via "Promover para ação" |
+| `suggestion_dismiss_with_reason_rate` | ≥ 70% | proxy de qualidade percebida; descarte com motivo > descarte silencioso |
+| `recurring_dismissed_rate` | ≤ 10% | reincidentes (badge âmbar) — alto = ruído do LLM |
+| `decision_ledger_rate` | ≥ 30% em 90d | % sugestões P0 que viraram `Decision` aggregate (ADR-136) |
+
+### Conversão Premium (gate de revisão 60d — ADR-filha-9)
+
+| Métrica | Target |
+|---|---|
+| Conversão free→Premium | ≥ 8% em 60 dias de uso ativo |
+| NRR cohort Q3 2026 | ≥ 110% |
+| `items_gated_count` (médio) | sinaliza valor "visível mas trancado" — não tem target absoluto, monitora trend |
+
+**Goodhart watch:** `section_open_rate` pode subir se UI esconder conteúdo (induz clique). Mitigar com `suggestion_promotion_rate` como contraponto — abertura sem promoção = ruído.
+
+---
+
+## Riscos de produto e negócio
+
+Complementa §Riscos (técnicos) acima. Cada um com mitigação concreta.
+
+| # | Risco | Probabilidade | Mitigação |
+|---|---|---|---|
+| RPN-1 | **Concorrente (Pierre Finance) lança feature similar antes de entregarmos** | Alta — CloudWalk velocity, ciclos de 6 semanas | Ato 1 (ADRs) em A11 esta sprint; Atos 2-5 em A12. Moat defensivo: depth-of-service (parecer → Suggestion → Task → Decision rastreável) + curadoria visível do glossário de 9 temas canônicos validada por CFPs independentes. Não responder à velocity de Pierre; reposicionar (metodológico-auditável vs generativo-genérico). |
+| RPN-2 | **Usuário não enxerga valor mesmo se tecnicamente perfeito** | Média | Gate dogfood obrigatório entre Ato 4 e Ato 5 (CEO+PM usam por 2-3 ciclos antes de beta) — espelha CAT_LEARNING_LOOP §gate dogfood. Gate `suggestion_promotion_rate ≥ 15%` em 30 dias. Abaixo → revisar persona/manifest antes de promover. |
+| RPN-3 | **Responsabilização legal (parecer "errado" leva cliente a decisão financeira ruim)** | Média se houver Premium pago | Disclaimer fiduciário visível na seção (plano já especifica em 5e). Texto explícito "não constitui recomendação de investimento". Persona instrui evitar linguagem prescritiva quando confiança < alta. **Review legal antes do GA pago.** Inferência mínima: `gtm-strategist` recomendou consulta jurídica como pré-Premium. |
+| RPN-4 | **Tempo de feedback longo (parecer mensal) vs aprendizado iterativo de produto** | Alta | Telemetria M4 (campos faltantes) + sugestões/dia + open_rate em dashboard semanal `product-manager`. Iteração no manifest sem mexer no schema. Goldens mensais com LLM real (Ato 6) pegam regressão. |
+| RPN-5 | **Distração do core (BACKLOG já lotado)** | Alta | Atos 1 (docs) em A11 não competem por recurso eng. Atos 2-6 em A12. Não aceitar novas lanes não-bloqueantes em A11 até PLATFORM_REVIEW W2 fechar. Pausar lanes não-críticas se Ato 4 atrasar. |
+
+---
+
+## Tracks granulares (Atos 2-6)
+
+23 tracks de 0.5-3d eng. Kebab-case slugs prontos para `docs/sprint/A12/tracks/<slug>.md`. Caminho crítico ~10d wall-clock com 3 agentes paralelos.
+
+| # | Track slug | Ato | Effort | Deps | Owner agent |
+|---|---|---|---|---|---|
+| T-01 | `planner-ato0-decisoes` | 0 | XS (0.5d) | — | product-manager (✅ feito neste PR) |
+| T-02 | `planner-adr-mae-supersede` | 1 | S (1d) | T-01 | senior-cto |
+| T-03 | `planner-adr-filhas-foundation` | 1 | S (1d) | T-01 | senior-cto |
+| T-04 | `planner-adr-filhas-runtime` | 1 | S (1d) | T-01 | senior-cto |
+| T-05 | `planner-adr-gating-freemium` | 1 | S (1d) | T-01 | gtm-strategist + senior-cto |
+| T-06 | `planner-schema-output` | 2 | S (1d) | T-02 | data-engineer |
+| T-07 | `planner-manifest-yaml` | 2 | M (2d) | T-02, T-06 | data-engineer |
+| T-08 | `planner-persona-rules-as-code` | 2 | S (1d) | T-02 | financial-planner |
+| T-09 | `planner-manifest-coverage-gate` | 2 | S (1d) | T-07 | data-engineer |
+| T-10 | `planner-aggregate-model` | 3 | S (1d) | T-02 | senior-cto |
+| T-11 | `planner-migration-alembic` | 3 | S (1d) | T-10 | data-engineer |
+| T-12 | `planner-endpoint-stub` | 3 | S (1d) | T-10 | senior-cto |
+| T-13 | `planner-stage-wrapper` | 4 | M (2d) | T-12, T-09 | senior-cto |
+| T-14 | `planner-orchestrator-wire` | 4 | M (2d) | T-13 | senior-cto |
+| T-15 | `planner-tools-drilldown` | 4 | M (2d) | T-14 | data-engineer |
+| T-16 | `planner-golden-mockado` | 4 | S (1d) | T-15 | data-engineer |
+| T-17 | `planner-suggestion-emission` | 4 | S (1d) | T-14 | financial-planner |
+| T-18 | `planner-section-yaml` | 5 | S (1d) | (Ato 4 done) | product-designer |
+| T-19 | `planner-components-react` | 5 | M (3d) | T-18 | product-designer |
+| T-20 | `planner-interaction-model` | 5 | M (2d) | T-19 | product-designer |
+| T-21 | `planner-pdf-print-css` | 5 | S (1d) | T-19 | product-designer |
+| T-22 | `planner-gating-tier-filter` | 5 | S (1d) | T-14, T-19 | senior-cto + product-designer |
+| T-23 | `planner-telemetry-field-requests` | 6 | S (1d) | T-16 | data-engineer |
+| T-24 | `planner-cross-provider-smoke` | 6 | S (1d) | T-16 | sre-devops |
+| T-25 | `planner-cutover-flag` | 6 | XS (0.5d) | (Ato 5 done) | product-manager |
+
+**Total:** 25 tracks (incluindo T-01 deste PR), ~28d eng. Paralelizações críticas:
+- Ato 2 (T-06/T-07/T-08): 3 agentes em paralelo (~2d wall-clock vs 5d sequencial)
+- Ato 4 (T-13→T-14→T-15→T-16): caminho crítico mais longo, ~7d sequencial
+- Ato 5 (T-18→T-19→T-20+T-21+T-22): T-20/T-21/T-22 paralelos após T-19
+
+---
+
 ## Contratos imutáveis (Python ↔ Go)
 
 Definidos pelo `senior-cto`. Mudam apenas via ADR breaking.
@@ -340,7 +462,7 @@ Definidos pelo `senior-cto`. Mudam apenas via ADR breaking.
 ## Critério de aceite consolidado
 
 ### Funcional
-- [ ] 9 ADRs em `Proposto` → `Decidido` ao final do Ato 5
+- [ ] 10 ADRs em `Proposto` → `Decidido` ao final do Ato 5 (mãe + 9 filhas incluindo gating-freemium)
 - [ ] `dev/check_planner_manifest_coverage.py` verde
 - [ ] `dev/check_sigilo_terms.py` verde sobre `frontend/src/components/report/sections/SParecer*.tsx`
 - [ ] Tabela `pipeline_run_costs` populada por stage runs
@@ -382,8 +504,8 @@ Itens explicitamente removidos. Revisitar pós-beta.
 
 1. ❌ "Aceitar com modificação" inline — leva para `/acao` editar
 2. ❌ Bulk actions ("aceitar todas P0")
-3. ❌ Estimativa de impacto futuro condicional ("reduziria gap IF em 18m")
-4. ❌ Métricas evolutivas (% aceitação histórica) — vai pra `/acao`
+3. ✅ **Estimativa de impacto futuro condicional** — REENTRADA no escopo (recomendação `product-manager`, gap vs Pierre). Schema permite campo `impacto_estimado` opcional; LLM declara só com confiança alta; UI mostra com tooltip "estimativa, não garantia". Custo: ~1d eng. Justifica o "advisor digital metodológico" vs "AI advisor genérico".
+4. ⚠️ Métricas evolutivas (% aceitação histórica) — vai pra `/acao`, **não** pro parecer. Instrumentar em `/acao` (já existe pattern ADR-153).
 5. ❌ Diff visual entre pareceres mensais (só banner textual "Mudança material")
 6. ❌ Hover preview de seções fonte
 7. ❌ Mini-mapa de cross-linking lateral
