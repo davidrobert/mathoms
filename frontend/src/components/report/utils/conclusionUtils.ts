@@ -30,8 +30,11 @@ function format(value: unknown, kind: Formatter): string {
   switch (kind) {
     case "brl":
       return BRL.format(value);
+    // ADR-209: campos *_pct no contrato E5 são valores absolutos (44.7 = 44,7%).
+    // Não aplique heurística value <= 1 ? * 100 — produz "50%" para rentabilidade
+    // legítima de 0,5% a.a.
     case "pct":
-      return `${(value <= 1 ? value * 100 : value).toFixed(0)}%`;
+      return `${value.toFixed(0)}%`;
     case "int":
       return Math.round(value).toLocaleString("pt-BR");
     case "num":
@@ -60,7 +63,8 @@ function topEntry(
   const total = items.reduce((sum, [, v]) => sum + v, 0);
   items.sort(([, a], [, b]) => b - a);
   const [key, value] = items[0];
-  return { key, value, pct: total > 0 ? value / total : 0 };
+  // ADR-209: pct em formato absoluto (× 100), alinhado ao contrato E5.
+  return { key, value, pct: total > 0 ? (value / total) * 100 : 0 };
 }
 
 /** Formata uma categoria/fonte id ("receita_clt" → "CLT") — heurística. */

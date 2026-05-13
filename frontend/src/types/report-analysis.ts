@@ -240,7 +240,7 @@ export interface ScoreFullData extends ScoreData {
 
 /** Meta IF (independência financeira) — ADR-117 GAPS Tabela C #5-8. */
 export interface MetaIfData {
-  progresso_pct?: number;       // 0..1
+  progresso_pct?: number;       // 0..100+ (percentual absoluto — ADR-209)
   gap_mensal?: number;          // R$
   ano_alvo?: number;            // 2041
   renda_passiva_alvo?: number;  // R$/mês
