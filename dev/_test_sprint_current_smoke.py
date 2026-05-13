@@ -9,11 +9,11 @@ from __future__ import annotations
 from typing import Any, Callable
 
 try:
-    from _test_build_doc_index_smoke import _make_test_lane
+    from _test_build_doc_index_smoke import _make_test_lane, _make_test_sprint_moc
 except (
     ModuleNotFoundError
 ):  # pragma: no cover — quando importado como dev._test_sprint_current_smoke
-    from dev._test_build_doc_index_smoke import _make_test_lane
+    from dev._test_build_doc_index_smoke import _make_test_lane, _make_test_sprint_moc
 
 
 _SPRINT_READY_FRAGMENTS: tuple[str, ...] = (
@@ -146,8 +146,50 @@ def _assert_sprint_idempotency(sprint_build_fn: Callable[[list], str], note_cls:
     return []
 
 
+_DECLARED_WINS_FIXTURE_KW: tuple[dict[str, Any], ...] = (
+    {"sprint": "A11", "sprint_status": "current"},
+    {"sprint": "A12", "sprint_status": "candidate"},
+)
+
+
+def _assert_sprint_declared_wins(
+    sprint_build_fn: Callable[[list], str], note_cls: type
+) -> list[str]:
+    """sprint-8: `sprint_status: current` no MOC vence heurística "max número" (caso A11/A12)."""
+    notes = [_make_test_sprint_moc(note_cls, **kw) for kw in _DECLARED_WINS_FIXTURE_KW]
+    notes += [
+        _make_test_lane(note_cls, id_="A11.1", sprint="A11", status="open", title="Old-still-open"),
+        _make_test_lane(note_cls, id_="A12.1", sprint="A12", status="open", title="New-candidate"),
+    ]
+    out = sprint_build_fn(notes)
+    bad: list[str] = []
+    if "— A11" not in out:
+        bad.append("sprint-8: declaração `current` em A11 deveria vencer heurística (A12 maior)")
+    if "[[A12.1]]" in out:
+        bad.append("sprint-8: lane de A12 não deveria aparecer quando A11 é declarada corrente")
+    if "[[A11.1]]" not in out:
+        bad.append("sprint-8: lane de A11 deveria aparecer")
+    return bad
+
+
+def _assert_sprint_no_declaration_fallback(
+    sprint_build_fn: Callable[[list], str], note_cls: type
+) -> list[str]:
+    """sprint-9: sem declaração `current`, heurística "max" segue ativa (backward compat)."""
+    notes = [
+        _make_test_sprint_moc(note_cls, sprint="A10", sprint_status="done"),
+        _make_test_sprint_moc(note_cls, sprint="A11", sprint_status="done"),
+        _make_test_lane(note_cls, id_="A10.1", sprint="A10", status="ready", title="Older"),
+        _make_test_lane(note_cls, id_="A11.1", sprint="A11", status="ready", title="Newer"),
+    ]
+    out = sprint_build_fn(notes)
+    if "— A11" not in out:
+        return ["sprint-9: sem `current` declarado, heurística (max A11) deveria vencer"]
+    return []
+
+
 def run_sprint_smoke_tests(sprint_build_fn: Callable, note_cls: type) -> list[str]:
-    """7 smoke tests do SPRINT_CURRENT (F4.C). Retorna lista de falhas (vazia = ok)."""
+    """9 smoke tests do SPRINT_CURRENT (F4.C + sprint_status declaration). Vazia = ok."""
     failures: list[str] = []
     failures.extend(_assert_sprint_no_lanes(sprint_build_fn))
     failures.extend(_assert_sprint_ready(sprint_build_fn, note_cls))
@@ -156,4 +198,6 @@ def run_sprint_smoke_tests(sprint_build_fn: Callable, note_cls: type) -> list[st
     failures.extend(_assert_sprint_wave_aggregation(sprint_build_fn, note_cls))
     failures.extend(_assert_sprint_empty_status(sprint_build_fn, note_cls))
     failures.extend(_assert_sprint_idempotency(sprint_build_fn, note_cls))
+    failures.extend(_assert_sprint_declared_wins(sprint_build_fn, note_cls))
+    failures.extend(_assert_sprint_no_declaration_fallback(sprint_build_fn, note_cls))
     return failures

@@ -3,6 +3,7 @@ id: MOC-sprint-a11
 type: moc
 title: Sprint A11 — Platform review execution
 aliases: ["A11", "Sprint A11"]
+sprint_status: current
 ---
 
 # Sprint A11 — Platform review execution (origem 2026-05-06)

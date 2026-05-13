@@ -1,19 +1,16 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# SPRINT_CURRENT — Lanes da sprint corrente — A12
+# SPRINT_CURRENT — Lanes da sprint corrente — A11
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1 open · 1 in_progress.
+2 open.
 
-## Open (1)
+## Open (2)
 
-- [[A12.alocacao-v2]] — Alocação-alvo schema v1→v2 (7 classes AUVP, desvio backend-driven) · priority P2
-
-## In progress (1)
-
-- [[A12.cat-learning-loop]] — Categorization Learning Loop — promoção de override em regra · priority P1
+- [[A11.w2]] — Pipeline + DB hardening (6 tasks) · priority P0
+- [[A11.w5]] — Frontend + Methodology (5 tasks, paralelo W6)
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

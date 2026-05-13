@@ -3,6 +3,7 @@ id: MOC-sprint-a7
 type: moc
 title: Sprint A7 — Config DB Cutover
 aliases: ["A7", "Sprint A7"]
+sprint_status: done
 ---
 
 # Sprint A7 — Config DB Cutover (CLI legacy removal)

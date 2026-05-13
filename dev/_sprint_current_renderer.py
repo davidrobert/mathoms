@@ -4,10 +4,16 @@
 # Protocol estrutural (LaneLike) — não importa Note do orquestrador, evita ciclo.
 # Spec: docs/plan/DOC_REORG/_README.md §6.4 (Fase 4, item C).
 #
-# Detecção de sprint corrente: prioridade por letra (A > F > W), maior número.
-# Sprints "A" são oficiais; "F" são fases legadas; "W" são ondas dentro de uma
-# sprint "A" — só contam como corrente se nenhuma "A" existir. Quando A11 é
-# corrente, lanes com sprint W5/W6 são agregadas (waves pertencem a A11).
+# Detecção de sprint corrente — duas vias:
+# 1. Declarativa (preferida): `sprint_status: current` no frontmatter do MOC
+#    `docs/sprint/<X>/_README.md`. Resolve casos onde sprints encavalam
+#    (ex.: A11 ainda tem lanes open e A12 já começou — heurística "max número"
+#    erra; declaração editorial vence). Validador em build_doc_index.py
+#    garante exatamente 1 sprint com `current` quando há ≥1 MOC com `sprint_status`.
+# 2. Fallback heurístico: prioridade por letra (A > F > W), maior número.
+#    Sprints "A" são oficiais; "F" são fases legadas; "W" são ondas dentro
+#    de uma sprint "A". Quando A11 é corrente, lanes com sprint W5/W6 são
+#    agregadas (waves pertencem a A11).
 
 from __future__ import annotations
 
@@ -70,12 +76,27 @@ def _eligible_sprints(candidates: set[str]) -> set[str]:
     return eligible or candidates
 
 
-def _detect_current_sprint(lanes: list[LaneLike], available_sprints: set[str]) -> str | None:
-    """Sprint corrente: max(A>F>W, número) entre `available_sprints` ou inferido das lanes."""
+def _detect_current_sprint(
+    lanes: list[LaneLike],
+    available_sprints: set[str],
+    sprint_statuses: dict[str, str] | None = None,
+) -> str | None:
+    """Sprint corrente: declaração `sprint_status: current` no MOC vence heurística max."""
+    declared = _declared_current(sprint_statuses or {})
+    if declared is not None:
+        return declared
     candidates = available_sprints or {lane.sprint for lane in lanes if lane.sprint}
     if not candidates:
         return None
     return max(_eligible_sprints(candidates), key=_sprint_priority_key)
+
+
+def _declared_current(sprint_statuses: dict[str, str]) -> str | None:
+    """Sprint cujo MOC declara `sprint_status: current`. None se nenhuma declara."""
+    current = [sprint for sprint, status in sprint_statuses.items() if status == "current"]
+    if not current:
+        return None
+    return current[0]
 
 
 def _expand_sprint_aliases(current: str) -> set[str]:
@@ -213,9 +234,10 @@ def render_sprint_current(
     lanes: list[LaneLike],
     available_sprints: set[str],
     header_fn: Callable[[str], list[str]],
+    sprint_statuses: dict[str, str] | None = None,
 ) -> list[str]:
     """Monta as linhas do SPRINT_CURRENT.md — entrypoint do renderer."""
-    current = _detect_current_sprint(lanes, available_sprints)
+    current = _detect_current_sprint(lanes, available_sprints, sprint_statuses)
     if current is None:
         return _render_no_sprint(header_fn)
     sprint_lanes = _filter_sprint_lanes(lanes, current)

@@ -3,6 +3,7 @@ id: MOC-sprint-a10
 type: moc
 title: Sprint A10 — goals.json cutover final
 aliases: ["A10", "Sprint A10"]
+sprint_status: done
 ---
 
 # Sprint A10 — `goals.json` cutover final (proposta 2026-05-06)

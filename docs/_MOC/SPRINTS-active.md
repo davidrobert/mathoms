@@ -7,6 +7,8 @@ aliases: ["SPRINTS-active", "sprints-active"]
 # SPRINTS-active — Sprint corrente + curating de prioridade
 
 > **Editorial.** Resumo narrativo da sprint atual. Status detalhado: `_generated/SPRINT_CURRENT.md`.
+>
+> **Fonte de verdade da sprint corrente:** o campo `sprint_status` no frontmatter de cada `docs/sprint/<X>/_README.md`. Valores: `current` (única) · `candidate` (próxima) · `done` (encerrada). Validado por `python3 dev/build_doc_index.py --check` — falha se houver 2+ MOCs com `current` ou status fora do vocabulário. Ao virar a sprint, edite os dois `_README.md` (atual: `current → done`; próxima: `candidate → current`) **antes** de regenerar.
 
 ## Sprint atual
 

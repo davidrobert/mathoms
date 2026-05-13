@@ -3,6 +3,7 @@ id: MOC-sprint-a6
 type: moc
 title: Sprint A6 — Migração Infra+Domínio
 aliases: ["A6", "Sprint A6"]
+sprint_status: done
 ---
 
 # Sprint A6 — Migração Infra+Domínio (plano transversal)
