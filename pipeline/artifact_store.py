@@ -64,6 +64,10 @@ _STAGE_TO_DIR: dict[str, str] = {
     "E7-crossval": "E7_review",
     "E7-review": "E7_review",
     "E7-apply": "E7_review",
+    # ADR-199 — parecer planejador (Ato 4). Diretório próprio E6_parecer
+    # isola do legado review_finances (que entra em deprecation sprint+1).
+    "E6-parecer": "E6_parecer",
+    "review_finances_holistic": "E6_parecer",
 }
 
 _STAGE_TO_SUFFIX: dict[str, str] = {
@@ -87,6 +91,8 @@ _STAGE_TO_SUFFIX: dict[str, str] = {
     "E7-crossval": "-7_crossval.json",
     "E7-review": "-7_review.json",
     "E7-apply": "-7_apply.json",
+    "E6-parecer": "-6_parecer.json",
+    "review_finances_holistic": "-6_parecer.json",
 }
 
 

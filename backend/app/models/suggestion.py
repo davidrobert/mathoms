@@ -74,6 +74,11 @@ VALID_SUGGESTION_KINDS: frozenset[str] = frozenset(
         "concentracao_instituicao",
         "lifestyle_creep",
         "renda_passiva_real_baixa",
+        # v3 — ADR-199 (parecer planejador, origin=llm). Kind único agrupa todas
+        # as sugestões LLM; nuance vai em `category` (tema canônico) +
+        # `rationale` (acao + impacto_qualitativo). Discriminator de fonte é
+        # `origin='llm'`.
+        "parecer_planejador",
     }
 )
 

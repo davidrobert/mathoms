@@ -95,6 +95,12 @@ class Settings(BaseSettings):
     # Remover o cron + flag após gate humano verde (A6e.events-followup).
     USE_EVENT_DRIVEN_TASK_NOTIFICATIONS: bool = False
 
+    # ADR-199 (PLANNER_REVIEW Ato 4) — parecer planejador holístico.
+    # Stage `review_finances_holistic` só executa quando habilitado.
+    # Default off durante Ato 4 (codigo em produção mas cleanup, sem dogfood);
+    # Ato 5 promove para True após dogfood CEO+PM (2-3 ciclos).
+    ENABLE_PARECER_PLANEJADOR: bool = False
+
     # F7F-Local / ADR-116 — console interno (/admin/*).
     # Default off: rotas só montam se `MATHOMS_INTERNAL_OPS_UI_ENABLED=1`.
     # Bloqueia boot em `ENVIRONMENT=production` a menos que

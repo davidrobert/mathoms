@@ -52,6 +52,7 @@ EXPECTED_DESCRIPTIVE_STAGES = {
     "validate_cross",
     "review_finances",
     "apply_review",
+    "review_finances_holistic",
 }
 
 

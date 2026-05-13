@@ -144,6 +144,7 @@ _STAGE_RUNNERS: Dict[str, tuple[str, str]] = {
     "validate_cross": ("pipeline.stages.e7", "run_crossval"),
     "review_finances": ("pipeline.stages.review_finances", "run"),
     "apply_review": ("pipeline.stages.e7", "run_apply"),
+    "review_finances_holistic": ("pipeline.stages.parecer_planejador", "run"),
 }
 
 

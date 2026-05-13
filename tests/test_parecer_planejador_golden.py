@@ -1,0 +1,631 @@
+"""Golden mockado do stage parecer_planejador — schema + invariants estruturais (ADR-199)."""
+
+from __future__ import annotations
+
+import json
+
+# Feature flag precisa estar habilitada para o stage não-skipar.
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+os.environ["MATHOMS_ENABLE_PARECER_PLANEJADOR"] = "true"
+
+from backend.app.services.llm_cache import InMemoryLLMCache  # noqa: E402
+from pipeline.artifact_store import InMemoryArtifactStore  # noqa: E402
+from pipeline.llm.schemas.parecer_planejador import (  # noqa: E402
+    ImpactoEstimado,
+    Metadata,
+    Metrica,
+    NotaMetodologica,
+    ParecerPlanejadorOutput,
+    PontoForte,
+    Risco,
+    Sugestao,
+)
+
+_REPO = Path(__file__).resolve().parents[1]
+_OUTPUT_SCHEMA = _REPO / "config" / "schemas" / "parecer_planejador.schema.json"
+
+
+def make_workspace_e5() -> dict:
+    """E5 sintético rico — família alta renda PJ/CLT + cônjuge + dependentes + RV/RF/imóveis."""
+    return {
+        "periodo_dados": "2024-01-01 a 2025-12-31",
+        "data_analise": "2026-01-15",
+        "score": {"valor": 6.5, "classificacao": "Bom"},
+        "patrimonio": {
+            "bruto": 5_200_000.0,
+            "liquido": 4_700_000.0,
+            "dividas": 500_000.0,
+            "composicao": {
+                "imoveis_residencia": 1_800_000.0,
+                "imoveis_investimento": 800_000.0,
+                "rf": 600_000.0,
+                "rv_br": 900_000.0,
+                "rv_intl": 400_000.0,
+                "caixa": 200_000.0,
+                "previdencia": 500_000.0,
+            },
+        },
+        "fluxo_caixa": {
+            "receita_total": 720_000.0,
+            "receita_recorrente_mensal": 55_000.0,
+            "despesa_total": 480_000.0,
+            "despesa_mensal_media": 40_000.0,
+            "fluxo_liquido": 240_000.0,
+        },
+        "ratios": {
+            "rentabilidade": {
+                "valor_pct": 4.7,
+                "ano_base": 2024,
+                "defasagem_meses": 5,
+                "meta_pct": 5.0,
+                "cobertura_despesa_essencial_pct": 80.0,
+                "status": "ok",
+            },
+            "rentabilidade_pct": "4.70",
+            "aliquota_efetiva_ir_pct": "22.50",
+        },
+        "reserva_emergencia": {
+            "despesas_mensais": 40_000.0,
+            "cobertura_meses": 2.1,
+            "total_liquida": 84_000.0,
+            "avaliacao_liquidity": "insuficiente",
+        },
+        "endividamento": {
+            "total_dividas": 500_000.0,
+            "percentual_patrimonio": 9.6,
+        },
+        "investimentos": {
+            "total": 2_400_000.0,
+            "tabela_classes": [
+                {"categoria": "RF", "valor": 600_000.0, "pct": 25.0},
+                {"categoria": "RV BR", "valor": 900_000.0, "pct": 37.5},
+                {"categoria": "RV Intl", "valor": 400_000.0, "pct": 16.7},
+                {"categoria": "FIIs", "valor": 300_000.0, "pct": 12.5},
+                {"categoria": "Caixa", "valor": 200_000.0, "pct": 8.3},
+            ],
+            "top_ativos": [],
+            "n_imoveis_total": 4,
+        },
+        "previdencia_pgbl": {
+            "saldo": 500_000.0,
+            "contribuicao_anual": 50_000.0,
+            "limite_abate_pct": 12.0,
+            "abate_real_pct": 6.9,
+            "pgbl_status": "subaplicado",
+        },
+        "irpf_kpis": {
+            "renda_tributavel_total_brl": 720_000.0,
+            "aliquota_sobre_tributavel_pct": "22.50",
+            "aliquota_sobre_total_pct": "15.30",
+            "dependentes_count": 2,
+        },
+        "passive_income": {"renda_passiva_mensal": 32_000.0, "cobertura_pct": 80.0},
+        "if_monte_carlo": {"prazo_p50": 12, "prazo_p90": 18},
+        "cenarios_conjuge": {"labels": ["Com cônjuge", "Sem cônjuge"], "prazos_if": [12, 22]},
+        "pontos_fortes": ["Diversificação razoável", "Sem dívida cara"],
+        "pontos_urgentes": ["Reserva baixa", "PGBL subaplicado"],
+        "alertas": ["seguro_vida_ausente", "fbar_pendente"],
+        "equilibrio_cerbasi": {"taxa_poupanca_pct": 33.3, "classificacao": "Saudável"},
+        "diagnostico_comportamental": ["consumo_consciente"],
+        "tarefas": [],
+        "tarefas_status": {"total": 0, "abertas": 0, "fechadas": 0},
+        "goals": {"if_meta": 6_000_000.0, "trs_pct": 4.0},
+        "consumo_consciente": {"folga_mensal": 15_000.0, "folga_pct": 27.0},
+        "narrativas": {"perfil_familia": "Alta renda PJ + CLT, 2 dependentes."},
+    }
+
+
+def make_canned_output(workspace_id: str = "ws-golden") -> ParecerPlanejadorOutput:
+    """Output rico que exercita todos os campos + invariants."""
+    meta = Metadata(
+        persona_hash="0" * 64,
+        manifest_version="1.0.0",
+        model_id="placeholder",
+        tier_at_generation="premium",
+        generated_at="2026-05-13T12:00:00+00:00",
+    )
+
+    pontos_fortes = [
+        PontoForte(
+            titulo="Diversificação multi-classe consolidada",
+            descricao="Carteira distribuída em RF, RV BR e Intl, FIIs e imóveis — reduz risco idiossincrático.",
+            ancora_metodologica="auvp",
+            tema_canonico="Alocação",
+            section_id="S3",
+        ),
+        PontoForte(
+            titulo="Taxa de poupança recorrente saudável",
+            descricao="Aproximadamente trinta e três por cento da renda destinados à acumulação patrimonial.",
+            ancora_metodologica="cerbasi",
+            tema_canonico="Equilíbrio presente-futuro",
+            section_id="S2",
+        ),
+        PontoForte(
+            titulo="Ausência de dívida cara",
+            descricao="Sem cartão rotativo, cheque especial ou similares — perfil de juros sob controle.",
+            ancora_metodologica="convergencia",
+            tema_canonico="Saúde de balanço",
+            section_id="S1",
+        ),
+    ]
+
+    riscos = [
+        Risco(
+            severidade="Crítica",
+            titulo="Seguro de vida ausente para provedor de renda",
+            descricao="Família depende de um provedor principal sem cobertura de vida, expondo dependentes a risco material.",
+            ancora_metodologica="cerbasi",
+            tema_canonico="Proteção",
+            evidencia="Alerta seguro_vida_ausente presente em S9.",
+            evidencia_path="$.alertas",
+            section_id="S9",
+            confianca="alta",
+        ),
+        Risco(
+            severidade="Alta",
+            titulo="Reserva de emergência cobre apenas 2,1 meses",
+            descricao="Cobertura atual abaixo do alvo recomendado de seis meses de despesas essenciais.",
+            ancora_metodologica="convergencia",
+            tema_canonico="Liquidez",
+            evidencia="reserva_emergencia.cobertura_meses=2.1",
+            evidencia_path="$.reserva_emergencia.cobertura_meses",
+            section_id="S1",
+            confianca="alta",
+        ),
+        Risco(
+            severidade="Média",
+            titulo="PGBL subaplicado para perfil de alta renda",
+            descricao="Aporte atual aproveita apenas 6,9 por cento do limite dedutível anual.",
+            ancora_metodologica="convergencia",
+            tema_canonico="Custo tributário",
+            evidencia="abate_real_pct=6.9",
+            evidencia_path="$.previdencia_pgbl.abate_real_pct",
+            section_id="S8",
+            confianca="alta",
+        ),
+    ]
+
+    sug_exec = [
+        Sugestao(
+            prioridade="P0",
+            acao="Contratar seguro de vida para o provedor principal cobrindo 5 anos de renda recorrente.",
+            impacto_qualitativo="Protege dependentes contra evento adverso enquanto patrimônio gerador não cobre custo essencial.",
+            ancora_metodologica="cerbasi",
+            tema_canonico="Proteção",
+            confianca="alta",
+            section_id="S9",
+            suggestion_dedup_key="0" * 64,  # orchestrator reescreve
+            evidencia_path="$.alertas",
+        ),
+        Sugestao(
+            prioridade="P1",
+            acao="Aportar mensalmente em pós-fixada D+0/D+1 até reserva atingir seis meses de despesa essencial.",
+            impacto_qualitativo="Reduz dependência de crédito em choque de renda; alinhamento metodológico amplo.",
+            ancora_metodologica="convergencia",
+            tema_canonico="Liquidez",
+            confianca="alta",
+            section_id="S1",
+            suggestion_dedup_key="0" * 64,
+            evidencia_path="$.reserva_emergencia.cobertura_meses",
+            impacto_estimado=ImpactoEstimado(
+                valor_estimado_brl=210_000.0,
+                unidade="ano",
+                caveat="Estimativa indicativa baseada na despesa atual; revisitar a cada 6 meses.",
+            ),
+        ),
+    ]
+
+    sug_tat = [
+        Sugestao(
+            prioridade="P1",
+            acao="Aumentar contribuição PGBL anual até o teto dedutível de doze por cento da renda tributável.",
+            impacto_qualitativo="Eficiência tributária no presente combinada com acumulação previdenciária integrada.",
+            ancora_metodologica="convergencia",
+            tema_canonico="Custo tributário",
+            confianca="alta",
+            section_id="S8",
+            suggestion_dedup_key="0" * 64,
+            evidencia_path="$.previdencia_pgbl.abate_real_pct",
+        ),
+    ]
+
+    sug_est = [
+        Sugestao(
+            prioridade="P2",
+            acao="Revisar exposição cambial ao redor de quinze por cento do patrimônio investível financeiro.",
+            impacto_qualitativo="Diversifica risco de moeda doméstica em horizonte de 12 a 36 meses.",
+            ancora_metodologica="auvp",
+            tema_canonico="Alocação",
+            confianca="media",
+            section_id="S3",
+            suggestion_dedup_key="0" * 64,
+            evidencia_path="$.investimentos.tabela_classes[*]",
+        ),
+    ]
+
+    metricas = [
+        Metrica(
+            nome="Cobertura essencial da reserva",
+            valor_atual="2,1 meses",
+            target="6+ meses",
+            frequencia_revisao="trimestral",
+            section_id="S1",
+            ancora_metodologica="convergencia",
+            tema_canonico="Liquidez",
+        ),
+        Metrica(
+            nome="Abate PGBL real vs limite",
+            valor_atual="6,9%",
+            target="12,0%",
+            frequencia_revisao="anual",
+            section_id="S8",
+            ancora_metodologica="convergencia",
+            tema_canonico="Custo tributário",
+        ),
+    ]
+
+    notas = [
+        NotaMetodologica(
+            titulo="Conservadorismo na cobertura essencial",
+            conteudo="A análise prioriza cobertura essencial sobre estilo de vida nesta fase do ciclo familiar.",
+            ancoras_metodologicas=["cerbasi", "convergencia"],
+        )
+    ]
+
+    return ParecerPlanejadorOutput(
+        version="1.0",
+        metadata=meta,
+        diagnostico_geral=(
+            "Família com patrimônio bruto consolidado, taxa de poupança saudável e diversificação razoável, "
+            "porém com gaps de proteção (seguro de vida ausente) e liquidez (reserva 2,1 meses) que pedem atenção imediata."
+        ),
+        pontos_fortes=pontos_fortes,
+        riscos=riscos,
+        sugestoes_execucao=sug_exec,
+        sugestoes_taticas=sug_tat,
+        sugestoes_estrategicas=sug_est,
+        metricas=metricas,
+        notas_metodologicas=notas,
+    )
+
+
+@dataclass
+class _FakeCallResult:
+    output: Any
+    tokens_in: int = 5234
+    tokens_out: int = 1450
+    cost_estimate_usd: float = 0.0789  # rate USD mock (ADR-090 — production converts to cents)
+
+
+@dataclass
+class _FakeSummary:
+    calls: list = field(default_factory=list)
+
+
+class _FakeLLMService:
+    def __init__(self, output: ParecerPlanejadorOutput) -> None:
+        self._output = output
+        self.summary = _FakeSummary()
+
+    def call(self, **kwargs):
+        result = _FakeCallResult(output=self._output)
+        self.summary.calls.append(result)
+        return result
+
+
+@pytest.fixture
+def workspace_e5() -> dict:
+    return make_workspace_e5()
+
+
+@pytest.fixture
+def canned_output() -> ParecerPlanejadorOutput:
+    return make_canned_output()
+
+
+# -----------------------------------------------------------------------
+# Stage end-to-end com store in-memory
+# -----------------------------------------------------------------------
+
+
+def make_run_stage_with_mocks(
+    e5: dict, canned: ParecerPlanejadorOutput, workspace_id: str = "ws-golden"
+):
+    """Helper: roda o stage com ArtifactStore in-memory + LLM/cache mockados."""
+    from pipeline.context import WorkspaceContext
+
+    # Stub minimal ctx — não usa filesystem.
+    store = InMemoryArtifactStore()
+    store.seed("E5", "analise_financeira", e5)
+
+    # ctx in-memory; root pode ser path qualquer válido (nada é escrito em disco)
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        ctx = WorkspaceContext(root=Path(tmp), artifact_store=store, workspace_id=workspace_id)
+
+        # Monkey-patch generate_parecer para injetar fakes
+        from backend.app.services import parecer_orchestrator as orch
+        from pipeline.stages import parecer_planejador as stage_mod
+
+        original_generate = orch.generate_parecer
+
+        def patched(**kwargs):
+            return original_generate(
+                **kwargs,
+                llm_service=_FakeLLMService(output=canned),
+                cache=InMemoryLLMCache(),
+            )
+
+        # Importa pelo nome do módulo onde stage referencia
+        orch.generate_parecer = patched  # type: ignore[assignment]
+        # Stage import (within function) usa parecer_orchestrator.generate_parecer
+        # diretamente — monkeypatch já efetiva via lookup.
+        try:
+            result = stage_mod.run(ctx)
+        finally:
+            orch.generate_parecer = original_generate  # type: ignore[assignment]
+
+    return result, store
+
+
+class TestStageGoldenSchemaValidation:
+    def test_artifact_validates_against_json_schema(self, workspace_e5, canned_output):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        assert result["success"] is True
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        assert artifact is not None
+
+        jsonschema = pytest.importorskip("jsonschema")
+        schema = json.loads(_OUTPUT_SCHEMA.read_text(encoding="utf-8"))
+        # Removendo _meta — JSON Schema cobre, mas valida o output mesmo.
+        jsonschema.validate(artifact, schema)
+
+
+class TestStageGoldenInvariants:
+    def test_count_p0_at_most_2(self, workspace_e5, canned_output):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        all_sug = (
+            artifact["sugestoes_execucao"]
+            + artifact["sugestoes_taticas"]
+            + artifact["sugestoes_estrategicas"]
+        )
+        p0_count = sum(1 for s in all_sug if s["prioridade"] == "P0")
+        assert p0_count <= 2
+
+    def test_all_temas_in_enum(self, workspace_e5, canned_output):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        valid_temas = {
+            "Proteção",
+            "Alocação",
+            "Renda passiva",
+            "Liquidez",
+            "Custo tributário",
+            "Saúde de balanço",
+            "Diagnóstico de dados",
+            "Equilíbrio presente-futuro",
+            "Convergência metodológica",
+        }
+        for risco in artifact["riscos"]:
+            assert risco["tema_canonico"] in valid_temas
+        for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
+            for sug in artifact[horizon]:
+                assert sug["tema_canonico"] in valid_temas
+
+    def test_all_ancoras_in_enum(self, workspace_e5, canned_output):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        valid_ancoras = {"perini", "cerbasi", "auvp", "convergencia"}
+        for risco in artifact["riscos"]:
+            assert risco["ancora_metodologica"] in valid_ancoras
+        for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
+            for sug in artifact[horizon]:
+                assert sug["ancora_metodologica"] in valid_ancoras
+
+    def test_hard_caps_respected(self, workspace_e5, canned_output):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        assert len(artifact["riscos"]) <= 12
+        assert len(artifact["sugestoes_execucao"]) <= 5
+        assert len(artifact["sugestoes_taticas"]) <= 5
+        assert len(artifact["sugestoes_estrategicas"]) <= 5
+        assert len(artifact["metricas"]) <= 10
+        assert len(artifact["notas_metodologicas"]) <= 5
+        assert 3 <= len(artifact["pontos_fortes"]) <= 6
+
+    def test_impacto_estimado_only_with_alta_confianca(self, workspace_e5, canned_output):
+        """ADR-202 §D6 — impacto_estimado válido só com confianca='alta'."""
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
+            for sug in artifact[horizon]:
+                if sug.get("impacto_estimado") is not None:
+                    assert (
+                        sug["confianca"] == "alta"
+                    ), f"Sugestão {horizon} com impacto_estimado e confianca={sug['confianca']}"
+
+    def test_every_suggestion_has_section_id_and_evidencia_path_optional(
+        self, workspace_e5, canned_output
+    ):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
+            for sug in artifact[horizon]:
+                assert sug["section_id"]
+                # evidencia_path opcional, mas se presente respeita regex.
+                if sug.get("evidencia_path"):
+                    assert sug["evidencia_path"].startswith("$.")
+
+
+class TestStageGoldenMetaAndCost:
+    def test_meta_has_audit_fields(self, workspace_e5, canned_output):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        meta = artifact["_meta"]
+        assert "tool_trace" in meta
+        assert "cost_usd" in meta
+        assert "tokens_in" in meta
+        assert "tokens_out" in meta
+        assert "latency_ms" in meta
+        assert "tool_iterations" in meta
+        assert "cache_hit" in meta
+        assert "schema_version" in meta
+
+    def test_cost_populated_from_mock(self, workspace_e5, canned_output):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        # FakeCallResult fornece cost=0.0789
+        assert artifact["_meta"]["cost_usd"] > 0
+
+    def test_tokens_populated(self, workspace_e5, canned_output):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        assert artifact["_meta"]["tokens_in"] > 0
+        assert artifact["_meta"]["tokens_out"] > 0
+
+
+class TestStageGoldenDedupKey:
+    def test_dedup_key_recalculated_deterministic(self, workspace_e5, canned_output):
+        """Mesmo input → mesmo dedup_key (idempotência ADR-153)."""
+        result1, store1 = make_run_stage_with_mocks(
+            workspace_e5, canned_output, workspace_id="ws-A"
+        )
+        # canned_output é compartilhado, mas como model_copy é usado, segundo run
+        # recebe um output fresh — recriar via factory:
+        result2, store2 = make_run_stage_with_mocks(
+            workspace_e5, make_canned_output(), workspace_id="ws-A"
+        )
+
+        art1 = store1.read("E6-parecer", "parecer_planejador")
+        art2 = store2.read("E6-parecer", "parecer_planejador")
+
+        k1 = art1["sugestoes_execucao"][0]["suggestion_dedup_key"]
+        k2 = art2["sugestoes_execucao"][0]["suggestion_dedup_key"]
+        assert k1 == k2
+
+    def test_dedup_key_changes_across_workspaces(self, workspace_e5, canned_output):
+        result1, store1 = make_run_stage_with_mocks(
+            workspace_e5, make_canned_output(), workspace_id="ws-A"
+        )
+        result2, store2 = make_run_stage_with_mocks(
+            workspace_e5, make_canned_output(), workspace_id="ws-B"
+        )
+
+        art1 = store1.read("E6-parecer", "parecer_planejador")
+        art2 = store2.read("E6-parecer", "parecer_planejador")
+
+        k1 = art1["sugestoes_execucao"][0]["suggestion_dedup_key"]
+        k2 = art2["sugestoes_execucao"][0]["suggestion_dedup_key"]
+        assert k1 != k2
+
+    def test_dedup_key_is_sha256_hex(self, workspace_e5, canned_output):
+        result, store = make_run_stage_with_mocks(workspace_e5, canned_output)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
+            for sug in artifact[horizon]:
+                key = sug["suggestion_dedup_key"]
+                assert len(key) == 64
+                # Pode ser convertida para int hex
+                int(key, 16)
+
+
+# -----------------------------------------------------------------------
+# Caso negativo: regex anti-ticker (Pydantic validator rejeita)
+# -----------------------------------------------------------------------
+
+
+class TestPydanticRejectsTickerInBody:
+    def test_descricao_with_ticker_fails_validation(self):
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="ticker"):
+            Risco(
+                severidade="Alta",
+                titulo="Concentração em ativo",
+                descricao="Posição relevante em VALE3 expõe a risco idiossincrático.",
+                ancora_metodologica="auvp",
+                tema_canonico="Alocação",
+                section_id="S3",
+                confianca="alta",
+            )
+
+    def test_descricao_with_sigilo_term_fails_validation(self):
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="sigilo"):
+            Risco(
+                severidade="Alta",
+                titulo="Gap metodológico",
+                descricao="Família precisa adotar metodologia Perini de forma mais consistente.",
+                ancora_metodologica="convergencia",
+                tema_canonico="Diagnóstico de dados",
+                section_id="S10",
+                confianca="alta",
+            )
+
+
+# -----------------------------------------------------------------------
+# Caso negativo: cap P0 > 2 rejeitado pelo model_validator
+# -----------------------------------------------------------------------
+
+
+def _make_p0_sugestao(acao_suffix: int) -> Sugestao:
+    """Constrói Sugestao P0 sintática válida (com acao único)."""
+    return Sugestao(
+        prioridade="P0",
+        acao=f"Ação P0 distinta numero {acao_suffix} para testar cap agregado.",
+        impacto_qualitativo=f"Impacto sintético {acao_suffix} para validar invariant P0 cap.",
+        ancora_metodologica="convergencia",
+        tema_canonico="Saúde de balanço",
+        confianca="alta",
+        section_id="S1",
+        suggestion_dedup_key="0" * 64,
+    )
+
+
+class TestPydanticEnforcesP0Cap:
+    def test_three_p0s_fails(self):
+        from pydantic import ValidationError
+
+        out = make_canned_output()
+        p0_a, p0_b, p0_c = (_make_p0_sugestao(i) for i in range(3))
+        with pytest.raises(ValidationError, match="P0"):
+            out.model_copy(
+                update={"sugestoes_execucao": [p0_a, p0_b], "sugestoes_taticas": [p0_c]}
+            ).model_validate(
+                out.model_copy(
+                    update={"sugestoes_execucao": [p0_a, p0_b], "sugestoes_taticas": [p0_c]}
+                ).model_dump()
+            )
+
+
+# -----------------------------------------------------------------------
+# Feature flag desligada → stage skip
+# -----------------------------------------------------------------------
+
+
+class TestFeatureFlag:
+    def test_disabled_returns_skipped(self, monkeypatch, workspace_e5, canned_output):
+        from pipeline.context import WorkspaceContext
+
+        monkeypatch.setenv("MATHOMS_ENABLE_PARECER_PLANEJADOR", "false")
+        # Re-importa stage_mod para pegar nova env
+        from pipeline.stages import parecer_planejador as stage_mod
+
+        store = InMemoryArtifactStore()
+        store.seed("E5", "analise_financeira", workspace_e5)
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            ctx = WorkspaceContext(root=Path(tmp), artifact_store=store, workspace_id="ws-skipped")
+            result = stage_mod.run(ctx)
+        assert result.get("skipped") is True
+        assert "feature flag" in result.get("reason", "").lower()
