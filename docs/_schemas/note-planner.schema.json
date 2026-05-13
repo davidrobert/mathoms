@@ -1,0 +1,332 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mathoms.ai/schemas/note-planner.schema.json",
+  "title": "Manifest declarativo F5 do parecer planejador (ADR-200)",
+  "description": "Valida o shape de config/prompts/parecer_planejador.yaml. DSL é declarativa pura: JSONPath subset + format hints + null/empty/missing policies. Sem Jinja, sem {{}}, sem if/when. ADR-200 §D1. Coverage cross-ref (manifest ↔ E5 schema ↔ report_layout.yaml) feito por dev/check_planner_manifest_coverage.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "output_schema",
+    "input_schema_ref",
+    "persona",
+    "context_sections",
+    "tools",
+    "max_tool_iterations",
+    "max_total_input_tokens",
+    "max_exec_context_bytes",
+    "hard_caps",
+    "gating"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$",
+      "description": "Manifest version semver — registrada no aggregate PlannerReview (ADR-200 §D4). Bump força invalidação de cache Redis."
+    },
+    "output_schema": {
+      "type": "string",
+      "pattern": "^config/schemas/.+\\.schema\\.json$",
+      "description": "Path relativo ao repo do JSON Schema canônico do output (ADR-202)."
+    },
+    "input_schema_ref": {
+      "type": "string",
+      "pattern": "^config/schemas/.+\\.schema\\.json$",
+      "description": "Path relativo ao repo do JSON Schema canônico do input (E5 analysis). Coverage gate cruza paths do manifest contra este schema."
+    },
+    "persona": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "required_frontmatter_fields"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^config/agents/.+\\.md$",
+          "description": "Path da persona rules-as-code (ADR-201)."
+        },
+        "required_frontmatter_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1},
+          "description": "Frontmatter da persona que o orchestrator valida no boot."
+        }
+      }
+    },
+    "context_sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/definitions/context_section"},
+      "description": "Projeção do E5 → exec context destilado. Ordem importa (segue ordem do relatório)."
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/definitions/tool"},
+      "description": "Drill-down tools que o LLM pode invocar (ADR-203). Whitelist enforçada no orchestrator."
+    },
+    "max_tool_iterations": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Cap de iterações tool→LLM→tool (ADR-203 §D2). Default 6."
+    },
+    "max_total_input_tokens": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 200000,
+      "description": "Circuit breaker do orchestrator (CTO-G5: cost cliff workspaces grandes)."
+    },
+    "max_exec_context_bytes": {
+      "type": "integer",
+      "minimum": 1024,
+      "maximum": 65536,
+      "description": "Hard limit do exec context base (pré tool calls)."
+    },
+    "hard_caps": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["riscos", "sugestoes_por_horizonte", "metricas", "p0_total"],
+      "properties": {
+        "riscos": {"type": "integer", "minimum": 1, "maximum": 20},
+        "sugestoes_por_horizonte": {"type": "integer", "minimum": 1, "maximum": 10},
+        "metricas": {"type": "integer", "minimum": 1, "maximum": 15},
+        "p0_total": {"type": "integer", "minimum": 0, "maximum": 5}
+      },
+      "description": "Referência declarativa dos caps (ADR-202 §D5). Schema do output (parecer_planejador.schema.json) é a fonte autoritativa; manifesto repete para documentar a intenção e permitir o orchestrator validar antes de invocar o LLM."
+    },
+    "gating": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["free", "premium"],
+      "description": "Referência declarativa do gating freemium (ADR-208). Lógica de filtragem é aplicada pelo orchestrator em to_tier_filtered_dto; este bloco documenta a intenção.",
+      "properties": {
+        "free": {"$ref": "#/definitions/tier_policy"},
+        "premium": {"$ref": "#/definitions/tier_policy"}
+      }
+    },
+    "narrative_hints_global": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 5},
+      "description": "Hints globais aplicáveis a todas as seções (ex.: 'Nunca prescreva ativo específico')."
+    }
+  },
+
+  "definitions": {
+    "format_hint": {
+      "type": "string",
+      "enum": ["raw", "brl", "pct", "percent2", "int", "string", "iso_date"],
+      "description": "Format hints fechados (ADR-200 §D1). 'raw' = passthrough sem formatação (uso interno por block table)."
+    },
+
+    "null_policy": {
+      "type": "string",
+      "enum": ["skip", "placeholder", "error"],
+      "description": "Comportamento quando valor é null/ausente."
+    },
+
+    "jsonpath_subset": {
+      "type": "string",
+      "pattern": "^\\$\\.[A-Za-z_0-9.\\[\\]*]+$",
+      "description": "JSONPath subset suportado (ADR-200 §D1). Proibidos: $..*, filtros, regex."
+    },
+
+    "field_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "label", "format"],
+      "properties": {
+        "path": {"$ref": "#/definitions/jsonpath_subset"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 80},
+        "format": {"$ref": "#/definitions/format_hint"},
+        "on_null": {"$ref": "#/definitions/null_policy"},
+        "on_empty": {"$ref": "#/definitions/null_policy"},
+        "on_missing": {"$ref": "#/definitions/null_policy"}
+      }
+    },
+
+    "key_value_block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "fields"],
+      "properties": {
+        "format": {"const": "key_value"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 120},
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {"$ref": "#/definitions/field_ref"}
+        }
+      }
+    },
+
+    "table_block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "path", "columns"],
+      "properties": {
+        "format": {"const": "table"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 120},
+        "path": {
+          "type": "string",
+          "pattern": "^\\$\\.[A-Za-z_0-9.]+\\[\\*\\]$",
+          "description": "Array path com terminator [*]. Coverage gate confirma que o array existe no schema E5."
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "label", "format"],
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z_0-9.]*$",
+                "description": "Path relativo ao item do array (sem leading $.)."
+              },
+              "label": {"type": "string", "minLength": 1, "maxLength": 40},
+              "format": {"$ref": "#/definitions/format_hint"}
+            }
+          }
+        },
+        "max_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30
+        }
+      }
+    },
+
+    "scalar_block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "path", "label"],
+      "properties": {
+        "format": {"const": "scalar"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 120},
+        "path": {"$ref": "#/definitions/jsonpath_subset"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 80},
+        "value_format": {"$ref": "#/definitions/format_hint"},
+        "on_null": {"$ref": "#/definitions/null_policy"}
+      }
+    },
+
+    "block": {
+      "oneOf": [
+        {"$ref": "#/definitions/key_value_block"},
+        {"$ref": "#/definitions/table_block"},
+        {"$ref": "#/definitions/scalar_block"}
+      ]
+    },
+
+    "context_section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "blocks"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z_][a-z0-9_]*$",
+          "minLength": 2,
+          "maxLength": 64,
+          "description": "Identificador interno do bloco no exec context (snake_case)."
+        },
+        "title": {"type": "string", "minLength": 3, "maxLength": 120},
+        "aligned_with_layout": {
+          "type": "string",
+          "enum": [
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S7",
+            "S8",
+            "S_IRPF_RENDA",
+            "S_IRPF_OTIMIZACAO",
+            "S9",
+            "S10",
+            "S_parecer",
+            "plano_de_acao"
+          ],
+          "description": "section_id correspondente em config/report_layout.yaml. Coverage gate confirma que existe e está enabled. Omitir = seção interna do parecer (não tem contrapartida no layout)."
+        },
+        "internal_only": {
+          "type": "boolean",
+          "default": false,
+          "description": "True = section_id deliberadamente fora do report_layout (ex.: 'dependentes_irpf'). Coverage gate silencia warning de cobertura inversa."
+        },
+        "blocks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {"$ref": "#/definitions/block"}
+        },
+        "narrative_hints": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {"type": "string", "minLength": 5, "maxLength": 240},
+          "description": "Instruções pro LLM em PT-BR (não lógica condicional)."
+        }
+      }
+    },
+
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description", "args_schema", "cache_in_session"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["get_e5_section", "get_e5_jsonpath"]
+        },
+        "description": {"type": "string", "minLength": 20, "maxLength": 400},
+        "args_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "section": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "enum"],
+              "properties": {
+                "type": {"const": "string"},
+                "enum": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {"type": "string", "minLength": 1}
+                }
+              }
+            },
+            "path": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "pattern"],
+              "properties": {
+                "type": {"const": "string"},
+                "pattern": {
+                  "type": "string",
+                  "minLength": 5,
+                  "description": "Regex JSONPath subset — string literal usada pelo orchestrator."
+                }
+              }
+            }
+          }
+        },
+        "cache_in_session": {
+          "type": "boolean",
+          "description": "ADR-203 §D4: cache local ao orchestrator durante uma única chamada LLM."
+        }
+      }
+    },
+
+    "tier_policy": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Política declarativa de visibilidade por tier (ADR-208). Campos abertos para evolução; orchestrator interpreta as chaves canônicas (diagnostico_geral, pontos_fortes_count, riscos_count, riscos_filter, sugestoes, metricas, notas_metodologicas, teaser_riscos_oculto, all)."
+    }
+  }
+}

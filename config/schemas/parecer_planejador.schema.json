@@ -1,0 +1,539 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mathoms.ai/schemas/parecer_planejador/v1.0.json",
+  "title": "Parecer do Planejador (E6) — output schema",
+  "description": "Schema canônico do artefato parecer_planejador-6_parecer.json emitido pelo stage `parecer_planejador` (ADR-199). Invariantes de contrato com downstream: enums fechados (severidade, prioridade, confianca, ancora_metodologica, tema_canonico, frequencia_revisao), hard caps (ADR-202 §D5), regex anti-ticker no body textual (validado também em pipeline/domain/services/parecer_generator.py — Draft-2020-12 não cobre regex negativa em arrays profundamente nested de forma confiável), impacto_estimado restrito a confianca='alta' (ADR-202 §D6), suggestion_dedup_key estável (ADR-153 emissão de Suggestion), telemetria M4 (campos_faltantes_pediria_se_iterasse) alimentando ADR-206. `additionalProperties: false` em todos os objects (W6-T01 PLATFORM_REVIEW — não repetir o débito do E5).",
+
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "metadata",
+    "diagnostico_geral",
+    "pontos_fortes",
+    "riscos",
+    "sugestoes_execucao",
+    "sugestoes_taticas",
+    "sugestoes_estrategicas",
+    "metricas",
+    "notas_metodologicas"
+  ],
+
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$",
+      "description": "Schema version semver (bump na mudança breaking; persiste em _meta para evolução)."
+    },
+
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "persona_hash",
+        "manifest_version",
+        "model_id",
+        "tier_at_generation",
+        "generated_at"
+      ],
+      "properties": {
+        "persona_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "sha256 do conteúdo da persona (config/agents/planner_persona.md) no momento da geração — auditoria (ADR-201)."
+        },
+        "manifest_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$",
+          "description": "Versão do manifest declarativo (config/prompts/parecer_planejador.yaml top-level `version`) — ADR-200."
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identificador do modelo LiteLLM (ex.: 'anthropic/claude-sonnet-4.5'). Pin de snapshot quando disponível — ADR-024."
+        },
+        "tier_at_generation": {
+          "type": "string",
+          "enum": ["free", "premium"],
+          "description": "Tier do workspace no momento da geração — ADR-208 gating freemium."
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp ISO 8601 (UTC, com offset). Persistido no aggregate PlannerReview."
+        }
+      }
+    },
+
+    "diagnostico_geral": {
+      "type": "string",
+      "minLength": 50,
+      "maxLength": 500,
+      "description": "Texto curto orientativo (1-3 frases) que ancora o leitor no estado financeiro. Sigilo §13 enforçado pelo validador anti-token em parecer_generator.py (ADR-207 camada 2)."
+    },
+
+    "pontos_fortes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 6,
+      "description": "Pontos fortes da família (3-6 items). Hard cap evita 'parecer monstro' (ADR-202 §D5).",
+      "items": {"$ref": "#/$defs/ponto_forte"}
+    },
+
+    "riscos": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 12,
+      "description": "Riscos identificados, ordenados por severidade. Hard cap 12 (ADR-202 §D5). Free tier expõe apenas 1 (severidade máxima) via to_tier_filtered_dto — ADR-208.",
+      "items": {"$ref": "#/$defs/risco"}
+    },
+
+    "sugestoes_execucao": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 5,
+      "description": "Sugestões com horizonte 4 semanas. Hard cap 5; total agregado dos 3 horizontes limitado por validator Python (`validate_p0_cap` — count P0 ≤ 2 no agregado).",
+      "items": {"$ref": "#/$defs/sugestao"}
+    },
+
+    "sugestoes_taticas": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 5,
+      "description": "Sugestões com horizonte 3-12 meses. Hard cap 5.",
+      "items": {"$ref": "#/$defs/sugestao"}
+    },
+
+    "sugestoes_estrategicas": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 5,
+      "description": "Sugestões com horizonte 12+ meses. Hard cap 5.",
+      "items": {"$ref": "#/$defs/sugestao"}
+    },
+
+    "metricas": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 10,
+      "description": "KPIs-alvo que a família deve acompanhar. Hard cap 10 (ADR-202 §D5).",
+      "items": {"$ref": "#/$defs/metrica"}
+    },
+
+    "notas_metodologicas": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 5,
+      "description": "Notas breves explicando o raciocínio. Sigilo §13: termos 'Perini', 'Cerbasi', 'AUVP' rejeitados no body textual (ADR-207).",
+      "items": {"$ref": "#/$defs/nota_metodologica"}
+    },
+
+    "campos_faltantes_pediria_se_iterasse": {
+      "type": "array",
+      "maxItems": 20,
+      "description": "Telemetria M4 (ADR-206 §D2): JSONPaths que o LLM teria pedido se pudesse iterar. Alimenta tabela planner_field_requests. Pode ser ausente quando LLM não declara nada.",
+      "items": {"$ref": "#/$defs/campo_faltante"}
+    },
+
+    "_meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Metadata gerado pelo stage (não pelo LLM): tool_trace de auditoria (ADR-203 §D5), métricas de custo/latência (FinOps PR-3), tier filtering counts (ADR-208 §D3). Persistido no aggregate PlannerReview.",
+      "required": [
+        "tool_trace",
+        "cost_usd",
+        "tokens_in",
+        "tokens_out",
+        "latency_ms",
+        "tool_iterations"
+      ],
+      "properties": {
+        "tool_trace": {
+          "type": "array",
+          "description": "Audit trail das chamadas de tool (ADR-203 §D5). Array vazio quando LLM não invocou tool.",
+          "items": {"$ref": "#/$defs/tool_trace_entry"}
+        },
+        "cost_usd": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Custo total da chamada LLM em USD (pipeline_run_costs — PR-3)."
+        },
+        "tokens_in": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Tokens de input (system + user + tool responses)."
+        },
+        "tokens_out": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Tokens de output."
+        },
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Latência wall-clock end-to-end do stage (não inclui cache hit)."
+        },
+        "tool_iterations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6,
+          "description": "Quantas iterações tool→LLM→tool ocorreram. Hard cap 6 (ADR-203 §D2)."
+        },
+        "items_shown_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "ADR-208 §D3 instrumentação: items visíveis ao usuário pós tier-filter."
+        },
+        "items_gated_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "ADR-208 §D3 instrumentação: items trancados pelo tier-filter."
+        },
+        "cache_hit": {
+          "type": "boolean",
+          "description": "Cache Redis hit (ADR-144 pattern). True = parecer reusado de geração anterior."
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "severidade": {
+      "type": "string",
+      "enum": ["Crítica", "Alta", "Média", "Baixa"],
+      "description": "Severidade do risco em ordem decrescente (ADR-202 §D3)."
+    },
+
+    "prioridade": {
+      "type": "string",
+      "enum": ["P0", "P1", "P2"],
+      "description": "Prioridade da sugestão. Invariante (validator Python): count(P0) ≤ 2 no agregado dos 3 horizontes (ADR-202 §D3). JSON Schema isolado não consegue contar across arrays."
+    },
+
+    "confianca": {
+      "type": "string",
+      "enum": ["alta", "media", "baixa"],
+      "description": "Confiança autoavaliada do LLM. 'impacto_estimado' (ADR-202 §D6) só permitido quando confianca='alta'."
+    },
+
+    "ancora_metodologica": {
+      "type": "string",
+      "enum": ["perini", "cerbasi", "auvp", "convergencia"],
+      "description": "Enum interno (4 valores) — LLM emite. NUNCA aparece em UI (ADR-207 sigilo §13). Frontend mapeia para tema_canonico via methodology_mapping."
+    },
+
+    "tema_canonico": {
+      "type": "string",
+      "enum": [
+        "Proteção",
+        "Alocação",
+        "Renda passiva",
+        "Liquidez",
+        "Custo tributário",
+        "Saúde de balanço",
+        "Diagnóstico de dados",
+        "Equilíbrio presente-futuro",
+        "Convergência metodológica"
+      ],
+      "description": "Enum user-facing (9 valores fechados — ADR-207 §D1). É derivado do par (ancora_metodologica, contexto) via mapping config/methodology_mapping.yaml. LLM pode emitir já resolvido (orchestrator valida coerência com mapping)."
+    },
+
+    "frequencia_revisao": {
+      "type": "string",
+      "enum": ["mensal", "trimestral", "semestral", "anual"],
+      "description": "Periodicidade sugerida para revisão da métrica."
+    },
+
+    "section_id": {
+      "type": "string",
+      "enum": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S7",
+        "S8",
+        "S_IRPF_RENDA",
+        "S_IRPF_OTIMIZACAO",
+        "S9",
+        "S10",
+        "S_parecer",
+        "plano_de_acao"
+      ],
+      "description": "ID de seção do report_layout.yaml. Coverage cross-ref entre manifest e layout via dev/check_planner_manifest_coverage.py. Apêndices (APP_A..APP_E) deliberadamente fora — não recebem SuggestionCallout."
+    },
+
+    "evidencia_path": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 255,
+      "pattern": "^\\$\\.[A-Za-z_0-9.\\[\\]*]+$",
+      "description": "JSONPath subset (sintaxe igual ao manifest DSL — ADR-200 §D1) apontando o campo do E5 que fundamenta o item. Validação de existência no schema E5 é responsabilidade do stage (Draft-2020-12 não resolve JSONPath)."
+    },
+
+    "suggestion_dedup_key": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "sha256 hex (64 chars) determinístico — mesma (workspace_id, ancora_metodologica, ação resumida normalizada) → mesma key. Gerado pelo stage (não pelo LLM). Alimenta Suggestion aggregate (ADR-153)."
+    },
+
+    "no_ticker_body": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "[A-Z]{4}\\d{1,2}|[A-Z]{4}11"
+      },
+      "description": "Body textual user-facing. Rejeita ticker brasileiro (4 letras + 1-2 dígitos; FII termina em 11). Parecer é orientativo metodológico, nunca recomendação de ativo específico (ADR-202 §D4). Validador Python aplica complementarmente para sigilo §13 (Perini/Cerbasi/AUVP) — fora do JSON Schema."
+    },
+
+    "ponto_forte": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["titulo", "descricao", "ancora_metodologica"],
+      "properties": {
+        "titulo": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120
+        },
+        "descricao": {"$ref": "#/$defs/no_ticker_body", "maxLength": 400},
+        "ancora_metodologica": {"$ref": "#/$defs/ancora_metodologica"},
+        "tema_canonico": {"$ref": "#/$defs/tema_canonico"},
+        "section_id": {"$ref": "#/$defs/section_id"}
+      }
+    },
+
+    "risco": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severidade",
+        "titulo",
+        "descricao",
+        "ancora_metodologica",
+        "tema_canonico",
+        "section_id"
+      ],
+      "properties": {
+        "severidade": {"$ref": "#/$defs/severidade"},
+        "titulo": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 140
+        },
+        "descricao": {"$ref": "#/$defs/no_ticker_body", "maxLength": 500},
+        "ancora_metodologica": {"$ref": "#/$defs/ancora_metodologica"},
+        "tema_canonico": {"$ref": "#/$defs/tema_canonico"},
+        "evidencia": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Frase curta apontando a evidência (ex.: 'Reserva atual cobre 2.1 meses de despesa essencial; alvo é 6+ meses')."
+        },
+        "evidencia_path": {"$ref": "#/$defs/evidencia_path"},
+        "section_id": {"$ref": "#/$defs/section_id"},
+        "confianca": {"$ref": "#/$defs/confianca"}
+      }
+    },
+
+    "impacto_estimado": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["valor_estimado_brl", "unidade", "caveat"],
+      "description": "ADR-202 §D6: estimativa indicativa de impacto financeiro. SÓ permitido quando confianca='alta' — invariante aplicada via validator Pydantic em pipeline/llm/schemas/parecer_planejador.py (JSON Schema isolado não condiciona shape ao valor de outro campo de forma confiável aqui).",
+      "properties": {
+        "valor_estimado_brl": {
+          "type": "number",
+          "description": "Valor em BRL (positivo = ganho; negativo = perda evitada). Frontend renderiza com <MonetaryValue/>."
+        },
+        "unidade": {
+          "type": "string",
+          "enum": ["ano", "mes"],
+          "description": "Janela temporal do impacto."
+        },
+        "caveat": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 240,
+          "description": "Disclaimer obrigatório descrevendo premissa/incerteza. UI mostra como tooltip."
+        }
+      }
+    },
+
+    "sugestao": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prioridade",
+        "acao",
+        "impacto_qualitativo",
+        "ancora_metodologica",
+        "tema_canonico",
+        "confianca",
+        "section_id",
+        "suggestion_dedup_key"
+      ],
+      "properties": {
+        "prioridade": {"$ref": "#/$defs/prioridade"},
+        "acao": {
+          "allOf": [
+            {"$ref": "#/$defs/no_ticker_body"},
+            {"minLength": 10, "maxLength": 280}
+          ],
+          "description": "Frase imperativa curta descrevendo o movimento. Sem citar ativo específico (ticker)."
+        },
+        "impacto_qualitativo": {
+          "allOf": [
+            {"$ref": "#/$defs/no_ticker_body"},
+            {"minLength": 10, "maxLength": 320}
+          ],
+          "description": "Por que essa ação importa. Linguagem descritiva, não prescritiva."
+        },
+        "ancora_metodologica": {"$ref": "#/$defs/ancora_metodologica"},
+        "tema_canonico": {"$ref": "#/$defs/tema_canonico"},
+        "confianca": {"$ref": "#/$defs/confianca"},
+        "section_id": {"$ref": "#/$defs/section_id"},
+        "suggestion_dedup_key": {"$ref": "#/$defs/suggestion_dedup_key"},
+        "impacto_estimado": {"$ref": "#/$defs/impacto_estimado"},
+        "evidencia_path": {"$ref": "#/$defs/evidencia_path"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["impacto_estimado"],
+            "properties": {"impacto_estimado": {"type": "object"}}
+          },
+          "then": {
+            "properties": {
+              "confianca": {"const": "alta"}
+            },
+            "description": "ADR-202 §D6: impacto_estimado só com confianca='alta'."
+          }
+        }
+      ]
+    },
+
+    "metrica": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nome", "valor_atual", "target", "frequencia_revisao", "section_id"],
+      "properties": {
+        "nome": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80
+        },
+        "valor_atual": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Valor atual formatado (orchestrator usa value_formatter compartilhado — ADR-203 §D8). Ex.: 'R$ 12,3k/mês', '4,7%', '6,2 meses'."
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Valor-alvo formatado."
+        },
+        "frequencia_revisao": {"$ref": "#/$defs/frequencia_revisao"},
+        "section_id": {"$ref": "#/$defs/section_id"},
+        "ancora_metodologica": {"$ref": "#/$defs/ancora_metodologica"},
+        "tema_canonico": {"$ref": "#/$defs/tema_canonico"}
+      }
+    },
+
+    "nota_metodologica": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["titulo", "conteudo", "ancoras_metodologicas"],
+      "properties": {
+        "titulo": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120
+        },
+        "conteudo": {
+          "allOf": [
+            {"$ref": "#/$defs/no_ticker_body"},
+            {"minLength": 20, "maxLength": 600}
+          ],
+          "description": "Body da nota. Sigilo §13 também enforçado pelo validador Python."
+        },
+        "ancoras_metodologicas": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/ancora_metodologica"},
+          "description": "Pode ser convergência (>1 metodologia) — registrar todas as âncoras envolvidas."
+        }
+      }
+    },
+
+    "campo_faltante": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field_path", "motivo"],
+      "description": "ADR-206 §D2 fonte primária de telemetria M4.",
+      "properties": {
+        "field_path": {"$ref": "#/$defs/evidencia_path"},
+        "motivo": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200,
+          "description": "Justificativa do LLM (ex.: 'Sem dado de yield bruto por imóvel, impossível comparar com CDI')."
+        }
+      }
+    },
+
+    "tool_trace_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iter", "tool", "input", "result_summary", "latency_ms", "cache_hit"],
+      "description": "Entry do audit trail de tool use (ADR-203 §D5). result_summary é metadata; valor cru NÃO persiste (privacy by construction).",
+      "properties": {
+        "iter": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "tool": {
+          "type": "string",
+          "enum": ["get_e5_section", "get_e5_jsonpath"]
+        },
+        "input": {
+          "type": "object",
+          "description": "Args passados à tool (string 'section' ou 'path'). Não persistir PII de valor.",
+          "additionalProperties": false,
+          "properties": {
+            "section": {"type": "string"},
+            "path": {"type": "string"}
+          }
+        },
+        "result_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["found"],
+          "properties": {
+            "found": {"type": "boolean"},
+            "type": {
+              "type": "string",
+              "description": "Tipo Python do valor retornado (str, int, dict, list…) — só metadata."
+            },
+            "reason": {
+              "type": "string",
+              "enum": ["path_not_whitelisted", "value_null", "value_absent"],
+              "description": "Quando found=false (ADR-203 §D7)."
+            }
+          }
+        },
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cache_hit": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

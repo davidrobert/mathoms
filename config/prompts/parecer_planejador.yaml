@@ -1,0 +1,407 @@
+# ==============================================================================
+# Parecer do Planejador (E6) — manifest declarativo F5 (ADR-200)
+# ==============================================================================
+# Espelha o pattern de config/prompts/section_summaries.yaml (ADR-144).
+# Define a projeção do E5 (analise_financeira-5_analysis.json) que vira
+# exec context destilado do parecer + tools de drill-down (ADR-203).
+#
+# DSL declarativa pura:
+#   - JSONPath subset: $.field, $.nested.field, $.array[*].field
+#   - Proibido: $..*, $..[?(...)], filtros, regex em path
+#   - Format hints fechados: raw | brl | pct | percent2 | int | string | iso_date
+#   - Null/empty/missing policies: skip | placeholder | error
+#   - SEM Jinja, SEM {{}}, SEM if/when (CTO ADR-200 §4)
+#
+# Coverage gate (dev/check_planner_manifest_coverage.py) cruza:
+#   1. Paths daqui ↔ schema E5 (config/schemas/e5_analysis.schema.json)
+#   2. aligned_with_layout ↔ section_ids em config/report_layout.yaml
+#   3. Snapshot do schema E5 (dev/snapshots/e5_schema_hash.txt) — drift warning
+#
+# Schema deste arquivo: docs/_schemas/note-planner.schema.json.
+#
+# Bump de `version`:
+#   - manifest_version registra-se no aggregate PlannerReview (auditoria)
+#   - cache Redis tem manifest_version na chave (bump invalida)
+#   - ADR breaking quando DSL muda; tunning de paths/labels é editorial
+# ==============================================================================
+
+version: "1.0"
+output_schema: "config/schemas/parecer_planejador.schema.json"
+input_schema_ref: "config/schemas/e5_analysis.schema.json"
+
+# ------------------------------------------------------------------------------
+# Persona (ADR-201) — orchestrator lê, hash registrado no aggregate
+# ------------------------------------------------------------------------------
+persona:
+  path: "config/agents/planner_persona.md"
+  required_frontmatter_fields:
+    - id
+    - version
+    - methodology_anchors
+    - persona_hash
+
+# ------------------------------------------------------------------------------
+# Hints globais (registro consultivo) — aplicáveis a todas as seções
+# ------------------------------------------------------------------------------
+narrative_hints_global:
+  - "Sigilo §13: NUNCA cite 'Perini', 'Cerbasi', 'AUVP', 'Bruno Perini', 'Gustavo Cerbasi', 'Raul Sena' no body textual. Use ancora_metodologica (enum interno) para indicar a metodologia."
+  - "NUNCA prescreva ativo específico (ticker). Parecer é orientativo metodológico, não recomendação de investimento."
+  - "Quando confiança não for 'alta', evite linguagem prescritiva — descreva o quê, não o porquê especulado."
+  - "Cite apenas números/categorias/fatos presentes no exec context ou retornados por tool. Se faltar, declare em campos_faltantes_pediria_se_iterasse."
+
+# ==============================================================================
+# CONTEXT SECTIONS — projeção do E5 → exec context destilado
+# ==============================================================================
+# Ordem importa (espelha a ordem do relatório). NÃO incluímos:
+#   - S_parecer: é OUTPUT, não input (não pode auto-referenciar)
+#   - narrativas do E5: LLM-on-LLM amplifica erro (DE-I.8)
+#   - APP_A..E: apêndices não recebem SuggestionCallout
+# ==============================================================================
+context_sections:
+
+  # --------------------------------------------------------------------------
+  # 1) Patrimônio (S1) — composição + saúde estrutural
+  # --------------------------------------------------------------------------
+  - id: "patrimonio"
+    title: "Patrimônio e Composição"
+    aligned_with_layout: "S1"
+    blocks:
+      - format: "key_value"
+        title: "Visão geral"
+        fields:
+          - path: "$.patrimonio.bruto"
+            label: "Bruto"
+            format: "brl"
+            on_null: "placeholder"
+          - path: "$.patrimonio.liquido"
+            label: "Líquido"
+            format: "brl"
+            on_null: "placeholder"
+      - format: "table"
+        title: "Alocação por classe (investível)"
+        path: "$.investimentos.tabela_classes[*]"
+        columns:
+          - {path: "categoria", label: "Classe", format: "raw"}
+          - {path: "valor", label: "Valor", format: "brl"}
+          - {path: "pct", label: "%", format: "percent2"}
+        max_rows: 10
+      - format: "scalar"
+        title: "Total investível"
+        path: "$.investimentos.total"
+        label: "Total"
+        value_format: "brl"
+        on_null: "skip"
+    narrative_hints:
+      - "Destaque concentração se max(pct) > 50% em uma única classe."
+      - "Diferencie residência (não gera renda) de imóveis de investimento — não comente residência como investimento."
+
+  # --------------------------------------------------------------------------
+  # 2) Fluxo de caixa (S2) — dinâmica do período
+  # --------------------------------------------------------------------------
+  - id: "fluxo_caixa"
+    title: "Fluxo de Caixa"
+    aligned_with_layout: "S2"
+    blocks:
+      - format: "scalar"
+        path: "$.fluxo_caixa"
+        label: "Bloco fluxo_caixa do E5"
+        value_format: "raw"
+        on_null: "error"
+      - format: "scalar"
+        path: "$.consumo_consciente"
+        label: "Diagnóstico de consumo consciente"
+        value_format: "raw"
+        on_null: "skip"
+    narrative_hints:
+      - "Ancore na taxa de poupança e no sinal comportamental dominante (consumo consciente)."
+      - "Se houver desvio relevante de categoria (despesa fora de teto), mencione qual."
+
+  # --------------------------------------------------------------------------
+  # 3) Investimentos (S3) — alocação atual + ranking
+  # --------------------------------------------------------------------------
+  - id: "investimentos"
+    title: "Investimentos — Carteira Financeira"
+    aligned_with_layout: "S3"
+    blocks:
+      - format: "table"
+        title: "Top ativos (até 15)"
+        path: "$.investimentos.top_ativos[*]"
+        columns:
+          - {path: "posicao", label: "#", format: "int"}
+          - {path: "classe", label: "Classe", format: "raw"}
+          - {path: "nome", label: "Ativo", format: "raw"}
+          - {path: "membro", label: "Membro", format: "raw"}
+          - {path: "valor", label: "Valor", format: "brl"}
+          - {path: "pct_carteira", label: "% carteira", format: "percent2"}
+        max_rows: 15
+      - format: "scalar"
+        path: "$.investimentos.n_imoveis_total"
+        label: "Imóveis cadastrados (residência + investimento)"
+        value_format: "int"
+        on_null: "skip"
+    narrative_hints:
+      - "Ancore no gap entre atual e alvo da família — qual classe está sub ou sobrealocada."
+      - "Não recomende ativo específico. Comente o comportamento da carteira."
+
+  # --------------------------------------------------------------------------
+  # 4) Reserva de emergência + endividamento (entra junto com S1 mas é bloco
+  #    estrutural separado no E5)
+  # --------------------------------------------------------------------------
+  - id: "saude_balanco"
+    title: "Saúde de Balanço — Reserva e Dívidas"
+    aligned_with_layout: "S1"
+    blocks:
+      - format: "scalar"
+        path: "$.reserva_emergencia"
+        label: "Bloco reserva_emergencia do E5"
+        value_format: "raw"
+        on_null: "placeholder"
+      - format: "scalar"
+        path: "$.endividamento"
+        label: "Bloco endividamento do E5"
+        value_format: "raw"
+        on_null: "placeholder"
+    narrative_hints:
+      - "Reserva < 6 meses → risco severidade Alta no mínimo."
+      - "Endividamento > 30% do bruto → risco severidade Crítica."
+
+  # --------------------------------------------------------------------------
+  # 5) Ratios + rentabilidade (S1/S3 — leitura cruzada)
+  # --------------------------------------------------------------------------
+  - id: "ratios"
+    title: "Indicadores e Rentabilidade"
+    aligned_with_layout: "S3"
+    blocks:
+      - format: "scalar"
+        path: "$.ratios.rentabilidade"
+        label: "Rentabilidade (TRS efetiva + contexto — ADR-191)"
+        value_format: "raw"
+        on_null: "skip"
+      - format: "scalar"
+        path: "$.ratios"
+        label: "Bloco ratios completo"
+        value_format: "raw"
+        on_null: "error"
+    narrative_hints:
+      - "Se status='sem_irpf' ou 'gerador_zero', NÃO compare com meta — sinalize a indisponibilidade."
+
+  # --------------------------------------------------------------------------
+  # 6) Independência financeira (S7) — projeção + Monte Carlo + cenários cônjuge
+  # --------------------------------------------------------------------------
+  - id: "independencia_financeira"
+    title: "Independência Financeira — Projeção"
+    aligned_with_layout: "S7"
+    blocks:
+      - format: "scalar"
+        path: "$.if_monte_carlo"
+        label: "Projeção IF (Monte Carlo)"
+        value_format: "raw"
+        on_null: "skip"
+      - format: "scalar"
+        path: "$.cenarios_conjuge"
+        label: "Cenário 'Sem renda do cônjuge' (ADR-166)"
+        value_format: "raw"
+        on_null: "skip"
+      - format: "scalar"
+        path: "$.passive_income"
+        label: "Renda passiva projetada"
+        value_format: "raw"
+        on_null: "skip"
+    narrative_hints:
+      - "Ao citar prazo, mencione que é projeção sob premissa de retorno real do payload — não invente a taxa."
+      - "Cenários cônjuge ausentes (objeto vazio) = workspace solteiro ou casal sem meta IF; não force narrativa."
+
+  # --------------------------------------------------------------------------
+  # 7) Previdência + IRPF (S8 / S_IRPF_RENDA / S_IRPF_OTIMIZACAO)
+  # --------------------------------------------------------------------------
+  - id: "previdencia_irpf"
+    title: "Previdência e Eficiência Fiscal"
+    aligned_with_layout: "S8"
+    blocks:
+      - format: "scalar"
+        path: "$.previdencia_pgbl"
+        label: "Análise PGBL"
+        value_format: "raw"
+        on_null: "skip"
+      - format: "scalar"
+        path: "$.irpf_kpis"
+        label: "KPIs IRPF (alíquota efetiva, deduções, dependentes)"
+        value_format: "raw"
+        on_null: "skip"
+    narrative_hints:
+      - "Não opine sobre qual regime tributário escolher — descreva o atual e o gap em relação ao desenho-alvo."
+      - "Pendência regulatória (FBAR/8938 atrasada, contador sem definição) → risco severidade Alta."
+
+  # --------------------------------------------------------------------------
+  # 8) Riscos e proteção (S9)
+  # --------------------------------------------------------------------------
+  - id: "riscos_protecao"
+    title: "Riscos e Proteção"
+    aligned_with_layout: "S9"
+    blocks:
+      - format: "scalar"
+        path: "$.alertas"
+        label: "Alertas estruturais (array)"
+        value_format: "raw"
+        on_null: "skip"
+    narrative_hints:
+      - "Não prescreva apólice ou seguradora — descreva o gap."
+      - "Sem linguagem alarmista. Severidade comunica o peso."
+
+  # --------------------------------------------------------------------------
+  # 9) Síntese determinística (S10) + comportamento — leitura de conjunto
+  # --------------------------------------------------------------------------
+  - id: "sintese"
+    title: "Síntese e Comportamento"
+    aligned_with_layout: "S10"
+    blocks:
+      - format: "key_value"
+        title: "Score"
+        fields:
+          - path: "$.score.valor"
+            label: "Valor (0-10)"
+            format: "raw"
+          - path: "$.score.classificacao"
+            label: "Classificação"
+            format: "string"
+      - format: "scalar"
+        path: "$.pontos_fortes"
+        label: "Pontos fortes determinísticos (array — referência, não duplique)"
+        value_format: "raw"
+        on_null: "skip"
+      - format: "scalar"
+        path: "$.pontos_urgentes"
+        label: "Pontos urgentes determinísticos (array — referência)"
+        value_format: "raw"
+        on_null: "skip"
+      - format: "scalar"
+        path: "$.equilibrio_cerbasi"
+        label: "Equilíbrio presente-futuro (ancora cerbasi)"
+        value_format: "raw"
+        on_null: "skip"
+      - format: "scalar"
+        path: "$.diagnostico_comportamental"
+        label: "Diagnóstico comportamental (array)"
+        value_format: "raw"
+        on_null: "skip"
+    narrative_hints:
+      - "Não duplique pontos_fortes determinísticos no output — re-priorize sob ótica metodológica e cite só os 3-6 mais relevantes."
+      - "Score baixo (< 5) força ao menos 1 risco severidade Crítica no output."
+
+  # --------------------------------------------------------------------------
+  # 10) Plano de ação (S11 / plano_de_acao) — referência ao operating system
+  #     já em produção (Suggestion → Task → Decision)
+  # --------------------------------------------------------------------------
+  - id: "plano_acao_atual"
+    title: "Plano de Ação Atual"
+    aligned_with_layout: "plano_de_acao"
+    blocks:
+      - format: "scalar"
+        path: "$.tarefas"
+        label: "Tarefas (array — operating system Suggestion/Task)"
+        value_format: "raw"
+        on_null: "skip"
+      - format: "scalar"
+        path: "$.tarefas_status"
+        label: "Status agregado das tarefas"
+        value_format: "raw"
+        on_null: "skip"
+      - format: "scalar"
+        path: "$.goals"
+        label: "Metas registradas"
+        value_format: "raw"
+        on_null: "skip"
+    narrative_hints:
+      - "Sugestões P0 devem alimentar Suggestion(origin='llm') com dedup_key estável — evite repetir sugestão já viva no plano de ação."
+
+# ==============================================================================
+# DRILL-DOWN TOOLS (ADR-203)
+# ==============================================================================
+tools:
+
+  - name: "get_e5_section"
+    description: |
+      Lê uma chave top-level do E5 quando o contexto destilado for insuficiente.
+      Use quando precisar de uma seção inteira (ex.: 'irpf_kpis' completo).
+      Retorna {"found": true, "value": <objeto>} ou {"found": false, "reason": "..."}.
+    args_schema:
+      section:
+        type: "string"
+        enum:
+          - "periodo_dados"
+          - "data_analise"
+          - "score"
+          - "patrimonio"
+          - "fluxo_caixa"
+          - "ratios"
+          - "goals"
+          - "orcamento_prospectivo"
+          - "reserva_emergencia"
+          - "endividamento"
+          - "previdencia_pgbl"
+          - "pontos_fortes"
+          - "pontos_urgentes"
+          - "equilibrio_cerbasi"
+          - "tarefas"
+          - "tarefas_status"
+          - "alertas"
+          - "consumo_consciente"
+          - "diagnostico_comportamental"
+          - "programa_milhas"
+          - "irpf_kpis"
+          - "passive_income"
+          - "if_monte_carlo"
+          - "cenarios_conjuge"
+          - "investimentos"
+    cache_in_session: true
+
+  - name: "get_e5_jsonpath"
+    description: |
+      Lê path arbitrário do E5 quando precisar de granularidade abaixo de seção.
+      Subset JSONPath: $.field, $.nested.field, $.array[*].field. Whitelist
+      derivada do schema E5 — paths fora retornam {"found": false,
+      "reason": "path_not_whitelisted"}.
+    args_schema:
+      path:
+        type: "string"
+        pattern: "^\\$\\.[A-Za-z_0-9.\\[\\]*]+$"
+    cache_in_session: true
+
+# ==============================================================================
+# GUARDRAILS (ADR-203 §D2/§D3)
+# ==============================================================================
+max_tool_iterations: 6
+max_total_input_tokens: 50000
+max_exec_context_bytes: 5120  # ~5KB hard limit base (pré tool calls)
+
+# ==============================================================================
+# HARD CAPS (ADR-202 §D5)
+# ==============================================================================
+# Referência declarativa. Source-of-truth autoritativa é o output schema
+# (config/schemas/parecer_planejador.schema.json). Orchestrator valida ambos.
+# ==============================================================================
+hard_caps:
+  riscos: 12
+  sugestoes_por_horizonte: 5
+  metricas: 10
+  p0_total: 2
+
+# ==============================================================================
+# GATING FREEMIUM (ADR-208)
+# ==============================================================================
+# Referência declarativa. Lógica de filtragem é aplicada pelo orchestrator em
+# to_tier_filtered_dto() ANTES de serializar (D1 ADR-208) — backend filtra,
+# nunca o frontend.
+# ==============================================================================
+gating:
+  free:
+    diagnostico_geral: true
+    pontos_fortes_count: 3
+    riscos_count: 1
+    riscos_filter: "severidade_maxima"
+    sugestoes: false
+    metricas: false
+    notas_metodologicas: false
+    teaser_riscos_oculto: true  # CTA "+14 riscos no Premium"
+  premium:
+    all: true

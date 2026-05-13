@@ -128,6 +128,17 @@ repos:
         pass_filenames: false
         files: '^(config/report_layout\.yaml|config/schemas/report_layout\.schema\.json|frontend/src/generated/report-layout\.ts|backend/app/generated/report_layout\.py)$'
 
+      - id: planner-manifest-coverage
+        # ADR-200 §D3 (M1) + ADR-206 §6 (snapshot drift):
+        # manifest do parecer ↔ E5 schema ↔ report_layout em sync.
+        # Snapshot baseline em dev/snapshots/e5_schema_hash.txt — regen
+        # com `python3 dev/check_planner_manifest_coverage.py --update-snapshot`.
+        name: "Manifest do parecer planejador em sync com E5 schema + report_layout (ADR-200)"
+        entry: python3 dev/check_planner_manifest_coverage.py
+        language: system
+        pass_filenames: false
+        files: '^(config/prompts/parecer_planejador\.yaml|config/schemas/parecer_planejador\.schema\.json|config/schemas/e5_analysis\.schema\.json|config/report_layout\.yaml|docs/_schemas/note-planner\.schema\.json|dev/check_planner_manifest_coverage\.py|dev/snapshots/e5_schema_hash\.txt)$'
+
       - id: code-style-baseline
         # ADR-114 / A6g.6 slice 5 — gate de regressão das categorias do
         # audit. Roda quando py/ts/tsx mudam (mesmo set de arquivos que
