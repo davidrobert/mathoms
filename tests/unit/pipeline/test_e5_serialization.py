@@ -72,7 +72,7 @@ class TestSanityChecks:
         warnings = run_sanity_checks(
             patrimonio={"bruto": 1_000_000},
             fluxo={"receita_total": 100_000, "despesa_total": 60_000},
-            ratios={"taxa_poupanca_recorrente_pct": 40, "endividamento_pct": 10},
+            ratios={"taxa_poupanca_recorrente_pct": 40, "taxa_endividamento_pct": 10},
             goals={"if_pct": 20},
             score={"valor": 7.5},
         )
@@ -82,7 +82,7 @@ class TestSanityChecks:
         warnings = run_sanity_checks(
             patrimonio={"bruto": -100},
             fluxo={"receita_total": 0, "despesa_total": 0},
-            ratios={"taxa_poupanca_recorrente_pct": 0, "endividamento_pct": 0},
+            ratios={"taxa_poupanca_recorrente_pct": 0, "taxa_endividamento_pct": 0},
             goals={"if_pct": 0},
             score={"valor": 5},
         )
@@ -125,11 +125,39 @@ class TestSanityChecks:
         warnings = run_sanity_checks(
             patrimonio={"bruto": 1000},
             fluxo={"receita_total": 0, "despesa_total": 0},
+            ratios={"taxa_endividamento_pct": 250, "taxa_poupanca_recorrente_pct": 0},
+            goals={},
+            score={"valor": 5},
+        )
+        assert any(w.field == "ratios.taxa_endividamento_pct" for w in warnings)
+
+    def test_endividamento_usa_chave_canonica_do_ratios_calculator(self):
+        # Regressão: warning lia chave órfã `endividamento_pct`, sempre-0 silencioso.
+        from pipeline.domain.services.ratios_calculator import FinancialRatios
+
+        ratios = FinancialRatios(0.0, 0.0, 250.0, 0.0).to_legacy_dict()
+        warnings = run_sanity_checks(
+            patrimonio={"bruto": 1000},
+            fluxo={"receita_total": 0, "despesa_total": 0},
+            ratios=ratios,
+            goals={},
+            score={"valor": 5},
+        )
+        assert any(w.field == "ratios.taxa_endividamento_pct" for w in warnings)
+
+    def test_endividamento_chave_orfa_legada_nao_dispara(self):
+        """Regressão — proteção explícita contra reintrodução do bug:
+        chave legada `endividamento_pct` (sem prefixo `taxa_`) NÃO deve
+        ser lida; only the canonical `taxa_endividamento_pct` is honored.
+        """
+        warnings = run_sanity_checks(
+            patrimonio={"bruto": 1000},
+            fluxo={"receita_total": 0, "despesa_total": 0},
             ratios={"endividamento_pct": 250, "taxa_poupanca_recorrente_pct": 0},
             goals={},
             score={"valor": 5},
         )
-        assert any(w.field == "ratios.endividamento_pct" for w in warnings)
+        assert not any("endividamento" in w.field for w in warnings)
 
     def test_score_fora_range(self):
         warnings = run_sanity_checks(
