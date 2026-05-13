@@ -3,6 +3,7 @@ id: MOC-sprint-a9
 type: moc
 title: Sprint A9 — Multi-front improvements
 aliases: ["A9", "Sprint A9"]
+sprint_status: done
 ---
 
 # Sprint A9 — Multi-front improvements (2026-05-05)

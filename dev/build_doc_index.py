@@ -17,6 +17,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DOCS = REPO_ROOT / "docs"
 GENERATED_DIR = DOCS / "_MOC" / "_generated"
 
+# Valores permitidos de `sprint_status` no frontmatter de docs/sprint/<X>/_README.md.
+# Apenas 1 MOC pode declarar `current`; validador em check_doc_links/--check garante.
+_SPRINT_MOC_ID_RE = re.compile(r"^MOC-sprint-(?P<sprint>[a-z]+\d+)$")
+_VALID_SPRINT_STATUSES: frozenset[str] = frozenset({"current", "candidate", "done"})
+
 # Diretórios da vault que NÃO devem ser indexados.
 # Inclui o próprio output do codegen (evita auto-referência) e legados que
 # permanecem como Markdown plano durante a transição (Fases 2-5 do plano).
@@ -194,11 +199,65 @@ def _available_sprint_dirs(docs_root: Path) -> set[str]:
     }
 
 
+def _iter_sprint_mocs(notes: list[Note]):
+    """Yields (sprint_id_upper, declared_status_or_None, note) para cada MOC `MOC-sprint-<x>`."""
+    for note in notes:
+        if note.type != "moc":
+            continue
+        match = _SPRINT_MOC_ID_RE.match(note.id)
+        if not match:
+            continue
+        yield match.group("sprint").upper(), note.raw.get("sprint_status"), note
+
+
+def _collect_sprint_statuses(notes: list[Note]) -> dict[str, str]:
+    """Mapeia sprint_id → sprint_status válido declarado no MOC (silently ignora valor inválido)."""
+    return {
+        sprint_id: declared
+        for sprint_id, declared, _note in _iter_sprint_mocs(notes)
+        if isinstance(declared, str) and declared in _VALID_SPRINT_STATUSES
+    }
+
+
+def _validate_sprint_status_value(sprint_id: str, declared, note: Note) -> str | None:
+    """Erro se `declared` não é None e está fora do vocabulário; senão None."""
+    if declared is None or (isinstance(declared, str) and declared in _VALID_SPRINT_STATUSES):
+        return None
+    return (
+        f"{_rel_path(note)}: sprint_status={declared!r} fora do vocabulário "
+        f"{sorted(_VALID_SPRINT_STATUSES)}"
+    )
+
+
+def _multi_current_error(current_sprints: list[str]) -> str:
+    """Erro formatado quando 2+ sprints declaram `sprint_status: current`."""
+    return (
+        f"múltiplas sprints com sprint_status=current: {sorted(current_sprints)}. "
+        "Apenas 1 sprint pode ser corrente; mude as demais para 'candidate' ou 'done' "
+        "nos respectivos docs/sprint/<X>/_README.md."
+    )
+
+
+def validate_sprint_statuses(notes: list[Note]) -> list[str]:
+    """Retorna lista de erros: 2+ sprints `current`, ou status fora do vocabulário."""
+    triples = list(_iter_sprint_mocs(notes))
+    errors = [
+        err
+        for sprint_id, declared, note in triples
+        if (err := _validate_sprint_status_value(sprint_id, declared, note)) is not None
+    ]
+    current_sprints = [sid for sid, declared, _ in triples if declared == "current"]
+    if len(current_sprints) > 1:
+        errors.append(_multi_current_error(current_sprints))
+    return errors
+
+
 def build_sprint_current_md(notes: list[Note]) -> str:
     """Gera SPRINT_CURRENT.md — lanes ready/open/in_progress da sprint corrente."""
     lanes = [n for n in notes if n.type == "lane"]
     available = _available_sprint_dirs(DOCS)
-    return _join(render_sprint_current(lanes, available, _header))
+    statuses = _collect_sprint_statuses(notes)
+    return _join(render_sprint_current(lanes, available, _header, statuses))
 
 
 def build_changelog_recent_md(notes: list[Note]) -> str:
@@ -279,6 +338,11 @@ def check_drift(docs_root: Path) -> tuple[bool, list[tuple[str, str]]]:
     return bool(drifted), drifted
 
 
+def _check_sprint_statuses(docs_root: Path) -> list[str]:
+    """Valida `sprint_status` dos MOCs (1 max com `current`, vocabulário fechado)."""
+    return validate_sprint_statuses(collect_notes(docs_root))
+
+
 def _print_drift(drifted: list[tuple[str, str]]) -> None:
     """Imprime mensagem de erro + diffs em stderr."""
     print(
@@ -299,6 +363,12 @@ def _run_check() -> int:
             file=sys.stderr,
         )
         return 1
+    status_errors = _check_sprint_statuses(DOCS)
+    if status_errors:
+        print("✗ sprint_status inválido em docs/sprint/<X>/_README.md:", file=sys.stderr)
+        for err in status_errors:
+            print(f"  - {err}", file=sys.stderr)
+        return 1
     has_drift, drifted = check_drift(DOCS)
     if not has_drift:
         print("✓ docs/_MOC/_generated/ sincronizado com a vault.")
@@ -308,6 +378,12 @@ def _run_check() -> int:
 
 
 def _run_inline() -> int:
+    status_errors = _check_sprint_statuses(DOCS)
+    if status_errors:
+        print("✗ sprint_status inválido em docs/sprint/<X>/_README.md:", file=sys.stderr)
+        for err in status_errors:
+            print(f"  - {err}", file=sys.stderr)
+        return 1
     expected = regenerate_all(DOCS)
     changed = write_files(GENERATED_DIR, expected)
     if changed:
@@ -320,7 +396,8 @@ def _run_inline() -> int:
 def _build_sprint_current_in_memory(notes: list[Note]) -> str:
     """Variant de build_sprint_current_md sem IO de disco (usada por smoke tests)."""
     lanes = [n for n in notes if n.type == "lane"]
-    return _join(render_sprint_current(lanes, set(), _header))
+    statuses = _collect_sprint_statuses(notes)
+    return _join(render_sprint_current(lanes, set(), _header, statuses))
 
 
 def _build_changelog_recent_with_today(entries: list[Note], today) -> str:

@@ -3,6 +3,7 @@ id: MOC-sprint-a12
 type: moc
 title: Sprint A12 — Categorization learning loop + post-A11 follow-up
 aliases: ["A12", "Sprint A12"]
+sprint_status: candidate
 ---
 
 # Sprint A12 — Categorization learning loop + post-A11 follow-up (origem 2026-05-10)

@@ -90,6 +90,24 @@ def _make_test_plan(
     )
 
 
+def _make_test_sprint_moc(note_cls: type, *, sprint: str, sprint_status: str | None = None):
+    """Helper para construir Note MOC `MOC-sprint-<x>` in-memory (testa sprint_status)."""
+    id_ = f"MOC-sprint-{sprint.lower()}"
+    title = f"Sprint {sprint}"
+    raw: dict[str, Any] = {"id": id_, "type": "moc", "title": title}
+    if sprint_status is not None:
+        raw["sprint_status"] = sprint_status
+    return note_cls(
+        path=DOCS / f"sprint/{sprint}/_README.md",
+        id=id_,
+        type="moc",
+        status="",
+        title=title,
+        tags=(),
+        raw=raw,
+    )
+
+
 def _make_test_lane(
     note_cls: type,
     *,
@@ -374,7 +392,8 @@ _OPTIONAL_GROUP_LABELS: dict[str, str] = {
     "plan": ", plan-empty, plan-rich, plan-idemp, plan-with-lanes, plan-status-order",
     "sprint": (
         ", sprint-no-lanes, sprint-ready, sprint-picks-max, "
-        "sprint-letter-priority, sprint-wave-agg, sprint-empty-status, sprint-idemp"
+        "sprint-letter-priority, sprint-wave-agg, sprint-empty-status, sprint-idemp, "
+        "sprint-declared-wins, sprint-fallback-heuristic"
     ),
     "changelog": (
         ", changelog-empty, changelog-today, changelog-old-filtered, "
@@ -402,7 +421,7 @@ def _maybe_run_sprint_tests(sprint_build_fn, note_cls: type) -> tuple[list[str],
         from _test_sprint_current_smoke import run_sprint_smoke_tests
     except ModuleNotFoundError:  # pragma: no cover
         from dev._test_sprint_current_smoke import run_sprint_smoke_tests
-    return run_sprint_smoke_tests(sprint_build_fn, note_cls), 7
+    return run_sprint_smoke_tests(sprint_build_fn, note_cls), 9
 
 
 def _maybe_run_plan_tests(plan_build_fn, note_cls: type) -> tuple[list[str], int]:

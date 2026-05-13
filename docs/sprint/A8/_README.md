@@ -3,6 +3,7 @@ id: MOC-sprint-a8
 type: moc
 title: Sprint A8 — Continuação multi-tenant
 aliases: ["A8", "Sprint A8"]
+sprint_status: done
 ---
 
 # Sprint A8 — Continuação multi-tenant (aberta após A7 fechar 2026-04-27)
