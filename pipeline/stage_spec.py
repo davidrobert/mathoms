@@ -70,6 +70,10 @@ STAGE_RENAME_MAP: dict[str, str] = {
     "E7-review": "review_finances",
     "E7-apply": "apply_review",
     "E5-revised": "analyze_finances_revised",  # virtual artifact stage
+    # ADR-199 — parecer planejador (Ato 4). Alias legado mantido para HTTP/CLI
+    # mesmo que o stage seja "novo" e não tenha equivalente pré-F9.2 — preserva
+    # invariância STAGE_RENAME_MAP.values() == set(STAGE_REGISTRY) ∪ VIRTUAL.
+    "E6-parecer": "review_finances_holistic",
 }
 
 LEGACY_TO_DESCRIPTIVE: dict[str, str] = STAGE_RENAME_MAP
@@ -170,6 +174,15 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
         reads=("review_finances", "analyze_finances"),
         writes=("analyze_finances_revised",),
     ),
+    # ADR-199 (Ato 4): parecer planejador supersede review_finances.
+    # Coexiste durante migração; review_finances é removido em sprint+1 pós-cutover.
+    "review_finances_holistic": StageSpec(
+        "review_finances_holistic",
+        reads=("analyze_finances",),
+        writes=("review_finances_holistic",),
+        is_llm=True,
+        tier="premium",
+    ),
 }
 
 
@@ -200,6 +213,9 @@ FULL_ORDER: list[str] = [
     "validate_cross",
     "review_finances",
     "apply_review",
+    # ADR-199 — parecer roda após apply_review (consome E5 mas é não-bloqueante
+    # do plano de ação determinístico; emite Suggestion(origin=llm) paralelas).
+    "review_finances_holistic",
 ]
 
 
