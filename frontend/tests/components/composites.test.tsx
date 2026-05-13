@@ -168,8 +168,8 @@ describe("<Delta />", () => {
     expect(container.querySelector("[aria-label*='aumento']")).toBeInTheDocument();
   });
 
-  it("inclui percentual no formato (+X,Y%)", () => {
-    render(<Delta value={100} percent={0.25} />);
+  it("inclui percentual no formato (+X,Y%) (ADR-209: absoluto)", () => {
+    render(<Delta value={100} percent={25} />);
     expect(screen.getByText(/\+25,0%/)).toBeInTheDocument();
   });
 });

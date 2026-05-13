@@ -4,7 +4,7 @@ import type { DocumentStatus, DocumentType, PipelineStageStatus, PipelineRunStat
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const USD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-const PCT = new Intl.NumberFormat("pt-BR", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const PCT_ABS = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const COMPACT_BRL = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
@@ -16,15 +16,15 @@ export function formatCurrency(value: number, currency: "BRL" | "USD" = "BRL"): 
   return currency === "USD" ? USD.format(value) : BRL.format(value);
 }
 
+// ADR-209: pct fields são absolutos (44.7 = 44,7%). Formatters NÃO multiplicam.
 export function formatPercent(value: number, decimals = 1): string {
   if (decimals !== 1) {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "percent",
+    return `${new Intl.NumberFormat("pt-BR", {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
-    }).format(value);
+    }).format(value)}%`;
   }
-  return PCT.format(value);
+  return `${PCT_ABS.format(value)}%`;
 }
 
 export function formatDelta(
