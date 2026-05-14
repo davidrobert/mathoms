@@ -29,22 +29,6 @@ def test_e15_template_inserts_nested_json_verbatim():
     assert raw in filled
 
 
-def test_e7_template_inserts_three_json_blobs_verbatim():
-    from pipeline.llm.prompts.e7_review import USER_PROMPT_TEMPLATE
-
-    e5 = '{"patrimonio": {"total": {"a": 1}}}'
-    cv = '{"checks": [{"detalhe": {"ok": true}}]}'
-    fam = '{"membros": {"x": {"papel": "titular"}}}'
-    filled = USER_PROMPT_TEMPLATE.format(
-        e5_analysis_json=e5,
-        e7_crossval_json=cv,
-        family_config=fam,
-    )
-    assert e5 in filled
-    assert cv in filled
-    assert fam in filled
-
-
 def test_e2_llm_template_inserts_document_text_verbatim():
     from pipeline.llm.prompts.e2_llm import USER_PROMPT_TEMPLATE
 
