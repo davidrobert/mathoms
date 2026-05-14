@@ -11,6 +11,13 @@
 #   no PR via ci.yml). Regressões cross-browser são raras; cobertura diária
 #   pega antes de release.
 #   Opt-in PR via label `cross-browser`.
+# - frontend-visual-full: snapshots Playwright em modo full (light+dark+
+#   todas seções). Movido de PR-time auto-trigger para nightly (ADR-210
+#   follow-up) porque o custo era ~$4/mês × frequência alta de PRs que
+#   tocam relatório. Em PR-time agora roda APENAS com label `visual` —
+#   regressões visuais escaparem para main é OK aqui se o nightly pegar
+#   em ≤24h (single-dev project; release não vai para prod sem nightly
+#   verde). Se a label estiver presente no PR, ci.yml cobre.
 
 name: Nightly
 
@@ -211,3 +218,103 @@ jobs:
             frontend/playwright-report/
             frontend/playwright-results/
           retention-days: 7
+
+  frontend-visual-full:
+    # Scan completo de snapshots visuais — light+dark, todas as seções.
+    # Movido de PR-time (auto-trigger por `report` path filter) para nightly
+    # em ADR-210 §camada 1: o gate em PR custava ~3.5 min × frequência alta
+    # de PRs que tocam relatório. Em PR, label `visual` reativa via ci.yml.
+    name: Frontend visual snapshots — scan completo (light+dark)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'visual-full')
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Cache Playwright Chromium
+        id: pw-cache-visual-night
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Playwright Chromium (cache miss)
+        if: steps.pw-cache-visual-night.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright OS deps (cache hit)
+        if: steps.pw-cache-visual-night.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run Playwright visual project (full)
+        env:
+          PW_VISUAL: "1"
+        # Grep `sections\.` cobre snapshots + smoke (mesmo que ci.yml usa).
+        # Em nightly não rodamos --update-snapshots — baselines só mudam
+        # via dispatch deliberado no ci.yml workflow.
+        run: npm run test:e2e -- --project=visual --grep "sections\."
+
+      - name: Upload visual diffs (failure only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-visual-diffs
+          path: |
+            frontend/playwright-report/
+            frontend/playwright-results/
+          retention-days: 14
+
+      - name: Open issue on failure (regressão visual escapou para main)
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const title = `[Nightly visual] Regressão visual em \`main\` — ${new Date().toISOString().slice(0,10)}`;
+            // Procura issue aberta com mesma label para evitar dupes
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'visual-regression',
+              per_page: 5,
+            });
+            if (existing.data.length > 0) {
+              core.notice(`Issue de regressão visual já aberta: #${existing.data[0].number}`);
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body: [
+                `**Nightly visual diff falhou em \`main\`.**`,
+                ``,
+                `Run: ${runUrl}`,
+                `Artifact: \`nightly-visual-diffs\` (14 dias).`,
+                ``,
+                `**Próximos passos:**`,
+                `1. Baixe o artifact e abra o diff PNG.`,
+                `2. Se for regressão real → fix com PR labeled \`visual\`.`,
+                `3. Se for mudança de design intencional → \`gh workflow run CI -f run_visual=true -f update_visual_baselines=true\` para refazer baseline.`,
+                ``,
+                `Política: ADR-210 §camada 1 (visual em nightly + label \`visual\` no PR).`,
+              ].join('\n'),
+              labels: ['visual-regression', 'ops'],
+            });
