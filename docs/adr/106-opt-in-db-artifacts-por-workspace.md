@@ -7,7 +7,8 @@ phase: "A6b"
 date: "2026-04-19"
 relates_to: []
 supersedes: []
-superseded_by: []
+superseded_by:
+  - "[[ADR-212]]"
 aliases: ["ADR 106"]
 tags:
   - area/multitenancy
