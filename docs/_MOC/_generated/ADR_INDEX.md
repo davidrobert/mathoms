@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-204 ADRs (ADR-001 a ADR-211) em [`docs/adr/`](../../adr/).
+205 ADRs (ADR-001 a ADR-212) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 168
-- **Proposto**: 32
+- **Proposto**: 33
 - **Roadmap**: 4
 
 ## Fundação
@@ -224,11 +224,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-119]] — Contrato `LiveStep` para progresso de etapas do pipeline · phase A6-ux
 - [[ADR-120]] — Readers user-facing consultam `ArtifactStore` (DB-first) com fallback disco · phase A6
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-092]] — Renomear scripts para nomes descritivos de domínio · phase execução na Fase 9 pós-Caminho B dos stages
 - [[ADR-095]] — Segurança de `content_json` (LGPD) · phase execução distribuída em Fases 1-4 do plano
 - [[ADR-096]] — Observabilidade de cutover · phase execução paralela à Fase 2
+- [[ADR-212]] — Sunset `MATHOMS_USE_DB_ARTIFACTS` + `DiskArtifactStore` + CLI standalone do pipeline · phase A12
 
 ## Internacionalização (F12)
 
