@@ -298,9 +298,9 @@ async def health() -> dict:
     except Exception as exc:
         checks["database"] = f"error: {exc}"
 
-    # A6b (ADR-106): indica o modo de artefatos ativo (global).
-    # Por workspace usa _resolve_use_db_artifacts — aqui reporta o default global.
-    checks["artifact_store_mode"] = "db" if settings.USE_DB_ARTIFACTS else "disk"
+    # ADR-212 PR3a: caminho DiskArtifactStore eliminado do hot path;
+    # pipeline sempre usa DBArtifactStore via Celery worker.
+    checks["artifact_store_mode"] = "db"
 
     # A6f.1 (ADR-112): pipeline-service HTTP boundary. URL só aparece quando
     # setada (cutover HTTP); ausente = InProcessPipelineClient em uso.

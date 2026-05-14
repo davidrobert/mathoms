@@ -4,6 +4,12 @@ Vive em ``backend/app/services/`` porque depende de SQLAlchemy — a fronteira
 arquitetural de ``pipeline/`` proíbe imports de fastapi/celery/sqlalchemy
 (ver ``dev/check_pipeline_boundaries.py``).
 
+**JSON-schema hook pós-write (ADR-212 PR3):** ``write()`` valida payload
+contra ``config/schemas/<schema>.json`` via ``SCHEMA_BY_STAGE``. Modo
+``strict``/``warn`` herdado de ``pipeline.json::schema_validation.mode``
+(override via ``MATHOMS_PIPELINE_SCHEMA_MODE``). Protege todos os stages,
+não apenas os com validação explícita pré-PR3.
+
 **Gerenciamento de sessão (ADR-083):** a sessão é injetada pelo chamador
 (Celery task ou teste). O store não cria nem fecha sessão própria — o
 chamador controla ``commit`` / ``rollback`` / ``close``. Isso garante que toda
@@ -34,6 +40,42 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
+
+SCHEMA_BY_STAGE: dict[str, str] = {
+    # Stage → schema em config/schemas/. Aplicado em DBArtifactStore.write
+    # (ADR-212 PR3). Cobre tanto nomes legados quanto descritivos durante
+    # a janela F9.2 → F9.6.
+    # E1.5c — baseline consolidado
+    "E1.5c": "baseline_patrimonial.schema.json",
+    "consolidate_baseline": "baseline_patrimonial.schema.json",
+    # E1.6 — IRPF full (ADR-157)
+    "extract_irpf_full": "e16_irpf_full.schema.json",
+    # E2 — extratos / faturas / LLM fallback (todos compartilham mesmo schema)
+    "E2": "e2_extract.schema.json",
+    "E2-faturas": "e2_extract.schema.json",
+    "E2-extratos": "e2_extract.schema.json",
+    "E2-llm": "e2_extract.schema.json",
+    "extract_invoices": "e2_extract.schema.json",
+    "extract_statements": "e2_extract.schema.json",
+    "extract_with_llm": "e2_extract.schema.json",
+    # E3 — reconciliação
+    "E3": "e3_reconciled.schema.json",
+    "reconcile_transactions": "e3_reconciled.schema.json",
+    # E4 — categorização
+    "E4": "e4_unified.schema.json",
+    "categorize_transactions": "e4_unified.schema.json",
+    # E5 — análise financeira
+    "E5": "e5_analysis.schema.json",
+    "analyze_finances": "e5_analysis.schema.json",
+}
+"""Stage → schema file mapping para validação pós-write (ADR-212 PR3).
+
+Stages sem entrada aqui não são validados (passthrough). Modo strict/warn
+herdado de ``pipeline.json::schema_validation`` ou env
+``MATHOMS_PIPELINE_SCHEMA_MODE``. Em ``strict`` + payload inválido,
+``write()`` propaga ``ValidationError`` do jsonschema.
+"""
+
 
 _WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset(
     {
@@ -152,6 +194,15 @@ class DBArtifactStore:
         *,
         document_id: Optional[str] = None,
     ) -> None:
+        # ADR-212 PR3 — hook pós-write para validação JSON-schema.
+        # Modo strict/warn herdado de pipeline.json::schema_validation; em
+        # strict + payload inválido, jsonschema.ValidationError propaga.
+        schema_name = SCHEMA_BY_STAGE.get(stage)
+        if schema_name is not None:
+            from scripts.pipeline_common import validate_dict
+
+            validate_dict(data, schema_name, source=f"{stage}/{key}")
+
         row = self._get(stage, key)
         if row is None:
             row = PipelineArtifact(

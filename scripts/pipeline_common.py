@@ -255,6 +255,32 @@ def validate_artifact(path: Path, schema_name: str) -> bool:
     sv = config.get("schema_validation", {})
     if not sv.get("enabled", False):
         return True
+    data = read_json(path)
+    if data is None:
+        return False
+    return validate_dict(data, schema_name, source=path.name)
+
+
+def validate_dict(data: dict, schema_name: str, *, source: str = "<dict>") -> bool:
+    """Valida ``data`` (já em memória) contra schema em ``config/schemas/``.
+
+    Variante de ``validate_artifact`` para callers que já têm o dict — usado pelo
+    hook pós-write de ``DBArtifactStore`` (ADR-212 PR3). Mesma semântica de
+    enabled/strict/warn que ``validate_artifact``.
+
+    Args:
+        data: payload já carregado.
+        schema_name: nome do arquivo em ``config/schemas/`` (ex.: ``"e3_reconciled.schema.json"``).
+        source: identificador do artefato para logging (ex.: ``"E3/itau_extrato"``).
+
+    Returns:
+        ``True`` se válido OU validação desabilitada OU schema ausente.
+        ``False`` em ``strict`` mode com payload inválido.
+    """
+    config = load_json_config("pipeline.json")
+    sv = config.get("schema_validation", {})
+    if not sv.get("enabled", False):
+        return True
 
     try:
         import jsonschema
@@ -267,8 +293,7 @@ def validate_artifact(path: Path, schema_name: str) -> bool:
         return True
 
     schema = read_json(schema_path)
-    data = read_json(path)
-    if data is None or schema is None:
+    if schema is None:
         return False
 
     mode = _effective_schema_validation_mode()
@@ -276,10 +301,10 @@ def validate_artifact(path: Path, schema_name: str) -> bool:
         jsonschema.validate(data, schema)
         return True
     except jsonschema.ValidationError as e:
-        msg = f"Schema validation falhou para {path.name}: {e.message}"
+        msg = f"Schema validation falhou para {source}: {e.message}"
         if mode == "warn":
             log_stage("WARN", msg)
-            return True  # don't block pipeline
+            return True
         log_stage("ERROR", msg)
         return False
 

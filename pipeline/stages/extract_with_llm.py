@@ -249,27 +249,10 @@ def _process_one_e2_llm_document(
 
         safe_stem = _e2_extract_stem(doc).replace(" ", "_")[:80]
         progress.emit(doc.name, "persisting")
-        # A6a: escreve via store em vez de disco direto.
+        # Validação JSON-schema é executada pelo hook pós-write em
+        # DBArtifactStore.write (ADR-212 PR3 — SCHEMA_BY_STAGE inclui
+        # "E2-llm" → "e2_extract.schema.json").
         store.write("E2-llm", safe_stem, e2_json)
-
-        # Validação JSON-schema apenas com DiskArtifactStore (em DB mode, o
-        # schema é validado no momento da leitura pelo E3).
-        try:
-            from pipeline.artifact_store import DiskArtifactStore
-            from scripts.pipeline_common import validate_artifact
-
-            if isinstance(store, DiskArtifactStore):
-                from pipeline.artifact_store import stage_dir_name
-                from pipeline.artifact_store import stage_suffix as _suffix
-
-                out_path = (
-                    store.processed_dir
-                    / stage_dir_name("E2-llm")
-                    / f"{safe_stem}{_suffix('E2-llm')}"
-                )
-                validate_artifact(out_path, "e2_extract.schema.json")
-        except ImportError:
-            pass
 
         out_filename = f"{safe_stem}-2_extract.json"
         processed = {

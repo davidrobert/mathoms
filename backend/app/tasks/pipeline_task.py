@@ -391,25 +391,6 @@ def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
             return None, attempts + 1, error_msg, last_tb
 
 
-def _resolve_use_db_artifacts(ws_id: str) -> bool:
-    """A6b (ADR-106): decide se o workspace usa DBArtifactStore.
-
-    Precedência: workspace.use_db_artifacts_override (True/False) >
-                 settings.USE_DB_ARTIFACTS (global flag, default False).
-    """
-    from backend.app.core.config import settings
-
-    with SyncSessionLocal() as db:
-        from backend.app.models.workspace import Workspace
-
-        ws = db.get(Workspace, ws_id)
-        if ws is None:
-            return settings.USE_DB_ARTIFACTS
-        if ws.use_db_artifacts_override is not None:
-            return bool(ws.use_db_artifacts_override)
-        return settings.USE_DB_ARTIFACTS
-
-
 def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
     """BUG-003 fix: mark pipeline run as failed when the Celery task crashes
     outside the main try-catch (e.g. OOM, import error, worker killed).
@@ -460,21 +441,18 @@ def _setup_run_context(
 ):
     """Cria WorkspaceContext + injeta ``DBConfigStore`` (ADR-134, post-A7.5).
 
-    Retorna ``(ctx, use_db_artifacts, config_store_session)`` — a sessão
-    long-lived que respaldou o ``DBConfigStore`` é devolvida ao caller
-    para fechamento ao fim do run. Após Sprint A7.5 o produto é DB-first
-    para config; o flag ``use_db_artifacts`` continua governando apenas
-    o artifact store (E0/E1/E2 outputs).
+    Retorna ``(ctx, config_store_session)`` — a sessão long-lived que
+    respaldou o ``DBConfigStore`` é devolvida ao caller para fechamento
+    ao fim do run. ADR-212 PR3a: ``DBArtifactStore`` é sempre o store
+    de produção (hard-wired via ``_open_artifact_session`` por-stage no
+    loop principal). Flag ``USE_DB_ARTIFACTS`` deixa de governar — fica
+    como redundante em settings até PR4 dropar.
     """
     from backend.app.services.pipeline_adapter import (
         build_config_overrides_from_db,
         build_config_store,
     )
     from pipeline.context import WorkspaceContext
-
-    use_db_artifacts = _resolve_use_db_artifacts(ws_id)
-    if use_db_artifacts:
-        logger.info("pipeline_start using DBArtifactStore for run_id=%s ws_id=%s", run_id, ws_id)
 
     config_store_session = SyncSessionLocal()
     config_store = build_config_store(db=config_store_session)
@@ -493,7 +471,7 @@ def _setup_run_context(
     ctx.ensure_dirs()
     ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
 
-    return ctx, use_db_artifacts, config_store_session
+    return ctx, config_store_session
 
 
 def _close_config_store_session(session) -> None:
@@ -763,14 +741,13 @@ def _execute_stages_loop(
     tier: str,
     llm_stages,
     run_stage_fn,
-    use_db_artifacts: bool,
 ) -> tuple[bool, bool]:
     """Executa o loop principal de stages.
 
-    Quando ``use_db_artifacts`` é ``True``, abre uma sessão fresca +
-    ``DBArtifactStore`` por stage e fecha após commit/rollback — libera
-    o write-lock SQLite entre stages, evitando contenção com a sessão
-    que escreve em ``pipeline_stage_logs``.
+    Abre uma sessão fresca + ``DBArtifactStore`` por stage e fecha após
+    commit/rollback — libera o write-lock SQLite entre stages, evitando
+    contenção com a sessão que escreve em ``pipeline_stage_logs``
+    (ADR-212 PR3a: sempre ``DBArtifactStore``; flag dies).
 
     Retorna ``(has_failure, paused_for_review)``.
     """
@@ -805,10 +782,8 @@ def _execute_stages_loop(
         _record_stage_running(run_id, stage_name, log_id, stage_started_at, progress_pct)
 
         # Sessão por-stage (libera write-lock entre stages).
-        stage_session = None
-        if use_db_artifacts:
-            stage_session, store = _open_artifact_session(ws_id, run_id)
-            ctx.artifact_store = store
+        stage_session, store = _open_artifact_session(ws_id, run_id)
+        ctx.artifact_store = store
 
         start_mono = time.monotonic()
         result, attempts, exc_error, exc_tb = _run_stage_with_retry(ctx, stage_name, run_stage_fn)
@@ -1015,7 +990,7 @@ def run_pipeline_task(
     tenant_root = Path(tenant_root_str)
     config_dir = Path(config_dir_str)
 
-    ctx, use_db_artifacts, config_store_session = _setup_run_context(
+    ctx, config_store_session = _setup_run_context(
         run_id,
         ws_id,
         tenant_root,
@@ -1053,7 +1028,6 @@ def run_pipeline_task(
             tier,
             llm_stages,
             _exec_stage,
-            use_db_artifacts,
         )
 
         _finalize_pipeline_outcome(run_id, ws_id, tenant_root, has_failure, paused_for_review)
