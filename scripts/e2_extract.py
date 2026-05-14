@@ -13,7 +13,6 @@ Usage:
     python scripts/e2_extract.py --faturas-only
 """
 
-import argparse
 import json
 import re
 import sys
@@ -21,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from scripts.e2.common import DATA_DIR, OUTPUT_DIR, log, set_verbose
+from scripts.e2.common import DATA_DIR, OUTPUT_DIR, log
 from scripts.e2.registry import (
     NON_STATEMENT_TYPES,
     is_investment_type,
@@ -352,145 +351,3 @@ def run_with_store(
         )
 
     return stats
-
-
-def main(root_dir: Path = None):
-    if root_dir:
-        from scripts.e2.common import _init_config as _e2_init_config
-
-        _e2_init_config(root_dir)
-        from scripts.e2 import common as _e2c
-
-        global DATA_DIR, OUTPUT_DIR
-        DATA_DIR = _e2c.DATA_DIR
-        OUTPUT_DIR = _e2c.OUTPUT_DIR
-
-    parser = argparse.ArgumentParser(
-        description="E2 Extraction — Unified deterministic parsers for financial documents"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Show what would be processed without writing files"
-    )
-    parser.add_argument("--file", type=str, default=None, help="Process a specific file")
-    parser.add_argument(
-        "--output-dir",
-        type=str,
-        default=None,
-        help="Output directory (default: processed/E2_extracts/)",
-    )
-    parser.add_argument("--quiet", action="store_true", help="Suppress debug output")
-    parser.add_argument(
-        "--extratos-only", action="store_true", help="Process only extratos (bank statements)"
-    )
-    parser.add_argument(
-        "--faturas-only", action="store_true", help="Process only faturas (credit card invoices)"
-    )
-
-    args = parser.parse_args([] if root_dir else None)
-
-    if args.quiet:
-        set_verbose(False)
-
-    output_dir = Path(args.output_dir) if args.output_dir else OUTPUT_DIR
-
-    log(LOG_UNIFIED, "INFO", "=" * 60)
-    log(LOG_UNIFIED, "INFO", "E2 EXTRACTION — Unified Deterministic Parsers")
-    log(LOG_UNIFIED, "INFO", "=" * 60)
-
-    if args.file:
-        file_path = Path(args.file)
-        if not file_path.exists():
-            file_path = DATA_DIR / args.file
-        if not file_path.exists():
-            log(LOG_UNIFIED, "ERROR", f"Arquivo não encontrado: {args.file}")
-            sys.exit(1)
-        files = [file_path]
-    else:
-        files = find_all_files(extratos_only=args.extratos_only, faturas_only=args.faturas_only)
-
-    if not files:
-        log(LOG_UNIFIED, "INFO", "Nenhum arquivo encontrado para processar.")
-        return
-
-    log(LOG_UNIFIED, "INFO", f"Encontrados {len(files)} arquivos para processar")
-
-    stats = {
-        "processados": 0,
-        "transacoes_total": 0,
-        "llm_fallback": 0,
-        "erros_validacao": 0,
-        "warnings": 0,
-    }
-
-    for file_path in files:
-        try:
-            result = process_file(file_path, dry_run=args.dry_run)
-            if result is None:
-                continue
-
-            if result.get("requires_llm_fallback"):
-                stats["llm_fallback"] += 1
-                log(LOG_UNIFIED, "WARN", f"  → Requer LLM fallback: {file_path.name}")
-                continue
-
-            n_tx = len(result.get("transacoes", []))
-            n_tx += len(result.get("itens", []))
-            stats["processados"] += 1
-            stats["transacoes_total"] += n_tx
-
-            for note in result.get("notas", []):
-                if isinstance(note, str):
-                    if note.startswith("ERROR"):
-                        stats["erros_validacao"] += 1
-                    elif note.startswith("WARN"):
-                        stats["warnings"] += 1
-
-            if not args.dry_run:
-                # Overwrite protection: não sobrescrever extrato/fatura com dados por resultado vazio
-                is_fatura = _is_fatura_file(file_path.name)
-                out_name = make_output_name(file_path.name)
-                out_path = output_dir / out_name
-
-                if n_tx == 0 and out_path.exists():
-                    try:
-                        existing = json.loads(out_path.read_text(encoding="utf-8"))
-                        existing_txns = len(existing.get("transacoes", [])) + len(
-                            existing.get("itens", [])
-                        )
-                        if existing_txns > 0:
-                            log(
-                                LOG_UNIFIED,
-                                "WARN",
-                                f"  SKIP: {out_name} já tem {existing_txns} txns; "
-                                f"não sobrescrever com resultado de 0 txns",
-                            )
-                            continue
-                    except (json.JSONDecodeError, IOError):
-                        pass
-
-                out_path = save_result(result, file_path.name, output_dir)
-                log_level = "WARN" if n_tx == 0 else "INFO"
-                log(LOG_UNIFIED, log_level, f"  → Salvo: {out_path.name} ({n_tx} transações)")
-
-        except Exception as e:
-            stats["erros_validacao"] += 1
-            log(LOG_UNIFIED, "ERROR", f"  Failed: {file_path.name} — {e}")
-            import traceback
-
-            traceback.print_exc(file=sys.stderr)
-
-    # Summary
-    print("\n" + "=" * 60, file=sys.stderr)
-    log(LOG_UNIFIED, "SUMMARY", f"Processados: {stats['processados']}")
-    log(LOG_UNIFIED, "SUMMARY", f"Total transações: {stats['transacoes_total']}")
-    log(LOG_UNIFIED, "SUMMARY", f"LLM fallback: {stats['llm_fallback']}")
-    log(LOG_UNIFIED, "SUMMARY", f"Erros de validação: {stats['erros_validacao']}")
-    log(LOG_UNIFIED, "SUMMARY", f"Warnings: {stats['warnings']}")
-    print("=" * 60, file=sys.stderr)
-
-    if stats["erros_validacao"] > 0:
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()

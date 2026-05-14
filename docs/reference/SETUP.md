@@ -343,29 +343,31 @@ open htmlcov/index.html
 
 ## 8. Pipeline CLI (sem web)
 
-Os scripts em `scripts/` partilham `scripts.pipeline_common`, que exige a variável de ambiente **`MATHOMS_WORKSPACE_ROOT`**: deve apontar para a **raiz do workspace** (pasta com `config/`, `data/`, `inbox/`, …), em geral `storage/<workspace_id>/`. **Não** há mais default silencioso para `./data/` na raiz do repositório.
+> **ADR-212 (2026-05-14):** CLI standalone do pipeline foi descontinuada em
+> PR1. Entrypoints `python scripts/e0_route.py`, `python scripts/e2_extract.py`,
+> `python scripts/e3_reconcile.py`, `python scripts/e4_categorize.py`,
+> `python scripts/e5_analyze.py`, `python scripts/e7_review.py` **não existem
+> mais**. Pipeline roda exclusivamente via backend (Celery worker); use
+> `make dev` + `POST /pipeline/run` para debug local.
+>
+> **Únicas CLIs sobreviventes:**
+> - `scripts/e0_audit.py` — inspeção read-only do filesystem do workspace
+>   (detecta duplicatas + arquivos órfãos antes de qualquer pipeline rodar).
+>   Não toca `pipeline_artifacts`; consome apenas `MATHOMS_WORKSPACE_ROOT`.
+> - `scripts/e_reset.py` — operação destrutiva de reset (será migrada para
+>   `backend/app/services/internal_ops/pipeline_reset.py` em PR1b da
+>   [[ADR-212]]; lane [[A12.sunset-disk-artifact]]).
 
 ```bash
 source .venv/bin/activate
 export MATHOMS_WORKSPACE_ROOT="$PWD/storage/<workspace_id>"
-# ou, para desenvolvimento com configs na raiz do repo:
-export MATHOMS_WORKSPACE_ROOT="$PWD"
 
-# Extração de faturas
-python scripts/e2_extract.py --faturas-only
-
-# Reconciliação
-python scripts/e3_reconcile.py
-
-# Pipeline completo (orquestra E0→E5.N; precisa MATHOMS_WORKSPACE_ROOT)
-# Renderização do relatório é via React em /reports/[id] (ADR-129 — sem stage E6).
-python scripts/e_reset.py
-
-# Orquestrador (define MATHOMS_WORKSPACE_ROOT a partir de --root)
-python -m pipeline.run_dev --root /caminho/para/tenant
+# Inspeção read-only do inbox + duplicatas
+python scripts/e0_audit.py
+python scripts/e0_audit.py --json   # output JSON para scripts
 ```
 
-O arranque da API (`uvicorn`), o worker Celery e os `conftest` de pytest fazem `setdefault` de `MATHOMS_WORKSPACE_ROOT` para a raiz do repositório, para carregar `config/` global em desenvolvimento.
+O `conftest` de pytest faz `setdefault` de `MATHOMS_WORKSPACE_ROOT` para a raiz do repositório, para carregar `config/` global durante testes. Em produção (API + Celery worker), paths vêm via `WorkspaceContext` por-run — env var global removida em [[ADR-212]] PR2.
 
 **Directórios na raiz do repo:** não é obrigatório existir `data/`, `inbox/`,
 `inbox_processed/`, `processed/`, `output/`, `logs/`, `members/` ou `life_plan/`

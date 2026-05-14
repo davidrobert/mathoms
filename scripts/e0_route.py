@@ -8,23 +8,15 @@ E0-route — Roteamento automático de arquivos do inbox para diretórios de des
 Classificação (alinhada ao app web quando o pacote ``backend`` está no PYTHONPATH):
   Camada 1: regex sobre o **conteúdo** do arquivo (``content_classifier``)
   Camada 2 (LLM): mesmo fallback que upload / ``POST /documents/reclassify``
-  Modo standalone (sem backend): regex sobre o **nome** do arquivo + LLM (legado)
 
-Usage:
-  python scripts/e0_route.py                  # Roteia tudo (regex + LLM)
-  python scripts/e0_route.py --dry-run        # Apenas mostra o que faria
-  python scripts/e0_route.py --no-llm         # Apenas regex, sem fallback LLM
-  python scripts/e0_route.py --file X.pdf     # Roteia um arquivo específico
-
-Integração com e_reset.py:
-  from e0_route import route_all
-  stats = route_all(base_dir, dry_run=False, use_llm=True)
+Módulo invocado por ``pipeline/stages/route_documents.py`` via
+``_init_config`` + ``route_all``. CLI standalone removida em ADR-212 PR1
+(2026-05-14) — pipeline roda exclusivamente via backend (Celery worker).
 
 Author: Claude Opus 4.6
 Date: 2026-04-09
 """
 
-import argparse
 import hashlib
 import json
 import os
@@ -1055,49 +1047,3 @@ def _write_inbox_log(base: Path, today: str, stats: dict) -> None:
 """
     with open(log_path, "a", encoding="utf-8") as f:
         f.write(entry)
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
-
-
-def main(root_dir: Path = None):
-    if root_dir:
-        _init_config(root_dir)
-    parser = argparse.ArgumentParser(
-        description="E0-route — Roteamento automático de arquivos do inbox",
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Apenas mostra o que faria, sem mover arquivos"
-    )
-    parser.add_argument(
-        "--no-llm", action="store_true", help="Desabilita fallback LLM (apenas regex)"
-    )
-    parser.add_argument(
-        "--file", type=str, default=None, help="Roteia um arquivo específico do inbox"
-    )
-    parser.add_argument(
-        "--base", type=str, default=None, help="Diretório base do projeto (default: auto-detect)"
-    )
-
-    args = parser.parse_args([] if root_dir else None)
-    base = Path(args.base) if args.base else BASE
-
-    stats = route_all(
-        base=base,
-        dry_run=args.dry_run,
-        use_llm=not args.no_llm,
-        file_filter=args.file,
-    )
-
-    # Exit code
-    if stats.get("error"):
-        sys.exit(1)
-    if stats["unidentified"] > 0:
-        sys.exit(2)  # Partial success
-    sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()

@@ -546,7 +546,3 @@ def main(root_dir: Path = None):
 
         # Exit code 2 = parcialmente bem-sucedido (diferente de 1 = erro fatal)
         sys.exit(2)
-
-
-if __name__ == "__main__":
-    main()
