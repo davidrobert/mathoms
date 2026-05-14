@@ -1,0 +1,33 @@
+/* ADR-199 Ato 5 §5e — Print CSS para PDF (Playwright).
+ *
+ * Regras:
+ * - Esconder ações interativas (.parecer-action — promover/descartar);
+ * - Forçar `<details>` abertos para listar todos riscos;
+ * - Disclaimer fiduciário sempre visível;
+ * - Lista de descartadas histórica oculta (clutter sem ação).
+ */
+@media print {
+  .parecer-action {
+    display: none !important;
+  }
+
+  /* `[open]` forçado em todos `<details>` da seção parecer. */
+  details.parecer-details {
+    /* Override stateful; Playwright renderiza com este open=true. */
+    --details-open: 1;
+  }
+  details.parecer-details > summary {
+    /* Esconde "Ver mais N risco(s)…" — conteúdo já aparece expandido. */
+    display: none;
+  }
+  details.parecer-details > :not(summary) {
+    display: block !important;
+  }
+
+  /* Garante quebra de página antes da seção parecer quando necessário. */
+  section#S_parecer {
+    page-break-before: auto;
+  }
+
+  /* Progress bars renderizam OK no Chromium headless; sem ajustes extras. */
+}

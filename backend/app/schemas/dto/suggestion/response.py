@@ -29,6 +29,10 @@ class SuggestionResponse(BaseModel):
     title: str
     rationale: str
     amount_brl: Optional[Decimal] = None
+    # Exposto para o frontend resolver Suggestion ↔ Parecer (ADR-199 Ato 5):
+    # parecer LLM emite `suggestion_dedup_key`; UI usa para resolver `id`
+    # antes de chamar /accept ou /dismiss. Não é PII.
+    dedup_key: str
     status: str
     accepted_decision_id: Optional[str] = None
     dismissed_reason: Optional[str] = None

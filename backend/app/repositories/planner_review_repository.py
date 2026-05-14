@@ -94,3 +94,12 @@ class PlannerReviewRepository:
                 superseded_at=now,
             )
         )
+
+    async def create_or_get_for_run(self, review: PlannerReview) -> PlannerReview:
+        """Persiste novo PlannerReview ou retorna existente (UNIQUE ws+run, ADR-199 §D3). Supersedure entre runs distintos via ``mark_as_superseded`` + ``supersedes_id``."""
+        existing = await self.get_latest_for_run(review.workspace_id, review.pipeline_run_id)
+        if existing is not None:
+            return existing
+        self._session.add(review)
+        await self._session.flush()
+        return review

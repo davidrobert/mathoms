@@ -69,6 +69,8 @@ export interface Suggestion {
   rationale: string;
   /** Decimal string (ex.: "9000.00"). Null quando não envolve valor monetário. */
   amount_brl: string | null;
+  /** sha256 hex (64) — usado pelo parecer LLM para resolver Suggestion ↔ output (ADR-199). */
+  dedup_key: string;
   status: SuggestionAggregateStatus;
   accepted_decision_id: string | null;
   dismissed_reason: DismissReason | string | null;

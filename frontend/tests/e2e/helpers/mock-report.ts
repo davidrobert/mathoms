@@ -218,6 +218,14 @@ export async function mockReportPage(
       return json(route, null);
     }
 
+    // ADR-199 — `usePlannerReview` em SParecerSection. Em snapshots visuais
+    // default não há parecer gerado; retornar 404 faz o componente
+    // renderizar `<ParecerEmptyState />` (estado canônico do
+    // not_generated). Catch-all `{}` quebrava com "content.meta undefined".
+    if (path.match(/\/reports\/[^/]+\/planner-review$/)) {
+      return json(route, { detail: "not_generated_yet" }, 404);
+    }
+
     return json(route, {});
   });
 

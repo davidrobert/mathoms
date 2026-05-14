@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-69 entries entre 2026-04-29 e 2026-05-12.
+62 entries entre 2026-04-30 e 2026-05-12.
 
 ## 2026-05-12 (8 entries)
 
@@ -90,16 +90,6 @@
 - [[CHG-2026-04-30-A8-2]] — test(pipeline): IRPF full schema goldens — A8.2 sub-lane (2026-04-30). - **test(pipeline): IRPF full schema goldens — A8.2 sub-lane (2026-04-30):** 3 fixtures sintéticas (`tests/fixtures/llm_golden/e16_irpf_full_{completo,simplific (lane [[A8.2]])
 - [[CHG-2026-04-30-FEAT-PIPELINE]] — feat(pipeline): IRPF full schema (E1.6 / `extract_irpf_full`) — Sprint A8 (2026-04-30). - **feat(pipeline): IRPF full schema (E1.6 / `extract_irpf_full`) — Sprint A8 (2026-04-30):** novo stage paralelo a `extract_baseline` que captura **todo** o co
 - [[CHG-2026-04-30-FEAT-REPORT]] — feat(report): seções IRPF no relatório premium — UI lane (2026-04-30). - **feat(report): seções IRPF no relatório premium — UI lane (2026-04-30):** materializa os 6 KPIs do `IRPFAnalyzer` (já em produção via E5 try-read) em duas se
-
-## 2026-04-29 (7 entries)
-
-- [[CHG-2026-04-29-A10-DIRE-O-E-DASHBOARD-A]] — Direção E — `/dashboard` absorvido por `/plano` (consolidação, 2026-04-29). - **Direção E — `/dashboard` absorvido por `/plano` (consolidação, 2026-04-29):** Cumpre a agenda da Direção E original que declarou "/dashboard será absorvido
-- [[CHG-2026-04-29-A10-DIRE-O-E-ONDA-1-KANB]] — Direção E — Onda 1: `KanbanItem` → `Task` + `ReportNotes` → `WorkspaceNotes` (M1, 2026-04-29). - **Direção E — Onda 1: `KanbanItem` → `Task` + `ReportNotes` → `WorkspaceNotes` (M1, 2026-04-29):** Onda 1 da Direção E entregue como migration **M1 additive**
-- [[CHG-2026-04-29-A10-DIRE-O-E-ONDA-1-M2-S]] — Direção E — Onda 1 M2 (sunset legacy `report_collab`, 2026-04-29). - **Direção E — Onda 1 M2 (sunset legacy `report_collab`, 2026-04-29):** M2 da Onda 1 entregue como **estratégia conservadora** — RENAME + endpoints 410 Gone em
-- [[CHG-2026-04-29-A10-DIRE-O-E-ONDA-4-ONDA]] — Direção E — Onda 4 + Onda 6: `/plano` executive + `/acao` consolidada (2026-04-29). - **Direção E — Onda 4 + Onda 6: `/plano` executive + `/acao` consolidada (2026-04-29):** **Onda 4 entregue (`/plano` executive summary):** novos componentes em
-- [[CHG-2026-04-29-A10-DIRE-O-E-ONDA-7-BLOQ]] — Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29). - **Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29):** os 5 fixes da [track_onda_7_p0_blockers.md](agent_prompts/track_onda_7_p0_blockers.md) entregu
-- [[CHG-2026-04-29-A10-DIRE-O-E-P-S-REVIS-O]] — Direção E pós-revisão de produto — Ondas 7/8/9 abertas (2026-04-29). - **Direção E pós-revisão de produto — Ondas 7/8/9 abertas (2026-04-29):** Revisão completa das interfaces consolidadas (Plano + Ação + Relatório) executada com
-- [[CHG-2026-04-29-FIX-SUGGESTIONS]] — fix(suggestions): auto-trigger no post-processing do pipeline (2026-04-29). - **fix(suggestions): auto-trigger no post-processing do pipeline (2026-04-29):** rodar o pipeline completo deixava `/acao` Inbox e `SuggestionCallout` do relat
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

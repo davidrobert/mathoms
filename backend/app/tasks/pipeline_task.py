@@ -689,6 +689,32 @@ def _record_stage_needs_review(
     publish_needs_review(run_id, stage_name)
 
 
+_PARECER_STAGE_NAME = "review_finances_holistic"
+
+
+def _should_persist_planner_review(stage_name: str, result) -> bool:
+    """Filtro: só persiste para stage parecer com result final success+full detail."""
+    if stage_name != _PARECER_STAGE_NAME:
+        return False
+    if not result.success or not isinstance(result.detail, dict):
+        return False
+    if result.detail.get("skipped") or result.detail.get("status") == "needs_review":
+        return False
+    return "persona_hash" in result.detail
+
+
+def _persist_planner_review_if_applicable(run_id: str, stage_name: str, result) -> None:
+    """Wire-up ADR-199 / ADR-208 — materializa PlannerReview + cost + Suggestions."""
+    if not _should_persist_planner_review(stage_name, result):
+        return
+    from backend.app.services.planner_review_persistence import (
+        persist_after_stage_success,
+    )
+
+    with SyncSessionLocal() as db:
+        persist_after_stage_success(db, run_id=run_id, detail=result.detail)
+
+
 def _record_stage_result(
     run_id: str,
     stage_name: str,
@@ -697,13 +723,7 @@ def _record_stage_result(
     elapsed_ms: int,
     completed_pct: int,
 ) -> bool:
-    """Persiste resultado final do stage + publica evento. Retorna ``True``
-    se o stage completou com sucesso.
-
-    Commit de artefatos agora é feito no loop de stages (sessão por-stage),
-    fora desta função — reduz contenção de write-lock SQLite vs a sessão
-    de ``pipeline_stage_logs`` aberta abaixo.
-    """
+    """Persiste resultado final do stage + publica evento. Retorna ``True`` em sucesso. Pós-stage hook ADR-199 materializa ``PlannerReview`` se ``stage_name == review_finances_holistic``."""
     with SyncSessionLocal() as db:
         stage_log = db.get(PipelineStageLog, log_id)
         stage_log.status = (
@@ -717,6 +737,7 @@ def _record_stage_result(
         db.commit()
 
     if result.success:
+        _persist_planner_review_if_applicable(run_id, stage_name, result)
         publish_stage_completed(run_id, stage_name, completed_pct)
         return True
 
