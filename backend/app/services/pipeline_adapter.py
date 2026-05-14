@@ -550,16 +550,11 @@ def _family_members_override(workspace_id: str, db: SyncSession) -> dict[str, An
 
 
 def build_config_overrides_from_db(workspace_id: str, *, db: SyncSession) -> dict[str, Any]:
-    """Pré-serializa configs do DB para ``WorkspaceContext.config_overrides``.
-
-    A7.3 (ADR-137): ``categorization.json`` agora vem do resolver
-    (template global + overrides do workspace) + auxiliary metadata.
-    ``institutions.json`` vem do ``institution_catalog`` global.
-    A10.6 (ADR-180): ``goals.json`` agora é o ``GoalsBundle`` montado
-    a partir de Goal/Decision/Risk aggregates — substitui materialização
-    em filesystem (deletada na lane A10.6).
-    """
-    from backend.app.services.config_materializer import serialize_report_layout
+    """Pré-serializa configs do DB para ``WorkspaceContext.config_overrides`` (ADR-134/137/180/211)."""
+    from backend.app.services.config_materializer import (
+        serialize_llm_config,
+        serialize_report_layout,
+    )
 
     sources: dict[str, Any] = {
         "family_members.json": _family_members_override(workspace_id, db),
@@ -567,6 +562,7 @@ def build_config_overrides_from_db(workspace_id: str, *, db: SyncSession) -> dic
         "institutions.json": _institutions_override(db),
         "report_layout.yaml": serialize_report_layout(workspace_id, db),
         "goals.json": dict(build_goals_payload_sync(workspace_id, db=db)),
+        "llm_config.json": serialize_llm_config(workspace_id, db),
     }
     return {k: v for k, v in sources.items() if v is not None}
 
