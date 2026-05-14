@@ -83,7 +83,17 @@ interface ParecerBodyProps {
 
 function ParecerBody({ data, workspaceId, onMutate }: ParecerBodyProps) {
   const { content } = data;
-  const gated = content.meta.gated_counts;
+  // Defensive: content.meta pode estar ausente em mocks/fixtures legados
+  // ou em casos de erro de serialização parcial. Trate como gated=0 nesses casos.
+  const gated = content.meta?.gated_counts ?? {
+    pontos_fortes: 0,
+    riscos: 0,
+    sugestoes_execucao: 0,
+    sugestoes_taticas: 0,
+    sugestoes_estrategicas: 0,
+    metricas: 0,
+    notas_metodologicas: 0,
+  };
 
   return (
     <>
