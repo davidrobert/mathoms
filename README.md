@@ -13,7 +13,7 @@
 Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas instituições, gerando análise com score financeiro, visão patrimonial, fluxo de caixa e recomendações.
 
 - **11 parsers bancários determinísticos** (`scripts/e2/banks/`): C6, Itaú, Santander, Bradesco, Caixa, BTG, Rico, PicPay, Wise, Bank of America, QuintoAndar. Outras fontes (ex.: cripto/exchanges) entram via **E2-LLM** ou extensão futura do E2.
-- **LLM opcional (BYOK)** para etapas que não têm parser fixo (E1, E1.5, E2-llm, E7-review, etc.).
+- **LLM opcional (BYOK)** para etapas que não têm parser fixo (E1, E1.5, E2-llm, E6-parecer, etc.).
 - **Multi-tenant** com isolamento por workspace.
 - **Contratos type-safe** na API (FastAPI / OpenAPI) e tipagem forte no frontend (TypeScript).
 - **Camada de domínio isolada de I/O** (ADR-089) — `Money` com `Decimal` (ADR-090), services puros testáveis em memória; artefatos do pipeline no banco via `ArtifactStore` (ADR-082, ADR-083). Decomposição de E3 (1193 linhas) via **extract-then-refactor** (ADR-097): 7 validators/preprocessors extraídos (`BankCanonicalizer`, `SaldoContinuityValidator`, `TemporalGapDetector`, `BaselineValidator`, etc.) sem tocar o `main()` legado.

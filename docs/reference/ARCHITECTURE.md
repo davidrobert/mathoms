@@ -396,7 +396,7 @@ E0-unlock → E0-audit → E0-route
 → E1 (LLM) → E1.5 (LLM) → E1.5c
 → E2-llm (LLM) → E2-faturas → E2-extratos
 → E3 → E4 → E5 → E5.N
-→ E7-crossval → E7-review (LLM) → E7-apply
+→ E7-crossval → E6-parecer (LLM)
 ```
 
 ### Ordem determinística (`DETERMINISTIC_ORDER` — free)
@@ -405,7 +405,7 @@ E0-unlock → E0-audit → E0-route
 E0-audit → E1.5c (skip se sem baseline)
 → E2-faturas → E2-extratos
 → E3 → E4 → E5 → E5.N
-→ E7-crossval → E7-apply (skip)
+→ E7-crossval
 ```
 
 > **Nota:** stages `E6` e `E6-final` foram removidos em
@@ -431,8 +431,7 @@ E0-audit → E1.5c (skip se sem baseline)
 | E5             | det.       | Análise: score, fluxo, patrimônio, goals, reserva emergência     |
 | E5.N           | det.       | Narrativas automáticas (contexto para cada seção)                |
 | E7-crossval    | det.       | 14 checks automáticos de qualidade                               |
-| E7-review      | **LLM**    | Review holístico (insights, recomendações, ajustes de score)     |
-| E7-apply       | det.       | Aplica review ao E5 JSON                                         |
+| E6-parecer     | **LLM**    | Parecer holístico do planejador (insights, riscos, sugestões — ADR-199) |
 
 > **Render do relatório:** O relatório é renderizado como rota React
 > nativa (`/reports/[id]`) consumindo `GET /reports/{id}/data`. O único
@@ -530,7 +529,7 @@ class StageSpec:
     tier: str = "free" | "premium"
 
 STAGE_REGISTRY: dict[str, StageSpec] = { "E2-extratos": ..., "E3": ..., ... }
-VIRTUAL_ARTIFACT_STAGES = frozenset({"E5-revised"})  # não executáveis
+VIRTUAL_ARTIFACT_STAGES = frozenset()  # vazio após remoção de E5-revised (A12.X)
 FULL_ORDER = [...]  # decisão intencional
 ```
 
@@ -1004,7 +1003,7 @@ descontinuar o renderer HTML server-side; React em `/reports/[id]` é
 | Config materializada por tenant (assets de produto) | `storage/{ws_id}/config/*`                                  | `config_materializer.prepare_pipeline_config_dir()` (apenas pipeline.json + llm_config.json + assets globais; A7.1 configs fluem via `WorkspaceContext.config_overrides` from DB) |
 | Artefatos intermediários (`-2_extract.json`, …)   | `storage/{ws_id}/processed/E2_extracts/` etc.               | Scripts E2–E5 executando dentro do tenant_root                  |
 | Análise final (`analise_financeira-5_analysis.json`) | `storage/{ws_id}/processed/E5_analysis/`                 | Stage E5                                                        |
-| Relatório (metadata)                              | row em `reports` (DB) — sem filesystem                      | Celery task registra `Report` após E5/E7-apply; render é React on-demand |
+| Relatório (metadata)                              | row em `reports` (DB) — sem filesystem                      | Celery task registra `Report` após E5/E6-parecer; render é React on-demand |
 | Tasks snapshot no relatório                       | `reports.tasks_snapshot_json` (DB)                          | `build_snapshot_sync` na criação do Report                      |
 | Audit log                                         | `audit_logs` (DB)                                           | `audit_service.log()` dentro da transação                       |
 | Tasks queue state                                 | Redis (broker + result backend)                             | Celery                                                          |

@@ -492,7 +492,7 @@ Toda PR que altera `frontend/tests/e2e/reports/*-snapshots/` deve marcar:
 
 ```python
 # backend/tests/fixtures/llm_mock.py expõe `mock_llm_service()` que retorna
-# outputs Pydantic válidos por stage (E1, E1.5, E2-llm, E7-review).
+# outputs Pydantic válidos por stage (E1, E1.5, E2-llm).
 # Usado via dependency override em integration tests + E2E default.
 ```
 
@@ -594,8 +594,7 @@ em 2026-04-21).
 - [ ] Teste de colisão: mesmo documento processado por extrator determinístico + LLM fallback não viola UNIQUE
 - [ ] Cada stage: golden fixture passa com artefatos no banco
 - [ ] E5: `pipeline_artifacts` tem `analise_financeira` com FK válida à run
-- [ ] `apply_review` escreve para artifact stage `analyze_finances_revised` (categoria em `VIRTUAL_ARTIFACT_STAGES`)
-- [ ] `validate_artifact_stage("analyze_finances_revised")` passa; `validate_artifact_stage("foo")` levanta
+- [ ] `validate_artifact_stage("analyze_finances")` passa; `validate_artifact_stage("foo")` levanta
 
 ### Infra — Fase 4 (cleanup + cutover)
 

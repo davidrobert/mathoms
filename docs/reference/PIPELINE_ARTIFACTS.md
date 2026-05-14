@@ -18,7 +18,7 @@
 ## Fixtures golden
 
 - JSON de pipeline (E2/E3/E4): [tests/fixtures/pipeline_golden/README.md](../tests/fixtures/pipeline_golden/README.md).
-- JSON de **saída LLM** (schemas Pydantic E1 / E1.5 / E2-LLM / E7-review): [tests/fixtures/llm_golden/README.md](../tests/fixtures/llm_golden/README.md) + `tests/test_llm_golden.py`.
+- JSON de **saída LLM** (schemas Pydantic E1 / E1.5 / E2-LLM / E6-parecer): [tests/fixtures/llm_golden/README.md](../tests/fixtures/llm_golden/README.md) + `tests/test_llm_golden.py`.
 - **PDF real anonimizado (Fase 2, opcional):** [tests/fixtures/e2_real_pdf_anon/README.md](../tests/fixtures/e2_real_pdf_anon/README.md) + `tests/test_e2_real_pdf_regression.py` (pasta pode ficar vazia; cada `*.pdf` adicionado roda `route_to_parser`).
 
 ## Artefatos auxiliares (sem JSON schema)
@@ -100,7 +100,7 @@ Implementado em `tests/test_e5n_golden_execution.py`: mesmo cenário mínimo que
 Não há mais stage E6 nem HTML standalone gerado pelo pipeline. O fluxo
 de produção do relatório é:
 
-1. **E5** (e opcionalmente E5.N + E7-review/apply) escreve
+1. **E5** (e opcionalmente E5.N + E6-parecer) escreve
    `processed/E5_analysis/analise_financeira-5_analysis.json` —
    validado pelo `e5_analysis.schema.json`.
 2. `backend/app/services/pipeline_task._create_report_from_output`

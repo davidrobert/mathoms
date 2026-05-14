@@ -107,7 +107,7 @@ Marque cada item. Ao final registre a decisão na §5.
 
 ### 4.4 LLM Stages — Free Tier (3 checks)
 
-- [ ] **A4.1** Sem `ANTHROPIC_API_KEY` configurada: E1.5, E2-llm, E7-review aparecem como `skipped_free_tier` no histórico
+- [ ] **A4.1** Sem `ANTHROPIC_API_KEY` configurada: E1.5, E2-llm, E6-parecer aparecem como `skipped_free_tier` no histórico
 - [ ] **A4.2** Banner "Processamento LLM indisponível no plano atual" visível no relatório
 - [ ] **A4.3** Pipeline ainda produz relatório útil com stages determinísticos
 

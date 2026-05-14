@@ -3,11 +3,12 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-63 entries entre 2026-04-30 e 2026-05-14.
+64 entries entre 2026-04-30 e 2026-05-14.
 
-## 2026-05-14 (1 entries)
+## 2026-05-14 (2 entries)
 
 - [[CHG-2026-05-14-FEAT-PLANNER-ATO6-TELEMETRIA-CUTOVER]] — feat(planner): Ato 6 (último) — telemetria M4 + cross-provider weekly + (lane [[A12.planner-review-ato6]])
+- [[CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES]] — refactor(pipeline): remove stage `review_finances` (E7-review) + dependente (lane [[A12.planner-review-cleanup]])
 
 ## 2026-05-12 (8 entries)
 

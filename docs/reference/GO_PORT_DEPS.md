@@ -92,9 +92,8 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–477 LOC, mediana ~38) que
 | `categorize_transactions` | 38 | `pipeline/domain/services/transaction_classifier.py` (355) + `keyword_matcher.py` (103) |
 | `analyze_finances` | 38 | `pipeline/domain/services/{patrimonio,ratios,reserva_emergencia,orcamento}_*.py` (~770) |
 | `generate_narratives` | 17 | `pipeline/domain/services/section_summary_generator.py` (391) + LLM (opt) |
-| `validate_cross` | 65 (e7.py) | `scripts/e7_review.py` |
-| `review_finances` | 213 | LLM-driven |
-| `apply_review` | 65 (e7.py) | `scripts/e7_review.py` |
+| `validate_cross` | 24 (validate_cross.py) | `scripts/e7_review.py` (só crossval pós-A12.X) |
+| `review_finances_holistic` | ~250 | LLM-driven — substitui review_finances (ADR-199) |
 
 **Total domain layer transitivamente acionado:** ~13.077 LOC em 61 arquivos.
 
