@@ -586,23 +586,25 @@ jobs:
 
   frontend-visual:
     # Lane report-a11y-finalize item 3 — snapshots por seção (light+dark),
-    # ~50 baselines no projeto `visual` do Playwright. Auto-trigger em PRs
-    # que tocam superfície do relatório (filter group `report`); fallback
-    # para label `visual` ou workflow_dispatch para forçar quando o filtro
-    # de área não cobre (ex.: dependência transversal). Baselines OS-
+    # ~50 baselines no projeto `visual` do Playwright. Baselines OS-
     # específicas → roda só em runner Linux.
-    # Motivação do auto-trigger: regressões visuais (#147, #148, #150,
-    # #151) escaparam para main porque o gate era opt-in via label.
-    # Decisão D3: spec mobile fica fora desta lane (lane futura).
+    #
+    # **Mudança ADR-210 §camada 1 (2026-05-14):** auto-trigger por path
+    # filter REMOVIDO; agora roda só com label `visual` ou
+    # workflow_dispatch. Motivação: custo era ~3.5 min × ~30% dos PRs ≈
+    # ~$4/mês no overage. Cobertura de regressão preservada em nightly
+    # (`frontend-visual-full` em .github/workflows/nightly.yml) com
+    # janela de detecção ≤24h e issue auto-aberta em falha.
+    #
+    # Trade-off vs história: regressões visuais #147, #148, #150, #151
+    # escaparam em 2026-04 quando o gate era opt-in via label. Hoje a
+    # cobertura é diferente: nightly em main + issue auto + retenção 14d
+    # do diff artifact. Para mudanças deliberadas no relatório, adicione
+    # label `visual` no PR — gate volta a ser bloqueante.
     name: Frontend visual snapshots (relatório nativo)
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    needs: changes
-    # Auto-trigger em PRs que tocam o relatório; label `visual` e
-    # workflow_dispatch permanecem como override manual para casos onde o
-    # filtro de área não se aplica.
     if: |
-      needs.changes.outputs.report == 'true' ||
       contains(github.event.pull_request.labels.*.name, 'visual') ||
       (github.event_name == 'workflow_dispatch' && inputs.run_visual)
     defaults:
