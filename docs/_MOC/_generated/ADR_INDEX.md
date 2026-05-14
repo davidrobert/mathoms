@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-203 ADRs (ADR-001 a ADR-210) em [`docs/adr/`](../../adr/).
+204 ADRs (ADR-001 a ADR-211) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 168
-- **Proposto**: 31
+- **Proposto**: 32
 - **Roadmap**: 4
 
 ## Fundação
@@ -304,9 +304,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-167]] — Eligibility gate de cenário do cônjuge no domain service · phase A8.4 PR2
 - [[ADR-192]] — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) · phase Sprint A11.W5
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
+- [[ADR-211]] — llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) · phase A12
 
 ## categorization
 
