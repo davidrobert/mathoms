@@ -34,7 +34,16 @@ export const PIPELINE_PHASES: readonly Phase[] = [
     activeMessage: "Verificando e organizando os arquivos enviados",
     description:
       "Conferimos se os arquivos estão íntegros, desbloqueamos PDFs com senha e organizamos cada documento pela sua categoria (extrato, fatura, IRPF, etc).",
-    stages: ["E0-audit", "E0-route", "E0-unlock"],
+    stages: [
+      // Legacy keys (compat reverso F9.2 → F9.3).
+      "E0-audit",
+      "E0-route",
+      "E0-unlock",
+      // Descritivos canônicos (ADR-093).
+      "audit_documents",
+      "route_documents",
+      "unlock_documents",
+    ],
   },
   {
     id: "reading",
@@ -44,12 +53,22 @@ export const PIPELINE_PHASES: readonly Phase[] = [
     description:
       "Lemos cada documento para identificar transações, saldos, investimentos e declarações — combinando parsers determinísticos e IA quando necessário.",
     stages: [
+      // Legacy.
       "E1",
       "E1.5",
       "E1.5c",
+      "E1.6",
       "E2-extratos",
       "E2-faturas",
       "E2-llm",
+      // Descritivos.
+      "extract_members",
+      "extract_baseline",
+      "consolidate_baseline",
+      "extract_irpf_full",
+      "extract_statements",
+      "extract_invoices",
+      "extract_with_llm",
     ],
   },
   {
@@ -59,7 +78,18 @@ export const PIPELINE_PHASES: readonly Phase[] = [
     activeMessage: "Reconciliando, categorizando e calculando seu patrimônio",
     description:
       "Removemos transações duplicadas, categorizamos receitas e despesas, e calculamos indicadores como patrimônio, fluxo de caixa e taxa de poupança.",
-    stages: ["E3", "E4", "E5", "E5.N"],
+    stages: [
+      // Legacy.
+      "E3",
+      "E4",
+      "E5",
+      "E5.N",
+      // Descritivos.
+      "reconcile_transactions",
+      "categorize_transactions",
+      "analyze_finances",
+      "generate_narratives",
+    ],
   },
   {
     id: "reporting",
@@ -68,7 +98,20 @@ export const PIPELINE_PHASES: readonly Phase[] = [
     activeMessage: "Gerando o relatório e revisando a consistência dos números",
     description:
       "Renderizamos o relatório HTML, rodamos validações cruzadas para detectar inconsistências e aplicamos a revisão final antes de entregar.",
-    stages: ["E7-crossval", "E7-review", "E7-apply"],
+    stages: [
+      // Legacy.
+      "E7-crossval",
+      "E7-review",
+      "E7-apply",
+      "E6-parecer",
+      // Descritivos.
+      "validate_cross",
+      "review_finances",
+      "apply_review",
+      // ADR-199 — parecer planejador (review_finances_holistic). Roda após
+      // apply_review e fecha o pipeline.
+      "review_finances_holistic",
+    ],
   },
 ] as const;
 

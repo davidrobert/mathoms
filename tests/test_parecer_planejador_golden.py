@@ -344,11 +344,18 @@ def make_run_stage_with_mocks(
     store = InMemoryArtifactStore()
     store.seed("E5", "analise_financeira", e5)
 
-    # ctx in-memory; root pode ser path qualquer válido (nada é escrito em disco)
+    # ctx in-memory; root pode ser path qualquer válido (nada é escrito em disco).
+    # ``llm_config.json`` override popula api_key — sem isso, ``_resolve_api_key``
+    # do stage wrapper retorna ``None`` e o stage pula (paridade c/ extract_members).
     import tempfile
 
     with tempfile.TemporaryDirectory() as tmp:
-        ctx = WorkspaceContext(root=Path(tmp), artifact_store=store, workspace_id=workspace_id)
+        ctx = WorkspaceContext(
+            root=Path(tmp),
+            artifact_store=store,
+            workspace_id=workspace_id,
+            config_overrides={"llm_config.json": {"api_key": "sk-mock"}},
+        )
 
         # Monkey-patch generate_parecer para injetar fakes
         from backend.app.services import parecer_orchestrator as orch
@@ -629,6 +636,85 @@ class TestFeatureFlag:
             result = stage_mod.run(ctx)
         assert result.get("skipped") is True
         assert "feature flag" in result.get("reason", "").lower()
+
+
+# -----------------------------------------------------------------------
+# Resolução de api_key (paridade com extract_members)
+# -----------------------------------------------------------------------
+#
+# Regressão do incidente 2026-05-14: o stage rodava em premium com
+# ``llm_config.json`` configurado no DB, mas o orchestrator só lia
+# ``ANTHROPIC_API_KEY`` do env. Sem env-var, generate_parecer retornava
+# ``needs_review`` em 0.1s e o pipeline marcava run como failed.
+
+
+class TestApiKeyResolution:
+    def _make_ctx(self, workspace_e5: dict, overrides: dict | None = None):
+        import tempfile
+
+        from pipeline.context import WorkspaceContext
+
+        store = InMemoryArtifactStore()
+        store.seed("E5", "analise_financeira", workspace_e5)
+        tmp = tempfile.mkdtemp()
+        return WorkspaceContext(
+            root=Path(tmp),
+            artifact_store=store,
+            workspace_id="ws-key",
+            config_overrides=overrides,
+        )
+
+    def test_skipped_when_no_api_key_anywhere(self, monkeypatch, workspace_e5):
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        from pipeline.stages import parecer_planejador as stage_mod
+
+        ctx = self._make_ctx(workspace_e5, overrides=None)
+        result = stage_mod.run(ctx)
+        assert result.get("skipped") is True
+        assert "no llm config" in result.get("reason", "").lower()
+        # Importante: NÃO success=False — paridade c/ extract_members evita
+        # abortar pipeline por falta de config.
+        assert "success" not in result or result["success"] is not False
+
+    def _patch_orchestrator(self, monkeypatch, canned_output, captured: dict[str, str]):
+        """Patcha generate_parecer capturando o original ANTES — evita recursão."""
+        from backend.app.services import parecer_orchestrator as orch
+
+        original = orch.generate_parecer
+
+        def patched(**kwargs):
+            captured["api_key"] = kwargs["config"].api_key
+            return original(
+                **kwargs,
+                llm_service=_FakeLLMService(output=canned_output),
+                cache=InMemoryLLMCache(),
+            )
+
+        monkeypatch.setattr(orch, "generate_parecer", patched)
+
+    def test_uses_llm_config_json_api_key(self, monkeypatch, workspace_e5, canned_output):
+        """``llm_config.json`` (DB-backed) preenche api_key — paridade com E1/E1.5."""
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        from pipeline.stages import parecer_planejador as stage_mod
+
+        ctx = self._make_ctx(workspace_e5, overrides={"llm_config.json": {"api_key": "sk-from-db"}})
+        captured: dict[str, str] = {}
+        self._patch_orchestrator(monkeypatch, canned_output, captured)
+        result = stage_mod.run(ctx)
+        assert result["success"] is True
+        assert captured["api_key"] == "sk-from-db"
+
+    def test_env_fallback_when_no_llm_config_json(self, monkeypatch, workspace_e5, canned_output):
+        """Sem llm_config.json, ANTHROPIC_API_KEY do env continua válido (CLI/dev)."""
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-from-env")
+        from pipeline.stages import parecer_planejador as stage_mod
+
+        ctx = self._make_ctx(workspace_e5, overrides=None)
+        captured: dict[str, str] = {}
+        self._patch_orchestrator(monkeypatch, canned_output, captured)
+        result = stage_mod.run(ctx)
+        assert result["success"] is True
+        assert captured["api_key"] == "sk-from-env"
 
 
 # -----------------------------------------------------------------------
