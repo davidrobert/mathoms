@@ -1,17 +1,21 @@
 """ArtifactStore — abstração de I/O para artefatos do pipeline (ADR-083).
 
-Define o protocolo e duas implementações sem dependência de banco, mantendo a
-fronteira arquitetural de ``pipeline/`` (sem fastapi/celery/sqlalchemy — ver
-``dev/check_pipeline_boundaries.py``):
+Define o protocolo e a implementação em-memória usada por testes unitários,
+mantendo a fronteira arquitetural de ``pipeline/`` (sem fastapi/celery/sqlalchemy
+— ver ``dev/check_pipeline_boundaries.py``):
 
-- :class:`DiskArtifactStore` — backward compat com ``processed/*.json``; usado
-  pelo CLI dev e pelas Fases 1-3 antes do cutover para banco.
 - :class:`InMemoryArtifactStore` — sem disco, sem banco; obrigatória para testes
-  unitários de domain services.
+  unitários de domain services e goldens de execução.
 
-A terceira implementação, ``DBArtifactStore``, vive em
+A implementação de produção, ``DBArtifactStore``, vive em
 ``backend/app/services/db_artifact_store.py`` porque depende de SQLAlchemy
 (orm layer do app web) e é exclusiva do caminho Celery+DB.
+
+**ADR-212 PR3b:** ``DiskArtifactStore`` foi removido. Pipeline roda
+exclusivamente via Celery worker com ``DBArtifactStore``; testes usam
+``InMemoryArtifactStore``. ``stage_dir_name``/``stage_suffix`` permanecem
+como referência para o layout legado em disco (consumido por scripts
+read-only e CLI ``e0_audit.py``).
 
 Durante as Fases 1-8, as chaves de stage são os nomes legados (``"E2"``,
 ``"E3"``, ``"E5"``...). A Fase 9 migra para nomes descritivos
@@ -28,8 +32,6 @@ Exemplo (teste de domínio):
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Optional, Protocol, runtime_checkable
 
 # =============================================================================
@@ -160,93 +162,6 @@ class ArtifactStore(Protocol):
     def delete_stage(self, stage: str) -> int:
         """Remove todos os artefatos do stage. Retorna a contagem removida."""
         ...
-
-
-# =============================================================================
-# DiskArtifactStore — backward compat com ``processed/*.json``
-# =============================================================================
-
-
-class DiskArtifactStore:
-    """Implementação que lê/escreve em ``<root>/processed/<stage_dir>/*<suffix>``.
-
-    Backward-compatível com o layout atual do pipeline CLI. Chamadas de
-    ``write`` criam diretórios conforme necessário; ``read`` retorna ``None``
-    quando o arquivo não existe.
-
-    O parâmetro ``document_id`` em ``write`` é ignorado (não há vínculo FK em
-    disco) — preservado para compatibilidade com o protocolo.
-    """
-
-    def __init__(self, root: Path):
-        self._root = Path(root).resolve()
-
-    @property
-    def processed_dir(self) -> Path:
-        return self._root / "processed"
-
-    def _stage_dir(self, stage: str) -> Path:
-        return self.processed_dir / stage_dir_name(stage)
-
-    def _path(self, stage: str, key: str) -> Path:
-        return self._stage_dir(stage) / f"{key}{stage_suffix(stage)}"
-
-    def read(self, stage: str, key: str) -> Optional[dict]:
-        path = self._path(stage, key)
-        if not path.exists():
-            return None
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, OSError):
-            return None
-
-    def list_keys(self, stage: str) -> list[str]:
-        stage_dir = self._stage_dir(stage)
-        if not stage_dir.exists():
-            return []
-        suffix = stage_suffix(stage)
-        keys: list[str] = []
-        for f in sorted(stage_dir.iterdir()):
-            name = f.name
-            if name.endswith(suffix):
-                keys.append(name[: -len(suffix)])
-        return keys
-
-    def exists(self, stage: str, key: str) -> bool:
-        return self._path(stage, key).exists()
-
-    def write(
-        self,
-        stage: str,
-        key: str,
-        data: dict,
-        *,
-        document_id: Optional[str] = None,
-    ) -> None:
-        path = self._path(stage, key)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_suffix(path.suffix + ".tmp")
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        tmp.replace(path)
-
-    def delete(self, stage: str, key: str) -> None:
-        path = self._path(stage, key)
-        if path.exists():
-            path.unlink()
-
-    def delete_stage(self, stage: str) -> int:
-        stage_dir = self._stage_dir(stage)
-        if not stage_dir.exists():
-            return 0
-        suffix = stage_suffix(stage)
-        count = 0
-        for f in list(stage_dir.iterdir()):
-            if f.name.endswith(suffix):
-                f.unlink()
-                count += 1
-        return count
 
 
 # =============================================================================

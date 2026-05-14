@@ -1158,10 +1158,13 @@ def main_with_store(ctx) -> Dict[str, Any]:
     """E3 Caminho B (Sessão A2 da Fase 6) — orquestra o pipeline E3 sobre
     ``ArtifactStore`` em vez de disco direto.
 
-    Coexiste com ``main(root_dir)`` legado. Lê E2 e escreve E3 via
-    ``ctx.get_artifact_store()`` (in-memory ou DB-backed em testes; disco no
-    caminho normal). Usa domain services extraídos na Sessão A1 — paridade
-    comprovada por golden em ``tests/test_e3_golden_execution.py``.
+    Lê E2 e escreve E3 via ``ctx.get_artifact_store()`` (``DBArtifactStore``
+    em produção, ``InMemoryArtifactStore`` em testes). Usa domain services
+    extraídos na Sessão A1 — paridade comprovada por golden em
+    ``tests/test_e3_golden_execution.py``.
+
+    ADR-212 PR3b: ``DiskArtifactStore`` foi removido — cleanup de disco
+    pré-stage não é mais necessário (DB faz upsert nativamente).
     """
     print("=" * 80)
     print("E3 RECONCILIATION STAGE — Caminho B (main_with_store)")
@@ -1169,14 +1172,6 @@ def main_with_store(ctx) -> Dict[str, Any]:
 
     adapter, canon = _e3_build_adapter(ctx)
     store = ctx.get_artifact_store()
-
-    # Cleanup E3 quando store é baseado em disco (ADR-212 PR3a — DBArtifactStore
-    # faz upsert nativamente; cleanup só é útil para evitar arquivos órfãos em
-    # processed/E3_reconciled/ no caminho disco residual).
-    from pipeline.artifact_store import DiskArtifactStore
-
-    if isinstance(store, DiskArtifactStore):
-        cleanup_e3_directory(ctx.e3_dir)
 
     log_progress("E3.0", f"Workspace root: {ctx.root}")
     log_progress("E3.0", f"Store impl:     {type(store).__name__}")

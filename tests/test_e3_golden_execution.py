@@ -15,7 +15,12 @@ _E2_FIXTURE = (
 
 @pytest.fixture
 def e3_tenant_minimal(tmp_path: Path) -> Path:
-    """Workspace com config mínima e um extract E2 compatível com E3."""
+    """Workspace com config mínima.
+
+    ADR-212 PR3b: E2 não é mais escrito em disco — fixture retorna apenas
+    o tmp_path com config; o E2 input é seeded no store em-memória pelo
+    próprio teste (``store.seed(...)``).
+    """
     cfg = tmp_path / "config"
     cfg.mkdir(parents=True)
     (cfg / "pipeline.json").write_text(
@@ -24,34 +29,39 @@ def e3_tenant_minimal(tmp_path: Path) -> Path:
     )
     (cfg / "family_members.json").write_text("{}", encoding="utf-8")
     (cfg / "institutions.json").write_text('{"banco_canonical": {}}', encoding="utf-8")
-
-    e2_dir = tmp_path / "processed" / "E2_extracts"
-    e2_dir.mkdir(parents=True)
-
-    data = json.loads(_E2_FIXTURE.read_text(encoding="utf-8"))
-    data["saldo_inicial"] = 0.0
-    data["saldo_final"] = 100.0
-    (e2_dir / "golden-minimal-2_extract.json").write_text(
-        json.dumps(data, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-
     return tmp_path
 
 
+def _e2_minimal_payload() -> dict:
+    """Carrega fixture E2 + ajusta saldos para casar com gold standard E3."""
+    data = json.loads(_E2_FIXTURE.read_text(encoding="utf-8"))
+    data["saldo_inicial"] = 0.0
+    data["saldo_final"] = 100.0
+    return data
+
+
 def test_e3_execution_produces_reconciled_json(e3_tenant_minimal: Path):
-    """Roda e3_reconcile.main_with_store em tenant isolado."""
+    """Roda e3_reconcile.main_with_store em tenant isolado.
+
+    ADR-212 PR3b: ``WorkspaceContext`` requer ``artifact_store`` explícito.
+    E3 ainda lê E2 de disco via ``load_and_group_e2_extracts`` (fixture
+    escreve em ``processed/E2_extracts/``); escreve E3 via store
+    (``InMemoryArtifactStore`` aqui). Assertions consultam o store.
+    """
+    from pipeline.artifact_store import InMemoryArtifactStore
     from pipeline.context import WorkspaceContext
     from scripts.e3_reconcile import main_with_store
 
-    ctx = WorkspaceContext(root=e3_tenant_minimal)
+    store = InMemoryArtifactStore()
+    store.seed("E2-extratos", "golden-minimal", _e2_minimal_payload())
+    ctx = WorkspaceContext(root=e3_tenant_minimal, artifact_store=store)
     main_with_store(ctx)
 
-    e3_dir = e3_tenant_minimal / "processed" / "E3_reconciled"
-    outputs = sorted(e3_dir.glob("*-3_reconciled.json"))
-    assert len(outputs) == 1, f"expected one E3 file, got {[p.name for p in outputs]}"
+    e3_keys = store.list_keys("E3")
+    assert len(e3_keys) == 1, f"expected one E3 key, got {e3_keys}"
 
-    payload = json.loads(outputs[0].read_text(encoding="utf-8"))
+    payload = store.read("E3", e3_keys[0])
+    assert payload is not None
     assert payload["banco"] == "itau"
     assert payload["tipo_conta"] == "extratoconta"
     assert payload["moeda"] == "BRL"
@@ -66,6 +76,6 @@ def test_e3_execution_produces_reconciled_json(e3_tenant_minimal: Path):
     )
     jsonschema.validate(payload, schema)
 
-    from scripts.pipeline_common import validate_artifact
+    from scripts.pipeline_common import validate_dict
 
-    assert validate_artifact(outputs[0], "e3_reconciled.schema.json") is True
+    assert validate_dict(payload, "e3_reconciled.schema.json") is True

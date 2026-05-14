@@ -1,4 +1,8 @@
-"""Golden de execução E5: tenant mínimo + E3→E4→E5 → assert + schema."""
+"""Golden de execução E5: tenant mínimo + E3→E4→E5 → assert + schema.
+
+ADR-212 PR3b: E3/baseline são seeded no ``InMemoryArtifactStore`` (não em
+disco). E4/E5 lêem/escrevem via store API.
+"""
 
 from __future__ import annotations
 
@@ -54,13 +58,11 @@ _FAMILY_E5 = {
 }
 
 
-@pytest.fixture
-def e5_tenant_minimal(tmp_path: Path) -> Path:
-    """Workspace com configs E4+E5 e um reconciliado E3; E4 gera E4_unified, E5 lê."""
+def _write_e5_config(tmp_path: Path, *, expense_keywords: dict | None = None) -> None:
     cfg = tmp_path / "config"
-    cfg.mkdir(parents=True)
+    cfg.mkdir(parents=True, exist_ok=True)
     cat = {
-        "expense_keywords": {},
+        "expense_keywords": expense_keywords or {},
         "income_keywords": {"renda": ["PIX"]},
         "internal_transfer_patterns": [],
         "pj_source_mapping": {},
@@ -83,103 +85,54 @@ def e5_tenant_minimal(tmp_path: Path) -> Path:
     shutil.copy(_LEGACY_FISCAL, cfg / "parametros_fiscais.json")
     shutil.copy(_LEGACY_TAXAS, cfg / "taxas.json")
 
-    e3_dir = tmp_path / "processed" / "E3_reconciled"
-    e3_dir.mkdir(parents=True)
-    shutil.copy(_E3_FIXTURE, e3_dir / "golden-minimal-3_reconciled.json")
 
+def _load_fixture_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _new_e5_ctx(root: Path, *, e3_fixture: Path, baseline: Path | None = None):
+    """Cria WorkspaceContext com InMemoryArtifactStore seeded com E3 + baseline."""
+    from pipeline.artifact_store import InMemoryArtifactStore
+    from pipeline.context import WorkspaceContext
+
+    store = InMemoryArtifactStore()
+    e3_key = e3_fixture.stem.replace("-3_reconciled", "")
+    store.seed("E3", e3_key, _load_fixture_json(e3_fixture))
+    if baseline is not None:
+        store.seed("E1.5c", "baseline_patrimonial", _load_fixture_json(baseline))
+    return WorkspaceContext(root=root, artifact_store=store)
+
+
+@pytest.fixture
+def e5_tenant_minimal(tmp_path: Path) -> Path:
+    _write_e5_config(tmp_path)
     return tmp_path
 
 
 @pytest.fixture
 def e5_tenant_mixed_cashflow(tmp_path: Path) -> Path:
-    """Como e5_tenant_minimal, mas E3 com receita + despesa categorizada."""
-    cfg = tmp_path / "config"
-    cfg.mkdir(parents=True)
-    cat = {
-        "expense_keywords": {"lazer": ["CINEMA"]},
-        "income_keywords": {"renda": ["PIX"]},
-        "internal_transfer_patterns": [],
-        "pj_source_mapping": {},
-        "clt_source_mapping": {},
-    }
-    (cfg / "categorization.json").write_text(
-        json.dumps(cat, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    (cfg / "family_members.json").write_text(
-        json.dumps(_FAMILY_E5, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
-    (cfg / "goals.json").write_text(
-        json.dumps(_GOALS_MIN, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    shutil.copy(_REPO / "config" / "scoring.json", cfg / "scoring.json")
-    shutil.copy(_LEGACY_FISCAL, cfg / "parametros_fiscais.json")
-    shutil.copy(_LEGACY_TAXAS, cfg / "taxas.json")
-
-    e3_dir = tmp_path / "processed" / "E3_reconciled"
-    e3_dir.mkdir(parents=True)
-    shutil.copy(_E3_MIXED, e3_dir / "golden-mixed-3_reconciled.json")
-
+    _write_e5_config(tmp_path, expense_keywords={"lazer": ["CINEMA"]})
     return tmp_path
 
 
 @pytest.fixture
 def e5_tenant_with_baseline(tmp_path: Path) -> Path:
-    """Como e5_tenant_minimal + baseline patrimonial em E2_extracts."""
-    cfg = tmp_path / "config"
-    cfg.mkdir(parents=True)
-    cat = {
-        "expense_keywords": {},
-        "income_keywords": {"renda": ["PIX"]},
-        "internal_transfer_patterns": [],
-        "pj_source_mapping": {},
-        "clt_source_mapping": {},
-    }
-    (cfg / "categorization.json").write_text(
-        json.dumps(cat, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    (cfg / "family_members.json").write_text(
-        json.dumps(_FAMILY_E5, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
-    (cfg / "goals.json").write_text(
-        json.dumps(_GOALS_MIN, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    shutil.copy(_REPO / "config" / "scoring.json", cfg / "scoring.json")
-    shutil.copy(_LEGACY_FISCAL, cfg / "parametros_fiscais.json")
-    shutil.copy(_LEGACY_TAXAS, cfg / "taxas.json")
-
-    e2_dir = tmp_path / "processed" / "E2_extracts"
-    e2_dir.mkdir(parents=True)
-    shutil.copy(_BASELINE_MIN, e2_dir / "baseline_patrimonial-1.5_consolidated.json")
-
-    e3_dir = tmp_path / "processed" / "E3_reconciled"
-    e3_dir.mkdir(parents=True)
-    shutil.copy(_E3_FIXTURE, e3_dir / "golden-minimal-3_reconciled.json")
-
+    _write_e5_config(tmp_path)
     return tmp_path
 
 
 def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
     """Roda E4 e E5 em tenant isolado; restaura globals dos scripts."""
-    from pipeline.context import WorkspaceContext
     from scripts.e4_categorize import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
 
-    ctx = WorkspaceContext(root=e5_tenant_minimal)
+    ctx = _new_e5_ctx(e5_tenant_minimal, e3_fixture=_E3_FIXTURE)
     e4_mws(ctx)
     e5_mws(ctx)
+    store = ctx.artifact_store
 
-    out = e5_tenant_minimal / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-    assert out.is_file(), f"missing {out}"
-
-    payload = json.loads(out.read_text(encoding="utf-8"))
+    payload = store.read("E5", "analise_financeira")
+    assert payload is not None
     assert payload["score"]["valor"] >= 0
     assert payload["score"]["valor"] <= 10
     assert isinstance(payload["score"]["classificacao"], str)
@@ -193,30 +146,24 @@ def test_e5_execution_produces_analysis_json(e5_tenant_minimal: Path):
     )
     jsonschema.validate(payload, schema)
 
-    from scripts.pipeline_common import validate_artifact
+    from scripts.pipeline_common import validate_dict
 
-    assert validate_artifact(out, "e5_analysis.schema.json") is True
+    assert validate_dict(payload, "e5_analysis.schema.json") is True
 
     assert_qa_log_md(e5_tenant_minimal)
 
 
 def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
     """E5 com receitas e despesas não nulas no E4 (golden expandido)."""
-    from pipeline.context import WorkspaceContext
     from scripts.e4_categorize import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
 
-    ctx = WorkspaceContext(root=e5_tenant_mixed_cashflow)
+    ctx = _new_e5_ctx(e5_tenant_mixed_cashflow, e3_fixture=_E3_MIXED)
     e4_mws(ctx)
     e5_mws(ctx)
+    store = ctx.artifact_store
 
-    out = (
-        e5_tenant_mixed_cashflow
-        / "processed"
-        / "E5_analysis"
-        / "analise_financeira-5_analysis.json"
-    )
-    payload = json.loads(out.read_text(encoding="utf-8"))
+    payload = store.read("E5", "analise_financeira")
     fc = payload["fluxo_caixa"]
     assert fc.get("receita_total", 0) > 0
     assert fc.get("despesa_total", 0) > 0
@@ -232,18 +179,15 @@ def test_e5_execution_mixed_receita_despesa(e5_tenant_mixed_cashflow: Path):
 
 def test_e5_execution_with_baseline_patrimonial(e5_tenant_with_baseline: Path):
     """E5 lê baseline consolidado: patrimônio bruto/líquido refletem totais do IRPF sintético."""
-    from pipeline.context import WorkspaceContext
     from scripts.e4_categorize import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
 
-    ctx = WorkspaceContext(root=e5_tenant_with_baseline)
+    ctx = _new_e5_ctx(e5_tenant_with_baseline, e3_fixture=_E3_FIXTURE, baseline=_BASELINE_MIN)
     e4_mws(ctx)
     e5_mws(ctx)
+    store = ctx.artifact_store
 
-    out = (
-        e5_tenant_with_baseline / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-    )
-    payload = json.loads(out.read_text(encoding="utf-8"))
+    payload = store.read("E5", "analise_financeira")
     assert payload["patrimonio"]["bruto"] == 500_000.0
     assert payload["patrimonio"]["liquido"] == 400_000.0
     assert payload["patrimonio"]["dividas"] == 100_000.0

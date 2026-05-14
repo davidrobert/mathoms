@@ -127,15 +127,13 @@ class TestE15Stage:
         assert result["net_worth_brl"] == 550000.00
         assert result["validation"]["valid"] is True
 
-        # A6a: E1.5 agora escreve via store → baseline_patrimonial-1.5_baseline.json
-        # E1.5c lerá esse artefato e produzirá baseline_patrimonial-1.5_consolidated.json.
-        out_path = ctx.e2_dir / "baseline_patrimonial-1.5_baseline.json"
-        assert out_path.exists(), (
-            f"E1.5 deveria ter escrito via store no path {out_path} — "
-            "verificar que store.write('E1.5', 'baseline_patrimonial', ...) foi chamado."
+        # E1.5 escreve via store em ("E1.5", "baseline_patrimonial").
+        # E1.5c lerá esse artefato e produzirá ("E1.5c", "baseline_patrimonial").
+        data = ctx.artifact_store.read("E1.5", "baseline_patrimonial")
+        assert data is not None, (
+            "E1.5 deveria ter escrito via store ('E1.5', 'baseline_patrimonial'). "
+            "Verificar que store.write foi chamado."
         )
-
-        data = json.loads(out_path.read_text())
         assert data["resumo"]["patrimonio_liquido"] == 550000.00
         assert len(data["itens"]) == 2
 
@@ -304,8 +302,7 @@ class TestA6aStructural:
         ), "pipeline/stages/extract_with_llm.py deve chamar store.write após A6a."
 
     def test_e15_writes_to_e15_stage_key(self, tmp_path):
-        """Com DiskArtifactStore, E1.5 deve produzir baseline_patrimonial-1.5_baseline.json."""
-        import json
+        """E1.5 escreve baseline via store ``("E1.5", "baseline_patrimonial")``."""
         from unittest.mock import patch
 
         ctx = make_llm_ctx(tmp_path)
@@ -325,20 +322,14 @@ class TestA6aStructural:
             result = run(ctx)
 
         assert result["success"] is True
-        # A6a: arquivo correto via store
-        baseline_path = ctx.e2_dir / "baseline_patrimonial-1.5_baseline.json"
-        assert baseline_path.exists(), "E1.5 deve escrever baseline_patrimonial-1.5_baseline.json"
-        # Arquivo E1.5c NÃO deve existir ainda (E1.5c ainda não rodou)
-        consolidated = ctx.e2_dir / "baseline_patrimonial-1.5_consolidated.json"
-        assert (
-            not consolidated.exists()
-        ), "E1.5 não deve mais escrever _consolidated.json — isso é responsabilidade do E1.5c."
-        data = json.loads(baseline_path.read_text())
-        assert data["resumo"]["patrimonio_liquido"] == 550000.00
+        baseline = ctx.artifact_store.read("E1.5", "baseline_patrimonial")
+        assert baseline is not None, "E1.5 deve escrever em store (E1.5, baseline_patrimonial)"
+        # E1.5c NÃO escreve ainda (responsabilidade do consolidate_baseline)
+        assert not ctx.artifact_store.exists("E1.5c", "baseline_patrimonial")
+        assert baseline["resumo"]["patrimonio_liquido"] == 550000.00
 
     def test_e2_llm_writes_via_store(self, tmp_path):
-        """Com DiskArtifactStore, E2-llm deve produzir {stem}-2_extract.json no path correto."""
-        import json
+        """E2-llm escreve via ``store.write("E2-llm", stem, payload)``."""
         from unittest.mock import patch
 
         ctx = make_llm_ctx(tmp_path)
@@ -363,8 +354,6 @@ class TestA6aStructural:
 
         assert result["success"] is True
         assert result["total_processed"] == 1
-        # A6a: arquivo deve existir no path esperado do store
-        out_file = ctx.e2_dir / "btg_informe_2024-2_extract.json"
-        assert out_file.exists(), f"E2-llm deve escrever {out_file.name} via store"
-        data = json.loads(out_file.read_text())
-        assert data["extraido_por"] == "llm"
+        payload = ctx.artifact_store.read("E2-llm", "btg_informe_2024")
+        assert payload is not None, "E2-llm deve escrever em store (E2-llm, btg_informe_2024)"
+        assert payload["extraido_por"] == "llm"

@@ -56,6 +56,7 @@ def test_e5n_main_with_store_does_not_write_goals_json(tmp_path: Path) -> None:
     """Roda ``e5n.main_with_store`` em workspace sem ``goals.json`` em disco
     e confirma que o script não cria o arquivo (ADR-180 gate empírico).
     """
+    from pipeline.artifact_store import InMemoryArtifactStore
     from pipeline.context import WorkspaceContext
 
     # Workspace mínimo: só E5 artifact precisa existir para o main rodar até
@@ -80,6 +81,7 @@ def test_e5n_main_with_store_does_not_write_goals_json(tmp_path: Path) -> None:
     ctx = WorkspaceContext.for_tenant(
         tenant_root=tmp_path,
         config={"family_members.json": family},
+        artifact_store=InMemoryArtifactStore(),
     )
     assert not (cfg_dir / "goals.json").exists()
     res = e5n.main_with_store(ctx)

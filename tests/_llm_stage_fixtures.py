@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.context import WorkspaceContext
 from pipeline.llm.litellm_client import LLMCallResult
 from pipeline.llm.schemas.e1_members import (
@@ -41,14 +42,14 @@ def make_llm_ctx(tmp_path: Path) -> WorkspaceContext:
         "temperature": 0.1,
     }
     (config_dir / "llm_config.json").write_text(json.dumps(llm_config))
-    return WorkspaceContext(root=tmp_path)
+    return WorkspaceContext(root=tmp_path, artifact_store=InMemoryArtifactStore())
 
 
 def make_llm_ctx_no_llm(tmp_path: Path) -> WorkspaceContext:
     """WorkspaceContext without llm_config.json (free tier simulation)."""
     config_dir = tmp_path / "config"
     config_dir.mkdir(parents=True)
-    return WorkspaceContext(root=tmp_path)
+    return WorkspaceContext(root=tmp_path, artifact_store=InMemoryArtifactStore())
 
 
 def make_e1_output() -> MembersExtractOutput:

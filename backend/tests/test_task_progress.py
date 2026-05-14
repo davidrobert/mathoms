@@ -171,9 +171,9 @@ async def test_progress_matches_transactions_with_keywords(db, tmp_path: Path):
         category="Invest",
     )
 
-    # Monta estrutura mínima de tenant_root
-    e4_dir = tmp_path / "processed" / "E4_unified"
-    e4_dir.mkdir(parents=True)
+    # ADR-212 PR3b: fixture E4 vai para ``pipeline_artifacts`` (DB-only).
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from backend.app.models.pipeline_run import PipelineRun
 
     start, end = _current_month_period()
     in_month_iso = start.replace(day=5).isoformat()
@@ -213,10 +213,31 @@ async def test_progress_matches_transactions_with_keywords(db, tmp_path: Path):
             ]
         }
     }
-    (e4_dir / "despesas-4_unified.json").write_text(json.dumps(despesas), encoding="utf-8")
-    # Arquivo de receitas vazio (esperado pelo loader)
-    (e4_dir / "receitas-4_unified.json").write_text(json.dumps({"dados": {}}), encoding="utf-8")
+    run = PipelineRun(workspace_id=ws.id, status="completed")
+    db.add(run)
+    await db.flush()
+    db.add(
+        PipelineArtifact(
+            workspace_id=ws.id,
+            pipeline_run_id=run.id,
+            stage="E4",
+            artifact_key="despesas",
+            content_json=despesas,
+        )
+    )
+    db.add(
+        PipelineArtifact(
+            workspace_id=ws.id,
+            pipeline_run_id=run.id,
+            stage="E4",
+            artifact_key="receitas",
+            content_json={"dados": {}},
+        )
+    )
+    await db.commit()
 
+    # ADR-212 PR3b: tenant_root é ignorado pelo reader (warning de deprecation);
+    # leitura vem de pipeline_artifacts (DB-only).
     progress = compute_progress(task, workspace_id=str(ws.id), tenant_root=str(tmp_path))
     assert progress.is_trackable is True
     assert progress.target_brl == 20000.0
