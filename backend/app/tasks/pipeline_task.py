@@ -460,15 +460,12 @@ def _setup_run_context(
 ):
     """Cria WorkspaceContext + injeta ``DBConfigStore`` (ADR-134, post-A7.5).
 
-    Também seta ``MATHOMS_WORKSPACE_ROOT`` para scripts E0–E7 lazy-imported.
     Retorna ``(ctx, use_db_artifacts, config_store_session)`` — a sessão
     long-lived que respaldou o ``DBConfigStore`` é devolvida ao caller
     para fechamento ao fim do run. Após Sprint A7.5 o produto é DB-first
     para config; o flag ``use_db_artifacts`` continua governando apenas
     o artifact store (E0/E1/E2 outputs).
     """
-    import os
-
     from backend.app.services.pipeline_adapter import (
         build_config_overrides_from_db,
         build_config_store,
@@ -496,8 +493,6 @@ def _setup_run_context(
     ctx.ensure_dirs()
     ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
 
-    # Lazy-imported scripts (E0–E7) load pipeline_common — tenant-scoped paths.
-    os.environ["MATHOMS_WORKSPACE_ROOT"] = str(tenant_root.resolve())
     return ctx, use_db_artifacts, config_store_session
 
 

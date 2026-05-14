@@ -1,13 +1,7 @@
 """Mathoms AI — FastAPI application entry point."""
 
-import os
-from pathlib import Path
-
-# Before any import of scripts.* (e0_route → pipeline_common): workspace path model.
-_repo_root = Path(__file__).resolve().parent.parent.parent
-os.environ.setdefault("MATHOMS_WORKSPACE_ROOT", str(_repo_root))
-
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request

@@ -4,7 +4,6 @@ Start worker:
     celery -A backend.app.worker worker -l info -c 2
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -20,9 +19,6 @@ from backend.app.core.otel import instrument_celery, setup_otel
 _project_root = str(Path(__file__).resolve().parent.parent.parent)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
-
-# scripts.pipeline_common needs MATHOMS_WORKSPACE_ROOT; per-run tasks may override to tenant.
-os.environ.setdefault("MATHOMS_WORKSPACE_ROOT", _project_root)
 
 celery_app = Celery("fin")
 
