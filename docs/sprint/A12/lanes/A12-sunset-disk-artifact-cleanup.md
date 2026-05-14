@@ -88,13 +88,16 @@ Lista completa em [[ADR-212]] §Consequências e §Riscos identificados.
 
 ## Definition of Done
 
-- ☐ PR2 mergeado em `main` com CI verde.
-- ☐ PR1 mergeado; `reset_workspace_from_stage` com teste unitário sob `InMemoryArtifactStore`.
-- ☐ PR1.5 mergeado; runbook revisado pelo oncall.
-- ☐ Soak ≥7d em staging entre PR1.5 e PR3 (sem alertas em `mathoms.pipeline`).
-- ☐ PR3 mergeado; canary 10%/72h concluído sem regressão; goldens verdes.
-- ☐ PR4 mergeado; coluna `workspaces.use_db_artifacts_override` removida; `USE_DB_ARTIFACTS` removido de settings; `docs/reference/runbooks/cutover.md` arquivado em `docs/archive/cutover-YYYY-MM-DD.md`.
-- ☐ [[ADR-212]] flippada `Proposto` → `Decidido (A12.sunset-disk-artifact)` no PR4.
-- ☐ [[ADR-118]] + [[ADR-106]] confirmadas com `superseded_by: [[ADR-212]]` (já declarado bidirecional em 2026-05-14).
-- ☐ [[ADR-083]] §Contexto bullet 1 marcada como obsoleta no corpo da ADR-212 (supersedure parcial documentada).
-- ☐ [[ADR-120]] atualizada — fallback de disco descrito como removido.
+- ☑ PR2 ([#262](https://github.com/davidrobert/mathoms/pull/262)) — `MATHOMS_WORKSPACE_ROOT` setdefault removido.
+- ☑ PR1 ([#263](https://github.com/davidrobert/mathoms/pull/263)) — CLI standalone de e0_route/e0_unlock/e2_extract deletada.
+- ☑ PR1b ([#265](https://github.com/davidrobert/mathoms/pull/265)) — `reset_workspace_from_stage` extraído + `e_reset.py` deletado (1406 LoC).
+- ☑ PR1.5 ([#264](https://github.com/davidrobert/mathoms/pull/264)) — runbook `pipeline_rollback.md` criado.
+- ☐ Soak ≥7d em staging — gate operacional pós-PR3b (não bloqueia merge; condiciona roll-out 100%).
+- ☑ PR3a ([#266](https://github.com/davidrobert/mathoms/pull/266)) — hot-path DBArtifactStore hard-wired; dev scripts deletados.
+- ☑ PR3b ([#267](https://github.com/davidrobert/mathoms/pull/267)) — DiskArtifactStore class deletada; WorkspaceContext raise; goldens refatorados.
+- ☑ PR4 — Alembic drop coluna + remove flag + arquiva runbook (este PR).
+- ☑ [[ADR-212]] flippada `Proposto` → `Decidido (A12.sunset-disk-artifact)` neste PR4.
+- ☑ [[ADR-118]] + [[ADR-106]] confirmadas com `superseded_by: [[ADR-212]]` (declaração bidirecional em 2026-05-14).
+- ☑ [[ADR-083]] §Contexto bullet 1 marcada como obsoleta no corpo da ADR-212 (supersedure parcial documentada).
+- ☑ [[ADR-120]] fallback de disco removido (PR3b deletou `_read_from_disk`).
+- ☐ Canary 10%/72h em staging antes de roll-out 100% (sre-devops P0).
