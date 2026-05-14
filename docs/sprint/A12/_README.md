@@ -51,6 +51,13 @@ Lições críticas do co-design `financial-planner` + `product-designer`
   + dogfood gate; P5/P6 são V2 pós-tração).
   Plano: [CAT_LEARNING_LOOP](../../plan/CAT_LEARNING_LOOP/_README.md).
   ADR: [[ADR-186]].
+- **A12.sunset-disk-artifact** — sunset `DiskArtifactStore` + flag
+  `MATHOMS_USE_DB_ARTIFACTS` + coluna `use_db_artifacts_override` + CLI
+  standalone do pipeline (5 PRs sequenciais, ~5d eng em ~3 sem
+  calendário). Cleanup pós-cutover desbloqueia [[ADR-211]] lane 3.
+  Plano = [[ADR-212]] (a ADR é o plano).
+  Lane: [A12.sunset-disk-artifact](lanes/A12-sunset-disk-artifact-cleanup.md).
+  Track: [sunset-disk-artifact](tracks/sunset-disk-artifact.md).
 
 Lanes adicionais entram aqui conforme A11 fecha trabalho que naturalmente
 empurra continuação para A12.

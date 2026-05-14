@@ -427,6 +427,7 @@
 | A11.w6 | lane | blocked | A11 | Tech debt cleanup (6 tasks) | `sprint/A11/lanes/A11-w6-tech-debt-cleanup.md` |
 | A12.alocacao-v2 | lane | open | A12 | Alocação-alvo schema v1→v2 (7 classes AUVP, desvio backend-driven) | `sprint/A12/lanes/A12-alocacao-v2-migration.md` |
 | A12.cat-learning-loop | lane | in_progress | A12 | Categorization Learning Loop — promoção de override em regra | `sprint/A12/lanes/A12-cat-learning-loop-override-to-rule.md` |
+| A12.sunset-disk-artifact | lane | open | A12 | Sunset DiskArtifactStore + flag MATHOMS_USE_DB_ARTIFACTS + CLI standalone | `sprint/A12/lanes/A12-sunset-disk-artifact-cleanup.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -577,6 +578,7 @@
 | TRACK-report-v2-charts-ux | track | consumed | A11 | Track Report v2.E — Charts UX (paridade visual final dos charts) | `sprint/A11/tracks/report-v2-charts-ux.md` |
 | TRACK-report-v2-t2-aportes | track | consumed | A11 | Track Report v2.4 — T2 Aportes seção real | `sprint/A11/tracks/report-v2-t2-aportes.md` |
 | TRACK-s9-riscos-expansion | track | consumed | A11 | Track S9 Riscos e Proteção — Expansão completa (Protection aggregate + ProtectionBundle + 5 blocos UI) | `sprint/A11/tracks/s9-riscos-expansion.md` |
+| TRACK-sunset-disk-artifact | track | ready | A12 | Track Sunset DiskArtifactStore — 5 PRs sequenciais (ADR-212) | `sprint/A12/tracks/sunset-disk-artifact.md` |
 | TRACK-w5t01-a11y | track | consumed | W5 | Track W5-T01 — A11y onda: scope=col + role=progressbar + aria-label charts + reduced-motion | `sprint/W5/tracks/w5t01-a11y.md` |
 | TRACK-w5t03-monetary-value | track | consumed | W5 | Track W5-T03 — `<MonetaryValue size="kpi">` migration | `sprint/W5/tracks/w5t03-monetary-value.md` |
 | TRACK-w5t04-adr161-enrichment | track | consumed | W5 | Track W5-T04 — FP-004 ADR-161 enrichment (5 sub-PRs paralelos) | `sprint/W5/tracks/w5t04-adr161-enrichment.md` |
