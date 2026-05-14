@@ -68,7 +68,7 @@ _config_cache: Dict[str, dict] = {}
 def _init_config(base_dir: Path) -> None:
     """(Re-)inicializa paths globais e limpa cache de config."""
     global PROJECT_DIR, CONFIG_DIR, DATA_DIR, PROCESSED_DIR, LOGS_DIR
-    global E2_DIR, E3_DIR, E4_DIR, E5_DIR, E7_DIR
+    global E2_DIR, E3_DIR, E4_DIR, E5_DIR
     global INBOX_DIR, INBOX_PROCESSED_DIR, MEMBERS_DIR, OUTPUT_DIR
     PROJECT_DIR = base_dir
     CONFIG_DIR = PROJECT_DIR / "config"
@@ -79,7 +79,6 @@ def _init_config(base_dir: Path) -> None:
     E3_DIR = PROCESSED_DIR / "E3_reconciled"
     E4_DIR = PROCESSED_DIR / "E4_unified"
     E5_DIR = PROCESSED_DIR / "E5_analysis"
-    E7_DIR = PROCESSED_DIR / "E7_review"
     INBOX_DIR = PROJECT_DIR / "inbox"
     INBOX_PROCESSED_DIR = PROJECT_DIR / "inbox_processed"
     MEMBERS_DIR = PROJECT_DIR / "members"

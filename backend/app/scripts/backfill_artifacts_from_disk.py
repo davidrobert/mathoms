@@ -52,8 +52,6 @@ _MIGRATED_STAGES = [
     "E5",
     "E5.N",
     "E7-crossval",
-    "E7-review",
-    "E7-apply",
 ]
 
 

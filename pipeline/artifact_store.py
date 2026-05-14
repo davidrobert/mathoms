@@ -60,12 +60,10 @@ _STAGE_TO_DIR: dict[str, str] = {
     "analyze_finances": "E5_analysis",  # F9.2 descriptive alias
     "generate_narratives": "E5_analysis",  # F9.2 descriptive alias (narrativas ficam junto)
     "E5.N": "E5_analysis",  # narrativas ficam junto da análise
-    "E7": "E7_review",  # crossval + review
+    "E7": "E7_review",  # crossval (review/apply legados removidos em A12.X)
     "E7-crossval": "E7_review",
-    "E7-review": "E7_review",
-    "E7-apply": "E7_review",
-    # ADR-199 — parecer planejador (Ato 4). Diretório próprio E6_parecer
-    # isola do legado review_finances (que entra em deprecation sprint+1).
+    "validate_cross": "E7_review",  # F9.2 descriptive alias
+    # ADR-199 — parecer planejador (Ato 4). Diretório próprio E6_parecer.
     "E6-parecer": "E6_parecer",
     "review_finances_holistic": "E6_parecer",
 }
@@ -87,10 +85,9 @@ _STAGE_TO_SUFFIX: dict[str, str] = {
     "analyze_finances": "-5_analysis.json",  # F9.2 descriptive alias
     "E5.N": "-5n_narrativas.json",
     "generate_narratives": "-5n_narrativas.json",  # F9.2 descriptive alias
-    "E7": "-7_review.json",
+    "E7": "-7_crossval.json",
     "E7-crossval": "-7_crossval.json",
-    "E7-review": "-7_review.json",
-    "E7-apply": "-7_apply.json",
+    "validate_cross": "-7_crossval.json",  # F9.2 descriptive alias
     "E6-parecer": "-6_parecer.json",
     "review_finances_holistic": "-6_parecer.json",
 }

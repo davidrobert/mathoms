@@ -3,34 +3,23 @@
 from __future__ import annotations
 
 """
-E7 Review & Refine — Post-report holistic review with persona-driven analysis
+E7 Cross-Validation — 14 checks determinísticos sobre o E5.
 
-Reads the complete E5 JSON (data + narrativas) and performs:
-  1. Deterministic cross-validation checks between sections
-  2. Consistency analysis between narrativas text and underlying data
-  3. Generates a review structure for LLM-driven refinement
-  4. Applies LLM refinements back to E5 JSON
+Após ADR-199 (parecer planejador supersede review_finances), este script
+ficou só com a parte de cross-validation (`run_crossval`). As funções de
+review LLM (build template, validate review, apply review) foram removidas
+junto com o stage ``review_finances`` em A12.X.
 
-Usage:
-  python scripts/e7_review.py                       # Cross-validation + review template
-  python scripts/e7_review.py --apply REVIEW.json    # Apply review refinements to E5 JSON
-  python scripts/e7_review.py --dry-run              # Preview without changes
-  python scripts/e7_review.py --strip                # Remove review key from E5 JSON
+Wrapper canônico: ``pipeline/stages/validate_cross.py::run``, que chama
+``main_with_store(ctx, mode="crossval")`` aqui dentro.
 
-The E7 stage is an LLM stage. The typical workflow is:
-  1. Run `python scripts/e7_review.py` to see cross-validation results
-  2. LLM reads results + E5 JSON + methodology.md
-  3. LLM creates review JSON using the persona/approach from methodology.md
-  4. Run `python scripts/e7_review.py --apply review.json` to apply refinements
-     (relatório atualizado disponível em /reports/[id] na UI React)
-
-Author: Pipeline Ferreira Campos
+O nome do arquivo (``e7_review.py``) é mantido por compat com
+``scripts/e_reset.py`` e outras referências; o conteúdo é exclusivamente
+crossval.
 """
 
 import json
 import re
-import sys
-from datetime import datetime
 from pathlib import Path
 
 import scripts.pipeline_common as _pc
@@ -42,14 +31,11 @@ _DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
 PROJECT_DIR: Path
 E5_JSON_PATH: Path
-METHODOLOGY_PATH: Path
-DEFINITIONS_PATH: Path
 FAMILY_CONFIG_PATH: Path
 SCORING_CONFIG_PATH: Path
 PIPELINE_CONFIG_PATH: Path
 REPORT_SPEC_PATH: Path
 OUTPUT_DIR: Path
-REVIEW_TEMPLATE_PATH: Path
 
 
 def _load_json_config(path: Path) -> dict:
@@ -61,21 +47,18 @@ def _load_json_config(path: Path) -> dict:
 
 def _init_config(base_dir: Path) -> None:
     """(Re)carrega paths e configs a partir de um root_dir."""
-    global PROJECT_DIR, E5_JSON_PATH, METHODOLOGY_PATH, DEFINITIONS_PATH
+    global PROJECT_DIR, E5_JSON_PATH
     global FAMILY_CONFIG_PATH, SCORING_CONFIG_PATH, PIPELINE_CONFIG_PATH
-    global REPORT_SPEC_PATH, OUTPUT_DIR, REVIEW_TEMPLATE_PATH
+    global REPORT_SPEC_PATH, OUTPUT_DIR
     global _SCORING_CONFIG, _PIPELINE_CONFIG, _QA_THRESHOLDS
 
     PROJECT_DIR = base_dir
     E5_JSON_PATH = base_dir / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-    METHODOLOGY_PATH = base_dir / "config" / "methodology.md"
-    DEFINITIONS_PATH = base_dir / "docs" / "methodology" / "definitions.md"
     FAMILY_CONFIG_PATH = base_dir / "config" / "family_members.json"
     SCORING_CONFIG_PATH = base_dir / "config" / "scoring.json"
     PIPELINE_CONFIG_PATH = base_dir / "config" / "pipeline.json"
     REPORT_SPEC_PATH = base_dir / "config" / "report_spec.md"
     OUTPUT_DIR = base_dir / "output"
-    REVIEW_TEMPLATE_PATH = base_dir / "processed" / "E7_review" / "e7_review_template.json"
 
     _SCORING_CONFIG = _load_json_config(SCORING_CONFIG_PATH)
     _PIPELINE_CONFIG = _load_json_config(PIPELINE_CONFIG_PATH)
@@ -85,109 +68,20 @@ def _init_config(base_dir: Path) -> None:
 # =============================================================================
 # Module-level defaults (Sessão A6d.1 — eliminado side-effect no import)
 # =============================================================================
-#
-# Antes de A6d.1: módulo invocava ``_init_config(_pc.PROJECT_DIR)`` no nível
-# de módulo. Agora os globals começam com defaults; ``_init_config(base_dir)``
-# é invocado por ``main(root_dir=...)`` e ``main_with_store(ctx)``.
 PROJECT_DIR = _DEFAULT_BASE_DIR
 E5_JSON_PATH = PROJECT_DIR / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-METHODOLOGY_PATH = PROJECT_DIR / "config" / "methodology.md"
-DEFINITIONS_PATH = PROJECT_DIR / "docs" / "methodology" / "definitions.md"
 FAMILY_CONFIG_PATH = PROJECT_DIR / "config" / "family_members.json"
 SCORING_CONFIG_PATH = PROJECT_DIR / "config" / "scoring.json"
 PIPELINE_CONFIG_PATH = PROJECT_DIR / "config" / "pipeline.json"
 REPORT_SPEC_PATH = PROJECT_DIR / "config" / "report_spec.md"
 OUTPUT_DIR = PROJECT_DIR / "output"
-REVIEW_TEMPLATE_PATH = PROJECT_DIR / "processed" / "E7_review" / "e7_review_template.json"
 _SCORING_CONFIG: dict = {}
 _PIPELINE_CONFIG: dict = {}
 _QA_THRESHOLDS: dict = {}
 
-# =============================================================================
-# Data loading — everything from files, nothing hardcoded
-# =============================================================================
-
-
-def load_e5_json() -> dict:
-    """Load E5 analysis JSON. Returns empty dict if not found."""
-    if not E5_JSON_PATH.exists():
-        print(f"  [ERRO] E5 JSON não encontrado: {E5_JSON_PATH}")
-        return {}
-    with open(E5_JSON_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def load_family_config() -> dict:
-    """Load family members config."""
-    if FAMILY_CONFIG_PATH.exists():
-        with open(FAMILY_CONFIG_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-
-def load_methodology() -> str:
-    """Shell loader: lê ``METHODOLOGY_PATH`` se existir, senão string vazia.
-
-    A6d.2: esta é a única função que toca disco para metodologia; o parser
-    puro :func:`extract_persona_from_methodology` consome o conteúdo como
-    parâmetro. Separação shell↔parser já estava correta — documentada aqui.
-    """
-    if METHODOLOGY_PATH.exists():
-        with open(METHODOLOGY_PATH, "r", encoding="utf-8") as f:
-            return f.read()
-    return ""
-
-
-def load_latest_report() -> str | None:
-    """Find and load the most recent HTML report. Returns content or None."""
-    if not OUTPUT_DIR.exists():
-        return None
-    reports = sorted(OUTPUT_DIR.glob("relatorio_financeiro_*.html"), reverse=True)
-    if not reports:
-        return None
-    with open(reports[0], "r", encoding="utf-8") as f:
-        return f.read()
-
-
-def extract_persona_from_methodology(methodology_text: str) -> dict:
-    """Extract persona description and key principles from methodology.md."""
-    persona = {
-        "description": "",
-        "key_principles": [],
-        "mandatory_analyses": [],
-        "restrictions": [],
-    }
-    if not methodology_text:
-        return persona
-
-    # Extract persona section
-    persona_match = re.search(
-        r"## PERSONA E ABORDAGEM\s*\n(.*?)(?=\n## |\Z)",
-        methodology_text,
-        re.DOTALL,
-    )
-    if persona_match:
-        persona["description"] = persona_match.group(1).strip()
-
-    # Extract numbered mandatory analyses
-    numbered = re.findall(r"\d+\.\s+(.+?)(?=\n\d+\.|\n\n|\Z)", methodology_text)
-    persona["mandatory_analyses"] = [n.strip() for n in numbered if len(n.strip()) > 10]
-
-    # Extract restrictions
-    restrict_match = re.search(
-        r"## RESTRIÇÕES IMPORTANTES\s*\n(.*?)(?=\n## |\Z)",
-        methodology_text,
-        re.DOTALL,
-    )
-    if restrict_match:
-        restrictions = re.findall(r"- (.+)", restrict_match.group(1))
-        persona["restrictions"] = [r.strip() for r in restrictions]
-
-    return persona
-
 
 # =============================================================================
-# Cross-validation checks — 100% deterministic, data-driven
+# Cross-validation results
 # =============================================================================
 
 
@@ -580,368 +474,35 @@ def _check_narrativas_monetary_format(narr: dict) -> list[str]:
 
 
 # =============================================================================
-# Review template generation
+# main_with_store
 # =============================================================================
 
 
-def build_review_template(e5: dict, cv_results: list[CrossValidationResult], persona: dict) -> dict:
-    """Build a review template that the LLM will fill in.
+def main_with_store(ctx, *, mode: str = "crossval") -> dict:
+    """Roda os 14 checks CV1-CV14 sobre o E5 do workspace.
 
-    The template contains:
-    - Cross-validation results (pre-filled, deterministic)
-    - Sections for LLM to fill: refined narrativas, strategic insights, task re-prioritization
+    O ``mode`` é mantido por compat de assinatura; só ``"crossval"`` é aceito
+    (modos ``apply`` e ``review`` foram removidos junto com o stage
+    ``review_finances`` em A12.X — ADR-199).
     """
-    narr = e5.get("narrativas", {})
-    summaries = narr.get("summaries", {})
-    charts = narr.get("charts", {})
-    tarefas = e5.get("tarefas", [])
-
-    template = {
-        "metadata": {
-            "timestamp": datetime.now().isoformat(),
-            "e7_version": "1.0",
-            "persona_summary": persona.get("description", "")[:200],
-        },
-        "cross_validation": {
-            "total_checks": len(cv_results),
-            "passed": sum(1 for r in cv_results if r.passed),
-            "failed": sum(1 for r in cv_results if not r.passed),
-            "issues": [r.to_dict() for r in cv_results if not r.passed],
-            "all_results": [r.to_dict() for r in cv_results],
-        },
-        "refinements": {
-            "_instructions": (
-                "LLM: Preencha as seções abaixo usando a persona e abordagem do methodology.md. "
-                "Inclua apenas os itens que precisam de refinamento. "
-                "Itens ausentes serão mantidos como estão."
-            ),
-            "summaries": {
-                "_instructions": (
-                    "Revise cada summary (s1-s10) considerando o relatório completo. "
-                    "Inclua apenas os que precisam de ajuste. "
-                    "Mantenha formato monetário brasileiro (R$ Xk, R$ X,YM)."
-                ),
-                # LLM fills: "s1": "refined text", "s3": "refined text", ...
-            },
-            "charts": {
-                "_instructions": (
-                    "Revise context/conclusion de cada gráfico. "
-                    "Inclua apenas os que precisam de ajuste."
-                ),
-                # LLM fills: "chart_key": {"context": "...", "conclusion": "..."}, ...
-            },
-            "perfil_familia": {
-                "_instructions": (
-                    "Revise left/right do perfil. Inclua apenas se precisar de ajuste."
-                ),
-                # LLM fills: "left": "...", "right": "..."
-            },
-            "tarefas_reorder": {
-                "_instructions": (
-                    "Se a ordem de prioridade das tarefas precisa mudar, "
-                    "liste os números das tarefas na nova ordem. "
-                    "Exemplo: [3, 1, 5, 2, 4, ...] para re-priorizar."
-                ),
-                "new_order": [],  # LLM fills with task numbers
-            },
-            "strategic_insights": {
-                "_instructions": (
-                    "Insights estratégicos que emergiram da visão holística "
-                    "do relatório completo. São observações que não ficaram claras "
-                    "nas análises individuais de cada seção."
-                ),
-                "insights": [],  # LLM fills: ["insight1", "insight2", ...]
-            },
-            "inconsistencies_found": {
-                "_instructions": (
-                    "Inconsistências entre seções que a LLM identificou "
-                    "além das detectadas pela cross-validation automática."
-                ),
-                "items": [],  # LLM fills: [{"sections": [...], "description": "..."}, ...]
-            },
-        },
-        "current_state": {
-            "_note": "Snapshot do estado atual para referência da LLM (read-only)",
-            "summary_keys": list(summaries.keys()),
-            "chart_keys": list(charts.keys()),
-            "total_tarefas": len(tarefas),
-            "tarefas_alta_prioridade": [
-                t for t in tarefas if isinstance(t, dict) and t.get("p") == "alta"
-            ],
-            "score": e5.get("score", {}).get("valor"),
-            "score_label": e5.get("score", {}).get("classificacao"),
-            "patrimonio_bruto": e5.get("patrimonio", {}).get("bruto"),
-            "patrimonio_investivel": e5.get("patrimonio", {}).get("investivel"),
-            "fluxo_liquido": e5.get("fluxo_caixa", {}).get("fluxo_liquido"),
-        },
-    }
-
-    return template
-
-
-# =============================================================================
-# Apply review refinements
-# =============================================================================
-
-
-def validate_review(review: dict) -> tuple[bool, list[str]]:
-    """Validate review JSON structure before applying."""
-    errors = []
-
-    if "refinements" not in review:
-        errors.append("Missing 'refinements' key")
-        return False, errors
-
-    ref = review["refinements"]
-
-    # Validate summaries
-    summaries = ref.get("summaries", {})
-    for k, v in summaries.items():
-        if k.startswith("_"):
-            continue
-        if not isinstance(v, str):
-            errors.append(f"summaries.{k} must be a string")
-        elif not v.strip():
-            errors.append(f"summaries.{k} is empty")
-
-    # Validate charts
-    charts = ref.get("charts", {})
-    for ck, cv in charts.items():
-        if ck.startswith("_"):
-            continue
-        if not isinstance(cv, dict):
-            errors.append(f"charts.{ck} must be a dict with context/conclusion")
-        else:
-            if "context" in cv and not isinstance(cv["context"], str):
-                errors.append(f"charts.{ck}.context must be a string")
-            if "conclusion" in cv and not isinstance(cv["conclusion"], str):
-                errors.append(f"charts.{ck}.conclusion must be a string")
-
-    # Validate perfil_familia
-    pf = ref.get("perfil_familia", {})
-    for side in ["left", "right"]:
-        if side in pf and not isinstance(pf[side], str):
-            errors.append(f"perfil_familia.{side} must be a string")
-
-    # Validate tarefas_reorder
-    reorder = ref.get("tarefas_reorder", {})
-    new_order = reorder.get("new_order", [])
-    if new_order and not all(isinstance(n, int) for n in new_order):
-        errors.append("tarefas_reorder.new_order must be a list of integers")
-
-    # Validate strategic_insights
-    insights = ref.get("strategic_insights", {})
-    items = insights.get("insights", [])
-    if items and not all(isinstance(i, str) for i in items):
-        errors.append("strategic_insights.insights must be a list of strings")
-
-    return len(errors) == 0, errors
-
-
-def apply_review(e5: dict, review: dict, dry_run: bool = False) -> dict:
-    """Apply review refinements to E5 JSON. Returns updated E5 data.
-
-    Only modifies fields explicitly provided in the review.
-    Original data is preserved for any field not in the review.
-    """
-    ref = review.get("refinements", {})
-    changes = []
-
-    narr = e5.get("narrativas", {})
-
-    # --- Apply summary refinements ---
-    summaries = ref.get("summaries", {})
-    for k, v in summaries.items():
-        if k.startswith("_"):
-            continue
-        if isinstance(v, str) and v.strip():
-            old = narr.get("summaries", {}).get(k, "")
-            if old != v:
-                if dry_run:
-                    print(f"  [DRY-RUN] Refinaria summaries.{k}")
-                else:
-                    narr.setdefault("summaries", {})[k] = v
-                changes.append(f"summaries.{k}")
-
-    # --- Apply chart refinements ---
-    charts_ref = ref.get("charts", {})
-    for ck, cv in charts_ref.items():
-        if ck.startswith("_") or not isinstance(cv, dict):
-            continue
-        existing = narr.get("charts", {}).get(ck, {})
-        changed = False
-        for field in ["context", "conclusion"]:
-            if field in cv and isinstance(cv[field], str) and cv[field].strip():
-                if existing.get(field) != cv[field]:
-                    if not dry_run:
-                        narr.setdefault("charts", {}).setdefault(ck, {})[field] = cv[field]
-                    changed = True
-        if changed:
-            if dry_run:
-                print(f"  [DRY-RUN] Refinaria charts.{ck}")
-            changes.append(f"charts.{ck}")
-
-    # --- Apply perfil_familia refinements ---
-    pf_ref = ref.get("perfil_familia", {})
-    for side in ["left", "right"]:
-        if side in pf_ref and isinstance(pf_ref[side], str) and pf_ref[side].strip():
-            old = narr.get("perfil_familia", {}).get(side, "")
-            if old != pf_ref[side]:
-                if dry_run:
-                    print(f"  [DRY-RUN] Refinaria perfil_familia.{side}")
-                else:
-                    narr.setdefault("perfil_familia", {})[side] = pf_ref[side]
-                changes.append(f"perfil_familia.{side}")
-
-    # --- Apply tarefas reorder ---
-    reorder = ref.get("tarefas_reorder", {})
-    new_order = reorder.get("new_order", [])
-    if new_order:
-        tarefas = e5.get("tarefas", [])
-        # Build index by task number
-        tarefas_by_n = {t.get("n"): t for t in tarefas if isinstance(t, dict) and "n" in t}
-        reordered = []
-        seen = set()
-        for n in new_order:
-            if n in tarefas_by_n and n not in seen:
-                task = tarefas_by_n[n].copy()
-                task["n"] = len(reordered) + 1  # renumber
-                reordered.append(task)
-                seen.add(n)
-        # Append remaining tasks not in new_order
-        for t in tarefas:
-            n = t.get("n")
-            if n not in seen:
-                task = t.copy()
-                task["n"] = len(reordered) + 1
-                reordered.append(task)
-                seen.add(n)
-        if reordered and not dry_run:
-            e5["tarefas"] = reordered
-        if reordered:
-            if dry_run:
-                print(f"  [DRY-RUN] Re-ordenaria {len(reordered)} tarefas")
-            changes.append(f"tarefas (reordered {len(new_order)} items)")
-
-    # --- Store strategic insights ---
-    insights = ref.get("strategic_insights", {}).get("insights", [])
-    if insights:
-        if not dry_run:
-            narr["strategic_insights"] = insights
-        changes.append(f"strategic_insights ({len(insights)} items)")
-
-    # --- Store inconsistencies found by LLM ---
-    inconsistencies = ref.get("inconsistencies_found", {}).get("items", [])
-    if inconsistencies:
-        if not dry_run:
-            narr["inconsistencies_review"] = inconsistencies
-        changes.append(f"inconsistencies_review ({len(inconsistencies)} items)")
-
-    # --- Store review metadata ---
-    if not dry_run:
-        e5["narrativas"] = narr
-        e5["review_metadata"] = {
-            "timestamp": review.get("metadata", {}).get("timestamp", datetime.now().isoformat()),
-            "e7_version": review.get("metadata", {}).get("e7_version", "1.0"),
-            "changes_applied": changes,
-            "cross_validation_passed": review.get("cross_validation", {}).get("passed", 0),
-            "cross_validation_failed": review.get("cross_validation", {}).get("failed", 0),
-        }
-
-    return e5
-
-
-# =============================================================================
-# Strip review from E5 JSON
-# =============================================================================
-
-
-def strip_review_from_e5(dry_run: bool = False) -> int:
-    """Remove review-related keys from E5 JSON. Returns count of files modified."""
-    if not E5_JSON_PATH.exists():
-        print("  [WARN] E5 JSON não encontrado")
-        return 0
-
-    with open(E5_JSON_PATH, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    keys_to_remove = ["review_metadata"]
-    narr_keys_to_remove = ["strategic_insights", "inconsistencies_review"]
-
-    modified = False
-    for k in keys_to_remove:
-        if k in data:
-            if dry_run:
-                print(f"  [DRY-RUN] Removeria '{k}' do E5 JSON")
-            else:
-                del data[k]
-            modified = True
-
-    narr = data.get("narrativas", {})
-    for k in narr_keys_to_remove:
-        if k in narr:
-            if dry_run:
-                print(f"  [DRY-RUN] Removeria 'narrativas.{k}' do E5 JSON")
-            else:
-                del narr[k]
-            modified = True
-
-    if modified and not dry_run:
-        with open(E5_JSON_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-
-    return 1 if modified else 0
-
-
-# =============================================================================
-# Main
-# =============================================================================
-
-
-def main_with_store(ctx, *, mode: str = "crossval", review_path: str | None = None) -> dict:
-    """E7 Caminho B (Sessão A5e da Fase 8) — cross-validation + apply sobre
-    ``ArtifactStore`` em vez de disco direto.
-
-    Modos:
-    - ``"crossval"`` (default) — roda 14 checks CV1-CV14 sobre o E5, gera
-      template para LLM em ``store.write("E7-crossval", "template", ...)``.
-    - ``"apply"`` — aplica review LLM ao E5 e escreve ``E5-revised`` no store.
-
-    O modo ``review`` (geração do template LLM) é parte do ``crossval`` —
-    não é um stage separado. O passo LLM propriamente dito é externo ao
-    pipeline (operador lê o template, roda LLM, salva review.json).
-
-    Coexiste com ``main(root_dir)`` legado. Wrappers
-    ``pipeline/stages/e7.py::run_crossval`` e ``run_apply`` chamam esta
-    função direto.
-
-    Args:
-        ctx: ``pipeline.context.WorkspaceContext``.
-        mode: ``"crossval"`` ou ``"apply"``.
-        review_path: caminho para review JSON (obrigatório em ``apply``).
-
-    Returns:
-        Dict com resumo do modo executado.
-    """
-    import scripts.pipeline_common as _pc
-
     _pc._init_config(ctx.root)
     _init_config(ctx.root)
 
+    if mode != "crossval":
+        return {"success": False, "reason": f"unknown_mode:{mode}"}
+
     store = ctx.get_artifact_store()
     print("=" * 70)
-    print(f"  E7 REVIEW & REFINE — Caminho B (mode={mode})")
+    print("  E7 CROSS-VALIDATION")
     print("=" * 70)
     print(f"[E7.0] Workspace root: {ctx.root}")
     print(f"[E7.0] Store impl:     {type(store).__name__}")
 
-    # 1. Lê E5 via store.
     e5 = store.read("E5", "analise_financeira") or {}
     if not e5:
         print("  [ERRO] E5 artifact 'analise_financeira' não encontrado.")
         return {"success": False, "reason": "e5_not_found"}
 
-    # Valida narrativas presentes (pré-requisito E5.N).
     narr = e5.get("narrativas", {})
     has_narrativas = bool(narr.get("summaries")) and bool(narr.get("charts"))
     if not has_narrativas:
@@ -949,52 +510,6 @@ def main_with_store(ctx, *, mode: str = "crossval", review_path: str | None = No
         return {"success": False, "reason": "missing_narrativas"}
 
     print(f"  ✓ E5 JSON: {len(e5)} top-level keys, narrativas presentes")
-
-    # 2. Modo apply — aplica review ao E5.
-    if mode == "apply":
-        if not review_path:
-            print("  [SKIP] Modo apply sem review_path — nada a fazer.")
-            return {"success": True, "skipped": True, "reason": "no_review_path"}
-
-        review_file = Path(review_path)
-        if not review_file.is_absolute():
-            review_file = ctx.root / review_path
-        if not review_file.exists():
-            print(f"  [ERRO] Review file não encontrado: {review_file}")
-            return {"success": False, "reason": "review_not_found"}
-
-        with open(review_file, "r", encoding="utf-8") as f:
-            review = json.load(f)
-
-        is_valid, errors = validate_review(review)
-        if not is_valid:
-            print("  [ERRO] Review inválido:")
-            for e in errors:
-                print(f"    - {e}")
-            return {"success": False, "reason": "review_invalid", "errors": errors}
-
-        updated_e5 = apply_review(e5, review, dry_run=False)
-        store.write("E5", "analise_financeira", updated_e5)
-
-        changes = review.get("refinements", {})
-        change_count = sum(
-            1 for k, v in changes.items() if not k.startswith("_") and v and v != {} and v != []
-        )
-        print(f"  ✓ Aplicados {change_count} refinamento(s) ao E5")
-        return {
-            "success": True,
-            "mode": "apply",
-            "refinements_applied": change_count,
-            "files_created": ["analise_financeira-5_analysis.json"],
-        }
-
-    # 3. Modo crossval — 14 checks + gera template.
-    if mode != "crossval":
-        return {"success": False, "reason": f"unknown_mode:{mode}"}
-
-    methodology_text = load_methodology()
-    persona = extract_persona_from_methodology(methodology_text)
-    print(f"  Methodology: {'carregado' if methodology_text else 'não encontrado'}")
 
     cv_results = run_cross_validation(e5)
     passed = sum(1 for r in cv_results if r.passed)
@@ -1012,15 +527,6 @@ def main_with_store(ctx, *, mode: str = "crossval", review_path: str | None = No
         for r in warnings_list:
             print(f"    [{r.check_id}] {r.name}: {r.details}")
 
-    # Gera template — grava em disco via path legado para paridade 100% com
-    # ``main()``. O template é consumido pelo operador que roda o LLM; não é
-    # artifact padrão via ``ArtifactStore``. Apenas o E5 revisado (modo apply)
-    # passa pelo store.
-    template = build_review_template(e5, cv_results, persona)
-    REVIEW_TEMPLATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _pc.write_json_atomic(REVIEW_TEMPLATE_PATH, template)
-
-    print(f"  ✓ Template gravado em {REVIEW_TEMPLATE_PATH.relative_to(ctx.root)}")
     print("=" * 70)
 
     return {
@@ -1031,5 +537,5 @@ def main_with_store(ctx, *, mode: str = "crossval", review_path: str | None = No
         "checks_failed": failed,
         "errors_count": len(errors_list),
         "warnings_count": len(warnings_list),
-        "files_created": ["e7_review_template.json"],
+        "results": [r.to_dict() for r in cv_results],
     }
