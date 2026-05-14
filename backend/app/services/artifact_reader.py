@@ -8,6 +8,11 @@ apontavam para ``tenant_root/processed/<dir>/*.json`` recebiam dados stale
 Este módulo oferece ``read_latest_artifact`` — DB primeiro, disco como
 back-compat (CLI dev com ``DiskArtifactStore`` + migração). Fonte do
 layout de disco: ``pipeline.artifact_store.stage_dir_name/suffix``.
+
+**ADR-212 PR3b (planejado):** fallback disco será removido junto com a
+deleção de ``DiskArtifactStore``. PR3a manteve para não cascatar refactor
+em readers como ``compute_progress`` que escrevem fixture em disco. Cada
+caller será migrado individualmente em PR3b.
 """
 
 from __future__ import annotations

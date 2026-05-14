@@ -1077,17 +1077,14 @@ def _e3_run_reconciliation(adapter, store, canon, pipeline_run_id: str | None = 
 
 
 def _e3_validate_outputs(store, ctx) -> List[str]:
-    """Valida cada payload E3 escrito e devolve filenames na ordem de leitura."""
-    from pipeline.artifact_store import DiskArtifactStore
+    """Devolve filenames E3 escritos na ordem de leitura.
 
+    Validação JSON-schema é executada pelo hook pós-write em
+    ``DBArtifactStore.write`` (ADR-212 PR3a — universal por stage).
+    """
     written_filenames: List[str] = []
     for key in store.list_keys("E3"):
-        filename = f"{key}-3_reconciled.json"
-        written_filenames.append(filename)
-        if isinstance(store, DiskArtifactStore):
-            target = ctx.e3_dir / filename
-            if target.exists():
-                _pc.validate_artifact(target, "e3_reconciled.schema.json")
+        written_filenames.append(f"{key}-3_reconciled.json")
     return written_filenames
 
 
@@ -1166,8 +1163,6 @@ def main_with_store(ctx) -> Dict[str, Any]:
     caminho normal). Usa domain services extraídos na Sessão A1 — paridade
     comprovada por golden em ``tests/test_e3_golden_execution.py``.
     """
-    from pipeline.artifact_store import DiskArtifactStore
-
     print("=" * 80)
     print("E3 RECONCILIATION STAGE — Caminho B (main_with_store)")
     print("=" * 80)
@@ -1175,7 +1170,11 @@ def main_with_store(ctx) -> Dict[str, Any]:
     adapter, canon = _e3_build_adapter(ctx)
     store = ctx.get_artifact_store()
 
-    # Cleanup E3 — só em modo Disk (paridade com legado).
+    # Cleanup E3 quando store é baseado em disco (ADR-212 PR3a — DBArtifactStore
+    # faz upsert nativamente; cleanup só é útil para evitar arquivos órfãos em
+    # processed/E3_reconciled/ no caminho disco residual).
+    from pipeline.artifact_store import DiskArtifactStore
+
     if isinstance(store, DiskArtifactStore):
         cleanup_e3_directory(ctx.e3_dir)
 

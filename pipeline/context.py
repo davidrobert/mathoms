@@ -130,6 +130,11 @@ class WorkspaceContext:
 
         Idempotente: a primeira chamada sem store pré-injetado cria um
         :class:`DiskArtifactStore` e o memoriza em ``self.artifact_store``.
+
+        **NOTA (ADR-212 PR3a):** lazy-default permanece neste PR para não
+        cascatar refactor de 6+ test files (goldens E3/E4/E5, extract_irpf,
+        per-stage LLM). PR3b separado removerá o default + refatorará tests
+        para injetar ``InMemoryArtifactStore`` explícito.
         """
         if self.artifact_store is None:
             from pipeline.artifact_store import DiskArtifactStore

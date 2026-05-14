@@ -104,11 +104,14 @@ async def seeded_run(tmp_path):
 
 @pytest.mark.asyncio
 async def test_artifact_session_opens_and_closes_per_stage(seeded_run):
-    """2 stages com ``use_db_artifacts=True`` → 2 sessões artifact distintas,
-    ambas fechadas antes do loop terminar.
+    """2 stages → 2 sessões artifact distintas, ambas fechadas antes do loop
+    terminar.
 
     Sem o fix, apenas 1 sessão seria criada no setup e mantida aberta —
     bloqueando writes concorrentes em ``pipeline_stage_logs``.
+
+    ADR-212 PR3a: ``DBArtifactStore`` é sempre o store; flag
+    ``use_db_artifacts`` removida.
     """
     from backend.app.tasks.pipeline_task import _execute_stages_loop
 
@@ -134,7 +137,6 @@ async def test_artifact_session_opens_and_closes_per_stage(seeded_run):
         tier="free",
         llm_stages=set(),
         run_stage_fn=_fake_run_stage,
-        use_db_artifacts=True,
     )
 
     assert not has_failure
@@ -170,7 +172,6 @@ async def test_artifact_session_closed_on_stage_failure(seeded_run):
         tier="free",
         llm_stages=set(),
         run_stage_fn=_failing_stage,
-        use_db_artifacts=True,
     )
 
     assert has_failure
@@ -179,34 +180,6 @@ async def test_artifact_session_closed_on_stage_failure(seeded_run):
     assert not unclosed, "sessão artifact deve ser fechada mesmo quando stage falha"
 
 
-@pytest.mark.asyncio
-async def test_no_artifact_session_when_flag_disabled(seeded_run):
-    """``use_db_artifacts=False`` → nenhuma sessão artifact é aberta;
-    ``ctx.artifact_store`` não é tocado pelo loop."""
-    from backend.app.tasks.pipeline_task import _execute_stages_loop
-
-    sentinel_store = object()
-    ctx = SimpleNamespace(artifact_store=sentinel_store)
-
-    def _stage(_ctx, stage):
-        # Quando flag está off, o loop não deve sobrescrever o store.
-        assert _ctx.artifact_store is sentinel_store
-        return StageResult(stage=stage, success=True, duration_ms=1.0, detail={})
-
-    has_failure, paused = _execute_stages_loop(
-        ctx,
-        stages=["E2", "E3"],
-        run_id=seeded_run["run_id"],
-        ws_id=seeded_run["ws_id"],
-        skip_llm=False,
-        stop_on_error=True,
-        tier="free",
-        llm_stages=set(),
-        run_stage_fn=_stage,
-        use_db_artifacts=False,
-    )
-
-    assert not has_failure
-    assert not paused
-    # Store sentinel preservado — flag disabled não mexe no ctx.
-    assert ctx.artifact_store is sentinel_store
+# Test legado ``test_no_artifact_session_when_flag_disabled`` removido em
+# ADR-212 PR3a — flag ``use_db_artifacts`` foi descontinuada e o caminho
+# disco deixou de ser opt-out runtime.

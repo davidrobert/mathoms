@@ -210,8 +210,8 @@ class Document(Base):
 
     # Partial unique index — paridade com migration f1a2b3c4d5e6. Espelhar
     # aqui é necessário para que ``Base.metadata.create_all`` (usado em
-    # tests e ``backfill_artifacts_from_disk``) crie a constraint; caso
-    # contrário, o dedupe atômico só vale em ambientes que rodam Alembic.
+    # tests) crie a constraint; caso contrário, o dedupe atômico só vale
+    # em ambientes que rodam Alembic.
     __table_args__ = (
         Index(
             "ux_documents_workspace_content_hash",
