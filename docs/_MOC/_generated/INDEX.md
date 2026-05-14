@@ -208,6 +208,7 @@
 | ADR-208 | adr | Proposto |  | Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) | `adr/208-gating-parecer-holistico-free-vs-premium.md` |
 | ADR-209 | adr | Proposto |  | Convenção numérica de percentual no contrato E5 — valor absoluto | `adr/209-convencao-numerica-percentual-absoluto.md` |
 | ADR-210 | adr | Proposto |  | Saúde do test suite do CI — gates, telemetria e ciclo de vida | `adr/210-saude-do-test-suite-do-ci.md` |
+| ADR-211 | adr | Proposto |  | llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) | `adr/211-llm-config-db-overrides.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
