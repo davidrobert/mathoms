@@ -275,6 +275,14 @@ class TestOp001ParseArgsCelery:
     e15_consolidate e e7_review perderam ``main(root_dir)``/parse_args
     (cutover Caminho B); rodam só via ``main_with_store(ctx)``.
 
+    # Escopo pós-ADR-212 PR1 (2026-05-14)
+    e0_route e e2_extract perderam ``main(root_dir)``/parse_args (CLI
+    standalone descontinuada); rodam só via stage wrappers
+    (``pipeline/stages/route_documents.py`` consome ``_init_config`` +
+    ``route_all``; ``pipeline/stages/e2.py`` consome ``run_with_store``).
+    e0_audit mantém CLI (read-only); e0_unlock mantém ``main()`` como
+    lib API para ``pipeline/stages/unlock_documents.py``.
+
     # Por que falharia se revertido
     parse_args() puro lê sys.argv que dentro do Celery contém args do
     próprio celery binary.
@@ -285,8 +293,6 @@ class TestOp001ParseArgsCelery:
         [
             "e0_audit.py",
             "e0_unlock.py",
-            "e0_route.py",
-            "e2_extract.py",
         ],
     )
     def test_script_parse_args_accepts_explicit_argv(self, script_name):
