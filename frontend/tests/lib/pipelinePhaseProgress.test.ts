@@ -3,6 +3,7 @@ import {
   computePhaseProgress,
   computePhaseStates,
   PIPELINE_PHASES,
+  phaseOfStage,
 } from "@/lib/pipelinePhases";
 
 describe("computePhaseProgress", () => {
@@ -89,6 +90,33 @@ describe("computePhaseProgress", () => {
     // Phases 1, 3, 4: pending (run failed dominante) → 0
     // Total = 0.667/4 = 16.67% → 17.
     expect(computePhaseProgress(states)).toBe(17);
+  });
+
+  // Regressão: pós-F9.2 STAGE_REGISTRY usa nomes descritivos
+  // (review_finances_holistic, etc.). Antes, PIPELINE_PHASES só tinha legacy
+  // keys (E*), então qualquer stage descritivo caía no fallback "reading" e
+  // gerava mensagem "Não conseguimos completar a etapa de lendo os dados".
+  it.each([
+    ["audit_documents", "preparing"],
+    ["unlock_documents", "preparing"],
+    ["route_documents", "preparing"],
+    ["extract_members", "reading"],
+    ["extract_baseline", "reading"],
+    ["consolidate_baseline", "reading"],
+    ["extract_irpf_full", "reading"],
+    ["extract_statements", "reading"],
+    ["extract_invoices", "reading"],
+    ["extract_with_llm", "reading"],
+    ["reconcile_transactions", "organizing"],
+    ["categorize_transactions", "organizing"],
+    ["analyze_finances", "organizing"],
+    ["generate_narratives", "organizing"],
+    ["validate_cross", "reporting"],
+    ["review_finances", "reporting"],
+    ["apply_review", "reporting"],
+    ["review_finances_holistic", "reporting"],
+  ])("descriptive stage %s → phase %s (ADR-093)", (stage, expected) => {
+    expect(phaseOfStage(stage)).toBe(expected);
   });
 
   it("monotônico: progresso nunca decresce conforme stages adicionam", () => {

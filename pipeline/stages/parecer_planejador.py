@@ -41,6 +41,23 @@ def _resolve_tier(ctx: "WorkspaceContext") -> str:
     return "premium"
 
 
+def _resolve_api_key(ctx: "WorkspaceContext") -> str | None:
+    """Resolve API key — paridade com extract_members/extract_baseline/generate_narratives.
+
+    Ordem: ``llm_config.json`` (DB-backed via ``ctx.load_config``) → ``ANTHROPIC_API_KEY``
+    do env (fallback p/ CLI/dev local). Sem isso, premium workspaces que configuraram
+    a chave no DB (caminho normal) falhavam com ``needs_review`` em 0.1s porque o
+    orchestrator só lia env (ver incidente 2026-05-14).
+    """
+    llm_config_data = ctx.load_config("llm_config.json")
+    if isinstance(llm_config_data, dict):
+        key = llm_config_data.get("api_key")
+        if key:
+            return key
+    env_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    return env_key or None
+
+
 def _read_e5_artifact(store) -> dict | None:
     """Lê E5 com fallback de nome legado → descritivo."""
     e5 = store.read("E5", "analise_financeira")
@@ -161,10 +178,18 @@ def run(ctx: "WorkspaceContext") -> dict:
         # ADR-208 §D1 — geração só roda pra premium.
         return {"skipped": True, "reason": "tier=free; parecer holístico é premium-only"}
 
+    api_key = _resolve_api_key(ctx)
+    if not api_key:
+        # Paridade com extract_members/extract_baseline: ausência de chave não
+        # aborta pipeline — pula o stage. ``needs_review`` é reservado para
+        # falha do LLM (exception) ou violação de sigilo §13, não para config.
+        return {"skipped": True, "reason": "No LLM config — parecer holístico requires API key"}
+
     workspace_id = getattr(ctx, "workspace_id", None) or "cli-workspace"
     config = config_cls(
         workspace_id=workspace_id,
         tier=tier,
+        api_key=api_key,
         model_id=os.environ.get("MATHOMS_PARECER_PLANEJADOR_MODEL", _DEFAULT_MODEL),
     )
     result = gen_fn(e5_data=e5_data, config=config)
