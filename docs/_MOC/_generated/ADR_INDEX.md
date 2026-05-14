@@ -181,7 +181,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-125]] — Workspace sharing: convites, viewer role, forced logout · phase F9
 - [[ADR-126]] — Multi-tenant Goals completos (APORTE_MENSAL, DOLARIZACAO, ALOCACAO_ALVO) · phase F8.5
 - [[ADR-127]] — E1 members persiste via ArtifactStore
-- [[ADR-128]] — E7-review-llm lê/escreve via `ArtifactStore` · phase A6-cleanup
+- [[ADR-128]] — E7-review-llm lê/escreve via `ArtifactStore` · phase A6-cleanup (superseded em A12.X — deprecation Ato 6 do PLANNER_REVIEW)
 - [[ADR-129]] — Descontinuação completa do renderer HTML server-side
 
 ## Pipeline DDD/SOLID + Infra+Domínio (Sprint A6)

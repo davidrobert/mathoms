@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 45
+**Total de tabelas:** 46
 
 ---
 
@@ -38,6 +38,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`pipeline_run_costs`](#pipelineruncosts)
 - [`pipeline_runs`](#pipelineruns)
 - [`pipeline_stage_logs`](#pipelinestagelogs)
+- [`planner_field_requests`](#plannerfieldrequests)
 - [`planner_review_metadata`](#plannerreviewmetadata)
 - [`protections`](#protections)
 - [`report_layouts`](#reportlayouts)
@@ -686,6 +687,32 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_pipeline_stage_logs_pipeline_run_id` (pipeline_run_id)
+
+### `planner_field_requests`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `planner_review_id` | `VARCHAR(36)` | no | — | FK→planner_review_metadata.id, INDEX |
+| `field_path` | `VARCHAR(255)` | no | — | INDEX |
+| `motivo` | `TEXT` | no | — | — |
+| `reason` | `VARCHAR(64)` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | INDEX |
+
+**Constraints:**
+
+- FOREIGN KEY (planner_review_id) REFERENCES planner_review_metadata.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (planner_review_id, field_path) — `uq_planner_field_request_review_path`
+
+**Indexes:**
+
+- `ix_planner_field_requests_created_at` (created_at)
+- `ix_planner_field_requests_date_path` (created_at, field_path)
+- `ix_planner_field_requests_field_path` (field_path)
+- `ix_planner_field_requests_planner_review_id` (planner_review_id)
+- `ix_planner_field_requests_workspace_id` (workspace_id)
 
 ### `planner_review_metadata`
 
@@ -1732,6 +1759,20 @@ type PipelineStageLog struct {
 	DurationMs *int `db:"duration_ms" json:"duration_ms"`
 	StartedAt time.Time `db:"started_at" json:"started_at"`
 	CompletedAt *time.Time `db:"completed_at" json:"completed_at"`
+}
+```
+
+### `planner_field_requests` → `type PlannerFieldRequest struct`
+
+```go
+type PlannerFieldRequest struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	PlannerReviewId string `db:"planner_review_id" json:"planner_review_id"`
+	FieldPath string `db:"field_path" json:"field_path"`
+	Motivo string `db:"motivo" json:"motivo"`
+	Reason *string `db:"reason" json:"reason"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
 

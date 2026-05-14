@@ -26,13 +26,16 @@ class StageSpec:
     """Especificação declarativa de um stage do pipeline.
 
     Attributes:
-        name:   identificador do stage (nomes legados nas Fases 1-8).
-        reads:  outros stages cujos artefatos este stage consome.
-        writes: stages de artifact produzidos por este stage. Em geral é
-                ``[name]`` (o próprio), mas ``apply_review`` escreve no
-                artifact stage virtual ``analyze_finances_revised``.
-        is_llm: True se o stage depende de chamada a LLM.
-        tier:   ``"free"`` (executado em todos os workspaces) ou ``"premium"``.
+        name:           identificador do stage (nomes legados nas Fases 1-8).
+        reads:          outros stages cujos artefatos este stage consome.
+        writes:         stages de artifact produzidos por este stage. Em geral é
+                        ``[name]`` (o próprio), mas ``apply_review`` escreve no
+                        artifact stage virtual ``analyze_finances_revised``.
+        is_llm:         True se o stage depende de chamada a LLM.
+        tier:           ``"free"`` (executado em todos os workspaces) ou ``"premium"``.
+        is_deprecated:  True marca stage para remoção (ainda executável; emite warning).
+                        Caller (orchestrator) pode optar por skipar; default não-quebrar
+                        contratos existentes.
     """
 
     name: str
@@ -40,6 +43,7 @@ class StageSpec:
     writes: tuple[str, ...] = field(default_factory=tuple)
     is_llm: bool = False
     tier: str = "free"
+    is_deprecated: bool = False
 
 
 # =============================================================================
@@ -162,12 +166,17 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
     "validate_cross": StageSpec(
         "validate_cross", reads=("analyze_finances",), writes=("validate_cross",)
     ),
+    # ADR-199 + ADR-128 — DEPRECATED em 2026-05-14. Supersedido por
+    # ``review_finances_holistic`` (parecer planejador). Mantido no registry
+    # durante janela de cutover (sprint A12.X removerá). Orquestrador emite
+    # DeprecationWarning quando ``is_deprecated=True`` é executado.
     "review_finances": StageSpec(
         "review_finances",
         reads=("analyze_finances",),
         writes=("review_finances",),
         is_llm=True,
         tier="premium",
+        is_deprecated=True,
     ),
     "apply_review": StageSpec(
         "apply_review",

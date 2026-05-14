@@ -6184,6 +6184,62 @@
         "title": "PipelineStageStatus",
         "type": "string"
       },
+      "PlannerFieldRequestTopItem": {
+        "description": "Telemetria de campo faltante \u2014 agrega\u00e7\u00e3o por path (ADR-206 \u00a7D3).",
+        "properties": {
+          "field_path": {
+            "title": "Field Path",
+            "type": "string"
+          },
+          "frequency": {
+            "title": "Frequency",
+            "type": "integer"
+          },
+          "last_requested_at": {
+            "title": "Last Requested At",
+            "type": "string"
+          },
+          "workspaces_count": {
+            "title": "Workspaces Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "field_path",
+          "frequency",
+          "workspaces_count",
+          "last_requested_at"
+        ],
+        "title": "PlannerFieldRequestTopItem",
+        "type": "object"
+      },
+      "PlannerFieldRequestTopResponse": {
+        "description": "Top-N paths pedidos pelo LLM via ``campos_faltantes_pediria_se_iterasse[]``.",
+        "properties": {
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PlannerFieldRequestTopItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "days",
+          "limit",
+          "items"
+        ],
+        "title": "PlannerFieldRequestTopResponse",
+        "type": "object"
+      },
       "PlannerReviewResponse": {
         "description": "Resposta do endpoint ``GET .../planner-review`` \u2014 metadados + conte\u00fado tipado.",
         "properties": {
@@ -12069,6 +12125,96 @@
           }
         },
         "summary": "Metrics",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/planner-review/field-requests/top": {
+      "get": {
+        "description": "Top-N campos pedidos pelo LLM em N dias \u2014 input para tunning v2 do manifest (ADR-206).",
+        "operationId": "planner_field_requests_top_admin_planner_review_field_requests_top_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 365,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ops_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ops Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannerFieldRequestTopResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Planner Field Requests Top",
         "tags": [
           "admin"
         ]

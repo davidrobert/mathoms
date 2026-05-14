@@ -1,15 +1,22 @@
-"""Stage wrapper for E7-review — LLM-powered holistic financial review."""
+"""Stage wrapper for E7-review — LLM-powered holistic financial review. **DEPRECATED**: supersedido por ``review_finances_holistic`` (ADR-199); remoção em Sprint A12.X."""
 
 from __future__ import annotations
 
 import json
 import logging
+import warnings
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
 logger = logging.getLogger(__name__)
+
+_DEPRECATION_MESSAGE = (
+    "Stage 'review_finances' (E7-review) está deprecated desde 2026-05-14. "
+    "Foi supersedido por 'review_finances_holistic' (parecer planejador, ADR-199). "
+    "Será removido em Sprint A12.X (ADR-128 superseded_by ADR-199)."
+)
 
 
 def _load_json_file(data: dict | None) -> str:
@@ -133,11 +140,11 @@ def _output_to_review_json(output) -> dict:
 
 
 def run(ctx: WorkspaceContext) -> dict:
-    """Execute E7-review holistic financial analysis via LLM.
+    """Execute E7-review holistic financial analysis via LLM. **DEPRECATED** — ver módulo docstring."""
+    # ADR-199 + ADR-128 — emitir warning visível para qualquer caller que ainda invoque.
+    warnings.warn(_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
+    logger.warning("review_finances_stage_deprecated", extra={"adr": "ADR-199"})
 
-    Reads E5 analysis JSON and E7-crossval results, sends to LLM,
-    saves review JSON in E7_review/.
-    """
     from pipeline.llm.litellm_client import LLMConfig, LLMService
     from pipeline.llm.prompts.e7_review import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
     from pipeline.llm.schemas.e7_review import E7ReviewOutput

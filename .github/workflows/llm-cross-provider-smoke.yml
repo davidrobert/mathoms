@@ -1,0 +1,172 @@
+# Cross-provider smoke do parecer planejador (ADR-199 / Ato 6 T-24).
+#
+# Por quê: LiteLLM (ADR-024) normaliza a API entre Anthropic/OpenAI/Ollama,
+# mas sutilezas do tool use format e da estrutura de structured-output via
+# Instructor (ADR-026) podem driftear. Detecta lock-in cedo e antes do
+# release. Roda weekly (segunda 06:00 UTC) + workflow_dispatch manual.
+#
+# Custo controlado: assertions estruturais (schema válido, hard caps, regex
+# anti-ticker, dedup_key reproduzível). Não usa baseline textual — LLM é
+# não-determinístico (ADR-202 §temp baixa). Cap soft de `< $0.50` por call.
+#
+# Configuração — secrets necessárias no repo:
+#   - ANTHROPIC_API_KEY_CROSS_PROVIDER (budget pequeno)
+#   - OPENAI_API_KEY_CROSS_PROVIDER (budget pequeno)
+#   Ollama é opt-in via `workflow_dispatch` (sem free tier garantido).
+#
+# Falha → cria Issue automaticamente (label `cross-provider-drift`) com
+# log do diff para triagem do `senior-cto` / `data-engineer`.
+
+name: LLM Cross-Provider Smoke (parecer planejador)
+
+on:
+  schedule:
+    # Segunda 06:00 UTC = 03:00 BRT. Cache GH quente do nightly de domingo.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      providers:
+        description: "Providers a testar (comma-separated): anthropic,openai,ollama"
+        type: string
+        default: "anthropic,openai"
+      cost_cap_cents:
+        description: "Cap por call em USD cents (default 50 = $0.50)"
+        type: string
+        default: "50"
+
+concurrency:
+  group: llm-cross-provider-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Smoke ${{ matrix.provider }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # Default scheduler roda anthropic + openai. Ollama opt-in via
+        # workflow_dispatch + override do input.
+        provider: [anthropic, openai]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv (SHA-pinned v8.1.0)
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.5.x"
+
+      - name: Restore venv cache
+        id: venv-cache
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v3
+          restore-keys: |
+            venv-${{ runner.os }}-py313-
+
+      - name: Install dependencies (cache miss, via uv)
+        if: steps.venv-cache.outputs.cache-hit != 'true'
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
+        run: |
+          [ -d .venv ] || uv venv .venv
+          uv pip install -r requirements.txt -r backend/requirements.txt
+          uv pip install pytest pytest-asyncio
+
+      - name: Activate venv (PATH)
+        run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve provider config
+        id: provider
+        run: |
+          case "${{ matrix.provider }}" in
+            anthropic)
+              echo "model_id=anthropic/claude-sonnet-4-20250514" >> "$GITHUB_OUTPUT"
+              echo "api_key_secret=ANTHROPIC_API_KEY_CROSS_PROVIDER" >> "$GITHUB_OUTPUT"
+              ;;
+            openai)
+              echo "model_id=openai/gpt-4o-2024-08-06" >> "$GITHUB_OUTPUT"
+              echo "api_key_secret=OPENAI_API_KEY_CROSS_PROVIDER" >> "$GITHUB_OUTPUT"
+              ;;
+            ollama)
+              echo "model_id=ollama/llama3.1:8b" >> "$GITHUB_OUTPUT"
+              echo "api_key_secret=NO_KEY_NEEDED" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Check API key secret presence
+        id: key-check
+        run: |
+          # Mapeamento da matrix → secret. Sem o secret, skipa (não bloqueia).
+          # Workflow é monitorado por humanos via cron; secret é gate.
+          if [ "${{ matrix.provider }}" = "ollama" ]; then
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          elif [ -z "${{ secrets[steps.provider.outputs.api_key_secret] }}" ]; then
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Secret ${{ steps.provider.outputs.api_key_secret }} ausente — skip ${{ matrix.provider }}"
+          else
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run cross-provider smoke (${{ matrix.provider }})
+        if: steps.key-check.outputs.has_key == 'true'
+        env:
+          MATHOMS_LLM_PROVIDER: ${{ matrix.provider }}
+          MATHOMS_LLM_MODEL_ID: ${{ steps.provider.outputs.model_id }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_CROSS_PROVIDER }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_CROSS_PROVIDER }}
+          MATHOMS_PARECER_COST_CAP_USD_CENTS: ${{ github.event.inputs.cost_cap_cents || '50' }}
+        run: |
+          pytest tests/test_parecer_planejador_golden.py \
+            -m cross_provider \
+            -q --tb=short \
+            -o "junit_family=xunit2" \
+            --junitxml=cross-provider-${{ matrix.provider }}-results.xml
+
+      - name: Upload junit results
+        if: always() && steps.key-check.outputs.has_key == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-provider-${{ matrix.provider }}-results
+          path: cross-provider-${{ matrix.provider }}-results.xml
+          retention-days: 30
+
+      - name: Create issue on drift detected
+        # Falha de smoke = drift entre providers. Cria Issue auto pra triagem.
+        # Issue idempotente: gh issue search evita N issues iguais.
+        if: |
+          failure() &&
+          steps.key-check.outputs.has_key == 'true' &&
+          github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing=$(gh issue list --label cross-provider-drift --search "${{ matrix.provider }} in:title" --state open --json number --jq 'length')
+          if [ "$existing" -eq 0 ]; then
+            PROVIDER="${{ matrix.provider }}"
+            MODEL="${{ steps.provider.outputs.model_id }}"
+            BODY=$(cat <<EOF
+          Workflow run: see Actions tab.
+
+          Provider: \`$PROVIDER\`
+          Model: \`$MODEL\`
+          Schedule: weekly cross-provider smoke (ADR-199 Ato 6 T-24).
+
+          Failure indica assertion estrutural quebrada — schema/hard caps/anti-ticker/dedup_key reprodução etc. Triagem: senior-cto + data-engineer.
+          EOF
+          )
+            gh issue create \
+              --title "Cross-provider drift detected: $PROVIDER" \
+              --label cross-provider-drift \
+              --body "$BODY" || true
+          else
+            echo "Issue cross-provider-drift já existe para ${{ matrix.provider }} — pulando criação."
+          fi

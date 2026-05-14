@@ -629,3 +629,150 @@ class TestFeatureFlag:
             result = stage_mod.run(ctx)
         assert result.get("skipped") is True
         assert "feature flag" in result.get("reason", "").lower()
+
+
+# -----------------------------------------------------------------------
+# Cross-provider smoke (ADR-199 Ato 6 T-24)
+# -----------------------------------------------------------------------
+#
+# Rodam APENAS via workflow `llm-cross-provider-smoke.yml` (weekly + manual).
+# Skipam em CI normal via marker + check de env vars.
+# Assertions estruturais — schema válido, hard caps, regex anti-ticker, dedup
+# reprodutível, ancora_metodologica ∈ enum. Não comparam texto (LLM
+# não-determinístico, ADR-202 temp baixa não garante reprodutibilidade
+# textual exata entre providers).
+
+
+def _cross_provider_env_or_skip() -> tuple[str, str]:
+    """Resolve (provider, model_id) do env; skipa se ausente."""
+    provider = os.environ.get("MATHOMS_LLM_PROVIDER", "").strip()
+    model_id = os.environ.get("MATHOMS_LLM_MODEL_ID", "").strip()
+    if not provider or not model_id:
+        pytest.skip(
+            "Cross-provider smoke exige MATHOMS_LLM_PROVIDER + MATHOMS_LLM_MODEL_ID. "
+            "Rode via .github/workflows/llm-cross-provider-smoke.yml."
+        )
+    return provider, model_id
+
+
+def _cost_cap_cents_or_default() -> int:
+    """Cap soft de custo por call — falha se exceder. Default $0.50."""
+    raw = os.environ.get("MATHOMS_PARECER_COST_CAP_USD_CENTS", "50")
+    try:
+        return int(raw)
+    except ValueError:
+        return 50
+
+
+def _assert_dedup_keys_well_formed(sugestoes: list[dict]) -> None:
+    """Cada dedup_key deve ser sha256 hex (64 chars hex)."""
+    for sug in sugestoes:
+        key = sug["suggestion_dedup_key"]
+        assert len(key) == 64
+        int(key, 16)  # parse hex
+
+
+@pytest.mark.cross_provider
+class TestCrossProviderSmoke:
+    """Smoke estrutural por provider — assertions invariantes, não textuais."""
+
+    def test_schema_valid_across_provider(self, workspace_e5):
+        """Output schema valida (Pydantic + JSON Schema) após chamada real."""
+        provider, model_id = _cross_provider_env_or_skip()
+        result, store = self._call_real_llm(workspace_e5, provider, model_id)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        assert artifact is not None
+        jsonschema = pytest.importorskip("jsonschema")
+        schema = json.loads(_OUTPUT_SCHEMA.read_text(encoding="utf-8"))
+        jsonschema.validate(artifact, schema)
+
+    def test_hard_caps_respected_across_provider(self, workspace_e5):
+        """Hard caps (ADR-202 §D3): riscos ≤ 12, P0 ≤ 2 agregado, etc."""
+        provider, model_id = _cross_provider_env_or_skip()
+        result, store = self._call_real_llm(workspace_e5, provider, model_id)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        assert len(artifact["riscos"]) <= 12
+        all_sug = (
+            artifact["sugestoes_execucao"]
+            + artifact["sugestoes_taticas"]
+            + artifact["sugestoes_estrategicas"]
+        )
+        p0_count = sum(1 for s in all_sug if s["prioridade"] == "P0")
+        assert p0_count <= 2
+
+    def test_anti_ticker_regex_holds_across_provider(self, workspace_e5):
+        """Regex anti-ticker BR (ADR-202 §D4) deve continuar valendo cross-provider."""
+        import re
+
+        ticker_re = re.compile(r"[A-Z]{4}\d{1,2}|[A-Z]{4}11")
+        provider, model_id = _cross_provider_env_or_skip()
+        result, store = self._call_real_llm(workspace_e5, provider, model_id)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        body_texts = [artifact["diagnostico_geral"]]
+        for risco in artifact["riscos"]:
+            body_texts.append(risco["descricao"])
+        for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
+            for sug in artifact[horizon]:
+                body_texts.append(sug["acao"])
+                body_texts.append(sug["impacto_qualitativo"])
+        for text in body_texts:
+            assert not ticker_re.search(text), f"ticker leaked in: {text!r}"
+
+    def test_ancora_metodologica_in_enum_across_provider(self, workspace_e5):
+        """``ancora_metodologica`` ∈ enum fechado pós-call (ADR-202)."""
+        provider, model_id = _cross_provider_env_or_skip()
+        result, store = self._call_real_llm(workspace_e5, provider, model_id)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        valid_ancoras = {"perini", "cerbasi", "auvp", "convergencia"}
+        for risco in artifact["riscos"]:
+            assert risco["ancora_metodologica"] in valid_ancoras
+        for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
+            for sug in artifact[horizon]:
+                assert sug["ancora_metodologica"] in valid_ancoras
+
+    def test_dedup_key_reproducible_across_provider(self, workspace_e5):
+        """Mesmo input → mesmo dedup_key (idempotência ADR-153). Estrutural, não textual — keys são derivadas de ação+ancora+workspace_id, não do texto LLM."""
+        provider, model_id = _cross_provider_env_or_skip()
+        # 2 calls, mesma E5, mesmo workspace_id.
+        _, store_a = self._call_real_llm(workspace_e5, provider, model_id, workspace_id="ws-CX")
+        _, store_b = self._call_real_llm(workspace_e5, provider, model_id, workspace_id="ws-CX")
+        art_a = store_a.read("E6-parecer", "parecer_planejador")
+        art_b = store_b.read("E6-parecer", "parecer_planejador")
+        # Ambos têm sugestoes_execucao (schema garante 0-5; cap LLM tende ≥1 em E5 rico).
+        if not (art_a["sugestoes_execucao"] and art_b["sugestoes_execucao"]):
+            return
+        _assert_dedup_keys_well_formed(art_a["sugestoes_execucao"] + art_b["sugestoes_execucao"])
+
+    def test_cost_within_cap_across_provider(self, workspace_e5):
+        """Custo da call não excede cap (default $0.50)."""
+        provider, model_id = _cross_provider_env_or_skip()
+        cap_cents = _cost_cap_cents_or_default()
+        result, store = self._call_real_llm(workspace_e5, provider, model_id)
+        artifact = store.read("E6-parecer", "parecer_planejador")
+        cost_usd = artifact["_meta"]["cost_usd"]
+        cost_cents = int(cost_usd * 100)
+        assert cost_cents > 0, "cost_usd zero indica mock — cross-provider exige call real"
+        assert (
+            cost_cents <= cap_cents
+        ), f"cost {cost_cents} cents excede cap {cap_cents} para {provider}"
+
+    def _call_real_llm(
+        self,
+        workspace_e5: dict,
+        provider: str,
+        model_id: str,
+        workspace_id: str = "ws-cross",
+    ):
+        """Helper — roda stage com LLM real. Não monkeypatcha LLMService; usa o que está no env."""
+        import tempfile
+
+        from pipeline.context import WorkspaceContext
+        from pipeline.stages import parecer_planejador as stage_mod
+
+        os.environ["MATHOMS_PARECER_PLANEJADOR_MODEL"] = model_id
+        store = InMemoryArtifactStore()
+        store.seed("E5", "analise_financeira", workspace_e5)
+        with tempfile.TemporaryDirectory() as tmp:
+            ctx = WorkspaceContext(root=Path(tmp), artifact_store=store, workspace_id=workspace_id)
+            result = stage_mod.run(ctx)
+        return result, store

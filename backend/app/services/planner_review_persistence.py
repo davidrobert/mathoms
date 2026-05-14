@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun
 from backend.app.models.pipeline_run_cost import PipelineRunCost
+from backend.app.models.planner_field_request import PlannerFieldRequest
 from backend.app.models.planner_review import PlannerReview
 from backend.app.models.suggestion import Suggestion
 from backend.app.services.parecer_finalization import severity_from_prioridade
@@ -237,6 +238,52 @@ def _persist_suggestions_from_artifact(
     return created
 
 
+def _iter_field_requests(content_json: dict):
+    """Yields dicts ``{field_path, motivo}`` do array ``campos_faltantes_pediria_se_iterasse``."""
+    campos = content_json.get("campos_faltantes_pediria_se_iterasse")
+    if not campos:
+        return
+    for entry in campos:
+        if not isinstance(entry, dict):
+            continue
+        path = entry.get("field_path")
+        motivo = entry.get("motivo")
+        if not path or not motivo:
+            continue
+        yield {"field_path": path, "motivo": motivo}
+
+
+def _build_field_request(*, workspace_id: str, review_id: str, entry: dict) -> PlannerFieldRequest:
+    """Constrói row de telemetria do parecer (ADR-206 §D2 fonte primária)."""
+    return PlannerFieldRequest(
+        workspace_id=workspace_id,
+        planner_review_id=review_id,
+        field_path=entry["field_path"],
+        motivo=entry["motivo"],
+        reason="llm_declared",
+    )
+
+
+def _persist_field_requests(
+    db: Session,
+    *,
+    workspace_id: str,
+    review_id: str,
+    parecer_artifact: PipelineArtifact,
+) -> int:
+    """Bulk-insert. Idempotente via UNIQUE (review_id, field_path); dedup intra-batch defensivo."""
+    seen: set[str] = set()
+    created = 0
+    for entry in _iter_field_requests(parecer_artifact.content_json):
+        path = entry["field_path"]
+        if path in seen:
+            continue
+        seen.add(path)
+        db.add(_build_field_request(workspace_id=workspace_id, review_id=review_id, entry=entry))
+        created += 1
+    return created
+
+
 def _do_persist(
     db: Session,
     *,
@@ -246,7 +293,7 @@ def _do_persist(
     e5_artifact: PipelineArtifact,
     detail: dict,
 ) -> str:
-    """Insere review + cost + suggestions (assume idempotência já verificada)."""
+    """Insere review + cost + suggestions + field_requests (assume idempotência já verificada)."""
     review = _build_review(
         workspace_id=workspace_id,
         run_id=run_id,
@@ -257,8 +304,16 @@ def _do_persist(
     cost_row = _build_cost_row(workspace_id=workspace_id, run_id=run_id, detail=detail)
     db.add(review)
     db.add(cost_row)
+    # Flush para garantir ``review.id`` disponível antes de FKs em field_requests.
+    db.flush()
     created = _persist_suggestions_from_artifact(
         db, workspace_id=workspace_id, parecer_artifact=parecer_artifact
+    )
+    field_requests_created = _persist_field_requests(
+        db,
+        workspace_id=workspace_id,
+        review_id=review.id,
+        parecer_artifact=parecer_artifact,
     )
     logger.info(
         "planner_review_persistence_committed",
@@ -267,6 +322,7 @@ def _do_persist(
             "run_id": run_id,
             "review_id": review.id,
             "suggestions_created": created,
+            "field_requests_created": field_requests_created,
             "cost_usd_cents": cost_row.cost_usd_cents,
         },
     )

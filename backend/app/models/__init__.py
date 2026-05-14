@@ -38,6 +38,10 @@ from backend.app.models.pipeline_run import (
     PipelineStageStatus,
 )
 from backend.app.models.pipeline_run_cost import PipelineRunCost
+from backend.app.models.planner_field_request import (
+    VALID_FIELD_REQUEST_REASONS,
+    PlannerFieldRequest,
+)
 from backend.app.models.planner_review import (
     VALID_PLANNER_REVIEW_STATUSES,
     VALID_TIERS,
@@ -170,6 +174,8 @@ __all__ = [
     "VALID_DATA_EXPORT_STATUSES",
     "PipelineArtifact",
     "PipelineRunCost",
+    "PlannerFieldRequest",
+    "VALID_FIELD_REQUEST_REASONS",
     "PlannerReview",
     "VALID_PLANNER_REVIEW_STATUSES",
     "VALID_TIERS",

@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from backend.app.api.admin.documents import router as documents_router
 from backend.app.api.admin.login import router as login_router
 from backend.app.api.admin.metrics import router as metrics_router
+from backend.app.api.admin.planner_telemetry import router as planner_telemetry_router
 from backend.app.api.admin.reports import router as reports_router
 from backend.app.api.admin.users import router as users_router
 from backend.app.core.config import settings
@@ -26,5 +27,6 @@ router.include_router(users_router)
 router.include_router(documents_router)
 router.include_router(metrics_router)
 router.include_router(reports_router)
+router.include_router(planner_telemetry_router)
 
 __all__ = ["router"]

@@ -3,7 +3,7 @@ id: ADR-128
 type: adr
 title: "E7-review-llm lê/escreve via `ArtifactStore`"
 status: Decidido
-phase: "A6-cleanup"
+phase: "A6-cleanup (superseded em A12.X — deprecation Ato 6 do PLANNER_REVIEW)"
 date: "2026-04-24"
 relates_to: []
 supersedes: []
@@ -14,12 +14,22 @@ tags:
   - area/pipeline
   - status/decidido
   - type/adr
-size_lines: 40
+size_lines: 48
 ---
 
 # ADR-128 — E7-review-llm lê/escreve via `ArtifactStore`
 
 **Status:** Decidido (A6-cleanup) • **Data:** 2026-04-24
+
+**Cutover 2026-05-14 (Ato 6 do plano [`PLANNER_REVIEW`](../plan/PLANNER_REVIEW/_README.md)):**
+Stage `review_finances` (E7-review) marcado `is_deprecated=True` no
+`STAGE_REGISTRY` (`pipeline/stage_spec.py`). `pipeline/stages/review_finances.py`
+emite `DeprecationWarning` ao executar. Supersedido por
+[[ADR-199]] (`parecer_planejador` / `review_finances_holistic`). Sprint
+A12.X (TBD) remove código + migration de cleanup de artifacts E7-review
+ainda armazenados — pareceres antigos podem ser conservados para
+auditoria via política de retenção (dado-engineer decide na sprint do
+remove).
 
 **Nota 2026-05-13:** Esta ADR será superseded por [[ADR-199]] (parecer
 planejador) durante execução do plano [`PLANNER_REVIEW`](../plan/PLANNER_REVIEW/_README.md).
