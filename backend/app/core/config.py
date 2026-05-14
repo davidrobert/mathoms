@@ -96,10 +96,12 @@ class Settings(BaseSettings):
     USE_EVENT_DRIVEN_TASK_NOTIFICATIONS: bool = False
 
     # ADR-199 (PLANNER_REVIEW Ato 4) — parecer planejador holístico.
-    # Stage `review_finances_holistic` só executa quando habilitado.
-    # Default off durante Ato 4 (codigo em produção mas cleanup, sem dogfood);
-    # Ato 5 promove para True após dogfood CEO+PM (2-3 ciclos).
-    ENABLE_PARECER_PLANEJADOR: bool = False
+    # Stage `review_finances_holistic` executa para todos os workspaces.
+    # Promovido a True em 2026-05-14 (Ato 6) por decisão do owner — feature
+    # liberada para todos os workspaces premium; free tier recebe payload
+    # gated via tier_filter (ADR-208). Override por env var
+    # MATHOMS_ENABLE_PARECER_PLANEJADOR=false como kill-switch operacional.
+    ENABLE_PARECER_PLANEJADOR: bool = True
 
     # F7F-Local / ADR-116 — console interno (/admin/*).
     # Default off: rotas só montam se `MATHOMS_INTERNAL_OPS_UI_ENABLED=1`.
