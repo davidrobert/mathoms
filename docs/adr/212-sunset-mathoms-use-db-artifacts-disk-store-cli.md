@@ -2,8 +2,8 @@
 id: ADR-212
 type: adr
 title: "Sunset `MATHOMS_USE_DB_ARTIFACTS` + `DiskArtifactStore` + CLI standalone do pipeline"
-status: Proposto
-phase: A12
+status: Decidido
+phase: A12.sunset-disk-artifact
 date: "2026-05-14"
 relates_to:
   - "[[ADR-083]]"

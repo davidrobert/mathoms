@@ -4,6 +4,18 @@ Documentos históricos preservados para referência. **Não são fonte de verdad
 
 ---
 
+## cutover-2026-05-14.md
+
+Runbook canônico do cutover `MATHOMS_USE_DB_ARTIFACTS=true` (ADR-118, 2026-04-23) — procedure de cutover por workspace + métricas Prometheus + alertas + rollback flip-flag.
+
+**Arquivado em:** 2026-05-14
+
+**Substituído por:** [`../reference/runbooks/pipeline_rollback.md`](../reference/runbooks/pipeline_rollback.md) — runbook DB-only pós-ADR-212 PR4 (snapshot DB pré-deploy + revert PR + migration downgrade).
+
+**Quando consultar:** apenas para contexto histórico do cutover original. Pós-ADR-212 PR4, `MATHOMS_USE_DB_ARTIFACTS` foi removido de settings e a coluna `workspaces.use_db_artifacts_override` foi dropada; flip-flag não é mais um caminho de rollback válido.
+
+---
+
 ## PRODUCT_PLAN-2026-04-15.md
 
 Documento único original (~390KB, 4052 linhas) que combinava visão, arquitetura, backlog, sprints, decisões técnicas, riscos e log de progresso em um único arquivo.

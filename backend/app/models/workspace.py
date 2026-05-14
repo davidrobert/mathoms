@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, Numeric, String
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -22,11 +22,6 @@ class Workspace(Base):
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
-    )
-    # A6b (ADR-106): opt-in por workspace para usar DBArtifactStore.
-    # None → usa flag global MATHOMS_USE_DB_ARTIFACTS; True → força DB; False → força Disk.
-    use_db_artifacts_override: Mapped[Optional[bool]] = mapped_column(
-        Boolean, nullable=True, default=None
     )
 
     # FinOps (post-review fix 0.3): cap mensal de gasto LLM em USD para alarme.

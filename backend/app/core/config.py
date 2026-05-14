@@ -83,11 +83,6 @@ class Settings(BaseSettings):
     # Vault encryption (Fernet symmetric key). Generate via: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     FERNET_KEY: str = ""
 
-    # Fase 2 · ADR-083: quando True, o pipeline web usa DBArtifactStore (banco)
-    # em vez de DiskArtifactStore. Default flipado para True (cutover concluído);
-    # override por workspace via `workspaces.use_db_artifacts_override`.
-    USE_DB_ARTIFACTS: bool = True
-
     # ADR-115 · A6e.events: quando True, handler reativo para TaskCreated/
     # Updated cria Notification na transação do use case. Enquanto False
     # (default), o cron ``scan_and_create_notifications`` continua sendo
