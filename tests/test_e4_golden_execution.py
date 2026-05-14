@@ -1,9 +1,12 @@
-"""Golden de execução E4: tenant mínimo + E3 fixture → E4 → assert + schema."""
+"""Golden de execução E4: tenant mínimo + E3 fixture → E4 → assert + schema.
+
+ADR-212 PR3b: E3/baseline são seeded no ``InMemoryArtifactStore`` (não em
+disco). E4 lê via ``store.read``/``list_keys``.
+"""
 
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 import pytest
@@ -32,13 +35,11 @@ _BASELINE_MIN = (
 )
 
 
-@pytest.fixture
-def e4_tenant_minimal(tmp_path: Path) -> Path:
-    """Workspace com config mínima e um reconciliado E3 compatível com E4."""
+def _write_e4_config(tmp_path: Path, *, expense_keywords: dict | None = None) -> None:
     cfg = tmp_path / "config"
-    cfg.mkdir(parents=True)
+    cfg.mkdir(parents=True, exist_ok=True)
     cat = {
-        "expense_keywords": {},
+        "expense_keywords": expense_keywords or {},
         "income_keywords": {"renda": ["PIX"]},
         "internal_transfer_patterns": [],
         "pj_source_mapping": {},
@@ -51,137 +52,105 @@ def e4_tenant_minimal(tmp_path: Path) -> Path:
     (cfg / "family_members.json").write_text("{}", encoding="utf-8")
     (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
 
-    e3_dir = tmp_path / "processed" / "E3_reconciled"
-    e3_dir.mkdir(parents=True)
-    shutil.copy(
-        _E3_FIXTURE,
-        e3_dir / "golden-minimal-3_reconciled.json",
-    )
 
+def _load_fixture_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+@pytest.fixture
+def e4_tenant_minimal(tmp_path: Path) -> Path:
+    """Workspace com config mínima. E3 será seeded no store pelo teste."""
+    _write_e4_config(tmp_path)
     return tmp_path
 
 
 @pytest.fixture
 def e4_tenant_mixed_cashflow(tmp_path: Path) -> Path:
-    """E3 com receita + despesa (débito) e keywords para ambas as categorias."""
-    cfg = tmp_path / "config"
-    cfg.mkdir(parents=True)
-    cat = {
-        "expense_keywords": {"lazer": ["CINEMA"]},
-        "income_keywords": {"renda": ["PIX"]},
-        "internal_transfer_patterns": [],
-        "pj_source_mapping": {},
-        "clt_source_mapping": {},
-    }
-    (cfg / "categorization.json").write_text(
-        json.dumps(cat, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    (cfg / "family_members.json").write_text("{}", encoding="utf-8")
-    (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
-
-    e3_dir = tmp_path / "processed" / "E3_reconciled"
-    e3_dir.mkdir(parents=True)
-    shutil.copy(_E3_MIXED, e3_dir / "golden-mixed-3_reconciled.json")
-
+    """E3 misto + keywords. E3 será seeded no store pelo teste."""
+    _write_e4_config(tmp_path, expense_keywords={"lazer": ["CINEMA"]})
     return tmp_path
 
 
 @pytest.fixture
 def e4_tenant_with_baseline(tmp_path: Path) -> Path:
-    """Inclui baseline E1.5 em E2_extracts (mesmo E3 mínimo que o golden base)."""
-    cfg = tmp_path / "config"
-    cfg.mkdir(parents=True)
-    cat = {
-        "expense_keywords": {},
-        "income_keywords": {"renda": ["PIX"]},
-        "internal_transfer_patterns": [],
-        "pj_source_mapping": {},
-        "clt_source_mapping": {},
-    }
-    (cfg / "categorization.json").write_text(
-        json.dumps(cat, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    (cfg / "family_members.json").write_text("{}", encoding="utf-8")
-    (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
-
-    e2_dir = tmp_path / "processed" / "E2_extracts"
-    e2_dir.mkdir(parents=True)
-    shutil.copy(_BASELINE_MIN, e2_dir / "baseline_patrimonial-1.5_consolidated.json")
-
-    e3_dir = tmp_path / "processed" / "E3_reconciled"
-    e3_dir.mkdir(parents=True)
-    shutil.copy(_E3_FIXTURE, e3_dir / "golden-minimal-3_reconciled.json")
-
+    """E3 + baseline E1.5. Ambos serão seeded no store pelo teste."""
+    _write_e4_config(tmp_path)
     return tmp_path
+
+
+def _new_e4_ctx(root: Path, *, e3_fixture: Path, baseline: Path | None = None):
+    """ADR-212 PR3b: ``WorkspaceContext`` requer ``artifact_store`` explícito.
+
+    Seed E3 (e baseline opcional E1.5c) no ``InMemoryArtifactStore`` antes
+    do ``main_with_store``. E4 lê E3/baseline via ``store.read``; escreve
+    E4 via store.
+    """
+    from pipeline.artifact_store import InMemoryArtifactStore
+    from pipeline.context import WorkspaceContext
+
+    store = InMemoryArtifactStore()
+    # E3 sob ``"E3"`` (legacy) — adapter consome via store.list_keys("E3").
+    e3_key = e3_fixture.stem.replace("-3_reconciled", "")
+    store.seed("E3", e3_key, _load_fixture_json(e3_fixture))
+    if baseline is not None:
+        store.seed("E1.5c", "baseline_patrimonial", _load_fixture_json(baseline))
+    return WorkspaceContext(root=root, artifact_store=store)
 
 
 def test_e4_execution_produces_unified_json(e4_tenant_minimal: Path):
     """Roda e4_categorize.main em tenant isolado; restaura globals."""
-    from pipeline.context import WorkspaceContext
     from scripts.e4_categorize import main_with_store
 
-    ctx = WorkspaceContext(root=e4_tenant_minimal)
+    ctx = _new_e4_ctx(e4_tenant_minimal, e3_fixture=_E3_FIXTURE)
     main_with_store(ctx)
+    store = ctx.artifact_store
 
-    out = e4_tenant_minimal / "processed" / "E4_unified"
-    assert out.is_dir()
-
-    receitas_path = out / "receitas-4_unified.json"
-    assert receitas_path.is_file()
-    receitas = json.loads(receitas_path.read_text(encoding="utf-8"))
+    receitas = store.read("E4", "receitas")
+    assert receitas is not None
     assert receitas["total_geral"] == 100.0
     assert "renda" in receitas["categorias"]
 
-    despesas = json.loads((out / "despesas-4_unified.json").read_text(encoding="utf-8"))
+    despesas = store.read("E4", "despesas")
+    assert despesas is not None
     assert despesas["total_geral"] == 0.0
 
-    fluxo = json.loads((out / "fluxo_mensal_detalhado-4_unified.json").read_text(encoding="utf-8"))
+    fluxo = store.read("E4", "fluxo_mensal_detalhado")
+    assert fluxo is not None
     assert isinstance(fluxo.get("meses_ordenados"), list)
     assert len(fluxo["meses_ordenados"]) >= 1
 
-    for name in (
-        "investimentos-4_unified.json",
-        "seguros-4_unified.json",
-        "pontos_milhas-4_unified.json",
-    ):
-        p = out / name
-        assert p.is_file(), f"missing {name}"
+    for key in ("investimentos", "seguros", "pontos_milhas"):
+        assert store.exists("E4", key), f"missing E4/{key}"
 
-    # ADR-132: sem baseline E1.5c, ``patrimonio-4_unified.json`` é omitido —
-    # antes era escrito como ``{"dados": []}`` e sobrescrevia o arquivo bom
-    # de runs anteriores em re-runs. O fallback workspace-scoped do read()
-    # resolve a ausência.
-    assert not (out / "patrimonio-4_unified.json").is_file()
+    # ADR-132: sem baseline E1.5c, ``patrimonio`` é omitido — antes era
+    # escrito como ``{"dados": []}`` e sobrescrevia o artefato bom de runs
+    # anteriores em re-runs.
+    assert not store.exists("E4", "patrimonio")
 
     jsonschema = pytest.importorskip("jsonschema")
     schema = json.loads(
         (_REPO / "config" / "schemas" / "e4_unified.schema.json").read_text(encoding="utf-8")
     )
-    for p in sorted(out.glob("*.json")):
-        payload = json.loads(p.read_text(encoding="utf-8"))
+    from scripts.pipeline_common import validate_dict
+
+    for key in store.list_keys("E4"):
+        payload = store.read("E4", key)
         jsonschema.validate(payload, schema)
-
-    from scripts.pipeline_common import validate_artifact
-
-    for p in sorted(out.glob("*.json")):
-        assert validate_artifact(p, "e4_unified.schema.json") is True
+        assert validate_dict(payload, "e4_unified.schema.json", source=f"E4/{key}") is True
 
     assert_qa_log_md(e4_tenant_minimal)
 
 
 def test_e4_execution_mixed_receita_despesa(e4_tenant_mixed_cashflow: Path):
     """Cenário com despesa categorizada (golden expandido)."""
-    from pipeline.context import WorkspaceContext
     from scripts.e4_categorize import main_with_store
 
-    ctx = WorkspaceContext(root=e4_tenant_mixed_cashflow)
+    ctx = _new_e4_ctx(e4_tenant_mixed_cashflow, e3_fixture=_E3_MIXED)
     main_with_store(ctx)
+    store = ctx.artifact_store
 
-    out = e4_tenant_mixed_cashflow / "processed" / "E4_unified"
-    receitas = json.loads((out / "receitas-4_unified.json").read_text(encoding="utf-8"))
-    despesas = json.loads((out / "despesas-4_unified.json").read_text(encoding="utf-8"))
+    receitas = store.read("E4", "receitas")
+    despesas = store.read("E4", "despesas")
     assert receitas["total_geral"] == 100.0
     assert despesas["total_geral"] == 30.0
     assert "lazer" in despesas["categorias"]
@@ -190,23 +159,22 @@ def test_e4_execution_mixed_receita_despesa(e4_tenant_mixed_cashflow: Path):
     schema = json.loads(
         (_REPO / "config" / "schemas" / "e4_unified.schema.json").read_text(encoding="utf-8")
     )
-    for p in sorted(out.glob("*.json")):
-        jsonschema.validate(json.loads(p.read_text(encoding="utf-8")), schema)
+    for key in store.list_keys("E4"):
+        jsonschema.validate(store.read("E4", key), schema)
 
     assert_qa_log_md(e4_tenant_mixed_cashflow)
 
 
 def test_e4_execution_with_baseline_patrimonial(e4_tenant_with_baseline: Path):
-    """E4 com baseline: patrimonio-4_unified espelha o consolidado (schema baseline, não e4_unified)."""
-    from pipeline.context import WorkspaceContext
+    """E4 com baseline: patrimonio espelha o consolidado (schema baseline, não e4_unified)."""
     from scripts.e4_categorize import main_with_store
 
-    ctx = WorkspaceContext(root=e4_tenant_with_baseline)
+    ctx = _new_e4_ctx(e4_tenant_with_baseline, e3_fixture=_E3_FIXTURE, baseline=_BASELINE_MIN)
     main_with_store(ctx)
+    store = ctx.artifact_store
 
-    out = e4_tenant_with_baseline / "processed" / "E4_unified"
-    pat_path = out / "patrimonio-4_unified.json"
-    pat = json.loads(pat_path.read_text(encoding="utf-8"))
+    pat = store.read("E4", "patrimonio")
+    assert pat is not None
     assert pat["pipeline_stage"] == "E1.5_Baseline_Patrimonial"
     assert pat["patrimonio_por_ano"]["2024"]["total_bens"] == 500000.0
 
@@ -220,10 +188,9 @@ def test_e4_execution_with_baseline_patrimonial(e4_tenant_with_baseline: Path):
         (_REPO / "config" / "schemas" / "e4_unified.schema.json").read_text(encoding="utf-8")
     )
     jsonschema.validate(pat, baseline_schema)
-    for p in sorted(out.glob("*.json")):
-        payload = json.loads(p.read_text(encoding="utf-8"))
-        if p.name == "patrimonio-4_unified.json":
+    for key in store.list_keys("E4"):
+        if key == "patrimonio":
             continue
-        jsonschema.validate(payload, e4_schema)
+        jsonschema.validate(store.read("E4", key), e4_schema)
 
     assert_qa_log_md(e4_tenant_with_baseline)

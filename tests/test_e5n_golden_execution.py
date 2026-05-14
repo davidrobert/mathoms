@@ -56,7 +56,9 @@ _FAMILY_E5_CONJUGE = {
 
 
 def _build_e5_workspace(tmp_path: Path, family: dict) -> Path:
-    """Tenant mínimo E3→E4→E5 (mesma base que `test_e5_golden_execution`)."""
+    """Tenant mínimo (configs only). ADR-212 PR3b: E3 é seeded no store
+    pelo teste, não escrito em disco.
+    """
     cfg = tmp_path / "config"
     cfg.mkdir(parents=True)
     cat = {
@@ -82,12 +84,17 @@ def _build_e5_workspace(tmp_path: Path, family: dict) -> Path:
     shutil.copy(_REPO / "config" / "scoring.json", cfg / "scoring.json")
     shutil.copy(_LEGACY_FISCAL, cfg / "parametros_fiscais.json")
     shutil.copy(_LEGACY_TAXAS, cfg / "taxas.json")
-
-    e3_dir = tmp_path / "processed" / "E3_reconciled"
-    e3_dir.mkdir(parents=True)
-    shutil.copy(_E3_FIXTURE, e3_dir / "golden-minimal-3_reconciled.json")
-
     return tmp_path
+
+
+def _new_e5n_ctx(root: Path):
+    """WorkspaceContext + InMemoryArtifactStore seeded com E3 fixture."""
+    from pipeline.artifact_store import InMemoryArtifactStore
+    from pipeline.context import WorkspaceContext
+
+    store = InMemoryArtifactStore()
+    store.seed("E3", "golden-minimal", json.loads(_E3_FIXTURE.read_text(encoding="utf-8")))
+    return WorkspaceContext(root=root, artifact_store=store)
 
 
 @pytest.fixture
@@ -105,22 +112,21 @@ def e5n_tenant_with_conjuge(tmp_path: Path) -> Path:
 
 def test_e5n_execution_injects_narrativas(e5_tenant_minimal: Path):
     """Após E5, `e5n_narrativas.main` injeta `narrativas` válidas (spec E5.N)."""
-    from pipeline.context import WorkspaceContext
     from scripts.e4_categorize import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
     from scripts.e5n_narrativas import _init_config as e5n_init
     from scripts.e5n_narrativas import main_with_store as e5n_mws
     from scripts.e5n_narrativas import validate_narrativas
 
-    ctx = WorkspaceContext(root=e5_tenant_minimal)
+    ctx = _new_e5n_ctx(e5_tenant_minimal)
     e4_mws(ctx)
     e5_mws(ctx)
     # validate_narrativas usa globals do e5n; init para o tenant antes de chamar.
     e5n_init(e5_tenant_minimal)
     e5n_mws(ctx)
 
-    out = e5_tenant_minimal / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-    payload = json.loads(out.read_text(encoding="utf-8"))
+    payload = ctx.artifact_store.read("E5", "analise_financeira")
+    assert payload is not None
     narr = payload.get("narrativas")
     narr_ok, val_errors = validate_narrativas(narr or {})
 
@@ -133,23 +139,20 @@ def test_e5n_execution_injects_narrativas(e5_tenant_minimal: Path):
 
 def test_e5n_execution_narrativas_with_conjuge_chart(e5n_tenant_with_conjuge: Path):
     """ADR-176: workspace com cônjuge produz chart obrigatório ``cenarios_conjuge`` (chave universal, não mais ``<membro>_cenarios``)."""
-    from pipeline.context import WorkspaceContext
     from scripts.e4_categorize import main_with_store as e4_mws
     from scripts.e5_analyze import main_with_store as e5_mws
     from scripts.e5n_narrativas import _init_config as e5n_init
     from scripts.e5n_narrativas import main_with_store as e5n_mws
     from scripts.e5n_narrativas import validate_narrativas
 
-    ctx = WorkspaceContext(root=e5n_tenant_with_conjuge)
+    ctx = _new_e5n_ctx(e5n_tenant_with_conjuge)
     e4_mws(ctx)
     e5_mws(ctx)
     e5n_init(e5n_tenant_with_conjuge)
     e5n_mws(ctx)
 
-    out = (
-        e5n_tenant_with_conjuge / "processed" / "E5_analysis" / "analise_financeira-5_analysis.json"
-    )
-    payload = json.loads(out.read_text(encoding="utf-8"))
+    payload = ctx.artifact_store.read("E5", "analise_financeira")
+    assert payload is not None
     narr = payload.get("narrativas")
     narr_ok, val_errors = validate_narrativas(narr or {})
 

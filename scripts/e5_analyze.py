@@ -3044,14 +3044,11 @@ def _e5_compose_output(
 
 
 def _e5_persist(store, ctx, output: Dict[str, Any]) -> None:
-    from pipeline.artifact_store import DiskArtifactStore
-    from pipeline.domain.services.e5_serialization import E5_ARTIFACT_FILENAME, E5_ARTIFACT_KEY
+    """Persiste E5 analysis. Validação JSON-schema via hook pós-write em
+    ``DBArtifactStore.write`` (ADR-212 PR3a)."""
+    from pipeline.domain.services.e5_serialization import E5_ARTIFACT_KEY
 
     store.write("E5", E5_ARTIFACT_KEY, output)
-    if isinstance(store, DiskArtifactStore) and _pc is not None:
-        target = ctx.e5_dir / E5_ARTIFACT_FILENAME
-        if target.exists():
-            _pc.validate_artifact(target, "e5_analysis.schema.json")
 
 
 def _e5_print_summary(legacy: Dict[str, Any]) -> None:

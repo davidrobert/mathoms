@@ -54,10 +54,11 @@ class WorkspaceContext:
     #: Stored paths of new documents (relative to tenant root). Used by E0/E2 to filter.
     incremental_doc_paths: List[str] = field(default_factory=list)
 
-    #: ArtifactStore injetável (ADR-083). Se ``None``, ``get_artifact_store()``
-    #: devolve um :class:`DiskArtifactStore` apontando para ``self.root``.
-    #: Stages devem usar ``ctx.get_artifact_store()`` em vez de acessar este
-    #: campo diretamente, para manter a resolução lazy.
+    #: ArtifactStore injetável (ADR-083 · ADR-212 PR3b). Obrigatório em runtime:
+    #: ``get_artifact_store()`` raise ``RuntimeError`` se ``None``. Backend Celery
+    #: passa ``DBArtifactStore``; testes passam ``InMemoryArtifactStore``.
+    #: ``Optional`` aqui permite construção em duas fases (instanciar + injetar)
+    #: — mas qualquer chamada a ``get_artifact_store()`` exige store presente.
     artifact_store: Optional["ArtifactStore"] = field(default=None, repr=False)
 
     #: Workspace identifier — required for ``ConfigStore`` reads (ADR-134).
@@ -124,22 +125,18 @@ class WorkspaceContext:
     def get_artifact_store(self) -> "ArtifactStore":
         """Retorna o ``ArtifactStore`` ativo para esta run.
 
-        Default: :class:`DiskArtifactStore` apontando para ``self.root``.
-        Web/Celery: injetar um :class:`DBArtifactStore` via ``for_tenant`` ou
-        pós-construção, antes de chamar os stages.
-
-        Idempotente: a primeira chamada sem store pré-injetado cria um
-        :class:`DiskArtifactStore` e o memoriza em ``self.artifact_store``.
-
-        **NOTA (ADR-212 PR3a):** lazy-default permanece neste PR para não
-        cascatar refactor de 6+ test files (goldens E3/E4/E5, extract_irpf,
-        per-stage LLM). PR3b separado removerá o default + refatorará tests
-        para injetar ``InMemoryArtifactStore`` explícito.
+        ADR-212 PR3b: ``artifact_store`` deve ser injetado explicitamente
+        (Web/Celery via ``DBArtifactStore``; testes via
+        ``InMemoryArtifactStore``). Lazy-default de ``DiskArtifactStore``
+        foi removido — caminho disco deixou de existir.
         """
         if self.artifact_store is None:
-            from pipeline.artifact_store import DiskArtifactStore
-
-            self.artifact_store = DiskArtifactStore(self.root)
+            raise RuntimeError(
+                "WorkspaceContext.artifact_store não foi injetado. "
+                "Backend Celery deve passar DBArtifactStore; testes devem "
+                "passar InMemoryArtifactStore. ADR-212 PR3b removeu o "
+                "default implícito de DiskArtifactStore."
+            )
         return self.artifact_store
 
     def ensure_dirs(self) -> None:
@@ -184,9 +181,9 @@ class WorkspaceContext:
             config_dir: External config directory (e.g. global project config/).
                         If None, defaults to tenant_root/config/.
             pipeline_run_id: Active pipeline run id — enables live ``stage_activity`` events.
-            artifact_store: ``ArtifactStore`` pré-construído (ADR-083). ``None``
-                faz ``get_artifact_store()`` instanciar um ``DiskArtifactStore``
-                lazy na primeira chamada.
+            artifact_store: ``ArtifactStore`` pré-construído (ADR-083 · ADR-212).
+                Obrigatório quando os stages forem executados — ``get_artifact_store()``
+                raise ``RuntimeError`` se ``None``.
             workspace_id: ID do workspace — necessário para leitura via ``config_store``
                 (ADR-134, A7.1).
             config_store: ``ConfigStore`` pré-construído (ADR-134). ``None`` faz

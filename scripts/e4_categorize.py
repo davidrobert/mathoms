@@ -1069,8 +1069,11 @@ def _e4_run_learning_loop(ctx, db_session, learned_rules_v2, result) -> Optional
 
 
 def _e4_persist_artifacts(store, ctx, result) -> List[str]:
-    """Serializa via serialize_e4_artifacts, grava 7 artefatos e valida schema."""
-    from pipeline.artifact_store import DiskArtifactStore
+    """Serializa via serialize_e4_artifacts e grava artefatos via store.
+
+    Validação JSON-schema é executada pelo hook pós-write em
+    ``DBArtifactStore.write`` (ADR-212 PR3a — universal por stage).
+    """
     from pipeline.domain.services.e4_serialization import filename_for, serialize_e4_artifacts
 
     payloads = serialize_e4_artifacts(result)
@@ -1078,10 +1081,6 @@ def _e4_persist_artifacts(store, ctx, result) -> List[str]:
     for key, payload in payloads.items():
         store.write("E4", key, payload)
         written_filenames.append(filename_for(key))
-        if isinstance(store, DiskArtifactStore) and _pc is not None:
-            target = ctx.processed_dir / "E4_unified" / filename_for(key)
-            if target.exists():
-                _pc.validate_artifact(target, "e4_unified.schema.json")
 
     for filename in written_filenames:
         print(f"[E4.3] Wrote {filename}")

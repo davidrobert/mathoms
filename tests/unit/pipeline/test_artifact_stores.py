@@ -1,19 +1,22 @@
-"""Unit tests — ``pipeline.artifact_store`` protocols e implementações.
+"""Unit tests — ``pipeline.artifact_store`` protocols e implementação in-memory.
 
 Cobre Fase 1 (Foundation) do plano de migração:
 
-- ``DiskArtifactStore`` produz mesmo resultado que I/O direto em disco.
 - ``InMemoryArtifactStore`` passa todos os checks do protocolo.
 - ``InMemoryArtifactStore.seed()`` fluent builder funciona; estado não vaza
   entre testes (pytest cria instância nova por teste).
 - ``ReadableArtifactStore`` e ``ArtifactStore`` são reconhecidos via
   ``isinstance`` (``@runtime_checkable``).
-- ``_STAGE_TO_DIR`` e ``_STAGE_TO_SUFFIX`` têm a mesma cobertura de stages.
+- ``_STAGE_TO_DIR`` e ``_STAGE_TO_SUFFIX`` têm a mesma cobertura de stages
+  (mapeamentos permanecem para referência de layout legado em disco).
+
+**ADR-212 PR3b:** ``DiskArtifactStore`` foi removido. Testes de disk store
+ficaram obsoletos e foram deletados — ``DBArtifactStore`` (em produção) é
+testado em ``backend/tests/test_db_artifact_store.py``.
 """
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -25,7 +28,6 @@ from pipeline.artifact_store import (  # noqa: E402
     _STAGE_TO_DIR,
     _STAGE_TO_SUFFIX,
     ArtifactStore,
-    DiskArtifactStore,
     InMemoryArtifactStore,
     ReadableArtifactStore,
     stage_dir_name,
@@ -110,102 +112,8 @@ class TestInMemoryArtifactStore:
 
 
 # =============================================================================
-# DiskArtifactStore
-# =============================================================================
-
-
-class TestDiskArtifactStore:
-    def test_write_then_read_round_trip(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        data = {"transactions": [{"v": 1}]}
-        store.write("E2", "itau_202601", data)
-        assert store.read("E2", "itau_202601") == data
-
-    def test_write_creates_expected_disk_layout(self, tmp_path: Path):
-        """Sanity check: mesmo layout do legado em ``processed/E2_extracts``."""
-        store = DiskArtifactStore(tmp_path)
-        store.write("E2", "itau_202601", {"a": 1})
-        path = tmp_path / "processed" / "E2_extracts" / "itau_202601-2_extract.json"
-        assert path.exists()
-        with open(path) as f:
-            assert json.load(f) == {"a": 1}
-
-    def test_direct_write_matches_disk_write(self, tmp_path: Path):
-        """``DiskArtifactStore.read`` produz o mesmo dict que I/O direto."""
-        store = DiskArtifactStore(tmp_path)
-        data = {"x": [1, 2, 3], "y": {"z": "v"}}
-        # Escrita direta em disco com mesmo layout
-        target_dir = tmp_path / "processed" / "E3_reconciled"
-        target_dir.mkdir(parents=True)
-        (target_dir / "foo-3_reconciled.json").write_text(json.dumps(data))
-        assert store.read("E3", "foo") == data
-
-    def test_read_missing_returns_none(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        assert store.read("E2", "missing") is None
-
-    def test_read_invalid_json_returns_none(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        target = tmp_path / "processed" / "E2_extracts"
-        target.mkdir(parents=True)
-        (target / "bad-2_extract.json").write_text("not json {")
-        assert store.read("E2", "bad") is None
-
-    def test_list_keys_strips_suffix_and_sorts(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        store.write("E2", "b", {})
-        store.write("E2", "a", {})
-        keys = store.list_keys("E2")
-        assert keys == ["a", "b"]
-
-    def test_list_keys_ignores_foreign_files(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        store.write("E2", "good", {})
-        # Arquivo que não termina com o sufixo canônico
-        foreign = tmp_path / "processed" / "E2_extracts" / "foreign.txt"
-        foreign.write_text("x")
-        assert store.list_keys("E2") == ["good"]
-
-    def test_exists(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        assert not store.exists("E2", "x")
-        store.write("E2", "x", {})
-        assert store.exists("E2", "x")
-
-    def test_delete(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        store.write("E2", "x", {})
-        store.delete("E2", "x")
-        assert not store.exists("E2", "x")
-        # idempotente
-        store.delete("E2", "x")
-
-    def test_delete_stage(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        store.write("E3", "a", {})
-        store.write("E3", "b", {})
-        store.write("E4", "c", {})
-        removed = store.delete_stage("E3")
-        assert removed == 2
-        assert store.list_keys("E3") == []
-        assert store.list_keys("E4") == ["c"]
-
-    def test_write_is_atomic(self, tmp_path: Path):
-        """``write`` usa ``tmp`` + ``replace`` — sem arquivo parcial."""
-        store = DiskArtifactStore(tmp_path)
-        store.write("E2", "a", {"v": 1})
-        # Nenhum .tmp remanescente
-        stage_dir = tmp_path / "processed" / "E2_extracts"
-        assert list(stage_dir.glob("*.tmp")) == []
-
-    def test_satisfies_artifact_store_protocol(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        assert isinstance(store, ArtifactStore)
-        assert isinstance(store, ReadableArtifactStore)
-
-
-# =============================================================================
-# Mapeamentos de stage
+# Mapeamentos de stage (preservados após ADR-212 PR3b como referência de
+# layout legado em disco; consumidos pelo CLI read-only ``e0_audit.py``)
 # =============================================================================
 
 
@@ -233,14 +141,6 @@ class TestStageMappings:
         """E1 registrado em ambos os mapeamentos (ADR-127)."""
         assert _STAGE_TO_DIR["E1"] == "members"
         assert _STAGE_TO_SUFFIX["E1"] == "-1b_unified.json"
-
-    def test_e1_round_trip_disk(self, tmp_path: Path):
-        store = DiskArtifactStore(tmp_path)
-        payload = {"membros": {"david": {"nome_completo": "David"}}, "titular": "david"}
-        store.write("E1", "members", payload)
-        path = tmp_path / "processed" / "members" / "members-1b_unified.json"
-        assert path.exists()
-        assert store.read("E1", "members") == payload
 
     def test_e1_round_trip_in_memory(self):
         store = InMemoryArtifactStore()
