@@ -202,11 +202,30 @@ redis-cli ping
 # Ver log do worker em tempo real
 make smoke-logs
 
-# Forçar reset parcial do pipeline (a partir de E3)
+# Forçar reset parcial do pipeline (a partir de reconcile_transactions).
+# Pós-ADR-212 PR1b: scripts/e_reset.py deletado. Use service-layer
+# `reset_workspace_from_stage` direto via console interno (ADR-116) ou
+# Python shell para dry-run em smoke test.
 source .venv/bin/activate
 MATHOMS_DATABASE_URL=sqlite+aiosqlite:///./mathoms-smoke.db \
-MATHOMS_STORAGE_ROOT=_smoke_storage \
-python scripts/e_reset.py --from E3 --dry-run
+python -c "
+import asyncio
+from backend.app.core.database import AsyncSessionLocal
+from backend.app.services.internal_ops import reset_workspace_from_stage
+
+async def main():
+    async with AsyncSessionLocal() as db:
+        result = await reset_workspace_from_stage(
+            db,
+            workspace_id='<WORKSPACE_UUID>',
+            from_stage='reconcile_transactions',
+            actor='smoke-test',
+            preview=True,
+        )
+        print(result)
+
+asyncio.run(main())
+"
 ```
 
 ### Banco corrompido / estado inconsistente

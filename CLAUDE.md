@@ -1068,9 +1068,11 @@ Agente use `--help` nos scripts para descobrir flags. Comandos canônicos
 de teste estão em §Code style › Testes. Para ops avançadas (smoke test,
 seed, cutover DB, comparação disk↔DB), ver
 [docs/reference/RUNBOOK.md](docs/reference/RUNBOOK.md) e
-[docs/reference/SMOKE_TEST_HUMAN.md](docs/reference/SMOKE_TEST_HUMAN.md). CLI do pipeline
-(`scripts/e0_audit.py`, `scripts/e2_extract.py`, `scripts/e_reset.py`…):
-cada script expõe `--help`.
+[docs/reference/SMOKE_TEST_HUMAN.md](docs/reference/SMOKE_TEST_HUMAN.md). CLI standalone
+do pipeline descontinuada em ADR-212 (PR1+PR1b); sobrevive apenas
+`scripts/e0_audit.py` como inspeção read-only do filesystem. Reset
+destrutivo de pipeline é service-layer
+`backend/app/services/internal_ops/pipeline_reset.py::reset_workspace_from_stage`.
 
 ---
 

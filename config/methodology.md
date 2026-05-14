@@ -127,7 +127,7 @@ Cada seção do relatório abre com um `section-summary` (1 frase resumindo a co
 - **Inputs:** `analise_financeira-5_analysis.json` (E5 JSON com narrativas), `methodology.md` (persona).
 - **Outputs:** E5 JSON atualizado com refinamentos + `review_metadata` + `strategic_insights`.
 - **Cross-validation:** 14 checks determinísticos verificam consistência entre score, patrimônio, fluxo, IF, endividamento, reserva, narrativas e tarefas.
-- **Princípio:** Uma única passagem de review (sem recursão). Se refinamentos significativos forem necessários, re-executar com `python scripts/e_reset.py --from E7`.
+- **Princípio:** Uma única passagem de review (sem recursão). Se refinamentos significativos forem necessários, re-executar via console interno (service-layer `reset_workspace_from_stage(from_stage="validate_cross")` em `backend/app/services/internal_ops/pipeline_reset.py` — ADR-212).
 
 ---
 

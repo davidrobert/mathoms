@@ -65,7 +65,9 @@ def capture_golden():
 
     if not manifest:
         print("WARN: Nenhum output encontrado para capturar.")
-        print("  Execute o pipeline (e_reset.py) antes de capturar golden files.")
+        print(
+            "  Execute o pipeline via backend (POST /pipeline/run) antes de capturar golden files."
+        )
         return
 
     with open(GOLDEN_MANIFEST, "w", encoding="utf-8") as f:
