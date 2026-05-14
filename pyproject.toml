@@ -32,6 +32,14 @@ include = ["pipeline*", "scripts*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+# Markers customizados (ADR-199 Ato 6). Sem registro explícito,
+# pytest emite ``PytestUnknownMarkWarning`` que polui logs.
+# - cross_provider: smoke weekly em workflow dedicado (T-24).
+# - monthly_real: golden mensal com LLM real (T-27).
+markers = [
+    "cross_provider: smoke cross-provider weekly (ADR-199 T-24); skip em CI normal",
+    "monthly_real: golden com LLM real, mensal (ADR-199 T-27); skip em CI normal",
+]
 
 # ---------------------------------------------------------------------------
 # Ruff — linter + formatter (A6g.6 slice 1, ADR-114)

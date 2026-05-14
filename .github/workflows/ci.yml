@@ -267,7 +267,11 @@ jobs:
     name: Backend tests (backend/tests/)
     runs-on: ubuntu-latest
     # Tighten 15→8min: observado 4m04s com xdist; 8min dá ~2× buffer.
-    timeout-minutes: 8
+    # 2026-05-14: +Atos 5/6 do PLANNER_REVIEW adicionaram ~40 testes
+    # (planner_field_requests + planner_review_persistence + endpoint admin
+    # + tier filter + check_orphan); pytest agora roda em ~7:30-7:40 sem
+    # margem. Bumped para 12min (2× tempo observado).
+    timeout-minutes: 12
     needs: changes
     # backend/ importa pipeline/**; mudança em pipeline pode quebrar backend.
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.pipeline == 'true'

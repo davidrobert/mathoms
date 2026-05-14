@@ -1,0 +1,152 @@
+# Golden mensal com LLM real (ADR-199 Ato 6 T-27).
+#
+# Por quê: persona drift e provider deprecation são silenciosos. Anthropic
+# pode mudar comportamento de claude-sonnet entre snapshots sem aviso.
+# Golden mensal com modelo real (não mockado) detecta drift estrutural
+# acima de threshold; baseline armazenado em `tests/golden_baselines/`.
+#
+# Quando: 1° dia do mês 06:00 UTC + workflow_dispatch.
+# Custo controlado: 1 fixture canônico (~$0.50 por execução).
+# Falha → cria Issue automaticamente (`planner-drift-monthly` label).
+
+name: Planner Golden Monthly (LLM real)
+
+on:
+  schedule:
+    # 1° dia do mês, 06:00 UTC (= 03:00 BRT).
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+    inputs:
+      update_baseline:
+        description: "Re-gerar baseline (commit no repo após sucesso)"
+        type: boolean
+        default: false
+      model_id:
+        description: "Override LLM model_id (default: anthropic/claude-sonnet-4-20250514)"
+        type: string
+        default: ""
+
+concurrency:
+  group: planner-monthly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  golden-monthly:
+    name: Golden monthly real-LLM
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write  # para commit do baseline novo (--update-baseline)
+      issues: write    # para abrir Issue em drift detectado
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv (SHA-pinned v8.1.0)
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.5.x"
+
+      - name: Restore venv cache
+        id: venv-cache
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v3
+          restore-keys: |
+            venv-${{ runner.os }}-py313-
+
+      - name: Install dependencies (cache miss, via uv)
+        if: steps.venv-cache.outputs.cache-hit != 'true'
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
+        run: |
+          [ -d .venv ] || uv venv .venv
+          uv pip install -r requirements.txt -r backend/requirements.txt
+          uv pip install pytest pytest-asyncio
+
+      - name: Activate venv (PATH)
+        run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Check API key secret presence
+        id: key-check
+        run: |
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY_GOLDEN_MONTHLY }}" ]; then
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::ANTHROPIC_API_KEY_GOLDEN_MONTHLY ausente — skip"
+          else
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run monthly golden (LLM real)
+        if: steps.key-check.outputs.has_key == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_GOLDEN_MONTHLY }}
+          MATHOMS_PARECER_PLANEJADOR_MODEL: ${{ github.event.inputs.model_id || 'anthropic/claude-sonnet-4-20250514' }}
+          MATHOMS_GOLDEN_UPDATE_BASELINE: ${{ github.event.inputs.update_baseline == 'true' && '1' || '' }}
+        run: |
+          pytest tests/test_parecer_golden_monthly_real.py \
+            -m monthly_real \
+            -q --tb=short \
+            -o "junit_family=xunit2" \
+            --junitxml=golden-monthly-results.xml
+
+      - name: Upload junit results
+        if: always() && steps.key-check.outputs.has_key == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-monthly-results
+          path: golden-monthly-results.xml
+          retention-days: 90
+
+      - name: Commit updated baseline (when --update-baseline)
+        if: |
+          success() &&
+          steps.key-check.outputs.has_key == 'true' &&
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.update_baseline == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/golden_baselines/
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(test): bump planner monthly golden baseline ($(date -u +%Y-%m))"
+            git push origin HEAD:main
+          else
+            echo "Baseline já está atualizada — nada para commitar."
+          fi
+
+      - name: Create issue on drift detected
+        if: |
+          failure() &&
+          steps.key-check.outputs.has_key == 'true' &&
+          github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing=$(gh issue list --label planner-drift-monthly --state open --json number --jq 'length')
+          if [ "$existing" -eq 0 ]; then
+            BODY=$(cat <<'EOF'
+          Workflow run: see Actions tab.
+
+          Variação estrutural detectada no parecer planejador vs baseline anterior.
+          Triagem: senior-cto + financial-planner.
+
+          Próximos passos:
+          1. Baixar baseline antigo vs output novo (artifacts).
+          2. Decidir: regressão (fix prompt/persona) OU melhoria (update baseline via workflow_dispatch).
+          3. Atualizar via `gh workflow run 'Planner Golden Monthly (LLM real)' -f update_baseline=true`.
+          EOF
+          )
+            gh issue create \
+              --title "Planner monthly golden drift ($(date -u +%Y-%m))" \
+              --label planner-drift-monthly \
+              --body "$BODY" || true
+          else
+            echo "Issue planner-drift-monthly aberta — pulando criação."
+          fi

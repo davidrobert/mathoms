@@ -284,9 +284,9 @@ Cada ato é PR mergeável, CI verde, sem dependência circular.
 6d — **Cutover:**
 - Feature flag promove `MATHOMS_ENABLE_PARECER_PLANEJADOR=true` para workspaces piloto (dogfood CEO+PM, 2-3 ciclos)
 - Gate dogfood obrigatório antes de beta (espelha CAT_LEARNING_LOOP §gate dogfood)
-- Deprecate `review_finances` no `STAGE_REGISTRY` (status `deprecated`)
-- Sprint+1: remove `review_finances` stage, prompt antigo, schema antigo
-- ADR-128 flippa para `Decidido (superseded by ADR-NNN)`
+- Deprecate `review_finances` no `STAGE_REGISTRY` (status `deprecated`) — ✅ **entregue 2026-05-14 (Ato 6, PR pendente)** com `StageSpec.is_deprecated=True` + `DeprecationWarning` no `pipeline/stages/review_finances.py`
+- Sprint+1 (A12.X): remove `review_finances` stage, prompt antigo, schema antigo
+- ADR-128 flippa para `Decidido (superseded by ADR-199)` — ✅ **entregue 2026-05-14 (Ato 6, PR pendente)**
 
 6e — **Gate de revisão 60d pós-beta (ADR-filha-9):**
 - Conversão free→Premium ≥ 8% em 60 dias de uso ativo

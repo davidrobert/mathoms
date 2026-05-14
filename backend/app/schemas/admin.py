@@ -234,3 +234,20 @@ class LLMSpendByWorkspaceResponse(BaseModel):
     period_start: str
     period_end: str
     items: list[WorkspaceLLMSpendDTO]
+
+
+class PlannerFieldRequestTopItem(BaseModel):
+    """Telemetria de campo faltante — agregação por path (ADR-206 §D3)."""
+
+    field_path: str
+    frequency: int
+    workspaces_count: int
+    last_requested_at: str  # ISO 8601
+
+
+class PlannerFieldRequestTopResponse(BaseModel):
+    """Top-N paths pedidos pelo LLM via ``campos_faltantes_pediria_se_iterasse[]``."""
+
+    days: int
+    limit: int
+    items: list[PlannerFieldRequestTopItem]

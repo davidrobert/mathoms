@@ -18,8 +18,12 @@ _DEFAULT_MODEL = "anthropic/claude-sonnet-4-20250514"
 
 
 def _is_enabled() -> bool:
-    """Feature flag MATHOMS_ENABLE_PARECER_PLANEJADOR (default false; ADR-199)."""
-    return os.environ.get("MATHOMS_ENABLE_PARECER_PLANEJADOR", "false").lower() in (
+    """Feature flag MATHOMS_ENABLE_PARECER_PLANEJADOR (default TRUE; ADR-199).
+
+    Promovido a default-on em 2026-05-14 (Ato 6). Set
+    MATHOMS_ENABLE_PARECER_PLANEJADOR=false como kill-switch operacional.
+    """
+    return os.environ.get("MATHOMS_ENABLE_PARECER_PLANEJADOR", "true").lower() in (
         "1",
         "true",
         "yes",
