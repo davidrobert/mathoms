@@ -6,7 +6,7 @@ describe("isPipelineLlmStage", () => {
     expect(isPipelineLlmStage("E1")).toBe(true);
     expect(isPipelineLlmStage("E1.5")).toBe(true);
     expect(isPipelineLlmStage("E2-llm")).toBe(true);
-    expect(isPipelineLlmStage("E7-review")).toBe(true);
+    expect(isPipelineLlmStage("E6-parecer")).toBe(true);
   });
 
   it("retorna false para etapas determinísticas", () => {
@@ -19,7 +19,7 @@ describe("isPipelineLlmStage", () => {
     expect(isPipelineLlmStage("extract_members")).toBe(true);
     expect(isPipelineLlmStage("extract_baseline")).toBe(true);
     expect(isPipelineLlmStage("extract_with_llm")).toBe(true);
-    expect(isPipelineLlmStage("review_finances")).toBe(true);
+    expect(isPipelineLlmStage("review_finances_holistic")).toBe(true);
     expect(isPipelineLlmStage("unlock_documents")).toBe(false);
     expect(isPipelineLlmStage("reconcile_transactions")).toBe(false);
   });

@@ -9,7 +9,7 @@ const PIPELINE_LLM_STAGES = new Set([
   "extract_members",
   "extract_baseline",
   "extract_with_llm",
-  "review_finances",
+  "review_finances_holistic",
 ]);
 
 export function isPipelineLlmStage(stage: string): boolean {

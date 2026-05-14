@@ -97,19 +97,14 @@ export const PIPELINE_PHASES: readonly Phase[] = [
     title: "Montando seu relatório",
     activeMessage: "Gerando o relatório e revisando a consistência dos números",
     description:
-      "Renderizamos o relatório HTML, rodamos validações cruzadas para detectar inconsistências e aplicamos a revisão final antes de entregar.",
+      "Renderizamos o relatório, rodamos validações cruzadas para detectar inconsistências e geramos o parecer do planejador antes de entregar.",
     stages: [
       // Legacy.
       "E7-crossval",
-      "E7-review",
-      "E7-apply",
       "E6-parecer",
       // Descritivos.
       "validate_cross",
-      "review_finances",
-      "apply_review",
-      // ADR-199 — parecer planejador (review_finances_holistic). Roda após
-      // apply_review e fecha o pipeline.
+      // ADR-199 — parecer planejador (review_finances_holistic) fecha o pipeline.
       "review_finances_holistic",
     ],
   },

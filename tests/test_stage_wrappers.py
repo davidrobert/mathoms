@@ -96,16 +96,10 @@ class TestStageImports:
 
         assert callable(extract_with_llm.run)
 
-    def test_import_e7(self):
-        from pipeline.stages import e7
+    def test_import_validate_cross(self):
+        from pipeline.stages import validate_cross
 
-        assert callable(e7.run_crossval)
-        assert callable(e7.run_apply)
-
-    def test_import_review_finances(self):
-        from pipeline.stages import review_finances
-
-        assert callable(review_finances.run)
+        assert callable(validate_cross.run)
 
 
 class TestInitConfig:

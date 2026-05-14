@@ -51,7 +51,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--include-llm",
         action="store_true",
-        help="Não pular estágios LLM (E1, E1.5, E2-llm, E7-review).",
+        help="Não pular estágios LLM (E1, E1.5, E2-llm, E6-parecer).",
     )
     parser.add_argument(
         "--continue-on-error",

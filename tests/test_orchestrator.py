@@ -111,13 +111,6 @@ class TestOrchestratorLogic:
             ), f"Runner should be callable for implemented LLM stage {stage}"
             assert callable(runner)
 
-    def test_get_stage_runner_returns_callable_for_e7_review(self):
-        from pipeline.orchestrator import _get_stage_runner
-
-        runner = _get_stage_runner("E7-review")
-        assert runner is not None, "E7-review should have a runner"
-        assert callable(runner)
-
     def test_every_full_order_stage_has_runner(self):
         from pipeline.orchestrator import FULL_ORDER, _get_stage_runner
 

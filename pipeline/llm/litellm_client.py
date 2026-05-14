@@ -283,7 +283,7 @@ class LLMService:
         on transient errors (rate_limit, timeout) with exponential backoff.
 
         Args:
-            stage: Identificador do stage chamador (ex: "E7-review", "E1"). Aparece
+            stage: Identificador do stage chamador (ex: "E1", "E6-parecer"). Aparece
                 em todos os logs desta chamada — essencial para debug quando múltiplos
                 stages disputam o worker.
             image_bytes: quando fornecido, envia a imagem como content block multimodal

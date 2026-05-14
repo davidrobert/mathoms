@@ -28,7 +28,6 @@ em CI = ativado. Passar `PW_REAL_LLM=1` desliga.
 - `E1` → MemberExtraction (1 member placeholder)
 - `E1.5` → BaselinePatrimonial (imóvel + investimento)
 - `E2-llm` → TransactionList (2 transações)
-- `E7-review` → ReviewReport (insights + score adjustment)
 
 Cada output passa pelos validators downstream (Instructor + Pydantic),
 então mudar estrutura requer atualizar fixture + validator.
@@ -101,26 +100,10 @@ _E2_LLM_OUTPUT: dict[str, Any] = {
     "_meta": {"source": "llm_mock"},
 }
 
-_E7_REVIEW_OUTPUT: dict[str, Any] = {
-    "insights": [
-        "Taxa de poupança saudável (12%)",
-        "Mock insight sobre diversificação",
-    ],
-    "recomendacoes": [
-        "Mock recomendação 1",
-        "Mock recomendação 2",
-    ],
-    "score_ajustado": 78,
-    "score_justificativa": "Mock score em nível bom (70-80)",
-    "_meta": {"source": "llm_mock"},
-}
-
-
 _STAGE_OUTPUTS: dict[str, dict[str, Any]] = {
     "E1": _E1_OUTPUT,
     "E1.5": _E15_OUTPUT,
     "E2-llm": _E2_LLM_OUTPUT,
-    "E7-review": _E7_REVIEW_OUTPUT,
 }
 
 

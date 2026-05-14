@@ -26,7 +26,6 @@ class TestWorkspaceContextDefault:
         assert ctx.e3_dir == ctx.root / "processed" / "E3_reconciled"
         assert ctx.e4_dir == ctx.root / "processed" / "E4_unified"
         assert ctx.e5_dir == ctx.root / "processed" / "E5_analysis"
-        assert ctx.e7_dir == ctx.root / "processed" / "E7_review"
         assert ctx.output_dir == ctx.root / "output"
         assert ctx.logs_dir == ctx.root / "logs"
 
