@@ -1,10 +1,10 @@
 """
 Fin Pipeline — package para execução programática do pipeline financeiro.
 
-Uso via CLI (retrocompatível):
-    python scripts/e_reset.py
+Pipeline roda exclusivamente via backend (Celery worker). Para debug
+local: `make dev` + `POST /pipeline/run` (ADR-212).
 
-Uso via Python (novo — API programática):
+Uso via Python (API programática):
     from pipeline import run_pipeline, run_from, WorkspaceContext
 
     ctx = WorkspaceContext.default()

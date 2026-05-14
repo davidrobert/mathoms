@@ -22,6 +22,9 @@ from backend.app.services.internal_ops.list_user_workspaces import (
     list_user_workspaces,
 )
 from backend.app.services.internal_ops.metrics import MetricsSnapshot, get_metrics
+from backend.app.services.internal_ops.pipeline_reset import (
+    reset_workspace_from_stage,
+)
 from backend.app.services.internal_ops.purge_documents import purge_documents
 from backend.app.services.internal_ops.purge_reports import purge_reports
 from backend.app.services.internal_ops.reset_password import (
@@ -52,6 +55,7 @@ __all__ = [
     "delete_document",
     "purge_documents",
     "purge_reports",
+    "reset_workspace_from_stage",
     "PurgeScope",
     "ScopeContext",
     "get_metrics",
