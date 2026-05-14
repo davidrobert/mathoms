@@ -26,9 +26,6 @@ const LEGACY_TO_DESCRIPTIVE: Record<string, string> = {
   "E5": "analyze_finances",
   "E5.N": "generate_narratives",
   "E7-crossval": "validate_cross",
-  "E7-review": "review_finances",
-  "E7-apply": "apply_review",
-  "E5-revised": "analyze_finances_revised",
   "E6-parecer": "review_finances_holistic",
 };
 

@@ -55,7 +55,7 @@ class QAThresholdsSchema(BaseModel):
 
 
 class LLMConfigSchema(BaseModel):
-    """Configuração do LLM usado em E0-route/E1/E1.5/E2-llm/E7-review."""
+    """Configuração do LLM usado em E0-route/E1/E1.5/E2-llm/E6-parecer."""
 
     model: str = Field(default="claude-sonnet-4-20250514", min_length=1)
     max_tokens: int = Field(default=500, ge=1, le=200000)

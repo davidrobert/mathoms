@@ -54,7 +54,7 @@ STAGE_RETRY_CONFIGS: dict[str, StageRetryConfig] = {
         retryable_errors=["timeout", "rate_limit", "connection", "503", "429"],
         retry_delay_seconds=10.0,
     ),
-    "E7-review": StageRetryConfig(
+    "review_finances_holistic": StageRetryConfig(
         max_retries=1,
         retryable_errors=["timeout", "rate_limit", "connection", "503", "429"],
         retry_delay_seconds=15.0,

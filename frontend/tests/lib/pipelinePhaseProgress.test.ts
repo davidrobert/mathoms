@@ -112,8 +112,6 @@ describe("computePhaseProgress", () => {
     ["analyze_finances", "organizing"],
     ["generate_narratives", "organizing"],
     ["validate_cross", "reporting"],
-    ["review_finances", "reporting"],
-    ["apply_review", "reporting"],
     ["review_finances_holistic", "reporting"],
   ])("descriptive stage %s → phase %s (ADR-093)", (stage, expected) => {
     expect(phaseOfStage(stage)).toBe(expected);

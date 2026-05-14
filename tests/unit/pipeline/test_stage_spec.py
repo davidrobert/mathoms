@@ -50,8 +50,6 @@ EXPECTED_DESCRIPTIVE_STAGES = {
     "analyze_finances",
     "generate_narratives",
     "validate_cross",
-    "review_finances",
-    "apply_review",
     "review_finances_holistic",
 }
 
@@ -150,7 +148,7 @@ class TestResolveStageName:
     def test_legacy_returns_descriptive(self):
         assert resolve_stage_name("E3") == "reconcile_transactions"
         assert resolve_stage_name("E5.N") == "generate_narratives"
-        assert resolve_stage_name("E7-apply") == "apply_review"
+        assert resolve_stage_name("E7-crossval") == "validate_cross"
 
     def test_descriptive_passthrough(self):
         assert resolve_stage_name("reconcile_transactions") == "reconcile_transactions"

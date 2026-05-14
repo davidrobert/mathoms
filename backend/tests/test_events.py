@@ -94,7 +94,7 @@ class TestPublishEvent:
         assert payload["detail"]["reason"] == "free tier"
 
     def test_publish_needs_review(self, fake_redis):
-        publish_needs_review("run-1", "E7-review")
+        publish_needs_review("run-1", "extract_with_llm")
         assert fake_redis.last.payload["event"] == "needs_review"
 
     def test_publish_run_completed(self, fake_redis):

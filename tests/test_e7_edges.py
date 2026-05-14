@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unit tests for E7 review helpers (7D.1)."""
+"""Unit tests for E7 cross-validation helpers."""
 
 import json
 import sys
@@ -27,20 +27,3 @@ class TestScoreClassification:
         e7._init_config(tmp_path)
         assert e7._score_classification(7.0) == "Alto"
         assert e7._score_classification(5.0) == "Baixo"
-
-
-class TestValidateReview:
-    def test_missing_refinements(self):
-        ok, errs = e7.validate_review({})
-        assert ok is False
-        assert any("refinements" in e for e in errs)
-
-    def test_valid_empty_refinements(self):
-        ok, errs = e7.validate_review({"refinements": {}})
-        assert ok is True
-        assert errs == []
-
-    def test_summary_must_be_string(self):
-        ok, errs = e7.validate_review({"refinements": {"summaries": {"s1": 123}}})
-        assert ok is False
-        assert any("summaries.s1" in e for e in errs)

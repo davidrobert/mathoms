@@ -316,7 +316,7 @@ já configura automaticamente.
 3. Selecionar provider + modelo
 4. Colar API key
 5. Salvar → clicar **Testar Conexão**
-6. Se verde → rodar pipeline novamente. Agora E1, E1.5, E2-llm e E7-review executam.
+6. Se verde → rodar pipeline novamente. Agora E1, E1.5, E2-llm e E6-parecer executam.
 
 ---
 

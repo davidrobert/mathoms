@@ -53,7 +53,7 @@ class TestStageRetryConfig:
 
 class TestGetRetryConfig:
     def test_llm_stages_have_retries(self):
-        for stage in ["E1", "E1.5", "E2-llm", "E7-review"]:
+        for stage in ["E1", "E1.5", "E2-llm", "review_finances_holistic"]:
             cfg = get_retry_config(stage)
             assert cfg.max_retries > 0, f"{stage} should have retries configured"
 
@@ -62,8 +62,8 @@ class TestGetRetryConfig:
             cfg = get_retry_config(stage)
             assert cfg.max_retries == 0, f"{stage} should have 0 retries"
 
-    def test_e7_review_has_lower_retries(self):
-        cfg = get_retry_config("E7-review")
+    def test_planner_holistic_has_lower_retries(self):
+        cfg = get_retry_config("review_finances_holistic")
         e1_cfg = get_retry_config("E1")
         assert cfg.max_retries <= e1_cfg.max_retries
 

@@ -16,7 +16,6 @@ Não são artefatos de pipeline em `processed/` — são **contratos de teste** 
 | `e16_irpf_full_simplificado.json` | E1.6 | `IRPFFullOutput` (`e16_irpf_full.py`) | `TestE16Goldens` |
 | `e16_irpf_full_edge_cases.json` | E1.6 | `IRPFFullOutput` (`e16_irpf_full.py`) | `TestE16Goldens` |
 | `e2_llm_extract_output.json` | E2-LLM | `LLMExtractOutput` (`e2_llm_extract.py`) | `TestE2LLMGoldenFile` |
-| `e7_review_output.json` | E7-review | `E7ReviewOutput` (`e7_review.py`) | `TestE7ReviewGoldenFile` |
 
 **Quando alterar um JSON:** atualizar o diff no PR; rodar `pytest tests/test_llm_golden.py -q`. Se o schema Pydantic mudar, ajustar o fixture e os asserts em `test_llm_golden.py` no mesmo PR.
 

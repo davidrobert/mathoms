@@ -31,7 +31,7 @@ Valid --from values: E0, E1, E2-faturas, E3, E4, E5, E5.N, E7
 
 Sequência completa (sem --from):
   E0 Unlock → E0 Audit → E0 Route → E1 → E1.5 → E1.5c → E2-fat → E2-ext → E2-llm →
-  E3 → E4 → E5 → E5.N → E7-crossval → E7-review → E7-apply
+  E3 → E4 → E5 → E5.N → E7-crossval
 
 Modo padrão: etapas determinísticas rodam automaticamente, LLM são puladas com lembrete.
 Modo --interactive: pipeline PARA em cada etapa LLM (exit code 10), retoma com --continue.
@@ -70,8 +70,7 @@ OUTPUT_DIR = PROJECT_DIR / "output"
 LOGS_DIR = PROJECT_DIR / "logs"
 SCRATCH_DIR = PROJECT_DIR / "_scratch"
 STATE_FILE = SCRATCH_DIR / ".e_reset_state.json"
-E7_REVIEW = PROCESSED_DIR / "E7_review"
-REVIEW_TEMPLATE_PATH = E7_REVIEW / "e7_review_template.json"
+E7_REVIEW = PROCESSED_DIR / "E7_review"  # ainda usado por validate_cross (crossval artifacts)
 
 
 def _load_json_config(path: Path) -> dict:
@@ -318,10 +317,6 @@ def artifacts_from(stage: str) -> list[Path]:
     # E5.N — narrativas are stripped via strip_narrativas_from_e5_files()
     # called in main() between cleanup and execution phases (Fix #3)
 
-    if "E7" in cascade:
-        # E7 review template
-        files += _glob("processed/E7_review/e7_review_template.json")
-
     if "LEGACY-HTML" in cascade:
         # Renderer HTML server-side descontinuado em ADR-129; cleanup
         # de artefatos legados em disco (output/*.html .bak) continua
@@ -375,46 +370,6 @@ def check_dependencies(stages: list[str]) -> list[str]:
 # =============================================================================
 
 
-def strip_review_from_e5_files(dry_run: bool = False) -> int:
-    """Remove 'review_metadata', 'strategic_insights', and 'inconsistencies_review'
-    from E5 analysis JSON files. Ensures stale E7 review data is not carried over.
-    Returns count of files modified."""
-    if not E5_ANALYSIS.exists():
-        return 0
-    count = 0
-    review_keys = ["review_metadata"]
-    narr_review_keys = ["strategic_insights", "inconsistencies_review"]
-    for fpath in E5_ANALYSIS.glob("*.json"):
-        try:
-            with open(fpath, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            modified = False
-            for k in review_keys:
-                if k in data:
-                    if dry_run:
-                        print(f"  [DRY-RUN] Removeria '{k}' de {fpath.name}")
-                    else:
-                        del data[k]
-                    modified = True
-            narr = data.get("narrativas", {})
-            for k in narr_review_keys:
-                if k in narr:
-                    if dry_run:
-                        print(f"  [DRY-RUN] Removeria 'narrativas.{k}' de {fpath.name}")
-                    else:
-                        del narr[k]
-                    modified = True
-            if modified and not dry_run:
-                with open(fpath, "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=2, ensure_ascii=False)
-                print(f"  Removido dados E7 review de {fpath.name}")
-            if modified:
-                count += 1
-        except Exception as e:
-            print(f"  [AVISO] Falha ao processar {fpath.name}: {e}")
-    return count
-
-
 def strip_narrativas_from_e5_files(dry_run: bool = False) -> int:
     """Remove 'narrativas' key from all E5 analysis JSON files.
     Ensures stale narrativas are never carried over to E7 after an E5.N reset.
@@ -454,10 +409,9 @@ DETERMINISTIC_SCRIPTS = {
     "E5": SCRIPTS_DIR / "e5_analyze.py",
     "E5.N": SCRIPTS_DIR / "e5n_narrativas.py",
     "E7-crossval": SCRIPTS_DIR / "e7_review.py",
-    "E7-apply": SCRIPTS_DIR / "e7_review.py",
 }
 
-LLM_STAGES = {"E1", "E1.5", "E2-llm", "E7-review"}
+LLM_STAGES = {"E1", "E1.5", "E2-llm"}
 
 EXECUTION_ORDER_FULL = [
     "E1",
@@ -471,8 +425,6 @@ EXECUTION_ORDER_FULL = [
     "E5",
     "E5.N",  # Deterministic (narrativas)
     "E7-crossval",  # Deterministic (cross-validation)
-    "E7-review",  # Wall 3 (LLM)
-    "E7-apply",  # Deterministic (apply review)
 ]
 EXECUTION_ORDER_FROM = {
     "E0": [
@@ -487,8 +439,6 @@ EXECUTION_ORDER_FROM = {
         "E5",
         "E5.N",
         "E7-crossval",
-        "E7-review",
-        "E7-apply",
     ],
     "E1": [
         "E1",
@@ -502,8 +452,6 @@ EXECUTION_ORDER_FROM = {
         "E5",
         "E5.N",
         "E7-crossval",
-        "E7-review",
-        "E7-apply",
     ],
     "E2-faturas": [
         "E2-faturas",
@@ -513,14 +461,12 @@ EXECUTION_ORDER_FROM = {
         "E5",
         "E5.N",
         "E7-crossval",
-        "E7-review",
-        "E7-apply",
     ],
-    "E3": ["E3", "E4", "E5", "E5.N", "E7-crossval", "E7-review", "E7-apply"],
-    "E4": ["E4", "E5", "E5.N", "E7-crossval", "E7-review", "E7-apply"],
-    "E5": ["E5", "E5.N", "E7-crossval", "E7-review", "E7-apply"],
-    "E5.N": ["E5.N", "E7-crossval", "E7-review", "E7-apply"],
-    "E7": ["E7-crossval", "E7-review", "E7-apply"],
+    "E3": ["E3", "E4", "E5", "E5.N", "E7-crossval"],
+    "E4": ["E4", "E5", "E5.N", "E7-crossval"],
+    "E5": ["E5", "E5.N", "E7-crossval"],
+    "E5.N": ["E5.N", "E7-crossval"],
+    "E7": ["E7-crossval"],
 }
 
 
@@ -528,13 +474,11 @@ STAGE_EXTRA_ARGS = {
     "E2-faturas": ["--faturas-only"],
     "E2-extratos": ["--extratos-only"],
     "E7-crossval": [],
-    "E7-apply": ["--apply"],  # review JSON path appended dynamically
 }
 
 
 def run_script(stage: str, dry_run: bool, state: dict | None = None) -> bool:
-    """Run a deterministic script. Returns True on success.
-    For E7-apply, reads the review JSON path from state file."""
+    """Run a deterministic script. Returns True on success."""
     script = DETERMINISTIC_SCRIPTS.get(stage)
     if not script:
         return False
@@ -543,20 +487,6 @@ def run_script(stage: str, dry_run: bool, state: dict | None = None) -> bool:
         return False
 
     extra_args = list(STAGE_EXTRA_ARGS.get(stage, []))
-
-    if stage == "E7-apply":
-        review_path = (state or {}).get("review_json_path", "")
-        if not review_path:
-            candidates = sorted(SCRATCH_DIR.glob("e7_review_*.json"), reverse=True)
-            if candidates:
-                review_path = str(candidates[0])
-            elif not dry_run:
-                print("  [ERRO] E7-apply: nenhum review JSON encontrado.")
-                print("         Salve o review preenchido em _scratch/e7_review_filled.json")
-                return False
-            else:
-                review_path = "_scratch/e7_review_filled.json"
-        extra_args.append(review_path)
 
     if dry_run:
         args_str = " ".join(extra_args)
@@ -691,22 +621,6 @@ WALL_INSTRUCTIONS = {
         ],
         "artifacts_expected": [],  # Variable — depends on files present
         "next_stage_after_wall": "E3",
-    },
-    "E7-review": {
-        "wall": "wall_3",
-        "title": "WALL 3: E7-review (review holístico pós-relatório)",
-        "stages_covered": ["E7-review"],
-        "instructions": [
-            "1. Leia o template em processed/E7_review/e7_review_template.json",
-            "2. Leia o relatório HTML em output/",
-            "3. Leia config/methodology.md para persona e abordagem",
-            "4. Preencha o template com refinamentos usando visão holística",
-            "5. Salve o review preenchido em _scratch/e7_review_filled.json",
-        ],
-        "artifacts_expected": [
-            "_scratch/e7_review_filled.json",
-        ],
-        "next_stage_after_wall": "E7-apply",
     },
 }
 
@@ -862,7 +776,6 @@ LLM_DESCRIPTIONS = {
     "E1": "Extração de dados dos membros (holerite, docs pessoais)",
     "E1.5": "Baseline patrimonial (IRPF, XLSX imóveis/veículos)",
     "E2-llm": "Extração LLM de investimentos/CDBs sem parser determinístico",
-    "E7-review": "Review holístico pós-relatório (preencher template com persona)",
 }
 
 
@@ -881,7 +794,7 @@ Exemplos:
 
 Sequência completa (modo interativo):
   [E1] → [E1.5] → E1.5c → E2-fat → E2-ext → [E2-llm] → E3 → E4 → E5 →
-  E5.N → E7-crossval → [E7-review] → E7-apply
+  E5.N → E7-crossval
   Colchetes = etapa LLM (wall — pipeline para e aguarda)
 
 Estágios válidos para --from: {', '.join(VALID_FROM_STAGES)}
@@ -1182,16 +1095,6 @@ def _phase_clean_narrativas_review(stages: list[str], dry_run: bool) -> None:
             )
         else:
             print("  Nenhum arquivo E5 com narrativas encontrado.")
-
-    if "E7-crossval" in stages or "E7-review" in stages:
-        print("\n--- Fase 1.6: Limpeza de review E7 ---")
-        stripped_r = strip_review_from_e5_files(dry_run)
-        if stripped_r:
-            print(
-                f"  Total: {stripped_r} arquivo(s) com review {'identificados' if dry_run else 'limpos'}"
-            )
-        else:
-            print("  Nenhum dado de review E7 encontrado.")
 
 
 def _detect_leading_llm(stages: list[str]) -> tuple[list[str], str | None]:

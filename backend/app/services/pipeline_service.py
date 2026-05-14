@@ -30,7 +30,7 @@ def _classify_llm_config(cfg: LLMConfig | None, ws_id: str, *, context: str) -> 
     Loga WARNING quando `LLMConfig` existe mas o ciphertext não decripta
     (Fernet key rotacionada / trocada) ou decripta para vazio. Sem isso,
     o pipeline degrada silenciosamente para `free tier` e todos os stages
-    LLM (E1, E1.5, E2-llm, E7-review) são pulados sem rastro.
+    LLM (E1, E1.5, E2-llm, E6-parecer) são pulados sem rastro.
     """
     if cfg is None:
         return "free"

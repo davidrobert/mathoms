@@ -70,7 +70,6 @@ _DEFAULT_FREE_STAGES: list[tuple[str, str, int]] = [
     ("E5", "completed", 8_000),
     ("E5.N", "completed", 2_000),
     ("E7-crossval", "completed", 3_000),
-    ("E7-apply", "skipped", 0),
 ]
 
 

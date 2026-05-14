@@ -23,12 +23,6 @@ from pipeline.llm.schemas.e2_llm_extract import (
     ExtractedTransaction,
     LLMExtractOutput,
 )
-from pipeline.llm.schemas.e7_review import (
-    E7ReviewOutput,
-    NarrativeSection,
-    ReviewInsight,
-    ScoreAdjustment,
-)
 from pipeline.llm.schemas.e15_baseline import (
     BaselinePatrimonialOutput,
     PatrimonialItem,
@@ -151,39 +145,6 @@ def make_e2_llm_output() -> LLMExtractOutput:
         ],
         confidence=0.88,
         notes="Investment report PDF",
-    )
-
-
-def make_e7_review_output() -> E7ReviewOutput:
-    return E7ReviewOutput(
-        insights=[
-            ReviewInsight(
-                category="patrimonio",
-                severity="info",
-                title="Patrimônio concentrado",
-                description="72% em imóvel.",
-                recommendation="Diversificar.",
-            ),
-        ],
-        recommendations=["Diversificar investimentos"],
-        score_adjustments=[
-            ScoreAdjustment(
-                factor="diversificacao",
-                original_value=70.0,
-                adjustment=-10.0,
-                reason="100% renda fixa",
-            ),
-        ],
-        narrative_sections=[
-            NarrativeSection(
-                section_key="resumo_executivo",
-                title="Resumo Executivo",
-                content="Situação financeira estável.",
-            ),
-        ],
-        overall_assessment="Saúde financeira moderada.",
-        risk_level="moderate",
-        confidence=0.85,
     )
 
 

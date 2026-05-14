@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 """Tests for LLM stage validators, output converters, and orchestrator
-integration (E1, E1.5, E2-llm, E7-review).
+integration (E1, E1.5, E2-llm).
 
-Stage-runner tests live in:
-- `tests/test_llm_stages_per_stage.py` (E1, E1.5, E2-llm + A6a structural)
-- `tests/test_llm_stages_e7.py` (E7-review)
-
+Stage-runner tests live in `tests/test_llm_stages_per_stage.py`.
 Shared LLM output factories live in `tests/_llm_stage_fixtures.py`.
 
 All tests mock LLM calls — no real API keys needed.
@@ -391,7 +388,7 @@ class TestOrchestratorLLMStages:
     def test_get_stage_runner_returns_callable_for_llm_stages(self):
         from pipeline.orchestrator import _get_stage_runner
 
-        for stage in ["E1", "E1.5", "E2-llm", "E7-review"]:
+        for stage in ["E1", "E1.5", "E2-llm"]:
             runner = _get_stage_runner(stage)
             assert runner is not None, f"No runner for {stage}"
             assert callable(runner)

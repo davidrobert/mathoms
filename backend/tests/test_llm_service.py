@@ -345,26 +345,6 @@ class TestOutputSchemas:
         assert len(output.transactions) == 1
         assert output.transactions[0].amount == -150.0
 
-    def test_e7_review_schema(self):
-        from pipeline.llm.schemas.e7_review import E7ReviewOutput, ReviewInsight
-
-        output = E7ReviewOutput(
-            insights=[
-                ReviewInsight(
-                    category="patrimonio",
-                    severity="info",
-                    title="Patrimônio diversificado",
-                    description="Boa distribuição entre classes de ativos",
-                )
-            ],
-            recommendations=["Aumentar reserva de emergência"],
-            overall_assessment="Saúde financeira boa, com pontos de atenção em investimentos.",
-            risk_level="low",
-            confidence=0.9,
-        )
-        assert output.risk_level == "low"
-        assert len(output.insights) == 1
-
     def test_confidence_bounds(self):
         from pydantic import ValidationError
 

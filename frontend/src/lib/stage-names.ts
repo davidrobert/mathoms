@@ -26,8 +26,6 @@ export const STAGE_DISPLAY_NAMES: Record<string, string> = {
   "analyze_finances": "Cálculo de indicadores financeiros",
   "generate_narratives": "Geração de análises e comentários",
   "validate_cross": "Conferência da consistência dos números",
-  "review_finances": "Revisão final do relatório",
-  "apply_review": "Aplicação dos ajustes da revisão",
   "review_finances_holistic": "Parecer do planejador financeiro",
   // Legacy (compat reverso F9.2 → F9.3)
   "E0-audit": "Verificação dos arquivos",
@@ -46,8 +44,6 @@ export const STAGE_DISPLAY_NAMES: Record<string, string> = {
   "E5": "Cálculo de indicadores financeiros",
   "E5.N": "Geração de análises e comentários",
   "E7-crossval": "Conferência da consistência dos números",
-  "E7-review": "Revisão final do relatório",
-  "E7-apply": "Aplicação dos ajustes da revisão",
   "E6-parecer": "Parecer do planejador financeiro",
 };
 

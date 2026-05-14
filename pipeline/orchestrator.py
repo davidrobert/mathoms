@@ -141,9 +141,7 @@ _STAGE_RUNNERS: Dict[str, tuple[str, str]] = {
     "categorize_transactions": ("pipeline.stages.categorize_transactions", "run"),
     "analyze_finances": ("pipeline.stages.analyze_finances", "run"),
     "generate_narratives": ("pipeline.stages.generate_narratives", "run"),
-    "validate_cross": ("pipeline.stages.e7", "run_crossval"),
-    "review_finances": ("pipeline.stages.review_finances", "run"),
-    "apply_review": ("pipeline.stages.e7", "run_apply"),
+    "validate_cross": ("pipeline.stages.validate_cross", "run"),
     "review_finances_holistic": ("pipeline.stages.parecer_planejador", "run"),
 }
 

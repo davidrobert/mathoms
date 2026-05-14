@@ -21,8 +21,7 @@ describe("resolveStageName", () => {
     expect(resolveStageName("E5")).toBe("analyze_finances");
     expect(resolveStageName("E5.N")).toBe("generate_narratives");
     expect(resolveStageName("E7-crossval")).toBe("validate_cross");
-    expect(resolveStageName("E7-review")).toBe("review_finances");
-    expect(resolveStageName("E7-apply")).toBe("apply_review");
+    expect(resolveStageName("E6-parecer")).toBe("review_finances_holistic");
   });
 
   it("descritivo passa through (idempotente)", () => {

@@ -29,7 +29,7 @@
 1. **Parsers nativos para bancos BR** — não depende de Open Banking (ainda limitado no Brasil)
 2. **Consolidação multi-banco, multi-membro** — visão família, não indivíduo
 3. **IRPF-aware** — cruza dados fiscais com patrimoniais
-4. **LLM-augmented** — extrai documentos sem parser determinístico via fallback inteligente (E1, E1.5, E2-llm, E7-review)
+4. **LLM-augmented** — extrai documentos sem parser determinístico via fallback inteligente (E1, E1.5, E2-llm, E6-parecer)
 5. **Relatório com narrativa** — não é só número, é contexto e recomendação
 
 ---
@@ -39,7 +39,7 @@
 | Camada       | O que é                                                                   | Modelo                   |
 | ------------ | ------------------------------------------------------------------------- | ------------------------ |
 | **Free**     | Pipeline determinístico completo (E0→E7, sem LLM). Relatório sem review.  | Gratuito                 |
-| **Premium**  | LLM stages habilitados (E1, E1.5, E2-llm, E7-review). Review holístico.   | BYOK (Bring Your Own Key) |
+| **Premium**  | LLM stages habilitados (E1, E1.5, E2-llm, E6-parecer). Parecer holístico do planejador.   | BYOK (Bring Your Own Key) |
 
 **BYOK = user traz sua própria API key** (Anthropic, OpenAI, Ollama, etc. via LiteLLM).
 - Zero custo para a plataforma

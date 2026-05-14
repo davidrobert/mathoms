@@ -26,16 +26,12 @@ class StageSpec:
     """Especificação declarativa de um stage do pipeline.
 
     Attributes:
-        name:           identificador do stage (nomes legados nas Fases 1-8).
-        reads:          outros stages cujos artefatos este stage consome.
-        writes:         stages de artifact produzidos por este stage. Em geral é
-                        ``[name]`` (o próprio), mas ``apply_review`` escreve no
-                        artifact stage virtual ``analyze_finances_revised``.
-        is_llm:         True se o stage depende de chamada a LLM.
-        tier:           ``"free"`` (executado em todos os workspaces) ou ``"premium"``.
-        is_deprecated:  True marca stage para remoção (ainda executável; emite warning).
-                        Caller (orchestrator) pode optar por skipar; default não-quebrar
-                        contratos existentes.
+        name:    identificador do stage (nomes legados nas Fases 1-8).
+        reads:   outros stages cujos artefatos este stage consome.
+        writes:  stages de artifact produzidos por este stage. Em geral é
+                 ``[name]`` (o próprio).
+        is_llm:  True se o stage depende de chamada a LLM.
+        tier:    ``"free"`` (executado em todos os workspaces) ou ``"premium"``.
     """
 
     name: str
@@ -43,7 +39,6 @@ class StageSpec:
     writes: tuple[str, ...] = field(default_factory=tuple)
     is_llm: bool = False
     tier: str = "free"
-    is_deprecated: bool = False
 
 
 # =============================================================================
@@ -71,12 +66,8 @@ STAGE_RENAME_MAP: dict[str, str] = {
     "E5": "analyze_finances",
     "E5.N": "generate_narratives",
     "E7-crossval": "validate_cross",
-    "E7-review": "review_finances",
-    "E7-apply": "apply_review",
-    "E5-revised": "analyze_finances_revised",  # virtual artifact stage
     # ADR-199 — parecer planejador (Ato 4). Alias legado mantido para HTTP/CLI
-    # mesmo que o stage seja "novo" e não tenha equivalente pré-F9.2 — preserva
-    # invariância STAGE_RENAME_MAP.values() == set(STAGE_REGISTRY) ∪ VIRTUAL.
+    # mesmo que o stage seja "novo" e não tenha equivalente pré-F9.2.
     "E6-parecer": "review_finances_holistic",
 }
 
@@ -117,9 +108,6 @@ def to_legacy_stage_name(name: str) -> str:
 #     documento é processado por extrator determinístico + LLM fallback.
 #     O orquestrador enfileira os três; "E2" (sem sufixo) é apenas alias
 #     de FROM_MAP em LEGACY_FROM_ALIASES.
-#   - apply_review lê review_finances + analyze_finances e produz
-#     analyze_finances_revised (artifact stage virtual — ver
-#     VIRTUAL_ARTIFACT_STAGES).
 
 STAGE_REGISTRY: dict[str, StageSpec] = {
     "audit_documents": StageSpec("audit_documents"),
@@ -166,25 +154,8 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
     "validate_cross": StageSpec(
         "validate_cross", reads=("analyze_finances",), writes=("validate_cross",)
     ),
-    # ADR-199 + ADR-128 — DEPRECATED em 2026-05-14. Supersedido por
-    # ``review_finances_holistic`` (parecer planejador). Mantido no registry
-    # durante janela de cutover (sprint A12.X removerá). Orquestrador emite
-    # DeprecationWarning quando ``is_deprecated=True`` é executado.
-    "review_finances": StageSpec(
-        "review_finances",
-        reads=("analyze_finances",),
-        writes=("review_finances",),
-        is_llm=True,
-        tier="premium",
-        is_deprecated=True,
-    ),
-    "apply_review": StageSpec(
-        "apply_review",
-        reads=("review_finances", "analyze_finances"),
-        writes=("analyze_finances_revised",),
-    ),
-    # ADR-199 (Ato 4): parecer planejador supersede review_finances.
-    # Coexiste durante migração; review_finances é removido em sprint+1 pós-cutover.
+    # ADR-199 (Ato 4): parecer planejador supersede ``review_finances``
+    # (removido junto com ``apply_review`` após cutover do parecer).
     "review_finances_holistic": StageSpec(
         "review_finances_holistic",
         reads=("analyze_finances",),
@@ -196,9 +167,10 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
 
 
 # Artifact stages válidos que NÃO são unidades de execução — apenas categorias
-# de artefato escritas por outros stages. Hoje só existe
-# ``analyze_finances_revised`` (saída de ``apply_review``).
-VIRTUAL_ARTIFACT_STAGES: frozenset[str] = frozenset({"analyze_finances_revised"})
+# de artefato escritas por outros stages. Atualmente nenhum existe (o único —
+# ``analyze_finances_revised`` produzido por ``apply_review`` — foi removido
+# junto com ``review_finances`` em A12.X).
+VIRTUAL_ARTIFACT_STAGES: frozenset[str] = frozenset()
 
 
 # Sequência intencional de execução. NÃO é derivada automaticamente de
@@ -220,9 +192,7 @@ FULL_ORDER: list[str] = [
     "analyze_finances",
     "generate_narratives",
     "validate_cross",
-    "review_finances",
-    "apply_review",
-    # ADR-199 — parecer roda após apply_review (consome E5 mas é não-bloqueante
+    # ADR-199 — parecer roda após validate_cross (consome E5 mas é não-bloqueante
     # do plano de ação determinístico; emite Suggestion(origin=llm) paralelas).
     "review_finances_holistic",
 ]

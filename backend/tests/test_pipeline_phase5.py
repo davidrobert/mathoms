@@ -256,7 +256,7 @@ class TestPolling:
             id=str(uuid.uuid4()),
             workspace_id=ws.id,
             status=PipelineRunStatus.needs_review,
-            paused_at_stage="E7-review",
+            paused_at_stage="extract_with_llm",
             total_documents=1,
         )
         db.add(run)
@@ -266,7 +266,7 @@ class TestPolling:
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "needs_review"
-        assert data["paused_at_stage"] == "E7-review"
+        assert data["paused_at_stage"] == "extract_with_llm"
 
 
 class TestResume:

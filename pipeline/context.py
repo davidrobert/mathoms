@@ -37,7 +37,6 @@ class WorkspaceContext:
     e3_dir: Path = field(init=False)
     e4_dir: Path = field(init=False)
     e5_dir: Path = field(init=False)
-    e7_dir: Path = field(init=False)
     output_dir: Path = field(init=False)
     logs_dir: Path = field(init=False)
     members_dir: Path = field(init=False)
@@ -89,7 +88,6 @@ class WorkspaceContext:
         self.e3_dir = self.processed_dir / "E3_reconciled"
         self.e4_dir = self.processed_dir / "E4_unified"
         self.e5_dir = self.processed_dir / "E5_analysis"
-        self.e7_dir = self.processed_dir / "E7_review"
         self.output_dir = self.root / "output"
         self.logs_dir = self.root / "logs"
         self.members_dir = self.root / "members"
@@ -147,7 +145,7 @@ class WorkspaceContext:
             self.e3_dir,
             self.e4_dir,
             self.e5_dir,
-            self.e7_dir,
+            self.processed_dir / "E7_review",
             self.output_dir,
             self.logs_dir,
             self.scratch_dir,
