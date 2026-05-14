@@ -12,6 +12,11 @@ from alembic.command import downgrade, upgrade
 from alembic.config import Config
 from sqlalchemy.engine import Engine
 
+# `migration` marker: PR que não toca backend/alembic/versions/ não precisa
+# revalidar uma migration one-shot já mergeada. Ver pyproject.toml §markers
+# e .github/workflows/ci.yml (deselect via -m "not migration").
+pytestmark = pytest.mark.migration
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = PROJECT_ROOT / "backend" / "alembic.ini"
 ALEMBIC_DIR = PROJECT_ROOT / "backend" / "alembic"

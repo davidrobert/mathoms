@@ -9,6 +9,12 @@ from __future__ import annotations
 
 import importlib
 
+import pytest
+
+# `migration` marker: ver pyproject.toml + ci.yml — opt-in só quando
+# backend/alembic/versions/ é tocado.
+pytestmark = pytest.mark.migration
+
 seed_module = importlib.import_module(
     "backend.alembic.versions.a5b6c7d8e9f0_seed_category_template_v1"
 )

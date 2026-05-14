@@ -133,6 +133,26 @@ def event_loop():
     loop.close()
 
 
+# Bcrypt com 12 rounds (default de prod) custa ~0.7-2 s por hashpw no runner do
+# GH Actions. Suíte chama `hash_password` em cada test que usa `auth_client`
+# (registro → `/api/auth/register`) e em fixtures admin que pré-computam hashes;
+# em prod isso é correto, em teste vira ~2-4 min de overhead desnecessário —
+# os asserts de auth verificam *emparelhamento* hash↔senha, não a força do hash.
+# Reduzir o work factor para o mínimo (4 rounds = ~0.5 ms) preserva a correção
+# dos testes sem afetar prod. Patch é session-scoped, autouse, e roda ANTES
+# de qualquer fixture que toque bcrypt.
+@pytest.fixture(autouse=True, scope="session")
+def _fast_bcrypt_for_tests():
+    import bcrypt
+
+    original_gensalt = bcrypt.gensalt
+    bcrypt.gensalt = lambda rounds=4, prefix=b"2b": original_gensalt(  # type: ignore[assignment]
+        rounds=4, prefix=prefix
+    )
+    yield
+    bcrypt.gensalt = original_gensalt
+
+
 @pytest.fixture(autouse=True)
 def _disable_register_rate_limit(monkeypatch):
     """Desabilita o rate limit de /auth/register em todos os tests; específicos reativam via monkeypatch local."""

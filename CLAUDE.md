@@ -260,6 +260,21 @@ mistura doc + código, a regra normal volta a valer.
   §W6-T01 (DE-005).
 - Endpoint JSON novo → teste + rodar `make update-openapi-snapshot`
   (ADR-109).
+- **Saúde do test suite (ADR-210)** — pre-commit roda `dev/check_test_health.py`
+  para detectar anti-padrões que custam CI sem dar sinal:
+  - Parametrize recomputando scan caro (sem `@functools.lru_cache`)
+  - Soft-fail (`print` em vez de `pytest.fail`) cuja env de hard-fail
+    não está em workflow do CI — use `@pytest.mark.skipif`
+  - Migration test sem `pytestmark = pytest.mark.migration` (PR sem
+    `backend/alembic/versions/**` skipa via `-m "not migration"`)
+  - Test pós-cutover órfão (docstring "Após Sprint X" + sprint
+    entregue) — delete em vez de manter rodando
+  - `bcrypt.hashpw` em test individual quando o `_fast_bcrypt_for_tests`
+    fixture (session autouse, rounds=4) está disponível
+  Ao adicionar teste, pergunte: "esse teste dá sinal proporcional ao
+  custo de CI?" Se o sinal vem só ocasionalmente (deprecation gate
+  futuro, migration one-shot já mergeada), use marker/skipif em vez
+  de rodar em todo PR.
 
 ### Dependências
 

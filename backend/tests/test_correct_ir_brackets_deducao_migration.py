@@ -5,6 +5,12 @@ from __future__ import annotations
 import importlib
 import json
 
+import pytest
+
+# `migration` marker: ver pyproject.toml + ci.yml — opt-in só quando
+# backend/alembic/versions/ é tocado.
+pytestmark = pytest.mark.migration
+
 correction_module = importlib.import_module(
     "backend.alembic.versions.e1f2a3b4c5d6_correct_ir_brackets_deducao_2024_2026"
 )

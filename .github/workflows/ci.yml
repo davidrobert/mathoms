@@ -92,6 +92,7 @@ jobs:
       pipeline: ${{ steps.filter.outputs.pipeline_any_changed }}
       any_code: ${{ steps.filter.outputs.any_code_any_changed }}
       report: ${{ steps.filter.outputs.report_any_changed }}
+      migration: ${{ steps.filter.outputs.migration_any_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -149,6 +150,21 @@ jobs:
               - 'frontend/tests/e2e/helpers/mock-report.ts'
               - 'config/report_layout.yaml'
               - 'design-tokens/**'
+              - '.github/workflows/ci.yml'
+            # `migration` filtra PRs que tocam migrations Alembic. Testes
+            # marcados com `@pytest.mark.migration` validam o código de uma
+            # migration one-shot específica — uma vez mergeado e aplicado em
+            # prod, esse código não muda mais, então re-rodar em PR que só
+            # toca código de aplicação queima ~15-20 s sem ganho. Em PR que
+            # toca o diretório, `MATHOMS_RUN_MIGRATION_TESTS=1` reativa.
+            # `test_alembic_guardrails.py` (drift schema↔model + idempotência)
+            # **continua sempre rodando** — não usa o marker.
+            migration:
+              - 'backend/alembic/versions/**'
+              - 'backend/alembic/env.py'
+              - 'backend/tests/test_*_migration.py'
+              - 'backend/tests/test_a*_seed_migrations.py'
+              - 'backend/app/models/**'
               - '.github/workflows/ci.yml'
 
   lint-all:
@@ -332,7 +348,18 @@ jobs:
           # cada worker process tem engine próprio. Ganho ~50% (15→7-10min).
           # `--dist loadgroup` mantém tests do mesmo file no mesmo worker —
           # reduz overhead de fixture setup compartilhado dentro de classe.
-          pytest backend/tests/ -q --tb=short -n auto --dist loadgroup
+          #
+          # `-m "not migration"` exclui testes de migration one-shot quando
+          # backend/alembic/versions/ não foi tocado (ver job `changes` +
+          # pyproject.toml §markers). PR que toca migration habilita o step
+          # condicional abaixo. `test_alembic_guardrails.py` (drift/idempot.)
+          # NÃO é gated — sempre roda.
+          MARKER_FILTER='-m "not migration"'
+          if [ "${{ needs.changes.outputs.migration }}" = "true" ]; then
+            MARKER_FILTER=""
+            echo "::notice::Migration paths tocados; rodando suíte completa (sem deselect)."
+          fi
+          eval pytest backend/tests/ -q --tb=short -n auto --dist loadgroup $MARKER_FILTER
 
       - name: Upload coverage (artifact only on failure)
         # Coverage XML só interessa quando CI quebra — em verde, ninguém
