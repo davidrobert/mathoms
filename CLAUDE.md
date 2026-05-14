@@ -1014,18 +1014,25 @@ configs e docstrings antes de agir.
 
 Sufixos de etapa por fase do pipeline:
 
+Mapeamento canônico stage → sufixo: [pipeline/artifact_store.py:71-93](pipeline/artifact_store.py:71).
+
 | Sufixo              | Etapa               | Exemplo                                                 |
 | ------------------- | ------------------- | ------------------------------------------------------- |
 | `-0_original`       | E0 (roteamento)     | `c6bank_extratoconta_202601-0_original.csv`             |
 | `-1a_extract`       | E1 (extração LLM)   | `david_curriculo-1a_extract.json`                       |
 | `-1b_unified`       | E1 (unificação)     | `members-1b_unified.json`                               |
 | `-1c_enriched`      | E1 (enriquecimento) | `members-1c_enriched.md`                                |
-| `-1.5_consolidated` | E1.5 (baseline)     | `baseline_patrimonial-1.5_consolidated.json`            |
+| `-1.5a_extract`     | E1.5a (extract pré-baseline) | `baseline_patrimonial-1.5a_extract.json`       |
+| `-1.5_baseline`     | E1.5 (baseline puro) | `baseline_patrimonial-1.5_baseline.json`               |
+| `-1.5_consolidated` | E1.5c (baseline consolidado) | `baseline_patrimonial-1.5_consolidated.json`   |
 | `-1.6_irpf_full`    | E1.6 (`extract_irpf_full`) | `irpfdeclaracaodavid2024-1.6_irpf_full.json`     |
 | `-2_extract`        | E2 (extração)       | `itau_extratoconta_202601_202604-2_extract.json`        |
 | `-3_reconciled`     | E3 (reconciliação)  | `itau_extratoconta_BRL_202212_202604-3_reconciled.json` |
 | `-4_unified`        | E4 (categorização)  | `despesas-4_unified.json`                               |
 | `-5_analysis`       | E5 (análise)        | `analise_financeira-5_analysis.json`                    |
+| `-5n_narrativas`    | E5.N (`generate_narratives`) | `analise_financeira-5n_narrativas.json`        |
+| `-6_parecer`        | E6-parecer (`review_finances_holistic`, ADR-199) | `parecer_planejador-6_parecer.json` |
+| `-7_crossval`       | E7 (`validate_cross`) | `crossval-7_crossval.json`                            |
 
 Nomes de banco em filenames seguem o código canônico de
 `institutions.json` (ex.: `bankofamerica`, `btgpactual`, `c6bank`,
