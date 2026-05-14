@@ -15,6 +15,7 @@ Configuração via env var:
 
 from __future__ import annotations
 
+import functools
 import os
 import re
 import sys
@@ -66,7 +67,16 @@ def _is_allowed(rel_path: str) -> bool:
     return any(rel_path.startswith(prefix) or rel_path == prefix for prefix in ALLOWED_PREFIXES)
 
 
-def _find_occurrences() -> dict[str, list[tuple[str, int, str]]]:
+@functools.lru_cache(maxsize=1)
+def _find_occurrences() -> dict[str, tuple[tuple[str, int, str], ...]]:
+    """Scan completo do repo, executado uma vez por sessão pytest.
+
+    Sem o cache, parametrizar `test_legacy_name_only_in_allowed_files` por
+    cada nome legado fazia o scan rodar N vezes (uma por param), com custo
+    de ~1.5 s/scan × 19 nomes = ~28 s desperdiçados em pipeline-tests.
+    Retorna tuplas (em vez de listas) para fechamento imutável compatível
+    com `lru_cache`.
+    """
     patterns = {
         name: re.compile(rf"(?<![A-Za-z0-9_\-\.]){re.escape(name)}(?![A-Za-z0-9_])")
         for name in LEGACY_NAMES
@@ -82,20 +92,22 @@ def _find_occurrences() -> dict[str, list[tuple[str, int, str]]]:
             for i, line in enumerate(text.splitlines(), start=1):
                 if pat.search(line):
                     out.setdefault(name, []).append((rel, i, line.strip()))
-    return out
+    return {name: tuple(items) for name, items in out.items()}
 
 
+@pytest.mark.skipif(
+    os.environ.get("MATHOMS_ENFORCE_STAGE_RENAME", "0") != "1",
+    reason="Soft-fail mode default → teste não dá sinal de correctness em PR; rodar só "
+    "quando MATHOMS_ENFORCE_STAGE_RENAME=1 (Fase 9.5+ vai inverter o default).",
+)
 @pytest.mark.parametrize("legacy_name", LEGACY_NAMES)
 def test_legacy_name_only_in_allowed_files(legacy_name: str):
-    hard_fail = os.environ.get("MATHOMS_ENFORCE_STAGE_RENAME", "0") == "1"
-    occurrences = _find_occurrences().get(legacy_name, [])
+    """Hard-fail quando habilitado: vaza identificador legado → CI quebra."""
+    occurrences = _find_occurrences().get(legacy_name, ())
     leaks = [(path, line, snippet) for path, line, snippet in occurrences if not _is_allowed(path)]
     if leaks:
         msg = (
             f"Identificador legado '{legacy_name}' vazou para {len(leaks)} localização(ões):\n"
             + "\n".join(f"  {p}:{l}: {s[:100]}" for p, l, s in leaks[:10])
         )
-        if hard_fail:
-            pytest.fail(msg)
-        # Soft-fail durante Fases 1-8: só printa.
-        print(msg)
+        pytest.fail(msg)

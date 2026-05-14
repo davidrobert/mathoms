@@ -16,6 +16,10 @@ from sqlalchemy import create_engine, text
 
 from backend.app.models.goal import VALID_GOAL_TYPES
 
+# `migration` marker: ver pyproject.toml + ci.yml — opt-in só quando
+# backend/alembic/versions/ é tocado.
+pytestmark = pytest.mark.migration
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = PROJECT_ROOT / "backend" / "alembic.ini"
 

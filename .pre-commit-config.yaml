@@ -82,6 +82,18 @@ repos:
         # Não queremos restringir por tipo — queremos ver TODOS os paths
         types: [file]
 
+      - id: test-health
+        # Detecta anti-padrões que custam tempo de CI sem dar sinal:
+        # parametrize que recomputa scan caro, soft-fail s/ env de hard-fail
+        # ativo, migration test sem marker, teste descartável pós-cutover,
+        # bcrypt prod-grade em test individual. Ver dev/check_test_health.py
+        # e ADR-203 §Política de testes saudáveis.
+        name: "Anti-padrões de teste (recomputo, soft-fail órfão, migration sem marker)"
+        entry: python3 dev/check_test_health.py
+        language: system
+        pass_filenames: false
+        files: ^(backend/tests|tests)/.*\.py$
+
       - id: sigilo-terms
         # §13 sigilo metodológico (LEGAL/IP) — bloqueia atribuição pública de
         # Perini/Cerbasi/AUVP/etc. em superfície user-facing:

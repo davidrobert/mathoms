@@ -39,6 +39,7 @@ pythonpath = ["."]
 markers = [
     "cross_provider: smoke cross-provider weekly (ADR-199 T-24); skip em CI normal",
     "monthly_real: golden com LLM real, mensal (ADR-199 T-27); skip em CI normal",
+    "migration: testa código de migration Alembic específica (one-shot); roda só em PR que toca backend/alembic/versions/ ou quando MATHOMS_RUN_MIGRATION_TESTS=1",
 ]
 
 # ---------------------------------------------------------------------------

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-202 ADRs (ADR-001 a ADR-209) em [`docs/adr/`](../../adr/).
+203 ADRs (ADR-001 a ADR-210) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 168
-- **Proposto**: 30
+- **Proposto**: 31
 - **Roadmap**: 4
 
 ## Fundação
@@ -124,10 +124,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-108]] — Estratégia de subdomínios `mathoms.ai` + Cloudflare DNS
 - [[ADR-116]] — F7F-Local: stack Next separada + anonimização default + auth yaml+bcrypt+JWT (F7F-Local) · phase F7F-Local
 
-### Proposto (2)
+### Proposto (3)
 
 - [[ADR-058]] — VPS CX32 para sizing · phase F7
 - [[ADR-206]] — Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+- [[ADR-210]] — Saúde do test suite do CI — gates, telemetria e ciclo de vida · phase Sprint A12 (test health · CI cost)
 
 ## Testing
 
