@@ -291,7 +291,7 @@ do `componentes_calculo` e cada campo numérico do `imoveis[]` carrega
       "vs_ntnb": -5.2,
       "vs_ifix": -7.9
     },
-    "custo_oportunidade_anual_brl": {
+    "spread_brl_anual": {
       "vs_cdi": -228200,
       "vs_ntnb": -160000,
       "vs_ifix": -245000
@@ -325,9 +325,9 @@ do `componentes_calculo` e cada campo numérico do `imoveis[]` carrega
     },
     "alertas": [
       {
-        "code": "spread_critico_persistente",
+        "code": "spread_critico",
         "severity": "warning",
-        "context": "Cap rate líquido <50% do CDI por 12+ meses"
+        "context": "Cap rate líquido <70% do CDI combinado com concentração >30% (snapshot)"
       }
     ]
   }
@@ -492,7 +492,7 @@ FIIs" (limpo, alinhado à tríade de benchmarks).
 - `test_concentracao_alerta_threshold` — `concentracao_pct ≥ 40` dispara alerta.
 - `test_benchmarks_normalizados_liquidos` — CDI/NTN-B/IFIX vêm de `market_rates`
   já com normalização pós-IR aplicada.
-- `test_spread_negativo_persistente_alerta` — flag `spread_critico_persistente`
+- `test_spread_critico_snapshot_alerta` — flag `spread_critico`
   só se ≥12 meses E concentração >30%.
 - `test_empty_state_zero_imoveis` — payload `real_estate` ausente ou vazio
   → seção S4 oculta.
