@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-208 ADRs (ADR-001 a ADR-215) em [`docs/adr/`](../../adr/).
+209 ADRs (ADR-001 a ADR-216) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 171
-- **Proposto**: 33
+- **Proposto**: 34
 - **Roadmap**: 4
 
 ## Fundação
@@ -423,6 +423,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
+
+## relatorio
+
+### Proposto (1)
+
+- [[ADR-216]] — Cap rate líquido como métrica canônica de imóveis de investimento (S4) · phase A12
 
 ## report
 
