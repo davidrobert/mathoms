@@ -112,7 +112,7 @@ Hero compara cap rate líquido contra três séries da tabela global
 | Benchmark | Justificativa | Normalização |
 |---|---|---|
 | **CDI líquido (12m)** | Custo de oportunidade de renda fixa pós-fixada (alocação default). | Aplicar IR efetivo PF de RF (média ponderada 15-22,5% pela curva de prazo do workspace; default 17,5%). |
-| **NTN-B real (vértice 2035+)** | Comparação **renda real ↔ renda real** — imóvel é hedge inflacionário, NTN-B é renda real explícita. | Já é taxa real; aplicar IR 15% (longo prazo). |
+| **NTN-B real (vértice 10y interpolado)** | Comparação **renda real ↔ renda real** — imóvel é hedge inflacionário, NTN-B é renda real explícita. Vértice 10 anos **constante** (interpolado), não título fixo (NTN-B 2035 vira 5y em 2030). | Já é taxa real; aplicar IR 15% (longo prazo). |
 | **IFIX yield 12m** | Classe pareada (FII tijolo) — "vale a pena trocar imóvel físico por papel imobiliário?". | Yield isento IR PF; sem normalização. |
 
 Display: 3 barras horizontais lado a lado no hero, todas em base anual
@@ -155,10 +155,12 @@ override por workspace via [[ADR-134]] `ConfigStore`:
 
 | Parâmetro | Default | Range típico | Justificativa |
 |---|---|---|---|
-| `vacancia_pct` | 15% | 5-25% | Média BR mercado residencial (Secovi/FIPE); urbano premium pode ser <10%. |
-| `manutencao_pct` | 1% valor/ano | 0,5-2% | Regra de bolso brasileira para imóveis novos/médios; tombados ≥2%. |
-| `ir_carne_leao_aliquota_efetiva` | derivado IRPF | — | Calculado pelo `irpf_analyzer.py:286` (já existe bucket `rendimentos_pf`). Fallback 22,5% se IRPF ausente. |
+| `vacancia_pct` | 15% | 5-25% | Média BR mercado residencial (Secovi/FIPE); urbano premium pode ser <10%. Empírica vence default quando Informe traz `meses_locado` (cascade D9). |
+| `manutencao_pct` | 1% valor/ano | 0,5-3% | Gradação por idade/tipo: novo <10a 0,5% · médio 1% · alto padrão/tombado 2-3%. Inclui CAPEX recorrente (pintura, reforma estrutural), não só zelador. |
+| `ir_carne_leao_aliquota_efetiva` | derivado IRPF | — | Calculado pelo `irpf_analyzer.py:286` (alíquota **marginal** do bucket `rendimentos_pf`, **não** média do contribuinte). Fallback **27,5%** se IRPF ausente — viés conservador para ICP HENRY/UHNW (tipicamente topo da tabela). |
 | `concentracao_alerta_pct` | 40% | 30-60% | Perini sugere ≤40% em uma classe ilíquida; AUVP idem. |
+| `spread_critico_pct_do_benchmark` | **70%** | — | Gatilho `spread_critico` (snapshot, não temporal): `cap_rate_liquido < 70% × cdi_liquido` **E** `concentracao > 30%`. 50% seria frouxo demais (cap rate 4,5% vs CDI líq 8,7% = 51% → não disparava); 70% pega cap rate 5% / CDI 8,7% = 57% → dispara. Calibrar empiricamente após Onda 1. |
+| `valor_imovel_origem` | `irpf` | `irpf` / `mercado` | IRPF carrega imóvel pelo **custo histórico** — cap rate sobre imóvel antigo fica inflado. Override `valor_mercado_brl` por imóvel via [[ADR-134]] elimina viés quando informado. |
 
 Componentes IPTU/condomínio são **observados** (não defaults) — vêm
 das despesas categorizadas em E4 (categorias `moradia` filtradas por
@@ -168,7 +170,7 @@ imóvel quando matching disponível; senão, valor agregado).
 
 | Bloco do card | Free | Premium |
 |---|---|---|
-| Hero (cap rate líq + 3 benchmarks + custo de oportunidade) | ✅ | ✅ |
+| Hero (cap rate líq + 3 benchmarks + `spread_brl_anual`) | ✅ | ✅ |
 | Concentração imobiliária (badge + alerta) | ✅ | ✅ |
 | Tabela por imóvel | ❌ (teaser "Detalhe por imóvel no Premium") | ✅ |
 | Bloco de ação (gap de otimização quantificado) | ❌ | ✅ |
