@@ -6435,6 +6435,162 @@
         "title": "PontoForteDTO",
         "type": "object"
       },
+      "PropertyClassificationCommand": {
+        "additionalProperties": false,
+        "description": "`PUT /workspaces/{ws}/properties/{id}/classification`.",
+        "properties": {
+          "classification": {
+            "description": "ADR-215 enum",
+            "title": "Classification",
+            "type": "string"
+          },
+          "override_source": {
+            "default": "user_manual",
+            "description": "user_manual | fuzzy_match_accepted | migration_keyword",
+            "title": "Override Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "classification"
+        ],
+        "title": "PropertyClassificationCommand",
+        "type": "object"
+      },
+      "PropertyListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "properties": {
+            "items": {
+              "$ref": "#/components/schemas/PropertyResponse"
+            },
+            "title": "Properties",
+            "type": "array"
+          },
+          "residencia_status": {
+            "title": "Residencia Status",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "residencia_status",
+          "properties"
+        ],
+        "title": "PropertyListResponse",
+        "type": "object"
+      },
+      "PropertyResponse": {
+        "additionalProperties": false,
+        "description": "Snapshot read-model de um im\u00f3vel classific\u00e1vel.",
+        "properties": {
+          "classification": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Classification"
+          },
+          "classification_set_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Classification Set At"
+          },
+          "codigo_rfb": {
+            "title": "Codigo Rfb",
+            "type": "string"
+          },
+          "descricao_sample": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descricao Sample"
+          },
+          "endereco_canonical": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endereco Canonical"
+          },
+          "first_seen_year": {
+            "title": "First Seen Year",
+            "type": "integer"
+          },
+          "low_confidence": {
+            "title": "Low Confidence",
+            "type": "boolean"
+          },
+          "override_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Source"
+          },
+          "property_id": {
+            "title": "Property Id",
+            "type": "string"
+          },
+          "suggested_residencia_principal": {
+            "default": false,
+            "title": "Suggested Residencia Principal",
+            "type": "boolean"
+          },
+          "suggested_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Score"
+          },
+          "titular_key": {
+            "title": "Titular Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "property_id",
+          "titular_key",
+          "codigo_rfb",
+          "first_seen_year",
+          "low_confidence"
+        ],
+        "title": "PropertyResponse",
+        "type": "object"
+      },
       "ProtectionBundleResponse": {
         "additionalProperties": false,
         "description": "Bundle exposto via ``GET /workspaces/{id}/protection-bundle``.",
@@ -8035,6 +8191,41 @@
           "temp_password"
         ],
         "title": "ResetPasswordResponse",
+        "type": "object"
+      },
+      "ResidenciaStatusCommand": {
+        "additionalProperties": false,
+        "description": "`PUT /workspaces/{ws}/residencia-status`.",
+        "properties": {
+          "status": {
+            "description": "owned | rented | undeclared",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ResidenciaStatusCommand",
+        "type": "object"
+      },
+      "ResidenciaStatusResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "status"
+        ],
+        "title": "ResidenciaStatusResponse",
         "type": "object"
       },
       "RiscoDTO": {
@@ -18953,6 +19144,121 @@
         ]
       }
     },
+    "/api/v1/workspaces/{workspace_id}/properties": {
+      "get": {
+        "description": "Lista im\u00f3veis classific\u00e1veis com fuzzy suggestion.",
+        "operationId": "list_workspace_properties_api_v1_workspaces__workspace_id__properties_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Workspace Properties",
+        "tags": [
+          "properties"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/properties/{property_id}/classification": {
+      "put": {
+        "description": "Idempotente. residencia_principal automaticamente seta status=owned.",
+        "operationId": "put_property_classification_api_v1_workspaces__workspace_id__properties__property_id__classification_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "property_id",
+            "required": true,
+            "schema": {
+              "title": "Property Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PropertyClassificationCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Property Classification",
+        "tags": [
+          "properties"
+        ]
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/protection-bundle": {
       "get": {
         "description": "Bundle agregado consumido pelo renderer S9 (ADR-192 \u00a7D2).",
@@ -20443,6 +20749,64 @@
         "summary": "Get Report Tasks",
         "tags": [
           "reports"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/residencia-status": {
+      "put": {
+        "description": "rented/undeclared apaga overrides residencia_principal.",
+        "operationId": "put_residencia_status_api_v1_workspaces__workspace_id__residencia_status_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResidenciaStatusCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResidenciaStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Residencia Status",
+        "tags": [
+          "properties"
         ]
       }
     },
