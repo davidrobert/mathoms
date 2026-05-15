@@ -60,7 +60,7 @@ from backend.app.models.pipeline_artifact import PipelineArtifact
 # Stages que compõem uma run free tier (DETERMINISTIC_ORDER)
 _DEFAULT_FREE_STAGES: list[tuple[str, str, int]] = [
     # (stage, status, duration_ms)
-    ("E0-audit", "completed", 800),
+    # E0-audit removido em ADR-213 (sunset stage audit_documents).
     ("E0-route", "completed", 500),
     ("E1.5c", "skipped", 0),
     ("E2-faturas", "completed", 12_000),

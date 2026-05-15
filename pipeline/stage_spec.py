@@ -51,7 +51,6 @@ class StageSpec:
 # (resolvido em F9.3 via Alembic).
 
 STAGE_RENAME_MAP: dict[str, str] = {
-    "E0-audit": "audit_documents",
     "E0-unlock": "unlock_documents",
     "E0-route": "route_documents",
     "E1": "extract_members",
@@ -99,18 +98,21 @@ def to_legacy_stage_name(name: str) -> str:
 # =============================================================================
 #
 # Notas de design:
-#   - unlock_documents/audit_documents/route_documents: não produzem
-#     pipeline_artifacts. route_documents move arquivos para data/ via
-#     StorageService — o vínculo com extract_* é via Document.stored_path,
-#     não via ArtifactStore. Writes=() é correto.
+#   - unlock_documents/route_documents: não produzem pipeline_artifacts.
+#     route_documents move arquivos para data/ via StorageService — o
+#     vínculo com extract_* é via Document.stored_path, não via
+#     ArtifactStore. Writes=() é correto.
 #   - extract_invoices, extract_statements, extract_with_llm: TRÊS artifact
 #     stages distintos evitam colisão na UNIQUE constraint quando o mesmo
 #     documento é processado por extrator determinístico + LLM fallback.
 #     O orquestrador enfileira os três; "E2" (sem sufixo) é apenas alias
 #     de FROM_MAP em LEGACY_FROM_ALIASES.
+#   - audit_documents: sunset em ADR-213 (2026-05-14). Stage executava
+#     7 checks de filesystem que ficaram quebrados pós-ADR-212
+#     (processed/E2_extracts/ não existe em prod). Removido sem
+#     substituto — gates equivalentes existem em outros pontos.
 
 STAGE_REGISTRY: dict[str, StageSpec] = {
-    "audit_documents": StageSpec("audit_documents"),
     "unlock_documents": StageSpec("unlock_documents", tier="premium"),
     "route_documents": StageSpec("route_documents", tier="premium"),
     "extract_members": StageSpec(
@@ -178,7 +180,6 @@ VIRTUAL_ARTIFACT_STAGES: frozenset[str] = frozenset()
 # apenas verifica consistência com as dependências declaradas.
 FULL_ORDER: list[str] = [
     "unlock_documents",
-    "audit_documents",
     "route_documents",
     "extract_members",
     "extract_baseline",

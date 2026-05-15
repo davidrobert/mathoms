@@ -57,7 +57,7 @@ const PATTERNS: readonly ErrorPattern[] = [
   },
   {
     match: /no documents|nenhum documento|empty/i,
-    stages: ["E0-route", "E0-audit"],
+    stages: ["E0-route"],
     build: () => ({
       headline:
         "Nenhum documento pronto foi encontrado para processar.",

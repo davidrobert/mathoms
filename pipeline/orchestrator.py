@@ -128,7 +128,6 @@ FROM_MAP: Dict[str, List[str]] = _build_from_map_descriptive_with_legacy()
 # sem runner" que recorreu em b0024c7 (extract_irpf_full).
 _STAGE_RUNNERS: Dict[str, tuple[str, str]] = {
     "unlock_documents": ("pipeline.stages.unlock_documents", "run"),
-    "audit_documents": ("pipeline.stages.audit_documents", "run"),
     "route_documents": ("pipeline.stages.route_documents", "run"),
     "extract_members": ("pipeline.stages.extract_members", "run"),
     "extract_baseline": ("pipeline.stages.extract_baseline", "run"),

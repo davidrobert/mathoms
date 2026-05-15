@@ -8,7 +8,6 @@
   "peak_rss_mb": null,
   "total_io_bytes": null,
   "per_stage_duration_ms": {
-    "E0-audit": null,
     "E1.5c": null,
     "E2-extratos": null,
     "E2-faturas": null,
