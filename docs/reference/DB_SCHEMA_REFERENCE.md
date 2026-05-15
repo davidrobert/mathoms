@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 46
+**Total de tabelas:** 48
 
 ---
 
@@ -40,6 +40,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`pipeline_stage_logs`](#pipelinestagelogs)
 - [`planner_field_requests`](#plannerfieldrequests)
 - [`planner_review_metadata`](#plannerreviewmetadata)
+- [`property_identity`](#propertyidentity)
 - [`protections`](#protections)
 - [`report_layouts`](#reportlayouts)
 - [`report_publications`](#reportpublications)
@@ -57,6 +58,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`workspace_invitations`](#workspaceinvitations)
 - [`workspace_members`](#workspacemembers)
 - [`workspace_notes`](#workspacenotes)
+- [`workspace_property_overrides`](#workspacepropertyoverrides)
 - [`workspaces`](#workspaces)
 
 ---
@@ -764,6 +766,28 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_planner_review_metadata_workspace_id` (workspace_id)
 - `ix_planner_review_workspace_status` (workspace_id, status)
 
+### `property_identity`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `titular_key` | `VARCHAR(64)` | no | — | — |
+| `codigo_rfb` | `VARCHAR(4)` | no | — | — |
+| `endereco_canonical` | `VARCHAR(255)` | yes | — | — |
+| `first_seen_year` | `INTEGER` | no | — | — |
+| `descricao_sample` | `TEXT` | yes | — | — |
+| `low_confidence` | `BOOLEAN` | no | server: `0` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_property_identity_workspace_id` (workspace_id)
+
 ### `protections`
 
 | Column | Type | Nullable | Default | Tags |
@@ -1229,6 +1253,33 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_workspace_notes_workspace_id` (workspace_id)
 - `ix_workspace_notes_ws_pinned_updated` (workspace_id, pinned, updated_at)
 
+### `workspace_property_overrides`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `property_id` | `VARCHAR(36)` | no | — | FK→property_identity.id |
+| `classification` | `VARCHAR(20)` | no | — | — |
+| `override_source` | `VARCHAR(20)` | no | `'user_manual'` | — |
+| `created_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- CHECK (`classification IN ('residencia_principal','uso_pessoal','locado','comercial','especulacao','desconhecido')`) — `chk_classification_enum`
+- CHECK (`override_source IN ('user_manual','fuzzy_match_accepted','migration_keyword')`) — `chk_override_source_enum`
+- FOREIGN KEY (created_by_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (property_id) REFERENCES property_identity.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, property_id) — `uq_workspace_property`
+
+**Indexes:**
+
+- `ix_workspace_property_overrides_workspace_id` (workspace_id)
+- UNIQUE `uq_workspace_one_residencia_principal` (workspace_id)
+
 ### `workspaces`
 
 | Column | Type | Nullable | Default | Tags |
@@ -1242,6 +1293,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `deleted_at` | `DATETIME` | yes | — | INDEX |
 | `business_profile_json` | `JSON` | yes | — | — |
 | `rule_cap_override` | `INTEGER` | yes | — | — |
+| `residencia_status` | `VARCHAR(20)` | no | server: `undeclared` | — |
 
 **Constraints:**
 
@@ -1806,6 +1858,22 @@ type PlannerReviewMetadata struct {
 }
 ```
 
+### `property_identity` → `type PropertyIdentity struct`
+
+```go
+type PropertyIdentity struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	TitularKey string `db:"titular_key" json:"titular_key"`
+	CodigoRfb string `db:"codigo_rfb" json:"codigo_rfb"`
+	EnderecoCanonical *string `db:"endereco_canonical" json:"endereco_canonical"`
+	FirstSeenYear int `db:"first_seen_year" json:"first_seen_year"`
+	DescricaoSample *string `db:"descricao_sample" json:"descricao_sample"`
+	LowConfidence bool `db:"low_confidence" json:"low_confidence"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
 ### `protections` → `type Protection struct`
 
 ```go
@@ -2115,6 +2183,21 @@ type WorkspaceNote struct {
 }
 ```
 
+### `workspace_property_overrides` → `type WorkspacePropertyOverride struct`
+
+```go
+type WorkspacePropertyOverride struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	PropertyId string `db:"property_id" json:"property_id"`
+	Classification string `db:"classification" json:"classification"`
+	OverrideSource string `db:"override_source" json:"override_source"`
+	CreatedByUserId *string `db:"created_by_user_id" json:"created_by_user_id"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
 ### `workspaces` → `type Workspace struct`
 
 ```go
@@ -2128,5 +2211,6 @@ type Workspace struct {
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
 	BusinessProfileJson json.RawMessage `db:"business_profile_json" json:"business_profile_json"`
 	RuleCapOverride *int `db:"rule_cap_override" json:"rule_cap_override"`
+	ResidenciaStatus string `db:"residencia_status" json:"residencia_status"`
 }
 ```

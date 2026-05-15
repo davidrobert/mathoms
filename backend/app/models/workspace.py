@@ -49,6 +49,15 @@ class Workspace(Base):
     # ``COALESCE(rule_cap_override, RULE_HARD_CAP)``.
     rule_cap_override: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, default=None)
 
+    # ADR-215 — estado tripartite da residência principal da família.
+    # ``owned``: tem residência (exige 1 row WorkspacePropertyOverride
+    # com classification='residencia_principal'); ``rented``: aluga
+    # (linha "Residência" some do relatório); ``undeclared``: ainda não
+    # respondeu (default; mostra `—` + CTA).
+    residencia_status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="undeclared", server_default="undeclared"
+    )
+
     owner = relationship("User", back_populates="workspaces")
     reports = relationship("Report", back_populates="workspace", cascade="all, delete-orphan")
     documents = relationship("Document", back_populates="workspace", cascade="all, delete-orphan")

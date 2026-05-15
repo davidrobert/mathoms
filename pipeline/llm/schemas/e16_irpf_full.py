@@ -11,7 +11,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # Versão do prompt — incluída no payload por sub-decisão #7 da ADR-157.
 # Bump quando alterar o prompt ``e16_irpf_full`` de modo que afete output.
-PROMPT_VERSION = "e16-v1.0.0"
+# v1.1.0 (ADR-215): + extração de `contribuinte.endereco` (signal pré-seleção residência).
+PROMPT_VERSION = "e16-v1.1.0"
 
 
 # =============================================================================
@@ -147,6 +148,11 @@ class Contribuinte(_SubModel):
     exercicio: int = Field(..., ge=2000, le=2100)
     modelo: ModeloDeclaracao
     natureza: NaturezaContribuinte
+    # ADR-215: endereço da seção "Dados do Contribuinte" — signal para
+    # pré-seleção heurística de residência principal. NÃO é prova de
+    # residência (pode ser PJ, casa dos pais, corretora). Lazy fill:
+    # IRPFs anteriores ficam None até re-rodar E1.6 com prompt v1.1.0+.
+    endereco: Optional[str] = Field(default=None, min_length=1)
 
 
 class FontePagadoraPJ(_SubModel):

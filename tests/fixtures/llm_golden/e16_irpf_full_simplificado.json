@@ -69,5 +69,5 @@
   ],
   "confidence": 0.92,
   "notes": "Modelo simplificado: desconto padrao de 20% aplicado (cap R$ 16.754,34 em 2024). PGBL nao deduzido por design RFB.",
-  "prompt_version": "e16-v1.0.0"
+  "prompt_version": "e16-v1.1.0"
 }
