@@ -58,6 +58,10 @@ SCHEMA_BY_STAGE: dict[str, str] = {
     "extract_invoices": "e2_extract.schema.json",
     "extract_statements": "e2_extract.schema.json",
     "extract_with_llm": "e2_extract.schema.json",
+    # E2-informe-aluguel — informe de rendimentos de imobiliária (Onda 0.5 · ADR-216).
+    # Schema dedicado para cap rate líquido em S4 (cascade D9 fonte #1).
+    "E2-informe-aluguel": "informe_aluguel.schema.json",
+    "extract_informe_aluguel": "informe_aluguel.schema.json",
     # E3 — reconciliação
     "E3": "e3_reconciled.schema.json",
     "reconcile_transactions": "e3_reconciled.schema.json",
