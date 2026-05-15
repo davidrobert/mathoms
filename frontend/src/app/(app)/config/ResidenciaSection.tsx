@@ -27,10 +27,6 @@ function classificationLabel(c: Classification | null): string {
   return c === null ? "Não classificado" : CLASSIFICATION_LABELS[c];
 }
 
-function brlFromYear(_y: number): string {
-  return "—"; // Valores monetários vivem em outras telas; aqui só identificação.
-}
-
 export function ResidenciaSection({ workspaceId }: { workspaceId: string }) {
   const [data, setData] = useState<PropertyListResponse | null>(null);
   const [loading, setLoading] = useState(true);
