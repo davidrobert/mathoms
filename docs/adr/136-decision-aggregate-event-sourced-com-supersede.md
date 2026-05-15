@@ -32,6 +32,14 @@ size_lines: 119
 > (Sprint A10) — schema ganha `impact_1y_brl_cents`, `impact_10y_brl_cents`,
 > `horizon`, `priority` via Alembic non-breaking. Aggregate event-sourced
 > permanece; extensão é additive.
+>
+> **Nota (2026-05-15):** estendida por [[ADR-214]] (Sprint A12, Proposto)
+> — `code` passa a ser **server-generated** com `pg_advisory_xact_lock`
+> per-workspace. Cliente não envia mais `decision_code` em
+> `AcceptSuggestionCommand`/`ModifySuggestionCommand`/`DecisionCreateCommand`;
+> `SuggestionResponse` ganha `accepted_decision_code` (additive).
+> Invariantes "code imutável + único por workspace + editorial legível"
+> permanecem intactos; o que muda é **quem gera**.
 
 **Contexto:** `config/decisions.md` é um caderno editorial do cliente —
 **não** ADRs arquiteturais. Contém 15 itens (D01..D15) com:
