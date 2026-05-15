@@ -183,7 +183,7 @@ def test_extract_rejeita_cnpj_curto():
 
 def test_extract_rejeita_cpf_locador_com_mascara():
     with pytest.raises(ValueError):
-        _build_extract(locador_cpf="987.654.321-00")
+        _build_extract(locador_cpf="000.000.000-00")  # placeholder LGPD-safe
 
 
 def test_extract_aceita_locador_cpf_none():
