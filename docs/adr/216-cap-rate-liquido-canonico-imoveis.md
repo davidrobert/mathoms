@@ -8,6 +8,8 @@ date: "2026-05-15"
 relates_to:
   - "[[ADR-191]]"
   - "[[ADR-215]]"
+  - "[[ADR-157]]"
+  - "[[ADR-145]]"
   - "[[ADR-143]]"
   - "[[ADR-090]]"
   - "[[ADR-097]]"
@@ -87,16 +89,20 @@ auditoria/tooltip mas **não** é o número em destaque.
 ```
 cap_rate_liquido_pct =
   (aluguel_anual_bruto
-   − ir_carne_leao_anual              # alíquota efetiva PF, do cálculo IRPF
-   − iptu_anual
-   − condominio_anual
+   − taxa_administracao_anual         # de Informe Imobiliária (D9) ou 0
+   − ir_retido_anual                  # de Informe (PJ pagador) ou 0
+   − ir_carne_leao_anual              # alíquota efetiva PF residual, do IRPF
+   − iptu_anual                       # de Informe (quando administra) ou E4
+   − condominio_anual                 # de Informe (quando administra) ou E4
    − manutencao_anual                 # default 1% × valor_irpf
-   − vacancia_anual                   # default 15% × aluguel_anual_bruto
+   − vacancia_anual                   # empírica de Informe ou default 15%
   ) / valor_imovel_irpf × 100
 ```
 
 Componentes individuais expostos no payload (não só o resultado) para
-tooltip de explicação no card e para auditabilidade.
+tooltip de explicação no card e para auditabilidade. **Cada componente
+carrega a fonte** (`origem: "informe" | "irpf" | "e4" | "default"`) para
+sinalizar nível de confiança ao usuário no tooltip.
 
 ### D2 — Benchmark TRIPLO substitui "vs CDI" sozinho
 
@@ -106,7 +112,7 @@ Hero compara cap rate líquido contra três séries da tabela global
 | Benchmark | Justificativa | Normalização |
 |---|---|---|
 | **CDI líquido (12m)** | Custo de oportunidade de renda fixa pós-fixada (alocação default). | Aplicar IR efetivo PF de RF (média ponderada 15-22,5% pela curva de prazo do workspace; default 17,5%). |
-| **NTN-B real (vértice 2035+)** | Comparação **renda real ↔ renda real** — imóvel é hedge inflacionário, NTN-B é renda real explícita. | Já é taxa real; aplicar IR 15% (longo prazo). |
+| **NTN-B real (vértice 10y interpolado)** | Comparação **renda real ↔ renda real** — imóvel é hedge inflacionário, NTN-B é renda real explícita. Vértice 10 anos **constante** (interpolado), não título fixo (NTN-B 2035 vira 5y em 2030). | Já é taxa real; aplicar IR 15% (longo prazo). |
 | **IFIX yield 12m** | Classe pareada (FII tijolo) — "vale a pena trocar imóvel físico por papel imobiliário?". | Yield isento IR PF; sem normalização. |
 
 Display: 3 barras horizontais lado a lado no hero, todas em base anual
@@ -128,11 +134,11 @@ Sem quebra por imóvel, a média esconde o imóvel ruim e o card volta a
 ser "superficial". A tabela revela a alavanca acionável (qual contrato
 está com reajuste pendente, qual imóvel destoa).
 
-**Dependência crítica:** aluguel mensal por imóvel **pode não estar
-imputado** hoje no payload (E4 receitas pode agregar). Onda 1 do
-plano operacional ([PLAN-s4-real-estate-enrichment](../plan/S4_REAL_ESTATE_ENRICHMENT/_README.md))
-investiga viabilidade. Fallback se inviável: tabela mostra valor IRPF +
-status do contrato, cap rate só no agregado, com flag explicativa.
+**Imputação de aluguel por imóvel** segue cascade de fontes definida em
+D9 (Informe → IRPF → E4 → fallback agregado). Onda 1 do plano operacional
+([PLAN-s4-real-estate-enrichment](../plan/S4_REAL_ESTATE_ENRICHMENT/_README.md))
+audita empiricamente qual fonte aplica a cada workspace; Onda 0.5 ataca a
+implementação do parser de Informe estruturado (caminho privilegiado).
 
 ### D5 — Concentração imobiliária como métrica de primeira classe
 
@@ -149,10 +155,12 @@ override por workspace via [[ADR-134]] `ConfigStore`:
 
 | Parâmetro | Default | Range típico | Justificativa |
 |---|---|---|---|
-| `vacancia_pct` | 15% | 5-25% | Média BR mercado residencial (Secovi/FIPE); urbano premium pode ser <10%. |
-| `manutencao_pct` | 1% valor/ano | 0,5-2% | Regra de bolso brasileira para imóveis novos/médios; tombados ≥2%. |
-| `ir_carne_leao_aliquota_efetiva` | derivado IRPF | — | Calculado pelo `irpf_analyzer.py:286` (já existe bucket `rendimentos_pf`). Fallback 22,5% se IRPF ausente. |
+| `vacancia_pct` | 15% | 5-25% | Média BR mercado residencial (Secovi/FIPE); urbano premium pode ser <10%. Empírica vence default quando Informe traz `meses_locado` (cascade D9). |
+| `manutencao_pct` | 1% valor/ano | 0,5-3% | Gradação por idade/tipo: novo <10a 0,5% · médio 1% · alto padrão/tombado 2-3%. Inclui CAPEX recorrente (pintura, reforma estrutural), não só zelador. |
+| `ir_carne_leao_aliquota_efetiva` | derivado IRPF | — | Calculado pelo `irpf_analyzer.py:286` (alíquota **marginal** do bucket `rendimentos_pf`, **não** média do contribuinte). Fallback **27,5%** se IRPF ausente — viés conservador para ICP HENRY/UHNW (tipicamente topo da tabela). |
 | `concentracao_alerta_pct` | 40% | 30-60% | Perini sugere ≤40% em uma classe ilíquida; AUVP idem. |
+| `spread_critico_pct_do_benchmark` | **70%** | — | Gatilho `spread_critico` (snapshot, não temporal): `cap_rate_liquido < 70% × cdi_liquido` **E** `concentracao > 30%`. 50% seria frouxo demais (cap rate 4,5% vs CDI líq 8,7% = 51% → não disparava); 70% pega cap rate 5% / CDI 8,7% = 57% → dispara. Calibrar empiricamente após Onda 1. |
+| `valor_imovel_origem` | `irpf` | `irpf` / `mercado` | IRPF carrega imóvel pelo **custo histórico** — cap rate sobre imóvel antigo fica inflado. Override `valor_mercado_brl` por imóvel via [[ADR-134]] elimina viés quando informado. |
 
 Componentes IPTU/condomínio são **observados** (não defaults) — vêm
 das despesas categorizadas em E4 (categorias `moradia` filtradas por
@@ -162,7 +170,7 @@ imóvel quando matching disponível; senão, valor agregado).
 
 | Bloco do card | Free | Premium |
 |---|---|---|
-| Hero (cap rate líq + 3 benchmarks + custo de oportunidade) | ✅ | ✅ |
+| Hero (cap rate líq + 3 benchmarks + `spread_brl_anual`) | ✅ | ✅ |
 | Concentração imobiliária (badge + alerta) | ✅ | ✅ |
 | Tabela por imóvel | ❌ (teaser "Detalhe por imóvel no Premium") | ✅ |
 | Bloco de ação (gap de otimização quantificado) | ❌ | ✅ |
@@ -182,6 +190,43 @@ Decisão alinhada com framework de gating estabelecido para o parecer
   não entram. Sem essa classificação ([[ADR-215]] em produção), fallback
   conservador: considerar todos `cat_2` (`patrimonio_calculator.py::_split_imoveis`).
 - **1 imóvel investimento** → Hero + concentração + ação; tabela suprimida.
+
+### D9 — Hierarquia de fontes para aluguel por imóvel (cascade)
+
+Aluguel mensal por imóvel é a métrica de mais alto leverage do card e a
+de qualidade mais variável. Esta ADR fixa **ordem de prioridade**
+canônica; o pipeline escolhe a melhor fonte disponível por imóvel:
+
+| Prioridade | Fonte | Cobertura típica | Granularidade | Fidelidade |
+|---|---|---|---|---|
+| **1** | **Informe de Rendimentos de Imobiliária** (`informerendimentosaluguel`) | Imóveis administrados (~50-80% do mercado HENRY/UHNW) | Por imóvel + por mês + componentes (taxa adm, IPTU, IR retido) | Alta — fonte primária da imobiliária |
+| **2** | **IRPF carnê-leão** (`rendimentos_pf` em [[ADR-157]]) | Todos os contribuintes com aluguel declarado | Por pagador (proxy de imóvel via descrição/endereço quando presente) | Média — declarado pelo contribuinte; pode estar agregado |
+| **3** | **E4 receitas categorizadas** ("Aluguel") | Workspaces com extrato bancário | Agregado no fluxo bancário; matching por imóvel via heurística | Baixa para por-imóvel; OK para agregado |
+| **4 (fallback)** | **Distribuição pro-rata pelo valor IRPF** | Universal | Estimativa | Aproximação — flagged como "estimado" no UI |
+
+**Regras de seleção:**
+
+1. **Por-imóvel:** se Informe presente para o imóvel → usar (#1); senão
+   tentar matching IRPF carnê-leão por descrição/CPF pagador (#2); senão
+   E4 com heurística (#3); senão pro-rata (#4).
+2. **Componentes da fórmula** (D1 acima) seguem cascade independente — IPTU
+   pode vir do Informe (#1) **enquanto** taxa de administração vem só do
+   Informe (não há fallback aceitável para este componente; sem Informe,
+   omitir e degradar tooltip).
+3. **Auditabilidade:** cada componente do payload carrega
+   `origem ∈ {"informe", "irpf", "e4", "default", "estimado_pro_rata"}`
+   para que o card sinalize confiança no tooltip (`origem == "estimado_pro_rata"`
+   → badge "estimado"; `origem == "informe"` → sem badge, alto-confiança).
+
+**Implementação do parser de Informe** é objeto da **Onda 0.5** do plano
+operacional — schema Pydantic dedicado em `pipeline/llm/schemas/`
+(padrão [[ADR-157]] / `e16_irpf_full.py`) + prompt LLM dedicado em
+`pipeline/llm/prompts/`. Hoje o doc é classificado e roteado
+([`type_classifier.py:85`](../../backend/app/services/classification/type_classifier.py)
++ [`e0_route.py:112-113`](../../scripts/e0_route.py)) mas extraído pelo
+schema **genérico** de E2-LLM (lista de transações sem semântica de
+"aluguel do imóvel X, taxa adm Y, IR retido Z"). Falta semantizar a
+extração.
 
 ## Alternativas consideradas
 
@@ -237,6 +282,12 @@ princípio.
 - ✅ Coerência com [[ADR-191]] §D5: comparação só com líquido
   normalizado; benchmarks adequados ao framing da seção (single-class).
 - ✅ Defaults configuráveis preservam workspace overrides ([[ADR-134]]).
+- ✅ Hierarquia de fontes (D9) permite degradação graceful: workspace
+  com Informe → cap rate de alta-fidelidade; sem Informe → IRPF/E4 com
+  badge "estimado". Card nunca quebra por ausência de dado.
+- ✅ Taxa de administração da imobiliária (componente novo do líquido
+  via D9) hoje **não aparece** em nenhum cálculo do produto — semantizar
+  o Informe destrava esse dado para fluxo de caixa, score, FORMULAS.
 
 **Negativas:**
 
@@ -257,7 +308,9 @@ princípio.
 
 | Risco | Mitigação |
 |---|---|
-| Aluguel por imóvel não é imputável (E4 agrega) | Onda 1 do plano = PR exploratório isolado; fallback em D4 (tabela só com valor + status). |
+| Aluguel por imóvel não é imputável (E4 agrega) | Cascade D9 prioriza Informe → IRPF → E4 → pro-rata. Onda 1 audita cobertura empírica; Onda 0.5 implementa parser de Informe estruturado. Fallback em D4 (tabela só com valor + status) só se todas as 4 fontes falharem. |
+| Workspace não tem Informe da imobiliária carregado | Cascade degrada para IRPF/E4; badge "estimado" no UI sinaliza confiança. Telemetria mede % de imóveis com `origem == "informe"` — KPI para campanha de upload do Informe. |
+| Schema genérico do E2-LLM ([`e2_llm_extract.py`](../../pipeline/llm/schemas/e2_llm_extract.py)) já extrai informe como lista de transações soltas (sem semântica de aluguel/taxa/IR/imóvel) | Onda 0.5 implementa schema estruturado dedicado; legado coexiste por 1 sprint via flag `use_structured_informe_extractor` enquanto goldens são construídos. |
 | Default de vacância/manutenção controverso para imóveis premium | Override por workspace via [[ADR-134]]; documentar em tooltip "valores estimados; ajuste em Configurações". |
 | Card vira pitch de venda contra imóvel | Parecer (E6) contextualiza razões legítimas (uso futuro, herança, hedge psicológico) — Cerbasi. Card S4 é diagnóstico; E6 é interpretação. |
 | Concentração 40% threshold gera alarme falso (imóvel é estratégico no perfil) | Threshold configurável + texto do alerta neutro ("revisão estratégica recomendada", não "venda imóveis"). |
@@ -291,6 +344,10 @@ princípio.
 - [[ADR-215]] — Classificação de uso econômico de imóveis via override
   DB (enum `classification`); upstream do filtro de S4 (D8). ADR-216
   consome a classificação produzida; ADR-215 não depende de ADR-216.
+- [[ADR-157]] — E1.6 extract_irpf_full; padrão de schema Pydantic +
+  prompt LLM dedicado que a Onda 0.5 espelha para Informe de Imobiliária.
+- [[ADR-145]] — Taxonomia patrimonial canônica (cat_1 vs cat_2); fonte
+  metodológica da separação residência/investimento (alinhada com [[ADR-215]]).
 - [[ADR-143]] — `methodology=code` (cap rate é regra universal, vive em
   docstring + FORMULAS.md).
 - [[ADR-090]] — proibição `float` para dinheiro (cap rate calc usa `Decimal`).

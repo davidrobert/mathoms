@@ -105,6 +105,133 @@ observado de renda passiva sobre patrimônio gerador, **não retorno total**
   (projeção de IF), incomparável com yield de fluxo observado. `trs_trinity_pct`
   em `PassiveIncomeConfig` permanece para uso em projeções de IF, não neste card.
 
+## Imóveis (cap rate, concentração, spread vs benchmarks)
+
+Card S4 ("Real Estate — Imóveis e Renda Passiva"). Decisão arquitetural completa em
+[ADR-216](../adr/216-cap-rate-liquido-canonico-imoveis.md); cascade de fontes de aluguel
+por imóvel em §D9 da mesma ADR. ADR-216 supersede o display de yield bruto (`yield_imoveis_pct`)
+que vivia em [`pipeline/domain/services/narrativas/charts_narrator.py:254`](../../pipeline/domain/services/narrativas/charts_narrator.py).
+
+### Princípio metodológico
+
+Cap rate **líquido pós-IR pós-custos pós-vacância** (não bruto) é a métrica que vai no card.
+Yield bruto esconde IR carnê-leão PF (~22-27,5%), taxa de administração da imobiliária (5-12%),
+IPTU, condomínio, manutenção (~1% valor/ano), vacância (média BR ~15%). Comparar yield bruto
+com CDI nominal pré-IR é maçã/laranja e induz mau comportamento — comparação só vale
+**líquido vs líquido**, sob três benchmarks adequados ao framing single-class
+("vale a pena manter R$ X em imóveis ou realocar?"):
+
+- **CDI líquido** — custo de oportunidade de renda fixa pós-fixada (default de alocação).
+- **NTN-B real** — comparação renda real ↔ renda real (imóvel é hedge inflacionário; NTN-B é renda real explícita).
+- **IFIX yield 12m** — classe pareada (FII tijolo isento IR PF).
+
+Imóveis residenciais (cat_1, residência principal) **não entram** no cálculo — só `classification ∈ {investimento_locado, investimento_vago}` (enum em [ADR-215](../adr/215-classificacao-imoveis-override-db-first.md)).
+
+### Fórmulas canônicas
+
+| Conceito | Fórmula | Onde no código |
+| --- | --- | --- |
+| Cap rate **bruto** (por imóvel) | `cap_rate_bruto_pct = aluguel_anual_bruto / valor_imovel_irpf × 100`. Preservado para auditoria/tooltip; **não** é a métrica em destaque. | E5 JSON · `real_estate.cap_rate_bruto_pct` |
+| Cap rate **líquido** (por imóvel) | `cap_rate_liquido_pct = (aluguel_anual_bruto − taxa_administracao_anual − ir_retido_anual − ir_carne_leao_anual − iptu_anual − condominio_anual − manutencao_anual − vacancia_anual) / valor_imovel_irpf × 100`. Cada componente carrega `origem ∈ {informe, irpf, e4, default, estimado_pro_rata}` no payload — sinaliza confiança no tooltip (ADR-216 D9). | E5 JSON · `real_estate.cap_rate_liquido_pct` |
+| Cap rate líquido (agregado da carteira) | Média ponderada pelo `valor_imovel_irpf` dos imóveis com `classification ∈ {investimento_locado, investimento_vago}`. | E5 JSON · `real_estate.cap_rate_liquido_pct` (top-level) |
+| Concentração imobiliária (%) | `concentracao_imobiliaria_pct = imoveis_investimento / patrimonio_liquido × 100`. Considera apenas `cat_2` (não cat_1 residência). Alerta `concentracao_alta` quando >40% (Perini/AUVP — concentração de classe ilíquida desbalanceia carteira). Threshold configurável via [[ADR-134]] `ConfigStore`. | E5 JSON · `real_estate.concentracao_pct` |
+| Spread vs benchmark (pp) | `spread_vs_benchmark_pp = cap_rate_liquido_pct − benchmark_liquido_pct`. Calculado para os 3 benchmarks (CDI, NTN-B, IFIX); negativo = imóvel rendendo menos. Spread em **pontos percentuais** (não razão). | E5 JSON · `real_estate.spreads_pp.{vs_cdi,vs_ntnb,vs_ifix}` |
+| Spread anual em R$ (sinal natural) | `spread_brl_anual = patrimonio_imobiliario × (cap_rate_liquido_pct − benchmark_liquido_pct) / 100`. **Sinal natural:** positivo = imóvel ganhando do benchmark; negativo = imóvel perdendo. Para o card UX é este número que dói (não pp). Renomeado de `custo_oportunidade_anual_brl` para evitar ambiguidade de sinal no tooltip. | E5 JSON · `real_estate.spread_brl_anual.{vs_cdi,vs_ntnb,vs_ifix}` |
+| Gap de reajuste acumulado (%) | `gap_reajuste_pct = indice_acum_12m_pct × meses_sem_reajuste / 12`. Quantifica em % quanto o aluguel está atrasado vs IGPM/IPCA acumulado — alavanca acionável. Por imóvel; índice = `indice_reajuste` do contrato. | E5 JSON · `real_estate.imoveis[].gap_reajuste_pct` |
+
+### Componentes da fórmula líquida — cascade de fontes (ADR-216 D9)
+
+Cada componente é resolvido pela cascade de fontes; sem dado de fonte preferencial,
+cai para a próxima na ordem. Componentes individuais expostos no payload para tooltip
+de explicação no card.
+
+| Componente | Cascade (alta → baixa) | Fallback `default` |
+| --- | --- | --- |
+| `aluguel_anual_bruto` | Informe imobiliária → IRPF carnê-leão → E4 receitas categorizadas → pro-rata pelo valor_irpf | — (sem aluguel = `cap_rate = 0%`) |
+| `taxa_administracao_anual` | Informe imobiliária (único) | — (omitir do líquido; degradar tooltip) |
+| `ir_retido_anual` | Informe imobiliária (PJ pagador retém) | `0` (PF→PF residencial não retém) |
+| `ir_carne_leao_anual` | IRPF analyzer (alíquota **marginal** aplicável ao bucket aluguel, [`pipeline/domain/services/irpf_analyzer.py:286`](../../pipeline/domain/services/irpf_analyzer.py); **não** a média do contribuinte) | Fallback default 27,5% — viés conservador para o ICP HENRY/UHNW (tipicamente no topo da tabela); cap rate líquido pessimista é mais seguro que otimista |
+| `iptu_anual` | Informe imobiliária (quando administra) → E4 despesas categorizadas | Estimar 1% × valor_irpf (regra de bolso BR) |
+| `condominio_anual` | Informe (raro) → E4 despesas categorizadas | `0` (não declarado) |
+| `manutencao_anual` | (nenhuma fonte primária) | Default **1% × valor_irpf** (regra de bolso BR; gradação por idade/tipo do imóvel — ver §Defaults). Inclui **CAPEX recorrente** (pintura, reforma estrutural), não só zelador |
+| `vacancia_anual` | Informe — vacância empírica = `(12 − meses_locado) / 12 × aluguel_anual_bruto` | Default **15% × aluguel_anual_bruto** (média BR; urbano premium pode ser <10%) |
+| `valor_imovel_irpf` | IRPF E1.6 (`bens_direitos[]` com `codigo_rfb` imóvel). **Limitação importante:** IRPF carrega imóvel pelo **custo histórico de aquisição** (não valor de mercado) — cap rate sobre imóvel antigo fica **inflado artificialmente**. Override opcional `valor_mercado_brl` por workspace via [[ADR-134]] elimina o viés quando informado | — (sem valor = imóvel não entra no cálculo) |
+
+### Defaults configuráveis
+
+| Parâmetro | Default | Range típico | Justificativa metodológica |
+| --- | --- | --- | --- |
+| `vacancia_pct` | 15% | 5-25% | Média BR residencial (Secovi/FIPE); urbano premium pode ser <10%. Quando Informe traz vacância empírica (`(12 − meses_locado)/12`), default **não** se aplica — empírico vence. |
+| `manutencao_pct` | 1% valor/ano | 0,5%-3% | Gradação por idade/tipo: imóvel novo (<10 anos) 0,5%; médio padrão 1%; alto padrão / tombado / histórico com fachada 2-3%. Inclui CAPEX recorrente (pintura, reforma estrutural), não só zelador. |
+| `ir_carne_leao_fallback_pct` | **27,5%** | — | Alíquota marginal típica do ICP HENRY/UHNW (topo da tabela progressiva). Viés conservador — cap rate líquido pessimista é mais seguro que otimista. Quando IRPF carregado, derivar alíquota marginal do bucket `rendimentos_pf` ([ADR-157](../adr/157-e16-extract-irpf-full.md)), **não** a média do contribuinte. |
+| `concentracao_alerta_pct` | 40% | 30-60% | Perini sugere ≤40% em classe ilíquida; AUVP idem (Diagrama do Cerbasi exclui imóveis). 30% seria agressivo demais para o ICP BR onde 50%+ em imóveis é a norma cultural. |
+| `spread_critico_pct_do_benchmark` | **70%** | — | Cap rate líquido < 70% do CDI líquido (combinado com concentração >30%) dispara alerta `revisão estratégica recomendada`. Calibre teórico inicial; ajustar após Onda 1 (auditoria empírica). |
+| `valor_imovel_origem` | `irpf` | `irpf` / `mercado` | Quando workspace fornece `valor_mercado_brl` por imóvel via override, usar; senão IRPF (custo histórico, viés inflado para imóvel antigo). |
+
+Overrides por workspace via [[ADR-134]] `ConfigStore` (mesmo padrão de `category_template`).
+
+### Benchmarks — convenção de `pair` em `market_rates`
+
+`market_rates` ([ADR-135](../adr/135-versionamento-temporal-de-series-fiscais-e-cambio.md))
+hoje seeda apenas pares FX (USD/BRL, EUR/BRL). Para S4 são necessários **3 novos `pair`s**
+seedados em migration dedicada (pré-requisito Onda 2 do
+[plano S4_REAL_ESTATE_ENRICHMENT](../plan/S4_REAL_ESTATE_ENRICHMENT/_README.md)):
+
+| `pair` | Tipo | Unidade | Fonte canônica | Cadência |
+| --- | --- | --- | --- | --- |
+| `CDI` | Taxa nominal anual | % a.a. | Banco Central (SGS série 12) | Diária |
+| `NTNB_REAL_10Y` | Yield real anual interpolado p/ vértice 10 anos | % a.a. real (acima IPCA) | Tesouro Direto / ANBIMA | Diária |
+| `IFIX_YIELD_12M` | Dividend yield trailing 12m do índice IFIX (misto: tijolo + papel + híbridos) | % a.a. | B3 / ANBIMA | Mensal |
+
+**Notas de fonte:**
+
+- `NTNB_REAL_10Y` é **vértice 10 anos constante** (interpolado entre títulos disponíveis); não fixe um vencimento específico (ex.: NTN-B 2035 vira título de 5 anos em 2030). Padrão ANBIMA.
+- `IFIX_YIELD_12M` é **proxy direcional, não pareamento perfeito** com imóvel físico — IFIX é índice misto (tijolo + papel + híbridos). v2 pode expor `IFII_TIJOLO_YIELD_12M` (subsetor tijolo) quando ANBIMA/B3 publicar.
+
+Normalização para "líquido" é responsabilidade do service (não da seed):
+
+- `cdi_liquido_pct = cdi_nominal_pct × (1 − ir_rf_efetivo_pct/100)` — IR RF tabela regressiva 15-22,5%, peso ponderado pela curva de prazo do workspace; default 17,5%.
+- `ntnb_liquido_pct = ntnb_real_pct × (1 − 0.15)` — IR longo prazo 15% (>721 dias).
+- `ifix_liquido_pct = ifix_yield_pct × 1.0` — FII tijolo isento IR PF (não normalizar).
+
+### Alertas
+
+| Code | Condição | Severidade | Texto UX |
+| --- | --- | --- | --- |
+| `concentracao_alta` | `concentracao_imobiliaria_pct > concentracao_alerta_pct` (default 40%) | warning | "Concentração em imóveis acima de N% do patrimônio — revisão de alocação recomendada." |
+| `spread_critico` | `cap_rate_liquido_pct < spread_critico_pct_do_benchmark × cdi_liquido_pct / 100` (default 70%) **E** `concentracao_imobiliaria_pct > 30%` | warning | "Cap rate líquido <70% do CDI combinado com concentração imobiliária >30% — considerar revisão estratégica." |
+| `aluguel_sem_dado` | Todos os imóveis com `origem == "estimado_pro_rata"` | info | "Aluguel por imóvel estimado — para precisão, carregue Informe de Rendimentos da Imobiliária." |
+| `contrato_reajuste_pendente` | `meses_desde_ultimo_reajuste > 12` para qualquer imóvel | info (por imóvel) | "Contrato sem reajuste há N meses — IGPM/IPCA acumulado: X% (gap acumulado Y%)." |
+
+**Gatilho instantâneo (v1):** `spread_critico` é avaliado por snapshot do relatório, não série temporal. Persistência ("12 meses persistente") fica como métrica derivada de v2 quando houver série temporal de market_rates + snapshots de relatório — débito rastreado.
+
+### Comparativos descartados (não fazer)
+
+**Permanentes (não voltar):**
+
+- **Yield bruto no card** — ADR-216 D1 explicitamente proíbe; mantido só em tooltip/audit.
+- **CDI sozinho como único benchmark** — ADR-216 D2 (tríade obrigatória) e [ADR-191 §D5](../adr/191-card-rentabilidade-trs-efetiva.md) (rejeitou CDI no card TRS por motivo análogo). ADR-216 difere de ADR-191 porque cap rate é single-class; tríade resolve a diferença.
+- **Pro-rata como fonte primária** de aluguel — só fallback final; sempre flagged como `origem == "estimado_pro_rata"` no UI.
+- **Valor de reposição (custo de reconstrução)** no cap rate — métrica de seguradora; mede risco patrimonial, não rentabilidade. Pode aparecer em S4 v2 como métrica **separada** (cobertura de seguro vs valor de reposição), nunca dentro do cap rate.
+
+**Descartados de v1 (promover a v2 quando aplicável):**
+
+- **Valorização patrimonial** no `cap_rate_liquido` — valorização IRPF é fiscal (atualização anual de declaração), não de mercado; misturar yield com valorização fiscal engana. v2 pode expor como métrica separada (`valorizacao_irpf_anual_pct`).
+- **Cap rate de mercado da praça vs cap rate observado** — comparação muito útil ("seu imóvel rende 3,5%, praça do bairro rende 5,5% — aluguel subprecificado"). Dependência de fonte externa (FIPE-ZAP, QuintoAndar API) — v2.
+- **Net effective rent vs face rent** (descontos, carência) — em comercial high-end importa; em residencial BR é raro. v2 quando S4 cobrir comercial-grade.
+- **GLA (Gross Leasable Area) / cap rate por m²** — irrelevante para residencial PF (ICP atual); importante para comercial/sala/galpão. Sem GLA, cap rate de galpão vs cap rate de cobertura ficam comparáveis em pp mas escondem R$/m² muito diferente. v2 quando comercial entrar.
+- **Persistência temporal do spread crítico** — exigia série mensal de snapshots de cap rate + market_rates; v1 usa gatilho instantâneo. v2 promove a métrica temporal.
+
+### Débitos rastreados (v2)
+
+| Débito | Lane futura | Bloqueio atual |
+| --- | --- | --- |
+| `IFII_TIJOLO_YIELD_12M` como pair adicional | Sprint após Onda 6 | ANBIMA/B3 não publica subsetor estável |
+| `valor_mercado_brl` por imóvel (substitui IRPF) | Onda 6 v2 | Override via ADR-134 já permite manual; auto-fetch via API externa é v2 |
+| Persistência temporal do spread | v2 | Exige série de snapshots em `pipeline_artifacts` |
+| Cap rate de mercado da praça | v2 | Fonte externa (FIPE-ZAP) |
+| GLA / cap rate por m² | v2 (comercial) | Schema do imóvel não captura GLA hoje |
+
 ### Custo essencial mensal — base da cobertura
 
 `custo_essencial_mensal_brl` é a soma das médias mensais das **9 categorias
