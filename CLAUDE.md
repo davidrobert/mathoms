@@ -1020,31 +1020,31 @@ configs e docstrings antes de agir.
 
 ## Convenções de naming de artefatos
 
-Sufixos de etapa por fase do pipeline:
+Pós-[[ADR-212]], artifacts vivem em `pipeline_artifacts` (DB) — os sufixos
+abaixo são convenção do `artifact_key` (na coluna `artifact_key`) e do
+filename **histórico** em disco preservado para o CLI read-only
+`scripts/e0_audit.py`. Fonte de verdade do mapeamento stage → sufixo:
+[`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py) em `pipeline/artifact_store.py`.
 
-Mapeamento canônico stage → sufixo: [pipeline/artifact_store.py:71-93](pipeline/artifact_store.py:71).
-
-| Sufixo              | Etapa               | Exemplo                                                 |
-| ------------------- | ------------------- | ------------------------------------------------------- |
-| `-0_original`       | E0 (roteamento)     | `c6bank_extratoconta_202601-0_original.csv`             |
-| `-1a_extract`       | E1 (extração LLM)   | `david_curriculo-1a_extract.json`                       |
-| `-1b_unified`       | E1 (unificação)     | `members-1b_unified.json`                               |
-| `-1c_enriched`      | E1 (enriquecimento) | `members-1c_enriched.md`                                |
-| `-1.5a_extract`     | E1.5a (extract pré-baseline) | `baseline_patrimonial-1.5a_extract.json`       |
-| `-1.5_baseline`     | E1.5 (baseline puro) | `baseline_patrimonial-1.5_baseline.json`               |
-| `-1.5_consolidated` | E1.5c (baseline consolidado) | `baseline_patrimonial-1.5_consolidated.json`   |
-| `-1.6_irpf_full`    | E1.6 (`extract_irpf_full`) | `irpfdeclaracaodavid2024-1.6_irpf_full.json`     |
-| `-2_extract`        | E2 (extração)       | `itau_extratoconta_202601_202604-2_extract.json`        |
-| `-3_reconciled`     | E3 (reconciliação)  | `itau_extratoconta_BRL_202212_202604-3_reconciled.json` |
-| `-4_unified`        | E4 (categorização)  | `despesas-4_unified.json`                               |
-| `-5_analysis`       | E5 (análise)        | `analise_financeira-5_analysis.json`                    |
-| `-5n_narrativas`    | E5.N (`generate_narratives`) | `analise_financeira-5n_narrativas.json`        |
-| `-6_parecer`        | E6-parecer (`review_finances_holistic`, ADR-199) | `parecer_planejador-6_parecer.json` |
-| `-7_crossval`       | E7 (`validate_cross`) | `crossval-7_crossval.json`                            |
+| Sufixo              | Stage                                              | Exemplo de key                             |
+| ------------------- | -------------------------------------------------- | ------------------------------------------ |
+| `-0_original`       | E0 (roteamento; só em disco antes do upload)       | `c6bank_extratoconta_202601-0_original.csv` |
+| `-1b_unified`       | E1 (`extract_members` · ADR-127)                   | `members`                                  |
+| `-1.5a_extract`     | E1.5a (extract per-IRPF pré-baseline)              | `irpfdeclaracao_2024`                      |
+| `-1.5_baseline`     | E1.5 (`extract_baseline`, baseline puro)           | `baseline_patrimonial`                     |
+| `-1.5_consolidated` | E1.5c (`consolidate_baseline`)                     | `baseline_patrimonial`                     |
+| `-1.6_irpf_full`    | E1.6 (`extract_irpf_full` · ADR-157)               | `irpfdeclaracao_2024`                      |
+| `-2_extract`        | E2 (`E2-extratos`/`E2-faturas`/`E2-llm`)           | `itau_extratoconta_202601_202604`          |
+| `-3_reconciled`     | E3 (`reconcile_transactions`)                      | `itau_extratoconta_BRL_202212_202604`      |
+| `-4_unified`        | E4 (`categorize_transactions`)                     | `despesas` / `receitas` / `patrimonio`     |
+| `-5_analysis`       | E5 (`analyze_finances`)                            | `analise_financeira`                       |
+| `-5n_narrativas`    | E5.N (`generate_narratives`)                       | `analise_financeira`                       |
+| `-6_parecer`        | E6-parecer (`review_finances_holistic` · ADR-199)  | `parecer_planejador`                       |
+| `-7_crossval`       | E7 (`validate_cross`)                              | `crossval`                                 |
 
 Nomes de banco em filenames seguem o código canônico de
-`institutions.json` (ex.: `bankofamerica`, `btgpactual`, `c6bank`,
-`itau` — sem espaços, sem acentos).
+`institution_catalog` (DB, ADR-137; ex.: `bankofamerica`, `btgpactual`,
+`c6bank`, `itau` — sem espaços, sem acentos).
 
 **Período sentinel `999999`:** usado em faturas de cartão cujo período
 não pôde ser determinado. Propaga de E0→E2→E3.
@@ -1053,20 +1053,33 @@ não pôde ser determinado. Propaga de E0→E2→E3.
 
 ## Convenções intencionais (não "arrumar" em refactor)
 
-- `config/report_layout.yaml` — **único YAML** do projeto; justificado por
-  extensos comentários inline que seriam perdidos em JSON.
-- `baseline_patrimonial-1.5_consolidated.json` vive em `E2_extracts/` —
-  input direto do E3/E4/E5; convenção histórica documentada.
-- Sufixos mistos nos diretórios `processed/` (`E2_extracts` substantivo,
+- `config/report_layout.yaml` é o único YAML de **config de produto**
+  versionado no repo — formato escolhido por suportar comentários inline
+  que documentam decisões de seção (codegen em
+  `frontend/src/generated/report-layout.ts` + `backend/app/generated/report_layout.py`,
+  ADR-076). Outros YAMLs do repo (`.pre-commit-config.yaml`,
+  `config/internal_operators.example.yaml`, `config/prompts/*.yaml`)
+  servem propósitos ortogonais (CI, ops, prompts LLM) — não confundir.
+- Mapeamento `_STAGE_TO_DIR` em [`pipeline/artifact_store.py`](pipeline/artifact_store.py)
+  preserva sufixos mistos por stage (`E2_extracts` substantivo,
   `E3_reconciled` particípio, `E4_unified` particípio, `E5_analysis`
-  substantivo, `E7_review` substantivo) — padrão aceito, não renomear.
-- `inbox_processed/` sem prefixo `_` — é parte do fluxo de dados, não
-  diretório auxiliar.
-- `config/schemas/` contém 5 schemas de dados (E1.5, E2, E4, E5,
-  pipeline). Modo `warn` (default) vs `strict` controlado por
-  `pipeline.json → schema_validation.enabled`.
+  substantivo, `E7_review` substantivo, `E6_parecer` substantivo) —
+  padrão aceito, não renomear. Pós-[[ADR-212]] o mapping é referência
+  para o CLI read-only `scripts/e0_audit.py`; artifacts em produção
+  vivem em `pipeline_artifacts` (DB), não em diretórios.
+- `inbox_processed/` sem prefixo `_` — é parte do fluxo de upload (move
+  arquivo de `inbox/` após classificação), não diretório auxiliar.
+- `config/schemas/` contém schemas JSON usados por `validate_dict` (hook
+  pós-write em `DBArtifactStore.write`, ADR-212 PR3a): 5 schemas de
+  estágios canônicos (`baseline_patrimonial`, `e16_irpf_full`,
+  `e2_extract`, `e3_reconciled`, `e4_unified`, `e5_analysis`,
+  `pipeline`) + schemas de domínio para `Goal` (alocacao_alvo v1/v2,
+  aporte_mensal, dolarizacao, if v1/v2) + `parecer_planejador` +
+  `report_layout`. Modo `warn` (default) vs `strict` controlado por
+  `pipeline.json → schema_validation.mode` (override via env
+  `MATHOMS_PIPELINE_SCHEMA_MODE`).
 
-Para outras decisões idiossincráticas, consulte [docs/DECISIONS.md](docs/DECISIONS.md).
+Para outras decisões idiossincráticas, consulte [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md).
 
 ---
 
