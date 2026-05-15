@@ -93,6 +93,7 @@ Reescrever copy da landing pública `mathoms.ai` para reposicionar a marca de "f
 
 - [ ] PR-C: copy literal rascunhada pelo `product-designer` passa em `dev/check_sigilo_terms.py` (zero hits) **E** vocabulário canônico [[ADR-183]] respeitado **E** A11.w5 reviewer ✅.
 - [ ] PR-D: landing live em `mathoms.ai` com analytics capturando os 6 leading indicators de [[ADR-183]] §"Leading indicators".
+- [ ] **PR-D — coleta de sinal i18n (piggyback gratuito):** formulário "notify me" / "early access" da landing captura campo `preferred_language` com 3 opções (`pt-BR`, `en`, `es`). Dashboard mensal expõe contagem por idioma — alimenta Gatilho A do plano [[PLAN-i18n]] §10. Sem custo adicional de eng (é só mais um campo no form). Sem esse campo, Gatilho A de [[PLAN-i18n]] vira não-mensurável.
 - [ ] 30-60 dias pós-launch: ≥ 4 dos 6 leading indicators em sinal positivo. Se < 4: refresh narrativo com `product-designer` antes de promover [[ADR-183]] a `Decidido`.
 - [ ] PR-E: flip [[ADR-183]] de `Proposto` → `Decidido (Sprint XX.Y)` com `phase:` registrada.
 

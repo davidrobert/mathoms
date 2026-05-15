@@ -132,9 +132,10 @@ Alternativas consideradas:
     bloqueia merge se faltar entrada nos 3 locales.
 11. **Strings dinâmicas concatenadas proibidas** em JSX — ESLint
     rule custom força ICU MessageFormat.
-12. **Gate de execução (novo, 2026-05-15):** F12.2–F12.8 **não
-    iniciam** até atingir 1 dos 3 gatilhos abaixo. Plano fica em
-    `status: paused` com `pause_reason` rastreando o gate:
+12. **Gate de execução (novo, 2026-05-15; revisado pós-briefing PM
+    no mesmo dia):** F12.2–F12.8 **não iniciam** até atingir 1 dos
+    4 gatilhos abaixo. Plano fica em `status: paused` com
+    `pause_reason` rastreando o gate:
     - **Gatilho A:** ≥30 leads qualificados via formulário "notify
       me / preview" em EN ou ES na landing pública (janela 90 dias).
     - **Gatilho B:** ≥3 churns/feedback de beta com motivo declarado
@@ -143,6 +144,14 @@ Alternativas consideradas:
     - **Gatilho C:** decisão estratégica de tier de pricing
       internacional (USD/EUR) que exija UI EN como pré-requisito
       — abrir ADR separada de pricing antes.
+    - **Gatilho D (qualitativo, n=1):** ≥1 pedido formal documentado
+      de **user pagante ativo** solicitando EN ou ES para uso
+      específico (cônjuge não-BR, contador local, partilha com
+      terceiro). Em produto pré-PMF, n=1 de pagante engajado é sinal
+      mais forte que n=30 de leads anônimos.
+    - **Checkpoint mensal lightweight** (em cada retro de sprint):
+      ler dashboard de sinal (A+B+D) em ≤5min. Sem ação default —
+      apenas leitura. Mitiga o risco "instrumentou e esqueceu".
     - **Revisão do gate:** retro Q3 2026 (3 meses pós-A12). Sem
       atingir threshold, manter `paused` e re-avaliar com novo gate
       ou desativar a frente.
