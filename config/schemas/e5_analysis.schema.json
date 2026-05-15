@@ -269,6 +269,158 @@
           "description": "Contagem total de imóveis em bens_por_membro (residência + investimento) — paridade com o legado _extract_top_institutions."
         }
       }
+    },
+    "real_estate": {
+      "type": "object",
+      "description": "Cap rate líquido + benchmarks + concentração para card S4 (ADR-216 · Onda 2). Produzido por pipeline/domain/services/real_estate_metrics.py::result_to_payload. Cascade D9 de fontes: cada componente em componentes_calculo carrega `origem` + `confidence` para auditoria/UI. ADR-209: campos *_pct são percentuais absolutos (1.7 = 1,7%). Wire monetário: number (alinhado ao resto do E5; débito de migração para Decimal string rastreado em PLATFORM_REVIEW).",
+      "properties": {
+        "cap_rate_liquido_pct": {
+          "type": ["number", "null"],
+          "description": "Cap rate líquido agregado da carteira de imóveis de investimento. `null` quando sem imóveis ou valor_total = 0."
+        },
+        "cap_rate_bruto_pct": {
+          "type": ["number", "null"],
+          "description": "Cap rate bruto (aluguel/valor) — mantido para auditoria/tooltip; não é o número em destaque do card (ADR-216 D1)."
+        },
+        "concentracao_pct": {
+          "type": "number",
+          "description": "% do patrimônio líquido em imóveis de investimento. Alerta `concentracao_alta` quando > 40 (FORMULAS.md §Defaults)."
+        },
+        "valor_total_imoveis": {
+          "type": "number",
+          "description": "Soma de valor_imovel dos imóveis de investimento (cat_2)."
+        },
+        "componentes_calculo": {
+          "type": "object",
+          "description": "Componentes anuais da fórmula líquida com origem da cascade D9 + confidence. Cada valor é {valor, origem, confidence}.",
+          "patternProperties": {
+            "^[a-z_]+$": {
+              "type": "object",
+              "required": ["valor", "origem", "confidence"],
+              "properties": {
+                "valor": {"type": "number"},
+                "origem": {
+                  "type": "string",
+                  "enum": ["informe", "irpf", "e3", "e4", "manual", "pro_rata", "none", "default"]
+                },
+                "confidence": {"type": "string", "enum": ["high", "medium", "low"]}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "benchmarks": {
+          "type": "object",
+          "description": "Tríade de benchmarks já normalizada para líquido (CDI/NTNB/IFIX). `as_of_date` congela a data da observação para idempotência (data-engineer review 2026-05-15).",
+          "required": ["cdi_liquido_pct", "ntnb_liquido_pct", "ifix_yield_pct", "as_of_date"],
+          "properties": {
+            "cdi_liquido_pct": {"type": "number"},
+            "ntnb_liquido_pct": {"type": "number"},
+            "ifix_yield_pct": {"type": "number"},
+            "as_of_date": {"type": "string", "format": "date"}
+          },
+          "additionalProperties": false
+        },
+        "spreads_pp": {
+          "type": "object",
+          "description": "Spread em pontos percentuais (sinal natural: positivo = imóvel ganha do benchmark).",
+          "required": ["vs_cdi", "vs_ntnb", "vs_ifix"],
+          "properties": {
+            "vs_cdi": {"type": "number"},
+            "vs_ntnb": {"type": "number"},
+            "vs_ifix": {"type": "number"}
+          },
+          "additionalProperties": false
+        },
+        "spread_brl_anual": {
+          "type": "object",
+          "description": "Spread em R$/ano absoluto: valor_total × spread_pp / 100. UI usa este para mensagem ('R$ −228k/ano vs CDI').",
+          "required": ["vs_cdi", "vs_ntnb", "vs_ifix"],
+          "properties": {
+            "vs_cdi": {"type": "number"},
+            "vs_ntnb": {"type": "number"},
+            "vs_ifix": {"type": "number"}
+          },
+          "additionalProperties": false
+        },
+        "imoveis": {
+          "type": "array",
+          "description": "Imóveis de investimento ordenados por valor descendente. Filtro: classification ∈ {locado, comercial, especulacao} (ADR-216 D8 · ADR-215 enum).",
+          "items": {
+            "type": "object",
+            "required": ["property_id", "descricao", "classification", "valor_imovel", "status_contrato", "origem_aluguel"],
+            "properties": {
+              "property_id": {"type": "string"},
+              "descricao": {"type": "string"},
+              "classification": {"type": "string", "enum": ["locado", "comercial", "especulacao"]},
+              "valor_imovel": {"type": "number"},
+              "valor_imovel_origem": {"type": "string", "enum": ["irpf", "mercado"]},
+              "aluguel_mensal_bruto": {"type": ["number", "null"]},
+              "taxa_administracao_mensal": {"type": ["number", "null"]},
+              "iptu_mensal": {"type": ["number", "null"]},
+              "condominio_mensal": {"type": ["number", "null"]},
+              "ir_retido_mensal": {"type": "number"},
+              "meses_locado_no_ano": {"type": ["integer", "null"], "minimum": 0, "maximum": 12},
+              "vacancia_pct_empirica": {"type": ["number", "null"]},
+              "cap_rate_bruto_pct": {"type": ["number", "null"]},
+              "cap_rate_liquido_pct": {"type": ["number", "null"]},
+              "gap_reajuste_pct": {"type": ["number", "null"]},
+              "status_contrato": {
+                "type": "string",
+                "enum": ["atualizado", "reajuste_pendente", "sem_renda", "desconhecido"]
+              },
+              "indice_reajuste": {"type": ["string", "null"]},
+              "data_ultimo_reajuste": {"type": ["string", "null"]},
+              "endereco_canonical": {"type": ["string", "null"]},
+              "imobiliaria_cnpj": {"type": ["string", "null"]},
+              "imobiliaria_nome": {"type": ["string", "null"]},
+              "origem_aluguel": {
+                "type": "string",
+                "enum": ["informe", "irpf", "e3", "e4", "manual", "pro_rata", "none", "default"]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "excluded_properties": {
+          "type": "array",
+          "description": "Imóveis filtrados (classification != investimento) — transparência no UI (data-engineer 2026-05-15).",
+          "items": {
+            "type": "object",
+            "required": ["property_id", "descricao", "classification", "motivo"],
+            "properties": {
+              "property_id": {"type": "string"},
+              "descricao": {"type": "string"},
+              "classification": {"type": "string"},
+              "motivo": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "alertas": {
+          "type": "array",
+          "description": "Alertas canônicos (FORMULAS.md §Alertas). Gerados snapshot (não temporal) em v1.",
+          "items": {
+            "type": "object",
+            "required": ["code", "severity", "context"],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "concentracao_alta",
+                  "spread_critico",
+                  "aluguel_sem_dado",
+                  "contrato_reajuste_pendente"
+                ]
+              },
+              "severity": {"type": "string", "enum": ["info", "warning", "critical"]},
+              "context": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true
