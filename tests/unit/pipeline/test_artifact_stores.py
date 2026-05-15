@@ -25,12 +25,10 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from pipeline.artifact_store import (  # noqa: E402
-    _STAGE_TO_DIR,
     _STAGE_TO_SUFFIX,
     ArtifactStore,
     InMemoryArtifactStore,
     ReadableArtifactStore,
-    stage_dir_name,
     stage_suffix,
 )
 
@@ -112,34 +110,22 @@ class TestInMemoryArtifactStore:
 
 
 # =============================================================================
-# Mapeamentos de stage (preservados após ADR-212 PR3b como referência de
-# layout legado em disco; consumidos pelo CLI read-only ``e0_audit.py``)
+# Mapeamento de stage → sufixo
+# (`_STAGE_TO_DIR` deletado em ADR-213 — dead code sem caller runtime)
 # =============================================================================
 
 
 class TestStageMappings:
-    def test_mappings_have_same_keys(self):
-        """``_STAGE_TO_DIR`` e ``_STAGE_TO_SUFFIX`` cobrem os mesmos stages.
-
-        Invariante de segurança: se um stage tem diretório mapeado, deve ter
-        sufixo mapeado e vice-versa.
-        """
-        assert set(_STAGE_TO_DIR.keys()) == set(_STAGE_TO_SUFFIX.keys())
-
-    def test_resolvers_work_for_known_stages(self):
-        for stage in _STAGE_TO_DIR:
-            assert stage_dir_name(stage) == _STAGE_TO_DIR[stage]
+    def test_resolver_works_for_known_stages(self):
+        for stage in _STAGE_TO_SUFFIX:
             assert stage_suffix(stage) == _STAGE_TO_SUFFIX[stage]
 
-    def test_resolvers_raise_for_unknown_stage(self):
-        with pytest.raises(KeyError):
-            stage_dir_name("not-a-stage")
+    def test_resolver_raises_for_unknown_stage(self):
         with pytest.raises(KeyError):
             stage_suffix("not-a-stage")
 
     def test_e1_members_mapping(self):
-        """E1 registrado em ambos os mapeamentos (ADR-127)."""
-        assert _STAGE_TO_DIR["E1"] == "members"
+        """E1 registrado (ADR-127)."""
         assert _STAGE_TO_SUFFIX["E1"] == "-1b_unified.json"
 
     def test_e1_round_trip_in_memory(self):
@@ -154,5 +140,4 @@ class TestStageMappings:
         porque esses stages existem separadamente em ``STAGE_REGISTRY``.
         """
         for stage in ("E2", "E2-faturas", "E2-extratos", "E2-llm"):
-            assert stage in _STAGE_TO_DIR, f"{stage} faltando em _STAGE_TO_DIR"
             assert stage in _STAGE_TO_SUFFIX, f"{stage} faltando em _STAGE_TO_SUFFIX"

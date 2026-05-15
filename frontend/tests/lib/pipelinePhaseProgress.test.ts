@@ -97,7 +97,7 @@ describe("computePhaseProgress", () => {
   // keys (E*), então qualquer stage descritivo caía no fallback "reading" e
   // gerava mensagem "Não conseguimos completar a etapa de lendo os dados".
   it.each([
-    ["audit_documents", "preparing"],
+    // audit_documents removido em ADR-213 (sunset stage).
     ["unlock_documents", "preparing"],
     ["route_documents", "preparing"],
     ["extract_members", "reading"],

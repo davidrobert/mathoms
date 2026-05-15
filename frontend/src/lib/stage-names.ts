@@ -11,7 +11,7 @@
 export const STAGE_DISPLAY_NAMES: Record<string, string> = {
   // F9.2+ descriptive keys (canônicas — ADR-093). Legacy keys abaixo
   // permanecem enquanto rows DB ainda gravam no formato antigo (até F9.3).
-  "audit_documents": "Verificação dos arquivos",
+  // audit_documents removido em ADR-213 (sunset stage).
   "unlock_documents": "Desbloqueio de PDFs com senha",
   "route_documents": "Identificação do tipo de cada documento",
   "extract_members": "Leitura dos dados da família",
@@ -28,7 +28,6 @@ export const STAGE_DISPLAY_NAMES: Record<string, string> = {
   "validate_cross": "Conferência da consistência dos números",
   "review_finances_holistic": "Parecer do planejador financeiro",
   // Legacy (compat reverso F9.2 → F9.3)
-  "E0-audit": "Verificação dos arquivos",
   "E0-route": "Identificação do tipo de cada documento",
   "E0-unlock": "Desbloqueio de PDFs com senha",
   "E1": "Leitura dos dados da família",

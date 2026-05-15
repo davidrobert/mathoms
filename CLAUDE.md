@@ -1020,17 +1020,15 @@ configs e docstrings antes de agir.
 
 ## Convenções de naming de artefatos
 
-Pós-[[ADR-212]], artifacts vivem em `pipeline_artifacts` (DB) — `stage` e
-`artifact_key` são colunas; **não há filename físico em produção**. Os
-sufixos preservam 5 usos atuais:
+Pós-[[ADR-212]] + [[ADR-213]], artifacts vivem em `pipeline_artifacts` (DB)
+— `stage` e `artifact_key` são colunas; **não há filename físico em
+produção**. Os sufixos preservam 3 usos atuais:
 
 1. **Rastreabilidade em E3** — [`e3_reconciler_adapter.py:239`](pipeline/domain/services/e3_reconciler_adapter.py) concatena `key + stage_suffix("E2")` no `stmt.source_document` (mostra qual input deu origem à linha).
 2. **`_source` em itens E4** — [`e4_categorizer_adapter.py:194`](pipeline/domain/services/e4_categorizer_adapter.py) anexa origem a posição patrimonial / investimento.
 3. **Campo `arquivo` no payload E3** — [`e3_serialization.generate_legacy_filename`](pipeline/domain/services/e3_serialization.py) gera `{banco}_{tipo_conta}_{MOEDA}_{YYYYMM}_{YYYYMM}-3_reconciled.json` para logs / UI.
-4. **CLI `scripts/e0_audit.py`** — read-only inspeciona filesystem usando os mappings.
-5. **Guardrail test** — `tests/unit/pipeline/test_artifact_stores.py` valida sincronia entre `_STAGE_TO_DIR` e `_STAGE_TO_SUFFIX`.
 
-Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py) em `pipeline/artifact_store.py`.
+Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py) em `pipeline/artifact_store.py`. `_STAGE_TO_DIR` + `stage_dir_name()` foram deletados em [[ADR-213]] (dead code pós-sunset do stage `audit_documents`).
 
 | Stage / `_STAGE_TO_SUFFIX` key | Sufixo              | Stage descritivo                                         | Exemplo de `artifact_key`                  |
 | ------------------------------ | ------------------- | --------------------------------------------------------- | ------------------------------------------ |
@@ -1047,8 +1045,7 @@ Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py)
 | `E6-parecer`                   | `-6_parecer`        | `review_finances_holistic` · ADR-199                     | `parecer_planejador`                       |
 
 **Sufixos `-5n_narrativas` (`E5.N`) e `-7_crossval` (`E7`) permanecem em
-`_STAGE_TO_SUFFIX` por consistência do guardrail test, mas são dead
-code de write em produção:**
+`_STAGE_TO_SUFFIX`, mas são dead code de write em produção:**
 
 - `generate_narratives` ([`scripts/e5n_narrativas.py:670`](scripts/e5n_narrativas.py)) faz `store.write("E5", "analise_financeira", ...)` — **merge** das narrativas no payload E5 existente (não há row com stage="E5.N" em `pipeline_artifacts`).
 - `validate_cross` ([`scripts/e7_review.py:480`](scripts/e7_review.py)) é puro read-only sobre E5; **não chama `store.write`** (sem row com stage="E7").
@@ -1071,13 +1068,12 @@ não pôde ser determinado. Propaga de E0→E2→E3.
   ADR-076). Outros YAMLs do repo (`.pre-commit-config.yaml`,
   `config/internal_operators.example.yaml`, `config/prompts/*.yaml`)
   servem propósitos ortogonais (CI, ops, prompts LLM) — não confundir.
-- Mapeamento `_STAGE_TO_DIR` em [`pipeline/artifact_store.py`](pipeline/artifact_store.py)
-  preserva sufixos mistos por stage (`E2_extracts` substantivo,
-  `E3_reconciled` particípio, `E4_unified` particípio, `E5_analysis`
-  substantivo, `E7_review` substantivo, `E6_parecer` substantivo) —
-  padrão aceito, não renomear. Pós-[[ADR-212]] o mapping é referência
-  para o CLI read-only `scripts/e0_audit.py`; artifacts em produção
-  vivem em `pipeline_artifacts` (DB), não em diretórios.
+- Sufixos mistos por stage (substantivo vs particípio: `E2_extracts`,
+  `E3_reconciled`, `E4_unified`, `E5_analysis`, `E7_review`,
+  `E6_parecer`) — padrão histórico aceito do layout legado em disco.
+  Mapping `_STAGE_TO_DIR` foi deletado em [[ADR-213]]; o que sobrevive
+  é `_STAGE_TO_SUFFIX` (consumidores em §"Convenções de naming de
+  artefatos"). Artifacts em produção vivem em `pipeline_artifacts` (DB).
 - `inbox_processed/` sem prefixo `_` — é parte do fluxo de upload (move
   arquivo de `inbox/` após classificação), não diretório auxiliar.
 - `config/schemas/` contém schemas JSON usados por `validate_dict` (hook
@@ -1101,9 +1097,10 @@ de teste estão em §Code style › Testes. Para ops avançadas (smoke test,
 seed, cutover DB, comparação disk↔DB), ver
 [docs/reference/RUNBOOK.md](docs/reference/RUNBOOK.md) e
 [docs/reference/SMOKE_TEST_HUMAN.md](docs/reference/SMOKE_TEST_HUMAN.md). CLI standalone
-do pipeline descontinuada em ADR-212 (PR1+PR1b); sobrevive apenas
-`scripts/e0_audit.py` como inspeção read-only do filesystem. Reset
-destrutivo de pipeline é service-layer
+do pipeline descontinuada em ADR-212 (PR1+PR1b); `scripts/e0_audit.py`
+era stage do pipeline (`audit_documents`) e foi deletado em ADR-213
+(sunset; checks dependiam de `processed/E2_extracts/` que não existe
+pós-ADR-212). Reset destrutivo de pipeline é service-layer
 `backend/app/services/internal_ops/pipeline_reset.py::reset_workspace_from_stage`.
 
 ---

@@ -7,7 +7,7 @@ import {
 
 describe("resolveStageName", () => {
   it("traduz cada legacy stage para o descritivo equivalente", () => {
-    expect(resolveStageName("E0-audit")).toBe("audit_documents");
+    // E0-audit removido em ADR-213 (sunset stage audit_documents).
     expect(resolveStageName("E0-unlock")).toBe("unlock_documents");
     expect(resolveStageName("E0-route")).toBe("route_documents");
     expect(resolveStageName("E1")).toBe("extract_members");

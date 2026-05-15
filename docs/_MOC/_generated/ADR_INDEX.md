@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-205 ADRs (ADR-001 a ADR-212) em [`docs/adr/`](../../adr/).
+206 ADRs (ADR-001 a ADR-213) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 169
+- **Decidido**: 170
 - **Proposto**: 32
 - **Roadmap**: 4
 
@@ -297,13 +297,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (5)
+### Decidido (6)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
 - [[ADR-162]] — Decisions como event projection sobre Goals · phase Onda 8
 - [[ADR-167]] — Eligibility gate de cenário do cônjuge no domain service · phase A8.4 PR2
 - [[ADR-192]] — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) · phase Sprint A11.W5
+- [[ADR-213]] — Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) · phase A12.sunset-audit
 
 ### Proposto (2)
 

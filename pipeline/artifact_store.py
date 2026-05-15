@@ -13,9 +13,11 @@ A implementação de produção, ``DBArtifactStore``, vive em
 
 **ADR-212 PR3b:** ``DiskArtifactStore`` foi removido. Pipeline roda
 exclusivamente via Celery worker com ``DBArtifactStore``; testes usam
-``InMemoryArtifactStore``. ``stage_dir_name``/``stage_suffix`` permanecem
-como referência para o layout legado em disco (consumido por scripts
-read-only e CLI ``e0_audit.py``).
+``InMemoryArtifactStore``. **ADR-213:** ``_STAGE_TO_DIR`` + ``stage_dir_name()``
+deletados (dead code sem caller runtime); ``_STAGE_TO_SUFFIX`` +
+``stage_suffix()`` permanecem com 3 consumidores legítimos
+(``e3_reconciler_adapter``, ``e4_categorizer_adapter``,
+``e3_serialization.generate_legacy_filename``).
 
 Durante as Fases 1-8, as chaves de stage são os nomes legados (``"E2"``,
 ``"E3"``, ``"E5"``...). A Fase 9 migra para nomes descritivos
@@ -35,40 +37,13 @@ from __future__ import annotations
 from typing import Optional, Protocol, runtime_checkable
 
 # =============================================================================
-# Mapeamentos stage → diretório/sufixo (convenção atual do ``processed/``)
+# Mapeamento stage → sufixo de filename
 # =============================================================================
 #
-# Fonte de verdade para ``DiskArtifactStore``.
-# As chaves são os identificadores legados — Fase 9 migra para os descritivos.
-#
-# Invariante (testado em ``tests/pipeline/test_artifact_stores.py``):
-#   todo stage listado em ``StageSpec.reads`` ou ``StageSpec.writes`` que
-#   produz artefato em disco DEVE ter entrada aqui.
-
-_STAGE_TO_DIR: dict[str, str] = {
-    "E1": "members",  # members-1b_unified.json — ADR-127
-    "E1.5c": "E2_extracts",  # baseline vive em E2_extracts (convenção aceita)
-    "E1.5": "E2_extracts",  # baseline bruto também
-    "E1.5a": "E2_extracts",  # extrato per-IRPF (1 arquivo por documento)
-    "extract_irpf_full": "E2_extracts",  # E1.6 — IRPF completo (ADR-157)
-    "E2": "E2_extracts",  # extratos + faturas compartilham pasta
-    "E2-faturas": "E2_extracts",
-    "E2-extratos": "E2_extracts",
-    "E2-llm": "E2_extracts",
-    "E3": "E3_reconciled",
-    "E4": "E4_unified",
-    "categorize_transactions": "E4_unified",  # F9.2 descriptive alias
-    "E5": "E5_analysis",
-    "analyze_finances": "E5_analysis",  # F9.2 descriptive alias
-    "generate_narratives": "E5_analysis",  # F9.2 descriptive alias (narrativas ficam junto)
-    "E5.N": "E5_analysis",  # narrativas ficam junto da análise
-    "E7": "E7_review",  # crossval (review/apply legados removidos em A12.X)
-    "E7-crossval": "E7_review",
-    "validate_cross": "E7_review",  # F9.2 descriptive alias
-    # ADR-199 — parecer planejador (Ato 4). Diretório próprio E6_parecer.
-    "E6-parecer": "E6_parecer",
-    "review_finances_holistic": "E6_parecer",
-}
+# ADR-212 PR3b removeu ``DiskArtifactStore``; ADR-213 removeu
+# ``_STAGE_TO_DIR`` + ``stage_dir_name()`` (dead code sem caller runtime).
+# ``_STAGE_TO_SUFFIX`` permanece — consumidores documentados em
+# CLAUDE.md §"Convenções de naming de artefatos".
 
 _STAGE_TO_SUFFIX: dict[str, str] = {
     "E1": "-1b_unified.json",  # ADR-127
@@ -93,13 +68,6 @@ _STAGE_TO_SUFFIX: dict[str, str] = {
     "E6-parecer": "-6_parecer.json",
     "review_finances_holistic": "-6_parecer.json",
 }
-
-
-def stage_dir_name(stage: str) -> str:
-    """Resolve o nome de diretório sob ``processed/`` para um stage."""
-    if stage not in _STAGE_TO_DIR:
-        raise KeyError(f"Stage '{stage}' sem mapeamento em _STAGE_TO_DIR")
-    return _STAGE_TO_DIR[stage]
 
 
 def stage_suffix(stage: str) -> str:

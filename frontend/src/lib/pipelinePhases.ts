@@ -36,11 +36,10 @@ export const PIPELINE_PHASES: readonly Phase[] = [
       "Conferimos se os arquivos estão íntegros, desbloqueamos PDFs com senha e organizamos cada documento pela sua categoria (extrato, fatura, IRPF, etc).",
     stages: [
       // Legacy keys (compat reverso F9.2 → F9.3).
-      "E0-audit",
+      // E0-audit removido em ADR-213 (sunset stage audit_documents).
       "E0-route",
       "E0-unlock",
       // Descritivos canônicos (ADR-093).
-      "audit_documents",
       "route_documents",
       "unlock_documents",
     ],

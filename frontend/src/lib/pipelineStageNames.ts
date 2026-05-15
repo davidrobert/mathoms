@@ -11,7 +11,6 @@ import type { PipelineEvent, PipelineStageActivity } from "./api";
  * normalizar.
  */
 const LEGACY_TO_DESCRIPTIVE: Record<string, string> = {
-  "E0-audit": "audit_documents",
   "E0-unlock": "unlock_documents",
   "E0-route": "route_documents",
   "E1": "extract_members",

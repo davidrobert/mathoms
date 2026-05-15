@@ -61,10 +61,7 @@ class TestStageImports:
 
         assert callable(route_documents.run)
 
-    def test_import_audit_documents(self):
-        from pipeline.stages import audit_documents
-
-        assert callable(audit_documents.run)
+    # audit_documents removido em ADR-213 (sunset stage).
 
     def test_import_extract_members(self):
         from pipeline.stages import extract_members
@@ -208,16 +205,8 @@ class TestInitConfig:
 
         # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 
-    def test_e0_audit_init_config_custom_root(self, tmp_path):
-        from scripts.e0_audit import _init_config
-
-        _init_config(tmp_path)
-        from scripts import e0_audit
-
-        assert e0_audit.PROJECT_DIR == tmp_path
-        assert e0_audit.DATA_DIR == tmp_path / "data"
-
-        # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
+    # test_e0_audit_init_config_custom_root removido em ADR-213
+    # (sunset stage audit_documents + script e0_audit).
 
     def test_e0_route_init_config_custom_root(self, tmp_path):
         config_dir = tmp_path / "config"

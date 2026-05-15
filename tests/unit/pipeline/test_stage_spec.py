@@ -35,7 +35,6 @@ from pipeline.stage_spec import (  # noqa: E402
 )
 
 EXPECTED_DESCRIPTIVE_STAGES = {
-    "audit_documents",
     "unlock_documents",
     "route_documents",
     "extract_members",
