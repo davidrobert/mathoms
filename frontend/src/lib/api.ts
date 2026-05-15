@@ -28,3 +28,4 @@ export * from "./api/protections";
 export * from "./api/suggestions";
 export * from "./api/planner-review";
 export * from "./api/workspace-notes";
+export * from "./api/properties";
