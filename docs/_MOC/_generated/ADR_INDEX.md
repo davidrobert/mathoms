@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-207 ADRs (ADR-001 a ADR-214) em [`docs/adr/`](../../adr/).
+208 ADRs (ADR-001 a ADR-215) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 170
-- **Proposto**: 33
+- **Proposto**: 34
 - **Roadmap**: 4
 
 ## Fundação
@@ -373,6 +373,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-183]] — Pilares narrativos da landing — reposicionamento Mathoms 2026 (Fase 4.B COMPETITIVE_PIERRE) · phase A11
 - [[ADR-184]] — Stack da landing estática (Hugo + CF Pages) · phase A11
+
+## methodology
+
+### Proposto (1)
+
+- [[ADR-215]] — Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` · phase A12
 
 ## money
 
