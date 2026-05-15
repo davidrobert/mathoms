@@ -9,7 +9,8 @@ Convenções de código, regras de domínio e arquitetura vivem em
 ## Setup rápido
 
 Ver [`docs/reference/SETUP.md`](../docs/reference/SETUP.md) para instalação completa
-(Python 3.13, Node 20, Postgres 16, Redis 7, pre-commit hooks).
+(Python 3.11+, Node 18+, Redis 7+, pre-commit hooks). DB em dev é SQLite por
+default; Postgres é opcional (necessário só para CI/produção).
 
 ```bash
 git clone https://github.com/davidrobert/mathoms.git
@@ -65,8 +66,8 @@ pre-commit install --hook-type pre-push
   conteúdo de extrato/fatura. Hooks de pre-commit bloqueiam, mas
   responsabilidade primária é sua.
 - **ADR para decisão arquitetural não-trivial.** Ver
-  [`docs/DECISIONS.md`](../docs/DECISIONS.md) — cheat-sheet no topo do
-  arquivo. Gates rodados via pre-commit.
+  [`docs/_MOC/_generated/ADR_INDEX.md`](../docs/_MOC/_generated/ADR_INDEX.md) —
+  notas atômicas em `docs/adr/NNN-slug.md` (ADR-182). Gates rodados via pre-commit.
 - **Endpoint JSON novo/alterado** → `make update-openapi-snapshot` e
   comite o snapshot.
 
@@ -76,7 +77,7 @@ pre-commit install --hook-type pre-push
 
 - **Bug**: use o template `🐛 Bug report`. Anonimize CPF/valores reais.
 - **Feature**: use o template `✨ Feature / melhoria`. Antes, veja se já
-  está em [`docs/BACKLOG.md`](../docs/BACKLOG.md).
+  está em [`docs/_MOC/SPRINTS-active.md`](../docs/_MOC/SPRINTS-active.md).
 - **Vulnerabilidade de segurança**: **não abra issue pública**. Siga
   [`SECURITY.md`](../SECURITY.md).
 
@@ -97,12 +98,13 @@ pre-commit install --hook-type pre-push
 
 ## Estrutura útil
 
-| Para...                                     | Veja                                  |
-| ------------------------------------------- | ------------------------------------- |
+| Para...                                     | Veja                                            |
+| ------------------------------------------- | ----------------------------------------------- |
 | Stack, modelo de dados, stages do pipeline  | `docs/reference/ARCHITECTURE.md`                |
-| Sprint atual e roadmap                      | `docs/BACKLOG.md`                     |
-| Decisões arquiteturais (ADRs)               | `docs/DECISIONS.md`                   |
+| Sprint atual + lanes ready                  | `docs/_MOC/SPRINTS-active.md`                   |
+| Roadmap macro (fases)                       | `docs/reference/PHASES.md`                      |
+| Decisões arquiteturais (ADRs)               | `docs/_MOC/_generated/ADR_INDEX.md`             |
 | Setup dev local                             | `docs/reference/SETUP.md`                       |
 | Operações em prod (runbook)                 | `docs/reference/RUNBOOK.md`                     |
-| Histórico de entregas                       | `docs/CHANGELOG.md`                   |
-| Convenções de código + domínio              | `CLAUDE.md`                           |
+| Entregas últimos 14 dias                    | `docs/_MOC/_generated/CHANGELOG_RECENT.md`      |
+| Convenções de código + domínio              | `CLAUDE.md`                                     |

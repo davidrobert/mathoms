@@ -26,7 +26,7 @@ Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas inst
 
 | Documento | Conteúdo |
 | --------- | --------- |
-| [docs/PRODUCT.md](docs/PRODUCT.md) | Visão, proposta de valor, público-alvo |
+| [docs/reference/PRODUCT.md](docs/reference/PRODUCT.md) | Visão, proposta de valor, público-alvo |
 | [docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md) | Stack, modelo de dados, fluxos, pastas |
 | [docs/reference/tenancy.md](docs/reference/tenancy.md) | Workspaces, isolamento, convites |
 | [docs/reference/SETUP.md](docs/reference/SETUP.md) | Setup local, env, Redis, Celery, LLM |
@@ -35,10 +35,10 @@ Mathoms AI consolida extratos, faturas, investimentos e IRPFs de múltiplas inst
 
 | Documento | Conteúdo |
 | --------- | --------- |
-| [docs/ROADMAP.md](docs/ROADMAP.md) | Fases, milestones, status |
-| [docs/BACKLOG.md](docs/BACKLOG.md) | Tasks (P0/P1/P2) |
-| [docs/DECISIONS.md](docs/DECISIONS.md) | ADRs |
-| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Entregas por data |
+| [docs/reference/PHASES.md](docs/reference/PHASES.md) | Fases macro, milestones, status |
+| [docs/_MOC/SPRINTS-active.md](docs/_MOC/SPRINTS-active.md) | Sprint atual + lanes ready (vault atomizado, ADR-182) |
+| [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) | ADRs por categoria + status (auto-gerado) |
+| [docs/_MOC/_generated/CHANGELOG_RECENT.md](docs/_MOC/_generated/CHANGELOG_RECENT.md) | Entregas últimos 14 dias (auto-gerado) |
 
 ### Contribuição e qualidade
 
@@ -120,4 +120,4 @@ separada; console local é bloqueado por flag + bind + guard de `ENVIRONMENT=pro
 
 ## Contribuindo
 
-Antes de abrir um PR, leia [docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) (wrappers do pipeline, multi-tenant). Para testes e CI, [docs/reference/TESTING.md](docs/reference/TESTING.md). Commits e paths sensíveis: [CLAUDE.md](CLAUDE.md) e hooks em `dev/`.
+Antes de abrir um PR, leia [docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md) e [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) (wrappers do pipeline, multi-tenant). Para testes e CI, [docs/reference/TESTING.md](docs/reference/TESTING.md). Fluxo de PR completo em [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md). Commits e paths sensíveis: [CLAUDE.md](CLAUDE.md) e hooks em `dev/`.

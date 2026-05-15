@@ -1,16 +1,16 @@
 # Stateless-readiness audit (A6f.6)
 
-**Data:** 2026-04-20
+**Data:** 2026-04-20 (snapshot inicial) · **Last verified:** 2026-05-14 (revalidado pós-[[ADR-212]]: ressalva §6 eliminada por construção)
 **Escopo:** `backend/app/` + `backend/app/tasks/` + `pipeline/`
 **Objetivo:** avaliar se a stack atual sobrevive a `N` uvicorn workers + `M`
 Celery workers apontando para o mesmo Postgres + Redis — critério de aceite
-para horizontal scale (ADR-102 R19).
+para horizontal scale ([[ADR-102]] R19).
 
 ---
 
 ## Sumário executivo
 
-- **Multi-worker-safe?** ✅ **Sim, com uma ressalva operacional menor** (ver §6).
+- **Multi-worker-safe?** ✅ **Sim, sem ressalvas** (pós-[[ADR-212]]; ver §6).
 - **Gaps críticos:** 0.
 - **Gaps nice-to-have:** 0 (nenhum workaround urgente). Workaround documentado
   para `_PLAYWRIGHT_AVAILABLE` (cache de capability check) apenas por
@@ -116,15 +116,15 @@ Grep `fcntl`, `flock`, `filelock`, `portalocker` em `backend/` e
 `pipeline/` — **zero resultados**. Nenhum lock em disco que precisaria
 ser migrado para advisory lock Postgres ou `SET NX` Redis.
 
-**Ressalva operacional:** default `MATHOMS_USE_DB_ARTIFACTS=True` (ADR-118,
-2026-04-23) — artifacts gravados via SQLAlchemy + Postgres, risco de escrita
-concorrente em disco eliminado. Workspaces com
-`use_db_artifacts_override=FALSE` (debug) ainda gravam em
-`storage/<ws>/processed/...`; a semântica Celery (`task_acks_late=True` +
-`task_reject_on_worker_lost=True`) garante 1 worker por run_id mesmo nesse
-modo.
+**Status pós-[[ADR-212]] (2026-05-14):** artifacts gravados exclusivamente via
+SQLAlchemy + Postgres em `pipeline_artifacts`. `DiskArtifactStore` foi
+deletado, flag `MATHOMS_USE_DB_ARTIFACTS` + coluna
+`workspaces.use_db_artifacts_override` removidas — classe de risco de escrita
+concorrente em disco **eliminada por construção**. Semântica Celery
+(`task_acks_late=True` + `task_reject_on_worker_lost=True`) garante 1 worker
+por run_id.
 
-**Veredito:** ✅ **OK — default DB elimina classe de risco**.
+**Veredito:** ✅ **OK — DB-only elimina classe de risco**.
 
 ### 7. `contextvars` — **request-scoped apenas**
 

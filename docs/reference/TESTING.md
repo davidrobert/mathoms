@@ -1,8 +1,6 @@
 # Testing — Guia de Contribuidor
 
-> **Status:** Esqueleto inicial criado em F6.5 Bootstrap • será completado ao longo de 6.5F.13 conforme as suítes ficam prontas.
->
-> **Objetivo:** dar a um contribuidor novo tudo que ele precisa para rodar, escrever, debugar e atualizar testes do Mathoms AI — sem chamar ninguém. Onboarding em horas, não dias (ADR-067).
+> **Objetivo:** dar a um contribuidor novo tudo que ele precisa para rodar, escrever, debugar e atualizar testes do Mathoms AI — sem chamar ninguém. Onboarding em horas, não dias ([[ADR-067]]).
 
 ---
 
@@ -169,15 +167,15 @@ pytest tests/unit/pipeline/test_domain_money.py -q
 pytest tests/unit/pipeline/test_reconciliation_service.py -q
 ```
 
-**Regra de uso (ADR-089):**
+**Regra de uso ([[ADR-089]] + [[ADR-212]]):**
 - Testes de `ReconciliationService`, `CategorizationService` e calculadoras
   (`CashFlowAggregator`, `PatrimonioCalculator`, etc.) **devem usar
-  `InMemoryArtifactStore`** — sem fixtures de arquivo.
-- Testes de integração que verificam paridade DB ↔ Disk usam
-  `DBArtifactStore` + sync fixture factory (ver
-  [backend/tests/test_db_artifact_store.py](../backend/tests/test_db_artifact_store.py)).
-- `DiskArtifactStore` **não é usado** em testes automatizados — apenas em
-  CLI dev.
+  `InMemoryArtifactStore` injetado explicitamente** — sem fixtures de arquivo.
+  `WorkspaceContext.get_artifact_store()` levanta `RuntimeError` se store
+  não foi injetada ([[ADR-212]] PR3b).
+- Testes de integração que validam round-trip DB usam `DBArtifactStore` +
+  sync fixture factory (ver [backend/tests/test_db_artifact_store.py](../../backend/tests/test_db_artifact_store.py)).
+- `DiskArtifactStore` **foi deletado** em [[ADR-212]] PR3b — não existe em testes nem em código de produção.
 
 **Pattern** — fixture típica de domain service:
 
@@ -572,38 +570,26 @@ em 2026-04-21).
 - [ ] E2-faturas processa apenas faturas; E2-extratos processa apenas extratos (flags corretas)
 - [ ] `import scripts.pipeline_common` sem `FIN_WORKSPACE_ROOT` não levanta `SystemExit`
 
-### Infra — Fase 2 (DBArtifactStore + MaterializationBridge — bridge removido em A6c, mantido como histórico)
+### Infra — Fases 2-4 (DBArtifactStore + cutover) — **encerradas pós-[[ADR-212]] (2026-05-14)**
 
-- [ ] `DBArtifactStore` round-trip preserva dados exatos (read ∘ write = identity)
-- [ ] Sessão SQLAlchemy injetada no `__init__`; store nunca cria sessão própria
-- [ ] Celery task: commit só após run completa; sem sessão órfã em caso de exception
-- [ ] Pipeline E2→E5 com `MATHOMS_USE_DB_ARTIFACTS=true` produz E5 idêntico ao caminho disco (golden)
-- [ ] `MATHOMS_USE_DB_ARTIFACTS` é setting global (env var); default `True` desde [ADR-118](DECISIONS.md#adr-118--flip-do-default-mathoms_use_db_artifacts-para-true) (2026-04-23); override per-workspace via `workspaces.use_db_artifacts_override`
-- [ ] ~~`MaterializationBridge` como context manager~~ — bridge **removido em A6c** (2026-04-24); cutover encerrado, sem caminho disco residual no Celery
-- [ ] ~~`MaterializationBridge._STAGE_TO_DIR` e `_STAGE_TO_SUFFIX`~~ — idem, removido em A6c
-- [ ] Regressão de perf (R8): tempo total ≤ baseline × 1.15, peak RSS ≤ baseline × 1.20
-- [ ] `dev/compare_disk_vs_db.py` reporta 0 diffs estruturais em workspace piloto
+> Histórico preservado para contexto. Gates fechados; `DiskArtifactStore` /
+> `MaterializationBridge` / flag `MATHOMS_USE_DB_ARTIFACTS` / coluna
+> `use_db_artifacts_override` foram removidos. Rollback do cutover:
+> [runbooks/pipeline_rollback.md](runbooks/pipeline_rollback.md).
 
-### Infra — Fase 3 (stages no Caminho B, per sub-fase)
-
-- [ ] `document_pipeline_sync.py` sem regex em nome de arquivo
-- [ ] Modo incremental usa `pipeline_last_run_at IS NULL` — sem stem matching
-- [ ] `DBArtifactStore.write()` recebe `document_id` FK correto do document row
-- [ ] Todos os parsers em `scripts/e2/banks/*.py` retornam `BankStatement` (não `dict`) — R10
-- [ ] Extract stages distintos: `extract_statements`, `extract_invoices`, `extract_with_llm` têm UNIQUE constraint independente
-- [ ] Teste de colisão: mesmo documento processado por extrator determinístico + LLM fallback não viola UNIQUE
-- [ ] Cada stage: golden fixture passa com artefatos no banco
-- [ ] E5: `pipeline_artifacts` tem `analise_financeira` com FK válida à run
-- [ ] `validate_artifact_stage("analyze_finances")` passa; `validate_artifact_stage("foo")` levanta
-
-### Infra — Fase 4 (cleanup + cutover)
-
-- [ ] `processed/` não é criado em runs web com `use_db_artifacts=True`
-- [ ] `e_reset.py` limpa artefatos de `pipeline_artifacts` no DB (não apenas disco)
-- [ ] `GET /reports/{id}/data` lê do DB via `artifact_id`
-- [ ] CLI continua funcionando com `DiskArtifactStore` (sem regressão)
-- [ ] Procedimento de cutover ([runbook](runbooks/cutover.md)) executado em pelo menos um workspace de teste
-- [ ] `backend/app/scripts/backfill_artifacts_from_disk.py --dry-run` lista artefatos a migrar sem erro
+- [x] `DBArtifactStore` round-trip preserva dados exatos (read ∘ write = identity)
+- [x] Sessão SQLAlchemy injetada no `__init__`; store nunca cria sessão própria
+- [x] Celery task: commit só após run completa; sem sessão órfã em caso de exception
+- [x] Pipeline E2→E5 produz E5 íntegro no DB (golden em `tests/test_e{3,4,5}_golden_execution.py`)
+- [x] [[ADR-212]] PR3b removeu `DiskArtifactStore`; PR4 removeu flag + coluna override
+- [x] `document_pipeline_sync.py` sem regex em nome de arquivo
+- [x] Modo incremental usa `pipeline_last_run_at IS NULL`
+- [x] `DBArtifactStore.write()` recebe `document_id` FK correto
+- [x] Todos os parsers em `scripts/e2/banks/*.py` retornam `BankStatement` (não `dict`)
+- [x] Extract stages distintos com UNIQUE constraint independente
+- [x] Reset destrutivo virou service-layer (`backend/app/services/internal_ops/pipeline_reset.py`)
+- [x] `GET /reports/{id}/data` lê do DB via `artifact_id` ([[ADR-131]])
+- [x] Validação JSON-schema universal via hook pós-write em `DBArtifactStore.write` ([[ADR-212]] PR3a)
 
 ### Domínio — Fase 5 (Money + dataclasses)
 

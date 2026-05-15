@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-64 entries entre 2026-04-30 e 2026-05-14.
+61 entries entre 2026-05-04 e 2026-05-14.
 
 ## 2026-05-14 (2 entries)
 
@@ -89,12 +89,6 @@
 
 - [[CHG-2026-05-04-A10-FEAT-SUGGESTIONS-DEC]] — feat(suggestions+decisions): Onda 8 — coerência metodológica (2026-05-04). - **feat(suggestions+decisions): Onda 8 — coerência metodológica (2026-05-04):** Fecha 6 gaps identificados na revisão de produto 2026-04-29: - **#1 (ADR-161):*
 - [[CHG-2026-05-04-FEAT-API]] — feat(api,security): LGPD self-service + tenancy isolation gate (Bloco 0.6 P2/P3 · 2026-05-04). - **feat(api,security): LGPD self-service + tenancy isolation gate (Bloco 0.6 P2/P3 · 2026-05-04):** Endpoints `POST /api/v1/me/data-export`, `GET /me/data-expo
-
-## 2026-04-30 (3 entries)
-
-- [[CHG-2026-04-30-A8-2]] — test(pipeline): IRPF full schema goldens — A8.2 sub-lane (2026-04-30). - **test(pipeline): IRPF full schema goldens — A8.2 sub-lane (2026-04-30):** 3 fixtures sintéticas (`tests/fixtures/llm_golden/e16_irpf_full_{completo,simplific (lane [[A8.2]])
-- [[CHG-2026-04-30-FEAT-PIPELINE]] — feat(pipeline): IRPF full schema (E1.6 / `extract_irpf_full`) — Sprint A8 (2026-04-30). - **feat(pipeline): IRPF full schema (E1.6 / `extract_irpf_full`) — Sprint A8 (2026-04-30):** novo stage paralelo a `extract_baseline` que captura **todo** o co
-- [[CHG-2026-04-30-FEAT-REPORT]] — feat(report): seções IRPF no relatório premium — UI lane (2026-04-30). - **feat(report): seções IRPF no relatório premium — UI lane (2026-04-30):** materializa os 6 KPIs do `IRPFAnalyzer` (já em produção via E5 try-read) em duas se
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

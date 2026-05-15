@@ -1,19 +1,35 @@
-# Artefatos do pipeline — validação JSON (checklist P1-D3)
+# Artefatos do pipeline — validação JSON
 
 > Referência para cobertura de `validate_artifact` e do modo **strict** (`MATHOMS_PIPELINE_SCHEMA_MODE`).
+>
+> **Pós-[[ADR-212]] (2026-05-14):** artefatos do pipeline vivem em
+> `pipeline_artifacts` (DB); validação é universal via hook pós-write em
+> `DBArtifactStore.write` (mapping `SCHEMA_BY_STAGE`). Os paths
+> `storage/<ws>/processed/...` documentados abaixo permanecem como **convenção
+> histórica de `artifact_key`** (consumida pelo CLI read-only
+> `scripts/e0_audit.py`); o conteúdo canônico vive no DB.
 
 ## Schemas em `config/schemas/`
 
-| Schema | Artefato típico | Onde valida após escrita |
+| Schema | Stage (descritivo / legacy) | `artifact_key` típico |
 | --- | --- | --- |
-| `e2_extract.schema.json` | `processed/E2_extracts/*-2_extract.json` | `scripts/e2_extract.py` (`save_result`, exceto `requires_llm_fallback`); `pipeline/stages/e2_llm.py` |
-| `e3_reconciled.schema.json` | `processed/E3_reconciled/*-3_reconciled.json` | `scripts/e3_reconcile.py` (após `write_json_atomic` por conta) |
-| `e4_unified.schema.json` | `processed/E4_unified/*-4_unified.json` | `scripts/e4_categorize.py` (`save_json`) |
-| `e5_analysis.schema.json` | `processed/E5_analysis/analise_financeira-5_analysis.json` | `scripts/e5_analyze.py` (write principal) |
-| `baseline_patrimonial.schema.json` | baseline E1.5 | `e4_categorize` (baseline) — validação dedicada pode evoluir |
-| `e16_irpf_full.schema.json` | `processed/E2_extracts/*-1.6_irpf_full.json` (E1.6 / `extract_irpf_full`) | `pipeline/stages/extract_irpf_full.py` via `validate_e16_output` (anti-PII + reconcile cross-field, ADR-157) |
+| `e2_extract.schema.json` | `extract_statements` / `E2` | `<banco>_<doctype>_<periodo>` (stem do doc) |
+| `e3_reconciled.schema.json` | `reconcile_transactions` / `E3` | `<banco>_<doctype>_<moeda>_<periodo>` |
+| `e4_unified.schema.json` | `categorize_transactions` / `E4` | `despesas` · `receitas` · `patrimonio` |
+| `e5_analysis.schema.json` | `analyze_finances` / `E5` | `analise_financeira` |
+| `baseline_patrimonial.schema.json` | `extract_baseline` / `E1.5` (+ `consolidate_baseline` / `E1.5c`) | `baseline_patrimonial` |
+| `e16_irpf_full.schema.json` | `extract_irpf_full` / `E1.6` ([[ADR-157]]) | `irpfdeclaracao_<ano>` |
+| `parecer_planejador.schema.json` | `review_finances_holistic` / `E6-parecer` ([[ADR-199]]) | `parecer_planejador` |
 
-**Política:** modo default **warn** (`pipeline.json`); CI roda subset com `MATHOMS_PIPELINE_SCHEMA_MODE=strict` nos testes de `validate_artifact`. Stubs E2 só para LLM (`requires_llm_fallback`) não passam por schema para evitar ruído.
+**Hook universal de validação:** `DBArtifactStore.write` chama `validate_dict`
+após persistir o `content_json`, resolvendo o schema via mapping
+`SCHEMA_BY_STAGE` em `pipeline/schema_validation.py`. Stages sem schema
+registrado passam sem validação (futuras adições só precisam estender o
+mapping).
+
+**Política:** modo default **warn** (`pipeline.json`); CI roda subset com
+`MATHOMS_PIPELINE_SCHEMA_MODE=strict` nos testes de `validate_artifact`. Stubs
+E2 só para LLM (`requires_llm_fallback`) não passam por schema para evitar ruído.
 
 ## Fixtures golden
 

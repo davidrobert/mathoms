@@ -182,12 +182,9 @@ MATHOMS_DATABASE_URL=sqlite+aiosqlite:///./mathoms.db
 
 # CORS (default: localhost:3000)
 MATHOMS_CORS_ORIGINS=["http://localhost:3000"]
-
-# Feature flag — artefatos do pipeline no banco (ADR-083, cutover concluído)
-# Default True: DBArtifactStore ativo — pipeline_artifacts é fonte de verdade.
-# False: scripts legados gravam em storage/<ws>/processed/*.json (fallback de debug).
-MATHOMS_USE_DB_ARTIFACTS=true
 ```
+
+> **`MATHOMS_USE_DB_ARTIFACTS` removido em [[ADR-212]] (2026-05-14):** pipeline grava artefatos exclusivamente em `pipeline_artifacts` via `DBArtifactStore`. Se você tem essa env var num `.env` antigo, pode deletar — ela é ignorada.
 
 > **⚠️ Fernet key:** Se você perder essa chave ou gerá-la novamente, **todos os CPFs, API keys LLM e senhas PDF encriptadas ficam irrecuperáveis**. O user precisaria re-cadastrar.
 
@@ -343,20 +340,20 @@ open htmlcov/index.html
 
 ## 8. Pipeline CLI (sem web)
 
-> **ADR-212 (2026-05-14):** CLI standalone do pipeline foi descontinuada em
-> PR1. Entrypoints `python scripts/e0_route.py`, `python scripts/e2_extract.py`,
-> `python scripts/e3_reconcile.py`, `python scripts/e4_categorize.py`,
-> `python scripts/e5_analyze.py`, `python scripts/e7_review.py` **não existem
+> **[[ADR-212]] (2026-05-14):** CLI standalone do pipeline foi descontinuada.
+> Entrypoints `python scripts/e0_route.py`, `python scripts/e0_unlock.py`,
+> `python scripts/e2_extract.py`, `python scripts/e3_reconcile.py`,
+> `python scripts/e4_categorize.py`, `python scripts/e5_analyze.py`,
+> `python scripts/e7_review.py`, `python scripts/e_reset.py` **não existem
 > mais**. Pipeline roda exclusivamente via backend (Celery worker); use
-> `make dev` + `POST /pipeline/run` para debug local.
+> `make dev-up` + `POST /pipeline/run` para debug local. Reset destrutivo
+> de pipeline virou service-layer (`backend/app/services/internal_ops/pipeline_reset.py`),
+> consumido pelo console interno.
 >
-> **Únicas CLIs sobreviventes:**
+> **Única CLI sobrevivente:**
 > - `scripts/e0_audit.py` — inspeção read-only do filesystem do workspace
->   (detecta duplicatas + arquivos órfãos antes de qualquer pipeline rodar).
->   Não toca `pipeline_artifacts`; consome apenas `MATHOMS_WORKSPACE_ROOT`.
-> - `scripts/e_reset.py` — operação destrutiva de reset (será migrada para
->   `backend/app/services/internal_ops/pipeline_reset.py` em PR1b da
->   [[ADR-212]]; lane [[A12.sunset-disk-artifact]]).
+>   (detecta duplicatas + arquivos órfãos no inbox). Não toca
+>   `pipeline_artifacts`; consome apenas `MATHOMS_WORKSPACE_ROOT`.
 
 ```bash
 source .venv/bin/activate
@@ -367,14 +364,14 @@ python scripts/e0_audit.py
 python scripts/e0_audit.py --json   # output JSON para scripts
 ```
 
-O `conftest` de pytest faz `setdefault` de `MATHOMS_WORKSPACE_ROOT` para a raiz do repositório, para carregar `config/` global durante testes. Em produção (API + Celery worker), paths vêm via `WorkspaceContext` por-run — env var global removida em [[ADR-212]] PR2.
+Em produção (API + Celery worker), paths vêm via `WorkspaceContext` por-run; testes injetam `InMemoryArtifactStore` explícito ([[ADR-212]] PR2 removeu `MATHOMS_WORKSPACE_ROOT setdefault` global).
 
 **Directórios na raiz do repo:** não é obrigatório existir `data/`, `inbox/`,
-`inbox_processed/`, `processed/`, `output/`, `logs/`, `members/` ou `life_plan/`
-na raiz do clone. Esses nomes são **subpastas do workspace** (por defeito
-`storage/<workspace_id>/…`). Só aparecem na raiz do projeto se alguém apontar
-`MATHOMS_WORKSPACE_ROOT` para a raiz do repositório e correr o pipeline CLI aí; a app
-web não depende dessas pastas na raiz.
+`inbox_processed/`, `logs/`, `members/` ou `life_plan/` na raiz do clone. Esses
+nomes são **subpastas do workspace** (por defeito `storage/<workspace_id>/…`)
+quando ainda existem em disco — pós-[[ADR-212]], artefatos do pipeline vivem
+em `pipeline_artifacts` no DB, não em `processed/`/`output/`. A app web não
+depende dessas pastas na raiz.
 
 Após cada run, artefatos JSON críticos são validados contra schemas (`warn` por padrão; ver `MATHOMS_PIPELINE_SCHEMA_MODE` e [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md)).
 
@@ -482,31 +479,19 @@ O backend FastAPI tem hot reload com `--reload`, mas o worker não.
 
 Para entender a arquitetura completa antes de contribuir, ler **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
-Para o fluxo de trabalho atual e tarefas em andamento, ver **[ROADMAP.md](ROADMAP.md)** e **[BACKLOG.md](BACKLOG.md)**.
+Para o fluxo de trabalho atual e tarefas em andamento, ver **[PHASES.md](PHASES.md)** (roadmap macro) + **[../_MOC/SPRINTS-active.md](../_MOC/SPRINTS-active.md)** (sprint atual + lanes ready).
 
-### Migração em curso — infra + domínio
+### Estado pós-A6 — infra + domínio consolidados
 
-Status + lanes abertas em [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal); arquitetura alvo em [ARCHITECTURE §17](ARCHITECTURE.md#17-arquitetura-alvo-pós-a6-migração-infradomínio); decisões em ADRs 097-111 de [DECISIONS.md](DECISIONS.md).
-Principais mudanças já em código (fases 1-8 foundation):
+Arquitetura alvo em [ARCHITECTURE §17](ARCHITECTURE.md). Principais marcos:
 
-- **Artefatos do pipeline no banco** (tabela `pipeline_artifacts`, ADR-082) com feature flag
-  `MATHOMS_USE_DB_ARTIFACTS` (default `True` a partir de 2026-04-23 — ADR-118).
-- **Abstração `ArtifactStore`** em [`pipeline/artifact_store.py`](../pipeline/artifact_store.py)
-  (ADR-083) — Disk, InMemory, DB (em `backend/`).
-- **Orquestrador declarativo** via [`pipeline/stage_spec.py`](../pipeline/stage_spec.py)
-  (`STAGE_REGISTRY`, `STAGE_RENAME_MAP`, ADR-087).
-- **Camada de domínio** em [`pipeline/domain/`](../pipeline/domain/) (ADRs 089-091) —
-  `Money`, `Transaction`, `BankStatement`, services puros testáveis em memória.
+- **Artefatos do pipeline em DB** (tabela `pipeline_artifacts`, [[ADR-082]]) — cutover final em [[ADR-212]] (2026-05-14): `DBArtifactStore` é caminho único, `DiskArtifactStore` deletado, flag `MATHOMS_USE_DB_ARTIFACTS` removida, validação JSON-schema universal via hook pós-write.
+- **Abstração `ArtifactStore`** em [`pipeline/artifact_store.py`](../../pipeline/artifact_store.py) ([[ADR-083]]) — `InMemoryArtifactStore` (testes) + `DBArtifactStore` (web/Celery).
+- **Orquestrador declarativo** via [`pipeline/stage_spec.py`](../../pipeline/stage_spec.py) (`STAGE_REGISTRY`, `STAGE_RENAME_MAP`, [[ADR-087]]).
+- **Camada de domínio** em [`pipeline/domain/`](../../pipeline/domain/) ([[ADR-089]]/[[ADR-090]]/[[ADR-091]]) — `Money`, `Transaction`, `BankStatement`, services puros testáveis em memória.
+- **Reset destrutivo** virou service-layer: `backend/app/services/internal_ops/pipeline_reset.py::reset_workspace_from_stage` (consumido pelo console interno, [[ADR-116]]).
 
-**Cutover operacional** (pós-Fase 4) — workspaces existentes:
-
-```bash
-# Backfill idempotente de processed/*.json → pipeline_artifacts
-.venv/bin/python -m backend.app.scripts.backfill_artifacts_from_disk --dry-run
-.venv/bin/python -m backend.app.scripts.backfill_artifacts_from_disk --apply
-# Opcional: por workspace
-.venv/bin/python -m backend.app.scripts.backfill_artifacts_from_disk --apply --workspace-id <uuid>
-```
+Rollback do cutover [[ADR-212]] em [runbooks/pipeline_rollback.md](runbooks/pipeline_rollback.md) (~30min RTO via snapshot DB + revert PR + downgrade migration).
 
 **Auditoria de identificadores legados (Fase 9):**
 
