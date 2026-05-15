@@ -60,15 +60,15 @@ Após este plano, ao subir IRPF novo (ou abrir MembersTab em workspace dogfood),
 
 ## Status executivo
 
-- **ADR-215 Proposto** ✅ shipped (este PR, 2026-05-15)
-- **Plano draft** ✅ shipped (este PR, 2026-05-15)
-- **P1 Schema (E1.6 + DB)** ⏳ próximo
-- **P2 Property Identity (E1.5c)** ⏳
-- **P3 Domain (lazy split + classifier)** ⏳
-- **P4 Backend API (overrides + heurística)** ⏳
-- **P5 UX pós-upload + MembersTab** ⏳
-- **P6 Cutover legado** ⏳
-- **Quick fix paralelo:** SQL no workspace `5@5.com` setando `residencia_principal_keyword: "tasso da silveira"` para destravar relatório imediatamente. **Não bloqueia o plano** — migration de cutover (P6) remove a keyword de qualquer jeito.
+- **ADR-215 Proposto** ✅ shipped 2026-05-15 (#278)
+- **Plano draft** ✅ shipped 2026-05-15 (#278)
+- **P1 Schema (E1.6 + DB)** ✅ shipped 2026-05-15 (#281, d63ecbe)
+- **P2 Property Identity (E1.5c)** ✅ shipped 2026-05-15 (#286, f3a7748)
+- **P3 Domain (lazy split + classifier)** ✅ shipped 2026-05-15 (#289, 73f590d)
+- **P4 Backend API (overrides + heurística)** ✅ shipped 2026-05-15 (#291, ad7215e)
+- **P5 UX MembersTab + esconde Residência R$ 0,00** ✅ shipped 2026-05-15 (#292)
+- **P6 Cutover legado + pre-commit gate** 🚧 este PR
+- **Quick fix paralelo:** descartado pelo usuário em favor da solução completa.
 
 ## Fases (MVP V1)
 
