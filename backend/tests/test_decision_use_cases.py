@@ -16,7 +16,6 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.base.errors import (
-    ConflictError,
     NotFoundError,
     ValidationError,
 )
@@ -69,20 +68,68 @@ async def test_create_decision_persists_and_emits_event(db, setup):
 
 
 @pytest.mark.asyncio
-async def test_create_duplicate_code_raises_conflict(db, setup):
+async def test_create_decision_auto_generates_code_when_omitted(db, setup):
+    """ADR-214 — quando ``cmd.code`` é ``None``, server gera ``D{N+1:02d}``.
+
+    Sequência canônica D01 → D02 → D03 (sem gap) num workspace fresh.
+    """
     ws, repo = setup
 
-    cmd = DecisionCreateCommand(code="D01", title="Primeira")
-    await create_decision(cmd, workspace_id=ws.id, repo=repo, actor="u")
+    r1 = await create_decision(
+        DecisionCreateCommand(title="Primeira"),
+        workspace_id=ws.id,
+        repo=repo,
+        actor="u",
+    )
+    await db.commit()
+    r2 = await create_decision(
+        DecisionCreateCommand(title="Segunda"),
+        workspace_id=ws.id,
+        repo=repo,
+        actor="u",
+    )
+    await db.commit()
+    r3 = await create_decision(
+        DecisionCreateCommand(title="Terceira"),
+        workspace_id=ws.id,
+        repo=repo,
+        actor="u",
+    )
     await db.commit()
 
-    with pytest.raises(ConflictError):
-        await create_decision(
-            DecisionCreateCommand(code="D01", title="Outra"),
-            workspace_id=ws.id,
-            repo=repo,
-            actor="u",
-        )
+    assert r1.code == "D01"
+    assert r2.code == "D02"
+    assert r3.code == "D03"
+
+
+@pytest.mark.asyncio
+async def test_create_decision_auto_gen_respects_existing_max(db, setup):
+    """ADR-214 — auto-gen reconhece codes legados (D06 + D15) e usa
+    ``max + 1`` mesmo que existam gaps editoriais. Sem reaproveitar D07-D14.
+    """
+    ws, repo = setup
+
+    await create_decision(
+        DecisionCreateCommand(code="D06", title="Legado A"),
+        workspace_id=ws.id,
+        repo=repo,
+        actor="u",
+    )
+    await create_decision(
+        DecisionCreateCommand(code="D15", title="Legado B"),
+        workspace_id=ws.id,
+        repo=repo,
+        actor="u",
+    )
+    await db.commit()
+
+    auto = await create_decision(
+        DecisionCreateCommand(title="Nova"),
+        workspace_id=ws.id,
+        repo=repo,
+        actor="u",
+    )
+    assert auto.code == "D16"
 
 
 @pytest.mark.asyncio

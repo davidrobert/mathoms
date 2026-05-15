@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 170
-- **Proposto**: 34
+- **Decidido**: 171
+- **Proposto**: 33
 - **Roadmap**: 4
 
 ## Fundação
@@ -297,7 +297,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## backend
 
-### Decidido (6)
+### Decidido (7)
 
 - [[ADR-153]] — `Suggestion` aggregate (Direção E · Onda 5): proposal imutável + state machine simples · phase Direção E · Onda 5
 - [[ADR-154]] — Fusão `KanbanItem` em `Task` + migração `ReportNotes` para `WorkspaceNotes` (Direção E · Onda 1) · phase Direção E · Onda 1 · M1+M2
@@ -305,12 +305,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-167]] — Eligibility gate de cenário do cônjuge no domain service · phase A8.4 PR2
 - [[ADR-192]] — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) · phase Sprint A11.W5
 - [[ADR-213]] — Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) · phase A12.sunset-audit
+- [[ADR-214]] — `Decision.code` é server-generated com `pg_advisory_xact_lock` · phase A12.decision-code-autogen
 
-### Proposto (3)
+### Proposto (2)
 
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
 - [[ADR-211]] — llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) · phase A12
-- [[ADR-214]] — `Decision.code` é server-generated com `pg_advisory_xact_lock` · phase A12
 
 ## categorization
 

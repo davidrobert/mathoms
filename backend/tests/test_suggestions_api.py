@@ -105,12 +105,14 @@ async def test_accept_creates_decision_returns_aceita(db, client):
 
     resp = await client.post(
         f"/api/workspaces/{ws.id}/suggestions/{s.id}/accept",
-        json={"decision_code": "D01"},
+        json={},
     )
     assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["status"] == "Aceita"
     assert body["accepted_decision_id"] is not None
+    # ADR-214 — server gera code (D01 num workspace fresh) e expõe no response.
+    assert body["accepted_decision_code"] == "D01"
 
     decisions_resp = await client.get(f"/api/workspaces/{ws.id}/decisions")
     decision_codes = [d["code"] for d in decisions_resp.json()["decisions"]]
@@ -126,16 +128,18 @@ async def test_modify_creates_decision_with_overrides(db, client):
     resp = await client.post(
         f"/api/workspaces/{ws.id}/suggestions/{s.id}/modify",
         json={
-            "decision_code": "D02",
             "title": "Customizado",
             "amount_brl": "9999.99",
         },
     )
     assert resp.status_code == 200, resp.text
-    assert resp.json()["status"] == "Modificada"
+    body = resp.json()
+    assert body["status"] == "Modificada"
+    # ADR-214 — server gera D01 (workspace fresh) e expõe no response.
+    assert body["accepted_decision_code"] == "D01"
 
     dec_resp = await client.get(f"/api/workspaces/{ws.id}/decisions")
-    target = next(d for d in dec_resp.json()["decisions"] if d["code"] == "D02")
+    target = next(d for d in dec_resp.json()["decisions"] if d["code"] == "D01")
     assert target["title"] == "Customizado"
     assert target["amount_brl"] == "9999.99"
 

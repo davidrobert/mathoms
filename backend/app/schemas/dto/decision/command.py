@@ -26,11 +26,16 @@ _PRIORITY_MAX: int = 99
 
 
 class DecisionCreateCommand(BaseModel):
-    """Cria nova ``Decision`` (status inicial = ``Pendente`` se omitido)."""
+    """Cria nova ``Decision`` (status inicial = ``Pendente`` se omitido).
+
+    ADR-214: ``code`` é opcional — quando ``None``, server gera via
+    ``DecisionRepository.next_code`` (lock per-workspace). Mantido como
+    campo permite importer/migrator one-shot informar code explícito.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
-    code: str = Field(..., min_length=1, max_length=16)
+    code: Optional[str] = Field(None, min_length=1, max_length=16)
     title: str = Field(..., min_length=1, max_length=500)
     rationale: Optional[str] = None
     amount_brl: Optional[Decimal] = Field(

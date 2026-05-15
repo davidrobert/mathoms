@@ -23,3 +23,12 @@ class DecisionRepositoryProtocol(Protocol):
     async def add(self, decision: Decision) -> Decision: ...
 
     async def add_event(self, event: DecisionEvent) -> DecisionEvent: ...
+
+    async def next_code(self, workspace_id: str) -> str:
+        """Reserva o próximo ``code`` (`D{N}`) para o workspace (ADR-214).
+
+        Acquire advisory lock + ``MAX + 1`` na mesma transação. Caller é
+        responsável por commitar — gap em codes é aceitável por design
+        (code é editorial, não contábil).
+        """
+        ...

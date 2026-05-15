@@ -73,6 +73,9 @@ export interface Suggestion {
   dedup_key: string;
   status: SuggestionAggregateStatus;
   accepted_decision_id: string | null;
+  // ADR-214 — code da Decision criada; populado pelos use cases
+  // accept_suggestion / modify_suggestion. Usado para toast UX.
+  accepted_decision_code: string | null;
   dismissed_reason: DismissReason | string | null;
   accepted_at: string | null;
   dismissed_at: string | null;
@@ -107,13 +110,14 @@ export interface SuggestionRegenerateResponse {
   suggestions: Suggestion[];
 }
 
+// ADR-214 — `decision_code` removido dos payloads; server gera via
+// pg_advisory_xact_lock + MAX+1 e expõe o code criado em
+// `Suggestion.accepted_decision_code` no response.
 export interface AcceptSuggestionPayload {
-  decision_code: string;
   note?: string | null;
 }
 
 export interface ModifySuggestionPayload {
-  decision_code: string;
   title?: string | null;
   rationale?: string | null;
   amount_brl?: string | null;

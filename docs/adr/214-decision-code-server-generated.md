@@ -2,8 +2,8 @@
 id: ADR-214
 type: adr
 title: "`Decision.code` é server-generated com `pg_advisory_xact_lock`"
-status: Proposto
-phase: A12
+status: Decidido
+phase: "A12.decision-code-autogen"
 date: "2026-05-15"
 relates_to:
   - "[[ADR-136]]"
@@ -18,7 +18,7 @@ tags:
   - area/backend
   - area/multitenancy
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
   - breaking/api
 ---

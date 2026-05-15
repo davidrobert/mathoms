@@ -259,3 +259,42 @@ def test_ws_terminal_event_closes_connection_cross_worker(shared_redis):
                     # servidor fecha logo em seguida com code=1000
                     ws.receive_json()  # deve levantar WebSocketDisconnect
                     break
+
+
+# ─── Cenário 5 — Decision.code gerado server-side sem colisão (ADR-214) ──
+
+
+@pytest.mark.asyncio
+async def test_concurrent_decision_creation_no_code_collision(db, client):
+    """ADR-214 — N requests HTTP encadeados criando Decision no mesmo
+    workspace produzem N codes únicos sequenciais.
+
+    Cada POST entra com sua própria ``AsyncSession`` (via dependency
+    override ``_override_get_db``). O contrato testado: server gera
+    ``D{N:02d}`` monotonicamente, sem colisão e sem gap. Em Postgres
+    real (CI/staging), ``pg_advisory_xact_lock`` per-workspace cobre o
+    caso adversário (workers paralelos competindo); este teste exercita
+    a serialização via HTTP, que é o caminho real de produção.
+    """
+    from backend.tests import factories
+
+    owner = await factories.make_user(db, email="dec-concurrency@test.com")
+    ws = await factories.make_workspace(db, owner=owner)
+    await db.commit()
+
+    from backend.app.core.security import create_access_token
+
+    token = create_access_token(owner.id, token_version=owner.token_version)
+    client.headers["Authorization"] = f"Bearer {token}"
+
+    n = 10
+    base = f"/api/workspaces/{ws.id}/decisions"
+    codes: list[str] = []
+    for i in range(n):
+        resp = await client.post(base, json={"title": f"Decisão {i}"})
+        assert resp.status_code == 201, f"#{i}: {resp.status_code} {resp.text}"
+        codes.append(resp.json()["code"])
+
+    assert len(set(codes)) == n, f"codes duplicados: {codes}"
+    nums = sorted(int(c[1:]) for c in codes)
+    assert nums == list(range(1, n + 1)), f"sequência inesperada: {nums}"

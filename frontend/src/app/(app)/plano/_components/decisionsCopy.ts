@@ -36,14 +36,9 @@ export function decisionStatusFilterLabel(s: DecisionStatusFilter): string {
   return s === "Todas" ? "Todas" : DECISION_STATUS_LABEL[s];
 }
 
-export function nextDecisionCode(decisions: ReadonlyArray<Decision>): string {
-  const numericCodes = decisions
-    .map((d) => d.code.match(/^D(\d+)$/)?.[1])
-    .filter((m): m is string => Boolean(m))
-    .map((m) => parseInt(m, 10));
-  const next = numericCodes.length === 0 ? 1 : Math.max(...numericCodes) + 1;
-  return `D${String(next).padStart(2, "0")}`;
-}
+// ADR-214 — `nextDecisionCode` deletado. Geração do `D{N}` é server-side
+// via `DecisionRepository.next_code` (pg_advisory_xact_lock por workspace).
+// Frontend não envia mais `code` ao criar/substituir decisão.
 
 export function findSupersededBy(
   decisions: ReadonlyArray<Decision>,

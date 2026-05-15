@@ -27,11 +27,12 @@ import { formatDecisionDate } from "./decisionsCopy";
 const RATIONALE_MIN = 10;
 const TITLE_MIN = 3;
 
+// ADR-214 — `defaultCode` removido; server gera o code da nova decisão
+// na transação do POST /decisions e devolve para o toast.
 interface DecisionSupersedeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   oldDecision: Decision;
-  defaultCode: string;
   onCreate: (payload: DecisionCreatePayload) => Promise<Decision>;
   onSupersede: (oldId: string, payload: DecisionSupersedePayload) => Promise<void>;
 }
@@ -47,7 +48,6 @@ export function DecisionSupersedeDialog(props: DecisionSupersedeDialogProps) {
 }
 
 interface SupersedeValues {
-  code: string;
   title: string;
   rationale: string;
   amountBrl: string;
@@ -56,12 +56,11 @@ interface SupersedeValues {
 
 function SupersedeBody({
   oldDecision,
-  defaultCode,
   onCreate,
   onSupersede,
   onOpenChange,
 }: DecisionSupersedeDialogProps) {
-  const { values, setters } = useSupersedeFormState(defaultCode, oldDecision.id);
+  const { values, setters } = useSupersedeFormState(oldDecision.id);
   const { busy, errorMsg, handleSubmit } = useSupersedeSubmit({
     oldDecision,
     values,
@@ -87,7 +86,6 @@ function SupersedeBody({
 }
 
 interface SupersedeSetters {
-  setCode: (v: string) => void;
   setTitle: (v: string) => void;
   setRationale: (v: string) => void;
   setAmountBrl: (v: string) => void;
@@ -95,24 +93,21 @@ interface SupersedeSetters {
 }
 
 function useSupersedeFormState(
-  defaultCode: string,
   oldDecisionId: string,
 ): { values: SupersedeValues; setters: SupersedeSetters } {
-  const [code, setCode] = useState(defaultCode);
   const [title, setTitle] = useState("");
   const [rationale, setRationale] = useState("");
   const [amountBrl, setAmountBrl] = useState("");
   const [note, setNote] = useState("");
   useEffect(() => {
-    setCode(defaultCode);
     setTitle("");
     setRationale("");
     setAmountBrl("");
     setNote("");
-  }, [defaultCode, oldDecisionId]);
+  }, [oldDecisionId]);
   return {
-    values: { code, title, rationale, amountBrl, note },
-    setters: { setCode, setTitle, setRationale, setAmountBrl, setNote },
+    values: { title, rationale, amountBrl, note },
+    setters: { setTitle, setRationale, setAmountBrl, setNote },
   };
 }
 
@@ -156,8 +151,8 @@ async function runSupersede(
   onCreate: DecisionSupersedeDialogProps["onCreate"],
   onSupersede: DecisionSupersedeDialogProps["onSupersede"],
 ): Promise<void> {
+  // ADR-214 — code da nova decisão é server-generated; toast usa created.code.
   const created = await onCreate({
-    code: values.code,
     title: values.title,
     rationale: values.rationale,
     amount_brl: values.amountBrl || null,
@@ -188,22 +183,15 @@ interface FieldsProps {
 }
 
 function SupersedeFields({ values, setters }: FieldsProps) {
+  // ADR-214 — input "Código da nova decisão" removido; foco vai para o título.
   return (
     <>
-      <Field label="Código da nova decisão">
-        <Input
-          value={values.code}
-          onChange={(e) => setters.setCode(e.target.value.toUpperCase())}
-          maxLength={10}
-          required
-          autoFocus
-        />
-      </Field>
       <Field label="Título da nova decisão">
         <Input
           value={values.title}
           onChange={(e) => setters.setTitle(e.target.value)}
           required
+          autoFocus
           placeholder="Ex.: Aumentar TRS para 5%"
         />
       </Field>
@@ -300,8 +288,8 @@ function Field({ label, hint, children }: FieldProps) {
   );
 }
 
-function validate({ code, title, rationale }: SupersedeValues): string | null {
-  if (!code.match(/^D\d{1,3}$/)) return "Código deve ser D + número (ex.: D02).";
+function validate({ title, rationale }: SupersedeValues): string | null {
+  // ADR-214 — sem validação de code (server-gen).
   if (title.trim().length < TITLE_MIN)
     return `Título precisa de ao menos ${TITLE_MIN} caracteres.`;
   if (rationale.trim().length < RATIONALE_MIN)

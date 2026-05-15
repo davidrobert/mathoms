@@ -73,7 +73,10 @@ export interface DecisionListResponse {
 }
 
 export interface DecisionCreatePayload {
-  code: string;
+  /** ADR-214 — opcional. Quando omitido, server gera ``D{N:02d}`` via
+   * advisory lock + MAX+1. Frontend nunca passa explícito desde A12; o
+   * campo permanece para uso interno (importer/migrator one-shot). */
+  code?: string;
   title: string;
   rationale?: string | null;
   amount_brl?: string | null;

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from backend.app.application.base.errors import ConflictError
 from backend.app.application.decisions._protocols import DecisionRepositoryProtocol
 from backend.app.models.decision import Decision, DecisionEvent
 from backend.app.schemas.dto.decision import (
@@ -20,19 +19,20 @@ async def create_decision(
     repo: DecisionRepositoryProtocol,
     actor: str,
 ) -> DecisionResponse:
-    """Cria Decision + emite ``DecisionCreatedEvent``. Conflito por code."""
-    existing = await repo.get_by_code(workspace_id, cmd.code)
-    if existing is not None:
-        raise ConflictError(
-            f"Decision com code={cmd.code!r} já existe no workspace",
-            code="duplicate_code",
-        )
+    """Cria Decision + emite ``DecisionCreatedEvent``.
+
+    ADR-214: quando ``cmd.code`` é ``None``, server gera via
+    ``repo.next_code(workspace_id)`` (advisory lock + ``MAX + 1``).
+    Quando ``cmd.code`` é explícito (importer/migrator one-shot), respeita.
+    ``UNIQUE (workspace_id, code)`` continua como defesa em profundidade.
+    """
+    code = cmd.code if cmd.code is not None else await repo.next_code(workspace_id)
 
     # ADR-179 — horizon tem default no model; só passa explícito se cmd
     # traz valor (Pydantic deixa None quando omitido).
     decision_kwargs: dict = {
         "workspace_id": workspace_id,
-        "code": cmd.code,
+        "code": code,
         "title": cmd.title,
         "rationale": cmd.rationale,
         "amount_brl_cents": brl_to_cents(cmd.amount_brl),
@@ -52,6 +52,11 @@ async def create_decision(
     added = await repo.add(decision)
     await _emit_created_event(repo, added, actor=actor)
     return decision_to_response(added)
+
+
+# ADR-214: ConflictError("duplicate_code") removido — advisory lock +
+# UNIQUE(workspace_id, code) garantem invariante por construção. Use case
+# antigo fazia get_by_code antes do add (TOCTOU) — esse path morreu.
 
 
 async def _emit_created_event(

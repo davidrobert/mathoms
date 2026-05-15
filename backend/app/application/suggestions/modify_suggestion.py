@@ -46,7 +46,8 @@ async def modify_suggestion(
         cmd.amount_brl if cmd.amount_brl is not None else cents_to_brl(suggestion.amount_brl_cents)
     )
     snapshot = await _build_context_snapshot(suggestion, db=db)
-    accept_cmd = AcceptSuggestionCommand(decision_code=cmd.decision_code, note=cmd.note)
+    # ADR-214 — `decision_code` saiu dos commands; server gera no create_decision.
+    accept_cmd = AcceptSuggestionCommand(note=cmd.note)
     decision = await _create_decision_from(
         suggestion,
         cmd=accept_cmd,
@@ -60,4 +61,6 @@ async def modify_suggestion(
     )
     _apply_acceptance(suggestion, decision_id=decision.id, target_status="Modificada")
     await suggestion_repo.add(suggestion)
-    return suggestion_to_response(suggestion)
+    response = suggestion_to_response(suggestion)
+    response.accepted_decision_code = decision.code  # ADR-214 — toast UX
+    return response

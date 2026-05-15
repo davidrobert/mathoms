@@ -10,12 +10,15 @@ R13/R14 (ADR-101): toda query inclui ``workspace_id``; repo não commita
 
 from __future__ import annotations
 
+import re
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.decision import Decision, DecisionEvent
+
+_CODE_PATTERN = re.compile(r"^D(\d+)$")
 
 
 class DecisionRepository:
@@ -76,3 +79,33 @@ class DecisionRepository:
         self._session.add(event)
         await self._session.flush()
         return event
+
+    async def next_code(self, workspace_id: str) -> str:
+        """Reserva próximo ``code`` (`D{N:02d}`) para o workspace (ADR-214).
+
+        Postgres: ``pg_advisory_xact_lock(hashtextextended('decision_code:' + ws_id, 0))``
+        serializa a leitura+escrita per-workspace dentro da transação atual.
+        SQLite (testes): sem lock — concorrência real só existe em prod.
+
+        Retorna o code formatado pronto para ``Decision.code``. Caller
+        consome via ``Decision(code=await repo.next_code(ws))`` na mesma tx.
+        """
+        dialect = self._session.bind.dialect.name if self._session.bind else "sqlite"
+        if dialect == "postgresql":
+            await self._session.execute(
+                text(
+                    "SELECT pg_advisory_xact_lock(" "hashtextextended('decision_code:' || :ws, 0))"
+                ),
+                {"ws": workspace_id},
+            )
+        result = await self._session.execute(
+            select(Decision.code).where(Decision.workspace_id == workspace_id)
+        )
+        max_num = 0
+        for raw in result.scalars():
+            m = _CODE_PATTERN.match(raw or "")
+            if m:
+                n = int(m.group(1))
+                if n > max_num:
+                    max_num = n
+        return f"D{max_num + 1:02d}"

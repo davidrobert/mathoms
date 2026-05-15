@@ -64,7 +64,9 @@ async def accept_suggestion(
     )
     _apply_acceptance(suggestion, decision_id=decision.id, target_status="Aceita")
     await suggestion_repo.add(suggestion)
-    return suggestion_to_response(suggestion)
+    response = suggestion_to_response(suggestion)
+    response.accepted_decision_code = decision.code  # ADR-214 — toast UX
+    return response
 
 
 async def _load_pending(
@@ -104,9 +106,9 @@ async def _create_decision_from(
     propaga `context_snapshot` para Decision."""
     title = modified_title if modified_title is not None else suggestion.title
     rationale = modified_rationale if modified_rationale is not None else suggestion.rationale
+    # ADR-214 — code é server-generated dentro de create_decision (omit aqui).
     decision_response = await create_decision(
         DecisionCreateCommand(
-            code=cmd.decision_code,
             title=title,
             rationale=rationale,
             amount_brl=amount_brl,

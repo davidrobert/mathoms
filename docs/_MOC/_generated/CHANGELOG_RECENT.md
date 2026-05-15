@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-61 entries entre 2026-05-04 e 2026-05-14.
+62 entries entre 2026-05-04 e 2026-05-15.
+
+## 2026-05-15 (1 entries)
+
+- [[CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN]] — refactor(decisions): Decision.code passa a ser server-generated com (lane [[A12.decision-code-autogen]])
 
 ## 2026-05-14 (2 entries)
 

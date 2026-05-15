@@ -41,13 +41,22 @@ async def test_create_decision_returns_201(db, client):
 
 
 @pytest.mark.asyncio
-async def test_create_duplicate_returns_409(db, client):
+async def test_create_without_code_auto_generates_sequence(db, client):
+    """ADR-214 — POST sem ``code`` aciona auto-gen server-side (D01, D02, ...).
+
+    Substitui ``test_create_duplicate_returns_409`` (pré-ADR-214 client
+    podia mandar code explícito e colidir; agora o caminho default é
+    server-gen, e UNIQUE constraint é defesa em profundidade — não
+    contrato HTTP).
+    """
     _, ws = await _make_auth(db, client)
     base = f"/api/workspaces/{ws.id}/decisions"
-    r1 = await client.post(base, json={"code": "D01", "title": "A"})
-    assert r1.status_code == 201
-    r2 = await client.post(base, json={"code": "D01", "title": "B"})
-    assert r2.status_code == 409
+    r1 = await client.post(base, json={"title": "A"})
+    assert r1.status_code == 201, r1.text
+    assert r1.json()["code"] == "D01"
+    r2 = await client.post(base, json={"title": "B"})
+    assert r2.status_code == 201, r2.text
+    assert r2.json()["code"] == "D02"
 
 
 @pytest.mark.asyncio
