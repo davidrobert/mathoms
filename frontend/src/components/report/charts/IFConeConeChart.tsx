@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { ChartData, ChartOptions } from "chart.js";
 import { ChartCanvas } from "./primitives/ChartCanvas";
+import { useChartTheme } from "./primitives/useChartTheme";
 
 const fmtBRL = (v: number): string =>
   new Intl.NumberFormat("pt-BR", {
@@ -24,6 +25,9 @@ interface IFConeChartProps {
  *
  * Três séries: P10 (otimista), P50 (mediano), P90 (conservador).
  * Linha horizontal opcional marcando a meta IF.
+ *
+ * ADR-076 · Cores via `useChartTheme()` — resolve tokens semânticos em
+ * runtime e re-calcula em dark mode. Sem RGB literal.
  */
 export function IFConeConeChart({
   caminhoP10,
@@ -32,6 +36,8 @@ export function IFConeConeChart({
   metaIf,
   ...rest
 }: IFConeChartProps) {
+  const theme = useChartTheme();
+
   const { data } = useMemo<{
     labels: string[];
     data: ChartData<"line">;
@@ -42,8 +48,8 @@ export function IFConeConeChart({
       {
         label: "P10 — otimista",
         data: caminhoP10.map(([, v]) => v),
-        borderColor: "rgba(34,197,94,0.85)",
-        backgroundColor: "rgba(34,197,94,0.08)",
+        borderColor: theme.semantic.gain,
+        backgroundColor: "transparent",
         fill: false,
         borderDash: [5, 4],
         borderWidth: 1.5,
@@ -53,7 +59,7 @@ export function IFConeConeChart({
       {
         label: "P50 — mediano",
         data: caminhoP50.map(([, v]) => v),
-        borderColor: "rgba(59,130,246,1)",
+        borderColor: theme.primary,
         backgroundColor: "transparent",
         fill: false,
         borderWidth: 2,
@@ -63,8 +69,8 @@ export function IFConeConeChart({
       {
         label: "P90 — conservador",
         data: caminhoP90.map(([, v]) => v),
-        borderColor: "rgba(239,68,68,0.85)",
-        backgroundColor: "rgba(239,68,68,0.08)",
+        borderColor: theme.semantic.loss,
+        backgroundColor: "transparent",
         fill: false,
         borderDash: [5, 4],
         borderWidth: 1.5,
@@ -77,7 +83,7 @@ export function IFConeConeChart({
       datasets.push({
         label: "Meta IF",
         data: lbls.map(() => metaIf),
-        borderColor: "rgba(251,191,36,0.9)",
+        borderColor: theme.warning,
         backgroundColor: "transparent",
         fill: false,
         borderDash: [6, 3],
@@ -88,7 +94,7 @@ export function IFConeConeChart({
     }
 
     return { labels: lbls, data: { labels: lbls, datasets } };
-  }, [caminhoP10, caminhoP50, caminhoP90, metaIf]);
+  }, [caminhoP10, caminhoP50, caminhoP90, metaIf, theme]);
 
   const options = useMemo<ChartOptions<"line">>(
     () => ({

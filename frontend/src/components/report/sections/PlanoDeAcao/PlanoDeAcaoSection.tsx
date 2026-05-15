@@ -14,12 +14,25 @@ import { MonetaryValue } from "../../MonetaryValue";
 import { useDecisions } from "@/hooks/useDecisions";
 import type { Decision, DecisionStatus } from "@/lib/api";
 
+// ADR-076 · design tokens — substitui Tailwind literal por mix dos tokens
+// semânticos (color-mix gera fundo "soft" com 15% do token, texto sólido).
+// Mapeamento:
+//   Pendente   → --semantic-alert  (laranja, aguardando ação)
+//   Decidido   → --brand-info      (azul-teal, informativo)
+//   Executado  → --semantic-gain   (verde, sucesso)
+//   Descartado → --surface-muted-foreground (slate, neutro)
+//   Superseded → --brand-secondary (azul desaturado, "histórico")
 const STATUS_BADGE_CLASS: Record<DecisionStatus, string> = {
-  Pendente: "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200",
-  Decidido: "bg-sky-100 text-sky-900 dark:bg-sky-900/30 dark:text-sky-200",
-  Executado: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200",
-  Descartado: "bg-zinc-200 text-zinc-700 dark:bg-zinc-700/50 dark:text-zinc-200",
-  Superseded: "bg-violet-100 text-violet-900 dark:bg-violet-900/30 dark:text-violet-200",
+  Pendente:
+    "bg-[color-mix(in_srgb,var(--semantic-alert)_15%,transparent)] text-[var(--semantic-alert)]",
+  Decidido:
+    "bg-[color-mix(in_srgb,var(--brand-info)_15%,transparent)] text-[var(--brand-info)]",
+  Executado:
+    "bg-[color-mix(in_srgb,var(--semantic-gain)_15%,transparent)] text-[var(--semantic-gain)]",
+  Descartado:
+    "bg-[color-mix(in_srgb,var(--surface-muted-foreground)_15%,transparent)] text-[var(--surface-muted-foreground)]",
+  Superseded:
+    "bg-[color-mix(in_srgb,var(--brand-secondary)_15%,transparent)] text-[var(--brand-secondary)]",
 };
 
 interface PlanoDeAcaoSectionProps {
