@@ -4,14 +4,14 @@ type: track
 title: "Track Decision.code server-generated — PR único cross-cutting"
 sprint: A12
 lane: "[[A12.decision-code-autogen]]"
-status: ready
+status: consumed
 created_at: "2026-05-15"
-consumed_at: null
+consumed_at: "2026-05-15"
 agent_role: senior-cto
 tags:
   - type/track
   - sprint/a12
-  - status/ready
+  - status/consumed
   - area/backend
   - area/frontend
   - breaking/api

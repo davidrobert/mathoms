@@ -5,7 +5,6 @@ import {
   decisionStatusFilterLabel,
   findSupersededBy,
   formatDecisionDate,
-  nextDecisionCode,
 } from "@/app/(app)/plano/_components/decisionsCopy";
 import type { Decision } from "@/lib/api";
 
@@ -54,31 +53,9 @@ describe("decisionStatusFilterLabel", () => {
   });
 });
 
-describe("nextDecisionCode", () => {
-  it("retorna D01 quando não há decisões", () => {
-    expect(nextDecisionCode([])).toBe("D01");
-  });
-  it("incrementa o maior código numérico encontrado", () => {
-    const decisions = [
-      makeDecision({ id: "1", code: "D01" }),
-      makeDecision({ id: "2", code: "D05" }),
-      makeDecision({ id: "3", code: "D03" }),
-    ];
-    expect(nextDecisionCode(decisions)).toBe("D06");
-  });
-  it("ignora códigos não numéricos no padrão D\\d+", () => {
-    const decisions = [
-      makeDecision({ id: "1", code: "D02" }),
-      makeDecision({ id: "2", code: "X99" }),
-      makeDecision({ id: "3", code: "ad-hoc" }),
-    ];
-    expect(nextDecisionCode(decisions)).toBe("D03");
-  });
-  it("zero-padda para 2 dígitos", () => {
-    const decisions = [makeDecision({ code: "D08" })];
-    expect(nextDecisionCode(decisions)).toBe("D09");
-  });
-});
+// ADR-214 — `nextDecisionCode` removido (server gera o code via
+// pg_advisory_xact_lock). Bloco describe deletado; cobertura migrou
+// para `backend/tests/test_decision_use_cases.py::test_create_decision_auto_generates_code_when_omitted`.
 
 describe("findSupersededBy", () => {
   it("retorna a decisão que aponta para o id dado via supersedes_id", () => {

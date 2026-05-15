@@ -3,7 +3,7 @@ id: A12.decision-code-autogen
 type: lane
 title: "Decision.code server-generated (UX cleanup + race fix)"
 sprint: A12
-status: open
+status: in_progress
 priority: P1
 branch_slug: decision-code-autogen
 adrs:
@@ -17,7 +17,7 @@ parallel_with:
 tags:
   - type/lane
   - sprint/a12
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/backend
   - area/frontend

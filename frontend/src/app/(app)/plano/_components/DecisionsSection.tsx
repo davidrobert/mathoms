@@ -21,7 +21,6 @@ import {
   type DecisionStatusFilter,
   STATUS_FILTER_ORDER,
   decisionStatusFilterLabel,
-  nextDecisionCode,
 } from "./decisionsCopy";
 
 interface DecisionsSectionProps {
@@ -37,8 +36,8 @@ export function DecisionsSection({ workspaceId }: DecisionsSectionProps) {
   const [supersedeTarget, setSupersedeTarget] = useState<Decision | null>(null);
 
   const filtered = useFilteredDecisions(decisions, filter);
-  const handleNew = () =>
-    setFormMode({ kind: "create", defaultCode: nextDecisionCode(decisions) });
+  // ADR-214 — code é server-generated; modo create não precisa de defaultCode.
+  const handleNew = () => setFormMode({ kind: "create" });
   const handleEdit = (decision: Decision) =>
     setFormMode({ kind: "edit", decision });
   const handleMarkDecided = async (decisionId: string) =>
@@ -95,7 +94,6 @@ export function DecisionsSection({ workspaceId }: DecisionsSectionProps) {
           open
           onOpenChange={(open) => !open && setSupersedeTarget(null)}
           oldDecision={supersedeTarget}
-          defaultCode={nextDecisionCode(decisions)}
           onCreate={create}
           onSupersede={supersede}
         />

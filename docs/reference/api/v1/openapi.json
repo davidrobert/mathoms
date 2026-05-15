@@ -3,14 +3,8 @@
     "schemas": {
       "AcceptSuggestionCommand": {
         "additionalProperties": false,
-        "description": "Aceita sugest\u00e3o criando ``Decision`` com os campos sugeridos.",
+        "description": "Aceita sugest\u00e3o criando ``Decision`` com os campos sugeridos.\n\nADR-214: ``decision_code`` removido \u2014 server gera via\n``DecisionRepository.next_code`` na mesma transa\u00e7\u00e3o.",
         "properties": {
-          "decision_code": {
-            "maxLength": 16,
-            "minLength": 1,
-            "title": "Decision Code",
-            "type": "string"
-          },
           "note": {
             "anyOf": [
               {
@@ -23,9 +17,6 @@
             "title": "Note"
           }
         },
-        "required": [
-          "decision_code"
-        ],
         "title": "AcceptSuggestionCommand",
         "type": "object"
       },
@@ -2211,7 +2202,7 @@
       },
       "DecisionCreateCommand": {
         "additionalProperties": false,
-        "description": "Cria nova ``Decision`` (status inicial = ``Pendente`` se omitido).",
+        "description": "Cria nova ``Decision`` (status inicial = ``Pendente`` se omitido).\n\nADR-214: ``code`` \u00e9 opcional \u2014 quando ``None``, server gera via\n``DecisionRepository.next_code`` (lock per-workspace). Mantido como\ncampo permite importer/migrator one-shot informar code expl\u00edcito.",
         "properties": {
           "amount_brl": {
             "anyOf": [
@@ -2230,10 +2221,17 @@
             "title": "Amount Brl"
           },
           "code": {
-            "maxLength": 16,
-            "minLength": 1,
-            "title": "Code",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
           },
           "context_snapshot": {
             "anyOf": [
@@ -2378,7 +2376,6 @@
           }
         },
         "required": [
-          "code",
           "title"
         ],
         "title": "DecisionCreateCommand",
@@ -5375,7 +5372,7 @@
       },
       "ModifySuggestionCommand": {
         "additionalProperties": false,
-        "description": "Aceita com modifica\u00e7\u00e3o \u2014 usu\u00e1rio customiza title/rationale/amount.",
+        "description": "Aceita com modifica\u00e7\u00e3o \u2014 usu\u00e1rio customiza title/rationale/amount.\n\nADR-214: ``decision_code`` removido \u2014 server gera.",
         "properties": {
           "amount_brl": {
             "anyOf": [
@@ -5391,12 +5388,6 @@
               }
             ],
             "title": "Amount Brl"
-          },
-          "decision_code": {
-            "maxLength": 16,
-            "minLength": 1,
-            "title": "Decision Code",
-            "type": "string"
           },
           "note": {
             "anyOf": [
@@ -5434,9 +5425,6 @@
             "title": "Title"
           }
         },
-        "required": [
-          "decision_code"
-        ],
         "title": "ModifySuggestionCommand",
         "type": "object"
       },
@@ -9165,6 +9153,17 @@
               }
             ],
             "title": "Accepted At"
+          },
+          "accepted_decision_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted Decision Code"
           },
           "accepted_decision_id": {
             "anyOf": [

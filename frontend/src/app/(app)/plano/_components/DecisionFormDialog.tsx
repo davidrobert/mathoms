@@ -49,8 +49,10 @@ const CREATABLE_STATUS_LABEL: Record<CreatableStatus, string> = {
   Decidido: "Em vigor (já decidida)",
 };
 
+// ADR-214 — modo `create` perdeu `defaultCode`. Server gera `D{N:02d}`
+// via DecisionRepository.next_code; toast pós-criação exibe o code real.
 export type DecisionFormMode =
-  | { kind: "create"; defaultCode: string }
+  | { kind: "create" }
   | { kind: "edit"; decision: Decision };
 
 interface DecisionFormDialogProps {
@@ -72,7 +74,8 @@ export function DecisionFormDialog(props: DecisionFormDialogProps) {
 }
 
 interface FormValues {
-  code: string;
+  // ADR-214 — `code` removido do form. No modo create, server gera.
+  // No modo edit, code é exibido no header (read-only) a partir de mode.decision.
   title: string;
   rationale: string;
   amountBrl: string;
@@ -118,7 +121,6 @@ function DialogFormBody({
 }
 
 interface Setters {
-  setCode: (v: string) => void;
   setTitle: (v: string) => void;
   setRationale: (v: string) => void;
   setAmountBrl: (v: string) => void;
@@ -134,7 +136,6 @@ function useDecisionFormState(mode: DecisionFormMode): {
   values: FormValues;
   setters: Setters;
 } {
-  const [code, setCode] = useState(initialCode(mode));
   const [title, setTitle] = useState(initialTitle(mode));
   const [rationale, setRationale] = useState(initialRationale(mode));
   const [amountBrl, setAmountBrl] = useState(initialAmount(mode));
@@ -144,7 +145,6 @@ function useDecisionFormState(mode: DecisionFormMode): {
   const [horizon, setHorizon] = useState<DecisionHorizon>(initialHorizon(mode));
   const [priority, setPriority] = useState(initialPriority(mode));
   useEffect(() => {
-    setCode(initialCode(mode));
     setTitle(initialTitle(mode));
     setRationale(initialRationale(mode));
     setAmountBrl(initialAmount(mode));
@@ -155,9 +155,8 @@ function useDecisionFormState(mode: DecisionFormMode): {
     setPriority(initialPriority(mode));
   }, [mode]);
   return {
-    values: { code, title, rationale, amountBrl, status, impact1yBrl, impact10yBrl, horizon, priority },
+    values: { title, rationale, amountBrl, status, impact1yBrl, impact10yBrl, horizon, priority },
     setters: {
-      setCode,
       setTitle,
       setRationale,
       setAmountBrl,
@@ -226,8 +225,9 @@ async function persistDecision(
 ): Promise<void> {
   const payload = buildDecisionPayload(values);
   if (mode.kind === "create") {
-    await onCreate({ code: values.code, ...payload });
-    toast.success("Decisão registrada");
+    // ADR-214 — `code` omitido; server gera e devolve no response.
+    const created = await onCreate(payload);
+    toast.success(`Decisão ${created.code} registrada`);
     return;
   }
   await onUpdate(mode.decision.id, payload);
@@ -257,24 +257,17 @@ interface FieldsProps {
 }
 
 function DecisionFormFields({ mode, values, setters }: FieldsProps) {
+  // ADR-214 — input "Código" removido; server gera para create, header
+  // exibe code para edit. Foco inicial vai para o título (conteúdo).
   return (
     <>
-      <FormField label="Código" hint="Ex.: D01, D02">
-        <Input
-          value={values.code}
-          onChange={(e) => setters.setCode(e.target.value.toUpperCase())}
-          disabled={mode.kind === "edit"}
-          maxLength={10}
-          required
-          autoFocus={mode.kind === "create"}
-        />
-      </FormField>
       <FormField label="Título">
         <Input
           value={values.title}
           onChange={(e) => setters.setTitle(e.target.value)}
           maxLength={TITLE_MAX}
           required
+          autoFocus={mode.kind === "create"}
           placeholder="Ex.: Quitar financiamento do apartamento"
         />
       </FormField>
@@ -382,10 +375,6 @@ function FormField({ label, hint, children }: FormFieldProps) {
   );
 }
 
-function initialCode(mode: DecisionFormMode): string {
-  return mode.kind === "create" ? mode.defaultCode : mode.decision.code;
-}
-
 function initialTitle(mode: DecisionFormMode): string {
   return mode.kind === "create" ? "" : mode.decision.title;
 }
@@ -425,8 +414,8 @@ function isCreatable(s: DecisionStatus): s is CreatableStatus {
   return s === "Pendente" || s === "Decidido";
 }
 
-function validateForm({ code, title, rationale }: FormValues): string | null {
-  if (!code.match(/^D\d{1,3}$/)) return "Código deve ser D + número (ex.: D01).";
+function validateForm({ title, rationale }: FormValues): string | null {
+  // ADR-214 — sem validação de code (server-gen).
   if (title.trim().length < TITLE_MIN)
     return `Título precisa de ao menos ${TITLE_MIN} caracteres.`;
   if (rationale.trim().length < RATIONALE_MIN)

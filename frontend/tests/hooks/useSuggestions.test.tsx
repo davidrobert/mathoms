@@ -33,6 +33,7 @@ const aSuggestion = (id: string, status = "Pendente") => ({
   amount_brl: "5000.00",
   status,
   accepted_decision_id: null,
+  accepted_decision_code: null,
   dismissed_reason: null,
   accepted_at: null,
   dismissed_at: null,
@@ -83,7 +84,7 @@ describe("useSuggestions", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.suggestions).toHaveLength(1);
 
-    await result.current.accept("s1", { decision_code: "D01" });
+    await result.current.accept("s1", {});
     await waitFor(() =>
       expect(result.current.suggestions).toHaveLength(0),
     );

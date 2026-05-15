@@ -36,32 +36,32 @@ import {
 
 interface AcceptDialogProps {
   suggestion: Suggestion;
-  nextDecisionCode: string;
   open: boolean;
   onOpenChange: (b: boolean) => void;
   onAccept: AcceptHandler;
 }
 
+// ADR-214 — input "Código da decisão" removido; server gera o code
+// na transação (advisory lock + MAX+1). Toast pós-aceite educa com
+// `Decisão D{N} criada`, populado por `accepted_decision_code` no
+// response.
 export function AcceptDialog({
   suggestion,
-  nextDecisionCode,
   open,
   onOpenChange,
   onAccept,
 }: AcceptDialogProps) {
-  const [code, setCode] = useState(nextDecisionCode);
   const [busy, setBusy] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.match(/^D\d{1,3}$/)) {
-      toast.error("Código deve ser D + número (ex.: D01)");
-      return;
-    }
     setBusy(true);
     try {
-      await onAccept(suggestion.id, { decision_code: code });
-      toast.success(`Decisão ${code} criada`);
+      const updated = await onAccept(suggestion.id, {});
+      const codeMsg = updated.accepted_decision_code
+        ? `Decisão ${updated.accepted_decision_code} criada`
+        : "Decisão criada";
+      toast.success(codeMsg);
       onOpenChange(false);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.detail : "Erro ao aceitar");
@@ -84,20 +84,6 @@ export function AcceptDialog({
           <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
             <p className="text-xs font-medium">{suggestion.title}</p>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium">Código da decisão</Label>
-            <Input
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder={nextDecisionCode}
-              maxLength={10}
-              required
-              autoFocus
-            />
-            <p className="text-[11px] text-muted-foreground">
-              Sugerido: {nextDecisionCode}
-            </p>
-          </div>
           <DialogFooter>
             <Button
               type="button"
@@ -107,7 +93,7 @@ export function AcceptDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" disabled={busy} autoFocus>
               {busy ? "Aceitando…" : "Aceitar"}
             </Button>
           </DialogFooter>
@@ -119,20 +105,18 @@ export function AcceptDialog({
 
 interface ModifyDialogProps {
   suggestion: Suggestion;
-  nextDecisionCode: string;
   open: boolean;
   onOpenChange: (b: boolean) => void;
   onModify: ModifyHandler;
 }
 
+// ADR-214 — input "Código" removido; server gera; toast educa.
 export function ModifyDialog({
   suggestion,
-  nextDecisionCode,
   open,
   onOpenChange,
   onModify,
 }: ModifyDialogProps) {
-  const [code, setCode] = useState(nextDecisionCode);
   const [title, setTitle] = useState(suggestion.title);
   const [rationale, setRationale] = useState(suggestion.rationale);
   const [amount, setAmount] = useState(suggestion.amount_brl ?? "");
@@ -140,20 +124,18 @@ export function ModifyDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.match(/^D\d{1,3}$/)) {
-      toast.error("Código deve ser D + número (ex.: D01)");
-      return;
-    }
     setBusy(true);
     try {
-      await onModify(suggestion.id, {
-        decision_code: code,
+      const updated = await onModify(suggestion.id, {
         title: title !== suggestion.title ? title : undefined,
         rationale: rationale !== suggestion.rationale ? rationale : undefined,
         amount_brl:
           amount !== (suggestion.amount_brl ?? "") ? amount || null : undefined,
       });
-      toast.success(`Decisão ${code} criada com modificações`);
+      const codeMsg = updated.accepted_decision_code
+        ? `Decisão ${updated.accepted_decision_code} criada com modificações`
+        : "Decisão criada com modificações";
+      toast.success(codeMsg);
       onOpenChange(false);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.detail : "Erro ao modificar");
@@ -173,20 +155,13 @@ export function ModifyDialog({
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3">
-            <Field label="Código">
-              <Input
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                maxLength={10}
-                required
-              />
-            </Field>
             <Field label="Título">
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={500}
                 required
+                autoFocus
               />
             </Field>
             <Field label="Motivo">

@@ -51,13 +51,16 @@ export function ParecerMovimentoCard({
   async function handleAccept() {
     setBusy(true);
     try {
-      // decision_code derivado do dedup_key (curto, único, idempotente).
-      const code = `PAR-${sugestao.suggestion_dedup_key.slice(0, 8).toUpperCase()}`;
-      await actions.accept({
+      // ADR-214 — server gera o code da Decision (D{N}); response inclui
+      // `accepted_decision_code` que poderíamos exibir em toast, mas
+      // aqui o feedback é genérico (card está em modo read-only de parecer).
+      const result = await actions.accept({
         suggestionRef: sugestao.suggestion_dedup_key,
-        decisionCode: code,
       });
-      setFeedback("Promovida para o plano de ação.");
+      const codeMsg = result.accepted_decision_code
+        ? `Promovida como ${result.accepted_decision_code} no plano.`
+        : "Promovida para o plano de ação.";
+      setFeedback(codeMsg);
       await onMutate?.();
     } catch (err) {
       setFeedback(err instanceof Error ? err.message : "Erro ao promover.");

@@ -17,20 +17,25 @@ from backend.app.models.suggestion import VALID_DISMISS_REASONS
 
 
 class AcceptSuggestionCommand(BaseModel):
-    """Aceita sugestão criando ``Decision`` com os campos sugeridos."""
+    """Aceita sugestão criando ``Decision`` com os campos sugeridos.
+
+    ADR-214: ``decision_code`` removido — server gera via
+    ``DecisionRepository.next_code`` na mesma transação.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
-    decision_code: str = Field(..., min_length=1, max_length=16)
     note: Optional[str] = None
 
 
 class ModifySuggestionCommand(BaseModel):
-    """Aceita com modificação — usuário customiza title/rationale/amount."""
+    """Aceita com modificação — usuário customiza title/rationale/amount.
+
+    ADR-214: ``decision_code`` removido — server gera.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
-    decision_code: str = Field(..., min_length=1, max_length=16)
     title: Optional[str] = Field(None, min_length=1, max_length=500)
     rationale: Optional[str] = None
     amount_brl: Optional[Decimal] = None

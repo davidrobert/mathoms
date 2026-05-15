@@ -150,7 +150,7 @@ async def test_accept_creates_decision_and_marks_aceita(db, setup):
     await db.commit()
 
     resp = await accept_suggestion(
-        AcceptSuggestionCommand(decision_code="D01"),
+        AcceptSuggestionCommand(),
         workspace_id=ws.id,
         suggestion_id=s.id,
         suggestion_repo=sug_repo,
@@ -160,6 +160,8 @@ async def test_accept_creates_decision_and_marks_aceita(db, setup):
     assert resp.status == "Aceita"
     assert resp.accepted_decision_id is not None
     assert resp.accepted_at is not None
+    # ADR-214 — server gera code (workspace fresh → D01).
+    assert resp.accepted_decision_code == "D01"
 
     decision = await dec_repo.get_by_code(ws.id, "D01")
     assert decision is not None
@@ -179,7 +181,7 @@ async def test_accept_rejects_non_pending(db, setup):
     )
     with pytest.raises(ConflictError):
         await accept_suggestion(
-            AcceptSuggestionCommand(decision_code="D02"),
+            AcceptSuggestionCommand(),
             workspace_id=ws.id,
             suggestion_id=s.id,
             suggestion_repo=sug_repo,
@@ -196,7 +198,6 @@ async def test_modify_overrides_decision_fields(db, setup):
 
     resp = await modify_suggestion(
         ModifySuggestionCommand(
-            decision_code="D03",
             title="Título customizado",
             amount_brl=Decimal("9000.00"),
         ),
@@ -207,8 +208,10 @@ async def test_modify_overrides_decision_fields(db, setup):
         actor="user:t",
     )
     assert resp.status == "Modificada"
+    # ADR-214 — server gera code (workspace fresh → D01).
+    assert resp.accepted_decision_code == "D01"
 
-    decision = await dec_repo.get_by_code(ws.id, "D03")
+    decision = await dec_repo.get_by_code(ws.id, "D01")
     assert decision is not None
     assert decision.title == "Título customizado"
     assert decision.amount_brl_cents == 900_000

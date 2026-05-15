@@ -35,6 +35,11 @@ class SuggestionResponse(BaseModel):
     dedup_key: str
     status: str
     accepted_decision_id: Optional[str] = None
+    # ADR-214 — code da Decision criada (populado pelos use cases
+    # ``accept_suggestion`` / ``modify_suggestion``). UI exibe em toast
+    # pós-aceite: ``"Decisão D03 criada"``. Sempre ``None`` no get/list —
+    # só faz sentido como side-effect da transição Pendente→Aceita.
+    accepted_decision_code: Optional[str] = None
     dismissed_reason: Optional[str] = None
     accepted_at: Optional[datetime] = None
     dismissed_at: Optional[datetime] = None

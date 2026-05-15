@@ -20,7 +20,7 @@ import {
 export interface SuggestionAcceptArgs {
   /** ID interno (UUID) ou dedup_key (sha256 64-hex) — hook resolve internamente. */
   suggestionRef: string;
-  decisionCode: string;
+  // ADR-214 — decisionCode removido; server gera o code via advisory lock.
   note?: string;
 }
 
@@ -75,7 +75,6 @@ function useAcceptAction(
       if (!workspaceId) throw new Error("Workspace não selecionado");
       const id = await resolveId(args.suggestionRef);
       return acceptSuggestion(workspaceId, id, {
-        decision_code: args.decisionCode,
         note: args.note,
       });
     },

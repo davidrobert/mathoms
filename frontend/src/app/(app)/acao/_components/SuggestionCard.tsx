@@ -2,8 +2,10 @@
 
 // Direção E · Onda 5 · ADR-153 — card de Suggestion no Inbox de /acao.
 // Aceitar/Modificar/Descartar via dialogs locais. "Aceitar" cria
-// Decision (ADR-136) com código informado pelo usuário; status passa
-// a Aceita. "Descartar" exige um motivo controlado (5 chips).
+// Decision (ADR-136) e status passa a Aceita; ADR-214 fez o code da
+// Decision passar a ser server-generated — input some, toast pós-aceite
+// educa via `accepted_decision_code` do response.
+// "Descartar" exige um motivo controlado (5 chips).
 //
 // Onda 10 #3 — backward link para a seção do relatório que originou
 // a sugestão. Dialogs movidos para `SuggestionDialogs.tsx`.
@@ -41,8 +43,6 @@ import {
 
 interface SuggestionCardProps {
   suggestion: Suggestion;
-  /** Sugestão de código sequencial para a próxima Decision (`D{N+1}`). */
-  nextDecisionCode: string;
   onAccept: AcceptHandler;
   onModify: ModifyHandler;
   onDismiss: DismissHandler;
@@ -50,7 +50,6 @@ interface SuggestionCardProps {
 
 export function SuggestionCard({
   suggestion,
-  nextDecisionCode,
   onAccept,
   onModify,
   onDismiss,
@@ -90,14 +89,12 @@ export function SuggestionCard({
       </CardContent>
       <AcceptDialog
         suggestion={suggestion}
-        nextDecisionCode={nextDecisionCode}
         open={acceptOpen}
         onOpenChange={setAcceptOpen}
         onAccept={onAccept}
       />
       <ModifyDialog
         suggestion={suggestion}
-        nextDecisionCode={nextDecisionCode}
         open={modifyOpen}
         onOpenChange={setModifyOpen}
         onModify={onModify}

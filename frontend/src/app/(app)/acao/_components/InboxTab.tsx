@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Lightbulb } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SegmentedTabs } from "@/components/ui/SegmentedTabs";
-import { useDecisions } from "@/hooks/useDecisions";
 import { useSuggestions } from "@/hooks/useSuggestions";
 import type { Suggestion, SuggestionAggregateStatus } from "@/lib/api";
 
@@ -31,6 +30,10 @@ type FilterValue = SuggestionAggregateStatus | "Todas";
  * Sucesso: lista cards filtráveis com Aceitar/Modificar/Descartar.
  * Empty state ensinante quando não há sugestões pendentes — link para
  * fila legada de TaskSuggestion (E5.N) preservado em /acao/sugestoes.
+ *
+ * ADR-214 — `nextDecisionCode` removido do prop drilling; server gera
+ * o code da Decision na transação do aceite e expõe via
+ * `accepted_decision_code` no response (toast educa).
  */
 export function InboxTab({ workspaceId }: InboxTabProps) {
   const [filter, setFilter] = useState<FilterValue>("Pendente");
@@ -41,11 +44,6 @@ export function InboxTab({ workspaceId }: InboxTabProps) {
     workspaceId,
     status,
   );
-  const { decisions } = useDecisions(workspaceId);
-  const nextDecisionCode = useMemo(
-    () => computeNextDecisionCode(decisions.map((d) => d.code)),
-    [decisions],
-  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -55,7 +53,6 @@ export function InboxTab({ workspaceId }: InboxTabProps) {
         error={error}
         filter={filter}
         suggestions={suggestions}
-        nextDecisionCode={nextDecisionCode}
         onAccept={accept}
         onModify={modify}
         onDismiss={dismiss}
@@ -80,7 +77,6 @@ interface InboxBodyProps {
   error: string;
   filter: FilterValue;
   suggestions: Suggestion[];
-  nextDecisionCode: string;
   onAccept: ReturnType<typeof useSuggestions>["accept"];
   onModify: ReturnType<typeof useSuggestions>["modify"];
   onDismiss: ReturnType<typeof useSuggestions>["dismiss"];
@@ -91,7 +87,6 @@ function InboxBody({
   error,
   filter,
   suggestions,
-  nextDecisionCode,
   onAccept,
   onModify,
   onDismiss,
@@ -127,7 +122,6 @@ function InboxBody({
         <SuggestionCard
           key={s.id}
           suggestion={s}
-          nextDecisionCode={nextDecisionCode}
           onAccept={onAccept}
           onModify={onModify}
           onDismiss={onDismiss}
@@ -162,14 +156,10 @@ function InboxEmpty({ filter }: { filter: FilterValue }) {
   );
 }
 
-/** Próximo código `D{N+1}` baseado nos códigos existentes ("D01" → 1). */
-export function computeNextDecisionCode(existing: ReadonlyArray<string>): string {
-  const numbers = existing
-    .map((c) => parseInt(c.replace(/^D/, ""), 10))
-    .filter((n) => Number.isFinite(n));
-  const next = (numbers.length === 0 ? 0 : Math.max(...numbers)) + 1;
-  return `D${String(next).padStart(2, "0")}`;
-}
+// ADR-214 — `computeNextDecisionCode` deletado. Geração do `D{N}` agora
+// é server-side via DecisionRepository.next_code (advisory lock per-workspace).
+// Eliminou TOCTOU (2 abas → 2 sugestões aceitas → collision em UNIQUE) e
+// removeu fricção do modal de aceite (input com autoFocus).
 
 const SEVERITY_RANK: Record<string, number> = { danger: 3, warning: 2, info: 1 };
 
