@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from pipeline.artifact_store import ArtifactStore
-    from pipeline.ports import ConfigStore
+    from pipeline.ports import ConfigStore, PropertyIdentityResolver
 
 
 @dataclass
@@ -69,6 +69,13 @@ class WorkspaceContext:
     #: fallback de disco via ``load_config()``. Backend popula com
     #: :class:`DBConfigStore` em :func:`pipeline_task._setup_run_context`.
     config_store: Optional["ConfigStore"] = field(default=None, repr=False)
+
+    #: ``PropertyIdentityResolver`` injetável (ADR-215, P2). Permite ao
+    #: consolidador E1.5c emitir `property_id` UUID estável cross-IRPFs.
+    #: ``None`` → consolidador pula a etapa (compat com testes/CLI legados).
+    property_identity_resolver: Optional["PropertyIdentityResolver"] = field(
+        default=None, repr=False
+    )
 
     #: ADR-119 — mediana de duração (ms) por stage, calculada dos últimos runs
     #: bem-sucedidos do workspace. Populado pelo orchestrator (Celery task);
@@ -172,6 +179,7 @@ class WorkspaceContext:
         artifact_store: Optional["ArtifactStore"] = None,
         workspace_id: Optional[str] = None,
         config_store: Optional["ConfigStore"] = None,
+        property_identity_resolver: Optional["PropertyIdentityResolver"] = None,
     ) -> WorkspaceContext:
         """Contexto para tenant web com config do banco de dados.
 
@@ -197,4 +205,5 @@ class WorkspaceContext:
             artifact_store=artifact_store,
             workspace_id=workspace_id,
             config_store=config_store,
+            property_identity_resolver=property_identity_resolver,
         )

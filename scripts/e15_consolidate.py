@@ -252,6 +252,9 @@ def consolidate(baseline: dict) -> dict:
 
             if categoria == "imovel":
                 entry["tipo"] = "imovel"
+                # codigo_rfb necessário para PropertyIdentity (ADR-215 P2).
+                entry["codigo_rfb"] = str(bem.get("grupo", "") or "").strip()
+                entry["ano_referencia"] = ano
                 # Try to enrich with XLSX data
                 xlsx_match = _match_imovel_xlsx(descricao, imoveis_xlsx)
                 if xlsx_match:
@@ -437,6 +440,9 @@ def consolidate_from_itens(baseline: dict) -> dict:
 
         if categoria == "imovel":
             entry["tipo"] = "imovel"
+            # codigo_rfb necessário para PropertyIdentity (ADR-215 P2).
+            entry["codigo_rfb"] = str(item.get("codigo", "") or "").strip()
+            entry["ano_referencia"] = ano_ref
             imoveis_consolidados.append(entry)
         elif categoria == "veiculo":
             entry["tipo"] = "veiculo"
@@ -554,7 +560,20 @@ def main_with_store(ctx) -> dict:
     # 2. Consolida (reutiliza lógica legada — paridade garantida).
     consolidated = consolidate(baseline)
 
-    # 3. Persiste via store (write-back no artefato E1.5c).
+    # 3. Anexa property_id estável aos imóveis (ADR-215 P2). Skip quando
+    #    resolver/workspace_id não estão injetados (CLI legado / tests sem DB).
+    if ctx.property_identity_resolver is not None and ctx.workspace_id is not None:
+        from pipeline.domain.services.property_identity_enricher import (
+            enrich_imoveis_with_property_ids,
+        )
+
+        enrich_imoveis_with_property_ids(
+            consolidated,
+            resolver=ctx.property_identity_resolver,
+            workspace_id=ctx.workspace_id,
+        )
+
+    # 4. Persiste via store (write-back no artefato E1.5c).
     store.write("E1.5c", "baseline_patrimonial", consolidated)
     print("\n  [OK] Baseline consolidado e salvo via ArtifactStore (stage=E1.5c)")
     print("=" * 60)
