@@ -1,21 +1,28 @@
 /**
- * F12.1e · ADR-130 revisado 2026-04-26 — Smoke da fundação i18n.
+ * ADR-130 revisado 2026-05-15 — Smoke da fundação i18n.
+ *
+ * Escopo F12 reduzido para 3 locales (pt-BR + en + es), alinhado ao ICP
+ * de brasileiros nômades digitais morando fora do Brasil. Locales
+ * pt-PT/zh-CN/fr/ru/de/ja/ko removidos — reentram apenas se ICP mudar
+ * (mercado global) via nova ADR.
  *
  * Garante que:
- * 1. Os 10 locales suportados têm arquivo de mensagens com `header.title`
+ * 1. Os 3 locales suportados têm arquivo de mensagens com `header.title`
  *    + `_meta.locale` consistente.
  * 2. `NextIntlClientProvider` carrega messages e `useTranslations()`
- *    resolve a chave nos 10 locales.
+ *    resolve a chave nos 3 locales.
  * 3. Helpers `getDir()` / `RTL_LOCALES` retornam sempre `ltr` no escopo
  *    atual (sem locales RTL — `RTL_LOCALES` vazio).
- * 4. `localeFontHrefs()` injeta Noto Sans secundárias só nos 3 locales
- *    CJK (zh-CN, ja, ko).
+ * 4. `localeFontHrefs()` retorna `[]` em todos os 3 locales (Plus Jakarta
+ *    + Inter + JetBrains Mono cobrem Latin Extended-A; sem fontes
+ *    secundárias no escopo F12).
+ * 5. Locales fora do escopo F12 são rejeitados por `isLocale()`.
  */
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 // Override do mock global em tests/setup.ts: aqui queremos `useTranslations`
-// real para provar que `NextIntlClientProvider` resolve as chaves dos 10
+// real para provar que `NextIntlClientProvider` resolve as chaves dos 3
 // dicionários. Outros testes seguem usando o mock identity em setup.ts.
 vi.doUnmock("next-intl");
 const { NextIntlClientProvider, useTranslations } =
@@ -31,28 +38,14 @@ import {
 } from "@/i18n/config";
 import { localeFontHrefs } from "@/i18n/fonts";
 
-import de from "@/i18n/messages/de.json";
 import en from "@/i18n/messages/en.json";
 import es from "@/i18n/messages/es.json";
-import fr from "@/i18n/messages/fr.json";
-import ja from "@/i18n/messages/ja.json";
-import ko from "@/i18n/messages/ko.json";
 import ptBR from "@/i18n/messages/pt-BR.json";
-import ptPT from "@/i18n/messages/pt-PT.json";
-import ru from "@/i18n/messages/ru.json";
-import zhCN from "@/i18n/messages/zh-CN.json";
 
 const MESSAGES: Record<Locale, Record<string, unknown>> = {
   "pt-BR": ptBR,
   en,
-  "pt-PT": ptPT,
-  "zh-CN": zhCN,
   es,
-  fr,
-  ru,
-  de,
-  ja,
-  ko,
 };
 
 function HeaderProbe() {
@@ -61,28 +54,31 @@ function HeaderProbe() {
 }
 
 describe("F12.1 i18n foundation", () => {
-  it("LOCALES tem exatamente os 10 locales planejados", () => {
-    expect(LOCALES).toHaveLength(10);
+  it("LOCALES tem exatamente os 3 locales planejados", () => {
+    expect(LOCALES).toHaveLength(3);
     expect(LOCALES).toContain(DEFAULT_LOCALE);
     expect(DEFAULT_LOCALE).toBe("pt-BR");
+    expect(LOCALES).toEqual(["pt-BR", "en", "es"]);
   });
 
   it("isLocale aceita whitelist e rejeita fora dela", () => {
     expect(isLocale("pt-BR")).toBe(true);
-    expect(isLocale("de")).toBe(true);
-    expect(isLocale("ja")).toBe(true);
-    expect(isLocale("ko")).toBe(true);
-    // Locales removidos pela revisão de escopo (ADR-130 2026-04-26).
-    expect(isLocale("hi")).toBe(false);
-    expect(isLocale("ar")).toBe(false);
-    expect(isLocale("bn")).toBe(false);
-    expect(isLocale("id")).toBe(false);
+    expect(isLocale("en")).toBe(true);
+    expect(isLocale("es")).toBe(true);
+    // Locales removidos pela revisão de escopo (ADR-130 2026-05-15).
+    expect(isLocale("pt-PT")).toBe(false);
+    expect(isLocale("zh-CN")).toBe(false);
+    expect(isLocale("fr")).toBe(false);
+    expect(isLocale("ru")).toBe(false);
+    expect(isLocale("de")).toBe(false);
+    expect(isLocale("ja")).toBe(false);
+    expect(isLocale("ko")).toBe(false);
     expect(isLocale("xx")).toBe(false);
     expect(isLocale(undefined)).toBe(false);
     expect(isLocale(123)).toBe(false);
   });
 
-  it("RTL_LOCALES está vazio; getDir retorna ltr em todos os 10 locales", () => {
+  it("RTL_LOCALES está vazio; getDir retorna ltr em todos os 3 locales", () => {
     expect(Array.from(RTL_LOCALES)).toEqual([]);
     for (const locale of LOCALES) {
       expect(getDir(locale)).toBe("ltr");
@@ -121,16 +117,9 @@ describe("F12.1 i18n foundation", () => {
     },
   );
 
-  it("localeFontHrefs carrega Noto secundária apenas em zh-CN/ja/ko", () => {
-    const needsExtra: ReadonlySet<Locale> = new Set(["zh-CN", "ja", "ko"]);
+  it("localeFontHrefs retorna [] em todos os 3 locales (escopo F12 só Latin)", () => {
     for (const locale of LOCALES) {
-      const hrefs = localeFontHrefs(locale);
-      if (needsExtra.has(locale)) {
-        expect(hrefs).toHaveLength(1);
-        expect(hrefs[0]).toContain("fonts.googleapis.com");
-      } else {
-        expect(hrefs).toHaveLength(0);
-      }
+      expect(localeFontHrefs(locale)).toEqual([]);
     }
   });
 });

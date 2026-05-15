@@ -475,13 +475,13 @@
 | F11.7 | lane | in_progress | F11 | Ligação explícita entre número e regra | `sprint/F11/lanes/F11-7-ligacao-explicita-entre-numero-e-regra.md` |
 | F11.8 | lane | shipped | F11 | Command palette / atalhos | `sprint/F11/lanes/F11-8-command-palette-atalhos.md` |
 | F12.1 | lane | shipped | F12 | Fundação i18n no frontend | `sprint/F12/lanes/F12-1-fundacao-i18n-no-frontend.md` |
-| F12.2 | lane | open | F12 | Refactor de `format.ts` e `<MonetaryValue/>` | `sprint/F12/lanes/F12-2-refactor-de-format-ts-e-monetaryvalue.md` |
-| F12.3 | lane | open | F12 | Persistência da escolha (DB + JWT) | `sprint/F12/lanes/F12-3-persistencia-da-escolha.md` |
-| F12.4 | lane | open | F12 | Codegen do report layout multilíngue | `sprint/F12/lanes/F12-4-codegen-do-report-layout-multilingue.md` |
-| F12.5 | lane | open | F12 | Backend user-facing strings | `sprint/F12/lanes/F12-5-backend-user-facing-strings.md` |
-| F12.6 | lane | open | F12 | Tradução do relatório (bulk, paralelizável) | `sprint/F12/lanes/F12-6-traducao-do-relatorio.md` |
-| F12.7 | lane | open | F12 | RTL polish (`ar`) — **fora do escopo F12 atual** | `sprint/F12/lanes/F12-7-rtl-polish-fora-do-escopo-f12-atual.md` |
-| F12.8 | lane | shipped | F12 | QA + E2E multi-locale | `sprint/F12/lanes/F12-8-qa-e2e-multi-locale.md` |
+| F12.2 | lane | blocked | F12 | Refactor de `format.ts` e `<MonetaryValue/>` | `sprint/F12/lanes/F12-2-refactor-de-format-ts-e-monetaryvalue.md` |
+| F12.3 | lane | blocked | F12 | Persistência da escolha (DB + JWT) | `sprint/F12/lanes/F12-3-persistencia-da-escolha.md` |
+| F12.4 | lane | blocked | F12 | Codegen do report layout multilíngue | `sprint/F12/lanes/F12-4-codegen-do-report-layout-multilingue.md` |
+| F12.5 | lane | blocked | F12 | Backend user-facing strings | `sprint/F12/lanes/F12-5-backend-user-facing-strings.md` |
+| F12.6 | lane | blocked | F12 | Tradução do relatório (bulk, paralelizável) | `sprint/F12/lanes/F12-6-traducao-do-relatorio.md` |
+| F12.7 | lane | cancelled | F12 | RTL polish (`ar`) — fora do escopo F12 atual | `sprint/F12/lanes/F12-7-rtl-polish-fora-do-escopo-f12-atual.md` |
+| F12.8 | lane | blocked | F12 | QA + E2E multi-locale | `sprint/F12/lanes/F12-8-qa-e2e-multi-locale.md` |
 | F7.a | lane | shipped | F7 | Docker + Deploy + HTTPS (semana 1-2) | `sprint/F7/lanes/F7-a-docker-deploy-https.md` |
 | F7.b | lane | shipped | F7 | Security Hardening + LGPD (semana 2-3) | `sprint/F7/lanes/F7-b-security-hardening-lgpd.md` |
 | F7.c | lane | open | F7 | CI/CD + Observabilidade (semana 3-4) | `sprint/F7/lanes/F7-c-ci-cd-observabilidade.md` |

@@ -1,0 +1,249 @@
+# config/i18n_glossary.yaml
+#
+# Glossário canônico de termos para tradução EN/ES — Política C híbrida.
+# Fonte: ADR-130 (decisão 9) + briefing financial-planner 2026-05-15.
+#
+# Source-of-truth dos termos em pt-BR vive em docs/reference/COPY_GUIDELINES.md §2;
+# este arquivo carrega APENAS o mapeamento PT-BR → EN/ES + flag de bucket.
+#
+# Buckets:
+#   - do_not_translate: termo BR-específico (produto regulado, sigla
+#     institucional, indexador) preservado intacto em EN/ES. Pipeline
+#     de MT substitui localmente antes da chamada DeepL.
+#   - inline_glossary: termo BR preservado + tooltip/abbr na primeira
+#     ocorrência por seção, com texto explicativo em EN e ES.
+#   - translate: conceitos universais que traduzem normalmente via
+#     DeepL (listados aqui apenas como referência de forma canônica;
+#     revisor humano pode ajustar).
+#
+# Governance (ADR-130 §9 + briefing financial-planner):
+#   1. financial-planner revisa lista antes de cada release com >5
+#      termos novos.
+#   2. senior-cto valida que este arquivo é fonte única (sem
+#      duplicação em código).
+#   3. product-designer revisa UX (tooltip vs inline vs glossário no
+#      relatório).
+#   4. Nativo EN/ES revisa apenas bucket `translate` — do_not_translate
+#      dispensa revisão linguística.
+#   5. Mudança em do_not_translate é breaking — exige ADR (nova ou
+#      amendment à ADR-130).
+#
+# Carregado por dev/translate_messages.py antes da chamada DeepL.
+
+version: 1
+last_review: "2026-05-15"
+reviewers:
+  financial_planner: "pendente (briefing 2026-05-15)"
+  senior_cto: "pendente"
+  product_designer: "pendente"
+
+# =============================================================================
+# Bucket 1: DO NOT TRANSLATE — preservar termo BR sempre, em qualquer locale.
+# =============================================================================
+do_not_translate:
+  # --- Tributação e regulação BR ---
+  - IRPF        # Imposto de Renda Pessoa Física
+  - IRRF        # Imposto de Renda Retido na Fonte
+  - IRPJ        # Imposto de Renda Pessoa Jurídica
+  - INSS        # Instituto Nacional do Seguro Social (NÃO é US Social Security)
+  - FGTS        # Fundo de Garantia do Tempo de Serviço
+  - PIS/PASEP
+  - DARF        # Documento de Arrecadação de Receitas Federais
+  - DIRPF       # Declaração de Imposto de Renda Pessoa Física
+  - CPF
+  - CNPJ
+  - simples nacional
+  - lucro presumido
+  - lucro real
+  - DSDP        # Declaração de Saída Definitiva do País
+
+  # --- Produtos de renda fixa BR ---
+  - CDB         # Certificado de Depósito Bancário
+  - LCI         # Letra de Crédito Imobiliário
+  - LCA         # Letra de Crédito do Agronegócio
+  - LF          # Letra Financeira
+  - LFT         # Letra Financeira do Tesouro
+  - LTN         # Letra do Tesouro Nacional
+  - NTN-B       # Nota do Tesouro Nacional série B
+  - CRA         # Certificado de Recebíveis do Agronegócio
+  - CRI         # Certificado de Recebíveis Imobiliários
+  - COE         # Certificado de Operações Estruturadas
+  - debênture
+
+  # --- Produtos RV / fundos BR ---
+  - FII         # Fundo de Investimento Imobiliário (NÃO é REIT — tributação diferente)
+  - FIDC        # Fundo de Investimento em Direitos Creditórios (NÃO é ABS — risco diferente)
+  - FIP         # Fundo de Investimento em Participações
+  - BDR         # Brazilian Depositary Receipt
+  - JCP         # Juros sobre Capital Próprio (15% retido na fonte; distinto de dividendo)
+  - tag along
+
+  # --- Indexadores e taxas BR ---
+  - Selic
+  - CDI
+  - IPCA
+  - IGP-M
+  - TR
+
+  # --- Plataformas e programas ---
+  - Tesouro Direto
+  - Tesouro Selic
+  - Tesouro IPCA+
+  - Tesouro Prefixado
+  - PGBL        # Plano Gerador de Benefício Livre (tributação regressiva, tributa saldo total)
+  - VGBL        # Vida Gerador de Benefício Livre (tributa apenas ganhos)
+
+  # --- Folha CLT (institucional BR) ---
+  - 13º salário
+  - férias
+  - abono pecuniário
+
+  # --- Garantias e proteções ---
+  - FGC         # Fundo Garantidor de Créditos (limite R$ 250k/instituição; NÃO é FDIC equivalent)
+
+# =============================================================================
+# Bucket 2: INLINE GLOSSARY — preservar BR + tooltip/abbr na primeira
+# ocorrência por seção do relatório. Texto explicativo em EN e ES.
+# =============================================================================
+inline_glossary:
+  IRPF:
+    en: "Brazilian personal income tax — annual filing"
+    es: "impuesto a la renta personal de Brasil — declaración anual"
+
+  PGBL:
+    en: "Brazilian tax-deferred private pension — full balance is taxed at withdrawal"
+    es: "fondo de pensión privada con diferimiento fiscal de Brasil — se grava el saldo total al retiro"
+
+  VGBL:
+    en: "Brazilian after-tax private pension — only gains are taxed at withdrawal"
+    es: "fondo de pensión privada después de impuestos de Brasil — solo se gravan las ganancias al retiro"
+
+  FII:
+    en: "Brazilian listed real estate fund — dividends are tax-exempt up to a monthly trade limit"
+    es: "fondo inmobiliario brasileño listado en bolsa — dividendos exentos hasta cierto límite mensual"
+
+  JCP:
+    en: "interest on equity (15% withholding tax; distinct from dividends)"
+    es: "intereses sobre capital propio (15% de retención; distinto de dividendos)"
+
+  "Tesouro Selic":
+    en: "Brazilian Federal floating-rate note, indexed to the Selic policy rate"
+    es: "bono federal brasileño a tasa flotante, indexado a la tasa Selic"
+
+  "Tesouro IPCA+":
+    en: "Brazilian Federal inflation-linked bond"
+    es: "bono federal brasileño indexado a la inflación (IPCA)"
+
+  CDB:
+    en: "Brazilian bank CD — insured by FGC up to R$ 250k per institution"
+    es: "CDB — depósito a plazo brasileño, garantizado por FGC hasta R$ 250k por institución"
+
+  LCI:
+    en: "Brazilian tax-exempt bank note backed by real-estate credit"
+    es: "letra de crédito inmobiliario brasileña — exenta de impuestos para personas físicas"
+
+  LCA:
+    en: "Brazilian tax-exempt bank note backed by agribusiness credit"
+    es: "letra de crédito de agronegocios brasileña — exenta de impuestos para personas físicas"
+
+  INSS:
+    en: "Brazilian social security contribution — NOT equivalent to US Social Security; separate program with distinct benefits and rules"
+    es: "contribución a la seguridad social de Brasil — NO equivalente al Seguro Social de EE. UU.; programa con beneficios y reglas propias"
+
+  FGTS:
+    en: "Brazilian mandatory employer-funded severance account"
+    es: "cuenta brasileña de indemnización financiada por el empleador (obligatoria)"
+
+  DSDP:
+    en: "Brazilian definitive exit tax declaration — changes fiscal residency; reports in this app assume Brazilian fiscal residency unless noted"
+    es: "Declaración de Salida Definitiva de Brasil — cambia residencia fiscal; los reportes en esta app asumen residencia fiscal brasileña salvo indicación contraria"
+
+# =============================================================================
+# Bucket 3: TRANSLATE — conceitos universais. Listados aqui apenas como
+# referência de forma canônica. DeepL traduz normalmente; revisor humano
+# pode ajustar contexto. Tudo que não cair nos buckets acima vai por aqui.
+# =============================================================================
+translate:
+  ativo:
+    en: asset
+    es: activo
+  passivo:
+    en: liability
+    es: pasivo
+  patrimônio:
+    en: net worth
+    es: patrimonio neto
+  patrimônio líquido:
+    en: net worth
+    es: patrimonio neto
+  receita:
+    en: income
+    es: ingreso
+  despesa:
+    en: expense
+    es: gasto
+  fluxo de caixa:
+    en: cash flow
+    es: flujo de caja
+  reserva de emergência:
+    en: emergency fund
+    es: fondo de emergencia
+  aporte mensal:
+    en: monthly contribution
+    es: aporte mensual
+  dividendo:
+    en: dividend
+    es: dividendo
+  rentabilidade:
+    en: return
+    es: rentabilidad
+  rentabilidade real:
+    en: real return
+    es: rentabilidad real
+  rentabilidade nominal:
+    en: nominal return
+    es: rentabilidad nominal
+  independência financeira:
+    en: financial independence
+    es: independencia financiera
+  meta:
+    en: goal
+    es: meta
+  alocação:
+    en: allocation
+    es: asignación
+  rebalanceamento:
+    en: rebalancing
+    es: rebalanceo
+  diversificação:
+    en: diversification
+    es: diversificación
+  custo de vida:
+    en: cost of living
+    es: costo de vida
+  taxa de poupança:
+    en: savings rate
+    es: tasa de ahorro
+
+  # Categorias de transação (universais)
+  Alimentação:
+    en: Food
+    es: Alimentación
+  Moradia:
+    en: Housing
+    es: Vivienda
+  Transporte:
+    en: Transportation
+    es: Transporte
+  Saúde:
+    en: Health
+    es: Salud
+  Educação:
+    en: Education
+    es: Educación
+  Lazer:
+    en: Leisure
+    es: Ocio
+  Vestuário:
+    en: Clothing
+    es: Ropa

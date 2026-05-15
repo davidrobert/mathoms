@@ -119,20 +119,10 @@
   html {
     @apply font-sans;
   }
-  /* F12.1e · ADR-130 revisado — Fallbacks tipográficos por script.
-   * As fontes Noto Sans <X> são carregadas no <head> apenas para os
-   * locales que precisam (src/i18n/fonts.ts). Aqui ligamos a família
-   * extra ao stack via [lang] selector para cobrir glifos CJK fora
-   * do Latin Extended-A. */
-  html[lang="zh-CN"] body {
-    font-family: "Noto Sans SC", var(--font-body), system-ui, sans-serif;
-  }
-  html[lang="ja"] body {
-    font-family: "Noto Sans JP", var(--font-body), system-ui, sans-serif;
-  }
-  html[lang="ko"] body {
-    font-family: "Noto Sans KR", var(--font-body), system-ui, sans-serif;
-  }
+  /* ADR-130 revisado 2026-05-15 — escopo F12 reduzido para 3 locales
+   * Latin (pt-BR + en + es). Fontes default cobrem Latin Extended-A;
+   * sem fallback por [lang] necessário. Quando locales CJK/RTL
+   * reentrarem (nova ADR), blocos html[lang="..."] body voltam aqui. */
 }
 
 @keyframes indeterminate-progress {

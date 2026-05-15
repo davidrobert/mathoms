@@ -61,7 +61,12 @@ _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/
 - Sprints envolvidas: —
 - Lanes: _(aguardando F4)_
 - ADRs canônicas: [[ADR-130]]
-- Pausado em: 2026-04-26 · Razão: Aguarda definição de produto sobre locales prioritários (F12 do roadmap).
+- Pausado em: 2026-04-26 · Razão: Aguarda gatilho objetivo de demanda (ver §10). ICP confirmado em
+2026-05-15: brasileiros nômades digitais morando fora do Brasil.
+Escopo reduzido para 3 locales (pt-BR + en + es). Frente não-iniciada
+por falta de evidência quantificada de demanda em pré-PMF; recomendação
+GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
+
 
 ### PLAN-p1-structural — P1 — Plano estrutural (motor canônico + pipeline offline)
 
