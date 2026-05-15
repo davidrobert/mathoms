@@ -53,12 +53,13 @@ tags:
 
 | Onda | Status | PR | Notas |
 |---|---|---|---|
-| Onda 0 — Fundação metodológica (ADR + FORMULAS) | 🟡 em andamento | — | ADR-215 nesta sessão; FORMULAS.md update no mesmo PR ou seguinte. |
-| Onda 1 — Investigação: imputação de aluguel por imóvel | ⏳ pendente | — | PR exploratório isolado. De-risca Ondas 2-6. |
-| Onda 2 — Métricas determinísticas em E5.N | ⏳ pendente | — | Bloqueada por Onda 0 (ADR) e Onda 1 (achados). |
+| Onda 0 — Fundação metodológica (ADR + FORMULAS) | 🟡 em andamento | [#280](https://github.com/davidrobert/mathoms/pull/280) | ADR-216 mergeada (2026-05-15); FORMULAS.md update pendente. |
+| Onda 0.5 — Schema estruturado de Informe de Imobiliária | ⏳ pendente | — | Parser LLM dedicado (padrão ADR-157) — destrava cascade D9 da ADR-216. Pode rodar em paralelo com Onda 1. |
+| Onda 1 — Auditoria empírica: cobertura de Informe + IRPF + E4 | ⏳ pendente | — | PR exploratório isolado. Mede qual fonte aplica a cada workspace; de-risca Ondas 2-6. |
+| Onda 2 — Métricas determinísticas em E5.N | ⏳ pendente | — | Bloqueada por Onda 0 (ADR), Onda 0.5 (parser) e Onda 1 (achados). |
 | Onda 3 — Renderer React Premium (`RealEstateYieldCard`) | ⏳ pendente | — | Bloqueada por Onda 2 (payload). |
 | Onda 4 — Codegen + report_layout.yaml | ⏳ pendente | — | Trivial após Ondas 2-3; pode mergear junto. |
-| Onda 5 — Testes + goldens E5 | ⏳ pendente | — | Em paralelo com Ondas 2-3. |
+| Onda 5 — Testes + goldens E5 | ⏳ pendente | — | Em paralelo com Ondas 0.5/2/3. |
 | Onda 6 — Empty states + cutover | ⏳ pendente | — | Último; finaliza v1. |
 
 ---
@@ -71,7 +72,7 @@ tags:
 > benchmarks honestos (renda fixa real e classe pareada)?"** — em 5
 > segundos, com 1 alerta acionável quando aplicável.
 
-A ADR-215 fixa **o que** muda metodologicamente. Este plano fixa **como**
+A ADR-216 fixa **o que** muda metodologicamente. Este plano fixa **como**
 implementar — em 6 ondas com gates explícitos.
 
 ---
@@ -80,7 +81,7 @@ implementar — em 6 ondas com gates explícitos.
 
 | # | Bloqueio | Origem | Impacto se não resolvido |
 |---|---|---|---|
-| PR-1 | ADR-215 mergeada como `Proposto` | CLAUDE.md §"Política operacional" | PR de implementação sem ADR fere a regra. |
+| PR-1 | ADR-216 mergeada como `Proposto` | CLAUDE.md §"Política operacional" | PR de implementação sem ADR fere a regra. **✅ Mergeada em [#280](https://github.com/davidrobert/mathoms/pull/280).** |
 | PR-2 | `market_rates` populado com séries CDI + NTN-B + IFIX 12m | [[ADR-135]] | Tríade de benchmarks degrada para "CDI apenas" — viola D2 da ADR. |
 | PR-3 | Decisão sobre imputação de aluguel por imóvel | Onda 1 | Define se tabela mostra aluguel individual (D4 cheio) ou só valor + status (D4 fallback). |
 | PR-4 | Defaults de vacância/manutenção/IR aliquota confirmados por `financial-planner` | [[ADR-216]] D6 | Aciona ondas downstream sem revisão metodológica. |
@@ -123,38 +124,116 @@ por workspace via [[ADR-134]]; tooltip explica "valores estimados".
 
 ---
 
-## Onda 1 — Investigação: imputação de aluguel por imóvel (PR exploratório)
+## Onda 0.5 — Schema estruturado para Informe de Imobiliária
 
-**Objetivo:** descobrir se aluguel mensal pode ser imputado por imóvel
-ou se v1 cai no fallback de [[ADR-216]] D4.
+**Objetivo:** semantizar o documento `informerendimentosaluguel` (hoje
+classificado e roteado mas extraído via schema genérico de E2-LLM) para
+povoar a fonte #1 da cascade D9 da [[ADR-216]].
 
-**Hipóteses a testar (em ≥3 workspaces reais com imóveis):**
+**Fundamentação:** o doc type já existe no produto —
+[`backend/app/services/classification/type_classifier.py:85`](../../../backend/app/services/classification/type_classifier.py)
+classifica; [`scripts/e0_route.py:112-113`](../../../scripts/e0_route.py)
+rotea via regex `informe.*rendimento.*aluguel`; legacy processou
+`quintoandar_informerendimentosaluguel_2025-0_original.pdf`
+([`_archive/legacy_scripts/extract_baseline_patrimonial.py:354`](../../../_archive/legacy_scripts/extract_baseline_patrimonial.py)).
+Falta apenas a **camada semântica** — hoje o documento cai em
+[`pipeline/llm/schemas/e2_llm_extract.py`](../../../pipeline/llm/schemas/e2_llm_extract.py)
+que retorna lista plana de transações sem semântica de "aluguel do
+imóvel X, taxa adm Y, IPTU descontado Z".
 
-1. **H1 — IRPF carnê-leão tem 1:1 com imóvel.** `pipeline/llm/schemas/e16_irpf_full.py:175`
+**Entregáveis:**
+
+1. **Schema Pydantic dedicado**:
+   [`pipeline/llm/schemas/informe_aluguel.py`](../../../pipeline/llm/schemas/informe_aluguel.py)
+   espelhando o padrão [[ADR-157]] / `e16_irpf_full.py`:
+   - `PROMPT_VERSION` constante (versionado)
+   - `_coerce_decimal` para campos monetários ([[ADR-090]])
+   - `InformeAluguelImovel` (per-imóvel: endereço, IPTU/matrícula,
+     locatário CPF/CNPJ, locador CPF, período, aluguel bruto, taxa adm,
+     IPTU pago pela imobiliária, condomínio pago, IR retido, aluguel
+     líquido transferido, meses_locados_no_periodo)
+   - `InformeAluguelExtract` (top-level: imobiliaria_cnpj,
+     imobiliaria_nome, ano_referencia, membro_key, imoveis: list[...])
+2. **Prompt LLM dedicado**:
+   [`pipeline/llm/prompts/informe_aluguel.py`](../../../pipeline/llm/prompts/informe_aluguel.py)
+   com instruções específicas para informes de imobiliária (variações
+   típicas: QuintoAndar, Loft, imobiliárias locais).
+3. **Roteamento em E2/E2-LLM**: se `doc_type == "informerendimentosaluguel"`,
+   usar schema dedicado; senão cair no schema genérico de
+   `e2_llm_extract.py` (compat).
+4. **Persistência**: novo artifact key
+   `("E2-informe-aluguel", "informe_imobiliaria")` ou anexação ao
+   baseline (decisão de schema em revisão `data-engineer`).
+5. **Gate empírico**: golden de extração em `tests/test_informe_aluguel_extraction.py`
+   com PDF anonimizado de informe real (QuintoAndar ou similar).
+6. **Flag de cutover**: `use_structured_informe_extractor` (default
+   true; permite rollback rápido se LLM regredir).
+
+**Componentes do informe a extrair** (must-have v1):
+
+| Campo | Tipo | Cobertura típica em informes BR |
+|---|---|---|
+| `imovel.endereco` | string | Universal — sempre presente |
+| `imovel.aluguel_bruto_anual` | Decimal | Universal |
+| `imovel.taxa_administracao_anual` | Decimal | Universal (5-12% típico) |
+| `imovel.iptu_pago_anual` | Decimal | Quando imobiliária administra IPTU (~70%) |
+| `imovel.condominio_pago_anual` | Decimal | Quando aplicável e administrado (~50%) |
+| `imovel.ir_retido_anual` | Decimal | Apenas quando pagador é PJ (~15-25% dos casos) |
+| `imovel.aluguel_liquido_anual` | Decimal | Universal (transferido ao locador) |
+| `imovel.meses_locado` | int | Universal — base para vacância empírica |
+| `imobiliaria_cnpj` | string | Universal |
+| `imobiliaria_nome` | string | Universal |
+
+**Sigilo §13 ([[ADR-207]]):** valores reais e CPF/CNPJ **nunca** em commits,
+docstrings, fixtures de teste — usar dados sintéticos anonimizados.
+
+**Gate de saída:** schema valida ≥1 informe real em dev (workspace 5@5.com
+com QuintoAndar); goldens fixados; flag de cutover ativa.
+
+**Duração estimada:** 3-5 dias (schema + prompt + roteamento E2 +
+persistência + 1 golden + teste integração).
+
+**Owner:** orquestrador + `data-engineer` (review do schema + contrato
+de stage).
+
+---
+
+## Onda 1 — Auditoria empírica: cobertura de fontes (PR exploratório)
+
+**Objetivo:** medir empiricamente, em workspaces reais, qual fonte da
+cascade D9 da [[ADR-216]] aplica a cada imóvel — input direto para a
+priorização e o design do payload da Onda 2.
+
+**Hipóteses a quantificar (em ≥3 workspaces com imóveis):**
+
+1. **H1 — Cobertura de Informe de Imobiliária.** Quantos imóveis têm
+   informe carregado? Quais imobiliárias aparecem mais (QuintoAndar,
+   Loft, locais)? Confirma se Onda 0.5 destrava a maioria dos casos ou só
+   uma minoria.
+2. **H2 — IRPF carnê-leão tem 1:1 com imóvel.** [`pipeline/llm/schemas/e16_irpf_full.py:175`](../../../pipeline/llm/schemas/e16_irpf_full.py)
    (`rendimentos_pf`) carrega `fonte`/`pagador`/`descricao`. Verificar
-   se o campo `descricao` ou `imovel_endereco` (se existir) permite
-   matching com o endereço/descrição do imóvel no E1.5 baseline.
-2. **H2 — E4 receitas categorizadas como "Aluguel" têm referência ao imóvel.**
-   Verificar se categorização atual de receitas guarda info de origem
-   (qual conta, qual descrição) que mapeia para imóvel.
-3. **H3 — Distribuição pro-rata pelo valor IRPF é aceitável como aproximação.**
-   Se H1/H2 falham, calcular aluguel total ÷ valor total × valor_imóvel
-   é uma aproximação válida? Comunicar como "estimado" no UI?
+   matching com endereço/descrição do imóvel no E1.5 baseline.
+3. **H3 — E4 receitas categorizadas como "Aluguel" têm referência ao imóvel.**
+   Categorização atual de receitas guarda info de origem (qual conta,
+   qual descrição) que mapeia para imóvel?
+4. **H4 — Pro-rata como fallback final.** Quando todas falham, qual é
+   o erro empírico da distribuição pro-rata vs. realidade conhecida?
 
 **Entregáveis:**
 
 - Relatório técnico em [`docs/plan/S4_REAL_ESTATE_ENRICHMENT/INVESTIGATION_alugueis.md`](INVESTIGATION_alugueis.md)
-  com achados por workspace, taxa de matching, e recomendação de
-  caminho para Onda 2.
-- Decisão registrada: tabela cheia (D4 happy path) ou fallback (D4
-  degradado).
+  com:
+  - Tabela: workspace × imóvel × fonte disponível (cascade D9)
+  - % de cobertura por fonte (Informe / IRPF / E4 / pro-rata)
+  - Imobiliárias mais frequentes (lista para priorizar prompt da Onda 0.5)
+  - Recomendação: implementação da Onda 0.5 first vs. paralelo
+- Decisão registrada: ordem de priorização Onda 0.5 vs. Onda 2.
 
-**Gate de saída:** decisão de caminho documentada; payload schema da
-Onda 2 fica condicionado a este achado.
+**Gate de saída:** cobertura empírica documentada; payload schema da
+Onda 2 fica condicionado aos achados.
 
-**Risco:** se H1/H2/H3 todos falham, tabela por imóvel degrada para
-"valor + status do contrato" sem cap rate individual — degradação
-aceitável da v1 conforme [[ADR-216]] D4 fallback.
+**Risco:** se Informe presente em <30% dos imóveis, Onda 0.5 vira
+"nice-to-have" e podemos priorizar Onda 2 com fallback IRPF.
 
 **Duração estimada:** 1-2 dias (read-only — inspeção de payloads em
 ambiente de dev).
@@ -181,7 +260,9 @@ todos os campos consumidos pelo card.
   remove `yield_imoveis` narrative (substituído por payload estruturado);
   `summaries_narrator.py:81` mantém menção curta no texto da seção.
 
-**Payload novo (anexado ao E5 `analise_financeira`):**
+**Payload novo (anexado ao E5 `analise_financeira`):** Cada componente
+do `componentes_calculo` e cada campo numérico do `imoveis[]` carrega
+`origem` para sinalizar fonte da cascade D9 ([[ADR-216]]).
 
 ```json
 {
@@ -189,13 +270,15 @@ todos os campos consumidos pelo card.
     "cap_rate_liquido_pct": 1.3,
     "cap_rate_bruto_pct": 1.7,
     "componentes_calculo": {
-      "aluguel_anual_bruto": 52704,
-      "ir_carne_leao_anual": 11857,
-      "iptu_anual": 4800,
-      "condominio_anual": 7200,
-      "manutencao_anual": 31000,
-      "vacancia_anual": 7905,
-      "valor_imovel_irpf": 3100000
+      "aluguel_anual_bruto": {"valor": 52704, "origem": "informe"},
+      "taxa_administracao_anual": {"valor": 5270, "origem": "informe"},
+      "ir_retido_anual": {"valor": 0, "origem": "informe"},
+      "ir_carne_leao_anual": {"valor": 11857, "origem": "irpf"},
+      "iptu_anual": {"valor": 4800, "origem": "informe"},
+      "condominio_anual": {"valor": 7200, "origem": "e4"},
+      "manutencao_anual": {"valor": 31000, "origem": "default"},
+      "vacancia_anual": {"valor": 4392, "origem": "informe"},
+      "valor_imovel_irpf": {"valor": 3100000, "origem": "irpf"}
     },
     "benchmarks": {
       "cdi_liquido_pct": 8.7,
@@ -220,11 +303,19 @@ todos os campos consumidos pelo card.
         "descricao": "Apto Vila Madalena",
         "valor_irpf": 1200000,
         "aluguel_mensal_bruto": 2100,
+        "taxa_administracao_mensal": 210,
+        "ir_retido_mensal": 0,
+        "iptu_mensal": 400,
+        "meses_locados_no_ano": 12,
+        "vacancia_pct_empirica": 0.0,
         "cap_rate_bruto_pct": 2.1,
         "cap_rate_liquido_pct": 1.6,
         "data_ultimo_reajuste": "2024-08-15",
         "indice_reajuste": "IGPM",
-        "status_contrato": "atualizado"
+        "status_contrato": "atualizado",
+        "imobiliaria_cnpj": "12345678000190",
+        "imobiliaria_nome": "QuintoAndar",
+        "origem_aluguel": "informe"
       }
     ],
     "gap_otimizacao": {
@@ -242,6 +333,12 @@ todos os campos consumidos pelo card.
   }
 }
 ```
+
+**Cascade no service:** `real_estate_metrics.py` recebe (a) baseline E1.5,
+(b) IRPF parsed E1.6, (c) **NOVO:** informe parsed Onda 0.5, (d) E4
+receitas/despesas. Para cada imóvel, percorre cascade D9 ordenadamente
+e popula campos + `origem`. Sem dado → omite campo + componente sai como
+`default`.
 
 **Schema:** atualizar
 [`config/schemas/e5_analysis.schema.json`](../../../config/schemas/e5_analysis.schema.json)
@@ -456,24 +553,37 @@ parcial imóveis) e validar visual.
 ## Dependências entre ondas
 
 ```
-Onda 0 (ADR + FORMULAS)
-  ├─→ Onda 1 (investigação imputação) ──┐
-  │                                       ↓
-  ├─→ Onda 2 (métricas E5.N) ────────────┴─→ Onda 3 (renderer React)
-  │         ↓                                       ↓
-  │   Onda 5 (testes pipeline)              Onda 5 (testes frontend)
-  │                                                 ↓
-  └─────────────────────────────────────────→ Onda 4 (codegen)
-                                                    ↓
-                                              Onda 6 (cutover)
+Onda 0 (ADR + FORMULAS) ✅ ADR · FORMULAS pendente
+  │
+  ├─→ Onda 1 (auditoria empírica) ──┐
+  │                                   │
+  ├─→ Onda 0.5 (schema Informe) ────┤  (Onda 0.5 pode rodar
+  │     ↑                             │   em paralelo com Onda 1;
+  │     │ prioridade definida         │   prioridade ajusta-se
+  │     │ por Onda 1 (PR-3)           │   pelo achado da Onda 1)
+  │                                   ↓
+  └─→ Onda 2 (métricas E5.N) ────────┴─→ Onda 3 (renderer React)
+        ↓                                       ↓
+   Onda 5 (testes pipeline)              Onda 5 (testes frontend)
+                                                ↓
+                                          Onda 4 (codegen)
+                                                ↓
+                                          Onda 6 (cutover)
 ```
 
-Onda 0 e 1 são bloqueantes. Ondas 2/3/5 podem ter trabalho paralelo
-dentro delas. Ondas 4 e 6 são sequenciais ao fim.
+**Caminho crítico:** Onda 0 (ADR ✅) → Onda 1 (audit) → Onda 0.5
+(condicional ao resultado de Onda 1) → Onda 2 (métricas) → Onda 3
+(renderer) → Onda 4/6 (cutover).
 
-**Duração estimada total:** ~7-10 dias úteis, distribuídos em ~2 PRs
-maiores (Onda 0+1 em PR docs; Ondas 2-6 em PR de implementação) ou
-~6 PRs pequenos.
+Onda 0.5 e Onda 1 podem ser paralelas (ambas read-only / additive).
+Onda 2 depende de **achados** da Onda 1 e do **schema** da Onda 0.5.
+
+**Duração estimada total:**
+- v1 sem Onda 0.5 (cobertura Informe baixa): ~7-10 dias úteis
+- v1 com Onda 0.5 (cobertura Informe alta): ~10-15 dias úteis
+
+Distribuição em PRs: ~6-8 PRs pequenos (1 por onda, com Onda 0.5 e
+Onda 2 possivelmente em 2 PRs cada por tamanho).
 
 ---
 
@@ -481,7 +591,9 @@ maiores (Onda 0+1 em PR docs; Ondas 2-6 em PR de implementação) ou
 
 | Risco | Probabilidade | Mitigação | Owner |
 |---|---|---|---|
-| Aluguel por imóvel não imputável → tabela vira só "valor + status" | Média | Fallback D4 da ADR-215 já decidido; degradação aceitável da v1. | Onda 1 |
+| Aluguel por imóvel não imputável → tabela vira só "valor + status" | Baixa-média (cascade D9 reduz) | Cascade D9 (Informe → IRPF → E4 → pro-rata) cobre maioria dos casos; só falha total cai em fallback. | Onda 1 + 0.5 |
+| Cobertura de Informe baixa (<30% dos imóveis) | Média | Onda 0.5 vira "nice-to-have"; v1 sai com fallback IRPF/E4 + badge "estimado". Onda 0.5 pode entrar em sprint+1 sem bloquear v1. | Onda 1 |
+| Schema do Informe falha em variação de imobiliária local | Média | Flag `use_structured_informe_extractor` permite rollback rápido para schema genérico; goldens cobrem QuintoAndar/Loft em v1, locais entram conforme aparecem. | Onda 0.5 |
 | `market_rates` sem séries NTN-B/IFIX históricas | Baixa | Onda 0 audita; seed antes da Onda 2. | Onda 0 |
 | Defaults de vacância/manutenção controversos | Média | Override por workspace ([[ADR-134]]); tooltip explicativo; revisão metodológica explícita. | `financial-planner` |
 | Concentração 40% threshold gera alarme falso | Média | Configurável + texto neutro do alerta. | Onda 2 |
@@ -494,7 +606,7 @@ maiores (Onda 0+1 em PR docs; Ondas 2-6 em PR de implementação) ou
 
 Plano transita para `done` quando:
 
-1. ✅ ADR-215 mergeada e flippada para `Decidido` no PR final.
+1. ✅ ADR-216 mergeada e flippada para `Decidido` no PR final.
 2. ✅ FORMULAS.md §Imóveis populada com as 4 fórmulas e defaults.
 3. ✅ Card `RealEstateYieldCard` em produção (mergeado em `main`,
    CI verde, visto em workspace real).
@@ -517,8 +629,10 @@ Plano transita para `done` quando:
 
 ## Referências cruzadas
 
-- [[ADR-216]] — decisão canônica (cap rate líquido + benchmarks tríade)
+- [[ADR-216]] — decisão canônica (cap rate líquido + benchmarks tríade + cascade D9 de fontes)
+- [[ADR-215]] — classificação de imóveis via override DB (enum `classification`) — consumido em D8
 - [[ADR-191]] — precedente do card TRS (diferenciação carteira vs single-class)
+- [[ADR-157]] — E1.6 IRPF full (padrão de schema Pydantic + prompt LLM espelhado pela Onda 0.5)
 - [[ADR-143]] — `methodology=code`
 - [[ADR-090]] — `Decimal`/`Money.brl` para dinheiro
 - [[ADR-097]] D3 — services recebem value objects tipados
