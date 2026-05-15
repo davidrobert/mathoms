@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Informe de Rendimentos de Aluguel (Imobiliária)",
+  "description": "Schema do artefato E2-informe-aluguel produzido pelo extractor LLM dedicado (Onda 0.5 · ADR-216). Pareado com pipeline.llm.schemas.informe_aluguel.InformeAluguelExtract. Wire de dinheiro: string decimal (ADR-090). Top-level lenient para sobreviver shape novo de PDF; sub-models strict.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "imobiliaria_cnpj",
+    "imobiliaria_nome",
+    "ano_referencia",
+    "imoveis",
+    "confidence"
+  ],
+  "properties": {
+    "imobiliaria_cnpj": {
+      "type": "string",
+      "pattern": "^\\d{14}$",
+      "description": "CNPJ da imobiliária (14 dígitos sem máscara)."
+    },
+    "imobiliaria_nome": {
+      "type": "string",
+      "minLength": 2
+    },
+    "ano_referencia": {
+      "type": "integer",
+      "minimum": 2000,
+      "maximum": 2100
+    },
+    "locador_cpf": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{11}$"
+    },
+    "membro_key": {
+      "type": ["string", "null"]
+    },
+    "imoveis": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/imovel" }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "notes": {
+      "type": ["string", "null"]
+    },
+    "prompt_version": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "imovel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "endereco",
+        "aluguel_bruto_anual",
+        "taxa_administracao_anual",
+        "ir_retido_anual",
+        "aluguel_liquido_anual",
+        "meses_locado_no_periodo"
+      ],
+      "properties": {
+        "endereco": {
+          "type": "string",
+          "minLength": 4
+        },
+        "iptu_municipal": {
+          "type": ["string", "null"]
+        },
+        "locatario_cpf_cnpj": {
+          "type": ["string", "null"]
+        },
+        "aluguel_bruto_anual": { "$ref": "#/$defs/decimalString" },
+        "taxa_administracao_anual": { "$ref": "#/$defs/decimalString" },
+        "ir_retido_anual": { "$ref": "#/$defs/decimalString" },
+        "iptu_anual_pago": { "$ref": "#/$defs/decimalStringOrNull" },
+        "condominio_anual_pago": { "$ref": "#/$defs/decimalStringOrNull" },
+        "aluguel_liquido_anual": { "$ref": "#/$defs/decimalString" },
+        "meses_locado_no_periodo": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "mes_inicial": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "maximum": 12
+        },
+        "indice_reajuste": {
+          "type": "string",
+          "enum": ["IGPM", "IPCA", "IPC-FIPE", "INPC", "sem_reajuste", "nao_informado"]
+        },
+        "data_ultimo_reajuste": {
+          "type": ["string", "null"],
+          "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+        },
+        "notas": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "decimalString": {
+      "description": "Wire de dinheiro: string decimal (ADR-090). Float é proibido.",
+      "oneOf": [
+        { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" },
+        { "type": "integer" }
+      ]
+    },
+    "decimalStringOrNull": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" },
+        { "type": "integer" }
+      ]
+    }
+  }
+}

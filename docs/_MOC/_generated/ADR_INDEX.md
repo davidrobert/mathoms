@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-209 ADRs (ADR-001 a ADR-216) em [`docs/adr/`](../../adr/).
+213 ADRs (ADR-001 a ADR-220) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 171
-- **Proposto**: 34
+- **Proposto**: 38
 - **Roadmap**: 4
 
 ## Fundação
@@ -419,16 +419,20 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 
-### Proposto (2)
+### Proposto (3)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
+- [[ADR-219]] — Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 · phase A12
 
 ## relatorio
 
-### Proposto (1)
+### Proposto (4)
 
 - [[ADR-216]] — Cap rate líquido como métrica canônica de imóveis de investimento (S4) · phase A12
+- [[ADR-217]] — Score patrimonial canônico — composição, fórmula e ciclo de vida · phase A12
+- [[ADR-218]] — Reserva de Emergência — denominador essencial, override por workspace e bandas Cerbasi/Perini · phase A12
+- [[ADR-220]] — Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados · phase A12
 
 ## report
 
