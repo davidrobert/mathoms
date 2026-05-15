@@ -544,12 +544,20 @@ Ao adicionar global novo, registre entrada em
 (a) ou (b), **não** adicione. Gate empírico:
 `backend/tests/integration/test_multi_worker_concurrency.py`.
 
-### Feature flag `MATHOMS_USE_DB_ARTIFACTS`
+### `ArtifactStore` é DB-only (ADR-212)
 
-Default `True` (cutover concluído em A6a/A6b/A6-human; bridge removido em
-A6c — 2026-04-24). Controla store do `ArtifactStore`. Por workspace:
-`workspaces.use_db_artifacts_override: bool | None` (None = global flag,
-True = força DB, False = força disco).
+Pipeline grava artefatos **exclusivamente** em `pipeline_artifacts`
+via `DBArtifactStore`. `DiskArtifactStore` foi deletado em A12 (PR3b);
+flag `MATHOMS_USE_DB_ARTIFACTS` + coluna `workspaces.use_db_artifacts_override`
+removidos em PR4. Testes injetam `InMemoryArtifactStore` explícito —
+`WorkspaceContext.get_artifact_store()` raise `RuntimeError` se store
+não foi injetada. Validação JSON-schema universal via hook pós-write
+em `DBArtifactStore.write` (mapping `SCHEMA_BY_STAGE`). Rollback:
+snapshot DB pré-deploy + revert PR + migration downgrade (runbook em
+[docs/reference/runbooks/pipeline_rollback.md](docs/reference/runbooks/pipeline_rollback.md);
+janela ~30min RTO). Reset destrutivo de pipeline:
+`backend/app/services/internal_ops/pipeline_reset.py::reset_workspace_from_stage`
+(consumido pelo console interno, ADR-116).
 
 ### Paths proibidos no git (enforçados por `dev/check_forbidden_paths.py`)
 
