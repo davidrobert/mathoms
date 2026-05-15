@@ -1020,31 +1020,42 @@ configs e docstrings antes de agir.
 
 ## Convenções de naming de artefatos
 
-Pós-[[ADR-212]], artifacts vivem em `pipeline_artifacts` (DB) — os sufixos
-abaixo são convenção do `artifact_key` (na coluna `artifact_key`) e do
-filename **histórico** em disco preservado para o CLI read-only
-`scripts/e0_audit.py`. Fonte de verdade do mapeamento stage → sufixo:
-[`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py) em `pipeline/artifact_store.py`.
+Pós-[[ADR-212]], artifacts vivem em `pipeline_artifacts` (DB) — `stage` e
+`artifact_key` são colunas; **não há filename físico em produção**. Os
+sufixos preservam 5 usos atuais:
 
-| Sufixo              | Stage                                              | Exemplo de key                             |
-| ------------------- | -------------------------------------------------- | ------------------------------------------ |
-| `-0_original`       | E0 (roteamento; só em disco antes do upload)       | `c6bank_extratoconta_202601-0_original.csv` |
-| `-1b_unified`       | E1 (`extract_members` · ADR-127)                   | `members`                                  |
-| `-1.5a_extract`     | E1.5a (extract per-IRPF pré-baseline)              | `irpfdeclaracao_2024`                      |
-| `-1.5_baseline`     | E1.5 (`extract_baseline`, baseline puro)           | `baseline_patrimonial`                     |
-| `-1.5_consolidated` | E1.5c (`consolidate_baseline`)                     | `baseline_patrimonial`                     |
-| `-1.6_irpf_full`    | E1.6 (`extract_irpf_full` · ADR-157)               | `irpfdeclaracao_2024`                      |
-| `-2_extract`        | E2 (`E2-extratos`/`E2-faturas`/`E2-llm`)           | `itau_extratoconta_202601_202604`          |
-| `-3_reconciled`     | E3 (`reconcile_transactions`)                      | `itau_extratoconta_BRL_202212_202604`      |
-| `-4_unified`        | E4 (`categorize_transactions`)                     | `despesas` / `receitas` / `patrimonio`     |
-| `-5_analysis`       | E5 (`analyze_finances`)                            | `analise_financeira`                       |
-| `-5n_narrativas`    | E5.N (`generate_narratives`)                       | `analise_financeira`                       |
-| `-6_parecer`        | E6-parecer (`review_finances_holistic` · ADR-199)  | `parecer_planejador`                       |
-| `-7_crossval`       | E7 (`validate_cross`)                              | `crossval`                                 |
+1. **Rastreabilidade em E3** — [`e3_reconciler_adapter.py:239`](pipeline/domain/services/e3_reconciler_adapter.py) concatena `key + stage_suffix("E2")` no `stmt.source_document` (mostra qual input deu origem à linha).
+2. **`_source` em itens E4** — [`e4_categorizer_adapter.py:194`](pipeline/domain/services/e4_categorizer_adapter.py) anexa origem a posição patrimonial / investimento.
+3. **Campo `arquivo` no payload E3** — [`e3_serialization.generate_legacy_filename`](pipeline/domain/services/e3_serialization.py) gera `{banco}_{tipo_conta}_{MOEDA}_{YYYYMM}_{YYYYMM}-3_reconciled.json` para logs / UI.
+4. **CLI `scripts/e0_audit.py`** — read-only inspeciona filesystem usando os mappings.
+5. **Guardrail test** — `tests/unit/pipeline/test_artifact_stores.py` valida sincronia entre `_STAGE_TO_DIR` e `_STAGE_TO_SUFFIX`.
 
-Nomes de banco em filenames seguem o código canônico de
-`institution_catalog` (DB, ADR-137; ex.: `bankofamerica`, `btgpactual`,
-`c6bank`, `itau` — sem espaços, sem acentos).
+Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py) em `pipeline/artifact_store.py`.
+
+| Stage / `_STAGE_TO_SUFFIX` key | Sufixo              | Stage descritivo                                         | Exemplo de `artifact_key`                  |
+| ------------------------------ | ------------------- | --------------------------------------------------------- | ------------------------------------------ |
+| `E0` (filename)                | `-0_original`       | Upload + roteamento (filename em `inbox/`)               | `c6bank_extratoconta_202601-0_original.csv` |
+| `E1`                           | `-1b_unified`       | `extract_members` · ADR-127                              | `members`                                  |
+| `E1.5a`                        | `-1.5a_extract`     | Extract per-IRPF pré-baseline                            | `irpfdeclaracao_2024`                      |
+| `E1.5`                         | `-1.5_baseline`     | `extract_baseline` (baseline puro)                       | `baseline_patrimonial`                     |
+| `E1.5c`                        | `-1.5_consolidated` | `consolidate_baseline`                                   | `baseline_patrimonial`                     |
+| `extract_irpf_full`            | `-1.6_irpf_full`    | E1.6 — IRPF completo · ADR-157                           | `irpfdeclaracao_2024`                      |
+| `E2-extratos`/`E2-faturas`/`E2-llm` | `-2_extract`   | E2 — extratos / faturas / LLM fallback                   | `itau_extratoconta_202601_202604`          |
+| `E3`                           | `-3_reconciled`     | `reconcile_transactions`                                 | `itau_extratoconta_BRL_202212_202604`      |
+| `E4`                           | `-4_unified`        | `categorize_transactions` — 7 keys                       | `despesas` / `receitas` / `fluxo_mensal_detalhado` / `patrimonio` / `investimentos` / `seguros` / `pontos_milhas` |
+| `E5`                           | `-5_analysis`       | `analyze_finances`                                       | `analise_financeira`                       |
+| `E6-parecer`                   | `-6_parecer`        | `review_finances_holistic` · ADR-199                     | `parecer_planejador`                       |
+
+**Sufixos `-5n_narrativas` (`E5.N`) e `-7_crossval` (`E7`) permanecem em
+`_STAGE_TO_SUFFIX` por consistência do guardrail test, mas são dead
+code de write em produção:**
+
+- `generate_narratives` ([`scripts/e5n_narrativas.py:670`](scripts/e5n_narrativas.py)) faz `store.write("E5", "analise_financeira", ...)` — **merge** das narrativas no payload E5 existente (não há row com stage="E5.N" em `pipeline_artifacts`).
+- `validate_cross` ([`scripts/e7_review.py:480`](scripts/e7_review.py)) é puro read-only sobre E5; **não chama `store.write`** (sem row com stage="E7").
+
+Nomes de banco seguem o código canônico de `institution_catalog`
+(DB, ADR-137; ex.: `bankofamerica`, `btgpactual`, `c6bank`, `itau` —
+sem espaços, sem acentos).
 
 **Período sentinel `999999`:** usado em faturas de cartão cujo período
 não pôde ser determinado. Propaga de E0→E2→E3.
