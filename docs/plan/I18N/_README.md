@@ -572,11 +572,27 @@ mantém frente preparada (escopo + glossário + ADR) mas pausada.
   de pricing internacional (USD/EUR) que exija UI EN como
   pré-requisito. Abrir ADR separada de pricing antes; i18n vira
   consequência.
+- **Gatilho D — sinal qualitativo do beta pagante (n=1):** ≥1
+  pedido formal documentado de **user pagante ativo** solicitando
+  EN ou ES para uso específico (cônjuge não-BR, contador local,
+  partilha de relatório com terceiro). Em produto pré-PMF, n=1 de
+  usuário pagante engajado é sinal mais forte que n=30 de leads
+  anônimos. Registro: thread em canal de suporte, e-mail ou tag em
+  pesquisa de NPS — com `Decision` aggregate documentado se for
+  pedido recorrente do mesmo workspace.
 
 ### 10.2 Revisão obrigatória
 
-- **Q3 2026** (3 meses pós-encerramento de A12): revisar status do
-  gate. Sem nenhum gatilho atingido, três opções:
+- **Checkpoint mensal lightweight:** em cada retro de sprint
+  (cadência mensal), ler dashboard de sinal (gatilhos A + B + D) em
+  ≤5min. **Sem ação default** — apenas leitura. Objetivo: garantir
+  que instrumentação está rodando e os números estão sendo vistos.
+  Sem este checkpoint, o risco é "instrumentou e esqueceu" — coleta
+  de 3 meses sem leitura e a revisão Q3 vira "nunca olhamos o
+  dado". O checkpoint é não-decisional; se algum gatilho atingir
+  threshold, o checkpoint do mês promove para decisão formal.
+- **Q3 2026** (3 meses pós-encerramento de A12): revisão de
+  decisão formal. Sem nenhum gatilho atingido, três opções:
   1. **Re-priorizar com gate ajustado** (ex.: reduzir threshold do
      gatilho A para 20 leads).
   2. **Executar mesmo sem gate** (decisão consciente de produto;
