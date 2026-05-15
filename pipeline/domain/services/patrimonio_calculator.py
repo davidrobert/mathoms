@@ -72,11 +72,56 @@ from pipeline.domain.services.patrimonio_types import (
     PatrimonioInputs,
     get_bens,
     imovel_desc,
+    imovel_property_id,
     imovel_valor,
     investimento_valor,
     safe_float,
     veiculo_valor,
 )
+
+# ADR-215 P3: classification de override DB-first (ADR-215 §1).
+CLASSIFICATION_RESIDENCIA_PRINCIPAL = "residencia_principal"
+
+
+def split_imoveis_with_overrides(
+    *,
+    titular_bens: dict,
+    conjuge_bens: dict,
+    overrides_by_property_id: dict[str, str],
+    fallback_keyword: str = "",
+) -> tuple[float, float]:
+    """Separa cat_1 (residencia_principal) de demais imóveis usando overrides (ADR-215 P3)."""
+    # Pure function — read-time split lê `property_id` de cada imóvel e
+    # aplica override. Sem property_id (legado / pré-P2), cai no fallback
+    # keyword preservando paridade.
+    residencia = 0.0
+    imoveis_outros = 0.0
+    keyword = (fallback_keyword or "").lower()
+
+    def _classify(im: dict) -> str | None:
+        pid = imovel_property_id(im)
+        if pid and pid in overrides_by_property_id:
+            return overrides_by_property_id[pid]
+        return None
+
+    for im in titular_bens.get("imoveis", []) or []:
+        cls = _classify(im)
+        if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
+            residencia += imovel_valor(im)
+            continue
+        if cls is None and keyword and keyword in imovel_desc(im):
+            residencia += imovel_valor(im)
+            continue
+        imoveis_outros += imovel_valor(im)
+
+    for im in conjuge_bens.get("imoveis", []) or []:
+        cls = _classify(im)
+        if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
+            residencia += imovel_valor(im)
+        else:
+            imoveis_outros += imovel_valor(im)
+
+    return residencia, imoveis_outros
 
 
 class PatrimonioCalculator:
@@ -184,14 +229,20 @@ class PatrimonioCalculator:
         ) + safe_float(conjuge_data.get("total_dividas", conjuge_data.get("dividas", 0)))
 
     def _split_imoveis(self, titular_bens: dict, conjuge_bens: dict) -> tuple[float, float]:
-        """Separa imóveis em residência principal (via keyword) vs investimento.
+        """Separa residencia_principal vs demais imóveis (ADR-145 cat_1/cat_2)."""
+        # ADR-215 P3: prefere overrides DB-first (`is_residencia_principal`)
+        # quando property_id está presente; fallback keyword preserva paridade
+        # legado e desbloqueia rollout incremental (workspaces sem overrides).
+        overrides = self._config.property_classification_overrides or {}
 
-        Implementa as categorias 1 e 2 de ADR-145 (composição patrimonial):
-        residência principal = único imóvel do titular cuja descrição contém
-        ``residencia_keyword`` (case-insensitive); todos os demais imóveis
-        — incluindo todos os do cônjuge por convenção legado — vão para
-        ``imoveis_investimento``.
-        """
+        if overrides:
+            return split_imoveis_with_overrides(
+                titular_bens=titular_bens,
+                conjuge_bens=conjuge_bens,
+                overrides_by_property_id=overrides,
+                fallback_keyword=self._config.residencia_keyword,
+            )
+
         residencia = 0.0
         imoveis_investimento = 0.0
         keyword = (self._config.residencia_keyword or "").lower()
@@ -377,9 +428,13 @@ class PatrimonioCalculator:
         no doughnut de ``investimentos_classes`` — não nesta composição.
         """
         identity = self._config.members
+        # ADR-215 P3: rename visível do bucket cat_2 — "Imóveis Investimento"
+        # → "Imóveis de Renda". Comunica o critério econômico real (geração de
+        # caixa). `template_key` interno (`imoveis_investimento`) é estável
+        # ([[ADR-145]] proíbe rename de key); só o label exibido muda.
         composicao = [
             {"categoria": "Residência", "valor": residencia},
-            {"categoria": "Imóveis Investimento", "valor": imoveis_investimento},
+            {"categoria": "Imóveis de Renda", "valor": imoveis_investimento},
             {
                 "categoria": f"Investimentos {identity.titular_nome}",
                 "valor": investimentos_titular,

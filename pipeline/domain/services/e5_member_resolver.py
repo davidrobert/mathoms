@@ -425,6 +425,10 @@ class E5MemberResolver:
             if enrich_descricao:
                 entry["endereco"] = item.get("endereco", "")
                 entry["tipo"] = item.get("tipo", "")
+                # ADR-215 P3: propaga property_id do baseline E1.5c para
+                # `_split_imoveis` poder casar override.
+                if item.get("property_id"):
+                    entry["property_id"] = item["property_id"]
             if self._is_conjuge_exclusive(item):
                 conjuge.append(entry)
             else:

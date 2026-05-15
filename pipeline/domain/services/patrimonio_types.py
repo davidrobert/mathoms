@@ -61,8 +61,15 @@ class PatrimonioConfig:
     """Keyword (lowercase) que identifica o imóvel como residência principal.
 
     Vem de ``family_members.json → <titular> → residencia_principal_keyword``.
-    String vazia = toda imobilização vira "imóveis investimento".
+    Deprecated: substituído por ``property_classification_overrides`` quando
+    presente (ADR-215 P3). Mantido como fallback para workspaces sem overrides.
     """
+
+    # ADR-215 P3: mapping `property_id` → `classification` enum
+    # (residencia_principal | uso_pessoal | locado | comercial | especulacao
+    # | desconhecido). Vem do DB (`workspace_property_overrides`). Empty dict
+    # quando workspace ainda não classificou — fallback usa keyword.
+    property_classification_overrides: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -119,6 +126,14 @@ def imovel_valor(imovel: dict) -> float:
         if v is not None:
             return safe_float(v)
     return 0.0
+
+
+def imovel_property_id(imovel: dict) -> str | None:
+    """Retorna `property_id` (ADR-215 P2) anexado ao imóvel pelo E1.5c, ou None."""
+    pid = imovel.get("property_id")
+    if isinstance(pid, str) and pid:
+        return pid
+    return None
 
 
 def imovel_desc(imovel: dict) -> str:
