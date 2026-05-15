@@ -53,13 +53,13 @@ tags:
 
 | Onda | Status | PR | Notas |
 |---|---|---|---|
-| Onda 0 — Fundação metodológica (ADR + FORMULAS) | 🟡 em andamento | [#280](https://github.com/davidrobert/mathoms/pull/280) | ADR-216 mergeada (2026-05-15); FORMULAS.md update pendente. |
-| Onda 0.5 — Schema estruturado de Informe de Imobiliária | ⏳ pendente | — | Parser LLM dedicado (padrão ADR-157) — destrava cascade D9 da ADR-216. Pode rodar em paralelo com Onda 1. |
-| Onda 1 — Auditoria empírica: cobertura de Informe + IRPF + E4 | ⏳ pendente | — | PR exploratório isolado. Mede qual fonte aplica a cada workspace; de-risca Ondas 2-6. |
-| Onda 2 — Métricas determinísticas em E5.N | ⏳ pendente | — | Bloqueada por Onda 0 (ADR), Onda 0.5 (parser) e Onda 1 (achados). |
+| Onda 0 — Fundação metodológica (ADR + FORMULAS) | ✅ entregue | [#280](https://github.com/davidrobert/mathoms/pull/280) + [#282](https://github.com/davidrobert/mathoms/pull/282) + [#283](https://github.com/davidrobert/mathoms/pull/283) | ADR-216 Proposto + D9 cascade + FORMULAS §Imóveis canonizada. |
+| Onda 0.5 — Schema estruturado de Informe de Imobiliária | 🟡 em CI | [#284](https://github.com/davidrobert/mathoms/pull/284) | Parser LLM dedicado (padrão ADR-157); destrava cascade D9 fonte #1. Stage NÃO registrado em STAGE_REGISTRY (segue para 0.5b após Onda 2). |
+| ~~Onda 1 — Auditoria empírica~~ | ❌ eliminada | — | Plano single-workspace (dogfood 5@5.com) — discovery de cobertura vira passo inline da Onda 2 (~10min). Quando produto for multi-workspace, re-introduzir como Onda 2.b pós-launch. |
+| Onda 2 — Métricas determinísticas em E5.N | ⏳ pendente | — | **Próxima.** Bloqueada apenas por Onda 0.5 mergear (consome `extract_one_informe()`). Discovery local de fontes do workspace dogfood vai inline no início do PR. |
 | Onda 3 — Renderer React Premium (`RealEstateYieldCard`) | ⏳ pendente | — | Bloqueada por Onda 2 (payload). |
 | Onda 4 — Codegen + report_layout.yaml | ⏳ pendente | — | Trivial após Ondas 2-3; pode mergear junto. |
-| Onda 5 — Testes + goldens E5 | ⏳ pendente | — | Em paralelo com Ondas 0.5/2/3. |
+| Onda 5 — Testes + goldens E5 | ⏳ pendente | — | Em paralelo com Ondas 2/3. |
 | Onda 6 — Empty states + cutover | ⏳ pendente | — | Último; finaliza v1. |
 
 ---
@@ -81,12 +81,12 @@ implementar — em 6 ondas com gates explícitos.
 
 | # | Bloqueio | Origem | Impacto se não resolvido |
 |---|---|---|---|
-| PR-1 | ADR-216 mergeada como `Proposto` | CLAUDE.md §"Política operacional" | PR de implementação sem ADR fere a regra. **✅ Mergeada em [#280](https://github.com/davidrobert/mathoms/pull/280).** |
+| PR-1 | ADR-216 mergeada como `Proposto` | CLAUDE.md §"Política operacional" | PR de implementação sem ADR fere a regra. **✅ Mergeada em [#280](https://github.com/davidrobert/mathoms/pull/280) + [#282](https://github.com/davidrobert/mathoms/pull/282).** |
 | PR-2 | `market_rates` populado com séries CDI + NTN-B + IFIX 12m | [[ADR-135]] | Tríade de benchmarks degrada para "CDI apenas" — viola D2 da ADR. |
-| PR-3 | Decisão sobre imputação de aluguel por imóvel | Onda 1 | Define se tabela mostra aluguel individual (D4 cheio) ou só valor + status (D4 fallback). |
-| PR-4 | Defaults de vacância/manutenção/IR aliquota confirmados por `financial-planner` | [[ADR-216]] D6 | Aciona ondas downstream sem revisão metodológica. |
+| PR-3 | Defaults de vacância/manutenção/IR aliquota confirmados por `financial-planner` | [[ADR-216]] D6 | Aciona ondas downstream sem revisão metodológica. **✅ Carimbados em Onda 0** (sessão 2026-05-15, 10 ajustes aplicados). |
+| PR-4 | Schema ADR-215 (`property_identity` + `workspace_property_overrides`) | [[ADR-215]] | Enum `classification` em produção é pré-requisito para filtro D8 (S4 considera apenas `investimento_locado` / `investimento_vago`). **✅ Mergeado em [#281](https://github.com/davidrobert/mathoms/pull/281).** |
 
-PR-1 é desta sessão (em curso). PR-2/PR-3/PR-4 são gates da Onda 0/1.
+PR-1, PR-3, PR-4 ✅. PR-2 (seed `market_rates`) é gate da Onda 2.
 
 ---
 
@@ -198,48 +198,23 @@ de stage).
 
 ---
 
-## Onda 1 — Auditoria empírica: cobertura de fontes (PR exploratório)
+## ~~Onda 1 — Auditoria empírica~~ (eliminada — sessão 2026-05-15)
 
-**Objetivo:** medir empiricamente, em workspaces reais, qual fonte da
-cascade D9 da [[ADR-216]] aplica a cada imóvel — input direto para a
-priorização e o design do payload da Onda 2.
+**Eliminada** porque o produto opera com 1 workspace (dogfood 5@5.com). "Auditoria
+de cobertura em ≥3 workspaces" não faz sentido até existir frota; a checagem
+local que ficaria nesta onda (~10min: `ls data/income_tax_br/`, verificar IRPF
+estruturado em E1.6, verificar aluguel categorizado em E4) vai **inline na primeira
+parte do PR da Onda 2** — não justifica PR exploratório separado.
 
-**Hipóteses a quantificar (em ≥3 workspaces com imóveis):**
+**Re-introdução futura:** quando o produto atender ≥3 workspaces externos, abrir
+**Onda 2.b — Re-audit pós-launch** antes de promover defaults para canônicos.
+Hipóteses H1-H4 ficam preservadas neste registro para retomada.
 
-1. **H1 — Cobertura de Informe de Imobiliária.** Quantos imóveis têm
-   informe carregado? Quais imobiliárias aparecem mais (QuintoAndar,
-   Loft, locais)? Confirma se Onda 0.5 destrava a maioria dos casos ou só
-   uma minoria.
-2. **H2 — IRPF carnê-leão tem 1:1 com imóvel.** [`pipeline/llm/schemas/e16_irpf_full.py:175`](../../../pipeline/llm/schemas/e16_irpf_full.py)
-   (`rendimentos_pf`) carrega `fonte`/`pagador`/`descricao`. Verificar
-   matching com endereço/descrição do imóvel no E1.5 baseline.
-3. **H3 — E4 receitas categorizadas como "Aluguel" têm referência ao imóvel.**
-   Categorização atual de receitas guarda info de origem (qual conta,
-   qual descrição) que mapeia para imóvel?
-4. **H4 — Pro-rata como fallback final.** Quando todas falham, qual é
-   o erro empírico da distribuição pro-rata vs. realidade conhecida?
+**Achados pré-existentes que dispensam auditoria formal v1:**
 
-**Entregáveis:**
-
-- Relatório técnico em [`docs/plan/S4_REAL_ESTATE_ENRICHMENT/INVESTIGATION_alugueis.md`](INVESTIGATION_alugueis.md)
-  com:
-  - Tabela: workspace × imóvel × fonte disponível (cascade D9)
-  - % de cobertura por fonte (Informe / IRPF / E4 / pro-rata)
-  - Imobiliárias mais frequentes (lista para priorizar prompt da Onda 0.5)
-  - Recomendação: implementação da Onda 0.5 first vs. paralelo
-- Decisão registrada: ordem de priorização Onda 0.5 vs. Onda 2.
-
-**Gate de saída:** cobertura empírica documentada; payload schema da
-Onda 2 fica condicionado aos achados.
-
-**Risco:** se Informe presente em <30% dos imóveis, Onda 0.5 vira
-"nice-to-have" e podemos priorizar Onda 2 com fallback IRPF.
-
-**Duração estimada:** 1-2 dias (read-only — inspeção de payloads em
-ambiente de dev).
-
-**Owner:** `data-engineer` (delegação obrigatória por CLAUDE.md
-§Protocolo de delegação — contrato entre stages).
+- Workspace dogfood **tem** Informe QuintoAndar (legacy processou `quintoandar_informerendimentosaluguel_2025-0_original.pdf` em [`_archive/legacy_scripts/extract_baseline_patrimonial.py:354`](../../../_archive/legacy_scripts/extract_baseline_patrimonial.py))
+- Workspace **tem** R$ 3,1M em imóveis de investimento + yield bruto 1,7% confirmados pelo usuário
+- Schema ADR-215 (`property_identity` + `workspace_property_overrides`) **em produção** ([#281](https://github.com/davidrobert/mathoms/pull/281)) — enum `classification` disponível para filtro D8
 
 ---
 
@@ -247,6 +222,31 @@ ambiente de dev).
 
 **Objetivo:** popular payload E5 com chave nova `real_estate` contendo
 todos os campos consumidos pelo card.
+
+### Discovery inline (~10min antes do código)
+
+Antes de escrever `real_estate_metrics.py`, validar empiricamente no
+workspace dogfood (5@5.com) qual fonte da cascade D9 aplica:
+
+```bash
+# 1. Informe de Imobiliária presente?
+ls $WORKSPACE/data/income_tax_br/ | grep -i informe.*aluguel
+
+# 2. IRPF E1.6 estruturado com rendimentos_pf?
+python3 -c "from backend.app.services.db_artifact_store import DBArtifactStore; \
+  store = DBArtifactStore(...); print(store.read('extract_irpf_full', 'irpfdeclaracao_2024'))" \
+  | jq '.rendimentos_pf'
+
+# 3. E4 receitas categorizadas como aluguel?
+python3 -c "..." | jq '.receitas | map(select(.categoria=="Aluguel"))'
+
+# 4. property_identity (ADR-215) populado?
+psql -c "SELECT classification, count(*) FROM property_identity WHERE workspace_id='5' GROUP BY 1"
+```
+
+Documentar achados em 5 linhas no PR description (não em arquivo separado).
+Decide qual ordem da cascade vira código primeiro (Informe → IRPF → E4 → pro-rata)
+ou se algum nível pode ser pulado nesta iteração.
 
 **Localização do código:**
 
@@ -553,37 +553,24 @@ parcial imóveis) e validar visual.
 ## Dependências entre ondas
 
 ```
-Onda 0 (ADR + FORMULAS) ✅ ADR · FORMULAS pendente
-  │
-  ├─→ Onda 1 (auditoria empírica) ──┐
-  │                                   │
-  ├─→ Onda 0.5 (schema Informe) ────┤  (Onda 0.5 pode rodar
-  │     ↑                             │   em paralelo com Onda 1;
-  │     │ prioridade definida         │   prioridade ajusta-se
-  │     │ por Onda 1 (PR-3)           │   pelo achado da Onda 1)
-  │                                   ↓
-  └─→ Onda 2 (métricas E5.N) ────────┴─→ Onda 3 (renderer React)
-        ↓                                       ↓
-   Onda 5 (testes pipeline)              Onda 5 (testes frontend)
-                                                ↓
-                                          Onda 4 (codegen)
-                                                ↓
-                                          Onda 6 (cutover)
+Onda 0 (ADR + FORMULAS) ✅ #280 #282 #283
+  ↓
+Onda 0.5 (schema Informe) 🟡 #284 em CI
+  ↓
+Onda 2 (métricas E5.N) — discovery local inline (~10min)
+  ↓
+Onda 3 (renderer React)
+  ↓
+Onda 5 (testes pipeline + frontend) — em paralelo com 2/3
+  ↓
+Onda 4 (codegen) → Onda 6 (cutover)
 ```
 
-**Caminho crítico:** Onda 0 (ADR ✅) → Onda 1 (audit) → Onda 0.5
-(condicional ao resultado de Onda 1) → Onda 2 (métricas) → Onda 3
-(renderer) → Onda 4/6 (cutover).
+**Caminho crítico:** Onda 0 ✅ → Onda 0.5 (em CI) → Onda 2 (próxima) →
+Onda 3 → Onda 4/6.
 
-Onda 0.5 e Onda 1 podem ser paralelas (ambas read-only / additive).
-Onda 2 depende de **achados** da Onda 1 e do **schema** da Onda 0.5.
-
-**Duração estimada total:**
-- v1 sem Onda 0.5 (cobertura Informe baixa): ~7-10 dias úteis
-- v1 com Onda 0.5 (cobertura Informe alta): ~10-15 dias úteis
-
-Distribuição em PRs: ~6-8 PRs pequenos (1 por onda, com Onda 0.5 e
-Onda 2 possivelmente em 2 PRs cada por tamanho).
+**Duração estimada restante:** ~5-7 dias úteis (Ondas 2-6 sequenciais com
+testes em paralelo). Distribuição em ~4-5 PRs pequenos.
 
 ---
 
@@ -591,9 +578,9 @@ Onda 2 possivelmente em 2 PRs cada por tamanho).
 
 | Risco | Probabilidade | Mitigação | Owner |
 |---|---|---|---|
-| Aluguel por imóvel não imputável → tabela vira só "valor + status" | Baixa-média (cascade D9 reduz) | Cascade D9 (Informe → IRPF → E4 → pro-rata) cobre maioria dos casos; só falha total cai em fallback. | Onda 1 + 0.5 |
-| Cobertura de Informe baixa (<30% dos imóveis) | Média | Onda 0.5 vira "nice-to-have"; v1 sai com fallback IRPF/E4 + badge "estimado". Onda 0.5 pode entrar em sprint+1 sem bloquear v1. | Onda 1 |
-| Schema do Informe falha em variação de imobiliária local | Média | Flag `use_structured_informe_extractor` permite rollback rápido para schema genérico; goldens cobrem QuintoAndar/Loft em v1, locais entram conforme aparecem. | Onda 0.5 |
+| Aluguel por imóvel não imputável → tabela vira só "valor + status" | Baixa (cascade D9 reduz) | Cascade D9 cobre maioria dos casos; fallback final pro-rata vira badge "estimado" no UI. | Onda 2 |
+| Discovery local mostra Informe não imputável no workspace dogfood | Baixa | Workspace tem QuintoAndar histórico (legacy processou em 2025); ausência seria sinal de regressão. Fallback IRPF/E4 disponível. | Onda 2 |
+| Schema do Informe falha em variação de imobiliária local | Média | Goldens cobrem QuintoAndar v1; quando expandir para multi-workspace, locais entram conforme aparecem (Onda 2.b). | Onda 0.5b |
 | `market_rates` sem séries NTN-B/IFIX históricas | Baixa | Onda 0 audita; seed antes da Onda 2. | Onda 0 |
 | Defaults de vacância/manutenção controversos | Média | Override por workspace ([[ADR-134]]); tooltip explicativo; revisão metodológica explícita. | `financial-planner` |
 | Concentração 40% threshold gera alarme falso | Média | Configurável + texto neutro do alerta. | Onda 2 |
@@ -622,8 +609,8 @@ Plano transita para `done` quando:
 
 - Apenas ADR mergeada (sem implementação) — fica `in_progress`.
 - v1 com fallback degradado de D4 (sem aluguel por imóvel) **conta**
-  se Onda 1 documentou inviabilidade técnica; mas registra débito em
-  lane futura para v2.
+  se discovery inline da Onda 2 documentou inviabilidade técnica; mas
+  registra débito em lane futura para v2.
 
 ---
 
