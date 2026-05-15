@@ -2,7 +2,7 @@
 
 > Documento técnico de referência. Atualizar quando stack ou modelo de dados mudar.
 >
-> **Última atualização:** 2026-04-19 (migração infra + domínio — fases 1-8 foundation)
+> **Última atualização:** 2026-05-14 (pós-[[ADR-212]] — pipeline artifacts DB-only, CLI standalone descontinuada)
 
 ---
 
@@ -167,12 +167,13 @@ PipelineStageLog
           needs_review)
   started_at, completed_at, output_json, error_message
 
-PipelineArtifact (ADR-082)
+PipelineArtifact (ADR-082; DB-only desde ADR-212 · 2026-05-14)
   id (INTEGER PK autoincrement)
   workspace_id (FK→Workspace, CASCADE, indexed)
   pipeline_run_id (FK→PipelineRun, CASCADE, indexed)
-  stage (VARCHAR(50))           # "E2", "E3", "E5"... Fases 1-8
-                                # "reconcile_transactions"... pós-Fase 9
+  stage (VARCHAR(50))           # nomes descritivos pós-F9 ("reconcile_transactions"
+                                # "analyze_finances"...); legacy ("E2","E3",...)
+                                # preservados via STAGE_RENAME_MAP em registros antigos
   artifact_key (VARCHAR(255))   # stem do doc (E2) ou nome canônico (E3+)
   document_id (FK→Document, SET NULL)  # nullable, só preenchido em E2-*
   content_json (JSON/JSONB)
@@ -478,7 +479,8 @@ abstração `ArtifactStore`, em vez de exclusivamente em `storage/<ws>/processed
 id                  INTEGER PK
 workspace_id        FK workspaces (CASCADE)
 pipeline_run_id     FK pipeline_runs (CASCADE)
-stage               VARCHAR(50)        -- "E2", "E3"... pré-F9; "reconcile_transactions"... pós-F9
+stage               VARCHAR(50)        -- descritivo pós-F9 ("reconcile_transactions"...)
+                                       -- legados ("E2","E3",...) preservados em registros antigos
 artifact_key        VARCHAR(255)        -- stem do doc (E2) ou nome canônico (E3+)
 document_id         FK documents        -- nullable; preenchido só em E2-*; SET NULL
 content_json        JSON (JSONB em PG)
@@ -486,7 +488,7 @@ schema_version, byte_size, created_at
 UNIQUE(pipeline_run_id, stage, artifact_key)
 ```
 
-**Protocolo `ArtifactStore`** (ADR-083) em `pipeline/artifact_store.py`:
+**Protocolo `ArtifactStore`** ([[ADR-083]]) em `pipeline/artifact_store.py`:
 
 ```python
 class ArtifactStore(Protocol):
@@ -498,13 +500,12 @@ class ArtifactStore(Protocol):
     def delete_stage(stage) -> int
 ```
 
-Três implementações concretas:
+Duas implementações concretas (pós-[[ADR-212]]):
 
 | Classe | Onde | Uso |
 |---|---|---|
-| `DiskArtifactStore` | `pipeline/artifact_store.py` | CLI dev, backward compat com `processed/` |
-| `InMemoryArtifactStore` | `pipeline/artifact_store.py` | **Obrigatória** em testes de domain services |
-| `DBArtifactStore` | `backend/app/services/db_artifact_store.py` | Web/Celery — sessão SQLAlchemy injetada pelo chamador |
+| `InMemoryArtifactStore` | `pipeline/artifact_store.py` | **Obrigatória** em testes de domain services + goldens |
+| `DBArtifactStore` | `backend/app/services/db_artifact_store.py` | Web/Celery — caminho único em produção; sessão SQLAlchemy injetada pelo chamador |
 
 `DBArtifactStore` vive em `backend/` (não `pipeline/`) porque depende de SQLAlchemy —
 `dev/check_pipeline_boundaries.py` proíbe SQLAlchemy dentro de `pipeline/`.
@@ -512,8 +513,13 @@ Três implementações concretas:
 encapsula queries cross-run (`get_latest_for_workspace`, `get_by_document`,
 `delete_stages_for_run`).
 
-**Feature flag** `MATHOMS_USE_DB_ARTIFACTS` (default `True` desde 2026-04-23 — ADR-118)
-seleciona o store em produção. `False` é fallback de debug/rollback.
+**DB-only desde [[ADR-212]] (2026-05-14):** `DiskArtifactStore` foi deletado;
+flag `MATHOMS_USE_DB_ARTIFACTS` + coluna `workspaces.use_db_artifacts_override`
+removidos. Validação JSON-schema universal via hook pós-write em
+`DBArtifactStore.write` (mapping `SCHEMA_BY_STAGE`). `WorkspaceContext.get_artifact_store()`
+levanta `RuntimeError` se store não foi injetada — testes injetam `InMemoryArtifactStore`
+explícito. Rollback: snapshot DB pré-deploy + revert PR + downgrade migration
+([runbooks/pipeline_rollback.md](runbooks/pipeline_rollback.md), ~30min RTO).
 
 ### Orquestrador declarativo (ADR-087)
 
@@ -537,10 +543,13 @@ FULL_ORDER = [...]  # decisão intencional
 - `validate_full_order()` chamado no import — falha rápido se uma dependência é
   consumida antes de ser produzida.
 - `STAGE_RENAME_MAP`: fonte de verdade para o renaming descritivo pós-Fase 9
-  (`"E3"` → `"reconcile_transactions"`, etc.). ADR-093 documenta o plano.
+  (`"E3"` → `"reconcile_transactions"`, etc.). [[ADR-093]] documenta o plano.
 
-Durante a janela de transição (Fases 1-8), os identificadores permanecem
-**legados** (`"E2"`, `"E3"`, `"E5"`). A Fase 9 aplica o rename em bloco.
+Pós-F9.2 (2026-04-25), os identificadores em `STAGE_REGISTRY`/`FULL_ORDER`
+são **descritivos** (`"reconcile_transactions"`, `"analyze_finances"`,
+`"extract_statements"`...). Código novo prefere o nome descritivo; input
+externo passa por `resolve_stage_name()` (aceita legacy ou descritivo).
+`STAGE_RENAME_MAP` permanece como compat reverso.
 
 ### Configuração imutável: `StageConfig` (ADR-088)
 
@@ -870,7 +879,7 @@ mathoms.ai/
 │   ├── orchestrator.py        # run_pipeline, run_from, run_stages (FROM_MAP derivado)
 │   ├── stage_spec.py          # STAGE_REGISTRY + STAGE_RENAME_MAP + FULL_ORDER (ADR-087)
 │   ├── stage_config.py        # StageConfig (Pydantic frozen, ADR-088)
-│   ├── artifact_store.py      # Protocol + DiskArtifactStore + InMemoryArtifactStore (ADR-083)
+│   ├── artifact_store.py      # Protocol + InMemoryArtifactStore (ADR-083; DB-only desde ADR-212)
 │   ├── domain/                # Camada de domínio (ADR-089)
 │   │   ├── models/            # Money, Transaction, BankStatement, Investment, Baseline
 │   │   └── services/          # ReconciliationService, CategorizationService, calculators
@@ -1015,10 +1024,10 @@ Todos os dados de utilizador estão fora do git por design. O destino **canónic
 de ficheiros por workspace é `storage/<workspace_id>/` (gitignored por completo).
 
 `.gitignore` também cobre nomes de pastas de **workspace legado na raiz do
-repo** (`data/`, `inbox/`, `inbox_processed/`, …) para quem corre o pipeline
-CLI com `MATHOMS_WORKSPACE_ROOT` na raiz do projeto — essas pastas **não** são
-obrigatórias no clone; criam-se só quando há esse uso local. Além disso:
-`*.db`, `.env`, `config/passwords.txt`, `_scratch/`. O `pre-commit`
+repo** (`data/`, `inbox/`, `inbox_processed/`, …) que sobrevivem para uploads
+de documento + audit read-only (`scripts/e0_audit.py`); pós-[[ADR-212]],
+artefatos do pipeline vivem em `pipeline_artifacts` (DB), não em diretórios.
+Além disso: `*.db`, `.env`, `config/passwords.txt`, `_scratch/`. O `pre-commit`
 (`dev/check_forbidden_paths.py`) aplica regras alinhadas em nível de hook.
 
 ---
@@ -1248,18 +1257,14 @@ passando, zero regressão nos goldens.
 - **Stateless rigoroso** (R19) — WebSocket via Redis pub/sub; zero estado
   in-memory que impeça múltiplos workers concorrentes.
 
-### 17.3 `ArtifactStore` como fronteira de storage (A6b ✅)
+### 17.3 `ArtifactStore` como fronteira de storage (DB-only desde [[ADR-212]] · 2026-05-14)
 
-`USE_DB_ARTIFACTS=True` é o default (ADR-118, 2026-04-23) — todos os stages rodam
-sobre `DBArtifactStore` por default. Workspace pode forçar disco para debug via
-`workspaces.use_db_artifacts_override=FALSE` (ADR-106):
-```sql
-UPDATE workspaces SET use_db_artifacts_override = FALSE WHERE id = '<ws_id>';
-```
-`pipeline_task._resolve_use_db_artifacts(ws_id)` verifica override do workspace
-> global `MATHOMS_USE_DB_ARTIFACTS`. Com default ativo, cria `DBArtifactStore` com
-sessão longa e injeta em `ctx.artifact_store`. Gate de validação:
-`python dev/compare_disk_vs_db.py <ws_id> --strict`.
+`DBArtifactStore` é o **caminho único** em produção (web + Celery). Stage do
+pipeline grava via `ctx.artifact_store.write(...)`; `DBArtifactStore.write`
+serializa para `pipeline_artifacts.content_json` e roda validação JSON-schema
+universal via hook pós-write (mapping `SCHEMA_BY_STAGE`). Modo `warn` (default)
+vs `strict` controlado por `pipeline.json → schema_validation.mode` (override
+via `MATHOMS_PIPELINE_SCHEMA_MODE`).
 
 ```python
 class ArtifactStore(Protocol):
@@ -1268,13 +1273,17 @@ class ArtifactStore(Protocol):
     def write(self, stage: str, key: str, payload: dict) -> None: ...
 ```
 
-3 implementações:
-- **`DiskArtifactStore`** — CLI, dev, smoke test
-- **`InMemoryArtifactStore`** — testes unitários de domain services
-- **`DBArtifactStore`** — produção pós-A6b, usa tabela `pipeline_artifacts`
+2 implementações concretas pós-[[ADR-212]]:
+- **`InMemoryArtifactStore`** — testes de domain services + goldens (injetada explicitamente; `WorkspaceContext.get_artifact_store()` levanta `RuntimeError` se faltar)
+- **`DBArtifactStore`** — produção, sessão SQLAlchemy injetada
+
+`DiskArtifactStore` foi deletado em [[ADR-212]] PR3b; flag
+`MATHOMS_USE_DB_ARTIFACTS` + coluna `workspaces.use_db_artifacts_override`
+removidas em PR4. Rollback: snapshot DB + revert PR + downgrade migration
+([runbooks/pipeline_rollback.md](runbooks/pipeline_rollback.md), ~30min RTO).
 
 A tabela `pipeline_artifacts` tem schema estável (`schema_version`), JSON
-`content` com keys em camelCase (ADR-102 / R20), foreign keys explícitas
+`content_json` com keys em camelCase ([[ADR-102]] / R20), foreign keys explícitas
 — legível por qualquer linguagem.
 
 ### 17.4 Fronteira `pipeline/` ↔ framework (preservada)

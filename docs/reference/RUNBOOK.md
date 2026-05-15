@@ -86,6 +86,10 @@ Checklist **Sprint A** — execução pode ser em **staging** ou **produção** 
 
 Valores de referência estão em [SLO.md](SLO.md). Procedimentos de backup, restore e off-site: tarefas **7E.2–7E.4** e [BACKLOG.md](BACKLOG.md#f7--produção--lgpd).
 
+**Rollback do cutover [[ADR-212]] (pipeline DB-only):** procedimento dedicado em
+[runbooks/pipeline_rollback.md](runbooks/pipeline_rollback.md) — janela ~30min
+RTO via snapshot DB pré-deploy + revert PR + downgrade migration.
+
 ### 5.1 Reset intencional (dev / staging)
 
 Para apagar **toda** a base de utilizadores e ficheiros de tenant (cenário de teste “primeiro utilizador”, base descartável), usar o CLI documentado em [SETUP.md — Reset completo da plataforma](SETUP.md#reset-completo-da-plataforma-cli). **Não** usar em produção com dados reais.
@@ -124,7 +128,7 @@ cp mathoms.db mathoms.db.bak-$(date +%Y%m%d-%H%M)
 # 3. Apply destrutivo — exige confirmação interativa "DELETE-ALL":
 python3 dev/purge_test_workspaces.py --apply
 
-# 4. Apply + remove storage/<workspace_id>/ em disco (DiskArtifactStore mode):
+# 4. Apply + remove storage/<workspace_id>/ em disco (uploads + inbox + audit files):
 python3 dev/purge_test_workspaces.py --apply --include-blob-store
 
 # 5. Customizar keep list (cumulativo; aceita múltiplos --keep):

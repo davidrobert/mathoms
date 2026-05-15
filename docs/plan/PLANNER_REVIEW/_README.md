@@ -2,18 +2,28 @@
 id: PLAN-planner-review
 type: plan
 title: Parecer do Planejador (E6) — substituição de review_finances + aterrissagem operacional
-status: draft
+status: done
 created_at: 2026-05-12
-last_review: 2026-05-12
+last_review: 2026-05-14
 sprint_origem: A11
-sprint_atual: A11
+sprint_atual: A12
 sprints_envolvidas: [A11, A12]
 paused_at: null
 pause_reason: null
-adrs_canonical: []
+adrs_canonical:
+  - "[[ADR-199]]"
+  - "[[ADR-200]]"
+  - "[[ADR-201]]"
+  - "[[ADR-202]]"
+  - "[[ADR-203]]"
+  - "[[ADR-204]]"
+  - "[[ADR-205]]"
+  - "[[ADR-206]]"
+  - "[[ADR-207]]"
+  - "[[ADR-208]]"
 tags:
   - type/plan
-  - status/draft
+  - status/done
   - area/llm
   - area/pipeline
   - area/relatorio
@@ -33,15 +43,22 @@ tags:
 
 ---
 
-## NEXT UP
+## Status final (2026-05-14)
 
-| Lane | Status | Owner | Notas |
+✅ **Plano entregue — Atos 0-6 todos mergeados em `main`.** Stage
+`review_finances` (E7-review) foi substituído por `parecer_planejador` (E6) e
+removido do código em PR #258 ([[ADR-199]] supersede [[ADR-128]]).
+
+| Lane | Status | PR | Notas |
 |---|---|---|---|
-| Ato 0 — Decisões fechadas | ready | `product-manager` | 5 decisões fechadas; pricing freemium decidido com `gtm-strategist` |
-| Ato 1 — ADRs Proposto (entra em A11) | ready | `senior-cto` | ADR-mãe + 9 filhas P0 (manifest, persona, schema, gating freemium) |
-| Atos 2-6 — Execução em A12 | proposed | varies | 23 tracks granularizados, ver §Tracks |
-| Pré-requisitos | partial | varies | PR-2 blocker Ato 4; PR-1/PR-3 gates Ato 5 |
-| PLATFORM_REVIEW W2-T05 escopado | done | — | `review_finances` removido; substituído pelo Ato 4 deste plano |
+| Ato 0 — Decisões fechadas + plano canônico | ✅ | [#240](https://github.com/davidrobert/mathoms/pull/240) | 5 decisões fechadas; pricing freemium decidido com `gtm-strategist` |
+| Ato 1 — 10 ADRs Proposto (199-208) | ✅ | [#242](https://github.com/davidrobert/mathoms/pull/242) | ADR-mãe + 9 filhas P0 (manifest, persona, schema, gating freemium) |
+| Ato 2 — Schemas + manifest + persona + coverage gate | ✅ | [#243](https://github.com/davidrobert/mathoms/pull/243) | |
+| Ato 3 — Aggregate + repository + endpoint stub | ✅ | [#244](https://github.com/davidrobert/mathoms/pull/244) | |
+| Ato 4 — Stage + orchestrator + tools + golden mockado | ✅ | [#248](https://github.com/davidrobert/mathoms/pull/248) | |
+| Ato 5 — Renderer + UX + tier filter + pipeline wire-up | ✅ | [#249](https://github.com/davidrobert/mathoms/pull/249) | |
+| Ato 6 — Telemetria + cross-provider + cutover + healthcheck | ✅ | [#250](https://github.com/davidrobert/mathoms/pull/250) | |
+| Cleanup — remoção `review_finances` + `apply_review` | ✅ | [#258](https://github.com/davidrobert/mathoms/pull/258) | [[ADR-199]] supersede [[ADR-128]] |
 
 ---
 
