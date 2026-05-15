@@ -214,6 +214,10 @@
 | ADR-214 | adr | Decidido |  | `Decision.code` é server-generated com `pg_advisory_xact_lock` | `adr/214-decision-code-server-generated.md` |
 | ADR-215 | adr | Proposto |  | Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` | `adr/215-classificacao-imoveis-override-db-first.md` |
 | ADR-216 | adr | Proposto |  | Cap rate líquido como métrica canônica de imóveis de investimento (S4) | `adr/216-cap-rate-liquido-canonico-imoveis.md` |
+| ADR-217 | adr | Proposto |  | Score patrimonial canônico — composição, fórmula e ciclo de vida | `adr/217-score-patrimonial-canonico.md` |
+| ADR-218 | adr | Proposto |  | Reserva de Emergência — denominador essencial, override por workspace e bandas Cerbasi/Perini | `adr/218-reserva-emergencia-denominador-essencial.md` |
+| ADR-219 | adr | Proposto |  | Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 | `adr/219-premissas-economicas-versionadas.md` |
+| ADR-220 | adr | Proposto |  | Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados | `adr/220-impacto-estimado-sugestoes-if.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
