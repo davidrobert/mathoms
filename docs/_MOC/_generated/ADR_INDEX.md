@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-206 ADRs (ADR-001 a ADR-213) em [`docs/adr/`](../../adr/).
+207 ADRs (ADR-001 a ADR-214) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 170
-- **Proposto**: 32
+- **Proposto**: 33
 - **Roadmap**: 4
 
 ## Fundação
@@ -306,10 +306,11 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-192]] — `Protection` aggregate + `ProtectionBundle` (Seção 9 — Riscos e Proteção) · phase Sprint A11.W5
 - [[ADR-213]] — Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) · phase A12.sunset-audit
 
-### Proposto (2)
+### Proposto (3)
 
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
 - [[ADR-211]] — llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) · phase A12
+- [[ADR-214]] — `Decision.code` é server-generated com `pg_advisory_xact_lock` · phase A12
 
 ## categorization
 

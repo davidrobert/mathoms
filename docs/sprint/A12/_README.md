@@ -58,6 +58,14 @@ Lições críticas do co-design `financial-planner` + `product-designer`
   Plano = [[ADR-212]] (a ADR é o plano).
   Lane: [A12.sunset-disk-artifact](lanes/A12-sunset-disk-artifact-cleanup.md).
   Track: [sunset-disk-artifact](tracks/sunset-disk-artifact.md).
+- **A12.decision-code-autogen** — `Decision.code` passa a ser
+  server-generated com `pg_advisory_xact_lock`; cliente perde input
+  "Código da decisão" em 3 modais; `SuggestionResponse` ganha
+  `accepted_decision_code`. PR único cross-cutting (~1-1.5d eng).
+  Fecha race condition real + cleanup UX validado por `product-designer`.
+  Plano = [[ADR-214]] (Proposto, estende [[ADR-136]]).
+  Lane: [A12.decision-code-autogen](lanes/A12-decision-code-autogen-server-gen.md).
+  Track: [decision-code-autogen](tracks/decision-code-autogen.md).
 
 Lanes adicionais entram aqui conforme A11 fecha trabalho que naturalmente
 empurra continuação para A12.
