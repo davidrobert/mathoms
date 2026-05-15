@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-11 planos detectados em [`docs/plan/`](../../plan/).
+12 planos detectados em [`docs/plan/`](../../plan/).
 
 _Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/`._
 
@@ -100,6 +100,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A12
 - Lanes: _(aguardando F4)_
 - ADRs canônicas: [[ADR-215]]
+
+### PLAN-s4-real-estate-enrichment — S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel)
+
+- Status: `draft` · Sprint atual: A12
+- Sprints envolvidas: A12
+- Lanes: _(aguardando F4)_
+- ADRs canônicas: [[ADR-216]]
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
