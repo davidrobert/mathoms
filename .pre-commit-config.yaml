@@ -82,6 +82,15 @@ repos:
         # Não queremos restringir por tipo — queremos ver TODOS os paths
         types: [file]
 
+      - id: residencia-keyword-dead
+        # ADR-215 P6: keyword foi substituída por override DB. Adições novas
+        # em arquivos não-allowlisted são regressão.
+        name: "Proíbe adição de residencia_principal_keyword (ADR-215 P6)"
+        entry: python3 dev/check_residencia_keyword.py
+        language: system
+        pass_filenames: true
+        types: [file]
+
       - id: test-health
         # Detecta anti-padrões que custam tempo de CI sem dar sinal:
         # parametrize que recomputa scan caro, soft-fail s/ env de hard-fail
