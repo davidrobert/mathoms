@@ -30,6 +30,13 @@ da declaração — não só Bens e Direitos.
   Se ambíguo, prefira o "Identificação do Contribuinte" / "Resumo da Declaração".
 - `modelo`: "completo" ou "simplificado"
 - `natureza`: "titular" ou "dependente_titular"
+- `endereco` (opcional, ADR-215): endereço de correspondência fiscal da
+  seção "Dados do Contribuinte" / "Identificação do Contribuinte" do PDF.
+  Concatene em string única no formato natural: "Logradouro, Número,
+  Complemento, Bairro, Cidade-UF, CEP" (componentes opcionais; preserve
+  o que o PDF mostrar). Ex: "Av Paulista, 1500, Apt 42, Bela Vista,
+  São Paulo-SP, 01310-000". Se a seção não tiver endereço estruturado,
+  OMITA o campo (não invente, não preencha com "Brasil" ou similar).
 
 # RENDIMENTOS TRIBUTÁVEIS RECEBIDOS DE PJ
 

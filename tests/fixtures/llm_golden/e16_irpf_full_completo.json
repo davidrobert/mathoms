@@ -5,7 +5,8 @@
     "ano_base": 2024,
     "exercicio": 2025,
     "modelo": "completo",
-    "natureza": "titular"
+    "natureza": "titular",
+    "endereco": "Rua Exemplo, 100, Apto 12, Bairro Ficticio, Sao Paulo-SP, 01000-000"
   },
   "rendimentos_pj": [
     {
@@ -188,5 +189,5 @@
   ],
   "confidence": 1.0,
   "notes": "Declaracao sintetica completa para teste golden E1.6. Todos os blocos preenchidos.",
-  "prompt_version": "e16-v1.0.0"
+  "prompt_version": "e16-v1.1.0"
 }

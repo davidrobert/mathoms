@@ -132,6 +132,36 @@ class TestSchemaSerialization:
     def test_prompt_version_constant(self):
         assert PROMPT_VERSION.startswith("e16-")
 
+    def test_contribuinte_endereco_optional_default_none(self):
+        c = _build_contribuinte(ModeloDeclaracao.completo, 2024)
+        assert c.endereco is None
+
+    def test_contribuinte_endereco_accepts_string(self):
+        c = Contribuinte(
+            cpf_masked="***.***.***-99",
+            nome="Test User",
+            ano_base=2024,
+            exercicio=2025,
+            modelo=ModeloDeclaracao.completo,
+            natureza=NaturezaContribuinte.titular,
+            endereco="Rua Exemplo, 100, Sao Paulo-SP",
+        )
+        assert c.endereco == "Rua Exemplo, 100, Sao Paulo-SP"
+
+    def test_contribuinte_endereco_rejects_empty_string(self):
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            Contribuinte(
+                cpf_masked="***.***.***-99",
+                nome="Test User",
+                ano_base=2024,
+                exercicio=2025,
+                modelo=ModeloDeclaracao.completo,
+                natureza=NaturezaContribuinte.titular,
+                endereco="",
+            )
+
 
 class TestValidatorAntiPii:
     def test_unmasked_cpf_in_notes_rejected(self):

@@ -129,7 +129,11 @@
         "ano_base": { "type": "integer", "minimum": 2000, "maximum": 2100 },
         "exercicio": { "type": "integer", "minimum": 2000, "maximum": 2100 },
         "modelo": { "$ref": "#/$defs/modelo" },
-        "natureza": { "$ref": "#/$defs/natureza" }
+        "natureza": { "$ref": "#/$defs/natureza" },
+        "endereco": {
+          "type": ["string", "null"],
+          "description": "Endereço de correspondência fiscal da seção 'Dados do Contribuinte' (ADR-215). NÃO É PROVA DE RESIDÊNCIA — pode ser PJ, casa dos pais, corretora. Serve apenas para pré-seleção heurística de residência principal. Lazy fill: IRPFs existentes ficam null até re-rodar E1.6."
+        }
       }
     },
     "fontePagadoraPJ": {
