@@ -448,6 +448,9 @@ def _setup_run_context(
     loop principal). Flag ``USE_DB_ARTIFACTS`` deixa de governar — fica
     como redundante em settings até PR4 dropar.
     """
+    from backend.app.services.db_property_identity_resolver import (
+        DBPropertyIdentityResolver,
+    )
     from backend.app.services.pipeline_adapter import (
         build_config_overrides_from_db,
         build_config_store,
@@ -457,6 +460,9 @@ def _setup_run_context(
     config_store_session = SyncSessionLocal()
     config_store = build_config_store(db=config_store_session)
     overrides = build_config_overrides_from_db(ws_id, db=config_store_session)
+    # ADR-215 P2: resolver compartilha a mesma session do config_store
+    # (long-lived; fechada ao fim do run via _close_config_store_session).
+    property_identity_resolver = DBPropertyIdentityResolver(session=config_store_session)
 
     ctx = WorkspaceContext.for_tenant(
         tenant_root,
@@ -465,6 +471,7 @@ def _setup_run_context(
         pipeline_run_id=run_id,
         workspace_id=ws_id,
         config_store=config_store,
+        property_identity_resolver=property_identity_resolver,
     )
     ctx.incremental = incremental
     ctx.incremental_doc_paths = incremental_doc_paths or []
