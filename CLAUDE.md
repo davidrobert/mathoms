@@ -6,6 +6,7 @@
 >
 > **Referências dinâmicas (leia sob demanda):**
 >
+> - Contexto mínimo por intenção · [docs/_MOC/_generated/CONTEXT_INDEX.md](docs/_MOC/_generated/CONTEXT_INDEX.md) (auto); comece por 1 context pack antes de abrir docs longos
 > - Sprint atual + lanes prontas · [docs/_MOC/_generated/SPRINT_CURRENT.md](docs/_MOC/_generated/SPRINT_CURRENT.md) (auto) + [docs/_MOC/SPRINTS-active.md](docs/_MOC/SPRINTS-active.md) (editorial); BACKLOG.md é shim
 > - Log cronológico de entregas · [docs/CHANGELOG.md](docs/CHANGELOG.md)
 > - ADRs (vault atomizado) · [docs/_MOC/_generated/ADR_INDEX.md](docs/_MOC/_generated/ADR_INDEX.md) + [docs/adr/](docs/adr/); DECISIONS.md é shim
@@ -696,6 +697,13 @@ excluindo `.claude/worktrees/`, que contém cópias completas do repo e
 multiplica tokens sem adicionar contexto canônico. **Não use `--no-ignore`
 em busca exploratória.** Se precisar auditar um worktree específico,
 busque pelo path explícito desse worktree e diga por quê.
+
+Antes de abrir muitos arquivos em `docs/`, leia
+[docs/_MOC/_generated/CONTEXT_INDEX.md](docs/_MOC/_generated/CONTEXT_INDEX.md)
+e escolha **1 context pack** para a intenção da tarefa. Depois busque por
+bucket (`docs/reference`, `docs/plan`, `docs/sprint/<X>`, `docs/adr`) em vez
+de varrer a vault inteira. `docs/archive/**` é arqueologia: consulte apenas
+quando uma decisão histórica ou plano substituído for explicitamente relevante.
 
 ### Antes de pegar uma task do BACKLOG
 

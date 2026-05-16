@@ -39,6 +39,12 @@ def regenerated() -> dict[str, str]:
         "ROADMAP.md",
         "PLAN_PROGRESS.md",
         "DOC_STATS.md",
+        "CONTEXT_INDEX.md",
+        "CONTEXT_ENGINEERING.md",
+        "CONTEXT_BACKEND.md",
+        "CONTEXT_FRONTEND.md",
+        "CONTEXT_PRODUCT.md",
+        "CONTEXT_DOCS.md",
     ],
 )
 def test_generated_file_matches_source(regenerated: dict[str, str], filename: str) -> None:

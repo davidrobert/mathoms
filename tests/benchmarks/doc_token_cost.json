@@ -36,33 +36,53 @@
   "latest": {
     "Q1": {
       "measured_at": "2026-05-16",
-      "phase": "token-economy-docs",
+      "phase": "token-economy-context-packs",
       "tokens": 453
+    },
+    "Q10": {
+      "measured_at": "2026-05-16",
+      "phase": "token-economy-context-packs",
+      "tokens": 730
     },
     "Q2": {
       "measured_at": "2026-05-16",
-      "phase": "token-economy-docs",
+      "phase": "token-economy-context-packs",
       "tokens": 453
     },
     "Q3": {
       "measured_at": "2026-05-16",
-      "phase": "token-economy-docs",
+      "phase": "token-economy-context-packs",
       "tokens": 351
     },
     "Q4": {
       "measured_at": "2026-05-16",
-      "phase": "token-economy-docs",
+      "phase": "token-economy-context-packs",
       "tokens": 351
     },
     "Q5": {
       "measured_at": "2026-05-16",
-      "phase": "token-economy-docs",
+      "phase": "token-economy-context-packs",
       "tokens": 804
     },
     "Q6": {
       "measured_at": "2026-05-16",
-      "phase": "token-economy-docs",
+      "phase": "token-economy-context-packs",
       "tokens": 412
+    },
+    "Q7": {
+      "measured_at": "2026-05-16",
+      "phase": "token-economy-context-packs",
+      "tokens": 685
+    },
+    "Q8": {
+      "measured_at": "2026-05-16",
+      "phase": "token-economy-context-packs",
+      "tokens": 677
+    },
+    "Q9": {
+      "measured_at": "2026-05-16",
+      "phase": "token-economy-context-packs",
+      "tokens": 686
     }
   },
   "queries": {

@@ -21,6 +21,7 @@ Este é o ponto de entrada da vault Obsidian-friendly de `docs/`. Para LLMs: com
 | "Roadmap das fases F0-F11" | `_generated/ROADMAP.md` (auto, populado em F5) |
 | "Tudo no sistema" | `_generated/INDEX.md` (auto, 1 linha por nota) |
 | "Quantas notas existem por tipo/status?" | `_generated/DOC_STATS.md` (auto, inventário compacto) |
+| "Qual contexto mínimo devo ler?" | `_generated/CONTEXT_INDEX.md` (auto, context packs por intenção) |
 
 ## Topologia da vault
 
@@ -58,6 +59,7 @@ Dataview é **opcional** — vault funciona sem. Habilite só se quiser queries 
 DOC_REORG ([ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md)) **Decidido (Sprint A11.5)** — vault GA. Conteúdo populado:
 
 - Inventário atual por tipo/status: [`_generated/DOC_STATS.md`](_generated/DOC_STATS.md).
+- Context packs por intenção: [`_generated/CONTEXT_INDEX.md`](_generated/CONTEXT_INDEX.md).
 - ADRs vigentes: [`_generated/ADR_INDEX.md`](_generated/ADR_INDEX.md).
 - Sprint corrente e lanes abertas: [`_generated/SPRINT_CURRENT.md`](_generated/SPRINT_CURRENT.md).
 - Planos agregados: [`_generated/PLAN_PROGRESS.md`](_generated/PLAN_PROGRESS.md).
