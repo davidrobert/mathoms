@@ -160,6 +160,40 @@ export const handlers = [
   http.get(`${API}/config/members`, () =>
     HttpResponse.json({ members: fixtures.members, total: fixtures.members.length }),
   ),
+
+  // ADR-215 P4/P5 — properties endpoints (default mock vazio).
+  http.get(`${API}/workspaces/:workspaceId/properties`, ({ params }) =>
+    HttpResponse.json({
+      workspace_id: String(params.workspaceId),
+      residencia_status: "undeclared",
+      properties: [],
+    }),
+  ),
+  http.put(
+    `${API}/workspaces/:workspaceId/properties/:propertyId/classification`,
+    ({ params }) =>
+      HttpResponse.json({
+        property_id: String(params.propertyId),
+        titular_key: "titular",
+        codigo_rfb: "12",
+        descricao_sample: null,
+        endereco_canonical: null,
+        first_seen_year: 2024,
+        low_confidence: false,
+        classification: "residencia_principal",
+        override_source: "user_manual",
+        classification_set_at: new Date().toISOString(),
+        suggested_score: null,
+        suggested_residencia_principal: false,
+      }),
+  ),
+  http.put(`${API}/workspaces/:workspaceId/residencia-status`, ({ params }) =>
+    HttpResponse.json({
+      workspace_id: String(params.workspaceId),
+      status: "owned",
+    }),
+  ),
+
   http.post(`${API}/config/members`, () => HttpResponse.json(fixtures.members[0])),
   http.put(`${API}/config/members/:id`, () => HttpResponse.json(fixtures.members[0])),
   http.delete(`${API}/config/members/:id`, () => new HttpResponse(null, { status: 204 })),
