@@ -13,8 +13,14 @@ interface PatrimonioCategoriasCardProps {
 export function PatrimonioCategoriasCard({
   patrimonio,
 }: PatrimonioCategoriasCardProps) {
-  const rows =
+  const allRows =
     patrimonio?.composicao ?? patrimonio?.tabela_categorias ?? [];
+  // ADR-215 P5: esconde linha "Residência" R$ 0,00 (confusão "zero ≠
+  // dado ausente"). Quando o usuário marca a residência via MembersTab,
+  // ela passa a aparecer com valor real (lazy split do P3).
+  const rows = allRows.filter(
+    (row) => !(row.categoria === "Residência" && row.valor === 0),
+  );
   const total = patrimonio?.bruto ?? 0;
 
   if (rows.length === 0) {
