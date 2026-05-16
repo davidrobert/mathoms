@@ -62,9 +62,12 @@ def test_prod_accepts_proper_config() -> None:
     assert s.SECRET_KEY == "A" * 64
 
 
-def test_dev_defaults_still_work() -> None:
+def test_dev_defaults_still_work(monkeypatch: pytest.MonkeyPatch) -> None:
     """Dev mode não dispara nenhum gate, mesmo com defaults inseguros."""
-    s = Settings(ENVIRONMENT="development")
+    monkeypatch.delenv("MATHOMS_DATABASE_URL", raising=False)
+    monkeypatch.delenv("MATHOMS_SECRET_KEY", raising=False)
+
+    s = Settings(ENVIRONMENT="development", _env_file=None)
     assert s.ENVIRONMENT == "development"
     assert s.SECRET_KEY == "dev-secret-key-change-in-production"
     # SQLite default em dev é OK

@@ -611,7 +611,7 @@ dev-reset-env:
 # ---------------------------------------------------------------------------
 
 .PHONY: test test-all test-pipeline test-backend test-frontend test-e2e \
-        lint lint-fix format precommit check-boundaries
+        lint lint-fix format precommit check-boundaries codex-check
 
 ## test: Alias de test-all (pipeline + backend)
 test: test-all
@@ -656,6 +656,20 @@ precommit:
 ## check-boundaries: Verifica que pipeline/ não importa fastapi/celery/sqlalchemy
 check-boundaries:
 	$(PYTHON) dev/check_pipeline_boundaries.py
+
+## codex-check: Gate local para agentes antes de PR (sem E2E)
+codex-check:
+	@echo "▶  pre-commit — hooks locais e checks de docs/codegen"
+	@$(MAKE) precommit
+	@echo "▶  boundaries — pipeline sem imports de framework"
+	@$(MAKE) check-boundaries
+	@echo "▶  Python — pipeline + backend"
+	@$(MAKE) test-all
+	@echo "▶  Frontend — Vitest unit"
+	@$(MAKE) test-frontend
+	@echo "▶  Go — no-op enquanto não houver go.work/.go"
+	@$(MAKE) go-test
+	@echo "✅ codex-check verde."
 
 # ---------------------------------------------------------------------------
 # Codegen / snapshots (commitar diff após rodar)
@@ -703,10 +717,14 @@ update-db-schema-reference:
 GO_FILES = $(shell find . \
 	-path ./node_modules -prune -o \
 	-path ./.git -prune -o \
+	-path ./.claude -prune -o \
+	-path ./.codex -prune -o \
 	-path ./.venv -prune -o \
+	-path './*/.venv' -prune -o \
 	-path './*/node_modules' -prune -o \
 	-path './*/.next' -prune -o \
 	-path ./storage -prune -o \
+	-path ./_scratch -prune -o \
 	-path ./_archive -prune -o \
 	-type f -name '*.go' -print 2>/dev/null)
 
