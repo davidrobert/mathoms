@@ -673,6 +673,60 @@ def _e5n_persist(store, e5_data: dict, narrativas: dict) -> None:
     print("=" * 80)
 
 
+def _e5n_call_real_estate_adapter(ctx, store, e5_data: dict):
+    """Invoca o adapter via SyncSessionLocal — degradação graceful."""
+    workspace_id = getattr(ctx, "workspace_id", None) if ctx is not None else None
+    try:
+        from backend.app.core.database import SyncSessionLocal
+        from backend.app.services.real_estate_e5_integration import populate_real_estate
+    except Exception as exc:  # noqa: BLE001
+        return _e5n_log_real_estate_skip(f"backend unavailable: {exc}")
+    if not workspace_id:
+        return _e5n_log_real_estate_skip("workspace_id ausente no ctx")
+    try:
+        with SyncSessionLocal() as db:
+            return populate_real_estate(
+                workspace_id=str(workspace_id),
+                e5_data=e5_data,
+                irpf_payload=_e5n_load_irpf(store),
+                db=db,
+            )
+    except Exception as exc:  # noqa: BLE001 — degradação graceful
+        return _e5n_log_real_estate_skip(f"populate falhou: {exc}")
+
+
+def _e5n_log_real_estate_skip(reason: str) -> None:
+    print(f"  [info] real_estate skipped ({reason})")
+    return None
+
+
+def _e5n_populate_real_estate(ctx, store, e5_data: dict) -> None:
+    """Onda 2 P-B — popula `e5_data['real_estate']` (legado yield_imoveis_pct preservado)."""
+    payload = _e5n_call_real_estate_adapter(ctx, store, e5_data)
+    if payload is None:
+        print("  [info] real_estate skipped (sem property_identity ou backend unavailable)")
+        return
+    e5_data["real_estate"] = payload
+    n_imoveis = len(payload.get("imoveis") or [])
+    n_excl = len(payload.get("excluded_properties") or [])
+    print(
+        f"  ✓ real_estate populated: {n_imoveis} imóvel(is) investment + "
+        f"{n_excl} excluído(s) por classification"
+    )
+
+
+def _e5n_load_irpf(store) -> dict | None:
+    """Lê o IRPF E1.6 mais recente do store; ``None`` quando ausente."""
+    try:
+        keys = store.list_keys("extract_irpf_full") or []
+    except Exception:  # noqa: BLE001
+        return None
+    if not keys:
+        return None
+    # Lê o primeiro disponível — workspaces dogfood têm 1 IRPF por ano-base; v1 OK.
+    return store.read("extract_irpf_full", keys[0])
+
+
 def _e5n_generate_section_summaries(ctx, e5_data: dict) -> dict:
     """Hook v2.9 — gera section_summaries via LLM se MATHOMS_LLM_SECTION_SUMMARIES=1."""
     # Falha aberta: import erro / generator off → retorna {} (E5.N
@@ -737,6 +791,9 @@ def main_with_store(ctx) -> dict:
     if section_summaries:
         e5_data["section_summaries"] = section_summaries
         print(f"  ✓ section_summaries (LLM): {len(section_summaries)} seções")
+
+    # Onda 2 P-B (ADR-216) — popula `real_estate` payload via adapter.
+    _e5n_populate_real_estate(ctx, store, e5_data)
 
     _e5n_persist(store, e5_data, narrativas)
     return {
