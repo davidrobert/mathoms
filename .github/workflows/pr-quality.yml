@@ -40,7 +40,7 @@ jobs:
   title-lint:
     name: Title (Conventional Commits)
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     steps:
       - name: Validate PR title
         # amannn/action-semantic-pull-request@v5.5.3
@@ -84,13 +84,8 @@ jobs:
               fix: bug                  ← muito curto
               feat: !@#                 ← não começa com letra/dígito
 
-  auto-label:
-    name: Auto-label by path
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    # Labeler precisa de pull-requests: write (já no workflow level).
-    steps:
       - name: Apply area:* + dependency labels
+        # Labeler precisa de pull-requests: write (já no workflow level).
         # actions/labeler@v5.0.0
         uses: actions/labeler@v5
         with:
@@ -99,11 +94,6 @@ jobs:
           # bate mais o glob (ex.: revisor remove arquivos de uma área).
           sync-labels: true
 
-  size-label:
-    name: Size label
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    steps:
       - name: Apply size label
         # CodelyTV/pr-size-labeler@v1
         # TODO(onda-3): SHA-pin.
