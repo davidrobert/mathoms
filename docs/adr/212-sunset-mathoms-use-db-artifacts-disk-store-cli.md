@@ -83,7 +83,7 @@ O que ficou de débito conservador:
    (snapshot DB + revert da migration).
 
 6. **Métricas Prometheus prescritas em
-   [docs/reference/runbooks/cutover.md §2.5](../reference/runbooks/cutover.md)
+   [docs/reference/runbooks/cutover.md §2.5](../archive/cutover-2026-05-14.md)
    nunca foram implementadas** — `pipeline_run_duration_seconds{store}`,
    `artifact_diff_count`, `pipeline_run_failed_total{use_db}` eram
    débito de F7C (observabilidade), nunca shipped. O runbook é
@@ -470,9 +470,9 @@ documentada aqui no corpo.
 - [ADR-083](083-artifactstore-abstracao-de-io-para-artefatos.md) — `ArtifactStore` protocol (parcialmente superseded: bullet "CLI dev sem DB" fica obsoleto)
 - [ADR-106](106-opt-in-db-artifacts-por-workspace.md) — opt-in por workspace (superseded)
 - [ADR-111](111-stateless-rigoroso-padrao-e-gate-empirico-a6f6.md) — stateless rigoroso (integration test multi-worker preserva gate empírico)
-- [ADR-116](116-console-interno-admin-ia-0-ia-4.md) — console interno (consumer do `internal_ops/pipeline_reset.py`)
+- [ADR-116](116-f7f-local-stack-next-separada-anonimizacao.md) — console interno (consumer do `internal_ops/pipeline_reset.py`)
 - [ADR-118](118-flip-do-default-mathoms-use-db-artifacts-para-true.md) — flip default `True` (superseded)
 - [ADR-120](120-readers-user-facing-consultam-artifactstore-db.md) — readers DB-first com fallback disco (parcialmente superseded; fallback morre)
 - [ADR-211](211-llm-config-db-overrides.md) — cutover llm_config (esta ADR desbloqueia lane 3)
-- [docs/reference/runbooks/cutover.md](../reference/runbooks/cutover.md) — runbook ADR-118 (será arquivado em PR4)
+- [docs/reference/runbooks/cutover.md](../archive/cutover-2026-05-14.md) — runbook ADR-118 (será arquivado em PR4)
 - [docs/reference/runbooks/pipeline_rollback.md](../reference/runbooks/pipeline_rollback.md) — runbook novo (criado em PR1.5)

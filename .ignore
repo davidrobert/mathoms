@@ -1,0 +1,2 @@
+# Agent worktrees are full repo copies; broad searches should not read them.
+.claude/worktrees/

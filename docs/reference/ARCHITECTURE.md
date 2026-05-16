@@ -287,7 +287,7 @@ FeatureFlag
 ## 4.1. Domain glossary (rules-as-code)
 
 Mathoms é um produto de **planejamento patrimonial** com taxonomias e
-regras de domínio que vivem no código (rules-as-code, [ADR-143](DECISIONS.md#adr-143--docsmethodology-é-rules-as-code-sprint-a76)).
+regras de domínio que vivem no código (rules-as-code, [ADR-143](../DECISIONS.md#adr-143--docsmethodology-é-rules-as-code-sprint-a76)).
 Esta seção é índice rápido — para o "porquê" + alternativas consideradas,
 ler a ADR linkada; para o "como" + matching exato, ler o docstring do
 módulo enforcer.
@@ -295,25 +295,25 @@ módulo enforcer.
 | Conceito | Source of truth (código) | ADR canônica |
 | --- | --- | --- |
 | Membros familiares (titular/cônjuge/dependente) | `backend/app/models/family_member.py::FamilyMember.role` + `family_members.json` workspace-specific | — |
-| Contas bancárias + override de tier de fonte | `backend/app/models/family_member.py::BankAccount.source_tier` | [ADR-146](DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
-| Instituições financeiras (catálogo + workspace overrides) | `backend/app/models/institution_catalog.py` + resolver | [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
-| Categorias de receita/despesa (catálogo + workspace overrides) | `backend/app/models/category_template.py` + `workspace_category_override.py` + resolver | [ADR-137](DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
-| 7 categorias canonical da composição patrimonial | `pipeline/domain/services/patrimonio_calculator.py::PatrimonioCalculator` (módulo docstring) | [ADR-145](DECISIONS.md#adr-145--7-categorias-canonical-da-composição-patrimonial) |
-| Hierarquia de fontes E3 + tie-breaking de reconciliação | `pipeline/domain/services/source_tier.py` + `reconciliation_service.py` (docstring) | [ADR-146](DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
-| Programas de milhagem — método de valuation universal + storage workspace-scoped (`<workspace>/notes/milhas.md`, gitignored) | `scripts/e5_analyze.py::parse_milhas_md_content` (docstring) | [ADR-147](DECISIONS.md#adr-147--milhas-valuation-methodology-universal--storage-workspace-scoped) |
-| Decisões de planejamento patrimonial (event-sourced) | `backend/app/models/decision.py::Decision` + `DecisionEvent` | [ADR-136](DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) |
-| Parâmetros fiscais (IRPF, lucro presumido, PGBL) versionados por ano | `backend/app/models/fiscal_parameter.py::FiscalParameter` | [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
-| IRPF completo (renda + imposto + dependentes + dedutíveis) — KPIs renda anual líquida, alíquota dual, capacidade PGBL, split trabalho×capital | `pipeline/llm/schemas/e16_irpf_full.py::IRPFFullOutput` + `pipeline/domain/services/irpf_analyzer.py::IRPFAnalyzer` | [ADR-157](DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) |
-| Câmbio + indexadores temporais | `backend/app/models/market_rate.py::MarketRate` | [ADR-135](DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
+| Contas bancárias + override de tier de fonte | `backend/app/models/family_member.py::BankAccount.source_tier` | [ADR-146](../DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
+| Instituições financeiras (catálogo + workspace overrides) | `backend/app/models/institution_catalog.py` + resolver | [ADR-137](../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
+| Categorias de receita/despesa (catálogo + workspace overrides) | `backend/app/models/category_template.py` + `workspace_category_override.py` + resolver | [ADR-137](../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) |
+| 7 categorias canonical da composição patrimonial | `pipeline/domain/services/patrimonio_calculator.py::PatrimonioCalculator` (módulo docstring) | [ADR-145](../DECISIONS.md#adr-145--7-categorias-canonical-da-composição-patrimonial) |
+| Hierarquia de fontes E3 + tie-breaking de reconciliação | `pipeline/domain/services/source_tier.py` + `reconciliation_service.py` (docstring) | [ADR-146](../DECISIONS.md#adr-146--e3-source-hierarchy--bankaccountsource_tier-schema) |
+| Programas de milhagem — método de valuation universal + storage workspace-scoped (`<workspace>/notes/milhas.md`, gitignored) | `scripts/e5_analyze.py::parse_milhas_md_content` (docstring) | [ADR-147](../DECISIONS.md#adr-147--milhas-valuation-methodology-universal--storage-workspace-scoped) |
+| Decisões de planejamento patrimonial (event-sourced) | `backend/app/models/decision.py::Decision` + `DecisionEvent` | [ADR-136](../DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) |
+| Parâmetros fiscais (IRPF, lucro presumido, PGBL) versionados por ano | `backend/app/models/fiscal_parameter.py::FiscalParameter` | [ADR-135](../DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
+| IRPF completo (renda + imposto + dependentes + dedutíveis) — KPIs renda anual líquida, alíquota dual, capacidade PGBL, split trabalho×capital | `pipeline/llm/schemas/e16_irpf_full.py::IRPFFullOutput` + `pipeline/domain/services/irpf_analyzer.py::IRPFAnalyzer` | [ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) |
+| Câmbio + indexadores temporais | `backend/app/models/market_rate.py::MarketRate` | [ADR-135](../DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) |
 | Códigos de tipo de documento + roteamento E0 | `scripts/e0_route.py::DOC_TYPE_PATTERNS` | — |
 | Naming pattern de artefatos (`[entidade]_[tipo]_[periodo]-N_stage.ext`) | `CLAUDE.md §Convenções de naming de artefatos` | — |
-| Money policy (`Decimal` string · `int64` cents · nunca float) | `pipeline/domain/models/transaction.py::Money` | [ADR-090](DECISIONS.md#adr-090--money-nunca-é-float) |
-| Cenário de estresse "cônjuge sem trabalhar" — chave de payload `cenarios_conjuge` (universal estável, ADR-166) | `pipeline/domain/services/cenarios_conjuge_analyzer.py::CenariosConjugeAnalyzer` + `pipeline/domain/services/e5_serialization.py::build_e5_output` | [ADR-166](DECISIONS.md#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) |
-| Mês fechado / relatório publicado (invariante temporal de imutabilidade) | `backend/app/services/report_publication.py::is_month_closed` + `ReportPublication` model | [ADR-187](adr/187-relatorio-publicado-imutavel-mes-fechado.md) — ver também [REPORT_PUBLICATION.md](REPORT_PUBLICATION.md) |
-| Cobertura ideal de seguro de vida (`max(Cerbasi, Perini)`) | `pipeline/domain/services/protection/life_insurance_coverage.py::life_insurance_coverage_ideal` ([rule](rules/life-insurance-coverage.md)) | [ADR-192](adr/192-protection-aggregate-protectionbundle-secao-9.md) |
-| Gap de cobertura de invalidez (Cerbasi · share renda ativa > 40% E cobertura < 60% renda) | `pipeline/domain/services/protection/disability_coverage.py::disability_coverage_gap` ([rule](rules/disability-coverage-gap.md)) | [ADR-192](adr/192-protection-aggregate-protectionbundle-secao-9.md) |
-| ITCMD estimado por UF (alíquota × patrimônio bruto, tabela injetada por `fiscal_parameters`) | `pipeline/domain/services/protection/itcmd_estimator.py::itcmd_estimated` ([rule](rules/itcmd-estimated.md)) | [ADR-192](adr/192-protection-aggregate-protectionbundle-secao-9.md) |
-| Compliance US-person (FBAR / FATCA / Estate Tax NRA, gate explícito por `us_tax_status`) | `pipeline/domain/services/protection/compliance_us_person.py::compliance_risk_us_person` ([rule](rules/compliance-risk-us-person.md)) | [ADR-192](adr/192-protection-aggregate-protectionbundle-secao-9.md) |
+| Money policy (`Decimal` string · `int64` cents · nunca float) | `pipeline/domain/models/transaction.py::Money` | [ADR-090](../DECISIONS.md#adr-090--money-nunca-é-float) |
+| Cenário de estresse "cônjuge sem trabalhar" — chave de payload `cenarios_conjuge` (universal estável, ADR-166) | `pipeline/domain/services/cenarios_conjuge_analyzer.py::CenariosConjugeAnalyzer` + `pipeline/domain/services/e5_serialization.py::build_e5_output` | [ADR-166](../DECISIONS.md#adr-166--schema-estável-cenarios_conjuge-no-payload-e5) |
+| Mês fechado / relatório publicado (invariante temporal de imutabilidade) | `backend/app/services/report_publication.py::is_month_closed` + `ReportPublication` model | [ADR-187](../adr/187-relatorio-publicado-imutavel-mes-fechado.md) — ver também [REPORT_PUBLICATION.md](REPORT_PUBLICATION.md) |
+| Cobertura ideal de seguro de vida (`max(Cerbasi, Perini)`) | `pipeline/domain/services/protection/life_insurance_coverage.py::life_insurance_coverage_ideal` ([rule](rules/life-insurance-coverage.md)) | [ADR-192](../adr/192-protection-aggregate-protectionbundle-secao-9.md) |
+| Gap de cobertura de invalidez (Cerbasi · share renda ativa > 40% E cobertura < 60% renda) | `pipeline/domain/services/protection/disability_coverage.py::disability_coverage_gap` ([rule](rules/disability-coverage-gap.md)) | [ADR-192](../adr/192-protection-aggregate-protectionbundle-secao-9.md) |
+| ITCMD estimado por UF (alíquota × patrimônio bruto, tabela injetada por `fiscal_parameters`) | `pipeline/domain/services/protection/itcmd_estimator.py::itcmd_estimated` ([rule](rules/itcmd-estimated.md)) | [ADR-192](../adr/192-protection-aggregate-protectionbundle-secao-9.md) |
+| Compliance US-person (FBAR / FATCA / Estate Tax NRA, gate explícito por `us_tax_status`) | `pipeline/domain/services/protection/compliance_us_person.py::compliance_risk_us_person` ([rule](rules/compliance-risk-us-person.md)) | [ADR-192](../adr/192-protection-aggregate-protectionbundle-secao-9.md) |
 
 **Regra geral:** nada de regras de produto em markdown editorial. Toda
 regra que o código enforce vive no código (docstring) + ADR (porquê);
@@ -410,7 +410,7 @@ E0-audit → E1.5c (skip se sem baseline)
 ```
 
 > **Nota:** stages `E6` e `E6-final` foram removidos em
-> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) —
+> [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) —
 > o relatório não é mais artefato de pipeline. Render atual: ver §**Render do relatório**
 > (logo após a tabela de stages abaixo).
 
@@ -439,7 +439,7 @@ E0-audit → E1.5c (skip se sem baseline)
 > export server-side é **PDF via Playwright** (backend/app/services/pdf_renderer.py)
 > sobre essa mesma rota. O renderer HTML server-side (`e6_render.py`
 > + stages `E6`/`E6-final`) foi descontinuado em
-> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+> [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 
 ### Modo incremental (ADR-080)
 
@@ -648,7 +648,8 @@ pipeline/domain/
   o domínio ao schema legado.
 - **E3 Caminho B (ADR-097)** — `scripts/e3_reconcile.main_with_store(ctx)`
   orquestra o `E3ReconcilerAdapter` sobre `ctx.get_artifact_store()`.
-  [pipeline/stages/e3.py](../pipeline/stages/e3.py) é o único caller.
+  [pipeline/stages/reconcile_transactions.py](../../pipeline/stages/reconcile_transactions.py)
+  é o único caller.
   Sidecar logs (`reconciliation.md` + `qa_log.md` E3 section) escritos em
   `ctx.logs_dir`.
 - **Validadores de reconciliação** — `SaldoContinuityValidator` (continuidade de
@@ -675,9 +676,9 @@ R18-R20 (ADR-102):
   (Pydantic) ou `response_class` explícito (`FileResponse`,
   `StreamingResponse`, `HTMLResponse`, `PlainTextResponse`, `Response`).
 - Snapshot completo em [`docs/reference/api/v1/openapi.json`](api/v1/openapi.json) —
-  committed e validado por [`test_openapi_snapshot.py`](../backend/tests/test_openapi_snapshot.py)
+  committed e validado por [`test_openapi_snapshot.py`](../../backend/tests/test_openapi_snapshot.py)
   (A6f.2).
-- Estrutural [`test_openapi_response_models.py`](../backend/tests/test_openapi_response_models.py)
+- Estrutural [`test_openapi_response_models.py`](../../backend/tests/test_openapi_response_models.py)
   bloqueia merge de endpoint novo sem contrato.
 
 **JWT**:
@@ -695,7 +696,7 @@ R18-R20 (ADR-102):
 - `VaultService` é singleton process-wide com key de `settings.FERNET_KEY`
   (ADR-060 prevê dual-key para rotation).
 
-**Teste de portabilidade**: [`test_auth_portability.py`](../backend/tests/test_auth_portability.py)
+**Teste de portabilidade**: [`test_auth_portability.py`](../../backend/tests/test_auth_portability.py)
 roda 12 parity tests — se algum falhar, a mudança é breaking e exige
 nova ADR (A6f.5b para AES-GCM, A6f.5c para RS256).
 
@@ -810,7 +811,7 @@ Frontend renderiza nativamente via GET /reports/{id}/data (React)
 
 ### Carregamento de config (DB-first pós-Sprint A7)
 
-Após Sprint A7 (Config DB Cutover, 2026-04-27), o pipeline lê configs **direto do DB via ConfigStore** ([ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend)). Materialização disco-side foi removida; bridges deletados em A7.5 (`materialize_config`, `FileConfigStore`).
+Após Sprint A7 (Config DB Cutover, 2026-04-27), o pipeline lê configs **direto do DB via ConfigStore** ([ADR-134](../DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend)). Materialização disco-side foi removida; bridges deletados em A7.5 (`materialize_config`, `FileConfigStore`).
 
 ```
 User edita config via UI → DB (categories, family_members, transfer_configs, etc.)
@@ -838,7 +839,7 @@ ou via ctx.config_store.get_X(workspace_id) (typed direto)
 Goldens E3/E4/E5/E5.N preservam paridade byte-a-byte vs pré-A7
 ```
 
-**Assets de produto remanescentes em `config/`** ([ADR-149](DECISIONS.md#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80)): `report_layout.yaml`, `pipeline.json` (default), `scoring.json`, `schemas/`, `prompts/`, `templates/`. Editáveis pelo time Mathoms; **não** contêm dados cliente.
+**Assets de produto remanescentes em `config/`** ([ADR-149](../DECISIONS.md#adr-149--configreport_layoutyaml-permanece-como-asset-de-produto-sprint-a80)): `report_layout.yaml`, `pipeline.json` (default), `scoring.json`, `schemas/`, `prompts/`, `templates/`. Editáveis pelo time Mathoms; **não** contêm dados cliente.
 
 ---
 
@@ -982,7 +983,7 @@ mathoms.ai/
 utilitários (`utils/`). Provider de modo dual:
 `ReportModeProvider` (cliente, dinâmico via `?mode=`) +
 `StaticReportModeProvider` (SSR/standalone — ADR-124 §11.1, mantido
-como provider mesmo após [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)
+como provider mesmo após [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)
 descontinuar o renderer HTML server-side; React em `/reports/[id]` é
 único renderer; PDF via Playwright é único export server-side).
 
@@ -1042,7 +1043,7 @@ Scripts legados (E5=107KB — E6=197KB foi removido em ADR-129) têm lógica ref
 
 ### Materialize, Don't Inject (F3 → superseded por ConfigStore em Sprint A7)
 
-**Histórico:** F3 introduziu `materialize_config()` que copiava `config/` global → tenant + sobrescrevia com DB; scripts lêem do disco via `_init_config`. **Sprint A7 (2026-04-27) substituiu este padrão** ([ADR-134](DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend)) pelo `ConfigStore` Protocol read-only. `materialize_config` foi deletado em A7.5; scripts continuam usando `ctx.load_config(name)` mas agora os dados fluem de DB via `WorkspaceContext.config_overrides` (populado por `build_config_overrides_from_db`). Para configs que ainda precisam de disco (assets de produto: `pipeline.json`, `llm_config.json` overrides), `prepare_pipeline_config_dir()` materializa apenas o subset necessário.
+**Histórico:** F3 introduziu `materialize_config()` que copiava `config/` global → tenant + sobrescrevia com DB; scripts lêem do disco via `_init_config`. **Sprint A7 (2026-04-27) substituiu este padrão** ([ADR-134](../DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend)) pelo `ConfigStore` Protocol read-only. `materialize_config` foi deletado em A7.5; scripts continuam usando `ctx.load_config(name)` mas agora os dados fluem de DB via `WorkspaceContext.config_overrides` (populado por `build_config_overrides_from_db`). Para configs que ainda precisam de disco (assets de produto: `pipeline.json`, `llm_config.json` overrides), `prepare_pipeline_config_dir()` materializa apenas o subset necessário.
 
 ### Pipeline Adapter (F8)
 `pipeline_adapter.py` é a fachada DB → JSON para entidades migradas (goals, tasks, family_members). Scripts recebem JSONs materializados no disco, sem saber que a fonte é o DB.
@@ -1130,7 +1131,7 @@ CI: `.github/workflows/ci.yml` com 7 jobs (lint, PII lint, pipeline, backend+Red
 - **Uptime externo** — health check (UptimeRobot ou equivalente) — alinhado à status page
 - **Custom telemetry** — UsageMetric (privacy-first) — 7D.9
 
-Para decisões arquiteturais detalhadas com rationale, ver [DECISIONS.md](DECISIONS.md).
+Para decisões arquiteturais detalhadas com rationale, ver [DECISIONS.md](../DECISIONS.md).
 
 ---
 
@@ -1138,18 +1139,18 @@ Para decisões arquiteturais detalhadas com rationale, ver [DECISIONS.md](DECISI
 
 Aplicação **separada** do fluxo multi-tenant do cliente: autenticação própria, RBAC interno, APIs em prefixo dedicado (ex.: `/api/internal/...`), agregados privacy-first e ações mutadoras com audit obrigatório. O `/config` do workspace continua sendo **administração pelo cliente**.
 
-- Plano por fases (IA-0 … IA-3): [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md)
-- Tasks: [BACKLOG.md — F7F](BACKLOG.md#f7f--console-interno-operadores)
+- Plano por fases (IA-0 … IA-3): [docs/plan/INTERNAL_ADMIN/_README.md](../plan/INTERNAL_ADMIN/_README.md)
+- Tasks: [BACKLOG.md — F7F](../BACKLOG.md#f7f--console-interno-operadores)
 - Primeira entrega de UI alinhada: **7E.7** (business metrics em `/admin/metrics`)
 
 ---
 
 ## 17. Arquitetura alvo pós-A6 (migração infra+domínio)
 
-**ADRs formalizadoras**: 097-111 em [DECISIONS.md](DECISIONS.md) ·
-**Status de execução + lanes abertas**: [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) ·
+**ADRs formalizadoras**: 097-111 em [DECISIONS.md](../DECISIONS.md) ·
+**Status de execução + lanes abertas**: [BACKLOG §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal) ·
 **Critérios de aceite por fase**: [TESTING §Critérios de aceite por fase](TESTING.md#critérios-de-aceite-por-fase-da-migração-a6) ·
-**Runbook de cutover**: [runbooks/cutover.md](runbooks/cutover.md)
+**Runbook de cutover**: [cutover-2026-05-14.md](../archive/cutover-2026-05-14.md)
 
 ### 17.0 Motivação — por que migrar
 
@@ -1328,7 +1329,7 @@ ADR-097 e ADR-099.
 
 ## 18. Domínios e URLs públicas (F7A)
 
-**Decisão:** [ADR-108](DECISIONS.md#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns) (2026-04-20).
+**Decisão:** [ADR-108](../DECISIONS.md#adr-108--estratégia-de-subdomínios-mathomsai--cloudflare-dns) (2026-04-20).
 **Domínio:** `mathoms.ai` (registrado em Cloudflare Domains).
 
 ### 18.1 Estrutura canônica de URLs

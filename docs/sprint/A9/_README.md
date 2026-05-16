@@ -24,7 +24,7 @@ Estabilizar qualidade cross-cutting (stage names, calculators, testes E2E, DB le
 
 ## Lanes
 
-Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes/).
+Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes).
 
 ## Waves
 

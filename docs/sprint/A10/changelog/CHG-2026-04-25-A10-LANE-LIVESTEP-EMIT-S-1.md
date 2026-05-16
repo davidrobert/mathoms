@@ -17,7 +17,7 @@ tags:
 
 - **Lane `livestep-emit-stages` E2-llm — concorrente (2026-04-25):**
   sétimo emissor migrado para o contrato
-  [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
+  [ADR-119](../../../DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
   (após E1.5/E2/E1/E1.5c/E4/E5). Primeira lane com **concorrência
   real**: `pipeline/stages/extract_with_llm.py` usa
   `ThreadPoolExecutor(max_workers=workers)` (1–8 conforme

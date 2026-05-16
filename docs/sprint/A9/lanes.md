@@ -1,6 +1,6 @@
 # Sprint A9 — Lanes (histórico)
 
-> Tabela estática de todas as lanes da Sprint A9. Para detalhe operacional, ver [`lanes/<id>.md`](lanes/) populado por F4.A.
+> Tabela estática de todas as lanes da Sprint A9. Para detalhe operacional, ver [`lanes/<id>.md`](lanes) populado por F4.A.
 
 | ID | Title | Status | PR |
 |---|---|---|---|

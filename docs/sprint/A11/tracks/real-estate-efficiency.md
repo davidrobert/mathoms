@@ -21,10 +21,10 @@ tags:
 
 ## Contexto mínimo
 
-- **ADR canônica:** [docs/DECISIONS.md §ADR-160](../DECISIONS.md#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap). **Leia inteira antes de codar** — fórmulas, ações, copy e anti-patterns são load-bearing.
+- **ADR canônica:** [docs/DECISIONS.md §ADR-160](../../../DECISIONS.md#adr-160--eficiência-tributária-imóvel-direto-vs-fii-no-relatório-premium-roadmap). **Leia inteira antes de codar** — fórmulas, ações, copy e anti-patterns são load-bearing.
 - **Mudar status ADR-160 de `Roadmap` para `Decidido (Sprint <X>)`** ao final, no mesmo PR.
-- Aggregates consumidos: `Suggestion` ([ADR-153](../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples)) + `Decision` ([ADR-136](../DECISIONS.md#adr-136--decisions-event-sourced-aggregate--projection-sobre-goals)). NÃO criar aggregate novo.
-- Schema IRPF source-of-truth: [ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full).
+- Aggregates consumidos: `Suggestion` ([ADR-153](../../../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples)) + `Decision` ([ADR-136](../../../DECISIONS.md#adr-136--decisions-event-sourced-aggregate--projection-sobre-goals)). NÃO criar aggregate novo.
+- Schema IRPF source-of-truth: [ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full).
 
 ## Pré-flight
 
@@ -137,8 +137,8 @@ Templates A4 reajuste regional e janela R$440k **NÃO criar** (ADR-160 vetou).
 
 - Atualizar `narrativas.S4` no fixture E5.N (template determinístico OU LLM prompt) com context+conclusion canônicos da ADR-160 §Sub-decisão 8.
 - Em `docs/DECISIONS.md`: mudar `**Status:** Roadmap` para `**Status:** Decidido (Sprint <X>)` na ADR-160. Rodar `python3 dev/build_adr_toc.py --inline` + `python3 dev/validate_adr_format.py`.
-- Atualizar [docs/CHANGELOG.md](../CHANGELOG.md) com entry da feature.
-- Atualizar [docs/BACKLOG.md](../BACKLOG.md) marcando lane fechada.
+- Atualizar [docs/CHANGELOG.md](../../../CHANGELOG.md) com entry da feature.
+- Atualizar [docs/BACKLOG.md](../../../BACKLOG.md) marcando lane fechada.
 
 ## Gates obrigatórios antes do PR
 

@@ -96,7 +96,7 @@ para lista exata de arquivos e §"Etapas" para sequência dentro do PR.
 - Suíte verde: `pytest backend/tests -q`, `pytest tests -q`,
   `cd frontend && npm test -- --run`, `pre-commit run --all-files`.
 - Teste novo `test_concurrent_decision_creation_no_code_collision` em
-  [`backend/tests/integration/test_multi_worker_concurrency.py`](../../../backend/tests/integration/test_multi_worker_concurrency.py)
+  [`backend/tests/integration/test_multi_worker_concurrency.py`](../../../../backend/tests/integration/test_multi_worker_concurrency.py)
   passa: 10 corrotinas paralelas → 10 codes únicos sequenciais, zero
   `IntegrityError`.
 - Snapshot OpenAPI atualizado (`make update-openapi-snapshot`); diff

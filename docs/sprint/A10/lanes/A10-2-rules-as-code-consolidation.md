@@ -24,7 +24,7 @@ tags:
 
 - **Onda:** 1
 - **Depende de:** A10.0 ✅
-- **Plano:** [§2.2 chaves U/M/O + ADR-177](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
+- **Plano:** [§2.2 chaves U/M/O + ADR-177](../../../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
 - **Branch slug:** `a10-2-rules-as-code`
 - **Esforço:** 1d
 - **Paralelo com:** A10.1

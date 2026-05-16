@@ -141,9 +141,9 @@ decisões anteriores. A contribuição de A6f.6 passa a ser:
 
 **Artefatos:**
 
-- [docs/reference/STATELESS_AUDIT.md](STATELESS_AUDIT.md) — catálogo de 10 seções
+- [docs/reference/STATELESS_AUDIT.md](../reference/STATELESS_AUDIT.md) — catálogo de 10 seções
   com veredito por arquivo + gap list.
-- [backend/tests/integration/test_multi_worker_concurrency.py](../backend/tests/integration/test_multi_worker_concurrency.py) —
+- [backend/tests/integration/test_multi_worker_concurrency.py](../../backend/tests/integration/test_multi_worker_concurrency.py) —
   5 tests, 1.05s, sem Redis/Postgres reais.
 - Regras novas em `CLAUDE.md` §"Regras operacionais" — proibição
   explícita de `asyncio.create_task`, globais mutáveis, file locks.

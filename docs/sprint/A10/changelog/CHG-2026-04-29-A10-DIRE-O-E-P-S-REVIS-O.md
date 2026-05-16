@@ -24,13 +24,13 @@ tags:
 
   **3 ondas dedicadas** com prompts self-contained em `docs/agent_prompts/`:
 
-  - [track_onda_7_p0_blockers.md](agent_prompts/track_onda_7_p0_blockers.md)
+  - [track_onda_7_p0_blockers.md](../../A11/tracks/onda-7-p0-blockers.md)
     (~3d, **P0** — recomendado primeiro): reordenar `/plano`
     (Estratégia → Plano de Ação → Mês corrente collapsible); `/acao`
     default = Inbox quando há pendentes + ler `?tab=`; fix anchor
     `#SUG-XXX` do relatório → Inbox; single-source `patrimonio_snapshot`;
     `<OnboardingHero/>` para workspace zero.
-  - [track_onda_8_methodology_coherence.md](agent_prompts/track_onda_8_methodology_coherence.md)
+  - [track_onda_8_methodology_coherence.md](../../A11/tracks/onda-8-methodology-coherence.md)
     (~5-7d, P1, depende parcial de Onda 7 #4): 6 novas regras Suggestion
     (Cerbasi: endividamento, taxa poupança caindo, seguros, concentração
     instituição, lifestyle creep, renda passiva Perini); Decisions
@@ -38,7 +38,7 @@ tags:
     Suggestion; Decision → Task automática com templates `derived_from`;
     SuggestionCard borda colorida + sort por severidade; SuggestionsBanner
     com `maxSeverity` real.
-  - [track_onda_9_design_system_polish.md](agent_prompts/track_onda_9_design_system_polish.md)
+  - [track_onda_9_design_system_polish.md](../../A11/tracks/onda-9-design-system-polish.md)
     (~3d, P2, independente): `<SectionHeading/>` primitivo (4 H2 → 1);
     `<EmptyState/>` primitivo (5 → 1); `<SegmentedTabs/>` primitivo
     (3 → 1); dedup tarefas Upcoming/Linked + filter param em `/acao`;

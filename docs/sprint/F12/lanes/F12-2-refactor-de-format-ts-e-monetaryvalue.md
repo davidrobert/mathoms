@@ -3,6 +3,7 @@ id: F12.2
 type: lane
 title: "Refactor de `format.ts` e `<MonetaryValue/>`"
 sprint: F12
+plan: PLAN-i18n
 status: blocked
 priority: P0
 adrs: ["[[ADR-130]]"]

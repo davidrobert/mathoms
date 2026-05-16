@@ -4,7 +4,7 @@
 >
 > **Escopo:** baseline empírico do `pipeline-service` Python para que o ADR de estratégia de port (Caminho 1/2/3 — ver [GO_PORT_DEPS.md](GO_PORT_DEPS.md)) seja escrito com dados, não com fé.
 >
-> **ADRs relacionadas:** [ADR-112](DECISIONS.md#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1) (HTTP boundary), [ADR-113](DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) (convenções Go).
+> **ADRs relacionadas:** [ADR-112](../DECISIONS.md#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1) (HTTP boundary), [ADR-113](../DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) (convenções Go).
 
 ---
 
@@ -56,7 +56,7 @@ httpx 0.28.1
 websockets (latest)
 ```
 
-(56 packages totais em [pipeline-service/pyproject.toml](../pipeline-service/pyproject.toml) deps + transitive)
+(56 packages totais em [pipeline-service/pyproject.toml](../../pipeline-service/pyproject.toml) deps + transitive)
 
 **Setup local:**
 
@@ -69,7 +69,7 @@ cd pipeline-service && uvicorn app.main:app --host 127.0.0.1 --port 18001
 
 **Setup container:**
 
-> Nota: o [Dockerfile oficial do pipeline-service](../pipeline-service/Dockerfile) está com bug pré-existente — vide §6. Para esta medição usei um Dockerfile equivalente em `_scratch/` (gitignored) que apenas reordena `COPY` antes de `RUN pip install`. Wire-protocol e deps são idênticos.
+> Nota: o [Dockerfile oficial do pipeline-service](../../pipeline-service/Dockerfile) está com bug pré-existente — vide §6. Para esta medição usei um Dockerfile equivalente em `_scratch/` (gitignored) que apenas reordena `COPY` antes de `RUN pip install`. Wire-protocol e deps são idênticos.
 
 ```bash
 docker build -t mathoms-pipeline-service:baseline -f _scratch/Dockerfile.pipeline-service-fixed .
@@ -130,7 +130,7 @@ Crescimento de ~10 MB sob carga é compatível com FastAPI/Pydantic alocando wor
 | Idle | **35.7 MiB** | 7.75 GiB (cgroup default) |
 | Pós-load (5k req c=50) | **37.8 MiB** | — |
 
-Container é levemente mais leve que local — provavelmente porque dispensa overhead do shell parent e import paths customizados de `_ensure_pipeline_on_path()` em [main.py:24](../pipeline-service/app/main.py:24).
+Container é levemente mais leve que local — provavelmente porque dispensa overhead do shell parent e import paths customizados de `_ensure_pipeline_on_path()` em [main.py:24](../../pipeline-service/app/main.py:24).
 
 VSZ astronômico em macOS é normal (mmap virtual generoso); não corresponde a memória real comprometida.
 
@@ -219,7 +219,7 @@ Top consumidores:
 
 ## 6. Achado colateral — bug pré-existente no Dockerfile
 
-[pipeline-service/Dockerfile](../pipeline-service/Dockerfile) **não builda como está hoje** (testado em 2026-04-27, arm64).
+[pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) **não builda como está hoje** (testado em 2026-04-27, arm64).
 
 Causa: linha 14 copia só `pyproject.toml` antes do `pip install` na linha 15. Mas `pyproject.toml` declara `[tool.setuptools] packages = ["app", "app.api", ...]` — setuptools tenta encontrar o diretório `app/` durante o build do wheel e falha:
 
@@ -353,4 +353,4 @@ Atualizar este doc se: (a) shell ganhar dependência nova relevante (Pydantic, F
 | **A2** | Este documento · footprint baseline | ✅ feito (com limitação: stage execution real não medida) |
 | A2.1 | Estender A2 com smoke real — workspace tenant + um run E0→E5, medir RSS/CPU/duração por stage | Sem isso, gatilho "GIL" para Caminho 3 fica especulativo |
 | **A3** | ADR de estratégia de port (Caminho 1/2/3) com base em A1 + A2 (+ A2.1 se necessário) | Destrava primeiro PR Go produtivo |
-| A2.fix | Slice próprio para fixar [pipeline-service/Dockerfile](../pipeline-service/Dockerfile) — pré-requisito para CI smoke do pipeline-service Python | Detectado em A2 §6 |
+| A2.fix | Slice próprio para fixar [pipeline-service/Dockerfile](../../pipeline-service/Dockerfile) — pré-requisito para CI smoke do pipeline-service Python | Detectado em A2 §6 |

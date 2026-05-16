@@ -19,7 +19,7 @@ tags:
 # 7E — Operational Readiness (semana 6-7, ~2 semanas)
 
 
-> Sub-fase dedicada à maturidade operacional além de "produto compila e sobe": runs órfãs, disaster recovery testado, observabilidade de negócio (não só erros), comunicação durante incidentes, e proteção contra runaway de custo LLM (BYOK não isenta de monitoring). Ver [ADR-065](DECISIONS.md#adr-065--sub-fase-7e-operational-readiness).
+> Sub-fase dedicada à maturidade operacional além de "produto compila e sobe": runs órfãs, disaster recovery testado, observabilidade de negócio (não só erros), comunicação durante incidentes, e proteção contra runaway de custo LLM (BYOK não isenta de monitoring). Ver [ADR-065](../../../DECISIONS.md#adr-065--sub-fase-7e-operational-readiness).
 
 #### 7E.A — Pipeline operacional
 
@@ -40,15 +40,15 @@ tags:
 
 | #     | Tarefa                                                                                                                                                                                                          | Prio | Est. | Status |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ✅ Sprint A: `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL` + `StatusPageFooter` (login, register, invite, AppShell); provisão da ferramenta continua no deploy — ver [RUNBOOK.md](RUNBOOK.md#2-status-page-7e6) |
-| 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces — integra **IA-2** do [INTERNAL_ADMIN_ROADMAP.md](INTERNAL_ADMIN_ROADMAP.md) (protegida por **7F.2–7F.4**) | P1 | 6h | ☐ |
-| 7E.8  | **SLOs/SLAs declarados** em `docs/reference/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ✅ Sprint A: [SLO.md](SLO.md) (alvos + SLA comunicação incidente); burn rate Sentry continua em 7C |
+| 7E.6  | **Status page público** (`uptime-kuma` self-hosted ou `instatus.com` free tier): incidentes manuais + uptime auto; link na footer do app                                                                       | P1 | 3h | ✅ Sprint A: `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL` + `StatusPageFooter` (login, register, invite, AppShell); provisão da ferramenta continua no deploy — ver [RUNBOOK.md](../../../reference/RUNBOOK.md#2-status-page-7e6) |
+| 7E.7  | **Business metrics dashboard**: query simples + página interna `/admin/metrics`: runs/day, success rate trend (7d/30d), p95 duration, custo médio LLM por run, documents uploaded/day, active workspaces — integra **IA-2** do [INTERNAL_ADMIN_ROADMAP.md](../../../plan/INTERNAL_ADMIN/_README.md) (protegida por **7F.2–7F.4**) | P1 | 6h | ☐ |
+| 7E.8  | **SLOs/SLAs declarados** em `docs/reference/SLO.md`: uptime 99% beta / 99.5% GA; p95 API <1s; p95 pipeline free <5min, premium <15min; alertas Sentry quando burn rate >2x                                                | P0 | 1h | ✅ Sprint A: [SLO.md](../../../reference/SLO.md) (alvos + SLA comunicação incidente); burn rate Sentry continua em 7C |
 
 #### 7E.D — Comunicação de incidentes
 
 | #     | Tarefa                                                                                                                                                                  | Prio | Est. | Status |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---- | ------ |
-| 7E.9  | **Incident comms templates** em RUNBOOK: 3 templates Markdown (`initial_report`, `update_in_progress`, `resolved_postmortem`) com placeholders e exemplos preenchidos; treinar uso na primeira incident drill | P0 | 2h | ✅ Sprint A: [runbooks/incidents/](runbooks/incidents/) + [RUNBOOK.md](RUNBOOK.md#3-resposta-a-incidentes); drill checklist em [RUNBOOK.md](RUNBOOK.md#4-drill-de-incidente-obrigatório-antes-do-beta-fechado) |
+| 7E.9  | **Incident comms templates** em RUNBOOK: 3 templates Markdown (`initial_report`, `update_in_progress`, `resolved_postmortem`) com placeholders e exemplos preenchidos; treinar uso na primeira incident drill | P0 | 2h | ✅ Sprint A: [runbooks/incidents/](../../../reference/runbooks/incidents) + [RUNBOOK.md](../../../reference/RUNBOOK.md#3-resposta-a-incidentes); drill checklist em [RUNBOOK.md](../../../reference/RUNBOOK.md#4-drill-de-incidente-obrigatório-antes-do-beta-fechado) |
 | 7E.10 | **Support runbook** (`docs/SUPPORT.md`): triagem por severidade, templates de resposta para 5 perguntas comuns, fluxo de escalação, tempo de resposta esperado por tier | P1 | 4h | ☐ |
 
 **Detalhamento — status page (7E.6) e incidentes (7E.9)**

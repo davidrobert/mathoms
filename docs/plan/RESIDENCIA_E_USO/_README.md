@@ -190,7 +190,7 @@ Entrega:
   - Dry-run mode (default) + apply explícito; output JSON com workspaces afetados.
 - Deprecation:
   - 1 sprint com keyword + override coexistindo (override vence).
-  - Sprint seguinte: remove leitura de `residencia_principal_keyword` em `_extract_residencia_keyword` ([`pipeline/domain/services/e5_analyzer_adapter.py`](pipeline/domain/services/e5_analyzer_adapter.py)).
+  - Sprint seguinte: remove leitura de `residencia_principal_keyword` em `_extract_residencia_keyword` ([`pipeline/domain/services/e5_analyzer_adapter.py`](../../../pipeline/domain/services/e5_analyzer_adapter.py)).
   - Hook pre-commit (`dev/check_forbidden_paths.py` ou novo `dev/check_residencia_keyword.py`) impede re-introdução do campo em `family_members.<titular>.extra`.
 
 **Gate de saída:** audit de workspaces zerado (todos migrados ou `undeclared`); 0 leitura de `residencia_principal_keyword` em code search; pre-commit gate ativo em CI.

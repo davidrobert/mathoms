@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** nenhum
 > **Conflita com:** qualquer commit em `scripts/`, `pipeline/orchestrator.py`, runbooks que invoquem `python -m scripts.e*`
 > **Onda:** F9 (sub-fatia 5/7)
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`STAGE_RENAME_MAP`](../../../../pipeline/stage_spec.py#L129)
 
 > **Objetivo:** renomear scripts CLI em `scripts/e*.py` para nomes descritivos
 > e adicionar alias compat em `scripts/e_reset.py --from <stage>` (legacy ou
@@ -211,7 +211,7 @@ git push origin HEAD:main
 
 ## Referências
 
-- F9.3 (prereq): [track_f9_3_alembic_migration.md](track_f9_3_alembic_migration.md)
-- F9.5 (próximo): [track_f9_5_guardrail_hardfail.md](track_f9_5_guardrail_hardfail.md)
+- F9.3 (prereq): [track_f9_3_alembic_migration.md](f9-3-alembic-migration.md)
+- F9.5 (próximo): [track_f9_5_guardrail_hardfail.md](f9-5-guardrail-hardfail.md)
 - ADR-093: `docs/DECISIONS.md:2228`
 - Auditoria F9.0: `docs/archive/audits/f9_audit_<date>.md`

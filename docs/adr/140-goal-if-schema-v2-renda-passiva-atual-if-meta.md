@@ -24,7 +24,7 @@ size_lines: 37
 
 **Contexto:** Auditoria multi-agente (rodada 1, item 5 do financial-planner; rodada 2, item B1 do senior-cto) identificou dois gaps no schema v1 do Goal IF:
 
-1. **Premissa nominal vs real implícita.** `renda_passiva_mensal_brl` não declarava se é em valor presente (deflacionado) ou nominal futuro. Trinity assume retorno e retirada **reais**; produto opera em BRL de hoje. Sem campo explícito, planejadores externos (público B2B2C de [PRODUCT.md](PRODUCT.md)) preenchem manualmente e a UI pode capturar errado.
+1. **Premissa nominal vs real implícita.** `renda_passiva_mensal_brl` não declarava se é em valor presente (deflacionado) ou nominal futuro. Trinity assume retorno e retirada **reais**; produto opera em BRL de hoje. Sem campo explícito, planejadores externos (público B2B2C de [PRODUCT.md](../reference/PRODUCT.md)) preenchem manualmente e a UI pode capturar errado.
 
 2. **Dupla contagem de renda passiva atual.** A fórmula `if_meta = renda × 12 / TRS` ignora a renda passiva já fluindo (aluguéis, dividendos, juros). Família com R$9k/mês de aluguel e meta de R$30k/mês de IF tem **gap real** de R$21k/mês (não R$30k). Schema v1 não modela isso.
 
@@ -52,4 +52,4 @@ size_lines: 37
 - Cálculo de progresso passa a refletir gap real após migração — relatórios pré-migração mostravam progresso subestimado para famílias com renda passiva atual ativa.
 - Schema v1 fica como compat reverso até cleanup F-pós-A7.
 
-**Relaciona-se a:** [ADR-073](#adr-073--goals-como-entidade-versionada-não-config-estático) (Goals no banco), [ADR-141](#adr-141--goal-alocação-alvo-schema-v2-7-classes-auvp), [ADR-142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem). Detalhamento das fórmulas em [FORMULAS.md §IF](FORMULAS.md).
+**Relaciona-se a:** [ADR-073](#adr-073--goals-como-entidade-versionada-não-config-estático) (Goals no banco), [ADR-141](#adr-141--goal-alocação-alvo-schema-v2-7-classes-auvp), [ADR-142](#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem). Detalhamento das fórmulas em [FORMULAS.md §IF](../reference/FORMULAS.md).

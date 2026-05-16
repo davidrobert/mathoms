@@ -24,7 +24,7 @@ tags:
 
 - **Onda:** 0 (bloqueante)
 - **Depende de:** —
-- **Plano:** [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §4](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
+- **Plano:** [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §4](../../../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
 - **Branch slug:** `a10-0-adrs`
 - **Esforço:** 0.5d
 - **Paralelo com:** —

@@ -30,7 +30,7 @@ A revisão multi-agente 2026-05-06 ([PR #92](https://github.com/davidrobert/math
 
 ## Lanes
 
-Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes/). Tracks operacionais em [`tracks/`](tracks/).
+Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes). Tracks operacionais em [`tracks/`](tracks).
 
 ## Waves
 

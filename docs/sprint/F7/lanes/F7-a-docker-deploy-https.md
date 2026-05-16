@@ -19,7 +19,7 @@ tags:
 # 7A — Docker + Deploy + HTTPS (semana 1-2)
 
 
-**URLs canônicas (ADR-108):** `app.mathoms.ai` (produto) · `api.mathoms.ai/v1/...` (backend + WS) · `ops.mathoms.ai` (console interno F7F) · `docs.mathoms.ai` · `status.mathoms.ai` · apex `mathoms.ai` (landing). Staging: `*.staging.mathoms.ai`. Domínio em **Cloudflare Domains**. Ver [ARCHITECTURE.md §18](ARCHITECTURE.md#18-domínios-e-urls-públicas-f7a).
+**URLs canônicas (ADR-108):** `app.mathoms.ai` (produto) · `api.mathoms.ai/v1/...` (backend + WS) · `ops.mathoms.ai` (console interno F7F) · `docs.mathoms.ai` · `status.mathoms.ai` · apex `mathoms.ai` (landing). Staging: `*.staging.mathoms.ai`. Domínio em **Cloudflare Domains**. Ver [ARCHITECTURE.md §18](../../../reference/ARCHITECTURE.md#18-domínios-e-urls-públicas-f7a).
 
 #### 7A-dev — Fatia mínima local-first (pré-Hetzner) — ✅ local fechado 2026-04-26 · ☐ dev.9 aguardando VPS
 

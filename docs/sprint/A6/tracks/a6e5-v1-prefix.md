@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6e.3 use cases, A6f.1 pipeline-service, A6g.2 pipeline sweep, A6g.4 frontend sweep — **zero overlap de conteúdo** (esta lane só mexe em registros de prefix + base URL).
 > **Conflita com:** qualquer commit em `backend/app/main.py` (hotspot desta lane), `backend/app/core/config.py` (setting `API_PREFIX`), `frontend/src/lib/api/core.ts` (hotspot desta lane). Nenhuma outra lane ativa deve tocar esses 3 arquivos — coordene por §Hotspots se precisar.
 > **Onda:** 2
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-108 URLs canônicas](../DECISIONS.md), [ADR-102 R18-R20](../DECISIONS.md), [ARCHITECTURE §18](../ARCHITECTURE.md), [BACKLOG §A6e](../BACKLOG.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-108 URLs canônicas](../../../DECISIONS.md), [ADR-102 R18-R20](../../../DECISIONS.md), [ARCHITECTURE §18](../../../reference/ARCHITECTURE.md), [BACKLOG §A6e](../../../BACKLOG.md)
 
 > **Objetivo:** versionar a API pública do backend sob `/api/v1/` sem quebrar
 > clientes existentes. Introduzir alias **deprecated** em `/api/` com
@@ -82,7 +82,7 @@ app.include_router(reports_router, prefix=settings.API_PREFIX)
 # ... 18 routers no total (linhas 101-120)
 ```
 
-`settings.API_PREFIX = "/api"` ([backend/app/core/config.py:11](../../backend/app/core/config.py:11)).
+`settings.API_PREFIX = "/api"` ([backend/app/core/config.py:11](../../../../backend/app/core/config.py:11)).
 
 **Routers registrados (confirme com `grep "include_router" backend/app/main.py`):**
 
@@ -396,10 +396,10 @@ de continuar — política de URLs pode ter evoluído.
 
 ## Referências
 
-- [ADR-108](../DECISIONS.md) — URLs canônicas (api.mathoms.ai/v1)
-- [ADR-102](../DECISIONS.md) — R18-R20 language-neutral (OpenAPI snapshot)
-- [ARCHITECTURE §18](../ARCHITECTURE.md) — domínios + URLs
-- [BACKLOG §A6e](../BACKLOG.md) — status da sprint
+- [ADR-108](../../../DECISIONS.md) — URLs canônicas (api.mathoms.ai/v1)
+- [ADR-102](../../../DECISIONS.md) — R18-R20 language-neutral (OpenAPI snapshot)
+- [ARCHITECTURE §18](../../../reference/ARCHITECTURE.md) — domínios + URLs
+- [BACKLOG §A6e](../../../BACKLOG.md) — status da sprint
 - [RFC 8594](https://www.rfc-editor.org/rfc/rfc8594) — Sunset HTTP header
 - [IETF draft-dalal-deprecation-header](https://datatracker.ietf.org/doc/draft-ietf-httpapi-deprecation-header/) — Deprecation header
-- Prompts paralelos: [track_a6e3](track_a6e3_use_cases.md), [track_a6f1](track_a6f1_pipeline_service.md), [track_a6g2](track_a6g2_pipeline_style_sweep.md), [track_a6g4](track_a6g4_frontend_style_sweep.md)
+- Prompts paralelos: [track_a6e3](a6e3-use-cases.md), [track_a6f1](a6f1-pipeline-service.md), [track_a6g2](a6g2-pipeline-style-sweep.md), [track_a6g4](a6g4-frontend-style-sweep.md)

@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A7.2a (Decision aggregate), A7.2b (fiscal/market), A7.4 (docs metodologia).
 > **Conflita com:** qualquer commit ativo em `pipeline/stages/e[3-5]*.py`, `scripts/e[3-5]*.py`, `backend/app/services/config_materializer.py`, `backend/app/services/pipeline_adapter.py`.
 > **Onda:** 2 (paralelizável).
-> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.1](../CONFIG_CUTOVER_PLAN.md#§51-a71--cutover-materialize_config--configstore)
-> **ADR:** [ADR-134](../DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) (já existe — esta lane é execução).
+> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.1](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md#§51-a71--cutover-materialize_config--configstore)
+> **ADR:** [ADR-134](../../../DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) (já existe — esta lane é execução).
 > **Supervisão CTO:** G3 pré-merge.
 
 > **Objetivo (1 frase):** todos os leitores user-facing (pipeline E3/E4/E5/E5.N + scripts) consomem `ConfigStore` em vez de `_init_config()`/`materialize_config()`. Bridge `materialize_config` ganha `DeprecationWarning` + log estruturado.
@@ -40,8 +40,8 @@ A7.0 entregou Protocol + adapters. Hoje pipeline lê config via `_init_config()`
 ## Regras inegociáveis
 
 1. **Pipeline não importa SQLAlchemy/FastAPI** (CLAUDE.md §Regras críticas) — leitor recebe `ConfigStore` injetado, não cria `DBConfigStore` direto em `pipeline/`.
-2. **Stateless rigoroso** ([ADR-111](../DECISIONS.md#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6)) — cache vai para Redis quando hot-path; sem `@lru_cache`.
-3. **Money nunca é float** ([ADR-090](../DECISIONS.md)).
+2. **Stateless rigoroso** ([ADR-111](../../../DECISIONS.md#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6)) — cache vai para Redis quando hot-path; sem `@lru_cache`.
+3. **Money nunca é float** ([ADR-090](../../../DECISIONS.md)).
 4. **Funções 4-20 linhas, módulos ≤500** (CLAUDE.md §Code style).
 5. **Bridge `materialize_config` permanece** funcional até A7.5. Esta lane só adiciona DeprecationWarning + log; não remove.
 6. **Smoke E2E verde após cada commit** — não merge intermediário com pipeline quebrado.

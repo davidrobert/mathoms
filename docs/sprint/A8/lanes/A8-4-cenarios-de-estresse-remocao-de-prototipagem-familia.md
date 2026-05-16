@@ -3,6 +3,7 @@ id: A8.4
 type: lane
 title: "Cenários de Estresse — remoção de prototipagem família-específica + APP_C universal"
 sprint: A8
+plan: PLAN-cenarios-estresse
 status: in_progress
 branch_slug: cenarios-estresse
 adrs: ["[[ADR-117]]", "[[ADR-151]]", "[[ADR-165]]", "[[ADR-166]]", "[[ADR-167]]"]

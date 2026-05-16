@@ -3,12 +3,12 @@ id: A12.cat-learning-loop
 type: lane
 title: "Categorization Learning Loop — promoção de override em regra"
 sprint: A12
+plan: PLAN-cat-learning-loop
 status: in_progress
 aliases: ["A12.CAT_LEARNING_LOOP", "A12 cat learning loop"]
 priority: P1
 depends_on: ["[[A11.report-publication]]"]
 parallel_with: []
-plan_canonical: "[[PLAN-cat-learning-loop]]"
 adrs_canonical:
   - "[[ADR-186]]"
   - "[[ADR-188]]"

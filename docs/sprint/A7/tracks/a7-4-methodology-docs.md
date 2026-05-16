@@ -21,7 +21,7 @@ tags:
 > **Paralelo com:** qualquer lane (zero overlap de arquivos).
 > **Conflita com:** qualquer commit ativo em `config/*.md`, `docs/methodology/` (novo), referências em `scripts/e5_analyze.py`/`e7_review.py` (somente comentários).
 > **Onda:** 2 (livre — não depende de A7.0).
-> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.4](../CONFIG_CUTOVER_PLAN.md#§54-a74--documentação-metodológica--docsmethodology)
+> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.4](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md#§54-a74--documentação-metodológica--docsmethodology)
 > **ADR:** — (lane docs-only, sem ADR nova).
 > **Supervisão CTO:** G3 pré-merge (curto — escopo trivial).
 

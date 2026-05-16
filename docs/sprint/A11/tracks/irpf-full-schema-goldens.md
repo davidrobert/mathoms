@@ -17,7 +17,7 @@ tags:
 
 > **Lane ID:** irpf-full-schema-goldens
 > **Branch prefix:** `agent/irpf-full-schema-goldens/*`
-> **Depende de:** [track_irpf_full_schema.md](track_irpf_full_schema.md) ✅ mergeada (E1.6 backend em `main` desde 2026-04-30, [ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)).
+> **Depende de:** [track_irpf_full_schema.md](irpf-full-schema.md) ✅ mergeada (E1.6 backend em `main` desde 2026-04-30, [ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)).
 > **Conflita com:** `tests/test_llm_golden.py`, `tests/fixtures/llm_golden/`, `pipeline/llm/prompts/e16_irpf_full.py` (mudança de prompt invalida fixture). Pode rodar paralela ao `track_irpf_full_schema_ui.md`.
 > **Onda:** independente.
 > **ADR:** **não obrigatória** — fixtures de teste seguem padrão E1.5 já vigente.
@@ -31,7 +31,7 @@ tags:
 
 ### Sintoma
 
-Hoje o stage `extract_irpf_full` tem **22 testes unitários** ([tests/test_irpf_full_schema_unit.py](../../tests/test_irpf_full_schema_unit.py)) que cobrem schema/validator/analyzer com payloads sintéticos in-memory. **Não tem golden test** que cubra:
+Hoje o stage `extract_irpf_full` tem **22 testes unitários** ([tests/test_irpf_full_schema_unit.py](../../../../tests/test_irpf_full_schema_unit.py)) que cobrem schema/validator/analyzer com payloads sintéticos in-memory. **Não tem golden test** que cubra:
 
 1. Mudança de prompt sem mudança intencional de output (regressão).
 2. Mudança de schema Pydantic com perda de campo (regressão).
@@ -50,8 +50,8 @@ ADR-157 §Definition of Done lista golden byte-byte como exigência. **Sem este 
    - Cada fixture passa `IRPFFullOutput.model_validate(json)` sem erro.
    - Validator `validate_e16_output` retorna `valid=True` (zero erros) para as 3 fixtures.
    - `IRPFAnalyzer.from_payloads([fixture])` produz KPIs com valores **explicitamente esperados** no teste (não snapshot do retorno).
-   - **Cross-lane shape contract:** o output de `_e5_kpis_from_analyzer(analyzer, ano)` ([scripts/e5_analyze.py:3040](../../scripts/e5_analyze.py)) tem **exatamente** as 11 chaves consumidas pelo `isIrpfKpis` em [frontend/src/types/irpf.ts](../../frontend/src/types/irpf.ts). Adicionar 1 assert que valida `set(kpis.keys()) == {"ano_base", "anos_disponiveis", "renda_anual_familiar_brl", "renda_liquida_familiar_brl", "ir_pago_total_brl", "aliquota_sobre_tributavel_pct", "aliquota_sobre_total_pct", "pgbl_capacidade_dedutivel_brl", "split_trabalho_brl", "split_capital_brl", "evolucao_renda_anos"}` — protege contra drift backend↔frontend (UI omite seção inteira se shape mudar).
-6. **`tests/test_extract_irpf_full_stage.py`** — stage test com `FakeLLMClient` (em [tests/fakes/llm.py](../../tests/fakes/llm.py)) que devolve a fixture; assertiva: `store.read("extract_irpf_full", key)` == fixture (byte-byte com `prompt_version` consistente).
+   - **Cross-lane shape contract:** o output de `_e5_kpis_from_analyzer(analyzer, ano)` ([scripts/e5_analyze.py:3040](../../../../scripts/e5_analyze.py)) tem **exatamente** as 11 chaves consumidas pelo `isIrpfKpis` em [frontend/src/types/irpf.ts](../../../../frontend/src/types/irpf.ts). Adicionar 1 assert que valida `set(kpis.keys()) == {"ano_base", "anos_disponiveis", "renda_anual_familiar_brl", "renda_liquida_familiar_brl", "ir_pago_total_brl", "aliquota_sobre_tributavel_pct", "aliquota_sobre_total_pct", "pgbl_capacidade_dedutivel_brl", "split_trabalho_brl", "split_capital_brl", "evolucao_renda_anos"}` — protege contra drift backend↔frontend (UI omite seção inteira se shape mudar).
+6. **`tests/test_extract_irpf_full_stage.py`** — stage test com `FakeLLMClient` (em [tests/fakes/llm.py](../../../../tests/fakes/llm.py)) que devolve a fixture; assertiva: `store.read("extract_irpf_full", key)` == fixture (byte-byte com `prompt_version` consistente).
 7. **(Opcional) Real anonimizada** — declaração real do dev/usuário com **todos** os CPFs trocados por `***.***.***-99/88/77`, valores multiplicados por fator aleatório, nomes substituídos. Nome de arquivo: `tests/fixtures/llm_golden/e16_irpf_real_anon_2024.json`. **Decisão de incluir é do CTO** (LGPD edge case).
 
 ---
@@ -203,7 +203,7 @@ def test_stage_with_fake_llm_persists_golden(tmp_path):
 - [ ] Validator `validate_e16_output` retorna `valid=True` para as 3 fixtures sintéticas
 - [ ] Stage test (FakeLLMClient) passa byte-byte
 - [ ] Nenhuma das fixtures tem CPF/CNPJ não-mascarado em campo livre
-- [ ] Cross-lane shape: assert que `_e5_kpis_from_analyzer` produz **exatamente** as 11 chaves esperadas pelo `isIrpfKpis` ([frontend/src/types/irpf.ts](../../frontend/src/types/irpf.ts)) — protege a UI de regressão silenciosa (sections omitidas)
+- [ ] Cross-lane shape: assert que `_e5_kpis_from_analyzer` produz **exatamente** as 11 chaves esperadas pelo `isIrpfKpis` ([frontend/src/types/irpf.ts](../../../../frontend/src/types/irpf.ts)) — protege a UI de regressão silenciosa (sections omitidas)
 - [ ] PR mergeada em `main` com CI verde
 - [ ] BACKLOG A8.2 marca sub-lane `irpf-full-schema-goldens` ✅
 
@@ -216,15 +216,15 @@ def test_stage_with_fake_llm_persists_golden(tmp_path):
 3. **Fixture sintética não pega bug real do LLM** — não substitui validação em produção. Adicione TODO: smoke run com 1 PDF real anonimizado quando dev tiver tempo.
 4. **CPF não-mascarado em fixture sintética** — fácil esquecer. Validator anti-PII no CI bloqueia, mas confirme manualmente com `grep -E '\d{3}\.\d{3}\.\d{3}-\d{2}' tests/fixtures/llm_golden/e16_*.json` antes de commit.
 5. **Volume da fixture** — o JSON do "completo" tende a ficar grande (>200 linhas). OK; é fixture, não código de runtime.
-6. **`FakeLLMClient` precisa suportar Instructor + Pydantic** — verificar [tests/fakes/llm.py](../../tests/fakes/llm.py) e estender se necessário (provavelmente já tem `set_output_for(stage, model_instance)` ou similar).
+6. **`FakeLLMClient` precisa suportar Instructor + Pydantic** — verificar [tests/fakes/llm.py](../../../../tests/fakes/llm.py) e estender se necessário (provavelmente já tem `set_output_for(stage, model_instance)` ou similar).
 
 ---
 
 ## Referências
 
-- [ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) §Definition of Done — golden byte-byte exigida
-- Goldens existentes: [tests/fixtures/llm_golden/](../../tests/fixtures/llm_golden/) (E1, E1.5, E2-LLM, E7-review)
-- Padrão de stage test: [tests/test_llm_stages_per_stage.py](../../tests/test_llm_stages_per_stage.py)
-- `FakeLLMClient`: [tests/fakes/llm.py](../../tests/fakes/llm.py)
-- Validator + reconcile: [pipeline/llm/validators.py::validate_e16_output](../../pipeline/llm/validators.py)
-- Shape canônico consumido pela UI: [frontend/src/types/irpf.ts::IrpfKpis](../../frontend/src/types/irpf.ts) + emissor [scripts/e5_analyze.py::_e5_kpis_from_analyzer](../../scripts/e5_analyze.py) (lane `irpf-full-schema-ui`, mergeada 2026-04-30)
+- [ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) §Definition of Done — golden byte-byte exigida
+- Goldens existentes: [tests/fixtures/llm_golden/](../../../../tests/fixtures/llm_golden) (E1, E1.5, E2-LLM, E7-review)
+- Padrão de stage test: [tests/test_llm_stages_per_stage.py](../../../../tests/test_llm_stages_per_stage.py)
+- `FakeLLMClient`: [tests/fakes/llm.py](../../../../tests/fakes/llm.py)
+- Validator + reconcile: [pipeline/llm/validators.py::validate_e16_output](../../../../pipeline/llm/validators.py)
+- Shape canônico consumido pela UI: [frontend/src/types/irpf.ts::IrpfKpis](../../../../frontend/src/types/irpf.ts) + emissor [scripts/e5_analyze.py::_e5_kpis_from_analyzer](../../../../scripts/e5_analyze.py) (lane `irpf-full-schema-ui`, mergeada 2026-04-30)

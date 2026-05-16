@@ -19,8 +19,11 @@ config/passwords.txt
 # Scratch — artefatos temporários de pipeline (scripts, relatórios, logs)
 _scratch/
 
-# Codex — estado local de agente, sessões, caches e worktrees
-.codex/
+# Codex — estado local de agente, sessões, caches e worktrees.
+# Exceção: o mirror de agentes é versionado e gerado a partir de .claude/agents/.
+.codex/*
+!.codex/agents/
+!.codex/agents/*.toml
 
 # Python
 __pycache__/

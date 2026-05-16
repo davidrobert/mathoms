@@ -2,17 +2,17 @@
 
 > **Escopo:** comportamento do relatório nativo (rota `/reports/[id]`) em
 > viewports `<767px`. Decisão de produto convergida em 2026-04-27 como
-> resposta a [batch2.13](BACKLOG.md) e à decisão D3 de
-> [track_report_a11y_finalize.md](agent_prompts/track_report_a11y_finalize.md).
+> resposta a [batch2.13](../../BACKLOG.md) e à decisão D3 de
+> `track_report_a11y_finalize.md`.
 >
 > **Atualização (2026-04-29):** Modo Tático removido do relatório
-> ([ADR-151](DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces),
+> ([ADR-151](../../DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces),
 > Direção E · Onda 3). Especificações mobile abaixo que mencionam
 > T1-T6 são **registro histórico**. Spec mobile efetiva passa a cobrir
 > apenas Modos Estratégico + USA.
 >
 > **Status:** spec only. Implementação fica em lane futura
-> `report-mobile-impl` ([BACKLOG.md](BACKLOG.md)).
+> `report-mobile-impl` ([BACKLOG.md](../../BACKLOG.md)).
 >
 > **Persona:** product-designer + financial-planner. Decisões priorizam
 > uso real (cliente Mathoms consultando o último relatório no metrô) e
@@ -148,7 +148,7 @@ otimizado para tablet/desktop. **Razões:**
 
 **Mantém layout desktop em qualquer dispositivo.** Servidor (Playwright
 headless) renderiza com viewport `1280×1800`. Documentado em
-[backend/app/services/pdf_renderer.py](../backend/app/services/pdf_renderer.py).
+[backend/app/services/pdf_renderer.py](../../../backend/app/services/pdf_renderer.py).
 
 **Razão:** PDF é artefato fixo. Geração mobile-first quebraria paridade
 visual com a referência `EXEMPLO_DE_RELATORIO.html` e produziria
@@ -169,12 +169,12 @@ Inspeção estática (sem Playwright headed) sobre os componentes em
 ### 2.1 Issues estruturais (layout/scroll)
 
 1. **`ReportCover` com 4 meta-cards em `repeat(4, 1fr)` fixo**
-   ([shell/ReportCover.tsx:147](../frontend/src/components/report/shell/ReportCover.tsx)) —
+   ([shell/ReportCover.tsx:147](../../../frontend/src/components/report/shell/ReportCover.tsx)) —
    em 375px de viewport cada card fica com ~75px e o texto quebra ou
    trunca. **Padding `60px 40px`** também é desperdício em mobile.
    Issue **estrutural P0**.
 2. **Kanban com `gridTemplateColumns: "1fr 1fr 1fr"` hard-coded**
-   ([ui/kanban/Kanban.tsx:238](../frontend/src/components/report/ui/kanban/Kanban.tsx)) —
+   (`frontend/src/components/report/ui/kanban/Kanban.tsx:238`) —
    3 colunas sempre, em qualquer viewport. v2.7 só adicionou botões
    alternativos; o tabuleiro continua 3 colunas. Issue **estrutural P0**
    (já parcialmente mitigado).
@@ -194,14 +194,14 @@ Inspeção estática (sem Playwright headed) sobre os componentes em
    (S1, S2, S3) empilham 3-4 charts seguidos = scroll de 1500px só de
    chart. Issue **estético P1**.
 6. **Padding lateral do `<article>`: `px-10` (40px)** —
-   ([ReportShell.tsx:373](../frontend/src/components/report/ReportShell.tsx))
+   ([ReportShell.tsx:373](../../../frontend/src/components/report/ReportShell.tsx))
    em 375px sobra 295px de conteúdo útil. `px-4` (16px) seria mais
    honesto em mobile. Issue **estético P2**.
 
 ### 2.3 Issues de informação (densidade)
 
 7. **HeroKpiGrid 6 KPIs em `grid-cols-1 sm:grid-cols-2 xl:grid-cols-3`**
-   ([kpi/HeroKpiGrid.tsx:36](../frontend/src/components/report/kpi/HeroKpiGrid.tsx)) —
+   ([kpi/HeroKpiGrid.tsx:36](../../../frontend/src/components/report/kpi/HeroKpiGrid.tsx)) —
    já é 1 coluna em `<640px`, **mas** 6 cards em coluna = scroll de
    ~1200px só para ver os KPIs. Sumário executivo deixa de ser sumário.
    Issue **informação P0**.
@@ -361,9 +361,9 @@ A lane `report-mobile-impl` pode dar como concluída quando:
 
 ## 7. Referências
 
-- Decisão fonte: D3 em [agent_prompts/track_report_a11y_finalize.md](agent_prompts/track_report_a11y_finalize.md)
-- Backlog item: [batch2.13](BACKLOG.md)
-- Renderer único pós ADR-129: [DECISIONS.md ADR-129](DECISIONS.md)
-- Plano-mãe: [plan/REPORT_PREMIUM/_README.md §17.10](plan/REPORT_PREMIUM/_README.md)
+- Decisão fonte: D3 em `agent_prompts/track_report_a11y_finalize.md`
+- Backlog item: [batch2.13](../../BACKLOG.md)
+- Renderer único pós ADR-129: [DECISIONS.md ADR-129](../../DECISIONS.md)
+- Plano-mãe: [plan/REPORT_PREMIUM/_README.md §17.10](_README.md)
 - Fallback Kanban v2.7 (base): `frontend/src/app/globals.css:178`
-- A11y checklist: [REPORT_A11Y_CHECKLIST.md](REPORT_A11Y_CHECKLIST.md)
+- A11y checklist: [REPORT_A11Y_CHECKLIST.md](A11Y_CHECKLIST.md)

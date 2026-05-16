@@ -23,7 +23,7 @@ tags:
 
 - **Onda:** 2
 - **Depende de:** A10.1 + A10.2 ✅
-- **Plano:** [§3.5 + §2.2 tributario](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
+- **Plano:** [§3.5 + §2.2 tributario](../../../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
 - **Branch slug:** `a10-7-seed-refactor`
 - **Esforço:** 1d
 - **Paralelo com:** A10.3, A10.4

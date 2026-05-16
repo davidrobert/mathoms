@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://mathoms.ai/schemas/note-domain-rule.schema.json",
   "title": "Frontmatter de nota Domain Rule (rules-as-code, ADR-143)",
-  "description": "Valida o bloco YAML no topo de docs/reference/rules/<slug>.md. Spec: docs/plan/DOC_REORG/_README.md §3.6. Migração contínua — rules novas vão direto, rules existentes em docs/reference/ARCHITECTURE.md §4.1 migram quando ADR canônica for editada.",
+  "description": "Valida o bloco YAML no topo de docs/reference/rules/<slug>.md. Spec histórica: docs/archive/DOC_REORG_PLAN-2026-05-07.md §3.6. Migração contínua — rules novas vão direto, rules existentes em docs/reference/ARCHITECTURE.md §4.1 migram quando ADR canônica for editada.",
   "type": "object",
   "additionalProperties": true,
   "required": ["id", "type", "concept", "canonical_adr"],

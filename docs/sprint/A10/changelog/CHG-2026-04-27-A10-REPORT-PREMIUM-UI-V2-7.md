@@ -43,7 +43,7 @@ tags:
   - `cards/PontosUrgentesList` → `cards/PontosUrgentesCard` por
     simetria;
   - decisão arquitetural registrada em
-    [plan/REPORT_PREMIUM/_README.md §17.9](plan/REPORT_PREMIUM/_README.md) com
+    [plan/REPORT_PREMIUM/_README.md §17.9](../../../plan/REPORT_PREMIUM/_README.md) com
     diagrama das camadas (`sections/` → `cards/` → `ui/` →
     `ReportCard`).
 

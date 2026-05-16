@@ -18,7 +18,7 @@ tags:
 
   Cumpre a agenda da Direção E original que declarou "/dashboard será
   absorvido pelo /plano em onda futura"
-  ([ADR-155](DECISIONS.md#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação)).
+  ([ADR-155](../../../DECISIONS.md#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação)).
   Mathoms agora tem **2 superfícies vivas**: `/plano` (home única —
   estratégia + operacional do mês + plano de ação) e `/acao`
   (superfície dinâmica de execução). Modelo mental do usuário: "Plano

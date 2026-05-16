@@ -23,7 +23,7 @@ tags:
 
 - **Onda:** 3
 - **Depende de:** A10.3 + A10.4 ✅
-- **Plano:** [§3.3 + §6.2 + §7.1](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
+- **Plano:** [§3.3 + §6.2 + §7.1](../../../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
 - **Branch slug:** `a10-5-projections`
 - **Esforço:** 1d
 - **Paralelo com:** A10.6

@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** nenhum (sequencial; bloqueia 9.3)
 > **Conflita com:** qualquer commit em `pipeline/`, `backend/app/`, `scripts/`, `tests/` (escopo enorme — não há janela paralela viável)
 > **Onda:** F9 (sub-fatia 3/7) — **a maior das 7**
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`STAGE_RENAME_MAP`](../../../../pipeline/stage_spec.py#L129)
 
 > **Objetivo:** trocar todas as strings literais `"E0-audit"`, `"E1.5c"`,
 > `"E2-faturas"`, `"E3"`, `"E5"`, `"E5.N"`, `"E7-apply"`… (16 keys do
@@ -247,7 +247,7 @@ git push origin HEAD:main
 
 ## Referências
 
-- F9.1 (prereq): [track_f9_1_pipeline_stages_rename.md](track_f9_1_pipeline_stages_rename.md)
-- F9.3 (próximo): [track_f9_3_alembic_migration.md](track_f9_3_alembic_migration.md)
+- F9.1 (prereq): [track_f9_1_pipeline_stages_rename.md](f9-1-pipeline-stages-rename.md)
+- F9.3 (próximo): [track_f9_3_alembic_migration.md](f9-3-alembic-migration.md)
 - ADR-093: `docs/DECISIONS.md:2228`
 - Auditoria F9.0: `docs/archive/audits/f9_audit_<date>.md` (lista exata de strings).

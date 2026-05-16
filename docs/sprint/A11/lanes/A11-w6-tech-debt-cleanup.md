@@ -3,6 +3,7 @@ id: A11.w6
 type: lane
 title: "Tech debt cleanup (6 tasks)"
 sprint: A11
+plan: PLAN-platform-review
 status: blocked
 aliases: ["A11.W6"]
 depends_on: []
@@ -22,7 +23,7 @@ tags:
 
 - **Onda:** 6 (12d)
 - **Depende de:** W3 (T02 → W6-T02)
-- **Plano:** [PLAN §W6](plan/PLATFORM_REVIEW/_README.md#wave-6--tech-debt-cleanup-sprint-5-12-dias-dev)
+- **Plano:** [PLAN §W6](../../../plan/PLATFORM_REVIEW/_README.md#wave-6--tech-debt-cleanup-sprint-5-12-dias-dev)
 
 ## Status (legado)
 

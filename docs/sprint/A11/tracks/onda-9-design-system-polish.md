@@ -257,7 +257,7 @@ mínimo 44×44px nos botões de ação inline.
 - Design tokens: `design-tokens/tokens.json`.
 - shadcn primitivos existentes: `frontend/src/components/ui/`
   (button, card, badge, tabs, dialog, etc).
-- Mobile spec preliminar: [REPORT_MOBILE_SPEC.md](../REPORT_MOBILE_SPEC.md)
+- Mobile spec preliminar: [REPORT_MOBILE_SPEC.md](../../../plan/REPORT_PREMIUM/MOBILE_SPEC.md)
   (escopo é relatório, não /plano — mas heurísticas reusáveis).
 
 ## Sequência de execução

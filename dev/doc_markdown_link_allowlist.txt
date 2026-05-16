@@ -1,0 +1,3 @@
+# Broken markdown links tolerated by dev/check_doc_markdown_links.py.
+# Format: docs/path.md<TAB>target/path.md<TAB>reason<TAB>review_by
+# Keep this list small. Prefer fixing links over adding entries.

@@ -99,6 +99,22 @@ async def make_user(
 # ─── Workspace ────────────────────────────────────────────────────────
 
 
+async def _workspace_with_owner(
+    db: AsyncSession,
+    owner: User | None,
+    n: int,
+    name: str | None,
+    family_surname: str | None,
+) -> tuple[Workspace, User]:
+    resolved_owner = owner or await make_user(db)
+    ws = Workspace(
+        name=name or f"Workspace {n}",
+        family_surname=family_surname,
+        owner_id=resolved_owner.id,
+    )
+    return ws, resolved_owner
+
+
 async def make_workspace(
     db: AsyncSession,
     *,
@@ -107,19 +123,9 @@ async def make_workspace(
     family_surname: Optional[str] = None,
     skip_membership: bool = False,
 ) -> Workspace:
-    """Cria workspace + auto-cria WorkspaceMember(role='owner') para o
-    owner. ADR-072: nenhum acesso sem membership.
-
-    Use `skip_membership=True` apenas em testes que validam ausência
-    de membership (ex: cross-tenant isolation negativa)."""
+    """Cria workspace + membership owner, exceto em testes negativos ADR-072."""
     n = _next("workspace")
-    if owner is None:
-        owner = await make_user(db)
-    ws = Workspace(
-        name=name or f"Workspace {n}",
-        family_surname=family_surname,
-        owner_id=owner.id,
-    )
+    ws, owner = await _workspace_with_owner(db, owner, n, name, family_surname)
     db.add(ws)
     await db.flush()
 

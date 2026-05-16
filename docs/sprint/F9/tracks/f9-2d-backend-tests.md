@@ -21,7 +21,7 @@ tags:
 > **Bloqueia:** F9.2e (closeout)
 > **Paralelo com:** F9.2b, F9.2c (escopos disjuntos)
 > **Onda:** F9 (sub-fatia 3d/7)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L54)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093) · [`STAGE_RENAME_MAP`](../../../../pipeline/stage_spec.py#L54)
 
 > **Objetivo:** flipar strings legadas restantes em `backend/app/` (residual)
 > e em testes não-golden em `tests/` e `backend/tests/`. Goldens permanecem
@@ -205,8 +205,8 @@ git push origin HEAD:main
 
 ## Referências
 
-- [F9.2a pipeline core](track_f9_2a_pipeline_core_strings.md)
-- [F9.2b scripts](track_f9_2b_scripts_strings.md)
-- [F9.2 master](track_f9_2_string_literals.md)
-- [F9.3 alembic](track_f9_3_alembic_migration.md) — fecha janela DB legacy
-- [F9.2e closeout](track_f9_2e_closeout.md)
+- [F9.2a pipeline core](f9-2a-pipeline-core-strings.md)
+- [F9.2b scripts](f9-2b-scripts-strings.md)
+- [F9.2 master](f9-2-string-literals.md)
+- [F9.3 alembic](f9-3-alembic-migration.md) — fecha janela DB legacy
+- [F9.2e closeout](f9-2e-closeout.md)

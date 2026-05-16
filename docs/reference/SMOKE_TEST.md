@@ -65,7 +65,7 @@
 
 ## 5. Relatório
 
-> Pós-[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side):
+> Pós-[ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side):
 > renderer único é a rota React `/reports/[id]` consumindo
 > `GET /v1/reports/{id}/data`. Não há mais iframe, HTML server-side
 > nem botão "Download HTML".
@@ -91,7 +91,7 @@
 > Pré-condição: workspace com pelo menos 1 relatório gerado (run completa
 > até E5). Modos `estrategico`/`usa` ativos (Modo Tático removido em
 > ADR-151 · Direção E · Onda 3). A11y automatizada chega via lane
-> [`report-a11y-finalize`](BACKLOG.md#lanes-abertas-agora--pickup-table) —
+> [`report-a11y-finalize`](../BACKLOG.md#lanes-abertas-agora--pickup-table) —
 > até lá esta seção é checklist humano provisório.
 
 **Modos**
@@ -237,6 +237,6 @@
 ## Ver também
 
 - [`TESTING.md`](TESTING.md) — guia de contribuidor de testes
-- [`BACKLOG.md#f65`](BACKLOG.md#f65--frontend-testing--qa) — status da F6.5
-- [`DECISIONS.md#adr-063`](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d) — ADR Hardening Fintech
-- [`DECISIONS.md#adr-068`](DECISIONS.md#adr-068--códigos-internos-do-pipeline-nunca-vazam-na-ui) — ADR Phases narrativas
+- [`BACKLOG.md#f65`](../BACKLOG.md#f65--frontend-testing--qa) — status da F6.5
+- [`DECISIONS.md#adr-063`](../DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d) — ADR Hardening Fintech
+- [`DECISIONS.md#adr-068`](../DECISIONS.md#adr-068--códigos-internos-do-pipeline-nunca-vazam-na-ui) — ADR Phases narrativas

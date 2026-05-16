@@ -71,4 +71,4 @@ schema → A6f.5 Auth → A6f.6 Stateless). Estimativa: 6-8 sessões grandes.
 **Relação com A6a-e**: independente. Recomendado depois de A6b (cutover DB)
 — pipeline-service precisa de DB como fonte de verdade.
 
-**Artefatos:** [BACKLOG §A6f](BACKLOG.md#a6f--language-neutral-boundaries-adr-102-r18-r20).
+**Artefatos:** [BACKLOG §A6f](../BACKLOG.md#a6f--language-neutral-boundaries-adr-102-r18-r20).

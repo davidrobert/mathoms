@@ -23,9 +23,9 @@ size_lines: 44
 
 # ADR-177 — Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`)
 
-**Status:** Decidido (Sprint A10.2) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Aplica** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §2.2 chaves U/M/O](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
+**Status:** Decidido (Sprint A10.2) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Aplica** [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §2.2 chaves U/M/O](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
-**Contexto:** O `config/goals.json` (arquivado em F8.4 mas ainda materializado em runtime por [`pipeline_task.py::_materialize_adapter_configs`](../backend/app/tasks/pipeline_task.py:56)) carrega 22 chaves heterogêneas. Inventário decisional do plano canônico classificou 7 delas como **universais (U) / metodológicas (M) / operacionais (O)** — não variam por cliente, são thresholds ou referências de mercado. ADR-143 (Sprint A7.6) já estabeleceu doutrina: regras universais de produto vivem em **docstrings + constantes em módulos enforcers** + ADR canônica como rationale. JSON externo para esses valores é o anti-padrão exato que ADR-143 combate — vira mock-config-driven pois ninguém edita o arquivo em produção.
+**Contexto:** O `config/goals.json` (arquivado em F8.4 mas ainda materializado em runtime por [`pipeline_task.py::_materialize_adapter_configs`](../../backend/app/tasks/pipeline_task.py:56)) carrega 22 chaves heterogêneas. Inventário decisional do plano canônico classificou 7 delas como **universais (U) / metodológicas (M) / operacionais (O)** — não variam por cliente, são thresholds ou referências de mercado. ADR-143 (Sprint A7.6) já estabeleceu doutrina: regras universais de produto vivem em **docstrings + constantes em módulos enforcers** + ADR canônica como rationale. JSON externo para esses valores é o anti-padrão exato que ADR-143 combate — vira mock-config-driven pois ninguém edita o arquivo em produção.
 
 **Chaves no escopo:**
 
@@ -34,7 +34,7 @@ size_lines: 44
 - `thresholds.equity_pct_alvo_min/max` (range default por perfil; override por cliente cabe em Goal `ALOCACAO_ALVO` existente como `target_min_pct`/`target_max_pct` opcional).
 - `simulacao.aporte_reduzido_fator: 0.66` (heurística "cônjuge 66%"; convergente Cerbasi renda dupla — já tem default no código).
 - `stress_test_imovel_queda_pct: 20` (threshold metodológico stress test imobiliário).
-- `dashboard.aporte_match_keywords` — **VIVO** em [`task_progress_service.py:63`](../backend/app/services/task_progress_service.py:63); migra para constante imutável `_APORTE_MATCH_KEYWORDS` no módulo.
+- `dashboard.aporte_match_keywords` — **VIVO** em [`task_progress_service.py:63`](../../backend/app/services/task_progress_service.py:63); migra para constante imutável `_APORTE_MATCH_KEYWORDS` no módulo.
 - `referencias.{livros, ferramentas, contatos_templates}` (bibliografia/ferramentas/templates de perfil — frontend estático em página Sobre/Metodologia).
 - `calendario_fallback[]` (template estático por horizonte; itens USA-only filtrados após ADR-168).
 
@@ -56,10 +56,10 @@ size_lines: 44
 
 **Critério de aceite:**
 
-- [ ] 7 chaves `imoveis.yield_potencial_pct_*`, `thresholds.imovel_pct_patrimonio_ideal`, `thresholds.equity_pct_alvo_*`, `simulacao.aporte_reduzido_fator`, `stress_test_imovel_queda_pct`, `dashboard.aporte_match_keywords`, `referencias.*`, `calendario_fallback[]` migradas — cada constante em módulo enforcer (backend/pipeline) ou static content frontend.
+- [ ] 7 chaves `imoveis.yield_potencial_pct_*`, `thresholds.imovel_pct_patrimonio_ideal`, `thresholds.equity_pct_alvo_*`, `simulacao.aporte_reduzido_fator`, `stress_test_imovel_queda_pct`, `dashboard.aporte_match_keywords`, `referencias.*`, `calendario_fallback[]` migradas — cada constante em módulo enforcer (../../backend/pipeline) ou static content frontend.
 - [ ] `dashboard.aporte_match_keywords` em `task_progress_service.py` lido via `_APORTE_MATCH_KEYWORDS` constante imutável; nenhum `goals_cfg["dashboard"]["aporte_match_keywords"]` remanescente.
 - [ ] `referencias.{livros, ferramentas, contatos_templates}` viraram conteúdo estático em `frontend/src/app/(public)/metodologia/page.tsx` (ou similar) — sem leitura de arquivo.
 - [ ] Tests unitários afirmam invariantes: `IMOVEL_PCT_PATRIMONIO_IDEAL == 50`, `STRESS_TEST_IMOVEL_QUEDA_PCT == 20`, etc.
 - [ ] `grep -r "goals_cfg\[\"thresholds\"\]\[\"imovel_pct" backend/ pipeline/` retorna zero.
 
-**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §2.2](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.2).
+**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §2.2](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.2).

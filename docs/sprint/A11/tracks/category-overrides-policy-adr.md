@@ -19,7 +19,7 @@ tags:
 # Track Category Overrides W3 — ADR-185 Proposto
 
 > **Lane ID:** category-overrides-policy-adr
-> **Plano canônico:** [docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../../../plan/CATEGORY_OVERRIDES_UX/_README.md) §Wave 3
+> **Plano canônico:** [docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../../../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md) §Wave 3
 > **Branch prefix:** `agent/category-overrides-policy-adr/*`
 > **Depende de:** —
 > **Bloqueia:** W4-T01 (CLAUDE.md §"ADR Proposto antes de PR P0/P1")
@@ -27,7 +27,7 @@ tags:
 
 ## Briefing
 
-ADR-137 ([docs/adr/137-categorization-templates-overrides.md](../../../adr/137-categorization-templates-overrides.md)) introduziu template + override em A7.3 mas deixou em aberto: política de evolução v1→v2, escopo de overridable, semântica de cache invalidation, audit. ADR-185 fecha esses pontos antes da feature ir pra prod.
+ADR-137 ([docs/adr/137-categorization-templates-overrides.md](../../../adr/137-catalog-override-resolver-para-categorization-e.md)) introduziu template + override em A7.3 mas deixou em aberto: política de evolução v1→v2, escopo de overridable, semântica de cache invalidation, audit. ADR-185 fecha esses pontos antes da feature ir pra prod.
 
 **Owner sugerido:** `product-manager` redige o rascunho a partir das decisões já fechadas; `senior-cto` revisa e mergeia (CLAUDE.md §"ADR `Proposto` P0/P1" → senior-cto).
 
@@ -100,6 +100,6 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano: [PLAN-category-overrides-ux](../../../plan/CATEGORY_OVERRIDES_UX/_README.md)
+- Plano: [PLAN-category-overrides-ux](../../../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md)
 - ADR raiz: [[ADR-137]] (suplementada por ADR-185)
 - ADRs relacionadas: [[ADR-091]] (rules-as-code), [[ADR-097]] (services com value object), [[ADR-110]] (logging estruturado)

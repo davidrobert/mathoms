@@ -70,11 +70,11 @@ Sem nada disso, o relatório premium fica com lacuna estrutural — explica o "p
 
 ## Regras inegociáveis
 
-1. **Money em `Decimal` / cents** ([ADR-090](../DECISIONS.md)). Wire JSON: string decimal. **Nunca `float`.** Aplica a `valor_brl`, `ir_retido`, `base_calculo`, etc.
+1. **Money em `Decimal` / cents** ([ADR-090](../../../DECISIONS.md)). Wire JSON: string decimal. **Nunca `float`.** Aplica a `valor_brl`, `ir_retido`, `base_calculo`, etc.
 2. **PII / LGPD**: CPF de contribuinte e dependentes **mascarado** ao serializar (`***.***.***-XX`). Nome completo OK no artifact (já no DB) mas **nunca em logs**. Validador deve recusar payload com CPF claro em campo `cpf_masked`.
 3. **Schema novo, não substituir E1.5** — adicionar stage `E1.6` (descritivo: `extract_irpf_full`). E1.5 baseline patrimonial continua emitido (paridade legado, consumidores E5/E1.5c não quebram). Em janela de 1-2 sprints decidimos se E1.6 absorve E1.5 ou ficam coexistentes.
-4. **Pipeline não importa `fastapi`/`celery`/`sqlalchemy`** ([CLAUDE.md "Pipeline não importa framework"](../../CLAUDE.md)). Domain services recebem value objects de config tipados ([ADR-097/D2](../DECISIONS.md)).
-5. **Stateless rigoroso** ([ADR-111](../DECISIONS.md)) — sem `@lru_cache` no read-path; sem cache em memória de mais de uma chamada.
+4. **Pipeline não importa `fastapi`/`celery`/`sqlalchemy`** ([CLAUDE.md "Pipeline não importa framework"](../../../../CLAUDE.md)). Domain services recebem value objects de config tipados ([ADR-097/D2](../../../DECISIONS.md)).
+5. **Stateless rigoroso** ([ADR-111](../../../DECISIONS.md)) — sem `@lru_cache` no read-path; sem cache em memória de mais de uma chamada.
 6. **JSON Schema validation** em `config/schemas/e16_irpf_full.schema.json` — modo strict habilitado por workspace via `pipeline.json → schema_validation.enabled`.
 7. **Custo LLM**: PDF IRPF típico ≈ 30–60 páginas, ~80–120k tokens input, ~12–20k output. Estimar e documentar na ADR. Se >$1 USD/declaração → propor amostragem por seções (extrair em 2-3 chamadas).
 8. **Idempotência**: re-rodar com mesmo input → mesmo output (modulo confidence flutuando). Goldens byte-a-byte garantem.
@@ -346,7 +346,7 @@ Cada commit pequeno (≤300 linhas, ≤2 camadas). Diff cross-cutting (backend +
 ## Referências
 
 - Plano canônico que dispara esta lane: análise inicial em commit `7164067` ([fix(documents): IRPF não fica mais "incerto"...](https://github.com/davidrobert/mathoms/commit/7164067))
-- ADRs relacionadas: [ADR-090](../DECISIONS.md) (Money), [ADR-093](../DECISIONS.md) (stage names descritivos), [ADR-097](../DECISIONS.md) (config tipados, money tolerância), [ADR-105](../DECISIONS.md) (ArtifactStore), [ADR-111](../DECISIONS.md) (stateless), [ADR-143](../DECISIONS.md) (rules-as-code)
-- Schemas atuais: [pipeline/llm/schemas/e15_baseline.py](../../pipeline/llm/schemas/e15_baseline.py), [pipeline/llm/schemas/e2_llm_extract.py](../../pipeline/llm/schemas/e2_llm_extract.py)
-- Prompts atuais: [pipeline/llm/prompts/e15_baseline.py](../../pipeline/llm/prompts/e15_baseline.py)
+- ADRs relacionadas: [ADR-090](../../../DECISIONS.md) (Money), [ADR-093](../../../DECISIONS.md) (stage names descritivos), [ADR-097](../../../DECISIONS.md) (config tipados, money tolerância), [ADR-105](../../../DECISIONS.md) (ArtifactStore), [ADR-111](../../../DECISIONS.md) (stateless), [ADR-143](../../../DECISIONS.md) (rules-as-code)
+- Schemas atuais: [pipeline/llm/schemas/e15_baseline.py](../../../../pipeline/llm/schemas/e15_baseline.py), [pipeline/llm/schemas/e2_llm_extract.py](../../../../pipeline/llm/schemas/e2_llm_extract.py)
+- Prompts atuais: [pipeline/llm/prompts/e15_baseline.py](../../../../pipeline/llm/prompts/e15_baseline.py)
 - Tabela RFB de códigos: documentação oficial em receita.fazenda.gov.br (anexo I do DIRPF de cada ano-calendário)

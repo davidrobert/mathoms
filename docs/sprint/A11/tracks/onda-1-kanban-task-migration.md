@@ -17,7 +17,7 @@ tags:
 
 > **Status:** ✅ Entregue (M1) em 2026-04-29 (commits `6b21207`/`c8f0ed4`/
 > `4529192`/`0f9b5a3`/`77ce046`/`8adaf60` em `main`,
-> [ADR-154](../DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1),
+> [ADR-154](../../../DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1),
 > [PR #20](https://github.com/davidrobert/mathoms/pull/20)). Mantido em
 > `docs/agent_prompts/` como referência histórica. M2 (drop `kanban_items`
 > + `report_notes` + endpoints 410 Gone) fica para sprint+1, em PR
@@ -42,7 +42,7 @@ Fundir o aggregate **`KanbanItem`** (ADR-123) no aggregate **`Task`**
 (novo, workspace-scoped). Implementar tab Notas em `/acao` consumindo
 o novo aggregate.
 
-Validação técnica feita pelo [data-engineer](.claude/agents/data-engineer.md)
+Validação técnica feita pelo [data-engineer](../../../../.claude/agents/data-engineer.md)
 durante o brainstorm (sumarizado em `~/.claude/plans/quero-repensar-as-interfaces-mellow-nova.md`):
 
 > KanbanItem é **subset degenerado** de Task + 2 campos próprios
@@ -276,9 +276,9 @@ default. Board view é v2.
 ## Fluxo de execução sugerido
 
 1. **Phase 1 — Travar decisões pendentes (Plan mode):**
-   - Convocar [product-designer](.claude/agents/product-designer.md)
+   - Convocar [product-designer](../../../../.claude/agents/product-designer.md)
      para vocabulário de prioridade Task (S/R/O vs urgency)
-   - Convocar [data-engineer](.claude/agents/data-engineer.md) para
+   - Convocar [data-engineer](../../../../.claude/agents/data-engineer.md) para
      ratificar schema (board_column física vs computed; workspace_notes
      single-row vs multi-row)
    - Escrever nova ADR superseder ADR-074 + ADR-123 (parcial)

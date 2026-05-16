@@ -183,10 +183,27 @@ def _assert_changelog_no_lane_suffix(
     return []
 
 
+def _assert_changelog_generated_relative_links(
+    build_fn: Callable[[list, date], str], note_cls: type
+) -> list[str]:
+    """changelog-7: summary com link relativo é rebaseado para CHANGELOG_RECENT."""
+    entry = _make_test_changelog_entry(
+        note_cls,
+        id_="CHG-2026-05-07-LINK",
+        date_="2026-05-07",
+        summary="[docs/plan/CENARIOS_ESTRESSE/_README.md](../../../plan/CENARIOS_ESTRESSE/_README.md)",
+        sprint="A10",
+    )
+    out = build_fn([entry], _FIXED_TODAY)
+    if "(../../plan/CENARIOS_ESTRESSE/_README.md)" not in out:
+        return ["changelog-7: link relativo deveria ser rebaseado para _generated/"]
+    return []
+
+
 def _assert_changelog_idempotency(
     build_fn: Callable[[list, date], str], note_cls: type
 ) -> list[str]:
-    """changelog-7: build determinístico — 2x mesmo input = mesmo output."""
+    """changelog-8: build determinístico — 2x mesmo input = mesmo output."""
     entries = [
         _make_test_changelog_entry(
             note_cls, id_="CHG-2026-05-07-IDEMP", date_="2026-05-07", summary="X"
@@ -200,7 +217,7 @@ def _assert_changelog_idempotency(
 def run_changelog_smoke_tests(
     changelog_build_fn: Callable[[list, date], str], note_cls: type
 ) -> list[str]:
-    """7 smoke tests do CHANGELOG_RECENT (F5.C). Retorna lista de falhas (vazia = ok)."""
+    """8 smoke tests do CHANGELOG_RECENT (F5.C). Retorna lista de falhas (vazia = ok)."""
     failures: list[str] = []
     failures.extend(_assert_changelog_empty_vault(changelog_build_fn))
     failures.extend(_assert_changelog_today(changelog_build_fn, note_cls))
@@ -208,5 +225,6 @@ def run_changelog_smoke_tests(
     failures.extend(_assert_changelog_grouping_and_order(changelog_build_fn, note_cls))
     failures.extend(_assert_changelog_summary_range(changelog_build_fn, note_cls))
     failures.extend(_assert_changelog_no_lane_suffix(changelog_build_fn, note_cls))
+    failures.extend(_assert_changelog_generated_relative_links(changelog_build_fn, note_cls))
     failures.extend(_assert_changelog_idempotency(changelog_build_fn, note_cls))
     return failures

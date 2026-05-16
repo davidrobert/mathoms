@@ -60,4 +60,4 @@ A regra de domínio "cenário cônjuge sem trabalhar" sobrevive como **capabilit
 > `summaries_narrator.py`, `charts_narrator.py`, `perfil_familia_narrator.py`,
 > `e5n_narrativas.py` serão limpas em **Sprint A10 lane A10.1** (cleanup
 > débito ADR-168). Plano canônico:
-> [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §2.3](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
+> [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §2.3](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).

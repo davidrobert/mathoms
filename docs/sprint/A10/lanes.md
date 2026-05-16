@@ -1,6 +1,6 @@
 # Sprint A10 — Lanes (histórico)
 
-> Tabela estática de todas as lanes da Sprint A10. Para detalhe operacional, ver [`lanes/<id>.md`](lanes/) populado por F4.A.
+> Tabela estática de todas as lanes da Sprint A10. Para detalhe operacional, ver [`lanes/<id>.md`](lanes) populado por F4.A.
 
 | ID | Title | Status | Ship date | PR | Onda |
 |---|---|---|---|---|---|

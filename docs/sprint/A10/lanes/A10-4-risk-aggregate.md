@@ -24,7 +24,7 @@ tags:
 
 - **Onda:** 2
 - **Depende de:** A10.0 ✅
-- **Plano:** [§3.4 + ADR-178](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
+- **Plano:** [§3.4 + ADR-178](../../../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
 - **Branch slug:** `a10-4-risk-aggregate`
 - **Esforço:** 2d
 - **Paralelo com:** A10.3, A10.7

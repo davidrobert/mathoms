@@ -18,7 +18,7 @@ tags:
 
   M2 da Onda 1 entregue como **estratégia conservadora** — RENAME +
   endpoints 410 Gone em vez do DROP direto previsto no
-  [ADR-154](DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1).
+  [ADR-154](../../../DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1).
   Razão: M1 e M2 no mesmo dia (2026-04-29); janela de 7 dias de
   validação não cumprida; rename é reversível em segundos via
   downgrade, drop é irreversível sem backup. Drop final fica para PR
@@ -47,7 +47,7 @@ tags:
     Tipos preservados.
 
   **Documentação:**
-  - [ADR-154](DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1)
+  - [ADR-154](../../../DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1)
     ganha banner "M2 sunset entregue" + reescreve seção "Migration
     M1 → M2 → M3" (3 fases agora).
   - `docs/reference/RUNBOOK.md` atualizado: localStorage `notas:*` e `kanban:*`

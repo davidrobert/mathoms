@@ -15,7 +15,7 @@ sprint_status: candidate
 ## Resumo
 
 Sprint candidate aberta como **destino canônico** da feature
-[`cat-learning-loop`](lanes/A12-cat-learning-loop.md), movida de A11
+[`cat-learning-loop`](lanes/A12-cat-learning-loop-override-to-rule.md), movida de A11
 após review `product-manager` (sessão 2026-05-10) — A11 está
 sobrecarregada (138 findings de PLATFORM_REVIEW + COMPETITIVE_PIERRE +
 DOC_REORG); inserir feature de 19d em sprint de hardening dilui foco e

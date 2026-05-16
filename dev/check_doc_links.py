@@ -58,6 +58,19 @@ class BrokenLink:
     suggestion: str | None
 
 
+@dataclass(frozen=True)
+class MarkdownLinkRef:
+    source: Path
+    target: str
+    line: int
+    raw: str
+
+
+@dataclass(frozen=True)
+class BrokenMarkdownLink:
+    ref: MarkdownLinkRef
+
+
 def parse_frontmatter(md_path: Path) -> dict | None:
     """Devolve o YAML frontmatter da nota, ou None se ausente/inválido."""
     text = md_path.read_text(encoding="utf-8")
@@ -193,6 +206,69 @@ def extract_wikilinks(md_path: Path) -> list[WikilinkRef]:
     return refs
 
 
+MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[([^\]\n]+)\]\(([^)\n]+)\)")
+URI_SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
+
+
+def _strip_markdown_target(target: str) -> str:
+    clean = target.strip().strip("<>")
+    clean = clean.split("#", 1)[0]
+    clean = clean.split("?", 1)[0]
+    return clean.strip()
+
+
+def _is_relative_markdown_target(target: str) -> bool:
+    if not target or target.startswith("#"):
+        return False
+    if URI_SCHEME_RE.match(target) or target.startswith("/"):
+        return False
+    return True
+
+
+def _markdown_refs_from_line(source: Path, line: str, lineno: int) -> list[MarkdownLinkRef]:
+    refs: list[MarkdownLinkRef] = []
+    for match in MARKDOWN_LINK_RE.finditer(line):
+        target = _strip_markdown_target(match.group(2))
+        if not _is_relative_markdown_target(target):
+            continue
+        refs.append(MarkdownLinkRef(source=source, target=target, line=lineno, raw=match.group(0)))
+    return refs
+
+
+def extract_markdown_links(md_path: Path) -> list[MarkdownLinkRef]:
+    raw = md_path.read_text(encoding="utf-8")
+    text = _strip_frontmatter_preserving_lines(raw)
+    text = _strip_html_comments(text)
+    text = _strip_code_blocks(text)
+    text = _strip_inline_code(text)
+    refs: list[MarkdownLinkRef] = []
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        refs.extend(_markdown_refs_from_line(md_path, line, lineno))
+    return refs
+
+
+def collect_markdown_files(docs_root: Path) -> list[Path]:
+    files: list[Path] = []
+    if not docs_root.exists():
+        return files
+    for md_path in sorted(docs_root.rglob("*.md")):
+        rel = md_path.relative_to(docs_root)
+        if _is_excluded(rel):
+            continue
+        files.append(md_path)
+    return files
+
+
+def find_broken_markdown_links(refs: list[MarkdownLinkRef]) -> list[BrokenMarkdownLink]:
+    broken: list[BrokenMarkdownLink] = []
+    for ref in refs:
+        resolved = (ref.source.parent / ref.target).resolve()
+        if resolved.exists():
+            continue
+        broken.append(BrokenMarkdownLink(ref=ref))
+    return broken
+
+
 def _index_ids(notes: list[Note]) -> tuple[dict[str, Note], list[str]]:
     """Mapeia ``id`` → nota; reporta colisão hard."""
     index: dict[str, Note] = {}
@@ -306,11 +382,28 @@ def _print_orphans(orphans: list[Note]) -> None:
         print("   nenhuma outra nota referencia esta.")
 
 
+def _print_broken_markdown(broken: list[BrokenMarkdownLink]) -> None:
+    for item in broken:
+        print(f"M {_rel(item.ref.source)}:{item.ref.line}")
+        print(f"  markdown: {item.ref.raw}")
+        print(f"  path alvo nao encontrado: {item.ref.target}")
+
+
 def _build_argparser() -> argparse.ArgumentParser:
     """Constrói o parser de CLI."""
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("paths", nargs="*", type=Path, help="Notas específicas (default: docs/).")
     p.add_argument("--check-orphans", action="store_true", help="Falha (exit 1) se houver órfãs.")
+    p.add_argument(
+        "--report-markdown-links",
+        action="store_true",
+        help="Reporta markdown links relativos quebrados sem falhar.",
+    )
+    p.add_argument(
+        "--check-markdown-links",
+        action="store_true",
+        help="Falha se markdown links relativos estiverem quebrados.",
+    )
     p.add_argument("--docs-root", type=Path, default=DOCS, help="Override da raiz da vault.")
     return p
 
@@ -345,6 +438,28 @@ def _refs_for_targets(all_refs: list[WikilinkRef], targets: list[Note]) -> list[
     return [r for r in all_refs if r.source in target_paths]
 
 
+def _target_markdown_files(args: argparse.Namespace) -> list[Path]:
+    if args.paths:
+        return [path.resolve() for path in args.paths if path.suffix == ".md" and path.is_file()]
+    return collect_markdown_files(args.docs_root)
+
+
+def _collect_markdown_refs(files: list[Path]) -> list[MarkdownLinkRef]:
+    refs: list[MarkdownLinkRef] = []
+    for path in files:
+        refs.extend(extract_markdown_links(path))
+    return refs
+
+
+def _maybe_report_markdown_links(args: argparse.Namespace) -> list[BrokenMarkdownLink]:
+    if not (args.report_markdown_links or args.check_markdown_links):
+        return []
+    broken = find_broken_markdown_links(_collect_markdown_refs(_target_markdown_files(args)))
+    _print_broken_markdown(broken)
+    print(f"Markdown links relativos quebrados: {len(broken)}")
+    return broken
+
+
 def _run_validation(args: argparse.Namespace) -> int:
     """Pipeline: coleta → index → broken/órfãs → exit code."""
     notes = collect_notes(args.docs_root)
@@ -358,11 +473,17 @@ def _run_validation(args: argparse.Namespace) -> int:
     all_refs = _collect_all_refs(notes)
     target_refs = _refs_for_targets(all_refs, targets)
     broken = find_broken(target_refs, index)
+    markdown_broken = _maybe_report_markdown_links(args)
     orphans = find_orphans(targets, all_refs, args.docs_root)
     _print_broken(broken)
     _print_orphans(orphans)
     has_collision = any(m.startswith("ERRO:") for m in msgs)
-    fail = bool(has_collision or broken or (args.check_orphans and orphans))
+    fail = bool(
+        has_collision
+        or broken
+        or (args.check_orphans and orphans)
+        or (args.check_markdown_links and markdown_broken)
+    )
     _print_summary(notes, target_refs, broken, orphans, fail)
     return 1 if fail else 0
 

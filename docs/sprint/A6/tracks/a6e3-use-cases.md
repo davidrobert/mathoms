@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6f.1 pipeline-service, A6g.2 pipeline sweep, A6g.5 tests sweep — zero overlap **se** o slice respeitar os agregados abaixo.
 > **Conflita com:** qualquer commit em `backend/app/api/pipeline.py`, `backend/app/services/pipeline_service.py`, `backend/app/tasks/pipeline_task.py` (A6f.1 tem precedence); qualquer commit em `backend/app/api/config.py`, `backend/app/api/documents.py`, `backend/app/api/tasks.py` (agregados pipeline-adjacentes).
 > **Onda:** 2
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style), [ADR-101](../DECISIONS.md), [BACKLOG §A6e](../BACKLOG.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style), [ADR-101](../../../DECISIONS.md), [BACKLOG §A6e](../../../BACKLOG.md)
 
 > **Objetivo:** extrair a **application layer** do backend — cada endpoint
 > delega a 1 use case em `backend/app/application/<aggregate>/<verb>_<noun>.py`,
@@ -313,7 +313,7 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 ## Referências
 
-- [ADR-101](../DECISIONS.md) — R15 application layer (use cases)
-- [BACKLOG §A6e](../BACKLOG.md) — per-aggregate entregas + próximos passos
+- [ADR-101](../../../DECISIONS.md) — R15 application layer (use cases)
+- [BACKLOG §A6e](../../../BACKLOG.md) — per-aggregate entregas + próximos passos
 - Slice modelo (per-aggregate FamilyMember): commit `c84af46`, `2d9074b`, `13ece89`, `4167fa5` (branch `a6e/family-member-slice`, ver BACKLOG)
-- Prompts paralelos: [track_a6g2](track_a6g2_pipeline_style_sweep.md), [track_a6g4](track_a6g4_frontend_style_sweep.md), [track_a6f1](track_a6f1_pipeline_service.md), [track_a6g5](track_a6g5_tests_sweep.md)
+- Prompts paralelos: [track_a6g2](a6g2-pipeline-style-sweep.md), [track_a6g4](a6g4-frontend-style-sweep.md), [track_a6f1](a6f1-pipeline-service.md), [track_a6g5](a6g5-tests-sweep.md)

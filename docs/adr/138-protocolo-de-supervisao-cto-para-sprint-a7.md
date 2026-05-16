@@ -23,7 +23,7 @@ size_lines: 78
 **Status:** Decidido (Sprint A7) • **Data:** 2026-04-26 • **Relaciona**
 [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy),
 [ADR-103](#adr-103--teste-manual-como-gate-antes-de-remoção-do-bridge-a6b5--a6-human),
-[CONFIG_CUTOVER_PLAN.md §6](CONFIG_CUTOVER_PLAN.md#6-protocolo-de-supervisão-cto).
+[CONFIG_CUTOVER_PLAN.md §6](../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md).
 
 **Contexto:** Sprint A7 executa cutover de `config/` para DB com **até 4
 agentes paralelos** em Onda 2 (A7.1, A7.2a, A7.2b, A7.4) e cadeia
@@ -55,7 +55,7 @@ Alternativas:
   intra-lane; humano valida fechamento de onda.
 
 **Decisão:** Adotar (c) com 4 gates explícitos (G1–G4) descritos em
-[CONFIG_CUTOVER_PLAN.md §6](CONFIG_CUTOVER_PLAN.md#6-protocolo-de-supervisão-cto):
+[CONFIG_CUTOVER_PLAN.md §6](../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md):
 
 | Gate | Quando | Quem | Output |
 |---|---|---|---|
@@ -75,7 +75,7 @@ Em ambos os casos, sign-off é registrado:
 - Em BACKLOG status (✅ aprovado / 🚧 bloqueado) para G1, G2, G4.
 
 Critérios de aprovação (G3) — checklist em
-[CONFIG_CUTOVER_PLAN.md §6.4](CONFIG_CUTOVER_PLAN.md#64-critérios-de-aprovação).
+[CONFIG_CUTOVER_PLAN.md §6.4](../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md).
 Bloqueio retorna lista de itens acionáveis; máximo 2 ciclos antes do
 humano intervir (§6.5).
 
@@ -90,7 +90,7 @@ humano intervir (§6.5).
   Mitigação: enquanto espera, agente pode pegar lane disjunta.
 - ⚠️ Agente `senior-cto` precisa do diff completo + plano +
   acceptance gates como contexto. Prompt template em
-  [CONFIG_CUTOVER_PLAN.md §6.3](CONFIG_CUTOVER_PLAN.md#63-como-invocar-o-cto).
+  [CONFIG_CUTOVER_PLAN.md §6.3](../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md).
 - ❌ Não cobre validação empírica em workspace de cliente real —
   smoke é fixture sintético. Aceito porque F7 ainda não fechou; quando
   fechar, gate G4 ganha smoke shadow em workspace piloto.

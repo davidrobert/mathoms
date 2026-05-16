@@ -19,7 +19,7 @@ tags:
 # A6g — Code Style Sweep (CLAUDE.md §Code style)
 
 
-**Objetivo:** revisar e aplicar o `## Code style` de [CLAUDE.md](../CLAUDE.md) em todo o código existente — Python (`pipeline/`, `scripts/`, `backend/`), TypeScript (`frontend/`) e preparatório para Go (A6f). Corrige drift acumulado antes que vire convenção implícita.
+**Objetivo:** revisar e aplicar o `## Code style` de [CLAUDE.md](../../../../CLAUDE.md) em todo o código existente — Python (`pipeline/`, `scripts/`, `backend/`), TypeScript (`frontend/`) e preparatório para Go (A6f). Corrige drift acumulado antes que vire convenção implícita.
 
 **Premissa:** drift existe e é silencioso. Sem um sweep deliberado, o estilo novo vale só para código futuro; código legado continua ofendendo (funções gigantes em `e5_analyze.py`, `Dict[str, Any]` em boundaries antigos, nomes genéricos sobreviventes, docstrings multi-parágrafo, comentários WHAT). Sweep + enforcement automatizado congelam o estilo como contrato.
 

@@ -99,4 +99,4 @@ tags:
      `<EmptyState/>` apontando para /plano (entrada canônica do
      `<OnboardingHero/>`). Hook novo `useAcaoZeroSignals(workspaceId)`
      compõe os 3 sinais.
-  Track: [docs/agent_prompts/track_onda_10_cross_route_coherence.md](agent_prompts/track_onda_10_cross_route_coherence.md).
+  Track: [docs/agent_prompts/track_onda_10_cross_route_coherence.md](../../A11/tracks/onda-10-cross-route-coherence.md).

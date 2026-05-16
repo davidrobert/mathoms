@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A7.1, A7.2b, A7.4.
 > **Conflita com:** qualquer commit ativo em `backend/app/models/`, `backend/app/application/`, `backend/app/api/`, `frontend/src/components/report/sections/` (especialmente PlanoDeAcao).
 > **Onda:** 2 (paralelizável).
-> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.2a](../CONFIG_CUTOVER_PLAN.md#§52a-a72a--decision-aggregate-event-sourced)
-> **ADR:** [ADR-136](../DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) — **G1 obrigatório antes de codar**.
+> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.2a](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md#§52a-a72a--decision-aggregate-event-sourced)
+> **ADR:** [ADR-136](../../../DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) — **G1 obrigatório antes de codar**.
 > **Supervisão CTO:** G1 (ADR) · G2 (schema) · G3 (PR pré-merge).
 
 > **Objetivo (1 frase):** introduzir entidade `Decision` event-sourced com lifecycle (Pendente → Decidido → Executado), supersede chain, valor BRL; migrar conteúdo de `config/decisions.md` para o workspace piloto; expor tela "Plano de Ação" no relatório; **deletar `decisions.md`** (resolve dívida PII).
@@ -37,10 +37,10 @@ tags:
 
 ## Regras inegociáveis
 
-1. **Money em BIGINT cents** ([ADR-090](../DECISIONS.md)): `amount_brl_cents`. No wire, string decimal. Frontend renderiza via `<MonetaryValue/>`.
-2. **`response_model` explícito** em todo endpoint ([ADR-109](../DECISIONS.md#adr-109--padrão-de-fastapi--testes-de-contrato)) + `make update-openapi-snapshot`.
-3. **Routers finos** ([ADR-101](../DECISIONS.md#adr-101--routers-finos-use-cases-em-application)) — endpoints em `backend/app/api/decisions.py` apenas montam DTOs e chamam use cases em `backend/app/application/decisions/`.
-4. **Stateless rigoroso** ([ADR-111](../DECISIONS.md)): zero estado in-memory; todas as queries via repository.
+1. **Money em BIGINT cents** ([ADR-090](../../../DECISIONS.md)): `amount_brl_cents`. No wire, string decimal. Frontend renderiza via `<MonetaryValue/>`.
+2. **`response_model` explícito** em todo endpoint ([ADR-109](../../../DECISIONS.md#adr-109--padrão-de-fastapi--testes-de-contrato)) + `make update-openapi-snapshot`.
+3. **Routers finos** ([ADR-101](../../../DECISIONS.md#adr-101--routers-finos-use-cases-em-application)) — endpoints em `backend/app/api/decisions.py` apenas montam DTOs e chamam use cases em `backend/app/application/decisions/`.
+4. **Stateless rigoroso** ([ADR-111](../../../DECISIONS.md)): zero estado in-memory; todas as queries via repository.
 5. **Funções 4-20 linhas, módulos ≤500** (CLAUDE.md §Code style).
 6. **Dados sensíveis** (CLAUDE.md): testes/fixtures usam valores fictícios (R$1.000, R$50.000) — **nunca** copiam valores reais do `decisions.md` original.
 7. **Migrator é descartável** — não generalizar parser markdown→Decision para outros usos.

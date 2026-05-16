@@ -21,7 +21,7 @@ tags:
 > **Paralelo com:** — (única lane da Onda 4, BLOQUEANTE).
 > **Conflita com:** qualquer commit ativo em `pipeline/adapters/file_config_store.py`, `backend/app/services/config_materializer.py`, `pipeline/stage_config.py`, `dev/check_forbidden_paths.py`, `config/`.
 > **Onda:** 4 (final).
-> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.5](../CONFIG_CUTOVER_PLAN.md#§55-a75--cleanup-final)
+> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.5](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md#§55-a75--cleanup-final)
 > **ADR:** — (execução; ADRs já mergeadas em A7.0/.2a/.2b/.3).
 > **Supervisão CTO:** G3 pré-merge + **G4 wave boundary final** (humano valida e tagueia).
 
@@ -88,7 +88,7 @@ Se alguma pré-condição falha → **pare**. Não esta lane pode começar.
 
    **Decisão:** dos 11 arquivos do plano, todos já foram migrados/movidos pelas lanes A7.1–A7.4. Outros conteúdos em `config/` continuam vivos por enquanto (são produto interno: schemas JSON, prompts LLM, templates) e **não** entram na deleção desta lane. Esta lane deleta **apenas** os 11 arquivos do plano (que já estão sendo deletados nas lanes individuais; aqui é confirmação + sweep).
 
-   Re-leia [CONFIG_CUTOVER_PLAN.md §1](../CONFIG_CUTOVER_PLAN.md#§1-sumário-executivo) — a meta é "zero arquivos em `config/` (diretório removido)" **dentre os 11**, não esvaziamento total. Outros 10+ arquivos em `config/` (schemas, prompts, templates, pipeline.json) seguem vivos e fora do escopo de A7.
+   Re-leia [CONFIG_CUTOVER_PLAN.md §1](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md#§1-sumário-executivo) — a meta é "zero arquivos em `config/` (diretório removido)" **dentre os 11**, não esvaziamento total. Outros 10+ arquivos em `config/` (schemas, prompts, templates, pipeline.json) seguem vivos e fora do escopo de A7.
 
    **Reescopo recomendado**: este passo é confirmação que os 11 arquivos foram removidos pelas lanes anteriores; `config/` permanece com os arquivos legítimos. Se o escopo final for esvaziar `config/` por completo, abre lane A8 separada.
 

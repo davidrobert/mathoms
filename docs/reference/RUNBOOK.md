@@ -84,7 +84,7 @@ Checklist **Sprint A** — execução pode ser em **staging** ou **produção** 
 
 ## 5. Disaster recovery (RPO / RTO)
 
-Valores de referência estão em [SLO.md](SLO.md). Procedimentos de backup, restore e off-site: tarefas **7E.2–7E.4** e [BACKLOG.md](BACKLOG.md#f7--produção--lgpd).
+Valores de referência estão em [SLO.md](SLO.md). Procedimentos de backup, restore e off-site: tarefas **7E.2–7E.4** e [BACKLOG.md](../BACKLOG.md#f7--produção--lgpd).
 
 **Rollback do cutover [[ADR-212]] (pipeline DB-only):** procedimento dedicado em
 [runbooks/pipeline_rollback.md](runbooks/pipeline_rollback.md) — janela ~30min
@@ -169,7 +169,7 @@ obsoleto e arquivar quando essa transição acontecer.
 ## 7. Console interno local (F7F-Local · IA-0)
 
 Ferramenta web em `127.0.0.1:3100` para operador executar ações de suporte/LGPD
-em **dev/staging** antes do produto estar em produção ([ADR-116](DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local)).
+em **dev/staging** antes do produto estar em produção ([ADR-116](../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local)).
 **Não** rodar em produção — bloqueado por flag + bind local.
 
 ### 7.1 Arquitetura resumida
@@ -227,7 +227,7 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](DECISIONS.md#
    ```
 
    O rewrite `/admin/*` → `INTERNAL_OPS_API_BASE` aponta por default para
-   `http://127.0.0.1:8001` (ver [`next.config.ts`](../frontend-ops/next.config.ts)).
+   `http://127.0.0.1:8001` (ver [`next.config.ts`](../../frontend-ops/next.config.ts)).
    Se você rodou o backend de ops em outra porta, exporte
    `INTERNAL_OPS_API_BASE=http://127.0.0.1:<porta>` antes de `npm run dev`.
    Ou via compose: `docker compose -f docker-compose.dev.yml up frontend-ops`.
@@ -290,7 +290,7 @@ global-setup para subir backend seeded.
 ## 8. Debug da rota `/reports/[id]` (Report Premium v1)
 
 > Shell React `/reports/[id]` é o **único** renderer do relatório
-> ([ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side));
+> ([ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side));
 > PDF server-side via Playwright é o único export. Renderer HTML
 > standalone foi removido — não procure por `e6_render.py`, ele não
 > existe mais.
@@ -341,7 +341,7 @@ Object.keys(localStorage)
 ### 8.3 Regerar PDF via Playwright
 
 Endpoint: `GET /v1/reports/<report_id>/download.pdf`. Backend chama
-[backend/app/services/pdf_renderer.py](../backend/app/services/pdf_renderer.py)
+[backend/app/services/pdf_renderer.py](../../backend/app/services/pdf_renderer.py)
 que usa Chromium headless para imprimir a rota
 `/reports/<id>?print=1` em A4.
 
@@ -368,7 +368,7 @@ Diagnóstico em ordem:
    Se 404: report_id não existe; se 403: workspace mismatch.
 3. **`useReportData(id)` retornando `null`** → contrato
    `ReportAnalysisData` quebrado pós-pipeline. Confere shape em
-   [frontend/src/types/](../frontend/src/types/) vs payload real do
+   [frontend/src/types/](../../frontend/src/types/) vs payload real do
    endpoint. Mismatch comum: campo `score.formula` mudou de string
    para objeto, etc.
 4. **`MIGRATED_SECTIONS` ausente** → seção referenciada no
@@ -388,7 +388,7 @@ querystring.
 - `?print=1` na URL aciona estilos `@media print` + `data-print-route`
   no `<html>`.
 - CSS de print mora em
-  [frontend/src/components/report/report-print.css](../frontend/src/components/report/report-print.css).
+  [frontend/src/components/report/report-print.css](../../frontend/src/components/report/report-print.css).
   Quebras explícitas por seção via `break-inside: avoid;` em
   `.report-section`.
 - Se gráfico Chart.js sai cortado: provavelmente o canvas excede
@@ -531,9 +531,9 @@ toca `mathoms.db` de produção.
 
 - [runbooks/f9_3_alembic_upgrade.md](runbooks/f9_3_alembic_upgrade.md) — F9.3 stage rename migration (pré-check + backup + rollback)
 - [SLO.md](SLO.md) — SLOs e SLAs de comunicação
-- [BACKLOG.md](BACKLOG.md) — 7E (operational readiness) · F7F-Local
+- [BACKLOG.md](../BACKLOG.md) — 7E (operational readiness) · F7F-Local
 - [SMOKE_TEST.md](SMOKE_TEST.md) — verificações manuais pré-release
 - [SMOKE_TEST_HUMAN.md](SMOKE_TEST_HUMAN.md) — runbook de smoke humano
-- [plan/REPORT_PREMIUM/_README.md](plan/REPORT_PREMIUM/_README.md) — plano canônico do shell v1
-- [ADR-116](DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) — decisões de design F7F-Local
-- [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) — descontinuação do renderer HTML server-side
+- [plan/REPORT_PREMIUM/_README.md](../plan/REPORT_PREMIUM/_README.md) — plano canônico do shell v1
+- [ADR-116](../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) — decisões de design F7F-Local
+- [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side) — descontinuação do renderer HTML server-side

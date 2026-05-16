@@ -24,7 +24,7 @@ tags:
   só por valor + receita, sem detecção de transferência interna);
   (b) defesa em profundidade aplicando `InternalTransferDetector` sobre
   a descrição mesmo quando o E4 cai em `nao_identificado`;
-  (c) **[ADR-133](DECISIONS.md#adr-133--transferencias_internas-modelado-em-transfer_configs-workspace-scoped)** —
+  (c) **[ADR-133](../../../DECISIONS.md#adr-133--transferencias_internas-modelado-em-transfer_configs-workspace-scoped)** —
   bloco `transferencias_internas` extraído de `config/family_members.json`
   para a tabela `transfer_configs` (workspace-scoped). Migration
   `w1x2y3z4a5b6`. Endpoints `GET/PUT /config/transfer`. Materializer

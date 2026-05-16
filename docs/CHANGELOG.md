@@ -1,38 +1,28 @@
 <!-- F5.B shim — ADR-182 / DOC_REORG_PLAN F5 — 2026-05-07 -->
 
-# CHANGELOG — shim (entries vivem em `docs/sprint/<X>/changelog/`)
+# CHANGELOG — shim
 
-> **Este arquivo é um shim.** Entries vivem agora como notas atômicas em `docs/sprint/<X>/changelog/<id>.md` (1 por evento atomizado), com frontmatter validado por JSON Schema (`docs/_schemas/note-changelog-entry.schema.json`).
+> **Não altere histórico aqui.** Para LLMs: leia
+> [`CHANGELOG_RECENT`](_MOC/_generated/CHANGELOG_RECENT.md) e crie/edite
+> `docs/sprint/<X>/changelog/<id>.md`.
 
 ## Onde ler agora
 
 | Intenção | Onde |
 |---|---|
-| "O que mudou nos últimos 14 dias?" | [docs/_MOC/_generated/CHANGELOG_RECENT.md](_MOC/_generated/CHANGELOG_RECENT.md) (auto, agregado por dia) |
+| "O que mudou nos últimos 14 dias?" | [docs/_MOC/_generated/CHANGELOG_RECENT.md](_MOC/_generated/CHANGELOG_RECENT.md) |
 | "Cronologia completa de uma sprint" | `docs/sprint/<X>/changelog/` (1 arquivo por entrada) |
-| "Detalhe de uma entrada específica" | `docs/sprint/<X>/changelog/<id>.md` (frontmatter inclui PR, commits, ADRs, lane) |
+| "Inventário atual" | [docs/_MOC/_generated/DOC_STATS.md](_MOC/_generated/DOC_STATS.md) |
 
 ## Cronologia top-level por sprint
 
-| Sprint | Período | Entries | Path |
-|---|---|---|---|
-| A12 (atual) | 2026-05-10 — | 4 | [docs/sprint/A12/changelog/](sprint/A12/changelog/) |
-| A11 | 2026-05-06 → 2026-05-11 | 6 | [docs/sprint/A11/changelog/](sprint/A11/changelog/) |
-| A10 | 2026-05-06 → 2026-05-07 | 83 | [docs/sprint/A10/changelog/](sprint/A10/changelog/) |
-| A8 | abertura 2026-04-27 | 1 | [docs/sprint/A8/changelog/](sprint/A8/changelog/) |
-| A7 | até 2026-04-27 | 10 | [docs/sprint/A7/changelog/](sprint/A7/changelog/) |
-| F65 (legado) | F6.5 series | 51 | [docs/sprint/F65/changelog/](sprint/F65/changelog/) |
-| F0..F9 (legado) | fases originais | 17 | `docs/sprint/F<N>/changelog/` |
-
-**Total atomizado em F5:** 167 entries.
+Use `docs/sprint/<X>/changelog/`; sprints com entries incluem A12, A11,
+A10, A8, A7, F65 e F0..F9 legado. Contagens atuais: [`DOC_STATS`](_MOC/_generated/DOC_STATS.md).
 
 ## Como criar uma entrada nova
 
 1. Após mergear PR em `main`, crie `docs/sprint/<sprint-atual>/changelog/CHG-YYYY-MM-DD-<SCOPE>.md`.
-2. Frontmatter obrigatório (schema: [`docs/_schemas/note-changelog-entry.schema.json`](_schemas/note-changelog-entry.schema.json)):
-   - `id` regex `^CHG-\d{4}-\d{2}-\d{2}-[A-Z0-9-]+$`
-   - `type: changelog-entry`, `date: "YYYY-MM-DD"` (com aspas), `summary` (1-2 frases).
-   - opcional: `sprint`, `lane` (wikilink), `adrs` (array de wikilinks), `prs` (ints), `commits` (hashes), `breaking` (bool), `files_touched` (int), `tags`.
+2. Frontmatter: `id`, `type: changelog-entry`, `date`, `summary`; opcionais `sprint`, `lane`, `adrs`, `prs`, `commits`, `breaking`, `files_touched`, `tags`.
 3. Validação: `python3 dev/validate_frontmatter.py docs/sprint/<X>/changelog/<id>.md`.
 4. Regenere índice: `python3 dev/build_doc_index.py --inline`.
 

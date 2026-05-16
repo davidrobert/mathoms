@@ -23,7 +23,7 @@ tags:
 >
 > **Última atualização:** 2026-04-22 — fase dividida em **F7F-Local** (pré-produção, UI web em `127.0.0.1`, sem OAuth) e **F7F-Remote** (produção, OAuth staff em `ops.mathoms.ai`). IA-0 passa a ter **UI web como superfície principal**; CLI é atalho secundário/futuro.
 >
-> **Backlog executável:** [BACKLOG.md — F7F](BACKLOG.md#f7f--console-interno-operadores)
+> **Backlog executável:** [BACKLOG.md — F7F](../../BACKLOG.md#f7f--console-interno-operadores)
 
 ---
 
@@ -74,7 +74,7 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 |------|----------------|
 | **Contas** | Excluir conta de usuário com cascata coerente: memberships, convites, vínculos a workspaces; política **hard delete** vs **anonimização** documentada; tela com confirmação dupla (`TYPE "delete"`). |
 | **Credenciais** | Alterar senha manualmente (hash no mesmo algoritmo do app — ex.: bcrypt/Argon2 conforme modelo `User`) via tela com campo de nova senha + geração de senha temporária copiável; nunca logar senha em claro ou mascarada. |
-| **Documentos** | Apagar documentos de um **usuário** ou **workspace** deletando registros no BD **e** objetos no **storage** (`stored_path` / camadas em [storage](../backend/app/services/storage.py)); modo **"prévia"** lista o que seria removido antes de confirmar. |
+| **Documentos** | Apagar documentos de um **usuário** ou **workspace** deletando registros no BD **e** objetos no **storage** (`stored_path` / camadas em [storage](../../../backend/app/services/storage.py)); modo **"prévia"** lista o que seria removido antes de confirmar. |
 | **Métricas** | Dashboard agregado (uploads por período, runs de pipeline sucesso/falha, contagem de workspaces/documentos, volume storage) em cards + tabela; export CSV como ação secundária; evolução para `UsageMetric` (**7D.9**) e dashboard **7E.7** nas fases seguintes. |
 | **Relatórios** | Tela **somente leitura** com filtro por email / `user_id` / `workspace_id`; lista `Report` (ou runs) recentes; link abre JSON ou HTML exportado em aba separada — **sem** edição nem reexecução de pipeline pelo mesmo canal. |
 | **CLI (secundário)** | Entrypoint opcional (`python -m app.scripts.internal_ops` ou `Makefile`) para automação; `--dry-run` + confirmação explícita em deletes; mesmo audit em `logs/` da UI. Entregue pós-UI estabilizada. |
@@ -127,7 +127,7 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 
 **Meta:** Financeiro e Legal não dependem de exports ad hoc à engenharia.
 
-- Visão read-only de **billing** (Stripe ou equivalente) + export CSV para contabilidade — depende de **billing real** (ver [ROADMAP.md](ROADMAP.md) F10).
+- Visão read-only de **billing** (Stripe ou equivalente) + export CSV para contabilidade — depende de **billing real** (ver [ROADMAP.md](../../_MOC/_generated/ROADMAP.md) F10).
 - **Fila DSAR** com estados, SLA 15 dias, evidência em audit (**7B.18**).
 - Fluxos guiados de exclusão/anonimização com confirmação dupla onde necessário — podem espelhar os fluxos já validados em **IA-0**.
 
@@ -149,7 +149,7 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 
 | Item | Papel |
 |------|--------|
-| **7F.L1 + 7F.L2 + 7F.10–7F.14** | Implementação da **IA-0** no [BACKLOG F7F-Local](BACKLOG.md#f7f-local--pré-produção-ia-0-sem-oauth): camada de serviço + UI web localhost (principal) + exclusão de conta, senha, purge, métricas, relatórios read-only. |
+| **7F.L1 + 7F.L2 + 7F.10–7F.14** | Implementação da **IA-0** no [BACKLOG F7F-Local](../../BACKLOG.md#f7f-local--pré-produção-ia-0-sem-oauth): camada de serviço + UI web localhost (principal) + exclusão de conta, senha, purge, métricas, relatórios read-only. |
 | **7F.9** | CLI interno **secundário**, entregue após UI estabilizada; reutiliza a camada de 7F.L1 sem duplicar regra. |
 | **F7F-Local (IA-0)** | **Pode anteceder** F7A/B/C inteiros e **7F.1–7F.4**. UI só em **localhost** até haver auth staff. Ao expor na rede, obedecer prefixo `/api/internal/`, RBAC **7F.3** e **7F.4**. |
 | **7E.7** | Núcleo visual da **IA-2** (dashboard de negócio) — reaproveita o layout de 7F.13 com telemetria mais rica. |
@@ -192,5 +192,5 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 ## 8. Governança do documento
 
 - **Escopo macro** e fases: este arquivo.
-- **Tasks estimáveis:** [BACKLOG.md — F7F](BACKLOG.md#f7f--console-interno-operadores) — **F7F-Local (IA-0):** `7F.L1` camada de serviço, `7F.L2` UI web localhost, `7F.10`–`7F.14` business logic (exclusão, senha, purge, métricas, relatórios), `7F.9` CLI secundário. **F7F-Remote (IA-1…IA-4):** `7F.1`–`7F.8`.
-- **Decisões técnicas** (auth staff, break-glass): [DECISIONS.md](DECISIONS.md) quando implementadas.
+- **Tasks estimáveis:** [BACKLOG.md — F7F](../../BACKLOG.md#f7f--console-interno-operadores) — **F7F-Local (IA-0):** `7F.L1` camada de serviço, `7F.L2` UI web localhost, `7F.10`–`7F.14` business logic (exclusão, senha, purge, métricas, relatórios), `7F.9` CLI secundário. **F7F-Remote (IA-1…IA-4):** `7F.1`–`7F.8`.
+- **Decisões técnicas** (auth staff, break-glass): [DECISIONS.md](../../DECISIONS.md) quando implementadas.

@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6g.2 pipeline sweep (zero overlap — toca só `scripts/` + `pipeline/`)
 > **Conflita com:** commits simultâneos em `frontend/src/`
 > **Onda:** 1
-> **Índice de prompts:** [docs/agent_prompts/README.md](README.md)
-> **Fonte de verdade das regras:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style)
+> **Índice de prompts:** [docs/agent_prompts/README.md](../../../../README.md)
+> **Fonte de verdade das regras:** [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style)
 
 > **Objetivo:** aplicar o `## Code style` do CLAUDE.md ao TypeScript em
 > `frontend/src/`, consumindo o baseline de ofensores já catalogado em

@@ -1,20 +1,20 @@
 # Report Premium — Phase 0 Gap Inventory
 
-> **Fonte:** execução da Fase 0 do [docs/plan/REPORT_PREMIUM/_README.md](plan/REPORT_PREMIUM/_README.md).
+> **Fonte:** execução da Fase 0 do [docs/plan/REPORT_PREMIUM/_README.md](_README.md).
 > **Produzido por:** agente dedicado (Opus 4.7 1M, worktree isolado, ~1h30 de discovery).
 > **Data:** 2026-04-23.
 > **Status:** ✅ RESOLVIDO — 13 Open Questions respondidas pelo usuário em 2026-04-23;
 > decisões formalizadas em ADR-117, 121, 122, 123, ~~124~~. Fase 1 unlocked.
-> Deltas aplicados ao plano — ver [plan/REPORT_PREMIUM/_README.md §Deltas](plan/REPORT_PREMIUM/_README.md).
+> Deltas aplicados ao plano — ver [plan/REPORT_PREMIUM/_README.md §Deltas](_README.md).
 >
 > ⚠️ **Update 2026-04-29 (Direção E · Onda 3):** Modo Tático removido
-> do relatório ([ADR-151](DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)).
+> do relatório ([ADR-151](../../DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)).
 > Itens neste documento que mencionam `tatico.*`, T1-T6, KanbanItem,
 > ReportNotes são **registro histórico**. Decisões originais (ADR-117/123)
 > permanecem válidas para Modos Estratégico + USA.
 >
-> ⚠️ **Update 2026-04-24:** [ADR-124](DECISIONS.md#adr-124--scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next) (e Q12 abaixo)
-> foi superseded por [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+> ⚠️ **Update 2026-04-24:** [ADR-124](../../DECISIONS.md#adr-124--scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next) (e Q12 abaixo)
+> foi superseded por [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 > O renderer HTML server-side foi **descontinuado por completo** —
 > `scripts/e6_render.py`, `scripts/e6/`, `pipeline/stages/e6.py` e
 > endpoints HTML foram removidos (lane `adr-129-e6-kill`). Observations

@@ -21,10 +21,10 @@ tags:
 > **Paralelo com:** nenhum
 > **Conflita com:** commits em `tests/unit/pipeline/test_no_legacy_stage_names.py`, `pyproject.toml`, `.pre-commit-config.yaml`
 > **Onda:** F9 (sub-fatia 6/7)
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [test_no_legacy_stage_names.py soft-fail atual](../../tests/unit/pipeline/test_no_legacy_stage_names.py)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [test_no_legacy_stage_names.py soft-fail atual](../../../../tests/unit/pipeline/test_no_legacy_stage_names.py)
 
-> **Objetivo:** transformar [`tests/unit/pipeline/test_no_legacy_stage_names.py`](../../tests/unit/pipeline/test_no_legacy_stage_names.py)
+> **Objetivo:** transformar [`tests/unit/pipeline/test_no_legacy_stage_names.py`](../../../../tests/unit/pipeline/test_no_legacy_stage_names.py)
 > de soft-fail (warn) para **hard-fail** (default em CI). Strings legadas
 > (`"E2"`, `"E3"`, `"E5.N"`…) só sobrevivem em ilhas explicitamente
 > permitidas (compat dicts, runbook docs históricos, ADR-093).
@@ -61,7 +61,7 @@ disparando hard-fail. Aqui flipamos o default.
 
 ## Entregas
 
-### 1. Atualizar [`test_no_legacy_stage_names.py`](../../tests/unit/pipeline/test_no_legacy_stage_names.py)
+### 1. Atualizar [`test_no_legacy_stage_names.py`](../../../../tests/unit/pipeline/test_no_legacy_stage_names.py)
 
 Mudanças:
 - Inverter default: `ENFORCE = os.getenv("MATHOMS_ENFORCE_STAGE_RENAME", "1") != "0"` (em vez de `== "1"`).
@@ -187,7 +187,7 @@ git push origin HEAD:main
 
 ## Referências
 
-- F9.4 (prereq): [track_f9_4_scripts_rename.md](track_f9_4_scripts_rename.md)
-- F9.6 (próximo): [track_f9_6_cleanup.md](track_f9_6_cleanup.md)
+- F9.4 (prereq): [track_f9_4_scripts_rename.md](f9-4-scripts-rename.md)
+- F9.6 (próximo): [track_f9_6_cleanup.md](f9-6-cleanup.md)
 - ADR-093: `docs/DECISIONS.md:2228`
 - Soft-fail atual: `tests/unit/pipeline/test_no_legacy_stage_names.py`

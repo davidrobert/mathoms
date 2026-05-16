@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** **NENHUMA lane A7** (bloqueia toda Onda 2). Pode rodar em paralelo a lanes de outros sprints (A6.events-followup, F7F-Analyst, Report v2.E.*) desde que respeite hotspots.
 > **Conflita com:** qualquer commit ativo em `pipeline/stage_config.py`, `pipeline/ports/`, `backend/app/services/config_materializer.py`.
 > **Onda:** 1 (única lane da Onda 1)
-> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.0](../CONFIG_CUTOVER_PLAN.md#§50-a70--configstore-protocol--adapters)
-> **ADR:** [ADR-134](../DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) — **DEVE estar em estado Decidido antes da primeira linha de código** (gate G1).
+> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.0](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md#§50-a70--configstore-protocol--adapters)
+> **ADR:** [ADR-134](../../../DECISIONS.md#adr-134--configstore-protocolo-de-leitura-tipado-pipeline--backend) — **DEVE estar em estado Decidido antes da primeira linha de código** (gate G1).
 > **Supervisão CTO:** G1 antes de codar · G2 antes de Alembic (n/a aqui — sem schema novo) · G3 pré-merge.
 
 > **Objetivo (1 frase):** introduzir `ConfigStore` como protocol read-only em `pipeline/ports/`, com 2 adapters (`FileConfigStore` legado + `DBConfigStore` produção), injetado via `StageConfig`. **Zero call-sites migrados** nesta lane.
@@ -39,9 +39,9 @@ Toda a Sprint A7 depende de uma boundary única para ler config. Sem ela, A7.1/A
 
 Do CLAUDE.md + ADRs:
 
-1. **Pipeline não importa framework** (CLAUDE.md §Regras críticas, [ADR-097](../DECISIONS.md)): `pipeline/**/*.py` não importa `fastapi`/`celery`/`sqlalchemy`. Enforçado por `dev/check_pipeline_boundaries.py`. Protocol em `pipeline/ports/` + adapter SQLAlchemy em `backend/app/services/`.
-2. **Stateless rigoroso** ([ADR-111](../DECISIONS.md#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6)): zero `@lru_cache`/`@functools.cache`/`cached_property` no read-path. `FileConfigStore` pode cachear em construtor (singleton lazy idempotente, padrão R19) — registrar em [STATELESS_AUDIT.md](../STATELESS_AUDIT.md).
-3. **Money nunca é float** ([ADR-090](../DECISIONS.md)): tipos retornados pelo Protocol que carregam dinheiro usam `Decimal` (`amount`, `rate`) ou `int64` cents (`brl_cents`).
+1. **Pipeline não importa framework** (CLAUDE.md §Regras críticas, [ADR-097](../../../DECISIONS.md)): `pipeline/**/*.py` não importa `fastapi`/`celery`/`sqlalchemy`. Enforçado por `dev/check_pipeline_boundaries.py`. Protocol em `pipeline/ports/` + adapter SQLAlchemy em `backend/app/services/`.
+2. **Stateless rigoroso** ([ADR-111](../../../DECISIONS.md#adr-111--stateless-rigoroso-em-backendapp-e-pipeline-a6f6)): zero `@lru_cache`/`@functools.cache`/`cached_property` no read-path. `FileConfigStore` pode cachear em construtor (singleton lazy idempotente, padrão R19) — registrar em [STATELESS_AUDIT.md](../../../reference/STATELESS_AUDIT.md).
+3. **Money nunca é float** ([ADR-090](../../../DECISIONS.md)): tipos retornados pelo Protocol que carregam dinheiro usam `Decimal` (`amount`, `rate`) ou `int64` cents (`brl_cents`).
 4. **Funções 4-20 linhas, arquivos ≤500, nomes específicos** (CLAUDE.md §Code style).
 5. **Sem `Dict[str, Any]` cross-boundary** — métodos do Protocol retornam dataclasses tipadas (`CategorizationConfig`, `FamilyMembersConfig`, …), nunca `dict`.
 6. **DeprecationWarning com data** (P6 do plano): `FileConfigStore.__init__` emite warning citando A7.5 como remoção.

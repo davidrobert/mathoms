@@ -54,7 +54,7 @@ half-width). Anterior versão tinha 3 cards; 2 foram removidos em
 iteração") — Premium não pode mostrar promessa de feature futura.
 
 O comentário canônico em
-[config/report_layout.yaml:357-364](../../../config/report_layout.yaml)
+[config/report_layout.yaml:357-364](../../../../config/report_layout.yaml)
 deixa o gatilho de reativação explícito:
 
 > "Voltam quando `IRPFAnalyzer` emitir `dependentes_count` +
@@ -63,7 +63,7 @@ deixa o gatilho de reativação explícito:
 ### Diagnóstico
 
 Dados-fonte **já existem** no schema E1.6
-([pipeline/llm/schemas/e16_irpf_full.py](../../../pipeline/llm/schemas/e16_irpf_full.py)):
+([pipeline/llm/schemas/e16_irpf_full.py](../../../../pipeline/llm/schemas/e16_irpf_full.py)):
 
 - `Dependente` (lista, com `relacao` RFB + `data_nascimento`).
 - `PagamentoDedutivel` com `codigo_rfb` em 11 categorias canônicas
@@ -79,24 +79,24 @@ dados já extraídos.
 
 1. **Backend / pipeline:**
    - 2 métodos novos em
-     [pipeline/domain/services/irpf_analyzer.py](../../../pipeline/domain/services/irpf_analyzer.py):
+     [pipeline/domain/services/irpf_analyzer.py](../../../../pipeline/domain/services/irpf_analyzer.py):
      - `dependentes_count(ano) -> int | dict` (granularidade decidida
        pelo co-design G2).
      - `dedutiveis_por_categoria(ano) -> dict[str, dict]` (categorias
        + utilizado + teto, granularidade decidida pelo co-design G2).
    - Serialização em
-     [scripts/e5_analyze.py::_e5_kpis_from_analyzer](../../../scripts/e5_analyze.py)
+     [scripts/e5_analyze.py::_e5_kpis_from_analyzer](../../../../scripts/e5_analyze.py)
      emitindo 2 chaves novas no payload `irpf_kpis`.
 2. **Frontend:**
    - Estender `IrpfKpis` em
-     [frontend/src/types/irpf.ts](../../../frontend/src/types/irpf.ts)
+     [frontend/src/types/irpf.ts](../../../../frontend/src/types/irpf.ts)
      com tipos exatos dos 2 KPIs novos (TS strict).
    - 2 cards novos em
-     [frontend/src/components/report/cards/](../../../frontend/src/components/report/cards/):
+     [frontend/src/components/report/cards/](../../../../frontend/src/components/report/cards):
      - `IrpfDependentesCard.tsx`
      - `IrpfDedutiveisSubutilizadosCard.tsx`
    - Integração em
-     [IrpfOtimizacaoSection](../../../frontend/src/components/report/sections/IrpfOtimizacaoSection.tsx)
+     [IrpfOtimizacaoSection](../../../../frontend/src/components/report/sections/IrpfOtimizacaoSection.tsx)
      com guards de ausência (esconder card se KPI ausente — workspace
      sem IRPF, ou IRPF sem essa categoria).
 3. **Layout:**
@@ -129,7 +129,7 @@ dados já extraídos.
 - **Não regredir** o card PGBL (size half, 4 estados — [[ADR-189]]).
 - **`irpf_kpis` é additive** — workspaces sem IRPF continuam ausentes;
   o campo permanece `Optional[dict]` em
-  [pipeline/domain/services/e5_serialization.py](../../../pipeline/domain/services/e5_serialization.py).
+  [pipeline/domain/services/e5_serialization.py](../../../../pipeline/domain/services/e5_serialization.py).
 - **G2 sign-off do contrato** antes da implementação (granularidade
   `dependentes_count` simples vs estruturado; granularidade
   `dedutiveis_por_categoria` flat vs aninhado; lista de categorias

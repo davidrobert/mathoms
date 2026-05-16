@@ -1,8 +1,8 @@
 # Multi-tenancy — Guia prático
 
 > **Referências normativas:**
-> - [ADR-072](DECISIONS.md#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família) — tenancy original (F8)
-> - [ADR-125](DECISIONS.md#adr-125--workspace-sharing-convites-viewer-role-forced-logout) — workspace sharing (F9; renumerado de ADR-078 em 2026-04-24)
+> - [ADR-072](../DECISIONS.md#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família) — tenancy original (F8)
+> - [ADR-125](../DECISIONS.md#adr-125--workspace-sharing-convites-viewer-role-forced-logout) — workspace sharing (F9; renumerado de ADR-078 em 2026-04-24)
 >
 > Este documento traduz as ADRs em padrões de código e checklist de revisão.
 
@@ -24,11 +24,11 @@
 
 | Entidade | Papel |
 |---|---|
-| [`User`](../backend/app/models/user.py) | Identidade do humano que faz login. Pode pertencer a múltiplos workspaces. Tem `token_version` para invalidação de sessão (F9). |
-| [`Workspace`](../backend/app/models/workspace.py) | Unidade de tenancy. Uma família, um cliente consultor, um CTF de teste. |
-| [`WorkspaceMember`](../backend/app/models/workspace_member.py) | Relação N:N com `role`. Determina **acesso e nível de permissão**. |
-| [`WorkspaceInvitation`](../backend/app/models/workspace_invitation.py) | Convite pendente (F9). Token hash + TTL 72h + uso único. |
-| [`AuditLog`](../backend/app/models/audit_log.py) | Registro imutável de ações sensíveis. Reusado por F9 para eventos de membership. |
+| [`User`](../../backend/app/models/user.py) | Identidade do humano que faz login. Pode pertencer a múltiplos workspaces. Tem `token_version` para invalidação de sessão (F9). |
+| [`Workspace`](../../backend/app/models/workspace.py) | Unidade de tenancy. Uma família, um cliente consultor, um CTF de teste. |
+| [`WorkspaceMember`](../../backend/app/models/workspace_member.py) | Relação N:N com `role`. Determina **acesso e nível de permissão**. |
+| [`WorkspaceInvitation`](../../backend/app/models/workspace_invitation.py) | Convite pendente (F9). Token hash + TTL 72h + uso único. |
+| [`AuditLog`](../../backend/app/models/audit_log.py) | Registro imutável de ações sensíveis. Reusado por F9 para eventos de membership. |
 
 ### Diferença entre `owner_id` e `WorkspaceMember`
 
@@ -45,7 +45,7 @@ A partir de F8.0, toda autorização passa por `WorkspaceMember`. Consultas que 
 | `member` | Coadministrador | ✅ | ✅ | ❌ | ❌ |
 | `viewer` | Acompanha | ✅ | ❌ | ❌ | ❌ |
 
-Definidos em [`workspace_member.py`](../backend/app/models/workspace_member.py):
+Definidos em [`workspace_member.py`](../../backend/app/models/workspace_member.py):
 
 - `VALID_ROLES` = `{owner, member, viewer}` — aceitos na validação.
 - `WRITE_ROLES` = `{owner, member}` — usados por `require_write_role`.
@@ -126,7 +126,7 @@ async def upsert_if_goal(
     ...
 ```
 
-Dependencies prontas em [`tenancy.py`](../backend/app/core/tenancy.py):
+Dependencies prontas em [`tenancy.py`](../../backend/app/core/tenancy.py):
 
 - `require_write_role` — aceita `owner` e `member`. Para endpoints de escrita genéricos.
 - `require_member_admin_role` — aceita só `owner`. Para convidar/remover/mudar role.
@@ -198,7 +198,7 @@ async def get_current_goal(goal_type: str, **kwargs): ...
 
 ## 4. Queries SQLAlchemy — o que o lint valida
 
-O lint [`scripts/lint/check_workspace_scoping.py`](../scripts/lint/check_workspace_scoping.py) (ADR-072) escaneia `backend/app/services/` e `backend/app/api/` procurando:
+O lint [`scripts/lint/check_workspace_scoping.py`](../../scripts/lint/check_workspace_scoping.py) (ADR-072) escaneia `backend/app/services/` e `backend/app/api/` procurando:
 
 1. Expressões `select(Model)` onde `Model` tem coluna `workspace_id`.
 2. Verifica se algum `.where(...)` ou `.filter(...)` na mesma cadeia referencia `workspace_id`.
@@ -370,14 +370,14 @@ Endpoints pré-F8 (ex: `/api/documents`, `/api/reports`, `/api/config`) ainda us
 
 ## 9. Referências
 
-- [ADR-072 — Multi-tenancy strategy](DECISIONS.md#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família)
-- [ADR-125 — Workspace sharing (F9)](DECISIONS.md#adr-125--workspace-sharing-convites-viewer-role-forced-logout)
-- [ADR-039 — Dual DB SQLite dev + PostgreSQL prod](DECISIONS.md#adr-039--dual-db-sqlite-dev--postgresql-prod) (rationale para não usar RLS)
-- [ADR-075 — Cutover CLI → Web](DECISIONS.md#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) (deadline de migração)
-- [backend/app/core/tenancy.py](../backend/app/core/tenancy.py) — dependency factory (`get_current_workspace`, `require_role`, `require_write_role`, `require_member_admin_role`)
-- [backend/app/models/workspace_invitation.py](../backend/app/models/workspace_invitation.py) — convites (F9)
-- [backend/app/services/invitation_service.py](../backend/app/services/invitation_service.py) — ciclo de vida do convite
-- [backend/app/services/membership_service.py](../backend/app/services/membership_service.py) — gestão de membros
-- [backend/app/services/audit_service.py](../backend/app/services/audit_service.py) — helper de audit log
-- [scripts/lint/check_workspace_scoping.py](../scripts/lint/check_workspace_scoping.py) — lint custom
-- [scripts/lint/tenancy_baseline.txt](../scripts/lint/tenancy_baseline.txt) — violações legadas toleradas
+- [ADR-072 — Multi-tenancy strategy](../DECISIONS.md#adr-072--multi-tenancy-workspace_id-scoping-explícito--workspacemember-para-multi-família)
+- [ADR-125 — Workspace sharing (F9)](../DECISIONS.md#adr-125--workspace-sharing-convites-viewer-role-forced-logout)
+- [ADR-039 — Dual DB SQLite dev + PostgreSQL prod](../DECISIONS.md#adr-039--dual-db-sqlite-dev--postgresql-prod) (rationale para não usar RLS)
+- [ADR-075 — Cutover CLI → Web](../DECISIONS.md#adr-075--cutover-cli--web-estratégia-de-transição-faseada-com-adapters) (deadline de migração)
+- [backend/app/core/tenancy.py](../../backend/app/core/tenancy.py) — dependency factory (`get_current_workspace`, `require_role`, `require_write_role`, `require_member_admin_role`)
+- [backend/app/models/workspace_invitation.py](../../backend/app/models/workspace_invitation.py) — convites (F9)
+- [backend/app/services/invitation_service.py](../../backend/app/services/invitation_service.py) — ciclo de vida do convite
+- [backend/app/services/membership_service.py](../../backend/app/services/membership_service.py) — gestão de membros
+- [backend/app/services/audit_service.py](../../backend/app/services/audit_service.py) — helper de audit log
+- [scripts/lint/check_workspace_scoping.py](../../scripts/lint/check_workspace_scoping.py) — lint custom
+- [scripts/lint/tenancy_baseline.txt](../../scripts/lint/tenancy_baseline.txt) — violações legadas toleradas

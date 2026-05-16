@@ -19,7 +19,7 @@ size_lines: 56
 
 # ADR-181 — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py`
 
-**Status:** Decidido (Sprint A10.8) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Relaciona** [ADR-077](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web), [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido). **Origem:** Sprint A10 W0 — `archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §6.2` (arquivado em [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)).
+**Status:** Decidido (Sprint A10.8) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Relaciona** [ADR-077](#adr-077--pipeline-adapter-como-contrato-de-cutover-cli--web), [ADR-180](#adr-180--goalsjson-cutover-final-via-stageconfigconfig_store-extendido). **Origem:** Sprint A10 W0 — `archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §6.2` (arquivado em [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)).
 
 **Contexto:** Após ADR-180 fechar a leitura runtime de `goals.json`, o arquivo arquivado `_archive/pre-f8-cutover-2026-04-15/config/goals.json` perde valor referencial — todas as 22 chaves migraram para `Decision`/`Risk` aggregates, rules-as-code (ADR-177), Goal types existentes ou foram deletadas como dead-data (ADR-168 cleanup). Manter o arquivo arquivado convida confusão: futuro engenheiro abrindo `_archive/` pode pensar que é referência viva. A semântica correta é cleanup final + bloqueio de recriação acidental no path original.
 
@@ -70,4 +70,4 @@ Arquivo arquivado em F8.4 (2026-04-15), runtime materialization removida em A10.
 - [ ] ADR-180 vira `Decidido (Sprint A10)`; ADR-181 idem.
 - [ ] Sprint A10 status global em BACKLOG marcado ✅.
 
-**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §6.2](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.8).
+**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §6.2](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.8).

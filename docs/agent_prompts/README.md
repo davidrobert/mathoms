@@ -1,6 +1,6 @@
 # Agent Prompts — shim (movido para `docs/sprint/<X>/tracks/`)
 
-> **Atualizado em 2026-05-07** (F3 do plano [DOC_REORG](../plan/DOC_REORG/_README.md) · ADR-182).
+> **Atualizado em 2026-05-07** (F3 do plano [DOC_REORG](../archive/DOC_REORG_PLAN-2026-05-07.md) · ADR-182).
 
 Os 62 tracks que viviam em `docs/agent_prompts/track_*.md` foram migrados para `docs/sprint/<X>/tracks/<slug>.md`, agrupados por sprint e com frontmatter validado por JSON Schema (`docs/_schemas/note-track.schema.json`).
 

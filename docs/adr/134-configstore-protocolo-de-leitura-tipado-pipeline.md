@@ -89,7 +89,7 @@ Cache hot-path vai para Redis com invalidação por evento.
 - ⚠️ Janela de cutover: `materialize_config` continua existindo até
   A7.5; cada chamada legada emite `DeprecationWarning` + log
   `mathoms.config.materialize.legacy_call`. Plano em
-  [CONFIG_CUTOVER_PLAN.md §5.0](CONFIG_CUTOVER_PLAN.md#§50-a70--configstore-protocol--adapters).
+  [CONFIG_CUTOVER_PLAN.md §5.0](../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md).
 - ❌ Adicionar campo novo ao `ConfigStore` exige tocar Protocol +
   ambos os adapters + qualquer fake. Aceito como custo simétrico ao
   ganho de tipagem cross-boundary.

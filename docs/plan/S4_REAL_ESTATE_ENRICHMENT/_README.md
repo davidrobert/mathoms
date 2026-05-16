@@ -254,7 +254,7 @@ ou se algum nível pode ser pulado nesta iteração.
   (puro; recebe `RealEstateConfig` value object, sem `StageConfig`
   inteiro — [[ADR-097]] D3).
 - Consumido por:
-  [`pipeline/domain/services/narrativas/metrics.py`](../../../pipeline/domain/services/narrativas/metrics.py)
+  `pipeline/domain/services/narrativas/metrics.py`
   (ou módulo dedicado se o tamanho justificar).
 - Refactor de [`charts_narrator.py:254`](../../../pipeline/domain/services/narrativas/charts_narrator.py):
   remove `yield_imoveis` narrative (substituído por payload estruturado);
@@ -371,7 +371,7 @@ rico.
 **Localização:**
 
 - Novo:
-  [`frontend/src/components/report/cards/RealEstateYieldCard.tsx`](../../../frontend/src/components/report/cards/RealEstateYieldCard.tsx).
+  `frontend/src/components/report/cards/RealEstateYieldCard.tsx`.
 - Padrão de referência:
   [`frontend/src/components/report/cards/RentabilidadeCard.tsx`](../../../frontend/src/components/report/cards/RentabilidadeCard.tsx)
   (hero + bloco de contexto + footer; variants por threshold).

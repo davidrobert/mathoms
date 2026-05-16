@@ -27,14 +27,14 @@ tags:
 > `comparisons_*` / `changelog_*` no YAML
 > **Onda v2:** D (enabler) + ativação v2.8
 > **Sprint:** Report Premium UI · v2
-> **Índice de prompts:** [README.md](README.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
 > **Fonte de verdade:**
-> - [plan/REPORT_PREMIUM/_README.md §0.2 #4 + §17](../plan/REPORT_PREMIUM/_README.md)
+> - [plan/REPORT_PREMIUM/_README.md §0.2 #4 + §17](../../../plan/REPORT_PREMIUM/_README.md)
 >   (delta original "comparisons/changelog diferidos para v2 — depende
 >   de SnapshotChangelogBuilder")
-> - [BACKLOG.md — Report Premium UI v2 lanes](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
+> - [BACKLOG.md — Report Premium UI v2 lanes](../../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
 > - Auditoria 2026-04-25 §3.1 + §2.3 (origem do escopo)
-> - Meta-prompt: [track_report_v2.md](track_report_v2.md)
+> - Meta-prompt: [track_report_v2.md](report-v2.md)
 
 > **Objetivo (1 frase):** construir o `SnapshotChangelogBuilder` que
 > calcula deltas entre o snapshot atual (t) e o snapshot anterior (t-1)
@@ -140,7 +140,7 @@ Sem ADR, a próxima rotação de equipe não saberá decidir.
 
 ### 4.1 ADR-13X — Snapshot comparison semantics
 
-**Arquivo:** [docs/DECISIONS.md](../DECISIONS.md) — adicionar nova ADR
+**Arquivo:** [docs/DECISIONS.md](../../../DECISIONS.md) — adicionar nova ADR
 ao final.
 
 Conteúdo (esqueleto):
@@ -247,17 +247,17 @@ breaking** — campos opcionais, `null` para reports antigos.
 ### 4.5 Frontend — types + render
 
 **Arquivos:**
-- [`frontend/src/types/report-analysis.ts`](../../frontend/src/types/report-analysis.ts)
+- [`frontend/src/types/report-analysis.ts`](../../../../frontend/src/types/report-analysis.ts)
   — adicionar `comparisons?: readonly ComparisonItem[] | null;
   changelog?: readonly ChangelogEntry[] | null`.
-- [`frontend/src/components/report/sections/S1PatrimonioSection.tsx`](../../frontend/src/components/report/sections/S1PatrimonioSection.tsx)
+- [`frontend/src/components/report/sections/S1PatrimonioSection.tsx`](../../../../frontend/src/components/report/sections/S1PatrimonioSection.tsx)
   e similares — render condicional de `<ComparisonBlock>`.
 - Componente `<ChangelogList>` (já existe em `ui/`) consumido por
   S10 ou nova seção dedicada (decidir com base em D2).
 
 ### 4.6 YAML — flipar enabled
 
-**Arquivo:** [config/report_layout.yaml](../../config/report_layout.yaml)
+**Arquivo:** [config/report_layout.yaml](../../../../config/report_layout.yaml)
 
 Mudar todos os `comparisons_*` e `changelog_*` (placeholders criados
 em v2.1) para `enabled: true`. Codegen, comitar TS+py.
@@ -284,11 +284,11 @@ backend service consome, retorno do endpoint bate.
 
 ### 4.9 Atualizar docs
 
-- [BACKLOG.md](../BACKLOG.md) — marcar v2.D.1 ✅, marcar v2.8 ✅,
+- [BACKLOG.md](../../../BACKLOG.md) — marcar v2.D.1 ✅, marcar v2.8 ✅,
   remover "comparisons e changelog" da lista de débitos da seção
   Report Premium UI.
-- [plan/REPORT_PREMIUM/_README.md §17](../plan/REPORT_PREMIUM/_README.md) — atualizar.
-- [CHANGELOG.md](../CHANGELOG.md) — entrada `feat(report):
+- [plan/REPORT_PREMIUM/_README.md §17](../../../plan/REPORT_PREMIUM/_README.md) — atualizar.
+- [CHANGELOG.md](../../../CHANGELOG.md) — entrada `feat(report):
   SnapshotChangelogBuilder + comparisons/changelog ativados (v2.D.1 +
   v2.8 · ADR-13X)`.
 

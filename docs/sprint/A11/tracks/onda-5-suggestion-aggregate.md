@@ -16,7 +16,7 @@ tags:
 # Track — Onda 5: Suggestion aggregate full-stack (Direção E)
 
 > **Status:** ✅ Entregue em 2026-04-29 (commits `ee4dc33`/`0a3dc2f`/
-> `35a4f86`/`7b1d4ff` em `main`, [ADR-153](../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples),
+> `35a4f86`/`7b1d4ff` em `main`, [ADR-153](../../../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples),
 > [PR #19](https://github.com/davidrobert/mathoms/pull/19)). Mantido em
 > `docs/agent_prompts/` como referência histórica.
 >
@@ -36,10 +36,10 @@ endpoints + pipeline), frontend (callout no relatório + card no
 o ritual **relatório gera sugestões → usuário aceita/modifica/descarta
 em `/acao` → vira Decision (+ opcionalmente Tasks)**.
 
-Validado metodologicamente com [financial-planner](.claude/agents/financial-planner.md):
+Validado metodologicamente com [financial-planner](../../../../.claude/agents/financial-planner.md):
 sugestão acionável é a formalização event-sourced de "revisão de tese"
 (AUVP) e "pacto familiar" (Cerbasi). Validado com
-[product-designer](.claude/agents/product-designer.md): cap 3-6
+[product-designer](../../../../.claude/agents/product-designer.md): cap 3-6
 sugestões por relatório, severidade tripla (info/warning/danger),
 copy de leigo escondendo vocabulário event-sourced.
 
@@ -222,13 +222,13 @@ desc.
 ## Fluxo de execução sugerido
 
 1. **Phase 1 — Discussão e design (sessão Claude com plan mode):**
-   - Convocar [data-engineer](.claude/agents/data-engineer.md) para
+   - Convocar [data-engineer](../../../../.claude/agents/data-engineer.md) para
      validar schema da tabela `suggestions` (FK semantics, dedup
      strategy, índices).
-   - Convocar [senior-cto](.claude/agents/senior-cto.md) para
+   - Convocar [senior-cto](../../../../.claude/agents/senior-cto.md) para
      validar endpoints + idempotência do accept (criar Decision em
      transação atomic com update de Suggestion.status).
-   - Convocar [financial-planner](.claude/agents/financial-planner.md)
+   - Convocar [financial-planner](../../../../.claude/agents/financial-planner.md)
      para refinar as 5 regras canônicas (thresholds, copy).
    - Travar decisões 1-5 da seção "Decisões de design pendentes".
    - Escrever ADR-153 (Suggestion aggregate event-sourced ou simple?

@@ -23,8 +23,8 @@ tags:
 > **Conflita com:** outra sessão `agent/platform-review/*` ativa (1
 > revisão por vez)
 > **Onda:** independente
-> **Índice de prompts:** [docs/agent_prompts/README.md](README.md)
-> **Fonte de verdade das regras:** [CLAUDE.md](../../CLAUDE.md)
+> **Índice de prompts:** [docs/agent_prompts/README.md](../../../../README.md)
+> **Fonte de verdade das regras:** [CLAUDE.md](../../../../CLAUDE.md)
 
 > **Objetivo:** Conduzir uma revisão técnica abrangente da plataforma
 > (pipeline + backend + docs + design system) usando os subagents de
@@ -38,7 +38,7 @@ tags:
 
 ## Papel
 Você é o orquestrador, atuando como
-[`.claude/agents/senior-cto.md`](../../.claude/agents/senior-cto.md).
+[`.claude/agents/senior-cto.md`](../../../../.claude/agents/senior-cto.md).
 Lance os demais especialistas em paralelo via Agent tool, consolide os
 achados e produza um plano executável.
 
@@ -46,13 +46,13 @@ achados e produza um plano executável.
 Antes de qualquer delegação, leia e cite explicitamente no consolidado
 quais documentos foram considerados:
 
-- [CLAUDE.md](../../CLAUDE.md) — invariantes do repo
-- [docs/reference/ARCHITECTURE.md](../ARCHITECTURE.md) — stack, stages, domain glossary (§4.1)
-- [docs/DECISIONS.md](../DECISIONS.md) — ADRs 001-148+ (use ToC categorizado)
-- [docs/BACKLOG.md](../BACKLOG.md) — sprint atual + lanes ocupadas
-- [docs/CHANGELOG.md](../CHANGELOG.md) — últimos 30 dias de entregas
-- [docs/reference/STATELESS_AUDIT.md](../STATELESS_AUDIT.md) — globais permitidos (ADR-111)
-- [docs/reference/PIPELINE_ARTIFACTS.md](../PIPELINE_ARTIFACTS.md) + `config/schemas/`
+- [CLAUDE.md](../../../../CLAUDE.md) — invariantes do repo
+- [docs/reference/ARCHITECTURE.md](../../../reference/ARCHITECTURE.md) — stack, stages, domain glossary (§4.1)
+- [docs/DECISIONS.md](../../../DECISIONS.md) — ADRs 001-148+ (use ToC categorizado)
+- [docs/BACKLOG.md](../../../BACKLOG.md) — sprint atual + lanes ocupadas
+- [docs/CHANGELOG.md](../../../CHANGELOG.md) — últimos 30 dias de entregas
+- [docs/reference/STATELESS_AUDIT.md](../../../reference/STATELESS_AUDIT.md) — globais permitidos (ADR-111)
+- [docs/reference/PIPELINE_ARTIFACTS.md](../../../reference/PIPELINE_ARTIFACTS.md) + `config/schemas/`
 - `pipeline/stage_spec.py` — `STAGE_REGISTRY` canônico (nomes descritivos pós-F9.2)
 
 **Regra de dedupe:** se um achado já tem ADR aceita, BACKLOG entry
@@ -190,7 +190,7 @@ Output: `_scratch/review-YYYY-MM-DD/consolidated-findings.md`
 ## Plano de execução
 
 **Local:** `docs/plan/PLATFORM_REVIEW/_README.md` (canonical multi-phase
-conforme convenção UPPER_SNAKE de [CLAUDE.md §"Planos → docs/"](../../CLAUDE.md#planos--docs-nunca-_scratch-nunca-claude)).
+conforme convenção UPPER_SNAKE de [CLAUDE.md §"Planos → docs/"](../../../../CLAUDE.md#planos--docs-nunca-_scratch-nunca-claude)).
 
 ### Frontmatter (parseável)
 
@@ -237,7 +237,7 @@ last_synced_with_main: <commit-sha>
 - **Doc é first-class**: toda task que altera comportamento tem task
   pareada `paired_doc_task` (atualizar ADR, ARCHITECTURE.md, RUNBOOK,
   schema). Sem isso, task fica `blocked`.
-- **CLAUDE.md** é hotspot ([CLAUDE.md §"Hotspots de documentação"](../../CLAUDE.md#hotspots-de-documentação)).
+- **CLAUDE.md** é hotspot ([CLAUDE.md §"Hotspots de documentação"](../../../../CLAUDE.md#hotspots-de-documentação)).
   Não edite direto no plano. Em vez disso, gere seção
   `## CLAUDE.md patches` com diffs propostos; um agente humano revisa
   e aplica em commit dedicado.
@@ -319,7 +319,7 @@ mais focado (cite os achados que ele perdeu).
    normalmente)
 2. `docs(plan): add plan/PLATFORM_REVIEW/_README.md (revisão YYYY-MM-DD)` —
    único commit que vai para `main`. Diff exclusivamente em `docs/`,
-   então CI gates de código não se aplicam ([CLAUDE.md §"Concluído"](../../CLAUDE.md#concluído--pr-mergeado-em-main-squash-com-ci-verde)
+   então CI gates de código não se aplicam ([CLAUDE.md §"Concluído"](../../../../CLAUDE.md#concluído--pr-mergeado-em-main-squash-com-ci-verde)
    exceção docs-only).
 
 ## Gates de push (antes de abrir PR)

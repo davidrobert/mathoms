@@ -20,7 +20,7 @@ tags:
 > **Depende de:** F9.2a, F9.2b, F9.2c, F9.2d ✅ (todas mergeadas em main)
 > **Bloqueia:** F9.3 (Alembic) — F9.3 começa após esta lane fechar
 > **Onda:** F9 (sub-fatia 3e/7)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093)
 
 > **Objetivo:** validar que toda string legada residual é intencional (compat
 > reverso ou docstring), regenerar auditoria, atualizar BACKLOG/CHANGELOG/ADR-093/
@@ -196,6 +196,6 @@ git push origin HEAD:main
 
 ## Referências
 
-- [F9.2 master](track_f9_2_string_literals.md)
-- [F9.2a-d sub-fatias](README.md)
-- [F9.3 alembic — destravada após esta lane](track_f9_3_alembic_migration.md)
+- [F9.2 master](f9-2-string-literals.md)
+- [F9.2a-d sub-fatias](../../../../README.md)
+- [F9.3 alembic — destravada após esta lane](f9-3-alembic-migration.md)

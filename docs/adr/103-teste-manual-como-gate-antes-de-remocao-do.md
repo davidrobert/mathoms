@@ -69,4 +69,4 @@ incremental), rollback do bridge removido exige revert.
 - ❌ Aceita que A6c (remover bridge) é bloqueado se teste humano revelar
   regressões.
 
-**Artefatos:** [BACKLOG §A6b.5](BACKLOG.md#a6b5--preparação-para-teste-humano-adr-103) + [§A6-human](BACKLOG.md#a6-human--teste-manual-end-to-end-david).
+**Artefatos:** [BACKLOG §A6b.5](../BACKLOG.md#a6b5--preparação-para-teste-humano-adr-103) + [§A6-human](../BACKLOG.md#a6-human--teste-manual-end-to-end-david).

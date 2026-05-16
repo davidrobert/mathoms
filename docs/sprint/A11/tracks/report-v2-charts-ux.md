@@ -25,12 +25,12 @@ tags:
 > v2.E.7**. Não pegar v2.5 isolada; está fundida ao plug do `ScoreCard`.
 > **Onda v2:** E (nova)
 > **Sprint:** Report Premium UI · v2
-> **Índice de prompts:** [README.md](README.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
 > **Fonte de verdade:**
-> - [BACKLOG.md — Report Premium UI v2 lanes](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
-> - [plan/REPORT_PREMIUM/_README.md §17 — v2 roadmap](../plan/REPORT_PREMIUM/_README.md)
-> - [DECISIONS.md ADR-117](../DECISIONS.md) — Chart.js para `/reports/**`
-> - Meta-prompt v2: [track_report_v2.md](track_report_v2.md)
+> - [BACKLOG.md — Report Premium UI v2 lanes](../../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
+> - [plan/REPORT_PREMIUM/_README.md §17 — v2 roadmap](../../../plan/REPORT_PREMIUM/_README.md)
+> - [DECISIONS.md ADR-117](../../../DECISIONS.md) — Chart.js para `/reports/**`
+> - Meta-prompt v2: [track_report_v2.md](report-v2.md)
 
 > **Objetivo (1 frase):** terminar a migração Recharts→Chart.js dentro
 > de `/reports/**` que ADR-117 Fase 2 abriu mas não fechou na Fase 7,
@@ -44,14 +44,14 @@ tags:
 
 ## 1. Por que esta lane existe
 
-[ADR-117](../DECISIONS.md) (2026-04-23) decidiu **Chart.js 4 +
+[ADR-117](../../../DECISIONS.md) (2026-04-23) decidiu **Chart.js 4 +
 react-chartjs-2 + datalabels** para `/reports/**`, com Recharts
 escopo-restringido. A Fase 2 do plano construiu os primitivos
-([primitives/](../../frontend/src/components/report/charts/primitives/)
+([primitives/](../../../../frontend/src/components/report/charts/primitives)
 — `ChartCanvas`, `ChartBar`, `ChartDonut`, `ChartGaugeSemi`,
 `ChartCombo`, `ChartLine`, `ChartWaterfall`, `ChartRegistry` com print
 fallback canvas→PNG e tema via `useChartTheme`). A Fase 3 construiu o
-[`ScoreCard` premium](../../frontend/src/components/report/ui/ScoreCard.tsx)
+[`ScoreCard` premium](../../../../frontend/src/components/report/ui/ScoreCard.tsx)
 (badge classe + gauge Chart.js + breakdown table + fórmula).
 
 Mas **a substituição efetiva nas seções não foi concluída**. Os 5
@@ -60,11 +60,11 @@ charts que o relatório expõe na primeira dobra continuam em **Recharts**
 
 | Chart | Componente atual (Recharts) | Onde é wired |
 |---|---|---|
-| Score Financeiro | [ScoreGaugeChart.tsx](../../frontend/src/components/report/charts/ScoreGaugeChart.tsx) (`RadialBarChart`) | [S1PatrimonioSection.tsx:12,72](../../frontend/src/components/report/sections/S1PatrimonioSection.tsx) |
-| Fluxo de Caixa Mensal | [FluxoMensalChart.tsx](../../frontend/src/components/report/charts/FluxoMensalChart.tsx) (`BarChart`) | [S2FluxoCaixaSection.tsx:9,60](../../frontend/src/components/report/sections/S2FluxoCaixaSection.tsx) |
-| Receita por Fonte | [ReceitaBarChart.tsx](../../frontend/src/components/report/charts/ReceitaBarChart.tsx) | [S2FluxoCaixaSection.tsx:10,62](../../frontend/src/components/report/sections/S2FluxoCaixaSection.tsx) |
-| Despesas por Categoria | [DespesasDoughnutChart.tsx](../../frontend/src/components/report/charts/DespesasDoughnutChart.tsx) | [S2FluxoCaixaSection.tsx:11,63](../../frontend/src/components/report/sections/S2FluxoCaixaSection.tsx) |
-| Receita vs Despesa — Mês a Mês | [ReceitaDespesaMensalChart.tsx](../../frontend/src/components/report/charts/ReceitaDespesaMensalChart.tsx) (`AreaChart`) | [S2FluxoCaixaSection.tsx:12,65](../../frontend/src/components/report/sections/S2FluxoCaixaSection.tsx) |
+| Score Financeiro | `frontend/src/components/report/charts/ScoreGaugeChart.tsx` (`RadialBarChart`) | [S1PatrimonioSection.tsx:12,72](../../../../frontend/src/components/report/sections/S1PatrimonioSection.tsx) |
+| Fluxo de Caixa Mensal | [FluxoMensalChart.tsx](../../../../frontend/src/components/report/charts/FluxoMensalChart.tsx) (`BarChart`) | [S2FluxoCaixaSection.tsx:9,60](../../../../frontend/src/components/report/sections/S2FluxoCaixaSection.tsx) |
+| Receita por Fonte | [ReceitaBarChart.tsx](../../../../frontend/src/components/report/charts/ReceitaBarChart.tsx) | [S2FluxoCaixaSection.tsx:10,62](../../../../frontend/src/components/report/sections/S2FluxoCaixaSection.tsx) |
+| Despesas por Categoria | [DespesasDoughnutChart.tsx](../../../../frontend/src/components/report/charts/DespesasDoughnutChart.tsx) | [S2FluxoCaixaSection.tsx:11,63](../../../../frontend/src/components/report/sections/S2FluxoCaixaSection.tsx) |
+| Receita vs Despesa — Mês a Mês | [ReceitaDespesaMensalChart.tsx](../../../../frontend/src/components/report/charts/ReceitaDespesaMensalChart.tsx) (`AreaChart`) | [S2FluxoCaixaSection.tsx:12,65](../../../../frontend/src/components/report/sections/S2FluxoCaixaSection.tsx) |
 
 Gap funcional vs `EXEMPLO_DE_RELATORIO.html`:
 
@@ -85,7 +85,7 @@ Gap funcional vs `EXEMPLO_DE_RELATORIO.html`:
    simples com totais agregados — perde toda a granularidade
    por sub-fonte/sub-categoria que o backend já produz em
    `chart_receita_datasets[]` / `chart_despesa_datasets[]`
-   ([fluxo_caixa_enricher.py:147-174](../../pipeline/domain/services/fluxo_caixa_enricher.py)).
+   ([fluxo_caixa_enricher.py:147-174](../../../../pipeline/domain/services/fluxo_caixa_enricher.py)).
 
 **Esta onda fecha esses três gaps.** Não introduz Chart.js no projeto —
 ele já é dep paga do `package.json` desde a Fase 2; introduz a
@@ -119,13 +119,13 @@ em paralelo (1-2d) → E.8 (½d) ≈ **2-3 dias**.
 | Sub-lane | Slug branch | Esforço | Prio | Bloqueado por | Toca |
 |---|---|---|---|---|---|
 | **v2.E.1** PeriodToggle UI + hook `usePeriodWindow` | `report-v2-period-toggle` | S (≤4h) | P0 | — | `frontend/src/components/report/ui/PeriodToggle.tsx` (novo); `frontend/src/components/report/hooks/usePeriodWindow.ts` (novo); Vitest |
-| **v2.E.2** TS types `receita_datasets`/`despesa_datasets` | `report-v2-fluxo-types` | S (≤2h) | P0 | — | [`frontend/src/types/report-analysis.ts:122-126`](../../frontend/src/types/report-analysis.ts) |
-| **v2.E.3** FluxoMensal Recharts→Chart.js + PeriodToggle | `report-v2-fluxo-mensal-chartjs` | R (1d) | P1 | E.1 | [`FluxoMensalChart.tsx`](../../frontend/src/components/report/charts/FluxoMensalChart.tsx); [`_shared.ts`](../../frontend/src/components/report/charts/_shared.ts) |
-| **v2.E.4** ReceitaBar Recharts→Chart.js + PeriodToggle (séries mensais) | `report-v2-receita-bar-chartjs` | R (1d) | P1 | E.1, E.2 | [`ReceitaBarChart.tsx`](../../frontend/src/components/report/charts/ReceitaBarChart.tsx) |
-| **v2.E.5** DespesasDoughnut Recharts→Chart.js + datalabels + PeriodToggle | `report-v2-despesas-doughnut-chartjs` | R (1d) | P1 | E.1, E.2 | [`DespesasDoughnutChart.tsx`](../../frontend/src/components/report/charts/DespesasDoughnutChart.tsx) |
-| **v2.E.6** ReceitaDespesaMensal Recharts→Chart.js + slide window 12m + tooltip stack + legenda agrupada | `report-v2-receita-despesa-chartjs` | R/O (1-2d) | P1 | E.1, E.2 | [`ReceitaDespesaMensalChart.tsx`](../../frontend/src/components/report/charts/ReceitaDespesaMensalChart.tsx) |
-| **v2.E.7** Plugar `ScoreCard` premium em S1 + `score.context`/`score.conclusion` (absorve v2.5) | `report-v2-score-card-plug` | R (½-1d) | P1 | — | [`S1PatrimonioSection.tsx:12,72`](../../frontend/src/components/report/sections/S1PatrimonioSection.tsx); [`ScoreCard.tsx`](../../frontend/src/components/report/ui/ScoreCard.tsx); [`report-analysis.ts`](../../frontend/src/types/report-analysis.ts); backend `financial_score_calculator` |
-| **v2.E.8** re-baseline + cleanup imports Recharts órfãos + ADR-13X | `report-v2-charts-rebaseline` | S (≤4h) | P0 | **todas as anteriores** | `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/`; [`_registry.ts`](../../frontend/src/components/report/charts/_registry.ts); deletar `ScoreGaugeChart.tsx`; nova ADR-13X |
+| **v2.E.2** TS types `receita_datasets`/`despesa_datasets` | `report-v2-fluxo-types` | S (≤2h) | P0 | — | [`frontend/src/types/report-analysis.ts:122-126`](../../../../frontend/src/types/report-analysis.ts) |
+| **v2.E.3** FluxoMensal Recharts→Chart.js + PeriodToggle | `report-v2-fluxo-mensal-chartjs` | R (1d) | P1 | E.1 | [`FluxoMensalChart.tsx`](../../../../frontend/src/components/report/charts/FluxoMensalChart.tsx); [`_shared.ts`](../../../../frontend/src/components/report/charts/_shared.ts) |
+| **v2.E.4** ReceitaBar Recharts→Chart.js + PeriodToggle (séries mensais) | `report-v2-receita-bar-chartjs` | R (1d) | P1 | E.1, E.2 | [`ReceitaBarChart.tsx`](../../../../frontend/src/components/report/charts/ReceitaBarChart.tsx) |
+| **v2.E.5** DespesasDoughnut Recharts→Chart.js + datalabels + PeriodToggle | `report-v2-despesas-doughnut-chartjs` | R (1d) | P1 | E.1, E.2 | [`DespesasDoughnutChart.tsx`](../../../../frontend/src/components/report/charts/DespesasDoughnutChart.tsx) |
+| **v2.E.6** ReceitaDespesaMensal Recharts→Chart.js + slide window 12m + tooltip stack + legenda agrupada | `report-v2-receita-despesa-chartjs` | R/O (1-2d) | P1 | E.1, E.2 | [`ReceitaDespesaMensalChart.tsx`](../../../../frontend/src/components/report/charts/ReceitaDespesaMensalChart.tsx) |
+| **v2.E.7** Plugar `ScoreCard` premium em S1 + `score.context`/`score.conclusion` (absorve v2.5) | `report-v2-score-card-plug` | R (½-1d) | P1 | — | [`S1PatrimonioSection.tsx:12,72`](../../../../frontend/src/components/report/sections/S1PatrimonioSection.tsx); [`ScoreCard.tsx`](../../../../frontend/src/components/report/ui/ScoreCard.tsx); [`report-analysis.ts`](../../../../frontend/src/types/report-analysis.ts); backend `financial_score_calculator` |
+| **v2.E.8** re-baseline + cleanup imports Recharts órfãos + ADR-13X | `report-v2-charts-rebaseline` | S (≤4h) | P0 | **todas as anteriores** | `frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts-snapshots/`; [`_registry.ts`](../../../../frontend/src/components/report/charts/_registry.ts); deletar `ScoreGaugeChart.tsx`; nova ADR-13X |
 
 ### 2.3 Decisões de design pré-aprovadas
 
@@ -134,7 +134,7 @@ em paralelo (1-2d) → E.8 (½d) ≈ **2-3 dias**.
   `frontend/src/app/(app)/dashboard/_components/` e
   `frontend/src/components/charts/Mathom*.tsx` — **não tocar**.
 - **Primitives:** reaproveitar
-  [primitives/](../../frontend/src/components/report/charts/primitives/) —
+  [primitives/](../../../../frontend/src/components/report/charts/primitives) —
   cada chart envolve `ChartBar` / `ChartDonut` / `ChartGaugeSemi`,
   não `ChartCanvas` direto.
 - **Period toggle:** componente novo em `report/ui/PeriodToggle.tsx`,
@@ -205,7 +205,7 @@ em paralelo (1-2d) → E.8 (½d) ≈ **2-3 dias**.
    `ytd` = de `jan/<ano corrente>` até último mês com dado. Anchor
    default = último mês de `allLabels`.
 3. Adicionar `PeriodToggle` ao
-   [`frontend/src/components/report/ui/index.ts`](../../frontend/src/components/report/ui/index.ts).
+   [`frontend/src/components/report/ui/index.ts`](../../../../frontend/src/components/report/ui/index.ts).
 4. Vitest unit em `frontend/src/components/report/__tests__/`:
    - `usePeriodWindow.test.ts` — 4 cenários (3m/6m/12m/ytd) + edge cases (≤3 meses, anchor inválido).
    - `PeriodToggle.test.tsx` — render + click muda `value`.
@@ -228,7 +228,7 @@ em paralelo (1-2d) → E.8 (½d) ≈ **2-3 dias**.
 
 **Entrega:**
 
-1. Estender [`FluxoCaixaSummary.receita_despesa_mensal_detalhado`](../../frontend/src/types/report-analysis.ts:122-126):
+1. Estender [`FluxoCaixaSummary.receita_despesa_mensal_detalhado`](../../../../frontend/src/types/report-analysis.ts:122-126):
    ```ts
    receita_despesa_mensal_detalhado?: {
      labels?: string[];
@@ -246,7 +246,7 @@ em paralelo (1-2d) → E.8 (½d) ≈ **2-3 dias**.
      readonly borderRadius?: number;
    }
    ```
-2. Confirmar que backend já entrega — sim, [`fluxo_caixa_enricher.py:168-174`](../../pipeline/domain/services/fluxo_caixa_enricher.py)
+2. Confirmar que backend já entrega — sim, [`fluxo_caixa_enricher.py:168-174`](../../../../pipeline/domain/services/fluxo_caixa_enricher.py)
    já serializa em `to_legacy_dict()`. **Não tocar pipeline.**
 3. Validar com `tsc` que nenhum consumidor existente quebra (campos
    opcionais, retrocompatível).
@@ -267,9 +267,9 @@ em paralelo (1-2d) → E.8 (½d) ≈ **2-3 dias**.
 
 **Entrega:**
 
-1. Reescrever [`FluxoMensalChart.tsx`](../../frontend/src/components/report/charts/FluxoMensalChart.tsx)
+1. Reescrever [`FluxoMensalChart.tsx`](../../../../frontend/src/components/report/charts/FluxoMensalChart.tsx)
    trocando `recharts` por `ChartBar` de
-   [primitives](../../frontend/src/components/report/charts/primitives/).
+   [primitives](../../../../frontend/src/components/report/charts/primitives).
 2. Adicionar estado `period: Period` (default `"12m"`) e
    `<PeriodToggle>` acima do chart (visual `EXEMPLO_DE_RELATORIO.html:1776`).
 3. Aplicar `usePeriodWindow` para slice de `labels` e `data` antes de
@@ -306,7 +306,7 @@ em paralelo (1-2d) → E.8 (½d) ≈ **2-3 dias**.
 
 **Entrega:**
 
-1. Hoje [`ReceitaBarChart.tsx`](../../frontend/src/components/report/charts/ReceitaBarChart.tsx)
+1. Hoje [`ReceitaBarChart.tsx`](../../../../frontend/src/components/report/charts/ReceitaBarChart.tsx)
    usa `por_fonte` (totais agregados sem decomposição mensal).
    **Trocar para usar `receita_datasets[]`** (séries mensais por fonte
    já entregues pelo backend).
@@ -338,7 +338,7 @@ em paralelo (1-2d) → E.8 (½d) ≈ **2-3 dias**.
 
 **Entrega:**
 
-1. Reescrever [`DespesasDoughnutChart.tsx`](../../frontend/src/components/report/charts/DespesasDoughnutChart.tsx)
+1. Reescrever [`DespesasDoughnutChart.tsx`](../../../../frontend/src/components/report/charts/DespesasDoughnutChart.tsx)
    em `ChartDonut` (primitive). Hoje usa `despesas_por_categoria` (totais
    agregados); trocar para `despesa_datasets[]` (séries mensais por
    categoria) e somar dentro da janela.
@@ -367,7 +367,7 @@ em paralelo (1-2d) → E.8 (½d) ≈ **2-3 dias**.
 **Entrega — esta é a sub-lane mais densa.** Replicar
 `EXEMPLO_DE_RELATORIO.html:1794-1806` + script `:7756-7939`:
 
-1. Reescrever [`ReceitaDespesaMensalChart.tsx`](../../frontend/src/components/report/charts/ReceitaDespesaMensalChart.tsx)
+1. Reescrever [`ReceitaDespesaMensalChart.tsx`](../../../../frontend/src/components/report/charts/ReceitaDespesaMensalChart.tsx)
    trocando `AreaChart` Recharts por `ChartBar` Chart.js stacked com 2
    `stackId` (`"receita"`, `"despesa"`).
 2. **Datasets:** consumir `receita_datasets[]` + `despesa_datasets[]`
@@ -421,10 +421,10 @@ mergear este PR**.
 
 **Parte A (frontend — plug do ScoreCard):**
 
-1. Em [`S1PatrimonioSection.tsx:12,72`](../../frontend/src/components/report/sections/S1PatrimonioSection.tsx),
+1. Em [`S1PatrimonioSection.tsx:12,72`](../../../../frontend/src/components/report/sections/S1PatrimonioSection.tsx),
    trocar `<ScoreGaugeChart score={score} />` por
-   `<ScoreCard … />` ([ScoreCard.tsx](../../frontend/src/components/report/ui/ScoreCard.tsx)).
-2. Estender [`ScoreCardProps`](../../frontend/src/components/report/ui/ScoreCard.tsx):
+   `<ScoreCard … />` ([ScoreCard.tsx](../../../../frontend/src/components/report/ui/ScoreCard.tsx)).
+2. Estender [`ScoreCardProps`](../../../../frontend/src/components/report/ui/ScoreCard.tsx):
    ```ts
    readonly context?: string;       // parágrafo abaixo do título
    readonly conclusion?: string;    // parágrafo abaixo do breakdown
@@ -439,7 +439,7 @@ Origem v2.5: hoje `score` está sendo lido com `as ScoreData` casting em
 sections, sem campo top-level no `ReportAnalysisData`. Resolver:
 
 1. Adicionar `score?: ScoreData` no top-level de `ReportAnalysisData`
-   em [`report-analysis.ts`](../../frontend/src/types/report-analysis.ts).
+   em [`report-analysis.ts`](../../../../frontend/src/types/report-analysis.ts).
 2. Estender `ScoreData` com `context?: string` e `conclusion?: string`.
 3. Remover casts `as ScoreData` em `S1PatrimonioSection.tsx` e
    onde mais houver (grep).
@@ -462,7 +462,7 @@ sections, sem campo top-level no `ReportAnalysisData`. Resolver:
 
 **Parte D (cleanup):**
 
-1. Deletar [`ScoreGaugeChart.tsx`](../../frontend/src/components/report/charts/ScoreGaugeChart.tsx).
+1. Deletar `frontend/src/components/report/charts/ScoreGaugeChart.tsx`.
 2. Remover linha de `_registry.ts:10` e do `MIGRATED_CHART_IDS:21`.
 
 **Critério de aceite:**
@@ -589,5 +589,5 @@ sections, sem campo top-level no `ReportAnalysisData`. Resolver:
    listados na coluna "Toca" da tabela §2.2.
 5. Rode os testes locais relevantes para entender o baseline antes de mudar.
 6. Implemente em commits atômicos (1 lógica por commit).
-7. PR para main, marca a checkbox correspondente em [BACKLOG.md](../BACKLOG.md)
+7. PR para main, marca a checkbox correspondente em [BACKLOG.md](../../../BACKLOG.md)
    e referencia esta lane (`v2.E.<n>`) no título do PR.
