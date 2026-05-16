@@ -40,7 +40,7 @@ explicitamente:
 Os três consumidores que justificavam ADR-124 nunca foram consumidores
 reais — eram hipóteses herdadas da fase CLI. Email não está implementado;
 "backup offline" e "impressão sem app" são cobertos pelo export PDF
-server-side ([backend/app/services/pdf_renderer.py](../backend/app/services/pdf_renderer.py)
+server-side ([backend/app/services/pdf_renderer.py](../../backend/app/services/pdf_renderer.py)
 via Playwright sobre a rota React `/reports/[id]`). A rota Next SSR
 proposta por ADR-124 gastaria esforço para servir um endpoint sem
 cliente.
@@ -48,7 +48,7 @@ cliente.
 O relatório nativo React em `frontend/src/components/report/**` já é o
 renderer primário desde [ADR-078](#adr-078--render-nativo-react--e6-como-exportador-standalone)
 e ganhou paridade visual com `EXEMPLO_DE_RELATORIO.html` via Fases 0-10
-do [Report Premium Plan](plan/REPORT_PREMIUM/_README.md).
+do [Report Premium Plan](../plan/REPORT_PREMIUM/_README.md).
 
 **Decisão:** **Descontinuar completamente o renderer HTML server-side.**
 Nenhum Python renderiza relatório; nenhum endpoint HTTP serve HTML de
@@ -64,21 +64,21 @@ Escopo concreto da remoção (executado em PR sequencial pós-ADR):
   `"E6"`, `"E6-final"` e variantes de `STAGE_REGISTRY`, `FULL_ORDER`,
   `DETERMINISTIC_ORDER`, mapeamentos `_STAGE_TO_DIR`/`_STAGE_TO_SUFFIX`
   (se houver), e `_E6_DISK_INPUTS`.
-- **Backend API:** [backend/app/api/reports.py](../backend/app/api/reports.py)
+- **Backend API:** [backend/app/api/reports.py](../../backend/app/api/reports.py)
   — rotas `GET /html` e `GET /download.html`;
-  [backend/app/api/admin/reports.py](../backend/app/api/admin/reports.py)
+  [backend/app/api/admin/reports.py](../../backend/app/api/admin/reports.py)
   — rota admin `/html`;
-  [backend/app/application/report/get_report_html.py](../backend/app/application/report/get_report_html.py)
+  `backend/app/application/report/get_report_html.py`
   — use cases inteiros (`get_report_html`, `download_report_html`).
-- **Backend task:** [backend/app/tasks/pipeline_task.py](../backend/app/tasks/pipeline_task.py)
+- **Backend task:** [backend/app/tasks/pipeline_task.py](../../backend/app/tasks/pipeline_task.py)
   `_create_report_from_output` deixa de procurar `.html`. `Report` passa
   a ser criado sem `html_path`.
-- **Backend seed:** [backend/app/services/seed.py](../backend/app/services/seed.py)
+- **Backend seed:** [backend/app/services/seed.py](../../backend/app/services/seed.py)
   `seed_existing_reports` inteiro é removido (dependia de CLI gerando
   `output/relatorio_financeiro_*.html`). `ensure_seed_user` permanece.
   O entrypoint `backend/seed_db.py` é removido junto — não há mais o
   que importar do filesystem.
-- **Modelo + migration:** [backend/app/models/report.py](../backend/app/models/report.py)
+- **Modelo + migration:** [backend/app/models/report.py](../../backend/app/models/report.py)
   — campo `html_path` **removido**. Nova migration Alembic
   `DROP COLUMN html_path` (Opção A — drop total; não é nullable).
 - **Frontend dead code:** `getReportHtmlUrl`, `getReportHtmlDownloadUrl`

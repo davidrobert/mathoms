@@ -341,7 +341,7 @@ pre-commit run --all-files
 | "Hero conversacional / chat na landing?" | Fora de escopo; entra como P5 ou refresh do P4 quando Fase 3 (chat) beta |
 | "Programa de embaixadores CFP / contadores?" | Fase 4.F |
 | "SEO long-tail sobre keywords Pierre?" | Fase 4.E (parcial) |
-| "Pesquisa de segmento qualitativa (10-15 entrevistas HENRY)?" | Fase 4.A — track [`gtm-segment-research.md`](../../A11/tracks/) (a criar) |
+| "Pesquisa de segmento qualitativa (10-15 entrevistas HENRY)?" | Fase 4.A — track [`gtm-segment-research.md`](.) (a criar) |
 
 ---
 
@@ -383,4 +383,4 @@ pre-commit run --all-files
 ### Sprint placement
 
 - [SPRINTS-active](../../../_MOC/SPRINTS-active.md) — lane `A11.competitive-pierre`
-- [Sprint A11 _README](../../A11/_README.md) — contexto da sprint corrente
+- [Sprint A11 _README](../_README.md) — contexto da sprint corrente

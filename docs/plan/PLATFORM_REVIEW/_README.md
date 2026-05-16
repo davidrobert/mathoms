@@ -444,7 +444,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T01
 - **severity:** P1 · **effort:** S · **owner:** product-designer
-- **status:** scoped — track em [agent_prompts/track_w5t01_a11y.md](agent_prompts/track_w5t01_a11y.md)
+- **status:** scoped — track histórico `agent_prompts/track_w5t01_a11y.md`
 - **files_touched:** 13 arquivos com `<th>`, IFHeroCard, EquilibrioCerbasiCard, Kpi, charts Recharts, globals.css
 - **related_findings:** PD-007, PD-014, PD-015, PD-021
 - **acceptance_criteria:** axe-core sobe para `moderate` em a11y.@critical.spec.ts e mantém verde; primitivo `<ProgressBar/>` extraído.
@@ -460,7 +460,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T01
 - **severity:** P1 · **effort:** M · **owner:** product-designer
-- **status:** scoped — track em [agent_prompts/track_w5t03_monetary_value.md](agent_prompts/track_w5t03_monetary_value.md). Inventário concreto: 9 wrappers monetários + 9 toLocaleString = 18 call-sites (excede estimativa de 11).
+- **status:** scoped — track histórico `agent_prompts/track_w5t03_monetary_value.md`. Inventário concreto: 9 wrappers monetários + 9 toLocaleString = 18 call-sites (excede estimativa de 11).
 - **files_touched:** 11+ cards/components (Endividamento, Reserva, IRPF×4, EstrategiaAporte, SupportGoalsRow, KPICard etc.)
 - **related_findings:** PD-006, PD-010, PD-011, PD-012, PD-013
 - **acceptance_criteria:** todos consomem `<MonetaryValue size="kpi"/>`; sem `font-mono text-Xxl tabular-nums` redundante; sem `toLocaleString()` direto em strings monetárias; `formatCurrency()` usado quando precisa string.
@@ -469,7 +469,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T07
 - **severity:** P1 · **effort:** L (~7-10 dias paralelizáveis) · **owner:** financial-planner
-- **status:** scoped — track em [agent_prompts/track_w5t04_adr161_enrichment.md](agent_prompts/track_w5t04_adr161_enrichment.md). Sub-PR #5 (renda_passiva_real_baixa) recomendado primeiro como gate de validação; #2 (seguros) maior valor para usuário final mas custo alto (paralelizar em background).
+- **status:** scoped — track histórico `agent_prompts/track_w5t04_adr161_enrichment.md`. Sub-PR #5 (renda_passiva_real_baixa) recomendado primeiro como gate de validação; #2 (seguros) maior valor para usuário final mas custo alto (paralelizar em background).
 - **files_touched:** `pipeline/domain/services/{cash_flow_builder,instituicoes_por_membro_analyzer,fluxo_caixa_enricher}.py`, novo `WorkspaceInsurance` model + migration + endpoints, `MarketRate` IPCA reader
 - **acceptance_criteria:** 5 regras dormentes (`taxa_poupanca_caindo`, `seguros_insuficientes`, `concentracao_instituicao`, `lifestyle_creep`, `renda_passiva_real_baixa`) disparam em snapshot real; teste e2e em `tests/test_e5_to_suggestion_e2e.py`.
 
@@ -477,7 +477,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** —
 - **severity:** P1 · **effort:** L (~5-7 dias) · **owner:** financial-planner
-- **status:** scoped — track em [agent_prompts/track_w5t05_goal_if_v2.md](agent_prompts/track_w5t05_goal_if_v2.md). Caminho recomendado: cutover agora (Trade-off 2 ratificado); override `imoveis_no_if` por workspace fica fora desta lane (débito ADR-142).
+- **status:** scoped — track histórico `agent_prompts/track_w5t05_goal_if_v2.md`. Caminho recomendado: cutover agora (Trade-off 2 ratificado); override `imoveis_no_if` por workspace fica fora desta lane (débito ADR-142).
 - **files_touched:** `pipeline/domain/services/if_projector.py`, `pipeline/domain/services/passive_income_calculator.py`, `pipeline/domain/services/patrimonio_calculator.py`, `backend/app/services/goal_service.py`, frontend `useGoalIF.ts`
 - **acceptance_criteria:** PR-A IFProjector emite v1+v2 lado-a-lado (additive); PR-B Frontend lê v2 (v1 fallback); PR-C drop v1 (controlled breaking); `progresso_if` muda denominador para `if_meta_liquida`; toggle `imoveis_no_if` por workspace.
 
@@ -492,7 +492,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T08
 - **severity:** P1 · **effort:** L · **owner:** data-engineer
-- **status:** scoped — track em [agent_prompts/track_w6t01_schema_hardening.md](agent_prompts/track_w6t01_schema_hardening.md). 3 sub-PRs sequenciais (Foundation codegen → E4 split + read-side compat → strict cutover).
+- **status:** scoped — track histórico `agent_prompts/track_w6t01_schema_hardening.md`. 3 sub-PRs sequenciais (Foundation codegen → E4 split + read-side compat → strict cutover).
 - **related_findings:** DE-006, DE-007, DE-014, DE-018, DE-020, DE-021, DE-012, DE-005
 - **files_touched:** `config/schemas/*.schema.json` (7 novos para E4 split + e5_narrativas + e7_review + e7_crossval), `pipeline/domain/services/*_serialization.py` (gravar Decimal string), `dev/backfill_money_decimal.py` (NOVO)
 - **acceptance_criteria:** schemas declaram top-level strict; `e7_review.schema.json` + `e5_narrativas.schema.json` + `validate_cross.schema.json` auto-gerados de Pydantic; ADR-090 wire compliance em todos os 5 schemas monetários; modo `strict` flippado como default.
@@ -526,7 +526,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** —
 - **severity:** P2 · **effort:** M · **owner:** data-engineer
-- **status:** scoped — track em [agent_prompts/track_w6t05_artifacts_retention.md](agent_prompts/track_w6t05_artifacts_retention.md). 5 PRs sequenciais (estrutura → backfill schema_version → write path → prune task → cascade test). Hotspot `db_artifact_store.write` colide com W2-T01 (Fernet) — coordenar.
+- **status:** scoped — track histórico `agent_prompts/track_w6t05_artifacts_retention.md`. 5 PRs sequenciais (estrutura → backfill schema_version → write path → prune task → cascade test). Hotspot `db_artifact_store.write` colide com W2-T01 (Fernet) — coordenar.
 - **related_findings:** DE-010, DE-011, DE-017, DE-022
 - **files_touched:** Alembic migration adicionando `retention_until` + cascade FK, `backend/app/tasks/prune_artifacts.py` (NOVO), `backend/app/services/document_pipeline_sync.py` (delete_by_document_id cascade)
 - **acceptance_criteria:** retention configurável (90d run-scoped, NULL workspace-scoped); celery beat task daily; FK ON DELETE CASCADE para Document → pipeline_artifacts; schema_version bumpado em writes.

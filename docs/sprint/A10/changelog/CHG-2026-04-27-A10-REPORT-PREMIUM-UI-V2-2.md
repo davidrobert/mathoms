@@ -16,7 +16,7 @@ tags:
 # Report Premium UI v2.8 — comparisons + changelog ativos no relatório ✅ (2026-04-27)
 
 - **Report Premium UI v2.8 — comparisons + changelog ativos no relatório ✅ (2026-04-27):**
-  Conecta o `SnapshotChangelogBuilder` (v2.D.1 · [ADR-148](DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório))
+  Conecta o `SnapshotChangelogBuilder` (v2.D.1 · [ADR-148](../../../DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório))
   ao endpoint + UI. 12 placeholders YAML em S1/S2/S3/T2/T3/T5 flippados de
   `enabled:false → true` (commit `384b5bf`); `GET /reports/{id}/data` injeta
   `comparisons: ComparisonItemRead[] | null` + `changelog: ChangelogEntryRead[] | null`

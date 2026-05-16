@@ -21,7 +21,7 @@ tags:
 > **Coordena com:** A7.2a (Decision aggregate), A7.2b (fiscal/market), A7.3 (catalog/override). Nenhum overlap de arquivos esperado, mas conceitualmente A7.3 redefine taxonomia de categorias e A7.2a captura algumas "decisões" hoje em `definitions.md`.
 > **Conflita com:** qualquer commit ativo em `docs/methodology/**`, `pipeline/domain/services/{cash_flow_builder,income_origin_resolver}.py`, `scripts/e5_analyze.py::parse_milhas_md`.
 > **Onda:** 2.5 (paralelo a Onda 2 mas com gate G1 pendente — ADRs precisam ser mergeadas antes de codar).
-> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.6](../CONFIG_CUTOVER_PLAN.md#§56-a76--rules-as-code-dissolver-docsmethodology).
+> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.6](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md#§56-a76--rules-as-code-dissolver-docsmethodology).
 > **ADRs novas (gate G1):** ADR-143 (`docs/methodology/` é rules-as-code), ADR-145 (composição patrimonial canonical 7-bucket), ADR-146 (E3 source hierarchy), ADR-147 (milhas valuation + storage workspace-scoped).
 > **Supervisão CTO:** G1 (ADR draft) **antes** de tocar código · G2 (schema review p/ migrator de milhas) · G3 (PR pré-merge).
 
@@ -185,7 +185,7 @@ Após cada commit: rebase em `origin/main`, `pytest backend/tests` + `pytest tes
 
 ---
 
-## Acceptance gates ([CONFIG_CUTOVER_PLAN.md §5.6](../CONFIG_CUTOVER_PLAN.md))
+## Acceptance gates ([CONFIG_CUTOVER_PLAN.md §5.6](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md))
 
 - [ ] ADRs 139-142 status **Decidido** em `docs/DECISIONS.md`.
 - [ ] `find docs/methodology/ -type f` → empty (ou diretório deletado).

@@ -19,7 +19,7 @@ size_lines: 47
 
 # ADR-082 — PipelineArtifact: artefatos computacionais no banco
 
-**Status:** Decidido • **Data:** 2026-04-19 • **Status de execução:** [BACKLOG §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal)
+**Status:** Decidido • **Data:** 2026-04-19 • **Status de execução:** [BACKLOG §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal)
 
 **Contexto:** Artefatos intermediários do pipeline (E2–E7) viviam em
 `storage/<ws>/processed/*.json` e o backend se referia a eles por convenção de

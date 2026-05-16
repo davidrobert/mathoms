@@ -19,7 +19,7 @@ tags:
 # Track Category Overrides W2 — Schema delta
 
 > **Lane ID:** category-overrides-schema-delta
-> **Plano canônico:** [docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../../../plan/CATEGORY_OVERRIDES_UX/_README.md) §Wave 2
+> **Plano canônico:** [docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../../../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md) §Wave 2
 > **Branch prefix:** `agent/category-overrides-schema-delta/*`
 > **Depende de:** —
 > **Bloqueia:** W4-T01 (precisa do DTO `template_version_used`/`latest_template_version` para sinal v2 desatualizada)
@@ -80,6 +80,6 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano: [PLAN-category-overrides-ux](../../../plan/CATEGORY_OVERRIDES_UX/_README.md)
+- Plano: [PLAN-category-overrides-ux](../../../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md)
 - ADR canônica: ADR-185 §4 (a publicar em W3 desta lane)
 - ADRs relacionadas: [[ADR-109]] (OpenAPI snapshot), [[ADR-137]] (template + override)

@@ -17,8 +17,8 @@ tags:
 
 > **Lane ID:** `w5t05-goal-if-v2`
 > **Branch prefix:** `agent/w5t05-goal-if-v2/<yyyyMMdd-HHmm>`
-> **Plano canônico:** [plan/PLATFORM_REVIEW/_README.md §W5-T05](../plan/PLATFORM_REVIEW/_README.md)
-> **ADRs:** [ADR-140](../DECISIONS.md) (schema v2 — Roadmap) · [ADR-142](../DECISIONS.md) (anti-dupla-contagem — Decidido)
+> **Plano canônico:** [plan/PLATFORM_REVIEW/_README.md §W5-T05](../../../plan/PLATFORM_REVIEW/_README.md)
+> **ADRs:** [ADR-140](../../../DECISIONS.md) (schema v2 — Roadmap) · [ADR-142](../../../DECISIONS.md) (anti-dupla-contagem — Decidido)
 > **Onda:** Wave 5 (paraleliza com W5-T01/T03/T04 e W6-T*)
 > **Severity:** P1 · **Effort:** L (~5-7d) — sequencial estrito
 > **Owner:** financial-planner

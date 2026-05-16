@@ -222,7 +222,7 @@ Para auditoria ad-hoc do repo inteiro: `python3 dev/check_sigilo_terms.py --all`
 | "Hero conversacional / chat na landing?" | Fora de escopo desta ADR; entra como P5 ou refresh do P4 quando Fase 3 (chat) beta |
 | "Programa de embaixadores CFP / contadores?" | Fase 4.F — track separado, owner CEO + comercial |
 | "SEO long-tail sobre keywords Pierre?" | Fase 4.E (parcial — não ataca, só diferencia factualmente) |
-| "Pesquisa de segmento qualitativa (10-15 entrevistas HENRY)?" | Fase 4.A — track [`gtm-segment-research.md`](../../A11/tracks/) (a criar; em paralelo desde dia 1) |
+| "Pesquisa de segmento qualitativa (10-15 entrevistas HENRY)?" | Fase 4.A — track [`gtm-segment-research.md`](.) (a criar; em paralelo desde dia 1) |
 
 ---
 
@@ -255,4 +255,4 @@ Para auditoria ad-hoc do repo inteiro: `python3 dev/check_sigilo_terms.py --all`
 ### Sprint placement
 
 - [SPRINTS-active](../../../_MOC/SPRINTS-active.md) — lane `A11.competitive-pierre` declarada
-- [Sprint A11 _README](../../A11/_README.md) — contexto da sprint corrente
+- [Sprint A11 _README](../_README.md) — contexto da sprint corrente

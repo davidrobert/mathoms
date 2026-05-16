@@ -249,7 +249,7 @@ _PLAN_RICH_FRAGMENTS: tuple[str, ...] = (
     "Sprint atual: A11",
     "ADRs canônicas: [[ADR-182]]",
     "Pausado em: 2026-04-15 · Razão: aguarda OKR FY26",
-    "_Lanes serão linkadas após Fase 4",
+    "_Lanes ainda nao foram atomizadas",
 )
 
 
@@ -397,7 +397,8 @@ _OPTIONAL_GROUP_LABELS: dict[str, str] = {
     ),
     "changelog": (
         ", changelog-empty, changelog-today, changelog-old-filtered, "
-        "changelog-grouping, changelog-summary, changelog-no-lane, changelog-idemp"
+        "changelog-grouping, changelog-summary, changelog-no-lane, "
+        "changelog-generated-links, changelog-idemp"
     ),
 }
 
@@ -432,14 +433,14 @@ def _maybe_run_plan_tests(plan_build_fn, note_cls: type) -> tuple[list[str], int
 
 
 def _maybe_run_changelog_tests(changelog_build_fn, note_cls: type) -> tuple[list[str], int]:
-    """Importa e roda os 7 smoke tests do CHANGELOG_RECENT se o build_fn foi passado."""
+    """Importa e roda os 8 smoke tests do CHANGELOG_RECENT se o build_fn foi passado."""
     if changelog_build_fn is None:
         return [], 0
     try:
         from _test_changelog_recent_smoke import run_changelog_smoke_tests
     except ModuleNotFoundError:  # pragma: no cover
         from dev._test_changelog_recent_smoke import run_changelog_smoke_tests
-    return run_changelog_smoke_tests(changelog_build_fn, note_cls), 7
+    return run_changelog_smoke_tests(changelog_build_fn, note_cls), 8
 
 
 _OPTIONAL_RUNNERS: tuple[tuple[str, Callable], ...] = (

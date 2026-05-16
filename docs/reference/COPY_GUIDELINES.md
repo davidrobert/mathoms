@@ -24,7 +24,7 @@
 | Incerteza | Premissa declarada explicitamente | Esconde hipótese atrás de número exato |
 
 Princípios codificados em
-[.claude/agents/product-designer.md](../.claude/agents/product-designer.md)
+[.claude/agents/product-designer.md](../../.claude/agents/product-designer.md)
 ("Tom: sério, confiável, legível — não gamificado, não infantil"):
 **não duplicar**, citar quando precisar reforçar.
 
@@ -39,7 +39,7 @@ Tudo que projeta o futuro carrega premissa. Sempre declare a premissa
 - ❌ "Sua renda passiva será R$ 18.500 por mês."
 
 Disclaimers obrigatórios estão em
-[config/methodology.md](../config/methodology.md) §Disclaimers. Não
+[config/methodology.md](../../config/methodology.md) §Disclaimers. Não
 remover por concisão.
 
 ### 1.2 Vocativo
@@ -63,7 +63,7 @@ remover por concisão.
 >
 > Gera, em F12.6b, `config/i18n_glossary.yaml` com as traduções
 > normativas para os 9 demais locales (ver
-> [plan/I18N/_README.md §6.2](plan/I18N/_README.md)).
+> [plan/I18N/_README.md §6.2](../plan/I18N/_README.md)).
 
 | Termo canônico | Definição (1 linha) | Capitalização | Abreviação aceita | Sinônimos a **evitar** |
 | --- | --- | --- | --- | --- |
@@ -74,7 +74,7 @@ remover por concisão.
 | **Patrimônio investível** | Termo umbrella — **prefira as 3 formas precisas abaixo** quando o contexto importar (score, IF, projeção). | minúsculo em corpo | — | `capital`, `investido` |
 | **Patrimônio investível financeiro** | `cat_3 + cat_4 + cat_5 + cat_6` — apenas ativos financeiros líquidos. **Métrica canônica para `progresso_if`** — alinhada ao padrão consagrado de planejamento patrimonial brasileiro (atribuição interna admitida; ver §13). | minúsculo em corpo | — | — |
 | **Patrimônio investível total** | `bruto − cat_1 − cat_7` — exclui residência principal e veículos. Inclui imóveis de investimento. Métrica retro-compat. | minúsculo em corpo | — | — |
-| **Patrimônio investível efetivo** | `investivel_financeiro + (cat_2 if workspace.imoveis_no_if else 0)` — métrica usada de fato no score `progresso_if` (ver [ADR-142](DECISIONS.md#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)). | minúsculo em corpo | — | — |
+| **Patrimônio investível efetivo** | `investivel_financeiro + (cat_2 if workspace.imoveis_no_if else 0)` — métrica usada de fato no score `progresso_if` (ver [ADR-142](../DECISIONS.md#adr-142--toggle-imoveis_no_if-em-pipelinejson--invariante-anti-dupla-contagem)). | minúsculo em corpo | — | — |
 | **Aporte** | Valor mensal direcionado a investimentos para compor o número da IF | minúsculo em corpo | — | `contribuição`, `poupança`, `economia` |
 | **Aporte programado / DCA** | Aporte automático recorrente (Dollar-Cost Averaging) | minúsculo em corpo | `DCA` aceito após primeira menção | `compra programada` |
 | **Score financeiro** | Nota 0–10 ponderada por 5 critérios (poupança, cobertura, endividamento, IF, diversificação) | minúsculo em corpo; "Score Financeiro" em card title | — | `nota geral`, `health score` |

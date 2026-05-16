@@ -689,6 +689,14 @@ estivessem lá. A regra #1 de "commit antes de devolver turno" (§Cadência)
 previne esse caso — esta detecção é o safety net quando a regra foi
 violada.
 
+### Busca ampla no repo
+
+Use `rg`/`rg --files` para exploração. A raiz tem `.rgignore`/`.ignore`
+excluindo `.claude/worktrees/`, que contém cópias completas do repo e
+multiplica tokens sem adicionar contexto canônico. **Não use `--no-ignore`
+em busca exploratória.** Se precisar auditar um worktree específico,
+busque pelo path explícito desse worktree e diga por quê.
+
 ### Antes de pegar uma task do BACKLOG
 
 Agentes trabalham em branches `agent/<slug>/<timestamp>`. Dois agentes na

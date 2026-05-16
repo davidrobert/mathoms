@@ -102,13 +102,13 @@ frontend/tests/hooks/useReportData.test.tsx  # F9 — 6 tests (hook)
 
 Duas suítes complementares protegem multi-tenant:
 
-- [backend/tests/test_multi_tenant_isolation.py](../backend/tests/test_multi_tenant_isolation.py)
+- [backend/tests/test_multi_tenant_isolation.py](../../backend/tests/test_multi_tenant_isolation.py)
   — domínio-a-domínio. Para cada agregado (members, categories,
   documents, vault, pipeline runs, reports, transactions, LLM config,
   notifications), seeda 2 workspaces com dados distintos e prova que
   endpoints autenticados como user A nunca devolvem payload de user B.
 
-- [backend/tests/integration/test_tenancy_isolation.py](../backend/tests/integration/test_tenancy_isolation.py)
+- [backend/tests/integration/test_tenancy_isolation.py](../../backend/tests/integration/test_tenancy_isolation.py)
   — estrutural. Roda 3 gates:
   1. **Fuzz por path-param**: itera todas as rotas
      `/api/v1/workspaces/{workspace_id}/...` e tenta acesso cross-tenant;
@@ -127,7 +127,7 @@ Quando adicionar endpoint novo `/workspaces/{workspace_id}/...`:
 - Para sunset (410-only), some o nome em `_TENANCY_EXEMPTIONS`.
 
 LGPD self-service (`/api/v1/me/data-export*`, `/me/delete-request`) tem
-suíte dedicada em [backend/tests/test_lgpd_self_service.py](../backend/tests/test_lgpd_self_service.py)
+suíte dedicada em [backend/tests/test_lgpd_self_service.py](../../backend/tests/test_lgpd_self_service.py)
 — inclui audit trail, TTL de download, cooldown de export, soft-then-hard
 delete via cron e rejeição cross-tenant do `request_id`.
 
@@ -142,7 +142,7 @@ source .venv/bin/activate
 MATHOMS_FERNET_KEY="<chave>" pytest backend/tests/test_<modulo>.py -q
 ```
 
-**DB isolation strategy:** *recreate-per-test* sobre SQLite in-memory. Documentado em [`backend/tests/conftest.py`](../backend/tests/conftest.py). Cada test vê schema limpo.
+**DB isolation strategy:** *recreate-per-test* sobre SQLite in-memory. Documentado em [`backend/tests/conftest.py`](../../backend/tests/conftest.py). Cada test vê schema limpo.
 
 ### Pipeline
 
@@ -486,7 +486,7 @@ Toda PR que altera `frontend/tests/e2e/reports/*-snapshots/` deve marcar:
 
 **Default (PR checks):** LiteLLM mockado. Custo $0. Rápido.
 
-**Fixtures em disco (pipeline):** [tests/fixtures/llm_golden/README.md](../tests/fixtures/llm_golden/README.md) — um JSON por estágio LLM; `pytest tests/test_llm_golden.py` valida schemas e conversores (CI já roda via `pytest tests/`).
+**Fixtures em disco (pipeline):** [tests/fixtures/llm_golden/README.md](../../tests/fixtures/llm_golden/README.md) — um JSON por estágio LLM; `pytest tests/test_llm_golden.py` valida schemas e conversores (CI já roda via `pytest tests/`).
 
 ```python
 # backend/tests/fixtures/llm_mock.py expõe `mock_llm_service()` que retorna
@@ -512,7 +512,7 @@ Validates:
 
 Se nightly falha: issue auto-gerada. Cost cap no CI secret: <$10/mês esperado.
 
-Ver [ADR-070](DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) para rationale.
+Ver [ADR-070](../DECISIONS.md#adr-070--premium-llm-e2e-mock-default--nightly-real-opt-in) para rationale.
 
 ---
 
@@ -525,7 +525,7 @@ A: Pipeline é package Python independente (pode ser usado standalone); backend 
 A: MSW intercepta no nível de fetch/XHR — testa o código real de `lib/api.ts` em vez de stubs. Mais perto do comportamento real, menos chance de drift.
 
 **Q: Por que recreate-per-test e não transactions+rollback?**
-A: Ver docstring de [`backend/tests/conftest.py`](../backend/tests/conftest.py). TL;DR: SQLite in-memory é instantâneo (~5ms) e isolation é trivial; otimizações são prematuras.
+A: Ver docstring de [`backend/tests/conftest.py`](../../backend/tests/conftest.py). TL;DR: SQLite in-memory é instantâneo (~5ms) e isolation é trivial; otimizações são prematuras.
 
 **Q: Posso commitar PDFs reais como fixture?**
 A: **Não** sem anonimização completa e revisão. Padrão: gerador sintético em `tests/fixtures/pdf_generator.py`. Lint custom (6.5D.7) bloqueia CPF real em fixtures. **Segunda fase (planejada):** PDFs reais **anonimizados** versionados, com processo documentado em [PIPELINE_ARTIFACTS.md](PIPELINE_ARTIFACTS.md) — só depois de concluída a cobertura sintética por banco-alvo.
@@ -671,7 +671,7 @@ em 2026-04-21).
 
 ## Ver também
 
-- [`docs/BACKLOG.md#f65--frontend-testing--qa`](BACKLOG.md#f65--frontend-testing--qa) — tasks de F6.5
-- [`docs/DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d`](DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d) — ADR de hardening fintech
-- [`docs/DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e`](DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e) — ADR de backend hardening
-- [`docs/DECISIONS.md#adr-067--test-infrastructure-em-sub-fase-65f`](DECISIONS.md#adr-067--test-infrastructure-em-sub-fase-65f) — ADR de test infrastructure
+- [`docs/BACKLOG.md#f65--frontend-testing--qa`](../BACKLOG.md#f65--frontend-testing--qa) — tasks de F6.5
+- [`docs/DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d`](../DECISIONS.md#adr-063--hardening-fintech-em-sub-fase-65d) — ADR de hardening fintech
+- [`docs/DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e`](../DECISIONS.md#adr-064--backend-hardening-em-sub-fase-65e) — ADR de backend hardening
+- [`docs/DECISIONS.md#adr-067--test-infrastructure-em-sub-fase-65f`](../DECISIONS.md#adr-067--test-infrastructure-em-sub-fase-65f) — ADR de test infrastructure

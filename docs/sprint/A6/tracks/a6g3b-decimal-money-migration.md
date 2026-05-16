@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6e.4 (só se disciplinar escopo — **nunca tocar `backend/app/api/*.py` nem `backend/app/application/*`**); A6g.6b (ruff format pode tocar mesmos arquivos — coordenar sequencial)
 > **Conflita com:** commits simultâneos em `backend/app/schemas/dto/goal/*.py`, `backend/app/services/goal_service.py`, `backend/app/services/pipeline_adapter.py`, `backend/app/schemas/transactions.py`, `backend/app/services/task_progress_service.py`, `backend/app/services/transaction_service.py`, `frontend/src/lib/api/goals.ts`
 > **Onda:** 3+ (depois de A6g.6b ou em paralelo com disciplina)
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-090](../DECISIONS.md#adr-090--decimal-para-valores-monetários) · [CLAUDE.md §Dinheiro nunca é float](../../CLAUDE.md#dinheiro-nunca-é-float-adr-090) · [ADR-114 baseline](../DECISIONS.md#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6) · audit `dev/code_style_baseline.json` (categoria `P5_float_money`)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-090](../../../DECISIONS.md#adr-090--decimal-para-valores-monetários) · [CLAUDE.md §Dinheiro nunca é float](../../../../CLAUDE.md#dinheiro-nunca-é-float-adr-090) · [ADR-114 baseline](../../../DECISIONS.md#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6) · audit `dev/code_style_baseline.json` (categoria `P5_float_money`)
 
 > **Objetivo:** eliminar a categoria `P5_float_money` em `backend/app/` (13
 > ofensores em 2026-04-22) migrando money fields de `float` para `Decimal`
@@ -488,11 +488,11 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 ## Referências
 
-- [ADR-090](../DECISIONS.md#adr-090--decimal-para-valores-monetários) — Dinheiro nunca é `float` (regra original)
-- [ADR-114](../DECISIONS.md#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6) — Enforcement automatizado de code style (A6g.6)
-- [CLAUDE.md §Tipos](../../CLAUDE.md#tipos) — invariante de money
-- [CLAUDE.md §Dinheiro](../../CLAUDE.md#dinheiro-nunca-é-float-adr-090)
-- [track_a6g3_backend_style_sweep.md](track_a6g3_backend_style_sweep.md) — A6g.3 pai; P5 foi deferido dele
-- [track_a6g6_enforcement.md](track_a6g6_enforcement.md) — gate que detecta P5
+- [ADR-090](../../../DECISIONS.md#adr-090--decimal-para-valores-monetários) — Dinheiro nunca é `float` (regra original)
+- [ADR-114](../../../DECISIONS.md#adr-114--enforcement-automatizado-de-code-style-gates-imediatos--progressivos-a6g6) — Enforcement automatizado de code style (A6g.6)
+- [CLAUDE.md §Tipos](../../../../CLAUDE.md#tipos) — invariante de money
+- [CLAUDE.md §Dinheiro](../../../../CLAUDE.md#dinheiro-nunca-é-float-adr-090)
+- [track_a6g3_backend_style_sweep.md](a6g3-backend-style-sweep.md) — A6g.3 pai; P5 foi deferido dele
+- [track_a6g6_enforcement.md](a6g6-enforcement.md) — gate que detecta P5
 - **Pydantic v2 docs:** [Annotated types](https://docs.pydantic.dev/2.0/usage/types/types/#using-annotated-to-declare-validators-and-metadata), [PlainSerializer](https://docs.pydantic.dev/2.0/usage/types/custom/)
 - **Python Decimal:** [`decimal.Decimal`](https://docs.python.org/3/library/decimal.html) — aritmética exata para money

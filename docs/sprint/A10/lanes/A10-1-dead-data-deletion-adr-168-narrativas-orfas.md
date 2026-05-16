@@ -24,7 +24,7 @@ tags:
 
 - **Onda:** 1
 - **Depende de:** A10.0 ✅
-- **Plano:** [§2.3 + §5.1](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
+- **Plano:** [§2.3 + §5.1](../../../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
 - **Branch slug:** `a10-1-dead-data`
 - **Esforço:** 1d
 - **Paralelo com:** A10.2

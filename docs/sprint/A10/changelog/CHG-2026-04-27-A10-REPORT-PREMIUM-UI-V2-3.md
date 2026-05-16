@@ -16,12 +16,12 @@ tags:
 # Report Premium UI v2.9 — LLM section_summaries em E5 ✅ (2026-04-27)
 
 - **Report Premium UI v2.9 — LLM section_summaries em E5 ✅ (2026-04-27):**
-  Fase 2 da [ADR-144](DECISIONS.md#adr-144--section_summaries-llm-driven-em-e5-com-cache--fallback-determinístico-v29)
+  Fase 2 da [ADR-144](../../../DECISIONS.md#adr-144--section_summaries-llm-driven-em-e5-com-cache--fallback-determinístico-v29)
   (mergeada como `22627e6` 2026-04-27 manhã). Substitui templates
   determinísticos puros por LLM (LiteLLM + Instructor + Pydantic) com
   cache Redis 24h e fallback determinístico. Toggle global default OFF
   (env `MATHOMS_LLM_SECTION_SUMMARIES=1`) até **v2.9.1** revisar copy
-  com [product-designer](.claude/agents/product-designer.md).
+  com [product-designer](../../../../.claude/agents/product-designer.md).
 
   **Decisões fechadas em ADR-144 (Fase 1) — implementadas em Fase 2:**
   - Stack LiteLLM + Instructor + Pydantic (paridade E1/E1.5/E2-llm/E7-review-llm).

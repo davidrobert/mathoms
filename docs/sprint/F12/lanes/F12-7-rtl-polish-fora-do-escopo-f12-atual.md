@@ -3,6 +3,7 @@ id: F12.7
 type: lane
 title: "RTL polish (`ar`) — fora do escopo F12 atual"
 sprint: F12
+plan: PLAN-i18n
 status: cancelled
 adrs: ["[[ADR-130]]"]
 depends_on: []

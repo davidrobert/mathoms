@@ -3,7 +3,7 @@
 > Documento curto. **Não é um runbook.** É a evidência arquivada de que
 > os gates entregues em itens 1+2+4 da lane realmente bloqueiam regressões
 > reais — pré-requisito do item 6 do
-> [track](agent_prompts/track_report_a11y_finalize.md#gate-de-saída-commit-final-em-main-ci-verde).
+> `track_report_a11y_finalize.md`.
 
 ## Hipótese
 
@@ -25,7 +25,7 @@ GitHub), a regressão foi exercitada **localmente** no worktree
 via mock helper, em 25/04/2026.
 
 Patch temporário aplicado em
-[`frontend/src/components/report/sections/S10SinteseSection.tsx`](../frontend/src/components/report/sections/S10SinteseSection.tsx):
+[`frontend/src/components/report/sections/S10SinteseSection.tsx`](../../../frontend/src/components/report/sections/S10SinteseSection.tsx):
 
 ```tsx
 return (

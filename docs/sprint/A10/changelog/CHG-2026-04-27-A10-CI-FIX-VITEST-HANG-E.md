@@ -19,10 +19,10 @@ tags:
   desde v2.E.6 (commit `6b09407`). Substitui o workaround
   `.slow.test.tsx` aplicado em `10bf48b`/`fd1f1fd` (também 2026-04-27).
   **Causa raiz:** o mock de `react-chartjs-2` em
-  [ReceitaDespesaMensalChart.test.tsx](frontend/tests/components/report/ReceitaDespesaMensalChart.test.tsx)
+  [ReceitaDespesaMensalChart.test.tsx](../../../../frontend/tests/components/report/ReceitaDespesaMensalChart.test.tsx)
   construía um `fakeChart` **novo a cada render** e invocava
   `props.ref?.(fakeChart)` no corpo do componente.
-  [`ChartCanvas.setRef`](frontend/src/components/report/charts/primitives/ChartCanvas.tsx)
+  [`ChartCanvas.setRef`](../../../../frontend/src/components/report/charts/primitives/ChartCanvas.tsx)
   faz short-circuit por igualdade de **referência** (`if (chartRef.current === chart) return`) —
   como cada render produzia objeto novo, `onChartReady`
   (`setChartInstance`) disparava a cada render, novo render gerava novo

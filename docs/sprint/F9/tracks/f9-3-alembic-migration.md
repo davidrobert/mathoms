@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** nenhum
 > **Conflita com:** qualquer commit em `backend/alembic/versions/`
 > **Onda:** F9 (sub-fatia 4/7)
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [migration scaffold já em repo](../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [migration scaffold já em repo](../../../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py)
 
 > **Objetivo:** validar e fechar a Alembic migration `q5r6s7t8u9v0_rename_stage_identifiers`
 > que reescreve `pipeline_artifacts.stage` e `pipeline_stage_logs.stage` dos
@@ -34,7 +34,7 @@ tags:
 
 ## Por que este slice agora
 
-A migration **já existe** ([backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py](../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py))
+A migration **já existe** ([backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py](../../../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py))
 mas está scaffolded — precisa:
 
 1. Bater com `STAGE_RENAME_MAP` atual (pós-ADR-129 sem E6).
@@ -68,7 +68,7 @@ rows estão em descritivo, e `resolve_stage_name` continua aceitando legado
 
 ## Entregas
 
-### 1. Validar/atualizar [migration q5r6s7t8u9v0](../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py)
+### 1. Validar/atualizar [migration q5r6s7t8u9v0](../../../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py)
 
 - Confirmar `STAGE_RENAME` interno bate com `STAGE_RENAME_MAP` em `pipeline/stage_spec.py`. **Não** importe de `pipeline/` (alembic deve ser self-contained — copiar o dict é OK e idiomático).
 - Adicionar pré-check: `SELECT DISTINCT stage` antes do UPDATE; abortar se aparecer valor desconhecido (não em `STAGE_RENAME` keys ∪ values).
@@ -218,7 +218,7 @@ git push origin HEAD:main
 
 ## Referências
 
-- F9.2 (prereq): [track_f9_2_string_literals.md](track_f9_2_string_literals.md)
-- F9.4 (próximo): [track_f9_4_scripts_rename.md](track_f9_4_scripts_rename.md)
+- F9.2 (prereq): [track_f9_2_string_literals.md](f9-2-string-literals.md)
+- F9.4 (próximo): [track_f9_4_scripts_rename.md](f9-4-scripts-rename.md)
 - Migration scaffold: `backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py`
 - ADR-093: `docs/DECISIONS.md:2228`

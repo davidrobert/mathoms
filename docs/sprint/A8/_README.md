@@ -20,7 +20,7 @@ Completar a transição mono-cliente → multi-tenant que A7 começou, modelando
 
 ## Lanes
 
-Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes/). Tracks operacionais em [`tracks/`](tracks/).
+Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes). Tracks operacionais em [`tracks/`](tracks).
 
 ## Waves
 
@@ -36,4 +36,4 @@ Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes/). Tracks opera
 ## Fontes canônicas
 
 - [docs/plan/CENARIOS_ESTRESSE/_README.md](../../plan/CENARIOS_ESTRESSE/_README.md) — plano A8.4.
-- Track IRPF: [`tracks/irpf-full-schema.md`](tracks/irpf-full-schema.md), [`tracks/irpf-full-schema-goldens.md`](tracks/irpf-full-schema-goldens.md), [`tracks/irpf-full-schema-ui.md`](tracks/irpf-full-schema-ui.md).
+- Track IRPF: [`irpf-full-schema.md`](../A11/tracks/irpf-full-schema.md), [`irpf-full-schema-goldens.md`](../A11/tracks/irpf-full-schema-goldens.md), [`irpf-full-schema-ui.md`](../A11/tracks/irpf-full-schema-ui.md).

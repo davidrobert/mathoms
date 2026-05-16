@@ -3,6 +3,7 @@ id: F12.5
 type: lane
 title: "Backend user-facing strings"
 sprint: F12
+plan: PLAN-i18n
 status: blocked
 priority: P0
 adrs: ["[[ADR-130]]"]

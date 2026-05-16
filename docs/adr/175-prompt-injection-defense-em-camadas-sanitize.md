@@ -48,4 +48,4 @@ size_lines: 34
 
 **Implementação:** lane W3-T05. Vira `Decidido (W3-T05)` no merge.
 
-**Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T05](plan/PLATFORM_REVIEW/_README.md), finding SR-009.
+**Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T05](../plan/PLATFORM_REVIEW/_README.md), finding SR-009.

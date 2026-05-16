@@ -3,6 +3,7 @@ id: F12.1
 type: lane
 title: "Fundação i18n no frontend"
 sprint: F12
+plan: PLAN-i18n
 status: shipped
 priority: P0
 adrs: ["[[ADR-130]]"]

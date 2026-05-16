@@ -366,7 +366,7 @@ trimestral, ou pós-incidente real):
 
 - [[ADR-212]] — Sunset `MATHOMS_USE_DB_ARTIFACTS` (canónica)
 - [[ADR-118]] — Flip default para `True` (superseded)
-- [docs/reference/runbooks/cutover.md](cutover.md) — Runbook legado de cutover (será arquivado em PR4)
+- [docs/archive/cutover-2026-05-14.md](../../archive/cutover-2026-05-14.md) — Runbook legado de cutover arquivado
 - [docs/reference/runbooks/f9_3_alembic_upgrade.md](f9_3_alembic_upgrade.md) — Padrão de runbook para migrations Alembic
 - [docs/reference/runbooks/incidents/](incidents/) — Templates de postmortem
 - [docs/_MOC/_generated/ADR_INDEX.md](../../_MOC/_generated/ADR_INDEX.md)

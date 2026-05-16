@@ -35,4 +35,4 @@ tags:
   na ADR-157. 22 testes unitários cobrem schema/validator/analyzer.
   Frontend (componentes do relatório premium) fica em lane separada com
   G4 (product-designer) review.
-  [ADR-157](DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)
+  [ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)

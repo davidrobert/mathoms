@@ -3,6 +3,7 @@ id: F12.4
 type: lane
 title: "Codegen do report layout multilíngue"
 sprint: F12
+plan: PLAN-i18n
 status: blocked
 priority: P0
 adrs: ["[[ADR-130]]"]

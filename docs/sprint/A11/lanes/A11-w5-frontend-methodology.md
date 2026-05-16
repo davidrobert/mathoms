@@ -3,6 +3,7 @@ id: A11.w5
 type: lane
 title: "Frontend + Methodology (5 tasks, paralelo W6)"
 sprint: A11
+plan: PLAN-platform-review
 status: open
 aliases: ["A11.W5"]
 depends_on: []
@@ -22,7 +23,7 @@ tags:
 
 - **Onda:** 5 (10d)
 - **Depende de:** W1 ✅ (parcial)
-- **Plano:** [PLAN §W5](plan/PLATFORM_REVIEW/_README.md#wave-5--frontend--methodology-sprint-4-10-dias-dev)
+- **Plano:** [PLAN §W5](../../../plan/PLATFORM_REVIEW/_README.md#wave-5--frontend--methodology-sprint-4-10-dias-dev)
 
 ## Status (legado)
 

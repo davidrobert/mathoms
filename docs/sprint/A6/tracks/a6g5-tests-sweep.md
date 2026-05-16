@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6g.2 pipeline sweep, A6f.1 pipeline-service, A6e.3 use cases — zero overlap **se** respeitar o escopo de arquivos abaixo.
 > **Conflita com:** commits ativos em `backend/tests/test_pipeline_task.py`, `backend/tests/test_events.py` (overlap potencial com slice 2 de A6f.1; rebase resolve na ordem "A6g.5 → A6f.1").
 > **Onda:** 2
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [CLAUDE.md §Code style › Testes](../../CLAUDE.md#testes)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [CLAUDE.md §Code style › Testes](../../../../CLAUDE.md#testes)
 
 > **Objetivo:** aplicar CLAUDE.md §Code style aos arquivos de teste em
 > `tests/`, `tests/unit/pipeline/` e `backend/tests/` (não-fixture,
@@ -360,5 +360,5 @@ git fetch origin && git log --oneline HEAD..origin/main
 - Regras: `CLAUDE.md §Code style` + §Testes
 - Padrão de fake: `pipeline/artifact_store.py::InMemoryArtifactStore`
 - Factories backend: `backend/tests/factories/builders.py`
-- Prompts paralelos: [track_a6g2](track_a6g2_pipeline_style_sweep.md), [track_a6g4](track_a6g4_frontend_style_sweep.md), [track_a6f1](track_a6f1_pipeline_service.md), [track_a6e3](track_a6e3_use_cases.md)
+- Prompts paralelos: [track_a6g2](a6g2-pipeline-style-sweep.md), [track_a6g4](a6g4-frontend-style-sweep.md), [track_a6f1](a6f1-pipeline-service.md), [track_a6e3](a6e3-use-cases.md)
 - ADRs relevantes: ADR-097 (domain types em tests), ADR-107 (DB isolation)

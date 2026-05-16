@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** nenhum (gate inicial da Fase 9; depois desbloqueia 9.1)
 > **Conflita com:** qualquer commit ativo em `pipeline/stage_spec.py`, `pipeline/stages/`, `scripts/e*.py`, `backend/alembic/versions/`
 > **Onda:** F9 (sub-fatia 1/7)
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`pipeline.stage_spec.STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`pipeline.stage_spec.STAGE_RENAME_MAP`](../../../../pipeline/stage_spec.py#L129)
 
 > **Objetivo (1 frase):** produzir um inventário exaustivo das ocorrências dos
 > identificadores legados (`E2`, `E3`, `E5`, `E5.N`, `E7-apply`…) em todo o
@@ -39,8 +39,8 @@ A Fase 9 é um rename em bloco que toca **filenames + strings literais + DB rows
 output de 9.0 é a planilha de trabalho das fatias seguintes.
 
 Bonus: artefatos parcialmente já existem — `STAGE_RENAME_MAP` pronto,
-[`tests/unit/pipeline/test_no_legacy_stage_names.py`](../../tests/unit/pipeline/test_no_legacy_stage_names.py)
-em soft-fail, [migration `q5r6s7t8u9v0_rename_stage_identifiers`](../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py)
+[`tests/unit/pipeline/test_no_legacy_stage_names.py`](../../../../tests/unit/pipeline/test_no_legacy_stage_names.py)
+em soft-fail, [migration `q5r6s7t8u9v0_rename_stage_identifiers`](../../../../backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py)
 scaffolded. 9.0 valida que esses stubs ainda batem com a realidade do código
 em 2026-04-24 (pós-A6c, pós-ADR-129 — `E6`/`E6-final` saíram do mapa).
 
@@ -236,4 +236,4 @@ Antes de push final, no **mesmo turno**:
 - `pipeline/stage_spec.py:129` — `STAGE_RENAME_MAP` canônico.
 - `tests/unit/pipeline/test_no_legacy_stage_names.py` — guardrail soft-fail.
 - `backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py` — migration scaffolded.
-- Próximo prompt: [track_f9_1_pipeline_stages_rename.md](track_f9_1_pipeline_stages_rename.md).
+- Próximo prompt: [track_f9_1_pipeline_stages_rename.md](f9-1-pipeline-stages-rename.md).

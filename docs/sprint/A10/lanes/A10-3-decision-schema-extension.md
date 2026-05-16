@@ -24,7 +24,7 @@ tags:
 
 - **Onda:** 2
 - **Depende de:** A10.0 ✅
-- **Plano:** [§3.3 + ADR-179](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
+- **Plano:** [§3.3 + ADR-179](../../../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
 - **Branch slug:** `a10-3-decision-extension`
 - **Esforço:** 1.5d
 - **Paralelo com:** A10.4, A10.7

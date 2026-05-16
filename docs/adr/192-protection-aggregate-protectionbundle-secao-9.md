@@ -186,7 +186,7 @@ Susep/OAB).
 - [ ] Repo `ProtectionRepository` + 6 use cases em `backend/app/application/protections/` (`create`, `update`, `change_status`, `link_to_risk`, `unlink_from_risk`, `archive`).
 - [ ] Endpoints `POST/GET/PATCH /protections` + `GET /workspaces/{id}/protection-bundle` com `response_model` explícito (ADR-102 R18).
 - [ ] OpenAPI snapshot regenerado (`make update-openapi-snapshot`).
-- [ ] `ConfigStore` Protocol ([backend/app/services/config_store.py](../../backend/app/services/config_store.py)) com método `get_protection_bundle(workspace_id) -> ProtectionBundle`.
+- [ ] `ConfigStore` Protocol ([backend/app/services/db_config_store.py](../../backend/app/services/db_config_store.py)) com método `get_protection_bundle(workspace_id) -> ProtectionBundle`.
 - [ ] `pipeline/domain/services/protection/` com 5 calculators determinísticos + value objects tipados (`ProtectionInputs`, `CoverageRecommendation`, `ITCMDEstimate`) ADR-089/097.
 - [ ] 5 notas Domain Rule em `docs/reference/rules/` (`life-insurance-coverage`, `emergency-reserve-target`, `disability-coverage-gap`, `itcmd-estimated`, `compliance-risk-us-person`), cada uma com `canonical_adr: [[ADR-192]]` e `enforcer_modules` no frontmatter (schema `note-domain-rule.schema.json`).
 - [ ] `pipeline/domain/services/narrativas/charts_narrator.py:_narrate_riscos_decisoes` com guard para `_riscos_top3 == []` + remoção de "CPA expatriado" hardcoded; sinal `data_state` no payload.

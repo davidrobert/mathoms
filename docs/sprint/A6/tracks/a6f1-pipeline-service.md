@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6g.2 pipeline sweep, A6g.5 tests sweep, A6e.3 use cases (scoped non-pipeline) — zero overlap de arquivos **se** o slice respeitar o escopo abaixo.
 > **Conflita com:** qualquer commit ativo em `pipeline/orchestrator.py`, `pipeline/stage_spec.py`, `backend/app/tasks/pipeline_task.py`, `backend/app/api/pipeline.py`, `backend/app/services/events.py`.
 > **Onda:** 2 (primeira lane da Onda 2 — greenfield, sem bloqueio de A6e.3/.4)
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style), [ADR-102](../DECISIONS.md), [ADR-111](../DECISIONS.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style), [ADR-102](../../../DECISIONS.md), [ADR-111](../../../DECISIONS.md)
 
 > **Objetivo:** criar serviço HTTP standalone `pipeline-service/` que expõe
 > execução de stages via FastAPI (`/api/v1/pipeline/runs`,
@@ -309,11 +309,11 @@ Se agente mergeou hotspot <30min, espere 2min, anuncie, commite docs no **mesmo 
 
 ## Referências
 
-- [ADR-102](../DECISIONS.md) — language-neutral boundaries (R18-R20)
-- [ADR-111](../DECISIONS.md) — stateless rigoroso
-- [ADR-109](../DECISIONS.md) — auth portability + OpenAPI snapshot
-- [ADR-110](../DECISIONS.md) — structured logs + OTel
-- [CANONICAL_ENGINE_P0.md](../CANONICAL_ENGINE_P0.md) — fronteira pipeline atual
-- [ARCHITECTURE.md §17](../ARCHITECTURE.md) — arquitetura alvo pós-A6
-- [STATELESS_AUDIT.md](../STATELESS_AUDIT.md) — audit de estado mutável in-memory
-- Prompts paralelos: [track_a6g2](track_a6g2_pipeline_style_sweep.md), [track_a6g4](track_a6g4_frontend_style_sweep.md), [track_a6g5](track_a6g5_tests_sweep.md), [track_a6e3](track_a6e3_use_cases.md)
+- [ADR-102](../../../DECISIONS.md) — language-neutral boundaries (R18-R20)
+- [ADR-111](../../../DECISIONS.md) — stateless rigoroso
+- [ADR-109](../../../DECISIONS.md) — auth portability + OpenAPI snapshot
+- [ADR-110](../../../DECISIONS.md) — structured logs + OTel
+- [CANONICAL_ENGINE_P0.md](../../../reference/CANONICAL_ENGINE_P0.md) — fronteira pipeline atual
+- [ARCHITECTURE.md §17](../../../reference/ARCHITECTURE.md) — arquitetura alvo pós-A6
+- [STATELESS_AUDIT.md](../../../reference/STATELESS_AUDIT.md) — audit de estado mutável in-memory
+- Prompts paralelos: [track_a6g2](a6g2-pipeline-style-sweep.md), [track_a6g4](a6g4-frontend-style-sweep.md), [track_a6g5](a6g5-tests-sweep.md), [track_a6e3](a6e3-use-cases.md)

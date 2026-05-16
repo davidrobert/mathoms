@@ -160,7 +160,7 @@ débito latente vs FORMULAS.md §Reserva. Issue separada rastreia o fix
 - **Frontend** consome shape novo em PR-B (lane W5-T06). Card render
   full-width; empty state quando `status != "ok"` ou `defasagem_meses > 18`.
 - **`FluxoCaixaEnricher`** ganha responsabilidade de essencial — débito
-  histórico (FORMULAS.md prometia, código não entregava) fechado.
+  histórico (../reference/FORMULAS.md prometia, código não entregava) fechado.
 
 ## Rastreabilidade
 

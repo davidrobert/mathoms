@@ -22,7 +22,7 @@ size_lines: 196
 
 **Status:** Decidido (F7F-Local) • **Data:** 2026-04-22
 
-**Contexto:** [BACKLOG §F7F](BACKLOG.md#f7f--console-interno-operadores) divide
+**Contexto:** [BACKLOG §F7F](../BACKLOG.md#f7f--console-interno-operadores) divide
 console interno em **F7F-Local** (pré-produção, sem OAuth, roda em dev) e
 **F7F-Remote** (produção, `ops.mathoms.ai` com OAuth staff + RBAC). Para
 destravar F7F-Local, três decisões de design eram bloqueantes: (1) onde mora
@@ -32,7 +32,7 @@ agente de IA-0 trava antes da primeira tela.
 
 Três contextos adicionais importam aqui:
 
-- **A6g.7 Go prep já destravada** ([ADR-113](DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7)): backend
+- **A6g.7 Go prep já destravada** ([ADR-113](../DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7)): backend
   **pode** virar Go em algum ponto. Acoplar a UI interna ao processo Python
   cria dívida de migração.
 - **F7F-Remote precisa consumir a mesma UI** (só troca o gate localhost →
@@ -75,7 +75,7 @@ contaminação).
 ### Decisão 2 — Anonimização como default em exclusão de usuário
 
 Default da operação "excluir usuário" (tarefa `7F.10` no
-[BACKLOG](BACKLOG.md#f7f-local--pré-produção-ia-0-sem-oauth)) é
+[BACKLOG](../BACKLOG.md#f7f-local--pré-produção-ia-0-sem-oauth)) é
 **anonimização**, não hard delete.
 
 Mecânica:

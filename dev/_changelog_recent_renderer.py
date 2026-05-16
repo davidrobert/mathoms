@@ -9,21 +9,66 @@
 
 from __future__ import annotations
 
+import os
+import re
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any, Callable, Protocol
 
 _CHANGELOG_RECENT_TITLE = "CHANGELOG_RECENT — últimos 14 dias"
 _CHANGELOG_RECENT_FOOTER = ("---", "> Regenerar: `python3 dev/build_doc_index.py --inline`")
 _WINDOW_DAYS = 14
 _EMPTY_STUB = "_Nenhuma entrega recente registrada como changelog-entry._"
+_GENERATED_PATH = (
+    Path(__file__).resolve().parent.parent / "docs/_MOC/_generated/CHANGELOG_RECENT.md"
+)
+_MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)]+)\)")
+_URI_SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
+_LINE_SUFFIX_RE = re.compile(r":\d+(?:-\d+)?$")
 
 
 class ChangelogEntryLike(Protocol):
     """Duck-type para Note de changelog-entry: campos lidos pelo renderer."""
 
+    path: Path
     id: str
     type: str
     raw: dict[str, Any]
+
+
+def _is_relative_target(target: str) -> bool:
+    if not target or target.startswith("#"):
+        return False
+    return not (target.startswith("/") or _URI_SCHEME_RE.match(target))
+
+
+def _split_target(target: str) -> tuple[str, str, str]:
+    tail_index = min([i for i in [target.find("#"), target.find("?")] if i >= 0] or [len(target)])
+    base, tail = target[:tail_index], target[tail_index:]
+    line_match = _LINE_SUFFIX_RE.search(base)
+    if line_match is None:
+        return base, "", tail
+    return base[: line_match.start()], line_match.group(0), tail
+
+
+def _relative_from_generated(entry_path: Path, target: str) -> str | None:
+    base, line_suffix, tail = _split_target(target)
+    candidate = (entry_path.parent / base).resolve()
+    if not candidate.exists():
+        return None
+    rel = os.path.relpath(candidate, start=_GENERATED_PATH.parent)
+    return Path(rel).as_posix() + line_suffix + tail
+
+
+def _rewrite_summary_links(summary: str, entry: ChangelogEntryLike) -> str:
+    def replace(match: re.Match[str]) -> str:
+        target = match.group(2).strip().strip("<>")
+        if not _is_relative_target(target):
+            return match.group(0)
+        fixed = _relative_from_generated(entry.path, target)
+        return match.group(0) if fixed is None else f"[{match.group(1)}]({fixed})"
+
+    return _MARKDOWN_LINK_RE.sub(replace, summary)
 
 
 def _entry_date(entry: ChangelogEntryLike) -> date | None:
@@ -49,7 +94,7 @@ def _entry_summary_line(entry: ChangelogEntryLike) -> str:
     for line in raw.splitlines():
         stripped = line.strip()
         if stripped:
-            return stripped
+            return _rewrite_summary_links(stripped, entry)
     return entry.id
 
 

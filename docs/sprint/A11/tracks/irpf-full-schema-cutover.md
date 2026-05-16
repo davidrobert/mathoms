@@ -17,7 +17,7 @@ tags:
 
 > **Lane ID:** irpf-full-schema-cutover
 > **Branch prefix:** `agent/irpf-full-schema-cutover/*`
-> **Depende de:** [track_irpf_full_schema.md](track_irpf_full_schema.md) ✅ (backend + analyzer + E5 wire em `main`) **+** [track_irpf_full_schema_goldens.md](track_irpf_full_schema_goldens.md) ✅ (goldens byte-byte cobrindo paridade) **+** ≥3 declarações reais processadas com paridade `bens_direitos[]` E1.5↔E1.6 byte-byte tolerância 0,01 BRL ([ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) sub-decisão 8).
+> **Depende de:** [track_irpf_full_schema.md](irpf-full-schema.md) ✅ (backend + analyzer + E5 wire em `main`) **+** [track_irpf_full_schema_goldens.md](irpf-full-schema-goldens.md) ✅ (goldens byte-byte cobrindo paridade) **+** ≥3 declarações reais processadas com paridade `bens_direitos[]` E1.5↔E1.6 byte-byte tolerância 0,01 BRL ([ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) sub-decisão 8).
 > **Conflita com:** `pipeline/stages/consolidate_baseline.py`, `pipeline/stages/extract_baseline.py`, `pipeline/domain/services/baseline_normalizer.py`, `scripts/e5_analyze.py` (consumidor de baseline), `tests/test_e5_golden_execution.py` (golden de paridade — pode mudar). **Se alterar `pipeline/stage_spec.STAGE_RENAME_MAP`** (e.g., novo alias, marcar E1.5 deprecated): também `frontend/src/lib/pipelineStageNames.ts::LEGACY_TO_DESCRIPTIVE` (mirror, gate em `tests/test_frontend_stage_rename_parity.py` — pre-commit **não** detecta).
 > **Onda:** **bloqueante** — todas as outras tracks IRPF (UI, goldens) precisam estar mergeadas antes.
 > **ADR:** **OBRIGATÓRIA** — nova ADR registra a decisão de virar default + impacto em paridade legado/novo. Provavelmente `ADR-NNN — Cutover E1.5 → E1.6 (Bens & Direitos)`.
@@ -45,7 +45,7 @@ ADR-157 sub-decisão 8 deixou explícito: **cutover é fora da lane backend** e 
 1. **Implementar a flag `MATHOMS_E16_SUPERSEDES_E15_BENS`** por workspace — coluna `workspaces.use_e16_supersedes_e15_bens_override: bool | None` (ou via `feature_flags_service` se já houver pattern). Default global `False` durante a fase de validação; quando virar `True`, E1.5 vira no-op e E5 lê só E1.6.
 2. **Lógica de short-circuit no orquestrador**: quando flag `True` e `extract_irpf_full` produziu artefato com `bens_direitos[]` não-vazio para o ano-base esperado, **pular** `extract_baseline` e `consolidate_baseline` (ou rodar mas marcar como skipped — cada opção tem trade-off; G1 decide).
 3. **Adapter no consumidor** (E5): quando flag `True`, `_e5_load_irpf_kpis` também produz `baseline_patrimonial` consumível pelos analyzers existentes (patrimônio, ratios, score) — conversão Decimal→float **no ponto único do consumer** (ADR-157 sub-decisão 10).
-4. **Test de paridade golden**: rerun do golden E5 ([tests/test_e5_golden_execution.py](../../tests/test_e5_golden_execution.py)) com workspace flag `True` deve produzir output **byte-byte idêntico** ao com flag `False` para a parte de `patrimonio` — exceto pequenas diferenças aceitas (Decimal arredondamento). Fail = aborta cutover.
+4. **Test de paridade golden**: rerun do golden E5 ([tests/test_e5_golden_execution.py](../../../../tests/test_e5_golden_execution.py)) com workspace flag `True` deve produzir output **byte-byte idêntico** ao com flag `False` para a parte de `patrimonio` — exceto pequenas diferenças aceitas (Decimal arredondamento). Fail = aborta cutover.
 5. **Critério de saída para virar default global**: ADR-157 sub-decisão 8 já especifica — ≥3 declarações reais validadas com paridade byte-byte (tolerância 0,01 BRL). Esta lane **implementa a flag**; virar default é PR separado depois.
 6. **Plano de rollback**: documentado na ADR. Se cutover quebrar relatório em produção, virar flag `False` e investigar.
 7. **Deprecation path para E1.5**: depois que flag global virar `True` e estabilizar (≥4 semanas em produção), abrir lane `track_e15_baseline_removal.md` que remove `extract_baseline`/`consolidate_baseline` do `STAGE_REGISTRY`. **Fora desta lane.**
@@ -55,11 +55,11 @@ ADR-157 sub-decisão 8 deixou explícito: **cutover é fora da lane backend** e 
 ## Regras inegociáveis
 
 1. **Goldens existentes não regridem nesta lane** — `test_e5_golden_execution` continua passando para workspaces sem IRPF e para workspaces com flag `False`. Mudança de output só quando flag `True`.
-2. **Decimal→float conversion em ponto único** ([ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) sub-decisão 10): o consumer (E5 adapter) converte Decimal-string do E1.6 para o formato float legado de `baseline_patrimonial-1.5_consolidated.json` na borda. Pipeline E5 nunca recebe Decimal misturado com float.
-3. **Tolerância 0,01 BRL** ([ADR-097/D5](../DECISIONS.md#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy)) — paridade byte-byte de `bens_direitos[]` E1.5↔E1.6 com essa tolerância.
+2. **Decimal→float conversion em ponto único** ([ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) sub-decisão 10): o consumer (E5 adapter) converte Decimal-string do E1.6 para o formato float legado de `baseline_patrimonial-1.5_consolidated.json` na borda. Pipeline E5 nunca recebe Decimal misturado com float.
+3. **Tolerância 0,01 BRL** ([ADR-097/D5](../../../DECISIONS.md#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy)) — paridade byte-byte de `bens_direitos[]` E1.5↔E1.6 com essa tolerância.
 4. **Flag por workspace, não global** primeiro — gradual rollout. Ativar para workspaces de teste, depois canários, depois default.
 5. **ADR antes de codar** — gate G1.
-6. **Stateless** ([ADR-111](../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)): a flag é lida por request/run via `WorkspaceContext`, sem cache em memória.
+6. **Stateless** ([ADR-111](../../../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)): a flag é lida por request/run via `WorkspaceContext`, sem cache em memória.
 7. **Stage rename parity** — se mexer em `pipeline/stage_spec.STAGE_RENAME_MAP` (alias novo, deprecação), atualizar **no mesmo PR** `frontend/src/lib/pipelineStageNames.ts::LEGACY_TO_DESCRIPTIVE`. Pre-commit não cobre — só `pytest tests/test_frontend_stage_rename_parity.py` quebra. Caso real recente: lane `irpf-full-schema` adicionou `E1.6: extract_irpf_full` no backend e a parity ficou pendente até a UI lane fixar (commit `8f2e145`).
 
 ---
@@ -80,7 +80,7 @@ Rodar gates: `python3 dev/check_adr_anchors.py && python3 dev/build_adr_toc.py -
 
 ### B. Flag por workspace
 
-Decisão: usar pattern existente `feature_flags_service` (ADR-076-similar) ou seguir `use_db_artifacts_override` ([CLAUDE.md §Feature flag MATHOMS_USE_DB_ARTIFACTS](../../CLAUDE.md)).
+Decisão: usar pattern existente `feature_flags_service` (ADR-076-similar) ou seguir `use_db_artifacts_override` ([CLAUDE.md §Feature flag MATHOMS_USE_DB_ARTIFACTS](../../../../CLAUDE.md)).
 
 Pattern provável (alinhar com G1):
 
@@ -217,10 +217,10 @@ Goldens: rodar `tests/test_e5_golden_execution.py` com workspace flag `True` e c
 
 ## Referências
 
-- [ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) sub-decisão 8 — critério de cutover
-- [ADR-097/D5](../DECISIONS.md#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy) — tolerância 0,01 BRL
-- [ADR-111](../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) — stateless
-- Pattern de flag existente: `MATHOMS_USE_DB_ARTIFACTS` (ver [CLAUDE.md §Feature flag](../../CLAUDE.md)) e `workspaces.use_db_artifacts_override`
-- E1.5 baseline normalizer: [pipeline/domain/services/baseline_normalizer.py](../../pipeline/domain/services/baseline_normalizer.py)
-- E5 wire IRPF (lane irpf-full-schema): [scripts/e5_analyze.py::_e5_load_irpf_kpis](../../scripts/e5_analyze.py)
-- Goldens existentes: [tests/test_e5_golden_execution.py](../../tests/test_e5_golden_execution.py)
+- [ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) sub-decisão 8 — critério de cutover
+- [ADR-097/D5](../../../DECISIONS.md#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy) — tolerância 0,01 BRL
+- [ADR-111](../../../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) — stateless
+- Pattern de flag existente: `MATHOMS_USE_DB_ARTIFACTS` (ver [CLAUDE.md §Feature flag](../../../../CLAUDE.md)) e `workspaces.use_db_artifacts_override`
+- E1.5 baseline normalizer: [pipeline/domain/services/baseline_normalizer.py](../../../../pipeline/domain/services/baseline_normalizer.py)
+- E5 wire IRPF (lane irpf-full-schema): [scripts/e5_analyze.py::_e5_load_irpf_kpis](../../../../scripts/e5_analyze.py)
+- Goldens existentes: [tests/test_e5_golden_execution.py](../../../../tests/test_e5_golden_execution.py)

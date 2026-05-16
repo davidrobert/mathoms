@@ -26,7 +26,7 @@ size_lines: 204
 **Contexto:**
 
 `DBArtifactStore.read()`
-([backend/app/services/db_artifact_store.py:69-71](backend/app/services/db_artifact_store.py:69))
+([backend/app/services/db_artifact_store.py:69-71](../../backend/app/services/db_artifact_store.py:69))
 filtra exclusivamente por `pipeline_run_id`. A premissa subjacente é
 que todo artefato é output **per-run** — derivado das rodadas de
 pipeline e descartável quando uma nova rodada começa.
@@ -39,17 +39,17 @@ que uma rodada. Caso concreto observado em 2026-04-25 (workspace
   (run `83572a7f` às 22:42), o stage E1.5/E1.5c **não** rodou — não
   havia novos PDFs de IRPF a processar.
 - O E4
-  ([e4_categorizer_adapter.load_baseline](pipeline/domain/services/e4_categorizer_adapter.py:149))
+  ([e4_categorizer_adapter.load_baseline](../../pipeline/domain/services/e4_categorizer_adapter.py:149))
   chamou `store.read("E1.5c", "baseline_patrimonial")` →
   devolveu `None` (artefato existe no DB sob
   `pipeline_run_id=d2e03585`, mas o filtro por run atual o esconde).
 - `BaselineNormalizer.normalize(None)` retornou baseline vazio →
   `build_patrimonio_artifact(empty)`
-  ([e4_serialization.py:57-58](pipeline/domain/services/e4_serialization.py:57))
+  ([e4_serialization.py:57-58](../../pipeline/domain/services/e4_serialization.py:57))
   gravou `{"dados": []}` (13 bytes), **sobrescrevendo** silenciosamente
   o E4 patrimônio do run.
 - E5
-  ([e5_analyzer_adapter.py:382](pipeline/domain/services/e5_analyzer_adapter.py:382))
+  ([e5_analyzer_adapter.py:382](../../pipeline/domain/services/e5_analyzer_adapter.py:382))
   leu E4 patrimônio vazio → composição patrimonial zerou Residência,
   Imóveis Investimento, Veículos e Investimentos do cônjuge. Usuário
   viu R$ 440k onde deveriam aparecer R$ 5,0M.

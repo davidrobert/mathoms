@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A7.1, A7.2a, A7.4.
 > **Conflita com:** qualquer commit ativo em `pipeline/domain/services/{previdencia_analyzer,cenarios_conjuge_analyzer,patrimonio_types}.py`, `backend/app/models/`, `backend/app/services/db_config_store.py`, `pipeline/adapters/file_config_store.py`.
 > **Onda:** 2 (paralelizável).
-> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.2b](../CONFIG_CUTOVER_PLAN.md#§52b-a72b--tabelas-globais-fiscalmarket-versionadas)
-> **ADR:** [ADR-135](../DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) — **G1 obrigatório antes de codar**.
+> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.2b](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md#§52b-a72b--tabelas-globais-fiscalmarket-versionadas)
+> **ADR:** [ADR-135](../../../DECISIONS.md#adr-135--versionamento-temporal-de-séries-fiscais-e-câmbio) — **G1 obrigatório antes de codar**.
 > **Supervisão CTO:** G1 (ADR) · G2 (schema) · G3 (PR pré-merge).
 
 > **Objetivo (1 frase):** transformar `parametros_fiscais.json` e `taxas.json` em tabelas globais versionadas por data; pipeline lê via `ConfigStore` com escopo de período; reproducibilidade histórica garantida.
@@ -42,8 +42,8 @@ Esta lane modela como tabelas globais com `effective_from/to`. Pipeline passa a 
 
 ## Regras inegociáveis
 
-1. **Money em DECIMAL ou BIGINT cents** ([ADR-090](../DECISIONS.md)) — `lucro_presumido_aliquota` em `DECIMAL(5,4)`; `pgbl_limit_brl_cents`/`inss_ceiling_brl_cents` em `BIGINT`. `MarketRate.rate` em `DECIMAL(20,10)` (câmbio precisa de 4-6 casas).
-2. **Cache Redis com invalidação por evento** ([ADR-111](../DECISIONS.md)) — sem `@lru_cache` no read-path. Eventos: `fiscal_parameter.published`, `market_rate.published`.
+1. **Money em DECIMAL ou BIGINT cents** ([ADR-090](../../../DECISIONS.md)) — `lucro_presumido_aliquota` em `DECIMAL(5,4)`; `pgbl_limit_brl_cents`/`inss_ceiling_brl_cents` em `BIGINT`. `MarketRate.rate` em `DECIMAL(20,10)` (câmbio precisa de 4-6 casas).
+2. **Cache Redis com invalidação por evento** ([ADR-111](../../../DECISIONS.md)) — sem `@lru_cache` no read-path. Eventos: `fiscal_parameter.published`, `market_rate.published`.
 3. **Pipeline não importa SQLAlchemy** — `previdencia_analyzer` etc recebem `FiscalParameters` via construtor (já existe parâmetro de config tipado em ADR-097/D2).
 4. **`pipeline/ports/config_store.py` NÃO é modificado por esta lane** — A7.0 já adicionou os stubs. Se você precisa mudar a assinatura, **pare** e coordene com outras lanes.
 5. **Backwards-compatible**: nova migration **adiciona** tabelas + popula via seed; **não** remove `parametros_fiscais.json`/`taxas.json` até A7.5. Esta lane delete os JSONs no commit final **após** validar smoke verde com tabelas DB-first.

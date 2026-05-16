@@ -22,7 +22,7 @@ size_lines: 56
 
 **Status:** Decidido (F8) • **Data:** 2026-04-15 • **Contexto da task:** F8.2 — Plano de Ação
 
-**Contexto:** Hoje a "checklist de tarefas" vive em [config/tarefas.md](config/tarefas.md) como markdown versionado no git, parseado deterministicamente pelo E5, enriquecido pelo E5.N (LLM), e renderizado no relatório HTML final pelo E6. Esse fluxo é elegante para o pipeline batch, mas **impossibilita execução interativa**:
+**Contexto:** Hoje a "checklist de tarefas" vive no legado [`config/tarefas.md`](../../_archive/pre-f8-cutover-2026-04-15/config/tarefas.md) como markdown versionado no git, parseado deterministicamente pelo E5, enriquecido pelo E5.N (LLM), e renderizado no relatório HTML final pelo E6. Esse fluxo é elegante para o pipeline batch, mas **impossibilita execução interativa**:
 - Usuário não consegue marcar "feito" sem editar markdown e rodar pipeline de novo.
 - Não há notificação de prazo (ex: IPTU 30/04 é time-bomb).
 - Sem anexos de comprovante, sem conexão com transações, sem histórico estruturado.

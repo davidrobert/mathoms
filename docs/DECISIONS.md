@@ -2,19 +2,20 @@
 
 # DECISIONS — Architectural Decision Records
 
-> **Este arquivo é um shim.** As ADRs vivem agora como notas atômicas em
+> **Este arquivo é um shim. Não altere decisão aqui.** As ADRs vivem agora como notas atômicas em
 > [`docs/adr/`](adr/) (uma por arquivo), com frontmatter validado por
 > JSON Schema (`docs/_schemas/note-adr.schema.json`).
 >
-> Para navegar: abra [_MOC/_generated/ADR_INDEX.md](_MOC/_generated/ADR_INDEX.md)
+> **Para LLMs:** navegue por [_MOC/_generated/ADR_INDEX.md](_MOC/_generated/ADR_INDEX.md)
 > (auto-gerado por `dev/build_doc_index.py`, agrupado por categoria + status).
+> Só use este shim para instruções de criação ou anchors históricos.
 
 ## Como criar uma ADR nova
 
 1. Crie `docs/adr/NNN-<slug>.md` (NNN = 3 dígitos zero-padded, próximo número livre).
 2. Frontmatter obrigatório: `id` (`ADR-NNN`), `type: adr`, `title`, `status` (`Decidido` | `Proposto` | `Roadmap`), `date` (string ISO, com aspas).
 3. Tags: `type/adr`, `status/<status-lowercase>`, opcional `area/<dominio>`, `phase/<fase>`.
-4. Body: contexto → decisão → consequências (ver `docs/plan/DOC_REORG/_README.md` §3.1).
+4. Body: contexto → decisão → consequências (ver [ADR-182](adr/182-vault-de-documentacao-operacional-obsidian.md) para o contrato da vault).
 5. Validação: `python3 dev/validate_frontmatter.py docs/adr/NNN-<slug>.md`.
 6. Regenere índice: `python3 dev/build_doc_index.py --inline`.
 

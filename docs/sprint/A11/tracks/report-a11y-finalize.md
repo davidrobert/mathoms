@@ -17,29 +17,29 @@ tags:
 
 > **Lane ID:** `report-a11y-finalize`
 > **Branch prefix:** `agent/report-a11y-finalize/<yyyyMMdd-HHmm>`
-> **Depende de:** nada bloqueante. **Recomendado** ter [batch2.8](../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes) (shapes TS de `ReportAnalysisData`) antes — destrava asserções estáveis de DOM. Pode rodar em paralelo se aceitar `data-testid` defensivo.
+> **Depende de:** nada bloqueante. **Recomendado** ter [batch2.8](../../../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes) (shapes TS de `ReportAnalysisData`) antes — destrava asserções estáveis de DOM. Pode rodar em paralelo se aceitar `data-testid` defensivo.
 > **Paralelo com:** `adr-129-e6-kill` (independente — não toca disco/E6) · `report-v1-polish` (este lane produz código + CI; o outro produz docs/checklist)
 > **Conflita com:** qualquer agente mexendo em `frontend/src/components/report/**`, `frontend/tests/e2e/reports/**`, `frontend/playwright.config.ts`, `.github/workflows/*frontend*`
 > **Sprint:** Report Premium UI · resíduo Fase 12
-> **Índice de prompts:** [README.md](README.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
 > **Fonte de verdade:**
-> - [BACKLOG.md — pickup table](../BACKLOG.md#lanes-abertas-agora--pickup-table) (linha `report-a11y-finalize`)
-> - [plan/REPORT_PREMIUM/_README.md §11](../plan/REPORT_PREMIUM/_README.md) (Fase 12 original — itens não-E6 que sobreviveram)
-> - [F11.2c](../BACKLOG.md#f112--hierarquia-de-números) e [F11.3](../BACKLOG.md#f113--print--pdf-como-entregável-de-consultoria) (itens já entregues, contexto)
-> - [batch2.14](../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes) (checklist WCAG — output desta lane)
+> - [BACKLOG.md — pickup table](../../../BACKLOG.md#lanes-abertas-agora--pickup-table) (linha `report-a11y-finalize`)
+> - [plan/REPORT_PREMIUM/_README.md §11](../../../plan/REPORT_PREMIUM/_README.md) (Fase 12 original — itens não-E6 que sobreviveram)
+> - [F11.2c](../../../BACKLOG.md#f112--hierarquia-de-números) e [F11.3](../../../BACKLOG.md#f113--print--pdf-como-entregável-de-consultoria) (itens já entregues, contexto)
+> - [batch2.14](../../../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes) (checklist WCAG — output desta lane)
 
 > **Objetivo (1 frase):** levar o relatório React `/reports/[id]` ao gate
 > de qualidade que justificava a Fase 12 do plano Premium — axe-core sem
 > violações `critical+serious` por seção, tab-order completo, Lighthouse
 > com threshold no CI, snapshots Playwright por seção em light+dark — sem
-> nada que dependesse do `e6_render.py` (morto via [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)).
+> nada que dependesse do `e6_render.py` (morto via [ADR-129](../../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)).
 
 ---
 
 ## Por que esta lane agora
 
 Print CSS, export PDF e checklist humano de QA já estão entregues em
-[F11.3a/b/c](../BACKLOG.md#f113--print--pdf-como-entregável-de-consultoria).
+[F11.3a/b/c](../../../BACKLOG.md#f113--print--pdf-como-entregável-de-consultoria).
 Os itens **não-entregues** que sobreviveram à ADR-129:
 
 1. **axe-core gate** por seção — hoje a a11y é confiada na construção do
@@ -53,7 +53,7 @@ Os itens **não-entregues** que sobreviveram à ADR-129:
 4. **Snapshots por seção light+dark** — só smoke do hero (cover) tem
    screenshot; S1–S10/T3–T6/U1–U4 não. F11.2c (regressão visual) está
    ☐ pendente exatamente por isso.
-5. **Checklist WCAG operacional** ([batch2.14](../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes))
+5. **Checklist WCAG operacional** ([batch2.14](../../../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes))
    — pode ser auto-derivado do output dos 4 itens acima.
 
 Gate empírico: **toda mudança visual futura no shell falha cedo** se
@@ -74,7 +74,7 @@ Não execute sem responder estas três; o trade-off muda o esforço em ~1.5×.
 | `critical+serious+moderate` | Pega tudo, mas inclui "color-contrast" em estados de hover que dependem de tokens — vai dar falso-positivo até batch2.14 do checklist convergir. |
 
 **Default sugerido:** `critical+serious`. Anuncie a escolha no commit
-inicial e linkar no [BACKLOG batch2.14](../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes).
+inicial e linkar no [BACKLOG batch2.14](../../../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes).
 
 ### Decisão D2 — Lighthouse no CI: thresholds e número de runs
 
@@ -103,7 +103,7 @@ medium (não percorre app inteiro).
 
 ### Decisão D3 — Spec mobile entra ou fica fora?
 
-[batch2.13](../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes)
+[batch2.13](../../../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes)
 está aberto: "que seções saem em <767px? Kanban vira lista?". Há duas
 saídas:
 
@@ -165,7 +165,7 @@ foca o `main`.
 **Arquivo:** `frontend/tests/e2e/reports/a11y.@critical.spec.ts`
 
 Para cada seção registrada em
-[`config/report_layout.yaml`](../../config/report_layout.yaml) — S1–S10,
+[`config/report_layout.yaml`](../../../../config/report_layout.yaml) — S1–S10,
 T1–T6, U1–U4, A–E — roda `@axe-core/playwright` e asserta zero
 violações no nível escolhido em D1.
 
@@ -210,7 +210,7 @@ Thresholds em D2. Job separado dos outros para isolar custo.
 Tabela por seção × WCAG 2.1 AA criterion (1.4.3 contrast,
 2.1.1 keyboard, 2.4.3 focus order, 2.4.7 focus visible, 4.1.2 name/role/
 value). Output dos itens 1–4 popula a coluna "automatizado por"; o que
-sobrar fica como "checklist humano". Absorve [batch2.14](../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes).
+sobrar fica como "checklist humano". Absorve [batch2.14](../../../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes).
 
 ### 6. Atualização do BACKLOG e CHANGELOG
 
@@ -258,7 +258,7 @@ Snapshots têm commit dedicado de baseline.
   `aria-label` faltante ✅; trocar API do componente ❌.
 - Mobile spec — D3 default = fora.
 - Mexer em `e6_render.py` ou qualquer ressurreição do renderer
-  server-side. Está morto via [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+  server-side. Está morto via [ADR-129](../../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 - Migrar suíte E2E para outro runner. Continua Playwright.
 - Performance budget no React (React Profiler, code-split novo). Lighthouse
   já cobre o que importa para esta lane.

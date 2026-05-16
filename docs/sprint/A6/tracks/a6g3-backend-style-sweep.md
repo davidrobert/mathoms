@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6e.4 (só se disciplinar escopo — **nunca tocar `backend/app/api/*.py` nem `backend/app/application/*`**). A6g.6b, A6g.2c (pequenas follow-ups), A6e.3c (tipar DTOs — toca `schemas/dto/`, potencial overlap cuidar).
 > **Conflita com:** commits simultâneos em `backend/app/services/*.py`, `backend/app/repositories/*.py`, `backend/app/models/*.py`, `backend/app/schemas/*.py`, `backend/app/tasks/*.py`, `backend/app/core/*.py`. Se A6e.3c estiver ativa, coordenar por arquivo.
 > **Onda:** 3
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style) · [docs/archive/audits/](../audits/) · ADR-114 (enforcement)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style) · [docs/archive/audits/](../../../archive/audits/) · ADR-114 (enforcement)
 
 > **Objetivo:** aplicar §Code style em `backend/app/` **fora do escopo
 > de outras lanes** — services, repositories, models, schemas (não-DTO
@@ -328,12 +328,12 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 ## Referências
 
-- [CLAUDE.md §Code style](../../CLAUDE.md#code-style) — regras
-- [ADR-090](../DECISIONS.md) — Money nunca `float`
-- [ADR-114](../DECISIONS.md) — enforcement A6g.6
-- [ADR-097](../DECISIONS.md) — extract-then-refactor (padrão)
-- [BACKLOG §A6g](../BACKLOG.md) — trilho completo + baseline audit
+- [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style) — regras
+- [ADR-090](../../../DECISIONS.md) — Money nunca `float`
+- [ADR-114](../../../DECISIONS.md) — enforcement A6g.6
+- [ADR-097](../../../DECISIONS.md) — extract-then-refactor (padrão)
+- [BACKLOG §A6g](../../../BACKLOG.md) — trilho completo + baseline audit
 - `dev/audit_code_style.py` — auditor (A6g.1)
 - `dev/code_style_baseline.json` — baseline atual (A6g.6)
 - `dev/check_code_style_regression.py` — gate CI (A6g.6)
-- Prompts paralelos/relacionados: [track_a6e4](track_a6e4_thin_routers.md), [track_a6g2](track_a6g2_pipeline_style_sweep.md), [track_a6g4](track_a6g4_frontend_style_sweep.md), [track_a6g5](track_a6g5_tests_sweep.md), [track_a6g6](track_a6g6_enforcement.md)
+- Prompts paralelos/relacionados: [track_a6e4](a6e4-thin-routers.md), [track_a6g2](a6g2-pipeline-style-sweep.md), [track_a6g4](a6g4-frontend-style-sweep.md), [track_a6g5](a6g5-tests-sweep.md), [track_a6g6](a6g6-enforcement.md)

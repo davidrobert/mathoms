@@ -35,11 +35,11 @@ tags:
   (`MATHOMS_INTERNAL_OPS_UI_ENABLED`), bloqueador P0 para abrir signup
   público. Doc nova em [SECURITY.md §Direitos do titular
   LGPD](../SECURITY.md). **Tenancy gate estrutural** em
-  [backend/tests/integration/test_tenancy_isolation.py](../backend/tests/integration/test_tenancy_isolation.py):
+  [backend/tests/integration/test_tenancy_isolation.py](../../../../backend/tests/integration/test_tenancy_isolation.py):
   3 testes complementam o suite per-domain — fuzz de todas as rotas
   `/api/v1/workspaces/{workspace_id}/...` GET (User A nunca obtém 200
   no ws de B), AST scan que exige `Depends(get_current_workspace)` em
   toda função com `workspace_id` (whitelist 6 sunset endpoints
   ADR-129/154), e fuzz path-id em `/documents/{id}/extract-json`. Doc
-  em [docs/reference/TESTING.md §Tenancy isolation](TESTING.md). Snapshot
+  em [docs/reference/TESTING.md §Tenancy isolation](../../../reference/TESTING.md). Snapshot
   OpenAPI + DB schema reference regenerados.

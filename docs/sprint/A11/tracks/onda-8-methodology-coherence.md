@@ -252,9 +252,9 @@ no momento da aceitação:
 
 - Revisão financial-planner (2026-04-29) na sessão da revisão de
   produto.
-- ADRs: [ADR-136](../DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) (Decision),
-  [ADR-153](../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) (Suggestion),
-  [ADR-074](../DECISIONS.md#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório) (Task).
+- ADRs: [ADR-136](../../../DECISIONS.md#adr-136--decision-aggregate-event-sourced-com-supersede-chain) (Decision),
+  [ADR-153](../../../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) (Suggestion),
+  [ADR-074](../../../DECISIONS.md#adr-074--tasks-como-entidade-de-1ª-classe-fora-do-relatório) (Task).
 - Methodologies docstring: ver `pipeline/domain/services/financial_score_calculator.py` + `scoring.json`.
 
 ## Sequência de execução

@@ -17,7 +17,7 @@ tags:
 
 - **Lane `livestep-emit-stages` E1 + E1.5c — mecânicas (2026-04-25):**
   terceiro e quarto emissores migrados para o contrato
-  [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
+  [ADR-119](../../../DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
   (após E1.5 em `3bc9d25` e E2 em `09858df`). Stages **single-batch**
   (não-loop):
   - **E1 — `pipeline/stages/extract_members.py`:** chamada LLM única

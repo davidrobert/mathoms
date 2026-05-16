@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** nenhum (último step da Fase 9)
 > **Conflita com:** commits em `pipeline/stage_spec.py`, `scripts/e*.py` (wrappers), `pipeline/`
 > **Onda:** F9 (sub-fatia 7/7) — **fechamento**
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) §9.6 + ADR-100 (housekeeping `_init_config`)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) §9.6 + ADR-100 (housekeeping `_init_config`)
 
 > **Objetivo:** remover toda a infra de compat introduzida em F9.2-F9.4
 > (wrappers `scripts/e*.py`, alias `STAGE_RENAME_MAP` reverso,
@@ -94,7 +94,7 @@ git rm scripts/e0_audit.py scripts/e0_route.py scripts/e0_unlock.py \
 ### 4. Verificar `_init_config()` global (esperado: no-op)
 
 A6d.1 fechou em 2026-04-24 com AST guard
-[`tests/unit/pipeline/test_no_init_config_at_toplevel.py`](../../tests/unit/pipeline/test_no_init_config_at_toplevel.py)
+[tests/unit/pipeline/test_no_init_config_at_import.py](../../../../tests/unit/pipeline/test_no_init_config_at_import.py)
 parametrizado por todos os scripts/stages. Verifique:
 
 ```bash
@@ -245,7 +245,7 @@ git push origin HEAD:main
 
 ## Referências
 
-- F9.5 (prereq): [track_f9_5_guardrail_hardfail.md](track_f9_5_guardrail_hardfail.md)
+- F9.5 (prereq): [track_f9_5_guardrail_hardfail.md](f9-5-guardrail-hardfail.md)
 - ADR-093: `docs/DECISIONS.md:2228`
 - ADR-100: housekeeping `_init_config()` global (referência para A6d.1).
 - Migration histórica: `backend/alembic/versions/q5r6s7t8u9v0_rename_stage_identifiers.py`.

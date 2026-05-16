@@ -79,4 +79,4 @@ Ordem: A6d.1 → A6d.2 → A6d.3 (dependências: .2 depende de .1; .3 depende de
 **Relação com A6a-e**: independente. Pode rodar em paralelo com cutover DB.
 §15 (LGPD) e §16 (Observabilidade) não dependem de A6d.
 
-**Artefatos:** [BACKLOG §A6d](BACKLOG.md#a6d--fechar-caminho-b-puro-nos-5-stages-pragmáticos-adr-100).
+**Artefatos:** [BACKLOG §A6d](../BACKLOG.md#a6d--fechar-caminho-b-puro-nos-5-stages-pragmáticos-adr-100).

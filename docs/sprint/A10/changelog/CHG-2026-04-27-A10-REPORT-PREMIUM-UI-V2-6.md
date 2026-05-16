@@ -20,7 +20,7 @@ tags:
   botões "→ Coluna X" em vez de drag-and-drop). Lane v2.7 instala
   `@dnd-kit/core@^6.3.1` (42KB minified / 13KB gzipped — bem abaixo
   dos 50KB do gate de bundle do prompt) e refatora
-  [Kanban.tsx](frontend/src/components/report/ui/kanban/Kanban.tsx)
+  `frontend/src/components/report/ui/kanban/Kanban.tsx`
   para usar `DndContext` + `useDraggable` (cards) + `useDroppable`
   (colunas). API `onMove(id, to)` preservada — `TaticoSections.tsx`
   não muda; o handler `onDragEnd` chama o mesmo callback quando o

@@ -1,6 +1,6 @@
 # Sprint A6 — Lanes (histórico)
 
-> Tabela estática de todas as lanes da Sprint A6. Para detalhe operacional (frontmatter, dependências), ver [`lanes/<id>.md`](lanes/) populado por F4.A.
+> Tabela estática de todas as lanes da Sprint A6. Para detalhe operacional (frontmatter, dependências), ver [`lanes/<id>.md`](lanes) populado por F4.A.
 
 | ID | Title | Status | Ship date | Onda |
 |---|---|---|---|---|
@@ -60,4 +60,4 @@
 | [[F9.5]] | Guardrail hard-fail | open | depende de F9.4 | F9 |
 | [[F9.6]] | Cleanup final | open | depende de F9.5 | F9 |
 
-> Lanes legadas (✅) consumidas a partir de tracks em [`tracks/`](tracks/) ou texto editorial no [BACKLOG legado](../../BACKLOG.md). Migração estrutural em curso (F4.A do plano DOC_REORG).
+> Lanes legadas (✅) consumidas a partir de tracks em [`tracks/`](tracks) ou texto editorial no [BACKLOG legado](../../BACKLOG.md). Migração estrutural em curso (F4.A do plano DOC_REORG).

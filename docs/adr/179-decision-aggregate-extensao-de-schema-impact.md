@@ -20,7 +20,7 @@ size_lines: 45
 
 # ADR-179 — `Decision` aggregate — extensão de schema (`impact_1y/10y`, `horizon`, `priority`)
 
-**Status:** Decidido (Sprint A10.3) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Estende** [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain) • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.3](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
+**Status:** Decidido (Sprint A10.3) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Estende** [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain) • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-102](#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.3](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
 **Contexto:** Card S10 do relatório premium ("Top 5 Decisões de Impacto") hoje renderiza string editorial Ferreira-Campos vinda de `goals_cfg["top5_decisoes"]` (concatenação f-string em `charts_narrator.py:382-393`). `Decision` aggregate (ADR-136) tem aggregate event-sourced + UI `/plano` desde Sprint A7, mas o card S10 ignora — duas fontes de verdade para o mesmo conceito. Para fazer S10 consultar o aggregate via projeção (lane A10.5), faltam 4 atributos críticos: **quantificação de impacto** (1y/10y), **horizonte** temporal e **prioridade manual** do consultor.
 
@@ -60,4 +60,4 @@ Decision em produção tem registros com `amount_brl_cents` populado mas sem ess
 - [ ] Tests `backend/tests/test_decision_extension.py` (~10 specs) cobrindo migration backward-compat, ordenação `priority NULL` → `impact_1y DESC NULLS LAST`, validação `horizon` enum.
 - [ ] Endpoint `/decisions/{id}` aceita registros legados sem os 4 campos (Optional retorna null no DTO).
 
-**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.3](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.3).
+**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.3](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.3).

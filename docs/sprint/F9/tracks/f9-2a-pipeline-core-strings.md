@@ -20,7 +20,7 @@ tags:
 > **Depende de:** F9.2 T1 ✅ (já em `main`: commits `332c51e`, `9758e59`, `ffca1b9`)
 > **Bloqueia:** F9.2b, F9.2d
 > **Onda:** F9 (sub-fatia 3a/7) — resíduo da fatia "string literals"
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L54)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093) · [`STAGE_RENAME_MAP`](../../../../pipeline/stage_spec.py#L54)
 
 > **Objetivo:** trocar strings literais de stage legado (`"E3"`, `"E5"`, `"E2-llm"`,
 > etc.) restantes na árvore `pipeline/` por equivalentes descritivos
@@ -222,8 +222,8 @@ git push origin HEAD:main
 
 ## Referências
 
-- [F9.2 prompt master](track_f9_2_string_literals.md)
-- [F9.2b scripts](track_f9_2b_scripts_strings.md)
-- [F9.2c e_reset CLI](track_f9_2c_e_reset_deprecation.md)
-- [F9.2d backend + tests](track_f9_2d_backend_tests.md)
-- [F9.2e closeout](track_f9_2e_closeout.md)
+- [F9.2 prompt master](f9-2-string-literals.md)
+- [F9.2b scripts](f9-2b-scripts-strings.md)
+- [F9.2c e_reset CLI](f9-2c-e-reset-deprecation.md)
+- [F9.2d backend + tests](f9-2d-backend-tests.md)
+- [F9.2e closeout](f9-2e-closeout.md)

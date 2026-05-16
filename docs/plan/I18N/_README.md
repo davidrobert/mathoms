@@ -26,7 +26,7 @@ tags:
 > **Status:** `paused` (aguardando gatilho de reentrada — ver §10) ·
 > **Última revisão:** 2026-05-15
 > **ADR:** [[ADR-130]] — `docs/adr/130-internacionalizacao-com-next-intl-persistencia.md`
-> **Sprint MOC:** [F12](../../sprint/F12/_README.md)
+> **Sprint MOC:** [F12 lanes](../../sprint/F12/lanes/)
 >
 > **Locales suportados (3):** pt-BR (default) · en · es. Demais 7
 > locales da revisão 2026-04-26 (pt-PT, zh-CN, fr, ru, de, ja, ko)

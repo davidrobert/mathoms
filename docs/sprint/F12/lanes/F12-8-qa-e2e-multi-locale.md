@@ -3,6 +3,7 @@ id: F12.8
 type: lane
 title: "QA + E2E multi-locale"
 sprint: F12
+plan: PLAN-i18n
 status: blocked
 priority: P0
 adrs: ["[[ADR-130]]"]

@@ -406,9 +406,9 @@ if (isWorkspaceZero) {
 ## Referências
 
 - Revisão `product-designer` 2026-05-04 (sessão pós-revisão multi-agente).
-- ADRs: [ADR-076](../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório) (tokens),
-  [ADR-153](../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) (Suggestion),
-  [ADR-156](../DECISIONS.md#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) (patrimônio single-source).
+- ADRs: [ADR-076](../../../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório) (tokens),
+  [ADR-153](../../../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) (Suggestion),
+  [ADR-156](../../../DECISIONS.md#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7) (patrimônio single-source).
 - Padrão de scroll+highlight de anchor: implementação Onda 7 #3
   (`#SUG-XXX` em /acao).
 - CLAUDE.md §Design System: regra "valor monetário é sempre

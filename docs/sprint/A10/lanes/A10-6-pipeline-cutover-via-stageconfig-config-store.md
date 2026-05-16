@@ -24,7 +24,7 @@ tags:
 
 - **Onda:** 3
 - **Depende de:** A10.1 + A10.2 + A10.3 + A10.4 ✅
-- **Plano:** [§3.1 + §3.2 + ADR-180](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
+- **Plano:** [§3.1 + §3.2 + ADR-180](../../../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
 - **Branch slug:** `a10-6-stage-config-bundle`
 - **Esforço:** 1.5d
 - **Paralelo com:** A10.5

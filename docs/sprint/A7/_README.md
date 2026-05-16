@@ -24,7 +24,7 @@ Migração do `config/*` (5 arquivos JSON + decisions.md + 4 docs metodológicos
 
 ## Lanes
 
-Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes/). Tracks operacionais em [`tracks/`](tracks/).
+Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes). Tracks operacionais em [`tracks/`](tracks).
 
 ## Waves
 
@@ -33,5 +33,5 @@ Mapa de dependências em [waves.md](waves.md) — 4 ondas: Onda 1 (A7.0 fundaç�
 ## Fontes canônicas
 
 - [docs/archive/CONFIG_CUTOVER_PLAN-2026-04-27.md](../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md) — plano canônico arquivado.
-- [docs/reference/STATELESS_AUDIT.md](../../STATELESS_AUDIT.md) — registro dos globals permitidos (ADR-111).
-- [docs/reference/ARCHITECTURE.md §4.1 Domain glossary](../../ARCHITECTURE.md) — índice de regras de domínio (rules-as-code).
+- [docs/reference/STATELESS_AUDIT.md](../../reference/STATELESS_AUDIT.md) — registro dos globals permitidos (ADR-111).
+- [docs/reference/ARCHITECTURE.md §4.1 Domain glossary](../../reference/ARCHITECTURE.md) — índice de regras de domínio (rules-as-code).

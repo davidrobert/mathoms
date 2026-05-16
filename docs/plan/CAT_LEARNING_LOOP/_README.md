@@ -257,7 +257,7 @@ workspaces ativos + revert_rate baixo + feedback positivo dogfood):
 
 > **Pré-condição estrutural (PM review 2026-05-10):** `CategoriesTab.tsx`
 > deve estar com **tabs/subnav extensíveis** (array configurável de
-> `{id, label, content}`) entregue na W4 da [PLAN-category-overrides-ux](../CATEGORY_OVERRIDES_UX/_README.md)
+> `{id, label, content}`) entregue na W4 do [plano CATEGORY_OVERRIDES_UX arquivado](../../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md)
 > — coordenação documentada no [track W4 §Coordenação cross-lane](../../sprint/A11/tracks/category-overrides-ui-refactor.md).
 > Se hook estrutural **não** existe quando V2 promover (ex.: a tab nasceu
 > flat por engano e o gate de aceitação não pegou), somar **+1d eng** ao

@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** nenhum (F9 é sequencial; bloqueia 9.2)
 > **Conflita com:** qualquer commit em `pipeline/stages/`, `pipeline/stage_spec.py`, `pipeline/orchestrator.py`
 > **Onda:** F9 (sub-fatia 2/7)
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L129)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a) · [`STAGE_RENAME_MAP`](../../../../pipeline/stage_spec.py#L129)
 
 > **Objetivo:** renomear os 14 wrappers em `pipeline/stages/e*.py` para os
 > nomes descritivos do `STAGE_RENAME_MAP`, atualizar imports e o registro
@@ -44,7 +44,7 @@ consumida por `STAGE_REGISTRY` que é o único lugar a atualizar.
 
 ## Mapa de renames
 
-Fonte: `STAGE_RENAME_MAP` em [pipeline/stage_spec.py:129](../../pipeline/stage_spec.py#L129).
+Fonte: `STAGE_RENAME_MAP` em [pipeline/stage_spec.py:129](../../../../pipeline/stage_spec.py#L129).
 
 | Antes (`pipeline/stages/`) | Depois (`pipeline/stages/`) |
 |---|---|
@@ -196,8 +196,8 @@ git push origin HEAD:main
 
 ## Referências
 
-- F9.0 (prereq): [track_f9_0_audit.md](track_f9_0_audit.md)
-- F9.2 (próximo): [track_f9_2_string_literals.md](track_f9_2_string_literals.md)
+- F9.0 (prereq): [track_f9_0_audit.md](f9-0-audit.md)
+- F9.2 (próximo): [track_f9_2_string_literals.md](f9-2-string-literals.md)
 - ADR-093 (plano completo): `docs/DECISIONS.md:2228`
 - `STAGE_RENAME_MAP`: `pipeline/stage_spec.py:129`
 - Hook `_is_rename`: `dev/check_float_money.py` (ver A6g.2c).

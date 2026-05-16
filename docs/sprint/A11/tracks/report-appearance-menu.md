@@ -20,13 +20,13 @@ tags:
 > **Depende de:** nada bloqueante.
 > **Paralelo com:** qualquer lane que **não** toque `frontend/src/components/report/shell/**`, `frontend/src/components/report/ReportShell.tsx`, `frontend/src/components/report/useReportFontScale.ts`, `frontend/src/styles/tokens.css`, `design-tokens/tokens.json`, `design-tokens/build.py`.
 > **Conflita com:** Onda E (charts UX) **não** — escopos disjuntos. Lanes que mexem na top-nav do relatório (`ReportTopNav.tsx`, `ReportActions.tsx`) — coordenar.
-> **Sprint:** Report Premium · refinement [ADR-121](../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4
-> **Índice de prompts:** [README.md](README.md)
+> **Sprint:** Report Premium · refinement [ADR-121](../../../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4
+> **Índice de prompts:** [README.md](../../../../README.md)
 > **Fonte de verdade:**
-> - [BACKLOG.md — pickup table](../BACKLOG.md#lanes-abertas-agora--pickup-table) (linha `report-appearance-menu`)
-> - [DECISIONS.md — ADR-121 Refinamento UX (2026-04-26)](../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável)
+> - [BACKLOG.md — pickup table](../../../BACKLOG.md#lanes-abertas-agora--pickup-table) (linha `report-appearance-menu`)
+> - [DECISIONS.md — ADR-121 Refinamento UX (2026-04-26)](../../../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável)
 
-> **Objetivo (1 frase):** substituir os dois segmented controls separados na top-nav (`FontScaleToggle` "Compacto/Normal/Confortável" + `ReportThemeToggle` "Light/Dark") por um único popover `Aa` (`AppearanceMenu`), com default `normal` (16px) e passos de 4px (14/16/18) — sem alterar a arquitetura `localStorage` da [ADR-121](../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável).
+> **Objetivo (1 frase):** substituir os dois segmented controls separados na top-nav (`FontScaleToggle` "Compacto/Normal/Confortável" + `ReportThemeToggle` "Light/Dark") por um único popover `Aa` (`AppearanceMenu`), com default `normal` (16px) e passos de 4px (14/16/18) — sem alterar a arquitetura `localStorage` da [ADR-121](../../../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável).
 
 ---
 
@@ -89,7 +89,7 @@ preview ao vivo (re-flow das tabelas é o melhor "antes/depois"
 possível). Idêntico ao padrão consagrado de `ReportThemeToggle` e
 `useReportTocOpen`.
 
-Quando `/settings` cross-app nascer (provável com [ADR-130](../DECISIONS.md#adr-130--i18n-dois-eixos-locale--idioma) i18n),
+Quando `/settings` cross-app nascer (provável com [ADR-130](../../../DECISIONS.md#adr-130--i18n-dois-eixos-locale--idioma) i18n),
 uma ADR nova deverá explicitar o split: **account-level** (locale,
 notificações, default workspace) → DB · **reading-level** (fonte, tema,
 TOC, futuros line-height/largura) → localStorage. Esta ADR-121
@@ -154,7 +154,7 @@ refinada permanece autoritativa sobre o que **fica local**.
 
 ## Quando criar ADR nova (futuros agentes)
 
-Quando `/settings` cross-app nascer (provável com [ADR-130](../DECISIONS.md#adr-130--i18n-dois-eixos-locale--idioma) i18n),
+Quando `/settings` cross-app nascer (provável com [ADR-130](../../../DECISIONS.md#adr-130--i18n-dois-eixos-locale--idioma) i18n),
 **criar ADR nova** explicitando o split:
 
 - **Account-level → DB** (`/users/me/preferences` ou tabela equivalente):

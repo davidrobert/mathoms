@@ -200,11 +200,11 @@ divergentes.
   síntese product-designer + financial-planner + PM analysis.
 - Direção E original: `~/.claude/plans/quero-repensar-as-interfaces-mellow-nova.md`.
 - ADRs relevantes:
-  [ADR-151](../DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces),
-  [ADR-152](../DECISIONS.md#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6),
-  [ADR-153](../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples),
-  [ADR-154](../DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1),
-  [ADR-155](../DECISIONS.md#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação).
+  [ADR-151](../../../DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces),
+  [ADR-152](../../../DECISIONS.md#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6),
+  [ADR-153](../../../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples),
+  [ADR-154](../../../DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1),
+  [ADR-155](../../../DECISIONS.md#adr-155--dashboard-absorvido-por-plano-direção-e-consolidação).
 
 ## Sequência de execução sugerida
 

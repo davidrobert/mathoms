@@ -3,6 +3,7 @@ id: A11.w3
 type: lane
 title: "Auth + LLM ops + Email (5 tasks)"
 sprint: A11
+plan: PLAN-platform-review
 status: blocked
 aliases: ["A11.W3"]
 depends_on: []
@@ -22,7 +23,7 @@ tags:
 
 - **Onda:** 3 (12d)
 - **Depende de:** W2 ✅
-- **Plano:** [PLAN §W3](plan/PLATFORM_REVIEW/_README.md#wave-3--auth--llm-ops--email-sprint-2-12-dias-dev)
+- **Plano:** [PLAN §W3](../../../plan/PLATFORM_REVIEW/_README.md#wave-3--auth--llm-ops--email-sprint-2-12-dias-dev)
 
 ## Status (legado)
 

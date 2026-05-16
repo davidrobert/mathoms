@@ -17,7 +17,7 @@ tags:
 
 - **Lane `livestep-emit-stages` E4 + E5 — batch (2026-04-25):**
   quinto e sexto emissores migrados para o contrato
-  [ADR-119](DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
+  [ADR-119](../../../DECISIONS.md#adr-119--contrato-livestep-para-progresso-de-etapas)
   (após E1.5/E2/E1/E1.5c). Stages **single-batch** sem loop visível
   no wrapper:
   - **E4 — `pipeline/stages/categorize_transactions.py`:**

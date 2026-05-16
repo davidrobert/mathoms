@@ -19,7 +19,7 @@ tags:
 # Track Category Overrides W1 — Cache invalidation + `CategoryOverrideService`
 
 > **Lane ID:** category-overrides-cache-fix
-> **Plano canônico:** [docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../../../plan/CATEGORY_OVERRIDES_UX/_README.md) §Wave 1
+> **Plano canônico:** [docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../../../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md) §Wave 1
 > **Branch prefix:** `agent/category-overrides-cache-fix/*`
 > **Depende de:** —
 > **Bloqueia:** W4-T01 (UI) — `read-after-write` da W4 fica stale sem este fix
@@ -72,6 +72,6 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano: [PLAN-category-overrides-ux](../../../plan/CATEGORY_OVERRIDES_UX/_README.md)
+- Plano: [PLAN-category-overrides-ux](../../../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md)
 - ADR canônica: ADR-185 §3 (a publicar em W3 desta lane)
 - ADRs relacionadas: [[ADR-097]] (services com value object), [[ADR-137]] (template + override)

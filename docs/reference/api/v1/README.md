@@ -6,7 +6,7 @@ backend FastAPI. Propósito (ADR-102 · A6f.2):
 - **Contrato explícito entre processos.** Clientes em qualquer linguagem
   (Go, TypeScript, Rust, cURL) sabem a shape exata sem ler Python.
 - **CI diff.** Se o código introduzir breaking change não-intencional no
-  contrato, o teste [test_openapi_snapshot.py](../../backend/tests/test_openapi_snapshot.py)
+  contrato, o teste [test_openapi_snapshot.py](../../../../backend/tests/test_openapi_snapshot.py)
   falha e a PR é barrada.
 - **Codegen.** `openapi-typescript`, `orval`, ou qualquer ferramenta
   similar consome este arquivo para gerar clients tipados.

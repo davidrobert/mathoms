@@ -66,9 +66,9 @@ Trade-off identificado:
 ## §2 — Alternativas avaliadas
 
 Vereditos do co-design pré-ADR (2026-05-12):
-[financial-planner (G0)](../.claude/agents/financial-planner.md),
-[data-engineer (G2)](../.claude/agents/data-engineer.md),
-[product-designer (G4)](../.claude/agents/product-designer.md).
+[financial-planner (G0)](../../.claude/agents/financial-planner.md),
+[data-engineer (G2)](../../.claude/agents/data-engineer.md),
+[product-designer (G4)](../../.claude/agents/product-designer.md).
 
 ### A. Card "Comparativo" com Δ literal em R$ (Δ = IR pago − IR hipotético)
 

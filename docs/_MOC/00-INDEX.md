@@ -20,6 +20,7 @@ Este é o ponto de entrada da vault Obsidian-friendly de `docs/`. Para LLMs: com
 | "O que mudou na última semana?" | `_generated/CHANGELOG_RECENT.md` (auto, últimos 14 dias) |
 | "Roadmap das fases F0-F11" | `_generated/ROADMAP.md` (auto, populado em F5) |
 | "Tudo no sistema" | `_generated/INDEX.md` (auto, 1 linha por nota) |
+| "Quantas notas existem por tipo/status?" | `_generated/DOC_STATS.md` (auto, inventário compacto) |
 
 ## Topologia da vault
 
@@ -31,9 +32,9 @@ docs/
 │   ├── PLANS-active.md    ← editorial: planos abertos
 │   └── _generated/        ← auto, snapshot test bloqueia drift
 ├── _schemas/              ← JSON Schemas para frontmatter
-├── adr/                   ← 175 ADRs atomizadas (após F2)
+├── adr/                   ← ADRs atomizadas
 ├── sprint/                ← lanes + tracks por sprint (após F4)
-├── plan/                  ← planos canônicos multi-fase (5 abertos)
+├── plan/                  ← planos canônicos multi-fase
 ├── reference/             ← docs estáveis (PHASES, PRODUCT, ARCHITECTURE, …)
 │   └── rules/             ← domain rules (rules-as-code, ADR-143/177)
 ├── archive/               ← planos arquivados, backups pré-shim, manual histórico
@@ -56,12 +57,11 @@ Dataview é **opcional** — vault funciona sem. Habilite só se quiser queries 
 
 DOC_REORG ([ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md)) **Decidido (Sprint A11.5)** — vault GA. Conteúdo populado:
 
-- **175 ADRs** atomizadas em `adr/` ([índice](_generated/ADR_INDEX.md))
-- **74 lanes** em 8 sprints A6/A7/A8/A9/A10/A11/F7/F9 + F11/F12 (futuro) ([sprint atual](_generated/SPRINT_CURRENT.md))
-- **62 tracks** em `sprint/<X>/tracks/`
-- **5 plans** em `plan/<SLUG>/_README.md` ([status](PLANS-active.md))
-- **167 changelog entries** em `sprint/<X>/changelog/` ([últimos 14 dias](_generated/CHANGELOG_RECENT.md))
-- **7 domain rules** em `reference/rules/RULE-*.md` (Onda 1 — TRS, composição patrimonial, alocação AUVP, IF, `imoveis_no_if`, cenário cônjuge, concentração imobiliária; bootstrap PR 4 pós-DOC_REORG)
+- Inventário atual por tipo/status: [`_generated/DOC_STATS.md`](_generated/DOC_STATS.md).
+- ADRs vigentes: [`_generated/ADR_INDEX.md`](_generated/ADR_INDEX.md).
+- Sprint corrente e lanes abertas: [`_generated/SPRINT_CURRENT.md`](_generated/SPRINT_CURRENT.md).
+- Planos agregados: [`_generated/PLAN_PROGRESS.md`](_generated/PLAN_PROGRESS.md).
+- Entregas recentes: [`_generated/CHANGELOG_RECENT.md`](_generated/CHANGELOG_RECENT.md).
 
 Próximas evoluções:
 - Crítica 1 do PM review (2026-05-07): backfill de taxonomia (`area/*`, `methodology/*`, `priority/*`) em 174 ADRs (hoje só 1 tem taxonomia rica). PR 4 (em curso): domain rules em `reference/rules/<slug>.md` — Onda 1 entregue (7 RULEs); Onda 2/3 do inventário do `financial-planner` ficam para PRs subsequentes.

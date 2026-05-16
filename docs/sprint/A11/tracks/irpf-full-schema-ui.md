@@ -17,8 +17,8 @@ tags:
 
 > **Lane ID:** irpf-full-schema-ui
 > **Branch prefix:** `agent/irpf-full-schema-ui/*`
-> **Depende de:** [track_irpf_full_schema.md](track_irpf_full_schema.md) ✅ mergeada (E1.6 backend + analyzer + E5 wire em `main` desde 2026-04-30, [ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)).
-> **Conflita com:** `config/report_layout.yaml`, `frontend/src/generated/report-layout.ts`, `backend/app/generated/report_layout.py` (codegen [ADR-076](../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)), e qualquer track `report-v2-*` ativo que mexa nas mesmas seções/charts.
+> **Depende de:** [track_irpf_full_schema.md](irpf-full-schema.md) ✅ mergeada (E1.6 backend + analyzer + E5 wire em `main` desde 2026-04-30, [ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)).
+> **Conflita com:** `config/report_layout.yaml`, `frontend/src/generated/report-layout.ts`, `backend/app/generated/report_layout.py` (codegen [ADR-076](../../../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)), e qualquer track `report-v2-*` ativo que mexa nas mesmas seções/charts.
 > **Onda:** independente — pode rodar paralela ao Sprint A8 desde que respeite YAML/codegen.
 > **ADR:** **não obrigatória** — mudanças de produto/UX sob ADR-076 (design system) e ADR-157 (E1.6 schema) já vigentes; abrir ADR nova só se decidir substituir gauge/visualização canônica ou alterar tokens.
 > **Supervisão:** **G4 (`product-designer`)** obrigatório antes do PR · **G2 (`data-engineer`)** se mudar shape de `irpf_kpis` no E5 · **G0 (`financial-planner`)** para validar copy/labels (alíquota efetiva vs carga tributária, capacidade PGBL, split trabalho×capital).
@@ -49,14 +49,14 @@ tags:
 
 ## Regras inegociáveis
 
-1. **Tokens, não hex literal** ([ADR-076](../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)): nunca cor literal — sempre `var(--brand-*)`, `var(--surface-*)`, `var(--semantic-*)`. Verde para "capacidade não usada disponível" pode parecer positivo mas é alerta — alinhar copy com G4/G0.
-2. **Valores monetários:** sempre `<MonetaryValue/>` (font-mono + tabular-nums, [frontend/src/components/report/MonetaryValue.tsx](../../frontend/src/components/report/MonetaryValue.tsx)). Nunca `Intl.NumberFormat` inline em renderização de BRL.
+1. **Tokens, não hex literal** ([ADR-076](../../../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)): nunca cor literal — sempre `var(--brand-*)`, `var(--surface-*)`, `var(--semantic-*)`. Verde para "capacidade não usada disponível" pode parecer positivo mas é alerta — alinhar copy com G4/G0.
+2. **Valores monetários:** sempre `<MonetaryValue/>` (font-mono + tabular-nums, [frontend/src/components/report/MonetaryValue.tsx](../../../../frontend/src/components/report/MonetaryValue.tsx)). Nunca `Intl.NumberFormat` inline em renderização de BRL.
 3. **Sem `any`/`unknown` sem narrow** — TS strict. Tipos do `irpf_kpis` chegam por `unknown` do E5 output e devem ser narrow-validados antes de uso.
 4. **Degrada gracioso:** quando `output.irpf_kpis === undefined`, **omitir as 2 seções inteiras** do relatório — não renderizar placeholder vazio. YAML `enabled: true` mas componente checa presença e devolve `null`.
-5. **Codegen é fonte de verdade** ([ADR-076](../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)): após editar YAML, rodar `python3 dev/codegen_report_layout.py` e commitar o diff junto. CI falha se não.
+5. **Codegen é fonte de verdade** ([ADR-076](../../../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)): após editar YAML, rodar `python3 dev/codegen_report_layout.py` e commitar o diff junto. CI falha se não.
 6. **Pipeline não importa framework** — domain layer (`pipeline/domain/services/irpf_analyzer.py`) **não muda**. Se faltar query no analyzer, abrir followup (não estender da UI).
 7. **Idiom `period_toggle`/`comparisons`/`changelog`** existentes no YAML: aplicar onde fizer sentido (evolução de renda merece toggle multi-anos).
-8. **Acessibilidade WCAG 2.1 AA** ([engineering:accessibility-review](../../.claude/agents/product-designer.md)): contraste, keyboard nav, screen reader labels nos charts.
+8. **Acessibilidade WCAG 2.1 AA** ([engineering:accessibility-review](../../../../.claude/agents/product-designer.md)): contraste, keyboard nav, screen reader labels nos charts.
 
 ---
 
@@ -183,7 +183,7 @@ Plugar nas 2 sections novas via `ReportSection` (padrão estabelecido em S1, S2�
 
 ### F. Documentação
 
-- Atualizar [docs/plan/REPORT_PREMIUM/_README.md §17](../plan/REPORT_PREMIUM/_README.md) (se aplicável) com as 2 seções novas.
+- Atualizar [docs/plan/REPORT_PREMIUM/_README.md §17](../../../plan/REPORT_PREMIUM/_README.md) (se aplicável) com as 2 seções novas.
 - `docs/CHANGELOG.md` entrada datada quando mergear.
 - Marcar lane A8.2 ✅ no BACKLOG.
 
@@ -237,17 +237,17 @@ Plugar nas 2 sections novas via `ReportSection` (padrão estabelecido em S1, S2�
 3. **Charts em workspaces com 1 declaração.** `evolucao_renda_anos` com 1 ano vira ponto solo — degrade gracioso (mostrar valor pontual + nota "comparação aparece quando houver ≥2 declarações").
 4. **Capacidade PGBL = positivo ou negativo?** "Você tem R$ 14.000 de capacidade não usada" pode soar como dívida — copy é crítico (G0).
 5. **Dependentes ociosos** é tema sensível (sugerir adicionar cônjuge como dependente toca status fiscal real). Card exige copy super-cauteloso e talvez disclaimer.
-6. **Charts Chart.js vs Recharts**: hoje a Onda v2.E migrou para Chart.js ([ADR-139](../DECISIONS.md#adr-139--finalização-migração-rechartschartjs-em-reports)) — usar Chart.js, sem regredir.
-7. **Snapshot changelog** ([ADR-148](../DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório)): essas 2 seções entram em comparações mês-a-mês? Decisão com G4 — provavelmente **sim** (renda muda, capacidade PGBL muda).
+6. **Charts Chart.js vs Recharts**: hoje a Onda v2.E migrou para Chart.js ([ADR-139](../../../DECISIONS.md#adr-139--finalização-migração-rechartschartjs-em-reports)) — usar Chart.js, sem regredir.
+7. **Snapshot changelog** ([ADR-148](../../../DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório)): essas 2 seções entram em comparações mês-a-mês? Decisão com G4 — provavelmente **sim** (renda muda, capacidade PGBL muda).
 
 ---
 
 ## Referências
 
 - Backend mergeado: commits `7b26dfc`..`27e1de1` em `origin/main` (lane irpf-full-schema)
-- [ADR-157](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) — schema + KPIs canônicos
-- [ADR-076](../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório) — design tokens + codegen YAML
-- [ADR-139](../DECISIONS.md#adr-139--finalização-migração-rechartschartjs-em-reports) — Chart.js como engine canônica
-- [ADR-148](../DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório) — comparações mês-a-mês
-- Padrão de componentes: [frontend/src/components/report/](../../frontend/src/components/report/)
-- KPIs em [pipeline/domain/services/irpf_analyzer.py](../../pipeline/domain/services/irpf_analyzer.py) + wire em [scripts/e5_analyze.py::_e5_load_irpf_kpis](../../scripts/e5_analyze.py)
+- [ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full) — schema + KPIs canônicos
+- [ADR-076](../../../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório) — design tokens + codegen YAML
+- [ADR-139](../../../DECISIONS.md#adr-139--finalização-migração-rechartschartjs-em-reports) — Chart.js como engine canônica
+- [ADR-148](../../../DECISIONS.md#adr-148--snapshotchangelogbuilder-comparações-mês-a-mês-de-relatório) — comparações mês-a-mês
+- Padrão de componentes: [frontend/src/components/report/](../../../../frontend/src/components/report)
+- KPIs em [pipeline/domain/services/irpf_analyzer.py](../../../../pipeline/domain/services/irpf_analyzer.py) + wire em [scripts/e5_analyze.py::_e5_load_irpf_kpis](../../../../scripts/e5_analyze.py)

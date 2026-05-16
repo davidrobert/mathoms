@@ -22,7 +22,7 @@ Plano transversal que migrou infraestrutura (`ArtifactStore` DB-first, pipeline-
 
 ## Lanes
 
-Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes/) (1 arquivo por lane com frontmatter). Tracks operacionais em [`tracks/`](tracks/).
+Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes) (1 arquivo por lane com frontmatter). Tracks operacionais em [`tracks/`](tracks).
 
 ## Waves
 
@@ -30,7 +30,7 @@ Mapa de dependências em [waves.md](waves.md) — 4 ondas serializadas (estrutur
 
 ## Fontes canônicas
 
-- [docs/reference/ARCHITECTURE.md §17](../../ARCHITECTURE.md) — arquitetura alvo pós-A6.
-- [docs/reference/TESTING.md](../../TESTING.md) — critérios de aceite por fase.
-- [docs/reference/runbooks/cutover.md](../../runbooks/cutover.md) — runbook de cutover.
-- [docs/reference/SMOKE_TEST_HUMAN.md](../../SMOKE_TEST_HUMAN.md) — gate humano A6-human.
+- [docs/reference/ARCHITECTURE.md §17](../../reference/ARCHITECTURE.md) — arquitetura alvo pós-A6.
+- [docs/reference/TESTING.md](../../reference/TESTING.md) — critérios de aceite por fase.
+- [docs/reference/runbooks/cutover.md](../../archive/cutover-2026-05-14.md) — runbook de cutover.
+- [docs/reference/SMOKE_TEST_HUMAN.md](../../reference/SMOKE_TEST_HUMAN.md) — gate humano A6-human.

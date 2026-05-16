@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6e.4 (🚧 thin routers) · A6e.events (☐ domain events) — zero overlap de arquivos **se** respeitar escopo (esta lane toca `pyproject.toml`, `.pre-commit-config.yaml`, `frontend/eslint.config.*`, `.github/workflows/`, `backend/tests/architecture/`, `dev/`)
 > **Conflita com:** commits simultâneos em `.pre-commit-config.yaml`, `pyproject.toml`, `.github/workflows/ci.yml`, `frontend/package.json`. Nenhuma outra lane ativa toca esses — safe.
 > **Onda:** 3
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style) · [docs/archive/audits/](../audits/) baseline A6g.1
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style) · [docs/archive/audits/](../../../archive/audits/) baseline A6g.1
 
 > **Objetivo:** transformar as regras do CLAUDE.md §Code style em **gates
 > automatizados** (pre-commit + CI + testes AST) que impedem regressão
@@ -426,11 +426,11 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 ## Referências
 
-- [CLAUDE.md §Code style](../../CLAUDE.md#code-style) — fonte das regras
-- [docs/archive/audits/](../audits/) — baseline A6g.1 (2171 ofensores)
-- [BACKLOG §A6g](../BACKLOG.md) — trilho completo de sweeps
+- [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style) — fonte das regras
+- [docs/archive/audits/](../../../archive/audits/) — baseline A6g.1 (2171 ofensores)
+- [BACKLOG §A6g](../../../BACKLOG.md) — trilho completo de sweeps
 - **Ruff** — https://docs.astral.sh/ruff/rules/
 - **ESLint flat config** — https://eslint.org/docs/latest/use/configure/configuration-files-new
 - **Teste AST modelo:** `backend/tests/architecture/test_routers_thin.py` (A6e.4)
 - **Auditor existente:** `dev/audit_code_style.py` (A6g.1)
-- Prompts paralelos: [track_a6e4](track_a6e4_thin_routers.md), [track_a6e_events](track_a6e_events_domain_events.md)
+- Prompts paralelos: [track_a6e4](a6e4-thin-routers.md), [track_a6e_events](a6e-events-domain-events.md)

@@ -20,7 +20,7 @@ tags:
   como `dd/MM` ("dia 26 fev"). Fix puramente no frontend (backend canônico
   é parseado por `previdencia_analyzer`, `cenarios_conjuge_analyzer`,
   `orcamento_calculator` etc. — não tocar). Helper `formatChartMonthLabel`
-  em [`charts/_shared.ts`](../frontend/src/components/report/charts/_shared.ts)
+  em [`charts/_shared.ts`](../../../../frontend/src/components/report/charts/_shared.ts)
   converte `"26/02"` → `"fev/26"` via regex + `MONTH_SHORT_PT_LOWER`.
   Aplicado em `FluxoMensalChart.slicedLabels` e
   `ReceitaDespesaMensalChart.sliceWindow.labels`. Outros consumidores

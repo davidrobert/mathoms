@@ -22,7 +22,7 @@ size_lines: 48
 
 **Status:** Decidido (F8) • **Data:** 2026-04-15 • **Contexto da task:** F8.0 — Fundação Goals & Tasks
 
-**Contexto:** Até F6.5 o produto operou assumindo **1 workspace por usuário** (query `Workspace WHERE owner_id = user.id` replicada em helpers `_get_workspace(user)` em cada arquivo de API — ex: [backend/app/api/documents.py:30](backend/app/api/documents.py:30)). Esse contrato foi aceitável no MVP com o workspace inicial de dogfood como único tenant. Para F8, a premissa do produto muda: **"será utilizado por diferentes clientes (e famílias) com objetivos, metas e dinâmicas próprias e distintas"**. Isso exige:
+**Contexto:** Até F6.5 o produto operou assumindo **1 workspace por usuário** (query `Workspace WHERE owner_id = user.id` replicada em helpers `_get_workspace(user)` em cada arquivo de API — ex: [backend/app/api/documents.py:30](../../backend/app/api/documents.py:30)). Esse contrato foi aceitável no MVP com o workspace inicial de dogfood como único tenant. Para F8, a premissa do produto muda: **"será utilizado por diferentes clientes (e famílias) com objetivos, metas e dinâmicas próprias e distintas"**. Isso exige:
 
 1. Múltiplos workspaces por usuário (um consultor pode acompanhar várias famílias).
 2. Múltiplos usuários por workspace (cônjuges, dependentes, contador convidado).

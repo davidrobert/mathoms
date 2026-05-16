@@ -5,7 +5,7 @@ date: "2026-04-29"
 sprint: A10
 adrs: ["[[ADR-156]]"]
 summary: |
-  Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29). - **Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29):** os 5 fixes da [track_onda_7_p0_blockers.md](agent_prompts/track_onda_7_p0_blockers.md) entregu
+  Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29). - **Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29):** os 5 fixes da [track_onda_7_p0_blockers.md](../../A11/tracks/onda-7-p0-blockers.md) entregu
 tags:
   - type/changelog-entry
   - sprint/a10
@@ -15,7 +15,7 @@ tags:
 # Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29)
 
 - **Direção E · Onda 7 — bloqueadores P0 fechados (2026-04-29):** os 5
-  fixes da [track_onda_7_p0_blockers.md](agent_prompts/track_onda_7_p0_blockers.md)
+  fixes da [track_onda_7_p0_blockers.md](../../A11/tracks/onda-7-p0-blockers.md)
   entregues em main, ritual mensal volta a funcionar ponta-a-ponta:
 
   1. **`/plano` reordenado** — Estratégia → Plano de Ação → Mês
@@ -34,7 +34,7 @@ tags:
      `scrollIntoView` quando aparece. Highlight via `:target` Tailwind.
      Link em `SuggestionCallout` (relatório) atualizado para
      `/acao?tab=inbox#SUG-${id}`.
-  4. **Patrimônio single-source ([ADR-156](DECISIONS.md#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7))** —
+  4. **Patrimônio single-source ([ADR-156](../../../DECISIONS.md#adr-156--patrimônio-em-plano-é-single-source-via-patrimonio_snapshot-direção-e--onda-7))** —
      `usePlanoOverview` expõe `patrimonio_snapshot: { value, asOf,
      sourceReportId } | null`. `PlanoKpiRow` e `IFHeroCard` consomem o
      **mesmo** valor; `IFProgress.patrimonio` removido como campo

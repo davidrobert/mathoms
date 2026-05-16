@@ -30,7 +30,7 @@ sufixos de naming a pedido do owner:
 
 - `scripts/e0_audit.py` **não é CLI standalone**. É o stage `audit_documents`
   registrado em `FULL_ORDER` ([pipeline/stage_spec.py:181](../../pipeline/stage_spec.py)),
-  com wrapper [pipeline/stages/audit_documents.py:13](../../pipeline/stages/audit_documents.py).
+  com wrapper histórico `pipeline/stages/audit_documents.py:13`.
   Roda em todo `POST /pipeline/run`.
 
 - 7 checks que cruzam:
@@ -39,7 +39,7 @@ sufixos de naming a pedido do owner:
     em prod pós-[[ADR-212]] — artifacts vivem em `pipeline_artifacts` DB).
   - `inbox/` + `inbox_log.md`.
 
-Em [`scripts/e0/audit_filename.py:25`](../../scripts/e0/audit_filename.py)
+Em `scripts/e0/audit_filename.py:25`
 retorna `"E2_extracts/", "issue": "Diretório não existe", "severity": "ERROR"`
 quando o diretório está ausente — situação normal pós-cutover.
 
@@ -192,4 +192,4 @@ após inventário confirmar baixo valor.
 - [[ADR-093]] — Rename completo de identificadores de stage (mantém menções históricas a "E0-audit")
 - [[ADR-068]] — Códigos internos do pipeline nunca vazam na UI (mantém menção histórica)
 - [`pipeline/stage_spec.py`](../../pipeline/stage_spec.py) — `FULL_ORDER` antes/depois desta ADR
-- [`scripts/e0_audit.py`](../../scripts/e0_audit.py) — arquivo a deletar
+- `scripts/e0_audit.py` — arquivo a deletar

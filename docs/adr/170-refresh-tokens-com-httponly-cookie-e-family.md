@@ -18,7 +18,7 @@ size_lines: 34
 
 # ADR-170 — Refresh tokens com httpOnly cookie e family-based revocation
 
-**Status:** Proposto • **Data:** 2026-05-06 • **Relaciona** [ADR-003](#adr-003--jwt-custom-para-auth), [ADR-057](#adr-057--jwt-15min--refresh-7d), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** SR-002 em [docs/plan/PLATFORM_REVIEW/_README.md](plan/PLATFORM_REVIEW/_README.md) (Wave 1 backfill, implementação em W3-T03).
+**Status:** Proposto • **Data:** 2026-05-06 • **Relaciona** [ADR-003](#adr-003--jwt-custom-para-auth), [ADR-057](#adr-057--jwt-15min--refresh-7d), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** SR-002 em [docs/plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (Wave 1 backfill, implementação em W3-T03).
 
 **Contexto:** ADR-057 estabeleceu access 15 min + refresh 7 dias, mas o backend hoje emite **só** access tokens com TTL longo via `core/security.py`. Não há refresh token em circulação, não há revocation, e tokens roubados continuam válidos até a expiração natural. Em fluxos `Bearer` o front salva o access em `localStorage` (XSS = takeover). ADR-109 documenta JWT HS256 como contrato portável; uma migração para refresh-flow é breaking — exige nova ADR antes do PR.
 
@@ -47,4 +47,4 @@ size_lines: 34
 
 **Implementação:** lane W3-T03 (Wave 3). Esta ADR vira `Decidido (W3-T03)` no merge da implementação. Supersede parcialmente ADR-057 (refresh era roadmap).
 
-**Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T03](plan/PLATFORM_REVIEW/_README.md), finding SR-002.
+**Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T03](../plan/PLATFORM_REVIEW/_README.md), finding SR-002.
