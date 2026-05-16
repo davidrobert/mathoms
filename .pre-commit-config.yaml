@@ -233,6 +233,13 @@ repos:
         files: ^(CLAUDE\.md|\.claude/agents/.*\.md)$
         pass_filenames: false
 
+      - id: codex-agents-sync
+        name: "Codex agents: .codex/agents sincronizado com .claude/agents/"
+        entry: python3 dev/sync_codex_agents.py --check
+        language: system
+        files: ^(\.claude/agents/.*\.md|\.codex/agents/.*\.toml|dev/sync_codex_agents\.py)$
+        pass_filenames: false
+
       # --------------------------------------------------------------------
       # Gates da vault Obsidian-friendly (Fase 1 do plano DOC_REORG, ADR-182)
       # Acionados quando arquivos da vault mudam (notas, schemas, MOCs).
