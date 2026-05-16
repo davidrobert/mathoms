@@ -24,6 +24,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, Plus, Check, X } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
+import { ResidenciaSection } from "./ResidenciaSection";
 
 const ROLES = [
   { value: "titular", label: "Titular" },
@@ -39,7 +40,6 @@ export default function MembersTab() {
 }
 
 function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
-
   const [members, setMembers] = useState<FamilyMemberConfig[]>([]);
   const [familySurname, setFamilySurname] = useState<string>("");
   const [familySurnameDirty, setFamilySurnameDirty] = useState(false);
@@ -220,6 +220,8 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
           </div>
         </CardContent>
       </Card>
+
+      <ResidenciaSection workspaceId={workspace.id} />
 
       {/* Member Cards — ordem hierárquica: Titular → Cônjuge → Filho → Dependente */}
       <div className="space-y-3">
@@ -462,7 +464,6 @@ function InlineField({ label, value, onSave, placeholder, type = "text" }: {
 }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(value);
-
   if (!editing) {
     return (
       <div>
