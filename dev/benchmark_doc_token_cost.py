@@ -293,6 +293,16 @@ def check_regression(results: dict[str, QueryResult], existing: dict) -> list[st
     return offenders
 
 
+def check_targets(results: dict[str, QueryResult]) -> list[str]:
+    """Retorna queries cujo custo atual passou do budget alvo."""
+    offenders = []
+    for qid, r in results.items():
+        target = TARGETS.get(qid, {}).get("tokens")
+        if isinstance(target, int) and r.tokens > target:
+            offenders.append(f"  {qid}: {r.tokens} > target {target} (+{r.tokens - target})")
+    return offenders
+
+
 def find_baseline(existing: dict) -> dict[str, dict] | None:
     for k, v in existing.items():
         if k.startswith("baseline_"):
@@ -354,20 +364,30 @@ def _handle_update(results: dict[str, QueryResult], existing: dict | None, phase
 def _print_targets() -> None:
     print("\nMeta de redução por query (target):", file=sys.stderr)
     for qid, t in TARGETS.items():
-        print(f"  {qid}: alvo {t['tokens']} tokens (-{t['reduction_pct']}%)", file=sys.stderr)
+        reduction = t.get("reduction_pct")
+        suffix = f" (-{reduction}%)" if reduction is not None else ""
+        print(f"  {qid}: alvo {t['tokens']} tokens{suffix}", file=sys.stderr)
+
+
+def _print_offenders(title: str, offenders: list[str]) -> None:
+    if not offenders:
+        return
+    print(title, file=sys.stderr)
+    for line in offenders:
+        print(line, file=sys.stderr)
 
 
 def _handle_check(results: dict[str, QueryResult], existing: dict | None) -> int:
     if existing is None:
         print(f"erro: {BENCHMARK_FILE} não existe. Rode --init primeiro.", file=sys.stderr)
         return 1
-    offenders = check_regression(results, existing)
-    if not offenders:
+    regression_offenders = check_regression(results, existing)
+    target_offenders = check_targets(results)
+    if not regression_offenders and not target_offenders:
         print("ok: nenhuma regressão detectada (>5%).")
         return 0
-    print("REGRESSÃO detectada (>5% vs latest):", file=sys.stderr)
-    for line in offenders:
-        print(line, file=sys.stderr)
+    _print_offenders("REGRESSÃO detectada (>5% vs latest):", regression_offenders)
+    _print_offenders("BUDGET de tokens excedido:", target_offenders)
     _print_targets()
     return 1
 
