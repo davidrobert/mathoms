@@ -64,8 +64,8 @@ class TestEnricher:
         # Cria 1 row em property_identity, não 2.
         assert len(resolver.all()) == 1
 
-    def test_different_titular_same_address_creates_distinct_property(self):
-        """Imóvel co-declarado por casal vira 2 rows (dedup é P3+)."""
+    def test_different_titular_same_address_dedupes_to_single_property(self):
+        """ADR-215 fix-B2: casal em comunhão declara mesmo imóvel → 1 row."""
         resolver = InMemoryPropertyIdentityResolver()
         imovel_titular = {
             "descricao": "Rua Tasso, 61",
@@ -81,6 +81,28 @@ class TestEnricher:
         }
         out = enrich_imoveis_with_property_ids(
             _build_consolidated([imovel_titular, imovel_conjuge]), resolver, WS_ID
+        )
+        ids = [e["property_id"] for e in out["imoveis_consolidados"]]
+        assert ids[0] == ids[1]
+        assert len(resolver.all()) == 1
+
+    def test_different_titular_no_endereco_keeps_distinct(self):
+        """low_confidence (sem endereço): mantém rows distintas — merge fuzzy é arriscado."""
+        resolver = InMemoryPropertyIdentityResolver()
+        imovel_t = {
+            "descricao": "APTO SEM ENDERECO",
+            "proprietario": "david_robert",
+            "codigo_rfb": "11",
+            "ano_referencia": 2024,
+        }
+        imovel_c = {
+            "descricao": "APTO SEM ENDERECO OUTRO",
+            "proprietario": "mariana",
+            "codigo_rfb": "11",
+            "ano_referencia": 2024,
+        }
+        out = enrich_imoveis_with_property_ids(
+            _build_consolidated([imovel_t, imovel_c]), resolver, WS_ID
         )
         ids = [e["property_id"] for e in out["imoveis_consolidados"]]
         assert ids[0] != ids[1]
