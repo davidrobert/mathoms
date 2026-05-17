@@ -279,16 +279,21 @@ estrategico:
     # --------------------------------------------------------------------------
     # S4 — Real Estate
     # --------------------------------------------------------------------------
+    # ADR-216 Onda 6 — cutover: chart yield_imoveis removido em favor de
+    # `real_estate_yield` (card determinístico com cap rate líquido, benchmarks
+    # CDI/NTN-B/IFIX, tabela por imóvel). S4RealEstateSection retorna null
+    # quando workspace não tem property_identity (esconde a seção).
     - id: "S4"
       title: "Real Estate — Imóveis e Renda Passiva"
       enabled: true
       summary: true
       divider_before: true
-      charts:
-        - id: "yield_imoveis"
+      charts: []
+      cards:
+        - id: "real_estate_yield"
           enabled: true
-          conclusion: true
-      cards: []
+          variant: "feature"
+          size: "full"
 
     # --------------------------------------------------------------------------
     # NOTA — IDs S5 e S6 não existem por design (reservados/queimados; não
@@ -562,7 +567,7 @@ estrategico:
 # patrimonio_doughnut, waterfall_if, fluxo_mensal, receita_bar,
 # despesas_doughnut, receita_despesa_mensal, score_gauge,
 # alocacao_atual, alocacao_alvo, top15_ativos, cenarios_conjuge,
-# viagens, yield_imoveis, projecao_3cenarios, renda_passiva,
+# viagens, projecao_3cenarios, renda_passiva,
 # impostos_pj, bubble_riscos, top5_decisoes
 
 # ==============================================================================
@@ -605,7 +610,6 @@ chart_canvas_map:
   alocacao_atual: "chart-alocacao-atual"
   alocacao_alvo: "chart-alocacao-alvo"
   top15_ativos: "chart-top15-ativos"
-  yield_imoveis: "chart-yield-imoveis"
   projecao_3cenarios: "chart-projecao-3cenarios"
   renda_passiva: "chart-renda-passiva"
   impostos_pj: "chart-impostos-pj"
@@ -630,7 +634,6 @@ chart_titles:
   alocacao_atual: "Alocação Atual"
   alocacao_alvo: "Alocação Alvo"
   top15_ativos: "Top 15 Ativos Financeiros"
-  yield_imoveis: "Rentabilidade dos Imóveis (Yield) vs CDI"
   projecao_3cenarios: "Projeção Patrimonial — 3 Cenários"
   renda_passiva: "Renda Passiva — Progresso até a Meta"
   impostos_pj: "Tributário PJ — Cascata Fiscal"
@@ -648,7 +651,6 @@ section_charts:
   1: ["patrimonio_doughnut", "waterfall_if"]
   2: ["fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "score_gauge"]
   3: ["alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "viagens"]
-  4: ["yield_imoveis"]
   7: ["projecao_3cenarios", "renda_passiva"]
   8: ["impostos_pj"]
   9: ["bubble_riscos"]
