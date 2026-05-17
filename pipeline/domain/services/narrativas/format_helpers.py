@@ -162,7 +162,6 @@ def validate_narrativas(
         "projecao_3cenarios",
         "waterfall_if",
         "renda_passiva",
-        "yield_imoveis",
         "top15_ativos",
         "impostos_pj",
         cenarios_section_key,

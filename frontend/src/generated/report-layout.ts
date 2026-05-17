@@ -484,14 +484,15 @@ export const LAYOUT: ReportLayout = {
         "enabled": true,
         "summary": true,
         "divider_before": true,
-        "charts": [
+        "charts": [],
+        "cards": [
           {
-            "id": "yield_imoveis",
+            "id": "real_estate_yield",
             "enabled": true,
-            "conclusion": true
+            "variant": "feature",
+            "size": "full"
           }
-        ],
-        "cards": []
+        ]
       },
       {
         "id": "S7",
@@ -811,7 +812,6 @@ export const LAYOUT: ReportLayout = {
     "alocacao_atual": "chart-alocacao-atual",
     "alocacao_alvo": "chart-alocacao-alvo",
     "top15_ativos": "chart-top15-ativos",
-    "yield_imoveis": "chart-yield-imoveis",
     "projecao_3cenarios": "chart-projecao-3cenarios",
     "renda_passiva": "chart-renda-passiva",
     "impostos_pj": "chart-impostos-pj",
@@ -833,7 +833,6 @@ export const LAYOUT: ReportLayout = {
     "alocacao_atual": "Alocação Atual",
     "alocacao_alvo": "Alocação Alvo",
     "top15_ativos": "Top 15 Ativos Financeiros",
-    "yield_imoveis": "Rentabilidade dos Imóveis (Yield) vs CDI",
     "projecao_3cenarios": "Projeção Patrimonial — 3 Cenários",
     "renda_passiva": "Renda Passiva — Progresso até a Meta",
     "impostos_pj": "Tributário PJ — Cascata Fiscal",
@@ -862,9 +861,6 @@ export const LAYOUT: ReportLayout = {
       "top15_ativos",
       "cenarios_conjuge",
       "viagens"
-    ],
-    "4": [
-      "yield_imoveis"
     ],
     "7": [
       "projecao_3cenarios",
@@ -948,8 +944,8 @@ export const LAYOUT: ReportLayout = {
   "version_fallback": "v5.3"
 } as ReportLayout;
 
-export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "alocacao_atual_vs_alvo", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "irpf_dependentes_declarados", "irpf_dedutiveis_aplicados", "hero_gap_protecao", "cobertura_seguros", "sucessao", "acoes_mitigacao", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref"] as const;
+export const ALL_CARD_IDS = ["patrimonio_categorias", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "alocacao_atual_vs_alvo", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "real_estate_yield", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "irpf_dependentes_declarados", "irpf_dedutiveis_aplicados", "hero_gap_protecao", "cobertura_seguros", "sucessao", "acoes_mitigacao", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref"] as const;
 export type CardId = (typeof ALL_CARD_IDS)[number];
 
-export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "yield_imoveis", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes"] as const;
+export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes"] as const;
 export type ChartId = (typeof ALL_CHART_IDS)[number];
