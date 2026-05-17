@@ -567,10 +567,20 @@ def main_with_store(ctx) -> dict:
             enrich_imoveis_with_property_ids,
         )
 
+        # fix-B3: passar family_members permite normalizar titular_key
+        # cross-IRPF (LLM extrai aliases distintos para a mesma pessoa).
+        family_members = None
+        if ctx.config_store is not None:
+            try:
+                family_members = ctx.config_store.get_family_members(ctx.workspace_id)
+            except Exception:
+                family_members = None
+
         enrich_imoveis_with_property_ids(
             consolidated,
             resolver=ctx.property_identity_resolver,
             workspace_id=ctx.workspace_id,
+            family_members=family_members,
         )
 
     # 4. Persiste via store (write-back no artefato E1.5c).

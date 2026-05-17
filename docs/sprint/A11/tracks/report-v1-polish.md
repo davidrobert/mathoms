@@ -21,17 +21,17 @@ tags:
 > **Paralelo com:** `report-a11y-finalize` (independente — esta lane é docs/checklist; a outra é código + CI). Output do `report-a11y-finalize` enriquece o smoke humano desta lane se chegar antes.
 > **Conflita com:** qualquer agente editando `CLAUDE.md`, `docs/reference/ARCHITECTURE.md` (§10), `docs/reference/RUNBOOK.md`, `docs/reference/SMOKE_TEST.md`, `docs/CHANGELOG.md`. Pre-flight obrigatório (ver CLAUDE.md §"Hotspots de documentação").
 > **Sprint:** Report Premium UI · resíduo Fase 13
-> **Índice de prompts:** [README.md](README.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
 > **Fonte de verdade:**
-> - [BACKLOG.md — pickup table](../BACKLOG.md#lanes-abertas-agora--pickup-table) (linha `report-v1-polish`)
-> - [plan/REPORT_PREMIUM/_README.md §12](../plan/REPORT_PREMIUM/_README.md) (Fase 13 original — itens não absorvidos pela ADR-129)
-> - [BACKLOG.md — tabela Report Premium UI](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) (10 fases ✅ + 11/12/13 redirecionadas)
+> - [BACKLOG.md — pickup table](../../../BACKLOG.md#lanes-abertas-agora--pickup-table) (linha `report-v1-polish`)
+> - [plan/REPORT_PREMIUM/_README.md §12](../../../plan/REPORT_PREMIUM/_README.md) (Fase 13 original — itens não absorvidos pela ADR-129)
+> - [BACKLOG.md — tabela Report Premium UI](../../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml) (10 fases ✅ + 11/12/13 redirecionadas)
 
 > **Objetivo (1 frase):** consolidar o "anúncio de v1" do Report Premium —
 > smoke test humano dedicado, milestone no CHANGELOG, ARCHITECTURE/RUNBOOK
-> alinhados com o estado pós-[ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side),
+> alinhados com o estado pós-[ADR-129](../../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side),
 > CLAUDE.md apontando para o plano — fechando os 5 itens da Fase 13 do
-> [PLAN §12](../plan/REPORT_PREMIUM/_README.md) que não foram absorvidos pela
+> [PLAN §12](../../../plan/REPORT_PREMIUM/_README.md) que não foram absorvidos pela
 > remoção do `e6_render.py`.
 
 ---
@@ -131,14 +131,14 @@ o **único renderer** do relatório.
 
 - **10 fases entregues** (F0–F10) entre 2026-04-XX e 2026-04-XX, do
   discovery aos apêndices A–E. Detalhe por fase: ver tabela em
-  [plan/REPORT_PREMIUM/_README.md §X](plan/REPORT_PREMIUM/_README.md) ou em
-  [BACKLOG.md › Report Premium UI](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
+  [plan/REPORT_PREMIUM/_README.md §X](../../../plan/REPORT_PREMIUM/_README.md) ou em
+  [BACKLOG.md › Report Premium UI](../../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
 - **Renderer HTML server-side descontinuado** via
-  [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side):
+  [ADR-129](../../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side):
   React é único renderer; PDF via Playwright é único export server-side.
   Aposentadoria executada na lane `adr-129-e6-kill`.
 - **Resíduos abertos:**
-  [`report-a11y-finalize`](BACKLOG.md#lanes-abertas-agora--pickup-table) (gate axe-core/Lighthouse) e
+  [`report-a11y-finalize`](../../../BACKLOG.md#lanes-abertas-agora--pickup-table) (gate axe-core/Lighthouse) e
   esta lane (`report-v1-polish`).
 
 ADRs relacionadas: ADR-076, ADR-117, ADR-118 ... ADR-124 (superseded),
@@ -165,7 +165,7 @@ Adicionar 1 parágrafo curto: "shell decomposto em primitivos
 (`kpi/`), cards comuns (`cards/`), utilitários (`utils/`). Provider
 de modo: `ReportModeProvider` (dinâmico) +
 `StaticReportModeProvider` (SSR/standalone — ver
-[ADR-124 §Onda 11.1](DECISIONS.md#adr-124-scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next))".
+[ADR-124 §Onda 11.1](../../../DECISIONS.md#adr-124-scriptse6_renderpy-aposentado-em-favor-de-ssr-standalone-do-next))".
 
 ### 3. RUNBOOK — seção "Debug da rota `/reports/[id]`"
 
@@ -241,7 +241,7 @@ ajuste a descrição para refletir que é o doc canônico do shell v1.
 Se não existir, adicionar:
 
 ```markdown
-| Plano de execução — Report Premium UI v1 (paridade React com EXEMPLO_DE_RELATORIO.html, 10 fases ✅) | [docs/plan/REPORT_PREMIUM/_README.md](docs/plan/REPORT_PREMIUM/_README.md) |
+| Plano de execução — Report Premium UI v1 (paridade React com EXEMPLO_DE_RELATORIO.html, 10 fases ✅) | [docs/plan/REPORT_PREMIUM/_README.md](../../../plan/REPORT_PREMIUM/_README.md) |
 ```
 
 ### 6. BACKLOG — fechar a lane

@@ -2,9 +2,9 @@
 
 > **Status:** referência (não-plano) · **Data inicial:** 2026-04-27 · **Origem:** A1 do tópico "preparar contexto para Go rewrite" (proposto na conversa com CTO)
 >
-> **Escopo:** dimensionar exatamente o que o shell HTTP em [pipeline-service/](../pipeline-service/) importa do core Python em [pipeline/](../pipeline/), para que o ADR de estratégia de port (Caminho 1/2/3) seja escrito com dados, não especulação.
+> **Escopo:** dimensionar exatamente o que o shell HTTP em [pipeline-service/](../../pipeline-service/) importa do core Python em [pipeline/](../../pipeline/), para que o ADR de estratégia de port (Caminho 1/2/3) seja escrito com dados, não especulação.
 >
-> **ADRs relacionadas:** [ADR-112](DECISIONS.md#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1) (HTTP boundary), [ADR-113](DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) (convenções Go), [ADR-102 R18-R20](DECISIONS.md#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f) (language-neutral boundaries), [ADR-111](DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) (stateless rigoroso).
+> **ADRs relacionadas:** [ADR-112](../DECISIONS.md#adr-112--pipeline-as-service-http-boundary-para-execução-de-stages-a6f1) (HTTP boundary), [ADR-113](../DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) (convenções Go), [ADR-102 R18-R20](../DECISIONS.md#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f) (language-neutral boundaries), [ADR-111](../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) (stateless rigoroso).
 
 ---
 
@@ -32,17 +32,17 @@ grep -rn "from pipeline\.\|import pipeline\." pipeline-service/app/ --include="*
 
 | # | Símbolo | Origem | Consumidor (arquivo:linha) | Papel |
 | - | --- | --- | --- | --- |
-| D1 | `WorkspaceContext` (dataclass, 200 LOC) | `pipeline.context` | [run_coordinator.py:19](../pipeline-service/app/services/run_coordinator.py:19), [stage_executor.py:37](../pipeline-service/app/services/stage_executor.py:37) | Container de paths + config + run_id. Construído por request, descartado depois. |
-| D2 | `_run_stage(ctx, stage) -> StageResult` | `pipeline.orchestrator` | [run_coordinator.py:20](../pipeline-service/app/services/run_coordinator.py:20), [stage_executor.py:18](../pipeline-service/app/services/stage_executor.py:18) | **Hot path.** Wrapper que captura stdout/stderr, OTel span, exit codes, e dispatcha pro runner correto via `_get_stage_runner`. |
-| D3 | `LLM_STAGES` (set) | `pipeline.orchestrator` | [run_coordinator.py:20](../pipeline-service/app/services/run_coordinator.py:20) | Set de nomes de stage que envolvem LLM — usado para honrar `skip_llm` na request. |
+| D1 | `WorkspaceContext` (dataclass, 200 LOC) | `pipeline.context` | [run_coordinator.py:19](../../pipeline-service/app/services/run_coordinator.py:19), [stage_executor.py:37](../../pipeline-service/app/services/stage_executor.py:37) | Container de paths + config + run_id. Construído por request, descartado depois. |
+| D2 | `_run_stage(ctx, stage) -> StageResult` | `pipeline.orchestrator` | [run_coordinator.py:20](../../pipeline-service/app/services/run_coordinator.py:20), [stage_executor.py:18](../../pipeline-service/app/services/stage_executor.py:18) | **Hot path.** Wrapper que captura stdout/stderr, OTel span, exit codes, e dispatcha pro runner correto via `_get_stage_runner`. |
+| D3 | `LLM_STAGES` (set) | `pipeline.orchestrator` | [run_coordinator.py:20](../../pipeline-service/app/services/run_coordinator.py:20) | Set de nomes de stage que envolvem LLM — usado para honrar `skip_llm` na request. |
 | D4 | `StageResult` (dataclass) | `pipeline.orchestrator` | testes (`test_stage_execution.py`, `test_run_coordinator.py`) | DTO retornado por `_run_stage`. Apenas testes importam diretamente; produção recebe via `_run_stage`. |
-| D5 | `STAGE_REGISTRY` (dict) | `pipeline.stage_spec` ([ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)) | [api/stages.py:16](../pipeline-service/app/api/stages.py:16), [api/runs.py:20](../pipeline-service/app/api/runs.py:20) | Dict de `StageSpec` — usado para validar que `stage` recebido na request existe. |
+| D5 | `STAGE_REGISTRY` (dict) | `pipeline.stage_spec` ([ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)) | [api/stages.py:16](../../pipeline-service/app/api/stages.py:16), [api/runs.py:20](../../pipeline-service/app/api/runs.py:20) | Dict de `StageSpec` — usado para validar que `stage` recebido na request existe. |
 
 **Bonus (`backend/`):**
 
 | # | Símbolo | Origem | Consumidor | Papel |
 | - | --- | --- | --- | --- |
-| B1 | `setup_logging` | `backend.app.core.logging` | [main.py:60](../pipeline-service/app/main.py:60) | Wire JSON logs ([ADR-110](DECISIONS.md#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3)). **Opcional** — fallback para `logging.basicConfig` se backend não importável. |
+| B1 | `setup_logging` | `backend.app.core.logging` | [main.py:60](../../pipeline-service/app/main.py:60) | Wire JSON logs ([ADR-110](../DECISIONS.md#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3)). **Opcional** — fallback para `logging.basicConfig` se backend não importável. |
 
 **`B1` é o único acoplamento ao `backend/`.** Já tem fallback. Em Go vira `slog` direto — eliminado naturalmente.
 
@@ -103,7 +103,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–477 LOC, mediana ~38) que
 
 ### D4 · `StageResult` (dataclass)
 
-`pipeline/orchestrator.py:27-34` — 5 campos (`stage`, `success`, `duration_ms`, `detail`, `error`). Serializado para o wire por Pydantic em [contracts/stages.py](../pipeline-service/app/contracts/stages.py). Em Go: struct + JSON tags, ~15 LOC.
+`pipeline/orchestrator.py:27-34` — 5 campos (`stage`, `success`, `duration_ms`, `detail`, `error`). Serializado para o wire por Pydantic em [contracts/stages.py](../../pipeline-service/app/contracts/stages.py). Em Go: struct + JSON tags, ~15 LOC.
 
 ### D5 · `STAGE_REGISTRY` (catálogo de stages)
 
@@ -111,7 +111,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–477 LOC, mediana ~38) que
 - `StageSpec` dataclass (id, descriptive_name, is_llm, …)
 - `STAGE_REGISTRY: dict[str, StageSpec]` — 16 entradas
 - `FULL_ORDER`, `DETERMINISTIC_ORDER` — slices ordenados
-- `STAGE_RENAME_MAP`, `resolve_stage_name`, `to_legacy_stage_name` — compat F9.2 ([ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a))
+- `STAGE_RENAME_MAP`, `resolve_stage_name`, `to_legacy_stage_name` — compat F9.2 ([ADR-093](../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a))
 
 **Sem deps externas além de `dataclasses`.** Port em Go: ~250 LOC, derivar do mesmo input via codegen (ver §5).
 
@@ -122,7 +122,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–477 LOC, mediana ~38) que
 ### Caminho 1 — Shell-only Go + Python via subprocess
 
 **Porta:**
-- [pipeline-service/app/](../pipeline-service/app/) → `services/pipeline-service-go/`
+- [pipeline-service/app/](../../pipeline-service/app/) → `services/pipeline-service-go/`
 - ~600 LOC Go (api + run_coordinator + event_publisher + contracts)
 
 **Mantém em Python:**
@@ -153,7 +153,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–477 LOC, mediana ~38) que
 - Goldens existentes em `tests/test_e*_golden_*.py` viram **regression suite obrigatória** para validar paridade de port.
 
 **Ganha:** sem GIL, footprint pleno, deploy estático puro.
-**Custo realista:** sprint dedicado de **3-5 meses** com 1-2 engenheiros. Domain logic exige paridade com goldens (BRL `0.01` tolerance, [ADR-097](DECISIONS.md#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy)).
+**Custo realista:** sprint dedicado de **3-5 meses** com 1-2 engenheiros. Domain logic exige paridade com goldens (BRL `0.01` tolerance, [ADR-097](../DECISIONS.md#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy)).
 
 ---
 
@@ -162,7 +162,7 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–477 LOC, mediana ~38) que
 | Símbolo | Risco no port | Mitigação |
 | --- | --- | --- |
 | `WorkspaceContext.load_config` | Lê JSON do disco — se a config schema mudar, Go fica drift | Validar contra `config/schemas/*.schema.json` (já existem) |
-| `_run_stage` captura stdout/stderr | Scripts legados em `scripts/eN_*.py` ainda usam `print()` para erros | Caminho 1: parse stderr capturado pelo subprocess. Caminho 3: errors tipados ([CLAUDE.md §Code style › Go](../CLAUDE.md)) |
+| `_run_stage` captura stdout/stderr | Scripts legados em `scripts/eN_*.py` ainda usam `print()` para erros | Caminho 1: parse stderr capturado pelo subprocess. Caminho 3: errors tipados ([CLAUDE.md §Code style › Go](../../CLAUDE.md)) |
 | `LLM_STAGES` em runtime | Mudança em `STAGE_REGISTRY` propaga para shell — codegen ajuda | Snapshot test de `STAGE_REGISTRY` (já existe via OpenAPI snapshot transitivamente) |
 | `StageResult.detail: dict` | Detail é livre — bancos exportam shape próprio | Em Go usar `json.RawMessage` para passar opaque; tipar só no caller que sabe o stage |
 | `STAGE_REGISTRY` valores `is_llm` | Boolean per stage — usado para `skip_llm` | Replicar exatamente; teste de paridade contra Python |
@@ -174,10 +174,10 @@ Cada `pipeline/stages/<name>.py` é thin wrapper (17–477 LOC, mediana ~38) que
 Coisas que o shell Go vai precisar replicar **mesmo no Caminho 1**:
 
 1. **Layout de paths** — `WorkspaceContext.__post_init__` define `processed_dir`, `e2_dir`, etc. Convenção compartilhada com Python; tem que ficar idêntica ou o Python via subprocess não acha os arquivos.
-2. **Redis pub/sub envelope** — formato em [event_publisher.py:56-70](../pipeline-service/app/services/event_publisher.py:56) (`event`, `run_id`, `timestamp`, `stage`, `status`, `progress_pct`, `error`, `detail`). Backend WebSocket consumer ([backend/app/services/events.py](../backend/app/services/events.py)) espera esse shape exato.
-3. **Channel naming** — `pipeline:{run_id}` em [event_publisher.py:72](../pipeline-service/app/services/event_publisher.py:72). Hardcoded; tem que ser idêntico.
-4. **OpenAPI contract** — [docs/reference/api/v1/pipeline-service.openapi.json](api/v1/pipeline-service.openapi.json) é fonte de verdade; codegen Go via `oapi-codegen` recomendado ([ADR-113](DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) §Escopo deferido).
-5. **OTel span naming** — `pipeline.{stage}` em [orchestrator.py:237](../pipeline/orchestrator.py:237). Em Go, `otel.Tracer("mathoms.pipeline").Start(ctx, "pipeline."+stage)`.
+2. **Redis pub/sub envelope** — formato em [event_publisher.py:56-70](../../pipeline-service/app/services/event_publisher.py:56) (`event`, `run_id`, `timestamp`, `stage`, `status`, `progress_pct`, `error`, `detail`). Backend WebSocket consumer ([backend/app/services/events.py](../../backend/app/services/events.py)) espera esse shape exato.
+3. **Channel naming** — `pipeline:{run_id}` em [event_publisher.py:72](../../pipeline-service/app/services/event_publisher.py:72). Hardcoded; tem que ser idêntico.
+4. **OpenAPI contract** — [docs/reference/api/v1/pipeline-service.openapi.json](api/v1/pipeline-service.openapi.json) é fonte de verdade; codegen Go via `oapi-codegen` recomendado ([ADR-113](../DECISIONS.md#adr-113--convenções-go-golangciyml--ci--skeleton-a6g7) §Escopo deferido).
+5. **OTel span naming** — `pipeline.{stage}` em [orchestrator.py:237](../../pipeline/orchestrator.py:237). Em Go, `otel.Tracer("mathoms.pipeline").Start(ctx, "pipeline."+stage)`.
 
 ---
 

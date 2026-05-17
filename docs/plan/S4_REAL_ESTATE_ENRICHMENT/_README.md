@@ -54,13 +54,14 @@ tags:
 | Onda | Status | PR | Notas |
 |---|---|---|---|
 | Onda 0 — Fundação metodológica (ADR + FORMULAS) | ✅ entregue | [#280](https://github.com/davidrobert/mathoms/pull/280) + [#282](https://github.com/davidrobert/mathoms/pull/282) + [#283](https://github.com/davidrobert/mathoms/pull/283) | ADR-216 Proposto + D9 cascade + FORMULAS §Imóveis canonizada. |
-| Onda 0.5 — Schema estruturado de Informe de Imobiliária | 🟡 em CI | [#284](https://github.com/davidrobert/mathoms/pull/284) | Parser LLM dedicado (padrão ADR-157); destrava cascade D9 fonte #1. Stage NÃO registrado em STAGE_REGISTRY (segue para 0.5b após Onda 2). |
+| Onda 0.5 — Schema estruturado de Informe de Imobiliária | ✅ entregue | [#284](https://github.com/davidrobert/mathoms/pull/284) | Parser LLM dedicado (padrão ADR-157); destrava cascade D9 fonte #1. |
+| Onda 0.5b — Stage register + cascade D9 #1 | ✅ entregue | [#304](https://github.com/davidrobert/mathoms/pull/304) | `extract_informe_aluguel` em `STAGE_REGISTRY` + cascade #1 plumbado em `populate_real_estate` (override IRPF, soma multi-imobiliária, fallback quando endereço não match). |
 | ~~Onda 1 — Auditoria empírica~~ | ❌ eliminada | — | Plano single-workspace (dogfood 5@5.com) — discovery de cobertura vira passo inline da Onda 2 (~10min). Quando produto for multi-workspace, re-introduzir como Onda 2.b pós-launch. |
-| Onda 2 — Métricas determinísticas em E5.N | ⏳ pendente | — | **Próxima.** Bloqueada apenas por Onda 0.5 mergear (consome `extract_one_informe()`). Discovery local de fontes do workspace dogfood vai inline no início do PR. |
-| Onda 3 — Renderer React Premium (`RealEstateYieldCard`) | ⏳ pendente | — | Bloqueada por Onda 2 (payload). |
-| Onda 4 — Codegen + report_layout.yaml | ⏳ pendente | — | Trivial após Ondas 2-3; pode mergear junto. |
-| Onda 5 — Testes + goldens E5 | ⏳ pendente | — | Em paralelo com Ondas 2/3. |
-| Onda 6 — Empty states + cutover | ⏳ pendente | — | Último; finaliza v1. |
+| Onda 2 — Métricas determinísticas em E5.N | ✅ entregue | [#290](https://github.com/davidrobert/mathoms/pull/290) + [#294](https://github.com/davidrobert/mathoms/pull/294) + [#296](https://github.com/davidrobert/mathoms/pull/296) | Service puro `real_estate_metrics.py` + adapter `real_estate_adapter.py` + integração E5 `real_estate_e5_integration.py`. |
+| Onda 3 — Renderer React Premium (`RealEstateYieldCard`) | ✅ entregue | [#301](https://github.com/davidrobert/mathoms/pull/301) | Hero + tabela + alertas com `var(--*)` tokens (sem hex). |
+| Onda 4 — Codegen + report_layout.yaml | ✅ entregue (junto a Onda 6) | [#305](https://github.com/davidrobert/mathoms/pull/305) | Card `real_estate_yield` adicionado, chart `yield_imoveis` removido. |
+| Onda 5 — Testes + goldens E5 | ✅ entregue (em paralelo) | múltiplos | Cobertura Vitest + pytest cobrindo cascade + renderer + adapter. |
+| Onda 6 — Empty states + cutover | ✅ entregue | [#305](https://github.com/davidrobert/mathoms/pull/305) | `NarrativeChartCard` fallback removido; S4 retorna `null` quando workspace sem `property_identity`. |
 
 ---
 
@@ -254,7 +255,7 @@ ou se algum nível pode ser pulado nesta iteração.
   (puro; recebe `RealEstateConfig` value object, sem `StageConfig`
   inteiro — [[ADR-097]] D3).
 - Consumido por:
-  [`pipeline/domain/services/narrativas/metrics.py`](../../../pipeline/domain/services/narrativas/metrics.py)
+  `pipeline/domain/services/narrativas/metrics.py`
   (ou módulo dedicado se o tamanho justificar).
 - Refactor de [`charts_narrator.py:254`](../../../pipeline/domain/services/narrativas/charts_narrator.py):
   remove `yield_imoveis` narrative (substituído por payload estruturado);
@@ -371,7 +372,7 @@ rico.
 **Localização:**
 
 - Novo:
-  [`frontend/src/components/report/cards/RealEstateYieldCard.tsx`](../../../frontend/src/components/report/cards/RealEstateYieldCard.tsx).
+  `frontend/src/components/report/cards/RealEstateYieldCard.tsx`.
 - Padrão de referência:
   [`frontend/src/components/report/cards/RentabilidadeCard.tsx`](../../../frontend/src/components/report/cards/RentabilidadeCard.tsx)
   (hero + bloco de contexto + footer; variants por threshold).
@@ -555,22 +556,23 @@ parcial imóveis) e validar visual.
 ```
 Onda 0 (ADR + FORMULAS) ✅ #280 #282 #283
   ↓
-Onda 0.5 (schema Informe) 🟡 #284 em CI
+Onda 0.5 (schema Informe) ✅ #284
   ↓
-Onda 2 (métricas E5.N) — discovery local inline (~10min)
+Onda 2 (métricas E5.N) ✅ #290 #294 #296
   ↓
-Onda 3 (renderer React)
+Onda 3 (renderer React) ✅ #301
   ↓
-Onda 5 (testes pipeline + frontend) — em paralelo com 2/3
+Onda 5 (testes pipeline + frontend) ✅ múltiplos
   ↓
-Onda 4 (codegen) → Onda 6 (cutover)
+Onda 0.5b (stage register + cascade D9 #1) ✅ #304
+  ↓
+Onda 4 + 6 (codegen + cutover yield_imoveis → real_estate) ✅ #305
 ```
 
-**Caminho crítico:** Onda 0 ✅ → Onda 0.5 (em CI) → Onda 2 (próxima) →
-Onda 3 → Onda 4/6.
+**Status final:** ✅ todas as ondas entregues. S4 v1 em produção via
+RealEstateYieldCard + cascade D9 ativa (Informe > IRPF > E4 > none).
 
-**Duração estimada restante:** ~5-7 dias úteis (Ondas 2-6 sequenciais com
-testes em paralelo). Distribuição em ~4-5 PRs pequenos.
+**Duração real:** ~3-4 dias (2026-05-15 a 2026-05-17), em ~8 PRs pequenos.
 
 ---
 

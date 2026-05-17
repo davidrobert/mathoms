@@ -217,7 +217,6 @@ const FALLBACKS: Record<string, string> = {
   alocacao_alvo: "Defina sua alocação-alvo em /plano/alocacao para acompanhar desvio.",
   top15_ativos: "Ativos de maior exposição na carteira.",
   cenarios_conjuge: "Cenário de estresse — sem renda do cônjuge.",
-  yield_imoveis: "Rendimento dos imóveis comparado ao CDI.",
   projecao_3cenarios: "Projeção patrimonial por cenário.",
   renda_passiva: "Progresso da renda passiva rumo à meta.",
   impostos_pj: "Composição tributária PJ.",

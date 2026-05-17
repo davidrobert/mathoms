@@ -68,7 +68,7 @@ psql -c "SELECT COUNT(*) FROM pipeline_artifacts
    [ADR-176](#adr-176--chave-estável-cenarios_conjuge-no-bloco-de-narrativas-e5n).
 3. ✅ **W1-T08 (PLATFORM_REVIEW_PLAN, 2026-05-06):** schema E5 declara
    `cenarios_conjuge` formalmente — `properties.cenarios_conjuge` em
-   [config/schemas/e5_analysis.schema.json](../config/schemas/e5_analysis.schema.json)
+   [config/schemas/e5_analysis.schema.json](../../config/schemas/e5_analysis.schema.json)
    (paridade `to_legacy_dict()`; `patternProperties` para
    `idade_<titular>_if`/`idade_<titular>` cobre titular_key arbitrário).
    Cobertura em `tests/test_schema_validation.py`. Modo continua `warn`;

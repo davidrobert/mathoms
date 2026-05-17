@@ -1,6 +1,6 @@
 # Sprint A11 — Lanes (histórico)
 
-> Tabela estática das waves da Sprint A11. Detalhe operacional (acceptance_criteria, files_touched, paired_doc_task, risk/rollback) está em [docs/plan/PLATFORM_REVIEW/_README.md](../../plan/PLATFORM_REVIEW/_README.md). Para arquivos atomicos por task, ver [`lanes/<id>.md`](lanes/) populado por F4.A.
+> Tabela estática das waves da Sprint A11. Detalhe operacional (acceptance_criteria, files_touched, paired_doc_task, risk/rollback) está em [docs/plan/PLATFORM_REVIEW/_README.md](../../plan/PLATFORM_REVIEW/_README.md). Para arquivos atomicos por task, ver [`lanes/<id>.md`](lanes) populado por F4.A.
 
 | Wave | Title | Status | Tasks | Esforço |
 |---|---|---|---|---|
@@ -22,4 +22,4 @@
 | W5 | [PLAN §W5](../../plan/PLATFORM_REVIEW/_README.md#wave-5--frontend--methodology-sprint-4-10-dias-dev) | W1 ✅ (parcial) | ☐ ready |
 | W6 | [PLAN §W6](../../plan/PLATFORM_REVIEW/_README.md#wave-6--tech-debt-cleanup-sprint-5-12-dias-dev) | W3 (T02 → W6-T02) | ☐ blocked parcial |
 
-> Tracks operacionais por task em [`tracks/`](tracks/).
+> Tracks operacionais por task em [`tracks/`](tracks).

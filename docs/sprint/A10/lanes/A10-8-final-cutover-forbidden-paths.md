@@ -23,7 +23,7 @@ tags:
 
 - **Onda:** 4 (bloqueante)
 - **Depende de:** TODAS ✅
-- **Plano:** [§6 + ADR-181](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
+- **Plano:** [§6 + ADR-181](../../../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md)
 - **Branch slug:** `a10-8-cutover-final`
 - **Esforço:** 0.5d
 - **Paralelo com:** —

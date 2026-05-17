@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6e.4 (🚧 thin routers; zero conflito — eventos vivem em use cases, não routers), A6g.2/.4/.5/.7 ✅, A6f.1 ✅
 > **Conflita com:** commits simultâneos em `backend/app/application/**/*.py` (use cases ganham `emit(event)` nesta lane). A6e.4 não toca use cases (só routers) — coexiste. Se A6e.4 ainda estiver ativa, merge em sequência via rebase incremental.
 > **Onda:** 2
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-101 R17](../DECISIONS.md) · [CLAUDE.md §Code style](../../CLAUDE.md#code-style) · [BACKLOG §A6e](../BACKLOG.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-101 R17](../../../DECISIONS.md) · [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style) · [BACKLOG §A6e](../../../BACKLOG.md)
 
 > **Objetivo:** introduzir camada de **domain events tipados** em
 > `backend/app/events/` — base class `Event` + `register_handler` +
@@ -441,8 +441,8 @@ git fetch origin && git log --oneline HEAD..origin/main
 - **ADR-101 R17** — Domain events tipados (sub-fase `A6e.events`, ex-`A6e.6`)
 - **ADR-111** — Stateless rigoroso (handlers não guardam estado)
 - **ADR-097** — Extract-then-refactor (padrão seguido: primeiro infra, depois migração gradual)
-- [CLAUDE.md §Code style](../../CLAUDE.md#code-style) — funções 4-20 linhas, dataclasses frozen, sem `Any` em assinatura
-- [BACKLOG §A6e](../BACKLOG.md) — trilho completo (hoje: use cases ✅, routers 🚧, eventos ☐)
-- Prompts paralelos: [track_a6e4](track_a6e4_thin_routers.md)
+- [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style) — funções 4-20 linhas, dataclasses frozen, sem `Any` em assinatura
+- [BACKLOG §A6e](../../../BACKLOG.md) — trilho completo (hoje: use cases ✅, routers 🚧, eventos ☐)
+- Prompts paralelos: [track_a6e4](a6e4-thin-routers.md)
 - Existing infra reutilizável: `backend/app/services/audit.py`, `services/audit_service.py`, `models/audit_log.py`, `services/task_notification_service.py`
 - Existing **não** reutilizável (escopo diferente): `backend/app/services/events.py` (Redis pub/sub pipeline)

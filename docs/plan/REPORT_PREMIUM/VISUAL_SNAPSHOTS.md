@@ -1,7 +1,7 @@
 # Visual snapshots do relatório — operação
 
 > Lane `report-a11y-finalize` item 3. Snapshots por seção × tema light/dark
-> em [`frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts`](../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts).
+> em [`frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts`](../../../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts).
 
 ## Por que existe
 
@@ -60,7 +60,7 @@ atributo evita falsos-positivos:
 ## Decisão D3 — mobile spec fica fora desta lane
 
 Snapshot mobile (<767px) exige decisão de produto sobre o que sai/vira
-lista — ver [batch2.13](BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes).
+lista — ver [batch2.13](../../BACKLOG.md#docs-reviewbatch2--reescrita-de-documentos-decisões-de-escopo-pendentes).
 Quando convergir, abrir lane `report-mobile-spec` separada e adicionar
 viewport mobile a este spec ou um spec irmão.
 

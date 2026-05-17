@@ -30,7 +30,7 @@ tags:
 > contrato de teste de migration pending. Decisões originadas em discussão
 > 2026-05-10 entre dono + `product-designer` + `data-engineer` +
 > `product-manager`, formando entrada do plano `PLAN-category-overrides-ux`
-> ([docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../plan/CATEGORY_OVERRIDES_UX/_README.md)).
+> ([docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md)).
 
 ## Contexto
 
@@ -297,7 +297,7 @@ completo entra quando consultor profissional pedir.
 
 ## Ligações
 
-- Plano canônico: [PLAN-category-overrides-ux](../plan/CATEGORY_OVERRIDES_UX/_README.md)
+- Plano canônico: [PLAN-category-overrides-ux](../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md)
 - ADR raiz suplementada: [[ADR-137]] — catalog + override resolver
 - ADRs relacionadas:
   - [[ADR-091]] — rules-as-code (política como código)

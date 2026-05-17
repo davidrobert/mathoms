@@ -44,7 +44,7 @@ deferiu para v2 dois blocos visuais que o template
 ("Patrimônio: antes R$ 800k → depois R$ 850k") e **changelog**
 ("S2 Fluxo de Caixa: receita +12%, despesas −3%"). A v2.1
 (`agent/report-v2-yaml-placeholders/...`, mergeada 2026-04-26) plantou
-os placeholders no [config/report_layout.yaml](../config/report_layout.yaml)
+os placeholders no [config/report_layout.yaml](../../config/report_layout.yaml)
 em S1/S2/S3/T2/T3/T5 com `enabled: false` e
 `deferred_until: "v2.D.1 SnapshotChangelogBuilder"`. v2.D.1 entrega o
 builder; v2.8 (lane separada) flipa `enabled: true`.
@@ -196,7 +196,7 @@ estáveis e cacheáveis, mesmo se a redação mudar.
 
 **Hook de persistência (FASE 2 desta lane):** snapshot atual já é
 escrito por E5
-([pipeline/stages/analyze_finances.py](../pipeline/stages/analyze_finances.py)
+([pipeline/stages/analyze_finances.py](../../pipeline/stages/analyze_finances.py)
 via `ctx.get_artifact_store().write(...)`). **Nenhum hook novo no E5
 é necessário** — o builder consome o que já existe. Isto é
 intencional: lane v2.D.1 não muda o contrato de escrita de E5; muda

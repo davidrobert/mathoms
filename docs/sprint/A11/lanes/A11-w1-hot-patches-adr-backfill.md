@@ -3,6 +3,7 @@ id: A11.w1
 type: lane
 title: "Hot patches + ADR backfill (8 tasks)"
 sprint: A11
+plan: PLAN-platform-review
 status: shipped
 aliases: ["A11.W1"]
 ship_date: "2026-05-06"
@@ -23,7 +24,7 @@ tags:
 
 - **Onda:** 1 (5d)
 - **Depende de:** —
-- **Plano:** [PLAN §W1](plan/PLATFORM_REVIEW/_README.md#wave-1--hot-patches--adr-backfill-sprint-imediato-5-dias-dev)
+- **Plano:** [PLAN §W1](../../../plan/PLATFORM_REVIEW/_README.md#wave-1--hot-patches--adr-backfill-sprint-imediato-5-dias-dev)
 
 ## Status (legado)
 

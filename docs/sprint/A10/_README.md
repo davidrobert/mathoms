@@ -30,7 +30,7 @@ Sprint A7 (entregue 2026-04-27) era "config cutover" e atacou 5 JSONs + `decisio
 
 ## Lanes
 
-Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes/).
+Ver [lanes.md](lanes.md) (tabela histórica) ou [`lanes/`](lanes).
 
 ## Waves
 

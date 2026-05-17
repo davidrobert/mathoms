@@ -3,6 +3,7 @@ id: F12.6
 type: lane
 title: "Tradução do relatório (bulk, paralelizável)"
 sprint: F12
+plan: PLAN-i18n
 status: blocked
 priority: P0
 adrs: ["[[ADR-130]]"]

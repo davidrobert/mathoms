@@ -66,9 +66,9 @@ da ADR neste track** — referencie seção.
 
 ### Frontend
 
-- [`frontend/src/app/(app)/acao/_components/SuggestionDialogs.tsx`](../../../../frontend/src/app/(app)/acao/_components/SuggestionDialogs.tsx) (linhas 45-118 e 130-220) — remover input "Código da decisão" em `AcceptDialog` + `ModifyDialog`; signature de `onAccept` / `onModify` perde `code`.
-- [`frontend/src/app/(app)/acao/_components/InboxTab.tsx`](../../../../frontend/src/app/(app)/acao/_components/InboxTab.tsx) — deletar função `computeNextDecisionCode` (linhas 165-172); remover prop drilling `nextDecisionCode`.
-- [`frontend/src/app/(app)/plano/_components/DecisionFormDialog.tsx`](../../../../frontend/src/app/(app)/plano/_components/DecisionFormDialog.tsx) — remover `FormField` do `code` (linhas 262-271); manter header `Editar decisão D02` no modo edit (code já vem do registro); modo create → header `"Nova decisão"` sem code; remover `code` de `FormValues` + `validateForm` na criação.
+- `../../../../frontend/src/app/(app)/acao/_components/SuggestionDialogs.tsx` (linhas 45-118 e 130-220) — remover input "Código da decisão" em `AcceptDialog` + `ModifyDialog`; signature de `onAccept` / `onModify` perde `code`.
+- `../../../../frontend/src/app/(app)/acao/_components/InboxTab.tsx` — deletar função `computeNextDecisionCode` (linhas 165-172); remover prop drilling `nextDecisionCode`.
+- `../../../../frontend/src/app/(app)/plano/_components/DecisionFormDialog.tsx` — remover `FormField` do `code` (linhas 262-271); manter header `Editar decisão D02` no modo edit (code já vem do registro); modo create → header `"Nova decisão"` sem code; remover `code` de `FormValues` + `validateForm` na criação.
 - **Toast pós-aceite:** acrescentar microcopy `"Decisão {code} criada"` consumindo `accepted_decision_code` do response (componente de toast existente; verificar arquivo onde mensagem é montada após aceite).
 - **Types regen:** `frontend/src/generated/` regenerado após `make update-openapi-snapshot`.
 

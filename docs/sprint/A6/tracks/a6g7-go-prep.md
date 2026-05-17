@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** qualquer lane A6e.*/A6g.* — **zero overlap** (esta lane adiciona `.go` e config files; não mexe em Python, TS ou YAML existente).
 > **Conflita com:** nada (arquivos novos) exceto `.github/workflows/*.yml` se outra lane tocar CI simultaneamente.
 > **Onda:** 3
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-112 pipeline-as-service](../DECISIONS.md), [CLAUDE.md §Code style › Go](../../CLAUDE.md#code-style), [ARCHITECTURE §17](../ARCHITECTURE.md) (arquitetura alvo pós-A6)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-112 pipeline-as-service](../../../DECISIONS.md), [CLAUDE.md §Code style › Go](../../../../CLAUDE.md#code-style), [ARCHITECTURE §17](../../../reference/ARCHITECTURE.md) (arquitetura alvo pós-A6)
 
 > **Objetivo:** preparar a infra de lint + CI + convenções para quando
 > o primeiro serviço Go entrar (candidato: `pipeline-service/` reescrito
@@ -405,9 +405,9 @@ Se outro agente tocou `.github/workflows/*.yml` <30min atrás, espere 2min, anun
 
 ## Referências
 
-- [ADR-112](../DECISIONS.md) — pipeline-as-service (motivação para Go)
-- [CLAUDE.md §Code style › Go](../../CLAUDE.md#code-style) — regras inegociáveis
-- [ARCHITECTURE §17](../ARCHITECTURE.md) — arquitetura alvo pós-A6
+- [ADR-112](../../../DECISIONS.md) — pipeline-as-service (motivação para Go)
+- [CLAUDE.md §Code style › Go](../../../../CLAUDE.md#code-style) — regras inegociáveis
+- [ARCHITECTURE §17](../../../reference/ARCHITECTURE.md) — arquitetura alvo pós-A6
 - [golangci-lint docs](https://golangci-lint.run/usage/configuration/) — lint config reference
 - [effective-go](https://go.dev/doc/effective_go) — idioms
-- Prompts paralelos: [track_a6f1](track_a6f1_pipeline_service.md), [track_a6e4](track_a6e4_thin_routers.md)
+- Prompts paralelos: [track_a6f1](a6f1-pipeline-service.md), [track_a6e4](a6e4-thin-routers.md)

@@ -17,7 +17,7 @@ tags:
 
 > **Lane ID:** `w5t04-adr161-enrich`
 > **Branch prefix:** `agent/w5t04-adr161-enrich/<sub>/<yyyyMMdd-HHmm>`
-> **Plano canônico:** [plan/PLATFORM_REVIEW/_README.md §W5-T04](../plan/PLATFORM_REVIEW/_README.md)
+> **Plano canônico:** [plan/PLATFORM_REVIEW/_README.md §W5-T04](../../../plan/PLATFORM_REVIEW/_README.md)
 > **ADR:** ADR-161 §Follow-ups #1
 > **Onda:** Wave 5 (paraleliza com W5-T01/T03 e W6-T*)
 > **Severity:** P1 · **Effort:** L (~7-10d paralelizáveis)

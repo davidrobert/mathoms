@@ -23,7 +23,7 @@ size_lines: 75
 
 **Status:** Proposto (A12) • **Data:** 2026-04-27, promoção Roadmap→Proposto em 2026-05-11 • **Implementação:** schema candidato em `config/schemas/goal.alocacao_alvo.v2.schema.json`; backend (`pipeline_adapter._serialize_alocacao_goal`), frontend (`plano/alocacao/page.tsx`) e seeds operam em v1. Card de relatório S3 (`AlocacaoAtualVsAlvoCard`) entregue em A11 calcula desvio client-side sobre v1 — débito explícito desta ADR.
 
-**Contexto:** Auditoria multi-agente (rodada 1, item 9; rodada 2, item B2) identificou que a caracterização da AUVP em [methodology.md](../config/methodology.md) e nos schemas era reducionista. AUVP é **alocação multi-classe + rebalanceamento por aporte via Diagrama do Cerrado** — não "fundamentalista + FIIs" como dizia v1 do `methodology.md`. O schema v1 de alocação-alvo (`renda_fixa_pct`, `acoes_pct`, `imoveis_reits_pct`, `liquidez_usd_pct` — 4 buckets) cola RF pré/pós/IPCA em um único bucket e mistura ações BR com internacionais — perde o que é distintivo na metodologia.
+**Contexto:** Auditoria multi-agente (rodada 1, item 9; rodada 2, item B2) identificou que a caracterização da AUVP em [methodology.md](../../config/methodology.md) e nos schemas era reducionista. AUVP é **alocação multi-classe + rebalanceamento por aporte via Diagrama do Cerrado** — não "fundamentalista + FIIs" como dizia v1 do `methodology.md`. O schema v1 de alocação-alvo (`renda_fixa_pct`, `acoes_pct`, `imoveis_reits_pct`, `liquidez_usd_pct` — 4 buckets) cola RF pré/pós/IPCA em um único bucket e mistura ações BR com internacionais — perde o que é distintivo na metodologia.
 
 **Decisão:** Criar `goal.alocacao_alvo.v2.schema.json` com 7 classes canônicas AUVP:
 
@@ -58,7 +58,7 @@ Mais:
 - Métrica `desvio_max_pct` é nova — KPI AUVP autêntico, sinaliza onde alocar próximo aporte (princípio Diagrama do Cerrado).
 - Públicos com patrimônios pequenos (<R$100k) podem achar 7 classes excessivas — produto pode oferecer "modo simples" (4 buckets) como toggle, mas a fonte de verdade é v2.
 
-**Débito de Fase A (A11 · 2026-05-11):** O card `AlocacaoAtualVsAlvoCard` (S3) entregue na promoção Roadmap→Proposto desta ADR roda o cálculo de desvio client-side em `frontend/src/components/report/utils/alocacaoBucketMapper.ts` agregando 10 buckets canônicos ([ADR-193](193-taxonomia-classes-ativo-e5.md)) em 4 buckets v1. Decisões pragmáticas validadas pelo financial-planner:
+**Débito de Fase A (A11 · 2026-05-11):** O card `AlocacaoAtualVsAlvoCard` (S3) entregue na promoção Roadmap→Proposto desta ADR roda o cálculo de desvio client-side em `frontend/src/components/report/utils/alocacaoBucketMapper.ts` agregando 10 buckets canônicos ([ADR-193](193-taxonomia-canonica-classes-de-ativo-no-e5.md)) em 4 buckets v1. Decisões pragmáticas validadas pelo financial-planner:
 
 - **Caixa** é exibido como "Reserva" separada e **excluído do denominador do desvio** (reserva ≠ investimento).
 - **Cripto + Outros** vão para linha "Fora do alvo" (alvo=0, desvio positivo) — não fundem em ações.
@@ -73,4 +73,4 @@ Itens a remover/migrar ao implementar v2 (escopo da lane Fase B em A12):
 5. Migração `pipeline_adapter._serialize_alocacao_goal` para emitir v2 (com `derived.*`).
 6. Seed `backend/app/scripts/seed_goals_workspace.py` (atualmente escreve `rf_pct/rv_pct/alternativos_pct` — inconsistente com serializer; fixar como parte da migração).
 
-**Relaciona-se a:** [ADR-075](075-cutover-cli-web.md) (origem do schema v1), [ADR-140](140-goal-if-schema-v2.md), [ADR-193](193-taxonomia-classes-ativo-e5.md) (taxonomia 10 buckets canônicos no E5). Caracterização correta da AUVP em [`.claude/agents/financial-planner.md`](../.claude/agents/financial-planner.md).
+**Relaciona-se a:** [ADR-075](075-cutover-cli-web-estrategia-de-transicao-faseada.md) (origem do schema v1), [ADR-140](140-goal-if-schema-v2-renda-passiva-atual-if-meta.md), [ADR-193](193-taxonomia-canonica-classes-de-ativo-no-e5.md) (taxonomia 10 buckets canônicos no E5). Caracterização correta da AUVP em [`.claude/agents/financial-planner.md`](../../.claude/agents/financial-planner.md).

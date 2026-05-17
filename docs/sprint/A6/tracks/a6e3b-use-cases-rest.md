@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6e.4 (4a, não-pipeline-adjacentes), A6e.5 (/v1 prefix), A6e.events (events), A6g.2, A6g.4, A6g.7 — **zero overlap se respeitar escopo abaixo**.
 > **Conflita com:** commits em `backend/app/api/config.py`, `backend/app/api/documents.py`, `backend/app/api/tasks.py`, `backend/app/services/document_processor.py`, `backend/app/services/task_service.py`, `backend/app/services/config_defaults.py`. A6e.4 4b é **continuação** desta lane — **não começar 4b antes desta mergear**.
 > **Onda:** 2
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-101 R15 application layer](../DECISIONS.md), [ADR-112 pipeline-as-service](../DECISIONS.md), [CLAUDE.md §Code style](../../CLAUDE.md#code-style), [BACKLOG §A6e](../BACKLOG.md), [track_a6e3](track_a6e3_use_cases.md) (padrão de referência)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-101 R15 application layer](../../../DECISIONS.md), [ADR-112 pipeline-as-service](../../../DECISIONS.md), [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style), [BACKLOG §A6e](../../../BACKLOG.md), [track_a6e3](a6e3-use-cases.md) (padrão de referência)
 
 > **Objetivo:** completar a application layer (ADR-101 R15) para os 3
 > aggregates que ficaram de fora de A6e.3 — ConfigBlob, Document, Task
@@ -44,7 +44,7 @@ tags:
 
 ## Regras inegociáveis
 
-Mesmas de [track_a6e3](track_a6e3_use_cases.md#regras-inegociáveis). Resumo:
+Mesmas de [track_a6e3](a6e3-use-cases.md#regras-inegociáveis). Resumo:
 
 1. **1 endpoint = 1 use case** em `application/<agg>/<verb>_<noun>.py`.
 2. **Use case não conhece FastAPI.** Recebe DTOs + Protocols, retorna DTOs. Erros = exceções de domínio tipadas.
@@ -305,11 +305,11 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 ## Referências
 
-- [ADR-101](../DECISIONS.md) — R15 application layer + R16 thin routers
-- [ADR-112](../DECISIONS.md) — pipeline-as-service (fornece `HttpPipelineClient`)
-- [ADR-081](../DECISIONS.md) — classificação unificada de documentos
-- [track_a6e3_use_cases.md](track_a6e3_use_cases.md) — padrão de referência (FamilyMember/Category/Goal)
-- [track_a6e4_thin_routers.md](track_a6e4_thin_routers.md) — próxima lane (consome seus use cases)
-- [track_a6f1_pipeline_service.md](track_a6f1_pipeline_service.md) — contrato de `HttpPipelineClient`
-- Slice modelo de use case: [backend/app/application/goal/create_if_goal_version.py](../../backend/app/application/goal/create_if_goal_version.py)
+- [ADR-101](../../../DECISIONS.md) — R15 application layer + R16 thin routers
+- [ADR-112](../../../DECISIONS.md) — pipeline-as-service (fornece `HttpPipelineClient`)
+- [ADR-081](../../../DECISIONS.md) — classificação unificada de documentos
+- [track_a6e3_use_cases.md](a6e3-use-cases.md) — padrão de referência (FamilyMember/Category/Goal)
+- [track_a6e4_thin_routers.md](a6e4-thin-routers.md) — próxima lane (consome seus use cases)
+- [track_a6f1_pipeline_service.md](a6f1-pipeline-service.md) — contrato de `HttpPipelineClient`
+- Slice modelo de use case: [backend/app/application/goal/create_if_goal_version.py](../../../../backend/app/application/goal/create_if_goal_version.py)
 - BACKLOG §A6e — status e lanes ativas

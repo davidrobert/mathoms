@@ -22,26 +22,26 @@ tags:
 >
 > - **v1 (Fases 0-10) — ✅ 10/10 entregues em `main`** (banner anterior 2026-04-24).
 > - **Fases 11 / 12 / 13 — canceladas** via
->   [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+>   [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 >   §10/§11/§12 abaixo permanecem só como **registro histórico** — não executar.
 > - **v2 (§17) — 🚧 em andamento.** Roadmap pós-v1 com 11 sub-lanes em 4 ondas.
 >   Ondas A/B/C/D parcial + Onda E ✅ 8/8 + Onda F ✅ 5/5 entregues. Lanes
->   abertas em [BACKLOG.md › Report Premium UI v2](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
+>   abertas em [BACKLOG.md › Report Premium UI v2](../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
 > - **Direção E (2026-04-29) — ✅ COMPLETA (6/6 ondas em `main`).**
 >   Modo Tático removido do relatório
->   ([ADR-151](DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)).
+>   ([ADR-151](../../DECISIONS.md#adr-151--remoção-do-modo-tático-do-relatório-direção-e-do-redesign-de-interfaces)).
 >   Toda referência a `tatico.*` (KPIs, T1-T6, Kanban, Timeline,
 >   Notas) abaixo é **registro histórico**. Conteúdo redistribuído:
 >   `/plano` (Decisions D01–D15 com UI completa, Onda 2 ✅;
 >   `SuggestionsBanner` com count real, Onda 4 ✅), `/acao` (tabs Inbox
 >   · Tarefas · Timeline · Notas, Onda 6 ✅ ·
->   [ADR-152](DECISIONS.md#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6)).
+>   [ADR-152](../../DECISIONS.md#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6)).
 >   Adicionalmente: `Suggestion` aggregate full-stack
->   ([ADR-153](DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) ·
+>   ([ADR-153](../../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples) ·
 >   Onda 5 ✅) com `<SuggestionCallout/>` inline no relatório +
 >   agregador "§ Próximos passos" + `<SuggestionCard/>` na Inbox de
 >   `/acao`. Migration `KanbanItem`→`Task` + `ReportNotes`→`WorkspaceNotes`
->   ([ADR-154](DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) ·
+>   ([ADR-154](../../DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1) ·
 >   Onda 1 ✅ M1; M2 drop em sprint+1). Notas tab em `/acao` agora
 >   funcional via `useWorkspaceNotes`.
 >
@@ -61,7 +61,7 @@ tags:
 > **Status geral:** v1 ✅ 10/10 (Fases 0-10) · v2 🚧 em §17.
 > Detalhes de cada fase v1 na [tabela do §2](#2-roadmap-de-fases-visão-geral),
 > v2 em [§17](#17-report-premium-ui-v2--roadmap-pós-v1-2026-04-25) e em
-> [BACKLOG.md — Report Premium UI](BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
+> [BACKLOG.md — Report Premium UI](../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml).
 
 ---
 
@@ -79,7 +79,7 @@ este plano conflitar com os deltas abaixo, **os deltas prevalecem**.
    standalone. Backend endpoint passa a proxyar. `scripts/e6_render.py`
    é deletado ao final da fase. Os 19 V-checks migram para Playwright
    contra a rota.~~ **[Obsoleto — superseded por
-   [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).**
+   [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).**
    Nenhuma rota SSR será construída; o endpoint HTML inteiro é removido.
    Os 19 V-checks desaparecem junto com o validador.
 3. **Nova Fase 6.5 — backend persistence para Notas + Kanban** (ADR-123).
@@ -124,7 +124,7 @@ este plano conflitar com os deltas abaixo, **os deltas prevalecem**.
 
 | # | Decisão | Valor |
 |---|---------|-------|
-| 1 | Alvos de render | ~~**React + `e6_render.py` em paridade**~~ → **Apenas React (`/reports/[id]`)** + PDF Playwright. Renderer HTML server-side descontinuado em [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side). |
+| 1 | Alvos de render | ~~**React + `e6_render.py` em paridade**~~ → **Apenas React (`/reports/[id]`)** + PDF Playwright. Renderer HTML server-side descontinuado em [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side). |
 | 2 | Biblioteca de charts | **Chart.js 4 + react-chartjs-2 + chartjs-plugin-datalabels** — apenas dentro de `frontend/src/components/report/**`. Recharts permanece no dashboard interno. |
 | 3 | Navegação / modos | **Manter `ReportToc` sidebar**; **adicionar** top-nav sticky igual ao exemplo (com numeração + grupos + toggle de modo + toggle de tema). Os dois coexistem. |
 | 4 | Elementos visuais | **Todos** os do exemplo (cover hero, dark mode, chart-conclusion, section-divider, card variants, KPI-hero, score gauge, period toggle, back-to-top, export-toolbar, skip-nav, print CSS, kanban em T3). |
@@ -171,7 +171,7 @@ Para cada fase: **commit em `main` com CI verde** (§CLAUDE.md). Até lá, a fas
 - [ ] `frontend/src/components/report/sections/*.tsx` — o que cada seção já consome e renderiza.
 - [ ] `config/report_layout.yaml` — inventário de cards/charts por seção (fonte de verdade do layout).
 - [ ] `design-tokens/tokens.json` + `design-tokens/build.py` — como tokens viram CSS.
-- [ ] ~~`scripts/e6_render.py` + `scripts/e6/sanitize.py` + `scripts/e6/validate.py`~~ — **removido em [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)** (lane `adr-129-e6-kill`). Não tente ler — não existe mais. Mantido aqui apenas como registro do escopo original da Fase 0.
+- [ ] ~~`scripts/e6_render.py` + `scripts/e6/sanitize.py` + `scripts/e6/validate.py`~~ — **removido em [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)** (lane `adr-129-e6-kill`). Não tente ler — não existe mais. Mantido aqui apenas como registro do escopo original da Fase 0.
 - [ ] `pipeline/domain/services/` (e5-relacionados) — onde E5 gera o payload de análise.
 
 ### 1.2 Produto do discovery
@@ -349,7 +349,7 @@ Grid lines, tick labels e legendas precisam ler cores via `getComputedStyle(docu
 
 - Storybook local (ou página `/reports/_dev/charts`) renderiza cada chart com fixture estática.
 - Print-preview do Chrome mostra PNG fallback (não SVG vazio).
-- Testes unitários Vitest para `useChartTheme` e transformações de dados (testes visuais Playwright foram entregues na lane `report-a11y-finalize` — ver [REPORT_VISUAL_SNAPSHOTS.md](REPORT_VISUAL_SNAPSHOTS.md); Fase 12 original foi cancelada por ADR-129).
+- Testes unitários Vitest para `useChartTheme` e transformações de dados (testes visuais Playwright foram entregues na lane `report-a11y-finalize` — ver [REPORT_VISUAL_SNAPSHOTS.md](VISUAL_SNAPSHOTS.md); Fase 12 original foi cancelada por ADR-129).
 
 ---
 
@@ -618,7 +618,7 @@ Cada seção migra em **4 commits sequenciais**:
 
 ## 10. Fase 11 — `e6_render.py` paridade ❌ CANCELADA
 
-> ❌ **Cancelada 2026-04-24 via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).**
+> ❌ **Cancelada 2026-04-24 via [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).**
 > Conteúdo abaixo mantido apenas como registro histórico do desenho
 > original (Jinja2) e da revisão de 2026-04-24 (Next SSR sob ADR-124).
 > Nenhuma das duas abordagens será executada. A execução real é a
@@ -661,7 +661,7 @@ Comparar visualmente `e6_render.py` output com o exemplo em 3 cenários: fixture
 
 > ⏭ **2026-04-24:** a Fase 12 como descrita (Playwright com snapshot do
 > `e6_render.py` output, diff PDF contra baseline do renderer Python)
-> **perde sentido** com [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+> **perde sentido** com [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 > Os itens que sobrevivem — **print CSS no React**, axe-core, keyboard-nav,
 > Playwright de fluxo da rota `/reports/[id]` — viram uma lane dedicada
 > em F11 se prioritários. Conteúdo abaixo mantido como referência do
@@ -708,7 +708,7 @@ Em `frontend/tests/e2e/reports/`:
 
 > ❌ **2026-04-24:** A Fase 13 previa "feature flag + CHANGELOG + delete
 > `e6_render.py`" como passo final do Report Premium. O `delete` acontece
-> agora sob [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side),
+> agora sob [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side),
 > não como rollout, mas como **remoção definitiva** do renderer legado.
 > CHANGELOG e docs são atualizados no mesmo PR docs-only que emite ADR-129
 > e nos PRs de código subsequentes. Feature flag é dispensável (sem prod,
@@ -747,10 +747,10 @@ Seguir `docs/reference/SMOKE_TEST_HUMAN.md` com adições:
 ## 13. Paralelização (caminho crítico)
 
 > ℹ️ Diagrama original; Fases 11/12/13 (e6, polish, rollout) foram **canceladas** por
-> [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+> [ADR-129](../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 > O caminho crítico **executável** termina na Fase 10. Resíduos pós-10
 > (smoke, polish, rollout) seguem na lane `report-v1-polish` — ver
-> [BACKLOG.md](BACKLOG.md#lanes-abertas-agora--pickup-table).
+> [BACKLOG.md](../../BACKLOG.md#lanes-abertas-agora--pickup-table).
 
 ```
 Fase 0 (discovery)
@@ -825,10 +825,10 @@ Se surgir necessidade legítima de extrapolar, **pausar** e pedir aprovação �
 > 3 débitos declarados e 3 lacunas.
 >
 > **Meta-prompt único:**
-> [docs/agent_prompts/track_report_v2.md](agent_prompts/track_report_v2.md)
+> `docs/agent_prompts/track_report_v2.md`
 > — contém ondas, paralelização, dependências e checklist por lane.
-> **Prompts dedicados:** v2.4 ([T2 Aportes](agent_prompts/track_report_v2_t2_aportes.md))
-> e v2.D.1+v2.8 ([changelog engine](agent_prompts/track_report_v2_changelog_engine.md)).
+> **Prompts dedicados:** v2.4 (`track_report_v2_t2_aportes.md`)
+> e v2.D.1+v2.8 (`track_report_v2_changelog_engine.md`).
 > Demais lanes (v2.1, v2.2, v2.3, v2.5, v2.6, v2.7, v2.9, v2.10) com
 > escopo inline no meta-prompt §3.
 
@@ -870,14 +870,14 @@ Onda v2.F — Hero KPI polish (P1, isolada — toca só S1 KPI row)
 | v2.1 | §3.1 | S | P0 | A | inline |
 | v2.2 | §3.5 | S | P0 | A | inline |
 | v2.3 | §4.1 | S | P1 | A | inline |
-| v2.4 | §3.2 | R/O | P1 | B | [dedicado](agent_prompts/track_report_v2_t2_aportes.md) — ✅ 2026-04-27 (`0805a87`+`38aa0ee`) |
+| v2.4 | §3.2 | R/O | P1 | B | `track_report_v2_t2_aportes.md` — ✅ 2026-04-27 (`0805a87`+`38aa0ee`) |
 | v2.5 | §3.4 | S | P2 | B | inline |
 | v2.6 | §3.6 | R | P2 | B | inline |
 | v2.7 | §2.1 (DnD débito) | R | P2 | C | inline |
-| v2.8 | §2.3 / §3.1 | R | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
+| v2.8 | §2.3 / §3.1 | R | P2 | D | `track_report_v2_changelog_engine.md` |
 | v2.9 | §2.2 (LLM débito) | O | P2 | C | inline |
 | v2.10 | §4.3 | R | P2 | C | inline |
-| v2.D.1 | enabler de v2.8 | O | P2 | D | [dedicado](agent_prompts/track_report_v2_changelog_engine.md) |
+| v2.D.1 | enabler de v2.8 | O | P2 | D | `track_report_v2_changelog_engine.md` |
 | v2.F.1 | §17.6 (cross-check com EXEMPLO) | S | P1 | F | inline (§17.6) — ✅ |
 | v2.F.2 | §17.7 (posicionamento herdado de v1, não-paritário com EXEMPLO) | S | P1 | F | inline (§17.7) — ✅ |
 | v2.F.3a | §17.8 (cover identity — backend) | S | P1 | F | inline (§17.8.a) — ✅ |
@@ -995,7 +995,7 @@ sem hierarquia).
 
 #### Contrato de dados (sem novos campos no DTO)
 
-Todos os campos já existem em [report-analysis.ts](../frontend/src/types/report-analysis.ts):
+Todos os campos já existem em [report-analysis.ts](../../../frontend/src/types/report-analysis.ts):
 
 - `PatrimonioData.{liquido, bruto, investivel}` ✓
 - `ReservaEmergenciaData.{cobertura_meses, avaliacao_liquidity}` ✓
@@ -1217,7 +1217,7 @@ identificou 4 problemas no cover atual:
 #### Contrato API (firmado para paralelismo)
 
 `GET /reports/{report_id}` (`response_model=ReportResponse` em
-[backend/app/schemas/report.py:11](backend/app/schemas/report.py:11))
+[backend/app/schemas/report.py:11](../../../backend/app/schemas/report.py:11))
 ganha campo opcional:
 
 ```python
@@ -1227,10 +1227,10 @@ class ReportResponse(BaseModel):
 ```
 
 Populado a partir de `Workspace.family_surname` (já existe em
-[backend/app/models/workspace.py:18](backend/app/models/workspace.py:18)).
+[backend/app/models/workspace.py:18](../../../backend/app/models/workspace.py:18)).
 
 Frontend gera tipo TS via codegen / atualiza tipo manual
-correspondente em [frontend/src/lib/api/](frontend/src/lib/api/).
+correspondente em [frontend/src/lib/api/](../../../frontend/src/lib/api/).
 
 #### Sub-lanes paraleláveis
 
@@ -1267,15 +1267,15 @@ opcional).
 ##### 17.8.b — Frontend cover (independente, contrato pré-acordado) — ✅ 2026-04-26 (`db6cf6f`)
 
 Entregue: tipo TS `workspace_family_surname?: string | null` em
-`ReportResponse` ([reports.ts](frontend/src/lib/api/reports.ts));
+`ReportResponse` ([reports.ts](../../../frontend/src/lib/api/reports.ts));
 título e subtítulo estáticos
-([ReportShell.tsx](frontend/src/components/report/ReportShell.tsx) —
+([ReportShell.tsx](../../../frontend/src/components/report/ReportShell.tsx) —
 `displayTitle` dinâmico removido; brand nav passa a usar
 `reportTitle`); helper exportado `formatPeriodCoverPtBR()` em
-[format.ts](frontend/src/lib/format.ts) com em-dash `—` e mês
+[format.ts](../../../frontend/src/lib/format.ts) com em-dash `—` e mês
 abreviado em minúscula; helper local `formatGeneratedAtPtBR` para o
 "Gerado em"; nova prop `familySurname?: string | null` em
-[ReportCover.tsx](frontend/src/components/report/shell/ReportCover.tsx)
+[ReportCover.tsx](../../../frontend/src/components/report/shell/ReportCover.tsx)
 + helper `resolveBadge()` (badge dinâmico ou fallback `Relatório
 Patrimonial`); rota `/reports/[id]/page.tsx` passa `familySurname`
 (do `report.workspace_family_surname` com fallback para
@@ -1292,14 +1292,14 @@ Pre-commit verde.
 - **Escopo:**
   - Adicionar `workspace_family_surname?: string | null` no tipo
     `ReportResponse` em
-    [frontend/src/lib/api/](frontend/src/lib/api/) (campo opcional —
+    [frontend/src/lib/api/](../../../frontend/src/lib/api/) (campo opcional —
     funciona com ou sem o backend já entregue).
-  - [ReportShell.tsx](frontend/src/components/report/ReportShell.tsx):
+  - [ReportShell.tsx](../../../frontend/src/components/report/ReportShell.tsx):
     trocar `displayTitle` dinâmico por `title="Planejamento
     Financeiro"` estático; subtítulo `"Pessoal e Patrimonial"`
     estático (descartar `formatReportPeriod` se não usado em outro
     lugar).
-  - [ReportCover.tsx](frontend/src/components/report/shell/ReportCover.tsx):
+  - [ReportCover.tsx](../../../frontend/src/components/report/shell/ReportCover.tsx):
     aceitar prop opcional `familySurname?: string | null`; renderizar
     badge dinâmico (`Relatório · Família X` ou
     `Relatório Patrimonial`).
@@ -1341,7 +1341,7 @@ Exemplos reais:
 - **Worktree:** isolada
 - **Escopo:**
   - Investigar onde o filename do PDF é gerado (provável:
-    [backend/app/services/pdf_renderer.py](backend/app/services/pdf_renderer.py)
+    [backend/app/services/pdf_renderer.py](../../../backend/app/services/pdf_renderer.py)
     ou frontend `ExportToolbar`).
   - Padrão: `mathoms-planejamento-{slug-familia}-{YYYY-MM}.pdf`
     (slug = `unidecode + lowercase + - como separator`).
@@ -1443,7 +1443,7 @@ ReportCard.tsx         ← primitivo canônico de "card" (frame visual)
 
 ### 17.10 — Spec mobile do relatório (D3 do `report-a11y-finalize`)
 
-> Spec completa: [REPORT_MOBILE_SPEC.md](REPORT_MOBILE_SPEC.md).
+> Spec completa: [REPORT_MOBILE_SPEC.md](MOBILE_SPEC.md).
 
 **Decisão de produto convergida em 2026-04-27**: relatório suporta
 viewports `<767px` em **leitura/consulta** (não em edição). Modo
@@ -1462,19 +1462,19 @@ sequenciadas em 7 slices com paralelização possível em "tabelas → cards"
 **Não-escopo:**
 
 - Print/PDF mantém layout desktop em qualquer viewport — servidor
-  renderiza headless 1280×1800 ([backend/app/services/pdf_renderer.py](../backend/app/services/pdf_renderer.py));
+  renderiza headless 1280×1800 ([backend/app/services/pdf_renderer.py](../../../backend/app/services/pdf_renderer.py));
   PDF mobile-fluido quebraria paridade com `EXEMPLO_DE_RELATORIO.html`.
 - Tablet retrato (768-1023px) usa comportamento desktop atual já
   aceitável — sem branch dedicado.
 
-**Resolve:** [batch2.13](BACKLOG.md) (status atualizado para ✅
+**Resolve:** [batch2.13](../../BACKLOG.md) (status atualizado para ✅
 docs-only) + decisão D3 deixada em aberto por
-[track_report_a11y_finalize.md](agent_prompts/track_report_a11y_finalize.md).
+`track_report_a11y_finalize.md`.
 
 ---
 
 **Fim do plano.**
 Próxima ação do executor: v1 está em `main` ✅; abrir Onda v2.A
 escolhendo uma das 3 lanes (v2.1, v2.2, v2.3) — ver
-[track_report_v2.md](agent_prompts/track_report_v2.md) §5 para
+`track_report_v2.md` §5 para
 pickup protocol.

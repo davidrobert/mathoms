@@ -16,7 +16,7 @@ tags:
 # Track Report v2.4 — T2 Aportes seção real
 
 > **Status:** ✅ **2026-04-27** — entregue via commits `0805a87` (feat) + `38aa0ee` (refactor honrando 20 linhas).
-> Decisão final: **D1=(a) MVP determinístico** (dados já existem em `dashboard.aportes` + `dashboard.investimentos_delta`; nenhuma mudança de pipeline/backend). Detalhes em [CHANGELOG](../CHANGELOG.md) e [BACKLOG v2.4](../BACKLOG.md).
+> Decisão final: **D1=(a) MVP determinístico** (dados já existem em `dashboard.aportes` + `dashboard.investimentos_delta`; nenhuma mudança de pipeline/backend). Detalhes em [CHANGELOG](../../../CHANGELOG.md) e [BACKLOG v2.4](../../../BACKLOG.md).
 >
 > **Lane ID:** `report-v2-t2-aportes`
 > **Branch prefix:** `agent/report-v2-t2-aportes/<yyyyMMdd-HHmm>`
@@ -30,12 +30,12 @@ tags:
 > `frontend/src/components/report/sections/TaticoSections.tsx`
 > **Onda v2:** B
 > **Sprint:** Report Premium UI · v2
-> **Índice de prompts:** [README.md](README.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
 > **Fonte de verdade:**
-> - [plan/REPORT_PREMIUM/_README.md §17 — v2 roadmap](../plan/REPORT_PREMIUM/_README.md)
-> - [BACKLOG.md — Report Premium UI v2 lanes](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
+> - [plan/REPORT_PREMIUM/_README.md §17 — v2 roadmap](../../../plan/REPORT_PREMIUM/_README.md)
+> - [BACKLOG.md — Report Premium UI v2 lanes](../../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
 > - Auditoria 2026-04-25 §3.2 (origem do escopo)
-> - Meta-prompt: [track_report_v2.md](track_report_v2.md)
+> - Meta-prompt: [track_report_v2.md](report-v2.md)
 
 > **Objetivo (1 frase):** transformar a seção T2 (Tático · Aportes) de
 > stub "estará disponível…" em seção real com KPIs e gráfico de aportes
@@ -46,7 +46,7 @@ tags:
 
 ## 1. Por que esta lane
 
-[TaticoSections.tsx:96-106](../../frontend/src/components/report/sections/TaticoSections.tsx)
+`frontend/src/components/report/sections/TaticoSections.tsx`
 hoje tem:
 
 ```tsx
@@ -95,7 +95,7 @@ Conferir com dono **e código**:
   `frontend/src/types/report-analysis.ts`)
 - `data.fluxo_caixa.aportes_*` existe?
 - `data.dashboard.aportes_check` existe? — visto em
-  [report_layout.yaml:376-394](../../config/report_layout.yaml).
+  [report_layout.yaml:376-394](../../../../config/report_layout.yaml).
 - Onde está o snapshot canônico de aportes mensais?
 
 Resposta provável (confirmar): `data.dashboard.aportes_check` traz
@@ -106,9 +106,9 @@ KPI agregado mensal; detalhe por mês precisa derivar de
 
 | Opção | Componente |
 |-------|------------|
-| Bar simples mensal | [`ChartBar`](../../frontend/src/components/report/charts/primitives/) |
-| Combo aporte vs patrimônio | [`ChartCombo`](../../frontend/src/components/report/charts/primitives/) |
-| Stacked por classe | [`ChartStackedBar`](../../frontend/src/components/report/charts/primitives/) |
+| Bar simples mensal | [`ChartBar`](../../../../frontend/src/components/report/charts/primitives) |
+| Combo aporte vs patrimônio | [`ChartCombo`](../../../../frontend/src/components/report/charts/primitives) |
+| Stacked por classe | [`ChartStackedBar`](../../../../frontend/src/components/report/charts/primitives) |
 
 **Default sugerido:** ChartCombo (bar aporte mensal + line patrimônio
 acumulado). Reaproveita primitivo já testado.
@@ -138,7 +138,7 @@ acumulado). Reaproveita primitivo já testado.
 
 ### 4.1 (sempre) Substituir stub
 
-**Arquivo:** [frontend/src/components/report/sections/TaticoSections.tsx](../../frontend/src/components/report/sections/TaticoSections.tsx)
+**Arquivo:** `frontend/src/components/report/sections/TaticoSections.tsx`
 
 Trocar `T2AportesSection` por implementação real conforme D1.
 
@@ -168,7 +168,7 @@ Testes Vitest em `frontend/src/components/report/utils/__tests__/aportesAdapter.
 
 ### 4.3 (sempre) Layout YAML
 
-**Arquivo:** [config/report_layout.yaml](../../config/report_layout.yaml)
+**Arquivo:** [config/report_layout.yaml](../../../../config/report_layout.yaml)
 
 Atualizar bloco `tatico:` seção T2 para refletir conteúdo real (KPIs,
 chart_id, conclusion). Exemplo:
@@ -223,12 +223,12 @@ test("T2 Aportes — render KPIs e chart", async ({ page }) => {
 
 ### 4.6 (sempre) Atualizar docs
 
-- [BACKLOG.md](../BACKLOG.md) — marcar `report-v2-t2-aportes` ✅,
+- [BACKLOG.md](../../../BACKLOG.md) — marcar `report-v2-t2-aportes` ✅,
   remover "T2 Aportes seção real" da lista de débitos da seção
   Report Premium UI.
-- [plan/REPORT_PREMIUM/_README.md §17](../plan/REPORT_PREMIUM/_README.md) — atualizar
+- [plan/REPORT_PREMIUM/_README.md §17](../../../plan/REPORT_PREMIUM/_README.md) — atualizar
   status v2.4.
-- [CHANGELOG.md](../CHANGELOG.md) — entrada `feat(report): T2 Aportes
+- [CHANGELOG.md](../../../CHANGELOG.md) — entrada `feat(report): T2 Aportes
   com KPIs + chart combo (v2.4 · ADR-13X se aplicável)`.
 
 ---

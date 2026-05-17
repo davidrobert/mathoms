@@ -31,13 +31,13 @@ tags:
   LLM) com fallback determinístico.
 
   Tipos novos em
-  [`frontend/src/types/report-analysis.ts`](../frontend/src/types/report-analysis.ts):
+  [`frontend/src/types/report-analysis.ts`](../../../../frontend/src/types/report-analysis.ts):
   `AporteItem`, `InvestimentoDeltaItem`, `DashboardData` (subset
   tipado, mantém `[key: string]: unknown` para chaves consumidas por
   T1/T3/T5). Adapter puro em
-  [`frontend/src/components/report/utils/aportesAdapter.ts`](../frontend/src/components/report/utils/aportesAdapter.ts):
+  `frontend/src/components/report/utils/aportesAdapter.ts`:
   `deriveAporteSummary` + `deriveInvestimentosDelta`. YAML
-  [`config/report_layout.yaml`](../config/report_layout.yaml) T2
+  [`config/report_layout.yaml`](../../../../config/report_layout.yaml) T2
   declara `cards: [aportes_status, investimentos_delta]` (eram `[]`)
   + codegen TS/py atualizado.
 

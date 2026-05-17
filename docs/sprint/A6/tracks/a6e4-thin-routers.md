@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6e.events, A6g.2, A6g.6 — zero overlap **se** respeitar a lista de arquivos por fase abaixo.
 > **Conflita com:** commits simultâneos em `backend/app/api/*.py` por outras lanes. A6e.events emissão de eventos **dentro** dos routers: evitar (eventos vivem em use cases).
 > **Onda:** 2
-> **Índice de prompts:** [README.md](README.md)
-> **Fonte de verdade:** [ADR-101 R15/R16 (routers finos)](../DECISIONS.md), [ADR-109 response_model](../DECISIONS.md), [CLAUDE.md §Code style](../../CLAUDE.md#code-style), [BACKLOG §A6e](../BACKLOG.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
+> **Fonte de verdade:** [ADR-101 R15/R16 (routers finos)](../../../DECISIONS.md), [ADR-109 response_model](../../../DECISIONS.md), [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style), [BACKLOG §A6e](../../../BACKLOG.md)
 
 > **Objetivo:** converter os 17 routers HTTP do backend para o padrão
 > **1 endpoint = delegação a 1 use case**, reduzindo de ~4661 para ~850
@@ -306,10 +306,10 @@ git fetch origin && git log --oneline HEAD..origin/main
 
 ## Referências
 
-- [ADR-101](../DECISIONS.md) — R15 application layer (use cases), R16 thin routers
-- [ADR-109](../DECISIONS.md) — response_model obrigatório
-- [ADR-112](../DECISIONS.md) — pipeline-as-service (fornece `HttpPipelineClient`)
-- [BACKLOG §A6e](../BACKLOG.md) — status da sprint e lanes
-- Slice modelo de thin router: [backend/app/api/family_members.py](../../backend/app/api/family_members.py) (151 linhas, padrão A6e.3 slice 1)
-- Slice modelo de use case: [backend/app/application/family_member/create_family_member.py](../../backend/app/application/family_member/create_family_member.py)
-- Prompts paralelos: [track_a6e3](track_a6e3_use_cases.md), [track_a6e5](track_a6e5_v1_prefix.md), [track_a6f1](track_a6f1_pipeline_service.md), [track_a6g2](track_a6g2_pipeline_style_sweep.md), [track_a6g4](track_a6g4_frontend_style_sweep.md)
+- [ADR-101](../../../DECISIONS.md) — R15 application layer (use cases), R16 thin routers
+- [ADR-109](../../../DECISIONS.md) — response_model obrigatório
+- [ADR-112](../../../DECISIONS.md) — pipeline-as-service (fornece `HttpPipelineClient`)
+- [BACKLOG §A6e](../../../BACKLOG.md) — status da sprint e lanes
+- Slice modelo de thin router: [backend/app/api/family_members.py](../../../../backend/app/api/family_members.py) (151 linhas, padrão A6e.3 slice 1)
+- Slice modelo de use case: [backend/app/application/family_member/create_family_member.py](../../../../backend/app/application/family_member/create_family_member.py)
+- Prompts paralelos: [track_a6e3](a6e3-use-cases.md), [track_a6e5](a6e5-v1-prefix.md), [track_a6f1](a6f1-pipeline-service.md), [track_a6g2](a6g2-pipeline-style-sweep.md), [track_a6g4](a6g4-frontend-style-sweep.md)

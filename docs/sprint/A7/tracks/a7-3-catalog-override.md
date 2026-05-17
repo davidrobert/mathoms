@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** — (única lane da Onda 3).
 > **Conflita com:** qualquer commit ativo em `backend/app/models/category*.py`, `backend/app/repositories/category*`, `backend/app/api/categories.py`, `backend/app/services/category_resolver.py` (novo), `pipeline/domain/services/categorization_service.py`.
 > **Onda:** 3 (serial após A7.1).
-> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.3](../CONFIG_CUTOVER_PLAN.md#§53-a73--catalog--override-resolver)
-> **ADR:** [ADR-137](../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) — **G1 obrigatório**.
+> **Plano canônico:** [CONFIG_CUTOVER_PLAN.md §5.3](../../../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md#§53-a73--catalog--override-resolver)
+> **ADR:** [ADR-137](../../../DECISIONS.md#adr-137--catalog--override-resolver-para-categorization-e-institutions) — **G1 obrigatório**.
 > **Supervisão CTO:** G1 (ADR) · G2 (schema + migration backfill) · G3 (PR pré-merge).
 
 > **Objetivo (1 frase):** dividir `categorization` em **template global** (taxonomia base do produto) + **overrides por workspace** (apenas diff); `institutions` vira `institution_catalog` global; resolver no read-path; sem materialização redundante.
@@ -44,7 +44,7 @@ Hoje `categories` table mistura template + customização do cliente. Update do 
 3. **Cache Redis com invalidação por evento** (ADR-111). Sem `@lru_cache` no resolver.
 4. **Frontend não muda contrato API** — endpoints `/v1/workspaces/{id}/categories` continuam retornando `list[ResolvedCategory]`; write passa a criar/atualizar overrides em vez de category rows.
 5. **Funções 4-20 linhas, módulos ≤500** (CLAUDE.md §Code style).
-6. **Stateless rigoroso** ([ADR-111](../DECISIONS.md)).
+6. **Stateless rigoroso** ([ADR-111](../../../DECISIONS.md)).
 
 ---
 

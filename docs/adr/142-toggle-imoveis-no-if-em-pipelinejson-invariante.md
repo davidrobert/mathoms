@@ -42,8 +42,8 @@ size_lines: 30
 
 **Consequências:**
 
-- `progresso_if` continua `investivel_efetivo / if_meta_liquida × 100` (FORMULAS.md), mas com invariante respeitada o resultado é correto.
+- `progresso_if` continua `investivel_efetivo / if_meta_liquida × 100` (../reference/FORMULAS.md), mas com invariante respeitada o resultado é correto.
 - Famílias podem comparar dois cenários (toggle on/off) para entender impacto — útil pedagogicamente.
 - "Por workspace" do toggle é hoje **promessa de doc**, não realidade — fica catalogado como débito.
 
-**Relaciona-se a:** [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) (motivação direta — `renda_passiva_atual_mensal_brl`), [FORMULAS.md §Patrimônio](FORMULAS.md). Documentação histórica de fórmulas patrimoniais foi dissolvida em [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76) (A7.6) — invariantes hoje vivem como docstrings em `pipeline/domain/services/` (composição) e em `docs/reference/ARCHITECTURE.md §Glossário` (definitions).
+**Relaciona-se a:** [ADR-140](#adr-140--goal-if-schema-v2-renda-passiva-atual--if-meta-líquida) (motivação direta — `renda_passiva_atual_mensal_brl`), [FORMULAS.md §Patrimônio](../reference/FORMULAS.md). Documentação histórica de fórmulas patrimoniais foi dissolvida em [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76) (A7.6) — invariantes hoje vivem como docstrings em `pipeline/domain/services/` (composição) e em `docs/reference/ARCHITECTURE.md §Glossário` (definitions).

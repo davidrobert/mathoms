@@ -21,7 +21,7 @@ tags:
 > **Bloqueia:** F9.2e (closeout)
 > **Paralelo com:** F9.2b, F9.2d (escopo isolado em 1 arquivo)
 > **Onda:** F9 (sub-fatia 3c/7)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093)
 
 > **Objetivo:** atualizar `scripts/e_reset.py` para (a) aceitar `--from <legacy>`
 > com warning de deprecação, (b) trocar strings internas para descritivas,
@@ -137,6 +137,6 @@ git push origin HEAD:main
 
 ## Referências
 
-- [F9.2a pipeline core](track_f9_2a_pipeline_core_strings.md)
-- [F9.2 master](track_f9_2_string_literals.md) §"CLI alias bidirecional"
-- [F9.6 cleanup](track_f9_6_cleanup.md) — remoção do warning
+- [F9.2a pipeline core](f9-2a-pipeline-core-strings.md)
+- [F9.2 master](f9-2-string-literals.md) §"CLI alias bidirecional"
+- [F9.6 cleanup](f9-6-cleanup.md) — remoção do warning

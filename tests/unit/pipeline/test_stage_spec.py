@@ -41,6 +41,7 @@ EXPECTED_DESCRIPTIVE_STAGES = {
     "extract_baseline",
     "consolidate_baseline",
     "extract_irpf_full",
+    "extract_informe_aluguel",
     "extract_invoices",
     "extract_statements",
     "extract_with_llm",

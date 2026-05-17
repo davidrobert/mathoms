@@ -33,9 +33,9 @@ E2 só para LLM (`requires_llm_fallback`) não passam por schema para evitar ru�
 
 ## Fixtures golden
 
-- JSON de pipeline (E2/E3/E4): [tests/fixtures/pipeline_golden/README.md](../tests/fixtures/pipeline_golden/README.md).
-- JSON de **saída LLM** (schemas Pydantic E1 / E1.5 / E2-LLM / E6-parecer): [tests/fixtures/llm_golden/README.md](../tests/fixtures/llm_golden/README.md) + `tests/test_llm_golden.py`.
-- **PDF real anonimizado (Fase 2, opcional):** [tests/fixtures/e2_real_pdf_anon/README.md](../tests/fixtures/e2_real_pdf_anon/README.md) + `tests/test_e2_real_pdf_regression.py` (pasta pode ficar vazia; cada `*.pdf` adicionado roda `route_to_parser`).
+- JSON de pipeline (E2/E3/E4): [tests/fixtures/pipeline_golden/README.md](../../tests/fixtures/pipeline_golden/README.md).
+- JSON de **saída LLM** (schemas Pydantic E1 / E1.5 / E2-LLM / E6-parecer): [tests/fixtures/llm_golden/README.md](../../tests/fixtures/llm_golden/README.md) + `tests/test_llm_golden.py`.
+- **PDF real anonimizado (Fase 2, opcional):** [tests/fixtures/e2_real_pdf_anon/README.md](../../tests/fixtures/e2_real_pdf_anon/README.md) + `tests/test_e2_real_pdf_regression.py` (pasta pode ficar vazia; cada `*.pdf` adicionado roda `route_to_parser`).
 
 ## Artefatos auxiliares (sem JSON schema)
 
@@ -103,7 +103,7 @@ populado por `CenariosConjugeAnalyzer.to_legacy_dict()` em
   o objeto vazio.
 
 Declarado formalmente em
-[config/schemas/e5_analysis.schema.json](../config/schemas/e5_analysis.schema.json)
+[config/schemas/e5_analysis.schema.json](../../config/schemas/e5_analysis.schema.json)
 desde W1-T08 (PLATFORM_REVIEW_PLAN, 2026-05-06). Modo `warn` ativo;
 cutover `strict` é W6-T01.
 
@@ -111,7 +111,7 @@ cutover `strict` é W6-T01.
 
 Implementado em `tests/test_e5n_golden_execution.py`: mesmo cenário mínimo que o golden E5 (helper `_build_e5_workspace` — evita depender de `pytest_plugins` entre módulos) → `e4_categorize.main` → `e5_analyze.main` → `e5n_narrativas.main` → `analise_financeira-5_analysis.json` passa a incluir `narrativas` (`perfil_familia`, `summaries`, `charts`). O teste chama `validate_narrativas` **antes** do `finally` que repõe os globals do `e5n_narrativas` (o chart dinâmico `{cônjuge}_cenarios` depende de `family_members.json` do tenant). Segundo cenário: **`test_e5n_execution_narrativas_with_conjuge_chart`** — membro com `papel: conjuge` → presença de `ana_cenarios` em `narrativas.charts`.
 
-## Produção do relatório (pós-[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side))
+## Produção do relatório (pós-[ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side))
 
 Não há mais stage E6 nem HTML standalone gerado pelo pipeline. O fluxo
 de produção do relatório é:
@@ -126,7 +126,7 @@ de produção do relatório é:
 3. O relatório é renderizado **on-demand** pela rota React
    `/reports/[id]` consumindo `GET /reports/{id}/data`.
 4. O único export server-side é **PDF via Playwright**
-   ([backend/app/services/pdf_renderer.py](../backend/app/services/pdf_renderer.py))
+   ([backend/app/services/pdf_renderer.py](../../backend/app/services/pdf_renderer.py))
    sobre essa mesma rota.
 
 A pasta `output/` em `storage/<workspace>/` ficou vestigial após a

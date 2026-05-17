@@ -18,7 +18,7 @@ tags:
 > **Lane ID:** pipeline-review-screen
 > **Branch prefix:** `agent/pipeline-review-screen/*`
 > **Depende de:** nada (toca frontend + dois ajustes pequenos no contrato API). Pode ser feito antes ou depois de A; **substitui** A.
-> **Conflita com:** [track_pipeline_review_quick_unblock.md](track_pipeline_review_quick_unblock.md) — **mutuamente exclusivo** com A. Se A já foi mergeado, esta lane também **remove** a auto-approve loop em `handleResume` (substitui pela ação explícita do usuário).
+> **Conflita com:** [track_pipeline_review_quick_unblock.md](pipeline-review-quick-unblock.md) — **mutuamente exclusivo** com A. Se A já foi mergeado, esta lane também **remove** a auto-approve loop em `handleResume` (substitui pela ação explícita do usuário).
 > **Onda:** independente / produto premium
 > **ADR:** **obrigatória** — abrir ADR nova *"Pipeline review screen — UI de aprovação/edição de stage_reviews"*. Documenta:
 > - Decisão de tornar revisão **explícita** vs. implícita (caminho A).
@@ -35,21 +35,21 @@ tags:
 
 ### Contexto
 
-O backend tem fluxo human-in-the-loop completo desde a Phase 4 do schema inicial ([alembic/versions/a1b2c3d4e5f6_phase4_llm_config_stage_review.py](../../backend/alembic/versions/a1b2c3d4e5f6_phase4_llm_config_stage_review.py)):
+O backend tem fluxo human-in-the-loop completo desde a Phase 4 do schema inicial ([alembic/versions/a1b2c3d4e5f6_phase4_llm_config_stage_review.py](../../../../backend/alembic/versions/a1b2c3d4e5f6_phase4_llm_config_stage_review.py)):
 
-- Tabela `stage_reviews` ([backend/app/models/stage_review.py](../../backend/app/models/stage_review.py)) com `status: pending|approved|edited`, `original_output_json`, `edited_output_json`, `validation_errors`, `reviewer_notes`.
-- Endpoints REST ([backend/app/api/pipeline.py:118-139](../../backend/app/api/pipeline.py:118)):
+- Tabela `stage_reviews` ([backend/app/models/stage_review.py](../../../../backend/app/models/stage_review.py)) com `status: pending|approved|edited`, `original_output_json`, `edited_output_json`, `validation_errors`, `reviewer_notes`.
+- Endpoints REST ([backend/app/api/pipeline.py:118-139](../../../../backend/app/api/pipeline.py:118)):
   - `GET /workspaces/{ws}/pipeline/runs/{run}/reviews` → list.
   - `POST /workspaces/{ws}/pipeline/runs/{run}/reviews/{review_id}` body `{action: "approve"|"edit", edited_output_json?, reviewer_notes?}`.
-- Use cases prontos ([backend/app/application/pipeline_run/action_review.py](../../backend/app/application/pipeline_run/action_review.py), [resume_run.py](../../backend/app/application/pipeline_run/resume_run.py)). Resume só é aceito quando `count(stage_reviews where status=pending) == 0`.
-- Helpers TS prontos ([frontend/src/lib/api/pipeline.ts:138-152](../../frontend/src/lib/api/pipeline.ts:138)).
-- **Nenhum componente da UI consome esses endpoints** — `NeedsReviewCard` ([frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx](../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx)) só renderiza um banner com botão que vai direto para `/resume` (e bate em 409).
+- Use cases prontos ([backend/app/application/pipeline_run/action_review.py](../../../../backend/app/application/pipeline_run/action_review.py), [resume_run.py](../../../../backend/app/application/pipeline_run/resume_run.py)). Resume só é aceito quando `count(stage_reviews where status=pending) == 0`.
+- Helpers TS prontos ([frontend/src/lib/api/pipeline.ts:138-152](../../../../frontend/src/lib/api/pipeline.ts:138)).
+- **Nenhum componente da UI consome esses endpoints** — `NeedsReviewCard` (`../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx`) só renderiza um banner com botão que vai direto para `/resume` (e bate em 409).
 
 Esta lane fecha esse gap.
 
 ### Stages com `is_llm=True` que podem cair em `needs_review`
 
-Lista atualizada em [pipeline/stage_spec.py](../../pipeline/stage_spec.py):
+Lista atualizada em [pipeline/stage_spec.py](../../../../pipeline/stage_spec.py):
 
 - E1 — `extract_documents`
 - E1.5 — `consolidate_baseline`
@@ -63,13 +63,13 @@ A UI deve **não assumir** estrutura específica do `original_output_json` por s
 
 ## Regras inegociáveis
 
-1. **Tokens, nada de hex literal** ([ADR-076](../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)): cores via `var(--brand-*)`, `var(--surface-*)`, `var(--semantic-*)`. Estado de erro de schema é `--semantic-warning`, **não** `--semantic-loss` (não é falha catastrófica; é dado para revisão).
-2. **`<MonetaryValue/>`** ([frontend/src/components/report/MonetaryValue.tsx](../../frontend/src/components/report/MonetaryValue.tsx)) para qualquer BRL renderizado em destaque. Em editor JSON, valores ficam como string crua (formato wire) — não formatar na borda do editor.
-3. **Sem `any`** ([CLAUDE.md §Code style › Tipos](../../CLAUDE.md)). `unknown` para conteúdo do JSON, narrow no boundary.
-4. **Sem mock de DB** em testes ([CLAUDE.md §Testes](../../CLAUDE.md)). E2E real Playwright + Vitest com fakes nomeados em `frontend/src/test/fakes/`.
+1. **Tokens, nada de hex literal** ([ADR-076](../../../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)): cores via `var(--brand-*)`, `var(--surface-*)`, `var(--semantic-*)`. Estado de erro de schema é `--semantic-warning`, **não** `--semantic-loss` (não é falha catastrófica; é dado para revisão).
+2. **`<MonetaryValue/>`** ([frontend/src/components/report/MonetaryValue.tsx](../../../../frontend/src/components/report/MonetaryValue.tsx)) para qualquer BRL renderizado em destaque. Em editor JSON, valores ficam como string crua (formato wire) — não formatar na borda do editor.
+3. **Sem `any`** ([CLAUDE.md §Code style › Tipos](../../../../CLAUDE.md)). `unknown` para conteúdo do JSON, narrow no boundary.
+4. **Sem mock de DB** em testes ([CLAUDE.md §Testes](../../../../CLAUDE.md)). E2E real Playwright + Vitest com fakes nomeados em `frontend/src/test/fakes/`.
 5. **Acessibilidade WCAG 2.1 AA** — keyboard nav no editor, contraste, screen reader labels nos campos do JSON tree, `aria-invalid` quando edição ainda não validou.
 6. **Pipeline core não toca** — esta lane é só frontend + 1 ajuste de contrato (ver §C abaixo).
-7. **Idempotência** — reaprovar um review já aprovado retorna 409 do backend ([action_review.py:26](../../backend/app/application/pipeline_run/action_review.py:26)). UI trata como warning ("Já processado") e atualiza estado local.
+7. **Idempotência** — reaprovar um review já aprovado retorna 409 do backend ([action_review.py:26](../../../../backend/app/application/pipeline_run/action_review.py:26)). UI trata como warning ("Já processado") e atualiza estado local.
 8. **Edição não valida client-side** — o usuário pode salvar um JSON que continua falhando schema; o backend aceita `edited_output_json` arbitrário e o pipeline downstream re-valida. Mostrar warning *"Edição não validada — schema só será re-checado quando o pipeline retomar"* mas **permitir salvar mesmo assim**.
 
 ---
@@ -145,14 +145,14 @@ Layout em duas colunas (desktop, single column mobile):
 
 ### C. `NeedsReviewCard` vira ponteiro para a tela
 
-Substituir o botão "Aprovar e Continuar" do [NeedsReviewCard.tsx](../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx) por:
+Substituir o botão "Aprovar e Continuar" do `../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx` por:
 
 - Title: *"<N> revisão(ões) pendente(s) na etapa <stage>"*.
 - Texto: *"O resultado automático precisa ser conferido antes de seguir. Abra a revisão para ver os erros e decidir se aprova ou edita o output."*
 - Botão primário: **"Revisar agora"** → `router.push('/pipeline/runs/{runId}/reviews')`.
 - Botão secundário: **"Cancelar execução"**.
 
-`handleResume` em [page.tsx](../../frontend/src/app/(app)/pipeline/page.tsx) **deixa de existir** — retomada agora é consequência implícita de aprovar todos os reviews via tela dedicada. Se o caminho A foi mergeado antes desta lane, **remova** a auto-approve loop.
+`handleResume` em `../../frontend/src/app/(app)/pipeline/page.tsx` **deixa de existir** — retomada agora é consequência implícita de aprovar todos os reviews via tela dedicada. Se o caminho A foi mergeado antes desta lane, **remova** a auto-approve loop.
 
 ### D. Editor JSON
 
@@ -187,14 +187,14 @@ Substituir o botão "Aprovar e Continuar" do [NeedsReviewCard.tsx](../../fronten
 
 ### G. ADR
 
-`docs/DECISIONS.md` ganha ADR nova (próximo número livre — confira em [docs/DECISIONS.md ToC](../DECISIONS.md)). Conteúdo mínimo:
+`docs/DECISIONS.md` ganha ADR nova (próximo número livre — confira em [docs/DECISIONS.md ToC](../../../DECISIONS.md)). Conteúdo mínimo:
 
 - **Contexto**: backend já tem fluxo de review desde Phase 4; UI estava incompleta; A foi stop-gap.
 - **Decisão**: revisão explícita (lista + detalhe + editor) substitui aprovação implícita.
 - **Alternativas consideradas**: (i) caminho A permanente; (ii) editor inline no `NeedsReviewCard`; (iii) Monaco vs textarea.
 - **Consequências**: usuário precisa de ≥1 click extra; outputs editados ficam rastreáveis em `edited_output_json`.
 - **Reversibilidade**: alta — basta voltar `NeedsReviewCard` para auto-approve.
-- Rodar gates de ADR ([CLAUDE.md §ADRs](../../CLAUDE.md)):
+- Rodar gates de ADR ([CLAUDE.md §ADRs](../../../../CLAUDE.md)):
   ```bash
   python3 dev/check_adr_anchors.py
   python3 dev/build_adr_toc.py --inline
@@ -210,7 +210,7 @@ Hoje o frontend precisa carregar a lista inteira para encontrar 1 review. Adicio
 async def get_review(...): ...
 ```
 
-Se adicionar, atualizar `make update-openapi-snapshot` ([ADR-109](../DECISIONS.md#adr-109)) e commitar o diff.
+Se adicionar, atualizar `make update-openapi-snapshot` ([ADR-109](../../../DECISIONS.md#adr-109)) e commitar o diff.
 
 **Decisão**: adicionar é higiênico, mas não bloqueia. Lista cacheada em React Query/state local resolve. Default: **não adicionar** nesta lane.
 
@@ -290,14 +290,14 @@ git push origin HEAD:main
 - ❌ Não chame `resumePipelineRun` enquanto houver pending — backend recusa. Só chame quando contagem zerar.
 - ❌ Não importe Monaco se ficar com D1 — bundle inflado sem justificativa é débito.
 - ❌ Não adicione `rejected` no enum `StageReviewStatus` sem ADR específica + sign-off `data-engineer`. Hoje só existe `pending|approved|edited`.
-- ❌ Não toque em `pipeline/**/*.py` (boundary, [CLAUDE.md §Pipeline não importa framework](../../CLAUDE.md)).
+- ❌ Não toque em `pipeline/**/*.py` (boundary, [CLAUDE.md §Pipeline não importa framework](../../../../CLAUDE.md)).
 - ❌ Não use cor literal nem `Intl.NumberFormat` inline para BRL.
 
 ---
 
 ## Pós-merge / follow-ups possíveis
 
-1. **Tipagem por stage**: hoje `original_output_json` é `Record<string, unknown>`. Em follow-up, gerar tipos a partir de `config/schemas/*.schema.json` (codegen estilo [ADR-076](../DECISIONS.md#adr-076)) e narrow no detalhe por `review.stage`.
+1. **Tipagem por stage**: hoje `original_output_json` é `Record<string, unknown>`. Em follow-up, gerar tipos a partir de `config/schemas/*.schema.json` (codegen estilo [ADR-076](../../../DECISIONS.md#adr-076)) e narrow no detalhe por `review.stage`.
 2. **Diff visual**: quando `edited_output_json` foi aplicado, mostrar diff lado a lado com `original_output_json` no histórico.
 3. **`rejected` status**: discutir com `financial-planner` — usuário pode "rejeitar" um review e marcar o run como falho? Hoje só pode aprovar (com ou sem edit).
 4. **Métricas LLMOps**: contar % de reviews aprovados vs editados por stage — sinal de qualidade do prompt LLM. Provavelmente vira lane separada (FinOps + LLMOps).
@@ -306,13 +306,13 @@ git push origin HEAD:main
 
 ## Referências
 
-- [ADR-076 — Design tokens unificados site + relatório](../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)
-- [ADR-097 — Validação de stages LLM e dataclasses tipadas](../DECISIONS.md#adr-097)
-- [ADR-109 — `response_model` explícito + OpenAPI snapshot](../DECISIONS.md#adr-109)
-- [ADR-157 — Schema IRPF completo (extract_irpf_full)](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)
-- [Backend `action_review` use case](../../backend/app/application/pipeline_run/action_review.py)
-- [Backend `resume_run` use case](../../backend/app/application/pipeline_run/resume_run.py)
-- [Backend pipeline router](../../backend/app/api/pipeline.py)
-- [Frontend API helpers](../../frontend/src/lib/api/pipeline.ts)
-- [Frontend `NeedsReviewCard`](../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx)
-- Lane antecessora (caminho A, opcional): [track_pipeline_review_quick_unblock.md](track_pipeline_review_quick_unblock.md)
+- [ADR-076 — Design tokens unificados site + relatório](../../../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)
+- [ADR-097 — Validação de stages LLM e dataclasses tipadas](../../../DECISIONS.md#adr-097)
+- [ADR-109 — `response_model` explícito + OpenAPI snapshot](../../../DECISIONS.md#adr-109)
+- [ADR-157 — Schema IRPF completo (extract_irpf_full)](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)
+- [Backend `action_review` use case](../../../../backend/app/application/pipeline_run/action_review.py)
+- [Backend `resume_run` use case](../../../../backend/app/application/pipeline_run/resume_run.py)
+- [Backend pipeline router](../../../../backend/app/api/pipeline.py)
+- [Frontend API helpers](../../../../frontend/src/lib/api/pipeline.ts)
+- `../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx`
+- Lane antecessora (caminho A, opcional): [track_pipeline_review_quick_unblock.md](pipeline-review-quick-unblock.md)

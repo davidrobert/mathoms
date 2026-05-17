@@ -91,9 +91,9 @@ def _format_adrs_canonical(plan: PlanLike) -> str:
 
 
 def _format_lanes_line(plan_lanes: list[LaneLike]) -> str:
-    """Frase resumo das lanes do plano. '(aguardando F4)' se zero lanes."""
+    """Frase resumo das lanes do plano."""
     if not plan_lanes:
-        return "_(aguardando F4)_"
+        return "_(sem lanes vinculadas por `plan:`)_"
     counts = _count_lanes_by_status(plan_lanes)
     parts = [
         f"{counts['done']} done",
@@ -146,10 +146,12 @@ def _plan_count_line(plans: list[PlanLike]) -> str:
 
 
 def _f4_pending_note(lanes: list[LaneLike]) -> str | None:
-    """Aviso 'lanes serão linkadas após F4' enquanto vault não tem lanes."""
+    """Aviso quando ainda não há vínculos `lane.plan` indexáveis."""
+    if not lanes:
+        return "_Lanes ainda nao foram atomizadas em `docs/sprint/<X>/lanes/`._"
     if any(lane.plan for lane in lanes):
         return None
-    return "_Lanes serão linkadas após Fase 4 do DOC_REORG popular `docs/sprint/<X>/lanes/`._"
+    return "_Nenhuma lane declara `plan:` ainda; PLAN_PROGRESS depende desse FK no frontmatter._"
 
 
 def _render_status_section(status: str, bucket: list[PlanLike], lanes: list[LaneLike]) -> list[str]:

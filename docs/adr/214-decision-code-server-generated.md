@@ -30,7 +30,7 @@ tags:
 **imutável após criação**, e **legível editorial** (referenciado em
 narrativa do plano e supersedure chain: "D01 substituída por D03"). A
 ADR não decidiu **quem gera o code** — frontend assumiu por default
-tácito: [`InboxTab.tsx:165`](../../frontend/src/app/(app)/acao/_components/InboxTab.tsx)
+tácito: `frontend/src/app/(app)/acao/_components/InboxTab.tsx:165`
 calcula `D{max+1}` a partir da lista local de decisões carregadas e
 envia no body do POST como `decision_code` (`AcceptSuggestionCommand`,
 `ModifySuggestionCommand`, `DecisionCreateCommand`).
@@ -43,10 +43,10 @@ Três problemas observados em produção:
    `IntegrityError` para o usuário. Não há lock entre o cálculo (client)
    e a persistência (server).
 2. **Vazamento de implementação na UX.** Modal "Aceitar sugestão"
-   ([`SuggestionDialogs.tsx:45-118`](../../frontend/src/app/(app)/acao/_components/SuggestionDialogs.tsx))
+   (`frontend/src/app/(app)/acao/_components/SuggestionDialogs.tsx:45-118`)
    expõe input editorial `"Código da decisão"` com `autoFocus` — rouba
    o protagonismo do CTA primário. Form manual de criação
-   ([`DecisionFormDialog.tsx:262-271`](../../frontend/src/app/(app)/plano/_components/DecisionFormDialog.tsx))
+   (`frontend/src/app/(app)/plano/_components/DecisionFormDialog.tsx:262-271`)
    coloca `code` como primeiro campo, invertendo o fluxo cognitivo
    (conteúdo → identificador, não o contrário). Revisão `product-designer`
    (sessão 2026-05-15) recomenda remoção em ambos os modais.

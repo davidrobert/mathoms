@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from pipeline.domain.services.endereco_canonicalizer import canonicalize
+from pipeline.domain.services.titular_key_normalizer import normalize_titular_key
 from pipeline.domain.types.property_identity import PropertyLookupKey
 
 if TYPE_CHECKING:
+    from pipeline.domain.types.config import FamilyMembersConfig
     from pipeline.ports import PropertyIdentityResolver
 
 
@@ -15,16 +17,20 @@ def enrich_imoveis_with_property_ids(
     consolidated: dict,
     resolver: "PropertyIdentityResolver",
     workspace_id: str,
+    family_members: Optional["FamilyMembersConfig"] = None,
 ) -> dict:
     """Anexa `property_id`, `endereco_canonical`, `low_confidence` (ADR-215 P2)."""
-    # Mutates `consolidated["imoveis_consolidados"]` in-place. Entries sem
-    # codigo_rfb (legado) recebem low_confidence=True sem property_id.
+    # ADR-215 fix-B3: family_members opcional permite normalizar
+    # titular_key cross-IRPF (LLM extrai mariana_teixeira_ferreira vs
+    # mariana_ferreira_campos para a mesma pessoa). Quando ausente,
+    # comportamento legado preservado.
     imoveis = consolidated.get("imoveis_consolidados", [])
     if not imoveis:
         return consolidated
 
     for entry in imoveis:
-        titular_key = (entry.get("proprietario") or "").strip().lower()
+        raw_titular = (entry.get("proprietario") or "").strip().lower()
+        titular_key = normalize_titular_key(raw_titular, family_members)
         codigo_rfb = (entry.get("codigo_rfb") or "").strip()
         descricao = entry.get("descricao") or ""
         first_seen_year = int(entry.get("ano_referencia") or 0)

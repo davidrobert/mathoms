@@ -18,9 +18,9 @@ tags:
 > **Lane ID:** pipeline-review-quick-unblock
 > **Branch prefix:** `agent/pipeline-review-quick-unblock/*`
 > **Depende de:** nada (toca só frontend + 1 ajuste opcional de copy)
-> **Conflita com:** [track_pipeline_review_screen.md](track_pipeline_review_screen.md) — **mutuamente exclusivo**: A é o stop-gap; B é a versão completa. Se B já está em andamento (`origin/agent/pipeline-review-screen/*` com commit recente), **abandone A**.
+> **Conflita com:** [track_pipeline_review_screen.md](pipeline-review-screen.md) — **mutuamente exclusivo**: A é o stop-gap; B é a versão completa. Se B já está em andamento (`origin/agent/pipeline-review-screen/*` com commit recente), **abandone A**.
 > **Onda:** independente / hotfix de UX
-> **ADR:** **não obrigatória** — comportamento já está implícito em [ADR-097 D1](../DECISIONS.md#adr-097) (validação LLM com pause). Se a copy for revisada com `product-designer` e mudar a semântica de "aprovar" (ex.: passar a registrar `reviewer_notes` automático), abrir ADR.
+> **ADR:** **não obrigatória** — comportamento já está implícito em [ADR-097 D1](../../../DECISIONS.md#adr-097) (validação LLM com pause). Se a copy for revisada com `product-designer` e mudar a semântica de "aprovar" (ex.: passar a registrar `reviewer_notes` automático), abrir ADR.
 > **Supervisão:** **G4 (`product-designer`)** **obrigatório** — copy nova precisa ser honesta e não prometer revisão visual que não existe. **G0 (`financial-planner`)** opcional para o texto que explica o impacto de aprovar dado financeiro com erro de schema.
 
 > **Objetivo (1 frase):** destravar runs presos em `needs_review` aprovando os `StageReview` pendentes implicitamente quando o usuário clica "Aprovar e Continuar", e tornar a copy honesta sobre o que está sendo aprovado.
@@ -33,18 +33,18 @@ tags:
 
 1. Usuário sobe documentos, dispara pipeline.
 2. Stage `extract_irpf_full` (E1.6) executa, retorna `success=true` mas com `validation.valid=false` (output do LLM falha JSON Schema).
-3. [`backend/app/tasks/pipeline_task.py:845`](../../backend/app/tasks/pipeline_task.py:845) detecta `_has_validation_errors(result)` e chama `_record_stage_needs_review` ([linha 687](../../backend/app/tasks/pipeline_task.py:687)):
+3. [`backend/app/tasks/pipeline_task.py:845`](../../../../backend/app/tasks/pipeline_task.py:845) detecta `_has_validation_errors(result)` e chama `_record_stage_needs_review` ([linha 687](../../../../backend/app/tasks/pipeline_task.py:687)):
    - Cria 1 linha em `stage_reviews` com `status=pending`.
    - Marca `pipeline_runs.status=needs_review`, `paused_at_stage='extract_irpf_full'`.
-4. Frontend ([`frontend/src/app/(app)/pipeline/page.tsx:348`](../../frontend/src/app/(app)/pipeline/page.tsx:348)) renderiza [`NeedsReviewCard`](../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx) com botão **Aprovar e Continuar**.
-5. Click → [`handleResume`](../../frontend/src/app/(app)/pipeline/page.tsx:273) chama `resumePipelineRun` → `POST /workspaces/{ws}/pipeline/runs/{id}/resume`.
-6. Backend ([`backend/app/application/pipeline_run/resume_run.py:21-30`](../../backend/app/application/pipeline_run/resume_run.py:21)) recusa: *"Existem reviews pendentes. Aprove ou edite antes de continuar."* → 409 Conflict.
+4. Frontend (`../../frontend/src/app/(app)/pipeline/page.tsx:348`) renderiza `../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx` com botão **Aprovar e Continuar**.
+5. Click → `../../frontend/src/app/(app)/pipeline/page.tsx:273` chama `resumePipelineRun` → `POST /workspaces/{ws}/pipeline/runs/{id}/resume`.
+6. Backend ([`backend/app/application/pipeline_run/resume_run.py:21-30`](../../../../backend/app/application/pipeline_run/resume_run.py:21)) recusa: *"Existem reviews pendentes. Aprove ou edite antes de continuar."* → 409 Conflict.
 7. Toast de erro. Run permanece travado. **Não há UI para aprovar reviews individuais.**
 
 ### Por que isso entrou no projeto
 
-- Schema `stage_reviews` faz parte do design desde a Phase 4 do schema inicial ([alembic/versions/a1b2c3d4e5f6_phase4_llm_config_stage_review.py](../../backend/alembic/versions/a1b2c3d4e5f6_phase4_llm_config_stage_review.py), 2026-04-14). Conceito é human-in-the-loop para LLMOps: pausar antes de empurrar dado mal-validado para o relatório.
-- Endpoints `GET /reviews` e `POST /reviews/{id}` existem ([`backend/app/api/pipeline.py:118-139`](../../backend/app/api/pipeline.py:118)) e helpers `listStageReviews`/`submitStageReview` já estão no frontend ([`frontend/src/lib/api/pipeline.ts:138-152`](../../frontend/src/lib/api/pipeline.ts:138)) — **mas nenhum componente os consome**.
+- Schema `stage_reviews` faz parte do design desde a Phase 4 do schema inicial ([alembic/versions/a1b2c3d4e5f6_phase4_llm_config_stage_review.py](../../../../backend/alembic/versions/a1b2c3d4e5f6_phase4_llm_config_stage_review.py), 2026-04-14). Conceito é human-in-the-loop para LLMOps: pausar antes de empurrar dado mal-validado para o relatório.
+- Endpoints `GET /reviews` e `POST /reviews/{id}` existem ([`backend/app/api/pipeline.py:118-139`](../../../../backend/app/api/pipeline.py:118)) e helpers `listStageReviews`/`submitStageReview` já estão no frontend ([`frontend/src/lib/api/pipeline.ts:138-152`](../../../../frontend/src/lib/api/pipeline.ts:138)) — **mas nenhum componente os consome**.
 - Stage `extract_irpf_full` só foi registrado no orchestrator em 2026-05-01 ([commit `b0024c7`](https://github.com/anthropics/apps)). Antes disso, esse caminho quase nunca disparava em produção. Agora dispara, e o gate ficou exposto.
 
 ### Caminho A vs B
@@ -62,7 +62,7 @@ A é **descartável**: B substitui A por completo. **Se B for entregue**, a lóg
 2. **Tipos estritos**: `submitStageReview` retorna `unknown` hoje; ao consumir o result, narrow ou ignore — **não use `any`**.
 3. **Copy honesta**: a UI **não** pode dizer "Revise os resultados antes de aprovar" se não há nada renderizado para revisar. Substituir por copy que (a) avisa que houve falha de validação, (b) lista os campos com erro (vindos de `validation_errors`), (c) deixa claro que aprovar avança com o output como está.
 4. **Mensagem de erro útil**: se `submitStageReview` ou `resumePipelineRun` falhar, o toast precisa mostrar a mensagem do backend (`ApiError.detail`), não "Erro ao retomar".
-5. **Idempotência**: clicar "Aprovar e Continuar" duas vezes não pode duplicar approve nem 500. Backend já retorna 409 *"Review já processado"* em re-approve ([`action_review.py:26`](../../backend/app/application/pipeline_run/action_review.py:26)) — frontend deve tratar como sucesso silencioso (já aprovado) e prosseguir para `resumePipelineRun`.
+5. **Idempotência**: clicar "Aprovar e Continuar" duas vezes não pode duplicar approve nem 500. Backend já retorna 409 *"Review já processado"* em re-approve ([`action_review.py:26`](../../../../backend/app/application/pipeline_run/action_review.py:26)) — frontend deve tratar como sucesso silencioso (já aprovado) e prosseguir para `resumePipelineRun`.
 
 ---
 
@@ -113,11 +113,11 @@ export async function submitStageReview(
 ): Promise<StageReviewResponse> { ... }
 ```
 
-(Shape backend: [`backend/app/schemas/pipeline.py:50-75`](../../backend/app/schemas/pipeline.py:50).)
+(Shape backend: [`backend/app/schemas/pipeline.py:50-75`](../../../../backend/app/schemas/pipeline.py:50).)
 
 ### B. `handleResume` aprova pending reviews antes de retomar
 
-Em [`frontend/src/app/(app)/pipeline/page.tsx`](../../frontend/src/app/(app)/pipeline/page.tsx), alterar `handleResume` (linhas 273-285):
+Em `../../frontend/src/app/(app)/pipeline/page.tsx`, alterar `handleResume` (linhas 273-285):
 
 ```ts
 async function handleResume() {
@@ -297,10 +297,10 @@ git push origin HEAD:main
 
 ## Referências
 
-- [ADR-097 — Validação de stages LLM e dataclasses tipadas](../DECISIONS.md#adr-097)
-- [ADR-157 — Schema IRPF completo (extract_irpf_full)](../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)
-- [Backend `resume_run` use case](../../backend/app/application/pipeline_run/resume_run.py)
-- [Backend `action_review` use case](../../backend/app/application/pipeline_run/action_review.py)
-- [Frontend `NeedsReviewCard`](../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx)
-- [Frontend `handleResume`](../../frontend/src/app/(app)/pipeline/page.tsx)
-- Lane sucessora (caminho B): [track_pipeline_review_screen.md](track_pipeline_review_screen.md)
+- [ADR-097 — Validação de stages LLM e dataclasses tipadas](../../../DECISIONS.md#adr-097)
+- [ADR-157 — Schema IRPF completo (extract_irpf_full)](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)
+- [Backend `resume_run` use case](../../../../backend/app/application/pipeline_run/resume_run.py)
+- [Backend `action_review` use case](../../../../backend/app/application/pipeline_run/action_review.py)
+- `../../frontend/src/app/(app)/pipeline/_components/NeedsReviewCard.tsx`
+- `../../frontend/src/app/(app)/pipeline/page.tsx`
+- Lane sucessora (caminho B): [track_pipeline_review_screen.md](pipeline-review-screen.md)

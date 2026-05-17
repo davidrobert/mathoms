@@ -233,6 +233,13 @@ repos:
         files: ^(CLAUDE\.md|\.claude/agents/.*\.md)$
         pass_filenames: false
 
+      - id: codex-agents-sync
+        name: "Codex agents: .codex/agents sincronizado com .claude/agents/"
+        entry: python3 dev/sync_codex_agents.py --check
+        language: system
+        files: ^(\.claude/agents/.*\.md|\.codex/agents/.*\.toml|dev/sync_codex_agents\.py)$
+        pass_filenames: false
+
       # --------------------------------------------------------------------
       # Gates da vault Obsidian-friendly (Fase 1 do plano DOC_REORG, ADR-182)
       # Acionados quando arquivos da vault mudam (notas, schemas, MOCs).
@@ -251,12 +258,27 @@ repos:
         files: ^docs/.*\.md$
         pass_filenames: true
 
+      - id: doc-lane-plan-refs
+        name: "docs/: lane.plan aponta para PLAN existente"
+        entry: python3 dev/check_lane_plan_refs.py
+        language: system
+        files: ^docs/(sprint/.*/lanes/.*\.md|plan/.*/_README\.md)$
+        pass_filenames: false
+
       - id: doc-links
         name: "docs/: wikilinks [[X]] resolvem"
         entry: python3 dev/check_doc_links.py
         language: system
         files: ^docs/.*\.md$
         pass_filenames: false
+
+      - id: doc-markdown-links
+        name: "docs/: markdown links relativos resolvem (arquivos tocados)"
+        entry: python3 dev/check_doc_markdown_links.py
+        language: system
+        files: ^docs/.*\.md$
+        exclude: ^docs/archive/
+        pass_filenames: true
 
       - id: doc-index
         name: "docs/_MOC/_generated/ regenerado por dev/build_doc_index.py"

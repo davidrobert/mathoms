@@ -1,4 +1,4 @@
-"""Stage runner extract_informe_aluguel — Onda 0.5 (ADR-216). Não registrado em STAGE_REGISTRY nesta PR."""
+"""Stage runner extract_informe_aluguel — Onda 0.5b (ADR-216). Workspace-scoped, descritivo (ADR-093 F9.2+)."""
 
 from __future__ import annotations
 
@@ -132,8 +132,8 @@ def run(ctx: WorkspaceContext) -> dict[str, Any]:
             payload, result = extract_one_informe(doc, config)
             key = _artifact_key_for(doc)
             # Schema validation roda no hook pós-write de DBArtifactStore
-            # (ADR-212 PR3 — SCHEMA_BY_STAGE['E2-informe-aluguel']).
-            store.write("E2-informe-aluguel", key, payload)
+            # (ADR-212 PR3 — SCHEMA_BY_STAGE['extract_informe_aluguel']).
+            store.write("extract_informe_aluguel", key, payload)
             processed.append(
                 {
                     "file": _redact_filename_pii(doc.name),

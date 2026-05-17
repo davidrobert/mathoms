@@ -20,7 +20,7 @@ tags:
 # Track Category Overrides W4 — UI refactor
 
 > **Lane ID:** category-overrides-ui-refactor
-> **Plano canônico:** [docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../../../plan/CATEGORY_OVERRIDES_UX/_README.md) §Wave 4
+> **Plano canônico:** [docs/plan/CATEGORY_OVERRIDES_UX/_README.md](../../../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md) §Wave 4
 > **Branch prefix:** `agent/category-overrides-ui-refactor/*`
 > **Depende de (todos mergeados em main antes de virar Ready for review):**
 >
@@ -32,7 +32,7 @@ tags:
 
 ## Briefing
 
-Hoje [frontend/src/app/(app)/config/CategoriesTab.tsx](../../../../frontend/src/app/(app)/config/CategoriesTab.tsx) consome `/config/categories` (legacy) — workspace novo abre tela vazia. Refatorar para `/config/category-overrides/resolved` (moderno, A7.3 / [ADR-137](../../../adr/137-categorization-templates-overrides.md)) e expor edição amigável das 24 categorias default.
+Hoje `../../../../frontend/src/app/(app)/config/CategoriesTab.tsx` consome `/config/categories` (legacy) — workspace novo abre tela vazia. Refatorar para `/config/category-overrides/resolved` (moderno, A7.3 / [ADR-137](../../../adr/137-catalog-override-resolver-para-categorization-e.md)) e expor edição amigável das 24 categorias default.
 
 **Recomendações UX (já consensuadas com `product-designer`):**
 
@@ -61,7 +61,7 @@ Justificativa: PM review 2026-05-10 manteve A11.cat-overrides-ux e A12.cat-learn
 ### Frontend — read path
 
 - `frontend/src/lib/api/config.ts`: nova função `listCategoriesResolved(workspaceId)` → `GET /workspaces/{id}/config/category-overrides/resolved`.
-- `useCategoriesAndMembers.ts` ([frontend/src/app/(app)/transactions/_components/useCategoriesAndMembers.ts](../../../../frontend/src/app/(app)/transactions/_components/useCategoriesAndMembers.ts)): troca para `listCategoriesResolved`.
+- `useCategoriesAndMembers.ts` (`../../../../frontend/src/app/(app)/transactions/_components/useCategoriesAndMembers.ts`): troca para `listCategoriesResolved`.
 
 ### Frontend — write path
 
@@ -133,6 +133,6 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano: [PLAN-category-overrides-ux](../../../plan/CATEGORY_OVERRIDES_UX/_README.md)
+- Plano: [PLAN-category-overrides-ux](../../../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md)
 - ADR canônica: ADR-185 (todos os §, mergeada via W3)
 - ADRs relacionadas: [[ADR-076]] (design system), [[ADR-110]] (logging estruturado), [[ADR-137]] (template + override)

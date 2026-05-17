@@ -42,7 +42,7 @@ exige coordenação entre código, DB, dev-ops e docs.
 
 1. **9.0** ✅ (2026-04-24) — Auditoria: `dev/audit_stage_references.py`
    (ferramenta reutilizável) + resumo durável em
-   [`docs/archive/audits/f9_audit_20260424.md`](audits/f9_audit_20260424.md);
+   [`docs/archive/audits/f9_audit_20260424.md`](../archive/audits/f9_audit_20260424.md);
    3468 ocorrências mapeadas em 6 categorias, zero blockers. Testes
    `test_covers_all_legacy_names` + `test_is_bijective` em
    `tests/unit/pipeline/test_stage_spec.py` garantem `STAGE_RENAME_MAP`

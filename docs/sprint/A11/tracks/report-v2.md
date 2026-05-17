@@ -20,10 +20,10 @@ tags:
 > **Depende de:** Report Premium UI v1 ✅ (10 fases + lanes residuais
 > `adr-129-e6-kill`, `report-a11y-finalize`, `report-v1-polish` todas em `main`)
 > **Sprint:** Report Premium UI · pós-v1
-> **Índice de prompts:** [README.md](README.md)
+> **Índice de prompts:** [README.md](../../../../README.md)
 > **Fonte de verdade:**
-> - [BACKLOG.md — Report Premium UI v2 roadmap](../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
-> - [plan/REPORT_PREMIUM/_README.md §17 v2 roadmap](../plan/REPORT_PREMIUM/_README.md)
+> - [BACKLOG.md — Report Premium UI v2 roadmap](../../../BACKLOG.md#report-premium-ui--paridade-com-exemplo_de_relatoriohtml)
+> - [plan/REPORT_PREMIUM/_README.md §17 v2 roadmap](../../../plan/REPORT_PREMIUM/_README.md)
 > - Auditoria 2026-04-25 (origem do escopo): `_scratch/REPORT_PREMIUM_v2_audit.md`
 >   ou recompor via §1 deste prompt.
 
@@ -116,12 +116,12 @@ Tudo o mais é otimização paralela.
 **Esforço:** S (≤2h)
 **Prio:** P0 (cumprir promessa BACKLOG)
 
-**Problema:** [BACKLOG.md:1391-1393](../BACKLOG.md) diz que `comparisons` e
+**Problema:** [BACKLOG.md:1391-1393](../../../BACKLOG.md) diz que `comparisons` e
 `changelog` "foram declarados `enabled: false` no YAML" — `grep` retorna
 zero matches em `config/report_layout.yaml`.
 
 **Entrega:**
-1. Adicionar em [config/report_layout.yaml](../../config/report_layout.yaml)
+1. Adicionar em [config/report_layout.yaml](../../../../config/report_layout.yaml)
    nas seções relevantes (S1/S2/S3 + T2/T3/T5 candidatos óbvios) os blocos:
    ```yaml
    - id: "comparisons_<seção>"
@@ -134,7 +134,7 @@ zero matches em `config/report_layout.yaml`.
 2. Rodar `python3 dev/codegen_report_layout.py` e comitar
    `frontend/src/generated/report-layout.ts` +
    `backend/app/generated/report_layout.py` no mesmo commit.
-3. Confirmar que `MIGRATED_SECTIONS` no [ReportShell.tsx:78](../../frontend/src/components/report/ReportShell.tsx)
+3. Confirmar que `MIGRATED_SECTIONS` no [ReportShell.tsx:78](../../../../frontend/src/components/report/ReportShell.tsx)
    ignora itens `enabled:false` (não renderiza).
 4. Atualizar BACKLOG removendo a frase "declarados `enabled: false`" se
    ainda houver inconsistência.
@@ -150,14 +150,14 @@ agora encontra os blocos.
 **Esforço:** S (≤4h, maior parte é review humano dos PNGs)
 **Prio:** P0 (gate empírico de a11y depende disso)
 
-**Problema:** [BACKLOG.md:660](../BACKLOG.md) diz que a lane
+**Problema:** [BACKLOG.md:660](../../../BACKLOG.md) diz que a lane
 `report-a11y-finalize` está ✅, mas baselines Linux dos 48 spec tests
-[`sections.snapshots.visual.spec.ts`](../../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts)
+[`sections.snapshots.visual.spec.ts`](../../../../frontend/tests/e2e/reports/sections.snapshots.visual.spec.ts)
 estão pendentes de trigger manual via `workflow_dispatch`.
 
 **Entrega:**
 1. `gh workflow run frontend-visual --ref main -f run_visual=true`
-   (ou nome real do workflow — ver [docs/plan/REPORT_PREMIUM/VISUAL_SNAPSHOTS.md](../REPORT_VISUAL_SNAPSHOTS.md)).
+   (ou nome real do workflow — ver [docs/plan/REPORT_PREMIUM/VISUAL_SNAPSHOTS.md](../../../plan/REPORT_PREMIUM/VISUAL_SNAPSHOTS.md)).
 2. Baixar artefato com PNGs Linux gerados.
 3. Revisar visualmente os 48 PNGs (light + dark × 24 seções) — qualquer
    render quebrado, `npm run test:e2e -- --update-snapshots` local
@@ -177,7 +177,7 @@ estão pendentes de trigger manual via `workflow_dispatch`.
 **Esforço:** S (≤4h, mais investigação que código)
 **Prio:** P1 (não bloqueia mas confunde quem lê o plano)
 
-**Problema:** [plan/REPORT_PREMIUM/_README.md §9.2](../plan/REPORT_PREMIUM/_README.md)
+**Problema:** [plan/REPORT_PREMIUM/_README.md §9.2](../../../plan/REPORT_PREMIUM/_README.md)
 lista ordem de migração "S1→S2→S3→**S7**→S4→S8→S9→S10" — pula S5 e S6.
 Não há `S5*Section.tsx` nem `S6*Section.tsx`. Status ambíguo.
 
@@ -201,7 +201,7 @@ Não há `S5*Section.tsx` nem `S6*Section.tsx`. Status ambíguo.
 
 ### v2.4 — T2 Aportes seção real
 
-**Prompt dedicado:** [track_report_v2_t2_aportes.md](track_report_v2_t2_aportes.md)
+**Prompt dedicado:** [track_report_v2_t2_aportes.md](report-v2-t2-aportes.md)
 **Branch:** `agent/report-v2-t2-aportes/<ts>`
 **Esforço:** R (1-2 dias)
 **Prio:** P1 (stub marcado entregue é confuso)
@@ -217,16 +217,16 @@ dedicado.
 **Esforço:** S (≤4h)
 **Prio:** P2
 
-**Problema:** [report-analysis.ts:93-98,187-197](../../frontend/src/types/report-analysis.ts)
+**Problema:** [report-analysis.ts:93-98,187-197](../../../../frontend/src/types/report-analysis.ts)
 define `ScoreData` mas `ReportAnalysisData` não expõe campo `score` direto.
 Seções fazem `as ScoreData` casting (ex.:
-[S10SinteseSection.tsx:22](../../frontend/src/components/report/sections/S10SinteseSection.tsx)).
+[S10SinteseSection.tsx:22](../../../../frontend/src/components/report/sections/S10SinteseSection.tsx)).
 Bypassa `no-explicit-any` mas viola spirit do CLAUDE.md §Tipos.
 
 **Entrega:**
 1. Adicionar `score?: ScoreFullData` em `ReportAnalysisData`.
 2. Garantir backend produz o campo (verificar
-   [backend/app/generated/report_layout.py](../../backend/app/generated/report_layout.py)
+   [backend/app/generated/report_layout.py](../../../../backend/app/generated/report_layout.py)
    e/ou pipeline `financial_score_calculator`).
 3. Substituir `as ScoreData` por acesso direto em
    `S10SinteseSection.tsx` e qualquer outro callsite.
@@ -248,7 +248,7 @@ build + testes verdes.
 **Esforço:** R (1 dia)
 **Prio:** P2
 
-**Problema:** [frontend/src/components/report/cards/](../../frontend/src/components/report/cards/)
+**Problema:** [frontend/src/components/report/cards/](../../../../frontend/src/components/report/cards)
 coexiste com `ui/`. Cards lá (`ConsumoConscienteCard`,
 `EquilibrioCerbasiCard`, `OrcamentoProspectivoCard` etc.) são pré-Fase 3
 e não usam os primitivos `Card/Alert/Badge` de `ui/`. 14 arquivos.
@@ -278,16 +278,16 @@ mecânica.
 **Esforço:** R (1-2 dias)
 **Prio:** P2
 
-**Problema:** [BACKLOG.md:1385-1387](../BACKLOG.md) declara que `@dnd-kit/core`
+**Problema:** [BACKLOG.md:1385-1387](../../../BACKLOG.md) declara que `@dnd-kit/core`
 não foi adicionado; primitivo
-[Kanban.tsx](../../frontend/src/components/report/ui/kanban/) usa
+`frontend/src/components/report/ui/kanban/` usa
 botões "mover para coluna X" em vez de drag-and-drop.
 
 **Entrega:**
 1. `cd frontend && npm install @dnd-kit/core@^6 @dnd-kit/sortable@^8`.
 2. Refatorar `Kanban.tsx` para usar `<DndContext>` + `<SortableContext>`
    por coluna; manter API `onMove(id, to)` para não quebrar
-   [TaticoSections.tsx:155-175](../../frontend/src/components/report/sections/TaticoSections.tsx).
+   `frontend/src/components/report/sections/TaticoSections.tsx`.
 3. Manter botões mobile (`<767px`) — DnD não funciona bem em touch sem
    long-press; documentar fallback em comentário.
 4. Adicionar testes Vitest unitários + Playwright `@critical` em
@@ -306,7 +306,7 @@ botões "mover para coluna X" em vez de drag-and-drop.
 **Esforço:** O (3-5 dias — primeiro uso de LLM em E5)
 **Prio:** P2
 
-**Problema:** [BACKLOG.md:1388-1390](../BACKLOG.md) declara que LLM em E5
+**Problema:** [BACKLOG.md:1388-1390](../../../BACKLOG.md) declara que LLM em E5
 para `section_summaries` foi "adiado; hoje usamos templates
 determinísticos em `deriveSectionSummary`". Plano §0.1 #5 prometia
 "Visual + data" — eixo parcialmente abandonado.
@@ -319,7 +319,7 @@ determinísticos em `deriveSectionSummary`". Plano §0.1 #5 prometia
   templates melhores).
 
 **Entrega:**
-1. ADR-13X em [DECISIONS.md](../DECISIONS.md).
+1. ADR-13X em [DECISIONS.md](../../../DECISIONS.md).
 2. Service novo `pipeline/domain/services/section_summary_generator.py`
    com Pydantic value object config (não `StageConfig` inteiro — ADR-097).
 3. Cache key: `(workspace_id, snapshot_hash, section_id)`.
@@ -342,9 +342,9 @@ determinísticos em `deriveSectionSummary`". Plano §0.1 #5 prometia
 **Esforço:** R (1-2 dias)
 **Prio:** P2
 
-**Problema:** [plan/REPORT_PREMIUM/_README.md §11.1](../plan/REPORT_PREMIUM/_README.md)
+**Problema:** [plan/REPORT_PREMIUM/_README.md §11.1](../../../plan/REPORT_PREMIUM/_README.md)
 detalha `.chart-print-img` (canvas → PNG fallback). Existe
-[report-print.css](../../frontend/src/components/report/report-print.css)
+[report-print.css](../../../../frontend/src/components/report/report-print.css)
 mas não há Playwright comparando PDF Chrome contra baseline.
 
 **Entrega:**
@@ -365,7 +365,7 @@ citar.
 
 ### v2.D.1 — SnapshotChangelogBuilder (enabler de v2.8)
 
-**Prompt dedicado:** [track_report_v2_changelog_engine.md](track_report_v2_changelog_engine.md)
+**Prompt dedicado:** [track_report_v2_changelog_engine.md](report-v2-changelog-engine.md)
 **Branch:** `agent/report-v2-changelog-engine/<ts>`
 **Esforço:** O (3-5 dias)
 **Prio:** P2
@@ -386,10 +386,10 @@ Lane domínio-pesado. Ver prompt dedicado.
 **Entrega:**
 1. Flipar `enabled: false → true` nos blocos do YAML criados em v2.1.
 2. Codegen → componentes `<ComparisonBlock>` (já existe em
-   [ui/ComparisonBlock.tsx](../../frontend/src/components/report/ui/))
+   [ui/ComparisonBlock.tsx](../../../../frontend/src/components/report/ui))
    passa a ter dados.
 3. Componente `<ChangelogList>` (já existe em
-   [ui/ChangelogList.tsx](../../frontend/src/components/report/ui/))
+   [ui/ChangelogList.tsx](../../../../frontend/src/components/report/ui))
    passa a renderizar real.
 4. Atualizar BACKLOG marcando débito #3 como ✅.
 
@@ -453,7 +453,7 @@ mas não obrigatório), **v2.8** (depende v2.1 + v2.D.1), **v2.D.1**
   notas multi-usuário" não entra. Abre ADR + nova lane v3 se
   necessário.
 - **Refatorar `e6_render.py`/SSR/HTML standalone.** Morto via
-  [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
+  [ADR-129](../../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side).
 - **Mover charts para outra lib** (Recharts/D3). Chart.js está
   pago + funcional.
 - **Internacionalizar relatório** — escopo de F12 (i18n), não desta

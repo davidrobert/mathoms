@@ -24,11 +24,11 @@
 | **6.5** | Testing & Hardening (FE+BE) | ✅ Concluída | Vitest + RTL + MSW + Playwright — **438 tests** (94 backend + 344 frontend) em ~25s. Hardening fintech (axe 0 critical, property-based BRL, visual reg. infra, resilience, security smoke, CPF mod-11+lint PII, error boundary, focus mgmt). Backend hardening (6 serializers round-trip, alembic guardrails, golden pipeline, concurrency). Multi-tenant isolation (27 tests, 0 leaks). WS real com fakeredis. Anti-regression bank (24 tests). Test infrastructure completa (factories, isolation, docker-compose.test, synthetic PDFs, pipeline mock fixtures, MSW lint, LLM mock). CI GH Actions (7 jobs). SMOKE_TEST.md 70+ checks. 7 ADRs novas (062-064, 067-071). |
 | **7**   | Produção + LGPD + Ops    | ☐ Planejada  | VPS+Docker+Traefik, LGPD completo, auth flows (email verify/pwd reset/brute-force), prompt injection defense, operational readiness (DR testado, business metrics, incident comms, LLM cost cap), CI/CD, dogfood validado |
 | **8**   | Goals & Tasks + Cutover CLI→Web | ✅ Concluída | Goals versionados (IF + APORTE_MENSAL + DOLARIZACAO + ALOCACAO_ALVO + PLANNING_CONTEXT em F8.5), Tasks como entidade de 1ª classe (CRUD + dependencies + suggestions + attachments + progress%), Pipeline adapter (DB→JSON), Feature flags, Worker beat, Snapshot imutável no relatório, Celery beat diário scan-deadlines. **~146 testes, 7 ADRs (072-075, 077, 079), 5 migrations, 20 tenant models, 9 services, ~42 endpoints, 10 componentes React, 11 rotas frontend**. Cutover reversível via feature flags. ADR-072/073/074/075/077/079. |
-| **9**   | Relatório Nativo React + Workspace Sharing + Design System | ✅ Concluída | **Relatório:** render React nativo (18 seções, 13 cards, 8 charts Recharts, deep-links, scroll-spy, print CSS A4, PDF Playwright). _E6 standalone (exportador HTML) descontinuado em 2026-04 via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)._ **Design System:** tokens.json → CSS unificado (ADR-076), codegen YAML→TS/Pydantic. **Sharing:** 3 roles, convites SHA-256/TTL 72h, forced logout, viewer banner, workspace switcher. **113 testes novos (56 BE + 23 FE + 20 tokens + 14 codegen), 3 ADRs (076-078), 3 migrations.** |
+| **9**   | Relatório Nativo React + Workspace Sharing + Design System | ✅ Concluída | **Relatório:** render React nativo (18 seções, 13 cards, 8 charts Recharts, deep-links, scroll-spy, print CSS A4, PDF Playwright). _E6 standalone (exportador HTML) descontinuado em 2026-04 via [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)._ **Design System:** tokens.json → CSS unificado (ADR-076), codegen YAML→TS/Pydantic. **Sharing:** 3 roles, convites SHA-256/TTL 72h, forced logout, viewer banner, workspace switcher. **113 testes novos (56 BE + 23 FE + 20 tokens + 14 codegen), 3 ADRs (076-078), 3 migrations.** |
 | **10**  | Growth & Aquisição | ☐ Futuro (pós-GA) | Landing, SEO, billing, digest — ver § F10 |
 | **11**  | Confiança, transparência, excelência de relatório | ☐ Beta → GA | Origem dos dados, LLM/needs_review, premissas, hierarquia numérica, print/PDF consultoria, mental model plano × mês — ver § F11 |
 
-**Épicos transversais (não são fases numeradas):** [P2 classificação de documentos](BACKLOG.md#p2--unificação-da-classificação-de-documentos) (motor); **P0/P1 motor canônico** (§ *Motor canônico e pipeline* abaixo) concluído; expansão incremental de goldens/PDF continua junto a **7D.1**.
+**Épicos transversais (não são fases numeradas):** [P2 classificação de documentos](../BACKLOG.md#p2--unificação-da-classificação-de-documentos) (motor); **P0/P1 motor canônico** (§ *Motor canônico e pipeline* abaixo) concluído; expansão incremental de goldens/PDF continua junto a **7D.1**.
 
 ---
 
@@ -48,7 +48,7 @@ Adiado conscientemente: são features de **aquisição / marketing** que não fa
 | P1 | Billing real (Stripe) | BYOK cobre Premium até GA |
 | P2 | Report comparison (side-by-side, deltas) | Requer histórico de relatórios no uso real |
 
-**Command palette / atalhos:** entregue em produto (**F11.8**): **⌘K** / Ctrl+K + modal **?** — ver [BACKLOG](BACKLOG.md#f11-8--command-palette--atalhos).
+**Command palette / atalhos:** entregue em produto (**F11.8**): **⌘K** / Ctrl+K + modal **?** — ver [BACKLOG](../BACKLOG.md#f11-8--command-palette--atalhos).
 
 ---
 
@@ -67,13 +67,13 @@ Objetivo: **baixa fricção cognitiva**, **confiança em dados e em LLM**, e **e
 | F11.7 | **Número ↔ regra** | Tooltips ou painel “Como calculamos”: ligação do KPI ao motor (ex.: FV de anuidade na meta IF); glossário mínimo. | P1 |
 | F11.8 | **Command palette / atalhos** | `cmdk` (ou equivalente): busca de rotas, ações (novo upload, rodar pipeline); atalhos documentados e não conflitantes com o browser. | P2 |
 
-Detalhamento por task: **[BACKLOG.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga](BACKLOG.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)**.
+Detalhamento por task: **[BACKLOG.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga](../BACKLOG.md#f11--confiança-transparência-e-excelência-de-relatório-beta--ga)**.
 
 **Sprint B (2026-04-17):** F11.5 (banner `needs_review`, notas LLM por etapa, sem códigos E* na linha de etapa; rótulo de toque E2 sem “E2” na UI), F11.4b–c (`ReportSourceStrip` + período/gerado em), fatia de F11.2 (eixos/tooltips do dashboard com `tabular-nums`).
 
 **Sprint C (2026-04-17):** F11.4a no nível do relatório — `pipeline_run_id` na API, link e deep link para Pipeline; F11.2a — `tabular-nums` / `font-mono` em Transactions (tabela + paginação) e hero do relatório nativo.
 
-**Sprint D (2026-04-17):** P2.5 (telemetria de classificação); conclusão F11.4a agregada (`source_document_ids` / `_report_lineage`); F11.2b; F11.7 + F11.6c; F11.3c checklist + F11.3a/b em progresso; F11.1 nav + empty states + [COPY_GUIDELINES](BACKLOG.md); F11.8 cmdk. **Atualização:** F11.6b (snapshot de premissas no relatório) e leva inicial **7D.1 / 7D.2** (testes unitários de borda E0/E3/E4/E7 e E5/E5N/E6). Próximo: F11.6a (premissas nas metas na UI), linhagem por seção se necessário, golden F11.7c.
+**Sprint D (2026-04-17):** P2.5 (telemetria de classificação); conclusão F11.4a agregada (`source_document_ids` / `_report_lineage`); F11.2b; F11.7 + F11.6c; F11.3c checklist + F11.3a/b em progresso; F11.1 nav + empty states + [COPY_GUIDELINES](../BACKLOG.md); F11.8 cmdk. **Atualização:** F11.6b (snapshot de premissas no relatório) e leva inicial **7D.1 / 7D.2** (testes unitários de borda E0/E3/E4/E7 e E5/E5N/E6). Próximo: F11.6a (premissas nas metas na UI), linhagem por seção se necessário, golden F11.7c.
 
 **Ordem sugerida (histórico):** F11.5 → F11.4 → F11.2 → F11.7 → F11.6 → F11.3 → F11.1 → F11.8 — **Sprint D** executou o tail desta fila + P2.5.
 
@@ -126,19 +126,19 @@ Política de cobertura (Python backend + pipeline):
 
 ## Sprint transversal A6 — Migração infra+domínio (pós-F9)
 
-**ADRs formalizadoras**: 097-111 em [DECISIONS.md](DECISIONS.md) ·
+**ADRs formalizadoras**: 097-111 em [DECISIONS.md](../DECISIONS.md) ·
 **Arquitetura alvo + motivação**: [ARCHITECTURE §17](ARCHITECTURE.md).
 
 **Fonte única de status, sessões pendentes, lanes abertas e diagrama de
-ondas paralelas**: [BACKLOG.md §Sprint A6](BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal).
+ondas paralelas**: [BACKLOG.md §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal).
 ROADMAP cobre apenas a visão de fases e timeline macro — não duplique
 status de sessão aqui (vira drift).
 
 **Resumo (snapshot 2026-04-27)**:
 - **Sprint A6 ✅ encerrada:** A5a-A5f · A6a-c · A6d · A6e.3/.4/.5/.events · A6f.1/.2/.3/.4/.5a/.6 · A6g.1/.3 ✅ · A6g.3b/.5/.6/.6b/.7 · A6b.flip (ADR-118) · A6-ux.livestep (ADR-119) · A6-readers.dbfirst (ADR-120).
-- **Sprint atual: A7 — Config DB Cutover** 🚧 (A7.0 ✅ mergeada 2026-04-26 · A7.1 🚧 · A7.2a/2b/4 ☐ destravadas; plano em [CONFIG_CUTOVER_PLAN.md](CONFIG_CUTOVER_PLAN.md), supervisão CTO via [ADR-138](DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7)).
-- **Lanes abertas agora:** ver tabela em [BACKLOG §Sprint A7 — Lanes](BACKLOG.md#lanes-a7--pickup-table). Confirme com `git worktree list` + `git for-each-ref --sort=-committerdate refs/remotes/origin/agent/`.
-- **Caminho crítico (serial):** A7 cutover → F9.3+ (rename DB) → F7A → F7B → F7D+dogfood → GA. Report Premium Fases 11/12/13 **canceladas** via [ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side); `adr-129-e6-kill` ✅ 2026-04-25.
+- **Sprint atual: A7 — Config DB Cutover** 🚧 (A7.0 ✅ mergeada 2026-04-26 · A7.1 🚧 · A7.2a/2b/4 ☐ destravadas; plano em [CONFIG_CUTOVER_PLAN-2026-04-27.md](../archive/CONFIG_CUTOVER_PLAN-2026-04-27.md), supervisão CTO via [ADR-138](../DECISIONS.md#adr-138--protocolo-de-supervisão-cto-para-sprint-a7)).
+- **Lanes abertas agora:** ver tabela em [BACKLOG §Sprint A7 — Lanes](../BACKLOG.md#lanes-a7--pickup-table). Confirme com `git worktree list` + `git for-each-ref --sort=-committerdate refs/remotes/origin/agent/`.
+- **Caminho crítico (serial):** A7 cutover → F9.3+ (rename DB) → F7A → F7B → F7D+dogfood → GA. Report Premium Fases 11/12/13 **canceladas** via [ADR-129](../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side); `adr-129-e6-kill` ✅ 2026-04-25.
 
 **Após A6**: sprints dedicados §15 (LGPD) e §16 (Observabilidade) —
 incorporados ao escopo de F7 (Produção + LGPD + Ops).
@@ -147,7 +147,7 @@ incorporados ao escopo de F7 (Produção + LGPD + Ops).
 
 ## DOCS-REVIEW — Saúde da documentação (pós-revisão multi-agente 2026-04-24)
 
-Revisão coordenada por 4 agentes (senior-cto, product-designer, financial-planner, general-purpose) em 2026-04-24 produziu ~20 achados priorizados. **Batch 1** (hotfix — ADR-078/079 duplicados → 125/126, ADR-119/120 registradas, ROADMAP+BACKLOG sincronizados, contagens ARCHITECTURE alinhadas) foi entregue em `af8dce7`. **Batches 2 e 3** ficam como trabalho futuro em [BACKLOG §DOCS-REVIEW](BACKLOG.md#docs-review--followups-da-revisão-multi-agente-2026-04-24) — não bloqueiam F7, mas precisam acontecer antes de Beta fechado para saúde sustentável da doc.
+Revisão coordenada por 4 agentes (senior-cto, product-designer, financial-planner, general-purpose) em 2026-04-24 produziu ~20 achados priorizados. **Batch 1** (hotfix — ADR-078/079 duplicados → 125/126, ADR-119/120 registradas, ROADMAP+BACKLOG sincronizados, contagens ARCHITECTURE alinhadas) foi entregue em `af8dce7`. **Batches 2 e 3** ficam como trabalho futuro em [BACKLOG §DOCS-REVIEW](../BACKLOG.md#docs-review--followups-da-revisão-multi-agente-2026-04-24) — não bloqueiam F7, mas precisam acontecer antes de Beta fechado para saúde sustentável da doc.
 
 - **Batch 2 — reescrita** (15 itens): FORMULAS completo, COPY_GUIDELINES expandido, TOC em DECISIONS, shapes TS em REPORT_PREMIUM_GAPS, Quickstart LLM, Guia DDD, TESTING completo, design token governance, spec mobile, a11y checklist.
 - **Batch 3 — ADRs + correções de domínio** (12 itens): ADR-Processo formal, ADR-ScoringParams, ADR-MoneyDTOs (finaliza A6g.3b), ADR-AlocaçãoAlvo, fix Cerbasi `categorias_futuro`, reserva de emergência só líquidos, dívida boa×ruim, RebalancingAdvisor, YoC real, cobertura de seguros, auto-gen contagens ARCHITECTURE.
@@ -175,4 +175,4 @@ Revisão coordenada por 4 agentes (senior-cto, product-designer, financial-plann
 - **P1** — Importante. Sem isso funciona, mas falta qualidade/completude.
 - **P2** — Nice-to-have. Pode postergar para próxima fase ou sprint.
 
-Ver [BACKLOG.md](BACKLOG.md) para priorização detalhada por task.
+Ver [BACKLOG.md](../BACKLOG.md) para priorização detalhada por task.

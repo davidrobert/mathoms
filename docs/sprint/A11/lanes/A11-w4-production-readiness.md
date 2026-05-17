@@ -3,6 +3,7 @@ id: A11.w4
 type: lane
 title: "Production readiness (5 tasks)"
 sprint: A11
+plan: PLAN-platform-review
 status: blocked
 aliases: ["A11.W4"]
 depends_on: []
@@ -22,7 +23,7 @@ tags:
 
 - **Onda:** 4 (10d)
 - **Depende de:** W3 ✅ + drill backup
-- **Plano:** [PLAN §W4](plan/PLATFORM_REVIEW/_README.md#wave-4--production-readiness-sprint-3-10-dias-dev)
+- **Plano:** [PLAN §W4](../../../plan/PLATFORM_REVIEW/_README.md#wave-4--production-readiness-sprint-3-10-dias-dev)
 
 ## Status (legado)
 

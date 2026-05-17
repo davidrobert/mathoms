@@ -92,6 +92,6 @@ Três caminhos considerados:
 
 **Artefatos:**
 
-- [BACKLOG §A6f.5](BACKLOG.md#a6f--language-neutral-boundaries-adr-102-r18-r20) (A6f.5a entregue, A6f.5b/.5c deferidos).
+- [BACKLOG §A6f.5](../BACKLOG.md#a6f--language-neutral-boundaries-adr-102-r18-r20) (A6f.5a entregue, A6f.5b/.5c deferidos).
 - `backend/tests/test_auth_portability.py` (parity tests).
 - `docs/reference/api/v1/openapi.json` (snapshot que qualquer codegen consome).

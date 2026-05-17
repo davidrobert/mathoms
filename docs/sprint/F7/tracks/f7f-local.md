@@ -22,7 +22,7 @@ tags:
 > **Conflita com:** qualquer commit ativo em `backend/app/services/internal_ops/`, `backend/app/api/admin/`, `backend/app/core/internal_ops_auth.py`, `frontend-ops/`, `config/internal_operators*.yaml`, `scripts/hash_ops_pw.py`
 > **Onda:** 3 (Lane C6 — INDEPENDENTE de 7A/B/C)
 > **Objetivo (1 frase):** entregar console interno local (UI web em `127.0.0.1`) para operador executar exclusão de conta (anonimização), purge de documentos, reset de senha, leitura de relatórios e métricas antes do produto estar em produção, sem OAuth staff.
-> **Fonte de verdade:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style), [ADR-116](../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local), [INTERNAL_ADMIN_ROADMAP.md §IA-0](../INTERNAL_ADMIN_ROADMAP.md)
+> **Fonte de verdade:** [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style), [ADR-116](../../../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local), [INTERNAL_ADMIN_ROADMAP.md §IA-0](../../../plan/INTERNAL_ADMIN/_README.md)
 
 ---
 
@@ -32,7 +32,7 @@ F7F-Local (IA-0) é **ferramenta que o operador precisa antes do produto estar n
 
 **Não espera F7A/B/C.** Roda em dev/staging, consome backend + DB local. Quando F7A estabilizar, a mesma UI vira base de `ops.mathoms.ai` (F7F-Remote) com troca de ~20 linhas de middleware (localhost → OAuth).
 
-**UI-first, CLI secundário.** Decisão em [ADR-116](../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local): superfície principal é Next separada em `frontend-ops/` (agnóstica a Python/Go no futuro, blast radius isolado, 90% reaproveitado em F7F-Remote). CLI (`7F.9`) entra **depois** da UI estabilizada, reutilizando a mesma camada de serviço.
+**UI-first, CLI secundário.** Decisão em [ADR-116](../../../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local): superfície principal é Next separada em `frontend-ops/` (agnóstica a Python/Go no futuro, blast radius isolado, 90% reaproveitado em F7F-Remote). CLI (`7F.9`) entra **depois** da UI estabilizada, reutilizando a mesma camada de serviço.
 
 ---
 
@@ -40,15 +40,15 @@ F7F-Local (IA-0) é **ferramenta que o operador precisa antes do produto estar n
 
 Do CLAUDE.md + ADRs:
 
-1. **Camada de serviço é fonte de verdade** ([ADR-116](../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) Decisão 1): `backend/app/services/internal_ops/` tem funções puras; UI e CLI futuro **consomem** — nunca duplicam regra de negócio.
-2. **Anonimização é default** ([ADR-116](../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) Decisão 2): `delete_user(user_id, mode="anonymize")`. `mode="hard_delete"` existe mas **nunca é default**, exige confirmação extra. Integridade de FKs preservada (ADR-115 domain events dependem de `aggregate_id` estável).
-3. **Auth por yaml + bcrypt + JWT httpOnly** ([ADR-116](../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) Decisão 3): `config/internal_operators.yaml` (gitignored) + `POST /admin/login` emite JWT assinado com `INTERNAL_OPS_SESSION_SECRET` (distinto do `SECRET_KEY` cliente) + cookie `ops_session` com `Path=/admin`. Zero reuso de sessão do cliente.
+1. **Camada de serviço é fonte de verdade** ([ADR-116](../../../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) Decisão 1): `backend/app/services/internal_ops/` tem funções puras; UI e CLI futuro **consomem** — nunca duplicam regra de negócio.
+2. **Anonimização é default** ([ADR-116](../../../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) Decisão 2): `delete_user(user_id, mode="anonymize")`. `mode="hard_delete"` existe mas **nunca é default**, exige confirmação extra. Integridade de FKs preservada (ADR-115 domain events dependem de `aggregate_id` estável).
+3. **Auth por yaml + bcrypt + JWT httpOnly** ([ADR-116](../../../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) Decisão 3): `config/internal_operators.yaml` (gitignored) + `POST /admin/login` emite JWT assinado com `INTERNAL_OPS_SESSION_SECRET` (distinto do `SECRET_KEY` cliente) + cookie `ops_session` com `Path=/admin`. Zero reuso de sessão do cliente.
 4. **Bind em `127.0.0.1`** (nunca `0.0.0.0`). Habilitado por `INTERNAL_OPS_UI_ENABLED=1` (default off). Bloqueia se `ENVIRONMENT=production` sem `--i-accept-production-risk`.
-5. **Stateless rigoroso** ([ADR-111](../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)): `internal_ops` service sem cache in-memory mutável, sem counter global. Audit vai para `logs/internal_ops_audit.log` (sink trocável para `AuditEntry` quando 7B.5 persistir).
-6. **Dinheiro nunca é `float`** ([ADR-090](../DECISIONS.md)): métricas de cobrança usam `Decimal`/`Money`. Agregações monetárias no dashboard também.
+5. **Stateless rigoroso** ([ADR-111](../../../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6)): `internal_ops` service sem cache in-memory mutável, sem counter global. Audit vai para `logs/internal_ops_audit.log` (sink trocável para `AuditEntry` quando 7B.5 persistir).
+6. **Dinheiro nunca é `float`** ([ADR-090](../../../DECISIONS.md)): métricas de cobrança usam `Decimal`/`Money`. Agregações monetárias no dashboard também.
 7. **Funções 4-20 linhas, arquivos ≤500, nomes específicos** (§Code style). Nomes: `AnonymizeUserCommand`, `PurgeDocumentsService`, não `UserHandler`/`DocUtils`.
-8. **TypeScript sem `any`** ([ADR-102 R14](../DECISIONS.md)): `frontend-ops/` segue mesmas regras do `frontend/` cliente — zero `any`, tipos do codegen como fonte de verdade.
-9. **Endpoint JSON novo → `response_model` + `make update-openapi-snapshot`** ([ADR-102 R18](../DECISIONS.md)). Rotas `/admin/*` entram no snapshot normalmente (não há motivo para esconder contrato interno).
+8. **TypeScript sem `any`** ([ADR-102 R14](../../../DECISIONS.md)): `frontend-ops/` segue mesmas regras do `frontend/` cliente — zero `any`, tipos do codegen como fonte de verdade.
+9. **Endpoint JSON novo → `response_model` + `make update-openapi-snapshot`** ([ADR-102 R18](../../../DECISIONS.md)). Rotas `/admin/*` entram no snapshot normalmente (não há motivo para esconder contrato interno).
 10. **Preserve comentários existentes** em qualquer arquivo refatorado.
 11. **Paths proibidos** — `config/internal_operators.yaml` entra no `.gitignore` + ALLOWLIST de `dev/check_forbidden_paths.py` (o arquivo **não** pode ser commitado; só `.example`).
 12. **Idioma:** código/APIs/vars em inglês; UI texto em pt-BR (operadores são internos, time fala português).
@@ -136,7 +136,7 @@ Slice 2 entrega shell + tela por área; Slice 3 refina business logic específic
 3. **S3.c — 7F.12:** purge de documentos com scope switch (user vs workspace), preview paginada, rollback se qualquer blob falhar no storage.
 4. **S3.d — 7F.13:** dashboard de métricas com filtro de período (7d/30d/90d); cache in-process **proibido** (ADR-111), usa query direto.
 5. **S3.e — 7F.14:** lista de relatórios com paginação + filtro `needs_review`.
-6. **S3.f — 7F.15:** toggle `is_developer` na tela de edição do usuário; confirmação simples (ação reversível); substitui [set_developer_flag.py](../../backend/app/scripts/set_developer_flag.py) manual.
+6. **S3.f — 7F.15:** toggle `is_developer` na tela de edição do usuário; confirmação simples (ação reversível); substitui [set_developer_flag.py](../../../../backend/app/scripts/set_developer_flag.py) manual.
 7. **S3.g — 7F.16:** form de edição de cadastro (email/full_name/is_active); validação de unicidade de email; bump de `token_version` em mudança de email + audit separado para campo sensível.
 8. **S3.h — 7F.17:** exclusão individual de documento a partir da lista (separado do purge bulk de 7F.12); confirmação simples; audit inclui hash/nome do arquivo.
 
@@ -281,15 +281,15 @@ Se agente mergeou hotspot <30min, espere 2min, anuncie, commite docs no **mesmo 
 
 ## Referências
 
-- [ADR-116](../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) — decisões de design F7F-Local (stack, anonimização, auth)
-- [ADR-111](../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) — stateless rigoroso
-- [ADR-110](../DECISIONS.md#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3) — structured logs + masking
-- [ADR-109](../DECISIONS.md#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a) — auth portability + OpenAPI snapshot
-- [ADR-102](../DECISIONS.md#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f) — language-neutral boundaries (R18 `response_model`, R14 no `any`)
-- [ADR-090](../DECISIONS.md) — Dinheiro nunca é `float`
-- [ADR-076](../DECISIONS.md) — Design tokens (compartilhados entre `frontend/` e `frontend-ops/`)
-- [ADR-115](../DECISIONS.md#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents) — Domain events (FKs preservadas em anonimização)
-- [INTERNAL_ADMIN_ROADMAP.md §IA-0](../INTERNAL_ADMIN_ROADMAP.md) — narrativa da fase
-- [BACKLOG §F7F-Local](../BACKLOG.md#f7f-local--pré-produção-ia-0-sem-oauth) — tasks estimáveis
-- [CLAUDE.md §Code style](../../CLAUDE.md#code-style) — regras de código
-- [CLAUDE.md §Git](../../CLAUDE.md#git-e-commits) — protocolo de commits/push
+- [ADR-116](../../../DECISIONS.md#adr-116--f7f-local-stack-next-separada--anonimização-default--auth-yamlbcryptjwt-f7f-local) — decisões de design F7F-Local (stack, anonimização, auth)
+- [ADR-111](../../../DECISIONS.md#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6) — stateless rigoroso
+- [ADR-110](../../../DECISIONS.md#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3) — structured logs + masking
+- [ADR-109](../../../DECISIONS.md#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a) — auth portability + OpenAPI snapshot
+- [ADR-102](../../../DECISIONS.md#adr-102--princípios-r18-r20-language-neutral-boundaries-a6f) — language-neutral boundaries (R18 `response_model`, R14 no `any`)
+- [ADR-090](../../../DECISIONS.md) — Dinheiro nunca é `float`
+- [ADR-076](../../../DECISIONS.md) — Design tokens (compartilhados entre `frontend/` e `frontend-ops/`)
+- [ADR-115](../../../DECISIONS.md#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents) — Domain events (FKs preservadas em anonimização)
+- [INTERNAL_ADMIN_ROADMAP.md §IA-0](../../../plan/INTERNAL_ADMIN/_README.md) — narrativa da fase
+- [BACKLOG §F7F-Local](../../../BACKLOG.md#f7f-local--pré-produção-ia-0-sem-oauth) — tasks estimáveis
+- [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style) — regras de código
+- [CLAUDE.md §Git](../../../../CLAUDE.md#git-e-commits) — protocolo de commits/push

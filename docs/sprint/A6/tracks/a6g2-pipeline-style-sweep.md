@@ -21,8 +21,8 @@ tags:
 > **Paralelo com:** A6g.4 frontend sweep (zero overlap — toca só `frontend/src/`)
 > **Conflita com:** commits simultâneos em `scripts/`, `pipeline/`, `tests/fixtures/`
 > **Onda:** 1
-> **Índice de prompts:** [docs/agent_prompts/README.md](README.md)
-> **Fonte de verdade das regras:** [CLAUDE.md §Code style](../../CLAUDE.md#code-style)
+> **Índice de prompts:** [docs/agent_prompts/README.md](../../../../README.md)
+> **Fonte de verdade das regras:** [CLAUDE.md §Code style](../../../../CLAUDE.md#code-style)
 
 > **Objetivo:** aplicar o `## Code style` do CLAUDE.md ao Python em
 > `scripts/`, `pipeline/` e `tests/fixtures/`, consumindo o baseline de
@@ -464,9 +464,9 @@ git fetch origin && git log --oneline HEAD..origin/main
 - Modelo de prompt frontend paralelo:
   `docs/agent_prompts/track_a6g4_frontend_style_sweep.md`
 - Plano mestre A6: absorvido em 2026-04-21 nas fontes canônicas
-  ([BACKLOG §Sprint A6](../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal),
-  [ARCHITECTURE §17](../ARCHITECTURE.md#17-arquitetura-alvo-pós-a6-migração-infradomínio),
-  [TESTING §Critérios de aceite](../TESTING.md#critérios-de-aceite-por-fase-da-migração-a6),
-  [runbooks/cutover.md](../runbooks/cutover.md))
+  ([BACKLOG §Sprint A6](../../../BACKLOG.md#sprint-a6--migração-infradomínio-plano-transversal),
+  [ARCHITECTURE §17](../../../reference/ARCHITECTURE.md#17-arquitetura-alvo-pós-a6-migração-infradomínio),
+  [TESTING §Critérios de aceite](../../../reference/TESTING.md#critérios-de-aceite-por-fase-da-migração-a6),
+  [runbooks/cutover.md](../../../archive/cutover-2026-05-14.md))
 - ADRs relevantes: ADR-089 (ISP services), ADR-090 (Money), ADR-097
   (domain types), ADR-101 (per-aggregate DDD), ADR-111 (stateless)

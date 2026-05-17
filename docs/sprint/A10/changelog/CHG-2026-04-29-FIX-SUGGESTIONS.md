@@ -24,7 +24,7 @@ tags:
   pelo motivo já documentado em `_persist_llm_suggestions`:
   `asyncio.run()` em gevent crasha) chamado dentro de
   `_run_post_processing` após `_create_report_from_output`. Idempotente
-  via `dedup_key` (ADR-153 §2). [ADR-153](DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples)
+  via `dedup_key` (ADR-153 §2). [ADR-153](../../../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples)
   recebeu nota datada clarificando que "trigger via endpoint dedicado,
   NÃO hook do pipeline" referia-se ao boundary `pipeline/**` →
   `backend.*` (que segue valendo); disparar de `pipeline_task.py`

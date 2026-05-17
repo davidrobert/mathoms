@@ -17,13 +17,13 @@ tags:
 
 - **Report Premium UI v2 — Onda E (Charts UX) ✅ 8/8 (2026-04-26):**
   Onda E fechou a migração Recharts→Chart.js dentro de `/reports/**`
-  que [ADR-117](DECISIONS.md#adr-117--report-premium-ui-baseline-paridade-com-exemplo_de_relatoriohtml)
+  que [ADR-117](../../../DECISIONS.md#adr-117--report-premium-ui-baseline-paridade-com-exemplo_de_relatoriohtml)
   Fase 2 abriu mas Fase 7 não fechou. **8 sub-lanes** documentadas em
-  [track_report_v2_charts_ux.md](agent_prompts/track_report_v2_charts_ux.md);
+  [track_report_v2_charts_ux.md](../../A11/tracks/report-v2-charts-ux.md);
   duas levas paralelas (3+4 agentes simultâneos em worktrees
   isoladas) + closeout sequencial; todas mergeadas em main no mesmo
   dia. Decisão consolidada em
-  [ADR-139](DECISIONS.md#adr-139--finalização-migração-recharts→chart.js-em-reports).
+  [ADR-139](../../../DECISIONS.md#adr-139--finalização-migração-recharts→chart.js-em-reports).
 
   **Leva 1 (3 agentes paralelos):**
   - ✅ **v2.E.1** — `PeriodToggle` UI primitive + hook `usePeriodWindow`
@@ -55,7 +55,7 @@ tags:
     ranked por `contribuicao`. Frontend prefere
     `narrativas[score_gauge]?.conclusion` (E5.N LLM) sobre
     `score.conclusion` (template) — alinhamento com
-    [ADR-122](DECISIONS.md#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm).
+    [ADR-122](../../../DECISIONS.md#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm).
     `ScoreGaugeChart.tsx` deletado; `_registry.ts` limpo. Vitest 593
     passed; `pytest tests` 1470; `pytest backend/tests` 1324. Zero
     `as ScoreData` ou `ScoreGaugeChart` em `frontend/src/`.
@@ -149,5 +149,5 @@ tags:
   Recharts. Recharts permanece também em
   `frontend/src/components/charts/Mathom*.tsx` e
   `frontend/src/app/(app)/dashboard/_components/`
-  ([ADR-037](DECISIONS.md#adr-037--recharts-para-charts) com escopo
+  ([ADR-037](../../../DECISIONS.md#adr-037--recharts-para-charts) com escopo
   restringido).

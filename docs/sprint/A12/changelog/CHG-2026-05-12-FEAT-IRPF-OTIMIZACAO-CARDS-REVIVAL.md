@@ -50,7 +50,7 @@ de `IRPFAnalyzer` que agregam dados já extraídos por E1.6
 
 - **Pipeline / backend:**
   - `IRPFAnalyzer.dependentes_count(ano) -> {count, por_relacao}`
-    em [pipeline/domain/services/irpf_analyzer.py](../../../pipeline/domain/services/irpf_analyzer.py).
+    em [pipeline/domain/services/irpf_analyzer.py](../../../../pipeline/domain/services/irpf_analyzer.py).
   - `IRPFAnalyzer.dedutiveis_aplicados(ano) -> dict[str, dict]` sparse,
     4 categorias (saúde, educação, pensão alimentícia consolidada,
     previdência oficial). PGBL excluído.

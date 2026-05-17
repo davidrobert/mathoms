@@ -683,12 +683,20 @@ def _e5n_call_real_estate_adapter(ctx, store, e5_data: dict):
         return _e5n_log_real_estate_skip(f"backend unavailable: {exc}")
     if not workspace_id:
         return _e5n_log_real_estate_skip("workspace_id ausente no ctx")
+    return _e5n_invoke_real_estate(
+        populate_real_estate, SyncSessionLocal, workspace_id, store, e5_data
+    )
+
+
+def _e5n_invoke_real_estate(populate_fn, session_factory, workspace_id, store, e5_data: dict):
+    """Helper isolado para a invocação real do adapter (mantém caller ≤20 linhas)."""
     try:
-        with SyncSessionLocal() as db:
-            return populate_real_estate(
+        with session_factory() as db:
+            return populate_fn(
                 workspace_id=str(workspace_id),
                 e5_data=e5_data,
                 irpf_payload=_e5n_load_irpf(store),
+                informe_payloads=_e5n_load_informes(store),
                 db=db,
             )
     except Exception as exc:  # noqa: BLE001 — degradação graceful
@@ -725,6 +733,23 @@ def _e5n_load_irpf(store) -> dict | None:
         return None
     # Lê o primeiro disponível — workspaces dogfood têm 1 IRPF por ano-base; v1 OK.
     return store.read("extract_irpf_full", keys[0])
+
+
+def _e5n_load_informes(store) -> list[dict]:
+    """Lê todos informes de aluguel do workspace (ADR-216 Onda 0.5b — cascade D9 #1)."""
+    try:
+        keys = store.list_keys("extract_informe_aluguel") or []
+    except Exception:  # noqa: BLE001 — store sem informes ou store unavailable
+        return []
+    out: list[dict] = []
+    for key in keys:
+        try:
+            payload = store.read("extract_informe_aluguel", key)
+        except Exception:  # noqa: BLE001 — informe corrompido não bloqueia cascade
+            continue
+        if payload:
+            out.append(payload)
+    return out
 
 
 def _e5n_generate_section_summaries(ctx, e5_data: dict) -> dict:

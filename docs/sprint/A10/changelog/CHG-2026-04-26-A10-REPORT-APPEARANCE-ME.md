@@ -6,16 +6,16 @@ sprint: A10
 adrs: ["[[ADR-109]]", "[[ADR-121]]"]
 commits: ["fa1b4ef", "35eee5f", "710ae15", "fc74ab3", "db6cf6f"]
 summary: |
-  Report Appearance Menu — refinement [ADR-121](DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅. - **Report Appearance Menu — refinement [ADR-121](DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅:** Funde `FontSc
+  Report Appearance Menu — refinement [ADR-121](../../../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅. - **Report Appearance Menu — refinement [ADR-121](../../../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅:** Funde `FontSc
 tags:
   - type/changelog-entry
   - sprint/a10
 ---
 
 
-# Report Appearance Menu — refinement [ADR-121](DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅
+# Report Appearance Menu — refinement [ADR-121](../../../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅
 
-- **Report Appearance Menu — refinement [ADR-121](DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅:**
+- **Report Appearance Menu — refinement [ADR-121](../../../DECISIONS.md#adr-121--typography-base-13px-com-override-configurável) Fase 4 (2026-04-26) — ✅:**
   Funde `FontScaleToggle` (3 botões "Compacto/Normal/Confortável") e
   `ReportThemeToggle` (Light/Dark) em um único `<AppearanceMenu/>` com
   botão trigger `Aa` que abre popover. Mudanças:
@@ -39,8 +39,8 @@ tags:
   leitura, não em `/settings`. ADR-121 ganhou subseção
   "Refinamento UX (2026-04-26)" — não é ADR nova. `FontScaleToggle.tsx`
   e `ReportThemeToggle.tsx` deletados (único consumer era `ReportShell`).
-  Lane: [`report-appearance-menu`](BACKLOG.md#lanes-abertas-agora--pickup-table).
-  Prompt: [`track_report_appearance_menu.md`](agent_prompts/track_report_appearance_menu.md).
+  Lane: [`report-appearance-menu`](../../../BACKLOG.md#lanes-abertas-agora--pickup-table).
+  Prompt: [`track_report_appearance_menu.md`](../../A11/tracks/report-appearance-menu.md).
 
 - **Report Premium UI v2 — Onda F (Hero KPI + Cover identity) ✅ 5/5
   (2026-04-26):** polish completo do topo do relatório estratégico,
@@ -61,7 +61,7 @@ tags:
   hierarquia/densidade), em `docs/plan/REPORT_PREMIUM/_README.md` §§17.6-17.8:
 
   - ✅ **v2.F.3c** — PDF filename composto no backend
-    ([download_pdf.py](backend/app/application/report/download_pdf.py)
+    ([download_pdf.py](../../../../backend/app/application/report/download_pdf.py)
     via header `Content-Disposition`). Helpers `slugify_family`,
     `extract_period_yyyymm`, `compose_pdf_filename` em `_common.py`.
     Slug ASCII-safe (`Gonçalves d'Ávila` → `goncalves-d-avila`).
@@ -74,9 +74,9 @@ tags:
     sem gerar nome.
 
   - ✅ **v2.F.3b** — Frontend cover refresh
-    ([ReportCover.tsx](frontend/src/components/report/shell/ReportCover.tsx)
+    ([ReportCover.tsx](../../../../frontend/src/components/report/shell/ReportCover.tsx)
     +
-    [ReportShell.tsx](frontend/src/components/report/ReportShell.tsx)).
+    [ReportShell.tsx](../../../../frontend/src/components/report/ReportShell.tsx)).
     Título estático `Planejamento Financeiro` (descarta
     `displayTitle` dinâmico — brand nav passa a usar `reportTitle`);
     subtítulo estático `Pessoal e Patrimonial`; badge dinâmico
@@ -85,7 +85,7 @@ tags:
     Período de referência em pt-BR `jan 2023 — abr 2026` com em-dash
     U+2014, Gerado em pt-BR, `Mathoms v{N}` lido de `package.json`).
     Helper exportado `formatPeriodCoverPtBR()` em
-    [format.ts](frontend/src/lib/format.ts). Tipo TS
+    [format.ts](../../../../frontend/src/lib/format.ts). Tipo TS
     `workspace_family_surname?: string | null` em `ReportResponse`.
     9 testes novos; 603 passed (1 skipped).
 

@@ -49,27 +49,27 @@ renda".
 Três sintomas concretos no código:
 
 1. **TRS efetiva nunca é calculada.**
-   [`ratios_calculator.py:49-50`](../../pipeline/domain/services/ratios_calculator.py#L49)
+   [`ratios_calculator.py:49-50`](../../../../pipeline/domain/services/ratios_calculator.py#L49)
    tem `rentabilidade_pct: str = "N/D"` e
    `aliquota_efetiva_ir_pct: str = "N/D"` como placeholders desde A5a.
    Comentário diz "preenchidas em A5c+". A5c passou.
 
 2. **Renda passiva exibida é teórica, não observada.**
-   [`if_projector.py:269`](../../pipeline/domain/services/if_projector.py#L269)
+   [`if_projector.py:269`](../../../../pipeline/domain/services/if_projector.py#L269)
    computa `renda_passiva_estimada_4pct = investivel * 4% / 12` —
    estimativa Trinity sobre o investível total, sem olhar dividendos
    reais.
 
 3. **Regra `rule_trs_desalinhada` está dormente.**
-   [`suggestion_rules.py:86-112`](../../pipeline/domain/services/suggestion_rules.py#L86)
+   [`suggestion_rules.py:86-112`](../../../../pipeline/domain/services/suggestion_rules.py#L86)
    espera `goals.taxa_retirada_efetiva_pct` populado. Ninguém popula.
    Logo a regra nunca dispara — desperdício de detector pronto.
 
 **A boa notícia:** os dados já existem em parte.
-[`irpf_analyzer.py:215-225`](../../pipeline/domain/services/irpf_analyzer.py#L215)
+[`irpf_analyzer.py:215-225`](../../../../pipeline/domain/services/irpf_analyzer.py#L215)
 já decompõe rendimentos isentos (cod 09 lucros/dividendos), exclusiva
 (cod 10 JCP, 12 aplicações, 06 ganho capital) e exterior. E
-[`patrimonio_calculator.py`](../../pipeline/domain/services/patrimonio_calculator.py)
+[`patrimonio_calculator.py`](../../../../pipeline/domain/services/patrimonio_calculator.py)
 já segrega `imoveis_investimento`, `investimentos_titular`,
 `investimentos_conjuge`, `residencia`. Falta:
 - agregar com aluguéis (hoje em bucket trabalho — fix necessário)
@@ -284,7 +284,7 @@ input vier float.
 
 **Arquivo:** `pipeline/domain/services/irpf_analyzer.py`
 
-Hoje [linha 204-212](../../pipeline/domain/services/irpf_analyzer.py#L204):
+Hoje [linha 204-212](../../../../pipeline/domain/services/irpf_analyzer.py#L204):
 ```python
 def _bucket_trabalho(d: IRPFFullOutput) -> Decimal:
     pj = _sum(fp.rendimentos_tributaveis_brl for fp in d.rendimentos_pj)
@@ -815,7 +815,7 @@ Antes de abrir PR contra `main`:
 
 ## Notas para quem pegar a lane
 
-- **Não invente regra de domínio.** Bater em [config/methodology.md](../../config/methodology.md)
+- **Não invente regra de domínio.** Bater em [config/methodology.md](../../../../config/methodology.md)
   e nas docstrings de `irpf_analyzer.py` antes de decidir o que entra
   no bucket de capital.
 - **Decimal everywhere no backend.** Float quebra TRS = renda/gerador

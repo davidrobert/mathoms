@@ -31,4 +31,4 @@ Medição recomendada: monitor externo (ex.: health checks a cada 1–5 min) + s
 | Primeira publicação na status page após **detecção interna** do incidente user-facing | **menos de 15 minutos** |
 | Atualizações durante incidente aberto | A cada **30–60 min** ou ao mudar o impacto |
 
-RPO/RTO de dados: ver [RUNBOOK.md](RUNBOOK.md) (secção *Disaster recovery*) e tarefas 7E.2–7E.4 no [BACKLOG.md](BACKLOG.md).
+RPO/RTO de dados: ver [RUNBOOK.md](RUNBOOK.md) (secção *Disaster recovery*) e tarefas 7E.2–7E.4 no [BACKLOG.md](../BACKLOG.md).

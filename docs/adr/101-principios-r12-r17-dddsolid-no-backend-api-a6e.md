@@ -68,4 +68,4 @@ per-aggregate). Estimativa: 5-7 sessões grandes, ~400+ testes novos.
 **Relação com A6a-d/f**: independente. Recomendado depois de A6b (cutover
 DB) para repository pattern entregar valor máximo.
 
-**Artefatos:** [BACKLOG §A6e](BACKLOG.md#a6e--ddd-solid-no-backend-api-adr-101-r12-r17).
+**Artefatos:** [BACKLOG §A6e](../BACKLOG.md#a6e--ddd-solid-no-backend-api-adr-101-r12-r17).

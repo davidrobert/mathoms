@@ -18,7 +18,7 @@ tags:
 - **Direção E — Onda 1: `KanbanItem` → `Task` + `ReportNotes` → `WorkspaceNotes` (M1, 2026-04-29):**
 
   Onda 1 da Direção E entregue como migration **M1 additive**
-  ([ADR-154](DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1)).
+  ([ADR-154](../../../DECISIONS.md#adr-154--fusão-kanbanitem-em-task--migração-reportnotes-para-workspacenotes-direção-e--onda-1)).
   Funde o aggregate `KanbanItem` (ADR-123) no aggregate `Task`
   (ADR-074) e migra `ReportNotes` (ADR-123) para um aggregate novo
   `WorkspaceNotes` (workspace-scoped, multi-row, com pin). Substitui
@@ -74,7 +74,7 @@ tags:
   em workspace Allen + 7 dias sem regressão.
 
 - **Direção E — Onda 5: aggregate `Suggestion` full-stack
-  ([ADR-153](DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples),
+  ([ADR-153](../../../DECISIONS.md#adr-153--suggestion-aggregate-direção-e--onda-5-proposal-imutável--state-machine-simples),
   2026-04-29):** Peça central da Direção E — completa o ritual
   *relatório → sugere → usuário aceita/modifica/descarta em `/acao`
   → vira Decision*.

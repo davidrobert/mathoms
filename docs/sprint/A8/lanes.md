@@ -1,6 +1,6 @@
 # Sprint A8 — Lanes (histórico)
 
-> Tabela estática de todas as lanes da Sprint A8. Para detalhe operacional (frontmatter, dependências), ver [`lanes/<id>.md`](lanes/) populado por F4.A.
+> Tabela estática de todas as lanes da Sprint A8. Para detalhe operacional (frontmatter, dependências), ver [`lanes/<id>.md`](lanes) populado por F4.A.
 
 | ID | Title | Status | Ship date | PR |
 |---|---|---|---|---|
@@ -10,4 +10,4 @@
 | [[A8.3]] | TRS real — Carteira de renda + Taxa de Retirada Sustentável efetiva (S7) | shipped | 2026-05-05 | [#42](https://github.com/davidrobert/mathoms/pull/42), [#43](https://github.com/davidrobert/mathoms/pull/43), [#44](https://github.com/davidrobert/mathoms/pull/44) |
 | [[A8.4]] | Cenários de Estresse — remoção de prototipagem família-específica + APP_C universal | in_progress | PR0 docs em revisão | — |
 
-> Tracks operacionais em [`tracks/`](tracks/) (irpf-full-schema*, real-estate-efficiency, etc.).
+> Tracks operacionais em [`tracks/`](tracks) (irpf-full-schema*, real-estate-efficiency, etc.).

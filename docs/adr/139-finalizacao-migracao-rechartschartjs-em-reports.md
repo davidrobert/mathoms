@@ -27,7 +27,7 @@ size_lines: 104
 `ChartCanvas`, `ChartBar`, `ChartDonut`, `ChartGaugeSemi`, `ChartCombo`,
 `ChartLine`, `ChartWaterfall`, `ChartRegistry` com print fallback
 canvas→PNG e tema via `useChartTheme`), mas a Fase 7 do
-[REPORT_PREMIUM_PLAN](plan/REPORT_PREMIUM/_README.md) **não fechou** a
+[REPORT_PREMIUM_PLAN](../plan/REPORT_PREMIUM/_README.md) **não fechou** a
 substituição efetiva nas seções — charts Lote A/B
 (`FluxoMensalChart`, `ReceitaBarChart`, `DespesasDoughnutChart`,
 `ReceitaDespesaMensalChart`, `ScoreGaugeChart`) continuaram em Recharts,

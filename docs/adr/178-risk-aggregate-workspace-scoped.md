@@ -21,7 +21,7 @@ size_lines: 60
 
 # ADR-178 — `Risk` aggregate workspace-scoped
 
-**Status:** Decidido (Sprint A10.4) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.4](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
+**Status:** Decidido (Sprint A10.4) • **Data:** 2026-05-06 • **Data de decisão:** 2026-05-07 • **Relaciona** [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-101](#adr-101--princípios-r12-r17-dddsolid-no-backend-api-a6e), [ADR-115](#adr-115--domain-events-tipados-arquitetura-e-boundaries-a6eevents), [ADR-136](#adr-136--decision-aggregate-event-sourced-com-supersede-chain), [ADR-143](#adr-143--docsmethodology-é-rules-as-code-sprint-a76). **Origem:** Sprint A10 W0 — [archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.4](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md).
 
 **Contexto:** O bubble chart S9 ("Riscos Prioritários") do relatório premium hoje renderiza 8 dicts hardcoded prob×impacto vindos de `goals_cfg["riscos_prioritarios"]` (chave do `goals.json` arquivado, materializada em runtime). Não há aggregate por trás: usuário não pode editar; consultor não pode parametrizar por workspace; tenancy quebrada (workspace novo não-Ferreira-Campos vê dados alheios via seed). Conceito é distinto de `Decision` (ADR-136): Decision = ação a tomar; Risk = evento incerto. Sobreposição semântica existe ("decisão de contratar seguro" vs "risco de não ter seguro") mas direção é oposta — tratá-los como mesma entidade colapsa o link causa↔mitigação.
 
@@ -76,4 +76,4 @@ class Risk(Base):
 - [ ] Bubble chart S9 lê `Risk` via projeção; `goals_cfg["riscos_prioritarios"]` deletado em A10.6.
 - [ ] Tests: `backend/tests/test_risk_aggregate.py` (~30 specs) cobrindo 6 use cases + tenancy + link com Decision.
 
-**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.4](archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.4).
+**Plano de implementação:** [docs/archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md §3.4](../archive/GOALS_JSON_CUTOVER_PLAN-2026-05-07.md) (lane A10.4).

@@ -3,6 +3,7 @@ id: F12.3
 type: lane
 title: "Persistência da escolha (DB + JWT)"
 sprint: F12
+plan: PLAN-i18n
 status: blocked
 priority: P0
 adrs: ["[[ADR-109]]", "[[ADR-130]]"]

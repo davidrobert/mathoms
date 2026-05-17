@@ -168,6 +168,8 @@ try:
         render_adr_index,
     )
     from _changelog_recent_renderer import render_changelog_recent  # noqa: E402
+    from _context_pack_renderer import render_context_packs  # noqa: E402
+    from _doc_stats_renderer import render_doc_stats  # noqa: E402
     from _plan_progress_renderer import render_plan_progress  # noqa: E402
     from _sprint_current_renderer import render_sprint_current  # noqa: E402
 except ModuleNotFoundError:  # pragma: no cover
@@ -177,6 +179,8 @@ except ModuleNotFoundError:  # pragma: no cover
         render_adr_index,
     )
     from dev._changelog_recent_renderer import render_changelog_recent  # noqa: E402
+    from dev._context_pack_renderer import render_context_packs  # noqa: E402
+    from dev._doc_stats_renderer import render_doc_stats  # noqa: E402
     from dev._plan_progress_renderer import render_plan_progress  # noqa: E402
     from dev._sprint_current_renderer import render_sprint_current  # noqa: E402
 
@@ -278,6 +282,11 @@ def build_roadmap_md(notes: list[Note]) -> str:
     return _join(lines)
 
 
+def build_doc_stats_md(notes: list[Note]) -> str:
+    """Gera DOC_STATS.md — inventário compacto da vault."""
+    return _join(render_doc_stats(notes, _header))
+
+
 def build_plan_progress_md(notes: list[Note]) -> str:
     """Gera PLAN_PROGRESS.md — sub-agrupa plans por status + lista lanes por plano."""
     plans = [n for n in notes if n.type == "plan"]
@@ -285,8 +294,13 @@ def build_plan_progress_md(notes: list[Note]) -> str:
     return _join(render_plan_progress(plans, lanes, _header))
 
 
+def build_context_pack_md() -> dict[str, str]:
+    """Gera context packs compactos para agentes."""
+    return {name: _join(lines) for name, lines in render_context_packs(_header).items()}
+
+
 def regenerate_all(docs_root: Path) -> dict[str, str]:
-    """Retorna `{filename: content}` para os 6 arquivos materializados."""
+    """Retorna `{filename: content}` para os arquivos materializados."""
     notes = collect_notes(docs_root)
     return {
         "INDEX.md": build_index_md(notes),
@@ -295,6 +309,8 @@ def regenerate_all(docs_root: Path) -> dict[str, str]:
         "CHANGELOG_RECENT.md": build_changelog_recent_md(notes),
         "ROADMAP.md": build_roadmap_md(notes),
         "PLAN_PROGRESS.md": build_plan_progress_md(notes),
+        "DOC_STATS.md": build_doc_stats_md(notes),
+        **build_context_pack_md(),
     }
 
 

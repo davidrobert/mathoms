@@ -25,7 +25,7 @@ tags:
   `IFProgress` e elimina chamada duplicada a `listReports`.
 
   **Onda 6 entregue (rota `/acao` com tabs,
-  [ADR-152](DECISIONS.md#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6)):**
+  [ADR-152](../../../DECISIONS.md#adr-152--plano-de-acao-renomeada-para-acao-com-tabs-direção-e--onda-6)):**
   `/plano-de-acao` → `/acao` com 4 tabs (Inbox · Tarefas · Timeline ·
   Notas) e `ActionStatusBar` no topo agregando contadores (sugestões
   pendentes · tarefas próximos 7 dias · decisões a executar).

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mede custo em tokens de 6 queries-benchmark sobre docs/. Gate de regressão para ADR-182."""
+"""Mede custo em tokens de queries-benchmark sobre docs/. Gate de regressão para ADR-182."""
 # Aproximação: tokens ≈ ceil(chars/4) (OpenAI/Anthropic, sem tiktoken). Drift ±15%
 # absorvido pelo threshold de 5%. Modos: --init|--update|--check|--print.
 
@@ -83,6 +83,33 @@ def measure_q6() -> QueryResult:
     return QueryResult(chars_to_tokens(chars), chars, files)
 
 
+def _measure_context_pack(pack_name: str) -> QueryResult:
+    """Mede orientação por área: CONTEXT_INDEX + 1 pack específico."""
+    files = ["_MOC/_generated/CONTEXT_INDEX.md", f"_MOC/_generated/{pack_name}.md"]
+    chars = sum(len(_read_text(path)) for path in files)
+    return QueryResult(chars_to_tokens(chars), chars, [f"docs/{path}" for path in files])
+
+
+def measure_q7() -> QueryResult:
+    """Q7: orientar investigação backend/API/pipeline via context pack."""
+    return _measure_context_pack("CONTEXT_BACKEND")
+
+
+def measure_q8() -> QueryResult:
+    """Q8: orientar investigação frontend/relatório via context pack."""
+    return _measure_context_pack("CONTEXT_FRONTEND")
+
+
+def measure_q9() -> QueryResult:
+    """Q9: orientar investigação produto/domínio via context pack."""
+    return _measure_context_pack("CONTEXT_PRODUCT")
+
+
+def measure_q10() -> QueryResult:
+    """Q10: orientar edição de documentação/vault via context pack."""
+    return _measure_context_pack("CONTEXT_DOCS")
+
+
 MEASURERS: dict[str, Callable[[], QueryResult]] = {
     "Q1": measure_q1,
     "Q2": measure_q2,
@@ -90,6 +117,10 @@ MEASURERS: dict[str, Callable[[], QueryResult]] = {
     "Q4": measure_q4,
     "Q5": measure_q5,
     "Q6": measure_q6,
+    "Q7": measure_q7,
+    "Q8": measure_q8,
+    "Q9": measure_q9,
+    "Q10": measure_q10,
 }
 
 QUERY_DESCRIPTIONS = {
@@ -123,6 +154,38 @@ QUERY_DESCRIPTIONS = {
         "files_read": ["docs/*PLAN.md"],
         "operation": "leitura de todos os planos para descobrir status",
     },
+    "Q7": {
+        "name": "Orientar investigação backend/API/pipeline",
+        "files_read": [
+            "docs/_MOC/_generated/CONTEXT_INDEX.md",
+            "docs/_MOC/_generated/CONTEXT_BACKEND.md",
+        ],
+        "operation": "escolher pack e ler contexto mínimo antes de buscar por bucket",
+    },
+    "Q8": {
+        "name": "Orientar investigação frontend/relatório",
+        "files_read": [
+            "docs/_MOC/_generated/CONTEXT_INDEX.md",
+            "docs/_MOC/_generated/CONTEXT_FRONTEND.md",
+        ],
+        "operation": "escolher pack e ler contexto mínimo antes de buscar por bucket",
+    },
+    "Q9": {
+        "name": "Orientar investigação produto/domínio",
+        "files_read": [
+            "docs/_MOC/_generated/CONTEXT_INDEX.md",
+            "docs/_MOC/_generated/CONTEXT_PRODUCT.md",
+        ],
+        "operation": "escolher pack e ler contexto mínimo antes de buscar por bucket",
+    },
+    "Q10": {
+        "name": "Orientar edição de documentação/vault",
+        "files_read": [
+            "docs/_MOC/_generated/CONTEXT_INDEX.md",
+            "docs/_MOC/_generated/CONTEXT_DOCS.md",
+        ],
+        "operation": "escolher pack e ler contexto mínimo antes de buscar por bucket",
+    },
 }
 
 TARGETS = {
@@ -143,6 +206,22 @@ TARGETS = {
         "tokens": 1000,
         "reduction_pct": 80,
         "rationale": "lê _MOC/PLANS-active.md (status sem expandir)",
+    },
+    "Q7": {
+        "tokens": 1000,
+        "rationale": "lê CONTEXT_INDEX + CONTEXT_BACKEND antes de abrir fontes longas",
+    },
+    "Q8": {
+        "tokens": 1000,
+        "rationale": "lê CONTEXT_INDEX + CONTEXT_FRONTEND antes de abrir fontes longas",
+    },
+    "Q9": {
+        "tokens": 1000,
+        "rationale": "lê CONTEXT_INDEX + CONTEXT_PRODUCT antes de abrir fontes longas",
+    },
+    "Q10": {
+        "tokens": 1000,
+        "rationale": "lê CONTEXT_INDEX + CONTEXT_DOCS antes de abrir fontes longas",
     },
 }
 
@@ -214,6 +293,16 @@ def check_regression(results: dict[str, QueryResult], existing: dict) -> list[st
     return offenders
 
 
+def check_targets(results: dict[str, QueryResult]) -> list[str]:
+    """Retorna queries cujo custo atual passou do budget alvo."""
+    offenders = []
+    for qid, r in results.items():
+        target = TARGETS.get(qid, {}).get("tokens")
+        if isinstance(target, int) and r.tokens > target:
+            offenders.append(f"  {qid}: {r.tokens} > target {target} (+{r.tokens - target})")
+    return offenders
+
+
 def find_baseline(existing: dict) -> dict[str, dict] | None:
     for k, v in existing.items():
         if k.startswith("baseline_"):
@@ -275,20 +364,30 @@ def _handle_update(results: dict[str, QueryResult], existing: dict | None, phase
 def _print_targets() -> None:
     print("\nMeta de redução por query (target):", file=sys.stderr)
     for qid, t in TARGETS.items():
-        print(f"  {qid}: alvo {t['tokens']} tokens (-{t['reduction_pct']}%)", file=sys.stderr)
+        reduction = t.get("reduction_pct")
+        suffix = f" (-{reduction}%)" if reduction is not None else ""
+        print(f"  {qid}: alvo {t['tokens']} tokens{suffix}", file=sys.stderr)
+
+
+def _print_offenders(title: str, offenders: list[str]) -> None:
+    if not offenders:
+        return
+    print(title, file=sys.stderr)
+    for line in offenders:
+        print(line, file=sys.stderr)
 
 
 def _handle_check(results: dict[str, QueryResult], existing: dict | None) -> int:
     if existing is None:
         print(f"erro: {BENCHMARK_FILE} não existe. Rode --init primeiro.", file=sys.stderr)
         return 1
-    offenders = check_regression(results, existing)
-    if not offenders:
+    regression_offenders = check_regression(results, existing)
+    target_offenders = check_targets(results)
+    if not regression_offenders and not target_offenders:
         print("ok: nenhuma regressão detectada (>5%).")
         return 0
-    print("REGRESSÃO detectada (>5% vs latest):", file=sys.stderr)
-    for line in offenders:
-        print(line, file=sys.stderr)
+    _print_offenders("REGRESSÃO detectada (>5% vs latest):", regression_offenders)
+    _print_offenders("BUDGET de tokens excedido:", target_offenders)
     _print_targets()
     return 1
 

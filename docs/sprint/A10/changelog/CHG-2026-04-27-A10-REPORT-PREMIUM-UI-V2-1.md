@@ -38,7 +38,7 @@ tags:
   workspace dogfood (escopo do dono do produto). Follow-up v3: hash-de-prompt
   na cache key.
 
-Trabalho em andamento: execução da **[ADR-093](DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)** (rename de stages F9) +
+Trabalho em andamento: execução da **[ADR-093](../../../DECISIONS.md#adr-093--rename-completo-de-identificadores-de-stage-opção-a)** (rename de stages F9) +
 preparação para **F7 (Produção + LGPD + Ops)**.
-**[ADR-129](DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
+**[ADR-129](../../../DECISIONS.md#adr-129--descontinuação-completa-do-renderer-html-server-side)**
 (descontinuação do renderer HTML server-side) — concluída em 2026-04-25.

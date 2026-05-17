@@ -59,4 +59,4 @@ A6d como commitment de converter os 5 stages pragmáticos para puros.
 - ❌ Aceita que ~3500 linhas de domain services + testes ficam em prateleira
   até A6d executar.
 
-**Artefatos:** [ARCHITECTURE.md §17.1](ARCHITECTURE.md#171-caminho-b-puro-vs-pragmático-estado-atual-e-alvo) (Caminho B puro vs pragmático); `CLAUDE.md` "Caminho B puro vs pragmático"; `docs/CHANGELOG.md` entry Sessão A5e.
+**Artefatos:** [ARCHITECTURE.md §17.1](../reference/ARCHITECTURE.md#171-caminho-b-puro-vs-pragmático-estado-atual-e-alvo) (Caminho B puro vs pragmático); `CLAUDE.md` "Caminho B puro vs pragmático"; `docs/CHANGELOG.md` entry Sessão A5e.

@@ -37,5 +37,5 @@ tags:
   todos passando. Acompanha fix de paridade `pipelineStageNames.ts`
   (E1.6 → `extract_irpf_full`). Lane pendente de G0/G4 sign-off em PR
   comment + visual baselines + Playwright `@critical` (follow-ups).
-  [ADR-157](DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)
-  · [ADR-076](DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)
+  [ADR-157](../../../DECISIONS.md#adr-157--schema-irpf-completo-stage-extract_irpf_full)
+  · [ADR-076](../../../DECISIONS.md#adr-076--design-tokens-unificados-site--relatório)

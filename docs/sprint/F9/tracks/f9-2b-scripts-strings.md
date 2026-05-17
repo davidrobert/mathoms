@@ -21,7 +21,7 @@ tags:
 > **Bloqueia:** F9.2e (closeout)
 > **Paralelo com:** F9.2c (`e_reset.py`) e F9.2d (backend+tests) — operam em escopos disjuntos
 > **Onda:** F9 (sub-fatia 3b/7)
-> **Fonte de verdade:** [ADR-093](../DECISIONS.md#adr-093) · [`STAGE_RENAME_MAP`](../../pipeline/stage_spec.py#L54)
+> **Fonte de verdade:** [ADR-093](../../../DECISIONS.md#adr-093) · [`STAGE_RENAME_MAP`](../../../../pipeline/stage_spec.py#L54)
 
 > **Objetivo:** substituir strings legadas (`"E3"`, `"E5"`, `"E2-llm"`...) por
 > descritivas em todos os `scripts/e*.py` **exceto `scripts/e_reset.py`**
@@ -121,7 +121,7 @@ git push origin HEAD:main
 
 ## Referências
 
-- [F9.2a pipeline core](track_f9_2a_pipeline_core_strings.md)
-- [F9.2c e_reset CLI](track_f9_2c_e_reset_deprecation.md)
-- [F9.2d backend + tests](track_f9_2d_backend_tests.md)
-- [F9.2e closeout](track_f9_2e_closeout.md)
+- [F9.2a pipeline core](f9-2a-pipeline-core-strings.md)
+- [F9.2c e_reset CLI](f9-2c-e-reset-deprecation.md)
+- [F9.2d backend + tests](f9-2d-backend-tests.md)
+- [F9.2e closeout](f9-2e-closeout.md)

@@ -27,7 +27,7 @@ size_lines: 72
 
 **Contexto:** Cliente alvo do Mathoms (alta-renda BR) frequentemente tem 1-3 imóveis locados. O produto hoje mostra alocação por classe de ativo mas não compara **eficiência tributária** entre imóvel direto e FII — gap clássico ignorado em ferramentas de planejamento brasileiras (Perini *Viver de Renda*, AUVP módulo FII, Cerbasi *Casais Inteligentes* cap. renda passiva). Imóvel direto carrega IR sobre aluguel até 27,5%, vacância ~8% histórica, custos 1,8-2,5% a.a.; FII tijolo entrega 8-11% bruto isento PF (Lei 11.033/04 art. 3 II) com mark-to-market diário. Investigação 2026-05-04 com sign-off G0 (financial-planner) e G4 (product-designer) materializa fórmulas, layout, copy e ações canônicas.
 
-**Decisão (Roadmap):** Implementar nova feature "Imóveis × Eficiência tributária" no relatório premium. Implementação fica para outra sessão (prompt self-contained em [`docs/agent_prompts/track_real_estate_efficiency.md`](agent_prompts/track_real_estate_efficiency.md)). Esta ADR fixa fórmulas + UX + threshold + integrações + anti-patterns para destravar execução sem nova rodada de revisão.
+**Decisão (Roadmap):** Implementar nova feature "Imóveis × Eficiência tributária" no relatório premium. Implementação fica para outra sessão (prompt self-contained em [`docs/agent_prompts/track_real_estate_efficiency.md`](../plan/S4_REAL_ESTATE_ENRICHMENT/_README.md)). Esta ADR fixa fórmulas + UX + threshold + integrações + anti-patterns para destravar execução sem nova rodada de revisão.
 
 **Sub-decisões:**
 
@@ -85,7 +85,7 @@ size_lines: 72
 
 **Follow-ups (executar em outra sessão):**
 
-1. **Implementação canônica** seguindo prompt em [`docs/agent_prompts/track_real_estate_efficiency.md`](agent_prompts/track_real_estate_efficiency.md). Estima 3-5 dias dev (G0+G4 já feitos).
+1. **Implementação canônica** seguindo prompt em [`docs/agent_prompts/track_real_estate_efficiency.md`](../plan/S4_REAL_ESTATE_ENRICHMENT/_README.md). Estima 3-5 dias dev (G0+G4 já feitos).
 2. **ADR irmã: cache de market data externo (Brapi/B3)** — yield IFIX dinâmico precisa decidir refresh strategy + fallback + DPA Brapi. Bloqueador para A3 IFIX dinâmico, não para o MVP (8% hard-coded sustenta).
 3. **Schema E1.5 evolution: separar `valor_mercado_brl` de `valor_aquisicao_brl`** + migration. Mantém retrocompat via fallback (`if not valor_mercado_brl: use valor_brl + warning`).
 4. **Subcategoria de aluguel por imóvel-key** em `categorization.json` + UI de mapeamento. Substitui rateio proporcional por dado real.

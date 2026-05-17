@@ -29,7 +29,7 @@ Drift confirmado entre 4 fontes: `ROADMAP.md` linha 6 diz "Sprint A7 entregue", 
 
 Custo de tokens medido por operação típica (cenário "agente pega lane, executa"): adicionar lane no BACKLOG ≈ 50k lidos; atualizar status de lane ≈ 80k (precisa cross-checar 2-3 fontes); adicionar entrada no CHANGELOG ≈ 130k (lê arquivo gigante para inserir bullet); descobrir lanes prontas ≈ 56k. LLM consome 30-200k tokens em queries de leitura/listagem antes de produzir uma linha.
 
-Brainstorm em [`_scratch/doc-reorg-brainstorm-cto.md`](../_scratch/doc-reorg-brainstorm-cto.md) (lente estrutural) e `_scratch/doc-reorg-brainstorm-data.md` (lente de consumo por LLM, retornado inline) avaliou 4 modelos arquiteturais. Recomendação convergente: vault Obsidian-friendly com notas atômicas + frontmatter YAML + índices materializados.
+Brainstorm local em `_scratch/doc-reorg-brainstorm-cto.md` (lente estrutural) e `_scratch/doc-reorg-brainstorm-data.md` (lente de consumo por LLM, retornado inline) avaliou 4 modelos arquiteturais. Recomendação convergente: vault Obsidian-friendly com notas atômicas + frontmatter YAML + índices materializados.
 
 **Decisão:** Reorganizar documentação operacional como vault Obsidian-friendly **em `docs/` (raiz preservada)**, com:
 
@@ -50,7 +50,7 @@ Brainstorm em [`_scratch/doc-reorg-brainstorm-cto.md`](../_scratch/doc-reorg-bra
 10. **Codegen idempotente com snapshot test** seguindo padrão consolidado em ADR-076 (design tokens YAML→TS) e ADR-109 (OpenAPI snapshot). Pre-commit + CI.
 11. **Schema validation** com JSON Schema em `docs/_schemas/note-*.schema.json`, alinhado com `config/schemas/*.schema.json` existente.
 
-Migração em 5 fases sequenciais (~26-28h em ~3 dias calendário), detalhada em [`docs/plan/DOC_REORG/_README.md`](../plan/DOC_REORG/_README.md). Janelas de pausa explícitas para fases 2 (split DECISIONS, ~24h) e 4 (split BACKLOG, ~24-48h).
+Migração em 5 fases sequenciais (~26-28h em ~3 dias calendário), detalhada no [plano DOC_REORG arquivado](../archive/DOC_REORG_PLAN-2026-05-07.md). Janelas de pausa explícitas para fases 2 (split DECISIONS, ~24h) e 4 (split BACKLOG, ~24-48h).
 
 **Alternativas consideradas:**
 
@@ -71,9 +71,9 @@ Migração em 5 fases sequenciais (~26-28h em ~3 dias calendário), detalhada em
 
 **Critério de aceite (gate de promoção `Proposto` → `Decidido`):**
 
-- [ ] Plano executivo `docs/plan/DOC_REORG/_README.md` revisado e aprovado pelo usuário.
+- [ ] Plano executivo DOC_REORG revisado e aprovado pelo usuário.
 - [ ] Fase 1 entregue: schemas JSON em `docs/_schemas/`, `dev/build_doc_index.py`, `dev/validate_frontmatter.py`, `dev/check_doc_links.py`, ADR exemplo migrada com gates verdes.
-- [ ] Fases 2-5 entregues conforme `docs/plan/DOC_REORG/_README.md` com critério de aceite mensurável por fase.
+- [ ] Fases 2-5 entregues conforme plano DOC_REORG com critério de aceite mensurável por fase.
 - [ ] Snapshot test `tests/test_doc_indexes_snapshot.py` verde (índices em `_MOC/_generated/` regenerados sem drift).
 - [ ] Token-cost-benchmark roda em CI: queries Q2/Q3/Q7 do brainstorm (lanes prontas, o-que-mudou-na-semana, sprint atual) reduzem ≥90%. Baseline e meta documentados em `tests/benchmarks/doc_token_cost.json`.
 - [ ] Vault abre no Obsidian out-of-the-box: smoke test manual confirma graph view, backlinks, painel de tags, busca por path/tag funcionando sem plugin obrigatório (Dataview opcional).
@@ -82,4 +82,4 @@ Migração em 5 fases sequenciais (~26-28h em ~3 dias calendário), detalhada em
 - [ ] Drift zero entre status de sprint: única fonte é `docs/sprint/<current>/_README.md` (frontmatter `status`); demais fontes derivam.
 - [ ] Product-manager review da UX final da vault (graph view, taxonomia de tags, onboarding) antes de promoção a `Decidido`.
 
-**Plano de implementação:** [docs/plan/DOC_REORG/_README.md](../plan/DOC_REORG/_README.md).
+**Plano de implementação:** [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md).
