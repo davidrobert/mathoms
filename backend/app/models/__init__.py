@@ -20,6 +20,11 @@ from backend.app.models.decision import (
     DecisionEvent,
 )
 from backend.app.models.document import Document, DocumentStatus, DocumentType
+from backend.app.models.economic_assumption import (
+    EconomicAssetClass,
+    EconomicAssumption,
+    WorkspaceEconomicAssumptionOverride,
+)
 from backend.app.models.family_member import BankAccount, FamilyMember
 from backend.app.models.feature_flag import FeatureFlag
 from backend.app.models.fiscal_parameter import FiscalParameter
@@ -147,6 +152,9 @@ __all__ = [
     "WorkspaceNotes",
     "FeatureFlag",
     "FiscalParameter",
+    "EconomicAssetClass",
+    "EconomicAssumption",
+    "WorkspaceEconomicAssumptionOverride",
     "MarketRate",
     "Report",
     "Document",
