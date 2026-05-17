@@ -3,6 +3,7 @@
 import { ReportSection } from "../ReportSection";
 import { ReportCard } from "../ReportCard";
 import { SectionSummary } from "../SectionSummary";
+import { PremissasEconomicasCard } from "../cards/PremissasEconomicasCard";
 import { StressScenarioCard } from "../cards/StressScenarioCard";
 import {
   SnapshotChangelogList,
@@ -148,6 +149,7 @@ function MetasVigentesCard({
 /** ADR-117/122 · Fase 10 — APP_B: Premissas e Metodologia.
  *
  * Lista metas vigentes do snapshot E5 (goals.premissas_snapshot.active_goals)
+ * + premissas econômicas auditáveis (ADR-219, retorno real + sigma por classe)
  * + metodologias estáticas (Perini / Cerbasi / AUVP / Score próprio).
  */
 export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
@@ -165,6 +167,7 @@ export function ApendiceBSection({ data }: { data: ReportAnalysisData }) {
       <SectionFallback narrativas={narrativas} sectionId="APP_B" text={fallback} />
 
       <MetasVigentesCard snapshot={snapshot} />
+      <PremissasEconomicasCard premissas={data.premissas_economicas ?? null} />
 
       <ReportCard variant="neutral" title="Pilares Metodológicos" size="full">
         <div className="space-y-4 text-sm text-[var(--surface-foreground)]">
