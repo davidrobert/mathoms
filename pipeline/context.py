@@ -16,7 +16,11 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from pipeline.artifact_store import ArtifactStore
-    from pipeline.ports import ConfigStore, PropertyIdentityResolver
+    from pipeline.ports import (
+        ConfigStore,
+        EconomicAssumptionsResolver,
+        PropertyIdentityResolver,
+    )
 
 
 @dataclass
@@ -74,6 +78,14 @@ class WorkspaceContext:
     #: consolidador E1.5c emitir `property_id` UUID estável cross-IRPFs.
     #: ``None`` → consolidador pula a etapa (compat com testes/CLI legados).
     property_identity_resolver: Optional["PropertyIdentityResolver"] = field(
+        default=None, repr=False
+    )
+
+    #: ``EconomicAssumptionsResolver`` injetável (ADR-219, wave 2). Permite ao
+    #: E5 snapshotar premissas econômicas vigentes no payload (auditoria
+    #: fiduciária). ``None`` → E5 emite ``premissas_economicas`` ausente
+    #: (UI degrada — compat com testes/CLI legados).
+    economic_assumptions_resolver: Optional["EconomicAssumptionsResolver"] = field(
         default=None, repr=False
     )
 
@@ -180,6 +192,7 @@ class WorkspaceContext:
         workspace_id: Optional[str] = None,
         config_store: Optional["ConfigStore"] = None,
         property_identity_resolver: Optional["PropertyIdentityResolver"] = None,
+        economic_assumptions_resolver: Optional["EconomicAssumptionsResolver"] = None,
     ) -> WorkspaceContext:
         """Contexto para tenant web com config do banco de dados.
 
@@ -206,4 +219,5 @@ class WorkspaceContext:
             workspace_id=workspace_id,
             config_store=config_store,
             property_identity_resolver=property_identity_resolver,
+            economic_assumptions_resolver=economic_assumptions_resolver,
         )
