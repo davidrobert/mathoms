@@ -1,16 +1,19 @@
 "use client";
 
+import type { ReportAnalysisData } from "@/lib/api";
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
 import { NarrativeChartCard } from "../charts/NarrativeChartCard";
+import { RealEstateYieldCard } from "../cards/RealEstateYieldCard";
 import { deriveChartConclusion, deriveSectionSummary } from "../utils/conclusionUtils";
-import type { ReportAnalysisData } from "@/lib/api";
 
-/** F9 · F2.D · ADR-117 — Seção S4 (Real Estate — Imóveis e Renda Passiva). */
+/** S4 (Real Estate). ADR-216 Onda 2 P-C — RealEstateYieldCard quando `real_estate` presente;
+ *  fallback para NarrativeChartCard legado quando workspace sem property_identity (Onda 0). */
 export function S4RealEstateSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
   const charts = narrativas?.charts as Record<string, unknown> | undefined;
   const fallback = deriveSectionSummary("S4", data);
+  const realEstate = data.real_estate ?? null;
 
   return (
     <ReportSection id="S4" title="Real Estate — Imóveis e Renda Passiva">
@@ -20,12 +23,16 @@ export function S4RealEstateSection({ data }: { data: ReportAnalysisData }) {
           {fallback}
         </p>
       )}
-      <NarrativeChartCard
-        chartId="yield_imoveis"
-        title="Rentabilidade dos Imóveis (Yield) vs CDI"
-        narratives={charts}
-        fallbackConclusion={deriveChartConclusion("yield_imoveis", data)}
-      />
+      {realEstate ? (
+        <RealEstateYieldCard data={realEstate} />
+      ) : (
+        <NarrativeChartCard
+          chartId="yield_imoveis"
+          title="Rentabilidade dos Imóveis (Yield) vs CDI"
+          narratives={charts}
+          fallbackConclusion={deriveChartConclusion("yield_imoveis", data)}
+        />
+      )}
     </ReportSection>
   );
 }

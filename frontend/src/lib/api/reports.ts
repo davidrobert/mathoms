@@ -105,6 +105,9 @@ export interface ReportAnalysisData {
   /** A8.3 — TRS efetiva e carteira de renda. Sempre presente; ``status``
    * controla render (ok = KPIs · sem_irpf | gerador_zero = empty state). */
   passive_income?: PassiveIncomeData;
+  /** Onda 2 · ADR-216 — cap rate líquido + tríade benchmarks + tabela por imóvel.
+   *  Ausente quando workspace não tem property_identity (UI oculta S4). */
+  real_estate?: import("@/types/report-analysis").RealEstateData | null;
   /** N3 — Monte Carlo IF com cone P10/P50/P90. Presente quando workspace
    * tem meta IF configurada. ``exibir_cone`` controla se o chart aparece. */
   if_monte_carlo?: IFMonteCarloData;
