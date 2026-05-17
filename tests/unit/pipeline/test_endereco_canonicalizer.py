@@ -80,6 +80,41 @@ class TestCanonicalize:
         assert canonicalize("AV PAULISTA, 1500") == canonicalize("Avenida Paulista 1500")
 
 
+class TestRegressionB1RealDescriptions:
+    """Fixtures reais do workspace 5@5.com — ADR-215 fix-B1.
+
+    Antes do fix, `R$ 80.000,00` virava `rua 80 000 00` (porque `\\br\\b`
+    matchava o "r" solto), e o regex extraía `(via="8", numero="0")` ou
+    `("4", "77")`, gerando `endereco_canonical` falso para imóveis sem
+    logradouro estruturado real.
+    """
+
+    def test_casa_leonardo_da_vinci_sem_logradouro_returns_none(self):
+        descricao = (
+            "CASA - LEONARDO DA VINCI 2707, QUADRA 33 LOTE 27, JABAQUARA, "
+            "SAO PAULO/SP - Adquirido de CPF 135.542.328-74 em 12/01/2023 - "
+            "Valor R$ 80.000,00 - Matrícula 20462"
+        )
+        assert canonicalize(descricao) is None
+
+    def test_living_wish_logradouro_after_currency_blob(self):
+        """Descrição com R$ + Logradouro: explícito → canonical da via real."""
+        descricao = (
+            "APARTAMENTO NO COND. LIVING WISH. COMPRADO NA PLANTA DA EMPRESA "
+            "MAGIKLZ CYRELA ASTURIAS EMPREENDIMENTOS IMOBILIARIOS LTDA CNPJ/MF "
+            "SOB O NUMERO 17.102.653/0001-84 COM 88,91 M2. VALOR PAGO: "
+            "R$ 477.436,58. Inscrição Municipal (IPTU): 087.006.0478-1. "
+            "Logradouro: AVENIDA JOAO DIAS Nº 2192, TORRE 2 APT 163, "
+            "SANTO AMARO, SÃO PAULO/SP, CEP 04724-003."
+        )
+        assert canonicalize(descricao) == "joao dias 2192"
+
+    def test_dollar_amount_also_stripped(self):
+        """U$$ / U$ em descrição IRPF (moeda estrangeira) também é currency."""
+        descricao = "CONTA NO EXTERIOR - U$$ 6524,00 - Banco XYZ"
+        assert canonicalize(descricao) is None
+
+
 class TestCrossIRPFStability:
     """Goldens de paridade: descrição varia ano-a-ano, canonical é estável."""
 
