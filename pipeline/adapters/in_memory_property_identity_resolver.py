@@ -23,11 +23,13 @@ class InMemoryPropertyIdentityResolver:
         first_seen_year: int,
         descricao_sample: str,
     ) -> PropertyIdentityRecord:
+        # ADR-215 fix-B2: dedup cross-titular_key quando endereco_canonical
+        # presente (casal em comunhão declara o mesmo imóvel em IRPFs
+        # separados → mesma row, first-write wins no titular_key).
         if lookup.endereco_canonical is not None:
             for r in self._rows:
                 if (
                     r.workspace_id == workspace_id
-                    and r.titular_key == lookup.titular_key
                     and r.codigo_rfb == lookup.codigo_rfb
                     and r.endereco_canonical == lookup.endereco_canonical
                 ):
