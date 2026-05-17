@@ -60,11 +60,13 @@ export const PIPELINE_PHASES: readonly Phase[] = [
       "E2-extratos",
       "E2-faturas",
       "E2-llm",
+      "E2-informe-aluguel",
       // Descritivos.
       "extract_members",
       "extract_baseline",
       "consolidate_baseline",
       "extract_irpf_full",
+      "extract_informe_aluguel",
       "extract_statements",
       "extract_invoices",
       "extract_with_llm",

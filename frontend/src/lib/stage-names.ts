@@ -21,6 +21,7 @@ export const STAGE_DISPLAY_NAMES: Record<string, string> = {
   "extract_invoices": "Leitura das faturas de cartão",
   "extract_statements": "Leitura dos extratos bancários",
   "extract_with_llm": "Leitura dos extratos de investimentos",
+  "extract_informe_aluguel": "Leitura dos informes de aluguel da imobiliária",
   "reconcile_transactions": "Remoção de transações duplicadas",
   "categorize_transactions": "Categorização de receitas e despesas",
   "analyze_finances": "Cálculo de indicadores financeiros",

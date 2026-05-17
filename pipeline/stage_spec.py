@@ -60,6 +60,9 @@ STAGE_RENAME_MAP: dict[str, str] = {
     "E2-faturas": "extract_invoices",
     "E2-extratos": "extract_statements",
     "E2-llm": "extract_with_llm",
+    # ADR-216 Onda 0.5b — informe de rendimentos de imobiliária. Stage runner
+    # consome PDFs em ``data/income_tax_br/`` (paralelo a extract_irpf_full).
+    "E2-informe-aluguel": "extract_informe_aluguel",
     "E3": "reconcile_transactions",
     "E4": "categorize_transactions",
     "E5": "analyze_finances",
@@ -130,6 +133,16 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
     "extract_irpf_full": StageSpec(
         "extract_irpf_full", writes=("extract_irpf_full",), is_llm=True, tier="premium"
     ),
+    # ADR-216 Onda 0.5b — informe de rendimentos de imobiliária. `reads=()` por
+    # design (depende implicitamente de route_documents ter movido PDFs para
+    # data/income_tax_br/, igual a extract_irpf_full). Workspace-scoped: o
+    # artefato é dataset de referência anual (sobrevive entre runs).
+    "extract_informe_aluguel": StageSpec(
+        "extract_informe_aluguel",
+        writes=("extract_informe_aluguel",),
+        is_llm=True,
+        tier="premium",
+    ),
     "extract_invoices": StageSpec("extract_invoices", writes=("extract_invoices",)),
     "extract_statements": StageSpec("extract_statements", writes=("extract_statements",)),
     "extract_with_llm": StageSpec(
@@ -185,6 +198,7 @@ FULL_ORDER: list[str] = [
     "extract_baseline",
     "consolidate_baseline",
     "extract_irpf_full",  # ADR-157 — agrupado com docs de ano-base (junto de E1.5)
+    "extract_informe_aluguel",  # ADR-216 Onda 0.5b — paralelo a extract_irpf_full (income_tax_br/)
     "extract_invoices",
     "extract_statements",
     "extract_with_llm",
