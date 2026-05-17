@@ -291,3 +291,8 @@ def test_matching_bens_direitos_por_codigo_e_titular(db):
     )
     assert payload is not None
     assert payload["imoveis"][0]["valor_imovel"] == pytest.approx(1500000.0, abs=0.01)
+
+
+# Tests de cascade #1 (Informe) vivem em
+# ``test_real_estate_e5_integration_cascade.py`` para isolar o stub de Informe
+# e manter cada caso ≤20 linhas (CLAUDE.md §Code style).

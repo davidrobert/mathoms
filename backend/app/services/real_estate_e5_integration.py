@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, Iterable, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -28,21 +28,37 @@ def populate_real_estate(
     irpf_payload: dict | None,
     db: Session,
     as_of_date: date | None = None,
+    informe_payloads: Sequence[dict] | None = None,
 ) -> dict | None:
     """Calcula payload `real_estate` (None quando workspace sem property_identity)."""
     identities = _load_identities(db, workspace_id)
     if not identities:
         return None
     return result_to_payload(
-        calculate_for_workspace(
-            db,
-            identities=identities,
-            overrides=_load_overrides(db, workspace_id),
-            bens_direitos_by_property=_bens_direitos_by_property(identities, irpf_payload),
-            sources=_build_cascade_sources(irpf_payload, e5_data),
-            patrimonio_liquido=_to_decimal(_get_path(e5_data, "patrimonio", "liquido")),
-            as_of_date=as_of_date or date.today(),
+        _calculate(
+            db, identities, e5_data, irpf_payload, informe_payloads, workspace_id, as_of_date
         )
+    )
+
+
+def _calculate(
+    db: Session,
+    identities: list[PropertyIdentity],
+    e5_data: dict,
+    irpf_payload: dict | None,
+    informe_payloads: Sequence[dict] | None,
+    workspace_id: str,
+    as_of_date: date | None,
+):
+    """Resolve cascade D9 + chama service puro (boundary backend/ adapter)."""
+    return calculate_for_workspace(
+        db,
+        identities=identities,
+        overrides=_load_overrides(db, workspace_id),
+        bens_direitos_by_property=_bens_direitos_by_property(identities, irpf_payload),
+        sources=_build_cascade_sources(irpf_payload, e5_data, informe_payloads, identities),
+        patrimonio_liquido=_to_decimal(_get_path(e5_data, "patrimonio", "liquido")),
+        as_of_date=as_of_date or date.today(),
     )
 
 
@@ -130,13 +146,60 @@ def _extract_e4_aluguel(e5_data: dict) -> E4ReceitaAluguelEntry | None:
     return E4ReceitaAluguelEntry(valor_total_brl=valor, n_meses_periodo=n_meses)
 
 
-def _build_cascade_sources(irpf_payload: dict | None, e5_data: dict) -> CascadeSources:
-    """Constrói CascadeSources do IRPF + e5_data (Informe v1: vazio até Onda 0.5 extractor rodar)."""
+def _build_cascade_sources(
+    irpf_payload: dict | None,
+    e5_data: dict,
+    informe_payloads: Sequence[dict] | None,
+    identities: list[PropertyIdentity],
+) -> CascadeSources:
+    """Constrói CascadeSources de Informe (#1) + IRPF (#2) + E4 (#3) — ADR-216 D9."""
     return CascadeSources(
-        informe_imobiliaria_by_property={},
+        informe_imobiliaria_by_property=_informe_by_property(informe_payloads, identities),
         irpf_carne_leao=_extract_irpf_entries(irpf_payload),
         e4_receita_aluguel_total=_extract_e4_aluguel(e5_data),
     )
+
+
+def _informe_by_property(
+    informe_payloads: Sequence[dict] | None,
+    identities: list[PropertyIdentity],
+) -> dict[str, dict[str, Any]]:
+    """Agrupa imóveis de informes por property_id (cascade D9 #1 · ADR-216)."""
+    if not informe_payloads:
+        return {}
+    by_property: dict[str, dict[str, Decimal]] = {}
+    for payload in informe_payloads:
+        for imovel in payload.get("imoveis") or []:
+            ident = _match_property_to_informe_imovel(identities, imovel)
+            if ident is not None:
+                _accumulate_informe_imovel(by_property, ident.id, imovel)
+    return {pid: dict(agg) for pid, agg in by_property.items()}
+
+
+def _accumulate_informe_imovel(
+    by_property: dict[str, dict[str, Decimal]], property_id: str, imovel: dict
+) -> None:
+    """Soma aluguel/IR de um imóvel-do-informe ao agregado (n informes → mesma property)."""
+    agg = by_property.setdefault(
+        property_id, {"aluguel_bruto_anual": _ZERO, "ir_retido_anual": _ZERO}
+    )
+    agg["aluguel_bruto_anual"] += _to_decimal(imovel.get("aluguel_bruto_anual"))
+    agg["ir_retido_anual"] += _to_decimal(imovel.get("ir_retido_anual"))
+
+
+def _match_property_to_informe_imovel(
+    identities: Iterable[PropertyIdentity], imovel: dict
+) -> PropertyIdentity | None:
+    """Match heurístico imóvel-do-informe → PropertyIdentity por endereço (substring)."""
+    endereco_informe = (imovel.get("endereco") or "").strip().lower()
+    if not endereco_informe:
+        return None
+    candidates = [i for i in identities if (i.endereco_canonical or "").strip()]
+    for ident in candidates:
+        canonical = ident.endereco_canonical.strip().lower()
+        if canonical in endereco_informe or endereco_informe in canonical:
+            return ident
+    return None
 
 
 def _get_path(data: dict, *keys: str) -> Any:

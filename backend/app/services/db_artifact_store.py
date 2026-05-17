@@ -98,6 +98,11 @@ _WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset(
         # passa pelo legado). Sem entrada aqui, run que não reprocessa IRPF
         # perde IRPF da última run silenciosamente.
         "extract_irpf_full",
+        # ADR-216 Onda 0.5b — informe anual de imobiliária. Mesma lógica do
+        # IRPF: dataset de referência por ano-base, gerado por upload e
+        # consumido por cascade D9 fonte #1 em S4. Sem fallback workspace,
+        # rerun do pipeline sem reprocessar informes os perderia.
+        "extract_informe_aluguel",
     }
 )
 """Stages cujo artefato é dataset de **referência** (lifecycle por workspace,

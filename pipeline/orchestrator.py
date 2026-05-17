@@ -133,6 +133,7 @@ _STAGE_RUNNERS: Dict[str, tuple[str, str]] = {
     "extract_baseline": ("pipeline.stages.extract_baseline", "run"),
     "consolidate_baseline": ("pipeline.stages.consolidate_baseline", "run"),
     "extract_irpf_full": ("pipeline.stages.extract_irpf_full", "run"),
+    "extract_informe_aluguel": ("pipeline.stages.extract_informe_aluguel", "run"),
     "extract_invoices": ("pipeline.stages.extract_invoices", "run"),
     "extract_statements": ("pipeline.stages.extract_statements", "run"),
     "extract_with_llm": ("pipeline.stages.extract_with_llm", "run"),
