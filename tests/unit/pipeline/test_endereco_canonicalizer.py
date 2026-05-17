@@ -92,7 +92,7 @@ class TestRegressionB1RealDescriptions:
     def test_casa_leonardo_da_vinci_sem_logradouro_returns_none(self):
         descricao = (
             "CASA - LEONARDO DA VINCI 2707, QUADRA 33 LOTE 27, JABAQUARA, "
-            "SAO PAULO/SP - Adquirido de CPF 135.542.328-74 em 12/01/2023 - "
+            "SAO PAULO/SP - Adquirido de CPF 000.000.000-00 em 12/01/2023 - "
             "Valor R$ 80.000,00 - Matrícula 20462"
         )
         assert canonicalize(descricao) is None
