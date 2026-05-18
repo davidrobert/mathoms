@@ -111,8 +111,35 @@ export interface ReportAnalysisData {
   /** N3 — Monte Carlo IF com cone P10/P50/P90. Presente quando workspace
    * tem meta IF configurada. ``exibir_cone`` controla se o chart aparece. */
   if_monte_carlo?: IFMonteCarloData;
+  /** ADR-219 wave 2 — snapshot das premissas econômicas vigentes na data do
+   *  run (auditoria fiduciária). Ausente em runs antigos pré-ADR-219;
+   *  UI degrada com empty state. */
+  premissas_economicas?: PremissasEconomicasData;
   // Extensibilidade para chaves ainda não tipadas
   [key: string]: unknown;
+}
+
+/** ADR-219 — Premissas econômicas auditáveis snapshotadas no payload E5.
+ *
+ *  Status ``parcial`` quando pelo menos uma classe está ``indisponivel``
+ *  (sem premissa vigente). Valores em string (Decimal no wire, ADR-090).
+ */
+export interface PremissasEconomicasData {
+  status: "completo" | "parcial";
+  snapshot_at: string;
+  classes: PremissasEconomicasClassRow[];
+}
+
+export interface PremissasEconomicasClassRow {
+  classe_auvp: string;
+  status: "emitted" | "indisponivel";
+  retorno_real_esperado_pct_anual: string | null;
+  sigma_anual_pct: string | null;
+  fonte: string | null;
+  fonte_origem: "global" | "workspace_override" | null;
+  effective_from: string | null;
+  justificativa: string | null;
+  razao_indisponivel: string | null;
 }
 
 /** N3 — Monte Carlo IF: cone de probabilidade P10/P50/P90.
