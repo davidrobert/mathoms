@@ -59,12 +59,24 @@ export interface Risco {
   confianca: Confianca | null;
 }
 
+/** ADR-220: tipagem semântica do impacto. Evita confundir fluxo anual com
+ *  patrimônio-alvo (estoque pela regra 25× IF). */
+export type ImpactoTipo =
+  | "patrimonio_alvo"
+  | "fluxo_anual"
+  | "economia_anual_irpf"
+  | "gap_protecao"
+  | "outro";
+
 export interface ImpactoEstimado {
   /** Decimal string (ex.: "150000.00") — LLM emite só com confianca='alta'.
    *  Frontend converte via `Number()` na renderização via `<MonetaryValue/>`. */
   valor_estimado_brl: string;
   unidade: UnidadeImpacto;
   caveat: string;
+  /** ADR-220: tipagem opcional do impacto. Ausente em runs pré-ADR-220 —
+   *  renderer trata como "outro" e mantém label legado "Impacto estimado". */
+  tipo?: ImpactoTipo | null;
 }
 
 export interface Sugestao {
@@ -78,6 +90,9 @@ export interface Sugestao {
   suggestion_dedup_key: string;
   impacto_estimado: ImpactoEstimado | null;
   evidencia_path: string | null;
+  /** ADR-220: categoria editorial da sugestão (natureza do impacto), ortogonal
+   *  a tema_canonico (tema = metodologia; categoria = natureza). */
+  categoria_sugestao?: ImpactoTipo | null;
 }
 
 export interface Metrica {

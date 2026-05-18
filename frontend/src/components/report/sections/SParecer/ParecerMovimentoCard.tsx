@@ -9,7 +9,7 @@ import { useState } from "react";
 import { ArrowRight, Check, ChevronDown, X } from "lucide-react";
 
 import { MonetaryValue } from "../../MonetaryValue";
-import type { Prioridade, Sugestao } from "@/lib/api";
+import type { ImpactoTipo, Prioridade, Sugestao } from "@/lib/api";
 import { useSuggestionActions } from "@/hooks/useSuggestionActions";
 
 const PRIORIDADE_TONE: Record<Prioridade, { token: string; label: string }> = {
@@ -17,6 +17,21 @@ const PRIORIDADE_TONE: Record<Prioridade, { token: string; label: string }> = {
   P1: { token: "var(--semantic-alert)", label: "Importante" },
   P2: { token: "var(--semantic-info-financial)", label: "Oportunidade" },
 };
+
+// ADR-220: label semântico do impacto por tipo. Evita "Impacto estimado: R$ X"
+// genérico que confunde fluxo com estoque. Fallback para "outro" / ausente.
+const IMPACTO_TIPO_LABEL: Record<ImpactoTipo, string> = {
+  patrimonio_alvo: "Patrimônio-alvo",
+  fluxo_anual: "Fluxo anual estimado",
+  economia_anual_irpf: "Economia anual em IR",
+  gap_protecao: "Capital de seguro faltante",
+  outro: "Impacto estimado",
+};
+
+function impactoLabel(tipo: ImpactoTipo | null | undefined): string {
+  if (tipo == null) return IMPACTO_TIPO_LABEL.outro;
+  return IMPACTO_TIPO_LABEL[tipo] ?? IMPACTO_TIPO_LABEL.outro;
+}
 
 type DismissReason = "nao_se_aplica" | "discordo_diagnostico" | "outro";
 const DISMISS_REASONS: Array<{ value: DismissReason; label: string }> = [
@@ -126,15 +141,17 @@ export function ParecerMovimentoCard({
       {impactoEstimado && (
         <p className="mt-2 text-xs">
           <span className="text-[var(--surface-muted-foreground)]">
-            Impacto estimado:{" "}
+            {impactoLabel(impactoEstimado.tipo)}:{" "}
           </span>
           <MonetaryValue
             value={Number(impactoEstimado.valor_estimado_brl)}
             size="body"
           />
-          <span className="text-[var(--surface-muted-foreground)]">
-            {" "}/ {impactoEstimado.unidade === "ano" ? "ano" : "mês"}
-          </span>
+          {impactoEstimado.tipo !== "patrimonio_alvo" && (
+            <span className="text-[var(--surface-muted-foreground)]">
+              {" "}/ {impactoEstimado.unidade === "ano" ? "ano" : "mês"}
+            </span>
+          )}
           <span
             className="ml-1 text-[10px] text-[var(--surface-muted-foreground)]"
             title={impactoEstimado.caveat}
