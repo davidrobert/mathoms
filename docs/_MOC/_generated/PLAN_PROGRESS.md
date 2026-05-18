@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-12 planos detectados em [`docs/plan/`](../../plan/).
+13 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -91,6 +91,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A11
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-183]]
+
+### PLAN-market-rates-ingestion — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto
+
+- Status: `draft` · Sprint atual: A12
+- Sprints envolvidas: A12
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-221]]
 
 ### PLAN-residencia-e-uso — Residência e uso econômico de imóveis — override DB substitui keyword
 
