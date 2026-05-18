@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 48
+**Total de tabelas:** 51
 
 ---
 
@@ -22,6 +22,8 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`decision_events`](#decisionevents)
 - [`decisions`](#decisions)
 - [`documents`](#documents)
+- [`economic_asset_class`](#economicassetclass)
+- [`economic_assumptions`](#economicassumptions)
 - [`family_members`](#familymembers)
 - [`feature_flags`](#featureflags)
 - [`fiscal_parameters`](#fiscalparameters)
@@ -55,6 +57,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`transfer_configs`](#transferconfigs)
 - [`users`](#users)
 - [`workspace_category_overrides`](#workspacecategoryoverrides)
+- [`workspace_economic_assumptions_override`](#workspaceeconomicassumptionsoverride)
 - [`workspace_invitations`](#workspaceinvitations)
 - [`workspace_members`](#workspacemembers)
 - [`workspace_notes`](#workspacenotes)
@@ -327,6 +330,48 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_documents_status` (status)
 - `ix_documents_workspace_id` (workspace_id)
 - UNIQUE `ux_documents_workspace_content_hash` (workspace_id, content_hash)
+
+### `economic_asset_class`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `code` | `VARCHAR(40)` | no | — | PK |
+| `label` | `VARCHAR(120)` | no | — | — |
+| `sort_order` | `INTEGER` | no | — | INDEX |
+| `active` | `BOOLEAN` | no | `True` | INDEX |
+| `deprecated_at` | `DATETIME` | yes | — | — |
+| `description` | `TEXT` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Indexes:**
+
+- `ix_economic_asset_class_active` (active)
+- `ix_economic_asset_class_sort_order` (sort_order)
+
+### `economic_assumptions`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `classe_auvp` | `VARCHAR(40)` | no | — | FK→economic_asset_class.code, INDEX |
+| `retorno_real_esperado_pct_anual` | `NUMERIC(6, 3)` | no | — | — |
+| `sigma_anual_pct` | `NUMERIC(6, 3)` | no | — | — |
+| `fonte` | `TEXT` | no | — | — |
+| `effective_from` | `DATE` | no | — | INDEX |
+| `effective_to` | `DATE` | yes | — | INDEX |
+| `created_by` | `VARCHAR(255)` | no | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (classe_auvp) REFERENCES economic_asset_class.code ON DELETE RESTRICT — `(unnamed)`
+- UNIQUE (classe_auvp, effective_from) — `uq_economic_assumptions_classe_from`
+
+**Indexes:**
+
+- `ix_economic_assumptions_classe_auvp` (classe_auvp)
+- `ix_economic_assumptions_effective_from` (effective_from)
+- `ix_economic_assumptions_effective_to` (effective_to)
 
 ### `family_members`
 
@@ -1177,6 +1222,35 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_workspace_category_overrides_template_key` (template_key)
 - `ix_workspace_category_overrides_workspace_id` (workspace_id)
 
+### `workspace_economic_assumptions_override`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `classe_auvp` | `VARCHAR(40)` | no | — | FK→economic_asset_class.code, INDEX |
+| `retorno_real_esperado_pct_anual` | `NUMERIC(6, 3)` | no | — | — |
+| `sigma_anual_pct` | `NUMERIC(6, 3)` | no | — | — |
+| `fonte` | `TEXT` | no | — | — |
+| `justificativa` | `TEXT` | no | — | — |
+| `effective_from` | `DATE` | no | — | INDEX |
+| `effective_to` | `DATE` | yes | — | — |
+| `created_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (classe_auvp) REFERENCES economic_asset_class.code ON DELETE RESTRICT — `(unnamed)`
+- FOREIGN KEY (created_by_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, classe_auvp, effective_from) — `uq_ws_econ_override_ws_classe_from`
+
+**Indexes:**
+
+- `ix_workspace_economic_assumptions_override_classe_auvp` (classe_auvp)
+- `ix_workspace_economic_assumptions_override_effective_from` (effective_from)
+- `ix_workspace_economic_assumptions_override_workspace_id` (workspace_id)
+
 ### `workspace_invitations`
 
 | Column | Type | Nullable | Default | Tags |
@@ -1559,6 +1633,36 @@ type Document struct {
 	PipelineLastRunAt *time.Time `db:"pipeline_last_run_at" json:"pipeline_last_run_at"`
 	PipelineE2ExtractOk *bool `db:"pipeline_e2_extract_ok" json:"pipeline_e2_extract_ok"`
 	PipelineExtractNotes *string `db:"pipeline_extract_notes" json:"pipeline_extract_notes"`
+}
+```
+
+### `economic_asset_class` → `type EconomicAssetClas struct`
+
+```go
+type EconomicAssetClas struct {
+	Code string `db:"code" json:"code"`
+	Label string `db:"label" json:"label"`
+	SortOrder int `db:"sort_order" json:"sort_order"`
+	Active bool `db:"active" json:"active"`
+	DeprecatedAt *time.Time `db:"deprecated_at" json:"deprecated_at"`
+	Description *string `db:"description" json:"description"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `economic_assumptions` → `type EconomicAssumption struct`
+
+```go
+type EconomicAssumption struct {
+	Id string `db:"id" json:"id"`
+	ClasseAuvp string `db:"classe_auvp" json:"classe_auvp"`
+	RetornoRealEsperadoPctAnual decimal.Decimal `db:"retorno_real_esperado_pct_anual" json:"retorno_real_esperado_pct_anual"`
+	SigmaAnualPct decimal.Decimal `db:"sigma_anual_pct" json:"sigma_anual_pct"`
+	Fonte string `db:"fonte" json:"fonte"`
+	EffectiveFrom time.Time `db:"effective_from" json:"effective_from"`
+	EffectiveTo *time.Time `db:"effective_to" json:"effective_to"`
+	CreatedBy string `db:"created_by" json:"created_by"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
 
@@ -2134,6 +2238,24 @@ type WorkspaceCategoryOverride struct {
 	UpdatedByUserId *string `db:"updated_by_user_id" json:"updated_by_user_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `workspace_economic_assumptions_override` → `type WorkspaceEconomicAssumptionsOverride struct`
+
+```go
+type WorkspaceEconomicAssumptionsOverride struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	ClasseAuvp string `db:"classe_auvp" json:"classe_auvp"`
+	RetornoRealEsperadoPctAnual decimal.Decimal `db:"retorno_real_esperado_pct_anual" json:"retorno_real_esperado_pct_anual"`
+	SigmaAnualPct decimal.Decimal `db:"sigma_anual_pct" json:"sigma_anual_pct"`
+	Fonte string `db:"fonte" json:"fonte"`
+	Justificativa string `db:"justificativa" json:"justificativa"`
+	EffectiveFrom time.Time `db:"effective_from" json:"effective_from"`
+	EffectiveTo *time.Time `db:"effective_to" json:"effective_to"`
+	CreatedByUserId *string `db:"created_by_user_id" json:"created_by_user_id"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
 
