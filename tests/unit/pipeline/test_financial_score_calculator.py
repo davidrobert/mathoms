@@ -134,11 +134,13 @@ def _calculate_default(default_calc: FinancialScoreCalculator) -> dict:
 
 def test_calculate_output_shape(default_calc: FinancialScoreCalculator):
     # v2.E.7: breakdown/formula/context/conclusion novos para o ScoreCard premium.
+    # ADR-217 D3: score_version adicionado para versionar a fórmula no payload.
     result = _calculate_default(default_calc)
     assert set(result.keys()) == {
         "valor",
         "max",
         "classificacao",
+        "score_version",
         "componentes",
         "breakdown",
         "formula",
@@ -159,7 +161,8 @@ def test_componentes_have_nome_valor_peso_nota(default_calc: FinancialScoreCalcu
         goals={"if_pct": 40},
     )
     for comp in result["componentes"]:
-        assert set(comp.keys()) == {"nome", "valor", "peso", "nota"}
+        # ADR-217 D2 adicionou `code` + `status`; demais campos preservados.
+        assert set(comp.keys()) == {"code", "nome", "valor", "peso", "nota", "status"}
 
 
 def test_diversificacao_counts_positive_valor_only(default_calc: FinancialScoreCalculator):

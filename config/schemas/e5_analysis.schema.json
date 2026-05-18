@@ -9,10 +9,36 @@
     "data_analise": {"type": "string"},
     "score": {
       "type": "object",
+      "description": "ADR-217: score patrimonial canônico (service puro em pipeline/domain/services/score_calculator.py). score_version trava a fórmula no payload — bump exige ADR sucessora. Renderer ScoreCard consome via components[i].status para distinguir 'emitted' (dado presente) de 'absent_normalized' (componente declarado mas sem dado — peso vira penalidade natural).",
       "required": ["valor", "classificacao"],
       "properties": {
         "valor": {"type": "number", "minimum": 0, "maximum": 10},
-        "classificacao": {"type": "string"}
+        "max": {"type": "number"},
+        "classificacao": {"type": "string"},
+        "score_version": {
+          "type": "string",
+          "description": "ADR-217 D3: identificador da fórmula. '1.0-legacy' = fórmula 5 componentes pré-ADR-218 (Cerbasi/Perini). Bump quando ADR sucessora alterar pesos/composição."
+        },
+        "formula": {"type": "string"},
+        "componentes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["nome", "valor", "peso", "nota"],
+            "properties": {
+              "code": {"type": "string"},
+              "nome": {"type": "string"},
+              "valor": {"type": ["number", "string"]},
+              "peso": {"type": "number"},
+              "nota": {"type": "number"},
+              "status": {
+                "type": "string",
+                "enum": ["emitted", "absent_normalized", "absent_penalized"]
+              },
+              "unidade": {"type": ["string", "null"]}
+            }
+          }
+        }
       }
     },
     "patrimonio": {

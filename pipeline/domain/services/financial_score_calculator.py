@@ -23,6 +23,11 @@ from dataclasses import dataclass
 
 from pipeline.domain.services.patrimonio_types import safe_float
 
+# ADR-217 D3: score_version trava a fórmula no payload. Bump exige ADR sucessora.
+# "1.0-legacy" = composição A6d.3.3 / scoring.json (5 componentes Cerbasi/Perini).
+# Wave 1 (ADR-218 implementada) → "2.0" com reserva_emergencia.meses_cobertos_essencial.
+SCORE_VERSION = "1.0-legacy"
+
 # =============================================================================
 # Utilities
 # =============================================================================
@@ -199,38 +204,7 @@ class FinancialScoreCalculator:
         consumido — o score depende só de ``ratios`` + ``goals`` + ``patrimonio``.
         """
         del fluxo  # parity-only
-        cfg = self._config
-
-        taxa_poup = safe_float(ratios.get("taxa_poupanca_recorrente_pct", 0))
-        cobertura = safe_float(ratios.get("cobertura_despesas_meses", 0))
-        endiv = safe_float(ratios.get("taxa_endividamento_pct", 0))
-        if_pct = safe_float(goals.get("if_pct", 0))
-
-        composicao = patrimonio.get("composicao", []) or []
-        num_cats = sum(1 for c in composicao if safe_float(c.get("valor", 0)) > 0)
-
-        score_poup = linear_interpolate(
-            taxa_poup, cfg.taxa_poupanca.range_min, cfg.taxa_poupanca.range_max
-        )
-        score_cobertura = linear_interpolate(
-            cobertura, cfg.cobertura.range_min, cfg.cobertura.range_max
-        )
-        score_endiv = self._interpolate_with_inversion(endiv, cfg.endividamento)
-        score_if = linear_interpolate(
-            if_pct, cfg.progresso_if.range_min, cfg.progresso_if.range_max
-        )
-        score_diversif = linear_interpolate(
-            num_cats, cfg.diversificacao.range_min, cfg.diversificacao.range_max
-        )
-
-        componentes = [
-            self._componente_dict(cfg.taxa_poupanca, taxa_poup, score_poup),
-            self._componente_dict(cfg.cobertura, cobertura, score_cobertura),
-            self._componente_dict(cfg.endividamento, endiv, score_endiv),
-            self._componente_dict(cfg.progresso_if, if_pct, score_if),
-            self._componente_dict(cfg.diversificacao, num_cats, score_diversif),
-        ]
-
+        componentes = self._build_componentes(ratios=ratios, patrimonio=patrimonio, goals=goals)
         total_peso = sum(c["peso"] for c in componentes)
         valor_score = (
             sum(c["nota"] * c["peso"] for c in componentes) / total_peso if total_peso > 0 else 0.0
@@ -247,6 +221,7 @@ class FinancialScoreCalculator:
             "valor": valor_score,
             "max": 10,
             "classificacao": classificacao,
+            "score_version": SCORE_VERSION,
             "componentes": componentes,
             "breakdown": breakdown,
             "formula": formula,
@@ -255,6 +230,32 @@ class FinancialScoreCalculator:
         }
 
     # -------------------------------------------------------------------------
+
+    def _build_componentes(self, *, ratios: dict, patrimonio: dict, goals: dict) -> list[dict]:
+        observed = self._observed_values(ratios=ratios, patrimonio=patrimonio, goals=goals)
+        cfg = self._config
+        return [
+            self._grade(cfg.taxa_poupanca, observed["taxa_poup"]),
+            self._grade(cfg.cobertura, observed["cobertura"]),
+            self._grade(cfg.endividamento, observed["endiv"]),
+            self._grade(cfg.progresso_if, observed["if_pct"]),
+            self._grade(cfg.diversificacao, observed["num_cats"]),
+        ]
+
+    @staticmethod
+    def _observed_values(*, ratios: dict, patrimonio: dict, goals: dict) -> dict[str, float]:
+        composicao = patrimonio.get("composicao", []) or []
+        return {
+            "taxa_poup": safe_float(ratios.get("taxa_poupanca_recorrente_pct", 0)),
+            "cobertura": safe_float(ratios.get("cobertura_despesas_meses", 0)),
+            "endiv": safe_float(ratios.get("taxa_endividamento_pct", 0)),
+            "if_pct": safe_float(goals.get("if_pct", 0)),
+            "num_cats": sum(1 for c in composicao if safe_float(c.get("valor", 0)) > 0),
+        }
+
+    def _grade(self, comp: ScoreComponent, observed: float) -> dict:
+        nota = self._interpolate_with_inversion(observed, comp)
+        return self._componente_dict(comp, observed, nota)
 
     @staticmethod
     def _interpolate_with_inversion(val: float, comp: ScoreComponent) -> float:
@@ -265,11 +266,17 @@ class FinancialScoreCalculator:
 
     @staticmethod
     def _componente_dict(comp: ScoreComponent, valor: float, nota: float) -> dict:
+        # ADR-217 D2: status enum distingue 'emitted' (dado presente) de
+        # 'absent_normalized' (dado faltando — peso vira penalidade natural).
+        # Wave 0 trata todos como 'emitted' porque safe_float() coerce missing
+        # para 0; wave futura (ADR-218) distingue ausência real via Optional.
         return {
+            "code": comp.key,
             "nome": comp.nome_display,
             "valor": round(valor, 2),
             "peso": comp.peso,
             "nota": round(nota, 1),
+            "status": "emitted",
         }
 
     def _classify(self, valor_score: float) -> str:
