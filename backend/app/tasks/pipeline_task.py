@@ -486,6 +486,9 @@ def _setup_run_context(
     from backend.app.services.db_property_identity_resolver import (
         DBPropertyIdentityResolver,
     )
+    from backend.app.services.db_property_overrides_resolver import (
+        DBPropertyOverridesResolver,
+    )
     from backend.app.services.pipeline_adapter import (
         build_config_overrides_from_db,
         build_config_store,
@@ -500,6 +503,11 @@ def _setup_run_context(
     property_identity_resolver = DBPropertyIdentityResolver(session=config_store_session)
     # ADR-219 wave 2: resolver de premissas econômicas para E5 snapshot.
     economic_assumptions_resolver = DBEconomicAssumptionsResolver(session=config_store_session)
+    # ADR-215 P3 (fix de conexão): resolver de classificação user-driven —
+    # conecta `workspace_property_overrides` (gravado via P4/P5) ao split
+    # lazy em `PatrimonioCalculator`. Sem isso, override do usuário fica
+    # órfão e relatório continua zerando linha "Residência" silenciosamente.
+    property_overrides_resolver = DBPropertyOverridesResolver(session=config_store_session)
 
     ctx = WorkspaceContext.for_tenant(
         tenant_root,
@@ -510,6 +518,7 @@ def _setup_run_context(
         config_store=config_store,
         property_identity_resolver=property_identity_resolver,
         economic_assumptions_resolver=economic_assumptions_resolver,
+        property_overrides_resolver=property_overrides_resolver,
     )
     ctx.incremental = incremental
     ctx.incremental_doc_paths = incremental_doc_paths or []

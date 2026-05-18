@@ -20,6 +20,7 @@ if TYPE_CHECKING:
         ConfigStore,
         EconomicAssumptionsResolver,
         PropertyIdentityResolver,
+        PropertyOverridesResolver,
     )
 
 
@@ -86,6 +87,16 @@ class WorkspaceContext:
     #: fiduciária). ``None`` → E5 emite ``premissas_economicas`` ausente
     #: (UI degrada — compat com testes/CLI legados).
     economic_assumptions_resolver: Optional["EconomicAssumptionsResolver"] = field(
+        default=None, repr=False
+    )
+
+    #: ``PropertyOverridesResolver`` injetável (ADR-215 P3). Permite ao E5
+    #: ler `workspace_property_overrides` e injetar
+    #: `PatrimonioConfig.property_classification_overrides` — o que conecta o
+    #: lazy split (`PatrimonioCalculator._split_imoveis`) à classificação
+    #: persistida via P4/P5 (endpoint + MembersTab). ``None`` → calculator cai
+    #: no fallback `residencia_keyword` (compat com CLI/testes legados).
+    property_overrides_resolver: Optional["PropertyOverridesResolver"] = field(
         default=None, repr=False
     )
 
@@ -193,6 +204,7 @@ class WorkspaceContext:
         config_store: Optional["ConfigStore"] = None,
         property_identity_resolver: Optional["PropertyIdentityResolver"] = None,
         economic_assumptions_resolver: Optional["EconomicAssumptionsResolver"] = None,
+        property_overrides_resolver: Optional["PropertyOverridesResolver"] = None,
     ) -> WorkspaceContext:
         """Contexto para tenant web com config do banco de dados.
 
@@ -220,4 +232,5 @@ class WorkspaceContext:
             config_store=config_store,
             property_identity_resolver=property_identity_resolver,
             economic_assumptions_resolver=economic_assumptions_resolver,
+            property_overrides_resolver=property_overrides_resolver,
         )

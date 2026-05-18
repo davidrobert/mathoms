@@ -67,8 +67,16 @@ Após este plano, ao subir IRPF novo (ou abrir MembersTab em workspace dogfood),
 - **P3 Domain (lazy split + classifier)** ✅ shipped 2026-05-15 (#289, 73f590d)
 - **P4 Backend API (overrides + heurística)** ✅ shipped 2026-05-15 (#291, ad7215e)
 - **P5 UX MembersTab + esconde Residência R$ 0,00** ✅ shipped 2026-05-15 (#292)
-- **P6 Cutover legado + pre-commit gate** 🚧 este PR
+- **P6 Cutover legado + pre-commit gate** ✅ shipped 2026-05-15 (#293)
+- **Fix-B1/B2/B3 + DBPropertyIdentityResolver commit eager** ✅ shipped 2026-05-17/18 (#300, #302, #303, #311)
+- **P3-connection fix — `PropertyOverridesResolver` ligando DB ao calculator** 🚧 este PR ([[ADR-215]] §6)
 - **Quick fix paralelo:** descartado pelo usuário em favor da solução completa.
+
+### Gap descoberto pós-P6 (2026-05-18)
+
+Auditoria revelou que P3 entregou `PatrimonioConfig.property_classification_overrides` (campo + lazy split via `split_imoveis_with_overrides`) e P4/P5 entregaram a escrita end-to-end (endpoint + UI), **mas o caminho de leitura DB → adapter → calculator nunca foi conectado**. Resultado: usuário marca residência via MembersTab, o DB grava `WorkspacePropertyOverride` corretamente, mas a próxima rodada do pipeline E5 ignora silenciosamente — o relatório continua zerando a linha "Residência".
+
+A correção introduz `PropertyOverridesResolver` (`pipeline/ports/`) + `DBPropertyOverridesResolver` (sync, espelhando `DBPropertyIdentityResolver`) + injeção via `WorkspaceContext` (igual a `economic_assumptions_resolver`, ADR-219 wave 2). Adapter `E5AnalyzerAdapter.from_configs` agora aceita `property_classification_overrides`, e `scripts/e5_analyze._e5_build_adapter` lê via `ctx.property_overrides_resolver.list_for_workspace(ctx.workspace_id)`. Sem isto, **o sunset do Bloco A (`residencia_principal_keyword`) deletaria a única fonte funcional** de classificação de residência em produção.
 
 ## Fases (MVP V1)
 

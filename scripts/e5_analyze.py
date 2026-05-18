@@ -2839,6 +2839,23 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
     fiscal_parameters = None
     cambio_usd_brl = None
     cambio_eur_brl = None
+    property_classification_overrides: dict[str, str] = {}
+    # ADR-215 P3 (fix de conexão): lê overrides DB-first via resolver injetado
+    # no `ctx`. Sem isso, `PatrimonioConfig.property_classification_overrides`
+    # fica vazio e o split lazy cai no fallback keyword (legado) — usuário marca
+    # residência via UI (P5) mas o relatório continua zerando a linha.
+    overrides_resolver = (
+        getattr(ctx, "property_overrides_resolver", None) if ctx is not None else None
+    )
+    ws_id = getattr(ctx, "workspace_id", None) if ctx is not None else None
+    if overrides_resolver is not None and ws_id:
+        try:
+            property_classification_overrides = overrides_resolver.list_for_workspace(ws_id)
+        except Exception as exc:  # pragma: no cover — fallback transparente
+            print(
+                f"  [warn] property_overrides_resolver.list_for_workspace falhou ({exc}); "
+                "split de imóveis cai no fallback keyword"
+            )
     cs = getattr(ctx, "config_store", None) if ctx is not None else None
     if cs is not None:
         try:
@@ -2872,6 +2889,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         fiscal_parameters=fiscal_parameters,
         cambio_usd_brl=cambio_usd_brl,
         cambio_eur_brl=cambio_eur_brl,
+        property_classification_overrides=property_classification_overrides,
     )
 
 

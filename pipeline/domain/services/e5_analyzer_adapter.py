@@ -332,6 +332,7 @@ class E5AnalyzerAdapter:
         fiscal_parameters: FiscalParameters | None = None,
         cambio_usd_brl: Decimal | float | None = None,
         cambio_eur_brl: Decimal | float | None = None,
+        property_classification_overrides: dict[str, str] | None = None,
     ) -> "E5AnalyzerAdapter":
         """Constrói o adapter com todas as configs + services instanciados.
 
@@ -351,9 +352,16 @@ class E5AnalyzerAdapter:
         """
         member_cfg = MemberResolverConfig.from_family(family)
         identity = cls._build_identity(family, member_cfg)
+        # ADR-215 P3 (fix de conexão): se `property_classification_overrides`
+        # vier injetado (pipeline DB-first via `ctx.property_overrides_resolver`),
+        # o split lazy em `PatrimonioCalculator._split_imoveis` honra a
+        # classificação user-driven gravada via P4/P5. Keyword fica como
+        # fallback estrito para workspaces/CLI sem overrides — alvo de Bloco A
+        # (sunset) após confirmação que o caminho novo está funcionando.
         patrimonio_cfg = PatrimonioConfig(
             members=identity,
             residencia_keyword=cls._extract_residencia_keyword(family, member_cfg),
+            property_classification_overrides=property_classification_overrides or {},
         )
         reserva_cfg = ReservaEmergenciaConfig.from_scoring_json(scoring or {}, identity)
         score_cfg = FinancialScoreConfig.from_scoring_json(scoring or {})

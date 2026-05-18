@@ -123,6 +123,26 @@ class TestAdapterConstruction:
         assert adapter._pontos_fortes is not None
         assert adapter._pontos_urgentes is not None
 
+    def test_from_configs_propagates_property_classification_overrides(self):
+        # ADR-215 P3 (fix de conexão): overrides DB-first chegam ao
+        # `PatrimonioConfig` via `from_configs(property_classification_overrides=...)`.
+        # Sem esta propagação, o split lazy em `PatrimonioCalculator._split_imoveis`
+        # ignora a classificação user-driven gravada pelo endpoint P4 / UI P5.
+        overrides = {
+            "prop-abc": "residencia_principal",
+            "prop-def": "uso_pessoal",
+        }
+        adapter = E5AnalyzerAdapter.from_configs(
+            property_classification_overrides=overrides,
+        )
+        assert adapter._patrimonio._config.property_classification_overrides == overrides
+
+    def test_from_configs_default_overrides_empty_dict(self):
+        # Sem `property_classification_overrides` (CLI legado / teste isolado),
+        # field default é dict vazio — calculator cai no fallback keyword.
+        adapter = E5AnalyzerAdapter.from_configs()
+        assert adapter._patrimonio._config.property_classification_overrides == {}
+
 
 class TestAnalyzeViaStore:
     def test_minimal_store_returns_result(self):
