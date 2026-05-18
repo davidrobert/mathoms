@@ -37,6 +37,7 @@ import { TriggerCard } from "./_components/TriggerCard";
 import { NeedsReviewCard } from "./_components/NeedsReviewCard";
 import { RunHistoryList } from "./_components/RunHistoryList";
 import { useDeepLinkScroll } from "./_components/useDeepLinkScroll";
+import { deriveFailedStage } from "./_components/failedStage";
 import {
   getDismissedFailedRunId,
   setDismissedFailedRunId,
@@ -343,7 +344,10 @@ function PipelinePageContent({ workspace }: { workspace: UserWorkspace }) {
           <FailedRunCard
             run={lastFailedRun}
             onRetry={() => handleTrigger()}
-            onRetryFrom={lastFailedRun.failed_at_stage ? () => handleTrigger(lastFailedRun.failed_at_stage!) : undefined}
+            onRetryFrom={(() => {
+              const failedStage = deriveFailedStage(lastFailedRun);
+              return failedStage ? () => handleTrigger(failedStage) : undefined;
+            })()}
             onDismiss={() => {
               setDismissedFailedRunId(lastFailedRun.id);
               setLastFailedRun(null);
