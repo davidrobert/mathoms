@@ -81,13 +81,10 @@ class TestCanonicalize:
 
 
 class TestRegressionB1RealDescriptions:
-    """Fixtures reais do workspace 5@5.com — ADR-215 fix-B1.
-
-    Antes do fix, `R$ 80.000,00` virava `rua 80 000 00` (porque `\\br\\b`
-    matchava o "r" solto), e o regex extraía `(via="8", numero="0")` ou
-    `("4", "77")`, gerando `endereco_canonical` falso para imóveis sem
-    logradouro estruturado real.
-    """
+    """Fixtures reais do workspace 5@5.com — ADR-215 fix-B1."""
+    # Antes do fix, "R$ 80.000,00" virava "rua 80 000 00" (porque \br\b
+    # matchava o "r" solto) e o regex extraía (via="8", numero="0") /
+    # ("4", "77"), gerando endereco_canonical falso.
 
     def test_casa_leonardo_da_vinci_sem_logradouro_returns_none(self):
         descricao = (
