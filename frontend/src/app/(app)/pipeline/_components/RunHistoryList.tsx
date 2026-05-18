@@ -2,6 +2,7 @@
 
 import type { PipelineRunResponse } from "@/lib/api";
 import { HistoryRow } from "./HistoryRow";
+import { deriveFailedStage } from "./failedStage";
 
 const ACTIVE_STATUSES = new Set(["pending", "running", "resuming"]);
 
@@ -30,16 +31,19 @@ export function RunHistoryList({
     <div>
       <h2 className="mb-3 text-lg font-medium">Histórico</h2>
       <div className="space-y-2">
-        {visible.map((run) => (
-          <HistoryRow
-            key={run.id}
-            run={run}
-            highlighted={highlightedRunId === run.id}
-            onRetry={() => onTrigger()}
-            onRetryFrom={run.failed_at_stage ? () => onTrigger(run.failed_at_stage!) : undefined}
-            triggering={triggering}
-          />
-        ))}
+        {visible.map((run) => {
+          const failedStage = deriveFailedStage(run);
+          return (
+            <HistoryRow
+              key={run.id}
+              run={run}
+              highlighted={highlightedRunId === run.id}
+              onRetry={() => onTrigger()}
+              onRetryFrom={failedStage ? () => onTrigger(failedStage) : undefined}
+              triggering={triggering}
+            />
+          );
+        })}
       </div>
     </div>
   );
