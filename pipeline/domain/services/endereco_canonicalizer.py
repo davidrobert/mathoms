@@ -56,16 +56,34 @@ def _strip_accents(text: str) -> str:
     return "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))
 
 
+# Pré-limpeza removida antes da expansão de abreviações. Sem isso, "R$"
+# vira "r$" → `\br\.?\b` matcha o "r" e produz "rua $ 80.000" → o regex
+# de extração captura `(via="8", numero="0")` em descrições com preço.
+_PRE_SUBSTITUTIONS: tuple[tuple[str, str], ...] = (
+    # Currency markers
+    (r"r\$", " "),
+    (r"u\$\s*\$?", " "),  # "U$$" ou "U$" (dólar comum em IRPF)
+)
+
+
 def normalize(text: str) -> str:
     """Lowercase, sem acento, com abreviações expandidas e espaços colapsados."""
     if not text:
         return ""
     out = _strip_accents(text).lower()
+    # Strip currency markers ANTES da expansão de abreviações (B1 fix).
+    for pattern, replacement in _PRE_SUBSTITUTIONS:
+        out = re.sub(pattern, replacement, out)
     for pattern, replacement in _ABBREVIATION_MAP:
         out = re.sub(pattern, replacement, out)
     out = re.sub(r"[^\w\s]", " ", out)
     out = re.sub(r"\s+", " ", out).strip()
     return out
+
+
+def _is_plausible_logradouro(tokens: list[str]) -> bool:
+    """Logradouro real tem pelo menos 1 token alfabético de >=3 chars."""
+    return any(t.isalpha() and len(t) >= 3 for t in tokens)
 
 
 def extract_via_numero(descricao: str) -> Optional[tuple[str, str]]:
@@ -76,7 +94,7 @@ def extract_via_numero(descricao: str) -> Optional[tuple[str, str]]:
         return None
     via_raw, numero = match.group(1), match.group(2)
     via_tokens = [t for t in via_raw.split() if t and t not in _STOPWORDS]
-    if not via_tokens:
+    if not via_tokens or not _is_plausible_logradouro(via_tokens):
         return None
     return (" ".join(via_tokens), numero)
 
