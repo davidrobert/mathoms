@@ -64,10 +64,14 @@ def test_coerce_decimal_aceita_string_e_int():
     assert _coerce_decimal(Decimal("9.99")) == Decimal("9.99")
 
 
-def test_coerce_decimal_rejeita_float_adr090():
-    """ADR-090 invariante: float é proibido em campo monetário."""
-    with pytest.raises(TypeError, match="float é proibido"):
-        _coerce_decimal(1234.56)
+def test_coerce_decimal_aceita_float_no_boundary_llm():
+    """JSON do LLM não tem Decimal nativo — float chega aqui literal e é coercido
+    via ``Decimal(str(v))`` (a conversão prescrita pela ADR-090). Regressão do
+    incidente prod 2026-05-18 (run d4f86671): LLM emitiu 7424.71 e 4 retries
+    falharam com TypeError antes deste boundary aceitar float."""
+    assert _coerce_decimal(7424.71) == Decimal("7424.71")
+    assert _coerce_decimal(18543.82) == Decimal("18543.82")
+    assert _coerce_decimal(0.0) == Decimal("0")
 
 
 # ─────────────────────── Schema InformeAluguelImovel ────────────────────────
@@ -107,17 +111,20 @@ def test_imovel_rejeita_endereco_curto():
         _build_imovel(endereco="SP")
 
 
-def test_imovel_rejeita_float_em_campo_monetario():
-    """ADR-090: float em monetário deve falhar via validator."""
-    with pytest.raises((TypeError, ValueError)):
-        InformeAluguelImovel(
-            endereco="Rua Test, 100",
-            aluguel_bruto_anual=25200.50,  # float — proibido
-            taxa_administracao_anual="2520.00",
-            ir_retido_anual="0",
-            aluguel_liquido_anual="22680.00",
-            meses_locado_no_periodo=12,
-        )
+def test_imovel_aceita_float_no_boundary_llm():
+    """Wire JSON do LLM emite number → Python float; o validator coerce via
+    ``Decimal(str(v))`` na borda (ADR-090). Regressão prod 2026-05-18."""
+    im = InformeAluguelImovel(
+        endereco="Rua Test, 100",
+        aluguel_bruto_anual=25200.50,  # float do LLM — aceito no boundary
+        taxa_administracao_anual=2520.00,
+        ir_retido_anual=0.0,
+        aluguel_liquido_anual=22680.50,
+        meses_locado_no_periodo=12,
+    )
+    assert im.aluguel_bruto_anual == Decimal("25200.5")
+    assert im.taxa_administracao_anual == Decimal("2520")
+    assert im.aluguel_liquido_anual == Decimal("22680.5")
 
 
 def test_imovel_indice_reajuste_default_nao_informado():
@@ -157,6 +164,44 @@ def test_imovel_rejeita_additional_properties():
             meses_locado_no_periodo=12,
             campo_inventado="x",  # deve falhar com extra='forbid'
         )
+
+
+def test_extract_aceita_payload_llm_com_numbers_regressao_prod_2026_05_18():
+    """Regressão prod 2026-05-18 (run d4f86671 / workspace 5@5.com): o LLM
+    QuintoAndar emitiu JSON com number (não string) em campos monetários e o
+    schema rejeitou via TypeError, falhando 4 retries. Este teste simula o
+    payload exato (parseado via ``json.loads``, que produz ``float`` para
+    number literals) e confirma que o schema agora aceita."""
+    raw_json = """
+    {
+      "imobiliaria_cnpj": "12345678000190",
+      "imobiliaria_nome": "QuintoAndar Servicos Imobiliarios",
+      "ano_referencia": 2024,
+      "locador_cpf": "98765432100",
+      "imoveis": [
+        {
+          "endereco": "Rua Tasso da Silveira, 61 - Vila Madalena, SP",
+          "iptu_municipal": "123.456.789-0",
+          "locatario_cpf_cnpj": "12345678900",
+          "aluguel_bruto_anual": 7424.71,
+          "taxa_administracao_anual": 742.47,
+          "ir_retido_anual": 0,
+          "iptu_anual_pago": null,
+          "condominio_anual_pago": null,
+          "aluguel_liquido_anual": 6682.24,
+          "meses_locado_no_periodo": 12,
+          "indice_reajuste": "IGPM",
+          "data_ultimo_reajuste": "2024-08"
+        }
+      ],
+      "confidence": 0.95
+    }
+    """
+    parsed = json.loads(raw_json)
+    assert isinstance(parsed["imoveis"][0]["aluguel_bruto_anual"], float)
+    ext = InformeAluguelExtract(**parsed)
+    assert ext.imoveis[0].aluguel_bruto_anual == Decimal("7424.71")
+    assert ext.imoveis[0].aluguel_liquido_anual == Decimal("6682.24")
 
 
 # ─────────────────────── Schema InformeAluguelExtract ───────────────────────
@@ -272,8 +317,10 @@ def test_system_prompt_referencia_rules_metodologicas():
     assert "ir retido" in SYSTEM_PROMPT.lower()
     assert "iptu" in SYSTEM_PROMPT.lower()
     assert "condomínio" in SYSTEM_PROMPT.lower()
-    # ADR-090 / convenção numérica
-    assert "1234.56" in SYSTEM_PROMPT or "ponto" in SYSTEM_PROMPT.lower()
+    # ADR-090 / convenção numérica: valores monetários como string decimal
+    # (entre aspas) — alinha com pattern e16_irpf_full e evita o bug prod
+    # 2026-05-18 onde LLM emitia number e _coerce_decimal rejeitava.
+    assert '"1234.56"' in SYSTEM_PROMPT
 
 
 def test_system_prompt_sigilo_metodologico_adr207():
