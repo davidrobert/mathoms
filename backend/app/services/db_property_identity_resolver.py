@@ -68,6 +68,15 @@ class DBPropertyIdentityResolver:
         )
         self._session.add(row)
         self._session.flush()
+        # Commit imediato libera o writer lock do SQLite (WAL). Sem isso, a
+        # sessão long-lived que respaldou o resolver (compartilhada com
+        # DBConfigStore em pipeline_task._create_workspace_context) segura o
+        # lock até o fim do run e o INSERT do baseline consolidado em
+        # stage_session falha com `database is locked` após busy_timeout (30s).
+        # Repro prod 2026-05-18 run dadb0cd6. property_identity é identificador
+        # globalmente estável — sobrevive a falhas do pipeline by design,
+        # então commit eager é semanticamente correto (ADR-215 P2).
+        self._session.commit()
         return row
 
 

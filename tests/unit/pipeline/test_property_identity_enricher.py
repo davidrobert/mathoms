@@ -146,49 +146,65 @@ class TestEnricher:
         assert len(resolver.all()) == 1
 
 
+def make_db_resolver_fixtures():
+    """Engine in-memory + sessionmaker + 1 User + 1 Workspace (committed)."""
+    import uuid
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    import backend.app.models  # noqa: F401
+    from backend.app.core.database import Base
+    from backend.app.models import User, Workspace
+
+    engine = create_engine("sqlite:///:memory:", future=True)
+    Base.metadata.create_all(engine)
+    SL = sessionmaker(bind=engine, future=True)
+    s, uid, wid = SL(), str(uuid.uuid4()), str(uuid.uuid4())
+    s.add(User(id=uid, email=f"db-{uuid.uuid4().hex[:8]}@t.co", hashed_password="x", full_name="T"))
+    s.add(w := Workspace(id=wid, name="WS", owner_id=uid))
+    s.commit()
+    return SL, s, w
+
+
 class TestDBResolver:
     """Smoke test do DBPropertyIdentityResolver com SQLAlchemy em-memória."""
 
     @pytest.mark.asyncio
     async def test_match_or_create_persists_and_dedupes(self):
-        import uuid
-
-        from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker
-
-        # Models registram-se ao importar.
-        import backend.app.models  # noqa: F401
-        from backend.app.core.database import Base
-        from backend.app.models import User, Workspace
         from backend.app.services.db_property_identity_resolver import (
             DBPropertyIdentityResolver,
         )
         from pipeline.domain.types.property_identity import PropertyLookupKey
 
-        engine = create_engine("sqlite:///:memory:", future=True)
-        Base.metadata.create_all(engine)
-        SessionLocal = sessionmaker(bind=engine, future=True)
-        s = SessionLocal()
-
-        u = User(
-            id=str(uuid.uuid4()),
-            email=f"db-resolver-{uuid.uuid4().hex[:8]}@test.com",
-            hashed_password="x",
-            full_name="Test",
-        )
-        s.add(u)
-        s.flush()
-        w = Workspace(id=str(uuid.uuid4()), name="WS", owner_id=u.id)
-        s.add(w)
-        s.flush()
-
+        _SL, s, w = make_db_resolver_fixtures()
         resolver = DBPropertyIdentityResolver(session=s)
         lookup = PropertyLookupKey(
-            titular_key="david_robert",
-            codigo_rfb="12",
-            endereco_canonical="tasso silveira 61",
+            titular_key="david_robert", codigo_rfb="12", endereco_canonical="tasso silveira 61"
         )
         r1 = resolver.match_or_create(w.id, lookup, 2024, "Casa Tasso 61")
         r2 = resolver.match_or_create(w.id, lookup, 2024, "Casa Tasso 61")
         assert r1.property_id == r2.property_id
         s.close()
+
+    @pytest.mark.asyncio
+    async def test_match_or_create_commits_so_parallel_session_sees_row(self):
+        """Regressão prod 2026-05-18 run dadb0cd6: sem commit no resolver, INSERT pipeline_artifacts paralelo falhava com `database is locked` (30s busy_timeout)."""
+        from sqlalchemy import select
+
+        from backend.app.models import PropertyIdentity
+        from backend.app.services.db_property_identity_resolver import (
+            DBPropertyIdentityResolver,
+        )
+        from pipeline.domain.types.property_identity import PropertyLookupKey
+
+        SessionLocal, long_lived, w = make_db_resolver_fixtures()
+        resolver = DBPropertyIdentityResolver(session=long_lived)
+        lookup = PropertyLookupKey("david_robert", "12", "tasso silveira 61")
+        record = resolver.match_or_create(w.id, lookup, 2024, "Casa Tasso 61")
+        parallel = SessionLocal()
+        stmt = select(PropertyIdentity).where(PropertyIdentity.workspace_id == w.id)
+        rows = parallel.execute(stmt).scalars().all()
+        assert len(rows) == 1 and rows[0].id == record.property_id
+        parallel.close()
+        long_lived.close()
