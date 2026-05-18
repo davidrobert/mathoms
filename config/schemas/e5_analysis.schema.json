@@ -95,6 +95,41 @@
     "irpf_kpis": {"type": "object"},
     "passive_income": {"type": "object"},
     "if_monte_carlo": {"type": "object"},
+    "premissas_economicas": {
+      "type": "object",
+      "description": "Snapshot das premissas econômicas vigentes no momento da emissão (ADR-219 D5). Auditoria fiduciária: relatório de 2026-03 mostra premissa vigente naquela data, não a atual. status 'parcial' = pelo menos uma classe sem premissa vigente.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["completo", "parcial"]
+        },
+        "snapshot_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "classes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["classe_auvp", "status"],
+            "properties": {
+              "classe_auvp": {"type": "string"},
+              "status": {"type": "string", "enum": ["emitted", "indisponivel"]},
+              "retorno_real_esperado_pct_anual": {"type": ["string", "null"]},
+              "sigma_anual_pct": {"type": ["string", "null"]},
+              "fonte": {"type": ["string", "null"]},
+              "fonte_origem": {
+                "type": ["string", "null"],
+                "enum": ["global", "workspace_override", null]
+              },
+              "effective_from": {"type": ["string", "null"], "format": "date"},
+              "justificativa": {"type": ["string", "null"]},
+              "razao_indisponivel": {"type": ["string", "null"]}
+            }
+          }
+        }
+      }
+    },
     "cenarios_conjuge": {
       "type": "object",
       "description": "Cenário de estresse 'Sem renda do cônjuge' (ADR-166 chave universal + ADR-167 eligibility gate). Produzido por CenariosConjugeAnalyzer.to_legacy_dict() em pipeline/domain/services/cenarios_conjuge_analyzer.py. Pode ser objeto vazio ({}) quando o gate de elegibilidade rejeita o workspace (solteiro / 1 renda / casal sem meta IF / casal 95-5).",

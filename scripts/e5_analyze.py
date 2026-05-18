@@ -2998,6 +2998,19 @@ def _e5_load_irpf_kpis(store) -> Dict[str, Any] | None:
     return _e5_kpis_from_analyzer(analyzer, anos[-1])
 
 
+def _e5_build_premissas_economicas(ctx) -> Dict[str, Any] | None:
+    """Snapshot vigente em ``TODAY`` (ADR-219 wave 2). None se resolver ausente."""
+    from pipeline.domain.services.economic_assumptions_snapshot import (
+        build_premissas_economicas_snapshot,
+    )
+
+    return build_premissas_economicas_snapshot(
+        ctx.economic_assumptions_resolver,
+        as_of=TODAY,
+        workspace_id=ctx.workspace_id,
+    )
+
+
 def _e5_compose_output(
     legacy: Dict[str, Any],
     *,
@@ -3009,6 +3022,7 @@ def _e5_compose_output(
     irpf_kpis: Dict[str, Any] | None = None,
     passive_income=None,
     monte_carlo_if=None,
+    premissas_economicas: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     from pipeline.domain.services.e5_serialization import E5OutputInputs, build_e5_output
 
@@ -3039,6 +3053,7 @@ def _e5_compose_output(
         irpf_kpis=irpf_kpis,
         passive_income=passive_income,
         monte_carlo_if=monte_carlo_if,
+        premissas_economicas=premissas_economicas,
     )
     return build_e5_output(output_inputs)
 
@@ -3118,6 +3133,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
 
     warnings = _e5_run_sanity_checks(legacy)
     irpf_kpis = _e5_load_irpf_kpis(store)
+    premissas_economicas = _e5_build_premissas_economicas(ctx)
     output = _e5_compose_output(
         legacy,
         periodo_dados=periodo_dados,
@@ -3128,6 +3144,7 @@ def main_with_store(ctx) -> Dict[str, Any]:
         irpf_kpis=irpf_kpis,
         passive_income=result.passive_income,
         monte_carlo_if=result.monte_carlo_if,
+        premissas_economicas=premissas_economicas,
     )
     _e5_persist(store, ctx, output)
     _e5_print_summary(legacy)
