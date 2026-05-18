@@ -548,14 +548,25 @@ class TestA6d33Wiring:
         assert adapter._identity.titular_key == "carlos"
         assert adapter._identity.conjuge_key == "ana"
 
-    def test_residencia_keyword_extracted(self):
-        family = {
-            "titular": "david",
-            "membros": {"david": {"residencia_principal_keyword": "Rua das Flores"}},
-        }
-        adapter = E5AnalyzerAdapter.from_configs(family=family)
-        # PatrimonioCalculator recebeu config com keyword lowercase
-        assert adapter._patrimonio._config.residencia_keyword == "rua das flores"
+    def test_residencia_property_ids_extracted_from_overrides(self):
+        """ADR-215 §1 sunset: subset `residencia_principal` é extraído de
+        `property_classification_overrides` e propagado para analyzers
+        downstream (`classes`, `top_ativos`, `instituicoes`)."""
+        adapter = E5AnalyzerAdapter.from_configs(
+            property_classification_overrides={
+                "prop-residencia": "residencia_principal",
+                "prop-locado": "locado",
+            }
+        )
+        assert adapter._inv_classes._config.residencia_property_ids == frozenset(
+            {"prop-residencia"}
+        )
+        assert adapter._top_ativos._config.classes_config.residencia_property_ids == frozenset(
+            {"prop-residencia"}
+        )
+        assert adapter._instituicoes._config.classes_config.residencia_property_ids == frozenset(
+            {"prop-residencia"}
+        )
 
     def test_investment_banks_from_institutions(self):
         institutions = {"investment_banks": ["Custom Broker", "Another Bank"]}

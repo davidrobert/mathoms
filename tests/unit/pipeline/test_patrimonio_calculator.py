@@ -39,12 +39,15 @@ def identity_solo() -> MemberIdentity:
 
 @pytest.fixture
 def config(identity: MemberIdentity) -> PatrimonioConfig:
-    return PatrimonioConfig(members=identity, residencia_keyword="apto residência")
+    return PatrimonioConfig(
+        members=identity,
+        property_classification_overrides={"prop-apto-residencia": "residencia_principal"},
+    )
 
 
 @pytest.fixture
 def config_no_keyword(identity: MemberIdentity) -> PatrimonioConfig:
-    return PatrimonioConfig(members=identity, residencia_keyword="")
+    return PatrimonioConfig(members=identity)
 
 
 # =============================================================================
@@ -76,7 +79,7 @@ def test_output_has_all_required_keys(config: PatrimonioConfig):
 
 def test_output_uses_dynamic_inv_keys(identity_solo: MemberIdentity):
     """key_inv_* usa identity dinâmica (``investimentos_<titular_key>``)."""
-    cfg = PatrimonioConfig(members=identity_solo, residencia_keyword="")
+    cfg = PatrimonioConfig(members=identity_solo)
     calc = PatrimonioCalculator(cfg)
     result = calc.calculate(PatrimonioInputs(baseline={"members": {"joao": {}}}))
     assert "investimentos_joao" in result
@@ -97,7 +100,11 @@ def test_irpf_only_basic_totals(config: PatrimonioConfig):
                 "total_dividas": 100_000,
                 "bens": {
                     "imoveis": [
-                        {"descricao": "Apto residência nova", "valor": 500_000},
+                        {
+                            "property_id": "prop-apto-residencia",
+                            "descricao": "Apto residência nova",
+                            "valor": 500_000,
+                        },
                         {"descricao": "Loja aluguel", "valor": 300_000},
                     ],
                     "veiculos": [{"descricao": "Honda", "valor": 50_000}],
@@ -161,40 +168,37 @@ def test_irpf_only_no_keyword_in_config(config_no_keyword: PatrimonioConfig):
     assert result["imoveis_investimento"] == 500_000.0
 
 
-def test_irpf_only_conjuge_imoveis_always_investimento(config: PatrimonioConfig):
-    """Mesmo com keyword match, imóveis do cônjuge vão para investimento."""
+def test_irpf_only_conjuge_imovel_pode_ser_residencia(config: PatrimonioConfig):
+    """ADR-215 §1: residência é da família — imóvel declarado pelo cônjuge
+    pode ter override `residencia_principal` (pré-sunset não permitia)."""
     baseline = {
         "members": {
             "david": {"total_bens": 0, "bens": {}},
             "mariana": {
                 "total_bens": 500_000,
-                "bens": {"imoveis": [{"descricao": "Apto residência nova", "valor": 500_000}]},
+                "bens": {"imoveis": [{"property_id": "prop-apto-residencia", "valor": 500_000}]},
             },
         }
     }
-    calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
-    assert result["residencia"] == 0.0
-    assert result["imoveis_investimento"] == 500_000.0
+    result = PatrimonioCalculator(config).calculate(PatrimonioInputs(baseline=baseline))
+    assert result["residencia"] == 500_000.0
+    assert result["imoveis_investimento"] == 0.0
 
 
 def test_irpf_only_caixa_floored_at_zero(config: PatrimonioConfig):
     """Caixa residual nunca negativa (soma de bens > total_bens declarado)."""
+    bens = {
+        "imoveis": [{"property_id": "prop-apto-residencia", "valor": 500}],
+        "veiculos": [{"valor": 200}],
+        "investimentos": [{"valor": 300}],
+    }
     baseline = {
         "members": {
-            "david": {
-                "total_bens": 100,  # intencionalmente baixo
-                "bens": {
-                    "imoveis": [{"descricao": "apto residência", "valor": 500}],
-                    "veiculos": [{"valor": 200}],
-                    "investimentos": [{"valor": 300}],
-                },
-            },
+            "david": {"total_bens": 100, "bens": bens},  # intencionalmente baixo
             "mariana": {"total_bens": 0, "bens": {}},
         }
     }
-    calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = PatrimonioCalculator(config).calculate(PatrimonioInputs(baseline=baseline))
     assert result["caixa_moeda_estrangeira"] == 0.0
 
 
@@ -276,7 +280,13 @@ def test_current_positions_recomputes_bruto(config: PatrimonioConfig):
             "david": {
                 "total_bens": 999_999_999,  # valor IRPF ignorado!
                 "bens": {
-                    "imoveis": [{"descricao": "apto residência", "valor": 500_000}],
+                    "imoveis": [
+                        {
+                            "property_id": "prop-apto-residencia",
+                            "descricao": "apto residência",
+                            "valor": 500_000,
+                        }
+                    ],
                     "veiculos": [{"valor": 50_000}],
                     "investimentos": [],
                 },
@@ -446,7 +456,13 @@ def test_composicao_sorted_descending(config: PatrimonioConfig):
             "david": {
                 "total_bens": 1_000_000,
                 "bens": {
-                    "imoveis": [{"descricao": "apto residência", "valor": 300_000}],
+                    "imoveis": [
+                        {
+                            "property_id": "prop-apto-residencia",
+                            "descricao": "apto residência",
+                            "valor": 300_000,
+                        }
+                    ],
                     "veiculos": [{"valor": 100_000}],
                     "investimentos": [{"valor": 500_000}],
                 },
@@ -467,7 +483,13 @@ def test_composicao_pct_sums_to_100(config: PatrimonioConfig):
             "david": {
                 "total_bens": 333,  # valor proposital para gerar dízima
                 "bens": {
-                    "imoveis": [{"descricao": "apto residência", "valor": 111}],
+                    "imoveis": [
+                        {
+                            "property_id": "prop-apto-residencia",
+                            "descricao": "apto residência",
+                            "valor": 111,
+                        }
+                    ],
                     "veiculos": [{"valor": 111}],
                     "investimentos": [{"valor": 111}],
                 },
@@ -503,21 +525,18 @@ def test_composicao_alias_tabela_categorias(config: PatrimonioConfig):
 
 
 def test_investivel_excludes_residencia_and_veiculos(config: PatrimonioConfig):
+    bens = {
+        "imoveis": [{"property_id": "prop-apto-residencia", "valor": 400_000}],
+        "veiculos": [{"valor": 100_000}],
+        "investimentos": [{"valor": 500_000}],
+    }
     baseline = {
         "members": {
-            "david": {
-                "total_bens": 1_000_000,
-                "bens": {
-                    "imoveis": [{"descricao": "apto residência", "valor": 400_000}],
-                    "veiculos": [{"valor": 100_000}],
-                    "investimentos": [{"valor": 500_000}],
-                },
-            },
+            "david": {"total_bens": 1_000_000, "bens": bens},
             "mariana": {"total_bens": 0, "bens": {}},
         }
     }
-    calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
+    result = PatrimonioCalculator(config).calculate(PatrimonioInputs(baseline=baseline))
     assert result["investivel"] == 500_000.0  # 1M - 400k residência - 100k veiculos
 
 
@@ -528,7 +547,13 @@ def test_investivel_never_negative(config: PatrimonioConfig):
             "david": {
                 "total_bens": 100,
                 "bens": {
-                    "imoveis": [{"descricao": "apto residência", "valor": 500}],
+                    "imoveis": [
+                        {
+                            "property_id": "prop-apto-residencia",
+                            "descricao": "apto residência",
+                            "valor": 500,
+                        }
+                    ],
                     "veiculos": [{"valor": 300}],
                 },
             },
@@ -560,7 +585,7 @@ def test_dividas_accepts_dividas_alias(config: PatrimonioConfig):
 
 
 def test_solo_identity_no_conjuge_category(identity_solo: MemberIdentity):
-    cfg = PatrimonioConfig(members=identity_solo, residencia_keyword="")
+    cfg = PatrimonioConfig(members=identity_solo)
     calc = PatrimonioCalculator(cfg)
     result = calc.calculate(
         PatrimonioInputs(baseline={"members": {"joao": {"total_bens": 1000, "bens": {}}}})
@@ -592,6 +617,7 @@ def test_calculator_uses_baseline_imoveis_e_veiculos(config: PatrimonioConfig):
     baseline = {
         "imoveis_consolidados": [
             {
+                "property_id": "prop-residencia-fix",
                 "descricao": "APARTAMENTO RESIDÊNCIA",
                 "proprietario": "david",
                 "valores_31_12": {"2024": 800000.0},
@@ -622,7 +648,10 @@ def test_calculator_uses_baseline_imoveis_e_veiculos(config: PatrimonioConfig):
         "dividas": [],
         "patrimonio_por_ano": {"2024": {"total_bens": 1700000.0, "total_dividas": 0.0}},
     }
-    cfg = PatrimonioConfig(members=config.members, residencia_keyword="residência")
+    cfg = PatrimonioConfig(
+        members=config.members,
+        property_classification_overrides={"prop-residencia-fix": "residencia_principal"},
+    )
     calc = PatrimonioCalculator(cfg)
     result = calc.calculate(PatrimonioInputs(baseline=baseline))
 
@@ -666,40 +695,28 @@ def identity_anon() -> MemberIdentity:
 
 @pytest.fixture
 def config_anon(identity_anon: MemberIdentity) -> PatrimonioConfig:
-    return PatrimonioConfig(members=identity_anon, residencia_keyword="rua principal")
+    return PatrimonioConfig(
+        members=identity_anon,
+        property_classification_overrides={"prop-residencia": "residencia_principal"},
+    )
 
 
-def test_adr145_residencia_via_keyword_only_titular(config_anon: PatrimonioConfig):
-    """ADR-145 categoria 1: residência principal = imóvel do titular cuja
-    descrição contém ``residencia_keyword``. Imóveis do cônjuge nunca são
-    residência (vão para imoveis_investimento)."""
+def test_adr145_residencia_via_property_id_override(config_anon: PatrimonioConfig):
+    """ADR-145 cat_1: único imóvel com `property_id` `residencia_principal`."""
+    t_im = [
+        {"property_id": "prop-residencia", "valor": 500_000},
+        {"property_id": "p2", "valor": 100_000},
+    ]
+    c_im = [{"property_id": "p3", "valor": 200_000}]
     baseline = {
         "members": {
-            "titular": {
-                "total_bens": 800_000,
-                "bens": {
-                    "imoveis": [
-                        {"descricao": "ImovelExemplo Rua Principal 100", "valor": 500_000},
-                        {"descricao": "ImovelInvestimentoExemplo", "valor": 100_000},
-                    ],
-                },
-            },
-            "conjuge": {
-                "total_bens": 200_000,
-                "bens": {
-                    "imoveis": [
-                        {"descricao": "ImovelExemplo Rua Principal 200", "valor": 200_000},
-                    ],
-                },
-            },
+            "titular": {"total_bens": 800_000, "bens": {"imoveis": t_im}},
+            "conjuge": {"total_bens": 200_000, "bens": {"imoveis": c_im}},
         }
     }
-    calc = PatrimonioCalculator(config_anon)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
-    assert result["residencia"] == 500_000.0, "residência = só imóvel do titular com keyword"
-    assert (
-        result["imoveis_investimento"] == 300_000.0
-    ), "outros imóveis (titular + cônjuge) → investimento"
+    result = PatrimonioCalculator(config_anon).calculate(PatrimonioInputs(baseline=baseline))
+    assert result["residencia"] == 500_000.0
+    assert result["imoveis_investimento"] == 300_000.0
 
 
 def test_adr145_investimentos_irpf_includes_contas_bancarias(config_anon: PatrimonioConfig):
@@ -740,7 +757,7 @@ def test_adr145_solo_titular_conjuge_bucket_is_zero():
         titular_nome="Titular",
         conjuge_nome="",
     )
-    config_solo = PatrimonioConfig(members=identity_solo_local, residencia_keyword="")
+    config_solo = PatrimonioConfig(members=identity_solo_local)
     baseline = {
         "members": {
             "titular": {

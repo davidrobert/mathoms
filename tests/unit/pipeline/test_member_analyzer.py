@@ -23,20 +23,12 @@ from pipeline.domain.services.member_analyzer import (  # noqa: E402
 # =============================================================================
 
 
-def _imovel(
-    *, valor_irpf=None, valor_31_12=None, valor=None, descricao=None, endereco=None
-) -> dict:
-    out: dict = {}
-    if valor_31_12 is not None:
-        out["valor_31_12_ano_base"] = valor_31_12
-    if valor_irpf is not None:
-        out["valor_irpf"] = valor_irpf
-    if valor is not None:
-        out["valor"] = valor
-    if descricao is not None:
-        out["descricao"] = descricao
-    if endereco is not None:
-        out["endereco"] = endereco
+def _imovel(**fields) -> dict:
+    """Helper: cria dict de imóvel a partir de kwargs, mapeando ``valor_31_12``
+    → ``valor_31_12_ano_base`` (campo canônico no baseline)."""
+    out = {k: v for k, v in fields.items() if v is not None}
+    if "valor_31_12" in out:
+        out["valor_31_12_ano_base"] = out.pop("valor_31_12")
     return out
 
 
@@ -134,23 +126,22 @@ class TestBensFor:
 
 
 class TestAnalyze:
-    def test_classifies_residencia_by_keyword(self):
+    def test_classifies_residencia_by_property_id(self):
         member = {
             "imoveis": [
-                _imovel(valor_irpf=800_000, descricao="Casa Vila Madalena"),
+                _imovel(valor_irpf=800_000, property_id="prop-residencia-vm"),
                 _imovel(valor_irpf=400_000, descricao="Apto Centro"),
             ],
             "total_bens": 1_200_000,
         }
-
         mp = MemberAnalyzer().analyze(
-            member, member_key="david", residencia_keyword="vila madalena"
+            member, member_key="d", residencia_property_ids=frozenset({"prop-residencia-vm"})
         )
-
         assert mp.residencia == Decimal("800000")
         assert mp.imoveis_investimento == Decimal("400000")
 
-    def test_no_keyword_means_all_in_investimento(self):
+    def test_no_overrides_means_all_in_investimento(self):
+        """Pós-sunset (ADR-215 §1): sem `residencia_property_ids`, tudo cai em cat_2."""
         member = {
             "imoveis": [_imovel(valor=500_000, descricao="Casa")],
         }
@@ -223,12 +214,18 @@ class TestAnalyze:
 
     def test_total_bens_calculado_sum(self):
         member = {
-            "imoveis": [_imovel(valor=500_000, descricao="Casa Vila")],
+            "imoveis": [
+                _imovel(valor=500_000, descricao="Casa Vila", property_id="prop-residencia-vm")
+            ],
             "veiculos": [{"valor": 50_000}],
             "investimentos": [{"valor": 100_000}],
         }
 
-        mp = MemberAnalyzer().analyze(member, member_key="x", residencia_keyword="vila")
+        mp = MemberAnalyzer().analyze(
+            member,
+            member_key="x",
+            residencia_property_ids=frozenset({"prop-residencia-vm"}),
+        )
 
         # 500k residência + 0 imov inv + 50k veículos + 100k investimentos = 650k
         assert mp.total_bens_calculado == Decimal("650000")
@@ -243,9 +240,9 @@ class TestAggregate:
     def test_sums_components_across_members(self):
         analyzer = MemberAnalyzer()
         a = analyzer.analyze(
-            {"imoveis": [_imovel(valor=300_000, descricao="Vila")]},
-            member_key="david",
-            residencia_keyword="vila",
+            {"imoveis": [_imovel(valor=300_000, property_id="prop-res-vm")]},
+            member_key="d",
+            residencia_property_ids=frozenset({"prop-res-vm"}),
         )
         b = analyzer.analyze(
             {"investimentos": [{"valor": 200_000}], "veiculos": [{"valor": 40_000}]},

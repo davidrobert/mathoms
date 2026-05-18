@@ -69,7 +69,8 @@ Após este plano, ao subir IRPF novo (ou abrir MembersTab em workspace dogfood),
 - **P5 UX MembersTab + esconde Residência R$ 0,00** ✅ shipped 2026-05-15 (#292)
 - **P6 Cutover legado + pre-commit gate** ✅ shipped 2026-05-15 (#293)
 - **Fix-B1/B2/B3 + DBPropertyIdentityResolver commit eager** ✅ shipped 2026-05-17/18 (#300, #302, #303, #311)
-- **P3-connection fix — `PropertyOverridesResolver` ligando DB ao calculator** 🚧 este PR ([[ADR-215]] §6)
+- **P3-connection fix — `PropertyOverridesResolver` ligando DB ao calculator** ✅ shipped 2026-05-18 (#318)
+- **Sunset completo `residencia_principal_keyword`** 🚧 este PR — remove fallback dos 4 analyzers (`patrimonio_calculator`, `investimentos_classes`, `top_ativos`, `member_analyzer`, `instituicoes_por_membro`), troca config field `residencia_keyword: str` → `residencia_property_ids: frozenset[str]`, encolhe allowlist do gate `dev/check_residencia_keyword.py` para 5 arquivos doc/admin. ADR-215 status → `Decidido (deprecation completo)`.
 - **Quick fix paralelo:** descartado pelo usuário em favor da solução completa.
 
 ### Gap descoberto pós-P6 (2026-05-18)

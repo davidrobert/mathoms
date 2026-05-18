@@ -326,7 +326,7 @@ def _is_conjuge_exclusive(item: dict, identity: MemberIdentity) -> bool:
 
 
 def _imovel_entry_from_consolidated(item: dict, ano_ref: str) -> dict:
-    """Monta entry de imóvel consolidated preservando descrição rica."""
+    """Monta entry de imóvel consolidated preservando descrição rica + property_id."""
     descricao = item.get("descricao", "")
     if not descricao:
         dc = item.get("dados_completos", {})
@@ -334,12 +334,16 @@ def _imovel_entry_from_consolidated(item: dict, ano_ref: str) -> dict:
             descricao = dc.get("imovel", "")
         if not descricao:
             descricao = item.get("endereco", "")
-    return {
+    entry = {
         "descricao": descricao or "",
         "endereco": item.get("endereco", ""),
         "tipo": item.get("tipo", ""),
         "valor_31_12_ano_base": _resolve_item_valor(item, ano_ref),
     }
+    pid = item.get("property_id")
+    if isinstance(pid, str) and pid:
+        entry["property_id"] = pid
+    return entry
 
 
 def _split_imoveis(baseline: dict, identity: MemberIdentity, ano_ref: str) -> tuple[list, list]:

@@ -140,21 +140,14 @@ class TestImoveisInvestimento:
         assert r.top_ativos[0].classe == "Imóveis Investimento"
         assert r.top_ativos[0].tipo_origem == "imovel"
 
-    def test_residencia_filtrada_por_keyword(self):
-        cfg = TopAtivosConfig.from_configs(residencia_keyword="vila madalena")
-        r = TopAtivosAnalyzer(cfg).analyze(
-            _entries(
-                (
-                    "david",
-                    _bens(
-                        imoveis=[
-                            {"descricao": "Casa Vila Madalena", "valor_irpf": 800_000},
-                            {"descricao": "Sala", "valor_irpf": 300_000},
-                        ]
-                    ),
-                )
-            )
-        )
+    def test_residencia_filtrada_por_property_id_override(self):
+        """ADR-215 §1 sunset: filtro por property_id ∈ residencia_property_ids."""
+        cfg = TopAtivosConfig.from_configs(residencia_property_ids=frozenset({"p-vm"}))
+        imoveis = [
+            {"property_id": "p-vm", "valor_irpf": 800_000},
+            {"descricao": "Sala", "valor_irpf": 300_000},
+        ]
+        r = TopAtivosAnalyzer(cfg).analyze(_entries(("david", _bens(imoveis=imoveis))))
         assert len(r.top_ativos) == 1
         assert r.top_ativos[0].nome == "Sala"
 

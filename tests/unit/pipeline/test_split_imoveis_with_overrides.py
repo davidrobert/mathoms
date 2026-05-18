@@ -61,23 +61,6 @@ class TestSplitImoveisWithOverrides:
         assert residencia == 0.0
         assert outros == 300.0
 
-    def test_no_overrides_with_keyword_fallback(self):
-        """Sem overrides mas com keyword — preserva comportamento legado."""
-        titular = {
-            "imoveis": [
-                _make_imovel(None, 1_000.0, "Casa Tasso da Silveira"),
-                _make_imovel(None, 500.0, "Apto Paulista"),
-            ]
-        }
-        residencia, outros = split_imoveis_with_overrides(
-            titular_bens=titular,
-            conjuge_bens={},
-            overrides_by_property_id={},
-            fallback_keyword="tasso",
-        )
-        assert residencia == 1_000.0
-        assert outros == 500.0
-
     def test_classification_uso_pessoal_goes_to_outros(self):
         """Itens marcados uso_pessoal/locado/etc não viram residência."""
         titular = {"imoveis": [_make_imovel("p1", 100.0)]}
@@ -90,37 +73,23 @@ class TestSplitImoveisWithOverrides:
             assert r == 0.0, f"classification={classification}"
             assert o == 100.0, f"classification={classification}"
 
-    def test_override_wins_over_keyword(self):
-        """Override (mesmo locado) prevalece sobre match de keyword."""
-        titular = {
-            "imoveis": [_make_imovel("p1", 1_000.0, "Casa Tasso da Silveira")],
-        }
-        r, o = split_imoveis_with_overrides(
-            titular_bens=titular,
-            conjuge_bens={},
-            overrides_by_property_id={"p1": "locado"},
-            fallback_keyword="tasso",
-        )
-        assert r == 0.0
-        assert o == 1_000.0
-
-    def test_property_without_override_falls_back_to_keyword(self):
-        """Imóvel sem override no dict cai no fallback keyword."""
+    def test_property_without_override_goes_to_outros(self):
+        """Pós-sunset do fallback keyword (ADR-215 §1): imóvel sem override
+        em `workspace_property_overrides` cai em cat_2 — fonte ÚNICA é
+        classificação user-driven persistida via UI."""
         titular = {
             "imoveis": [
                 _make_imovel("p-marked", 100.0, "marcado override"),
-                _make_imovel("p-unmark", 200.0, "casa tasso fallback"),
+                _make_imovel("p-unmark", 200.0, "casa sem classificação ainda"),
             ]
         }
         r, o = split_imoveis_with_overrides(
             titular_bens=titular,
             conjuge_bens={},
             overrides_by_property_id={"p-marked": "locado"},
-            fallback_keyword="tasso",
         )
-        # p-unmark casa keyword fallback → residencia
-        assert r == 200.0
-        assert o == 100.0
+        assert r == 0.0
+        assert o == 300.0
 
     def test_real_case_dogfood_5at5(self):
         """Caso real workspace 5@5.com: 1 casa código 12 + 4 apartamentos código 11."""

@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 171
-- **Proposto**: 40
+- **Decidido**: 172
+- **Proposto**: 39
 - **Roadmap**: 4
 
 ## Fundação
@@ -378,7 +378,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## methodology
 
-### Proposto (1)
+### Decidido (1)
 
 - [[ADR-215]] — Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` · phase A12
 

@@ -90,12 +90,13 @@ class WorkspaceContext:
         default=None, repr=False
     )
 
-    #: ``PropertyOverridesResolver`` injetável (ADR-215 P3). Permite ao E5
+    #: ``PropertyOverridesResolver`` injetável (ADR-215 §1). Permite ao E5
     #: ler `workspace_property_overrides` e injetar
-    #: `PatrimonioConfig.property_classification_overrides` — o que conecta o
-    #: lazy split (`PatrimonioCalculator._split_imoveis`) à classificação
-    #: persistida via P4/P5 (endpoint + MembersTab). ``None`` → calculator cai
-    #: no fallback `residencia_keyword` (compat com CLI/testes legados).
+    #: `PatrimonioConfig.property_classification_overrides` — fonte ÚNICA do
+    #: lazy split (`PatrimonioCalculator._split_imoveis`) pós-sunset do
+    #: fallback `residencia_keyword`. ``None`` → calculator/analyzers usam
+    #: dict vazio (todos os imóveis caem em cat_2 — esperado para workspace
+    #: sem classificação via UI ainda).
     property_overrides_resolver: Optional["PropertyOverridesResolver"] = field(
         default=None, repr=False
     )

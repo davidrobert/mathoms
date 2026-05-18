@@ -58,21 +58,21 @@ def _merge_keywords(scoring: dict | None) -> dict[str, tuple[str, ...]]:
 
 @dataclass(frozen=True)
 class InvestimentosClassesConfig:
-    """Keywords + keyword de residência (overrides via ``scoring.json::asset_class_keywords``)."""
+    """Keywords por classe + set de property_ids classificados como residência (ADR-215 §1)."""
 
     keywords_por_classe: dict[str, tuple[str, ...]] = field(default_factory=dict)
-    residencia_keyword: str = ""
+    residencia_property_ids: frozenset[str] = field(default_factory=frozenset)
 
     @classmethod
     def from_configs(
         cls,
         *,
         scoring: dict | None = None,
-        residencia_keyword: str = "",
+        residencia_property_ids: frozenset[str] = frozenset(),
     ) -> "InvestimentosClassesConfig":
         return cls(
             keywords_por_classe=_merge_keywords(scoring),
-            residencia_keyword=(residencia_keyword or "").lower().strip(),
+            residencia_property_ids=residencia_property_ids,
         )
 
 
@@ -164,7 +164,7 @@ class InvestimentosClassesAnalyzer:
             classes["Caixa"] += _safe_float(contas)
 
     def _add_imoveis_investimento(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
-        kw = self._config.residencia_keyword
+        residencia_ids = self._config.residencia_property_ids
         for imovel in bens.get("imoveis", []) or []:
             if not isinstance(imovel, dict):
                 continue
@@ -175,8 +175,8 @@ class InvestimentosClassesAnalyzer:
             )
             if valor <= 0:
                 continue
-            desc = self._imovel_desc(imovel)
-            if kw and kw in desc:
+            pid = imovel.get("property_id")
+            if isinstance(pid, str) and pid in residencia_ids:
                 continue
             classes["Imóveis Investimento"] += valor
 
@@ -194,14 +194,3 @@ class InvestimentosClassesAnalyzer:
                 ),
             )
         return ()
-
-    @staticmethod
-    def _imovel_desc(imovel: dict) -> str:
-        desc = imovel.get("description") or imovel.get("descricao") or ""
-        if not desc:
-            desc = imovel.get("endereco") or ""
-        if not desc:
-            dc = imovel.get("dados_completos")
-            if isinstance(dc, dict):
-                desc = dc.get("imovel", "") or ""
-        return str(desc).lower()
