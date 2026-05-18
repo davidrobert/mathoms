@@ -233,6 +233,10 @@ class E5OutputInputs:
     # ADR-193 — warnings de classificação de ativos (e.g. `Outros` > 5%).
     # Propagado para `alertas[]` via `build_alertas`.
     investimentos_warnings: list[str] | None = None
+    # ADR-219 wave 2 — snapshot das premissas econômicas vigentes na data
+    # do run (auditoria fiduciária). None quando resolver indisponível
+    # (CLI/testes legados); ausência no output deixa UI degradar.
+    premissas_economicas: dict[str, Any] | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -297,6 +301,12 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
     # mesmo nos casos de empty state (status ``sem_irpf``/``gerador_zero``).
     if inputs.passive_income is not None:
         output["passive_income"] = _passive_income_to_dict(inputs.passive_income)
+
+    # ADR-219 wave 2: snapshot de premissas econômicas vigentes no run.
+    # Quando o resolver não está injetado (CLI/testes), o chamador passa
+    # None e a chave é omitida — UI degrada para "premissas não disponíveis".
+    if inputs.premissas_economicas is not None:
+        output["premissas_economicas"] = inputs.premissas_economicas
 
     # N3: Monte Carlo IF — cone P10/P50/P90 + caminhos ano→BRL.
     if inputs.monte_carlo_if is not None:

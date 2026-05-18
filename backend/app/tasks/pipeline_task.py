@@ -448,6 +448,9 @@ def _setup_run_context(
     loop principal). Flag ``USE_DB_ARTIFACTS`` deixa de governar — fica
     como redundante em settings até PR4 dropar.
     """
+    from backend.app.services.db_economic_assumptions_resolver import (
+        DBEconomicAssumptionsResolver,
+    )
     from backend.app.services.db_property_identity_resolver import (
         DBPropertyIdentityResolver,
     )
@@ -463,6 +466,8 @@ def _setup_run_context(
     # ADR-215 P2: resolver compartilha a mesma session do config_store
     # (long-lived; fechada ao fim do run via _close_config_store_session).
     property_identity_resolver = DBPropertyIdentityResolver(session=config_store_session)
+    # ADR-219 wave 2: resolver de premissas econômicas para E5 snapshot.
+    economic_assumptions_resolver = DBEconomicAssumptionsResolver(session=config_store_session)
 
     ctx = WorkspaceContext.for_tenant(
         tenant_root,
@@ -472,6 +477,7 @@ def _setup_run_context(
         workspace_id=ws_id,
         config_store=config_store,
         property_identity_resolver=property_identity_resolver,
+        economic_assumptions_resolver=economic_assumptions_resolver,
     )
     ctx.incremental = incremental
     ctx.incremental_doc_paths = incremental_doc_paths or []
