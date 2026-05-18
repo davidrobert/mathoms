@@ -273,7 +273,7 @@ class E5AnalyzerAdapter:
             conjuge_nome="Mariana",
         )
         self._patrimonio = patrimonio_calculator or PatrimonioCalculator(
-            PatrimonioConfig(members=self._identity, residencia_keyword="")
+            PatrimonioConfig(members=self._identity)
         )
         self._reserva = reserva_calculator or EmergencyReserveCalculator(
             ReservaEmergenciaConfig(members=self._identity)
@@ -352,16 +352,18 @@ class E5AnalyzerAdapter:
         """
         member_cfg = MemberResolverConfig.from_family(family)
         identity = cls._build_identity(family, member_cfg)
-        # ADR-215 P3 (fix de conexão): se `property_classification_overrides`
-        # vier injetado (pipeline DB-first via `ctx.property_overrides_resolver`),
-        # o split lazy em `PatrimonioCalculator._split_imoveis` honra a
-        # classificação user-driven gravada via P4/P5. Keyword fica como
-        # fallback estrito para workspaces/CLI sem overrides — alvo de Bloco A
-        # (sunset) após confirmação que o caminho novo está funcionando.
+        # ADR-215 §1: classificação user-driven em `workspace_property_overrides`
+        # (gravado via UI P5 / endpoint P4) é fonte ÚNICA. Adapter extrai o
+        # subset `residencia_principal` em `residencia_property_ids` para os
+        # analyzers downstream (top_ativos, classes, instituicoes, members)
+        # que precisam apenas saber "qual imóvel é a residência".
+        overrides = property_classification_overrides or {}
+        residencia_property_ids = frozenset(
+            pid for pid, cls_ in overrides.items() if cls_ == "residencia_principal"
+        )
         patrimonio_cfg = PatrimonioConfig(
             members=identity,
-            residencia_keyword=cls._extract_residencia_keyword(family, member_cfg),
-            property_classification_overrides=property_classification_overrides or {},
+            property_classification_overrides=overrides,
         )
         reserva_cfg = ReservaEmergenciaConfig.from_scoring_json(scoring or {}, identity)
         score_cfg = FinancialScoreConfig.from_scoring_json(scoring or {})
@@ -424,11 +426,19 @@ class E5AnalyzerAdapter:
                 else PrevidenciaConfig.from_fiscal(fiscal)
             ),
             investimentos_classes_analyzer=InvestimentosClassesAnalyzer(
-                InvestimentosClassesConfig.from_configs(scoring=scoring)
+                InvestimentosClassesConfig.from_configs(
+                    scoring=scoring, residencia_property_ids=residencia_property_ids
+                )
             ),
-            top_ativos_analyzer=TopAtivosAnalyzer(TopAtivosConfig.from_configs(scoring=scoring)),
+            top_ativos_analyzer=TopAtivosAnalyzer(
+                TopAtivosConfig.from_configs(
+                    scoring=scoring, residencia_property_ids=residencia_property_ids
+                )
+            ),
             instituicoes_analyzer=InstituicoesPorMembroAnalyzer(
-                InstituicoesPorMembroConfig.from_configs()
+                InstituicoesPorMembroConfig.from_configs(
+                    residencia_property_ids=residencia_property_ids
+                )
             ),
             consumo_calculator=ConsumoConscienteCalculator(
                 ConsumoConscienteConfig.from_configs(scoring=scoring, goals=goals)
@@ -692,18 +702,6 @@ class E5AnalyzerAdapter:
             titular_nome=titular_nome,
             conjuge_nome=conjuge_nome,
         )
-
-    @staticmethod
-    def _extract_residencia_keyword(family: dict | None, member_cfg: MemberResolverConfig) -> str:
-        """Keyword para identificar residência principal na composição."""
-        fam = family or {}
-        membros = fam.get("membros", {}) or {}
-        if isinstance(membros, dict):
-            return (
-                membros.get(member_cfg.titular_key, {}).get("residencia_principal_keyword", "")
-                or ""
-            ).lower()
-        return ""
 
     @staticmethod
     def _load_investment_banks(institutions: dict | None) -> frozenset[str]:

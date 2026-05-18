@@ -47,9 +47,11 @@ class TestConfig:
         )
         assert cfg.keywords_por_classe["Ações BR"] == ("custom",)
 
-    def test_residencia_keyword_lowered_and_stripped(self):
-        cfg = InvestimentosClassesConfig.from_configs(residencia_keyword="  VILA madalena  ")
-        assert cfg.residencia_keyword == "vila madalena"
+    def test_residencia_property_ids_passthrough(self):
+        cfg = InvestimentosClassesConfig.from_configs(
+            residencia_property_ids=frozenset({"prop-residencia"})
+        )
+        assert cfg.residencia_property_ids == frozenset({"prop-residencia"})
 
     def test_scoring_can_introduce_new_class(self):
         # Forward-compat: classe nova em scoring.json não precisa estar em defaults.
@@ -205,18 +207,14 @@ class TestImoveisInvestimento:
         cats = {c.categoria: c.valor for c in r.tabela_classes}
         assert cats.get("Imóveis Investimento") == 300_000.0
 
-    def test_residencia_matching_keyword_eh_excluida(self):
-        cfg = InvestimentosClassesConfig.from_configs(residencia_keyword="vila madalena")
-        r = InvestimentosClassesAnalyzer(cfg).analyze(
-            [
-                _bens(
-                    imoveis=[
-                        {"descricao": "Casa Vila Madalena", "valor_irpf": 800_000},
-                        {"descricao": "Sala", "valor_irpf": 300_000},
-                    ]
-                ),
-            ]
-        )
+    def test_residencia_excluida_por_property_id_override(self):
+        """ADR-215 §1 sunset: filtro por property_id ∈ residencia_property_ids."""
+        cfg = InvestimentosClassesConfig.from_configs(residencia_property_ids=frozenset({"p-vm"}))
+        imoveis = [
+            {"property_id": "p-vm", "valor_irpf": 800_000},
+            {"descricao": "Sala", "valor_irpf": 300_000},
+        ]
+        r = InvestimentosClassesAnalyzer(cfg).analyze([_bens(imoveis=imoveis)])
         cats = {c.categoria: c.valor for c in r.tabela_classes}
         assert cats.get("Imóveis Investimento") == 300_000.0
 

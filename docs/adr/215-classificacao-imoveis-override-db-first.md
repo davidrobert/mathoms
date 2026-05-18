@@ -2,9 +2,10 @@
 id: ADR-215
 type: adr
 title: "Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword`"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-15"
+decided_at: "2026-05-18"
 relates_to:
   - "[[ADR-145]]"
   - "[[ADR-142]]"
@@ -27,7 +28,7 @@ tags:
   - methodology/cerbasi
   - methodology/perini
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

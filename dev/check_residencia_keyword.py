@@ -16,20 +16,17 @@ _NEEDLE = b"residencia_principal_keyword"
 
 _ALLOWED_FILES = frozenset(
     {
-        "pipeline/domain/services/patrimonio_calculator.py",
-        "pipeline/domain/services/patrimonio_types.py",
-        "pipeline/domain/services/e5_analyzer_adapter.py",
-        "pipeline/domain/services/member_analyzer.py",
-        "pipeline/domain/services/investimentos_classes_analyzer.py",
-        "pipeline/domain/services/top_ativos_analyzer.py",
-        "pipeline/domain/services/instituicoes_por_membro_analyzer.py",
-        "scripts/e5_analyze.py",
+        # Pós-sunset (ADR-215 §1 Decidido completo): apenas o gate em si +
+        # script de migration histórico + ADR/plan/changelog (docs anchoring)
+        # + MOCs auto-gerados (citam title da ADR-215) ainda podem citar a
+        # needle. Nenhum código runtime persiste keyword.
         "dev/check_residencia_keyword.py",
         "dev/migrate_residencia_keyword_to_override.py",
         "docs/adr/215-classificacao-imoveis-override-db-first.md",
         "docs/plan/RESIDENCIA_E_USO/_README.md",
-        "docs/reference/DB_SCHEMA_REFERENCE.md",
         "docs/CHANGELOG.md",
+        "docs/_MOC/_generated/INDEX.md",
+        "docs/_MOC/_generated/ADR_INDEX.md",
     }
 )
 

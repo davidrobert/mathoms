@@ -15,10 +15,12 @@ class InstituicoesPorMembroConfig:
     classes_config: InvestimentosClassesConfig
 
     @classmethod
-    def from_configs(cls, *, residencia_keyword: str = "") -> "InstituicoesPorMembroConfig":
+    def from_configs(
+        cls, *, residencia_property_ids: frozenset[str] = frozenset()
+    ) -> "InstituicoesPorMembroConfig":
         return cls(
             classes_config=InvestimentosClassesConfig.from_configs(
-                residencia_keyword=residencia_keyword
+                residencia_property_ids=residencia_property_ids
             )
         )
 

@@ -57,18 +57,12 @@ class PatrimonioConfig:
     """Config completa do :class:`PatrimonioCalculator`."""
 
     members: MemberIdentity
-    residencia_keyword: str
-    """Keyword (lowercase) que identifica o imóvel como residência principal.
 
-    Vem de ``family_members.json → <titular> → residencia_principal_keyword``.
-    Deprecated: substituído por ``property_classification_overrides`` quando
-    presente (ADR-215 P3). Mantido como fallback para workspaces sem overrides.
-    """
-
-    # ADR-215 P3: mapping `property_id` → `classification` enum
+    # ADR-215 §1: mapping `property_id` → `classification` enum
     # (residencia_principal | uso_pessoal | locado | comercial | especulacao
-    # | desconhecido). Vem do DB (`workspace_property_overrides`). Empty dict
-    # quando workspace ainda não classificou — fallback usa keyword.
+    # | desconhecido). Vem do DB (`workspace_property_overrides`) via
+    # `DBPropertyOverridesResolver` + `WorkspaceContext`. Empty dict ↔
+    # workspace ainda não classificou nenhum imóvel — todos caem em cat_2.
     property_classification_overrides: dict[str, str] = field(default_factory=dict)
 
 

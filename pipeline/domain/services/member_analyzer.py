@@ -120,10 +120,11 @@ class MemberPatrimonio:
 class MemberAnalyzer:
     """Decompõe patrimônio individual a partir do dict de membro do baseline.
 
-    Função pura — não toca disco, não acessa configs globais. Para identificar
-    o imóvel residencial, recebe ``residencia_keyword`` (vem de
-    ``family_members.json[membros][titular].residencia_principal_keyword``).
-    Quando ``None`` ou vazio, todos os imóveis caem em ``imoveis_investimento``.
+    Função pura — não toca disco, não acessa configs globais. Identifica o
+    imóvel residencial via ``residencia_property_ids`` (set de UUIDs de
+    `property_identity` classificados como `residencia_principal` no
+    `workspace_property_overrides`; ADR-215 §1). Empty set → todos os
+    imóveis caem em ``imoveis_investimento``.
     """
 
     def __init__(self) -> None:
@@ -190,33 +191,18 @@ class MemberAnalyzer:
         member: dict[str, Any],
         *,
         member_key: str = "",
-        residencia_keyword: str | None = None,
+        residencia_property_ids: frozenset[str] = frozenset(),
     ) -> MemberPatrimonio:
-        """Decompõe o patrimônio de um membro em componentes tipados.
-
-        Args:
-            member: dict do membro (formato baseline IRPF — pode ter chaves
-                aninhadas em ``bens`` ou planas).
-            member_key: identificador (e.g. ``"david"``, ``"mariana"``).
-            residencia_keyword: keyword para classificar imóvel como
-                residência principal (ex.: ``"vila madalena"``). Match por
-                substring case-insensitive na descrição. ``None``/vazio →
-                tudo cai em ``imoveis_investimento``.
-
-        Returns:
-            :class:`MemberPatrimonio` com componentes em ``Decimal``.
-        """
+        """Decompõe o patrimônio de um membro em componentes tipados (ADR-215 §1)."""
         bens = self.bens_for(member)
-        kw = (residencia_keyword or "").lower().strip()
-
         residencia = Decimal(0)
         imoveis_inv = Decimal(0)
         for imovel in bens.get("imoveis", []) or []:
             if not isinstance(imovel, dict):
                 continue
             valor = self.imovel_valor(imovel)
-            desc = self.imovel_descricao(imovel)
-            if kw and kw in desc:
+            pid = imovel.get("property_id")
+            if isinstance(pid, str) and pid in residencia_property_ids:
                 residencia += valor
             else:
                 imoveis_inv += valor

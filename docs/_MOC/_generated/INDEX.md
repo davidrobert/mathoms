@@ -212,7 +212,7 @@
 | ADR-212 | adr | Decidido |  | Sunset `MATHOMS_USE_DB_ARTIFACTS` + `DiskArtifactStore` + CLI standalone do pipeline | `adr/212-sunset-mathoms-use-db-artifacts-disk-store-cli.md` |
 | ADR-213 | adr | Decidido |  | Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) | `adr/213-sunset-stage-audit-documents.md` |
 | ADR-214 | adr | Decidido |  | `Decision.code` é server-generated com `pg_advisory_xact_lock` | `adr/214-decision-code-server-generated.md` |
-| ADR-215 | adr | Proposto |  | Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` | `adr/215-classificacao-imoveis-override-db-first.md` |
+| ADR-215 | adr | Decidido |  | Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` | `adr/215-classificacao-imoveis-override-db-first.md` |
 | ADR-216 | adr | Proposto |  | Cap rate líquido como métrica canônica de imóveis de investimento (S4) | `adr/216-cap-rate-liquido-canonico-imoveis.md` |
 | ADR-217 | adr | Proposto |  | Score patrimonial canônico — composição, fórmula e ciclo de vida | `adr/217-score-patrimonial-canonico.md` |
 | ADR-218 | adr | Proposto |  | Reserva de Emergência — denominador essencial, override por workspace e bandas Cerbasi/Perini | `adr/218-reserva-emergencia-denominador-essencial.md` |

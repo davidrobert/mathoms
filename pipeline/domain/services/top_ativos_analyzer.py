@@ -37,12 +37,12 @@ class TopAtivosConfig:
         cls,
         *,
         scoring: dict | None = None,
-        residencia_keyword: str = "",
+        residencia_property_ids: frozenset[str] = frozenset(),
         limit: int = 15,
     ) -> "TopAtivosConfig":
         return cls(
             classes_config=InvestimentosClassesConfig.from_configs(
-                scoring=scoring, residencia_keyword=residencia_keyword
+                scoring=scoring, residencia_property_ids=residencia_property_ids
             ),
             limit=limit,
         )
@@ -171,24 +171,25 @@ class TopAtivosAnalyzer:
 
     def _collect_imoveis(self, member: str, bens: Mapping[str, Any]) -> list[_Candidate]:
         out: list[_Candidate] = []
-        kw = self._config.classes_config.residencia_keyword
+        residencia_ids = self._config.classes_config.residencia_property_ids
         for imovel in bens.get("imoveis", []) or []:
             if not isinstance(imovel, Mapping):
                 continue
-            cand = self._build_imovel_candidate(member, imovel, kw)
+            cand = self._build_imovel_candidate(member, imovel, residencia_ids)
             if cand is not None:
                 out.append(cand)
         return out
 
     def _build_imovel_candidate(
-        self, member: str, imovel: Mapping[str, Any], residencia_kw: str
+        self, member: str, imovel: Mapping[str, Any], residencia_property_ids: frozenset[str]
     ) -> _Candidate | None:
         valor = _safe_money(
             imovel.get("valor_31_12_ano_base") or imovel.get("valor_irpf") or imovel.get("valor", 0)
         )
         if valor <= 0:
             return None
-        if residencia_kw and residencia_kw in self._imovel_desc(imovel):
+        pid = imovel.get("property_id")
+        if isinstance(pid, str) and pid in residencia_property_ids:
             return None
         return _Candidate(
             nome=self._imovel_nome(imovel),
@@ -216,17 +217,6 @@ class TopAtivosAnalyzer:
         if instituicao:
             return f"{tipo} ({instituicao})"
         return tipo
-
-    @staticmethod
-    def _imovel_desc(imovel: Mapping[str, Any]) -> str:
-        desc = imovel.get("description") or imovel.get("descricao") or ""
-        if not desc:
-            desc = imovel.get("endereco") or ""
-        if not desc:
-            dc = imovel.get("dados_completos")
-            if isinstance(dc, Mapping):
-                desc = dc.get("imovel", "") or ""
-        return str(desc).lower()
 
     @staticmethod
     def _imovel_nome(imovel: Mapping[str, Any]) -> str:

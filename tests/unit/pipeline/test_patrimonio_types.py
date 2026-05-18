@@ -98,18 +98,20 @@ def test_member_identity_empty_conjuge_key():
 # =============================================================================
 
 
-def test_patrimonio_config_holds_identity_and_keyword():
+def test_patrimonio_config_holds_identity_and_overrides():
     m = MemberIdentity(titular_key="d", conjuge_key="m", titular_nome="D", conjuge_nome="M")
-    cfg = PatrimonioConfig(members=m, residencia_keyword="rua x")
+    cfg = PatrimonioConfig(
+        members=m, property_classification_overrides={"prop-1": "residencia_principal"}
+    )
     assert cfg.members == m
-    assert cfg.residencia_keyword == "rua x"
+    assert cfg.property_classification_overrides == {"prop-1": "residencia_principal"}
 
 
 def test_patrimonio_config_is_frozen():
     m = MemberIdentity(titular_key="d", conjuge_key="m", titular_nome="D", conjuge_nome="M")
-    cfg = PatrimonioConfig(members=m, residencia_keyword="")
+    cfg = PatrimonioConfig(members=m)
     with pytest.raises(Exception):
-        cfg.residencia_keyword = "other"  # type: ignore[misc]
+        cfg.property_classification_overrides = {"prop-z": "locado"}  # type: ignore[misc]
 
 
 # =============================================================================

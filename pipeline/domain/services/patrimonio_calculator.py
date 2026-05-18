@@ -23,9 +23,9 @@ invariantes do produto Mathoms (não dado cliente).
 
 **7 categorias canônicas (ordem ADR-145):**
 
-1. **Residência própria** — moradia principal (sempre exatamente 1 imóvel,
-   identificado via ``residencia_keyword`` no campo ``descricao`` do
-   imóvel do titular). Ver :meth:`PatrimonioCalculator._split_imoveis`.
+1. **Residência própria** — moradia principal (exatamente 1 imóvel
+   classificado como ``residencia_principal`` via override em
+   ``workspace_property_overrides`` por ``property_id``; ADR-215 §1).
 2. **Imóveis investimento** — todos os outros imóveis (titular + cônjuge),
    exceto a residência principal. Ver
    :meth:`PatrimonioCalculator._split_imoveis`.
@@ -71,7 +71,6 @@ from pipeline.domain.services.patrimonio_types import (
     PatrimonioConfig,
     PatrimonioInputs,
     get_bens,
-    imovel_desc,
     imovel_property_id,
     imovel_valor,
     investimento_valor,
@@ -88,39 +87,16 @@ def split_imoveis_with_overrides(
     titular_bens: dict,
     conjuge_bens: dict,
     overrides_by_property_id: dict[str, str],
-    fallback_keyword: str = "",
 ) -> tuple[float, float]:
-    """Separa cat_1 (residencia_principal) de demais imóveis usando overrides (ADR-215 P3)."""
-    # Pure function — read-time split lê `property_id` de cada imóvel e
-    # aplica override. Sem property_id (legado / pré-P2), cai no fallback
-    # keyword preservando paridade.
+    """Separa cat_1 (residencia_principal) de demais imóveis (ADR-215 §1)."""
     residencia = 0.0
     imoveis_outros = 0.0
-    keyword = (fallback_keyword or "").lower()
-
-    def _classify(im: dict) -> str | None:
+    for im in (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or []):
         pid = imovel_property_id(im)
-        if pid and pid in overrides_by_property_id:
-            return overrides_by_property_id[pid]
-        return None
-
-    for im in titular_bens.get("imoveis", []) or []:
-        cls = _classify(im)
-        if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
-            residencia += imovel_valor(im)
-            continue
-        if cls is None and keyword and keyword in imovel_desc(im):
-            residencia += imovel_valor(im)
-            continue
-        imoveis_outros += imovel_valor(im)
-
-    for im in conjuge_bens.get("imoveis", []) or []:
-        cls = _classify(im)
-        if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
+        if pid and overrides_by_property_id.get(pid) == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
             residencia += imovel_valor(im)
         else:
             imoveis_outros += imovel_valor(im)
-
     return residencia, imoveis_outros
 
 
@@ -131,7 +107,7 @@ class PatrimonioCalculator:
 
         config = PatrimonioConfig(
             members=MemberIdentity(titular_key="david", ...),
-            residencia_keyword="rua araújo alvim",
+            property_classification_overrides={"prop-uuid": "residencia_principal"},
         )
         calc = PatrimonioCalculator(config)
         report = calc.calculate(
@@ -230,34 +206,11 @@ class PatrimonioCalculator:
 
     def _split_imoveis(self, titular_bens: dict, conjuge_bens: dict) -> tuple[float, float]:
         """Separa residencia_principal vs demais imóveis (ADR-145 cat_1/cat_2)."""
-        # ADR-215 P3: prefere overrides DB-first (`is_residencia_principal`)
-        # quando property_id está presente; fallback keyword preserva paridade
-        # legado e desbloqueia rollout incremental (workspaces sem overrides).
-        overrides = self._config.property_classification_overrides or {}
-
-        if overrides:
-            return split_imoveis_with_overrides(
-                titular_bens=titular_bens,
-                conjuge_bens=conjuge_bens,
-                overrides_by_property_id=overrides,
-                fallback_keyword=self._config.residencia_keyword,
-            )
-
-        residencia = 0.0
-        imoveis_investimento = 0.0
-        keyword = (self._config.residencia_keyword or "").lower()
-
-        for im in titular_bens.get("imoveis", []) or []:
-            if keyword and keyword in imovel_desc(im):
-                residencia = imovel_valor(im)
-            else:
-                imoveis_investimento += imovel_valor(im)
-
-        # Cônjuge: todos os imóveis são investimento por convenção legado.
-        for im in conjuge_bens.get("imoveis", []) or []:
-            imoveis_investimento += imovel_valor(im)
-
-        return residencia, imoveis_investimento
+        return split_imoveis_with_overrides(
+            titular_bens=titular_bens,
+            conjuge_bens=conjuge_bens,
+            overrides_by_property_id=self._config.property_classification_overrides or {},
+        )
 
     @staticmethod
     def _sum_veiculos(titular_bens: dict, conjuge_bens: dict) -> float:
