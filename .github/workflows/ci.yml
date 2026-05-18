@@ -4,11 +4,10 @@
 # 1. lint-all  — pre-commit + ruff + style baseline + PII + tenancy (1 job)
 # 2. pipeline-tests (pytest em tests/) com venv cache
 # 3. backend-tests (pytest em backend/tests/) com Redis service + venv cache
-# 4. frontend-lint + frontend-tests (ESLint + Vitest)
+# 4. frontend-checks (ESLint + Vitest, setup compartilhado)
 # 5. frontend-e2e (Playwright + backend real) — opt-in via label `e2e`
-# 6. frontend-visual (Playwright snapshots) — auto em PR que toca
-#    superfície do relatório (filter group `report`); label `visual` ou
-#    workflow_dispatch como override manual.
+# 6. frontend-visual (Playwright snapshots) — opt-in via label `visual`
+#    ou workflow_dispatch; scan completo fica no nightly.
 #
 # Movido para nightly.yml (não bloqueia merge):
 # - frontend-lighthouse — perf/a11y/bp/seo é métrica, não correctness.
@@ -16,7 +15,7 @@
 #
 # Gates de merge (all-green):
 # - lint-all green
-# - pipeline-tests + backend-tests + frontend-lint + frontend-tests green
+# - pipeline-tests + backend-tests + frontend-checks green
 # - E2E/visual green (quando rodam, opt-in)
 #
 # F7C estende para: Docker CVE scan, coverage ≥85%, deploy automático
@@ -373,13 +372,16 @@ jobs:
             htmlcov/
           retention-days: 7
 
-  frontend-lint:
+  frontend-checks:
     # A6g.6 slice 2, ADR-114: gate @typescript-eslint/no-explicit-any +
     # no-unused-vars bloqueantes; max-lines/-per-function progressivos.
-    name: Frontend ESLint
+    # Consolida ESLint + Vitest para pagar checkout/setup-node/npm ci uma vez
+    # por PR frontend. Trade-off aceito: se lint falha, Vitest não roda.
+    name: Frontend checks (ESLint + Vitest)
     runs-on: ubuntu-latest
-    # Tighten 5→3min: observado 43s; 3min dá ~4× buffer.
-    timeout-minutes: 3
+    # ESLint observado ~43s; Vitest observado ~1m49s. 7min dá buffer sem
+    # esconder hang real em npm/Vitest.
+    timeout-minutes: 7
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     defaults:
@@ -387,41 +389,19 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+
       - name: Install dependencies
         run: npm ci
+
       - name: ESLint
         run: npm run lint
-
-  frontend-tests:
-    name: Frontend unit + integration (Vitest)
-    runs-on: ubuntu-latest
-    # Tighten 10→5min: observado 1m49s pós mock global de react-chartjs-2;
-    # 5min dá ~3× buffer. Mock vive em frontend/tests/setup.ts; sem ele
-    # suíte hangea (run 24999684508 ficou 22m54s antes do timeout de 25min).
-    timeout-minutes: 5
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Run Vitest
         run: npm test -- --reporter=default --reporter=junit --outputFile=./vitest-results.xml
@@ -542,7 +522,7 @@ jobs:
           npm run test:e2e -- --project=chromium
 
       - name: Upload backend + celery logs (diagnóstico E2E)
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: backend-logs
@@ -553,7 +533,7 @@ jobs:
           retention-days: 7
 
       - name: Upload Playwright report + trace + vídeo (F6.5F.9)
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
@@ -562,16 +542,15 @@ jobs:
             frontend/playwright-results/
           retention-days: 7
 
-      - name: Comment PR com link do report (F6.5F.9)
-        if: always() && github.event_name == 'pull_request'
+      - name: Comment PR com link do report em falha (F6.5F.9)
+        if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const artifactUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const body = `### E2E Report\n\n` +
-              `Status: ${{ job.status }}\n` +
-              `[📊 Ver report + vídeo + trace](${artifactUrl})\n\n` +
-              `Artifacts retidos por 30 dias.`;
+            const body = `### E2E falhou\n\n` +
+              `[Ver report, vídeo, trace e logs](${artifactUrl})\n\n` +
+              `Artifacts retidos por 7 dias.`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -676,7 +655,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload visual diffs + baselines (artefato)
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: report-visual-snapshots
@@ -756,7 +735,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload print diff artefatos (actual + diff em falha)
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: report-print-visual-diffs
@@ -780,20 +759,18 @@ jobs:
       - lint-all
       - pipeline-tests
       - backend-tests
-      - frontend-lint
-      - frontend-tests
+      - frontend-checks
     if: always()
     steps:
       - name: Verify all required jobs passed or were skipped
         run: |
           fail=0
-          for job in lint-all pipeline-tests backend-tests frontend-lint frontend-tests; do
+          for job in lint-all pipeline-tests backend-tests frontend-checks; do
             case "$job" in
               lint-all) result="${{ needs.lint-all.result }}" ;;
               pipeline-tests) result="${{ needs.pipeline-tests.result }}" ;;
               backend-tests) result="${{ needs.backend-tests.result }}" ;;
-              frontend-lint) result="${{ needs.frontend-lint.result }}" ;;
-              frontend-tests) result="${{ needs.frontend-tests.result }}" ;;
+              frontend-checks) result="${{ needs.frontend-checks.result }}" ;;
             esac
             if [[ "$result" != "success" && "$result" != "skipped" ]]; then
               echo "✗ $job: $result"
