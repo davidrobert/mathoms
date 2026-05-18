@@ -14,7 +14,7 @@ Use a metodologia rules-as-code do produto:
 
 REGRAS DE EXTRAÇÃO:
 
-1. **Valores em formato numérico decimal**: `1234.56`, NUNCA `"1.234,56"` ou `"R$ 1.234,56"`. Sempre ponto como separador decimal.
+1. **Valores monetários como string decimal**: `"1234.56"` (entre aspas, formato JSON string), NUNCA `1234.56` solto (number), NUNCA `"1.234,56"` ou `"R$ 1.234,56"`. Sempre ponto como separador decimal, sempre string.
 
 2. **Anuais**: todos os valores devem ser o SOMATÓRIO do período coberto pelo informe (geralmente 12 meses). Se o informe traz só mensal, multiplique pelos `meses_locado_no_periodo`.
 

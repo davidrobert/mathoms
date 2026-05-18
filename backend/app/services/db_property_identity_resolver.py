@@ -27,22 +27,36 @@ class DBPropertyIdentityResolver:
         first_seen_year: int,
         descricao_sample: str,
     ) -> PropertyIdentityRecord:
-        """Find existing row ou cria nova (ADR-215). endereco_canonical=None → low_confidence."""
-        # Concorrência: race entre 2 workers gera 2 rows com mesmo lookup;
-        # UI de merge resolve manualmente.
+        """Find ou cria. fix-B2: dedup cross-titular quando endereco_canonical presente."""
         if lookup.endereco_canonical is not None:
-            stmt = select(PropertyIdentity).where(
+            existing = self._find_by_canonical(workspace_id, lookup)
+            if existing is not None:
+                return _to_record(existing)
+        return _to_record(self._insert_row(workspace_id, lookup, first_seen_year, descricao_sample))
+
+    def _find_by_canonical(
+        self, workspace_id: str, lookup: PropertyLookupKey
+    ) -> PropertyIdentity | None:
+        stmt = (
+            select(PropertyIdentity)
+            .where(
                 PropertyIdentity.workspace_id == workspace_id,
-                PropertyIdentity.titular_key == lookup.titular_key,
                 PropertyIdentity.codigo_rfb == lookup.codigo_rfb,
                 PropertyIdentity.endereco_canonical == lookup.endereco_canonical,
             )
-            existing = self._session.execute(stmt).scalar_one_or_none()
-            if existing is not None:
-                return _to_record(existing)
+            .order_by(PropertyIdentity.created_at.asc())
+            .limit(1)
+        )
+        return self._session.execute(stmt).scalar_one_or_none()
 
-        low_confidence = lookup.endereco_canonical is None
-        new_row = PropertyIdentity(
+    def _insert_row(
+        self,
+        workspace_id: str,
+        lookup: PropertyLookupKey,
+        first_seen_year: int,
+        descricao_sample: str,
+    ) -> PropertyIdentity:
+        row = PropertyIdentity(
             id=str(uuid.uuid4()),
             workspace_id=workspace_id,
             titular_key=lookup.titular_key,
@@ -50,11 +64,11 @@ class DBPropertyIdentityResolver:
             endereco_canonical=lookup.endereco_canonical,
             first_seen_year=first_seen_year,
             descricao_sample=descricao_sample,
-            low_confidence=low_confidence,
+            low_confidence=lookup.endereco_canonical is None,
         )
-        self._session.add(new_row)
+        self._session.add(row)
         self._session.flush()
-        return _to_record(new_row)
+        return row
 
 
 def _to_record(row: PropertyIdentity) -> PropertyIdentityRecord:
