@@ -37,7 +37,12 @@ class User(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    workspaces = relationship("Workspace", back_populates="owner", cascade="all, delete-orphan")
+    workspaces = relationship(
+        "Workspace",
+        back_populates="owner",
+        foreign_keys="Workspace.owner_id",
+        cascade="all, delete-orphan",
+    )
     # ADR-072 — membership em workspaces (pode pertencer a múltiplos)
     memberships = relationship(
         "WorkspaceMember",

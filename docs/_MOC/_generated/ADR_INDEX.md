@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-214 ADRs (ADR-001 a ADR-221) em [`docs/adr/`](../../adr/).
+215 ADRs (ADR-001 a ADR-222) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 171
-- **Proposto**: 39
+- **Proposto**: 40
 - **Roadmap**: 4
 
 ## Fundação
@@ -271,9 +271,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-142]] — Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP) · phase A12
+- [[ADR-222]] — Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if` · phase A12
 
 ### Roadmap (1)
 

@@ -229,3 +229,59 @@ async def test_put_residencia_status_invalid_returns_422(auth_client: AsyncClien
         json={"status": "weird"},
     )
     assert resp.status_code == 422
+
+
+# ─── ADR-222 imoveis_no_if per-workspace ──────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_list_properties_exposes_imoveis_no_if_default_true(auth_client: AsyncClient):
+    """ADR-222: default true preserva comportamento legado de pipeline.json."""
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/properties")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["imoveis_no_if"] is True
+
+
+@pytest.mark.asyncio
+async def test_put_imoveis_no_if_flips_and_audits(auth_client: AsyncClient, db):
+    """ADR-222: set_at + set_by_user_id são populados ao flippar."""
+    from sqlalchemy import select
+
+    from backend.app.models import Workspace as WS
+
+    stmt = select(WS).where(WS.id == auth_client.ws_id)
+    owner_id = (await db.execute(stmt)).scalar_one().owner_id
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/imoveis-no-if", json={"imoveis_no_if": False}
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["imoveis_no_if"] is False
+    assert body["set_by_user_id"] == owner_id
+    assert body["set_at"] is not None
+    db.expire_all()
+    ws = (await db.execute(stmt)).scalar_one()
+    assert (ws.imoveis_no_if, ws.imoveis_no_if_set_by_user_id) == (False, owner_id)
+    assert ws.imoveis_no_if_set_at is not None
+
+
+@pytest.mark.asyncio
+async def test_put_imoveis_no_if_idempotent(auth_client: AsyncClient):
+    """Repetir o mesmo valor não falha; refresca audit."""
+    for value in [True, False, False, True]:
+        resp = await auth_client.put(
+            f"/api/workspaces/{auth_client.ws_id}/imoveis-no-if",
+            json={"imoveis_no_if": value},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["imoveis_no_if"] is value
+
+
+@pytest.mark.asyncio
+async def test_put_imoveis_no_if_invalid_body_returns_422(auth_client: AsyncClient):
+    resp = await auth_client.put(
+        f"/api/workspaces/{auth_client.ws_id}/imoveis-no-if",
+        json={"imoveis_no_if": "nope"},
+    )
+    assert resp.status_code == 422

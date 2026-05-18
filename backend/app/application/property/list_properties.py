@@ -67,5 +67,6 @@ async def list_properties(
     return PropertyListResponse(
         workspace_id=workspace_id,
         residencia_status=workspace.residencia_status,
+        imoveis_no_if=workspace.imoveis_no_if,
         properties=[r for _, r in scored],
     )

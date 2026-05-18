@@ -37,6 +37,7 @@ class PropertyListResponse(BaseModel):
 
     workspace_id: str
     residencia_status: str
+    imoveis_no_if: bool = True
     properties: list[PropertyResponse]
 
 
@@ -45,3 +46,15 @@ class ResidenciaStatusResponse(BaseModel):
 
     workspace_id: str
     status: str
+
+
+class ImoveisNoIfResponse(BaseModel):
+    """`PUT /workspaces/{ws}/imoveis-no-if` response (ADR-222)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    workspace_id: str
+    imoveis_no_if: bool
+    # `set_at IS None` ↔ default migrado; `set_at` populado ↔ escolha explícita.
+    set_at: Optional[datetime] = None
+    set_by_user_id: Optional[str] = None

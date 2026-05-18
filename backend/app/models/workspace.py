@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, Numeric, String
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -58,7 +58,29 @@ class Workspace(Base):
         String(20), nullable=False, default="undeclared", server_default="undeclared"
     )
 
-    owner = relationship("User", back_populates="workspaces")
+    # ADR-222 — toggle per-workspace que controla se cat_2 (imóveis de renda)
+    # entra em ``investivel_efetivo`` (ADR-142 invariante anti-dupla-contagem).
+    # Default ``true`` preserva comportamento de ``config/pipeline.json:14``
+    # legado (cleanup do JSON em PR2 imediato). ``set_at IS NULL`` = default
+    # migrado; ``set_at`` populado = escolha explícita do usuário.
+    imoveis_no_if: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
+    imoveis_no_if_set_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
+    imoveis_no_if_set_by_user_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey(
+            "users.id",
+            name="fk_workspaces_imoveis_no_if_set_by_user_id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+        default=None,
+    )
+
+    owner = relationship("User", back_populates="workspaces", foreign_keys=[owner_id])
     reports = relationship("Report", back_populates="workspace", cascade="all, delete-orphan")
     documents = relationship("Document", back_populates="workspace", cascade="all, delete-orphan")
     vault_passwords = relationship(
