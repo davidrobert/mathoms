@@ -100,6 +100,13 @@ class WorkspaceContext:
         default=None, repr=False
     )
 
+    #: ADR-222 — toggle per-workspace controlando se cat_2 (imóveis de renda)
+    #: entra em ``investivel_efetivo`` (invariante ADR-142). Default ``True``
+    #: preserva comportamento do legado ``config/pipeline.json:14`` para
+    #: workspaces/CLI sem injeção explícita. Backend popula com o valor real
+    #: lido de ``workspaces.imoveis_no_if`` em ``_setup_run_context``.
+    imoveis_no_if: bool = field(default=True)
+
     #: ADR-119 — mediana de duração (ms) por stage, calculada dos últimos runs
     #: bem-sucedidos do workspace. Populado pelo orchestrator (Celery task);
     #: vazio em CLI/testes. Stages emitem via ``emit_item_progress(...,
@@ -205,6 +212,7 @@ class WorkspaceContext:
         property_identity_resolver: Optional["PropertyIdentityResolver"] = None,
         economic_assumptions_resolver: Optional["EconomicAssumptionsResolver"] = None,
         property_overrides_resolver: Optional["PropertyOverridesResolver"] = None,
+        imoveis_no_if: bool = True,
     ) -> WorkspaceContext:
         """Contexto para tenant web com config do banco de dados.
 
@@ -233,4 +241,5 @@ class WorkspaceContext:
             property_identity_resolver=property_identity_resolver,
             economic_assumptions_resolver=economic_assumptions_resolver,
             property_overrides_resolver=property_overrides_resolver,
+            imoveis_no_if=imoveis_no_if,
         )

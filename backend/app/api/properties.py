@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.property import (
     list_properties,
+    set_imoveis_no_if,
     set_property_classification,
     set_residencia_status,
 )
@@ -20,6 +21,8 @@ from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.repositories.property_repository import PropertyRepository
 from backend.app.schemas.dto.property import (
+    ImoveisNoIfCommand,
+    ImoveisNoIfResponse,
     PropertyClassificationCommand,
     PropertyListResponse,
     PropertyResponse,
@@ -140,5 +143,26 @@ async def put_residencia_status(
         "set_residencia_status workspace=%s status=%s",
         workspace.id,
         cmd.status,
+    )
+    return response
+
+
+@router.put("/imoveis-no-if", response_model=ImoveisNoIfResponse)
+async def put_imoveis_no_if(
+    cmd: ImoveisNoIfCommand,
+    workspace: Workspace = Depends(get_current_workspace),
+    repo: PropertyRepository = Depends(_get_repo),
+    user: User = Depends(get_current_user),
+) -> ImoveisNoIfResponse:
+    """ADR-222: flippa per-workspace `imoveis_no_if` (cat_2 entra/sai do investível efetivo)."""
+    try:
+        response = await set_imoveis_no_if(workspace.id, cmd, repo=repo, user_id=user.id)
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    logger.info(
+        "set_imoveis_no_if workspace=%s value=%s by=%s",
+        workspace.id,
+        cmd.imoveis_no_if,
+        user.id,
     )
     return response

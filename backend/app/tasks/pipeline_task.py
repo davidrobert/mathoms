@@ -463,6 +463,18 @@ def _bootstrap_pipeline_sys_path() -> None:
         sys.path.insert(0, _root)
 
 
+def _read_imoveis_no_if(ws_id: str, session) -> bool:
+    """ADR-222: lê toggle per-workspace. Default `True` se workspace ausente."""
+    from sqlalchemy import select
+
+    from backend.app.models import Workspace
+
+    row = session.execute(
+        select(Workspace.imoveis_no_if).where(Workspace.id == ws_id)
+    ).scalar_one_or_none()
+    return True if row is None else bool(row)
+
+
 def _setup_run_context(
     run_id: str,
     ws_id: str,
@@ -508,6 +520,9 @@ def _setup_run_context(
     # lazy em `PatrimonioCalculator`. Sem isso, override do usuário fica
     # órfão e relatório continua zerando linha "Residência" silenciosamente.
     property_overrides_resolver = DBPropertyOverridesResolver(session=config_store_session)
+    # ADR-222: per-workspace `imoveis_no_if` substitui `pipeline.json:14`
+    # global. Default `True` quando workspace ausente (CLI/testes).
+    imoveis_no_if = _read_imoveis_no_if(ws_id, config_store_session)
 
     ctx = WorkspaceContext.for_tenant(
         tenant_root,
@@ -519,6 +534,7 @@ def _setup_run_context(
         property_identity_resolver=property_identity_resolver,
         economic_assumptions_resolver=economic_assumptions_resolver,
         property_overrides_resolver=property_overrides_resolver,
+        imoveis_no_if=imoveis_no_if,
     )
     ctx.incremental = incremental
     ctx.incremental_doc_paths = incremental_doc_paths or []

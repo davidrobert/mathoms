@@ -4481,6 +4481,65 @@
         "title": "IFGoalUpsertCommand",
         "type": "object"
       },
+      "ImoveisNoIfCommand": {
+        "additionalProperties": false,
+        "description": "`PUT /workspaces/{ws}/imoveis-no-if` (ADR-222).",
+        "properties": {
+          "imoveis_no_if": {
+            "description": "true: cat_2 entra em investivel_efetivo (ADR-142).",
+            "title": "Imoveis No If",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "imoveis_no_if"
+        ],
+        "title": "ImoveisNoIfCommand",
+        "type": "object"
+      },
+      "ImoveisNoIfResponse": {
+        "additionalProperties": false,
+        "description": "`PUT /workspaces/{ws}/imoveis-no-if` response (ADR-222).",
+        "properties": {
+          "imoveis_no_if": {
+            "title": "Imoveis No If",
+            "type": "boolean"
+          },
+          "set_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Set At"
+          },
+          "set_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Set By User Id"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "imoveis_no_if"
+        ],
+        "title": "ImoveisNoIfResponse",
+        "type": "object"
+      },
       "ImpactoEstimadoDTO": {
         "additionalProperties": false,
         "description": "Impacto estimado (LLM emite s\u00f3 com confianca='alta' \u2014 ADR-202 \u00a7D6).",
@@ -6460,6 +6519,11 @@
       "PropertyListResponse": {
         "additionalProperties": false,
         "properties": {
+          "imoveis_no_if": {
+            "default": true,
+            "title": "Imoveis No If",
+            "type": "boolean"
+          },
           "properties": {
             "items": {
               "$ref": "#/components/schemas/PropertyResponse"
@@ -17952,6 +18016,64 @@
         "summary": "Tarefas vinculadas a esta meta",
         "tags": [
           "goals"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/imoveis-no-if": {
+      "put": {
+        "description": "ADR-222: flippa per-workspace `imoveis_no_if` (cat_2 entra/sai do invest\u00edvel efetivo).",
+        "operationId": "put_imoveis_no_if_api_v1_workspaces__workspace_id__imoveis_no_if_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImoveisNoIfCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImoveisNoIfResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Imoveis No If",
+        "tags": [
+          "properties"
         ]
       }
     },

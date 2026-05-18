@@ -52,3 +52,13 @@ class ResidenciaStatusCommand(BaseModel):
             raise ValueError(
                 f"status inválido: {self.status!r}. Esperado: {VALID_RESIDENCIA_STATUSES}"
             )
+
+
+class ImoveisNoIfCommand(BaseModel):
+    """`PUT /workspaces/{ws}/imoveis-no-if` (ADR-222)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    imoveis_no_if: bool = Field(
+        ..., description="true: cat_2 entra em investivel_efetivo (ADR-142)."
+    )

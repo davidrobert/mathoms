@@ -1368,9 +1368,13 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `business_profile_json` | `JSON` | yes | — | — |
 | `rule_cap_override` | `INTEGER` | yes | — | — |
 | `residencia_status` | `VARCHAR(20)` | no | server: `undeclared` | — |
+| `imoveis_no_if` | `BOOLEAN` | no | server: `1` | — |
+| `imoveis_no_if_set_at` | `DATETIME` | yes | — | — |
+| `imoveis_no_if_set_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
 
 **Constraints:**
 
+- FOREIGN KEY (imoveis_no_if_set_by_user_id) REFERENCES users.id ON DELETE SET NULL — `fk_workspaces_imoveis_no_if_set_by_user_id`
 - FOREIGN KEY (owner_id) REFERENCES users.id ON DELETE CASCADE — `(unnamed)`
 
 **Indexes:**
@@ -2334,5 +2338,8 @@ type Workspace struct {
 	BusinessProfileJson json.RawMessage `db:"business_profile_json" json:"business_profile_json"`
 	RuleCapOverride *int `db:"rule_cap_override" json:"rule_cap_override"`
 	ResidenciaStatus string `db:"residencia_status" json:"residencia_status"`
+	ImoveisNoIf bool `db:"imoveis_no_if" json:"imoveis_no_if"`
+	ImoveisNoIfSetAt *time.Time `db:"imoveis_no_if_set_at" json:"imoveis_no_if_set_at"`
+	ImoveisNoIfSetByUserId *string `db:"imoveis_no_if_set_by_user_id" json:"imoveis_no_if_set_by_user_id"`
 }
 ```

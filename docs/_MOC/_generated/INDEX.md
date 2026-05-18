@@ -219,6 +219,7 @@
 | ADR-219 | adr | Proposto |  | Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 | `adr/219-premissas-economicas-versionadas.md` |
 | ADR-220 | adr | Proposto |  | Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados | `adr/220-impacto-estimado-sugestoes-if.md` |
 | ADR-221 | adr | Proposto |  | Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto | `adr/221-catalog-driven-market-rate-ingestion.md` |
+| ADR-222 | adr | Proposto |  | Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if` | `adr/222-imoveis-no-if-per-workspace.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
