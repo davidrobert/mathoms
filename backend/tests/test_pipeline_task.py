@@ -187,6 +187,98 @@ class TestCancellationFlag:
         assert _is_cancelled(run_id) is False
 
 
+async def _seed_run_for_crash(Session, run_id, *, status, current_stage, failed_at_stage=None):
+    from sqlalchemy import select
+
+    async with Session() as db:
+        result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))
+        run = result.scalar_one()
+        run.status = status
+        run.current_stage = current_stage
+        run.failed_at_stage = failed_at_stage
+        if current_stage:
+            db.add(
+                PipelineStageLog(
+                    id=str(uuid.uuid4()),
+                    pipeline_run_id=run_id,
+                    stage=current_stage,
+                    status=PipelineStageStatus.running,
+                    started_at=datetime.now(timezone.utc),
+                )
+            )
+        await db.commit()
+
+
+def _trigger_on_failure(run_id, exc):
+    from backend.app.tasks.pipeline_task import _on_pipeline_task_failure
+
+    with patch("backend.app.tasks.pipeline_task.publish_run_failed"):
+        _on_pipeline_task_failure(None, exc, "task-id", (), {"run_id": run_id}, None)
+
+
+async def _read_run(Session, run_id):
+    from sqlalchemy import select
+
+    async with Session() as db:
+        return (await db.execute(select(PipelineRun).where(PipelineRun.id == run_id))).scalar_one()
+
+
+async def _read_only_stage_log(Session, run_id):
+    from sqlalchemy import select
+
+    async with Session() as db:
+        return (
+            await db.execute(
+                select(PipelineStageLog).where(PipelineStageLog.pipeline_run_id == run_id)
+            )
+        ).scalar_one()
+
+
+class TestOnFailureHandlerPreservesStage:
+    """``_on_pipeline_task_failure`` preserva ``failed_at_stage`` em crash externo (BUG-003 follow-up)."""
+
+    @pytest.mark.asyncio
+    async def test_failed_at_stage_derived_from_current_stage(self, workspace_with_run):
+        run_id, Session = workspace_with_run["run_id"], workspace_with_run["session"]
+        await _seed_run_for_crash(
+            Session, run_id, status=PipelineRunStatus.running, current_stage="extract_statements"
+        )
+        _trigger_on_failure(run_id, RuntimeError("worker killed"))
+        run = await _read_run(Session, run_id)
+        assert run.status == PipelineRunStatus.failed
+        assert run.failed_at_stage == "extract_statements"
+        assert run.current_stage is None
+        log = await _read_only_stage_log(Session, run_id)
+        assert log.status == PipelineStageStatus.failed
+        assert log.completed_at is not None
+        assert log.errors is not None and "worker killed" in log.errors
+
+    @pytest.mark.asyncio
+    async def test_no_current_stage_leaves_failed_at_stage_null(self, workspace_with_run):
+        run_id, Session = workspace_with_run["run_id"], workspace_with_run["session"]
+        await _seed_run_for_crash(
+            Session, run_id, status=PipelineRunStatus.pending, current_stage=None
+        )
+        _trigger_on_failure(run_id, ImportError("missing module"))
+        run = await _read_run(Session, run_id)
+        assert run.status == PipelineRunStatus.failed
+        assert run.failed_at_stage is None
+
+    @pytest.mark.asyncio
+    async def test_idempotent_does_not_overwrite_existing_failed_at_stage(self, workspace_with_run):
+        run_id, Session = workspace_with_run["run_id"], workspace_with_run["session"]
+        await _seed_run_for_crash(
+            Session,
+            run_id,
+            status=PipelineRunStatus.running,
+            current_stage="analyze_finances",
+            failed_at_stage="categorize_transactions",
+        )
+        _trigger_on_failure(run_id, RuntimeError("oom"))
+        run = await _read_run(Session, run_id)
+        assert run.failed_at_stage == "categorize_transactions"
+
+
 class TestEventSchemas:
     """Test Pydantic event schemas."""
 

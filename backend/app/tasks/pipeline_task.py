@@ -391,27 +391,59 @@ def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
             return None, attempts + 1, error_msg, last_tb
 
 
-def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
-    """BUG-003 fix: mark pipeline run as failed when the Celery task crashes
-    outside the main try-catch (e.g. OOM, import error, worker killed).
+_CRASH_RUN_STATUSES = (
+    PipelineRunStatus.pending,
+    PipelineRunStatus.running,
+    PipelineRunStatus.resuming,
+)
 
-    Without this, the run stays in 'pending'/'running' forever and blocks
-    new runs (409 Conflict on the concurrency check).
-    """
+
+def _mark_running_stage_log_failed(db, run_id: str, stage: str, exc, now) -> None:
+    """Marca o stage_log em ``status=running`` como ``failed`` — paridade com ``_record_stage_exception``."""
+    from sqlalchemy import select
+
+    log = db.execute(
+        select(PipelineStageLog)
+        .where(
+            PipelineStageLog.pipeline_run_id == run_id,
+            PipelineStageLog.stage == stage,
+            PipelineStageLog.status == PipelineStageStatus.running,
+        )
+        .order_by(PipelineStageLog.started_at.desc())
+    ).scalar_one_or_none()
+    if log is None:
+        return
+    log.status = PipelineStageStatus.failed
+    log.completed_at = now
+    if log.started_at is not None:
+        started = log.started_at
+        if started.tzinfo is None:
+            started = started.replace(tzinfo=timezone.utc)
+        log.duration_ms = int((now - started).total_seconds() * 1000)
+    log.errors = f"Task crashed: {exc!s}"[:2000]
+
+
+def _apply_task_crash_to_run(run, exc, now, db) -> None:
+    """Aplica BUG-003 + preserva ``failed_at_stage``/stage_log para retomada via UI."""
+    if run.current_stage and not run.failed_at_stage:
+        _mark_running_stage_log_failed(db, run.id, run.current_stage, exc, now)
+        run.failed_at_stage = run.current_stage
+    run.status = PipelineRunStatus.failed
+    run.completed_at = now
+    run.current_stage = None
+
+
+def _on_pipeline_task_failure(self, exc, task_id, args, kwargs, einfo):
+    """BUG-003 — marca run como ``failed`` quando o Celery task crasha fora do try/catch interno (OOM, import error, worker killed)."""
     run_id = kwargs.get("run_id") or (args[0] if args else None)
     if not run_id:
         return
+    now = datetime.now(timezone.utc)
     try:
         with SyncSessionLocal() as db:
             run = db.get(PipelineRun, run_id)
-            if run and run.status in (
-                PipelineRunStatus.pending,
-                PipelineRunStatus.running,
-                PipelineRunStatus.resuming,
-            ):
-                run.status = PipelineRunStatus.failed
-                run.completed_at = datetime.now(timezone.utc)
-                run.current_stage = None
+            if run and run.status in _CRASH_RUN_STATUSES:
+                _apply_task_crash_to_run(run, exc, now, db)
                 db.commit()
         publish_run_failed(run_id)
     except Exception as exc:
