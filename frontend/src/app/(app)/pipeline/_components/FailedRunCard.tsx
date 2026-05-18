@@ -7,6 +7,7 @@ import { formatDuration, stageName } from "@/lib/format";
 import { buildUserFacingError } from "@/lib/pipelineErrorMessages";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { deriveFailedStage } from "./failedStage";
 
 type OutputSummary = Record<string, unknown> | null | undefined;
 
@@ -84,7 +85,7 @@ function FailedRunHeader({
   onDismiss: () => void;
 }) {
   const failedStage = run.stage_logs.find((s) => s.status === "failed");
-  const userError = buildUserFacingError(failedStage?.errors, run.failed_at_stage);
+  const userError = buildUserFacingError(failedStage?.errors, deriveFailedStage(run));
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="flex items-start gap-3 min-w-0">
@@ -157,9 +158,9 @@ export function FailedRunCard({
             <RefreshCw className="mr-2 h-3.5 w-3.5" />
             {triggering ? "Iniciando..." : "Tentar novamente"}
           </Button>
-          {onRetryFrom && run.failed_at_stage && (
+          {onRetryFrom && deriveFailedStage(run) && (
             <Button size="sm" variant="outline" onClick={onRetryFrom} disabled={triggering}>
-              Reprocessar a partir de {stageName(run.failed_at_stage)}
+              Reprocessar a partir de {stageName(deriveFailedStage(run)!)}
             </Button>
           )}
         </div>
