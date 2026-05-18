@@ -39,6 +39,18 @@ SectionId = Literal[
     "plano_de_acao",
 ]
 UnidadeImpacto = Literal["ano", "mes"]
+# ADR-220: tipagem semântica do impacto. Evita confundir fluxo anual (R$/ano)
+# com patrimônio-alvo (R$ estoque pela regra 25× IF).
+ImpactoTipo = Literal[
+    "patrimonio_alvo",
+    "fluxo_anual",
+    "economia_anual_irpf",
+    "gap_protecao",
+    "outro",
+]
+# ADR-220: categoria editorial da sugestão, ortogonal a tema_canonico
+# (tema é metodologia; categoria é natureza do impacto).
+CategoriaSugestao = ImpactoTipo
 
 # Regex anti-ticker (ADR-202 §D4) — body textual user-facing nunca cita ticker BR.
 _TICKER_RE = re.compile(r"[A-Z]{4}\d{1,2}|[A-Z]{4}11")
@@ -122,6 +134,10 @@ class ImpactoEstimado(BaseModel):
     )
     unidade: UnidadeImpacto
     caveat: str = Field(..., min_length=10, max_length=240)
+    # ADR-220: tipagem do impacto. Ausência aceita (compat) → renderer trata
+    # como "outro". Para sugestão de tema IF (regra 25× Perini), manifest check
+    # exige >=1 sugestão com tipo='patrimonio_alvo' (dev/check_parecer_manifest_in_sync.py).
+    tipo: Optional[ImpactoTipo] = None
 
 
 class Sugestao(BaseModel):
@@ -135,6 +151,11 @@ class Sugestao(BaseModel):
     suggestion_dedup_key: str = Field(..., pattern=_SHA256_RE.pattern)
     impacto_estimado: Optional[ImpactoEstimado] = None
     evidencia_path: Optional[str] = Field(None, pattern=_JSONPATH_RE.pattern)
+    # ADR-220: categoria editorial da sugestão (natureza do impacto). Opcional;
+    # quando presente, renderer agrupa sugestões irmãs e exibe label semântico.
+    # Pode diferir de impacto_estimado.tipo (sugestão pode ter "categoria=if"
+    # mas impacto tipado como "fluxo_anual" — irmã traz patrimonio_alvo).
+    categoria_sugestao: Optional[CategoriaSugestao] = None
 
     @field_validator("acao", "impacto_qualitativo")
     @classmethod
@@ -205,6 +226,23 @@ class ParecerPlanejadorOutput(BaseModel):
             raise ValueError(f"count(P0)={p0_count} excede o cap 2 no agregado (ADR-202 §D3)")
         return self
 
+    def find_impacto_tipagem_violations(self) -> list[str]:
+        """ADR-220 soft check: sugestões IF/renda passiva exigem tipagem patrimonio_alvo."""
+        all_sug = self.sugestoes_execucao + self.sugestoes_taticas + self.sugestoes_estrategicas
+        if_themed = [s for s in all_sug if s.tema_canonico == "Renda passiva"]
+        if not if_themed:
+            return []
+        has_alvo = any(
+            s.impacto_estimado is not None and s.impacto_estimado.tipo == "patrimonio_alvo"
+            for s in if_themed
+        )
+        if has_alvo:
+            return []
+        return [
+            "ADR-220: tema_canonico='Renda passiva' sem irmã marcada "
+            "impacto_estimado.tipo='patrimonio_alvo' (regra 25× IF)."
+        ]
+
 
 # LLM emite o schema com ``metadata`` placeholder (orchestrator preenche os
 # campos auditáveis após chamar). Para tornar a validação realista durante
@@ -216,9 +254,11 @@ class ParecerPlanejadorOutput(BaseModel):
 __all__ = [
     "AncoraMetodologica",
     "CampoFaltante",
+    "CategoriaSugestao",
     "Confianca",
     "FrequenciaRevisao",
     "ImpactoEstimado",
+    "ImpactoTipo",
     "Metadata",
     "Metrica",
     "NotaMetodologica",

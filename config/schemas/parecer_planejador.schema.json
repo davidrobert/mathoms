@@ -354,7 +354,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["valor_estimado_brl", "unidade", "caveat"],
-      "description": "ADR-202 §D6: estimativa indicativa de impacto financeiro. SÓ permitido quando confianca='alta' — invariante aplicada via validator Pydantic em pipeline/llm/schemas/parecer_planejador.py (JSON Schema isolado não condiciona shape ao valor de outro campo de forma confiável aqui).",
+      "description": "ADR-202 §D6: estimativa indicativa de impacto financeiro. SÓ permitido quando confianca='alta' — invariante aplicada via validator Pydantic em pipeline/llm/schemas/parecer_planejador.py (JSON Schema isolado não condiciona shape ao valor de outro campo de forma confiável aqui). ADR-220: campo 'tipo' opcional traz tipagem semântica (patrimonio_alvo vs fluxo_anual vs ...) — manifest check exige >=1 sugestão com tipo='patrimonio_alvo' em temas IF/renda passiva.",
       "properties": {
         "valor_estimado_brl": {
           "type": "number",
@@ -370,6 +370,17 @@
           "minLength": 10,
           "maxLength": 240,
           "description": "Disclaimer obrigatório descrevendo premissa/incerteza. UI mostra como tooltip."
+        },
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "patrimonio_alvo",
+            "fluxo_anual",
+            "economia_anual_irpf",
+            "gap_protecao",
+            "outro"
+          ],
+          "description": "ADR-220: tipagem semântica do impacto. Evita confundir fluxo anual (R$/ano) com patrimônio-alvo (R$ estoque, regra 25× IF). Ausente em runs pré-ADR-220 — renderer trata como 'outro'."
         }
       }
     },
@@ -409,7 +420,18 @@
         "section_id": {"$ref": "#/$defs/section_id"},
         "suggestion_dedup_key": {"$ref": "#/$defs/suggestion_dedup_key"},
         "impacto_estimado": {"$ref": "#/$defs/impacto_estimado"},
-        "evidencia_path": {"$ref": "#/$defs/evidencia_path"}
+        "evidencia_path": {"$ref": "#/$defs/evidencia_path"},
+        "categoria_sugestao": {
+          "type": "string",
+          "enum": [
+            "patrimonio_alvo",
+            "fluxo_anual",
+            "economia_anual_irpf",
+            "gap_protecao",
+            "outro"
+          ],
+          "description": "ADR-220: categoria editorial da sugestão (natureza do impacto), ortogonal a tema_canonico (tema = metodologia; categoria = natureza). Quando presente, renderer agrupa sugestões irmãs e exibe label semântico."
+        }
       },
       "allOf": [
         {
