@@ -318,22 +318,23 @@ class TestA6d33Wiring:
         assert required.issubset(result.reserva.keys())
 
     def test_score_has_paridade_keys(self):
+        # ADR-217 D3 acrescenta `score_version` ao shape v2.E.7 do ScoreCard.
         store = InMemoryArtifactStore()
         _seed_minimal(store)
         adapter = E5AnalyzerAdapter()
         result = adapter.analyze_via_store(store)
-
-        # v2.E.7: ScoreCard premium consome breakdown/formula/context/conclusion.
-        assert set(result.score.keys()) == {
+        expected = {
             "valor",
             "max",
             "classificacao",
+            "score_version",
             "componentes",
             "breakdown",
             "formula",
             "context",
             "conclusion",
         }
+        assert set(result.score.keys()) == expected
         assert result.score["max"] == 10
         assert len(result.score["componentes"]) == 5
 
