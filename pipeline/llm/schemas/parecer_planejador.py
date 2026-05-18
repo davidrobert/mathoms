@@ -3,14 +3,24 @@
 from __future__ import annotations
 
 import re
-from typing import Literal, Optional
+import unicodedata
+from typing import Annotated, Literal, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
+
+
+def _normalize_confianca(v):
+    """Boundary do LLM (ADR-202 §D6): aceita 'média'/'Alta'/'BAIXA' coercendo para forma canônica lowercase ASCII. Prod 2026-05-18 run 98e60bef: LLM emitia 'média' (PT natural) e 4 retries falhavam contra Literal['alta','media','baixa']. Inconsistência histórica com Severidade=['Crítica','Alta','Média','Baixa'] (com acento+caps) viesa o LLM a usar 'média' aqui também."""
+    if not isinstance(v, str):
+        return v
+    no_accent = unicodedata.normalize("NFKD", v).encode("ASCII", "ignore").decode()
+    return no_accent.lower()
+
 
 # Enums fechados (espelham o JSON Schema $defs).
 Severidade = Literal["Crítica", "Alta", "Média", "Baixa"]
 Prioridade = Literal["P0", "P1", "P2"]
-Confianca = Literal["alta", "media", "baixa"]
+Confianca = Annotated[Literal["alta", "media", "baixa"], BeforeValidator(_normalize_confianca)]
 AncoraMetodologica = Literal["perini", "cerbasi", "auvp", "convergencia"]
 TemaCanonico = Literal[
     "Proteção",
