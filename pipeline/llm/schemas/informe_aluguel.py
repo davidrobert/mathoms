@@ -8,21 +8,16 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-PROMPT_VERSION = "informe-aluguel-v1.0.0"
+PROMPT_VERSION = "informe-aluguel-v1.1.0"
 
 
 def _coerce_decimal(v):
-    """Coerção monetária estrita (ADR-090) — float é proibido em campo monetário."""
+    """Coerção monetária no boundary do LLM (ADR-090): aceita ``float`` aqui porque JSON não tem Decimal nativo e este validator é o call-site canônico para ``Decimal(str(v))`` — o float chega literal do parser, sem aritmética intermediária."""
     if v is None:
         return None
     if isinstance(v, Decimal):
         return v
-    if isinstance(v, float):
-        raise TypeError(
-            f"informe_aluguel: float é proibido em campo monetário (ADR-090) — "
-            f"recebido {v!r}; converta via Decimal(str(v)) no call-site"
-        )
-    if isinstance(v, (int, str)):
+    if isinstance(v, (int, str, float)):
         return Decimal(str(v))
     raise TypeError(f"informe_aluguel: não consigo coerce {type(v).__name__}={v!r} para Decimal")
 
