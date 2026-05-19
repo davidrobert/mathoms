@@ -24,6 +24,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from pipeline.domain.types.config import BankAccountRecord
+
 # =============================================================================
 # Config
 # =============================================================================
@@ -32,6 +34,9 @@ from typing import Any
 @dataclass(frozen=True)
 class InvestmentsConsolidatorConfig:
     banco_membro: dict[str, str] = field(default_factory=dict)
+    # ADR-226 PR3 — quando populada, AccountResolver substitui lookup direto;
+    # ambíguo (>1 membro mesmo banco) marca posição needs_review.
+    accounts: tuple[BankAccountRecord, ...] = ()
     divergence_tolerance: float = 1.0
 
     @classmethod
@@ -39,7 +44,20 @@ class InvestmentsConsolidatorConfig:
         fam = family or {}
         raw = fam.get("banco_membro") or {}
         clean = {str(k): str(v) for k, v in raw.items() if not str(k).startswith("_")}
-        return cls(banco_membro=clean)
+        contas_raw = fam.get("contas") or []
+        accounts = tuple(_parse_account_record(c) for c in contas_raw if isinstance(c, dict))
+        return cls(banco_membro=clean, accounts=accounts)
+
+
+def _parse_account_record(raw: dict) -> BankAccountRecord:
+    return BankAccountRecord(
+        member_key=str(raw.get("member_key") or ""),
+        institution_code=str(raw.get("institution_code") or ""),
+        account_type=str(raw.get("account_type") or ""),
+        account_number_norm=raw.get("account_number_norm"),
+        account_number_raw=raw.get("account_number_raw"),
+        agency=raw.get("agency"),
+    )
 
 
 # =============================================================================
@@ -90,8 +108,13 @@ class InvestmentsConsolidator:
         *,
         now=None,
     ) -> None:
+        from pipeline.domain.services.account_resolver import AccountResolver
+
         self._config = config or InvestmentsConsolidatorConfig()
         self._now = now
+        self._resolver = AccountResolver(
+            self._config.accounts, banco_membro_legacy=self._config.banco_membro
+        )
 
     def _iso_today(self) -> str:
         return (self._now or datetime.now()).strftime("%Y-%m-%d")
@@ -139,8 +162,14 @@ class InvestmentsConsolidator:
             instituicao = data.get("instituicao") or data.get("banco") or ""
             membro = (data.get("membro") or "").lower()
             if not membro and instituicao:
+                # ADR-226 PR3 — resolver substitui lookup direto banco_membro.
                 inst_key = str(instituicao).lower().replace(" ", "")
-                membro = self._config.banco_membro.get(inst_key, "")
+                acc_num = data.get("numero_conta") or data.get("account_number")
+                resolution = self._resolver.resolve(inst_key, acc_num)
+                if resolution.confidence == "ambiguous":
+                    membro = "needs_review"
+                else:
+                    membro = resolution.member_key or ""
             data_ref = (
                 data.get("data_referencia") or data.get("data_posicao") or data.get("periodo") or ""
             )
