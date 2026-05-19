@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class BankAccountResponse(BaseModel):
-    """Conta bancária ligada a um membro da família."""
+    """Conta bancária ligada a um membro (ADR-226 acrescenta is_joint/co_titulares)."""
 
     id: Optional[str] = None
     institution_code: str = Field(..., min_length=1, max_length=50)
@@ -23,6 +23,8 @@ class BankAccountResponse(BaseModel):
     agency: Optional[str] = Field(None, max_length=20)
     account_number: Optional[str] = Field(None, max_length=30)
     label: Optional[str] = Field(None, max_length=255)
+    is_joint: bool = False
+    co_titulares: Optional[list[str]] = None
 
     model_config = {"from_attributes": True}
 

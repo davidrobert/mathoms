@@ -25,10 +25,13 @@ async def create_bank_account(
         raise NotFoundError("Membro não encontrado", code="member_not_found")
     account = await repo.add_account(
         member_id,
+        workspace_id=workspace_id,
         institution_code=cmd.institution_code,
         account_type=cmd.account_type,
         agency=cmd.agency,
         account_number=cmd.account_number,
         label=cmd.label,
+        is_joint=cmd.is_joint,
+        co_titulares=cmd.co_titulares,
     )
     return BankAccountResponse.model_validate(account)

@@ -34,5 +34,7 @@ async def update_bank_account(
         agency=cmd.agency,
         account_number=cmd.account_number,
         label=cmd.label,
+        is_joint=cmd.is_joint,
+        co_titulares=cmd.co_titulares,
     )
     return BankAccountResponse.model_validate(updated)

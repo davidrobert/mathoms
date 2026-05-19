@@ -344,6 +344,7 @@ async def _import_family_members(
         for bank_code in account_map.get(key, []):
             await repo.add_account(
                 member.id,
+                workspace_id=workspace.id,
                 institution_code=bank_code,
                 account_type="extratoconta",
             )
