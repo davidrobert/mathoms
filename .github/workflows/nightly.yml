@@ -4,6 +4,10 @@
 # 06:00 UTC (03:00 BRT) e on-demand via workflow_dispatch ou labels.
 #
 # Jobs aqui:
+# - main-smoke: safety net diário pós-remoção do trigger `push: main` do
+#   ci.yml (ADR-210 §camada 2). Re-roda lint+pipeline+backend+frontend
+#   contra HEAD de main para pegar drift cross-cutting que tenha
+#   escapado pelo gate de PR. Janela máx de detecção ~24h.
 # - frontend-lighthouse: perf/a11y/best-practices/SEO contra build production.
 #   Métrica de qualidade, não correctness — regressão detectada em até 24h é OK.
 #   Opt-in PR via label `lighthouse`.
@@ -23,10 +27,15 @@ name: Nightly
 
 on:
   schedule:
-    # Seg/Qua/Sex 06:00 UTC = 03:00 BRT. Fora do horário de trabalho;
-    # cache do GH ainda quente do último PR. Frequência 3×/semana
-    # (em vez de daily) corta ~57% das execuções nightly sem comprometer
-    # detecção: regressão visual/perf cabe em janela de 2-3 dias.
+    # Cron 1: main-smoke diário às 05:30 UTC (= 02:30 BRT). Safety net
+    # após remoção do `push: main` em ci.yml (ADR-210 §camada 2). 30 min
+    # antes do bloco pesado para escalonar carga do runner pool.
+    - cron: "30 5 * * *"
+    # Cron 2: jobs pesados (lighthouse, cross-browser, visual) seg/qua/sex
+    # 06:00 UTC = 03:00 BRT. Cache do GH quente do main-smoke logo antes.
+    # Frequência 3×/sem (em vez de daily) corta ~57% das execuções pesadas
+    # sem comprometer detecção: regressão visual/perf cabe em janela de
+    # 2-3 dias. Gates por `github.event.schedule` abaixo em cada job.
     - cron: "0 6 * * 1,3,5"
   workflow_dispatch:
   pull_request:
@@ -38,13 +47,171 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  main-smoke:
+    # Safety net diário após remoção do trigger `push: main` de ci.yml
+    # (ADR-210 §camada 2, 2026-05-19). Re-roda os 4 gates de PR contra
+    # HEAD de main para pegar drift cross-cutting que tenha escapado do
+    # gate de PR (ex.: race de merge sequencial, hook dependency rot,
+    # secret rotacionado fora do CI).
+    #
+    # Consolidado em 1 job (vs. 4 jobs paralelos) para reduzir overhead
+    # de runner setup — total wall-clock ~10 min, mas só roda 1×/dia,
+    # off-hours, sem humano esperando. Falha abre Issue auto-mergeável.
+    #
+    # Dispara via:
+    # - schedule cron `30 5 * * *` (diário 05:30 UTC = 02:30 BRT)
+    # - workflow_dispatch (debug manual)
+    # - label `main-smoke` em PR (escape hatch p/ testar a config)
+    name: Main smoke (safety net pós push-trigger removido)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: |
+      (github.event_name == 'schedule' && github.event.schedule == '30 5 * * *') ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'main-smoke')
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install uv (SHA-pinned v8.1.0)
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.5.x"
+
+      - name: Restore venv cache
+        id: venv-cache
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          # Mesma key dos jobs de ci.yml — reusa cache populado pelo
+          # último PR mergeado. Hit típico em main-smoke noturno.
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v3
+          restore-keys: |
+            venv-${{ runner.os }}-py313-
+
+      - name: Install Python deps (cache miss, via uv)
+        if: steps.venv-cache.outputs.cache-hit != 'true'
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
+        run: |
+          [ -d .venv ] || uv venv .venv
+          uv pip install -r requirements.txt -r backend/requirements.txt
+          uv pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+          uv pip install --system pre-commit ruff==0.6.0 jsonschema pyyaml
+
+      - name: Activate venv (PATH)
+        run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Restore pre-commit cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-py313-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-py313-
+
+      - name: Lint gate (pre-commit + style + PII + tenancy)
+        run: |
+          pre-commit run --all-files
+          python3 dev/check_code_style_regression.py
+          python tests/utils/lint_no_real_pii.py --verbose
+          python scripts/lint/check_workspace_scoping.py --verbose
+          python -m pytest scripts/lint/test_check_workspace_scoping.py -q
+
+      - name: Pipeline tests
+        run: |
+          pytest tests/ -q --tb=short
+          MATHOMS_PIPELINE_SCHEMA_MODE=strict pytest tests/test_schema_validation.py -q --tb=short
+          python dev/check_pipeline_boundaries.py --verbose
+
+      - name: Backend tests
+        env:
+          REDIS_URL: redis://localhost:6379/0
+          MATHOMS_USE_DB_ARTIFACTS: "true"
+        run: |
+          # Smoke = main em estado conhecido; sempre roda suite completa
+          # (sem `-m "not migration"` filter) para pegar drift em migration
+          # one-shot, schema model↔DB e seed.
+          pytest backend/tests/ -q --tb=short -n auto --dist loadgroup
+
+      - name: Frontend ESLint + Vitest
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run lint
+          npm test -- --reporter=default
+
+      - name: Open issue on smoke failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const today = new Date().toISOString().slice(0, 10);
+            // Procura issue aberta com label `main-smoke-fail` p/ evitar dupes.
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'main-smoke-fail',
+              per_page: 5,
+            });
+            if (existing.data.length > 0) {
+              core.notice(`Issue main-smoke-fail já aberta: #${existing.data[0].number}`);
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[main-smoke] Drift detectado em main — ${today}`,
+              body: [
+                `**Main smoke noturno falhou.** Algum gate quebrou em \`main\` após o último merge verde.`,
+                ``,
+                `Run: ${runUrl}`,
+                ``,
+                `## Possíveis causas`,
+                `1. Race de merge sequencial entre 2 PRs (cobertura era exatamente esse caso)`,
+                `2. Hook ou dependência externa rotou (LLM API, redis, fonte de schema)`,
+                `3. Drift de codegen (\`design-tokens\`, \`report-layout\`) não detectado em PR`,
+                ``,
+                `## Próximos passos`,
+                `1. Identifique o step que falhou no log do run.`,
+                `2. Reproduza local em \`main\`: \`git checkout main && git pull && <comando que falhou>\`.`,
+                `3. Abra PR de fix labelado \`hotfix\` para destravar o gate.`,
+                ``,
+                `Política: [ADR-210](../docs/adr/210-saude-do-test-suite-do-ci.md) §camada 2.`,
+              ].join('\n'),
+              labels: ['main-smoke-fail', 'ops'],
+            });
+
   frontend-lighthouse:
     name: Frontend Lighthouse (relatório nativo)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # PR opt-in via label `lighthouse`; schedule e dispatch sempre rodam.
+    # PR opt-in via label `lighthouse`; dispatch sempre roda.
+    # Schedule: apenas no cron pesado 3×/sem (06:00 UTC) — NÃO no main-smoke
+    # diário (05:30 UTC), que é safety net leve.
     if: |
-      github.event_name == 'schedule' ||
+      (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1,3,5') ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, 'lighthouse')
     defaults:
@@ -108,9 +275,11 @@ jobs:
     name: Frontend E2E cross-browser (Firefox + WebKit)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Schedule + dispatch sempre rodam. PR opt-in via label `cross-browser`.
+    # PR opt-in via label `cross-browser`; dispatch sempre roda.
+    # Schedule: apenas no cron pesado 3×/sem (06:00 UTC) — NÃO no main-smoke
+    # diário (05:30 UTC).
     if: |
-      github.event_name == 'schedule' ||
+      (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1,3,5') ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, 'cross-browser')
     services:
@@ -227,8 +396,11 @@ jobs:
     name: Frontend visual snapshots — scan completo (light+dark)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # PR opt-in via label `visual-full`; dispatch sempre roda.
+    # Schedule: apenas no cron pesado 3×/sem (06:00 UTC) — NÃO no main-smoke
+    # diário (05:30 UTC).
     if: |
-      github.event_name == 'schedule' ||
+      (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1,3,5') ||
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.labels.*.name, 'visual-full')
     defaults:
