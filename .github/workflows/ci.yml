@@ -25,8 +25,17 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
+  # `push: branches: [main]` REMOVIDO (ADR-210 §camada 2, 2026-05-19).
+  #
+  # Por quê: Ruleset `main-protection` exige `All checks green` pré-merge;
+  # squash-merge linear de PR verde **não pode** introduzir resultado
+  # diferente do que o PR já testou. Re-rodar em push:main custava ~50%
+  # dos minutos do CI (cada merge = 2 runs full). Drift cross-cutting que
+  # passa pelo PR é coberto pelo job `main-smoke` em nightly.yml
+  # (diário 06:00 UTC; janela máx ~24h, aceitável p/ solo-dev project).
+  #
+  # Se reabilitar virar necessidade (ex.: deploy automático em main), use
+  # `workflow_call` e dispare via release.yml em vez de push:main full.
   pull_request:
     branches: [main]
     # `ready_for_review` substitui o default que dispara em draft. Drafts
@@ -200,11 +209,25 @@ jobs:
         # build_doc_index, benchmark_doc_token_cost).
         run: uv pip install --system pre-commit ruff==0.6.0 pytest jsonschema pyyaml
 
-      - name: pre-commit (all files)
-        run: pre-commit run --all-files
+      - name: Restore pre-commit cache
+        # ADR-210 §camada 2 (2026-05-19): cacheia hooks instalados em
+        # ~/.cache/pre-commit (ruff, eslint, etc). Hit economiza ~25-30s
+        # do `pre-commit install` implícito + clone de cada repo de hook.
+        # Key derivada do .pre-commit-config.yaml — invalida na atualização
+        # de qualquer hook. restore-keys permite reuso parcial enquanto
+        # apenas 1 hook bumpa de versão.
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-py313-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-py313-
 
-      - name: ruff check
-        run: ruff check .
+      - name: pre-commit (all files)
+        # `ruff check .` explícito removido (ADR-210 §camada 2): pre-commit
+        # já roda `ruff` e `ruff-format` como hooks. Reduz duplicação de
+        # ~3-5s por PR sem perder cobertura.
+        run: pre-commit run --all-files
 
       - name: code style baseline regression
         run: python3 dev/check_code_style_regression.py
