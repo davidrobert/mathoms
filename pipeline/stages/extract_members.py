@@ -33,32 +33,46 @@ def _find_personal_docs(ctx: WorkspaceContext) -> list[Path]:
     return found
 
 
+def _member_info(m) -> dict:
+    info = {"nome_completo": m.full_name, "nome_curto": m.short_name, "papel": m.role}
+    if m.cpf:
+        info["cpf"] = m.cpf
+    if m.birth_date:
+        info["data_nascimento"] = m.birth_date
+    return info
+
+
+def _conta_entry(m, acc) -> dict:
+    from pipeline.domain.services.account_normalization import normalize_account_number
+
+    raw_num = getattr(acc, "account_number", None)
+    return {
+        "member_key": m.key,
+        "institution_code": acc.institution_code,
+        "account_type": getattr(acc, "account_type", "") or "",
+        "account_number_raw": raw_num,
+        "account_number_norm": normalize_account_number(raw_num),
+        "agency": getattr(acc, "agency", None),
+        "is_joint": False,
+        "co_titulares": [],
+    }
+
+
 def _output_to_family_members_json(output) -> dict:
-    """Convert MembersExtractOutput to family_members.json format."""
-    membros = {}
-    banco_membro = {}
-    titular = output.titular_key
-
+    """Convert MembersExtractOutput to family_members.json format (ADR-226 PR3: contas[])."""
+    membros, banco_membro, contas = {}, {}, []
     for m in output.members:
-        info = {
-            "nome_completo": m.full_name,
-            "nome_curto": m.short_name,
-            "papel": m.role,
-        }
-        if m.cpf:
-            info["cpf"] = m.cpf
-        if m.birth_date:
-            info["data_nascimento"] = m.birth_date
-        membros[m.key] = info
-
+        membros[m.key] = _member_info(m)
         for acc in m.accounts:
             banco_membro[acc.institution_code] = m.key
-
-    result = {"membros": membros}
+            contas.append(_conta_entry(m, acc))
+    result: dict = {"membros": membros}
     if banco_membro:
         result["banco_membro"] = banco_membro
-    if titular:
-        result["titular"] = titular
+    if contas:
+        result["contas"] = contas
+    if output.titular_key:
+        result["titular"] = output.titular_key
     return result
 
 
