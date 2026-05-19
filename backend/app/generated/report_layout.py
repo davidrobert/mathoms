@@ -208,6 +208,10 @@ LAYOUT_DICT: dict = {   'version': '1.2',
                                                             'enabled': True,
                                                             'variant': 'feature',
                                                             'size': 'full'},
+                                                        {   'id': 'exposicao_cambial',
+                                                            'enabled': True,
+                                                            'variant': 'feature',
+                                                            'size': 'half'},
                                                         {   'id': 'receitas_fonte',
                                                             'enabled': True,
                                                             'variant': 'feature',
@@ -618,5 +622,5 @@ LAYOUT_DICT: dict = {   'version': '1.2',
 
 LAYOUT: ReportLayout = ReportLayout.model_validate(LAYOUT_DICT)
 
-ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'alocacao_atual_vs_alvo', 'investimentos_classe', 'kpi_rentabilidade', 'estrategia_aporte', 'contrafluxo', 'real_estate_yield', 'previdencia_pgbl', 'renda_anual_familiar', 'ir_pago_total', 'split_trabalho_capital', 'pgbl_capacidade', 'irpf_dependentes_declarados', 'irpf_dedutiveis_aplicados', 'hero_gap_protecao', 'cobertura_seguros', 'sucessao', 'acoes_mitigacao', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref')
+ALL_CARD_IDS: tuple[str, ...] = ('patrimonio_categorias', 'exposicao_cambial', 'receitas_fonte', 'reserva_emergencia', 'endividamento', 'orcamento_prospectivo', 'consumo_consciente', 'diagnostico_comportamental', 'equilibrio_cerbasi', 'milhas', 'alocacao_atual_vs_alvo', 'investimentos_classe', 'kpi_rentabilidade', 'estrategia_aporte', 'contrafluxo', 'real_estate_yield', 'previdencia_pgbl', 'renda_anual_familiar', 'ir_pago_total', 'split_trabalho_capital', 'pgbl_capacidade', 'irpf_dependentes_declarados', 'irpf_dedutiveis_aplicados', 'hero_gap_protecao', 'cobertura_seguros', 'sucessao', 'acoes_mitigacao', 'pontos_fortes', 'pontos_urgentes', 'equilibrio_cerbasi_ref')
 ALL_CHART_IDS: tuple[str, ...] = ('patrimonio_doughnut', 'waterfall_if', 'score_gauge', 'fluxo_mensal', 'receita_bar', 'despesas_doughnut', 'receita_despesa_mensal', 'viagens', 'alocacao_atual', 'alocacao_alvo', 'top15_ativos', 'cenarios_conjuge', 'projecao_3cenarios', 'renda_passiva', 'impostos_pj', 'renda_evolucao_multi_anos', 'aliquota_efetiva_dual_gauge', 'bubble_riscos', 'top5_decisoes')

@@ -136,6 +136,10 @@ estrategico:
           enabled: true
           variant: "feature"
           size: "full"
+        - id: "exposicao_cambial"  # Bloco G plan/RESIDENCIA_E_USO (co-design 2026-05-18)
+          enabled: true
+          variant: "feature"
+          size: "half"
         - id: "receitas_fonte"
           enabled: true
           variant: "feature"

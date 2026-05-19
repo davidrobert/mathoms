@@ -23,6 +23,7 @@ export { ContrafluxoCard } from "./ContrafluxoCard";
 export type { ContrafluxoData } from "./ContrafluxoCard";
 export { DiagnosticoComportamentalCard } from "./DiagnosticoComportamentalCard";
 export { EndividamentoCard } from "./EndividamentoCard";
+export { ExposicaoCambialCard } from "./ExposicaoCambialCard";
 export { EquilibrioCerbasiCard } from "./EquilibrioCerbasiCard";
 export { EstrategiaAporteCard } from "./EstrategiaAporteCard";
 export type { EstrategiaAporteData } from "./EstrategiaAporteCard";
