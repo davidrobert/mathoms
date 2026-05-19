@@ -235,12 +235,16 @@ async def test_put_residencia_status_invalid_returns_422(auth_client: AsyncClien
 
 
 @pytest.mark.asyncio
-async def test_list_properties_exposes_imoveis_no_if_default_true(auth_client: AsyncClient):
-    """ADR-222: default true preserva comportamento legado de pipeline.json."""
+async def test_list_properties_exposes_imoveis_no_if_default_false(auth_client: AsyncClient):
+    """ADR-223 (FU-1): default false para workspaces novos (conservadorismo Perini).
+
+    set_at IS NULL distingue default herdado de escolha explícita. Opt-in para
+    True via banner UX (A13) chamando PUT /imoveis-no-if com signal afirmativo.
+    """
     resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/properties")
     assert resp.status_code == 200
     data = resp.json()
-    assert data["imoveis_no_if"] is True
+    assert data["imoveis_no_if"] is False
 
 
 @pytest.mark.asyncio
