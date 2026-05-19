@@ -224,6 +224,7 @@
 | ADR-224 | adr | Decidido |  | `asset_catalog` + `lastro_moeda` per-ativo (catalog global + override per-workspace) | `adr/224-asset-catalog-lastro-moeda.md` |
 | ADR-225 | adr | Decidido |  | Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb | `adr/225-property-identity-dedup-robusto.md` |
 | ADR-226 | adr | Proposto |  | Desambiguação conta bancária → membro: `account_number` como discriminador, `account_resolver` puro, `is_joint` reservado para V2 | `adr/226-bank-account-member-disambiguation.md` |
+| ADR-227 | adr | Proposto |  | Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2 | `adr/227-imovel-financiado-debt-aggregate-valor-mercado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -516,6 +517,7 @@
 | PLAN-cenarios-estresse | plan | in_progress |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | draft |  | Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
+| PLAN-imovel-financiado | plan | draft |  | Imóvel financiado — agregado Debt persistido + property_market_value override (FU-3 Sprint A12) | `plan/IMOVEL_FINANCIADO/_README.md` |
 | PLAN-internal-admin | plan | in_progress |  | Console interno (operadores) — IA-0 a IA-4 | `plan/INTERNAL_ADMIN/_README.md` |
 | PLAN-market-rates-ingestion | plan | draft |  | Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto | `plan/MARKET_RATES_INGESTION/_README.md` |
 | PLAN-p1-structural | plan | paused |  | P1 — Plano estrutural (motor canônico + pipeline offline) | `plan/P1_STRUCTURAL/_README.md` |

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-219 ADRs (ADR-001 a ADR-226) em [`docs/adr/`](../../adr/).
+220 ADRs (ADR-001 a ADR-227) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 176
-- **Proposto**: 39
+- **Proposto**: 40
 - **Roadmap**: 4
 
 ## Fundação
@@ -384,9 +384,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-215]] — Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` · phase A12
 - [[ADR-224]] — `asset_catalog` + `lastro_moeda` per-ativo (catalog global + override per-workspace) · phase A12
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-226]] — Desambiguação conta bancária → membro: `account_number` como discriminador, `account_resolver` puro, `is_joint` reservado para V2 · phase A12
+- [[ADR-227]] — Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2 · phase A15
 
 ## money
 
