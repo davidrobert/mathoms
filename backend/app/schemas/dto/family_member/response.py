@@ -60,7 +60,7 @@ class FamilyMemberResponse(BaseModel):
     extra: Optional[dict[str, object]] = Field(
         None,
         description=(
-            "Campos extras arbitrários (variantes_nome, regex_nome_fatura, " "profissao, etc.)."
+            "Campos extras arbitrários (variantes_nome, regex_nome_fatura, profissao, etc.)."
         ),
     )
     accounts: list[BankAccountResponse] = Field(default_factory=list)

@@ -34,8 +34,7 @@ def _validate_key_slug_optional(v: str | None) -> str | None:
         return None
     if not _KEY_PATTERN.fullmatch(s):
         raise ValueError(
-            "Identificador interno: use apenas letras minúsculas, números e _ "
-            "(máx. 50 caracteres)"
+            "Identificador interno: use apenas letras minúsculas, números e _ (máx. 50 caracteres)"
         )
     return s
 
@@ -46,8 +45,7 @@ def _validate_key_slug_strict(v: str | None) -> str | None:
         return None
     if not _KEY_PATTERN.fullmatch(v):
         raise ValueError(
-            "Identificador interno: use apenas letras minúsculas, números e _ "
-            "(máx. 50 caracteres)"
+            "Identificador interno: use apenas letras minúsculas, números e _ (máx. 50 caracteres)"
         )
     return v
 
@@ -59,7 +57,7 @@ class FamilyMemberCreateCommand(BaseModel):
         None,
         min_length=1,
         max_length=50,
-        description=("Opcional; se omitido, backend gera slug único a partir de " "``full_name``."),
+        description=("Opcional; se omitido, backend gera slug único a partir de ``full_name``."),
     )
     full_name: str = Field(..., min_length=1, max_length=255)
     short_name: str = Field(..., min_length=1, max_length=100)

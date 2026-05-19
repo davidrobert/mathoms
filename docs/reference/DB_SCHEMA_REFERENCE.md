@@ -126,20 +126,25 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 |---|---|---|---|---|
 | `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
 | `member_id` | `VARCHAR(36)` | no | — | FK→family_members.id, INDEX |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
 | `institution_code` | `VARCHAR(50)` | no | — | — |
 | `account_type` | `VARCHAR(100)` | no | — | — |
 | `agency` | `VARCHAR(20)` | yes | — | — |
 | `account_number` | `VARCHAR(30)` | yes | — | — |
 | `label` | `VARCHAR(255)` | yes | — | — |
 | `source_tier` | `SMALLINT` | yes | — | — |
+| `is_joint` | `BOOLEAN` | no | `False` | — |
+| `co_titulares` | `JSON` | yes | — | — |
 
 **Constraints:**
 
 - FOREIGN KEY (member_id) REFERENCES family_members.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 
 **Indexes:**
 
 - `ix_bank_accounts_member_id` (member_id)
+- `ix_bank_accounts_workspace_id` (workspace_id)
 
 ### `categories`
 
@@ -1457,6 +1462,7 @@ Schema usa `SQLAlchemy Enum()` nativo (Python enum → DB enum ou `VARCHAR + CHE
 Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou docstring do model) para serem portáveis cross-language.
 
 - `audit_logs.details`
+- `bank_accounts.co_titulares`
 - `category_templates.default_keywords`
 - `category_templates.metadata_json`
 - `decision_events.payload`
@@ -1547,12 +1553,15 @@ type AuditLog struct {
 type BankAccount struct {
 	Id string `db:"id" json:"id"`
 	MemberId string `db:"member_id" json:"member_id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
 	InstitutionCode string `db:"institution_code" json:"institution_code"`
 	AccountType string `db:"account_type" json:"account_type"`
 	Agency *string `db:"agency" json:"agency"`
 	AccountNumber *string `db:"account_number" json:"account_number"`
 	Label *string `db:"label" json:"label"`
 	SourceTier *string `db:"source_tier" json:"source_tier"`
+	IsJoint bool `db:"is_joint" json:"is_joint"`
+	CoTitulares json.RawMessage `db:"co_titulares" json:"co_titulares"`
 }
 ```
 

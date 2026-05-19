@@ -84,10 +84,14 @@ class TestFamilyMemberModel:
         await db.flush()
 
         acc1 = BankAccount(
-            member_id=member.id, institution_code="bradesco", account_type="extratoconta"
+            member_id=member.id,
+            workspace_id=workspace.id,
+            institution_code="bradesco",
+            account_type="extratoconta",
         )
         acc2 = BankAccount(
             member_id=member.id,
+            workspace_id=workspace.id,
             institution_code="btgpactual",
             account_type="investimentosposicao",
             agency="001",
@@ -118,7 +122,10 @@ class TestFamilyMemberModel:
         db.add(member)
         await db.flush()
         acc = BankAccount(
-            member_id=member.id, institution_code="c6bank", account_type="extratoconta"
+            member_id=member.id,
+            workspace_id=workspace.id,
+            institution_code="c6bank",
+            account_type="extratoconta",
         )
         db.add(acc)
         await db.commit()

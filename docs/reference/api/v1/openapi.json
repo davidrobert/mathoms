@@ -1110,7 +1110,7 @@
         "type": "object"
       },
       "BankAccountCreateCommand": {
-        "description": "Input do ``POST /members/{id}/accounts``.",
+        "description": "Input do ``POST /members/{id}/accounts`` (ADR-226 acrescenta is_joint/co_titulares).",
         "properties": {
           "account_number": {
             "anyOf": [
@@ -1142,11 +1142,30 @@
             ],
             "title": "Agency"
           },
+          "co_titulares": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Co Titulares"
+          },
           "institution_code": {
             "maxLength": 50,
             "minLength": 1,
             "title": "Institution Code",
             "type": "string"
+          },
+          "is_joint": {
+            "default": false,
+            "title": "Is Joint",
+            "type": "boolean"
           },
           "label": {
             "anyOf": [
@@ -1169,7 +1188,7 @@
         "type": "object"
       },
       "BankAccountResponse": {
-        "description": "Conta banc\u00e1ria ligada a um membro da fam\u00edlia.",
+        "description": "Conta banc\u00e1ria ligada a um membro (ADR-226 acrescenta is_joint/co_titulares).",
         "properties": {
           "account_number": {
             "anyOf": [
@@ -1201,6 +1220,20 @@
             ],
             "title": "Agency"
           },
+          "co_titulares": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Co Titulares"
+          },
           "id": {
             "anyOf": [
               {
@@ -1217,6 +1250,11 @@
             "minLength": 1,
             "title": "Institution Code",
             "type": "string"
+          },
+          "is_joint": {
+            "default": false,
+            "title": "Is Joint",
+            "type": "boolean"
           },
           "label": {
             "anyOf": [
@@ -1239,7 +1277,7 @@
         "type": "object"
       },
       "BankAccountUpdateCommand": {
-        "description": "Input do ``PUT /members/{id}/accounts/{acc_id}``.\n\nSem\u00e2ntica de **replace** (campos obrigat\u00f3rios iguais ao create). Se no\nfuturo virar partial update, introduz um novo command com todos opcionais.",
+        "description": "Input do ``PUT /members/{id}/accounts/{acc_id}`` \u2014 semantics replace.",
         "properties": {
           "account_number": {
             "anyOf": [
@@ -1271,11 +1309,30 @@
             ],
             "title": "Agency"
           },
+          "co_titulares": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Co Titulares"
+          },
           "institution_code": {
             "maxLength": 50,
             "minLength": 1,
             "title": "Institution Code",
             "type": "string"
+          },
+          "is_joint": {
+            "default": false,
+            "title": "Is Joint",
+            "type": "boolean"
           },
           "label": {
             "anyOf": [

@@ -85,3 +85,4 @@ _dev_pids/
 config/internal_operators.yaml
 logs/internal_ops_audit.log
 logs/
+.venv-pr1/
