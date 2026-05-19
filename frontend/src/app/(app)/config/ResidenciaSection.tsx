@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/Spinner";
+import { ImoveisNoIfBannerContainer } from "./ImoveisNoIfBanner";
 import {
   listProperties,
   setPropertyClassification,
@@ -209,6 +210,9 @@ export function ResidenciaSection({ workspaceId }: { workspaceId: string }) {
 
         {error && <p className="mt-3 text-xs text-loss">{error}</p>}
       </CardContent>
+      <div className="px-5 pb-5">
+        <ImoveisNoIfBannerContainer workspaceId={data.workspace_id} />
+      </div>
     </Card>
   );
 }

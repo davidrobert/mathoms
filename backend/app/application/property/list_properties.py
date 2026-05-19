@@ -68,5 +68,6 @@ async def list_properties(
         workspace_id=workspace_id,
         residencia_status=workspace.residencia_status,
         imoveis_no_if=workspace.imoveis_no_if,
+        imoveis_no_if_set_at=workspace.imoveis_no_if_set_at,
         properties=[r for _, r in scored],
     )
