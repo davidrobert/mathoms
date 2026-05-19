@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Sequence, Union
 
 import sqlalchemy as sa
-from alembic import op
+from alembic import context, op
 
 revision: str = "adr223defaultfalse"
 down_revision: Union[str, None] = "adr224assetcatalog"
@@ -23,21 +23,43 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-def upgrade() -> None:
-    with op.batch_alter_table("workspaces", schema=None) as batch_op:
-        batch_op.alter_column(
-            "imoveis_no_if",
-            existing_type=sa.Boolean(),
-            existing_nullable=False,
-            server_default=sa.text("0"),
+def _alter_default(default_text: str) -> None:
+    """Alter `workspaces.imoveis_no_if` server_default — dialect-aware.
+
+    - Offline mode (`alembic upgrade --sql`): emite comentário (batch_alter_table
+      em SQLite requer reflection que falha sem DB live).
+    - SQLite online: batch_alter_table (rebuild necessário; SQLite não tem
+      ``ALTER COLUMN``).
+    - Postgres/outros: ``alter_column`` direto.
+    """
+    if context.is_offline_mode():
+        op.execute(
+            f"-- ADR-223: workspaces.imoveis_no_if server_default → {default_text} "
+            "(Postgres ALTER COLUMN ... SET DEFAULT; SQLite via batch rebuild online)"
         )
+        return
+    bind = op.get_bind()
+    if bind is not None and bind.dialect.name == "sqlite":
+        with op.batch_alter_table("workspaces", schema=None) as batch_op:
+            batch_op.alter_column(
+                "imoveis_no_if",
+                existing_type=sa.Boolean(),
+                existing_nullable=False,
+                server_default=sa.text(default_text),
+            )
+        return
+    op.alter_column(
+        "workspaces",
+        "imoveis_no_if",
+        existing_type=sa.Boolean(),
+        existing_nullable=False,
+        server_default=sa.text(default_text),
+    )
+
+
+def upgrade() -> None:
+    _alter_default("0")
 
 
 def downgrade() -> None:
-    with op.batch_alter_table("workspaces", schema=None) as batch_op:
-        batch_op.alter_column(
-            "imoveis_no_if",
-            existing_type=sa.Boolean(),
-            existing_nullable=False,
-            server_default=sa.text("1"),
-        )
+    _alter_default("1")
