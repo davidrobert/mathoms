@@ -1,10 +1,13 @@
-"""Normalização de endereço para matching de imóveis cross-IRPFs (ADR-215)."""
+"""Normalização de endereço para matching de imóveis cross-IRPFs (ADR-215, ADR-225)."""
 
 from __future__ import annotations
 
+import logging
 import re
 import unicodedata
 from typing import Optional
+
+_logger = logging.getLogger("mathoms.property_identity")
 
 # Pares de abreviação → forma plena. Order matters: padrões mais longos primeiro.
 _ABBREVIATION_MAP: tuple[tuple[str, str], ...] = (
@@ -99,13 +102,102 @@ def extract_via_numero(descricao: str) -> Optional[tuple[str, str]]:
     return (" ".join(via_tokens), numero)
 
 
-def canonicalize(descricao: str) -> Optional[str]:
-    """Canonical key `"<via_tokens> <numero>"` para `endereco_canonical` (ADR-215)."""
-    extracted = extract_via_numero(descricao)
-    if extracted is None:
+# ADR-225 §1 — cascade signal patterns (fallback quando via+numero falha).
+# Order matters em canonicalize(): via+numero primeiro (backward-compat),
+# então matrícula > QA > IPTU (estabilidade cross-fonte decrescente).
+
+# Matrícula: regex inicial aceita ≥4 caracteres (com pontos); normalização
+# pós-match exige ≥4 dígitos puros (anti-OCR ruim como "matrícula 12").
+_MATRICULA_PATTERN = re.compile(
+    r"matr[íi]cula[\s.:#nº°]*([\d.]{4,})",
+    flags=re.IGNORECASE,
+)
+
+# Código QuintoAndar: "Cód. Imóvel QuintoAndar: 894064293" etc.
+_QUINTOANDAR_PATTERN = re.compile(
+    r"quintoandar[\s:]*(\d+)",
+    flags=re.IGNORECASE,
+)
+
+# IPTU / Inscrição Municipal: aceita formatos diversos
+# ("087.006.0478-1", "30105434946", "087.006.0478/1"). Permite até 30 chars não-dígitos
+# entre o rótulo e o número (cobre "Inscrição Municipal (IPTU): NNN").
+# Mín. 6 dígitos pós-normalização.
+_IPTU_PATTERN = re.compile(
+    r"(?:iptu|inscri[cç][aã]o\s*municipal)[^\d\n]{0,30}([\d./\-]{6,})",
+    flags=re.IGNORECASE,
+)
+
+# Cidade/UF para namespace de matrícula: detecção robusta entre formatos
+# variados ("SAO PAULO/SP", "São Paulo - SP", "Cyrela Campinas - SP") é
+# complexa o suficiente pra valer ADR/PR próprio. Por ora, namespace é
+# apenas `mat:NNN`. Cross-cartório collision (matrícula coincidente entre
+# CRIs em cidades distintas) fica como follow-up — risco baixo para
+# workspaces atuais. Ver ADR-225 §Follow-ups.
+
+
+def _extract_matricula(descricao: str) -> Optional[str]:
+    """Matrícula RFB sem pontos (≥4 dígitos)."""
+    match = _MATRICULA_PATTERN.search(descricao)
+    if match is None:
         return None
-    via, numero = extracted
-    return f"{via} {numero}"
+    digits = re.sub(r"[^\d]", "", match.group(1))
+    if len(digits) < 4:
+        return None
+    return digits
 
 
-__all__ = ["normalize", "extract_via_numero", "canonicalize"]
+def _extract_quintoandar(descricao: str) -> Optional[str]:
+    """Código QuintoAndar (apenas dígitos)."""
+    match = _QUINTOANDAR_PATTERN.search(descricao)
+    return match.group(1) if match else None
+
+
+def _extract_iptu(descricao: str) -> Optional[str]:
+    """IPTU/Inscrição municipal sem pontuação (≥6 dígitos)."""
+    match = _IPTU_PATTERN.search(descricao)
+    if match is None:
+        return None
+    digits = re.sub(r"[^\d]", "", match.group(1))
+    if len(digits) < 6:
+        return None
+    return digits
+
+
+def _format_via_numero(extracted: tuple[str, str]) -> str:
+    """`<via> <numero>` — formato legado backward-compat."""
+    return f"{extracted[0]} {extracted[1]}"
+
+
+# Cascade tabela (ADR-225 §1): (extractor, cascade_level, formatter).
+# Order matters — via+numero primeiro preserva canonical de rows existentes.
+_CASCADE: tuple[tuple, ...] = (
+    (extract_via_numero, "via_numero", _format_via_numero),
+    (_extract_matricula, "mat", lambda v: f"mat:{v}"),
+    (_extract_quintoandar, "qa", lambda v: f"qa:{v}"),
+    (_extract_iptu, "iptu", lambda v: f"iptu:{v}"),
+)
+
+
+def canonicalize(descricao: str) -> Optional[str]:
+    """Canonical key via cascata via+numero > matrícula > QA > IPTU (ADR-225 §1).
+
+    Emite log `mathoms.property_identity.cascade_hit{level=…}` para
+    observabilidade da qualidade do canonicalizer.
+    """
+    if not descricao:
+        return None
+    for extractor, level, fmt in _CASCADE:
+        result = extractor(descricao)
+        if result is not None:
+            _logger.info("canonicalizer.cascade_hit", extra={"cascade_level": level})
+            return fmt(result)
+    _logger.info("canonicalizer.cascade_hit", extra={"cascade_level": "none"})
+    return None
+
+
+__all__ = [
+    "normalize",
+    "extract_via_numero",
+    "canonicalize",
+]
