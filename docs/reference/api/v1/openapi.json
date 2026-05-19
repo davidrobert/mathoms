@@ -767,6 +767,142 @@
         "title": "AporteGoalUpsertCommand",
         "type": "object"
       },
+      "AssetOverrideCommand": {
+        "additionalProperties": false,
+        "description": "Body do `POST /v1/workspaces/{ws}/cards/exposicao-cambial/overrides`.",
+        "properties": {
+          "asset_match_key": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Asset Match Key",
+            "type": "string"
+          },
+          "lastro_moeda": {
+            "enum": [
+              "BRL",
+              "USD",
+              "EUR",
+              "MIXED",
+              "OTHER"
+            ],
+            "title": "Lastro Moeda",
+            "type": "string"
+          },
+          "match_kind": {
+            "enum": [
+              "ticker",
+              "cnpj",
+              "description"
+            ],
+            "title": "Match Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "match_kind",
+          "asset_match_key",
+          "lastro_moeda"
+        ],
+        "title": "AssetOverrideCommand",
+        "type": "object"
+      },
+      "AssetOverrideListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "overrides": {
+            "items": {
+              "$ref": "#/components/schemas/AssetOverrideResponse"
+            },
+            "title": "Overrides",
+            "type": "array"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "overrides"
+        ],
+        "title": "AssetOverrideListResponse",
+        "type": "object"
+      },
+      "AssetOverrideResponse": {
+        "additionalProperties": false,
+        "description": "Snapshot do override ap\u00f3s upsert (ADR-224 \u00a72; sticky per `(ws, match_kind, key)`).",
+        "properties": {
+          "asset_match_key": {
+            "title": "Asset Match Key",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lastro_moeda": {
+            "enum": [
+              "BRL",
+              "USD",
+              "EUR",
+              "MIXED",
+              "OTHER"
+            ],
+            "title": "Lastro Moeda",
+            "type": "string"
+          },
+          "match_kind": {
+            "enum": [
+              "ticker",
+              "cnpj",
+              "description"
+            ],
+            "title": "Match Kind",
+            "type": "string"
+          },
+          "override_source": {
+            "title": "Override Source",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "match_kind",
+          "asset_match_key",
+          "lastro_moeda",
+          "override_source",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AssetOverrideResponse",
+        "type": "object"
+      },
       "AsyncRuleCreatedResponse": {
         "description": "202 do ``POST /rules`` quando matches >``SYNC_APPLY_THRESHOLD`` \u2014 mensagem amig\u00e1vel (financial-planner).",
         "properties": {
@@ -14096,6 +14232,169 @@
           }
         ],
         "summary": "Get Exposicao Cambial",
+        "tags": [
+          "cards"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/cards/exposicao-cambial/overrides": {
+      "get": {
+        "description": "Lista overrides de lastro per-workspace.",
+        "operationId": "list_overrides_api_v1_workspaces__workspace_id__cards_exposicao_cambial_overrides_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetOverrideListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Overrides",
+        "tags": [
+          "cards"
+        ]
+      },
+      "post": {
+        "description": "Declara override sticky `(workspace_id, match_kind, asset_match_key)` ADR-224 \u00a72.",
+        "operationId": "create_or_update_override_api_v1_workspaces__workspace_id__cards_exposicao_cambial_overrides_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetOverrideCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetOverrideResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Or Update Override",
+        "tags": [
+          "cards"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/cards/exposicao-cambial/overrides/{match_kind}/{asset_match_key}": {
+      "delete": {
+        "description": "Remove override (revert para catalog/fallback). 204 mesmo se ausente (idempotente).",
+        "operationId": "remove_override_api_v1_workspaces__workspace_id__cards_exposicao_cambial_overrides__match_kind___asset_match_key__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "match_kind",
+            "required": true,
+            "schema": {
+              "title": "Match Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "asset_match_key",
+            "required": true,
+            "schema": {
+              "title": "Asset Match Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Override",
         "tags": [
           "cards"
         ]

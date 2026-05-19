@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+
+LastroMoeda = Literal["BRL", "USD", "EUR", "MIXED", "OTHER"]
+MatchKind = Literal["ticker", "cnpj", "description"]
 
 
 class ExposicaoCambialPorMoedaDTO(BaseModel):
@@ -46,3 +49,36 @@ class ExposicaoCambialResponse(BaseModel):
     catalog_version: int = 1
     source_run_id: Optional[str] = None
     computed_at: datetime
+
+
+class AssetOverrideCommand(BaseModel):
+    """Body do `POST /v1/workspaces/{ws}/cards/exposicao-cambial/overrides`."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    match_kind: MatchKind
+    asset_match_key: str = Field(..., min_length=1, max_length=200)
+    lastro_moeda: LastroMoeda
+
+
+class AssetOverrideResponse(BaseModel):
+    """Snapshot do override após upsert (ADR-224 §2; sticky per `(ws, match_kind, key)`)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    workspace_id: str
+    match_kind: MatchKind
+    asset_match_key: str
+    lastro_moeda: LastroMoeda
+    override_source: str
+    created_at: datetime
+    updated_at: datetime
+    created_by_user_id: Optional[str] = None
+
+
+class AssetOverrideListResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    workspace_id: str
+    overrides: list[AssetOverrideResponse]
