@@ -219,46 +219,18 @@ class FamilyMemberRepository:
         )
         return result.scalar_one_or_none()
 
-    async def add_account(
-        self,
-        member_id: str,
-        *,
-        institution_code: str,
-        account_type: str,
-        agency: Optional[str] = None,
-        account_number: Optional[str] = None,
-        label: Optional[str] = None,
-    ) -> BankAccount:
-        """Cria uma conta bancária para o membro."""
-        account = BankAccount(
-            member_id=member_id,
-            institution_code=institution_code,
-            account_type=account_type,
-            agency=agency,
-            account_number=account_number,
-            label=label,
-        )
+    async def add_account(self, member_id: str, **fields: Any) -> BankAccount:
+        """Cria conta bancária — Protocol tipa kwargs (ADR-226)."""
+        account = BankAccount(member_id=member_id, **fields)
         self._session.add(account)
         await self._session.commit()
         await self._session.refresh(account)
         return account
 
-    async def update_account(
-        self,
-        account: BankAccount,
-        *,
-        institution_code: str,
-        account_type: str,
-        agency: Optional[str] = None,
-        account_number: Optional[str] = None,
-        label: Optional[str] = None,
-    ) -> BankAccount:
-        """Sobrescreve campos editáveis da conta (semantics PUT completo)."""
-        account.institution_code = institution_code
-        account.account_type = account_type
-        account.agency = agency
-        account.account_number = account_number
-        account.label = label
+    async def update_account(self, account: BankAccount, **fields: Any) -> BankAccount:
+        """Sobrescreve campos da conta (PUT); workspace_id imutável (ADR-226)."""
+        for k, v in fields.items():
+            setattr(account, k, v)
         await self._session.commit()
         await self._session.refresh(account)
         return account
