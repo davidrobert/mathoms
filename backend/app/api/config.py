@@ -68,6 +68,10 @@ from backend.app.schemas.dto.config_blob import (
     TransferConfigResponse,
     TransferConfigUpdateCommand,
 )
+from backend.app.services._family_export_helpers import (
+    export_bank_account,
+    export_member_info,
+)
 from backend.app.services.config_defaults import (
     ConfigDefaultsLoader,
     load_global_json,
@@ -403,33 +407,24 @@ async def _export_family_members(
 
     membros: dict[str, Any] = {}
     banco_membro: dict[str, str] = {}
+    contas: list[dict[str, Any]] = []
     titular = None
 
     for m in members:
-        cpf_plain = _vault.decrypt(m.cpf_encrypted) if m.cpf_encrypted else None
-        info: dict[str, Any] = {
-            "nome_completo": m.full_name,
-            "nome_curto": m.short_name,
-        }
-        if cpf_plain:
-            info["cpf"] = cpf_plain
-        if m.birth_date:
-            info["data_nascimento"] = m.birth_date.isoformat()
-        info["papel"] = m.role
-        if m.extra:
-            info.update(m.extra)
-        membros[m.key] = info
-
+        membros[m.key] = export_member_info(m)
         if m.role == "titular":
             titular = m.key
         for acc in m.accounts:
             banco_membro[acc.institution_code] = m.key
+            contas.append(export_bank_account(acc, m.key))
 
     result: dict[str, Any] = {"membros": membros}
     if family_surname:
         result["familia"] = {"sobrenome": family_surname}
     if banco_membro:
         result["banco_membro"] = banco_membro
+    if contas:
+        result["contas"] = contas
     if titular:
         result["titular"] = titular
     return result
