@@ -2,9 +2,10 @@
 id: ADR-224
 type: adr
 title: "`asset_catalog` + `lastro_moeda` per-ativo (catalog global + override per-workspace)"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-19"
+decided_at: "2026-05-19"
 relates_to:
   - "[[ADR-193]]"
   - "[[ADR-137]]"
@@ -26,7 +27,7 @@ tags:
   - methodology/perini
   - methodology/auvp
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -208,7 +209,15 @@ Tooltip honesto adicional: "Esta análise considera apenas seu patrimônio inves
 
 ## Implementação
 
-Lane planejada em **Sprint A12** (esta sprint corrente), bloco de cleanup pós-#322. Track próprio (`docs/agent_prompts/track_a12-asset-catalog-lastro-moeda.md` ou plan canônico se virar multi-fase). Estimativa: ~3-4d eng (schema + seed + resolver + endpoint + frontend + testes).
+Entregue end-to-end em **Sprint A12** (5 PRs sequenciais):
+
+- **#325** PR-A — schema: tabela `asset_catalog` (catalog global versionado) + `workspace_asset_overrides` (diff per-workspace, pattern [[ADR-215]]) + seed v1 atomic (21 ativos canônicos: 9 ETFs B3 USD + 4 famílias fundos CVM + 5 top BDRs + 3 stablecoins).
+- **#326** PR-B — service-layer: `backend/app/services/lastro_resolver.py` puro (priority override > ticker > cnpj > keyword > fallback por asset_class) + endpoint `GET /v1/workspaces/{ws}/cards/exposicao-cambial` (read-time service-layer, schema E5 intacto). 19 tests.
+- **#327** PR-C — CRUD overrides: POST/DELETE/GET `/overrides` (sticky pattern ADR-215) + frontend api client TypeScript em `frontend/src/lib/api/exposicaoCambial.ts`. 7 tests.
+- **#328** PR-D — frontend foundations: hook `useExposicaoCambialV2(workspaceId)` SWR-style com `declare`/`remove` refetch automático. 11 tests Vitest.
+- **#330** PR-E — Card V2 UI: `ExposicaoCambialCard` consome hook quando recebe `workspaceId`; section "Ativos contribuintes" com badges por `lastro_source`; `LastroDeclareDropdown` inline. Wire-up via `WorkspaceProvider` context em `S1PatrimonioSection`. 4 tests Vitest.
+
+**Defer (não-bloqueante):** telemetria client-side + Playwright `@critical` adiados — projeto sem padrão de events frontend ainda; Playwright env precisa setup. Total: 26 tests backend + 15 tests frontend + OpenAPI snapshot atualizado.
 
 ## Referências
 

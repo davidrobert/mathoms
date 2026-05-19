@@ -66,6 +66,17 @@ Lições críticas do co-design `financial-planner` + `product-designer`
   Plano = [[ADR-214]] (Proposto, estende [[ADR-136]]).
   Lane: [A12.decision-code-autogen](lanes/A12-decision-code-autogen-server-gen.md).
   Track: [decision-code-autogen](tracks/decision-code-autogen.md).
+- **A12.bank-account-disambig** — desambiguação conta bancária → membro
+  (bug latente multi-membro+mesmo banco descoberto 2026-05-19).
+  `account_number` vira discriminador real; `account_resolver` puro em
+  `pipeline/domain/services/`; E1 vira merge idempotente; schema
+  `is_joint`/`co_titulares` reservado para V2. 4 PRs sequenciais
+  (~5-6d eng em ~2 sem calendário). Co-design `data-engineer` +
+  `financial-planner` 2026-05-19 (Cerbasi/Perini/AUVP — atribuição
+  correta é core; relatório fiscalmente incorreto sem fix).
+  Plano = [[ADR-226]] (Proposto).
+  Lane: [A12.bank-account-disambig](lanes/A12-bank-account-disambig-multi-member.md).
+  Track: [bank-account-disambig](tracks/bank-account-disambig.md).
 
 Lanes adicionais entram aqui conforme A11 fecha trabalho que naturalmente
 empurra continuação para A12.
