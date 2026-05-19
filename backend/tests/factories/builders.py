@@ -364,6 +364,7 @@ async def make_bank_account(
     n = _next("account")
     acc = BankAccount(
         member_id=member.id,
+        workspace_id=member.workspace_id,
         institution_code=institution_code,
         account_type=account_type,
         agency=agency,

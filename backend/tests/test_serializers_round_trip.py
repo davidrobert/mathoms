@@ -130,6 +130,7 @@ class TestRoundTripFamilyMembers:
         db.add(
             BankAccount(
                 member_id=m.id,
+                workspace_id=workspace.id,
                 institution_code="itau",
                 account_type="corrente",
                 agency="0001",

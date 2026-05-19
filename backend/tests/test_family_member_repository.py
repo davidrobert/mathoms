@@ -137,21 +137,14 @@ async def test_get_by_id_returns_none_when_cross_workspace(db: AsyncSession, wor
 async def test_delete_cascades_to_accounts(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = FamilyMemberRepository(db)
-
     m = await repo.create(ws_id, key="acc_owner", full_name="A", short_name="A", role="titular")
-    await repo.add_account(m.id, institution_code="itau", account_type="extratoconta")
-    await repo.add_account(m.id, institution_code="c6bank", account_type="faturaunique")
-
-    accounts_before = await repo.list_accounts(m.id)
-    assert len(accounts_before) == 2
-
+    common = {"workspace_id": ws_id, "account_type": "extratoconta"}
+    await repo.add_account(m.id, institution_code="itau", **common)
+    await repo.add_account(m.id, institution_code="c6bank", **common)
+    assert len(await repo.list_accounts(m.id)) == 2
     await repo.delete(m)
-
-    # membro sumiu
     assert await repo.get_by_id(ws_id, m.id) is None
-    # accounts também (ondelete=CASCADE no FK + cascade na relationship)
-    accounts_after = await repo.list_accounts(m.id)
-    assert accounts_after == []
+    assert await repo.list_accounts(m.id) == []
 
 
 @pytest.mark.asyncio
@@ -159,12 +152,14 @@ async def test_add_and_update_account(db: AsyncSession, workspace_ids):
     ws_id, _ = workspace_ids
     repo = FamilyMemberRepository(db)
     m = await repo.create(ws_id, key="owner", full_name="O", short_name="O", role="titular")
-
     acc = await repo.add_account(
-        m.id, institution_code="itau", account_type="extratoconta", agency="0001"
+        m.id,
+        workspace_id=ws_id,
+        institution_code="itau",
+        account_type="extratoconta",
+        agency="0001",
     )
     assert acc.institution_code == "itau"
-
     updated = await repo.update_account(
         acc,
         institution_code="c6bank",
@@ -185,7 +180,9 @@ async def test_get_account_is_scoped_to_member(db: AsyncSession, workspace_ids):
     m_a = await repo.create(ws_id, key="a", full_name="A", short_name="A", role="titular")
     m_b = await repo.create(ws_id, key="b", full_name="B", short_name="B", role="conjuge")
 
-    acc_a = await repo.add_account(m_a.id, institution_code="itau", account_type="extratoconta")
+    acc_a = await repo.add_account(
+        m_a.id, workspace_id=ws_id, institution_code="itau", account_type="extratoconta"
+    )
 
     assert await repo.get_account(m_a.id, acc_a.id) is not None
     # buscar com outro member_id → não encontra (isolamento)
@@ -198,7 +195,9 @@ async def test_get_by_id_with_accounts_eager_loads(db: AsyncSession, workspace_i
     ws_id, _ = workspace_ids
     repo = FamilyMemberRepository(db)
     m = await repo.create(ws_id, key="eager", full_name="E", short_name="E", role="titular")
-    await repo.add_account(m.id, institution_code="itau", account_type="extratoconta")
+    await repo.add_account(
+        m.id, workspace_id=ws_id, institution_code="itau", account_type="extratoconta"
+    )
 
     fetched = await repo.get_by_id_with_accounts(ws_id, m.id)
     assert fetched is not None

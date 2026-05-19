@@ -81,7 +81,14 @@ class TestSerializeFamilyMembers:
         )
         db.add(m)
         db.flush()
-        db.add(BankAccount(member_id=m.id, institution_code="itau", account_type="extratoconta"))
+        db.add(
+            BankAccount(
+                member_id=m.id,
+                workspace_id=workspace.id,
+                institution_code="itau",
+                account_type="extratoconta",
+            )
+        )
         db.commit()
 
         result = serialize_family_members(workspace.id, db)
@@ -91,6 +98,21 @@ class TestSerializeFamilyMembers:
         assert result["membros"]["david"]["profissao"] == "CTO"
         assert result["banco_membro"]["itau"] == "david"
         assert result["titular"] == "david"
+        # ADR-226 PR1: contas[] aditivo
+        assert len(result["contas"]) == 1
+        assert result["contas"][0]["member_key"] == "david"
+        assert result["contas"][0]["institution_code"] == "itau"
+        assert result["contas"][0]["is_joint"] is False
+
+    def test_multi_member_same_bank_distinct_account_numbers(self, db, workspace):
+        """ADR-226 — banco_membro colide (legado), contas[] preserva os dois membros."""
+        _seed_two_itau_members(db, workspace.id)
+        result = serialize_family_members(workspace.id, db)
+        assert result is not None
+        assert result["banco_membro"]["itau"] in {"david", "mariana"}
+        assert len(result["contas"]) == 2
+        assert {c["account_number_norm"] for c in result["contas"]} == {"123456", "789012"}
+        assert {c["member_key"] for c in result["contas"]} == {"david", "mariana"}
 
     def test_multiple_members(self, db, workspace):
         db.add(
@@ -352,3 +374,23 @@ def test_prepare_preserves_templates_and_schemas(db, workspace, tmp_path):
         assert (config_dir / "templates").exists()
     if (global_config / "schemas").exists():
         assert (config_dir / "schemas").exists()
+
+
+def _seed_two_itau_members(db, workspace_id: str) -> None:
+    common_m = {"workspace_id": workspace_id, "short_name": "X"}
+    david = FamilyMember(key="david", full_name="David", role="titular", order=0, **common_m)
+    mariana = FamilyMember(key="mariana", full_name="Mariana", role="conjuge", order=1, **common_m)
+    db.add_all([david, mariana])
+    db.flush()
+    common_a = {
+        "workspace_id": workspace_id,
+        "institution_code": "itau",
+        "account_type": "extratoconta",
+    }
+    db.add_all(
+        [
+            BankAccount(member_id=david.id, account_number="12345-6", **common_a),
+            BankAccount(member_id=mariana.id, account_number="78901-2", **common_a),
+        ]
+    )
+    db.commit()
