@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 172
-- **Proposto**: 39
+- **Decidido**: 173
+- **Proposto**: 38
 - **Roadmap**: 4
 
 ## Fundação
@@ -267,14 +267,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Decisões metodológicas pós-auditoria (Roadmap v2)
 
-### Decidido (1)
+### Decidido (2)
 
 - [[ADR-142]] — Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem
+- [[ADR-222]] — Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if` · phase A12
 
-### Proposto (2)
+### Proposto (1)
 
 - [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP) · phase A12
-- [[ADR-222]] — Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if` · phase A12
 
 ### Roadmap (1)
 

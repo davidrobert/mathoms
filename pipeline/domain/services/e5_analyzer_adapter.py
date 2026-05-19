@@ -341,6 +341,7 @@ class E5AnalyzerAdapter:
         cambio_usd_brl: Decimal | float | None = None,
         cambio_eur_brl: Decimal | float | None = None,
         property_classification_overrides: dict[str, str] | None = None,
+        imoveis_no_if: bool = True,
     ) -> "E5AnalyzerAdapter":
         """Constrói o adapter com todas as configs + services instanciados.
 
@@ -372,6 +373,7 @@ class E5AnalyzerAdapter:
         patrimonio_cfg = PatrimonioConfig(
             members=identity,
             property_classification_overrides=overrides,
+            include_real_estate_in_if=imoveis_no_if,
         )
         reserva_cfg = ReservaEmergenciaConfig.from_scoring_json(scoring or {}, identity)
         score_cfg = FinancialScoreConfig.from_scoring_json(scoring or {})
@@ -523,18 +525,19 @@ class E5AnalyzerAdapter:
         )
         ratios_dict = ratios_result.to_legacy_dict()
 
-        # 7. IF projection (se config disponível).
+        # 7. IF projection — ADR-142 + ADR-215 §6 enforce: usa
+        # ``investivel_efetivo`` (cat_3+4+5+6 + cat_2 geradores se toggle).
         if_projection: IFProjection | None = None
         if self._if_projector is not None:
             if_projection = self._if_projector.project(
-                investivel=float(patrimonio_full.get("investivel", 0))
+                investivel=float(patrimonio_full.get("investivel_efetivo", 0))
             )
 
         # 7b. Monte Carlo IF — cone P10/P50/P90 (N3).
         monte_carlo_if: MonteCarloIFResult | None = None
         if if_projection is not None and self._if_projector_config is not None:
             _cfg = self._if_projector_config
-            _investivel = float(patrimonio_full.get("investivel", 0))
+            _investivel = float(patrimonio_full.get("investivel_efetivo", 0))
             _mc_cfg = IFMonteCarloConfig(
                 patrimonio_investivel=Decimal(str(max(0.0, _investivel))),
                 meta_if=Decimal(str(max(0.0, _cfg.if_meta))),

@@ -2,9 +2,10 @@
 id: ADR-222
 type: adr
 title: "Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if`"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-18"
+decided_at: "2026-05-19"
 relates_to:
   - "[[ADR-142]]"
   - "[[ADR-215]]"
@@ -23,7 +24,7 @@ tags:
   - area/multitenancy
   - methodology/perini
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

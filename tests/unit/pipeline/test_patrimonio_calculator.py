@@ -64,11 +64,15 @@ def test_output_has_all_required_keys(config: PatrimonioConfig):
         "liquido",
         "residencia",
         "imoveis_investimento",
+        "imoveis_geradores",
+        "imoveis_nao_geradores",
         "investimentos_david",
         "investimentos_mariana",
         "caixa_moeda_estrangeira",
         "caixa_detalhes",
-        "investivel",
+        "investivel_financeiro",
+        "investivel_efetivo",
+        "imoveis_no_if",
         "veiculos",
         "composicao",
         "tabela_categorias",
@@ -524,7 +528,9 @@ def test_composicao_alias_tabela_categorias(config: PatrimonioConfig):
 # =============================================================================
 
 
-def test_investivel_excludes_residencia_and_veiculos(config: PatrimonioConfig):
+def test_investivel_financeiro_excludes_imoveis_e_veiculos(config: PatrimonioConfig):
+    """ADR-142 + ADR-215 §6: investivel_financeiro = cat_3+4+5+6 puro
+    (sem cat_2/imóveis, sem residência, sem veículos)."""
     bens = {
         "imoveis": [{"property_id": "prop-apto-residencia", "valor": 400_000}],
         "veiculos": [{"valor": 100_000}],
@@ -537,32 +543,67 @@ def test_investivel_excludes_residencia_and_veiculos(config: PatrimonioConfig):
         }
     }
     result = PatrimonioCalculator(config).calculate(PatrimonioInputs(baseline=baseline))
-    assert result["investivel"] == 500_000.0  # 1M - 400k residência - 100k veiculos
+    # 500k investimentos = cat_3 puro. cat_6 (caixa residual) = 0 (residual=0 aqui).
+    assert result["investivel_financeiro"] == 500_000.0
+    # Toggle on default + zero imóveis geradores → efetivo = financeiro.
+    assert result["investivel_efetivo"] == 500_000.0
 
 
-def test_investivel_never_negative(config: PatrimonioConfig):
-    """Quando residência+veículos > bruto, investível é 0 (floor)."""
-    baseline = {
+def _baseline_with_imoveis(imoveis: list[dict], investimentos_valor: int = 500_000) -> dict:
+    return {
         "members": {
             "david": {
-                "total_bens": 100,
-                "bens": {
-                    "imoveis": [
-                        {
-                            "property_id": "prop-apto-residencia",
-                            "descricao": "apto residência",
-                            "valor": 500,
-                        }
-                    ],
-                    "veiculos": [{"valor": 300}],
-                },
+                "total_bens": sum(i["valor"] for i in imoveis) + investimentos_valor,
+                "bens": {"imoveis": imoveis, "investimentos": [{"valor": investimentos_valor}]},
             },
             "mariana": {"total_bens": 0, "bens": {}},
         }
     }
-    calc = PatrimonioCalculator(config)
-    result = calc.calculate(PatrimonioInputs(baseline=baseline))
-    assert result["investivel"] == 0.0
+
+
+def test_investivel_efetivo_inclui_imoveis_geradores_quando_toggle_on(config: PatrimonioConfig):
+    """ADR-142: cat_2 `locado` entra no efetivo com toggle on."""
+    cfg = PatrimonioConfig(
+        members=config.members,
+        property_classification_overrides={"p-locado": "locado"},
+        include_real_estate_in_if=True,
+    )
+    baseline = _baseline_with_imoveis([{"property_id": "p-locado", "valor": 200_000}])
+    result = PatrimonioCalculator(cfg).calculate(PatrimonioInputs(baseline=baseline))
+    assert result["investivel_financeiro"] == 500_000.0
+    assert result["investivel_efetivo"] == 700_000.0  # 500k cat_3 + 200k cat_2
+
+
+def test_investivel_efetivo_exclui_uso_pessoal_e_especulacao_sempre(config: PatrimonioConfig):
+    """ADR-215 §6: `uso_pessoal`/`especulacao`/`desconhecido` nunca entram."""
+    cfg = PatrimonioConfig(
+        members=config.members,
+        property_classification_overrides={"p-up": "uso_pessoal", "p-t": "especulacao"},
+        include_real_estate_in_if=True,
+    )
+    imoveis = [
+        {"property_id": "p-up", "valor": 300_000},
+        {"property_id": "p-t", "valor": 100_000},
+        {"valor": 50_000},  # sem property_id → desconhecido
+    ]
+    result = PatrimonioCalculator(cfg).calculate(
+        PatrimonioInputs(baseline=_baseline_with_imoveis(imoveis, 450_000))
+    )
+    assert result["investivel_efetivo"] == result["investivel_financeiro"]
+    assert result["imoveis_nao_geradores"] == 450_000.0
+
+
+def test_investivel_efetivo_toggle_off_exclui_cat2(config: PatrimonioConfig):
+    """ADR-142: toggle off → efetivo == financeiro mesmo com cat_2 geradores."""
+    cfg = PatrimonioConfig(
+        members=config.members,
+        property_classification_overrides={"p-locado": "locado"},
+        include_real_estate_in_if=False,
+    )
+    baseline = _baseline_with_imoveis([{"property_id": "p-locado", "valor": 200_000}])
+    result = PatrimonioCalculator(cfg).calculate(PatrimonioInputs(baseline=baseline))
+    assert result["investivel_efetivo"] == 500_000.0
+    assert result["imoveis_geradores"] == 200_000.0
 
 
 # =============================================================================
