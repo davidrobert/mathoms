@@ -178,11 +178,99 @@ de processo.
    de CI atual vs baseline ADR-210; revisar markers; remover testes
    pós-cutover detectados pelo checker.
 
+## Adendo 2026-05-19 — Camada 2: FinOps de triggers do CI
+
+### Contexto adicional
+
+Após as 3 camadas de saúde do test suite (acima), medição empírica em 30
+runs sucessivas mostrou que o gargalo de custo **não é mais o tempo do
+job individual** (backend-tests caiu para ~316s média; lint+pipeline+
+frontend somam <270s adicionais), e sim a **duplicação por evento**:
+
+- Cada PR mergeado dispara **2 runs full do CI**: 1× `pull_request` +
+  1× `push: main` (após squash).
+- O run pós-merge é **redundante** pois:
+  - Repository Ruleset `main-protection` exige `All checks green`
+    pré-merge — squash linear de PR verde não muda resultado.
+  - Sem deploy/release tied ao push:main neste repo (CD não existe).
+  - `concurrency.cancel-in-progress: true` + auto-merge `--auto` já
+    cobrem corrida entre PRs sequenciais.
+
+Custo medido: PR backend+pipeline típico = **428s billable** × 2 = **856s
+por merge**. Cortar o run pós-merge devolve ~50% do consumo de minutos.
+
+### Decisão (Camada 2)
+
+Remover `push: branches: [main]` do `ci.yml`. Substituir cobertura por
+**1 job consolidado `main-smoke` em `nightly.yml`** rodando diariamente
+às 05:30 UTC (= 02:30 BRT) que re-executa os 4 gates (lint, pipeline,
+backend, frontend-checks) contra HEAD de `main`. Janela máxima de
+detecção de drift: ~24h, aceitável para solo-dev project sem CD.
+
+Complementar:
+
+- **Cache de `~/.cache/pre-commit`** no job `lint-all` — invalida em
+  mudança de `.pre-commit-config.yaml`; economiza ~25-30s/PR no setup
+  dos hooks (clone de cada repo de hook + install).
+- **Remoção do step explícito `ruff check .`** no `lint-all` — `pre-commit`
+  já roda os hooks `ruff` + `ruff-format`. Saving ~3-5s/PR sem perda
+  de cobertura.
+- **Issue auto-aberta** em falha de `main-smoke` agendado, com label
+  `main-smoke-fail` (idempotente: 1 issue aberta por vez).
+
+Gates de cron separados em `nightly.yml` evitam que o smoke noturno
+dispare jobs pesados (Lighthouse, cross-browser, visual-full) — cada job
+filtra por `github.event.schedule` explícito.
+
+### Ganhos esperados
+
+| Categoria | Antes | Depois | Δ |
+|---|---:|---:|---:|
+| Minutos por PR mergeado (backend+pipeline) | 14,3 min (2 runs × 7,1) | 7,1 min (1 run) | **−50%** |
+| Lint job (com pre-commit cache hit) | 66s | ~36s | −30s |
+| Lint job (cache miss) | 66s | ~63s | −3s |
+| Cobertura de drift pós-merge | contínua (push:main) | diária (main-smoke 05:30 UTC) | janela +24h |
+
+Combinado: **~52% de redução** no consumo mensal de minutos do CI,
+mantendo a Camada 1 (visual em nightly) e a Camada 0 (saúde do test
+suite). Budget alert (`.github/workflows/budget-alert.yml`) continua
+ativo como guardrail.
+
+### Trade-offs aceitos
+
+1. **Drift cross-cutting que escapa do PR só é detectado em ≤24h.** Risco
+   real é baixo: gate de PR já valida contra `origin/main` rebasado
+   (CLAUDE.md §"Pre-push drift check"); `cancel-in-progress` impede
+   corrida. Se algum dia a janela virar dor, restaurar `push: main` é
+   1 linha.
+2. **Badge "verde em main" no GitHub atrasa até 24h.** Aceito para
+   single-dev project sem visitantes externos no repo dependendo do
+   sinal contínuo.
+3. **Workflow de release futuro** (release.yml) precisaria disparar o
+   gate explícito via `workflow_call`/`workflow_dispatch` ao invés de
+   confiar no push-trigger. Quando CD entrar, ajustar.
+
+### Reverter (se Camada 2 virar dor)
+
+```diff
+ on:
++  push:
++    branches: [main]
+   pull_request:
+     branches: [main]
+     types: [opened, synchronize, reopened, ready_for_review]
+```
+
+E remover/no-op o job `main-smoke` de `nightly.yml`. Mudança totalmente
+reversível em 1 PR.
+
 ## Referências
 
 - CLAUDE.md §Code style › Testes — comandos canônicos e fixtures.
 - `.github/workflows/ci.yml` job `changes.outputs.migration` + step
   `Run backend tests` `MARKER_FILTER`.
+- `.github/workflows/nightly.yml` job `main-smoke` — safety net Camada 2.
+- `.github/workflows/budget-alert.yml` — FinOps guardrail diário.
 - `dev/check_test_health.py` — heurísticas e exit codes.
 - `backend/tests/conftest.py` — `_fast_bcrypt_for_tests` fixture.
 - ADR-067 — coverage progressivo (frontend).
