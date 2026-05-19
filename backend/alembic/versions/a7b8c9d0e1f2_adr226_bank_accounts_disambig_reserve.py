@@ -7,7 +7,7 @@ from alembic import op
 from sqlalchemy import MetaData, Table, text
 
 revision: str = "a7b8c9d0e1f2"
-down_revision: Union[str, Sequence[str], None] = "adr224assetcatalog"
+down_revision: Union[str, Sequence[str], None] = "adr223defaultfalse"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

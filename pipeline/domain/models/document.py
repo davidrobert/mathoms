@@ -12,7 +12,6 @@ from decimal import Decimal
 from typing import Optional
 
 from pipeline.domain.models.transaction import Money, Transaction
-from pipeline.domain.services.account_normalization import normalize_account_number
 
 
 @dataclass
@@ -149,6 +148,10 @@ class BankStatement:
         closing = (
             d.get("saldo_final") if d.get("saldo_final") is not None else d.get("closing_balance")
         )
+        # Lazy import — account_normalization é peer em pipeline.domain.services,
+        # mas o __init__.py de services importa BankStatement (circular).
+        from pipeline.domain.services.account_normalization import normalize_account_number
+
         account_number_raw = d.get("numero_conta") or d.get("account_number")
         account_number_norm = d.get("numero_conta_norm") or normalize_account_number(
             account_number_raw
