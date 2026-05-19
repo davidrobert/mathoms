@@ -17,6 +17,7 @@ from backend.app.api.config import router as config_router
 from backend.app.api.dashboard import router as dashboard_router
 from backend.app.api.decisions import router as decisions_router
 from backend.app.api.documents import router as documents_router
+from backend.app.api.exposicao_cambial import router as exposicao_cambial_router
 from backend.app.api.family_members import router as family_members_router
 from backend.app.api.feature_flags import router as feature_flags_router
 from backend.app.api.goals import router as goals_router
@@ -215,6 +216,7 @@ _ALL_ROUTERS = (
     protection_bundle_router,
     planner_review_router,
     properties_router,
+    exposicao_cambial_router,
     suggestions_router,
     workspaces_router,
     workspaces_tenant_router,
