@@ -6,12 +6,13 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 51
+**Total de tabelas:** 53
 
 ---
 
 ## Índice
 
+- [`asset_catalog`](#assetcatalog)
 - [`audit_logs`](#auditlogs)
 - [`bank_accounts`](#bankaccounts)
 - [`categories`](#categories)
@@ -56,6 +57,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`transaction_overrides`](#transactionoverrides)
 - [`transfer_configs`](#transferconfigs)
 - [`users`](#users)
+- [`workspace_asset_overrides`](#workspaceassetoverrides)
 - [`workspace_category_overrides`](#workspacecategoryoverrides)
 - [`workspace_economic_assumptions_override`](#workspaceeconomicassumptionsoverride)
 - [`workspace_invitations`](#workspaceinvitations)
@@ -67,6 +69,28 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 ---
 
 ## Tabelas
+
+### `asset_catalog`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `catalog_version` | `INTEGER` | no | `1` | INDEX |
+| `ticker` | `VARCHAR(12)` | yes | — | INDEX |
+| `cnpj` | `VARCHAR(20)` | yes | — | INDEX |
+| `match_keyword` | `VARCHAR(200)` | yes | — | — |
+| `asset_class` | `VARCHAR(40)` | no | — | — |
+| `lastro_moeda` | `VARCHAR(8)` | no | — | — |
+| `lastro_source` | `VARCHAR(20)` | no | `'catalog'` | — |
+| `notes` | `VARCHAR` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Indexes:**
+
+- `ix_asset_catalog_catalog_version` (catalog_version)
+- `ix_asset_catalog_cnpj` (cnpj)
+- `ix_asset_catalog_ticker` (ticker)
 
 ### `audit_logs`
 
@@ -1196,6 +1220,29 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_users_deletion_requested_at` (deletion_requested_at)
 - UNIQUE `ix_users_email` (email)
 
+### `workspace_asset_overrides`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `asset_match_key` | `VARCHAR(200)` | no | — | — |
+| `match_kind` | `VARCHAR(20)` | no | — | — |
+| `lastro_moeda` | `VARCHAR(8)` | no | — | — |
+| `override_source` | `VARCHAR(20)` | no | `'user_manual'` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `created_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
+
+**Constraints:**
+
+- FOREIGN KEY (created_by_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_workspace_asset_overrides_workspace_id` (workspace_id)
+
 ### `workspace_category_overrides`
 
 | Column | Type | Nullable | Default | Tags |
@@ -1457,6 +1504,24 @@ import (
 
 	"github.com/shopspring/decimal"
 )
+```
+
+### `asset_catalog` → `type AssetCatalog struct`
+
+```go
+type AssetCatalog struct {
+	Id string `db:"id" json:"id"`
+	CatalogVersion int `db:"catalog_version" json:"catalog_version"`
+	Ticker *string `db:"ticker" json:"ticker"`
+	Cnpj *string `db:"cnpj" json:"cnpj"`
+	MatchKeyword *string `db:"match_keyword" json:"match_keyword"`
+	AssetClass string `db:"asset_class" json:"asset_class"`
+	LastroMoeda string `db:"lastro_moeda" json:"lastro_moeda"`
+	LastroSource string `db:"lastro_source" json:"lastro_source"`
+	Notes *string `db:"notes" json:"notes"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
 ```
 
 ### `audit_logs` → `type AuditLog struct`
@@ -2225,6 +2290,22 @@ type User struct {
 	TokenVersion int `db:"token_version" json:"token_version"`
 	DeletionRequestedAt *time.Time `db:"deletion_requested_at" json:"deletion_requested_at"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `workspace_asset_overrides` → `type WorkspaceAssetOverride struct`
+
+```go
+type WorkspaceAssetOverride struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	AssetMatchKey string `db:"asset_match_key" json:"asset_match_key"`
+	MatchKind string `db:"match_kind" json:"match_kind"`
+	LastroMoeda string `db:"lastro_moeda" json:"lastro_moeda"`
+	OverrideSource string `db:"override_source" json:"override_source"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+	CreatedByUserId *string `db:"created_by_user_id" json:"created_by_user_id"`
 }
 ```
 

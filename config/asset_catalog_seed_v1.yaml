@@ -1,0 +1,153 @@
+# Catalog v1 de ativos com lastro_moeda canônico — ADR-224 §3.
+#
+# Lista curada (financial-planner co-design 2026-05-19) para ICP PJ alta
+# renda BR. Cobertura: ETFs B3 com lastro USD/global + fundos globais CVM
+# (match_keyword) + top BDRs + stablecoins.
+#
+# Resolver priority (ADR-224 §5):
+#   override per-workspace > catalog (ticker > cnpj > keyword) > fallback categoria.
+#
+# Updates futuros: nova migration `bump_asset_catalog_v2.py` insere com
+# `catalog_version=2`. NÃO editar rows v1 in-place (versionamento canônico).
+
+catalog_version: 1
+
+assets:
+  # ============================================================
+  # ETFs B3 com lastro USD/global (9 — financial-planner FU-2.Q1)
+  # ============================================================
+  - ticker: IVVB11
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "iShares S&P 500 (BlackRock) — proxy USD via S&P 500"
+
+  - ticker: BIVB11
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "iShares Treasury US Bonds"
+
+  - ticker: BIVA11
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "VEA developed markets"
+
+  - ticker: NASD11
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Nasdaq-100 (Allianz)"
+
+  - ticker: ACWI11
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "MSCI ACWI — USD dominante (≥50%)"
+
+  - ticker: HASH11
+    asset_class: Cripto
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Crypto/blockchain ETF — predominantemente USD"
+
+  - ticker: SPXI11
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "S&P 500 (Itaú)"
+
+  - ticker: IVVD11
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Vanguard Total World (variante)"
+
+  - ticker: WRLD11
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Global equity ETF"
+
+  # ============================================================
+  # Fundos globais CVM (match_keyword substring lowercase)
+  # ============================================================
+  - match_keyword: btg pactual global
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "BTG Pactual Global — família. Default USD; override para fundo específico hedgeado."
+
+  - match_keyword: xp global
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "XP Investor Global Equity — família"
+
+  - match_keyword: itau global
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Itaú Global Dinâmico — família"
+
+  - match_keyword: bradesco global
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Bradesco Global — família"
+
+  # ============================================================
+  # Top BDRs por liquidez (V1 explícito; V2 considera regex
+  # suffix 34/35 — gap documentado)
+  # ============================================================
+  - ticker: AAPL34
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Apple BDR"
+
+  - ticker: MSFT34
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Microsoft BDR"
+
+  - ticker: AMZO34
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Amazon BDR"
+
+  - ticker: GOGL34
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Alphabet/Google BDR"
+
+  - ticker: M1TA34
+    asset_class: Internacional
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Meta Platforms BDR"
+
+  # ============================================================
+  # Stablecoins (lastro USD efetivo)
+  # ============================================================
+  - ticker: USDT
+    asset_class: Cripto
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "Tether — stablecoin USD"
+
+  - ticker: USDC
+    asset_class: Cripto
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "USD Coin (Circle) — stablecoin USD"
+
+  - ticker: DAI
+    asset_class: Cripto
+    lastro_moeda: USD
+    lastro_source: catalog
+    notes: "DAI (MakerDAO) — stablecoin USD (colateralizada)"

@@ -1,3 +1,4 @@
+from backend.app.models.asset_catalog import AssetCatalog, WorkspaceAssetOverride
 from backend.app.models.audit_log import AuditLog
 from backend.app.models.categorization_rule import CategorizationRule
 from backend.app.models.category import Category, CategoryKeyword
@@ -172,6 +173,8 @@ __all__ = [
     "CategoryTemplate",
     "WorkspaceCategoryOverride",
     "InstitutionCatalog",
+    "AssetCatalog",
+    "WorkspaceAssetOverride",
     "PipelineConfig",
     "InstitutionConfig",
     "ReportLayout",
