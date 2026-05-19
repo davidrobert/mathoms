@@ -2,9 +2,10 @@
 id: ADR-223
 type: adr
 title: "Default conservador `imoveis_no_if=false` para workspaces novos + banner contextual"
-status: Proposto
-phase: A13
+status: Decidido
+phase: A12
 date: "2026-05-19"
+decided_at: "2026-05-19"
 relates_to:
   - "[[ADR-222]]"
   - "[[ADR-142]]"
@@ -24,8 +25,8 @@ tags:
   - area/multitenancy
   - methodology/perini
   - methodology/auvp
-  - phase/a13
-  - status/proposto
+  - phase/a12
+  - status/decidido
   - type/adr
 ---
 
@@ -162,7 +163,11 @@ NSM proxy: % de workspaces novos com `set_at IS NOT NULL` dentro de 7d (target: 
 
 ## Implementação
 
-Lane planejada em **Sprint A13** com track próprio (`docs/agent_prompts/track_a13-imoveis-no-if-default-flip.md`). Escopo: migration + telemetria + 1 surface UX (banner D-refinada). PM rationale: pequeno em eng (~1d) mas muda contrato semântico de default; rushar em A12 cauda solta produziria UX rushed. A12 fecha forte com #318-#321 + ADRs Proposto (esta + ADR-224).
+Entregue em **Sprint A12** (antecipado vs plano original A13):
+- **#331** — backend: migration `adr223defaultfalse` (`ALTER COLUMN imoveis_no_if SET DEFAULT false`); model + docstring + 3 tests (`test_adr223_default_flip.py`). Rows existentes preservadas.
+- **#332** — UX: `ImoveisNoIfBanner` + `ImoveisNoIfBannerContainer` em `frontend/src/app/(app)/config/`. 2 variants (`new` + `educational`) com CTAs invertidos. `imoveis_no_if_set_at` exposto no `PropertyListResponse` distingue default herdado vs explícito. Dismiss persiste em localStorage. 8 tests Vitest.
+
+**Defer (não-bloqueante):** telemetria 3 eventos (`banner_shown`, `decision_made`, `value_changed`) + Playwright `@critical` adiados — projeto sem padrão de events client-side ainda; Playwright env precisa setup local.
 
 ## Referências
 
