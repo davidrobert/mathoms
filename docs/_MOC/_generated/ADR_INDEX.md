@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-217 ADRs (ADR-001 a ADR-224) em [`docs/adr/`](../../adr/).
+218 ADRs (ADR-001 a ADR-225) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 173
-- **Proposto**: 40
+- **Proposto**: 41
 - **Roadmap**: 4
 
 ## Fundação
@@ -419,6 +419,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Decidido (1)
 
 - [[ADR-163]] — Decision congela `context_snapshot` ao aceitar Suggestion · phase Onda 8
+
+### Proposto (1)
+
+- [[ADR-225]] — Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb · phase A12
 
 ## pipeline
 

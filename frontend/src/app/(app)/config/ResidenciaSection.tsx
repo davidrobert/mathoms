@@ -23,6 +23,36 @@ const CLASSIFICATION_LABELS: Record<Classification, string> = {
   desconhecido: "Não classificado",
 };
 
+// IRPF Grupo 01 (Bens Imóveis) — códigos RFB de subtipo.
+// "01" é o próprio grupo-pai (LLM/fonte externa retornou sem subcódigo) → tratamos como "Imóvel".
+const RFB_IMOVEL_LABELS: Record<string, string> = {
+  "11": "Apto",
+  "12": "Casa",
+  "13": "Terreno",
+  "14": "Terra nua",
+  "15": "Sala/conj.",
+  "17": "Im. rural",
+  "19": "Outros",
+  "01": "Imóvel",
+};
+
+function tipoLabel(codigoRfb: string): { label: string; title: string } {
+  if (!codigoRfb) {
+    return { label: "Imóvel", title: "Sem código RFB extraído." };
+  }
+  const known = RFB_IMOVEL_LABELS[codigoRfb];
+  if (known) {
+    return {
+      label: known,
+      title:
+        codigoRfb === "01"
+          ? "Imóvel sem subtipo IRPF detalhado (RFB Grupo 01 sem subcódigo)."
+          : `RFB ${codigoRfb} — ${known}`,
+    };
+  }
+  return { label: `Cód ${codigoRfb}`, title: `Código RFB ${codigoRfb} (não mapeado)` };
+}
+
 function classificationLabel(c: Classification | null): string {
   return c === null ? "Não classificado" : CLASSIFICATION_LABELS[c];
 }
@@ -192,10 +222,10 @@ function PropertyRow({
   saving: boolean;
   onClassify: (id: string, c: Classification) => void;
 }) {
-  const codigoLabel = property.codigo_rfb === "12" ? "Casa" : property.codigo_rfb === "11" ? "Apto" : `Cód ${property.codigo_rfb}`;
+  const { label: codigoLabel, title: codigoTitle } = tipoLabel(property.codigo_rfb);
   return (
     <tr className="border-b last:border-0">
-      <td className="py-2 pr-3 text-xs">{codigoLabel}</td>
+      <td className="py-2 pr-3 text-xs" title={codigoTitle}>{codigoLabel}</td>
       <td className="py-2 pr-3">
         <span className="text-xs leading-tight">
           {property.descricao_sample ?? "—"}
