@@ -9,11 +9,6 @@
     "mode": "warn"
   },
 
-  "patrimonio_composicao": {
-    "_comment": "Toggle do conceito de investível efetivo (Item 7 da auditoria 2026-04-27). Quando true, cat_2 (imóveis investimento) entra em investivel_efetivo e em progresso_if. Recomendado true se yield líquido médio dos imóveis ≥ trs_pct; false caso contrário. Documentação em definitions.md §FÓRMULAS PATRIMONIAIS e FORMULAS.md.",
-    "imoveis_no_if": true
-  },
-
   "llm": {
     "model": "claude-sonnet-4-20250514",
     "max_tokens": 500,

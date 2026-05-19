@@ -36,7 +36,7 @@ def _cfg(**overrides) -> CenariosConjugeConfig:
 
 
 def _patrimonio(investivel: float = 500_000) -> dict:
-    return {"investivel": investivel}
+    return {"investivel_efetivo": investivel}
 
 
 def _goals(if_meta: float = 5_000_000) -> dict:

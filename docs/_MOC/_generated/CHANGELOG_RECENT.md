@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-62 entries entre 2026-05-04 e 2026-05-15.
+60 entries entre 2026-05-05 e 2026-05-15.
 
 ## 2026-05-15 (1 entries)
 
@@ -88,11 +88,6 @@
 - [[CHG-2026-05-05-PR50]] — refactor(backend): decompose content_classifier monolith (2026-05-05). - **refactor(backend): decompose content_classifier monolith (2026-05-05):** Módulo `content_classifier.py` com 727 LOC decomposto em 3 módulos focados sem alte
 - [[CHG-2026-05-05-PR51]] — feat(ui): Onda 9 — design system polish + mobile (2026-05-05). - **feat(ui): Onda 9 — design system polish + mobile (2026-05-05):** Unificação de 3 primitivos de design system + 2 fixes de produto + ergonomia mobile.
 - [[CHG-2026-05-05-PR56]] — feat(db): M3 drop _legacy_kanban_items + _legacy_report_notes (ADR-154) (2026-05-05). - **feat(db): M3 drop _legacy_kanban_items + _legacy_report_notes (ADR-154) (2026-05-05):** PR [#56](https://github.com/davidrobert/mathoms/pull/56).
-
-## 2026-05-04 (2 entries)
-
-- [[CHG-2026-05-04-A10-FEAT-SUGGESTIONS-DEC]] — feat(suggestions+decisions): Onda 8 — coerência metodológica (2026-05-04). - **feat(suggestions+decisions): Onda 8 — coerência metodológica (2026-05-04):** Fecha 6 gaps identificados na revisão de produto 2026-04-29: - **#1 (ADR-161):*
-- [[CHG-2026-05-04-FEAT-API]] — feat(api,security): LGPD self-service + tenancy isolation gate (Bloco 0.6 P2/P3 · 2026-05-04). - **feat(api,security): LGPD self-service + tenancy isolation gate (Bloco 0.6 P2/P3 · 2026-05-04):** Endpoints `POST /api/v1/me/data-export`, `GET /me/data-expo
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

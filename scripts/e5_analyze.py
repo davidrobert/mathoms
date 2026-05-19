@@ -1107,12 +1107,17 @@ def analyze_patrimonio(
 
     patrimonio_liquido = patrimonio_bruto - total_dividas
 
-    # Investível
-    investivel = patrimonio_bruto - residencia - veiculos
-    investivel = max(0, investivel)
-    if investivel >= patrimonio_bruto and patrimonio_bruto > 0:
+    # ADR-142 + ADR-215 §6: legacy script não tem `property_classification_overrides`
+    # nem toggle per-workspace — emite somente o caso degenerado equivalente a
+    # toggle=true + todos imóveis tratados como geradores (paridade legado).
+    # Pipeline DB-first vai pelo `E5AnalyzerAdapter` que computa corretamente.
+    investivel_financeiro = max(
+        0.0, investimentos_david + investimentos_mariana + caixa_moeda_estrangeira
+    )
+    investivel_efetivo = max(0.0, investivel_financeiro + imoveis_investimento)
+    if investivel_efetivo >= patrimonio_bruto and patrimonio_bruto > 0:
         print(
-            f"  [WARN] patrimonio_investivel ({investivel}) >= patrimonio_bruto ({patrimonio_bruto})"
+            f"  [WARN] investivel_efetivo ({investivel_efetivo}) >= patrimonio_bruto ({patrimonio_bruto})"
         )
 
     # Composition breakdown (sorted by value desc)
@@ -1153,7 +1158,13 @@ def analyze_patrimonio(
         _KEY_INV_CONJUGE: round(investimentos_mariana, 2),
         "caixa_moeda_estrangeira": round(caixa_moeda_estrangeira, 2),
         "caixa_detalhes": caixa_detalhes if has_current_positions else [],
-        "investivel": round(investivel, 2),
+        "investivel_financeiro": round(investivel_financeiro, 2),
+        "investivel_efetivo": round(investivel_efetivo, 2),
+        # imoveis_geradores legacy = imoveis_investimento total (sem split por
+        # classification — preservado para paridade goldens pré-ADR-222).
+        "imoveis_geradores": round(imoveis_investimento, 2),
+        "imoveis_nao_geradores": 0.0,
+        "imoveis_no_if": True,  # legacy default
         "veiculos": round(veiculos, 2),
         "composicao": composicao,
         "tabela_categorias": composicao,
@@ -1180,7 +1191,7 @@ def analyze_goals(
 
     if_meta = extract_if_target_from_life_plan(life_plan_content)
     if_trs = extract_if_trs(life_plan_content)
-    investivel = patrimonio["investivel"]
+    investivel = patrimonio["investivel_efetivo"]
 
     # IF monthly target (assuming TRS, derive monthly)
     # TRS % per annum → monthly: TRS% / 12
@@ -1530,7 +1541,7 @@ def analyze_ratios(
     # Cobertura despesas (meses) — uses 12m expense average
     cobertura_despesas_meses = 0.0
     if despesa_mensal_media > 0:
-        cobertura_despesas_meses = patrimonio["investivel"] / despesa_mensal_media
+        cobertura_despesas_meses = patrimonio["investivel_efetivo"] / despesa_mensal_media
 
     # Rentabilidade: N/D (cannot compute without real performance data)
     rentabilidade_pct = "N/D"
@@ -1702,7 +1713,7 @@ def analyze_reserva_emergencia(fluxo: Dict[str, Any], patrimonio: Dict[str, Any]
     print("[E5.7] Analyzing reserva emergencia...")
 
     despesa_mensal = fluxo["despesa_mensal_media"]
-    investivel = patrimonio["investivel"]
+    investivel = patrimonio["investivel_efetivo"]
 
     # Níveis de reserva carregados de scoring.json
     _reserva_cfg = SCORING_CONFIG.get("reserva_emergencia", {})
@@ -2496,7 +2507,7 @@ def analyze_cenarios_conjuge(
     _taxas_path = PROJECT_DIR / "config" / "taxas.json"
 
     meta_if = goals["if_meta"]
-    investivel = patrimonio["investivel"]
+    investivel = patrimonio["investivel_efetivo"]
     retorno_real_anual = safe_float(_if_cfg.get("retorno_real_anual_pct", 6.0)) / 100.0
     r = (1 + retorno_real_anual) ** (1 / 12) - 1
 
@@ -2875,6 +2886,9 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         except Exception as exc:  # pragma: no cover
             print(f"  [warn] ConfigStore.get_market_rate EUR/BRL falhou ({exc}); usando taxas.json")
 
+    # ADR-142 + ADR-222: per-workspace toggle `imoveis_no_if` (default True
+    # quando ausente — CLI/teste). Backend popula via `_setup_run_context`.
+    imoveis_no_if = bool(getattr(ctx, "imoveis_no_if", True)) if ctx is not None else True
     return E5AnalyzerAdapter.from_configs(
         categorization=categorization_cfg,
         family=FAMILY_CONFIG,
@@ -2890,6 +2904,7 @@ def _e5_build_adapter(life_plan_content: str | None, ctx=None):
         cambio_usd_brl=cambio_usd_brl,
         cambio_eur_brl=cambio_eur_brl,
         property_classification_overrides=property_classification_overrides,
+        imoveis_no_if=imoveis_no_if,
     )
 
 
@@ -3097,7 +3112,7 @@ def _e5_print_summary(legacy: Dict[str, Any]) -> None:
     print(f"  Score: {score['valor']}/10 ({score['classificacao']})")
     print(f"  Taxa Poupança: {ratios['taxa_poupanca_recorrente_pct']:.1f}%")
     print(f"  Patrimônio Bruto: R$ {patrimonio['bruto']:,.2f}")
-    print(f"  Patrimônio Investível: R$ {patrimonio['investivel']:,.2f}")
+    print(f"  Patrimônio Investível Efetivo: R$ {patrimonio['investivel_efetivo']:,.2f}")
     print(f"  IF Meta: R$ {goals['if_meta']:,.2f}")
     print(f"  IF Progresso: {goals['if_pct']:.1f}%")
     print(f"  Prazo IF (realista): {goals['prazo_anos_realista']:.1f} anos → {goals['ano_if']}")
@@ -3116,7 +3131,7 @@ def _e5_build_result_dict(legacy: Dict[str, Any], warnings) -> Dict[str, Any]:
         "score_valor": score.get("valor"),
         "score_classificacao": score.get("classificacao"),
         "patrimonio_bruto": patrimonio.get("bruto"),
-        "patrimonio_investivel": patrimonio.get("investivel"),
+        "patrimonio_investivel": patrimonio.get("investivel_efetivo"),
         "if_pct": goals.get("if_pct"),
         "if_prazo_anos": goals.get("prazo_anos_realista"),
         "sanity_warnings": [w.message for w in warnings],

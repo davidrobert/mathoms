@@ -54,7 +54,7 @@ def _fluxo_with_janela(*, despesa_mensal_essencial: float = 0.0, **overrides) ->
 def _patrimonio(
     bruto: float = 1_000_000, dividas: float = 200_000, investivel: float = 500_000
 ) -> dict:
-    return {"bruto": bruto, "dividas": dividas, "investivel": investivel}
+    return {"bruto": bruto, "dividas": dividas, "investivel_efetivo": investivel}
 
 
 class TestTaxaPoupanca:
