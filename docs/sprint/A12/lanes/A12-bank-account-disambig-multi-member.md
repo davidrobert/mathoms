@@ -3,7 +3,7 @@ id: A12.bank-account-disambig
 type: lane
 title: "Desambiguação conta bancária → membro (multi-membro mesmo banco)"
 sprint: A12
-status: open
+status: shipped
 aliases: ["A12.bank-account", "A12.BANK_ACCOUNT_DISAMBIG"]
 priority: P1
 depends_on: []
@@ -13,7 +13,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a12
-  - status/open
+  - status/shipped
   - priority/p1
   - area/backend
   - area/pipeline
@@ -103,10 +103,12 @@ Lista completa em [[ADR-226]] §Consequências §Riscos.
 
 ## Definition of Done
 
-- ☐ PR1 — Migration `bank_accounts.workspace_id` + `is_joint`/`co_titulares` reservados + serializer aditivo + parser + UI in-app UNIQUE
-- ☐ PR2 — Schema E3 bump aditivo + 11 parsers E2 normalizam + `titulares: list` + OpenAPI snapshot atualizado
-- ☐ PR3 — `account_resolver` puro + E4/InvestmentsConsolidator/E1 consomem + golden multi-membro verde + idempotência E1 verde
-- ☐ PR4 — `CREATE INDEX CONCURRENTLY` partial unique + 409 colisão + UI pre-fill IRPF + telemetria emitindo
-- ☐ [[ADR-226]] flippada `Proposto` → `Decidido (A12.bank-account-disambig)` no PR4
-- ☐ Telemetria `mathoms.account_resolver.resolve_total{confidence}` monitorada por 1 semana pós-PR4 em workspaces piloto
-- ☐ FAQ produto atualizada: "como o Mathoms decide de qual membro é cada conta" (financial-planner item)
+- ☑ PR1 — absorvido em PR2 squash ([#337](https://github.com/davidrobert/mathoms/pull/337))
+- ☑ PR2 ([#337](https://github.com/davidrobert/mathoms/pull/337)) — Schema E3 bump aditivo + 11 parsers E2 normalizam via `finalize_e2_result` + `titulares: list` + OpenAPI snapshot
+- ☑ PR3 ([#339](https://github.com/davidrobert/mathoms/pull/339)) — `account_resolver` puro + E4/InvestmentsConsolidator/E1 consomem + golden multi-membro verde
+- ☑ PR4 — partial unique index + 409 colisão backend + telemetria emitindo + flip ADR
+- ☑ [[ADR-226]] flippada `Proposto` → `Decidido (A12.bank-account-disambig)` no PR4
+- ☑ Telemetria `mathoms.account_resolver.resolve` emite `confidence` em logging estruturado
+- ☑ FAQ produto: [FAQ_bank_account_member.md](../../../reference/FAQ_bank_account_member.md)
+- ☐ UI pre-fill IRPF (follow-up V2 — não bloqueia fechamento V1)
+- ☐ Monitoring `resolve_total{confidence}` por 1 semana pós-merge (operacional)

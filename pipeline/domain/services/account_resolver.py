@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Iterable, Literal, Optional
@@ -10,6 +11,8 @@ from pipeline.domain.services.account_normalization import normalize_account_num
 from pipeline.domain.types.config import BankAccountRecord
 
 Confidence = Literal["strict", "fallback_bank", "ambiguous", "unknown"]
+
+_logger = logging.getLogger("mathoms.account_resolver")
 
 
 @dataclass(frozen=True)
@@ -41,6 +44,20 @@ class AccountResolver:
             self._by_bank[c.institution_code].append(c)
 
     def resolve(
+        self, institution_code: str, account_number_raw: Optional[str] = None
+    ) -> AccountResolution:
+        result = self._resolve_inner(institution_code, account_number_raw)
+        _logger.info(
+            "account_resolver.resolve",
+            extra={
+                "event": "account_resolver.resolve",
+                "confidence": result.confidence,
+                "institution_code": institution_code,
+            },
+        )
+        return result
+
+    def _resolve_inner(
         self, institution_code: str, account_number_raw: Optional[str] = None
     ) -> AccountResolution:
         norm = normalize_account_number(account_number_raw)

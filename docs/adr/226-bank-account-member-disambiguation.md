@@ -2,8 +2,8 @@
 id: ADR-226
 type: adr
 title: "Desambiguação conta bancária → membro: `account_number` como discriminador, `account_resolver` puro, `is_joint` reservado para V2"
-status: Proposto
-phase: A12
+status: Decidido
+phase: A12.bank-account-disambig
 date: "2026-05-19"
 relates_to:
   - "[[ADR-127]]"
@@ -316,6 +316,13 @@ Lane planejada em **Sprint A12** (`A12.bank-account-disambig`). 4 PRs sequenciai
 - Co-design 2026-05-19: `data-engineer` (schema E3 aditivo + normalização no boundary + workspace_id denormalizado + partial index sobre expressão + bugs latentes correlatos), `financial-planner` (Cerbasi/Perini/AUVP — atribuição correta é core; conta conjunta é regra no ICP; warning bloqueante > silenciosa).
 - Diagnóstico: investigação `/config` Mathoms 2026-05-19, sessão David Robert.
 
-## Status — Proposto
+## Status — Decidido (A12.bank-account-disambig)
 
-PR1-PR4 pendentes em `A12.bank-account-disambig`. Flip para `Decidido (A12.bank-account-disambig)` no merge do PR4.
+Lane completa em 4 PRs:
+
+- **PR1** absorvido em PR2 squash (#337) — migration `workspace_id` + `is_joint`/`co_titulares` + serializer aditivo + UI in-app UNIQUE
+- **PR2** ([#337](https://github.com/davidrobert/mathoms/pull/337)) — E2→E3 propaga `account_number` + `titulares: list`
+- **PR3** ([#339](https://github.com/davidrobert/mathoms/pull/339)) — `account_resolver` puro + DI no E4/InvestmentsConsolidator/E1
+- **PR4** — partial unique index `CONCURRENTLY` + 409 conflict no backend + telemetria `mathoms.account_resolver.resolve` + flip ADR
+
+FAQ produto em `docs/reference/FAQ_bank_account_member.md`.

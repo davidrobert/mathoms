@@ -223,7 +223,7 @@
 | ADR-223 | adr | Decidido |  | Default conservador `imoveis_no_if=false` para workspaces novos + banner contextual | `adr/223-flip-default-imoveis-no-if-conservador.md` |
 | ADR-224 | adr | Decidido |  | `asset_catalog` + `lastro_moeda` per-ativo (catalog global + override per-workspace) | `adr/224-asset-catalog-lastro-moeda.md` |
 | ADR-225 | adr | Decidido |  | Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb | `adr/225-property-identity-dedup-robusto.md` |
-| ADR-226 | adr | Proposto |  | Desambiguação conta bancária → membro: `account_number` como discriminador, `account_resolver` puro, `is_joint` reservado para V2 | `adr/226-bank-account-member-disambiguation.md` |
+| ADR-226 | adr | Decidido |  | Desambiguação conta bancária → membro: `account_number` como discriminador, `account_resolver` puro, `is_joint` reservado para V2 | `adr/226-bank-account-member-disambiguation.md` |
 | ADR-227 | adr | Proposto |  | Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2 | `adr/227-imovel-financiado-debt-aggregate-valor-mercado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
@@ -414,6 +414,7 @@
 | CHG-2026-05-14-FEAT-PLANNER-ATO6-TELEMETRIA-CUTOVER | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-14-FEAT-PLANNER-ATO6-TELEMETRIA-CUTOVER.md` |
 | CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES.md` |
 | CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN.md` |
+| FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
 | RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |
 | RULE-compliance-risk-us-person | domain-rule |  |  |  | `reference/rules/compliance-risk-us-person.md` |
@@ -442,7 +443,7 @@
 | A11.w5 | lane | open | A11 | Frontend + Methodology (5 tasks, paralelo W6) | `sprint/A11/lanes/A11-w5-frontend-methodology.md` |
 | A11.w6 | lane | blocked | A11 | Tech debt cleanup (6 tasks) | `sprint/A11/lanes/A11-w6-tech-debt-cleanup.md` |
 | A12.alocacao-v2 | lane | open | A12 | Alocação-alvo schema v1→v2 (7 classes AUVP, desvio backend-driven) | `sprint/A12/lanes/A12-alocacao-v2-migration.md` |
-| A12.bank-account-disambig | lane | open | A12 | Desambiguação conta bancária → membro (multi-membro mesmo banco) | `sprint/A12/lanes/A12-bank-account-disambig-multi-member.md` |
+| A12.bank-account-disambig | lane | shipped | A12 | Desambiguação conta bancária → membro (multi-membro mesmo banco) | `sprint/A12/lanes/A12-bank-account-disambig-multi-member.md` |
 | A12.cat-learning-loop | lane | in_progress | A12 | Categorization Learning Loop — promoção de override em regra | `sprint/A12/lanes/A12-cat-learning-loop-override-to-rule.md` |
 | A12.decision-code-autogen | lane | in_progress | A12 | Decision.code server-generated (UX cleanup + race fix) | `sprint/A12/lanes/A12-decision-code-autogen-server-gen.md` |
 | A12.sunset-disk-artifact | lane | open | A12 | Sunset DiskArtifactStore + flag MATHOMS_USE_DB_ARTIFACTS + CLI standalone | `sprint/A12/lanes/A12-sunset-disk-artifact-cleanup.md` |
