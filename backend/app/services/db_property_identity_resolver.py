@@ -1,4 +1,4 @@
-"""``DBPropertyIdentityResolver`` — adapter SQLAlchemy do `PropertyIdentityResolver` (ADR-215 P2)."""
+"""``DBPropertyIdentityResolver`` — adapter SQLAlchemy do `PropertyIdentityResolver` (ADR-215, ADR-225)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from pipeline.domain.types.property_identity import (
 
 
 class DBPropertyIdentityResolver:
-    """Idempotent matching/creation de `PropertyIdentity` rows (ADR-215)."""
+    """Idempotent matching/creation de `PropertyIdentity` rows via cascata estrito→loose→insert (ADR-215, ADR-225 §2)."""
 
     def __init__(self, session: Session) -> None:
         self._session = session
@@ -27,22 +27,41 @@ class DBPropertyIdentityResolver:
         first_seen_year: int,
         descricao_sample: str,
     ) -> PropertyIdentityRecord:
-        """Find ou cria. fix-B2: dedup cross-titular quando endereco_canonical presente."""
+        """Match cascade: estrito → loose → insert."""
         if lookup.endereco_canonical is not None:
-            existing = self._find_by_canonical(workspace_id, lookup)
+            existing = self._find_by_canonical_strict(workspace_id, lookup)
             if existing is not None:
                 return _to_record(existing)
+            loose = self._find_by_canonical_loose(workspace_id, lookup.endereco_canonical)
+            if loose is not None:
+                return _to_record(loose)
         return _to_record(self._insert_row(workspace_id, lookup, first_seen_year, descricao_sample))
 
-    def _find_by_canonical(
+    def _find_by_canonical_strict(
         self, workspace_id: str, lookup: PropertyLookupKey
     ) -> PropertyIdentity | None:
+        """Match estrito: codigo_rfb + endereco_canonical (path quente)."""
         stmt = (
             select(PropertyIdentity)
             .where(
                 PropertyIdentity.workspace_id == workspace_id,
                 PropertyIdentity.codigo_rfb == lookup.codigo_rfb,
                 PropertyIdentity.endereco_canonical == lookup.endereco_canonical,
+            )
+            .order_by(PropertyIdentity.created_at.asc())
+            .limit(1)
+        )
+        return self._session.execute(stmt).scalar_one_or_none()
+
+    def _find_by_canonical_loose(
+        self, workspace_id: str, endereco_canonical: str
+    ) -> PropertyIdentity | None:
+        """Match loose: ignora codigo_rfb. First-write-wins preserva invariante E5 (ADR-225 §2)."""
+        stmt = (
+            select(PropertyIdentity)
+            .where(
+                PropertyIdentity.workspace_id == workspace_id,
+                PropertyIdentity.endereco_canonical == endereco_canonical,
             )
             .order_by(PropertyIdentity.created_at.asc())
             .limit(1)
