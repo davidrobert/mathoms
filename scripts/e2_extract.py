@@ -151,7 +151,11 @@ def process_file(file_path: Path, dry_run: bool = False) -> Optional[Dict[str, A
             log(prefix, level, f"  {filename}: {issue}")
             result.setdefault("notas", []).append(issue)
 
-    return result
+    # ADR-226 PR2 — popula numero_conta_norm canônico (idempotente, parsers
+    # continuam entregando numero_conta heterogêneo)
+    from scripts.e2.common import finalize_e2_result
+
+    return finalize_e2_result(result)
 
 
 def make_output_name(filename: str) -> str:
