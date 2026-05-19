@@ -6,6 +6,7 @@ from typing import Any, Optional
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     Date,
     DateTime,
     ForeignKey,
@@ -59,6 +60,15 @@ class BankAccount(Base):
     member_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("family_members.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # ADR-226 PR1: denormalização do workspace_id do family_member dono.
+    # Destrava o partial unique index do PR4 (PostgreSQL não suporta JOIN
+    # em índice funcional). Backfill garantido pela migration.
+    workspace_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     institution_code: Mapped[str] = mapped_column(String(50), nullable=False)
     account_type: Mapped[str] = mapped_column(String(100), nullable=False)
     agency: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
@@ -69,5 +79,12 @@ class BankAccount(Base):
     # tipo de fonte / parser do banco). 1 = mais confiável (extração LLM
     # estruturada), 5 = menos confiável (declaração editorial / IRPF).
     source_tier: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True, default=None)
+    # ADR-226 PR1: conta conjunta — flag reservada em V1, ativada em V2
+    # ADR follow-up (rateio proporcional Cerbasi-style). Sem consumidor
+    # no pipeline em V1.
+    is_joint: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # ADR-226 PR1: lista de member_id dos co-titulares quando is_joint=true.
+    # Reservado em V1; V2 ativa rateio.
+    co_titulares: Mapped[Optional[list[str]]] = mapped_column(JSON, nullable=True)
 
     member = relationship("FamilyMember", back_populates="accounts")
