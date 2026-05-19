@@ -222,7 +222,6 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
       </Card>
 
       <ResidenciaSection workspaceId={workspace.id} />
-
       {/* Member Cards — ordem hierárquica: Titular → Cônjuge → Filho → Dependente */}
       <div className="space-y-3">
         {[...members].sort((a, b) => {

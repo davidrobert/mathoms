@@ -35,11 +35,33 @@ export interface PropertyResponse {
 export interface PropertyListResponse {
   workspace_id: string;
   residencia_status: ResidenciaStatus;
+  /** ADR-222 + ADR-223: per-workspace toggle. Pós-ADR-223 default false (conservador Perini). */
+  imoveis_no_if: boolean;
+  /** `null` = default herdado (banner one-time aplicável); ISO datetime = decisão explícita. */
+  imoveis_no_if_set_at: string | null;
   properties: PropertyResponse[];
+}
+
+export interface ImoveisNoIfResponse {
+  workspace_id: string;
+  imoveis_no_if: boolean;
+  /** `null` = default herdado (conservador); timestamp = escolha explícita (ADR-223 §1). */
+  set_at: string | null;
+  set_by_user_id: string | null;
 }
 
 export async function listProperties(workspaceId: string): Promise<PropertyListResponse> {
   return apiFetch(`/workspaces/${workspaceId}/properties`);
+}
+
+export async function setImoveisNoIf(
+  workspaceId: string,
+  value: boolean,
+): Promise<ImoveisNoIfResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/imoveis-no-if`, {
+    method: "PUT",
+    body: JSON.stringify({ imoveis_no_if: value }),
+  });
 }
 
 export async function setPropertyClassification(

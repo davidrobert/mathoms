@@ -6790,6 +6790,18 @@
             "title": "Imoveis No If",
             "type": "boolean"
           },
+          "imoveis_no_if_set_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imoveis No If Set At"
+          },
           "properties": {
             "items": {
               "$ref": "#/components/schemas/PropertyResponse"

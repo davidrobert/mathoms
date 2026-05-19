@@ -38,6 +38,9 @@ class PropertyListResponse(BaseModel):
     workspace_id: str
     residencia_status: str
     imoveis_no_if: bool = True
+    # `null` = default herdado (ADR-223 §1 conservador); timestamp = escolha
+    # explícita do usuário. Frontend usa pra distinguir banner one-time.
+    imoveis_no_if_set_at: Optional[datetime] = None
     properties: list[PropertyResponse]
 
 
