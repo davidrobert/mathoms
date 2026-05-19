@@ -1415,7 +1415,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `business_profile_json` | `JSON` | yes | — | — |
 | `rule_cap_override` | `INTEGER` | yes | — | — |
 | `residencia_status` | `VARCHAR(20)` | no | server: `undeclared` | — |
-| `imoveis_no_if` | `BOOLEAN` | no | server: `1` | — |
+| `imoveis_no_if` | `BOOLEAN` | no | server: `0` | — |
 | `imoveis_no_if_set_at` | `DATETIME` | yes | — | — |
 | `imoveis_no_if_set_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
 

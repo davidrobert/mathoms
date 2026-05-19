@@ -60,11 +60,11 @@ class Workspace(Base):
 
     # ADR-222 — toggle per-workspace que controla se cat_2 (imóveis de renda)
     # entra em ``investivel_efetivo`` (ADR-142 invariante anti-dupla-contagem).
-    # Default ``true`` preserva comportamento de ``config/pipeline.json:14``
-    # legado (cleanup do JSON em PR2 imediato). ``set_at IS NULL`` = default
-    # migrado; ``set_at`` populado = escolha explícita do usuário.
+    # ADR-223 (FU-1) flipou default de ``true`` para ``false`` — conservadorismo
+    # Perini, opt-in com signal afirmativo via banner UX (A13). ``set_at IS NULL``
+    # = default migrado/conservador; ``set_at`` populado = escolha explícita.
     imoveis_no_if: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=True, server_default="1"
+        Boolean, nullable=False, default=False, server_default="0"
     )
     imoveis_no_if_set_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
