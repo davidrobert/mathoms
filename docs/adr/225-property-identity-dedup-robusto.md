@@ -2,9 +2,10 @@
 id: ADR-225
 type: adr
 title: "Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-19"
+decided_at: "2026-05-19"
 relates_to:
   - "[[ADR-215]]"
   - "[[ADR-157]]"
@@ -20,7 +21,7 @@ tags:
   - area/pipeline
   - area/methodology
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -336,9 +337,10 @@ relatório vazio.
   (dedup semantics + backfill fuzzy + race condition), `senior-cto`
   (invariante E5 + namespace matrícula + estimativa testes).
 
-## Status — Proposto
+## Status — Decidido
 
-PR1 (Phase A — labels legíveis) mergeado em `agent/property-dedup-fix`
-2026-05-19. PR2 (Phase B — canonicalizer extension) e PR3 (Phase C —
-resolver + backfill script + counter + runbook) pendentes. Flip para
-`Decidido` no merge do último PR.
+PR1 (Phase A — labels legíveis + ADR Proposto) mergeado 2026-05-19 ([apps#329](https://github.com/davidrobert/mathoms/pull/329)).
+PR2 (Phase B + C — canonicalizer cascade + resolver loose-match +
+dedup script 3 passes + runbook + tests) consolidado nesta entrega.
+Passe 2 (fuzzy low-confidence) ficou de fora — risco vs valor exige
+curadoria; adia para follow-up se sinalizar real em monitoração.

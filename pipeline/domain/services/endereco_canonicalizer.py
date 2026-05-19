@@ -180,11 +180,7 @@ _CASCADE: tuple[tuple, ...] = (
 
 
 def canonicalize(descricao: str) -> Optional[str]:
-    """Canonical key via cascata via+numero > matrícula > QA > IPTU (ADR-225 §1).
-
-    Emite log `mathoms.property_identity.cascade_hit{level=…}` para
-    observabilidade da qualidade do canonicalizer.
-    """
+    """Canonical key via cascata via+numero > matrícula > QA > IPTU (ADR-225 §1)."""
     if not descricao:
         return None
     for extractor, level, fmt in _CASCADE:
