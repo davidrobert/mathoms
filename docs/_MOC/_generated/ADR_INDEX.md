@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-215 ADRs (ADR-001 a ADR-222) em [`docs/adr/`](../../adr/).
+217 ADRs (ADR-001 a ADR-224) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 173
-- **Proposto**: 38
+- **Proposto**: 40
 - **Roadmap**: 4
 
 ## Fundação
@@ -272,9 +272,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-142]] — Toggle `imoveis_no_if` em `pipeline.json` + invariante anti-dupla-contagem
 - [[ADR-222]] — Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if` · phase A12
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-141]] — Goal alocação-alvo schema v2 (7 classes AUVP) · phase A12
+- [[ADR-223]] — Default conservador `imoveis_no_if=false` para workspaces novos + banner contextual · phase A13
 
 ### Roadmap (1)
 
@@ -381,6 +382,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Decidido (1)
 
 - [[ADR-215]] — Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` · phase A12
+
+### Proposto (1)
+
+- [[ADR-224]] — `asset_catalog` + `lastro_moeda` per-ativo (catalog global + override per-workspace) · phase A12
 
 ## money
 
