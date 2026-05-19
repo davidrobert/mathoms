@@ -36,7 +36,9 @@ size_lines: 30
 
 **Default:** `imoveis_no_if = true` para o workspace dogfood inicial (yield líquido ~6% > TRS 5%) — já gravado em `pipeline.json` em `ea22837`. Para workspaces onde yield líquido < TRS (vacancia, ou imóveis com retorno baixo), recomenda-se override `false`.
 
-**Update 2026-05-18 ([[ADR-222]] Proposto, A12):** débito de "per-workspace" cumprido — coluna `workspaces.imoveis_no_if` BOOL NOT NULL DEFAULT true (+ audit `set_at`/`set_by_user_id`) substitui `pipeline.json:14` global; endpoint `PUT /workspaces/{ws}/imoveis-no-if` flippa; `WorkspaceContext.imoveis_no_if` propaga ao pipeline. `pipeline.json:14` removido em PR2 da sprint A12 (cleanup). Bloco B (runtime de `investivel_efetivo`) sai do papel na sequência.
+**Update 2026-05-18 ([[ADR-222]] Decidido, A12):** débito de "per-workspace" cumprido — coluna `workspaces.imoveis_no_if` BOOL NOT NULL DEFAULT true (+ audit `set_at`/`set_by_user_id`) substitui `pipeline.json:14` global; endpoint `PUT /workspaces/{ws}/imoveis-no-if` flippa; `WorkspaceContext.imoveis_no_if` propaga ao pipeline.
+
+**Update 2026-05-19 (ADR-142 Decidido completo, A12):** invariante anti-dupla-contagem **implementada em runtime**. `PatrimonioCalculator` emite `investivel_financeiro` (cat_3+4+5+6) e `investivel_efetivo` (financeiro + cat_2 geradores se toggle on), separando cat_2 em `imoveis_geradores` (classification ∈ {locado, comercial}) vs `imoveis_nao_geradores` (uso_pessoal | especulacao | desconhecido — **nunca** entram, conservadorismo Perini/Cerbasi). `IFProjector` / `RatiosCalculator` / `CenariosConjugeAnalyzer` passam a consumir `investivel_efetivo`. `config/pipeline.json:14` deletado nesta sprint. Campo legado `investivel` removido do payload — substituído por `investivel_efetivo`/`investivel_financeiro` (sem alias, sem mentira tipada).
 
 **Por que validar a invariante mas não automatizar:** o produto não calcula yield líquido por imóvel (depende de carnê-leão real, vacância histórica, despesas de manutenção). A escolha do toggle é decisão consultiva do planejador. Hoje vive em `pipeline.json` global; um futuro override por workspace exigiria coluna `Workspace.imoveis_no_if` (lane separada).
 

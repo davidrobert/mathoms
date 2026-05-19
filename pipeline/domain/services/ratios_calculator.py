@@ -252,7 +252,9 @@ def _calc_endividamento(patrimonio: _PatrimonioPayload) -> float:
 
 
 def _calc_cobertura(patrimonio: _PatrimonioPayload, despesa_mensal_media: float) -> float:
-    investivel = _safe_float(patrimonio.get("investivel", 0))
+    # ADR-142 + ADR-215 §6: cobertura usa `investivel_efetivo` (cat_3+4+5+6 +
+    # cat_2 geradores quando toggle on). Não usa `investivel` legado.
+    investivel = _safe_float(patrimonio.get("investivel_efetivo", 0))
     return investivel / despesa_mensal_media if despesa_mensal_media > 0 else 0.0
 
 

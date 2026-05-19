@@ -157,7 +157,8 @@ class CenariosConjugeAnalyzer:
         cfg = self._config
 
         meta_if = _safe_float((goals or {}).get("if_meta", 0))
-        investivel = _safe_float((patrimonio or {}).get("investivel", 0))
+        # ADR-142 + ADR-215 §6: cenários conjuge usam `investivel_efetivo`.
+        investivel = _safe_float((patrimonio or {}).get("investivel_efetivo", 0))
         r = (1 + cfg.retorno_real_anual_pct / 100.0) ** (1 / 12) - 1
 
         salario_conjuge_brl = self._extract_salario_conjuge(fluxo)

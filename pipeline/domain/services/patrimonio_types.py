@@ -65,6 +65,14 @@ class PatrimonioConfig:
     # workspace ainda não classificou nenhum imóvel — todos caem em cat_2.
     property_classification_overrides: dict[str, str] = field(default_factory=dict)
 
+    # ADR-142 §Decisão (per-workspace via ADR-222): se `True`, `cat_2` (imóveis
+    # de renda — somente classificações `locado` ou `comercial`) entra em
+    # ``investivel_efetivo``; se `False`, fica fora (apenas cat_3+4+5+6 =
+    # `investivel_financeiro`). ``uso_pessoal`` / ``especulacao`` /
+    # ``desconhecido`` nunca entram, independente do toggle (Perini/Cerbasi).
+    # Default ``True`` preserva retro-compat com `pipeline.json:14` legado.
+    include_real_estate_in_if: bool = True
+
 
 @dataclass(frozen=True)
 class CaixaDetalhe:

@@ -70,8 +70,18 @@ Após este plano, ao subir IRPF novo (ou abrir MembersTab em workspace dogfood),
 - **P6 Cutover legado + pre-commit gate** ✅ shipped 2026-05-15 (#293)
 - **Fix-B1/B2/B3 + DBPropertyIdentityResolver commit eager** ✅ shipped 2026-05-17/18 (#300, #302, #303, #311)
 - **P3-connection fix — `PropertyOverridesResolver` ligando DB ao calculator** ✅ shipped 2026-05-18 (#318)
-- **Sunset completo `residencia_principal_keyword`** 🚧 este PR — remove fallback dos 4 analyzers (`patrimonio_calculator`, `investimentos_classes`, `top_ativos`, `member_analyzer`, `instituicoes_por_membro`), troca config field `residencia_keyword: str` → `residencia_property_ids: frozenset[str]`, encolhe allowlist do gate `dev/check_residencia_keyword.py` para 5 arquivos doc/admin. ADR-215 status → `Decidido (deprecation completo)`.
+- **Sunset completo `residencia_principal_keyword`** ✅ shipped 2026-05-18 (#320) — 4 analyzers refatorados; gate encolhido; ADR-215 → Decidido.
+- **ADR-222 — `imoveis_no_if` per-workspace** ✅ shipped 2026-05-18 (#319) — coluna + audit + endpoint PUT.
+- **ADR-142 runtime — `investivel_efetivo`** 🚧 este PR — calculator emite `investivel_financeiro` + `investivel_efetivo` filtrado por classification (locado/comercial entram com toggle on; uso_pessoal/especulacao/desconhecido nunca); IFProjector/RatiosCalculator/CenariosConjugeAnalyzer consomem `_efetivo`; `config/pipeline.json:14` deletado. ADRs 142 + 222 → Decidido completo.
 - **Quick fix paralelo:** descartado pelo usuário em favor da solução completa.
+
+### Status final do MVP V1 ✅
+
+Após este PR, **todos os blocos do plano canônico RESIDENCIA_E_USO estão entregues** + débitos correlatos resolvidos:
+
+- Override DB grava (P4) → lê (A'/P3 conn fix) → consume (sunset A + runtime B).
+- Toggle `imoveis_no_if` per-workspace (ADR-222) + invariante anti-dupla-contagem em runtime (ADR-142 B).
+- Workspace dogfood `5@5.com`: ao marcar residência via MembersTab, pipeline E5 separa cat_1 corretamente, IF passa a usar `investivel_efetivo` sem inflar com terreno improdutivo.
 
 ### Gap descoberto pós-P6 (2026-05-18)
 
