@@ -15,16 +15,18 @@ import {
   ApiError,
 } from "@/lib/api";
 import { bankLabel } from "@/lib/format";
+import { findAccountCollision } from "@/lib/accountValidation";
 import { Spinner } from "@/components/Spinner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Plus, Check, X } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
 import { ResidenciaSection } from "./ResidenciaSection";
+import { InlineField } from "./_InlineField";
 
 const ROLES = [
   { value: "titular", label: "Titular" },
@@ -132,12 +134,22 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
     e.preventDefault();
     setError("");
     const fd = new FormData(e.currentTarget);
+    const institution_code = fd.get("institution_code") as string;
+    const account_number = (fd.get("account_number") as string) || undefined;
+    const collision = findAccountCollision(members, memberId, institution_code, account_number);
+    if (collision) {
+      setError(
+        `Já existe conta em "${institution_code}" para ${collision.ownerName}. ` +
+          "Informe o número da conta para diferenciar.",
+      );
+      return;
+    }
     try {
       await createBankAccount(workspace.id, memberId, {
-        institution_code: fd.get("institution_code") as string,
+        institution_code,
         account_type: fd.get("account_type") as string,
         agency: (fd.get("agency") as string) || undefined,
-        account_number: (fd.get("account_number") as string) || undefined,
+        account_number,
       });
       e.currentTarget.reset();
       await reload();
@@ -454,45 +466,6 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
         variant="destructive"
         onConfirm={handleDeleteAccount}
       />
-    </div>
-  );
-}
-
-function InlineField({ label, value, onSave, placeholder, type = "text" }: {
-  label: string; value: string; onSave: (v: string) => void; placeholder?: string; type?: string;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [val, setVal] = useState(value);
-  if (!editing) {
-    return (
-      <div>
-        <Label className="mb-1 text-xs text-muted-foreground">{label}</Label>
-        <button onClick={() => setEditing(true)} className="w-full text-left rounded-lg border border-transparent px-2 py-1.5 text-sm hover:border-border hover:bg-accent">
-          {value || <span className="text-muted-foreground">{placeholder ?? "—"}</span>}
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <Label className="mb-1 text-xs text-muted-foreground">{label}</Label>
-      <div className="flex gap-1">
-        <Input
-          type={type}
-          value={val}
-          onChange={(e) => setVal(e.target.value)}
-          placeholder={placeholder}
-          autoFocus
-          className="flex-1"
-        />
-        <Button size="sm" onClick={() => { onSave(val); setEditing(false); }}>
-          <Check className="h-3.5 w-3.5" />
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => { setVal(value); setEditing(false); }}>
-          <X className="h-3.5 w-3.5" />
-        </Button>
-      </div>
     </div>
   );
 }
