@@ -83,12 +83,19 @@ def serialize_to_e3_legacy_format(
             item["membro"] = tx.member_key
         if tx.source_document:
             item["arquivo_origem"] = tx.source_document
+        # ADR-226 PR2 — herda account_number do extrato em cada transação
+        if statement.account_number_norm:
+            item["account_number"] = statement.account_number_norm
         transacoes.append(item)
 
+    titular_final = titular if titular is not None else statement.member_key
+    titulares = [titular_final] if titular_final else []
     return {
         "banco": statement.institution,
         "tipo_conta": statement.account_type or "extrato",
-        "titular": titular if titular is not None else statement.member_key,
+        "titular": titular_final,
+        "titulares": titulares,  # ADR-226 PR2 — derivado; conta conjunta vira 2+ em V2
+        "account_number": statement.account_number_norm,  # ADR-226 PR2
         "moeda": statement.currency.upper(),
         "periodo_cobertura": {
             "inicio": statement.period_start.isoformat(),

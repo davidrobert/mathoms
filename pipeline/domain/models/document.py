@@ -34,6 +34,11 @@ class BankStatement:
     # Default ``None`` para retro-compat; ``from_e2_dict`` popula quando o
     # dict de entrada tem ``tipo``.
     account_type: Optional[str] = None
+    # ADR-226 PR2 — discriminador real entre 2 membros no mesmo banco.
+    # ``account_number_raw`` preserva formato do extrato; ``_norm`` é
+    # digits-only canônico via ``normalize_account_number``.
+    account_number_raw: Optional[str] = None
+    account_number_norm: Optional[str] = None
 
     @property
     def net_flow(self) -> Money:
@@ -143,6 +148,14 @@ class BankStatement:
         closing = (
             d.get("saldo_final") if d.get("saldo_final") is not None else d.get("closing_balance")
         )
+        # Lazy import — account_normalization é peer em pipeline.domain.services,
+        # mas o __init__.py de services importa BankStatement (circular).
+        from pipeline.domain.services.account_normalization import normalize_account_number
+
+        account_number_raw = d.get("numero_conta") or d.get("account_number")
+        account_number_norm = d.get("numero_conta_norm") or normalize_account_number(
+            account_number_raw
+        )
         return cls(
             institution=d.get("banco") or d.get("institution") or "",
             member_key=d.get("documento_titular") or d.get("member_key"),
@@ -155,6 +168,8 @@ class BankStatement:
             source_document=d.get("arquivo_origem") or d.get("source_document"),
             notes=list(d.get("notas") or d.get("notes") or []),
             account_type=d.get("tipo") or d.get("account_type"),
+            account_number_raw=account_number_raw,
+            account_number_norm=account_number_norm,
         )
 
     def to_e2_dict(self) -> dict:

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
+from pipeline.domain.services.account_normalization import normalize_account_number
 from pipeline.domain.types.config import (
+    BankAccountRecord,
     CategorizationConfig,
     CategoryDef,
     FamilyMemberRecord,
@@ -37,13 +39,39 @@ def parse_family_members(data: Mapping[str, Any]) -> FamilyMembersConfig:
     surname = family.get("sobrenome") if isinstance(family, dict) else None
     members = _build_members(data.get("membros"))
     bank_to_member = _build_bank_to_member(data.get("banco_membro"))
+    accounts = _build_accounts(data.get("contas"))
     transfers_block = data.get("transferencias_internas")
     transfers = parse_transfers(transfers_block) if isinstance(transfers_block, dict) else None
     return FamilyMembersConfig(
         members=members,
         bank_to_member=bank_to_member,
+        accounts=accounts,
         family_surname=str(surname) if surname else None,
         transfers=transfers,
+    )
+
+
+def _build_accounts(raw: Any) -> tuple[BankAccountRecord, ...]:
+    if not isinstance(raw, list):
+        return ()
+    return tuple(_make_account(c) for c in raw if isinstance(c, dict))
+
+
+def _make_account(raw: Mapping[str, Any]) -> BankAccountRecord:
+    raw_num = raw.get("account_number_raw") or raw.get("account_number")
+    norm = raw.get("account_number_norm") or normalize_account_number(
+        str(raw_num) if raw_num is not None else None
+    )
+    co = raw.get("co_titulares") or ()
+    return BankAccountRecord(
+        member_key=str(raw.get("member_key") or ""),
+        institution_code=str(raw.get("institution_code") or ""),
+        account_type=str(raw.get("account_type") or ""),
+        account_number_norm=norm,
+        account_number_raw=str(raw_num) if raw_num else None,
+        agency=str(raw["agency"]) if raw.get("agency") else None,
+        is_joint=bool(raw.get("is_joint", False)),
+        co_titulares=tuple(str(c) for c in co) if isinstance(co, list) else (),
     )
 
 

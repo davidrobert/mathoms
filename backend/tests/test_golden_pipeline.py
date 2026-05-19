@@ -118,6 +118,7 @@ def _seed_golden_titular_with_account(db, ws: Workspace) -> FamilyMember:
     db.add(
         BankAccount(
             member_id=titular.id,
+            workspace_id=titular.workspace_id,
             institution_code="c6bank",
             account_type="corrente",
             agency="0001",

@@ -63,11 +63,14 @@ class FamilyMemberRepositoryProtocol(Protocol):
         self,
         member_id: str,
         *,
+        workspace_id: str,
         institution_code: str,
         account_type: str,
         agency: Optional[str] = None,
         account_number: Optional[str] = None,
         label: Optional[str] = None,
+        is_joint: bool = False,
+        co_titulares: Optional[list[str]] = None,
     ) -> BankAccount: ...
 
     async def update_account(
@@ -79,6 +82,8 @@ class FamilyMemberRepositoryProtocol(Protocol):
         agency: Optional[str] = None,
         account_number: Optional[str] = None,
         label: Optional[str] = None,
+        is_joint: bool = False,
+        co_titulares: Optional[list[str]] = None,
     ) -> BankAccount: ...
 
     async def delete_account(self, account: BankAccount) -> None: ...

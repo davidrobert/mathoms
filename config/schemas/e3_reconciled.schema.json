@@ -27,7 +27,17 @@
       "minLength": 1
     },
     "titular": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "DEPRECATED (ADR-226 PR2) — use `titulares`. Mantido por compat."
+    },
+    "titulares": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "ADR-226 PR2 — lista de titulares; conta conjunta tem 2+."
+    },
+    "account_number": {
+      "type": ["string", "null"],
+      "description": "ADR-226 PR2 — account_number normalizado (digits-only) do extrato."
     },
     "moeda": {
       "type": "string",

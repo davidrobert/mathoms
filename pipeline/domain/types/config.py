@@ -50,11 +50,26 @@ class TransferInternalConfig:
 
 
 @dataclass(frozen=True)
+class BankAccountRecord:
+    """Conta bancária declarada por membro (ADR-226 §2)."""
+
+    member_key: str
+    institution_code: str
+    account_type: str
+    account_number_norm: str | None = None
+    account_number_raw: str | None = None
+    agency: str | None = None
+    is_joint: bool = False
+    co_titulares: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class FamilyMembersConfig:
-    """Membros + bank_to_member + transferências internas + meta."""
+    """Membros + accounts + bank_to_member (legado) + transferências + meta."""
 
     members: tuple[FamilyMemberRecord, ...]
     bank_to_member: Mapping[str, str] = field(default_factory=dict)
+    accounts: tuple[BankAccountRecord, ...] = ()
     family_surname: str | None = None
     transfers: TransferInternalConfig | None = None
 

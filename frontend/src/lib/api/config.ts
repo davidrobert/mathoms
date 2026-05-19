@@ -8,6 +8,10 @@ export interface BankAccountConfig {
   account_type: string;
   agency?: string | null;
   account_number?: string | null;
+  /** ADR-226: reservado para V2 (rateio conta conjunta) — não consumido em V1. */
+  is_joint?: boolean;
+  /** ADR-226: lista de member_id co-titulares quando is_joint=true; null em V1. */
+  co_titulares?: string[] | null;
 }
 
 export interface FamilyMemberConfig {
