@@ -2,9 +2,10 @@
 id: ADR-225
 type: adr
 title: "Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb"
-status: Proposto
+status: Decidido
 phase: A12
 date: "2026-05-19"
+decided_at: "2026-05-19"
 relates_to:
   - "[[ADR-215]]"
   - "[[ADR-157]]"
@@ -20,7 +21,7 @@ tags:
   - area/pipeline
   - area/methodology
   - phase/a12
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -79,26 +80,39 @@ mudar contrato de DTO, schema DDL, nem invariante de agregação E5:
 ### 1. Canonicalizer com fallback por identificador estável
 
 `canonicalize()` em `endereco_canonicalizer.py` estende a cascata.
-**Order matters:** estabilidade cross-fonte decrescente.
+**Order matters:** via+numero **primeiro** (path quente + backward-compat
+com rows legadas no DB); identificadores estáveis como **fallback** quando
+via+numero falha.
 
 | # | Sinal | Regex | Namespace | Justificativa |
 |---|---|---|---|---|
-| 1 | Matrícula RFB | `r"matr[íi]cula\s+([\d.]+)"`, normaliza sem pontos, exige ≥4 dígitos pós-normalização | `mat:NNNN` ou `mat:NNNN@<cidade>-<uf>` | Imutável por CRI; estabilidade máxima cross-anos |
-| 2 | Código QuintoAndar | `r"quintoandar[:\s]+(\d+)"` | `qa:NNNNN` | Estável enquanto imóvel na plataforma |
-| 3 | IPTU / Inscrição municipal | `r"(?:iptu\|inscri[cç][aã]o\s*municipal)[:\s]+([\d.\-/]+)"`, exige ≥6 caracteres | `iptu:NNN` | Estável mas pode mudar em recadastramento |
-| 4 | Via + número (legado) | atual `_VIA_NUMBER_PATTERN` | `<via> <numero>` (sem prefixo, compat backward) | Mais frequente em IRPF, mais frágil |
+| 1 | Via + número (legado) | atual `_VIA_NUMBER_PATTERN` | `<via> <numero>` (sem prefixo, compat backward) | Caminho quente: cobre maioria dos IRPFs hoje; preserva canonical de rows já em DB |
+| 2 | Matrícula RFB | `r"matr[íi]cula[\s.:#nº°]*([\d.]{4,})"`, normaliza sem pontos, exige ≥4 dígitos pós-normalização | `mat:NNNN` | Imutável por CRI; resolve low-confidence multi-ano quando via+numero falha (QUADRA/LOTE) |
+| 3 | Código QuintoAndar | `r"quintoandar[:\s]+(\d+)"` | `qa:NNNNN` | Estável enquanto imóvel na plataforma; cobre fontes externas |
+| 4 | IPTU / Inscrição municipal | `r"(?:iptu\|inscri[cç][aã]o\s*municipal)[:\s]+([\d.\-/]+)"`, exige ≥6 caracteres | `iptu:NNN` | Último recurso quando demais falham |
 
-**Cidade/UF no namespace de matrícula** (mitigação data-engineer):
-quando a descrição contém indicador de cidade/UF detectável via
-`r"\b(?:em|cidade|munic[ií]pio)\s+([A-Za-zÀ-ÿ\s]+?)\s*[-/]\s*([A-Z]{2})\b"`,
-o namespace vira `mat:NNNN@saopaulo-sp`. Sem indicador → mantém
-`mat:NNNN` puro (compat com IRPF que omite localização explícita). Custo:
-~10 linhas regex. Ganho: elimina falso-positivo permanente entre
-matrículas coincidentes de cartórios distintos (raro mas silencioso).
+**Por que via+numero precede matrícula** (revisão de design pós-co-design):
+preserva `endereco_canonical` de rows existentes (`tasso silveira 61`,
+`alberto augusto alves 320`…). Se matrícula viesse primeiro, novos IRPFs
+gerariam canonical `mat:NNN` ≠ legacy → duplicatas adicionais ao deploy.
+Resolve Case A (low-confidence multi-ano sem via+numero extraível) via
+cascata fallback. Case C (typo 190 vs 186 com via+numero em ambos) **não
+é resolvido** por este caminho — documentado em §Follow-ups; futura ADR
+pode propor backfill que normalize para preferência matrícula com
+migration de rows legadas.
 
 **Mínimo 4 dígitos em matrícula** (mitigação senior-cto): evita pegar
 lixo OCR ("matrícula 12" = página/parágrafo, não matrícula real).
 Matrículas reais sempre têm ≥4 dígitos.
+
+**Namespace de cidade/UF em matrícula** foi **deferido** para follow-up
+(originalmente proposto pelo data-engineer como `mat:NNN@cidade-uf`).
+Detecção robusta entre formatos variados ("SAO PAULO/SP", "São Paulo
+- SP", "Cyrela Campinas - SP") tem heurística complexa o suficiente
+pra valer ADR/PR próprio. Por ora, o risco real (colisão entre matrículas
+coincidentes de CRIs em cidades distintas no MESMO workspace) é baixo:
+workspace dogfood 5@5.com tem 100% dos imóveis em SP. Cobre caso B/C
+futuros via ADR-226 quando aparecer workspace multi-cidade afetado.
 
 Cada cascata retorna o **primeiro hit não-vazio**; sem hits → `None`
 (low_confidence, comportamento atual preservado).
@@ -258,6 +272,18 @@ relatório vazio.
 
 ## Follow-ups (fora do escopo)
 
+- **Case C — typos numéricos em via+numero entre fontes** (ex.: 190 vs
+  186 mesmo imóvel). Não resolvido pela ordem atual da cascata
+  (via+numero primeiro). Futura ADR pode inverter ordem com **backfill
+  de rows legadas** (re-canonicalizar pelo descricao_sample preservado).
+  Custo: migration one-shot por workspace; lacuna de duplicatas até
+  rodar. Adia decisão.
+- **Namespace de cidade/UF em matrícula** (`mat:NNN@saopaulo-sp`):
+  detectar cidade/UF na descrição com heurística confiável (sem grab de
+  "Imóvel em ..." ou "Cyrela Campinas...") demanda parsing mais robusto
+  que regex simples. Justifica ADR/PR próprio quando aparecer caso real
+  de colisão multi-cidade em produção. Hoje, matrícula puro
+  (`mat:NNN`) é suficiente para todos os workspaces ativos.
 - **Merge UI human-in-loop.** Para casos onde todas as cascatas falham
   E passe 2 fuzzy não pega. Endpoint `POST /workspaces/{ws}/properties/merge`
   + UI checkbox grupos. Tracking em `docs/agent_prompts/track_property-merge-ui.md`
@@ -311,9 +337,10 @@ relatório vazio.
   (dedup semantics + backfill fuzzy + race condition), `senior-cto`
   (invariante E5 + namespace matrícula + estimativa testes).
 
-## Status — Proposto
+## Status — Decidido
 
-PR1 (Phase A — labels legíveis) mergeado em `agent/property-dedup-fix`
-2026-05-19. PR2 (Phase B — canonicalizer extension) e PR3 (Phase C —
-resolver + backfill script + counter + runbook) pendentes. Flip para
-`Decidido` no merge do último PR.
+PR1 (Phase A — labels legíveis + ADR Proposto) mergeado 2026-05-19 ([apps#329](https://github.com/davidrobert/mathoms/pull/329)).
+PR2 (Phase B + C — canonicalizer cascade + resolver loose-match +
+dedup script 3 passes + runbook + tests) consolidado nesta entrega.
+Passe 2 (fuzzy low-confidence) ficou de fora — risco vs valor exige
+curadoria; adia para follow-up se sinalizar real em monitoração.

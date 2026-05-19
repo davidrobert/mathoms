@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 175
-- **Proposto**: 40
+- **Decidido**: 176
+- **Proposto**: 39
 - **Roadmap**: 4
 
 ## Fundação
@@ -417,12 +417,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## persistence
 
-### Decidido (1)
+### Decidido (2)
 
 - [[ADR-163]] — Decision congela `context_snapshot` ao aceitar Suggestion · phase Onda 8
-
-### Proposto (1)
-
 - [[ADR-225]] — Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb · phase A12
 
 ## pipeline
