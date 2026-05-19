@@ -1,5 +1,6 @@
 "use client";
 
+import { useWorkspace } from "@/lib/WorkspaceProvider";
 import { ReportSection } from "../ReportSection";
 import { SectionSnapshotDiff } from "../SectionSnapshotDiff";
 import { SectionSummary } from "../SectionSummary";
@@ -89,7 +90,7 @@ export function S1PatrimonioSection({ data }: S1Props) {
       <div className="md:col-span-2">
         <PatrimonioCategoriasCard patrimonio={patrimonio} />
       </div>
-      <ExposicaoCambialCard data={exposicaoCambial} />
+      <ExposicaoCambialCardWithContext data={exposicaoCambial} />
       <div className="md:col-span-2">
         <ReceitasFonteCard fluxo={fluxo} anchorDate={anchorDate} />
       </div>
@@ -100,4 +101,11 @@ export function S1PatrimonioSection({ data }: S1Props) {
       <SectionSnapshotDiff sectionId="S1" data={data} />
     </ReportSection>
   );
+}
+
+/** Wrapper que injeta `workspaceId` do context (ADR-224 PR-E). Fora do
+ * provider (ex.: testes isolados), cai pra V1 sem regressão visual. */
+function ExposicaoCambialCardWithContext({ data }: { data: ExposicaoCambialData | undefined }) {
+  const { workspace } = useWorkspace();
+  return <ExposicaoCambialCard data={data} workspaceId={workspace?.id ?? null} />;
 }
