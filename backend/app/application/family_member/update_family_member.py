@@ -43,7 +43,7 @@ async def update_family_member(
     if new_key is not None and new_key != member.key:
         if await repo.key_exists(workspace_id, new_key, exclude_id=member_id):
             raise ConflictError(
-                f"Já existe um membro com o identificador interno '{new_key}' " "neste workspace",
+                f"Já existe um membro com o identificador interno '{new_key}' neste workspace",
                 code="duplicate_key",
             )
 
