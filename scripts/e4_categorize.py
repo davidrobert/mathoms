@@ -59,7 +59,7 @@ def _init_config(base_dir: Path) -> None:
     global _BASE_DIR, EXPENSE_KEYWORDS, INCOME_KEYWORDS
     global INTERNAL_TRANSFER_PATTERNS, INTERNAL_TRANSFER_RECIPIENTS
     global _BANK_SPECIFIC_PATTERNS, _GLOBAL_TRANSFER_PATTERNS
-    global BANCO_MEMBRO, PJ_SOURCE_MAPPING, CLT_SOURCE_MAPPING
+    global BANCO_MEMBRO, _ACCOUNT_RESOLVER, PJ_SOURCE_MAPPING, CLT_SOURCE_MAPPING
     global _pipeline_cfg, _categorization
 
     _BASE_DIR = base_dir
@@ -83,8 +83,18 @@ def _init_config(base_dir: Path) -> None:
     )
 
     BANCO_MEMBRO = {k: v for k, v in _family.get("banco_membro", {}).items() if k != "_comment"}
+    _ACCOUNT_RESOLVER = _build_account_resolver(_family)  # ADR-226 PR3
     PJ_SOURCE_MAPPING = {"receita_pj": _categorization["pj_source_mapping"]}
     CLT_SOURCE_MAPPING = _categorization["clt_source_mapping"]
+
+
+def _build_account_resolver(family: dict) -> Any:
+    """Constrói AccountResolver a partir do dict family_members.json (ADR-226)."""
+    from pipeline.adapters.config_parsers import parse_family_members
+    from pipeline.domain.services.account_resolver import AccountResolver
+
+    cfg = parse_family_members(family)
+    return AccountResolver(cfg.accounts, banco_membro_legacy=dict(cfg.bank_to_member))
 
 
 # =============================================================================
@@ -107,6 +117,7 @@ INTERNAL_TRANSFER_RECIPIENTS: List[str] = []
 _BANK_SPECIFIC_PATTERNS: Dict[str, Any] = {}
 _GLOBAL_TRANSFER_PATTERNS: List[str] = []
 BANCO_MEMBRO: Dict[str, Any] = {}
+_ACCOUNT_RESOLVER: Any = None  # ADR-226 PR3 — populado por _init_config
 PJ_SOURCE_MAPPING: Dict[str, Any] = {}
 CLT_SOURCE_MAPPING: Dict[str, Any] = {}
 _pipeline_cfg: Dict[str, Any] = {}
@@ -328,8 +339,17 @@ def build_investimentos_unified(e2_dir: Path) -> Dict:
             instituicao = data.get("instituicao") or data.get("banco") or ""
             membro = (data.get("membro") or "").lower()
             if not membro and instituicao:
+                # ADR-226 PR3 — resolver substitui lookup direto BANCO_MEMBRO.
                 inst_key = instituicao.lower().replace(" ", "")
-                membro = BANCO_MEMBRO.get(inst_key, "")
+                acc_num = data.get("numero_conta") or data.get("account_number")
+                if _ACCOUNT_RESOLVER is not None:
+                    resolution = _ACCOUNT_RESOLVER.resolve(inst_key, acc_num)
+                    if resolution.confidence == "ambiguous":
+                        membro = "needs_review"
+                    else:
+                        membro = resolution.member_key or ""
+                else:
+                    membro = BANCO_MEMBRO.get(inst_key, "")
             data_ref = data.get(
                 "data_referencia", data.get("data_posicao", data.get("periodo", ""))
             )
