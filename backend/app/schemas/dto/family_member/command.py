@@ -106,18 +106,16 @@ class FamilyMemberUpdateCommand(BaseModel):
 
 
 class BankAccountCreateCommand(BaseModel):
-    """Input do ``POST /members/{id}/accounts``."""
+    """Input do ``POST /members/{id}/accounts`` (ADR-226 acrescenta is_joint/co_titulares)."""
 
     institution_code: str = Field(..., min_length=1, max_length=50)
     account_type: str = Field(..., min_length=1, max_length=100)
     agency: Optional[str] = Field(None, max_length=20)
     account_number: Optional[str] = Field(None, max_length=30)
     label: Optional[str] = Field(None, max_length=255)
+    is_joint: bool = False
+    co_titulares: Optional[list[str]] = None
 
 
 class BankAccountUpdateCommand(BankAccountCreateCommand):
-    """Input do ``PUT /members/{id}/accounts/{acc_id}``.
-
-    Semântica de **replace** (campos obrigatórios iguais ao create). Se no
-    futuro virar partial update, introduz um novo command com todos opcionais.
-    """
+    """Input do ``PUT /members/{id}/accounts/{acc_id}`` — semantics replace."""

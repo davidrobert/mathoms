@@ -114,43 +114,14 @@ class FakeFamilyMemberRepository:
             return None
         return acc
 
-    async def add_account(
-        self,
-        member_id: str,
-        *,
-        institution_code: str,
-        account_type: str,
-        agency: Optional[str] = None,
-        account_number: Optional[str] = None,
-        label: Optional[str] = None,
-    ) -> BankAccount:
-        account = BankAccount(
-            id=str(uuid.uuid4()),
-            member_id=member_id,
-            institution_code=institution_code,
-            account_type=account_type,
-            agency=agency,
-            account_number=account_number,
-            label=label,
-        )
+    async def add_account(self, member_id: str, **fields: Any) -> BankAccount:
+        account = BankAccount(id=str(uuid.uuid4()), member_id=member_id, **fields)
         self._accounts[account.id] = account
         return account
 
-    async def update_account(
-        self,
-        account: BankAccount,
-        *,
-        institution_code: str,
-        account_type: str,
-        agency: Optional[str] = None,
-        account_number: Optional[str] = None,
-        label: Optional[str] = None,
-    ) -> BankAccount:
-        account.institution_code = institution_code
-        account.account_type = account_type
-        account.agency = agency
-        account.account_number = account_number
-        account.label = label
+    async def update_account(self, account: BankAccount, **fields: Any) -> BankAccount:
+        for k, v in fields.items():
+            setattr(account, k, v)
         return account
 
     async def delete_account(self, account: BankAccount) -> None:
