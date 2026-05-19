@@ -220,6 +220,8 @@
 | ADR-220 | adr | Proposto |  | Impacto estimado em sugestões IF — fluxo anual E patrimônio-alvo separados | `adr/220-impacto-estimado-sugestoes-if.md` |
 | ADR-221 | adr | Proposto |  | Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto | `adr/221-catalog-driven-market-rate-ingestion.md` |
 | ADR-222 | adr | Decidido |  | Toggle `imoveis_no_if` migra de `pipeline.json` global para coluna `workspaces.imoveis_no_if` | `adr/222-imoveis-no-if-per-workspace.md` |
+| ADR-223 | adr | Proposto |  | Default conservador `imoveis_no_if=false` para workspaces novos + banner contextual | `adr/223-flip-default-imoveis-no-if-conservador.md` |
+| ADR-224 | adr | Proposto |  | `asset_catalog` + `lastro_moeda` per-ativo (catalog global + override per-workspace) | `adr/224-asset-catalog-lastro-moeda.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
