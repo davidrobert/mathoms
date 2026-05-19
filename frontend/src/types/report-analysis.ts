@@ -46,6 +46,30 @@ export interface PatrimonioData {
   tabela_categorias?: PatrimonioCategoria[];
 }
 
+// Bloco G — Exposição cambial (plan/RESIDENCIA_E_USO, co-design 2026-05-18).
+export interface ExposicaoCambialPorMoeda {
+  moeda: string;
+  valor_brl: number;
+  pct_total_cambial: number;
+}
+
+export interface ExposicaoCambialDetalhe {
+  fonte?: string;
+  nome?: string;
+  moeda: string;
+  saldo_original?: number;
+  valor_brl: number;
+  tipo: "caixa" | string;
+}
+
+export interface ExposicaoCambialData {
+  total_brl: number;
+  pct_investivel_financeiro: number;
+  por_moeda: ExposicaoCambialPorMoeda[];
+  tier: "verde" | "amarelo" | "vermelho" | "empty";
+  detalhes: ExposicaoCambialDetalhe[];
+}
+
 export interface ReservaEmergenciaData {
   despesas_mensais?: number;
   nivel_6_meses?: number;

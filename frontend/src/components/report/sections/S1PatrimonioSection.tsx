@@ -5,6 +5,7 @@ import { SectionSnapshotDiff } from "../SectionSnapshotDiff";
 import { SectionSummary } from "../SectionSummary";
 import {
   EndividamentoCard,
+  ExposicaoCambialCard,
   PatrimonioCategoriasCard,
   ReceitasFonteCard,
   ReservaEmergenciaCard,
@@ -14,6 +15,7 @@ import { WaterfallIfChart } from "../charts/WaterfallIfChart";
 import { ScoreCard, type ScoreClasse } from "../ui/ScoreCard";
 import type { ReportAnalysisData } from "@/lib/api";
 import type {
+  ExposicaoCambialData,
   PatrimonioData,
   ReservaEmergenciaData,
   EndividamentoData,
@@ -35,6 +37,7 @@ export function S1PatrimonioSection({ data }: S1Props) {
   const patrimonio = data.patrimonio as PatrimonioData | undefined;
   const reserva = data.reserva_emergencia as ReservaEmergenciaData | undefined;
   const endividamento = data.endividamento as EndividamentoData | undefined;
+  const exposicaoCambial = data.exposicao_cambial as ExposicaoCambialData | undefined;
   const score = data.score;
   const fluxo = data.fluxo_caixa as FluxoCaixaSummary | undefined;
   const goals = data.goals as Record<string, unknown> | undefined;
@@ -86,6 +89,7 @@ export function S1PatrimonioSection({ data }: S1Props) {
       <div className="md:col-span-2">
         <PatrimonioCategoriasCard patrimonio={patrimonio} />
       </div>
+      <ExposicaoCambialCard data={exposicaoCambial} />
       <div className="md:col-span-2">
         <ReceitasFonteCard fluxo={fluxo} anchorDate={anchorDate} />
       </div>

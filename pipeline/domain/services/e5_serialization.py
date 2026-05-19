@@ -237,6 +237,10 @@ class E5OutputInputs:
     # do run (auditoria fiduciária). None quando resolver indisponível
     # (CLI/testes legados); ausência no output deixa UI degradar.
     premissas_economicas: dict[str, Any] | None = None
+    # Bloco G plan RESIDENCIA_E_USO — exposição cambial (caixa USD/EUR +
+    # ativos com lastro internacional ADR-193). None quando analyzer não
+    # foi injetado (CLI legado/testes pré-G).
+    exposicao_cambial: dict[str, Any] | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -282,6 +286,8 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
         "cenarios_conjuge": inputs.cenarios_conjuge,
         "programa_milhas": inputs.programa_milhas or {},
     }
+    if inputs.exposicao_cambial is not None:
+        output["exposicao_cambial"] = inputs.exposicao_cambial
 
     # ADR-166: chave estável universal — confirma em prod que payload migrou.
     _logger.info(

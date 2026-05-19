@@ -2938,6 +2938,11 @@ def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
             result.cenarios_conjuge.to_legacy_dict() if result.cenarios_conjuge else {}
         ),
         "cerbasi": result.equilibrio_cerbasi.to_legacy_dict(),
+        "exposicao_cambial": (
+            result.exposicao_cambial.to_dict()
+            if getattr(result, "exposicao_cambial", None) is not None
+            else None
+        ),
     }
 
 
@@ -3087,6 +3092,7 @@ def _e5_compose_output(
         passive_income=passive_income,
         monte_carlo_if=monte_carlo_if,
         premissas_economicas=premissas_economicas,
+        exposicao_cambial=legacy.get("exposicao_cambial"),
     )
     return build_e5_output(output_inputs)
 

@@ -70,6 +70,10 @@ from pipeline.domain.services.equilibrio_cerbasi_analyzer import (
     EquilibrioCerbasiAnalyzer,
     EquilibrioCerbasiConfig,
 )
+from pipeline.domain.services.exposicao_cambial_analyzer import (
+    ExposicaoCambialResult,
+    compute_exposicao_cambial,
+)
 from pipeline.domain.services.financial_score_calculator import (
     FinancialScoreCalculator,
     FinancialScoreConfig,
@@ -215,6 +219,10 @@ class E5AnalysisResult:
     # Instituições agrupadas por membro + total de imóveis. Companion de
     # investimentos_classes; substitui leitura legacy de E4 disk artifacts.
     instituicoes_por_membro: InstituicoesPorMembroResult | None = None
+    # Bloco G plan RESIDENCIA_E_USO: agregação de patrimônio com lastro em
+    # moeda estrangeira (caixa USD/EUR + ativos classificados "Internacional"
+    # por ADR-193). Consumido pelo Card "Exposição Cambial" no relatório.
+    exposicao_cambial: ExposicaoCambialResult | None = None
 
 
 # =============================================================================
@@ -630,6 +638,19 @@ class E5AnalyzerAdapter:
         )
         pontos_urgentes = self._pontos_urgentes.analyze(ratios_dict, reserva, patrimonio_full)
 
+        # Bloco G — exposição cambial: caixa em moeda estrangeira + ativos
+        # com lastro internacional (ADR-193 bucket "Internacional"). Denominador
+        # é `investivel_financeiro` ou fallback para `investivel` legacy se
+        # rodando pré-ADR-142 runtime.
+        _investivel_denom = float(
+            patrimonio_full.get("investivel_financeiro") or patrimonio_full.get("investivel") or 0
+        )
+        exposicao_cambial = compute_exposicao_cambial(
+            caixa_detalhes=patrimonio_full.get("caixa_detalhes") or [],
+            investimentos_atuais=investimentos_raw,
+            investivel_financeiro=_investivel_denom,
+        )
+
         return E5AnalysisResult(
             members=members,
             receitas=receitas,
@@ -657,6 +678,7 @@ class E5AnalyzerAdapter:
             pontos_urgentes=tuple(pontos_urgentes),
             passive_income=passive_income,
             monte_carlo_if=monte_carlo_if,
+            exposicao_cambial=exposicao_cambial,
         )
 
     # -- Helpers de wiring --
