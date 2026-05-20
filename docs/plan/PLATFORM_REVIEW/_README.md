@@ -59,7 +59,13 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | ~~**W1-T07**~~ ✅ | Endividamento `retorno_esperado_pct_aa` emitido pelo IFProjector | S | P1 | financial-planner | DONE 2026-05-06 (PR #98) — `to_legacy_dict` + carry-trade trigger |
 | ~~**W1-T08**~~ ✅ | Schema E5 — declarar `cenarios_conjuge` formal + outros blocos não declarados | S | P1 | data-engineer | DONE 2026-05-06 (PR #96) — bloco formal + 18 outros top-level shallow |
 
-Qualquer dessas pode ser pegue agora — todas independentes.
+**Wave 1 ✅ entregue · Wave 2 ✅ entregue 2026-05-20** (6/6: PRs [#359](https://github.com/davidrobert/mathoms/pull/359), [#361](https://github.com/davidrobert/mathoms/pull/361), [#344](https://github.com/davidrobert/mathoms/pull/344)+[#346](https://github.com/davidrobert/mathoms/pull/346), [#368](https://github.com/davidrobert/mathoms/pull/368), [#369](https://github.com/davidrobert/mathoms/pull/369), [#367](https://github.com/davidrobert/mathoms/pull/367)) — destrava **Wave 3** (5 tasks P0: refresh tokens, Fernet rotation, LLM budget, email infra, prompt injection defense).
+
+**Próximos pickups ready agora:**
+
+- **W3** (5 P0 tasks) — auth + LLM ops + email; `wave_gate: w2_done` ✅ satisfeito.
+- **W5** (5 tasks, paralelo a W6) — frontend a11y + metodologia financeira.
+- **W6** (6 tasks) — tech debt cleanup; W6-T02 destravado parcialmente após W3-T02.
 
 ---
 
@@ -76,7 +82,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W1-T07 | Endividamento `retorno_esperado_pct_aa` | 1 | done | financial-planner | P1 | S | — |
 | W1-T08 | Schema E5 cenarios_conjuge formal | 1 | done | data-engineer | P1 | S | — |
 | W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | done | data-engineer | P0 | M | W1-T06 (ADR-170) |
-| W2-T02 | SR-001/013 Security headers + CORS strict | 2 | blocked | sre-devops | P0 | S | W1-T05 |
+| W2-T02 | SR-001/013 Security headers + CORS strict | 2 | done | sre-devops | P0 | S | W1-T05 |
 | W2-T03 | SR-005 CVE + gitleaks + GH secret scanning | 2 | done | sre-devops | P0 | S | — |
 | W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | done | sre-devops | P0 | S | W1-T06 (ADR-172) |
 | W2-T05 | DE-002 + DE-008 extract_with_llm incremental + PROMPT_VERSION | 2 | done | data-engineer | P1 | S | — |
@@ -291,11 +297,13 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 ---
 
-## Wave 2 — Pipeline + DB hardening (Sprint +1, ~7 dias dev)
+## Wave 2 — Pipeline + DB hardening (Sprint +1, ~7 dias dev) ✅ entregue 2026-05-20
 
 > **Goal:** Fechar P0 de pipeline (PII, stuck runs) e gates de CI (security
 > headers, CVE scan). Wave 2 só inicia após **todas as P0 da Wave 1**
 > mergearem em main (`wave_gate: w1_p0_done`).
+>
+> **Status:** ✅ 6/6 tasks ([[ADR-231]] · [[ADR-232]] · [[ADR-230]] · [[ADR-172]] · [[ADR-233]] · W2-T06) — destrava Wave 3.
 
 ### [W2-T01] DE-003 PII em pipeline_artifacts (Fernet hooks)
 
@@ -319,9 +327,17 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** W1-T05
 - **owner:** sre-devops · **severity:** P0 · **effort:** S
+- **status:** done (2026-05-20, [PR #361](https://github.com/davidrobert/mathoms/pull/361)) — [[ADR-232]] `Decidido (Sprint A11.W2)`
 - **related_findings:** SR-001, SR-013
-- **files_touched:** `backend/app/middleware/security_headers.py` (NOVO), `backend/app/main.py`, `backend/tests/test_security_headers.py`
-- **acceptance_criteria:** CSP report-only ativo, HSTS, X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy. CORS allow_methods/headers whitelist (não wildcards).
+- **files_touched:** `backend/app/middleware/security_headers.py` (NOVO), `backend/app/api/csp_report.py` (NOVO), `backend/app/main.py`, `backend/tests/test_security_headers.py` (NOVO), `backend/tests/test_csp_report.py` (NOVO), `docs/adr/232-security-headers-cors-strict.md` (NOVO).
+- **acceptance_criteria:**
+  - [x] CSP report-only ativo com `report-uri` apontando `${API_PREFIX}/csp-report`.
+  - [x] HSTS `max-age=31536000; includeSubDomains` em toda resposta.
+  - [x] X-Frame-Options `DENY`, X-Content-Type-Options `nosniff`, Referrer-Policy `strict-origin-when-cross-origin`.
+  - [x] Permissions-Policy nega accelerometer/camera/geolocation/gyroscope/magnetometer/microphone/payment/usb.
+  - [x] CORS `allow_methods` + `allow_headers` whitelist explícita (sem wildcards) — `expose_headers=["X-Trace-Id"]`, `max_age=600`.
+  - [x] Endpoint `POST /v1/csp-report` com payload cap 8KB + log estruturado.
+  - [x] Headers presentes em respostas 2xx/4xx/5xx (`setdefault` preserva overrides explícitos por router).
 
 ### [W2-T03] SR-005 CVE + gitleaks + GH secret scanning
 
@@ -374,7 +390,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 > **Goal:** Fechar dependências externas críticas (email + Sentry — buy
 > decisions) + auth completo + LLM budget. Wave 3 só inicia após Wave 2
-> mergeada (`wave_gate: w2_done`).
+> mergeada (`wave_gate: w2_done`). **Status:** ☐ ready (w2_done ✅ 2026-05-20).
 
 ### [W3-T01] SR-006 + DE-013 LLM budget hard-stop + LLMCallLog populada
 

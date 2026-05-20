@@ -1,6 +1,6 @@
 # Sprint A11 — Ondas (mapa de dependências)
 
-> Bloqueio duro: Wave 2 só destrava após Wave 1 ✅. Wave 4 só após W4-T01 (backup off-site) validado em drill. Wave 5 ativa em paralelo a W6 (independentes).
+> Bloqueio duro: Wave 2 só destrava após Wave 1 ✅ (2026-05-06). Wave 3 só após Wave 2 ✅ (2026-05-20). Wave 4 só após W4-T01 (backup off-site) validado em drill. Wave 5 ativa em paralelo a W6 (independentes).
 
 ```
 ╔════════════════════════════════════════════════════════════════════╗
@@ -15,9 +15,10 @@
 ╔════════════════════════════════════════════════════════════════════╗
 ║ WAVE 2 — Pipeline + DB hardening (7d, 6 tasks)                     ║
 ╠════════════════════════════════════════════════════════════════════╣
-║  Stuck-runs heartbeat (ADR-172), schemas E5 strict, prompt          ║
-║  injection defense (ADR-175), pipeline observability.              ║
-║  ☐ ready (W1 mergeada)                                              ║
+║  PII encryption (ADR-231), security headers (ADR-232), CVE gates   ║
+║  (ADR-230), stuck-runs heartbeat (ADR-172), PROMPT_VERSION gate    ║
+║  (ADR-233), STAGE_TO_SUFFIX descriptive aliases.                   ║
+║  ✅ entregue 2026-05-20 (6/6 PRs mergeados)                         ║
 ╚════════════════════════════════════════════════════════════════════╝
                               │
                               ▼
@@ -26,7 +27,7 @@
 ╠════════════════════════════════════════════════════════════════════╣
 ║  Refresh tokens (ADR-170), Fernet rotation (ADR-171), LLM budget    ║
 ║  hard-stop + LLMCallLog (ADR-173), email infra.                    ║
-║  ☐ blocked (W2 ✅)                                                  ║
+║  ☐ ready (W2 ✅ 2026-05-20)                                         ║
 ╚════════════════════════════════════════════════════════════════════╝
                               │
                               ▼
