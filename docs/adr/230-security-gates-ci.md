@@ -2,8 +2,8 @@
 id: ADR-230
 type: adr
 title: "Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning"
-status: Proposto
-phase: A11
+status: Decidido
+phase: A11.W2
 date: "2026-05-20"
 relates_to:
   - "[[ADR-110]]"
@@ -23,7 +23,7 @@ tags:
   - area/ci
   - area/ops
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -157,6 +157,28 @@ Trivy + pip-audit + npm audit + gitleaks são open source, rodam em CI sob nosso
 - **PR de implementação:** cria `security.yml`, atualiza `.pre-commit-config.yaml`, cria `.gitleaks.toml`, cria `docs/reference/runbooks/security_gates.md`, atualiza shim `docs/DECISIONS.md` com anchor `<a id="adr-230-..."/>`, atualiza `docs/plan/PLATFORM_REVIEW/_README.md` marcando W2-T03 done (após merge).
 - **Validação:** `pre-commit run --all-files` verde; `gitleaks detect --baseline-path .gitleaks-baseline.json` sem novos achados; workflow novo passa em PR.
 - **Closure:** ADR flippa para `Decidido (Sprint A11.W2)` no merge do PR de implementação.
+
+## Closure
+
+Flippada para `Decidido (Sprint A11.W2)` em 2026-05-20 após merge de:
+
+- [PR #344](https://github.com/davidrobert/mathoms/pull/344) (commit `8b2c840`) — implementação inicial: workflow `security.yml`, `.gitleaks.toml`, hook gitleaks pre-commit, runbook `docs/reference/runbooks/security_gates.md`, ADR-230 criada como `Proposto`.
+- [PR #346](https://github.com/davidrobert/mathoms/pull/346) (commit `b68e098`) — hotfix pós-primeiro run real do workflow: pin `gitleaks-action@v0.36.0` (SHA), `permissions: pull-requests: write` no job gitleaks, allowlist `ignore-vulns` inline para `PYSEC-2025-185` (python-jose) em ambos os steps `pip-audit`, `continue-on-error: true` step-level em `npm-audit-prod` enquanto deps `next`/`next-intl`/`postcss` aguardam upgrade (TODO marker `TODO(security-npm-prod-2026-05-20)`).
+
+### Estado entregue
+
+- ✅ Workflow `security.yml` rodando em PR + schedule semanal sábado 03:00 UTC.
+- ✅ Trivy fs/config + pip-audit + npm-audit-prod + npm-audit-dev + gitleaks (dupla camada pre-commit + CI `--log-opts="--all"`).
+- ✅ Allowlist gitleaks operacional (`paths` + `regexes` + `commits`).
+- ✅ SLO documentado em §D5 + runbook `docs/reference/runbooks/security_gates.md`.
+- ✅ Issue auto-open em schedule failure (label `security`).
+- ⏳ GH secret scanning habilitação via `gh api -X PUT repos/davidrobert/mathoms/secret-scanning` — passo manual do owner; instruções em runbook §"GitHub Secret Scanning". Não bloqueia closure desta ADR; rastreado como item de runbook.
+- ⏳ Vulnerabilidades conhecidas em deps (6 CVEs/GHSAs) catalogadas em runbook §"Diferimentos vigentes" + Issues GitHub label `security` para tracking individual de remediação dentro do SLO §D5. Quando todas fixadas, remover allowlists conforme checklist do runbook.
+
+### Próximos passos rastreados
+
+- Issues label `security` (uma por GHSA/PYSEC ID) abertas em 2026-05-20 — owner Sprint A12 (não bloqueia A11; coerente com [[ADR-228]] §"failure mode").
+- Trivy fs + Trivy config + npm-audit-prod removerão `continue-on-error` quando: (a) IaC misconfigs detectados forem triados/fixados (Trivy config); (b) todas as 6 vulns prod npm forem fixadas via PRs de upgrade (npm-audit-prod); (c) GHAS for licenciado ou volume de SARIF for triado em Security tab (Trivy fs). Estado atual é gate ativo + soft-fail explícito + tracking por Issue.
 
 ## Referências
 
