@@ -75,7 +75,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W1-T06 | ADR backfill (6 ADRs proposed) | 1 | done | senior-cto | P1 | S | — |
 | W1-T07 | Endividamento `retorno_esperado_pct_aa` | 1 | done | financial-planner | P1 | S | — |
 | W1-T08 | Schema E5 cenarios_conjuge formal | 1 | done | data-engineer | P1 | S | — |
-| W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | blocked | data-engineer | P0 | M | W1-T06 (ADR-170) |
+| W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | done | data-engineer | P0 | M | W1-T06 (ADR-170) |
 | W2-T02 | SR-001/013 Security headers + CORS strict | 2 | blocked | sre-devops | P0 | S | W1-T05 |
 | W2-T03 | SR-005 CVE + gitleaks + GH secret scanning | 2 | done | sre-devops | P0 | S | — |
 | W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | blocked | sre-devops | P0 | S | W1-T06 (ADR-172) |
@@ -299,14 +299,21 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 ### [W2-T01] DE-003 PII em pipeline_artifacts (Fernet hooks)
 
-- **deps:** W1-T06 (ADR-170 ou ADR sub para PII storage encryption)
+- **deps:** W1-T06 ([[ADR-170]] ✅ + sub-ADR [[ADR-231]] para PII storage encryption)
 - **owner:** data-engineer (consultar sre-devops em vault.py)
 - **severity:** P0 · **effort:** M
+- **status:** done (2026-05-20, [PR #359](https://github.com/davidrobert/mathoms/pull/359)) — [[ADR-231]] `Decidido (Sprint A11.W2)`
 - **related_findings:** DE-003
-- **files_touched:** `backend/app/services/crypto.py` (NOVO), `backend/app/services/db_artifact_store.py`, `dev/migrate_encrypt_existing_artifacts.py` (NOVO)
-- **acceptance_criteria:** content_json em stages PII-bearing escreve `enc:<base64>`; read decrypts; backfill migration idempotente.
+- **files_touched:** `backend/app/services/crypto.py` (NOVO), `backend/app/services/db_artifact_store.py`, `backend/app/core/config.py`, `dev/migrate_encrypt_existing_artifacts.py` (NOVO), `docs/adr/231-pii-encryption-pipeline-artifacts.md` (NOVO), 3 test files (`test_crypto_artifact.py`, `test_db_artifact_store_pii_encryption.py`, `test_migrate_encrypt_existing_artifacts.py`).
+- **acceptance_criteria:**
+  - [x] content_json em todos os stages (write-all-by-default) escreve sentinel `{"_encrypted": true, "v": 1, "kid": "<sha256[:8]>", "ct": "<base64>"}`; read decrypts.
+  - [x] Backfill migration idempotente (`dev/migrate_encrypt_existing_artifacts.py` com --dry-run default, batch 500 + cursor).
+  - [x] `kid` (key fingerprint) destrava W3-T04 progress tracking sem decrypt-probe.
+  - [x] Kill switch `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS` (default True); read sempre decripta sentinel (compat revert).
+  - [x] Schema validation roda **antes** de encrypt (preserva ADR-212 PR3 contract).
+  - [x] Auth portability (ADR-109) intacta — `backend/tests/test_auth_portability.py` verde.
 - **risk:** chave Fernet rotation pendente (W3-T04) — coordenar timing.
-- **rollback_plan:** flag `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS=false` força no-op.
+- **rollback_plan:** flag `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS=false` força no-op em writes novos; reads continuam decriptando histórico (one-way rollback documentado em ADR-231 §D4).
 
 ### [W2-T02] SR-001/013 Security headers + CORS strict
 

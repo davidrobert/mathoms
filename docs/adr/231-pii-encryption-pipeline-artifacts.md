@@ -2,7 +2,7 @@
 id: ADR-231
 type: adr
 title: "Encryption at-rest de PII em pipeline_artifacts via Fernet wrapper (hook em DBArtifactStore)"
-status: Proposto
+status: Decidido
 phase: A11.W2
 date: "2026-05-20"
 relates_to:
@@ -24,7 +24,7 @@ tags:
   - area/pipeline
   - area/db
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -208,6 +208,27 @@ Mais delicado: exige schema awareness do encrypt path. Quebra schemas se campo n
   - `pytest tests -q` verde (pipeline não regrediu).
   - `pytest backend/tests/test_auth_portability.py -v` verde (não-regression ADR-109).
 - **Closure:** flippa para `Decidido (Sprint A11.W2)` no merge do PR de implementação. Backfill operacional em prod fica em W3-T04 ([[ADR-171]]).
+
+## Closure
+
+Flippada para `Decidido (Sprint A11.W2)` em 2026-05-20 após merge de:
+
+- [PR #359](https://github.com/davidrobert/mathoms/pull/359) (commit `d096107`) — implementação completa: `backend/app/services/crypto.py` (encrypt/decrypt + sentinel com `kid`), hook em `DBArtifactStore.write/read`, setting `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS`, `dev/migrate_encrypt_existing_artifacts.py`, 21 tests novos, todos os AC §"Gates desta ADR" verdes.
+
+### Estado entregue
+
+- ✅ Sentinel `{"_encrypted": true, "v": 1, "kid": "<sha256[:8]>", "ct": "<base64>"}` ativo em todos os stages que passam por `DBArtifactStore.write` (write-all-by-default).
+- ✅ `kid` (key fingerprint) operacional — destrava progress tracking em W3-T04 via `WHERE content_json->>'kid' = '<old>'`.
+- ✅ Kill switch `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS` operacional; default True; `read()` sempre decripta sentinel independente da flag (compat revert).
+- ✅ Schema validation (ADR-212 PR3) preserva ordem `validate → encrypt → write` — schemas em `config/schemas/` não tocados (rejeitam sentinel naturalmente).
+- ✅ Backfill staging/dev em `dev/migrate_encrypt_existing_artifacts.py` (idempotente, --dry-run default, batch 500 + cursor para resume).
+- ✅ Logging estruturado namespace `mathoms.crypto.*` (encrypt_failed P0, decrypt_failed P0, read_in_disabled_mode P2).
+- ✅ Auth portability (ADR-109) intacta — vault.py contrato preservado, wrapper apenas consome `get_vault().encrypt/decrypt`.
+
+### Próximos passos rastreados
+
+- **Backfill operacional em prod** — fica em W3-T04 ([[ADR-171]]) combinado com 1ª execução de MultiFernet rotation (re-encrypt rows com `kid` antigo é semanticamente equivalente). Celery task + checkpoint persistido em DB + `pg_advisory_lock(workspace_id)` ficam para esse momento.
+- **Runbook DR** `docs/reference/runbooks/incidents/crypto_failure.md` — follow-up quando W4-T03 (Sentry) chegar; pattern para `decrypt_failed` P0 alert.
 
 ## Referências
 
