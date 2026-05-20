@@ -100,7 +100,7 @@ def test_session_expired() -> None:
 
 
 def test_session_wrong_scope() -> None:
-    from jose import jwt
+    import jwt
 
     # Token com scope diferente — rejeitado.
     secret = "test-session-secret-distinct"

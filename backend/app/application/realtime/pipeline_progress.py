@@ -6,8 +6,9 @@ import asyncio
 import json
 import logging
 
+import jwt
 from fastapi import WebSocket, WebSocketDisconnect
-from jose import JWTError, jwt
+from jwt.exceptions import InvalidTokenError
 
 from backend.app.core.config import settings
 
@@ -22,7 +23,7 @@ def verify_ws_token(token: str) -> str | None:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: str | None = payload.get("sub")
         return user_id
-    except JWTError:
+    except InvalidTokenError:
         return None
 
 
