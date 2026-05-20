@@ -2,7 +2,7 @@
 id: ADR-227
 type: adr
 title: "Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2"
-status: Proposto
+status: Decidido
 phase: A15
 date: "2026-05-19"
 relates_to:
@@ -40,7 +40,7 @@ tags:
   - methodology/cerbasi
   - methodology/auvp
   - phase/a15
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

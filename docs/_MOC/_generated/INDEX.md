@@ -224,7 +224,7 @@
 | ADR-224 | adr | Decidido |  | `asset_catalog` + `lastro_moeda` per-ativo (catalog global + override per-workspace) | `adr/224-asset-catalog-lastro-moeda.md` |
 | ADR-225 | adr | Decidido |  | Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb | `adr/225-property-identity-dedup-robusto.md` |
 | ADR-226 | adr | Decidido |  | Desambiguação conta bancária → membro: `account_number` como discriminador, `account_resolver` puro, `is_joint` reservado para V2 | `adr/226-bank-account-member-disambiguation.md` |
-| ADR-227 | adr | Proposto |  | Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2 | `adr/227-imovel-financiado-debt-aggregate-valor-mercado.md` |
+| ADR-227 | adr | Decidido |  | Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2 | `adr/227-imovel-financiado-debt-aggregate-valor-mercado.md` |
 | ADR-228 | adr | Proposto |  | Operational gates pós-A11: closure code-complete da sprint + drills diferidos para go-live | `adr/228-operational-gates-pos-a11.md` |
 | ADR-229 | adr | Decidido |  | Pre-fill UI a partir de IRPF — pattern genérico `artifact → suggestion endpoint → card`; V1 contas bancárias | `adr/229-irpf-prefill-suggestions.md` |
 | ADR-230 | adr | Decidido |  | Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning | `adr/230-security-gates-ci.md` |
@@ -421,6 +421,7 @@
 | CHG-2026-05-14-FEAT-PLANNER-ATO6-TELEMETRIA-CUTOVER | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-14-FEAT-PLANNER-ATO6-TELEMETRIA-CUTOVER.md` |
 | CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES.md` |
 | CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN.md` |
+| CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO | changelog-entry |  | A15 |  | `sprint/A15/changelog/CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO.md` |
 | CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
