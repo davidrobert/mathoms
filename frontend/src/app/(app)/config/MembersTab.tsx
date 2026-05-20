@@ -27,6 +27,9 @@ import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
 import { ResidenciaSection } from "./ResidenciaSection";
 import { InlineField } from "./_InlineField";
+import { MemberIrpfSection } from "./_MemberIrpfSection";
+import { IrpfDiffModal } from "./_IrpfDiffModal";
+import { useIrpfSuggestions } from "./_useIrpfSuggestions";
 
 const ROLES = [
   { value: "titular", label: "Titular" },
@@ -69,6 +72,9 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
   }, []);
 
   useEffect(() => { reload(); }, [reload]);
+
+  // ADR-229: IRPF pre-fill suggestions (custom hook isola state + handlers).
+  const irpf = useIrpfSuggestions(workspace.id, members, reload, setError);
 
   async function handleSaveSurname() {
     setError(""); setSuccess("");
@@ -355,6 +361,15 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
                         ))}
                       </div>
                     )}
+                    {irpf.enabled && (
+                      <MemberIrpfSection
+                        suggestions={irpf.suggestionsByMember.get(m.key) ?? []}
+                        memberAccounts={m.accounts}
+                        onAccept={irpf.accept}
+                        onDismiss={irpf.dismiss}
+                        isBusy={irpf.busy}
+                      />
+                    )}
                     <form onSubmit={(e) => handleAddAccount(m.id!, e)} className="space-y-2">
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         <div>
@@ -465,6 +480,14 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
         confirmLabel="Remover"
         variant="destructive"
         onConfirm={handleDeleteAccount}
+      />
+
+      <IrpfDiffModal
+        open={irpf.pendingCollision !== null}
+        suggestion={irpf.pendingCollision?.suggestion ?? null}
+        collisionAccount={irpf.pendingCollision?.collision ?? null}
+        onResolve={irpf.resolveCollision}
+        onCancel={irpf.cancelCollision}
       />
     </div>
   );

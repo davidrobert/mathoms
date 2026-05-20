@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-224 ADRs (ADR-001 a ADR-231) em [`docs/adr/`](../../adr/).
+225 ADRs (ADR-001 a ADR-232) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 179
+- **Decidido**: 180
 - **Proposto**: 41
 - **Roadmap**: 4
 
@@ -380,16 +380,16 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## methodology
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-215]] — Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` · phase A12
 - [[ADR-224]] — `asset_catalog` + `lastro_moeda` per-ativo (catalog global + override per-workspace) · phase A12
 - [[ADR-226]] — Desambiguação conta bancária → membro: `account_number` como discriminador, `account_resolver` puro, `is_joint` reservado para V2 · phase A12.bank-account-disambig
+- [[ADR-229]] — Pre-fill UI a partir de IRPF — pattern genérico `artifact → suggestion endpoint → card`; V1 contas bancárias · phase A13.irpf-prefill-bank-accounts
 
-### Proposto (2)
+### Proposto (1)
 
 - [[ADR-227]] — Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2 · phase A15
-- [[ADR-229]] — Pre-fill UI a partir de IRPF — pattern genérico `artifact → suggestion endpoint → card`; V1 contas bancárias · phase A13
 
 ## money
 
@@ -463,6 +463,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Decidido (1)
 
 - [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11.W2
+
+### Proposto (1)
+
+- [[ADR-232]] — Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) · phase A11.W2
 
 ## Outras
 
