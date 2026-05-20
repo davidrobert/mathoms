@@ -3,12 +3,17 @@ id: MOC-sprint-a11
 type: moc
 title: Sprint A11 — Platform review execution
 aliases: ["A11", "Sprint A11"]
-sprint_status: current
+sprint_status: paused
 ---
 
 # Sprint A11 — Platform review execution (origem 2026-05-06)
 
-> **Status:** in_progress — Wave 1 ✅ entregue (8/8 tasks); Waves 2–6 ☐ aguardam pickup.
+> **Status:** `paused` desde 2026-05-20 ([[ADR-234]]) — cedeu prioridade
+> para [[Sprint A15]] (FU-3 imóvel financiado, 2 bugs silenciosos em
+> produção). Wave 1 ✅ + Wave 2 ✅ entregues; Waves 3–6 ☐ + sub-lanes
+> paralelas (competitive-pierre Fase 1 ready, report-publication
+> ADR-187 Proposto) preservadas. Retomada: flip `paused → current`
+> quando A15 fechar.
 
 ## Resumo
 

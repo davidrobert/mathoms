@@ -3,14 +3,14 @@ id: MOC-sprint-a15
 type: moc
 title: "Sprint A15 — FU-3 Imóvel financiado (Debt aggregate + valor_mercado override)"
 aliases: ["A15", "Sprint A15"]
+sprint_status: current
 ---
 
-# Sprint A15 — FU-3 Imóvel financiado (origem 2026-05-19)
+# Sprint A15 — FU-3 Imóvel financiado (origem 2026-05-19, current desde 2026-05-20)
 
-> **Status:** planejada (sem `sprint_status` no frontmatter — sprint
-> futura, não ativa enquanto A12 ocupa `candidate`). Quando A12 fechar e
-> A15 virar próxima, editar este frontmatter para
-> `sprint_status: candidate` antes de regenerar índices.
+> **Status:** `current` desde 2026-05-20 ([[ADR-234]] — `paused`
+> vocabulário criado para A11 e A12 cederem prioridade). 5 ondas
+> sequenciais ready; Onda 1 (schema) é gate.
 
 ## Resumo
 
