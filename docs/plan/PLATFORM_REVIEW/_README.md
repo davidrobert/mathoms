@@ -77,7 +77,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W1-T08 | Schema E5 cenarios_conjuge formal | 1 | done | data-engineer | P1 | S | — |
 | W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | blocked | data-engineer | P0 | M | W1-T06 (ADR-170) |
 | W2-T02 | SR-001/013 Security headers + CORS strict | 2 | blocked | sre-devops | P0 | S | W1-T05 |
-| W2-T03 | SR-005 CVE + gitleaks + GH secret scanning | 2 | blocked | sre-devops | P0 | S | — |
+| W2-T03 | SR-005 CVE + gitleaks + GH secret scanning | 2 | in_progress | sre-devops | P0 | S | — |
 | W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | blocked | sre-devops | P0 | S | W1-T06 (ADR-172) |
 | W2-T05 | DE-002 + DE-008 review_finances/extract_with_llm incremental + PROMPT_VERSION | 2 | blocked | data-engineer | P1 | M | — |
 | W2-T06 | DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases | 2 | blocked | data-engineer | P1 | S | — |
@@ -320,9 +320,19 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** —
 - **owner:** sre-devops · **severity:** P0 · **effort:** S
+- **status:** in_progress (branch `agent/platform-review-w2-t03/20260520-1015`) — [[ADR-230]] Proposto
 - **related_findings:** SR-005, SR-019
-- **files_touched:** `.github/workflows/security.yml` (NOVO ou expandir ci.yml), `.pre-commit-config.yaml`
-- **acceptance_criteria:** Trivy bloqueia HIGH/CRITICAL em images; pip-audit + npm audit em CI; gitleaks pre-commit; GH secret scanning habilitado em settings.
+- **files_touched:** `.github/workflows/security.yml` (NOVO), `.pre-commit-config.yaml` (hook gitleaks), `.gitleaks.toml` (NOVO), `docs/reference/runbooks/security_gates.md` (NOVO), `docs/adr/230-security-gates-ci.md` (NOVO)
+- **acceptance_criteria:**
+  - [x] Trivy filesystem-scan bloqueia HIGH/CRITICAL ([[ADR-230]] §D2; image-scan diferido para W4-T02).
+  - [x] Trivy IaC config-scan (Dockerfile + compose + workflows) bloqueia HIGH/CRITICAL.
+  - [x] pip-audit roda em `backend/requirements.txt` + `requirements.txt`.
+  - [x] npm audit roda em `frontend/` com HIGH+ blocking (prod) e informativo (dev).
+  - [x] gitleaks no pre-commit + workflow (`--log-opts="--all"`) com allowlist `.gitleaks.toml`.
+  - [ ] GH secret scanning habilitado via runbook (passo manual `gh api`; verify state pós-merge).
+  - [x] Schedule semanal sábado 03:00 UTC abre Issue label `security` em failure.
+  - [x] SLO documentado: CRITICAL ≤72h, HIGH ≤14d ([[ADR-230]] §D5).
+  - [x] Runbook `docs/reference/runbooks/security_gates.md` cobre triagem + override + push-protection follow-up.
 
 ### [W2-T04] SR-007 Stuck-runs detector + last_heartbeat_at
 
