@@ -14,6 +14,7 @@ from backend.app.api.categories import router as categories_router
 from backend.app.api.categorization_rules import router as categorization_rules_router
 from backend.app.api.category_overrides import router as category_overrides_router
 from backend.app.api.config import router as config_router
+from backend.app.api.csp_report import router as csp_report_router
 from backend.app.api.dashboard import router as dashboard_router
 from backend.app.api.decisions import router as decisions_router
 from backend.app.api.documents import router as documents_router
@@ -65,6 +66,7 @@ from backend.app.core.logging import setup_logging
 from backend.app.core.otel import instrument_fastapi, setup_otel
 from backend.app.middleware.correlation import CorrelationIdMiddleware
 from backend.app.middleware.legacy_deprecation import LegacyApiDeprecationMiddleware
+from backend.app.middleware.security_headers import SecurityHeadersMiddleware
 from backend.app.schemas.health import HealthResponse
 from backend.app.services.invitation_service import InvitationError
 from backend.app.services.membership_service import MembershipError
@@ -93,12 +95,24 @@ app = FastAPI(
 
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(LegacyApiDeprecationMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-Trace-Id",
+        "X-Workspace-Id",
+        "Accept",
+        "Accept-Language",
+        "If-None-Match",
+        "If-Modified-Since",
+    ],
+    expose_headers=["X-Trace-Id"],
+    max_age=600,
 )
 
 
@@ -192,6 +206,7 @@ async def _handle_membership(request: Request, exc: MembershipError) -> JSONResp
 #      include_in_schema=False para não poluir o snapshot. Remoção em F7A.
 _ALL_ROUTERS = (
     auth_router,
+    csp_report_router,
     report_publications_router,
     reports_router,
     reports_collab_router,
