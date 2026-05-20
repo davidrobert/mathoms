@@ -75,7 +75,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W1-T06 | ADR backfill (6 ADRs proposed) | 1 | done | senior-cto | P1 | S | — |
 | W1-T07 | Endividamento `retorno_esperado_pct_aa` | 1 | done | financial-planner | P1 | S | — |
 | W1-T08 | Schema E5 cenarios_conjuge formal | 1 | done | data-engineer | P1 | S | — |
-| W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | blocked | data-engineer | P0 | M | W1-T06 (ADR-170) |
+| W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | done | data-engineer | P0 | M | W1-T06 (ADR-170) |
 | W2-T02 | SR-001/013 Security headers + CORS strict | 2 | blocked | sre-devops | P0 | S | W1-T05 |
 | W2-T03 | SR-005 CVE + gitleaks + GH secret scanning | 2 | done | sre-devops | P0 | S | — |
 | W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | blocked | sre-devops | P0 | S | W1-T06 (ADR-172) |
@@ -302,11 +302,16 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** W1-T06 (ADR-170 ou ADR sub para PII storage encryption)
 - **owner:** data-engineer (consultar sre-devops em vault.py)
 - **severity:** P0 · **effort:** M
+- **status:** done (2026-05-20, [PR #359](https://github.com/davidrobert/mathoms/pull/359)) — [[ADR-231]] Decidido (Sprint A11.W2)
 - **related_findings:** DE-003
 - **files_touched:** `backend/app/services/crypto.py` (NOVO), `backend/app/services/db_artifact_store.py`, `dev/migrate_encrypt_existing_artifacts.py` (NOVO)
-- **acceptance_criteria:** content_json em stages PII-bearing escreve `enc:<base64>`; read decrypts; backfill migration idempotente.
+- **acceptance_criteria:**
+  - [x] content_json em stages PII-bearing escreve `kid:<key-id>:<base64>`; read decrypts ([[ADR-231]] §D2).
+  - [x] Backward-compat read aceita rows pré-cutover sem sentinel.
+  - [x] Kill switch `MATHOMS_FERNET_PIPELINE_ENABLED=0` força no-op (rollback).
+  - [x] Backfill operacional em prod: hand-off para W3-T04 ([[ADR-171]] MultiFernet rotation).
 - **risk:** chave Fernet rotation pendente (W3-T04) — coordenar timing.
-- **rollback_plan:** flag `MATHOMS_ENCRYPT_PIPELINE_ARTIFACTS=false` força no-op.
+- **rollback_plan:** flag `MATHOMS_FERNET_PIPELINE_ENABLED=false` força no-op.
 
 ### [W2-T02] SR-001/013 Security headers + CORS strict
 

@@ -2,7 +2,7 @@
 id: ADR-231
 type: adr
 title: "Encryption at-rest de PII em pipeline_artifacts via Fernet wrapper (hook em DBArtifactStore)"
-status: Proposto
+status: Decidido
 phase: A11.W2
 date: "2026-05-20"
 relates_to:
@@ -24,7 +24,7 @@ tags:
   - area/pipeline
   - area/db
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -208,6 +208,10 @@ Mais delicado: exige schema awareness do encrypt path. Quebra schemas se campo n
   - `pytest tests -q` verde (pipeline não regrediu).
   - `pytest backend/tests/test_auth_portability.py -v` verde (não-regression ADR-109).
 - **Closure:** flippa para `Decidido (Sprint A11.W2)` no merge do PR de implementação. Backfill operacional em prod fica em W3-T04 ([[ADR-171]]).
+
+## Closure
+
+ADR flippada para `Decidido (Sprint A11.W2)` em 2026-05-20 com merge de [PR #359](https://github.com/davidrobert/mathoms/pull/359) (commit `d096107`). Hooks Fernet ativos em `DBArtifactStore.write/read` com `MATHOMS_FERNET_PIPELINE_ENABLED` ligado por default; backward-compat read preservada via sentinel `kid:<key-id>:`. Backfill operacional de rows pré-cutover é hand-off para W3-T04 ([[ADR-171]] MultiFernet rotation).
 
 ## Referências
 
