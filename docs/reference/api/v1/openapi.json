@@ -2433,6 +2433,518 @@
         "title": "DataExportStatusResponse",
         "type": "object"
       },
+      "DebtCreate": {
+        "description": "Input de cria\u00e7\u00e3o; ``source`` default ``user_declared``.",
+        "properties": {
+          "data_contratacao": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Contratacao"
+          },
+          "descricao": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descricao"
+          },
+          "family_member_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Member Id"
+          },
+          "migration_source_key": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Source Key"
+          },
+          "needs_review": {
+            "default": false,
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "parcela_mensal_brl": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parcela Mensal Brl"
+          },
+          "percentual_atribuicao_imovel": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 100.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Percentual 0 < pct \u2264 100; default 100% quando property_id setado.",
+            "title": "Percentual Atribuicao Imovel"
+          },
+          "prazo_meses_restantes": {
+            "anyOf": [
+              {
+                "maximum": 600.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prazo Meses Restantes"
+          },
+          "property_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Id"
+          },
+          "saldo_devedor_brl": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "description": "Saldo devedor em BRL (string decimal).",
+            "title": "Saldo Devedor Brl"
+          },
+          "source": {
+            "default": "user_declared",
+            "enum": [
+              "baseline_irpf_migration",
+              "user_declared",
+              "open_banking_futuro"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "taxa_juros_aa": {
+            "anyOf": [
+              {
+                "maximum": 999.99,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxa Juros Aa"
+          },
+          "tipo": {
+            "enum": [
+              "financiamento_imobiliario",
+              "consignado",
+              "cdc",
+              "cartao_rotativo",
+              "rotativo",
+              "outro"
+            ],
+            "title": "Tipo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tipo",
+          "saldo_devedor_brl"
+        ],
+        "title": "DebtCreate",
+        "type": "object"
+      },
+      "DebtResponse": {
+        "description": "Debt persistido (com cents convertidos para BRL Decimal).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "data_contratacao": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Contratacao"
+          },
+          "descricao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descricao"
+          },
+          "family_member_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Member Id"
+          },
+          "id": {
+            "maxLength": 36,
+            "title": "Id",
+            "type": "string"
+          },
+          "migration_source_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Source Key"
+          },
+          "needs_review": {
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "parcela_mensal_brl": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parcela Mensal Brl"
+          },
+          "percentual_atribuicao_imovel": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentual Atribuicao Imovel"
+          },
+          "prazo_meses_restantes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prazo Meses Restantes"
+          },
+          "property_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Id"
+          },
+          "saldo_devedor_brl": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Saldo Devedor Brl",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "baseline_irpf_migration",
+              "user_declared",
+              "open_banking_futuro"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "taxa_juros_aa": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxa Juros Aa"
+          },
+          "tipo": {
+            "enum": [
+              "financiamento_imobiliario",
+              "consignado",
+              "cdc",
+              "cartao_rotativo",
+              "rotativo",
+              "outro"
+            ],
+            "title": "Tipo",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 36,
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "tipo",
+          "saldo_devedor_brl",
+          "source",
+          "needs_review",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DebtResponse",
+        "type": "object"
+      },
+      "DebtUpdate": {
+        "description": "Input de update PATCH; ``workspace_id``/``source``/``migration_source_key`` imut\u00e1veis.",
+        "properties": {
+          "data_contratacao": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Contratacao"
+          },
+          "descricao": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descricao"
+          },
+          "family_member_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Member Id"
+          },
+          "needs_review": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs Review"
+          },
+          "parcela_mensal_brl": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parcela Mensal Brl"
+          },
+          "percentual_atribuicao_imovel": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 100.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentual Atribuicao Imovel"
+          },
+          "prazo_meses_restantes": {
+            "anyOf": [
+              {
+                "maximum": 600.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prazo Meses Restantes"
+          },
+          "property_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Id"
+          },
+          "saldo_devedor_brl": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saldo Devedor Brl"
+          },
+          "taxa_juros_aa": {
+            "anyOf": [
+              {
+                "maximum": 999.99,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxa Juros Aa"
+          },
+          "tipo": {
+            "anyOf": [
+              {
+                "enum": [
+                  "financiamento_imobiliario",
+                  "consignado",
+                  "cdc",
+                  "cartao_rotativo",
+                  "rotativo",
+                  "outro"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tipo"
+          }
+        },
+        "title": "DebtUpdate",
+        "type": "object"
+      },
       "DecisionCreateCommand": {
         "additionalProperties": false,
         "description": "Cria nova ``Decision`` (status inicial = ``Pendente`` se omitido).\n\nADR-214: ``code`` \u00e9 opcional \u2014 quando ``None``, server gera via\n``DecisionRepository.next_code`` (lock per-workspace). Mantido como\ncampo permite importer/migrator one-shot informar code expl\u00edcito.",
@@ -7086,6 +7598,184 @@
         "title": "PropertyListResponse",
         "type": "object"
       },
+      "PropertyMarketValueCreate": {
+        "description": "Input de cria\u00e7\u00e3o de declara\u00e7\u00e3o.",
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Confian\u00e7a 0-1; opcional em user_declared, obrigat\u00f3rio em V2 cep_proxy_futuro.",
+            "title": "Confidence"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "property_id": {
+            "maxLength": 36,
+            "title": "Property Id",
+            "type": "string"
+          },
+          "source": {
+            "default": "user_declared",
+            "enum": [
+              "user_declared",
+              "avaliacao_terceiros",
+              "cep_proxy_futuro"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "valor_brl": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "description": "Valor de mercado em BRL (string decimal, ADR-090).",
+            "title": "Valor Brl"
+          },
+          "valuation_date": {
+            "format": "date",
+            "title": "Valuation Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "property_id",
+          "valor_brl",
+          "valuation_date"
+        ],
+        "title": "PropertyMarketValueCreate",
+        "type": "object"
+      },
+      "PropertyMarketValueResponse": {
+        "description": "Declara\u00e7\u00e3o persistida (com cents convertidos para BRL Decimal).",
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "id": {
+            "maxLength": 36,
+            "title": "Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "property_id": {
+            "maxLength": 36,
+            "title": "Property Id",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "user_declared",
+              "avaliacao_terceiros",
+              "cep_proxy_futuro"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "superseded_by_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded By Id"
+          },
+          "valor_brl": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Valor Brl",
+            "type": "string"
+          },
+          "valuation_date": {
+            "format": "date",
+            "title": "Valuation Date",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 36,
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "property_id",
+          "workspace_id",
+          "valor_brl",
+          "valuation_date",
+          "source",
+          "created_at"
+        ],
+        "title": "PropertyMarketValueResponse",
+        "type": "object"
+      },
       "PropertyResponse": {
         "additionalProperties": false,
         "description": "Snapshot read-model de um im\u00f3vel classific\u00e1vel.",
@@ -10169,6 +10859,21 @@
           "count"
         ],
         "title": "SuggestionsSummaryResponse",
+        "type": "object"
+      },
+      "SupersedeRequest": {
+        "description": "Marca declara\u00e7\u00e3o como superseded por outra do MESMO property_id.",
+        "properties": {
+          "superseded_by_id": {
+            "maxLength": 36,
+            "title": "Superseded By Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "superseded_by_id"
+        ],
+        "title": "SupersedeRequest",
         "type": "object"
       },
       "TaskAttachmentListResponse": {
@@ -17079,6 +17784,242 @@
         ]
       }
     },
+    "/api/v1/workspaces/{workspace_id}/debts": {
+      "get": {
+        "description": "Lista Debts do workspace; filtro opcional ``?needs_review=true``.",
+        "operationId": "list_debts_api_v1_workspaces__workspace_id__debts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "needs_review",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Needs Review"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DebtResponse"
+                  },
+                  "title": "Response List Debts Api V1 Workspaces  Workspace Id  Debts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Debts",
+        "tags": [
+          "debts"
+        ]
+      },
+      "post": {
+        "operationId": "create_debt_api_v1_workspaces__workspace_id__debts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DebtCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DebtResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Debt",
+        "tags": [
+          "debts"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/debts/{debt_id}": {
+      "delete": {
+        "operationId": "delete_debt_api_v1_workspaces__workspace_id__debts__debt_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "debt_id",
+            "required": true,
+            "schema": {
+              "title": "Debt Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Debt",
+        "tags": [
+          "debts"
+        ]
+      },
+      "patch": {
+        "operationId": "update_debt_api_v1_workspaces__workspace_id__debts__debt_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "debt_id",
+            "required": true,
+            "schema": {
+              "title": "Debt Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DebtUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DebtResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Debt",
+        "tags": [
+          "debts"
+        ]
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/decisions": {
       "get": {
         "operationId": "list_decisions_api_v1_workspaces__workspace_id__decisions_get",
@@ -20268,6 +21209,197 @@
         "summary": "Put Property Classification",
         "tags": [
           "properties"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/property-market-values": {
+      "get": {
+        "description": "Lista declara\u00e7\u00f5es do workspace; filtro opcional por ``?property_id=...``.",
+        "operationId": "list_property_market_values_api_v1_workspaces__workspace_id__property_market_values_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "property_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Property Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PropertyMarketValueResponse"
+                  },
+                  "title": "Response List Property Market Values Api V1 Workspaces  Workspace Id  Property Market Values Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Property Market Values",
+        "tags": [
+          "property-market-values"
+        ]
+      },
+      "post": {
+        "description": "Cria declara\u00e7\u00e3o; UNIQUE (property_id, valuation_date) \u2192 409 via IntegrityError.",
+        "operationId": "create_property_market_value_api_v1_workspaces__workspace_id__property_market_values_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PropertyMarketValueCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyMarketValueResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Property Market Value",
+        "tags": [
+          "property-market-values"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/property-market-values/{value_id}/supersede": {
+      "patch": {
+        "description": "Marca declara\u00e7\u00e3o antiga como superseded; ``superseded_by_id`` deve ser do mesmo ``property_id``.",
+        "operationId": "supersede_property_market_value_api_v1_workspaces__workspace_id__property_market_values__value_id__supersede_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "value_id",
+            "required": true,
+            "schema": {
+              "title": "Value Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupersedeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyMarketValueResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Supersede Property Market Value",
+        "tags": [
+          "property-market-values"
         ]
       }
     },
