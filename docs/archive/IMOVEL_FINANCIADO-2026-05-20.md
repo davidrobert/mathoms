@@ -2,12 +2,13 @@
 id: PLAN-imovel-financiado
 type: plan
 title: "Imóvel financiado — agregado Debt persistido + property_market_value override (FU-3 Sprint A12)"
-status: in_progress
+status: done
 sprint_origem: A12
 sprint_atual: A15
 sprints_envolvidas: ["A15"]
 created_at: "2026-05-19"
 last_review: "2026-05-20"
+archived_at: "2026-05-20"
 adrs_canonical:
   - "[[ADR-227]]"
 tags:
@@ -21,7 +22,7 @@ tags:
   - methodology/cerbasi
   - methodology/auvp
   - sprint/a15
-  - status/in-progress
+  - status/done
 ---
 
 # Plano canônico — Imóvel financiado (FU-3 do Sprint A12)

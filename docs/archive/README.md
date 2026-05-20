@@ -125,3 +125,43 @@ com gates pre-commit + snapshot test + benchmark de tokens.
 - CHANGELOG.md: 6923 → ~50 linhas (−99.3%)
 - Notas atômicas: 0 → ~445 (175 adr + 6 plan + 62 track + 35 lane + 167 changelog)
 - Token-cost-benchmark Q1/Q2/Q5/Q6: redução ≥97%; Q3/Q4 cai com F5.
+
+---
+
+## IMOVEL_FINANCIADO-2026-05-20.md
+
+Plano canônico do FU-3 imóvel financiado ([[ADR-227]]). Sprint A15 dedicada
+(2026-05-19 → 2026-05-20), 5 ondas sequenciais + bootstrap + 3 sub-PRs de
+frontend = **8 PRs entregues em ~6h**. Resolveu 2 bugs silenciosos em
+produção (patrimônio bruto defasado + IF mal-calibrado): cria agregado
+`Debt` persistido do zero, `property_market_value` versionada append-only,
+calculator com líquido econômico em `investivel_efetivo` preservando
+bruto na tabela ([[ADR-227]] §D3), 7 endpoints REST CRUD, frontend cutover
+end-to-end (MarketValueInline, batch review, nudge S4, drill-down panel,
+staleness badge).
+
+**Arquivado em:** 2026-05-20
+
+**Substituído por:**
+- [[ADR-227]] (Decidido em A15) — fonte de verdade da decisão arquitetural.
+- [docs/sprint/A15/_README.md](../sprint/A15/_README.md) — MOC da sprint
+  (status: done).
+- [docs/sprint/A15/changelog/CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO.md](../sprint/A15/changelog/CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO.md)
+  — changelog consolidado.
+- [docs/reference/RUNBOOK.md §10](../reference/RUNBOOK.md) — runbook
+  operacional de backfill.
+
+**Quando consultar:** rationale histórico do co-design 2026-05-19 (4
+agentes em paralelo), alternativas A-G consideradas (Onda 0 PR de
+bootstrap), invariantes não-negociáveis enumerados antes da execução.
+
+**PRs entregues:**
+[#371](https://github.com/davidrobert/mathoms/pull/371) bootstrap ·
+[#372](https://github.com/davidrobert/mathoms/pull/372) schema/models ·
+[#373](https://github.com/davidrobert/mathoms/pull/373) backfill ·
+[#374](https://github.com/davidrobert/mathoms/pull/374) calculator ·
+[#375](https://github.com/davidrobert/mathoms/pull/375) API ·
+[#376](https://github.com/davidrobert/mathoms/pull/376) FE foundation ·
+[#378](https://github.com/davidrobert/mathoms/pull/378) FE inline +
+nudge · [#379](https://github.com/davidrobert/mathoms/pull/379) FE
+drill-down + flip Decidido.

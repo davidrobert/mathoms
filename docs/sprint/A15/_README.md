@@ -3,14 +3,17 @@ id: MOC-sprint-a15
 type: moc
 title: "Sprint A15 — FU-3 Imóvel financiado (Debt aggregate + valor_mercado override)"
 aliases: ["A15", "Sprint A15"]
-sprint_status: current
+sprint_status: done
 ---
 
-# Sprint A15 — FU-3 Imóvel financiado (origem 2026-05-19, current desde 2026-05-20)
+# Sprint A15 — FU-3 Imóvel financiado (entregue 2026-05-20)
 
-> **Status:** `current` desde 2026-05-20 ([[ADR-234]] — `paused`
-> vocabulário criado para A11 e A12 cederem prioridade). 5 ondas
-> sequenciais ready; Onda 1 (schema) é gate.
+> **Status:** `done` — encerrada em 2026-05-20 com 8 PRs mergeados em
+> `main`. ADR-227 `Decidido (A15)`. Plano canônico arquivado em
+> [docs/archive/IMOVEL_FINANCIADO-2026-05-20.md](../../archive/IMOVEL_FINANCIADO-2026-05-20.md).
+> Changelog consolidado: [CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO](changelog/CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO.md).
+> Nenhuma sprint `current` no momento — A11 e A12 permanecem `paused`
+> (ver [docs/_MOC/SPRINTS-active.md](../../_MOC/SPRINTS-active.md)).
 
 ## Resumo
 
@@ -18,7 +21,7 @@ Sprint **dedicada** ao último follow-up out-of-scope do Sprint A12
 ([[ADR-215]] §Follow-ups · "imóvel financiado: `valor_mercado` ≠
 `valor_irpf` + linkagem `saldo_financiamento` ao `property_id`").
 
-**Plano canônico:** [docs/plan/IMOVEL_FINANCIADO/_README.md](../../plan/IMOVEL_FINANCIADO/_README.md) — 5 ondas sequenciais (~10d eng).
+**Plano canônico:** [docs/archive/IMOVEL_FINANCIADO-2026-05-20.md](../../archive/IMOVEL_FINANCIADO-2026-05-20.md) — 5 ondas sequenciais (~10d eng).
 
 **ADR canônica:** [[ADR-227]] (Proposto — A15) — agregado `Debt`
 persistido + `property_market_value` versionada + líquido econômico em
@@ -77,7 +80,7 @@ existente"; auditoria mostrou que não havia modelo.
 | 4 | API endpoints + OpenAPI | [a15-fu3-onda4-api](tracks/a15-fu3-onda4-api.md) | `senior-cto` | ~1.5d |
 | 5 | Frontend: form, batch review, drill-down | [a15-fu3-onda5-frontend](tracks/a15-fu3-onda5-frontend.md) | `product-designer` | ~2.5d |
 
-**Total:** ~10d eng. Coordenação entre ondas em [PLAN-imovel-financiado §Coordenação](../../plan/IMOVEL_FINANCIADO/_README.md). Paralelismo possível em Onda 3 + 4 (calc e API independentes do schema mergeado).
+**Total:** ~10d eng. Coordenação entre ondas em [PLAN-imovel-financiado §Coordenação](../../archive/IMOVEL_FINANCIADO-2026-05-20.md). Paralelismo possível em Onda 3 + 4 (calc e API independentes do schema mergeado).
 
 ## Invariantes não-negociáveis
 
@@ -154,5 +157,5 @@ Detalhe por sprint: [docs/_MOC/SPRINTS-active.md](../../_MOC/SPRINTS-active.md).
 - [[ADR-222]] / [[ADR-223]] — toggle per-workspace + default conservador.
 - [[ADR-225]] — `codigo_rfb` invariante; `Debt.property_id` referencia
   UUID interno de `PropertyIdentity`.
-- Plano canônico: [docs/plan/IMOVEL_FINANCIADO/_README.md](../../plan/IMOVEL_FINANCIADO/_README.md).
+- Plano canônico: [docs/archive/IMOVEL_FINANCIADO-2026-05-20.md](../../archive/IMOVEL_FINANCIADO-2026-05-20.md).
 - Sprint anterior relacionada: [Sprint A12](../A12/_README.md) (FU-1 + FU-2).
