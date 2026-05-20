@@ -12,6 +12,10 @@ export interface BankAccountConfig {
   is_joint?: boolean;
   /** ADR-226: lista de member_id co-titulares quando is_joint=true; null em V1. */
   co_titulares?: string[] | null;
+  /** ADR-229: marcador de telemetria — true quando origem foi clique em sugestão IRPF. */
+  origem_irpf?: boolean;
+  /** ADR-229: ano-base IRPF acompanha origem_irpf=true. */
+  origem_irpf_year?: number | null;
 }
 
 export interface FamilyMemberConfig {
@@ -113,6 +117,60 @@ export async function createBankAccount(workspaceId: string, memberId: string, d
 
 export async function deleteBankAccount(workspaceId: string, memberId: string, accountId: string): Promise<void> {
   return apiFetch(`/workspaces/${workspaceId}/config/members/${memberId}/accounts/${accountId}`, { method: "DELETE" });
+}
+
+// ─── Config: IRPF pre-fill suggestions (ADR-229) ───
+//
+// Endpoint backend lê o artifact E1 mais recente do workspace e classifica
+// cada conta declarada como ``new`` (sem cadastro) ou ``partial_collision``
+// (mesmo banco + membro com número diferente). Exact-match e dismissed
+// prévios são filtrados silenciosamente.
+
+export interface IrpfSuggestion {
+  institution_code: string;
+  institution_label: string;
+  account_type: string;
+  agency?: string | null;
+  account_number_raw?: string | null;
+  account_number_norm?: string | null;
+  member_key: string;
+  member_full_name: string;
+  /** CPF mascarado (ex.: ``***.123.456-**``). Backend nunca expõe CPF cru na UI. */
+  cpf_titular_masked?: string | null;
+  irpf_year: number;
+  match_kind: "new" | "partial_collision";
+  collision_with_account_id?: string | null;
+}
+
+export interface SuggestionsFromIrpfResponse {
+  irpf_year: number;
+  processed_at?: string | null;
+  suggestions: IrpfSuggestion[];
+  total_filtered_exact_match: number;
+  total_dismissed: number;
+}
+
+export interface IrpfDismissPayload {
+  irpf_year: number;
+  institution_code: string;
+  account_number_norm?: string | null;
+  member_key?: string | null;
+}
+
+export async function listIrpfSuggestions(
+  workspaceId: string,
+): Promise<SuggestionsFromIrpfResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members/suggestions-from-irpf`);
+}
+
+export async function dismissIrpfSuggestion(
+  workspaceId: string,
+  data: IrpfDismissPayload,
+): Promise<void> {
+  return apiFetch(`/workspaces/${workspaceId}/config/members/irpf-dismissals`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 // ─── Config: Categories ───

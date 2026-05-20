@@ -2,8 +2,8 @@
 id: ADR-229
 type: adr
 title: "Pre-fill UI a partir de IRPF — pattern genérico `artifact → suggestion endpoint → card`; V1 contas bancárias"
-status: Proposto
-phase: A13
+status: Decidido
+phase: A13.irpf-prefill-bank-accounts
 date: "2026-05-20"
 relates_to:
   - "[[ADR-127]]"
@@ -27,7 +27,7 @@ tags:
   - methodology/perini
   - methodology/auvp
   - phase/a13
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -304,6 +304,11 @@ Lane standalone — não bloqueia outras lanes A13. Flip ADR-229 → `Decidido (
 - Co-design 2026-05-20: `product-designer` (UX cards + diff inline + badge sunset + a11y + copy "você declarou"), `financial-planner` (Cerbasi/Perini/AUVP — IRPF como timeline anual + diff vs mesclagem silenciosa + zero telemetria omissão fiscal LGPD).
 - Diagnóstico: pós-lane A12.bank-account-disambig fechar, sessão David Robert 2026-05-20 — "ROI alto: reduz 80% fricção cadastro para ICP que entrega IRPF".
 
-## Status — Proposto
+## Status — Decidido (A13.irpf-prefill-bank-accounts)
 
-Lane `A13.irpf-prefill-bank-accounts` aguardando A13 abrir (A11 → done, A12 → current). PR1+PR2 implementam. Flip para `Decidido (A13.irpf-prefill-bank-accounts)` no merge do PR2.
+Lane completa em 2 PRs sequenciais:
+
+- **PR1** ([#345](https://github.com/davidrobert/mathoms/pull/345)) — Migration `workspace_irpf_suggestion_dismissals` + coluna `bank_accounts.irpf_snapshots` + endpoint `GET /members/suggestions-from-irpf` + endpoint `POST /members/irpf-dismissals` + use case puro com `IrpfArtifactSourceProtocol` (boundary ADR-097) + DTOs + telemetria estruturada `mathoms.irpf_suggestions.*` (4 eventos, zero LGPD) + 10 testes verde.
+- **PR2** — UI cards inline em `MembersTab` (componentes `_IrpfSuggestionCard`, `_IrpfDiffModal`, `_MemberIrpfSection`) + a11y AAA + mobile responsive + toasts Sonner + integração com `BankAccountCreateCommand.origem_irpf` para emissão de telemetria + flip ADR + FAQ produto. Gateada por feature flag `irpf_prefill_enabled` (default OFF) — dogfood com 3 famílias acontece em paralelo, ativação posterior.
+
+**V1 V0 scope concluído.** V2 follow-ups (renderização de `irpf_snapshots` timeline, sugestões de membros/imóveis/investimentos via mesmo pattern, banner soft de omissão fiscal, tabela `workspace_suggestion_dismissals` genérica) ficam para ADRs futuras quando segundos consumidores chegarem.

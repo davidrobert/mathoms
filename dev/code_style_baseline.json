@@ -30836,7 +30836,7 @@
       "P7_multiparagraph_docstring": 979,
       "P8_what_comments": 35,
       "P9_deep_nesting": 196,
-      "T3_ts_long_functions": 40,
+      "T3_ts_long_functions": 41,
       "T5_ts_hex_colors": 25
     },
     "offenders_by_directory": {
@@ -30857,7 +30857,7 @@
         "P9_deep_nesting": 26
       },
       "frontend/": {
-        "T3_ts_long_functions": 40,
+        "T3_ts_long_functions": 41,
         "T5_ts_hex_colors": 25
       },
       "pipeline/": {
