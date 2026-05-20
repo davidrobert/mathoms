@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { CheckCircle2, AlertTriangle, XCircle, MinusCircle } from "lucide-react";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";

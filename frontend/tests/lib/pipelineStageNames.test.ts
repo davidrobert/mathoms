@@ -94,7 +94,7 @@ describe("parseStageActivityEvent", () => {
     const out = parseStageActivityEvent(
       baseEvent({
         stage: "E2-extratos",
-        // @ts-expect-error — proposital: input mal-formado do WS
+        // proposital: input mal-formado do WS (detail é Record<string, unknown>)
         detail: { file: 42, items_done: "tres" },
       }),
     );

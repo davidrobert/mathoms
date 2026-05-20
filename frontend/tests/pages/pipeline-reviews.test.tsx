@@ -22,7 +22,9 @@ import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
 
 const pushMock = vi.fn();
-const paramsMock = vi.fn(() => ({ runId: "run-1" }));
+const paramsMock = vi.fn<() => { runId: string; reviewId?: string }>(() => ({
+  runId: "run-1",
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),

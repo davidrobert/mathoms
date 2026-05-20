@@ -190,7 +190,7 @@ describe("204 handling", () => {
   it("deleteDocument retorna undefined em 204", async () => {
     setToken("t");
     // Handler default já é 204
-    await expect(deleteDocument("doc-1")).resolves.toBeUndefined();
+    await expect(deleteDocument("ws-1", "doc-1")).resolves.toBeUndefined();
   });
 });
 

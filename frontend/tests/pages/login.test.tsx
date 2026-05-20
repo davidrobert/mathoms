@@ -177,7 +177,8 @@ describe("LoginPage", () => {
     expect(screen.getByRole("button")).toBeDisabled();
 
     // Libera promise para limpar o test
-    resolveResponse?.();
+    // Cast local: TS narrowing perde o widening pela atribuição em callback aninhado.
+    (resolveResponse as (() => void) | null)?.();
     await waitFor(() => expect(pushMock).toHaveBeenCalled());
   });
 
