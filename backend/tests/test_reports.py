@@ -329,6 +329,33 @@ async def test_get_report_data_returns_json_payload(
 
 
 @pytest.mark.asyncio
+async def test_get_report_data_decrypts_encrypted_artifact_payload(
+    auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
+):
+    """Regressão ADR-231/PR #359 — artifact criptografado via ORM/SQL fora do DBArtifactStore deve devolver plaintext (não o envelope Fernet)."""
+    from backend.app.services.crypto import encrypt_artifact_payload
+
+    plain = {
+        "periodo_dados": "202601-202604",
+        "patrimonio": {"bruto": 1234567.89, "liquido": 1200000.0},
+        "score": {"valor": 85, "max": 100, "classificacao": "Muito Bom"},
+    }
+    sentinel = encrypt_artifact_payload(plain)
+    assert sentinel.get("_encrypted") is True
+    assert "ct" in sentinel
+
+    rid = await _seed_report(auth_client, analysis_payload=sentinel, tmp_path=tmp_path, db=db)
+    resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/reports/{rid}/data")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "_encrypted" not in body
+    assert "ct" not in body
+    assert body["periodo_dados"] == "202601-202604"
+    assert body["patrimonio"]["bruto"] == 1234567.89
+    assert body["score"]["classificacao"] == "Muito Bom"
+
+
+@pytest.mark.asyncio
 async def test_get_report_data_merges_premissas_snapshot_into_goals(
     auth_client: AsyncClient, tmp_path: Path, db: AsyncSession
 ):

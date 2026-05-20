@@ -315,7 +315,9 @@ def _find_latest_analysis_artifact(ws_id: str, run_id: str):
         if row is None or not row.content_json:
             return None
         # Captura os campos antes de fechar a sessão (objeto detacha).
-        return {"id": row.id, "content_json": row.content_json}
+        from backend.app.services.crypto import read_artifact_content
+
+        return {"id": row.id, "content_json": read_artifact_content(row.content_json)}
 
 
 def _create_report_from_output(ws_id: str, run_id: str, tenant_root: Path) -> None:

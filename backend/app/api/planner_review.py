@@ -22,6 +22,7 @@ from backend.app.repositories.planner_review_repository import (
     PlannerReviewRepository,
 )
 from backend.app.schemas.dto.planner_review import PlannerReviewResponse
+from backend.app.services.crypto import read_artifact_content
 from backend.app.services.pipeline_service import resolve_llm_tier_async
 from backend.app.services.planner_review_tier_filter import apply_tier_filter
 
@@ -78,7 +79,7 @@ async def _load_artifact(db: AsyncSession, artifact_id: int) -> dict:
                 "message": "Artifact do parecer não encontrado — possível inconsistência.",
             },
         )
-    return content
+    return read_artifact_content(content)
 
 
 def _count_visible(content) -> int:

@@ -27,6 +27,7 @@ from backend.app.schemas.dto.suggestion import (
     SuggestionRegenerateResponse,
     suggestion_to_response,
 )
+from backend.app.services.crypto import read_artifact_content
 from pipeline.domain.services.suggestion_generator import (
     DISMISS_RESPECT_WINDOW_DAYS,
     SUGGESTION_CAP,
@@ -51,7 +52,7 @@ async def regenerate_for_report(
             code="report_without_snapshot",
         )
 
-    snapshot = artifact.content_json
+    snapshot = read_artifact_content(artifact.content_json)
     if not isinstance(snapshot, dict):
         raise ValidationError(
             f"Snapshot inválido: esperado dict, recebido {type(snapshot).__name__}",

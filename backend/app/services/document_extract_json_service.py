@@ -14,6 +14,7 @@ from pathlib import Path
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.document import Document, DocumentType
 from backend.app.repositories.pipeline_artifact_repository import PipelineArtifactRepository
+from backend.app.services.crypto import read_artifact_content
 from backend.app.services.document_pipeline_sync import (
     _E2_DB_STAGES,
     _e15a_base_stem,
@@ -130,7 +131,7 @@ def _read_irpf_e15a_from_db(doc: Document, workspace_id: str) -> dict | None:
         all_keys = repo.list_latest_keys(workspace_id, stage="E1.5a")
         return {
             "filename": f"{stem}-1.5a_extract.json",
-            "data": art.content_json,
+            "data": read_artifact_content(art.content_json),
             "all_candidates": [f"{k}-1.5a_extract.json" for k in all_keys],
         }
 
@@ -166,7 +167,7 @@ def _read_e2_from_db(doc: Document, workspace_id: str) -> dict | None:
         all_keys = _all_e2_keys(repo, workspace_id)
         return {
             "filename": f"{stem}-2_extract.json",
-            "data": latest.content_json,
+            "data": read_artifact_content(latest.content_json),
             "all_candidates": sorted(f"{k}-2_extract.json" for k in all_keys),
         }
 

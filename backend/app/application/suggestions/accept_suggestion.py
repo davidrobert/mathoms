@@ -37,6 +37,7 @@ from backend.app.schemas.dto.suggestion import (
     SuggestionResponse,
     suggestion_to_response,
 )
+from backend.app.services.crypto import read_artifact_content
 
 
 async def accept_suggestion(
@@ -176,7 +177,7 @@ async def _build_context_snapshot(
     except Exception:  # noqa: BLE001
         return None
     artifact = getattr(report, "analysis_artifact", None)
-    snap_dict = getattr(artifact, "content_json", None)
+    snap_dict = read_artifact_content(getattr(artifact, "content_json", None))
     if not isinstance(snap_dict, dict):
         return None
     out: dict[str, Any] = {

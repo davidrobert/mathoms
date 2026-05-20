@@ -20,6 +20,7 @@ from typing import Any
 
 from backend.app.core.database import SyncSessionLocal
 from backend.app.repositories.pipeline_artifact_repository import PipelineArtifactRepository
+from backend.app.services.crypto import read_artifact_content
 from pipeline.stage_spec import resolve_stage_name, to_legacy_stage_name
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def _read_from_db(workspace_id: str, *, stage: str, key: str) -> dict[str, Any] 
         for candidate in _stage_query_candidates(stage):
             art = repo.get_latest_for_workspace(workspace_id, stage=candidate, artifact_key=key)
             if art is not None and art.content_json is not None:
-                return art.content_json
+                return read_artifact_content(art.content_json)
     return None
 
 

@@ -23,6 +23,7 @@ from backend.app.models.report_publication import ReportPublication
 from backend.app.repositories.report_publication_repository import (
     ReportPublicationRepository,
 )
+from backend.app.services.crypto import read_artifact_content
 
 _PERIOD_RE = re.compile(r"^[0-9]{6}$")
 
@@ -115,7 +116,7 @@ def _build_publication(
         artifact_id=artifact.id,
         published_at=datetime.now(timezone.utc),
         published_by=actor,
-        immutable_hash=compute_immutable_hash(artifact.content_json or {}),
+        immutable_hash=compute_immutable_hash(read_artifact_content(artifact.content_json) or {}),
     )
 
 
