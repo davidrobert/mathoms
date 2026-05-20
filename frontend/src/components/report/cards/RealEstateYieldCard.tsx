@@ -31,11 +31,48 @@ export function RealEstateYieldCard({ data }: RealEstateYieldCardProps) {
       variant={pickVariant(data)}
     >
       <RealEstateHero data={data} />
+      <ValorMercadoNudge imoveis={data.imoveis} />
       <RealEstateImoveisTable imoveis={data.imoveis} />
       <RealEstateAlertasBlock alertas={data.alertas} />
       <RealEstateExcluded excluded={data.excluded_properties} />
       <RealEstateFooter benchmarks={data.benchmarks} />
     </ReportCard>
+  );
+}
+
+/**
+ * Nudge ADR-227 §D5: aparece quando algum imóvel locado/comercial ainda
+ * usa ``valor_imovel_origem === "irpf"`` — sinaliza ao usuário que pode
+ * declarar valor de mercado para refletir yield real. Copy honest:
+ * yield é calculado sobre IRPF; mercado pode estar diferente.
+ */
+function ValorMercadoNudge({ imoveis }: { imoveis: readonly RealEstateImovel[] }) {
+  const pendingCount = imoveis.filter((im) => im.valor_imovel_origem === "irpf").length;
+  if (pendingCount === 0) return null;
+  return (
+    <aside
+      className="rounded-md border p-3 text-sm"
+      style={{
+        borderColor: "var(--semantic-info-financial)",
+        backgroundColor: "var(--surface-muted)",
+        color: "var(--surface-foreground)",
+      }}
+      role="note"
+    >
+      <strong>Yield calculado sobre valor declarado no IRPF.</strong>{" "}
+      {pendingCount === 1
+        ? "1 imóvel ainda não tem valor de mercado declarado."
+        : `${pendingCount} imóveis ainda não têm valor de mercado declarado.`}{" "}
+      Se o valor mudou, atualize em{" "}
+      <a
+        href="/config?tab=members"
+        className="underline"
+        style={{ color: "var(--brand-info)" }}
+      >
+        Configurações &rsaquo; Membros
+      </a>{" "}
+      para refletir o retorno real.
+    </aside>
   );
 }
 
