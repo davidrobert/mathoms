@@ -7,6 +7,7 @@ const baseDoc: DocumentResponse = {
   id: "doc-1",
   workspace_id: "ws-1",
   original_name: "x.pdf",
+  stored_path: null,
   doc_type: "irpf",
   status: "processed",
   bank_code: null,
@@ -19,11 +20,10 @@ const baseDoc: DocumentResponse = {
   pipeline_last_run_at: null,
   uploaded_at: "2026-04-30T12:00:00Z",
   file_size_bytes: 1,
-  content_hash: null,
   content_type: "application/pdf",
   error_message: null,
   possible_duplicate_of_id: null,
-} as DocumentResponse;
+};
 
 describe("isClassificationUncertain", () => {
   it("returns true when needs_review is set and no extract", () => {

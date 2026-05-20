@@ -182,7 +182,7 @@ export function ProtectionFormDialog({
             <Select
               value={form.holderId || "_none"}
               onValueChange={(v) =>
-                setForm((s) => ({ ...s, holderId: v === "_none" ? "" : v }))
+                setForm((s) => ({ ...s, holderId: v && v !== "_none" ? v : "" }))
               }
             >
               <SelectTrigger id="holder">

@@ -14,7 +14,8 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
-import { axe, toHaveNoViolations } from "vitest-axe";
+import { axe } from "vitest-axe";
+import { toHaveNoViolations } from "vitest-axe/matchers";
 import { http, HttpResponse } from "msw";
 
 import { KPICard } from "@/components/KPICard";
@@ -42,7 +43,10 @@ vi.mock("@/lib/usePipelineWS", () => ({
   usePipelineWS: () => ({ status: "disconnected", lastEvent: null }),
 }));
 
-// Estende expect com matcher do axe
+// Estende expect com matcher do axe.
+// vitest-axe@0.1.0 packaging bug: matchers.d.ts re-exporta com `export type *`,
+// mas matchers.js exporta o runtime. Workaround até upstream corrigir.
+// @ts-expect-error type-only export at .d.ts level (runtime value existe)
 expect.extend({ toHaveNoViolations });
 
 beforeEach(() => {

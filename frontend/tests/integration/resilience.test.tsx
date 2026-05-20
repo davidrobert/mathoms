@@ -31,7 +31,7 @@ describe("Resilience — backend 5xx handling", () => {
         HttpResponse.json({ detail: "Manutenção" }, { status: 503 }),
       ),
     );
-    await expect(listDocuments()).rejects.toMatchObject({
+    await expect(listDocuments("ws-1")).rejects.toMatchObject({
       status: 503,
       detail: "Manutenção",
     });
