@@ -533,6 +533,9 @@
 | PLAN-residencia-e-uso | plan | draft |  | Residência e uso econômico de imóveis — override DB substitui keyword | `plan/RESIDENCIA_E_USO/_README.md` |
 | PLAN-s4-real-estate-enrichment | plan | draft |  | S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel) | `plan/S4_REAL_ESTATE_ENRICHMENT/_README.md` |
 | PLAN-snapshot-changelog-v3 | plan | in_progress |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `plan/SNAPSHOT_CHANGELOG_V3/_README.md` |
+| TRACK-a11-w2-t04-stuck-runs-heartbeat | track | ready | A11 | W2-T04 — Stuck-runs detector + last_heartbeat_at | `sprint/A11/tracks/w2-t04-stuck-runs-heartbeat.md` |
+| TRACK-a11-w2-t05-prompt-version-gate | track | ready | A11 | W2-T05 — extract_with_llm incremental + PROMPT_VERSION gate CI | `sprint/A11/tracks/w2-t05-prompt-version-gate.md` |
+| TRACK-a11-w2-t06-stage-to-suffix-descriptive | track | ready | A11 | W2-T06 — _STAGE_TO_SUFFIX cobre keys descritivas (paridade legacy ↔ descritivo) | `sprint/A11/tracks/w2-t06-stage-to-suffix-descriptive.md` |
 | TRACK-a11-w5-t06-rentabilidade-card | track | consumed | A11 | Card S3 Rentabilidade — rebrand TRS efetiva + enriquecimento + cobertura essencial | `sprint/A11/tracks/a11-w5-t06-rentabilidade-card.md` |
 | TRACK-a15-fu3-onda1-schema | track | ready | A15 | Track A15 FU-3 Onda 1 — Schema + repos + models (Debt + property_market_value) | `sprint/A15/tracks/a15-fu3-onda1-schema.md` |
 | TRACK-a15-fu3-onda2-backfill | track | ready | A15 | Track A15 FU-3 Onda 2 — Backfill total_dividas → rows Debt + audit log | `sprint/A15/tracks/a15-fu3-onda2-backfill.md` |
