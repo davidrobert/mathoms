@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 
+import type { PipelineRunResponse } from "@/lib/api";
 import { deriveFailedStage } from "@/app/(app)/pipeline/_components/failedStage";
 
-const baseRun = {
-  failed_at_stage: null as string | null,
-  stage_logs: [] as Array<{ stage: string; status: string }>,
+const baseRun: Pick<PipelineRunResponse, "failed_at_stage" | "stage_logs"> = {
+  failed_at_stage: null,
+  stage_logs: [],
 };
 
 describe("deriveFailedStage", () => {

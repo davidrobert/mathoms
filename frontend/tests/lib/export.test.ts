@@ -76,11 +76,12 @@ function getXLSXBuffer(): ArrayBuffer {
   for (const p of lastBlobParts) {
     if (p instanceof ArrayBuffer) return p;
     if (ArrayBuffer.isView(p)) {
-      // Slice para garantir um ArrayBuffer "puro" (não SharedArrayBuffer)
-      return (p as Uint8Array).buffer.slice(
-        (p as Uint8Array).byteOffset,
-        (p as Uint8Array).byteOffset + (p as Uint8Array).byteLength,
-      );
+      const view = p as Uint8Array;
+      // Cópia para ArrayBuffer "puro" (não SharedArrayBuffer) — TS 5.7+
+      // distingue ArrayBufferLike, então fazemos new ArrayBuffer + copy.
+      const out = new ArrayBuffer(view.byteLength);
+      new Uint8Array(out).set(view);
+      return out;
     }
   }
   throw new Error("Nenhum ArrayBuffer/Uint8Array encontrado nas partes do Blob");
@@ -176,13 +177,10 @@ describe("exportToXLSX()", () => {
       .spyOn(XLSX.utils, "book_append_sheet")
       .mockImplementation((wb, ws, name) => {
         appendedWs = ws;
-        // chama implementação real para o resto do fluxo continuar
-        const actual = (XLSX.utils.book_append_sheet as any).getMockImplementation
-          ? null
-          : null;
-        Object.assign(wb.Sheets ?? (wb.Sheets = {}), { [name ?? "Sheet1"]: ws });
-        wb.SheetNames = [...(wb.SheetNames ?? []), name ?? "Sheet1"];
-        return actual;
+        const sheetName = name ?? "Sheet1";
+        Object.assign(wb.Sheets ?? (wb.Sheets = {}), { [sheetName]: ws });
+        wb.SheetNames = [...(wb.SheetNames ?? []), sheetName];
+        return sheetName;
       });
 
     exportToXLSX(SAMPLE, "tx");

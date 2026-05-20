@@ -275,7 +275,9 @@ function CategoriesTabContent({ workspace }: { workspace: UserWorkspace }) {
         }
         confirmLabel="Restaurar padrão"
         variant="destructive"
-        onConfirm={() => resetTarget && handleResetConfirmed(resetTarget)}
+        onConfirm={() => {
+          if (resetTarget) handleResetConfirmed(resetTarget);
+        }}
       />
     </div>
   );

@@ -110,13 +110,12 @@ test.describe("Snapshots — cover (hero)", () => {
         return;
       }
       // Captura a parte de cima do main (cover + premissas).
-      await expect(page.locator("#report-main")).toHaveScreenshot(
-        `cover.${theme}.png`,
-        {
-          maxDiffPixels: 200,
-          clip: { x: 0, y: 0, width: VIEWPORT.width, height: 720 },
-        },
-      );
+      // `clip` só é aceito em `expect(page).toHaveScreenshot`, não em locator —
+      // usamos page-level clip para limitar à área do cover.
+      await expect(page).toHaveScreenshot(`cover.${theme}.png`, {
+        maxDiffPixels: 200,
+        clip: { x: 0, y: 0, width: VIEWPORT.width, height: 720 },
+      });
     });
   }
 });
