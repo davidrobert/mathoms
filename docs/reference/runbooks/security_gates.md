@@ -10,8 +10,8 @@ Roda em todo PR contra `main` + schedule sábado 03:00 UTC + manual.
 
 | Job | Bloqueia merge? | Output |
 |---|---|---|
-| `trivy-fs` | Sim (HIGH/CRITICAL) | SARIF upload em Security tab. |
-| `trivy-config` | Sim (HIGH/CRITICAL) | SARIF upload em Security tab. |
+| `trivy-fs` | **Temporariamente não** — `continue-on-error` step-level até GHAS chegar (SARIF blocking) OU todas as vulns npm/python serem fixadas. Output em `table` no log. | Workflow logs. |
+| `trivy-config` | **Temporariamente não** — `continue-on-error` step-level até triagem + fix dos 4 IaC misconfigs detectados no primeiro run. | Workflow logs. |
 | `pip-audit` | Sim (HIGH+, exceto `ignore-vulns` declarados inline) | Workflow logs. |
 | `npm-audit-prod` | **Temporariamente não** — `continue-on-error` step-level até PRs de upgrade fixarem `next`, `next-intl`, `postcss` (vulns identificadas no primeiro run pós-merge ADR-230). Volta a bloquear quando todos fixados. | Workflow logs. |
 | `npm-audit-dev` | Não (informativo) | Workflow logs. |

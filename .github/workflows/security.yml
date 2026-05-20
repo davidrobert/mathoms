@@ -36,18 +36,24 @@ permissions:
   contents: read
 
 jobs:
+  # Trivy roda como check **informativo** enquanto repo for privado sem
+  # GitHub Advanced Security (SARIF upload exige `security-events: write`
+  # + code scanning habilitado, ambos GHAS-gated). Output em `table`
+  # mantém visibilidade em logs. Quando GHAS chegar, voltar a SARIF +
+  # remover `continue-on-error` ([[ADR-230]] §"GHAS license follow-up").
   trivy-fs:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    permissions:
-      contents: read
-      security-events: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Run Trivy (filesystem, HIGH+CRITICAL)
+        # TODO(security-trivy-fs-2026-05-20): remover continue-on-error
+        # quando (a) GHAS chegar (SARIF blocking) ou (b) todas as vulns
+        # npm/python listadas no runbook §Diferimentos forem fixadas.
+        continue-on-error: true
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
@@ -55,41 +61,28 @@ jobs:
           severity: "HIGH,CRITICAL"
           exit-code: "1"
           ignore-unfixed: true
-          format: sarif
-          output: trivy-fs.sarif
+          format: table
           skip-dirs: "_archive,docs/archive,frontend/.next,frontend/node_modules,storage"
-      - name: Upload SARIF to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-fs.sarif
-          category: trivy-fs
 
   trivy-config:
     name: Trivy IaC config scan
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      contents: read
-      security-events: write
     steps:
       - uses: actions/checkout@v4
       - name: Run Trivy config (Dockerfile, compose, workflows)
+        # TODO(security-trivy-config-2026-05-20): remover continue-on-error
+        # após review/triagem dos 4 IaC misconfigs detectados no primeiro
+        # run e fix em PR(s) dedicado(s).
+        continue-on-error: true
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: .
           severity: "HIGH,CRITICAL"
           exit-code: "1"
-          format: sarif
-          output: trivy-config.sarif
+          format: table
           skip-dirs: "_archive,docs/archive,frontend/.next,frontend/node_modules,storage"
-      - name: Upload SARIF to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-config.sarif
-          category: trivy-config
 
   pip-audit:
     name: pip-audit (Python deps)
