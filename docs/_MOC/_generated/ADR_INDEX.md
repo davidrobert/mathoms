@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-223 ADRs (ADR-001 a ADR-230) em [`docs/adr/`](../../adr/).
+224 ADRs (ADR-001 a ADR-231) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 178
-- **Proposto**: 41
+- **Proposto**: 42
 - **Roadmap**: 4
 
 ## Fundação
@@ -23,9 +23,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-006]] — Monorepo · phase F0
 - [[ADR-013]] — "Wrap, Don't Rewrite" pattern · phase F0
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-005]] — VPS Hetzner para produção · phase F7
+- [[ADR-231]] — Encryption at-rest de PII em pipeline_artifacts via Fernet wrapper (hook em DBArtifactStore) · phase A11.W2
 
 ## Persistência
 
