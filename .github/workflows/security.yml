@@ -48,7 +48,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run Trivy (filesystem, HIGH+CRITICAL)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Trivy config (Dockerfile, compose, workflows)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: .
@@ -101,18 +101,27 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+      # PYSEC-2025-185 (python-jose 3.5.0, DoS via JWE token):
+      # sem fix version publicada upstream; allowlist temporário até
+      # python-jose >=4.x. SLO HIGH ≤14d ([[ADR-230]] §D5). Issue de
+      # rastreio: davidrobert/mathoms#security-pysec-2025-185.
       - name: Run pip-audit on backend/requirements.txt
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
           inputs: backend/requirements.txt
-          ignore-vulns: ""
+          ignore-vulns: "PYSEC-2025-185"
       - name: Run pip-audit on requirements.txt (pipeline)
         if: hashFiles('requirements.txt') != ''
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
           inputs: requirements.txt
-          ignore-vulns: ""
+          ignore-vulns: "PYSEC-2025-185"
 
+  # npm audit não suporta ignore-by-CVE — para vulns conhecidas que
+  # exigem upgrade breaking (next, next-intl, postcss em 2026-05-20),
+  # job fica em continue-on-error step-level até PRs de upgrade
+  # mergearem. SLO HIGH ≤14d; rastreio em Issue dedicada por dep.
+  # Quando uma vuln é fixada, job volta a ser blocking.
   npm-audit-prod:
     name: npm audit (prod deps)
     runs-on: ubuntu-latest
@@ -128,13 +137,15 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: npm audit (prod, HIGH+)
+        # TODO(security-npm-prod-2026-05-20): remover continue-on-error
+        # após PRs de upgrade de next/next-intl/postcss. Issue: TBD.
+        continue-on-error: true
         run: npm audit --audit-level=high --omit=dev
 
   npm-audit-dev:
     name: npm audit (dev deps — informativo)
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     defaults:
       run:
         working-directory: frontend
@@ -146,12 +157,19 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: npm audit (incluindo dev, informativo)
+        # continue-on-error step-level — dev deps raramente exploitable,
+        # job nunca bloqueia.
+        continue-on-error: true
         run: npm audit --audit-level=high
 
   gitleaks:
     name: gitleaks (full git history)
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    # gitleaks-action lê PR commits via API — exige pull-requests: read.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:

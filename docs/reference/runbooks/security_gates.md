@@ -12,12 +12,28 @@ Roda em todo PR contra `main` + schedule sábado 03:00 UTC + manual.
 |---|---|---|
 | `trivy-fs` | Sim (HIGH/CRITICAL) | SARIF upload em Security tab. |
 | `trivy-config` | Sim (HIGH/CRITICAL) | SARIF upload em Security tab. |
-| `pip-audit` | Sim (HIGH+) | Workflow logs. |
-| `npm-audit-prod` | Sim (HIGH+) | Workflow logs. |
+| `pip-audit` | Sim (HIGH+, exceto `ignore-vulns` declarados inline) | Workflow logs. |
+| `npm-audit-prod` | **Temporariamente não** — `continue-on-error` step-level até PRs de upgrade fixarem `next`, `next-intl`, `postcss` (vulns identificadas no primeiro run pós-merge ADR-230). Volta a bloquear quando todos fixados. | Workflow logs. |
 | `npm-audit-dev` | Não (informativo) | Workflow logs. |
 | `gitleaks` | Sim (qualquer match não-allowlisted) | Workflow logs. |
 
 Schedule failure abre Issue label `security` (job `open-issue-on-schedule-failure`).
+
+### Diferimentos vigentes (revise periodicamente)
+
+| Vuln | Onde | Tipo | SLO | Issue |
+|---|---|---|---|---|
+| `PYSEC-2025-185` | `python-jose 3.5.0` (DoS via JWE) | `pip-audit ignore-vulns` inline | HIGH ≤14d | TBD |
+| `GHSA-wfc6-r584-vfw7` | `next` cache poisoning | `npm-audit-prod continue-on-error` global | HIGH ≤14d | TBD |
+| `GHSA-267c-6grr-h53f`, `GHSA-36qx-fr4f-26g5` | `next` Middleware bypass | idem | HIGH ≤14d | TBD |
+| `GHSA-4c35-wcg5-mm9h` | `next-intl` prototype pollution | idem | MEDIUM best-effort | TBD |
+| `GHSA-qx2v-qp2m-jg93` | `postcss` XSS via stringify | idem | MEDIUM best-effort | TBD |
+
+**Quando todas as vulns acima forem fixadas via PRs de upgrade:**
+1. Remover `continue-on-error: true` do step `npm-audit (prod, HIGH+)` em `.github/workflows/security.yml`.
+2. Remover TODO marker `TODO(security-npm-prod-2026-05-20)`.
+3. Remover `ignore-vulns: "PYSEC-2025-185"` dos dois steps `pip-audit` (ou substituir se outras vulns acumulararem).
+4. Atualizar esta tabela.
 
 ## SLO de remediação
 
