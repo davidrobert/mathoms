@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-226 ADRs (ADR-001 a ADR-233) em [`docs/adr/`](../../adr/).
+227 ADRs (ADR-001 a ADR-234) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 182
-- **Proposto**: 40
+- **Proposto**: 41
 - **Roadmap**: 4
 
 ## Fundação
@@ -320,6 +320,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-185]] — Política de edição e evolução de overrides de `category_templates` · phase A11.cat-overrides
 - [[ADR-186]] — Promoção de override de transação para regra de categorização (learning loop) · phase A12.P2
 - [[ADR-188]] — Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) · phase A12.P3
+
+## docs
+
+### Proposto (1)
+
+- [[ADR-234]] — Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) · phase A15
 
 ## frontend
 

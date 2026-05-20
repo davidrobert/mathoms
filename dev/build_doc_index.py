@@ -19,8 +19,10 @@ GENERATED_DIR = DOCS / "_MOC" / "_generated"
 
 # Valores permitidos de `sprint_status` no frontmatter de docs/sprint/<X>/_README.md.
 # Apenas 1 MOC pode declarar `current`; validador em check_doc_links/--check garante.
+# `paused` (ADR-234): sprint com escopo aberto suspenso para ceder prioridade;
+# múltiplas sprints podem estar `paused` simultaneamente. Renderer ignora.
 _SPRINT_MOC_ID_RE = re.compile(r"^MOC-sprint-(?P<sprint>[a-z]+\d+)$")
-_VALID_SPRINT_STATUSES: frozenset[str] = frozenset({"current", "candidate", "done"})
+_VALID_SPRINT_STATUSES: frozenset[str] = frozenset({"current", "candidate", "done", "paused"})
 
 # Diretórios da vault que NÃO devem ser indexados.
 # Inclui o próprio output do codegen (evita auto-referência) e legados que

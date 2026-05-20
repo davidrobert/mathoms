@@ -8,26 +8,42 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 > **Editorial.** Resumo narrativo da sprint atual. Status detalhado: `_generated/SPRINT_CURRENT.md`.
 >
-> **Fonte de verdade da sprint corrente:** o campo `sprint_status` no frontmatter de cada `docs/sprint/<X>/_README.md`. Valores: `current` (única) · `candidate` (próxima) · `done` (encerrada). Validado por `python3 dev/build_doc_index.py --check` — falha se houver 2+ MOCs com `current` ou status fora do vocabulário. Ao virar a sprint, edite os dois `_README.md` (atual: `current → done`; próxima: `candidate → current`) **antes** de regenerar.
+> **Fonte de verdade da sprint corrente:** o campo `sprint_status` no frontmatter de cada `docs/sprint/<X>/_README.md`. Valores: `current` (única) · `candidate` (próxima) · `paused` (escopo aberto, ceu prioridade — múltiplas permitidas) · `done` (encerrada). Validado por `python3 dev/build_doc_index.py --check` — falha se houver 2+ MOCs com `current` ou status fora do vocabulário. Ao virar a sprint, edite os `_README.md` envolvidos **antes** de regenerar. Transições típicas: `current → done` (escopo entregue) · `candidate → current` (promoção); transições com débito conhecido: `current → paused` ou `candidate → paused` ([[ADR-234]]).
 
 ## Sprint atual
 
-**A11 — Platform review execution** (origem 2026-05-06).
+**A15 — FU-3 Imóvel financiado** (origem 2026-05-19, promovida a `current` em 2026-05-20).
 
-32 tasks em 6 ondas, 138 findings consolidados de revisão multi-agente (data-engineer + financial-planner + product-designer + sre-devops + build-vs-buy + senior-cto), 6 ADRs Proposto (ADR-170 a ADR-175).
+Sprint dedicada ao último follow-up out-of-scope do Sprint A12 ([[ADR-215]] §Follow-ups). Resolve dois bugs silenciosos em produção (patrimônio bruto defasado + IF mal-calibrado) criando agregado `Debt` persistido + `property_market_value` versionada.
 
-- **W1** ✅ entregue.
-- **W2-W6** abertas conforme [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md).
-- **DOC_REORG** ✅ entregue em 2026-05-07; plano histórico arquivado em [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md) e ADR canônica em [ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md).
-- **A11.competitive-pierre** (novo, 2026-05-08): resposta competitiva a [Pierre Finance](https://lp.pierre.finance/) (CloudWalk) — quatro fases (recon POC, Mathoms-as-MCP, chat sobre relatório, reposicionamento brand). Plano em [plan/COMPETITIVE_PIERRE/_README.md](../plan/COMPETITIVE_PIERRE/_README.md). Tracks ready: [competitor-pierre-poc](../sprint/A11/tracks/competitor-pierre-poc.md) (Fase 1) · [gtm-landing-copy-rewrite](../sprint/A11/tracks/gtm-landing-copy-rewrite.md) (Fase 4.B skeleton, ancorada em [ADR-183](../adr/183-landing-positioning-pillars-2026.md)).
-- **A11.cat-overrides-ux** ✅ entregue 2026-05-10: editar 24 categorias default (template v1, [ADR-137](../adr/137-catalog-override-resolver-para-categorization-e.md)) via UI; corrigida tela vazia em workspace novo. 4/4 PRs em `main` (W1 #187 cache invalidation, W2 #186 schema delta, W3 #182 ADR Proposto, W4 #189 UI refactor + ADR flip). [ADR-185](../adr/185-politica-de-overrides-de-categoria.md) `Decidido (A11.cat-overrides)`. Plano arquivado: [archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md](../archive/CATEGORY_OVERRIDES_UX_PLAN-2026-05-10.md).
-- **A11.report-publication** (novo, 2026-05-10): conceito de "mês fechado" imutável — barreira temporal pra mutações retroativas (re-categorização, IRPF, Decision, cenários). Lane standalone (3d eng) promovida de "P0 do learning loop" por review PM 2026-05-10 (reusabilidade + desacopla risco cruzado). ADR Proposto: [ADR-187](../adr/187-relatorio-publicado-imutavel-mes-fechado.md). Track ready: [report-publication-impl](../sprint/A11/tracks/report-publication-impl.md).
+- **5 ondas sequenciais, ~10d eng** — schema → backfill → calculator → API → frontend. Plano canônico: [plan/IMOVEL_FINANCIADO/_README.md](../plan/IMOVEL_FINANCIADO/_README.md). ADR canônica: [ADR-227](../adr/227-imovel-financiado-debt-aggregate-valor-mercado.md) (Proposto). Detalhe: [docs/sprint/A15/_README.md](../sprint/A15/_README.md).
+- **Co-design 2026-05-19** com `financial-planner` + `senior-cto` + `data-engineer` + `product-designer` em paralelo. Síntese consumida em ADR-227 D1-D6.
+- **Promoção via [ADR-234](../adr/234-sprint-status-paused.md)**: vocabulário `sprint_status` ganhou `paused` para A11 e A12 cederem prioridade sem mentir como `done`.
 
 ## Sprint candidate (próxima)
 
-**A12 — Categorization learning loop + post-A11 follow-up** (origem 2026-05-10, abre quando A11 fechar).
+_Nenhuma sprint em `candidate` no momento — A12 era candidate e foi pausada com a promoção de A15. A próxima sprint será decidida no fechamento de A15._
 
-- **A12.cat-learning-loop** (in_progress; P1 ✅ 2026-05-10 PR #188; P2 ✅ 2026-05-11 PR #194; P3 ✅ 2026-05-11 4 PRs #195-#198; gate dogfood próximo passo; P4 condicional): promoção de override de transação em regra de categorização persistida. Co-design `financial-planner` + `product-designer`; modelo híbrido C-light + D-forte com invariantes (override manual sticky, mês fechado imutável, conflito determinístico). MVP V1 cortado pra 4 fases (P1-P4) + gate dogfood ≈12,5d eng (3-4 sem wall-clock). P5 inbox + P6 detector offline + alertas SRE são V2 pós-tração. Plano: [plan/CAT_LEARNING_LOOP/_README.md](../plan/CAT_LEARNING_LOOP/_README.md). ADRs canônicas: [ADR-186](../adr/186-promocao-override-transacao-para-regra-categorizacao.md) (Decidida, base) + [ADR-188](../adr/188-evolucao-schema-e-semantica-learning-loop-p3.md) (Decidida, schema evolution P3 — soft-delete + partial unique + revert_count split). **Pré-requisito externo:** A11.report-publication mergeado em `main` ✅ (PR #185). Tracks consumidos: P1 (PR #188), P2 (PR #194), P3 (PRs #195-#198). **Próximo passo:** gate dogfood (CEO + PM, 0,5d setup + 7d wall-clock) — ver [docs/reference/RUNBOOK.md §9](../reference/RUNBOOK.md). Detalhe: [docs/sprint/A12/_README.md](../sprint/A12/_README.md).
+## Sprints pausadas
+
+Sprints com escopo aberto cujo trabalho foi suspenso para ceder prioridade a A15. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando A15 fechar.
+
+### A11 — Platform review execution (`paused` 2026-05-20)
+
+**Pausada com débito conhecido.** 6 ondas, 138 findings de revisão multi-agente. W1 ✅ + W2 ✅ entregues; W3-W6 abertas (~9 itens). Sub-lanes paralelas (competitive-pierre, report-publication) preservadas.
+
+- **Trabalho residual:** [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (W3-W6).
+- **Sub-lanes preservadas:** A11.competitive-pierre (Fase 1 ready), A11.report-publication (ADR-187 Proposto), A11.cat-overrides-ux ✅ entregue 2026-05-10.
+- **DOC_REORG** ✅ entregue em 2026-05-07 (separado da pausa). Arquivado em [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md), ADR canônica [ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md).
+- **Retomada:** flip `paused → current` quando A15 fechar.
+
+### A12 — Categorization learning loop + post-A11 follow-up (`paused` 2026-05-20)
+
+**Pausada com débito conhecido.** Cat-learning-loop in_progress: P1-P3 mergeadas (PRs #188, #194, #195-#198); gate dogfood + P4 condicional pendentes. FU-1 + FU-2 entregues, FU-3 absorvido como A15.
+
+- **Trabalho residual:** gate dogfood (CEO + PM, 0,5d setup + 7d wall-clock — ver [docs/reference/RUNBOOK.md §9](../reference/RUNBOOK.md)) + P4 condicional.
+- **Plano:** [plan/CAT_LEARNING_LOOP/_README.md](../plan/CAT_LEARNING_LOOP/_README.md). ADRs: [ADR-186](../adr/186-promocao-override-transacao-para-regra-categorizacao.md) + [ADR-188](../adr/188-evolucao-schema-e-semantica-learning-loop-p3.md).
+- **Retomada:** flip `paused → candidate` quando A15 fechar.
 
 ## Pickup — antes de pegar lane
 

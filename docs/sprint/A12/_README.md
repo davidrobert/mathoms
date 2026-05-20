@@ -3,14 +3,18 @@ id: MOC-sprint-a12
 type: moc
 title: Sprint A12 — Categorization learning loop + post-A11 follow-up
 aliases: ["A12", "Sprint A12"]
-sprint_status: candidate
+sprint_status: paused
 ---
 
 # Sprint A12 — Categorization learning loop + post-A11 follow-up (origem 2026-05-10)
 
-> **Status:** in_progress (desde 2026-05-10) — lane única ativa
-> `A12.cat-learning-loop` com P1-P4 (UI mínima) + gate técnico shipped.
-> Gate dogfood humano (7d wall-clock) é o último bloqueio para fechar DoD.
+> **Status:** `paused` desde 2026-05-20 ([[ADR-234]]) — cedeu prioridade
+> para [[Sprint A15]] (FU-3 imóvel financiado, originalmente débito desta
+> sprint via [[ADR-215]] §Follow-ups). P1-P4 (UI mínima) + gate técnico
+> shipped (PRs #188, #194, #195-#198); gate dogfood humano (7d
+> wall-clock) é o último bloqueio para fechar DoD. FU-1 + FU-2 entregues,
+> FU-3 absorvido como A15. Retomada: flip `paused → candidate` quando
+> A15 fechar.
 
 ## Resumo
 
