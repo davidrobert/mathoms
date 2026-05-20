@@ -1,0 +1,64 @@
+# gitleaks config — Sprint A11 W2-T03 ([[ADR-230]] §D3)
+#
+# Allowlist policy:
+#   - Paths whitelist: _archive/, EXEMPLO_DE_RELATORIO.html, tests/fixtures/,
+#     frontend/src/test/, dev/snapshots/, docs/archive/
+#   - Regex whitelist: CPFs sintéticos em testes, dev keys documentadas.
+#   - Commits whitelist: SHAs históricos com matches conhecidos (baseline).
+#
+# Sempre que adicionar entry: PR + justificativa + comentário inline.
+# Override emergencial: ver docs/reference/runbooks/security_gates.md.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Paths de arquivos sintéticos (fixtures, mocks, baselines, archive)"
+paths = [
+    '''^_archive/''',
+    '''^EXEMPLO_DE_RELATORIO\.html$''',
+    '''^tests/fixtures/''',
+    '''^backend/tests/fixtures/''',
+    '''^frontend/src/test/''',
+    '''^frontend/playwright-baselines/''',
+    '''^dev/snapshots/''',
+    '''^docs/archive/''',
+    # Documentação técnica que cita formato de tokens sem secret real
+    '''^docs/.*\.md$''',
+    # Migrações Alembic legadas (sem secret, mas regex de chave pode disparar)
+    '''^backend/alembic/versions/.*\.py$''',
+]
+
+[[allowlists]]
+description = "Dev keys documentadas (não-secret em ambiente real de prod)"
+regexes = [
+    # MATHOMS_FERNET_KEY hardcoded em ci.yml (key de dev; rotacionada em prod via secrets — TODO cicd-onda-3)
+    '''NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=''',
+    # SECRET_KEY default rejeitada em prod por model_validator (W1-T05)
+    '''dev-secret-key-change-in-production''',
+    # Fernet key placeholders em docs/runbooks
+    '''<MATHOMS_FERNET_KEY>''',
+    '''<FERNET_KEY_PLACEHOLDER>''',
+]
+
+[[allowlists]]
+description = "CPFs sintéticos em paths de teste (já cobertos por paths, redundância defensiva)"
+regexes = [
+    '''\b[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}\b''',
+]
+paths = [
+    '''^tests/''',
+    '''^backend/tests/''',
+    '''^frontend/src/test/''',
+    '''^_archive/''',
+    '''^EXEMPLO_DE_RELATORIO\.html$''',
+]
+
+# Baseline de commits SHAs históricos com matches conhecidos.
+# Popular via: `gitleaks detect --report-path .gitleaks-baseline.json`
+# Entries adicionadas após análise de matches legítimos.
+[[allowlists]]
+description = "Baseline histórico (SHAs com false-positive conhecido)"
+commits = [
+    # Placeholder — popular no PR de implementação após primeiro run real
+]

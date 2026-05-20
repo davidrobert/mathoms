@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-222 ADRs (ADR-001 a ADR-229) em [`docs/adr/`](../../adr/).
+223 ADRs (ADR-001 a ADR-230) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 177
-- **Proposto**: 41
+- **Proposto**: 42
 - **Roadmap**: 4
 
 ## Fundação
@@ -456,6 +456,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-187]] — Relatório publicado é imutável — conceito de mês fechado · phase A11
 - [[ADR-190]] — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica · phase A11
+
+## security
+
+### Proposto (1)
+
+- [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11
 
 ## Outras
 
