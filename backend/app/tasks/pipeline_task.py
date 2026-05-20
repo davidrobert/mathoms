@@ -610,6 +610,7 @@ def _mark_run_started(run_id: str, tier: str, celery_task_id: str) -> bool:
         run.status = PipelineRunStatus.running
         run.tier_at_run = tier
         run.celery_task_id = celery_task_id
+        run.last_heartbeat_at = datetime.now(timezone.utc)
         db.commit()
     return True
 
@@ -656,6 +657,8 @@ def _record_stage_running(
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
         run.current_stage = stage_name
+        # ADR-172: heartbeat atualizado em cada stage start.
+        run.last_heartbeat_at = stage_started_at
         db.add(
             PipelineStageLog(
                 id=log_id,

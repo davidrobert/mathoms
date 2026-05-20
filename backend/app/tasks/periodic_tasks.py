@@ -1,8 +1,9 @@
-"""Tarefas periódicas Celery Beat — ADR-074 §F8.4 + LGPD self-service."""
+"""Tarefas periódicas Celery Beat — ADR-074 §F8.4 + LGPD self-service + ADR-172."""
 
 # scan_all_deadlines (notifications), expire_data_exports (LGPD ttl janitor),
-# process_user_deletions (LGPD hard-delete pós-grace 30d). Beat schedule
-# em worker.py:celery_app.conf.beat_schedule.
+# process_user_deletions (LGPD hard-delete pós-grace 30d), detect_stuck_runs
+# (ADR-172 W2-T04 — heartbeat timeout). Beat schedule em
+# worker.py:celery_app.conf.beat_schedule.
 
 from __future__ import annotations
 
@@ -10,17 +11,21 @@ import logging
 import os
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models import (
     DataExportRequest,
     DataExportRequestStatus,
+    Notification,
     User,
     Workspace,
 )
+from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.services.audit import AuditAction, audit_log_sync
+from backend.app.services.events import publish_run_failed
+from backend.app.services.pipeline_failure_reasons import HEARTBEAT_TIMEOUT
 from backend.app.services.task_notification_service import (
     scan_and_create_notifications,
 )
@@ -29,6 +34,10 @@ from backend.app.worker import celery_app
 logger = logging.getLogger(__name__)
 
 DELETION_GRACE_DAYS = 30
+
+#: ADR-172 — threshold após o qual um run ``running`` sem heartbeat é
+#: considerado travado. Worst-case detection: ``beat_freq + threshold``.
+DEFAULT_STUCK_RUN_THRESHOLD_MINUTES = 15
 
 
 @celery_app.task(name="fin.scan_all_deadlines", bind=True, max_retries=1)
@@ -187,4 +196,112 @@ def process_user_deletions(self) -> dict[str, int]:
         db.commit()
     result = {"hard_deleted": deleted, "cutoff": cutoff.isoformat()}
     logger.info("process_user_deletions: %s", result)
+    return result
+
+
+def _resolve_stuck_run_threshold() -> timedelta:
+    raw = os.environ.get("MATHOMS_STUCK_RUN_THRESHOLD_MINUTES")
+    try:
+        minutes = int(raw) if raw else DEFAULT_STUCK_RUN_THRESHOLD_MINUTES
+    except ValueError:
+        minutes = DEFAULT_STUCK_RUN_THRESHOLD_MINUTES
+    if minutes < 1:
+        minutes = DEFAULT_STUCK_RUN_THRESHOLD_MINUTES
+    return timedelta(minutes=minutes)
+
+
+def _flip_stuck_run_atomic(db: Session, run: PipelineRun, *, now: datetime) -> bool:
+    """UPDATE atômico filtrando ``status='running'`` — evita race com stage completion."""
+    result = db.execute(
+        update(PipelineRun)
+        .where(PipelineRun.id == run.id, PipelineRun.status == PipelineRunStatus.running)
+        .values(
+            status=PipelineRunStatus.failed,
+            failure_reason=HEARTBEAT_TIMEOUT,
+            failed_at_stage=run.current_stage,
+            completed_at=now,
+            current_stage=None,
+        )
+    )
+    return result.rowcount == 1
+
+
+def _select_stuck_candidates(db: Session, cutoff: datetime) -> list[PipelineRun]:
+    return list(
+        db.execute(
+            select(PipelineRun).where(
+                PipelineRun.status == PipelineRunStatus.running,
+                PipelineRun.last_heartbeat_at.is_not(None),
+                PipelineRun.last_heartbeat_at < cutoff,
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+def _stuck_run_notification(run: PipelineRun, stage: str | None) -> Notification:
+    return Notification(
+        workspace_id=run.workspace_id,
+        severity="error",
+        title="Processamento interrompido",
+        message=(
+            f"O processamento travou no estágio {stage or 'inicial'}. "
+            "Clique em Reprocessar para retomar."
+        ),
+        source="pipeline",
+    )
+
+
+def _log_stuck_run(
+    run: PipelineRun, *, stage: str | None, stale_minutes: float, threshold: timedelta
+) -> None:
+    logger.warning(
+        "Stuck pipeline run detected",
+        extra={
+            "event": "mathoms.pipeline.stuck_run_detected",
+            "run_id": run.id,
+            "workspace_id": run.workspace_id,
+            "stage": stage,
+            "stale_minutes": round(stale_minutes, 1),
+            "threshold_minutes": int(threshold.total_seconds() // 60),
+        },
+    )
+
+
+def _flip_one_stuck(
+    db: Session, run: PipelineRun, *, now: datetime, threshold: timedelta
+) -> tuple[str, str] | None:
+    stale_minutes = (now - run.last_heartbeat_at).total_seconds() / 60
+    stage = run.current_stage
+    if not _flip_stuck_run_atomic(db, run, now=now):
+        return None
+    db.add(_stuck_run_notification(run, stage))
+    _log_stuck_run(run, stage=stage, stale_minutes=stale_minutes, threshold=threshold)
+    return run.id, run.workspace_id
+
+
+def _publish_failed_safe(run_id: str) -> None:
+    try:
+        publish_run_failed(run_id)
+    except Exception as exc:  # noqa: BLE001 — best-effort WS publish
+        logger.warning("detect_stuck_runs.publish_failed run=%s err=%s", run_id, exc)
+
+
+@celery_app.task(name="fin.detect_stuck_runs", bind=True, max_retries=1)
+def detect_stuck_runs(self) -> dict[str, int]:
+    """ADR-172 (W2-T04) — flippa runs ``running`` com heartbeat estale para ``failed``."""
+    threshold = _resolve_stuck_run_threshold()
+    now = datetime.now(timezone.utc)
+    detected: list[tuple[str, str]] = []
+    with SyncSessionLocal() as db:
+        for run in _select_stuck_candidates(db, now - threshold):
+            flipped = _flip_one_stuck(db, run, now=now, threshold=threshold)
+            if flipped:
+                detected.append(flipped)
+        db.commit()
+    for run_id, _ws_id in detected:
+        _publish_failed_safe(run_id)
+    result = {"detected": len(detected)}
+    logger.info("detect_stuck_runs: %s", result)
     return result
