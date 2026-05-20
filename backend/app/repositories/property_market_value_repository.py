@@ -39,6 +39,15 @@ class PropertyMarketValueRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_for_workspace(self, workspace_id: str) -> list[PropertyMarketValue]:
+        """Todas as declarações do workspace, ordenadas por ``valuation_date`` desc."""
+        result = await self._session.execute(
+            select(PropertyMarketValue)
+            .where(PropertyMarketValue.workspace_id == workspace_id)
+            .order_by(PropertyMarketValue.valuation_date.desc())
+        )
+        return list(result.scalars().all())
+
     async def list_for_property(
         self, workspace_id: str, property_id: str
     ) -> list[PropertyMarketValue]:

@@ -16,6 +16,7 @@ from backend.app.api.category_overrides import router as category_overrides_rout
 from backend.app.api.config import router as config_router
 from backend.app.api.csp_report import router as csp_report_router
 from backend.app.api.dashboard import router as dashboard_router
+from backend.app.api.debt import router as debt_router
 from backend.app.api.decisions import router as decisions_router
 from backend.app.api.documents import router as documents_router
 from backend.app.api.exposicao_cambial import router as exposicao_cambial_router
@@ -29,6 +30,7 @@ from backend.app.api.notifications import router as notifications_router
 from backend.app.api.pipeline import router as pipeline_router
 from backend.app.api.planner_review import router as planner_review_router
 from backend.app.api.properties import router as properties_router
+from backend.app.api.property_market_value import router as property_market_value_router
 from backend.app.api.protections import (
     protection_bundle_router,
 )
@@ -231,6 +233,8 @@ _ALL_ROUTERS = (
     protection_bundle_router,
     planner_review_router,
     properties_router,
+    property_market_value_router,
+    debt_router,
     exposicao_cambial_router,
     suggestions_router,
     workspaces_router,
