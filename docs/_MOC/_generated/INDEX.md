@@ -510,6 +510,7 @@
 | MOC-sprint-a10 | moc |  |  | Sprint A10 — goals.json cutover final | `sprint/A10/_README.md` |
 | MOC-sprint-a11 | moc |  |  | Sprint A11 — Platform review execution | `sprint/A11/_README.md` |
 | MOC-sprint-a12 | moc |  |  | Sprint A12 — Categorization learning loop + post-A11 follow-up | `sprint/A12/_README.md` |
+| MOC-sprint-a15 | moc |  |  | Sprint A15 — FU-3 Imóvel financiado (Debt aggregate + valor_mercado override) | `sprint/A15/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
@@ -529,6 +530,11 @@
 | PLAN-s4-real-estate-enrichment | plan | draft |  | S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel) | `plan/S4_REAL_ESTATE_ENRICHMENT/_README.md` |
 | PLAN-snapshot-changelog-v3 | plan | in_progress |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `plan/SNAPSHOT_CHANGELOG_V3/_README.md` |
 | TRACK-a11-w5-t06-rentabilidade-card | track | consumed | A11 | Card S3 Rentabilidade — rebrand TRS efetiva + enriquecimento + cobertura essencial | `sprint/A11/tracks/a11-w5-t06-rentabilidade-card.md` |
+| TRACK-a15-fu3-onda1-schema | track | ready | A15 | Track A15 FU-3 Onda 1 — Schema + repos + models (Debt + property_market_value) | `sprint/A15/tracks/a15-fu3-onda1-schema.md` |
+| TRACK-a15-fu3-onda2-backfill | track | ready | A15 | Track A15 FU-3 Onda 2 — Backfill total_dividas → rows Debt + audit log | `sprint/A15/tracks/a15-fu3-onda2-backfill.md` |
+| TRACK-a15-fu3-onda3-calculator | track | ready | A15 | Track A15 FU-3 Onda 3 — Calculator + resolver puro + payload E5 | `sprint/A15/tracks/a15-fu3-onda3-calculator.md` |
+| TRACK-a15-fu3-onda4-api | track | ready | A15 | Track A15 FU-3 Onda 4 — API endpoints + OpenAPI snapshot | `sprint/A15/tracks/a15-fu3-onda4-api.md` |
+| TRACK-a15-fu3-onda5-frontend | track | ready | A15 | Track A15 FU-3 Onda 5 — Frontend: form, batch review, drill-down card | `sprint/A15/tracks/a15-fu3-onda5-frontend.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |
