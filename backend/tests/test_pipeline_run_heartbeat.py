@@ -37,6 +37,10 @@ async def _reload(db: AsyncSession, run_id: str) -> PipelineRun:
     ).scalar_one()
 
 
+def _as_utc(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
 @pytest.mark.asyncio
 async def test_mark_run_started_sets_heartbeat(db: AsyncSession) -> None:
     run_id = await _seed_pending_run(db)
@@ -48,7 +52,7 @@ async def test_mark_run_started_sets_heartbeat(db: AsyncSession) -> None:
     refreshed = await _reload(db, run_id)
     assert refreshed.status == PipelineRunStatus.running
     assert refreshed.last_heartbeat_at is not None
-    assert refreshed.last_heartbeat_at >= before
+    assert _as_utc(refreshed.last_heartbeat_at) >= before
 
 
 @pytest.mark.asyncio
@@ -71,4 +75,4 @@ async def test_record_stage_running_updates_heartbeat(db: AsyncSession, monkeypa
 
     refreshed = await _reload(db, run_id)
     assert refreshed.current_stage == "extract_statements"
-    assert refreshed.last_heartbeat_at == stage_started_at
+    assert _as_utc(refreshed.last_heartbeat_at) == stage_started_at

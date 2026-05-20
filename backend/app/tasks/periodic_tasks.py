@@ -269,10 +269,14 @@ def _log_stuck_run(
     )
 
 
+def _as_utc(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
 def _flip_one_stuck(
     db: Session, run: PipelineRun, *, now: datetime, threshold: timedelta
 ) -> tuple[str, str] | None:
-    stale_minutes = (now - run.last_heartbeat_at).total_seconds() / 60
+    stale_minutes = (now - _as_utc(run.last_heartbeat_at)).total_seconds() / 60
     stage = run.current_stage
     if not _flip_stuck_run_atomic(db, run, now=now):
         return None
