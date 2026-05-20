@@ -27,6 +27,15 @@ def _seed_unprocessed_doc(root: Path, name: str) -> Path:
     return p
 
 
+def _run_e2_llm(ctx, output=None):
+    """Helper: roda extract_with_llm.run(ctx) com FakeStructuredLLMClient mock."""
+    fake = FakeStructuredLLMClient(output=output or make_e2_llm_output())
+    with patch("pipeline.llm.litellm_client.LLMService.call", side_effect=fake.call):
+        from pipeline.stages.extract_with_llm import run
+
+        return run(ctx), fake
+
+
 @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract", return_value="fake-content")
 @patch("pipeline.llm.text_extractor.DocumentTextExtractor.is_image", return_value=False)
 @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
@@ -37,13 +46,7 @@ def test_extract_with_llm_full_mode_processes_all(
     ctx = make_llm_ctx(tmp_path)
     _seed_unprocessed_doc(tmp_path, "btg_informe_202412-0_original.pdf")
     _seed_unprocessed_doc(tmp_path, "btg_informe_202411-0_original.pdf")
-
-    fake = FakeStructuredLLMClient(output=make_e2_llm_output())
-    with patch("pipeline.llm.litellm_client.LLMService.call", side_effect=fake.call):
-        from pipeline.stages.extract_with_llm import run
-
-        result = run(ctx)
-
+    result, fake = _run_e2_llm(ctx)
     assert result.get("skipped") is not True
     assert result["total_processed"] == 2
     assert fake.calls == 2
@@ -59,18 +62,9 @@ def test_extract_with_llm_incremental_filters_to_allowlist(
     ctx = make_llm_ctx(tmp_path)
     _seed_unprocessed_doc(tmp_path, "btg_informe_202412-0_original.pdf")
     _seed_unprocessed_doc(tmp_path, "btg_informe_202411-0_original.pdf")
-
     ctx.incremental = True
-    ctx.incremental_doc_paths = [
-        "data/financial_statements/btg_informe_202412-0_original.pdf",
-    ]
-
-    fake = FakeStructuredLLMClient(output=make_e2_llm_output())
-    with patch("pipeline.llm.litellm_client.LLMService.call", side_effect=fake.call):
-        from pipeline.stages.extract_with_llm import run
-
-        result = run(ctx)
-
+    ctx.incremental_doc_paths = ["data/financial_statements/btg_informe_202412-0_original.pdf"]
+    result, fake = _run_e2_llm(ctx)
     assert result.get("skipped") is not True
     assert result["total_processed"] == 1
     assert fake.calls == 1
@@ -106,21 +100,14 @@ def test_extract_with_llm_payload_carries_prompt_version(
 
     ctx = make_llm_ctx(tmp_path)
     doc = _seed_unprocessed_doc(tmp_path, "btg_informe_202412-0_original.pdf")
-
-    fake = FakeStructuredLLMClient(output=make_e2_llm_output())
-    with patch("pipeline.llm.litellm_client.LLMService.call", side_effect=fake.call):
-        from pipeline.stages.extract_with_llm import run
-
-        run(ctx)
-
+    _run_e2_llm(ctx)
     store = ctx.get_artifact_store()
     keys = store.list_keys("E2-llm")
     assert keys, "stage não gravou artifact E2-llm"
     payload = store.read("E2-llm", keys[0])
     assert payload is not None
     assert payload.get("prompt_version") == PROMPT_VERSION
-    # E o doc físico do disco realmente foi consumido (sanity).
-    assert doc.exists()
+    assert doc.exists()  # sanity: doc físico foi consumido
 
 
 @pytest.mark.parametrize("stage", ["extract_members", "extract_baseline"])
