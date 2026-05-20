@@ -735,6 +735,8 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `tier_at_run` | `VARCHAR(20)` | no | `'free'` | — |
 | `paused_at_stage` | `VARCHAR(50)` | yes | — | — |
 | `celery_task_id` | `VARCHAR(255)` | yes | — | — |
+| `last_heartbeat_at` | `DATETIME` | yes | — | — |
+| `failure_reason` | `VARCHAR(50)` | yes | — | — |
 
 **Constraints:**
 
@@ -2003,6 +2005,8 @@ type PipelineRun struct {
 	TierAtRun string `db:"tier_at_run" json:"tier_at_run"`
 	PausedAtStage *string `db:"paused_at_stage" json:"paused_at_stage"`
 	CeleryTaskId *string `db:"celery_task_id" json:"celery_task_id"`
+	LastHeartbeatAt *time.Time `db:"last_heartbeat_at" json:"last_heartbeat_at"`
+	FailureReason *string `db:"failure_reason" json:"failure_reason"`
 }
 ```
 
