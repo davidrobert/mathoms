@@ -25,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, Plus } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import type { UserWorkspace } from "@/lib/api";
+import { MarketValueSection } from "./MarketValueSection";
 import { ResidenciaSection } from "./ResidenciaSection";
 import { InlineField } from "./_InlineField";
 import { MemberIrpfSection } from "./_MemberIrpfSection";
@@ -240,6 +241,7 @@ function MembersTabContent({ workspace }: { workspace: UserWorkspace }) {
       </Card>
 
       <ResidenciaSection workspaceId={workspace.id} />
+      <MarketValueSection workspaceId={workspace.id} />
       {/* Member Cards — ordem hierárquica: Titular → Cônjuge → Filho → Dependente */}
       <div className="space-y-3">
         {[...members].sort((a, b) => {
