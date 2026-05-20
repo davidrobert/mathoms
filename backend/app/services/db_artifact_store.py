@@ -1,45 +1,39 @@
-"""DBArtifactStore — implementação SQLAlchemy do protocolo ``ArtifactStore``.
-
-Vive em ``backend/app/services/`` porque depende de SQLAlchemy — a fronteira
-arquitetural de ``pipeline/`` proíbe imports de fastapi/celery/sqlalchemy
-(ver ``dev/check_pipeline_boundaries.py``).
-
-**JSON-schema hook pós-write (ADR-212 PR3):** ``write()`` valida payload
-contra ``config/schemas/<schema>.json`` via ``SCHEMA_BY_STAGE``. Modo
-``strict``/``warn`` herdado de ``pipeline.json::schema_validation.mode``
-(override via ``MATHOMS_PIPELINE_SCHEMA_MODE``). Protege todos os stages,
-não apenas os com validação explícita pré-PR3.
-
-**Gerenciamento de sessão (ADR-083):** a sessão é injetada pelo chamador
-(Celery task ou teste). O store não cria nem fecha sessão própria — o
-chamador controla ``commit`` / ``rollback`` / ``close``. Isso garante que toda
-a run compartilha uma transação e evita sessões órfãs.
-
-**Sem ``flush`` por-write:** writes/deletes apenas marcam o estado na sessão;
-o flush acontece naturalmente no ``commit`` do chamador (fim de stage em
-``pipeline_task._record_stage_result``) ou via ``autoflush`` antes de queries
-subsequentes na mesma sessão. Flush por-operação produzia contenção de
-write-lock em SQLite quando stages gravavam milhares de artefatos em série.
-
-Semântica:
-    - ``write`` é upsert por ``(pipeline_run_id, stage, artifact_key)``.
-    - ``read`` devolve o artefato do ``pipeline_run_id`` fixado no construtor.
-      Para stages em ``_WORKSPACE_SCOPED_STAGES`` (datasets de referência por
-      workspace, ADR-132 + ADR-157), faz fallback para o artefato mais recente
-      do workspace quando o run atual não tem o key. Para leitura cross-run
-      arbitrária use ``PipelineArtifactRepository``.
-    - ``list_keys`` devolve distinct keys no workspace (cross-run) para o stage.
-    - ``delete_stage`` remove apenas os artefatos do run atual — runs
-      anteriores permanecem intocadas.
-"""
+"""DBArtifactStore — SQLAlchemy ArtifactStore. Sessão injetada (ADR-083); validate→encrypt→write (ADR-212 PR3 + ADR-231); fallback workspace para stages em _WORKSPACE_SCOPED_STAGES (ADR-132 / ADR-157)."""
 
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
+from backend.app.services.crypto import (
+    decrypt_artifact_payload,
+    encrypt_artifact_payload,
+    is_encrypted_payload,
+    should_encrypt_writes,
+)
+
+_logger = logging.getLogger("mathoms.crypto")
+
+
+def _maybe_encrypt(payload: dict) -> dict:
+    if not should_encrypt_writes():
+        return payload
+    return encrypt_artifact_payload(payload)
+
+
+def _maybe_decrypt(payload: Optional[dict] = None) -> Optional[dict]:
+    if payload is None:
+        return None
+    if not is_encrypted_payload(payload):
+        return payload
+    if not should_encrypt_writes():
+        # config drift observável (kill switch off + row encriptada)
+        _logger.warning("mathoms.crypto.read_in_disabled_mode")
+    return decrypt_artifact_payload(payload)
+
 
 SCHEMA_BY_STAGE: dict[str, str] = {
     # Stage → schema em config/schemas/. Aplicado em DBArtifactStore.write
@@ -175,12 +169,11 @@ class DBArtifactStore:
 
     def read(self, stage: str, key: str) -> Optional[dict]:
         row = self._get(stage, key)
-        if row is not None:
-            return row.content_json
-        if stage in _WORKSPACE_SCOPED_STAGES:
+        if row is None and stage in _WORKSPACE_SCOPED_STAGES:
             row = self._get_latest_in_workspace(stage, key)
-            return row.content_json if row is not None else None
-        return None
+        if row is None:
+            return None
+        return _maybe_decrypt(row.content_json)
 
     def list_keys(self, stage: str) -> list[str]:
         rows = (
@@ -203,30 +196,39 @@ class DBArtifactStore:
         *,
         document_id: Optional[str] = None,
     ) -> None:
-        # ADR-212 PR3 — hook pós-write para validação JSON-schema.
-        # Modo strict/warn herdado de pipeline.json::schema_validation; em
-        # strict + payload inválido, jsonschema.ValidationError propaga.
-        schema_name = SCHEMA_BY_STAGE.get(stage)
-        if schema_name is not None:
-            from scripts.pipeline_common import validate_dict
-
-            validate_dict(data, schema_name, source=f"{stage}/{key}")
-
+        self._validate_schema(stage, key, data)
+        payload = _maybe_encrypt(data)
         row = self._get(stage, key)
         if row is None:
-            row = PipelineArtifact(
+            self._insert(stage, key, payload, document_id)
+            return
+        row.content_json = payload
+        if document_id is not None:
+            row.document_id = document_id
+
+    def _insert(
+        self, stage: str, key: str, payload: dict, document_id: Optional[str] = None
+    ) -> None:
+        self._session.add(
+            PipelineArtifact(
                 workspace_id=self._workspace_id,
                 pipeline_run_id=self._pipeline_run_id,
                 stage=stage,
                 artifact_key=key,
                 document_id=document_id,
-                content_json=data,
+                content_json=payload,
             )
-            self._session.add(row)
-        else:
-            row.content_json = data
-            if document_id is not None:
-                row.document_id = document_id
+        )
+
+    @staticmethod
+    def _validate_schema(stage: str, key: str, data: dict) -> None:
+        # ADR-212 PR3 — strict propaga jsonschema.ValidationError; warn loga.
+        schema_name = SCHEMA_BY_STAGE.get(stage)
+        if schema_name is None:
+            return
+        from scripts.pipeline_common import validate_dict
+
+        validate_dict(data, schema_name, source=f"{stage}/{key}")
 
     def delete(self, stage: str, key: str) -> None:
         row = self._get(stage, key)

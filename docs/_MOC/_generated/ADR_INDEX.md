@@ -5,23 +5,24 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-223 ADRs (ADR-001 a ADR-230) em [`docs/adr/`](../../adr/).
+224 ADRs (ADR-001 a ADR-231) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 178
+- **Decidido**: 179
 - **Proposto**: 41
 - **Roadmap**: 4
 
 ## Fundação
 
-### Decidido (5)
+### Decidido (6)
 
 - [[ADR-001]] — SQLAlchemy 2.0 como ORM · phase F1
 - [[ADR-002]] — Filesystem local para storage · phase F2
 - [[ADR-003]] — JWT custom para auth · phase F1
 - [[ADR-006]] — Monorepo · phase F0
 - [[ADR-013]] — "Wrap, Don't Rewrite" pattern · phase F0
+- [[ADR-231]] — Encryption at-rest de PII em pipeline_artifacts via Fernet wrapper (hook em DBArtifactStore) · phase A11.W2
 
 ### Proposto (1)
 
