@@ -4,7 +4,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import bcrypt
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 
 from backend.app.core.config import settings
 
@@ -44,5 +45,5 @@ def decode_access_token_payload(token: str) -> Optional[dict]:
     None se assinatura inválida ou expirado."""
     try:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    except JWTError:
+    except InvalidTokenError:
         return None

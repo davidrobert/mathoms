@@ -26,7 +26,7 @@ import pytest
 
 def test_jwt_algorithm_and_payload_claims_are_canonical() -> None:
     """HS256 + payload ``{sub, exp, tv}`` — qualquer lib Go/TS lê."""
-    from jose import jwt
+    import jwt
 
     from backend.app.core.config import settings
     from backend.app.core.security import create_access_token
@@ -95,7 +95,7 @@ def test_jwt_hs256_signed_externally_decodes_with_same_secret() -> None:
     Simula o cenário onde um serviço Go hipotético emite token e o backend
     Python valida, ou vice-versa.
     """
-    from jose import jwt
+    import jwt
 
     from backend.app.core.config import settings
     from backend.app.core.security import decode_access_token_payload
