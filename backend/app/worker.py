@@ -67,6 +67,11 @@ celery_app.conf.update(
             "task": "fin.lgpd.process_user_deletions",
             "schedule": 86400.0,  # diário
         },
+        # ADR-172 (W2-T04) — detector de runs travados.
+        "detect-stuck-runs": {
+            "task": "fin.detect_stuck_runs",
+            "schedule": 300.0,  # 5min
+        },
     },
 )
 

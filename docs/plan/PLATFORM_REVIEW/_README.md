@@ -78,7 +78,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W2-T01 | DE-003 PII em pipeline_artifacts (Fernet hooks) | 2 | done | data-engineer | P0 | M | W1-T06 (ADR-170) |
 | W2-T02 | SR-001/013 Security headers + CORS strict | 2 | blocked | sre-devops | P0 | S | W1-T05 |
 | W2-T03 | SR-005 CVE + gitleaks + GH secret scanning | 2 | done | sre-devops | P0 | S | — |
-| W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | blocked | sre-devops | P0 | S | W1-T06 (ADR-172) |
+| W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | done | sre-devops | P0 | S | W1-T06 (ADR-172) |
 | W2-T05 | DE-002 + DE-008 review_finances/extract_with_llm incremental + PROMPT_VERSION | 2 | blocked | data-engineer | P1 | M | — |
 | W2-T06 | DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases | 2 | done | data-engineer | P1 | S | — |
 | W3-T01 | SR-006 + DE-013 LLM budget hard-stop + LLMCallLog populada | 3 | blocked | data-engineer + sre-devops | P0 | M | W1-T06 (ADR-173), W2-T05 |

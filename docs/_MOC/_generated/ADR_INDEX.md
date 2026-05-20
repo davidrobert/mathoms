@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 180
-- **Proposto**: 41
+- **Decidido**: 181
+- **Proposto**: 40
 - **Roadmap**: 4
 
 ## Fundação
@@ -78,15 +78,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Task Queue
 
-### Decidido (3)
+### Decidido (4)
 
 - [[ADR-029-TQ]] — Celery + Redis · phase F5
 - [[ADR-031]] — Redis para queue + pub/sub · phase F5
 - [[ADR-032]] — Cancel stage-boundary · phase F5
-
-### Proposto (1)
-
-- [[ADR-172]] — Stuck-runs detector via heartbeat + Celery beat
+- [[ADR-172]] — Stuck-runs detector via heartbeat + Celery beat · phase Sprint A11.W2
 
 ## Frontend / Design
 
