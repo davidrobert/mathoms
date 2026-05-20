@@ -8,6 +8,9 @@ Erros de domínio são traduzidos para HTTP por handlers globais em
 
 from __future__ import annotations
 
+import logging
+from typing import Optional
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +19,8 @@ from backend.app.application.family_member import (
     create_family_member,
     delete_bank_account,
     delete_family_member,
+    dismiss_irpf_suggestion,
+    get_irpf_suggestions,
     list_bank_accounts,
     list_family_members,
     update_bank_account,
@@ -35,11 +40,20 @@ from backend.app.schemas.dto.family_member import (
     FamilyMemberListResponse,
     FamilyMemberResponse,
     FamilyMemberUpdateCommand,
+    IrpfDismissCommand,
+    SuggestionsFromIrpfResponse,
+)
+from backend.app.services.irpf_suggestion_adapters import (
+    DBInstitutionLabelResolver,
+    DBIrpfArtifactSource,
+    find_dismissal_for_account,
+    normalize_account_digits,
 )
 from backend.app.services.vault import get_vault
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/config", tags=["config"])
 _vault = get_vault()
+_irpf_telemetry = logging.getLogger("mathoms.irpf_suggestions")
 
 
 def _get_repo(db: AsyncSession = Depends(get_db)) -> FamilyMemberRepository:
@@ -119,8 +133,48 @@ async def create_account(
     body: BankAccountCreateCommand,
     workspace: Workspace = Depends(get_current_workspace),
     repo: FamilyMemberRepository = Depends(_get_repo),
+    db: AsyncSession = Depends(get_db),
 ) -> BankAccountResponse:
-    return await create_bank_account(member_id, body, workspace_id=workspace.id, repo=repo)
+    response = await create_bank_account(member_id, body, workspace_id=workspace.id, repo=repo)
+    if body.origem_irpf:
+        await _emit_irpf_accepted_telemetry(db, workspace_id=workspace.id, body=body)
+    return response
+
+
+def _log_irpf_event(event: str, *, workspace_id: str, irpf_year: int, institution: str) -> None:
+    _irpf_telemetry.info(
+        "%s workspace=%s irpf_year=%d institution=%s",
+        event,
+        workspace_id,
+        irpf_year,
+        institution,
+    )
+
+
+async def _has_prior_dismissal(
+    db: AsyncSession, *, workspace_id: str, institution: str, account_number: Optional[str]
+) -> bool:
+    norm = normalize_account_digits(account_number)
+    if not norm:
+        return False
+    found = await find_dismissal_for_account(
+        db, workspace_id=workspace_id, institution_code=institution, account_number_norm=norm
+    )
+    return found is not None
+
+
+async def _emit_irpf_accepted_telemetry(
+    db: AsyncSession, *, workspace_id: str, body: BankAccountCreateCommand
+) -> None:
+    year = body.origem_irpf_year or 0
+    inst = body.institution_code
+    _log_irpf_event("accepted", workspace_id=workspace_id, irpf_year=year, institution=inst)
+    if await _has_prior_dismissal(
+        db, workspace_id=workspace_id, institution=inst, account_number=body.account_number
+    ):
+        _log_irpf_event(
+            "dismissed_then_re_added", workspace_id=workspace_id, irpf_year=year, institution=inst
+        )
 
 
 @router.put("/members/{member_id}/accounts/{account_id}", response_model=BankAccountResponse)
@@ -147,3 +201,55 @@ async def delete_account(
     repo: FamilyMemberRepository = Depends(_get_repo),
 ) -> None:
     await delete_bank_account(member_id, account_id, workspace_id=workspace.id, repo=repo)
+
+
+# ---------------------------------------------------------------------------
+# ADR-229: IRPF pre-fill — suggestions + dismissals
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/members/suggestions-from-irpf",
+    response_model=SuggestionsFromIrpfResponse,
+)
+async def list_suggestions_from_irpf(
+    workspace: Workspace = Depends(get_current_workspace),
+    repo: FamilyMemberRepository = Depends(_get_repo),
+    db: AsyncSession = Depends(get_db),
+) -> SuggestionsFromIrpfResponse:
+    response = await get_irpf_suggestions(
+        workspace_id=workspace.id,
+        repo=repo,
+        irpf_source=DBIrpfArtifactSource(db),
+        institution_labels=DBInstitutionLabelResolver(db),
+    )
+    _irpf_telemetry.info(
+        "shown workspace=%s irpf_year=%d count=%d filtered_exact=%d dismissed=%d",
+        workspace.id,
+        response.irpf_year,
+        len(response.suggestions),
+        response.total_filtered_exact_match,
+        response.total_dismissed,
+    )
+    return response
+
+
+@router.post(
+    "/members/irpf-dismissals",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def dismiss_suggestion(
+    body: IrpfDismissCommand,
+    workspace: Workspace = Depends(get_current_workspace),
+    repo: FamilyMemberRepository = Depends(_get_repo),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    await dismiss_irpf_suggestion(
+        body, workspace_id=workspace.id, repo=repo, actor_user_id=current_user.id
+    )
+    _log_irpf_event(
+        "dismissed",
+        workspace_id=workspace.id,
+        irpf_year=body.irpf_year,
+        institution=body.institution_code,
+    )

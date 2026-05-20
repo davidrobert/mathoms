@@ -10,7 +10,11 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Optional, Protocol
 
-from backend.app.models.family_member import BankAccount, FamilyMember
+from backend.app.models.family_member import (
+    BankAccount,
+    FamilyMember,
+    WorkspaceIrpfSuggestionDismissal,
+)
 
 
 class FamilyMemberRepositoryProtocol(Protocol):
@@ -87,6 +91,22 @@ class FamilyMemberRepositoryProtocol(Protocol):
     ) -> BankAccount: ...
 
     async def delete_account(self, account: BankAccount) -> None: ...
+
+    # ADR-229: IRPF suggestion dismissals
+    async def list_irpf_dismissals(
+        self, workspace_id: str
+    ) -> list[WorkspaceIrpfSuggestionDismissal]: ...
+
+    async def add_irpf_dismissal(
+        self,
+        *,
+        workspace_id: str,
+        irpf_year: int,
+        institution_code: str,
+        account_number_norm: Optional[str] = None,
+        member_key: Optional[str] = None,
+        created_by_user_id: Optional[str] = None,
+    ) -> WorkspaceIrpfSuggestionDismissal: ...
 
 
 class VaultProtocol(Protocol):

@@ -113,7 +113,27 @@ class BankAccountCreateCommand(BaseModel):
     label: Optional[str] = Field(None, max_length=255)
     is_joint: bool = False
     co_titulares: Optional[list[str]] = None
+    # ADR-229: marcador para telemetria — não persistido no DB.
+    origem_irpf: bool = Field(
+        default=False,
+        description="True quando o cadastro veio de aceitar uma sugestão IRPF.",
+    )
+    origem_irpf_year: Optional[int] = Field(
+        default=None,
+        ge=2000,
+        le=2100,
+        description="Ano-base IRPF quando ``origem_irpf=true``.",
+    )
 
 
 class BankAccountUpdateCommand(BankAccountCreateCommand):
     """Input do ``PUT /members/{id}/accounts/{acc_id}`` — semantics replace."""
+
+
+class IrpfDismissCommand(BaseModel):
+    """Input do ``POST /members/irpf-dismissals`` (ADR-229 §3)."""
+
+    irpf_year: int = Field(..., ge=2000, le=2100)
+    institution_code: str = Field(..., min_length=1, max_length=50)
+    account_number_norm: Optional[str] = Field(None, max_length=30)
+    member_key: Optional[str] = Field(None, max_length=50)

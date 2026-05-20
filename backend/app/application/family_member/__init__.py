@@ -20,6 +20,15 @@ from backend.app.application.family_member.delete_bank_account import (
 from backend.app.application.family_member.delete_family_member import (
     delete_family_member,
 )
+from backend.app.application.family_member.dismiss_irpf_suggestion import (
+    dismiss_irpf_suggestion,
+)
+from backend.app.application.family_member.get_irpf_suggestions import (
+    InstitutionLabelResolverProtocol,
+    IrpfArtifactPayload,
+    IrpfArtifactSourceProtocol,
+    get_irpf_suggestions,
+)
 from backend.app.application.family_member.list_bank_accounts import (
     list_bank_accounts,
 )
@@ -38,6 +47,11 @@ __all__ = [
     "create_family_member",
     "delete_bank_account",
     "delete_family_member",
+    "dismiss_irpf_suggestion",
+    "get_irpf_suggestions",
+    "IrpfArtifactPayload",
+    "IrpfArtifactSourceProtocol",
+    "InstitutionLabelResolverProtocol",
     "list_bank_accounts",
     "list_family_members",
     "update_bank_account",

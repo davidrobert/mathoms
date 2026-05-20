@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 53
+**Total de tabelas:** 54
 
 ---
 
@@ -61,6 +61,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`workspace_category_overrides`](#workspacecategoryoverrides)
 - [`workspace_economic_assumptions_override`](#workspaceeconomicassumptionsoverride)
 - [`workspace_invitations`](#workspaceinvitations)
+- [`workspace_irpf_suggestion_dismissals`](#workspaceirpfsuggestiondismissals)
 - [`workspace_members`](#workspacemembers)
 - [`workspace_notes`](#workspacenotes)
 - [`workspace_property_overrides`](#workspacepropertyoverrides)
@@ -135,6 +136,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `source_tier` | `SMALLINT` | yes | — | — |
 | `is_joint` | `BOOLEAN` | no | `False` | — |
 | `co_titulares` | `JSON` | yes | — | — |
+| `irpf_snapshots` | `JSON` | yes | — | — |
 
 **Constraints:**
 
@@ -1332,6 +1334,29 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_workspace_invitations_workspace_id` (workspace_id)
 - `ix_workspace_invitations_ws_email` (workspace_id, email)
 
+### `workspace_irpf_suggestion_dismissals`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `irpf_year` | `INTEGER` | no | — | — |
+| `institution_code` | `VARCHAR(50)` | no | — | — |
+| `account_number_norm` | `VARCHAR(30)` | yes | — | — |
+| `member_key` | `VARCHAR(50)` | yes | — | — |
+| `dismissed_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `created_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
+
+**Constraints:**
+
+- FOREIGN KEY (created_by_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, irpf_year, institution_code, account_number_norm) — `uq_workspace_irpf_dismissal`
+
+**Indexes:**
+
+- `ix_workspace_irpf_suggestion_dismissals_workspace_id` (workspace_id)
+
 ### `workspace_members`
 
 | Column | Type | Nullable | Default | Tags |
@@ -1463,6 +1488,7 @@ Campos JSON exigem schema explícito (documentado em `config/schemas/*.json` ou 
 
 - `audit_logs.details`
 - `bank_accounts.co_titulares`
+- `bank_accounts.irpf_snapshots`
 - `category_templates.default_keywords`
 - `category_templates.metadata_json`
 - `decision_events.payload`
@@ -1562,6 +1588,7 @@ type BankAccount struct {
 	SourceTier *string `db:"source_tier" json:"source_tier"`
 	IsJoint bool `db:"is_joint" json:"is_joint"`
 	CoTitulares json.RawMessage `db:"co_titulares" json:"co_titulares"`
+	IrpfSnapshots json.RawMessage `db:"irpf_snapshots" json:"irpf_snapshots"`
 }
 ```
 
@@ -2368,6 +2395,21 @@ type WorkspaceInvitation struct {
 	AcceptedByUserId *string `db:"accepted_by_user_id" json:"accepted_by_user_id"`
 	RevokedAt *time.Time `db:"revoked_at" json:"revoked_at"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `workspace_irpf_suggestion_dismissals` → `type WorkspaceIrpfSuggestionDismissal struct`
+
+```go
+type WorkspaceIrpfSuggestionDismissal struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	IrpfYear int `db:"irpf_year" json:"irpf_year"`
+	InstitutionCode string `db:"institution_code" json:"institution_code"`
+	AccountNumberNorm *string `db:"account_number_norm" json:"account_number_norm"`
+	MemberKey *string `db:"member_key" json:"member_key"`
+	DismissedAt time.Time `db:"dismissed_at" json:"dismissed_at"`
+	CreatedByUserId *string `db:"created_by_user_id" json:"created_by_user_id"`
 }
 ```
 
