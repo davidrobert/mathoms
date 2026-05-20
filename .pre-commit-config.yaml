@@ -113,6 +113,18 @@ repos:
         pass_filenames: false
         files: ^(backend/tests|tests)/.*\.py$
 
+      - id: lint-no-real-pii
+        # F6.5D.7 — bloqueia CPF real em fixtures de teste. Aceita apenas
+        # placeholders (000.000.000-00, 123.456.789-09, 111.111.111-11) ou
+        # CPFs gerados via tests/utils/cpf.py (anotados com `# noqa: PII-ok`).
+        # Já roda no workflow CI; pre-commit local evita ciclo
+        # commit→push→CI-fail→fix descobrindo só remoto.
+        name: "Anti-PII em fixtures (CPF real bloqueado; placeholder ou gerador mod-11)"
+        entry: python3 tests/utils/lint_no_real_pii.py
+        language: system
+        pass_filenames: false
+        files: ^(backend/tests|tests|frontend/tests)/.*$
+
       - id: sigilo-terms
         # §13 sigilo metodológico (LEGAL/IP) — bloqueia atribuição pública de
         # Perini/Cerbasi/AUVP/etc. em superfície user-facing:
