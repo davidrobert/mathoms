@@ -23,11 +23,12 @@ Schedule failure abre Issue label `security` (job `open-issue-on-schedule-failur
 
 | Vuln | Onde | Tipo | SLO | Issue |
 |---|---|---|---|---|
-| `PYSEC-2025-185` | `python-jose 3.5.0` (DoS via JWE) | `pip-audit ignore-vulns` inline | HIGH ≤14d | TBD |
-| `GHSA-wfc6-r584-vfw7` | `next` cache poisoning | `npm-audit-prod continue-on-error` global | HIGH ≤14d | TBD |
-| `GHSA-267c-6grr-h53f`, `GHSA-36qx-fr4f-26g5` | `next` Middleware bypass | idem | HIGH ≤14d | TBD |
-| `GHSA-4c35-wcg5-mm9h` | `next-intl` prototype pollution | idem | MEDIUM best-effort | TBD |
-| `GHSA-qx2v-qp2m-jg93` | `postcss` XSS via stringify | idem | MEDIUM best-effort | TBD |
+| `PYSEC-2025-185` | `python-jose 3.5.0` (DoS via JWE) | `pip-audit ignore-vulns` inline | HIGH ≤14d (2026-06-03) | [#349](https://github.com/davidrobert/mathoms/issues/349) |
+| `GHSA-wfc6-r584-vfw7` | `next` cache poisoning | `npm-audit-prod continue-on-error` global | HIGH ≤14d (2026-06-03) | [#350](https://github.com/davidrobert/mathoms/issues/350) |
+| `GHSA-267c-6grr-h53f` | `next` Middleware bypass (App Router) | idem | HIGH ≤14d (2026-06-03) | [#351](https://github.com/davidrobert/mathoms/issues/351) |
+| `GHSA-36qx-fr4f-26g5` | `next` Middleware bypass (Pages Router i18n) | idem | HIGH ≤14d (2026-06-03) | [#352](https://github.com/davidrobert/mathoms/issues/352) |
+| `GHSA-4c35-wcg5-mm9h` | `next-intl` prototype pollution | idem | MEDIUM best-effort | [#353](https://github.com/davidrobert/mathoms/issues/353) |
+| `GHSA-qx2v-qp2m-jg93` | `postcss` XSS via stringify | idem | MEDIUM best-effort | [#354](https://github.com/davidrobert/mathoms/issues/354) |
 
 **Quando todas as vulns acima forem fixadas via PRs de upgrade:**
 1. Remover `continue-on-error: true` do step `npm-audit (prod, HIGH+)` em `.github/workflows/security.yml`.
