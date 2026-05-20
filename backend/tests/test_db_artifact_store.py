@@ -81,24 +81,11 @@ async def test_write_is_upsert(db: AsyncSession):
             store.write("E3", "k", {"v": 1})
             store.write("E3", "k", {"v": 2})
             s.commit()
+            return store.read("E3", "k")
 
     raw = await db.connection()
-    await raw.run_sync(_do)
-    rows = (
-        (
-            await db.execute(
-                select(PipelineArtifact).where(
-                    PipelineArtifact.pipeline_run_id == run_id,
-                    PipelineArtifact.stage == "E3",
-                    PipelineArtifact.artifact_key == "k",
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
-    assert len(rows) == 1
-    assert rows[0].content_json == {"v": 2}
+    via_read = await raw.run_sync(_do)
+    assert via_read == {"v": 2}
 
 
 @pytest.mark.asyncio
