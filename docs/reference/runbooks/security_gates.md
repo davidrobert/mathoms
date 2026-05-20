@@ -10,10 +10,10 @@ Roda em todo PR contra `main` + schedule sábado 03:00 UTC + manual.
 
 | Job | Bloqueia merge? | Output |
 |---|---|---|
-| `trivy-fs` | **Temporariamente não** — `continue-on-error` step-level até GHAS chegar (SARIF blocking) OU todas as vulns npm/python serem fixadas. Output em `table` no log. | Workflow logs. |
+| `trivy-fs` | **Temporariamente não** — `continue-on-error` step-level até GHAS chegar (SARIF blocking) OU triagem dos findings restantes. Output em `table` no log. | Workflow logs. |
 | `trivy-config` | **Temporariamente não** — `continue-on-error` step-level até triagem + fix dos 4 IaC misconfigs detectados no primeiro run. | Workflow logs. |
-| `pip-audit` | Sim (HIGH+, exceto `ignore-vulns` declarados inline) | Workflow logs. |
-| `npm-audit-prod` | **Temporariamente não** — `continue-on-error` step-level até PRs de upgrade fixarem `next`, `next-intl`, `postcss` (vulns identificadas no primeiro run pós-merge ADR-230). Volta a bloquear quando todos fixados. | Workflow logs. |
+| `pip-audit` | **Sim** (HIGH+ via `--strict`). Sem ignore-vulns ativos pós-PR #357 (python-jose → PyJWT). | Workflow logs. |
+| `npm-audit-prod` | **Sim** (HIGH+). Reativado pós-PRs #356 (next/next-intl) + #357 (python-jose). | Workflow logs. |
 | `npm-audit-dev` | Não (informativo) | Workflow logs. |
 | `gitleaks` | Sim (qualquer match não-allowlisted) | Workflow logs. |
 
@@ -23,18 +23,14 @@ Schedule failure abre Issue label `security` (job `open-issue-on-schedule-failur
 
 | Vuln | Onde | Tipo | SLO | Issue |
 |---|---|---|---|---|
-| `PYSEC-2025-185` | `python-jose 3.5.0` (DoS via JWE) | `pip-audit ignore-vulns` inline | HIGH ≤14d (2026-06-03) | [#349](https://github.com/davidrobert/mathoms/issues/349) |
-| `GHSA-wfc6-r584-vfw7` | `next` cache poisoning | `npm-audit-prod continue-on-error` global | HIGH ≤14d (2026-06-03) | [#350](https://github.com/davidrobert/mathoms/issues/350) |
-| `GHSA-267c-6grr-h53f` | `next` Middleware bypass (App Router) | idem | HIGH ≤14d (2026-06-03) | [#351](https://github.com/davidrobert/mathoms/issues/351) |
-| `GHSA-36qx-fr4f-26g5` | `next` Middleware bypass (Pages Router i18n) | idem | HIGH ≤14d (2026-06-03) | [#352](https://github.com/davidrobert/mathoms/issues/352) |
-| `GHSA-4c35-wcg5-mm9h` | `next-intl` prototype pollution | idem | MEDIUM best-effort | [#353](https://github.com/davidrobert/mathoms/issues/353) |
-| `GHSA-qx2v-qp2m-jg93` | `postcss` XSS via stringify | idem | MEDIUM best-effort | [#354](https://github.com/davidrobert/mathoms/issues/354) |
+| `PYSEC-2025-183` | `PyJWT` (weak encryption, **DISPUTADA** pelo PyPA — key length é responsabilidade da app, não bug de código) | `pip-audit ignore-vulns` inline | Permanente — mitigado em runtime: `MATHOMS_SECRET_KEY` (32 bytes) via `dev/gen-secrets.sh --init-env`; PyJWT 2.12.1+ emite `InsecureKeyLengthWarning` em runtime. Reavaliar se upstream publicar patch. | n/a (disputada) |
+| `GHSA-qx2v-qp2m-jg93` | `postcss` XSS via stringify, nested em `node_modules/next/node_modules/postcss@8.4.31` | aceito como moderate — não trip `--audit-level=high`. `npm audit fix --force` exigiria downgrade de next para 9.3.3 (breaking inaceitável). | MEDIUM best-effort — aguarda upstream next bundling postcss>=8.5.10 | [#354](https://github.com/davidrobert/mathoms/issues/354) |
 
-**Quando todas as vulns acima forem fixadas via PRs de upgrade:**
-1. Remover `continue-on-error: true` do step `npm-audit (prod, HIGH+)` em `.github/workflows/security.yml`.
-2. Remover TODO marker `TODO(security-npm-prod-2026-05-20)`.
-3. Remover `ignore-vulns: "PYSEC-2025-185"` dos dois steps `pip-audit` (ou substituir se outras vulns acumulararem).
-4. Atualizar esta tabela.
+Resolvidas em 2026-05-20 (PRs [#356](https://github.com/davidrobert/mathoms/pull/356) + [#357](https://github.com/davidrobert/mathoms/pull/357)):
+
+- ✅ `PYSEC-2025-185` (python-jose) → migrado para PyJWT (#357).
+- ✅ `GHSA-wfc6-r584-vfw7`, `GHSA-267c-6grr-h53f`, `GHSA-36qx-fr4f-26g5` (next HIGH bypass/cache) → bump 16.2.6 (#356).
+- ✅ `GHSA-4c35-wcg5-mm9h` (next-intl proto pollution) → bump 4.12.0 (#356).
 
 ## SLO de remediação
 
