@@ -14,7 +14,11 @@ import uuid
 from datetime import date
 from typing import Any, Optional
 
-from backend.app.models.family_member import BankAccount, FamilyMember
+from backend.app.models.family_member import (
+    BankAccount,
+    FamilyMember,
+    WorkspaceIrpfSuggestionDismissal,
+)
 
 
 class FakeFamilyMemberRepository:
@@ -23,6 +27,7 @@ class FakeFamilyMemberRepository:
     def __init__(self) -> None:
         self._members: dict[str, FamilyMember] = {}
         self._accounts: dict[str, BankAccount] = {}
+        self._dismissals: dict[str, WorkspaceIrpfSuggestionDismissal] = {}
 
     async def list_by_workspace(self, workspace_id: str) -> list[FamilyMember]:
         members = [m for m in self._members.values() if m.workspace_id == workspace_id]
@@ -126,6 +131,38 @@ class FakeFamilyMemberRepository:
 
     async def delete_account(self, account: BankAccount) -> None:
         self._accounts.pop(account.id, None)
+
+    # ADR-229 — IRPF suggestion dismissals
+    async def list_irpf_dismissals(
+        self, workspace_id: str
+    ) -> list[WorkspaceIrpfSuggestionDismissal]:
+        return [d for d in self._dismissals.values() if d.workspace_id == workspace_id]
+
+    def _find_dismissal(
+        self,
+        workspace_id: str,
+        irpf_year: int,
+        institution_code: str,
+        norm: Optional[str] = None,
+    ) -> Optional[WorkspaceIrpfSuggestionDismissal]:
+        key = (workspace_id, irpf_year, institution_code, norm)
+        for d in self._dismissals.values():
+            if (d.workspace_id, d.irpf_year, d.institution_code, d.account_number_norm) == key:
+                return d
+        return None
+
+    async def add_irpf_dismissal(self, **kwargs: Any) -> WorkspaceIrpfSuggestionDismissal:
+        existing = self._find_dismissal(
+            kwargs["workspace_id"],
+            kwargs["irpf_year"],
+            kwargs["institution_code"],
+            kwargs.get("account_number_norm"),
+        )
+        if existing is not None:
+            return existing
+        dismissal = WorkspaceIrpfSuggestionDismissal(id=str(uuid.uuid4()), **kwargs)
+        self._dismissals[dismissal.id] = dismissal
+        return dismissal
 
 
 class FakeVault:

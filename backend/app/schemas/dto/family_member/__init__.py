@@ -9,6 +9,7 @@ from backend.app.schemas.dto.family_member.command import (
     BankAccountUpdateCommand,
     FamilyMemberCreateCommand,
     FamilyMemberUpdateCommand,
+    IrpfDismissCommand,
 )
 from backend.app.schemas.dto.family_member.mapper import (
     convert_global_defaults_to_responses,
@@ -18,6 +19,8 @@ from backend.app.schemas.dto.family_member.response import (
     BankAccountResponse,
     FamilyMemberListResponse,
     FamilyMemberResponse,
+    IrpfSuggestionItem,
+    SuggestionsFromIrpfResponse,
 )
 
 __all__ = [
@@ -28,6 +31,9 @@ __all__ = [
     "FamilyMemberListResponse",
     "FamilyMemberResponse",
     "FamilyMemberUpdateCommand",
+    "IrpfDismissCommand",
+    "IrpfSuggestionItem",
+    "SuggestionsFromIrpfResponse",
     "convert_global_defaults_to_responses",
     "member_to_response",
 ]

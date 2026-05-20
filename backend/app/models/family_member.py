@@ -14,6 +14,7 @@ from sqlalchemy import (
     SmallInteger,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -86,5 +87,40 @@ class BankAccount(Base):
     # ADR-226 PR1: lista de member_id dos co-titulares quando is_joint=true.
     # Reservado em V1; V2 ativa rateio.
     co_titulares: Mapped[Optional[list[str]]] = mapped_column(JSON, nullable=True)
+    # ADR-229: timeline anual de saldos declarados em IRPF — formato
+    # {"2024": {"saldo_brl": "1234.56", "irpf_processed_at": "..."}, ...}.
+    # V1 V0 só armazena; renderização na UI fica em V2.
+    irpf_snapshots: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
     member = relationship("FamilyMember", back_populates="accounts")
+
+
+class WorkspaceIrpfSuggestionDismissal(Base):
+    """Descarte persistente de sugestão IRPF — idempotente via UNIQUE (ADR-229 §3)."""
+
+    __tablename__ = "workspace_irpf_suggestion_dismissals"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    workspace_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    irpf_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    institution_code: Mapped[str] = mapped_column(String(50), nullable=False)
+    account_number_norm: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    member_key: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    dismissed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+    created_by_user_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "workspace_id",
+            "irpf_year",
+            "institution_code",
+            "account_number_norm",
+            name="uq_workspace_irpf_dismissal",
+        ),
+    )

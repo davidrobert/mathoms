@@ -26,7 +26,11 @@ from backend.app.models.economic_assumption import (
     EconomicAssumption,
     WorkspaceEconomicAssumptionOverride,
 )
-from backend.app.models.family_member import BankAccount, FamilyMember
+from backend.app.models.family_member import (
+    BankAccount,
+    FamilyMember,
+    WorkspaceIrpfSuggestionDismissal,
+)
 from backend.app.models.feature_flag import FeatureFlag
 from backend.app.models.fiscal_parameter import FiscalParameter
 from backend.app.models.goal import VALID_GOAL_TYPES, Goal
@@ -168,6 +172,7 @@ __all__ = [
     "PipelineStageStatus",
     "FamilyMember",
     "BankAccount",
+    "WorkspaceIrpfSuggestionDismissal",
     "Category",
     "CategoryKeyword",
     "CategoryTemplate",

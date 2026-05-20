@@ -1178,6 +1178,26 @@
               }
             ],
             "title": "Label"
+          },
+          "origem_irpf": {
+            "default": false,
+            "description": "True quando o cadastro veio de aceitar uma sugest\u00e3o IRPF.",
+            "title": "Origem Irpf",
+            "type": "boolean"
+          },
+          "origem_irpf_year": {
+            "anyOf": [
+              {
+                "maximum": 2100.0,
+                "minimum": 2000.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano-base IRPF quando ``origem_irpf=true``.",
+            "title": "Origem Irpf Year"
           }
         },
         "required": [
@@ -1345,6 +1365,26 @@
               }
             ],
             "title": "Label"
+          },
+          "origem_irpf": {
+            "default": false,
+            "description": "True quando o cadastro veio de aceitar uma sugest\u00e3o IRPF.",
+            "title": "Origem Irpf",
+            "type": "boolean"
+          },
+          "origem_irpf_year": {
+            "anyOf": [
+              {
+                "maximum": 2100.0,
+                "minimum": 2000.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano-base IRPF quando ``origem_irpf=true``.",
+            "title": "Origem Irpf Year"
           }
         },
         "required": [
@@ -5193,6 +5233,169 @@
           "created_at"
         ],
         "title": "InvitationResponse",
+        "type": "object"
+      },
+      "IrpfDismissCommand": {
+        "description": "Input do ``POST /members/irpf-dismissals`` (ADR-229 \u00a73).",
+        "properties": {
+          "account_number_norm": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Number Norm"
+          },
+          "institution_code": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Institution Code",
+            "type": "string"
+          },
+          "irpf_year": {
+            "maximum": 2100.0,
+            "minimum": 2000.0,
+            "title": "Irpf Year",
+            "type": "integer"
+          },
+          "member_key": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Member Key"
+          }
+        },
+        "required": [
+          "irpf_year",
+          "institution_code"
+        ],
+        "title": "IrpfDismissCommand",
+        "type": "object"
+      },
+      "IrpfSuggestionItem": {
+        "description": "Item de sugest\u00e3o de conta extra\u00edda de IRPF (ADR-229 \u00a74).",
+        "properties": {
+          "account_number_norm": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Number Norm"
+          },
+          "account_number_raw": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Number Raw"
+          },
+          "account_type": {
+            "maxLength": 100,
+            "title": "Account Type",
+            "type": "string"
+          },
+          "agency": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agency"
+          },
+          "collision_with_account_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collision With Account Id"
+          },
+          "cpf_titular_masked": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "CPF do titular IRPF mascarado (ex.: ***.123.456-**).",
+            "title": "Cpf Titular Masked"
+          },
+          "institution_code": {
+            "maxLength": 50,
+            "title": "Institution Code",
+            "type": "string"
+          },
+          "institution_label": {
+            "maxLength": 255,
+            "title": "Institution Label",
+            "type": "string"
+          },
+          "irpf_year": {
+            "maximum": 2100.0,
+            "minimum": 2000.0,
+            "title": "Irpf Year",
+            "type": "integer"
+          },
+          "match_kind": {
+            "enum": [
+              "new",
+              "partial_collision"
+            ],
+            "title": "Match Kind",
+            "type": "string"
+          },
+          "member_full_name": {
+            "maxLength": 255,
+            "title": "Member Full Name",
+            "type": "string"
+          },
+          "member_key": {
+            "maxLength": 50,
+            "title": "Member Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "institution_code",
+          "institution_label",
+          "account_type",
+          "member_key",
+          "member_full_name",
+          "irpf_year",
+          "match_kind"
+        ],
+        "title": "IrpfSuggestionItem",
         "type": "object"
       },
       "LLMConfigCreateRequest": {
@@ -9889,6 +10092,50 @@
           "updated_at"
         ],
         "title": "SuggestionResponse",
+        "type": "object"
+      },
+      "SuggestionsFromIrpfResponse": {
+        "description": "Response do ``GET /members/suggestions-from-irpf`` (ADR-229 \u00a74).",
+        "properties": {
+          "irpf_year": {
+            "description": "Ano-base do IRPF mais recente processado para o workspace. 0 quando o workspace ainda n\u00e3o tem artifact E1.",
+            "title": "Irpf Year",
+            "type": "integer"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/IrpfSuggestionItem"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          },
+          "total_dismissed": {
+            "default": 0,
+            "title": "Total Dismissed",
+            "type": "integer"
+          },
+          "total_filtered_exact_match": {
+            "default": 0,
+            "title": "Total Filtered Exact Match",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "irpf_year"
+        ],
+        "title": "SuggestionsFromIrpfResponse",
         "type": "object"
       },
       "SuggestionsSummaryResponse": {
@@ -15856,6 +16103,103 @@
           }
         ],
         "summary": "Create Member",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/config/members/irpf-dismissals": {
+      "post": {
+        "operationId": "dismiss_suggestion_api_v1_workspaces__workspace_id__config_members_irpf_dismissals_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IrpfDismissCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Dismiss Suggestion",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/config/members/suggestions-from-irpf": {
+      "get": {
+        "operationId": "list_suggestions_from_irpf_api_v1_workspaces__workspace_id__config_members_suggestions_from_irpf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsFromIrpfResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Suggestions From Irpf",
         "tags": [
           "config"
         ]
