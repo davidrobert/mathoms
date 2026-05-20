@@ -44,6 +44,12 @@ DEFAULTS: dict[str, bool] = {
     # gate dogfood (CEO ≥5 regras / 7d) decide cutover global. Por workspace
     # via ``set_flag(..., 'learning_loop_enabled', True)``.
     "learning_loop_enabled": False,
+    # ADR-229 — IRPF pre-fill cards no /config → Membros. Default True:
+    # blast radius é zero para workspaces sem IRPF processado (endpoint
+    # retorna suggestions=[]), e a UI exige clique humano para qualquer
+    # ação. Flag permanece como circuit-breaker para desligar por workspace
+    # se aparecer bug não-capturado pelos testes.
+    "irpf_prefill_enabled": True,
 }
 
 
