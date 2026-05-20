@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 177
-- **Proposto**: 42
+- **Decidido**: 178
+- **Proposto**: 41
 - **Roadmap**: 4
 
 ## Fundação
@@ -459,9 +459,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## security
 
-### Proposto (1)
+### Decidido (1)
 
-- [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11
+- [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11.W2
 
 ## Outras
 
