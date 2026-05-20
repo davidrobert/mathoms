@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-60 entries entre 2026-05-05 e 2026-05-15.
+49 entries entre 2026-05-06 e 2026-05-15.
 
 ## 2026-05-15 (1 entries)
 
@@ -74,20 +74,6 @@
 - [[CHG-2026-05-06-FIX-PIPELINE-1]] — fix(pipeline): modo incremental respeitado por stages globais E1 (ADR-169 · 2026-05-06). - **fix(pipeline): modo incremental respeitado por stages globais E1 (ADR-169 · 2026-05-06):** Antes: clicar "Processar somente novos" reprocessava todas as dec
 - [[CHG-2026-05-06-PR77]] — refactor(report): _find_top_asset usa fonte canônica top_ativos + schema E5 declara contrato (2026-05-06). - **refactor(report): _find_top_asset usa fonte canônica top_ativos + schema E5 declara contrato (2026-05-06):** Cleanup pós-PR #77.
 - [[CHG-2026-05-06-PR87]] — refactor(report): _extract_top_institutions usa fonte canônica + schema E5 ganha instituicoes_por_membro/n_imoveis_total (2026-05-06). - **refactor(report): _extract_top_institutions usa fonte canônica + schema E5 ganha instituicoes_por_membro/n_imoveis_total (2026-05-06):** Cleanup pós-PR #87.
-
-## 2026-05-05 (11 entries)
-
-- [[CHG-2026-05-05-A8-3]] — feat(report): Lane A8.3 — TRS efetiva + carteira de renda em S7 (2026-05-05). - **feat(report): Lane A8.3 — TRS efetiva + carteira de renda em S7 (2026-05-05):** Independência Financeira agora confronta **TRS meta** (5%/4% — D15) com **TR (lane [[A8.3]])
-- [[CHG-2026-05-05-F9-3]] — feat(db): F9.3 — Alembic stage rename migration validada (ADR-093) (2026-05-05). - **feat(db): F9.3 — Alembic stage rename migration validada (ADR-093) (2026-05-05):** `q5r6s7t8u9v0_rename_stage_identifiers.py` sincronizado com `STAGE_RENAME (lane [[F9.3]])
-- [[CHG-2026-05-05-FEAT-DB]] — feat(db): B7 M3 — DROP _legacy_kanban_items + _legacy_report_notes + model cleanup (ADR-154) (2026-05-05). - **feat(db): B7 M3 — DROP _legacy_kanban_items + _legacy_report_notes + model cleanup (ADR-154) (2026-05-05):** Migration final após 7 dias de validação pós-M2 (2026-04-29).
-- [[CHG-2026-05-05-FEAT-PIPELINE]] — feat(pipeline): N3 — IFProjector v2 Monte Carlo + IFConeChart (2026-05-05). - **feat(pipeline): N3 — IFProjector v2 Monte Carlo + IFConeChart (2026-05-05):** Simulação estocástica de Independência Financeira com 3 percentis.
-- [[CHG-2026-05-05-PR46]] — refactor(pipeline): deprecate calculators.py (2026-05-05). - **refactor(pipeline): deprecate calculators.py (2026-05-05):** PR [#46](https://github.com/davidrobert/mathoms/pull/46).
-- [[CHG-2026-05-05-PR47]] — fix(backend): canonical stage names em artifact_reader (2026-05-05). - **fix(backend): canonical stage names em artifact_reader (2026-05-05):** `dashboard_service.py` usava `"E5"` (legado) em vez de `"analyze_finances"`; `transac
-- [[CHG-2026-05-05-PR48]] — test(e2e): fix stale selectors em vault e config-round-trip (2026-05-05). - **test(e2e): fix stale selectors em vault e config-round-trip (2026-05-05):** PR [#48](https://github.com/davidrobert/mathoms/pull/48).
-- [[CHG-2026-05-05-PR49]] — feat(frontend): FreeTierSkippedBanner no pipeline monitor (2026-05-05). - **feat(frontend): FreeTierSkippedBanner no pipeline monitor (2026-05-05):** PR [#49](https://github.com/davidrobert/mathoms/pull/49).
-- [[CHG-2026-05-05-PR50]] — refactor(backend): decompose content_classifier monolith (2026-05-05). - **refactor(backend): decompose content_classifier monolith (2026-05-05):** Módulo `content_classifier.py` com 727 LOC decomposto em 3 módulos focados sem alte
-- [[CHG-2026-05-05-PR51]] — feat(ui): Onda 9 — design system polish + mobile (2026-05-05). - **feat(ui): Onda 9 — design system polish + mobile (2026-05-05):** Unificação de 3 primitivos de design system + 2 fixes de produto + ergonomia mobile.
-- [[CHG-2026-05-05-PR56]] — feat(db): M3 drop _legacy_kanban_items + _legacy_report_notes (ADR-154) (2026-05-05). - **feat(db): M3 drop _legacy_kanban_items + _legacy_report_notes (ADR-154) (2026-05-05):** PR [#56](https://github.com/davidrobert/mathoms/pull/56).
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
