@@ -226,6 +226,7 @@
 | ADR-226 | adr | Decidido |  | Desambiguação conta bancária → membro: `account_number` como discriminador, `account_resolver` puro, `is_joint` reservado para V2 | `adr/226-bank-account-member-disambiguation.md` |
 | ADR-227 | adr | Proposto |  | Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2 | `adr/227-imovel-financiado-debt-aggregate-valor-mercado.md` |
 | ADR-228 | adr | Proposto |  | Operational gates pós-A11: closure code-complete da sprint + drills diferidos para go-live | `adr/228-operational-gates-pos-a11.md` |
+| ADR-229 | adr | Proposto |  | Pre-fill UI a partir de IRPF — pattern genérico `artifact → suggestion endpoint → card`; V1 contas bancárias | `adr/229-irpf-prefill-suggestions.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -447,6 +448,7 @@
 | A12.bank-account-disambig | lane | shipped | A12 | Desambiguação conta bancária → membro (multi-membro mesmo banco) | `sprint/A12/lanes/A12-bank-account-disambig-multi-member.md` |
 | A12.cat-learning-loop | lane | in_progress | A12 | Categorization Learning Loop — promoção de override em regra | `sprint/A12/lanes/A12-cat-learning-loop-override-to-rule.md` |
 | A12.decision-code-autogen | lane | in_progress | A12 | Decision.code server-generated (UX cleanup + race fix) | `sprint/A12/lanes/A12-decision-code-autogen-server-gen.md` |
+| A12.irpf-prefill-bank-accounts | lane | planned | A12 | Pre-fill UI a partir de IRPF — V1 contas bancárias (deferred → A13) | `sprint/A12/lanes/A12-irpf-prefill-bank-accounts-deferred-a13.md` |
 | A12.sunset-disk-artifact | lane | open | A12 | Sunset DiskArtifactStore + flag MATHOMS_USE_DB_ARTIFACTS + CLI standalone | `sprint/A12/lanes/A12-sunset-disk-artifact-cleanup.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
@@ -590,6 +592,7 @@
 | TRACK-irpf-full-schema-goldens | track | consumed | A11 | Track IRPF Full Schema Goldens — fixtures + golden tests byte-byte | `sprint/A11/tracks/irpf-full-schema-goldens.md` |
 | TRACK-irpf-full-schema-ui | track | consumed | A11 | Track IRPF Full Schema UI — relatório premium consome KPIs do E1.6 | `sprint/A11/tracks/irpf-full-schema-ui.md` |
 | TRACK-irpf-otimizacao-cards-revival | track | consumed | A12 | Track IRPF Otimização — reativar cards Dependentes Declarados + Dedutíveis Subutilizados | `sprint/A12/tracks/irpf-otimizacao-cards-revival.md` |
+| TRACK-irpf-prefill-bank-accounts | track | ready | A12 | Track IRPF pre-fill V1 — contas bancárias (2 PRs sequenciais) | `sprint/A12/tracks/irpf-prefill-bank-accounts.md` |
 | TRACK-onda-1-kanban-task-migration | track | consumed | A11 | Track — Onda 1: Migration `kanban_items` + `report_notes` → `tasks` + `workspace_notes` | `sprint/A11/tracks/onda-1-kanban-task-migration.md` |
 | TRACK-onda-10-cross-route-coherence | track | consumed | A11 | Track — Onda 10: coerência cross-rota (/plano · /acao · /reports) | `sprint/A11/tracks/onda-10-cross-route-coherence.md` |
 | TRACK-onda-5-suggestion-aggregate | track | consumed | A11 | Track — Onda 5: Suggestion aggregate full-stack (Direção E) | `sprint/A11/tracks/onda-5-suggestion-aggregate.md` |

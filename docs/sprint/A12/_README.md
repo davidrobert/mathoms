@@ -66,17 +66,29 @@ Lições críticas do co-design `financial-planner` + `product-designer`
   Plano = [[ADR-214]] (Proposto, estende [[ADR-136]]).
   Lane: [A12.decision-code-autogen](lanes/A12-decision-code-autogen-server-gen.md).
   Track: [decision-code-autogen](tracks/decision-code-autogen.md).
-- **A12.bank-account-disambig** — desambiguação conta bancária → membro
-  (bug latente multi-membro+mesmo banco descoberto 2026-05-19).
-  `account_number` vira discriminador real; `account_resolver` puro em
-  `pipeline/domain/services/`; E1 vira merge idempotente; schema
-  `is_joint`/`co_titulares` reservado para V2. 4 PRs sequenciais
-  (~5-6d eng em ~2 sem calendário). Co-design `data-engineer` +
-  `financial-planner` 2026-05-19 (Cerbasi/Perini/AUVP — atribuição
-  correta é core; relatório fiscalmente incorreto sem fix).
-  Plano = [[ADR-226]] (Proposto).
+- **A12.bank-account-disambig** ✅ **entregue 2026-05-20** — desambiguação
+  conta bancária → membro (bug latente multi-membro+mesmo banco descoberto
+  2026-05-19). `account_number` discriminador + `account_resolver` puro em
+  `pipeline/domain/services/` + DI no E4/InvestmentsConsolidator/E1 + UI
+  in-app UNIQUE + 409 backend + partial unique index DB + telemetria + FAQ
+  produto. 4 PRs sequenciais ([#337](https://github.com/davidrobert/mathoms/pull/337),
+  [#339](https://github.com/davidrobert/mathoms/pull/339),
+  [#340](https://github.com/davidrobert/mathoms/pull/340)) — PR1 absorvido
+  em PR2 squash. Co-design `data-engineer` + `financial-planner` 2026-05-19.
+  [[ADR-226]] `Decidido (A12.bank-account-disambig)`.
   Lane: [A12.bank-account-disambig](lanes/A12-bank-account-disambig-multi-member.md).
   Track: [bank-account-disambig](tracks/bank-account-disambig.md).
+- **A12.irpf-prefill-bank-accounts** 🕐 **deferred → A13** — pre-fill UI
+  com sugestões de contas detectadas no IRPF via E1; remove fricção
+  do `/config` → Membros (~80% redução de tempo cadastro para ICP que
+  entrega IRPF). 2 PRs (~2d eng). Pattern arquitetural genérico
+  reutilizável em V2 (membros + imóveis + investimentos). Co-design
+  `product-designer` + `financial-planner` 2026-05-20. Lane mantida em
+  `docs/sprint/A12/` apenas por schema constraint (A13 ainda não existe);
+  move para `docs/sprint/A13/` quando A11 fechar.
+  Plano = [[ADR-229]] (Proposto).
+  Lane: [A12.irpf-prefill-bank-accounts](lanes/A12-irpf-prefill-bank-accounts-deferred-a13.md).
+  Track: [irpf-prefill-bank-accounts](tracks/irpf-prefill-bank-accounts.md).
 
 Lanes adicionais entram aqui conforme A11 fecha trabalho que naturalmente
 empurra continuação para A12.
