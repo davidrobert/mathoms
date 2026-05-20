@@ -40,15 +40,31 @@ Mapa de dependências em [waves.md](waves.md) — 6 waves: W1 Hot patches (✅) 
 
 ## Definition of Done
 
+Closure em modo **code-complete** ratificado por [[ADR-228]] (Proposto).
+Drills operacionais (G1-G5) ficam fora da DoD da sprint e seguem rastreio
+próprio na ADR-228 com prazo atrelado ao go-live de `app.mathoms.ai`.
+
 ```bash
 # Sprint encerrada quando:
-# 1. Todas as 32 tasks marcadas ✅ no PLAN.md (Index + cada wave)
+# 1. Todas as 32 tasks marcadas ✅ no PLAN.md (Index + cada wave) com PR
+#    mergeado em `main` e CI verde — "concluído" no sentido de CLAUDE.md.
 # 2. Coverage gaps documentados foram revisados (E0/E1.5c/E7-crossval/E7-apply)
-#    OU explicitamente adiados para Sprint A12+ via ADR
-# 3. Plano arquivado:
+#    OU explicitamente adiados para Sprint A12+ via ADR.
+# 3. ADRs 170-175 com status `Decidido (Sprint A11.W<N>)`, flippadas no
+#    merge do PR correspondente a cada uma.
+# 4. Demais lanes A11 (cat-overrides-ux ✅, report-publication ✅,
+#    planner-review atos pertinentes) em `main`.
+# 5. Plano arquivado:
 git mv docs/plan/PLATFORM_REVIEW/_README.md docs/archive/PLATFORM_REVIEW_PLAN-YYYY-MM-DD.md
-# 4. Esta seção marcada ✅ entregue + entrada em docs/archive/README.md
-# 5. Todas as ADRs 170-175 + ADRs novas geradas pelas waves em status `Decidido (Sprint A11.W<N>)`
+# 6. Esta seção marcada ✅ entregue + entrada em docs/archive/README.md +
+#    `sprint_status: shipped` no frontmatter.
+#
+# NÃO entra na DoD (rastreado pela ADR-228):
+# - G1 Email Resend chegando em prod sem spam (W3-T02)
+# - G2 Restore drill real em R2 (W4-T01)
+# - G3 Coolify webhook + rollback automático em prod (W4-T02)
+# - G4 Sentry capturando erro canário em prod (W4-T03)
+# - G5 Drill incidente full-chain (W4-T05)
 ```
 
 ## Coordenação multi-agente A11

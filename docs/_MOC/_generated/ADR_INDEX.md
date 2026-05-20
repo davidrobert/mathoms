@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-220 ADRs (ADR-001 a ADR-227) em [`docs/adr/`](../../adr/).
+221 ADRs (ADR-001 a ADR-228) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 177
-- **Proposto**: 39
+- **Proposto**: 40
 - **Roadmap**: 4
 
 ## Fundação
@@ -412,9 +412,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## ops
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-174]] — Off-site backup criptografado em Cloudflare R2 + restore drill
+- [[ADR-228]] — Operational gates pós-A11: closure code-complete da sprint + drills diferidos para go-live · phase A11
 
 ## persistence
 
