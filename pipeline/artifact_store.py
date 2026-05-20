@@ -47,15 +47,24 @@ from typing import Optional, Protocol, runtime_checkable
 
 _STAGE_TO_SUFFIX: dict[str, str] = {
     "E1": "-1b_unified.json",  # ADR-127
+    "extract_members": "-1b_unified.json",  # F9.2 descriptive alias
     "E1.5c": "-1.5_consolidated.json",
+    "consolidate_baseline": "-1.5_consolidated.json",  # F9.2 descriptive alias
     "E1.5": "-1.5_baseline.json",
+    "extract_baseline": "-1.5_baseline.json",  # F9.2 descriptive alias
     "E1.5a": "-1.5a_extract.json",
     "extract_irpf_full": "-1.6_irpf_full.json",  # ADR-157
     "E2": "-2_extract.json",
     "E2-faturas": "-2_extract.json",
+    "extract_invoices": "-2_extract.json",  # F9.2 descriptive alias
     "E2-extratos": "-2_extract.json",
+    "extract_statements": "-2_extract.json",  # F9.2 descriptive alias
     "E2-llm": "-2_extract.json",
+    "extract_with_llm": "-2_extract.json",  # F9.2 descriptive alias
+    "E2-informe-aluguel": "-2_informe_aluguel.json",  # ADR-216 Onda 0.5b
+    "extract_informe_aluguel": "-2_informe_aluguel.json",  # F9.2 descriptive alias
     "E3": "-3_reconciled.json",
+    "reconcile_transactions": "-3_reconciled.json",  # F9.2 descriptive alias
     "E4": "-4_unified.json",
     "categorize_transactions": "-4_unified.json",  # F9.2 descriptive alias
     "E5": "-5_analysis.json",

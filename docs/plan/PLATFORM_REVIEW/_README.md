@@ -80,7 +80,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W2-T03 | SR-005 CVE + gitleaks + GH secret scanning | 2 | done | sre-devops | P0 | S | — |
 | W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | done | sre-devops | P0 | S | W1-T06 (ADR-172) |
 | W2-T05 | DE-002 + DE-008 review_finances/extract_with_llm incremental + PROMPT_VERSION | 2 | blocked | data-engineer | P1 | M | — |
-| W2-T06 | DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases | 2 | blocked | data-engineer | P1 | S | — |
+| W2-T06 | DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases | 2 | done | data-engineer | P1 | S | — |
 | W3-T01 | SR-006 + DE-013 LLM budget hard-stop + LLMCallLog populada | 3 | blocked | data-engineer + sre-devops | P0 | M | W1-T06 (ADR-173), W2-T05 |
 | W3-T02 | BB-001 + SR-008 Email Resend + verify + password reset | 3 | blocked | sre-devops | P0 | L | W1-T06 |
 | W3-T03 | SR-002 JWT 15min + refresh 7d + family revocation | 3 | blocked | sre-devops + senior-cto | P0 | L | W1-T06 (ADR-170) |
@@ -98,7 +98,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W5-T05 | FP-010-12-17 Goal IF v2 cutover (3 PRs sequenciais) | 5 | scoped (track) | financial-planner | P1 | L | — |
 | W6-T01 | DE schema hardening (E5 strict + 7 sub-schemas E4 + ADR-090 wire compliance) | 6 | scoped (track) | data-engineer | P1 | L | — |
 | W6-T02 | MLOps universal hooks (DE-001/004/008/019 — meta-ADR) | 6 | blocked | data-engineer | P1 | L | W3-T01 |
-| W6-T03 | F9.4/F9.5/F9.6 stage rename cleanup + ALLOWED_PREFIXES | 6 | blocked | data-engineer | P2 | M | — |
+| W6-T03 | F9.4/F9.5/F9.6 stage rename cleanup + ALLOWED_PREFIXES | 6 | ready | data-engineer | P2 | M | — |
 | W6-T04 | Doc hygiene (BACKLOG split + CHANGELOG retention + CLAUDE.md slim) | 6 | in_progress (PR #111) | senior-cto | P2 | M | W1-T03 |
 | W6-T05 | DE-017 + DE-010 Pipeline artifacts retention + cascade-on-delete | 6 | scoped (track) | data-engineer | P2 | M | — |
 | W6-T06 | CTO-001 ADR-150 decisão (Caminho 1 / rejeitada / adiada) | 6 | in_progress (PR #110, decidido Caminho 3 — Roadmap) | senior-cto | P1 | S decidir + L se Caminho 1 | — |
@@ -362,9 +362,10 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 - **deps:** —
 - **owner:** data-engineer · **severity:** P1 · **effort:** S
+- **status:** done — 9 aliases descritivos (`extract_members`, `extract_baseline`, `consolidate_baseline`, `extract_invoices`, `extract_statements`, `extract_with_llm`, `reconcile_transactions`) + par `E2-informe-aluguel`/`extract_informe_aluguel` (sufixo novo `-2_informe_aluguel.json`) adicionados em `_STAGE_TO_SUFFIX`. Teste `test_legacy_descriptive_parity` itera `STAGE_RENAME_MAP.items()` e valida sufixo idêntico para legacy + descritivo (skip documentado: `E0-unlock`/`E0-route` sem artifact, `E1.6` nasceu descritivo via ADR-157). `_STAGE_TO_DIR` fora de escopo — foi deletado em ADR-213.
 - **related_findings:** DE-009
-- **files_touched:** `pipeline/artifact_store.py`, `tests/unit/pipeline/test_artifact_stores.py`
-- **acceptance_criteria:** `_STAGE_TO_DIR` e `_STAGE_TO_SUFFIX` cobrem todas as 17 keys descritivas; teste itera STAGE_RENAME_MAP e valida paridade.
+- **files_touched:** `pipeline/artifact_store.py`, `tests/unit/pipeline/test_artifact_stores.py`, `CLAUDE.md` (tabela §Convenções de naming).
+- **acceptance_criteria:** ✅ `_STAGE_TO_SUFFIX` cobre todos os pares de `STAGE_RENAME_MAP` com artifact; teste itera `STAGE_RENAME_MAP` e valida paridade; consumers (`e3_reconciler_adapter`, `e4_categorizer_adapter`, `e3_serialization.generate_legacy_filename`) podem chamar `stage_suffix(descritivo)` sem `KeyError`.
 
 ---
 
@@ -536,7 +537,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 ### [W6-T03] F9.4/F9.5/F9.6 stage rename cleanup
 
-- **deps:** W2-T06
+- **deps:** W2-T06 ✅ — paridade legacy ↔ descritivo de `_STAGE_TO_SUFFIX` estabelecida; W6-T03 destravado (status `ready`).
 - **severity:** P2 · **effort:** M · **owner:** data-engineer
 - **related_findings:** DE-015, CTO-006
 - **files_touched:** `scripts/e*_*.py` (rename), `tests/unit/pipeline/test_no_legacy_stage_names.py` (ALLOWED_PREFIXES tightening), `pipeline/stage_spec.py` (eventual STAGE_RENAME_MAP cleanup)
