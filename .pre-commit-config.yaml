@@ -26,6 +26,16 @@ repos:
       - id: detect-private-key
 
   # ----------------------------------------------------------------------
+  # gitleaks — varre stage atual ([[ADR-230]] §D3, Sprint A11 W2-T03).
+  # Dupla camada: pre-commit (rápido, local) + CI workflow (full history,
+  # defesa contra `git commit --no-verify`). Config em .gitleaks.toml.
+  # ----------------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  # ----------------------------------------------------------------------
   # Ruff — linter + formatter Python (A6g.6 slice 1 + A6g.6b, ADR-114)
   #
   # Config em pyproject.toml [tool.ruff]. Seleção E/F/I/W.
