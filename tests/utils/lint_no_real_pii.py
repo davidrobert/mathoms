@@ -76,8 +76,15 @@ SCAN_TARGETS = [
 ]
 
 
-def _is_excluded(path: Path) -> bool:
-    return any(part in EXCLUDED_DIRS for part in path.parts)
+def _is_excluded(path: Path, root: Path) -> bool:
+    # Worktrees em `.claude/worktrees/<slug>/` (CLAUDE.md §Git e commits)
+    # têm `.claude` no path absoluto; sem rel-to-root, o repo inteiro
+    # seria excluído quando o lint rodasse de dentro de um worktree.
+    try:
+        rel_parts = path.relative_to(root).parts
+    except ValueError:
+        rel_parts = path.parts
+    return any(part in EXCLUDED_DIRS for part in rel_parts)
 
 
 def _scan_file(path: Path) -> list[tuple[int, str, str]]:
@@ -107,7 +114,7 @@ def _iter_files(root: Path, targets: list[str]) -> list[Path]:
         if not target_path.exists():
             continue
         for p in target_path.rglob("*"):
-            if p.is_file() and p.suffix in EXTENSIONS and not _is_excluded(p):
+            if p.is_file() and p.suffix in EXTENSIONS and not _is_excluded(p, root):
                 files.append(p)
     return files
 
