@@ -527,7 +527,75 @@ toca `mathoms.db` de produção.
 
 ---
 
-## 10. Referências
+## 10. Backfill de Debt (ADR-227 §D6 · Sprint A15 Onda 2)
+
+Cutover one-shot que cria 1 row `Debt` por membro com `total_dividas > 0`
+no `baseline_patrimonial-1.5_consolidated`. Substitui o agregado
+in-memory por persistência (Onda 3 do calculator passa a consumir
+`Debt` em vez de `baseline.total_dividas`).
+
+### 10.1 Pré-requisitos
+
+- Migration `adr227debt1` aplicada (`alembic upgrade head`). Tabelas
+  `debt` + `property_market_value` existem.
+- Workspace tem artifact `consolidate_baseline` / `E1.5c` com
+  `dividas[]` em `pipeline_artifacts`.
+
+### 10.2 Invocação
+
+**Dogfood primeiro, prod 1 workspace por vez.**
+
+```bash
+# 1) Dry-run em workspace seed (default; não persiste)
+python3 dev/backfill_debt_from_baseline.py --workspace-id <ws-id> > audit-dry.json
+
+# 2) Inspecione audit-dry.json — `summary_by_status`, ações `would_create`
+cat audit-dry.json | jq '.reports[].members'
+
+# 3) Apply em workspace dogfood
+python3 dev/backfill_debt_from_baseline.py --workspace-id <ws-id> --apply \
+  --audit-out storage/<ws-id>/logs/debt_migration_audit.json
+
+# 4) Re-run apply é no-op (uq_debt_migration_source partial unique)
+python3 dev/backfill_debt_from_baseline.py --workspace-id <ws-id> --apply
+# → audit reporta `skipped_already_migrated` em todos os membros
+```
+
+### 10.3 Audit log
+
+- Path padrão: `storage/<ws-id>/logs/debt_migration_audit.json` (use
+  `--audit-out`; default: stdout).
+- Diretório `storage/` é **gitignored** — faça backup do audit log
+  antes de cleanup destrutivo do workspace.
+- Schema: `{summary_by_status, reports: [{workspace_id, status, members:
+  [{key, total_dividas_brl, action, created_debt_id}]}]}`.
+- `action ∈ {would_create, created, skipped_already_migrated, skipped_zero}`.
+
+### 10.4 Rollback
+
+Migration idempotente; reversão manual:
+
+```sql
+DELETE FROM debt
+WHERE workspace_id = '<ws-id>' AND source = 'baseline_irpf_migration';
+```
+
+Rows com `source = 'user_declared'` ficam preservadas. Re-run do
+backfill após DELETE volta a criar do baseline.
+
+### 10.5 Troubleshooting
+
+| Sintoma | Causa | Ação |
+|---|---|---|
+| `status: "skip", reason: "no_baseline"` | Workspace sem artifact `consolidate_baseline` | Rode pipeline E1.5c primeiro. |
+| `status: "skip", reason: "no_members"` | Workspace sem `family_members` | Cadastre titular antes. |
+| `action: "skipped_zero"` para todos | `total_dividas = 0` em `baseline.dividas[]` filtrado por member.key | Esperado em workspace sem dívidas. |
+| 2ª run cria duplicatas | `migration_source_key` mudou entre runs | Não deveria ocorrer — chave é `{ws_id}_{member_key}`. Inspecione DB. |
+| Test integration `test_backfill_debt_from_baseline.py` falha | Schema drift Onda 1 | Confirmar `alembic upgrade head` aplicado. |
+
+---
+
+## 11. Referências
 
 - [runbooks/f9_3_alembic_upgrade.md](runbooks/f9_3_alembic_upgrade.md) — F9.3 stage rename migration (pré-check + backup + rollback)
 - [SLO.md](SLO.md) — SLOs e SLAs de comunicação
