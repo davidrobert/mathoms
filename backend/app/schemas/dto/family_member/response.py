@@ -8,8 +8,8 @@ legado re-exporta estes durante a janela de transição.
 
 from __future__ import annotations
 
-from datetime import date
-from typing import Optional
+from datetime import date, datetime
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -83,3 +83,40 @@ class FamilyMemberListResponse(BaseModel):
 
     members: list[FamilyMemberResponse]
     total: int
+
+
+class IrpfSuggestionItem(BaseModel):
+    """Item de sugestão de conta extraída de IRPF (ADR-229 §4)."""
+
+    institution_code: str = Field(..., max_length=50)
+    institution_label: str = Field(..., max_length=255)
+    account_type: str = Field(..., max_length=100)
+    agency: Optional[str] = Field(None, max_length=20)
+    account_number_raw: Optional[str] = Field(None, max_length=50)
+    account_number_norm: Optional[str] = Field(None, max_length=30)
+    member_key: str = Field(..., max_length=50)
+    member_full_name: str = Field(..., max_length=255)
+    cpf_titular_masked: Optional[str] = Field(
+        None,
+        max_length=20,
+        description="CPF do titular IRPF mascarado (ex.: ***.123.456-**).",
+    )
+    irpf_year: int = Field(..., ge=2000, le=2100)
+    match_kind: Literal["new", "partial_collision"]
+    collision_with_account_id: Optional[str] = Field(None, max_length=36)
+
+
+class SuggestionsFromIrpfResponse(BaseModel):
+    """Response do ``GET /members/suggestions-from-irpf`` (ADR-229 §4)."""
+
+    irpf_year: int = Field(
+        ...,
+        description=(
+            "Ano-base do IRPF mais recente processado para o workspace. "
+            "0 quando o workspace ainda não tem artifact E1."
+        ),
+    )
+    processed_at: Optional[datetime] = None
+    suggestions: list[IrpfSuggestionItem] = Field(default_factory=list)
+    total_filtered_exact_match: int = 0
+    total_dismissed: int = 0

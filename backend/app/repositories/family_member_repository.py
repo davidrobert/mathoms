@@ -26,7 +26,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.app.models.family_member import BankAccount, FamilyMember
+from backend.app.models.family_member import (
+    BankAccount,
+    FamilyMember,
+    WorkspaceIrpfSuggestionDismissal,
+)
 
 
 class FamilyMemberRepository:
@@ -238,3 +242,50 @@ class FamilyMemberRepository:
     async def delete_account(self, account: BankAccount) -> None:
         await self._session.delete(account)
         await self._session.commit()
+
+    # -------------------------------------------------------------------
+    # ADR-229: IRPF suggestion dismissals
+    # -------------------------------------------------------------------
+
+    async def list_irpf_dismissals(
+        self, workspace_id: str
+    ) -> list[WorkspaceIrpfSuggestionDismissal]:
+        """Descartes persistentes do workspace (todos os anos)."""
+        result = await self._session.execute(
+            select(WorkspaceIrpfSuggestionDismissal).where(
+                WorkspaceIrpfSuggestionDismissal.workspace_id == workspace_id,
+            )
+        )
+        return list(result.scalars().all())
+
+    async def _find_dismissal(
+        self,
+        *,
+        workspace_id: str,
+        irpf_year: int,
+        institution_code: str,
+        account_number_norm: Optional[str] = None,
+    ) -> Optional[WorkspaceIrpfSuggestionDismissal]:
+        stmt = select(WorkspaceIrpfSuggestionDismissal).where(
+            WorkspaceIrpfSuggestionDismissal.workspace_id == workspace_id,
+            WorkspaceIrpfSuggestionDismissal.irpf_year == irpf_year,
+            WorkspaceIrpfSuggestionDismissal.institution_code == institution_code,
+            WorkspaceIrpfSuggestionDismissal.account_number_norm == account_number_norm,
+        )
+        return (await self._session.execute(stmt)).scalar_one_or_none()
+
+    async def add_irpf_dismissal(self, **kwargs: Any) -> WorkspaceIrpfSuggestionDismissal:
+        """Idempotente por UNIQUE — retorna existente em colisão."""
+        existing = await self._find_dismissal(
+            workspace_id=kwargs["workspace_id"],
+            irpf_year=kwargs["irpf_year"],
+            institution_code=kwargs["institution_code"],
+            account_number_norm=kwargs.get("account_number_norm"),
+        )
+        if existing is not None:
+            return existing
+        dismissal = WorkspaceIrpfSuggestionDismissal(**kwargs)
+        self._session.add(dismissal)
+        await self._session.commit()
+        await self._session.refresh(dismissal)
+        return dismissal
