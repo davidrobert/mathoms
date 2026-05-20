@@ -2,7 +2,7 @@
 id: ADR-232
 type: adr
 title: "Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita)"
-status: Proposto
+status: Decidido
 phase: A11.W2
 date: "2026-05-20"
 relates_to:
@@ -20,7 +20,7 @@ tags:
   - area/security
   - area/backend
   - phase/a11
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

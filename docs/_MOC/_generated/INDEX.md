@@ -229,7 +229,7 @@
 | ADR-229 | adr | Decidido |  | Pre-fill UI a partir de IRPF — pattern genérico `artifact → suggestion endpoint → card`; V1 contas bancárias | `adr/229-irpf-prefill-suggestions.md` |
 | ADR-230 | adr | Decidido |  | Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning | `adr/230-security-gates-ci.md` |
 | ADR-231 | adr | Decidido |  | Encryption at-rest de PII em pipeline_artifacts via Fernet wrapper (hook em DBArtifactStore) | `adr/231-pii-encryption-pipeline-artifacts.md` |
-| ADR-232 | adr | Proposto |  | Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) | `adr/232-security-headers-cors-strict.md` |
+| ADR-232 | adr | Decidido |  | Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) | `adr/232-security-headers-cors-strict.md` |
 | ADR-233 | adr | Proposto |  | Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump | `adr/233-prompt-version-format.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
@@ -420,6 +420,7 @@
 | CHG-2026-05-14-FEAT-PLANNER-ATO6-TELEMETRIA-CUTOVER | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-14-FEAT-PLANNER-ATO6-TELEMETRIA-CUTOVER.md` |
 | CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES.md` |
 | CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN.md` |
+| CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
 | RULE-cenario-conjuge-estresse | domain-rule |  |  |  | `reference/rules/rule-cenario-conjuge-estresse.md` |
@@ -443,8 +444,8 @@
 | A10.8 | lane | in_progress | A10 | Final cutover + `forbidden_paths` (ADR-181) | `sprint/A10/lanes/A10-8-final-cutover-forbidden-paths.md` |
 | A11.report-publication | lane | shipped | A11 | Report publication — mês fechado imutável | `sprint/A11/lanes/A11-report-publication-month-closed.md` |
 | A11.w1 | lane | shipped | A11 | Hot patches + ADR backfill (8 tasks) | `sprint/A11/lanes/A11-w1-hot-patches-adr-backfill.md` |
-| A11.w2 | lane | open | A11 | Pipeline + DB hardening (6 tasks) | `sprint/A11/lanes/A11-w2-pipeline-db-hardening.md` |
-| A11.w3 | lane | blocked | A11 | Auth + LLM ops + Email (5 tasks) | `sprint/A11/lanes/A11-w3-auth-llm-ops-email.md` |
+| A11.w2 | lane | shipped | A11 | Pipeline + DB hardening (6 tasks) | `sprint/A11/lanes/A11-w2-pipeline-db-hardening.md` |
+| A11.w3 | lane | open | A11 | Auth + LLM ops + Email (5 tasks) | `sprint/A11/lanes/A11-w3-auth-llm-ops-email.md` |
 | A11.w4 | lane | blocked | A11 | Production readiness (5 tasks) | `sprint/A11/lanes/A11-w4-production-readiness.md` |
 | A11.w5 | lane | open | A11 | Frontend + Methodology (5 tasks, paralelo W6) | `sprint/A11/lanes/A11-w5-frontend-methodology.md` |
 | A11.w6 | lane | blocked | A11 | Tech debt cleanup (6 tasks) | `sprint/A11/lanes/A11-w6-tech-debt-cleanup.md` |

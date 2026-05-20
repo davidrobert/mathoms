@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 181
-- **Proposto**: 41
+- **Decidido**: 182
+- **Proposto**: 40
 - **Roadmap**: 4
 
 ## Fundação
@@ -458,12 +458,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## security
 
-### Decidido (1)
+### Decidido (2)
 
 - [[ADR-230]] — Gates de segurança em CI: Trivy fs + IaC + pip-audit + npm audit + gitleaks + GH secret scanning · phase A11.W2
-
-### Proposto (1)
-
 - [[ADR-232]] — Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) · phase A11.W2
 
 ## Outras

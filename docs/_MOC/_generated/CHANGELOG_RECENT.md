@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-49 entries entre 2026-05-06 e 2026-05-15.
+50 entries entre 2026-05-06 e 2026-05-20.
+
+## 2026-05-20 (1 entries)
+
+- [[CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS]] — feat(backend): security headers + CORS strict no FastAPI (ADR-232). Middleware (lane [[A11.w2]])
 
 ## 2026-05-15 (1 entries)
 
