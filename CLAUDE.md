@@ -1044,7 +1044,7 @@ produção**. Os sufixos preservam 3 usos atuais:
 2. **`_source` em itens E4** — [`e4_categorizer_adapter.py:194`](pipeline/domain/services/e4_categorizer_adapter.py) anexa origem a posição patrimonial / investimento.
 3. **Campo `arquivo` no payload E3** — [`e3_serialization.generate_legacy_filename`](pipeline/domain/services/e3_serialization.py) gera `{banco}_{tipo_conta}_{MOEDA}_{YYYYMM}_{YYYYMM}-3_reconciled.json` para logs / UI.
 
-Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py) em `pipeline/artifact_store.py`. `_STAGE_TO_DIR` + `stage_dir_name()` foram deletados em [[ADR-213]] (dead code pós-sunset do stage `audit_documents`).
+Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py) em `pipeline/artifact_store.py`. `_STAGE_TO_DIR` + `stage_dir_name()` foram deletados em [[ADR-213]] (dead code pós-sunset do stage `audit_documents`). **Paridade legacy ↔ descritivo (W2-T06, Sprint A11):** todo par `(legacy, descritivo)` de [`STAGE_RENAME_MAP`](pipeline/stage_spec.py) que produz artifact tem ambas as keys em `_STAGE_TO_SUFFIX` apontando para o mesmo sufixo — `stage_suffix("reconcile_transactions")` e `stage_suffix("E3")` retornam ambos `-3_reconciled.json`. Exceção: `E1.6` legacy (ADR-157 nasceu descritivo); somente `extract_irpf_full` está em `_STAGE_TO_SUFFIX`. Invariante enforçado por `tests/unit/pipeline/test_artifact_stores.py::test_legacy_descriptive_parity`.
 
 | Stage / `_STAGE_TO_SUFFIX` key | Sufixo              | Stage descritivo                                         | Exemplo de `artifact_key`                  |
 | ------------------------------ | ------------------- | --------------------------------------------------------- | ------------------------------------------ |
@@ -1055,6 +1055,7 @@ Fonte de verdade do mapeamento: [`_STAGE_TO_SUFFIX`](pipeline/artifact_store.py)
 | `E1.5c`                        | `-1.5_consolidated` | `consolidate_baseline`                                   | `baseline_patrimonial`                     |
 | `extract_irpf_full`            | `-1.6_irpf_full`    | E1.6 — IRPF completo · ADR-157                           | `irpfdeclaracao_2024`                      |
 | `E2-extratos`/`E2-faturas`/`E2-llm` | `-2_extract`   | E2 — extratos / faturas / LLM fallback                   | `itau_extratoconta_202601_202604`          |
+| `E2-informe-aluguel`           | `-2_informe_aluguel` | `extract_informe_aluguel` · ADR-216 Onda 0.5b            | `informe_imobiliaria_2024`                 |
 | `E3`                           | `-3_reconciled`     | `reconcile_transactions`                                 | `itau_extratoconta_BRL_202212_202604`      |
 | `E4`                           | `-4_unified`        | `categorize_transactions` — 7 keys                       | `despesas` / `receitas` / `fluxo_mensal_detalhado` / `patrimonio` / `investimentos` / `seguros` / `pontos_milhas` |
 | `E5`                           | `-5_analysis`       | `analyze_finances`                                       | `analise_financeira`                       |
