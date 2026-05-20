@@ -80,3 +80,12 @@ def decrypt_artifact_payload(payload: dict) -> dict:
 
 def should_encrypt_writes() -> bool:
     return bool(settings.ENCRYPT_PIPELINE_ARTIFACTS)
+
+
+def read_artifact_content(payload: Any) -> Any:
+    """Decripta sentinel ADR-231 quando lendo ``PipelineArtifact.content_json`` fora do ``DBArtifactStore``; idempotente em plaintext/None."""
+    if payload is None:
+        return None
+    if not is_encrypted_payload(payload):
+        return payload
+    return decrypt_artifact_payload(payload)

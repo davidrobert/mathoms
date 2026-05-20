@@ -12,6 +12,7 @@ from backend.app.application.family_member import IrpfArtifactPayload
 from backend.app.models.family_member import WorkspaceIrpfSuggestionDismissal
 from backend.app.models.institution_catalog import InstitutionCatalog
 from backend.app.models.pipeline_artifact import PipelineArtifact
+from backend.app.services.crypto import read_artifact_content
 
 _DIGITS_RE = re.compile(r"\D")
 
@@ -25,7 +26,7 @@ def normalize_account_digits(raw: Optional[str] = None) -> Optional[str]:
 
 
 def _payload_from_row(row: PipelineArtifact) -> IrpfArtifactPayload:
-    content = row.content_json or {}
+    content = read_artifact_content(row.content_json) or {}
     # V1 V0: ano-base derivado de ``created_at`` (IRPF Y declarado em Mar-Abr Y+1).
     irpf_year = (row.created_at.year - 1) if row.created_at else 0
     return IrpfArtifactPayload(

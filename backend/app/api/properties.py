@@ -29,6 +29,7 @@ from backend.app.schemas.dto.property import (
     ResidenciaStatusCommand,
     ResidenciaStatusResponse,
 )
+from backend.app.services.crypto import read_artifact_content
 
 logger = logging.getLogger("mathoms.properties")
 
@@ -62,7 +63,7 @@ async def _fetch_contribuinte_endereco(workspace_id: str, db: AsyncSession) -> O
     artifact = result.scalar_one_or_none()
     if artifact is None:
         return None
-    contribuinte = (artifact.content_json or {}).get("contribuinte") or {}
+    contribuinte = (read_artifact_content(artifact.content_json) or {}).get("contribuinte") or {}
     endereco = contribuinte.get("endereco")
     return endereco if isinstance(endereco, str) and endereco else None
 

@@ -18,6 +18,7 @@ from backend.app.schemas.dto.exposicao_cambial import (
     ExposicaoCambialPorMoedaDTO,
     ExposicaoCambialResponse,
 )
+from backend.app.services.crypto import read_artifact_content
 from backend.app.services.lastro_resolver import (
     AssetQuery,
     CatalogEntry,
@@ -203,7 +204,7 @@ def _empty_response(workspace_id: str) -> ExposicaoCambialResponse:
 
 
 def _extract_e5_inputs(artifact: PipelineArtifact) -> tuple[list[dict], list[dict], Decimal]:
-    payload = artifact.content_json or {}
+    payload = read_artifact_content(artifact.content_json) or {}
     patrimonio_full = payload.get("patrimonio_full") or {}
     investimentos = payload.get("investimentos_atuais") or {}
     posicoes = investimentos.get("dados") if isinstance(investimentos, dict) else []

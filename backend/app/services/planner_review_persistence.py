@@ -15,6 +15,7 @@ from backend.app.models.pipeline_run_cost import PipelineRunCost
 from backend.app.models.planner_field_request import PlannerFieldRequest
 from backend.app.models.planner_review import PlannerReview
 from backend.app.models.suggestion import Suggestion
+from backend.app.services.crypto import read_artifact_content
 from backend.app.services.parecer_finalization import severity_from_prioridade
 
 logger = logging.getLogger("mathoms.pipeline.planner_review_persistence")
@@ -90,7 +91,7 @@ def _build_review(
         pipeline_artifact_id=parecer_artifact.id,
         e5_artifact_id=e5_artifact.id,
         status="Gerado",  # ADR-204 §D1
-        items_shown_count=_sum_shown(parecer_artifact.content_json),
+        items_shown_count=_sum_shown(read_artifact_content(parecer_artifact.content_json) or {}),
         items_gated_count=0,
         **_review_audit_fields(detail),
         **_review_metrics_fields(detail),
@@ -229,7 +230,9 @@ def _persist_suggestions_from_artifact(
         db, workspace_id=workspace_id, run_id=parecer_artifact.pipeline_run_id
     )
     created = 0
-    for _horizon, sug in _iter_sugestoes(parecer_artifact.content_json):
+    for _horizon, sug in _iter_sugestoes(
+        read_artifact_content(parecer_artifact.content_json) or {}
+    ):
         if sug["suggestion_dedup_key"] in existing_keys:
             continue
         db.add(_build_suggestion(workspace_id=workspace_id, report_id=report_id, sug=sug))
@@ -274,7 +277,7 @@ def _persist_field_requests(
     """Bulk-insert. Idempotente via UNIQUE (review_id, field_path); dedup intra-batch defensivo."""
     seen: set[str] = set()
     created = 0
-    for entry in _iter_field_requests(parecer_artifact.content_json):
+    for entry in _iter_field_requests(read_artifact_content(parecer_artifact.content_json) or {}):
         path = entry["field_path"]
         if path in seen:
             continue

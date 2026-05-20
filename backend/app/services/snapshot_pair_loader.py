@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
+from backend.app.services.crypto import read_artifact_content
 from pipeline.domain.types.snapshot_changelog import AnalyzeFinancesSnapshot
 
 # ADR-093: F9 mapeou E5 → analyze_finances; janela de compat ainda aberta.
@@ -74,7 +75,7 @@ def _fetch_previous(
 
 def _to_snapshot(row: PipelineArtifact) -> AnalyzeFinancesSnapshot:
     """Converte row SQLAlchemy → `AnalyzeFinancesSnapshot` (hash on-read)."""
-    content = row.content_json or {}
+    content = read_artifact_content(row.content_json) or {}
     return AnalyzeFinancesSnapshot(
         workspace_id=row.workspace_id,
         period_yyyymm=_extract_period_yyyymm(content),
