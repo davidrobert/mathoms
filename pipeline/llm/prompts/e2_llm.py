@@ -1,5 +1,11 @@
 """Prompt templates for E2-llm — extract transactions/investments from docs without deterministic parser."""
 
+# Bump quando SYSTEM_PROMPT ou USER_PROMPT_TEMPLATE mudar — gate CI valida (W2-T05, ADR-233).
+PROMPT_VERSION = "1.0.0"
+
+__all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
+
+
 SYSTEM_PROMPT = """\
 Você é um analista financeiro especialista em extratos bancários e informes de investimentos brasileiros.
 

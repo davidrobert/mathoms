@@ -182,6 +182,19 @@ repos:
         pass_filenames: false
         files: '^(config/prompts/parecer_planejador\.yaml|config/schemas/parecer_planejador\.schema\.json|config/schemas/e5_analysis\.schema\.json|config/report_layout\.yaml|docs/_schemas/note-planner\.schema\.json|dev/check_planner_manifest_coverage\.py|dev/snapshots/e5_schema_hash\.txt)$'
 
+      - id: prompt-version-bumped
+        # Sprint A11 W2-T05 · ADR-233 — exige bump de PROMPT_VERSION
+        # quando arquivo de prompt LLM muda. Heurística simples
+        # (arquivo mudou + tem PROMPT_VERSION sem bump → falha) — false
+        # positive aceito (refactor de comment força bump). Cobre auto-
+        # detecção de todos os arquivos em pipeline/llm/prompts/ e
+        # pipeline/llm/schemas/ com a constante declarada.
+        name: "PROMPT_VERSION bumpado quando prompt LLM muda (W2-T05 · ADR-233)"
+        entry: python3 dev/check_prompt_version_bumped.py
+        language: system
+        pass_filenames: true
+        files: ^pipeline/llm/(prompts|schemas)/.*\.py$
+
       - id: code-style-baseline
         # ADR-114 / A6g.6 slice 5 — gate de regressão das categorias do
         # audit. Roda quando py/ts/tsx mudam (mesmo set de arquivos que

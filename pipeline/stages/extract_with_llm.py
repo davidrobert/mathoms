@@ -189,7 +189,7 @@ def _process_one_e2_llm_document(
     disco direto — compatível com DiskArtifactStore e DBArtifactStore (A6b+).
     """
     from pipeline.llm.litellm_client import LLMRunSummary, LLMService
-    from pipeline.llm.prompts.e2_llm import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+    from pipeline.llm.prompts.e2_llm import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
     from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
     from pipeline.llm.text_extractor import DocumentTextExtractor
     from pipeline.llm.validators import validate_e2_llm_output
@@ -246,6 +246,8 @@ def _process_one_e2_llm_document(
             logger.warning("E2-llm: validation errors for %s: %s", doc.name, validation.errors)
 
         e2_json = _output_to_e2_json(output)
+        # Propaga prompt_version no payload para auditabilidade (ADR-233 · W2-T05).
+        e2_json["prompt_version"] = PROMPT_VERSION
 
         safe_stem = _e2_extract_stem(doc).replace(" ", "_")[:80]
         progress.emit(doc.name, "persisting")
@@ -373,6 +375,18 @@ def run(ctx: WorkspaceContext) -> dict:
     docs = _find_unprocessed_docs(ctx, store)
     if not docs:
         return {"skipped": True, "reason": "No unprocessed documents for LLM extraction"}
+
+    # ADR-080 + W2-T05: em modo incremental, restringe ao allowlist
+    # (`ctx.incremental_doc_paths`). Modo full mantém docs intacto.
+    # Padrão alinhado com extract_baseline.py:163 — sem cache hash em DB.
+    # Invalidação por bump de PROMPT_VERSION exige re-delete manual de
+    # artifacts antigos (runbook), não auto-skip aqui.
+    if ctx.incremental:
+        from pipeline.incremental import filter_to_incremental
+
+        docs = filter_to_incremental(ctx, docs)
+        if not docs:
+            return {"skipped": True, "reason": "incremental: no new documents for LLM extraction"}
 
     perf = _e2_llm_perf_settings(ctx)
     workers = min(int(perf["concurrency"]), len(docs), 8)
