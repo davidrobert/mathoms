@@ -144,7 +144,11 @@ def run(ctx: WorkspaceContext) -> dict:
     `baseline_patrimonial-1.5_baseline.json` (E1.5) lido por E1.5c.
     """
     from pipeline.llm.litellm_client import LLMConfig, LLMService
-    from pipeline.llm.prompts.e15_baseline import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+    from pipeline.llm.prompts.e15_baseline import (
+        PROMPT_VERSION,
+        SYSTEM_PROMPT,
+        USER_PROMPT_TEMPLATE,
+    )
     from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
     from pipeline.llm.text_extractor import DocumentTextExtractor
 
@@ -254,6 +258,8 @@ def run(ctx: WorkspaceContext) -> dict:
             phase="persisting",
         )
         baseline_json = _output_to_baseline_json(output)
+        # Propaga prompt_version no payload para auditabilidade (ADR-233 · W2-T05).
+        baseline_json["prompt_version"] = PROMPT_VERSION
         per_file_baselines.append(baseline_json)
         store.write("E1.5a", _artifact_key_for(doc), baseline_json)
 
@@ -281,6 +287,8 @@ def run(ctx: WorkspaceContext) -> dict:
     else:
         baselines_for_aggregate = per_file_baselines
     combined = _aggregate_baselines(baselines_for_aggregate)
+    # Propaga prompt_version no payload agregado (ADR-233 · W2-T05).
+    combined["prompt_version"] = PROMPT_VERSION
 
     # A6a (ADR-105): escreve via ArtifactStore em vez de disco direto.
     # Stage "E1.5" → E2_extracts/baseline_patrimonial-1.5_baseline.json

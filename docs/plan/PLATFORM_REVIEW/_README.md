@@ -79,7 +79,7 @@ Qualquer dessas pode ser pegue agora — todas independentes.
 | W2-T02 | SR-001/013 Security headers + CORS strict | 2 | blocked | sre-devops | P0 | S | W1-T05 |
 | W2-T03 | SR-005 CVE + gitleaks + GH secret scanning | 2 | done | sre-devops | P0 | S | — |
 | W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | done | sre-devops | P0 | S | W1-T06 (ADR-172) |
-| W2-T05 | DE-002 + DE-008 review_finances/extract_with_llm incremental + PROMPT_VERSION | 2 | blocked | data-engineer | P1 | M | — |
+| W2-T05 | DE-002 + DE-008 extract_with_llm incremental + PROMPT_VERSION | 2 | done | data-engineer | P1 | S | — |
 | W2-T06 | DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases | 2 | done | data-engineer | P1 | S | — |
 | W3-T01 | SR-006 + DE-013 LLM budget hard-stop + LLMCallLog populada | 3 | blocked | data-engineer + sre-devops | P0 | M | W1-T06 (ADR-173), W2-T05 |
 | W3-T02 | BB-001 + SR-008 Email Resend + verify + password reset | 3 | blocked | sre-devops | P0 | L | W1-T06 |
@@ -357,6 +357,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **files_touched:** `pipeline/stages/extract_with_llm.py`, `pipeline/llm/schemas/{e1_members,e15_baseline,e2_llm}.py`, `dev/check_prompt_version_bumped.py` (NOVO)
 - **acceptance_criteria:** extract_with_llm respeita ctx.incremental; 4 prompts LLM (e1_members, e15_baseline, e2_llm, parecer_planejador) declaram PROMPT_VERSION; gate CI falha se diff em prompt sem bump.
 - **escopo_alterado:** 2026-05-13 — `review_finances` removido do escopo (será substituído pelo stage `parecer_planejador` em [PLANNER_REVIEW](../PLANNER_REVIEW/_README.md) Ato 4); `e7_review.py` schema deprecated junto. PROMPT_VERSION gate e `extract_with_llm` incremental permanecem (W3-T01 LLMCallLog continua usando esse gate).
+- **delivered:** 2026-05-20 — [[ADR-233]] Proposto (formato canônico semver puro + tolerância para `<slug>-v<semver>` legado); `pipeline/stages/extract_with_llm.py` aplica `filter_to_incremental` após `_find_unprocessed_docs`; `prompt_version` propagado no payload dos 3 stages (extract_members, extract_baseline, extract_with_llm); 3 prompts (`e1_members`, `e15_baseline`, `e2_llm`) declaram `PROMPT_VERSION = "1.0.0"`; gate `dev/check_prompt_version_bumped.py` + hook pre-commit operacional (auto-detecta arquivos em `pipeline/llm/prompts/` e `pipeline/llm/schemas/` com a constante). Testes em `tests/pipeline/test_extract_with_llm_incremental.py` + `tests/dev/test_check_prompt_version_bumped.py` (6 + 25 casos).
 
 ### [W2-T06] DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases
 

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-225 ADRs (ADR-001 a ADR-232) em [`docs/adr/`](../../adr/).
+226 ADRs (ADR-001 a ADR-233) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 181
-- **Proposto**: 40
+- **Proposto**: 41
 - **Roadmap**: 4
 
 ## Fundação
@@ -429,11 +429,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
 - [[ADR-219]] — Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 · phase A12
+- [[ADR-233]] — Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump · phase A11.W2
 
 ## relatorio
 

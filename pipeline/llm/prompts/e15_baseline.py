@@ -1,5 +1,11 @@
 """Prompt templates for E1.5 — baseline patrimonial extraction from IRPF documents."""
 
+# Bump quando SYSTEM_PROMPT ou USER_PROMPT_TEMPLATE mudar — gate CI valida (W2-T05, ADR-233).
+PROMPT_VERSION = "1.0.0"
+
+__all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
+
+
 SYSTEM_PROMPT = """\
 Você é um contador especialista em declarações de Imposto de Renda Pessoa Física (IRPF) do Brasil.
 

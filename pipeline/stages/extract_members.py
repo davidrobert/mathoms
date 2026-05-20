@@ -83,7 +83,7 @@ def run(ctx: WorkspaceContext) -> dict:
     Requires llm_config.json in ctx.config_dir.
     """
     from pipeline.llm.litellm_client import LLMConfig, LLMService
-    from pipeline.llm.prompts.e1_members import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+    from pipeline.llm.prompts.e1_members import PROMPT_VERSION, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
     from pipeline.llm.schemas.e1_members import MembersExtractOutput
     from pipeline.llm.text_extractor import DocumentTextExtractor
 
@@ -172,6 +172,8 @@ def run(ctx: WorkspaceContext) -> dict:
         logger.info("E1: validation warnings: %s", validation.warnings)
 
     family_json = _output_to_family_members_json(output)
+    # Propaga prompt_version no payload para auditabilidade (ADR-233 · W2-T05).
+    family_json["prompt_version"] = PROMPT_VERSION
 
     store = ctx.get_artifact_store()
     emit_item_progress(
