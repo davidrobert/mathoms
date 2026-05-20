@@ -13,7 +13,9 @@ A hierarquia de arquivos:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from datetime import date
+from decimal import Decimal
+from typing import Any, Literal, Mapping
 
 
 def safe_float(val: Any, default: float = 0.0) -> float:
@@ -95,6 +97,26 @@ class CaixaDetalhe:
 
 
 @dataclass(frozen=True)
+class MarketValueResolution:
+    """Resolução de valor de mercado para um imóvel (ADR-227 §D4)."""
+
+    property_id: str
+    valor_brl: Decimal
+    source: Literal["mercado"]
+    valuation_date: date
+    staleness_days: int
+
+
+@dataclass(frozen=True)
+class RealEstateValuationContext:
+    """Contexto pré-carregado (ADR-227 §D4); dict de market_values + debts evita I/O no domínio (ADR-111 stateless)."""
+
+    market_values: Mapping[str, MarketValueResolution] = field(default_factory=dict)
+    debts_by_property: Mapping[str, Decimal] = field(default_factory=dict)
+    today: date = field(default_factory=date.today)
+
+
+@dataclass(frozen=True)
 class PatrimonioInputs:
     """Inputs completos para ``PatrimonioCalculator.calculate``.
 
@@ -106,6 +128,7 @@ class PatrimonioInputs:
     investimentos_atuais: dict | None = None
     caixa_total_brl: float = 0.0
     caixa_detalhes: list[CaixaDetalhe] = field(default_factory=list)
+    valuation_context: RealEstateValuationContext | None = None
 
     @property
     def has_current_positions(self) -> bool:

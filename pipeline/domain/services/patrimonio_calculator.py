@@ -66,72 +66,39 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.domain.services.patrimonio_imovel_classifier import (
+    CLASSIFICATION_COMERCIAL,
+    CLASSIFICATION_DESCONHECIDO,
+    CLASSIFICATION_ESPECULACAO,
+    CLASSIFICATION_LOCADO,
+    CLASSIFICATION_RESIDENCIA_PRINCIPAL,
+    CLASSIFICATION_USO_PESSOAL,
+    split_imoveis_geradores_vs_nao_geradores,
+    split_imoveis_with_overrides,
+    sum_imoveis_geradores_liquidos,
+)
 from pipeline.domain.services.patrimonio_resolvers import resolve_members
 from pipeline.domain.services.patrimonio_types import (
     PatrimonioConfig,
     PatrimonioInputs,
+    RealEstateValuationContext,
     get_bens,
-    imovel_property_id,
-    imovel_valor,
     investimento_valor,
     safe_float,
     veiculo_valor,
 )
 
-# ADR-215 P3: classification de override DB-first (ADR-215 §1).
-CLASSIFICATION_RESIDENCIA_PRINCIPAL = "residencia_principal"
-
-
-CLASSIFICATION_USO_PESSOAL = "uso_pessoal"
-CLASSIFICATION_LOCADO = "locado"
-CLASSIFICATION_COMERCIAL = "comercial"
-CLASSIFICATION_ESPECULACAO = "especulacao"
-CLASSIFICATION_DESCONHECIDO = "desconhecido"
-
-# ADR-142 §Decisão + ADR-215 §6: classifications que produzem fluxo de caixa
-# (entram em ``investivel_efetivo`` quando ``include_real_estate_in_if=True``).
-# `uso_pessoal | especulacao | desconhecido` nunca entram — Perini/Cerbasi
-# tratam patrimônio improdutivo como capital de uso, fora do múltiplo de IF.
-_CLASSIFICATIONS_GERADORAS = frozenset({CLASSIFICATION_LOCADO, CLASSIFICATION_COMERCIAL})
-
-
-def split_imoveis_with_overrides(
-    *,
-    titular_bens: dict,
-    conjuge_bens: dict,
-    overrides_by_property_id: dict[str, str],
-) -> tuple[float, float]:
-    """Separa cat_1 (residencia_principal) de demais imóveis (ADR-215 §1)."""
-    residencia = 0.0
-    imoveis_outros = 0.0
-    for im in (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or []):
-        pid = imovel_property_id(im)
-        if pid and overrides_by_property_id.get(pid) == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
-            residencia += imovel_valor(im)
-        else:
-            imoveis_outros += imovel_valor(im)
-    return residencia, imoveis_outros
-
-
-def split_imoveis_geradores_vs_nao_geradores(
-    *,
-    titular_bens: dict,
-    conjuge_bens: dict,
-    overrides_by_property_id: dict[str, str],
-) -> tuple[float, float]:
-    """Separa cat_2 em geradores (locado/comercial) vs não-geradores (ADR-215 §6)."""
-    geradores = 0.0
-    nao_geradores = 0.0
-    for im in (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or []):
-        pid = imovel_property_id(im)
-        cls = overrides_by_property_id.get(pid) if pid else None
-        if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
-            continue  # cat_1, fora de cat_2
-        if cls in _CLASSIFICATIONS_GERADORAS:
-            geradores += imovel_valor(im)
-        else:
-            nao_geradores += imovel_valor(im)
-    return geradores, nao_geradores
+__all__ = [
+    "PatrimonioCalculator",
+    "CLASSIFICATION_RESIDENCIA_PRINCIPAL",
+    "CLASSIFICATION_USO_PESSOAL",
+    "CLASSIFICATION_LOCADO",
+    "CLASSIFICATION_COMERCIAL",
+    "CLASSIFICATION_ESPECULACAO",
+    "CLASSIFICATION_DESCONHECIDO",
+    "split_imoveis_with_overrides",
+    "split_imoveis_geradores_vs_nao_geradores",
+]
 
 
 class PatrimonioCalculator:
@@ -211,7 +178,12 @@ class PatrimonioCalculator:
             0.0,
             investimentos_titular + investimentos_conjuge + caixa_moeda_estrangeira,
         )
-        cat2_efetivo = imoveis_geradores if self._config.include_real_estate_in_if else 0.0
+        cat2_efetivo = self._compute_cat2_efetivo(
+            titular_bens=titular_bens,
+            conjuge_bens=conjuge_bens,
+            imoveis_geradores_bruto=imoveis_geradores,
+            valuation_context=inputs.valuation_context,
+        )
         investivel_efetivo = max(0.0, investivel_financeiro + cat2_efetivo)
 
         composicao = self._build_composicao(
@@ -247,6 +219,23 @@ class PatrimonioCalculator:
     # -------------------------------------------------------------------------
     # Steps
     # -------------------------------------------------------------------------
+
+    def _compute_cat2_efetivo(
+        self,
+        *,
+        titular_bens: dict,
+        conjuge_bens: dict,
+        imoveis_geradores_bruto: float,
+        valuation_context: RealEstateValuationContext | None,
+    ) -> float:
+        """Cat_2 efetivo no IF (ADR-227 §D3) — bruto se sem context, líquido econômico se com."""
+        if not self._config.include_real_estate_in_if:
+            return 0.0
+        if valuation_context is None:
+            return imoveis_geradores_bruto
+        overrides = self._config.property_classification_overrides or {}
+        imoveis = (titular_bens.get("imoveis") or []) + (conjuge_bens.get("imoveis") or [])
+        return float(sum_imoveis_geradores_liquidos(imoveis, overrides, valuation_context))
 
     @staticmethod
     def _sum_dividas(titular_data: dict, conjuge_data: dict) -> float:
