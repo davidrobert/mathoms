@@ -20,9 +20,10 @@ from pathlib import Path
 from typing import Any
 
 import bcrypt
+import jwt
 import yaml
 from fastapi import Cookie, Depends, Header, HTTPException, status
-from jose import JWTError, jwt
+from jwt.exceptions import InvalidTokenError
 
 from backend.app.core.config import settings
 
@@ -131,7 +132,7 @@ def create_session_token(
 def decode_session_token(token: str) -> InternalOpsPrincipal | None:
     try:
         payload = jwt.decode(token, _session_secret(), algorithms=[_ALGORITHM])
-    except JWTError:
+    except InvalidTokenError:
         return None
     if payload.get("scope") != "internal_ops":
         return None

@@ -95,20 +95,28 @@ jobs:
           python-version: "3.12"
           cache: pip
       # PYSEC-2025-185 (python-jose 3.5.0, DoS via JWE token):
-      # sem fix version publicada upstream; allowlist temporário até
-      # python-jose >=4.x. SLO HIGH ≤14d ([[ADR-230]] §D5). Issue de
-      # rastreio: davidrobert/mathoms#security-pysec-2025-185.
+      # resolvida pós-PR #357 (migração para PyJWT) — remoção do allowlist
+      # acompanha o PR de reativação de gates (Etapa 3 ADR-230 §D5).
+      #
+      # PYSEC-2025-183 (PyJWT, "weak encryption"): DISPUTADA pelo fornecedor.
+      # Vuln é sobre key length escolhido pela aplicação que usa a lib, não
+      # bug de código. Mitigado em Mathoms: `MATHOMS_SECRET_KEY` e
+      # `MATHOMS_INTERNAL_OPS_SESSION_SECRET` são gerados com 32+ bytes via
+      # `dev/gen-secrets.sh --init-env` (ver `docs/reference/SETUP.md`).
+      # PyJWT 2.12.1+ emite `InsecureKeyLengthWarning` em runtime para HS256
+      # com key <32 bytes — defesa em profundidade. Allowlist permanente
+      # até upstream publicar fix-version ou substituirmos PyJWT.
       - name: Run pip-audit on backend/requirements.txt
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
           inputs: backend/requirements.txt
-          ignore-vulns: "PYSEC-2025-185"
+          ignore-vulns: "PYSEC-2025-185 PYSEC-2025-183"
       - name: Run pip-audit on requirements.txt (pipeline)
         if: hashFiles('requirements.txt') != ''
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
           inputs: requirements.txt
-          ignore-vulns: "PYSEC-2025-185"
+          ignore-vulns: "PYSEC-2025-185 PYSEC-2025-183"
 
   # npm audit não suporta ignore-by-CVE — para vulns conhecidas que
   # exigem upgrade breaking (next, next-intl, postcss em 2026-05-20),
