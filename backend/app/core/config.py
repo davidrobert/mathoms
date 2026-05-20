@@ -83,6 +83,13 @@ class Settings(BaseSettings):
     # Vault encryption (Fernet symmetric key). Generate via: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     FERNET_KEY: str = ""
 
+    # ADR-231 — encryption at-rest de PII em pipeline_artifacts.content_json.
+    # Default True: writes via DBArtifactStore aplicam Fernet encrypt após
+    # schema validation. Reads sempre decriptam sentinel detectado (compat
+    # com rows antigas em revert). False bypassa apenas o encrypt em writes
+    # novos — kill switch operacional, não desencripta histórico.
+    ENCRYPT_PIPELINE_ARTIFACTS: bool = True
+
     # ADR-115 · A6e.events: quando True, handler reativo para TaskCreated/
     # Updated cria Notification na transação do use case. Enquanto False
     # (default), o cron ``scan_and_create_notifications`` continua sendo

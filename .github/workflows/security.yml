@@ -94,35 +94,34 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      # PYSEC-2025-185 (python-jose 3.5.0, DoS via JWE token):
-      # resolvida pós-PR #357 (migração para PyJWT) — remoção do allowlist
-      # acompanha o PR de reativação de gates (Etapa 3 ADR-230 §D5).
+      # pip-audit é gate blocking (HIGH+ via --strict).
       #
-      # PYSEC-2025-183 (PyJWT, "weak encryption"): DISPUTADA pelo fornecedor.
-      # Vuln é sobre key length escolhido pela aplicação que usa a lib, não
-      # bug de código. Mitigado em Mathoms: `MATHOMS_SECRET_KEY` e
-      # `MATHOMS_INTERNAL_OPS_SESSION_SECRET` são gerados com 32+ bytes via
-      # `dev/gen-secrets.sh --init-env` (ver `docs/reference/SETUP.md`).
-      # PyJWT 2.12.1+ emite `InsecureKeyLengthWarning` em runtime para HS256
-      # com key <32 bytes — defesa em profundidade. Allowlist permanente
-      # até upstream publicar fix-version ou substituirmos PyJWT.
+      # PYSEC-2025-185 (python-jose) removido do allowlist em PR de
+      # reativação — resolvido por PR #357 (migração para PyJWT).
+      #
+      # PYSEC-2025-183 (PyJWT, "weak encryption"): DISPUTADA pelo PyPA.
+      # Vuln é sobre key length escolhido pela app, não bug de código.
+      # Mitigado em Mathoms: `MATHOMS_SECRET_KEY` (32 bytes) gerado via
+      # `dev/gen-secrets.sh --init-env`; PyJWT 2.12.1+ emite
+      # `InsecureKeyLengthWarning` em runtime — defesa em profundidade.
+      # Permanente até upstream publicar patch ou substituirmos PyJWT.
+      # Tracking em runbook §Diferimentos vigentes.
       - name: Run pip-audit on backend/requirements.txt
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
           inputs: backend/requirements.txt
-          ignore-vulns: "PYSEC-2025-185 PYSEC-2025-183"
+          ignore-vulns: "PYSEC-2025-183"
       - name: Run pip-audit on requirements.txt (pipeline)
         if: hashFiles('requirements.txt') != ''
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
           inputs: requirements.txt
-          ignore-vulns: "PYSEC-2025-185 PYSEC-2025-183"
+          ignore-vulns: "PYSEC-2025-183"
 
-  # npm audit não suporta ignore-by-CVE — para vulns conhecidas que
-  # exigem upgrade breaking (next, next-intl, postcss em 2026-05-20),
-  # job fica em continue-on-error step-level até PRs de upgrade
-  # mergearem. SLO HIGH ≤14d; rastreio em Issue dedicada por dep.
-  # Quando uma vuln é fixada, job volta a ser blocking.
+  # npm-audit-prod é gate blocking (HIGH+). Vulns deferidas exigem
+  # `overrides` no package.json com justificativa + Issue de tracking
+  # (runbook §"Ignorar CVE em npm audit"). Postcss nested em next
+  # permanece moderate via #354 mas não trip o threshold HIGH+.
   npm-audit-prod:
     name: npm audit (prod deps)
     runs-on: ubuntu-latest
@@ -138,9 +137,6 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: npm audit (prod, HIGH+)
-        # TODO(security-npm-prod-2026-05-20): remover continue-on-error
-        # após PRs de upgrade de next/next-intl/postcss. Issue: TBD.
-        continue-on-error: true
         run: npm audit --audit-level=high --omit=dev
 
   npm-audit-dev:
