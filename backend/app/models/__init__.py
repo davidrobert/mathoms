@@ -12,6 +12,20 @@ from backend.app.models.data_export_request import (
     DataExportRequest,
     DataExportRequestStatus,
 )
+from backend.app.models.debt import (
+    DEBT_SOURCE_BASELINE_IRPF_MIGRATION,
+    DEBT_SOURCE_OPEN_BANKING_FUTURO,
+    DEBT_SOURCE_USER_DECLARED,
+    DEBT_TIPO_CARTAO_ROTATIVO,
+    DEBT_TIPO_CDC,
+    DEBT_TIPO_CONSIGNADO,
+    DEBT_TIPO_FINANCIAMENTO_IMOBILIARIO,
+    DEBT_TIPO_OUTRO,
+    DEBT_TIPO_ROTATIVO,
+    VALID_DEBT_SOURCES,
+    VALID_DEBT_TIPOS,
+    Debt,
+)
 from backend.app.models.decision import (
     DEFAULT_DECISION_HORIZON,
     VALID_DECISION_EVENT_TYPES,
@@ -77,6 +91,13 @@ from backend.app.models.property_identity import (
 )
 from backend.app.models.property_identity import (
     VALID_OVERRIDE_SOURCES as VALID_PROPERTY_OVERRIDE_SOURCES,
+)
+from backend.app.models.property_market_value import (
+    PMV_SOURCE_AVALIACAO_TERCEIROS,
+    PMV_SOURCE_CEP_PROXY_FUTURO,
+    PMV_SOURCE_USER_DECLARED,
+    VALID_PMV_SOURCES,
+    PropertyMarketValue,
 )
 from backend.app.models.protection import (
     VALID_PROTECTION_CATEGORIES,
@@ -227,9 +248,26 @@ __all__ = [
     "VALID_PROTECTION_STATUSES",
     "PropertyIdentity",
     "WorkspacePropertyOverride",
+    "PropertyMarketValue",
     "VALID_CLASSIFICATIONS",
     "VALID_PROPERTY_OVERRIDE_SOURCES",
     "VALID_RESIDENCIA_STATUSES",
+    "VALID_PMV_SOURCES",
+    "PMV_SOURCE_USER_DECLARED",
+    "PMV_SOURCE_AVALIACAO_TERCEIROS",
+    "PMV_SOURCE_CEP_PROXY_FUTURO",
+    "Debt",
+    "VALID_DEBT_TIPOS",
+    "VALID_DEBT_SOURCES",
+    "DEBT_TIPO_FINANCIAMENTO_IMOBILIARIO",
+    "DEBT_TIPO_CONSIGNADO",
+    "DEBT_TIPO_CDC",
+    "DEBT_TIPO_CARTAO_ROTATIVO",
+    "DEBT_TIPO_ROTATIVO",
+    "DEBT_TIPO_OUTRO",
+    "DEBT_SOURCE_BASELINE_IRPF_MIGRATION",
+    "DEBT_SOURCE_USER_DECLARED",
+    "DEBT_SOURCE_OPEN_BANKING_FUTURO",
     "CLASSIFICATION_RESIDENCIA_PRINCIPAL",
     "CLASSIFICATION_USO_PESSOAL",
     "CLASSIFICATION_LOCADO",

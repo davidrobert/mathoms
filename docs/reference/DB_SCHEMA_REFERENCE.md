@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 54
+**Total de tabelas:** 56
 
 ---
 
@@ -20,6 +20,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`category_keywords`](#categorykeywords)
 - [`category_templates`](#categorytemplates)
 - [`data_export_requests`](#dataexportrequests)
+- [`debt`](#debt)
 - [`decision_events`](#decisionevents)
 - [`decisions`](#decisions)
 - [`documents`](#documents)
@@ -44,6 +45,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`planner_field_requests`](#plannerfieldrequests)
 - [`planner_review_metadata`](#plannerreviewmetadata)
 - [`property_identity`](#propertyidentity)
+- [`property_market_value`](#propertymarketvalue)
 - [`protections`](#protections)
 - [`report_layouts`](#reportlayouts)
 - [`report_publications`](#reportpublications)
@@ -266,6 +268,44 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_data_export_requests_expires_at` (expires_at)
 - `ix_data_export_requests_status` (status)
 - `ix_data_export_requests_user_id` (user_id)
+
+### `debt`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id |
+| `family_member_id` | `VARCHAR(36)` | yes | — | FK→family_members.id |
+| `property_id` | `VARCHAR(36)` | yes | — | FK→property_identity.id |
+| `tipo` | `VARCHAR(30)` | no | — | — |
+| `descricao` | `TEXT` | yes | — | — |
+| `saldo_devedor_cents` | `BIGINT` | no | — | — |
+| `parcela_mensal_cents` | `BIGINT` | yes | — | — |
+| `taxa_juros_aa` | `NUMERIC(5, 2)` | yes | — | — |
+| `prazo_meses_restantes` | `INTEGER` | yes | — | — |
+| `data_contratacao` | `DATE` | yes | — | — |
+| `source` | `VARCHAR(30)` | no | — | — |
+| `migration_source_key` | `VARCHAR(64)` | yes | — | — |
+| `needs_review` | `BOOLEAN` | no | server: `0` | — |
+| `percentual_atribuicao_imovel` | `NUMERIC(5, 2)` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- CHECK (`family_member_id IS NOT NULL OR property_id IS NOT NULL OR descricao IS NOT NULL`) — `chk_debt_identity`
+- CHECK (`percentual_atribuicao_imovel IS NULL OR (percentual_atribuicao_imovel > 0 AND percentual_atribuicao_imovel <= 100)`) — `chk_debt_pct_atribuicao`
+- CHECK (`source IN ('baseline_irpf_migration','user_declared','open_banking_futuro')`) — `chk_debt_source`
+- CHECK (`tipo IN ('financiamento_imobiliario','consignado','cdc','cartao_rotativo','rotativo','outro')`) — `chk_debt_tipo`
+- FOREIGN KEY (family_member_id) REFERENCES family_members.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (property_id) REFERENCES property_identity.id ON DELETE RESTRICT — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_debt_property` (property_id)
+- `ix_debt_workspace` (workspace_id)
+- UNIQUE `uq_debt_migration_source` (workspace_id, migration_source_key)
 
 ### `decision_events`
 
@@ -865,6 +905,36 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_property_identity_workspace_id` (workspace_id)
+
+### `property_market_value`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `property_id` | `VARCHAR(36)` | no | — | FK→property_identity.id |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id |
+| `valor_brl_cents` | `BIGINT` | no | — | — |
+| `valuation_date` | `DATE` | no | — | — |
+| `source` | `VARCHAR(30)` | no | — | — |
+| `confidence` | `NUMERIC(3, 2)` | yes | — | — |
+| `notes` | `TEXT` | yes | — | — |
+| `superseded_by_id` | `VARCHAR(36)` | yes | — | FK→property_market_value.id |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `created_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
+
+**Constraints:**
+
+- CHECK (`confidence IS NULL OR (confidence >= 0 AND confidence <= 1)`) — `chk_pmv_confidence`
+- CHECK (`source IN ('user_declared','avaliacao_terceiros','cep_proxy_futuro')`) — `chk_pmv_source`
+- FOREIGN KEY (created_by_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (property_id) REFERENCES property_identity.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (superseded_by_id) REFERENCES property_market_value.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (property_id, valuation_date) — `uq_property_valuation_date`
+
+**Indexes:**
+
+- `idx_pmv_lookup` (workspace_id, property_id)
 
 ### `protections`
 
@@ -1676,6 +1746,30 @@ type DataExportRequest struct {
 }
 ```
 
+### `debt` → `type Debt struct`
+
+```go
+type Debt struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	FamilyMemberId *string `db:"family_member_id" json:"family_member_id"`
+	PropertyId *string `db:"property_id" json:"property_id"`
+	Tipo string `db:"tipo" json:"tipo"`
+	Descricao *string `db:"descricao" json:"descricao"`
+	SaldoDevedorCents int64 `db:"saldo_devedor_cents" json:"saldo_devedor_cents"`
+	ParcelaMensalCents *int64 `db:"parcela_mensal_cents" json:"parcela_mensal_cents"`
+	TaxaJurosAa *decimal.Decimal `db:"taxa_juros_aa" json:"taxa_juros_aa"`
+	PrazoMesesRestantes *int `db:"prazo_meses_restantes" json:"prazo_meses_restantes"`
+	DataContratacao *time.Time `db:"data_contratacao" json:"data_contratacao"`
+	Source string `db:"source" json:"source"`
+	MigrationSourceKey *string `db:"migration_source_key" json:"migration_source_key"`
+	NeedsReview bool `db:"needs_review" json:"needs_review"`
+	PercentualAtribuicaoImovel *decimal.Decimal `db:"percentual_atribuicao_imovel" json:"percentual_atribuicao_imovel"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
 ### `decision_events` → `type DecisionEvent struct`
 
 ```go
@@ -2084,6 +2178,24 @@ type PropertyIdentity struct {
 	DescricaoSample *string `db:"descricao_sample" json:"descricao_sample"`
 	LowConfidence bool `db:"low_confidence" json:"low_confidence"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `property_market_value` → `type PropertyMarketValue struct`
+
+```go
+type PropertyMarketValue struct {
+	Id string `db:"id" json:"id"`
+	PropertyId string `db:"property_id" json:"property_id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	ValorBrlCents int64 `db:"valor_brl_cents" json:"valor_brl_cents"`
+	ValuationDate time.Time `db:"valuation_date" json:"valuation_date"`
+	Source string `db:"source" json:"source"`
+	Confidence *decimal.Decimal `db:"confidence" json:"confidence"`
+	Notes *string `db:"notes" json:"notes"`
+	SupersededById *string `db:"superseded_by_id" json:"superseded_by_id"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	CreatedByUserId *string `db:"created_by_user_id" json:"created_by_user_id"`
 }
 ```
 
