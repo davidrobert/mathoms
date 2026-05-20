@@ -34,6 +34,13 @@ tags:
 > **Coverage gaps explícitos:** stages E0 (audit/unlock/route),
 > E1.5c (consolidate_baseline), E7-crossval e E7-apply ficaram com
 > cobertura indireta. Próxima revisão (Q3 2026) prioriza esses stages.
+>
+> **Modo de closure A11 ([[ADR-228]]):** sprint fecha em modo
+> **code-complete** — 32 tasks em `main` + ADRs 170-175 `Decidido`.
+> 5 tasks (W3-T02, W4-T01, W4-T02, W4-T03, W4-T05) têm `operational_gate`
+> adicional (G1-G5) rastreado em ADR-228, prazo 7d corridos pós-cutover
+> `app.mathoms.ai`. Drills operacionais **não bloqueiam** encerramento
+> da sprint.
 
 ---
 
@@ -365,6 +372,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **severity:** P0 · **effort:** L
 - **files_touched:** `backend/app/services/email/__init__.py` (Protocol + adapters), `backend/app/api/auth.py` (endpoints novos), `backend/app/models/email_verification_token.py`, `backend/app/models/password_reset_token.py`, migrations Alembic
 - **acceptance_criteria:** Resend integrado com SPF/DKIM/DMARC; signup envia email-verify; `/auth/forgot-password` + `/auth/reset-password`; rate limit 5/h por IP; templates de email em PT-BR.
+- **operational_gate (G1, [[ADR-228]]):** verify SPF/DKIM/DMARC nos DNS de `mathoms.ai` em produção + email-canary chegando em 3 provedores (Gmail/Outlook/iCloud) sem spam. Rastreado em ADR-228, não bloqueia closure code-complete da Sprint A11.
 
 ### [W3-T03] SR-002 JWT 15min + refresh 7d + family revocation
 
@@ -404,6 +412,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **severity:** P0 · **effort:** M · **owner:** sre-devops
 - **files_touched:** `dev/backup_postgres.sh` (NOVO), `dev/restore_drill.sh` (NOVO), `backend/app/services/storage/r2_adapter.py` (NOVO), `docs/reference/runbooks/disaster_recovery.md` (NOVO)
 - **acceptance_criteria:** cron daily pg_dump → gpg encrypt → R2 (eu-central); 5 query-canário em restore drill; RPO=24h documentado; staging drill executado e registrado em RUNBOOK §4.
+- **operational_gate (G2, [[ADR-228]]):** restore drill **em produção** (pg_dump real → R2 → reconstrução de DB → 5 queries-canário com row counts esperados); RPO/RTO medidos pós-go-live. Rastreado em ADR-228; staging drill da acceptance_criteria não substitui o gate operacional.
 
 ### [W4-T02] SR-010 Coolify webhook + SHA-pinned + dev.9
 
@@ -411,6 +420,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **severity:** P0 · **effort:** M · **owner:** sre-devops
 - **files_touched:** `.github/workflows/deploy.yml` (NOVO build-and-push GHCR), `docker-compose.prod.yml` (referenciar SHA tags), `docs/reference/runbooks/coolify_deploy.md` (NOVO)
 - **acceptance_criteria:** GHCR push tag `sha-<commit>`; Coolify webhook em main após CI verde; smoke remoto pós-deploy com curl /health; rollback automático se falha.
+- **operational_gate (G3, [[ADR-228]]):** webhook real disparando em push pra `main` → imagem SHA-pinned sobe em `app.mathoms.ai` → `/health` responde 200 → rollback automático provado com falha sintética. Rastreado em ADR-228, depende de cutover prod.
 
 ### [W4-T03] SR-011 + BB-015 Sentry SaaS EU + frontend hookup
 
@@ -418,6 +428,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **severity:** P1 · **effort:** S · **owner:** sre-devops
 - **files_touched:** `backend/requirements.txt` (sentry-sdk), `backend/app/core/sentry.py` (NOVO), `frontend/sentry.client.config.ts` (NOVO), `backend/app/components/ErrorBoundary.tsx` (hookup)
 - **acceptance_criteria:** Sentry EU region; before_send hook strip PII (compatível com `_redact()` ADR-110); SDK em backend + frontend + Celery; release tracking via SHA; alert rule >2x burn rate.
+- **operational_gate (G4, [[ADR-228]]):** erro canário intencional (`raise RuntimeError("sentry-canary")`) chegando no projeto Sentry EU **em produção** com PII strippado + alert disparando em Slack/oncall. Rastreado em ADR-228, depende de tráfego prod.
 
 ### [W4-T04] SR-018 Rate limit endpoints LLM/upload/pipeline
 
@@ -432,6 +443,7 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **severity:** P1 · **effort:** M · **owner:** sre-devops
 - **files_touched:** Instatus signup + status.mathoms.ai DNS, `docs/reference/runbooks/alerts/<N>.md` (NOVO), UptimeRobot setup
 - **acceptance_criteria:** UptimeRobot 5min /health; Instatus free com 3 services (api, app, ops); Sentry alertas wired com burn rate rules; drill incidente executado e registrado.
+- **operational_gate (G5, [[ADR-228]]):** drill full-chain em produção — UptimeRobot detecta down sintético → Instatus atualiza status → oncall recebe page → postmortem rascunho em ≤24h. Rastreado em ADR-228, depende de prod pública.
 
 ---
 
