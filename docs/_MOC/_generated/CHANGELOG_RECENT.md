@@ -3,10 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-40 entries entre 2026-05-07 e 2026-05-21.
+41 entries entre 2026-05-07 e 2026-05-21.
 
-## 2026-05-21 (2 entries)
+## 2026-05-21 (3 entries)
 
+- [[CHG-2026-05-21-DOCS-ADR-238-PROPOSTO]] — docs(adr-238): Proposto — Ingestão de Informes de Rendimentos anuais (lane [[A17.l1]])
 - [[CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE]] — feat(adr-236 P1): BusinessProfile expandido com 4 campos A16 + admin (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
 - [[CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF]] — feat(adr-236 P2): classifier E4 com 5 labels PJ-side + leitor IRPF (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
 

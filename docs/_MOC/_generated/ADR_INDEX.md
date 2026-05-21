@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-230 ADRs (ADR-001 a ADR-237) em [`docs/adr/`](../../adr/).
+231 ADRs (ADR-001 a ADR-238) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 185
-- **Proposto**: 41
+- **Proposto**: 42
 - **Roadmap**: 4
 
 ## Fundação
@@ -438,12 +438,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-237]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
 
-### Proposto (4)
+### Proposto (5)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
 - [[ADR-219]] — Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 · phase A12
 - [[ADR-233]] — Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump · phase A11.W2
+- [[ADR-238]] — Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 · phase A17.informes-avulsos
 
 ## relatorio
 
