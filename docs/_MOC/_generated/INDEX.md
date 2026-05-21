@@ -235,6 +235,7 @@
 | ADR-235 | adr | Decidido |  | Classificação `nu_proprietario`: imóvel em nu-propriedade com usufruto vitalício de terceiro | `adr/235-nu-proprietario-usufruto-vitalicio-de-terceiro.md` |
 | ADR-236 | adr | Proposto |  | Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados) | `adr/236-tributario-pj-cascata-fiscal-canonica.md` |
 | ADR-237 | adr | Decidido |  | Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) | `adr/237-monte-carlo-if-with-pmt.md` |
+| ADR-238 | adr | Proposto |  | Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 | `adr/238-ingestao-informes-rendimentos-anuais-avulsos.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -427,6 +428,7 @@
 | CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO | changelog-entry |  | A15 |  | `sprint/A15/changelog/CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO.md` |
 | CHG-2026-05-20-FEAT-ADR-235-NU-PROPRIETARIO | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-20-FEAT-ADR-235-NU-PROPRIETARIO.md` |
 | CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS.md` |
+| CHG-2026-05-21-DOCS-ADR-238-PROPOSTO | changelog-entry |  | A17 |  | `sprint/A17/changelog/CHG-2026-05-21-DOCS-ADR-238-PROPOSTO.md` |
 | CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE.md` |
 | CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
@@ -463,6 +465,10 @@
 | A12.decision-code-autogen | lane | in_progress | A12 | Decision.code server-generated (UX cleanup + race fix) | `sprint/A12/lanes/A12-decision-code-autogen-server-gen.md` |
 | A12.irpf-prefill-bank-accounts | lane | planned | A12 | Pre-fill UI a partir de IRPF — V1 contas bancárias (deferred → A13) | `sprint/A12/lanes/A12-irpf-prefill-bank-accounts-deferred-a13.md` |
 | A12.sunset-disk-artifact | lane | open | A12 | Sunset DiskArtifactStore + flag MATHOMS_USE_DB_ARTIFACTS + CLI standalone | `sprint/A12/lanes/A12-sunset-disk-artifact-cleanup.md` |
+| A17.l1 | lane | open | A17 | Informes anuais — L1 previdência privada (PGBL/VGBL, BrasilPrev e seguradoras) | `sprint/A17/lanes/A17-l1-previdencia.md` |
+| A17.l2 | lane | planned | A17 | Informes anuais — L2 financeiro PJ (C6 PJ, Stone, adquirentes) | `sprint/A17/lanes/A17-l2-financeiro-pj.md` |
+| A17.l3 | lane | planned | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |
+| A17.l4 | lane | planned | A17 | Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) | `sprint/A17/lanes/A17-l4-proventos.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -528,6 +534,7 @@
 | MOC-sprint-a12 | moc |  |  | Sprint A12 — Categorization learning loop + post-A11 follow-up | `sprint/A12/_README.md` |
 | MOC-sprint-a15 | moc |  |  | Sprint A15 — FU-3 Imóvel financiado (Debt aggregate + valor_mercado override) | `sprint/A15/_README.md` |
 | MOC-sprint-a16 | moc |  |  | Sprint A16 — Flips ADR-235 nu_proprietario + ADR-236 Tributário PJ Cascata Fiscal | `sprint/A16/_README.md` |
+| MOC-sprint-a17 | moc |  |  | Sprint A17 — Ingestão de Informes de Rendimentos anuais avulsos (4 ondas) | `sprint/A17/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
@@ -557,6 +564,10 @@
 | TRACK-a15-fu3-onda5-frontend | track | ready | A15 | Track A15 FU-3 Onda 5 — Frontend: form, batch review, drill-down card | `sprint/A15/tracks/a15-fu3-onda5-frontend.md` |
 | TRACK-a16-adr235-nu-proprietario-flip | track | consumed | A16 | Track A16 — Flip ADR-235 `nu_proprietario` para Decidido (migration + call-sites + ADR updates + E6 prompt + CI gate) | `sprint/A16/tracks/a16-adr235-nu-proprietario-flip.md` |
 | TRACK-a16-adr236-tributario-pj-cascata | track | ready | A16 | Track A16 — Tributário PJ Cascata Fiscal: BusinessProfile expandido + calculator + narrator + card UI (6 PRs) | `sprint/A16/tracks/a16-adr236-tributario-pj-cascata.md` |
+| TRACK-a17-l1-previdencia-privada | track | ready | A17 | Track A17 L1 — Previdência privada (PGBL/VGBL): schema-base + parser LLM + FiscalAnalyzer polimórfico + UI | `sprint/A17/tracks/a17-l1-previdencia-privada.md` |
+| TRACK-a17-l2-financeiro-pj | track | ready | A17 | Track A17 L2 — Financeiro PJ (C6 PJ, Stone, adquirentes): sub-schema + InformeQuery integration com ADR-236 | `sprint/A17/tracks/a17-l2-financeiro-pj.md` |
+| TRACK-a17-l3-financeiro-pf | track | ready | A17 | Track A17 L3 — Financeiro PF (6 bancos + XP Investimentos): 4 quadros RFB + snapshot 31/12 | `sprint/A17/tracks/a17-l3-financeiro-pf.md` |
+| TRACK-a17-l4-proventos-acoes | track | ready | A17 | Track A17 L4 — Proventos ações (XP Proventos, Itaúsa): eventos por ativo + yield-on-cost S3 | `sprint/A17/tracks/a17-l4-proventos-acoes.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |
