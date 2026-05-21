@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { KpiCard } from "../ui/Kpi";
 import { MonetaryValue } from "../MonetaryValue";
 import { formatFullBRL } from "@/lib/format";
@@ -8,6 +9,9 @@ import type {
   ScoreData,
 } from "@/types/report-analysis";
 import type { KpiTone } from "../ui/Kpi";
+
+const INVESTIVEL_TOOLTIP =
+  "Patrimônio Investível: ativos financeiros (investimentos do titular e cônjuge) + caixa em moeda estrangeira. Não inclui residência, veículos nem imóveis não-geradores.";
 
 interface HeroKpiGridProps {
   patrimonio: PatrimonioData | undefined;
@@ -68,27 +72,104 @@ function PatrimonioLiquidoKpi({ patrimonio }: { patrimonio: PatrimonioData | und
 }
 
 function PatrimonioInvestivelKpi({ patrimonio }: { patrimonio: PatrimonioData | undefined }) {
-  const investivel = patrimonio?.investivel;
+  const financeiro = patrimonio?.investivel_financeiro;
+  const efetivo = patrimonio?.investivel_efetivo;
+  const geradores = patrimonio?.imoveis_geradores ?? 0;
   const liquido = patrimonio?.liquido;
+  const toggleOn = patrimonio?.imoveis_no_if === true;
   const pctLiquido =
-    investivel != null && liquido != null && liquido > 0
-      ? (investivel / liquido) * 100
+    financeiro != null && liquido != null && liquido > 0
+      ? (financeiro / liquido) * 100
       : undefined;
+
   return (
-    <KpiCard
-      hero
-      accent="primary"
-      tone="blue"
-      label="Patrimônio Investível"
-      value={formatCompactBRL(investivel)}
-      sub={
-        pctLiquido != null
-          ? `${pctLiquido.toFixed(1).replace(".", ",")}% do líquido`
-          : patrimonio?.fonte_investimentos
-            ? `Fonte: ${patrimonio.fonte_investimentos}`
-            : undefined
-      }
-    />
+    <span title={INVESTIVEL_TOOLTIP} style={{ display: "block" }}>
+      <KpiCard
+        hero
+        accent="primary"
+        tone="blue"
+        label="Patrimônio Investível"
+        value={formatCompactBRL(financeiro)}
+        sub={
+          <InvestivelSubline
+            financeiro={financeiro}
+            efetivo={efetivo}
+            geradores={geradores}
+            toggleOn={toggleOn}
+            pctLiquido={pctLiquido}
+            fonte={patrimonio?.fonte_investimentos}
+          />
+        }
+      />
+    </span>
+  );
+}
+
+interface InvestivelSublineProps {
+  financeiro: number | undefined;
+  efetivo: number | undefined;
+  geradores: number;
+  toggleOn: boolean;
+  pctLiquido: number | undefined;
+  fonte: string | undefined;
+}
+
+function InvestivelSubline({
+  financeiro,
+  efetivo,
+  geradores,
+  toggleOn,
+  pctLiquido,
+  fonte,
+}: InvestivelSublineProps) {
+  // ADR-142 + ADR-215 §6 + financial-planner (2026-05-20): sub-linha tem 3
+  // estados quando toggle on; toggle off mostra contexto neutro.
+  if (financeiro == null) {
+    return fonte ? <>Fonte: {fonte}</> : null;
+  }
+
+  const pctLine =
+    pctLiquido != null
+      ? `${pctLiquido.toFixed(1).replace(".", ",")}% do líquido`
+      : fonte
+        ? `Fonte: ${fonte}`
+        : null;
+
+  if (!toggleOn) {
+    return (
+      <div className="flex flex-col gap-0.5">
+        {pctLine ? <span>{pctLine}</span> : null}
+        <span>Imóveis fora do cálculo de IF</span>
+      </div>
+    );
+  }
+
+  if (geradores > 0 && efetivo != null && efetivo > financeiro) {
+    return (
+      <div className="flex flex-col gap-0.5">
+        {pctLine ? <span>{pctLine}</span> : null}
+        <span>
+          + <MonetaryValue value={geradores} compact title={formatFullBRL(geradores)} /> em
+          imóveis de renda · total efetivo{" "}
+          <MonetaryValue value={efetivo} compact title={formatFullBRL(efetivo)} />
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      {pctLine ? <span>{pctLine}</span> : null}
+      <span>
+        Sem imóveis de renda classificados ·{" "}
+        <Link
+          href="/config?tab=members"
+          style={{ color: "var(--brand-primary)", textDecoration: "underline" }}
+        >
+          classificar
+        </Link>
+      </span>
+    </div>
   );
 }
 

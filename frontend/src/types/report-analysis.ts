@@ -32,7 +32,17 @@ export interface PatrimonioCategoria {
 export interface PatrimonioData {
   bruto?: number;
   liquido?: number;
-  investivel?: number;
+  /** ADR-142 + ADR-215 §6: financeiro puro (cat 3+4+5+6). Sempre presente. */
+  investivel_financeiro?: number;
+  /** ADR-142 + ADR-215 §6: financeiro + cat_2_efetivo (imóveis geradores líquidos);
+   *  igual a investivel_financeiro quando imoveis_no_if=false. */
+  investivel_efetivo?: number;
+  /** ADR-215 §6: valor bruto de imóveis classificados como locado/comercial. */
+  imoveis_geradores?: number;
+  /** ADR-215 §6: imóveis classificados como uso pessoal/especulação/desconhecido. */
+  imoveis_nao_geradores?: number;
+  /** ADR-142: toggle per-workspace para incluir imóveis no cálculo de IF. */
+  imoveis_no_if?: boolean;
   dividas?: number;
   residencia?: number;
   imoveis_investimento?: number;
