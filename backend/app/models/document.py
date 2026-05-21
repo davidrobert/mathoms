@@ -163,6 +163,10 @@ class DocumentType(str, enum.Enum):
     # ``irpf`` dispara o stage ``extract_irpf_full`` (declaração); informes
     # disparam ``extract_informes_anuais`` com despacho por ``tipo_informe``.
     informe_rendimentos_anuais = "informe_rendimentos_anuais"
+    # ADR-239 (A18 L1 P3) — comprovante de bem polimórfico (CRLV em L1;
+    # imóveis V2). Dispara ``extract_comprovantes_bens`` com despacho por
+    # ``tipo_comprovante``.
+    comprovante_bem = "comprovante_bem"
     e1_members_json = "e1_members_json"
     e1_5_baseline_json = "e1_5_baseline_json"
     other = "other"

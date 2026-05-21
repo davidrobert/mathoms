@@ -39,6 +39,8 @@ const DOC_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
   // ADR-238 (A17 L1) — informe anual avulso (PGBL/VGBL em L1; financeiro
   // PF/PJ e proventos em L2-L4). Distinto de "irpf" (declaração entregue).
   { value: "informe_rendimentos_anuais", label: "Informe de Rendimentos (PGBL/VGBL)" },
+  // ADR-239 (A18 L1) — comprovante de bem (CRLV em L1; V2 imóveis).
+  { value: "comprovante_bem", label: "Comprovante de Bem (CRLV)" },
   { value: "other", label: "Outro" },
 ];
 

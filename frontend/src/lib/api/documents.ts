@@ -19,6 +19,8 @@ export type DocumentType =
   | "irpf"
   // ADR-238 (A17 L1 P3): informe anual avulso polimórfico, distinto de "irpf".
   | "informe_rendimentos_anuais"
+  // ADR-239 (A18 L1 P3): comprovante de bem polimórfico (CRLV em L1; V2 imóveis).
+  | "comprovante_bem"
   | "e1_members_json"
   | "e1_5_baseline_json"
   | "other";

@@ -94,6 +94,27 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         supporting=(_c(r"Rendimento\s*(Bruto|L[íi]quido)"),),
         priority=2,
     ),
+    # ADR-239 (A18 L1) — CRLV-e (Certificado de Registro e Licenciamento de
+    # Veículo eletrônico) DENATRAN. Padrão nacional, marcadores fortes.
+    # priority=2 alinhada com informe_previdencia_privada (ambos pré-genérico).
+    TypeRule(
+        code="crlv_eletronico",
+        dest_group="comprovantes",
+        required=(
+            _c(
+                r"DENATRAN|Certificado\s*de\s*Registro\s*e\s*Licenciamento"
+                r"|Licenciamento\s*de\s*Ve[ií]culo|CRLV-?e?\b|RENAVAM"
+            ),
+            _c(r"Placa|CRLV-?e?\b"),
+        ),
+        supporting=(
+            _c(r"Categoria\s*[:\-]?\s*(Particular|Comercial|Aluguel|Oficial)"),
+            _c(r"Combust[ií]vel"),
+            _c(r"Ano\s*Modelo|Ano\s*Fabrica[çc][ãa]o|Exerc[ií]cio"),
+            _c(r"Munic[ií]pio\s*de\s*Emplacamento|UF"),
+        ),
+        priority=2,
+    ),
     # ADR-238 (A17 L1) — Informe anual de Previdência Privada (PGBL/VGBL).
     # MAIS específico que ``informerendimentos`` genérico abaixo → priority=2
     # garante evaluação antes. Cobre layouts BrasilPrev / Bradesco Vida /
