@@ -3,11 +3,12 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-39 entries entre 2026-05-07 e 2026-05-21.
+40 entries entre 2026-05-07 e 2026-05-21.
 
-## 2026-05-21 (1 entries)
+## 2026-05-21 (2 entries)
 
 - [[CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE]] — feat(adr-236 P1): BusinessProfile expandido com 4 campos A16 + admin (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
+- [[CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF]] — feat(adr-236 P2): classifier E4 com 5 labels PJ-side + leitor IRPF (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
 
 ## 2026-05-20 (3 entries)
 

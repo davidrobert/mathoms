@@ -7,7 +7,7 @@ status: ready
 created_at: "2026-05-20"
 consumed_at: null
 agent_role: senior-cto
-progress_notes: "P1 ✅ entregue 2026-05-21 (apps#390); P2–P6 pendentes — ver §Gap arquitetural P2."
+progress_notes: "P1 ✅ entregue 2026-05-21 (apps#390); P2 ✅ entregue 2026-05-21 (apps#TBD); P3–P6 pendentes."
 tags:
   - type/track
   - sprint/a16
@@ -75,33 +75,42 @@ Card S8 "Tributário PJ — Cascata Fiscal" no relatório premium tem 3 problema
 - [x] Tests: `backend/tests/test_business_profile.py` (27 casos, +12 novos) cobre cada Literal/range; `backend/tests/api/admin/test_workspaces.py` (9 casos) cobre admin endpoint + audit + 401/404 + rejeições.
 - [x] Workspace incompleto degrada graciosamente (Pydantic permite todos campos None; admin GET retorna `{}` para workspace recém-criado).
 
-### P2 — Derivação do pipeline (E3/E4/E1.6) (~2d, 1 PR)
+### P2 — Derivação do pipeline (E3/E4/E1.6) (~2d, 1 PR) ✅ ENTREGUE 2026-05-21 (apps#TBD)
 
-> ⚠️ **Gap arquitetural descoberto em sessão de scouting 2026-05-21** — antes
-> de codar, leia §"Gap arquitetural P2" abaixo. A ADR-236 §D2 assume campos
-> `account_type=PJ` e `member_key=titular_pj` que **não existem** no
-> `transaction_classifier.py` atual; o classifier opera sobre `descricao_raw`
-> + `tipo_conta` (estrato/fatura) + sinal do valor. Decisão arquitetural
-> precisa ser tomada antes de codar P2 (3 opções listadas no §gap).
-
-- [ ] **DECISÃO ARQUITETURAL pré-P2:** escolher entre (a) estender modelo de
-  transação/conta com `account_kind=pj`, (b) usar `pj_source_mapping`
-  (metadata blob em `__categorization_metadata__`) como proxy de PJ-side,
-  ou (c) reformular ADR-236 §D2 para discriminar por descrição + member
-  match (sem `account_type`). Co-design `senior-cto` + `financial-planner`
-  recomendado.
-- [ ] `category_template` ganha 5 labels novas: `pro_labore`, `lucros_distribuidos`, `das_simples`, `folha_pj`, `iss`. **Bump v1→v2** (seed atual `_TEMPLATE_VERSION=1` é imutável; alterações futuras → v2 conforme docstring do `a5b6c7d8e9f0_seed_category_template_v1.py:40`). Nova migration `<hash>_seed_category_template_v2_pj_labels.py`.
-- [ ] Discriminadores estruturais no classifier E4 (pendente decisão acima):
-  - `pro_labore` — descrição contém variantes ("PRO-LABORE", "PROLABORE", "PRO LABORE") + (origem PJ via opção (a)/(b)/(c)) + (destino sócio).
-  - `lucros_distribuidos` — origem PJ + destino sócio + **não** matched `pro_labore` (resíduo).
-  - `das_simples` — descrição com "DAS" + débito de conta PJ.
-  - `folha_pj` — pagamento a `member_key` ≠ titular_pj (CLT da PJ).
-  - `iss` — descrição com "ISS" + débito de conta PJ.
-- [ ] Leitor de `outras_rendas_tributaveis_pf_anual` em novo módulo `pipeline/domain/services/tributario/irpf_renda_tributavel.py` — agrega `rendimentos_pj[].valor_liquido` + `rendimentos_pf[].valor` do artifact `extract_irpf_full` ([[ADR-157]], schema `config/schemas/e16_irpf_full.schema.json`). Money em `Decimal` string ADR-090.
-- [ ] Gate dogfood: workspace dogfood — E4 classifica 100% das transferências PJ→sócio em `pro_labore` vs `lucros_distribuidos`; total bate com IRPF declarado (±5%).
-- [ ] Tests:
-  - `tests/unit/pipeline/test_transaction_classifier_pj_labels.py` (5 casos: 1 por label novo).
-  - `tests/unit/pipeline/test_irpf_renda_tributavel.py` (agregação + casos vazio/parcial).
+- [x] **DECISÃO ARQUITETURAL pré-P2:** opção **(b) `pj_source_mapping` proxy** —
+  co-design `senior-cto` 2026-05-21. ADR-236 §D2 atualizada em commit
+  `docs(adr-236):` separado pré-código (corrige nomes do schema E1.6 +
+  documenta proxy como discriminador V1; upgrade-path para (a) preservado
+  via FU se gate dogfood < 90% precisão).
+- [~] **Migration v2 `category_template`** — **diferida**. Labels saem do
+  classifier como categoria-livre em `ClassifiedTransaction.categoria`;
+  P3 calculator agrega por nome. v2 do template só é útil quando UI/admin
+  reconhecer as labels — defer para P5. Decisão documentada no commit
+  feat(adr-236) de P2.
+- [x] Discriminadores PJ no classifier E4 — implementados em
+  [pipeline/domain/services/transaction_classifier_pj.py](../../../../pipeline/domain/services/transaction_classifier_pj.py)
+  (módulo separado para isolar complexidade):
+  - `pro_labore` — crédito PJ-side (via `pj_source_mapping`) + keyword
+    PRO-LABORE/PROLABORE/PRO LABORE.
+  - `lucros_distribuidos` — crédito PJ-side **sem** keyword pro_labore (resíduo).
+  - `das_simples` — débito + keyword DAS (word-bounded contra ADASA, ESPADAS).
+  - `folha_pj` — débito + keyword folha + proxy habilitado
+    (`pj_source_mapping` populado E ≥1 receita PJ observada no run).
+  - `iss` — débito + keyword ISS (word-bounded contra DEMISSAO).
+- [x] **Warning tipado** `FolhaPJProxyUnavailable` ([[ADR-097]] D1) emitido
+  via `classify_all_with_warnings(accounts) -> (list, list[Warning])` quando
+  há candidatas a folha_pj mas proxy desabilitado.
+  `reason: Literal["no_pj_source_mapping", "no_pj_income_observed"]`.
+- [x] Leitor de renda tributável PF em
+  [pipeline/domain/services/tributario/irpf_renda_tributavel.py](../../../../pipeline/domain/services/tributario/irpf_renda_tributavel.py)
+  — agrega `rendimentos_pj[].rendimentos_tributaveis_brl` +
+  `rendimentos_pf[].valor_brl` (nomes canônicos do schema, corrigidos na
+  ADR pré-P2). Money em `Decimal` string ADR-090; float rejeitado
+  silenciosamente.
+- [~] Gate dogfood — **não rodado nesta fase**. Será exercido em P3 quando
+  o calculator entrar em produção (paridade ±2% com cálculo manual do
+  contador real).
+- [x] Tests: 26 novos (16 PJ labels + 10 IRPF reader); 48 verdes totais.
 
 ### P3 — Calculator canônico (~2d, 1 PR)
 

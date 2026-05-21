@@ -52,7 +52,7 @@ Detalhe completo em [[PLAN-tributario-pj]].
 ## Lanes
 
 - [[TRACK-a16-adr235-nu-proprietario-flip]] (`consumed`) — L1: flip nu_proprietario (1 PR). Mergeado em [apps#388](https://github.com/davidrobert/mathoms/pull/388) (2026-05-21).
-- [[TRACK-a16-adr236-tributario-pj-cascata]] (`in_progress`) — L2: tributário PJ cascata fiscal (6 PRs sequenciais). **P1 ✅ entregue** em [apps#390](https://github.com/davidrobert/mathoms/pull/390) (2026-05-21); P2–P6 pendentes. [[ADR-236]] permanece `Proposto` até P6 (cutover + flip).
+- [[TRACK-a16-adr236-tributario-pj-cascata]] (`in_progress`) — L2: tributário PJ cascata fiscal (6 PRs sequenciais). **P1 ✅** entregue em [apps#390](https://github.com/davidrobert/mathoms/pull/390) (2026-05-21); **P2 ✅** entregue em 2026-05-21 (apps#TBD — classifier 5 labels PJ + leitor IRPF base PGBL); P3–P6 pendentes. [[ADR-236]] permanece `Proposto` até P6 (cutover + flip).
 
 ## Pré-requisitos
 
