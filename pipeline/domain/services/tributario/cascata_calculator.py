@@ -77,6 +77,21 @@ PGBL_LIMITE_PCT: Decimal = Decimal("0.12")
 
 
 @dataclass(frozen=True)
+class PrevidenciaSnapshot:
+    """Snapshot agregado de informes de previdência privada (ADR-238 D5).
+
+    Computado de payloads ``extract_informes_anuais`` via ``FiscalSource``;
+    passthrough do ``CascataInput`` para ``CascataOutput`` sem cálculo extra.
+    Apenas PGBL conta como "aporte realizado" (VGBL filtrado por construção).
+    """
+
+    planos_pgbl_count: int = 0
+    planos_vgbl_count: int = 0
+    aporte_pgbl_realizado_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
+    saldo_total_31_12: Money = field(default_factory=lambda: Money.zero("BRL"))
+
+
+@dataclass(frozen=True)
 class CascataInput:
     """Input value object — ADR-236 §D3 + ADR-089 (ISP)."""
 
@@ -93,6 +108,10 @@ class CascataInput:
     outras_rendas_tributaveis_pf_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
     imoveis_alugados_count: int = 0
     receita_aluguel_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
+    # ADR-238 (A17 L1 plumbing): snapshot de informes previdência. Default None
+    # quando workspace não tem informe processado; populado por
+    # ``build_cascata_input_sync`` quando ``extract_informes_anuais`` presente.
+    previdencia_snapshot: Optional[PrevidenciaSnapshot] = None
 
 
 @dataclass(frozen=True)
@@ -122,6 +141,10 @@ class CascataOutput:
     fator_r_faixa: Optional[Literal["anexo_iii", "anexo_v"]] = None
     fator_r_break_even_mensal: Optional[Money] = None
     triggers: tuple[CascataTrigger, ...] = ()
+    # ADR-238 (A17 L1 plumbing): passthrough do snapshot informes previdência.
+    # None quando workspace não tem ``extract_informes_anuais`` processado.
+    # UI consome via ``data.tributario.cascata.previdencia_snapshot``.
+    previdencia_snapshot: Optional[PrevidenciaSnapshot] = None
 
 
 @dataclass(frozen=True)
@@ -420,6 +443,7 @@ def _assemble_output(
         regime_nao_suportado=False,
         motivo_nao_suportado=None,
         triggers=triggers,
+        previdencia_snapshot=inp.previdencia_snapshot,
         **_cascata_fields(inp, layers),
         **_pgbl_fields(layers),
     )
@@ -431,4 +455,5 @@ def _output_fallback(inp: CascataInput, motivo: str) -> CascataOutput:
         regime_label=_regime_label(inp.regime, inp.anexo_simples),
         regime_nao_suportado=True,
         motivo_nao_suportado=motivo,
+        previdencia_snapshot=inp.previdencia_snapshot,
     )

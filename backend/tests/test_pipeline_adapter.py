@@ -286,6 +286,8 @@ _EXPECTED_CASCATA_KEYS: set[str] = {
     "fator_r_faixa",
     "fator_r_break_even_mensal",
     "triggers",
+    # ADR-238 plumbing E5 — snapshot informes previdência (None se ausente).
+    "previdencia_snapshot",
 }
 
 
