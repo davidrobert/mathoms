@@ -3,12 +3,14 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-43 entries entre 2026-05-07 e 2026-05-21.
+45 entries entre 2026-05-07 e 2026-05-21.
 
-## 2026-05-21 (5 entries)
+## 2026-05-21 (7 entries)
 
 - [[CHG-2026-05-21-DOCS-A17-L3-WISE-ADDED]] — docs(a17-l3): adiciona Wise (conta multi-moeda no exterior) ao escopo (lane [[A17.l3]])
 - [[CHG-2026-05-21-DOCS-ADR-238-PROPOSTO]] — docs(adr-238): Proposto — Ingestão de Informes de Rendimentos anuais (lane [[A17.l1]])
+- [[CHG-2026-05-21-DOCS-ADR-239-PROPOSTO]] — docs(adr-239): Proposto — Comprovantes de Bem (CRLV) + Apólices polimórficas (lane [[A18.l1]])
+- [[CHG-2026-05-21-DOCS-ADR-240-PROPOSTO]] — docs(adr-240): Proposto — Card S_PROTECAO no relatório como 4º pilar AUVP (lane [[A19.l1]])
 - [[CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE]] — feat(adr-236 P1): BusinessProfile expandido com 4 campos A16 + admin (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
 - [[CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF]] — feat(adr-236 P2): classifier E4 com 5 labels PJ-side + leitor IRPF (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
 - [[CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA]] — feat(adr-236 P6): cutover + telemetria LGPD-safe + flip ADR-236 para (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
