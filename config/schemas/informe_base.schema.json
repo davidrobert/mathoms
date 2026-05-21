@@ -49,8 +49,8 @@
       "type": "integer",
       "minimum": 1,
       "maximum": 3,
-      "description": "1 = informe é fonte primária (sem E1.6); 2 = E1.6 vence; 3 = manual override.",
-      "default": 2
+      "description": "1 (default) = informe fonte primária; 2 = orquestrador promoveu por E1.6 presente; 3 = override manual.",
+      "default": 1
     },
     "prompt_version": {
       "type": "string",

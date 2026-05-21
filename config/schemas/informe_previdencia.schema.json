@@ -30,13 +30,10 @@
     },
     "contribuicoes_anuais": { "$ref": "#/$defs/decimalString" },
     "rendimentos_anuais": { "$ref": "#/$defs/decimalString" },
+    "saldo_01_01": { "$ref": "#/$defs/decimalStringOrNull" },
     "saldo_31_12": { "$ref": "#/$defs/decimalString" },
     "resgates_anuais": { "$ref": "#/$defs/decimalString" },
     "ir_retido_anual": { "$ref": "#/$defs/decimalString" },
-    "beneficiarios_count": {
-      "type": ["integer", "null"],
-      "minimum": 0
-    },
     "notas": {
       "type": ["string", "null"]
     }
@@ -45,6 +42,13 @@
     "decimalString": {
       "description": "Wire de dinheiro: string decimal (ADR-090). Float é proibido.",
       "oneOf": [
+        { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" },
+        { "type": "integer" }
+      ]
+    },
+    "decimalStringOrNull": {
+      "oneOf": [
+        { "type": "null" },
         { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" },
         { "type": "integer" }
       ]

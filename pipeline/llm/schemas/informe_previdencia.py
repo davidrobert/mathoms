@@ -6,7 +6,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def _coerce_decimal(v):
@@ -83,6 +83,15 @@ class InformePrevidenciaPayload(BaseModel):
             "base do IR no resgate."
         ),
     )
+    saldo_01_01: Optional[Decimal] = Field(
+        None,
+        description=(
+            "Saldo total acumulado em 01/01 do ano-base (snapshot inicial). "
+            "Usado em audit ``saldo_01_01[ano] == saldo_31_12[ano-1]`` para "
+            "detectar drift informe vs E1.6 do ano anterior. None quando o "
+            "informe não destaca."
+        ),
+    )
     saldo_31_12: Decimal = Field(
         ...,
         description=(
@@ -101,15 +110,6 @@ class InformePrevidenciaPayload(BaseModel):
             "houve resgate ou regime progressivo com retenção via DARF."
         ),
     )
-    beneficiarios_count: Optional[int] = Field(
-        None,
-        ge=0,
-        description=(
-            "Quantidade de beneficiários cadastrados no plano. "
-            "Nomes/CPFs NÃO são extraídos (LGPD — não persistir PII de terceiros). "
-            "None quando ausente no informe."
-        ),
-    )
     notas: Optional[str] = Field(
         None,
         description="Observações extraídas do informe (cláusulas, suspensões, portabilidades).",
@@ -118,6 +118,7 @@ class InformePrevidenciaPayload(BaseModel):
     @field_validator(
         "contribuicoes_anuais",
         "rendimentos_anuais",
+        "saldo_01_01",
         "saldo_31_12",
         "resgates_anuais",
         "ir_retido_anual",
@@ -126,3 +127,14 @@ class InformePrevidenciaPayload(BaseModel):
     @classmethod
     def _decimal_money(cls, v):
         return _coerce_decimal(v)
+
+    @model_validator(mode="after")
+    def _data_adesao_obrigatoria_para_regressivo(self):
+        # Regime regressivo: alíquota efetiva depende de anos_desde_adesao
+        # (35% <2y → 10% >10y, PEPS). Sem data_adesao, calculator IR não roda.
+        if self.regime_tributacao == RegimeTributacao.regressivo and self.data_adesao is None:
+            raise ValueError(
+                "regime_tributacao=regressivo exige data_adesao "
+                "(alíquota PEPS depende de anos_desde_adesao)"
+            )
+        return self

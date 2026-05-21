@@ -50,7 +50,7 @@ _NEW_INSTITUTIONS: list[dict[str, str]] = [
 
 
 def upgrade() -> None:
-    """Add ``tax_regime`` column + seed BrasilPrev (idempotent)."""
+    """Add ``tax_regime`` column + CHECK + seed BrasilPrev (idempotent)."""
     with op.batch_alter_table("institution_catalog") as batch:
         batch.add_column(
             sa.Column(
@@ -59,6 +59,10 @@ def upgrade() -> None:
                 nullable=False,
                 server_default="both",
             )
+        )
+        batch.create_check_constraint(
+            "ck_institution_catalog_tax_regime",
+            "tax_regime IN ('pf', 'pj', 'both')",
         )
 
     if context.is_offline_mode():
@@ -105,7 +109,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Remove ``tax_regime`` column and seeded rows."""
+    """Remove ``tax_regime`` column + CHECK + seeded rows."""
     if not context.is_offline_mode():
         bind = op.get_bind()
         for item in _NEW_INSTITUTIONS:
@@ -113,6 +117,15 @@ def downgrade() -> None:
                 sa.text("DELETE FROM institution_catalog WHERE code = :code"),
                 {"code": item["code"]},
             )
+
+    # Tolerar ausência de CHECK em rollback de versão pré-CHECK desta mesma
+    # revisão (sem-op se constraint não existe — comum em DBs criados antes
+    # do ajuste pós-gate data-engineer 2026-05-21).
+    try:
+        with op.batch_alter_table("institution_catalog") as batch:
+            batch.drop_constraint("ck_institution_catalog_tax_regime", type_="check")
+    except (ValueError, Exception):
+        pass
 
     with op.batch_alter_table("institution_catalog") as batch:
         batch.drop_column("tax_regime")

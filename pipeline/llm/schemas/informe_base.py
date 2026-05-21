@@ -66,14 +66,15 @@ class InformeRendimentosBase(BaseModel):
         ),
     )
     source_priority: int = Field(
-        default=2,
+        default=1,
         ge=1,
         le=3,
         description=(
-            "Precedência D4: ``1`` se workspace não tem E1.6 do ano (informe "
-            "vira fonte primária); ``2`` quando E1.6 existe (declaração vence); "
-            "``3`` reservado para divergência manual resolvida pelo usuário. "
-            "Default 2 — orquestrador rebaixa para 1 se descobrir ausência de E1.6."
+            "Precedência D4: ``1`` (default) — informe é fonte primária "
+            "(fail-safe: world sem E1.6 usa informe); ``2`` — orquestrador "
+            "promoveu quando descobriu E1.6 do ano presente (declaração vence); "
+            "``3`` reservado para override manual do usuário pós-divergência. "
+            "Default falha aberta, não silenciosa."
         ),
     )
     prompt_version: str = Field(

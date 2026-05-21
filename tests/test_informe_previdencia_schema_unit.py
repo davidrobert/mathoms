@@ -88,7 +88,7 @@ def test_payload_saldo_obrigatorio():
     with pytest.raises(ValidationError) as exc:
         InformePrevidenciaPayload(
             plano_tipo=PlanoTipo.pgbl,
-            regime_tributacao=RegimeTributacao.regressivo,
+            regime_tributacao=RegimeTributacao.progressivo,
             contribuicoes_anuais="100",
             # falta saldo_31_12
         )
@@ -100,7 +100,7 @@ def test_payload_recusa_field_desconhecido():
     with pytest.raises(ValidationError) as exc:
         InformePrevidenciaPayload(
             plano_tipo=PlanoTipo.pgbl,
-            regime_tributacao=RegimeTributacao.regressivo,
+            regime_tributacao=RegimeTributacao.progressivo,
             contribuicoes_anuais="100",
             saldo_31_12="500",
             campo_inexistente="ruim",
@@ -119,7 +119,7 @@ def test_payload_data_adesao_pattern():
 def test_payload_resgates_e_ir_retido_default_zero():
     p = InformePrevidenciaPayload(
         plano_tipo=PlanoTipo.pgbl,
-        regime_tributacao=RegimeTributacao.regressivo,
+        regime_tributacao=RegimeTributacao.progressivo,
         contribuicoes_anuais="100",
         saldo_31_12="500",
     )
@@ -129,13 +129,66 @@ def test_payload_resgates_e_ir_retido_default_zero():
 
 
 def test_payload_lgpd_nao_persiste_beneficiarios_pii():
-    """Beneficiarios persistem apenas como contagem — nomes/CPFs proibidos."""
-    p = _build_payload(beneficiarios_count=2)
-    assert p.beneficiarios_count == 2
+    """Schema NÃO modela beneficiários em L1 (YAGNI — re-add em A19 S_PROTECAO)."""
+    p = _build_payload()
     dumped = p.model_dump()
-    # Verifica que nem o schema permite campo "beneficiarios" (lista de nomes).
+    # PII de terceiros proibido em qualquer forma neste payload.
     assert "beneficiarios" not in dumped
+    assert "beneficiarios_count" not in dumped
     assert "beneficiarios_cpfs" not in dumped
+
+
+def test_payload_regressivo_exige_data_adesao():
+    """regime_tributacao=regressivo sem data_adesao falha (cálculo PEPS impossível)."""
+    with pytest.raises(ValidationError) as exc:
+        InformePrevidenciaPayload(
+            plano_tipo=PlanoTipo.pgbl,
+            regime_tributacao=RegimeTributacao.regressivo,
+            contribuicoes_anuais="100",
+            saldo_31_12="500",
+            # falta data_adesao
+        )
+    assert "data_adesao" in str(exc.value).lower()
+
+
+def test_payload_progressivo_aceita_sem_data_adesao():
+    """Progressivo segue tabela IRPF anual — não precisa de data_adesao."""
+    p = InformePrevidenciaPayload(
+        plano_tipo=PlanoTipo.pgbl,
+        regime_tributacao=RegimeTributacao.progressivo,
+        contribuicoes_anuais="100",
+        saldo_31_12="500",
+    )
+    assert p.regime_tributacao == RegimeTributacao.progressivo
+    assert p.data_adesao is None
+
+
+def test_payload_vgbl_progressivo_aceito_modelagem_realidade():
+    """VGBL+progressivo é raro mas legítimo (pré-2005); schema não restringe (P4 gera warning E5)."""
+    p = InformePrevidenciaPayload(
+        plano_tipo=PlanoTipo.vgbl,
+        regime_tributacao=RegimeTributacao.progressivo,
+        contribuicoes_anuais="100",
+        saldo_31_12="500",
+    )
+    assert p.plano_tipo == PlanoTipo.vgbl
+    assert p.regime_tributacao == RegimeTributacao.progressivo
+
+
+def test_payload_saldo_01_01_opcional_para_audit_ano_anterior():
+    """saldo_01_01 alimenta audit informe[ano].saldo_01_01 == E1.6[ano-1].saldo_31_12."""
+    p = _build_payload(saldo_01_01="72000.00")
+    assert p.saldo_01_01 == Decimal("72000.00")
+    p_sem = _build_payload()
+    p_sem.saldo_01_01 = None  # type: ignore[assignment]
+    # default None aceito (informe pode não destacar)
+    p2 = InformePrevidenciaPayload(
+        plano_tipo=PlanoTipo.pgbl,
+        regime_tributacao=RegimeTributacao.progressivo,
+        contribuicoes_anuais="100",
+        saldo_31_12="500",
+    )
+    assert p2.saldo_01_01 is None
 
 
 # ─────────────────────── Base polimórfico ───────────────────────────────────
@@ -146,7 +199,7 @@ def test_base_happy_path_previdencia():
     assert b.tipo_informe == "previdencia_privada"
     assert b.previdencia is not None
     assert b.previdencia.plano_tipo == PlanoTipo.pgbl
-    assert b.source_priority == 2  # default
+    assert b.source_priority == 1  # default fail-safe
     assert b.needs_review is False
 
 
@@ -197,9 +250,13 @@ def test_base_confidence_range():
 
 def test_base_source_priority_range_e_default():
     b = _build_base()
-    assert b.source_priority == 2  # default 'declaração vence'
-    b1 = _build_base(source_priority=1)
-    assert b1.source_priority == 1
+    # ADR-238 D4 + gate data-engineer 2026-05-21: default 1 (fail-safe).
+    # Informe é fonte primária por default; orquestrador promove a 2 só
+    # quando descobre E1.6 do ano presente. Default 2 falharia silencioso
+    # em workspace sem declaração.
+    assert b.source_priority == 1
+    b2 = _build_base(source_priority=2)
+    assert b2.source_priority == 2
     with pytest.raises(ValidationError):
         _build_base(source_priority=0)
     with pytest.raises(ValidationError):
