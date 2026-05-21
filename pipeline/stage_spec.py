@@ -63,6 +63,12 @@ STAGE_RENAME_MAP: dict[str, str] = {
     # ADR-216 Onda 0.5b — informe de rendimentos de imobiliária. Stage runner
     # consome PDFs em ``data/income_tax_br/`` (paralelo a extract_irpf_full).
     "E2-informe-aluguel": "extract_informe_aluguel",
+    # ADR-238 (A17): mantido por invariante "todo REGISTRY key tem alias legacy"
+    # enforçado por test_values_cover_registry_plus_virtual (paridade com
+    # E6-parecer / E1.6 — stages F9.2+ que nasceram descritivos mas precisam
+    # do reverso para CLI/HTTP). Gate data-engineer 2026-05-21 sugeriu remover;
+    # senior-cto manteve por invariante de consistency.
+    "E2-informe-anual": "extract_informes_anuais",
     "E3": "reconcile_transactions",
     "E4": "categorize_transactions",
     "E5": "analyze_finances",
@@ -143,6 +149,16 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
         is_llm=True,
         tier="premium",
     ),
+    # ADR-238 (A17) — informes anuais polimórficos. L1 cobre previdencia_privada;
+    # L2-L4 estendem para financeiro_pj/pf, proventos. `reads=()` por design
+    # (PDFs vêm via route_documents em data/income_tax_br/). Workspace-scoped:
+    # dataset de referência anual.
+    "extract_informes_anuais": StageSpec(
+        "extract_informes_anuais",
+        writes=("extract_informes_anuais",),
+        is_llm=True,
+        tier="premium",
+    ),
     "extract_invoices": StageSpec("extract_invoices", writes=("extract_invoices",)),
     "extract_statements": StageSpec("extract_statements", writes=("extract_statements",)),
     "extract_with_llm": StageSpec(
@@ -199,6 +215,7 @@ FULL_ORDER: list[str] = [
     "consolidate_baseline",
     "extract_irpf_full",  # ADR-157 — agrupado com docs de ano-base (junto de E1.5)
     "extract_informe_aluguel",  # ADR-216 Onda 0.5b — paralelo a extract_irpf_full (income_tax_br/)
+    "extract_informes_anuais",  # ADR-238 A17 — informes polimórficos (income_tax_br/)
     "extract_invoices",
     "extract_statements",
     "extract_with_llm",
