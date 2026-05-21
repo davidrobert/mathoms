@@ -14,7 +14,7 @@ sprint_status: current
 
 Sprint com **duas lanes** que rodam em paralelo:
 
-1. **L1 — Flip ADR-235 `nu_proprietario`** (1–1,5d, PR único de Decidido) — adiciona valor `nu_proprietario` ao enum `classification` para cobrir imóvel em nu-propriedade com usufruto vitalício de terceiro. Frequência esperada: 5–15% do ICP wealth-tech BR (famílias com planejamento sucessório ativo). ADR canônica: [[ADR-235]] · pré-requisito [apps#382](https://github.com/davidrobert/mathoms/pull/382) ✅ mergeado.
+1. **L1 — Flip ADR-235 `nu_proprietario`** ✅ **entregue 2026-05-21** ([apps#388](https://github.com/davidrobert/mathoms/pull/388)) — adiciona valor `nu_proprietario` ao enum `classification` para cobrir imóvel em nu-propriedade com usufruto vitalício de terceiro. Frequência esperada: 5–15% do ICP wealth-tech BR (famílias com planejamento sucessório ativo). ADR canônica: [[ADR-235]] · pré-requisito [apps#382](https://github.com/davidrobert/mathoms/pull/382) ✅ mergeado.
 
 2. **L2 — Tributário PJ Cascata Fiscal** (~9d eng em 6 fases P1-P6) — substitui card S8 com texto canned conceitualmente errado por cascata real (cálculo por regime, base PGBL canônica, inputs derivados ≫ declarados, decision triggers parametrizados). Diagnóstico em sessão dogfood 2026-05-20; co-design `financial-planner` validou metodologia. ADR canônica: [[ADR-236]] · plano: [[PLAN-tributario-pj]].
 
@@ -51,7 +51,7 @@ Detalhe completo em [[PLAN-tributario-pj]].
 
 ## Lanes
 
-- [[TRACK-a16-adr235-nu-proprietario-flip]] (`ready`) — L1: flip nu_proprietario (1 PR).
+- [[TRACK-a16-adr235-nu-proprietario-flip]] (`consumed`) — L1: flip nu_proprietario (1 PR). Mergeado em [apps#388](https://github.com/davidrobert/mathoms/pull/388) (2026-05-21).
 - [[TRACK-a16-adr236-tributario-pj-cascata]] (`ready`) — L2: tributário PJ cascata fiscal (6 PRs sequenciais).
 
 ## Pré-requisitos
