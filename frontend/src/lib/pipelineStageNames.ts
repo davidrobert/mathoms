@@ -21,6 +21,7 @@ const LEGACY_TO_DESCRIPTIVE: Record<string, string> = {
   "E2-extratos": "extract_statements",
   "E2-llm": "extract_with_llm",
   "E2-informe-aluguel": "extract_informe_aluguel",
+  "E2-informe-anual": "extract_informes_anuais",
   "E3": "reconcile_transactions",
   "E4": "categorize_transactions",
   "E5": "analyze_finances",

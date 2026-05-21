@@ -63,6 +63,8 @@ _STAGE_TO_SUFFIX: dict[str, str] = {
     "extract_with_llm": "-2_extract.json",  # F9.2 descriptive alias
     "E2-informe-aluguel": "-2_informe_aluguel.json",  # ADR-216 Onda 0.5b
     "extract_informe_aluguel": "-2_informe_aluguel.json",  # F9.2 descriptive alias
+    "E2-informe-anual": "-2_informe_anual.json",  # ADR-238 A17 — polimórfico (alias legado)
+    "extract_informes_anuais": "-2_informe_anual.json",  # ADR-238 A17 — polimórfico
     "E3": "-3_reconciled.json",
     "reconcile_transactions": "-3_reconciled.json",  # F9.2 descriptive alias
     "E4": "-4_unified.json",
