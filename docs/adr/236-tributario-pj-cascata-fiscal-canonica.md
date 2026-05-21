@@ -96,14 +96,16 @@ Os valores que **mudam ao longo do tempo** derivam de transações + IRPF, **nã
 
 | Campo derivado | Fonte | Como |
 |---|---|---|
-| `pro_labore_mensal_brl` | E4 (categorize_transactions) | Label nova `pro_labore` em `category_template` — transferência PJ→sócio classificada. Discriminador: origem `account_type=PJ` + destino `member_key=titular_pj`. |
-| `lucros_distribuidos_mensal_brl` | E4 | Label nova `lucros_distribuidos` — transferência PJ→sócio que **não** é pró-labore. Resíduo no fluxo. |
-| `das_pago_mensal_brl` | E4 | Label nova `das_simples` — débito automático/guia DAS. |
-| `folha_pj_mensal_brl` | E4 | Label `folha_pj` — pagamentos a CLT da PJ (não-sócio). |
-| `iss_pago_mensal_brl` | E4 | Label nova `iss` (só aplicável em Presumido com ISS destacado). |
+| `pro_labore_mensal_brl` | E4 (categorize_transactions) | Label nova `pro_labore` em `category_template` — transferência PJ→sócio classificada. Discriminador V1: descrição matches `pj_source_mapping` ([[ADR-137]] catalog) **E** contém variante "PRO-LABORE"/"PROLABORE"/"PRO LABORE". |
+| `lucros_distribuidos_mensal_brl` | E4 | Label nova `lucros_distribuidos` — crédito cuja descrição matches `pj_source_mapping` **E não** matched `pro_labore` (resíduo). |
+| `das_pago_mensal_brl` | E4 | Label nova `das_simples` — débito com keyword `\bDAS\b` ancorada (anti falso-positivo "ÁDAS" etc.). |
+| `folha_pj_mensal_brl` | E4 | Label `folha_pj` — débito com keyword `SALARIO`/`FOLHA`/`PAGAMENTO FUNCIONARIO` **em workspace com `pj_source_mapping` populado E ≥1 receita PJ observada**. Sem essas precondições, classifier emite warning tipado `FolhaPJProxyUnavailable` (ADR-097 D1) e label não é atribuída — telemetria distingue "ausência real" de "proxy desabilitado". |
+| `iss_pago_mensal_brl` | E4 | Label nova `iss` — débito com keyword `\bISS\b` ancorada (só aplicável em Presumido com ISS destacado). |
 | `receita_pj_anual_brl` | E3 (reconcile_transactions) | Soma de créditos PJ na janela 12m móvel. **Já calculado** em `e5n_narrativas.py:374`. |
-| `outras_rendas_tributaveis_pf_anual_brl` | E1.6 ([[ADR-157]] `extract_irpf_full`) | Soma da ficha "Rendimentos Tributáveis" do IRPF (aluguéis, salários CLT, RPA, ganhos tributáveis). |
+| `outras_rendas_tributaveis_pf_anual_brl` | E1.6 ([[ADR-157]] `extract_irpf_full`) | Soma de `rendimentos_pj[].rendimentos_tributaveis_brl` + `rendimentos_pf[].valor_brl` (nomes canônicos do schema [config/schemas/e16_irpf_full.schema.json](../../config/schemas/e16_irpf_full.schema.json), ficha "Rendimentos Tributáveis" do IRPF). **Não** inclui `rendimentos_tributacao_exclusiva` (13º), `rendimentos_isentos` (lucros distribuídos) ou `rendimentos_exterior` (FU V2). |
 | `fator_r_pct` | Calculator (D3) | `(folha_pj_mensal_brl + pro_labore_mensal_brl) × 12 / receita_pj_anual_brl × 100`. |
+
+**Discriminador V1 — opção (b) `pj_source_mapping` proxy.** A ADR originalmente assumiu `account_type=PJ`/`member_key=titular_pj` no modelo de transação/conta — esses conceitos **não existem** no `transaction_classifier.py` atual (operam-se sobre `descricao_raw` + `tipo_conta` + sinal de `valor`). Sessão de scouting 2026-05-21 (pós-P1) analisou 3 opções com `senior-cto`: (a) extensão de modelo (`BankAccount.account_kind` + `FamilyMember.is_titular_pj`, ~1.5d, schema migration cross-stack), (b) proxy via `pj_source_mapping` já consumido por `IncomeOriginResolver` ([pipeline/domain/services/income_origin_resolver.py:106-145](../../pipeline/domain/services/income_origin_resolver.py:106), ~0.5d), (c) reformular §D2 para descrição-only (~0.5d, mas frágil em multi-membro). Decidido (b) para V1 — reusa infra testada desde A3a; `pj_source_mapping` vira contrato de 2 consumidores (`IncomeOriginResolver` legado + `TransactionClassifier` novo). Upgrade-path para (a) preservado: se gate dogfood mostrar precisão `<90%`, FU adiciona schema explícito sem perder telemetria. Limitação aceita: `folha_pj` é o discriminador mais fraco em (b) — débito-side não passa pelo `pj_source_mapping` (que é fonte de receita); mitigação via precondições + warning tipado.
 
 **Princípio:** se o pipeline já tem o dado em E3/E4/E1.6, **não pedimos ao consultor**. Reduz fricção de captura + garante consistência interna do relatório (números do card S8 batem com cat_1 patrimonial e com IRPF declarado).
 
@@ -276,7 +278,7 @@ V1 implementa 5 gatilhos canônicos validados por `financial-planner` 2026-05-20
 **Negativas**
 
 - ⚠️ Schema `BusinessProfile` cresce de 3 para 7 campos. Mitigação: todos opcionais (workspace incompleto degrada graciosamente); UI captura no console interno (consultor preenche, não o usuário final).
-- ⚠️ Classifier E4 ganha 5 labels novas (`pro_labore`, `lucros_distribuidos`, `das_simples`, `folha_pj`, `iss`) — complexity de category template. Mitigação: labels têm discriminador estrutural (`account_type=PJ`, `member_key=titular_pj`) que reduz ambiguidade.
+- ⚠️ Classifier E4 ganha 5 labels novas (`pro_labore`, `lucros_distribuidos`, `das_simples`, `folha_pj`, `iss`) — complexity de category template. Mitigação V1: labels usam `pj_source_mapping` ([[ADR-137]] catalog) como proxy de PJ-side (decisão de scouting 2026-05-21; ver §D2 "Discriminador V1"). Limitação conhecida: `folha_pj` degrada em workspaces sem `pj_source_mapping` populado — classifier emite `FolhaPJProxyUnavailable` warning tipado (ADR-097 D1) e não atribui label.
 - ⚠️ Cascata calculator é ~400 linhas com 4 regimes — testabilidade exige goldens robustos. Mitigação: 1 golden por regime + paridade com contador real do dogfood (`5@5.com`).
 - ⚠️ V1 não cobre Lucro Real nem multi-PJ — workspaces avançados ficam sem card. Mitigação: estado "regime não suportado" + CTA suporte; V2 documentado.
 - ⚠️ Reforma tributária / PEC dividendos pode quebrar cascata. Mitigação: ADR documenta gatilho de revisão; schema evolution previsível.
@@ -285,7 +287,7 @@ V1 implementa 5 gatilhos canônicos validados por `financial-planner` 2026-05-20
 
 | Risco | P | Mitigação |
 |---|---|---|
-| Classifier E4 confunde pró-labore com salário CLT do cônjuge | P1 | Discriminador estrutural: origem `account_type=PJ` + destino `member_key=titular_pj`. Teste com workspace multi-membro. |
+| Classifier E4 confunde pró-labore com salário CLT do cônjuge | P1 | Discriminador V1 (opção (b) `pj_source_mapping` proxy + keyword "PRO-LABORE"). Teste com workspace multi-membro. FU (a) — schema explícito `account_kind`/`is_titular_pj` — disponível se gate dogfood `<90%` precisão. |
 | Workspace sem IRPF processado — base PGBL = 0 mesmo com renda real | P2 | Estado UI explícito "renda tributável PF não detectada — sem IRPF processado"; CTA upload IRPF. Não infere base PGBL de pró-labore só (sub-estima quando há aluguéis). |
 | Fator-R cai por sazonalidade (férias coletivas) e gera trigger T2 falso | P2 | Janela 12m móvel suaviza; copy "fator-R móvel 12m" deixa premissa explícita; threshold de "proximidade < 5pp" só dispara T2 se persiste 3m. |
 | LGPD: telemetria de carga tributária vaza | P0 | Telemetria só registra `regime`, `trigger_code`, `event_type` — nunca `receita_pj_anual`, `pro_labore_mensal`, ou nome PJ/CNPJ. Gate em `backend/app/core/logging.py` (denylist). |
