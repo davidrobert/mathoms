@@ -5,13 +5,13 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-628 notas indexadas pelo frontmatter em `docs/`.
+630 notas indexadas pelo frontmatter em `docs/`.
 
 ## Por tipo
 
 | type | notas |
 | --- | ---: |
-| adr | 229 |
+| adr | 230 |
 | archive-index | 1 |
 | changelog-entry | 190 |
 | doc | 1 |
@@ -19,7 +19,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | lane | 81 |
 | marketing-draft | 1 |
 | moc | 9 |
-| plan | 13 |
+| plan | 14 |
 | track | 92 |
 
 ## Por tipo e status
@@ -27,7 +27,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | type | status | notas |
 | --- | --- | ---: |
 | adr | Decidido | 184 |
-| adr | Proposto | 41 |
+| adr | Proposto | 42 |
 | adr | Roadmap | 4 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 190 |
@@ -42,7 +42,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | marketing-draft | draft | 1 |
 | moc | (sem status) | 9 |
 | plan | done | 1 |
-| plan | draft | 4 |
+| plan | draft | 5 |
 | plan | in_progress | 6 |
 | plan | paused | 2 |
 | track | consumed | 73 |
@@ -56,7 +56,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | A11 | paused |
 | A12 | paused |
 | A15 | done |
-| A16 | paused |
+| A16 | current |
 | A6 | done |
 | A7 | done |
 | A8 | done |

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-229 ADRs (ADR-001 a ADR-237) em [`docs/adr/`](../../adr/).
+230 ADRs (ADR-001 a ADR-237) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 184
-- **Proposto**: 41
+- **Proposto**: 42
 - **Roadmap**: 4
 
 ## Fundação
