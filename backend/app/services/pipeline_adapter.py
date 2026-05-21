@@ -40,6 +40,10 @@ from backend.app.models.workspace import Workspace
 from backend.app.schemas.business_profile import BusinessProfile
 from backend.app.services import task_service
 from backend.app.services.tributario_input_builder import build_cascata_input_sync
+from backend.app.services.tributario_telemetry import (
+    compute_profile_completeness,
+    emit_telemetry_for_section,
+)
 from pipeline.domain.goals_bundle import GoalsBundle, TributarioBundleSection
 from pipeline.domain.services.tributario.cascata_calculator import compute as cascata_compute
 from pipeline.domain.services.tributario.cascata_serialization import cascata_to_dict
@@ -339,6 +343,32 @@ def _assemble_tributario_section(
     }
 
 
+def _trigger_codes_from_cascata(cascata_output_dict: dict[str, Any]) -> list[str]:
+    return [
+        t.get("code", "")
+        for t in (cascata_output_dict.get("triggers") or [])
+        if isinstance(t, dict)
+    ]
+
+
+def _emit_tributario_telemetry(
+    bp: Optional[BusinessProfile] = None, cascata_output_dict: Optional[dict[str, Any]] = None
+) -> None:
+    """ADR-236 §D6 + P6 — 3 eventos LGPD-safe (regime + códigos T1-T5)."""
+    regime = bp.regime if bp else None
+    is_complete, missing_fields = compute_profile_completeness(
+        regime=regime,
+        anexo_simples=bp.anexo_simples if bp else None,
+        tipo_declaracao_ir=bp.tipo_declaracao_ir if bp else None,
+    )
+    emit_telemetry_for_section(
+        regime=regime,
+        has_complete_profile=is_complete,
+        missing_fields=missing_fields,
+        trigger_codes=_trigger_codes_from_cascata(cascata_output_dict or {}),
+    )
+
+
 def _build_tributario_section_sync(
     workspace_id: str, *, db: SyncSession
 ) -> TributarioBundleSection:
@@ -347,9 +377,11 @@ def _build_tributario_section_sync(
     bp, bp_summary = _business_profile_summary(ws)
     cascata_input = build_cascata_input_sync(workspace_id, db=db)
     cascata_output = cascata_compute(cascata_input)
+    cascata_dict = cascata_to_dict(cascata_output)
+    _emit_tributario_telemetry(bp, cascata_dict)
     return _assemble_tributario_section(
         bp_summary,
-        cascata_to_dict(cascata_output),
+        cascata_dict,
         regime=bp.regime if bp else None,
     )
 
@@ -364,9 +396,11 @@ async def _build_tributario_section_async(
         lambda sync_db: build_cascata_input_sync(workspace_id, db=sync_db)
     )
     cascata_output = cascata_compute(cascata_input)
+    cascata_dict = cascata_to_dict(cascata_output)
+    _emit_tributario_telemetry(bp, cascata_dict)
     return _assemble_tributario_section(
         bp_summary,
-        cascata_to_dict(cascata_output),
+        cascata_dict,
         regime=bp.regime if bp else None,
     )
 

@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 185
-- **Proposto**: 42
+- **Decidido**: 186
+- **Proposto**: 41
 - **Roadmap**: 4
 
 ## Fundação
@@ -383,7 +383,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## methodology
 
-### Decidido (6)
+### Decidido (7)
 
 - [[ADR-215]] — Classificação de uso econômico de imóveis via override DB substitui `residencia_principal_keyword` · phase A12
 - [[ADR-224]] — `asset_catalog` + `lastro_moeda` per-ativo (catalog global + override per-workspace) · phase A12
@@ -391,9 +391,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-227]] — Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2 · phase A15
 - [[ADR-229]] — Pre-fill UI a partir de IRPF — pattern genérico `artifact → suggestion endpoint → card`; V1 contas bancárias · phase A13.irpf-prefill-bank-accounts
 - [[ADR-235]] — Classificação `nu_proprietario`: imóvel em nu-propriedade com usufruto vitalício de terceiro · phase A16
-
-### Proposto (1)
-
 - [[ADR-236]] — Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados) · phase A16.tributario-pj-cascata
 
 ## money

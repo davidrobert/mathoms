@@ -2,9 +2,10 @@
 id: ADR-236
 type: adr
 title: "Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados)"
-status: Proposto
+status: Decidido
 phase: A16.tributario-pj-cascata
 date: "2026-05-20"
+decided_at: "2026-05-21"
 relates_to:
   - "[[ADR-143]]"
   - "[[ADR-157]]"
@@ -20,7 +21,7 @@ aliases:
   - "PGBL base correta"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/methodology
   - area/pipeline
   - area/persistence
