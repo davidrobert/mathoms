@@ -834,6 +834,13 @@ def main_with_store(ctx) -> dict:
     # Onda 2 P-B (ADR-216) — popula `real_estate` payload via adapter.
     _e5n_populate_real_estate(ctx, store, e5_data)
 
+    # ADR-236 §D5 — propaga tributario bundle do GoalsBundle para o E5
+    # output. CascataFiscalCard consome via `data.tributario`. Sem isso o
+    # card só tem texto narrativo (sem a estrutura calculada da cascata).
+    trib = goals_cfg.get("tributario")
+    if trib:
+        e5_data["tributario"] = trib
+
     _e5n_persist(store, e5_data, narrativas)
     return {
         "success": True,

@@ -18,6 +18,8 @@
  */
 export { AlocacaoAtualVsAlvoCard } from "./AlocacaoAtualVsAlvoCard";
 export type { AlocacaoAtualVsAlvoCardProps } from "./AlocacaoAtualVsAlvoCard";
+// Sprint A16 L2 P5 (ADR-236 §D5) — Tributário PJ Cascata Fiscal.
+export { CascataFiscalCard } from "./CascataFiscalCard";
 export { ConsumoConscienteCard } from "./ConsumoConscienteCard";
 export { ContrafluxoCard } from "./ContrafluxoCard";
 export type { ContrafluxoData } from "./ContrafluxoCard";
