@@ -23,8 +23,10 @@ interface IFConeChartProps {
 
 /** N3 — Cone de probabilidade Monte Carlo para IF.
  *
- * Três séries: P10 (otimista), P50 (mediano), P90 (conservador).
- * Linha horizontal opcional marcando a meta IF.
+ * Três séries: P10 (cenário adverso), P50 (mediano), P90 (cenário favorável).
+ * Linha horizontal opcional marcando a meta IF. P10 é o 10º percentil
+ * (bottom 10% das simulações = menos patrimônio); P90 é o top 10%
+ * (ADR-236 — paridade narrativa P10/P90 com convenção MC clássica).
  *
  * ADR-076 · Cores via `useChartTheme()` — resolve tokens semânticos em
  * runtime e re-calcula em dark mode. Sem RGB literal.
@@ -46,9 +48,9 @@ export function IFConeConeChart({
 
     const datasets: ChartData<"line">["datasets"] = [
       {
-        label: "P10 — otimista",
+        label: "P10 — cenário adverso",
         data: caminhoP10.map(([, v]) => v),
-        borderColor: theme.semantic.gain,
+        borderColor: theme.semantic.loss,
         backgroundColor: "transparent",
         fill: false,
         borderDash: [5, 4],
@@ -67,9 +69,9 @@ export function IFConeConeChart({
         pointRadius: 0,
       },
       {
-        label: "P90 — conservador",
+        label: "P90 — cenário favorável",
         data: caminhoP90.map(([, v]) => v),
-        borderColor: theme.semantic.loss,
+        borderColor: theme.semantic.gain,
         backgroundColor: "transparent",
         fill: false,
         borderDash: [5, 4],

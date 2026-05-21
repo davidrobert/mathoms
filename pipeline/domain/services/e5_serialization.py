@@ -325,6 +325,7 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
             "idade_meta_usada": mc.idade_meta_usada,
             "sigma_usado": mc.sigma_usado,
             "exibir_cone": mc.exibir_cone,
+            "aporte_mensal_usado": float(mc.aporte_mensal_usado),
             "motivo_sem_cone": mc.motivo_sem_cone,
             "caminho_p10": [list(p) for p in mc.caminho_p10],
             "caminho_p50": [list(p) for p in mc.caminho_p50],
