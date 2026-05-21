@@ -1429,6 +1429,35 @@
         "additionalProperties": false,
         "description": "Perfil tribut\u00e1rio/PJ do workspace (todos campos opcionais at\u00e9 consultor preencher).",
         "properties": {
+          "anexo_simples": {
+            "anyOf": [
+              {
+                "enum": [
+                  "III",
+                  "V"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Anexo do Simples Nacional (relevante s\u00f3 quando regime=simples). III: servi\u00e7os com fator-R \u2265 0,28; V: < 0,28.",
+            "title": "Anexo Simples"
+          },
+          "cnae_principal": {
+            "anyOf": [
+              {
+                "maxLength": 10,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "CNAE 7-d\u00edgitos da atividade principal (formato 'NNNN-N/NN'). Valida Anexo Simples + ISS aplic\u00e1vel.",
+            "title": "Cnae Principal"
+          },
           "contador": {
             "anyOf": [
               {
@@ -1456,6 +1485,20 @@
             "description": "Prazo (em meses) para constituir holding patrimonial.",
             "title": "Holding Prazo Meses"
           },
+          "iss_aliquota_pct": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 2.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Al\u00edquota ISS municipal aplic\u00e1vel ao CNAE principal. 2-5% conforme Lei Complementar 116/2003.",
+            "title": "Iss Aliquota Pct"
+          },
           "regime": {
             "anyOf": [
               {
@@ -1473,6 +1516,22 @@
             ],
             "description": "Regime tribut\u00e1rio PJ atual.",
             "title": "Regime"
+          },
+          "tipo_declaracao_ir": {
+            "anyOf": [
+              {
+                "enum": [
+                  "completa",
+                  "simplificada"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Modelo IRPF da pessoa f\u00edsica. Simplificada anula dedu\u00e7\u00e3o PGBL (desconto simplificado substitui dedu\u00e7\u00f5es legais).",
+            "title": "Tipo Declaracao Ir"
           }
         },
         "title": "BusinessProfile",
@@ -1481,6 +1540,32 @@
       "BusinessProfileResponse": {
         "description": "Resposta do GET/PATCH \u2014 espelha shape de `BusinessProfile`.",
         "properties": {
+          "anexo_simples": {
+            "anyOf": [
+              {
+                "enum": [
+                  "III",
+                  "V"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anexo Simples"
+          },
+          "cnae_principal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cnae Principal"
+          },
           "contador": {
             "anyOf": [
               {
@@ -1503,6 +1588,17 @@
             ],
             "title": "Holding Prazo Meses"
           },
+          "iss_aliquota_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Iss Aliquota Pct"
+          },
           "regime": {
             "anyOf": [
               {
@@ -1519,6 +1615,21 @@
               }
             ],
             "title": "Regime"
+          },
+          "tipo_declaracao_ir": {
+            "anyOf": [
+              {
+                "enum": [
+                  "completa",
+                  "simplificada"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tipo Declaracao Ir"
           }
         },
         "title": "BusinessProfileResponse",
@@ -14625,6 +14736,164 @@
           }
         },
         "summary": "List Workspaces",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/workspaces/{workspace_id}/business-profile": {
+      "get": {
+        "description": "Operador l\u00ea o perfil tribut\u00e1rio PJ; 404 se workspace inexistente.",
+        "operationId": "admin_get_business_profile_admin_workspaces__workspace_id__business_profile_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ops_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ops Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin Get Business Profile",
+        "tags": [
+          "admin"
+        ]
+      },
+      "patch": {
+        "description": "Operador substitui o perfil tribut\u00e1rio PJ (replace, n\u00e3o merge).",
+        "operationId": "admin_update_business_profile_admin_workspaces__workspace_id__business_profile_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ops_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ops Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin Update Business Profile",
         "tags": [
           "admin"
         ]
