@@ -3,12 +3,12 @@ id: MOC-sprint-a17
 type: moc
 title: "Sprint A17 — Ingestão de Informes de Rendimentos anuais avulsos (4 ondas)"
 aliases: ["A17", "Sprint A17"]
-sprint_status: candidate
+sprint_status: current
 ---
 
 # Sprint A17 — Ingestão de Informes Anuais Avulsos
 
-> **Status:** `planned` — sprint reservada para começar quando A16 L2 (cascata fiscal PJ) fechar P6. ADR canônica [[ADR-238]] mergeada como `Proposto`; PRs de implementação começam quando L1 for puxada por agente.
+> **Status:** `current` (promovida 2026-05-21, após A16 L1+L2 entregues). ADR canônica [[ADR-238]] mergeada como `Proposto`; PRs de implementação começam quando L1 for puxada por agente.
 
 ## Resumo
 
