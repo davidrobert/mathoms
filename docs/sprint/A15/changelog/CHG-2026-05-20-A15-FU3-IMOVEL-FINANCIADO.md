@@ -86,7 +86,7 @@ A12 ([[ADR-215]] §Follow-ups). Resolveu 2 bugs silenciosos em produção:
 ## Referências
 
 - ADR canônica: [[ADR-227]] (Decidido em A15)
-- Plano: [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md)
+- Plano: [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md)
   (arquivar após esta sprint)
 - Sprint MOC: [[MOC-sprint-a15]]
 - Origem do débito: [[ADR-215]] §Follow-ups

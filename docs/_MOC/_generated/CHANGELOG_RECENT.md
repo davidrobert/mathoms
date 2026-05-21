@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-51 entries entre 2026-05-06 e 2026-05-20.
+37 entries entre 2026-05-07 e 2026-05-20.
 
 ## 2026-05-20 (2 entries)
 
@@ -62,23 +62,6 @@
 - [[CHG-2026-05-07-ADR-179]] — ADR-179. - **ADR-179** Proposto — `Decision` aggregate — extensão de schema (`impact_1y/10y_brl_cents`, `horizon`, `priority`).
 - [[CHG-2026-05-07-ADR-180]] — ADR-180. - **ADR-180** Proposto — `goals.json` cutover final via `StageConfig.config_store` extendido.
 - [[CHG-2026-05-07-ADR-181]] — ADR-181. - **ADR-181** Proposto — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py`.
-
-## 2026-05-06 (14 entries)
-
-- [[CHG-2026-05-06-A8-4]] — refactor(report,frontend,config): A8.4 PR4 — remoção do Modo USA inteiro (ADR-168) (2026-05-06). - **refactor(report,frontend,config): A8.4 PR4 — remoção do Modo USA inteiro (ADR-168) (2026-05-06):** Modo USA do relatório (U1 Mudança EUA F1/F2 + U2 Green Ca (lane [[A8.4]])
-- [[CHG-2026-05-06-A8-4-1]] — chore(docs,config): A8.4 PR5 — limpeza editorial final de copy USA-related (2026-05-06). - **chore(docs,config): A8.4 PR5 — limpeza editorial final de copy USA-related (2026-05-06):** Limpeza editorial de strings família-específicas em docs de spec/ (lane [[A8.4]])
-- [[CHG-2026-05-06-A8-4-2]] — refactor(pipeline): A8.4 PR2 — eligibility gate + analyzer reduzido a 1 cenário (ADR-167) (2026-05-06). - **refactor(pipeline): A8.4 PR2 — eligibility gate + analyzer reduzido a 1 cenário (ADR-167) (2026-05-06):** `CenariosConjugeAnalyzer` reduzido de 3 cenários f (lane [[A8.4]])
-- [[CHG-2026-05-06-A8-4-3]] — refactor(pipeline,backend,frontend): A8.4 PR1 — schema estável `cenarios_conjuge` no payload E5 (ADR-166) (2026-05-06). - **refactor(pipeline,backend,frontend): A8.4 PR1 — schema estável `cenarios_conjuge` no payload E5 (ADR-166) (2026-05-06):** Chave do bloco "Cenários do cônjug (lane [[A8.4]])
-- [[CHG-2026-05-06-A8-4-4]] — docs(plan): A8.4 Cenários de Estresse — plano canônico + lane no BACKLOG (2026-05-06). - **docs(plan): A8.4 Cenários de Estresse — plano canônico + lane no BACKLOG (2026-05-06):** [docs/plan/CENARIOS_ESTRESSE/_README.md](../../plan/CENARIOS_ESTRESSE/_README.md) entregu (lane [[A8.4]])
-- [[CHG-2026-05-06-DOCS-DECISIONS]] — docs(decisions,plan): ADR backfill Wave 1 + CLAUDE.md sync (W1-T03 + W1-T06 · 2026-05-06). - **docs(decisions,plan): ADR backfill Wave 1 + CLAUDE.md sync (W1-T03 + W1-T06 · 2026-05-06):** Backfill de 6 ADRs `Proposto` — ADR-170 (refresh tokens family-
-- [[CHG-2026-05-06-FEAT-FRONTEND]] — feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06). - **feat(frontend): CSS gate + tokens fantasma corrigidos (W1-T01 · 2026-05-06):** Onda 1 do `plan/PLATFORM_REVIEW/_README.md` — fecha cluster PD-001/002/005/023.
-- [[CHG-2026-05-06-FEAT-SCHEMAS]] — feat(schemas): cenarios_conjuge formal em e5_analysis.schema (W1-T08 · 2026-05-06). - **feat(schemas): cenarios_conjuge formal em e5_analysis.schema (W1-T08 · 2026-05-06):** Fecha gap deixado por ADR-166 — `CenariosConjugeAnalyzer.to_legacy_dic
-- [[CHG-2026-05-06-FIX-BACKEND]] — fix(backend): PDF semaphore (BB-009) + SECRET_KEY fail-fast prod (SR-022 · 2026-05-06). - **fix(backend): PDF semaphore (BB-009) + SECRET_KEY fail-fast prod (SR-022 · 2026-05-06):** W1-T04 + W1-T05 do PLATFORM_REVIEW_PLAN.
-- [[CHG-2026-05-06-FIX-DOCUMENTS]] — fix(documents): "Sem extrato" enganoso em investment_report misclassificado (2026-05-06). - **fix(documents): "Sem extrato" enganoso em investment_report misclassificado (2026-05-06):** Filename `itau_extratoconta_*.xls` cujo conteúdo é Posição de In
-- [[CHG-2026-05-06-FIX-PIPELINE]] — fix(pipeline): regras suggestion dormentes + carry-trade endividamento (W1-T02 + W1-T07 · 2026-05-06). - **fix(pipeline): regras suggestion dormentes + carry-trade endividamento (W1-T02 + W1-T07 · 2026-05-06):** Findings FP-001/2/3/9 do platform review.
-- [[CHG-2026-05-06-FIX-PIPELINE-1]] — fix(pipeline): modo incremental respeitado por stages globais E1 (ADR-169 · 2026-05-06). - **fix(pipeline): modo incremental respeitado por stages globais E1 (ADR-169 · 2026-05-06):** Antes: clicar "Processar somente novos" reprocessava todas as dec
-- [[CHG-2026-05-06-PR77]] — refactor(report): _find_top_asset usa fonte canônica top_ativos + schema E5 declara contrato (2026-05-06). - **refactor(report): _find_top_asset usa fonte canônica top_ativos + schema E5 declara contrato (2026-05-06):** Cleanup pós-PR #77.
-- [[CHG-2026-05-06-PR87]] — refactor(report): _extract_top_institutions usa fonte canônica + schema E5 ganha instituicoes_por_membro/n_imoveis_total (2026-05-06). - **refactor(report): _extract_top_institutions usa fonte canônica + schema E5 ganha instituicoes_por_membro/n_imoveis_total (2026-05-06):** Cleanup pós-PR #87.
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

@@ -19,7 +19,7 @@ tags:
 # Track A15 FU-3 Onda 4 — API endpoints + OpenAPI snapshot
 
 > **Lane:** Sprint A15 · **Plano canônico:**
-> [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 4
+> [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 4
 > · **ADR canônica:** [[ADR-227]] §D1 + §D2 (CRUD shape) + [[ADR-109]] (response_model + snapshot)
 > · **Branch prefix:** `agent/a15-fu3-onda4-api/*`
 > · **Pré-requisito externo:** Onda 1 mergeada (models + repos) + Onda 3 mergeada (adapter + warning). Pode rodar em paralelo com Onda 5 (frontend), pois UI consome endpoints daqui.
@@ -129,7 +129,7 @@ make update-openapi-snapshot
 
 ## Ligações
 
-- Plano canônico: [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 4
+- Plano canônico: [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 4
 - ADR canônica: [[ADR-227]] §D1 + §D2; [[ADR-109]] (response_model + snapshot)
 - Sprint MOC: [[MOC-sprint-a15]]
 - Onda 1 (pré-req): [a15-fu3-onda1-schema](a15-fu3-onda1-schema.md)

@@ -20,7 +20,7 @@ tags:
 # Track A15 FU-3 Onda 3 — Calculator + resolver puro
 
 > **Lane:** Sprint A15 · **Plano canônico:**
-> [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 3
+> [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 3
 > · **ADR canônica:** [[ADR-227]] §D3 + §D4 + §D5
 > · **Branch prefix:** `agent/a15-fu3-onda3-calculator/*`
 > · **Pré-requisito externo:** Onda 1 mergeada (tabelas existem) + Onda 2 idealmente rodada em dogfood (`5@5.com`) antes desta Onda
@@ -139,7 +139,7 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano canônico: [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 3
+- Plano canônico: [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 3
 - ADR canônica: [[ADR-227]] §D3 + §D4 + §D5
 - Sprint MOC: [[MOC-sprint-a15]]
 - Onda 1 (pré-req): [a15-fu3-onda1-schema](a15-fu3-onda1-schema.md)

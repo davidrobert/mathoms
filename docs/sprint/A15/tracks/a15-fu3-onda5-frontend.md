@@ -20,7 +20,7 @@ tags:
 # Track A15 FU-3 Onda 5 — Frontend cutover
 
 > **Lane:** Sprint A15 · **Plano canônico:**
-> [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 5
+> [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 5
 > · **ADR canônica:** [[ADR-227]] §D3 (apresentação dual) + §D5 (TTL soft)
 > · **Branch prefix:** `agent/a15-fu3-onda5-frontend/*`
 > · **Pré-requisito externo:** Onda 4 mergeada (endpoints CRUD prontos) + Onda 3 mergeada (payload E5 com `source_valor`/`saldo_devedor_brl`).
@@ -153,7 +153,7 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano canônico: [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 5
+- Plano canônico: [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 5
 - ADR canônica: [[ADR-227]] §D3 + §D5
 - Sprint MOC: [[MOC-sprint-a15]]
 - Onda 1 (pré-req): [a15-fu3-onda1-schema](a15-fu3-onda1-schema.md)

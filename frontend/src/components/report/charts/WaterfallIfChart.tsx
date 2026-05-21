@@ -52,7 +52,11 @@ export function WaterfallIfChart({
   goals,
   conclusion,
 }: WaterfallIfChartPropsExt) {
-  const atual = patrimonio?.investivel ?? 0;
+  // ADR-142 + ADR-215 §6: "Atual" deve casar com o denominador do if_pct.
+  // investivel_efetivo == investivel_financeiro quando imoveis_no_if=false
+  // (cat2_efetivo zera no calculator), então cobre ambos os casos sem branch.
+  const atual =
+    patrimonio?.investivel_efetivo ?? patrimonio?.investivel_financeiro ?? 0;
   const meta = goals?.if_meta ?? 0;
   const gap = goals?.if_gap ?? Math.max(0, meta - atual);
   const pct = goals?.if_pct ?? (meta > 0 ? (atual / meta) * 100 : 0);

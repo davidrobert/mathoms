@@ -20,7 +20,7 @@ tags:
 # Track A15 FU-3 Onda 1 — Schema + repos + models
 
 > **Lane:** Sprint A15 · **Plano canônico:**
-> [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 1
+> [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 1
 > · **ADR canônica:** [[ADR-227]] §D1 + §D2
 > · **Branch prefix:** `agent/a15-fu3-onda1-schema/*`
 > · **Pré-requisito externo:** [[ADR-227]] mergeada em `main` ([PR #338](https://github.com/davidrobert/mathoms/pull/338), commit `fe13713`) ✅
@@ -126,7 +126,7 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano canônico: [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 1
+- Plano canônico: [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 1
 - ADR canônica: [[ADR-227]] §D1 + §D2
 - Sprint MOC: [[MOC-sprint-a15]]
 - Onda 2 (próximo): [a15-fu3-onda2-backfill](a15-fu3-onda2-backfill.md) — script de backfill consome tabelas criadas aqui
