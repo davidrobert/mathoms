@@ -372,7 +372,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
 | `original_name` | `VARCHAR(500)` | no | — | — |
 | `stored_path` | `TEXT` | yes | — | — |
-| `doc_type` | `VARCHAR(18)` | yes | `<DocumentType.other: 'other'>` | — |
+| `doc_type` | `VARCHAR(26)` | yes | `<DocumentType.other: 'other'>` | — |
 | `bank_code` | `VARCHAR(50)` | yes | — | — |
 | `period` | `VARCHAR(50)` | yes | — | — |
 | `status` | `VARCHAR(14)` | no | `<DocumentStatus.uploaded: 'uploaded'>` | INDEX |
@@ -1549,7 +1549,7 @@ Três categorias que quebram portabilidade language-neutral. Zero ocorrências n
 
 Schema usa `SQLAlchemy Enum()` nativo (Python enum → DB enum ou `VARCHAR + CHECK` dependendo do dialect). Em Postgres vira um TYPE real; em SQLite degrada para `VARCHAR + CHECK`. Portável para Go via tipo alias `type Status string` + constantes.
 
-- `documents.doc_type → (bank_statement, credit_card_bill, e1_5_baseline_json, e1_members_json, investment_report, irpf, other)`
+- `documents.doc_type → (bank_statement, credit_card_bill, e1_5_baseline_json, e1_members_json, informe_rendimentos_anuais, investment_report, irpf, other)`
 - `documents.status → (classifying, error, needs_password, processed, processing, ready, unlocking, uploaded)`
 - `pipeline_runs.status → (cancelled, completed, failed, needs_review, partial_failure, pending, resuming, running)`
 - `pipeline_stage_logs.status → (completed, failed, needs_review, pending, running, skipped, skipped_free_tier)`

@@ -95,7 +95,29 @@ def map_e0_doc_type_to_document_type(e0_doc_type: str) -> DocumentType:
 
     code = e0_doc_type.lower()
 
-    if code.startswith("irpf") or code.startswith("informerendimento"):
+    # ADR-238 A17 L1 P3: informe anual avulso (PGBL/VGBL em L1; financeiro
+    # PF/PJ, proventos em L2-L4) tem stage próprio ``extract_informes_anuais``
+    # (despacho por ``tipo_informe``). NUNCA mais cair em ``.irpf`` que dispara
+    # ``extract_irpf_full`` — confundir declaração com informe quebrava o
+    # pipeline silenciosamente.
+    if (
+        code.startswith("informe_previdencia")
+        or code.startswith("informe_financeiro")
+        or code.startswith("informe_proventos")
+    ):
+        return DocumentType.informe_rendimentos_anuais
+
+    if code.startswith("irpf"):
+        return DocumentType.irpf
+
+    # ``informerendimentos`` genérico (sem tipo específico) continua mapeando
+    # para ``.irpf`` até P3 cobrir todos os tipos canônicos (L2-L4). Quando
+    # todos os tipos forem canonizados, esta cláusula vira ``informe_rendimentos_anuais``.
+    if code.startswith("informerendimentosaluguel"):
+        # ADR-216 aluguel — vive em DocumentType.other até cutover para
+        # extract_informes_anuais com tipo_informe="aluguel_imobiliaria".
+        return DocumentType.other
+    if code.startswith("informerendimento"):
         return DocumentType.irpf
 
     if (
@@ -125,6 +147,10 @@ _DOCUMENT_TYPE_TO_E0_DEST: dict[DocumentType, tuple[str, str]] = {
     DocumentType.credit_card_bill: ("fatura", "financial_statements"),
     DocumentType.investment_report: ("investimentosposicao", "financial_statements"),
     DocumentType.irpf: ("irpfdeclaracao", "income_tax_br"),
+    # ADR-238 (A17 L1) — informe anual avulso. Override do tipo via PATCH
+    # cai no canonical de previdência (P1 cobre apenas esse tipo); L2-L4
+    # adicionam canonicals próprios (financeiro_pj/pf/proventos).
+    DocumentType.informe_rendimentos_anuais: ("informe_previdencia_privada", "income_tax_br"),
 }
 
 

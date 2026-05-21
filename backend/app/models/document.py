@@ -158,6 +158,11 @@ class DocumentType(str, enum.Enum):
     credit_card_bill = "credit_card_bill"
     investment_report = "investment_report"
     irpf = "irpf"
+    # ADR-238 (A17 L1 P3) — informe anual avulso polimórfico (PGBL/VGBL,
+    # financeiro PF/PJ, proventos, aluguel). Distinto de ``irpf`` porque
+    # ``irpf`` dispara o stage ``extract_irpf_full`` (declaração); informes
+    # disparam ``extract_informes_anuais`` com despacho por ``tipo_informe``.
+    informe_rendimentos_anuais = "informe_rendimentos_anuais"
     e1_members_json = "e1_members_json"
     e1_5_baseline_json = "e1_5_baseline_json"
     other = "other"
