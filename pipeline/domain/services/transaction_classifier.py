@@ -24,6 +24,12 @@ from pipeline.domain.services.internal_transfer_detector import (
     InternalTransferDetector,
 )
 from pipeline.domain.services.keyword_matcher import KeywordMatcher
+from pipeline.domain.services.llm_category_hint import (
+    is_info_fiscal_anual,
+    is_internal_transfer_hint,
+    map_hint_to_expense_category,
+    map_hint_to_income_category,
+)
 from pipeline.domain.services.transaction_classifier_pj import (
     PJ_LABELS,
     RUN_CONTEXT_DISABLED,
@@ -169,19 +175,7 @@ class ClassifierConfig:
 
 @dataclass(frozen=True)
 class ClassifiedTransaction:
-    """Transação classificada, pronta para agregação/serialização em E4.
-
-    ``kind``: ``"receita"`` | ``"despesa"`` | ``"transferencia"``.
-    ``valor``: positivo para receitas/despesas/transferências (mesmo que o
-        original fosse negativo em débito) — paridade com
-        ``e4_categorize.process_transactions`` linha 718 (``valor_abs``).
-
-    ``learned_rule_id`` (ADR-186 §D5 · A12.P2): UUID da ``categorization_rules``
-    que casou e produziu ``categoria``. ``None`` quando categoria veio do
-    template ou do fallback. Audit-only no pipeline; adapter backend usa
-    para criar ``TransactionOverride(source='rule', rule_id=...)`` +
-    bumpar ``applied_count``.
-    """
+    """Transação classificada, pronta para agregação/serialização em E4."""
 
     kind: str  # receita | despesa | transferencia
     data: str
@@ -195,6 +189,7 @@ class ClassifiedTransaction:
     categoria: str | None = None  # None para transferências
     origem: str | None = None  # só em receitas
     learned_rule_id: str | None = None  # ADR-186 §D5 (A12.P2)
+    categorization_origin: str | None = None  # ADR-242 — audit trail
 
     def to_legacy_dict(self) -> dict:
         """Serializa no schema usado pelo `process_transactions` legado."""
@@ -292,6 +287,12 @@ class TransactionClassifier:
         for tx in account["transacoes"] or []:
             if not isinstance(tx, dict):
                 continue
+            # ADR-242 — linhas anuais de informe fiscal (valor a declarar,
+            # parcelas acumuladas) NÃO entram no fluxo de caixa mensal.
+            # Skipa cedo para evitar double-counting + distorção de KPIs
+            # (taxa de poupança, despesa_mensal_media, etc.).
+            if is_info_fiscal_anual(tx.get("categoria_sugerida")):
+                continue
             classified, folha_pj_candidata = self._classify_one(
                 tx,
                 banco_raw=banco_raw,
@@ -322,13 +323,13 @@ class TransactionClassifier:
         run_ctx: RunContext = RUN_CONTEXT_DISABLED,
     ) -> tuple[ClassifiedTransaction, str | None]:
         """Classifica uma tx; retorna ``(classified, folha_pj_candidata)``."""
-        data = tx.get("data", "")
         descricao_raw = tx.get("descricao", "")
         valor = _coerce_valor(tx.get("valor"))
         tipo = _normalize_tipo(tx.get("tipo"), valor, tipo_conta)
+        category_hint = tx.get("categoria_sugerida")
 
         common = dict(
-            data=data,
+            data=tx.get("data", ""),
             descricao=descricao_raw,
             banco=banco_raw,
             moeda=moeda,
@@ -336,8 +337,10 @@ class TransactionClassifier:
             titular=titular,
         )
 
-        # 1. Transferência interna precoce (paridade legado linhas 640-651).
-        if self._transfer_detector.is_internal_transfer(descricao_raw, banco=banco_raw):
+        # 1. Transferência interna precoce (paridade legado + hint LLM reforça).
+        if self._transfer_detector.is_internal_transfer(
+            descricao_raw, banco=banco_raw
+        ) or is_internal_transfer_hint(category_hint):
             return _classified_transferencia(valor, tipo, **common), None
 
         # 2. Labels PJ ([[ADR-236]] §D2) têm precedência sobre learned + template.
@@ -345,60 +348,95 @@ class TransactionClassifier:
             descricao_raw, tipo=tipo, config=self._pj_label_config, run_ctx=run_ctx
         )
         if pj_label is not None:
-            kind, categoria_pj = pj_label
-            origem = self._origin_resolver.resolve_pj(descricao_raw) if kind == "receita" else None
-            tipo_out = tipo or ("credito" if kind == "receita" else "debito")
-            valor_out = valor if kind == "receita" else abs(valor)
-            return ClassifiedTransaction(
-                kind=kind,
-                valor=valor_out,
-                tipo=tipo_out,
-                categoria=categoria_pj,
-                origem=origem,
-                **common,
-            ), None
+            return self._make_pj(pj_label, valor, tipo, descricao_raw, common), None
 
         learned_match = self._learned_rules_match(descricao_raw)
 
-        # 3. Crédito → receita (learned_rule prioridade sobre template).
         if tipo == "credito":
-            if learned_match is not None:
-                categoria, learned_id = learned_match
-            else:
-                categoria = (
-                    self._income_matcher.category_of(descricao_raw)
-                    or self._config.default_income_category
-                )
-                learned_id = None
-            origem = self._origin_resolver.resolve_for_category(categoria, descricao_raw)
-            return ClassifiedTransaction(
-                kind="receita",
-                valor=valor,
-                tipo=tipo,
-                categoria=categoria,
-                origem=origem,
-                learned_rule_id=learned_id,
-                **common,
+            return self._classify_credito(
+                descricao_raw, valor, tipo, category_hint, learned_match, common
             ), None
 
-        # 4. Débito → despesa, com 2º check de transferência via banco_norm.
+        return self._classify_debito(
+            descricao_raw, banco_norm, valor, tipo, category_hint, learned_match, common
+        ), folha_pj_candidata
+
+    def _make_pj(self, pj_label, valor, tipo, descricao_raw, common):
+        kind, categoria_pj = pj_label
+        origem = self._origin_resolver.resolve_pj(descricao_raw) if kind == "receita" else None
+        tipo_out = tipo or ("credito" if kind == "receita" else "debito")
+        valor_out = valor if kind == "receita" else abs(valor)
+        return ClassifiedTransaction(
+            kind=kind,
+            valor=valor_out,
+            tipo=tipo_out,
+            categoria=categoria_pj,
+            origem=origem,
+            categorization_origin="pj_label",
+            **common,
+        )
+
+    def _classify_credito(
+        self, descricao_raw, valor, tipo, category_hint, learned_match, common
+    ) -> ClassifiedTransaction:
+        categoria, learned_id, origin_tag = self._resolve_categoria_receita(
+            descricao_raw, category_hint, learned_match
+        )
+        origem = self._origin_resolver.resolve_for_category(categoria, descricao_raw)
+        return ClassifiedTransaction(
+            kind="receita",
+            valor=valor,
+            tipo=tipo,
+            categoria=categoria,
+            origem=origem,
+            learned_rule_id=learned_id,
+            categorization_origin=origin_tag,
+            **common,
+        )
+
+    def _resolve_categoria_receita(self, descricao_raw, category_hint, learned_match):
+        # ADR-242 hierarchy: learned > rule > llm_hint > default.
+        if learned_match is not None:
+            categoria, learned_id = learned_match
+            return categoria, learned_id, "learned"
+        categoria = self._income_matcher.category_of(descricao_raw)
+        if categoria is not None:
+            return categoria, None, "rule"
+        hint_cat = map_hint_to_income_category(category_hint)
+        if hint_cat is not None:
+            return hint_cat, None, "llm_hint"
+        return self._config.default_income_category, None, "default"
+
+    def _classify_debito(
+        self, descricao_raw, banco_norm, valor, tipo, category_hint, learned_match, common
+    ):
+        # learned > rule (early); se nenhum casa, checa transferência tardia
+        # via banco_norm e só depois aplica hint LLM ou default.
         if learned_match is not None:
             categoria_exp, learned_id = learned_match
+            origin_tag = "learned"
         else:
             categoria_exp = self._expense_matcher.category_of(descricao_raw)
             learned_id = None
+            origin_tag = "rule" if categoria_exp is not None else "default"
         if categoria_exp is None:
             if self._transfer_detector.is_internal_transfer(descricao_raw, banco=banco_norm):
-                return _classified_transferencia(valor, tipo, **common), None
-            categoria_exp = self._config.default_expense_category
+                return _classified_transferencia(valor, tipo, **common)
+            hint_cat = map_hint_to_expense_category(category_hint)
+            if hint_cat is not None:
+                categoria_exp = hint_cat
+                origin_tag = "llm_hint"
+            else:
+                categoria_exp = self._config.default_expense_category
         return ClassifiedTransaction(
             kind="despesa",
             valor=abs(valor),
             tipo=tipo or "debito",
             categoria=categoria_exp,
             learned_rule_id=learned_id,
+            categorization_origin=origin_tag,
             **common,
-        ), folha_pj_candidata
+        )
 
     # ADR-186 §D5 (A12.P2) — helper interno isolado para testabilidade.
     def _learned_rules_match(self, descricao_raw: str) -> tuple[str, str] | None:

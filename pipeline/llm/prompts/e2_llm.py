@@ -1,7 +1,10 @@
 """Prompt templates for E2-llm — extract transactions/investments from docs without deterministic parser."""
 
 # Bump quando SYSTEM_PROMPT ou USER_PROMPT_TEMPLATE mudar — gate CI valida (W2-T05, ADR-233).
-PROMPT_VERSION = "1.0.0"
+# 1.1.0 (ADR-242): adiciona vocabulário canônico de `category_hint` + sinalização
+# `info_fiscal_anual` para excluir linhas acumuladas anuais (valor a declarar,
+# parcelas ano X) do fluxo de caixa mensal.
+PROMPT_VERSION = "1.1.0"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
 
@@ -18,6 +21,7 @@ Para transações, extraia:
 - Descrição (memo da transação)
 - Valor (positivo = crédito/entrada, negativo = débito/saída)
 - Saldo após transação (se disponível)
+- category_hint (sugestão de categoria; ver vocabulário abaixo)
 
 Para investimentos, extraia:
 - Tipo (cdb, lci, lca, fundo, acao, tesouro, poupanca, previdencia, outros)
@@ -32,7 +36,39 @@ Regras:
 - Datas em formato YYYY-MM-DD
 - Use códigos canônicos para bancos: itau, santander, bradesco, c6bank, btgpactual, rico, nubank, inter
 - Se não conseguir determinar o período, use null
-- Nível de confiança: 1.0 = dados estruturados e claros, <0.7 = dados ambíguos"""
+- Nível de confiança: 1.0 = dados estruturados e claros, <0.7 = dados ambíguos
+
+Vocabulário canônico do `category_hint` (use SOMENTE estes valores; null se nenhum se aplica):
+
+Receitas (Perini — distinção ativa/passiva):
+- salario | pro_labore_pj | aluguel_recebido
+- rendimento_renda_fixa | dividendo_jcp | ganho_capital_resgate
+
+Moradia & vida essencial (Cerbasi — juros ≠ amortização):
+- moradia_financiamento_juros | moradia_financiamento_amortizacao
+- moradia_aluguel_pago | moradia_outros
+- alimentacao | transporte
+
+Discricionárias:
+- saude | educacao | lazer_assinatura | vestuario_pessoal
+
+Futuro & passivos:
+- aporte_investimento | seguro_previdencia | imposto_pago | juros_divida_consumo
+
+Operacional (FLAG, não despesa):
+- transferencia_interna  → entre contas do próprio titular
+- info_fiscal_anual      → linha do informe IR que NÃO é evento mensal de caixa
+                            (acumulado anual: "Parcelas pagas ano XXXX",
+                            "Rendimento Líquido (valor a declarar)" quando há
+                            "Rendimento Bruto" separado, etc.)
+
+Atenção crítica em informes de rendimentos / informes anuais:
+- "Rendimento Bruto" + "Rendimento Líquido (valor a declarar)" do MESMO ativo
+  no mesmo período: marque o BRUTO como `rendimento_renda_fixa` e o LÍQUIDO
+  como `info_fiscal_anual` (evita double-counting).
+- "Parcelas pagas Crédito Imobiliário (ano XXXX)": SEMPRE `info_fiscal_anual`
+  (é acumulado anual de IR; a despesa real está no extrato mês a mês).
+- "IRRF retido": `imposto_pago`."""
 
 USER_PROMPT_TEMPLATE = """\
 Extraia todas as transações e/ou posições de investimentos do seguinte documento:

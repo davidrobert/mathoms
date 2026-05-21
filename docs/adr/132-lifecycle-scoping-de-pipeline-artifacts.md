@@ -4,7 +4,7 @@ type: adr
 title: "Lifecycle scoping de `pipeline_artifacts` (workspace vs run)"
 status: Decidido
 date: "2026-04-25"
-relates_to: ["[[ADR-082]]"]
+relates_to: ["[[ADR-082]]", "[[ADR-241]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 132"]
@@ -107,6 +107,12 @@ def read(self, stage: str, key: str) -> Optional[dict]:
 Stages futuros (F9.2+ com nomes descritivos, ADR-093) que forem por
 natureza de referência declaram a flag no momento de inclusão;
 stages run-scoped continuam o default seguro (sem fallback).
+
+> **Atualização (2026-05-21):** [[ADR-241]] estende `_WORKSPACE_SCOPED_STAGES`
+> para incluir os 6 nomes de E2 (`E2-extratos`/`E2-faturas`/`E2-llm` + descritivos).
+> Critério adicional: artefato é **per-documento idempotente** (re-extrair
+> o mesmo PDF/CSV produz o mesmo payload). E3/E4/E5 permanecem run-scoped —
+> têm invariantes cross-account que exigem recomputação a cada run.
 
 Salvaguarda complementar:
 `e4_serialization.build_patrimonio_artifact()` deixa de escrever o

@@ -1,4 +1,4 @@
-"""DBArtifactStore — SQLAlchemy ArtifactStore. Sessão injetada (ADR-083); validate→encrypt→write (ADR-212 PR3 + ADR-231); fallback workspace para stages em _WORKSPACE_SCOPED_STAGES (ADR-132 / ADR-157)."""
+"""DBArtifactStore — SQLAlchemy ArtifactStore. Sessão injetada (ADR-083); validate→encrypt→write (ADR-212 PR3 + ADR-231); fallback workspace para stages em _WORKSPACE_SCOPED_STAGES (ADR-132 / ADR-157 / ADR-238 / ADR-241)."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from backend.app.services.crypto import (
 )
 
 _logger = logging.getLogger("mathoms.crypto")
+_artifact_logger = logging.getLogger("mathoms.pipeline.artifact")
 
 
 def _maybe_encrypt(payload: dict) -> dict:
@@ -114,16 +115,40 @@ _WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset(
         # Identidade canônica do bem é workspace-scoped, sobrevive entre
         # runs (não é run-scoped).
         "extract_comprovantes_bens",
+        # ADR-241 — E2 é per-documento idempotente: extrair o mesmo PDF/CSV
+        # duas vezes produz o mesmo payload. Em incremental, o pipeline
+        # só re-extrai docs novos; sem fallback workspace, E3 ficaria cego
+        # aos E2 das runs anteriores e o relatório sairia subdimensionado.
+        # E3/E4/E5 **continuam run-scoped** e recomputam o universo a cada
+        # run (mantém invariantes cross-account: dedup, saldo continuity).
+        # Legacy + descritivo (compat F9.2 → F9.6, ADR-093).
+        "E2-extratos",
+        "E2-faturas",
+        "E2-llm",
+        "extract_statements",
+        "extract_invoices",
+        "extract_with_llm",
     }
 )
 """Stages cujo artefato é dataset de **referência** (lifecycle por workspace,
 não por run). ``read()`` faz fallback para o artefato mais recente do
 workspace quando o ``pipeline_run_id`` atual não tem o key.
 
-Critério de inclusão: artefato é gerado por evento de domínio (upload de
-IRPF, edição de family_members) e deve sobreviver entre runs sem custo de
-reprocessamento. Stages run-scoped (E2/E3/E4/E5) **não** entram aqui —
-cada run é dono dos próprios outputs.
+Critério de inclusão (origem ADR-132, estendido em ADR-241):
+
+- Artefato é gerado por **evento de domínio** (upload de IRPF, edição de
+  family_members) e deve sobreviver entre runs sem custo de
+  reprocessamento (E1.x, extract_irpf_full, extract_informe_aluguel,
+  extract_informes_anuais).
+- Artefato é **per-documento idempotente** — `artifact_key` referencia
+  um documento individual e re-extrair produz o mesmo payload (E2-*).
+  Em incremental, sem este fallback o pipeline ficaria cego aos
+  documentos não-reprocessados.
+
+E3/E4/E5 **não** entram aqui: têm invariantes cross-account (dedup, saldo
+continuity entre extratos contíguos, fatura sintetizada por ADR-097 D2).
+Cada run é dono dos próprios outputs; recomputação a cada run preserva
+determinismo.
 
 Inclui legacy + descritivo durante a janela de compat F9.2 → F9.6 (ADR-093).
 ``extract_irpf_full`` (ADR-157) só existe em forma descritiva.
@@ -188,6 +213,21 @@ class DBArtifactStore:
         row = self._get(stage, key)
         if row is None and stage in _WORKSPACE_SCOPED_STAGES:
             row = self._get_latest_in_workspace(stage, key)
+            if row is not None:
+                # ADR-241 — sinaliza consumo via fallback workspace-scoped.
+                # Sem ele, regressão silenciosa em incremental (stage que
+                # deveria ler do run atual mas só existe em runs anteriores)
+                # passa despercebida.
+                _artifact_logger.info(
+                    "mathoms.pipeline.artifact.workspace_fallback",
+                    extra={
+                        "workspace_id": self._workspace_id,
+                        "stage": stage,
+                        "artifact_key": key,
+                        "current_run_id": self._pipeline_run_id,
+                        "source_run_id": row.pipeline_run_id,
+                    },
+                )
         if row is None:
             return None
         return _maybe_decrypt(row.content_json)

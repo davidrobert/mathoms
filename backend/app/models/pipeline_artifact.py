@@ -92,6 +92,16 @@ class PipelineArtifact(Base):
             "stage",
             "artifact_key",
         ),
+        # ADR-241 — `_get_latest_in_workspace` faz ORDER BY created_at DESC
+        # LIMIT 1; sem este índice é seq scan + sort em memória. Com a
+        # promoção de E2 a workspace-scoped, esse caminho vira hot path.
+        Index(
+            "ix_pipeline_artifacts_ws_stage_key_created",
+            "workspace_id",
+            "stage",
+            "artifact_key",
+            "created_at",
+        ),
         Index(
             "ix_pipeline_artifacts_document_id",
             "document_id",

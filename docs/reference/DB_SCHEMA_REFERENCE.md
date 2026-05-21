@@ -713,6 +713,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_pipeline_artifacts_pipeline_run_id` (pipeline_run_id)
 - `ix_pipeline_artifacts_workspace_id` (workspace_id)
 - `ix_pipeline_artifacts_workspace_stage_key` (workspace_id, stage, artifact_key)
+- `ix_pipeline_artifacts_ws_stage_key_created` (workspace_id, stage, artifact_key, created_at)
 
 ### `pipeline_configs`
 

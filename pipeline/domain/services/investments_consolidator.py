@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from pipeline.domain.services.member_name_resolver import MemberNameResolver
 from pipeline.domain.types.config import BankAccountRecord
 
 # =============================================================================
@@ -38,6 +39,10 @@ class InvestmentsConsolidatorConfig:
     # ambíguo (>1 membro mesmo banco) marca posição needs_review.
     accounts: tuple[BankAccountRecord, ...] = ()
     divergence_tolerance: float = 1.0
+    # ADR-243 — resolver de nome canônico de membro. Defensive layer para
+    # artifacts E2 carry-forwarded de runs antigas (pré-ADR-243) e para
+    # casos onde o LLM ignorou o vocabulário canônico do prompt.
+    member_name_resolver: MemberNameResolver | None = None
 
     @classmethod
     def from_family(cls, family: dict | None = None) -> "InvestmentsConsolidatorConfig":
@@ -46,7 +51,12 @@ class InvestmentsConsolidatorConfig:
         clean = {str(k): str(v) for k, v in raw.items() if not str(k).startswith("_")}
         contas_raw = fam.get("contas") or []
         accounts = tuple(_parse_account_record(c) for c in contas_raw if isinstance(c, dict))
-        return cls(banco_membro=clean, accounts=accounts)
+        member_resolver = MemberNameResolver.from_family_config(fam)
+        return cls(
+            banco_membro=clean,
+            accounts=accounts,
+            member_name_resolver=member_resolver,
+        )
 
 
 def _parse_account_record(raw: dict) -> BankAccountRecord:
@@ -115,6 +125,7 @@ class InvestmentsConsolidator:
         self._resolver = AccountResolver(
             self._config.accounts, banco_membro_legacy=self._config.banco_membro
         )
+        self._member_name_resolver = self._config.member_name_resolver
 
     def _iso_today(self) -> str:
         return (self._now or datetime.now()).strftime("%Y-%m-%d")
@@ -160,7 +171,21 @@ class InvestmentsConsolidator:
             if not posicoes:
                 continue
             instituicao = data.get("instituicao") or data.get("banco") or ""
-            membro = (data.get("membro") or "").lower()
+            membro_raw = (data.get("membro") or "").lower()
+            # ADR-243 — normaliza nome bruto do LLM para a chave canônica
+            # do workspace antes de qualquer outra lógica (dedup, totalização,
+            # match contra titular_key/conjuge_key downstream em E5).
+            membro = ""
+            if membro_raw and self._member_name_resolver is not None:
+                resolution = self._member_name_resolver.resolve(membro_raw)
+                if resolution.canonical_key:
+                    membro = resolution.canonical_key
+                else:
+                    # Resolver não casou — preserva raw (audit + telemetria
+                    # já registra confidence=unknown/ambiguous no log).
+                    membro = membro_raw
+            else:
+                membro = membro_raw
             if not membro and instituicao:
                 # ADR-226 PR3 — resolver substitui lookup direto banco_membro.
                 inst_key = str(instituicao).lower().replace(" ", "")

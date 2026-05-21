@@ -308,7 +308,11 @@ async def test_workspace_scoped_stage_falls_back_across_runs(db: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_run_scoped_stage_does_not_fall_back(db: AsyncSession):
-    """E2/E3/E4/E5 não fazem fallback — cada run é dono dos próprios outputs."""
+    """E3/E4/E5 não fazem fallback — cada run é dono dos próprios outputs.
+
+    ADR-241: E2 foi **promovido** a workspace-scoped (per-doc idempotente).
+    E3/E4/E5 mantêm semântica run-scoped (invariantes cross-account).
+    """
     ws_id, run_a = await _seed_ws_and_run(db, email="cross-run-b@test.com")
 
     def _do(sync_conn):
@@ -321,21 +325,21 @@ async def test_run_scoped_stage_does_not_fall_back(db: AsyncSession):
             run_b = run_b_obj.id
 
             store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
-            store_a.write("E2-extratos", "itau_202601", {"transacoes": [{"v": 1}]})
+            store_a.write("E3", "itau_202601_reconciled", {"transacoes": [{"v": 1}]})
             store_a.write("E4", "patrimonio", {"big": "data"})
             store_a.write("E5", "analise_financeira", {"bruto": 999.0})
             s.commit()
 
             store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
             return (
-                store_b.read("E2-extratos", "itau_202601"),
+                store_b.read("E3", "itau_202601_reconciled"),
                 store_b.read("E4", "patrimonio"),
                 store_b.read("E5", "analise_financeira"),
             )
 
     raw = await db.connection()
-    e2_val, e4_val, e5_val = await raw.run_sync(_do)
-    assert e2_val is None, "E2 é run-scoped, não pode vazar entre runs"
+    e3_val, e4_val, e5_val = await raw.run_sync(_do)
+    assert e3_val is None, "E3 é run-scoped (invariantes cross-account, ADR-241)"
     assert e4_val is None, "E4 é run-scoped"
     assert e5_val is None, "E5 é run-scoped"
 
@@ -416,15 +420,29 @@ async def test_workspace_fallback_isolated_by_workspace(db: AsyncSession):
         "consolidate_baseline",
         # ADR-157 — IRPF só existe em forma descritiva
         "extract_irpf_full",
+        # ADR-216 + ADR-238 — informes de imobiliária e anuais
+        "extract_informe_aluguel",
+        "extract_informes_anuais",
+        # ADR-241 — E2 (extratos / faturas / LLM fallback): per-doc idempotente.
+        # Sem fallback, incremental ficaria cego aos E2 das runs anteriores.
+        "E2-extratos",
+        "E2-faturas",
+        "E2-llm",
+        "extract_statements",
+        "extract_invoices",
+        "extract_with_llm",
     ],
 )
 async def test_workspace_scoped_stages_fall_back_cross_run(db: AsyncSession, stage: str):
     """Cada stage workspace-scoped resolve cross-run por workspace.
 
-    Regressão A8: ``extract_irpf_full`` (ADR-157) escreve/lê em forma descritiva
-    e não estava na frozenset, então run novo sem reprocessar IRPF perdia IRPF
-    da última run silenciosamente. Inclui descritivos legacy-equivalentes para
-    proteger cutover parcial F9.2 → F9.6.
+    Regressão A8 (ADR-157): ``extract_irpf_full`` em forma descritiva ficou
+    fora da frozenset → runs sem IRPF perdia IRPF da última run silenciosamente.
+
+    Regressão A17 (ADR-241): E2-* (extratos/faturas/LLM) eram run-scoped →
+    incremental que extraía só docs novos perdia os ~80 E2 das runs anteriores
+    no momento do E3, derrubando ``statements_loaded`` para ~2 e produzindo
+    relatório com fluxo de caixa subdimensionado em 95%+.
     """
     ws_id, run_a = await _seed_ws_and_run(db, email=f"ws-scope-{stage.replace('.', '-')}@test.com")
 
@@ -479,3 +497,150 @@ async def test_current_run_takes_precedence_over_workspace_fallback(db: AsyncSes
     assert (
         payload["version"] == "current_run"
     ), "read() do run atual com artefato deve devolver o do run, não o fallback"
+
+
+# =============================================================================
+# T2 — Telemetria de fallback (ADR-241)
+# =============================================================================
+
+
+@pytest.mark.asyncio
+async def test_workspace_fallback_emits_telemetry(db: AsyncSession, caplog):
+    """ADR-241: fallback workspace-wide emite log estruturado por chamada.
+
+    Sinal único para detectar drift: stage que deveria estar acessível no
+    run atual mas só existe em runs anteriores indica regressão (ex.: re-
+    extração que falhou silenciosamente em incremental).
+    """
+    import logging
+
+    ws_id, run_a = await _seed_ws_and_run(db, email="fallback-telemetry@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write("E2-extratos", "itau_202601", {"transacoes": []})
+            s.commit()
+
+            store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+            return store_b.read("E2-extratos", "itau_202601"), run_a, run_b
+
+    # set_level (vs at_level) força o logger a INFO mesmo se setup_logging()
+    # global elevou o nível antes do teste — robustez em suite completa.
+    caplog.set_level(logging.INFO, logger="mathoms.pipeline.artifact")
+    raw = await db.connection()
+    payload, run_a_id, run_b_id = await raw.run_sync(_do)
+
+    assert payload is not None, "fallback deve devolver o E2 do run anterior"
+    records = [
+        r
+        for r in caplog.records
+        if r.name == "mathoms.pipeline.artifact"
+        and r.message == "mathoms.pipeline.artifact.workspace_fallback"
+    ]
+    assert len(records) == 1, "fallback deve logar exatamente 1 evento estruturado"
+    rec = records[0]
+    assert getattr(rec, "stage", None) == "E2-extratos"
+    assert getattr(rec, "artifact_key", None) == "itau_202601"
+    assert getattr(rec, "current_run_id", None) == run_b_id
+    assert getattr(rec, "source_run_id", None) == run_a_id
+
+
+@pytest.mark.asyncio
+async def test_incremental_run_sees_e2_from_previous_runs(db: AsyncSession):
+    """ADR-241 — integração: run incremental enxerga E2 das runs anteriores.
+
+    Cenário: workspace tem 5 E2 do run A (full). Usuário envia 2 docs
+    novos → run B (incremental) extrai só esses 2. Quando E3 do run B
+    iterar ``list_keys("E2-extratos")``, deve enxergar os 7 keys e
+    ``read`` deve devolver payload válido para cada um.
+
+    Sem ADR-241, ``read`` retornava None para os 5 docs antigos
+    (filtrados por ``pipeline_run_id=run_b``) e o pipeline ficava cego.
+    """
+    ws_id, run_a = await _seed_ws_and_run(db, email="incremental-e2@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            # Run A: 5 docs extraídos.
+            for i in range(5):
+                store_a.write(
+                    "E2-extratos",
+                    f"itau_extratoconta_BRL_2025{i + 1:02d}_2025{i + 1:02d}",
+                    {"transacoes": [{"data": f"2025-{i + 1:02d}-15", "valor": 100 + i}]},
+                )
+            s.commit()
+
+            # Run B: incremental — extrai só 2 docs novos.
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+
+            store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+            for i in range(5, 7):
+                store_b.write(
+                    "E2-extratos",
+                    f"itau_extratoconta_BRL_2025{i + 1:02d}_2025{i + 1:02d}",
+                    {"transacoes": [{"data": f"2025-{i + 1:02d}-15", "valor": 100 + i}]},
+                )
+            s.commit()
+
+            # Simula o que E3 faz: itera list_keys → read cada um.
+            keys = store_b.list_keys("E2-extratos")
+            payloads = {k: store_b.read("E2-extratos", k) for k in keys}
+            return keys, payloads
+
+    raw = await db.connection()
+    keys, payloads = await raw.run_sync(_do)
+    assert len(keys) == 7, f"esperado 7 keys workspace-wide, veio {len(keys)}"
+    assert all(
+        payloads[k] is not None for k in keys
+    ), "todos os reads devem retornar payload — 5 via fallback workspace, 2 do run atual"
+    valores = sorted(p["transacoes"][0]["valor"] for p in payloads.values())
+    assert valores == [
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+    ], "cumulative correctness: pipeline incremental deve enxergar transações de todas as runs"
+
+
+@pytest.mark.asyncio
+async def test_run_scoped_read_does_not_emit_fallback_log(db: AsyncSession, caplog):
+    """Read do run atual NÃO emite log de fallback (sem ruído no caminho quente)."""
+    import logging
+
+    ws_id, run_a = await _seed_ws_and_run(db, email="no-fallback-log@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store.write("E2-extratos", "itau_202601", {"transacoes": []})
+            s.commit()
+            return store.read("E2-extratos", "itau_202601")
+
+    caplog.set_level(logging.INFO, logger="mathoms.pipeline.artifact")
+    raw = await db.connection()
+    payload = await raw.run_sync(_do)
+
+    assert payload is not None
+    records = [
+        r for r in caplog.records if r.message == "mathoms.pipeline.artifact.workspace_fallback"
+    ]
+    assert records == [], "leitura do run atual não deve emitir log de fallback"
