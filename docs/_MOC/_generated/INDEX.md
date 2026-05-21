@@ -232,7 +232,7 @@
 | ADR-232 | adr | Decidido |  | Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS, HSTS, allowlist explícita) | `adr/232-security-headers-cors-strict.md` |
 | ADR-233 | adr | Proposto |  | Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump | `adr/233-prompt-version-format.md` |
 | ADR-234 | adr | Proposto |  | Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) | `adr/234-sprint-status-paused.md` |
-| ADR-235 | adr | Proposto |  | Classificação `nu_proprietario`: imóvel em nu-propriedade com usufruto vitalício de terceiro | `adr/235-nu-proprietario-usufruto-vitalicio-de-terceiro.md` |
+| ADR-235 | adr | Decidido |  | Classificação `nu_proprietario`: imóvel em nu-propriedade com usufruto vitalício de terceiro | `adr/235-nu-proprietario-usufruto-vitalicio-de-terceiro.md` |
 | ADR-236 | adr | Proposto |  | Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados) | `adr/236-tributario-pj-cascata-fiscal-canonica.md` |
 | ADR-237 | adr | Decidido |  | Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) | `adr/237-monte-carlo-if-with-pmt.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
@@ -425,6 +425,7 @@
 | CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES.md` |
 | CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN.md` |
 | CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO | changelog-entry |  | A15 |  | `sprint/A15/changelog/CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO.md` |
+| CHG-2026-05-20-FEAT-ADR-235-NU-PROPRIETARIO | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-20-FEAT-ADR-235-NU-PROPRIETARIO.md` |
 | CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -552,7 +553,7 @@
 | TRACK-a15-fu3-onda3-calculator | track | ready | A15 | Track A15 FU-3 Onda 3 — Calculator + resolver puro + payload E5 | `sprint/A15/tracks/a15-fu3-onda3-calculator.md` |
 | TRACK-a15-fu3-onda4-api | track | ready | A15 | Track A15 FU-3 Onda 4 — API endpoints + OpenAPI snapshot | `sprint/A15/tracks/a15-fu3-onda4-api.md` |
 | TRACK-a15-fu3-onda5-frontend | track | ready | A15 | Track A15 FU-3 Onda 5 — Frontend: form, batch review, drill-down card | `sprint/A15/tracks/a15-fu3-onda5-frontend.md` |
-| TRACK-a16-adr235-nu-proprietario-flip | track | ready | A16 | Track A16 — Flip ADR-235 `nu_proprietario` para Decidido (migration + call-sites + ADR updates + E6 prompt + CI gate) | `sprint/A16/tracks/a16-adr235-nu-proprietario-flip.md` |
+| TRACK-a16-adr235-nu-proprietario-flip | track | consumed | A16 | Track A16 — Flip ADR-235 `nu_proprietario` para Decidido (migration + call-sites + ADR updates + E6 prompt + CI gate) | `sprint/A16/tracks/a16-adr235-nu-proprietario-flip.md` |
 | TRACK-a16-adr236-tributario-pj-cascata | track | ready | A16 | Track A16 — Tributário PJ Cascata Fiscal: BusinessProfile expandido + calculator + narrator + card UI (6 PRs) | `sprint/A16/tracks/a16-adr236-tributario-pj-cascata.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |

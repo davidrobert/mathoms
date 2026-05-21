@@ -3,11 +3,12 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-37 entries entre 2026-05-07 e 2026-05-20.
+38 entries entre 2026-05-07 e 2026-05-20.
 
-## 2026-05-20 (2 entries)
+## 2026-05-20 (3 entries)
 
 - [[CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO]] — feat: Sprint A15 — FU-3 imóvel financiado (ADR-227 Decidido). Cria agregado
+- [[CHG-2026-05-20-FEAT-ADR-235-NU-PROPRIETARIO]] — feat(adr-235): adiciona classification `nu_proprietario` ao enum — (lane [[TRACK-a16-adr235-nu-proprietario-flip]])
 - [[CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS]] — feat(backend): security headers + CORS strict no FastAPI (ADR-232). Middleware (lane [[A11.w2]])
 
 ## 2026-05-15 (1 entries)

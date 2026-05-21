@@ -36,7 +36,7 @@ Alternativas consideradas:
 **Decisão:** Adotar **(c)**. As 7 categorias canônicas são:
 
 1. **Residência própria** — moradia principal da família (sempre exatamente 1 imóvel).
-2. **Imóveis investimento** — todos os imóveis dos membros, exceto a residência principal.
+2. **Imóveis investimento** — todos os imóveis dos membros, exceto a residência principal. Pós-[[ADR-215]] split interno em **geradores** (`classification ∈ {locado, comercial}`) vs **não-geradores** (`classification ∈ {uso_pessoal, especulacao, nu_proprietario, desconhecido}`). Pós-[[ADR-235]] (A16), `nu_proprietario` cobre nu-propriedade com usufruto vitalício de terceiro — entra em cat_2 **não-gerador** (paridade `uso_pessoal`); não cria categoria nova "Patrimônio ilíquido condicional".
 3. **Investimentos {TITULAR}** — ativos financeiros do titular: investimentos clássicos (`investimentos[]`) + contas bancárias de tipo investimento (`tipo` contém `RDB|CDB|CDP|Renda Fixa|Investimento|Aplicacao|Poupança|Saldo em Conta` em corretora). **Inclui** fundos regulados que tenham nome sugerindo crypto mas sejam FIC FIM (ex.: Hashdex Crypto).
 4. **Investimentos {CONJUGE}** — mesmo conjunto, aplicado ao cônjuge (workspace-specific labelling via `family_members.json` membros titular/cônjuge).
 5. **Criptoativos** — crypto direta (BTC, ETH, ADA, etc.) mantida em exchanges. **Não inclui** fundos regulados de crypto.
