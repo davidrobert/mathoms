@@ -11,6 +11,8 @@ Valida:
 
 from __future__ import annotations
 
+import logging
+
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -504,48 +506,67 @@ async def test_current_run_takes_precedence_over_workspace_fallback(db: AsyncSes
 # =============================================================================
 
 
-@pytest.mark.asyncio
-async def test_workspace_fallback_emits_telemetry(db: AsyncSession, caplog):
-    """ADR-241: fallback workspace-wide emite log estruturado por chamada.
+class _RecordCapture(logging.Handler):
+    """Captura LogRecords de um logger nominado, bypassando caplog/root.
 
-    Sinal único para detectar drift: stage que deveria estar acessível no
-    run atual mas só existe em runs anteriores indica regressão (ex.: re-
-    extração que falhou silenciosamente em incremental).
+    `setup_logging()` global em `backend/app/core/logging.py` reconfigura
+    root + nível depois que caplog instalou; sob `pytest-xdist`/CI
+    caplog pode perder os records emitidos antes do reconfig. Este
+    handler anexa direto ao logger por nome — independente do root.
     """
-    import logging
+
+    def __init__(self) -> None:
+        super().__init__(level=logging.INFO)
+        self.records: list[logging.LogRecord] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.records.append(record)
+
+
+@pytest.mark.asyncio
+async def test_workspace_fallback_emits_telemetry(db: AsyncSession):
+    """ADR-241: fallback workspace-wide emite log estruturado por chamada."""
+    import logging as _logging
 
     ws_id, run_a = await _seed_ws_and_run(db, email="fallback-telemetry@test.com")
 
-    def _do(sync_conn):
-        from sqlalchemy.orm import Session
+    logger = _logging.getLogger("mathoms.pipeline.artifact")
+    handler = _RecordCapture()
+    original_level = logger.level
+    original_disabled = logger.disabled
+    logger.addHandler(handler)
+    logger.setLevel(_logging.INFO)
+    logger.disabled = False  # `logging.config.fileConfig` (Alembic) pode ter desativado.
+    try:
 
-        with Session(sync_conn) as s:
-            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
-            s.add(run_b_obj)
-            s.flush()
-            run_b = run_b_obj.id
+        def _do(sync_conn):
+            from sqlalchemy.orm import Session
 
-            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
-            store_a.write("E2-extratos", "itau_202601", {"transacoes": []})
-            s.commit()
+            with Session(sync_conn) as s:
+                run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+                s.add(run_b_obj)
+                s.flush()
+                run_b = run_b_obj.id
 
-            store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
-            return store_b.read("E2-extratos", "itau_202601"), run_a, run_b
+                store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+                store_a.write("E2-extratos", "itau_202601", {"transacoes": []})
+                s.commit()
 
-    # set_level (vs at_level) força o logger a INFO mesmo se setup_logging()
-    # global elevou o nível antes do teste — robustez em suite completa.
-    caplog.set_level(logging.INFO, logger="mathoms.pipeline.artifact")
-    raw = await db.connection()
-    payload, run_a_id, run_b_id = await raw.run_sync(_do)
+                store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+                return store_b.read("E2-extratos", "itau_202601"), run_a, run_b
 
-    assert payload is not None, "fallback deve devolver o E2 do run anterior"
+        raw = await db.connection()
+        payload, run_a_id, run_b_id = await raw.run_sync(_do)
+    finally:
+        logger.removeHandler(handler)
+        logger.setLevel(original_level)
+        logger.disabled = original_disabled
+
+    assert payload is not None
     records = [
-        r
-        for r in caplog.records
-        if r.name == "mathoms.pipeline.artifact"
-        and r.message == "mathoms.pipeline.artifact.workspace_fallback"
+        r for r in handler.records if r.msg == "mathoms.pipeline.artifact.workspace_fallback"
     ]
-    assert len(records) == 1, "fallback deve logar exatamente 1 evento estruturado"
+    assert len(records) == 1
     rec = records[0]
     assert getattr(rec, "stage", None) == "E2-extratos"
     assert getattr(rec, "artifact_key", None) == "itau_202601"
@@ -620,27 +641,38 @@ async def test_incremental_run_sees_e2_from_previous_runs(db: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_run_scoped_read_does_not_emit_fallback_log(db: AsyncSession, caplog):
+async def test_run_scoped_read_does_not_emit_fallback_log(db: AsyncSession):
     """Read do run atual NÃO emite log de fallback (sem ruído no caminho quente)."""
-    import logging
+    import logging as _logging
 
     ws_id, run_a = await _seed_ws_and_run(db, email="no-fallback-log@test.com")
+    logger = _logging.getLogger("mathoms.pipeline.artifact")
+    handler = _RecordCapture()
+    original_level = logger.level
+    original_disabled = logger.disabled
+    logger.addHandler(handler)
+    logger.setLevel(_logging.INFO)
+    logger.disabled = False
+    try:
 
-    def _do(sync_conn):
-        from sqlalchemy.orm import Session
+        def _do(sync_conn):
+            from sqlalchemy.orm import Session
 
-        with Session(sync_conn) as s:
-            store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
-            store.write("E2-extratos", "itau_202601", {"transacoes": []})
-            s.commit()
-            return store.read("E2-extratos", "itau_202601")
+            with Session(sync_conn) as s:
+                store = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+                store.write("E2-extratos", "itau_202601", {"transacoes": []})
+                s.commit()
+                return store.read("E2-extratos", "itau_202601")
 
-    caplog.set_level(logging.INFO, logger="mathoms.pipeline.artifact")
-    raw = await db.connection()
-    payload = await raw.run_sync(_do)
+        raw = await db.connection()
+        payload = await raw.run_sync(_do)
+    finally:
+        logger.removeHandler(handler)
+        logger.setLevel(original_level)
+        logger.disabled = original_disabled
 
     assert payload is not None
     records = [
-        r for r in caplog.records if r.message == "mathoms.pipeline.artifact.workspace_fallback"
+        r for r in handler.records if r.msg == "mathoms.pipeline.artifact.workspace_fallback"
     ]
-    assert records == [], "leitura do run atual não deve emitir log de fallback"
+    assert records == []

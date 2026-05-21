@@ -22,7 +22,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ALEMBIC_INI = PROJECT_ROOT / "backend" / "alembic.ini"
 ALEMBIC_DIR = PROJECT_ROOT / "backend" / "alembic"
 
-PARENT_REVISION = "adr238informes2"
+PARENT_REVISION = "adr239vehicles1"
 TARGET_REVISION = "adr241index"
 INDEX_NAME = "ix_pipeline_artifacts_ws_stage_key_created"
 
