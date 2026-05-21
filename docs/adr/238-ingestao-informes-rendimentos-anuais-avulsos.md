@@ -2,7 +2,7 @@
 id: ADR-238
 type: adr
 title: "Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6"
-status: Proposto
+status: Decidido
 phase: A17.informes-avulsos
 date: "2026-05-21"
 relates_to:
@@ -27,7 +27,7 @@ aliases:
   - "extract_informes_anuais"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/methodology
   - area/persistence
@@ -199,3 +199,20 @@ PR de Proposto desta ADR inclui apenas: este arquivo + estrutura de Sprint A17 (
 - **A3 — Informes substituem E1.6.** Rejeitado: declaração entregue tem precedência formal (D4); informes complementam, não substituem.
 - **A4 — Build via SaaS de OCR fiscal BR (Serpro, Linker, Cuca).** Avaliado e rejeitado: Receita Federal API não cobre informes de bancos privados; SaaS B2B custa >LLM + adiciona dependência. LLM-first com Claude é mais barato e flexível.
 - **A5 — Seção S_FISCAL_AVULSO dedicada.** Rejeitado: validação cruzada e snapshots enriquecem cards existentes (S3/S4/S8); seção nova dilui narrativa e cria fadiga em quem tem declaração consistente.
+
+## Entrega — L1 previdência privada (Sprint A17 L1, 2026-05-21)
+
+Lane [[A17.l1]] entregue em 5 PRs sequenciais (P1 → P5), todos squash-mergeados em `main` com CI verde:
+
+- **P1** [#402](https://github.com/davidrobert/mathoms/pull/402) `feat(adr-238): migration tax_regime + InformeRendimentosBase schema` — D2 (schema-base polimórfico) + D3 (stage) + D7 (catálogo institucional, seed BrasilPrev). Gate triplo `data-engineer` + `financial-planner` aplicado em 1 rodada: inverteu `source_priority` default (fail-safe), adicionou `saldo_31_12_ano_anterior` + `rendimentos_brutos/liquidos` + `ir_retido_natureza`, removeu `beneficiarios_count` (YAGNI — re-add em A19).
+- **P2** [#403](https://github.com/davidrobert/mathoms/pull/403) `feat(adr-238): stage extract_informes_anuais + prompt LLM previdência` — stage runner polimórfico despachando por `tipo_informe` (P1 só `previdencia_privada`, L2-L4 expandem); cache key `content_hash[:16] + PROMPT_VERSION`; `source_artifact_id` via stem (lineage proxy); CPF mask em Python pós-LLM (LGPD).
+- **P3** [#404](https://github.com/davidrobert/mathoms/pull/404) `feat(adr-238): classifier E0 content-based + DocumentType.informe_rendimentos_anuais` — corrigiu bug histórico §Contexto §2 (`informe*` caía em `.irpf` e quebrava o pipeline silenciosamente); migration `adr238informes2` cria valor no enum nativo (Postgres ALTER TYPE ADD VALUE IF NOT EXISTS).
+- **P4** [#406](https://github.com/davidrobert/mathoms/pull/406) `feat(adr-238): FiscalSource adapter + InformeQuery service` — D4 (precedência declaração vence) + D5 (`FiscalAnalyzer` polimórfico via alias retrocompat); `divergencias_pgbl()` gera warning efêmero em E5 sem persistir (LGPD).
+- **P5** [#407](https://github.com/davidrobert/mathoms/pull/407) `feat(adr-238): UI S8 footnote D8 + upload badge + parecer guardrail` — guardrails D8 nos 3 lugares prescritos: footnote CRC inline em S8, badge fiscal no upload zone, regra #9 no system prompt do parecer (PROMPT_VERSION bumpado 1.0.0 → 1.1.0).
+
+**Padrão arquitetural validado** que L2-L4 replicam: classifier content-based → schema-base polimórfico + sub-schema strict por tipo → stage despachando por `tipo_informe` → `FiscalSource` consolidando IRPF + informes com precedência D4 → guardrails D8 em UI/upload/parecer.
+
+**Débito explícito** (deferido para PR follow-up ou L2):
+- Plumbing `analyze_finances` (E5) consumindo `FiscalSource` para popular `data.tributario.pgbl_*` quando há informe sem E1.6 — hoje a UI renderiza `RendaPfZeradaNotice` mesmo com informe processado.
+- Eval golden update do parecer (reflexo da regra #9 prompt 1.1.0).
+- `source_artifact_id` promovido de string-stem para FK UUID (P3 cobertura content-based metadata).

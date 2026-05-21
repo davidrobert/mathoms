@@ -3,10 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-45 entries entre 2026-05-07 e 2026-05-21.
+46 entries entre 2026-05-07 e 2026-05-21.
 
-## 2026-05-21 (7 entries)
+## 2026-05-21 (8 entries)
 
+- [[CHG-2026-05-21-A17-L1-PREVIDENCIA-SHIPPED]] — feat(adr-238): A17 L1 (previdência privada PGBL/VGBL) entregue em 5 PRs (lane [[A17.l1]])
 - [[CHG-2026-05-21-DOCS-A17-L3-WISE-ADDED]] — docs(a17-l3): adiciona Wise (conta multi-moeda no exterior) ao escopo (lane [[A17.l3]])
 - [[CHG-2026-05-21-DOCS-ADR-238-PROPOSTO]] — docs(adr-238): Proposto — Ingestão de Informes de Rendimentos anuais (lane [[A17.l1]])
 - [[CHG-2026-05-21-DOCS-ADR-239-PROPOSTO]] — docs(adr-239): Proposto — Comprovantes de Bem (CRLV) + Apólices polimórficas (lane [[A18.l1]])

@@ -3,18 +3,25 @@ id: A17.l1
 type: lane
 title: "Informes anuais — L1 previdência privada (PGBL/VGBL, BrasilPrev e seguradoras)"
 sprint: A17
-status: open
+status: shipped
 priority: P1
 branch_slug: a17-l1-previdencia
 depends_on: []
 parallel_with: []
 adrs:
   - "[[ADR-238]]"
+ship_prs:
+  - "https://github.com/davidrobert/mathoms/pull/402"
+  - "https://github.com/davidrobert/mathoms/pull/403"
+  - "https://github.com/davidrobert/mathoms/pull/404"
+  - "https://github.com/davidrobert/mathoms/pull/406"
+  - "https://github.com/davidrobert/mathoms/pull/407"
+ship_date: "2026-05-21"
 prompt: "[[TRACK-a17-l1-previdencia-privada]]"
 tags:
   - type/lane
   - sprint/a17
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/methodology

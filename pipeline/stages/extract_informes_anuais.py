@@ -248,12 +248,14 @@ def _extract_text(doc: Path) -> str:
 
 
 def _log_run(doc_name: str, ws_id: str, payload: dict, result, tipo_informe: str) -> None:
+    """Telemetria LGPD-safe (ADR-238 P6 + ADR-231): sem PII, sem valores monetários."""
     logger.info(
-        "extract_informes_anuais",
+        "mathoms.informes.classified",
         extra={
             "workspace_id": ws_id,
             "doc": _redact_filename_pii(doc_name),
             "tipo_informe": tipo_informe,
+            "instituicao": _detect_institution_hint(doc_name),
             "ano_base": payload.get("ano_base"),
             "confidence": payload.get("confidence"),
             "needs_review": payload.get("needs_review", False),

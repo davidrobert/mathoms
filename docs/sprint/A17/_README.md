@@ -8,7 +8,7 @@ sprint_status: current
 
 # Sprint A17 — Ingestão de Informes Anuais Avulsos
 
-> **Status:** `current` (promovida 2026-05-21, após A16 L1+L2 entregues). ADR canônica [[ADR-238]] mergeada como `Proposto`; PRs de implementação começam quando L1 for puxada por agente.
+> **Status:** `current` (promovida 2026-05-21, após A16 L1+L2 entregues). ADR canônica [[ADR-238]] flippada `Decidido (Sprint A17 L1)` em 2026-05-21 após L1 entregue em 5 PRs ([#402](https://github.com/davidrobert/mathoms/pull/402) → [#407](https://github.com/davidrobert/mathoms/pull/407)). L2-L4 são onda de continuação.
 
 ## Resumo
 
@@ -44,7 +44,7 @@ Entrega: sub-schema `informe_proventos.schema.json` (eventos por ativo: dividend
 
 ## Lanes
 
-- [[A17.l1]] (`open`) — L1: previdência privada (PGBL/VGBL). Pickup-ready após [[ADR-238]] mergear. Não depende de L2-L4.
+- ✅ [[A17.l1]] (`shipped` 2026-05-21) — L1: previdência privada (PGBL/VGBL). Entregue em 5 PRs ([#402](https://github.com/davidrobert/mathoms/pull/402), [#403](https://github.com/davidrobert/mathoms/pull/403), [#404](https://github.com/davidrobert/mathoms/pull/404), [#406](https://github.com/davidrobert/mathoms/pull/406), [#407](https://github.com/davidrobert/mathoms/pull/407)). Padrão arquitetural validado.
 - [[A17.l2]] (`planned`) — L2: financeiro PJ. Depende de L1 (valida padrão); paralela a [[TRACK-a16-adr236-tributario-pj-cascata]] L2 P5-P6 com sinergia.
 - [[A17.l3]] (`planned`) — L3: financeiro PF + XP Investimentos. Depende de L1.
 - [[A17.l4]] (`planned`) — L4: proventos ações + holding. Depende de L1.
