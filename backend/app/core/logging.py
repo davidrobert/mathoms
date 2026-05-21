@@ -49,6 +49,34 @@ SENSITIVE_FIELD_SUBSTRINGS: tuple[str, ...] = (
     "coverage_brl",
     "premium_monthly_brl",
     "holder_name",
+    # ADR-236 P6 — campos monetários do domínio tributário PJ. Telemetria
+    # ``mathoms.tributario.*`` é estritamente categórica (regime, código de
+    # trigger, lista de missing_fields). Estes substrings garantem que
+    # nenhum caller acidentalmente vaze montante em ``extra=``.
+    "receita_bruta",
+    "receita_pj",
+    "receita_aluguel",
+    "pro_labore",
+    "lucros_distribuidos",
+    "lucro_contabil",
+    "folha_pj",
+    "folha_anual",
+    "das_pago",
+    "iss_pago",
+    "iss_total",
+    "pgbl_base",
+    "pgbl_limite",
+    "renda_pf",
+    "outras_rendas",
+    "inss_patronal",
+    "inss_empregado",
+    "inss_pago",
+    "irrf",
+    "tributos_federais",
+    "carga_total",
+    "break_even",
+    "razao_social",
+    "nome_fantasia",
 )
 
 REDACTED_PLACEHOLDER = "***"

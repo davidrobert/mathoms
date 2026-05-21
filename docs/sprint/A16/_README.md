@@ -3,12 +3,12 @@ id: MOC-sprint-a16
 type: moc
 title: "Sprint A16 — Flips ADR-235 nu_proprietario + ADR-236 Tributário PJ Cascata Fiscal"
 aliases: ["A16", "Sprint A16"]
-sprint_status: current
+sprint_status: done
 ---
 
 # Sprint A16 — Flips ADR-235 + ADR-236
 
-> **Status:** `current` — sprint corrente com **2 lanes paralelas** (independentes; podem ser pegas em paralelo). Ambas implementam ADRs Proposto recém-decididas (2026-05-20).
+> **Status:** `done` — ambas as lanes entregues em 2026-05-21. L1 (ADR-235 `nu_proprietario`) mergeada em [apps#388](https://github.com/davidrobert/mathoms/pull/388); L2 (ADR-236 cascata fiscal) entregue em 6 PRs (#390, #392, #393, #394, #395 + cutover P6).
 
 ## Resumo
 
@@ -52,7 +52,7 @@ Detalhe completo em [[PLAN-tributario-pj]].
 ## Lanes
 
 - [[TRACK-a16-adr235-nu-proprietario-flip]] (`consumed`) — L1: flip nu_proprietario (1 PR). Mergeado em [apps#388](https://github.com/davidrobert/mathoms/pull/388) (2026-05-21).
-- [[TRACK-a16-adr236-tributario-pj-cascata]] (`in_progress`) — L2: tributário PJ cascata fiscal (6 PRs sequenciais). **P1 ✅** entregue em [apps#390](https://github.com/davidrobert/mathoms/pull/390) (2026-05-21); **P2 ✅** entregue em 2026-05-21 (apps#TBD — classifier 5 labels PJ + leitor IRPF base PGBL); P3–P6 pendentes. [[ADR-236]] permanece `Proposto` até P6 (cutover + flip).
+- [[TRACK-a16-adr236-tributario-pj-cascata]] (`consumed`) — L2: tributário PJ cascata fiscal (6 PRs sequenciais, todos entregues em 2026-05-21). P1 [apps#390](https://github.com/davidrobert/mathoms/pull/390) · P2 [apps#392](https://github.com/davidrobert/mathoms/pull/392) · P3 [apps#393](https://github.com/davidrobert/mathoms/pull/393) · P4 [apps#394](https://github.com/davidrobert/mathoms/pull/394) · P5 [apps#395](https://github.com/davidrobert/mathoms/pull/395) · P6 cutover + telemetria + flip ADR-236 → `Decidido (Sprint A16)`.
 
 ## Pré-requisitos
 

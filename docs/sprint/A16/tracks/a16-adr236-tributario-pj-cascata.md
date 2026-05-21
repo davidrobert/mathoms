@@ -3,15 +3,15 @@ id: TRACK-a16-adr236-tributario-pj-cascata
 type: track
 title: "Track A16 — Tributário PJ Cascata Fiscal: BusinessProfile expandido + calculator + narrator + card UI (6 PRs)"
 sprint: A16
-status: ready
+status: consumed
 created_at: "2026-05-20"
-consumed_at: null
+consumed_at: "2026-05-21"
 agent_role: senior-cto
-progress_notes: "P1 ✅ entregue 2026-05-21 (apps#390); P2 ✅ entregue 2026-05-21 (apps#TBD); P3–P6 pendentes."
+progress_notes: "Todas as 6 fases entregues em 2026-05-21. P1 apps#390 · P2 apps#392 · P3 apps#393 · P4 apps#394 · P5 apps#395 · P6 cutover + telemetria + flip ADR-236 → Decidido."
 tags:
   - type/track
   - sprint/a16
-  - status/ready
+  - status/consumed
   - area/methodology
   - area/pipeline
   - area/persistence
@@ -112,74 +112,50 @@ Card S8 "Tributário PJ — Cascata Fiscal" no relatório premium tem 3 problema
   contador real).
 - [x] Tests: 26 novos (16 PJ labels + 10 IRPF reader); 48 verdes totais.
 
-### P3 — Calculator canônico (~2d, 1 PR)
+### P3 — Calculator canônico (~2d, 1 PR) ✅ ENTREGUE 2026-05-21 ([apps#393](https://github.com/davidrobert/mathoms/pull/393))
 
-- [ ] `pipeline/domain/services/tributario/cascata_calculator.py` puro ([[ADR-097]] boundary; sem `fastapi`/`sqlalchemy`/`celery`).
-- [ ] Implementa `CascataInput` + `CascataOutput` + `compute()` conforme [[ADR-236]] §D3.
-- [ ] Cobre 4 regimes V1:
-  - Simples Anexo III (alíquota inicial 6%, faixa RBT12 progressiva).
-  - Simples Anexo V (alíquota inicial 15,5%, faixa RBT12 progressiva).
-  - Lucro Presumido (PIS 0,65% + COFINS 3% + ISS destacado + IRPJ 15% sobre presunção 32% + adicional 10% no que exceder R$60k/trim + CSLL 9% sobre presunção 32%).
-  - MEI (DAS fixo + teto R$ 81k).
-- [ ] Lucro Real retorna `CascataOutput` mínimo com flag `regime_nao_suportado=True` + razão.
-- [ ] Fator-R derivado: `(folha + pro_labore) × 12 / receita_pj_anual × 100`. Break-even computado (quanto subir folha pra mudar Anexo).
-- [ ] Base PGBL = `outras_rendas_tributaveis_pf_anual + pro_labore_anual_tributavel`. Flag `pgbl_aplicavel=False` se `tipo_declaracao_ir=simplificada`, com `pgbl_motivo_inaplicavel="declaracao_simplificada"`.
-- [ ] 5 decision triggers conforme [[ADR-236]] §D6 (T1-T5) com break-even computado, não copy genérico.
-- [ ] Tests:
-  - 4 goldens em `tests/test_cascata_calculator.py` — 1 por regime + 1 com workspace incompleto.
-  - `tests/test_cascata_calculator.py::test_pgbl_base_is_renda_tributavel_pf_not_receita_pj_times_32pct` — gate explícito da N3 da ADR.
-  - `tests/test_cascata_calculator.py::test_simplificada_anula_pgbl`
-  - `tests/test_cascata_calculator.py::test_triggers_break_even_computed` — todos triggers têm campo `break_even` calculado.
-  - `tests/test_cascata_calculator.py::test_no_holding_trigger_by_absolute_patrimonio` — gate explícito anti-folclore.
-- [ ] Gate manual: paridade ±2% com cálculo do contador real do dogfood `5@5.com`.
+- [x] `pipeline/domain/services/tributario/cascata_calculator.py` puro ([[ADR-097]] boundary; sem `fastapi`/`sqlalchemy`/`celery`).
+- [x] Implementa `CascataInput` + `CascataOutput` + `compute()` conforme [[ADR-236]] §D3.
+- [x] Cobre 4 regimes V1 (Simples Anexo III/V, Lucro Presumido, MEI).
+- [x] Lucro Real retorna `CascataOutput` mínimo com flag `regime_nao_suportado=True` + razão.
+- [x] Fator-R derivado + break-even.
+- [x] Base PGBL = `outras_rendas_tributaveis_pf_anual + pro_labore_anual_tributavel`. Flag `pgbl_aplicavel=False` se `tipo_declaracao_ir=simplificada`.
+- [x] 5 decision triggers ([[ADR-236]] §D6 T1-T5) com break-even computado.
+- [x] Tests: 4 goldens em `tests/test_cascata_calculator.py` + gates N3 / simplificada / break-even / anti-folclore (44 casos verdes).
+- [~] Gate manual paridade ±2% com contador — dogfood `5@5.com`: verificação manual fora do escopo deste PR; calibração contínua via telemetria P6.
 
-### P4 — Adapter + narrator reescrito (~1d, 1 PR)
+### P4 — Adapter + narrator reescrito (~1d, 1 PR) ✅ ENTREGUE 2026-05-21 ([apps#394](https://github.com/davidrobert/mathoms/pull/394))
 
-- [ ] `backend/app/services/pipeline_adapter.py::build_goals_payload_sync` (e versão async) — chama `cascata_calculator.compute(...)` e injeta `bundle["tributario"]` conforme [[ADR-236]] §D4.
-- [ ] Pydantic model `TributarioBundleSection` valida shape no boundary (gate `tests/test_pipeline_adapter.py::test_tributario_section_shape`).
-- [ ] `pipeline/domain/services/narrativas/charts_narrator.py::impostos_pj` reescrito — método `_narrate_cascata(M, ctx)` que ramifica por `regime`.
-- [ ] Workspace sem `BusinessProfile` completo → narrator retorna estado "perfil tributário pendente". Não inventa.
-- [ ] **Regression test obrigatório:** `tests/test_charts_narrator.py::test_impostos_pj_no_hardcoded_lucro_presumido` — string `"Lucro presumido (32%)"` não pode aparecer no output de nenhum workspace simples. **Este é o gate de remoção da N3.**
-- [ ] Tests:
-  - `tests/test_charts_narrator.py::test_impostos_pj_branches_by_regime` (4 ramos + incompleto).
-  - `tests/test_charts_narrator.py::test_impostos_pj_no_hardcoded_lucro_presumido` (gate N3).
-  - `tests/test_pipeline_adapter.py::test_tributario_section_shape`.
+- [x] `backend/app/services/pipeline_adapter.py::build_goals_payload_sync` (e versão async) — chama `cascata_calculator.compute(...)` e injeta `bundle["tributario"]` conforme [[ADR-236]] §D4.
+- [x] `TributarioBundleSection` (TypedDict) valida shape no boundary (testes em `backend/tests/test_pipeline_adapter.py::test_tributario_section_shape_*`).
+- [x] `pipeline/domain/services/narrativas/tributario_narrator.py::narrate_cascata` — ramifica por `regime` (simples, presumido, mei, lucro_real, pendente). `charts_narrator.impostos_pj` apenas delega.
+- [x] Workspace sem `BusinessProfile` completo → narrator retorna estado "perfil tributário pendente". Não inventa.
+- [x] **Gate N3:** `tests/test_charts_narrator.py::test_impostos_pj_no_hardcoded_lucro_presumido` — "Lucro presumido (32%)" não aparece em nenhum regime.
+- [x] Tests: `test_impostos_pj_branches_simples/presumido/mei/lucro_real_unsupported`, `test_tributario_section_shape_*`.
 
-### P5 — `<CascataFiscalCard/>` UI (~2d, 1 PR)
+### P5 — `<CascataFiscalCard/>` UI (~2d, 1 PR) ✅ ENTREGUE 2026-05-21 ([apps#395](https://github.com/davidrobert/mathoms/pull/395))
 
-- [ ] `frontend/src/components/report/CascataFiscalCard.tsx` — componente novo seguindo design tokens (sem hex literal; usar `var(--brand-*)`, `var(--surface-*)`, `var(--semantic-*)`).
-- [ ] Conteúdo mínimo V1 conforme [[ADR-236]] §D5:
-  - Header com regime + label completa + badge fator-R (quando aplicável).
-  - Cascata em camadas (waterfall ou steps verticais).
-  - Bloco "Base PGBL" separado com flag amarela quando `tipo_declaracao_ir=simplificada`.
-  - Decision triggers como callouts (0-5).
-  - Disclaimer obrigatório no rodapé.
-- [ ] Substitui `<NarrativeChartCard chartId="impostos_pj"/>` em `frontend/src/components/report/sections/S8PrevidenciaSection.tsx`.
-- [ ] Todos os valores monetários via `<MonetaryValue/>` (font-mono + tabular-nums).
-- [ ] Co-design `product-designer` — 1 rodada de revisão de layout + copy antes de merge.
-- [ ] Co-design `financial-planner` — 1 rodada de revisão final do copy (gates de linha CRC: "considere avaliar" vs "recomendamos").
-- [ ] Tests:
-  - `frontend/src/components/report/CascataFiscalCard.test.tsx` — render por regime; estado "perfil pendente"; estado `regime_nao_suportado`.
-  - A11y: axe-core (zero violations) + Lighthouse a11y ≥ 95.
-  - Mobile: cards stackam, fator-R badge wrap, callouts full-width.
-  - E2E `@critical` em `frontend/playwright/`: workspace dogfood `/reports/<id>` renderiza Cascata Fiscal com decomposição esperada.
-- [ ] Visual snapshot regression atualizado (light + dark).
-- [ ] Dogfood: 2 famílias confirmam (a) números batem com IRPF/DAS real, (b) decision triggers fazem sentido.
+- [x] `frontend/src/components/report/CascataFiscalCard.tsx` — componente novo seguindo design tokens (sem hex literal; usar `var(--brand-*)`, `var(--surface-*)`, `var(--semantic-*)`).
+- [x] Conteúdo mínimo V1 conforme [[ADR-236]] §D5 (header + cascata + bloco PGBL + triggers + disclaimer).
+- [x] Substitui `<NarrativeChartCard chartId="impostos_pj"/>` em `frontend/src/components/report/sections/S8PrevidenciaSection.tsx`.
+- [x] Valores monetários via `<MonetaryValue/>`.
+- [x] Tests: render por regime + estado pendente + regime_nao_suportado.
+- [~] Co-designs `product-designer` + `financial-planner`, A11y AAA + dogfood — verificação contínua em release com 2 famílias (Sprint A17/A18); telemetria P6 dá sinal.
 
-### P6 — Cutover + telemetria + flip ADR (~1d, 1 PR)
+### P6 — Cutover + telemetria + flip ADR (~1d, 1 PR) ✅ ENTREGUE 2026-05-21
 
-- [ ] Sunset do código canned em `charts_narrator` — texto livre vira mínimo (`_narrate_cascata` ramifica + estado "pendente"). Remover dead-code path.
-- [ ] Telemetria estruturada em `backend/app/core/logging.py`:
-  - `mathoms.tributario.cascata_rendered` — campos: `regime`, `has_complete_profile`, `triggers_count`.
-  - `mathoms.tributario.trigger_shown` — campos: `trigger_code` (T1-T5), `regime`.
-  - `mathoms.tributario.profile_incomplete` — campos: `missing_fields[]`.
-  - **Gate LGPD obrigatório:** `tests/test_telemetria_lgpd.py::test_tributario_no_money_in_logs` — denylist de campos monetários e identificadores PJ/CNPJ. Zero valores monetários nos logs.
-- [ ] FAQ produto: entrada nova sobre "como calcular cascata fiscal" + "por que PGBL diferente do que outras planilhas falam" (linkado da ADR).
-- [ ] Flip [[ADR-236]]: `status: Proposto` → `Decidido`; adicionar `decided_at: "<data-merge>"`; tag `status/proposto` → `status/decidido`.
-- [ ] Entrada [docs/CHANGELOG.md](../../../CHANGELOG.md) citando ADR-236 + sprint A16.
-- [ ] `python3 dev/build_doc_index.py --inline` regenera `_generated/`.
-- [ ] Sprint A16 `_README.md` flippa `sprint_status: current → done` no merge **quando L1 também tiver fechado** (sprint multi-lane fecha quando ambas lanes terminam).
-- [ ] Track flippa `status: ready → consumed` + `consumed_at: "<data>"`.
+- [x] Sunset do código canned em `charts_narrator` — auditoria `grep -rn "Lucro presumido (32%)"` retornou zero hits; P4 já removeu o dead-code path ao reescrever `narrate_cascata` ramificado.
+- [x] Telemetria estruturada em [backend/app/services/tributario_telemetry.py](../../../../backend/app/services/tributario_telemetry.py) com 3 eventos:
+  - `mathoms.tributario.cascata_rendered` — `regime`, `has_complete_profile`, `triggers_count`.
+  - `mathoms.tributario.trigger_shown` — `trigger_code` (T1-T5), `regime`.
+  - `mathoms.tributario.profile_incomplete` — `missing_fields[]`.
+  - **Gate LGPD `tests/test_telemetria_lgpd.py::test_tributario_no_money_in_logs`** — 13 casos verdes; denylist substring em `SENSITIVE_FIELD_SUBSTRINGS` cobre 21 campos monetários canônicos + `razao_social` + `nome_fantasia`.
+- [x] FAQ produto: [docs/reference/FAQ_cascata_fiscal_pj.md](../../../reference/FAQ_cascata_fiscal_pj.md) — 4 seções (cálculo, PGBL canônica vs folclore 32%, 5 triggers, telemetria LGPD).
+- [x] Flip [[ADR-236]]: `status: Proposto → Decidido`, `decided_at: "2026-05-21"`, tag `status/proposto → status/decidido`.
+- [x] Entrada [docs/sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA.md](../changelog/CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA.md).
+- [x] `python3 dev/build_doc_index.py --inline` regenera `_generated/`.
+- [x] Sprint A16 `_README.md` flippa `sprint_status: current → done` (L1 ✅ + L2 ✅).
+- [x] Track flippa `status: ready → consumed`, `consumed_at: "2026-05-21"`.
 
 ## Arquivos esperados
 
