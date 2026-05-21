@@ -34,11 +34,49 @@ from uuid import uuid4
 
 import sqlalchemy as sa
 from alembic import context, op
+from sqlalchemy import MetaData, Table
 
 revision: str = "adr238informes1"
 down_revision: Union[str, Sequence[str], None] = "adr236bizprofile1"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
+
+def _institution_catalog_pre() -> Table:
+    """Snapshot pré-ADR-238 (sem ``tax_regime``) — habilita batch_alter_table em SQLite --sql offline mode."""
+    return Table(
+        "institution_catalog",
+        MetaData(),
+        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("code", sa.String(50), nullable=False, unique=True, index=True),
+        sa.Column("name", sa.String(120), nullable=False),
+        sa.Column("default_parser", sa.String(80), nullable=True),
+        sa.Column("category", sa.String(20), nullable=False),
+        sa.Column("metadata_json", sa.JSON(), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+    )
+
+
+def _institution_catalog_post() -> Table:
+    """Snapshot pós-ADR-238 (com ``tax_regime``) — habilita batch_alter_table no downgrade."""
+    return Table(
+        "institution_catalog",
+        MetaData(),
+        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("code", sa.String(50), nullable=False, unique=True, index=True),
+        sa.Column("name", sa.String(120), nullable=False),
+        sa.Column("default_parser", sa.String(80), nullable=True),
+        sa.Column("category", sa.String(20), nullable=False),
+        sa.Column("tax_regime", sa.String(8), nullable=False),
+        sa.Column("metadata_json", sa.JSON(), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+        sa.CheckConstraint(
+            "tax_regime IN ('pf', 'pj', 'both')",
+            name="ck_institution_catalog_tax_regime",
+        ),
+    )
 
 
 _NEW_INSTITUTIONS: list[dict[str, str]] = [
@@ -51,7 +89,7 @@ _NEW_INSTITUTIONS: list[dict[str, str]] = [
 
 def upgrade() -> None:
     """Add ``tax_regime`` column + CHECK + seed BrasilPrev (idempotent)."""
-    with op.batch_alter_table("institution_catalog") as batch:
+    with op.batch_alter_table("institution_catalog", copy_from=_institution_catalog_pre()) as batch:
         batch.add_column(
             sa.Column(
                 "tax_regime",
@@ -122,10 +160,14 @@ def downgrade() -> None:
     # revisão (sem-op se constraint não existe — comum em DBs criados antes
     # do ajuste pós-gate data-engineer 2026-05-21).
     try:
-        with op.batch_alter_table("institution_catalog") as batch:
+        with op.batch_alter_table(
+            "institution_catalog", copy_from=_institution_catalog_post()
+        ) as batch:
             batch.drop_constraint("ck_institution_catalog_tax_regime", type_="check")
     except (ValueError, Exception):
         pass
 
-    with op.batch_alter_table("institution_catalog") as batch:
+    with op.batch_alter_table(
+        "institution_catalog", copy_from=_institution_catalog_post()
+    ) as batch:
         batch.drop_column("tax_regime")
