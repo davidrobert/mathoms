@@ -43,6 +43,7 @@ EXPECTED_DESCRIPTIVE_STAGES = {
     "extract_irpf_full",
     "extract_informe_aluguel",
     "extract_informes_anuais",
+    "extract_comprovantes_bens",
     "extract_invoices",
     "extract_statements",
     "extract_with_llm",

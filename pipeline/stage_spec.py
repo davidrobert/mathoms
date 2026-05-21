@@ -69,6 +69,9 @@ STAGE_RENAME_MAP: dict[str, str] = {
     # do reverso para CLI/HTTP). Gate data-engineer 2026-05-21 sugeriu remover;
     # senior-cto manteve por invariante de consistency.
     "E2-informe-anual": "extract_informes_anuais",
+    # ADR-239 A18 — comprovantes de bem polimórficos (CRLV em L1; V2 imóveis).
+    # Alias por invariante test_values_cover_registry_plus_virtual.
+    "E2-comprovante-bem": "extract_comprovantes_bens",
     "E3": "reconcile_transactions",
     "E4": "categorize_transactions",
     "E5": "analyze_finances",
@@ -159,6 +162,15 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
         is_llm=True,
         tier="premium",
     ),
+    # ADR-239 (A18) — comprovantes de bens polimórficos. L1 cobre CRLV-e
+    # (veículos); V2 estende para imóveis (rgi/iptu). Workspace-scoped:
+    # identidade canônica do bem sobrevive entre runs.
+    "extract_comprovantes_bens": StageSpec(
+        "extract_comprovantes_bens",
+        writes=("extract_comprovantes_bens",),
+        is_llm=True,
+        tier="premium",
+    ),
     "extract_invoices": StageSpec("extract_invoices", writes=("extract_invoices",)),
     "extract_statements": StageSpec("extract_statements", writes=("extract_statements",)),
     "extract_with_llm": StageSpec(
@@ -216,6 +228,7 @@ FULL_ORDER: list[str] = [
     "extract_irpf_full",  # ADR-157 — agrupado com docs de ano-base (junto de E1.5)
     "extract_informe_aluguel",  # ADR-216 Onda 0.5b — paralelo a extract_irpf_full (income_tax_br/)
     "extract_informes_anuais",  # ADR-238 A17 — informes polimórficos (income_tax_br/)
+    "extract_comprovantes_bens",  # ADR-239 A18 — comprovantes polimórficos (CRLV em L1)
     "extract_invoices",
     "extract_statements",
     "extract_with_llm",
