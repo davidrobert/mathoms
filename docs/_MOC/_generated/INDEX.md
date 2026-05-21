@@ -238,6 +238,9 @@
 | ADR-238 | adr | Decidido |  | Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 | `adr/238-ingestao-informes-rendimentos-anuais-avulsos.md` |
 | ADR-239 | adr | Proposto |  | Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 | `adr/239-comprovantes-bens-apolices-fipe.md` |
 | ADR-240 | adr | Proposto |  | Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19) | `adr/240-card-protecao-patrimonial-pilar-auvp.md` |
+| ADR-241 | adr | Proposto |  | E2 (extratos / faturas / LLM fallback) é workspace-scoped — incremental cumulativo correto | `adr/241-e2-workspace-scoped-em-incremental.md` |
+| ADR-242 | adr | Proposto |  | LLM `category_hint` consumido no TransactionClassifier + sentinel `info_fiscal_anual` | `adr/242-llm-category-hint-consumido-no-classifier.md` |
+| ADR-243 | adr | Proposto |  | MemberNameResolver — normalizar `membro` extraído pelo LLM em chave canônica do workspace | `adr/243-membername-resolver-canonico.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

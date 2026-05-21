@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-233 ADRs (ADR-001 a ADR-240) em [`docs/adr/`](../../adr/).
+236 ADRs (ADR-001 a ADR-243) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 187
-- **Proposto**: 42
+- **Proposto**: 45
 - **Roadmap**: 4
 
 ## Fundação
@@ -436,13 +436,16 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-237]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
 - [[ADR-238]] — Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 · phase A17.informes-avulsos
 
-### Proposto (5)
+### Proposto (8)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
 - [[ADR-219]] — Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 · phase A12
 - [[ADR-233]] — Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump · phase A11.W2
 - [[ADR-239]] — Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 · phase A18.bens-apolices-fipe
+- [[ADR-241]] — E2 (extratos / faturas / LLM fallback) é workspace-scoped — incremental cumulativo correto · phase A17.incremental-correctness
+- [[ADR-242]] — LLM `category_hint` consumido no TransactionClassifier + sentinel `info_fiscal_anual` · phase A17.incremental-correctness
+- [[ADR-243]] — MemberNameResolver — normalizar `membro` extraído pelo LLM em chave canônica do workspace · phase A17.incremental-correctness
 
 ## relatorio
 

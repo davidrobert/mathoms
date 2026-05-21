@@ -400,3 +400,163 @@ class TestDefensive:
         )
         results = classifier.classify_account(acc)
         assert len(results) == 1
+
+
+# =============================================================================
+# ADR-242 — categoria_sugerida (LLM hint)
+# =============================================================================
+
+
+class TestLLMCategoryHint:
+    """Cobertura da hierarquia hint LLM (preenche só `nao_identificado`/default)."""
+
+    def test_info_fiscal_anual_skips_transaction(self):
+        """Linha 'valor a declarar' / 'parcelas ano 2025' do informe IR sai do fluxo."""
+        cfg = _default_config()
+        classifier = TransactionClassifier(cfg)
+        acc = _account(
+            transacoes=[
+                {
+                    "data": "2025-12-31",
+                    "descricao": "Parcelas pagas Crédito Imobiliário (ano 2025)",
+                    "valor": -52429.06,
+                    "tipo": "debito",
+                    "categoria_sugerida": "info_fiscal_anual",
+                },
+                {
+                    "data": "2025-12-31",
+                    "descricao": "Rendimento Líquido (valor a declarar)",
+                    "valor": 610.85,
+                    "tipo": "credito",
+                    "categoria_sugerida": "info_fiscal_anual",
+                },
+                {
+                    "data": "2025-12-15",
+                    "descricao": "MERCADO X",
+                    "valor": -100,
+                    "tipo": "debito",
+                },
+            ]
+        )
+        results = classifier.classify_account(acc)
+        # Apenas a despesa de mercado entra; as 2 linhas info_fiscal_anual são excluídas.
+        assert len(results) == 1
+        assert results[0].categoria == "mercado"
+
+    def test_llm_hint_fills_default_expense(self):
+        """Descrição genérica sem keyword → hint do LLM mapeia para categoria canônica."""
+        cfg = _default_config()
+        classifier = TransactionClassifier(cfg)
+        acc = _account(
+            transacoes=[
+                {
+                    "data": "2026-01-15",
+                    "descricao": "Pagamento Contrato 10171192207",
+                    "valor": -52000.0,
+                    "tipo": "debito",
+                    "categoria_sugerida": "moradia_financiamento_amortizacao",
+                }
+            ]
+        )
+        results = classifier.classify_account(acc)
+        assert len(results) == 1
+        assert results[0].categoria == "moradia", "hint deve mapear para categoria canônica"
+        assert results[0].categorization_origin == "llm_hint"
+
+    def test_llm_hint_fills_default_income(self):
+        """Receita sem keyword → hint mapeia para `rendimento_aplicacao`."""
+        cfg = _default_config()
+        classifier = TransactionClassifier(cfg)
+        acc = _account(
+            transacoes=[
+                {
+                    "data": "2025-12-31",
+                    "descricao": "Rendimento Bruto RDB/CDB",
+                    "valor": 787.75,
+                    "tipo": "credito",
+                    "categoria_sugerida": "rendimento_renda_fixa",
+                }
+            ]
+        )
+        results = classifier.classify_account(acc)
+        assert len(results) == 1
+        assert results[0].kind == "receita"
+        assert results[0].categoria == "rendimento_aplicacao"
+        assert results[0].categorization_origin == "llm_hint"
+
+    def test_deterministic_rule_beats_hint(self):
+        """Regra determinística (keyword) vence o hint — paridade + determinismo."""
+        cfg = _default_config()
+        classifier = TransactionClassifier(cfg)
+        acc = _account(
+            transacoes=[
+                {
+                    "data": "2026-01-15",
+                    "descricao": "MERCADO PAO DE ACUCAR",
+                    "valor": -200,
+                    "tipo": "debito",
+                    # Hint contraditório — regra ainda deve vencer.
+                    "categoria_sugerida": "lazer_assinatura",
+                }
+            ]
+        )
+        results = classifier.classify_account(acc)
+        assert len(results) == 1
+        assert results[0].categoria == "mercado"
+        assert results[0].categorization_origin == "rule"
+
+    def test_unknown_hint_falls_through_to_default(self):
+        """Hint fora do vocabulário canônico não interfere — default aplica."""
+        cfg = _default_config()
+        classifier = TransactionClassifier(cfg)
+        acc = _account(
+            transacoes=[
+                {
+                    "data": "2026-01-15",
+                    "descricao": "OPERACAO X INCOGNITA",
+                    "valor": -100,
+                    "tipo": "debito",
+                    "categoria_sugerida": "categoria_inventada_pelo_llm",
+                }
+            ]
+        )
+        results = classifier.classify_account(acc)
+        assert len(results) == 1
+        assert results[0].categoria == "nao_identificado"
+        assert results[0].categorization_origin == "default"
+
+    def test_transferencia_interna_hint_routes_to_transfer(self):
+        """Hint `transferencia_interna` força detecção quando regra é silenciosa."""
+        cfg = _default_config()
+        classifier = TransactionClassifier(cfg)
+        acc = _account(
+            transacoes=[
+                {
+                    "data": "2026-01-15",
+                    "descricao": "Movimentação genérica",
+                    "valor": -500,
+                    "tipo": "debito",
+                    "categoria_sugerida": "transferencia_interna",
+                }
+            ]
+        )
+        results = classifier.classify_account(acc)
+        assert len(results) == 1
+        assert results[0].kind == "transferencia"
+
+    def test_origin_marker_for_rule_path(self):
+        """Marcador audit `rule` quando keyword decide."""
+        cfg = _default_config()
+        classifier = TransactionClassifier(cfg)
+        acc = _account(
+            transacoes=[
+                {
+                    "data": "2026-01-15",
+                    "descricao": "UBER",
+                    "valor": -25,
+                    "tipo": "debito",
+                }
+            ]
+        )
+        results = classifier.classify_account(acc)
+        assert results[0].categorization_origin == "rule"
