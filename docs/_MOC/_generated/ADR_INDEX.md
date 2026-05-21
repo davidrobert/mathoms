@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-229 ADRs (ADR-001 a ADR-236) em [`docs/adr/`](../../adr/).
+229 ADRs (ADR-001 a ADR-237) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -436,7 +436,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Decidido (2)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
-- [[ADR-236]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
+- [[ADR-237]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
 
 ### Proposto (4)
 

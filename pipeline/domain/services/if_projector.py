@@ -1,4 +1,4 @@
-"""IFProjector — projeção determinística + Monte Carlo de IF (A5a/F8 · ADR-236)."""
+"""IFProjector — projeção determinística + Monte Carlo de IF (A5a/F8 · ADR-237)."""
 
 from __future__ import annotations
 
@@ -319,7 +319,7 @@ class MonteCarloIFResult:
     idade_meta_usada: int
     sigma_usado: float
     exibir_cone: bool
-    # ADR-236 — PMT mensal real assumido na simulação (R$/mês de hoje).
+    # ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje).
     # Decimal por ADR-090; serializado como float no wire JSON pela e5_serialization.
     aporte_mensal_usado: Decimal = Decimal("0")
     motivo_sem_cone: str | None = None
@@ -337,7 +337,7 @@ def _lognormal_params(r: float, sigma: float) -> tuple[float, float]:
 
 
 def _compute_patrimonios(pv: float, pmt_anual: float, log_retornos: np.ndarray) -> np.ndarray:
-    # ADR-236: PMT como anuidade ordinária (fim do ano); PMT=0 cai no legado.
+    # ADR-237: PMT como anuidade ordinária (fim do ano); PMT=0 cai no legado.
     if pmt_anual == 0.0:
         return pv * np.exp(np.cumsum(log_retornos, axis=1))
     n, h = log_retornos.shape

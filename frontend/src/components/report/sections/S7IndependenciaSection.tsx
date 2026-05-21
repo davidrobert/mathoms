@@ -180,7 +180,7 @@ function IFMonteCarloBlock({
   );
 }
 
-/** ADR-236 — formata probabilidade para evitar "0%" enganoso quando
+/** ADR-237 — formata probabilidade para evitar "0%" enganoso quando
  * prob ∈ (0, 1%), e "100%" quando prob ∈ (99%, 100%). */
 export function formatProbability(prob: number): string {
   if (prob <= 0) return "0%";

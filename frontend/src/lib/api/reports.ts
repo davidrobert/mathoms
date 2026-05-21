@@ -154,7 +154,7 @@ export interface IFMonteCarloData {
   idade_meta_usada: number;
   sigma_usado: number;
   exibir_cone: boolean;
-  /** ADR-236 — PMT mensal real assumido na simulação (R$/mês de hoje). */
+  /** ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje). */
   aporte_mensal_usado?: number;
   motivo_sem_cone: string | null;
   caminho_p10: [number, number][];

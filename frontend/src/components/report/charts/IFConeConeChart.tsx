@@ -26,7 +26,7 @@ interface IFConeChartProps {
  * Três séries: P10 (cenário adverso), P50 (mediano), P90 (cenário favorável).
  * Linha horizontal opcional marcando a meta IF. P10 é o 10º percentil
  * (bottom 10% das simulações = menos patrimônio); P90 é o top 10%
- * (ADR-236 — paridade narrativa P10/P90 com convenção MC clássica).
+ * (ADR-237 — paridade narrativa P10/P90 com convenção MC clássica).
  *
  * ADR-076 · Cores via `useChartTheme()` — resolve tokens semânticos em
  * runtime e re-calcula em dark mode. Sem RGB literal.

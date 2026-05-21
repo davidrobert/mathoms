@@ -125,12 +125,12 @@ def test_resultado_sem_cone_campos_none():
 
 
 # =============================================================================
-# ADR-236 — MC inclui aporte mensal (paridade com determinístico)
+# ADR-237 — MC inclui aporte mensal (paridade com determinístico)
 # =============================================================================
 
 
 def test_pmt_zero_preserves_legacy_behavior():
-    """PMT=0 produz percentis idênticos ao caminho pré-ADR-236 (regression-safe)."""
+    """PMT=0 produz percentis idênticos ao caminho pré-ADR-237 (regression-safe)."""
     cfg_legacy = _config(pv=800_000, fv=2_000_000, seed=42)
     cfg_zero = _config(pv=800_000, fv=2_000_000, seed=42, pmt=0.0)
     r_legacy = run_monte_carlo_if(cfg_legacy, ano_base=2026, idade_titular_atual=35)
@@ -142,7 +142,7 @@ def test_pmt_zero_preserves_legacy_behavior():
 
 
 def test_pmt_positivo_aumenta_prob_if():
-    """PMT > 0 ⇒ prob_if_ate_idade_meta sobe e p50_ano_if cai (ADR-236)."""
+    """PMT > 0 ⇒ prob_if_ate_idade_meta sobe e p50_ano_if cai (ADR-237)."""
     cfg_sem_aporte = _config(pv=600_000, fv=3_000_000, seed=42)
     cfg_com_aporte = _config(pv=600_000, fv=3_000_000, seed=42, pmt=5_000.0)
     r_sem = run_monte_carlo_if(cfg_sem_aporte, ano_base=2026, idade_titular_atual=35)
