@@ -20,7 +20,7 @@ tags:
 # Track A15 FU-3 Onda 2 — Backfill total_dividas → Debt rows
 
 > **Lane:** Sprint A15 · **Plano canônico:**
-> [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 2
+> [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 2
 > · **ADR canônica:** [[ADR-227]] §D6
 > · **Branch prefix:** `agent/a15-fu3-onda2-backfill/*`
 > · **Pré-requisito externo:** Onda 1 mergeada em `main` (tabelas `debt` + `property_market_value` existem)
@@ -104,7 +104,7 @@ pre-commit run --all-files
 
 ## Ligações
 
-- Plano canônico: [PLAN-imovel-financiado](../../../plan/IMOVEL_FINANCIADO/_README.md) §Onda 2
+- Plano canônico: [PLAN-imovel-financiado](../../../archive/IMOVEL_FINANCIADO-2026-05-20.md) §Onda 2
 - ADR canônica: [[ADR-227]] §D6
 - Sprint MOC: [[MOC-sprint-a15]]
 - Onda 1 (pré-req): [a15-fu3-onda1-schema](a15-fu3-onda1-schema.md)

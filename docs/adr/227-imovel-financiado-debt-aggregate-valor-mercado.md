@@ -545,7 +545,7 @@ review humano explícito.
   citado em D5.
 - [[ADR-225]] — `codigo_rfb` invariante; Debt.property_id referencia
   `PropertyIdentity.id` (UUID interno), não `codigo_rfb`.
-- Plano operacional: [PLAN-imovel-financiado](../plan/IMOVEL_FINANCIADO/_README.md)
+- Plano operacional: [PLAN-imovel-financiado](../archive/IMOVEL_FINANCIADO-2026-05-20.md)
   — Sprint A15 dedicada, 5 PRs em 5 ondas.
 - Co-design 2026-05-19: `financial-planner` (invariante de apresentação
   + TTL sem fallback), `senior-cto` (boundary, RESTRICT, Protocol),
