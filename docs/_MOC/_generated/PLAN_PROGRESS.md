@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-13 planos detectados em [`docs/plan/`](../../plan/).
+14 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -112,6 +112,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A12
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-216]]
+
+### PLAN-tributario-pj — Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto)
+
+- Status: `draft` · Sprint atual: A17
+- Sprints envolvidas: A17
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-236]]
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
