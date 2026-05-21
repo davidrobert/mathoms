@@ -3,7 +3,7 @@ id: ADR-236
 type: adr
 title: "Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados)"
 status: Proposto
-phase: A17.tributario-pj-cascata
+phase: A16.tributario-pj-cascata
 date: "2026-05-20"
 relates_to:
   - "[[ADR-143]]"
@@ -28,7 +28,7 @@ tags:
   - methodology/perini
   - methodology/cerbasi
   - methodology/auvp
-  - phase/a17
+  - phase/a16
 ---
 
 ## Contexto
@@ -65,7 +65,7 @@ class BusinessProfile(BaseModel):
     regime: Optional[Literal["mei", "simples", "lucro_presumido", "lucro_real"]] = None
     holding_prazo_meses: Optional[int] = Field(default=None, ge=0, le=240)
 
-    # Campos A17 (novos — declarados pelo consultor, não derivam de transação/IRPF)
+    # Campos A16 (novos — declarados pelo consultor, não derivam de transação/IRPF)
     anexo_simples: Optional[Literal["III", "V"]] = Field(
         default=None,
         description="Anexo do Simples (relevante só quando regime=simples). III: serviços com fator-R≥0,28; V: <0,28.",
@@ -312,7 +312,7 @@ V1 implementa 5 gatilhos canônicos validados por `financial-planner` 2026-05-20
 
 ## Implementação
 
-Lane **`A17.tributario-pj-cascata`** planejada para Sprint A17 (próxima a abrir pós-A15 done; A11 e A12 `paused`). ~9d eng em ~2 semanas calendário. Plano canônico: [`docs/plan/TRIBUTARIO_PJ/_README.md`](../plan/TRIBUTARIO_PJ/_README.md).
+Lane **`A16.tributario-pj-cascata`** alocada em Sprint A16 (`current` desde 2026-05-20 via PR #386) como **L2** — paralela à L1 ([[TRACK-a16-adr235-nu-proprietario-flip]] · flip `nu_proprietario`). ~9d eng em ~2 semanas calendário. Plano canônico: [[PLAN-tributario-pj]] · Track operacional: [[TRACK-a16-adr236-tributario-pj-cascata]].
 
 | # | PR | Effort | Gate principal |
 |---|---|---|---|
@@ -321,9 +321,9 @@ Lane **`A17.tributario-pj-cascata`** planejada para Sprint A17 (próxima a abrir
 | P3 | `cascata_calculator.py` (4 regimes V1) + 4 goldens + triggers | ~2d | Paridade ±2% com contador real do dogfood `5@5.com` |
 | P4 | Adapter + narrator reescrito + regression test "Lucro presumido" | ~1d | Card produção deixa de mostrar texto errado; bundle["tributario"] shape válido |
 | P5 | `<CascataFiscalCard/>` UI + a11y + mobile + co-design product-designer | ~2d | A11y AAA; mobile responsive; copy revisado por `financial-planner` |
-| P6 | Cutover + telemetria + flip ADR + FAQ produto | ~1d | Telemetria entrega; flip → `Decidido (A17.tributario-pj-cascata)` |
+| P6 | Cutover + telemetria + flip ADR + FAQ produto | ~1d | Telemetria entrega; flip → `Decidido (A16.tributario-pj-cascata)` |
 
-Flip ADR-236 → `Decidido (A17.tributario-pj-cascata)` no merge do P6.
+Flip ADR-236 → `Decidido (A16.tributario-pj-cascata)` no merge do P6.
 
 ## Follow-ups V2 (fora do escopo V1)
 

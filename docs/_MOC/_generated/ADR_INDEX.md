@@ -394,7 +394,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (2)
 
 - [[ADR-235]] — Classificação `nu_proprietario`: imóvel em nu-propriedade com usufruto vitalício de terceiro · phase A16
-- [[ADR-236]] — Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados) · phase A17.tributario-pj-cascata
+- [[ADR-236]] — Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados) · phase A16.tributario-pj-cascata
 
 ## money
 

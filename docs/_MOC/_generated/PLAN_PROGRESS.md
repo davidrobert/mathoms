@@ -115,8 +115,8 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 
 ### PLAN-tributario-pj — Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto)
 
-- Status: `draft` · Sprint atual: A17
-- Sprints envolvidas: A17
+- Status: `draft` · Sprint atual: A16
+- Sprints envolvidas: A16
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-236]]
 
