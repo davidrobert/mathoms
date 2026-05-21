@@ -62,6 +62,18 @@ class AlocacaoGoalSection(TypedDict, total=False):
     _source: str
 
 
+class TributarioBundleSection(TypedDict, total=False):
+    """``tributario`` — sub-dict do bundle expandido (ADR-236 §D4)."""
+
+    regime: Optional[str]
+    regime_label: str
+    # ``cascata``: dataclasses.asdict(CascataOutput) — Money/Decimal serializados como float.
+    cascata: dict[str, Any]
+    contador_nome: Optional[str]
+    holding_prazo_meses: Optional[int]
+    _source: str
+
+
 class DecisionTop5Projection(TypedDict):
     """Projeção Decision para card S10 (ADR-179, montada em A10.5)."""
 
@@ -91,7 +103,7 @@ class GoalsBundle(TypedDict, total=False):
     alocacao_alvo: AlocacaoGoalSection
     # Sub-dicts ainda dict-shaped (sub-tipagem postponed — não bloqueia A10.6).
     seguros: dict[str, Any]
-    tributario: dict[str, Any]
+    tributario: TributarioBundleSection
     fase_f1f2: dict[str, Any]
     # Projeções A10.5 — sempre presentes (lista vazia se DB vazio).
     top5_decisoes_projection: list[DecisionTop5Projection]
@@ -107,4 +119,5 @@ __all__ = [
     "GoalsBundle",
     "IFGoalSection",
     "RiskBubbleProjection",
+    "TributarioBundleSection",
 ]
