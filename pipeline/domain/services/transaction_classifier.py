@@ -1,30 +1,10 @@
-"""TransactionClassifier — classifica transações E3 em receitas/despesas/transferências
-(Sessão A4a · Fase 7 foundation).
+"""TransactionClassifier — classifica transações E3 em receitas/despesas/transferências.
 
-Decompõe ``process_transactions`` (``e4_categorize.py:589-730``) em um domain
-service puro, compondo os services já extraídos nas sessões anteriores:
-
-- :class:`KeywordMatcher` (A4a) — matching de expense/income keywords com
-  wildcards e longest-match.
-- :class:`InternalTransferDetector` (A3a) — detecção em 4 camadas de
-  transferências internas.
-- :class:`IncomeOriginResolver` (A3a) — resolve origem (PJ/CLT/Aluguel/etc.).
-
-Responsabilidades do classifier:
-
-1. Normalização de `tipo` (crédito/débito) — strip de acento + inferência por
-   sinal do valor quando ausente (paridade com ``e4_categorize`` v5.1/v5.2).
-2. Coerção de `valor` string → float quando aplicável.
-3. Roteamento:
-   - `tipo == "credito"` → receita (categorizada por ``INCOME_KEYWORDS``,
-     fallback ``"outras_receitas"``), com origem via :class:`IncomeOriginResolver`.
-   - `tipo == "debito"` → despesa (categorizada por ``EXPENSE_KEYWORDS``,
-     fallback ``"nao_identificado"``), a menos que seja transferência interna.
-4. Detecção de transferência interna (cobre também faturas: crédito com
-   descrição de transferência).
-
-Zero I/O. Recebe value objects de config tipados (R9/ISP). Integra no
-``E4CategorizerAdapter`` que lê/escreve via ``ArtifactStore``.
+Decompõe ``process_transactions`` legado em domain service puro, compondo
+services já extraídos (``KeywordMatcher``, ``InternalTransferDetector``,
+``IncomeOriginResolver``). Labels PJ (5 novas em A16 L2 P2 · [[ADR-236]] §D2)
+ficam isoladas em :mod:`transaction_classifier_pj` para limitar tamanho deste
+arquivo. Zero I/O.
 """
 
 from __future__ import annotations
@@ -44,6 +24,28 @@ from pipeline.domain.services.internal_transfer_detector import (
     InternalTransferDetector,
 )
 from pipeline.domain.services.keyword_matcher import KeywordMatcher
+from pipeline.domain.services.transaction_classifier_pj import (
+    PJ_LABELS,
+    RUN_CONTEXT_DISABLED,
+    ClassifierWarning,
+    FolhaPJProxyUnavailable,
+    PJLabelConfig,
+    RunContext,
+    build_run_context,
+    normalize_pj_mapping,
+    try_classify_pj_label,
+)
+
+# Re-export para retrocompat de imports (callers usavam o classifier como
+# único entry-point). Manter público.
+__all__ = [
+    "ClassifiedTransaction",
+    "ClassifierConfig",
+    "ClassifierWarning",
+    "FolhaPJProxyUnavailable",
+    "PJ_LABELS",
+    "TransactionClassifier",
+]
 
 # =============================================================================
 # Helpers
@@ -112,16 +114,7 @@ def _normalize_tipo(tipo_raw, valor: float, tipo_conta: str) -> str | None:
 
 @dataclass(frozen=True)
 class ClassifierConfig:
-    """Value object de config do ``TransactionClassifier`` (R9/ISP).
-
-    Compõe configs de 3 services + regras de keywords. Usa ``frozen=True``
-    para garantir imutabilidade; recebe via ``from_configs`` que lê os JSONs.
-
-    Pós-A12.P2 (ADR-186 §D5): aceita ``learned_rules_v2`` opcional. Quando
-    presente e não-vazio, classifier consulta learned rules **antes** do
-    fallback de template keywords. Workspace sem regras (default ``None``)
-    → comportamento legado preservado (paridade goldens).
-    """
+    """Value object de config do ``TransactionClassifier`` (R9/ISP; frozen)."""
 
     expense_keywords: dict[str, list[str]] = field(default_factory=dict)
     income_keywords: dict[str, list[str]] = field(default_factory=dict)
@@ -134,6 +127,11 @@ class ClassifierConfig:
     # ADR-186 §D5 — regras workspace-aprendidas (já ordenadas estavelmente).
     # None = workspace sem regras (paridade legado). Adapter constrói via DB.
     learned_rules_v2: CategorizationRulesV2 | None = None
+    # ADR-236 §D2 — sub-config dos 5 labels PJ. Vazio = labels degradam
+    # graciosamente; transaction_classifier_pj.py tem os defaults de keyword.
+    pj_label_config: PJLabelConfig = field(
+        default_factory=lambda: PJLabelConfig(pj_source_mapping={})
+    )
 
     @classmethod
     def from_configs(
@@ -142,13 +140,9 @@ class ClassifierConfig:
         categorization: dict | None = None,
         family: dict | None = None,
     ) -> "ClassifierConfig":
-        """Constrói a partir dos dicts ``categorization.json`` e
-        ``family_members.json``. Equivalente ao ``_init_config`` do legado."""
+        """Constrói a partir dos dicts ``categorization.json`` e ``family_members.json``."""
         cat = categorization or {}
         fam = family or {}
-
-        # Internal transfer config combina categorization + family (legado
-        # linhas 74-79 faz exatamente isso).
         transfers = fam.get("transferencias_internas", {}) or {}
         combined_cat = {
             "internal_transfer_patterns": list(cat.get("internal_transfer_patterns") or [])
@@ -157,12 +151,14 @@ class ClassifierConfig:
             "bank_specific_transfer_patterns": transfers.get("patterns_bank_specific", {}) or {},
             "global_transfer_patterns": list(transfers.get("patterns_global") or []),
         }
-
         return cls(
             expense_keywords=cat.get("expense_keywords") or {},
             income_keywords=cat.get("income_keywords") or {},
             transfer_config=InternalTransferConfig.from_categorization(combined_cat),
             origin_config=IncomeOriginConfig.from_categorization(cat),
+            pj_label_config=PJLabelConfig(
+                pj_source_mapping=normalize_pj_mapping(cat.get("pj_source_mapping"))
+            ),
         )
 
 
@@ -226,10 +222,7 @@ class ClassifiedTransaction:
 
 
 class TransactionClassifier:
-    """Classifica transações E3 reconciliadas em receitas/despesas/transferências.
-
-    Stateless (config é imutável). Reutilize a instância entre chamadas.
-    """
+    """Stateless classifier de transações E3 (config imutável; reutilize entre chamadas)."""
 
     def __init__(self, config: ClassifierConfig) -> None:
         self._config = config
@@ -237,20 +230,56 @@ class TransactionClassifier:
         self._income_matcher = KeywordMatcher(config.income_keywords)
         self._transfer_detector = InternalTransferDetector(config.transfer_config)
         self._origin_resolver = IncomeOriginResolver(config.origin_config)
+        self._pj_label_config = config.pj_label_config
 
     # -- API --
 
     def classify_account(self, account: dict) -> list[ClassifiedTransaction]:
-        """Processa todas as transações de um extrato reconciliado (E3).
+        """Processa transações de 1 account E3 (pre-pass `has_pj_income` no escopo deste account)."""
+        run_ctx = build_run_context(
+            [account],
+            self._pj_label_config,
+            coerce_valor=_coerce_valor,
+            normalize_tipo=_normalize_tipo,
+        )
+        txs, _ = self._classify_account_audit(account, run_ctx=run_ctx)
+        return txs
 
-        Formato de entrada: dict conforme ``*-3_reconciled.json`` (``banco``,
-        ``tipo_conta``, ``titular``, ``moeda``, ``transacoes``...).
-        """
+    def classify_all(self, accounts: Iterable[dict]) -> list[ClassifiedTransaction]:
+        """Classifica múltiplos accounts (descarta warnings; use ``classify_all_with_warnings`` para acesso)."""
+        transactions, _ = self.classify_all_with_warnings(accounts)
+        return transactions
+
+    def classify_all_with_warnings(
+        self, accounts: Iterable[dict]
+    ) -> tuple[list[ClassifiedTransaction], list[ClassifierWarning]]:
+        """Classifica multi-account + emite warnings PJ-side ([[ADR-236]] §D2 · [[ADR-097]] D1)."""
+        accounts_list = [a for a in accounts if isinstance(a, dict)]
+        run_ctx = build_run_context(
+            accounts_list,
+            self._pj_label_config,
+            coerce_valor=_coerce_valor,
+            normalize_tipo=_normalize_tipo,
+        )
+
+        all_transactions: list[ClassifiedTransaction] = []
+        folha_pj_candidatas: list[str] = []
+        for account in accounts_list:
+            txs, candidatas = self._classify_account_audit(account, run_ctx=run_ctx)
+            all_transactions.extend(txs)
+            folha_pj_candidatas.extend(candidatas)
+
+        return all_transactions, _build_warnings(folha_pj_candidatas, run_ctx)
+
+    # -- Classificação por conta --
+
+    def _classify_account_audit(
+        self, account: dict, *, run_ctx: RunContext
+    ) -> tuple[list[ClassifiedTransaction], list[str]]:
+        """Classifica conta + coleta candidatas a ``folha_pj`` (audit para warning)."""
         if not isinstance(account, dict) or "transacoes" not in account:
-            return []
+            return [], []
 
-        # Meta da conta (paridade com `process_transactions` v5.3 —
-        # `banco_raw` preservado, `normalize_text().lower()` para matching).
         banco_raw = account.get("banco", "Unknown") or "Unknown"
         banco_norm = _normalize_text(banco_raw).lower() if banco_raw else "unknown"
         tipo_conta_raw = account.get("tipo_conta", "") or ""
@@ -259,28 +288,24 @@ class TransactionClassifier:
         moeda = account.get("moeda", "BRL") or "BRL"
 
         results: list[ClassifiedTransaction] = []
+        folha_pj_candidatas: list[str] = []
         for tx in account["transacoes"] or []:
             if not isinstance(tx, dict):
                 continue
-            results.append(
-                self._classify_one(
-                    tx,
-                    banco_raw=banco_raw,
-                    banco_norm=banco_norm,
-                    tipo_conta=tipo_conta,
-                    tipo_conta_raw=tipo_conta_raw,
-                    titular=titular,
-                    moeda=moeda,
-                )
+            classified, folha_pj_candidata = self._classify_one(
+                tx,
+                banco_raw=banco_raw,
+                banco_norm=banco_norm,
+                tipo_conta=tipo_conta,
+                tipo_conta_raw=tipo_conta_raw,
+                titular=titular,
+                moeda=moeda,
+                run_ctx=run_ctx,
             )
-        return results
-
-    def classify_all(self, accounts: Iterable[dict]) -> list[ClassifiedTransaction]:
-        """Classifica todas as transações de múltiplos extratos reconciliados."""
-        out: list[ClassifiedTransaction] = []
-        for acc in accounts:
-            out.extend(self.classify_account(acc))
-        return out
+            results.append(classified)
+            if folha_pj_candidata is not None:
+                folha_pj_candidatas.append(folha_pj_candidata)
+        return results, folha_pj_candidatas
 
     # -- Implementação --
 
@@ -294,96 +319,86 @@ class TransactionClassifier:
         tipo_conta_raw: str,
         titular: str,
         moeda: str,
-    ) -> ClassifiedTransaction:
+        run_ctx: RunContext = RUN_CONTEXT_DISABLED,
+    ) -> tuple[ClassifiedTransaction, str | None]:
+        """Classifica uma tx; retorna ``(classified, folha_pj_candidata)``."""
         data = tx.get("data", "")
         descricao_raw = tx.get("descricao", "")
         valor = _coerce_valor(tx.get("valor"))
         tipo = _normalize_tipo(tx.get("tipo"), valor, tipo_conta)
 
-        # 1. Detecção precoce de transferência interna (antes de decidir
-        #    receita vs despesa). Paridade com `process_transactions`
-        #    linhas 640-651.
-        if self._transfer_detector.is_internal_transfer(descricao_raw, banco=banco_raw):
-            return ClassifiedTransaction(
-                kind="transferencia",
-                data=data,
-                descricao=descricao_raw,
-                valor=valor,
-                banco=banco_raw,
-                moeda=moeda,
-                tipo_conta=tipo_conta_raw,
-                titular=titular,
-                tipo=tipo or "debito",
-            )
+        common = dict(
+            data=data,
+            descricao=descricao_raw,
+            banco=banco_raw,
+            moeda=moeda,
+            tipo_conta=tipo_conta_raw,
+            titular=titular,
+        )
 
-        # ADR-186 §D5 (A12.P2) — learned_rules têm prioridade sobre template.
-        # Match estável (sort por priority desc, len(keyword) desc, created_at
-        # asc, id asc — aplicado pelo adapter). Workspace sem regras = no-op.
+        # 1. Transferência interna precoce (paridade legado linhas 640-651).
+        if self._transfer_detector.is_internal_transfer(descricao_raw, banco=banco_raw):
+            return _classified_transferencia(valor, tipo, **common), None
+
+        # 2. Labels PJ ([[ADR-236]] §D2) têm precedência sobre learned + template.
+        pj_label, folha_pj_candidata = try_classify_pj_label(
+            descricao_raw, tipo=tipo, config=self._pj_label_config, run_ctx=run_ctx
+        )
+        if pj_label is not None:
+            kind, categoria_pj = pj_label
+            origem = self._origin_resolver.resolve_pj(descricao_raw) if kind == "receita" else None
+            tipo_out = tipo or ("credito" if kind == "receita" else "debito")
+            valor_out = valor if kind == "receita" else abs(valor)
+            return ClassifiedTransaction(
+                kind=kind,
+                valor=valor_out,
+                tipo=tipo_out,
+                categoria=categoria_pj,
+                origem=origem,
+                **common,
+            ), None
+
         learned_match = self._learned_rules_match(descricao_raw)
 
-        # 2. Crédito → receita.
+        # 3. Crédito → receita (learned_rule prioridade sobre template).
         if tipo == "credito":
             if learned_match is not None:
                 categoria, learned_id = learned_match
             else:
-                categoria = self._income_matcher.category_of(descricao_raw)
+                categoria = (
+                    self._income_matcher.category_of(descricao_raw)
+                    or self._config.default_income_category
+                )
                 learned_id = None
-            if not categoria:
-                categoria = self._config.default_income_category
             origem = self._origin_resolver.resolve_for_category(categoria, descricao_raw)
             return ClassifiedTransaction(
                 kind="receita",
-                data=data,
-                descricao=descricao_raw,
                 valor=valor,
-                banco=banco_raw,
-                moeda=moeda,
-                tipo_conta=tipo_conta_raw,
-                titular=titular,
                 tipo=tipo,
                 categoria=categoria,
                 origem=origem,
                 learned_rule_id=learned_id,
-            )
+                **common,
+            ), None
 
-        # 3. Débito (ou fatura sem tipo) → despesa, com fallback de transferência.
+        # 4. Débito → despesa, com 2º check de transferência via banco_norm.
         if learned_match is not None:
             categoria_exp, learned_id = learned_match
         else:
             categoria_exp = self._expense_matcher.category_of(descricao_raw)
             learned_id = None
         if categoria_exp is None:
-            # Segundo check de transferência interna (paridade com v5.1, linha
-            # 697): algumas descrições só batem em transferência via `banco`.
             if self._transfer_detector.is_internal_transfer(descricao_raw, banco=banco_norm):
-                return ClassifiedTransaction(
-                    kind="transferencia",
-                    data=data,
-                    descricao=descricao_raw,
-                    valor=valor,
-                    banco=banco_raw,
-                    moeda=moeda,
-                    tipo_conta=tipo_conta_raw,
-                    titular=titular,
-                    tipo=tipo or "debito",
-                )
+                return _classified_transferencia(valor, tipo, **common), None
             categoria_exp = self._config.default_expense_category
-
-        # `valor_abs` (despesas são positivas no output, mesmo em débitos negativos).
-        valor_abs = abs(valor)
         return ClassifiedTransaction(
             kind="despesa",
-            data=data,
-            descricao=descricao_raw,
-            valor=valor_abs,
-            banco=banco_raw,
-            moeda=moeda,
-            tipo_conta=tipo_conta_raw,
-            titular=titular,
+            valor=abs(valor),
             tipo=tipo or "debito",
             categoria=categoria_exp,
             learned_rule_id=learned_id,
-        )
+            **common,
+        ), folha_pj_candidata
 
     # ADR-186 §D5 (A12.P2) — helper interno isolado para testabilidade.
     def _learned_rules_match(self, descricao_raw: str) -> tuple[str, str] | None:
@@ -392,3 +407,27 @@ class TransactionClassifier:
         if rules_v2 is None or not rules_v2.learned_rules:
             return None
         return rules_v2.match(descricao_raw)
+
+
+# =============================================================================
+# Helpers de construção (fora do classifier — funções puras)
+# =============================================================================
+
+
+def _classified_transferencia(valor, tipo, **common) -> ClassifiedTransaction:  # noqa: ANN001 — valor é float legacy do JSON E3, ADR-090 incidence em Money
+    """Constrói uma `ClassifiedTransaction(kind=transferencia)` aproveitando kwargs comuns."""
+    return ClassifiedTransaction(kind="transferencia", valor=valor, tipo=tipo or "debito", **common)
+
+
+def _build_warnings(folha_pj_candidatas: list[str], run_ctx: RunContext) -> list[ClassifierWarning]:
+    """Agrega candidatas de ``folha_pj`` em 1 warning quando proxy desabilitado."""
+    if not folha_pj_candidatas or run_ctx.folha_pj_enabled:
+        return []
+    reason = "no_pj_source_mapping" if not run_ctx.pj_mapping_populated else "no_pj_income_observed"
+    return [
+        FolhaPJProxyUnavailable(
+            reason=reason,
+            candidatas_count=len(folha_pj_candidatas),
+            sample_descricao=folha_pj_candidatas[0],
+        )
+    ]
