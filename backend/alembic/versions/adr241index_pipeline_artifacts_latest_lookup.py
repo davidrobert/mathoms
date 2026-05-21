@@ -32,7 +32,7 @@ from typing import Sequence, Union
 from alembic import op
 
 revision: str = "adr241index"
-down_revision: Union[str, Sequence[str], None] = "adr239vehicles1"
+down_revision: Union[str, Sequence[str], None] = "adr239vehicles2"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
