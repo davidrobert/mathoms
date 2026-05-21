@@ -1491,7 +1491,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 **Constraints:**
 
-- CHECK (`classification IN ('residencia_principal','uso_pessoal','locado','comercial','especulacao','desconhecido')`) — `chk_classification_enum`
+- CHECK (`classification IN ('residencia_principal','uso_pessoal','locado','comercial','especulacao','nu_proprietario','desconhecido')`) — `chk_classification_enum`
 - CHECK (`override_source IN ('user_manual','fuzzy_match_accepted','migration_keyword')`) — `chk_override_source_enum`
 - FOREIGN KEY (created_by_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (property_id) REFERENCES property_identity.id ON DELETE CASCADE — `(unnamed)`
