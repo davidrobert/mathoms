@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-227 ADRs (ADR-001 a ADR-234) em [`docs/adr/`](../../adr/).
+228 ADRs (ADR-001 a ADR-235) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 183
-- **Proposto**: 40
+- **Proposto**: 41
 - **Roadmap**: 4
 
 ## Fundação
@@ -390,6 +390,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-226]] — Desambiguação conta bancária → membro: `account_number` como discriminador, `account_resolver` puro, `is_joint` reservado para V2 · phase A12.bank-account-disambig
 - [[ADR-227]] — Imóvel financiado: agregado `Debt` persistido + `property_market_value` override; saldo devedor líquido em `investivel_efetivo`, bruto preservado em cat_2 · phase A15
 - [[ADR-229]] — Pre-fill UI a partir de IRPF — pattern genérico `artifact → suggestion endpoint → card`; V1 contas bancárias · phase A13.irpf-prefill-bank-accounts
+
+### Proposto (1)
+
+- [[ADR-235]] — Classificação `nu_proprietario`: imóvel em nu-propriedade com usufruto vitalício de terceiro · phase A16
 
 ## money
 
