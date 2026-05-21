@@ -308,6 +308,14 @@ function PgblBlock({ cascata }: { cascata: CascataPayload }) {
         aplicavel={cascata.pgbl_aplicavel}
         motivo={cascata.pgbl_motivo_inaplicavel}
       />
+      <p
+        className="text-[0.7rem] italic leading-relaxed text-[var(--surface-muted-foreground)]"
+        data-testid="pgbl-disclaimer-crc"
+      >
+        Cálculo informativo de capacidade dedutível. Para decisão de aporte em
+        PGBL, considere conversar com seu contador — Mathoms consolida, não
+        substitui orientação tributária.
+      </p>
     </section>
   );
 }

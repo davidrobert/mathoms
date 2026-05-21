@@ -36,6 +36,9 @@ const DOC_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
   { value: "credit_card_bill", label: "Fatura de cartão" },
   { value: "investment_report", label: "Investimentos" },
   { value: "irpf", label: "IRPF / Receita Federal" },
+  // ADR-238 (A17 L1) — informe anual avulso (PGBL/VGBL em L1; financeiro
+  // PF/PJ e proventos em L2-L4). Distinto de "irpf" (declaração entregue).
+  { value: "informe_rendimentos_anuais", label: "Informe de Rendimentos (PGBL/VGBL)" },
   { value: "other", label: "Outro" },
 ];
 
@@ -58,6 +61,8 @@ const INSTITUTION_OPTIONS: { value: string; label: string }[] = [
   { value: "inter", label: "Inter" },
   { value: "stone", label: "Stone" },
   { value: "receitafederal", label: "Receita Federal" },
+  // ADR-238 A17 L1 — seguradora previdência privada.
+  { value: "brasilprev", label: "BrasilPrev" },
 ];
 
 const NONE = "__none__";
