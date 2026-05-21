@@ -86,6 +86,8 @@ def _classify_llm_error(exc: BaseException) -> str:
 
 _INFORME_TIPADO_PREFIXES = ("informe_previdencia", "informe_financeiro", "informe_proventos")
 _INVESTMENT_PREFIXES = ("cdb", "investimentos", "carteirarenda")
+# ADR-239 A18 L1 — CRLV-e em L1; A18 V2 estende para RGI/IPTU (imóveis) etc.
+_COMPROVANTE_BEM_PREFIXES = ("crlv_eletronico", "crlv")
 
 
 def _map_informe(code: str) -> DocumentType | None:
@@ -101,6 +103,13 @@ def _map_informe(code: str) -> DocumentType | None:
     return None
 
 
+def _map_comprovante_bem(code: str) -> DocumentType | None:
+    """ADR-239 A18 L1 P3: CRLV-e e demais comprovantes de bem vão para enum próprio."""
+    if any(code.startswith(p) for p in _COMPROVANTE_BEM_PREFIXES):
+        return DocumentType.comprovante_bem
+    return None
+
+
 def _map_fatura(code: str) -> DocumentType:
     return DocumentType.other if code.startswith("faturaaluguel") else DocumentType.credit_card_bill
 
@@ -113,6 +122,9 @@ def map_e0_doc_type_to_document_type(e0_doc_type: str) -> DocumentType:
     informe = _map_informe(code)
     if informe is not None:
         return informe
+    comprovante = _map_comprovante_bem(code)
+    if comprovante is not None:
+        return comprovante
     if code.startswith("irpf"):
         return DocumentType.irpf
     if any(code.startswith(p) for p in _INVESTMENT_PREFIXES) or code == "extratoinvest":
@@ -136,6 +148,9 @@ _DOCUMENT_TYPE_TO_E0_DEST: dict[DocumentType, tuple[str, str]] = {
     # cai no canonical de previdência (P1 cobre apenas esse tipo); L2-L4
     # adicionam canonicals próprios (financeiro_pj/pf/proventos).
     DocumentType.informe_rendimentos_anuais: ("informe_previdencia_privada", "income_tax_br"),
+    # ADR-239 (A18 L1) — comprovante de bem. Override cai em CRLV (V1 cobre só
+    # veículos); A18 V2 adiciona canonicals para imóveis (rgi/iptu) e outros.
+    DocumentType.comprovante_bem: ("crlv_eletronico", "comprovantes"),
 }
 
 
