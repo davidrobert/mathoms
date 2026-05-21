@@ -29,6 +29,10 @@ CLASSIFICATION_USO_PESSOAL = "uso_pessoal"
 CLASSIFICATION_LOCADO = "locado"
 CLASSIFICATION_COMERCIAL = "comercial"
 CLASSIFICATION_ESPECULACAO = "especulacao"
+# ADR-235: nu-propriedade com usufruto vitalício de terceiro. Ativo no
+# patrimônio mas zero fluxo e ilíquido por contrato civil até consolidação.
+# Comporta-se como uso_pessoal nos filtros computacionais.
+CLASSIFICATION_NU_PROPRIETARIO = "nu_proprietario"
 CLASSIFICATION_DESCONHECIDO = "desconhecido"
 
 VALID_CLASSIFICATIONS = (
@@ -37,6 +41,7 @@ VALID_CLASSIFICATIONS = (
     CLASSIFICATION_LOCADO,
     CLASSIFICATION_COMERCIAL,
     CLASSIFICATION_ESPECULACAO,
+    CLASSIFICATION_NU_PROPRIETARIO,
     CLASSIFICATION_DESCONHECIDO,
 )
 
@@ -101,7 +106,7 @@ class WorkspacePropertyOverride(Base):
         CheckConstraint(
             "classification IN ("
             "'residencia_principal','uso_pessoal','locado',"
-            "'comercial','especulacao','desconhecido')",
+            "'comercial','especulacao','nu_proprietario','desconhecido')",
             name="chk_classification_enum",
         ),
         CheckConstraint(
@@ -163,6 +168,7 @@ __all__ = [
     "CLASSIFICATION_LOCADO",
     "CLASSIFICATION_COMERCIAL",
     "CLASSIFICATION_ESPECULACAO",
+    "CLASSIFICATION_NU_PROPRIETARIO",
     "CLASSIFICATION_DESCONHECIDO",
     "OVERRIDE_SOURCE_USER_MANUAL",
     "OVERRIDE_SOURCE_FUZZY_MATCH_ACCEPTED",

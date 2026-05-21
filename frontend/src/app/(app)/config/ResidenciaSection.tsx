@@ -21,8 +21,15 @@ const CLASSIFICATION_LABELS: Record<Classification, string> = {
   locado: "Imóvel locado",
   comercial: "Imóvel comercial",
   especulacao: "Terreno / especulação",
+  nu_proprietario: "Nu-propriedade (usufruto vitalício)",
   desconhecido: "Não classificado",
 };
+
+const NU_PROPRIETARIO_TOOLTIP =
+  "Você é dono, mas outro detém usufruto vitalício e ocupa o imóvel " +
+  "gratuitamente. Está no seu patrimônio, mas não gera caixa nem está " +
+  "disponível para venda livre. Pode virar locado ou ser vendido " +
+  "livremente quando o usufruto extinguir.";
 
 // IRPF Grupo 01 (Bens Imóveis) — códigos RFB de subtipo.
 // "01" é o próprio grupo-pai (LLM/fonte externa retornou sem subcódigo) → tratamos como "Imóvel".
@@ -248,7 +255,14 @@ function PropertyRow({
           </span>
         )}
       </td>
-      <td className="py-2 pr-3 text-xs">{classificationLabel(property.classification)}</td>
+      <td
+        className="py-2 pr-3 text-xs"
+        title={
+          property.classification === "nu_proprietario" ? NU_PROPRIETARIO_TOOLTIP : undefined
+        }
+      >
+        {classificationLabel(property.classification)}
+      </td>
       <td className="py-2 text-right">
         <select
           className="rounded border bg-background px-2 py-1 text-xs"
@@ -267,6 +281,9 @@ function PropertyRow({
           <option value="locado">Locado</option>
           <option value="comercial">Comercial</option>
           <option value="especulacao">Especulação</option>
+          <option value="nu_proprietario" title={NU_PROPRIETARIO_TOOLTIP}>
+            Nu-propriedade (usufruto vitalício)
+          </option>
           <option value="desconhecido">Não classificado</option>
         </select>
       </td>

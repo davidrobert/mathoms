@@ -7,14 +7,21 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Literal
 
-# Classification enum espelhado de backend/app/models/property_identity.py (ADR-215).
+# Classification enum espelhado de backend/app/models/property_identity.py (ADR-215 + ADR-235).
 # Source of truth é o modelo; aqui replicamos como literal para evitar import cross-boundary
 # (pipeline/ não importa backend/).
 ClassificationLiteral = Literal[
-    "residencia_principal", "uso_pessoal", "locado", "comercial", "especulacao", "desconhecido"
+    "residencia_principal",
+    "uso_pessoal",
+    "locado",
+    "comercial",
+    "especulacao",
+    "nu_proprietario",
+    "desconhecido",
 ]
 
-# S4 filtra apenas classes de investimento (ADR-216 D8).
+# S4 filtra apenas classes de investimento (ADR-216 D8). ADR-235: nu_proprietario
+# permanece fora — cap rate indefinido (não puxa média do portfolio).
 INVESTMENT_CLASSIFICATIONS: tuple[str, ...] = ("locado", "comercial", "especulacao")
 
 OrigemLiteral = Literal["informe", "irpf", "e3", "e4", "manual", "pro_rata", "none", "default"]
