@@ -60,6 +60,10 @@ SCHEMA_BY_STAGE: dict[str, str] = {
     # L1: previdência (PGBL/VGBL). L2-L4 expandem para financeiro_pj/pf,
     # proventos, aluguel migra do standalone acima.
     "extract_informes_anuais": "informe_base.schema.json",
+    # extract_comprovantes_bens — comprovantes de bens polimórficos (ADR-239).
+    # A18 L1: CRLV-e (veículos). A18 V2 estende para imóveis (RGI/IPTU) e
+    # outros bens com identidade canônica.
+    "extract_comprovantes_bens": "crlv.schema.json",
     # E3 — reconciliação
     "E3": "e3_reconciled.schema.json",
     "reconcile_transactions": "e3_reconciled.schema.json",
@@ -106,6 +110,10 @@ _WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset(
         # gerado por evento de upload. Sem fallback, rerun perderia o
         # informe da última run.
         "extract_informes_anuais",
+        # ADR-239 A18 — comprovantes de bens (CRLV em L1; imóveis V2).
+        # Identidade canônica do bem é workspace-scoped, sobrevive entre
+        # runs (não é run-scoped).
+        "extract_comprovantes_bens",
     }
 )
 """Stages cujo artefato é dataset de **referência** (lifecycle por workspace,
