@@ -99,6 +99,12 @@ def fmt_usd(value) -> str:
     return f"US$ {int(value)}"
 
 
+def _is_impostos_pj_pendente(chart: dict) -> bool:
+    """ADR-236 §D5: card 'perfil tributário PJ pendente' tem conclusion vazia."""
+    context = chart.get("context", "") or ""
+    return "Perfil tributário PJ pendente" in context
+
+
 def validate_narrativas(
     narrativas_obj: dict, cenarios_section_key: str = "cenarios_conjuge"
 ) -> tuple[bool, list[str]]:
@@ -179,6 +185,10 @@ def validate_narrativas(
                 chart = charts[chart_key]
                 if "context" not in chart or not chart["context"]:
                     errors.append(f"charts.{chart_key}.context is missing or empty")
+                # ADR-236 §D5: impostos_pj em estado "perfil pendente" tem
+                # conclusion vazia por contrato (card UI renderiza só context+CTA).
+                if chart_key == "impostos_pj" and _is_impostos_pj_pendente(chart):
+                    continue
                 if "conclusion" not in chart or not chart["conclusion"]:
                     errors.append(f"charts.{chart_key}.conclusion is missing or empty")
 

@@ -23,6 +23,7 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_percent,
     pluralize,
 )
+from pipeline.domain.services.narrativas.tributario_narrator import narrate_cascata
 
 _DIVERSIFICACAO_LINE = (
     "Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
@@ -252,18 +253,7 @@ class ChartsNarrator:
                 ),
                 "conclusion": _conclusion_top15_ativos(M),
             },
-            "impostos_pj": {
-                "context": (
-                    f"Carga tributária da PJ de {ctx.titular_nome}: receita anualizada de {fmt_currency(M['receita_pj_anual'])}, "
-                    f"enquadrada no {M['regime_obs']} (alíquota efetiva {fmt_percent(M['das_aliquota_pct'])})."
-                ),
-                "conclusion": (
-                    f"DAS estimado em {fmt_currency(M['das_mensal_estimado'])}/mês ({fmt_currency(M['das_anual_estimado'])}/ano). "
-                    f"Lucro presumido (32%) define base tributável de {fmt_currency(M['receita_pj_anual'] * 0.32)} para cálculo do PGBL "
-                    f"(dedução de até 12%). Contador {M['contador_nome']} em funcionamento. "
-                    f"Avaliação de holding patrimonial pendente para {M['holding_prazo']}."
-                ),
-            },
+            "impostos_pj": narrate_cascata(M.get("tributario_section"), ctx),
         }
 
     # ── Cenário de estresse "Sem renda do cônjuge" (ADR-167) ──────────────

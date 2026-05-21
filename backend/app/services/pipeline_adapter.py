@@ -36,8 +36,13 @@ from backend.app.models.decision import Decision
 from backend.app.models.goal import Goal
 from backend.app.models.risk import Risk
 from backend.app.models.task import Task
+from backend.app.models.workspace import Workspace
+from backend.app.schemas.business_profile import BusinessProfile
 from backend.app.services import task_service
-from pipeline.domain.goals_bundle import GoalsBundle
+from backend.app.services.tributario_input_builder import build_cascata_input_sync
+from pipeline.domain.goals_bundle import GoalsBundle, TributarioBundleSection
+from pipeline.domain.services.tributario.cascata_calculator import compute as cascata_compute
+from pipeline.domain.services.tributario.cascata_serialization import cascata_to_dict
 
 # Status traduzido do vocabulário interno para o usado pelo E5 legado (MD).
 _TASK_STATUS_LEGACY_LABEL: dict[str, str] = {
@@ -269,6 +274,103 @@ def _serialize_alocacao_goal(goal: Goal) -> dict[str, Any]:
     }
 
 
+# ═══════════════════════════════════════════════════════════════════════
+# Tributário — bundle["tributario"] (ADR-236 §D4)
+# ═══════════════════════════════════════════════════════════════════════
+
+_REGIME_LABELS: dict[str, str] = {
+    "mei": "MEI",
+    "simples": "Simples Nacional",
+    "lucro_presumido": "Lucro Presumido",
+    "lucro_real": "Lucro Real",
+}
+
+
+def _regime_to_label(regime: Optional[str] = None, anexo: Optional[str] = None) -> str:
+    # ``regime``/``anexo`` Optional: workspace incompleto degrada para
+    # "Perfil tributário incompleto" sem branch separada upstream.
+    if regime is None:
+        return "Perfil tributário incompleto"
+    base = _REGIME_LABELS.get(regime, regime)
+    if regime == "simples" and anexo:
+        return f"{base} — Anexo {anexo}"
+    return base
+
+
+_EMPTY_BP_SUMMARY: dict[str, Any] = {
+    "contador": None,
+    "holding_prazo_meses": None,
+    "anexo": None,
+}
+
+
+def _business_profile_summary(
+    ws: Optional[Workspace] = None,
+) -> tuple[Optional[BusinessProfile], dict[str, Any]]:
+    # ``ws`` Optional: ``db.get`` retorna None p/ workspace inexistente — degrada
+    # para summary vazio (workspace deletado durante request, edge case).
+    if ws is None or not ws.business_profile_json:
+        return None, _EMPTY_BP_SUMMARY
+    try:
+        bp = BusinessProfile(**ws.business_profile_json)
+    except (ValueError, TypeError):
+        return None, _EMPTY_BP_SUMMARY
+    return bp, {
+        "contador": bp.contador,
+        "holding_prazo_meses": bp.holding_prazo_meses,
+        "anexo": bp.anexo_simples,
+    }
+
+
+def _assemble_tributario_section(
+    bp_summary: dict[str, Any],
+    cascata_output_dict: dict[str, Any],
+    regime: Optional[str] = None,
+) -> TributarioBundleSection:
+    # ``regime`` Optional: bundle["tributario"] sempre presente; None vira
+    # estado "perfil pendente" no narrator (ADR-236 §D5).
+    return {
+        "regime": regime,
+        "regime_label": _regime_to_label(regime, bp_summary["anexo"]),
+        "cascata": cascata_output_dict,
+        "contador_nome": bp_summary["contador"],
+        "holding_prazo_meses": bp_summary["holding_prazo_meses"],
+        "_source": "db:business_profile_json + e3/e4/e1.6 derived",
+    }
+
+
+def _build_tributario_section_sync(
+    workspace_id: str, *, db: SyncSession
+) -> TributarioBundleSection:
+    """ADR-236 §D4: lê BP + agrega derived inputs + compute → seção do bundle."""
+    ws = db.get(Workspace, workspace_id)
+    bp, bp_summary = _business_profile_summary(ws)
+    cascata_input = build_cascata_input_sync(workspace_id, db=db)
+    cascata_output = cascata_compute(cascata_input)
+    return _assemble_tributario_section(
+        bp_summary,
+        cascata_to_dict(cascata_output),
+        regime=bp.regime if bp else None,
+    )
+
+
+async def _build_tributario_section_async(
+    workspace_id: str, *, db: AsyncSession
+) -> TributarioBundleSection:
+    """ADR-236 §D4 — versão async; delega `build_cascata_input_sync` via run_sync."""
+    ws = await db.get(Workspace, workspace_id)
+    bp, bp_summary = _business_profile_summary(ws)
+    cascata_input = await db.run_sync(
+        lambda sync_db: build_cascata_input_sync(workspace_id, db=sync_db)
+    )
+    cascata_output = cascata_compute(cascata_input)
+    return _assemble_tributario_section(
+        bp_summary,
+        cascata_to_dict(cascata_output),
+        regime=bp.regime if bp else None,
+    )
+
+
 # Mapa tipo → (chave no GoalsBundle, serializador).
 _GOAL_TYPE_MAP: dict[str, tuple[str, Any]] = {
     "INDEPENDENCIA_FINANCEIRA": ("independencia_financeira", _serialize_if_goal),
@@ -295,25 +397,19 @@ def build_goals_payload_sync(
     *,
     db: SyncSession,
 ) -> GoalsBundle:
-    """Reconstrói o ``GoalsBundle`` do workspace a partir do DB (sync — worker, ADR-180).
-
-    Workspace sem dados retorna bundle mínimo só com projeções A10.5 vazias e
-    ``_adapter_version=2``; seções dos goals (``independencia_financeira``,
-    ``aportes``, ``dolarizacao``, ``alocacao_alvo``) só aparecem se há Goal
-    vigente no DB.
-    """
+    """Reconstrói o ``GoalsBundle`` do workspace a partir do DB (sync — worker, ADR-180)."""
     payload: dict[str, Any] = {}
-
-    def _getter(ws, gtype):
-        return _current_goal_sync(ws, gtype, db=db)
-
-    _merge_goals_into_payload(payload, workspace_id, _getter)
-    # ADR-178/179 (Sprint A10.5) — projeções para card S10 e bubble S9.
-    # Sempre presentes (lista vazia se DB sem registros).
-    payload["top5_decisoes_projection"] = _project_top5_decisions_sync(workspace_id, db=db)
-    payload["risks_projection"] = _project_risks_bubble_sync(workspace_id, db=db)
+    _merge_goals_into_payload(payload, workspace_id, lambda ws, g: _current_goal_sync(ws, g, db=db))
+    payload["tributario"] = _build_tributario_section_sync(workspace_id, db=db)
+    _apply_projections_sync(payload, workspace_id, db=db)
     payload["_adapter_version"] = 2
     return payload  # type: ignore[return-value]
+
+
+def _apply_projections_sync(payload: dict[str, Any], workspace_id: str, *, db: SyncSession) -> None:
+    # ADR-178/179 — projeções S10/S9 sempre presentes (lista vazia se DB vazio).
+    payload["top5_decisoes_projection"] = _project_top5_decisions_sync(workspace_id, db=db)
+    payload["risks_projection"] = _project_risks_bubble_sync(workspace_id, db=db)
 
 
 async def _goals_by_type_async(workspace_id: str, *, db: AsyncSession) -> dict[str, Goal]:
@@ -343,6 +439,7 @@ async def build_goals_payload(
     payload: dict[str, Any] = {}
     goals_by_type = await _goals_by_type_async(workspace_id, db=db)
     _apply_goals_to_payload(payload, goals_by_type)
+    payload["tributario"] = await _build_tributario_section_async(workspace_id, db=db)
     # ADR-178/179 (Sprint A10.5) — projeções via mesmas queries da via sync.
     payload["top5_decisoes_projection"] = await _project_top5_decisions_async(workspace_id, db=db)
     payload["risks_projection"] = await _project_risks_bubble_async(workspace_id, db=db)

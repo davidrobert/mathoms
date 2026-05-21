@@ -235,6 +235,17 @@ def _safe_div(a, b, default=0):
     return a / b if b else default
 
 
+def _holding_prazo_legacy(trib_cfg: dict) -> str:
+    """Compat legacy: serializa ``holding_prazo_meses`` (ADR-236) como string."""
+    # ``summaries_narrator.s8`` lê string formatada legacy; cutover fica
+    # para ondas posteriores (P5/P6 do plano A16).
+    meses = trib_cfg.get("holding_prazo_meses")
+    if meses is None:
+        legacy = trib_cfg.get("holding_avaliacao_prazo", "")
+        return str(legacy) if legacy else ""
+    return f"{meses} meses"
+
+
 def _decisoes_titles_from_bundle(goals_cfg: dict) -> list[str]:
     """Lê títulos do ``top5_decisoes_projection`` do ``GoalsBundle`` (ADR-180)."""
     projection = goals_cfg.get("top5_decisoes_projection") or []
@@ -517,13 +528,16 @@ def load_metrics_from_e5(
         # === config/goals.json: seguros ===
         "seguro_vida_minimo": seguros.get("vida_term_minimo", 0),
         "seguro_vida_maximo": seguros.get("vida_term_maximo", 0),
-        # === Tributário (calculado a partir de parametros_fiscais.json + dados reais) ===
+        # === Tributário (ADR-236 §D4: bundle["tributario"] expandido) ===
+        # Legacy keys mantidas para compat de outros consumers (summaries_narrator.s8);
+        # narrator ChartsNarrator.impostos_pj usa exclusivamente `tributario_section`.
         "das_mensal_estimado": round(das_mensal, 2),
         "contador_mensal": trib_cfg.get("contador_mensal", 0),
-        "contador_nome": trib_cfg.get("contador_nome", ""),
+        "contador_nome": trib_cfg.get("contador_nome", "") or "",
         "contador_canal": trib_cfg.get("contador_canal_pagamento", ""),
-        "regime_obs": trib_cfg.get("regime_obs", ""),
-        "holding_prazo": trib_cfg.get("holding_avaliacao_prazo", ""),
+        "regime_obs": trib_cfg.get("regime_label") or trib_cfg.get("regime_obs", ""),
+        "holding_prazo": _holding_prazo_legacy(trib_cfg),
+        "tributario_section": trib_cfg,
         # === imóveis (rules-as-code, ADR-177) ===
         "yield_imoveis_potencial_pct_min": float(YIELD_POTENCIAL_FII_BR_PCT_MIN),
         "yield_imoveis_potencial_pct_max": float(YIELD_POTENCIAL_FII_BR_PCT_MAX),

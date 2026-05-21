@@ -246,3 +246,135 @@ async def test_build_config_overrides_includes_family_members(db):
         overrides = build_config_overrides_from_db(ws.id, db=sync_db)
     assert "family_members.json" in overrides
     assert overrides["family_members.json"]["membros"]["david"]["nome_curto"] == "David"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Tributário section — ADR-236 §D4
+# ═══════════════════════════════════════════════════════════════════════
+
+
+_EXPECTED_TRIBUTARIO_KEYS: set[str] = {
+    "regime",
+    "regime_label",
+    "cascata",
+    "contador_nome",
+    "holding_prazo_meses",
+    "_source",
+}
+
+_EXPECTED_CASCATA_KEYS: set[str] = {
+    "regime",
+    "regime_label",
+    "regime_nao_suportado",
+    "motivo_nao_suportado",
+    "receita_bruta",
+    "tributos_federais",
+    "iss_total",
+    "lucro_contabil_pj",
+    "pro_labore_bruto",
+    "inss_patronal",
+    "inss_empregado",
+    "irrf_pro_labore",
+    "lucros_distribuidos",
+    "renda_pf_tributavel_total",
+    "carga_total_pct",
+    "pgbl_base_anual",
+    "pgbl_limite_anual",
+    "pgbl_aplicavel",
+    "pgbl_motivo_inaplicavel",
+    "fator_r_pct",
+    "fator_r_faixa",
+    "fator_r_break_even_mensal",
+    "triggers",
+}
+
+
+@pytest.mark.asyncio
+async def test_tributario_section_shape_workspace_sem_perfil(db):
+    """Workspace sem ``business_profile_json`` retorna seção com regime=None."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+
+    payload = await build_goals_payload(ws.id, db=db)
+    section = payload["tributario"]
+    assert set(section.keys()) == _EXPECTED_TRIBUTARIO_KEYS
+    assert section["regime"] is None
+    assert section["regime_label"] == "Perfil tributário incompleto"
+    assert section["_source"] == "db:business_profile_json + e3/e4/e1.6 derived"
+
+    cascata = section["cascata"]
+    assert set(cascata.keys()) == _EXPECTED_CASCATA_KEYS
+    assert cascata["regime_nao_suportado"] is True
+    assert cascata["motivo_nao_suportado"] == "perfil_incompleto"
+
+
+_SIMPLES_BP_FIXTURE: dict = {
+    "contador": "Acme Contadores",
+    "regime": "simples",
+    "anexo_simples": "III",
+    "iss_aliquota_pct": 2.5,
+    "tipo_declaracao_ir": "completa",
+    "holding_prazo_meses": 18,
+}
+
+
+async def _set_business_profile(db, ws, bp_json: dict) -> None:
+    from backend.app.models.workspace import Workspace as WsModel
+
+    ws_db = await db.get(WsModel, ws.id)
+    ws_db.business_profile_json = bp_json
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_tributario_section_shape_workspace_simples_anexo_iii(db):
+    """Workspace com BP Simples Anexo III completo gera cascata calculada."""
+    ws = await factories.make_workspace(db)
+    await _set_business_profile(db, ws, _SIMPLES_BP_FIXTURE)
+    section = (await build_goals_payload(ws.id, db=db))["tributario"]
+    cascata = section["cascata"]
+    assert section["regime"] == "simples"
+    assert section["regime_label"] == "Simples Nacional — Anexo III"
+    assert section["contador_nome"] == "Acme Contadores"
+    assert section["holding_prazo_meses"] == 18
+    assert cascata["regime_nao_suportado"] is False
+    assert cascata["motivo_nao_suportado"] is None
+    # JSON-friendly serialization (Money/Decimal → float).
+    assert isinstance(cascata["carga_total_pct"], float)
+    assert isinstance(cascata["receita_bruta"], float)
+    assert isinstance(cascata["pgbl_limite_anual"], float)
+
+
+@pytest.mark.asyncio
+async def test_tributario_section_shape_lucro_real_unsupported(db):
+    """Lucro Real cai em ``regime_nao_suportado`` (V2 escopo)."""
+    ws = await factories.make_workspace(db)
+    await _set_business_profile(db, ws, {"regime": "lucro_real"})
+
+    payload = await build_goals_payload(ws.id, db=db)
+    section = payload["tributario"]
+    cascata = section["cascata"]
+    assert section["regime"] == "lucro_real"
+    assert cascata["regime_nao_suportado"] is True
+    assert cascata["motivo_nao_suportado"] == "lucro_real"
+
+
+@pytest.mark.asyncio
+async def test_tributario_section_shape_simples_sem_anexo_pendente(db):
+    """Simples sem ``anexo_simples`` cai em estado pendente — não inventa Anexo V."""
+    ws = await factories.make_workspace(db)
+    await _set_business_profile(db, ws, {"regime": "simples"})
+
+    payload = await build_goals_payload(ws.id, db=db)
+    section = payload["tributario"]
+    assert section["regime"] == "simples"
+    assert section["cascata"]["motivo_nao_suportado"] == "anexo_simples_pendente"
+
+
+@pytest.mark.asyncio
+async def test_tributario_section_always_present(db):
+    """Bundle sempre tem ``tributario`` — narrator nunca quebra por KeyError."""
+    ws = await factories.make_workspace(db)
+    await db.commit()
+    payload = await build_goals_payload(ws.id, db=db)
+    assert "tributario" in payload
