@@ -17,6 +17,8 @@ export type DocumentType =
   | "credit_card_bill"
   | "investment_report"
   | "irpf"
+  // ADR-238 (A17 L1 P3): informe anual avulso polimórfico, distinto de "irpf".
+  | "informe_rendimentos_anuais"
   | "e1_members_json"
   | "e1_5_baseline_json"
   | "other";

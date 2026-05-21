@@ -35,6 +35,13 @@ function UploadPrompt() {
       <p className="mt-1 text-xs text-muted-foreground">
         PDF, CSV, XLSX, JPG, PNG, JSON — até 100 arquivos, 50MB cada
       </p>
+      <p
+        className="mt-3 text-[0.7rem] italic text-muted-foreground"
+        data-testid="upload-fiscal-badge"
+      >
+        Informes fiscais (PGBL/VGBL, IRPF, rendimentos anuais) são usados para
+        análise patrimonial, não para preencher sua declaração.
+      </p>
     </>
   );
 }
