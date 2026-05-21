@@ -234,6 +234,7 @@
 | ADR-234 | adr | Proposto |  | Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) | `adr/234-sprint-status-paused.md` |
 | ADR-235 | adr | Proposto |  | Classificação `nu_proprietario`: imóvel em nu-propriedade com usufruto vitalício de terceiro | `adr/235-nu-proprietario-usufruto-vitalicio-de-terceiro.md` |
 | ADR-236 | adr | Proposto |  | Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados) | `adr/236-tributario-pj-cascata-fiscal-canonica.md` |
+| ADR-237 | adr | Decidido |  | Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) | `adr/237-monte-carlo-if-with-pmt.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

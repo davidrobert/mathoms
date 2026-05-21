@@ -21,6 +21,7 @@ def _config(
     retorno: float = 0.05,
     seed: int = 42,
     n: int = 10_000,
+    pmt: float = 0.0,  # aporte mensal em R$ — float só na ergonomia do teste (ADR-090)
 ) -> IFMonteCarloConfig:
     return IFMonteCarloConfig(
         patrimonio_investivel=Decimal(str(pv)),
@@ -30,6 +31,7 @@ def _config(
         n_simulacoes=n,
         horizonte_anos=40,
         seed=seed,
+        aporte_mensal=Decimal(str(pmt)),
     )
 
 
@@ -120,3 +122,64 @@ def test_resultado_sem_cone_campos_none():
     assert result.p10_ano_if is None
     assert result.p50_ano_if is None
     assert result.p90_ano_if is None
+
+
+# =============================================================================
+# ADR-237 — MC inclui aporte mensal (paridade com determinístico)
+# =============================================================================
+
+
+def test_pmt_zero_preserves_legacy_behavior():
+    """PMT=0 produz percentis idênticos ao caminho pré-ADR-237 (regression-safe)."""
+    cfg_legacy = _config(pv=800_000, fv=2_000_000, seed=42)
+    cfg_zero = _config(pv=800_000, fv=2_000_000, seed=42, pmt=0.0)
+    r_legacy = run_monte_carlo_if(cfg_legacy, ano_base=2026, idade_titular_atual=35)
+    r_zero = run_monte_carlo_if(cfg_zero, ano_base=2026, idade_titular_atual=35)
+    assert r_legacy.p10_ano_if == r_zero.p10_ano_if
+    assert r_legacy.p50_ano_if == r_zero.p50_ano_if
+    assert r_legacy.p90_ano_if == r_zero.p90_ano_if
+    assert r_legacy.prob_if_ate_idade_meta == r_zero.prob_if_ate_idade_meta
+
+
+def test_pmt_positivo_aumenta_prob_if():
+    """PMT > 0 ⇒ prob_if_ate_idade_meta sobe e p50_ano_if cai (ADR-237)."""
+    cfg_sem_aporte = _config(pv=600_000, fv=3_000_000, seed=42)
+    cfg_com_aporte = _config(pv=600_000, fv=3_000_000, seed=42, pmt=5_000.0)
+    r_sem = run_monte_carlo_if(cfg_sem_aporte, ano_base=2026, idade_titular_atual=35)
+    r_com = run_monte_carlo_if(cfg_com_aporte, ano_base=2026, idade_titular_atual=35)
+    assert r_com.prob_if_ate_idade_meta > r_sem.prob_if_ate_idade_meta
+    assert r_com.p50_ano_if is not None and r_sem.p50_ano_if is not None
+    assert r_com.p50_ano_if < r_sem.p50_ano_if
+
+
+def test_pmt_com_sigma_zero_converge_para_deterministico():
+    """sigma=0 ∧ PMT>0 ⇒ MC P50 ≡ projeção determinística (±1 ano)."""
+    pv, fv, r_anual, pmt = 800_000.0, 2_000_000.0, 0.05, 5_000.0
+    cfg = _config(pv=pv, fv=fv, sigma=0.0, retorno=r_anual, seed=42, pmt=pmt)
+    result = run_monte_carlo_if(cfg, ano_base=2026, idade_titular_atual=35)
+    assert result.exibir_cone is True
+    assert (
+        result.p50_ano_if == result.p10_ano_if == result.p90_ano_if
+    ), "sigma=0 deve colapsar P10=P50=P90"
+    pmt_anual = pmt * 12.0
+    w = pv
+    anos_deterministico = 0
+    for t in range(40):
+        w = w * (1 + r_anual) + pmt_anual
+        anos_deterministico = t + 1
+        if w >= fv:
+            break
+    assert abs(result.p50_ano_if - (2026 + anos_deterministico)) <= 1
+
+
+def test_pmt_alto_pv_baixo_levanta_prob_de_zero():
+    """PMT alto recupera prob >25% quando MC sem aporte daria 0% (bug do screenshot)."""
+    pv, fv, pmt = 600_000.0, 3_000_000.0, 8_000.0
+    cfg_sem = _config(pv=pv, fv=fv, seed=42)
+    cfg_com = _config(pv=pv, fv=fv, seed=42, pmt=pmt)
+    r_sem = run_monte_carlo_if(cfg_sem, ano_base=2026, idade_titular_atual=40, idade_meta_if=60)
+    r_com = run_monte_carlo_if(cfg_com, ano_base=2026, idade_titular_atual=40, idade_meta_if=60)
+    assert (
+        r_com.prob_if_ate_idade_meta > 0.25
+    ), f"PMT alto deveria levantar prob > 25%, got {r_com.prob_if_ate_idade_meta:.2%}"
+    assert r_com.prob_if_ate_idade_meta > r_sem.prob_if_ate_idade_meta + 0.20

@@ -154,9 +154,20 @@ function IFMonteCarloBlock({
     >
       <p className="mb-3 text-xs text-[var(--surface-muted-foreground)]">
         Projeção estocástica com volatilidade de{" "}
-        {(monteCarloIF.sigma_usado * 100).toFixed(0)}% a.a. Probabilidade de
-        atingir IF até a idade {monteCarloIF.idade_meta_usada}:{" "}
-        <strong>{(monteCarloIF.prob_if_ate_idade_meta * 100).toFixed(0)}%</strong>
+        {(monteCarloIF.sigma_usado * 100).toFixed(0)}% a.a.
+        {monteCarloIF.aporte_mensal_usado && monteCarloIF.aporte_mensal_usado > 0 ? (
+          <>
+            {" "}considerando aporte mensal de{" "}
+            <strong>{formatCurrency(monteCarloIF.aporte_mensal_usado)}</strong>{" "}
+            mantido em termos reais.
+          </>
+        ) : (
+          <>
+            {" "}sem aporte mensal — só o patrimônio atual compondo.
+          </>
+        )}{" "}
+        Probabilidade de atingir IF até a idade {monteCarloIF.idade_meta_usada}:{" "}
+        <strong>{formatProbability(monteCarloIF.prob_if_ate_idade_meta)}</strong>
       </p>
       <IFConeConeChart
         caminhoP10={monteCarloIF.caminho_p10}
@@ -167,6 +178,16 @@ function IFMonteCarloBlock({
       />
     </ReportCard>
   );
+}
+
+/** ADR-237 — formata probabilidade para evitar "0%" enganoso quando
+ * prob ∈ (0, 1%), e "100%" quando prob ∈ (99%, 100%). */
+export function formatProbability(prob: number): string {
+  if (prob <= 0) return "0%";
+  if (prob >= 1) return "100%";
+  if (prob < 0.01) return "<1%";
+  if (prob > 0.99) return ">99%";
+  return `${(prob * 100).toFixed(0)}%`;
 }
 
 /** A8.3 — Bloco de KPIs de TRS efetiva (4 cards) + caption + 2 banners + empty states. */

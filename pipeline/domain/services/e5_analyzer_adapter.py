@@ -542,6 +542,7 @@ class E5AnalyzerAdapter:
                 patrimonio_investivel=Decimal(str(max(0.0, _investivel))),
                 meta_if=Decimal(str(max(0.0, _cfg.if_meta))),
                 retorno_real_esperado=_cfg.retorno_real_anual_pct / 100.0,
+                aporte_mensal=Decimal(str(max(0.0, _cfg.aporte_mensal))),
             )
             _idade_atual = (self._reference_date.year - _cfg.titular_dob.year) - (
                 1

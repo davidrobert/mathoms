@@ -1,25 +1,4 @@
-"""IFProjector — projeção de Independência Financeira (Sessão A5a · Fase 8).
-
-Extrai ``analyze_goals`` (e5_analyze.py:971) + helpers
-``extract_if_target_from_life_plan``, ``extract_if_trs``,
-``extract_renda_passiva_from_life_plan``, ``calculate_edad`` em um domain
-service puro.
-
-Recebe :class:`IFProjectorConfig` (R9/ISP) com todos os parâmetros de
-projeção (TRS, retorno real anual, taxa de retirada, aporte mensal, DOBs).
-Sem I/O — a leitura de ``goals.json`` / ``life_plan_goals.md`` continua no
-shell que constrói a config.
-
-Retorna :class:`IFProjection` frozen com campos:
-- ``if_meta`` — R$ alvo
-- ``if_trs`` — % TRS
-- ``if_trs_monthly_value`` — R$ alvo × TRS mensal (renda passiva esperada)
-- ``if_pct`` — progresso (%)
-- ``if_gap`` — R$ faltante
-- ``prazo_anos_realista`` — math de juros compostos (PV+PMT)
-- ``idade_titular_if`` / ``idade_conjuge_if`` / ``ano_if``
-- ``renda_passiva_estimada_4pct`` — ``investivel × 4% / 12``
-"""
+"""IFProjector — projeção determinística + Monte Carlo de IF (A5a/F8 · ADR-237)."""
 
 from __future__ import annotations
 
@@ -326,6 +305,7 @@ class IFMonteCarloConfig:
     horizonte_anos: int = 40
     seed: int | None = None
     ano_base: int = 2026
+    aporte_mensal: Decimal = Decimal("0")
 
 
 @dataclass(frozen=True)
@@ -339,6 +319,9 @@ class MonteCarloIFResult:
     idade_meta_usada: int
     sigma_usado: float
     exibir_cone: bool
+    # ADR-237 — PMT mensal real assumido na simulação (R$/mês de hoje).
+    # Decimal por ADR-090; serializado como float no wire JSON pela e5_serialization.
+    aporte_mensal_usado: Decimal = Decimal("0")
     motivo_sem_cone: str | None = None
     # Cone paths — list of (year, brl_value) sorted by year; empty when exibir_cone=False.
     caminho_p10: tuple[tuple[int, float], ...] = field(default_factory=tuple)
@@ -353,6 +336,20 @@ def _lognormal_params(r: float, sigma: float) -> tuple[float, float]:
     return mu_log, sigma_log
 
 
+def _compute_patrimonios(pv: float, pmt_anual: float, log_retornos: np.ndarray) -> np.ndarray:
+    # ADR-237: PMT como anuidade ordinária (fim do ano); PMT=0 cai no legado.
+    if pmt_anual == 0.0:
+        return pv * np.exp(np.cumsum(log_retornos, axis=1))
+    n, h = log_retornos.shape
+    r_factors = np.exp(log_retornos)
+    patrimonios = np.empty((n, h), dtype=np.float64)
+    w = np.full(n, pv, dtype=np.float64)
+    for t in range(h):
+        w = w * r_factors[:, t] + pmt_anual
+        patrimonios[:, t] = w
+    return patrimonios
+
+
 def _simular_caminhos(
     pv: float,
     fv: float,
@@ -360,11 +357,11 @@ def _simular_caminhos(
     mu_log: float,
     sigma_log: float,
 ) -> tuple[list[int], int, np.ndarray, np.ndarray, np.ndarray]:
-    """Roda simulações vetorizadas; retorna (anos_atingiu, n_total, argmax, mask, patrimonios)."""
     rng = np.random.default_rng(config.seed)
     n, h = config.n_simulacoes, config.horizonte_anos
     log_retornos = rng.normal(mu_log, sigma_log, (n, h))
-    patrimonios = pv * np.exp(np.cumsum(log_retornos, axis=1))
+    pmt_anual = float(config.aporte_mensal) * 12.0
+    patrimonios = _compute_patrimonios(pv, pmt_anual, log_retornos)
     atingiu = patrimonios >= fv
     primeiro_true = np.argmax(atingiu, axis=1)
     alguma_vez = atingiu.any(axis=1)
@@ -435,6 +432,7 @@ def _resultado_sem_cone(
         idade_meta_usada=idade_meta,
         sigma_usado=config.sigma_anual,
         exibir_cone=False,
+        aporte_mensal_usado=config.aporte_mensal,
         motivo_sem_cone=motivo,
     )
 
@@ -470,6 +468,7 @@ def _build_mc_result(
         idade_meta_usada=idade_meta_if,
         sigma_usado=config.sigma_anual,
         exibir_cone=exibir,
+        aporte_mensal_usado=config.aporte_mensal,
         motivo_sem_cone=motivo,
         caminho_p10=cp[0],
         caminho_p50=cp[1],
