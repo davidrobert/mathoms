@@ -107,8 +107,17 @@ class TestMapDocType:
         assert _map_doc_type("irpfdeclaracao") == DocumentType.irpf
 
     def test_informerendimentos(self):
+        # ADR-238 A17 L1 P3: informe genérico legado mantém compat com .irpf
+        # até L2-L4 cobrirem todos os tipos canônicos; aluguel tem cutover
+        # próprio (ADR-216) — vai para .other temporariamente.
         assert _map_doc_type("informerendimentos") == DocumentType.irpf
-        assert _map_doc_type("informerendimentosaluguel") == DocumentType.irpf
+        assert _map_doc_type("informerendimentosaluguel") == DocumentType.other
+
+    def test_informe_previdencia_privada_mapping(self):
+        # ADR-238 D3: informe_previdencia_* dispara stage extract_informes_anuais.
+        assert (
+            _map_doc_type("informe_previdencia_privada") == DocumentType.informe_rendimentos_anuais
+        )
 
     def test_unknown(self):
         assert _map_doc_type("weird_type") == DocumentType.other

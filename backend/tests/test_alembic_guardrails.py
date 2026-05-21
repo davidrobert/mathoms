@@ -93,6 +93,13 @@ KNOWN_PRE_EXISTING_DRIFT: set[str] = {
     "modify_nullable:transaction_overrides:created_at:False",
     # type widened from VARCHAR(9) to Enum (PipelineStageStatus) sem migration:
     "modify_type:pipeline_stage_logs:status",
+    # ADR-238 A17 L1 P3: DocumentType ganhou `informe_rendimentos_anuais`.
+    # Migration `adr238informes2` faz `ALTER TYPE documenttype ADD VALUE` em
+    # Postgres (idempotente) e no-op em SQLite. Autogenerate detecta drift
+    # porque compara enum nativo SQLAlchemy contra metadata reflectida, mas
+    # a alteração já está versionada — só não é via batch_alter_table
+    # tradicional (que recriaria a tabela inteira).
+    "modify_type:documents:doc_type",
 }
 
 

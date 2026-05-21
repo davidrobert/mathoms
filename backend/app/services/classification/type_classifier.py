@@ -94,6 +94,32 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         supporting=(_c(r"Rendimento\s*(Bruto|L[íi]quido)"),),
         priority=2,
     ),
+    # ADR-238 (A17 L1) — Informe anual de Previdência Privada (PGBL/VGBL).
+    # MAIS específico que ``informerendimentos`` genérico abaixo → priority=2
+    # garante evaluação antes. Cobre layouts BrasilPrev / Bradesco Vida /
+    # Caixa Vida / Icatu / Mongeral / XP Seguros.
+    TypeRule(
+        code="informe_previdencia_privada",
+        dest_group="income_tax_br",
+        required=(
+            # Pelo menos um marcador forte de produto previdenciário.
+            _c(
+                r"\bPGBL\b|\bVGBL\b"
+                r"|Previd[êe]ncia\s*Privada\s*(?:Complementar)?"
+                r"|Plano\s*Gerador\s*de\s*Benef[ií]cio\s*Livre"
+                r"|Vida\s*Gerador\s*de\s*Benef[ií]cio\s*Livre"
+            ),
+        ),
+        supporting=(
+            _c(r"Tabela\s*Regressiva|Regime\s*Regressivo|Tributa[çc][ãa]o\s*Definitiva"),
+            _c(r"Tabela\s*Progressiva|Regime\s*Progressivo|Tributa[çc][ãa]o\s*Compens[aá]vel"),
+            _c(r"Contribui[çc][õo]es\s*(no\s*ano|anuais|do\s*per[ií]odo)"),
+            _c(r"Saldo\s*(em\s*31[/-]12|de\s*reserva|acumulado)"),
+            _c(r"Certificado|Proposta|Ap[oó]lice|N[uú]mero\s*do\s*Plano"),
+            _c(r"BrasilPrev|Bradesco\s*Vida|Caixa\s*Vida|Icatu|" r"Mongeral|XP\s*Seguros"),
+        ),
+        priority=2,
+    ),
     TypeRule(
         code="informerendimentos",
         dest_group="income_tax_br",
