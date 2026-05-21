@@ -7,6 +7,7 @@ status: ready
 created_at: "2026-05-20"
 consumed_at: null
 agent_role: senior-cto
+progress_notes: "P1 ✅ entregue 2026-05-21 (apps#390); P2–P6 pendentes — ver §Gap arquitetural P2."
 tags:
   - type/track
   - sprint/a16
@@ -62,32 +63,45 @@ Card S8 "Tributário PJ — Cascata Fiscal" no relatório premium tem 3 problema
 
 ## Critério de aceite — por fase
 
-### P1 — `BusinessProfile` expandido + UI captura (~1d, 1 PR)
+### P1 — `BusinessProfile` expandido + UI captura (~1d, 1 PR) ✅ ENTREGUE 2026-05-21 ([apps#390](https://github.com/davidrobert/mathoms/pull/390))
 
-- [ ] Migration Alembic `backend/alembic/versions/<hash>_adr236_business_profile_expanded.py`:
-  - `upgrade()`: `business_profile_json` JSONB ganha 4 chaves novas via Pydantic `extra=forbid`. Workspaces existentes ficam com `None` até consultor preencher.
-  - `downgrade()`: reversível (Pydantic relaxa para o schema A10.7).
-- [ ] `backend/app/schemas/business_profile.py` — `BusinessProfile` adiciona `anexo_simples`, `iss_aliquota_pct`, `cnae_principal`, `tipo_declaracao_ir` com `model_config={"extra":"forbid"}` ([[ADR-236]] §D1 code block).
-- [ ] Endpoint PATCH `/workspaces/{id}/business-profile` — `response_model=BusinessProfileResponse` ([[ADR-102]] R18). `make update-openapi-snapshot` commitado.
-- [ ] UI captura no console interno (`ops.mathoms.ai`, [[ADR-116]]) — form com validação Pydantic-side.
-- [ ] Tests: `backend/tests/test_business_profile.py` cobre cada Literal/range; `backend/tests/api/test_business_profile_patch.py` cobre o endpoint.
-- [ ] Workspace incompleto degrada graciosamente (sem campo, sem crash; UI mostra estado "perfil pendente").
+- [x] Migration Alembic `backend/alembic/versions/adr236bizprofile1_business_profile_expanded.py`:
+  - `upgrade()`: revision no-op de audit trail (coluna `business_profile_json` é JSON livre — enforcement é Pydantic-side).
+  - `downgrade()`: reversível.
+- [x] `backend/app/schemas/business_profile.py` — `BusinessProfile` adiciona `anexo_simples`, `iss_aliquota_pct`, `cnae_principal`, `tipo_declaracao_ir` com `model_config={"extra":"forbid"}` ([[ADR-236]] §D1 code block).
+- [x] Endpoint PATCH `/workspaces/{id}/business-profile` (A10.7) auto-extende via `BusinessProfile` BaseModel. `make update-openapi-snapshot` commitado.
+- [x] **Admin endpoint novo** `/admin/workspaces/{id}/business-profile` (GET + PATCH) com `require_internal_operator` em `backend/app/api/admin/workspaces.py` — consultor preenche sem ser membro. Camada de serviço em `backend/app/services/internal_ops/update_workspace_business_profile.py` com audit log automático (`workspace.update_business_profile`).
+- [~] UI captura no console interno frontend (`ops.mathoms.ai`, [[ADR-116]]) — **deferred** para F7F-Remote (console interno UI ainda não materializou em frontend; admin endpoint backend cobre operator workflow via API direta no curto prazo).
+- [x] Tests: `backend/tests/test_business_profile.py` (27 casos, +12 novos) cobre cada Literal/range; `backend/tests/api/admin/test_workspaces.py` (9 casos) cobre admin endpoint + audit + 401/404 + rejeições.
+- [x] Workspace incompleto degrada graciosamente (Pydantic permite todos campos None; admin GET retorna `{}` para workspace recém-criado).
 
 ### P2 — Derivação do pipeline (E3/E4/E1.6) (~2d, 1 PR)
 
-- [ ] `category_template` ganha 5 labels novas: `pro_labore`, `lucros_distribuidos`, `das_simples`, `folha_pj`, `iss`. Migration Alembic.
-- [ ] Discriminadores estruturais no classifier E4:
-  - `pro_labore` — origem `account_type=PJ` + destino `member_key=titular_pj` + descrição contém variantes ("PRO-LABORE", "PROLABORE", "PRO LABORE").
-  - `lucros_distribuidos` — origem `account_type=PJ` + destino `member_key=titular_pj` que **não** matched `pro_labore` (resíduo).
+> ⚠️ **Gap arquitetural descoberto em sessão de scouting 2026-05-21** — antes
+> de codar, leia §"Gap arquitetural P2" abaixo. A ADR-236 §D2 assume campos
+> `account_type=PJ` e `member_key=titular_pj` que **não existem** no
+> `transaction_classifier.py` atual; o classifier opera sobre `descricao_raw`
+> + `tipo_conta` (estrato/fatura) + sinal do valor. Decisão arquitetural
+> precisa ser tomada antes de codar P2 (3 opções listadas no §gap).
+
+- [ ] **DECISÃO ARQUITETURAL pré-P2:** escolher entre (a) estender modelo de
+  transação/conta com `account_kind=pj`, (b) usar `pj_source_mapping`
+  (metadata blob em `__categorization_metadata__`) como proxy de PJ-side,
+  ou (c) reformular ADR-236 §D2 para discriminar por descrição + member
+  match (sem `account_type`). Co-design `senior-cto` + `financial-planner`
+  recomendado.
+- [ ] `category_template` ganha 5 labels novas: `pro_labore`, `lucros_distribuidos`, `das_simples`, `folha_pj`, `iss`. **Bump v1→v2** (seed atual `_TEMPLATE_VERSION=1` é imutável; alterações futuras → v2 conforme docstring do `a5b6c7d8e9f0_seed_category_template_v1.py:40`). Nova migration `<hash>_seed_category_template_v2_pj_labels.py`.
+- [ ] Discriminadores estruturais no classifier E4 (pendente decisão acima):
+  - `pro_labore` — descrição contém variantes ("PRO-LABORE", "PROLABORE", "PRO LABORE") + (origem PJ via opção (a)/(b)/(c)) + (destino sócio).
+  - `lucros_distribuidos` — origem PJ + destino sócio + **não** matched `pro_labore` (resíduo).
   - `das_simples` — descrição com "DAS" + débito de conta PJ.
-  - `folha_pj` — pagamento a `member_key` ≠ titular_pj (CLT).
-  - `iss` — descrição com "ISS" + débito de conta PJ (só relevante em Presumido).
-- [ ] Leitor de `outras_rendas_tributaveis_pf_anual` via `extract_irpf_full` artifact ([[ADR-157]]) — soma da ficha "Rendimentos Tributáveis" (códigos relevantes a confirmar com `financial-planner` se necessário; lista canônica: aluguéis, salários CLT, RPA, ganhos tributáveis).
-- [ ] Gate dogfood: workspace `5@5.com` (ou equivalente) — E4 classifica 100% das transferências PJ→sócio em `pro_labore` vs `lucros_distribuidos`; total bate com IRPF declarado (±5%).
+  - `folha_pj` — pagamento a `member_key` ≠ titular_pj (CLT da PJ).
+  - `iss` — descrição com "ISS" + débito de conta PJ.
+- [ ] Leitor de `outras_rendas_tributaveis_pf_anual` em novo módulo `pipeline/domain/services/tributario/irpf_renda_tributavel.py` — agrega `rendimentos_pj[].valor_liquido` + `rendimentos_pf[].valor` do artifact `extract_irpf_full` ([[ADR-157]], schema `config/schemas/e16_irpf_full.schema.json`). Money em `Decimal` string ADR-090.
+- [ ] Gate dogfood: workspace dogfood — E4 classifica 100% das transferências PJ→sócio em `pro_labore` vs `lucros_distribuidos`; total bate com IRPF declarado (±5%).
 - [ ] Tests:
-  - `tests/test_e4_classifier.py::test_pro_labore_vs_lucros_distribuidos_disambiguation`
-  - `tests/test_e4_classifier.py::test_folha_pj_excludes_titular_pj`
-  - `tests/test_irpf_renda_tributavel_extraction.py` (novo)
+  - `tests/unit/pipeline/test_transaction_classifier_pj_labels.py` (5 casos: 1 por label novo).
+  - `tests/unit/pipeline/test_irpf_renda_tributavel.py` (agregação + casos vazio/parcial).
 
 ### P3 — Calculator canônico (~2d, 1 PR)
 
@@ -225,9 +239,40 @@ python3 dev/build_doc_index.py --check
 make update-openapi-snapshot
 ```
 
+## Gap arquitetural P2 (scouting 2026-05-21)
+
+> Descoberto após P1 entregar. **Precisa de decisão antes de codar P2.**
+
+A ADR-236 §D2 assume que o classifier E4 pode discriminar transações por:
+
+- `account_type=PJ` (origem é conta PJ vs PF)
+- `member_key=titular_pj` (destino é o sócio principal da PJ)
+
+`pipeline/domain/services/transaction_classifier.py:287-395` **não opera sobre nenhum desses conceitos**. O classifier atual examina:
+
+- `description` (normalizado upper, keyword match)
+- `tipo_conta` ("extrato" / "fatura" / `fatura.*`)
+- `valor` (deduz `tipo=credito|debito` por sinal)
+- `banco_raw` (apenas para learned_rules_v2)
+- `titular` (string livre — não estruturada como `member_key`)
+
+`account_type=PJ` **não existe** no modelo. `member_key` **não existe**. `titular_pj` **não existe**.
+
+Três opções para resolver, ordenadas por escopo:
+
+1. **(a) Extensão de modelo** — adicionar campo `account_kind: Literal["pf", "pj"]` em `BankAccount` + `family_members.is_titular_pj` flag. Migration + propagação até o classifier. ~1.5d, mais limpo, mas espalha schema mudanças.
+
+2. **(b) Proxy via `pj_source_mapping`** — usar o metadata blob já existente em `__categorization_metadata__` (linhas 903-915 de `a5b6c7d8e9f0_seed_category_template_v1.py`). Qualquer transação cuja descrição matched `pj_source_mapping` keys é PJ-side. Pró-labore = match em pj_source_mapping + descrição contém "PRO-LABORE". Pragmático; reusa infra. ~0.5d, mas frágil (depende de o mapping estar completo).
+
+3. **(c) Reformular ADR-236 §D2** — remover `account_type=PJ`/`member_key` da especificação; discriminar por descrição-only + janela de tempo. ~0.5d, mas reduz precisão do classifier (false-positives em workspace multi-membro).
+
+**Recomendação** (do agente que entregou P1): opção **(b) proxy `pj_source_mapping`** para P2 MVP; opção (a) como FU se precisão V1 ficar abaixo de 90% no gate dogfood. Não chamar `financial-planner` — questão é puramente arquitetural. Co-design `senior-cto` antes de codar.
+
+Ver também: §"Decisão arquitetural pré-P2" no critério de aceite de P2 acima.
+
 ## Riscos
 
-- **R1 · Classifier E4 confunde pró-labore com salário CLT do cônjuge** (P2) — Mitigação: discriminador estrutural exige `member_key=titular_pj` + `account_type=PJ` na origem. Teste com workspace multi-membro obrigatório.
+- **R1 · Classifier E4 confunde pró-labore com salário CLT do cônjuge** (P2) — Mitigação: após decidir gap arquitetural acima, discriminador exige PJ-side (via opção a/b/c) + descrição match. Teste com workspace multi-membro obrigatório.
 - **R2 · Workspace sem IRPF processado — base PGBL = 0 mesmo com renda real** (P3) — Mitigação: estado UI explícito "renda tributável PF não detectada — sem IRPF processado"; CTA upload IRPF. Não infere base PGBL de pró-labore apenas (sub-estima quando há aluguéis).
 - **R3 · Fator-R cai por sazonalidade (férias coletivas) e gera trigger T2 falso** (P3/P4) — Mitigação: janela 12m móvel suaviza; copy "fator-R móvel 12m" deixa premissa explícita; threshold "proximidade < 5pp" só dispara T2 se persiste 3 meses.
 - **R4 · LGPD — telemetria de carga tributária vaza** (P6) — Mitigação: `tests/test_telemetria_lgpd.py::test_tributario_no_money_in_logs` é gate hard; denylist de campos. Risco P0 mas controlado por gate.
