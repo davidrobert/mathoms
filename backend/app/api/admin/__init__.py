@@ -13,6 +13,7 @@ from backend.app.api.admin.metrics import router as metrics_router
 from backend.app.api.admin.planner_telemetry import router as planner_telemetry_router
 from backend.app.api.admin.reports import router as reports_router
 from backend.app.api.admin.users import router as users_router
+from backend.app.api.admin.workspaces import router as workspaces_router
 from backend.app.core.config import settings
 
 
@@ -24,6 +25,7 @@ def _require_ui_enabled() -> None:
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(_require_ui_enabled)])
 router.include_router(login_router)
 router.include_router(users_router)
+router.include_router(workspaces_router)
 router.include_router(documents_router)
 router.include_router(metrics_router)
 router.include_router(reports_router)

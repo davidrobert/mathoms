@@ -39,6 +39,10 @@ from backend.app.services.internal_ops.scope import (
 from backend.app.services.internal_ops.set_developer_flag import set_developer_flag
 from backend.app.services.internal_ops.update_user_email import update_user_email
 from backend.app.services.internal_ops.update_user_profile import update_user_profile
+from backend.app.services.internal_ops.update_workspace_business_profile import (
+    get_workspace_business_profile,
+    update_workspace_business_profile,
+)
 
 __all__ = [
     "AuditRecord",
@@ -65,4 +69,6 @@ __all__ = [
     "ReportSummary",
     "list_user_workspaces",
     "UserWorkspaceSummary",
+    "get_workspace_business_profile",
+    "update_workspace_business_profile",
 ]
