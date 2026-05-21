@@ -428,6 +428,7 @@
 | CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO | changelog-entry |  | A15 |  | `sprint/A15/changelog/CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO.md` |
 | CHG-2026-05-20-FEAT-ADR-235-NU-PROPRIETARIO | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-20-FEAT-ADR-235-NU-PROPRIETARIO.md` |
 | CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS.md` |
+| CHG-2026-05-21-DOCS-A17-L3-WISE-ADDED | changelog-entry |  | A17 |  | `sprint/A17/changelog/CHG-2026-05-21-DOCS-A17-L3-WISE-ADDED.md` |
 | CHG-2026-05-21-DOCS-ADR-238-PROPOSTO | changelog-entry |  | A17 |  | `sprint/A17/changelog/CHG-2026-05-21-DOCS-ADR-238-PROPOSTO.md` |
 | CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE.md` |
 | CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF.md` |
@@ -467,7 +468,7 @@
 | A12.sunset-disk-artifact | lane | open | A12 | Sunset DiskArtifactStore + flag MATHOMS_USE_DB_ARTIFACTS + CLI standalone | `sprint/A12/lanes/A12-sunset-disk-artifact-cleanup.md` |
 | A17.l1 | lane | open | A17 | Informes anuais — L1 previdência privada (PGBL/VGBL, BrasilPrev e seguradoras) | `sprint/A17/lanes/A17-l1-previdencia.md` |
 | A17.l2 | lane | planned | A17 | Informes anuais — L2 financeiro PJ (C6 PJ, Stone, adquirentes) | `sprint/A17/lanes/A17-l2-financeiro-pj.md` |
-| A17.l3 | lane | planned | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |
+| A17.l3 | lane | planned | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |
 | A17.l4 | lane | planned | A17 | Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) | `sprint/A17/lanes/A17-l4-proventos.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
@@ -566,7 +567,7 @@
 | TRACK-a16-adr236-tributario-pj-cascata | track | ready | A16 | Track A16 — Tributário PJ Cascata Fiscal: BusinessProfile expandido + calculator + narrator + card UI (6 PRs) | `sprint/A16/tracks/a16-adr236-tributario-pj-cascata.md` |
 | TRACK-a17-l1-previdencia-privada | track | ready | A17 | Track A17 L1 — Previdência privada (PGBL/VGBL): schema-base + parser LLM + FiscalAnalyzer polimórfico + UI | `sprint/A17/tracks/a17-l1-previdencia-privada.md` |
 | TRACK-a17-l2-financeiro-pj | track | ready | A17 | Track A17 L2 — Financeiro PJ (C6 PJ, Stone, adquirentes): sub-schema + InformeQuery integration com ADR-236 | `sprint/A17/tracks/a17-l2-financeiro-pj.md` |
-| TRACK-a17-l3-financeiro-pf | track | ready | A17 | Track A17 L3 — Financeiro PF (6 bancos + XP Investimentos): 4 quadros RFB + snapshot 31/12 | `sprint/A17/tracks/a17-l3-financeiro-pf.md` |
+| TRACK-a17-l3-financeiro-pf | track | ready | A17 | Track A17 L3 — Financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda): 4 quadros RFB + snapshot 31/12 + conta no exterior | `sprint/A17/tracks/a17-l3-financeiro-pf.md` |
 | TRACK-a17-l4-proventos-acoes | track | ready | A17 | Track A17 L4 — Proventos ações (XP Proventos, Itaúsa): eventos por ativo + yield-on-cost S3 | `sprint/A17/tracks/a17-l4-proventos-acoes.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |

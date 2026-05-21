@@ -42,9 +42,9 @@ tags:
 
 ICP wealth-tech BR coleciona, todo ano, um **conjunto heterogêneo de Informes de Rendimentos anuais** emitidos por cada instituição financeira (banco PF, banco/adquirente PJ, corretora, seguradora de previdência privada, holding pagadora de dividendos, imobiliária). Esses informes alimentam a declaração IRPF, mas têm valor próprio: são **fontes primárias granulares** (por produto, por ticker, por plano) que a declaração agrega ou arredonda; são entregues entre janeiro e março, antes da declaração ser fechada; e existem para o ano corrente mesmo quando a declaração do ano-base anterior ainda é a única disponível.
 
-Sessão de validação 2026-05-21 (workspace dogfood) com 14 PDFs reais — BrasilPrev 2025 (PGBL), Itaú/Santander/Caixa/Nubank/C6 PF, XP Investimentos + XP Proventos, Itaúsa (holding), C6 PJ + Stone PJ, e o Informe de Rendimento (Einstein) genérico — revelou três problemas em produção:
+Sessão de validação 2026-05-21 (workspace dogfood) com 15 PDFs reais — BrasilPrev 2025 (PGBL), Itaú/Santander/Caixa/Nubank/C6 PF, XP Investimentos + XP Proventos, Itaúsa (holding), C6 PJ + Stone PJ, Wise (conta multi-moeda no exterior), e o Informe de Rendimento (Einstein) genérico — revelou três problemas em produção:
 
-1. **Cobertura quase nula.** O único informe anual modelado end-to-end hoje é o de aluguel QuintoAndar ([[ADR-216]] D9, sufixo `-2_informe_aluguel.json`). O classifier ([backend/app/services/classification/type_classifier.py](../../backend/app/services/classification/type_classifier.py)) tem regex genérico `informerendimentos` extremamente restrito (exige literal "Informe de Rendimentos Financeiros" ou "Informe Anual de Rendimentos"). Dos 14 PDFs do batch, ~12 caem em `.other` silencioso ou são mal-classificados.
+1. **Cobertura quase nula.** O único informe anual modelado end-to-end hoje é o de aluguel QuintoAndar ([[ADR-216]] D9, sufixo `-2_informe_aluguel.json`). O classifier ([backend/app/services/classification/type_classifier.py](../../backend/app/services/classification/type_classifier.py)) tem regex genérico `informerendimentos` extremamente restrito (exige literal "Informe de Rendimentos Financeiros" ou "Informe Anual de Rendimentos"). Dos 15 PDFs do batch, ~13 caem em `.other` silencioso ou são mal-classificados.
 
 2. **Mapping semanticamente errado.** [`map_e0_doc_type_to_document_type`](../../backend/app/services/document_classification.py) traduz qualquer `informerendimento*` para `DocumentType.irpf`, rota que dispara o stage [[ADR-157]] `extract_irpf_full` (esperando declaração IRPF completa, não informe avulso). Falsos positivos quebram o pipeline silenciosamente.
 
@@ -62,11 +62,18 @@ Adotar **stage único `extract_informes_anuais` paralelo ao `extract_irpf_full`,
 |---|---|---|
 | `previdencia_privada` | BrasilPrev (Bradesco Vida, Caixa Vida, Icatu por extensão) | PGBL/VGBL, regime tributação progressivo vs regressivo, contribuições + saldo 31/12 |
 | `financeiro_pj` | C6 PJ, Stone PJ (Cielo, Rede por extensão) | Receita bruta + retenções IR/CSLL/PIS/COFINS/ISS por regime tributário |
-| `financeiro_pf` | Itaú, Santander, Caixa, Nubank, PicPay, C6 PF, XP Investimentos | 4 quadros RFB (tributáveis, isentos, exclusiva, bens/direitos) + snapshot 31/12 por produto |
+| `financeiro_pf` | Itaú, Santander, Caixa, Nubank, PicPay, C6 PF, XP Investimentos, **Wise (multi-moeda, conta no exterior)** | 4 quadros RFB (tributáveis, isentos, exclusiva, bens/direitos) + snapshot 31/12 por produto; suporta `moeda` (BRL default, USD/EUR/GBP etc) para Wise/contas no exterior |
 | `proventos_acoes` | XP Proventos, Itaúsa (corretora multi-ativo + holding pagadora direta) | Eventos por ativo: dividendo, JCP, rendimento FII, bonificação; CNPJ pagador ≠ CNPJ fonte que emite |
 | `aluguel_imobiliaria` | QuintoAndar (já modelado — [[ADR-216]] D9) | Receitas + retenções por imóvel/locatário |
 
 Itaúsa (holding) é caso de `proventos_acoes` com 1 ativo, não tipo separado. Bancos PF e XP Investimentos compartilham o mesmo layout RFB de 4 quadros, não vale fragmentar por instituição.
+
+**Wise (multi-moeda no exterior)** é caso de `financeiro_pf` com nuances específicas — não justifica tipo novo, mas exige que o sub-schema `informe_pf` modele `moeda` em saldos e rendimentos (default `BRL`, aceita `USD`/`EUR`/`GBP`/`...`). Pegadinhas fiscais que o calculator/analyzer precisa tratar:
+
+- **Saldo em conta-corrente no exterior em moeda estrangeira** → código RFB 62 em `bens_direitos[]` (distinto de código 41 doméstico). Valor convertido por PTAX 31/12 ([[ADR-135]] `market_rates`).
+- **Variação cambial sobre saldo** **não é "rendimento"** — é ganho de capital em moeda estrangeira (Lei 9.250/1995, alíquota 15% via DARF GCAP). Não cair no bucket `rendimentos_isentos[]`.
+- **Juros pagos sobre saldo em moeda estrangeira** vão em rendimentos tributáveis recebidos do exterior (carnê-leão, código 13) — IR retido na fonte se houver tratado de bitributação, raro para PF.
+- **CBE (Capital Brasileiro no Exterior, BACEN)** acima de USD 1MM em ativos no exterior é **fora do escopo** — Mathoms não emite CBE, só sinaliza a obrigação no warning de E5 quando saldo Wise + outros exteriores cruza o threshold.
 
 ### D2 — Schema-base polimórfico com Discriminated Union
 

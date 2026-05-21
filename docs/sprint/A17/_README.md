@@ -12,7 +12,7 @@ sprint_status: candidate
 
 ## Resumo
 
-Sprint dedicada a **4 ondas (lanes) que destravam ingestão de Informes de Rendimentos anuais avulsos** — fonte fiscal primária paralela ao E1.6 ([[ADR-157]]) e generalização do padrão [[ADR-216]] (informe de aluguel). Diagnóstico em sessão dogfood 2026-05-21 com 14 PDFs reais: ~12 caem em `.other` silencioso ou são mal-classificados como `irpf`.
+Sprint dedicada a **4 ondas (lanes) que destravam ingestão de Informes de Rendimentos anuais avulsos** — fonte fiscal primária paralela ao E1.6 ([[ADR-157]]) e generalização do padrão [[ADR-216]] (informe de aluguel). Diagnóstico em sessão dogfood 2026-05-21 com 15 PDFs reais: ~13 caem em `.other` silencioso ou são mal-classificados como `irpf`.
 
 [[ADR-238]] decidiu **stage único `extract_informes_anuais` paralelo ao `extract_irpf_full`**, com 5 tipos canônicos polimórficos (`previdencia_privada`, `financeiro_pj`, `financeiro_pf`, `proventos_acoes`, `aluguel_imobiliaria`), cascade de fontes com declaração entregue vencendo informe, e rampup em 4 ondas com sinergia explícita com [[ADR-236]].
 
@@ -30,11 +30,11 @@ Entrega: classifier + `InformeRendimentosBase` polimórfico + sub-schema `inform
 
 Entrega: sub-schema `informe_pj.schema.json` (receita bruta + retenções IR/CSLL/PIS/COFINS/ISS por regime), parser LLM, `InformeQuery` service em `backend/app/application/informes/`, integração com [`irpf_renda_tributavel.py`](../../../pipeline/domain/services/tributario/irpf_renda_tributavel.py), catálogo (C6 PJ, Stone PJ via `tax_regime`).
 
-### L3 — `financeiro_pf` (4-5 PRs · 6 bancos + corretora)
+### L3 — `financeiro_pf` (4-5 PRs · 6 bancos + corretora + Wise)
 
-Snapshot 31/12 alimenta `consolidate_baseline` (E1.5c). Maior volume de PDFs (7 dos 14 do batch).
+Snapshot 31/12 alimenta `consolidate_baseline` (E1.5c). Maior volume de PDFs (8 dos 15 do batch). **Inclui Wise (multi-moeda, conta no exterior)** — schema modela campo `moeda` (BRL default, aceita USD/EUR/GBP) e ponteiro PTAX 31/12 via `market_rates` ([[ADR-135]]); pegadinhas de código RFB 62, ganho de capital cambial e CBE BACEN documentadas em [[ADR-238]] §D1.
 
-Entrega: sub-schema `informe_pf.schema.json` (4 quadros RFB), parser LLM (Haiku — layout padronizado), regra "informe 31/12 vence extrato D+1", catálogo (Itaú, Santander, Caixa, Nubank, PicPay, C6 PF, XP Investimentos — todos já no seed atual menos XP).
+Entrega: sub-schema `informe_pf.schema.json` (4 quadros RFB + `moeda`), parser LLM (Haiku — layout padronizado), regra "informe 31/12 vence extrato D+1", catálogo (Itaú, Santander, Caixa, Nubank, PicPay, C6 PF, XP Investimentos, **Wise** — todos já no seed atual menos `xpinvestimentos`).
 
 ### L4 — `proventos_acoes` (2-3 PRs · XP Proventos + Itaúsa)
 
