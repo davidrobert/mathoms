@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models import (
     CLASSIFICATION_LOCADO,
+    CLASSIFICATION_NU_PROPRIETARIO,
     CLASSIFICATION_RESIDENCIA_PRINCIPAL,
     CLASSIFICATION_USO_PESSOAL,
     OVERRIDE_SOURCE_USER_MANUAL,
@@ -181,6 +182,23 @@ async def test_classification_check_constraint_rejects_garbage(db: AsyncSession)
     )
     with pytest.raises(Exception):
         await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_classification_check_constraint_accepts_nu_proprietario(db: AsyncSession):
+    """ADR-235: enum estendido com nu_proprietario passa na CHECK constraint."""
+    ws = await _make_workspace(db)
+    p = await _make_property(db, ws)
+    o = WorkspacePropertyOverride(
+        workspace_id=ws.id,
+        property_id=p.id,
+        classification=CLASSIFICATION_NU_PROPRIETARIO,
+        override_source=OVERRIDE_SOURCE_USER_MANUAL,
+    )
+    db.add(o)
+    await db.commit()
+    await db.refresh(o)
+    assert o.classification == "nu_proprietario"
 
 
 @pytest.mark.asyncio

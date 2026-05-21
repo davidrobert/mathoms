@@ -88,15 +88,24 @@ def test_filter_investment_properties_segrega_residencia_e_uso_pessoal():
         _property(property_id="p4", classification="comercial"),
         _property(property_id="p5", classification="especulacao"),
         _property(property_id="p6", classification="desconhecido"),
+        # ADR-235: nu_proprietario fora do denominador de cap rate
+        _property(property_id="p7", classification="nu_proprietario"),
     ]
     investment, excluded = filter_investment_properties(props)
 
     assert {p.property_id for p in investment} == {"p1", "p4", "p5"}
-    assert {e.property_id for e in excluded} == {"p2", "p3", "p6"}
+    assert {e.property_id for e in excluded} == {"p2", "p3", "p6", "p7"}
     motivos = {e.classification: e.motivo for e in excluded}
     assert "Residência principal" in motivos["residencia_principal"]
     assert "uso pessoal" in motivos["uso_pessoal"].lower()
     assert "pendente" in motivos["desconhecido"].lower()
+
+
+def test_nu_proprietario_nao_entra_em_investment_classifications():
+    """ADR-235: nu_proprietario fora de INVESTMENT_CLASSIFICATIONS — cap rate
+    indefinido (não puxa média do portfolio pra baixo).
+    """
+    assert "nu_proprietario" not in INVESTMENT_CLASSIFICATIONS
 
 
 # ────────────────────────── _confidence_for cascade ────────────────────────

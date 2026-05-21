@@ -1,10 +1,13 @@
-"""Unit tests for `split_imoveis_with_overrides` (ADR-215 P3)."""
+"""Unit tests for `split_imoveis_with_overrides` (ADR-215 P3 · ADR-235)."""
 
 from __future__ import annotations
 
 from pipeline.domain.services.patrimonio_calculator import (
     CLASSIFICATION_RESIDENCIA_PRINCIPAL,
     split_imoveis_with_overrides,
+)
+from pipeline.domain.services.patrimonio_imovel_classifier import (
+    split_imoveis_geradores_vs_nao_geradores,
 )
 
 
@@ -64,7 +67,15 @@ class TestSplitImoveisWithOverrides:
     def test_classification_uso_pessoal_goes_to_outros(self):
         """Itens marcados uso_pessoal/locado/etc não viram residência."""
         titular = {"imoveis": [_make_imovel("p1", 100.0)]}
-        for classification in ["uso_pessoal", "locado", "comercial", "especulacao", "desconhecido"]:
+        non_principal = [
+            "uso_pessoal",
+            "locado",
+            "comercial",
+            "especulacao",
+            "nu_proprietario",  # ADR-235: paridade com uso_pessoal
+            "desconhecido",
+        ]
+        for classification in non_principal:
             r, o = split_imoveis_with_overrides(
                 titular_bens=titular,
                 conjuge_bens={},
@@ -72,6 +83,21 @@ class TestSplitImoveisWithOverrides:
             )
             assert r == 0.0, f"classification={classification}"
             assert o == 100.0, f"classification={classification}"
+
+    def test_nu_proprietario_goes_to_outros_not_geradores(self):
+        """ADR-235: nu_proprietario é cat_2 não-gerador (paridade uso_pessoal)."""
+        titular = {
+            "imoveis": [
+                _make_imovel("p-nu", 800_000.0, "nu-proprietário"),
+                _make_imovel("p-locado", 400_000.0, "Apto locado"),
+            ]
+        }
+        overrides = {"p-nu": "nu_proprietario", "p-locado": "locado"}
+        geradores, nao_geradores = split_imoveis_geradores_vs_nao_geradores(
+            titular_bens=titular, conjuge_bens={}, overrides_by_property_id=overrides
+        )
+        assert geradores == 400_000.0
+        assert nao_geradores == 800_000.0
 
     def test_property_without_override_goes_to_outros(self):
         """Pós-sunset do fallback keyword (ADR-215 §1): imóvel sem override

@@ -25,7 +25,7 @@
 #   - ADR breaking quando DSL muda; tunning de paths/labels é editorial
 # ==============================================================================
 
-version: "1.2"
+version: "1.3"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -96,6 +96,7 @@ context_sections:
     narrative_hints:
       - "Destaque concentração se max(pct) > 50% em uma única classe."
       - "Diferencie residência (não gera renda) de imóveis de investimento — não comente residência como investimento."
+      - "classification=nu_proprietario (ADR-235): nu-propriedade com usufruto vitalício — ativo ilíquido por contrato civil. Não recomende venda como liquidez; consolidação só com extinção do usufruto (não infira prazo)."
 
   # --------------------------------------------------------------------------
   # 2) Fluxo de caixa (S2) — dinâmica do período

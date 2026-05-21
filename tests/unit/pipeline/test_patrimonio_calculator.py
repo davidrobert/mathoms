@@ -574,23 +574,25 @@ def test_investivel_efetivo_inclui_imoveis_geradores_quando_toggle_on(config: Pa
     assert result["investivel_efetivo"] == 700_000.0  # 500k cat_3 + 200k cat_2
 
 
-def test_investivel_efetivo_exclui_uso_pessoal_e_especulacao_sempre(config: PatrimonioConfig):
-    """ADR-215 §6: `uso_pessoal`/`especulacao`/`desconhecido` nunca entram."""
+def test_investivel_efetivo_exclui_nao_geradores_sempre(config: PatrimonioConfig):
+    """ADR-215 §6 + ADR-235: uso_pessoal/especulacao/nu_proprietario/desconhecido nunca entram."""
+    overrides = {"p-up": "uso_pessoal", "p-t": "especulacao", "p-nu": "nu_proprietario"}
     cfg = PatrimonioConfig(
         members=config.members,
-        property_classification_overrides={"p-up": "uso_pessoal", "p-t": "especulacao"},
+        property_classification_overrides=overrides,
         include_real_estate_in_if=True,
     )
     imoveis = [
         {"property_id": "p-up", "valor": 300_000},
         {"property_id": "p-t", "valor": 100_000},
-        {"valor": 50_000},  # sem property_id → desconhecido
+        {"property_id": "p-nu", "valor": 800_000},
+        {"valor": 50_000},
     ]
     result = PatrimonioCalculator(cfg).calculate(
-        PatrimonioInputs(baseline=_baseline_with_imoveis(imoveis, 450_000))
+        PatrimonioInputs(baseline=_baseline_with_imoveis(imoveis, 1_250_000))
     )
     assert result["investivel_efetivo"] == result["investivel_financeiro"]
-    assert result["imoveis_nao_geradores"] == 450_000.0
+    assert result["imoveis_nao_geradores"] == 1_250_000.0
 
 
 def test_investivel_efetivo_toggle_off_exclui_cat2(config: PatrimonioConfig):
