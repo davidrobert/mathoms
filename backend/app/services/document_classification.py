@@ -84,58 +84,43 @@ def _classify_llm_error(exc: BaseException) -> str:
     return "unknown"
 
 
-def map_e0_doc_type_to_document_type(e0_doc_type: str) -> DocumentType:
-    """Map E0-route doc_type string to :class:`DocumentType`.
+_INFORME_TIPADO_PREFIXES = ("informe_previdencia", "informe_financeiro", "informe_proventos")
+_INVESTMENT_PREFIXES = ("cdb", "investimentos", "carteirarenda")
 
-    E0-route (``scripts/e0_route.py``) gera códigos como ``faturaunique``,
-    ``extratocontabrl``, etc. Mantido alinhado a ``_build_doc_type_patterns``.
-    """
-    if not e0_doc_type:
-        return DocumentType.other
 
-    code = e0_doc_type.lower()
-
-    # ADR-238 A17 L1 P3: informe anual avulso (PGBL/VGBL em L1; financeiro
-    # PF/PJ, proventos em L2-L4) tem stage próprio ``extract_informes_anuais``
-    # (despacho por ``tipo_informe``). NUNCA mais cair em ``.irpf`` que dispara
-    # ``extract_irpf_full`` — confundir declaração com informe quebrava o
-    # pipeline silenciosamente.
-    if (
-        code.startswith("informe_previdencia")
-        or code.startswith("informe_financeiro")
-        or code.startswith("informe_proventos")
-    ):
+def _map_informe(code: str) -> DocumentType | None:
+    """ADR-238 A17 L1 P3: informe anual tipado vai para enum próprio (não .irpf)."""
+    if any(code.startswith(p) for p in _INFORME_TIPADO_PREFIXES):
         return DocumentType.informe_rendimentos_anuais
-
-    if code.startswith("irpf"):
-        return DocumentType.irpf
-
-    # ``informerendimentos`` genérico (sem tipo específico) continua mapeando
-    # para ``.irpf`` até P3 cobrir todos os tipos canônicos (L2-L4). Quando
-    # todos os tipos forem canonizados, esta cláusula vira ``informe_rendimentos_anuais``.
     if code.startswith("informerendimentosaluguel"):
-        # ADR-216 aluguel — vive em DocumentType.other até cutover para
-        # extract_informes_anuais com tipo_informe="aluguel_imobiliaria".
+        # ADR-216 aluguel — vive em .other até cutover separado.
         return DocumentType.other
     if code.startswith("informerendimento"):
+        # Genérico legado (sem tipo específico) mantém compat com .irpf.
         return DocumentType.irpf
+    return None
 
-    if (
-        code.startswith("cdb")
-        or code.startswith("investimentos")
-        or code.startswith("carteirarenda")
-        or code == "extratoinvest"
-    ):
+
+def _map_fatura(code: str) -> DocumentType:
+    return DocumentType.other if code.startswith("faturaaluguel") else DocumentType.credit_card_bill
+
+
+def map_e0_doc_type_to_document_type(e0_doc_type: str) -> DocumentType:
+    """Map E0-route doc_type string to :class:`DocumentType`."""
+    if not e0_doc_type:
+        return DocumentType.other
+    code = e0_doc_type.lower()
+    informe = _map_informe(code)
+    if informe is not None:
+        return informe
+    if code.startswith("irpf"):
+        return DocumentType.irpf
+    if any(code.startswith(p) for p in _INVESTMENT_PREFIXES) or code == "extratoinvest":
         return DocumentType.investment_report
-
     if code.startswith("fatura"):
-        if code.startswith("faturaaluguel"):
-            return DocumentType.other
-        return DocumentType.credit_card_bill
-
+        return _map_fatura(code)
     if code.startswith("extratoconta") or code.startswith("extratopoupanca"):
         return DocumentType.bank_statement
-
     return DocumentType.other
 
 

@@ -372,8 +372,17 @@ def _bucket_capital(d: IRPFFullOutput) -> Decimal:
     return isentos + exclusiva + exterior + _alugueis_pf(d)
 
 
+# ADR-238 D5: ``FiscalAnalyzer`` é o novo nome canônico do IRPFAnalyzer
+# pós-A17. Mantemos ``IRPFAnalyzer`` como alias por 1 sprint (cutover A18)
+# para callers existentes; novos call-sites devem usar ``FiscalAnalyzer``.
+# Quando o ``FiscalSource`` adapter cobrir 100% dos consumers em L2-L4, o
+# alias é removido.
+FiscalAnalyzer = IRPFAnalyzer
+
+
 __all__ = [
     "IRPFAnalyzer",
+    "FiscalAnalyzer",
     "RendaSplit",
     "AliquotaPair",
     "PGBL_TETO_PCT",
