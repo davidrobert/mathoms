@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 56
+**Total de tabelas:** 57
 
 ---
 
@@ -59,6 +59,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`transaction_overrides`](#transactionoverrides)
 - [`transfer_configs`](#transferconfigs)
 - [`users`](#users)
+- [`vehicles`](#vehicles)
 - [`workspace_asset_overrides`](#workspaceassetoverrides)
 - [`workspace_category_overrides`](#workspacecategoryoverrides)
 - [`workspace_economic_assumptions_override`](#workspaceeconomicassumptionsoverride)
@@ -632,6 +633,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `pair` | `VARCHAR(16)` | no | — | INDEX |
 | `rate` | `NUMERIC(20, 10)` | no | — | — |
 | `observed_at` | `DATE` | no | — | INDEX |
+| `reference_month` | `VARCHAR(7)` | yes | — | — |
 | `source` | `TEXT` | no | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
@@ -1299,6 +1301,37 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 - `ix_users_deletion_requested_at` (deletion_requested_at)
 - UNIQUE `ix_users_email` (email)
+
+### `vehicles`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `placa` | `VARCHAR(10)` | no | — | — |
+| `renavam` | `VARCHAR(11)` | no | — | — |
+| `marca` | `VARCHAR(60)` | no | — | — |
+| `modelo` | `VARCHAR(120)` | no | — | — |
+| `ano_modelo` | `INTEGER` | no | — | — |
+| `ano_fabricacao` | `INTEGER` | no | — | — |
+| `fipe_code` | `VARCHAR(20)` | yes | — | — |
+| `cor` | `VARCHAR(30)` | yes | — | — |
+| `combustivel` | `VARCHAR(20)` | yes | — | — |
+| `codigo_rfb` | `VARCHAR(4)` | no | server: `21` | — |
+| `archived_at` | `DATETIME` | yes | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `updated_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- CHECK (`codigo_rfb IN ('21', '22', '23')`) — `chk_vehicles_codigo_rfb`
+- CHECK (`length(renavam) BETWEEN 9 AND 11`) — `chk_vehicles_renavam_length`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, placa) — `uq_workspace_placa`
+
+**Indexes:**
+
+- `ix_vehicles_workspace_id` (workspace_id)
 
 ### `workspace_asset_overrides`
 
@@ -2004,6 +2037,7 @@ type MarketRate struct {
 	Pair string `db:"pair" json:"pair"`
 	Rate decimal.Decimal `db:"rate" json:"rate"`
 	ObservedAt time.Time `db:"observed_at" json:"observed_at"`
+	ReferenceMonth *string `db:"reference_month" json:"reference_month"`
 	Source string `db:"source" json:"source"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
@@ -2444,6 +2478,28 @@ type User struct {
 	TokenVersion int `db:"token_version" json:"token_version"`
 	DeletionRequestedAt *time.Time `db:"deletion_requested_at" json:"deletion_requested_at"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `vehicles` → `type Vehicle struct`
+
+```go
+type Vehicle struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	Placa string `db:"placa" json:"placa"`
+	Renavam string `db:"renavam" json:"renavam"`
+	Marca string `db:"marca" json:"marca"`
+	Modelo string `db:"modelo" json:"modelo"`
+	AnoModelo int `db:"ano_modelo" json:"ano_modelo"`
+	AnoFabricacao int `db:"ano_fabricacao" json:"ano_fabricacao"`
+	FipeCode *string `db:"fipe_code" json:"fipe_code"`
+	Cor *string `db:"cor" json:"cor"`
+	Combustivel *string `db:"combustivel" json:"combustivel"`
+	CodigoRfb string `db:"codigo_rfb" json:"codigo_rfb"`
+	ArchivedAt *time.Time `db:"archived_at" json:"archived_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 ```
 
