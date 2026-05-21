@@ -12,19 +12,29 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint atual
 
-### A16 — Flip ADR-235 `nu_proprietario` (`current` 2026-05-20)
+### A17 — Ingestão de Informes Anuais Avulsos (`current` 2026-05-21)
 
-**Promovida de `paused → current` no mesmo dia da criação.** Sprint dedicada de 1 lane.
+**Promovida de `candidate → current` após A16 L1+L2 entregues.** Sprint de 4 ondas (lanes) sequenciais, ADR canônica [[ADR-238]] (`Proposto`).
 
-- **Lane única:** [a16-adr235-nu-proprietario-flip](../sprint/A16/tracks/a16-adr235-nu-proprietario-flip.md) (`ready`).
-- **Plano:** [sprint/A16/_README.md](../sprint/A16/_README.md).
-- **ADR canônica:** [ADR-235](../adr/235-nu-proprietario-usufruto-vitalicio-de-terceiro.md) (`Proposto`).
-- **Pré-requisito:** [apps#382](https://github.com/davidrobert/mathoms/pull/382) ✅ mergeado.
-- **Tamanho:** ~1–1,5d eng. Cross-stack (migration + 6 call-sites + 4 ADR updates + prompt E6 + CI gate).
+- **Plano:** [sprint/A17/_README.md](../sprint/A17/_README.md).
+- **ADR canônica:** [ADR-238](../adr/238-ingestao-informes-rendimentos-anuais-avulsos.md) (`Proposto`).
+- **Diagnóstico:** sessão dogfood 2026-05-21 — 15 PDFs reais, ~13 caem em `.other` silencioso ou mal-classificados como `irpf`.
+- **Escopo:** stage único `extract_informes_anuais` paralelo a `extract_irpf_full`, 5 tipos polimórficos (previdência, PJ, PF, proventos ações, aluguel), cascade declaração > informe.
+- **Fila pós-A17:** A18 (CRLV + apólices + FIPE, [[ADR-239]]) → A19 (S_PROTECAO 4º pilar AUVP, [[ADR-240]]).
 
 ## Sprint candidate (próxima)
 
-_Nenhuma sprint em `candidate` no momento._ Decisão sobre próxima sprint fica em aberto pós-A15.
+### A18 — Comprovantes de Bem + Apólices + FIPE refresh (`candidate` 2026-05-21)
+
+**Próxima na fila.** 3 lanes coordenadas que destravam ingestão de CRLV-e, apólices polimórficas (combinada multi-bem como caso V1), e refresh assíncrono de valor de mercado via BrasilAPI. ADR canônica [[ADR-239]] (`Proposto`). Diagnóstico dogfood 2026-05-21: 6 PDFs (3 CRLV + 3 apólices) todos em `.other` silencioso.
+
+- **Plano:** [sprint/A18/_README.md](../sprint/A18/_README.md).
+
+### A19 — Card S_PROTECAO no relatório (`candidate`, downstream de A18)
+
+**Reservada pós-A18.** Card S_PROTECAO no relatório React como **4º pilar AUVP (Proteção Patrimonial)**, posicionado entre S2 (Reserva) e S4 (Patrimônio). 4 KPIs V1, 3 subgrupos, linguagem CRC. ADR canônica [[ADR-240]] (`Proposto`). Depende de A18 (apólices) para alimentar inputs reais.
+
+- **Plano:** [sprint/A19/_README.md](../sprint/A19/_README.md).
 
 ## Sprints pausadas
 
@@ -66,5 +76,6 @@ Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: l
 | A9 | done | Multi-front improvements. |
 | A10 | done | `goals.json` cutover final ([ADR-090](../adr/090-decimal-money.md) supersedes parcial). |
 | A15 | done | FU-3 imóvel financiado ([ADR-227](../adr/227-imovel-financiado-debt-aggregate-valor-mercado.md)) — 8 PRs, 2 bugs silenciosos resolvidos. Plano arquivado em [archive/IMOVEL_FINANCIADO-2026-05-20.md](../archive/IMOVEL_FINANCIADO-2026-05-20.md). |
+| A16 | done | L1 ADR-235 `nu_proprietario` ([apps#388](https://github.com/davidrobert/mathoms/pull/388)) + L2 ADR-236 cascata fiscal PJ (PRs #390, #392, #393, #394, #395, #398) — ambas entregues 2026-05-21. |
 
-> Tracks por sprint disponíveis em [`docs/sprint/A6/tracks/`](../sprint/A6/tracks/), [`A7/tracks/`](../sprint/A7/tracks/), [`A8/tracks/`](../sprint/A8/tracks/), [`A11/tracks/`](../sprint/A11/tracks/), [`A12/tracks/`](../sprint/A12/tracks/), [`F7/tracks/`](../sprint/F7/tracks/), [`F9/tracks/`](../sprint/F9/tracks/), [`W5/tracks/`](../sprint/W5/tracks/), [`W6/tracks/`](../sprint/W6/tracks/). [BACKLOG](../BACKLOG.md) é apenas shim de navegação.
+> Tracks por sprint disponíveis em [`docs/sprint/A6/tracks/`](../sprint/A6/tracks/), [`A7/tracks/`](../sprint/A7/tracks/), [`A8/tracks/`](../sprint/A8/tracks/), [`A11/tracks/`](../sprint/A11/tracks/), [`A12/tracks/`](../sprint/A12/tracks/), [`A16/tracks/`](../sprint/A16/tracks/), [`F7/tracks/`](../sprint/F7/tracks/), [`F9/tracks/`](../sprint/F9/tracks/), [`W5/tracks/`](../sprint/W5/tracks/), [`W6/tracks/`](../sprint/W6/tracks/). [BACKLOG](../BACKLOG.md) é apenas shim de navegação.
