@@ -3,9 +3,9 @@ id: PLAN-tributario-pj
 type: plan
 title: "Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto)"
 status: draft
-sprint_origem: A17
-sprint_atual: A17
-sprints_envolvidas: [A17]
+sprint_origem: A16
+sprint_atual: A16
+sprints_envolvidas: [A16]
 created_at: "2026-05-20"
 last_review: "2026-05-20"
 paused_at: null
@@ -22,7 +22,7 @@ tags:
   - methodology/perini
   - methodology/cerbasi
   - methodology/auvp
-  - sprint/a17
+  - sprint/a16
 ---
 
 # Tributário PJ — Cascata Fiscal canônica
@@ -101,7 +101,7 @@ Após este plano, o card S8 "Tributário PJ — Cascata Fiscal" do relatório pr
 - **ADR-236 Proposto** ⏳ pendente write
 - **Plano draft** 🚧 este documento
 
-P1-P6 ainda não iniciados. Sprint A17 candidate (próxima a abrir pós-A15 done).
+P1-P6 ainda não iniciados. Sprint A16 `current` (promovida 2026-05-20 via PR #386) — lane L2 deste plano roda em paralelo com L1 (`nu_proprietario` flip · [[ADR-235]]). Track operacional: [[TRACK-a16-adr236-tributario-pj-cascata]].
 
 ## Decisões arquiteturais (resumo executivo)
 
@@ -125,7 +125,7 @@ Total estimado: ~9d eng em ~2 semanas calendário. Não-bloqueante de outras spr
 | P3 | **Calculator canônico** — `pipeline/domain/services/tributario/cascata_calculator.py` com regras por regime (Simples-Anexo III/V, Presumido, MEI), fator-R derivado, base PGBL correta, break-even Anexo III↔V, decision triggers parametrizados | ~2d | 4 goldens (1 por regime + 1 com workspace incompleto); paridade com cálculo manual de contador para dogfood | [[ADR-236]] §D3 |
 | P4 | **Adapter + narrator** — `pipeline_adapter.build_goals_payload_sync` propaga `bundle["tributario"]` a partir de `business_profile_json + cascata_calculator.compute(...)`; reescrita de `charts_narrator.impostos_pj` ramificada por `regime`; remove "Lucro presumido (32%)" do template | ~1d | Card produção deixa de mostrar texto errado; copy correto por regime; teste de regressão pra "Lucro presumido" hard-coded sumir do output | [[ADR-236]] §D4 |
 | P5 | **Card UI cascata real** — componente `<CascataFiscalCard/>` em `frontend/src/components/report/` com decomposição em camadas (waterfall ou steps), fator-R badge, base PGBL com flag declaração simplificada, decision triggers como callouts. Co-design `product-designer`. Substitui `NarrativeChartCard chartId="impostos_pj"` em `S8PrevidenciaSection` | ~2d | A11y AAA; mobile responsive; copy revisado por `financial-planner`; dogfood feedback positivo de 2 famílias | [[ADR-236]] §D5 |
-| P6 | **Cutover + telemetria + flip ADR** — sunset do código canned (`charts_narrator.impostos_pj` texto livre vira mínimo); telemetria `mathoms.tributario.cascata_rendered` + `mathoms.tributario.trigger_shown` (zero PII fiscal); flip [[ADR-236]] → `Decidido (A17.tributario-pj-cascata)` | ~1d | Telemetria entrega; nenhum workspace dogfood mostra texto antigo; FAQ produto atualizado | [[ADR-236]] §D6 |
+| P6 | **Cutover + telemetria + flip ADR** — sunset do código canned (`charts_narrator.impostos_pj` texto livre vira mínimo); telemetria `mathoms.tributario.cascata_rendered` + `mathoms.tributario.trigger_shown` (zero PII fiscal); flip [[ADR-236]] → `Decidido (A16.tributario-pj-cascata)` | ~1d | Telemetria entrega; nenhum workspace dogfood mostra texto antigo; FAQ produto atualizado | [[ADR-236]] §D6 |
 
 ### Hot-fix paralelo (descartado pelo usuário)
 
