@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-14 planos detectados em [`docs/plan/`](../../plan/).
+13 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -22,13 +22,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - Sprints envolvidas: A8
 - Lanes: 0 done · 1 in_progress · 0 open · 0 blocked
 - ADRs canônicas: —
-
-### PLAN-imovel-financiado — Imóvel financiado — agregado Debt persistido + property_market_value override (FU-3 Sprint A12)
-
-- Status: `in_progress` · Sprint atual: A15
-- Sprints envolvidas: A15
-- Lanes: _(sem lanes vinculadas por `plan:`)_
-- ADRs canônicas: [[ADR-227]]
 
 ### PLAN-internal-admin — Console interno (operadores) — IA-0 a IA-4
 

@@ -12,21 +12,15 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint atual
 
-**A15 — FU-3 Imóvel financiado** (origem 2026-05-19, promovida a `current` em 2026-05-20).
-
-Sprint dedicada ao último follow-up out-of-scope do Sprint A12 ([[ADR-215]] §Follow-ups). Resolve dois bugs silenciosos em produção (patrimônio bruto defasado + IF mal-calibrado) criando agregado `Debt` persistido + `property_market_value` versionada.
-
-- **5 ondas sequenciais, ~10d eng** — schema → backfill → calculator → API → frontend. Plano canônico: [plan/IMOVEL_FINANCIADO/_README.md](../plan/IMOVEL_FINANCIADO/_README.md). ADR canônica: [ADR-227](../adr/227-imovel-financiado-debt-aggregate-valor-mercado.md) (Proposto). Detalhe: [docs/sprint/A15/_README.md](../sprint/A15/_README.md).
-- **Co-design 2026-05-19** com `financial-planner` + `senior-cto` + `data-engineer` + `product-designer` em paralelo. Síntese consumida em ADR-227 D1-D6.
-- **Promoção via [ADR-234](../adr/234-sprint-status-paused.md)**: vocabulário `sprint_status` ganhou `paused` para A11 e A12 cederem prioridade sem mentir como `done`.
+_Nenhuma sprint `current` no momento._ A15 (FU-3 imóvel financiado) encerrou 2026-05-20 com 8 PRs e ADR-227 `Decidido`. A11 e A12 permanecem `paused` (ver §Sprints pausadas) — a decisão sobre qual retomar fica aberta. Para promover, edite o `_README.md` da sprint escolhida (`paused → current`) e regenere `_generated/`.
 
 ## Sprint candidate (próxima)
 
-_Nenhuma sprint em `candidate` no momento — A12 era candidate e foi pausada com a promoção de A15. A próxima sprint será decidida no fechamento de A15._
+_Nenhuma sprint em `candidate` no momento._ Decisão sobre próxima sprint fica em aberto pós-A15.
 
 ## Sprints pausadas
 
-Sprints com escopo aberto cujo trabalho foi suspenso para ceder prioridade a A15. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando A15 fechar.
+Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando o owner decidir.
 
 ### A11 — Platform review execution (`paused` 2026-05-20)
 
@@ -35,15 +29,15 @@ Sprints com escopo aberto cujo trabalho foi suspenso para ceder prioridade a A15
 - **Trabalho residual:** [plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (W3-W6).
 - **Sub-lanes preservadas:** A11.competitive-pierre (Fase 1 ready), A11.report-publication (ADR-187 Proposto), A11.cat-overrides-ux ✅ entregue 2026-05-10.
 - **DOC_REORG** ✅ entregue em 2026-05-07 (separado da pausa). Arquivado em [DOC_REORG_PLAN-2026-05-07.md](../archive/DOC_REORG_PLAN-2026-05-07.md), ADR canônica [ADR-182](../adr/182-vault-de-documentacao-operacional-obsidian.md).
-- **Retomada:** flip `paused → current` quando A15 fechar.
+- **Retomada:** flip `paused → current` quando decidido retomar.
 
 ### A12 — Categorization learning loop + post-A11 follow-up (`paused` 2026-05-20)
 
-**Pausada com débito conhecido.** Cat-learning-loop in_progress: P1-P3 mergeadas (PRs #188, #194, #195-#198); gate dogfood + P4 condicional pendentes. FU-1 + FU-2 entregues, FU-3 absorvido como A15.
+**Pausada com débito conhecido.** Cat-learning-loop in_progress: P1-P3 mergeadas (PRs #188, #194, #195-#198); gate dogfood + P4 condicional pendentes. FU-1 + FU-2 entregues, FU-3 absorvido e entregue como A15.
 
 - **Trabalho residual:** gate dogfood (CEO + PM, 0,5d setup + 7d wall-clock — ver [docs/reference/RUNBOOK.md §9](../reference/RUNBOOK.md)) + P4 condicional.
 - **Plano:** [plan/CAT_LEARNING_LOOP/_README.md](../plan/CAT_LEARNING_LOOP/_README.md). ADRs: [ADR-186](../adr/186-promocao-override-transacao-para-regra-categorizacao.md) + [ADR-188](../adr/188-evolucao-schema-e-semantica-learning-loop-p3.md).
-- **Retomada:** flip `paused → candidate` quando A15 fechar.
+- **Retomada:** flip `paused → current` (ou `candidate`) quando decidido retomar.
 
 ## Pickup — antes de pegar lane
 
@@ -62,5 +56,6 @@ Sprints com escopo aberto cujo trabalho foi suspenso para ceder prioridade a A15
 | A8 | done | Continuação multi-tenant. |
 | A9 | done | Multi-front improvements. |
 | A10 | done | `goals.json` cutover final ([ADR-090](../adr/090-decimal-money.md) supersedes parcial). |
+| A15 | done | FU-3 imóvel financiado ([ADR-227](../adr/227-imovel-financiado-debt-aggregate-valor-mercado.md)) — 8 PRs, 2 bugs silenciosos resolvidos. Plano arquivado em [archive/IMOVEL_FINANCIADO-2026-05-20.md](../archive/IMOVEL_FINANCIADO-2026-05-20.md). |
 
 > Tracks por sprint disponíveis em [`docs/sprint/A6/tracks/`](../sprint/A6/tracks/), [`A7/tracks/`](../sprint/A7/tracks/), [`A8/tracks/`](../sprint/A8/tracks/), [`A11/tracks/`](../sprint/A11/tracks/), [`A12/tracks/`](../sprint/A12/tracks/), [`F7/tracks/`](../sprint/F7/tracks/), [`F9/tracks/`](../sprint/F9/tracks/), [`W5/tracks/`](../sprint/W5/tracks/), [`W6/tracks/`](../sprint/W6/tracks/). [BACKLOG](../BACKLOG.md) é apenas shim de navegação.

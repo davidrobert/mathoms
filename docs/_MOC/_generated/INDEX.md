@@ -529,7 +529,6 @@
 | PLAN-cenarios-estresse | plan | in_progress |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | draft |  | Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
-| PLAN-imovel-financiado | plan | in_progress |  | Imóvel financiado — agregado Debt persistido + property_market_value override (FU-3 Sprint A12) | `plan/IMOVEL_FINANCIADO/_README.md` |
 | PLAN-internal-admin | plan | in_progress |  | Console interno (operadores) — IA-0 a IA-4 | `plan/INTERNAL_ADMIN/_README.md` |
 | PLAN-market-rates-ingestion | plan | draft |  | Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto | `plan/MARKET_RATES_INGESTION/_README.md` |
 | PLAN-p1-structural | plan | paused |  | P1 — Plano estrutural (motor canônico + pipeline offline) | `plan/P1_STRUCTURAL/_README.md` |
