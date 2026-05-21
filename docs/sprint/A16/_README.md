@@ -3,12 +3,12 @@ id: MOC-sprint-a16
 type: moc
 title: "Sprint A16 — Flip ADR-235 (`nu_proprietario` no enum `classification`)"
 aliases: ["A16", "Sprint A16"]
-sprint_status: paused
+sprint_status: current
 ---
 
 # Sprint A16 — Flip ADR-235 (`nu_proprietario`)
 
-> **Status:** `paused` — sprint dedicada criada com escopo aberto. Não promovida para `current` (decisão de priorização em aberto pós-A15). Para retomar, edite o frontmatter (`paused → current`) e regenere `_generated/`.
+> **Status:** `current` — sprint corrente. Lane única [[TRACK-a16-adr235-nu-proprietario-flip]] (`ready`) disponível para pickup. Pré-requisito ([apps#382](https://github.com/davidrobert/mathoms/pull/382)) ✅ mergeado em `main`.
 
 ## Resumo
 

@@ -12,7 +12,15 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint atual
 
-_Nenhuma sprint `current` no momento._ A15 (FU-3 imóvel financiado) encerrou 2026-05-20 com 8 PRs e ADR-227 `Decidido`. A11 e A12 permanecem `paused` (ver §Sprints pausadas) — a decisão sobre qual retomar fica aberta. Para promover, edite o `_README.md` da sprint escolhida (`paused → current`) e regenere `_generated/`.
+### A16 — Flip ADR-235 `nu_proprietario` (`current` 2026-05-20)
+
+**Promovida de `paused → current` no mesmo dia da criação.** Sprint dedicada de 1 lane.
+
+- **Lane única:** [a16-adr235-nu-proprietario-flip](../sprint/A16/tracks/a16-adr235-nu-proprietario-flip.md) (`ready`).
+- **Plano:** [sprint/A16/_README.md](../sprint/A16/_README.md).
+- **ADR canônica:** [ADR-235](../adr/235-nu-proprietario-usufruto-vitalicio-de-terceiro.md) (`Proposto`).
+- **Pré-requisito:** [apps#382](https://github.com/davidrobert/mathoms/pull/382) ✅ mergeado.
+- **Tamanho:** ~1–1,5d eng. Cross-stack (migration + 6 call-sites + 4 ADR updates + prompt E6 + CI gate).
 
 ## Sprint candidate (próxima)
 
@@ -39,14 +47,6 @@ Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: l
 - **Plano:** [plan/CAT_LEARNING_LOOP/_README.md](../plan/CAT_LEARNING_LOOP/_README.md). ADRs: [ADR-186](../adr/186-promocao-override-transacao-para-regra-categorizacao.md) + [ADR-188](../adr/188-evolucao-schema-e-semantica-learning-loop-p3.md).
 - **Retomada:** flip `paused → current` (ou `candidate`) quando decidido retomar.
 
-### A16 — Flip ADR-235 `nu_proprietario` (`paused` 2026-05-20)
-
-**Pausada por criação.** Sprint dedicada de 1 lane criada junto com [ADR-235](../adr/235-nu-proprietario-usufruto-vitalicio-de-terceiro.md) (`Proposto`). Não promovida para `current` — priorização vs A11/A12 em aberto.
-
-- **Trabalho:** migration + 6 call-sites + 4 ADR updates + prompt E6 + CI gate. ~1–1,5d eng.
-- **Sprint MOC:** [sprint/A16/_README.md](../sprint/A16/_README.md). Lane: [a16-adr235-nu-proprietario-flip](../sprint/A16/tracks/a16-adr235-nu-proprietario-flip.md).
-- **Pré-requisito:** [ADR-235](../adr/235-nu-proprietario-usufruto-vitalicio-de-terceiro.md) mergeada em `main` ([apps#382](https://github.com/davidrobert/mathoms/pull/382)).
-- **Retomada:** flip `paused → current` quando decidido executar.
 
 ## Pickup — antes de pegar lane
 
