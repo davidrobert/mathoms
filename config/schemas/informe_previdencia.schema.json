@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "informe_previdencia.schema.json",
+  "title": "Informe de Rendimentos — Previdência Privada (PGBL/VGBL)",
+  "description": "Sub-schema do informe anual de previdência privada (ADR-238 L1). Pareado com pipeline.llm.schemas.informe_previdencia.InformePrevidenciaPayload. Strict — additionalProperties: false. Wire de dinheiro: string decimal (ADR-090).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plano_tipo",
+    "regime_tributacao",
+    "contribuicoes_anuais",
+    "saldo_31_12"
+  ],
+  "properties": {
+    "numero_certificado": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "plano_tipo": {
+      "type": "string",
+      "enum": ["pgbl", "vgbl"]
+    },
+    "regime_tributacao": {
+      "type": "string",
+      "enum": ["progressivo", "regressivo"]
+    },
+    "data_adesao": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+    },
+    "contribuicoes_anuais": { "$ref": "#/$defs/decimalString" },
+    "rendimentos_anuais": { "$ref": "#/$defs/decimalString" },
+    "saldo_31_12": { "$ref": "#/$defs/decimalString" },
+    "resgates_anuais": { "$ref": "#/$defs/decimalString" },
+    "ir_retido_anual": { "$ref": "#/$defs/decimalString" },
+    "beneficiarios_count": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "notas": {
+      "type": ["string", "null"]
+    }
+  },
+  "$defs": {
+    "decimalString": {
+      "description": "Wire de dinheiro: string decimal (ADR-090). Float é proibido.",
+      "oneOf": [
+        { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" },
+        { "type": "integer" }
+      ]
+    }
+  }
+}
