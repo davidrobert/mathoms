@@ -55,7 +55,7 @@ describe("<HeroKpiGrid /> · Patrimônio Investível @ADR-142 @ADR-215", () => {
     renderGrid(makePatrimonio({ imoveis_no_if: false }));
     expect(screen.getByText("Patrimônio Investível")).toBeInTheDocument();
     // Intl.NumberFormat pt-BR compact: "R$ 850 mil" (NBSP entre R$ e número)
-    expect(screen.getByText(/R\$\s*850\s*mil/)).toBeInTheDocument();
+    expect(screen.getByText(/R\$\s*850(?:,\d+)?\s*mil/)).toBeInTheDocument();
     expect(screen.getByText("Imóveis fora do cálculo de IF")).toBeInTheDocument();
   });
 
@@ -69,7 +69,7 @@ describe("<HeroKpiGrid /> · Patrimônio Investível @ADR-142 @ADR-215", () => {
       }),
     );
     // Valor primário NÃO é o efetivo — continua o financeiro
-    expect(screen.getByText(/R\$\s*850\s*mil/)).toBeInTheDocument();
+    expect(screen.getByText(/R\$\s*850(?:,\d+)?\s*mil/)).toBeInTheDocument();
     expect(screen.getByText(/em imóveis de renda/)).toBeInTheDocument();
     expect(screen.getByText(/total efetivo/)).toBeInTheDocument();
   });
@@ -118,7 +118,7 @@ describe("<HeroKpiGrid /> · Patrimônio Investível @ADR-142 @ADR-215", () => {
         imoveis_geradores: 0,
       }),
     );
-    const valueOff = screen.getByText(/R\$\s*850\s*mil/).textContent;
+    const valueOff = screen.getByText(/R\$\s*850(?:,\d+)?\s*mil/).textContent;
     off.unmount();
 
     renderGrid(
@@ -129,7 +129,7 @@ describe("<HeroKpiGrid /> · Patrimônio Investível @ADR-142 @ADR-215", () => {
         imoveis_geradores: 600_000,
       }),
     );
-    const valueOn = screen.getByText(/R\$\s*850\s*mil/).textContent;
+    const valueOn = screen.getByText(/R\$\s*850(?:,\d+)?\s*mil/).textContent;
     expect(valueOn).toBe(valueOff);
   });
 
