@@ -27,6 +27,9 @@ class InstitutionCatalog(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     default_parser: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
     category: Mapped[str] = mapped_column(String(20), nullable=False, default="bank")
+    tax_regime: Mapped[str] = mapped_column(
+        String(8), nullable=False, server_default="both", default="both"
+    )
     metadata_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

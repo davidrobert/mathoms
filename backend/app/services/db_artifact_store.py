@@ -56,6 +56,10 @@ SCHEMA_BY_STAGE: dict[str, str] = {
     # Schema dedicado para cap rate líquido em S4 (cascade D9 fonte #1).
     "E2-informe-aluguel": "informe_aluguel.schema.json",
     "extract_informe_aluguel": "informe_aluguel.schema.json",
+    # extract_informes_anuais — informes anuais avulsos polimórficos (ADR-238).
+    # L1: previdência (PGBL/VGBL). L2-L4 expandem para financeiro_pj/pf,
+    # proventos, aluguel migra do standalone acima.
+    "extract_informes_anuais": "informe_base.schema.json",
     # E3 — reconciliação
     "E3": "e3_reconciled.schema.json",
     "reconcile_transactions": "e3_reconciled.schema.json",
@@ -97,6 +101,11 @@ _WORKSPACE_SCOPED_STAGES: frozenset[str] = frozenset(
         # consumido por cascade D9 fonte #1 em S4. Sem fallback workspace,
         # rerun do pipeline sem reprocessar informes os perderia.
         "extract_informe_aluguel",
+        # ADR-238 A17 — informes anuais avulsos polimórficos (PGBL/VGBL +
+        # financeiro PJ/PF + proventos). Dataset de referência por ano-base,
+        # gerado por evento de upload. Sem fallback, rerun perderia o
+        # informe da última run.
+        "extract_informes_anuais",
     }
 )
 """Stages cujo artefato é dataset de **referência** (lifecycle por workspace,

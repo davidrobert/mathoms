@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "informe_base.schema.json",
+  "title": "Informe de Rendimentos Anual (base polimórfico)",
+  "description": "Schema-base de Informes de Rendimentos anuais avulsos — A17 (ADR-238 D2). Discriminator: tipo_informe. Top-level lenient (additionalProperties: true) para sobreviver shape novo de PDF; sub-payloads strict. Wire de dinheiro: string decimal (ADR-090). Em A17 L1, somente tipo_informe='previdencia_privada' é aceito; L2-L4 expandem o enum incrementalmente.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "ano_base",
+    "tipo_informe",
+    "fonte_pagadora_cnpj",
+    "fonte_pagadora_nome",
+    "confidence",
+    "prompt_version"
+  ],
+  "properties": {
+    "ano_base": {
+      "type": "integer",
+      "minimum": 2000,
+      "maximum": 2100
+    },
+    "tipo_informe": {
+      "type": "string",
+      "enum": ["previdencia_privada"],
+      "description": "L1 aceita apenas previdencia_privada. L2-L4 expandem: financeiro_pj, financeiro_pf, proventos_acoes, aluguel_imobiliaria."
+    },
+    "fonte_pagadora_cnpj": {
+      "type": "string",
+      "pattern": "^\\d{14}$"
+    },
+    "fonte_pagadora_nome": {
+      "type": "string",
+      "minLength": 2
+    },
+    "titular_cpf_masked": {
+      "type": ["string", "null"],
+      "pattern": "^[\\d\\*]{3}\\.[\\d\\*]{3}\\.[\\d\\*]{3}-[\\d\\*]{2}$",
+      "description": "CPF masked parcial (LGPD). CPF completo não persiste no payload."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "source_artifact_id": {
+      "type": ["string", "null"]
+    },
+    "source_priority": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "1 (default) = informe fonte primária; 2 = orquestrador promoveu por E1.6 presente; 3 = override manual.",
+      "default": 1
+    },
+    "prompt_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "needs_review": {
+      "type": "boolean",
+      "default": false
+    },
+    "previdencia": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "informe_previdencia.schema.json" }
+      ],
+      "description": "Populado quando tipo_informe='previdencia_privada'."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "tipo_informe": { "const": "previdencia_privada" }
+        },
+        "required": ["tipo_informe"]
+      },
+      "then": {
+        "required": ["previdencia"],
+        "properties": {
+          "previdencia": { "$ref": "informe_previdencia.schema.json" }
+        }
+      }
+    }
+  ]
+}
