@@ -179,8 +179,6 @@ def test_payload_saldo_01_01_opcional_para_audit_ano_anterior():
     """saldo_01_01 alimenta audit informe[ano].saldo_01_01 == E1.6[ano-1].saldo_31_12."""
     p = _build_payload(saldo_01_01="72000.00")
     assert p.saldo_01_01 == Decimal("72000.00")
-    p_sem = _build_payload()
-    p_sem.saldo_01_01 = None  # type: ignore[assignment]
     # default None aceito (informe pode não destacar)
     p2 = InformePrevidenciaPayload(
         plano_tipo=PlanoTipo.pgbl,
@@ -189,6 +187,41 @@ def test_payload_saldo_01_01_opcional_para_audit_ano_anterior():
         saldo_31_12="500",
     )
     assert p2.saldo_01_01 is None
+
+
+def test_payload_saldo_31_12_ano_anterior_separado_de_saldo_01_01():
+    """Gate financial-planner Q4: snapshot 31/12/X-1 é literal do informe (≠ saldo contábil 01/01)."""
+    p = _build_payload(saldo_01_01="72000.00", saldo_31_12_ano_anterior="71500.00")
+    # Pode divergir em casos de portabilidade — schema permite ambos.
+    assert p.saldo_01_01 == Decimal("72000.00")
+    assert p.saldo_31_12_ano_anterior == Decimal("71500.00")
+
+
+def test_payload_rendimentos_brutos_e_liquidos_separados():
+    """Gate financial-planner Q5: separar antes/depois de IR retido."""
+    p = _build_payload(
+        rendimentos_anuais="850.00",
+        rendimentos_brutos_anuais="850.00",
+        rendimentos_liquidos_anuais="722.50",  # 850 - 15% IR retido
+    )
+    assert p.rendimentos_brutos_anuais == Decimal("850.00")
+    assert p.rendimentos_liquidos_anuais == Decimal("722.50")
+
+
+def test_payload_ir_retido_natureza_progressivo_vs_regressivo():
+    """Gate financial-planner Q6: natureza compensável vs exclusiva muda diagnóstico fiscal."""
+    p_comp = _build_payload(ir_retido_anual="127.50", ir_retido_natureza="fonte_compensavel")
+    assert p_comp.ir_retido_natureza == "fonte_compensavel"
+    p_excl = _build_payload(ir_retido_anual="850.00", ir_retido_natureza="fonte_exclusivo")
+    assert p_excl.ir_retido_natureza == "fonte_exclusivo"
+    p_none = _build_payload()
+    assert p_none.ir_retido_natureza is None
+
+
+def test_payload_ir_retido_natureza_recusa_valor_invalido():
+    """Validator restringe a {fonte_compensavel, fonte_exclusivo, None}."""
+    with pytest.raises(ValidationError):
+        _build_payload(ir_retido_natureza="xpto_invalido")
 
 
 # ─────────────────────── Base polimórfico ───────────────────────────────────

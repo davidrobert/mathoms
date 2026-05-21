@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import re
 from pathlib import Path
@@ -20,6 +21,11 @@ _NEEDS_REVIEW_CONFIDENCE_THRESHOLD = 0.7
 _FILENAME_CPF_MASKED = re.compile(r"(?<!\d)\d{3}\.\d{3}\.\d{3}-\d{2}(?!\d)")
 _FILENAME_CPF_LOOSE = re.compile(r"(?<!\d)\d{11}(?!\d)")
 _FILENAME_CNPJ_MASKED = re.compile(r"(?<!\d)\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}(?!\d)")
+
+# CPF do titular: extração via Python pós-LLM (gate financial-planner Q8).
+# LLM nunca emite CPF — risco LGPD de o LLM errar a máscara e vazar PII.
+_CPF_RAW_RE = re.compile(r"(?<!\d)(\d{3})(\d{3})(\d{3})(\d{2})(?!\d)")
+_CPF_FORMATTED_RE = re.compile(r"(?<!\d)(\d{3})\.(\d{3})\.(\d{3})-(\d{2})(?!\d)")
 
 # Filename patterns por tipo_informe. L1 cobre previdencia_privada apenas;
 # L2-L4 estendem este mapping para financeiro_pj/pf, proventos, aluguel.
@@ -47,6 +53,31 @@ def _redact_filename_pii(name: str) -> str:
     name = _FILENAME_CPF_LOOSE.sub("<cpf-redacted>", name)
     name = _FILENAME_CNPJ_MASKED.sub("<cnpj-redacted>", name)
     return name
+
+
+def _mask_cpf(cpf: str) -> str:
+    """``12345678900`` → ``***.456.789-**`` (mask parcial preservando centrais — LGPD ADR-231)."""
+    digits = re.sub(r"\D", "", cpf)
+    if len(digits) != 11:
+        return ""
+    return f"***.{digits[3:6]}.{digits[6:9]}-**"
+
+
+def _extract_titular_cpf_masked(text: str) -> str | None:
+    """Extrai 1º CPF do texto do informe e mascara em Python (gate financial-planner Q8)."""
+    m = _CPF_FORMATTED_RE.search(text) or _CPF_RAW_RE.search(text)
+    if m is None:
+        return None
+    return _mask_cpf("".join(m.groups()))
+
+
+def _content_hash(doc: Path) -> str:
+    """SHA-256 do PDF para cache key idempotente (gate data-engineer Q4)."""
+    h = hashlib.sha256()
+    with doc.open("rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def _detect_tipo_informe(filename: str) -> str | None:
@@ -99,22 +130,31 @@ def _stem_for_filename(name: str) -> str:
     return name
 
 
-def _call_llm_previdencia(service, config, doc_name: str, text: str, ano_hint: int | None):
+def _build_user_prompt(doc_name: str, text: str, ano_hint: int | None) -> str:
     from pipeline.llm.prompts import informe_previdencia as prompt_mod
-    from pipeline.llm.schemas.informe_base import InformeRendimentosBase
 
-    user_prompt = prompt_mod.USER_PROMPT_TEMPLATE.format(
+    return prompt_mod.USER_PROMPT_TEMPLATE.format(
         filename=doc_name,
         institution=_detect_institution_hint(doc_name),
         ano_referencia=ano_hint if ano_hint is not None else "(inferir do documento)",
         document_text=text,
     )
+
+
+def _call_llm_previdencia(
+    service, config, doc_name: str, text: str, ano_hint: int | None, content_hash: str
+):
+    from pipeline.llm.prompts import informe_previdencia as prompt_mod
+    from pipeline.llm.schemas.informe_base import InformeRendimentosBase
+
+    # Cache key idempotente: content_hash + PROMPT_VERSION (gate data-engineer Q4).
+    cache_key = f"extract_informes_anuais:{content_hash[:16]}:{prompt_mod.PROMPT_VERSION}"
     result = service.call(
         system_prompt=prompt_mod.SYSTEM_PROMPT,
-        user_prompt=user_prompt,
+        user_prompt=_build_user_prompt(doc_name, text, ano_hint),
         output_schema=InformeRendimentosBase,
         max_tokens=max(config.max_tokens, _INFORME_MIN_COMPLETION_TOKENS),
-        stage=f"extract_informes_anuais:{doc_name}",
+        stage=cache_key,
     )
     return result, prompt_mod.PROMPT_VERSION
 
@@ -164,30 +204,36 @@ def _process_doc_safe(
     return _persist_processed(doc, payload, result, ctx, ws_id), None
 
 
-def _build_payload(output, prompt_version: str) -> dict:
-    """Materializa payload + força prompt_version + flag needs_review por confidence."""
+def _build_payload(output, prompt_version: str, doc_text: str, source_artifact_id: str) -> dict:
+    """Materializa payload + força prompt_version + mask CPF Python + source_artifact_id."""
     payload = output.model_dump(mode="json")
     payload["prompt_version"] = prompt_version
+    payload["source_artifact_id"] = source_artifact_id
+    # LGPD ADR-231 + financial-planner Q8: NUNCA confiar no LLM para mascarar CPF.
+    # Force null + extrai via regex Python no texto do documento.
+    payload["titular_cpf_masked"] = _extract_titular_cpf_masked(doc_text)
     confidence = payload.get("confidence", 1.0)
     if confidence < _NEEDS_REVIEW_CONFIDENCE_THRESHOLD:
         payload["needs_review"] = True
     return payload
 
 
-def _extract_one(
-    doc: Path,
-    text: str,
-    service,
-    config,
-    tipo_informe: str,
-) -> tuple[dict, Any, str]:
+def _extract_previdencia(doc: Path, text: str, service, config) -> tuple[dict, Any, str]:
+    """Caminho previdência_privada — content_hash + LLM + payload com lineage."""
+    content_hash = _content_hash(doc)
+    result, prompt_version = _call_llm_previdencia(
+        service, config, doc.name, text, ano_hint=None, content_hash=content_hash
+    )
+    # source_artifact_id = stem do `-0_original` (P3 promove para FK UUID).
+    source_artifact_id = _stem_for_filename(doc.name)
+    payload = _build_payload(result.output, prompt_version, text, source_artifact_id)
+    return payload, result, prompt_version
+
+
+def _extract_one(doc: Path, text: str, service, config, tipo_informe: str) -> tuple[dict, Any, str]:
     """Despacho por tipo_informe; L1 só implementa previdencia_privada."""
     if tipo_informe == "previdencia_privada":
-        result, prompt_version = _call_llm_previdencia(
-            service, config, doc.name, text, ano_hint=None
-        )
-        payload = _build_payload(result.output, prompt_version)
-        return payload, result, prompt_version
+        return _extract_previdencia(doc, text, service, config)
     raise NotImplementedError(
         f"tipo_informe={tipo_informe!r} ainda não implementado em A17 L1. "
         f"Lanes L2 (financeiro_pj), L3 (financeiro_pf), L4 (proventos_acoes) cobrem os demais."

@@ -13,9 +13,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pipeline.stages.extract_informes_anuais import (
     _artifact_key_for,
     _build_payload,
+    _content_hash,
     _detect_institution_hint,
     _detect_tipo_informe,
     _extract_one,
+    _extract_titular_cpf_masked,
+    _mask_cpf,
     _redact_filename_pii,
 )
 
@@ -109,7 +112,7 @@ class _FakeOutput:
         return dict(self._data)
 
 
-def test_build_payload_force_prompt_version():
+def test_build_payload_force_prompt_version_e_source_artifact_id():
     out = _FakeOutput(
         {
             "ano_base": 2024,
@@ -118,13 +121,17 @@ def test_build_payload_force_prompt_version():
             "fonte_pagadora_nome": "BrasilPrev",
             "confidence": 0.95,
             "needs_review": False,
+            "titular_cpf_masked": None,  # LLM nunca emite CPF
             "prompt_version": "old-version",  # será sobrescrito
         }
     )
-    payload = _build_payload(out, "informe-prev-v1.0.0")
+    payload = _build_payload(out, "informe-prev-v1.0.0", "Conteúdo sem CPF.", "doc_stem_xyz")
     assert payload["prompt_version"] == "informe-prev-v1.0.0"
+    assert payload["source_artifact_id"] == "doc_stem_xyz"
     # confidence ≥ 0.7 → needs_review preserva valor original (False)
     assert payload["needs_review"] is False
+    # texto sem CPF → titular_cpf_masked permanece None
+    assert payload["titular_cpf_masked"] is None
 
 
 def test_build_payload_marks_needs_review_quando_confidence_baixo():
@@ -135,8 +142,41 @@ def test_build_payload_marks_needs_review_quando_confidence_baixo():
             "confidence": 0.65,  # < 0.7 → needs_review auto
         }
     )
-    payload = _build_payload(out, "informe-prev-v1.0.0")
+    payload = _build_payload(out, "informe-prev-v1.0.0", "texto", "stem")
     assert payload["needs_review"] is True
+
+
+def test_build_payload_extrai_e_mascara_cpf_em_python():
+    """Gate financial-planner Q8: LLM nunca mascarara CPF — feito em Python pós-extração."""
+    # CPF placeholder seguro (não-real, fora do padrão mod-11) — apenas para regex test.
+    out = _FakeOutput({"ano_base": 2024, "tipo_informe": "previdencia_privada", "confidence": 0.95})
+    texto_com_cpf_formatado = "Titular: João Silva\nCPF: 000.000.000-00"
+    payload = _build_payload(out, "informe-prev-v1.0.0", texto_com_cpf_formatado, "stem")
+    assert payload["titular_cpf_masked"] == "***.000.000-**"
+    # CPF raw também é detectado
+    texto_com_cpf_raw = "11111111111 - placeholder"
+    payload2 = _build_payload(out, "informe-prev-v1.0.0", texto_com_cpf_raw, "stem")
+    assert payload2["titular_cpf_masked"] == "***.111.111-**"
+
+
+def test_mask_cpf_idempotente():
+    """``_mask_cpf`` aceita CPF formatado ou raw e devolve sempre máscara parcial."""
+    assert _mask_cpf("00000000000") == "***.000.000-**"
+    assert _mask_cpf("000.000.000-00") == "***.000.000-**"
+    assert _mask_cpf("invalido") == ""
+
+
+def test_content_hash_determinista(tmp_path: Path):
+    """Hash idempotente entre chamadas — base da cache key estável (gate data-engineer Q4)."""
+    f = tmp_path / "informe.pdf"
+    f.write_bytes(b"%PDF-fake-content-for-test\x00\x01\x02")
+    h1 = _content_hash(f)
+    h2 = _content_hash(f)
+    assert h1 == h2
+    assert len(h1) == 64  # SHA-256 hex
+    # Re-criar com mesmo nome mas conteúdo distinto → hash distinto
+    f.write_bytes(b"%PDF-fake-other-content")
+    assert _content_hash(f) != h1
 
 
 # ─────────────────────── STAGE_REGISTRY + suffix sync ─────────────────────
@@ -150,15 +190,15 @@ def test_stage_registered_and_suffixed():
     assert STAGE_REGISTRY["extract_informes_anuais"].is_llm is True
     assert STAGE_REGISTRY["extract_informes_anuais"].tier == "premium"
     assert "extract_informes_anuais" in FULL_ORDER
-    # Aparece após extract_informe_aluguel (mesma família de informes anuais)
     pos_alug = FULL_ORDER.index("extract_informe_aluguel")
     pos_anual = FULL_ORDER.index("extract_informes_anuais")
     assert pos_anual == pos_alug + 1
-    # Sufixo registrado para descritivo + alias legado
     assert _STAGE_TO_SUFFIX["extract_informes_anuais"] == "-2_informe_anual.json"
-    assert _STAGE_TO_SUFFIX["E2-informe-anual"] == "-2_informe_anual.json"
-    # STAGE_RENAME_MAP cobre o stage
+    # Alias legacy mantido por invariante test_values_cover_registry_plus_virtual
+    # (paridade com E6-parecer / E1.6 — stages F9.2+ descritivos têm reverso
+    # para CLI/HTTP).
     assert STAGE_RENAME_MAP["E2-informe-anual"] == "extract_informes_anuais"
+    assert _STAGE_TO_SUFFIX["E2-informe-anual"] == "-2_informe_anual.json"
 
 
 def test_stage_runner_registered():

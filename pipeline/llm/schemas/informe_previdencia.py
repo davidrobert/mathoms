@@ -79,17 +79,40 @@ class InformePrevidenciaPayload(BaseModel):
         default=Decimal("0"),
         description=(
             "Variação positiva no ano (rendimento bruto antes do IR no resgate). "
-            "Default 0 quando informe traz só contribuições. Para VGBL, é a "
-            "base do IR no resgate."
+            "Mantido para compat — prefira ``rendimentos_brutos_anuais`` / "
+            "``rendimentos_liquidos_anuais`` quando o informe destaca ambos."
+        ),
+    )
+    rendimentos_brutos_anuais: Optional[Decimal] = Field(
+        None,
+        description=(
+            "Rendimento bruto no ano (antes de IR retido). Compõe a base do IR "
+            "no resgate (VGBL) ou da tributação total no resgate (PGBL). "
+            "``bens_direitos[]`` código 97 IRPF usa o BRUTO. None quando o "
+            "informe não destaca."
+        ),
+    )
+    rendimentos_liquidos_anuais: Optional[Decimal] = Field(
+        None,
+        description=(
+            "Rendimento líquido no ano (após IR retido na fonte). None quando "
+            "o informe não destaca."
         ),
     )
     saldo_01_01: Optional[Decimal] = Field(
         None,
         description=(
-            "Saldo total acumulado em 01/01 do ano-base (snapshot inicial). "
-            "Usado em audit ``saldo_01_01[ano] == saldo_31_12[ano-1]`` para "
-            "detectar drift informe vs E1.6 do ano anterior. None quando o "
-            "informe não destaca."
+            "Saldo contábil de abertura em 01/01 do ano-base. Pode divergir de "
+            "``saldo_31_12_ano_anterior`` em casos de portabilidade entre planos "
+            "no início do ano. None quando ausente."
+        ),
+    )
+    saldo_31_12_ano_anterior: Optional[Decimal] = Field(
+        None,
+        description=(
+            "Snapshot 'Situação em 31/12/X-1' literal do informe — IRPF ficha "
+            "Bens e Direitos código 97 exige os dois snapshots (ano-base + ano "
+            "anterior). Independente de ``saldo_01_01`` (que é contábil)."
         ),
     )
     saldo_31_12: Decimal = Field(
@@ -110,6 +133,16 @@ class InformePrevidenciaPayload(BaseModel):
             "houve resgate ou regime progressivo com retenção via DARF."
         ),
     )
+    ir_retido_natureza: Optional[str] = Field(
+        None,
+        description=(
+            "Natureza do IR retido: ``fonte_compensavel`` (regime progressivo — "
+            "entra na ficha Rendimentos com Retenção, compensa na declaração) "
+            "ou ``fonte_exclusivo`` (regime regressivo — Tributação Exclusiva, "
+            "não compensa). None quando ``ir_retido_anual = 0`` ou informe "
+            "não destaca."
+        ),
+    )
     notas: Optional[str] = Field(
         None,
         description="Observações extraídas do informe (cláusulas, suspensões, portabilidades).",
@@ -118,7 +151,10 @@ class InformePrevidenciaPayload(BaseModel):
     @field_validator(
         "contribuicoes_anuais",
         "rendimentos_anuais",
+        "rendimentos_brutos_anuais",
+        "rendimentos_liquidos_anuais",
         "saldo_01_01",
+        "saldo_31_12_ano_anterior",
         "saldo_31_12",
         "resgates_anuais",
         "ir_retido_anual",
@@ -127,6 +163,18 @@ class InformePrevidenciaPayload(BaseModel):
     @classmethod
     def _decimal_money(cls, v):
         return _coerce_decimal(v)
+
+    @field_validator("ir_retido_natureza", mode="before")
+    @classmethod
+    def _validate_ir_natureza(cls, v):
+        if v is None or v == "":
+            return None
+        if v not in ("fonte_compensavel", "fonte_exclusivo"):
+            raise ValueError(
+                f"ir_retido_natureza={v!r} inválido. "
+                f"Aceitos: 'fonte_compensavel' (progressivo), 'fonte_exclusivo' (regressivo), None."
+            )
+        return v
 
     @model_validator(mode="after")
     def _data_adesao_obrigatoria_para_regressivo(self):

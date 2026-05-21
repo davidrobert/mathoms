@@ -30,10 +30,17 @@
     },
     "contribuicoes_anuais": { "$ref": "#/$defs/decimalString" },
     "rendimentos_anuais": { "$ref": "#/$defs/decimalString" },
+    "rendimentos_brutos_anuais": { "$ref": "#/$defs/decimalStringOrNull" },
+    "rendimentos_liquidos_anuais": { "$ref": "#/$defs/decimalStringOrNull" },
     "saldo_01_01": { "$ref": "#/$defs/decimalStringOrNull" },
+    "saldo_31_12_ano_anterior": { "$ref": "#/$defs/decimalStringOrNull" },
     "saldo_31_12": { "$ref": "#/$defs/decimalString" },
     "resgates_anuais": { "$ref": "#/$defs/decimalString" },
     "ir_retido_anual": { "$ref": "#/$defs/decimalString" },
+    "ir_retido_natureza": {
+      "type": ["string", "null"],
+      "enum": ["fonte_compensavel", "fonte_exclusivo", null]
+    },
     "notas": {
       "type": ["string", "null"]
     }

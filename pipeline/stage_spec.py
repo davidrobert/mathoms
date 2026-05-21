@@ -63,8 +63,11 @@ STAGE_RENAME_MAP: dict[str, str] = {
     # ADR-216 Onda 0.5b — informe de rendimentos de imobiliária. Stage runner
     # consome PDFs em ``data/income_tax_br/`` (paralelo a extract_irpf_full).
     "E2-informe-aluguel": "extract_informe_aluguel",
-    # ADR-238 A17 — informes anuais polimórficos (PGBL/VGBL em L1; financeiro
-    # PF/PJ e proventos em L2-L4). Alias mantido por simetria com E2-informe-aluguel.
+    # ADR-238 (A17): mantido por invariante "todo REGISTRY key tem alias legacy"
+    # enforçado por test_values_cover_registry_plus_virtual (paridade com
+    # E6-parecer / E1.6 — stages F9.2+ que nasceram descritivos mas precisam
+    # do reverso para CLI/HTTP). Gate data-engineer 2026-05-21 sugeriu remover;
+    # senior-cto manteve por invariante de consistency.
     "E2-informe-anual": "extract_informes_anuais",
     "E3": "reconcile_transactions",
     "E4": "categorize_transactions",
