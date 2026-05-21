@@ -144,6 +144,13 @@ from backend.app.models.transaction_override import (
     TransactionOverride,
 )
 from backend.app.models.user import User
+from backend.app.models.vehicle import (
+    CODIGO_RFB_AERONAVE,
+    CODIGO_RFB_EMBARCACAO,
+    CODIGO_RFB_VEICULO_TERRESTRE,
+    VALID_CODIGOS_RFB_VEHICLE,
+    Vehicle,
+)
 from backend.app.models.workspace import Workspace
 from backend.app.models.workspace_invitation import WorkspaceInvitation
 from backend.app.models.workspace_member import (
@@ -156,6 +163,11 @@ from backend.app.models.workspace_note import WorkspaceNotes
 
 __all__ = [
     "User",
+    "Vehicle",
+    "VALID_CODIGOS_RFB_VEHICLE",
+    "CODIGO_RFB_VEICULO_TERRESTRE",
+    "CODIGO_RFB_AERONAVE",
+    "CODIGO_RFB_EMBARCACAO",
     "Workspace",
     "WorkspaceMember",
     "WorkspaceInvitation",
