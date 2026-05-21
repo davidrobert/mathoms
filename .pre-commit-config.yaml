@@ -101,6 +101,16 @@ repos:
         pass_filenames: true
         types: [file]
 
+      - id: classification-exhaustive
+        # ADR-235 A16: bloqueia switch/match sobre `classification` sem
+        # branch default — enum cresce (nu_proprietario foi o último
+        # valor adicionado), reader exhaustive quebra silenciosamente.
+        name: "switch/match sobre classification exige default (ADR-235)"
+        entry: python3 dev/check_classification_exhaustive.py
+        language: system
+        pass_filenames: true
+        files: \.(py|ts|tsx)$
+
       - id: test-health
         # Detecta anti-padrões que custam tempo de CI sem dar sinal:
         # parametrize que recomputa scan caro, soft-fail s/ env de hard-fail

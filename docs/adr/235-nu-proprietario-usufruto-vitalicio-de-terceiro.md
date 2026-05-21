@@ -2,9 +2,10 @@
 id: ADR-235
 type: adr
 title: "Classificação `nu_proprietario`: imóvel em nu-propriedade com usufruto vitalício de terceiro"
-status: Proposto
+status: Decidido
 phase: A16
 date: "2026-05-20"
+decided_at: "2026-05-20"
 relates_to:
   - "[[ADR-142]]"
   - "[[ADR-143]]"
@@ -32,7 +33,7 @@ tags:
   - methodology/cerbasi
   - methodology/perini
   - phase/a16
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
@@ -94,9 +95,9 @@ Rejeitada. Perde sinal estruturado para o parecer LLM ([[ADR-199]] lê schema, n
 
 ## Plano de implementação (PR de fechamento)
 
-**Migration Alembic** (`adr235nuproprietario_*`):
-- `up`: drop + recreate CHECK em `property_identity.classification` e `workspace_property_overrides.classification` (Postgres não permite editar CHECK in-place). Sem backfill — default rows continuam `desconhecido`.
-- `down`: validar pre-down que nenhuma row tem `nu_proprietario` (raise se houver, evita data loss silencioso); recriar CHECK sem o valor novo.
+**Migration Alembic** (`adr235nupropriet1`):
+- `up`: drop + recreate CHECK em `workspace_property_overrides.classification` (Postgres não permite editar CHECK in-place; `property_identity` não tem coluna `classification`, só a tabela de overrides). Sem backfill — rows existentes preservadas.
+- `down`: pre-down guard valida que nenhuma row tem `nu_proprietario` (raise `RuntimeError` se houver, evita data loss silencioso); recriar CHECK sem o valor novo.
 
 **Call-sites obrigatórios** (todos identificados; nenhum exhaustive switch, comportamento default = "não-investidor"):
 - `backend/app/models/property_identity.py:31` — Enum/Literal.

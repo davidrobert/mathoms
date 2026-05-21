@@ -17,12 +17,15 @@ CLASSIFICATION_USO_PESSOAL = "uso_pessoal"
 CLASSIFICATION_LOCADO = "locado"
 CLASSIFICATION_COMERCIAL = "comercial"
 CLASSIFICATION_ESPECULACAO = "especulacao"
+CLASSIFICATION_NU_PROPRIETARIO = "nu_proprietario"
 CLASSIFICATION_DESCONHECIDO = "desconhecido"
 
 # ADR-142 §Decisão + ADR-215 §6: classifications que produzem fluxo de caixa
 # (entram em ``investivel_efetivo`` quando ``include_real_estate_in_if=True``).
-# `uso_pessoal | especulacao | desconhecido` nunca entram — Perini/Cerbasi
-# tratam patrimônio improdutivo como capital de uso, fora do múltiplo de IF.
+# `uso_pessoal | especulacao | nu_proprietario | desconhecido` nunca entram —
+# Perini/Cerbasi tratam patrimônio improdutivo como capital de uso, fora do
+# múltiplo de IF. ADR-235: nu_proprietario tem ônus civil (usufruto de
+# terceiro) — ilíquido por contrato até consolidação plena.
 _CLASSIFICATIONS_GERADORAS = frozenset({CLASSIFICATION_LOCADO, CLASSIFICATION_COMERCIAL})
 
 
@@ -89,6 +92,7 @@ __all__ = [
     "CLASSIFICATION_LOCADO",
     "CLASSIFICATION_COMERCIAL",
     "CLASSIFICATION_ESPECULACAO",
+    "CLASSIFICATION_NU_PROPRIETARIO",
     "CLASSIFICATION_DESCONHECIDO",
     "split_imoveis_with_overrides",
     "split_imoveis_geradores_vs_nao_geradores",

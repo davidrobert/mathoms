@@ -191,6 +191,8 @@ Decisão alinhada com framework de gating estabelecido para o parecer
   conservador: considerar todos `cat_2` (`patrimonio_calculator.py::_split_imoveis`).
 - **1 imóvel investimento** → Hero + concentração + ação; tabela suprimida.
 
+**Update 2026-05-20 (ADR-235 invariante, A16):** `classification=nu_proprietario` (nu-propriedade com usufruto vitalício de terceiro) está **fora** do denominador de cap rate — cap rate **indefinido**, não zero. Não puxa média do portfolio pra baixo. `INVESTMENT_CLASSIFICATIONS` em [`pipeline/domain/services/real_estate_metrics.py`](../../pipeline/domain/services/real_estate_metrics.py) permanece `("locado", "comercial", "especulacao")`. Gate em [`tests/test_real_estate_metrics.py::test_nu_proprietario_nao_entra_em_investment_classifications`](../../tests/test_real_estate_metrics.py).
+
 ### D9 — Hierarquia de fontes para aluguel por imóvel (cascade)
 
 Aluguel mensal por imóvel é a métrica de mais alto leverage do card e a

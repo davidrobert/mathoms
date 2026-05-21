@@ -63,6 +63,7 @@ classification ∈ {
   locado,                  # gera aluguel — entra em cat_2; respeitado por [[ADR-142]]
   comercial,               # sala/galpão — entra em cat_2 se locado/produtivo
   especulacao,             # terreno vago, lote — não-gerador, nunca em investível efetivo
+  nu_proprietario,         # ADR-235 (A16) — nu-propriedade com usufruto vitalício de terceiro; ilíquido por contrato civil
   desconhecido,            # default antes da classificação do usuário
 }
 ```
@@ -89,7 +90,7 @@ CREATE TABLE workspace_property_overrides (
   created_by_user_id UUID REFERENCES users(id),
   CONSTRAINT uq_workspace_property UNIQUE (workspace_id, property_id),
   CONSTRAINT chk_classification CHECK (
-    classification IN ('residencia_principal','uso_pessoal','locado','comercial','especulacao','desconhecido')
+    classification IN ('residencia_principal','uso_pessoal','locado','comercial','especulacao','nu_proprietario','desconhecido')
   )
 );
 

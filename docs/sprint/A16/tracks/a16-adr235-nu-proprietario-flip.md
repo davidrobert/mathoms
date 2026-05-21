@@ -3,14 +3,14 @@ id: TRACK-a16-adr235-nu-proprietario-flip
 type: track
 title: "Track A16 — Flip ADR-235 `nu_proprietario` para Decidido (migration + call-sites + ADR updates + E6 prompt + CI gate)"
 sprint: A16
-status: ready
+status: consumed
 created_at: "2026-05-20"
-consumed_at: null
+consumed_at: "2026-05-20"
 agent_role: senior-cto
 tags:
   - type/track
   - sprint/a16
-  - status/ready
+  - status/consumed
   - area/db
   - area/backend
   - area/pipeline

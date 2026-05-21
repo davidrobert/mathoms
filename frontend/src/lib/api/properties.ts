@@ -8,6 +8,7 @@ export type Classification =
   | "locado"
   | "comercial"
   | "especulacao"
+  | "nu_proprietario"
   | "desconhecido";
 
 export type OverrideSource =
