@@ -2,7 +2,7 @@
 id: ADR-236
 type: adr
 title: "Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística)"
-status: Proposto
+status: Decidido
 phase: pos-A15
 date: "2026-05-20"
 relates_to:
@@ -20,7 +20,7 @@ tags:
   - methodology/perini
   - methodology/cerbasi
   - methodology/auvp
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 

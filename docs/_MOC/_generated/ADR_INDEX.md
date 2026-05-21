@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 183
-- **Proposto**: 42
+- **Decidido**: 184
+- **Proposto**: 41
 - **Roadmap**: 4
 
 ## Fundação
@@ -433,17 +433,17 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (1)
+### Decidido (2)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
+- [[ADR-236]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
 
-### Proposto (5)
+### Proposto (4)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
 - [[ADR-219]] — Premissas Econômicas — tabela versionada, override por workspace e snapshot no E5 · phase A12
 - [[ADR-233]] — Formato canônico de PROMPT_VERSION (semver puro) + gate CI de bump · phase A11.W2
-- [[ADR-236]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
 
 ## relatorio
 
