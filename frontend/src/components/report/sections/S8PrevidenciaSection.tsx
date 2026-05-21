@@ -2,14 +2,20 @@
 
 import { ReportSection } from "../ReportSection";
 import { SectionSummary } from "../SectionSummary";
-import { NarrativeChartCard } from "../charts/NarrativeChartCard";
-import { deriveChartConclusion, deriveSectionSummary } from "../utils/conclusionUtils";
-import type { ReportAnalysisData } from "@/lib/api";
+import { CascataFiscalCard } from "../cards/CascataFiscalCard";
+import { deriveSectionSummary } from "../utils/conclusionUtils";
+import type { ReportAnalysisData, TributarioBundle } from "@/lib/api";
 
-/** F9 · F2.F · ADR-117 — Seção S8 (Previdência — PGBL e Fiscalidade). */
+/** F9 · F2.F · ADR-117 — Seção S8 (Previdência — PGBL e Fiscalidade).
+ *
+ * Sprint A16 L2 P5 (ADR-236 §D5) — substitui `<NarrativeChartCard
+ * chartId="impostos_pj"/>` por `<CascataFiscalCard/>` que renderiza a
+ * cascata calculada (P3) + triggers (P3) + PGBL block. Card lê
+ * `data.tributario` (exposto no E5 output pelo wiring em P5).
+ */
 export function S8PrevidenciaSection({ data }: { data: ReportAnalysisData }) {
   const narrativas = data.narrativas as Record<string, unknown> | undefined;
-  const charts = narrativas?.charts as Record<string, unknown> | undefined;
+  const tributario = data.tributario as TributarioBundle | undefined;
   const fallback = deriveSectionSummary("S8", data);
 
   return (
@@ -20,12 +26,7 @@ export function S8PrevidenciaSection({ data }: { data: ReportAnalysisData }) {
           {fallback}
         </p>
       )}
-      <NarrativeChartCard
-        chartId="impostos_pj"
-        title="Tributário PJ — Cascata Fiscal"
-        narratives={charts}
-        fallbackConclusion={deriveChartConclusion("impostos_pj", data)}
-      />
+      <CascataFiscalCard tributario={tributario} />
     </ReportSection>
   );
 }

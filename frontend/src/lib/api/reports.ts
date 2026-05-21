@@ -115,8 +115,60 @@ export interface ReportAnalysisData {
    *  run (auditoria fiduciária). Ausente em runs antigos pré-ADR-219;
    *  UI degrada com empty state. */
   premissas_economicas?: PremissasEconomicasData;
+  /** ADR-236 §D5 — bundle tributário PJ (cascata fiscal calculada).
+   *  Ausente quando workspace não tem `business_profile_json` ou pipeline
+   *  pré-A16 L2 P5. UI renderiza estado "perfil pendente" se ausente. */
+  tributario?: TributarioBundle;
   // Extensibilidade para chaves ainda não tipadas
   [key: string]: unknown;
+}
+
+/** ADR-236 §D6 — Decision trigger T1-T5 com break-even computado. */
+export interface CascataTrigger {
+  code: "T1" | "T2" | "T3" | "T4" | "T5";
+  severity: "oportunidade" | "atencao" | "considere";
+  title: string;
+  /** Valores monetários como string Decimal (ADR-090). */
+  params: Record<string, string>;
+}
+
+/** ADR-236 §D3 — Cascata calculada (todos os valores anuais em BRL float). */
+export interface CascataPayload {
+  regime: "mei" | "simples" | "lucro_presumido" | "lucro_real" | null;
+  regime_label: string;
+  regime_nao_suportado: boolean;
+  motivo_nao_suportado: "lucro_real" | "perfil_incompleto" | "anexo_simples_pendente" | null;
+  receita_bruta: number;
+  tributos_federais: number;
+  iss_total: number;
+  lucro_contabil_pj: number;
+  pro_labore_bruto: number;
+  inss_patronal: number;
+  inss_empregado: number;
+  irrf_pro_labore: number;
+  lucros_distribuidos: number;
+  renda_pf_tributavel_total: number;
+  /** Fração (0.183 = 18,3%). */
+  carga_total_pct: number;
+  pgbl_base_anual: number;
+  pgbl_limite_anual: number;
+  pgbl_aplicavel: boolean;
+  pgbl_motivo_inaplicavel: "declaracao_simplificada" | "renda_tributavel_pf_zerada" | null;
+  /** Fração (0.32 = 32%). Apenas em regime=simples. */
+  fator_r_pct: number | null;
+  fator_r_faixa: "anexo_iii" | "anexo_v" | null;
+  fator_r_break_even_mensal: number | null;
+  triggers: CascataTrigger[];
+}
+
+/** ADR-236 §D4 — Bundle exposto no E5 output. */
+export interface TributarioBundle {
+  regime: "mei" | "simples" | "lucro_presumido" | "lucro_real" | null;
+  regime_label: string;
+  cascata: CascataPayload;
+  contador_nome: string | null;
+  holding_prazo_meses: number | null;
+  _source?: string;
 }
 
 /** ADR-219 — Premissas econômicas auditáveis snapshotadas no payload E5.
