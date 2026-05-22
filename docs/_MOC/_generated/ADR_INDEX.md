@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-247 ADRs (ADR-001 a ADR-254) em [`docs/adr/`](../../adr/).
+241 ADRs (ADR-001 a ADR-248) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 189
-- **Proposto**: 54
+- **Proposto**: 48
 - **Roadmap**: 4
 
 ## Fundação
@@ -346,18 +346,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
 
-## infra
-
-### Proposto (7)
-
-- [[ADR-248]] — Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20 · phase A20.l1
-- [[ADR-249]] — SHA pinning de imagens base + Dependabot Docker — Sprint A20 · phase A20.l2
-- [[ADR-250]] — GHCR como registry de imagens + tagging strategy — Sprint A20 · phase A20.l4
-- [[ADR-251]] — Trivy image scan blocking + SBOM CycloneDX — Sprint A20 · phase A20.l5
-- [[ADR-252]] — Compose dev unificado + Makefile targets opt-in — Sprint A20 · phase A20.l6
-- [[ADR-253]] — Postgres driver consolidation (asyncpg-only) — Sprint A20 · phase A20.l8
-- [[ADR-254]] — Python lockfile com hashes — pip-tools vs uv — Sprint A20 · phase A20.l10
-
 ## irpf
 
 ### Decidido (6)
@@ -453,7 +441,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-238]] — Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 · phase A17.informes-avulsos
 - [[ADR-239]] — Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 · phase A18.l1
 
-### Proposto (10)
+### Proposto (11)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -465,6 +453,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-244]] — InvestmentsConsolidator aceita `tipo_documento=informe_rendimentos` como posição · phase A17.incremental-correctness
 - [[ADR-245]] — `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR · phase A17.incremental-correctness
 - [[ADR-246]] — Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c · phase A17.imovel-dedup
+- [[ADR-248]] — Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) · phase A17.tx-dedup-cross-doc
 
 ## relatorio
 
