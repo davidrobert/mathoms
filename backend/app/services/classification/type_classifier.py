@@ -115,6 +115,41 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         ),
         priority=2,
     ),
+    # ADR-239 (A18 L2) — Apólice de seguro (auto/residencial/combinada).
+    # Marcadores fortes SUSEP/Apólice/Cobertura/CNPJ top-5 seguradoras.
+    # priority=2 alinhada com crlv_eletronico + informe_previdencia_privada.
+    TypeRule(
+        code="apolice_seguro",
+        dest_group="comprovantes",
+        required=(
+            _c(
+                r"\bAp[oó]lice\b|\bSUSEP\b"
+                r"|Bilhete\s*de\s*Seguro"
+                r"|Certificado\s*de\s*Seguro"
+                r"|Condi[çc][õo]es\s*Gerais.*Seguro"
+            ),
+            _c(
+                r"Cobertura|Pr[êe]mio\s*(L[ií]quido|Total|Bruto)"
+                r"|Limite\s*M[aá]ximo\s*(?:de\s*Indeniza[çc][ãa]o|Garantia)"
+                r"|\bLMI\b"
+            ),
+        ),
+        supporting=(
+            # Top-5 seguradoras brasileiras (catalog institutions).
+            _c(
+                r"Porto\s*Seguro|Tokio\s*Marine|Bradesco\s*Seguros"
+                r"|Ita[uú]\s*Seguros|Zurich\s*(?:Brasil|Minas)"
+                r"|Alianz|Mapfre|HDI\s*Seguros|Liberty\s*Seguros|SulAmerica"
+            ),
+            _c(r"Vig[êe]ncia\s*(?:de|a\s*partir)|In[ií]cio\s*de\s*Vig[êe]ncia"),
+            _c(r"Classe\s*de\s*B[oô]nus|Bonifica[çc][ãa]o"),
+            _c(r"Segurado|Estipulante|Beneficia(?:rio|do)|Proponente"),
+            _c(r"Corretor|Corretora\s*de\s*Seguros"),
+            _c(r"Franquia"),
+            _c(r"Ramo\s*SUSEP|C[oó]digo\s*Susep"),
+        ),
+        priority=2,
+    ),
     # ADR-238 (A17 L1) — Informe anual de Previdência Privada (PGBL/VGBL).
     # MAIS específico que ``informerendimentos`` genérico abaixo → priority=2
     # garante evaluação antes. Cobre layouts BrasilPrev / Bradesco Vida /
