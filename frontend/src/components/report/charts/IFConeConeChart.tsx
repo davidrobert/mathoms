@@ -120,10 +120,14 @@ export function IFConeConeChart({
         },
         y: {
           ticks: { callback: (v) => fmtBRL(Number(v)) },
+          // Zoom na zona de cruzamento com Meta IF: P90 sai pelo topo de
+          // propósito — favorável é "ultrapassa muito" e domina o auto-scale,
+          // esmagando o cruzamento P10/P50 × Meta IF no rodapé.
+          ...(metaIf != null && metaIf > 0 ? { max: metaIf * 3 } : {}),
         },
       },
     }),
-    [],
+    [metaIf],
   );
 
   return (
