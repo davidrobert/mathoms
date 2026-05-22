@@ -105,7 +105,9 @@ ou retrabalho caro.
 | ADR `Proposto` P0/P1, design de API, modelagem de domínio, refactor estrutural, boundary entre serviços | `senior-cto` |
 | Adoção/substituição de SaaS substantivo (auth, queue, OCR, LLM provider, observability, payment, banking aggregator) | `build-vs-buy` |
 | Pricing, posicionamento, narrativa, ICP/segmentação, resposta competitiva | `gtm-strategist` |
-| Plano canônico (`docs/<TOPIC>_PLAN.md`), curadoria BACKLOG/SPRINT, OKR/KPI, prompt LLM produção | `product-manager` |
+| Priorização/ondas/fases/KR de plano canônico (`docs/plan/<X>/`), curadoria BACKLOG/SPRINT, OKR/KPI, escopo de release (MVP/MLP/MMP), pitch de feature | `product-manager` |
+| Prompt LLM em produção (system prompt, eval golden, determinismo, custo/latência, guardrails, observabilidade), nova chamada LLM, mudança de model/seed, padrão regex→LLM→needs_review (ADR-081) | `prompt-engineer` |
+| Formato de plano/MOC/ADR atômico, frontmatter schemas (`docs/_schemas/`), wikilinks, atomicidade (ADR-182), changelog discipline, README/glossário/runbook hygiene (forma), HTML como artefato derivado (ADR-247) | `information-architect` |
 | Política CI/CD, secrets, alerta novo, política de backup/RPO/RTO, capacity, FinOps, hardening, Dockerfile / docker-compose / imagem base, módulo IaC (Terraform/Pulumi/Ansible) | `sre-devops` |
 
 Múltiplos gatilhos → invoque os especialistas em **paralelo** (1 mensagem,
@@ -113,6 +115,26 @@ N `Agent` calls). Brief mínimo: contexto + premissas + opções consideradas
 + recomendação inicial + pergunta clara ("objeção? trade-off perdido?
 ADR ignorada?"). **NÃO peça código** ao especialista — peça **decisão
 ou revisão**. Execução é do agente principal.
+
+**Pares frequentes em paralelo** (não é exaustivo — invoque sempre que dois
+gatilhos casarem):
+
+- **Plano canônico novo** → `product-manager` (KR/ondas/fases/critério) +
+  `information-architect` (filename/frontmatter/MOC entry/wikilinks). PM
+  define **o quê/quando**; IA define **onde e como**. Sem o par, plano
+  fica priorizado mas sem forma, ou bem-formado sem ancoragem em KR.
+- **Dashboard/mockup HTML derivado** → `information-architect`
+  (estrutura semântica, anchors, ToC, acoplamento MD↔HTML) +
+  `product-designer` (visual, cores, tipo, microcopy). IA cuida da IA;
+  PD cuida do visual.
+- **Feature LLM nova em produção** → `product-manager` (priorização +
+  KR + budget) + `prompt-engineer` (prompt + eval + determinismo +
+  observabilidade). PM decide se vale fazer; PE dimensiona como rodar.
+- **Schema novo em `docs/_schemas/`** → `information-architect` (forma do
+  schema, migration de docs existentes) + `data-engineer` (se o schema
+  refletir contrato entre stages ou tabela DB).
+- **Runbook novo** → `information-architect` (estrutura, ToC, seções
+  padrão) + `sre-devops` (conteúdo operacional, alertas, rollback).
 
 **NÃO delegue para:**
 
