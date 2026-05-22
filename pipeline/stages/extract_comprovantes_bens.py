@@ -176,8 +176,7 @@ def _call_llm_apolice(service, config, doc_name: str, text: str, content_hash: s
     from pipeline.llm.schemas.apolice import ApolicePayload
 
     cache_key = (
-        f"extract_comprovantes_bens:apolice:{model}:{content_hash[:16]}:"
-        f"{prompt_mod.PROMPT_VERSION}"
+        f"extract_comprovantes_bens:apolice:{model}:{content_hash[:16]}:{prompt_mod.PROMPT_VERSION}"
     )
     result = service.call(
         system_prompt=prompt_mod.SYSTEM_PROMPT,
@@ -304,14 +303,12 @@ def _redact_filename_pii(name: str) -> str:
     return name
 
 
-def _upsert_in_db(ws_id: str, payload: dict):
-    """Upsert em vehicles via service (boundary backend; pipeline puro só dispara)."""
-    from backend.app.core.database import SyncSessionLocal
+def _upsert_in_db(ws_id: str, payload: dict, *, db):
+    """Upsert em vehicles reusando session do artifact_store — sem contenção de write-lock SQLite (incidente prod 2026-05-22; mesmo pattern do fix em db_property_identity_resolver)."""
     from backend.app.services.vehicle_upsert import upsert_vehicle_from_payload
 
-    with SyncSessionLocal() as db:
-        upsert = upsert_vehicle_from_payload(ws_id, payload, db=db)
-        db.commit()
+    upsert = upsert_vehicle_from_payload(ws_id, payload, db=db)
+    db.flush()
     return upsert
 
 
@@ -336,32 +333,29 @@ def _processed_summary(
     }
 
 
-def _reconcile_apolice_against_db(payload: dict, *, workspace_id: str) -> dict:
-    """ADR-239 D3 — try/except backend; degrada graceful. Muta payload in-place."""
-    runner = _try_import_apolice_runner()
-    if runner is None:
+def _reconcile_apolice_against_db(payload: dict, *, workspace_id: str, db) -> dict:
+    """ADR-239 D3 — degrada graceful; muta payload in-place; reusa `db` do artifact_store (incidente 2026-05-22)."""
+    reconcile_fn = _try_import_apolice_runner()
+    if reconcile_fn is None:
         return payload
-    reconcile_fn, session_factory = runner
-    return _invoke_apolice_reconciliation(reconcile_fn, session_factory, workspace_id, payload)
+    return _invoke_apolice_reconciliation(reconcile_fn, workspace_id, payload, db=db)
 
 
 def _try_import_apolice_runner():
     """Try-import do runner backend; None se indisponível (CLI/tests sem DB)."""
     try:
-        from backend.app.core.database import SyncSessionLocal
         from backend.app.services.apolice_reconciliation_runner import reconcile_apolice_with_db
     except Exception as exc:  # noqa: BLE001
         logger.info("apolice reconciliation skipped (backend unavailable: %s)", exc)
         return None
-    return reconcile_apolice_with_db, SyncSessionLocal
+    return reconcile_apolice_with_db
 
 
-def _invoke_apolice_reconciliation(reconcile_fn, session_factory, workspace_id, payload):
+def _invoke_apolice_reconciliation(reconcile_fn, workspace_id, payload, *, db):
     """Helper isolado — degradação graceful em runtime."""
     try:
-        with session_factory() as db:
-            new_payload, _ = reconcile_fn(workspace_id, payload, db=db)
-            return new_payload
+        new_payload, _ = reconcile_fn(workspace_id, payload, db=db)
+        return new_payload
     except Exception as exc:  # noqa: BLE001
         logger.warning("apolice reconciliation failed: %s", exc)
         return payload
@@ -380,25 +374,35 @@ def _apolice_artifact_key(payload: dict) -> str:
     return f"apolice_{sanitized}_{ano}"
 
 
+def _persist_crlv(doc: Path, payload: dict, result, store, ws_id: str) -> dict[str, Any]:
+    placa = payload.get("placa", "")
+    ano = payload.get("exercicio")
+    key = _artifact_key_for("crlv", placa, ano)
+    store.write("extract_comprovantes_bens", key, payload)
+    # Reusa store.session — uma session por stage, evita lock SQLite paralelo.
+    upsert = _upsert_in_db(ws_id, payload, db=store.session)
+    _log_run(doc.name, ws_id, payload, result, upsert.outcome.value, "crlv")
+    return _processed_summary(doc, payload, key, "crlv", ano, upsert)
+
+
+def _persist_apolice(doc: Path, payload: dict, result, store, ws_id: str) -> dict[str, Any]:
+    # Reconciliação assíncrona contra vehicles + property_identity (ADR-239 D3).
+    payload = _reconcile_apolice_against_db(payload, workspace_id=ws_id, db=store.session)
+    key = _apolice_artifact_key(payload)
+    store.write("extract_comprovantes_bens", key, payload)
+    ano = int(key.rsplit("_", 1)[-1]) if key.rsplit("_", 1)[-1].isdigit() else None
+    _log_run(doc.name, ws_id, payload, result, "no_upsert", "apolice")
+    return _processed_summary(doc, payload, key, "apolice", ano, upsert=None)
+
+
 def _persist_processed(
     doc: Path, payload: dict, result, ctx: WorkspaceContext, ws_id: str, tipo: str
 ) -> dict[str, Any]:
     """Persiste artifact + upsert (CRLV) ou apenas artifact (apólice — reconciliação P4)."""
+    store = ctx.get_artifact_store()
     if tipo == "crlv":
-        placa = payload.get("placa", "")
-        ano = payload.get("exercicio")
-        key = _artifact_key_for(tipo, placa, ano)
-        ctx.get_artifact_store().write("extract_comprovantes_bens", key, payload)
-        upsert = _upsert_in_db(ws_id, payload)
-        _log_run(doc.name, ws_id, payload, result, upsert.outcome.value, tipo)
-        return _processed_summary(doc, payload, key, tipo, ano, upsert)
-    # Apólice — reconciliação assíncrona contra vehicles + property_identity (ADR-239 D3).
-    payload = _reconcile_apolice_against_db(payload, workspace_id=ws_id)
-    key = _apolice_artifact_key(payload)
-    ctx.get_artifact_store().write("extract_comprovantes_bens", key, payload)
-    ano = int(key.rsplit("_", 1)[-1]) if key.rsplit("_", 1)[-1].isdigit() else None
-    _log_run(doc.name, ws_id, payload, result, "no_upsert", tipo)
-    return _processed_summary(doc, payload, key, tipo, ano, upsert=None)
+        return _persist_crlv(doc, payload, result, store, ws_id)
+    return _persist_apolice(doc, payload, result, store, ws_id)
 
 
 def _err(doc: Path, exc_or_msg) -> dict[str, str]:
