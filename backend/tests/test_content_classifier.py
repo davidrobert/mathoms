@@ -247,6 +247,23 @@ class TestInstitutionDetection:
         """C6TAG (telepedágio C6) sozinho é patognomônico — detecta sem outros tokens."""
         assert detect_institution_by_content("Pagamento C6TAG PEDAGIO via PIX") == "c6bank"
 
+    def test_c6_pj_pdf_routes_to_dedicated_parser_via_filename(self):
+        """Fluxo E2E: PDF C6 PJ detectado → filename `c6bank_*` → parse_c6bank ([[ADR-255]])."""
+        from scripts.e0_route import build_final_name
+        from scripts.e2.banks.c6bank import parse_c6bank
+        from scripts.e2.registry import route_to_parser
+
+        assert detect_institution_by_content(C6_EXTRATO_PJ_PDF) == "c6bank"
+        classification = {
+            "institution": "c6bank",
+            "doc_type": "extratoconta",
+            "dest_group": "financial_statements",
+            "period": "202505_202605",
+        }
+        final_name = build_final_name(classification, original_ext=".pdf")
+        assert final_name.startswith("c6bank_extratoconta_")
+        assert route_to_parser(final_name) is parse_c6bank
+
     def test_bradesco(self):
         assert detect_institution_by_content(BRADESCO_EXTRATO_POUPANCA) == "bradesco"
 
