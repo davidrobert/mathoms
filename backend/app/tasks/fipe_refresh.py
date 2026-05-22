@@ -1,4 +1,4 @@
-"""Celery task `refresh_fipe_value` — ADR-239 D5 (A18 L3 P1)."""
+"""Celery task `refresh_fipe_value` — ADR-239 D5 (A18 L3 P1+P2)."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.core.database import SyncSessionLocal
 from backend.app.models.market_rate import MarketRate
+from backend.app.models.vehicle import Vehicle
 from backend.app.services.fipe_lookup import (
     BrasilAPIFipeClient,
     FipeLookupClient,
@@ -151,3 +152,75 @@ def refresh_fipe_value(self, fipe_code: str, ano_modelo: int) -> dict:
 def _retry_countdown(retries: int) -> int:
     """Backoff exponencial: 120s, 240s, 480s (max_retries=3)."""
     return 120 * (2 ** min(retries, 3))
+
+
+# ===========================================================================
+# Batch annual refresh (Celery Beat cron Janeiro — ADR-239 D5)
+# ===========================================================================
+
+
+def _enumerate_active_fipe_codes(db: Session) -> list[tuple[str, int]]:
+    """Lista distintos (fipe_code, ano_modelo) de vehicles ativos no workspace global."""
+    rows = db.execute(
+        select(Vehicle.fipe_code, Vehicle.ano_modelo)
+        .where(Vehicle.archived_at.is_(None))
+        .where(Vehicle.fipe_code.is_not(None))
+        .distinct()
+    ).all()
+    return [(code, ano) for code, ano in rows if code]
+
+
+def _enqueue_refresh_async(fipe_code: str, ano_modelo: int) -> None:
+    """Enfileira via Celery — separado para test injetar fake."""
+    refresh_fipe_value.delay(fipe_code, ano_modelo)
+
+
+def refresh_all_fipe_values_sync(
+    *,
+    db: Optional[Session] = None,
+    enqueue_fn=_enqueue_refresh_async,
+) -> dict:
+    """Enumera vehicles ativos + enfileira refresh_fipe_value (síncrono injetável)."""
+    if db is None:
+        with SyncSessionLocal() as session:
+            return _refresh_all_with_db(session, enqueue_fn)
+    return _refresh_all_with_db(db, enqueue_fn)
+
+
+def _refresh_all_with_db(db: Session, enqueue_fn) -> dict:
+    codes = _enumerate_active_fipe_codes(db)
+    for fipe_code, ano_modelo in codes:
+        enqueue_fn(fipe_code, ano_modelo)
+    logger.info(
+        "mathoms.fipe.refresh_all_enqueued",
+        extra={"fipe_codes_count": len(codes)},
+    )
+    return {"enqueued": len(codes), "fipe_codes": [c for c, _ in codes]}
+
+
+@celery_app.task(name="fin.fipe.refresh_all_annual", bind=True, max_retries=1)
+def refresh_all_fipe_values_annual(self) -> dict:
+    """ADR-239 D5: cron Janeiro — refresh anual de todos fipe_codes ativos."""
+    return refresh_all_fipe_values_sync()
+
+
+# ===========================================================================
+# Cache reader (consumido pelo ProtecaoAnalyzer runner em A19)
+# ===========================================================================
+
+
+def read_fipe_cache(
+    db: Session, fipe_code: str, today: Optional[date] = None
+) -> tuple[Optional[Decimal], str]:
+    """Retorna `(value_brl, status)` lendo cache market_rates; status=fresh|stale_acceptable|pending_refresh."""
+    today = today or date.today()
+    row = db.execute(
+        select(MarketRate)
+        .where(MarketRate.pair == _fipe_pair(fipe_code))
+        .order_by(MarketRate.observed_at.desc())
+        .limit(1)
+    ).scalar_one_or_none()
+    if row is None:
+        return None, "pending_refresh"
+    age_days = (today - row.observed_at).days
+    return row.rate, "fresh" if age_days <= _CACHE_TTL_DAYS else "stale_acceptable"
