@@ -232,6 +232,82 @@ Normalização para "líquido" é responsabilidade do service (não da seed):
 | Cap rate de mercado da praça | v2 | Fonte externa (FIPE-ZAP) |
 | GLA / cap rate por m² | v2 (comercial) | Schema do imóvel não captura GLA hoje |
 
+## Proteção Patrimonial (S_PROTECAO — pilar AUVP)
+
+Fórmulas registradas **antes** da implementação (gate G2 ADR-240). Implementadas
+em [`pipeline/domain/services/protecao_analyzer.py`](../../pipeline/domain/services/protecao_analyzer.py).
+
+### `protecao.premio_total_anual` (KPI G — hero)
+
+```
+premio_total_anual_brl = Σ premio_total_brl
+                          ∀ apolice ∈ apolices_vigentes_em(data_referencia)
+```
+
+Onde `apolices_vigentes_em(D) = { a ∈ apolices : a.vigencia_inicio ≤ D ≤ a.vigencia_fim }`.
+Vencidas (`a.vigencia_fim < D`) e vencendo (`D ≤ a.vigencia_fim ≤ D + 30d`) entram em
+listas separadas no payload — não somam no KPI G.
+
+### `protecao.pct_renda` (KPI B — ancorado Cerbasi)
+
+```
+pct_renda_anual = premio_total_anual_brl / renda_anual_liquida_brl
+```
+
+| Intervalo | Sinal |
+|-----------|-------|
+| `pct < 0.01`     | atenção (sub-investido) |
+| `0.01 ≤ pct ≤ 0.03` | ok |
+| `0.03 < pct ≤ 0.05` | ok-forte |
+| `pct > 0.05`     | atenção (sobreposições?) |
+
+Quando `renda_anual_liquida_brl == 0` → KPI ausente (não dividir por zero).
+
+### `protecao.gap_bem_auto` (KPI C V1)
+
+Por veículo segurado em apólice vigente:
+
+```
+gap_pct = (valor_fipe_dezembro_atual - lmi_brl_casco) / valor_fipe_dezembro_atual
+```
+
+Onde `lmi_brl_casco` é o LMI da cobertura `material` com `lmi_modo` ∈
+{`valor_fixo`, `primeiro_risco_absoluto`} OU `lmi_fipe_percentual * valor_fipe`
+quando `lmi_modo='fipe_percentual'`. Sinal:
+
+| Gap | Sinal |
+|-----|-------|
+| `gap < 0.10`     | ok |
+| `0.10 ≤ gap < 0.25` | atenção branda |
+| `gap ≥ 0.25`     | atenção |
+
+Quando `valor_fipe == 0` (veículo sem FIPE — depende de A18 L3) → bem sai da lista;
+UI mostra placeholder "FIPE pendente — refresh anual".
+
+### `protecao.flag_vida` (KPI F vida)
+
+```
+flag_vida = (
+    has_dependentes_menores_18 OR
+    has_conjuge_sem_renda_propria OR
+    (passivo_total / patrimonio_liquido) > 0.30
+) AND NOT has_apolice_vida_ativa
+```
+
+Sem `family_members` (workspace zero-config) → `flag_vida=False` silenciosamente
+(gate G5 — degrada gracioso).
+
+### `protecao.flag_saude` (KPI F saúde)
+
+```
+flag_saude = (
+    NOT has_deducao_saude_irpf AND
+    NOT has_categoria_saude_e4_3_meses
+) AND NOT has_apolice_saude_ativa
+```
+
+Copy mais branda que vida (PJ comum cobre saúde). ADR-240 D3 detalha texto.
+
 ### Custo essencial mensal — base da cobertura
 
 `custo_essencial_mensal_brl` é a soma das médias mensais das **9 categorias

@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Protecao Patrimonial — Bloco em analise_financeira (E5)",
+  "description": "Schema do payload protecao_patrimonial (ADR-240 D8). Wire string decimal (ADR-090). Validado via hook DBArtifactStore.write (ADR-212 PR3a).",
+  "type": "object",
+  "required": [
+    "premio_total_anual_brl",
+    "premio_decomposicao",
+    "pct_renda_anual",
+    "bens_com_gap_cobertura",
+    "gap_qualitativo",
+    "apolices_vigentes",
+    "apolices_vencendo",
+    "apolices_vencidas",
+    "corretoras_count",
+    "seguradoras_count"
+  ],
+  "properties": {
+    "premio_total_anual_brl": {
+      "type": "string",
+      "pattern": "^-?\\d+(\\.\\d{1,2})?$",
+      "description": "Soma de premio_total_brl das apólices vigentes (string decimal, ADR-090)."
+    },
+    "premio_decomposicao": {
+      "type": "object",
+      "description": "Decomposição do prêmio total por tipo de cobertura. Chaves canônicas V1 + V2 placeholder.",
+      "properties": {
+        "auto": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
+        "residencial": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
+        "vida": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
+        "saude": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
+        "ap": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"}
+      }
+    },
+    "pct_renda_anual": {
+      "type": "string",
+      "pattern": "^-?\\d+(\\.\\d{1,6})?$",
+      "description": "KPI B — Σ prêmios / renda anual líquida (0..1 como decimal; 0.025 = 2.5%)."
+    },
+    "bens_com_gap_cobertura": {
+      "type": "array",
+      "description": "KPI C V1 — gap LMI casco vs FIPE por veículo.",
+      "items": {
+        "type": "object",
+        "required": ["veiculo_id", "lmi_brl", "fipe_brl", "gap_pct", "sinal"],
+        "properties": {
+          "veiculo_id": {"type": "string"},
+          "veiculo_descricao": {"type": "string"},
+          "lmi_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
+          "fipe_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
+          "gap_pct": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,6})?$"},
+          "sinal": {"type": "string", "enum": ["ok", "atencao_branda", "atencao"]}
+        }
+      }
+    },
+    "gap_qualitativo": {
+      "type": "array",
+      "description": "KPI F V1 — flags binárias (vida, saúde) com gating heurístico.",
+      "items": {
+        "type": "object",
+        "required": ["categoria", "flag", "rationale"],
+        "properties": {
+          "categoria": {"type": "string", "enum": ["vida", "saude", "rc_familiar", "rd_profissional", "ap"]},
+          "flag": {"type": "boolean"},
+          "rationale": {"type": "string"}
+        }
+      }
+    },
+    "apolices_vigentes": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/ApoliceResumo"}
+    },
+    "apolices_vencendo": {
+      "type": "array",
+      "description": "Apólices vigentes mas com vigencia_fim <= data_referencia + 30 dias.",
+      "items": {"$ref": "#/$defs/ApoliceResumo"}
+    },
+    "apolices_vencidas": {
+      "type": "array",
+      "description": "Apólices com vigencia_fim < data_referencia (não filtradas — owner pode estar renovando).",
+      "items": {"$ref": "#/$defs/ApoliceResumo"}
+    },
+    "corretoras_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Número distinto de corretoras nas apólices vigentes (multi-corretor metadata neutra, ADR-240 D6)."
+    },
+    "seguradoras_count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "$defs": {
+    "ApoliceResumo": {
+      "type": "object",
+      "required": ["apolice_numero", "seguradora", "vigencia_inicio", "vigencia_fim", "premio_total_brl", "bens_count"],
+      "properties": {
+        "apolice_numero": {"type": "string"},
+        "seguradora": {"type": "string"},
+        "vigencia_inicio": {"type": "string", "format": "date"},
+        "vigencia_fim": {"type": "string", "format": "date"},
+        "premio_total_brl": {"type": "string", "pattern": "^-?\\d+(\\.\\d{1,2})?$"},
+        "bens_count": {"type": "integer", "minimum": 0},
+        "tipos_bem": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["veiculo", "imovel", "pessoa"]}
+        }
+      }
+    }
+  }
+}
