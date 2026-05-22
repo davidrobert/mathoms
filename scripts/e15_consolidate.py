@@ -521,6 +521,43 @@ def _classify_investimento(grupo: str, descricao: str) -> str:
     return "investimento"
 
 
+def _reconcile_veiculos_against_db(consolidated: dict, *, workspace_id: str) -> None:
+    """ADR-239 D3+D4 — degradação graceful sem backend; muta in-place."""
+    runner = _try_import_reconciliation_runner()
+    if runner is None:
+        return
+    reconcile_fn, session_factory = runner
+    _invoke_reconciliation(reconcile_fn, session_factory, workspace_id, consolidated)
+
+
+def _try_import_reconciliation_runner():
+    """Try-import do runner backend; None quando indisponível (CLI/tests sem DB)."""
+    try:
+        from backend.app.core.database import SyncSessionLocal
+        from backend.app.services.vehicle_reconciliation_runner import (
+            reconcile_baseline_with_db,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"  [info] vehicle reconciliation skipped (backend unavailable: {exc})")
+        return None
+    return reconcile_baseline_with_db, SyncSessionLocal
+
+
+def _invoke_reconciliation(reconcile_fn, session_factory, workspace_id, consolidated):
+    """Helper isolado (mantém caller ≤20L; degrada graceful em runtime)."""
+    try:
+        with session_factory() as db:
+            new_baseline, summary = reconcile_fn(workspace_id, consolidated, db=db)
+            consolidated["veiculos_consolidados"] = new_baseline.get("veiculos_consolidados", [])
+            print(
+                f"  [OK] Reconciliação vehicles: {summary.matched_count} matched, "
+                f"{summary.needs_review_count} needs_review, "
+                f"{summary.no_candidate_count} no_candidate"
+            )
+    except Exception as exc:  # noqa: BLE001 — degradação graceful
+        print(f"  [warn] vehicle reconciliation failed: {exc}")
+
+
 def main_with_store(ctx) -> dict:
     """E1.5c — consolida baseline patrimonial via ``ArtifactStore``.
 
@@ -583,7 +620,13 @@ def main_with_store(ctx) -> dict:
             family_members=family_members,
         )
 
-    # 4. Persiste via store (write-back no artefato E1.5c).
+    # 4. Reconciliação fuzzy IRPF G02 ↔ vehicles (ADR-239 D3+D4). Degradação
+    #    graceful — backend indisponível (CLI/tests) ou workspace_id ausente
+    #    pula a etapa silenciosamente (mesma forma de property_id enrichment).
+    if ctx.workspace_id is not None:
+        _reconcile_veiculos_against_db(consolidated, workspace_id=ctx.workspace_id)
+
+    # 5. Persiste via store (write-back no artefato E1.5c).
     store.write("E1.5c", "baseline_patrimonial", consolidated)
     print("\n  [OK] Baseline consolidado e salvo via ArtifactStore (stage=E1.5c)")
     print("=" * 60)

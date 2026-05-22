@@ -97,7 +97,20 @@
       }
     },
     "veiculos_consolidados": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "descricao": {"type": "string"},
+          "proprietario": {"type": "string"},
+          "tipo": {"type": "string"},
+          "valores_31_12": {"type": "object"},
+          "veiculo_id": {
+            "type": ["string", "null"],
+            "description": "FK opcional para vehicles.id após reconciliação E1.5c (ADR-239)"
+          }
+        }
+      }
     },
     "dividas": {
       "type": "array"
