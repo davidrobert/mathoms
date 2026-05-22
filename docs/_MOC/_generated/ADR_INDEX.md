@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 190
-- **Proposto**: 55
+- **Decidido**: 191
+- **Proposto**: 54
 - **Roadmap**: 4
 
 ## Fundação
@@ -446,14 +446,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (4)
+### Decidido (5)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-237]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
 - [[ADR-238]] — Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 · phase A17.informes-avulsos
 - [[ADR-239]] — Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 · phase A18.l1
+- [[ADR-256]] — Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` · phase A19.uow-stages
 
-### Proposto (12)
+### Proposto (11)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -466,7 +467,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-245]] — `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR · phase A17.incremental-correctness
 - [[ADR-246]] — Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c · phase A17.imovel-dedup
 - [[ADR-255]] — Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) · phase A17.tx-dedup-cross-doc
-- [[ADR-256]] — Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` · phase A19.uow-stages
 
 ## relatorio
 

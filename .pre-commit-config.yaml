@@ -101,6 +101,21 @@ repos:
         pass_filenames: true
         types: [file]
 
+      - id: pipeline-sessions
+        # ADR-256: stages do pipeline não abrem Session SQLAlchemy própria
+        # (2 incidentes prod com mesma raiz em 4 dias — session paralela
+        # contendo write-lock SQLite enquanto stage_session retém o lock
+        # via autoflush). Reusam ctx.get_artifact_store().session ou
+        # recebem db: Session por parâmetro kwarg-only.
+        name: "Stages do pipeline não abrem Session própria (ADR-256)"
+        entry: python3 dev/check_pipeline_sessions.py
+        language: system
+        # Roda sem args (scaneia pipeline/** todo). pass_filenames=false:
+        # check do invariante é global, não por-arquivo-tocado.
+        pass_filenames: false
+        always_run: true
+        types: [python]
+
       - id: classification-exhaustive
         # ADR-235 A16: bloqueia switch/match sobre `classification` sem
         # branch default — enum cresce (nu_proprietario foi o último
