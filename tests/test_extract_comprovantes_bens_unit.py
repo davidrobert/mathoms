@@ -30,7 +30,8 @@ from pipeline.stages.extract_comprovantes_bens import (
         ("renavam_98765432100.pdf", "crlv"),
         ("denatran_certificado.pdf", "crlv"),
         ("informe_brasilprev_2024.pdf", None),
-        ("apolice_tokio_marine.pdf", None),
+        # A18 L2: apolice agora casa (era None em L1).
+        ("apolice_tokio_marine.pdf", "apolice"),
         ("extrato_c6_202601.pdf", None),
     ],
 )
