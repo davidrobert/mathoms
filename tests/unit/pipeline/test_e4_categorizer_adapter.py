@@ -144,6 +144,57 @@ class TestLoaders:
 
         assert adapter.load_investment_positions(store) == []
 
+    def test_load_investment_positions_accepts_informe_rendimentos(self):
+        """ADR-244 — informe de rendimentos (snapshot 31/12) também é posição.
+
+        Regressão real: workspace `Campos`, informe IR Itaú trouxe
+        ``tipo_documento="informe_rendimentos"`` + R$ 290k de CDB no campo
+        ``investimentos``. O filter anterior aceitava só ``investment_report``
+        → posição descartada → card "Investimentos David Robert" zerado.
+        """
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E2-llm",
+            "itau_cdbdetalhes_2025",
+            {
+                "tipo_documento": "informe_rendimentos",
+                "instituicao": "itau",
+                "membro": "david_robert_camargo_ferreira_campos",
+                "investimentos": [
+                    {
+                        "tipo": "cdb",
+                        "descricao": "RDB/CDB - Ag 9652 / Conta 0004397-8",
+                        "valor_brl": 290000.0,
+                    }
+                ],
+            },
+        )
+        classifier_cfg = ClassifierConfig.from_configs()
+        adapter = E4CategorizerAdapter(classifier=TransactionClassifier(classifier_cfg))
+
+        positions = adapter.load_investment_positions(store)
+
+        assert len(positions) == 1
+        assert positions[0]["tipo_documento"] == "informe_rendimentos"
+        assert positions[0]["investimentos"][0]["valor_brl"] == 290000.0
+
+    def test_load_investment_positions_skips_informe_rendimentos_without_investimentos(self):
+        """Informe sem campo ``investimentos`` não é posição (só rendimentos)."""
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E2-llm",
+            "informe_renda_only",
+            {
+                "tipo_documento": "informe_rendimentos",
+                "instituicao": "nubank",
+                "investimentos": [],  # vazio — só rendimentos no doc
+            },
+        )
+        classifier_cfg = ClassifierConfig.from_configs()
+        adapter = E4CategorizerAdapter(classifier=TransactionClassifier(classifier_cfg))
+
+        assert adapter.load_investment_positions(store) == []
+
     def test_load_investment_positions_dedups_by_key_across_stages(self):
         """DiskArtifactStore mapeia os 3 stages E2 para o mesmo dir — dedup
         por key evita ler o mesmo artefato múltiplas vezes."""

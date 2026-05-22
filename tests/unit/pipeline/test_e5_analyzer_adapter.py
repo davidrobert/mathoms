@@ -279,6 +279,148 @@ class TestAnalyzeViaStore:
         assert result.ratios.taxa_poupanca_recorrente_pct == 0
 
 
+class TestMoedaEstrangeiraFallback:
+    """ADR-245 — fallback baseline IRPF para `caixa_moeda_estrangeira`."""
+
+    def test_extract_me_caixa_picks_usd_deposit(self):
+        from pipeline.domain.services.e5_analyzer_adapter import _extract_me_caixa_from_baseline
+
+        baseline = {
+            "investimentos_consolidados": [
+                {
+                    "descricao": "DEPOSITO EM MOEDA NACIONAL DECORRENTE DE MOEDA ESTRANGEIRA - U$ 6.524,00",
+                    "valores_31_12": {"2025": 34433.67},
+                    "proprietario": "david_robert",
+                },
+                {
+                    "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR (PAIS: ILHAS CAYMAN)",
+                    "valores_31_12": {"2025": 484.80},
+                    "proprietario": "david_robert",
+                },
+                {
+                    "descricao": "BANCO ITAU - APLICACAO RENDA FIXA RDB/CDB",
+                    "valores_31_12": {"2025": 151602.49},
+                    "proprietario": "david_robert",
+                },
+            ]
+        }
+
+        total, detalhes = _extract_me_caixa_from_baseline(baseline)
+
+        assert total == pytest.approx(34918.47, abs=0.01)
+        assert len(detalhes) == 2
+        assert all(d.tipo == "moeda_estrangeira_irpf" for d in detalhes)
+        assert all(d.moeda == "USD" for d in detalhes)
+
+    def test_extract_me_caixa_handles_eur(self):
+        from pipeline.domain.services.e5_analyzer_adapter import _extract_me_caixa_from_baseline
+
+        baseline = {
+            "investimentos_consolidados": [
+                {
+                    "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA EURO",
+                    "valores_31_12": {"2024": 5000.0},
+                }
+            ]
+        }
+        total, detalhes = _extract_me_caixa_from_baseline(baseline)
+        assert total == 5000.0
+        assert detalhes[0].moeda == "EUR"
+
+    def test_extract_me_caixa_skips_non_me_items(self):
+        from pipeline.domain.services.e5_analyzer_adapter import _extract_me_caixa_from_baseline
+
+        baseline = {
+            "investimentos_consolidados": [
+                {"descricao": "CDB Itau", "valores_31_12": {"2025": 100000}},
+                {"descricao": "Acoes PETR4", "valores_31_12": {"2025": 50000}},
+            ]
+        }
+        total, detalhes = _extract_me_caixa_from_baseline(baseline)
+        assert total == 0
+        assert detalhes == []
+
+    def test_extract_me_caixa_skips_zero_values(self):
+        from pipeline.domain.services.e5_analyzer_adapter import _extract_me_caixa_from_baseline
+
+        baseline = {
+            "investimentos_consolidados": [
+                {
+                    "descricao": "DEPOSITO MOEDA ESTRANGEIRA DOLAR (zerado)",
+                    "valores_31_12": {"2025": 0.0},
+                }
+            ]
+        }
+        total, detalhes = _extract_me_caixa_from_baseline(baseline)
+        assert total == 0
+        assert detalhes == []
+
+    def test_load_caixa_fallback_kicks_in_when_no_foreign_in_e3(self):
+        """E2-llm Itaú só trouxe E3 BRL (informe não tem extrato bancário).
+        Sem fallback ME, card 'Caixa e Moeda Estrangeira' fica zerado mesmo
+        com USD em baseline IRPF.
+        """
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E3",
+            "itau_extratoconta_BRL_202512_202512",
+            {
+                "banco": "itau",
+                "tipo_conta": "extrato",
+                "moeda": "BRL",
+                "saldo_final": 1000.0,
+                "periodo_cobertura": {"inicio": "2025-12-01", "fim": "2025-12-31"},
+                "transacoes": [{"data": "2025-12-31", "valor": 100, "descricao": "TED"}],
+            },
+        )
+        adapter = E5AnalyzerAdapter()
+        baseline = {
+            "investimentos_consolidados": [
+                {
+                    "descricao": "DEPOSITO EM MOEDA NACIONAL DECORRENTE DE MOEDA ESTRANGEIRA - U$ 6.524,00",
+                    "valores_31_12": {"2025": 34433.67},
+                }
+            ]
+        }
+
+        total, detalhes = adapter._load_caixa_from_e3(store, baseline=baseline)
+
+        assert total == pytest.approx(35433.67, abs=0.01)  # 1000 BRL + 34433.67 IRPF
+        assert any(d.tipo == "moeda_estrangeira_irpf" for d in detalhes)
+        assert any(d.tipo == "caixa" for d in detalhes)
+
+    def test_load_caixa_no_fallback_when_e3_has_foreign(self):
+        """E3 tem extrato USD reconciliado → fallback IRPF NÃO dispara."""
+        store = InMemoryArtifactStore()
+        store.seed(
+            "E3",
+            "c6_extratocontaglobalusd_USD_202512_202512",
+            {
+                "banco": "c6bank",
+                "tipo_conta": "extratoconta",
+                "moeda": "USD",
+                "saldo_final": 1000.0,
+                "periodo_cobertura": {"inicio": "2025-12-01", "fim": "2025-12-31"},
+                "transacoes": [{"data": "2025-12-15", "valor": 100, "descricao": "PIX"}],
+            },
+        )
+        adapter = E5AnalyzerAdapter()
+        baseline = {
+            "investimentos_consolidados": [
+                {
+                    "descricao": "DEPOSITO EM MOEDA ESTRANGEIRA DOLAR",
+                    "valores_31_12": {"2025": 99999.0},
+                }
+            ]
+        }
+
+        total, detalhes = adapter._load_caixa_from_e3(store, baseline=baseline)
+
+        # Apenas o E3 USD entra; baseline IRPF não aplica fallback.
+        assert all(d.tipo != "moeda_estrangeira_irpf" for d in detalhes)
+        assert total < 99000.0  # bem menor que o IRPF
+
+
 class TestResultType:
     def test_result_is_frozen(self):
         store = InMemoryArtifactStore()

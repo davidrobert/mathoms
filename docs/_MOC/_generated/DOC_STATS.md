@@ -5,13 +5,13 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-666 notas indexadas pelo frontmatter em `docs/`.
+668 notas indexadas pelo frontmatter em `docs/`.
 
 ## Por tipo
 
 | type | notas |
 | --- | ---: |
-| adr | 236 |
+| adr | 238 |
 | archive-index | 1 |
 | changelog-entry | 199 |
 | doc | 2 |
@@ -27,7 +27,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | type | status | notas |
 | --- | --- | ---: |
 | adr | Decidido | 187 |
-| adr | Proposto | 45 |
+| adr | Proposto | 47 |
 | adr | Roadmap | 4 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 199 |
