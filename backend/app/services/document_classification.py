@@ -10,12 +10,15 @@ metadados em ``classification_meta`` (inclui ``confidence`` e ``needs_review``).
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 
 from pydantic import BaseModel, Field
 
 from backend.app.models.document import DocumentType
+
+_classification_logger = logging.getLogger("mathoms.classification")
 
 # Alinhado ao fluxo descrito em ADR-079 / document_processor legado.
 _CONTENT_CONFIDENCE_THRESHOLD = 0.8
@@ -264,6 +267,7 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
             needs_review=True,
         ).as_dict()
 
+    _maybe_log_unknown_institution(file_path, best_type, best_institution)
     return ClassificationResult(
         doc_type=map_e0_doc_type_to_document_type(best_type),
         bank_code=best_institution,
@@ -275,3 +279,21 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
         confidence=confidence,
         needs_review=needs_review,
     ).as_dict()
+
+
+def _maybe_log_unknown_institution(
+    file_path: Path, best_type: str | None, best_institution: str | None
+) -> None:
+    """Telemetria estrutural — ``extratoconta`` sem ``bank_code`` (próximo banco N+1, ADR-255)."""
+    if not best_type or best_institution:
+        return
+    if not best_type.startswith("extratoconta"):
+        return
+    _classification_logger.warning(
+        "mathoms.classification.unknown_extratoconta",
+        extra={
+            "filename": file_path.name,
+            "doc_type": best_type,
+            "bank_code": None,
+        },
+    )

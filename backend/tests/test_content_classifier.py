@@ -66,6 +66,33 @@ C6_FATURA_CARBON_CSV = (
     "15/01/2026;DAVID ROBERT;5241;Restaurantes;RESTAURANTE XYZ;;0;0;89.90\n"
 )
 
+# PDF do app C6 Bank PJ — exportação "Extrato → Exportar". NÃO contém razão
+# social/CNPJ do banco no preview; identificado pelo layout único com bullets
+# "•" entre rótulo e valor e fraseado "Extrato exportado no dia". Anonimizado:
+# CNPJ/conta/agência fictícios.
+C6_EXTRATO_PJ_PDF = """
+Extrato exportado no dia 20 de maio de 2026 às 11:57
+
+     EMPRESA FICTICIA LTDA • 00.000.000/0001-00
+     Agência: 1 • Conta: 000000001
+
+
+                                                              Período • 20 de maio de 2025 até 20 de maio de 2026
+
+Extrato                                                            Saldo do dia • 20 de maio de 2026 • R$ 50.000,00
+
+                                                Cheque Especial contratado • 20 de maio de 2026 • R$ 60.000,00
+
+
+Maio 2025 ( 20/05/2025 - 31/05/2025 )                             Entradas: R$ 7.000,00 • Saídas: R$ 0,00
+
+Data          Data
+lançamento    contábil   Tipo            Descrição                                                       Valor
+30/05         30/05      Entrada PIX     Pix recebido de CLIENTE EXEMPLO LTDA.                       R$ 7.000,00
+
+Saldo do dia 30/05/25                                                                                R$ 7.000,00
+"""
+
 BRADESCO_EXTRATO_POUPANCA = """
 Banco Bradesco S.A.
 Extrato Poupança
@@ -203,6 +230,22 @@ class TestInstitutionDetection:
     def test_c6bank_csv_format(self):
         """CSV de fatura Carbon não tem razão social — detectado pelas colunas USD+BRL."""
         assert detect_institution_by_content(C6_FATURA_CARBON_CSV) == "c6bank"
+
+    def test_c6bank_pj_pdf_layout(self):
+        """PDF C6 PJ não menciona razão social — detectado por layout único (bullets •)."""
+        assert detect_institution_by_content(C6_EXTRATO_PJ_PDF) == "c6bank"
+
+    def test_c6bank_pj_pdf_requires_two_tokens(self):
+        """Single token ('Extrato exportado no dia' sozinho) NÃO basta — exige bullet."""
+        # Apenas o header de exportação, sem bullets nem C6TAG → não deve casar.
+        only_header = (
+            "Extrato exportado no dia 20 de maio de 2026 às 11:57\nQualquer texto sem bullets."
+        )
+        assert detect_institution_by_content(only_header) is None
+
+    def test_c6tag_alone_detects(self):
+        """C6TAG (telepedágio C6) sozinho é patognomônico — detecta sem outros tokens."""
+        assert detect_institution_by_content("Pagamento C6TAG PEDAGIO via PIX") == "c6bank"
 
     def test_bradesco(self):
         assert detect_institution_by_content(BRADESCO_EXTRATO_POUPANCA) == "bradesco"
