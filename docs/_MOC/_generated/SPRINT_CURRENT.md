@@ -5,20 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-Nenhuma lane prontidão atual.
+1 in_progress.
 
-## Todas as lanes da sprint (para inspeção)
+## In progress (1)
 
-### planned (4)
-
-- [[A17.l2]] — Informes anuais — L2 financeiro PJ (C6 PJ, Stone, adquirentes) · priority P1 · branch `a17-l2-financeiro-pj`
-- [[A17.l3]] — Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda) · priority P2 · branch `a17-l3-financeiro-pf`
-- [[A17.l4]] — Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) · priority P2 · branch `a17-l4-proventos`
 - [[A17.l5]] — LLM Hardening — W4-T00 seed expandido institution_catalog (alta renda PJ) · priority P0 · branch `a17-l5-llm-institution-seed`
-
-### shipped (1)
-
-- [[A17.l1]] — Informes anuais — L1 previdência privada (PGBL/VGBL, BrasilPrev e seguradoras) · priority P1 · branch `a17-l1-previdencia`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
