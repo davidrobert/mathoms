@@ -5,10 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1 in_progress.
+2 in_progress.
 
-## In progress (1)
+## In progress (2)
 
+- [[A17.l2]] — Informes anuais — L2 financeiro PJ (C6 PJ, Stone, adquirentes) · priority P1 · branch `a17-l2-financeiro-pj`
 - [[A17.l5]] — LLM Hardening — W4-T00 seed expandido institution_catalog (alta renda PJ) · priority P0 · branch `a17-l5-llm-institution-seed`
 
 ---

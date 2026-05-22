@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "informe_base.schema.json",
   "title": "Informe de Rendimentos Anual (base polimórfico)",
-  "description": "Schema-base de Informes de Rendimentos anuais avulsos — A17 (ADR-238 D2). Discriminator: tipo_informe. Top-level lenient (additionalProperties: true) para sobreviver shape novo de PDF; sub-payloads strict. Wire de dinheiro: string decimal (ADR-090). Em A17 L1, somente tipo_informe='previdencia_privada' é aceito; L2-L4 expandem o enum incrementalmente.",
+  "description": "Schema-base de Informes de Rendimentos anuais avulsos — A17 (ADR-238 D2). Discriminator: tipo_informe. Top-level lenient (additionalProperties: true) para sobreviver shape novo de PDF; sub-payloads strict. Wire de dinheiro: string decimal (ADR-090). A17 L1 entregou previdencia_privada; L2 adiciona financeiro_pj (Comprovante Lei 9.249/95); L3-L4 expandem com financeiro_pf e proventos_acoes.",
   "type": "object",
   "additionalProperties": true,
   "required": [
@@ -21,8 +21,8 @@
     },
     "tipo_informe": {
       "type": "string",
-      "enum": ["previdencia_privada"],
-      "description": "L1 aceita apenas previdencia_privada. L2-L4 expandem: financeiro_pj, financeiro_pf, proventos_acoes, aluguel_imobiliaria."
+      "enum": ["previdencia_privada", "financeiro_pj"],
+      "description": "L1 entregou previdencia_privada; L2 adiciona financeiro_pj. L3-L4 expandem com financeiro_pf, proventos_acoes, aluguel_imobiliaria."
     },
     "fonte_pagadora_cnpj": {
       "type": "string",
@@ -66,6 +66,13 @@
         { "$ref": "informe_previdencia.schema.json" }
       ],
       "description": "Populado quando tipo_informe='previdencia_privada'."
+    },
+    "financeiro_pj": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "informe_pj.schema.json" }
+      ],
+      "description": "Populado quando tipo_informe='financeiro_pj' (L2)."
     }
   },
   "allOf": [
@@ -80,6 +87,20 @@
         "required": ["previdencia"],
         "properties": {
           "previdencia": { "$ref": "informe_previdencia.schema.json" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo_informe": { "const": "financeiro_pj" }
+        },
+        "required": ["tipo_informe"]
+      },
+      "then": {
+        "required": ["financeiro_pj"],
+        "properties": {
+          "financeiro_pj": { "$ref": "informe_pj.schema.json" }
         }
       }
     }

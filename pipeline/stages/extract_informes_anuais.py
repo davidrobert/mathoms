@@ -44,6 +44,25 @@ _TIPO_FILENAME_TOKENS: dict[str, tuple[str, ...]] = {
         "icatu",
         "mongeral",
     ),
+    "financeiro_pj": (
+        "informe_pj",
+        "informepj",
+        "comprovante_pj",
+        "comprovantepj",
+        "comprovante_rendimentos_pj",
+        "stone_pj",
+        "stonepj",
+        "cielo_pj",
+        "cielopj",
+        "rede_pj",
+        "redepj",
+        "getnet_pj",
+        "getnetpj",
+        "pagseguro_pj",
+        "pagseguropj",
+        "c6_pj",
+        "c6pj",
+    ),
 }
 
 
@@ -89,13 +108,27 @@ def _detect_tipo_informe(filename: str) -> str | None:
     return None
 
 
+_INSTITUTION_HINTS: tuple[str, ...] = (
+    "brasilprev",
+    "bradesco",
+    "caixa",
+    "icatu",
+    "mongeral",
+    "xp",
+    "stone",
+    "cielo",
+    "rede",
+    "getnet",
+    "pagseguro",
+    "c6bank",
+    "c6_pj",
+)
+
+
 def _detect_institution_hint(filename: str) -> str:
     """Heurística simples para institution_code; sem match → unknown."""
     lowered = filename.lower()
-    for code in ("brasilprev", "bradesco", "caixa", "icatu", "mongeral", "xp"):
-        if code in lowered:
-            return code
-    return "unknown"
+    return next((code for code in _INSTITUTION_HINTS if code in lowered), "unknown")
 
 
 def _find_informes(ctx: WorkspaceContext) -> list[Path]:
@@ -130,7 +163,7 @@ def _stem_for_filename(name: str) -> str:
     return name
 
 
-def _build_user_prompt(doc_name: str, text: str, ano_hint: int | None) -> str:
+def _build_user_prompt_previdencia(doc_name: str, text: str, ano_hint: int | None) -> str:
     from pipeline.llm.prompts import informe_previdencia as prompt_mod
 
     return prompt_mod.USER_PROMPT_TEMPLATE.format(
@@ -139,6 +172,22 @@ def _build_user_prompt(doc_name: str, text: str, ano_hint: int | None) -> str:
         ano_referencia=ano_hint if ano_hint is not None else "(inferir do documento)",
         document_text=text,
     )
+
+
+def _build_user_prompt_pj(doc_name: str, text: str, ano_hint: int | None) -> str:
+    from pipeline.llm.prompts import informe_pj as prompt_mod
+
+    return prompt_mod.USER_PROMPT_TEMPLATE.format(
+        filename=doc_name,
+        institution=_detect_institution_hint(doc_name),
+        ano_referencia=ano_hint if ano_hint is not None else "(inferir do documento)",
+        document_text=text,
+    )
+
+
+def _build_user_prompt(doc_name: str, text: str, ano_hint: int | None) -> str:
+    """Compat alias para previdência (preservado para callers externos pré-L2)."""
+    return _build_user_prompt_previdencia(doc_name, text, ano_hint)
 
 
 def _call_llm_previdencia(
@@ -151,7 +200,24 @@ def _call_llm_previdencia(
     cache_key = f"extract_informes_anuais:{content_hash[:16]}:{prompt_mod.PROMPT_VERSION}"
     result = service.call(
         system_prompt=prompt_mod.SYSTEM_PROMPT,
-        user_prompt=_build_user_prompt(doc_name, text, ano_hint),
+        user_prompt=_build_user_prompt_previdencia(doc_name, text, ano_hint),
+        output_schema=InformeRendimentosBase,
+        max_tokens=max(config.max_tokens, _INFORME_MIN_COMPLETION_TOKENS),
+        stage=cache_key,
+    )
+    return result, prompt_mod.PROMPT_VERSION
+
+
+def _call_llm_pj(
+    service, config, doc_name: str, text: str, ano_hint: int | None, content_hash: str
+):
+    from pipeline.llm.prompts import informe_pj as prompt_mod
+    from pipeline.llm.schemas.informe_base import InformeRendimentosBase
+
+    cache_key = f"extract_informes_anuais:{content_hash[:16]}:{prompt_mod.PROMPT_VERSION}"
+    result = service.call(
+        system_prompt=prompt_mod.SYSTEM_PROMPT,
+        user_prompt=_build_user_prompt_pj(doc_name, text, ano_hint),
         output_schema=InformeRendimentosBase,
         max_tokens=max(config.max_tokens, _INFORME_MIN_COMPLETION_TOKENS),
         stage=cache_key,
@@ -230,13 +296,26 @@ def _extract_previdencia(doc: Path, text: str, service, config) -> tuple[dict, A
     return payload, result, prompt_version
 
 
+def _extract_pj(doc: Path, text: str, service, config) -> tuple[dict, Any, str]:
+    """Caminho financeiro_pj — content_hash + LLM Sonnet + payload com lineage."""
+    content_hash = _content_hash(doc)
+    result, prompt_version = _call_llm_pj(
+        service, config, doc.name, text, ano_hint=None, content_hash=content_hash
+    )
+    source_artifact_id = _stem_for_filename(doc.name)
+    payload = _build_payload(result.output, prompt_version, text, source_artifact_id)
+    return payload, result, prompt_version
+
+
 def _extract_one(doc: Path, text: str, service, config, tipo_informe: str) -> tuple[dict, Any, str]:
-    """Despacho por tipo_informe; L1 só implementa previdencia_privada."""
+    """Despacho por tipo_informe; L1+L2 cobrem previdencia_privada e financeiro_pj."""
     if tipo_informe == "previdencia_privada":
         return _extract_previdencia(doc, text, service, config)
+    if tipo_informe == "financeiro_pj":
+        return _extract_pj(doc, text, service, config)
     raise NotImplementedError(
-        f"tipo_informe={tipo_informe!r} ainda não implementado em A17 L1. "
-        f"Lanes L2 (financeiro_pj), L3 (financeiro_pf), L4 (proventos_acoes) cobrem os demais."
+        f"tipo_informe={tipo_informe!r} ainda não implementado em A17 L1+L2. "
+        f"Lanes L3 (financeiro_pf), L4 (proventos_acoes) cobrem os demais."
     )
 
 

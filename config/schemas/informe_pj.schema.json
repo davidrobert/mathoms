@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "informe_pj.schema.json",
+  "title": "Informe de Rendimentos — Financeiro PJ (Lei 9.249/95)",
+  "description": "Sub-schema do informe anual financeiro PJ (ADR-238 L2). Pareado com pipeline.llm.schemas.informe_pj.InformeFinanceiroPJPayload. Strict — additionalProperties: false. Wire de dinheiro: string decimal (ADR-090). Lucro Real fora de V1 (ADR-238 §Não-objetivos).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "regime_tributario",
+    "cnpj_pagador",
+    "nome_pagador",
+    "cnpj_beneficiario",
+    "periodo_inicio",
+    "periodo_fim",
+    "receita_bruta_anual"
+  ],
+  "properties": {
+    "regime_tributario": {
+      "type": "string",
+      "enum": ["simples_nacional", "lucro_presumido"]
+    },
+    "cnpj_pagador": {
+      "type": "string",
+      "pattern": "^\\d{14}$"
+    },
+    "nome_pagador": {
+      "type": "string",
+      "minLength": 2
+    },
+    "cnpj_beneficiario": {
+      "type": "string",
+      "pattern": "^\\d{14}$"
+    },
+    "periodo_inicio": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}$"
+    },
+    "periodo_fim": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}$"
+    },
+    "receita_bruta_anual": { "$ref": "#/$defs/decimalString" },
+    "estornos_anuais": { "$ref": "#/$defs/decimalString" },
+    "irrf_anual": { "$ref": "#/$defs/decimalString" },
+    "csll_anual": { "$ref": "#/$defs/decimalString" },
+    "pis_anual": { "$ref": "#/$defs/decimalString" },
+    "cofins_anual": { "$ref": "#/$defs/decimalString" },
+    "inss_anual": { "$ref": "#/$defs/decimalString" },
+    "iss_anual": { "$ref": "#/$defs/decimalString" },
+    "mdr_anual": { "$ref": "#/$defs/decimalStringOrNull" },
+    "notas": {
+      "type": ["string", "null"]
+    }
+  },
+  "$defs": {
+    "decimalString": {
+      "description": "Wire de dinheiro: string decimal (ADR-090). Float é proibido.",
+      "oneOf": [
+        { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" },
+        { "type": "integer" }
+      ]
+    },
+    "decimalStringOrNull": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" },
+        { "type": "integer" }
+      ]
+    }
+  }
+}

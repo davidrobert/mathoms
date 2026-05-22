@@ -79,7 +79,7 @@ def test_redact_filename_pii_masks_cpf_cnpj():
 
 
 def test_extract_one_raises_not_implemented_para_tipos_futuros():
-    """L2-L4 ainda não implementadas — stage levanta NotImplementedError claro."""
+    """L3-L4 ainda não implementadas — stage levanta NotImplementedError claro."""
 
     class _FakeService:
         pass
@@ -93,10 +93,30 @@ def test_extract_one_raises_not_implemented_para_tipos_futuros():
             text="dummy",
             service=_FakeService(),
             config=_FakeConfig(),
+            tipo_informe="financeiro_pf",
+        )
+    assert "financeiro_pf" in str(exc.value)
+    assert "L3" in str(exc.value)
+
+
+def test_extract_one_dispatches_to_pj_handler():
+    """L2: tipo_informe='financeiro_pj' deve rotear para _extract_pj sem erro de dispatch."""
+    from unittest.mock import patch
+
+    class _FakeConfig:
+        max_tokens = 4096
+
+    # Mock _extract_pj para confirmar que dispatch ocorre.
+    with patch("pipeline.stages.extract_informes_anuais._extract_pj") as mock_pj:
+        mock_pj.return_value = ({}, None, "informe-pj-v1.0.0")
+        _extract_one(
+            doc=Path("Stone_PJ.pdf"),
+            text="dummy",
+            service=object(),
+            config=_FakeConfig(),
             tipo_informe="financeiro_pj",
         )
-    assert "financeiro_pj" in str(exc.value)
-    assert "L1" in str(exc.value)
+        mock_pj.assert_called_once()
 
 
 # ─────────────────────── payload build + needs_review ─────────────────────
