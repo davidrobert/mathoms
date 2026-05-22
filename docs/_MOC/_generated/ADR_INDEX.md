@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-240 ADRs (ADR-001 a ADR-247) em [`docs/adr/`](../../adr/).
+247 ADRs (ADR-001 a ADR-254) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 189
-- **Proposto**: 47
+- **Proposto**: 54
 - **Roadmap**: 4
 
 ## Fundação
@@ -345,6 +345,18 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (1)
 
 - [[ADR-176]] — Chave estável `cenarios_conjuge` no bloco de narrativas E5.N
+
+## infra
+
+### Proposto (7)
+
+- [[ADR-248]] — Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20 · phase A20.l1
+- [[ADR-249]] — SHA pinning de imagens base + Dependabot Docker — Sprint A20 · phase A20.l2
+- [[ADR-250]] — GHCR como registry de imagens + tagging strategy — Sprint A20 · phase A20.l4
+- [[ADR-251]] — Trivy image scan blocking + SBOM CycloneDX — Sprint A20 · phase A20.l5
+- [[ADR-252]] — Compose dev unificado + Makefile targets opt-in — Sprint A20 · phase A20.l6
+- [[ADR-253]] — Postgres driver consolidation (asyncpg-only) — Sprint A20 · phase A20.l8
+- [[ADR-254]] — Python lockfile com hashes — pip-tools vs uv — Sprint A20 · phase A20.l10
 
 ## irpf
 
