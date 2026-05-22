@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-239 ADRs (ADR-001 a ADR-246) em [`docs/adr/`](../../adr/).
+240 ADRs (ADR-001 a ADR-247) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 188
+- **Decidido**: 189
 - **Proposto**: 47
 - **Roadmap**: 4
 
@@ -322,6 +322,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-188]] — Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) · phase A12.P3
 
 ## docs
+
+### Decidido (1)
+
+- [[ADR-247]] — Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero · phase A11
 
 ### Proposto (1)
 
