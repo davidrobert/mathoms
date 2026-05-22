@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
+import time
+from typing import Callable, Optional, TypeVar
 
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline_artifact import PipelineArtifact
@@ -17,6 +19,46 @@ from backend.app.services.crypto import (
 
 _logger = logging.getLogger("mathoms.crypto")
 _artifact_logger = logging.getLogger("mathoms.pipeline.artifact")
+_db_logger = logging.getLogger("mathoms.db")
+
+# Threshold (ms) acima do qual uma query é considerada candidata a lock retry
+# do SQLite busy_timeout. Calibrado para ser bem acima de query típica (~5ms)
+# e bem abaixo do busy_timeout default (30s) — sinaliza contenção real.
+_LOCK_RETRY_THRESHOLD_MS = 250
+
+_T = TypeVar("_T")
+
+
+def _log_lock_event(
+    op: str, elapsed_ms: float, *, locked: bool, stage: str = "", key: str = ""
+) -> None:
+    """Emite `mathoms.db.lock_retry_count` quando autoflush/query do artifact_store demora ou estoura busy_timeout (ADR-256 instrumentação)."""
+    _db_logger.warning(
+        "mathoms.db.lock_retry_count",
+        extra={
+            "op": op,
+            "elapsed_ms": round(elapsed_ms, 1),
+            "locked_error": locked,
+            "stage": stage,
+            "artifact_key": key,
+        },
+    )
+
+
+def _with_lock_telemetry(op: str, fn: Callable[[], _T], *, stage: str = "", key: str = "") -> _T:
+    """Mede `fn()`; loga warning se exceder _LOCK_RETRY_THRESHOLD_MS ou se OperationalError(database is locked) escapar."""
+    start = time.monotonic()
+    try:
+        result = fn()
+    except OperationalError as exc:
+        elapsed_ms = (time.monotonic() - start) * 1000
+        if "database is locked" in str(exc).lower():
+            _log_lock_event(op, elapsed_ms, locked=True, stage=stage, key=key)
+        raise
+    elapsed_ms = (time.monotonic() - start) * 1000
+    if elapsed_ms > _LOCK_RETRY_THRESHOLD_MS:
+        _log_lock_event(op, elapsed_ms, locked=False, stage=stage, key=key)
+    return result
 
 
 def _maybe_encrypt(payload: dict) -> dict:
@@ -187,14 +229,21 @@ class DBArtifactStore:
         return self._session
 
     def _get(self, stage: str, key: str) -> Optional[PipelineArtifact]:
-        return (
-            self._session.query(PipelineArtifact)
-            .filter_by(
-                pipeline_run_id=self._pipeline_run_id,
-                stage=stage,
-                artifact_key=key,
-            )
-            .one_or_none()
+        # Wrapped por _with_lock_telemetry — query dispara autoflush e pode
+        # bater write-lock SQLite (ADR-256). Loga warning se >250ms ou OperationalError.
+        return _with_lock_telemetry(
+            "get",
+            lambda: (
+                self._session.query(PipelineArtifact)
+                .filter_by(
+                    pipeline_run_id=self._pipeline_run_id,
+                    stage=stage,
+                    artifact_key=key,
+                )
+                .one_or_none()
+            ),
+            stage=stage,
+            key=key,
         )
 
     def _get_latest_in_workspace(self, stage: str, key: str) -> Optional[PipelineArtifact]:

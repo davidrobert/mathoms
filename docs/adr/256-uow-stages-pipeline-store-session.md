@@ -2,7 +2,7 @@
 id: ADR-256
 type: adr
 title: "Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session`"
-status: Proposto
+status: Decidido
 phase: A19.uow-stages
 date: "2026-05-22"
 relates_to:
@@ -20,13 +20,13 @@ tags:
   - area/pipeline
   - area/backend
   - area/persistence
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
 # ADR-256 — Stages do pipeline compartilham unit-of-work via `store.session`
 
-**Status:** Proposto (A19.uow-stages) • **Data:** 2026-05-22 • **Relaciona** [[ADR-111]] (stateless-rigoroso), [[ADR-212]] (DBArtifactStore DB-only), [[ADR-089]]/[[ADR-097]] (services recebem config tipado, não `Session`).
+**Status:** Decidido (A19.uow-stages) • **Data:** 2026-05-22 • **Relaciona** [[ADR-111]] (stateless-rigoroso), [[ADR-212]] (DBArtifactStore DB-only), [[ADR-089]]/[[ADR-097]] (services recebem config tipado, não `Session`).
 
 ## Contexto
 
