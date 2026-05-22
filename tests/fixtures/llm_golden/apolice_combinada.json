@@ -1,0 +1,97 @@
+{
+  "apolice_numero": "COMB-PR-20260410-K3",
+  "seguradora": "porto",
+  "vigencia_inicio": "2026-04-10",
+  "vigencia_fim": "2027-04-10",
+  "classe_bonus": 4,
+  "congenere_anterior": null,
+  "premio_total_brl": "3250.00",
+  "forma_pagamento": "cartao",
+  "pagador_cpf_masked": null,
+  "pagador_family_member_id": null,
+  "segurado_cpf_masked": null,
+  "segurado_family_member_id": null,
+  "corretor": {
+    "susep_code": "201008086",
+    "nome": "TEST CORRETOR PF",
+    "cpf_or_cnpj": "11111111111",
+    "cnpj_or_cpf_kind": "cpf"
+  },
+  "bens_segurados": [
+    {
+      "tipo": "veiculo",
+      "placa": "XYZ9A87",
+      "fipe_code": "15253",
+      "marca": "FIAT",
+      "modelo": "TORO CABINE DUPLA ULTRA 2.0 16V 4X4",
+      "ano_modelo": 2022,
+      "veiculo_id": null,
+      "coberturas": [
+        {
+          "tipo": "material",
+          "nome": "Colisão / Incêndio / Roubo / Furto",
+          "ramo_susep": "0531",
+          "lmi_modo": "fipe_percentual",
+          "lmi_brl": null,
+          "lmi_fipe_percentual": "1.00",
+          "franquia_brl": "2500.00",
+          "premio_brl": "1800.00"
+        },
+        {
+          "tipo": "rcfv",
+          "nome": "danos_materiais",
+          "lmi_brl": "200000.00",
+          "premio_brl": "250.00"
+        },
+        {
+          "tipo": "rcfv",
+          "nome": "danos_corporais",
+          "lmi_brl": "200000.00",
+          "premio_brl": "300.00"
+        }
+      ]
+    },
+    {
+      "tipo": "imovel",
+      "endereco": {
+        "logradouro": "Rua Test Endereco",
+        "numero": "61",
+        "complemento": null,
+        "bairro": "Bairro Teste",
+        "cidade": "Rio de Janeiro",
+        "uf": "RJ",
+        "cep": "20000-000"
+      },
+      "tipo_imovel": "casa",
+      "imovel_id": null,
+      "coberturas": [
+        {
+          "tipo": "material",
+          "nome": "Incêndio / Raio / Explosão",
+          "ramo_susep": "0114",
+          "lmi_modo": "valor_fixo",
+          "lmi_brl": "600000.00",
+          "lmi_fipe_percentual": null,
+          "franquia_brl": null,
+          "premio_brl": "650.00"
+        },
+        {
+          "tipo": "material",
+          "nome": "Responsabilidade Civil Familiar",
+          "ramo_susep": "0114",
+          "lmi_modo": "primeiro_risco_absoluto",
+          "lmi_brl": "50000.00",
+          "lmi_fipe_percentual": null,
+          "franquia_brl": null,
+          "premio_brl": "250.00"
+        }
+      ]
+    }
+  ],
+  "sinistro_indenizacao_recebida_brl": null,
+  "confidence": 0.82,
+  "needs_review": false,
+  "prompt_version": "apolice-v1.0.0",
+  "cascade_triggered": true,
+  "notas": "Apolice combinada Porto Protecao: veiculo (Toro 4x4) + residencia. Cascata Sonnet disparada por multi-bem."
+}

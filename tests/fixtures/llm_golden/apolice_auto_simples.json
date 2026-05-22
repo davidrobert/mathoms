@@ -1,0 +1,64 @@
+{
+  "apolice_numero": "AUTO-TM-20260301-A1",
+  "seguradora": "tokiomarine",
+  "vigencia_inicio": "2026-03-01",
+  "vigencia_fim": "2027-03-01",
+  "classe_bonus": 2,
+  "congenere_anterior": {
+    "seguradora": "porto",
+    "apolice_numero": "PR-8891272-A"
+  },
+  "premio_total_brl": "1480.50",
+  "forma_pagamento": "cartao",
+  "pagador_cpf_masked": null,
+  "pagador_family_member_id": null,
+  "segurado_cpf_masked": null,
+  "segurado_family_member_id": null,
+  "corretor": {
+    "susep_code": "202020138",
+    "nome": "BEDONI CORRETORA DE SEGUROS LTDA",
+    "cpf_or_cnpj": "12345678000199",
+    "cnpj_or_cpf_kind": "cnpj"
+  },
+  "bens_segurados": [
+    {
+      "tipo": "veiculo",
+      "placa": "ABC1D23",
+      "fipe_code": "827125-9",
+      "marca": "YAMAHA",
+      "modelo": "NMAX 160 ABS",
+      "ano_modelo": 2024,
+      "veiculo_id": null,
+      "coberturas": [
+        {
+          "tipo": "material",
+          "nome": "Colisão / Incêndio / Roubo / Furto",
+          "ramo_susep": "0531",
+          "lmi_modo": "fipe_percentual",
+          "lmi_brl": null,
+          "lmi_fipe_percentual": "1.00",
+          "franquia_brl": "1200.00",
+          "premio_brl": "950.00"
+        },
+        {
+          "tipo": "rcfv",
+          "nome": "danos_materiais",
+          "lmi_brl": "100000.00",
+          "premio_brl": "180.00"
+        },
+        {
+          "tipo": "rcfv",
+          "nome": "danos_corporais",
+          "lmi_brl": "100000.00",
+          "premio_brl": "210.00"
+        }
+      ]
+    }
+  ],
+  "sinistro_indenizacao_recebida_brl": null,
+  "confidence": 0.96,
+  "needs_review": false,
+  "prompt_version": "apolice-v1.0.0",
+  "cascade_triggered": false,
+  "notas": "Apolice simples; renovacao congenere PORTO classe bonus 2."
+}

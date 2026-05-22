@@ -1,0 +1,74 @@
+{
+  "apolice_numero": "RES-BRD-20260215-X9",
+  "seguradora": "bradesco",
+  "vigencia_inicio": "2026-02-15",
+  "vigencia_fim": "2027-02-15",
+  "classe_bonus": null,
+  "congenere_anterior": null,
+  "premio_total_brl": "890.00",
+  "forma_pagamento": "boleto",
+  "pagador_cpf_masked": null,
+  "pagador_family_member_id": null,
+  "segurado_cpf_masked": null,
+  "segurado_family_member_id": null,
+  "corretor": {
+    "susep_code": "202020150",
+    "nome": "MRR MISEG CORRETORA",
+    "cpf_or_cnpj": "98765432000111",
+    "cnpj_or_cpf_kind": "cnpj"
+  },
+  "bens_segurados": [
+    {
+      "tipo": "imovel",
+      "endereco": {
+        "logradouro": "Rua Teste",
+        "numero": "100",
+        "complemento": "Apto 42",
+        "bairro": "Centro",
+        "cidade": "Sao Paulo",
+        "uf": "SP",
+        "cep": "01000-000"
+      },
+      "tipo_imovel": "apartamento",
+      "imovel_id": null,
+      "coberturas": [
+        {
+          "tipo": "material",
+          "nome": "Incêndio / Raio / Explosão",
+          "ramo_susep": "0114",
+          "lmi_modo": "valor_fixo",
+          "lmi_brl": "400000.00",
+          "lmi_fipe_percentual": null,
+          "franquia_brl": null,
+          "premio_brl": "520.00"
+        },
+        {
+          "tipo": "material",
+          "nome": "Vendaval / Granizo",
+          "ramo_susep": "0114",
+          "lmi_modo": "valor_fixo",
+          "lmi_brl": "150000.00",
+          "lmi_fipe_percentual": null,
+          "franquia_brl": "500.00",
+          "premio_brl": "180.00"
+        },
+        {
+          "tipo": "material",
+          "nome": "Roubo de Bens",
+          "ramo_susep": "0114",
+          "lmi_modo": "primeiro_risco_absoluto",
+          "lmi_brl": "20000.00",
+          "lmi_fipe_percentual": null,
+          "franquia_brl": "1000.00",
+          "premio_brl": "190.00"
+        }
+      ]
+    }
+  ],
+  "sinistro_indenizacao_recebida_brl": null,
+  "confidence": 0.94,
+  "needs_review": false,
+  "prompt_version": "apolice-v1.0.0",
+  "cascade_triggered": false,
+  "notas": "Apolice residencial simples; tres coberturas materiais."
+}
