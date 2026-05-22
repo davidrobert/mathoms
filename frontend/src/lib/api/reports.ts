@@ -119,6 +119,9 @@ export interface ReportAnalysisData {
    *  Ausente quando workspace não tem `business_profile_json` ou pipeline
    *  pré-A16 L2 P5. UI renderiza estado "perfil pendente" se ausente. */
   tributario?: TributarioBundle;
+  /** ADR-240 D8 (A19 L1) — bloco S_PROTECAO 4º pilar AUVP. Ausente quando
+   *  workspace não tem apólices ingeridas (UI oculta seção). */
+  protecao_patrimonial?: import("@/types/protecao").ProtecaoPatrimonialData | null;
   // Extensibilidade para chaves ainda não tipadas
   [key: string]: unknown;
 }
