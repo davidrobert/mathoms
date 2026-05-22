@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-14 planos detectados em [`docs/plan/`](../../plan/).
+15 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -91,6 +91,13 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A11
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-183]]
+
+### PLAN-llm-prompts-hardening — LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting
+
+- Status: `draft` · Sprint atual: A17
+- Sprints envolvidas: A17, A18, A20
+- Lanes: 0 done · 0 in_progress · 6 open · 0 blocked
+- ADRs canônicas: [[ADR-081]], [[ADR-090]], [[ADR-097]], [[ADR-110]], [[ADR-111]], [[ADR-137]], [[ADR-157]], [[ADR-191]], [[ADR-212]], [[ADR-233]], [[ADR-246]]
 
 ### PLAN-market-rates-ingestion — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto
 

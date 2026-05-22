@@ -16,6 +16,7 @@ aliases: ["PLANS-active", "plans-active"]
 | [`PLAN-cat-learning-loop`](../plan/CAT_LEARNING_LOOP/_README.md) | Categorização A12: pipeline, backend e UX. |
 | [`PLAN-report-premium`](../plan/REPORT_PREMIUM/_README.md) | Superfície principal de produto. |
 | [`PLAN-cenarios-estresse`](../plan/CENARIOS_ESTRESSE/_README.md) | Cenários de estresse e regras. |
+| [`PLAN-llm-prompts-hardening`](../plan/LLM_PROMPTS_HARDENING/_README.md) | LGPD/ADR-090/telemetria nos 9 prompts LLM — A17/A18/A20. |
 
 ## Pausados relevantes
 

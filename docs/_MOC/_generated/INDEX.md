@@ -253,7 +253,10 @@
 | ADR-253 | adr | Proposto |  | Postgres driver consolidation (asyncpg-only) — Sprint A20 | `adr/253-postgres-driver-consolidation.md` |
 | ADR-254 | adr | Proposto |  | Python lockfile com hashes — pip-tools vs uv — Sprint A20 | `adr/254-python-lockfile-com-hashes.md` |
 | ADR-255 | adr | Proposto |  | Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) | `adr/255-dedup-transacoes-cross-document.md` |
+| ADR-256 | adr | Proposto |  | Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) | `adr/256-boundary-llm-unified.md` |
 | ADR-256 | adr | Decidido |  | Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` | `adr/256-uow-stages-pipeline-store-session.md` |
+| ADR-257 | adr | Proposto |  | Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP | `adr/257-llm-telemetry-by-prompt-version.md` |
+| ADR-258 | adr | Proposto |  | Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale | `adr/258-llm-cache-invalidation-policy.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -496,12 +499,18 @@
 | A17.l2 | lane | planned | A17 | Informes anuais — L2 financeiro PJ (C6 PJ, Stone, adquirentes) | `sprint/A17/lanes/A17-l2-financeiro-pj.md` |
 | A17.l3 | lane | planned | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |
 | A17.l4 | lane | planned | A17 | Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) | `sprint/A17/lanes/A17-l4-proventos.md` |
+| A17.l5 | lane | planned | A17 | LLM Hardening — W4-T00 seed expandido institution_catalog (alta renda PJ) | `sprint/A17/lanes/A17-l5-llm-institution-seed.md` |
 | A18.l1 | lane | shipped | A18 | Comprovantes de Bem — L1 CRLV-e (Certificado de Registro e Licenciamento de Veículo) | `sprint/A18/lanes/A18-l1-crlv.md` |
 | A18.l2 | lane | shipped | A18 | Comprovantes de Bem — L2 Apólice de seguro polimórfica (combinada V1, vida/saúde/PJ V2) | `sprint/A18/lanes/A18-l2-apolice.md` |
 | A18.l3 | lane | planned | A18 | Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI | `sprint/A18/lanes/A18-l3-fipe.md` |
+| A18.l4 | lane | planned | A18 | LLM Hardening — W1α LGPD compliance (gate F7 R4 → Beta fechado) | `sprint/A18/lanes/A18-l4-llm-w1-alpha-lgpd.md` |
 | A19.l1 | lane | shipped | A19 | S_PROTECAO — L1 Card 4º pilar AUVP no relatório (KPIs + 3 subgrupos + reposicionamento) | `sprint/A19/lanes/A19-l1-card-protecao.md` |
 | A20.l1 | lane | open | A20 | Docker dev↔prod parity — L1 Multi-stage backend + Playwright dual target | `sprint/A20/lanes/A20-l1-backend-multistage.md` |
 | A20.l10 | lane | open | A20 | Docker dev↔prod parity — L10 Python lockfile com hashes (pip-tools vs uv) | `sprint/A20/lanes/A20-l10-python-lockfile.md` |
+| A20.l11 | lane | planned | A20 | LLM Hardening — W1β ADR-090 cadeia e15_baseline (float → Decimal) | `sprint/A20/lanes/A20-l11-llm-w1-beta-adr090.md` |
+| A20.l12 | lane | planned | A20 | LLM Hardening — W2 semver puro + goldens fiscais BR + LLMCallLog SQL | `sprint/A20/lanes/A20-l12-llm-w2-versioning-goldens.md` |
+| A20.l13 | lane | planned | A20 | LLM Hardening — W3 telemetria OTLP mathoms.llm.* por prompt_version | `sprint/A20/lanes/A20-l13-llm-w3-telemetry.md` |
+| A20.l14 | lane | planned | A20 | LLM Hardening — W4 cross-cutting (InstitutionCatalogProvider + RFB YAML) | `sprint/A20/lanes/A20-l14-llm-w4-cross-cutting.md` |
 | A20.l2 | lane | open | A20 | Docker dev↔prod parity — L2 SHA pinning de bases + Dependabot Docker | `sprint/A20/lanes/A20-l2-sha-pinning.md` |
 | A20.l3 | lane | open | A20 | Docker dev↔prod parity — L3 pipeline-service non-root + healthcheck por service | `sprint/A20/lanes/A20-l3-pipeline-service.md` |
 | A20.l4 | lane | open | A20 | Docker dev↔prod parity — L4 GHCR push em CI + tagging strategy | `sprint/A20/lanes/A20-l4-ghcr-push.md` |
@@ -588,6 +597,7 @@
 | PLAN-competitive-pierre | plan | draft |  | Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
 | PLAN-internal-admin | plan | in_progress |  | Console interno (operadores) — IA-0 a IA-4 | `plan/INTERNAL_ADMIN/_README.md` |
+| PLAN-llm-prompts-hardening | plan | draft |  | LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting | `plan/LLM_PROMPTS_HARDENING/_README.md` |
 | PLAN-market-rates-ingestion | plan | draft |  | Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto | `plan/MARKET_RATES_INGESTION/_README.md` |
 | PLAN-p1-structural | plan | paused |  | P1 — Plano estrutural (motor canônico + pipeline offline) | `plan/P1_STRUCTURAL/_README.md` |
 | PLAN-planner-review | plan | done |  | Parecer do Planejador (E6) — substituição de review_finances + aterrissagem operacional | `plan/PLANNER_REVIEW/_README.md` |
