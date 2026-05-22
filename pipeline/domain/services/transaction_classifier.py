@@ -14,6 +14,7 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Iterable
 
+from pipeline.domain.services import _tx_identity
 from pipeline.domain.services.categorization_service import CategorizationRulesV2
 from pipeline.domain.services.income_origin_resolver import (
     IncomeOriginConfig,
@@ -190,6 +191,9 @@ class ClassifiedTransaction:
     origem: str | None = None  # só em receitas
     learned_rule_id: str | None = None  # ADR-186 §D5 (A12.P2)
     categorization_origin: str | None = None  # ADR-242 — audit trail
+    # ADR-255 Camada B — identidade determinística cross-document
+    source_doc_id: str | None = None  # `arquivo_origem` propagado do E3
+    transaction_hash: str | None = None  # sha256[:16] K4 (consumido por cash_flow_builder)
 
     def to_legacy_dict(self) -> dict:
         """Serializa no schema usado pelo `process_transactions` legado."""
@@ -208,7 +212,15 @@ class ClassifiedTransaction:
             out["categoria"] = self.categoria
             if self.kind == "receita":
                 out["origem"] = self.origem
+        self._append_identity(out)
         return out
+
+    def _append_identity(self, out: dict) -> None:
+        """ADR-255 — surface up source_doc_id + transaction_hash quando presentes."""
+        if self.source_doc_id is not None:
+            out["source_doc_id"] = self.source_doc_id
+        if self.transaction_hash is not None:
+            out["transaction_hash"] = self.transaction_hash
 
 
 # =============================================================================
@@ -328,13 +340,24 @@ class TransactionClassifier:
         tipo = _normalize_tipo(tx.get("tipo"), valor, tipo_conta)
         category_hint = tx.get("categoria_sugerida")
 
+        data_str = tx.get("data", "")
         common = dict(
-            data=tx.get("data", ""),
+            data=data_str,
             descricao=descricao_raw,
             banco=banco_raw,
             moeda=moeda,
             tipo_conta=tipo_conta_raw,
             titular=titular,
+            # ADR-255 Camada B — identidade determinística propagada de E3.
+            source_doc_id=tx.get("arquivo_origem"),
+            transaction_hash=_tx_identity.compute_transaction_hash(
+                data=data_str,
+                banco=banco_raw,
+                titular=titular,
+                tipo_conta=tipo_conta_raw,
+                valor=valor,
+                descricao=descricao_raw,
+            ),
         )
 
         # 1. Transferência interna precoce (paridade legado + hint LLM reforça).
