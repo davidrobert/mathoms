@@ -16,7 +16,19 @@ class ExtractedTransaction(BaseModel):
         ..., description="Transaction amount in BRL (positive = credit, negative = debit)"
     )
     category_hint: Optional[str] = Field(
-        None, description="Suggested category code if identifiable"
+        None,
+        description=(
+            "Suggested category code (ADR-242 vocabulário canônico). Use SOMENTE "
+            "um dos valores: salario, pro_labore_pj, aluguel_recebido, "
+            "rendimento_renda_fixa, dividendo_jcp, ganho_capital_resgate, "
+            "moradia_financiamento_juros, moradia_financiamento_amortizacao, "
+            "moradia_aluguel_pago, moradia_outros, alimentacao, transporte, "
+            "saude, educacao, lazer_assinatura, vestuario_pessoal, "
+            "aporte_investimento, seguro_previdencia, imposto_pago, "
+            "juros_divida_consumo, transferencia_interna, info_fiscal_anual. "
+            "Marque info_fiscal_anual para linhas de informe IR acumulado "
+            "anual (não evento mensal de caixa) — evita double-counting."
+        ),
     )
     balance_after: Optional[float] = Field(
         None, description="Account balance after this transaction, if available"

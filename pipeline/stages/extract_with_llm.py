@@ -182,6 +182,7 @@ def _process_one_e2_llm_document(
     max_chars: int,
     max_pages: int,
     progress: _E2LLMProgress,
+    member_resolver: Any = None,
 ) -> tuple[dict[str, Any] | None, dict[str, str] | None, Any]:
     """Extract + one LLM call for a single file. Returns (processed, error, run_summary).
 
@@ -245,7 +246,7 @@ def _process_one_e2_llm_document(
         if not validation.valid:
             logger.warning("E2-llm: validation errors for %s: %s", doc.name, validation.errors)
 
-        e2_json = _output_to_e2_json(output)
+        e2_json = _output_to_e2_json(output, member_resolver=member_resolver)
         # Propaga prompt_version no payload para auditabilidade (ADR-233 · W2-T05).
         e2_json["prompt_version"] = PROMPT_VERSION
 
@@ -289,8 +290,24 @@ def _merge_llm_run_summaries(parts: list[Any]) -> dict[str, Any]:
     return merged.to_dict()
 
 
-def _output_to_e2_json(output) -> dict:
-    """Convert LLMExtractOutput to E2-compatible JSON format."""
+def _output_to_e2_json(output, *, member_resolver=None) -> dict:
+    """Convert LLMExtractOutput to E2-compatible JSON format.
+
+    ``member_resolver`` (ADR-243): se fornecido, normaliza ``member_key``
+    emitido pelo LLM (``"david_robert"``, ``"D R Camargo de Campos"``) para
+    a chave canônica do workspace (``family_members.key``). Sem ele,
+    membro fica como veio do LLM (back-compat para chamadas sem contexto
+    de family).
+    """
+
+    def _canonical_member(raw: str | None) -> str | None:
+        if not raw or member_resolver is None:
+            return raw
+        resolution = member_resolver.resolve(raw)
+        # Preserva o raw quando resolver não casa (audit + downstream
+        # consolidador faz outro round defensive).
+        return resolution.canonical_key or raw
+
     transactions = []
     for t in output.transactions:
         entry = {
@@ -319,7 +336,7 @@ def _output_to_e2_json(output) -> dict:
         if inv.rate:
             entry["taxa"] = inv.rate
         if inv.member_key:
-            entry["membro"] = inv.member_key
+            entry["membro"] = _canonical_member(inv.member_key)
         investments.append(entry)
 
     result = {
@@ -351,7 +368,7 @@ def _output_to_e2_json(output) -> dict:
         else:
             result["periodo"] = p
     if output.member_key:
-        result["membro"] = output.member_key
+        result["membro"] = _canonical_member(output.member_key)
     if transactions:
         result["transacoes"] = transactions
     if investments:
@@ -422,6 +439,13 @@ def run(ctx: WorkspaceContext) -> dict:
 
     progress = _E2LLMProgress(total=len(docs), run_id=ctx.pipeline_run_id)
 
+    # ADR-243 — resolver de nome canônico de membro. Construído uma vez por
+    # run a partir do family_members; injetado em cada thread (stateless
+    # após construção).
+    from pipeline.domain.services.member_name_resolver import MemberNameResolver
+
+    member_resolver = MemberNameResolver.from_family_config(ctx.load_config("family_members.json"))
+
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = [
             pool.submit(
@@ -432,6 +456,7 @@ def run(ctx: WorkspaceContext) -> dict:
                 max_chars,
                 max_pages,
                 progress,
+                member_resolver,
             )
             for doc in docs
         ]
