@@ -2,8 +2,8 @@
 id: ADR-239
 type: adr
 title: "Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18"
-status: Proposto
-phase: A18.bens-apolices-fipe
+status: Decidido
+phase: A18.l1
 date: "2026-05-21"
 relates_to:
   - "[[ADR-097]]"
@@ -31,7 +31,7 @@ aliases:
   - "extract_comprovantes_bens"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/persistence
   - area/methodology
@@ -308,3 +308,31 @@ PR de Proposto desta ADR inclui apenas: este arquivo + [[ADR-240]] + estrutura d
 - **A6 — Stage por tipo (`extract_crlv`, `extract_apolice`).** Rejeitado: padrão [[ADR-238]] D3 — stage único + despacho por kind em `artifact_key`.
 - **A7 — Histórico de apólices via `superseded_by` ou `archived_apolices` table.** Rejeitado: apólice **expira**, não é superseded. Imutável temporal por vigência é semanticamente correto.
 - **A8 — `Cobertura` como struct genérica sem discriminator.** Rejeitado: V2 (vida/saúde/acidentes) tem campos heterogêneos. Discriminator antecipa V2 sem migration breaking.
+
+## Entrega — L1 (CRLV-e)
+
+Lane [[A18.l1]] entregue em 5 PRs squash-mergeados em `main` (todos CI verde):
+
+- **P1** [#388](https://github.com/davidrobert/mathoms/pull/388) — migration Alembic `vehicles` (UNIQUE `(workspace_id, placa)`, CHECK RENAVAM ANSI portátil 9-11 dígitos, CHECK `codigo_rfb IN ('21','22','23')`) + `market_rates.reference_month` + `SQLAlchemy` model + invariante `codigo_rfb` imutável.
+- **P2** [#391](https://github.com/davidrobert/mathoms/pull/391) — `CRLVPayload` Pydantic V2 strict (regex placa Mercosul+legado, normalização `mode='before'`) + prompt LLM Haiku + `PROMPT_VERSION = "crlv-v1.0.0"` + cache key SHA-256 do PDF.
+- **P3** [#412](https://github.com/davidrobert/mathoms/pull/412) — `TypeRule crlv_eletronico` content-first + `DocumentType.comprovante_bem` + migration `adr239vehicles2` ALTER TYPE ADD VALUE (Postgres) / no-op (SQLite).
+- **P4** [#414](https://github.com/davidrobert/mathoms/pull/414) — stage `extract_comprovantes_bens` (despacho por `tipo_comprovante`, L1 só `crlv`; raise `NotImplementedError` em outros tipos com mensagem clara V2) + upsert vehicles (identidade imutável; colisão placa↔renavam ≠ → `needs_review`) + telemetria LGPD-safe `mathoms.comprovantes.classified`.
+- **P4 parte 2+3** [#416](https://github.com/davidrobert/mathoms/pull/416) — função pura `reconcile_baseline_veiculos` (fuzzy `difflib.SequenceMatcher`, gate triplo `auto_merge ≥ 0.90` + `tiebreaker_gap_min 0.05` + dual threshold `review ≥ 0.75` financial-planner) + runner backend `vehicle_reconciliation_runner.py` + hook em `e15_consolidate.py::main_with_store` + schema bump `baseline_patrimonial.json` (`veiculo_id` opcional retroativo).
+- **P5** (este PR) — goldens sintéticos LGPD-safe em `tests/fixtures/llm_golden/crlv_*.json` (moto + carro + zero-km) + 9 testes em `TestCRLVGoldens` + flip ADR `Proposto → Decidido (Sprint A18 L1)` + lane status `shipped`.
+
+**Padrão arquitetural validado:**
+
+- Tabela canônica para identidade cross-source (CRLV + IRPF G02) — replica padrão `real_estate_assets` (ADR-216).
+- Identidade imutável (ADR-225) — colisão `placa↔renavam` ≠ vira `needs_review`, não merge automático.
+- Reconciliação assíncrona com função pura no `pipeline/domain/services/` + runner backend no `backend/app/services/` (ADR-097 isolation).
+- LGPD ADR-231 — telemetria sem PII (placa mascarada, CPF mascarado em Python pós-LLM, valores agregados); LLM nunca retorna CPF.
+- Cache LLM idempotente por SHA-256 do PDF + PROMPT_VERSION (ADR-144).
+- Schema validation em `DBArtifactStore.write` (ADR-212 PR3) — `informe_base.schema.json` reaproveitado para comprovantes na L1.
+
+**L2 (apólice de seguro) e L3 (FIPE refresh) replicam:** mesmo padrão `tipo_*` polimórfico + classifier content-first + LLM cascata (Haiku → Sonnet) + tabela canônica + reconciliação assíncrona.
+
+**Débito conhecido:**
+
+- UI S4 com disclaimer "Valor atualizado via FIPE (refresh anual)" — bloqueado por L3 (FIPE integration).
+- `veiculos_consolidados[]` ainda é fonte de E5 (não substituído por query direta em `vehicles`) — débito que A18 L2/L3 ou Sprint A19 resolve dependendo de prioridade.
+- Vehicle não tem `member_key` confiável pós-upload (CPF mascarado por LGPD); blocking por proprietario degrada para "todos candidatos". Resolução em V2 quando associação `vehicle ↔ family_member` for adicionada via UI explícita.

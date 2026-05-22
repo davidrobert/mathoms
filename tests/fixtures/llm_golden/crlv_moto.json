@@ -1,0 +1,21 @@
+{
+  "placa": "ABC1D23",
+  "renavam": "12345678900",
+  "marca": "YAMAHA",
+  "modelo": "NMAX 160 ABS",
+  "ano_modelo": 2024,
+  "ano_fabricacao": 2024,
+  "cor": "preta",
+  "combustivel": "flex",
+  "exercicio": 2026,
+  "categoria": "particular",
+  "proprietario_cpf_masked": null,
+  "proprietario_nome": "Test User",
+  "municipio_emplacamento": "Sao Paulo",
+  "uf_emplacamento": "SP",
+  "data_emissao": "2026-03-15",
+  "confidence": 0.96,
+  "needs_review": false,
+  "prompt_version": "crlv-v1.0.0",
+  "notas": null
+}
