@@ -6,10 +6,28 @@ from datetime import date
 from decimal import Decimal
 from typing import Annotated, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 # Bump quando alterar prompt ``apolice`` de modo que afete output (ADR-144 cache).
-PROMPT_VERSION = "apolice-v1.0.0"
+# v1.1.0 — strip de aspas spurious do LLM (ver model_validator abaixo).
+PROMPT_VERSION = "apolice-v1.1.0"
+
+
+def _strip_spurious_quotes(value):
+    """LLM Haiku às vezes vaza aspas dos exemplos do prompt como notação visual,
+    gerando ``'"4509.98"'`` (string com aspas literais). Decimal/Literal/date
+    falham determinístico. Strip cobre aspas duplas e simples nas pontas; cascade
+    recursivo em dict/list para sub-models (BemSegurado*, Cobertura*)."""
+    if isinstance(value, str):
+        stripped = value.strip()
+        if len(stripped) >= 2 and stripped[0] == stripped[-1] and stripped[0] in ('"', "'"):
+            return stripped[1:-1]
+        return value
+    if isinstance(value, dict):
+        return {k: _strip_spurious_quotes(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_strip_spurious_quotes(item) for item in value]
+    return value
 
 
 # ===========================================================================
@@ -204,6 +222,14 @@ class ApolicePayload(BaseModel):
     """Apólice polimórfica (top-level lenient ADR-238 D2; sub-models strict)."""
 
     model_config = ConfigDict(extra="allow")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _strip_llm_quotes(cls, data):
+        """Defesa em profundidade pareada com apolice-v1.1.0 (ver _strip_spurious_quotes)."""
+        if isinstance(data, dict):
+            return {k: _strip_spurious_quotes(v) for k, v in data.items()}
+        return data
 
     apolice_numero: str = Field(..., min_length=1, max_length=40)
     seguradora: str = Field(

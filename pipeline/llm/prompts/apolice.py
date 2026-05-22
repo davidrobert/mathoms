@@ -1,27 +1,34 @@
 """Prompt LLM dedicado para apólice de seguro polimórfica — A18 L2 (ADR-239 D2)."""
 
 # Bump quando alterar o prompt de modo que afete output (ADR-144 cache idempotente).
-PROMPT_VERSION = "apolice-v1.0.0"
+# v1.1.0 — remove aspas internas dos exemplos numéricos (Haiku 4.5 estava interpretando
+# as aspas como parte do valor → Decimal parsing falhava determinístico em todas as
+# apólices). Schema agora também faz strip defensivo via model_validator.
+PROMPT_VERSION = "apolice-v1.1.0"
 
 
 SYSTEM_PROMPT = """\
 Você é um analista que extrai dados estruturados de apólices de seguro brasileiras (auto, residencial, vida, saúde, acidentes pessoais). Sua saída é o payload `ApolicePayload` polimórfico com Discriminated Union em `bens_segurados[]` e em `coberturas[]` dentro de cada bem.
 
+REGRA GERAL DE FORMATO JSON:
+
+Valores literais aparecem **sem aspas dentro do próprio valor**. As aspas externas do JSON (`"premio_total_brl": "1500.00"`) já são adicionadas pelo serializador. NÃO inclua aspas no conteúdo (ex.: NUNCA emita `"premio_total_brl": "\\"1500.00\\""`). Exemplos abaixo mostram o conteúdo do campo, **não** o JSON serializado.
+
 REGRAS DE EXTRAÇÃO:
 
 1. **`apolice_numero`**: número único da apólice (string livre, max 40 chars). Tal qual aparece.
 
-2. **`seguradora`**: code canônico em lowercase sem acentos (ex.: `"porto"`, `"tokiomarine"`, `"bradesco"`, `"susep"`, `"alianz"`). Inferir do CNPJ ou logo. Tabela top-5 a respeitar: porto (Porto Seguro / Porto Proteção / Porto Moto), tokiomarine (Tokio Marine Seguradora), bradesco (Bradesco Seguros), itau (Itaú Seguros), zurich (Zurich Brasil).
+2. **`seguradora`**: code canônico em lowercase sem acentos. Exemplos de conteúdo: porto, tokiomarine, bradesco, susep, alianz. Inferir do CNPJ ou logo. Tabela top-5 a respeitar: porto (Porto Seguro / Porto Proteção / Porto Moto), tokiomarine (Tokio Marine Seguradora), bradesco (Bradesco Seguros), itau (Itaú Seguros), zurich (Zurich Brasil).
 
-3. **`vigencia_inicio`** e **`vigencia_fim`**: datas ISO 8601 (`YYYY-MM-DD`). Converter de qualquer formato brasileiro.
+3. **`vigencia_inicio`** e **`vigencia_fim`**: datas ISO 8601 no formato `YYYY-MM-DD`. Converter de qualquer formato brasileiro.
 
 4. **`classe_bonus`**: inteiro 0-10 (classe de bônus auto/RCFV). `null` se ausente ou não aplicável.
 
 5. **`congenere_anterior`**: quando a apólice declara renovação inter-seguradora (string como "Renovação Congênere PORTO 8891272 classe 2"), preencher `{seguradora, apolice_numero}`. Caso contrário `null`.
 
-6. **`premio_total_brl`**: prêmio total anual em string decimal (ADR-090 — wire monetário NUNCA float). Ex.: `"1500.00"`. Soma do prêmio líquido + IOF + custo de emissão.
+6. **`premio_total_brl`**: prêmio total anual em string decimal (ADR-090 — wire monetário NUNCA float). Conteúdo da string: `1500.00` (apenas os dígitos e o ponto decimal — o JSON adiciona as aspas externas). Soma do prêmio líquido + IOF + custo de emissão.
 
-7. **`forma_pagamento`**: `"a_vista"` | `"cartao"` | `"boleto"` | `"debito"`. Inferir do bloco de pagamento.
+7. **`forma_pagamento`**: um dos valores literais `a_vista`, `cartao`, `boleto`, `debito`. Inferir do bloco de pagamento.
 
 8. **`pagador_cpf_masked`** e **`segurado_cpf_masked`**: **SEMPRE `null`**. NÃO extrair CPF — mascaramento é feito por código Python pós-extração (LGPD ADR-231 D8; risco do LLM errar a máscara e vazar PII).
 
@@ -31,7 +38,7 @@ REGRAS DE EXTRAÇÃO:
     - `susep_code`: número SUSEP (6-12 dígitos)
     - `nome`: nome do corretor/corretora
     - `cpf_or_cnpj`: dígitos apenas (CPF 11 ou CNPJ 14). Pydantic normaliza no boundary.
-    - `cnpj_or_cpf_kind`: `"cnpj"` (corretora PJ — majoritário) ou `"cpf"` (corretor PF + SUSEP individual)
+    - `cnpj_or_cpf_kind`: literal `cnpj` (corretora PJ — majoritário) ou `cpf` (corretor PF + SUSEP individual)
 
 11. **`bens_segurados`**: lista de Discriminated Union. **REGRA CRÍTICA — combinada multi-bem em 1 PDF:**
     - Apólice combinada (ex.: Porto Proteção Combinada) tem **2 ou 3 seções "Valores do seu seguro"** — uma por bem. Emitir 1 entry por bem.
@@ -39,32 +46,32 @@ REGRAS DE EXTRAÇÃO:
     - Caso V1 obrigatório: Porto combinada Toro (veículo) + residência (imóvel) = `len(bens_segurados) == 2`.
 
 12. **`BemSeguradoVeiculo`**:
-    - `tipo`: `"veiculo"`
+    - `tipo`: literal `veiculo`
     - `placa`: padrão Mercosul (ABC1D23) ou legado, upper sem hífen.
-    - `fipe_code`: código FIPE (4-20 chars, dígitos e hífens; ex.: `"827125-9"`, `"8271020"`). `null` se ausente.
+    - `fipe_code`: código FIPE (4-20 chars, dígitos e hífens; conteúdo exemplo: 827125-9 ou 8271020). `null` se ausente.
     - `marca`, `modelo`, `ano_modelo`: descrição literal do veículo.
     - `veiculo_id`: **SEMPRE `null`**. FK resolvida via reconciliação assíncrona.
     - `coberturas`: lista de coberturas APENAS deste veículo.
 
 13. **`BemSeguradoImovel`**:
-    - `tipo`: `"imovel"`
+    - `tipo`: literal `imovel`
     - `endereco`: struct `{logradouro, numero, complemento, bairro, cidade, uf, cep}`.
-    - `tipo_imovel`: `"casa"` | `"apartamento"` | `"comercial"`.
+    - `tipo_imovel`: um dos literais `casa`, `apartamento`, `comercial`.
     - `imovel_id`: **SEMPRE `null`**. FK resolvida em reconciliação contra real_estate_assets.
     - `coberturas`: lista de coberturas APENAS deste imóvel.
 
-14. **`BemSeguradoPessoa`** (V2): `tipo: "pessoa"` — apólice de vida/saúde/acidentes. Em V1 só emitir se documento for explicitamente desse tipo; caso contrário ignorar.
+14. **`BemSeguradoPessoa`** (V2): `tipo: pessoa` — apólice de vida/saúde/acidentes. Em V1 só emitir se documento for explicitamente desse tipo; caso contrário ignorar.
 
 15. **Coberturas — Discriminated Union por `tipo`:**
-    - **`CoberturaMaterial`** (`tipo: "material"`): auto colisão/incêndio/roubo, imóvel incêndio/vendaval/raio.
+    - **`CoberturaMaterial`** (`tipo: material`): auto colisão/incêndio/roubo, imóvel incêndio/vendaval/raio.
       - `lmi_modo`: discriminator obrigatório:
-        - `"valor_fixo"` → preencher `lmi_brl` (string decimal); deixar `lmi_fipe_percentual: null`.
-        - `"fipe_percentual"` → preencher `lmi_fipe_percentual` (ex.: `"1.00"` = 100% FIPE; `"1.10"` = 110%); deixar `lmi_brl: null`.
-        - `"primeiro_risco_absoluto"` → preencher `lmi_brl` (limite fixo independente de bem).
+        - literal `valor_fixo` → preencher `lmi_brl` (string decimal); deixar `lmi_fipe_percentual: null`.
+        - literal `fipe_percentual` → preencher `lmi_fipe_percentual` (conteúdo `1.00` = 100% FIPE; `1.10` = 110%); deixar `lmi_brl: null`.
+        - literal `primeiro_risco_absoluto` → preencher `lmi_brl` (limite fixo independente de bem).
       - `franquia_brl`: franquia em decimal string. `null` se sem franquia.
       - `premio_brl`: prêmio desta cobertura.
-    - **`CoberturaRcfv`** (`tipo: "rcfv"`): RCFV danos a terceiros (auto).
-      - `nome`: `"danos_materiais"` | `"danos_corporais"` | `"danos_morais"`
+    - **`CoberturaRcfv`** (`tipo: rcfv`): RCFV danos a terceiros (auto).
+      - `nome`: um dos literais `danos_materiais`, `danos_corporais`, `danos_morais`
       - `lmi_brl`, `premio_brl`
     - **`CoberturaVida`** / **`CoberturaSaude`** / **`CoberturaAcidentes`** (V2): só popular se documento for de vida/saúde/acidentes; em apólice auto/residencial deixar fora.
 
@@ -82,7 +89,7 @@ REGRAS DE EXTRAÇÃO:
 
 20. **`notas`**: observações relevantes (ex.: "apólice combinada — Toro + residência R Tasso da Silveira"; "corretor PF; SUSEP individual"). Max 500 chars. Não inclua dados sensíveis (CPF, RG, endereço completo do proprietário em texto livre).
 
-21. **`prompt_version`**: sempre `"apolice-v1.0.0"`.
+21. **`prompt_version`**: conteúdo da string: `apolice-v1.1.0`.
 
 NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou marque `needs_review=true` quando obrigatório está ausente.
 
@@ -116,6 +123,6 @@ Popule o output `ApolicePayload`:
 - sinistro_indenizacao_recebida_brl = null (placeholder V1)
 - confidence (0-1) + needs_review (false default; true se inconsistência)
 - cascade_triggered = false (default Haiku)
-- prompt_version = "apolice-v1.0.0"
+- prompt_version (conteúdo: apolice-v1.1.0)
 - notas (max 500 chars; sem PII)
 """

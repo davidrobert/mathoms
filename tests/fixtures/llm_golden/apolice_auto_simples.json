@@ -58,7 +58,7 @@
   "sinistro_indenizacao_recebida_brl": null,
   "confidence": 0.96,
   "needs_review": false,
-  "prompt_version": "apolice-v1.0.0",
+  "prompt_version": "apolice-v1.1.0",
   "cascade_triggered": false,
   "notas": "Apolice simples; renovacao congenere PORTO classe bonus 2."
 }
