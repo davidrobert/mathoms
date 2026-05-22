@@ -8,6 +8,11 @@ Decompõe em domain service puro:
 Recebe lista de :class:`ClassifiedTransaction`; retorna value objects
 frozen (``ReceitasUnified``, ``DespesasUnified``, ``FluxoMensal``) com
 ``to_legacy_dict()`` compatível com o output E4 legado.
+
+ADR-248 (Camada A): aplica dedup cross-document por hash determinístico K4
+antes de agregar — defesa em profundidade. Quando ADR-248 PR2 propagar
+``transaction_hash`` desde E3, o builder prefere o campo da tx; até lá,
+computa inline com :func:`compute_transaction_hash`.
 """
 
 from __future__ import annotations
@@ -17,9 +22,21 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
+from pipeline.domain.services._tx_identity import (
+    cents_int,
+    compute_transaction_hash,
+    normalize_banco,
+    normalize_descricao,
+    normalize_tipo_conta,
+    normalize_titular,
+)
 from pipeline.domain.services.transaction_classifier import ClassifiedTransaction
 
 _BRT = timezone(timedelta(hours=-3))
+
+# ADR-248 — limiar de materialidade acima do qual colisão vira `needs_review`
+# em vez de dedup silente. Valor em centavos.
+_NEEDS_REVIEW_THRESHOLD_CENTS = 10_000 * 100
 
 
 def _compute_periodo(transactions: Iterable[ClassifiedTransaction]) -> str:
@@ -27,6 +44,130 @@ def _compute_periodo(transactions: Iterable[ClassifiedTransaction]) -> str:
     if not months:
         return "N/D"
     return f"{min(months)} a {max(months)}"
+
+
+# =============================================================================
+# Dedup cross-document (ADR-248 Camada A)
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class DedupReviewEntry:
+    """Colisão materialmente significativa que exige confirmação humana (ADR-248)."""
+
+    transaction_hash: str
+    data: str
+    banco_norm: str
+    titular_norm: str
+    tipo_conta_norm: str
+    valor_cents: int
+    reason: str  # "material_value" | "missing_tipo_conta"
+    collision_count: int  # quantas duplicatas foram colapsadas (≥ 1)
+
+
+@dataclass(frozen=True)
+class DedupReport:
+    """Telemetria do dedup K4 aplicado em :meth:`CashFlowBuilder.build`."""
+
+    collapsed_count: int  # total de duplicatas removidas (silentes + review)
+    review_entries: tuple[DedupReviewEntry, ...] = ()
+
+    @property
+    def review_count(self) -> int:
+        return len(self.review_entries)
+
+    def to_log_dict(self) -> dict:
+        """Resumo para log estruturado (sem PII — sem descrição/valor exato)."""
+        return {
+            "dups_collapsed": self.collapsed_count,
+            "dups_review": self.review_count,
+            "sample_hashes": [e.transaction_hash for e in self.review_entries[:5]],
+        }
+
+
+def _tx_hash(tx: ClassifiedTransaction) -> str:
+    """Prefere ``tx.transaction_hash`` (PR2); fallback computed (PR1)."""
+    return getattr(tx, "transaction_hash", None) or compute_transaction_hash(
+        data=tx.data,
+        banco=tx.banco,
+        titular=tx.titular,
+        tipo_conta=tx.tipo_conta,
+        valor=tx.valor,
+        descricao=tx.descricao,
+    )
+
+
+def _classify_review_reason(
+    incoming: ClassifiedTransaction, first: ClassifiedTransaction
+) -> str | None:
+    """Retorna razão de review ou ``None`` se dedup pode ser silente."""
+    max_cents = max(cents_int(abs(incoming.valor)), cents_int(abs(first.valor)))
+    if max_cents >= _NEEDS_REVIEW_THRESHOLD_CENTS:
+        return "material_value"
+    if not (incoming.tipo_conta or "").strip() or not (first.tipo_conta or "").strip():
+        return "missing_tipo_conta"
+    return None
+
+
+def _make_review_entry(
+    tx_hash: str, tx: ClassifiedTransaction, reason: str, collision_count: int
+) -> DedupReviewEntry:
+    return DedupReviewEntry(
+        transaction_hash=tx_hash,
+        data=tx.data or "",
+        banco_norm=normalize_banco(tx.banco),
+        titular_norm=normalize_titular(tx.titular),
+        tipo_conta_norm=normalize_tipo_conta(tx.tipo_conta),
+        valor_cents=cents_int(abs(tx.valor)),
+        reason=reason,
+        collision_count=collision_count,
+    )
+
+
+def _try_dedup_one(
+    tx: ClassifiedTransaction,
+    seen: dict[str, ClassifiedTransaction],
+    collisions: dict[str, int],
+    reasons: dict[str, str],
+) -> None:
+    """Atualiza state in-place com 1 transação (primeira vence)."""
+    h = _tx_hash(tx)
+    if h not in seen:
+        seen[h] = tx
+        return
+    collisions[h] += 1
+    if h in reasons:
+        return
+    reason = _classify_review_reason(tx, seen[h])
+    if reason is not None:
+        reasons[h] = reason
+
+
+def _dedup_transactions(
+    transactions: list[ClassifiedTransaction],
+) -> tuple[list[ClassifiedTransaction], DedupReport]:
+    """Dedup K4 dentro de 1 kind (caller separa receita/despesa/transferencia)."""
+    seen: dict[str, ClassifiedTransaction] = {}
+    collisions: dict[str, int] = defaultdict(int)
+    reasons: dict[str, str] = {}
+    for tx in transactions:
+        _try_dedup_one(tx, seen, collisions, reasons)
+    entries = tuple(
+        _make_review_entry(h, seen[h], reasons[h], collisions[h]) for h in sorted(reasons)
+    )
+    return list(seen.values()), DedupReport(
+        collapsed_count=sum(collisions.values()), review_entries=entries
+    )
+
+
+def _merge_dedup_reports(*reports: DedupReport) -> DedupReport:
+    """Combina relatórios de dedup independentes (kinds separadas)."""
+    collapsed = sum(r.collapsed_count for r in reports)
+    entries: list[DedupReviewEntry] = []
+    for r in reports:
+        entries.extend(r.review_entries)
+    entries.sort(key=lambda e: e.transaction_hash)
+    return DedupReport(collapsed_count=collapsed, review_entries=tuple(entries))
 
 
 # =============================================================================
@@ -120,6 +261,10 @@ class CashFlow:
     despesas: DespesasUnified
     fluxo_mensal: FluxoMensal
     transferencias_count: int = 0
+    # ADR-248 — telemetria do dedup cross-document; default vazio preserva
+    # construtores em call-sites legados de teste que instanciam CashFlow
+    # diretamente sem chamar build().
+    dedup_report: DedupReport = field(default_factory=lambda: DedupReport(collapsed_count=0))
 
 
 # =============================================================================
@@ -142,16 +287,21 @@ class CashFlowBuilder:
     # -- API --
 
     def build(self, transactions: Iterable[ClassifiedTransaction]) -> CashFlow:
+        # ADR-248 Camada A — dedup K4 por kind (sinal em ``kind``, não em valor).
         txs = list(transactions)
-        receitas = [t for t in txs if t.kind == "receita"]
-        despesas = [t for t in txs if t.kind == "despesa"]
-        transferencias = [t for t in txs if t.kind == "transferencia"]
-
+        by_kind = {
+            k: _dedup_transactions([t for t in txs if t.kind == k])
+            for k in ("receita", "despesa", "transferencia")
+        }
+        receitas, rep_r = by_kind["receita"]
+        despesas, rep_d = by_kind["despesa"]
+        transferencias, rep_t = by_kind["transferencia"]
         return CashFlow(
             receitas=self.build_receitas_unified(receitas),
             despesas=self.build_despesas_unified(despesas),
             fluxo_mensal=self.build_fluxo_mensal(receitas, despesas),
             transferencias_count=len(transferencias),
+            dedup_report=_merge_dedup_reports(rep_r, rep_d, rep_t),
         )
 
     def build_receitas_unified(self, receitas: list[ClassifiedTransaction]) -> ReceitasUnified:
