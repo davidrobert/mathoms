@@ -253,6 +253,7 @@
 | ADR-253 | adr | Proposto |  | Postgres driver consolidation (asyncpg-only) — Sprint A20 | `adr/253-postgres-driver-consolidation.md` |
 | ADR-254 | adr | Proposto |  | Python lockfile com hashes — pip-tools vs uv — Sprint A20 | `adr/254-python-lockfile-com-hashes.md` |
 | ADR-255 | adr | Proposto |  | Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) | `adr/255-dedup-transacoes-cross-document.md` |
+| ADR-256 | adr | Proposto |  | Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` | `adr/256-uow-stages-pipeline-store-session.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
