@@ -1,0 +1,355 @@
+"""A19 L1 P1 (ADR-240 D2/D3/D8) — ProtecaoAnalyzer determinístico + 3 cenários golden."""
+
+from __future__ import annotations
+
+import json
+import sys
+from datetime import date
+from decimal import Decimal
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from pipeline.domain.services.protecao_analyzer import (
+    FamilyMemberSnapshot,
+    FiscalSnapshot,
+    PatrimonioSnapshot,
+    ProtecaoInput,
+    _gap_auto_sinal,
+    _pct_renda_sinal,
+    compute_protecao,
+)
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+SCHEMA_PATH = REPO_ROOT / "config" / "schemas" / "protecao_patrimonial.schema.json"
+
+
+# ─────────────────────── Helpers ──────────────────────────────────────────
+
+
+def _corretor(nome="Bedoni", cnpj="12345678000199", susep="202020138") -> dict:
+    return {"susep_code": susep, "nome": nome, "cpf_or_cnpj": cnpj, "cnpj_or_cpf_kind": "cnpj"}
+
+
+def _cob_material(modo: str, lmi=None, pct=None, premio="1000.00") -> dict:
+    return {
+        "tipo": "material",
+        "nome": "Casco",
+        "lmi_modo": modo,
+        "lmi_brl": lmi,
+        "lmi_fipe_percentual": pct,
+        "premio_brl": premio,
+    }
+
+
+def _bem_veiculo(id_: str, placa: str, marca: str, modelo: str, ano: int, cob: dict) -> dict:
+    return {
+        "tipo": "veiculo",
+        "placa": placa,
+        "veiculo_id": id_,
+        "marca": marca,
+        "modelo": modelo,
+        "ano_modelo": ano,
+        "coberturas": [cob],
+    }
+
+
+def _bem_imovel(id_: str, cob: dict) -> dict:
+    return {
+        "tipo": "imovel",
+        "endereco": {"logradouro": "Rua X", "cidade": "Rio", "uf": "RJ"},
+        "tipo_imovel": "casa",
+        "imovel_id": id_,
+        "coberturas": [cob],
+    }
+
+
+def _apolice(numero, seguradora, inicio, fim, premio, corretor, bens) -> dict:
+    return {
+        "apolice_numero": numero,
+        "seguradora": seguradora,
+        "vigencia_inicio": inicio,
+        "vigencia_fim": fim,
+        "premio_total_brl": premio,
+        "forma_pagamento": "cartao",
+        "corretor": corretor,
+        "bens_segurados": bens,
+        "confidence": 0.95,
+    }
+
+
+def _apolice_auto_simples() -> dict:
+    bem = _bem_veiculo(
+        "v-1", "ABC1D23", "YAMAHA", "NMAX", 2024, _cob_material("fipe_percentual", pct="1.00")
+    )
+    return _apolice(
+        "AUTO-1", "tokiomarine", "2026-03-01", "2027-03-01", "1500.00", _corretor(), [bem]
+    )
+
+
+def _apolice_combinada() -> dict:
+    bem_v = _bem_veiculo(
+        "v-toro",
+        "XYZ9A87",
+        "FIAT",
+        "TORO",
+        2022,
+        _cob_material("valor_fixo", lmi="60000.00", premio="1800.00"),
+    )
+    bem_i = _bem_imovel("p-1", _cob_material("valor_fixo", lmi="600000.00", premio="650.00"))
+    return _apolice(
+        "COMB-1",
+        "porto",
+        "2026-04-10",
+        "2027-04-10",
+        "3250.00",
+        _corretor("Mrr Miseg", "98765432000111", "202020150"),
+        [bem_v, bem_i],
+    )
+
+
+# ─────────────────────── Cenário A — workspace COM seguros ────────────────
+
+
+def test_cenario_a_owner_com_seguros_kpi_g_soma_premios():
+    """Caso owner: 2 apólices vigentes (auto + combinada Toro+casa). KPI G hero."""
+    inp = ProtecaoInput(
+        apolices=[_apolice_auto_simples(), _apolice_combinada()],
+        vehicles_by_id={
+            "v-1": {"fipe_value_brl": Decimal("80000")},
+            "v-toro": {"fipe_value_brl": Decimal("100000")},
+        },
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+    )
+    out = compute_protecao(inp)
+    assert out["premio_total_anual_brl"] == "4750.00"
+    assert len(out["apolices_vigentes"]) == 2
+    assert out["seguradoras_count"] == 2
+    assert out["corretoras_count"] == 2
+
+
+def test_cenario_a_decomposicao_separa_auto_e_residencial():
+    """Combinada Porto: bens_segurados = auto + imovel; é categorizada como 'auto' (1ª categoria)."""
+    inp = ProtecaoInput(
+        apolices=[_apolice_auto_simples(), _apolice_combinada()],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+    )
+    out = compute_protecao(inp)
+    # 1500 (auto simples) + 3250 (combinada categorizada como auto pelo bem dominante)
+    assert out["premio_decomposicao"]["auto"] == "4750.00"
+
+
+def test_cenario_a_pct_renda_em_faixa_cerbasi_ok():
+    """4750 / 200000 = 0.02375 → faixa 'ok' (1% ≤ pct ≤ 3%)."""
+    inp = ProtecaoInput(
+        apolices=[_apolice_auto_simples(), _apolice_combinada()],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+    )
+    out = compute_protecao(inp)
+    assert Decimal(out["pct_renda_anual"]) == Decimal("0.023750")
+    assert _pct_renda_sinal(Decimal(out["pct_renda_anual"])) == "ok"
+
+
+def test_cenario_a_gap_auto_kpi_c():
+    """v-1: LMI = 100% FIPE 80k = 80k, gap=0 ok. v-toro: LMI 60k vs FIPE 100k, gap=0.40 atencao."""
+    inp = ProtecaoInput(
+        apolices=[_apolice_auto_simples(), _apolice_combinada()],
+        vehicles_by_id={
+            "v-1": {"fipe_value_brl": Decimal("80000")},
+            "v-toro": {"fipe_value_brl": Decimal("100000")},
+        },
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+    )
+    out = compute_protecao(inp)
+    gaps = {b["veiculo_id"]: b for b in out["bens_com_gap_cobertura"]}
+    assert gaps["v-1"]["sinal"] == "ok"
+    assert gaps["v-1"]["gap_pct"] == "0.000000"
+    assert gaps["v-toro"]["sinal"] == "atencao"
+    assert Decimal(gaps["v-toro"]["gap_pct"]) == Decimal("0.400000")
+
+
+# ─────────────────────── Cenário B — workspace SEM apólices ───────────────
+
+
+def test_cenario_b_workspace_sem_apolices_premio_zero():
+    inp = ProtecaoInput(
+        apolices=[],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("100000"),
+    )
+    out = compute_protecao(inp)
+    assert out["premio_total_anual_brl"] == "0.00"
+    assert out["apolices_vigentes"] == []
+    assert out["bens_com_gap_cobertura"] == []
+    assert out["corretoras_count"] == 0
+    assert out["seguradoras_count"] == 0
+
+
+def _inp_empty(**kwargs) -> ProtecaoInput:
+    """Helper para Input vazio (sem apolices, sem vehicles)."""
+    defaults = dict(
+        apolices=[],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("100000"),
+    )
+    defaults.update(kwargs)
+    return ProtecaoInput(**defaults)
+
+
+def _gap_vida(out: dict) -> dict:
+    return [g for g in out["gap_qualitativo"] if g["categoria"] == "vida"][0]
+
+
+def test_cenario_b_flag_vida_false_sem_family_members():
+    """G5: sem family_members → flag False silenciosamente."""
+    out = compute_protecao(_inp_empty())
+    vida = _gap_vida(out)
+    assert vida["flag"] is False
+    assert vida["rationale"] == "sem family_members"
+
+
+def test_cenario_b_flag_vida_true_com_dependente_menor():
+    inp = _inp_empty(
+        family_members=(
+            FamilyMemberSnapshot(parentesco="titular", idade=42),
+            FamilyMemberSnapshot(parentesco="filho", idade=8, is_dependente=True),
+        ),
+    )
+    vida = _gap_vida(compute_protecao(inp))
+    assert vida["flag"] is True
+    assert vida["rationale"] == "dependentes_menores_18"
+
+
+def test_cenario_b_flag_saude_quando_sem_evidencia():
+    inp = ProtecaoInput(
+        apolices=[],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("100000"),
+    )
+    out = compute_protecao(inp)
+    saude = [g for g in out["gap_qualitativo"] if g["categoria"] == "saude"][0]
+    assert saude["flag"] is True
+    assert saude["rationale"] == "sem_evidencia_cobertura"
+
+
+def test_cenario_b_flag_saude_false_quando_irpf_tem_deducao_saude():
+    inp = ProtecaoInput(
+        apolices=[],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("100000"),
+        fiscal=FiscalSnapshot(has_deducao_saude_irpf=True),
+    )
+    out = compute_protecao(inp)
+    saude = [g for g in out["gap_qualitativo"] if g["categoria"] == "saude"][0]
+    assert saude["flag"] is False
+    assert saude["rationale"] == "evidencia_pagamento_saude"
+
+
+# ─────────────────────── Cenário C — combinada multi-bem ─────────────────
+
+
+def test_cenario_c_combinada_subgrupo_bens_com_2_linhas():
+    """Critério aceite ADR-240 G6 (c): apólice combinada gera 2 entries em bens_segurados."""
+    inp = ProtecaoInput(
+        apolices=[_apolice_combinada()],
+        vehicles_by_id={"v-toro": {"fipe_value_brl": Decimal("100000")}},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+    )
+    out = compute_protecao(inp)
+    apolice_resumo = out["apolices_vigentes"][0]
+    assert apolice_resumo["bens_count"] == 2
+    assert sorted(apolice_resumo["tipos_bem"]) == ["imovel", "veiculo"]
+
+
+# ─────────────────────── Vigência (vigentes / vencendo / vencidas) ────────
+
+
+def test_vigencia_separacao_vigente_vencendo_vencida():
+    base = _apolice_auto_simples()
+    inp = _inp_empty(
+        apolices=[
+            base,
+            {**base, "apolice_numero": "VEN-1", "vigencia_fim": "2026-06-20"},
+            {**base, "apolice_numero": "OLD-1", "vigencia_fim": "2025-12-31"},
+        ]
+    )
+    out = compute_protecao(inp)
+    assert len(out["apolices_vigentes"]) == 2  # base + VEN-1
+    assert [a["apolice_numero"] for a in out["apolices_vencendo"]] == ["VEN-1"]
+    assert [a["apolice_numero"] for a in out["apolices_vencidas"]] == ["OLD-1"]
+
+
+# ─────────────────────── Faixas de sinal (Cerbasi + gap auto) ─────────────
+
+
+@pytest.mark.parametrize(
+    "pct,sinal",
+    [
+        ("0.005", "atencao"),  # < 1%
+        ("0.02", "ok"),
+        ("0.04", "ok_forte"),
+        ("0.07", "atencao"),  # > 5%
+    ],
+)
+def test_pct_renda_sinal_cerbasi(pct, sinal):
+    assert _pct_renda_sinal(Decimal(pct)) == sinal
+
+
+@pytest.mark.parametrize(
+    "gap,sinal",
+    [
+        ("0.05", "ok"),
+        ("0.15", "atencao_branda"),
+        ("0.30", "atencao"),
+    ],
+)
+def test_gap_auto_sinal_faixas(gap, sinal):
+    assert _gap_auto_sinal(Decimal(gap)) == sinal
+
+
+# ─────────────────────── Schema validation hook (ADR-212) ─────────────────
+
+
+def test_payload_valida_schema():
+    """Payload do compute_protecao deve passar pelo schema JSON (ADR-212 PR3a)."""
+    import jsonschema
+
+    schema = json.loads(SCHEMA_PATH.read_text())
+    inp = ProtecaoInput(
+        apolices=[_apolice_auto_simples(), _apolice_combinada()],
+        vehicles_by_id={
+            "v-1": {"fipe_value_brl": Decimal("80000")},
+            "v-toro": {"fipe_value_brl": Decimal("100000")},
+        },
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("200000"),
+    )
+    out = compute_protecao(inp)
+    jsonschema.validate(out, schema)  # no raise
+
+
+# ─────────────────────── Edge: renda zero → pct = "0.000000" ─────────────
+
+
+def test_renda_zero_nao_divide_e_pct_zero():
+    inp = ProtecaoInput(
+        apolices=[_apolice_auto_simples()],
+        vehicles_by_id={},
+        data_referencia=date(2026, 6, 1),
+        renda_anual_liquida_brl=Decimal("0"),
+    )
+    out = compute_protecao(inp)
+    assert out["pct_renda_anual"] == "0.000000"
