@@ -126,3 +126,59 @@ Não há migração — convive. Critérios de revisitação:
 - 3 prompts em `pipeline/llm/prompts/` (`e1_members`, `e15_baseline`, `e2_llm`) recebem `PROMPT_VERSION = "1.0.0"`.
 - `dev/check_prompt_version_bumped.py` valida regex `^(\d+\.\d+\.\d+|[\w-]+-v\d+\.\d+\.\d+)$`.
 - ADR-233 flipa para `Decidido` no PR de fechamento da W2-T05.
+
+---
+
+## §Migration (errata 2026-05-22, oriunda do plano [[PLAN-llm-prompts-hardening]] W2-T01)
+
+**Status da errata:** Proposto • Revisita parcial da decisão original (formatos legados continuariam coexistindo) à luz de novos requisitos de telemetria.
+
+### Por que a errata
+
+Revisão paralela do plano [[PLAN-llm-prompts-hardening]] em 2026-05-22 (`data-engineer` + `senior-cto`) identificou que **manter `<slug>-vX.Y.Z` legado coexistindo com semver puro causa ruído em telemetria por `prompt_version`** ([[ADR-260]]):
+
+- Label OTLP `mathoms.llm.confidence{prompt_version="e16-v1.1.0"}` é desnecessariamente longo.
+- Agrupamento por `prompt_version` em SQL `LLMCallLog` retorna 2 buckets para o mesmo prompt (semver vs. legado) se houver bump misturado.
+- Coordenada de dimensão (`prompt_name`) é informação separada — slug no `prompt_version` é redundância informacional.
+
+Decisão da errata: **migrar os 5 prompts legados para semver puro com migration coordenada de histórico**, em vez de "conviver indefinidamente" como decidido na primeira versão.
+
+### Escopo da migration
+
+5 prompts em formato `<slug>-vX.Y.Z` migram para semver puro:
+
+| Prompt / schema | Versão legada | Versão pós-migration |
+|---|---|---|
+| `apolice.py` | `apolice-v1.0.0` | `1.0.0` |
+| `crlv.py` | `crlv-v1.0.0` | `1.0.0` |
+| `e16_irpf_full.py` (schema) | `e16-v1.1.0` | `1.1.0` |
+| `informe_aluguel.py` (schema) | `informe-aluguel-v1.1.0` (ou `1.2.0` pós-W1α) | `1.2.0` |
+| `informe_previdencia.py` | `informe-prev-v1.0.0` | `1.0.0` |
+
+### Migration coordenada de histórico
+
+**Antes** da migration de `PROMPT_VERSION` no código:
+
+1. Snapshot histórico via `dev/snapshot_llm_call_log_history.py` ([[ADR-261]]):
+   ```bash
+   python3 dev/snapshot_llm_call_log_history.py --all-legacy \
+     --output _archive/llm_call_log_pre_semver_migration_<date>.csv
+   ```
+2. Migration Alembic atualiza `LLMCallLog.prompt_version` via regex `^([\w-]+)-v(\d+\.\d+\.\d+)$ → \2`. Preserva linha original em coluna nova `prompt_version_legacy` (text, nullable) para grep histórico.
+3. Migration coordenada de `pipeline_artifacts.metadata.prompt_version` via JSON path UPDATE — mesmo padrão.
+
+### Gate CI pós-migration
+
+`dev/check_prompt_version_bumped.py` ganha **modo estrito**: regex `^\d+\.\d+\.\d+$` (sem alternativa `<slug>-v`). Falha PR que tenta reintroduzir formato legado.
+
+### Coordenação com [[ADR-260]]
+
+Esta errata é pré-requisito de [[ADR-260]] (telemetria) — sem migration, labels OTLP ficam misturados entre semver e slug. Errata executada em PR coordenado de W2-T01 do plano [[PLAN-llm-prompts-hardening]].
+
+### Aceite da errata
+
+- `LLMCallLog.prompt_version` 100% em formato `\d+\.\d+\.\d+` pós-migration.
+- `pipeline_artifacts.metadata.prompt_version` 100% em semver puro pós-migration.
+- Snapshot `_archive/llm_call_log_pre_semver_migration_<date>.csv` commitado.
+- Gate `dev/check_prompt_version_bumped.py` em modo estrito.
+- ADR-233 + esta errata flipam para `Decidido` no PR de fechamento da W2-T01.

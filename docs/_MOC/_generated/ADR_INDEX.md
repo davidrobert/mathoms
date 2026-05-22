@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-249 ADRs (ADR-001 a ADR-256) em [`docs/adr/`](../../adr/).
+252 ADRs (ADR-001 a ADR-261) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 191
-- **Proposto**: 54
+- **Proposto**: 57
 - **Roadmap**: 4
 
 ## Fundação
@@ -36,9 +36,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-038]] — Docker volume para storage prod · phase F7
 - [[ADR-039]] — Dual DB: SQLite (dev) + PostgreSQL (prod) · phase F7
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet
+- [[ADR-259]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
 
 ## Pipeline
 
@@ -122,11 +123,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-108]] — Estratégia de subdomínios `mathoms.ai` + Cloudflare DNS
 - [[ADR-116]] — F7F-Local: stack Next separada + anonimização default + auth yaml+bcrypt+JWT (F7F-Local) · phase F7F-Local
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-058]] — VPS CX32 para sizing · phase F7
 - [[ADR-206]] — Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-210]] — Saúde do test suite do CI — gates, telemetria e ciclo de vida · phase Sprint A12 (test health · CI cost)
+- [[ADR-260]] — Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP · phase A20.W2 + A20.W3
 
 ## Testing
 
@@ -378,7 +380,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-165]] — `ValidationIssue` estruturado em `ValidationResult` e `StageReview`
 - [[ADR-169]] — Modo incremental estendido aos stages globais E1
 
-### Proposto (9)
+### Proposto (10)
 
 - [[ADR-173]] — LLM budget hard-stop + LLMCallLog populada universal
 - [[ADR-199]] — Parecer do planejador (E6) supersede review_finances — aggregate PlannerReview event-sourced · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
@@ -389,6 +391,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-205]] — Boundary Python/Go — stages LLM permanecem Python; contratos imutáveis · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-207]] — Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-208]] — Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
+- [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 
 ## marketing
 
