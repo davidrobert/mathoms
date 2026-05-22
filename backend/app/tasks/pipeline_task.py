@@ -763,6 +763,22 @@ def _persist_planner_review_if_applicable(run_id: str, stage_name: str, result) 
         persist_after_stage_success(db, run_id=run_id, detail=result.detail)
 
 
+def _summarize_per_doc_errors(detail) -> str | None:
+    """Sumariza ``detail.errors[]`` (contrato soft-fail dos stages — extract_comprovantes_bens, extract_invoices/E2-llm, generate_narratives/E5.N) para ``stage_log.errors``. Sem isso, UI mostra só fallback genérico."""
+    if not isinstance(detail, dict):
+        return None
+    per_doc = detail.get("errors") or []
+    if not per_doc:
+        return None
+    lines: list[str] = []
+    for entry in per_doc:
+        if isinstance(entry, dict):
+            lines.append(f"{entry.get('file', '?')}: {entry.get('error', '')}")
+        else:
+            lines.append(str(entry))
+    return "\n".join(lines)[:2000] or None
+
+
 def _record_stage_result(
     run_id: str,
     stage_name: str,
@@ -782,6 +798,8 @@ def _record_stage_result(
         stage_log.output_summary = result.detail
         if result.error:
             stage_log.errors = result.error
+        elif not result.success:
+            stage_log.errors = _summarize_per_doc_errors(result.detail)
         db.commit()
 
     if result.success:
