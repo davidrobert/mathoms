@@ -26,5 +26,5 @@ export function reviewPauseImpactHint(
 /** Texto curto para etapas com LLM (F11.5a) — opcionalmente exibido ao lado do nome da etapa. */
 export function stageLlmFootnote(stage: string): string | null {
   if (!isPipelineLlmStage(stage)) return null;
-  return "Leitura assistida por IA — confira valores antes de aprovar.";
+  return "Leitura assistida por IA.";
 }
