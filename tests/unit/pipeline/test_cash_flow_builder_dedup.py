@@ -60,9 +60,10 @@ def _despesa(**overrides) -> ClassifiedTransaction:
 
 class TestCrossDocumentDedup:
     def test_arvo_3x_collapses_to_1(self):
-        # Cenário Arvo do report 9b31d739-...: mesmo PIX presente em 3 E3s
-        # (1 C6 BRL + 2 PDFs Itaú "unknown"). Drift de casing no banco simula
-        # documento sem identificação canônica.
+        # Cenário Arvo do report 9b31d739-...: mesmo PIX C6 presente em 3 E3s
+        # (1 CSV C6 explícito + 2 PDFs C6 "unknown" — snapshots cumulativos do
+        # app C6 PJ não reconhecidos pelo classificador E0). Drift de casing no
+        # banco simula documento sem identificação canônica.
         txs = [
             _receita(banco="C6Bank"),
             _receita(banco="C6 Bank"),  # mesmo banco, casing drift

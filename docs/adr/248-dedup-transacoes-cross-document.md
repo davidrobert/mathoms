@@ -37,10 +37,10 @@ Investigação local confirmou: a transação `Pix recebido de ARVO SAUDE LTDA` 
 | `artifact_key` | Banco no payload | Documentos de origem (campo `fontes`) |
 |---|---|---|
 | `c6bank_extratoconta_BRL_202512_202604` | C6Bank | 1 CSV (`d7f8c691ab80…`) + 1 fonte (`f4bf6653a3fd…`) |
-| `_extrato_BRL_202504_202504` | "" (não identificado) | 2 PDFs Itaú "extrato-da-sua-conta-{ULID}.pdf" (`2554457c5e1e…`, `87cbeff3a899…`) |
-| `_extrato_BRL_202505_202505` | "" (não identificado) | 2 PDFs Itaú "extrato-da-sua-conta-{ULID}.pdf" (`4e11dead46e8…`, `87c77fc9bf58…`) |
+| `_extrato_BRL_202504_202504` | "" (não identificado) | 2 PDFs C6 "extrato-da-sua-conta-{ULID}.pdf" (`2554457c5e1e…`, `87cbeff3a899…`) |
+| `_extrato_BRL_202505_202505` | "" (não identificado) | 2 PDFs C6 "extrato-da-sua-conta-{ULID}.pdf" (`4e11dead46e8…`, `87c77fc9bf58…`) |
 
-Os PDFs Itaú **não são duplicatas exatas** (hashes e tamanhos divergem; ex.: 114KB vs 348KB), são **snapshots cumulativos do "extrato completo"** baixados em datas diferentes — cada PDF cobre ~13 meses retroativos. O dedup exato (`content_hash`) não dispara (bits diferentes), e o dedup fuzzy `(doc_type, bank_code, period)` falha porque o classificador E0 não identificou o banco (`bank_code=""`) e atribuiu `period` enganoso a partir do nome do arquivo.
+Os 3 artefatos E3 são da **mesma conta C6 Bank** do mesmo titular: o CSV `c6bank_extratoconta_BRL_202512_202604` foi corretamente identificado pelo E0, mas os 4 PDFs `extrato-da-sua-conta-{ULID}.pdf` (snapshots cumulativos do app C6 baixados em datas diferentes) **não foram identificados como C6** — `bank_code=""`. Cada PDF cobre ~13 meses retroativos, com sobreposição substancial entre snapshots. O dedup exato (`content_hash`) não dispara (bits diferentes — ULID no nome + signature/timestamp interno mudam), e o dedup fuzzy `(doc_type, bank_code, period)` falha porque `bank_code=""` quebra o match com o CSV C6 explícito e o `period` extraído do filename é enganoso (declarado `202505_202505` mas conteúdo cobre `202505→202605`).
 
 ### Cadeia técnica
 
@@ -220,4 +220,4 @@ Surface no console interno (`/ops/workspaces/<id>/pipeline`) para o operador inv
 - **PR2 (sistêmico)**: campos `source_doc_id` + `transaction_hash` em `ClassifiedTransaction`; geração em `e3_serialization`; schema E4 aditivo; builders preferem field, fallback computed. Goldens regeneram. Teste explícito de aditividade do schema.
 - **PR3 (backfill)**: `dev/audit_duplicate_transactions.py` + `backend/app/services/internal_ops/recompute_e4.py`. Marca `pipeline_runs.stale=true`. Runbook em `docs/reference/runbooks/`.
 - **Follow-up tracked separadamente**: detecção upstream de overlap de conteúdo em E0/E2 (estender [[ADR-228]]) — preventiva, não substitui defesa em E4.
-- **Follow-up tracked separadamente**: melhorar classificador de banco em E0 para PDFs Itaú "extrato-da-sua-conta-{ULID}" — reduz casos de `bank_code=""` que escapam de fuzzy dedup.
+- **Follow-up tracked separadamente**: melhorar classificador de banco em E0 para PDFs C6 "extrato-da-sua-conta-{ULID}" (snapshots cumulativos do app C6 PJ) — reduz casos de `bank_code=""` que escapam de fuzzy dedup. Causa raiz upstream: o parser de E0 não reconhece o cabeçalho/layout do PDF "extrato completo" do C6.
