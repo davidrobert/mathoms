@@ -279,6 +279,8 @@ const DOC_TYPE_MAP: Record<DocumentType, string> = {
   credit_card_bill: "Fatura",
   investment_report: "Investimentos",
   irpf: "IRPF",
+  informe_rendimentos_anuais: "Informe de rendimentos",
+  comprovante_bem: "Comprovante de bem",
   e1_members_json: "Membros (JSON)",
   e1_5_baseline_json: "Baseline (JSON)",
   other: "Outro",

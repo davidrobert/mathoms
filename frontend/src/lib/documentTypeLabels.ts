@@ -15,6 +15,16 @@ export const E0_DOC_TYPE_MAP: Record<string, string> = {
   irpfrecibo: "Recibo IRPF",
   informerendimentos: "Informe de rendimentos (IRPF)",
   informerendimentosaluguel: "Informe de aluguéis (IRPF)",
+  // ADR-238 (A17 L1) — informes anuais tipados (avulsos, ≠ declaração IRPF).
+  informe_previdencia_privada: "Informe de previdência privada",
+  informe_previdencia: "Informe de previdência privada",
+  informe_financeiro: "Informe financeiro anual",
+  informe_proventos: "Informe de proventos",
+  // ADR-239 (A18 L1+L2) — comprovantes de bem polimórficos.
+  crlv_eletronico: "CRLV-e (veículo)",
+  crlv: "CRLV (veículo)",
+  apolice_seguro: "Apólice de seguro",
+  apolice: "Apólice de seguro",
   faturaaluguel: "Fatura de aluguel",
   faturaunique: "Fatura Unique",
   faturacarbon: "Fatura Carbon",
