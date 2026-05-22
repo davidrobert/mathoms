@@ -3,7 +3,14 @@ id: A18.l2
 type: lane
 title: "Comprovantes de Bem — L2 Apólice de seguro polimórfica (combinada V1, vida/saúde/PJ V2)"
 sprint: A18
-status: planned
+status: shipped
+ship_prs:
+  - "https://github.com/davidrobert/mathoms/pull/419"
+  - "https://github.com/davidrobert/mathoms/pull/420"
+  - "https://github.com/davidrobert/mathoms/pull/422"
+  - "https://github.com/davidrobert/mathoms/pull/424"
+  - "https://github.com/davidrobert/mathoms/pull/425"
+ship_date: "2026-05-22"
 priority: P1
 branch_slug: a18-l2-apolice
 depends_on:
@@ -16,7 +23,7 @@ prompt: "[[TRACK-a18-l2-apolice-seguro]]"
 tags:
   - type/lane
   - sprint/a18
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/persistence

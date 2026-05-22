@@ -17,6 +17,8 @@ Não são artefatos de pipeline em `processed/` — são **contratos de teste** 
 | `e16_irpf_full_edge_cases.json` | E1.6 | `IRPFFullOutput` (`e16_irpf_full.py`) | `TestE16Goldens` |
 | `e2_llm_extract_output.json` | E2-LLM | `LLMExtractOutput` (`e2_llm_extract.py`) | `TestE2LLMGoldenFile` |
 | `crlv_moto.json` / `crlv_carro.json` / `crlv_zero_km.json` | A18 L1 (`extract_comprovantes_bens`) | `CRLVPayload` (`crlv.py`) | `TestCRLVGoldens` |
+| `apolice_auto_simples.json` / `apolice_residencial_simples.json` / `apolice_combinada.json` | A18 L2 (`extract_comprovantes_bens`, tipo=apolice) | `ApolicePayload` (`apolice.py`) | `tests/test_apolice_schema_unit.py` |
+| `apolice_vida_v2.json` / `apolice_saude_v2.json` / `apolice_acidentes_v2.json` | A18 L2 (V2 placeholder — discriminated union antecipa) | `ApolicePayload` (`apolice.py`) | `test_v2_placeholder_parses` |
 
 **Quando alterar um JSON:** atualizar o diff no PR; rodar `pytest tests/test_llm_golden.py -q`. Se o schema Pydantic mudar, ajustar o fixture e os asserts em `test_llm_golden.py` no mesmo PR.
 
