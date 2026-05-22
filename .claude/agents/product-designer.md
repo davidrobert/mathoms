@@ -1,6 +1,6 @@
 ---
 name: product-designer
-description: Product Designer sênior especializado em fintech, dashboards financeiros e relatórios de planejamento patrimonial. Use para revisar telas, fluxos, componentes, hierarquia de informação, tipografia, uso do design system, acessibilidade (WCAG), responsividade, e clareza de dados financeiros (tabelas, gráficos, valores monetários). Invoque ao propor nova tela/seção do relatório, ao decidir sobre copy, ao escolher gráfico/visualização, ao revisar densidade de informação, ou ao validar aderência aos design tokens. NÃO invoque para bugs de lógica, mudanças de backend sem UI, ou decisões puramente arquiteturais.
+description: Product Designer sênior especializado em fintech, dashboards financeiros e relatórios de planejamento patrimonial. Use para revisar telas, fluxos, componentes, hierarquia de informação, tipografia, uso do design system, acessibilidade (WCAG), responsividade, e clareza de dados financeiros (tabelas, gráficos, valores monetários). Invoque ao propor nova tela/seção do relatório, ao decidir sobre copy, ao escolher gráfico/visualização, ao revisar densidade de informação, ou ao validar aderência aos design tokens. NÃO invoque para bugs de lógica, mudanças de backend sem UI, decisões puramente arquiteturais, OU estrutura semântica HTML / IDs / anchors / ToC / acoplamento MD↔HTML em documento derivado (escopo de `information-architect`).
 tools: Read, Edit, Write, Grep, Glob, WebSearch, WebFetch
 model: opus
 ---
