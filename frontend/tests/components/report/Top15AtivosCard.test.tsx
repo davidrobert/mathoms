@@ -95,14 +95,14 @@ describe("<Top15AtivosCard />", () => {
   it("renderiza empty state quando top_ativos é vazio", () => {
     render(<Top15AtivosCard data={{ top_ativos: [] }} />);
     expect(
-      screen.getByText(/Sem ativos individualizados neste período/),
+      screen.getByText(/Sem ativos de carteira neste período/),
     ).toBeInTheDocument();
   });
 
   it("renderiza empty state quando data é undefined", () => {
     render(<Top15AtivosCard data={undefined} />);
     expect(
-      screen.getByText(/Sem ativos individualizados neste período/),
+      screen.getByText(/Sem ativos de carteira neste período/),
     ).toBeInTheDocument();
   });
 
@@ -113,5 +113,19 @@ describe("<Top15AtivosCard />", () => {
     // Conclusão é derivada client-side a partir dos dados — nunca herda
     // string upstream com placeholders vazios.
     expect(screen.queryByText(/R\$ 0,00 de/)).not.toBeInTheDocument();
+  });
+
+  // ADR-246 — copy enquadra "Carteira" e explicita exclusão de residência
+  it("usa título 'Top 15 Ativos da Carteira' (ADR-246)", () => {
+    render(<Top15AtivosCard data={{ top_ativos: [ativo()] }} />);
+    expect(screen.getByText("Top 15 Ativos da Carteira")).toBeInTheDocument();
+  });
+
+  it("renderiza subtítulo explicando exclusão de residência principal", () => {
+    render(<Top15AtivosCard data={{ top_ativos: [ativo()] }} />);
+    expect(
+      screen.getByText(/Não inclui residência principal nem bens de uso pessoal/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Composição Patrimonial/)).toBeInTheDocument();
   });
 });
