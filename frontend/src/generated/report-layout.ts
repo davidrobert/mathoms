@@ -167,6 +167,10 @@ export const LAYOUT: ReportLayout = {
             "num": "2"
           },
           {
+            "section_id": "S_PROTECAO",
+            "num": "2.5"
+          },
+          {
             "section_id": "S3",
             "num": "3"
           }
@@ -401,6 +405,46 @@ export const LAYOUT: ReportLayout = {
           {
             "id": "changelog_s2",
             "enabled": true
+          }
+        ]
+      },
+      {
+        "id": "S_PROTECAO",
+        "title": "Proteção Patrimonial — Pilar AUVP",
+        "enabled": false,
+        "summary": true,
+        "divider_before": true,
+        "charts": [
+          {
+            "id": "protecao_premio_decomp",
+            "enabled": false,
+            "conclusion": true
+          }
+        ],
+        "cards": [
+          {
+            "id": "protecao_kpi_hero",
+            "enabled": false,
+            "variant": "highlight",
+            "size": "full"
+          },
+          {
+            "id": "protecao_bens",
+            "enabled": false,
+            "variant": "feature",
+            "size": "full"
+          },
+          {
+            "id": "protecao_gap_qualitativo",
+            "enabled": false,
+            "variant": "warn",
+            "size": "half"
+          },
+          {
+            "id": "protecao_apolices",
+            "enabled": false,
+            "variant": "neutral",
+            "size": "full"
           }
         ]
       },
@@ -950,8 +994,8 @@ export const LAYOUT: ReportLayout = {
   "version_fallback": "v5.3"
 } as ReportLayout;
 
-export const ALL_CARD_IDS = ["patrimonio_categorias", "exposicao_cambial", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "alocacao_atual_vs_alvo", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "real_estate_yield", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "irpf_dependentes_declarados", "irpf_dedutiveis_aplicados", "hero_gap_protecao", "cobertura_seguros", "sucessao", "acoes_mitigacao", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref"] as const;
+export const ALL_CARD_IDS = ["patrimonio_categorias", "exposicao_cambial", "receitas_fonte", "reserva_emergencia", "endividamento", "orcamento_prospectivo", "consumo_consciente", "diagnostico_comportamental", "equilibrio_cerbasi", "milhas", "protecao_kpi_hero", "protecao_bens", "protecao_gap_qualitativo", "protecao_apolices", "alocacao_atual_vs_alvo", "investimentos_classe", "kpi_rentabilidade", "estrategia_aporte", "contrafluxo", "real_estate_yield", "previdencia_pgbl", "renda_anual_familiar", "ir_pago_total", "split_trabalho_capital", "pgbl_capacidade", "irpf_dependentes_declarados", "irpf_dedutiveis_aplicados", "hero_gap_protecao", "cobertura_seguros", "sucessao", "acoes_mitigacao", "pontos_fortes", "pontos_urgentes", "equilibrio_cerbasi_ref"] as const;
 export type CardId = (typeof ALL_CARD_IDS)[number];
 
-export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes"] as const;
+export const ALL_CHART_IDS = ["patrimonio_doughnut", "waterfall_if", "score_gauge", "fluxo_mensal", "receita_bar", "despesas_doughnut", "receita_despesa_mensal", "viagens", "protecao_premio_decomp", "alocacao_atual", "alocacao_alvo", "top15_ativos", "cenarios_conjuge", "projecao_3cenarios", "renda_passiva", "impostos_pj", "renda_evolucao_multi_anos", "aliquota_efetiva_dual_gauge", "bubble_riscos", "top5_decisoes"] as const;
 export type ChartId = (typeof ALL_CHART_IDS)[number];
