@@ -3,7 +3,11 @@ id: A18.l3
 type: lane
 title: "Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI"
 sprint: A18
-status: planned
+status: shipped
+ship_prs:
+  - "https://github.com/davidrobert/mathoms/pull/431"
+  - "https://github.com/davidrobert/mathoms/pull/433"
+ship_date: "2026-05-22"
 priority: P2
 branch_slug: a18-l3-fipe
 depends_on:
@@ -16,7 +20,7 @@ prompt: "[[TRACK-a18-l3-fipe-refresh]]"
 tags:
   - type/lane
   - sprint/a18
-  - status/planned
+  - status/shipped
   - priority/p2
   - area/pipeline
   - area/persistence
@@ -59,3 +63,17 @@ L1 (CRLV) precisa estar em `main` (tabela `vehicles` existe). Paralela a L2 (ap�
 ## Detalhe operacional
 
 [[TRACK-a18-l3-fipe-refresh]].
+
+## Entrega — V1 (P1 + P2)
+
+V1 entregue em 2 PRs squash-mergeados em `main` (CI verde):
+
+- **P1** [#431](https://github.com/davidrobert/mathoms/pull/431) — `FipeLookupClient` Protocol + `InMemoryFipeLookup` (fake determinístico) + `BrasilAPIFipeClient` (adapter HTTP) + Celery task `refresh_fipe_value` (backoff exponencial 120s→960s) + 24 testes parser/validation/InMemory + 13 testes cache flow/persist (37 verde).
+- **P2** [#433](https://github.com/davidrobert/mathoms/pull/433) — Celery beat `fipe-refresh-annual` (cron `15-Jan 03:00 UTC`) + batch enfileira todos `fipe_codes` distintos ativos + `read_fipe_cache` helper consumido por A19 (status fresh|stale_acceptable|pending_refresh) + 9 testes (46 verde no agregado FIPE).
+
+## Débitos rastreados — V2 (não bloqueiam shipping)
+
+- **P3 — Hook E5 que enfileira refresh em cache miss**. V1 só consulta cache via `read_fipe_cache`; ProtecaoAnalyzer (A19) usa `pending_refresh` quando ausente. Hook que dispara `refresh_fipe_value.delay()` automaticamente em miss fica para quando houver evidência de necessidade (owner reporta valores defasados).
+- **Goldens BrasilAPI mock HTTP**. V1 tem 37 testes da função pura + cache flow com `InMemoryFipeLookup`; goldens com `httpx_mock` cobrindo response real BrasilAPI (3 cenários ADR-239 G6 — cache hit, miss+HTTP, fipe desconhecido) ficam como sub-PR.
+- **Catálogo `institutions.brasilapi`**. Entry `category='reference_data'` documentada na ADR-239 D5 mas não seedada — usado apenas em logs (`source='brasilapi'` em `market_rates.source`). Migrar quando houver caso de uso para exibir provedor no relatório.
+- **Stage E1.5c propaga `fipe_status`** para `baseline.veiculos_consolidados[]` — V2; hoje o helper é consumido apenas pelo A19 P3 ProtecaoAnalyzer runner via `read_fipe_cache`.
