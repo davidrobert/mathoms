@@ -86,8 +86,10 @@ def _classify_llm_error(exc: BaseException) -> str:
 
 _INFORME_TIPADO_PREFIXES = ("informe_previdencia", "informe_financeiro", "informe_proventos")
 _INVESTMENT_PREFIXES = ("cdb", "investimentos", "carteirarenda")
-# ADR-239 A18 L1 — CRLV-e em L1; A18 V2 estende para RGI/IPTU (imóveis) etc.
-_COMPROVANTE_BEM_PREFIXES = ("crlv_eletronico", "crlv")
+# ADR-239 A18 L1+L2 — CRLV-e (L1) + apolice de seguro (L2); A18 V2 estende
+# para RGI/IPTU (imóveis) etc. Stage único extract_comprovantes_bens despacha
+# por tipo_comprovante no artifact_key (ADR-239 D8).
+_COMPROVANTE_BEM_PREFIXES = ("crlv_eletronico", "crlv", "apolice_seguro", "apolice")
 
 
 def _map_informe(code: str) -> DocumentType | None:
