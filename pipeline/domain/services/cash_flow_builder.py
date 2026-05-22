@@ -9,8 +9,8 @@ Recebe lista de :class:`ClassifiedTransaction`; retorna value objects
 frozen (``ReceitasUnified``, ``DespesasUnified``, ``FluxoMensal``) com
 ``to_legacy_dict()`` compatível com o output E4 legado.
 
-ADR-248 (Camada A): aplica dedup cross-document por hash determinístico K4
-antes de agregar — defesa em profundidade. Quando ADR-248 PR2 propagar
+ADR-255 (Camada A): aplica dedup cross-document por hash determinístico K4
+antes de agregar — defesa em profundidade. Quando ADR-255 PR2 propagar
 ``transaction_hash`` desde E3, o builder prefere o campo da tx; até lá,
 computa inline com :func:`compute_transaction_hash`.
 """
@@ -34,7 +34,7 @@ from pipeline.domain.services.transaction_classifier import ClassifiedTransactio
 
 _BRT = timezone(timedelta(hours=-3))
 
-# ADR-248 — limiar de materialidade acima do qual colisão vira `needs_review`
+# ADR-255 — limiar de materialidade acima do qual colisão vira `needs_review`
 # em vez de dedup silente. Valor em centavos.
 _NEEDS_REVIEW_THRESHOLD_CENTS = 10_000 * 100
 
@@ -47,13 +47,13 @@ def _compute_periodo(transactions: Iterable[ClassifiedTransaction]) -> str:
 
 
 # =============================================================================
-# Dedup cross-document (ADR-248 Camada A)
+# Dedup cross-document (ADR-255 Camada A)
 # =============================================================================
 
 
 @dataclass(frozen=True)
 class DedupReviewEntry:
-    """Colisão materialmente significativa que exige confirmação humana (ADR-248)."""
+    """Colisão materialmente significativa que exige confirmação humana (ADR-255)."""
 
     transaction_hash: str
     data: str
@@ -261,7 +261,7 @@ class CashFlow:
     despesas: DespesasUnified
     fluxo_mensal: FluxoMensal
     transferencias_count: int = 0
-    # ADR-248 — telemetria do dedup cross-document; default vazio preserva
+    # ADR-255 — telemetria do dedup cross-document; default vazio preserva
     # construtores em call-sites legados de teste que instanciam CashFlow
     # diretamente sem chamar build().
     dedup_report: DedupReport = field(default_factory=lambda: DedupReport(collapsed_count=0))
@@ -287,7 +287,7 @@ class CashFlowBuilder:
     # -- API --
 
     def build(self, transactions: Iterable[ClassifiedTransaction]) -> CashFlow:
-        # ADR-248 Camada A — dedup K4 por kind (sinal em ``kind``, não em valor).
+        # ADR-255 Camada A — dedup K4 por kind (sinal em ``kind``, não em valor).
         txs = list(transactions)
         by_kind = {
             k: _dedup_transactions([t for t in txs if t.kind == k])

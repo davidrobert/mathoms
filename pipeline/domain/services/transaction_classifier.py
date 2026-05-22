@@ -191,7 +191,7 @@ class ClassifiedTransaction:
     origem: str | None = None  # só em receitas
     learned_rule_id: str | None = None  # ADR-186 §D5 (A12.P2)
     categorization_origin: str | None = None  # ADR-242 — audit trail
-    # ADR-248 Camada B — identidade determinística cross-document
+    # ADR-255 Camada B — identidade determinística cross-document
     source_doc_id: str | None = None  # `arquivo_origem` propagado do E3
     transaction_hash: str | None = None  # sha256[:16] K4 (consumido por cash_flow_builder)
 
@@ -216,7 +216,7 @@ class ClassifiedTransaction:
         return out
 
     def _append_identity(self, out: dict) -> None:
-        """ADR-248 — surface up source_doc_id + transaction_hash quando presentes."""
+        """ADR-255 — surface up source_doc_id + transaction_hash quando presentes."""
         if self.source_doc_id is not None:
             out["source_doc_id"] = self.source_doc_id
         if self.transaction_hash is not None:
@@ -348,7 +348,7 @@ class TransactionClassifier:
             moeda=moeda,
             tipo_conta=tipo_conta_raw,
             titular=titular,
-            # ADR-248 Camada B — identidade determinística propagada de E3.
+            # ADR-255 Camada B — identidade determinística propagada de E3.
             source_doc_id=tx.get("arquivo_origem"),
             transaction_hash=_tx_identity.compute_transaction_hash(
                 data=data_str,

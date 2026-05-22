@@ -1,4 +1,4 @@
-"""Tests — dedup cross-document em ``CashFlowBuilder.build`` (ADR-248 Camada A)."""
+"""Tests — dedup cross-document em ``CashFlowBuilder.build`` (ADR-255 Camada A)."""
 
 from __future__ import annotations
 

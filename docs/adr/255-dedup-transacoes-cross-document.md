@@ -1,5 +1,5 @@
 ---
-id: ADR-248
+id: ADR-255
 type: adr
 title: "Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review)"
 status: Proposto
@@ -14,7 +14,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 248"
+  - "ADR 255"
   - "Tx dedup cross-doc"
   - "Cash flow dedup"
 tags:
@@ -24,7 +24,7 @@ tags:
   - type/adr
 ---
 
-# ADR-248 — Dedup de transações cross-document no pipeline E3→E4
+# ADR-255 — Dedup de transações cross-document no pipeline E3→E4
 
 **Status:** Proposto • **Data:** 2026-05-22 • **Relaciona** [[ADR-097]] (fatura sintetizada D2), [[ADR-093]] (stage names), [[ADR-212]] (DBArtifactStore), [[ADR-186]] (learned rules), [[ADR-228]] (dedup de documento upstream).
 

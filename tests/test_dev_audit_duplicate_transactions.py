@@ -1,4 +1,4 @@
-"""Smoke tests para dev/audit_duplicate_transactions.py (ADR-248)."""
+"""Smoke tests para dev/audit_duplicate_transactions.py (ADR-255)."""
 
 from __future__ import annotations
 

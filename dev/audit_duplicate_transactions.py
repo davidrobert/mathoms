@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audita workspaces afetados pelo bug de tx duplicadas cross-document (ADR-248)."""
+"""Audita workspaces afetados pelo bug de tx duplicadas cross-document (ADR-255)."""
 
 from __future__ import annotations
 

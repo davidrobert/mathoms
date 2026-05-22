@@ -1,6 +1,6 @@
-# Runbook — Recompute E4 após dedup K4 (ADR-248)
+# Runbook — Recompute E4 após dedup K4 (ADR-255)
 
-> **ADR:** [[ADR-248]] — Dedup K4 cross-document no pipeline E3→E4.
+> **ADR:** [[ADR-255]] — Dedup K4 cross-document no pipeline E3→E4.
 > **Owner:** Engenharia (dev on-call) ou operador interno via console.
 > **Janela alvo:** ~5min audit + ~2min recompute por run.
 

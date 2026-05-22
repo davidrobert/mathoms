@@ -227,7 +227,7 @@ class E4CategorizerAdapter:
         classified = self._classifier.classify_all(accounts)
         cash_flow = self._cash_flow_builder.build(classified)
 
-        # ADR-248 — telemetria estruturada do dedup cross-document. Sem PII
+        # ADR-255 — telemetria estruturada do dedup cross-document. Sem PII
         # (não logamos descrição nem valor exato; só counts + sample hashes).
         if cash_flow.dedup_report.collapsed_count > 0:
             _dedup_logger.info(

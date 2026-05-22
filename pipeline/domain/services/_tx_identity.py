@@ -1,4 +1,4 @@
-"""Identidade determinística de transações para dedup cross-document (ADR-248)."""
+"""Identidade determinística de transações para dedup cross-document (ADR-255)."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ def compute_transaction_hash(
     valor: float | int,
     descricao: str | None,
 ) -> str:
-    """sha256[:16] determinístico — chave K4 da ADR-248 (sinal em ``kind``)."""
+    """sha256[:16] determinístico — chave K4 da ADR-255 (sinal em ``kind``)."""
     parts = (
         data or "",
         normalize_banco(banco),

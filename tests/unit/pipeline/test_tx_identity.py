@@ -1,4 +1,4 @@
-"""Tests — ``_tx_identity`` (ADR-248 Camada A)."""
+"""Tests — ``_tx_identity`` (ADR-255 Camada A)."""
 
 from __future__ import annotations
 

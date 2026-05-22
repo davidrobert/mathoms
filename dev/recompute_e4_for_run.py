@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Recomputa artefatos E4 de um pipeline_run a partir do E3 existente (ADR-248)."""
+"""Recomputa artefatos E4 de um pipeline_run a partir do E3 existente (ADR-255)."""
 
 from __future__ import annotations
 

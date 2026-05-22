@@ -1,4 +1,4 @@
-"""Tests — propagação de ``source_doc_id`` + ``transaction_hash`` (ADR-248 Camada B)."""
+"""Tests — propagação de ``source_doc_id`` + ``transaction_hash`` (ADR-255 Camada B)."""
 
 from __future__ import annotations
 
