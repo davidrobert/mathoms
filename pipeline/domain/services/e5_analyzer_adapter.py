@@ -498,7 +498,8 @@ class E5AnalyzerAdapter:
         fluxo_legacy = fluxo_enriched.to_legacy_dict()
 
         # 4. Caixa E3 (shell: lê tudo que está em E3 via store).
-        caixa_total, caixa_detalhes = self._load_caixa_from_e3(store)
+        # ADR-245: fallback baseline IRPF quando não há extrato USD/EUR em E3.
+        caixa_total, caixa_detalhes = self._load_caixa_from_e3(store, baseline=patrimonio_raw)
 
         # 5. Patrimônio completo (paridade com ``analyze_patrimonio`` legacy).
         patrimonio_full = self._patrimonio.calculate(
@@ -740,7 +741,12 @@ class E5AnalyzerAdapter:
 
     # -- Helper de I/O (shell) --
 
-    def _load_caixa_from_e3(self, store: ArtifactStore) -> tuple[float, list[CaixaDetalhe]]:
+    def _load_caixa_from_e3(
+        self,
+        store: ArtifactStore,
+        *,
+        baseline: dict | None = None,
+    ) -> tuple[float, list[CaixaDetalhe]]:
         """Carrega saldos de caixa + moeda estrangeira de todos os E3 artifacts.
 
         Classificação (paridade com ``_load_caixa_from_e3_saldos`` legado):
@@ -753,12 +759,16 @@ class E5AnalyzerAdapter:
         ``self._cambio_eur_brl`` (resolvidos via ``ConfigStore.get_market_rate``)
         têm prioridade sobre ``self._taxas`` dict legacy. Default final: 5.80/6.35.
 
-        Sem keys em E3 (ou store sem list_keys) → (0.0, []).
-        """
-        keys = list(store.list_keys("E3")) if hasattr(store, "list_keys") else []
-        if not keys:
-            return 0.0, []
+        ADR-245 — fallback baseline IRPF: quando nenhum extrato em USD/EUR
+        está em E3, agrega items de moeda estrangeira de
+        ``baseline.investimentos_consolidados`` (depósitos em ME, contas
+        offshore). Trade-off conhecido: o item segue em
+        ``investimentos_consolidados`` no patrimonio_calculator — se algum
+        membro cair em fallback IRPF puro (``titular_val == 0``), pode
+        haver double-count. Cobertura cirúrgica do caso comum.
 
+        Sem keys em E3 (ou store sem list_keys) → fallback baseline apenas.
+        """
         cambio_usd = (
             self._cambio_usd_brl
             if self._cambio_usd_brl is not None
@@ -770,6 +780,7 @@ class E5AnalyzerAdapter:
             else safe_float(self._taxas.get("cambio_eur_brl", 6.35), default=6.35)
         )
 
+        keys = list(store.list_keys("E3")) if hasattr(store, "list_keys") else []
         latest_per_account: dict[tuple[str, str, str, str], tuple[str, dict]] = {}
 
         for key in keys:
@@ -796,6 +807,7 @@ class E5AnalyzerAdapter:
 
         total_brl = 0.0
         detalhes: list[CaixaDetalhe] = []
+        has_foreign_in_e3 = False
         for _, data in sorted(latest_per_account.values(), key=lambda x: x[0]):
             tipo_conta = (data.get("tipo_conta") or "").lower()
             moeda = (data.get("moeda") or "BRL").upper()
@@ -803,8 +815,10 @@ class E5AnalyzerAdapter:
 
             if moeda == "USD":
                 valor_brl = saldo * cambio_usd
+                has_foreign_in_e3 = True
             elif moeda == "EUR":
                 valor_brl = saldo * cambio_eur
+                has_foreign_in_e3 = True
             else:
                 valor_brl = saldo
 
@@ -820,7 +834,103 @@ class E5AnalyzerAdapter:
                 )
             )
 
+        # ADR-245: fallback baseline IRPF para moeda estrangeira.
+        if not has_foreign_in_e3 and baseline:
+            me_total, me_detalhes = _extract_me_caixa_from_baseline(baseline)
+            total_brl += me_total
+            detalhes.extend(me_detalhes)
+
         return round(total_brl, 2), detalhes
+
+
+# =============================================================================
+# Helpers — fallback baseline IRPF para moeda estrangeira (ADR-245)
+# =============================================================================
+
+
+# Keywords reconhecidas em descrições do baseline IRPF que indicam caixa em ME.
+# Baseado em rótulos canônicos do informe IR brasileiro: códigos 02
+# ("Depósito em moeda...") e 99 ("Outros bens em moeda estrangeira").
+_ME_KEYWORDS_USD: tuple[str, ...] = (
+    "dolar",
+    "u$",
+    "us$",
+    "usd",
+)
+_ME_KEYWORDS_EUR: tuple[str, ...] = (
+    "euro",
+    "eur",
+)
+_ME_KEYWORDS_GENERIC: tuple[str, ...] = (
+    "moeda estrangeira",
+    "deposito em moeda nacional decorrente de moeda",
+    "moeda nacional decorrente",
+)
+
+
+def _moeda_from_descricao(descricao_lower: str) -> str:
+    """Inferir moeda a partir de palavras-chave em descrição do baseline IRPF."""
+    if any(kw in descricao_lower for kw in _ME_KEYWORDS_USD):
+        return "USD"
+    if any(kw in descricao_lower for kw in _ME_KEYWORDS_EUR):
+        return "EUR"
+    return "USD"  # default conservador — IRPF mais comum em USD
+
+
+def _extract_me_caixa_from_baseline(baseline: dict) -> tuple[float, list[CaixaDetalhe]]:
+    """Extrai items de moeda estrangeira de ``baseline.investimentos_consolidados``.
+
+    O IRPF brasileiro classifica depósitos em ME sob código 02 (mesmo grupo
+    de "Aplicação de renda fixa"). Sem extrato bancário reconciliado,
+    esses items são a única fonte de saldo ME — esta função aceita o
+    trade-off de leve duplicação com ``_investimentos_from_irpf`` (em
+    cenários raros de fallback IRPF puro) em troca de visibilidade do
+    saldo ME no card "Caixa e Moeda Estrangeira" (ADR-245 §Limitações).
+
+    Valor IRPF já está em BRL (declaração consolida a R$ à taxa
+    de fechamento do ano-base) — não re-converte.
+    """
+    inv_list = baseline.get("investimentos_consolidados", []) or []
+    if not isinstance(inv_list, list):
+        return 0.0, []
+
+    total_brl = 0.0
+    detalhes: list[CaixaDetalhe] = []
+    for item in inv_list:
+        if not isinstance(item, dict):
+            continue
+        descricao = str(item.get("descricao", "") or "").lower()
+        if not any(kw in descricao for kw in _ME_KEYWORDS_GENERIC) and not (
+            any(kw in descricao for kw in _ME_KEYWORDS_USD)
+            or any(kw in descricao for kw in _ME_KEYWORDS_EUR)
+        ):
+            continue
+
+        valor = _resolve_valor_31_12(item)
+        if valor <= 0:
+            continue
+
+        moeda = _moeda_from_descricao(descricao)
+        total_brl += valor
+        detalhes.append(
+            CaixaDetalhe(
+                conta=f"IRPF: {(item.get('descricao') or '')[:80]}",
+                moeda=moeda,
+                saldo_original=valor,  # IRPF já é BRL — sem cambio reverso.
+                valor_brl=valor,
+                tipo="moeda_estrangeira_irpf",
+            )
+        )
+    return total_brl, detalhes
+
+
+def _resolve_valor_31_12(item: dict) -> float:
+    """Lê valor agregado mais recente de ``valores_31_12`` ou ``valor``."""
+    vals = item.get("valores_31_12") if isinstance(item, dict) else None
+    if isinstance(vals, dict) and vals:
+        latest_year = max(vals.keys())
+        return safe_float(vals.get(latest_year, 0))
+    return safe_float(item.get("valor", 0))
 
 
 # =============================================================================

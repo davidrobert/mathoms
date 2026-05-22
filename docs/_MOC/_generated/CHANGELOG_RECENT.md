@@ -3,7 +3,7 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-46 entries entre 2026-05-07 e 2026-05-21.
+32 entries entre 2026-05-10 e 2026-05-21.
 
 ## 2026-05-21 (8 entries)
 
@@ -57,23 +57,6 @@
 
 - [[CHG-2026-05-10-FEAT-CAT-LEARNING-LOOP-SCHEMA]] — feat(db): tabela categorization_rules + transaction_overrides.source/rule_id — (lane [[A12.cat-learning-loop]])
 - [[CHG-2026-05-10-FEAT-REPORT-PUBLICATION]] — feat(report): conceito de mês fechado imutável — tabela report_publications, (lane [[A11.report-publication]])
-
-## 2026-05-07 (14 entries)
-
-- [[CHG-2026-05-07-A10-1]] — A10.1 ✅. - **A10.1 ✅** Dead-data deletion + ADR-168 cleanup narrativas órfãs. (lane [[A10.1]])
-- [[CHG-2026-05-07-A10-2]] — A10.2 ✅. - **A10.2 ✅** Rules-as-code consolidation (ADR-177 → `Decidido (Sprint A10.2)`). (lane [[A10.2]])
-- [[CHG-2026-05-07-A10-3]] — A10.3 ✅. - **A10.3 ✅** Decision schema extension (ADR-179 → `Decidido (Sprint A10.3)`). (lane [[A10.3]])
-- [[CHG-2026-05-07-A10-4]] — A10.4 ✅. - **A10.4 ✅** `Risk` aggregate (ADR-178 → `Decidido (Sprint A10.4)`). (lane [[A10.4]])
-- [[CHG-2026-05-07-A10-5]] — A10.5 ✅. - **A10.5 ✅** Top5 + Bubble como projeção (charts_narrator switch). (lane [[A10.5]])
-- [[CHG-2026-05-07-A10-6]] — A10.6 ✅. - **A10.6 ✅** Pipeline cutover via `StageConfig.config_store` extendido (ADR-180 → `Decidido (Sprint A10.6)`). (lane [[A10.6]])
-- [[CHG-2026-05-07-A10-7]] — A10.7 ✅. - **A10.7 ✅** Seed refactor + `Workspace.business_profile_json` (Sprint A10.7). (lane [[A10.7]])
-- [[CHG-2026-05-07-A10-8]] — A10.8 ✅. - **A10.8 ✅** Cutover final + `forbidden_paths` (ADR-181 → `Decidido (Sprint A10.8)`). (lane [[A10.8]])
-- [[CHG-2026-05-07-A7-5]] — Direção E — Onda 2 + Onda 3: redesign de interfaces (2026-04-28/29). - **Direção E — Onda 2 + Onda 3: redesign de interfaces (2026-04-28/29):** Brainstorm convergiu em Direção E (refinada por product-designer + financial-planner). (lane [[A7.5]])
-- [[CHG-2026-05-07-ADR-177]] — ADR-177. - **ADR-177** Proposto — Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`).
-- [[CHG-2026-05-07-ADR-178]] — ADR-178. - **ADR-178** Proposto — `Risk` aggregate workspace-scoped.
-- [[CHG-2026-05-07-ADR-179]] — ADR-179. - **ADR-179** Proposto — `Decision` aggregate — extensão de schema (`impact_1y/10y_brl_cents`, `horizon`, `priority`).
-- [[CHG-2026-05-07-ADR-180]] — ADR-180. - **ADR-180** Proposto — `goals.json` cutover final via `StageConfig.config_store` extendido.
-- [[CHG-2026-05-07-ADR-181]] — ADR-181. - **ADR-181** Proposto — `goals.json` removido de `_archive/` e adicionado a `dev/check_forbidden_paths.py`.
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

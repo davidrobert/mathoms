@@ -182,10 +182,17 @@ class E4CategorizerAdapter:
                     continue
                 tipo = str(data.get("tipo") or "").lower()
                 tipo_documento = str(data.get("tipo_documento") or "").lower()
-                is_investment_report = tipo_documento == "investment_report" and bool(
-                    data.get("investimentos")
+                # ADR-244: informes de rendimentos (snapshot 31/12 do banco)
+                # também contêm posições de investimento (ex.: CDB Itaú no
+                # informe IR, R$ 290k descartados antes desta lane). Sem isto,
+                # `total_por_membro` em E5 só capturava `investment_report`
+                # (Binance/PJ) e ignorava o snapshot fiscal anual dos bancos.
+                has_investimentos = bool(data.get("investimentos"))
+                is_investment_doc = (
+                    tipo_documento in ("investment_report", "informe_rendimentos")
+                    and has_investimentos
                 )
-                if tipo not in _INVESTMENT_POSITION_TYPES and not is_investment_report:
+                if tipo not in _INVESTMENT_POSITION_TYPES and not is_investment_doc:
                     continue
                 # Injeta source name para o consolidador.
                 from pipeline.artifact_store import stage_suffix

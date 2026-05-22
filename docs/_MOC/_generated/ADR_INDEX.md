@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-236 ADRs (ADR-001 a ADR-243) em [`docs/adr/`](../../adr/).
+238 ADRs (ADR-001 a ADR-245) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 187
-- **Proposto**: 45
+- **Proposto**: 47
 - **Roadmap**: 4
 
 ## Fundação
@@ -436,7 +436,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-237]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
 - [[ADR-238]] — Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 · phase A17.informes-avulsos
 
-### Proposto (8)
+### Proposto (10)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -446,6 +446,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-241]] — E2 (extratos / faturas / LLM fallback) é workspace-scoped — incremental cumulativo correto · phase A17.incremental-correctness
 - [[ADR-242]] — LLM `category_hint` consumido no TransactionClassifier + sentinel `info_fiscal_anual` · phase A17.incremental-correctness
 - [[ADR-243]] — MemberNameResolver — normalizar `membro` extraído pelo LLM em chave canônica do workspace · phase A17.incremental-correctness
+- [[ADR-244]] — InvestmentsConsolidator aceita `tipo_documento=informe_rendimentos` como posição · phase A17.incremental-correctness
+- [[ADR-245]] — `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR · phase A17.incremental-correctness
 
 ## relatorio
 
