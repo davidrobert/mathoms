@@ -5,17 +5,35 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
+    from pipeline.llm.litellm_client import LLMConfig, LLMService
 
 logger = logging.getLogger("mathoms.pipeline.comprovantes_bens")
 
 _LLM_MIN_TOKENS = 4_096
 _MAX_DOCS_PER_RUN = 20
 _NEEDS_REVIEW_CONFIDENCE_THRESHOLD = 0.7
+
+# ADR-239 D6 — cascata Haiku→Sonnet hardcoded para Anthropic. Para outros providers
+# (openai/groq/etc.) ambas as etapas degradam para o `model_name` da workspace,
+# evitando erro de routing mas perdendo a otimização de custo.
+_APOLICE_HAIKU_MODEL = "claude-haiku-4-5"
+_APOLICE_SONNET_MODEL = "claude-sonnet-4-6"
+
+
+@dataclass(frozen=True)
+class _StageLLM:
+    """Trio de ``LLMService`` usado pelo stage — workspace default para CRLV, Haiku→Sonnet para apolice ([[ADR-239]] D6)."""
+
+    crlv: "LLMService"
+    apolice_haiku: "LLMService"
+    apolice_sonnet: "LLMService"
+
 
 # CPF detection (LGPD ADR-231): Python mask pós-LLM, nunca confiar no LLM.
 _CPF_RAW_RE = re.compile(r"(?<!\d)(\d{3})(\d{3})(\d{3})(\d{2})(?!\d)")
@@ -149,12 +167,8 @@ def _extract_crlv(doc: Path, text: str, service, config) -> tuple[dict, Any, str
     return payload, result, prompt_version
 
 
-# ===========================================================================
-# Apólice — cascata Haiku → Sonnet (ADR-239 D6)
-# ===========================================================================
-
-# Strings que disparam cascata para Sonnet quando detectadas no texto do PDF
-# (caso V1 obrigatório: combinada Porto = Toro + residência num único PDF).
+# Apólice — cascata Haiku → Sonnet (ADR-239 D6). Strings detectadas no texto do
+# PDF disparam Sonnet (caso V1 obrigatório: combinada Porto = Toro + residência).
 _CASCADE_TRIGGER_STRINGS = (
     "combinada",
     "proteção combinada",
@@ -170,21 +184,21 @@ def _build_apolice_user_prompt(doc_name: str, text: str) -> str:
     return prompt_mod.USER_PROMPT_TEMPLATE.format(filename=doc_name, document_text=text)
 
 
-def _call_llm_apolice(service, config, doc_name: str, text: str, content_hash: str, model: str):
-    """LLM call para apólice com `model` injetado (haiku ou sonnet) — ADR-144 cache key inclui modelo."""
+def _apolice_cache_key(model_label: str, content_hash: str, prompt_version: str) -> str:
+    return f"extract_comprovantes_bens:apolice:{model_label}:{content_hash[:16]}:{prompt_version}"
+
+
+def _call_llm_apolice(service, config, doc_name, text, content_hash, model_label):
+    """LLM call apólice — ``service`` pré-bound ao modelo; ``model_label`` entra na cache key ([[ADR-144]])."""
     from pipeline.llm.prompts import apolice as prompt_mod
     from pipeline.llm.schemas.apolice import ApolicePayload
 
-    cache_key = (
-        f"extract_comprovantes_bens:apolice:{model}:{content_hash[:16]}:{prompt_mod.PROMPT_VERSION}"
-    )
     result = service.call(
         system_prompt=prompt_mod.SYSTEM_PROMPT,
         user_prompt=_build_apolice_user_prompt(doc_name, text),
         output_schema=ApolicePayload,
         max_tokens=max(config.max_tokens, _LLM_MIN_TOKENS),
-        stage=cache_key,
-        model=model,
+        stage=_apolice_cache_key(model_label, content_hash, prompt_mod.PROMPT_VERSION),
     )
     return result, prompt_mod.PROMPT_VERSION
 
@@ -221,43 +235,33 @@ def _build_apolice_payload(
     return payload
 
 
-def _apolice_haiku_first(doc: Path, text: str, service, config):
-    """Primeira call em Haiku (cheap); retorna (result, prompt_version, payload_dict)."""
+def _extract_apolice(
+    doc: Path, text: str, llm: _StageLLM, config: "LLMConfig"
+) -> tuple[dict, Any, str]:
+    """Apólice — Haiku primeiro; cascata Sonnet se gate triggered ([[ADR-239]] D6)."""
     content_hash = _content_hash(doc)
-    result, prompt_version = _call_llm_apolice(
-        service, config, doc.name, text, content_hash, model="haiku"
+    h_result, prompt_version = _call_llm_apolice(
+        llm.apolice_haiku, config, doc.name, text, content_hash, model_label="haiku"
     )
-    return result, prompt_version, content_hash, result.output.model_dump(mode="json")
-
-
-def _extract_apolice(doc: Path, text: str, service, config) -> tuple[dict, Any, str]:
-    """Apólice — Haiku primeiro; cascata Sonnet se gate triggered (ADR-239 D6)."""
-    haiku_result, prompt_version, content_hash, haiku_payload = _apolice_haiku_first(
-        doc, text, service, config
+    source_id = _stem_for_filename(doc.name)
+    if not _cascade_needed(h_result.output.model_dump(mode="json"), text):
+        payload = _build_apolice_payload(h_result.output, prompt_version, text, source_id, False)
+        return payload, h_result, prompt_version
+    s_result, _ = _call_llm_apolice(
+        llm.apolice_sonnet, config, doc.name, text, content_hash, model_label="sonnet"
     )
-    source_artifact_id = _stem_for_filename(doc.name)
-    if not _cascade_needed(haiku_payload, text):
-        payload = _build_apolice_payload(
-            haiku_result.output, prompt_version, text, source_artifact_id, cascade_triggered=False
-        )
-        return payload, haiku_result, prompt_version
-    sonnet_result, _ = _call_llm_apolice(
-        service, config, doc.name, text, content_hash, model="sonnet"
-    )
-    payload = _build_apolice_payload(
-        sonnet_result.output, prompt_version, text, source_artifact_id, cascade_triggered=True
-    )
-    return payload, sonnet_result, prompt_version
+    payload = _build_apolice_payload(s_result.output, prompt_version, text, source_id, True)
+    return payload, s_result, prompt_version
 
 
 def _extract_one(
-    doc: Path, text: str, service, config, tipo_comprovante: str
+    doc: Path, text: str, llm: _StageLLM, config: "LLMConfig", tipo_comprovante: str
 ) -> tuple[dict, Any, str]:
-    """Despacho por tipo_comprovante (ADR-239 D8): L1 cobre crlv; L2 adiciona apolice."""
+    """Despacho por tipo_comprovante ([[ADR-239]] D8): L1 cobre crlv; L2 adiciona apolice."""
     if tipo_comprovante == "crlv":
-        return _extract_crlv(doc, text, service, config)
+        return _extract_crlv(doc, text, llm.crlv, config)
     if tipo_comprovante == "apolice":
-        return _extract_apolice(doc, text, service, config)
+        return _extract_apolice(doc, text, llm, config)
     raise NotImplementedError(
         f"tipo_comprovante={tipo_comprovante!r} ainda não implementado em A18 L1/L2. "
         f"V2 cobre imóveis (rgi/iptu) e outros bens."
@@ -334,27 +338,14 @@ def _processed_summary(
 
 
 def _reconcile_apolice_against_db(payload: dict, *, workspace_id: str, db) -> dict:
-    """ADR-239 D3 — degrada graceful; muta payload in-place; reusa `db` do artifact_store (incidente 2026-05-22)."""
-    reconcile_fn = _try_import_apolice_runner()
-    if reconcile_fn is None:
-        return payload
-    return _invoke_apolice_reconciliation(reconcile_fn, workspace_id, payload, db=db)
-
-
-def _try_import_apolice_runner():
-    """Try-import do runner backend; None se indisponível (CLI/tests sem DB)."""
+    """ADR-239 D3 — degrada graceful; reusa `db` do artifact_store (incidente 2026-05-22)."""
     try:
         from backend.app.services.apolice_reconciliation_runner import reconcile_apolice_with_db
     except Exception as exc:  # noqa: BLE001
         logger.info("apolice reconciliation skipped (backend unavailable: %s)", exc)
-        return None
-    return reconcile_apolice_with_db
-
-
-def _invoke_apolice_reconciliation(reconcile_fn, workspace_id, payload, *, db):
-    """Helper isolado — degradação graceful em runtime."""
+        return payload
     try:
-        new_payload, _ = reconcile_fn(workspace_id, payload, db=db)
+        new_payload, _ = reconcile_apolice_with_db(workspace_id, payload, db=db)
         return new_payload
     except Exception as exc:  # noqa: BLE001
         logger.warning("apolice reconciliation failed: %s", exc)
@@ -410,11 +401,11 @@ def _err(doc: Path, exc_or_msg) -> dict[str, str]:
 
 
 def _process_doc_safe(
-    doc: Path, ctx: WorkspaceContext, service, config
+    doc: Path, ctx: WorkspaceContext, llm: _StageLLM, config: "LLMConfig"
 ) -> tuple[dict | None, dict | None]:
     """Processa 1 doc capturando erros; retorna (processed_summary, error_dict)."""
     try:
-        triple = _process_one(doc, ctx, service, config)
+        triple = _process_one(doc, ctx, llm, config)
     except NotImplementedError as exc:
         return None, _err(doc, exc)
     except Exception as exc:
@@ -432,7 +423,7 @@ def _process_doc_safe(
 
 
 def _process_one(
-    doc: Path, ctx: WorkspaceContext, service, config
+    doc: Path, ctx: WorkspaceContext, llm: _StageLLM, config: "LLMConfig"
 ) -> tuple[dict, Any, str] | tuple[None, str, str]:
     """Processa 1 doc; retorna (payload, result, tipo) ou (None, error_message, '')."""
     tipo = _detect_tipo_comprovante(doc.name)
@@ -441,13 +432,30 @@ def _process_one(
     text = _extract_text(doc)
     if not text.strip():
         return None, f"texto vazio extraído de {_redact_filename_pii(doc.name)}", ""
-    payload, result, _ = _extract_one(doc, text, service, config, tipo)
+    payload, result, _ = _extract_one(doc, text, llm, config, tipo)
     return payload, result, tipo
+
+
+def _build_stage_llm(base_cfg: "LLMConfig") -> _StageLLM:
+    """Constrói trio de services. Anthropic → cascata real Haiku/Sonnet; outros providers → degrada para workspace default em ambos os slots de apolice ([[ADR-239]] D6)."""
+    from pipeline.llm.litellm_client import LLMService
+
+    crlv_service = LLMService(base_cfg)
+    if base_cfg.provider == "anthropic":
+        haiku_cfg = replace(base_cfg, model_name=_APOLICE_HAIKU_MODEL)
+        sonnet_cfg = replace(base_cfg, model_name=_APOLICE_SONNET_MODEL)
+    else:
+        haiku_cfg = sonnet_cfg = base_cfg
+    return _StageLLM(
+        crlv=crlv_service,
+        apolice_haiku=LLMService(haiku_cfg),
+        apolice_sonnet=LLMService(sonnet_cfg),
+    )
 
 
 def _bootstrap_or_skip(ctx: WorkspaceContext):
     """Resolve config LLM + docs ou retorna dict ``{"skipped": True, "reason": ...}``."""
-    from pipeline.llm.litellm_client import LLMConfig, LLMService
+    from pipeline.llm.litellm_client import LLMConfig
 
     cfg = ctx.load_config("llm_config.json")
     if not cfg or not cfg.get("api_key"):
@@ -456,7 +464,7 @@ def _bootstrap_or_skip(ctx: WorkspaceContext):
     if not docs:
         return {"skipped": True, "reason": "No comprovantes de bem found"}
     llm_config = LLMConfig(**cfg)
-    return docs[:_MAX_DOCS_PER_RUN], LLMService(llm_config), llm_config
+    return docs[:_MAX_DOCS_PER_RUN], _build_stage_llm(llm_config), llm_config
 
 
 def _summarize(processed: list[dict], errors: list[dict]) -> dict[str, Any]:
@@ -470,15 +478,15 @@ def _summarize(processed: list[dict], errors: list[dict]) -> dict[str, Any]:
 
 
 def run(ctx: WorkspaceContext) -> dict[str, Any]:
-    """Executa extração de comprovantes de bem — L1 cobre CRLV (ADR-239)."""
+    """Executa extração de comprovantes de bem — L1 cobre CRLV ([[ADR-239]])."""
     bootstrap = _bootstrap_or_skip(ctx)
     if isinstance(bootstrap, dict):
         return bootstrap
-    docs, service, llm_config = bootstrap
+    docs, llm, llm_config = bootstrap
     processed: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = []
     for doc in docs:
-        summary, err = _process_doc_safe(doc, ctx, service, llm_config)
+        summary, err = _process_doc_safe(doc, ctx, llm, llm_config)
         if err is not None:
             errors.append(err)
         if summary is not None:
