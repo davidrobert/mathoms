@@ -459,6 +459,7 @@
 | CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA.md` |
 | CHG-2026-05-22-A18-L1-CRLV-SHIPPED | changelog-entry |  | A18 |  | `sprint/A18/changelog/CHG-2026-05-22-A18-L1-CRLV-SHIPPED.md` |
 | CHG-2026-05-22-A18-L2-APOLICE-SHIPPED | changelog-entry |  | A18 |  | `sprint/A18/changelog/CHG-2026-05-22-A18-L2-APOLICE-SHIPPED.md` |
+| CHG-2026-05-22-A18-L3-FIPE-SHIPPED | changelog-entry |  | A18 |  | `sprint/A18/changelog/CHG-2026-05-22-A18-L3-FIPE-SHIPPED.md` |
 | CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED | changelog-entry |  | A19 |  | `sprint/A19/changelog/CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
@@ -502,7 +503,7 @@
 | A17.l5 | lane | planned | A17 | LLM Hardening — W4-T00 seed expandido institution_catalog (alta renda PJ) | `sprint/A17/lanes/A17-l5-llm-institution-seed.md` |
 | A18.l1 | lane | shipped | A18 | Comprovantes de Bem — L1 CRLV-e (Certificado de Registro e Licenciamento de Veículo) | `sprint/A18/lanes/A18-l1-crlv.md` |
 | A18.l2 | lane | shipped | A18 | Comprovantes de Bem — L2 Apólice de seguro polimórfica (combinada V1, vida/saúde/PJ V2) | `sprint/A18/lanes/A18-l2-apolice.md` |
-| A18.l3 | lane | planned | A18 | Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI | `sprint/A18/lanes/A18-l3-fipe.md` |
+| A18.l3 | lane | shipped | A18 | Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI | `sprint/A18/lanes/A18-l3-fipe.md` |
 | A18.l4 | lane | planned | A18 | LLM Hardening — W1α LGPD compliance (gate F7 R4 → Beta fechado) | `sprint/A18/lanes/A18-l4-llm-w1-alpha-lgpd.md` |
 | A19.l1 | lane | shipped | A19 | S_PROTECAO — L1 Card 4º pilar AUVP no relatório (KPIs + 3 subgrupos + reposicionamento) | `sprint/A19/lanes/A19-l1-card-protecao.md` |
 | A20.l1 | lane | open | A20 | Docker dev↔prod parity — L1 Multi-stage backend + Playwright dual target | `sprint/A20/lanes/A20-l1-backend-multistage.md` |
