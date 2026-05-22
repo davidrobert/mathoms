@@ -92,7 +92,7 @@ def test_extract_one_raises_not_implemented_para_outros_tipos():
         _extract_one(
             doc=Path("rgi_2026.pdf"),
             text="dummy",
-            service=_FakeService(),
+            llm=_FakeService(),
             config=_FakeConfig(),
             tipo_comprovante="rgi_imovel",
         )
