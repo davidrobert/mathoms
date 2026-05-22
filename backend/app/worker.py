@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from celery import Celery
+from celery.schedules import crontab
 from celery.signals import worker_process_init
 
 from backend.app.core.config import settings
@@ -46,6 +47,8 @@ celery_app.conf.update(
         "backend.app.tasks.periodic_tasks",
         "backend.app.tasks.lgpd_export",
         "backend.app.tasks.categorization_apply",
+        # ADR-239 D5 (A18 L3 P1+P2) — FIPE refresh assíncrono via BrasilAPI.
+        "backend.app.tasks.fipe_refresh",
     ],
     # F8.4 / ADR-074 — beat schedule para tarefas periódicas.
     # Start beat: celery -A backend.app.worker beat -l info
@@ -71,6 +74,13 @@ celery_app.conf.update(
         "detect-stuck-runs": {
             "task": "fin.detect_stuck_runs",
             "schedule": 300.0,  # 5min
+        },
+        # ADR-239 D5 (A18 L3 P2) — refresh anual de FIPE em 15/Jan às 03h UTC
+        # (todos vehicles ativos). Janeiro é alinhado com IRPF do exercício
+        # seguinte — base fiscal para cap rate líquido de veículos (Dezembro/<ano-1>).
+        "fipe-refresh-annual": {
+            "task": "fin.fipe.refresh_all_annual",
+            "schedule": crontab(month_of_year=1, day_of_month=15, hour=3, minute=0),
         },
     },
 )
