@@ -89,6 +89,7 @@ class _Candidate:
     instituicao: str
     valor: Decimal
     tipo_origem: str
+    property_id: str | None = None
 
 
 class TopAtivosAnalyzer:
@@ -102,6 +103,7 @@ class TopAtivosAnalyzer:
         bens_por_membro: list[tuple[str, Mapping[str, Any]]] | None,
     ) -> TopAtivosResult:
         candidates = self._collect_candidates(bens_por_membro or [])
+        candidates = _dedup_by_property_id(candidates)
         candidates.sort(key=lambda c: c.valor, reverse=True)
         total = sum((c.valor for c in candidates), start=Decimal("0"))
         result = self._build_result(candidates, total)
@@ -194,10 +196,11 @@ class TopAtivosAnalyzer:
         return _Candidate(
             nome=self._imovel_nome(imovel),
             classe="Imóveis Investimento",
-            membro=member,
+            membro=_membro_label(imovel, member),
             instituicao="",
             valor=valor,
             tipo_origem="imovel",
+            property_id=str(pid) if isinstance(pid, str) and pid else None,
         )
 
     def _classify(self, tipo: str, descricao: str, instituicao: str) -> str:
@@ -230,3 +233,24 @@ class TopAtivosAnalyzer:
             if v:
                 return str(v).strip()
         return "Imóvel investimento"
+
+
+def _membro_label(imovel: Mapping[str, Any], member: str) -> str:
+    """ADR-246: 'Casal' quando E1.5c marcou proprietario=casal após dedup."""
+    return "Casal" if (imovel.get("proprietario") or "").lower() == "casal" else member
+
+
+def _dedup_by_property_id(candidates: list[_Candidate]) -> list[_Candidate]:
+    """Safety net (ADR-246): se PR1 falhar e baseline ainda vier duplicado,
+    dedup por property_id mantém o maior valor por imóvel."""
+    by_pid: dict[str, _Candidate] = {}
+    out: list[_Candidate] = []
+    for c in candidates:
+        if c.property_id is None:
+            out.append(c)
+            continue
+        existing = by_pid.get(c.property_id)
+        if existing is None or c.valor > existing.valor:
+            by_pid[c.property_id] = c
+    out.extend(by_pid.values())
+    return out
