@@ -3,7 +3,13 @@ id: A19.l1
 type: lane
 title: "S_PROTECAO — L1 Card 4º pilar AUVP no relatório (KPIs + 3 subgrupos + reposicionamento)"
 sprint: A19
-status: open
+status: shipped
+ship_prs:
+  - "https://github.com/davidrobert/mathoms/pull/430"
+  - "https://github.com/davidrobert/mathoms/pull/432"
+  - "https://github.com/davidrobert/mathoms/pull/435"
+  - "https://github.com/davidrobert/mathoms/pull/436"
+ship_date: "2026-05-22"
 priority: P1
 branch_slug: a19-l1-card-protecao
 depends_on: []
@@ -14,7 +20,7 @@ prompt: "[[TRACK-a19-l1-card-protecao]]"
 tags:
   - type/lane
   - sprint/a19
-  - status/open
+  - status/shipped
   - priority/p1
   - area/report
   - area/methodology

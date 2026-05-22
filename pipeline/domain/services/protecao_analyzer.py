@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
 from typing import Literal, Optional
+
+_logger = logging.getLogger("mathoms.relatorio.protecao")
 
 # ===========================================================================
 # Faixas Cerbasi (ADR-240 D3 KPI B) — calibradas em código (rules-as-code).
@@ -380,13 +383,40 @@ def _split_apolices_por_vigencia(apolices: list[dict], ref: date) -> tuple[list,
     return vigentes, vencendo, vencidas
 
 
+def _emit_telemetry(payload: dict) -> None:
+    """ADR-240 D8: telemetria sem PII (counts agregados + flags + has_apolice_vencida)."""
+    _logger.info(
+        "mathoms.relatorio.protecao_rendered",
+        extra={
+            "kpis_status": {
+                "tem_apolice_vigente": len(payload.get("apolices_vigentes") or []) > 0,
+                "bens_com_gap_count": len(payload.get("bens_com_gap_cobertura") or []),
+            },
+            "has_gap_vida": _flag_categoria(payload, "vida"),
+            "has_gap_saude": _flag_categoria(payload, "saude"),
+            "has_apolice_vencida": len(payload.get("apolices_vencidas") or []) > 0,
+            "has_apolice_vencendo": len(payload.get("apolices_vencendo") or []) > 0,
+            "corretoras_count": payload.get("corretoras_count", 0),
+            "seguradoras_count": payload.get("seguradoras_count", 0),
+        },
+    )
+
+
+def _flag_categoria(payload: dict, categoria: str) -> bool:
+    """True quando gap_qualitativo[categoria].flag == True."""
+    return any(
+        g.get("categoria") == categoria and g.get("flag", False)
+        for g in (payload.get("gap_qualitativo") or [])
+    )
+
+
 def compute_protecao(inp: ProtecaoInput) -> dict:
     """Retorna payload `protecao_patrimonial` conforme schema ADR-240 D8."""
     vigentes, vencendo, vencidas = _split_apolices_por_vigencia(inp.apolices, inp.data_referencia)
     premio_total = _premio_total_anual(vigentes)
     pct = _pct_renda(premio_total, inp.renda_anual_liquida_brl)
     decomp = _premio_decomposicao(vigentes)
-    return {
+    payload = {
         "premio_total_anual_brl": str(premio_total.quantize(Decimal("0.01"))),
         "premio_decomposicao": {k: str(v.quantize(Decimal("0.01"))) for k, v in decomp.items()},
         "pct_renda_anual": _format_pct_renda(pct),
@@ -398,6 +428,8 @@ def compute_protecao(inp: ProtecaoInput) -> dict:
         "corretoras_count": _corretoras_count(vigentes),
         "seguradoras_count": _seguradoras_count(vigentes),
     }
+    _emit_telemetry(payload)
+    return payload
 
 
 def pct_renda_sinal(pct: Decimal) -> PctRendaSinal:
