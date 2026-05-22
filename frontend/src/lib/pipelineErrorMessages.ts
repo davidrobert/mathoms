@@ -25,7 +25,12 @@ interface ErrorPattern {
 
 const PATTERNS: readonly ErrorPattern[] = [
   {
-    match: /password|senha|encrypted|locked/i,
+    // PDF protegido: aceita password/senha/encrypted e formas
+    // específicas envolvendo "locked" no contexto de arquivo/PDF.
+    // NÃO casa com "database is locked" (SQLite), "account locked",
+    // "mutex locked" etc. — esses são problemas técnicos diferentes
+    // e a UX de "cadastre senha no Cofre" não ajuda o usuário lá.
+    match: /password|senha|protegid[oa]|encrypted|pdf[^.]{0,40}locked|locked[^.]{0,40}pdf|file is locked/i,
     build: () => ({
       headline:
         "Algum PDF está protegido por senha e não conseguimos abri-lo.",
