@@ -108,14 +108,30 @@ function deriveInsight(rows: TopAtivo[]): string | undefined {
   return `${top1.nome} é o maior ativo individual (${fmtPct(pct1)} = ${valorTop1}). Top 3 somam ${fmtPct(top3Pct)} da carteira.`;
 }
 
+const CARD_TITLE = "Top 15 Ativos da Carteira";
+const CARD_SUBTITLE =
+  "Investimentos financeiros e imóveis de renda, ranqueados por valor. " +
+  "Não inclui residência principal nem bens de uso pessoal — esses aparecem " +
+  "em Composição Patrimonial.";
+
+function CardSubtitle() {
+  return (
+    <p className="-mt-2 mb-4 text-xs leading-snug text-[var(--surface-muted-foreground)]">
+      {CARD_SUBTITLE}
+    </p>
+  );
+}
+
 export function Top15AtivosCard({ data }: Top15AtivosCardProps) {
   const rows = data?.top_ativos ?? [];
 
   if (rows.length === 0) {
     return (
-      <ReportCard variant="neutral" title="Top 15 Ativos Financeiros">
+      <ReportCard variant="neutral" title={CARD_TITLE}>
+        <CardSubtitle />
         <p className="text-sm text-[var(--surface-muted-foreground)]">
-          Sem ativos individualizados neste período. Conecte instituições em /plano para detalhar a carteira.
+          Sem ativos de carteira neste período. Investimentos e imóveis de
+          renda aparecem aqui após o processamento das posições e do IRPF.
         </p>
       </ReportCard>
     );
@@ -124,11 +140,8 @@ export function Top15AtivosCard({ data }: Top15AtivosCardProps) {
   const insight = deriveInsight(rows);
 
   return (
-    <ReportCard
-      variant="feature"
-      title="Top 15 Ativos Financeiros"
-      conclusion={insight}
-    >
+    <ReportCard variant="feature" title={CARD_TITLE} conclusion={insight}>
+      <CardSubtitle />
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
