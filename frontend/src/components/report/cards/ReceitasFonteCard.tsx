@@ -10,7 +10,8 @@ import type { FluxoCaixaSummary } from "@/types/report-analysis";
 
 // Cobertura: todas as categorias de receita produzidas pelo pipeline
 // (`pipeline/domain/services/income_origin_resolver.py::_DEFAULT_STATIC_ORIGINS`
-// + `receita_clt`/`receita_pj` resolvidos dinamicamente).
+// + `receita_clt`/`receita_pj` resolvidos dinamicamente
+// + labels PJ-side de `transaction_classifier_pj.PJ_LABELS`, [[ADR-236]]).
 const FONTE_LABELS: Record<string, string> = {
   receita_clt: "CLT",
   receita_pj: "PJ",
@@ -21,6 +22,8 @@ const FONTE_LABELS: Record<string, string> = {
   receita_fgts: "FGTS",
   receita_restituicao: "Restituições",
   outras_receitas: "Outras receitas",
+  pro_labore: "Pró-labore",
+  lucros_distribuidos: "Lucros distribuídos",
 };
 
 /** F9 · F2.A · S1 — Card "Receitas por Fonte" com toggle de período.
