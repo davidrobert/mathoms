@@ -40,6 +40,25 @@ INSTITUTION_CONTENT_PATTERNS: list[tuple[re.Pattern, str]] = [
         ),
         "c6bank",
     ),
+    # C6 Bank PJ — PDFs "Extrato → Exportar" do app Conta PJ NÃO mencionam razão
+    # social do banco no preview (só dados do cliente). Detectamos pelo layout
+    # único: fraseado "Extrato exportado no dia DD de mês de ANO" + bullets "•"
+    # entre rótulo e valor ("Saldo do dia • DD ...", "Cheque Especial contratado
+    # • ..."), ou pelo produto "C6TAG" (telepedágio C6) presente em descrições
+    # de transações. Exigimos **2+ tokens** via lookahead para evitar falso-
+    # positivo em PDFs futuros de outros bancos que adotem bullets similares.
+    (
+        re.compile(
+            # Match quando: (a) "Extrato exportado no dia" presente E pelo menos
+            # 1 dos tokens C6-específicos, OU (b) "C6TAG" sozinho (patognomônico).
+            r"(?=.*Extrato\s+exportado\s+no\s+dia)"
+            r"(?=.*(?:•|Cheque\s+Especial\s+contratado|Saldo\s+do\s+dia\s+•|"
+            r"Entradas:\s*R\$\s+[\d.,]+\s+•\s+Sa[ií]das))"
+            r"|\bC6TAG\b",
+            re.I | re.S,
+        ),
+        "c6bank",
+    ),
     # Itaú: Personnalité, razão social
     (re.compile(r"ITA[UÚ]\s*(UNIBANCO|PERSONNALIT[ÉE])?|PERSONNALIT[ÉE]\s*ITA[UÚ]", re.I), "itau"),
     # Santander: razão social, Unique, CDB exports, Central de Atendimento, account-specific markers.
