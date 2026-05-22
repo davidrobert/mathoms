@@ -5,7 +5,7 @@ title: "Schema IRPF completo (stage `extract_irpf_full`)"
 status: Decidido
 phase: "Sprint A8 · Lane irpf-full-schema"
 date: "2026-04-30"
-relates_to: ["[[ADR-090]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-105]]", "[[ADR-111]]", "[[ADR-135]]", "[[ADR-143]]"]
+relates_to: ["[[ADR-090]]", "[[ADR-093]]", "[[ADR-097]]", "[[ADR-105]]", "[[ADR-111]]", "[[ADR-135]]", "[[ADR-143]]", "[[ADR-165]]", "[[ADR-231]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 157"]
@@ -17,7 +17,7 @@ tags:
   - methodology/perini
   - status/decidido
   - type/adr
-size_lines: 60
+size_lines: 103
 ---
 
 # ADR-157 — Schema IRPF completo (stage `extract_irpf_full`)
@@ -39,7 +39,7 @@ Alternativas avaliadas:
 2. **Alíquotas calculadas em Python pós-extração**, não pelo LLM. LLM extrai apenas valores absolutos (`base_calculo`, `ir_devido`, `ir_pago`); `IRPFAnalyzer` deriva `aliquota_sobre_tributavel` (RFB-style) e `aliquota_sobre_total` (Cerbasi-style).
 3. **Códigos RFB como enums por contexto** (`RendimentoIsentoCodigo`, `PagamentoDedutivelCodigo`, etc.) com fallback `"99_outro"` — evita string-matching frágil em E5 (G2 dealbreaker).
 4. **`additionalProperties` mista**: `true` no top-level (com WARNING ao detectar campo desconhecido — mecanismo proativo para anos novos com shape novo); `false` em sub-models (rendimentos_pj item etc. validados strict). Destino do WARNING: `logger.warning("e16_unknown_field", extra={"field": k, "workspace_id": ws_id})` no namespace `mathoms.pipeline.e16`.
-5. **PII enforcement:** validator recusa payload se qualquer string field bate `\d{3}\.\d{3}\.\d{3}-\d{2}` ou `\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}` fora dos campos `*_masked`. Classificação implícita PII-tier-2 por nome do stage; coluna `pii_tier` em `pipeline_artifact` é prematura e fica fora desta ADR.
+5. **PII enforcement:** validator emite `e16.pii.unmasked_cpf` (warning) quando string field livre — `notes`, `descricao`, `discriminacao`, `fonte` — bate `\d{3}\.\d{3}\.\d{3}-\d{2}` ou `\d{11}`. Visível no `StageReview` como sinal de data-quality; **não pausa o pipeline**. Classificação implícita PII-tier-2 por nome do stage; coluna `pii_tier` em `pipeline_artifact` é prematura e fica fora desta ADR. Defesa real de PII vem por encryption-at-rest dos campos livres (trajetória [[ADR-231]]). _Reclassificado de `error` para `warning` na errata 2026-05-22 — ver seção final._
 6. **Reconciliação cross-field obrigatória** no validator: `imposto_apurado.ir_pago_brl ≈ sum(rendimentos_pj.ir_retido_brl) + sum(rendimentos_pf.ir_recolhido_brl)` com tolerância 0,02 BRL. Fora da janela → `confidence` cap em 0,7 + flag `needs_review`.
 7. **`prompt_version: str`** no payload (constante por versão do prompt — `"e16-v1.0.0"` — golden-friendly). `extracted_at` **não** vai no payload (mudaria a cada rerun e quebraria golden byte-a-byte); auditoria temporal vive em `pipeline_artifact.created_at` (já existe).
 8. **Cutover via flag** `MATHOMS_E16_SUPERSEDES_E15_BENS` (default `False`, por workspace). Quando `True`, E5 ignora `consolidate_baseline` e usa só `bens_direitos[]` do E1.6. **Critério de saída para virar default global:** ≥3 declarações reais validadas com paridade `bens_direitos[]` E1.5↔E1.6 byte-a-byte (tolerância 0,01 BRL — ADR-097/D5). Sem isso, coexistência permanece. Cutover real = sprint futura, fora desta ADR.
@@ -78,3 +78,26 @@ Alternativas avaliadas:
 - `pipeline/domain/services/irpf_analyzer.py` — KPIs.
 - `pipeline/stage_spec.py` — entrada `extract_irpf_full` em `STAGE_REGISTRY` + `FULL_ORDER` (paralela a `extract_baseline`, sem `reads` declarado).
 - `pipeline/artifact_store.py` — mapeamento `extract_irpf_full → E2_extracts`, sufixo `-1.6_irpf_full.json`.
+
+---
+
+**Errata 2026-05-22 — D5 reclassificado de erro abortivo para warning**
+
+A formulação original de D5 ("validator recusa payload se qualquer string field bate regex de CPF/CNPJ fora dos campos `*_masked`") modelou CPF não-mascarado em campo livre como leak de PII. Na prática, IRPF cita CPF de terceiros **por design**:
+
+- `bens_direitos.descricao` — vendedor de imóvel ("Apto adquirido de CPF 123…")
+- `dividas_onus.discriminacao` — credor PF de empréstimo
+- `rendimentos_isentos.fonte/descricao` — fonte de aluguel, pensão, herança
+- `rendimentos_tributacao_exclusiva.descricao` — sacado/contratante PF
+- `notes` — anotações gerais que mencionam dependentes/cônjuge/herdeiros
+
+O efeito operacional do tratamento como `severity="error"` era pausar **virtualmente todo IRPF real** em `needs_review` no stage `extract_irpf_full`. O gate em `backend/app/tasks/pipeline_task.py::_has_validation_errors` interpreta `validation.valid == False` (qualquer erro) como necessidade de revisão humana, e `ValidationResult.valid` retorna `len(errors) == 0`.
+
+Reclassificação aplicada:
+
+1. **`_emit_pii_cpf` agora emite `severity="warning"`** ([pipeline/llm/validators.py](../../pipeline/llm/validators.py)). Visibilidade no `StageReview` preservada (sinal de data-quality / hallucination); pipeline não pausa.
+2. **Goldens E1.6** (`tests/test_llm_golden.py::test_no_unmasked_cpf_in_free_text`) continuam exigindo que fixtures não contenham CPF não-mascarado — se o LLM hallucinar CPF em campo livre, fica visível como warning + falha o golden em CI.
+3. **Defesa real de PII** fica na trajetória [[ADR-231]] — encryption-at-rest dos campos livres em `pipeline_artifacts` via Fernet. Tratar exposição como problema de **persistência/transporte**, não de **rejeição de payload**.
+4. **CNPJ permanece fora do escopo** do validator — a redação original mencionava CNPJ mas o regex nunca cobriu. Não é regressão; é correção da redação.
+
+Testes atualizados: `tests/test_validation_issues_e16.py::TestLegacyMessageParity` (3 mensagens migraram de `r.errors` → `r.warnings`) + `TestIssuesStructure::test_pii_dividas_onus_issue` (severity assert) + `tests/test_irpf_full_schema_unit.py::TestValidatorAntiPii` (renomeado `_rejected` → `_warns` + assert `r.valid`).

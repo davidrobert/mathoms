@@ -164,13 +164,17 @@ class TestSchemaSerialization:
 
 
 class TestValidatorAntiPii:
-    def test_unmasked_cpf_in_notes_rejected(self):
+    # ADR-157 errata 2026-05-22: CPF em campo livre é warning, não erro abortivo.
+    # IRPF cita CPF de terceiros por design (vendedor, credor, fonte de aluguel).
+
+    def test_unmasked_cpf_in_notes_warns(self):
         out = _build_minimal()
         out.notes = "CPF: 000.000.000-00 vazado"
         r = validate_e16_output(out)
-        assert any("notes" in e and "CPF" in e for e in r.errors)
+        assert any("notes" in w and "CPF" in w for w in r.warnings)
+        assert r.valid, "CPF em campo livre não deve invalidar payload IRPF"
 
-    def test_unmasked_cpf_in_descricao_rejected(self):
+    def test_unmasked_cpf_in_descricao_warns(self):
         out = _build_minimal()
         out.rendimentos_isentos.append(
             RendimentoIsento(
@@ -180,7 +184,8 @@ class TestValidatorAntiPii:
             )
         )
         r = validate_e16_output(out)
-        assert any("rendimentos_isentos" in e for e in r.errors)
+        assert any("rendimentos_isentos" in w for w in r.warnings)
+        assert r.valid
 
 
 class TestValidatorReconcile:

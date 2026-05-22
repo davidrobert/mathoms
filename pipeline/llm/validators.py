@@ -603,8 +603,11 @@ def validate_e2_llm_output(output: LLMExtractOutput) -> ValidationResult:
 # =============================================================================
 #
 # Camadas:
-#  1. Anti-PII: regex CPF/CNPJ não-mascarado em qualquer string field fora dos
-#     campos `*_masked`/`cnpj` da fonte PJ. Match → erro abortivo (recusa payload).
+#  1. Anti-PII: regex CPF não-mascarado em qualquer string field livre
+#     (notes, descricao, discriminacao, fonte). Match → warning visível no
+#     StageReview (ADR-157 errata 2026-05-22). IRPF cita CPF de terceiros
+#     por design (vendedor de imóvel, credor, fonte de aluguel/pensão);
+#     defesa real de PII trajeta via ADR-231 (encryption-at-rest).
 #  2. Reconciliação cross-field: ir_pago_brl ≈ sum retidos PJ + sum carnê-leão.
 #     Tolerância 0,02 BRL (ADR-097/D5). Fora da janela → warning + pede que o
 #     stage runner cap em 0,7 a confidence.
@@ -640,7 +643,7 @@ def _emit_pii_cpf(
         ctx["index"] = index
     r.add_issue(
         code="e16.pii.unmasked_cpf",
-        severity="error",
+        severity="warning",  # ADR-157 errata 2026-05-22 (era "error")
         path=path,
         context=ctx,
         legacy_message=legacy_msg,
