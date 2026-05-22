@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-247 ADRs (ADR-001 a ADR-254) em [`docs/adr/`](../../adr/).
+248 ADRs (ADR-001 a ADR-255) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 189
-- **Proposto**: 54
+- **Proposto**: 55
 - **Roadmap**: 4
 
 ## Fundação
@@ -453,7 +453,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-238]] — Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 · phase A17.informes-avulsos
 - [[ADR-239]] — Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 · phase A18.l1
 
-### Proposto (10)
+### Proposto (11)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -465,6 +465,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-244]] — InvestmentsConsolidator aceita `tipo_documento=informe_rendimentos` como posição · phase A17.incremental-correctness
 - [[ADR-245]] — `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR · phase A17.incremental-correctness
 - [[ADR-246]] — Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c · phase A17.imovel-dedup
+- [[ADR-255]] — Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) · phase A17.tx-dedup-cross-doc
 
 ## relatorio
 

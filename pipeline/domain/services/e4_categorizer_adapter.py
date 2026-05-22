@@ -21,6 +21,7 @@ Zero I/O além do ``store.read``/``list_keys``.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Iterable
 
@@ -30,6 +31,8 @@ from pipeline.domain.services.baseline_normalizer import (
     NormalizedBaseline,
 )
 from pipeline.domain.services.cash_flow_builder import CashFlow, CashFlowBuilder
+
+_dedup_logger = logging.getLogger("mathoms.pipeline.dedup")
 from pipeline.domain.services.categorization_service import CategorizationRulesV2
 from pipeline.domain.services.investments_consolidator import (
     ConsolidatedInvestments,
@@ -223,6 +226,19 @@ class E4CategorizerAdapter:
         accounts = self.load_reconciled_accounts(store)
         classified = self._classifier.classify_all(accounts)
         cash_flow = self._cash_flow_builder.build(classified)
+
+        # ADR-255 — telemetria estruturada do dedup cross-document. Sem PII
+        # (não logamos descrição nem valor exato; só counts + sample hashes).
+        if cash_flow.dedup_report.collapsed_count > 0:
+            _dedup_logger.info(
+                "mathoms.pipeline.dedup.cross_document",
+                extra={
+                    "stage": "categorize_transactions",
+                    "workspace_id": getattr(store, "workspace_id", None),
+                    "pipeline_run_id": getattr(store, "pipeline_run_id", None),
+                    **cash_flow.dedup_report.to_log_dict(),
+                },
+            )
 
         baseline_raw = self.load_baseline(store)
         baseline_normalized = self._baseline_normalizer.normalize(baseline_raw)
