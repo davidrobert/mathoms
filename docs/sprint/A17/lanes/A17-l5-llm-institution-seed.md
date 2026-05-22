@@ -4,7 +4,7 @@ type: lane
 title: "LLM Hardening — W4-T00 seed expandido institution_catalog (alta renda PJ)"
 sprint: A17
 plan: PLAN-llm-prompts-hardening
-status: planned
+status: in_progress
 priority: P0
 branch_slug: a17-l5-llm-institution-seed
 parallel_with:
@@ -14,7 +14,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a17
-  - status/planned
+  - status/in-progress
   - priority/p0
   - area/llm
   - area/persistence
