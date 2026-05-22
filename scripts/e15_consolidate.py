@@ -620,6 +620,28 @@ def main_with_store(ctx) -> dict:
             family_members=family_members,
         )
 
+    # 3b. Dedup de imóveis co-declarados cross-IRPF (ADR-246). Roda após o
+    #     enricher para usar `property_id` como chave primária. Helper puro;
+    #     no-op quando não há duplicatas.
+    from pipeline.domain.services.imoveis_dedup import dedup_imoveis_consolidados
+
+    _titular_key = None
+    try:
+        if family_members is not None:
+            _titular_key = getattr(family_members, "titular_key", None)
+    except Exception:
+        _titular_key = None
+    _dedup = dedup_imoveis_consolidados(
+        consolidated.get("imoveis_consolidados", []),
+        titular_key=_titular_key,
+    )
+    consolidated["imoveis_consolidados"] = _dedup.imoveis
+    if _dedup.count_after < _dedup.count_before:
+        print(
+            f"  [E1.5c] Imóveis dedup: {_dedup.count_before} → {_dedup.count_after} "
+            f"(warnings={len(_dedup.warnings)})"
+        )
+
     # 4. Reconciliação fuzzy IRPF G02 ↔ vehicles (ADR-239 D3+D4). Degradação
     #    graceful — backend indisponível (CLI/tests) ou workspace_id ausente
     #    pula a etapa silenciosamente (mesma forma de property_id enrichment).
