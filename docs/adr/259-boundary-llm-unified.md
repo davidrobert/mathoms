@@ -1,5 +1,5 @@
 ---
-id: ADR-256
+id: ADR-259
 type: adr
 title: "Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt)"
 status: Proposto
@@ -14,7 +14,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 256"
+  - "ADR 259"
   - "Boundary LLM unified"
   - "LLM Decimal Pii boundary"
 tags:
@@ -26,7 +26,7 @@ tags:
   - type/adr
 ---
 
-# ADR-256 — Boundary LLM unificado: tipos monetários, PII e contratos de output
+# ADR-259 — Boundary LLM unificado: tipos monetários, PII e contratos de output
 
 **Status:** Proposto • **Data:** 2026-05-22 • **Relaciona** [[ADR-081]] (regex→LLM→needs_review), [[ADR-090]] (`Decimal` para dinheiro), [[ADR-097]] (services recebem value objects tipados), [[ADR-111]] (stateless rigoroso + Fernet vault singleton), [[ADR-246]] (dedup imóveis comunhão).
 

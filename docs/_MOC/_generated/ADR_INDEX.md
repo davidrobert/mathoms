@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-252 ADRs (ADR-001 a ADR-258) em [`docs/adr/`](../../adr/).
+252 ADRs (ADR-001 a ADR-261) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -39,7 +39,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (2)
 
 - [[ADR-171]] — Fernet rotation operacionalizada via MultiFernet
-- [[ADR-256]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
+- [[ADR-259]] — Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) · phase A18.W1α + A20.W1β
 
 ## Pipeline
 
@@ -128,7 +128,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-058]] — VPS CX32 para sizing · phase F7
 - [[ADR-206]] — Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-210]] — Saúde do test suite do CI — gates, telemetria e ciclo de vida · phase Sprint A12 (test health · CI cost)
-- [[ADR-257]] — Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP · phase A20.W2 + A20.W3
+- [[ADR-260]] — Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP · phase A20.W2 + A20.W3
 
 ## Testing
 
@@ -391,7 +391,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-205]] — Boundary Python/Go — stages LLM permanecem Python; contratos imutáveis · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-207]] — Sigilo metodológico no parecer LLM — mapeamento `ancora_metodologica` → `tema_canonico` · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-208]] — Gating freemium do parecer holístico — Opção B+ (diagnóstico amostra free, plano completo premium) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
-- [[ADR-258]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
+- [[ADR-261]] — Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale · phase A20.W2
 
 ## marketing
 

@@ -1,5 +1,5 @@
 ---
-id: ADR-257
+id: ADR-260
 type: adr
 title: "Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP"
 status: Proposto
@@ -12,7 +12,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 257"
+  - "ADR 260"
   - "LLM telemetry"
   - "Confidence telemetry"
 tags:
@@ -23,7 +23,7 @@ tags:
   - type/adr
 ---
 
-# ADR-257 — Telemetria LLM por prompt_version: SQL + OTLP com labels compostos
+# ADR-260 — Telemetria LLM por prompt_version: SQL + OTLP com labels compostos
 
 **Status:** Proposto • **Data:** 2026-05-22 • **Relaciona** [[ADR-081]] (threshold 0.7/0.8), [[ADR-110]] (logging estruturado + OTLP), [[ADR-233]] (formato semver puro).
 

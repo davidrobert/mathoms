@@ -1,5 +1,5 @@
 ---
-id: ADR-258
+id: ADR-261
 type: adr
 title: "Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale"
 status: Proposto
@@ -9,11 +9,11 @@ relates_to:
   - "[[ADR-081]]"
   - "[[ADR-212]]"
   - "[[ADR-233]]"
-  - "[[ADR-257]]"
+  - "[[ADR-260]]"
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 258"
+  - "ADR 261"
   - "LLM cache invalidation"
   - "Prompt bump policy"
 tags:
@@ -24,9 +24,9 @@ tags:
   - type/adr
 ---
 
-# ADR-258 — Política de cache invalidation em bump de PROMPT_VERSION
+# ADR-261 — Política de cache invalidation em bump de PROMPT_VERSION
 
-**Status:** Proposto • **Data:** 2026-05-22 • **Relaciona** [[ADR-081]] (regex→LLM→needs_review), [[ADR-212]] (DBArtifactStore + pipeline_artifacts), [[ADR-233]] (formato PROMPT_VERSION semver puro), [[ADR-257]] (telemetria por prompt_version).
+**Status:** Proposto • **Data:** 2026-05-22 • **Relaciona** [[ADR-081]] (regex→LLM→needs_review), [[ADR-212]] (DBArtifactStore + pipeline_artifacts), [[ADR-233]] (formato PROMPT_VERSION semver puro), [[ADR-260]] (telemetria por prompt_version).
 
 ## Contexto
 
@@ -52,7 +52,7 @@ Bump patch é cosmético/typo/reformat. **Output esperado mantém shape e semân
 
 - `pipeline_artifacts` antigos **não** são marcados para re-extração.
 - Próxima execução do pipeline (workspace novo, re-upload de doc) usa nova versão; antigos ficam congelados.
-- **Custo**: $0 imediato. Comparação histórica via [[ADR-257]] confidence telemetry detecta drift se houver.
+- **Custo**: $0 imediato. Comparação histórica via [[ADR-260]] confidence telemetry detecta drift se houver.
 
 ### Tier 2 — Minor (`1.0.0 → 1.1.0`): servir stale OK, re-extração opcional sob demanda
 
@@ -61,7 +61,7 @@ Bump minor adiciona campo opcional, regra adicional não-breaking, refinamento d
 - `pipeline_artifacts` antigos **não** são marcados para re-extração automática.
 - **UI `/documents` ganha botão "Re-extrair com nova versão"** para o usuário decidir (audit log).
 - Cron job opcional `mathoms_reextract_stale_artifacts` (intervalo configurável) re-extrai N artifacts mais antigos por dia, com budget mensal.
-- **Custo**: pago por workspace ativo conforme decisão de UI/cron. Telemetria `mathoms.llm.reextract_total{prompt_version, trigger}` em [[ADR-257]].
+- **Custo**: pago por workspace ativo conforme decisão de UI/cron. Telemetria `mathoms.llm.reextract_total{prompt_version, trigger}` em [[ADR-260]].
 
 ### Tier 3 — Major (`1.0.0 → 2.0.0`): re-extração **obrigatória** programada
 
@@ -92,7 +92,7 @@ Preserva grep histórico em `LLMCallLog` antes de migration coordenada (caso W2-
 - **1 helper novo**: `dev/estimate_reextract_cost.py` — pre-bump cost estimation.
 - **1 helper novo**: `dev/snapshot_llm_call_log_history.py` — snapshot histórico pré-bump.
 - **UI** `/documents` ganha botão "Re-extrair" condicional ao tier do prompt afetado.
-- **Telemetria** `mathoms.llm.reextract_total{prompt_version, trigger}` ([[ADR-257]]).
+- **Telemetria** `mathoms.llm.reextract_total{prompt_version, trigger}` ([[ADR-260]]).
 
 ## Alternativas consideradas
 
@@ -109,5 +109,5 @@ Preserva grep histórico em `LLMCallLog` antes de migration coordenada (caso W2-
 - Plano canônico: [[PLAN-llm-prompts-hardening]] §W2-T01 (migration semver) + §Riscos (custo cache invalidation).
 - [[ADR-233]] formato semver puro + gate CI bump.
 - [[ADR-212]] DBArtifactStore + `pipeline_artifacts`.
-- [[ADR-257]] telemetria por prompt_version (campo `mathoms.llm.reextract_total`).
+- [[ADR-260]] telemetria por prompt_version (campo `mathoms.llm.reextract_total`).
 - Cost reference: Anthropic pricing 2026 Sonnet 4 ~$3/$15 per 1M tokens (verificar antes do PR).

@@ -12,7 +12,7 @@ depends_on:
 parallel_with:
   - "[[A20.l14]]"
 adrs:
-  - "[[ADR-257]]"
+  - "[[ADR-260]]"
   - "[[ADR-110]]"
 tags:
   - type/lane
@@ -25,7 +25,7 @@ tags:
 
 # A20.L13 — W3 telemetria OTLP `mathoms.llm.*` (1 PR)
 
-> **Onda 3 do plano [[PLAN-llm-prompts-hardening]].** Emit OTLP com labels compostos `{prompt_name, prompt_version}` ([[ADR-257]]). Dashboard `ops.mathoms.ai` é follow-up no plano [[PLAN-internal-admin]] — não bloqueia esta lane.
+> **Onda 3 do plano [[PLAN-llm-prompts-hardening]].** Emit OTLP com labels compostos `{prompt_name, prompt_version}` ([[ADR-260]]). Dashboard `ops.mathoms.ai` é follow-up no plano [[PLAN-internal-admin]] — não bloqueia esta lane.
 
 ## Objetivo
 
@@ -103,6 +103,6 @@ Caso especial `parecer_planejador`: counter `mathoms.llm.parecer.riscos_truncado
 
 ## Detalhe operacional
 
-Plano canônico: [[PLAN-llm-prompts-hardening]] §W3. ADRs canônicas: [[ADR-257]] (telemetria por prompt_version) + [[ADR-110]] (padrão `mathoms.*`).
+Plano canônico: [[PLAN-llm-prompts-hardening]] §W3. ADRs canônicas: [[ADR-260]] (telemetria por prompt_version) + [[ADR-110]] (padrão `mathoms.*`).
 
 **Capacity estimada**: ~2d eng-time.

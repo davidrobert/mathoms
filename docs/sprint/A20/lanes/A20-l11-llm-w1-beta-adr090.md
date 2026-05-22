@@ -10,7 +10,7 @@ branch_slug: a20-l11-llm-w1-beta-adr090
 parallel_with:
   - "[[A20.l12]]"
 adrs:
-  - "[[ADR-256]]"
+  - "[[ADR-259]]"
   - "[[ADR-090]]"
   - "[[ADR-097]]"
 tags:
@@ -69,7 +69,7 @@ Entregas:
 - Prompt `e15_baseline.py`: substituir `"150000.00, não R$ 150.000,00"` por string decimal explícita. Adicionar regra de mask CPF (espelhar `apolice.py` §10).
 - Bump `PROMPT_VERSION` (`"1.0.0"` → `"1.1.0"`).
 - Atualizar fixture `tests/fixtures/llm_golden/e15_baseline_output.json` para strings decimais.
-- Migration de payloads históricos: `pipeline_artifacts` stage `E1.5`/`E1.5a`/`E1.5c` → re-validar; falhas marcadas para re-extração ([[ADR-258]] Tier 3).
+- Migration de payloads históricos: `pipeline_artifacts` stage `E1.5`/`E1.5a`/`E1.5c` → re-validar; falhas marcadas para re-extração ([[ADR-261]] Tier 3).
 - **PR atomic**: schema + prompt + validators + serializer + fixture + golden test prova consumer chain.
 
 ## Coordenação
@@ -80,6 +80,6 @@ Paralelo a [[A20.l12]] (W2 — versioning + goldens) — não competem por arqui
 
 ## Detalhe operacional
 
-Plano canônico: [[PLAN-llm-prompts-hardening]] §W1β. ADRs canônicas: [[ADR-256]] (boundary LLM unificado) + [[ADR-090]] (dinheiro nunca float) + [[ADR-258]] (cache invalidation).
+Plano canônico: [[PLAN-llm-prompts-hardening]] §W1β. ADRs canônicas: [[ADR-259]] (boundary LLM unificado) + [[ADR-090]] (dinheiro nunca float) + [[ADR-261]] (cache invalidation).
 
 **Capacity estimada**: ~3d eng-time.

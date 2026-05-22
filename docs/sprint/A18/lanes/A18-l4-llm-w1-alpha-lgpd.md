@@ -11,7 +11,7 @@ parallel_with:
   - "[[A18.l1]]"
   - "[[A18.l2]]"
 adrs:
-  - "[[ADR-256]]"
+  - "[[ADR-259]]"
   - "[[ADR-111]]"
   - "[[ADR-246]]"
 tags:
@@ -36,7 +36,7 @@ Fechar 3 gaps LGPD identificados na revisão paralela (2026-05-22) de schemas LL
 2. `pipeline/llm/schemas/informe_aluguel.py:147-154` permite `locador_cpf` cru.
 3. `pipeline/llm/prompts/informe_aluguel.py` sem `PROMPT_VERSION` no arquivo de prompt (gate [[ADR-233]] cego).
 
-Aderência a [[ADR-256]] (boundary LLM unificado): schema Pydantic emite `cpf_present: bool`; adapter Python pós-extração popula `FamilyMember.cpf_encrypted` via `backend/app/services/vault.py` Fernet ([[ADR-111]]).
+Aderência a [[ADR-259]] (boundary LLM unificado): schema Pydantic emite `cpf_present: bool`; adapter Python pós-extração popula `FamilyMember.cpf_encrypted` via `backend/app/services/vault.py` Fernet ([[ADR-111]]).
 
 ## Critério de aceite (gate binário falsifiável)
 
@@ -73,7 +73,7 @@ Aderência a [[ADR-256]] (boundary LLM unificado): schema Pydantic emite `cpf_pr
 
 ## Coordenação
 
-Paralelo a [[A18.l1]] (CRLV) e [[A18.l2]] (apólice). [[A18.l2]] também extrai CPF (segurado) — sinergia: ADR-256 cobre boundary unificado para ambos. Não competir por arquivos.
+Paralelo a [[A18.l1]] (CRLV) e [[A18.l2]] (apólice). [[A18.l2]] também extrai CPF (segurado) — sinergia: [[ADR-259]] cobre boundary unificado para ambos. Não competir por arquivos.
 
 **Depende de**: nada. Pode iniciar imediatamente após A18 abrir.
 
@@ -81,6 +81,6 @@ Paralelo a [[A18.l1]] (CRLV) e [[A18.l2]] (apólice). [[A18.l2]] também extrai 
 
 ## Detalhe operacional
 
-Plano canônico: [[PLAN-llm-prompts-hardening]] §W1α. ADR canônica: [[ADR-256]] (boundary LLM unificado).
+Plano canônico: [[PLAN-llm-prompts-hardening]] §W1α. ADR canônica: [[ADR-259]] (boundary LLM unificado).
 
 **Capacity estimada**: ~4d eng-time.

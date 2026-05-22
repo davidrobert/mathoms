@@ -135,7 +135,7 @@ Não há migração — convive. Critérios de revisitação:
 
 ### Por que a errata
 
-Revisão paralela do plano [[PLAN-llm-prompts-hardening]] em 2026-05-22 (`data-engineer` + `senior-cto`) identificou que **manter `<slug>-vX.Y.Z` legado coexistindo com semver puro causa ruído em telemetria por `prompt_version`** ([[ADR-257]]):
+Revisão paralela do plano [[PLAN-llm-prompts-hardening]] em 2026-05-22 (`data-engineer` + `senior-cto`) identificou que **manter `<slug>-vX.Y.Z` legado coexistindo com semver puro causa ruído em telemetria por `prompt_version`** ([[ADR-260]]):
 
 - Label OTLP `mathoms.llm.confidence{prompt_version="e16-v1.1.0"}` é desnecessariamente longo.
 - Agrupamento por `prompt_version` em SQL `LLMCallLog` retorna 2 buckets para o mesmo prompt (semver vs. legado) se houver bump misturado.
@@ -159,7 +159,7 @@ Decisão da errata: **migrar os 5 prompts legados para semver puro com migration
 
 **Antes** da migration de `PROMPT_VERSION` no código:
 
-1. Snapshot histórico via `dev/snapshot_llm_call_log_history.py` ([[ADR-258]]):
+1. Snapshot histórico via `dev/snapshot_llm_call_log_history.py` ([[ADR-261]]):
    ```bash
    python3 dev/snapshot_llm_call_log_history.py --all-legacy \
      --output _archive/llm_call_log_pre_semver_migration_<date>.csv
@@ -171,9 +171,9 @@ Decisão da errata: **migrar os 5 prompts legados para semver puro com migration
 
 `dev/check_prompt_version_bumped.py` ganha **modo estrito**: regex `^\d+\.\d+\.\d+$` (sem alternativa `<slug>-v`). Falha PR que tenta reintroduzir formato legado.
 
-### Coordenação com [[ADR-257]]
+### Coordenação com [[ADR-260]]
 
-Esta errata é pré-requisito de [[ADR-257]] (telemetria) — sem migration, labels OTLP ficam misturados entre semver e slug. Errata executada em PR coordenado de W2-T01 do plano [[PLAN-llm-prompts-hardening]].
+Esta errata é pré-requisito de [[ADR-260]] (telemetria) — sem migration, labels OTLP ficam misturados entre semver e slug. Errata executada em PR coordenado de W2-T01 do plano [[PLAN-llm-prompts-hardening]].
 
 ### Aceite da errata
 

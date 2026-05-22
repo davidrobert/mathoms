@@ -15,7 +15,7 @@ parallel_with:
   - "[[A20.l14]]"
 adrs:
   - "[[ADR-233]]"
-  - "[[ADR-258]]"
+  - "[[ADR-261]]"
 tags:
   - type/lane
   - sprint/a20
@@ -61,7 +61,7 @@ Migrar 5 prompts legados em PR coordenado:
 
 Migration Alembic coordenada:
 
-- Snapshot via `dev/snapshot_llm_call_log_history.py --all-legacy` ([[ADR-258]] §Snapshot histórico).
+- Snapshot via `dev/snapshot_llm_call_log_history.py --all-legacy` ([[ADR-261]] §Snapshot histórico).
 - `LLMCallLog.prompt_version`: regex map `^([\w-]+)-v(\d+\.\d+\.\d+)$ → \2`. Coluna `prompt_version_legacy` (text nullable) preserva original.
 - `pipeline_artifacts.metadata.prompt_version`: JSON path UPDATE.
 - `dev/check_prompt_version_bumped.py` → modo estrito (sem alternativa `<slug>-v`).
@@ -91,7 +91,7 @@ op.add_column("llm_call_log", sa.Column("confidence", sa.Float, nullable=True))
 op.add_column("llm_call_log", sa.Column("needs_review", sa.Boolean, nullable=False, default=False))
 ```
 
-Adapter `litellm_client._record_call_log()` popula via `LLMCallResult` ([[ADR-257]]):
+Adapter `litellm_client._record_call_log()` popula via `LLMCallResult` ([[ADR-260]]):
 
 ```python
 log.confidence = result.confidence
@@ -115,6 +115,6 @@ GROUP BY prompt_name, prompt_version;
 
 ## Detalhe operacional
 
-Plano canônico: [[PLAN-llm-prompts-hardening]] §W2. ADRs canônicas: [[ADR-233]] errata §Migration + [[ADR-258]] (cache invalidation).
+Plano canônico: [[PLAN-llm-prompts-hardening]] §W2. ADRs canônicas: [[ADR-233]] errata §Migration + [[ADR-261]] (cache invalidation).
 
 **Capacity estimada**: ~4d eng-time.
