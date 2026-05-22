@@ -2,8 +2,8 @@
 id: ADR-240
 type: adr
 title: "Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19)"
-status: Proposto
-phase: A19.card-protecao
+status: Decidido
+phase: A19.l1
 date: "2026-05-21"
 relates_to:
   - "[[ADR-076]]"
@@ -25,7 +25,7 @@ aliases:
   - "Pilar AUVP Proteção"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/report
   - area/methodology
   - methodology/auvp
@@ -258,3 +258,26 @@ PR de Proposto desta ADR inclui apenas: este arquivo + [[ADR-239]] + estrutura d
 - **A5 — Não flagar ausência (sem KPI F).** Rejeitado: omite pilar AUVP; vira catálogo, não diagnóstico.
 - **A6 — Multi-corretor warning ativo em V1.** Rejeitado: contexto-dependente; vira nota neutra. V2 detecta caso real de gap de bônus.
 - **A7 — Manter ordem visual atual (S_PROTECAO depois de S4/S3).** Rejeitado: contradiz hierarquia AUVP que Mathoms usa como argumento de produto.
+
+## Entrega — L1 (S_PROTECAO V1)
+
+Lane [[A19.l1]] entregue em 4 PRs squash-mergeados em `main` (todos CI verde):
+
+- **P1** [#430](https://github.com/davidrobert/mathoms/pull/430) — `protecao_patrimonial.schema.json` (wire string decimal, validado via hook DBArtifactStore.write) + 4 fórmulas em `docs/reference/FORMULAS.md` (G2 gate atendido) + `ProtecaoAnalyzer` puro (sem DB) + 20 testes em `tests/test_protecao_analyzer.py` cobrindo 3 cenários G6.
+- **P2** [#432](https://github.com/davidrobert/mathoms/pull/432) — `config/report_layout.yaml` ganha seção `S_PROTECAO` entre S2 e S3 (`enabled: false` até P3 ligar — evita break visual) + codegen TS/Pydantic regenerado.
+- **P3** [#435](https://github.com/davidrobert/mathoms/pull/435) — componente React `S_ProtecaoSection.tsx` + 4 sub-componentes (`ProtecaoKpiHero`, `ProtecaoGapVeiculos`, `ProtecaoGapQualitativo`, `ProtecaoApolices`) + tipos TS + 17 testes Vitest cobrindo 3 cenários G6 + edge cases + faixas Cerbasi parametrizadas.
+- **P4** (este PR) — extensão E6-parecer (instrução D10 — proteção patrimonial com regras CRC ADR-240 D3) + bump `PROMPT_VERSION` 1.1.0→1.2.0 + telemetria `mathoms.relatorio.protecao_rendered` (kpis_status, has_gap_vida/saude, has_apolice_vencida — sem PII) + flip ADR-240 → `Decidido (Sprint A19 L1)` + lane shipped.
+
+**Padrão arquitetural validado (replicar em V2):**
+
+- **Domain analyzer puro** + **schema JSON validado** + **codegen TS/Pydantic** (ADR-076) + **componente React modular** (1 section + 4 sub-componentes) + **telemetria emitida no analyzer** (não no React — facilita métricas server-side).
+- **Discriminated Union no payload** (`gap_qualitativo[].categoria`) antecipa V2 (vida, saúde + rc_familiar, rd_profissional, ap como placeholders V2) sem migration breaking.
+- **Empty states** em cada sub-componente + degradação graceful no nível da section (retorna `null` quando `protecao_patrimonial=null`).
+- **CRC strict** em copy de UI + instrução D10 no parecer LLM (sem prescritivo; sem recomendação de produto).
+
+**Débito conhecido (V2 candidates):**
+
+- **P3.1** — E2E `@critical` Playwright (`frontend/e2e/protecao.spec.ts`) — 3 cenários G6 com interação real no relatório. Não bloqueia V1 (Vitest cobre componente; E2E garante integração shell).
+- **P2.1** — Reorderação S3↔S4 para ordem AUVP completa (`S2 → S_PROTECAO → S4 → S3 → S8`). Requer visual review explícito de snapshots PDF. Sub-task isolada.
+- **Card vida/saúde funcional V1** — schema + chips placeholder existem; tabela com capital segurado + beneficiários + rede credenciada fica em V2 (Sprint A20+ condicional a apólices reais de vida/saúde).
+- **`flag_vida` heurístico** — gating depende de `family_members` populado (gate G5 garante degradação graceful quando ausente). V2 pode integrar dependentes IRPF via E1.6.

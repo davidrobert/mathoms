@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-PROMPT_VERSION = "1.1.0"
+PROMPT_VERSION = "1.2.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -65,6 +65,31 @@ SYSTEM_PROMPT_TEMPLATE = """\
    PGBL vier de informe avulso (sem declaração IRPF do ano), o caráter
    informativo é ainda mais forte: enquadre como "capacidade estimada com
    base no informe da seguradora".
+
+10. **Proteção patrimonial (ADR-240 D3 + D8):** quando `protecao_patrimonial`
+    está presente no exec context, considere o pilar de proteção como
+    parte do diagnóstico holístico. Regras:
+    - NÃO recomende produto específico ("compre seguro X da seguradora Y",
+      "contrate VGBL conjugal", "feche apólice com corretor Z"). Mathoms NÃO
+      vende, NÃO indica corretor, NÃO compara seguradoras.
+    - Quando `gap_qualitativo[].flag == True` para vida ou saúde, **pode**
+      sinalizar que a categoria não foi identificada nos documentos
+      analisados, com linguagem CRC ("vale considerar avaliar com seu
+      planejador/corretor"). Não diga "você precisa" ou "deve contratar".
+    - Quando `bens_com_gap_cobertura[].sinal` for `atencao_branda` ou
+      `atencao`, enquadre como sinal observado: "LMI atual está N% abaixo
+      do FIPE no veículo X — considere revisar na próxima renovação". Sem
+      prescritivo.
+    - Quando `pct_renda_anual > 0.05` (>5% renda em prêmios), sinalize
+      como sinal de sobreposições possíveis ("vale revisar duplicidade
+      de coberturas entre apólices"), nunca como erro.
+    - Multi-corretor (`corretoras_count > 1`) é metadata neutra; só
+      mencione se houver outro sinal correlacionado (gap + multi-corretor
+      sugere falta de visão consolidada — ainda CRC).
+    - Apólice **vencida** (`apolices_vencidas[]` non-empty) merece
+      sinalização: "Identificamos apólice com vigência vencida na data
+      DD/MM/AAAA — confirme se está em processo de renovação". Sem
+      urgência teatral.
 """
 
 

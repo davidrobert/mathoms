@@ -3,12 +3,13 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-34 entries entre 2026-05-10 e 2026-05-22.
+35 entries entre 2026-05-10 e 2026-05-22.
 
-## 2026-05-22 (2 entries)
+## 2026-05-22 (3 entries)
 
 - [[CHG-2026-05-22-A18-L1-CRLV-SHIPPED]] — feat(adr-239): A18 L1 (CRLV-e + tabela vehicles + reconciliação fuzzy IRPF G02) (lane [[A18.l1]])
 - [[CHG-2026-05-22-A18-L2-APOLICE-SHIPPED]] — feat(adr-239): A18 L2 (apólice polimórfica auto/residencial/combinada V1 (lane [[A18.l2]])
+- [[CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED]] — feat(adr-240): A19 L1 (card S_PROTECAO — 4º pilar AUVP Proteção Patrimonial) (lane [[A19.l1]])
 
 ## 2026-05-21 (8 entries)
 

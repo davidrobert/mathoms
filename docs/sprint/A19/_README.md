@@ -31,7 +31,7 @@ Lane única que entrega:
 
 ## Lanes
 
-- [[A19.l1]] (`open`) — L1: Card S_PROTECAO completo. Lane única na sprint.
+- [[A19.l1]] (`shipped` · 2026-05-22) — ✅ L1: Card S_PROTECAO completo. 4 PRs (#430, #432, #435, #436). [[ADR-240]] flippada `Decidido (Sprint A19 L1)`. Lane única na sprint.
 
 ## Pré-requisitos
 

@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 189
-- **Proposto**: 55
+- **Decidido**: 190
+- **Proposto**: 54
 - **Roadmap**: 4
 
 ## Fundação
@@ -478,15 +478,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## report
 
-### Decidido (1)
+### Decidido (2)
 
 - [[ADR-191]] — Card Rentabilidade do relatório expõe TRS efetiva — não retorno total · phase A11.W5
+- [[ADR-240]] — Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19) · phase A19.l1
 
-### Proposto (3)
+### Proposto (2)
 
 - [[ADR-187]] — Relatório publicado é imutável — conceito de mês fechado · phase A11
 - [[ADR-190]] — Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica · phase A11
-- [[ADR-240]] — Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19) · phase A19.card-protecao
 
 ## security
 
