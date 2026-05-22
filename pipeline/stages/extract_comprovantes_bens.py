@@ -336,6 +336,37 @@ def _processed_summary(
     }
 
 
+def _reconcile_apolice_against_db(payload: dict, *, workspace_id: str) -> dict:
+    """ADR-239 D3 — try/except backend; degrada graceful. Muta payload in-place."""
+    runner = _try_import_apolice_runner()
+    if runner is None:
+        return payload
+    reconcile_fn, session_factory = runner
+    return _invoke_apolice_reconciliation(reconcile_fn, session_factory, workspace_id, payload)
+
+
+def _try_import_apolice_runner():
+    """Try-import do runner backend; None se indisponível (CLI/tests sem DB)."""
+    try:
+        from backend.app.core.database import SyncSessionLocal
+        from backend.app.services.apolice_reconciliation_runner import reconcile_apolice_with_db
+    except Exception as exc:  # noqa: BLE001
+        logger.info("apolice reconciliation skipped (backend unavailable: %s)", exc)
+        return None
+    return reconcile_apolice_with_db, SyncSessionLocal
+
+
+def _invoke_apolice_reconciliation(reconcile_fn, session_factory, workspace_id, payload):
+    """Helper isolado — degradação graceful em runtime."""
+    try:
+        with session_factory() as db:
+            new_payload, _ = reconcile_fn(workspace_id, payload, db=db)
+            return new_payload
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("apolice reconciliation failed: %s", exc)
+        return payload
+
+
 def _apolice_artifact_key(payload: dict) -> str:
     """Key apólice = ``apolice_<numero_sanitized>_<vigencia_ano>`` (ADR-239 D7 temporal)."""
     numero = payload.get("apolice_numero", "")
@@ -361,7 +392,8 @@ def _persist_processed(
         upsert = _upsert_in_db(ws_id, payload)
         _log_run(doc.name, ws_id, payload, result, upsert.outcome.value, tipo)
         return _processed_summary(doc, payload, key, tipo, ano, upsert)
-    # Apólice — sem upsert vehicles; reconciliação assíncrona em P4.
+    # Apólice — reconciliação assíncrona contra vehicles + property_identity (ADR-239 D3).
+    payload = _reconcile_apolice_against_db(payload, workspace_id=ws_id)
     key = _apolice_artifact_key(payload)
     ctx.get_artifact_store().write("extract_comprovantes_bens", key, payload)
     ano = int(key.rsplit("_", 1)[-1]) if key.rsplit("_", 1)[-1].isdigit() else None
