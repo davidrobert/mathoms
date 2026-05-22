@@ -336,3 +336,28 @@ Lane [[A18.l1]] entregue em 5 PRs squash-mergeados em `main` (todos CI verde):
 - UI S4 com disclaimer "Valor atualizado via FIPE (refresh anual)" — bloqueado por L3 (FIPE integration).
 - `veiculos_consolidados[]` ainda é fonte de E5 (não substituído por query direta em `vehicles`) — débito que A18 L2/L3 ou Sprint A19 resolve dependendo de prioridade.
 - Vehicle não tem `member_key` confiável pós-upload (CPF mascarado por LGPD); blocking por proprietario degrada para "todos candidatos". Resolução em V2 quando associação `vehicle ↔ family_member` for adicionada via UI explícita.
+
+## Entrega — L2 (Apólice polimórfica)
+
+Lane [[A18.l2]] entregue em 5 PRs squash-mergeados em `main` (todos CI verde):
+
+- **P1** [#419](https://github.com/davidrobert/mathoms/pull/419) — `ApolicePayload` Pydantic V2 strict com **Discriminated Union em 2 níveis**: `bens_segurados[]` (veiculo|imovel|pessoa-V2) e `<bem>.coberturas[]` (material|rcfv|vida-V2|saude-V2|acidentes-V2). LMI via `lmi_modo` discriminator (3 modos: valor_fixo | fipe_percentual | primeiro_risco_absoluto) — não union de tipo no valor. `CorretorRef.cpf_or_cnpj` aceita PJ (CNPJ 14) e PF (CPF 11 + SUSEP). Top-level lenient (ADR-238 D2); sub-models strict. PROMPT_VERSION="apolice-v1.0.0". 3 goldens sintéticos LGPD-safe (auto, residencial, combinada).
+- **P2** [#420](https://github.com/davidrobert/mathoms/pull/420) — `TypeRule apolice_seguro` content-first (regex Apólice/SUSEP/Cobertura/CNPJs top-5) + migration `adr239apolice` seed top-5 seguradoras (porto, tokiomarine, bradesco_seguros, itau_seguros, zurich) categoria `insurance` (mesma já usada para BrasilPrev em ADR-238) + mapping `_COMPROVANTE_BEM_PREFIXES` ganha "apolice_seguro" / "apolice" (stage único dispatch por tipo).
+- **P3** [#422](https://github.com/davidrobert/mathoms/pull/422) — stage `extract_comprovantes_bens` ganha dispatch `tipo_comprovante=apolice` + cascata LLM Haiku→Sonnet (gate triplo D6: `len(bens_segurados) > 1` OU `confidence < 0.7` OU strings "combinada"/"residencial+auto"). Cache key inclui modelo (haiku vs sonnet) preservando idempotência ADR-144. CPFs mascarados em Python pós-LLM (ADR-231 D8); `sinistro_indenizacao_recebida_brl` forçado null (placeholder V1). Artifact key apólice = `apolice_<numero_sanitized>_<vigencia_ano>` (D7 histórico imutável temporal).
+- **P4** [#424](https://github.com/davidrobert/mathoms/pull/424) — função pura `reconcile_apolice_bens` + runner backend `apolice_reconciliation_runner.py`. Match estrito por placa (veículo, ADR-225) + match token-set inclusivo em endereço canônico (imóvel, tolera "Apartamento 42" extra de um lado). 4 outcomes: matched / no_candidate / stale_cleared / idempotent_skip. Plumbing em `_persist_processed` apolice path (try/except backend — degrada graceful).
+- **P5** [#425](https://github.com/davidrobert/mathoms/pull/425) — 3 goldens V2 placeholder (vida, saude, acidentes) validando que schema antecipa V2 sem migration breaking + flip ADR-239 ganha seção `## Entrega — L2` + lane `A18.l2 → shipped` + changelog entry.
+
+**Padrão arquitetural revalidado (replicar em L3 FIPE refresh):**
+
+- Discriminated Union 2 níveis antecipa V2 (vida/saúde/acidentes) já em V1 — payload aceita sem migration breaking; UI consome quando V2 entrar.
+- LMI discriminator (não union de tipo) — consumer não precisa `isinstance` em todo lugar.
+- Cascata LLM Haiku→Sonnet com gate explícito (cost-optimized para apólices simples; Sonnet só quando combinada multi-bem).
+- Cache key inclui modelo (Haiku vs Sonnet) — re-run com mesmo modelo serve do cache (ADR-144).
+- Match imóvel via token-set inclusivo, não fuzzy ratio — preserva rigor sem floats arbitrários.
+- Pessoa V2 placeholder em `_reconcile_one_bem` retorna `no_candidate` sem expor pool de `family_members` (LGPD).
+
+**Débito conhecido (L2):**
+
+- UI de proteção (card S_PROTECAO, A19) consome `bens_segurados[].coberturas[]` apenas em V2 — apólice ingerida em V1 fica em DB sem render frontend até A19 mergear.
+- Pagador FK `pagador_family_member_id` resolvida apenas quando UI for adicionada (V2) — V1 captura `pagador_cpf_masked` em texto livre mas não vincula a `family_members`.
+- Apólice combinada Porto V1: cascata Sonnet dispara em ~30% dos casos onde Haiku confunde LMI/cobertura por bem; gate aceitável (custo Sonnet ~3× Haiku, mas só para combinadas).

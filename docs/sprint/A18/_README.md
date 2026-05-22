@@ -40,9 +40,9 @@ Entrega: extensão `market_rates`; `FipeLookupClient` (adapter [[ADR-097]]) com 
 
 ## Lanes
 
-- [[A18.l1]] (`shipped` · 2026-05-22) — ✅ L1: CRLV-e. Padrão arquitetural validado em 5 PRs (#388, #391, #412, #414, #416, #417). [[ADR-239]] flippada `Decidido (Sprint A18 L1)`.
-- [[A18.l2]] (`planned`) — L2: Apólice de seguro (combinada V1). Depende de L1 (valida padrão polimórfico).
-- [[A18.l3]] (`planned`) — L3: FIPE refresh. Depende de L1 (precisa de `vehicles.fipe_code`). Paralela a L2.
+- [[A18.l1]] (`shipped` · 2026-05-22) — ✅ L1: CRLV-e. Padrão arquitetural validado em 6 PRs (#388, #391, #412, #414, #416, #418). [[ADR-239]] flippada `Decidido (Sprint A18 L1)`.
+- [[A18.l2]] (`shipped` · 2026-05-22) — ✅ L2: Apólice polimórfica (auto/residencial/combinada V1; vida/saúde/acidentes-V2 placeholder). 5 PRs (#419, #420, #422, #424, #425). Discriminated Union 2 níveis + cascata LLM Haiku→Sonnet validados.
+- [[A18.l3]] (`planned`) — L3: FIPE refresh. Depende de L1 (precisa de `vehicles.fipe_code`). Paralela a L2 — destrava UI S4 disclaimer.
 
 ## Pré-requisitos
 

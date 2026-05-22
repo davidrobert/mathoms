@@ -1,0 +1,41 @@
+{
+  "apolice_numero": "AP-TM-20260315-AP1",
+  "seguradora": "tokiomarine",
+  "vigencia_inicio": "2026-03-15",
+  "vigencia_fim": "2027-03-15",
+  "classe_bonus": null,
+  "congenere_anterior": null,
+  "premio_total_brl": "780.00",
+  "forma_pagamento": "cartao",
+  "pagador_cpf_masked": null,
+  "pagador_family_member_id": null,
+  "segurado_cpf_masked": null,
+  "segurado_family_member_id": null,
+  "corretor": {
+    "susep_code": "200000003",
+    "nome": "TEST CORRETORA AP LTDA",
+    "cpf_or_cnpj": "00000000000300",
+    "cnpj_or_cpf_kind": "cnpj"
+  },
+  "bens_segurados": [
+    {
+      "tipo": "pessoa",
+      "pessoa_cpf_masked": null,
+      "family_member_id": null,
+      "coberturas": [
+        {
+          "tipo": "acidentes",
+          "capital_segurado_morte_brl": "200000.00",
+          "capital_segurado_invalidez_brl": "200000.00",
+          "premio_brl": "780.00"
+        }
+      ]
+    }
+  ],
+  "sinistro_indenizacao_recebida_brl": null,
+  "confidence": 0.92,
+  "needs_review": false,
+  "prompt_version": "apolice-v1.0.0",
+  "cascade_triggered": false,
+  "notas": "Placeholder V2 acidentes pessoais — schema antecipa para evitar migration breaking."
+}

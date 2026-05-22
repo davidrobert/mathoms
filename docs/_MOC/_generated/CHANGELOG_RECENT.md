@@ -3,11 +3,12 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-33 entries entre 2026-05-10 e 2026-05-22.
+34 entries entre 2026-05-10 e 2026-05-22.
 
-## 2026-05-22 (1 entries)
+## 2026-05-22 (2 entries)
 
 - [[CHG-2026-05-22-A18-L1-CRLV-SHIPPED]] — feat(adr-239): A18 L1 (CRLV-e + tabela vehicles + reconciliação fuzzy IRPF G02) (lane [[A18.l1]])
+- [[CHG-2026-05-22-A18-L2-APOLICE-SHIPPED]] — feat(adr-239): A18 L2 (apólice polimórfica auto/residencial/combinada V1 (lane [[A18.l2]])
 
 ## 2026-05-21 (8 entries)
 

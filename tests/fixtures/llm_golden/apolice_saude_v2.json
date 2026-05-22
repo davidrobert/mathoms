@@ -1,0 +1,41 @@
+{
+  "apolice_numero": "SAUDE-BRD-20260201-S1",
+  "seguradora": "bradesco_seguros",
+  "vigencia_inicio": "2026-02-01",
+  "vigencia_fim": "2027-02-01",
+  "classe_bonus": null,
+  "congenere_anterior": null,
+  "premio_total_brl": "8400.00",
+  "forma_pagamento": "debito",
+  "pagador_cpf_masked": null,
+  "pagador_family_member_id": null,
+  "segurado_cpf_masked": null,
+  "segurado_family_member_id": null,
+  "corretor": {
+    "susep_code": "200000002",
+    "nome": "TEST CORRETORA SAUDE LTDA",
+    "cpf_or_cnpj": "00000000000200",
+    "cnpj_or_cpf_kind": "cnpj"
+  },
+  "bens_segurados": [
+    {
+      "tipo": "pessoa",
+      "pessoa_cpf_masked": null,
+      "family_member_id": null,
+      "coberturas": [
+        {
+          "tipo": "saude",
+          "rede_credenciada": "Rede Top Bradesco Saude",
+          "capital_segurado_brl": null,
+          "premio_brl": "8400.00"
+        }
+      ]
+    }
+  ],
+  "sinistro_indenizacao_recebida_brl": null,
+  "confidence": 0.85,
+  "needs_review": false,
+  "prompt_version": "apolice-v1.0.0",
+  "cascade_triggered": false,
+  "notas": "Placeholder V2 saude — schema antecipa para evitar migration breaking; UI ainda nao consome."
+}
