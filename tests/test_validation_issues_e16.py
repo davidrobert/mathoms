@@ -104,10 +104,11 @@ class TestLegacyMessageParity:
     # — _record_stage_needs_review (joins por \n) e logs continuam idênticos.
 
     def test_pii_notes_message(self):
+        # ADR-157 errata 2026-05-22: PII CPF é warning, não error.
         out = _minimal()
         out.notes = "CPF: 000.000.000-00 vazado"
         r = validate_e16_output(out)
-        assert "E1.6: campo 'notes' contém CPF não-mascarado (PII)" in r.errors
+        assert "E1.6: campo 'notes' contém CPF não-mascarado (PII)" in r.warnings
 
     def test_pii_rendimentos_isentos_message(self):
         out = _minimal()
@@ -120,7 +121,7 @@ class TestLegacyMessageParity:
         )
         r = validate_e16_output(out)
         expected = "E1.6: rendimentos_isentos[0] contém CPF não-mascarado em campo livre"
-        assert expected in r.errors
+        assert expected in r.warnings
 
     def test_pii_dividas_onus_message(self):
         """Cenário do screenshot que motivou ADR-165."""
@@ -135,7 +136,7 @@ class TestLegacyMessageParity:
         )
         r = validate_e16_output(out)
         expected = "E1.6: dividas_onus[0] contém CPF não-mascarado em discriminacao"
-        assert expected in r.errors
+        assert expected in r.warnings
 
     def test_imposto_xor_message(self):
         out = _minimal(ir_a_pagar="100", ir_a_restituir="100")
@@ -180,7 +181,7 @@ class TestIssuesStructure:
         issues = [i for i in r.issues if i.code == "e16.pii.unmasked_cpf"]
         assert len(issues) == 1
         i = issues[0]
-        assert i.severity == "error"
+        assert i.severity == "warning"
         assert i.path == "$.dividas_onus[0].discriminacao"
         assert i.context["section"] == "dividas_onus"
         assert i.context["section_label"] == "Dívidas e ônus"
