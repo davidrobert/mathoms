@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import type { TransactionItem } from "@/lib/api";
 import {
+  aggregateDespesasMediaMensal,
+  aggregateReceitas,
   getPeriodDates,
   getPeriodMonths,
+  isIncomeCategory,
   parseChartMonthLabel,
 } from "@/lib/periodUtils";
 
@@ -85,5 +89,68 @@ describe("getPeriodMonths with anchorDate", () => {
     expect(getPeriodMonths("ytd", new Date(2024, 0, 1))).toBe(1); // Jan
     expect(getPeriodMonths("ytd", new Date(2024, 5, 1))).toBe(6); // Jun
     expect(getPeriodMonths("ytd", new Date(2024, 11, 1))).toBe(12); // Dec
+  });
+});
+
+describe("isIncomeCategory", () => {
+  it("matches receita_ prefix and outras_receitas", () => {
+    expect(isIncomeCategory("receita_clt")).toBe(true);
+    expect(isIncomeCategory("receita_aluguel")).toBe(true);
+    expect(isIncomeCategory("outras_receitas")).toBe(true);
+  });
+
+  it("matches PJ income labels from transaction_classifier_pj (ADR-236)", () => {
+    expect(isIncomeCategory("pro_labore")).toBe(true);
+    expect(isIncomeCategory("lucros_distribuidos")).toBe(true);
+  });
+
+  it("does not match PJ expense labels", () => {
+    expect(isIncomeCategory("das_simples")).toBe(false);
+    expect(isIncomeCategory("iss")).toBe(false);
+    expect(isIncomeCategory("folha_pj")).toBe(false);
+  });
+
+  it("does not match regular expense categories", () => {
+    expect(isIncomeCategory("alimentacao")).toBe(false);
+    expect(isIncomeCategory("moradia")).toBe(false);
+    expect(isIncomeCategory("nao_identificado")).toBe(false);
+  });
+});
+
+const mkTx = (categoria: string, valor: number): TransactionItem =>
+  ({
+    categoria,
+    valor,
+  }) as TransactionItem;
+
+describe("aggregateDespesasMediaMensal", () => {
+  it("does not leak PJ income labels into expenses (regression: lucros_distribuidos in Orçamento Prospectivo)", () => {
+    const txs = [
+      mkTx("alimentacao", 1500),
+      mkTx("lucros_distribuidos", 20000),
+      mkTx("pro_labore", 8000),
+      mkTx("das_simples", 600),
+    ];
+    const out = aggregateDespesasMediaMensal(txs, 3);
+    expect(out).not.toHaveProperty("lucros_distribuidos");
+    expect(out).not.toHaveProperty("pro_labore");
+    expect(out.alimentacao).toBe(500); // 1500 / 3
+    expect(out.das_simples).toBe(200); // 600 / 3 — PJ expense fica
+  });
+});
+
+describe("aggregateReceitas", () => {
+  it("includes PJ income labels (pro_labore, lucros_distribuidos)", () => {
+    const txs = [
+      mkTx("receita_clt", 10000),
+      mkTx("pro_labore", 8000),
+      mkTx("lucros_distribuidos", 20000),
+      mkTx("alimentacao", 1500), // despesa, ignorada
+    ];
+    const out = aggregateReceitas(txs);
+    expect(out.receita_clt).toBe(10000);
+    expect(out.pro_labore).toBe(8000);
+    expect(out.lucros_distribuidos).toBe(20000);
+    expect(out).not.toHaveProperty("alimentacao");
   });
 });

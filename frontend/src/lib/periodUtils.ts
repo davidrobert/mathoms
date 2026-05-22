@@ -98,7 +98,13 @@ export function getPeriodMonths(period: Period, anchorDate?: Date): number {
 // Prefixos de categoria que indicam receita no pipeline Mathoms AI.
 const INCOME_PREFIXES = ["receita_", "outras_receitas"];
 
+// Labels PJ-side de receita ([[ADR-236]] · transaction_classifier_pj.PJ_LABELS).
+// Não seguem prefixo `receita_` por convenção do classifier — mantemos set
+// explícito aqui. `das_simples`, `iss`, `folha_pj` são despesas PJ e ficam fora.
+const PJ_INCOME_CATEGORIES = new Set(["pro_labore", "lucros_distribuidos"]);
+
 export function isIncomeCategory(categoria: string): boolean {
+  if (PJ_INCOME_CATEGORIES.has(categoria)) return true;
   return INCOME_PREFIXES.some((p) => categoria.startsWith(p));
 }
 
