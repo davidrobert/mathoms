@@ -245,6 +245,13 @@
 | ADR-245 | adr | Proposto |  | `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR | `adr/245-fallback-baseline-irpf-em-caixa-moeda-estrangeira.md` |
 | ADR-246 | adr | Proposto |  | Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c | `adr/246-dedup-imoveis-cross-irpf.md` |
 | ADR-247 | adr | Decidido |  | Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero | `adr/247-markdown-canonico-html-apenas-artefato-derivado.md` |
+| ADR-248 | adr | Proposto |  | Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20 | `adr/248-multi-stage-backend-playwright-dual-target.md` |
+| ADR-249 | adr | Proposto |  | SHA pinning de imagens base + Dependabot Docker — Sprint A20 | `adr/249-sha-pinning-bases-dependabot-docker.md` |
+| ADR-250 | adr | Proposto |  | GHCR como registry de imagens + tagging strategy — Sprint A20 | `adr/250-ghcr-registry-tagging-strategy.md` |
+| ADR-251 | adr | Proposto |  | Trivy image scan blocking + SBOM CycloneDX — Sprint A20 | `adr/251-trivy-image-scan-blocking-sbom.md` |
+| ADR-252 | adr | Proposto |  | Compose dev unificado + Makefile targets opt-in — Sprint A20 | `adr/252-compose-dev-unificado-makefile-onboarding.md` |
+| ADR-253 | adr | Proposto |  | Postgres driver consolidation (asyncpg-only) — Sprint A20 | `adr/253-postgres-driver-consolidation.md` |
+| ADR-254 | adr | Proposto |  | Python lockfile com hashes — pip-tools vs uv — Sprint A20 | `adr/254-python-lockfile-com-hashes.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -490,6 +497,16 @@
 | A18.l2 | lane | shipped | A18 | Comprovantes de Bem — L2 Apólice de seguro polimórfica (combinada V1, vida/saúde/PJ V2) | `sprint/A18/lanes/A18-l2-apolice.md` |
 | A18.l3 | lane | planned | A18 | Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI | `sprint/A18/lanes/A18-l3-fipe.md` |
 | A19.l1 | lane | open | A19 | S_PROTECAO — L1 Card 4º pilar AUVP no relatório (KPIs + 3 subgrupos + reposicionamento) | `sprint/A19/lanes/A19-l1-card-protecao.md` |
+| A20.l1 | lane | open | A20 | Docker dev↔prod parity — L1 Multi-stage backend + Playwright dual target | `sprint/A20/lanes/A20-l1-backend-multistage.md` |
+| A20.l10 | lane | open | A20 | Docker dev↔prod parity — L10 Python lockfile com hashes (pip-tools vs uv) | `sprint/A20/lanes/A20-l10-python-lockfile.md` |
+| A20.l2 | lane | open | A20 | Docker dev↔prod parity — L2 SHA pinning de bases + Dependabot Docker | `sprint/A20/lanes/A20-l2-sha-pinning.md` |
+| A20.l3 | lane | open | A20 | Docker dev↔prod parity — L3 pipeline-service non-root + healthcheck por service | `sprint/A20/lanes/A20-l3-pipeline-service.md` |
+| A20.l4 | lane | open | A20 | Docker dev↔prod parity — L4 GHCR push em CI + tagging strategy | `sprint/A20/lanes/A20-l4-ghcr-push.md` |
+| A20.l5 | lane | open | A20 | Docker dev↔prod parity — L5 Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/lanes/A20-l5-trivy-sbom.md` |
+| A20.l6 | lane | open | A20 | Docker dev↔prod parity — L6 docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/lanes/A20-l6-compose-dev.md` |
+| A20.l7 | lane | open | A20 | Docker dev↔prod parity — L7 Makefile targets + SETUP.md revisado | `sprint/A20/lanes/A20-l7-makefile.md` |
+| A20.l8 | lane | open | A20 | Docker dev↔prod parity — L8 Postgres driver consolidation (asyncpg-only) | `sprint/A20/lanes/A20-l8-postgres-driver.md` |
+| A20.l9 | lane | blocked | A20 | Docker dev↔prod parity — L9 Smoke E2E em compose (login + relatório + PDF) | `sprint/A20/lanes/A20-l9-smoke-e2e.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -558,6 +575,7 @@
 | MOC-sprint-a17 | moc |  |  | Sprint A17 — Ingestão de Informes de Rendimentos anuais avulsos (4 ondas) | `sprint/A17/_README.md` |
 | MOC-sprint-a18 | moc |  |  | Sprint A18 — Comprovantes de Bem (CRLV) + Apólices polimórficas + FIPE refresh (3 lanes coordenadas) | `sprint/A18/_README.md` |
 | MOC-sprint-a19 | moc |  |  | Sprint A19 — Card S_PROTECAO (4º pilar AUVP Proteção Patrimonial) | `sprint/A19/_README.md` |
+| MOC-sprint-a20 | moc |  |  | Sprint A20 — Docker dev↔prod parity + P0 production gates | `sprint/A20/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
