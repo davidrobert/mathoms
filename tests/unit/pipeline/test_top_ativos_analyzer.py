@@ -268,3 +268,69 @@ class TestTipoOrigem:
             _entries(("david", _bens(imoveis=[{"descricao": "X", "valor_irpf": 100}])))
         )
         assert r.top_ativos[0].tipo_origem == "imovel"
+
+
+def _imovel(descricao: str, valor_irpf, **kw) -> dict:
+    out: dict = {"descricao": descricao, "valor_irpf": valor_irpf}
+    out.update(kw)
+    return out
+
+
+class TestDedupByPropertyId:
+    """ADR-246: defesa em profundidade — Top 15 dedup por property_id (maior vence)."""
+
+    def test_same_property_id_in_two_members_collapses(self):
+        r = TopAtivosAnalyzer().analyze(
+            _entries(
+                ("david", _bens(imoveis=[_imovel("APT", 477436.58, property_id="uuid-x")])),
+                ("mariana", _bens(imoveis=[_imovel("APT", 530000.0, property_id="uuid-x")])),
+            )
+        )
+        assert len(r.top_ativos) == 1
+        assert float(r.top_ativos[0].valor) == 530000.0
+
+    def test_distinct_property_ids_preserved(self):
+        r = TopAtivosAnalyzer().analyze(
+            _entries(
+                (
+                    "david",
+                    _bens(
+                        imoveis=[
+                            _imovel("A", 100, property_id="uuid-a"),
+                            _imovel("B", 200, property_id="uuid-b"),
+                        ]
+                    ),
+                )
+            )
+        )
+        assert len(r.top_ativos) == 2
+
+    def test_no_property_id_no_dedup(self):
+        # Investimentos sem property_id passam direto (não há chave de dedup)
+        r = TopAtivosAnalyzer().analyze(
+            _entries(
+                (
+                    "david",
+                    _bens(
+                        investimentos=[
+                            {"tipo": "CDB", "valor": 100, "nome": "A"},
+                            {"tipo": "CDB", "valor": 100, "nome": "A"},
+                        ]
+                    ),
+                )
+            )
+        )
+        assert len(r.top_ativos) == 2
+
+    def test_casal_label_when_proprietario_is_casal(self):
+        r = TopAtivosAnalyzer().analyze(
+            _entries(
+                (
+                    "david",
+                    _bens(
+                        imoveis=[_imovel("APT", 500000, property_id="uuid-c", proprietario="casal")]
+                    ),
+                ),
+            )
+        )
+        assert r.top_ativos[0].membro == "Casal"

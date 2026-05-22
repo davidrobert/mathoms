@@ -553,9 +553,20 @@ def normalize_baseline(data: Dict) -> Dict:
             if "proprietario" not in im and "proprietarios" in im:
                 props = im["proprietarios"]
                 im["proprietario"] = ", ".join(props) if isinstance(props, list) else str(props)
-        data["imoveis_consolidados"] = imoveis
+        # Dedup co-declarações cross-IRPF (ADR-246) — safety net p/ caminho
+        # legado onde E4 lê baseline sem re-rodar E1.5c. Helper é puro;
+        # no-op quando entradas não têm property_id nem endereco_canonical.
+        from pipeline.domain.services.imoveis_dedup import dedup_imoveis_consolidados
+
+        _dedup = dedup_imoveis_consolidados(imoveis)
+        if _dedup.count_after < _dedup.count_before:
+            fixes.append(
+                f"imoveis_consolidados dedup: {_dedup.count_before} → {_dedup.count_after} "
+                f"(ADR-246; warnings={len(_dedup.warnings)})"
+            )
+        data["imoveis_consolidados"] = _dedup.imoveis
         fixes.append(
-            f"imoveis_consolidados ← bens_imoveis_consolidados ({len(imoveis)} imóveis, descricao enriched)"
+            f"imoveis_consolidados ← bens_imoveis_consolidados ({len(_dedup.imoveis)} imóveis, descricao enriched)"
         )
 
     # investimentos_consolidados ← investimentos_financeiros_consolidados
