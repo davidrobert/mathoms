@@ -308,3 +308,75 @@ class TestE16Goldens:
         assert ev[2024] == Decimal("371800.00")
         # 2023 = trib (180k+25.75k+17.4k) + isento (99_outro 8k) + exclusiva (13º 15k) = 246.150,00.
         assert ev[2023] == Decimal("246150.00")
+
+
+class TestCRLVGoldens:
+    """Goldens CRLV-e — schema parses + telemetria LGPD-safe (A18 L1 P5 · ADR-239)."""
+
+    FIXTURE_NAMES = ("moto", "carro", "zero_km")
+
+    @pytest.fixture
+    def fixtures(self):
+        return {
+            name: json.loads((GOLDEN_DIR / f"crlv_{name}.json").read_text())
+            for name in self.FIXTURE_NAMES
+        }
+
+    @pytest.mark.parametrize("name", FIXTURE_NAMES)
+    def test_schema_parses(self, fixtures, name):
+        from pipeline.llm.schemas.crlv import CRLVPayload
+
+        CRLVPayload.model_validate(fixtures[name])  # no raise
+
+    def test_cpf_sempre_null_no_payload_llm(self, fixtures):
+        """LGPD ADR-231 D8: LLM nunca retorna CPF; Python mascara pós-LLM."""
+        for name in self.FIXTURE_NAMES:
+            assert (
+                fixtures[name]["proprietario_cpf_masked"] is None
+            ), f"CRLV golden {name} viola LGPD: CPF deve ser null no payload LLM"
+
+    def test_prompt_version_bumped(self, fixtures):
+        from pipeline.llm.schemas.crlv import PROMPT_VERSION
+
+        for name in self.FIXTURE_NAMES:
+            assert fixtures[name]["prompt_version"] == PROMPT_VERSION
+
+    def test_zero_km_dispara_needs_review(self, fixtures):
+        """confidence < 0.7 → needs_review True (gate _NEEDS_REVIEW_CONFIDENCE_THRESHOLD)."""
+        assert fixtures["zero_km"]["confidence"] < 0.7
+        assert fixtures["zero_km"]["needs_review"] is True
+
+    def test_moto_e_carro_passam_threshold(self, fixtures):
+        """confidence ≥ 0.7 → needs_review False (auto-merge candidate)."""
+        for name in ("moto", "carro"):
+            assert fixtures[name]["confidence"] >= 0.7
+            assert fixtures[name]["needs_review"] is False
+
+    def test_placa_e_renavam_aderem_aos_patterns(self, fixtures):
+        import re
+
+        placa_re = re.compile(r"^[A-Z]{3}\d[A-Z\d]\d{2}$")
+        renavam_re = re.compile(r"^[0-9]{9,11}$")
+        for name in self.FIXTURE_NAMES:
+            f = fixtures[name]
+            assert placa_re.match(f["placa"]), f"placa inválida em {name}: {f['placa']}"
+            assert renavam_re.match(f["renavam"]), f"renavam inválido em {name}: {f['renavam']}"
+
+    def test_build_payload_force_prompt_version(self, fixtures):
+        """A18 L1 P4 — `_build_payload` força PROMPT_VERSION mesmo se LLM retornar versão antiga."""
+        from pipeline.llm.schemas.crlv import PROMPT_VERSION
+        from pipeline.stages.extract_comprovantes_bens import _build_payload
+
+        class _Out:
+            def __init__(self, data):
+                self._data = data
+
+            def model_dump(self, mode="json"):
+                return dict(self._data)
+
+        for name in self.FIXTURE_NAMES:
+            data = dict(fixtures[name])
+            data["prompt_version"] = "stale-version"
+            payload = _build_payload(_Out(data), PROMPT_VERSION, "no cpf here", "stem")
+            assert payload["prompt_version"] == PROMPT_VERSION
+            assert payload["source_artifact_id"] == "stem"

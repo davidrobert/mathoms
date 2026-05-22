@@ -3,7 +3,15 @@ id: A18.l1
 type: lane
 title: "Comprovantes de Bem — L1 CRLV-e (Certificado de Registro e Licenciamento de Veículo)"
 sprint: A18
-status: open
+status: shipped
+ship_prs:
+  - "https://github.com/davidrobert/mathoms/pull/388"
+  - "https://github.com/davidrobert/mathoms/pull/391"
+  - "https://github.com/davidrobert/mathoms/pull/412"
+  - "https://github.com/davidrobert/mathoms/pull/414"
+  - "https://github.com/davidrobert/mathoms/pull/416"
+  - "https://github.com/davidrobert/mathoms/pull/417"
+ship_date: "2026-05-22"
 priority: P1
 branch_slug: a18-l1-crlv
 depends_on: []
@@ -14,7 +22,7 @@ prompt: "[[TRACK-a18-l1-crlv-veiculos]]"
 tags:
   - type/lane
   - sprint/a18
-  - status/open
+  - status/shipped
   - priority/p1
   - area/pipeline
   - area/persistence

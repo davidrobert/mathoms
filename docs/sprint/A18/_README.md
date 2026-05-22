@@ -8,7 +8,7 @@ sprint_status: candidate
 
 # Sprint A18 — Comprovantes de Bem + Apólices + FIPE
 
-> **Status:** `candidate` — sprint reservada para começar quando A17 L1 (previdência) fechar. ADR canônica [[ADR-239]] mergeada como `Proposto`; PRs de implementação começam quando L1 (CRLV) for puxada por agente.
+> **Status:** `in_progress` — L1 (CRLV-e) ✅ shipped 2026-05-22. [[ADR-239]] flippada `Decidido (Sprint A18 L1)`. L2 (apólice) e L3 (FIPE) `planned`.
 
 ## Resumo
 
@@ -40,7 +40,7 @@ Entrega: extensão `market_rates`; `FipeLookupClient` (adapter [[ADR-097]]) com 
 
 ## Lanes
 
-- [[A18.l1]] (`open`) — L1: CRLV-e. Pickup-ready após [[ADR-239]] mergear. Lane gateway que valida padrão arquitetural.
+- [[A18.l1]] (`shipped` · 2026-05-22) — ✅ L1: CRLV-e. Padrão arquitetural validado em 5 PRs (#388, #391, #412, #414, #416, #417). [[ADR-239]] flippada `Decidido (Sprint A18 L1)`.
 - [[A18.l2]] (`planned`) — L2: Apólice de seguro (combinada V1). Depende de L1 (valida padrão polimórfico).
 - [[A18.l3]] (`planned`) — L3: FIPE refresh. Depende de L1 (precisa de `vehicles.fipe_code`). Paralela a L2.
 

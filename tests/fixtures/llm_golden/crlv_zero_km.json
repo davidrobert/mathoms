@@ -1,0 +1,21 @@
+{
+  "placa": "QWE5R67",
+  "renavam": "11122233344",
+  "marca": "BYD",
+  "modelo": "DOLPHIN MINI",
+  "ano_modelo": 2026,
+  "ano_fabricacao": 2026,
+  "cor": "azul",
+  "combustivel": "eletrico",
+  "exercicio": 2026,
+  "categoria": "particular",
+  "proprietario_cpf_masked": null,
+  "proprietario_nome": null,
+  "municipio_emplacamento": "Curitiba",
+  "uf_emplacamento": "PR",
+  "data_emissao": "2026-04-01",
+  "confidence": 0.65,
+  "needs_review": true,
+  "prompt_version": "crlv-v1.0.0",
+  "notas": "zero-km — sem FIPE code; needs_review por confidence baixo"
+}

@@ -1,0 +1,21 @@
+{
+  "placa": "XYZ9A87",
+  "renavam": "98765432100",
+  "marca": "FIAT",
+  "modelo": "TORO CABINE DUPLA ULTRA 2.0 16V 4X4",
+  "ano_modelo": 2022,
+  "ano_fabricacao": 2022,
+  "cor": "branca",
+  "combustivel": "diesel",
+  "exercicio": 2026,
+  "categoria": "particular",
+  "proprietario_cpf_masked": null,
+  "proprietario_nome": "Test Co-Owner",
+  "municipio_emplacamento": "Rio de Janeiro",
+  "uf_emplacamento": "RJ",
+  "data_emissao": "2026-02-10",
+  "confidence": 0.92,
+  "needs_review": false,
+  "prompt_version": "crlv-v1.0.0",
+  "notas": null
+}

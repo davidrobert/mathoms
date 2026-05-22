@@ -236,7 +236,7 @@
 | ADR-236 | adr | Decidido |  | Tributário PJ — Cascata Fiscal canônica (cálculo por regime, base PGBL real, inputs derivados ≫ declarados) | `adr/236-tributario-pj-cascata-fiscal-canonica.md` |
 | ADR-237 | adr | Decidido |  | Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) | `adr/237-monte-carlo-if-with-pmt.md` |
 | ADR-238 | adr | Decidido |  | Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 | `adr/238-ingestao-informes-rendimentos-anuais-avulsos.md` |
-| ADR-239 | adr | Proposto |  | Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 | `adr/239-comprovantes-bens-apolices-fipe.md` |
+| ADR-239 | adr | Decidido |  | Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 | `adr/239-comprovantes-bens-apolices-fipe.md` |
 | ADR-240 | adr | Proposto |  | Card S_PROTECAO no relatório — 4º pilar AUVP entre Reserva e Patrimônio (Sprint A19) | `adr/240-card-protecao-patrimonial-pilar-auvp.md` |
 | ADR-241 | adr | Proposto |  | E2 (extratos / faturas / LLM fallback) é workspace-scoped — incremental cumulativo correto | `adr/241-e2-workspace-scoped-em-incremental.md` |
 | ADR-242 | adr | Proposto |  | LLM `category_hint` consumido no TransactionClassifier + sentinel `info_fiscal_anual` | `adr/242-llm-category-hint-consumido-no-classifier.md` |
@@ -443,6 +443,7 @@
 | CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE.md` |
 | CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF.md` |
 | CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA.md` |
+| CHG-2026-05-22-A18-L1-CRLV-SHIPPED | changelog-entry |  | A18 |  | `sprint/A18/changelog/CHG-2026-05-22-A18-L1-CRLV-SHIPPED.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -482,7 +483,7 @@
 | A17.l2 | lane | planned | A17 | Informes anuais — L2 financeiro PJ (C6 PJ, Stone, adquirentes) | `sprint/A17/lanes/A17-l2-financeiro-pj.md` |
 | A17.l3 | lane | planned | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |
 | A17.l4 | lane | planned | A17 | Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) | `sprint/A17/lanes/A17-l4-proventos.md` |
-| A18.l1 | lane | open | A18 | Comprovantes de Bem — L1 CRLV-e (Certificado de Registro e Licenciamento de Veículo) | `sprint/A18/lanes/A18-l1-crlv.md` |
+| A18.l1 | lane | shipped | A18 | Comprovantes de Bem — L1 CRLV-e (Certificado de Registro e Licenciamento de Veículo) | `sprint/A18/lanes/A18-l1-crlv.md` |
 | A18.l2 | lane | planned | A18 | Comprovantes de Bem — L2 Apólice de seguro polimórfica (combinada V1, vida/saúde/PJ V2) | `sprint/A18/lanes/A18-l2-apolice.md` |
 | A18.l3 | lane | planned | A18 | Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI | `sprint/A18/lanes/A18-l3-fipe.md` |
 | A19.l1 | lane | open | A19 | S_PROTECAO — L1 Card 4º pilar AUVP no relatório (KPIs + 3 subgrupos + reposicionamento) | `sprint/A19/lanes/A19-l1-card-protecao.md` |
