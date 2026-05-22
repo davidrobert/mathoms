@@ -175,7 +175,7 @@ def test_extract_one_raises_para_outros_tipos():
         _extract_one(
             doc=Path("rgi.pdf"),
             text="dummy",
-            service=object(),
+            llm=object(),
             config=object(),
             tipo_comprovante="rgi_imovel",
         )
