@@ -179,10 +179,14 @@ def _ambiguity_reason(
 
 
 def _filter_by_proprietario(baseline_proprietario: str, vehicles: list[dict]) -> list[dict]:
-    """Bloqueia candidatos do mesmo member_key (gate financial-planner Q3+Q5)."""
+    """Bloqueia candidatos do mesmo member_key; vehicle sem member_key entra (LGPD ADR-231)."""
     if not baseline_proprietario:
-        return list(vehicles)  # sem blocking quando proprietario ausente
-    return [v for v in vehicles if v.get("member_key") == baseline_proprietario]
+        return list(vehicles)
+    return [
+        v
+        for v in vehicles
+        if not v.get("member_key") or v.get("member_key") == baseline_proprietario
+    ]
 
 
 # ===========================================================================
