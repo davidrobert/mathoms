@@ -90,9 +90,21 @@
         "properties": {
           "descricao": {"type": "string"},
           "proprietario": {"type": "string"},
+          "proprietarios": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Co-titulares quando imóvel é declarado em IRPFs de titular + cônjuge (ADR-246). Quando ausente, default é [proprietario]. Singular preservado p/ compat downstream."
+          },
           "endereco": {"type": "string"},
           "tipo": {"type": "string"},
-          "valores_31_12": {"type": "object"}
+          "valores_31_12": {"type": "object"},
+          "property_id": {"type": ["string", "null"]},
+          "endereco_canonical": {"type": ["string", "null"]},
+          "codigo_rfb": {"type": "string"},
+          "_dedup_warning": {
+            "type": "object",
+            "description": "Marca divergência >10% de valores entre IRPFs co-declarados (ADR-246)."
+          }
         }
       }
     },
