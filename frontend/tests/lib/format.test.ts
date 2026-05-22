@@ -450,6 +450,12 @@ describe("docTypeLabel()", () => {
   it("null → '—'", () => expect(docTypeLabel(null)).toBe("—"));
   it("bank_statement → 'Extrato'", () =>
     expect(docTypeLabel("bank_statement" as DocumentType)).toBe("Extrato"));
+  it("comprovante_bem → 'Comprovante de bem' (fallback ADR-239 sem subtipo)", () =>
+    expect(docTypeLabel("comprovante_bem" as DocumentType)).toBe("Comprovante de bem"));
+  it("informe_rendimentos_anuais → 'Informe de rendimentos' (fallback ADR-238)", () =>
+    expect(docTypeLabel("informe_rendimentos_anuais" as DocumentType)).toBe(
+      "Informe de rendimentos",
+    ));
   it("desconhecido → o próprio code", () => {
     expect(docTypeLabel("custom_type" as any)).toBe("custom_type");
   });
@@ -464,6 +470,24 @@ describe("docSubtypeLabel()", () => {
   });
   it("irpfdeclaracao → 'Declaração IRPF'", () => {
     expect(docSubtypeLabel("irpfdeclaracao", "irpf")).toBe("Declaração IRPF");
+  });
+  it("apolice_seguro → 'Apólice de seguro' (ADR-239 A18 L2)", () => {
+    expect(docSubtypeLabel("apolice_seguro", "comprovante_bem" as DocumentType)).toBe(
+      "Apólice de seguro",
+    );
+  });
+  it("crlv_eletronico → 'CRLV-e (veículo)' (ADR-239 A18 L1)", () => {
+    expect(docSubtypeLabel("crlv_eletronico", "comprovante_bem" as DocumentType)).toBe(
+      "CRLV-e (veículo)",
+    );
+  });
+  it("informe_previdencia_privada → 'Informe de previdência privada' (ADR-238 A17 L1)", () => {
+    expect(
+      docSubtypeLabel("informe_previdencia_privada", "informe_rendimentos_anuais" as DocumentType),
+    ).toBe("Informe de previdência privada");
+  });
+  it("comprovante_bem sem subtipo → 'Comprovante de bem' (fallback)", () => {
+    expect(docSubtypeLabel(null, "comprovante_bem" as DocumentType)).toBe("Comprovante de bem");
   });
   it("e0_doc_type desconhecido → fallback para docTypeLabel(doc_type)", () => {
     expect(docSubtypeLabel("subtipo_xyz", "bank_statement" as DocumentType)).toBe("Extrato");
