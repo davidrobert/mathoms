@@ -374,6 +374,33 @@ correspondente — são consumidos uma vez, viram referência histórica
 no próprio prompt; arquivar só quando o prompt deixa de fazer sentido
 (escopo redefinido, lane cancelada).
 
+### Formato: Markdown canônico, HTML apenas derivado ([[ADR-247]])
+
+`docs/**` é **100% Markdown** — source-of-truth. Gates atuais
+(`validate_frontmatter`, `check_doc_links`, `check_adr_anchors`,
+`build_doc_index`, `check_doc_filename_id`) assumem MD + frontmatter
+YAML + wikilinks `[[X]]`. **Não converter doc canônico para HTML** —
+infla tokens (1.5–2.5×), quebra Obsidian (graph/backlinks/Dataview),
+polui diff de PR, e wikilinks param de ser refactor-friendly.
+
+**HTML permitido apenas como artefato derivado/efêmero:**
+
+- `_scratch/<slug>.html` — exploratório, gitignored.
+- `docs/plan/<X>/assets/<nome>.html` — anexo a plano específico,
+  ignorado por gates de doc.
+- Rotas em `ops.mathoms.ai` (plano [INTERNAL_ADMIN](docs/plan/INTERNAL_ADMIN/_README.md))
+  — código de console interno, não doc.
+- Relatório do produto (`/reports/[id]`) — já é React, fora do escopo
+  desta política ([[ADR-129]]).
+
+**Casos legítimos** para HTML derivado: dashboard interativo dos 138
+findings do PLATFORM_REVIEW, comparativos de approach em ADR
+`Proposto`, relatórios sintéticos de revisão multi-agente, mockups.
+
+**Proibido:** HTML substituindo `.md` em `docs/adr/`, `docs/sprint/`,
+`docs/plan/<X>/_README.md`, `docs/reference/`, `docs/agent_prompts/`.
+HTML como fonte primária em wikilinks de docs canônicos.
+
 ### Proibido
 
 - `_scratch/<plano>.md` — gitignored, invisível a outros agentes.
@@ -384,6 +411,8 @@ no próprio prompt; arquivar só quando o prompt deixa de fazer sentido
   `LICENSE`, configs.
 - `_archive/` — é manual histórico do pipeline (`manual_operacao_v6.1.md`),
   não destino de planos.
+- `docs/<X>.html` substituindo `.md` canônico — ver subseção
+  "Formato: Markdown canônico" acima ([[ADR-247]]).
 
 ---
 

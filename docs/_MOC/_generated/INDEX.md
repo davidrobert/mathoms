@@ -244,6 +244,7 @@
 | ADR-244 | adr | Proposto |  | InvestmentsConsolidator aceita `tipo_documento=informe_rendimentos` como posição | `adr/244-informe-rendimentos-em-investments-consolidator.md` |
 | ADR-245 | adr | Proposto |  | `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR | `adr/245-fallback-baseline-irpf-em-caixa-moeda-estrangeira.md` |
 | ADR-246 | adr | Proposto |  | Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c | `adr/246-dedup-imoveis-cross-irpf.md` |
+| ADR-247 | adr | Decidido |  | Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero | `adr/247-markdown-canonico-html-apenas-artefato-derivado.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
