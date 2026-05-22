@@ -72,8 +72,8 @@ deles:
 - **[senior-cto](.claude/agents/senior-cto.md)** — CTO sênior com 20+ anos de experiência em arquitetura de software, sistemas distribuídos, IA/LLMs, DDD, Design Patterns, OO, TDD e SOLID. Especialista em Go, Python, TypeScript e JavaScript.
   Use para revisar decisões arquiteturais, ADRs, design de API, modelagem de domínio, escolhas de stack, estratégia de testes, boundaries entre serviços, trade-offs de performance/consistência/complexidade, e PRs de grande impacto.
   NÃO invoque para typos, bugs triviais, ou tarefas já bem definidas.
-- **[sre-devops](.claude/agents/sre-devops.md)** — Engenheiro SRE/DevOps sênior com 15+ anos em confiabilidade de SaaS multi-tenant, segurança aplicada, FinOps, observabilidade e operação de produto em produção.
-  Use para revisar SLO/SLA, runbooks, postmortems, deploy strategy (blue/green, canary, rollback), CI/CD, secrets management, política de backup/DR, hardening (auth, rate limit, CSRF/CORS, headers, JWT, Fernet vault), surface de pen-test, capacity planning, instrumentação (logs estruturados, métricas, traces, alertas) e custo de cloud (FinOps — sizing, autoscaling, retention, cold storage, modelo de cobrança LLM/blob/DB).
+- **[sre-devops](.claude/agents/sre-devops.md)** — Engenheiro SRE/DevOps sênior com 15+ anos em confiabilidade de SaaS multi-tenant, segurança aplicada, FinOps, observabilidade, containers (Docker) e infrastructure-as-code (IaC — Terraform/Pulumi/Ansible) e operação de produto em produção.
+  Use para revisar SLO/SLA, runbooks, postmortems, deploy strategy (blue/green, canary, rollback), CI/CD, secrets management, política de backup/DR, hardening (auth, rate limit, CSRF/CORS, headers, JWT, Fernet vault), surface de pen-test, capacity planning, instrumentação (logs estruturados, métricas, traces, alertas), custo de cloud (FinOps — sizing, autoscaling, retention, cold storage, modelo de cobrança LLM/blob/DB), Dockerfiles / docker-compose / imagens (multi-stage, base hardening, scan de vuln, pin por SHA, healthcheck, non-root, dockerignore), e IaC (módulos Terraform/Pulumi, state backend + locking, plan/apply gates, drift detection, tagging, secrets via vault).
   NÃO invoque para bugs puros de domínio, UX, ou regras financeiras de produto (use financial-planner).
 
 <!-- END auto-gen subagent catalog -->
@@ -100,7 +100,7 @@ ou retrabalho caro.
 | Adoção/substituição de SaaS substantivo (auth, queue, OCR, LLM provider, observability, payment, banking aggregator) | `build-vs-buy` |
 | Pricing, posicionamento, narrativa, ICP/segmentação, resposta competitiva | `gtm-strategist` |
 | Plano canônico (`docs/<TOPIC>_PLAN.md`), curadoria BACKLOG/SPRINT, OKR/KPI, prompt LLM produção | `product-manager` |
-| Política CI/CD, secrets, alerta novo, política de backup/RPO/RTO, capacity, FinOps, hardening | `sre-devops` |
+| Política CI/CD, secrets, alerta novo, política de backup/RPO/RTO, capacity, FinOps, hardening, Dockerfile / docker-compose / imagem base, módulo IaC (Terraform/Pulumi/Ansible) | `sre-devops` |
 
 Múltiplos gatilhos → invoque os especialistas em **paralelo** (1 mensagem,
 N `Agent` calls). Brief mínimo: contexto + premissas + opções consideradas
