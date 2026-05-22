@@ -446,6 +446,7 @@
 | CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF.md` |
 | CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA | changelog-entry |  | A16 |  | `sprint/A16/changelog/CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA.md` |
 | CHG-2026-05-22-A18-L1-CRLV-SHIPPED | changelog-entry |  | A18 |  | `sprint/A18/changelog/CHG-2026-05-22-A18-L1-CRLV-SHIPPED.md` |
+| CHG-2026-05-22-A18-L2-APOLICE-SHIPPED | changelog-entry |  | A18 |  | `sprint/A18/changelog/CHG-2026-05-22-A18-L2-APOLICE-SHIPPED.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -486,7 +487,7 @@
 | A17.l3 | lane | planned | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |
 | A17.l4 | lane | planned | A17 | Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) | `sprint/A17/lanes/A17-l4-proventos.md` |
 | A18.l1 | lane | shipped | A18 | Comprovantes de Bem — L1 CRLV-e (Certificado de Registro e Licenciamento de Veículo) | `sprint/A18/lanes/A18-l1-crlv.md` |
-| A18.l2 | lane | planned | A18 | Comprovantes de Bem — L2 Apólice de seguro polimórfica (combinada V1, vida/saúde/PJ V2) | `sprint/A18/lanes/A18-l2-apolice.md` |
+| A18.l2 | lane | shipped | A18 | Comprovantes de Bem — L2 Apólice de seguro polimórfica (combinada V1, vida/saúde/PJ V2) | `sprint/A18/lanes/A18-l2-apolice.md` |
 | A18.l3 | lane | planned | A18 | Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI | `sprint/A18/lanes/A18-l3-fipe.md` |
 | A19.l1 | lane | open | A19 | S_PROTECAO — L1 Card 4º pilar AUVP no relatório (KPIs + 3 subgrupos + reposicionamento) | `sprint/A19/lanes/A19-l1-card-protecao.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |

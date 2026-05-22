@@ -227,3 +227,59 @@ def test_cobertura_discriminator_rejeita_tipo_invalido():
                 "coberturas": [{"tipo": "tipo_inexistente", "premio_brl": "10.00"}],
             }
         )
+
+
+# ─────────────────────── V2 placeholders (vida/saude/acidentes) ───────────
+
+
+V2_FIXTURE_NAMES = ("apolice_vida_v2", "apolice_saude_v2", "apolice_acidentes_v2")
+
+
+@pytest.fixture
+def v2_fixtures():
+    return {
+        name: json.loads((GOLDEN_DIR / f"{name}.json").read_text()) for name in V2_FIXTURE_NAMES
+    }
+
+
+@pytest.mark.parametrize("name", V2_FIXTURE_NAMES)
+def test_v2_placeholder_parses(v2_fixtures, name):
+    """Schema antecipa V2: vida/saude/acidentes parsem sem migration breaking."""
+    ApolicePayload.model_validate(v2_fixtures[name])
+
+
+def test_v2_vida_tem_beneficiarios_com_percentual():
+    """CoberturaVida.beneficiarios[] estrutura V2 testada — fixed antecipa antes da UI."""
+    p = ApolicePayload.model_validate(json.loads((GOLDEN_DIR / "apolice_vida_v2.json").read_text()))
+    cov = p.bens_segurados[0].coberturas[0]
+    assert cov.tipo == "vida"
+    assert len(cov.beneficiarios) == 1
+    assert cov.beneficiarios[0].percentual == Decimal("100.00")
+
+
+def test_v2_saude_tem_rede_credenciada():
+    p = ApolicePayload.model_validate(
+        json.loads((GOLDEN_DIR / "apolice_saude_v2.json").read_text())
+    )
+    cov = p.bens_segurados[0].coberturas[0]
+    assert cov.tipo == "saude"
+    assert cov.rede_credenciada == "Rede Top Bradesco Saude"
+
+
+def test_v2_acidentes_tem_capital_morte_e_invalidez():
+    p = ApolicePayload.model_validate(
+        json.loads((GOLDEN_DIR / "apolice_acidentes_v2.json").read_text())
+    )
+    cov = p.bens_segurados[0].coberturas[0]
+    assert cov.tipo == "acidentes"
+    assert cov.capital_segurado_morte_brl == Decimal("200000.00")
+    assert cov.capital_segurado_invalidez_brl == Decimal("200000.00")
+
+
+@pytest.mark.parametrize("name", V2_FIXTURE_NAMES)
+def test_v2_cpf_sempre_null_no_payload_llm(v2_fixtures, name):
+    """LGPD ADR-231 D8: V2 vida/saude/acidentes lidam com pessoa — CPF jamais no payload."""
+    p = ApolicePayload.model_validate(v2_fixtures[name])
+    assert p.bens_segurados[0].pessoa_cpf_masked is None
+    assert p.pagador_cpf_masked is None
+    assert p.segurado_cpf_masked is None
