@@ -261,52 +261,88 @@ def validate_artifact(path: Path, schema_name: str) -> bool:
     return validate_dict(data, schema_name, source=path.name)
 
 
+# Singleton lazy idempotente (ADR-111 exceção b): mesmo conteúdo de
+# config/schemas/ produz mesmo Registry em qualquer worker. Suporta $ref
+# cross-file (ex.: informe_base → informe_previdencia, ADR-238 A17 L1).
+_schema_registry: Any = None
+
+
+def _load_schema_resources(schemas_dir: Path) -> list[tuple[str, Any]]:
+    """Carrega config/schemas/*.schema.json como ``[(key, Resource)]`` indexado por $id + filename."""
+    from referencing import Resource
+    from referencing.jsonschema import DRAFT202012
+
+    resources: list[tuple[str, Any]] = []
+    for schema_file in sorted(schemas_dir.glob("*.schema.json")):
+        try:
+            doc = json.loads(schema_file.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        resource = Resource.from_contents(doc, default_specification=DRAFT202012)
+        sid = doc.get("$id")
+        if sid:
+            resources.append((sid, resource))
+        resources.append((schema_file.name, resource))
+    return resources
+
+
+def _get_schema_registry() -> Any:
+    """Devolve ``referencing.Registry`` com schemas locais; ``None`` se dep ausente."""
+    global _schema_registry
+    if _schema_registry is not None:
+        return _schema_registry
+    try:
+        from referencing import Registry
+    except ImportError:
+        return None
+    schemas_dir = CONFIG_DIR / "schemas"
+    resources = _load_schema_resources(schemas_dir) if schemas_dir.is_dir() else []
+    _schema_registry = Registry().with_resources(resources)
+    return _schema_registry
+
+
+def _handle_validation_error(exc: Exception, source: str, schema_name: str, mode: str) -> bool:
+    """Traduz exceção do validator em retorno + log. Re-levanta o que não for esperado."""
+    import jsonschema
+
+    if isinstance(exc, jsonschema.ValidationError):
+        msg = f"Schema validation falhou para {source}: {exc.message}"
+        log_stage("WARN" if mode == "warn" else "ERROR", msg)
+        return mode == "warn"
+    cls = type(exc).__name__
+    # jsonschema 4.18+ wrappa Unresolvable do referencing fora de ValidationError.
+    if "Unresolvable" in cls or "RefResolution" in cls:
+        log_stage("WARN", f"Schema $ref unresolvable para {source} ({schema_name}): {exc}")
+        return mode == "warn"
+    raise exc
+
+
 def validate_dict(data: dict, schema_name: str, *, source: str = "<dict>") -> bool:
-    """Valida ``data`` (já em memória) contra schema em ``config/schemas/``.
-
-    Variante de ``validate_artifact`` para callers que já têm o dict — usado pelo
-    hook pós-write de ``DBArtifactStore`` (ADR-212 PR3). Mesma semântica de
-    enabled/strict/warn que ``validate_artifact``.
-
-    Args:
-        data: payload já carregado.
-        schema_name: nome do arquivo em ``config/schemas/`` (ex.: ``"e3_reconciled.schema.json"``).
-        source: identificador do artefato para logging (ex.: ``"E3/itau_extrato"``).
-
-    Returns:
-        ``True`` se válido OU validação desabilitada OU schema ausente.
-        ``False`` em ``strict`` mode com payload inválido.
-    """
+    """Valida ``data`` (já em memória) contra schema em ``config/schemas/`` (ADR-212 PR3)."""
     config = load_json_config("pipeline.json")
     sv = config.get("schema_validation", {})
     if not sv.get("enabled", False):
         return True
-
     try:
         import jsonschema
     except ImportError:
         log_stage("WARN", "jsonschema não instalado — validação de schema pulada")
         return True
-
     schema_path = CONFIG_DIR / "schemas" / schema_name
     if not schema_path.exists():
         return True
-
     schema = read_json(schema_path)
     if schema is None:
         return False
-
     mode = _effective_schema_validation_mode()
+    registry = _get_schema_registry()
+    validator_cls = jsonschema.validators.validator_for(schema)
+    validator = validator_cls(schema, registry=registry) if registry else validator_cls(schema)
     try:
-        jsonschema.validate(data, schema)
+        validator.validate(data)
         return True
-    except jsonschema.ValidationError as e:
-        msg = f"Schema validation falhou para {source}: {e.message}"
-        if mode == "warn":
-            log_stage("WARN", msg)
-            return True
-        log_stage("ERROR", msg)
-        return False
+    except Exception as exc:
+        return _handle_validation_error(exc, source, schema_name, mode)
 
 
 # =============================================================================
