@@ -159,6 +159,7 @@ from backend.app.models.workspace_member import (
     WRITE_ROLES,
     WorkspaceMember,
 )
+from backend.app.models.workspace_memory_confirmation import WorkspaceMemoryConfirmation
 from backend.app.models.workspace_note import WorkspaceNotes
 
 __all__ = [
@@ -189,6 +190,7 @@ __all__ = [
     "VALID_SUGGESTION_STATUSES",
     "VALID_SUGGESTION_SOURCES",
     "WorkspaceNotes",
+    "WorkspaceMemoryConfirmation",
     "FeatureFlag",
     "FiscalParameter",
     "EconomicAssetClass",

@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 57
+**Total de tabelas:** 58
 
 ---
 
@@ -66,6 +66,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`workspace_invitations`](#workspaceinvitations)
 - [`workspace_irpf_suggestion_dismissals`](#workspaceirpfsuggestiondismissals)
 - [`workspace_members`](#workspacemembers)
+- [`workspace_memory_confirmations`](#workspacememoryconfirmations)
 - [`workspace_notes`](#workspacenotes)
 - [`workspace_property_overrides`](#workspacepropertyoverrides)
 - [`workspaces`](#workspaces)
@@ -1488,6 +1489,30 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_workspace_members_workspace_id` (workspace_id)
 - `ix_workspace_members_ws_user` (workspace_id, user_id)
 
+### `workspace_memory_confirmations`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `memory_key` | `VARCHAR(256)` | no | — | — |
+| `source_aggregate` | `VARCHAR(64)` | no | — | — |
+| `confirmed_value_snapshot` | `TEXT` | yes | — | — |
+| `confirmed_by_user_id` | `VARCHAR(36)` | yes | — | FK→users.id |
+| `confirmed_at` | `DATETIME` | no | callable: `<lambda>` | — |
+| `note` | `TEXT` | yes | — | — |
+
+**Constraints:**
+
+- FOREIGN KEY (confirmed_by_user_id) REFERENCES users.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_wmc_ws_confirmed_at` (workspace_id, confirmed_at)
+- `ix_wmc_ws_key` (workspace_id, memory_key)
+- `ix_workspace_memory_confirmations_workspace_id` (workspace_id)
+
 ### `workspace_notes`
 
 | Column | Type | Nullable | Default | Tags |
@@ -2598,6 +2623,21 @@ type WorkspaceMember struct {
 	Role string `db:"role" json:"role"`
 	InvitedBy *string `db:"invited_by" json:"invited_by"`
 	JoinedAt time.Time `db:"joined_at" json:"joined_at"`
+}
+```
+
+### `workspace_memory_confirmations` → `type WorkspaceMemoryConfirmation struct`
+
+```go
+type WorkspaceMemoryConfirmation struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	MemoryKey string `db:"memory_key" json:"memory_key"`
+	SourceAggregate string `db:"source_aggregate" json:"source_aggregate"`
+	ConfirmedValueSnapshot *string `db:"confirmed_value_snapshot" json:"confirmed_value_snapshot"`
+	ConfirmedByUserId *string `db:"confirmed_by_user_id" json:"confirmed_by_user_id"`
+	ConfirmedAt time.Time `db:"confirmed_at" json:"confirmed_at"`
+	Note *string `db:"note" json:"note"`
 }
 ```
 
