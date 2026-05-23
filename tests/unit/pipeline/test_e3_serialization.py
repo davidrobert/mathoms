@@ -212,6 +212,31 @@ class TestSerialize:
         assert out["transacoes_duplicadas_removidas"] == 2
         assert len(out["transacoes"]) == 2
 
+    def test_categoria_sugerida_propagada_quando_hint_presente(self):
+        """ADR-242 — hint do LLM (E2-llm) deve sobreviver à serialização E3
+        para o classifier consumir em E4. Sem isso, `is_info_fiscal_anual`
+        nunca dispara e linhas anuais do informe IR poluem despesas."""
+        tx = Transaction(
+            date(2025, 12, 31),
+            "Parcelas Pagas Crédito Imobiliário (ano 2025)",
+            Money.brl("-52429.06"),
+            category_hint="info_fiscal_anual",
+        )
+        stmt = _stmt(transactions=[tx])
+
+        out = serialize_to_e3_legacy_format(stmt, sources=["informe.pdf"])
+
+        assert out["transacoes"][0]["categoria_sugerida"] == "info_fiscal_anual"
+
+    def test_categoria_sugerida_omitida_quando_hint_none(self):
+        """Parser determinístico (sem LLM) não emite hint — campo não polui dict."""
+        tx = Transaction(date(2026, 1, 5), "MERCADO", Money.brl("-100"))
+        stmt = _stmt(transactions=[tx])
+
+        out = serialize_to_e3_legacy_format(stmt, sources=["s"])
+
+        assert "categoria_sugerida" not in out["transacoes"][0]
+
     def test_transacao_preserves_iso_date_and_description(self):
         tx = [Transaction(date(2026, 1, 5), "MERCADO PAO", Money.brl("-100.50"))]
         stmt = _stmt(transactions=tx)

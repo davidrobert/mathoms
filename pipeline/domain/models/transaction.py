@@ -130,6 +130,10 @@ class Transaction:
     source_document: str | None = None
     transaction_hash: str | None = None
     is_transfer: bool = False
+    # ADR-242 — hint do LLM (categoria_sugerida no dict E2-llm). Preserva
+    # através do reconciler E3 para o classifier E4 consumir
+    # (`info_fiscal_anual` skipa cedo; demais hints viram fallback hierárquico).
+    category_hint: str | None = None
 
     def with_category(self, category: str) -> "Transaction":
         """Retorna cópia com ``category`` preenchida (nunca muta o original)."""
@@ -137,7 +141,7 @@ class Transaction:
 
     def to_dict(self) -> dict:
         """Compatível com schemas JSON legados (E2/E3/E4)."""
-        return {
+        d: dict = {
             "data": self.date.isoformat(),
             "descricao": self.description,
             "valor": self.amount.to_float(),
@@ -146,6 +150,9 @@ class Transaction:
             "membro": self.member_key,
             "is_transfer": self.is_transfer,
         }
+        if self.category_hint is not None:
+            d["categoria_sugerida"] = self.category_hint
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "Transaction":
@@ -158,4 +165,5 @@ class Transaction:
             source_document=d.get("source_document") or d.get("origem"),
             transaction_hash=d.get("hash") or d.get("transaction_hash"),
             is_transfer=bool(d.get("is_transfer", False)),
+            category_hint=d.get("categoria_sugerida") or d.get("category_hint"),
         )

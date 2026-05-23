@@ -138,6 +138,8 @@ class BankStatement:
                     category=t.get("categoria") or t.get("category"),
                     member_key=t.get("membro") or t.get("member_key"),
                     source_document=d.get("arquivo_origem") or d.get("source_document"),
+                    # ADR-242 — preserva hint do LLM (E2-llm) através do reconciler.
+                    category_hint=t.get("categoria_sugerida") or t.get("category_hint"),
                 )
             )
         opening = (
@@ -191,6 +193,8 @@ class BankStatement:
                     "data": t.date.isoformat(),
                     "descricao": t.description,
                     "valor": t.amount.to_float(),
+                    # ADR-242 — propaga hint do LLM para o classifier consumir em E4.
+                    **({"categoria_sugerida": t.category_hint} if t.category_hint else {}),
                 }
                 for t in self.transactions
             ],
