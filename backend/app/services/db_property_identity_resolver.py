@@ -1,21 +1,28 @@
-"""``DBPropertyIdentityResolver`` — adapter SQLAlchemy do `PropertyIdentityResolver` (ADR-215, ADR-225)."""
+"""``DBPropertyIdentityResolver`` — adapter SQLAlchemy do `PropertyIdentityResolver` (ADR-215, ADR-225, ADR-265)."""
 
 from __future__ import annotations
 
+import logging
 import uuid
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.models import PropertyIdentity
+from pipeline.domain.services.canonical_fuzzy_match import (
+    extract_complemento,
+    matches_fuzzy,
+)
 from pipeline.domain.types.property_identity import (
     PropertyIdentityRecord,
     PropertyLookupKey,
 )
 
+_logger = logging.getLogger("mathoms.property_identity")
+
 
 class DBPropertyIdentityResolver:
-    """Idempotent matching/creation de `PropertyIdentity` rows via cascata estrito→loose→insert (ADR-215, ADR-225 §2)."""
+    """Idempotent matching/creation de `PropertyIdentity` rows via cascata estrito→loose→fuzzy→insert (ADR-215, ADR-225 §2, ADR-265)."""
 
     def __init__(self, session: Session) -> None:
         self._session = session
@@ -27,15 +34,25 @@ class DBPropertyIdentityResolver:
         first_seen_year: int,
         descricao_sample: str,
     ) -> PropertyIdentityRecord:
-        """Match cascade: estrito → loose → insert."""
-        if lookup.endereco_canonical is not None:
-            existing = self._find_by_canonical_strict(workspace_id, lookup)
-            if existing is not None:
-                return _to_record(existing)
-            loose = self._find_by_canonical_loose(workspace_id, lookup.endereco_canonical)
-            if loose is not None:
-                return _to_record(loose)
+        """Match cascade: estrito → loose → fuzzy → insert (ADR-265)."""
+        existing = self._cascade_match(workspace_id, lookup, descricao_sample)
+        if existing is not None:
+            return _to_record(existing)
         return _to_record(self._insert_row(workspace_id, lookup, first_seen_year, descricao_sample))
+
+    def _cascade_match(
+        self, workspace_id: str, lookup: PropertyLookupKey, descricao_sample: str
+    ) -> PropertyIdentity | None:
+        if lookup.endereco_canonical is None:
+            return None
+        canonical = lookup.endereco_canonical
+        return (
+            _log_hit("strict", self._find_by_canonical_strict(workspace_id, lookup))
+            or _log_hit("loose", self._find_by_canonical_loose(workspace_id, canonical))
+            or _log_hit(
+                "fuzzy", self._find_by_canonical_fuzzy(workspace_id, canonical, descricao_sample)
+            )
+        )
 
     def _find_by_canonical_strict(
         self, workspace_id: str, lookup: PropertyLookupKey
@@ -68,6 +85,43 @@ class DBPropertyIdentityResolver:
         )
         return self._session.execute(stmt).scalar_one_or_none()
 
+    def _find_by_canonical_fuzzy(
+        self,
+        workspace_id: str,
+        endereco_canonical: str,
+        descricao_sample: str,
+    ) -> PropertyIdentity | None:
+        """Match fuzzy por proximidade numérica (ADR-265)."""
+        complemento_in = extract_complemento(descricao_sample)
+        for candidate in self._iter_candidates(workspace_id):
+            if self._fuzzy_matches(endereco_canonical, complemento_in, candidate):
+                return candidate
+        return None
+
+    def _iter_candidates(self, workspace_id: str):
+        stmt = (
+            select(PropertyIdentity)
+            .where(PropertyIdentity.workspace_id == workspace_id)
+            .order_by(PropertyIdentity.created_at.asc())
+        )
+        return self._session.execute(stmt).scalars()
+
+    def _fuzzy_matches(
+        self,
+        endereco_canonical: str,
+        complemento_in: str | None,
+        candidate: PropertyIdentity,
+    ) -> bool:
+        if not candidate.endereco_canonical:
+            return False
+        complemento_other = extract_complemento(candidate.descricao_sample)
+        return matches_fuzzy(
+            endereco_canonical,
+            candidate.endereco_canonical,
+            complemento_a=complemento_in,
+            complemento_b=complemento_other,
+        )
+
     def _insert_row(
         self,
         workspace_id: str,
@@ -97,6 +151,12 @@ class DBPropertyIdentityResolver:
         # então commit eager é semanticamente correto (ADR-215 P2).
         self._session.commit()
         return row
+
+
+def _log_hit(level: str, row: PropertyIdentity | None) -> PropertyIdentity | None:
+    if row is not None:
+        _logger.info("property_identity.cascade_hit", extra={"level": level})
+    return row
 
 
 def _to_record(row: PropertyIdentity) -> PropertyIdentityRecord:
