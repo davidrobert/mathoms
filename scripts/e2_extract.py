@@ -155,6 +155,12 @@ def process_file(file_path: Path, dry_run: bool = False) -> Optional[Dict[str, A
     # continuam entregando numero_conta heterogêneo)
     from scripts.e2.common import finalize_e2_result
 
+    # Parsers regex per-bank (scripts/e2/banks/*) não populam arquivo_origem
+    # no top-level — só o E2-llm fallback faz. Sem isso, BankStatement.from_e2_dict
+    # define tx.source_document=None, o E3 grava tx sem arquivo_origem, e os
+    # ClassifiedTransaction.source_doc_id (ADR-255 Camada B) ficam vazios,
+    # quebrando a auditabilidade cross-document observada no workspace 5@5.com.
+    result.setdefault("arquivo_origem", filename)
     return finalize_e2_result(result)
 
 
