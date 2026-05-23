@@ -1,13 +1,13 @@
 ---
 id: PLAN-competitive-pierre
 type: plan
-title: Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento
+title: Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento)
 status: draft
 sprint_origem: A11
 sprint_atual: A11
 sprints_envolvidas: [A11]
 created_at: "2026-05-08"
-last_review: "2026-05-08"
+last_review: "2026-05-23"
 paused_at: null
 pause_reason: null
 adrs_canonical:
@@ -18,18 +18,19 @@ tags:
   - area/strategy
   - area/competitive
   - area/openfinance
+  - area/ai-platform
   - methodology/build-vs-buy
 ---
 
-# Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento
+# Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento)
 
-> **Origem:** análise CEO 2026-05-08 após mapeamento factual de [Pierre Finance](https://lp.pierre.finance/) (CloudWalk, lançado 2025-07; 165k usuários; R$ 800 mi AUM).
+> **Origem:** análise CEO 2026-05-08 após mapeamento factual de [Pierre Finance](https://lp.pierre.finance/) (CloudWalk, lançado 2025-07; 165k usuários; R$ 800 mi AUM). **Expansão 2026-05-23:** segunda frente competitiva — [OpenAI ChatGPT Personal Finance](https://openai.com/index/personal-finance-chatgpt/) (preview Pro tier US, mai/2026; Plaid + Hiro acquisition; "financial memories" persistentes). Pierre + ChatGPT atacam vetores adjacentes mas distintos — este plano responde a ambos sem fragmentar entregáveis.
 >
-> **Audiência:** orquestrador `senior-cto` + delegação a `build-vs-buy`, `product-manager`, `product-designer`, `financial-planner` por fase.
+> **Audiência:** orquestrador `senior-cto` + delegação a `build-vs-buy`, `product-manager`, `product-designer`, `financial-planner`, `gtm-strategist` por fase.
 >
 > **Status do plano:** `draft` (ainda sem ADR Proposto materializada — Fase 1 abre a ADR de competitor analysis; cada fase subsequente abre a sua antes do PR de implementação, conforme [CLAUDE.md §"Política operacional — ADR Proposto antes de PR P0/P1"](../../../CLAUDE.md)).
 >
-> **NÃO está em escopo:** a decisão **build vs buy do agregador OFB B2B** (Pluggy / Belvo / Klavi / DIY) — esse é plano e ADR separados, decidido em pista paralela. Razão: a decisão do agregador depende de variáveis comerciais (pricing por consent ativo, CAC, AUM) que independem da resposta a Pierre, e bundlear as duas decisões aumenta acoplamento sem ganho.
+> **NÃO está em escopo:** a decisão **build vs buy do agregador OFB B2B** (Pluggy / Belvo / Klavi / DIY) — esse é plano e ADR separados, decidido em pista paralela. Razão: a decisão do agregador depende de variáveis comerciais (pricing por consent ativo, CAC, AUM) que independem da resposta a Pierre/ChatGPT, e bundlear as duas decisões aumenta acoplamento sem ganho.
 
 ---
 
@@ -73,6 +74,42 @@ Lendo [docs.pierre.finance](https://docs.pierre.finance/) verbatim:
 
 **Pierre vende API developer-hobbyist para fidelizar tier pago, não infraestrutura B2B.** O agregador real para Mathoms é decisão paralela (ver §"Não está em escopo").
 
+### 1.4 Segunda frente: ChatGPT Personal Finance (OpenAI, mai/2026)
+
+> **ChatGPT é *assistente conversacional financeiro genérico* (US-only hoje, premium). Pierre e Mathoms colidirão antes; ChatGPT colide depois — mas pavimenta expectativa de UX para o mercado todo.** Não responder a este vetor agora é deixar a janela de mindshare conversacional aberta.
+
+**Onde ChatGPT é forte (diagnóstico factual):**
+
+1. **Memória financeira persistente** ("Financial memories") — usuário diz "estou economizando para casa em 5 anos", ChatGPT propaga para todas as conversas. UX simples, gravita engajamento.
+2. **Conexão Plaid 12.000+ instituições** com onboarding fricção-zero — mesma jugular do Pierre no Brasil (OFB).
+3. **Reasoning sobre contexto financeiro real** com GPT-5.5 — interpretação livre de qualquer pergunta, não apenas intents pré-definidos.
+4. **Distribuição via base ChatGPT existente** — não precisa adquirir usuário; só ativar feature em quem já paga Pro.
+5. **Roadmap declarado:** Intuit/TurboTax (impostos US) + odds de crédito — sinaliza ambição de cobrir patrimônio + fiscal + crédito em uma só superfície.
+
+**Onde ChatGPT é raso (nosso moat real, mantido vs ChatGPT):**
+
+1. **US-only** — Plaid não opera no Brasil; LGPD + Open Finance brasileiro adicionam 12-24 meses de gap regulatório. Janela de execução real.
+2. **Sem fiscal brasileiro** — sem IRPF parser ([[ADR-157]]), sem `fiscal_parameters` BRL versionado ([[ADR-135]]), sem PGBL/lucro presumido. Intuit cobre US, não Brasil.
+3. **Single-user** — sem `family_members`, sem `cenarios_conjuge` ([[ADR-166]]/[[ADR-167]]). "Financial memories" é por conta, não por núcleo familiar.
+4. **Sem metodologia codificada** — chat genérico raciocina caso-a-caso; sem Perini/Cerbasi/AUVP rules-as-code ([[ADR-143]]). Aconselhamento é estatisticamente plausível, não metodologicamente ancorado.
+5. **Sem relatório editorial entregável** — output é conversa, não documento. Planejador/contador/sucessão precisam de PDF; ChatGPT não entrega.
+6. **Sem plano de ação event-sourced** — não há `Decision` aggregate ([[ADR-136]]); recomendações são efêmeras, não auditáveis, não evoluem com supersedure formal.
+7. **Sem ativos fora do escopo Plaid** — fundo exclusivo, FII distribuição parcial, conta no exterior, holding patrimonial. Mesmo gap do Pierre.
+
+### 1.5 Por que ChatGPT **não** ameaça Mathoms no curto prazo (12-18 meses)
+
+| Restrição ChatGPT 2026-05 | Implicação |
+|---|---|
+| US-only, Plaid-dependent | Sem produto BR até resolverem Open Finance + LGPD + parceria local (Belvo/Pluggy). Janela ≥ 12-18 meses. |
+| Pro tier US$200/mês | Pricing premium global; no Brasil, conversão R$ ~1.000/mês seria proibitivo mesmo para HENRY. Plus tier (US$20) ainda sem timeline. |
+| Sem persona financeira pública | "ChatGPT genérico" comunica genérico. Mathoms comunica "advisor metodológico brasileiro" — categoria distinta. |
+| Memória textual, não estruturada | Memórias são livre-forma; não há aggregate de Goals/Decisions com supersedure. Não auditável. |
+| Sem entregável fora do chat | Sem PDF, sem dashboard partilhável com cônjuge/contador. Reativo, não consultivo. |
+
+### 1.6 Pierre vs ChatGPT — vetores ortogonais, resposta convergente
+
+Pierre e ChatGPT atacam **vetores diferentes** (consumer mass-market BR vs premium global generalista), mas as ações de resposta do Mathoms **convergem**: chat sobre relatório, financial memories como superfície UX, posicionamento metodológico explícito, MCP server soberano. **Por isso unificamos no mesmo plano** em vez de criar `COMPETITIVE_CHATGPT/` paralelo — fragmentação de plano teria duplicado entregáveis sem ganho.
+
 ---
 
 ## 2. Premissas que governam o plano
@@ -88,6 +125,10 @@ P4. **Segmento alvo do Mathoms (HENRY R$ 200k+ patrimônio) suporta pricing > R$
 P5. **CloudWalk vai apertar.** Se Pierre mostrar tração 2026, CloudWalk injeta capital, contrata sales B2B, e fecha parcerias com bancos. Janela de execução = 12-18 meses.
 
 P6. **A jugular do Pierre é cônjuge/sucessão.** Casal HENRY com filhos não cabe em chat single-user. Quem dobra cônjuge + sucessão + holding patrimonial primeiro pega esse segmento. Nosso schema já comporta — falta exploração de produto.
+
+P7. **ChatGPT Finance eleva a expectativa de mercado para chat conversacional sobre dados financeiros próprios.** O segmento HENRY brasileiro vai passar a esperar essa UX em qualquer produto que se proponha "advisor". Não responder = ser percebido como "ferramenta antiga". Janela: ~12 meses até ChatGPT chegar ao BR (Plus tier + Open Finance integration). **Fase 3 (chat sobre relatório) sai de "nice-to-have" e vira gate de credibilidade.**
+
+P8. **"Financial memories" é primitiva de UX, não primitiva de dados — para nós.** ChatGPT inventou a *superfície* (card editável "isto sabemos sobre você"); o Mathoms já tem a *substância* (`Goal`, `Decision`, `family_members`, workspace settings). Lançar a superfície custa 1-2 sprints; ignorá-la deixa o usuário pensando que ChatGPT "lembra mais" só porque mostra.
 
 ---
 
@@ -138,33 +179,47 @@ Quatro fases. Numeração mantém os "movimentos" originais da análise CEO 2026
 
 **Risco principal:** registry público + chave assinada vazada → exposição de dados. Mitigação: gate de IP/domain allowlist por workspace + rate-limit agressivo + Fernet vault (já existe) + telemetria de anomalia.
 
-### Fase 3 — Chat conversacional sobre relatório (Sprint A12→A13, ~3 sprints)
+### Fase 3 — Chat conversacional + Financial Memories sobre relatório (Sprint A12→A13, ~3 sprints) — **prioridade elevada por P7/P8**
 
-**Goal:** fechar gap de UX vs Pierre conversacional sem virar Pierre — chat é **focado e metodológico** (responde sobre *o seu* plano patrimonial, não sobre o mundo). Camada complementar ao relatório, não substituta.
+**Goal:** fechar gap de UX vs Pierre conversacional **e vs ChatGPT Finance** sem virar nenhum dos dois — chat é **focado e metodológico** (responde sobre *o seu* plano patrimonial, não sobre o mundo); memories é **superfície explícita** sobre Goals/Decisions/Workspace já existentes (não nova primitiva de dados). Camadas complementares ao relatório, não substitutas.
+
+> **Mudança 2026-05-23 vs versão original:** Fase 3 era "chat sobre relatório" único. Com o lançamento do ChatGPT Personal Finance (mai/2026), `Financial Memories` virou expectativa de UX. Adicionada sub-fase **3.E — Financial Memories surface** como entregável irmão. Razão: ambos consomem o mesmo substrato (`Goal` + `Decision` + workspace settings + family); separar duplicaria descoberta UX e RAG store.
 
 **Sub-fases:**
 
 | Sub | Escopo | Duração | ADR |
 |---|---|---|---|
-| 3.A | Discovery — UX research (`product-designer`) + intent inventory (`financial-planner`): quais perguntas o user faz no relatório hoje? Onde abandona? Qual a curva de profundidade? | 1 semana | — |
-| 3.B | Spike de design — RAG over E5 JSON + Decision aggregate + Suggestions, com guardrails metodológicos (resposta cita ADR/regra). Decisão: ChatGPT-style (livre) vs structured-prompt (slots). | 1 semana | abrir `chat-over-report-architecture` Proposto |
-| 3.C | MVP — chat-side em `/reports/[id]` (drawer ou painel fixo), 5 intents iniciais (saldo, alocação, score, próximo passo, simulação simples), latência < 3s p50. | 2 semanas | herda 3.B |
+| 3.A | Discovery — UX research (`product-designer`) + intent inventory (`financial-planner`): quais perguntas o user faz no relatório hoje? Onde abandona? Qual a curva de profundidade? **Inclui:** mapeamento do que o user espera ver em "memória financeira" (analogia ChatGPT Memories). | 1 semana | — |
+| 3.B | Spike de design — RAG over E5 JSON + Decision aggregate + Suggestions + Goal + workspace settings, com guardrails metodológicos (resposta cita ADR/regra). Decisão: ChatGPT-style (livre) vs structured-prompt (slots). | 1 semana | abrir `chat-over-report-architecture` Proposto |
+| 3.C | MVP chat — chat-side em `/reports/[id]` (drawer ou painel fixo), 5 intents iniciais (saldo, alocação, score, próximo passo, simulação simples), latência < 3s p50. | 2 semanas | herda 3.B |
 | 3.D | Cost ceiling + telemetria — depende de [ADR-173 LLM budget hard-stop](../../adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md) (em W3 do PLATFORM_REVIEW). Métricas: intents resolvidos vs não-resolvidos, custo médio/conversa, opt-out rate. | 1 semana | herda [ADR-173] |
+| 3.E | **Financial Memories surface (NOVO 2026-05-23)** — view consolidada read-first em `/workspace/memories`: "Isto sabemos sobre você" projetando `Goal` ([[ADR-077]]) + `Decision` ativas ([[ADR-136]]) + `family_members` + workspace lifestyle settings + IRPF metadata ([[ADR-157]]). Edit inline → escreve no aggregate canônico (Goal/Decision API), nunca em store paralelo. CTA primário: alimentar Fase 3.C chat com contexto explícito do user. | 2 semanas | abrir `financial-memories-surface` Proposto (leve — escopo UX projection, não nova primitiva) |
 
-**Owner:** `financial-planner` (intent design) + `product-designer` (UX) + `senior-cto` (arquitetura) + `sre-devops` (cost ceiling).
+**Owner:** `financial-planner` (intent + memories taxonomy) + `product-designer` (UX 3.A + 3.E) + `senior-cto` (arquitetura RAG + projection store) + `sre-devops` (cost ceiling).
 
-**Dependência hard:** [ADR-173 LLM budget hard-stop](../../adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md) precisa estar mergeado antes de chat ir live em produção. Bloqueio explícito.
+**Dependência hard:** [ADR-173 LLM budget hard-stop](../../adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md) precisa estar mergeado antes de chat (3.C) ir live em produção. **3.E (memories surface) NÃO depende de [ADR-173]** — é UX puro sobre aggregates existentes; pode ir live em paralelo a 3.A/3.B.
 
-**Decisões abertas que entram na ADR 3.B:**
+**Decisões abertas que entram na ADR 3.B (chat):**
 
 1. **Escopo de ação:** chat só lê (read-only) ou pode propor Decision/Task draft para approval? Recomendação inicial: **propor draft, nunca executar** — usuário sempre confirma.
-2. **Citação de fonte:** toda resposta cita o nó do relatório / ADR de origem? Recomendação inicial: **sim** — diferenciação metodológica vs Pierre genérico.
+2. **Citação de fonte:** toda resposta cita o nó do relatório / ADR de origem? Recomendação inicial: **sim** — diferenciação metodológica vs Pierre genérico **e vs ChatGPT genérico**.
 3. **Histórico de conversa:** persiste por workspace? Por user? Cross-device? Recomendação inicial: **persiste por workspace, encriptado** (uso futuro: aprender padrões do cliente; consumir rationale em revisões trimestrais).
 4. **Multi-agent estilo Pierre (Albert/Marie/Galileu)?** Recomendação inicial: **não** — Mathoms é metodológico, não multi-personalidade. Um único copiloto especialista é mais credível para o segmento HENRY.
 
-**Critério de saída Fase 3:** chat live em `/reports/[id]`, ≥ 5 intents resolvidos com ≥ 80% precisão, custo médio < R$ 0,30/conversa, opt-in explícito do user, sem regressão de SLA.
+**Decisões abertas que entram na ADR 3.E (memories):**
 
-**Risco principal:** chat virar muleta para usuário não ler o relatório → cai a leitura profunda → cai o engajamento metodológico. Mitigação: telemetria de leitura do relatório como guard-rail; se cair >20%, A/B desliga chat.
+1. **Edição de memória deleta evento histórico?** Não. Edit no `Goal` cria nova revisão; supersede do `Decision` segue [[ADR-136]]. Memória mostra estado atual + link "ver histórico" para auditoria.
+2. **Memórias derivadas (inferidas pelo pipeline) vs declaradas (digitadas pelo user)?** Distinção visual obrigatória — derivadas têm origem rastreada (E5 analyzer); declaradas têm campo `source: user_declared`. Sem misturar.
+3. **Memória pode existir fora de Goal/Decision/Workspace?** **Não** no MVP — força ancoragem em aggregate canônico. Se virar bottleneck, abrir `WorkspaceFact` aggregate em v2 (sem fazer agora).
+4. **Compartilhamento com cônjuge no mesmo workspace?** **Sim por default** — multi-tenant já implica visão compartilhada. Diferenciador chave vs ChatGPT single-user.
+
+**Critério de saída Fase 3:**
+- Chat (3.C+3.D): live em `/reports/[id]`, ≥ 5 intents resolvidos com ≥ 80% precisão, custo médio < R$ 0,30/conversa, opt-in explícito do user, sem regressão de SLA.
+- Memories (3.E): live em `/workspace/memories`, ≥ 80% workspaces ativos com ≥ 1 memória declarada em 30 dias pós-launch, edit inline sem corromper aggregate canônico (audit log limpo), distinção visual derivada↔declarada validada por 5 dogfood users.
+
+**Risco principal Fase 3:**
+- **Chat:** virar muleta para usuário não ler o relatório → cai leitura profunda → cai engajamento metodológico. Mitigação: telemetria de leitura do relatório como guard-rail; se cair >20%, A/B desliga chat.
+- **Memories:** virar "rascunho paralelo" desconectado dos aggregates (forma sem substância). Mitigação: edit inline obrigatoriamente escreve no aggregate canônico via API existente; gate de teste de integração em CI.
 
 ### Fase 4 — Reposicionamento de marca + GTM (paralelo, ~contínuo, owner CEO)
 
@@ -200,17 +255,41 @@ Quatro fases. Numeração mantém os "movimentos" originais da análise CEO 2026
 ```
 Fase 1 (recon)  ──┐
                    ├─→ Fase 2 (MCP)        ──┐
-                   ├─→ Fase 3 (chat)       ──┼─→ Fase 4 (GTM, sub 4.B+)
-                   └─→ Fase 4.A (pesquisa) ──┘
+                   ├─→ Fase 3 (chat+memories) ─┼─→ Fase 4 (GTM, sub 4.B+)
+                   └─→ Fase 4.A (pesquisa)  ──┘
 
 Fase 4.A pode rodar em paralelo com 1, 2, 3.
 Fase 4.B+ deve esperar 2 e 3 (pelo menos beta) para a narrativa não furar.
+Sub-fase 3.E (memories) pode ir live antes de 3.C/3.D (não depende de ADR-173).
 ```
 
 - **Fase 1** habilita 2, 3, 4 com dado factual.
 - **Fase 2 e 3** rodam em paralelo (owners distintos), competindo por capacidade de eng.
+- **Fase 3.E (memories)** é o caminho mais rápido para responder ao ChatGPT em UX percebida — destravar primeiro dentro da Fase 3.
 - **Fase 4.A** roda em paralelo desde dia 1 (não depende de eng).
 - **Fase 4.B-F** publica depois de Fase 2 ou 3 visíveis (mesmo beta) para narrativa ter prova.
+
+---
+
+## 4-bis. Mapeamento pillar→moat: como [[ADR-183]] defende contra ChatGPT Finance
+
+Os 4 pilares já decididos em [[ADR-183]] (P1 casal, P2 método, P3 patrimônio+fiscal, P4 plano evolutivo) **defendem estruturalmente contra ChatGPT** — não precisam ser refeitos. Esta subseção é o mapeamento explícito (sem modificar a ADR; só evidencia robustez dual-frente).
+
+> **Pedido CEO 2026-05-23:** "destacar 3 moats que ChatGPT não tem". Resposta abaixo: 3 moats principais (P1/P2/P3) + 1 bonus (P4). ADR-183 já está `Proposto` em #141; nenhuma mudança de pillar exigida — apenas evidência de leitura dupla.
+
+| Pilar ADR-183 | Capability | Moat vs Pierre | Moat vs ChatGPT Finance |
+|---|---|---|---|
+| **P1 — Patrimônio do casal** | `cenarios_conjuge_analyzer` + `family_members` ([[ADR-166]]/[[ADR-167]]) | Pierre é single-user. Casal HENRY com filhos não cabe. | **ChatGPT Memories é per-conta, não per-família.** Não há "patrimônio do casal" — cada cônjuge teria que ter conta separada, sem cruzamento estruturado. Mathoms é multi-tenant nativo. **Moat #3** vs ChatGPT. |
+| **P2 — Método estruturado** | rules-as-code Perini/Cerbasi/AUVP ([[ADR-143]]) + `equilibrio_cerbasi_analyzer` + `financial_score_calculator` + `config/scoring.json` | Pierre categoriza genericamente, sem rules-as-code. | **ChatGPT é LLM genérico raciocinando caso-a-caso.** Aconselhamento é estatisticamente plausível, não metodologicamente ancorado em obra brasileira. Resposta varia entre conversas; Mathoms produz score 0-1000 reproducível auditado por threshold. **Moat #2** vs ChatGPT. |
+| **P3 — Patrimônio inteiro, fiscal incluso** | `irpf_analyzer` + `e16_irpf_full.schema.json` + `fiscal_parameters` BRL versionado ([[ADR-135]]/[[ADR-157]]) + `passive_income_calculator` | Pierre não tem IRPF. | **ChatGPT cobre Intuit/TurboTax (US).** IRPF brasileiro tem alíquotas progressivas, lucro presumido, PGBL/VGBL polimórfico ([[ADR-238]]), come-cotas, isenções específicas (FII, prefixados). Mathoms tem 24+ meses de domain logic fiscal BR codificado. **Moat #1** vs ChatGPT (regulatório + domain depth). |
+| **P4 — Plano de ação que evolui** | `Decision` aggregate event-sourced ([[ADR-136]]) + supersedure + `suggestion_generator` + `PlanoDeAcao` section | Pierre tem alertas, não plano. | **ChatGPT Memories é textual e mutável sem auditoria.** Não há aggregate, não há supersedure formal, não há rastreabilidade temporal. Mathoms grava "decidi X em 2026-04-12, supersedido por Y em 2026-05-01 com razão Z". Auditável para planejador/contador/sucessão. **Moat bonus** vs ChatGPT. |
+
+**Implicação para Fase 4.B (landing):** os 4 pilares já comunicam dupla diferenciação. **Não criar novo pilar "Anti-ChatGPT" — diluiria mensagem.** Refinement de copy em PR-C (`product-designer` + `gtm-strategist`) pode adicionar **uma frase por pilar** explicitando "diferente de assistente genérico" sem nomear ChatGPT diretamente. Comparativo factual público com ChatGPT — se vier — é PR de refresh em 4.E, junto com Pierre.
+
+**O que NÃO entra como pilar (mantido de [[ADR-183]] §"Anti-personas"):**
+
+- "Chat conversacional sobre suas finanças" como hero → continua anti-persona (curioso AI-nativo). Chat é capability, não hero. Mathoms vende plano metodológico, não novelty AI.
+- "Memória que evolui com você" como pilar isolado → memories é superfície de P4 (plano evolutivo), não pilar independente.
 
 ---
 
@@ -235,25 +314,36 @@ IDs concretos serão atribuídos no commit que abre cada ADR (próximo livre em 
 
 **Fase 2 (MCP):** MCP server em `mcp.mathoms.ai` com uptime ≥ 99,5% por 30 dias, ≥ 100 chamadas/dia de ≥ 10 workspaces distintos no fim do trimestre, listing público em registry Anthropic.
 
-**Fase 3 (chat):** ≥ 70% intents resolvidos sem fallback, custo médio < R$ 0,30/conversa, ≥ 40% dos relatórios abertos no trimestre tiveram ≥ 1 interação chat, opt-out < 15%.
+**Fase 3 (chat + memories):**
+- Chat: ≥ 70% intents resolvidos sem fallback, custo médio < R$ 0,30/conversa, ≥ 40% dos relatórios abertos no trimestre tiveram ≥ 1 interação chat, opt-out < 15%.
+- Memories: ≥ 80% workspaces ativos com ≥ 1 memória declarada em 30 dias, edit→aggregate sem corrupção (audit log limpo), ≥ 5 dogfood users validam clareza derivada↔declarada.
 
 **Fase 4 (GTM):** ≥ 30% signups vindos de canal pago/conteúdo, CAC payback < 6m, NPS HENRY > 60, ≥ 3 parcerias CFP/contador.
 
 **Sinais de alarme (revisar plano):**
 
+*Pierre / mercado brasileiro:*
 - Pierre lança feature de cônjuge/sucessão → Fase 4 deve acelerar 4.B com "casal" como hero ainda mais cedo.
 - BCB acelera fase de investimentos OFB para Q3 2026 → janela de parser fechando, agregador entra como P0 (fora deste plano, mas contexto).
 - CloudWalk anuncia M&A com banco/seguradora → Pierre ganha distribuição de cliente premium; reposicionar Fase 4 para enterprise/family-office mais cedo.
+
+*ChatGPT Finance / mercado global:*
+- **OpenAI anuncia parceria com Belvo/Pluggy** ou expansão Plaid-Brasil → janela ChatGPT-BR fechando de 18 para 6-9 meses. Acelerar 3.E (memories) e 3.C (chat) em sprint paralela; soft launch da landing 4.B com pillar P3 (fiscal) reforçado.
+- **OpenAI libera Personal Finance no Plus tier (US$20)** → comoditização de pricing premium. Reavaliar pricing 4.C: tier base do Mathoms pode precisar reforçar **profundidade horizontal** (P3) e **vertical** (P4) na percepção, não só preço.
+- **ChatGPT integra agente CFP/contador via persona/GPT custom público** → ameaça de "persona metodológica DIY". Resposta: acelerar conteúdo metodológico 4.D + parcerias 4.F antes que mercado pondere "configurei meu GPT, não preciso de Mathoms".
+- **Pierre ou competidor BR lança "ChatGPT-like memories" antes do Mathoms** → 3.E vira urgência P0. Mitigação preventiva: 3.E é a sub-fase mais barata de Fase 3 (sem dependência [ADR-173], sem novo aggregate); priorizar entrega em ≤ 4 semanas a partir do go.
 
 ---
 
 ## 7. Não-objetivos (escopo explicitamente excluído)
 
-1. **Decisão build vs buy do agregador OFB B2B** (Pluggy / Belvo / Klavi / DIY). Plano e ADR separados, ortogonais. Razão: variáveis comerciais distintas (pricing por consent, CAC, AUM) e não condicionado à resposta a Pierre.
+1. **Decisão build vs buy do agregador OFB B2B** (Pluggy / Belvo / Klavi / DIY). Plano e ADR separados, ortogonais. Razão: variáveis comerciais distintas (pricing por consent, CAC, AUM) e não condicionado à resposta a Pierre/ChatGPT.
 2. **Replicar multi-agent estilo Albert/Marie/Galileu** (recomendação inicial — confirmação na ADR 3.B). Mathoms é um copiloto especialista único, não suite de personalidades. Sinalização de seriedade.
 3. **Free tier R$ 0** (recomendação inicial CEO em 4.C). Atrai segmento sub-economic.
-4. **Comparativo público agressivo / atacante a Pierre.** Apenas comparativo factual respeitoso baseado em capabilities documentadas.
+4. **Comparativo público agressivo / atacante a Pierre ou ChatGPT.** Apenas comparativo factual respeitoso baseado em capabilities documentadas (Pierre: docs.pierre.finance; ChatGPT Finance: openai.com/index/personal-finance-chatgpt).
 5. **Integrar API do Pierre como agregador** (já invalidado em §1.3 — single-tenant, float, sem webhooks).
+6. **Competir com ChatGPT em chat conversacional genérico sobre dados financeiros.** Não-objetivo explícito (P7+P8): Mathoms é chat **focado e metodológico sobre o seu plano**, com guardrails e citação de fonte. Generalidade conversacional (perguntar sobre fundos, ações, macro) é território onde ChatGPT vence por reasoning bruto — não vale entrar.
+7. **Construir "Mathoms GPT" / persona pública em ChatGPT Store / Custom GPTs.** Não-objetivo: expõe método codificado sem captura de valor; usuário fica em superfície OpenAI. Estratégia inversa = MCP server soberano (Fase 2) onde o user vem ao Mathoms.
 
 ---
 
@@ -274,6 +364,7 @@ IDs concretos serão atribuídos no commit que abre cada ADR (próximo livre em 
 | `chat-report-discovery.md` | 3.A | em paralelo a 2.A | `product-designer` + `financial-planner` |
 | `chat-report-spike.md` | 3.B | após 3.A fechar | `senior-cto` + `financial-planner` |
 | `chat-report-mvp.md` | 3.C | após ADR 3.B mergeada e [ADR-173] live | `senior-cto` |
+| `financial-memories-surface.md` | 3.E | em paralelo a 3.A (sem dependência [ADR-173]) | `product-designer` + `senior-cto` |
 | `gtm-segment-research.md` | 4.A | desde dia 1 (paralelo) | CEO + `product-manager` |
 | ~~`gtm-landing-copy-rewrite.md`~~ | 4.B | ✅ criado (ver §8.1) — soft launch viável imediato sem comparativo + chat hero conforme [[ADR-183]] §"Dependências de gate" | CEO + `product-designer` |
 | `gtm-pricing-repositioning.md` | 4.C | após 4.A | CEO + `product-manager` |
@@ -286,8 +377,25 @@ Nomenclatura segue padrão atual (`docs/sprint/<X>/tracks/<slug>.md` com frontma
 
 - **2026-05-08:** plano criado em `draft`. Fase 1 track materializado. Fases 2-4 descritas em alto nível, esperando dossiê da Fase 1 para refinar.
 - **2026-05-08:** Fase 4.B PR-A → [[ADR-183]] mergeada como `Proposto` (#141). Fase 4.B PR-B → [`gtm-landing-copy-rewrite.md`](../../sprint/A11/tracks/gtm-landing-copy-rewrite.md) materializado em `status: ready`. Confirmado em [[ADR-183]] §"Dependências de gate" que soft launch P1+P2+P3+P4 é viável imediatamente — gate Fase 2/3 beta aplica-se apenas a comparativo (4.E) e narrativa AI conversacional. Próximos: PR-C (copy literal — `product-designer`), PR-D (publicação — CEO + designer), PR-E (flip ADR-183 para `Decidido`).
+- **2026-05-23:** segunda frente competitiva incorporada — OpenAI ChatGPT Personal Finance (preview Pro tier US, mai/2026). Mudanças:
+  - Título e frontmatter atualizados (mantém `id: PLAN-competitive-pierre` por compat de wikilinks); tag `area/ai-platform` adicionada.
+  - **§1.4-1.6 novos:** tese estratégica dual (Pierre vs ChatGPT como vetores ortogonais com resposta convergente); diagnóstico factual ChatGPT; janela de 12-18 meses por restrição US-only/Plaid.
+  - **§2 P7+P8 novos:** ChatGPT eleva expectativa de chat conversacional (P7); financial memories é primitiva de UX, não de dados (P8).
+  - **§3 Fase 3:** prioridade elevada (gate de credibilidade, não nice-to-have); **sub-fase 3.E nova** (Financial Memories surface) projetando `Goal` + `Decision` + `family_members` + workspace settings em view consolidada; 3.E não depende de [ADR-173], pode ir live em paralelo a 3.A/3.B.
+  - **§4-bis novo:** mapeamento explícito dos 4 pilares de [[ADR-183]] como moats vs ChatGPT (3 principais P1/P2/P3 + bonus P4); confirma que ADR-183 não precisa ser refeita — pillars são robustos dual-frente.
+  - **§6:** sinais de alarme ChatGPT-specific (parceria Belvo/Pluggy, liberação Plus tier, persona/Custom GPT, memories first-mover concorrente BR).
+  - **§7 não-objetivos 6+7 novos:** explicitar que não competimos com ChatGPT em chat genérico nem construímos "Mathoms GPT" na ChatGPT Store.
+  - **§8 tracks:** `financial-memories-surface.md` adicionado.
+  - **§10 referências externas:** OpenAI + matérias secundárias.
 
-Próxima revisão prevista: ao fechamento do dossiê da Fase 1 (estimado até 2026-05-15). Atualizar `last_review` + `status: in_progress` + `adrs_canonical` quando a primeira ADR mergear.
+  **NÃO mudou:** [[ADR-183]] (pillars permanecem); Fases 1, 2, 4 (objetivos e sub-fases inalterados); decisão de manter pasta `COMPETITIVE_PIERRE/` (compat de wikilinks).
+
+  **Próximas ações imediatas:**
+  1. Invocar `product-manager` para sprint placement da sub-fase 3.E (proposta: A12 ou A13 conforme capacidade).
+  2. Invocar `product-designer` + `financial-planner` em paralelo para 3.A discovery expandido (chat + memories taxonomy).
+  3. Invocar `gtm-strategist` para PR-C de [[ADR-183]] — refinement de copy com "uma frase por pilar" diferenciando vs assistente AI genérico (sem nomear ChatGPT diretamente, sem alterar pillars).
+
+Próxima revisão prevista: ao fechamento do dossiê da Fase 1 (estimado até 2026-05-15) **ou** ao lançamento do ChatGPT Personal Finance para Plus tier — o que vier primeiro. Atualizar `last_review` + `status: in_progress` + `adrs_canonical` quando a primeira ADR mergear (`competitor-analysis-pierre+chatgpt` agora cobrirá ambos — escopo expandido).
 
 ---
 
@@ -317,3 +425,11 @@ Próxima revisão prevista: ao fechamento do dossiê da Fase 1 (estimado até 20
 - [Exame — Pierre/CloudWalk aposta consumer](https://exame.com/inteligencia-artificial/pierre-assistente-de-ia-para-financas-vira-aposta-da-cloudwalk-para-crescer-no-consumo/)
 - [Let's Money — Pierre MCP "Alexa das finanças"](https://www.letsmoney.com.br/destaque/pierre-mcp-alexa-financas/)
 - [Finsiders — Pierre conversational](https://finsidersbrasil.com.br/conteudo-de-marca/pierre-transforma-gestao-financeira-em-uma-conversa-sem-planilhas-nem-graficos-confusos/)
+
+### Externas (ChatGPT Personal Finance / contexto)
+
+- [OpenAI — A new personal finance experience in ChatGPT (anúncio oficial, mai/2026)](https://openai.com/index/personal-finance-chatgpt/)
+- [TechCrunch — OpenAI launches ChatGPT for personal finance (Plaid integration, Hiro acquisition)](https://techcrunch.com/2026/05/15/openai-launches-chatgpt-for-personal-finance-will-let-you-connect-bank-accounts/)
+- [American Banker — Personal finance tools for ChatGPT Pro users](https://www.americanbanker.com/news/openai-launches-personal-finance-tools-for-chatgpt-pro-users)
+- [MacRumors — ChatGPT financial accounts for budgeting](https://www.macrumors.com/2026/05/15/chatgpt-personal-finance/)
+- [9to5Mac — New personal finance features for ChatGPT customers](https://9to5mac.com/2026/05/15/openai-just-released-new-personal-finance-features-for-chatgpt-customers/)
