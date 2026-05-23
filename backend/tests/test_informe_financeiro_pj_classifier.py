@@ -14,11 +14,10 @@ from backend.app.services.document_classification import map_e0_doc_type_to_docu
 
 
 def test_type_rule_informe_financeiro_pj_existe_com_prioridade_2():
-    """Mais específico que informerendimentos genérico; ao mesmo nível de previdencia."""
+    """PJ rule priority=2; ao mesmo nível de previdencia + PF."""
     by_code = {r.code: r for r in TYPE_RULES}
     assert "informe_financeiro_pj" in by_code
     assert by_code["informe_financeiro_pj"].priority == 2
-    assert by_code["informe_financeiro_pj"].priority < by_code["informerendimentos"].priority
     assert by_code["informe_financeiro_pj"].dest_group == "income_tax_br"
 
 
@@ -72,11 +71,11 @@ def test_detect_informe_financeiro_pj_em_textos_realistas(text):
             "Rendimentos Tributáveis\nResumo da Declaração",
             "irpfdeclaracao",
         ),
-        # Informe PF genérico (sem marker PJ) — cai em informerendimentos
+        # Informe PF genérico (sem marker PJ) — após L3, vai para PF (priority=2)
         (
             "Informe de Rendimentos Financeiros\nFonte Pagadora: Banco X\n"
             "Ano-Calendário 2024\nRendimentos Tributáveis\nIsentos e Não Tributáveis",
-            "informerendimentos",
+            "informe_financeiro_pf",
         ),
     ],
 )

@@ -18,12 +18,11 @@ from backend.app.services.document_classification import (
 # ─────────────────────── TypeRule registrado ─────────────────────────────────
 
 
-def test_type_rule_informe_previdencia_existe_com_prioridade_acima_de_informerendimentos():
-    """Mais específico que informerendimentos genérico (priority < 3)."""
+def test_type_rule_informe_previdencia_existe_com_prioridade_2():
+    """Previdência priority=2; legacy `informerendimentos` deletado em L3 P2."""
     by_code = {r.code: r for r in TYPE_RULES}
     assert "informe_previdencia_privada" in by_code
-    assert "informerendimentos" in by_code
-    assert by_code["informe_previdencia_privada"].priority < by_code["informerendimentos"].priority
+    assert by_code["informe_previdencia_privada"].priority == 2
     assert by_code["informe_previdencia_privada"].dest_group == "income_tax_br"
 
 
@@ -67,11 +66,12 @@ def test_detect_informe_previdencia_em_textos_realistas(text):
             "Rendimentos Tributáveis\nResumo da Declaração",
             "irpfdeclaracao",
         ),
-        # Informe de rendimentos GENÉRICO sem produto previdenciário
+        # Informe de rendimentos sem produto previdenciário — agora vai para PF
+        # (ADR-238 L3 P2: priority=2 mais específico que informerendimentos legado).
         (
             "Informe de Rendimentos Financeiros\nFonte Pagadora: Banco X\n"
             "Ano-Calendário 2024\nRendimentos Tributáveis",
-            "informerendimentos",
+            "informe_financeiro_pf",
         ),
     ],
 )
