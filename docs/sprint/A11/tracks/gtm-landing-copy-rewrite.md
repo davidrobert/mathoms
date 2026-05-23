@@ -195,7 +195,33 @@ A lane [A11.w5 Frontend + Methodology](../lanes/A11-w5-frontend-methodology.md) 
 - Anti-personas internalizadas como guardrail editorial (não publicadas como tal — orientam o que **não** entra).
 - Métricas de baseline dos 6 leading indicators ([[ADR-183]] §"Leading indicators") com plano de captura (analytics, sem PII).
 
-### 11.3 Gates editoriais antes de submit
+### 11.3 Sub-headlines auditadas (gtm-strategist 2026-05-23) — INPUT FINAL PARA PR-C
+
+Após o lançamento do ChatGPT Personal Finance (mai/2026), o `gtm-strategist` auditou e refinou **uma sub-headline por pilar** que faz diferenciação implícita vs **assistente AI genérico**, sem nomear concorrente (§13 COPY_GUIDELINES). [[ADR-183]] permanece intocada — pillars são robustos dual-frente (Pierre + ChatGPT). Auditoria completa em [PLAN-competitive-pierre §4-bis.2](../../../plan/COMPETITIVE_PIERRE/_README.md).
+
+| Pilar | Sub-headline final (≤18 palavras) | Posição visual |
+|---|---|---|
+| **P1 hero** | "Patrimônio do casal, decidido a quatro mãos no mesmo workspace — não duas contas isoladas que se conversam." | sub-headline abaixo do nome do pilar |
+| **P2** | "Aconselhamento ancorado em metodologia consagrada de planejamento patrimonial brasileiro — reprodutível, não recalculado a cada conversa." | sub-headline abaixo do nome do pilar |
+| **P3** | "Patrimônio inteiro, com o lado fiscal brasileiro embutido — não só o que entra e sai da conta." | **sub-headline (versão leve)** — a frase técnica "IRPF completo, PGBL/VGBL e lucro presumido inclusos" vai como **primeiro bullet de evidência** dentro do bloco P3 (valida ICP HENRY familiarizado sem abrir bloco com jargão) |
+| **P4** | "Cada decisão registrada com data, motivo e revisão — plano que evolui com auditoria, não conselho efêmero." | sub-headline abaixo do nome do pilar |
+
+**Auditoria GTM completa (verde para PR-C avançar):**
+- §13 COPY_GUIDELINES + `check_sigilo_terms`: zero hits em todas as 4.
+- §13.2 vocabulário canônico: P1, P2, P4 usam termos verbatim. P3 termos técnicos neutros OK.
+- Anti-persona "Curioso AI-nativo": filtrada sem repelir HENRY AI-friendly.
+- SEO: P1 ("patrimônio do casal"), P2 ("planejador patrimonial brasileiro"), P3 ("IRPF completo + lucro presumido") long-tail valiosos.
+
+**Risco de comoditização (12-24 meses):**
+
+| Pilar | Sobrevive ChatGPT-BR (Plus tier + Belvo/Pluggy)? | Refresh ano 2 |
+|---|---|---|
+| P1 | **Forte (24+m).** Multi-tenant familiar é estrutural — não copiável em 1 sprint pela OpenAI (depende de modelo de conta + LGPD + Open Finance multi-titular). | Nenhum. |
+| P2 | **Média.** "Reprodutível, não recalculado" é claim que ChatGPT pode contestar com "Memory + system prompt fixo". Diferenciação real está em **rules-as-code** ([[ADR-143]]). | Refresh: citar "regras codificadas e versionadas" se ChatGPT escalar persona financeira. |
+| P3 | **Forte (12-18m), depois pressionado.** IRPF é moat regulatório duro. | Refresh: destacar "PGBL/VGBL polimórfico + come-cotas + isenções FII". |
+| P4 | **Fraca em prosa, forte em prova.** "Memories evoluem" é exatamente o que OpenAI vai comunicar. Auditabilidade é diferencial real — precisa de **prova visível** (3.E live). | **Sincronizar PR-D landing com 3.E launch** para P4 ter prova factual. Se 3.E atrasar, P4 lança com mock de "histórico de decisões" do Decision aggregate atual. |
+
+### 11.4 Gates editoriais antes de submit
 
 Rodar o enforcer canônico — fonte única de regex em `dev/check_sigilo_terms.py`:
 

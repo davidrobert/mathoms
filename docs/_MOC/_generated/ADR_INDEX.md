@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-252 ADRs (ADR-001 a ADR-261) em [`docs/adr/`](../../adr/).
+255 ADRs (ADR-001 a ADR-264) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 191
-- **Proposto**: 57
+- **Proposto**: 60
 - **Roadmap**: 4
 
 ## Fundação
@@ -333,6 +333,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-234]] — Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) · phase A15
 
+## domain
+
+### Proposto (2)
+
+- [[ADR-263]] — Goal type RESERVA_EMERGENCIA — schema versionado por workspace ancorado em INV1 (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
+- [[ADR-264]] — Goal type META_OBJETIVO — schema genérico para metas estruturadas (casa, educação, intercâmbio, aposentadoria do cônjuge) (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
+
 ## frontend
 
 ### Decidido (6)
@@ -446,6 +453,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - [[ADR-163]] — Decision congela `context_snapshot` ao aceitar Suggestion · phase Onda 8
 - [[ADR-225]] — Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb · phase A12
+
+### Proposto (1)
+
+- [[ADR-262]] — Memory confirmation tracking — flag por aggregate de leitura, não enum em Decision (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
 
 ## pipeline
 

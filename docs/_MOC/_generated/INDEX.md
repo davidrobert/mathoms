@@ -257,6 +257,9 @@
 | ADR-259 | adr | Proposto |  | Boundary LLM unificado — Decimal monetário + PII (cpf_present + Fernet + UX decrypt) | `adr/259-boundary-llm-unified.md` |
 | ADR-260 | adr | Proposto |  | Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP | `adr/260-llm-telemetry-by-prompt-version.md` |
 | ADR-261 | adr | Proposto |  | Política de cache invalidation em bump de PROMPT_VERSION — re-extrair vs. servir stale | `adr/261-llm-cache-invalidation-policy.md` |
+| ADR-262 | adr | Proposto |  | Memory confirmation tracking — flag por aggregate de leitura, não enum em Decision (Fase 3.E pré-req) | `adr/262-memory-confirmation-tracking.md` |
+| ADR-263 | adr | Proposto |  | Goal type RESERVA_EMERGENCIA — schema versionado por workspace ancorado em INV1 (Fase 3.E pré-req) | `adr/263-goal-reserva-emergencia-schema.md` |
+| ADR-264 | adr | Proposto |  | Goal type META_OBJETIVO — schema genérico para metas estruturadas (casa, educação, intercâmbio, aposentadoria do cônjuge) (Fase 3.E pré-req) | `adr/264-goal-meta-objetivo-schema.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -659,6 +662,7 @@
 | TRACK-category-overrides-policy-adr | track | consumed | A11 | Track Category Overrides W3 — ADR-185 Proposto (política + escopo + invariantes) | `sprint/A11/tracks/category-overrides-policy-adr.md` |
 | TRACK-category-overrides-schema-delta | track | consumed | A11 | Track Category Overrides W2 — Schema delta (updated_by_user_id + DTO version fields) | `sprint/A11/tracks/category-overrides-schema-delta.md` |
 | TRACK-category-overrides-ui-refactor | track | consumed | A11 | Track Category Overrides W4 — UI refactor (CategoriesTab + useCategoriesAndMembers) | `sprint/A11/tracks/category-overrides-ui-refactor.md` |
+| TRACK-chat-report-discovery | track | ready | A17 | Track Chat + Memories Discovery — Fase 3.A COMPETITIVE_PIERRE (3-5 dogfood interviews + taxonomy review) | `sprint/A17/tracks/chat-report-discovery.md` |
 | TRACK-competitor-pierre-poc | track | ready | A11 | Track Competitor POC — Pierre Finance API + MCP benchmark | `sprint/A11/tracks/competitor-pierre-poc.md` |
 | TRACK-decision-code-autogen | track | consumed | A12 | Track Decision.code server-generated — PR único cross-cutting | `sprint/A12/tracks/decision-code-autogen.md` |
 | TRACK-f7f-local | track | consumed | F7 | Track F7F-Local — Console interno pré-produção (IA-0) | `sprint/F7/tracks/f7f-local.md` |
