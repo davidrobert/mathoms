@@ -42,6 +42,11 @@ from backend.app.schemas.dto.goal.if_goal import (
     IFGoalInputs,
     IFGoalResponse,
 )
+from backend.app.schemas.dto.goal.reserva_emergencia import (
+    ReservaEmergenciaGoalDerived,
+    ReservaEmergenciaGoalInputs,
+    ReservaEmergenciaGoalResponse,
+)
 
 # Mapeia ``goal.type`` → (response_cls, inputs_cls, derived_cls).
 # Ponto único de extensão: novo tipo → adiciona linha aqui + módulo
@@ -51,6 +56,11 @@ GOAL_TYPE_DTO_CLASSES: dict[str, tuple[type, type, type]] = {
     "APORTE_MENSAL": (AporteGoalResponse, AporteGoalInputs, AporteGoalDerived),
     "DOLARIZACAO": (DolarGoalResponse, DolarGoalInputs, DolarGoalDerived),
     "ALOCACAO_ALVO": (AlocacaoGoalResponse, AlocacaoGoalInputs, AlocacaoGoalDerived),
+    "RESERVA_EMERGENCIA": (
+        ReservaEmergenciaGoalResponse,
+        ReservaEmergenciaGoalInputs,
+        ReservaEmergenciaGoalDerived,
+    ),
 }
 
 

@@ -51,6 +51,15 @@ from backend.app.schemas.dto.goal.mapper import (
     goal_to_typed_response,
     meta_version_from_params,
 )
+from backend.app.schemas.dto.goal.reserva_emergencia import (
+    ReservaEmergenciaGoalComputeRequest,
+    ReservaEmergenciaGoalComputeResponse,
+    ReservaEmergenciaGoalDerived,
+    ReservaEmergenciaGoalHistoryResponse,
+    ReservaEmergenciaGoalInputs,
+    ReservaEmergenciaGoalResponse,
+    ReservaEmergenciaGoalUpsertCommand,
+)
 
 __all__ = [
     "AlocacaoGoalComputeRequest",
@@ -83,6 +92,13 @@ __all__ = [
     "IFGoalInputs",
     "IFGoalResponse",
     "IFGoalUpsertCommand",
+    "ReservaEmergenciaGoalComputeRequest",
+    "ReservaEmergenciaGoalComputeResponse",
+    "ReservaEmergenciaGoalDerived",
+    "ReservaEmergenciaGoalHistoryResponse",
+    "ReservaEmergenciaGoalInputs",
+    "ReservaEmergenciaGoalResponse",
+    "ReservaEmergenciaGoalUpsertCommand",
     "goal_to_if_response",
     "goal_to_typed_response",
     "meta_version_from_params",

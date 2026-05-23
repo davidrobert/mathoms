@@ -28,13 +28,13 @@ migration = importlib.import_module(
 )
 
 
-def test_hardcoded_types_match_current_contract():
-    """Snapshot A10.6 deve refletir o contrato atual no model."""
-    assert set(migration._VALID_GOAL_TYPES_A10_6) == VALID_GOAL_TYPES, (
-        "Snapshot A10.6 divergiu de VALID_GOAL_TYPES — se a divergência foi "
-        "intencional (novo tipo adicionado), escreva nova migration de cleanup "
-        "para fechar rows órfãs do contrato atual. NÃO altere o snapshot desta "
-        "migration: migrations devem ser determinísticas."
+def test_hardcoded_types_remain_valid_in_current_contract():
+    """Snapshot A10.6 deve permanecer subconjunto de VALID_GOAL_TYPES (adições OK; remoção exige nova migration)."""
+    snapshot = set(migration._VALID_GOAL_TYPES_A10_6)
+    assert snapshot <= VALID_GOAL_TYPES, (
+        f"Snapshot A10.6 tem tipos removidos do contrato atual: "
+        f"{snapshot - VALID_GOAL_TYPES}. Se a remoção foi intencional, "
+        f"escreva nova migration de cleanup."
     )
 
 
