@@ -1,9 +1,4 @@
-"""Tests — ``dev/dedup_property_identity.py`` (ADR-225 §3).
-
-Cobre os 3 passes idempotentes do backfill script: passe 0
-(re-canonicalize NULL via cascade), passe 1 (strict dedup),
-passe 3 (cross-codigo_rfb dedup com detecção de conflito).
-"""
+"""Tests — ``dev/dedup_property_identity.py`` (ADR-225 §3, ADR-265)."""
 
 from __future__ import annotations
 
@@ -65,6 +60,25 @@ def _seed_property(factory, ws: Workspace, **kw) -> PropertyIdentity:
         s.commit()
         s.refresh(prop)
         return prop
+
+
+def _seed_fuzzy_pair(factory, ws) -> tuple:
+    """Par canônico do caso real founder: cod=11 '190' + cod=01 '186' (mesmo apto 34)."""
+    a = _seed_property(
+        factory,
+        ws,
+        codigo_rfb="11",
+        endereco_canonical="benedito calixto 190",
+        descricao="APTO 34 BENEDITO CALIXTO 190",
+    )
+    b = _seed_property(
+        factory,
+        ws,
+        codigo_rfb="01",
+        endereco_canonical="benedito calixto 186",
+        descricao="APTO 34 BENEDITO CALIXTO 186",
+    )
+    return a, b
 
 
 def _seed_5at5_scenario(factory, ws):
@@ -200,6 +214,72 @@ class TestPasse3CrossCodigoRFB:
             report2 = _build_report(session, ws.id, dry_run=False)
             assert report2["pass_3_cross_codigo_merged"] == []
             assert report2["pass_1_strict_merged"] == []
+
+
+class TestPasse4FuzzyViaNum:
+    """Passe 4 (ADR-265): funde rows com mesma via e Δ numérico ≤ K."""
+
+    def test_funde_caso_real_founder(self, sync_db):
+        ws = _seed_workspace(sync_db)
+        _seed_fuzzy_pair(sync_db, ws)
+        with sync_db() as session:
+            report = _build_report(session, ws.id, dry_run=False)
+            session.commit()
+        assert len(report["pass_4_fuzzy_merged"]) == 1
+        entry = report["pass_4_fuzzy_merged"][0]
+        assert sorted(entry["codigos_fundidos"]) == ["01", "11"]
+        assert entry["complemento_match"] is True
+
+    def test_dois_especificos_divergentes_vira_red_flag(self, sync_db):
+        """cod=11 + cod=12 mesma via Δ pequeno — não funde, gera red flag."""
+        ws = _seed_workspace(sync_db)
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="rua x 190")
+        _seed_property(sync_db, ws, codigo_rfb="12", endereco_canonical="rua x 188")
+        with sync_db() as session:
+            report = _build_report(session, ws.id, dry_run=False)
+            assert report["pass_4_fuzzy_merged"] == []
+            assert len(report["pass_4_red_flags"]) == 1
+            assert report["pass_4_red_flags"][0]["reason"] == "codigos_especificos_divergentes"
+
+    def test_delta_grande_nao_funde(self, sync_db):
+        """Δ=10 (Av Paulista 1500 vs 1490) — imóveis distintos preservados."""
+        ws = _seed_workspace(sync_db)
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="paulista 1500")
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="paulista 1490")
+        with sync_db() as session:
+            report = _build_report(session, ws.id, dry_run=False)
+            assert report["pass_4_fuzzy_merged"] == []
+
+    def test_canonical_com_prefixo_forte_nao_participa(self, sync_db):
+        """Canonical `mat:NNN` é identificador estável — fuzzy não se aplica."""
+        ws = _seed_workspace(sync_db)
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="mat:453527")
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="mat:453528")
+        with sync_db() as session:
+            report = _build_report(session, ws.id, dry_run=False)
+            assert report["pass_4_fuzzy_merged"] == []
+
+    def test_idempotent_rerun(self, sync_db):
+        ws = _seed_workspace(sync_db)
+        _seed_fuzzy_pair(sync_db, ws)
+        with sync_db() as session:
+            _build_report(session, ws.id, dry_run=False)
+            session.commit()
+        with sync_db() as session:
+            report2 = _build_report(session, ws.id, dry_run=False)
+        assert report2["pass_4_fuzzy_merged"] == []
+
+    def test_dry_run_does_not_modify(self, sync_db):
+        ws = _seed_workspace(sync_db)
+        row_a, row_b = _seed_fuzzy_pair(sync_db, ws)
+        with sync_db() as session:
+            report = _build_report(session, ws.id, dry_run=True)
+        assert len(report["pass_4_fuzzy_merged"]) == 1
+        with sync_db() as session:
+            from backend.app.models import PropertyIdentity
+
+            assert session.get(PropertyIdentity, row_a.id) is not None
+            assert session.get(PropertyIdentity, row_b.id) is not None
 
 
 class TestEnd2End5at5LikeScenario:
