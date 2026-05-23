@@ -44,6 +44,8 @@ from backend.app.schemas.dto.goal import (
     IFGoalDerived,
     IFGoalInputs,
     IFGoalResponse,
+    ReservaEmergenciaGoalDerived,
+    ReservaEmergenciaGoalInputs,
     goal_to_if_response,
     goal_to_typed_response,
 )
@@ -202,6 +204,60 @@ def compute_alocacao_derived(inputs: AlocacaoGoalInputs) -> AlocacaoGoalDerived:
         + inputs.liquidez_usd_pct
     )
     return AlocacaoGoalDerived(soma_percentuais=round(soma, 2))
+
+
+def _resolve_reserva_despesa(
+    inputs: ReservaEmergenciaGoalInputs,
+    from_e5: Optional[Decimal] = None,
+    e5_run_id: Optional[str] = None,
+) -> tuple[Decimal, Optional[str]]:
+    """Resolve `(despesa, source_e5_run_id)` por fonte; ValueError se e5_derived sem valor."""
+    if inputs.fonte_despesa_essencial == "user_declared":
+        return Decimal(str(inputs.despesa_essencial_mensal_brl_declared)), None
+    if from_e5 is None:
+        raise ValueError(
+            "fonte_despesa_essencial=e5_derived exige "
+            "despesa_essencial_mensal_brl_from_e5 (E5 não disponível ainda?)"
+        )
+    despesa = from_e5 if isinstance(from_e5, Decimal) else Decimal(str(from_e5))
+    return despesa, e5_run_id
+
+
+def _coerce_patrimonio(v: Optional[Decimal] = None) -> Decimal:
+    return (v if isinstance(v, Decimal) else Decimal(str(v or 0))).quantize(_CENT)
+
+
+def _build_reserva_derived(
+    despesa: Decimal,
+    meses_alvo: int,
+    patrimonio: Optional[Decimal] = None,
+    run_id: Optional[str] = None,
+) -> ReservaEmergenciaGoalDerived:
+    alvo = (despesa * Decimal(meses_alvo)).quantize(_CENT)
+    atual = _coerce_patrimonio(patrimonio)
+    cobertura = float(atual / despesa) if despesa > _ZERO else 0.0
+    return ReservaEmergenciaGoalDerived(
+        valor_alvo_brl=alvo,
+        valor_atual_brl=atual,
+        cobertura_meses_atual=round(cobertura, 4),
+        gap_brl=(alvo - atual).quantize(_CENT),
+        despesa_essencial_mensal_brl=despesa.quantize(_CENT),
+        source_e5_run_id=run_id,
+    )
+
+
+def compute_reserva_emergencia_derived(
+    inputs: ReservaEmergenciaGoalInputs,
+    *,
+    despesa_essencial_mensal_brl_from_e5: Optional[Decimal] = None,
+    patrimonio_acessivel_brl: Optional[Decimal] = None,
+    source_e5_run_id: Optional[str] = None,
+) -> ReservaEmergenciaGoalDerived:
+    """Deriva valor_alvo (despesa × meses), cobertura, gap. ADR-263."""
+    despesa, run_id = _resolve_reserva_despesa(
+        inputs, despesa_essencial_mensal_brl_from_e5, source_e5_run_id
+    )
+    return _build_reserva_derived(despesa, inputs.meses_alvo, patrimonio_acessivel_brl, run_id)
 
 
 # ─── Enriquecimento de respostas (autor, patrimônio) ─────────────────

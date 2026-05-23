@@ -26,12 +26,15 @@ from backend.app.core.database import Base
 # da fase de cutover; após A10.7 o seed não a popula mais e os campos viraram
 # rules-as-code (ADR-177), Decision/Risk aggregates (ADR-178/179) ou
 # Workspace.business_profile_json (A10.7).
+# A17 (ADR-263) — RESERVA_EMERGENCIA: meses_alvo × despesa_essencial_mensal_brl
+# (derivada de E5 ou declarada). Workspace override de threshold ADR-177.
 VALID_GOAL_TYPES: frozenset[str] = frozenset(
     {
         "INDEPENDENCIA_FINANCEIRA",
         "APORTE_MENSAL",
         "DOLARIZACAO",
         "ALOCACAO_ALVO",
+        "RESERVA_EMERGENCIA",
     }
 )
 
