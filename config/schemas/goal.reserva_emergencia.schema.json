@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mathoms://schemas/goal.reserva_emergencia.v1",
+  "title": "Goal — Reserva de Emergência (v1)",
+  "description": "Meta de reserva ancorada em fórmula `meses_alvo × despesa_essencial_mensal_brl`. INV1 do `financial-planner`: meses_alvo ∈ [3, 18], default 6. Workspace override de threshold global (ADR-177). ADR-263.",
+  "type": "object",
+  "required": ["inputs", "derived", "meta_version"],
+  "additionalProperties": false,
+  "properties": {
+    "meta_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "inputs": {
+      "type": "object",
+      "required": ["meses_alvo", "fonte_despesa_essencial"],
+      "additionalProperties": false,
+      "properties": {
+        "meses_alvo": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 18,
+          "description": "Meses de despesa essencial cobertos. Mínimo 3 (chão metodológico), máximo 18 (acima vira hoarding). Default sugerido: 6."
+        },
+        "fonte_despesa_essencial": {
+          "type": "string",
+          "enum": ["e5_derived", "user_declared"],
+          "description": "Origem do denominador. 'e5_derived' = média de E5.fluxo_mensal_detalhado.essenciais; 'user_declared' = valor declarado em inputs.despesa_essencial_mensal_brl_declared."
+        },
+        "despesa_essencial_mensal_brl_declared": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Valor declarado pelo user. Obrigatório quando fonte_despesa_essencial=user_declared."
+        },
+        "rationale": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Justificativa metodológica opcional (ex.: 'PJ + renda variável → 12 meses por conservadorismo')."
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"fonte_despesa_essencial": {"const": "user_declared"}}},
+          "then": {"required": ["despesa_essencial_mensal_brl_declared"]}
+        }
+      ]
+    },
+    "derived": {
+      "type": "object",
+      "required": [
+        "valor_alvo_brl",
+        "valor_atual_brl",
+        "cobertura_meses_atual",
+        "gap_brl",
+        "despesa_essencial_mensal_brl"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "valor_alvo_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Patrimônio-alvo da reserva = despesa_essencial_mensal_brl × meses_alvo."
+        },
+        "valor_atual_brl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Patrimônio acessível (líquido) destinado a reserva no último relatório (E5)."
+        },
+        "cobertura_meses_atual": {
+          "type": "number",
+          "minimum": 0,
+          "description": "valor_atual_brl / despesa_essencial_mensal_brl. Comparar com meses_alvo dá o gap."
+        },
+        "gap_brl": {
+          "type": "number",
+          "description": "valor_alvo_brl - valor_atual_brl. Pode ser negativo se cobertura excede alvo."
+        },
+        "despesa_essencial_mensal_brl": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Denominador efetivamente usado no cálculo (de E5 derived ou de inputs.despesa_essencial_mensal_brl_declared)."
+        },
+        "source_e5_run_id": {
+          "type": ["string", "null"],
+          "description": "Run id de E5 consumido (null se fonte_despesa_essencial=user_declared)."
+        }
+      }
+    }
+  }
+}

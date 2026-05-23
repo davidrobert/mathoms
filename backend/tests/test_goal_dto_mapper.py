@@ -62,12 +62,14 @@ IF_DERIVED = {
 
 
 class TestGOAL_TYPE_DTO_CLASSES:
-    def test_all_four_types_registered(self):
+    def test_all_types_registered(self):
+        # ADR-263 adicionou RESERVA_EMERGENCIA ao registry.
         assert set(GOAL_TYPE_DTO_CLASSES.keys()) == {
             "INDEPENDENCIA_FINANCEIRA",
             "APORTE_MENSAL",
             "DOLARIZACAO",
             "ALOCACAO_ALVO",
+            "RESERVA_EMERGENCIA",
         }
 
 
