@@ -21,8 +21,8 @@
     },
     "tipo_informe": {
       "type": "string",
-      "enum": ["previdencia_privada", "financeiro_pj", "financeiro_pf"],
-      "description": "L1: previdencia_privada; L2: financeiro_pj; L3: financeiro_pf (4 quadros RFB + Wise multi-moeda); L4 expande com proventos_acoes."
+      "enum": ["previdencia_privada", "financeiro_pj", "financeiro_pf", "proventos_acoes"],
+      "description": "L1: previdencia_privada; L2: financeiro_pj; L3: financeiro_pf (4 quadros RFB + Wise); L4: proventos_acoes (eventos por ativo XP/Itaúsa)."
     },
     "fonte_pagadora_cnpj": {
       "type": "string",
@@ -80,6 +80,13 @@
         { "$ref": "informe_pf.schema.json" }
       ],
       "description": "Populado quando tipo_informe='financeiro_pf' (L3)."
+    },
+    "proventos": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "informe_proventos.schema.json" }
+      ],
+      "description": "Populado quando tipo_informe='proventos_acoes' (L4)."
     }
   },
   "allOf": [
@@ -122,6 +129,20 @@
         "required": ["financeiro_pf"],
         "properties": {
           "financeiro_pf": { "$ref": "informe_pf.schema.json" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "tipo_informe": { "const": "proventos_acoes" }
+        },
+        "required": ["tipo_informe"]
+      },
+      "then": {
+        "required": ["proventos"],
+        "properties": {
+          "proventos": { "$ref": "informe_proventos.schema.json" }
         }
       }
     }
