@@ -175,3 +175,33 @@ def test_high_divergence_marks_warning(high_divergence_co_declared):
     assert merged["valores_31_12"]["2024"] == 600000.0
     assert merged["_dedup_warning"]["type"] == "valor_divergente"
     assert merged["_dedup_warning"]["diff_pct"] > 10.0
+
+
+@pytest.fixture
+def irpf_plus_comprovante_bem(tmp_path: Path) -> list[dict]:
+    """Cenário do report fae3544d: imóvel em IRPF (cod=11) + comprovante (cod=01)."""
+    desc_irpf = "APARTAMENTO - EDIFICIO GISELE - APTO 12 - RUA MAJOR FREIRE 496, SAO PAULO/SP"
+    desc_comprovante = "Apartamento - Rua Major Freire, 496 - Ed Gisele Ap 12, São Paulo - SP"
+    baseline = _make_baseline(
+        [
+            _make_item(
+                codigo="11", descricao=desc_irpf, valor_brl=212706.24, membro="david_robert"
+            ),
+            _make_item(
+                codigo="01", descricao=desc_comprovante, valor_brl=0.0, membro="david_camargo"
+            ),
+        ]
+    )
+    ctx, _ = _make_ctx(tmp_path, baseline)
+    return _run_consolidate(ctx)
+
+
+def test_irpf_e_comprovante_bem_funde_cross_codigo(irpf_plus_comprovante_bem):
+    # IRPF (cod=11, R$ 212k) + comprovante (cod=01, R$ 0) com mesmo canonical
+    # devem ser fundidos via cross-codigo merge (ADR-246).
+    assert len(irpf_plus_comprovante_bem) == 1
+    merged = irpf_plus_comprovante_bem[0]
+    # Específico vence
+    assert merged["valores_31_12"]["2024"] == 212706.24
+    # Ambos proprietarios entram
+    assert set(merged["proprietarios"]) == {"david_robert", "david_camargo"}
