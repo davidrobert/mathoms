@@ -595,7 +595,7 @@
 | MOC-sprint-a9 | moc |  |  | Sprint A9 — Multi-front improvements | `sprint/A9/_README.md` |
 | PLAN-cat-learning-loop | plan | in_progress |  | Categorization Learning Loop — promoção de override de transação para regra | `plan/CAT_LEARNING_LOOP/_README.md` |
 | PLAN-cenarios-estresse | plan | in_progress |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
-| PLAN-competitive-pierre | plan | draft |  | Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento | `plan/COMPETITIVE_PIERRE/_README.md` |
+| PLAN-competitive-pierre | plan | draft |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
 | PLAN-internal-admin | plan | in_progress |  | Console interno (operadores) — IA-0 a IA-4 | `plan/INTERNAL_ADMIN/_README.md` |
 | PLAN-llm-prompts-hardening | plan | draft |  | LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting | `plan/LLM_PROMPTS_HARDENING/_README.md` |
