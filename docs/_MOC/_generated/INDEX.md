@@ -622,6 +622,7 @@
 | TRACK-a15-fu3-onda5-frontend | track | ready | A15 | Track A15 FU-3 Onda 5 — Frontend: form, batch review, drill-down card | `sprint/A15/tracks/a15-fu3-onda5-frontend.md` |
 | TRACK-a16-adr235-nu-proprietario-flip | track | consumed | A16 | Track A16 — Flip ADR-235 `nu_proprietario` para Decidido (migration + call-sites + ADR updates + E6 prompt + CI gate) | `sprint/A16/tracks/a16-adr235-nu-proprietario-flip.md` |
 | TRACK-a16-adr236-tributario-pj-cascata | track | consumed | A16 | Track A16 — Tributário PJ Cascata Fiscal: BusinessProfile expandido + calculator + narrator + card UI (6 PRs) | `sprint/A16/tracks/a16-adr236-tributario-pj-cascata.md` |
+| TRACK-a17-canonical-fuzzy-adr225 | track | ready | A17 | Track A17 — Canonical fuzzy para números próximos (extensão ADR-225) | `sprint/A17/tracks/a17-canonical-fuzzy-adr225.md` |
 | TRACK-a17-l1-previdencia-privada | track | ready | A17 | Track A17 L1 — Previdência privada (PGBL/VGBL): schema-base + parser LLM + FiscalAnalyzer polimórfico + UI | `sprint/A17/tracks/a17-l1-previdencia-privada.md` |
 | TRACK-a17-l2-financeiro-pj | track | ready | A17 | Track A17 L2 — Financeiro PJ (C6 PJ, Stone, adquirentes): sub-schema + InformeQuery integration com ADR-236 | `sprint/A17/tracks/a17-l2-financeiro-pj.md` |
 | TRACK-a17-l3-financeiro-pf | track | ready | A17 | Track A17 L3 — Financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda): 4 quadros RFB + snapshot 31/12 + conta no exterior | `sprint/A17/tracks/a17-l3-financeiro-pf.md` |
