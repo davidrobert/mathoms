@@ -383,3 +383,43 @@ class TestValidateArtifact:
     def test_missing_data_file_returns_false(self, tmp_path):
         path = tmp_path / "missing.json"
         assert validate_artifact(path, "e2_extract.schema.json") is False
+
+
+# Regressão: informe_base.schema.json (A17 / ADR-238 L1) é o primeiro schema do
+# repo com $ref cross-file. Antes do Registry, jsonschema 4.18+ levantava
+# `Unresolvable: informe_previdencia.schema.json` em vez de ValidationError, o
+# que matava o stage `extract_informes_anuais` mesmo em mode=warn.
+_INFORME_PREVIDENCIA_VALID = {
+    "ano_base": 2024,
+    "tipo_informe": "previdencia_privada",
+    "fonte_pagadora_cnpj": "12345678000199",
+    "fonte_pagadora_nome": "Brasilprev",
+    "confidence": 0.92,
+    "prompt_version": "v1.0",
+    "previdencia": {
+        "plano_tipo": "pgbl",
+        "regime_tributacao": "progressivo",
+        "contribuicoes_anuais": "24000.00",
+        "saldo_31_12": "120000.00",
+        "rendimentos_anuais": "8000.00",
+        "resgates_anuais": "0.00",
+        "ir_retido_anual": "0.00",
+    },
+}
+
+
+class TestCrossFileRefs:
+    def test_informe_base_resolves_previdencia_ref(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        path = tmp_path / "informe.json"
+        path.write_text(json.dumps(_INFORME_PREVIDENCIA_VALID))
+        assert validate_artifact(path, "informe_base.schema.json") is True
+
+    def test_informe_base_strict_rejects_invalid_subschema_field(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        bad = json.loads(json.dumps(_INFORME_PREVIDENCIA_VALID))
+        bad["previdencia"]["regime_tributacao"] = "invalido"
+        path = tmp_path / "informe.json"
+        path.write_text(json.dumps(bad))
+        # Sub-schema referenciado por $ref foi efetivamente consultado.
+        assert validate_artifact(path, "informe_base.schema.json") is False
