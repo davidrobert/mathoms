@@ -199,6 +199,89 @@ class TestClassifyDocumentLLMSkipMeta:
         assert "llm_skipped_reason" not in meta
 
 
+class TestExtratoMissingInstitutionGate:
+    """Gate de invariante: ``extratoconta*``/``extratopoupanca*`` sem ``bank_code``
+    força ``needs_review=True``. Sem isso, o LLM (E0 fallback) pode retornar
+    confidence=1.0 com institution=None — observado no workspace 5@5.com,
+    causando duplicação cross-document que escapa do dedup K4 (ADR-255)."""
+
+    @pytest.fixture
+    def force_low_confidence_regex(self, monkeypatch):
+        from backend.app.services.content_classifier import ContentClassification
+
+        def _fake_classify_file(filepath, _preview):
+            return ContentClassification(
+                doc_type=None,
+                dest_group=None,
+                institution=None,
+                period=None,
+                confidence=0.0,
+                source="content_regex",
+            )
+
+        from backend.app.services import content_classifier
+
+        monkeypatch.setattr(content_classifier, "classify_file", _fake_classify_file)
+
+    def _run(self, tmp_path, monkeypatch, llm_payload):
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-fake")
+        from scripts import e0_route
+
+        monkeypatch.setattr(e0_route, "classify_by_llm", lambda _p: llm_payload)
+        f = tmp_path / "doc.pdf"
+        f.write_bytes(b"%PDF-1.4\n")
+        return dc.classify_document(f, tmp_path, use_llm=True)
+
+    def test_extratoconta_without_institution_forces_review(
+        self, tmp_path, monkeypatch, force_low_confidence_regex
+    ):
+        """Caso real do workspace 5@5.com: extrato-da-sua-conta-ULID.pdf
+        classificado pelo LLM como extratoconta+confidence=1.0 mas
+        institution=None. Sem esse gate, vira needs_review=False, é roteado
+        para extração, e gera txs com banco vazio que duplicam pix Arvo."""
+        payload = {
+            "doc_type": "extratoconta",
+            "institution": None,
+            "period": "202505",
+            "dest_group": "financial_statements",
+            "confidence": 1.0,
+        }
+        result = self._run(tmp_path, monkeypatch, payload)
+        assert result["needs_review"] is True
+        meta = result["classification_meta"]
+        assert meta["needs_review_reason"] == "missing_institution_for_bank_statement"
+
+    def test_extratoconta_with_institution_does_not_force_review(
+        self, tmp_path, monkeypatch, force_low_confidence_regex
+    ):
+        payload = {
+            "doc_type": "extratoconta",
+            "institution": "itau",
+            "period": "202604",
+            "dest_group": "financial_statements",
+            "confidence": 0.95,
+        }
+        result = self._run(tmp_path, monkeypatch, payload)
+        assert result["needs_review"] is False
+        meta = result["classification_meta"]
+        assert "needs_review_reason" not in meta
+
+    def test_non_extratoconta_without_institution_not_affected(
+        self, tmp_path, monkeypatch, force_low_confidence_regex
+    ):
+        """``irpfdeclaracao`` sem institution é normal (Receita Federal vem
+        de outra heurística e o gate não se aplica)."""
+        payload = {
+            "doc_type": "irpfdeclaracao",
+            "institution": None,
+            "period": "2025",
+            "dest_group": "income_tax_br",
+            "confidence": 0.9,
+        }
+        result = self._run(tmp_path, monkeypatch, payload)
+        assert result["needs_review"] is False
+
+
 def test_classification_result_roundtrip_dict():
     r = ClassificationResult(
         doc_type=DocumentType.bank_statement,
