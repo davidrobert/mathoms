@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "informe_pf.schema.json",
+  "title": "Informe de Rendimentos Financeiros — Pessoa Física (4 quadros RFB)",
+  "description": "Sub-schema do informe anual financeiro PF (ADR-238 L3). Pareado com pipeline.llm.schemas.informe_pf.InformeFinanceiroPFPayload. Strict — additionalProperties: false. Suporta Wise/Avenue/Nomad via campo `moeda` (ISO 4217, default BRL). Wire de dinheiro: string decimal (ADR-090).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["cnpj_emissor", "nome_emissor"],
+  "properties": {
+    "cnpj_emissor": {
+      "type": "string",
+      "pattern": "^\\d{14}$"
+    },
+    "nome_emissor": {
+      "type": "string",
+      "minLength": 2
+    },
+    "rendimentos_tributaveis": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/quadroEntry" },
+      "default": []
+    },
+    "rendimentos_isentos": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/quadroEntry" },
+      "default": []
+    },
+    "rendimentos_exclusiva": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/quadroEntry" },
+      "default": []
+    },
+    "bens_direitos": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/quadroEntry" },
+      "default": []
+    },
+    "saldos_31_12": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/saldoProduto" },
+      "default": []
+    },
+    "notas": {
+      "type": ["string", "null"]
+    }
+  },
+  "$defs": {
+    "decimalString": {
+      "description": "Wire de dinheiro: string decimal (ADR-090). Float é proibido.",
+      "oneOf": [
+        { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" },
+        { "type": "integer" }
+      ]
+    },
+    "moedaISO": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "default": "BRL"
+    },
+    "quadroEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codigo_rfb", "fonte_pagadora_cnpj", "fonte_pagadora_nome", "descricao", "valor"],
+      "properties": {
+        "codigo_rfb": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 4
+        },
+        "fonte_pagadora_cnpj": {
+          "type": "string",
+          "pattern": "^\\d{14}$"
+        },
+        "fonte_pagadora_nome": {
+          "type": "string",
+          "minLength": 2
+        },
+        "descricao": {
+          "type": "string",
+          "minLength": 2
+        },
+        "valor": { "$ref": "#/$defs/decimalString" },
+        "moeda": { "$ref": "#/$defs/moedaISO" },
+        "ir_retido": { "$ref": "#/$defs/decimalString" },
+        "notas": { "type": ["string", "null"] }
+      }
+    },
+    "saldoProduto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "descricao", "codigo_rfb", "saldo", "fonte_pagadora_cnpj"],
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "poupanca", "cdb", "lci", "lca", "fundo_rf", "fundo_acoes", "fii",
+            "conta_corrente", "conta_pagamento", "conta_exterior", "outros"
+          ]
+        },
+        "descricao": { "type": "string", "minLength": 2 },
+        "codigo_rfb": { "type": "string", "minLength": 2, "maxLength": 4 },
+        "saldo": { "$ref": "#/$defs/decimalString" },
+        "moeda": { "$ref": "#/$defs/moedaISO" },
+        "fonte_pagadora_cnpj": {
+          "type": "string",
+          "pattern": "^\\d{14}$"
+        }
+      }
+    }
+  }
+}

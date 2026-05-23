@@ -308,13 +308,14 @@ def test_json_schema_pj_enum_regime_exclui_lucro_real():
 
 
 def test_json_schema_base_enum_inclui_financeiro_pj():
-    """Após L2, JSON Schema base deve aceitar previdencia_privada E financeiro_pj."""
+    """Após L2+L3, JSON Schema base aceita L1+L2+L3 (previdencia, financeiro_pj, financeiro_pf)."""
     repo_root = Path(__file__).resolve().parent.parent
     base_schema = repo_root / "config" / "schemas" / "informe_base.schema.json"
     doc = json.loads(base_schema.read_text())
     enum_atual = set(doc["properties"]["tipo_informe"]["enum"])
     assert "financeiro_pj" in enum_atual
     assert "previdencia_privada" in enum_atual
+    assert "financeiro_pf" in enum_atual  # L3
 
 
 def test_prompt_version_bumpado():

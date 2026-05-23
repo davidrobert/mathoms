@@ -6,6 +6,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from pipeline.llm.schemas.informe_pf import InformeFinanceiroPFPayload
 from pipeline.llm.schemas.informe_pj import InformeFinanceiroPJPayload
 from pipeline.llm.schemas.informe_previdencia import InformePrevidenciaPayload
 
@@ -23,12 +24,13 @@ class InformeRendimentosBase(BaseModel):
         le=2100,
         description="Ano calendário coberto pelo informe (geralmente o ano-base do IRPF).",
     )
-    tipo_informe: Literal["previdencia_privada", "financeiro_pj"] = Field(
+    tipo_informe: Literal["previdencia_privada", "financeiro_pj", "financeiro_pf"] = Field(
         ...,
         description=(
-            "Tipo canônico do informe. A17 L1 entregou ``previdencia_privada``; "
-            "L2 adiciona ``financeiro_pj`` (Comprovante Lei 9.249/95); L3-L4 "
-            "expandem com ``financeiro_pf`` e ``proventos_acoes``."
+            "Tipo canônico do informe. A17 L1: ``previdencia_privada``; "
+            "L2: ``financeiro_pj`` (Comprovante Lei 9.249/95); "
+            "L3: ``financeiro_pf`` (4 quadros RFB + Wise multi-moeda); "
+            "L4 expande com ``proventos_acoes``."
         ),
     )
     fonte_pagadora_cnpj: str = Field(
@@ -105,4 +107,8 @@ class InformeRendimentosBase(BaseModel):
     financeiro_pj: Optional[InformeFinanceiroPJPayload] = Field(
         None,
         description="Payload populado quando ``tipo_informe='financeiro_pj'`` (L2).",
+    )
+    financeiro_pf: Optional[InformeFinanceiroPFPayload] = Field(
+        None,
+        description="Payload populado quando ``tipo_informe='financeiro_pf'`` (L3).",
     )

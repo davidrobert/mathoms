@@ -3,7 +3,7 @@ id: A17.l3
 type: lane
 title: "Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda)"
 sprint: A17
-status: planned
+status: in_progress
 priority: P2
 branch_slug: a17-l3-financeiro-pf
 depends_on:
@@ -16,7 +16,7 @@ prompt: "[[TRACK-a17-l3-financeiro-pf]]"
 tags:
   - type/lane
   - sprint/a17
-  - status/planned
+  - status/in-progress
   - priority/p2
   - area/pipeline
   - area/methodology
