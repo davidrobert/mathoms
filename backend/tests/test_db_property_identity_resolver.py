@@ -75,6 +75,17 @@ def _new_lookup(**kw) -> PropertyLookupKey:
     )
 
 
+def _resolve(factory, workspace_id, lookup, descricao="X", year=2024):
+    with factory() as session:
+        resolver = DBPropertyIdentityResolver(session=session)
+        return resolver.match_or_create(
+            workspace_id=workspace_id,
+            lookup=lookup,
+            first_seen_year=year,
+            descricao_sample=descricao,
+        )
+
+
 class TestStrictMatch:
     """Comportamento original ADR-215 P2 — match exato preservado."""
 
@@ -185,3 +196,94 @@ class TestLowConfidenceInserts:
             # 2 rows distintas — backfill script ADR-225 §3 cuida pós-cutover.
             assert r1.property_id != r2.property_id
             assert r1.low_confidence is True and r2.low_confidence is True
+
+
+class TestFuzzyMatchCanonicalProximity:
+    """ADR-265 — fuzzy lookup por proximidade numérica (3º nível da cascata)."""
+
+    def test_caso_real_founder_funde_via_fuzzy(self, sync_db):
+        # IRPF cod=11 'benedito calixto 190' reusa row do comprovante cod=01
+        # 'benedito calixto 186' — mesmo apto 34.
+        ws = _seed_workspace(sync_db)
+        existing = _seed_property(
+            sync_db,
+            ws,
+            codigo_rfb="01",
+            endereco_canonical="benedito calixto 186",
+            descricao="Apartamento - Praça Benedito Calixto, 186 - Ap 34",
+        )
+        record = _resolve(
+            sync_db,
+            ws.id,
+            _new_lookup(codigo_rfb="11", endereco_canonical="benedito calixto 190"),
+            descricao="APTO 34 - PRACA BENEDITO CALIXTO 190",
+        )
+        assert record.property_id == existing.id
+        assert record.codigo_rfb == "01"  # invariante E5
+
+    def test_strict_e_loose_precedem_fuzzy(self, sync_db):
+        # Quando existe row com canonical exato, fuzzy não é alcançado.
+        ws = _seed_workspace(sync_db)
+        _seed_property(sync_db, ws, codigo_rfb="01", endereco_canonical="benedito calixto 186")
+        exact = _seed_property(
+            sync_db, ws, codigo_rfb="11", endereco_canonical="benedito calixto 190"
+        )
+        record = _resolve(
+            sync_db,
+            ws.id,
+            _new_lookup(codigo_rfb="11", endereco_canonical="benedito calixto 190"),
+            descricao="APTO 34 BENEDITO CALIXTO 190",
+        )
+        assert record.property_id == exact.id
+
+    def test_fuzzy_nao_atravessa_workspaces(self, sync_db):
+        ws1 = _seed_workspace(sync_db)
+        ws2 = _seed_workspace(sync_db)
+        _seed_property(sync_db, ws1, codigo_rfb="01", endereco_canonical="benedito calixto 186")
+        record = _resolve(
+            sync_db,
+            ws2.id,
+            PropertyLookupKey(
+                titular_key="x", codigo_rfb="11", endereco_canonical="benedito calixto 190"
+            ),
+            descricao="APTO 34 BENEDITO CALIXTO 190",
+        )
+        assert record.workspace_id == ws2.id  # insere nova, não vê row do ws1
+
+    def test_fuzzy_rejeita_quando_delta_grande(self, sync_db):
+        ws = _seed_workspace(sync_db)
+        existing = _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="paulista 1500")
+        record = _resolve(
+            sync_db,
+            ws.id,
+            _new_lookup(codigo_rfb="11", endereco_canonical="paulista 1490"),
+            descricao="EDIFICIO X - PAULISTA 1490",
+        )
+        assert record.property_id != existing.id  # Δ=10 > K=4
+
+    def test_fuzzy_rejeita_complemento_divergente(self, sync_db):
+        ws = _seed_workspace(sync_db)
+        existing = _seed_property(
+            sync_db,
+            ws,
+            codigo_rfb="11",
+            endereco_canonical="paulista 100",
+            descricao="APTO 51 - PAULISTA 100",
+        )
+        record = _resolve(
+            sync_db,
+            ws.id,
+            _new_lookup(codigo_rfb="11", endereco_canonical="paulista 102"),
+            descricao="APTO 34 - PAULISTA 102",
+        )
+        assert record.property_id != existing.id  # complementos 51 vs 34 divergem
+
+    def test_fuzzy_ignora_canonicals_com_prefixo_forte(self, sync_db):
+        ws = _seed_workspace(sync_db)
+        _seed_property(sync_db, ws, codigo_rfb="11", endereco_canonical="mat:453527")
+        record = _resolve(
+            sync_db,
+            ws.id,
+            _new_lookup(codigo_rfb="11", endereco_canonical="mat:453528"),
+        )
+        assert record.endereco_canonical == "mat:453528"  # fuzzy não casa em mat:

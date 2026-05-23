@@ -7,6 +7,16 @@ import pytest
 from pipeline.domain.services.imoveis_dedup import dedup_imoveis_consolidados
 
 
+def _fuzzy_entry(proprietario, valor, codigo, canonical, descricao) -> dict:
+    return _entry(
+        descricao=descricao,
+        proprietario=proprietario,
+        valor_31_12=valor,
+        codigo_rfb=codigo,
+        endereco_canonical=canonical,
+    )
+
+
 def _entry(*, proprietario: str, valor_31_12, ano: str = "2024", **kw) -> dict:
     e: dict = {
         "descricao": kw.get("descricao", "APT LIVING WISH"),
@@ -245,6 +255,101 @@ class TestCrossCodigoMerge:
         result = dedup_imoveis_consolidados([a, b, c])
         assert result.count_after == 1
         assert result.imoveis[0]["valores_31_12"]["2024"] == 500000
+
+
+class TestFuzzyViaNum:
+    """ADR-265: passe 4 fuzzy — mesma via, Δ numérico ≤ K."""
+
+    def test_caso_real_founder_funde_190_vs_186(self):
+        a = _entry(
+            descricao="APTO 34 BENEDITO CALIXTO 190",
+            proprietario="david",
+            valor_31_12=800000,
+            codigo_rfb="11",
+            endereco_canonical="benedito calixto 190",
+        )
+        b = _entry(
+            descricao="Ap 34 Benedito Calixto 186",
+            proprietario="david",
+            valor_31_12=750000,
+            codigo_rfb="01",
+            endereco_canonical="benedito calixto 186",
+        )
+        result = dedup_imoveis_consolidados([a, b])
+        assert result.count_after == 1
+        assert result.imoveis[0]["valores_31_12"]["2024"] == 800000
+
+    def test_av_paulista_delta_grande_nao_funde(self):
+        """Δ=10 (1500 vs 1490) na mesma via sem complemento — imóveis distintos."""
+        a = _entry(
+            descricao="EDIFICIO X PAULISTA 1500",
+            proprietario="david",
+            valor_31_12=500000,
+            codigo_rfb="11",
+            endereco_canonical="paulista 1500",
+        )
+        b = _entry(
+            descricao="EDIFICIO Y PAULISTA 1490",
+            proprietario="david",
+            valor_31_12=600000,
+            codigo_rfb="11",
+            endereco_canonical="paulista 1490",
+        )
+        result = dedup_imoveis_consolidados([a, b])
+        # Δ=10 > K=4 → 2 grupos
+        assert result.count_after == 2
+
+    def test_complemento_divergente_bloqueia_merge(self):
+        """Mesma via + Δ=2 mas APTO divergente (34 vs 51) → não funde."""
+        a = _entry(
+            descricao="APTO 34 - PAULISTA 100",
+            proprietario="david",
+            valor_31_12=500000,
+            codigo_rfb="11",
+            endereco_canonical="paulista 100",
+        )
+        b = _entry(
+            descricao="APTO 51 - PAULISTA 102",
+            proprietario="mariana",
+            valor_31_12=600000,
+            codigo_rfb="11",
+            endereco_canonical="paulista 102",
+        )
+        result = dedup_imoveis_consolidados([a, b])
+        # Complementos divergem → 2 imóveis distintos
+        assert result.count_after == 2
+
+    def test_dois_especificos_divergentes_nao_funde_via_fuzzy(self):
+        """cod=11 + cod=12 mesma via Δ=2 — conflito humano, não funde."""
+        a = _entry(
+            descricao="X 190",
+            proprietario="david",
+            valor_31_12=500000,
+            codigo_rfb="11",
+            endereco_canonical="rua x 190",
+        )
+        b = _entry(
+            descricao="X 188",
+            proprietario="mariana",
+            valor_31_12=400000,
+            codigo_rfb="12",
+            endereco_canonical="rua x 188",
+        )
+        result = dedup_imoveis_consolidados([a, b])
+        # cod=11 e cod=12 ambos específicos divergentes → 2 grupos (mesmo Δ=2)
+        assert result.count_after == 2
+
+    def test_cross_codigo_antes_fuzzy_3_fontes(self):
+        # 3 fontes: cod=11 190 + cod=01 190 + cod=01 186 → cross-codigo + fuzzy = 1 grupo
+        desc_190 = "APTO 34 BENEDITO CALIXTO 190"
+        a = _fuzzy_entry("david", 800000, "11", "benedito calixto 190", desc_190)
+        b = _fuzzy_entry("alt1", 0, "01", "benedito calixto 190", desc_190)
+        c = _fuzzy_entry(
+            "alt2", 750000, "01", "benedito calixto 186", "APTO 34 BENEDITO CALIXTO 186"
+        )
+        result = dedup_imoveis_consolidados([a, b, c])
+        assert result.count_after == 1
+        assert result.imoveis[0]["valores_31_12"]["2024"] == 800000
 
 
 class TestObservability:
