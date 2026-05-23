@@ -174,6 +174,79 @@ class TestTieBreaker:
         assert "2024" in merged["valores_31_12"]
 
 
+class TestCrossCodigoMerge:
+    """ADR-246: imóvel em IRPF (cod=11/12) + comprovante de bem ADR-239 (cod=01)."""
+
+    def test_especifico_e_generico_merge(self):
+        a = _entry(
+            proprietario="david",
+            valor_31_12=212000,
+            codigo_rfb="11",
+            endereco_canonical="major freire 496",
+        )
+        b = _entry(
+            proprietario="david_camargo",
+            valor_31_12=0,
+            codigo_rfb="01",
+            endereco_canonical="major freire 496",
+        )
+        result = dedup_imoveis_consolidados([a, b])
+        assert result.count_after == 1
+        merged = result.imoveis[0]
+        assert merged["valores_31_12"]["2024"] == 212000
+        assert set(merged["proprietarios"]) == {"david", "david_camargo"}
+
+    def test_codigo_vazio_e_especifico_merge(self):
+        a = _entry(
+            proprietario="david",
+            valor_31_12=350000,
+            codigo_rfb="11",
+            endereco_canonical="rua x 100",
+        )
+        b = _entry(
+            proprietario="david_alt",
+            valor_31_12=0,
+            codigo_rfb="",
+            endereco_canonical="rua x 100",
+        )
+        # codigo_rfb vazio → fallback canonical NÃO emite chave; mas cross-codigo
+        # também precisa de chave válida → não merge nesse caso (entry b vai p/ unidentified).
+        result = dedup_imoveis_consolidados([a, b])
+        # b sem chave → fica como unidentified e não merge.
+        # Esperado: 2 entries (a no grupo, b unidentified).
+        assert result.count_after == 2
+
+    def test_dois_especificos_divergentes_nao_funde(self):
+        a = _entry(
+            proprietario="david",
+            valor_31_12=500000,
+            codigo_rfb="11",
+            endereco_canonical="rua y 200",
+        )
+        b = _entry(
+            proprietario="mariana",
+            valor_31_12=400000,
+            codigo_rfb="12",
+            endereco_canonical="rua y 200",
+        )
+        result = dedup_imoveis_consolidados([a, b])
+        # 11 e 12 ambos específicos divergentes → não merge (conflito humano)
+        assert result.count_after == 2
+
+    def test_especifico_e_dois_genericos_mesmo_canonical_funde(self):
+        canon = "rua w 400"
+        a = _entry(
+            proprietario="david", valor_31_12=500000, codigo_rfb="11", endereco_canonical=canon
+        )
+        b = _entry(proprietario="mariana", valor_31_12=0, codigo_rfb="01", endereco_canonical=canon)
+        c = _entry(
+            proprietario="david_alt", valor_31_12=0, codigo_rfb="01", endereco_canonical=canon
+        )
+        result = dedup_imoveis_consolidados([a, b, c])
+        assert result.count_after == 1
+        assert result.imoveis[0]["valores_31_12"]["2024"] == 500000
+
+
 class TestObservability:
     def test_dropped_property_ids_collected(self):
         a = _entry(proprietario="david", valor_31_12=400000, property_id="uuid-a")

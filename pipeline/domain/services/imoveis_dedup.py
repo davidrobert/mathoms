@@ -11,6 +11,9 @@ logger = logging.getLogger("mathoms.pipeline.consolidate")
 
 _DIVERGENCE_THRESHOLD_PCT = 10.0
 _CASAL_LABEL = "casal"
+# Subcódigos específicos do Grupo 01 (Bens Imóveis) RFB (espelha dev/dedup_property_identity.py).
+# "01" e "" são genéricos (grupo-pai sem subcódigo, ex.: comprovantes de bem ADR-239).
+_SPECIFIC_CODIGOS_RFB = frozenset({"11", "12", "13", "14", "15", "17", "19"})
 
 
 @dataclass(frozen=True)
@@ -35,12 +38,90 @@ def dedup_imoveis_consolidados(
     *,
     titular_key: str | None = None,
 ) -> DedupResult:
-    """Deduplica `imoveis_consolidados` por identidade cross-IRPF (ADR-246)."""
+    """Deduplica imoveis_consolidados por identidade cross-IRPF (ADR-246)."""
     items = [e for e in (imoveis or []) if isinstance(e, dict)]
     grouped, order, unidentified = _group_by_identity(items)
+    _merge_cross_codigo(grouped, order)
     result = _build_result(items, grouped, order, unidentified, titular_key)
     _log_if_deduped(result)
     return result
+
+
+def _merge_cross_codigo(grouped: dict[tuple, list[dict]], order: list[tuple]) -> None:
+    """Cross-codigo: funde grupos canonical-comum quando 1 lado é genérico (01/'')."""
+    by_canonical = _index_by_canonical(grouped, order)
+    for keys in by_canonical.values():
+        if _should_merge_cross_codigo(grouped, keys):
+            _consolidate_keys(grouped, order, keys)
+
+
+def _index_by_canonical(
+    grouped: dict[tuple, list[dict]], order: list[tuple]
+) -> dict[str, list[tuple]]:
+    by_canonical: dict[str, list[tuple]] = {}
+    for key in order:
+        canon = _group_canonical(grouped[key])
+        if canon:
+            by_canonical.setdefault(canon, []).append(key)
+    return by_canonical
+
+
+def _should_merge_cross_codigo(grouped: dict[tuple, list[dict]], keys: list[tuple]) -> bool:
+    if len(keys) <= 1:
+        return False
+    if not _has_generic_codigo_in_groups(grouped, keys):
+        return False
+    return not _has_conflicting_specific_codigos_in_groups(grouped, keys)
+
+
+def _group_canonical(entries: list[dict]) -> str:
+    for e in entries:
+        canon = e.get("endereco_canonical")
+        if canon:
+            return str(canon)
+    return ""
+
+
+def _group_codigos(entries: list[dict]) -> set[str]:
+    return {(e.get("codigo_rfb") or "").strip() for e in entries}
+
+
+def _has_generic_codigo_in_groups(grouped: dict[tuple, list[dict]], keys: list[tuple]) -> bool:
+    all_codigos: set[str] = set()
+    for key in keys:
+        all_codigos |= _group_codigos(grouped[key])
+    return any(cod not in _SPECIFIC_CODIGOS_RFB for cod in all_codigos)
+
+
+def _has_conflicting_specific_codigos_in_groups(
+    grouped: dict[tuple, list[dict]], keys: list[tuple]
+) -> bool:
+    """True se 2+ codigos específicos divergentes (ex.: 11 e 12) — conflito humano, não merge."""
+    specifics: set[str] = set()
+    for key in keys:
+        specifics |= _group_codigos(grouped[key]) & _SPECIFIC_CODIGOS_RFB
+    return len(specifics) >= 2
+
+
+def _consolidate_keys(
+    grouped: dict[tuple, list[dict]], order: list[tuple], keys: list[tuple]
+) -> None:
+    """Funde todas as keys: grupo com cod específico ganha posição; outros vêm depois."""
+    primary = _pick_primary_key(grouped, keys)
+    for key in keys:
+        if key == primary:
+            continue
+        grouped[primary].extend(grouped[key])
+        order.remove(key)
+        del grouped[key]
+
+
+def _pick_primary_key(grouped: dict[tuple, list[dict]], keys: list[tuple]) -> tuple:
+    """Específico (11/12/...) vence sobre genérico (01/'')."""
+    for key in keys:
+        if _group_codigos(grouped[key]) & _SPECIFIC_CODIGOS_RFB:
+            return key
+    return keys[0]
 
 
 def _build_result(
