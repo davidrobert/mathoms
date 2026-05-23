@@ -14,6 +14,7 @@ adrs_canonical:
   - "[[ADR-183]]"
   - "[[ADR-262]]"
   - "[[ADR-263]]"
+  - "[[ADR-264]]"
 tags:
   - type/plan
   - status/draft

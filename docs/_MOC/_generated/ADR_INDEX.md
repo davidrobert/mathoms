@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-254 ADRs (ADR-001 a ADR-263) em [`docs/adr/`](../../adr/).
+255 ADRs (ADR-001 a ADR-264) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 191
-- **Proposto**: 59
+- **Proposto**: 60
 - **Roadmap**: 4
 
 ## Fundação
@@ -335,9 +335,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## domain
 
-### Proposto (1)
+### Proposto (2)
 
 - [[ADR-263]] — Goal type RESERVA_EMERGENCIA — schema versionado por workspace ancorado em INV1 (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
+- [[ADR-264]] — Goal type META_OBJETIVO — schema genérico para metas estruturadas (casa, educação, intercâmbio, aposentadoria do cônjuge) (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
 
 ## frontend
 
