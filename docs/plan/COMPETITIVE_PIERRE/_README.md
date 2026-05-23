@@ -12,6 +12,7 @@ paused_at: null
 pause_reason: null
 adrs_canonical:
   - "[[ADR-183]]"
+  - "[[ADR-263]]"
 tags:
   - type/plan
   - status/draft

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-252 ADRs (ADR-001 a ADR-261) em [`docs/adr/`](../../adr/).
+253 ADRs (ADR-001 a ADR-263) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 191
-- **Proposto**: 57
+- **Proposto**: 58
 - **Roadmap**: 4
 
 ## Fundação
@@ -332,6 +332,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 ### Proposto (1)
 
 - [[ADR-234]] — Adicionar `paused` ao vocabulário de `sprint_status` (4º valor) · phase A15
+
+## domain
+
+### Proposto (1)
+
+- [[ADR-263]] — Goal type RESERVA_EMERGENCIA — schema versionado por workspace ancorado em INV1 (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
 
 ## frontend
 
