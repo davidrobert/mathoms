@@ -53,6 +53,17 @@ _PERMANENT_ERROR_NAMES = frozenset(
 )
 
 
+def _requires_institution(e0_doc_type: str | None) -> bool:
+    """``extratoconta*`` e ``extratopoupanca*`` mapeiam para ``bank_statement`` (linha 139);
+    sem ``bank_code`` produzem estado contraditório (confidence alta + banco vazio)
+    que escapa do dedup K4 (ADR-255) quando o mesmo extrato é re-uploaded em outro
+    arquivo já com banco identificado — observado no workspace 5@5.com em 2026-05."""
+    if not e0_doc_type:
+        return False
+    code = e0_doc_type.lower()
+    return code.startswith("extratoconta") or code.startswith("extratopoupanca")
+
+
 def _llm_prerequisites_skip_reason() -> str | None:
     """Pré-cheque silencioso: ``sdk_not_installed`` | ``missing_api_key`` | ``None``."""
     try:
@@ -251,6 +262,9 @@ def classify_document(file_path: Path, base_dir: Path, *, use_llm: bool = True) 
     needs_review = confidence < _REVIEW_CONFIDENCE_THRESHOLD
     if content_result.force_review:
         needs_review = True
+    if _requires_institution(best_type) and not best_institution:
+        needs_review = True
+        meta["needs_review_reason"] = "missing_institution_for_bank_statement"
     meta["confidence"] = confidence
     meta["needs_review"] = needs_review
 
@@ -292,7 +306,7 @@ def _maybe_log_unknown_institution(
     _classification_logger.warning(
         "mathoms.classification.unknown_extratoconta",
         extra={
-            "filename": file_path.name,
+            "doc_filename": file_path.name,
             "doc_type": best_type,
             "bank_code": None,
         },
