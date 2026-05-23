@@ -85,7 +85,7 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 
 ## Rascunhos (`draft`)
 
-### PLAN-competitive-pierre — Resposta competitiva a Pierre — recon, MCP, chat, reposicionamento
+### PLAN-competitive-pierre — Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento)
 
 - Status: `draft` · Sprint atual: A11
 - Sprints envolvidas: A11
