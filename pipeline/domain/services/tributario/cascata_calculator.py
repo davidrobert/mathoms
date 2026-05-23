@@ -92,6 +92,17 @@ class PrevidenciaSnapshot:
 
 
 @dataclass(frozen=True)
+class FinanceiroPJSnapshot:
+    """Snapshot agregado de informes financeiro_pj (A17 L2 P3 · ADR-238 D5 · ADR-236 cascata)."""
+
+    informes_count: int = 0
+    receita_bruta_total_anual: Money = field(default_factory=lambda: Money.zero("BRL"))
+    retencoes_totais_anuais: Money = field(default_factory=lambda: Money.zero("BRL"))
+    regime_declarado: Optional[str] = None  # regime mais frequente nos informes
+    ano_base_coberto: Optional[int] = None  # ano-base mais recente
+
+
+@dataclass(frozen=True)
 class CascataInput:
     """Input value object — ADR-236 §D3 + ADR-089 (ISP)."""
 
@@ -112,6 +123,8 @@ class CascataInput:
     # quando workspace não tem informe processado; populado por
     # ``build_cascata_input_sync`` quando ``extract_informes_anuais`` presente.
     previdencia_snapshot: Optional[PrevidenciaSnapshot] = None
+    # ADR-238 (A17 L2 P3 plumbing) — sinergia ADR-236 cascata PJ.
+    financeiro_pj_snapshot: Optional[FinanceiroPJSnapshot] = None
 
 
 @dataclass(frozen=True)
@@ -145,6 +158,8 @@ class CascataOutput:
     # None quando workspace não tem ``extract_informes_anuais`` processado.
     # UI consome via ``data.tributario.cascata.previdencia_snapshot``.
     previdencia_snapshot: Optional[PrevidenciaSnapshot] = None
+    # ADR-238 (A17 L2 P3): passthrough do snapshot informes financeiro_pj.
+    financeiro_pj_snapshot: Optional[FinanceiroPJSnapshot] = None
 
 
 @dataclass(frozen=True)
@@ -444,6 +459,7 @@ def _assemble_output(
         motivo_nao_suportado=None,
         triggers=triggers,
         previdencia_snapshot=inp.previdencia_snapshot,
+        financeiro_pj_snapshot=inp.financeiro_pj_snapshot,
         **_cascata_fields(inp, layers),
         **_pgbl_fields(layers),
     )
@@ -456,4 +472,5 @@ def _output_fallback(inp: CascataInput, motivo: str) -> CascataOutput:
         regime_nao_suportado=True,
         motivo_nao_suportado=motivo,
         previdencia_snapshot=inp.previdencia_snapshot,
+        financeiro_pj_snapshot=inp.financeiro_pj_snapshot,
     )

@@ -32,6 +32,46 @@ class InformePrevidenciaSummary:
     saldo_31_12: Decimal
 
 
+_PJ_RETENCOES_FIELDS = (
+    "irrf_anual",
+    "csll_anual",
+    "pis_anual",
+    "cofins_anual",
+    "inss_anual",
+    "iss_anual",
+)
+
+
+def _build_pj_summary(informe: dict) -> Optional["InformeFinanceiroPJSummary"]:
+    if informe.get("tipo_informe") != "financeiro_pj":
+        return None
+    payload = informe.get("financeiro_pj") or {}
+    regime = payload.get("regime_tributario")
+    if not regime:
+        return None
+    retencoes = sum(_to_decimal(payload.get(f, "0")) for f in _PJ_RETENCOES_FIELDS)
+    return InformeFinanceiroPJSummary(
+        regime_tributario=regime,
+        cnpj_pagador=payload.get("cnpj_pagador", ""),
+        cnpj_beneficiario=payload.get("cnpj_beneficiario", ""),
+        ano_base=int(informe.get("ano_base", 0)),
+        receita_bruta_anual=_to_decimal(payload.get("receita_bruta_anual")),
+        retencoes_totais_anuais=retencoes,
+    )
+
+
+@dataclass(frozen=True)
+class InformeFinanceiroPJSummary:
+    """Visão sumarizada de informe Financeiro PJ — A17 L2 P3 (ADR-238 D5 · ADR-236 cascata)."""
+
+    regime_tributario: str  # "simples_nacional" | "lucro_presumido"
+    cnpj_pagador: str
+    cnpj_beneficiario: str
+    ano_base: int
+    receita_bruta_anual: Decimal
+    retencoes_totais_anuais: Decimal  # IRRF + CSLL + PIS + COFINS + INSS + ISS
+
+
 @dataclass(frozen=True)
 class FiscalDivergencia:
     """Divergência efêmera entre informe e declaração — gerada em E5, não persiste (LGPD)."""
@@ -86,6 +126,10 @@ class FiscalSource:
             payload = informe.get("previdencia") or {}
             total += _to_decimal(payload.get("contribuicoes_anuais"))
         return total
+
+    def financeiro_pj_summaries(self) -> list[InformeFinanceiroPJSummary]:
+        """Lista de informes financeiro_pj sumarizados (ADR-236 cascata: alimenta receita_pj quando E4 ausente)."""
+        return [s for s in (_build_pj_summary(i) for i in self.informes) if s is not None]
 
     def previdencia_summaries(self) -> list[InformePrevidenciaSummary]:
         """Lista de informes previdência sumarizados (PGBL + VGBL — VGBL filtra no consumer)."""

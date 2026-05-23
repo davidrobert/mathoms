@@ -18,6 +18,7 @@ from pipeline.domain.models.transaction import Money
 from pipeline.domain.services.fiscal_source import FiscalSource
 from pipeline.domain.services.tributario.cascata_calculator import (
     CascataInput,
+    FinanceiroPJSnapshot,
     PrevidenciaSnapshot,
 )
 from pipeline.domain.services.tributario.irpf_renda_tributavel import (
@@ -48,13 +49,14 @@ class _PJTotals:
 
 
 def build_cascata_input_sync(workspace_id: str, *, db: SyncSession) -> CascataInput:
-    """Constrói ``CascataInput`` a partir de DB+artifacts (ADR-236 §D4 + A17 L1)."""
+    """Constrói ``CascataInput`` a partir de DB+artifacts (ADR-236 §D4 + A17 L1+L2)."""
     bp = _load_business_profile(workspace_id, db=db)
     irpf_total = _load_irpf_renda_tributavel(workspace_id, db=db)
     pj_totals = _load_pj_totals(workspace_id, db=db)
     imoveis = _load_imoveis(workspace_id, db=db)
     previdencia = _load_previdencia_snapshot(workspace_id, db=db)
-    return _assemble_input(bp, irpf_total, pj_totals, imoveis, previdencia)
+    financeiro_pj = _load_financeiro_pj_snapshot(workspace_id, db=db)
+    return _assemble_input(bp, irpf_total, pj_totals, imoveis, previdencia, financeiro_pj)
 
 
 def _load_previdencia_snapshot(
@@ -76,6 +78,32 @@ def _load_previdencia_snapshot(
             sum((s.contribuicoes_anuais for s in pgbl), Decimal("0"))
         ),
         saldo_total_31_12=Money.brl(sum((s.saldo_31_12 for s in summaries), Decimal("0"))),
+    )
+
+
+def _load_financeiro_pj_snapshot(
+    workspace_id: str, *, db: SyncSession
+) -> Optional[FinanceiroPJSnapshot]:
+    """A17 L2 P3 (ADR-238 D5 · ADR-236 cascata): snapshot de informes financeiro_pj via FiscalSource."""
+    informes = InformeQuery(db).list_for_workspace(workspace_id, tipo_informe="financeiro_pj")
+    if not informes:
+        return None
+    summaries = FiscalSource.from_informes(informes).financeiro_pj_summaries()
+    return _build_financeiro_pj_snapshot(summaries) if summaries else None
+
+
+def _build_financeiro_pj_snapshot(summaries: list) -> FinanceiroPJSnapshot:
+    regimes = [s.regime_tributario for s in summaries]
+    return FinanceiroPJSnapshot(
+        informes_count=len(summaries),
+        receita_bruta_total_anual=Money.brl(
+            sum((s.receita_bruta_anual for s in summaries), Decimal("0"))
+        ),
+        retencoes_totais_anuais=Money.brl(
+            sum((s.retencoes_totais_anuais for s in summaries), Decimal("0"))
+        ),
+        regime_declarado=max(set(regimes), key=regimes.count),
+        ano_base_coberto=max(s.ano_base for s in summaries),
     )
 
 
@@ -168,6 +196,16 @@ def _pj_fields(pj: _PJTotals) -> dict:
     }
 
 
+def _bp_fields(bp: Optional[BusinessProfile] = None) -> dict:
+    # ``bp=None`` quando workspace sem perfil → CascataInput cai em fallback "perfil_incompleto".
+    return {
+        "regime": bp.regime if bp else None,
+        "anexo_simples": bp.anexo_simples if bp else None,
+        "iss_aliquota_pct": _iss_aliquota(bp),
+        "tipo_declaracao_ir": _tipo_declaracao(bp),
+    }
+
+
 def _assemble_input(
     # ``bp`` Optional: workspace sem perfil → calculator fallback "perfil_incompleto".
     bp: Optional[BusinessProfile],
@@ -175,16 +213,15 @@ def _assemble_input(
     pj: _PJTotals,
     imoveis: tuple[int, Decimal],
     previdencia: Optional[PrevidenciaSnapshot] = None,
+    financeiro_pj: Optional[FinanceiroPJSnapshot] = None,
 ) -> CascataInput:
     return CascataInput(
-        regime=bp.regime if bp else None,
-        anexo_simples=bp.anexo_simples if bp else None,
-        iss_aliquota_pct=_iss_aliquota(bp),
-        tipo_declaracao_ir=_tipo_declaracao(bp),
         outras_rendas_tributaveis_pf_anual=irpf_total,
         imoveis_alugados_count=imoveis[0],
         receita_aluguel_anual=Money.brl(imoveis[1]),
         previdencia_snapshot=previdencia,
+        financeiro_pj_snapshot=financeiro_pj,
+        **_bp_fields(bp),
         **_pj_fields(pj),
     )
 
