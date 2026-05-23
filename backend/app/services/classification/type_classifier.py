@@ -214,19 +214,33 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         ),
         priority=2,
     ),
+    # ADR-238 A17 L3 P2 — informe Financeiro PF (4 quadros RFB + Wise). Priority=2
+    # disputa com PJ via required exclusivo: Wise isolado (sem contexto fiscal) NÃO casa.
     TypeRule(
-        code="informerendimentos",
+        code="informe_financeiro_pf",
         dest_group="income_tax_br",
+        priority=2,
         required=(
-            _c(r"Informe\s*de\s*Rendimentos\s*Financeiros|Informe\s*Anual\s*de\s*Rendimentos"),
+            _c(
+                r"Informe\s*de\s*Rendimentos\s*Financeiros|Informe\s*Anual\s*de\s*Rendimentos"
+                r"|(?:Wise\s*Brasil|Avenue\s*Securities|Nomad\s*Pagamentos|Stake\s*BR)"
+                r"[\s\S]{0,200}(?:saldo\s*em\s*moeda\s*estrangeira|conta\s*no\s*exterior"
+                r"|Saldo\s*em\s*31[/-]12|moeda:\s*USD)"
+            ),
         ),
         supporting=(
-            _c(r"Rendimentos\s*Tribut[aá]veis|Isentos\s*e\s*N[ãa]o\s*Tribut[aá]veis"),
-            _c(r"Fonte\s*Pagadora"),
-            _c(r"Ano-?[Cc]alend[aá]rio"),
+            _c(r"Rendimentos\s*Tribut[aá]veis|Quadro\s*1"),
+            _c(r"Rendimentos\s*Isentos\s*e\s*N[ãa]o\s*Tribut[aá]veis|Quadro\s*2"),
+            _c(r"Tributa[çc][ãa]o\s*Exclusiva|Quadro\s*3"),
+            _c(r"Bens\s*e\s*Direitos|Quadro\s*4"),
+            _c(r"Pessoa\s*F[íi]sica|titular\s*pessoa\s*f[íi]sica|CPF[\s:]*[\d\*]"),
+            _c(r"Ita[úu]|Santander|Caixa\s*Econ|Nubank|PicPay|C6\s*Bank|XP\s*Investimentos|Rico"),
+            _c(r"USD|EUR|GBP|moeda\s*estrangeira|conta\s*no\s*exterior|PTAX"),
         ),
-        priority=3,
     ),
+    # Legacy `informerendimentos` (priority=3) deletado em A17 L3 P2 (ADR-238) —
+    # `informe_financeiro_pf` (priority=2) subsume. Mapping de compat em
+    # `document_classification._map_informe` mantido para dados antigos.
     # ---------- Fatura de aluguel (specific before cartão) ----------
     TypeRule(
         code="faturaaluguel",
@@ -473,14 +487,9 @@ def detect_type_by_content(text: str) -> tuple[TypeRule | None, int, int]:
 
 
 def compute_confidence(rule: TypeRule, req: int, sup: int) -> float:
-    """All required + ≥1 supporting → 1.0. All required, 0 supporting → 0.7."""
+    """All required + ≥1 supporting → 1.0; all required + 0 supporting → 0.85 (≥2 req) or 0.7."""
     if req < len(rule.required):
         return 0.0
     if sup >= 1:
         return 1.0
-    # Only required matched — tight rules (single required pattern, e.g. IRPF)
-    # are still high-confidence; generic rules with no supporting match are
-    # weaker.
-    if len(rule.required) >= 2:
-        return 0.85
-    return 0.7
+    return 0.85 if len(rule.required) >= 2 else 0.7

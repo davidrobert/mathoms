@@ -350,9 +350,10 @@ class TestTypeDetection:
         assert rule.code == "cdbdetalhes"
 
     def test_informe_rendimentos(self):
+        """Bradesco PF informe — ADR-238 L3 P2: classifica como informe_financeiro_pf (priority=2)."""
         rule, *_ = detect_type_by_content(IRPF_INFORME_RENDIMENTOS)
         assert rule is not None
-        assert rule.code == "informerendimentos"
+        assert rule.code == "informe_financeiro_pf"
 
     def test_irpf_recibo_imposto_sobre_a_renda(self):
         """Recibo PGD moderno: 'Imposto sobre a Renda' (sem 'IRPF' inline) deve casar."""
@@ -683,9 +684,10 @@ class TestNewPatterns:
 
     def test_informe_rendimentos_bancario_preserves_real_bank(self):
         """Informe de rendimentos bancário (Bradesco, Itaú…) preserva o banco
-        emissor — sem virar 'receitafederal' por causa do dest_group."""
+        emissor — sem virar 'receitafederal' por causa do dest_group.
+        ADR-238 L3 P2: doc_type vira informe_financeiro_pf (priority=2)."""
         result = classify_text(IRPF_INFORME_RENDIMENTOS)
-        assert result.doc_type == "informerendimentos"
+        assert result.doc_type == "informe_financeiro_pf"
         assert result.institution == "bradesco"
 
     def test_c6_invest_institution(self):
