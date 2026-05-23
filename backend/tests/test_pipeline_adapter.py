@@ -288,6 +288,8 @@ _EXPECTED_CASCATA_KEYS: set[str] = {
     "triggers",
     # ADR-238 plumbing E5 — snapshot informes previdência (None se ausente).
     "previdencia_snapshot",
+    # ADR-238 A17 L2 P3 — snapshot informes financeiro_pj (None se ausente).
+    "financeiro_pj_snapshot",
 }
 
 

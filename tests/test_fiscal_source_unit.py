@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from pipeline.domain.services.fiscal_source import (
     FiscalSource,
+    InformeFinanceiroPJSummary,
     InformePrevidenciaSummary,
 )
 
@@ -97,6 +98,72 @@ def test_pgbl_e_vgbl_coexistem_so_pgbl_soma():
 
 
 # ─────────────────────── Sumários ─────────────────────────────────────────────
+
+
+def _pj_payload(ano, cnpj_pagador, regime, receita, irrf, csll):
+    return {
+        "regime_tributario": regime,
+        "cnpj_pagador": cnpj_pagador,
+        "nome_pagador": "Stone Pagamentos S.A.",
+        "cnpj_beneficiario": "12345678000190",
+        "periodo_inicio": f"{ano}-01",
+        "periodo_fim": f"{ano}-12",
+        "receita_bruta_anual": receita,
+        "irrf_anual": irrf,
+        "csll_anual": csll,
+    }
+
+
+def _make_informe_financeiro_pj(
+    *,
+    ano: int = 2024,
+    cnpj_pagador: str = "16501555000157",
+    regime: str = "lucro_presumido",
+    receita: str = "240000.00",
+    irrf: str = "3600.00",
+    csll: str = "2400.00",
+) -> dict:
+    return {
+        "ano_base": ano,
+        "tipo_informe": "financeiro_pj",
+        "fonte_pagadora_cnpj": cnpj_pagador,
+        "fonte_pagadora_nome": "Stone Pagamentos S.A.",
+        "confidence": 0.95,
+        "source_priority": 1,
+        "prompt_version": "informe-pj-v1.0.0",
+        "financeiro_pj": _pj_payload(ano, cnpj_pagador, regime, receita, irrf, csll),
+    }
+
+
+def test_financeiro_pj_summaries_extrai_payload_completo():
+    """A17 L2 P3: financeiro_pj_summaries retorna InformeFinanceiroPJSummary dataclass."""
+    fs = FiscalSource.from_informes([_make_informe_financeiro_pj()])
+    summaries = fs.financeiro_pj_summaries()
+    assert len(summaries) == 1
+    s = summaries[0]
+    assert isinstance(s, InformeFinanceiroPJSummary)
+    assert s.regime_tributario == "lucro_presumido"
+    assert s.cnpj_pagador == "16501555000157"
+    assert s.cnpj_beneficiario == "12345678000190"
+    assert s.ano_base == 2024
+    assert s.receita_bruta_anual == Decimal("240000.00")
+    # IRRF 3600 + CSLL 2400 + (PIS/COFINS/INSS/ISS default 0) = 6000
+    assert s.retencoes_totais_anuais == Decimal("6000.00")
+
+
+def test_financeiro_pj_summaries_filtra_outros_tipos():
+    """Mistura tipos: financeiro_pj_summaries retorna apenas financeiro_pj."""
+    fs = FiscalSource.from_informes(
+        [_make_informe_pgbl(), _make_informe_financeiro_pj(), _make_informe_vgbl()]
+    )
+    summaries = fs.financeiro_pj_summaries()
+    assert len(summaries) == 1
+    assert summaries[0].regime_tributario == "lucro_presumido"
+
+
+def test_financeiro_pj_summaries_vazio_se_so_previdencia():
+    fs = FiscalSource.from_informes([_make_informe_pgbl()])
+    assert fs.financeiro_pj_summaries() == []
 
 
 def test_previdencia_summaries_lista_todos_planos():
