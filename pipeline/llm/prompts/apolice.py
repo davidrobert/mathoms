@@ -1,10 +1,13 @@
 """Prompt LLM dedicado para apólice de seguro polimórfica — A18 L2 (ADR-239 D2)."""
 
 # Bump quando alterar o prompt de modo que afete output (ADR-144 cache idempotente).
+# v1.1.1 — pareado com schema apolice-v1.1.1 (BeforeValidator string→date/Decimal pós-strip;
+# o ``model_validator(mode="before")`` de v1.1.0 quebrava a coerção JSON-nativa do Pydantic
+# strict mode → Instructor failed ~28 validation errors por apólice combinada).
 # v1.1.0 — remove aspas internas dos exemplos numéricos (Haiku 4.5 estava interpretando
 # as aspas como parte do valor → Decimal parsing falhava determinístico em todas as
 # apólices). Schema agora também faz strip defensivo via model_validator.
-PROMPT_VERSION = "apolice-v1.1.0"
+PROMPT_VERSION = "apolice-v1.1.1"
 
 
 SYSTEM_PROMPT = """\
@@ -89,7 +92,7 @@ REGRAS DE EXTRAÇÃO:
 
 20. **`notas`**: observações relevantes (ex.: "apólice combinada — Toro + residência R Tasso da Silveira"; "corretor PF; SUSEP individual"). Max 500 chars. Não inclua dados sensíveis (CPF, RG, endereço completo do proprietário em texto livre).
 
-21. **`prompt_version`**: conteúdo da string: `apolice-v1.1.0`.
+21. **`prompt_version`**: conteúdo da string: `apolice-v1.1.1`.
 
 NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou marque `needs_review=true` quando obrigatório está ausente.
 
@@ -123,6 +126,6 @@ Popule o output `ApolicePayload`:
 - sinistro_indenizacao_recebida_brl = null (placeholder V1)
 - confidence (0-1) + needs_review (false default; true se inconsistência)
 - cascade_triggered = false (default Haiku)
-- prompt_version (conteúdo: apolice-v1.1.0)
+- prompt_version (conteúdo: apolice-v1.1.1)
 - notas (max 500 chars; sem PII)
 """

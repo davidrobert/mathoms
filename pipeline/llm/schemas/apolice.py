@@ -3,14 +3,21 @@
 from __future__ import annotations
 
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Annotated, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
 
 # Bump quando alterar prompt ``apolice`` de modo que afete output (ADR-144 cache).
-# v1.1.0 — strip de aspas spurious do LLM (ver model_validator abaixo).
-PROMPT_VERSION = "apolice-v1.1.0"
+# v1.1.1 — coerção explícita string→date/Decimal pós-strip. ``model_validator(mode="before")``
+# v1.1.0 quebra a coerção JSON-nativa do Pydantic strict mode (Instructor TOOLS path):
+# antes do v1.1.0, ``model_validate_json(strict=True)`` aceitava ``"2026-04-05"`` para
+# ``date`` e ``"1500.00"`` para ``Decimal``; depois, Pydantic re-valida o dict retornado
+# pelo model_validator em modo Python strict e rejeita strings (``type=date_type``,
+# ``type=is_instance_of``). Incidente prod 2026-05-22: ~28 validation errors por apólice
+# combinada multi-bem (1 erro por campo Decimal/date). Fix: BeforeValidator por campo
+# coage tipos antes do strict check; strip continua atacando aspas spurious do Haiku.
+PROMPT_VERSION = "apolice-v1.1.1"
 
 
 def _strip_spurious_quotes(value):
@@ -28,6 +35,36 @@ def _strip_spurious_quotes(value):
     if isinstance(value, list):
         return [_strip_spurious_quotes(item) for item in value]
     return value
+
+
+# ``model_validator(mode="before")`` (strip) faz Pydantic re-validar em Python strict — strings
+# ISO/decimal são rejeitadas. Coerção explícita restaura aceitação sem renunciar a strict mode.
+
+
+def _coerce_date(value):
+    """ISO string → ``date``; passthrough caso contrário."""
+    if isinstance(value, str):
+        return date.fromisoformat(value.strip())
+    return value
+
+
+def _coerce_decimal(value):
+    """String/int/float → ``Decimal``; None/Decimal passthrough (Float via str — ADR-090)."""
+    if value is None or isinstance(value, Decimal):
+        return value
+    if isinstance(value, str):
+        try:
+            return Decimal(value.strip())
+        except InvalidOperation:
+            return value  # deixa Pydantic raise com mensagem específica
+    if isinstance(value, (int, float)):
+        return Decimal(str(value))
+    return value
+
+
+# Aliases reutilizáveis — aplicam ``_coerce_*`` antes da validação strict do Pydantic.
+ApoliceDate = Annotated[date, BeforeValidator(_coerce_date)]
+ApoliceMoney = Annotated[Decimal, BeforeValidator(_coerce_decimal)]
 
 
 # ===========================================================================
@@ -84,7 +121,7 @@ class BeneficiarioRef(BaseModel):
     nome: str = Field(..., min_length=2, max_length=120)
     parentesco: Optional[str] = Field(None, max_length=40)
     family_member_id: Optional[str] = Field(None, max_length=36)
-    percentual: Decimal = Field(..., ge=0, le=100)
+    percentual: ApoliceMoney = Field(..., ge=0, le=100)
 
 
 # ---- Coberturas (Discriminated Union por `tipo`) -------------------------
@@ -99,10 +136,10 @@ class CoberturaMaterial(BaseModel):
     nome: str = Field(..., min_length=2, max_length=120)
     ramo_susep: Optional[str] = Field(None, max_length=20)
     lmi_modo: Literal["valor_fixo", "fipe_percentual", "primeiro_risco_absoluto"]
-    lmi_brl: Optional[Decimal] = Field(None, ge=0)
-    lmi_fipe_percentual: Optional[Decimal] = Field(None, ge=0, le=2)
-    franquia_brl: Optional[Decimal] = Field(None, ge=0)
-    premio_brl: Decimal = Field(..., ge=0)
+    lmi_brl: Optional[ApoliceMoney] = Field(None, ge=0)
+    lmi_fipe_percentual: Optional[ApoliceMoney] = Field(None, ge=0, le=2)
+    franquia_brl: Optional[ApoliceMoney] = Field(None, ge=0)
+    premio_brl: ApoliceMoney = Field(..., ge=0)
 
 
 class CoberturaRcfv(BaseModel):
@@ -112,8 +149,8 @@ class CoberturaRcfv(BaseModel):
 
     tipo: Literal["rcfv"]
     nome: Literal["danos_materiais", "danos_corporais", "danos_morais"]
-    lmi_brl: Decimal = Field(..., ge=0)
-    premio_brl: Decimal = Field(..., ge=0)
+    lmi_brl: ApoliceMoney = Field(..., ge=0)
+    premio_brl: ApoliceMoney = Field(..., ge=0)
 
 
 class CoberturaVida(BaseModel):
@@ -122,9 +159,9 @@ class CoberturaVida(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     tipo: Literal["vida"]
-    capital_segurado_brl: Decimal = Field(..., ge=0)
+    capital_segurado_brl: ApoliceMoney = Field(..., ge=0)
     beneficiarios: list[BeneficiarioRef] = Field(default_factory=list)
-    premio_brl: Decimal = Field(..., ge=0)
+    premio_brl: ApoliceMoney = Field(..., ge=0)
 
 
 class CoberturaSaude(BaseModel):
@@ -134,8 +171,8 @@ class CoberturaSaude(BaseModel):
 
     tipo: Literal["saude"]
     rede_credenciada: Optional[str] = Field(None, max_length=200)
-    capital_segurado_brl: Optional[Decimal] = Field(None, ge=0)
-    premio_brl: Decimal = Field(..., ge=0)
+    capital_segurado_brl: Optional[ApoliceMoney] = Field(None, ge=0)
+    premio_brl: ApoliceMoney = Field(..., ge=0)
 
 
 class CoberturaAcidentes(BaseModel):
@@ -144,9 +181,9 @@ class CoberturaAcidentes(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     tipo: Literal["acidentes"]
-    capital_segurado_morte_brl: Decimal = Field(..., ge=0)
-    capital_segurado_invalidez_brl: Optional[Decimal] = Field(None, ge=0)
-    premio_brl: Decimal = Field(..., ge=0)
+    capital_segurado_morte_brl: ApoliceMoney = Field(..., ge=0)
+    capital_segurado_invalidez_brl: Optional[ApoliceMoney] = Field(None, ge=0)
+    premio_brl: ApoliceMoney = Field(..., ge=0)
 
 
 CoberturaDiscriminated = Annotated[
@@ -226,7 +263,7 @@ class ApolicePayload(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _strip_llm_quotes(cls, data):
-        """Defesa em profundidade pareada com apolice-v1.1.0 (ver _strip_spurious_quotes)."""
+        """Strip aspas spurious do Haiku (vira a coerção JSON-nativa do Pydantic — ver módulo)."""
         if isinstance(data, dict):
             return {k: _strip_spurious_quotes(v) for k, v in data.items()}
         return data
@@ -238,11 +275,11 @@ class ApolicePayload(BaseModel):
         max_length=60,
         description="Code canônico de institution_catalog (porto, tokiomarine, ...).",
     )
-    vigencia_inicio: date
-    vigencia_fim: date
+    vigencia_inicio: ApoliceDate
+    vigencia_fim: ApoliceDate
     classe_bonus: Optional[int] = Field(None, ge=0, le=10)
     congenere_anterior: Optional[CongenereRef] = None
-    premio_total_brl: Decimal = Field(..., ge=0)
+    premio_total_brl: ApoliceMoney = Field(..., ge=0)
     forma_pagamento: Literal["a_vista", "cartao", "boleto", "debito"]
     pagador_cpf_masked: Optional[str] = Field(
         None,
@@ -258,7 +295,7 @@ class ApolicePayload(BaseModel):
     segurado_family_member_id: Optional[str] = Field(None, max_length=36)
     corretor: CorretorRef
     bens_segurados: list[BemSeguradoDiscriminated] = Field(..., min_length=1)
-    sinistro_indenizacao_recebida_brl: Optional[Decimal] = Field(
+    sinistro_indenizacao_recebida_brl: Optional[ApoliceMoney] = Field(
         None,
         ge=0,
         description=(
