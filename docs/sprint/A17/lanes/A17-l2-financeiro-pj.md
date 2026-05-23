@@ -3,7 +3,7 @@ id: A17.l2
 type: lane
 title: "Informes anuais — L2 financeiro PJ (C6 PJ, Stone, adquirentes)"
 sprint: A17
-status: planned
+status: in_progress
 priority: P1
 branch_slug: a17-l2-financeiro-pj
 depends_on:
@@ -17,7 +17,7 @@ prompt: "[[TRACK-a17-l2-financeiro-pj]]"
 tags:
   - type/lane
   - sprint/a17
-  - status/planned
+  - status/in-progress
   - priority/p1
   - area/pipeline
   - area/methodology
