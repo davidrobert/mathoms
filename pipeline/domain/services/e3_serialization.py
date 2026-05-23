@@ -86,6 +86,11 @@ def serialize_to_e3_legacy_format(
         # ADR-226 PR2 — herda account_number do extrato em cada transação
         if statement.account_number_norm:
             item["account_number"] = statement.account_number_norm
+        # ADR-242 — propaga hint do LLM (E2-llm) para o classifier E4 consumir.
+        # Sem isso, `is_info_fiscal_anual` nunca dispara e linhas anuais do
+        # informe IR poluem despesas como `nao_identificado`.
+        if tx.category_hint:
+            item["categoria_sugerida"] = tx.category_hint
         transacoes.append(item)
 
     titular_final = titular if titular is not None else statement.member_key
