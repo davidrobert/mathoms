@@ -35,7 +35,7 @@
   "sinistro_indenizacao_recebida_brl": null,
   "confidence": 0.85,
   "needs_review": false,
-  "prompt_version": "apolice-v1.1.0",
+  "prompt_version": "apolice-v1.1.1",
   "cascade_triggered": false,
   "notas": "Placeholder V2 saude — schema antecipa para evitar migration breaking; UI ainda nao consome."
 }

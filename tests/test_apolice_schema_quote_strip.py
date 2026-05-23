@@ -130,12 +130,58 @@ def test_payload_aceita_aspas_em_subfield_cobertura():
     assert cov.lmi_brl == Decimal("50000.00")
 
 
+# ─────────────────────── Strict-mode regression (incidente 2026-05-22 v2) ───
+# Instructor TOOLS mode chama ``model_validate_json(strict=True)`` (default
+# ``strict=True`` no client). O ``model_validator(mode="before")`` de v1.1.0
+# quebrava a coerção JSON-nativa de Pydantic strict — strings ISO/decimal
+# eram rejeitadas com ``type=date_type``/``type=is_instance_of``. v1.1.1
+# acrescentou ``BeforeValidator`` por campo restaurando aceitação.
+
+
+def test_strict_json_aceita_iso_dates():
+    """Path Instructor: ``model_validate_json(strict=True)`` aceita ISO dates."""
+    import json
+
+    data = _apolice_minima()
+    p = ApolicePayload.model_validate_json(json.dumps(data), strict=True)
+    assert str(p.vigencia_inicio) == "2026-03-01"
+    assert str(p.vigencia_fim) == "2027-03-01"
+
+
+def test_strict_json_aceita_decimal_strings():
+    """Path Instructor: strings decimais (formato ADR-090 wire) viram Decimal."""
+    import json
+
+    data = _apolice_minima(premio_total_brl="4509.98")
+    p = ApolicePayload.model_validate_json(json.dumps(data), strict=True)
+    assert p.premio_total_brl == Decimal("4509.98")
+    assert p.bens_segurados[0].coberturas[0].premio_brl == Decimal("2000.00")
+    assert p.bens_segurados[0].coberturas[0].lmi_brl == Decimal("50000.00")
+
+
+def test_strict_json_aceita_decimal_quoted():
+    """Path Instructor + Haiku quote-wrap (combinado v1.1.0 + v1.1.1)."""
+    import json
+
+    data = _apolice_minima(premio_total_brl='"4509.98"')
+    p = ApolicePayload.model_validate_json(json.dumps(data), strict=True)
+    assert p.premio_total_brl == Decimal("4509.98")
+
+
+def test_strict_dict_aceita_iso_e_decimal():
+    """Path alternativo de Instructor: ``model_validate(dict, strict=True)``."""
+    data = _apolice_minima()
+    p = ApolicePayload.model_validate(data, strict=True)
+    assert str(p.vigencia_inicio) == "2026-03-01"
+    assert p.premio_total_brl == Decimal("4509.98")
+
+
 # ─────────────────────── prompt smoke (anti-regressão) ───────────────────
 
 
 def test_prompt_version_aligned():
     """Schema + prompt mod usam mesma versão (bump pareado, ADR-144)."""
-    assert PROMPT_VERSION == prompt_mod.PROMPT_VERSION == "apolice-v1.1.0"
+    assert PROMPT_VERSION == prompt_mod.PROMPT_VERSION == "apolice-v1.1.1"
 
 
 _EX_DECIMAL_QUOTED = re.compile(r"Ex\.:\s*`\"[\d\.]+\"`")
