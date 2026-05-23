@@ -1,4 +1,4 @@
-"""Dedup de imóveis co-declarados em IRPFs cônjuge↔titular (ADR-246)."""
+"""Dedup de imóveis co-declarados em IRPFs cônjuge↔titular (ADR-246, ADR-265)."""
 
 from __future__ import annotations
 
@@ -6,6 +6,11 @@ import logging
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
+
+from pipeline.domain.services.canonical_fuzzy_match import (
+    extract_complemento,
+    matches_fuzzy,
+)
 
 logger = logging.getLogger("mathoms.pipeline.consolidate")
 
@@ -38,10 +43,12 @@ def dedup_imoveis_consolidados(
     *,
     titular_key: str | None = None,
 ) -> DedupResult:
-    """Deduplica imoveis_consolidados por identidade cross-IRPF (ADR-246)."""
+    """Deduplica imoveis_consolidados por identidade cross-IRPF (ADR-246, ADR-265)."""
+    # Passes: identidade exata → cross-codigo (ADR-246) → fuzzy via+num (ADR-265).
     items = [e for e in (imoveis or []) if isinstance(e, dict)]
     grouped, order, unidentified = _group_by_identity(items)
     _merge_cross_codigo(grouped, order)
+    _merge_fuzzy_via_num(grouped, order)
     result = _build_result(items, grouped, order, unidentified, titular_key)
     _log_if_deduped(result)
     return result
@@ -122,6 +129,55 @@ def _pick_primary_key(grouped: dict[tuple, list[dict]], keys: list[tuple]) -> tu
         if _group_codigos(grouped[key]) & _SPECIFIC_CODIGOS_RFB:
             return key
     return keys[0]
+
+
+def _merge_fuzzy_via_num(grouped: dict[tuple, list[dict]], order: list[tuple]) -> None:
+    """Funde grupos com mesma via e Δ numérico ≤ K (ADR-265, pós-cross-codigo)."""
+    keys = list(order)
+    merged_into: set[tuple] = set()
+    for i, key_a in enumerate(keys):
+        if key_a in merged_into or key_a not in grouped:
+            continue
+        _fuzzy_merge_into(grouped, order, key_a, keys[i + 1 :], merged_into)
+
+
+def _fuzzy_merge_into(
+    grouped: dict[tuple, list[dict]],
+    order: list[tuple],
+    key_a: tuple,
+    candidates: list[tuple],
+    merged_into: set[tuple],
+) -> None:
+    for key_b in candidates:
+        if key_b in merged_into or key_b not in grouped:
+            continue
+        if _should_merge_fuzzy(grouped, key_a, key_b):
+            _consolidate_keys(grouped, order, [key_a, key_b])
+            merged_into.add(key_b)
+
+
+def _should_merge_fuzzy(grouped: dict[tuple, list[dict]], key_a: tuple, key_b: tuple) -> bool:
+    """True quando os grupos têm via+número próximos e nenhum conflito."""
+    canon_a = _group_canonical(grouped[key_a])
+    canon_b = _group_canonical(grouped[key_b])
+    if not canon_a or not canon_b or canon_a == canon_b:
+        return False
+    complemento_a = _group_complemento(grouped[key_a])
+    complemento_b = _group_complemento(grouped[key_b])
+    if not matches_fuzzy(
+        canon_a, canon_b, complemento_a=complemento_a, complemento_b=complemento_b
+    ):
+        return False
+    return not _has_conflicting_specific_codigos_in_groups(grouped, [key_a, key_b])
+
+
+def _group_complemento(entries: list[dict]) -> str | None:
+    """Primeiro complemento extraído da descrição das entries do grupo."""
+    for e in entries:
+        complemento = extract_complemento(e.get("descricao"))
+        if complemento:
+            return complemento
+    return None
 
 
 def _build_result(

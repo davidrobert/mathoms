@@ -205,3 +205,58 @@ def test_irpf_e_comprovante_bem_funde_cross_codigo(irpf_plus_comprovante_bem):
     assert merged["valores_31_12"]["2024"] == 212706.24
     # Ambos proprietarios entram
     assert set(merged["proprietarios"]) == {"david_robert", "david_camargo"}
+
+
+@pytest.fixture
+def benedito_calixto_torre_vs_predio(tmp_path: Path) -> list[dict]:
+    """ADR-265: report fae3544d — IRPF '190' (torre) vs comprovante '186' (prédio)."""
+    desc_irpf = "APARTAMENTO - CONDOMINIO BARAO DE CAPANEMA - APTO 34 - PRACA BENEDITO CALIXTO 190"
+    desc_comprovante = "Apartamento - Praça Benedito Calixto, 186 - Ap 34, São Paulo - SP"
+    baseline = _make_baseline(
+        [
+            _make_item(codigo="11", descricao=desc_irpf, valor_brl=850000.0, membro="david_robert"),
+            _make_item(
+                codigo="01", descricao=desc_comprovante, valor_brl=780000.0, membro="david_camargo"
+            ),
+        ]
+    )
+    ctx, _ = _make_ctx(tmp_path, baseline)
+    return _run_consolidate(ctx)
+
+
+def test_benedito_calixto_funde_via_fuzzy(benedito_calixto_torre_vs_predio):
+    """IRPF cod=11 '190' + comprovante cod=01 '186' (mesmo apto 34) → 1 entry."""
+    # Apesar dos canonicals divergirem ('benedito calixto 190' vs 'benedito calixto 186'),
+    # o pass 4 fuzzy funde porque mesma via + Δ=4 ≤ K + complemento (apto 34) idêntico.
+    assert len(benedito_calixto_torre_vs_predio) == 1
+    merged = benedito_calixto_torre_vs_predio[0]
+    # Maior valor vence
+    assert merged["valores_31_12"]["2024"] == 850000.0
+
+
+@pytest.fixture
+def vizinhos_av_paulista(tmp_path: Path) -> list[dict]:
+    """ADR-265: dois imóveis distintos na mesma via — Δ=10 não funde."""
+    baseline = _make_baseline(
+        [
+            _make_item(
+                codigo="11",
+                descricao="APARTAMENTO AV PAULISTA 1500",
+                valor_brl=900000.0,
+                membro="david_robert",
+            ),
+            _make_item(
+                codigo="11",
+                descricao="APARTAMENTO AV PAULISTA 1490",
+                valor_brl=1100000.0,
+                membro="david_robert",
+            ),
+        ]
+    )
+    ctx, _ = _make_ctx(tmp_path, baseline)
+    return _run_consolidate(ctx)
+
+
+def test_vizinhos_av_paulista_nao_fundem(vizinhos_av_paulista):
+    """Δ=10 > K=4, mesma via, sem complemento — imóveis distintos preservados."""
+    assert len(vizinhos_av_paulista) == 2

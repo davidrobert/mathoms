@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dedup property_identity rows por workspace — 3 passes idempotentes (ADR-215 + ADR-225 §3)."""
+"""Dedup property_identity rows por workspace — 4 passes idempotentes (ADR-215, ADR-225 §3, ADR-265 §3)."""
 
 from __future__ import annotations
 
@@ -145,21 +145,114 @@ def _pass_1_strict(session, rows, dry_run: bool) -> list:
     return merged
 
 
+def _fuzzy_candidates(rows) -> list:
+    """Rows com canonical `<via> <numero>` (skip mat:/qa:/iptu:)."""
+    return [r for r in rows if r.endereco_canonical and ":" not in r.endereco_canonical]
+
+
+def _is_fuzzy_pair(row_a, row_b) -> bool:
+    from pipeline.domain.services.canonical_fuzzy_match import (
+        extract_complemento,
+        matches_fuzzy,
+    )
+
+    if row_a.endereco_canonical == row_b.endereco_canonical:
+        return False
+    return matches_fuzzy(
+        row_a.endereco_canonical,
+        row_b.endereco_canonical,
+        complemento_a=extract_complemento(row_a.descricao_sample),
+        complemento_b=extract_complemento(row_b.descricao_sample),
+    )
+
+
+def _classify_fuzzy_pair(row_a, row_b) -> tuple[bool, dict]:
+    """Decide se par fuzzy é fundível ou red flag (subcódigos específicos divergentes)."""
+    codigos = {row_a.codigo_rfb, row_b.codigo_rfb}
+    specifics = codigos & _SPECIFIC_CODIGOS_RFB
+    if len(specifics) >= 2:
+        return False, {
+            "candidates": [row_a.id, row_b.id],
+            "reason": "codigos_especificos_divergentes",
+            "canonicals": [row_a.endereco_canonical, row_b.endereco_canonical],
+            "codigos": sorted(codigos),
+        }
+    return True, {"codigos_fundidos": sorted(codigos)}
+
+
+def _fuzzy_merge_entry(session, row_a, row_b, info: dict, dry_run: bool) -> dict:
+    from pipeline.domain.services.canonical_fuzzy_match import extract_complemento
+
+    complemento_a = extract_complemento(row_a.descricao_sample)
+    complemento_b = extract_complemento(row_b.descricao_sample)
+    members_sorted = sorted(
+        [row_a, row_b],
+        key=lambda r: (r.codigo_rfb not in _SPECIFIC_CODIGOS_RFB, r.created_at),
+    )
+    merge_info = _merge_group(session, members_sorted, dry_run)
+    return {
+        **merge_info,
+        "canonical_winner": members_sorted[0].endereco_canonical,
+        "canonical_loser": members_sorted[1].endereco_canonical,
+        "complemento_match": bool(
+            complemento_a and complemento_b and complemento_a == complemento_b
+        ),
+        **info,
+    }
+
+
+def _pass_4_fuzzy_via_num(session, rows, dry_run: bool) -> tuple[list, list]:
+    """Passe 4 (ADR-265): funde rows com mesma via e Δ numérico ≤ K."""
+    candidates = _fuzzy_candidates(rows)
+    merged: list = []
+    red_flags: list = []
+    consumed: set[str] = set()
+    for i, row_a in enumerate(candidates):
+        if row_a.id in consumed:
+            continue
+        match = _next_fuzzy_match(row_a, candidates[i + 1 :], consumed, red_flags)
+        if match is None:
+            continue
+        row_b, info = match
+        merged.append(_fuzzy_merge_entry(session, row_a, row_b, info, dry_run))
+        consumed.add(row_b.id)
+    return merged, red_flags
+
+
+def _next_fuzzy_match(row_a, tail, consumed: set[str], red_flags: list) -> tuple | None:
+    for row_b in tail:
+        if row_b.id in consumed or not _is_fuzzy_pair(row_a, row_b):
+            continue
+        mergeable, info = _classify_fuzzy_pair(row_a, row_b)
+        if not mergeable:
+            red_flags.append(info)
+            continue
+        return row_b, info
+    return None
+
+
+def _refresh(session, workspace_id: str, last_pass: list, dry_run: bool, rows) -> list:
+    if not dry_run and last_pass:
+        return _load_rows(session, workspace_id)
+    return rows
+
+
 def _build_report(session, workspace_id: str, dry_run: bool) -> dict:
     rows = _load_rows(session, workspace_id)
     pass_0 = _pass_0_recanonicalize(session, rows, dry_run)
-    # Re-load para refletir updates do passe 0 quando não dry-run.
-    if not dry_run and pass_0:
-        rows = _load_rows(session, workspace_id)
+    rows = _refresh(session, workspace_id, pass_0, dry_run, rows)
     pass_1 = _pass_1_strict(session, rows, dry_run)
-    if not dry_run and pass_1:
-        rows = _load_rows(session, workspace_id)
+    rows = _refresh(session, workspace_id, pass_1, dry_run, rows)
     pass_3, conflicts = _pass_3_cross_codigo(session, rows, dry_run)
+    rows = _refresh(session, workspace_id, pass_3, dry_run, rows)
+    pass_4, red_flags = _pass_4_fuzzy_via_num(session, rows, dry_run)
     return {
         "pass_0_recanonicalized": pass_0,
         "pass_1_strict_merged": pass_1,
         "pass_3_cross_codigo_merged": pass_3,
         "pass_3_conflicts_need_human": conflicts,
+        "pass_4_fuzzy_merged": pass_4,
+        "pass_4_red_flags": red_flags,
     }
 
 
