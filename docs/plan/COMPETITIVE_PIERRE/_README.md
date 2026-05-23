@@ -153,7 +153,7 @@ Quatro fases. Numeração mantém os "movimentos" originais da análise CEO 2026
 
 **Risco principal:** dossiê voltar inconclusivo (H1-H5 ambíguos). Mitigação: time-box rígido — fecha com "inconclusivo + razão" em vez de estender. Spike é spike.
 
-### Fase 2 — Mathoms-as-MCP (Sprint A11→A12, ~3 sprints)
+### Fase 2 — Mathoms-as-MCP (candidate pós-A19, ~3 sprints)
 
 **Goal:** posicionar Mathoms como MCP server consultável por AIs externas (Claude/ChatGPT/Cursor). Diferenciação: nosso MCP entrega **insight processado, não dado bruto**. Pierre vende "AI nativa OFB"; Mathoms vende "AI nativa de planejamento".
 
@@ -179,11 +179,15 @@ Quatro fases. Numeração mantém os "movimentos" originais da análise CEO 2026
 
 **Risco principal:** registry público + chave assinada vazada → exposição de dados. Mitigação: gate de IP/domain allowlist por workspace + rate-limit agressivo + Fernet vault (já existe) + telemetria de anomalia.
 
-### Fase 3 — Chat conversacional + Financial Memories sobre relatório (Sprint A12→A13, ~3 sprints) — **prioridade elevada por P7/P8**
+### Fase 3 — Chat conversacional + Financial Memories sobre relatório (candidate A20+, ~3 sprints) — **prioridade elevada por P7/P8**
 
 **Goal:** fechar gap de UX vs Pierre conversacional **e vs ChatGPT Finance** sem virar nenhum dos dois — chat é **focado e metodológico** (responde sobre *o seu* plano patrimonial, não sobre o mundo); memories é **superfície explícita** sobre Goals/Decisions/Workspace já existentes (não nova primitiva de dados). Camadas complementares ao relatório, não substitutas.
 
+> **Calibração de sprint 2026-05-23 (PM):** sprint atual é **A17 `current`** (Ingestão de Informes Anuais, ADR-238); A18+A19 já `candidate` (CRLV/apólices/FIPE em A18, S_PROTECAO em A19); A11/A12/A13 estão `paused`. Fase 3 entra como **candidate A20** (próxima slot disponível pós-A19), condicional ao gate de saída A19 e ao fechamento de 3.A com taxonomy aprovada. Promoção antecipada (escorrega para A18/A19) só se sinal de alarme §6 disparar (parceria OpenAI-Belvo, competidor BR memories first-mover).
+>
 > **Mudança 2026-05-23 vs versão original:** Fase 3 era "chat sobre relatório" único. Com o lançamento do ChatGPT Personal Finance (mai/2026), `Financial Memories` virou expectativa de UX. Adicionada sub-fase **3.E — Financial Memories surface** como entregável irmão. Razão: ambos consomem o mesmo substrato (`Goal` + `Decision` + workspace settings + family); separar duplicaria descoberta UX e RAG store.
+>
+> **3.A pode começar AGORA** — discovery (UX + taxonomy) é async ao trabalho de eng A17/A18, com owners distintos (`product-designer` + `financial-planner`). Não consome capacity de eng atual. Sinal verde do PM dado em 2026-05-23.
 
 **Sub-fases:**
 
@@ -193,7 +197,7 @@ Quatro fases. Numeração mantém os "movimentos" originais da análise CEO 2026
 | 3.B | Spike de design — RAG over E5 JSON + Decision aggregate + Suggestions + Goal + workspace settings, com guardrails metodológicos (resposta cita ADR/regra). Decisão: ChatGPT-style (livre) vs structured-prompt (slots). | 1 semana | abrir `chat-over-report-architecture` Proposto |
 | 3.C | MVP chat — chat-side em `/reports/[id]` (drawer ou painel fixo), 5 intents iniciais (saldo, alocação, score, próximo passo, simulação simples), latência < 3s p50. | 2 semanas | herda 3.B |
 | 3.D | Cost ceiling + telemetria — depende de [ADR-173 LLM budget hard-stop](../../adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md) (em W3 do PLATFORM_REVIEW). Métricas: intents resolvidos vs não-resolvidos, custo médio/conversa, opt-out rate. | 1 semana | herda [ADR-173] |
-| 3.E | **Financial Memories surface (NOVO 2026-05-23)** — view consolidada read-first em `/workspace/memories`: "Isto sabemos sobre você" projetando `Goal` ([[ADR-077]]) + `Decision` ativas ([[ADR-136]]) + `family_members` + workspace lifestyle settings + IRPF metadata ([[ADR-157]]). Edit inline → escreve no aggregate canônico (Goal/Decision API), nunca em store paralelo. CTA primário: alimentar Fase 3.C chat com contexto explícito do user. | 2 semanas | abrir `financial-memories-surface` Proposto (leve — escopo UX projection, não nova primitiva) |
+| 3.E | **Financial Memories surface (NOVO 2026-05-23)** — view consolidada read-first em `/workspace/memories`: "Isto sabemos sobre você" projetando `Goal` ([[ADR-073]]) + `Decision` ativas ([[ADR-136]]) + `family_members` + workspace lifestyle settings + IRPF metadata ([[ADR-157]]). Edit inline → escreve no aggregate canônico (Goal/Decision API), nunca em store paralelo. CTA primário: alimentar Fase 3.C chat com contexto explícito do user. | 2 semanas | abrir `financial-memories-surface` Proposto (leve — escopo UX projection, não nova primitiva) |
 
 **Owner:** `financial-planner` (intent + memories taxonomy) + `product-designer` (UX 3.A + 3.E) + `senior-cto` (arquitetura RAG + projection store) + `sre-devops` (cost ceiling).
 
@@ -213,13 +217,43 @@ Quatro fases. Numeração mantém os "movimentos" originais da análise CEO 2026
 3. **Memória pode existir fora de Goal/Decision/Workspace?** **Não** no MVP — força ancoragem em aggregate canônico. Se virar bottleneck, abrir `WorkspaceFact` aggregate em v2 (sem fazer agora).
 4. **Compartilhamento com cônjuge no mesmo workspace?** **Sim por default** — multi-tenant já implica visão compartilhada. Diferenciador chave vs ChatGPT single-user.
 
-**Critério de saída Fase 3:**
-- Chat (3.C+3.D): live em `/reports/[id]`, ≥ 5 intents resolvidos com ≥ 80% precisão, custo médio < R$ 0,30/conversa, opt-in explícito do user, sem regressão de SLA.
-- Memories (3.E): live em `/workspace/memories`, ≥ 80% workspaces ativos com ≥ 1 memória declarada em 30 dias pós-launch, edit inline sem corromper aggregate canônico (audit log limpo), distinção visual derivada↔declarada validada por 5 dogfood users.
+**Pré-requisitos arquiteturais (consolidado 2026-05-23 — designer + planner convergiram):**
+
+Antes de abrir ADR `financial-memories-surface`, **3 ADRs Proposto** precisam estar mergeadas (todas leves, escopo ≤120 linhas cada):
+
+| ADR pré-requisito | Origem | Razão |
+|---|---|---|
+| `decision-source-column` | designer (pergunta de bloqueio) | Sem `source: user_declared \| user_confirmed \| system_derived` em `Decision`, ação "Confirmar derivada → declarada" vira escrita opaca; quebra audit log. Investigar se já existe; senão adicionar coluna. |
+| `goal-reserva-emergencia-schema` | planner (F11 + INV1) | Hoje `reserva_emergencia` é threshold em `goals.json` rules-as-code ([[ADR-177]]), não `Goal` por workspace. Sem schema próprio, F11 não tem onde aterrissar. Impõe `meses_alvo ∈ [3, 18]`, default 6. |
+| `goal-meta-objetivo-schema` | planner (F13) | Metas estruturadas (casa, educação, intercâmbio, aposentadoria do cônjuge) hoje viram `Decision` ou nada. Schema genérico com `tipo`, `custo_brl`, `data_alvo`, `prioridade`. |
+
+**NÃO abrir** `WorkspaceFact` aggregate v2 no MVP — abstração prematura. Confirmado por planner; só revisitar se aparecer fato sem casa canônica.
+
+**Discovery completo** (taxonomia 16 fatos × 7 categorias, INV1-5 metodológicos, 3 mockups, research questions 3.A, decisões UX D1-D5, anti-patterns):
+[assets/3e-discovery-2026-05-23.md](assets/3e-discovery-2026-05-23.md)
+
+**Critério de saída Fase 3 (refinado por PM 2026-05-23):**
+
+- **Chat (3.C+3.D):** live em `/reports/[id]`, ≥ 5 intents resolvidos com ≥ 80% precisão, custo médio < R$ 0,30/conversa, opt-in explícito do user, sem regressão de SLA.
+- **Memories (3.E):** live em `/workspace/memories` com:
+  - **KR primário (utilidade percebida):** ≥ 60% dos workspaces que **abrem** a view editam ≥ 1 memória declarada na mesma sessão. Mede utilidade, não pressão de adoção.
+  - **KR secundário (invariante arquitetural):** ≥ 90% das edições resolvem para aggregate canônico (Goal/Decision/family/workspace) em audit log; 0 escritas em store paralelo.
+  - **Health metric (anti-Goodhart):** tempo médio entre signup e primeira interação ≤ 7 dias entre quem abre o produto 2+ vezes. Detecta descoberta orgânica vs forçada por CTA.
+  - Distinção visual derivada↔declarada validada por ≥ 5 dogfood users.
+
+> **Mudança vs versão anterior:** KR "≥ 80% workspaces ativos com ≥ 1 memória declarada em 30 dias" foi removido — base dogfood pequena tornaria denominador instável e induziria badgering (anti-padrão metodológico). Substituído pelos 3 KRs acima.
+
+**Leading indicators (≤ 14 dias pós-launch, instrumentar antes do launch):**
+
+1. **Open-rate da rota `/workspace/memories` ao 7º dia** entre quem abriu relatório no período (target inicial: ≥ 35% — exploração orgânica sem CTA agressivo).
+2. **Edit-to-open ratio** (edições/aberturas únicas da view; target: ≥ 0,4) — distingue "olhei e fechei" de "achei útil".
+
+Evento de telemetria obrigatório antes do launch: `memory_view_open`, `memory_edit_submit`, `memory_edit_target` (qual aggregate sofreu escrita), `memory_origin_confirmed` (derivada → declarada).
 
 **Risco principal Fase 3:**
 - **Chat:** virar muleta para usuário não ler o relatório → cai leitura profunda → cai engajamento metodológico. Mitigação: telemetria de leitura do relatório como guard-rail; se cair >20%, A/B desliga chat.
 - **Memories:** virar "rascunho paralelo" desconectado dos aggregates (forma sem substância). Mitigação: edit inline obrigatoriamente escreve no aggregate canônico via API existente; gate de teste de integração em CI.
+- **Coordenação cross-sprint:** A18 (`candidate`, ADR-239) introduz CRLV/apólices/FIPE — gera memórias derivadas novas no E5 (cobertura, valor de mercado). Se 3.E lançar antes de A18 estabilizar, taxonomia derivada pode mudar. **Gate:** 3.E não merge antes de A18 done. A19 (`candidate`, S_PROTECAO) projeta estado patrimonial no relatório — risco de duplicar narrativa "isto sabemos sobre você". **Coordenar com `information-architect` antes do PR de 3.E** para evitar duplicidade UX.
 
 ### Fase 4 — Reposicionamento de marca + GTM (paralelo, ~contínuo, owner CEO)
 
@@ -291,6 +325,34 @@ Os 4 pilares já decididos em [[ADR-183]] (P1 casal, P2 método, P3 patrimônio+
 - "Chat conversacional sobre suas finanças" como hero → continua anti-persona (curioso AI-nativo). Chat é capability, não hero. Mathoms vende plano metodológico, não novelty AI.
 - "Memória que evolui com você" como pilar isolado → memories é superfície de P4 (plano evolutivo), não pilar independente.
 
+### 4-bis.2. Sub-headlines revisadas dos 4 pilares (gtm-strategist 2026-05-23)
+
+Refinement de copy literal para PR-C de [[ADR-183]] — uma frase por pilar fazendo diferenciação implícita vs **assistente AI genérico**, sem nomear ChatGPT/Pierre, respeitando §13 COPY_GUIDELINES. Pillars de [[ADR-183]] não mudam; ADR-183 permanece `Proposto`.
+
+| Pilar | Sub-headline final (≤18 palavras) | Posição visual |
+|---|---|---|
+| **P1 hero** | "Patrimônio do casal, decidido a quatro mãos no mesmo workspace — não duas contas isoladas que se conversam." | sub-headline abaixo do nome do pilar |
+| **P2** | "Aconselhamento ancorado em metodologia consagrada de planejamento patrimonial brasileiro — reprodutível, não recalculado a cada conversa." | sub-headline abaixo do nome do pilar |
+| **P3** | "Patrimônio inteiro, com o lado fiscal brasileiro embutido — não só o que entra e sai da conta." | **sub-headline (versão leve)** — a frase técnica "IRPF completo, PGBL/VGBL e lucro presumido inclusos" vai como **primeiro bullet de evidência** dentro do bloco P3 (valida ICP HENRY familiarizado sem abrir bloco com jargão) |
+| **P4** | "Cada decisão registrada com data, motivo e revisão — plano que evolui com auditoria, não conselho efêmero." | sub-headline abaixo do nome do pilar |
+
+**Auditoria §13 COPY_GUIDELINES + `check_sigilo_terms`:**
+- P1: passa. "Patrimônio do casal" + "decidido a quatro mãos" são verbatim §13.2.
+- P2: passa. "Metodologia consagrada de planejamento patrimonial brasileiro" é verbatim §13.2.
+- P3: passa. Termos técnicos neutros ("lucro presumido", "alíquotas progressivas", "PGBL/VGBL") OK.
+- P4: passa. "Supersedida" foi removida (jargão ADR-136) → traduzida em "data, motivo e revisão" user-facing.
+
+**Risco de comoditização (12-24 meses):**
+
+| Pilar | Sobrevive ChatGPT-BR (Plus tier + Belvo/Pluggy)? | Refresh ano 2 |
+|---|---|---|
+| P1 | **Forte (24+m).** Multi-tenant familiar é estrutural — não copiável em 1 sprint pela OpenAI (depende de modelo de conta + LGPD + Open Finance multi-titular). Moat real. | Nenhum. Pode reforçar com "auditada juntos". |
+| P2 | **Média.** "Reprodutível, não recalculado" é claim que ChatGPT pode contestar com "Memory + system prompt fixo". Diferenciação real está em **rules-as-code** ([[ADR-143]]). | Refresh: citar "regras codificadas e versionadas" se ChatGPT escalar persona financeira. |
+| P3 | **Forte (12-18m), depois pressionado.** IRPF é moat regulatório duro. Se OpenAI integrar com player BR (improvável <18m), pressiona. | Refresh: destacar "PGBL/VGBL polimórfico + come-cotas + isenções FII" — domínio que escala por tempo de codificação, não compute. |
+| P4 | **Fraca em prosa, forte em prova.** "Memories evoluem" é exatamente o que OpenAI vai comunicar. Auditabilidade é o diferencial real — já capturado na frase revisada ("data, motivo e revisão"). Mas precisa de **prova visível** (3.E live) antes da landing publicar. | Sincronizar PR-D landing com 3.E launch para P4 ter prova factual. |
+
+**Sinal verde para PR-C avançar** — 4 frases auditadas, ordem visual definida (P3 como sub-headline leve + bullet técnico), nenhuma nova ADR exigida. Coordenação: reviewer da lane A11.w5 (paused) valida vocabulário canônico antes de PR-C ir para review (sequência operacional já em [[ADR-183]] §"Sequência operacional pós-merge").
+
 ---
 
 ## 5. ADRs canonicais a abrir
@@ -361,10 +423,13 @@ IDs concretos serão atribuídos no commit que abre cada ADR (próximo livre em 
 | `mathoms-mcp-design.md` | 2.A | após Fase 1 fechar | `senior-cto` |
 | `mathoms-mcp-mvp-readonly.md` | 2.B | após ADR 2.A mergeada | `senior-cto` + `sre-devops` |
 | `mathoms-mcp-distribution.md` | 2.C | em paralelo a 2.B | `build-vs-buy` (registry choice) |
-| `chat-report-discovery.md` | 3.A | em paralelo a 2.A | `product-designer` + `financial-planner` |
+| `chat-report-discovery.md` | 3.A (chat + memories taxonomy unificadas) | **criar agora** — output 3.A inicial em [assets/3e-discovery-2026-05-23.md](assets/3e-discovery-2026-05-23.md); falta validação de 3-5 dogfood interviews | `product-designer` + `financial-planner` |
 | `chat-report-spike.md` | 3.B | após 3.A fechar | `senior-cto` + `financial-planner` |
 | `chat-report-mvp.md` | 3.C | após ADR 3.B mergeada e [ADR-173] live | `senior-cto` |
-| `financial-memories-surface.md` | 3.E | em paralelo a 3.A (sem dependência [ADR-173]) | `product-designer` + `senior-cto` |
+| `decision-source-column.md` | 3.E pré-req #1 | após 3.A fechar; investigar Decision aggregate hoje | `senior-cto` |
+| `goal-reserva-emergencia-schema.md` | 3.E pré-req #2 | após 3.A fechar; paralelo a `decision-source-column` | `financial-planner` + `senior-cto` |
+| `goal-meta-objetivo-schema.md` | 3.E pré-req #3 | após 3.A fechar; paralelo a `decision-source-column` | `financial-planner` + `senior-cto` |
+| ~~`financial-memories-surface.md`~~ | 3.E | **aguarda 3.A + 3 ADRs pré-req mergeadas** (PM 2026-05-23: não criar ainda) — materializar quando A20 abrir | `product-designer` + `senior-cto` |
 | `gtm-segment-research.md` | 4.A | desde dia 1 (paralelo) | CEO + `product-manager` |
 | ~~`gtm-landing-copy-rewrite.md`~~ | 4.B | ✅ criado (ver §8.1) — soft launch viável imediato sem comparativo + chat hero conforme [[ADR-183]] §"Dependências de gate" | CEO + `product-designer` |
 | `gtm-pricing-repositioning.md` | 4.C | após 4.A | CEO + `product-manager` |
@@ -394,8 +459,27 @@ Nomenclatura segue padrão atual (`docs/sprint/<X>/tracks/<slug>.md` com frontma
   1. Invocar `product-manager` para sprint placement da sub-fase 3.E (proposta: A12 ou A13 conforme capacidade).
   2. Invocar `product-designer` + `financial-planner` em paralelo para 3.A discovery expandido (chat + memories taxonomy).
   3. Invocar `gtm-strategist` para PR-C de [[ADR-183]] — refinement de copy com "uma frase por pilar" diferenciando vs assistente AI genérico (sem nomear ChatGPT diretamente, sem alterar pillars).
+- **2026-05-23 (segunda rodada — 4 especialistas em paralelo):** outputs consolidados.
+  - **`product-manager`** trouxe correção factual crítica: sprint atual é **A17** (não A11/A12); A11/A12/A13 `paused`; A18/A19 `candidate` com ADRs Proposto. Reclassificou 3.E como `candidate` A20 condicional ao gate de A19 e fechamento de 3.A. KR original ("≥ 80% workspaces com 1 memória declarada em 30d") substituído por 3 KRs (utilidade percebida + invariante arquitetural + health metric anti-Goodhart) e 2 leading indicators ≤14d. Coordenação cross-sprint adicionada (A18 derivadas novas, A19 risco de duplicar narrativa "isto sabemos sobre você" — exige `information-architect`).
+  - **`product-designer`** entregou discovery completo de 3.E: 8 research questions, diagrama de fluxo (3 entry points), 3 mockups baixa-fidelidade (tela principal + edit inline + estado vazio), decisões D1-D5 (rota dedicada `/workspace/memories`; lista única + glyph + procedência; CTA "Revisar derivadas" no empty; audit trail leve sem notif ativa MVP; fixar-pro-chat fica em 3.C). 3 anti-patterns. Pergunta de bloqueio levantada: `Decision.source` field — convergiu com gap arquitetural do planner.
+  - **`financial-planner`** entregou taxonomia de 16 fatos em 7 categorias; 5 invariantes metodológicos (INV1-5) que devem virar testes de regressão; 6 anti-padrões (palpite macro, sentimento de mercado, tickers, performance histórica, comparação com terceiros, duplicação de Decision); **GAP arquitetural identificado** — 2 `goal_type` faltam (`reserva_emergencia`, `meta_objetivo`); recomendação contra `WorkspaceFact` v2 (abstração prematura).
+  - **`gtm-strategist`** auditou e refinou 4 sub-headlines (P1-P4) contra §13 COPY_GUIDELINES + check_sigilo_terms; P3 reposicionado como sub-headline leve + bullet técnico (não jargão de abertura); risco de comoditização ano 2 mapeado (P1 forte 24m+, P2 média refresh, P3 forte 12-18m, P4 precisa prova de 3.E); sinal verde para PR-C avançar.
 
-Próxima revisão prevista: ao fechamento do dossiê da Fase 1 (estimado até 2026-05-15) **ou** ao lançamento do ChatGPT Personal Finance para Plus tier — o que vier primeiro. Atualizar `last_review` + `status: in_progress` + `adrs_canonical` quando a primeira ADR mergear (`competitor-analysis-pierre+chatgpt` agora cobrirá ambos — escopo expandido).
+  **Decisões senior-cto pós-rodada (1 rodada, anti-loop):**
+  - **3 ADRs pré-requisito de 3.E** adicionadas a §3 Fase 3: `decision-source-column`, `goal-reserva-emergencia-schema`, `goal-meta-objetivo-schema`. Sem essas mergeadas, ADR `financial-memories-surface` não abre.
+  - **NÃO abrir** `WorkspaceFact` v2 (confirmado planner).
+  - **NÃO alterar** [[ADR-183]] (4 pillars permanecem; refinement vive em PR-C).
+  - **3.A track** vira `chat-report-discovery.md` unificado (chat + memories taxonomy) — economia de 1 track.
+  - **Sprint placement 3.E:** `candidate` A20 (não A12/A13 obsoletos); 3.A começa agora async ao trabalho de A17/A18.
+  - **Artefato preservado:** [assets/3e-discovery-2026-05-23.md](assets/3e-discovery-2026-05-23.md) consolida discovery completo (mockups, taxonomia, invariantes, research questions, pré-requisitos).
+
+  **Próximas ações imediatas (próxima sessão):**
+  1. `senior-cto` ou `product-manager` materializa `chat-report-discovery.md` em `docs/sprint/A17/tracks/` (ou nova pasta `_unscheduled/` se A17 não acomodar). Owner: `product-designer` + `financial-planner` para 3-5 dogfood interviews validando research questions §6 do asset.
+  2. `senior-cto` abre `decision-source-column` ADR Proposto investigando schema atual.
+  3. `financial-planner` + `senior-cto` abrem `goal-reserva-emergencia-schema` + `goal-meta-objetivo-schema` ADRs Proposto em paralelo.
+  4. PR-C de [[ADR-183]] avança com `product-designer` escrevendo copy literal contra 4 sub-headlines auditadas.
+
+Próxima revisão prevista: após dogfood interviews da 3.A (estimado ≤2 semanas) **ou** ao lançamento do ChatGPT Personal Finance para Plus tier — o que vier primeiro. Atualizar `last_review` + `status: in_progress` + `adrs_canonical` quando a primeira ADR mergear.
 
 ---
 
@@ -407,11 +491,19 @@ Próxima revisão prevista: ao fechamento do dossiê da Fase 1 (estimado até 20
 - [PLATFORM_REVIEW](../PLATFORM_REVIEW/_README.md) — sprint A11, ADR-173 LLM budget hard-stop é dependência da Fase 3
 - [CLAUDE.md §"Política operacional — ADR Proposto antes de PR P0/P1"](../../../CLAUDE.md) — protocolo de ADR Proposto
 - [docs/reference/ARCHITECTURE.md](../../reference/ARCHITECTURE.md) — domain glossary, stages, layers
+- [ADR-073 Goals como entidade versionada](../../adr/073-goals-como-entidade-versionada-nao-config-estatico.md) — substrato de memórias declaradas
 - [ADR-090 Decimal Money](../../adr/090-decimal-money.md) — invariante de moeda
 - [ADR-111 Stateless rigoroso](../../adr/111-stateless-rigoroso-padrao-e-gate-empirico-a6f6.md) — invariante de runtime
+- [ADR-136 Decision aggregate event-sourced](../../adr/136-decision-aggregate-event-sourced-com-supersede.md) — substrato de memórias de decisão
+- [ADR-141 Goal alocação alvo v2](../../adr/141-goal-alocacao-alvo-schema-v2-7-classes-auvp.md) — F9/INV5 das memórias
 - [ADR-143 Methodology as Code](../../adr/143-docsmethodology-e-rules-as-code-sprint-a76.md) — moat metodológico
-- [ADR-173 LLM Budget Hard-Stop](../../adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md) — dependência Fase 3
+- [ADR-157 Schema IRPF completo](../../adr/157-schema-irpf-completo-stage-extract-irpf-full.md) — F14 das memórias + moat P3 vs ChatGPT
+- [ADR-173 LLM Budget Hard-Stop](../../adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md) — dependência Fase 3.C/3.D (NÃO 3.E)
 - [ADR-175 Prompt Injection Defense](../../adr/175-prompt-injection-defense-em-camadas-sanitize.md) — base para Fase 2.D
+- [ADR-177 Thresholds metodológicos](../../adr/177-thresholds-e-referencias-metodologicas-como.md) — F11/INV1 ancoragem
+- [ADR-178 Risk aggregate workspace-scoped](../../adr/178-risk-aggregate-workspace-scoped.md) — F6/F15 das memórias
+- [ADR-183 Landing positioning pillars](../../adr/183-landing-positioning-pillars-2026.md) — pillars dual-frente (Pierre + ChatGPT)
+- **[Asset discovery 3.E 2026-05-23](assets/3e-discovery-2026-05-23.md)** — taxonomia + INV1-5 + mockups + research questions consolidados (output de 4 especialistas)
 
 ### Externas (Pierre / contexto)
 
