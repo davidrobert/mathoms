@@ -45,9 +45,10 @@ Entrega: sub-schema `informe_proventos.schema.json` (eventos por ativo: dividend
 ## Lanes
 
 - ✅ [[A17.l1]] (`shipped` 2026-05-21) — L1: previdência privada (PGBL/VGBL). Entregue em 5 PRs ([#402](https://github.com/davidrobert/mathoms/pull/402), [#403](https://github.com/davidrobert/mathoms/pull/403), [#404](https://github.com/davidrobert/mathoms/pull/404), [#406](https://github.com/davidrobert/mathoms/pull/406), [#407](https://github.com/davidrobert/mathoms/pull/407)). Padrão arquitetural validado.
-- [[A17.l2]] (`planned`) — L2: financeiro PJ. Depende de L1 (valida padrão); paralela a [[TRACK-a16-adr236-tributario-pj-cascata]] L2 P5-P6 com sinergia.
-- [[A17.l3]] (`planned`) — L3: financeiro PF + XP Investimentos. Depende de L1.
+- ✅ [[A17.l2]] (`shipped` 2026-05-23) — L2: financeiro PJ. Entregue em 2 PRs ([#453](https://github.com/davidrobert/mathoms/pull/453) schema/prompt + [#454](https://github.com/davidrobert/mathoms/pull/454) classifier + InformeQuery cascata). Stone PJ real do dogfood classifica confidence 1.0.
+- [[A17.l3]] (`in_progress`) — L3: financeiro PF + Wise multi-moeda. P1+P2 entregues ([#458](https://github.com/davidrobert/mathoms/pull/458) schema/prompt + [#459](https://github.com/davidrobert/mathoms/pull/459) classifier); P3 (consolidate_baseline + PTAX), P4 (UI S4), P5 (validações Wise) pendentes.
 - [[A17.l4]] (`planned`) — L4: proventos ações + holding. Depende de L1.
+- ✅ [[A17.l5]] (`shipped` 2026-05-22) — L5: seed expandido institution_catalog (18 entries alta renda PJ). Entregue em 1 PR ([#451](https://github.com/davidrobert/mathoms/pull/451)).
 
 ## Pré-requisitos
 
