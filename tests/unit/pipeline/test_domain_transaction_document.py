@@ -102,6 +102,89 @@ class TestBankStatementAggregates:
         ]
 
 
+class TestCategoryHintPropagation:
+    """ADR-242 — ``categoria_sugerida`` do LLM (E2-llm) precisa sobreviver ao
+    reconciler para o classifier consumir em E4. Regression test contra o bug
+    em que ``from_e2_dict`` descartava o campo e ADR-242 §D2 (skip
+    ``info_fiscal_anual``) virava dead code em produção."""
+
+    def test_from_e2_dict_preserves_category_hint(self):
+        d = {
+            "banco": "itau",
+            "tipo": "informe_rendimentos",
+            "moeda": "BRL",
+            "periodo_inicio": "2025-01-01",
+            "periodo_fim": "2025-12-31",
+            "arquivo_origem": "informe.pdf",
+            "transacoes": [
+                {
+                    "data": "2025-12-31",
+                    "descricao": "Parcelas Pagas Crédito Imobiliário (ano 2025)",
+                    "valor": -52429.06,
+                    "categoria_sugerida": "info_fiscal_anual",
+                }
+            ],
+        }
+        stmt = BankStatement.from_e2_dict(d)
+        assert stmt.transactions[0].category_hint == "info_fiscal_anual"
+
+    def test_to_e2_dict_exports_category_hint(self):
+        tx = Transaction(
+            date=date(2025, 12, 31),
+            description="Parcelas Pagas Crédito Imobiliário (ano 2025)",
+            amount=Money.brl("-52429.06"),
+            category_hint="info_fiscal_anual",
+        )
+        stmt = BankStatement(
+            institution="itau",
+            member_key="david",
+            period_start=date(2025, 1, 1),
+            period_end=date(2025, 12, 31),
+            currency="BRL",
+            transactions=[tx],
+        )
+        d = stmt.to_e2_dict()
+        assert d["transacoes"][0]["categoria_sugerida"] == "info_fiscal_anual"
+
+    def test_to_e2_dict_omits_hint_when_none(self):
+        """Transação determinística (parser de banco, sem LLM) NÃO ganha o campo."""
+        tx = Transaction(
+            date=date(2025, 12, 31),
+            description="MERCADO X",
+            amount=Money.brl("-100.00"),
+        )
+        stmt = BankStatement(
+            institution="itau",
+            member_key="david",
+            period_start=date(2025, 12, 1),
+            period_end=date(2025, 12, 31),
+            currency="BRL",
+            transactions=[tx],
+        )
+        d = stmt.to_e2_dict()
+        assert "categoria_sugerida" not in d["transacoes"][0]
+
+    def test_round_trip_e2_dict_preserves_hint(self):
+        original = {
+            "banco": "itau",
+            "tipo": "informe_rendimentos",
+            "moeda": "BRL",
+            "periodo_inicio": "2025-01-01",
+            "periodo_fim": "2025-12-31",
+            "arquivo_origem": "informe.pdf",
+            "transacoes": [
+                {
+                    "data": "2025-12-31",
+                    "descricao": "x",
+                    "valor": -1.0,
+                    "categoria_sugerida": "info_fiscal_anual",
+                }
+            ],
+        }
+        rebuilt = BankStatement.from_e2_dict(original).to_e2_dict()
+        assert rebuilt["transacoes"][0]["categoria_sugerida"] == "info_fiscal_anual"
+
+
 class TestInvestmentStatement:
     def test_total_value_sums(self):
         stmt = InvestmentStatement(
