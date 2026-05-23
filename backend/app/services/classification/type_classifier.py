@@ -176,6 +176,44 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         ),
         priority=2,
     ),
+    # ADR-238 A17 L2 P2 — informe Financeiro PJ. Cobre dois layouts:
+    # (a) Comprovante Lei 9.249/95 (adquirentes Stone/Cielo/Rede com vendas
+    #     brutas + retenções IRRF/CSLL/PIS/COFINS) e
+    # (b) Demonstrativo de saldo PJ (Stone/C6 PJ: saldo 31/12 + rendimentos
+    #     sujeitos à tributação exclusiva).
+    # Priority=2 alinhada com previdencia (required exclusivo: marcadores
+    # de PJ — Pessoa Jurídica beneficiária ou Comprovante Lei 9.249).
+    TypeRule(
+        code="informe_financeiro_pj",
+        dest_group="income_tax_br",
+        required=(
+            _c(
+                r"Comprovante\s*de\s*Rendimentos\s*Pagos\s*e\s*de\s*Reten[çc][ãa]o"
+                r"|Pessoa\s*Jur[ií]dica\s*benefici[áa]ria(?:\s*dos\s*rendimentos)?"
+                r"|Lei\s*9[.,]?249"
+            ),
+        ),
+        supporting=(
+            _c(
+                r"CSLL\s*(?:retid[ao]|recolhid[ao])|PIS\s*(?:retid[ao]|recolhid[ao])"
+                r"|COFINS\s*(?:retid[ao]|recolhid[ao])|IRRF\s*(?:retid[ao]|recolhid[ao])"
+            ),
+            _c(
+                r"Stone|Cielo|Rede(?:cred)?|GetNet|PagSeguro|Mercado\s*Pago"
+                r"|C6\s*Bank|C6\s*PJ|Banco\s*Origin\s*PJ"
+            ),
+            _c(r"Simples\s*Nacional|Lucro\s*Presumido|DAS\b|CNAE"),
+            _c(
+                r"Vendas\s*brutas|Volume\s*processado|TPV|"
+                r"Antecipa[çc][ãa]o\s*de\s*receb[íi]veis|MDR"
+            ),
+            _c(
+                r"Saldo\s*em\s*31[/-]12|Tributa[çc][ãa]o\s*Exclusiva|APLICA[ÇC][ÃA]O\s*DE\s*RENDA\s*FIXA"
+            ),
+            _c(r"Fonte\s*pagadora|Estabelecimento\s*aderente|Estabelecimento\s*contratado"),
+        ),
+        priority=2,
+    ),
     TypeRule(
         code="informerendimentos",
         dest_group="income_tax_br",
