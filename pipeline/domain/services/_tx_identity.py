@@ -8,12 +8,19 @@ import unicodedata
 
 _WHITESPACE_RE = re.compile(r"\s+")
 
-# ADR-255 iteração 2 — sufixos de roteamento PIX que o mesmo banco emite de
+# ADR-255 iteração 2-3 — sufixos de roteamento que o mesmo banco emite de
 # forma inconsistente entre PDFs (extratos cumulativos do C6 omitem ou incluem
 # o tag conforme a versão). Strip antes do hash para que extratos sobrepostos
 # colapsem corretamente. Whitelist conservadora — só remove o segmento FINAL
 # após ` — ` (em-dash com espaços) ou ` - ` (hífen com espaços), preservando
 # descrições legítimas com em-dash no meio (ex.: "Aluguel apto 12").
+#
+# Iteração 3 (2026-05-24, ADR-255 it.3): observação em prod do report
+# b042c210 mostrou 3 novos padrões não-cobertos pela it.2:
+# (a) CPF/CNPJ + nome remetente em TED inbound (` — 27788253634-JAIR DE SOUZA`)
+# (b) Placa Mercosul/legacy + local em C6TAG (` — GDK6A27-AEROPORTO DE...`)
+# (c) Descritor cliente livre tipo `— Salários PJ` extendido (` — mentoria 4Valor unitário...`)
+# (a) e (b) têm pattern estável; (c) ficou fora (texto livre cliente é frágil).
 _ROUTING_SUFFIX_RE = re.compile(
     r"""
     \s*[—-]\s*           # separador ` — ` ou ` - ` (com whitespace ao redor)
@@ -23,6 +30,12 @@ _ROUTING_SUFFIX_RE = re.compile(
         | 13\ SAL[ÁA]RIO                # C6 — décimo terceiro
         | BOLETO                        # C6 — pagamento boleto
         | NFS?\s+\d+                    # C6 — NF/NFS numerada (NFS 25, NF 26)
+        # ADR-255 it.3: CPF (11 dígitos) ou CNPJ (14) + traço + nome PF/PJ.
+        # Pattern restrito: começa com dígitos, traço, depois nome em maiúsculas.
+        | \d{11,14}-[A-Z][A-Z\s]*[A-Z]
+        # ADR-255 it.3: placa brasileira (Mercosul ABC1D23 ou legacy ABC1234)
+        # + traço + local em maiúsculas (C6TAG ESTACIONAMENTO).
+        | [A-Z]{3}\d[A-Z\d]\d{2}-[A-Z][A-Z\s]*[A-Z]
     )
     \s*$                  # opcional trailing whitespace + fim de string
     """,
