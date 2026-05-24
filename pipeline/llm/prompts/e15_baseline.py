@@ -1,7 +1,8 @@
 """Prompt templates for E1.5 — baseline patrimonial extraction from IRPF documents."""
 
 # Bump quando SYSTEM_PROMPT ou USER_PROMPT_TEMPLATE mudar — gate CI valida (W2-T05, ADR-233).
-PROMPT_VERSION = "1.0.0"
+# 1.1.0: ADR-267 — emit CPF do contribuinte por item para identidade canônica.
+PROMPT_VERSION = "1.1.0"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
 
@@ -19,6 +20,7 @@ Para cada item patrimonial, extraia:
 - Valor em BRL
 - Membro da família dono do item (key canônica)
 - Ano-base da declaração
+- CPF do contribuinte da declaração (11 dígitos, com ou sem máscara — ex: "123.456.789-09" ou "12345678909")
 
 Regras:
 - Valores devem estar em formato numérico (ex: 150000.00, não "R$ 150.000,00")
