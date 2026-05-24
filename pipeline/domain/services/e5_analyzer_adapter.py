@@ -938,22 +938,31 @@ def _resolve_valor_31_12(item: dict) -> float:
 # =============================================================================
 
 
-def _read_irpf_payloads(store: ArtifactStore) -> list[dict]:
-    """Try-read de ``extract_irpf_full`` artifacts — lista vazia se ausente."""
+def _read_irpf_payloads_with_keys(
+    store: ArtifactStore,
+) -> tuple[list[dict], list[str]]:
+    """Lê payloads E1.6 + retorna ``artifact_key`` de cada um (tie-break do dedup)."""
     try:
         keys = list(store.list_keys(_IRPF_FULL_STAGE))
     except Exception:
-        return []
-    return [p for p in (store.read(_IRPF_FULL_STAGE, k) for k in keys) if p]
+        return [], []
+    pairs = [(k, store.read(_IRPF_FULL_STAGE, k)) for k in keys]
+    filtered = [(k, p) for k, p in pairs if p]
+    return [p for _, p in filtered], [k for k, _ in filtered]
 
 
 def _try_load_irpf_analyzer(store: ArtifactStore) -> IRPFAnalyzer | None:
-    """Lê ``extract_irpf_full`` opcionalmente — paridade com ``_e5_load_irpf_kpis``."""
-    payloads = _read_irpf_payloads(store)
+    """Lê ``extract_irpf_full`` opcionalmente — paridade com ``_e5_load_irpf_kpis``.
+
+    Dedup aplicado automaticamente em ``IRPFAnalyzer.from_payloads``; tie-break
+    do dedup usa ``artifact_key`` (lexicográfico). Tie-break por ``created_at``
+    fica para A-condicional (precisa extender ``ArtifactStore`` protocol).
+    """
+    payloads, tie_break_keys = _read_irpf_payloads_with_keys(store)
     if not payloads:
         return None
     try:
-        analyzer = IRPFAnalyzer.from_payloads(payloads)
+        analyzer = IRPFAnalyzer.from_payloads(payloads, tie_break_keys=tie_break_keys)
     except Exception:
         return None
     return analyzer if analyzer.anos_base_disponiveis() else None

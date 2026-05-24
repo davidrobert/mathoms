@@ -118,7 +118,33 @@
     "diagnostico_comportamental": {"type": "array"},
     "programa_milhas": {"type": "object"},
     "narrativas": {"type": "object"},
-    "irpf_kpis": {"type": "object"},
+    "irpf_kpis": {
+      "type": "object",
+      "description": "KPIs derivados de E1.6/extract_irpf_full. ADR-266: 4 campos novos (ano_base_default, ano_base_completude, completude_motivo, anos_completude_por_ano) expressam estado tri-state da completude do ano-base.",
+      "properties": {
+        "ano_base_default": {
+          "type": "integer",
+          "description": "ADR-266: ano-base opinado para o card; último completo, fallback provisório, fallback incompleto."
+        },
+        "ano_base_completude": {
+          "type": "string",
+          "enum": ["completo", "provisorio", "incompleto", "mudanca_estrutural"],
+          "description": "ADR-266: estado do ano_base_default. mudanca_estrutural é reservado para confirmação humana futura — analyzer nunca retorna automaticamente."
+        },
+        "completude_motivo": {
+          "type": ["string", "null"],
+          "description": "ADR-266: explicação textual quando ano_base_completude != completo (ex.: 'Falta declaração de CPF ***-XX (presente em ano-base anterior).')."
+        },
+        "anos_completude_por_ano": {
+          "type": "object",
+          "description": "ADR-266: estado de completude por ano-base disponível, consumido pelo RendaEvolucaoChart para estilo distinto em anos provisorio/incompleto.",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["completo", "provisorio", "incompleto", "mudanca_estrutural"]
+          }
+        }
+      }
+    },
     "passive_income": {"type": "object"},
     "if_monte_carlo": {"type": "object"},
     "premissas_economicas": {
