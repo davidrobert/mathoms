@@ -368,6 +368,13 @@ _C6_NOISE_PREFIXES: Tuple[str, ...] = (
     "Cotação",
     "Cotacao",
     "Data Tipo",
+    # Cabeçalho de tabela "Data Data Tipo Descrição Valor lançamento contábil"
+    # — header repete no topo de cada página do extrato C6 conta-corrente.
+    # Sem isso, _ingest_c6_line linha 450-451 trata como continuação de
+    # descrição da tx anterior, inflando descricao e quebrando dedup K4
+    # (mesma tx em 2 extratos vira hashes distintos). Observado em prod
+    # 2026-05-24, workspace 1b9f2cf5 (5 PIXes Arvo duplicados).
+    "Data Data",
     "Janeiro",
     "Fevereiro",
     "Março",
