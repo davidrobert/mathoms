@@ -3,18 +3,9 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
 
-
-@dataclass(frozen=True)
-class TypeRule:
-    """A content-based document-type matcher."""
-
-    code: str
-    dest_group: str
-    required: tuple[re.Pattern, ...]  # ALL must match
-    supporting: tuple[re.Pattern, ...]  # at least one boosts confidence to 1.0
-    priority: int = 100  # lower = evaluated first
+from backend.app.services.classification._type_rule import TypeRule
+from backend.app.services.classification.informe_rules import A17_INFORME_RULES
 
 
 def _c(pattern: str) -> re.Pattern:
@@ -150,97 +141,10 @@ TYPE_RULES: tuple[TypeRule, ...] = (
         ),
         priority=2,
     ),
-    # ADR-238 (A17 L1) — Informe anual de Previdência Privada (PGBL/VGBL).
-    # MAIS específico que ``informerendimentos`` genérico abaixo → priority=2
-    # garante evaluação antes. Cobre layouts BrasilPrev / Bradesco Vida /
-    # Caixa Vida / Icatu / Mongeral / XP Seguros.
-    TypeRule(
-        code="informe_previdencia_privada",
-        dest_group="income_tax_br",
-        required=(
-            # Pelo menos um marcador forte de produto previdenciário.
-            _c(
-                r"\bPGBL\b|\bVGBL\b"
-                r"|Previd[êe]ncia\s*Privada\s*(?:Complementar)?"
-                r"|Plano\s*Gerador\s*de\s*Benef[ií]cio\s*Livre"
-                r"|Vida\s*Gerador\s*de\s*Benef[ií]cio\s*Livre"
-            ),
-        ),
-        supporting=(
-            _c(r"Tabela\s*Regressiva|Regime\s*Regressivo|Tributa[çc][ãa]o\s*Definitiva"),
-            _c(r"Tabela\s*Progressiva|Regime\s*Progressivo|Tributa[çc][ãa]o\s*Compens[aá]vel"),
-            _c(r"Contribui[çc][õo]es\s*(no\s*ano|anuais|do\s*per[ií]odo)"),
-            _c(r"Saldo\s*(em\s*31[/-]12|de\s*reserva|acumulado)"),
-            _c(r"Certificado|Proposta|Ap[oó]lice|N[uú]mero\s*do\s*Plano"),
-            _c(r"BrasilPrev|Bradesco\s*Vida|Caixa\s*Vida|Icatu|" r"Mongeral|XP\s*Seguros"),
-        ),
-        priority=2,
-    ),
-    # ADR-238 A17 L2 P2 — informe Financeiro PJ. Cobre dois layouts:
-    # (a) Comprovante Lei 9.249/95 (adquirentes Stone/Cielo/Rede com vendas
-    #     brutas + retenções IRRF/CSLL/PIS/COFINS) e
-    # (b) Demonstrativo de saldo PJ (Stone/C6 PJ: saldo 31/12 + rendimentos
-    #     sujeitos à tributação exclusiva).
-    # Priority=2 alinhada com previdencia (required exclusivo: marcadores
-    # de PJ — Pessoa Jurídica beneficiária ou Comprovante Lei 9.249).
-    TypeRule(
-        code="informe_financeiro_pj",
-        dest_group="income_tax_br",
-        required=(
-            _c(
-                r"Comprovante\s*de\s*Rendimentos\s*Pagos\s*e\s*de\s*Reten[çc][ãa]o"
-                r"|Pessoa\s*Jur[ií]dica\s*benefici[áa]ria(?:\s*dos\s*rendimentos)?"
-                r"|Lei\s*9[.,]?249"
-            ),
-        ),
-        supporting=(
-            _c(
-                r"CSLL\s*(?:retid[ao]|recolhid[ao])|PIS\s*(?:retid[ao]|recolhid[ao])"
-                r"|COFINS\s*(?:retid[ao]|recolhid[ao])|IRRF\s*(?:retid[ao]|recolhid[ao])"
-            ),
-            _c(
-                r"Stone|Cielo|Rede(?:cred)?|GetNet|PagSeguro|Mercado\s*Pago"
-                r"|C6\s*Bank|C6\s*PJ|Banco\s*Origin\s*PJ"
-            ),
-            _c(r"Simples\s*Nacional|Lucro\s*Presumido|DAS\b|CNAE"),
-            _c(
-                r"Vendas\s*brutas|Volume\s*processado|TPV|"
-                r"Antecipa[çc][ãa]o\s*de\s*receb[íi]veis|MDR"
-            ),
-            _c(
-                r"Saldo\s*em\s*31[/-]12|Tributa[çc][ãa]o\s*Exclusiva|APLICA[ÇC][ÃA]O\s*DE\s*RENDA\s*FIXA"
-            ),
-            _c(r"Fonte\s*pagadora|Estabelecimento\s*aderente|Estabelecimento\s*contratado"),
-        ),
-        priority=2,
-    ),
-    # ADR-238 A17 L3 P2 — informe Financeiro PF (4 quadros RFB + Wise). Priority=2
-    # disputa com PJ via required exclusivo: Wise isolado (sem contexto fiscal) NÃO casa.
-    TypeRule(
-        code="informe_financeiro_pf",
-        dest_group="income_tax_br",
-        priority=2,
-        required=(
-            _c(
-                r"Informe\s*de\s*Rendimentos\s*Financeiros|Informe\s*Anual\s*de\s*Rendimentos"
-                r"|(?:Wise\s*Brasil|Avenue\s*Securities|Nomad\s*Pagamentos|Stake\s*BR)"
-                r"[\s\S]{0,200}(?:saldo\s*em\s*moeda\s*estrangeira|conta\s*no\s*exterior"
-                r"|Saldo\s*em\s*31[/-]12|moeda:\s*USD)"
-            ),
-        ),
-        supporting=(
-            _c(r"Rendimentos\s*Tribut[aá]veis|Quadro\s*1"),
-            _c(r"Rendimentos\s*Isentos\s*e\s*N[ãa]o\s*Tribut[aá]veis|Quadro\s*2"),
-            _c(r"Tributa[çc][ãa]o\s*Exclusiva|Quadro\s*3"),
-            _c(r"Bens\s*e\s*Direitos|Quadro\s*4"),
-            _c(r"Pessoa\s*F[íi]sica|titular\s*pessoa\s*f[íi]sica|CPF[\s:]*[\d\*]"),
-            _c(r"Ita[úu]|Santander|Caixa\s*Econ|Nubank|PicPay|C6\s*Bank|XP\s*Investimentos|Rico"),
-            _c(r"USD|EUR|GBP|moeda\s*estrangeira|conta\s*no\s*exterior|PTAX"),
-        ),
-    ),
-    # Legacy `informerendimentos` (priority=3) deletado em A17 L3 P2 (ADR-238) —
-    # `informe_financeiro_pf` (priority=2) subsume. Mapping de compat em
-    # `document_classification._map_informe` mantido para dados antigos.
+    # ADR-238 A17 L1-L4 — TypeRules dos 4 informes anuais movidas para
+    # `informe_rules.py` (priority=2; required exclusivo por tipo).
+    *A17_INFORME_RULES,
+    # Legacy `informerendimentos` (priority=3) deletado em A17 L3 P2.
     # ---------- Fatura de aluguel (specific before cartão) ----------
     TypeRule(
         code="faturaaluguel",
