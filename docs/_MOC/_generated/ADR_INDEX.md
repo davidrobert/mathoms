@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-257 ADRs (ADR-001 a ADR-266) em [`docs/adr/`](../../adr/).
+259 ADRs (ADR-001 a ADR-269) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 191
-- **Proposto**: 62
+- **Proposto**: 64
 - **Roadmap**: 4
 
 ## Fundação
@@ -309,11 +309,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-213]] — Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) · phase A12.sunset-audit
 - [[ADR-214]] — `Decision.code` é server-generated com `pg_advisory_xact_lock` · phase A12.decision-code-autogen
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
 - [[ADR-211]] — llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) · phase A12
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
+- [[ADR-269]] — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado · phase A17.task-suggestion-dedup
 
 ## categorization
 
@@ -469,7 +470,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-239]] — Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 · phase A18.l1
 - [[ADR-256]] — Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` · phase A19.uow-stages
 
-### Proposto (12)
+### Proposto (13)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -483,6 +484,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-246]] — Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c · phase A17.imovel-dedup
 - [[ADR-255]] — Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) · phase A17.tx-dedup-cross-doc
 - [[ADR-266]] — Completude tri-state de ano-base IRPF: completo / provisorio / incompleto / mudanca_estrutural · phase A16
+- [[ADR-267]] — Identidade canônica de membro do workspace via CPF (não slug-de-nome) · phase A17.member-identity
 
 ## relatorio
 

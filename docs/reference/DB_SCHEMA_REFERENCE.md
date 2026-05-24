@@ -1162,8 +1162,11 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `proposed_payload` | `JSON` | no | — | — |
 | `source` | `VARCHAR(32)` | no | — | — |
 | `source_run_id` | `VARCHAR(36)` | yes | — | — |
+| `dedup_key` | `VARCHAR(64)` | yes | — | — |
 | `status` | `VARCHAR(32)` | no | `'pending'` | INDEX |
 | `rejection_reason` | `TEXT` | yes | — | — |
+| `superseded_at` | `DATETIME` | yes | — | — |
+| `superseded_by_run_id` | `VARCHAR(36)` | yes | — | — |
 | `approved_task_id` | `VARCHAR(36)` | yes | — | FK→tasks.id |
 | `reviewed_by` | `VARCHAR(36)` | yes | — | FK→users.id |
 | `reviewed_at` | `DATETIME` | yes | — | — |
@@ -2416,8 +2419,11 @@ type TaskSuggestion struct {
 	ProposedPayload json.RawMessage `db:"proposed_payload" json:"proposed_payload"`
 	Source string `db:"source" json:"source"`
 	SourceRunId *string `db:"source_run_id" json:"source_run_id"`
+	DedupKey *string `db:"dedup_key" json:"dedup_key"`
 	Status string `db:"status" json:"status"`
 	RejectionReason *string `db:"rejection_reason" json:"rejection_reason"`
+	SupersededAt *time.Time `db:"superseded_at" json:"superseded_at"`
+	SupersededByRunId *string `db:"superseded_by_run_id" json:"superseded_by_run_id"`
 	ApprovedTaskId *string `db:"approved_task_id" json:"approved_task_id"`
 	ReviewedBy *string `db:"reviewed_by" json:"reviewed_by"`
 	ReviewedAt *time.Time `db:"reviewed_at" json:"reviewed_at"`
