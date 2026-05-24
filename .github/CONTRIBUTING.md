@@ -51,8 +51,42 @@ pre-commit install --hook-type pre-push
 5. **Preencha o template** — checklist + ADR + breaking change quando
    aplicável.
 6. **CI tem que ficar verde** — job `All checks green` é gate obrigatório.
-7. **Auto-merge** (botão na UI) é seguro para PRs verdes; o repo merge
-   automaticamente quando todos os checks passam.
+7. **Auto-merge** (`gh pr merge <N> --squash --auto` ou botão na UI) é o
+   caminho default. Com **Merge Queue** ativa, o PR entra numa fila em
+   vez de mergear direto: GitHub simula a base pós-rebase, dispara CI
+   no evento `merge_group`, e mergeia se verde. Você **não precisa
+   rebasar manualmente** quando outro PR mergea antes — a fila cuida.
+
+---
+
+## Merge Queue
+
+O repo usa **Merge Queue** do GitHub (rule `merge_queue` no Ruleset
+`main-protection`). Mecânica:
+
+1. PR fica verde no gate `pull_request` (CI + título Conventional Commits).
+2. Você ativa auto-merge: `gh pr merge <N> --squash --auto`.
+3. GitHub coloca o PR na fila em vez de mergear.
+4. A fila simula `main + PR` (base pós-rebase) e dispara CI no evento
+   `merge_group`. Esse run **é o que satisfaz** o required check
+   `All checks green` para o merge final.
+5. Se verde → squash-merge em `main` automático. Se vermelho → PR
+   ejetado da fila, você corrige e re-enfileira.
+
+**Por que importa:** elimina o ciclo `rebase manual → push → esperar CI
+novamente → repetir porque outro PR mergeou` que aparecia em picos com
+vários PRs paralelos prontos ao mesmo tempo.
+
+**Implicações operacionais:**
+
+- Cada workflow que produz required check (`ci.yml`, `pr-quality.yml`)
+  declara trigger `merge_group: types: [checks_requested]`. Adicionar
+  novo required check → adicione o trigger também, senão a fila trava.
+- `pr-quality.yml > title-lint` no contexto `merge_group` reporta success
+  no-op (título já foi validado quando o PR entrou na fila).
+- Jobs opt-in via label (`e2e`, `visual`, `print`) são pulados em
+  `merge_group` (label do PR original não está acessível). Não são
+  required check, então não bloqueiam o merge.
 
 ---
 

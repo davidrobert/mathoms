@@ -23,7 +23,10 @@ from pipeline.domain.services.narrativas.format_helpers import (
     fmt_percent,
     pluralize,
 )
-from pipeline.domain.services.narrativas.tributario_narrator import narrate_cascata
+from pipeline.domain.services.narrativas.tributario_narrator import (
+    narrate_cascata,
+    narrate_wise_fiscal_flags,
+)
 
 _DIVERSIFICACAO_LINE = (
     "Concentração em poucos ativos reforça importância de aportes contínuos para diversificação."
@@ -254,6 +257,7 @@ class ChartsNarrator:
                 "conclusion": _conclusion_top15_ativos(M),
             },
             "impostos_pj": narrate_cascata(M.get("tributario_section"), ctx),
+            "wise_fiscal_flags": narrate_wise_fiscal_flags(M.get("wise_fiscal_flags"), ctx),
         }
 
     # ── Cenário de estresse "Sem renda do cônjuge" (ADR-167) ──────────────

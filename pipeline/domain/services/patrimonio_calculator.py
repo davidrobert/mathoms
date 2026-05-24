@@ -195,6 +195,9 @@ class PatrimonioCalculator:
             veiculos=veiculos,
         )
 
+        caixa_me_detalhe = _build_caixa_me_detalhe(inputs.baseline)
+        wise_fiscal_flags = inputs.baseline.get("wise_fiscal_flags") or []
+
         return {
             "bruto": round(patrimonio_bruto, 2),
             "dividas": round(total_dividas, 2),
@@ -207,6 +210,8 @@ class PatrimonioCalculator:
             identity.key_inv_conjuge: round(investimentos_conjuge, 2),
             "caixa_moeda_estrangeira": round(caixa_moeda_estrangeira, 2),
             "caixa_detalhes": caixa_detalhes,
+            "caixa_me_detalhe": caixa_me_detalhe,
+            "wise_fiscal_flags": wise_fiscal_flags,
             "investivel_financeiro": round(investivel_financeiro, 2),
             "investivel_efetivo": round(investivel_efetivo, 2),
             "imoveis_no_if": self._config.include_real_estate_in_if,
@@ -465,3 +470,23 @@ class PatrimonioCalculator:
             floored[remainders[j][1]] += 0.01
         for i, comp in enumerate(composicao):
             comp["pct"] = round(floored[i], 2)
+
+
+def _build_caixa_me_detalhe(baseline: dict) -> list[dict]:
+    """Items Wise/exterior (moeda != BRL) com saldo_brl convertido — A17 L3 P4."""
+    entries = baseline.get("informe_pf_saldos_31_12") or []
+    return [_caixa_me_item(e) for e in entries if (e.get("moeda") or "BRL") != "BRL"]
+
+
+def _caixa_me_item(entry: dict) -> dict:
+    """Render 1 entry para card S1 — preserva original + PTAX + status."""
+    return {
+        "descricao": entry.get("descricao") or "",
+        "moeda": entry.get("moeda") or "USD",
+        "saldo_original": entry.get("saldo_original"),
+        "saldo_brl": entry.get("saldo_brl"),
+        "taxa_ptax_aplicada": entry.get("taxa_ptax_aplicada"),
+        "ptax_status": entry.get("ptax_status") or "missing",
+        "codigo_rfb": entry.get("codigo_rfb") or "",
+        "ano_base": entry.get("ano_base"),
+    }
