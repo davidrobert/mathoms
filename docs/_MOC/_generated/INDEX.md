@@ -263,6 +263,7 @@
 | ADR-265 | adr | Decidido |  | Fuzzy lookup de PropertyIdentity por proximidade numérica (extensão ADR-225 Case C) | `adr/265-fuzzy-canonical-property-identity.md` |
 | ADR-266 | adr | Proposto |  | Completude tri-state de ano-base IRPF: completo / provisorio / incompleto / mudanca_estrutural | `adr/266-irpf-anobase-completude-tristate.md` |
 | ADR-267 | adr | Proposto |  | Identidade canônica de membro do workspace via CPF (não slug-de-nome) | `adr/267-member-identity-cpf-canonical.md` |
+| ADR-268 | adr | Proposto |  | Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro | `adr/268-contribuinte-pf-vs-pj-filter.md` |
 | ADR-269 | adr | Proposto |  | Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado | `adr/269-task-suggestion-dedup-supersede.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |

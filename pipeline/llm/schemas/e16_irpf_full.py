@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from decimal import Decimal
 from enum import Enum
@@ -12,7 +13,17 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 # Versão do prompt — incluída no payload por sub-decisão #7 da ADR-157.
 # Bump quando alterar o prompt ``e16_irpf_full`` de modo que afete output.
 # v1.1.0 (ADR-215): + extração de `contribuinte.endereco` (signal pré-seleção residência).
-PROMPT_VERSION = "e16-v1.1.0"
+# v1.1.1 (ADR-268): rejeita Contribuinte.nome com sufixo PJ (LTDA/S.A./EIRELI...).
+PROMPT_VERSION = "e16-v1.1.1"
+
+# ADR-268 — filtro PF vs PJ no Contribuinte.nome. IRPF é declaração de PF;
+# nome com sufixo de personificação jurídica (LTDA, S.A., EIRELI, ME, EPP,
+# MEI, SOCIEDADE, ASSOCIAÇÃO, FUNDAÇÃO, COOPERATIVA) indica documento PJ
+# mal-classificado em E0. Rejeita no boundary do schema.
+_PJ_SUFFIX_RE = re.compile(
+    r"\b(?:LTDA|S\.?\s*A\.?|EIRELI|MEI|ME|EPP|SOCIEDADE|ASSOCIA[CÇ][AÃ]O|FUNDA[CÇ][AÃ]O|COOPERATIVA)\b",
+    re.IGNORECASE,
+)
 
 
 # =============================================================================
@@ -153,6 +164,19 @@ class Contribuinte(_SubModel):
     # residência (pode ser PJ, casa dos pais, corretora). Lazy fill:
     # IRPFs anteriores ficam None até re-rodar E1.6 com prompt v1.1.0+.
     endereco: Optional[str] = Field(default=None, min_length=1)
+
+    @field_validator("nome")
+    @classmethod
+    def _reject_pj_suffix(cls, v: str) -> str:
+        """ADR-268: bloqueia razão social (LTDA, S.A., EIRELI, etc.) como nome PF."""
+        m = _PJ_SUFFIX_RE.search(v)
+        if m:
+            raise ValueError(
+                f"nome contém sufixo de Pessoa Jurídica ({m.group()!r}). "
+                "Contribuinte do IRPF deve ser Pessoa Física — verificar "
+                "classificação E0 do documento (provável IRPJ/balancete/contrato)."
+            )
+        return v
 
 
 class FontePagadoraPJ(_SubModel):
