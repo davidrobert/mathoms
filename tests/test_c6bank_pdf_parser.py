@@ -111,6 +111,27 @@ def test_descricao_nao_concatena_cabecalho_pagina():
     assert txs[0]["descricao"] == "Itau Unibanco S/A"
 
 
+# Header `"Data Data Tipo Descrição Valor lançamento contábil"` repete no topo
+# de cada página do extrato PDF C6 conta-corrente. Não pode vazar como wrap da
+# descrição da transação anterior (bug observado em prod 2026-05-24, workspace
+# 1b9f2cf5: 5 PIXes Arvo R$ 46k+ duplicados quebrando dedup K4 ADR-255).
+_TABLE_HEADER_TEXT = (
+    "28/11 28/11 Entrada PIX Pix recebido de ARVO SAUDE LTDA R$ 46.624,29\n"
+    "Data Data Tipo Descrição Valor lançamento contábil\n"
+    "29/12 29/12 Entrada PIX Pix recebido de ARVO SAUDE LTDA R$ 46.624,29\n"
+)
+
+
+def test_descricao_nao_concatena_cabecalho_tabela():
+    txs, _ = _parse_c6_extrato_text(_TABLE_HEADER_TEXT, "2025-11-01", "2025-12-31")
+    assert len(txs) == 2
+    for tx in txs:
+        assert "Data Data" not in tx["descricao"], tx["descricao"]
+        assert "lançamento contábil" not in tx["descricao"]
+    assert txs[0]["descricao"] == "Pix recebido de ARVO SAUDE LTDA"
+    assert txs[1]["descricao"] == "Pix recebido de ARVO SAUDE LTDA"
+
+
 def test_outros_gastos_e_resgate():
     """Tipos menos comuns que precisam ser reconhecidos via prefix match."""
     text = (
