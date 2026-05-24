@@ -65,12 +65,16 @@ INFORME_PJ_RULE = TypeRule(
 )
 
 # ADR-238 L3 — Financeiro PF (4 quadros RFB + Wise multi-moeda).
+# `Informe de Rendimentos[…]Ano Calendário` cobre título abreviado Itaú;
+# `Ficha da Declaração` é frase única de informe IR (nunca em extrato/CDB).
 INFORME_PF_RULE = TypeRule(
     code="informe_financeiro_pf",
     dest_group="income_tax_br",
     required=(
         _c(
             r"Informe\s*de\s*Rendimentos\s*Financeiros|Informe\s*Anual\s*de\s*Rendimentos"
+            r"|Informe\s*de\s*Rendimentos[\s\S]{0,200}Ano[\s\-]?Calend[áa]rio"
+            r"|Ficha\s*da\s*Declara[çc][ãa]o"
             r"|(?:Wise\s*Brasil|Avenue\s*Securities|Nomad\s*Pagamentos|Stake\s*BR)"
             r"[\s\S]{0,200}(?:saldo\s*em\s*moeda\s*estrangeira|conta\s*no\s*exterior"
             r"|Saldo\s*em\s*31[/-]12|moeda:\s*USD)"

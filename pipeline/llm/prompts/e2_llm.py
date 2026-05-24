@@ -4,7 +4,12 @@
 # 1.1.0 (ADR-242): adiciona vocabulário canônico de `category_hint` + sinalização
 # `info_fiscal_anual` para excluir linhas acumuladas anuais (valor a declarar,
 # parcelas ano X) do fluxo de caixa mensal.
-PROMPT_VERSION = "1.1.0"
+# 1.2.0: defesa em camadas vs. caso real onde Itaú "Informe de Rendimentos"
+# (informe IR anual) caía em E2-llm via classifier errado e virava extrato
+# fantasma de R$ 61k. Adiciona regra explícita: documentos com marcadores
+# "Ficha da Declaração" / "Informe de Rendimentos + Ano Calendário" devem
+# retornar `transacoes=[]` (não tentar extrair como extrato).
+PROMPT_VERSION = "1.2.0"
 
 __all__ = ["SYSTEM_PROMPT", "USER_PROMPT_TEMPLATE", "PROMPT_VERSION"]
 
@@ -68,7 +73,21 @@ Atenção crítica em informes de rendimentos / informes anuais:
   como `info_fiscal_anual` (evita double-counting).
 - "Parcelas pagas Crédito Imobiliário (ano XXXX)": SEMPRE `info_fiscal_anual`
   (é acumulado anual de IR; a despesa real está no extrato mês a mês).
-- "IRRF retido": `imposto_pago`."""
+- "IRRF retido": `imposto_pago`.
+
+SAFETY — recusa de documento mal-classificado:
+Se o documento contém QUALQUER um destes marcadores:
+- "Ficha da Declaração" (frase única de informe IR PF/PJ)
+- "Informe de Rendimentos" próximo de "Ano Calendário" / "Ano-Calendário"
+- "Comprovante de Rendimentos Pagos e de Retenção" (informe PJ Lei 9.249)
+
+Então o documento é um Informe Anual de Rendimentos para declaração de IR —
+NÃO um extrato bancário nem um informe de posição de investimentos. Retorne:
+{"transacoes": [], "itens": [], "notas": ["documento_e_informe_ir_anual"]}
+
+Esse stage (`E2-llm`) processa apenas extratos/posições. O Mathoms tem stage
+dedicado para informes IR (`extract_informes_anuais`); reprocesse o documento
+após o classifier `informe_financeiro_pf` (priority=2) acertar a rota."""
 
 USER_PROMPT_TEMPLATE = """\
 Extraia todas as transações e/ou posições de investimentos do seguinte documento:
