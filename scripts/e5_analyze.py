@@ -2974,15 +2974,19 @@ def _e5_run_sanity_checks(legacy: Dict[str, Any]):
     return warnings
 
 
-def _e5_read_irpf_payloads(store) -> list[dict] | None:
+def _e5_read_irpf_payloads(store) -> tuple[list[dict], list[str]] | None:
+    """Lê payloads E1.6 + retorna ``artifact_key`` de cada um (tie-break do dedup)."""
     try:
-        keys = store.list_keys("extract_irpf_full")
+        keys = list(store.list_keys("extract_irpf_full"))
     except Exception:
         return None
     if not keys:
         return None
-    payloads = [p for p in (store.read("extract_irpf_full", k) for k in keys) if p]
-    return payloads or None
+    pairs = [(k, store.read("extract_irpf_full", k)) for k in keys]
+    filtered = [(k, p) for k, p in pairs if p]
+    if not filtered:
+        return None
+    return [p for _, p in filtered], [k for k, _ in filtered]
 
 
 def _e5_kpis_from_analyzer(analyzer, ultimo: int) -> Dict[str, Any]:
@@ -3024,12 +3028,13 @@ def _e5_kpis_pgbl(analyzer, ultimo: int) -> Dict[str, Any]:
 
 def _e5_load_irpf_kpis(store) -> Dict[str, Any] | None:
     """Try-read opcional de extract_irpf_full (ADR-157). Retorna None se ausente."""
-    payloads = _e5_read_irpf_payloads(store)
-    if not payloads:
+    result = _e5_read_irpf_payloads(store)
+    if not result:
         return None
+    payloads, tie_break_keys = result
     from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
 
-    analyzer = IRPFAnalyzer.from_payloads(payloads)
+    analyzer = IRPFAnalyzer.from_payloads(payloads, tie_break_keys=tie_break_keys)
     anos = analyzer.anos_base_disponiveis()
     if not anos:
         return None
