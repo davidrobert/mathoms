@@ -1,4 +1,4 @@
-"""Dedup canônico de TaskSuggestion (ADR-267): sha256(source:normalize(title):normalize(category))[:64] — normalize = lower+strip+colapsar whitespace; description/priority/deadline ficam fora porque LLM varia entre runs."""
+"""Dedup canônico de TaskSuggestion (ADR-269): sha256(source:normalize(title):normalize(category))[:64] — normalize = lower+strip+colapsar whitespace; description/priority/deadline ficam fora porque LLM varia entre runs."""
 
 from __future__ import annotations
 
@@ -29,13 +29,13 @@ def normalize_text(value: str | None) -> str:
 
 
 def compute_task_suggestion_dedup_key(source: str, title: str | None, category: str | None) -> str:
-    """sha256(source:normalize(title):normalize(category))[:64] — ADR-267; source entra raw (enum curto canônico)."""
+    """sha256(source:normalize(title):normalize(category))[:64] — ADR-269; source entra raw (enum curto canônico)."""
     payload = f"{source}:{normalize_text(title)}:{normalize_text(category)}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:64]
 
 
 def normalize_llm_draft(raw: dict[str, Any], *, source: str) -> dict[str, Any]:
-    """Mapeia raw JSON E5N (pt/en) → {dedup_key, proposed_payload}; defaults espelham mapping legado pré-ADR-267."""
+    """Mapeia raw JSON E5N (pt/en) → {dedup_key, proposed_payload}; defaults espelham mapping legado pré-ADR-269."""
     title = raw.get("tarefa", raw.get("title", "Sugestão LLM"))
     category = raw.get("categoria", raw.get("category", "Orcamento"))
     proposed_payload = {

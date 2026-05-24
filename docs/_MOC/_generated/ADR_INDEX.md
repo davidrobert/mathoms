@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-258 ADRs (ADR-001 a ADR-267) em [`docs/adr/`](../../adr/).
+259 ADRs (ADR-001 a ADR-269) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 191
-- **Proposto**: 63
+- **Proposto**: 64
 - **Roadmap**: 4
 
 ## Fundação
@@ -314,7 +314,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
 - [[ADR-211]] — llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) · phase A12
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
-- [[ADR-267]] — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado · phase A17.task-suggestion-dedup
+- [[ADR-269]] — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado · phase A17.task-suggestion-dedup
 
 ## categorization
 

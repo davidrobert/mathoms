@@ -1,4 +1,4 @@
-"""ADR-267 regressão de _persist_llm_suggestions: soft-supersede + dedup_key + dismiss window + source isolation + normalização léxica."""
+"""ADR-269 regressão de _persist_llm_suggestions: soft-supersede + dedup_key + dismiss window + source isolation + normalização léxica."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ async def _create_user(session):
         id=str(uuid.uuid4()),
         email=f"adr266_{uuid.uuid4().hex[:8]}@test.com",
         hashed_password=hash_password("pass"),
-        full_name="ADR-267 Tester",
+        full_name="ADR-269 Tester",
     )
     session.add(user)
     await session.flush()
@@ -47,7 +47,7 @@ async def _create_user(session):
 
 
 async def _create_ws_and_run(session, user_id: str) -> tuple[str, str]:
-    ws = Workspace(id=str(uuid.uuid4()), owner_id=user_id, name="ADR-267 WS")
+    ws = Workspace(id=str(uuid.uuid4()), owner_id=user_id, name="ADR-269 WS")
     session.add(ws)
     await session.flush()
     run = PipelineRun(

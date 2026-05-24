@@ -236,7 +236,7 @@ class TaskSuggestion(Base):
     source: Mapped[str] = mapped_column(String(32), nullable=False)
     source_run_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
-    # ADR-267: dedup_key normalizado (sha256 de source + title + category).
+    # ADR-269: dedup_key normalizado (sha256 de source + title + category).
     # Backfill em rows legadas via dev/backfill_task_suggestion_dedup.py;
     # rows novas calculam no service via compute_task_suggestion_dedup_key.
     dedup_key: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
@@ -244,7 +244,7 @@ class TaskSuggestion(Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)
     rejection_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
-    # ADR-267: soft-supersede — sinaliza que pending foi obsoletada por run novo.
+    # ADR-269: soft-supersede — sinaliza que pending foi obsoletada por run novo.
     superseded_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

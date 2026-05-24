@@ -128,7 +128,7 @@ def _query_recent_dismissed(db, ws_id: str, cutoff: datetime):
 
 
 def _load_recent_dismissed_keys(db, ws_id: str, *, now: datetime, window_days: int) -> set[str]:
-    """dedup_keys de rejected dentro da janela — bloqueia recriação (ADR-267)."""
+    """dedup_keys de rejected dentro da janela — bloqueia recriação (ADR-269)."""
     from datetime import timedelta
 
     cutoff = now - timedelta(days=window_days)
@@ -253,7 +253,7 @@ def _read_e5_sugeridas(ws_id: str, run_id: str) -> list | None:
 
 
 def _persist_llm_suggestions(ws_id: str, run_id: str, tenant_root: Path) -> None:
-    """ADR-074 + ADR-267: soft-supersede + dedup_key normalizado a partir de tarefas_sugeridas (E5)."""
+    """ADR-074 + ADR-269: soft-supersede + dedup_key normalizado a partir de tarefas_sugeridas (E5)."""
     import logging
 
     logger = logging.getLogger("pipeline_task.suggestions")
