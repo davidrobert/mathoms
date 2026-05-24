@@ -185,6 +185,46 @@ class TestComputeTransactionHash:
         )
         assert h_detail == h_plain
 
+    def test_collapses_routing_suffix_cpf_remetente_ted(self):
+        # ADR-255 it.3 — TED inbound: alguns extratos C6 anexam CPF+nome do
+        # remetente, outros não. Mesmo TED, descrição diferente.
+        h_with_cpf = compute_transaction_hash(
+            **{**self._base(), "descricao": "RECEBIMENTO DE TED — 12345678901-FULANO DE TAL"}
+        )
+        h_plain = compute_transaction_hash(**{**self._base(), "descricao": "RECEBIMENTO DE TED"})
+        assert h_with_cpf == h_plain
+
+    def test_collapses_routing_suffix_cnpj_remetente_ted(self):
+        # ADR-255 it.3 — TED inbound de empresa: CNPJ 14 dígitos + nome PJ.
+        h_with_cnpj = compute_transaction_hash(
+            **{
+                **self._base(),
+                "descricao": "RECEBIMENTO DE TED — 12345678000100-EMPRESA EXEMPLO SA",
+            }
+        )
+        h_plain = compute_transaction_hash(**{**self._base(), "descricao": "RECEBIMENTO DE TED"})
+        assert h_with_cnpj == h_plain
+
+    def test_collapses_routing_suffix_placa_local_c6tag(self):
+        # ADR-255 it.3 — C6TAG ESTACIONAMENTO: alguns extratos anexam
+        # placa do veículo + local, outros omitem.
+        h_with_placa = compute_transaction_hash(
+            **{
+                **self._base(),
+                "descricao": "C6TAG ESTACIONAMENTO — GDK6A27-AEROPORTO DE GUARULHOS GRU ROD",
+            }
+        )
+        h_plain = compute_transaction_hash(**{**self._base(), "descricao": "C6TAG ESTACIONAMENTO"})
+        assert h_with_placa == h_plain
+
+    def test_does_not_strip_short_alphanum_after_dash(self):
+        # GUARD: NÃO casar ` — A1` ou ` — AB12` (curto demais para placa/CPF).
+        # Aluguel apto 12 vs 13 já tem guard separado; este protege casos curtos.
+        h_a = compute_transaction_hash(**{**self._base(), "descricao": "X — A1"})
+        h_b = compute_transaction_hash(**{**self._base(), "descricao": "X — A2"})
+        # Sufixos curtos demais NÃO casam whitelist — preservados como conteúdo.
+        assert h_a != h_b
+
     def test_does_not_strip_legitimate_em_dash_content(self):
         # GUARD: `"— Aluguel apto 12"` vs `"— Aluguel apto 13"` são receitas
         # legítimas de aluguéis distintos. Strip cego juntaria; whitelist NÃO
