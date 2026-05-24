@@ -1,20 +1,4 @@
-"""Dedup canônico de TaskSuggestion — ADR-266.
-
-Helper puro que normaliza (source, title, category) em chave determinística
-sha256. Usado pelo dispatcher Celery (E5N) e pelo script de backfill em
-`dev/backfill_task_suggestion_dedup.py`.
-
-Decisões de normalização (ver ADR-266 §Decisão):
-- inclui ``source`` no hash (evita colisão entre fontes futuras)
-- normaliza ``title`` via lower + strip + colapsar whitespace
-- normaliza ``category`` (mesmo padrão) — categoria é dimensão semântica
-- NÃO inclui ``description`` (LLM varia rationale entre runs)
-- NÃO inclui ``priority``/``deadline_*`` (cosmético; suscetível a flutuação)
-
-Truncado para 64 chars — Postgres `VARCHAR(64)` + SQLite alinhado. 64
-chars de sha256 ainda mantém >256 bits de entropia efetiva — colisão é
-desprezível para inbox de proposta humana.
-"""
+"""Dedup canônico de TaskSuggestion (ADR-266): sha256(source:normalize(title):normalize(category))[:64] — normalize = lower+strip+colapsar whitespace; description/priority/deadline ficam fora porque LLM varia entre runs."""
 
 from __future__ import annotations
 
@@ -45,20 +29,13 @@ def normalize_text(value: str | None) -> str:
 
 
 def compute_task_suggestion_dedup_key(source: str, title: str | None, category: str | None) -> str:
-    """sha256(source:normalize(title):normalize(category))[:64] — ADR-266.
-
-    `source` entra ``raw`` (já é enum curto e canônico em VALID_SUGGESTION_SOURCES).
-    """
+    """sha256(source:normalize(title):normalize(category))[:64] — ADR-266; source entra raw (enum curto canônico)."""
     payload = f"{source}:{normalize_text(title)}:{normalize_text(category)}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:64]
 
 
 def normalize_llm_draft(raw: dict[str, Any], *, source: str) -> dict[str, Any]:
-    """Mapeia raw do JSON E5N (pt/en) → ``(dedup_key, proposed_payload)``.
-
-    Aceita ambas as variantes (pt e en) que o LLM emite. Default values
-    espelham o mapping legado em ``_persist_llm_suggestions`` pré-ADR-266.
-    """
+    """Mapeia raw JSON E5N (pt/en) → {dedup_key, proposed_payload}; defaults espelham mapping legado pré-ADR-266."""
     title = raw.get("tarefa", raw.get("title", "Sugestão LLM"))
     category = raw.get("categoria", raw.get("category", "Orcamento"))
     proposed_payload = {
