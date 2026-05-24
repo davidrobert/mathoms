@@ -138,7 +138,8 @@ def test_merge_wise_usd_com_ptax_disponivel():
     assert entry["taxa_ptax_aplicada"] == "5.20"
     assert entry["ptax_status"] == "applied"
     assert entry["codigo_rfb"] == "62"
-    assert r.warnings == []
+    # PTAX aplicada com sucesso → sem warning de PTAX ausente (GCAP é separado, A17 L3 P5).
+    assert not any("PTAX" in w and "ausente" in w for w in r.warnings)
 
 
 def test_merge_wise_usd_sem_ptax_graceful_degradation():
@@ -150,9 +151,9 @@ def test_merge_wise_usd_sem_ptax_graceful_degradation():
     assert entry["saldo_brl"] is None
     assert entry["taxa_ptax_aplicada"] is None
     assert entry["ptax_status"] == "missing"
-    assert len(r.warnings) == 1
-    assert "PTAX USD/BRL ausente" in r.warnings[0]
-    assert "31/12/2024" in r.warnings[0]
+    ptax_warnings = [w for w in r.warnings if "PTAX USD/BRL ausente" in w]
+    assert len(ptax_warnings) == 1
+    assert "31/12/2024" in ptax_warnings[0]
 
 
 def test_merge_wise_eur_via_ptax():
@@ -169,7 +170,7 @@ def test_merge_wise_eur_via_ptax():
 
 
 def test_merge_cbe_bacen_warning_quando_excede_1MM_usd():
-    """Total exterior > USD 1MM emite warning CBE."""
+    """Total exterior > USD 1MM emite FiscalFlag CBE (P5) + warning compat."""
     ptax = _ptax_table({("USD", 2024): Decimal("5.20")})
     merger = BaselineInformeMerger(ptax_getter=ptax)
     saldos = [
@@ -178,17 +179,22 @@ def test_merge_cbe_bacen_warning_quando_excede_1MM_usd():
     ]
     r = merger.merge({}, [_informe(saldos=saldos)])
     assert r.saldos_added == 2
-    cbe_warnings = [w for w in r.warnings if "CBE BACEN" in w]
+    cbe_flags = [f for f in r.fiscal_flags if f.code == "CBE"]
+    assert len(cbe_flags) == 1
+    assert cbe_flags[0].valor_original == Decimal("1100000")
+    assert cbe_flags[0].moeda == "USD"
+    # Warnings agora derivam de FiscalFlag.descricao (P5) — busca tolerante a
+    # formato monetário (1.100.000 ou 1,100,000.00 dependendo da locale).
+    cbe_warnings = [w for w in r.warnings if "Total de ativos no exterior" in w]
     assert len(cbe_warnings) == 1
-    assert "USD 1100000.00" in cbe_warnings[0]
-    assert "USD 1MM" in cbe_warnings[0]
+    assert any("1,100,000" in w or "1.100.000" in w for w in cbe_warnings)
 
 
 def test_merge_cbe_nao_dispara_quando_abaixo_threshold():
     ptax = _ptax_table({("USD", 2024): Decimal("5.20")})
     merger = BaselineInformeMerger(ptax_getter=ptax)
     r = merger.merge({}, [_informe(saldos=[_saldo_wise(saldo="50000.00")])])
-    assert all("CBE BACEN" not in w for w in r.warnings)
+    assert not any(f.code == "CBE" for f in r.fiscal_flags)
 
 
 def test_merge_cbe_apenas_conta_exterior_usd_contabilizada():
@@ -202,7 +208,7 @@ def test_merge_cbe_apenas_conta_exterior_usd_contabilizada():
     # NB: SaldoProduto Pydantic rejeitaria isso (validator), mas aqui testamos
     # o merger pure que aceita dict cru. Tipo != conta_exterior → não conta CBE.
     r = merger.merge({}, [_informe(saldos=saldos)])
-    assert all("CBE BACEN" not in w for w in r.warnings)
+    assert not any(f.code == "CBE" for f in r.fiscal_flags)
 
 
 # ─────────────────────── Múltiplos informes ─────────────────────────────────
@@ -245,3 +251,74 @@ def test_merge_preserva_outras_chaves_do_baseline():
     assert r.baseline["investimentos_consolidados"] == [{"id": "inv-1"}]
     assert r.baseline["dividas"] == []
     assert len(r.baseline["informe_pf_saldos_31_12"]) == 1
+
+
+# ─────────────────────── A17 L3 P5 — wise_fiscal_flags pipeline ──────────────
+
+
+def _informe_com_rendimentos(rendimentos_tributaveis: list[dict]) -> dict:
+    """Informe PF com rendimentos_tributaveis para detector de carnê-leão."""
+    inf = _informe(saldos=[_saldo()])
+    inf["financeiro_pf"]["rendimentos_tributaveis"] = rendimentos_tributaveis
+    return inf
+
+
+def test_merge_baseline_inclui_wise_fiscal_flags_key():
+    """Baseline output sempre tem chave `wise_fiscal_flags` (lista, possivelmente vazia)."""
+    merger = BaselineInformeMerger()
+    r = merger.merge({}, [_informe(saldos=[_saldo()])])
+    assert "wise_fiscal_flags" in r.baseline
+    assert isinstance(r.baseline["wise_fiscal_flags"], list)
+
+
+def test_merge_fiscal_flags_estruturado_disponivel():
+    """`result.fiscal_flags` é list[FiscalFlag] estruturado (A17 L3 P5)."""
+    ptax = _ptax_table({("USD", 2024): Decimal("5.20")})
+    merger = BaselineInformeMerger(ptax_getter=ptax)
+    saldos = [_saldo_wise(saldo="1500000.00")]  # > USD 1MM
+    r = merger.merge({}, [_informe(saldos=saldos)])
+    assert len(r.fiscal_flags) >= 1
+    codes = {f.code for f in r.fiscal_flags}
+    assert "CBE" in codes
+    assert "GCAP" in codes  # saldo ME → flag GCAP automática
+
+
+def test_merge_carne_leao_detectado_via_rendimentos_tributaveis():
+    """codigo_rfb=13 + moeda != BRL → flag CARNELEAO emitida."""
+    merger = BaselineInformeMerger()
+    informe = _informe_com_rendimentos(
+        [
+            {
+                "codigo_rfb": "13",
+                "moeda": "USD",
+                "valor": "5000.00",
+                "fonte_pagadora_nome": "Interactive Brokers",
+                "fonte_pagadora_cnpj": "",
+            }
+        ]
+    )
+    r = merger.merge({}, [informe])
+    carne = [f for f in r.fiscal_flags if f.code == "CARNELEAO"]
+    assert len(carne) == 1
+    assert carne[0].codigo_rfb == "13"
+    assert carne[0].moeda == "USD"
+
+
+def test_merge_baseline_serializa_flag_como_dict():
+    """`baseline.wise_fiscal_flags` é list[dict] (JSON-safe), não dataclass."""
+    ptax = _ptax_table({("USD", 2024): Decimal("5.20")})
+    merger = BaselineInformeMerger(ptax_getter=ptax)
+    r = merger.merge({}, [_informe(saldos=[_saldo_wise(saldo="1500000.00")])])
+    flags_baseline = r.baseline["wise_fiscal_flags"]
+    assert flags_baseline
+    for flag in flags_baseline:
+        assert isinstance(flag, dict)
+        assert {"code", "severity", "title", "descricao", "moeda"}.issubset(flag.keys())
+
+
+def test_merge_sem_flags_baseline_lista_vazia():
+    """Sem exposição exterior + sem juros ME → fiscal_flags vazio."""
+    merger = BaselineInformeMerger()
+    r = merger.merge({}, [_informe(saldos=[_saldo()])])  # só BRL CDB
+    assert r.fiscal_flags == []
+    assert r.baseline["wise_fiscal_flags"] == []
