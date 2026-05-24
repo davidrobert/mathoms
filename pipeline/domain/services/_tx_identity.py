@@ -41,11 +41,9 @@ def _strip_accents(text: str) -> str:
 
 
 def _strip_routing_suffixes(text: str) -> str:
-    """Remove sufixos de roteamento bancário do final da descrição (ADR-255 it. 2).
-
-    Aplicado **antes** do lowercase+whitespace-collapse, preserva o conteúdo
-    de negócio (remetente/destinatário, parcela N/M, nome próprio).
-    """
+    """Remove sufixos de roteamento bancário do final da descrição (ADR-255 it.2)."""
+    # Aplicado antes do lowercase+whitespace-collapse: preserva conteúdo de
+    # negócio (remetente/destinatário, parcela N/M, nome próprio).
     text = _ROUTING_SUFFIX_RE.sub("", text)
     text = _DARF_DETAIL_RE.sub("", text)
     return text
@@ -71,16 +69,12 @@ def normalize_tipo_conta(value: str | None) -> str:
 
 
 def normalize_descricao(value: str | None) -> str:
-    """Lowercase + strip + colapsa whitespace — preserva acento + tokens N/M.
-
-    ADR-255 it. 2: strippa sufixos de roteamento PIX whitelisted antes da
-    normalização para que extratos sobrepostos do mesmo banco colapsem
-    quando a única diferença é o tag de roteamento (`" — Salários PJ"`,
-    `" — TRANSF ENVIADA PIX"`, `" — 13 Salário"`, `" — Boleto"`,
-    `" — NFS \\d+"`, `" SIMPLES NACIONAL"`).
-    """
+    """Lowercase + strip + collapse whitespace + strip sufixos PIX (ADR-255 it.2)."""
     if not value:
         return ""
+    # ADR-255 it.2: strip sufixos de roteamento ANTES do lowercase para que
+    # extratos sobrepostos do C6 (mesma tx com/sem " — Salários PJ" / etc.)
+    # produzam o mesmo hash. Lista finita em _ROUTING_SUFFIX_RE.
     stripped = _strip_routing_suffixes(value.strip())
     return _WHITESPACE_RE.sub(" ", stripped.lower())
 
