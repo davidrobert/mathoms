@@ -375,3 +375,90 @@ class TestPatrimonialItemDecimal:
                 membro_key="david",
                 ano=2024,
             )
+
+
+class TestContribuintePfVsPjFilter:
+    """ADR-268: Contribuinte.nome rejeita razão social (LTDA, S.A., etc.)."""
+
+    def _build(self, nome: str) -> Contribuinte:
+        return Contribuinte(
+            cpf_masked="***.***.***-99",
+            nome=nome,
+            ano_base=2024,
+            exercicio=2025,
+            modelo=ModeloDeclaracao.completo,
+            natureza=NaturezaContribuinte.titular,
+        )
+
+    def test_pf_legitimate_accepted(self):
+        c = self._build("Pessoa Física Exemplo")
+        assert c.nome == "Pessoa Física Exemplo"
+
+    def test_ltda_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Empresa Exemplo LTDA")
+
+    def test_sa_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Empresa Exemplo S.A.")
+
+    def test_sa_no_dots_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Empresa Exemplo SA")
+
+    def test_eireli_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Exemplo EIRELI")
+
+    def test_mei_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Exemplo MEI")
+
+    def test_me_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Exemplo Comércio ME")
+
+    def test_epp_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Exemplo EPP")
+
+    def test_sociedade_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Pessoa Sociedade Civil")
+
+    def test_associacao_rejected_with_accent(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Pessoa Associação Brasileira")
+
+    def test_associacao_rejected_without_accent(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Pessoa Associacao Brasileira")
+
+    def test_fundacao_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Pessoa Fundação Exemplo")
+
+    def test_cooperativa_rejected(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("Pessoa Cooperativa Brasileira")
+
+    def test_word_boundary_eme_not_rejected(self):
+        """'FERNANDA EME' contém ME como letras finais — word boundary protege."""
+        # `\bME\b` exige boundary antes E depois. "EME" termina em ME mas a
+        # palavra inteira é EME, então `\bME\b` NÃO casa "EME" como ME isolado.
+        c = self._build("Fernanda Eme Silva")  # "Eme" como sobrenome (raro mas válido)
+        assert c.nome == "Fernanda Eme Silva"
+
+    def test_word_boundary_sara_not_rejected(self):
+        """'SARA' não contém SA como palavra isolada."""
+        c = self._build("Sara Silva")
+        assert c.nome == "Sara Silva"
+
+    def test_real_world_david_ltda_rejected(self):
+        """Caso real do workspace founder dogfood — não pode entrar como contribuinte PF."""
+        with pytest.raises(ValueError, match="LTDA"):
+            self._build("Pessoa Empresa Exemplo LTDA")
+
+    def test_case_insensitive(self):
+        with pytest.raises(ValueError, match="Pessoa Jurídica"):
+            self._build("exemplo ltda")
