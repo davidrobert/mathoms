@@ -14,9 +14,12 @@
 #
 # Triggers:
 #   - pull_request em main: bloqueia merge se algum scan falhar.
-#   - schedule sábado 03:00 UTC: detecta CVE divulgada entre PRs;
-#     failure abre Issue em vez de bloquear (não há PR para bloquear).
-#   - workflow_dispatch: rerun manual.
+#     Gating por path-filter (changes job) — docs-only / area-only pula
+#     scans irrelevantes (cobertura preservada pelo schedule semanal).
+#   - schedule sábado 03:00 UTC: roda TODOS os scans (sem gating).
+#     Detecta CVE divulgada entre PRs; failure abre Issue.
+#   - workflow_dispatch: rerun manual (também sem gating — escolha
+#     manual implica intent de rodar full scan).
 
 name: Security
 
@@ -36,6 +39,85 @@ permissions:
   contents: read
 
 jobs:
+  # Detecta o que mudou para condicionar scans. Mesma estratégia do
+  # ci.yml (tj-actions/changed-files SHA-pinned por CVE-2025-30066).
+  # Em schedule / workflow_dispatch força `force_all=true` — todo scan
+  # roda (cobertura semanal + manual override). Em PR, gate por path.
+  changes:
+    name: Detect changed paths (security gating)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      python_deps: ${{ steps.set.outputs.python_deps }}
+      npm_deps: ${{ steps.set.outputs.npm_deps }}
+      iac: ${{ steps.set.outputs.iac }}
+      any_code: ${{ steps.set.outputs.any_code }}
+      force_all: ${{ steps.set.outputs.force_all }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # Schedule + workflow_dispatch: força todos os scans (cobertura semanal).
+      # PR: usa filter para skip scans irrelevantes (docs-only ⇒ 0 scans).
+      - name: Determine if force-all (schedule/dispatch)
+        id: force
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "force=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "force=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Detect changed files (PR only; SHA-pinned v47.0.6)
+        id: filter
+        if: steps.force.outputs.force == 'false'
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
+        with:
+          files_yaml: |
+            python_deps:
+              - 'backend/requirements.txt'
+              - 'requirements.txt'
+              - 'pipeline-service/requirements*.txt'
+              - '.github/workflows/security.yml'
+            npm_deps:
+              - 'frontend/package.json'
+              - 'frontend/package-lock.json'
+              - '.github/workflows/security.yml'
+            iac:
+              - 'Dockerfile*'
+              - 'docker-compose*.yml'
+              - '.github/workflows/**'
+              - 'frontend/Dockerfile*'
+              - 'backend/Dockerfile*'
+            any_code:
+              - '**'
+              - '!docs/**'
+              - '!**.md'
+              - '!.claude/**'
+              - '!_archive/**'
+              - '!_scratch/**'
+
+      - name: Set outputs
+        id: set
+        run: |
+          force="${{ steps.force.outputs.force }}"
+          echo "force_all=$force" >> "$GITHUB_OUTPUT"
+          if [[ "$force" == "true" ]]; then
+            echo "python_deps=true" >> "$GITHUB_OUTPUT"
+            echo "npm_deps=true" >> "$GITHUB_OUTPUT"
+            echo "iac=true" >> "$GITHUB_OUTPUT"
+            echo "any_code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "python_deps=${{ steps.filter.outputs.python_deps_any_changed }}" >> "$GITHUB_OUTPUT"
+            echo "npm_deps=${{ steps.filter.outputs.npm_deps_any_changed }}" >> "$GITHUB_OUTPUT"
+            echo "iac=${{ steps.filter.outputs.iac_any_changed }}" >> "$GITHUB_OUTPUT"
+            echo "any_code=${{ steps.filter.outputs.any_code_any_changed }}" >> "$GITHUB_OUTPUT"
+          fi
+
   # Trivy roda como check **informativo** enquanto repo for privado sem
   # GitHub Advanced Security (SARIF upload exige `security-events: write`
   # + code scanning habilitado, ambos GHAS-gated). Output em `table`
@@ -45,6 +127,8 @@ jobs:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: changes
+    if: needs.changes.outputs.any_code == 'true'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -68,6 +152,8 @@ jobs:
     name: Trivy IaC config scan
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: changes
+    if: needs.changes.outputs.iac == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Run Trivy config (Dockerfile, compose, workflows)
@@ -88,6 +174,8 @@ jobs:
     name: pip-audit (Python deps)
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    needs: changes
+    if: needs.changes.outputs.python_deps == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -126,6 +214,8 @@ jobs:
     name: npm audit (prod deps)
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: changes
+    if: needs.changes.outputs.npm_deps == 'true'
     defaults:
       run:
         working-directory: frontend
@@ -143,6 +233,8 @@ jobs:
     name: npm audit (dev deps — informativo)
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: changes
+    if: needs.changes.outputs.npm_deps == 'true'
     defaults:
       run:
         working-directory: frontend
@@ -163,6 +255,8 @@ jobs:
     name: gitleaks (full git history)
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    needs: changes
+    if: needs.changes.outputs.any_code == 'true'
     # gitleaks-action lê PR commits via API — exige pull-requests: read.
     permissions:
       contents: read

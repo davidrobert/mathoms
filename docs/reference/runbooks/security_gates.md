@@ -8,16 +8,21 @@
 
 Roda em todo PR contra `main` + schedule sábado 03:00 UTC + manual.
 
-| Job | Bloqueia merge? | Output |
-|---|---|---|
-| `trivy-fs` | **Temporariamente não** — `continue-on-error` step-level até GHAS chegar (SARIF blocking) OU triagem dos findings restantes. Output em `table` no log. | Workflow logs. |
-| `trivy-config` | **Temporariamente não** — `continue-on-error` step-level até triagem + fix dos 4 IaC misconfigs detectados no primeiro run. | Workflow logs. |
-| `pip-audit` | **Sim** (HIGH+ via `--strict`). Sem ignore-vulns ativos pós-PR #357 (python-jose → PyJWT). | Workflow logs. |
-| `npm-audit-prod` | **Sim** (HIGH+). Reativado pós-PRs #356 (next/next-intl) + #357 (python-jose). | Workflow logs. |
-| `npm-audit-dev` | Não (informativo) | Workflow logs. |
-| `gitleaks` | Sim (qualquer match não-allowlisted) | Workflow logs. |
+**Gating por path (PR only):** job `changes` filtra escopo do PR — docs-only/area-only pula scans irrelevantes. Schedule + workflow_dispatch **forçam todos os scans** (cobertura semanal preservada).
 
-Schedule failure abre Issue label `security` (job `open-issue-on-schedule-failure`).
+| Job | Quando roda no PR | Bloqueia merge? | Output |
+|---|---|---|---|
+| `changes` | Sempre (gating) | Sempre passa (faz only IO) | Outputs `python_deps`, `npm_deps`, `iac`, `any_code`, `force_all`. |
+| `trivy-fs` | `any_code` (qualquer código não-docs) | **Temporariamente não** — `continue-on-error` step-level até GHAS chegar (SARIF blocking) OU triagem dos findings restantes. Output em `table` no log. | Workflow logs. |
+| `trivy-config` | `iac` (Dockerfile, docker-compose, workflows) | **Temporariamente não** — `continue-on-error` step-level até triagem + fix dos 4 IaC misconfigs detectados no primeiro run. | Workflow logs. |
+| `pip-audit` | `python_deps` (`backend/requirements.txt`, raiz, `pipeline-service/requirements*.txt`) | **Sim** (HIGH+ via `--strict`). Sem ignore-vulns ativos pós-PR #357 (python-jose → PyJWT). | Workflow logs. |
+| `npm-audit-prod` | `npm_deps` (`frontend/package*.json`) | **Sim** (HIGH+). Reativado pós-PRs #356 (next/next-intl) + #357 (python-jose). | Workflow logs. |
+| `npm-audit-dev` | `npm_deps` (mesmo gate de prod) | Não (informativo) | Workflow logs. |
+| `gitleaks` | `any_code` | Sim (qualquer match não-allowlisted) | Workflow logs. |
+
+**Economia esperada:** PR docs-only consome 0 min de Actions (só `changes` roda, ~5s). PR backend-only sem dep nova pula `npm-audit-*` (~30s economizado/PR). PR frontend-only pula `pip-audit` + `trivy-config` quando não tocar `requirements*.txt` / Dockerfile.
+
+Schedule failure abre Issue label `security` (job `open-issue-on-schedule-failure`). Schedule **NUNCA** sofre gating — todos os scans rodam (cobertura semanal contra drift cross-PR).
 
 ### Diferimentos vigentes (revise periodicamente)
 
