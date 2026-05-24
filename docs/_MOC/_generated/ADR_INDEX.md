@@ -309,11 +309,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-213]] — Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) · phase A12.sunset-audit
 - [[ADR-214]] — `Decision.code` é server-generated com `pg_advisory_xact_lock` · phase A12.decision-code-autogen
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-175]] — Prompt injection defense em camadas (sanitize + system clause + Pydantic strict)
 - [[ADR-211]] — llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) · phase A12
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
+- [[ADR-266]] — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado · phase A17.task-suggestion-dedup
 
 ## categorization
 
