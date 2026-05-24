@@ -1,12 +1,23 @@
-"""IRPFAnalyzer — KPIs derivados de declarações IRPF (ADR-157, ADR-189)."""
+"""IRPFAnalyzer — KPIs derivados de declarações IRPF (ADR-157, ADR-189, ADR-266)."""
 
 from __future__ import annotations
 
+import datetime as _dt
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 from typing import Iterable
 
+from pipeline.domain.services.irpf_completude import (
+    CompletudeAno,
+    compute_completude,
+    pick_default_year,
+)
+from pipeline.domain.services.irpf_declaration_deduplicator import (
+    DeduplicatedIRPFSet,
+    IrpfFragment,
+    deduplicate_irpf_declarations,
+)
 from pipeline.llm.schemas.e16_irpf_full import (
     CodigoPagamentoDedutivel,
     CodigoRendimentoIsento,
@@ -101,6 +112,19 @@ def _payload_to_model(d: dict) -> IRPFFullOutput:
     return IRPFFullOutput.model_validate(d)
 
 
+def _wrap_fragments(
+    decls: list[IRPFFullOutput], tie_break_keys: list[str] | None
+) -> list[IrpfFragment]:
+    """Empacota declarações como IrpfFragment com tie_break_key fornecido ou index."""
+    if tie_break_keys is None:
+        tie_break_keys = [str(i).zfill(8) for i in range(len(decls))]
+    elif len(tie_break_keys) != len(decls):
+        raise ValueError(
+            f"tie_break_keys length {len(tie_break_keys)} != payloads length {len(decls)}"
+        )
+    return [IrpfFragment(declaration=d, tie_break_key=k) for d, k in zip(decls, tie_break_keys)]
+
+
 def _sum(values: Iterable[Decimal]) -> Decimal:
     total = Decimal("0")
     for v in values:
@@ -111,12 +135,41 @@ def _sum(values: Iterable[Decimal]) -> Decimal:
 class IRPFAnalyzer:
     """Queries puras sobre declarações IRPF (sem I/O — recebe lista de outputs)."""
 
-    def __init__(self, declarations: list[IRPFFullOutput]):
+    # Dedup em from_payloads consolida fragmentos do mesmo
+    # (cpf_masked, ano_base, natureza) antes da agregação — ver
+    # IrpfDeclarationDeduplicator.
+
+    def __init__(
+        self,
+        declarations: list[IRPFFullOutput],
+        dedup_result: DeduplicatedIRPFSet | None = None,
+    ):
         self._decls = declarations
+        self._dedup_result = dedup_result or DeduplicatedIRPFSet(winners=list(declarations))
 
     @classmethod
-    def from_payloads(cls, payloads: list[dict]) -> "IRPFAnalyzer":
-        return cls([_payload_to_model(p) for p in payloads])
+    def from_payloads(
+        cls,
+        payloads: list[dict],
+        *,
+        tie_break_keys: list[str] | None = None,
+        deduplicate: bool = True,
+    ) -> "IRPFAnalyzer":
+        """Constrói analyzer a partir de payloads JSON, aplicando dedup por default."""
+        # tie_break_keys (opcional): maior valor vence em score-tie. Caller
+        # passa created_at ISO, row id, ou index — default usa index (último
+        # na lista vence).
+        decls = [_payload_to_model(p) for p in payloads]
+        if not deduplicate:
+            return cls(decls)
+        fragments = _wrap_fragments(decls, tie_break_keys)
+        dedup = deduplicate_irpf_declarations(fragments)
+        return cls(dedup.winners, dedup_result=dedup)
+
+    @property
+    def dedup_result(self) -> DeduplicatedIRPFSet:
+        """Auditoria do dedup — winners + descartados + collision warnings."""
+        return self._dedup_result
 
     def _by_year(self, ano: int) -> list[IRPFFullOutput]:
         return [d for d in self._decls if d.contribuinte.ano_base == ano]
@@ -127,6 +180,22 @@ class IRPFAnalyzer:
     def declarations_for_year(self, ano: int) -> list[IRPFFullOutput]:
         """Acesso público às declarações filtradas por ano-base (consumido por outros services)."""
         return list(self._by_year(ano))
+
+    def completude_ano(
+        self, ano: int, today: _dt.date | None = None
+    ) -> tuple[CompletudeAno, str | None]:
+        """ADR-266: estado tri-state + motivo do ano-base."""
+        decls_by_year = {y: self._by_year(y) for y in self.anos_base_disponiveis()}
+        return compute_completude(decls_by_year, ano, today or _dt.date.today())
+
+    def ano_base_default(self, today: _dt.date | None = None) -> int | None:
+        """ADR-266: último ano completo; fallback provisório; fallback incompleto."""
+        return pick_default_year(self.anos_completude_por_ano(today))
+
+    def anos_completude_por_ano(self, today: _dt.date | None = None) -> dict[int, CompletudeAno]:
+        """ADR-266: state da completude por ano (consumido pelo chart)."""
+        ref = today or _dt.date.today()
+        return {y: self.completude_ano(y, ref)[0] for y in self.anos_base_disponiveis()}
 
     def renda_anual_familiar(self, ano: int) -> Decimal:
         """Soma rendimentos brutos da família (titular + cônjuge) no ano-base."""
