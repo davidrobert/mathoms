@@ -26,8 +26,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 | type | status | notas |
 | --- | --- | ---: |
-| adr | Decidido | 191 |
-| adr | Proposto | 64 |
+| adr | Decidido | 192 |
+| adr | Proposto | 63 |
 | adr | Roadmap | 4 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 203 |
@@ -45,8 +45,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | plan | draft | 6 |
 | plan | in_progress | 6 |
 | plan | paused | 2 |
-| track | consumed | 75 |
-| track | ready | 27 |
+| track | consumed | 76 |
+| track | ready | 26 |
 
 ## Sprints
 

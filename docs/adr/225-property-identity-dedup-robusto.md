@@ -272,12 +272,13 @@ relatório vazio.
 
 ## Follow-ups (fora do escopo)
 
-- **Case C — typos numéricos em via+numero entre fontes** (ex.: 190 vs
-  186 mesmo imóvel). Não resolvido pela ordem atual da cascata
-  (via+numero primeiro). Futura ADR pode inverter ordem com **backfill
-  de rows legadas** (re-canonicalizar pelo descricao_sample preservado).
-  Custo: migration one-shot por workspace; lacuna de duplicatas até
-  rodar. Adia decisão.
+- ✅ **Case C — typos numéricos em via+numero entre fontes** (ex.: 190 vs
+  186 mesmo imóvel). **Entregue** em [[ADR-265]] / [PR #471](https://github.com/davidrobert/mathoms/pull/471)
+  via fuzzy lookup (não requereu inverter cascata nem migration destrutiva):
+  3º nível na cascata do resolver (strict → loose → **fuzzy** → insert) +
+  pass 4 no helper de dedup E1.5c + Passe 4 no backfill script. K=4
+  default + K=8 com complemento string-equal + guard de complemento
+  divergente. `canonicalize` preservado intacto.
 - **Namespace de cidade/UF em matrícula** (`mat:NNN@saopaulo-sp`):
   detectar cidade/UF na descrição com heurística confiável (sem grab de
   "Imóvel em ..." ou "Cyrela Campinas...") demanda parsing mais robusto
