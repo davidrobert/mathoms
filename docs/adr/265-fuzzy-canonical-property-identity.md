@@ -2,9 +2,10 @@
 id: ADR-265
 type: adr
 title: "Fuzzy lookup de PropertyIdentity por proximidade numérica (extensão ADR-225 Case C)"
-status: Proposto
+status: Decidido
 phase: A17.canonical-fuzzy
 date: "2026-05-23"
+decided_at: "2026-05-23"
 relates_to:
   - "[[ADR-215]]"
   - "[[ADR-225]]"
@@ -21,13 +22,13 @@ tags:
   - area/pipeline
   - area/methodology
   - phase/a17
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
 # ADR-265 — Fuzzy lookup de PropertyIdentity por proximidade numérica
 
-**Status:** Proposto · **Data:** 2026-05-23 · **Relaciona** [[ADR-215]] (PropertyIdentity), [[ADR-225]] (canonicalize cascade), [[ADR-239]] (comprovantes de bem), [[ADR-246]] (dedup cross-IRPF).
+**Status:** Decidido · **Data:** 2026-05-23 · **Decidida:** 2026-05-23 ([PR #471](https://github.com/davidrobert/mathoms/pull/471), commit `224cf2bf`) · **Relaciona** [[ADR-215]] (PropertyIdentity), [[ADR-225]] (canonicalize cascade), [[ADR-239]] (comprovantes de bem), [[ADR-246]] (dedup cross-IRPF).
 
 ## Contexto
 
@@ -229,6 +230,15 @@ Idempotente; `--apply` exige auditoria humana 100% dos merges propostos antes (e
 - [[ADR-246]] — Dedup cross-IRPF (motivador imediato — extensão direta do helper).
 - Co-design 2026-05-23: `data-engineer` (threshold, ordem dos passes, query do resolver, backfill, red flags); `financial-planner` (impacto patrimonial, alocação-alvo AUVP, guard de complemento, telemetria).
 
-## Status — Proposto
+## Status — Decidido (Sprint A17.canonical-fuzzy)
 
-ADR aberta antes do PR de implementação (`CLAUDE.md` §"Política operacional — ADR `Proposto` antes de PR P0/P1"). Flippa para `Decidido (Sprint A17.canonical-fuzzy)` no merge do PR.
+Entrega consolidada em [PR #471](https://github.com/davidrobert/mathoms/pull/471) (commit-merge `224cf2bf`, 2026-05-23):
+
+- `pipeline/domain/services/canonical_fuzzy_match.py` (helper puro `matches_fuzzy` + `extract_complemento`)
+- `backend/app/services/db_property_identity_resolver.py` (3º nível na cascata: strict → loose → **fuzzy** → insert)
+- `pipeline/domain/services/imoveis_dedup.py` (pass 4 `_merge_fuzzy_via_num` após cross-codigo do PR #468)
+- `dev/dedup_property_identity.py` (Passe 4 backfill com `--dry-run` default + red flags)
+
+46 testes novos (27 unit do helper + 6 backend resolver + 5 unit dedup + 2 integration E1.5c + 6 backfill Passe 4); 311 verdes na suíte ampla `-k "imovel or dedup or property_id or e15"`. Sem regressão de code style (melhoria −1 em P7_multiparagraph_docstring).
+
+**Aplicação retroativa:** workspaces existentes precisam rodar `python3 dev/dedup_property_identity.py <ws_id>` (dry-run + auditoria humana) e depois `--apply` para sanar `property_identity` cristalizados pré-fix.
