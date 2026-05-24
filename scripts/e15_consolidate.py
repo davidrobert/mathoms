@@ -596,18 +596,19 @@ def _try_import_informe_pf_merger():
 
 
 def _invoke_informe_pf_merge(merge_fn, session_factory, workspace_id, consolidated):
-    """Aplica merger; muta `consolidated` in-place + loga warnings (ADR-238 D5)."""
+    """Aplica merger; muta `consolidated` in-place + loga warnings (ADR-238 D5+P5)."""
     try:
         with session_factory() as db:
             result = merge_fn(consolidated, workspace_id=workspace_id, db=db)
-            if result.saldos_added == 0:
+            if result.saldos_added == 0 and not result.fiscal_flags:
                 return
             consolidated["informe_pf_saldos_31_12"] = result.baseline.get(
                 "informe_pf_saldos_31_12", []
             )
+            consolidated["wise_fiscal_flags"] = result.baseline.get("wise_fiscal_flags", [])
             print(
                 f"  [OK] Informe PF merge: {result.informes_processed} informes, "
-                f"{result.saldos_added} saldos anexados."
+                f"{result.saldos_added} saldos anexados, {len(result.fiscal_flags)} fiscal flags."
             )
             for w in result.warnings:
                 print(f"  [E1.5c warn] {w}")

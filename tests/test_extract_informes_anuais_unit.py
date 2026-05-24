@@ -36,6 +36,9 @@ from pipeline.stages.extract_informes_anuais import (
         ("InformeRendimentosFinanceiros_Itau.pdf", "financeiro_pf"),  # L3
         ("informe_pf_santander.pdf", "financeiro_pf"),  # L3
         ("wise_2024_informe.pdf", "financeiro_pf"),  # L3 Wise
+        ("xp_proventos_2024.pdf", "proventos_acoes"),  # L4
+        ("relatorio_proventos_xp.pdf", "proventos_acoes"),  # L4
+        ("itausa_acoes_2024.pdf", "proventos_acoes"),  # L4 holding
         ("c6bank_extratoconta_202601.csv", None),
         ("declaracao_irpf_2024.pdf", None),
     ],
@@ -80,11 +83,8 @@ def test_redact_filename_pii_masks_cpf_cnpj():
 # ─────────────────────── despacho por tipo_informe ────────────────────────
 
 
-def test_extract_one_raises_not_implemented_para_tipos_futuros():
-    """L4 ainda não implementada — stage levanta NotImplementedError claro."""
-
-    class _FakeService:
-        pass
+def test_extract_one_raises_not_implemented_para_tipos_desconhecidos():
+    """A17 L1-L4 cobrem 4 tipos canônicos; tipos fora desse conjunto raise."""
 
     class _FakeConfig:
         max_tokens = 4096
@@ -93,51 +93,52 @@ def test_extract_one_raises_not_implemented_para_tipos_futuros():
         _extract_one(
             doc=Path("fake.pdf"),
             text="dummy",
-            service=_FakeService(),
-            config=_FakeConfig(),
-            tipo_informe="proventos_acoes",
-        )
-    assert "proventos_acoes" in str(exc.value)
-    assert "L4" in str(exc.value)
-
-
-def test_extract_one_dispatches_to_pf_handler():
-    """L3: tipo_informe='financeiro_pf' deve rotear para _extract_pf sem erro de dispatch."""
-    from unittest.mock import patch
-
-    class _FakeConfig:
-        max_tokens = 4096
-
-    with patch("pipeline.stages.extract_informes_anuais._extract_pf") as mock_pf:
-        mock_pf.return_value = ({}, None, "informe-pf-v1.0.0")
-        _extract_one(
-            doc=Path("informe_pf.pdf"),
-            text="dummy",
             service=object(),
             config=_FakeConfig(),
-            tipo_informe="financeiro_pf",
+            tipo_informe="aluguel_imobiliaria",
         )
-        mock_pf.assert_called_once()
+    assert "aluguel_imobiliaria" in str(exc.value)
+    assert "não suportado" in str(exc.value)
 
 
-def test_extract_one_dispatches_to_pj_handler():
-    """L2: tipo_informe='financeiro_pj' deve rotear para _extract_pj sem erro de dispatch."""
+class _FakeConfig:
+    max_tokens = 4096
+
+
+_FAKE_CONFIG = _FakeConfig()  # module-level singleton — evita recomputo em parametrize.
+
+
+@pytest.fixture(scope="module")
+def _fake_call_llm_result():
+    from unittest.mock import MagicMock
+
+    fake_result = MagicMock()
+    fake_result.output.model_dump.return_value = {"confidence": 0.9}
+    return fake_result
+
+
+@pytest.mark.parametrize(
+    "tipo_informe,filename",
+    [
+        ("previdencia_privada", "informe_previdencia_brasilprev.pdf"),
+        ("financeiro_pj", "Stone_PJ.pdf"),
+        ("financeiro_pf", "informe_pf_itau.pdf"),
+        ("proventos_acoes", "relatorio_proventos_xp.pdf"),
+    ],
+)
+def test_extract_one_dispatches_to_call_llm_for(tipo_informe, filename, _fake_call_llm_result):
+    """A17 L1-L4: dispatch genérico via `_call_llm_for(tipo_informe, ...)`."""
     from unittest.mock import patch
 
-    class _FakeConfig:
-        max_tokens = 4096
-
-    # Mock _extract_pj para confirmar que dispatch ocorre.
-    with patch("pipeline.stages.extract_informes_anuais._extract_pj") as mock_pj:
-        mock_pj.return_value = ({}, None, "informe-pj-v1.0.0")
-        _extract_one(
-            doc=Path("Stone_PJ.pdf"),
-            text="dummy",
-            service=object(),
-            config=_FakeConfig(),
-            tipo_informe="financeiro_pj",
-        )
-        mock_pj.assert_called_once()
+    with (
+        patch("pipeline.stages.extract_informes_anuais._content_hash", return_value="h" * 64),
+        patch(
+            "pipeline.stages.extract_informes_anuais._call_llm_for",
+            return_value=(_fake_call_llm_result, "v1.0.0"),
+        ) as mock_call,
+    ):
+        _extract_one(Path(filename), "dummy", object(), _FAKE_CONFIG, tipo_informe)
+        assert mock_call.call_args[0][0] == tipo_informe
 
 
 # ─────────────────────── payload build + needs_review ─────────────────────
