@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 191
-- **Proposto**: 65
+- **Decidido**: 192
+- **Proposto**: 64
 - **Roadmap**: 4
 
 ## Fundação
@@ -450,15 +450,15 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## persistence
 
-### Decidido (2)
+### Decidido (3)
 
 - [[ADR-163]] — Decision congela `context_snapshot` ao aceitar Suggestion · phase Onda 8
 - [[ADR-225]] — Dedup robusto de PropertyIdentity — matrícula/QA como canonical fallback + first-write-wins cross-codigo_rfb · phase A12
+- [[ADR-265]] — Fuzzy lookup de PropertyIdentity por proximidade numérica (extensão ADR-225 Case C) · phase A17.canonical-fuzzy
 
-### Proposto (2)
+### Proposto (1)
 
 - [[ADR-262]] — Memory confirmation tracking — flag por aggregate de leitura, não enum em Decision (Fase 3.E pré-req) · phase A17.competitive-pierre-3e-prereq
-- [[ADR-265]] — Fuzzy lookup de PropertyIdentity por proximidade numérica (extensão ADR-225 Case C) · phase A17.canonical-fuzzy
 
 ## pipeline
 

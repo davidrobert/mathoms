@@ -50,6 +50,7 @@ Entrega: sub-schema `informe_proventos.schema.json` (eventos por ativo: dividend
 - [[A17.l4]] (`planned`) — L4: proventos ações + holding. Depende de L1.
 - ✅ [[A17.l5]] (`shipped` 2026-05-22) — L5: seed expandido institution_catalog (18 entries alta renda PJ). Entregue em 1 PR ([#451](https://github.com/davidrobert/mathoms/pull/451)).
 - ✅ [[A17.l6]] (`shipped` 2026-05-24) — L6: hotfix off-theme `RECEBIMENTO DE TED` / `RECEBIMENTO TRANSFERENCIA` no seed `internal_transfer_patterns` engolia salário CLT recebido via TED (Einstein, etc.) silenciosamente. Entregue em 2 PRs ([#475](https://github.com/davidrobert/mathoms/pull/475) lane open + [#480](https://github.com/davidrobert/mathoms/pull/480) fix: seed limpo + migration `a17l6tedfix` + 8 testes de regressão).
+- ✅ **A17.canonical-fuzzy** (`shipped` 2026-05-23) — Fuzzy lookup PropertyIdentity por proximidade numérica ([[ADR-265]]). Resolve "Case C" da [[ADR-225]] §Follow-ups: variação numérica leve entre fontes (IRPF cod=11 traz torre/condomínio; comprovante de bem cod=01 traz prédio). Entregue em 1 PR ([#471](https://github.com/davidrobert/mathoms/pull/471)). Track: [[TRACK-a17-canonical-fuzzy-adr225]].
 
 ## Pré-requisitos
 
