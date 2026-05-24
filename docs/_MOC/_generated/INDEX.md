@@ -505,7 +505,7 @@
 | A17.l3 | lane | in_progress | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |
 | A17.l4 | lane | planned | A17 | Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) | `sprint/A17/lanes/A17-l4-proventos.md` |
 | A17.l5 | lane | shipped | A17 | LLM Hardening — W4-T00 seed expandido institution_catalog (alta renda PJ) | `sprint/A17/lanes/A17-l5-llm-institution-seed.md` |
-| A17.l6 | lane | in_progress | A17 | Bugfix — RECEBIMENTO DE TED engole salário CLT (categorização) | `sprint/A17/lanes/A17-l6-bugfix-ted-receita-clt.md` |
+| A17.l6 | lane | shipped | A17 | Bugfix — RECEBIMENTO DE TED engole salário CLT (categorização) | `sprint/A17/lanes/A17-l6-bugfix-ted-receita-clt.md` |
 | A18.l1 | lane | shipped | A18 | Comprovantes de Bem — L1 CRLV-e (Certificado de Registro e Licenciamento de Veículo) | `sprint/A18/lanes/A18-l1-crlv.md` |
 | A18.l2 | lane | shipped | A18 | Comprovantes de Bem — L2 Apólice de seguro polimórfica (combinada V1, vida/saúde/PJ V2) | `sprint/A18/lanes/A18-l2-apolice.md` |
 | A18.l3 | lane | shipped | A18 | Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI | `sprint/A18/lanes/A18-l3-fipe.md` |
