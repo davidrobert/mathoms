@@ -86,86 +86,187 @@ def _materialize_tarefas_md(ws_id: str, ctx) -> None:
         )
 
 
-def _persist_llm_suggestions(ws_id: str, run_id: str, tenant_root: Path) -> None:
-    """ADR-074: lê `tarefas_sugeridas` do JSON de análise (E5) e persiste
-    como `TaskSuggestion(source='e5n_llm')` no DB.
-
-    Se a lista estiver vazia (caso mais comum até o LLM ser treinado para
-    produzir sugestões), não faz nada. Idempotente: duplicatas são evitadas
-    pelo `source_run_id` (se o mesmo run_id já tem sugestões, pula).
-
-    Fix 2.5: Uses sync DB session instead of asyncio.run() which can crash
-    inside Celery workers (especially with gevent pool) and creates
-    unnecessary event loops.
-
-    ADR-131: lê o payload diretamente do ``pipeline_artifacts`` em vez do
-    filesystem; ``Report.analysis_artifact_id`` referencia o mesmo registro.
-    """
-    import logging
-
-    logger = logging.getLogger("pipeline_task.suggestions")
-
-    artifact = _find_latest_analysis_artifact(ws_id, run_id)
-    if artifact is None:
-        return
-
-    data = artifact["content_json"] or {}
-    sugeridas = data.get("tarefas_sugeridas", [])
-    if not sugeridas:
-        return
-
-    logger.info(
-        "Persisting %d LLM suggestions for ws=%s run=%s",
-        len(sugeridas),
-        ws_id,
-        run_id,
-    )
-
+def _load_active_pending(db, ws_id: str):
+    """Lê pending atuais com source='e5n_llm' (dedup_key não-NULL)."""
     from sqlalchemy import select
 
     from backend.app.models.task import TaskSuggestion
 
-    with SyncSessionLocal() as db:
-        existing = (
-            db.execute(
-                select(TaskSuggestion).where(
-                    TaskSuggestion.workspace_id == ws_id,
-                    TaskSuggestion.source_run_id == run_id,
-                )
+    return (
+        db.execute(
+            select(TaskSuggestion).where(
+                TaskSuggestion.workspace_id == ws_id,
+                TaskSuggestion.source == "e5n_llm",
+                TaskSuggestion.status == "pending",
+                TaskSuggestion.dedup_key.is_not(None),
             )
-            .scalars()
-            .first()
         )
-        if existing:
-            logger.info("Suggestions for run %s already exist — skipping", run_id)
-            return
+        .scalars()
+        .all()
+    )
 
-        saved = 0
-        for s in sugeridas:
-            try:
-                sugg = TaskSuggestion(
-                    id=str(uuid.uuid4()),
-                    workspace_id=ws_id,
-                    source="e5n_llm",
-                    source_run_id=run_id,
-                    status="pending",
-                    proposed_payload={
-                        "title": s.get("tarefa", s.get("title", "Sugestão LLM")),
-                        "category": s.get("categoria", s.get("category", "Orcamento")),
-                        "priority": s.get("prioridade", s.get("priority", "R")),
-                        "deadline_kind": s.get("deadline_kind", "UNSCHEDULED"),
-                        "deadline_label": s.get("prazo", s.get("deadline_label")),
-                        "description": s.get("descricao", s.get("description")),
-                    },
-                )
-                db.add(sugg)
-                saved += 1
-            except Exception as exc:
-                logger.warning("Skipping invalid suggestion: %s — %s", s, exc)
 
-        if saved:
+def _query_recent_dismissed(db, ws_id: str, cutoff: datetime):
+    from sqlalchemy import select
+
+    from backend.app.models.task import TaskSuggestion
+
+    return (
+        db.execute(
+            select(TaskSuggestion.dedup_key).where(
+                TaskSuggestion.workspace_id == ws_id,
+                TaskSuggestion.source == "e5n_llm",
+                TaskSuggestion.status == "rejected",
+                TaskSuggestion.dedup_key.is_not(None),
+                TaskSuggestion.reviewed_at.is_not(None),
+                TaskSuggestion.reviewed_at >= cutoff,
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+def _load_recent_dismissed_keys(db, ws_id: str, *, now: datetime, window_days: int) -> set[str]:
+    """dedup_keys de rejected dentro da janela — bloqueia recriação (ADR-266)."""
+    from datetime import timedelta
+
+    cutoff = now - timedelta(days=window_days)
+    rows = _query_recent_dismissed(db, ws_id, cutoff)
+    return {k for k in rows if k}
+
+
+def _supersede_obsolete_pending(pending, new_keys: set[str], *, run_id: str, now: datetime) -> int:
+    """Marca pending cujo dedup_key NÃO aparece no run novo como superseded."""
+    count = 0
+    for p in pending:
+        if p.dedup_key in new_keys:
+            continue
+        p.status = "superseded"
+        p.superseded_at = now
+        p.superseded_by_run_id = run_id
+        count += 1
+    return count
+
+
+def _build_pending_row(d: dict, *, ws_id: str, run_id: str):
+    from backend.app.models.task import TaskSuggestion
+
+    return TaskSuggestion(
+        id=str(uuid.uuid4()),
+        workspace_id=ws_id,
+        source="e5n_llm",
+        source_run_id=run_id,
+        status="pending",
+        dedup_key=d["dedup_key"],
+        proposed_payload=d["proposed_payload"],
+    )
+
+
+def _draft_skip_reason(key: str, active_keys: set[str], recent_dismissed: set[str]) -> str | None:
+    if key in active_keys:
+        return "active"
+    if key in recent_dismissed:
+        return "dismiss"
+    return None
+
+
+def _insert_new_drafts(
+    db,
+    drafts: list[dict],
+    *,
+    ws_id: str,
+    run_id: str,
+    active_keys: set[str],
+    recent_dismissed: set[str],
+) -> tuple[int, int]:
+    """Insere drafts cujo dedup_key não está active nem foi rejeitado recente."""
+    created, skipped_dismiss = 0, 0
+    for d in drafts:
+        reason = _draft_skip_reason(d["dedup_key"], active_keys, recent_dismissed)
+        if reason == "active":
+            continue
+        if reason == "dismiss":
+            skipped_dismiss += 1
+            continue
+        db.add(_build_pending_row(d, ws_id=ws_id, run_id=run_id))
+        created += 1
+    return created, skipped_dismiss
+
+
+def _normalize_drafts(sugeridas: list, logger) -> list[dict]:
+    """Normaliza lista raw do artefato E5 → drafts com dedup_key (skipa inválidos)."""
+    from backend.app.services.task_suggestion_dedup import normalize_llm_draft
+
+    drafts: list[dict] = []
+    for raw in sugeridas:
+        try:
+            drafts.append(normalize_llm_draft(raw, source="e5n_llm"))
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Skipping invalid suggestion: %s — %s", raw, exc)
+    return drafts
+
+
+def _apply_dedup_persist(db, drafts: list[dict], *, ws_id: str, run_id: str, now: datetime):
+    """Loop principal: supersede + insert. Retorna (created, superseded, skipped_dismiss, active_kept)."""
+    from backend.app.services.task_suggestion_dedup import DISMISS_RESPECT_WINDOW_DAYS
+
+    new_keys = {d["dedup_key"] for d in drafts}
+    pending = _load_active_pending(db, ws_id)
+    superseded = _supersede_obsolete_pending(pending, new_keys, run_id=run_id, now=now)
+    active_keys = {p.dedup_key for p in pending if p.status == "pending"}
+    recent_dismissed = _load_recent_dismissed_keys(
+        db, ws_id, now=now, window_days=DISMISS_RESPECT_WINDOW_DAYS
+    )
+    created, skipped_dismiss = _insert_new_drafts(
+        db,
+        drafts,
+        ws_id=ws_id,
+        run_id=run_id,
+        active_keys=active_keys,
+        recent_dismissed=recent_dismissed,
+    )
+    return created, superseded, skipped_dismiss, len(active_keys)
+
+
+def _log_persist_summary(logger, ws_id, run_id, drafts, stats) -> None:
+    created, superseded, skipped_dismiss, active_kept = stats
+    logger.info(
+        "task_suggestion.persist ws=%s run=%s drafts=%d created=%d "
+        "superseded=%d skipped_dismiss=%d active_kept=%d",
+        ws_id,
+        run_id,
+        len(drafts),
+        created,
+        superseded,
+        skipped_dismiss,
+        active_kept,
+    )
+
+
+def _read_e5_sugeridas(ws_id: str, run_id: str) -> list | None:
+    """None se artefato E5 ausente; lista (possivelmente vazia) caso contrário."""
+    artifact = _find_latest_analysis_artifact(ws_id, run_id)
+    if artifact is None:
+        return None
+    return (artifact["content_json"] or {}).get("tarefas_sugeridas", []) or []
+
+
+def _persist_llm_suggestions(ws_id: str, run_id: str, tenant_root: Path) -> None:
+    """ADR-074 + ADR-266: soft-supersede + dedup_key normalizado a partir de tarefas_sugeridas (E5)."""
+    import logging
+
+    logger = logging.getLogger("pipeline_task.suggestions")
+    sugeridas = _read_e5_sugeridas(ws_id, run_id)
+    if sugeridas is None:
+        return
+    drafts = _normalize_drafts(sugeridas, logger)
+    now = datetime.now(timezone.utc)
+    with SyncSessionLocal() as db:
+        stats = _apply_dedup_persist(db, drafts, ws_id=ws_id, run_id=run_id, now=now)
+        if stats[0] or stats[1]:
             db.commit()
-            logger.info("Saved %d suggestions", saved)
+        _log_persist_summary(logger, ws_id, run_id, drafts, stats)
 
 
 def _persist_aggregate_suggestions(ws_id: str, run_id: str) -> None:
