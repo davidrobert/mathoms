@@ -14,7 +14,7 @@ except ImportError:
 
 from scripts.e2.common import (
     BANCO_C6,
-    C6_CSV_LAYOUT,
+    C6_CSV_LAYOUT,  # consumido pelo parser CSV; PDF migrou para text-based regex
     CARTAO_CARBON,
     FAMILY,
     MESES_BR_INT,
@@ -306,6 +306,165 @@ def _sniff_c6_currency(pdf_path: Path) -> Optional[str]:
     return None
 
 
+# Tipos de lançamento conhecidos no extrato C6 (conta/PJ/global). Ordenados
+# por especificidade — substrings mais longas vêm primeiro pra "Saída PIX"
+# vencer "Saída" no startswith match.
+_C6_KNOWN_TIPOS: Tuple[str, ...] = (
+    "Saída PIX",
+    "Entrada PIX",
+    "Devolução PIX",
+    "Saída TED",
+    "Entrada TED",
+    "Transferência",
+    "Outros gastos",
+    "Pagamento",
+    "Entradas",
+    "Compra",
+    "Estorno",
+    "Resgate",
+    "Aplicação",
+    "Aplicacao",
+    "Tarifa",
+    "Débito",
+    "Crédito",
+    "IOF",
+)
+
+# Currency token lookahead — captura BRL ou Global (USD/EUR) no fim da linha.
+_C6_CURRENCY = r"(?:R\$|US\$|€|EUR)"
+
+# Linha de transação: "DD/MM DD/MM <tipo> <descrição opcional> [-]R$ XX.XX,XX".
+# Ancorada em (data1)(data2)(rest)(valor) — `rest` é greedy mínimo até o
+# sinal+moeda no fim, evitando consumir o número como parte da descrição.
+_C6_TXN_RE = re.compile(
+    rf"^(?P<d1>\d{{2}}/\d{{2}})\s+(?P<d2>\d{{2}}/\d{{2}})\s+"
+    rf"(?P<rest>.+?)\s+(?P<sign>-?){_C6_CURRENCY}\s*(?P<valor>[\d.,]+)\s*$"
+)
+
+# Linha de saldo: "Saldo do dia DD/MM/YY R$ X.XXX,XX".
+_C6_SALDO_RE = re.compile(
+    rf"^Saldo do dia\s+(?P<date>\d{{2}}/\d{{2}}/\d{{2,4}})\s+"
+    rf"{_C6_CURRENCY}\s*(?P<valor>[\d.,]+)\s*$"
+)
+
+# Prefixos de linhas de cabeçalho/rodapé/metadata que NÃO são continuação de
+# descrição de transação. Quando o parser encontra uma linha que não casa
+# transação nem saldo, mas começa com um destes, ignora (não concatena).
+# Usado pela salvaguarda de wrap multi-linha em `_parse_c6_extrato_text`.
+_C6_NOISE_PREFIXES: Tuple[str, ...] = (
+    "Banco C6",
+    "CNPJ:",
+    "Período",
+    "Periodo",
+    "Pagina",
+    "Página",
+    "Conta:",
+    "Agência",
+    "Agencia",
+    "Extrato",
+    "Titular:",
+    "CPF:",
+    "Status",
+    "Cotação",
+    "Cotacao",
+    "Data Tipo",
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Marco",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+    "Sem lançamentos",
+    "Sem lancamentos",
+)
+
+
+def _split_c6_tipo_desc(rest: str) -> Tuple[str, str]:
+    """Separa `<tipo> <descrição>` testando prefixos conhecidos em `_C6_KNOWN_TIPOS`."""
+    rest = rest.strip()
+    for tipo in _C6_KNOWN_TIPOS:
+        if rest == tipo or rest.startswith(tipo + " "):
+            return tipo, rest[len(tipo) :].strip()
+    parts = rest.split(None, 1)
+    if len(parts) == 1:
+        return parts[0], ""
+    return parts[0], parts[1]
+
+
+def _parse_c6_signed_value(sign: str, valor_str: str) -> Optional[float]:
+    """Converte `<sign><moeda> <valor>` em float assinado. `sign` é '-' ou ''."""
+    raw = parse_brl(valor_str)
+    if raw is None:
+        return None
+    raw = abs(raw)
+    return -raw if sign == "-" else raw
+
+
+def _build_tx_from_match(
+    tx_match: "re.Match[str]",
+    periodo_inicio: str,
+    periodo_fim: str,
+) -> Optional[Dict[str, Any]]:
+    """Constrói dict de transação a partir de match do `_C6_TXN_RE`."""
+    valor = _parse_c6_signed_value(tx_match.group("sign"), tx_match.group("valor"))
+    if valor is None:
+        return None
+    d1 = tx_match.group("d1")
+    dd_i, mm_i = (int(x) for x in d1.split("/"))
+    year = resolve_year_from_period(dd_i, mm_i, periodo_inicio, periodo_fim)
+    tipo, desc = _split_c6_tipo_desc(tx_match.group("rest"))
+    return {
+        "data": safe_date(year, mm_i, dd_i),
+        "descricao": desc,
+        "valor": valor,
+        "tipo_lancamento": tipo or None,
+    }
+
+
+def _is_c6_noise_line(line: str) -> bool:
+    """Detecta cabeçalho/rodapé/metadata; NÃO é continuação de descrição."""
+    return any(line.startswith(prefix) for prefix in _C6_NOISE_PREFIXES)
+
+
+def _ingest_c6_line(
+    line: str,
+    transacoes: List[Dict[str, Any]],
+    saldos: List[Tuple[str, float]],
+    periodo_inicio: str,
+    periodo_fim: str,
+) -> None:
+    """Despacha 1 linha: saldo, tx, wrap-de-descrição ou ruído ignorado."""
+    if (sm := _C6_SALDO_RE.match(line)) is not None:
+        if (sv := parse_brl(sm.group("valor"))) is not None:
+            saldos.append((sm.group("date"), sv))
+    elif (tm := _C6_TXN_RE.match(line)) is not None:
+        if (tx := _build_tx_from_match(tm, periodo_inicio, periodo_fim)) is not None:
+            transacoes.append(tx)
+    elif transacoes and not _is_c6_noise_line(line):
+        transacoes[-1]["descricao"] = (transacoes[-1]["descricao"] + " " + line).strip()
+
+
+def _parse_c6_extrato_text(
+    full_text: str,
+    periodo_inicio: str,
+    periodo_fim: str,
+) -> Tuple[List[Dict[str, Any]], List[Tuple[str, float]]]:
+    """Parser line-based para extrato C6 — substitui `extract_tables()` bugado."""
+    transacoes: List[Dict[str, Any]] = []
+    saldos: List[Tuple[str, float]] = []
+    for raw in full_text.split("\n"):
+        if line := raw.strip():
+            _ingest_c6_line(line, transacoes, saldos, periodo_inicio, periodo_fim)
+    return transacoes, saldos
+
+
 def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
     """Parse C6 Bank statement (conta, contapj, contaglobal)."""
     is_global_usd = "extratocontaglobalusd" in filename
@@ -387,126 +546,21 @@ def parse_c6bank(pdf_path: Path, filename: str) -> Dict[str, Any]:
                     except ValueError:
                         pass
 
-            all_rows: List[Tuple[str, str, str, str, str]] = []
-            for page in pdf.pages:
-                tables = page.extract_tables()
-                for table in tables:
-                    for row in table:
-                        if row and len(row) >= 4:
-                            all_rows.append(tuple(str(c) if c else "" for c in row))
-
-            is_global = is_global_usd or is_global_eur
-
-            pending_tx: Optional[Dict] = None
-            saldo_values: List[Tuple[str, float]] = []
-
-            _c6g = C6_CSV_LAYOUT.get("global_format", {})
-            _c6cp = C6_CSV_LAYOUT.get("conta_pj_format", {})
-            _c6_min_cols = C6_CSV_LAYOUT.get("min_columns", 5)
-            _c6_saldo_re = C6_CSV_LAYOUT.get("saldo_regex", r"Saldo do dia\s+(\d{2}/\d{2}/\d{2,4})")
-
-            for row in all_rows:
-                cols = list(row) + [""] * (_c6_min_cols - len(row))
-                col0, col1, col2, col3, col4 = cols[:5]
-
-                if is_global:
-                    valor_col = cols[_c6g.get("valor", 3)]
-                    desc_col = cols[_c6g.get("descricao", 2)]
-                    tipo_col = cols[_c6g.get("tipo", 1)]
-                else:
-                    valor_col = cols[_c6cp.get("valor", 4)]
-                    desc_col = cols[_c6cp.get("descricao", 3)]
-                    tipo_col = cols[_c6cp.get("tipo", 2)]
-
-                if not any(c.strip() for c in cols):
-                    continue
-
-                saldo_match = re.match(_c6_saldo_re, col0)
-                if saldo_match:
-                    saldo_val = parse_brl(col4) or parse_brl(col3)
-                    if saldo_val is not None:
-                        date_str = saldo_match.group(1)
-                        saldo_values.append((date_str, saldo_val))
-                    if pending_tx:
-                        result["transacoes"].append(pending_tx)
-                        pending_tx = None
-                    continue
-
-                date_match = re.match(r"(\d{2}/\d{2})", col0.strip())
-                has_value = valor_col.strip() and parse_brl(valor_col) is not None
-
-                if date_match and has_value:
-                    if pending_tx:
-                        result["transacoes"].append(pending_tx)
-
-                    dd, mm_str = date_match.group(1).split("/")
-                    dd_i, mm_i = int(dd), int(mm_str)
-                    year = resolve_year_from_period(
-                        dd_i,
-                        mm_i,
-                        result["periodo"]["inicio"] or "",
-                        result["periodo"]["fim"] or "",
-                    )
-                    valor = parse_brl(valor_col)
-
-                    pending_tx = {
-                        "data": safe_date(year, mm_i, dd_i),
-                        "descricao": desc_col.strip(),
-                        "valor": valor,
-                        "tipo_lancamento": tipo_col.strip() if tipo_col.strip() else None,
-                    }
-                    continue
-
-                if date_match and not has_value:
-                    if pending_tx:
-                        result["transacoes"].append(pending_tx)
-
-                    dd, mm_str = date_match.group(1).split("/")
-                    dd_i, mm_i = int(dd), int(mm_str)
-                    year = resolve_year_from_period(
-                        dd_i,
-                        mm_i,
-                        result["periodo"]["inicio"] or "",
-                        result["periodo"]["fim"] or "",
-                    )
-                    pending_tx = {
-                        "data": safe_date(year, mm_i, dd_i),
-                        "descricao": desc_col.strip(),
-                        "valor": None,
-                        "tipo_lancamento": tipo_col.strip() if tipo_col.strip() else None,
-                    }
-                    continue
-
-                if not date_match and (tipo_col.strip() or desc_col.strip()):
-                    val = parse_brl(valor_col)
-                    if pending_tx and pending_tx["valor"] is None and val is not None:
-                        pending_tx["valor"] = val
-                        if desc_col.strip() and not pending_tx["descricao"]:
-                            pending_tx["descricao"] = desc_col.strip()
-                        result["transacoes"].append(pending_tx)
-                        pending_tx = None
-                    elif val is not None:
-                        if pending_tx:
-                            result["transacoes"].append(pending_tx)
-                        prev_date = (
-                            result["transacoes"][-1]["data"] if result["transacoes"] else None
-                        )
-                        pending_tx = None
-                        result["transacoes"].append(
-                            {
-                                "data": prev_date,
-                                "descricao": desc_col.strip(),
-                                "valor": val,
-                                "tipo_lancamento": tipo_col.strip() if tipo_col.strip() else None,
-                            }
-                        )
-                    elif pending_tx and desc_col.strip():
-                        pending_tx["descricao"] += " " + desc_col.strip()
-
-            if pending_tx:
-                result["transacoes"].append(pending_tx)
-
-            result["transacoes"] = [t for t in result["transacoes"] if t.get("valor") is not None]
+            # Parser line-based sobre `extract_text()` — substitui o uso anterior
+            # de `extract_tables()`, que perdia o valor de transações sempre que
+            # duas linhas adjacentes do PDF compartilhavam a mesma `data1` em
+            # col0 (pdfplumber colapsava a célula da segunda row em None).
+            # Sintoma em produção: ~20% das txs do PDF perdiam o valor e a
+            # descrição da row seguinte era concatenada à anterior, gerando
+            # categorização errada (ex.: R$ 194.886,65 de Pagamento Itaú
+            # virava "Serviços Domésticos" porque a descrição do PIX para
+            # Eliane Costa Goncalves era colada na linha do Itaú).
+            txs_from_text, saldo_values = _parse_c6_extrato_text(
+                full_text,
+                periodo_inicio=result["periodo"]["inicio"] or "",
+                periodo_fim=result["periodo"]["fim"] or "",
+            )
+            result["transacoes"].extend(txs_from_text)
 
             if saldo_values:
                 result["saldo_inicial"] = saldo_values[0][1]

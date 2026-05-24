@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from reportlab.lib import colors
 from reportlab.lib.units import cm
-from reportlab.platypus import Table, TableStyle
 
 from tests.fixtures.pdf.formatters import (
     MONTH_BR,
@@ -27,7 +25,7 @@ def draw_c6_extrato(
     transactions: list[Transaction],
     account_number: str,
 ) -> tuple[float, float]:
-    """Tabela 5 colunas — `scripts/e2/banks/c6bank.py::parse_c6bank` (`extract_tables`, `conta_pj_format`)."""
+    """Layout C6 PDF — formato `DD/MM DD/MM <tipo> <descrição> [-]R$ X,XX` + `Saldo do dia`."""
     p_ini, p_fim = period_to_br_range(period)
     y1, m1, d1 = p_ini.split("/")
     y2, m2, d2 = p_fim.split("/")
@@ -47,51 +45,38 @@ def draw_c6_extrato(
     y -= 0.55 * cm
 
     txs = sorted(transactions, key=lambda t: str(t.get("date", "")))
-    data: list[list[str]] = []
     running = 0.0
+    line_height = 0.42 * cm
     for tx in txs:
         amt = float(tx.get("amount", 0))
         br = iso_date_to_br(str(tx.get("date", f"{period}-01")))
-        tipo = "Pix" if amt < 0 else "TED"
-        desc = str(tx.get("description", "Lancamento"))[:40]
+        dd, mm, yyyy = br.split("/")
+        # Formato real: dois pares DD/MM (movimentação e competência) + tipo +
+        # descrição + valor com prefixo R$ e sinal. Linha única por transação.
+        tipo = "Saída PIX" if amt < 0 else "Entrada PIX"
+        desc = str(tx.get("description", "Lancamento"))[:60]
+        sinal = "-" if amt < 0 else ""
+        valor_str = format_brl(abs(amt))
+        if y < 2.5 * cm:
+            c.showPage()
+            y = height - 2.5 * cm
+            c.setFont("Helvetica", 9)
+        c.drawString(
+            2 * cm,
+            y,
+            f"{dd}/{mm} {dd}/{mm} {tipo} {desc} {sinal}R$ {valor_str}",
+        )
+        y -= line_height
         running += amt
-        data.append([br, "", tipo, desc, format_brl(amt)])
-        # Data curta em "Saldo do dia" evita quebra de célula no pdfplumber (YY)
-        saldo_br = iso_date_to_br(str(tx.get("date", f"{period}-01")))
-        sd_dd, sd_mm, sd_yy = saldo_br.split("/")
-        data.append(
-            [
-                f"Saldo do dia {sd_dd}/{sd_mm}/{sd_yy[-2:]}",
-                "",
-                "",
-                "",
-                format_brl(running),
-            ]
+        c.drawString(
+            2 * cm,
+            y,
+            f"Saldo do dia {dd}/{mm}/{yyyy[-2:]} R$ {format_brl(running)}",
         )
+        y -= line_height + 0.1 * cm
 
-    if not data:
-        data.append(["01/01/2026", "", "", "Sem movimento", "0,00"])
+    if not txs:
+        c.drawString(2 * cm, y, "Sem movimento no período")
+        y -= line_height
 
-    table = Table(
-        data,
-        # Coluna 0 larga o suficiente para `Saldo do dia DD/MM/YY` (pdfplumber não quebrar célula)
-        colWidths=[3.8 * cm, 0.6 * cm, 1.4 * cm, 3.6 * cm, 2.2 * cm],
-    )
-    table.setStyle(
-        TableStyle(
-            [
-                ("FONT", (0, 0), (-1, -1), "Helvetica", 8),
-                ("GRID", (0, 0), (-1, -1), 0.2, colors.grey),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ]
-        )
-    )
-    avail_w = width - 4 * cm
-    tw, th = table.wrapOn(c, avail_w, height)
-    if y - th < 2 * cm:
-        c.showPage()
-        y = height - 2.5 * cm
-        tw, th = table.wrapOn(c, avail_w, height)
-    table.drawOn(c, 2 * cm, y - th)
-    y = y - th - 0.45 * cm
     return y, running
