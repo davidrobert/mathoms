@@ -437,6 +437,9 @@ def load_metrics_from_e5(
         _KEY_INV_TITULAR: investimentos_titular,
         _KEY_INV_CONJUGE: investimentos_conjuge,
         "veiculos": pat.get("veiculos", 0),
+        # A17 L3 P4 — breakdown Wise + fiscal flags expostos para card S1 + narrator.
+        "caixa_me_detalhe": pat.get("caixa_me_detalhe", []),
+        "wise_fiscal_flags": pat.get("wise_fiscal_flags", []),
         "dividas": e5_data.get("endividamento", {}).get("total_dividas", 0),
         # === E5 JSON: fluxo de caixa ===
         "receita_total": receita_total,

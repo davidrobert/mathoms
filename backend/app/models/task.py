@@ -85,7 +85,9 @@ VALID_BOARD_COLUMNS: frozenset[str] = frozenset({"a_fazer", "em_andamento", "con
 # Migrado de KanbanItem.prioridade. Opt-in para tasks novas (NULL ok).
 VALID_URGENCIES: frozenset[str] = frozenset({"alta", "media", "baixa"})
 
-VALID_SUGGESTION_STATUSES: frozenset[str] = frozenset({"pending", "approved", "rejected", "merged"})
+VALID_SUGGESTION_STATUSES: frozenset[str] = frozenset(
+    {"pending", "approved", "rejected", "merged", "superseded"}
+)
 
 VALID_SUGGESTION_SOURCES: frozenset[str] = frozenset({"e5n_llm", "cross_validation", "system_rule"})
 
@@ -234,8 +236,19 @@ class TaskSuggestion(Base):
     source: Mapped[str] = mapped_column(String(32), nullable=False)
     source_run_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
+    # ADR-269: dedup_key normalizado (sha256 de source + title + category).
+    # Backfill em rows legadas via dev/backfill_task_suggestion_dedup.py;
+    # rows novas calculam no service via compute_task_suggestion_dedup_key.
+    dedup_key: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending", index=True)
     rejection_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # ADR-269: soft-supersede — sinaliza que pending foi obsoletada por run novo.
+    superseded_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    superseded_by_run_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
     # Populado ao aprovar (FK para a Task criada)
     approved_task_id: Mapped[Optional[str]] = mapped_column(

@@ -42,6 +42,15 @@ on:
     # só rodam CI quando promovidos a "ready". Economiza ~50% dos triggers
     # se você usa drafts (que é o pattern recomendado para WIP em PR).
     types: [opened, synchronize, reopened, ready_for_review]
+  # Merge Queue do GitHub: quando `gh pr merge --auto --squash` enfileira
+  # um PR, GitHub simula a base pós-rebase e dispara `merge_group` para
+  # validar antes do squash em main. Sem esse trigger, o required check
+  # `All checks green` nunca executa no contexto da queue e o merge fica
+  # bloqueado eternamente. Ativação do Ruleset (rule `merge_queue` com
+  # `merge_method: SQUASH`) é feita via `gh api` separada — ver
+  # .github/CONTRIBUTING.md §"Merge Queue".
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
     inputs:
       run_e2e:

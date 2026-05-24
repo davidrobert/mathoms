@@ -20,6 +20,12 @@ class PatrimonialItem(BaseModel):
     value_brl: float = Field(..., description="Value in BRL (as declared)")
     member_key: str = Field(..., description="Key of the family member who owns this item")
     year: int = Field(..., description="Reference tax year")
+    # ADR-267: CPF do contribuinte (do campo 'CPF do Contribuinte' da declaração).
+    # Identidade canônica primária — sobrevive a casamento/divórcio/abreviação de nome.
+    cpf: Optional[str] = Field(
+        None,
+        description="CPF do contribuinte da declaração (11 dígitos, com ou sem máscara) — ADR-267",
+    )
 
 
 class BaselinePatrimonialOutput(BaseModel):

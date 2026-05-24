@@ -46,6 +46,10 @@ def _output_to_baseline_json(output) -> dict:
         }
         if item.institution:
             entry["instituicao"] = item.institution
+        # ADR-267: propaga CPF do contribuinte quando LLM extraiu — habilita
+        # identidade canônica via `MemberNameResolver.resolve_by_cpf` no E1.5c.
+        if item.cpf:
+            entry["cpf"] = item.cpf
         items.append(entry)
 
     return {
