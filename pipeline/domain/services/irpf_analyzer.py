@@ -1,12 +1,18 @@
-"""IRPFAnalyzer — KPIs derivados de declarações IRPF (ADR-157, ADR-189)."""
+"""IRPFAnalyzer — KPIs derivados de declarações IRPF (ADR-157, ADR-189, ADR-266)."""
 
 from __future__ import annotations
 
+import datetime as _dt
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 from typing import Iterable
 
+from pipeline.domain.services.irpf_completude import (
+    CompletudeAno,
+    compute_completude,
+    pick_default_year,
+)
 from pipeline.domain.services.irpf_declaration_deduplicator import (
     DeduplicatedIRPFSet,
     IrpfFragment,
@@ -174,6 +180,22 @@ class IRPFAnalyzer:
     def declarations_for_year(self, ano: int) -> list[IRPFFullOutput]:
         """Acesso público às declarações filtradas por ano-base (consumido por outros services)."""
         return list(self._by_year(ano))
+
+    def completude_ano(
+        self, ano: int, today: _dt.date | None = None
+    ) -> tuple[CompletudeAno, str | None]:
+        """ADR-266: estado tri-state + motivo do ano-base."""
+        decls_by_year = {y: self._by_year(y) for y in self.anos_base_disponiveis()}
+        return compute_completude(decls_by_year, ano, today or _dt.date.today())
+
+    def ano_base_default(self, today: _dt.date | None = None) -> int | None:
+        """ADR-266: último ano completo; fallback provisório; fallback incompleto."""
+        return pick_default_year(self.anos_completude_por_ano(today))
+
+    def anos_completude_por_ano(self, today: _dt.date | None = None) -> dict[int, CompletudeAno]:
+        """ADR-266: state da completude por ano (consumido pelo chart)."""
+        ref = today or _dt.date.today()
+        return {y: self.completude_ano(y, ref)[0] for y in self.anos_base_disponiveis()}
 
     def renda_anual_familiar(self, ano: int) -> Decimal:
         """Soma rendimentos brutos da família (titular + cônjuge) no ano-base."""

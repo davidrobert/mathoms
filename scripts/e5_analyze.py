@@ -3013,6 +3013,20 @@ def _e5_kpis_basicos(analyzer, ultimo: int) -> Dict[str, Any]:
         "split_trabalho_brl": str(sp.trabalho_brl),
         "split_capital_brl": str(sp.capital_brl),
         "evolucao_renda_anos": {str(k): str(v) for k, v in analyzer.evolucao_renda_anos().items()},
+        **_e5_kpis_completude(analyzer, ultimo),
+    }
+
+
+def _e5_kpis_completude(analyzer, ano: int) -> Dict[str, Any]:
+    """ADR-266: tri-state de completude do ano-base + default opinado."""
+    completude, motivo = analyzer.completude_ano(ano)
+    default = analyzer.ano_base_default()
+    completude_por_ano = analyzer.anos_completude_por_ano()
+    return {
+        "ano_base_default": default if default is not None else ano,
+        "ano_base_completude": completude.value,
+        "completude_motivo": motivo,
+        "anos_completude_por_ano": {str(k): v.value for k, v in completude_por_ano.items()},
     }
 
 
