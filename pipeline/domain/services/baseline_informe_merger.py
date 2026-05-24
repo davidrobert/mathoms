@@ -1,14 +1,10 @@
-"""Baseline ← Informe PF merger — A17 L3 P3 (ADR-238 D5; PTAX injetado via callable)."""
+"""Baseline ← Informe PF merger — A17 L3 P3+P5 (ADR-238 D5; PTAX injetado via callable)."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Callable, Optional
-
-# CBE BACEN: declaração obrigatória se total ativos exterior > USD 1MM
-# (Circular 3.624/2013). Fora do escopo Mathoms — só warning em E5.
-_CBE_USD_THRESHOLD: Decimal = Decimal("1000000")
 
 #: Tipo da função opcional de cotação. `(moeda, ano_base) → Decimal | None`.
 PtaxGetter = Callable[[str, int], Optional[Decimal]]
@@ -24,12 +20,13 @@ def _to_decimal(v) -> Decimal:
 
 @dataclass(frozen=True)
 class BaselineMergeResult:
-    """Resultado do merge — baseline enriched + telemetria + warnings (ADR-238 D5)."""
+    """Resultado do merge — baseline + telemetria; `fiscal_flags` é estruturado (ADR-238 D5+P5)."""
 
     baseline: dict
     informes_processed: int = 0
     saldos_added: int = 0
     warnings: list[str] = field(default_factory=list)
+    fiscal_flags: list = field(default_factory=list)  # list[FiscalFlag]
 
 
 class BaselineInformeMerger:
@@ -40,38 +37,47 @@ class BaselineInformeMerger:
         self._ptax: PtaxGetter = ptax_getter or (lambda _m, _a: None)
 
     def merge(self, baseline: dict, informes: list[dict]) -> BaselineMergeResult:
-        """Anexa saldos_31_12 dos informes ao baseline; preserva entries existentes."""
-        novas_entradas: list[dict] = []
-        warnings: list[str] = []
-        total_exterior_usd: Decimal = Decimal("0")
-        for informe in informes:
-            entradas, ws, usd_exterior = self._process_informe(informe)
-            novas_entradas.extend(entradas)
-            warnings.extend(ws)
-            total_exterior_usd += usd_exterior
-        if total_exterior_usd > _CBE_USD_THRESHOLD:
-            warnings.append(_cbe_warning(total_exterior_usd))
-        baseline_out = {**baseline, "informe_pf_saldos_31_12": novas_entradas}
+        """Anexa saldos_31_12 + fiscal_flags Wise (A17 L3 P5) ao baseline; preserva entries."""
+        novas_entradas, warnings, fiscal_flags = self._collect(informes)
+        warnings.extend(f.descricao for f in fiscal_flags)
+        baseline_out = {
+            **baseline,
+            "informe_pf_saldos_31_12": novas_entradas,
+            "wise_fiscal_flags": [_flag_to_dict(f) for f in fiscal_flags],
+        }
         return BaselineMergeResult(
             baseline=baseline_out,
             informes_processed=len(informes),
             saldos_added=len(novas_entradas),
             warnings=warnings,
+            fiscal_flags=fiscal_flags,
         )
 
-    def _process_informe(self, informe: dict) -> tuple[list[dict], list[str], Decimal]:
-        """Processa 1 informe — retorna (entradas, warnings, usd_exterior_acumulado)."""
+    def _collect(self, informes: list[dict]) -> tuple[list[dict], list[str], list]:
+        """Itera informes coletando (entradas, warnings, fiscal_flags) — separa loop de merge."""
+        from pipeline.domain.services.wise_fiscal_flags import detect_all_wise_flags
+
+        novas_entradas: list[dict] = []
+        warnings: list[str] = []
+        fiscal_flags: list = []
+        for informe in informes:
+            entradas, ws = self._process_informe(informe)
+            novas_entradas.extend(entradas)
+            warnings.extend(ws)
+            fiscal_flags.extend(detect_all_wise_flags(informe.get("financeiro_pf") or {}))
+        return novas_entradas, warnings, fiscal_flags
+
+    def _process_informe(self, informe: dict) -> tuple[list[dict], list[str]]:
+        """Processa 1 informe — retorna (entradas, warnings de PTAX faltante)."""
         payload = informe.get("financeiro_pf") or {}
         ano_base = int(informe.get("ano_base", 0))
         cnpj_emissor = payload.get("cnpj_emissor", "")
         entradas, warnings = [], []
-        usd_exterior = Decimal("0")
         for s in payload.get("saldos_31_12") or []:
             entry, w = self._process_saldo(s, ano_base, cnpj_emissor)
             entradas.append(entry)
             warnings.extend(w)
-            usd_exterior += _exterior_usd_or_zero(s)
-        return entradas, warnings, usd_exterior
+        return entradas, warnings
 
     def _process_saldo(
         self, saldo: dict, ano_base: int, cnpj_emissor: str
@@ -136,20 +142,19 @@ _ENTRY_FIELDS_FROM_SALDO: dict[str, str] = {
 }
 
 
-def _exterior_usd_or_zero(saldo: dict) -> Decimal:
-    """Soma USD para tracker CBE BACEN — só conta exterior em USD."""
-    if saldo.get("moeda") != "USD":
-        return Decimal("0")
-    if saldo.get("tipo") != "conta_exterior":
-        return Decimal("0")
-    return _to_decimal(saldo.get("saldo"))
-
-
-def _cbe_warning(total_usd: Decimal) -> str:
-    return (
-        f"CBE BACEN: total ativos exterior USD {total_usd:.2f} > limite USD 1MM "
-        f"(Circular 3.624/2013) — obrigação declaratória BACEN fora do escopo Mathoms."
-    )
+def _flag_to_dict(flag) -> dict:
+    """Serializa FiscalFlag → dict para persistência no baseline (A17 L3 P5)."""
+    return {
+        "code": flag.code,
+        "severity": flag.severity,
+        "title": flag.title,
+        "descricao": flag.descricao,
+        "codigo_rfb": flag.codigo_rfb,
+        "valor_brl": str(flag.valor_brl) if flag.valor_brl is not None else None,
+        "valor_original": str(flag.valor_original) if flag.valor_original is not None else None,
+        "moeda": flag.moeda,
+        "metadata": dict(flag.metadata),
+    }
 
 
 def _ptax_missing_warning(moeda: str, ano_base: int, saldo: dict) -> str:
