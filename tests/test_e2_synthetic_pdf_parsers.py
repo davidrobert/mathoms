@@ -319,22 +319,25 @@ def test_c6bank_usd_detected_by_content(monkeypatch, tmp_path: Path):
         "Julho 2025\n"
         "Data Tipo Descrição Valor Autorização\n"
     )
-    usd_rows = [
-        ("31/07", "Débito de cartão", "Bass Pro Store Orlando\nCartão 4845", "-US$ 17,56", "29/07"),
-        (None, "Débito de cartão", "Amazon Mark\nCartão 8884", "-US$ 30,86", None),
-        ("30/07", "Débito de cartão", "Walgreens\nCartão 4845", "-US$ 10,18", "28/07"),
-    ]
+    # Linhas no formato real do C6 Global PDF — duas datas, tipo, descrição,
+    # moeda US$/€/EUR e valor assinado. parse_c6bank usa extract_text(),
+    # então a fidelidade do mock é nesse retorno (e não em extract_tables).
+    usd_body = (
+        "31/07 29/07 Débito de cartão Bass Pro Store Orlando -US$ 17,56\n"
+        "31/07 29/07 Débito de cartão Amazon Mark -US$ 30,86\n"
+        "30/07 28/07 Débito de cartão Walgreens -US$ 10,18\n"
+        "Saldo do dia 31/07/25 US$ 91,59\n"
+    )
 
     class _FakePage:
-        def __init__(self, text: str, tables: list) -> None:
+        def __init__(self, text: str) -> None:
             self._text = text
-            self._tables = tables
 
         def extract_text(self) -> str:
             return self._text
 
         def extract_tables(self) -> list:
-            return self._tables
+            return []
 
     class _FakePdf:
         def __init__(self, pages):
@@ -347,7 +350,7 @@ def test_c6bank_usd_detected_by_content(monkeypatch, tmp_path: Path):
             return False
 
     def _fake_open(_path):
-        return _FakePdf([_FakePage(usd_header, [usd_rows])])
+        return _FakePdf([_FakePage(usd_header + usd_body)])
 
     monkeypatch.setattr(c6mod.pdfplumber, "open", _fake_open)
 
