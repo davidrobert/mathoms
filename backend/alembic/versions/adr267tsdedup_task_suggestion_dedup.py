@@ -1,11 +1,11 @@
-"""adr-266 task_suggestions dedup_key + soft-supersede (Revision: adr266tsdedup, Revises: a17l6tedfix, Create Date: 2026-05-23). Adiciona dedup_key (sha256 normalizado), superseded_at, superseded_by_run_id + índice parcial ix_tsugg_ws_dedup_active filtrado por status IN ('pending','approved')."""
+"""adr-267 task_suggestions dedup_key + soft-supersede (Revision: adr267tsdedup, Revises: a17l6tedfix, Create Date: 2026-05-23). Adiciona dedup_key (sha256 normalizado), superseded_at, superseded_by_run_id + índice parcial ix_tsugg_ws_dedup_active filtrado por status IN ('pending','approved')."""
 
 from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "adr266tsdedup"
+revision: str = "adr267tsdedup"
 down_revision: Union[str, None] = "a17l6tedfix"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

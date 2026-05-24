@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Backfill `dedup_key` em rows legadas de `task_suggestions` + supersede de duplicatas pending (ADR-266)."""
+"""Backfill `dedup_key` em rows legadas de `task_suggestions` + supersede de duplicatas pending (ADR-267)."""
 
 from __future__ import annotations
 
