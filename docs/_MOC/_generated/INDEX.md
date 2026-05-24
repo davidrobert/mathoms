@@ -261,6 +261,7 @@
 | ADR-263 | adr | Proposto |  | Goal type RESERVA_EMERGENCIA — schema versionado por workspace ancorado em INV1 (Fase 3.E pré-req) | `adr/263-goal-reserva-emergencia-schema.md` |
 | ADR-264 | adr | Proposto |  | Goal type META_OBJETIVO — schema genérico para metas estruturadas (casa, educação, intercâmbio, aposentadoria do cônjuge) (Fase 3.E pré-req) | `adr/264-goal-meta-objetivo-schema.md` |
 | ADR-265 | adr | Proposto |  | Fuzzy lookup de PropertyIdentity por proximidade numérica (extensão ADR-225 Case C) | `adr/265-fuzzy-canonical-property-identity.md` |
+| ADR-266 | adr | Proposto |  | Completude tri-state de ano-base IRPF: completo / provisorio / incompleto / mudanca_estrutural | `adr/266-irpf-anobase-completude-tristate.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -505,7 +506,7 @@
 | A17.l3 | lane | in_progress | A17 | Informes anuais — L3 financeiro PF (6 bancos + XP Investimentos + Wise multi-moeda) | `sprint/A17/lanes/A17-l3-financeiro-pf.md` |
 | A17.l4 | lane | planned | A17 | Informes anuais — L4 proventos ações (XP Proventos, Itaúsa) | `sprint/A17/lanes/A17-l4-proventos.md` |
 | A17.l5 | lane | shipped | A17 | LLM Hardening — W4-T00 seed expandido institution_catalog (alta renda PJ) | `sprint/A17/lanes/A17-l5-llm-institution-seed.md` |
-| A17.l6 | lane | in_progress | A17 | Bugfix — RECEBIMENTO DE TED engole salário CLT (categorização) | `sprint/A17/lanes/A17-l6-bugfix-ted-receita-clt.md` |
+| A17.l6 | lane | shipped | A17 | Bugfix — RECEBIMENTO DE TED engole salário CLT (categorização) | `sprint/A17/lanes/A17-l6-bugfix-ted-receita-clt.md` |
 | A18.l1 | lane | shipped | A18 | Comprovantes de Bem — L1 CRLV-e (Certificado de Registro e Licenciamento de Veículo) | `sprint/A18/lanes/A18-l1-crlv.md` |
 | A18.l2 | lane | shipped | A18 | Comprovantes de Bem — L2 Apólice de seguro polimórfica (combinada V1, vida/saúde/PJ V2) | `sprint/A18/lanes/A18-l2-apolice.md` |
 | A18.l3 | lane | shipped | A18 | Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI | `sprint/A18/lanes/A18-l3-fipe.md` |
