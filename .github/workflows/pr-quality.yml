@@ -27,13 +27,23 @@ on:
       - reopened
       - synchronize
       - ready_for_review
+  # Merge Queue: required check `Title (Conventional Commits)` precisa
+  # reportar success no contexto `merge_group` para o GitHub liberar o
+  # squash em main. Título já foi validado quando o PR entrou na fila
+  # (gate `pull_request`); aqui o job degenera para no-op success — ver
+  # condicionais `if:` nos steps abaixo.
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   pull-requests: write
   contents: read
 
 concurrency:
-  group: pr-quality-${{ github.event.pull_request.number }}
+  # Em `pull_request`, agrupa por PR. Em `merge_group`, `pull_request` é
+  # null e cairia tudo no mesmo grupo `pr-quality-` — usa `github.ref`
+  # (ex.: refs/heads/gh-readonly-queue/main/pr-N-SHA) para isolar entradas.
+  group: pr-quality-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -42,7 +52,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Skip in merge_group (já validado no pull_request)
+        if: github.event_name == 'merge_group'
+        run: echo "Título já validado quando o PR entrou na fila."
       - name: Validate PR title
+        if: github.event_name == 'pull_request'
         # amannn/action-semantic-pull-request@v5.5.3
         # TODO(onda-3): SHA-pin alinhado com o padrão de tj-actions e
         # astral-sh/setup-uv em ci.yml.
@@ -85,6 +99,7 @@ jobs:
               feat: !@#                 ← não começa com letra/dígito
 
       - name: Apply area:* + dependency labels
+        if: github.event_name == 'pull_request'
         # Labeler precisa de pull-requests: write (já no workflow level).
         # actions/labeler@v5.0.0
         uses: actions/labeler@v5
@@ -95,6 +110,7 @@ jobs:
           sync-labels: true
 
       - name: Apply size label
+        if: github.event_name == 'pull_request'
         # CodelyTV/pr-size-labeler@v1
         # TODO(onda-3): SHA-pin.
         uses: CodelyTV/pr-size-labeler@v1

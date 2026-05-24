@@ -74,7 +74,9 @@ Em `pipeline/domain/services/cash_flow_builder.py`:
       titular_norm,               # lowercased, sem acento, sem espaço
       tipo_conta_norm,            # lowercased, sem espaço
       int(round(valor * 100)),    # cents int (evita float drift)
-      descricao_norm,             # lowercase + strip + collapse whitespace
+      descricao_norm,             # lowercase + strip + collapse whitespace +
+                                  # strip de sufixos de roteamento PIX (ver
+                                  # §"Sufixos de roteamento" abaixo).
                                   # PRESERVA: dígitos, tokens "N/M" (parcela 3/12),
                                   # nomes próprios. NÃO remove acento.
   )
@@ -82,6 +84,49 @@ Em `pipeline/domain/services/cash_flow_builder.py`:
   ```
 - Quando colisão: **mantém a primeira ocorrência** (estável por ordem do `list_keys` E3, que é alfabética por `artifact_key`). Tie-break **não** aleatório.
 - Helpers em `pipeline/domain/services/_tx_identity.py` (novo módulo): `normalize_banco`, `normalize_titular`, `normalize_tipo_conta`, `normalize_descricao`, `compute_transaction_hash(tx_or_dict)`. Reutilizáveis em E3 (geração futura) e E4 (consumo atual).
+
+### Sufixos de roteamento PIX (iteração 2 — refinamento de Camada A)
+
+**Caso real observado em produção** (workspace `1b9f2cf5-…`, report `ffde7f63-…`, run `f66b519e-…`, 2026-05-23): após mergear o PR1 (Camada A), o cenário Arvo **continuou inflado em ~R$ 199.375 nos 12M** (≈ 32% acima do real) porque o C6Bank emite a **mesma transação PIX em PDFs diferentes** com sufixos de descrição variantes. Exemplos coletados:
+
+| Data | Valor | Descrição extrato A | Descrição extrato B |
+|---|---|---|---|
+| 2025-10-30 | R$ 50.000,00 | `"Pix recebido de ARVO SAUDE LTDA — Salários PJ"` | `"Pix recebido de ARVO SAUDE LTDA"` |
+| 2025-11-27 | R$ 8.333,33 | `"Pix recebido de ARVO SAUDE LTDA — 13 Salário"` | `"Pix recebido de ARVO SAUDE LTDA"` |
+| 2025-11-28 | R$ 46.624,29 | `"Pix recebido de ARVO SAUDE LTDA — Salários PJ"` | `"Pix recebido de ARVO SAUDE LTDA"` |
+| 2026-02-27 | R$ 47.208,77 | `"Pix recebido de ARVO SAUDE LTDA"` | `"Pix recebido de ARVO SAUDE LTDA — Salários PJ"` |
+| 2026-03-30 | R$ 47.208,77 | `"Pix recebido de ARVO SAUDE LTDA"` | `"Pix recebido de ARVO SAUDE LTDA — Salários PJ"` |
+
+Em despesas, padrão equivalente:
+
+| Padrão | Variante A | Variante B |
+|---|---|---|
+| DARF | `"TRIBUTOS FEDERAIS DARF NUMERADO"` | `"TRIBUTOS FEDERAIS DARF NUMERADO SIMPLES NACIONAL"` |
+| PIX enviado | `"Pix enviado para X — TRANSF ENVIADA PIX"` | `"Pix enviado para X"` |
+| Boleto | `"Y — Boleto"` | `"Y"` |
+
+`descricao_norm` (lowercase + whitespace collapse apenas) produz hashes diferentes → dedup não dispara → contado 2×–3× quando há extratos sobrepostos. Inflação total medida em produção: **R$ 366k em receitas (12M) + R$ 92k em despesas (40M)**.
+
+**Refinamento:** `normalize_descricao` estende para strip de sufixos **conhecidos** quando aparecem após separador ` — ` (em-dash com espaços) ou ` - ` (hífen com espaços). Whitelist conservadora (lista finita, vive em `_tx_identity.py`):
+
+```python
+_ROUTING_SUFFIX_PATTERNS = (
+    r"\s+[—-]\s+TRANSF\s+ENVIADA\s+PIX$",      # C6 — débito PIX
+    r"\s+[—-]\s+Sal[áa]rios?\s+PJ$",            # C6 — receita PJ
+    r"\s+[—-]\s+13\s+Sal[áa]rio$",              # C6 — décimo terceiro
+    r"\s+[—-]\s+Boleto$",                       # C6 — pagamento boleto
+    r"\s+[—-]\s+NFS?\s+\d+$",                   # C6 — NF/NFS numerada
+    r"\s+SIMPLES\s+NACIONAL$",                  # C6 — DARF detalhada
+)
+```
+
+O strip aplica **antes** do lowercase, sobre o `value.strip()` original (preserva ordem: dedup→lowercase→collapse). Resultado: `"Pix recebido de ARVO SAUDE LTDA — Salários PJ".strip_routing() == "Pix recebido de ARVO SAUDE LTDA"`.
+
+**Guard contra falsos-positivos:** o strip **só remove o segmento final após ` — `/` - `**. Descrições com parcela (`"PARC 3/12"`) ou nome próprio composto (`"Maria de Fátima"`) não sofrem porque não casam com padrões da whitelist. Teste explícito de regressão garante.
+
+**Por que whitelist, não regex genérica `s/ — .*$//`**: variantes legítimas pós-em-dash existem (`"Pix de João — Aluguel apto 12"` vs `"Pix de João — Aluguel apto 13"` são receitas distintas de aluguéis diferentes). Strip cego juntaria. Whitelist limita aos padrões observados de **roteamento bancário** (sufixos sintéticos do C6 indicando categoria interna do banco, não conteúdo de negócio).
+
+**Extensibilidade futura:** quando outros bancos (NuBank, Inter, BTG) forem observados emitindo sufixos análogos, adicionar padrões à whitelist com PR + teste. Lista finita é dívida aceita (vs bucket-based ou fuzzy Levenshtein — ver Alternativas).
 
 ### Política needs_review (resposta ao financial-planner)
 
@@ -203,6 +248,14 @@ Surface no console interno (`/ops/workspaces/<id>/pipeline`) para o operador inv
 9. **Backfill** — `recompute_e4 --workspace-id <id>` corrige cash_flow sem chamar LLM; `pipeline_runs.stale=true` em E5/E6/parecer; regen on-demand quando user abre report.
 10. **Telemetria** — log JSON `mathoms.pipeline.dedup` emitido com counts (sem PII).
 11. **Defesa em profundidade** — Camada A roda mesmo com `transaction_hash` presente em todas as txs (idempotente).
+12. **Sufixos de roteamento PIX** (iteração 2) — `"Pix recebido de X"` e `"Pix recebido de X — Salários PJ"` no mesmo dia/banco/titular/tipo_conta/valor produzem **mesmo** `transaction_hash`. Análogo para sufixos ` — 13 Salário`, ` — TRANSF ENVIADA PIX`, ` — Boleto`, ` — NFS \d+`, ` SIMPLES NACIONAL` (DARF). Whitelist conservadora — outros sufixos pós- ` — ` (ex.: `"— Aluguel apto 12"`) **não** sofrem strip.
+13. **Cenário Arvo iteração 2** — Workspace `1b9f2cf5-…` (run `f66b519e-…`, report `ffde7f63-…`) recompute E4 → soma de Arvo no janela 12M cai de R$ 626.458,81 para **R$ 427.083,65** (5 PIXes ≥ R$ 8k duplicados por sufixo `" — Salários PJ"` / `" — 13 Salário"` são colapsados — Δ R$ 199.375,16). Análogo CNRY: R$ 240.000 → **R$ 160.000** (2 PIXes R$ 40k duplicados por sufixo `" — NFS 25"` / `" — NF 26"` colapsam — Δ R$ 80.000). **Total receitas:** R$ 279.375,16 removido em 7 tx.
+
+    **Despesas (mesmo workspace):** 22 tx colapsadas, R$ 50.262,68 removido. Padrões dominantes: DARF detalhada (`"SIMPLES NACIONAL"`), pagamento serviços domésticos com sufixo `" — TRANSF ENVIADA PIX"` (Suecia Pereira Oliveira), boleto (Belt Academy).
+
+    **Total inflação removida no workspace:** R$ 329.637,84 (receitas + despesas).
+
+    **Resíduo não-coberto por esta ADR** (~R$ 128k restantes): casos `"Pix recebido de CNRY MANAGEMENT LTDA Pix enviado para RECEITA FEDERAL"` (2025-08-26) e `"Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA"` (2025-09-30) são **2 transações concatenadas em 1 pelo parser C6Bank extratoconta** — bug parser-específico, não problema de hash. Tratado em PR isolado sem ADR (ver §Próximos passos).
 
 ## Alternativas consideradas
 
@@ -214,10 +267,22 @@ Surface no console interno (`/ops/workspaces/<id>/pipeline`) para o operador inv
 - **Soma N×valor com divisão por N** (rejeitado): introduz heurística não-determinística e diverge de fonte primária (extrato bancário oficial).
 - **Bloquear upload duplicado upstream com fuzzy dedup por conteúdo** (futuro, complementar): exige E2 rodar antes do dedup decidir; é caminho válido para track separado ([[ADR-228]] estendida) mas não substitui a defesa em E4 — workspaces com baseline já corrompido continuam.
 
+### Alternativas para sufixos de roteamento (iteração 2)
+
+Quando a observação de produção mostrou que `normalize_descricao` lowercase + whitespace **não** captura sufixos PIX variantes, 3 caminhos foram avaliados:
+
+- **(A) Strip de sufixos por whitelist conservadora** (escolhido): regex finito sobre padrões observados (`" — TRANSF ENVIADA PIX"`, `" — Salários PJ"`, `" — 13 Salário"`, `" — Boleto"`, `" — NFS \d+"`, `" SIMPLES NACIONAL"`). Custo de manutenção: 1-2 PRs por banco novo. Determinístico. Goldens estáveis após regen.
+- **(B) Dedup em 2 camadas — strict + relaxed** (rejeitado por overhead UX): camada 1 mantém K4 atual (silent dedup); camada 2 com hash relaxado sem `descricao` → match vira `needs_review`. **Problema:** todo PIX simétrico legítimo de casal, toda parcela mensal recorrente de valor fixo, toda transferência intra-titular CC↔poupança caem em `needs_review`. Volume estimado > 5% das transações → fila ingerenciável. Bucketing `(data, banco_norm, titular_norm, tipo_conta_norm, valor_cents)` mitigaria mas adiciona complexidade significativa sem cobrir o caso observado melhor que (A).
+- **(C) Fuzzy match Levenshtein/Jaccard** (rejeitado): similaridade ≥ 0,8 sobre `descricao_norm` cobriria sufixos + parser-concat-issues. **Problemas:** (1) O(n²) custoso para workspaces grandes (50k+ tx); (2) não-determinístico em ordem de iteração quando `(data, valor, banco)` colide em 3+; (3) regressão de paridade golden imprevisível — qualquer mudança em threshold troca grupos de dedup. Reservar para parser-concat-issues isolados (PR separado, sem ADR).
+
+Decisão (A) por: determinismo absoluto (goldens estáveis), custo cirúrgico (~15 linhas em `_tx_identity.py`), debug trivial (regex em logs), extensibilidade incremental por banco. Trade-off aceito: lista finita é dívida — quando aparecer NuBank/Inter/BTG com sufixos análogos, adicionar padrão + golden de regressão. Custo amortizado < custo de UX de needs_review massivo de (B) ou não-determinismo de (C).
+
 ## Próximos passos
 
-- **PR1 (este escopo — hot-fix)**: helper `pipeline/domain/services/_tx_identity.py` + dedup K4 + `DedupReport` em `cash_flow_builder` × 3 funções + log JSON + goldens E4 regenerados + teste cross-doc (`tests/test_e4_cross_doc_dedup.py`). **Sem schema bump.** Camada A ship hoje.
-- **PR2 (sistêmico)**: campos `source_doc_id` + `transaction_hash` em `ClassifiedTransaction`; geração em `e3_serialization`; schema E4 aditivo; builders preferem field, fallback computed. Goldens regeneram. Teste explícito de aditividade do schema.
-- **PR3 (backfill)**: `dev/audit_duplicate_transactions.py` + `backend/app/services/internal_ops/recompute_e4.py`. Marca `pipeline_runs.stale=true`. Runbook em `docs/reference/runbooks/`.
-- **Follow-up tracked separadamente**: detecção upstream de overlap de conteúdo em E0/E2 (estender [[ADR-228]]) — preventiva, não substitui defesa em E4.
+- **PR1 (entregue em #429)**: helper `pipeline/domain/services/_tx_identity.py` + dedup K4 + `DedupReport` em `cash_flow_builder` × 3 funções + log JSON + goldens E4 regenerados + teste cross-doc (`tests/test_e4_cross_doc_dedup.py`). **Sem schema bump.** Camada A shipou em 2026-05-22.
+- **PR2 (entregue em #429)**: campos `source_doc_id` + `transaction_hash` em `ClassifiedTransaction`; geração em `e3_serialization`; schema E4 aditivo; builders preferem field, fallback computed. Goldens regeneram. Teste explícito de aditividade do schema.
+- **PR3 (entregue em #429)**: `dev/audit_duplicate_transactions.py` + `backend/app/services/internal_ops/recompute_e4.py`. Marca `pipeline_runs.stale=true`. Runbook em `docs/reference/runbooks/`.
+- **PR4 — iteração 2 (este escopo)**: refinar `normalize_descricao` em `_tx_identity.py` com strip de sufixos PIX whitelistados; estender `compute_transaction_hash` correspondentemente; testes unitários cobrindo critério #12 (sufixos colapsam) + regressão #6 (parcelamento preservado) + #3 (casal titular distinto preservado); regen goldens E3/E4; recompute_e4 no workspace `1b9f2cf5-…` para validar critério #13. Após verde, **flip ADR-255 → Decidido**.
+- **Follow-up tracked separadamente**: detecção upstream de overlap de conteúdo em E0/E2 (estender [[ADR-228]]) — preventiva, não substitui defesa em E4. Trigger: confirmar com product-designer + financial-planner se UX é flag-and-mark ou block-and-replace.
 - **Follow-up tracked separadamente**: melhorar classificador de banco em E0 para PDFs C6 "extrato-da-sua-conta-{ULID}" (snapshots cumulativos do app C6 PJ) — reduz casos de `bank_code=""` que escapam de fuzzy dedup. Causa raiz upstream: o parser de E0 não reconhece o cabeçalho/layout do PDF "extrato completo" do C6.
+- **Bug parser isolado (sem ADR)**: parser C6Bank extratoconta (`scripts/e2/banks/c6bank.py`) concatenou 2 transações adjacentes em 1 (caso observado: `"Pix recebido de BRANDLOVRS LTDA Pix recebido de ARVO SAUDE LTDA"` em 2025-09-30, R$ 40.000). Bug parser-específico; resolve com fixture + regression test, sem decisão arquitetural.

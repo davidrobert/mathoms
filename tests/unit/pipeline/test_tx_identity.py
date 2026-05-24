@@ -43,6 +43,31 @@ class TestNormalizeDescricao:
         assert normalize_descricao("") == ""
         assert normalize_descricao(None) == ""
 
+    def test_strips_routing_suffix_salarios_pj(self):
+        # ADR-255 it. 2 — sufixo final ` — Salários PJ` removido antes do hash.
+        assert normalize_descricao(
+            "Pix recebido de ARVO SAUDE LTDA — Salários PJ"
+        ) == normalize_descricao("Pix recebido de ARVO SAUDE LTDA")
+
+    def test_strips_routing_suffix_only_at_end(self):
+        # GUARD: sufixo em meio da descrição NÃO é stripado (só no final).
+        # Cenário hipotético: bug futuro de parser que insere o tag no meio.
+        # Acento preservado por normalize_descricao (vs normalize_banco).
+        assert "salários pj" in normalize_descricao(
+            "Pix recebido — Salários PJ de ARVO SAUDE LTDA — pagamento mensal"
+        )
+
+    def test_strips_routing_suffix_case_insensitive(self):
+        assert (
+            normalize_descricao("Pix recebido de X — TRANSF ENVIADA PIX")
+            == normalize_descricao("pix recebido de x — transf enviada pix")
+            == normalize_descricao("Pix recebido de X")
+        )
+
+    def test_preserves_legitimate_em_dash_segment(self):
+        # GUARD: "— Aluguel apto 12" não é sufixo whitelisted; preservado.
+        assert "aluguel apto 12" in normalize_descricao("Pix de João — Aluguel apto 12")
+
 
 class TestCentsInt:
     def test_avoids_float_drift(self):
@@ -92,12 +117,85 @@ class TestComputeTransactionHash:
         h2 = compute_transaction_hash(**{**self._base(), "valor": 47208.78})
         assert h1 != h2
 
-    def test_changes_with_descricao(self):
+    def test_changes_with_genuinely_different_descricao(self):
+        # Conteúdo de negócio diferente — diferentes remetentes — produz hashes
+        # distintos. Critério: descricao_norm preserva remetente/destinatário.
         h1 = compute_transaction_hash(**self._base())
         h2 = compute_transaction_hash(
-            **{**self._base(), "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ"}
+            **{**self._base(), "descricao": "Pix recebido de OUTRA EMPRESA LTDA"}
         )
         assert h1 != h2
+
+    def test_collapses_routing_suffix_salarios_pj(self):
+        # ADR-255 it. 2 / critério #12 — C6 emite a MESMA transação em PDFs
+        # diferentes ora com `" — Salários PJ"`, ora sem. Hash deve colapsar.
+        h_with = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix recebido de ARVO SAUDE LTDA — Salários PJ"}
+        )
+        h_without = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix recebido de ARVO SAUDE LTDA"}
+        )
+        assert h_with == h_without
+
+    def test_collapses_routing_suffix_13_salario(self):
+        # Décimo terceiro: mesmo PIX em 2 extratos com sufixo " — 13 Salário"
+        # ora presente, ora omitido.
+        h_with = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix recebido de ARVO SAUDE LTDA — 13 Salário"}
+        )
+        h_without = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix recebido de ARVO SAUDE LTDA"}
+        )
+        assert h_with == h_without
+
+    def test_collapses_routing_suffix_transf_pix(self):
+        # Despesa: `" — TRANSF ENVIADA PIX"` é tag de roteamento C6, mesmo
+        # PIX outbound em PDFs diferentes ora tem, ora não.
+        h_with = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix enviado para X — TRANSF ENVIADA PIX"}
+        )
+        h_without = compute_transaction_hash(**{**self._base(), "descricao": "Pix enviado para X"})
+        assert h_with == h_without
+
+    def test_collapses_routing_suffix_nf_numerada(self):
+        # NFS 25 / NF 26 são tags emitidos pelo banco quando o PIX traz NF.
+        h_nfs = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NFS 25"}
+        )
+        h_nf = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix recebido de CNRY MANAGEMENT LTDA — NF 26"}
+        )
+        h_plain = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix recebido de CNRY MANAGEMENT LTDA"}
+        )
+        assert h_nfs == h_nf == h_plain
+
+    def test_collapses_routing_suffix_boleto(self):
+        h_with = compute_transaction_hash(**{**self._base(), "descricao": "Belt Academy — Boleto"})
+        h_without = compute_transaction_hash(**{**self._base(), "descricao": "Belt Academy"})
+        assert h_with == h_without
+
+    def test_collapses_routing_suffix_darf_simples_nacional(self):
+        # DARF detalhada — anexa "SIMPLES NACIONAL" sem em-dash.
+        h_detail = compute_transaction_hash(
+            **{**self._base(), "descricao": "TRIBUTOS FEDERAIS DARF NUMERADO SIMPLES NACIONAL"}
+        )
+        h_plain = compute_transaction_hash(
+            **{**self._base(), "descricao": "TRIBUTOS FEDERAIS DARF NUMERADO"}
+        )
+        assert h_detail == h_plain
+
+    def test_does_not_strip_legitimate_em_dash_content(self):
+        # GUARD: `"— Aluguel apto 12"` vs `"— Aluguel apto 13"` são receitas
+        # legítimas de aluguéis distintos. Strip cego juntaria; whitelist NÃO
+        # casa porque o conteúdo após em-dash não está na lista.
+        h12 = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix de João — Aluguel apto 12"}
+        )
+        h13 = compute_transaction_hash(
+            **{**self._base(), "descricao": "Pix de João — Aluguel apto 13"}
+        )
+        assert h12 != h13
 
     def test_preserves_distinct_parcelas(self):
         # PARC 3/12 vs PARC 4/12 — mesmo dia, mesmo valor, mas diferentes
