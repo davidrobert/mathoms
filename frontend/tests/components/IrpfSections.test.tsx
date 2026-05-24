@@ -710,3 +710,81 @@ describe("<IrpfPgblCapacidadeCard /> · ADR-189 · 4 estados", () => {
     expect(heroLine?.textContent).toBe("—");
   });
 });
+
+// ----------------------------------------------------------------------------
+// IrpfRendaAnualCard — ADR-266 tri-state (completo / provisorio / incompleto)
+// ----------------------------------------------------------------------------
+
+describe("<IrpfRendaAnualCard /> · ADR-266 completude tri-state", () => {
+  it("renderiza Bruta + Líquida quando completo e valores divergentes (default)", () => {
+    const kpis: IrpfKpis = {
+      ...KPIS_BASE,
+      ano_base_default: 2024,
+      ano_base_completude: "completo",
+      completude_motivo: null,
+      anos_completude_por_ano: { "2023": "completo", "2024": "completo" },
+    };
+    const data = { irpf_kpis: kpis } as unknown as ReportAnalysisData;
+    render(<IrpfRendaSection data={data} />);
+    expect(screen.getByText(/Bruta · 2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/Líquida.*após IR/i)).toBeInTheDocument();
+    // Badge não aparece quando completude=completo
+    expect(screen.queryByRole("status", { name: /incompleto|provisório/i })).toBeNull();
+  });
+
+  it("collapse 1 linha quando completo + bruta == liquida (sem retenção)", () => {
+    const kpis: IrpfKpis = {
+      ...KPIS_BASE,
+      renda_anual_familiar_brl: "100000.00",
+      renda_liquida_familiar_brl: "100000.00",
+      ano_base_default: 2024,
+      ano_base_completude: "completo",
+    };
+    const data = { irpf_kpis: kpis } as unknown as ReportAnalysisData;
+    render(<IrpfRendaSection data={data} />);
+    expect(screen.getByText(/Renda Familiar · 2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sem retenção de IR ou INSS no ano/i)).toBeInTheDocument();
+    // Bruta/Líquida NÃO aparecem como labels separados
+    expect(screen.queryByText(/^Bruta · 2024$/)).toBeNull();
+  });
+
+  it("mostra badge + motivo quando incompleto, usando ano_base_default", () => {
+    const kpis: IrpfKpis = {
+      ...KPIS_BASE,
+      ano_base: 2025,
+      ano_base_default: 2024,
+      ano_base_completude: "incompleto",
+      completude_motivo: "Falta declaração de CPF ***.***.***-60 (presente em ano-base anterior).",
+      evolucao_renda_anos: { "2024": "180000.00", "2025": "5469.95" },
+      renda_anual_familiar_brl: "5469.95",
+      renda_liquida_familiar_brl: "5469.95",
+    };
+    const data = { irpf_kpis: kpis } as unknown as ReportAnalysisData;
+    render(<IrpfRendaSection data={data} />);
+    expect(screen.getByRole("status", { name: /Ano-base incompleto/i })).toBeInTheDocument();
+    expect(screen.getByText(/Falta declaração de CPF/i)).toBeInTheDocument();
+    expect(screen.getByText(/Bruta · 2024/i)).toBeInTheDocument();
+    // Não mostra o ano ruidoso (2025)
+    expect(screen.queryByText(/Bruta · 2025/)).toBeNull();
+  });
+
+  it("mostra badge 'Provisório' quando dentro da janela RFB", () => {
+    const kpis: IrpfKpis = {
+      ...KPIS_BASE,
+      ano_base: 2025,
+      ano_base_default: 2024,
+      ano_base_completude: "provisorio",
+      completude_motivo: "Ano-base 2025 dentro da janela RFB.",
+    };
+    const data = { irpf_kpis: kpis } as unknown as ReportAnalysisData;
+    render(<IrpfRendaSection data={data} />);
+    expect(screen.getByRole("status", { name: /Provisório/i })).toBeInTheDocument();
+  });
+
+  it("workspace pre-ADR-266 (sem campos novos) assume completo no ano_base", () => {
+    const data = { irpf_kpis: KPIS_BASE } as unknown as ReportAnalysisData;
+    render(<IrpfRendaSection data={data} />);
+    expect(screen.getByText(/Bruta · 2024/i)).toBeInTheDocument();
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+});
