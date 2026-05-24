@@ -238,7 +238,7 @@ def test_real_world_llm_variations(raw, expected_key):
 
 
 # =============================================================================
-# ADR-266 — Strategy 0: CPF (identidade primária)
+# ADR-267 — Strategy 0: CPF (identidade primária)
 # =============================================================================
 
 # CPFs gerados por `tests.utils.cpf.cpf_formatted(seed)` — determinísticos,
@@ -252,7 +252,7 @@ _CPF_OUTSIDER = cpf_formatted(seed=999)  # noqa: PII-ok
 
 
 def _family_campos_with_cpf() -> dict:
-    """Family config com CPF — base para testes ADR-266 (CPFs sintéticos)."""
+    """Family config com CPF — base para testes ADR-267 (CPFs sintéticos)."""
     return {
         "membros": {
             "david_robert_camargo_ferreira_campos": {
@@ -275,7 +275,7 @@ def _family_campos_with_cpf() -> dict:
 
 class TestResolveByCpf:
     def test_cpf_match_masked(self):
-        """ADR-266 — CPF mascarado bate via normalização."""
+        """ADR-267 — CPF mascarado bate via normalização."""
         resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
         result = resolver.resolve_by_cpf(_CPF_DAVID)
         assert result.canonical_key == "david_robert_camargo_ferreira_campos"
@@ -291,7 +291,7 @@ class TestResolveByCpf:
         assert result.confidence == "cpf"
 
     def test_cpf_match_cross_surname(self):
-        """CRÍTICO ADR-266 §Bug — IRPF antigo da Mariana traz CPF + sobrenome solteira.
+        """CRÍTICO ADR-267 §Bug — IRPF antigo da Mariana traz CPF + sobrenome solteira.
         CPF resolve corretamente independente do nome variante.
         Workspace 1b9f2cf5 (founder dogfood) — bug R$ 811k.
         """
@@ -349,7 +349,7 @@ class TestResolveByCpf:
         )
 
     def test_cpf_confidence_emits_telemetry(self, caplog):
-        """ADR-266 — matched_via='cpf' no log estruturado para drift detection."""
+        """ADR-267 — matched_via='cpf' no log estruturado para drift detection."""
         import logging
 
         resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())

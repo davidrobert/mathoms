@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-257 ADRs (ADR-001 a ADR-266) em [`docs/adr/`](../../adr/).
+258 ADRs (ADR-001 a ADR-267) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 191
-- **Proposto**: 62
+- **Proposto**: 63
 - **Roadmap**: 4
 
 ## Fundação
@@ -469,7 +469,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-239]] — Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 · phase A18.l1
 - [[ADR-256]] — Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` · phase A19.uow-stages
 
-### Proposto (12)
+### Proposto (13)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -482,7 +482,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-245]] — `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR · phase A17.incremental-correctness
 - [[ADR-246]] — Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c · phase A17.imovel-dedup
 - [[ADR-255]] — Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) · phase A17.tx-dedup-cross-doc
-- [[ADR-266]] — Identidade canônica de membro do workspace via CPF (não slug-de-nome) · phase A17.member-identity
+- [[ADR-266]] — Completude tri-state de ano-base IRPF: completo / provisorio / incompleto / mudanca_estrutural · phase A16
+- [[ADR-267]] — Identidade canônica de membro do workspace via CPF (não slug-de-nome) · phase A17.member-identity
 
 ## relatorio
 

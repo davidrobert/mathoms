@@ -1,4 +1,4 @@
-"""Tests — ``_cpf_identity.normalize_cpf`` (ADR-266)."""
+"""Tests — ``_cpf_identity.normalize_cpf`` (ADR-267)."""
 
 from __future__ import annotations
 

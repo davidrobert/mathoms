@@ -1,5 +1,5 @@
 ---
-id: ADR-266
+id: ADR-267
 type: adr
 title: "Identidade canônica de membro do workspace via CPF (não slug-de-nome)"
 status: Proposto
@@ -14,7 +14,7 @@ relates_to:
 supersedes: []
 superseded_by: []
 aliases:
-  - "ADR 266"
+  - "ADR 267"
   - "Member CPF identity"
   - "MemberNameResolver CPF strategy"
 tags:
@@ -25,7 +25,7 @@ tags:
   - type/adr
 ---
 
-# ADR-266 — Identidade canônica de membro via CPF
+# ADR-267 — Identidade canônica de membro via CPF
 
 **Status:** Proposto • **Data:** 2026-05-23 • **Relaciona** [[ADR-225]] (PropertyIdentity invariante), [[ADR-243]] (MemberNameResolver slug-based, **supersedido parcialmente** por esta ADR), [[ADR-246]] (dedup imóveis cross-IRPF), [[ADR-255]] (dedup transações cross-document — paralelo metodológico), [[ADR-265]] (fuzzy PropertyIdentity).
 
@@ -175,7 +175,7 @@ Aceita ambos `"123.456.789-09"` (mascarado) e `"12345678909"` (sem máscara). Re
 - Estende `_tx_identity.py`-style: novo módulo NÃO, extende `member_name_resolver.py` com CPF estratégia 0.
 - Adiciona `normalize_cpf` em novo arquivo `pipeline/domain/services/_cpf_identity.py` (similar a `_tx_identity.py`).
 - Testes unitários cobrindo critério #1-6.
-- ADR-266 publicada como `Proposto`.
+- ADR-267 publicada como `Proposto`.
 - **Não toca consumers ainda** — API estabelecida, consumers adotam em PR2.
 
 **PR2 (consumers, este sprint)**:
@@ -193,7 +193,7 @@ Aceita ambos `"123.456.789-09"` (mascarado) e `"12345678909"` (sem máscara). Re
 
 **PR4 (lane futura — ADR-267)**: filtro PF vs PJ no E1.5a.
 
-**Flip ADR-266 → Decidido** após PR2 confirmar critério no workspace David em produção.
+**Flip ADR-267 → Decidido** após PR2 confirmar critério no workspace David em produção.
 
 ## Alternativas consideradas
 

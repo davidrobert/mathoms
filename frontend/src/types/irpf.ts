@@ -22,6 +22,20 @@ const PGBL_STATUS_VALUES: ReadonlyArray<PgblStatus> = [
   "sem_renda_tributavel",
 ];
 
+/** ADR-266: estado tri-state da completude do ano-base IRPF. */
+export type CompletudeAno =
+  | "completo"
+  | "provisorio"
+  | "incompleto"
+  | "mudanca_estrutural";
+
+const COMPLETUDE_VALUES: ReadonlyArray<CompletudeAno> = [
+  "completo",
+  "provisorio",
+  "incompleto",
+  "mudanca_estrutural",
+];
+
 /** ADR-194 §D2: 4 categorias publicáveis (PGBL excluído por anti-duplicação). */
 export type DedutivelCategoria =
   | "saude"
@@ -61,6 +75,14 @@ export interface IrpfKpis {
   dependentes?: DependentesKpi;
   /** ADR-194 — sparse: categorias sem aporte ou zeradas omitidas. */
   dedutiveis_aplicados?: Partial<Record<DedutivelCategoria, DedutivelLinha>>;
+  /** ADR-266 — ano-base opinado pelo backend (último completo). */
+  ano_base_default?: number;
+  /** ADR-266 — estado da completude do ano_base_default. */
+  ano_base_completude?: CompletudeAno;
+  /** ADR-266 — explicação textual quando ano_base_completude != completo. */
+  completude_motivo?: string | null;
+  /** ADR-266 — estado de completude por ano (consumido pelo chart). */
+  anos_completude_por_ano?: Record<string, CompletudeAno>;
 }
 
 const STRING_FIELDS: ReadonlyArray<keyof IrpfKpis> = [
@@ -133,11 +155,32 @@ function hasValidOptionalAdr194(value: Record<string, unknown>): boolean {
   return ded === undefined || isDedutiveisAplicados(ded);
 }
 
+function isCompletudeAnoString(v: unknown): v is CompletudeAno {
+  return typeof v === "string" && COMPLETUDE_VALUES.includes(v as CompletudeAno);
+}
+
+function isCompletudePorAno(v: unknown): boolean {
+  if (!isPlainObject(v)) return false;
+  return Object.values(v).every(isCompletudeAnoString);
+}
+
+function hasValidOptionalAdr266(value: Record<string, unknown>): boolean {
+  const def = value["ano_base_default"];
+  if (def !== undefined && typeof def !== "number") return false;
+  const cmp = value["ano_base_completude"];
+  if (cmp !== undefined && !isCompletudeAnoString(cmp)) return false;
+  const motivo = value["completude_motivo"];
+  if (motivo !== undefined && motivo !== null && typeof motivo !== "string") return false;
+  const por_ano = value["anos_completude_por_ano"];
+  return por_ano === undefined || isCompletudePorAno(por_ano);
+}
+
 export function isIrpfKpis(value: unknown): value is IrpfKpis {
   if (!isPlainObject(value)) return false;
   if (!hasBasicShape(value)) return false;
   if (!hasValidPgblStatus(value)) return false;
-  return hasValidOptionalAdr194(value);
+  if (!hasValidOptionalAdr194(value)) return false;
+  return hasValidOptionalAdr266(value);
 }
 
 /** Converte Decimal-string ("1234.56") para number, preservando NaN-safety.

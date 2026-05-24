@@ -1,4 +1,4 @@
-"""Normaliza ``membro`` emitido pelo LLM em chave canônica (ADR-243 + ADR-266)."""
+"""Normaliza ``membro`` emitido pelo LLM em chave canônica (ADR-243 + ADR-267)."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from pipeline.domain.services._cpf_identity import normalize_cpf
 _logger = logging.getLogger("mathoms.pipeline.member_name_resolver")
 
 Confidence = Literal[
-    "cpf",  # ADR-266 — estratégia 0, identidade primária via CPF normalizado
+    "cpf",  # ADR-267 — estratégia 0, identidade primária via CPF normalizado
     "exact",
     "full_name",
     "short_name",
@@ -34,7 +34,7 @@ class MemberRecord:
     full_name: str = ""
     short_name: str = ""
     nome_nascimento: str = ""
-    cpf: str = ""  # ADR-266: CPF normalizado (11 dígitos, sem máscara) ou vazio
+    cpf: str = ""  # ADR-267: CPF normalizado (11 dígitos, sem máscara) ou vazio
 
 
 @dataclass(frozen=True)
@@ -64,7 +64,7 @@ class MemberNameResolver:
     def __init__(self, members: Iterable[MemberRecord]) -> None:
         self._members: list[MemberRecord] = list(members)
         self._slug_index: dict[str, list[tuple[MemberRecord, str]]] = {}
-        # ADR-266: index CPF → MemberRecord para resolução O(1) por estratégia 0.
+        # ADR-267: index CPF → MemberRecord para resolução O(1) por estratégia 0.
         # Membros sem CPF não entram no índice; resolver cai no name fallback.
         self._cpf_index: dict[str, MemberRecord] = {}
         for m in self._members:
@@ -106,7 +106,7 @@ class MemberNameResolver:
                             or (raw.get("extra") or {}).get("nome_nascimento")
                             or ""
                         ),
-                        # ADR-266: extrai CPF (com/sem máscara); normaliza no índice.
+                        # ADR-267: extrai CPF (com/sem máscara); normaliza no índice.
                         cpf=str(raw.get("cpf") or ""),
                     )
                 )
@@ -127,7 +127,7 @@ class MemberNameResolver:
                             or raw.get("nome_nascimento")
                             or ""
                         ),
-                        cpf=str(raw.get("cpf") or ""),  # ADR-266
+                        cpf=str(raw.get("cpf") or ""),  # ADR-267
                     )
                 )
         return cls(records)
@@ -135,12 +135,9 @@ class MemberNameResolver:
     # -- API --
 
     def resolve_by_cpf(self, cpf_raw: Optional[str] = None) -> MemberNameResolution:
-        """Resolve por CPF normalizado (ADR-266 estratégia 0).
-
-        Confidence `"cpf"` é mais forte que qualquer name strategy — CPF é
-        invariante imutável (sobrevive a casamento, divórcio, retificação).
-        Retorna `unknown` se CPF inválido (não 11 dígitos) ou ausente do índice.
-        """
+        """Resolve por CPF normalizado — confidence='cpf' (ADR-267 estratégia 0)."""
+        # CPF é invariante imutável (sobrevive a casamento/divórcio/retificação).
+        # `unknown` se CPF inválido (não 11 dígitos) ou ausente do índice.
         cpf_norm = normalize_cpf(cpf_raw)
         if not cpf_norm:
             return _emit(MemberNameResolution(None, "unknown", matched_via="cpf:invalid"))
