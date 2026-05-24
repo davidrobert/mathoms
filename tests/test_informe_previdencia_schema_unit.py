@@ -237,12 +237,12 @@ def test_base_happy_path_previdencia():
 
 
 def test_base_recusa_tipos_fora_do_literal_atual():
-    """Literal atual cobre L1+L2+L3. L4 expande com proventos_acoes."""
-    with pytest.raises(ValidationError) as exc:
-        _build_base(tipo_informe="proventos_acoes")
-    assert "tipo_informe" in str(exc.value)
+    """Literal atual cobre L1-L4 (4 tipos canônicos A17). aluguel_imobiliaria fica FU-1."""
     with pytest.raises(ValidationError) as exc:
         _build_base(tipo_informe="aluguel_imobiliaria")
+    assert "tipo_informe" in str(exc.value)
+    with pytest.raises(ValidationError) as exc:
+        _build_base(tipo_informe="patrocinador_pgbl")
     assert "tipo_informe" in str(exc.value)
 
 
@@ -320,9 +320,11 @@ def test_json_schema_files_exist_e_sao_validos():
     prev_doc = json.loads(prev_schema.read_text())
     assert base_doc["$id"] == "informe_base.schema.json"
     assert prev_doc["$id"] == "informe_previdencia.schema.json"
-    # JSON Schema deve restringir tipo_informe ao mesmo conjunto do Pydantic atual (L1+L2+L3).
+    # JSON Schema deve restringir tipo_informe aos 4 tipos canônicos A17 (L1-L4 completo).
     enum_jsonschema = set(base_doc["properties"]["tipo_informe"]["enum"])
-    assert enum_jsonschema == {"previdencia_privada", "financeiro_pj", "financeiro_pf"}, (
-        f"L1+L2+L3: JSON Schema deve aceitar previdencia_privada, financeiro_pj e "
-        f"financeiro_pf — encontrou {enum_jsonschema}. L4 expande o enum."
-    )
+    assert enum_jsonschema == {
+        "previdencia_privada",
+        "financeiro_pj",
+        "financeiro_pf",
+        "proventos_acoes",
+    }, f"A17 completo: 4 tipos canônicos — encontrou {enum_jsonschema}."

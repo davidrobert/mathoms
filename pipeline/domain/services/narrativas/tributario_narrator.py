@@ -2,10 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Mapping, TypedDict
 
 from pipeline.domain.services.narrativas.context import NarrativasContext
 from pipeline.domain.services.narrativas.format_helpers import fmt_currency, fmt_percent
+
+
+class WiseFiscalFlagsNarrative(TypedDict):
+    """Forma da narrativa agregada de Wise fiscal flags (A17 L3 P5)."""
+
+    context: str
+    conclusion: str
+    items: list[dict[str, str]]
+
 
 _PERFIL_PENDENTE: dict[str, str] = {
     "context": (
@@ -173,3 +182,52 @@ def _narrate_mei(
             f"{_pgbl_clause(cascata)}{_triggers_summary(cascata)}"
         ),
     }
+
+
+# ─────────────────────── Wise fiscal flags (A17 L3 P5 · ADR-238 §D1) ─────────
+
+
+def narrate_wise_fiscal_flags(
+    flags: list[Mapping[str, Any]] | None, ctx: NarrativasContext
+) -> WiseFiscalFlagsNarrative:
+    """Narrativa agregada para `wise_fiscal_flags[]` — fact-check fiscal Wise/exterior."""
+    if not flags:
+        return WiseFiscalFlagsNarrative(context="", conclusion="", items=[])
+    items = [_render_flag_item(f) for f in flags]
+    summary = _summarize_flags(flags, ctx)
+    return WiseFiscalFlagsNarrative(
+        context=summary["context"], conclusion=summary["conclusion"], items=items
+    )
+
+
+def _render_flag_item(flag: Mapping[str, Any]) -> dict[str, str]:
+    return {
+        "code": str(flag.get("code") or ""),
+        "severity": str(flag.get("severity") or "info"),
+        "title": str(flag.get("title") or ""),
+        "descricao": str(flag.get("descricao") or ""),
+    }
+
+
+def _summarize_flags(flags: list[Mapping[str, Any]], ctx: NarrativasContext) -> dict[str, str]:
+    codes = sorted({str(f.get("code") or "") for f in flags if f.get("code")})
+    labels = ", ".join(_CODE_LABEL.get(c, c) for c in codes)
+    return {
+        "context": (
+            f"Sinalizadores fiscais detectados em informes do exterior de "
+            f"{ctx.titular_nome}: {labels}. Cada item abaixo é fact-check — "
+            f"Mathoms não calcula, não recolhe, apenas alerta."
+        ),
+        "conclusion": (
+            "Confirme com seu contador se as obrigações vigentes (CBE BACEN, "
+            "carnê-leão mensal, GCAP cambial em DARF) já foram cumpridas no "
+            "ano-base referenciado."
+        ),
+    }
+
+
+_CODE_LABEL: dict[str, str] = {
+    "CBE": "Capital Brasileiro no Exterior",
+    "CARNELEAO": "Carnê-leão (juros do exterior)",
+    "GCAP": "GCAP cambial",
+}
