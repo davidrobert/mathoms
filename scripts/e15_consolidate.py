@@ -530,6 +530,48 @@ def _reconcile_veiculos_against_db(consolidated: dict, *, workspace_id: str) -> 
     _invoke_reconciliation(reconcile_fn, session_factory, workspace_id, consolidated)
 
 
+def _apply_informe_pf_merge(consolidated: dict, *, workspace_id: str) -> None:
+    """ADR-238 L3 P3 — anexa `informe_pf_saldos_31_12[]` ao baseline; degrada graceful sem backend."""
+    runner = _try_import_informe_pf_merger()
+    if runner is None:
+        return
+    merge_fn, session_factory = runner
+    _invoke_informe_pf_merge(merge_fn, session_factory, workspace_id, consolidated)
+
+
+def _try_import_informe_pf_merger():
+    """Try-import do adapter informe_pf; None quando indisponível (CLI/tests)."""
+    try:
+        from backend.app.core.database import SyncSessionLocal
+        from backend.app.services.baseline_informe_merger_adapter import (
+            merge_baseline_with_informes_pf,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"  [info] informe_pf merge skipped (backend unavailable: {exc})")
+        return None
+    return merge_baseline_with_informes_pf, SyncSessionLocal
+
+
+def _invoke_informe_pf_merge(merge_fn, session_factory, workspace_id, consolidated):
+    """Aplica merger; muta `consolidated` in-place + loga warnings (ADR-238 D5)."""
+    try:
+        with session_factory() as db:
+            result = merge_fn(consolidated, workspace_id=workspace_id, db=db)
+            if result.saldos_added == 0:
+                return
+            consolidated["informe_pf_saldos_31_12"] = result.baseline.get(
+                "informe_pf_saldos_31_12", []
+            )
+            print(
+                f"  [OK] Informe PF merge: {result.informes_processed} informes, "
+                f"{result.saldos_added} saldos anexados."
+            )
+            for w in result.warnings:
+                print(f"  [E1.5c warn] {w}")
+    except Exception as exc:  # noqa: BLE001 — degradação graceful
+        print(f"  [warn] informe_pf merge failed: {exc}")
+
+
 def _try_import_reconciliation_runner():
     """Try-import do runner backend; None quando indisponível (CLI/tests sem DB)."""
     try:
@@ -647,6 +689,11 @@ def main_with_store(ctx) -> dict:
     #    pula a etapa silenciosamente (mesma forma de property_id enrichment).
     if ctx.workspace_id is not None:
         _reconcile_veiculos_against_db(consolidated, workspace_id=ctx.workspace_id)
+
+    # 4b. Anexa saldos_31_12 de informes financeiro_pf (ADR-238 L3 P3 D5).
+    #     "Informe 31/12 vence extrato D+1" — seção dedicada, downstream consome.
+    if ctx.workspace_id is not None:
+        _apply_informe_pf_merge(consolidated, workspace_id=ctx.workspace_id)
 
     # 5. Persiste via store (write-back no artefato E1.5c).
     store.write("E1.5c", "baseline_patrimonial", consolidated)
