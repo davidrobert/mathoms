@@ -113,4 +113,4 @@ Antes do PR de fix, consultar em paralelo:
 
 ## Anexos
 
-- Reprodução: [`_scratch/reproduce_ted_bug.py`](../../../../_scratch/reproduce_ted_bug.py) — gitignored, copiar para `tests/unit/pipeline/test_ted_overbroad_regression.py` no PR.
+- Reprodução: `_scratch/reproduce_ted_bug.py` (gitignored — copiar para `tests/unit/pipeline/test_ted_overbroad_regression.py` no PR).
