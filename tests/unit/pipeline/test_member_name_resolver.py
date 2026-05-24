@@ -235,3 +235,172 @@ def test_real_world_llm_variations(raw, expected_key):
     """Variações observadas em artifacts E2-llm reais (workspace Campos)."""
     resolver = MemberNameResolver.from_family_config(_family_campos())
     assert resolver.resolve(raw).canonical_key == expected_key
+
+
+# =============================================================================
+# ADR-266 — Strategy 0: CPF (identidade primária)
+# =============================================================================
+
+# CPFs gerados por `tests.utils.cpf.cpf_formatted(seed)` — determinísticos,
+# mod-11 válidos, LGPD-safe. Anotamos com `# noqa: PII-ok` por convenção
+# do lint anti-PII (F6.5D.7).
+from tests.utils.cpf import cpf_formatted  # noqa: E402, I001
+
+_CPF_DAVID = cpf_formatted(seed=42)  # noqa: PII-ok
+_CPF_MARIANA = cpf_formatted(seed=84)  # noqa: PII-ok
+_CPF_OUTSIDER = cpf_formatted(seed=999)  # noqa: PII-ok
+
+
+def _family_campos_with_cpf() -> dict:
+    """Family config com CPF — base para testes ADR-266 (CPFs sintéticos)."""
+    return {
+        "membros": {
+            "david_robert_camargo_ferreira_campos": {
+                "nome": "David Robert Camargo Ferreira Campos",
+                "nome_curto": "David Robert",
+                "cpf": _CPF_DAVID,  # mascarado (cpf_formatted retorna com pontos)
+                "papel": "titular",
+            },
+            "mariana_ferreira_campos": {
+                "nome": "Mariana Ferreira Campos",
+                "nome_curto": "Mariana",
+                "nome_nascimento": "Mariana Teixeira Ferreira",
+                "cpf": _CPF_MARIANA.replace(".", "").replace("-", ""),  # sem máscara
+                "papel": "conjuge",
+            },
+        },
+        "titular": "david_robert_camargo_ferreira_campos",
+    }
+
+
+class TestResolveByCpf:
+    def test_cpf_match_masked(self):
+        """ADR-266 — CPF mascarado bate via normalização."""
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+        result = resolver.resolve_by_cpf(_CPF_DAVID)
+        assert result.canonical_key == "david_robert_camargo_ferreira_campos"
+        assert result.confidence == "cpf"
+        assert result.matched_via == "cpf"
+
+    def test_cpf_match_unmasked(self):
+        """CPF sem máscara bate igualmente — normalize_cpf strippa não-dígitos."""
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+        unmasked = _CPF_DAVID.replace(".", "").replace("-", "")
+        result = resolver.resolve_by_cpf(unmasked)
+        assert result.canonical_key == "david_robert_camargo_ferreira_campos"
+        assert result.confidence == "cpf"
+
+    def test_cpf_match_cross_surname(self):
+        """CRÍTICO ADR-266 §Bug — IRPF antigo da Mariana traz CPF + sobrenome solteira.
+        CPF resolve corretamente independente do nome variante.
+        Workspace 1b9f2cf5 (founder dogfood) — bug R$ 811k.
+        """
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+        # IRPF antigo emite contribuinte.cpf=<CPF Mariana> mas
+        # contribuinte.nome="MARIANA TEIXEIRA FERREIRA" (solteira).
+        # Resolver por nome cairia em nome_nascimento (estratégia 4) por sorte,
+        # mas resolver por CPF é determinístico e imutável.
+        result = resolver.resolve_by_cpf(_CPF_MARIANA)
+        assert result.canonical_key == "mariana_ferreira_campos"
+        assert result.confidence == "cpf"
+
+    def test_cpf_invalid_short(self):
+        """CPF com <11 dígitos é inválido — retorna unknown (não match)."""
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+        result = resolver.resolve_by_cpf("12345")
+        assert result.canonical_key is None
+        assert result.confidence == "unknown"
+        assert result.matched_via == "cpf:invalid"
+
+    def test_cnpj_14_digits_rejected(self):
+        """CNPJ (14 dígitos) é rejeitado pelo normalize_cpf — não vira CPF parcial."""
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+        result = resolver.resolve_by_cpf("12.345.678/0001-99")
+        assert result.canonical_key is None
+        assert result.confidence == "unknown"
+        assert result.matched_via == "cpf:invalid"
+
+    def test_cpf_not_in_roster(self):
+        """CPF válido mas não no family_members → unknown com matched_via='cpf:miss'."""
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+        result = resolver.resolve_by_cpf(_CPF_OUTSIDER)
+        assert result.canonical_key is None
+        assert result.confidence == "unknown"
+        assert result.matched_via == "cpf:miss"
+
+    def test_cpf_empty(self):
+        """CPF vazio/None → unknown."""
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+        assert resolver.resolve_by_cpf("").confidence == "unknown"
+        assert resolver.resolve_by_cpf(None).confidence == "unknown"
+
+    def test_family_without_cpf_falls_back(self):
+        """Workspace sem CPF em family_members → resolve_by_cpf retorna unknown,
+        caller cai no resolve(nome) fallback. Backwards compat preservada."""
+        # _family_campos() não tem CPF — usa o fixture original sem cpf field.
+        resolver = MemberNameResolver.from_family_config(_family_campos())
+        result = resolver.resolve_by_cpf(_CPF_DAVID)
+        assert result.canonical_key is None
+        assert result.confidence == "unknown"
+        assert result.matched_via == "cpf:miss"
+        # Mas resolve(nome) ainda funciona — fallback.
+        assert (
+            resolver.resolve("David Robert").canonical_key == "david_robert_camargo_ferreira_campos"
+        )
+
+    def test_cpf_confidence_emits_telemetry(self, caplog):
+        """ADR-266 — matched_via='cpf' no log estruturado para drift detection."""
+        import logging
+
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+        with caplog.at_level(logging.INFO, logger="mathoms.pipeline.member_name_resolver"):
+            resolver.resolve_by_cpf(_CPF_DAVID)
+
+        records = [
+            r
+            for r in caplog.records
+            if r.message == "mathoms.pipeline.member_name_resolver.resolved"
+        ]
+        assert len(records) == 1
+        assert getattr(records[0], "confidence", None) == "cpf"
+        assert getattr(records[0], "matched_via", None) == "cpf"
+
+
+class TestCpfStrategyPrioritization:
+    """Garante que CPF é estratégia 0 (mais forte que name strategies) na cascata
+    de uso pelo caller — embora `resolve_by_cpf` e `resolve` sejam métodos
+    separados, a confidence enum `'cpf'` está no topo da hierarquia."""
+
+    def test_cpf_confidence_in_enum(self):
+        """Confidence literal aceita 'cpf' (validado por type checking)."""
+        # MemberNameResolution(canonical_key=..., confidence="cpf") deve construir sem erro.
+        res = MemberNameResolution(canonical_key="x", confidence="cpf", matched_via="cpf")
+        assert res.confidence == "cpf"
+
+    def test_caller_cascade_cpf_then_name(self):
+        """Pattern recomendado de uso pelo consumer (consolidate_from_itens etc.)."""
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+
+        # Item do IRPF tem CPF + nome — resolver tenta CPF primeiro.
+        cpf = _CPF_MARIANA
+        nome = "MARIANA TEIXEIRA FERREIRA"
+
+        resolution = resolver.resolve_by_cpf(cpf)
+        if resolution.canonical_key is None:
+            resolution = resolver.resolve(nome)
+        assert resolution.canonical_key == "mariana_ferreira_campos"
+        assert resolution.confidence == "cpf"  # CPF venceu, fallback não disparou.
+
+    def test_caller_cascade_no_cpf_falls_to_name(self):
+        """Item sem CPF (extratos antigos, baseline manual) → cai no name resolver."""
+        resolver = MemberNameResolver.from_family_config(_family_campos_with_cpf())
+
+        cpf = None
+        nome = "MARIANA TEIXEIRA FERREIRA"
+
+        resolution = resolver.resolve_by_cpf(cpf) if cpf else None
+        if not resolution or resolution.canonical_key is None:
+            resolution = resolver.resolve(nome)
+        # nome_nascimento bate "Mariana Teixeira Ferreira" → canonical_key correto.
+        assert resolution.canonical_key == "mariana_ferreira_campos"
+        assert resolution.confidence == "nome_nascimento"  # fallback disparou.

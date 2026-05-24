@@ -1,4 +1,4 @@
-"""Normaliza ``membro`` emitido pelo LLM em chave canônica (ADR-243)."""
+"""Normaliza ``membro`` emitido pelo LLM em chave canônica (ADR-243 + ADR-266)."""
 
 from __future__ import annotations
 
@@ -8,10 +8,19 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Literal, Optional
 
+from pipeline.domain.services._cpf_identity import normalize_cpf
+
 _logger = logging.getLogger("mathoms.pipeline.member_name_resolver")
 
 Confidence = Literal[
-    "exact", "full_name", "short_name", "nome_nascimento", "substring", "ambiguous", "unknown"
+    "cpf",  # ADR-266 — estratégia 0, identidade primária via CPF normalizado
+    "exact",
+    "full_name",
+    "short_name",
+    "nome_nascimento",
+    "substring",
+    "ambiguous",
+    "unknown",
 ]
 
 _MIN_SUBSTRING_LEN = 5
@@ -25,6 +34,7 @@ class MemberRecord:
     full_name: str = ""
     short_name: str = ""
     nome_nascimento: str = ""
+    cpf: str = ""  # ADR-266: CPF normalizado (11 dígitos, sem máscara) ou vazio
 
 
 @dataclass(frozen=True)
@@ -53,20 +63,28 @@ class MemberNameResolver:
 
     def __init__(self, members: Iterable[MemberRecord]) -> None:
         self._members: list[MemberRecord] = list(members)
-        # Pre-compute slugs para evitar re-trabalho em cada resolve().
         self._slug_index: dict[str, list[tuple[MemberRecord, str]]] = {}
-        # field_name → {slug → key}
+        # ADR-266: index CPF → MemberRecord para resolução O(1) por estratégia 0.
+        # Membros sem CPF não entram no índice; resolver cai no name fallback.
+        self._cpf_index: dict[str, MemberRecord] = {}
         for m in self._members:
-            for field_name, value in (
-                ("key", m.key),
-                ("full_name", m.full_name),
-                ("short_name", m.short_name),
-                ("nome_nascimento", m.nome_nascimento),
-            ):
-                slug = _slugify(value)
-                if not slug:
-                    continue
-                self._slug_index.setdefault(field_name, []).append((m, slug))
+            self._index_member(m)
+
+    def _index_member(self, m: MemberRecord) -> None:
+        """Popula slug_index + cpf_index para 1 record (chamado por __init__)."""
+        for field_name, value in (
+            ("key", m.key),
+            ("full_name", m.full_name),
+            ("short_name", m.short_name),
+            ("nome_nascimento", m.nome_nascimento),
+        ):
+            slug = _slugify(value)
+            if not slug:
+                continue
+            self._slug_index.setdefault(field_name, []).append((m, slug))
+        cpf_norm = normalize_cpf(m.cpf)
+        if cpf_norm:
+            self._cpf_index[cpf_norm] = m
 
     @classmethod
     def from_family_config(cls, family: dict[str, Any] | None) -> "MemberNameResolver":
@@ -88,6 +106,8 @@ class MemberNameResolver:
                             or (raw.get("extra") or {}).get("nome_nascimento")
                             or ""
                         ),
+                        # ADR-266: extrai CPF (com/sem máscara); normaliza no índice.
+                        cpf=str(raw.get("cpf") or ""),
                     )
                 )
         elif isinstance(membros, list):
@@ -107,11 +127,29 @@ class MemberNameResolver:
                             or raw.get("nome_nascimento")
                             or ""
                         ),
+                        cpf=str(raw.get("cpf") or ""),  # ADR-266
                     )
                 )
         return cls(records)
 
     # -- API --
+
+    def resolve_by_cpf(self, cpf_raw: Optional[str] = None) -> MemberNameResolution:
+        """Resolve por CPF normalizado (ADR-266 estratégia 0).
+
+        Confidence `"cpf"` é mais forte que qualquer name strategy — CPF é
+        invariante imutável (sobrevive a casamento, divórcio, retificação).
+        Retorna `unknown` se CPF inválido (não 11 dígitos) ou ausente do índice.
+        """
+        cpf_norm = normalize_cpf(cpf_raw)
+        if not cpf_norm:
+            return _emit(MemberNameResolution(None, "unknown", matched_via="cpf:invalid"))
+        member = self._cpf_index.get(cpf_norm)
+        if member is None:
+            return _emit(MemberNameResolution(None, "unknown", matched_via="cpf:miss"))
+        return _emit(
+            MemberNameResolution(canonical_key=member.key, confidence="cpf", matched_via="cpf")
+        )
 
     def resolve(self, name_raw: Optional[str]) -> MemberNameResolution:
         """Resolve ``name_raw`` para `MemberNameResolution`. ``None`` em vazio."""
