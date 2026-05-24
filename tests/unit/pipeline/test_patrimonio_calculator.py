@@ -70,6 +70,8 @@ def test_output_has_all_required_keys(config: PatrimonioConfig):
         "investimentos_mariana",
         "caixa_moeda_estrangeira",
         "caixa_detalhes",
+        "caixa_me_detalhe",  # A17 L3 P4 — Wise breakdown
+        "wise_fiscal_flags",  # A17 L3 P5 — fiscal flags passthrough
         "investivel_financeiro",
         "investivel_efetivo",
         "imoveis_no_if",
@@ -813,3 +815,83 @@ def test_adr145_solo_titular_conjuge_bucket_is_zero():
     # Solo: chave dinâmica é investimentos_titular (sem conjuge_key, é só titular)
     assert result["investimentos_titular"] == 100_000.0
     assert result.get("investimentos_") == 0.0  # bucket cônjuge ausente == 0
+
+
+# =============================================================================
+# A17 L3 P4 — Wise breakdown (caixa_me_detalhe + wise_fiscal_flags)
+# =============================================================================
+
+
+def _baseline_with_wise(saldos: list[dict], flags: list[dict] | None = None) -> dict:
+    return {
+        "members": {"david": {}, "mariana": {}},
+        "informe_pf_saldos_31_12": saldos,
+        "wise_fiscal_flags": flags or [],
+    }
+
+
+_SALDOS_MISTOS: list[dict] = [
+    {"moeda": "BRL", "descricao": "CDB Itaú", "saldo_original": "5000.00"},
+    {"moeda": "USD", "descricao": "Wise USD", "saldo_original": "1000.00", "saldo_brl": "5200.00"},
+    {"moeda": "EUR", "descricao": "Wise EUR", "saldo_original": "500.00", "saldo_brl": "2800.00"},
+]
+
+
+def test_caixa_me_detalhe_filtra_apenas_moedas_estrangeiras(config: PatrimonioConfig):
+    """BRL fica fora — só ME entra no breakdown S1."""
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline=_baseline_with_wise(_SALDOS_MISTOS))
+    )
+    assert len(result["caixa_me_detalhe"]) == 2
+    assert {e["moeda"] for e in result["caixa_me_detalhe"]} == {"USD", "EUR"}
+
+
+def test_caixa_me_detalhe_preserva_ptax_status(config: PatrimonioConfig):
+    """PTAX ausente → ptax_status=missing, saldo_brl=None (graceful)."""
+    saldos = [
+        {
+            "moeda": "USD",
+            "descricao": "Wise sem cotação",
+            "saldo_original": "1000.00",
+            "saldo_brl": None,
+            "ptax_status": "missing",
+            "taxa_ptax_aplicada": None,
+        }
+    ]
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline=_baseline_with_wise(saldos))
+    )
+    item = result["caixa_me_detalhe"][0]
+    assert item["ptax_status"] == "missing"
+    assert item["saldo_brl"] is None
+    assert item["taxa_ptax_aplicada"] is None
+
+
+def test_caixa_me_detalhe_vazio_quando_sem_informe_pf(config: PatrimonioConfig):
+    """Baseline sem `informe_pf_saldos_31_12` → lista vazia (não crash)."""
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline={"members": {"david": {}, "mariana": {}}})
+    )
+    assert result["caixa_me_detalhe"] == []
+    assert result["wise_fiscal_flags"] == []
+
+
+def test_wise_fiscal_flags_passthrough(config: PatrimonioConfig):
+    """`wise_fiscal_flags` do baseline propaga literal ao metrics dict."""
+    flags = [
+        {"code": "CBE", "severity": "info", "title": "Capital Brasileiro...", "descricao": "..."},
+        {"code": "GCAP", "severity": "atencao", "title": "Variação cambial", "descricao": "..."},
+    ]
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline=_baseline_with_wise(saldos=[], flags=flags))
+    )
+    assert result["wise_fiscal_flags"] == flags
+
+
+def test_caixa_me_detalhe_default_moeda_usd_quando_ausente(config: PatrimonioConfig):
+    """Entry malformado sem `moeda` é tratado como BRL (filtrado fora)."""
+    saldos = [{"descricao": "broken entry", "saldo_original": "100.00"}]  # sem moeda
+    result = PatrimonioCalculator(config).calculate(
+        PatrimonioInputs(baseline=_baseline_with_wise(saldos))
+    )
+    assert result["caixa_me_detalhe"] == []  # defaultado pra BRL → não conta

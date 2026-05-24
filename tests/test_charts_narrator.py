@@ -218,3 +218,41 @@ def test_impostos_pj_no_triggers_omits_clause():
     section = _section("simples", "Simples Nacional — Anexo III", _cascata("simples", triggers=[]))
     out = _narrate({"tributario_section": section})
     assert "Sinalizadores ativos" not in out["impostos_pj"]["conclusion"]
+
+
+# =============================================================================
+# A17 L3 P5 — wise_fiscal_flags na ChartsNarrator output
+# =============================================================================
+
+
+def test_wise_fiscal_flags_vazio_quando_metrics_sem_flags():
+    """Sem `wise_fiscal_flags` em metrics → narrativa vazia (context+conclusion+items)."""
+    out = _narrate()
+    assert "wise_fiscal_flags" in out
+    assert out["wise_fiscal_flags"]["items"] == []
+    assert out["wise_fiscal_flags"]["context"] == ""
+
+
+_WISE_FLAGS_FIXTURE: list[dict[str, str]] = [
+    {
+        "code": "CBE",
+        "severity": "info",
+        "title": "Capital Brasileiro no Exterior (CBE BACEN)",
+        "descricao": "Total de ativos no exterior: USD 1,500,000.00",
+    },
+    {
+        "code": "CARNELEAO",
+        "severity": "atencao",
+        "title": "Carnê-leão mensal",
+        "descricao": "Juros em USD do exterior — verifique recolhimento.",
+    },
+]
+
+
+def test_wise_fiscal_flags_renderiza_items_com_codes():
+    """Cada flag em metrics vira 1 item na narrativa."""
+    out = _narrate({"wise_fiscal_flags": _WISE_FLAGS_FIXTURE})
+    items = out["wise_fiscal_flags"]["items"]
+    assert len(items) == 2
+    assert {i["code"] for i in items} == {"CBE", "CARNELEAO"}
+    assert "fact-check" in out["wise_fiscal_flags"]["context"].lower()
