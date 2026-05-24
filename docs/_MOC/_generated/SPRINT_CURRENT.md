@@ -5,7 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-2 in_progress.
+1 open · 2 in_progress.
+
+## Open (1)
+
+- [[A17.l6]] — Bugfix — RECEBIMENTO DE TED engole salário CLT (categorização) · priority P1 · branch `a17-l6-bugfix-ted-receita-clt`
 
 ## In progress (2)
 

@@ -49,6 +49,7 @@ Entrega: sub-schema `informe_proventos.schema.json` (eventos por ativo: dividend
 - [[A17.l3]] (`in_progress`) — L3: financeiro PF + Wise multi-moeda. P1+P2 entregues ([#458](https://github.com/davidrobert/mathoms/pull/458) schema/prompt + [#459](https://github.com/davidrobert/mathoms/pull/459) classifier); P3 (consolidate_baseline + PTAX), P4 (UI S4), P5 (validações Wise) pendentes.
 - [[A17.l4]] (`planned`) — L4: proventos ações + holding. Depende de L1.
 - ✅ [[A17.l5]] (`shipped` 2026-05-22) — L5: seed expandido institution_catalog (18 entries alta renda PJ). Entregue em 1 PR ([#451](https://github.com/davidrobert/mathoms/pull/451)).
+- [[A17.l6]] (`open`, hotfix off-theme) — Bugfix: `RECEBIMENTO DE TED` / `RECEBIMENTO TRANSFERENCIA` no seed `internal_transfer_patterns` engole salário CLT recebido via TED (Einstein, etc.) silenciosamente. Reportado em workspace `ffde7f63-…`. Bug confirmado experimentalmente. Independente das ondas L1-L5.
 
 ## Pré-requisitos
 
