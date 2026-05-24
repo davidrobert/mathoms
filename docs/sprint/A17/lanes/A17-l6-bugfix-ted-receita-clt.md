@@ -3,13 +3,13 @@ id: A17.l6
 type: lane
 title: "Bugfix — RECEBIMENTO DE TED engole salário CLT (categorização)"
 sprint: A17
-status: open
+status: in_progress
 priority: P1
 branch_slug: a17-l6-bugfix-ted-receita-clt
 tags:
   - type/lane
   - sprint/a17
-  - status/open
+  - status/in-progress
   - priority/p1
   - area/pipeline
   - area/categorization

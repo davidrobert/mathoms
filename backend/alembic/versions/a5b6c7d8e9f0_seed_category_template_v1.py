@@ -879,8 +879,12 @@ _AUX_METADATA: dict[str, Any] = {
         "Inclusao de Pagamento",
         "Gasto c Credito",
         "DEB AUTOM DE FATURA",
-        "RECEBIMENTO TRANSFERENCIA",
-        "RECEBIMENTO DE TED",
+        # NOTA HISTÓRICA — "RECEBIMENTO TRANSFERENCIA" e "RECEBIMENTO DE TED"
+        # foram removidos por engolirem salário CLT/PJ recebido via TED como
+        # transferência interna ([[A17.l6]] · 2026-05-23). Substring match
+        # genérico contradiz docstring do InternalTransferDetector ("Genéricos
+        # PIX/TED desconhecido NÃO são marcados como internos"). Workspaces
+        # existentes são limpos pela migration a17l6tedfix.
         "Dinheiro adicionado à conta",
         "Dinheiro adicionado a conta",
         "Transf C6 Conta Global",
