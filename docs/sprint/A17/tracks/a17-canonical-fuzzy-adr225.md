@@ -4,14 +4,15 @@ type: track
 title: "Track A17 — Canonical fuzzy para números próximos (extensão ADR-225)"
 lane: "[[A17.canonical-fuzzy]]"
 sprint: A17
-status: ready
+status: consumed
 created_at: "2026-05-23"
-consumed_at: null
+consumed_at: "2026-05-23"
+shipped_pr: 471
 agent_role: senior-cto
 tags:
   - type/track
   - sprint/a17
-  - status/ready
+  - status/consumed
   - area/pipeline
   - area/persistence
   - area/backend
@@ -19,6 +20,8 @@ tags:
 ---
 
 # Track A17 — Canonical fuzzy para números próximos (extensão ADR-225)
+
+> ✅ **Entregue em [PR #471](https://github.com/davidrobert/mathoms/pull/471) (2026-05-23).** ADR canônica [[ADR-265]] (Decidido). Co-design data-engineer + financial-planner ajustou K=10 do track para **K=4 default** + **K=8 com complemento string-equal** + **guard duro de complemento divergente**. 46 testes novos; 0 regressões. Caso real do workspace founder (Benedito Calixto 190 vs 186) consolidado.
 
 **Branch sugerida:** `agent/canonical-fuzzy-adr225/<yyyyMMdd-HHmm>`
 **Relaciona:** [[ADR-225]] (property identity dedup), [[ADR-239]] (comprovantes de bem), [[ADR-246]] (dedup cross-IRPF de imóveis).
