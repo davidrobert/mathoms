@@ -1,0 +1,70 @@
+# Auto-update PR branches
+#
+# Quando um PR mergeia em `main`, as branches dos demais PRs abertos ficam
+# desatualizadas — o Ruleset `main-protection` exige rebase antes do merge
+# (`strict_required_status_checks_policy: true`). Sem automação, alguém
+# precisa rebasar cada PR manualmente, o que vira gargalo em picos com
+# múltiplos PRs paralelos (cenário comum com agentes Claude trabalhando
+# em lanes diferentes).
+#
+# Este workflow substitui o Merge Queue (não disponível em repo private +
+# conta User pessoal; precisaria de Organization + Enterprise Cloud).
+# Faz `update-branch` via API GitHub (merge de main na branch da PR;
+# como o repo usa squash-only, o histórico final em main permanece linear).
+#
+# **Filtro inteligente:** atua APENAS em PRs com auto-merge habilitado
+# (`gh pr merge <N> --squash --auto`). Isso vira o gesto natural de intent:
+#  - PR pronto pra mergear → você habilita auto-merge → entra no fluxo
+#  - PR em draft / WIP → não tem auto-merge → ignorado (zero CI gasto)
+#  - PR bloqueado / aguardando review → não tem auto-merge → ignorado
+#
+# Não precisa label manual, não precisa marcar nada — basta usar
+# `gh pr merge --auto` quando achar que o PR está pronto.
+#
+# Trigger:
+#   - push em main → roda automaticamente após cada merge
+#   - workflow_dispatch → botão manual no Actions (forçar rodada;
+#     útil após habilitar auto-merge em PR pré-existente para incluir
+#     na próxima onda sem esperar próximo merge).
+
+name: Auto-update PR branches
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Garante que múltiplos pushes em main em sequência não acumulam runs
+# concorrentes (cada run já atualiza TODOS os PRs elegíveis).
+concurrency:
+  group: auto-update-prs
+  cancel-in-progress: false
+
+jobs:
+  autoupdate:
+    name: Auto-update auto-merge PRs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Update branches of auto-merge PRs
+        # chinthakagodawita/autoupdate-action@v1.0.0
+        # TODO(onda-2): SHA-pin alinhado com tj-actions e setup-uv em ci.yml.
+        uses: docker://chinthakagodawita/autoupdate-action:v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # `auto_merge`: só PRs com auto-merge habilitado entram. Esse é
+          # o sinal natural de "intent de mergear" — quem rodou
+          # `gh pr merge --auto` quer que a branch fique atualizada.
+          PR_FILTER: "auto_merge"
+          # Defesa em profundidade: se alguém habilitar auto-merge em
+          # PR ainda incompleto, basta adicionar uma destas labels para
+          # tirar do fluxo sem desligar auto-merge.
+          EXCLUDED_LABELS: "wip,do-not-merge,blocked"
+          # Em conflito de merge, falha o step (visível no Actions) em vez
+          # de tentar resolução automática (que daria merge errado).
+          MERGE_CONFLICT_ACTION: "fail"
+          DRY_RUN: "false"

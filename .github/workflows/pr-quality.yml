@@ -27,11 +27,11 @@ on:
       - reopened
       - synchronize
       - ready_for_review
-  # Merge Queue: required check `Title (Conventional Commits)` precisa
-  # reportar success no contexto `merge_group` para o GitHub liberar o
-  # squash em main. Título já foi validado quando o PR entrou na fila
-  # (gate `pull_request`); aqui o job degenera para no-op success — ver
-  # condicionais `if:` nos steps abaixo.
+  # Trigger DORMENTE — Merge Queue indisponível neste repo (ver comentário
+  # equivalente em ci.yml). Mantemos por simetria; se a rule `merge_queue`
+  # for ativada no futuro, `title-lint` aqui já reporta no-op success no
+  # contexto `merge_group` (steps `if: github.event_name == 'pull_request'`
+  # abaixo).
   merge_group:
     types: [checks_requested]
 
