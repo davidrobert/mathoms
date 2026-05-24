@@ -170,7 +170,7 @@ def _match_imovel_xlsx(descricao_irpf: str, imoveis_xlsx: List[dict]) -> Optiona
     return best_match if best_score >= 3 else None
 
 
-def consolidate(baseline: dict) -> dict:
+def consolidate(baseline: dict, resolver=None) -> dict:
     """Add consolidated keys to baseline from declarations + XLSX data.
 
     Suporta dois formatos de input do E1.5:
@@ -182,7 +182,7 @@ def consolidate(baseline: dict) -> dict:
     Quando detecta o formato atual, delega para :func:`consolidate_from_itens`.
     """
     if isinstance(baseline.get("itens"), list) and baseline.get("itens"):
-        return consolidate_from_itens(baseline)
+        return consolidate_from_itens(baseline, resolver=resolver)
 
     declarations = baseline.get("declarations", [])
     imoveis_xlsx = baseline.get("imoveis_xlsx", [])
@@ -384,14 +384,51 @@ def consolidate(baseline: dict) -> dict:
     return baseline
 
 
-def consolidate_from_itens(baseline: dict) -> dict:
+def _build_member_resolver(ctx):
+    """ADR-267: constrói MemberNameResolver com CPF a partir de family_members do ctx."""
+    from pipeline.domain.services.member_name_resolver import MemberNameResolver, MemberRecord
+
+    try:
+        fmc = ctx.config_store.get_family_members(ctx.workspace_id)
+    except Exception:
+        return None
+    if fmc is None or not getattr(fmc, "members", None):
+        return None
+    records = tuple(
+        MemberRecord(
+            key=m.key,
+            full_name=m.full_name or "",
+            short_name=m.short_name or "",
+            cpf=m.cpf or "",
+        )
+        for m in fmc.members
+    )
+    return MemberNameResolver(records)
+
+
+def _resolve_member(item: dict, resolver) -> str:
+    """ADR-267 cascade: CPF (estratégia 0) → name resolver → raw string fallback."""
+    if resolver is None:
+        return (item.get("membro") or _TITULAR or "").strip().lower()
+    # Estratégia 0: CPF invariante.
+    cpf = item.get("cpf")
+    if cpf and (res := resolver.resolve_by_cpf(cpf)).canonical_key:
+        return res.canonical_key
+    # Estratégia 1-5: nome.
+    membro_raw = item.get("membro") or ""
+    if membro_raw and (res := resolver.resolve(membro_raw)).canonical_key:
+        return res.canonical_key
+    return (item.get("membro") or _TITULAR or "").strip().lower()
+
+
+def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     """Consolida schema flat ``itens[]`` do E1.5 atual para as chaves que o E5 espera.
 
     Schema esperado no input::
 
         {
           "itens": [
-            {"codigo", "descricao", "categoria", "valor_brl", "membro", "ano", "instituicao"?}
+            {"codigo", "descricao", "categoria", "valor_brl", "membro", "ano", "instituicao"?, "cpf"?}
           ],
           "resumo": {"total_ativos", "total_passivos", "patrimonio_liquido", "ano_referencia", "membros"},
           "_meta": {...}
@@ -399,6 +436,10 @@ def consolidate_from_itens(baseline: dict) -> dict:
 
     Categoria ``"outros"`` com ``valor_brl < 0`` é tratada como dívida (valor absoluto).
     Categoria ``"outros"`` com ``valor_brl >= 0`` vira investimento tipo ``outros``.
+
+    ADR-267: quando ``resolver`` (MemberNameResolver) é fornecido E o item traz ``cpf``,
+    a identidade do membro é resolvida via CPF (estratégia 0). Fallback: ``item["membro"]``
+    como antes. Sem resolver, comportamento legado preservado (backwards compat).
     """
     itens = baseline.get("itens", [])
     resumo = baseline.get("resumo", {})
@@ -415,7 +456,9 @@ def consolidate_from_itens(baseline: dict) -> dict:
     for item in itens:
         valor = safe_float(item.get("valor_brl", 0))
         categoria = (item.get("categoria") or "").strip().lower()
-        membro = (item.get("membro") or _TITULAR or "").strip().lower()
+        # ADR-267: CPF primeiro (cross-year invariant); fallback nome via resolver
+        # ou string raw (legado). Resultado é sempre canonical key lowercase.
+        membro = _resolve_member(item, resolver)
         descricao = item.get("descricao", "")
 
         is_divida = categoria == "outros" and valor < 0
@@ -637,8 +680,13 @@ def main_with_store(ctx) -> dict:
     if baseline.get("imoveis_consolidados") and baseline.get("patrimonio_por_ano"):
         print("  [INFO] Baseline já contém chaves consolidadas — serão regeneradas.")
 
+    # ADR-267: constrói MemberNameResolver com CPF se family_members estiver disponível.
+    # Permite resolução por CPF em consolidate_from_itens, eliminando duplicação
+    # de membro cross-year (Mariana solteira vs casada → mesmo canonical_key via CPF).
+    resolver = _build_member_resolver(ctx) if ctx.config_store is not None else None
+
     # 2. Consolida (reutiliza lógica legada — paridade garantida).
-    consolidated = consolidate(baseline)
+    consolidated = consolidate(baseline, resolver=resolver)
 
     # 3. Anexa property_id estável aos imóveis (ADR-215 P2). Skip quando
     #    resolver/workspace_id não estão injetados (CLI legado / tests sem DB).

@@ -289,8 +289,8 @@ def test_builder_perfil_familia_has_left_and_right():
 
 def test_builder_charts_has_all_18_required_keys():
     """ADR-168 cleanup (Sprint A10.1): charts custos_f1f2 e cenarios_cambiais
-    removidos junto com as narrativas órfãs do Modo USA descontinuado em
-    A8.4 PR4."""
+    removidos. A17 L3 P5 adiciona `wise_fiscal_flags` (opt-in: context vazio
+    quando workspace não tem informe Wise — não exige conteúdo)."""
     builder = E5NarrativasBuilder.from_family_config(_FAMILY_BASE)
     ctx = NarrativasContext.from_family_config(_FAMILY_BASE)
     out = builder.build(_build_metrics(), _FAMILY_BASE, today=date(2026, 4, 20))
@@ -312,11 +312,17 @@ def test_builder_charts_has_all_18_required_keys():
         "viagens",
         "bubble_riscos",
         "top5_decisoes",
+        "wise_fiscal_flags",  # A17 L3 P5 — opt-in (vazio quando sem informe Wise)
     }
     assert set(out["charts"].keys()) == expected
+    # wise_fiscal_flags é opt-in — context/conclusion vazios quando sem flags.
+    optional_empty = {"wise_fiscal_flags"}
     for k, v in out["charts"].items():
-        assert "context" in v and v["context"], f"{k}: context vazio"
-        assert "conclusion" in v and v["conclusion"], f"{k}: conclusion vazio"
+        assert "context" in v and "conclusion" in v, f"{k}: chaves ausentes"
+        if k in optional_empty:
+            continue
+        assert v["context"], f"{k}: context vazio"
+        assert v["conclusion"], f"{k}: conclusion vazio"
 
 
 def test_builder_output_passes_validator():
