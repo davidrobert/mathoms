@@ -188,6 +188,36 @@ Rendimentos Tributáveis: R$ 12.000,00
 Isentos e Não Tributáveis: R$ 450,00
 """
 
+# Itaú abrevia o título do informe: "Informe de Rendimentos" (sem "Financeiros")
+# + "Ano Calendário" (sem hífen). Sem essa cobertura, o classifier caía no
+# pattern `cdbdetalhes` (substring "RDB/CDB" matched) e o documento ia parar
+# em E2-llm como extrato bancário — gerando 5 pseudo-transações totalizando
+# R$ 61k de "despesa" fantasma. Caso real do workspace 1b9f2cf5-... (2026-05).
+IRPF_INFORME_ITAU = """
+Informe de Rendimentos
+Ano Calendário 2025
+Cliente: NOME ANONIMIZADO       CPF: 000.000.000-00
+
+Ficha da Declaração: Rendimentos Sujeitos à Tributação Exclusiva/Definitiva
+Contas de depósito, pagamento e aplicações financeiras
+
+Fonte Pagadora: Itaú Unibanco S.A.       CNPJ: 60.701.190/0001-04
+   Ag/Conta       Tipo de Rendimento  Produto    Rendimento Bruto  Imposto Retido  Valor (a declarar)
+9999/9999999-9       06                RDB/CDB           787,75          176,90          610,85
+
+Ficha da Declaração: Bens e Direitos
+Contas de depósito, pagamento e aplicações financeiras
+Fonte Pagadora: Itaú Unibanco S.A.
+   Ag/Conta       Grupo  Código  Produto              Situação em 31/12/2024  Situação em 31/12/2025
+9999/9999999-9     06     01     CONTA CORRENTE                         1,01                    0,00
+9999/9999999-9     04     02     RDB/CDB                          151.602,49              290.000,00
+
+Crédito Imobiliário
+Credor: Itaú Unibanco S.A.
+Parcelas Pagas no ano 2025    Saldo Devedor
+                52.429,06          850.000,00
+"""
+
 # Recibo de entrega gerado pelo PGD/e-CAC. O texto canônico não contém
 # a sigla "IRPF" inline — usa "Imposto sobre a Renda da Pessoa Física".
 # Esse formato fazia o regex antigo falhar e cair no LLM fallback.
@@ -352,6 +382,26 @@ class TestTypeDetection:
     def test_informe_rendimentos(self):
         """Bradesco PF informe — ADR-238 L3 P2: classifica como informe_financeiro_pf (priority=2)."""
         rule, *_ = detect_type_by_content(IRPF_INFORME_RENDIMENTOS)
+        assert rule is not None
+        assert rule.code == "informe_financeiro_pf"
+
+    def test_informe_rendimentos_itau_short_title(self):
+        """Regressão: Itaú usa título abreviado 'Informe de Rendimentos' + 'Ano Calendário'
+        (sem 'Financeiros', sem hífen). Antes do fix, o classifier caía em
+        `cdbdetalhes` por causa da substring 'RDB/CDB' presente no doc."""
+        rule, *_ = detect_type_by_content(IRPF_INFORME_ITAU)
+        assert rule is not None
+        assert rule.code == "informe_financeiro_pf"
+
+    def test_informe_rendimentos_ficha_declaracao_marker(self):
+        """`Ficha da Declaração` é frase única de informes IR — nunca aparece em
+        extratos bancários ou CDB. Salvaguarda defensiva contra futuras variantes
+        de título de informe."""
+        text = """
+        Documento qualquer com cabeçalho não-padrão
+        Ficha da Declaração: Rendimentos Sujeitos à Tributação Exclusiva
+        """
+        rule, *_ = detect_type_by_content(text)
         assert rule is not None
         assert rule.code == "informe_financeiro_pf"
 

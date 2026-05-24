@@ -52,41 +52,50 @@ pre-commit install --hook-type pre-push
    aplicável.
 6. **CI tem que ficar verde** — job `All checks green` é gate obrigatório.
 7. **Auto-merge** (`gh pr merge <N> --squash --auto` ou botão na UI) é o
-   caminho default. Com **Merge Queue** ativa, o PR entra numa fila em
-   vez de mergear direto: GitHub simula a base pós-rebase, dispara CI
-   no evento `merge_group`, e mergeia se verde. Você **não precisa
-   rebasar manualmente** quando outro PR mergea antes — a fila cuida.
+   caminho default. Habilitar auto-merge ainda **opt-in por você** quando
+   achar que o PR está pronto — esse gesto também serve de sinal para o
+   workflow `auto-update-prs.yml` (ver seção abaixo) manter a branch
+   sincronizada com `main` automaticamente.
 
 ---
 
-## Merge Queue
+## Auto-update de branches de PR
 
-O repo usa **Merge Queue** do GitHub (rule `merge_queue` no Ruleset
-`main-protection`). Mecânica:
+O repo usa o workflow `.github/workflows/auto-update-prs.yml` para evitar
+o ciclo manual `rebase → push → esperar CI → repetir porque outro PR
+mergeou` em picos com múltiplos PRs paralelos.
 
-1. PR fica verde no gate `pull_request` (CI + título Conventional Commits).
-2. Você ativa auto-merge: `gh pr merge <N> --squash --auto`.
-3. GitHub coloca o PR na fila em vez de mergear.
-4. A fila simula `main + PR` (base pós-rebase) e dispara CI no evento
-   `merge_group`. Esse run **é o que satisfaz** o required check
-   `All checks green` para o merge final.
-5. Se verde → squash-merge em `main` automático. Se vermelho → PR
-   ejetado da fila, você corrige e re-enfileira.
+**Mecânica:**
 
-**Por que importa:** elimina o ciclo `rebase manual → push → esperar CI
-novamente → repetir porque outro PR mergeou` que aparecia em picos com
-vários PRs paralelos prontos ao mesmo tempo.
+1. Você (ou um agente) abre PR, deixa verde, roda
+   `gh pr merge <N> --squash --auto`.
+2. Outro PR mergea em `main`.
+3. O workflow `Auto-update PR branches` dispara em `push: main`, lista
+   todos os PRs **com auto-merge habilitado**, e chama o endpoint
+   `update-branch` da GitHub API em cada um.
+4. GitHub atualiza a branch da PR (merge de `main` na branch — o
+   squash-merge final em `main` continua produzindo histórico linear).
+5. Novo CI run dispara automaticamente; quando fica verde, auto-merge
+   faz o squash em `main`.
+
+**Filtro:** o workflow usa `PR_FILTER: "auto_merge"` — só PRs com
+auto-merge habilitado entram. PRs em draft, sem `--auto`, ou marcados
+com label `wip` / `do-not-merge` / `blocked` são ignorados. Não precisa
+label manual; o gesto de "habilitar auto-merge" já é o sinal de intent.
+
+**Por que não Merge Queue?** Merge Queue do GitHub exige repo em
+**Organization com Enterprise Cloud**. Este repo é privado em conta
+pessoal (User), tier que não destrava a feature. Os triggers
+`merge_group:` em `ci.yml` e `pr-quality.yml` ficam **dormentes** —
+inofensivos hoje, e prontos caso o repo migre para Organization no
+futuro.
 
 **Implicações operacionais:**
 
-- Cada workflow que produz required check (`ci.yml`, `pr-quality.yml`)
-  declara trigger `merge_group: types: [checks_requested]`. Adicionar
-  novo required check → adicione o trigger também, senão a fila trava.
-- `pr-quality.yml > title-lint` no contexto `merge_group` reporta success
-  no-op (título já foi validado quando o PR entrou na fila).
-- Jobs opt-in via label (`e2e`, `visual`, `print`) são pulados em
-  `merge_group` (label do PR original não está acessível). Não são
-  required check, então não bloqueiam o merge.
+- Em conflito de merge, o workflow `Auto-update PR branches` falha o
+  step (visível em Actions). Resolução é manual no PR específico.
+- Forçar rodada sem aguardar próximo `push: main`: botão "Run workflow"
+  em Actions → `Auto-update PR branches` → `workflow_dispatch`.
 
 ---
 
