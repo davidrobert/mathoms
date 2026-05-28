@@ -15,3 +15,4 @@ class TypeRule:
     required: tuple[re.Pattern, ...]  # ALL must match
     supporting: tuple[re.Pattern, ...]  # at least one boosts confidence to 1.0
     priority: int = 100  # lower = evaluated first
+    exclude: tuple[re.Pattern, ...] = ()  # ANY match vetoes the rule (negative guard)
