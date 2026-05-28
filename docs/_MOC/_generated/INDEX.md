@@ -266,6 +266,7 @@
 | ADR-268 | adr | Proposto |  | Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro | `adr/268-contribuinte-pf-vs-pj-filter.md` |
 | ADR-269 | adr | Proposto |  | Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado | `adr/269-task-suggestion-dedup-supersede.md` |
 | ADR-270 | adr | Proposto |  | Retry de LLM calls — categoria network + cap de timeout | `adr/270-llm-retry-network-category-timeout-cap.md` |
+| ADR-271 | adr | Proposto |  | Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c | `adr/271-dedup-investimentos-cross-irpf.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
