@@ -79,7 +79,24 @@
           "descricao": {"type": "string"},
           "tipo": {"type": "string"},
           "proprietario": {"type": "string"},
-          "valores_31_12": {"type": "object"}
+          "valores_31_12": {"type": "object"},
+          "instituicao": {"type": "string"},
+          "proprietarios": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "União de declarantes quando investimento é co-declarado (conta conjunta, ADR-271). Ausente → default [proprietario]. Singular preservado p/ compat downstream."
+          },
+          "investment_id": {
+            "type": ["string", "null"],
+            "description": "Hash estável de (tipo|instituicao|descricao_norm). Identidade de dedup cross-IRPF (ADR-271), não FK."
+          },
+          "_dedup_warning": {
+            "type": "object",
+            "properties": {
+              "type": {"type": "string", "enum": ["valor_divergente_ano", "possivel_duplicata"]}
+            },
+            "description": "Divergência de valor no mesmo ano (cross-year) ou possível duplicata co-declarada com valores diferentes (ADR-271)."
+          }
         }
       }
     },

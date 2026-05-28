@@ -604,6 +604,22 @@ def normalize_baseline(data: Dict) -> Dict:
                 "investimentos_consolidados ← investimentos_financeiros_consolidados (list)"
             )
 
+    # Dedup investimentos cross-IRPF (ADR-271) — safety net p/ caminho legado
+    # onde E4 lê baseline sem re-rodar E1.5c. Helper puro; no-op quando não há
+    # duplicatas. Idempotente sobre saída já deduplicada.
+    if isinstance(data.get("investimentos_consolidados"), list):
+        from pipeline.domain.services.investimentos_dedup import (
+            dedup_investimentos_consolidados,
+        )
+
+        _inv = dedup_investimentos_consolidados(data["investimentos_consolidados"])
+        data["investimentos_consolidados"] = _inv.investimentos
+        if _inv.count_after < _inv.count_before:
+            fixes.append(
+                f"investimentos_consolidados dedup: {_inv.count_before} → "
+                f"{_inv.count_after} (ADR-271; warnings={len(_inv.warnings)})"
+            )
+
     # dividas ← dividas_consolidados
     if "dividas" not in data and "dividas_consolidados" in data:
         data["dividas"] = data["dividas_consolidados"]

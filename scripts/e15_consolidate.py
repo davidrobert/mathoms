@@ -460,6 +460,12 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
         # ou string raw (legado). Resultado é sempre canonical key lowercase.
         membro = _resolve_member(item, resolver)
         descricao = item.get("descricao", "")
+        # ADR-271: cada item carrega seu próprio `ano` (extract_baseline:45).
+        # Carimbar com o ano do item — não com o global `ano_ref` — para que
+        # IRPFs de anos distintos no mesmo `itens[]` produzam série temporal
+        # (`valores_31_12 = {"2023": x, "2024": y}`) em vez de colapsarem num
+        # falso conflito de mesmo-ano no dedup cross-year.
+        item_ano_str = str(item.get("ano") or ano_ref)
 
         is_divida = categoria == "outros" and valor < 0
         if is_divida:
@@ -467,7 +473,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
                 {
                     "descricao": descricao,
                     "proprietario": membro,
-                    "saldo_31_12": {ano_str: abs(valor)},
+                    "saldo_31_12": {item_ano_str: abs(valor)},
                 }
             )
             total_dividas += abs(valor)
@@ -476,7 +482,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
         entry = {
             "descricao": descricao,
             "proprietario": membro,
-            "valores_31_12": {ano_str: valor},
+            "valores_31_12": {item_ano_str: valor},
         }
         if item.get("instituicao"):
             entry["instituicao"] = item["instituicao"]
@@ -731,6 +737,24 @@ def main_with_store(ctx) -> dict:
         print(
             f"  [E1.5c] Imóveis dedup: {_dedup.count_before} → {_dedup.count_after} "
             f"(warnings={len(_dedup.warnings)})"
+        )
+
+    # 3c. Dedup de investimentos cross-IRPF (ADR-271). Dois eixos: cross-year
+    #     (mesmo proprietário, anos sucessivos → une `valores_31_12`) e
+    #     cross-declarante (conta conjunta → funde só se valor idêntico ao
+    #     centavo). Helper puro; no-op sem duplicatas. Idempotente.
+    from pipeline.domain.services.investimentos_dedup import (
+        dedup_investimentos_consolidados,
+    )
+
+    _inv_dedup = dedup_investimentos_consolidados(
+        consolidated.get("investimentos_consolidados", [])
+    )
+    consolidated["investimentos_consolidados"] = _inv_dedup.investimentos
+    if _inv_dedup.count_after < _inv_dedup.count_before:
+        print(
+            f"  [E1.5c] Investimentos dedup: {_inv_dedup.count_before} → "
+            f"{_inv_dedup.count_after} (warnings={len(_inv_dedup.warnings)})"
         )
 
     # 4. Reconciliação fuzzy IRPF G02 ↔ vehicles (ADR-239 D3+D4). Degradação
