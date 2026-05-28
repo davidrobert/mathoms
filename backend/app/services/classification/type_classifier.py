@@ -45,6 +45,18 @@ TYPE_RULES: tuple[TypeRule, ...] = (
             _c(r"Dependentes"),
             _c(r"Resumo\s*(da\s*)?Declara[çc][ãa]o"),
         ),
+        # Negative guard (incidente 5@5.com 2026-05): informes de rendimentos
+        # e recibos de entrega citam "Declaração de Ajuste Anual" como destino,
+        # mas NÃO são a declaração. Sem o veto, a âncora roubava a classificação
+        # (priority=1) e o doc PJ quebrava o validator PF/PJ em E1.6 (ADR-268).
+        exclude=(
+            _c(
+                r"INFORME\s*DE\s*RENDIMENTOS"
+                r"|Comprovante\s*(?:anual\s*de\s*rendimentos"
+                r"|de\s*Rendimentos\s*Pagos\s*e\s*de\s*Reten[çc])"
+                r"|Recibo\s*(?:de|da)\s*Entrega\s+d[ao]\s+Declara[çc][ãa]o"
+            ),
+        ),
         priority=1,
     ),
     TypeRule(
@@ -382,6 +394,8 @@ def detect_type_by_content(text: str) -> tuple[TypeRule | None, int, int]:
     all match wins — supporting matches just adjust confidence.
     """
     for rule in sorted(TYPE_RULES, key=lambda r: r.priority):
+        if any(p.search(text) for p in rule.exclude):
+            continue
         req_matches = sum(1 for p in rule.required if p.search(text))
         if req_matches < len(rule.required):
             continue
