@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 192
-- **Proposto**: 66
+- **Decidido**: 193
+- **Proposto**: 65
 - **Roadmap**: 4
 
 ## Fundação
@@ -466,15 +466,16 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (5)
+### Decidido (6)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-237]] — Cone Monte Carlo de IF inclui aporte mensal (paridade com projeção determinística) · phase pos-A15
 - [[ADR-238]] — Ingestão de Informes de Rendimentos anuais avulsos (PGBL/VGBL, financeiro PF/PJ, proventos) — fonte fiscal primária paralela ao E1.6 · phase A17.informes-avulsos
 - [[ADR-239]] — Comprovantes de Bem (CRLV) + Apólices de Seguro polimórficas + FIPE refresh assíncrono — Sprint A18 · phase A18.l1
 - [[ADR-256]] — Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` · phase A19.uow-stages
+- [[ADR-271]] — Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c · phase A20.invest-dedup
 
-### Proposto (15)
+### Proposto (14)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -490,7 +491,6 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-266]] — Completude tri-state de ano-base IRPF: completo / provisorio / incompleto / mudanca_estrutural · phase A16
 - [[ADR-267]] — Identidade canônica de membro do workspace via CPF (não slug-de-nome) · phase A17.member-identity
 - [[ADR-268]] — Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro · phase A17.member-identity
-- [[ADR-271]] — Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c · phase A17.invest-dedup
 
 ## relatorio
 

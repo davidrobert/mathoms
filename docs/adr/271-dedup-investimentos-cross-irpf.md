@@ -2,8 +2,8 @@
 id: ADR-271
 type: adr
 title: "Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c"
-status: Proposto
-phase: A17.invest-dedup
+status: Decidido
+phase: A20.invest-dedup
 date: "2026-05-29"
 relates_to:
   - "[[ADR-246]]"
@@ -17,13 +17,15 @@ aliases:
 tags:
   - area/pipeline
   - area/methodology
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
 # ADR-271 — Dedup de investimentos cross-IRPF (cross-year + cross-declarante)
 
-**Status:** Proposto • **Data:** 2026-05-29 • **Relaciona** [[ADR-246]] (dedup imóveis — precedente direto, regra de valor divergente), [[ADR-265]] (fuzzy canonical), [[ADR-267]] (identidade de membro por CPF — pré-requisito)
+**Status:** Decidido (Sprint A20) • **Data:** 2026-05-29 • **Relaciona** [[ADR-246]] (dedup imóveis — precedente direto, regra de valor divergente), [[ADR-265]] (fuzzy canonical), [[ADR-267]] (identidade de membro por CPF — pré-requisito)
+
+> **Entrega — PR1 (este escopo).** Mergeado em `main` via [#501](https://github.com/davidrobert/mathoms/pull/501) (squash `c7c60bdd`, CI verde) em 2026-05-28. Helper `pipeline/domain/services/investimentos_dedup.py` (chave exata, 2 eixos) aplicado nas 2 funções de `e15_consolidate.py` + defesa idempotente em `e4_categorize.py` + schema bump + 17 testes. Corrigido bug de year-stamping em `consolidate_from_itens` (carimbava `ano_referencia` global → colapsava cross-year em falso conflito mesmo-ano). **PR2 (fuzzy gated por instituição) e PR3 (CNPJ/conta como chave forte) seguem como follow-up** (ver Próximos passos).
 
 ## Contexto
 

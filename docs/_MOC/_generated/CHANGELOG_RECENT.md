@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-18 entries entre 2026-05-14 e 2026-05-22.
+19 entries entre 2026-05-14 e 2026-05-28.
+
+## 2026-05-28 (1 entries)
+
+- [[CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED]] — feat(adr-271): dedup de investimentos cross-IRPF (cross-year + cross-declarante)
 
 ## 2026-05-22 (4 entries)
 
