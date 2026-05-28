@@ -1,18 +1,11 @@
-"""Dedup de investimentos cross-IRPF — cross-year + cross-declarante (ADR-271).
+"""Dedup de investimentos cross-IRPF — cross-year + cross-declarante (ADR-271)."""
 
-Espelha :mod:`pipeline.domain.services.imoveis_dedup` (ADR-246), mas com duas
-divergências de domínio:
-
-- **Cross-year** (mesmo proprietário, anos sucessivos): une ``valores_31_12``;
-  valor corrente = ano mais recente (investimento é marcado a mercado, não piso
-  histórico como imóvel). Conflito no mesmo ano → maior valor vence + warning.
-- **Cross-declarante** (proprietários distintos, mesmo ativo): funde APENAS
-  quando o valor 31/12 é idêntico ao centavo (conta conjunta = mesmo saldo
-  declarado 2×). Valores divergentes → posições individuais homônimas, não funde.
-
-Falso-positivo (fundir ativos distintos → some patrimônio real) é pior que
-falso-negativo (duplicata visível → infla PL). Calibração conservadora.
-"""
+# Espelha imoveis_dedup (ADR-246) com duas divergências de domínio, detalhadas
+# na ADR-271: (1) cross-year une `valores_31_12` e o valor corrente é o ano mais
+# recente — investimento é marcado a mercado, não piso histórico como imóvel;
+# (2) cross-declarante funde APENAS quando o valor 31/12 é idêntico ao centavo
+# (conta conjunta = mesmo saldo declarado 2×). Calibração conservadora:
+# falso-positivo (some patrimônio real) é pior que falso-negativo (infla PL).
 
 from __future__ import annotations
 
@@ -184,8 +177,9 @@ def _emit_cross_declarante(
         _record_dropped(group, inv_id, kept=1, dropped=dropped)
         return
     for entry in per_owner:
-        entry["_dedup_warning"] = {"type": "possivel_duplicata"}
-        out.append(entry)
+        stamped = dict(entry)
+        stamped["_dedup_warning"] = {"type": "possivel_duplicata"}
+        out.append(stamped)
     warnings.append(_duplicata_warning(inv_id, per_owner))
 
 

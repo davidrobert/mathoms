@@ -107,6 +107,23 @@ class TestCrossDeclarante:
         result = dedup_investimentos_consolidados([a, b])
         assert result.count_after == 2
 
+    def test_three_declarantes_partial_match_does_not_merge(self):
+        """Match parcial ao centavo entre 3 donos → NÃO funde (ADR-271, conservador)."""
+        a = _entry(proprietario="david", valores={"2024": 100.0})
+        b = _entry(proprietario="mariana", valores={"2024": 100.0})
+        c = _entry(proprietario="joao", valores={"2024": 999.0})
+        result = dedup_investimentos_consolidados([a, b, c])
+        assert result.count_after == 3
+        assert any(w.type == "possivel_duplicata" for w in result.warnings)
+
+    def test_divergent_does_not_mutate_input(self):
+        """Caminho divergente não vaza `_dedup_warning` no dict de entrada."""
+        david = _entry(proprietario="david", valores={"2024": 10000.0})
+        mariana = _entry(proprietario="mariana", valores={"2024": 7000.0})
+        dedup_investimentos_consolidados([david, mariana])
+        assert "_dedup_warning" not in david
+        assert "_dedup_warning" not in mariana
+
 
 class TestUnidentified:
     def test_no_description_passes_intact(self):

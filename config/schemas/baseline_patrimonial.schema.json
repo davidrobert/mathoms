@@ -92,6 +92,9 @@
           },
           "_dedup_warning": {
             "type": "object",
+            "properties": {
+              "type": {"type": "string", "enum": ["valor_divergente_ano", "possivel_duplicata"]}
+            },
             "description": "Divergência de valor no mesmo ano (cross-year) ou possível duplicata co-declarada com valores diferentes (ADR-271)."
           }
         }
