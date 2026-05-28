@@ -121,4 +121,4 @@ sprint. Falha em qualquer step = sprint não fecha.
 
 ## Detalhe operacional
 
-Track prompt opcional em `docs/agent_prompts/track_a20_l9_smoke_e2e.md` quando a lane for pickedup.
+Track prompt em [`../tracks/a20-l9-smoke-e2e.md`](../tracks/a20-l9-smoke-e2e.md) (criado 2026-05-29; pós-F3/ADR-182 tracks vivem em `docs/sprint/<X>/tracks/`).

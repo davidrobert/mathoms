@@ -12,15 +12,15 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint atual
 
-### A17 — Ingestão de Informes Anuais Avulsos (`current` 2026-05-21)
+### A20 — Docker dev↔prod parity + P0 production gates (`current` 2026-05-29)
 
-**Promovida de `candidate → current` após A16 L1+L2 entregues.** Sprint de 4 ondas (lanes) sequenciais, ADR canônica [[ADR-238]] (`Proposto`).
+**Promovida `candidate → current` em 2026-05-29 por priorização do owner** (A17 movida a `paused`). Sprint de infra dedicada, 10 lanes em 2 ondas + gate final, 7 ADRs `Proposto` (ADR-248 a ADR-254).
 
-- **Plano:** [sprint/A17/_README.md](../sprint/A17/_README.md).
-- **ADR canônica:** [ADR-238](../adr/238-ingestao-informes-rendimentos-anuais-avulsos.md) (`Proposto`).
-- **Diagnóstico:** sessão dogfood 2026-05-21 — 15 PDFs reais, ~13 caem em `.other` silencioso ou mal-classificados como `irpf`.
-- **Escopo:** stage único `extract_informes_anuais` paralelo a `extract_irpf_full`, 5 tipos polimórficos (previdência, PJ, PF, proventos ações, aluguel), cascade declaração > informe.
-- **Fila pós-A17:** A18 (CRLV + apólices + FIPE, [[ADR-239]]) → A19 (S_PROTECAO 4º pilar AUVP, [[ADR-240]]).
+- **Plano:** [sprint/A20/_README.md](../sprint/A20/_README.md).
+- **Diagnóstico:** review independente `sre-devops` 2026-05-22 — maturidade Docker 2.5/5; 5 blockers P0 de produção.
+- **Escopo executável sem confirmação externa:** Onda A (L10 lockfile → L2 SHA pin; L3 pipeline-service non-root ∥ L6 compose dev) → Gate A → Onda B (L1 multi-stage + Playwright, L7 Makefile+SETUP, L8 driver Postgres asyncpg-only).
+- **Bloqueadas por confirmação externa do owner:** L4 (GHCR token + Coolify webhook), L5 (Trivy — depende de L4), L9 (smoke gate — depende de tudo).
+- **North star:** TTFR de novo dev de ~25min → <5min (`make dev-up-docker`).
 
 ## Sprint candidate (próxima)
 
@@ -39,6 +39,14 @@ aliases: ["SPRINTS-active", "sprints-active"]
 ## Sprints pausadas
 
 Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando o owner decidir.
+
+### A17 — Ingestão de Informes Anuais Avulsos (`paused` 2026-05-29)
+
+**Suspensa em favor de A20** (priorização do owner; transição `current → paused` por [[ADR-234]]). L1 entregue (ADR canônica [[ADR-238]] `Decidido (Sprint A17 L1)`, 5 PRs [#402](https://github.com/davidrobert/mathoms/pull/402) → [#407](https://github.com/davidrobert/mathoms/pull/407)).
+
+- **Trabalho residual:** L2-L4 abertas em [sprint/A17/_README.md](../sprint/A17/_README.md).
+- **Fila reservada pós-A17:** A18 (CRLV + apólices + FIPE, [[ADR-239]]) → A19 (S_PROTECAO 4º pilar AUVP, [[ADR-240]]).
+- **Retomada:** flip `paused → current` quando A20 fechar.
 
 ### A11 — Platform review execution (`paused` 2026-05-20)
 

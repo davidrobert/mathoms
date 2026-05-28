@@ -638,6 +638,12 @@
 | TRACK-a18-l2-apolice-seguro | track | ready | A18 | Track A18 L2 — Apólice polimórfica: Discriminated Union bens+coberturas + cascata Haiku→Sonnet + combinada V1 | `sprint/A18/tracks/a18-l2-apolice-seguro.md` |
 | TRACK-a18-l3-fipe-refresh | track | ready | A18 | Track A18 L3 — FIPE refresh assíncrono via BrasilAPI: market_rates extension + Celery task + cron anual | `sprint/A18/tracks/a18-l3-fipe-refresh.md` |
 | TRACK-a19-l1-card-protecao | track | ready | A19 | Track A19 L1 — Card S_PROTECAO no relatório: ProtecaoAnalyzer + report_layout + componente React + reposicionamento AUVP | `sprint/A19/tracks/a19-l1-card-protecao.md` |
+| TRACK-a20-l1-backend-multistage | track | ready | A20 | Track A20.L1 — Backend multi-stage + Playwright dual target | `sprint/A20/tracks/a20-l1-backend-multistage.md` |
+| TRACK-a20-l10-python-lockfile | track | ready | A20 | Track A20.L10 — Python lockfile com hashes (pip-tools vs uv) | `sprint/A20/tracks/a20-l10-python-lockfile.md` |
+| TRACK-a20-l4-ghcr-push | track | ready | A20 | Track A20.L4 — GHCR push em CI + tagging strategy | `sprint/A20/tracks/a20-l4-ghcr-push.md` |
+| TRACK-a20-l5-trivy-sbom | track | ready | A20 | Track A20.L5 — Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/tracks/a20-l5-trivy-sbom.md` |
+| TRACK-a20-l6-compose-dev | track | ready | A20 | Track A20.L6 — docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/tracks/a20-l6-compose-dev.md` |
+| TRACK-a20-l9-smoke-e2e | track | ready | A20 | Track A20.L9 — Smoke E2E em compose (gate de fechamento do sprint) | `sprint/A20/tracks/a20-l9-smoke-e2e.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |

@@ -3,12 +3,12 @@ id: MOC-sprint-a17
 type: moc
 title: "Sprint A17 — Ingestão de Informes de Rendimentos anuais avulsos (4 ondas)"
 aliases: ["A17", "Sprint A17"]
-sprint_status: current
+sprint_status: paused
 ---
 
 # Sprint A17 — Ingestão de Informes Anuais Avulsos
 
-> **Status:** `current` (promovida 2026-05-21, após A16 L1+L2 entregues). ADR canônica [[ADR-238]] flippada `Decidido (Sprint A17 L1)` em 2026-05-21 após L1 entregue em 5 PRs ([#402](https://github.com/davidrobert/mathoms/pull/402) → [#407](https://github.com/davidrobert/mathoms/pull/407)). L2-L4 são onda de continuação.
+> **Status:** `paused` (suspensa 2026-05-29 em favor de [[MOC-sprint-a20]] — priorização do owner; transição `current → paused` por [[ADR-234]]). L1 entregue (ADR canônica [[ADR-238]] flippada `Decidido (Sprint A17 L1)` em 2026-05-21, 5 PRs [#402](https://github.com/davidrobert/mathoms/pull/402) → [#407](https://github.com/davidrobert/mathoms/pull/407)); **débito conhecido: L2-L4** abertas. Retomada: flip `paused → current` quando A20 fechar.
 
 ## Resumo
 

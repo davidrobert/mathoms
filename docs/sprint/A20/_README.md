@@ -3,17 +3,23 @@ id: MOC-sprint-a20
 type: moc
 title: "Sprint A20 — Docker dev↔prod parity + P0 production gates"
 aliases: ["A20", "Sprint A20"]
-sprint_status: candidate
+sprint_status: current
 date: "2026-05-22"
 theme: "infra"
 ---
 
 # Sprint A20 — Docker dev↔prod parity
 
-> **Status:** `candidate` — criada 2026-05-22 após review independente `sre-devops`
-> (maturidade Docker 2.5/5). Sprint de infra dedicada, **10 lanes em 2 ondas + gate
-> final**, **7 ADRs Proposto** (ADR-248 a ADR-254). **Subsume W4-T02** do
-> [PLATFORM_REVIEW](../../plan/PLATFORM_REVIEW/_README.md) (que estava `blocked`).
+> **Status:** `current` — promovida `candidate → current` em 2026-05-29 (priorização
+> do owner; A17 movida a `paused`). Criada 2026-05-22 após review independente
+> `sre-devops` (maturidade Docker 2.5/5). Sprint de infra dedicada, **10 lanes em
+> 2 ondas + gate final**, **7 ADRs Proposto** (ADR-248 a ADR-254). **Subsume W4-T02**
+> do [PLATFORM_REVIEW](../../plan/PLATFORM_REVIEW/_README.md) (que estava `blocked`).
+>
+> **Execução em curso (2026-05-29):** lanes sem confirmação externa atacadas nesta
+> ordem — Onda A (L10→L2, L3∥L6) → Gate A → Onda B (L1, L7, L8). Lanes **L4** (GHCR —
+> requer token + Coolify webhook), **L5** (Trivy — depende de L4 publicar imagem) e
+> **L9** (smoke gate — depende de tudo) ficam para confirmação externa do owner.
 
 ## Resumo
 
@@ -260,13 +266,14 @@ Antes de qualquer lane:
 
 ## Detalhe operacional
 
-Track prompts dedicados (em `docs/agent_prompts/`) para lanes complexas:
-- `track_a20_l1_backend_multistage.md` — L1
-- `track_a20_l4_ghcr_push.md` — L4
-- `track_a20_l5_trivy_sbom.md` — L5
-- `track_a20_l6_compose_dev.md` — L6
-- `track_a20_l9_smoke_e2e.md` — L9
-- `track_a20_l10_python_lockfile.md` — L10
+Track prompts dedicados (pós-F3/ADR-182 em `docs/sprint/A20/tracks/`, **não**
+mais `docs/agent_prompts/`) para lanes complexas — criados 2026-05-29:
+- [`tracks/a20-l1-backend-multistage.md`](tracks/a20-l1-backend-multistage.md) — L1
+- [`tracks/a20-l4-ghcr-push.md`](tracks/a20-l4-ghcr-push.md) — L4
+- [`tracks/a20-l5-trivy-sbom.md`](tracks/a20-l5-trivy-sbom.md) — L5
+- [`tracks/a20-l6-compose-dev.md`](tracks/a20-l6-compose-dev.md) — L6
+- [`tracks/a20-l9-smoke-e2e.md`](tracks/a20-l9-smoke-e2e.md) — L9
+- [`tracks/a20-l10-python-lockfile.md`](tracks/a20-l10-python-lockfile.md) — L10
 
-Lanes restantes (L2, L3, L7, L8) ficam só com `lanes/A20.lN.md` — escopo
+Lanes restantes (L2, L3, L7, L8) ficam só com `lanes/A20-lN-*.md` — escopo
 mecânico não exige prompt operacional.

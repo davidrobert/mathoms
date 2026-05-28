@@ -132,4 +132,4 @@ override file do `dev.yml`.
 
 ## Detalhe operacional
 
-Track prompt opcional em `docs/agent_prompts/track_a20_<slug>.md` quando a lane for pickedup — segue padrão dos sprints anteriores.
+Track prompt em [`../tracks/a20-l6-compose-dev.md`](../tracks/a20-l6-compose-dev.md) (criado 2026-05-29; pós-F3/ADR-182 tracks vivem em `docs/sprint/<X>/tracks/`).
