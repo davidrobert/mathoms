@@ -10,7 +10,13 @@
 version: 2
 updates:
   # ----------------------------------------------------------------------
-  # Python — pipeline + backend
+  # Python — pipeline + backend (ADR-254)
+  #
+  # Sources são requirements.in (/) + backend/requirements.in. O lock de prod
+  # é combinado cross-dir (requirements.lock único) e NÃO é auto-regenerado
+  # pelo Dependabot — ele sobe o constraint no .in e o hook check_lockfile_sync
+  # falha o CI até alguém regenerar o .lock (runbook python_dependencies.md).
+  # Gate intencional: upgrade nunca entra sem revalidação amd64.
   # ----------------------------------------------------------------------
   - package-ecosystem: "pip"
     directory: "/"

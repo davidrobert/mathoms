@@ -57,7 +57,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v3
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v3
           restore-keys: |
             venv-${{ runner.os }}-py313-
 
@@ -67,7 +67,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install -r requirements.txt -r backend/requirements.txt
+          uv pip install -r requirements.in -r backend/requirements.in
           uv pip install pytest pytest-asyncio
 
       - name: Activate venv (PATH)

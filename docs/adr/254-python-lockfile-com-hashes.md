@@ -2,7 +2,7 @@
 id: ADR-254
 type: adr
 title: "Python lockfile com hashes — pip-tools vs uv — Sprint A20"
-status: Proposto
+status: Decidido
 phase: A20.l10
 date: "2026-05-22"
 relates_to:
@@ -20,7 +20,7 @@ aliases:
   - "requirements lock with hashes"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/infra
   - area/python
   - area/devops
@@ -64,16 +64,33 @@ compatibilidade com `pip install --require-hashes` no Dockerfile multi-stage
 
 - `requirements.in` (raiz) + `backend/requirements.in` viram **sources
   human-edited** com constraints `>=` atuais.
-- `requirements.lock` + `backend/requirements.lock` gerados por `pip-compile
-  --generate-hashes` — formato `requirements.txt`-shaped com `--hash=sha256:...`
-  em cada linha.
-- Dockerfile ([[ADR-248]]) consome via `pip install --require-hashes --no-index
-  --find-links /wheels -r requirements.lock -r backend/requirements.lock`.
+- **Um único `requirements.lock` combinado** (não dois) gerado por `pip-compile
+  --generate-hashes --strip-extras requirements.in backend/requirements.in` —
+  formato `requirements.txt`-shaped com `--hash=sha256:...` em cada linha.
+- Dockerfile ([[ADR-248]]) consome via `pip install --require-hashes -r
+  requirements.lock`.
 - Pre-commit hook `dev/check_lockfile_sync.py` bloqueia commit com diff em `.in`
   sem diff correspondente em `.lock`.
-- Dependabot monitora `requirements.in`; GH Actions hook regenera `.lock` no
-  PR do Dependabot.
-- Update workflow documentado em `docs/reference/runbooks/python_dependencies.md`.
+- CI (jobs de teste) instala das `.in` loose (com dev extras, sem hashes — ver
+  §Neutras); `security.yml` audita o `requirements.lock` pinado.
+- Dependabot monitora os `.in`; regen do `.lock` é manual (lock combinado
+  cross-dir não é auto-regenerado pelo Dependabot — o hook força a regen no PR).
+- Update workflow documentado em
+  [`docs/reference/runbooks/python_dependencies.md`](../reference/runbooks/python_dependencies.md).
+
+**Desvio do design original (lock único vs. dois locks):** a primeira versão
+desta ADR previa `requirements.lock` + `backend/requirements.lock` separados.
+A geração empírica revelou `ResolutionImpossible`: `anthropic` é dep
+compartilhada (raiz puxa direto; backend puxa via `instructor`/`litellm`), e
+locks separados conflitam no range de `jiter` exigido pelo `instructor`. A
+resolução **combinada** (ambos `.in` num só `pip-compile`) deixa o resolver
+escolher `jiter==0.13.0` satisfazendo os dois. Resultado: 135 pacotes pinados
+num lock único, validado installable em `python:3.12-slim` amd64.
+
+**Constraint operacional:** o `.lock` **deve** ser gerado em container
+`linux/amd64`. Wheels nativos (`uvloop`, `cryptography`, `pydantic-core`,
+`playwright`, `numpy`) têm hash por-plataforma; gerar no host Mac arm64 quebra
+o `--require-hashes` em CI/build (que rodam amd64).
 
 **`uv` rejeitado para V1** (revisitável em Sprint A22+ se velocidade CI virar
 gargalo crítico).
@@ -151,8 +168,7 @@ custo de migração + lock-in.
   (`python_dependencies.md`) e Dependabot automatizando o caso comum
   (upgrade de versão).
 - **`pip-compile` inicial em deps grandes** — ~30-60s para gerar
-  `backend/requirements.lock`. Mitigado por rodar só quando `.in` muda
-  (workflow conditional).
+  `requirements.lock`. Mitigado por rodar só quando `.in` muda.
 
 ### Neutras
 

@@ -73,7 +73,7 @@ Não existe `.trivyignore` no repo hoje — criar no PR que precisar do primeiro
 
 1. Workflow logs → linha "Found <N> known vulnerabilities".
 2. Cada CVE traz GHSA-ID. Verifique no GitHub Advisory Database.
-3. Patch disponível: bump da dep no `requirements.txt` / `package.json` → regen lockfile → PR.
+3. Patch disponível: bump da dep no `requirements.in` (ou `backend/requirements.in`) / `package.json` → regen do `requirements.lock` (runbook python_dependencies.md) → PR.
 4. Sem patch: ignore via flag específica:
 
 ### Ignorar CVE em pip-audit
@@ -82,7 +82,7 @@ Adicionar no step do workflow:
 
 ```yaml
 with:
-  inputs: backend/requirements.txt
+  inputs: requirements.lock
   ignore-vulns: "GHSA-xxxx-yyyy-zzzz"
 ```
 

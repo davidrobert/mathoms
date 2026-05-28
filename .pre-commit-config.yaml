@@ -138,6 +138,17 @@ repos:
         pass_filenames: false
         files: ^(backend/tests|tests)/.*\.py$
 
+      - id: lockfile-sync
+        # ADR-254 (A20.l10): garante requirements.lock em sincronia com as
+        # deps diretas de requirements.in + backend/requirements.in. Bloqueia
+        # commit que edita .in sem regenerar o .lock. Regen exige container
+        # linux/amd64 — ver docs/reference/runbooks/python_dependencies.md.
+        name: "Lockfile Python em sincronia (requirements.in ↔ requirements.lock)"
+        entry: python3 dev/check_lockfile_sync.py
+        language: system
+        pass_filenames: false
+        files: '^(requirements\.in|backend/requirements\.in|requirements\.lock)$'
+
       - id: lint-no-real-pii
         # F6.5D.7 — bloqueia CPF real em fixtures de teste. Aceita apenas
         # placeholders (000.000.000-00, 123.456.789-09, 111.111.111-11) ou

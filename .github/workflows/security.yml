@@ -79,8 +79,9 @@ jobs:
         with:
           files_yaml: |
             python_deps:
-              - 'backend/requirements.txt'
-              - 'requirements.txt'
+              - 'backend/requirements.in'
+              - 'requirements.in'
+              - 'requirements.lock'
               - 'pipeline-service/requirements*.txt'
               - '.github/workflows/security.yml'
             npm_deps:
@@ -194,16 +195,13 @@ jobs:
       # `InsecureKeyLengthWarning` em runtime — defesa em profundidade.
       # Permanente até upstream publicar patch ou substituirmos PyJWT.
       # Tracking em runbook §Diferimentos vigentes.
-      - name: Run pip-audit on backend/requirements.txt
+      # pip-audit roda sobre o lock combinado pinado (ADR-254): versões exatas,
+      # zero ambiguidade transitiva — o audit reporta CVE da árvore inteira que
+      # de fato vai pra imagem, não só das ~40 deps diretas.
+      - name: Run pip-audit on requirements.lock (combined, pinned)
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
-          inputs: backend/requirements.txt
-          ignore-vulns: "PYSEC-2025-183"
-      - name: Run pip-audit on requirements.txt (pipeline)
-        if: hashFiles('requirements.txt') != ''
-        uses: pypa/gh-action-pip-audit@v1.1.0
-        with:
-          inputs: requirements.txt
+          inputs: requirements.lock
           ignore-vulns: "PYSEC-2025-183"
 
   # npm-audit-prod é gate blocking (HIGH+). Vulns deferidas exigem
