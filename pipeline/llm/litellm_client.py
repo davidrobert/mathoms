@@ -12,11 +12,18 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 
+from pipeline.llm.error_classification import (
+    BACKOFF_DELAYS,
+    BACKOFF_DELAYS_NETWORK,
+    LLM_CALL_TIMEOUT_S,
+    RETRYABLE_ERRORS,
+    LLMErrorType,
+    classify_error,
+)
 from pipeline.llm.pricing import MODEL_PRICING, estimate_cost_usd
 
 logger = logging.getLogger(__name__)
@@ -32,16 +39,6 @@ SUPPORTED_PROVIDERS = {
     "deepseek": {"prefix": "deepseek/", "env_key": "DEEPSEEK_API_KEY"},
     "together_ai": {"prefix": "together_ai/", "env_key": "TOGETHERAI_API_KEY"},
 }
-
-
-class LLMErrorType(str, Enum):
-    auth = "auth"
-    rate_limit = "rate_limit"
-    timeout = "timeout"
-    validation = "validation"
-    context_length = "context_length"
-    provider_error = "provider_error"
-    unknown = "unknown"
 
 
 class LLMError(Exception):
@@ -150,28 +147,11 @@ def _is_completion_truncated_max_tokens(exc: Exception) -> bool:
     )
 
 
-def _classify_error(exc: Exception) -> LLMErrorType:
-    """Classify an LLM exception into a retryable/non-retryable category."""
-    msg = str(exc).lower()
-
-    if "authentication" in msg or "api key" in msg or "unauthorized" in msg or "invalid api" in msg:
-        return LLMErrorType.auth
-    if "rate limit" in msg or "rate_limit" in msg or "429" in msg or "too many requests" in msg:
-        return LLMErrorType.rate_limit
-    if "timeout" in msg or "timed out" in msg:
-        return LLMErrorType.timeout
-    if "context" in msg and "length" in msg or "too long" in msg or "maximum context" in msg:
-        return LLMErrorType.context_length
-    if "validation" in msg or "pydantic" in msg:
-        return LLMErrorType.validation
-
-    return LLMErrorType.provider_error
-
-
-_RETRYABLE_ERRORS = {LLMErrorType.rate_limit, LLMErrorType.timeout, LLMErrorType.provider_error}
-_BACKOFF_DELAYS = [2.0, 4.0, 8.0]
 # Pydantic / API caps for completion budget (aligned with backend LLMConfigCreateRequest)
 _MAX_COMPLETION_TOKENS_CEILING = 200_000
+
+# Compat: testes legados importam ``_classify_error`` deste módulo.
+_classify_error = classify_error
 
 
 class LLMService:
@@ -242,6 +222,8 @@ class LLMService:
                 max_tokens=10,
                 temperature=0,
                 api_key=self._config.api_key,
+                timeout=LLM_CALL_TIMEOUT_S,
+                num_retries=0,
             )
             elapsed_ms = int((time.monotonic() - start) * 1000)
             content = response.choices[0].message.content.strip() if response.choices else ""
@@ -254,7 +236,7 @@ class LLMService:
             }
         except Exception as exc:
             elapsed_ms = int((time.monotonic() - start) * 1000)
-            error_type = _classify_error(exc)
+            error_type = classify_error(exc)
             return {
                 "success": False,
                 "provider": self._config.provider,
@@ -359,6 +341,11 @@ class LLMService:
                     temperature=effective_temperature,
                     max_retries=1,
                     api_key=self._config.api_key,
+                    # ADR-270: cap por-call + desabilita retry interno do
+                    # LiteLLM/Anthropic SDK. Retries são do outer loop deste
+                    # método — fonte única, observável, com backoff por tipo.
+                    timeout=LLM_CALL_TIMEOUT_S,
+                    num_retries=0,
                 )
 
                 elapsed = int((time.monotonic() - start) * 1000)
@@ -387,14 +374,15 @@ class LLMService:
                 self._summary.calls.append(result)
 
                 logger.info(
-                    "%sLLM call OK: model=%s tokens=%d+%d cost=$%.4f duration=%dms retries=%d",
+                    "%sLLM call OK: model=%s tokens=%d+%d cost=$%.4f duration=%dms attempt=%d/%d",
                     tag,
                     self._config.model_name,
                     tokens_in,
                     tokens_out,
                     cost,
                     elapsed,
-                    retries_used,
+                    attempt + 1,
+                    max_retries + 1,
                 )
 
                 return result
@@ -416,7 +404,7 @@ class LLMService:
                         continue
 
                 retries_used = attempt + 1
-                error_type = _classify_error(exc)
+                error_type = classify_error(exc)
 
                 logger.warning(
                     "%sLLM call attempt %d/%d failed: type=%s error=%s",
@@ -439,22 +427,31 @@ class LLMService:
                         retryable=False,
                     ) from exc
 
-                if error_type not in _RETRYABLE_ERRORS and error_type != LLMErrorType.validation:
+                if error_type not in RETRYABLE_ERRORS and error_type != LLMErrorType.validation:
                     if attempt >= max_retries:
                         break
 
                 if attempt < max_retries:
-                    delay = _BACKOFF_DELAYS[min(attempt, len(_BACKOFF_DELAYS) - 1)]
+                    # ADR-270: backoff network-specific (30/60/120s) aguenta
+                    # outage transiente de DNS; demais retryable usam 2/4/8s.
+                    backoff_table = (
+                        BACKOFF_DELAYS_NETWORK
+                        if error_type == LLMErrorType.network
+                        else BACKOFF_DELAYS
+                    )
+                    delay = backoff_table[min(attempt, len(backoff_table) - 1)]
                     if error_type == LLMErrorType.rate_limit:
                         delay *= 2
-                    logger.info("Retrying in %.1fs...", delay)
+                    logger.info(
+                        "%sRetrying in %.1fs (error_type=%s)...", tag, delay, error_type.value
+                    )
                     time.sleep(delay)
 
                 attempt += 1
 
         total_elapsed = int((time.monotonic() - start_total) * 1000)
 
-        if last_exception and _classify_error(last_exception) == LLMErrorType.validation:
+        if last_exception and classify_error(last_exception) == LLMErrorType.validation:
             raise LLMValidationError(
                 f"Output validation failed after {max_retries + 1} attempts: {last_exception}",
                 last_output=None,
@@ -463,7 +460,7 @@ class LLMService:
 
         raise LLMError(
             f"LLM call failed after {max_retries + 1} attempts ({total_elapsed}ms): {last_exception}",
-            _classify_error(last_exception) if last_exception else LLMErrorType.unknown,
+            classify_error(last_exception) if last_exception else LLMErrorType.unknown,
             retryable=False,
         )
 

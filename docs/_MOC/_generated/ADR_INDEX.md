@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-260 ADRs (ADR-001 a ADR-269) em [`docs/adr/`](../../adr/).
+261 ADRs (ADR-001 a ADR-270) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 192
-- **Proposto**: 64
+- **Proposto**: 65
 - **Roadmap**: 4
 
 ## Fundação
@@ -76,6 +76,10 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-026]] — Instructor + Pydantic para structured output · phase F4
 - [[ADR-027]] — Retry → needs_review em falha de validação · phase F4
 - [[ADR-028]] — E7 full scope na Fase 4 · phase F4
+
+### Proposto (1)
+
+- [[ADR-270]] — Retry de LLM calls — categoria network + cap de timeout · phase A17.llm-retry
 
 ## Task Queue
 
