@@ -62,7 +62,7 @@ Pin de actions por SHA — política já vigente em `ci.yml` desde CVE-2025-3006
 |---|---|---|---|
 | `trivy-fs` | `aquasecurity/trivy-action` modo `fs` | HIGH, CRITICAL (`exit-code: 1`) | Scaneia repo full. SARIF upload em PR + main. |
 | `trivy-config` | `trivy config` (mesmo action, modo `config`) | HIGH, CRITICAL | IaC: Dockerfile, docker-compose, `.github/workflows/*`. Custo <30s. |
-| `pip-audit` | `pypa/pip-audit-action` | HIGH+ via `--strict` | Roda contra `backend/requirements.txt` + `requirements.txt` raiz. |
+| `pip-audit` | `pypa/pip-audit-action` | HIGH+ via `--strict` | Roda contra o `requirements.lock` combinado pinado (ADR-254). |
 | `npm-audit-prod` | `npm audit --audit-level=high --omit=dev` | HIGH, CRITICAL | Em `frontend/`. Bloqueante. |
 | `npm-audit-dev` | `npm audit --audit-level=high` | — (informativo) | `continue-on-error: true`. Dev deps raramente exploitable, ruído alto. |
 | `gitleaks` | `gitleaks/gitleaks-action` | Qualquer match não-allowlisted | `--log-opts="--all"` varre git history full (defesa contra `--no-verify`). |

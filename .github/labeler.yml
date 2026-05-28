@@ -11,7 +11,8 @@
   - changed-files:
       - any-glob-to-any-file:
           - 'backend/**'
-          - 'requirements.txt'
+          - 'requirements.in'
+          - 'requirements.lock'
 
 'area:frontend':
   - changed-files:
@@ -80,8 +81,9 @@
 dependency:
   - changed-files:
       - any-glob-to-any-file:
-          - 'requirements.txt'
-          - 'backend/requirements.txt'
+          - 'requirements.in'
+          - 'requirements.lock'
+          - 'backend/requirements.in'
           - 'frontend/package.json'
           - 'frontend/package-lock.json'
           - 'go.work'

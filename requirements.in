@@ -1,5 +1,7 @@
-# Pipeline Financeiro — Python dependencies
-# Install: pip install -r requirements.txt
+# Pipeline Financeiro — Python dependencies (human-edited source · ADR-254)
+# NÃO instalar diretamente em prod/CI: use requirements.lock (gerado por
+# `pip-compile --generate-hashes` em container linux/amd64).
+# Regenerar: ver docs/reference/runbooks/python_dependencies.md
 
 # PDF extraction
 pdfplumber>=0.10

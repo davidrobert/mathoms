@@ -1,4 +1,8 @@
-# Fin Backend — Python dependencies
+# Fin Backend — Python dependencies (human-edited source · ADR-254)
+# NÃO instalar diretamente: o build de prod usa o lock combinado da raiz
+# `requirements.lock` (gerado por `pip-compile --generate-hashes` sobre
+# requirements.in + backend/requirements.in num container linux/amd64).
+# Regenerar: ver docs/reference/runbooks/python_dependencies.md
 fastapi>=0.115
 uvicorn[standard]>=0.30
 sqlalchemy[asyncio]>=2.0

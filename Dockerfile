@@ -26,13 +26,14 @@ RUN useradd --create-home --shell /bin/bash --uid 1000 mathoms
 
 WORKDIR /app
 
-# Requirements: a raiz tem deps do pipeline (pdfplumber, anthropic, etc); backend/
-# tem deps de runtime web (fastapi, sqlalchemy, celery, alembic). Backend importa
-# os dois pacotes (`backend.app.*` + `pipeline.*`), ambos peers no repo.
-COPY requirements.txt /app/requirements.txt
-COPY backend/requirements.txt /app/backend/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt \
-    && pip install --no-cache-dir -r /app/backend/requirements.txt
+# Requirements: lock combinado (raiz + backend) com hashes — build determinístico
+# bit-a-bit (ADR-254). `--require-hashes` recusa qualquer dep cujo hash sha256 não
+# bata com o lock. requirements.in/backend/requirements.in são as sources human-edited;
+# requirements.lock é gerado via pip-compile --generate-hashes em container amd64
+# (runbook docs/reference/runbooks/python_dependencies.md). Regenerar em arm64
+# quebra o build (hashes de wheels nativos divergem por plataforma).
+COPY requirements.lock /app/requirements.lock
+RUN pip install --no-cache-dir --require-hashes -r /app/requirements.lock
 
 # Código: backend e pipeline são pacotes peer; config tem schemas + layout YAML
 # carregados em runtime; pyproject.toml fica pra metadata (não instalado em editable).

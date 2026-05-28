@@ -123,7 +123,8 @@ jobs:
           files_yaml: |
             backend:
               - 'backend/**'
-              - 'requirements.txt'
+              - 'requirements.in'
+              - 'requirements.lock'
               - '.github/workflows/ci.yml'
             frontend:
               - 'frontend/**'
@@ -141,7 +142,8 @@ jobs:
               - 'config/**.yaml'
               - 'config/**.yml'
               - 'config/schemas/**'
-              - 'requirements.txt'
+              - 'requirements.in'
+              - 'requirements.lock'
               - '.github/workflows/ci.yml'
             any_code:
               - '**'
@@ -282,7 +284,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v3
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v3
           restore-keys: |
             venv-${{ runner.os }}-py313-
 
@@ -292,7 +294,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install -r requirements.txt -r backend/requirements.txt
+          uv pip install -r requirements.in -r backend/requirements.in
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
           uv pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
 
@@ -343,14 +345,14 @@ jobs:
 
       - name: Restore venv cache
         # Mesmo cache key que pipeline-tests — mesma combinação de
-        # requirements.txt + backend/requirements.txt. Ambos jobs compartilham
+        # requirements.in + backend/requirements.in. Ambos jobs compartilham
         # cache; quem executar primeiro popula, o segundo só restaura.
         # restore-keys: fallback partial-match para reuso quando hash muda.
         id: venv-cache
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.txt', 'backend/requirements.txt') }}-v3
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v3
           restore-keys: |
             venv-${{ runner.os }}-py313-
 
@@ -360,7 +362,7 @@ jobs:
           VIRTUAL_ENV: ${{ github.workspace }}/.venv
         run: |
           [ -d .venv ] || uv venv .venv
-          uv pip install -r requirements.txt -r backend/requirements.txt
+          uv pip install -r requirements.in -r backend/requirements.in
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
           uv pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
 
@@ -489,7 +491,7 @@ jobs:
 
       - name: Install backend deps
         run: |
-          pip install -r requirements.txt -r backend/requirements.txt
+          pip install -r requirements.in -r backend/requirements.in
           pip install asyncpg reportlab
 
       - name: Run alembic migrations

@@ -1,10 +1,12 @@
 # Fin — Dev/Test dependencies — F6.5 (sub-fase 6.5F)
 # Install: pip install -r requirements-dev.txt
 #
-# Inclui requirements.txt + backend/requirements.txt + test-only deps.
+# Inclui requirements.in + backend/requirements.in + test-only deps.
+# Dev/CI-test não usa hashes (ADR-254 §Neutras) — instala das sources loose.
+# Build de prod (Dockerfile) usa requirements.lock com --require-hashes.
 
--r requirements.txt
--r backend/requirements.txt
+-r requirements.in
+-r backend/requirements.in
 
 # Test runner (já em uso)
 pytest>=8.0

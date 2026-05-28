@@ -871,7 +871,7 @@ mathoms.ai/
 │   │   ├── factories/         # Type-safe builders
 │   │   ├── fixtures/          # LLM mock, pipeline runs, PDF generator
 │   │   └── regressions/       # Anti-regression bank (24 tests)
-│   └── requirements.txt
+│   └── requirements.in        # deps web (source); lock combinado na raiz (ADR-254)
 │
 ├── pipeline/                  # Pipeline core (package Python — sem FastAPI/Celery/SQLAlchemy)
 │   ├── __init__.py            # API pública v0.2.0

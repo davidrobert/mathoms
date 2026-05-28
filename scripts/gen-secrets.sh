@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/gen-secrets.sh — gera MATHOMS_FERNET_KEY e MATHOMS_SECRET_KEY para desenvolvimento local.
 #
-# Requer: Python 3.11+ com pacote `cryptography` (ex.: pip install -e backend ou backend/requirements.txt).
+# Requer: Python 3.11+ com pacote `cryptography` (ex.: pip install -e backend ou backend/requirements.in).
 #
 # Uso:
 #   ./scripts/gen-secrets.sh              Imprime duas linhas (colar no .env)
@@ -21,7 +21,7 @@ try:
 except ImportError:
     raise SystemExit(
         "Erro: pacote 'cryptography' não encontrado. "
-        "Ative o venv e instale dependências do backend: pip install -r backend/requirements.txt"
+        "Ative o venv e instale dependências do backend: pip install -r backend/requirements.in"
     )
 import secrets
 
