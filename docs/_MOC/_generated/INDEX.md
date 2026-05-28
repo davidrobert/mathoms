@@ -265,6 +265,7 @@
 | ADR-267 | adr | Proposto |  | Identidade canônica de membro do workspace via CPF (não slug-de-nome) | `adr/267-member-identity-cpf-canonical.md` |
 | ADR-268 | adr | Proposto |  | Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro | `adr/268-contribuinte-pf-vs-pj-filter.md` |
 | ADR-269 | adr | Proposto |  | Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado | `adr/269-task-suggestion-dedup-supersede.md` |
+| ADR-270 | adr | Proposto |  | Retry de LLM calls — categoria network + cap de timeout | `adr/270-llm-retry-network-category-timeout-cap.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
