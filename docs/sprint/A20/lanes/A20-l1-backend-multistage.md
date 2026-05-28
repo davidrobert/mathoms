@@ -366,4 +366,4 @@ local <30s, build CI <2min com cache GHA quente.
 
 ## Detalhe operacional
 
-Track prompt opcional em `docs/agent_prompts/track_a20_<slug>.md` quando a lane for pickedup — segue padrão dos sprints anteriores.
+Track prompt em [`../tracks/a20-l1-backend-multistage.md`](../tracks/a20-l1-backend-multistage.md) (criado 2026-05-29; pós-F3/ADR-182 tracks vivem em `docs/sprint/<X>/tracks/`).

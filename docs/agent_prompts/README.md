@@ -11,13 +11,14 @@ Os 62 tracks que viviam em `docs/agent_prompts/track_*.md` foram migrados para `
 | A6 (sub-fases A6e/A6f/A6g) | [`../sprint/A6/tracks/`](../sprint/A6/tracks/) | 13 |
 | A7 | [`../sprint/A7/tracks/`](../sprint/A7/tracks/) | 8 |
 | A8 | [`../sprint/A8/tracks/`](../sprint/A8/tracks/) | 1 |
-| A11 (sprint atual) | [`../sprint/A11/tracks/`](../sprint/A11/tracks/) | 21 |
+| A11 | [`../sprint/A11/tracks/`](../sprint/A11/tracks/) | 21 |
+| A20 (sprint atual) | [`../sprint/A20/tracks/`](../sprint/A20/tracks/) | 6 |
 | F7 | [`../sprint/F7/tracks/`](../sprint/F7/tracks/) | 1 |
 | F9 | [`../sprint/F9/tracks/`](../sprint/F9/tracks/) | 12 |
 | W5 (Onda 5 do A11) | [`../sprint/W5/tracks/`](../sprint/W5/tracks/) | 4 |
 | W6 (Onda 6 do A11) | [`../sprint/W6/tracks/`](../sprint/W6/tracks/) | 2 |
 
-**Total:** 62 tracks migrados.
+**Total:** 62 tracks migrados (F3) + 6 tracks A20 criados 2026-05-29.
 
 ## Pickup — onde olhar agora
 

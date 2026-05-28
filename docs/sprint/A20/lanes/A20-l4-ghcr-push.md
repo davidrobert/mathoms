@@ -206,4 +206,4 @@ deploy.
 
 ## Detalhe operacional
 
-Track prompt opcional em `docs/agent_prompts/track_a20_<slug>.md` quando a lane for pickedup — segue padrão dos sprints anteriores.
+Track prompt em [`../tracks/a20-l4-ghcr-push.md`](../tracks/a20-l4-ghcr-push.md) (criado 2026-05-29; pós-F3/ADR-182 tracks vivem em `docs/sprint/<X>/tracks/`).
