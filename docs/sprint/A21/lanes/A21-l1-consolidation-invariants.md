@@ -4,7 +4,7 @@ type: lane
 title: "Suíte de invariantes de consolidação INV-1..9 (E1.5c)"
 sprint: A21
 plan: PLAN-launch-trust
-status: open
+status: in_progress
 priority: P0
 branch_slug: a21-l1-consolidation-invariants
 depends_on: []
@@ -62,6 +62,25 @@ Nove invariantes empíricos sobre o output de E1.5c, em
 - 9/9 invariantes verde em CI, **sem skip** (A21-KR1).
 - Roda contra o golden de l2 (esta lane pode começar com fixture mínima e
   endurecer quando l2 entregar o golden anotado).
+
+## Achado empírico (2026-05-30)
+
+A suíte rodou contra o caminho real `main_with_store`. Resultado:
+
+- **INV-1..8 verdes** sem mudança de produção (codificam propriedades do dedup
+  correto existente — ADR-246/271).
+- **INV-9 vermelho** → fix in-scope aplicado: pré-filtro `detect_pj_suffix` em
+  `consolidate_from_itens` (E1.5c). Co-design `data-engineer` + `senior-cto`
+  confirmou **extensão defense-in-depth** da [[ADR-268]] (não reabertura da
+  alternativa (B) rejeitada): A' cobre o read-path de payloads IRPF no E5; o
+  pré-filtro de E1.5c cobre o caminho do artifact **consolidado** que A' não
+  toca. ADR-268 ganhou nota de Extensão 2026-05-30 (b) + D2c + critérios 8-9.
+- **Bug secundário fechado** (catch do `data-engineer`): o override de
+  `resumo.total_ativos` (somado pelo LLM **com** o PJ) vazava R$4M no agregado
+  `patrimonio_por_ano` mesmo após dropar os itens. Suprimido quando
+  `pj_skipped > 0`; INV-9 estendido para assertar o agregado.
+- **Golden de execução** (`tests/test_e15c_golden_execution.py`): run canônico
+  + contrato de saída do E5. Fixture mínima — l2 endurece com o golden anotado.
 
 ## Dependências e follow-up
 

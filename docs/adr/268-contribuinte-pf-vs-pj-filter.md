@@ -40,6 +40,21 @@ tags:
 > determinístico **pós-LLM sem raise** + filtro no read boundary. Detalhe nas
 > seções Decisão, D2, Alternativas e Critério de aceite, atualizadas abaixo.
 
+> **Extensão 2026-05-30 (b) — boundary de consolidação E1.5c (A21.l1, INV-9).**
+> O read-filter `partition_irpf_payloads` (A') cobre o read path dos **payloads
+> IRPF (E1.6)** no E5, mas existe um **segundo caminho de dados** que ele não
+> intercepta: o artifact **consolidado** `baseline_patrimonial` que o E1.5c
+> (`consolidate_from_itens`) escreve a partir de `itens[]` — que ainda inclui o
+> item PJ, porque E1.6 só marca `needs_review` (não dropa). A própria seção
+> Contexto já diagnosticava essa contaminação (*"consolidate_from_itens agrupa
+> 4 itens dessa 'pessoa' no patrimônio"*) sem fechá-la. A suíte de invariantes
+> da A21.l1 (INV-9) provou empiricamente o vazamento (R$4M no agregado). Fix:
+> `detect_pj_suffix` como **pré-filtro no E1.5c** (o reader que origina o
+> consolidado) — defense-in-depth, **não** substituto de A'. Cada boundary
+> filtra o caminho que ele de fato origina; `itens[]` permanece **fiel** ao
+> extraído (mesmo princípio de A', que não contamina o artifact E1.6). Detalhe
+> em D2c + Alternativa (B) + Critério de aceite 8-9.
+
 ## Contexto
 
 Workspace founder dogfood, run `f66b519e-…`: o extractor E1.6 (`extract_irpf_full`) extraiu 10 IRPFs, sendo **1 com `Contribuinte.nome = "DAVID ROBERT CAMARGO DE CAMPOS LTDA"`** (n_bens=4). Razão social com sufixo `LTDA` indica **Pessoa Jurídica**, não Pessoa Física — IRPF é declaração de PF.
@@ -110,6 +125,36 @@ Payloads válidos seguem para a análise; os pulados emitem
 `logger.warning("irpf_payload_skipped", extra={"artifact_key", "reason"})`. Função
 pura (sem I/O); o caller emite a telemetria.
 
+### D2c — Comportamento no boundary de consolidação (E1.5c)
+
+`consolidate_from_itens` (`scripts/e15_consolidate.py`) lê o baseline flat
+`itens[]` — que **ainda contém** o item PJ (E1.6 só sinaliza, não dropa) — e
+escreve o artifact consolidado `baseline_patrimonial` que o E5 também consome.
+A' não toca esse caminho. Pré-filtro no início do loop, **antes** de resolver
+membro:
+
+```python
+if detect_pj_suffix(item.get("membro") or ""):
+    pj_skipped += 1
+    continue
+```
+
+Dois cuidados de contrato:
+
+1. **Agregado.** O `resumo.total_ativos`/`total_passivos` do LLM **somou o PJ**
+   na extração; o consolidador o usa por padrão (mais confiável p/
+   arredondamento). Quando `pj_skipped > 0`, esse override é **suprimido** e o
+   agregado usa a soma recomputada dos itens PF-only — senão `patrimonio_por_ano`
+   herdaria o valor PJ mesmo após dropar os itens (vazamento parcial silencioso).
+2. **`itens[]` fiel.** O filtro vive no **reader** (E1.5c), não no produtor
+   (`extract_baseline`/E1.5). `itens[]` permanece fiel ao extraído — mesmo
+   princípio de A' (não contaminar o artifact E1.6). Dois readers PJ-aware (E5
+   payloads + E1.5c itens) compartilham a **mesma** função `detect_pj_suffix`;
+   sem duplicação de regra.
+
+Telemetria: `log_stage("WARN", "pj_contribuinte_skipped (E1.5c): N item(ns)")`,
+paralela a `rejected_pj` (write) e `irpf_payload_skipped` (read).
+
 ### D3 — Out of scope
 
 - **Detecção em E0** — não tocada nesta ADR. Se o documento é de fato PJ (IRPJ, balancete), classificação correta em E0 evitaria o problema upstream. Lane futura.
@@ -168,12 +213,14 @@ Console interno (ADR-116) pode ganhar card "Documentos sinalizados como PJ" no d
 5. **Padrões cobertos** — LTDA, S.A., S A, SA, EIRELI, MEI, ME, EPP, SOCIEDADE, ASSOCIAÇÃO, FUNDAÇÃO, COOPERATIVA. Cada um com test unitário.
 6. **Word boundary** — `"FERNANDA EME"` (PF legítima) NÃO casa `ME` parcial.
 7. **Telemetria** — `rejected_pj` (write) e `irpf_payload_skipped` (read) emitidos.
+8. **E1.5c não vaza PJ (itens)** — `consolidate_from_itens` sobre `itens[]` com 1 membro PJ não produz nenhum item com `proprietario` casando `detect_pj_suffix`; o ativo PF legítimo sobrevive (INV-9, A21.l1).
+9. **E1.5c não vaza PJ (agregado)** — com `resumo.total_ativos` contaminado pelo valor PJ, `patrimonio_por_ano[ano].total_bens` reflete apenas o PF (override de `resumo` suprimido quando `pj_skipped > 0`).
 
 ## Alternativas consideradas
 
 - **(A) `field_validator` que `raise` no schema** (v1, **revertido** — ver Revisão 2026-05-30): parecia "falha cedo, mensagem clara", mas validators Pydantic disparam em **todo** `model_validate`, inclusive no read de artifact persistido — brickou `analyze_finances` e disparou retry storm no write. Anti-padrão [[ADR-238]].
 - **(A') Guardrail determinístico pós-LLM + read-boundary filter** (escolhido): mesma detecção (regex), mas como função pura sem raise. Write sinaliza `needs_review`; read filtra. Não acopla regra de domínio ao boundary de (de)serialização.
-- **(B) Filtrar downstream em E1.5c** (rejeitado): contamina artifacts E1.6 com declarations falsas; consolidador precisa lógica de filtro espalhada. (O filtro de E5 em A' é centralizado, não espalhado.)
+- **(B) Filtrar downstream em E1.5c** (rejeitado como mecanismo **único**; adotado como **defense-in-depth** na Extensão 2026-05-30 (b)): a objeção original — "consolidador precisa lógica de filtro espalhada" — valia para (B) como *substituto* de A'. O diagnóstico posterior (INV-9) mostrou que A' não cobre o caminho do artifact consolidado que o E1.5c origina. Adotar o pré-filtro em E1.5c como **segunda linha** (não substituto) honra a rejeição: cada boundary filtra o caminho que de fato origina, via a mesma função `detect_pj_suffix` (sem regra duplicada). Ver D2c.
 - **(C) Detecção em E0 (classificador)** (parallel, out of scope): exige LLM ou heurística avançada para detectar documento PJ. Lane futura.
 - **(D) `Optional[Contribuinte]`** (rejeitado): trata `None` como ausência, mas a ausência já é capturada por outro caminho. Adicionar nullable complica downstream consumers.
 
@@ -181,5 +228,6 @@ Console interno (ADR-116) pode ganhar card "Documentos sinalizados como PJ" no d
 
 - **v1 (merged)**: `field_validator("nome")` em `Contribuinte` (`PROMPT_VERSION e16-v1.1.1`).
 - **Revisão (merged)**: remove o validator; `detect_pj_suffix` + `_flag_pj_contribuinte` (E1.6) + `partition_irpf_payloads` (read boundary E5); `PROMPT_VERSION e16-v1.1.2`.
+- **Extensão E1.5c (A21.l1)**: pré-filtro `detect_pj_suffix` em `consolidate_from_itens` + supressão do override de `resumo` quando há PJ filtrado; coberto por INV-8/9 da suíte de invariantes de consolidação. Defense-in-depth no boundary que origina o artifact consolidado.
 - **Follow-up** (lane separada): detecção upstream em E0/document_classification — tunar classificador para rejeitar `irpfdeclaracao` quando documento é IRPJ/balancete/contrato social.
 - **Flip ADR-268 → Decidido** após o workspace founder reprocessar e mostrar Mariana+David como únicos membros (sem LTDA contaminante) e `analyze_finances` rodar verde.
