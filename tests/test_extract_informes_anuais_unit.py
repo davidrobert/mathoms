@@ -41,6 +41,10 @@ from pipeline.stages.extract_informes_anuais import (
         ("itausa_acoes_2024.pdf", "proventos_acoes"),  # L4 holding
         ("c6bank_extratoconta_202601.csv", None),
         ("declaracao_irpf_2024.pdf", None),
+        # Aluguel tem stage dedicado (extract_informe_aluguel) — não deve casar
+        # financeiro_pf apesar do substring `informerendimentos` (incidente dogfood).
+        ("itau_informerendimentosaluguel_2025.pdf", None),
+        ("informerendimentosaluguel_imobiliaria_2024.pdf", None),
     ],
 )
 def test_detect_tipo_informe(filename, expected):

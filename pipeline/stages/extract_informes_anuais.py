@@ -123,9 +123,19 @@ def _content_hash(doc: Path) -> str:
     return h.hexdigest()
 
 
+# Informe de aluguel tem stage dedicado (extract_informe_aluguel · ADR-216) com
+# schema próprio. Seu filename `informerendimentosaluguel` contém o substring
+# `informerendimentos` (token financeiro_pf) — sem este guard, este stage o
+# reclassifica como financeiro_pf, o LLM não popula nenhum dos 4 quadros RFB e
+# `_ao_menos_um_quadro_nao_vazio` hard-falha após 4 retries (incidente dogfood).
+_ALUGUEL_EXCLUSIVE_TOKEN = "informerendimentosaluguel"
+
+
 def _detect_tipo_informe(filename: str) -> str | None:
     """Detecta tipo_informe pelo filename (lowercase) — None se nenhum tipo casar."""
     lowered = filename.lower()
+    if _ALUGUEL_EXCLUSIVE_TOKEN in lowered:
+        return None
     for tipo, tokens in _TIPO_FILENAME_TOKENS.items():
         if any(token in lowered for token in tokens):
             return tipo
