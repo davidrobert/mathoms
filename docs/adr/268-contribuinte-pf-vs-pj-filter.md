@@ -26,7 +26,19 @@ tags:
 
 # ADR-268 — Filtro PF vs PJ no Contribuinte do IRPF
 
-**Status:** Proposto • **Data:** 2026-05-24 • **Relaciona** [[ADR-157]] (E1.6 extract_irpf_full), [[ADR-243]] (MemberNameResolver), [[ADR-266]] (IRPF completude tri-state), [[ADR-267]] (membro identity por CPF).
+**Status:** Proposto • **Data:** 2026-05-24 • **Relaciona** [[ADR-157]] (E1.6 extract_irpf_full), [[ADR-238]] (data_adesao não é hard-fail), [[ADR-243]] (MemberNameResolver), [[ADR-266]] (IRPF completude tri-state), [[ADR-267]] (membro identity por CPF).
+
+> **Revisão 2026-05-30.** A v1 desta ADR (mecanismo: `field_validator` em
+> `Contribuinte.nome` que `raise ValidationError`) shipou em `PROMPT_VERSION
+> e16-v1.1.1`. Em dogfood o validator **brickou o stage `analyze_finances`**:
+> ele dispara em **todo** `model_validate`, inclusive na desserialização de
+> artifacts persistidos no **read path** de E5 (`IRPFAnalyzer.from_payloads`).
+> 1 IRPF-PJ legado abortava o stage inteiro em 0,4s; o segundo reader descartava
+> os 10 IRPFs silenciosamente. Mesmo anti-padrão da [[ADR-238]] (hard-fail em
+> dado que o mundo real produz). Esta revisão **mantém a decisão de produto**
+> (razão social PJ não é contribuinte PF) mas **troca o mecanismo**: guardrail
+> determinístico **pós-LLM sem raise** + filtro no read boundary. Detalhe nas
+> seções Decisão, D2, Alternativas e Critério de aceite, atualizadas abaixo.
 
 ## Contexto
 
@@ -43,36 +55,60 @@ Downstream:
 
 ## Decisão
 
-Validação no boundary do schema Pydantic `Contribuinte.nome` (`pipeline/llm/schemas/e16_irpf_full.py`): rejeitar se o nome contém sufixo conhecido de PJ.
+Detecção determinística de razão social PJ em `Contribuinte.nome` via helper puro
+`detect_pj_suffix` (`pipeline/llm/schemas/e16_irpf_full.py`), consumido em **dois
+pontos sem raise**: (1) E1.6 marca o artifact `needs_review=True` + telemetria; (2)
+read boundary de E5 (`partition_irpf_payloads`) exclui a declaração PJ da análise.
+
+**Princípio (schema evolution):** um guard de domínio write-time **não pode** viver
+como `field_validator` que `raise` num model de **artifact persistido**. Validators
+Pydantic disparam em todo `model_validate` — incluindo a desserialização no read.
+Um artifact escrito antes do guard (ou via incremental) passa a quebrar o read em
+reprocess. Guard de domínio → função pura chamada explicitamente onde faz sentido,
+não validator de schema acoplado ao boundary de (de)serialização.
 
 ### D1 — Lista de sufixos PJ
 
-Whitelist conservadora (RFB §1.094 + §1.052 do código civil + variantes comerciais):
+Whitelist conservadora (RFB §1.094 + §1.052 do código civil + variantes comerciais),
+compilada como regex único `_PJ_SUFFIX_RE` (`pipeline/llm/schemas/e16_irpf_full.py`):
 
 ```python
-_PJ_SUFFIX_PATTERNS = (
-    r"\bLTDA\b",         # Limitada (95% das PJs)
-    r"\bS\.?\s*A\.?\b",  # Sociedade Anônima (S.A., S A, SA)
-    r"\bEIRELI\b",       # Empresa Individual de Responsabilidade Limitada
-    r"\bMEI\b",          # Microempreendedor Individual
-    r"\bME\b",           # Microempresa
-    r"\bEPP\b",          # Empresa de Pequeno Porte
-    r"\bSOCIEDADE\b",    # Sociedade (Simples, Civil, etc.)
-    r"\bASSOCIAÇÃO\b",   # Associações também são PJ
-    r"\bFUNDAÇÃO\b",     # Fundações
-    r"\bCOOPERATIVA\b",
+_PJ_SUFFIX_RE = re.compile(
+    r"\b(?:LTDA|S\.?\s*A\.?|EIRELI|MEI|ME|EPP|SOCIEDADE|"
+    r"ASSOCIA[CÇ][AÃ]O|FUNDA[CÇ][AÃ]O|COOPERATIVA)\b",
+    re.IGNORECASE,
 )
 ```
 
-Match case-insensitive, com `\b` para evitar match em substring (ex.: `"SA"` em `"SARA"`).
+Cobre: LTDA (Limitada), S.A./S A/SA (Sociedade Anônima), EIRELI, MEI, ME, EPP,
+SOCIEDADE, ASSOCIAÇÃO/ASSOCIACAO, FUNDAÇÃO/FUNDACAO, COOPERATIVA. Match
+case-insensitive, com `\b` para evitar substring (ex.: `"SA"` em `"SARA"`).
 
-### D2 — Comportamento na detecção
+### D2 — Comportamento na detecção (write — E1.6)
 
-Quando `Contribuinte.nome` casa qualquer padrão PJ:
+Quando `detect_pj_suffix(Contribuinte.nome)` casa um padrão PJ no `extract_irpf_full`:
 
-1. **Pydantic ValidationError** com mensagem clara: `"nome contém sufixo de Pessoa Jurídica ('LTDA'). Contribuinte do IRPF deve ser Pessoa Física — verificar classificação E0 do documento."`
-2. O `extract_irpf_full` stage trata erro de validação como `needs_review` (padrão regex→LLM→needs_review da [[ADR-081]]) — não cria artifact.
-3. Telemetria: log JSON `mathoms.pipeline.extract_irpf_full.rejected_pj` com `document_id`, `nome_offender`, `pattern_matched`.
+1. **Sem raise.** O modelo desserializa normalmente — documento genuinamente PJ não
+   é erro de extração do LLM; `raise` dispararia retry storm no `instructor`
+   (`max_retries=3`), anti-padrão [[ADR-238]].
+2. `payload["needs_review"] = True` (padrão regex→LLM→needs_review da [[ADR-081]]).
+   O **artifact ainda é persistido** — fica inerte, sinalizado para revisão humana.
+3. Telemetria: `logger.warning("rejected_pj", ...)` (logger `mathoms.pipeline.extract_irpf_full`)
+   com `workspace_id`, `doc` (filename PII-redacted), `pattern_matched`.
+
+### D2b — Comportamento no read boundary (E5)
+
+`partition_irpf_payloads(payloads, keys)` (`pipeline/domain/services/irpf_analyzer.py`)
+é o filtro único compartilhado pelos **dois** readers de E5 (`e5_analyzer_adapter` e
+`scripts/e5_analyze`), que antes divergiam. Para cada payload exclui:
+
+- **PJ** (`detect_pj_suffix` casou) → razão `pj_contribuinte`;
+- **schema-inválido** (`model_validate` levanta) → razão `invalid_schema` — resiliência
+  a schema evolution / artifact legado: 1 artifact ruim não derruba o stage.
+
+Payloads válidos seguem para a análise; os pulados emitem
+`logger.warning("irpf_payload_skipped", extra={"artifact_key", "reason"})`. Função
+pura (sem I/O); o caller emite a telemetria.
 
 ### D3 — Out of scope
 
@@ -84,8 +120,8 @@ Quando `Contribuinte.nome` casa qualquer padrão PJ:
 
 Nomes PF que contêm substring batendo padrão PJ:
 
-- `"MARIA SILVA SANTOS LTDA"` — improvável (PF não usa "LTDA"), mas se acontecer, rejeita corretamente como PJ.
-- `"JOSÉ DA SOCIEDADE"` — `\bSOCIEDADE\b` casa. Possível falso positivo em nome incomum. Trade-off aceito: nome com "SOCIEDADE" raro em PF; rejeitar é mais seguro.
+- `"MARIA SILVA SANTOS LTDA"` — improvável (PF não usa "LTDA"), mas se acontecer, marca `needs_review` (não bloqueia; humano decide).
+- `"JOSÉ DA SOCIEDADE"` — `\bSOCIEDADE\b` casa. Possível falso positivo em nome incomum. Trade-off aceito: como o guardrail apenas sinaliza (não raise), o custo de um falso positivo é uma revisão humana, não perda de dado.
 - `"FERNANDA EME"` — `\bME\b` casa só com `EME` se `\b` falhar. Regex usa word boundary; `EME` é uma palavra, `ME` é outra — não bate. Safe.
 
 Não há regex perfeito; whitelist conservadora cobre 99%+ dos casos reais.
@@ -105,36 +141,45 @@ Não há regex perfeito; whitelist conservadora cobre 99%+ dos casos reais.
 
 ## Observabilidade
 
-`mathoms.pipeline.extract_irpf_full.rejected_pj`:
+Write (E1.6) — `logger.warning("rejected_pj")`:
 
 ```json
 {
   "workspace_id": "<uuid>",
-  "document_id": "<uuid>",
-  "nome_offender": "<redacted-pii-safe-prefix>",
+  "doc": "<filename-pii-redacted>",
   "pattern_matched": "LTDA"
 }
 ```
 
-Console interno (ADR-116) ganha card "Documentos rejeitados como PJ" no dashboard de healthcheck.
+Read (E5) — `logger.warning("irpf_payload_skipped")`:
+
+```json
+{ "artifact_key": "irpfdeclaracao_<ano>", "reason": "pj_contribuinte" }
+```
+
+Console interno (ADR-116) pode ganhar card "Documentos sinalizados como PJ" no dashboard de healthcheck.
 
 ## Critério de aceite
 
-1. **PJ rejeitada** — `Contribuinte(nome="DAVID ROBERT CAMARGO DE CAMPOS LTDA", ...)` levanta `ValidationError` com mensagem citando o padrão casado.
-2. **PF aceita** — `Contribuinte(nome="DAVID ROBERT CAMARGO FERREIRA CAMPOS", ...)` constrói sem erro.
-3. **Padrões cobertos** — LTDA, S.A., S A, SA, EIRELI, MEI, ME, EPP, SOCIEDADE, ASSOCIAÇÃO, FUNDAÇÃO, COOPERATIVA. Cada um com test unitário.
-4. **Word boundary** — `"FERNANDA EME"` (PF legítima) NÃO é rejeitada por casar `ME` parcial.
-5. **Telemetria** — log JSON `mathoms.pipeline.extract_irpf_full.rejected_pj` emitido (com PII redacted no nome).
+1. **PJ detectada, sem raise** — `detect_pj_suffix("DAVID ROBERT CAMARGO DE CAMPOS LTDA")` retorna `"LTDA"`; construir/`model_validate` o `IRPFFullOutput` com esse nome **nunca** levanta (a desserialização do artifact persistido sobrevive).
+2. **PF não detectada** — `detect_pj_suffix("DAVID ROBERT CAMARGO FERREIRA CAMPOS")` retorna `None`.
+3. **E1.6 sinaliza** — stage com IRPF-PJ persiste o artifact com `needs_review=True` e **1 chamada LLM** (sem retry storm).
+4. **E5 sobrevive a PJ** — `partition_irpf_payloads` exclui o payload PJ + os schema-inválidos e mantém os válidos; o analyzer roda sem abortar mesmo com 1 IRPF-PJ no conjunto.
+5. **Padrões cobertos** — LTDA, S.A., S A, SA, EIRELI, MEI, ME, EPP, SOCIEDADE, ASSOCIAÇÃO, FUNDAÇÃO, COOPERATIVA. Cada um com test unitário.
+6. **Word boundary** — `"FERNANDA EME"` (PF legítima) NÃO casa `ME` parcial.
+7. **Telemetria** — `rejected_pj` (write) e `irpf_payload_skipped` (read) emitidos.
 
 ## Alternativas consideradas
 
-- **(A) Validador no schema Pydantic** (escolhido): boundary explícito, falha cedo, mensagem clara. Fácil de testar.
-- **(B) Filtrar downstream em E1.5c** (rejeitado): contamina artifacts E1.6 com declarations falsas; consolidador precisa lógica de filtro espalhada.
+- **(A) `field_validator` que `raise` no schema** (v1, **revertido** — ver Revisão 2026-05-30): parecia "falha cedo, mensagem clara", mas validators Pydantic disparam em **todo** `model_validate`, inclusive no read de artifact persistido — brickou `analyze_finances` e disparou retry storm no write. Anti-padrão [[ADR-238]].
+- **(A') Guardrail determinístico pós-LLM + read-boundary filter** (escolhido): mesma detecção (regex), mas como função pura sem raise. Write sinaliza `needs_review`; read filtra. Não acopla regra de domínio ao boundary de (de)serialização.
+- **(B) Filtrar downstream em E1.5c** (rejeitado): contamina artifacts E1.6 com declarations falsas; consolidador precisa lógica de filtro espalhada. (O filtro de E5 em A' é centralizado, não espalhado.)
 - **(C) Detecção em E0 (classificador)** (parallel, out of scope): exige LLM ou heurística avançada para detectar documento PJ. Lane futura.
 - **(D) `Optional[Contribuinte]`** (rejeitado): trata `None` como ausência, mas a ausência já é capturada por outro caminho. Adicionar nullable complica downstream consumers.
 
 ## Próximos passos
 
-- **PR (este escopo)**: validador `field_validator("nome")` em `Contribuinte` + 5 testes (PJ rejected casos + PF accepted + edge case word boundary) + ADR-268.
+- **v1 (merged)**: `field_validator("nome")` em `Contribuinte` (`PROMPT_VERSION e16-v1.1.1`).
+- **Revisão (merged)**: remove o validator; `detect_pj_suffix` + `_flag_pj_contribuinte` (E1.6) + `partition_irpf_payloads` (read boundary E5); `PROMPT_VERSION e16-v1.1.2`.
 - **Follow-up** (lane separada): detecção upstream em E0/document_classification — tunar classificador para rejeitar `irpfdeclaracao` quando documento é IRPJ/balancete/contrato social.
-- **Flip ADR-268 → Decidido** após PR2 ADR-267 + este PR mergearem e workspace founder mostrar Mariana+David como únicos membros (sem LTDA contaminante).
+- **Flip ADR-268 → Decidido** após o workspace founder reprocessar e mostrar Mariana+David como únicos membros (sem LTDA contaminante) e `analyze_finances` rodar verde.

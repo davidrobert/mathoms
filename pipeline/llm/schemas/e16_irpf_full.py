@@ -14,16 +14,31 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 # Bump quando alterar o prompt ``e16_irpf_full`` de modo que afete output.
 # v1.1.0 (ADR-215): + extração de `contribuinte.endereco` (signal pré-seleção residência).
 # v1.1.1 (ADR-268): rejeita Contribuinte.nome com sufixo PJ (LTDA/S.A./EIRELI...).
-PROMPT_VERSION = "e16-v1.1.1"
+# v1.1.2 (ADR-268 rev): sufixo PJ vira sinal needs_review (guardrail pós-LLM
+#   ``detect_pj_suffix``), não validator de schema — raise brickava read de E5.
+PROMPT_VERSION = "e16-v1.1.2"
 
-# ADR-268 — filtro PF vs PJ no Contribuinte.nome. IRPF é declaração de PF;
-# nome com sufixo de personificação jurídica (LTDA, S.A., EIRELI, ME, EPP,
+# ADR-268 (rev) — detecção PF vs PJ no Contribuinte.nome. IRPF é declaração de
+# PF; nome com sufixo de personificação jurídica (LTDA, S.A., EIRELI, ME, EPP,
 # MEI, SOCIEDADE, ASSOCIAÇÃO, FUNDAÇÃO, COOPERATIVA) indica documento PJ
-# mal-classificado em E0. Rejeita no boundary do schema.
+# mal-classificado em E0. NÃO é validator de schema que raise: documento
+# genuinamente PJ não é erro de extração do LLM — raise dispararia retry storm
+# no write (anti-padrão [[ADR-238]]) e brickaria a desserialização de artifacts
+# persistidos no read (E5). Usado como guardrail determinístico pós-extração.
 _PJ_SUFFIX_RE = re.compile(
     r"\b(?:LTDA|S\.?\s*A\.?|EIRELI|MEI|ME|EPP|SOCIEDADE|ASSOCIA[CÇ][AÃ]O|FUNDA[CÇ][AÃ]O|COOPERATIVA)\b",
     re.IGNORECASE,
 )
+
+
+def detect_pj_suffix(nome: str | None) -> str | None:
+    """Sufixo PJ casado (ex.: ``'LTDA'``) ou ``None`` — guardrail ADR-268
+    consumido por E1.6 (flag ``needs_review``) e read boundary de E5.
+    """
+    if not nome:
+        return None
+    m = _PJ_SUFFIX_RE.search(nome)
+    return m.group() if m else None
 
 
 # =============================================================================
@@ -164,19 +179,6 @@ class Contribuinte(_SubModel):
     # residência (pode ser PJ, casa dos pais, corretora). Lazy fill:
     # IRPFs anteriores ficam None até re-rodar E1.6 com prompt v1.1.0+.
     endereco: Optional[str] = Field(default=None, min_length=1)
-
-    @field_validator("nome")
-    @classmethod
-    def _reject_pj_suffix(cls, v: str) -> str:
-        """ADR-268: bloqueia razão social (LTDA, S.A., EIRELI, etc.) como nome PF."""
-        m = _PJ_SUFFIX_RE.search(v)
-        if m:
-            raise ValueError(
-                f"nome contém sufixo de Pessoa Jurídica ({m.group()!r}). "
-                "Contribuinte do IRPF deve ser Pessoa Física — verificar "
-                "classificação E0 do documento (provável IRPJ/balancete/contrato)."
-            )
-        return v
 
 
 class FontePagadoraPJ(_SubModel):
@@ -354,6 +356,7 @@ class IRPFFullOutput(_TopModel):
 
 __all__ = [
     "PROMPT_VERSION",
+    "detect_pj_suffix",
     "ModeloDeclaracao",
     "NaturezaContribuinte",
     "RelacaoDependente",

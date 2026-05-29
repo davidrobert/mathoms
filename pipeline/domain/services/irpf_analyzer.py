@@ -112,6 +112,39 @@ def _payload_to_model(d: dict) -> IRPFFullOutput:
     return IRPFFullOutput.model_validate(d)
 
 
+def _irpf_skip_reason(payload: dict) -> str | None:
+    """Razão de pular o payload E1.6 (PJ via ADR-268 ou schema-inválido), ou None."""
+    from pipeline.llm.schemas.e16_irpf_full import detect_pj_suffix
+
+    nome = (payload.get("contribuinte") or {}).get("nome")
+    if detect_pj_suffix(nome):
+        return "pj_contribuinte"
+    try:
+        _payload_to_model(payload)
+    except Exception:
+        return "invalid_schema"
+    return None
+
+
+def partition_irpf_payloads(
+    payloads: list[dict], keys: list[str]
+) -> tuple[list[dict], list[str], list[tuple[str, str]]]:
+    """Separa payloads E1.6 válidos dos pulados; exclui PJ (ADR-268) e
+    schema-inválido p/ 1 artifact ruim não derrubar o stage. Caller loga skipped.
+    """
+    valid_payloads: list[dict] = []
+    valid_keys: list[str] = []
+    skipped: list[tuple[str, str]] = []
+    for payload, key in zip(payloads, keys):
+        reason = _irpf_skip_reason(payload)
+        if reason:
+            skipped.append((key, reason))
+        else:
+            valid_payloads.append(payload)
+            valid_keys.append(key)
+    return valid_payloads, valid_keys, skipped
+
+
 def _wrap_fragments(
     decls: list[IRPFFullOutput], tie_break_keys: list[str] | None
 ) -> list[IrpfFragment]:

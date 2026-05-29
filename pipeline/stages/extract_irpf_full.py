@@ -123,6 +123,27 @@ def _build_payload(output, validation, prompt_version: str) -> dict:
     return payload
 
 
+def _flag_pj_contribuinte(payload: dict, ws_id: str, doc_name: str) -> None:
+    """ADR-268 (rev): contribuinte PJ → ``needs_review`` sem raise — doc PJ não é
+    erro do LLM; raise dispararia retry storm ([[ADR-238]]). Marca + telemetria.
+    """
+    from pipeline.llm.schemas.e16_irpf_full import detect_pj_suffix
+
+    nome = (payload.get("contribuinte") or {}).get("nome")
+    pattern = detect_pj_suffix(nome)
+    if not pattern:
+        return
+    payload["needs_review"] = True
+    logger.warning(
+        "rejected_pj",
+        extra={
+            "workspace_id": ws_id,
+            "doc": _redact_filename_pii(doc_name),
+            "pattern_matched": pattern,
+        },
+    )
+
+
 def _scan_unknown_top_level_fields(payload: dict, ws_id: str) -> None:
     """ADR-157 sub-decisão 4: WARNING quando top-level traz campo desconhecido."""
     for k in payload.keys():
@@ -196,6 +217,7 @@ def _persist_and_accumulate(
 ) -> None:
     store = ctx.get_artifact_store()
     _log_run(doc.name, ws_id, payload, result)
+    _flag_pj_contribuinte(payload, ws_id, doc.name)
     _scan_unknown_top_level_fields(payload, ws_id)
     _emit_phase(ctx, doc.name, idx, total, "persisting")
     store.write("extract_irpf_full", _artifact_key_for(doc), payload)

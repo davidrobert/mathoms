@@ -11,7 +11,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
+from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer, partition_irpf_payloads
 from pipeline.llm.schemas.e16_irpf_full import (
     PROMPT_VERSION,
     CodigoPagamentoDedutivel,
@@ -31,6 +31,7 @@ from pipeline.llm.schemas.e16_irpf_full import (
     RendimentoExterior,
     RendimentoIsento,
     RendimentoTribExclusiva,
+    detect_pj_suffix,
 )
 from pipeline.llm.validators import validate_e16_output
 
@@ -378,7 +379,8 @@ class TestPatrimonialItemDecimal:
 
 
 class TestContribuintePfVsPjFilter:
-    """ADR-268: Contribuinte.nome rejeita razão social (LTDA, S.A., etc.)."""
+    """ADR-268 (rev): ``detect_pj_suffix`` é guardrail pós-LLM, NÃO validator de
+    schema que raise — documento PJ não dispara retry (ADR-238) nem bricka read."""
 
     def _build(self, nome: str) -> Contribuinte:
         return Contribuinte(
@@ -390,75 +392,104 @@ class TestContribuintePfVsPjFilter:
             natureza=NaturezaContribuinte.titular,
         )
 
-    def test_pf_legitimate_accepted(self):
-        c = self._build("Pessoa Física Exemplo")
-        assert c.nome == "Pessoa Física Exemplo"
+    def test_pf_legitimate_not_detected(self):
+        assert detect_pj_suffix("Pessoa Física Exemplo") is None
 
-    def test_ltda_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Empresa Exemplo LTDA")
+    def test_construction_never_raises_on_pj(self):
+        """O modelo SEMPRE desserializa — guard moveu para fora do schema."""
+        c = self._build("Empresa Exemplo LTDA")
+        assert c.nome == "Empresa Exemplo LTDA"
 
-    def test_sa_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Empresa Exemplo S.A.")
+    def test_ltda_detected(self):
+        assert detect_pj_suffix("Empresa Exemplo LTDA") == "LTDA"
 
-    def test_sa_no_dots_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Empresa Exemplo SA")
+    def test_sa_detected(self):
+        assert detect_pj_suffix("Empresa Exemplo S.A.") is not None
 
-    def test_eireli_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Exemplo EIRELI")
+    def test_sa_no_dots_detected(self):
+        assert detect_pj_suffix("Empresa Exemplo SA") is not None
 
-    def test_mei_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Exemplo MEI")
+    def test_eireli_detected(self):
+        assert detect_pj_suffix("Exemplo EIRELI") is not None
 
-    def test_me_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Exemplo Comércio ME")
+    def test_mei_detected(self):
+        assert detect_pj_suffix("Exemplo MEI") is not None
 
-    def test_epp_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Exemplo EPP")
+    def test_me_detected(self):
+        assert detect_pj_suffix("Exemplo Comércio ME") is not None
 
-    def test_sociedade_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Pessoa Sociedade Civil")
+    def test_epp_detected(self):
+        assert detect_pj_suffix("Exemplo EPP") is not None
 
-    def test_associacao_rejected_with_accent(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Pessoa Associação Brasileira")
+    def test_sociedade_detected(self):
+        assert detect_pj_suffix("Pessoa Sociedade Civil") is not None
 
-    def test_associacao_rejected_without_accent(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Pessoa Associacao Brasileira")
+    def test_associacao_detected_with_accent(self):
+        assert detect_pj_suffix("Pessoa Associação Brasileira") is not None
 
-    def test_fundacao_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Pessoa Fundação Exemplo")
+    def test_associacao_detected_without_accent(self):
+        assert detect_pj_suffix("Pessoa Associacao Brasileira") is not None
 
-    def test_cooperativa_rejected(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("Pessoa Cooperativa Brasileira")
+    def test_fundacao_detected(self):
+        assert detect_pj_suffix("Pessoa Fundação Exemplo") is not None
 
-    def test_word_boundary_eme_not_rejected(self):
-        """'FERNANDA EME' contém ME como letras finais — word boundary protege."""
-        # `\bME\b` exige boundary antes E depois. "EME" termina em ME mas a
-        # palavra inteira é EME, então `\bME\b` NÃO casa "EME" como ME isolado.
-        c = self._build("Fernanda Eme Silva")  # "Eme" como sobrenome (raro mas válido)
-        assert c.nome == "Fernanda Eme Silva"
+    def test_cooperativa_detected(self):
+        assert detect_pj_suffix("Pessoa Cooperativa Brasileira") is not None
 
-    def test_word_boundary_sara_not_rejected(self):
-        """'SARA' não contém SA como palavra isolada."""
-        c = self._build("Sara Silva")
-        assert c.nome == "Sara Silva"
+    def test_word_boundary_eme_not_detected(self):
+        """'EME' termina em ME mas é palavra inteira — `\\bME\\b` não casa."""
+        assert detect_pj_suffix("Fernanda Eme Silva") is None
 
-    def test_real_world_david_ltda_rejected(self):
-        """Caso real do workspace founder dogfood — não pode entrar como contribuinte PF."""
-        with pytest.raises(ValueError, match="LTDA"):
-            self._build("Pessoa Empresa Exemplo LTDA")
+    def test_word_boundary_sara_not_detected(self):
+        assert detect_pj_suffix("Sara Silva") is None
+
+    def test_real_world_david_ltda_detected(self):
+        """Caso real do workspace founder dogfood — sinaliza PJ, não raise."""
+        assert detect_pj_suffix("David Robert Camargo de Campos LTDA") == "LTDA"
 
     def test_case_insensitive(self):
-        with pytest.raises(ValueError, match="Pessoa Jurídica"):
-            self._build("exemplo ltda")
+        assert detect_pj_suffix("exemplo ltda") is not None
+
+    def test_none_and_empty(self):
+        assert detect_pj_suffix(None) is None
+        assert detect_pj_suffix("") is None
+
+
+class TestPartitionIrpfPayloads:
+    """ADR-268 (rev): read boundary E5 pula PJ + schema-inválido sem derrubar o
+    stage — incidente 5@5.com (analyze_finances abortou em 1 artifact PJ)."""
+
+    def _pf_payload(self, ano_base: int = 2024) -> dict:
+        return _build_minimal(ano_base=ano_base).model_dump(mode="json")
+
+    def _pj_payload(self) -> dict:
+        p = self._pf_payload()
+        p["contribuinte"]["nome"] = "David Robert Camargo de Campos LTDA"
+        return p
+
+    def test_pj_payload_deserializes_without_raise(self):
+        """Regressão direta do crash: o payload PJ persistido reparseia OK."""
+        IRPFFullOutput.model_validate(self._pj_payload())
+
+    def test_pj_excluded_valid_kept(self):
+        payloads = [self._pf_payload(2023), self._pj_payload(), self._pf_payload(2024)]
+        keys = ["pf_2023", "pj_ltda", "pf_2024"]
+        valid_p, valid_k, skipped = partition_irpf_payloads(payloads, keys)
+        assert valid_k == ["pf_2023", "pf_2024"]
+        assert skipped == [("pj_ltda", "pj_contribuinte")]
+        assert len(valid_p) == 2
+
+    def test_invalid_schema_excluded(self):
+        valid_p, valid_k, skipped = partition_irpf_payloads(
+            [self._pf_payload(), {"contribuinte": {"nome": "X"}}],
+            ["good", "broken"],
+        )
+        assert valid_k == ["good"]
+        assert skipped == [("broken", "invalid_schema")]
+
+    def test_analyzer_survives_pj_via_partition(self):
+        """1 PJ não derruba a análise — os anos válidos sobrevivem."""
+        payloads = [self._pf_payload(2024), self._pj_payload()]
+        valid_p, valid_k, _ = partition_irpf_payloads(payloads, ["pf", "pj"])
+        analyzer = IRPFAnalyzer.from_payloads(valid_p, tie_break_keys=valid_k)
+        assert analyzer.anos_base_disponiveis() == [2024]

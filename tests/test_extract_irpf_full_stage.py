@@ -138,7 +138,7 @@ class TestExtractIrpfFullRun:
 
         persisted = ctx.get_artifact_store().read("extract_irpf_full", "irpfdeclaracaodavid2024")
         _assert_models_equal(persisted, fixture)
-        assert persisted["prompt_version"] == "e16-v1.1.1"
+        assert persisted["prompt_version"] == "e16-v1.1.2"
         assert persisted["confidence"] == fixture["confidence"]
 
     @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract")
@@ -221,6 +221,38 @@ class TestExtractIrpfFullReconcileFailure:
         assert any("divergente" in w for w in result["validation"]["warnings"])
         persisted = ctx.get_artifact_store().read("extract_irpf_full", "irpfdeclaracaobad2024")
         assert persisted["confidence"] == pytest.approx(0.7)
+        assert persisted["needs_review"] is True
+
+
+class TestExtractIrpfFullPjContribuinte:
+    """ADR-268 (rev): contribuinte PJ → needs_review SEM raise/retry (anti-padrão
+    ADR-238). O artifact é persistido com a flag; read boundary E5 o exclui."""
+
+    def _setup_pj(self, tmp_path: Path):
+        from pipeline.llm.schemas.e16_irpf_full import IRPFFullOutput
+
+        ctx = make_llm_ctx(tmp_path)
+        _seed_irpf_pdf(tmp_path, "irpfdeclaracaopj2024.pdf")
+        fixture = _load_fixture("completo")
+        fixture["contribuinte"]["nome"] = "David Robert Camargo de Campos LTDA"
+        fake = FakeStructuredLLMClient(output=IRPFFullOutput.model_validate(fixture))
+        return ctx, fake
+
+    @patch("pipeline.llm.text_extractor.DocumentTextExtractor.extract")
+    @patch("pipeline.llm.litellm_client.LLMService._ensure_client")
+    def test_pj_contribuinte_flags_needs_review_no_retry(
+        self, _mock_ensure, mock_extract, tmp_path
+    ):
+        ctx, fake = self._setup_pj(tmp_path)
+        mock_extract.return_value = "fake"
+
+        result = _run_with_fake(ctx, fake)
+
+        assert result["success"] is True
+        # Documento genuinamente PJ não dispara retry: 1 única chamada ao LLM.
+        assert fake.calls == 1
+        persisted = ctx.get_artifact_store().read("extract_irpf_full", "irpfdeclaracaopj2024")
+        assert persisted is not None
         assert persisted["needs_review"] is True
 
 
