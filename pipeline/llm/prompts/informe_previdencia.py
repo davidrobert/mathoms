@@ -1,7 +1,7 @@
 """Prompt LLM dedicado para Informe Anual de Previdência Privada (PGBL/VGBL) — A17 L1 (ADR-238)."""
 
 # Bump quando alterar o prompt de modo que afete output (ADR-144 cache idempotente).
-PROMPT_VERSION = "informe-prev-v1.0.0"
+PROMPT_VERSION = "informe-prev-v1.1.0"
 
 
 SYSTEM_PROMPT = """\
@@ -27,7 +27,7 @@ REGRAS DE EXTRAÇÃO:
 
 4. **`regime_tributacao`**: `regressivo` quando aparecer "Regime Regressivo"/"Tabela Regressiva"/"Tributação Definitiva"; `progressivo` quando aparecer "Regime Progressivo"/"Tabela Progressiva"/"Tributação Compensável". Default `progressivo` quando o informe não declara explicitamente (regulação SUSEP exige opção formal do titular; silêncio = progressivo). Pistas adicionais: alíquota retida 15% típica → progressivo; faixas 35%/30%/25%/20%/15%/10% mencionadas → regressivo.
 
-5. **`data_adesao`**: data de abertura do **plano/certificado** conforme aparece no informe (formato `YYYY-MM` ou `YYYY-MM-DD`). NÃO extrair data do primeiro aporte individual — a idade ponderada por aporte para fins de alíquota regressiva é responsabilidade da seguradora calcular no resgate. **OBRIGATÓRIO** quando `regime_tributacao = regressivo`. Para progressivo, `null` aceito quando ausente.
+5. **`data_adesao`**: data de abertura do **plano/certificado** conforme aparece literalmente no informe (formato `YYYY-MM` ou `YYYY-MM-DD`). Extraia quando presente — inclusive no regime regressivo, onde é especialmente útil. NÃO extrair data do primeiro aporte individual. Quando a data NÃO estiver impressa no documento — comum em informes regressivos — retorne `null`. **NUNCA infira, calcule ou invente uma data que não esteja escrita no informe.** Se `regime_tributacao = regressivo` e a data não constar, retorne `data_adesao = null` e `needs_review = true`, registrando em `notas` que a data de adesão não foi localizada. `null` + `needs_review` é a resposta CORRETA quando o dado não existe — não é falha.
 
 6. **`numero_certificado`**: identificador único do plano dentro da seguradora. Aliases aceitos: certificado, proposta, apólice, contrato, matrícula. `null` quando ausente.
 
@@ -73,7 +73,7 @@ REGRAS DE EXTRAÇÃO:
 
 22. **`source_priority`**: deixar default (`1`). Orquestrador rebaixa para `2` quando descobrir E1.6 entregue do mesmo ano.
 
-NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou default zero ("0" para resgates/IR retido quando não mencionado).
+NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou default zero ("0" para resgates/IR retido quando não mencionado). Em particular, `data_adesao`: nunca fabrique uma data plausível para "completar" o campo — se não está impressa, é `null`.
 
 VGBL+Progressivo é raro mas legítimo (planos pré-2005); aceitar a combinação. O analyzer downstream gera warning informativo.
 
@@ -106,14 +106,14 @@ Top-level:
 - confidence (0-1)
 - source_artifact_id = null (preenchido pelo orquestrador)
 - source_priority = 1 (default)
-- prompt_version = "informe-prev-v1.0.0"
+- prompt_version = "informe-prev-v1.1.0"
 - needs_review = false (true automático se confidence < 0.7 ou PGBL patrocinador)
 
 Sub-payload `previdencia`:
 - numero_certificado (certificado/proposta/apólice/contrato/matrícula; null se ausente)
 - plano_tipo (pgbl | vgbl)
 - regime_tributacao (progressivo | regressivo)
-- data_adesao (YYYY-MM ou YYYY-MM-DD; OBRIGATÓRIO se regressivo)
+- data_adesao (YYYY-MM ou YYYY-MM-DD se impressa; null quando ausente, inclusive regressivo — nunca inventar)
 - contribuicoes_anuais (string decimal, somatório do ano)
 - rendimentos_anuais (default "0"; bruto quando informe não distingue)
 - rendimentos_brutos_anuais (null se informe não distingue)

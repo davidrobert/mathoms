@@ -188,6 +188,51 @@ def test_build_payload_marks_needs_review_quando_confidence_baixo():
     assert payload["needs_review"] is True
 
 
+def _prev_output(**prev_overrides) -> "_FakeOutput":
+    """_FakeOutput de previdência PGBL com sub-payload sobrescrevível por kwargs."""
+    prev = {
+        "plano_tipo": "pgbl",
+        "regime_tributacao": "regressivo",
+        "data_adesao": None,
+        "contribuicoes_anuais": "1000.00",
+        "saldo_31_12": "50000.00",
+        "notas": None,
+    }
+    prev.update(prev_overrides)
+    return _FakeOutput(
+        {
+            "ano_base": 2024,
+            "tipo_informe": "previdencia_privada",
+            "confidence": 0.95,
+            "needs_review": False,
+            "previdencia": prev,
+        }
+    )
+
+
+def test_build_payload_regressivo_sem_adesao_marca_needs_review():
+    """ADR-238 V1: regressivo sem data_adesao → needs_review + nota; saldo preservado (incidente 2026-05-29)."""
+    out = _prev_output(regime_tributacao="regressivo", data_adesao=None)
+    payload = _build_payload(out, "informe-prev-v1.1.0", "Conteúdo sem CPF.", "stem")
+    assert payload["needs_review"] is True
+    assert "data_adesao" in payload["previdencia"]["notas"]
+    # saldo patrimonial preservado — invariante central
+    assert payload["previdencia"]["saldo_31_12"] == "50000.00"
+
+
+def test_build_payload_regressivo_com_adesao_nao_marca_review():
+    out = _prev_output(regime_tributacao="regressivo", data_adesao="2015-03")
+    payload = _build_payload(out, "informe-prev-v1.1.0", "texto", "stem")
+    assert payload["needs_review"] is False
+    assert payload["previdencia"]["notas"] is None
+
+
+def test_build_payload_progressivo_sem_adesao_nao_marca_review():
+    out = _prev_output(regime_tributacao="progressivo", data_adesao=None)
+    payload = _build_payload(out, "informe-prev-v1.1.0", "texto", "stem")
+    assert payload["needs_review"] is False
+
+
 def test_build_payload_extrai_e_mascara_cpf_em_python():
     """Gate financial-planner Q8: LLM nunca mascarara CPF — feito em Python pós-extração."""
     # CPF placeholder seguro (não-real, fora do padrão mod-11) — apenas para regex test.

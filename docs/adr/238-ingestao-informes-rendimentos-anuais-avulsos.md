@@ -216,3 +216,17 @@ Lane [[A17.l1]] entregue em 5 PRs sequenciais (P1 → P5), todos squash-mergeado
 - Plumbing `analyze_finances` (E5) consumindo `FiscalSource` para popular `data.tributario.pgbl_*` quando há informe sem E1.6 — hoje a UI renderiza `RendaPfZeradaNotice` mesmo com informe processado.
 - Eval golden update do parecer (reflexo da regra #9 prompt 1.1.0).
 - `source_artifact_id` promovido de string-stem para FK UUID (P3 cobertura content-based metadata).
+
+## Correção — `data_adesao` não é hard-fail em regressivo (incidente dogfood 2026-05-29)
+
+**Sintoma.** Stage `extract_informes_anuais` rodou 193.5s e abortou em informe real de previdência regressivo: `Output validation failed after 4 attempts: regime_tributacao=regressivo exige data_adesao (alíquota PEPS depende de anos_desde_adesao)`. Um `model_validator` em `InformePrevidenciaPayload` exigia `data_adesao` quando `regime_tributacao=regressivo`. O informe não imprimia a data de adesão (comum em informes regressivos), o LLM corretamente retornava `null`, e o validator transformava o erro Pydantic em retry — o harness LLM (`litellm_client`) tratou a falha de validação como retentável e queimou 4 chamadas (~193s) numa restrição insatisfazível.
+
+**Causa raiz.** O guard protegia um consumidor que **não existe**: o cálculo de alíquota regressiva PEPS (`anos_desde_adesao`) é V2 (ver Não-objetivos §"Tabela regressiva PGBL com precisão por aporte"). Exigir `data_adesao` destruía o informe inteiro — perdia `saldo_31_12` (patrimônio + IRPF código 97) por um insumo que ninguém consome em V1. Falso-positivo (patrimônio que some, silencioso) é pior que falso-negativo (alíquota imprecisa, visível e deferida).
+
+**Decisão.** `data_adesao` é **opcional em V1, inclusive no regime regressivo**:
+- Removido o `model_validator` que fazia hard-fail. `data_adesao` permanece `Optional[str]` com pattern `YYYY-MM(-DD)?`.
+- Regressivo sem `data_adesao` → **degradação graciosa**: `extract_informes_anuais._flag_regressivo_sem_adesao` marca `needs_review=true` e anexa nota ("alíquota PEPS indeterminada; saldo registrado (ADR-238 V1)"). O saldo é preservado.
+- Prompt LLM `informe-prev-v1.0.0 → v1.1.0`: removido "OBRIGATÓRIO quando regressivo" (induzia alucinação de data plausível); reforçado anti-alucinação ("se não está impressa, é `null`"; "`null` + `needs_review` é a resposta CORRETA"). Bump invalida cache idempotente ([[ADR-144]]).
+- V2 (alíquota PEPS): quando regressivo sem data, alíquota deve ser **indeterminada/intervalo (10%–35%)**, nunca chutar 35% — endossado por `financial-planner`.
+
+**Follow-up.** Eval golden live-LLM com duas classes — Classe A (informe com data → recall gate) e Classe B (informe sem data → precision gate: confirma `data_adesao=null` + `needs_review=true` sem alucinação). 100% sintético (sem PII). Fora do gate determinístico de CI; testes unitários determinísticos cobrem 100% da lógica de degradação (`tests/test_extract_informes_anuais_unit.py`, `tests/test_informe_previdencia_schema_unit.py`).

@@ -6,7 +6,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 def _coerce_decimal(v):
@@ -62,9 +62,11 @@ class InformePrevidenciaPayload(BaseModel):
         None,
         pattern=r"^\d{4}-\d{2}(-\d{2})?$",
         description=(
-            "Data de adesão ao plano (YYYY-MM ou YYYY-MM-DD). Necessária para "
-            "estimativa de alíquota efetiva no regime regressivo. None quando "
-            "ausente no informe."
+            "Data de adesão ao plano (YYYY-MM ou YYYY-MM-DD). Insumo de uma "
+            "estimativa de alíquota regressiva (PEPS) adiada para V2 (ADR-238). "
+            "Opcional em V1, inclusive no regime regressivo: muitos informes não "
+            "a imprimem e o saldo patrimonial não pode ser perdido por causa "
+            "dela. Ausente em regressivo → needs_review (degradação no stage)."
         ),
     )
     contribuicoes_anuais: Decimal = Field(
@@ -176,13 +178,8 @@ class InformePrevidenciaPayload(BaseModel):
             )
         return v
 
-    @model_validator(mode="after")
-    def _data_adesao_obrigatoria_para_regressivo(self):
-        # Regime regressivo: alíquota efetiva depende de anos_desde_adesao
-        # (35% <2y → 10% >10y, PEPS). Sem data_adesao, calculator IR não roda.
-        if self.regime_tributacao == RegimeTributacao.regressivo and self.data_adesao is None:
-            raise ValueError(
-                "regime_tributacao=regressivo exige data_adesao "
-                "(alíquota PEPS depende de anos_desde_adesao)"
-            )
-        return self
+    # ADR-238 (incidente dogfood 2026-05-29): data_adesao NÃO é hard-fail.
+    # O cálculo de alíquota regressiva PEPS é V2 e não existe no código; exigir
+    # a data destruía o informe inteiro (perdia saldo_31_12 = patrimônio + IRPF
+    # cód. 97) por um insumo que ninguém consome. Regressivo sem data_adesao →
+    # needs_review no stage (extract_informes_anuais._flag_regressivo_sem_adesao).
