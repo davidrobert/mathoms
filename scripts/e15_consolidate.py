@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import scripts.pipeline_common as _pc
+from pipeline.llm.schemas.e16_irpf_full import detect_pj_suffix
 
 # ============================================================================
 # Constants — re-inicializáveis via _init_config()
@@ -452,10 +453,19 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     dividas_consolidadas: List[dict] = []
     total_bens = 0.0
     total_dividas = 0.0
+    pj_skipped = 0
 
     for item in itens:
         valor = safe_float(item.get("valor_brl", 0))
         categoria = (item.get("categoria") or "").strip().lower()
+        # INV-9 (ADR-268, boundary de consolidação): contribuinte PJ (razão
+        # social com sufixo LTDA/S.A./EIRELI/MEI/…) não é pessoa física — não
+        # vira membro nem soma ao PL. O read-filter `partition_irpf_payloads`
+        # cobre E5; este pré-filtro fecha o boundary de E1.5c (o artifact PJ
+        # ainda chega aqui porque E1.6 só marca `needs_review`, não dropa).
+        if detect_pj_suffix(item.get("membro") or ""):
+            pj_skipped += 1
+            continue
         # ADR-267: CPF primeiro (cross-year invariant); fallback nome via resolver
         # ou string raw (legado). Resultado é sempre canonical key lowercase.
         membro = _resolve_member(item, resolver)
@@ -514,12 +524,16 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
         total_bens += valor
 
     # Totais vindo do próprio resumo do E1.5 são mais confiáveis
-    # (LLM já somou considerando arredondamentos).
+    # (LLM já somou considerando arredondamentos) — EXCETO quando filtramos
+    # contribuinte PJ (INV-9): o `resumo` do LLM somou o PJ na extração, então
+    # está contaminado. Nesse caso a soma recomputada dos itens PF-only é a
+    # verdade; cair no override deixaria `patrimonio_por_ano` com o valor PJ
+    # mesmo após dropar os itens (vazamento parcial silencioso).
     resumo_bens = safe_float(resumo.get("total_ativos", 0))
     resumo_dividas = safe_float(resumo.get("total_passivos", 0))
-    if resumo_bens > 0:
+    if resumo_bens > 0 and pj_skipped == 0:
         total_bens = resumo_bens
-    if resumo_dividas > 0:
+    if resumo_dividas > 0 and pj_skipped == 0:
         total_dividas = resumo_dividas
 
     patrimonio_por_ano = {
@@ -535,6 +549,11 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     print(f"    Veículos: {len(veiculos_consolidados)}")
     print(f"    Investimentos/Contas: {len(investimentos_consolidados)}")
     print(f"    Dívidas: {len(dividas_consolidadas)}")
+    if pj_skipped:
+        print(f"    Contribuintes PJ filtrados (INV-9, ADR-268): {pj_skipped}")
+        # Sinal observável paralelo ao `rejected_pj` (E1.6) / `irpf_payload_skipped`
+        # (E5) da ADR-268 — rastreia o mesmo IRPF-PJ no boundary de consolidação.
+        _pc.log_stage("WARN", f"pj_contribuinte_skipped (E1.5c): {pj_skipped} item(ns)")
     print(f"    Total bens: R$ {total_bens:,.2f}, total dívidas: R$ {total_dividas:,.2f}")
 
     baseline["imoveis_consolidados"] = imoveis_consolidados
