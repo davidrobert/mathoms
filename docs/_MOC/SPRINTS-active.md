@@ -12,15 +12,10 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint atual
 
-### A20 — Docker dev↔prod parity + P0 production gates (`current` 2026-05-29)
-
-**Promovida `candidate → current` em 2026-05-29 por priorização do owner** (A17 movida a `paused`). Sprint de infra dedicada, 10 lanes em 2 ondas + gate final, 7 ADRs `Proposto` (ADR-248 a ADR-254).
-
-- **Plano:** [sprint/A20/_README.md](../sprint/A20/_README.md).
-- **Diagnóstico:** review independente `sre-devops` 2026-05-22 — maturidade Docker 2.5/5; 5 blockers P0 de produção.
-- **Escopo executável sem confirmação externa:** Onda A (L10 lockfile → L2 SHA pin; L3 pipeline-service non-root ∥ L6 compose dev) → Gate A → Onda B (L1 multi-stage + Playwright, L7 Makefile+SETUP, L8 driver Postgres asyncpg-only).
-- **Bloqueadas por confirmação externa do owner:** L4 (GHCR token + Coolify webhook), L5 (Trivy — depende de L4), L9 (smoke gate — depende de tudo).
-- **North star:** TTFR de novo dev de ~25min → <5min (`make dev-up-docker`).
+**Nenhuma sprint `current` no momento** — A20 foi pausada pelo owner em
+2026-05-29 (objetivo de DX entregue; ver §Sprints pausadas). Próximas na fila
+em §Sprint candidate; promova uma a `current` (flip do frontmatter + regen do
+index) ao decidir retomar.
 
 ## Sprint candidate (próxima)
 
@@ -40,13 +35,22 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando o owner decidir.
 
+### A20 — Docker dev↔prod parity + P0 production gates (`paused` 2026-05-29)
+
+**Pausada pelo owner** após entregar o objetivo de DX: Docker como caminho opt-in de dev local (`make dev-up-docker` sobe a stack completa numa banda de porta que coexiste com a nativa; docs SETUP/README/`make help` atualizadas). Sprint de infra dedicada, 10 lanes em 2 ondas + gate final, 7 ADRs `Proposto` (ADR-248 a ADR-254). Diagnóstico: review independente `sre-devops` 2026-05-22 (maturidade Docker 2.5/5; 5 blockers P0).
+
+- **Entregue:** Onda A (L10 lockfile → L2 SHA pin; L3 pipeline-service non-root ∥ L6 compose dev) → Gate A → Onda B (L1 multi-stage + Playwright, L7 Makefile+SETUP, L8 driver Postgres psycopg3) + ajuste de coexistência de porta da stack dev (PR #513).
+- **Trabalho residual (requer confirmação externa do owner):** L4 (GHCR token + Coolify webhook), L5 (Trivy — depende de L4), L9 (smoke gate — depende de tudo).
+- **Plano:** [sprint/A20/_README.md](../sprint/A20/_README.md).
+- **Retomada:** flip `paused → current` quando o owner liberar token/Coolify.
+
 ### A17 — Ingestão de Informes Anuais Avulsos (`paused` 2026-05-29)
 
 **Suspensa em favor de A20** (priorização do owner; transição `current → paused` por [[ADR-234]]). L1 entregue (ADR canônica [[ADR-238]] `Decidido (Sprint A17 L1)`, 5 PRs [#402](https://github.com/davidrobert/mathoms/pull/402) → [#407](https://github.com/davidrobert/mathoms/pull/407)).
 
 - **Trabalho residual:** L2-L4 abertas em [sprint/A17/_README.md](../sprint/A17/_README.md).
 - **Fila reservada pós-A17:** A18 (CRLV + apólices + FIPE, [[ADR-239]]) → A19 (S_PROTECAO 4º pilar AUVP, [[ADR-240]]).
-- **Retomada:** flip `paused → current` quando A20 fechar.
+- **Retomada:** flip `paused → current` quando o owner decidir retomar.
 
 ### A11 — Platform review execution (`paused` 2026-05-20)
 
