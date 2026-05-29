@@ -28,6 +28,7 @@ from backend.app.models.pipeline_run import (
     PipelineStageStatus,
 )
 from backend.app.models.report import Report
+from backend.app.models.review_reason import ReviewReason
 from backend.app.models.stage_review import StageReview, StageReviewStatus
 from backend.app.services.events import (
     publish_needs_review,
@@ -803,6 +804,83 @@ def _record_stage_exception(
     publish_stage_failed(run_id, stage_name, exc_error or "Unknown error", progress_pct)
 
 
+# Cap de rows por (run, code) — proteção contra row explosion (ADR-272 Fase 2).
+# Consolidamos para 1 row por (run, code) somando occurrence_count cross-doc; o cap
+# é defensivo (há só 6 ReviewReasonCode, então <=6 rows por run na prática).
+_REVIEW_REASON_ROW_CAP = 50
+
+
+def _existing_review_reason(db, *, run_id: str, workspace_id: str, code: str):
+    """Row já materializada para (run, code) — autoflush torna add anterior visível na mesma transação."""
+    from sqlalchemy import select
+
+    return db.execute(
+        select(ReviewReason).where(
+            ReviewReason.workspace_id == workspace_id,
+            ReviewReason.pipeline_run_id == run_id,
+            ReviewReason.code == code,
+        )
+    ).scalar_one_or_none()
+
+
+def _new_review_reason_row(
+    payload: dict, *, run_id: str, workspace_id: str, stage_name: str, inc: int
+):
+    """Constrói row ReviewReason a partir do dict projetado pelo stage."""
+    return ReviewReason(
+        workspace_id=workspace_id,
+        pipeline_run_id=run_id,
+        stage=stage_name,
+        code=payload["code"],
+        artifact_key=payload.get("artifact_key", "") or "",
+        document_id=payload.get("document_id"),
+        offending_value=payload.get("offending_value", "") or "",
+        expected=payload.get("expected", "") or "",
+        message=payload.get("message", "") or "",
+        occurrence_count=inc,
+    )
+
+
+def _apply_one_reason(
+    db, payload: dict, *, run_id: str, workspace_id: str, stage_name: str, can_insert: bool
+) -> bool:
+    """Bump (run, code) existente ou insere nova row se can_insert. Retorna True se inseriu."""
+    code = payload.get("code")
+    if not code:
+        return False
+    inc = int(payload.get("occurrence_count", 1) or 1)
+    existing = _existing_review_reason(db, run_id=run_id, workspace_id=workspace_id, code=code)
+    if existing is not None:
+        existing.occurrence_count += inc
+        return False
+    if not can_insert:
+        return False
+    db.add(
+        _new_review_reason_row(
+            payload, run_id=run_id, workspace_id=workspace_id, stage_name=stage_name, inc=inc
+        )
+    )
+    return True
+
+
+def _materialize_review_reasons(
+    db, *, run_id: str, workspace_id: str, stage_name: str, reasons: list[dict]
+) -> int:
+    """Materializa review_reasons (ADR-272 Fase 2): 1 row por (run, code), soma occurrence_count. Retorna nº inseridas."""
+    inserted = 0
+    for payload in reasons:
+        if _apply_one_reason(
+            db,
+            payload,
+            run_id=run_id,
+            workspace_id=workspace_id,
+            stage_name=stage_name,
+            can_insert=inserted < _REVIEW_REASON_ROW_CAP,
+        ):
+            inserted += 1
+    return inserted
+
+
 def _record_stage_needs_review(
     run_id: str,
     stage_name: str,
@@ -813,6 +891,7 @@ def _record_stage_needs_review(
     validation = result.detail.get("validation", {}) if result.detail else {}
     legacy_text = "\n".join(validation.get("errors", []))
     structured_issues = validation.get("issues") or None  # ADR-165 onda 2
+    review_reasons = validation.get("review_reasons") or []  # ADR-272 Fase 2
 
     with SyncSessionLocal() as db:
         stage_log = db.get(PipelineStageLog, log_id)
@@ -834,7 +913,22 @@ def _record_stage_needs_review(
         run.status = PipelineRunStatus.needs_review
         run.paused_at_stage = stage_name
         run.current_stage = None
+        inserted = _materialize_review_reasons(
+            db,
+            run_id=run_id,
+            workspace_id=run.workspace_id,
+            stage_name=stage_name,
+            reasons=review_reasons,
+        )
         db.commit()
+    if review_reasons:
+        logger.info(
+            "review_reasons materializadas: run=%s stage=%s rows=%d entries=%d",
+            run_id,
+            stage_name,
+            inserted,
+            len(review_reasons),
+        )
     publish_needs_review(run_id, stage_name)
 
 

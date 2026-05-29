@@ -94,7 +94,7 @@ class ToReviewReason(Protocol):
 
     def to_review_reason(
         self, *, stage: str, artifact_key: str, document_id: str | None
-    ) -> ReviewReason: ...
+    ) -> ReviewReason | None: ...
 
 
 __all__ = [
