@@ -78,16 +78,18 @@ Estado final pós-A20 (4 compose files):
 
 ### D3 — Makefile targets opt-in
 
-Targets novos no `Makefile`:
+Targets novos no `Makefile` (entregue em [[A20.l7]] · todos com sufixo
+**`-docker`** para não colidir com a stack uvicorn-local legada
+`dev-up`/`dev-down`/`dev-logs`, que já existem):
 
-- `make dev-up-docker` — sobe stack completa
-- `make dev-down` — para tudo, preserva volumes
-- `make dev-reset` — para + apaga volumes (`docker-compose down -v`)
-- `make dev-shell` — shell drop no container `api`
-- `make dev-rebuild` — rebuild após mudança em deps
-- `make dev-logs` — `docker-compose logs -f`
+- `make dev-up-docker` — sobe stack completa (`up -d --build` + guard de porta)
+- `make dev-down-docker` — para tudo, preserva volumes
+- `make dev-reset-docker` — para + apaga volumes (`down -v`)
+- `make dev-shell-docker` — shell drop no container `api`
+- `make dev-rebuild-docker` — rebuild após mudança em deps
+- `make dev-logs-docker` — `logs -f` (`SVC=<nome>` filtra um service)
 
-`uvicorn` local continua suportado via `make dev` legado (sem `-docker`).
+`uvicorn` local continua suportado via `make dev-up` legado (sem `-docker`).
 
 ### D4 — Healthcheck por service em compose
 

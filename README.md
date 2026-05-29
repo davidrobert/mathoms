@@ -4,6 +4,8 @@
 
 **Status:** Dogfood interno · **Roadmap:** [docs/reference/PHASES.md](docs/reference/PHASES.md) · **Sprint atual:** [docs/_MOC/SPRINTS-active.md](docs/_MOC/SPRINTS-active.md).
 
+**Começar em <5min:** `make dev-up-docker` sobe a stack inteira em containers (Docker · ADR-252) · fallback uvicorn-local em [docs/reference/SETUP.md](docs/reference/SETUP.md).
+
 **Produção (em configuração):** `app.mathoms.ai` · API: `api.mathoms.ai/v1/` · Console interno: `ops.mathoms.ai` · Docs: `docs.mathoms.ai` · Status: `status.mathoms.ai` · Landing: `mathoms.ai`. Ver [ADR-108](docs/adr/108-estrategia-de-subdominios-mathomsai-cloudflare-dns.md).
 
 ---

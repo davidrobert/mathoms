@@ -3,7 +3,7 @@ id: A20.l7
 type: lane
 title: "Docker dev↔prod parity — L7 Makefile targets + SETUP.md revisado"
 sprint: A20
-status: open
+status: shipped
 priority: P1
 branch_slug: a20-l7-makefile-onboarding
 depends_on:
@@ -17,7 +17,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a20
-  - status/ready
+  - status/shipped
   - priority/p1
   - area/dx
   - area/docs
@@ -28,6 +28,23 @@ tags:
 > **Onda B** em [[MOC-sprint-a20]] — depende de [[A20.l6]] (compose dev existir).
 > Foco em DX (developer experience): `make dev-up-docker` é o north star do
 > sprint.
+
+## Status de entrega
+
+**Shipped 2026-05-29** — changelog [[CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING]].
+
+**Correção vs draft:** os 6 targets levam sufixo **`-docker`**
+(`dev-up-docker`, `dev-down-docker`, `dev-reset-docker`, `dev-shell-docker`,
+`dev-rebuild-docker`, `dev-logs-docker`) — não os nomes nus que o §Resumo
+abaixo previa. Motivo: `dev-up`/`dev-down`/`dev-logs` **já existem** no
+Makefile como a stack uvicorn-local legada; sufixo uniforme evita colisão
+parcial e deixa explícito qual stack opera.
+
+**Gates human-only adiados** (não bloqueiam o artefato, viram follow-up):
+critério 2 (TTFR <120s medido em clone fresh, 3 execuções) e critério 6
+(cross-test macOS + Linux por dev real) exigem clone limpo e host sem
+uvicorn na 8000. Validação autônoma coberta: `make help` lista os 6 targets;
+`docker compose -f docker-compose.dev.yml config --quiet` passa.
 
 ## Resumo
 
@@ -80,12 +97,14 @@ PR + TTFR final no PR como evidência.
 
 ## Definition of Done
 
-- [ ] PR mergeado em `main` com CI verde.
-- [ ] [[ADR-252]] referencia esta lane (sub-decisão de Makefile + SETUP).
-- [ ] [SETUP](../../../reference/SETUP.md) atualizada com Docker como caminho recomendado.
-- [ ] README atualizado com badge + link.
-- [ ] TTFR baseline e final registrados no PR (comentários inicial + final).
-- [ ] [CHANGELOG](../../../CHANGELOG.md) entry registrada.
+- [x] PR mergeado em `main` com CI verde.
+- [x] [[ADR-252]] referencia esta lane (sub-decisão de Makefile + SETUP).
+- [x] [SETUP](../../../reference/SETUP.md) atualizada com Docker como caminho recomendado.
+- [x] README atualizado com badge + link.
+- [ ] TTFR baseline e final registrados no PR — **adiado** (gate human-only,
+      clone fresh + host sem uvicorn na 8000).
+- [x] [CHANGELOG](../../../CHANGELOG.md) entry registrada
+      ([[CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING]]).
 
 ## Riscos top 3
 

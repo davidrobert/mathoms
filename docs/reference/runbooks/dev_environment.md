@@ -68,6 +68,20 @@ inteiro satura CPU em macOS.
 
 ## 3. Operação diária
 
+Atalhos `make` (A20.L7 · sufixo `-docker` distingue da stack uvicorn-local
+legada `make dev-up`/`dev-down`):
+
+```bash
+make dev-up-docker        # sobe a stack (build + migrate + seed)
+make dev-logs-docker      # logs -f (SVC=api para um só service)
+make dev-shell-docker     # bash no container api
+make dev-down-docker      # para, PRESERVA volumes
+make dev-reset-docker     # DESTRUTIVO: down -v (wipe DB/Redis/storage)
+make dev-rebuild-docker   # rebuild imagens após mudar deps/Dockerfile
+```
+
+Equivalentes diretos em `docker compose` (sem o atalho):
+
 ```bash
 docker compose -f docker-compose.dev.yml logs -f api     # logs
 docker compose -f docker-compose.dev.yml down            # para (mantém dados)
@@ -104,7 +118,7 @@ para um `api` no host.
 | Sintoma | Causa provável | Ação |
 |---|---|---|
 | `api` reinicia em loop | migração ou seed falhando | `docker compose -f docker-compose.dev.yml logs api` |
-| `bind: address already in use :8000` | `make dev` (uvicorn host) já roda na 8000 | pare o uvicorn local **ou** mude a porta publicada via override |
+| `bind: address already in use :8000` | `make dev-up` (uvicorn host legado) já roda na 8000 | pare o uvicorn local (`make dev-down`) **ou** mude a porta publicada via override |
 | `/app/dev/entrypoint.dev.sh: No such file` | `dev/` não montado | confirme o bind mount `./dev:/app/dev:ro` no compose |
 | Seed não cria workspace | DB já tinha workspace (idempotência) | esperado — `down -v` para resetar |
 | Migração aborta em `DatatypeMismatchError` | default de tipo incompatível no Postgres | bug de paridade dev↔prod — corrigir a migration (literal por dialeto) |

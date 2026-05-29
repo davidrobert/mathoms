@@ -2,13 +2,38 @@
 
 > Guia para rodar o projeto em desenvolvimento local.
 
-> **Atalho recomendado (Docker, TTFR <5min · ADR-252):** a stack completa
-> (Postgres + Redis + API + worker + beat + frontend) sobe com
-> `docker compose -f docker-compose.dev.yml up -d --build` — migração e seed
-> automáticos, hot-reload do `backend/`. Passo a passo no runbook
-> [Dev environment em Docker](runbooks/dev_environment.md). O setup local
-> nativo abaixo (uvicorn no host) segue suportado como fallback; os targets
-> `make dev-*-docker` chegam em A20.L7.
+## Onboarding em <5min (Docker — caminho recomendado · ADR-252)
+
+Clone fresh → stack inteira rodando em **um comando**:
+
+```bash
+make dev-up-docker
+```
+
+Sobe 7 containers (Postgres + 2 Redis + API + worker + beat + frontend) com
+**migração + seed automáticos** e **hot-reload** do `backend/`. Quando o boot
+terminar (~60s: build + migrate + seed):
+
+- API: http://localhost:8000/health → `{"api":"ok", ...}`
+- Frontend: http://localhost:3000
+
+Operação diária (todos os targets em `make help`):
+
+```bash
+make dev-logs-docker          # tail -f dos logs (SVC=api para um só)
+make dev-shell-docker         # bash dentro do container api
+make dev-down-docker          # para tudo, PRESERVA volumes (DB/Redis/storage)
+make dev-reset-docker         # DESTRUTIVO: para + apaga volumes (wipe + re-seed)
+make dev-rebuild-docker       # rebuild das imagens após mudar deps/Dockerfile
+```
+
+Passo a passo e troubleshooting no runbook
+[Dev environment em Docker](runbooks/dev_environment.md). Vars locais
+(LLM key real, secrets próprios) via override gitignored — ver §4 do runbook.
+
+> O setup nativo abaixo (uvicorn no host, targets `make dev-up`/`dev-down`
+> sem sufixo) segue suportado como **fallback**. Use **um OU outro** — ambos
+> publicam na porta 8000 e colidem.
 
 ## URLs por ambiente (ADR-108)
 
