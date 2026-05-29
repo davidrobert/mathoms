@@ -14,14 +14,15 @@ python-multipart>=0.0.7
 pydantic[email]>=2.0
 pydantic-settings>=2.0
 aiosqlite>=0.20
-# Drivers Postgres:
-# - asyncpg: usado pelo async engine (backend/app/core/database.py:52) quando
-#   MATHOMS_DATABASE_URL=postgresql+asyncpg://... — sem ele o import do
-#   create_async_engine quebra antes mesmo do alembic abrir conexão.
-# - psycopg2-binary: usado pelo sync_engine (database.py:21), que reaproveita a
-#   mesma URL com `+asyncpg` removido (config.py:91) → resolve para psycopg2.
+# Drivers Postgres (ADR-253):
+# - asyncpg: async engine (backend/app/core/database.py) p/ endpoints FastAPI
+#   + Alembic (env.py já roda async) quando DATABASE_URL=postgresql+asyncpg://.
+# - psycopg[binary] v3: sync_engine, que drivea o task layer Celery (prefork,
+#   síncrono) + scripts. config.py.sync_database_url emite postgresql+psycopg://
+#   explícito. Wheel binário traz libpq embarcado → runtime sem libpq5 apt dep.
+#   psycopg2-binary (legado, modo manutenção) saiu em A20.L8.
 asyncpg>=0.29
-psycopg2-binary>=2.9
+psycopg[binary]>=3.2
 greenlet>=3.0
 httpx>=0.27
 pyyaml>=6.0

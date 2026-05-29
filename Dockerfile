@@ -29,7 +29,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
-        libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -53,11 +52,11 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     MATHOMS_LOG_FORMAT=json
 
-# Runtime libs (sem build-essential): libpq5 pro psycopg fallback, curl pro healthcheck.
-# L8/ADR-253 consolida driver — quando entregue, libpq5 pode sair se asyncpg-only.
+# Runtime libs (sem build-essential): só curl pro healthcheck. libpq5 saiu em
+# A20.L8 (ADR-253) — psycopg[binary] v3 traz libpq embarcado no wheel e asyncpg
+# não linka libpq de sistema; nenhum driver precisa da apt dep.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        libpq5 \
         curl \
     && rm -rf /var/lib/apt/lists/*
 

@@ -152,8 +152,11 @@ class Settings(BaseSettings):
 
     @property
     def sync_database_url(self) -> str:
-        """Sync DB URL for background threads (replace async driver)."""
-        return self.DATABASE_URL.replace("+aiosqlite", "").replace("+asyncpg", "")
+        """Sync DB URL for the Celery task layer — psycopg3 driver explícito (ADR-253)."""
+        # postgresql+asyncpg:// → postgresql+psycopg:// (psycopg v3). Sem o driver
+        # explícito o SQLAlchemy cairia no default (psycopg2), removido em A20.L8.
+        # sqlite+aiosqlite:// → sqlite:// (driver pysqlite default em testes).
+        return self.DATABASE_URL.replace("+aiosqlite", "").replace("+asyncpg", "+psycopg")
 
     @property
     def cache_redis_url(self) -> str:

@@ -78,3 +78,15 @@ def test_dev_with_short_secret_still_works() -> None:
     """Dev permite SECRET_KEY curta — gate só aplica em production."""
     s = Settings(ENVIRONMENT="development", SECRET_KEY="short")
     assert s.SECRET_KEY == "short"
+
+
+def test_sync_database_url_postgres_uses_psycopg3() -> None:
+    """ADR-253: sync engine usa psycopg v3 explícito, não o default psycopg2."""
+    s = Settings(**_prod_kwargs(DATABASE_URL="postgresql+asyncpg://user:pass@host/db"))
+    assert s.sync_database_url == "postgresql+psycopg://user:pass@host/db"
+
+
+def test_sync_database_url_sqlite_drops_async_driver() -> None:
+    """SQLite (testes) cai no driver pysqlite default — sem sufixo de driver."""
+    s = Settings(ENVIRONMENT="development", DATABASE_URL="sqlite+aiosqlite:///mathoms.db")
+    assert s.sync_database_url == "sqlite:///mathoms.db"
