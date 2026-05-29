@@ -80,6 +80,10 @@ mathoms-smoke.db
 # Dev stack (make dev-up) — PIDs e logs de processos locais
 _dev_pids/
 
+# Override local do compose dev (A20.L6) — vars/secrets locais; só o
+# `.example` é versionado.
+docker-compose.dev.override.yml
+
 # F7F-Local console interno (ADR-116) — credenciais de operadores nunca
 # vão pro git. Apenas o template `.example` é commitado.
 config/internal_operators.yaml
