@@ -212,6 +212,37 @@ acima:
 
 Runbook operacional: [`docs/reference/runbooks/docker_healthchecks.md`](../reference/runbooks/docker_healthchecks.md).
 
+### Notas de entrega — revisão de porta (L6/L7, 2026-05-29)
+
+O desenho original publicava a stack Docker nas **mesmas portas** da stack
+uvicorn-local (`8000`/`3000`/`5432`/`3100`), forçando "use uma OU outra" —
+as duas colidiam. Dogfood expôs o atrito: o dev que já tem uvicorn no host
+(o caso comum) tinha de derrubar a stack nativa para experimentar o Docker,
+o que contradiz o opt-in da Opção C.
+
+**Revisão:** a stack Docker passa a publicar numa **banda de portas distinta
+e overridável**, então **as duas coexistem**:
+
+| Service | Host port (Docker) | Host port (nativa) | Container |
+|---|---|---|---|
+| api | `8010` (`MATHOMS_DOCKER_API_PORT`) | `8000` | `8000` |
+| frontend | `3010` (`MATHOMS_DOCKER_FRONTEND_PORT`) | `3000` | `3000` |
+| postgres | `5433` (`MATHOMS_DOCKER_POSTGRES_PORT`) | `5432` | `5432` |
+| frontend-ops | `3110` (`MATHOMS_DOCKER_OPS_PORT`) | `3100` | `3100` |
+
+Portas de **container** intocadas (rede do compose) — só o mapeamento
+publicado muda. `BACKEND_INTERNAL_URL` permanece `http://api:8000`
+(container→container); `NEXT_PUBLIC_API_URL` (browser→host) passa a
+`http://localhost:${MATHOMS_DOCKER_API_PORT:-8010}` para casar com a porta
+publicada. `make dev-up-docker` faz `check_port_free` na banda nova (não na
+legada). Defaults idênticos no `Makefile` e no `docker-compose.dev.yml` —
+invocar `docker compose` direto resolve as mesmas portas que via `make`.
+
+Validação empírica (2026-05-29): stack Docker `/health` 200 em `:8010`
+(`database/celery/redis/redis_cache: ok`), frontend 200 em `:3010`, postgres
+`accepting connections` em `:5433`, **com a stack nativa rodando simultânea**
+(`:8000`/`:8001` HTTP 200, `:3000`/`:3100` em LISTEN, não tocadas).
+
 Status **`Decidido`** — L3 (D4) era o último gate, com L6 (D1/D2) e L7
 (D3/D5) já mergeados.
 

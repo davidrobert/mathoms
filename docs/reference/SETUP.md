@@ -11,11 +11,14 @@ make dev-up-docker
 ```
 
 Sobe 7 containers (Postgres + 2 Redis + API + worker + beat + frontend) com
-**migração + seed automáticos** e **hot-reload** do `backend/`. Quando o boot
-terminar (~60s: build + migrate + seed):
+**migração + seed automáticos** e **hot-reload** do `backend/`. A stack Docker
+publica numa **banda de portas distinta** da nativa (8010/3010/5433) — assim
+as duas coexistem sem colisão. Quando o boot terminar (~60s: build + migrate +
+seed):
 
-- API: http://localhost:8000/health → `{"api":"ok", ...}`
-- Frontend: http://localhost:3000
+- API: http://localhost:8010/health → `{"api":"ok", ...}`
+- Frontend: http://localhost:3010
+- Postgres: 127.0.0.1:5433 (coexiste com a stack nativa)
 
 Operação diária (todos os targets em `make help`):
 
@@ -32,8 +35,10 @@ Passo a passo e troubleshooting no runbook
 (LLM key real, secrets próprios) via override gitignored — ver §4 do runbook.
 
 > O setup nativo abaixo (uvicorn no host, targets `make dev-up`/`dev-down`
-> sem sufixo) segue suportado como **fallback**. Use **um OU outro** — ambos
-> publicam na porta 8000 e colidem.
+> sem sufixo) segue suportado como **fallback** e publica na banda
+> 8000/8001/3000/3100. A stack Docker publica em 8010/3010/5433/3110, então
+> **as duas rodam ao mesmo tempo** sem colidir. Portas overridáveis via
+> `MATHOMS_DOCKER_*_PORT` (ex.: `make dev-up-docker MATHOMS_DOCKER_API_PORT=9000`).
 
 ## URLs por ambiente (ADR-108)
 
