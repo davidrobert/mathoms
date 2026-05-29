@@ -3,23 +3,30 @@ id: MOC-sprint-a20
 type: moc
 title: "Sprint A20 — Docker dev↔prod parity + P0 production gates"
 aliases: ["A20", "Sprint A20"]
-sprint_status: current
+sprint_status: paused
 date: "2026-05-22"
 theme: "infra"
 ---
 
 # Sprint A20 — Docker dev↔prod parity
 
-> **Status:** `current` — promovida `candidate → current` em 2026-05-29 (priorização
-> do owner; A17 movida a `paused`). Criada 2026-05-22 após review independente
+> **Status:** `paused` — pausada pelo owner em 2026-05-29. O objetivo de DX
+> (Docker como caminho opt-in de dev local) está **entregue e em uso**:
+> `make dev-up-docker` sobe a stack completa numa banda de porta que coexiste
+> com a nativa, com docs atualizadas (SETUP/README/`make help`). As lanes
+> restantes **dependem de confirmação externa do owner** e ficam represadas até
+> a retomada. Promovida `candidate → current` em 2026-05-29 (priorização do
+> owner; A17 movida a `paused`). Criada 2026-05-22 após review independente
 > `sre-devops` (maturidade Docker 2.5/5). Sprint de infra dedicada, **10 lanes em
 > 2 ondas + gate final**, **7 ADRs Proposto** (ADR-248 a ADR-254). **Subsume W4-T02**
 > do [PLATFORM_REVIEW](../../plan/PLATFORM_REVIEW/_README.md) (que estava `blocked`).
 >
-> **Execução em curso (2026-05-29):** lanes sem confirmação externa atacadas nesta
-> ordem — Onda A (L10→L2, L3∥L6) → Gate A → Onda B (L1, L7, L8). Lanes **L4** (GHCR —
-> requer token + Coolify webhook), **L5** (Trivy — depende de L4 publicar imagem) e
-> **L9** (smoke gate — depende de tudo) ficam para confirmação externa do owner.
+> **Entregue antes da pausa (2026-05-29):** Onda A (L10→L2, L3∥L6) → Gate A →
+> Onda B (L1, L7, L8), **mais** o ajuste de coexistência de porta da stack dev
+> ([[A20.l6]]/[[A20.l7]], PR #513). **Represado para a retomada** (requer
+> confirmação externa do owner): **L4** (GHCR — token + Coolify webhook),
+> **L5** (Trivy — depende de L4 publicar imagem) e **L9** (smoke gate — depende
+> de tudo).
 
 ## Resumo
 
