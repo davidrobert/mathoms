@@ -3,15 +3,16 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-22 entries entre 2026-05-15 e 2026-05-29.
+23 entries entre 2026-05-15 e 2026-05-29.
 
-## 2026-05-29 (5 entries)
+## 2026-05-29 (6 entries)
 
 - [[CHG-2026-05-29-A20-L1-BACKEND-MULTISTAGE]] — A20.L1 — Dockerfile backend multi-stage com dual target (runtime / (lane [[A20.l1]])
 - [[CHG-2026-05-29-A20-L2-SHA-PINNING]] — A20.L2 — SHA pinning de todas as bases por digest do índice multi-arch (lane [[A20.l2]])
 - [[CHG-2026-05-29-A20-L3-PIPELINE-SERVICE-HARDENING]] — A20.L3 — pipeline-service non-root (P0.4) + healthcheck por service (D4). (lane [[A20.l3]])
 - [[CHG-2026-05-29-A20-L6-COMPOSE-DEV]] — A20.L6 — docker-compose.dev.yml unificado (D1+D2). Stack dev completa em (lane [[A20.l6]])
 - [[CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING]] — A20.L7 — Makefile dev-*-docker + SETUP.md "Onboarding em <5min" (D3+D5). (lane [[A20.l7]])
+- [[CHG-2026-05-29-A20-L8-POSTGRES-DRIVER]] — A20.L8 — swap do driver sync legado psycopg2-binary → psycopg[binary] v3 (lane [[A20.l8]])
 
 ## 2026-05-28 (1 entries)
 

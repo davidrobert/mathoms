@@ -74,9 +74,9 @@ docker run --rm --platform linux/amd64 -v "$PWD":/work -w /work python:3.12-slim
 
 ```bash
 docker run --rm --platform linux/amd64 -v "$PWD":/work -w /work python:3.12-slim bash -c "
-  apt-get update -qq && apt-get install -y -qq build-essential libpq-dev >/dev/null
+  apt-get update -qq && apt-get install -y -qq build-essential >/dev/null
   pip install --no-cache-dir --require-hashes -r requirements.lock
-  python -c 'import fastapi, sqlalchemy, celery, anthropic, litellm, instructor, pdfplumber, numpy, playwright, asyncpg, psycopg2, cryptography; print(\"all core imports OK\")'"
+  python -c 'import fastapi, sqlalchemy, celery, anthropic, litellm, instructor, pdfplumber, numpy, playwright, asyncpg, psycopg, cryptography; print(\"all core imports OK\")'"
 ```
 
 Esperado: `all core imports OK` e exit 0. Warnings de botocore do LiteLLM são

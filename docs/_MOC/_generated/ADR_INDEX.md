@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 197
-- **Proposto**: 61
+- **Decidido**: 198
+- **Proposto**: 60
 - **Roadmap**: 4
 
 ## Fundação
@@ -362,18 +362,18 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## infra
 
-### Decidido (4)
+### Decidido (5)
 
 - [[ADR-248]] — Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20 · phase A20.L1
 - [[ADR-249]] — SHA pinning de imagens base + Dependabot Docker — Sprint A20 · phase A20.l2
 - [[ADR-252]] — Compose dev unificado + Makefile targets opt-in — Sprint A20 · phase A20.l3
+- [[ADR-253]] — Postgres driver — drop psycopg2 → psycopg v3 (sync) — Sprint A20 · phase A20.l8
 - [[ADR-254]] — Python lockfile com hashes — pip-tools vs uv — Sprint A20 · phase A20.l10
 
-### Proposto (3)
+### Proposto (2)
 
 - [[ADR-250]] — GHCR como registry de imagens + tagging strategy — Sprint A20 · phase A20.l4
 - [[ADR-251]] — Trivy image scan blocking + SBOM CycloneDX — Sprint A20 · phase A20.l5
-- [[ADR-253]] — Postgres driver consolidation (asyncpg-only) — Sprint A20 · phase A20.l8
 
 ## irpf
 

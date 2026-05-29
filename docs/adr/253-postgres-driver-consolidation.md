@@ -1,8 +1,8 @@
 ---
 id: ADR-253
 type: adr
-title: "Postgres driver consolidation (asyncpg-only) — Sprint A20"
-status: Proposto
+title: "Postgres driver — drop psycopg2 → psycopg v3 (sync) — Sprint A20"
+status: Decidido
 phase: A20.l8
 date: "2026-05-22"
 relates_to:
@@ -13,11 +13,11 @@ supersedes: []
 superseded_by: []
 aliases:
   - "ADR 253"
-  - "asyncpg only"
+  - "psycopg3 swap"
   - "Postgres driver consolidation"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/infra
   - area/db
   - area/backend
@@ -29,127 +29,169 @@ tags:
 Review independente `sre-devops` (2026-05-22) identificou **P1.2**: backend
 carrega **dois drivers Postgres** simultaneamente:
 
-- `psycopg2-binary` (sync engine, `backend/app/core/database.py:21`) —
-  usado por Alembic + healthcheck sync.
-- `asyncpg` (async engine, `database.py:52`) — usado pela aplicação FastAPI
-  + SQLAlchemy 2.x async.
+- `asyncpg` (async engine, `backend/app/core/database.py`) — endpoints FastAPI
+  + SQLAlchemy 2.x async **e Alembic** (`alembic/env.py` já roda
+  `async_engine_from_config` + `asyncio.run`).
+- `psycopg2-binary` (sync engine, `database.py`) — `SyncSessionLocal`.
 
-`backend/requirements.txt` carrega ambos; Dockerfile instala `libpq-dev`
-(toolchain) + `libpq5` (runtime) para psycopg2-binary. Coexistência **não é
-arquitetural** — é dívida acumulada de quando o codebase migrou
-gradualmente para async.
+`Dockerfile` instala `libpq-dev` (builder) + `libpq5` (runtime) para
+psycopg2-binary. Coexistência **não é arquitetural** — é dívida acumulada da
+migração gradual para async.
 
 Custo concreto:
 
-- **+12MB wheel** + ~5MB libpq5 apt dep — bloqueia enxugar
-  imagem `runtime` de [[A20.l1]] (target <450MB).
-- **Mismatch de behavior** em edge cases (timezone, timestamp, NULL handling)
-  entre os 2 drivers.
-- **Surface de bug duplicada** — bug em qualquer dos 2 vira incidente.
+- **+12MB wheel** + ~5MB libpq5 apt dep — bloqueia enxugar imagem `runtime`
+  de [[A20.l1]] (target <450MB).
+- **`psycopg2` está em modo manutenção** — psycopg v3 é a linha ativa,
+  mantida pelo mesmo autor; manter o legado é dívida que só cresce.
 
-Gap 1 do `senior-cto` review: "L8 (driver consolidation) como `opcional` é
-red flag — dívida ativa não é opcional".
+### Correção de premissa (co-design `data-engineer`, 2026-05-29)
+
+A primeira versão desta ADR (`Proposto`) tinha **premissa factual errada em
+dois pontos**, descoberta na review blocking do `data-engineer` antes do PR:
+
+1. **O sync engine não é "Alembic + healthcheck".** `grep` confirma **44
+   arquivos** consumindo `SyncSessionLocal`/`sync_engine`: a espinha dorsal é
+   o **task layer Celery inteiro** (workers prefork, síncronos —
+   `tasks/pipeline_task.py` com ~20 callsites, `categorization_apply.py`,
+   `lgpd_export.py`, `fipe_refresh.py`, `periodic_tasks.py`), além de
+   services sync, 1 endpoint (`api/categorization_rules.py`) e scripts.
+2. **Alembic NEM USA o sync engine.** `env.py` já roda async (asyncpg). A
+   recomendação original de "adaptar Alembic via `asyncio.run`" descrevia
+   algo que **já existe**.
+
+Essa correção **inverteu a decisão**: asyncpg-only exigiria reescrever 44
+callsites síncronos do Celery para async (prefork + asyncio = event-loop
+por-task, território de bug conhecido), o oposto de "reduzir surface de bug".
 
 ## Decisão
 
-**Consolidar em `asyncpg`-only** com sync wrappers onde necessário (Alembic,
-healthcheck):
+**Trocar o driver sync legado: `psycopg2-binary` → `psycopg[binary]` v3.
+Manter a arquitetura de dois engines.**
 
-- `backend/requirements.in` (após [[ADR-254]]) **remove** `psycopg2-binary`.
-- `backend/app/core/database.py`: 1 engine async + helpers de sync via
-  `asyncio.run_until_complete` para callsites que exigem sync.
-- Alembic `env.py` adaptado: usa `asyncio.run(do_run_migrations())` para
-  rodar migrations contra engine async.
-- Dockerfile runtime stage ([[A20.l1]]) **remove** `libpq5` apt dep —
-  asyncpg é puro-Python wheel.
+- `engine` async (asyncpg) — endpoints FastAPI + Alembic. **Inalterado.**
+- `sync_engine` (psycopg v3) — task layer Celery + scripts. **Inalterado em
+  callsites**; muda só o driver por baixo.
+- `backend/requirements.in`: `psycopg2-binary>=2.9` → `psycopg[binary]>=3.2`.
+  **Apenas o extra `[binary]`** — traz libpq embarcado no wheel; `psycopg[c]`
+  ou `psycopg` puro reintroduziriam a apt dep de sistema.
+- `config.py.sync_database_url`: emite `postgresql+psycopg://` **explícito**.
+  O transform antigo (`replace("+asyncpg","")`) deixava `postgresql://`, que o
+  SQLAlchemy resolve para o **default psycopg2** — por omissão, não por
+  escolha. Sem o driver explícito o swap não pega.
+- `Dockerfile`: **remove `libpq5`** (runtime) **e `libpq-dev`** (builder) —
+  psycopg v3 binary é wheel pré-compilado com libpq embarcado; asyncpg não
+  linka libpq de sistema. Nenhum driver precisa da apt dep.
 
-**Fallback documentado:** se asyncpg-only inviável para Alembic em alguma
-migration específica (driver-specific feature), usa `psycopg[binary]` v3
-(não `psycopg2-binary` — psycopg v3 é mais leve, libpq3-ready, mantida
-ativa). Documenta justificativa explícita em ADR atualização se exercido.
+**Consolidação real em 1 driver** (migração async do task layer Celery) fica
+para lane futura (A22+), com ADR e gate próprios. Não se força em A20.
 
 ## Alternativas consideradas
 
 ### Opção A — Manter coexistência (`psycopg2-binary` + `asyncpg`)
 
 **Rejeitada.** Não resolve dívida; bloqueia [[A20.l1]] de enxugar runtime
-stage.
+stage; mantém driver legado em modo manutenção.
 
-### Opção B — `psycopg[binary]` v3 only (sync) + remove asyncpg
+### Opção B — `asyncpg`-only com sync wrappers (recomendação original, derrubada)
 
-**Rejeitada.** Inverte direção da migração histórica; quebra performance
-async em endpoints da API. SQLAlchemy 2.x async perde melhor driver
-(asyncpg é mais rápido que psycopg v3 async).
+**Rejeitada** (co-design `data-engineer`). Premissa de que o sync engine só
+serve Alembic/healthcheck era falsa — ele drivea 44 arquivos do task layer
+Celery. Wrappear cada callsite com `asyncio.run()` cria/destrói event loop
+por chamada (vaza conexão, quebra pool sob carga); um loop persistente cross-
+thread esbarra em `AsyncSession` não ser thread-safe. Bug silencioso que não
+aparece em SQLite e explode em Postgres prod. Viola o espírito de [[ADR-111]].
 
-### Opção C — `asyncpg`-only com wrappers (**adotada**)
+### Opção C — `psycopg[binary]` v3 swap, dois engines (**adotada**)
 
-Resolve dívida + enxuga imagem + preserva performance async. Custo: 1
-wrapper de sync em Alembic `env.py` e em healthcheck (já há precedente em
-outros projetos Python — pattern conhecido).
+Atinge o ganho concreto de P1.2 (imagem enxuga sem libpq) + elimina o driver
+**legado** (psycopg2) preservando performance async (asyncpg) nos endpoints.
+Risco baixíssimo: não toca os 44 callsites; muda string de conexão + 1 linha
+de requirements. "Consolidação no sentido que importa": um driver async
+moderno + um sync moderno, sem legado.
 
-### Opção D — Migrar para `psycopg[pool]` v3 unified (sync+async)
+### Opção D — `psycopg[pool]` v3 unified (sync+async, 1 driver)
 
-**Rejeitada para V1.** psycopg v3 suporta sync e async no mesmo pacote, mas
-maturidade do modo async ainda < asyncpg (Q1 2026). Revisitar em A22+ se
-asyncpg deprecation virar problema.
+**Rejeitada para A20.** psycopg v3 suporta sync e async no mesmo pacote, mas
+o modo async ainda é < asyncpg em maturidade/perf (Q1 2026), e unificar
+exigiria migrar o task layer. Revisitar em A22+.
 
 ## Consequências
 
 ### Positivas
 
-- **P1.2 resolvido** — driver único, surface de bug única.
-- **Imagem `runtime` enxuga ~15MB** — sem libpq5 apt + sem psycopg2-binary
-  wheel.
-- **Mais simples para novo dev** — 1 driver, 1 engine, 1 mental model.
-- **Stateless rigoroso preservado** ([[ADR-111]]) — engine async lazy
-  singleton continua válido.
+- **P1.2 resolvido** — imagem `runtime` perde libpq5 (apt) + psycopg2 wheel.
+- **Driver legado eliminado** — psycopg v3 é a linha ativa.
+- **Risco baixo** — paradigma async (FastAPI/asyncpg) intocado; sync path só
+  troca a implementação C que fala libpq.
+- **Stateless rigoroso preservado** ([[ADR-111]]) — dois engines lazy
+  singleton idempotentes continuam válidos.
 
 ### Negativas
 
-- **Wrappers de sync em Alembic + healthcheck** — overhead leve
-  (`asyncio.run` start/stop ~50ms). Tolerável em path de boot e probe.
-- **PR mais arriscado** — toca camada de DB. Mitigação: integration tests
-  cobrindo `multi_worker_concurrency` rodando antes e depois.
+- **Não consolida em 1 driver** — título original prometia demais. Dois
+  drivers permanecem (asyncpg async + psycopg3 sync), mas ambos modernos.
+- **Gotcha de URL** — `sync_database_url` precisava do driver explícito;
+  coberto por teste unitário (`test_config_prod_gates.py`).
 
 ### Neutras
 
-- **`psycopg[binary]` v3 disponível como fallback** — se algum edge case
-  obrigar; rota documentada.
+- **Migração async do task layer** — débito real, mas fora de escopo A20.
 
 ## Validação
 
-Critérios em [[A20.l8]] §"Critério de aceite" (5 critérios):
+Critérios em [[A20.l8]] §"Critério de aceite" (ajustados ao caminho psycopg3):
 
-1. `backend/requirements.lock` **sem** `psycopg2-binary`/`psycopg2`.
-2. Stage `runtime` sem `libpq5` apt dep.
+1. `requirements.lock` **sem** `psycopg2-binary`/`psycopg2` — ✔ (regen verde).
+2. Stage `runtime` sem `libpq5`/`libpq-dev` apt dep — ✔.
 3. Suíte completa verde.
-4. Integration tests (multi_worker_concurrency) `p95 < baseline + 10%`.
-5. `alembic upgrade head` em ambiente fresh verde.
+4. **Reduzido a smoke de paridade de driver** (não "p95 sob mudança de
+   paradigma" — o paradigma async não muda). Round-trip de artifact JSONB +
+   query `timestamptz` na suíte de integração Postgres-real confirmam
+   paridade psycopg2→psycopg3.
+5. `alembic upgrade head` fresh verde — Alembic é asyncpg, intocado.
+
+### Notas de entrega — L8 (2026-05-29)
+
+- **Swap aplicado:** `requirements.in` → `psycopg[binary]>=3.2`; lock
+  regenerado em container linux/amd64 (`psycopg==3.3.4` + `psycopg-binary`;
+  `psycopg2` count = 0; asyncpg retido).
+- **URL explícita:** `sync_database_url` emite `postgresql+psycopg://`;
+  SQLAlchemy resolve `e.dialect.driver == "psycopg"` (validado em container).
+  2 testes unitários novos (postgres → psycopg3; sqlite → pysqlite default).
+- **Imagem:** lock instala **sem `libpq-dev`** em `python:3.12-slim`
+  (`all core imports OK`, `psycopg 3.3.4`) — confirma libpq embarcado no
+  wheel. Dockerfile builder perde `libpq-dev`, runtime perde `libpq5`.
+- **Sem psycopg2 hardcoded:** grep confirma 0 imports diretos de `psycopg2`
+  em backend/pipeline/scripts (só via driver string do SQLAlchemy).
+- **Runbook** `python_dependencies.md` atualizado (validação importa
+  `psycopg`, não `psycopg2`; sem `libpq-dev` no apt).
 
 ## Migração
 
-Fases em [[A20.l8]] §"Escopo IN":
-1. [[ADR-254]] mergeada (lockfile com hashes).
-2. Refactor `database.py` + Alembic `env.py`.
-3. Smoke + integration tests verdes.
-4. Dockerfile [[A20.l1]] atualiza removendo libpq5.
+1. [[ADR-254]] mergeada (lockfile com hashes) — pré-req ✔.
+2. `requirements.in` swap + `config.py` driver explícito.
+3. Regen `requirements.lock` (container amd64) + validação de import.
+4. Dockerfile remove `libpq-dev` + `libpq5`.
+5. Suíte + integração verdes.
 
 ## Riscos
 
-- **Quebra Alembic em migration legada** — PR de prova rodando `alembic
-  downgrade -1 && alembic upgrade head` em todas migrations ativas.
-- **Latência regressão** — integration tests medem p95.
-- **Third-party libs assumindo psycopg2** — grep + substituir/wrap.
+- **Behavior diff psycopg2→psycopg3** (timezone/timestamp/JSONB/NULL) —
+  mitigado por round-trip JSONB + `timestamptz` na integração Postgres-real.
+  Baixo: Money/datas passam por serialização tipada; SQLAlchemy `JSON` type
+  cuida do round-trip JSONB.
+- **Pooling** — SQLAlchemy `QueuePool` (não `psycopg_pool`); comportamento
+  idêntico v2↔v3.
 
 ## Métricas
 
-- Image size `runtime` (target -15MB vs baseline pós-[[A20.l1]]).
-- p95 latency em integration tests (target +0% vs baseline; <10% acceptable).
-- Linhas em `database.py` (target estável ou menor — não inflar com
-  wrappers).
+- Image size `runtime` — esperado -15MB vs com libpq5 + psycopg2 wheel
+  (validar empírico pós-merge).
+- Linhas em `database.py` — **inalteradas** (swap é em requirements + config).
 
 ## Referências externas
 
+- [psycopg 3 docs](https://www.psycopg.org/psycopg3/docs/)
+- [SQLAlchemy — psycopg (v3) dialect](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg)
 - [asyncpg docs](https://magicstack.github.io/asyncpg/)
-- [SQLAlchemy 2.x async](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html)
-- [Alembic async migrations](https://alembic.sqlalchemy.org/en/latest/cookbook.html#using-asyncio-with-alembic)
