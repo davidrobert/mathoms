@@ -1,7 +1,7 @@
 ---
 id: A21.l1
 type: lane
-title: "Suíte de invariantes de consolidação INV-1..8 (E1.5c)"
+title: "Suíte de invariantes de consolidação INV-1..9 (E1.5c)"
 sprint: A21
 plan: PLAN-launch-trust
 status: open
@@ -17,7 +17,7 @@ tags:
   - area/pipeline
 ---
 
-# A21.l1 — Suíte de invariantes de consolidação INV-1..8
+# A21.l1 — Suíte de invariantes de consolidação INV-1..9
 
 > **Plano:** [[PLAN-launch-trust]] §F1-O0 ([F1 lanes](../../../plan/LAUNCH_TRUST/_README.md#f1-lanes)).
 > **Boundary:** `consolidate_baseline` (E1.5c, `scripts/e15_consolidate.py`).
@@ -32,7 +32,7 @@ entidades (l4) — e é o **gate (a) de F3**.
 
 ## Escopo
 
-Oito invariantes empíricos sobre o output de E1.5c, em
+Nove invariantes empíricos sobre o output de E1.5c, em
 `tests/unit/pipeline/test_e15c_dedup_invariants.py` + golden de execução em
 `tests/test_e15c_golden_execution.py`.
 
@@ -46,10 +46,20 @@ Oito invariantes empíricos sobre o output de E1.5c, em
 | INV-6 | Tie-break determinístico: mesmo input → mesmo vencedor |
 | INV-7 | Warning não-silencioso: toda fusão emite `DedupWarning` tipado |
 | INV-8 | Monotonicidade de série: cross-year `max(ano)`; queda → warning, não erro |
+| INV-9 | Não-pessoa (PF-only): contribuinte PJ (`detect_pj_suffix` casa LTDA/S.A./EIRELI/…) não vira membro nem soma ao PL — [[ADR-268]] |
+
+> **INV-9 — por que aqui (ADR-268).** A revisão da ADR-268 (#519) pôs o
+> read-filter `partition_irpf_payloads` no boundary de **E5**, não em E1.5c.
+> O consolidador (`consolidate_baseline`) ainda pode enxergar o artifact PJ
+> persistido (E1.6 só marca `needs_review`, não dropa). INV-9 fecha **o
+> boundary de consolidação**: se o teste vier vermelho, o fix — aplicar
+> `detect_pj_suffix` como pré-filtro em E1.5c — é **in-scope desta lane**.
+> Não é regra de dedup (é pré-filtro de não-pessoa) → não entra no contrato
+> de l3.
 
 ## Critério de aceite
 
-- 8/8 invariantes verde em CI, **sem skip** (A21-KR1).
+- 9/9 invariantes verde em CI, **sem skip** (A21-KR1).
 - Roda contra o golden de l2 (esta lane pode começar com fixture mínima e
   endurecer quando l2 entregar o golden anotado).
 

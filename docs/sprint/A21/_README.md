@@ -3,15 +3,15 @@ id: MOC-sprint-a21
 type: moc
 title: "Sprint A21 — Launch Trust: número confiável + gates de F3/LGPD abertos"
 aliases: ["A21", "Sprint A21"]
-sprint_status: candidate
+sprint_status: current
 date: "2026-05-30"
 theme: "confiabilidade"
 ---
 
 # Sprint A21 — Launch Trust: número confiável + gates abertos
 
-> **Status:** `candidate` — desenhada e pronta para pickup. Promova a `current`
-> (flip do frontmatter + regen do índice) quando o owner der o kickoff.
+> **Status:** `current` — kickoff dado pelo owner em 2026-05-30. Lanes sem deps
+> (`l1`, `l5`, `l7`, `l8`) liberadas para pickup imediato.
 >
 > **Plano dono:** [[PLAN-launch-trust]] ([plan/LAUNCH_TRUST/_README.md](../../plan/LAUNCH_TRUST/_README.md)).
 > Esta sprint é a **primeira janela de execução** do plano.
@@ -47,7 +47,7 @@ real R2 (exige bucket/credencial — A21 entrega só o mecanismo testável em CI
 
 | KR | Métrica | Meta | Mapeia |
 |---|---|---|---|
-| A21-KR1 | Suíte INV-1..8 verde em CI, sem skip | 8/8 | KR1 (F1) |
+| A21-KR1 | Suíte INV-1..9 verde em CI, sem skip (INV-9 = filtro PJ, [[ADR-268]]) | 9/9 | KR1 (F1) |
 | A21-KR2 | `fn_rate` no golden multi-ano anotado | ≤ 5% | KR2 (F1) |
 | A21-KR3 | `fp_rate` no golden (red line) | **0%** | KR3 (F1) |
 | A21-KR4 | Previdência cross-axis: plano conta 1× como ativo, dedução não soma ao PL (teste verde) | shipped | F1-O4 |

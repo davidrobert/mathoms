@@ -14,6 +14,7 @@ adrs_canonical:
   - "[[ADR-246]]"
   - "[[ADR-255]]"
   - "[[ADR-267]]"
+  - "[[ADR-268]]"
   - "[[ADR-271]]"
 tags:
   - type/plan
@@ -95,7 +96,7 @@ do cliente pagante.**
 
 | KR | Métrica | Meta launch-blocking | Frente |
 |---|---|---|---|
-| **KR1** | Suíte de invariantes de consolidação (INV-1..8) verde em CI | 8/8 passando, sem skip | F1 |
+| **KR1** | Suíte de invariantes de consolidação (INV-1..9) verde em CI | 9/9 passando, sem skip | F1 |
 | **KR2** | `fn_rate` (duplicata real não fundida → infla PL) no golden multi-ano | ≤ 5% | F1 |
 | **KR3** | `fp_rate` (entidade distinta fundida → some patrimônio) no golden | **0%** (red line) | F1 |
 | **KR4** | Gates operacionais G1 (backup/restore drill) + G2 (rollback drill) | executados e documentados | F2 |
@@ -167,7 +168,7 @@ O que **não** existe e bloqueia confiar no número:
 
 | Lane | Título | Tipo | Sev | Dono | Depende de |
 |---|---|---|---|---|---|
-| **F1-O0** | Suíte de invariantes de consolidação (INV-1..8) | M | **P0** | data-engineer | — |
+| **F1-O0** | Suíte de invariantes de consolidação (INV-1..9) | M | **P0** | data-engineer | — |
 | **F1-O1** | Golden multi-ano anotado + métrica fn_rate/fp_rate | M | **P0** | data-engineer | F1-O0 |
 | **F1-O2** | Extração do contrato `EntityDedup` (Protocol compartilhado) | L | P1 | senior-cto | F1-O0, F1-O1 |
 | **F1-O3** | Dedup de dívida cross-year (`max(ano)` + warning de monotonicidade) | M | P1 | financial-planner + data-engineer | F1-O2 |
@@ -176,7 +177,7 @@ O que **não** existe e bloqueia confiar no número:
 
 #### F1-O0 — Suíte de invariantes de consolidação (P0, sem deps)
 
-A rede de segurança que deveria existir antes de qualquer dedup novo. Oito
+A rede de segurança que deveria existir antes de qualquer dedup novo. Nove
 invariantes empíricos sobre o output de E1.5c, em
 `tests/unit/pipeline/test_e15c_dedup_invariants.py` + golden de execução em
 `tests/test_e15c_golden_execution.py`.
@@ -191,8 +192,9 @@ invariantes empíricos sobre o output de E1.5c, em
 | INV-6 | **Tie-break determinístico:** mesmo input → mesmo vencedor (maior valor; empate → ordem estável) | sem flakiness |
 | INV-7 | **Warning não-silencioso:** toda fusão emite `DedupWarning` tipado | auditabilidade |
 | INV-8 | **Monotonicidade de série:** cross-year usa `max(ano)`; queda de valor entre anos emite warning, não erro | dívida amortiza, ativo oscila |
+| INV-9 | **Não-pessoa (PF-only):** contribuinte com razão social PJ (`detect_pj_suffix` casa LTDA/S.A./EIRELI/MEI/…) nunca surge como membro nem soma ao PL consolidado | [[ADR-268]]: read-filter `partition_irpf_payloads` cobre E5, **não** E1.5c — INV-9 fecha o boundary de consolidação |
 
-**Critério de aceite:** 8/8 verde, sem skip, contra os goldens de F1-O1.
+**Critério de aceite:** 9/9 verde, sem skip, contra os goldens de F1-O1.
 
 #### F1-O1 — Golden multi-ano anotado + métrica (P0)
 
@@ -259,7 +261,7 @@ Cada uma vira uma `EntityDedupPolicy`. Regras de domínio (`financial-planner`):
 
 ### F1: Invariantes de domínio (financial-planner)
 
-Além dos INV-1..8 estruturais, nove regras de domínio que a frente deve
+Além dos INV-1..9 estruturais, dez regras de domínio que a frente deve
 preservar (viés FP/FN por força de âncora):
 
 1. Imóvel em comunhão = 1 ativo, label "casal", maior valor vence (ADR-246).
@@ -271,6 +273,8 @@ preservar (viés FP/FN por força de âncora):
 7. Cross-year dívida: valor só cai (amortização); subida = warning.
 8. Previdência: 1 ativo + N deduções fiscais, nunca soma cruzada.
 9. Toda fusão é auditável (warning tipado, nunca silenciosa).
+10. Contribuinte PJ (razão social, sufixo LTDA/S.A./…) não é pessoa: não vira
+    membro nem entra no PL — pré-filtro, não regra de dedup (ADR-268).
 
 ---
 
@@ -432,5 +436,5 @@ arquitetural):
 - **F2 dono:** [`PLAN-platform-review`](../PLATFORM_REVIEW/_README.md) — Waves 3-4, [[ADR-228]] G1-G5.
 - **F3 dono:** [`PLAN-planner-review`](../PLANNER_REVIEW/_README.md) — Atos 0-6, [[ADR-199]]..[[ADR-208]].
 - **F3 dono:** [`PLAN-llm-prompts-hardening`](../LLM_PROMPTS_HARDENING/_README.md) — telemetria/LGPD nos prompts.
-- **ADRs canônicas de F1:** [[ADR-246]] (imóveis), [[ADR-255]] (transações), [[ADR-267]] (membros), [[ADR-271]] (investimentos).
+- **ADRs canônicas de F1:** [[ADR-246]] (imóveis), [[ADR-255]] (transações), [[ADR-267]] (membros por CPF), [[ADR-268]] (filtro PF×PJ — INV-9), [[ADR-271]] (investimentos).
 - **Invariantes relacionadas:** [[ADR-236]] (base PGBL = renda tributável PF), [[ADR-212]] (ArtifactStore DB-only, janela RTO rollback).

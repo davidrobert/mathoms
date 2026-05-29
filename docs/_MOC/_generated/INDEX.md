@@ -541,7 +541,7 @@
 | A20.l7 | lane | shipped | A20 | Docker dev↔prod parity — L7 Makefile targets + SETUP.md revisado | `sprint/A20/lanes/A20-l7-makefile.md` |
 | A20.l8 | lane | shipped | A20 | Docker dev↔prod parity — L8 Postgres driver (psycopg2 → psycopg v3 swap) | `sprint/A20/lanes/A20-l8-postgres-driver.md` |
 | A20.l9 | lane | blocked | A20 | Docker dev↔prod parity — L9 Smoke E2E em compose (login + relatório + PDF) | `sprint/A20/lanes/A20-l9-smoke-e2e.md` |
-| A21.l1 | lane | open | A21 | Suíte de invariantes de consolidação INV-1..8 (E1.5c) | `sprint/A21/lanes/A21-l1-consolidation-invariants.md` |
+| A21.l1 | lane | open | A21 | Suíte de invariantes de consolidação INV-1..9 (E1.5c) | `sprint/A21/lanes/A21-l1-consolidation-invariants.md` |
 | A21.l2 | lane | planned | A21 | Golden multi-ano anotado + métrica fn_rate/fp_rate | `sprint/A21/lanes/A21-l2-dedup-golden-metrics.md` |
 | A21.l3 | lane | planned | A21 | Contrato EntityDedup (Protocol + runner compartilhado) | `sprint/A21/lanes/A21-l3-entity-dedup-contract.md` |
 | A21.l4 | lane | planned | A21 | Dedup previdência PGBL/VGBL (ativo × dedução fiscal, cross-axis) | `sprint/A21/lanes/A21-l4-previdencia-dedup.md` |
