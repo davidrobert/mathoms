@@ -2,7 +2,7 @@
 id: ADR-249
 type: adr
 title: "SHA pinning de imagens base + Dependabot Docker — Sprint A20"
-status: Proposto
+status: Decidido
 phase: A20.l2
 date: "2026-05-22"
 relates_to:
@@ -20,7 +20,7 @@ aliases:
   - "Dependabot Docker"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/infra
   - area/docker
   - area/security
@@ -52,18 +52,38 @@ Pinar **todas** as imagens base por `@sha256:<digest>` em `Dockerfile*` e
 com cadência semanal. Política de auto-merge condicionada a CI verde
 (incluindo [[A20.l5]] Trivy blocking).
 
-Política de update (operacional):
+Política de update (operacional · co-design `sre-devops`):
 
-- **Security patch** (CVE HIGH+): SHA atualizado em <72h.
-- **Minor/patch update**: revisão semanal via Dependabot.
-- **Major update**: review manual obrigatório (mudança de base implica testes
-  de regressão).
+- **Auto-merge — gate temporal:** **nenhum** bump Docker entra por auto-merge
+  enquanto [[A20.l5]] (Trivy image scan blocking · [[ADR-251]]) não estiver em
+  CI. Razão: re-pin de digest do **mesmo tag** não é auditável só pelo diff —
+  a tag é mutável e o digest novo pode trazer CVE novo; sem scan, o digest
+  antigo era o auditado, o novo não. Até L5, **todo** bump Docker é review
+  manual.
+- **Pós-L5:** auto-merge apenas para `version-update:semver-patch` + `digest`,
+  e somente se o Trivy retornar **0 HIGH/CRITICAL** no PR. Minor/major sempre
+  manual.
+- **Security patch** (CVE HIGH+): escape hatch <72h — PR manual com label
+  `security` + auto-merge, sem esperar a cadência semanal. Grupo
+  `docker-security` (`applies-to: security-updates`) separado do
+  `docker-version` para cadência/SLA distintos.
+- **Cadência version-updates:** semanal (segunda 06:00 BRT), agrupada por
+  diretório (`groups` evita até ~12 PRs/semana entre os 4 diretórios).
 
-Coleta de digest atual via `docker pull <imagem>:<tag> && docker inspect
-<imagem>:<tag> | jq '.[0].RepoDigests[0]'`.
+Digest = **índice multi-arch** (manifest list), não platform-specific —
+crítico para dev em Apple Silicon (arm64) com CI/prod amd64. Coleta:
+
+```
+docker buildx imagetools inspect <imagem>:<tag> --format '{{.Manifest.Digest}}'
+```
+
+`docker inspect ... RepoDigests[0]` retorna o mesmo digest quando a tag é uma
+manifest list, mas `buildx imagetools` é a fonte inequívoca. Forma do pin:
+`FROM <img>:<tag>@sha256:<digest>` (tag preservada por legibilidade).
 
 Pre-commit hook `dev/check_docker_sha_pin.py` valida que nenhum
-`Dockerfile`/`compose` versionado tem `FROM` sem `@sha256:`.
+`Dockerfile`/`compose` versionado tem `FROM`/`image:` externo sem `@sha256:`
+(isenta stage refs, `scratch` e imagens de build local `mathoms-*`).
 
 ## Alternativas consideradas
 
@@ -112,6 +132,31 @@ Compatível com fluxo GitHub Actions atual sem dependência externa.
 ## Validação
 
 Critérios em [[A20.l2]] §"Critério de aceite" (5 critérios).
+
+### Notas de entrega — L2 (2026-05-29)
+
+Implementado e validado:
+
+- **15 refs pinadas** por digest do índice multi-arch: `python:3.12-slim`
+  (backend `ARG PYTHON_BASE` + `pipeline-service/Dockerfile`), `node:22-alpine`
+  (frontend ×3 + frontend-ops ×3 + `docker-compose.dev.yml`),
+  `postgres:16-alpine` + `redis:7-alpine` (prod/dev/test/smoke composes).
+- **Imagens de build local** (`mathoms-backend:*`, `mathoms-frontend*:*`)
+  **não** pinadas — `image:` ali é o nome do artefato buildado, não base.
+- **`pipeline-service/docker-compose.yml` não existe** (a tabela D2 de
+  [[ADR-252]] o listava como "MANTER", mas o arquivo nunca existiu) → entry
+  Dependabot `/pipeline-service` cobre só o Dockerfile.
+- **Hook `dev/check_docker_sha_pin.py`** registrado em `.pre-commit-config.yaml`;
+  verde em todos os 4 Dockerfiles + 4 composes; bloqueia `FROM ubuntu:latest`
+  e `image: alpine:3.20` sintéticos (critério 5). Escaneia `image:` em compose
+  além de `FROM`, e valida o default do `ARG` quando `FROM ${ARG}` o referencia.
+- **Build verificado** — `pipeline-service` builda com a base pinada,
+  `whoami` → `mathoms`. Digest `090ba77e…` do `python:3.12-slim` é o mesmo já
+  consumido por [[A20.l1]] (ADR-248), confirmando consistência cross-lane.
+- **Critério 4 deferido** — forçar PR sintético do Dependabot via
+  `gh api .../dependabot/updates` exige a config já em `main` + janela de
+  scan do GitHub; verificável só pós-merge (gate humano/observação, não
+  bloqueia a lane).
 
 ## Migração
 

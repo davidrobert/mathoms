@@ -3,7 +3,7 @@ id: A20.l2
 type: lane
 title: "Docker dev↔prod parity — L2 SHA pinning de bases + Dependabot Docker"
 sprint: A20
-status: open
+status: shipped
 priority: P0
 branch_slug: a20-l2-sha-pinning-dependabot
 depends_on: []
@@ -16,7 +16,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a20
-  - status/ready
+  - status/shipped
   - priority/p0
   - area/infra
   - area/docker
@@ -28,6 +28,26 @@ tags:
 > **Onda A** em [[MOC-sprint-a20]]. Lane curta, mecânica, baixo risco — barata
 > e desbloqueia [[A20.l1]] (precisa de `python:3.12-slim@sha256:...` para
 > garantir paridade entre stages `builder`/`runtime`/`playwright`).
+
+## Status de entrega
+
+**Shipped 2026-05-29** — changelog [[CHG-2026-05-29-A20-L2-SHA-PINNING]].
+[[ADR-249]] flipada `Proposto → Decidido`.
+
+**Decisões adotadas (co-design `sre-devops`):**
+- **Digest do índice multi-arch** (`docker buildx imagetools inspect ... {{.Manifest.Digest}}`),
+  não platform-specific — crítico para dev em Apple Silicon vs CI/prod amd64.
+- **Sem auto-merge Docker até L5 (Trivy blocking)** — re-pin de digest do mesmo
+  tag não é auditável só pelo diff; até L5, todo bump é review manual.
+- **`groups`** no Dependabot separa `docker-security` de `docker-version` por
+  diretório (evita ~12 PRs/semana entre os 4 dirs).
+
+**15 refs pinadas:** `python:3.12-slim` (backend `ARG PYTHON_BASE` +
+pipeline-service), `node:22-alpine` (frontend ×3, frontend-ops ×3, compose dev),
+`postgres:16-alpine` + `redis:7-alpine` (prod/dev/test/smoke). Imagens de build
+local (`mathoms-*`) não pinadas. Hook `dev/check_docker_sha_pin.py` verde +
+bloqueia casos sintéticos. Build do pipeline-service com base pinada → `whoami`
+= `mathoms`.
 
 ## Resumo
 
@@ -106,13 +126,14 @@ Python), fecha o gap completo.
 
 ## Definition of Done
 
-- [ ] PR mergeado em `main` com CI verde.
-- [ ] [[ADR-249]] promovida `Proposto → Decidido (A20.L2)`.
-- [ ] [[A20.l1]] (em paralelo) consome o SHA pinado de `python:3.12-slim` no
-      `ARG PYTHON_BASE_SHA`.
-- [ ] Política de auto-merge documentada em [[ADR-249]] — referência ao gate
-      de [[A20.l5]].
-- [ ] [CHANGELOG](../../../CHANGELOG.md) entry registrada.
+- [x] PR mergeado em `main` com CI verde.
+- [x] [[ADR-249]] promovida `Proposto → Decidido (A20.L2)`.
+- [x] [[A20.l1]] consome o SHA pinado de `python:3.12-slim` via `ARG
+      PYTHON_BASE` (mesmo digest `090ba77e…`, consistência cross-lane).
+- [x] Política de auto-merge documentada em [[ADR-249]] — gate temporal
+      explícito ligado a [[A20.l5]].
+- [x] [CHANGELOG](../../../CHANGELOG.md) entry registrada
+      ([[CHG-2026-05-29-A20-L2-SHA-PINNING]]).
 
 ## Riscos top 3
 
