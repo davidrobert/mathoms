@@ -267,7 +267,7 @@
 | ADR-269 | adr | Proposto |  | Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado | `adr/269-task-suggestion-dedup-supersede.md` |
 | ADR-270 | adr | Proposto |  | Retry de LLM calls — categoria network + cap de timeout | `adr/270-llm-retry-network-category-timeout-cap.md` |
 | ADR-271 | adr | Decidido |  | Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c | `adr/271-dedup-investimentos-cross-irpf.md` |
-| ADR-272 | adr | Proposto |  | Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) | `adr/272-needs-review-razao-estruturada.md` |
+| ADR-272 | adr | Decidido |  | Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) | `adr/272-needs-review-razao-estruturada.md` |
 | ADR-273 | adr | Proposto |  | Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) | `adr/273-logging-estruturado-pipeline.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |

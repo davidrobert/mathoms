@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 58
+**Total de tabelas:** 59
 
 ---
 
@@ -50,6 +50,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`report_layouts`](#reportlayouts)
 - [`report_publications`](#reportpublications)
 - [`reports`](#reports)
+- [`review_reasons`](#reviewreasons)
 - [`risks`](#risks)
 - [`stage_reviews`](#stagereviews)
 - [`suggestions`](#suggestions)
@@ -1037,6 +1038,35 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - FOREIGN KEY (analysis_artifact_id) REFERENCES pipeline_artifacts.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (pipeline_run_id) REFERENCES pipeline_runs.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+### `review_reasons`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `pipeline_run_id` | `VARCHAR(36)` | no | — | FK→pipeline_runs.id, INDEX |
+| `stage` | `VARCHAR(50)` | no | — | — |
+| `code` | `VARCHAR(64)` | no | — | — |
+| `artifact_key` | `VARCHAR(255)` | no | `''` | — |
+| `document_id` | `VARCHAR(36)` | yes | — | FK→documents.id |
+| `offending_value` | `TEXT` | no | `''` | — |
+| `expected` | `TEXT` | no | `''` | — |
+| `message` | `TEXT` | no | `''` | — |
+| `occurrence_count` | `INTEGER` | no | `1` | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (document_id) REFERENCES documents.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (pipeline_run_id) REFERENCES pipeline_runs.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_review_reasons_pipeline_run_id` (pipeline_run_id)
+- `ix_review_reasons_workspace_id` (workspace_id)
+- `ix_review_reasons_ws_run_code` (workspace_id, pipeline_run_id, code)
 
 ### `risks`
 
@@ -2327,6 +2357,25 @@ type Report struct {
 	PremissasSnapshotJson json.RawMessage `db:"premissas_snapshot_json" json:"premissas_snapshot_json"`
 	Score *float64 `db:"score" json:"score"`
 	PatrimonioLiquido *float64 `db:"patrimonio_liquido" json:"patrimonio_liquido"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
+### `review_reasons` → `type ReviewReason struct`
+
+```go
+type ReviewReason struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	PipelineRunId string `db:"pipeline_run_id" json:"pipeline_run_id"`
+	Stage string `db:"stage" json:"stage"`
+	Code string `db:"code" json:"code"`
+	ArtifactKey string `db:"artifact_key" json:"artifact_key"`
+	DocumentId *string `db:"document_id" json:"document_id"`
+	OffendingValue string `db:"offending_value" json:"offending_value"`
+	Expected string `db:"expected" json:"expected"`
+	Message string `db:"message" json:"message"`
+	OccurrenceCount int `db:"occurrence_count" json:"occurrence_count"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```
