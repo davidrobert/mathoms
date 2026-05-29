@@ -1,7 +1,48 @@
-# Backend container — Mathoms (lane 7A-dev, dev.3+dev.7)
-# Single-stage, alvo "boota" (não otimizado pra tamanho).
-# 3 modos via entrypoint: api / worker / beat.
-FROM python:3.12-slim
+# syntax=docker/dockerfile:1.7
+# ADR-248 — multi-stage backend com dual target (runtime / playwright).
+# Build:
+#   docker build --target runtime    -t mathoms-backend:runtime-<sha>    .
+#   docker build --target playwright -t mathoms-backend:playwright-<sha> .
+# Default target = playwright (superset seguro pra dev local rodar tudo, incl. PDF).
+#
+# Lockfile único combinado `requirements.lock` (ADR-254 / A20.L10): pip-compile
+# --generate-hashes sobre requirements.in + backend/requirements.in. backend/
+# requirements.in NÃO é instalado direto — o lock da raiz já é o superset.
+
+# PYTHON_BASE: tag por enquanto; A20.L2 (ADR-249) troca o default por
+# `python:3.12-slim@sha256:<digest>` + Dependabot. Mantido como ARG pra que o
+# pin entre em um único ponto sem reescrever os 3 FROM.
+ARG PYTHON_BASE=python:3.12-slim
+
+# ──────────────────────────────────────────────────────────────────────────
+# Stage 1: builder — compila wheels nativos (cryptography, asyncpg, etc.).
+# Descartado no resultado final; só produz wheels em /wheels/.
+# ──────────────────────────────────────────────────────────────────────────
+FROM ${PYTHON_BASE} AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Lockfile primeiro pra maximizar cache da layer de wheels.
+COPY requirements.lock /build/requirements.lock
+
+# Constroi wheels em /wheels/ — instala depois no runtime stage (zero compile lá).
+RUN pip wheel --require-hashes --wheel-dir /wheels -r /build/requirements.lock
+
+# ──────────────────────────────────────────────────────────────────────────
+# Stage 2: runtime — base enxuta (api fora-de-Playwright, worker, beat).
+# Target publicado: mathoms-backend:runtime-<sha>. Tamanho alvo: <450MB.
+# ──────────────────────────────────────────────────────────────────────────
+FROM ${PYTHON_BASE} AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -10,52 +51,83 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     MATHOMS_LOG_FORMAT=json
 
-# Apt deps mínimas:
-# - build-essential + libpq-dev: psycopg2-binary já vem wheel, mas asyncpg/cryptography
-#   podem precisar build em arch sem wheel pré-built. libpq-dev sustenta psycopg fallback.
-# - curl: usado pelo HEALTHCHECK no modo api.
+# Runtime libs (sem build-essential): libpq5 pro psycopg fallback, curl pro healthcheck.
+# L8/ADR-253 consolida driver — quando entregue, libpq5 pode sair se asyncpg-only.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        build-essential \
-        libpq-dev \
+        libpq5 \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
-# User não-root (UID 1000 default; Coolify roda como root host, mas processo cai pra mathoms).
+# User não-root (UID 1000) — mesmo padrão do legado single-stage.
 RUN useradd --create-home --shell /bin/bash --uid 1000 mathoms
 
 WORKDIR /app
 
-# Requirements: lock combinado (raiz + backend) com hashes — build determinístico
-# bit-a-bit (ADR-254). `--require-hashes` recusa qualquer dep cujo hash sha256 não
-# bata com o lock. requirements.in/backend/requirements.in são as sources human-edited;
-# requirements.lock é gerado via pip-compile --generate-hashes em container amd64
-# (runbook docs/reference/runbooks/python_dependencies.md). Regenerar em arm64
-# quebra o build (hashes de wheels nativos divergem por plataforma).
+# Instala wheels do builder — zero compile, fast, determinístico.
+# Bind-mount transitório (não COPY): os wheels nunca viram layer persistente.
+# COPY /wheels deixaria ~150MB mortos na imagem mesmo após `rm -rf` (a layer
+# anterior não é reclamada por um RUN posterior).
 COPY requirements.lock /app/requirements.lock
-RUN pip install --no-cache-dir --require-hashes -r /app/requirements.lock
+RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
+    pip install --require-hashes --no-index --find-links /wheels -r /app/requirements.lock
 
-# Código: backend e pipeline são pacotes peer; config tem schemas + layout YAML
-# carregados em runtime; pyproject.toml fica pra metadata (não instalado em editable).
-COPY backend/ /app/backend/
-COPY pipeline/ /app/pipeline/
+# Código — ordenado pra cache (config muda menos que código da API).
 COPY config/ /app/config/
+COPY pipeline/ /app/pipeline/
+COPY backend/ /app/backend/
 COPY pyproject.toml /app/pyproject.toml
 
-# Storage volume — diretório criado pra montar volume persistente em prod.
 RUN mkdir -p /app/storage \
     && chmod +x /app/backend/scripts/entrypoint.sh \
     && chown -R mathoms:mathoms /app
 
 USER mathoms
-
 EXPOSE 8000
 
-# Healthcheck só faz sentido no modo api; em worker/beat o curl falha mas o
-# start-period de 30s + retries=3 dá margem. Modos não-api podem ser configurados
-# no compose pra desabilitar healthcheck (override).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl --fail --silent http://localhost:8000/health || exit 1
 
 ENTRYPOINT ["/app/backend/scripts/entrypoint.sh"]
 CMD ["api"]
+
+# ──────────────────────────────────────────────────────────────────────────
+# Stage 3: playwright — runtime + Chromium + libs de sistema.
+# Herda 100% de runtime (FROM runtime AS playwright); só adiciona Chromium.
+# Target publicado: mathoms-backend:playwright-<sha>. Tamanho alvo: <950MB.
+# DEFAULT TARGET (superset seguro pra dev local).
+# ──────────────────────────────────────────────────────────────────────────
+FROM runtime AS playwright
+
+USER root
+
+# Libs Chromium em Debian bookworm (slim). Lista enxugada de
+# `playwright install-deps chromium` — só o necessário pro PDF headless
+# server-side em backend/app/services/pdf_renderer.py.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libnss3 \
+        libnspr4 \
+        libdbus-1-3 \
+        libatk1.0-0 \
+        libatk-bridge2.0-0 \
+        libcups2 \
+        libdrm2 \
+        libxkbcommon0 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxfixes3 \
+        libxrandr2 \
+        libgbm1 \
+        libasound2 \
+        libpango-1.0-0 \
+        libcairo2 \
+        libatspi2.0-0 \
+        fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
+USER mathoms
+
+# Apenas Chromium (não webkit/firefox) — única engine usada pelo pdf_renderer.
+# Browsers ficam em /home/mathoms/.cache/ms-playwright/ (já owned pelo user).
+RUN python -m playwright install chromium

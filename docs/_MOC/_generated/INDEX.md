@@ -245,7 +245,7 @@
 | ADR-245 | adr | Proposto |  | `caixa_moeda_estrangeira` cai para baseline IRPF quando E3 não traz USD/EUR | `adr/245-fallback-baseline-irpf-em-caixa-moeda-estrangeira.md` |
 | ADR-246 | adr | Proposto |  | Dedup de imóveis co-declarados em IRPFs de titular + cônjuge no consolidador E1.5c | `adr/246-dedup-imoveis-cross-irpf.md` |
 | ADR-247 | adr | Decidido |  | Documentação canônica permanece em Markdown; HTML apenas como artefato derivado/efêmero | `adr/247-markdown-canonico-html-apenas-artefato-derivado.md` |
-| ADR-248 | adr | Proposto |  | Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20 | `adr/248-multi-stage-backend-playwright-dual-target.md` |
+| ADR-248 | adr | Decidido |  | Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20 | `adr/248-multi-stage-backend-playwright-dual-target.md` |
 | ADR-249 | adr | Proposto |  | SHA pinning de imagens base + Dependabot Docker — Sprint A20 | `adr/249-sha-pinning-bases-dependabot-docker.md` |
 | ADR-250 | adr | Proposto |  | GHCR como registry de imagens + tagging strategy — Sprint A20 | `adr/250-ghcr-registry-tagging-strategy.md` |
 | ADR-251 | adr | Proposto |  | Trivy image scan blocking + SBOM CycloneDX — Sprint A20 | `adr/251-trivy-image-scan-blocking-sbom.md` |
@@ -472,6 +472,7 @@
 | CHG-2026-05-22-A18-L3-FIPE-SHIPPED | changelog-entry |  | A18 |  | `sprint/A18/changelog/CHG-2026-05-22-A18-L3-FIPE-SHIPPED.md` |
 | CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED | changelog-entry |  | A19 |  | `sprint/A19/changelog/CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED.md` |
 | CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED.md` |
+| CHG-2026-05-29-A20-L1-BACKEND-MULTISTAGE | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L1-BACKEND-MULTISTAGE.md` |
 | CHG-2026-05-29-A20-L6-COMPOSE-DEV | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L6-COMPOSE-DEV.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
@@ -519,8 +520,8 @@
 | A18.l3 | lane | shipped | A18 | Comprovantes de Bem — L3 FIPE refresh assíncrono via BrasilAPI | `sprint/A18/lanes/A18-l3-fipe.md` |
 | A18.l4 | lane | planned | A18 | LLM Hardening — W1α LGPD compliance (gate F7 R4 → Beta fechado) | `sprint/A18/lanes/A18-l4-llm-w1-alpha-lgpd.md` |
 | A19.l1 | lane | shipped | A19 | S_PROTECAO — L1 Card 4º pilar AUVP no relatório (KPIs + 3 subgrupos + reposicionamento) | `sprint/A19/lanes/A19-l1-card-protecao.md` |
-| A20.l1 | lane | open | A20 | Docker dev↔prod parity — L1 Multi-stage backend + Playwright dual target | `sprint/A20/lanes/A20-l1-backend-multistage.md` |
-| A20.l10 | lane | open | A20 | Docker dev↔prod parity — L10 Python lockfile com hashes (pip-tools vs uv) | `sprint/A20/lanes/A20-l10-python-lockfile.md` |
+| A20.l1 | lane | shipped | A20 | Docker dev↔prod parity — L1 Multi-stage backend + Playwright dual target | `sprint/A20/lanes/A20-l1-backend-multistage.md` |
+| A20.l10 | lane | shipped | A20 | Docker dev↔prod parity — L10 Python lockfile com hashes (pip-tools vs uv) | `sprint/A20/lanes/A20-l10-python-lockfile.md` |
 | A20.l11 | lane | planned | A20 | LLM Hardening — W1β ADR-090 cadeia e15_baseline (float → Decimal) | `sprint/A20/lanes/A20-l11-llm-w1-beta-adr090.md` |
 | A20.l12 | lane | planned | A20 | LLM Hardening — W2 semver puro + goldens fiscais BR + LLMCallLog SQL | `sprint/A20/lanes/A20-l12-llm-w2-versioning-goldens.md` |
 | A20.l13 | lane | planned | A20 | LLM Hardening — W3 telemetria OTLP mathoms.llm.* por prompt_version | `sprint/A20/lanes/A20-l13-llm-w3-telemetry.md` |
@@ -529,7 +530,7 @@
 | A20.l3 | lane | open | A20 | Docker dev↔prod parity — L3 pipeline-service non-root + healthcheck por service | `sprint/A20/lanes/A20-l3-pipeline-service.md` |
 | A20.l4 | lane | open | A20 | Docker dev↔prod parity — L4 GHCR push em CI + tagging strategy | `sprint/A20/lanes/A20-l4-ghcr-push.md` |
 | A20.l5 | lane | open | A20 | Docker dev↔prod parity — L5 Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/lanes/A20-l5-trivy-sbom.md` |
-| A20.l6 | lane | open | A20 | Docker dev↔prod parity — L6 docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/lanes/A20-l6-compose-dev.md` |
+| A20.l6 | lane | shipped | A20 | Docker dev↔prod parity — L6 docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/lanes/A20-l6-compose-dev.md` |
 | A20.l7 | lane | open | A20 | Docker dev↔prod parity — L7 Makefile targets + SETUP.md revisado | `sprint/A20/lanes/A20-l7-makefile.md` |
 | A20.l8 | lane | open | A20 | Docker dev↔prod parity — L8 Postgres driver consolidation (asyncpg-only) | `sprint/A20/lanes/A20-l8-postgres-driver.md` |
 | A20.l9 | lane | blocked | A20 | Docker dev↔prod parity — L9 Smoke E2E em compose (login + relatório + PDF) | `sprint/A20/lanes/A20-l9-smoke-e2e.md` |
@@ -642,11 +643,12 @@
 | TRACK-a18-l2-apolice-seguro | track | ready | A18 | Track A18 L2 — Apólice polimórfica: Discriminated Union bens+coberturas + cascata Haiku→Sonnet + combinada V1 | `sprint/A18/tracks/a18-l2-apolice-seguro.md` |
 | TRACK-a18-l3-fipe-refresh | track | ready | A18 | Track A18 L3 — FIPE refresh assíncrono via BrasilAPI: market_rates extension + Celery task + cron anual | `sprint/A18/tracks/a18-l3-fipe-refresh.md` |
 | TRACK-a19-l1-card-protecao | track | ready | A19 | Track A19 L1 — Card S_PROTECAO no relatório: ProtecaoAnalyzer + report_layout + componente React + reposicionamento AUVP | `sprint/A19/tracks/a19-l1-card-protecao.md` |
-| TRACK-a20-l1-backend-multistage | track | ready | A20 | Track A20.L1 — Backend multi-stage + Playwright dual target | `sprint/A20/tracks/a20-l1-backend-multistage.md` |
-| TRACK-a20-l10-python-lockfile | track | ready | A20 | Track A20.L10 — Python lockfile com hashes (pip-tools vs uv) | `sprint/A20/tracks/a20-l10-python-lockfile.md` |
+| TRACK-a20-fu-chromium-headless-shell | track | ready | A20 | Track A20.FU — Slim playwright target via chromium-headless-shell | `sprint/A20/tracks/a20-fu-chromium-headless-shell.md` |
+| TRACK-a20-l1-backend-multistage | track | consumed | A20 | Track A20.L1 — Backend multi-stage + Playwright dual target | `sprint/A20/tracks/a20-l1-backend-multistage.md` |
+| TRACK-a20-l10-python-lockfile | track | consumed | A20 | Track A20.L10 — Python lockfile com hashes (pip-tools vs uv) | `sprint/A20/tracks/a20-l10-python-lockfile.md` |
 | TRACK-a20-l4-ghcr-push | track | ready | A20 | Track A20.L4 — GHCR push em CI + tagging strategy | `sprint/A20/tracks/a20-l4-ghcr-push.md` |
 | TRACK-a20-l5-trivy-sbom | track | ready | A20 | Track A20.L5 — Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/tracks/a20-l5-trivy-sbom.md` |
-| TRACK-a20-l6-compose-dev | track | ready | A20 | Track A20.L6 — docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/tracks/a20-l6-compose-dev.md` |
+| TRACK-a20-l6-compose-dev | track | consumed | A20 | Track A20.L6 — docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/tracks/a20-l6-compose-dev.md` |
 | TRACK-a20-l9-smoke-e2e | track | ready | A20 | Track A20.L9 — Smoke E2E em compose (gate de fechamento do sprint) | `sprint/A20/tracks/a20-l9-smoke-e2e.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |

@@ -4,13 +4,13 @@ type: track
 title: "Track A20.L1 — Backend multi-stage + Playwright dual target"
 lane: "[[A20.l1]]"
 sprint: A20
-status: ready
+status: consumed
 created_at: "2026-05-29"
 agent_role: sre-devops
 tags:
   - type/track
   - sprint/a20
-  - status/ready
+  - status/consumed
   - priority/p0
   - area/infra
   - area/docker

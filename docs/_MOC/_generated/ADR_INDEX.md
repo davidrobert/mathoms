@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 194
-- **Proposto**: 64
+- **Decidido**: 195
+- **Proposto**: 63
 - **Roadmap**: 4
 
 ## Fundação
@@ -362,13 +362,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## infra
 
-### Decidido (1)
+### Decidido (2)
 
+- [[ADR-248]] — Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20 · phase A20.L1
 - [[ADR-254]] — Python lockfile com hashes — pip-tools vs uv — Sprint A20 · phase A20.l10
 
-### Proposto (6)
+### Proposto (5)
 
-- [[ADR-248]] — Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20 · phase A20.l1
 - [[ADR-249]] — SHA pinning de imagens base + Dependabot Docker — Sprint A20 · phase A20.l2
 - [[ADR-250]] — GHCR como registry de imagens + tagging strategy — Sprint A20 · phase A20.l4
 - [[ADR-251]] — Trivy image scan blocking + SBOM CycloneDX — Sprint A20 · phase A20.l5

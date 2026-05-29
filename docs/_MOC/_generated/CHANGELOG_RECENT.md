@@ -3,10 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-18 entries entre 2026-05-15 e 2026-05-29.
+19 entries entre 2026-05-15 e 2026-05-29.
 
-## 2026-05-29 (1 entries)
+## 2026-05-29 (2 entries)
 
+- [[CHG-2026-05-29-A20-L1-BACKEND-MULTISTAGE]] — A20.L1 — Dockerfile backend multi-stage com dual target (runtime / (lane [[A20.l1]])
 - [[CHG-2026-05-29-A20-L6-COMPOSE-DEV]] — A20.L6 — docker-compose.dev.yml unificado (D1+D2). Stack dev completa em (lane [[A20.l6]])
 
 ## 2026-05-28 (1 entries)
