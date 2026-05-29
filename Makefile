@@ -262,6 +262,66 @@ smoke-dirs:
 	@mkdir -p $(SMOKE_DIR) $(SMOKE_STORAGE)
 
 # ---------------------------------------------------------------------------
+# Dev stack (Docker — docker-compose.dev.yml · A20.L6/L7 · ADR-252)
+#
+# Caminho RECOMENDADO de onboarding: um comando sobe a stack inteira em
+# containers (postgres + 2 redis + api + worker + beat + frontend), com
+# hot-reload e seed automático. Paridade dev↔prod. Não usa .venv local.
+#
+# Sufixo `-docker` distingue da stack uvicorn-local legada (dev-up/dev-down/
+# dev-logs sem sufixo). Use uma OU outra — não as duas (colidem na porta 8000).
+# ---------------------------------------------------------------------------
+
+COMPOSE_DEV := docker-compose.dev.yml
+
+.PHONY: dev-up-docker dev-down-docker dev-reset-docker dev-shell-docker \
+        dev-rebuild-docker dev-logs-docker
+
+## dev-up-docker: Sobe a stack dev inteira em Docker (build + migrate + seed). Onboarding em 1 comando.
+dev-up-docker:
+	@echo "▶  Verificando portas publicadas ($(PORT_API), $(PORT_FRONTEND))…"
+	$(call check_port_free,$(PORT_API))
+	$(call check_port_free,$(PORT_FRONTEND))
+	@echo "▶  Subindo stack ($(COMPOSE_DEV))…"
+	@docker compose -f $(COMPOSE_DEV) up -d --build
+	@echo ""
+	@echo "  ✅ Stack dev (Docker) subindo. Boot leva ~60s (build + migrate + seed):"
+	@echo "     API:      http://localhost:$(PORT_API)/health"
+	@echo "     Frontend: http://localhost:$(PORT_FRONTEND)"
+	@echo "     Logs:     make dev-logs-docker   (SVC=api para um só)"
+	@echo "     Shell:    make dev-shell-docker"
+
+## dev-down-docker: Para a stack Docker, PRESERVA volumes (DB/Redis/storage intactos)
+dev-down-docker:
+	@echo "▶  Parando stack ($(COMPOSE_DEV)) — volumes preservados…"
+	@docker compose -f $(COMPOSE_DEV) down
+	@echo "  ✅ Stack parada. 'make dev-up-docker' para subir de novo (dados mantidos)."
+
+## dev-reset-docker: DESTRUTIVO — para a stack e APAGA volumes (wipe DB/Redis/storage)
+dev-reset-docker:
+	@echo "⚠️  DESTRUTIVO: vai apagar DB, Redis e storage da stack dev Docker."
+	@docker compose -f $(COMPOSE_DEV) down -v
+	@echo "  ✅ Volumes apagados. 'make dev-up-docker' reinicia do zero (re-seed)."
+
+## dev-shell-docker: Shell (bash) dentro do container api
+dev-shell-docker:
+	@docker compose -f $(COMPOSE_DEV) exec api bash
+
+## dev-rebuild-docker: Rebuild das imagens após mudança em deps/Dockerfile (sem subir)
+dev-rebuild-docker:
+	@echo "▶  Rebuild das imagens ($(COMPOSE_DEV))…"
+	@docker compose -f $(COMPOSE_DEV) build
+	@echo "  ✅ Imagens rebuildadas. 'make dev-up-docker' aplica."
+
+## dev-logs-docker: tail -f dos logs da stack Docker (SVC=<nome> para um só)
+dev-logs-docker:
+	@if [ -n "$(SVC)" ]; then \
+	   docker compose -f $(COMPOSE_DEV) logs -f $(SVC); \
+	 else \
+	   docker compose -f $(COMPOSE_DEV) logs -f; \
+	 fi
+
+# ---------------------------------------------------------------------------
 # Dev stack
 #
 # Sobe os 6 serviços de desenvolvimento local em background.
