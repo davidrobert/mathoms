@@ -281,6 +281,7 @@ mais `docs/agent_prompts/`) para lanes complexas — criados 2026-05-29:
 - [`tracks/a20-l6-compose-dev.md`](tracks/a20-l6-compose-dev.md) — L6
 - [`tracks/a20-l9-smoke-e2e.md`](tracks/a20-l9-smoke-e2e.md) — L9
 - [`tracks/a20-l10-python-lockfile.md`](tracks/a20-l10-python-lockfile.md) — L10
+- [`tracks/adr272-review-reasons.md`](tracks/adr272-review-reasons.md) — diagnóstico de falha ([[ADR-272]], 4 fases; criado 2026-05-30)
 
 Lanes restantes (L2, L3, L7, L8) ficam só com `lanes/A20-lN-*.md` — escopo
 mecânico não exige prompt operacional.
