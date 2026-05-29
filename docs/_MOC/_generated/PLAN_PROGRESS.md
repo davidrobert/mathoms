@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-15 planos detectados em [`docs/plan/`](../../plan/).
+16 planos detectados em [`docs/plan/`](../../plan/).
 
 ## Em execução (`in_progress`)
 
@@ -29,6 +29,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - Sprints envolvidas: F7
 - Lanes: 1 done · 0 in_progress · 0 open · 0 blocked
 - ADRs canônicas: [[ADR-116]]
+
+### PLAN-launch-trust — Launch Trust — três frentes que precisam estar verdes antes de produção
+
+- Status: `in_progress` · Sprint atual: A20
+- Sprints envolvidas: A20
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-246]], [[ADR-255]], [[ADR-267]], [[ADR-271]]
 
 ### PLAN-platform-review — Platform Review Plan — 2026-05-06
 
