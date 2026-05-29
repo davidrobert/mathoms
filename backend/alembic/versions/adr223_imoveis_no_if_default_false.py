@@ -23,7 +23,19 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-def _alter_default(default_text: str) -> None:
+def _boolean_default_literal(value: bool, dialect: str) -> str:
+    """Boolean default literal por dialeto.
+
+    Postgres rejeita `DEFAULT 0` em coluna BOOLEAN (DatatypeMismatchError);
+    exige `false`/`true`. SQLite (sem ALTER COLUMN; rebuild via batch) aceita
+    `0`/`1`. Offline/prod-target = Postgres.
+    """
+    if dialect == "sqlite":
+        return "1" if value else "0"
+    return "true" if value else "false"
+
+
+def _alter_default(value: bool) -> None:
     """Alter `workspaces.imoveis_no_if` server_default — dialect-aware.
 
     - Offline mode (`alembic upgrade --sql`): emite comentário (batch_alter_table
@@ -33,19 +45,22 @@ def _alter_default(default_text: str) -> None:
     - Postgres/outros: ``alter_column`` direto.
     """
     if context.is_offline_mode():
+        literal = _boolean_default_literal(value, "postgresql")
         op.execute(
-            f"-- ADR-223: workspaces.imoveis_no_if server_default → {default_text} "
+            f"-- ADR-223: workspaces.imoveis_no_if server_default → {literal} "
             "(Postgres ALTER COLUMN ... SET DEFAULT; SQLite via batch rebuild online)"
         )
         return
     bind = op.get_bind()
-    if bind is not None and bind.dialect.name == "sqlite":
+    dialect = bind.dialect.name if bind is not None else "postgresql"
+    literal = _boolean_default_literal(value, dialect)
+    if dialect == "sqlite":
         with op.batch_alter_table("workspaces", schema=None) as batch_op:
             batch_op.alter_column(
                 "imoveis_no_if",
                 existing_type=sa.Boolean(),
                 existing_nullable=False,
-                server_default=sa.text(default_text),
+                server_default=sa.text(literal),
             )
         return
     op.alter_column(
@@ -53,13 +68,13 @@ def _alter_default(default_text: str) -> None:
         "imoveis_no_if",
         existing_type=sa.Boolean(),
         existing_nullable=False,
-        server_default=sa.text(default_text),
+        server_default=sa.text(literal),
     )
 
 
 def upgrade() -> None:
-    _alter_default("0")
+    _alter_default(False)
 
 
 def downgrade() -> None:
-    _alter_default("1")
+    _alter_default(True)
