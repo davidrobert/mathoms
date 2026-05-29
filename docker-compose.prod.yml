@@ -38,7 +38,7 @@
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:16bc17c64a573ef34162af9298258d1aec548232985b33ed7b1eac33ba35c229
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -57,7 +57,7 @@ services:
   # `allkeys-lru` aqui evictava mensagens Celery silenciosamente sob pico —
   # jobs sumiam, run ficava em "queued" eterno. Bug crítico de produção.
   redis-broker:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
     command: >
       redis-server
       --appendonly yes
@@ -76,7 +76,7 @@ services:
   # Policy `allkeys-lru`: pode evictar; consumidores tratam miss como recompute.
   # Pub/Sub não é afetado por maxmemory (mensagens não persistem como keys).
   redis-cache:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
     command: >
       redis-server
       --maxmemory 128mb

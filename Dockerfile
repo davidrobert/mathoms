@@ -9,10 +9,12 @@
 # --generate-hashes sobre requirements.in + backend/requirements.in. backend/
 # requirements.in NÃO é instalado direto — o lock da raiz já é o superset.
 
-# PYTHON_BASE: tag por enquanto; A20.L2 (ADR-249) troca o default por
-# `python:3.12-slim@sha256:<digest>` + Dependabot. Mantido como ARG pra que o
-# pin entre em um único ponto sem reescrever os 3 FROM.
-ARG PYTHON_BASE=python:3.12-slim
+# PYTHON_BASE pinado por digest do índice multi-arch (A20.L2 · ADR-249).
+# tag@sha256 preserva legibilidade + reprodutibilidade; o digest é do manifest
+# list (não platform-specific), então resolve amd64/arm64. Dependabot
+# (ecosystem docker, dir `/`) re-pina quando sai versão nova. Único ponto de
+# pin para os 3 FROM (builder/runtime/playwright).
+ARG PYTHON_BASE=python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203
 
 # ──────────────────────────────────────────────────────────────────────────
 # Stage 1: builder — compila wheels nativos (cryptography, asyncpg, etc.).

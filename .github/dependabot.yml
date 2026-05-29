@@ -104,6 +104,101 @@ updates:
           - "tailwindcss"
 
   # ----------------------------------------------------------------------
+  # Docker — imagens base pinadas por @sha256 (ADR-249 · A20.L2)
+  #
+  # Re-pina o digest quando sai versão nova da tag. `groups` separa
+  # security-updates de version-updates (cadência/SLA distintos):
+  #   - security-updates: bump <72h, label `security`, review prioritário.
+  #   - version-updates: cadência semanal, agrupado por diretório.
+  #
+  # AUTO-MERGE: NENHUM bump Docker entra por auto-merge enquanto L5 (Trivy
+  # image scan blocking, ADR-251) não estiver em CI. Re-pin de digest do
+  # MESMO tag NÃO é auditável só pelo diff (tag é mutável; digest novo pode
+  # trazer CVE novo) → sem scan, todo bump é review manual. Pós-L5:
+  # auto-merge só para version-update:semver-patch + digest, com Trivy
+  # retornando 0 HIGH/CRITICAL no PR. Detalhe em ADR-249.
+  # ----------------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels: ["dependency", "area:docker"]
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      docker-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      docker-version:
+        applies-to: version-updates
+        patterns: ["*"]
+
+  - package-ecosystem: "docker"
+    directory: "/pipeline-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels: ["dependency", "area:docker"]
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      docker-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      docker-version:
+        applies-to: version-updates
+        patterns: ["*"]
+
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels: ["dependency", "area:docker"]
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      docker-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      docker-version:
+        applies-to: version-updates
+        patterns: ["*"]
+
+  - package-ecosystem: "docker"
+    directory: "/frontend-ops"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    labels: ["dependency", "area:docker"]
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      docker-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      docker-version:
+        applies-to: version-updates
+        patterns: ["*"]
+
+  # ----------------------------------------------------------------------
   # GitHub Actions — pin updates
   # ----------------------------------------------------------------------
   # CRÍTICO: ci.yml usa SHA-pin para tj-actions e astral-sh/setup-uv

@@ -31,7 +31,7 @@
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:16bc17c64a573ef34162af9298258d1aec548232985b33ed7b1eac33ba35c229
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-mathoms}
       POSTGRES_DB: ${POSTGRES_DB:-mathoms}
@@ -48,7 +48,7 @@ services:
     restart: unless-stopped
 
   redis-broker:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
     command: >
       redis-server
       --appendonly yes
@@ -64,7 +64,7 @@ services:
     restart: unless-stopped
 
   redis-cache:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
     command: >
       redis-server
       --maxmemory 128mb
@@ -184,7 +184,7 @@ services:
   # Frontend Next.js em modo dev (HMR via `npm run dev`). node_modules fica em
   # named volume para não pisar no mount de código e não reinstalar a cada up.
   frontend:
-    image: node:22-alpine
+    image: node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920
     working_dir: /app/frontend
     command: ["sh", "-c", "[ -d node_modules/next ] || npm ci; npx next dev --turbopack -H 0.0.0.0 -p 3000"]
     environment:
