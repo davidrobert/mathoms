@@ -138,17 +138,18 @@ def test_payload_lgpd_nao_persiste_beneficiarios_pii():
     assert "beneficiarios_cpfs" not in dumped
 
 
-def test_payload_regressivo_exige_data_adesao():
-    """regime_tributacao=regressivo sem data_adesao falha (cálculo PEPS impossível)."""
-    with pytest.raises(ValidationError) as exc:
-        InformePrevidenciaPayload(
-            plano_tipo=PlanoTipo.pgbl,
-            regime_tributacao=RegimeTributacao.regressivo,
-            contribuicoes_anuais="100",
-            saldo_31_12="500",
-            # falta data_adesao
-        )
-    assert "data_adesao" in str(exc.value).lower()
+def test_payload_regressivo_aceita_sem_data_adesao():
+    """ADR-238 V1: regressivo sem data_adesao é ACEITO — saldo é verdade primária (PEPS é V2; degradação no stage)."""
+    p = InformePrevidenciaPayload(
+        plano_tipo=PlanoTipo.pgbl,
+        regime_tributacao=RegimeTributacao.regressivo,
+        contribuicoes_anuais="100",
+        saldo_31_12="500",
+        # sem data_adesao — não falha mais
+    )
+    assert p.regime_tributacao == RegimeTributacao.regressivo
+    assert p.data_adesao is None
+    assert p.saldo_31_12 == Decimal("500")
 
 
 def test_payload_progressivo_aceita_sem_data_adesao():

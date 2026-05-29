@@ -294,6 +294,26 @@ def _process_doc_safe(
     return _persist_processed(doc, payload, result, ctx, ws_id), None
 
 
+_NOTA_REGRESSIVO_SEM_ADESAO = (
+    "Regime regressivo sem data_adesao no informe — alíquota PEPS indeterminada; "
+    "saldo registrado (ADR-238 V1)."
+)
+
+
+def _flag_regressivo_sem_adesao(payload: dict) -> None:
+    """Regressivo sem data_adesao → needs_review + nota (ADR-238: não perder saldo)."""
+    prev = payload.get("previdencia")
+    if not isinstance(prev, dict):
+        return
+    if prev.get("regime_tributacao") != "regressivo" or prev.get("data_adesao") is not None:
+        return
+    payload["needs_review"] = True
+    nota = prev.get("notas")
+    prev["notas"] = (
+        f"{nota} {_NOTA_REGRESSIVO_SEM_ADESAO}".strip() if nota else _NOTA_REGRESSIVO_SEM_ADESAO
+    )
+
+
 def _build_payload(output, prompt_version: str, doc_text: str, source_artifact_id: str) -> dict:
     """Materializa payload + força prompt_version + mask CPF Python + source_artifact_id."""
     payload = output.model_dump(mode="json")
@@ -305,6 +325,7 @@ def _build_payload(output, prompt_version: str, doc_text: str, source_artifact_i
     confidence = payload.get("confidence", 1.0)
     if confidence < _NEEDS_REVIEW_CONFIDENCE_THRESHOLD:
         payload["needs_review"] = True
+    _flag_regressivo_sem_adesao(payload)
     return payload
 
 
