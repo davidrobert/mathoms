@@ -1,16 +1,19 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# SPRINT_CURRENT — Lanes da sprint corrente — A20
+# SPRINT_CURRENT — Lanes da sprint corrente — A21
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-2 open.
+5 open.
 
-## Open (2)
+## Open (5)
 
-- [[A20.l4]] — Docker dev↔prod parity — L4 GHCR push em CI + tagging strategy · priority P0 · branch `a20-l4-ghcr-push-tagging`
-- [[A20.l5]] — Docker dev↔prod parity — L5 Trivy image scan blocking + SBOM CycloneDX · priority P0 · branch `a20-l5-trivy-sbom-blocking`
+- [[A21.l1]] — Suíte de invariantes de consolidação INV-1..8 (E1.5c) · priority P0 · branch `a21-l1-consolidation-invariants`
+- [[A21.l5]] — Decidir ADR-175 (defesa de injeção LLM em camadas) Proposto→Decidido · priority P0 · branch `a21-l5-adr175-decide`
+- [[A21.l7]] — LGPD Art.37 — audit log de acesso a dado sensível · priority P0 · branch `a21-l7-lgpd-audit-log`
+- [[A21.l8]] — LGPD Art.18 — export/deleção (data-subject rights) · priority P0 · branch `a21-l8-lgpd-data-subject-rights`
+- [[A21.l9]] — Backup/restore mechanism + drill CI-local (subset W4-T01) · priority P1 · branch `a21-l9-backup-restore-drill-ci`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

@@ -19,6 +19,14 @@ index) ao decidir retomar.
 
 ## Sprint candidate (próxima)
 
+### A21 — Launch Trust: número confiável + gates de F3/LGPD (`candidate` 2026-05-30)
+
+**Prioridade do owner.** Primeira janela do plano [[PLAN-launch-trust]] — 9 lanes em 4 trilhas paralelas, **zero passo humano externo, zero deploy em prod** (restrição de design). Entrega F1 inteira (confiabilidade do número em `consolidate_baseline`) e abre os gates de F3 (defesa de injeção [[ADR-175]] em `main`) e de LGPD (audit log Art.37 + export/deleção Art.18). Hard-rank por destravamento: `l1→l5→l6→l7→l8` antes de `l2/l3/l4/l9`.
+
+- **Plano dono:** [plan/LAUNCH_TRUST/_README.md](../plan/LAUNCH_TRUST/_README.md).
+- **Sprint:** [sprint/A21/_README.md](../sprint/A21/_README.md).
+- **Promoção a `current`:** flip do frontmatter quando o owner der kickoff.
+
 ### A18 — Comprovantes de Bem + Apólices + FIPE refresh (`candidate` 2026-05-21)
 
 **Próxima na fila.** 3 lanes coordenadas que destravam ingestão de CRLV-e, apólices polimórficas (combinada multi-bem como caso V1), e refresh assíncrono de valor de mercado via BrasilAPI. ADR canônica [[ADR-239]] (`Proposto`). Diagnóstico dogfood 2026-05-21: 6 PDFs (3 CRLV + 3 apólices) todos em `.other` silencioso.
