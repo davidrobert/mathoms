@@ -1,0 +1,31 @@
+# =============================================================================
+# docker-compose.dev.override.yml — EXEMPLO (A20.L6 · ADR-252)
+# =============================================================================
+# Copie para `docker-compose.dev.override.yml` (gitignored) e ajuste suas vars
+# locais. O Compose carrega `docker-compose.override.yml` automaticamente APENAS
+# quando o arquivo base é o default `docker-compose.yml`; como aqui usamos
+# `-f docker-compose.dev.yml`, passe os dois explicitamente:
+#
+#   docker compose -f docker-compose.dev.yml -f docker-compose.dev.override.yml up -d
+#
+# Casos de uso comuns: chave LLM real para exercitar classificação/parecer,
+# secret/Fernet próprios, ou apontar o frontend-ops para um api no host.
+# =============================================================================
+
+services:
+  api:
+    environment:
+      # Descomente e preencha para exercitar o fallback LLM (E0/E2/E5/E6).
+      # ANTHROPIC_API_KEY: "sk-ant-..."
+      # Sobrescreva as chaves dev-only por valores gerados com dev/gen-secrets.sh.
+      # MATHOMS_SECRET_KEY: "..."
+      # MATHOMS_FERNET_KEY: "..."
+
+  worker:
+    environment:
+      # ANTHROPIC_API_KEY: "sk-ant-..."
+
+  # Aponte o console interno para um api rodando no host (fora do compose).
+  frontend-ops:
+    environment:
+      INTERNAL_OPS_API_BASE: "http://host.docker.internal:8001"

@@ -970,7 +970,7 @@ mathoms.ai/
 ├── _archive/                  # Arquivos legados preservados
 ├── docs/                      # Documentação técnica
 ├── tests/                     # Pipeline tests (~270)
-├── docker-compose.yml         # Redis (dev)
+├── docker-compose.dev.yml     # Stack dev completa (7 services + hot-reload + seed · ADR-252)
 ├── docker-compose.test.yml    # PG 5433 + Redis 6380 (test isolation)
 ├── .github/workflows/ci.yml   # 7 CI jobs + all-green gate
 └── pyproject.toml             # Package mathoms-pipeline v0.2.0

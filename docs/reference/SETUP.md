@@ -2,6 +2,14 @@
 
 > Guia para rodar o projeto em desenvolvimento local.
 
+> **Atalho recomendado (Docker, TTFR <5min · ADR-252):** a stack completa
+> (Postgres + Redis + API + worker + beat + frontend) sobe com
+> `docker compose -f docker-compose.dev.yml up -d --build` — migração e seed
+> automáticos, hot-reload do `backend/`. Passo a passo no runbook
+> [Dev environment em Docker](runbooks/dev_environment.md). O setup local
+> nativo abaixo (uvicorn no host) segue suportado como fallback; os targets
+> `make dev-*-docker` chegam em A20.L7.
+
 ## URLs por ambiente (ADR-108)
 
 | Ambiente | Produto | API | Console interno |

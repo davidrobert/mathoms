@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-19 entries entre 2026-05-14 e 2026-05-28.
+18 entries entre 2026-05-15 e 2026-05-29.
+
+## 2026-05-29 (1 entries)
+
+- [[CHG-2026-05-29-A20-L6-COMPOSE-DEV]] — A20.L6 — docker-compose.dev.yml unificado (D1+D2). Stack dev completa em (lane [[A20.l6]])
 
 ## 2026-05-28 (1 entries)
 
@@ -36,11 +40,6 @@
 ## 2026-05-15 (1 entries)
 
 - [[CHG-2026-05-15-REFACTOR-DECISION-CODE-AUTOGEN]] — refactor(decisions): Decision.code passa a ser server-generated com (lane [[A12.decision-code-autogen]])
-
-## 2026-05-14 (2 entries)
-
-- [[CHG-2026-05-14-FEAT-PLANNER-ATO6-TELEMETRIA-CUTOVER]] — feat(planner): Ato 6 (último) — telemetria M4 + cross-provider weekly + (lane [[A12.planner-review-ato6]])
-- [[CHG-2026-05-14-REFACTOR-REMOVE-REVIEW-FINANCES]] — refactor(pipeline): remove stage `review_finances` (E7-review) + dependente (lane [[A12.planner-review-cleanup]])
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

@@ -1,24 +1,208 @@
-# Compose de desenvolvimento local — apenas serviços complementares que o dev
-# sobe sob demanda (console interno, futuros add-ons). Backend FastAPI e
-# frontend cliente continuam rodando via `uvicorn`/`npm run dev` fora do compose.
+# =============================================================================
+# Mathoms AI — docker-compose.dev.yml (A20.L6 · ADR-252)
+# =============================================================================
+# Stack completa de DEV local em Docker, com paridade dev↔prod (mesma topologia
+# de docker-compose.prod.yml) + hot-reload e seed automático. Resolve P1.6
+# (dev local não usava Docker).
 #
-# F7F-Local · ADR-116. Quando F7A.3 consolidar o compose dev completo,
-# este arquivo pode ser mesclado ou referenciado via `include:` (Compose v2.20+).
+# Subir:    docker compose -f docker-compose.dev.yml up -d --build
+# Logs:     docker compose -f docker-compose.dev.yml logs -f api
+# Derrubar: docker compose -f docker-compose.dev.yml down          (mantém dados)
+#           docker compose -f docker-compose.dev.yml down -v       (wipe DB/Redis)
+# Console interno (frontend-ops, opcional):
+#           docker compose -f docker-compose.dev.yml --profile ops up -d
+#
+# Vars locais: copie docker-compose.dev.override.yml.example e ajuste; o
+# override real é gitignored. Senhas abaixo são dev-only com default hardcoded
+# (`:-devpass`) — NUNCA aponte este compose para um DB real.
+#
+# Decisões de design (sre-devops · A20.L6):
+#  - entrypoint do api é sobrescrito por bash /app/dev/entrypoint.dev.sh (o
+#    Dockerfile usa ENTRYPOINT+CMD; sobrescrever `command` cairia no dispatch
+#    errado). Invocado via `bash` para não depender do x-bit do bind mount.
+#  - Bind mounts read-only SEM :delegated/:cached — são no-op em VirtioFS
+#    (Docker Desktop moderno). pgdata/redisdata/storage ficam em named volumes
+#    (UID 1000 não escreve em diretório do host macOS via bind).
+#  - Redis broker `noeviction` + cache `allkeys-lru` idênticos a prod — a
+#    paridade existe justamente para pegar o bug de eviction de msg Celery.
+#  - worker/beat healthcheck `disable: true` (paridade prod). O healthcheck
+#    Celery `inspect ping` por service é entregue em A20.L3.
+# =============================================================================
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mathoms}
+      POSTGRES_DB: ${POSTGRES_DB:-mathoms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpass}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - mathoms_dev_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mathoms} -d ${POSTGRES_DB:-mathoms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis-broker:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+    volumes:
+      - mathoms_dev_redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis-cache:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    image: mathoms-backend:dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Override do ENTRYPOINT do Dockerfile: roda migração + seed + uvicorn --reload.
+    entrypoint: ["bash", "/app/dev/entrypoint.dev.sh"]
+    environment:
+      MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-mathoms}:${POSTGRES_PASSWORD:-devpass}@postgres:5432/${POSTGRES_DB:-mathoms}
+      MATHOMS_REDIS_URL: redis://redis-broker:6379/0
+      MATHOMS_REDIS_CACHE_URL: redis://redis-cache:6379/0
+      # Dev-only: chaves fixas para o boot não falhar. NUNCA em prod.
+      MATHOMS_SECRET_KEY: ${MATHOMS_SECRET_KEY:-dev-secret-key-not-for-prod-0123456789abcdef}
+      MATHOMS_FERNET_KEY: ${MATHOMS_FERNET_KEY:-03RkjFvWj5Bd2oPYr65XbcZosiu15kPdl8acj9H_OYg=}
+      MATHOMS_LOG_FORMAT: ${MATHOMS_LOG_FORMAT:-plain}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # Hot-reload: código montado read-only; o watcher do uvicorn só lê.
+      - ./backend:/app/backend:ro
+      - ./pipeline:/app/pipeline:ro
+      - ./config:/app/config:ro
+      - ./dev:/app/dev:ro
+      - mathoms_dev_storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-broker:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+    restart: unless-stopped
+
+  worker:
+    image: mathoms-backend:dev
+    command: ["worker"]
+    environment:
+      MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-mathoms}:${POSTGRES_PASSWORD:-devpass}@postgres:5432/${POSTGRES_DB:-mathoms}
+      MATHOMS_REDIS_URL: redis://redis-broker:6379/0
+      MATHOMS_REDIS_CACHE_URL: redis://redis-cache:6379/0
+      MATHOMS_SECRET_KEY: ${MATHOMS_SECRET_KEY:-dev-secret-key-not-for-prod-0123456789abcdef}
+      MATHOMS_FERNET_KEY: ${MATHOMS_FERNET_KEY:-03RkjFvWj5Bd2oPYr65XbcZosiu15kPdl8acj9H_OYg=}
+    volumes:
+      - ./backend:/app/backend:ro
+      - ./pipeline:/app/pipeline:ro
+      - ./config:/app/config:ro
+      - mathoms_dev_storage:/app/storage
+    depends_on:
+      api:
+        condition: service_healthy
+      redis-broker:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  beat:
+    image: mathoms-backend:dev
+    command: ["beat"]
+    environment:
+      MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-mathoms}:${POSTGRES_PASSWORD:-devpass}@postgres:5432/${POSTGRES_DB:-mathoms}
+      MATHOMS_REDIS_URL: redis://redis-broker:6379/0
+      MATHOMS_REDIS_CACHE_URL: redis://redis-cache:6379/0
+      MATHOMS_SECRET_KEY: ${MATHOMS_SECRET_KEY:-dev-secret-key-not-for-prod-0123456789abcdef}
+      MATHOMS_FERNET_KEY: ${MATHOMS_FERNET_KEY:-03RkjFvWj5Bd2oPYr65XbcZosiu15kPdl8acj9H_OYg=}
+    volumes:
+      - ./backend:/app/backend:ro
+      - ./pipeline:/app/pipeline:ro
+      - ./config:/app/config:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      redis-broker:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  # Frontend Next.js em modo dev (HMR via `npm run dev`). node_modules fica em
+  # named volume para não pisar no mount de código e não reinstalar a cada up.
+  frontend:
+    image: node:22-alpine
+    working_dir: /app/frontend
+    command: ["sh", "-c", "[ -d node_modules/next ] || npm ci; npx next dev --turbopack -H 0.0.0.0 -p 3000"]
+    environment:
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://api:8000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./frontend:/app/frontend
+      - mathoms_dev_frontend_modules:/app/frontend/node_modules
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  # Console interno de operações (ADR-116). Opcional — só sobe com
+  # `--profile ops`. Default aponta para o api da stack; override para host
+  # via INTERNAL_OPS_API_BASE quando rodar o api fora do compose.
   frontend-ops:
+    profiles: ["ops"]
     build:
       context: ./frontend-ops
       dockerfile: Dockerfile
     image: mathoms-frontend-ops:dev
     environment:
-      # Backend de ops roda em :8001 por default para não colidir com o
-      # backend principal do dev (:8000). Override via env se necessário:
-      # INTERNAL_OPS_API_BASE=http://host.docker.internal:8000 docker compose up ...
-      INTERNAL_OPS_API_BASE: "${INTERNAL_OPS_API_BASE:-http://host.docker.internal:8001}"
+      INTERNAL_OPS_API_BASE: "${INTERNAL_OPS_API_BASE:-http://api:8000}"
       NODE_ENV: production
     ports:
       - "127.0.0.1:3100:3100"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
+
+volumes:
+  mathoms_dev_pgdata:
+  mathoms_dev_redisdata:
+  mathoms_dev_storage:
+  mathoms_dev_frontend_modules:

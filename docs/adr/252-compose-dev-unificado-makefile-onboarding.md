@@ -95,7 +95,7 @@ Move `HEALTHCHECK` do `Dockerfile` backend (multi-modo bug) para
 `docker-compose.prod.yml` e `dev.yml` por service:
 
 - `api`: `curl --fail http://localhost:8000/health`
-- `worker`: `celery -A backend.celery_app inspect ping`
+- `worker`: `celery -A backend.app.worker inspect ping`
 - `beat`: `find /tmp/celerybeat.pid -mmin -2` (PID file freshness)
 - `pipeline-service`: `curl --fail http://localhost:8001/health`
 
@@ -148,6 +148,33 @@ estratégias para suportar durante A20.
 
 Critérios em [[A20.l3]] (healthchecks), [[A20.l6]] (compose dev), [[A20.l7]]
 (Makefile).
+
+### Notas de entrega — L6 (D1+D2, 2026-05-29)
+
+D1+D2 implementados e validados empiricamente contra `postgres:16-alpine`
+(`up -d --build` → `/health` 200, `database/redis/redis_cache: ok`, seed =
+1 workspace, hot-reload do bind mount confirmado). Desvios conscientes do
+desenho original (sre-devops review), a refletir em L3/L7:
+
+- **Mounts sem `:delegated`/`:cached`** — no-op em VirtioFS (Docker Desktop
+  moderno). `pgdata`/`redisdata`/`storage` em named volumes (UID 1000 não
+  escreve em dir do host macOS via bind).
+- **`entrypoint` override, não `command`** — o Dockerfile usa
+  `ENTRYPOINT`+`CMD` (dispatch `api|worker|beat`); sobrescrever `command`
+  cairia no dispatch errado. Invocado via `bash /app/dev/entrypoint.dev.sh`
+  (independe do x-bit do bind mount). `dev/` chega por bind mount (Dockerfile
+  não copia `dev/`).
+- **Imagem `mathoms-backend:dev`** buildada do `Dockerfile` atual — o alvo
+  `playwright-latest` (superset PDF) chega em [[A20.l1]] (multi-stage).
+- **`worker`/`beat` healthcheck `disable: true`** (paridade prod) — o
+  `inspect ping` por service é entregue em [[A20.l3]] (este ADR D4).
+- **Bug latente de paridade corrigido** — migration `adr223` emitia
+  `SET DEFAULT 0` em coluna BOOLEAN (Postgres `DatatypeMismatchError`); só
+  SQLite tolerava. Exposto pelo boot Docker contra Postgres real; fix em PR
+  separado (default por dialeto).
+
+Status permanece **Proposto** até L3 (D4) e L7 (D3/D5) entrarem; flip para
+`Decidido` no merge da última lane do ADR.
 
 ## Migração
 
