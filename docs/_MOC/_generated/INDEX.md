@@ -472,6 +472,7 @@
 | CHG-2026-05-22-A18-L3-FIPE-SHIPPED | changelog-entry |  | A18 |  | `sprint/A18/changelog/CHG-2026-05-22-A18-L3-FIPE-SHIPPED.md` |
 | CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED | changelog-entry |  | A19 |  | `sprint/A19/changelog/CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED.md` |
 | CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED.md` |
+| CHG-2026-05-29-A20-L6-COMPOSE-DEV | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L6-COMPOSE-DEV.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |

@@ -13,7 +13,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | --- | ---: |
 | adr | 262 |
 | archive-index | 1 |
-| changelog-entry | 204 |
+| changelog-entry | 205 |
 | doc | 2 |
 | domain-rule | 11 |
 | lane | 106 |
@@ -31,7 +31,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | adr | Proposto | 64 |
 | adr | Roadmap | 4 |
 | archive-index | (sem status) | 1 |
-| changelog-entry | (sem status) | 204 |
+| changelog-entry | (sem status) | 205 |
 | doc | (sem status) | 2 |
 | domain-rule | (sem status) | 11 |
 | lane | blocked | 9 |
