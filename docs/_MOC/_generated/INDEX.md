@@ -474,6 +474,7 @@
 | CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED.md` |
 | CHG-2026-05-29-A20-L1-BACKEND-MULTISTAGE | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L1-BACKEND-MULTISTAGE.md` |
 | CHG-2026-05-29-A20-L6-COMPOSE-DEV | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L6-COMPOSE-DEV.md` |
+| CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -531,7 +532,7 @@
 | A20.l4 | lane | open | A20 | Docker dev↔prod parity — L4 GHCR push em CI + tagging strategy | `sprint/A20/lanes/A20-l4-ghcr-push.md` |
 | A20.l5 | lane | open | A20 | Docker dev↔prod parity — L5 Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/lanes/A20-l5-trivy-sbom.md` |
 | A20.l6 | lane | shipped | A20 | Docker dev↔prod parity — L6 docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/lanes/A20-l6-compose-dev.md` |
-| A20.l7 | lane | open | A20 | Docker dev↔prod parity — L7 Makefile targets + SETUP.md revisado | `sprint/A20/lanes/A20-l7-makefile.md` |
+| A20.l7 | lane | shipped | A20 | Docker dev↔prod parity — L7 Makefile targets + SETUP.md revisado | `sprint/A20/lanes/A20-l7-makefile.md` |
 | A20.l8 | lane | open | A20 | Docker dev↔prod parity — L8 Postgres driver consolidation (asyncpg-only) | `sprint/A20/lanes/A20-l8-postgres-driver.md` |
 | A20.l9 | lane | blocked | A20 | Docker dev↔prod parity — L9 Smoke E2E em compose (login + relatório + PDF) | `sprint/A20/lanes/A20-l9-smoke-e2e.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
