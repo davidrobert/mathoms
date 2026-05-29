@@ -46,12 +46,22 @@ SMOKE_DB      := mathoms-smoke.db
 SMOKE_STORAGE := _smoke_storage
 DEV_DIR       := _dev_pids
 
-# Portas dev (para checks e kill-stale)
+# Portas dev (stack uvicorn-local legada — para checks e kill-stale)
 PORT_API           := 8000
 PORT_OPS_API       := 8001
 PORT_FRONTEND      := 3000
 PORT_FRONTEND_OPS  := 3100
 DEV_PORTS          := $(PORT_API) $(PORT_OPS_API) $(PORT_FRONTEND) $(PORT_FRONTEND_OPS)
+
+# Portas publicadas pela stack dev em Docker (docker-compose.dev.yml). Banda
+# DELIBERADAMENTE distinta da legada acima para as duas coexistirem sem colisão.
+# Overridáveis: `make dev-up-docker MATHOMS_DOCKER_API_PORT=9000`. Exportadas
+# para o compose consumir os mesmos valores que o check_port_free abaixo.
+MATHOMS_DOCKER_API_PORT      ?= 8010
+MATHOMS_DOCKER_FRONTEND_PORT ?= 3010
+MATHOMS_DOCKER_POSTGRES_PORT ?= 5433
+MATHOMS_DOCKER_OPS_PORT      ?= 3110
+export MATHOMS_DOCKER_API_PORT MATHOMS_DOCKER_FRONTEND_PORT MATHOMS_DOCKER_POSTGRES_PORT MATHOMS_DOCKER_OPS_PORT
 
 # ---------------------------------------------------------------------------
 # Macros reutilizáveis
@@ -269,7 +279,9 @@ smoke-dirs:
 # hot-reload e seed automático. Paridade dev↔prod. Não usa .venv local.
 #
 # Sufixo `-docker` distingue da stack uvicorn-local legada (dev-up/dev-down/
-# dev-logs sem sufixo). Use uma OU outra — não as duas (colidem na porta 8000).
+# dev-logs sem sufixo). As duas COEXISTEM: a stack Docker publica numa banda de
+# portas distinta (8010/3010/5433/3110) da legada (8000/8001/3000/3100), então
+# rodar ambas ao mesmo tempo não colide. Override via MATHOMS_DOCKER_*_PORT.
 # ---------------------------------------------------------------------------
 
 COMPOSE_DEV := docker-compose.dev.yml
@@ -277,17 +289,18 @@ COMPOSE_DEV := docker-compose.dev.yml
 .PHONY: dev-up-docker dev-down-docker dev-reset-docker dev-shell-docker \
         dev-rebuild-docker dev-logs-docker
 
-## dev-up-docker: Sobe a stack dev inteira em Docker (build + migrate + seed). Onboarding em 1 comando.
+## dev-up-docker: Sobe a stack dev em Docker (API 8010/Front 3010/PG 5433 — coexiste com a nativa). Onboarding em 1 comando.
 dev-up-docker:
-	@echo "▶  Verificando portas publicadas ($(PORT_API), $(PORT_FRONTEND))…"
-	$(call check_port_free,$(PORT_API))
-	$(call check_port_free,$(PORT_FRONTEND))
+	@echo "▶  Verificando portas publicadas ($(MATHOMS_DOCKER_API_PORT), $(MATHOMS_DOCKER_FRONTEND_PORT))…"
+	$(call check_port_free,$(MATHOMS_DOCKER_API_PORT))
+	$(call check_port_free,$(MATHOMS_DOCKER_FRONTEND_PORT))
 	@echo "▶  Subindo stack ($(COMPOSE_DEV))…"
 	@docker compose -f $(COMPOSE_DEV) up -d --build
 	@echo ""
 	@echo "  ✅ Stack dev (Docker) subindo. Boot leva ~60s (build + migrate + seed):"
-	@echo "     API:      http://localhost:$(PORT_API)/health"
-	@echo "     Frontend: http://localhost:$(PORT_FRONTEND)"
+	@echo "     API:      http://localhost:$(MATHOMS_DOCKER_API_PORT)/health"
+	@echo "     Frontend: http://localhost:$(MATHOMS_DOCKER_FRONTEND_PORT)"
+	@echo "     Postgres: 127.0.0.1:$(MATHOMS_DOCKER_POSTGRES_PORT)  (coexiste com a stack legada)"
 	@echo "     Logs:     make dev-logs-docker   (SVC=api para um só)"
 	@echo "     Shell:    make dev-shell-docker"
 
