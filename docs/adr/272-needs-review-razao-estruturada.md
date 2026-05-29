@@ -2,7 +2,7 @@
 id: ADR-272
 type: adr
 title: "Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável)"
-status: Proposto
+status: Decidido
 phase: A20.failure-diagnostics
 date: "2026-05-30"
 relates_to:
@@ -20,13 +20,13 @@ aliases:
 tags:
   - area/pipeline
   - area/backend
-  - status/proposto
+  - status/decidido
   - type/adr
 ---
 
 # ADR-272 — Razão estruturada de `needs_review`
 
-**Status:** Proposto (Sprint A20) • **Data:** 2026-05-30 • **Relaciona** [[ADR-097]] (warnings de domínio como dataclasses tipadas com `.format()` — padrão reaproveitado), [[ADR-165]] (`validation.issues` tipados), [[ADR-172]] (`failure_reason`), [[ADR-110]] (logging estruturado), [[ADR-273]] (logging estruturado do pipeline — par desta ADR no mesmo pacote)
+**Status:** Decidido (Sprint A20) • **Data:** 2026-05-30 • **Relaciona** [[ADR-097]] (warnings de domínio como dataclasses tipadas com `.format()` — padrão reaproveitado), [[ADR-165]] (`validation.issues` tipados), [[ADR-172]] (`failure_reason`), [[ADR-110]] (logging estruturado), [[ADR-273]] (logging estruturado do pipeline — par desta ADR no mesmo pacote)
 
 > **Co-design (Fase 0 fechada 2026-05-30).** Forma de schema/persistência revisada por `data-engineer`; boundary `pipeline/domain` ↔ adapter e modelo de unificação revisados por `senior-cto`. Decisão de unificação **resolvida**: destino único (uma tabela, uma projeção) com produtores **desacoplados** via protocolo `ToReviewReason` (ver §"Unificação"). Plano operacional de implementação: [[TRACK-adr272-review-reasons]].
 

@@ -108,6 +108,7 @@ from backend.app.models.protection import (
 )
 from backend.app.models.report import Report
 from backend.app.models.report_publication import ReportPublication
+from backend.app.models.review_reason import ReviewReason
 from backend.app.models.risk import (
     VALID_RISK_IMPACT_LEVELS,
     VALID_RISK_PROBABILITIES,
@@ -253,6 +254,7 @@ __all__ = [
     "VALID_PLANNER_REVIEW_STATUSES",
     "VALID_TIERS",
     "ReportPublication",
+    "ReviewReason",
     "Risk",
     "VALID_RISK_IMPACT_LEVELS",
     "VALID_RISK_PROBABILITIES",

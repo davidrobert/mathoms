@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mathoms.ai/schemas/review_reason/v1.0.json",
+  "title": "ReviewReason — razão estruturada de needs_review (ADR-272)",
+  "description": "Schema da projeção dict de pipeline.domain.review_reason.ReviewReason.to_dict(). Vocabulário de `code` é namespaced por origem (extract./dedup./domain.); code novo = membro no enum Python + entrada no array `enum` aqui (sem migration — a coluna DB é String, não Enum SQL). `offending_value` e `message` chegam JÁ redigidos (CPF mascarado, valor monetário truncado) — redação acontece no __post_init__ da dataclass, não no consumidor.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "code",
+    "stage",
+    "artifact_key",
+    "document_id",
+    "offending_value",
+    "expected",
+    "message",
+    "occurrence_count"
+  ],
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Código namespaced estável. Espelha pipeline.domain.review_reason.ReviewReasonCode.",
+      "enum": [
+        "extract.low_confidence",
+        "extract.llm_fallback",
+        "extract.missing_required_field",
+        "dedup.possible_duplicate",
+        "dedup.sentinel_period",
+        "domain.validation_conflict"
+      ]
+    },
+    "stage": {
+      "type": "string",
+      "description": "Nome descritivo do stage (ADR-093).",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "artifact_key": {
+      "type": "string",
+      "description": "artifact_key do payload onde a razão surgiu (ADR-212/213)."
+    },
+    "document_id": {
+      "type": ["string", "null"],
+      "description": "FK opcional para documents.id quando a razão é rastreável a um documento."
+    },
+    "offending_value": {
+      "type": "string",
+      "description": "Valor ofensor REDIGIDO (CPF mascarado, monetário truncado). Nunca contém PII crua."
+    },
+    "expected": {
+      "type": "string",
+      "description": "Shape/condição esperada (ex.: 'confidence>=0.7', 'período != 999999')."
+    },
+    "message": {
+      "type": "string",
+      "description": "Mensagem via .format(). Só IDs/contadores/enums — nunca valor interpolado. Redigida em profundidade no construtor."
+    },
+    "occurrence_count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Agregação quando o cap por (run, code) é atingido (ADR-272 §Cap de cardinalidade)."
+    }
+  }
+}
