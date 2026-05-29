@@ -478,6 +478,7 @@
 | CHG-2026-05-29-A20-L6-COMPOSE-DEV | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L6-COMPOSE-DEV.md` |
 | CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING.md` |
 | CHG-2026-05-29-A20-L8-POSTGRES-DRIVER | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L8-POSTGRES-DRIVER.md` |
+| CHG-2026-05-29-ADR-238-DATA-ADESAO-NAO-HARDFAIL | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-ADR-238-DATA-ADESAO-NAO-HARDFAIL.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
