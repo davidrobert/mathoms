@@ -690,6 +690,7 @@
 | TRACK-a7-5-cleanup | track | consumed | A7 | Track A7.5 — Cleanup final (deletar `config/` + bridges) | `sprint/A7/tracks/a7-5-cleanup.md` |
 | TRACK-a7-6-rules-as-code | track | consumed | A7 | Track A7.6 — Rules-as-code: dissolver `docs/methodology/` | `sprint/A7/tracks/a7-6-rules-as-code.md` |
 | TRACK-a8-trs-real | track | consumed | A8 | Track — A8 TRS real (renda passiva observada + Taxa de Retirada Sustentável efetiva) | `sprint/A8/tracks/a8-trs-real.md` |
+| TRACK-adr272-review-reasons | track | ready | A20 | Track A20 — ReviewReason estruturado (ADR-272) em 4 fases | `sprint/A20/tracks/adr272-review-reasons.md` |
 | TRACK-alocacao-v2-7-classes-migration | track | ready | A12 | Track Alocação v2 — migração schema 4→7 classes e desvio backend-driven | `sprint/A12/tracks/alocacao-v2-7-classes-migration.md` |
 | TRACK-auvp-threshold-pgbl-variant | track | consumed | A12 | Track AUVP threshold modula variante PGBL (M2 do ADR-189) | `sprint/A12/tracks/auvp-threshold-pgbl-variant.md` |
 | TRACK-bank-account-disambig | track | ready | A12 | Track bank-account-disambig — 4 PRs sequenciais (ADR-226) | `sprint/A12/tracks/bank-account-disambig.md` |

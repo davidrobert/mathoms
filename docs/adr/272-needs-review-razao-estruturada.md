@@ -28,7 +28,9 @@ tags:
 
 **Status:** Proposto (Sprint A20) • **Data:** 2026-05-30 • **Relaciona** [[ADR-097]] (warnings de domínio como dataclasses tipadas com `.format()` — padrão reaproveitado), [[ADR-165]] (`validation.issues` tipados), [[ADR-172]] (`failure_reason`), [[ADR-110]] (logging estruturado), [[ADR-273]] (logging estruturado do pipeline — par desta ADR no mesmo pacote)
 
-> **Co-design.** Forma de schema/persistência revisada por `data-engineer` antes do PR. Boundary `pipeline/domain` ↔ adapter a revisar por `senior-cto` no PR de implementação.
+> **Co-design (Fase 0 fechada 2026-05-30).** Forma de schema/persistência revisada por `data-engineer`; boundary `pipeline/domain` ↔ adapter e modelo de unificação revisados por `senior-cto`. Decisão de unificação **resolvida**: destino único (uma tabela, uma projeção) com produtores **desacoplados** via protocolo `ToReviewReason` (ver §"Unificação"). Plano operacional de implementação: [[TRACK-adr272-review-reasons]].
+
+> **Escopo: pipeline/extração apenas.** Esta ADR cobre os `needs_review` setados em `pipeline/**` (extração LLM, stages, services de domínio). O mundo de **document-upload/classificação** (`backend/app/services/document_classification.py`, `document_upload_service.py`, `document_duplicates.py`, modelos `Document`/`Debt`) tem UX de revisão própria e **fica fora** — assim a garantia de completude (todo `needs_review` tem `ReviewReason`) é honesta e auditável por um gate de superfície fechada.
 
 ## Contexto
 
@@ -44,23 +46,35 @@ Estado atual:
 
 Promover `needs_review` de bool para uma **razão estruturada tipada**, com **uma fonte e duas projeções**.
 
-### Fonte única — `ReviewReason` dataclass em `pipeline/domain/`
+### Fonte única — `ReviewReason` dataclass em `pipeline/domain/review_reason.py`
 
 Frozen dataclass ao lado dos warnings [[ADR-097]] D1 (mesmo padrão `code`/`offending_value`/`expected`/`.format()`), serializada pelo adapter do backend (`pipeline/**` não importa sqlalchemy — boundary enforçado por `check_pipeline_boundaries.py`):
 
 ```
 ReviewReason(
-  code: ReviewReasonCode,   # enum Python estável
+  code: ReviewReasonCode,   # enum Python namespaced (ver abaixo)
   stage: str,               # nome descritivo (ADR-093)
   artifact_key: str,
   document_id: str | None,
-  offending_value: str,     # REDIGIDO no construtor
+  offending_value: str,     # REDIGIDO no __post_init__
   expected: str,
   message: str,             # via .format(), só IDs/contadores/enums
 )
 ```
 
-`ReviewReasonCode` (enum Python): `low_confidence`, `validation_conflict`, `possible_duplicate`, `missing_required_field`, `sentinel_period`, `llm_fallback`, … Vocabulário versionado em `config/schemas/review_reason.schema.json` (`version: "1.0"`), validado em modo `warn` (default, [[ADR-212]] PR3a).
+`ReviewReasonCode` (enum Python) é **hierárquico/namespaced** por origem, para que a query-mãe agregue por família sem regex no `code`: `extract.low_confidence`, `extract.llm_fallback`, `extract.missing_required_field`, `dedup.possible_duplicate`, `dedup.sentinel_period`, `domain.validation_conflict`, … Vocabulário versionado em `config/schemas/review_reason.schema.json` (`version: "1.0"`), validado em modo `warn` (default, [[ADR-212]] PR3a).
+
+### Unificação — destino único, produtores desacoplados (`ToReviewReason`)
+
+`ValidationIssue` ([[ADR-165]], conformidade de schema: `path`/`severity`/`context`) e os warnings de domínio ([[ADR-097]] D1) têm responsabilidades **genuinamente distintas** (SRP) — fundir os dois numa só dataclass seria acoplamento errado. O que se unifica é o **destino**: ambos projetam para `ReviewReason` via um protocolo fino:
+
+```python
+class ToReviewReason(Protocol):
+    def to_review_reason(self, *, stage: str, artifact_key: str,
+                         document_id: str | None) -> ReviewReason: ...
+```
+
+`ValidationIssue.to_review_reason()` mapeia `severity/path/context → code/offending_value/expected`; os warnings de domínio implementam o mesmo. O adapter de serialização (Fase 2) consome `list[ToReviewReason]` e materializa `list[ReviewReason]` — uma fonte de persistência, dois produtores que não se conhecem. Rejeitada a alternativa de "uma dataclass única" (acopla schema-conformity com regra de domínio).
 
 ### Projeção 1 — tabela `review_reasons` (consultável)
 
@@ -93,9 +107,11 @@ Continua existindo como **snapshot denormalizado** para a UI de revisão humana,
 
 Stage que seta `needs_review` por-linha (dedup em run com 800 transações duplicadas) **não** gera 800 rows. Cap por `(pipeline_run_id, code)` em **50 rows**; excedente vira `occurrence_count` agregado no último. Decisão enumeração-vs-agregação fixada no schema.
 
-### Redação de PII — no construtor, não no call-site
+### Redação de PII — no `__post_init__`, não no call-site
 
-`offending_value` **vai vazar** CPF / valor monetário real / descrição de transação se gravado cru — e entra em DB consultável + (via [[ADR-273]]) log. O construtor de `ReviewReason` redige (mascara CPF, trunca valor, hash de descrição) — **não confiar no call-site**. Sem isso a ADR é vetor de vazamento.
+`offending_value` **vai vazar** CPF / valor monetário real / descrição de transação se gravado cru — e entra em DB consultável + (via [[ADR-273]]) log. O `__post_init__` de `ReviewReason` redige (mascara CPF, trunca valor, hash de descrição) — **não confiar no call-site**. Sem isso a ADR é vetor de vazamento.
+
+**Cobertura obrigatória do `context` herdado.** Quando a `ReviewReason` nasce de uma `ValidationIssue` via `to_review_reason()`, o campo `context` da issue pode conter trecho de extrato (ex.: `context={"linha": "PIX João 1.234,56"}`). A projeção **não** copia `context` cru para `offending_value`/`message`; passa pela mesma redação. Util de redação compartilhado (`pipeline/domain/review_reason.py`), testado com fixture de CPF/valor **sintético** (gerador mod-11), nunca real. `message` só carrega IDs/contadores/enums — nenhum valor interpolado.
 
 ## Consequências
 
@@ -118,7 +134,8 @@ Atrelada ao ciclo de vida do `pipeline_run` (CASCADE) + purge de runs antigos. �
 1. Migration `ADD TABLE review_reasons` com índice composto; `EXPLAIN` da query-mãe usando o índice.
 2. `config/schemas/review_reason.schema.json` versionado, validação `warn` no CI.
 3. Todo ponto que seta `needs_review=true` anexa uma `ReviewReason`; gate detecta `needs_review=true` sem reason.
-4. **Teste de redação:** fixture com CPF/valor sintético → assert que `offending_value` persistido está mascarado.
+4. **Teste de redação:** fixture com CPF/valor **sintético** → assert que `offending_value` persistido está mascarado, **incluindo** quando a `ReviewReason` nasce de `ValidationIssue.to_review_reason()` com `context` contendo trecho de extrato.
+4b. `ValidationIssue` e ≥1 warning de domínio implementam `to_review_reason()`; teste afirma que ambos produzem `ReviewReason` válida sem o adapter conhecer o tipo concreto.
 5. Cap por `(run, code)`: run com 800 dups → ≤50 rows + `occurrence_count` agregado.
 6. `StageReview.validation_issues` populado a partir das mesmas `ReviewReason` (sem divergência).
 7. Snapshot `DB_SCHEMA_REFERENCE.md` atualizado.
@@ -129,9 +146,13 @@ Atrelada ao ciclo de vida do `pipeline_run` (CASCADE) + purge de runs antigos. �
 - **Coluna nova em `pipeline_stage_logs`:** rejeitado — cardinalidade N-por-stage não cabe em coluna escalar; relação 1:N pede tabela.
 - **`Enum` SQL para `code`:** rejeitado — `ALTER TYPE` não-transacional em rolling deploy + quebra de run antigo com valor desconhecido.
 - **Manter bool + texto livre (status quo):** rejeitado — é exatamente o que custou tempo nas 5 correções recentes.
+- **Fundir `ValidationIssue` + warning de domínio numa dataclass única:** rejeitado em Fase 0 (`senior-cto`) — acopla conformidade de schema com regra de domínio (viola SRP). Unifica-se o destino (`ReviewReason` + tabela), não o produtor; ponte é o protocolo `ToReviewReason`.
 
 ## Próximos passos
 
-- **PR1 (este escopo):** model + migration + `ReviewReason` em `pipeline/domain/` + adapter de serialização + schema + redação + gate "needs_review sem reason" + testes. Flippa para `Decidido (Sprint A20)` no merge.
-- **PR2 (follow-up):** retrofit dos call-sites legados de `validation.errors` (strings) para `ReviewReason`.
-- **PR3 (follow-up):** endpoint interno `ops.mathoms.ai` ([[ADR-116]]) que devolve o bundle de diagnóstico consolidado por run (par com [[ADR-273]]).
+Plano operacional canônico em [[TRACK-adr272-review-reasons]]. Implementação em 4 fases verificáveis (cada uma um PR):
+
+- **Fase 1 — fundação de dados:** `ReviewReason` + `ReviewReasonCode` + util de redação + `config/schemas/review_reason.schema.json` + model `ReviewReason` + migration `ADD TABLE` + testes (incl. redação). **Sem mudança em call-site** — só infraestrutura. Flippa esta ADR para `Decidido (Sprint A20)` no merge.
+- **Fase 2 — seam de serialização:** `to_review_reason()` em `ValidationIssue` + warnings de domínio; `_record_stage_needs_review()` ([`pipeline_task.py`](../../backend/app/tasks/pipeline_task.py)) insere rows + popula `StageReview.validation_issues` da mesma fonte; teste de paridade.
+- **Fase 3 — completude:** back-fill dos pontos `needs_review=true` da superfície pipeline/extração + gate `dev/check_needs_review_has_reason.py`.
+- **PR follow-up:** endpoint interno `ops.mathoms.ai` ([[ADR-116]]) que devolve o bundle de diagnóstico consolidado por run (par com [[ADR-273]]).
