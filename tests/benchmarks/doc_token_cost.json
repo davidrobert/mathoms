@@ -35,53 +35,53 @@
   "description": "Custo em tokens de queries-benchmark sobre docs/ (ADR-182). tokens = ceil(chars/4).",
   "latest": {
     "Q1": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
+      "measured_at": "2026-05-30",
+      "phase": "F1",
       "tokens": 453
     },
     "Q10": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
+      "measured_at": "2026-05-30",
+      "phase": "F1",
       "tokens": 730
     },
     "Q2": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
+      "measured_at": "2026-05-30",
+      "phase": "F1",
       "tokens": 453
     },
     "Q3": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
+      "measured_at": "2026-05-30",
+      "phase": "F1",
       "tokens": 351
     },
     "Q4": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
+      "measured_at": "2026-05-30",
+      "phase": "F1",
       "tokens": 351
     },
     "Q5": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
+      "measured_at": "2026-05-30",
+      "phase": "F1",
       "tokens": 804
     },
     "Q6": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
-      "tokens": 446
+      "measured_at": "2026-05-30",
+      "phase": "F1",
+      "tokens": 495
     },
     "Q7": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
+      "measured_at": "2026-05-30",
+      "phase": "F1",
       "tokens": 685
     },
     "Q8": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
+      "measured_at": "2026-05-30",
+      "phase": "F1",
       "tokens": 677
     },
     "Q9": {
-      "measured_at": "2026-05-22",
-      "phase": "PLAN-llm-prompts-hardening",
+      "measured_at": "2026-05-30",
+      "phase": "F1",
       "tokens": 686
     }
   },

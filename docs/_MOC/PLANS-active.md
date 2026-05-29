@@ -12,6 +12,7 @@ aliases: ["PLANS-active", "plans-active"]
 
 | Plano | Por que importa agora |
 |---|---|
+| [`PLAN-launch-trust`](../plan/LAUNCH_TRUST/_README.md) | Três frentes launch-blocking: confiabilidade do número (F1), produção (F2→platform-review), Parecer defensável (F3→planner-review). |
 | [`PLAN-platform-review`](../plan/PLATFORM_REVIEW/_README.md) | Revisão A11: segurança, dados e produção. |
 | [`PLAN-cat-learning-loop`](../plan/CAT_LEARNING_LOOP/_README.md) | Categorização A12: pipeline, backend e UX. |
 | [`PLAN-report-premium`](../plan/REPORT_PREMIUM/_README.md) | Superfície principal de produto. |
