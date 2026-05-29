@@ -25,8 +25,8 @@
 #    (UID 1000 não escreve em diretório do host macOS via bind).
 #  - Redis broker `noeviction` + cache `allkeys-lru` idênticos a prod — a
 #    paridade existe justamente para pegar o bug de eviction de msg Celery.
-#  - worker/beat healthcheck `disable: true` (paridade prod). O healthcheck
-#    Celery `inspect ping` por service é entregue em A20.L3.
+#  - worker: healthcheck via `celery inspect ping` (A20.L3 · ADR-252 D4).
+#    beat: sem healthcheck (PID 1 → crash reinicia via restart policy).
 # =============================================================================
 
 services:
@@ -146,7 +146,13 @@ services:
       redis-cache:
         condition: service_healthy
     healthcheck:
-      disable: true
+      # Liveness via Celery control (A20.L3 · ADR-252 D4). Worker não expõe
+      # HTTP; `inspect ping` faz round-trip pelo broker e responde `pong`.
+      test: ["CMD-SHELL", "celery -A backend.app.worker inspect ping || exit 1"]
+      interval: 30s
+      timeout: 15s
+      start_period: 45s
+      retries: 3
     restart: unless-stopped
 
   beat:
@@ -170,8 +176,9 @@ services:
         condition: service_healthy
       redis-cache:
         condition: service_healthy
-    healthcheck:
-      disable: true
+    # Sem healthcheck: beat é PID 1 (exec). Crash → container morre →
+    # `restart: unless-stopped` reinicia. `inspect ping` é só para workers;
+    # pidfile fica stale e mascara morte (A20.L3 · ADR-252 D4).
     restart: unless-stopped
 
   # Frontend Next.js em modo dev (HMR via `npm run dev`). node_modules fica em

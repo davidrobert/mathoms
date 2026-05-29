@@ -144,10 +144,15 @@ services:
       redis-cache:
         condition: service_healthy
     healthcheck:
-      # Worker não expõe HTTP; healthcheck do Dockerfile (curl /health)
-      # não se aplica. Desabilita pra não marcar o container como
-      # unhealthy permanentemente.
-      disable: true
+      # Worker não expõe HTTP. Liveness via Celery control: `inspect ping`
+      # faz round-trip pelo broker e responde `pong` se o worker está vivo
+      # (A20.L3 · ADR-252 D4). timeout/start_period folgados: o reply passa
+      # pela fila e o worker carrega o app + conecta no broker no boot.
+      test: ["CMD-SHELL", "celery -A backend.app.worker inspect ping || exit 1"]
+      interval: 30s
+      timeout: 15s
+      start_period: 45s
+      retries: 3
     restart: unless-stopped
 
   beat:
@@ -166,8 +171,10 @@ services:
         condition: service_healthy
       redis-cache:
         condition: service_healthy
-    healthcheck:
-      disable: true
+    # Sem healthcheck: beat é PID 1 (exec). Crash → container morre →
+    # `restart: unless-stopped` reinicia. Não há liveness barato e honesto:
+    # `inspect ping` é só para workers; pidfile fica stale e mascara morte
+    # (A20.L3 · ADR-252 D4 — decisão sre-devops).
     restart: unless-stopped
 
   frontend:

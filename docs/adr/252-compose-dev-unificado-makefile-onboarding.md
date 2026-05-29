@@ -2,8 +2,8 @@
 id: ADR-252
 type: adr
 title: "Compose dev unificado + Makefile targets opt-in — Sprint A20"
-status: Proposto
-phase: A20.l6
+status: Decidido
+phase: A20.l3
 date: "2026-05-22"
 relates_to:
   - "[[ADR-248]]"
@@ -17,7 +17,7 @@ aliases:
   - "Makefile onboarding"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/infra
   - area/devops
   - area/dx
@@ -94,15 +94,24 @@ Targets novos no `Makefile` (entregue em [[A20.l7]] · todos com sufixo
 ### D4 — Healthcheck por service em compose
 
 Move `HEALTHCHECK` do `Dockerfile` backend (multi-modo bug) para
-`docker-compose.prod.yml` e `dev.yml` por service:
+`docker-compose.prod.yml` e `dev.yml` por service (entregue em [[A20.l3]]):
 
-- `api`: `curl --fail http://localhost:8000/health`
-- `worker`: `celery -A backend.app.worker inspect ping`
-- `beat`: `find /tmp/celerybeat.pid -mmin -2` (PID file freshness)
-- `pipeline-service`: `curl --fail http://localhost:8001/health`
+- `api`: `curl --fail http://localhost:8000/health` (`start_period: 60s` —
+  cobre o `alembic upgrade head` no boot).
+- `worker`: `celery -A backend.app.worker inspect ping` (`timeout: 15s`,
+  `start_period: 45s`, `retries: 3`). Sem HTTP — liveness via Celery control;
+  o reply passa pela fila, daí o timeout maior que os demais.
+- `beat`: **sem healthcheck** (decisão sre-devops · ver Notas de entrega L3).
+  beat é PID 1 → crash mata o container → `restart: unless-stopped` reinicia.
+  `inspect ping` é só para workers; pidfile fica stale e mascara morte.
+- `pipeline-service`: `HEALTHCHECK` no **próprio Dockerfile** (single-modo)
+  via `urllib` (base `python:3.12-slim` não traz curl), não no compose —
+  nenhum compose o referencia.
 
-Política comum: `interval: 30s`, `timeout: 5s`, `start_period: 30s`,
-`retries: 3`.
+O módulo Celery é `backend.app.worker` (`celery_app = Celery("fin")`), **não**
+`backend.celery_app` (path inexistente). Política base por service:
+`interval: 30s`, `start_period: 30s`, `retries: 3`; `timeout` ajustado por
+service (`5s` HTTP, `15s` worker).
 
 ### D5 — `SETUP.md` revisado
 
@@ -175,8 +184,36 @@ desenho original (sre-devops review), a refletir em L3/L7:
   SQLite tolerava. Exposto pelo boot Docker contra Postgres real; fix em PR
   separado (default por dialeto).
 
-Status permanece **Proposto** até L3 (D4) e L7 (D3/D5) entrarem; flip para
-`Decidido` no merge da última lane do ADR.
+### Notas de entrega — L3 (D4, 2026-05-29)
+
+D4 implementado em [[A20.l3]], fechando o último gate do ADR. Desvios
+conscientes do desenho original D4 (co-design sre-devops), todos refletidos
+acima:
+
+- **beat sem healthcheck** (não `find /tmp/celerybeat.pid -mmin -2`): beat
+  roda como PID 1 (`exec celery ... beat`, sem `--pidfile`). Pidfile prova
+  "um dia escreveu o arquivo", não liveness — PID 1 morto com pidfile stale
+  passa **verde** mascarando a morte. Pior: `celery beat` recusa subir se um
+  pidfile stale existir, criando crash-loop falso. Liveness honesto vem do
+  `restart: unless-stopped`.
+- **pipeline-service: `HEALTHCHECK` no Dockerfile, não no compose** — a
+  imagem é single-modo (sempre `uvicorn :8001`); a instrução na imagem é a
+  certa (paridade k8s/ECS). Via `urllib` com `timeout=5` (base slim sem curl).
+  Nenhum compose referencia o pipeline-service.
+- **worker `timeout: 15s` / `start_period: 45s`** (não os `5s`/`30s` comuns):
+  o `inspect ping` faz round-trip pelo broker; sob carga atrasa. Substitui o
+  `disable: true` que L6 deixou como placeholder.
+- **Build do pipeline-service estava quebrado** (`pip install` antes do `COPY`
+  do source → setuptools "package directory 'app' does not exist"); COPY
+  reordenado antes do install para o fix non-root (UID 1000, paridade backend)
+  ser verificável. `docker run ... whoami` → `mathoms`.
+- **Backend Dockerfile perde o `HEALTHCHECK`** — multi-modo (api/worker/beat),
+  só o api expõe HTTP; cada service declara o seu no compose.
+
+Runbook operacional: [`docs/reference/runbooks/docker_healthchecks.md`](../reference/runbooks/docker_healthchecks.md).
+
+Status **`Decidido`** — L3 (D4) era o último gate, com L6 (D1/D2) e L7
+(D3/D5) já mergeados.
 
 ## Migração
 

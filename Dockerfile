@@ -85,8 +85,10 @@ RUN mkdir -p /app/storage \
 USER mathoms
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl --fail --silent http://localhost:8000/health || exit 1
+# Sem instrução de health-check aqui: a imagem é multi-modo (api/worker/beat
+# via entrypoint) e `curl /health` só vale para o api. worker/beat não expõem
+# HTTP e ficariam unhealthy permanentemente. Cada service declara o seu no
+# compose por service (A20.L3 · ADR-252 D4).
 
 ENTRYPOINT ["/app/backend/scripts/entrypoint.sh"]
 CMD ["api"]
