@@ -32,9 +32,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ### PLAN-launch-trust — Launch Trust — três frentes que precisam estar verdes antes de produção
 
-- Status: `in_progress` · Sprint atual: A20
-- Sprints envolvidas: A20
-- Lanes: _(sem lanes vinculadas por `plan:`)_
+- Status: `in_progress` · Sprint atual: A21
+- Sprints envolvidas: A21
+- Lanes: 0 done · 0 in_progress · 9 open · 0 blocked
 - ADRs canônicas: [[ADR-246]], [[ADR-255]], [[ADR-267]], [[ADR-271]]
 
 ### PLAN-platform-review — Platform Review Plan — 2026-05-06

@@ -427,6 +427,11 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 ### [W3-T05] SR-009 Prompt injection defense
 
+> **⏭️ Agendada em A21** (federada por [[PLAN-launch-trust]] §F3-O3 — lanes
+> [[A21.l5]] decide [[ADR-175]] + [[A21.l6]] implementa). **Não pegue
+> independente** — owner real é `prompt-engineer` (Layers 2/4 são LLM/prompt),
+> não `sre-devops`. No merge de A21.l6, este checkbox flippa `blocked → shipped`.
+
 - **deps:** W1-T06 (ADR-175)
 - **owner:** sre-devops + data-engineer
 - **severity:** P0 · **effort:** M
