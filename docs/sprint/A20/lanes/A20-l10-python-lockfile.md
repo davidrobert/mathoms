@@ -3,7 +3,7 @@ id: A20.l10
 type: lane
 title: "Docker dev↔prod parity — L10 Python lockfile com hashes (pip-tools vs uv)"
 sprint: A20
-status: open
+status: shipped
 priority: P0
 branch_slug: a20-l10-python-lockfile
 depends_on: []
@@ -16,7 +16,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a20
-  - status/ready
+  - status/shipped
   - priority/p0
   - area/infra
   - area/python

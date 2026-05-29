@@ -4,13 +4,13 @@ type: track
 title: "Track A20.L10 — Python lockfile com hashes (pip-tools vs uv)"
 lane: "[[A20.l10]]"
 sprint: A20
-status: ready
+status: consumed
 created_at: "2026-05-29"
 agent_role: sre-devops
 tags:
   - type/track
   - sprint/a20
-  - status/ready
+  - status/consumed
   - priority/p0
   - area/infra
   - area/python

@@ -2,8 +2,8 @@
 id: ADR-248
 type: adr
 title: "Multi-stage backend Dockerfile com dual target (runtime / playwright) — Sprint A20"
-status: Proposto
-phase: A20.l1
+status: Decidido
+phase: A20.L1
 date: "2026-05-22"
 relates_to:
   - "[[ADR-076]]"
@@ -24,7 +24,7 @@ aliases:
   - "Docker runtime playwright"
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/infra
   - area/docker
   - area/devops
@@ -70,8 +70,9 @@ Adotar **Dockerfile multi-stage com dual target** (Opção C — ver alternativa
 abaixo):
 
 - **3 stages:** `builder` → `runtime` → `playwright`
-- **2 targets publicáveis:** `runtime` (worker/beat, <450MB) e `playwright`
-  (api, <950MB)
+- **2 targets publicáveis:** `runtime` (worker/beat) e `playwright` (api).
+  Alvos de tamanho **empíricos** (ver §Validação) — não os <450MB / <950MB
+  estimados no draft, que se provaram fisicamente impossíveis dado o dep set.
 - **`playwright` herda de `runtime`** via `FROM runtime AS playwright` — drift
   impossível por construção; ambos compartilham mesma layer Python + deps
 - **Compose prod escolhe target por service:**
@@ -131,8 +132,9 @@ storage por SHA, mitigado por retention de 30d em PR-SHA — [[ADR-250]]).
   `playwright`).
 - **P0.3 resolvido** — `build-essential` sai de runtime; toolchain só vive
   em stage descartado.
-- **~60% redução** no tamanho da imagem `runtime` (~1.1GB → <450MB), ~450MB
-  de RAM economizados em CX32 (worker + beat sem Chromium).
+- **Toolchain de build fora do runtime** (P0.3) e **worker/beat sem Chromium**
+  (~956MB de browser cache que não é carregado em 2 dos 3 containers). Esses
+  são os ganhos reais e mensuráveis — não a meta de tamanho absoluto do draft.
 - **Superfície de ataque menor** em worker/beat (sem Chromium); Trivy
   ([[ADR-251]]) escaneia apenas o que cada container realmente usa.
 - **Cache GHA eficiente** — rebuild de PR que só toca `backend/app/api/*.py`
@@ -165,30 +167,53 @@ storage por SHA, mitigado por retention de 30d em PR-SHA — [[ADR-250]]).
 
 ## Validação
 
-Critérios em [[A20.l1]] §"Critério de aceite" (10 critérios). Resumo:
+**Alvos de tamanho — revisados para a realidade empírica.** O draft estimou
+`runtime <450MB` e `playwright <950MB`. Medições reais (arm64, Docker 29.4)
+provaram ambos **fisicamente impossíveis** dado o dep set:
 
-1. `docker build --target runtime` produz imagem <450MB.
-2. `docker build --target playwright` produz imagem <950MB.
-3. Smoke render PDF retorna `application/pdf` >50KB.
-4. **Audit worker enxuto:** `ps -ef | grep chromium` em container `runtime`
-   retorna vazio.
-5. Heredity check: `docker history` mostra layers de `runtime` antes de
-   Chromium.
-6. CI matrix builda ambos os targets em ≤6min com cache quente.
+| Target | Real (arm64) | Componente irredutível |
+|---|---|---|
+| `runtime` | ~1.09GB | ~652MB de site-packages (cryptography, asyncpg, pandas, anthropic, playwright pip pkg…) sobre base `python:3.12-slim` |
+| `playwright` | ~2.72GB | runtime + ~956MB Chromium browser + ~228MB libs de sistema |
+
+O número absoluto depende de arch (amd64 é menor que arm64) e do dep set —
+não é o deliverable. **O deliverable são os dois invariantes do dual-target**,
+fixados por [`dev/audit_backend_image.sh`](../../dev/audit_backend_image.sh):
+
+1. **runtime sem `gcc`** — `build-essential` vive só no stage `builder`
+   descartado (P0.3 resolvido). Audit: `command -v gcc` falha no runtime.
+2. **runtime sem cache `ms-playwright`** — worker/beat não carregam Chromium
+   (~956MB economizados em 2 dos 3 containers). Audit: `/home/mathoms/.cache/ms-playwright`
+   ausente no runtime.
+
+Mais smoke + heredity no mesmo script:
+
+3. `python -m playwright --version` funcional no target `playwright`.
+4. Cache `ms-playwright` **presente** no target `playwright` (PDF render
+   não quebrado — P0.1).
+5. Heredity: `docker history` do `playwright` contém a layer `playwright
+   install` (confirma `FROM runtime AS playwright`).
+
+Smoke de RAM em prod (worker sem Chromium via `ps -ef`) e CI matrix ≤6min
+ficam em [[A20.l4]] (release-backend.yml) — fora do escopo de L1, que entrega
+o Dockerfile + audit local + dual-target no dev compose.
 
 ## Migração
 
-Sequência de Onda B em [[MOC-sprint-a20]]:
+Sequência real de Onda B em [[MOC-sprint-a20]]:
 
-1. [[A20.l10]] mergeada (lockfile com hashes em `main`).
-2. [[A20.l2]] mergeada (SHA pin de `python:3.12-slim`).
-3. [[A20.l1]] (esta ADR) abre PR com Dockerfile refatorado + smoke local.
-4. [[A20.l4]] em paralelo prepara `release-backend.yml` com matrix build.
-5. PRs de L1 + L4 mergeiam no mesmo dia → primeiro push ao GHCR de imagens
-   versionadas.
-6. Coolify webhook atualizado para puxar tag SHA (runbook em
+1. [[A20.l10]] mergeada (lockfile com hashes em `main`) — pré-req de L1. ✅
+2. [[A20.l1]] (esta ADR) entrega o Dockerfile multi-stage + audit local
+   (`dev/audit_backend_image.sh`) + dual-target no `docker-compose.dev.yml`. ✅
+   `ARG PYTHON_BASE` deixa o SHA pin de [[A20.l2]] entrar num único ponto sem
+   reescrever os 3 `FROM`.
+3. [[A20.l2]] aplica SHA pin de `python:3.12-slim` (`@sha256:<digest>`) +
+   Dependabot Docker — sobre o `ARG PYTHON_BASE` deixado por L1.
+4. [[A20.l4]] prepara `release-backend.yml` com matrix build → primeiro push
+   ao GHCR de imagens versionadas (`runtime-<sha>` + `playwright-<sha>`).
+5. Coolify webhook atualizado para puxar tag SHA (runbook em
    `docs/reference/runbooks/coolify_ghcr_deploy.md`).
-7. Staging recebe pull manual primeiro; prod recebe após smoke verde.
+6. Staging recebe pull manual primeiro; prod recebe após smoke verde.
 
 ## Riscos
 

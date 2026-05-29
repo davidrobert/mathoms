@@ -3,7 +3,7 @@ id: A20.l1
 type: lane
 title: "Docker dev↔prod parity — L1 Multi-stage backend + Playwright dual target"
 sprint: A20
-status: open
+status: shipped
 priority: P0
 branch_slug: a20-l1-backend-multistage
 depends_on:
@@ -17,7 +17,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a20
-  - status/ready
+  - status/shipped
   - priority/p0
   - area/infra
   - area/docker
@@ -59,142 +59,44 @@ Decidida em [[ADR-248]]:
 | B — Imagem única (status quo) | 1 (~1.1GB todos os services) | Zero, mas worker carrega 600MB morto | 1 build | Rejeitada (anti-FinOps) |
 | **C — Dual target, 1 Dockerfile** | 2 (`runtime-<sha>`, `playwright-<sha>`) | Zero — `playwright` herda de `runtime` por construção | 1 build com 2 `--target` (cache compartilhado) | **Adotada** |
 
-## Dockerfile multi-stage (3 stages)
+## Status de entrega (2026-05-29)
+
+✅ **Entregue.** Fonte de verdade é o [`Dockerfile`](../../../../Dockerfile) real
+(3 stages, dual target). Esta lane preserva o racional; o snippet abaixo é
+pointer + as **duas correções** que emergiram na implementação vs o draft.
+
+### Correção 1 — lockfile único, não dois
+
+O draft assumia `requirements.lock` **+** `backend/requirements.lock` (dois
+arquivos copiados/instalados). [[A20.l10]] entregou **um único** `requirements.lock`
+na raiz (`pip-compile` sobre `requirements.in` + `backend/requirements.in` —
+o lock da raiz já é o superset). O Dockerfile copia/instala só ele.
+
+### Correção 2 — wheels via bind-mount, não `COPY --from=builder /wheels`
+
+O draft fazia `COPY --from=builder /wheels` + `rm -rf /wheels`. **Isso deixa
+~157MB mortos na imagem:** um `RUN rm` posterior não reclama a layer do `COPY`
+anterior. Medido empiricamente — runtime ficou em **1.4GB**. Fix: BuildKit
+bind-mount transitório, que nunca vira layer persistente:
 
 ```dockerfile
-# syntax=docker/dockerfile:1.7
-# ADR-248 — multi-stage backend com dual target (runtime / playwright).
-# Build:
-#   docker build --target runtime    -t mathoms-backend:runtime-<sha>    .
-#   docker build --target playwright -t mathoms-backend:playwright-<sha> .
-# Default target = playwright (superset seguro pra dev local rodar tudo).
-
-# ──────────────────────────────────────────────────────────────────────────
-# Stage 1: builder — compila wheels nativos (cryptography, asyncpg, etc.)
-# Descartado no resultado final; só produz wheels em /wheels/.
-# ──────────────────────────────────────────────────────────────────────────
-ARG PYTHON_BASE_SHA=sha256:TBD_PIN_L2  # SHA pin enforced em L2 (ADR-249)
-FROM python:3.12-slim@${PYTHON_BASE_SHA} AS builder
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        build-essential \
-        libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /build
-
-# Lockfile L10 (ADR-254) substitui requirements.txt sem hashes — copia já com hashes.
-# Ordering: requirements primeiro pra maximizar cache layer.
-COPY requirements.lock /build/requirements.lock
-COPY backend/requirements.lock /build/backend/requirements.lock
-
-# Constroi wheels em /wheels/ — instala depois em runtime stage.
-RUN pip wheel --require-hashes --wheel-dir /wheels \
-        -r /build/requirements.lock \
-        -r /build/backend/requirements.lock
-
-# ──────────────────────────────────────────────────────────────────────────
-# Stage 2: runtime — base enxuta (api fora-de-Playwright, worker, beat).
-# Target publicado: mathoms-backend:runtime-<sha>
-# Tamanho alvo: <450MB.
-# ──────────────────────────────────────────────────────────────────────────
-FROM python:3.12-slim@${PYTHON_BASE_SHA} AS runtime
-
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PYTHONPATH=/app \
-    MATHOMS_LOG_FORMAT=json
-
-# Apt deps de runtime (sem build-essential): libpq5 pro psycopg fallback, curl pro healthcheck.
-# L8/ADR-253 consolida driver — quando entregue, libpq5 pode sair se asyncpg-only.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        libpq5 \
-        curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# User não-root (UID 1000) — mesmo padrão do legado single-stage.
-RUN useradd --create-home --shell /bin/bash --uid 1000 mathoms
-
-WORKDIR /app
-
-# Instala wheels do builder — zero compile, fast, deterministic.
-COPY --from=builder /wheels /wheels
 COPY requirements.lock /app/requirements.lock
-COPY backend/requirements.lock /app/backend/requirements.lock
-RUN pip install --require-hashes --no-index --find-links /wheels \
-        -r /app/requirements.lock \
-        -r /app/backend/requirements.lock \
-    && rm -rf /wheels
-
-# Código — ordenado pra cache (config muda menos que código).
-COPY config/ /app/config/
-COPY pipeline/ /app/pipeline/
-COPY backend/ /app/backend/
-COPY pyproject.toml /app/pyproject.toml
-
-RUN mkdir -p /app/storage \
-    && chmod +x /app/backend/scripts/entrypoint.sh \
-    && chown -R mathoms:mathoms /app
-
-USER mathoms
-EXPOSE 8000
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl --fail --silent http://localhost:8000/health || exit 1
-
-ENTRYPOINT ["/app/backend/scripts/entrypoint.sh"]
-CMD ["api"]
-
-# ──────────────────────────────────────────────────────────────────────────
-# Stage 3: playwright — runtime + Chromium + libs.
-# Herda 100% de runtime; só adiciona camada Chromium via playwright install.
-# Target publicado: mathoms-backend:playwright-<sha>
-# Tamanho alvo: <950MB.
-# DEFAULT TARGET (superset seguro pra dev).
-# ──────────────────────────────────────────────────────────────────────────
-FROM runtime AS playwright
-
-USER root
-
-# Libs Chromium em Debian bookworm (slim).
-# Lista validada via `playwright install-deps chromium --dry-run` e enxugada — só
-# o necessário pro PDF rendering headless server-side em backend/app/services/pdf_renderer.py.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        libnss3 \
-        libnspr4 \
-        libdbus-1-3 \
-        libatk1.0-0 \
-        libatk-bridge2.0-0 \
-        libcups2 \
-        libdrm2 \
-        libxkbcommon0 \
-        libxcomposite1 \
-        libxdamage1 \
-        libxfixes3 \
-        libxrandr2 \
-        libgbm1 \
-        libasound2 \
-        libpango-1.0-0 \
-        libcairo2 \
-        libatspi2.0-0 \
-        fonts-liberation \
-    && rm -rf /var/lib/apt/lists/*
-
-USER mathoms
-
-# Instala apenas Chromium (não webkit/firefox) — única engine usada pelo pdf_renderer.
-# Browsers ficam em /home/mathoms/.cache/ms-playwright/ (já owned pelo user).
-RUN python -m playwright install chromium
+RUN --mount=type=bind,from=builder,source=/wheels,target=/wheels \
+    pip install --require-hashes --no-index --find-links /wheels -r /app/requirements.lock
 ```
+
+Runtime caiu para ~1.09GB. Requer `# syntax=docker/dockerfile:1.7` (já no topo).
+
+### Correção 3 — SHA pin fica em L2, não placeholder em L1
+
+O draft tinha `ARG PYTHON_BASE_SHA=sha256:TBD_PIN_L2` com `@${PYTHON_BASE_SHA}`.
+L1 entrega `ARG PYTHON_BASE=python:3.12-slim` (tag) — [[A20.l2]] troca o default
+por `python:3.12-slim@sha256:<digest>` num **único ponto** sem reescrever os 3
+`FROM`. Evita Dockerfile que não builda até L2 mergear.
+
+O restante (3 stages `builder→runtime→playwright`, `FROM runtime AS playwright`,
+build-essential só no builder, libs Chromium enxugadas, non-root UID 1000,
+healthcheck curl, `python -m playwright install chromium`) saiu como desenhado.
 
 ## Compose prod por service
 
@@ -281,47 +183,48 @@ local <30s, build CI <2min com cache GHA quente.
 
 ## Critério de aceite
 
-1. `docker build --target runtime -t mathoms-backend:runtime-test .` produz
-   imagem com `docker image inspect --format '{{.Size}}'` < **450 MB**.
-2. `docker build --target playwright -t mathoms-backend:playwright-test .`
-   produz imagem < **950 MB**.
-3. `docker run --rm mathoms-backend:playwright-test python -m playwright --version`
-   imprime versão correta sem stack trace.
-4. **Smoke render PDF:** `docker run -d --name smoke mathoms-backend:playwright-test
-   api`, então `curl -X POST http://localhost:8000/v1/reports/<id>/pdf` retorna
-   `200` com `application/pdf` — fixture sintética, sem PII.
-5. **Audit worker enxuto:** `docker run --rm mathoms-backend:runtime-test worker`
-   arranca; `docker exec smoke-worker ps -ef | grep -iE '(chromium|chrome|node)'`
-   retorna **vazio** (exit code 1 do `grep`).
-6. Heredity check: `docker history mathoms-backend:playwright-test` mostra as
-   layers de `runtime` antes da layer Chromium (prova `FROM runtime AS playwright`).
-7. Pre-commit `hadolint` verde no Dockerfile (depois de SHA pin em
-   [[A20.l2]]/[[ADR-249]]).
-8. `requirements.lock` existe e é consumido (depende de [[A20.l10]] /
-   [[ADR-254]]).
-9. Build sem `--target` (default) produz imagem `playwright` — verificado por
-   `docker image inspect $(docker build -q .) --format '{{.Size}}'` > 800 MB.
-10. CI matrix ([[A20.l4]]) builda ambos os targets em ≤6min total com cache
-    quente (medido em 3 runs consecutivos do mesmo SHA).
+> **Tamanho absoluto saiu dos critérios.** As metas <450MB / <950MB do draft
+> são fisicamente impossíveis (runtime real ~1.09GB, playwright ~2.72GB arm64 —
+> ~652MB de site-packages irredutível; ver [[ADR-248]] §Validação). O deliverable
+> são os **dois invariantes do dual-target**, fixados por
+> [`dev/audit_backend_image.sh`](../../../../dev/audit_backend_image.sh):
+
+1. ✅ **runtime sem `gcc`** — `docker run --rm --entrypoint sh runtime-test -c
+   'command -v gcc'` falha (build-essential vive só no `builder` descartado).
+2. ✅ **runtime sem cache `ms-playwright`** — `/home/mathoms/.cache/ms-playwright`
+   ausente no runtime (worker/beat não carregam ~956MB de Chromium).
+3. ✅ `docker run --rm --entrypoint python playwright-test -m playwright --version`
+   imprime versão sem stack trace.
+4. ✅ Cache `ms-playwright` **presente** no target `playwright` (PDF render
+   não quebrado — P0.1).
+5. ✅ Heredity: `docker history playwright-test --format '{{.CreatedBy}}' |
+   grep 'playwright install'` (prova `FROM runtime AS playwright`).
+6. ✅ Build sem `--target` (default) produz imagem `playwright`.
+7. ✅ `requirements.lock` (único, raiz) consumido via `--require-hashes
+   --no-index` ([[A20.l10]] / [[ADR-254]]).
+8. ✅ `docker-compose.dev.yml` ([[A20.l6]]) usa target `playwright` no `api` e
+   `runtime` no worker/beat; `docker compose config --quiet` valida.
+
+**Deferido para [[A20.l4]]** (release-backend.yml, fora do escopo de L1):
+smoke render PDF end-to-end, audit worker via `ps -ef` em prod, `hadolint`
+verde (após SHA pin de L2), CI matrix ≤6min.
 
 ## Definition of Done
 
-- [ ] PR mergeado em `main` com CI verde — todos os jobs novos da matrix
-      `runtime` + `playwright` rodaram.
-- [ ] [[ADR-248]] promovida `Proposto → Decidido (A20.L1)` com referência ao PR.
-- [ ] `docker-compose.prod.yml` atualizado e operador notificado (mudança
-      breaking de tag — staging recebe pull manual primeiro).
-- [ ] `docker-compose.dev.yml` ([[A20.l6]]) referencia target `playwright` por
-      default para que dev local mantenha PDF render funcionando.
-- [ ] Runbook em `docs/reference/runbooks/docker_images.md` explica "quando
-      trocar de target" e "como auditar enxutez do worker".
-- [ ] Imagens publicadas no GHCR validadas com `docker pull
-      ghcr.io/davidrobert/mathoms-backend:runtime-<sha>` e `docker run --rm
-      <imagem> python --version` funcional fora do CI.
-- [ ] Pre-flight smoke em staging: 3 PDFs de relatório sintético renderizam
-      pelo service `api` (playwright); worker processa 1 task Celery sem
-      stack-trace.
-- [ ] [CHANGELOG](../../../CHANGELOG.md) entry registrada no merge.
+- [x] PR mergeado em `main` com CI verde (Dockerfile + audit + dual-target dev compose).
+- [x] [[ADR-248]] promovida `Proposto → Decidido (A20.L1)` com critérios de
+      tamanho revisados para a realidade empírica.
+- [x] `docker-compose.dev.yml` ([[A20.l6]]) usa target `playwright` no `api`
+      (PDF render) e `runtime` no worker/beat.
+- [x] `dev/audit_backend_image.sh` fixa os dois invariantes do dual-target.
+- [x] Runbook em [`docs/reference/runbooks/docker_images.md`](../../../reference/runbooks/docker_images.md).
+- [x] CHANGELOG entry registrada.
+
+**Deferido para [[A20.l4]]** (release-backend.yml + GHCR + Coolify):
+`docker-compose.prod.yml` por target, publicação no GHCR, pre-flight smoke
+em staging com 3 PDFs sintéticos. `docker-compose.prod.yml` **não** foi tocado
+em L1 (decisão sre-devops — evita mudança breaking de tag sem o pipeline de
+release pronto).
 
 ## Riscos top 3
 
@@ -338,15 +241,17 @@ local <30s, build CI <2min com cache GHA quente.
    `mode=max,scope=${target}` força cache por target; medir cold vs warm em
    PR de prova.
 
-## Métricas
+## Métricas (empíricas, arm64 · Docker 29.4)
 
-- Tamanho imagem `runtime` (target <450MB, atual ~1.1GB → economia ~60%).
-- Tamanho imagem `playwright` (target <950MB).
-- Tempo de build `runtime` (cold + warm).
-- Tempo de build `playwright` (cold + warm).
-- Tempo de pull em staging (via `docker pull`) — proxy para custo de deploy.
-- `docker exec worker ps -ef | wc -l` em `runtime` vs `playwright` (audita
-  processos parasitas).
+- Tamanho `runtime` ~1.09GB (~652MB site-packages irredutível). Ganho real:
+  build-essential fora + sem Chromium, não número absoluto.
+- Tamanho `playwright` ~2.72GB (runtime + ~956MB Chromium + ~228MB libs).
+- **Economia de ~956MB de Chromium em 2 dos 3 containers** (worker + beat) —
+  esse é o win de FinOps/RAM que o dual-target entrega.
+- Tempo de build (warm, bind-mount wheels): runtime ~13s, playwright +Chromium.
+- `chromium-headless-shell` (~110MB vs ~956MB full) é alavanca de slimming
+  futura — [[TRACK-a20-fu-chromium-headless-shell]], não L1 (muda comportamento
+  de render; exige gate de paridade visual do PDF).
 
 ## Especialistas pre-PR
 

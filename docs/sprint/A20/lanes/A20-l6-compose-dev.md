@@ -3,7 +3,7 @@ id: A20.l6
 type: lane
 title: "Docker dev↔prod parity — L6 docker-compose.dev.yml unificado + cleanup composes legados"
 sprint: A20
-status: open
+status: shipped
 priority: P1
 branch_slug: a20-l6-compose-dev-unified
 depends_on: []
@@ -16,7 +16,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a20
-  - status/ready
+  - status/shipped
   - priority/p1
   - area/infra
   - area/devops
