@@ -77,10 +77,13 @@ services:
     restart: unless-stopped
 
   api:
-    image: mathoms-backend:dev
+    # Target playwright (ADR-248): api faz PDF render server-side e precisa do
+    # Chromium. worker/beat usam o target runtime enxuto (sem Chromium).
+    image: mathoms-backend:playwright-dev
     build:
       context: .
       dockerfile: Dockerfile
+      target: playwright
     # Override do ENTRYPOINT do Dockerfile: roda migração + seed + uvicorn --reload.
     entrypoint: ["bash", "/app/dev/entrypoint.dev.sh"]
     environment:
@@ -116,7 +119,13 @@ services:
     restart: unless-stopped
 
   worker:
-    image: mathoms-backend:dev
+    # Target runtime (ADR-248): Celery worker não renderiza PDF — sem Chromium
+    # (economia ~956MB vs playwright). Constrói o target runtime; beat reusa.
+    image: mathoms-backend:runtime-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
     command: ["worker"]
     environment:
       MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-mathoms}:${POSTGRES_PASSWORD:-devpass}@postgres:5432/${POSTGRES_DB:-mathoms}
@@ -141,7 +150,8 @@ services:
     restart: unless-stopped
 
   beat:
-    image: mathoms-backend:dev
+    # Reusa o target runtime construído pelo service worker (scheduler puro).
+    image: mathoms-backend:runtime-dev
     command: ["beat"]
     environment:
       MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-mathoms}:${POSTGRES_PASSWORD:-devpass}@postgres:5432/${POSTGRES_DB:-mathoms}
