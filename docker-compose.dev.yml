@@ -16,6 +16,12 @@
 # override real é gitignored. Senhas abaixo são dev-only com default hardcoded
 # (`:-devpass`) — NUNCA aponte este compose para um DB real.
 #
+# Portas publicadas (host): banda DELIBERADAMENTE distinta da stack uvicorn-local
+# legada (`make dev-up`: 8000/8001/3000/3100) para coexistirem sem colisão. Esta
+# stack publica em 8010 (api) / 3010 (frontend) / 5433 (postgres) / 3110
+# (frontend-ops), todas overridáveis via MATHOMS_DOCKER_*_PORT. Rodar as duas
+# stacks ao mesmo tempo é suportado (A20.L6 revisão de porta · ADR-252).
+#
 # Decisões de design (sre-devops · A20.L6):
 #  - entrypoint do api é sobrescrito por bash /app/dev/entrypoint.dev.sh (o
 #    Dockerfile usa ENTRYPOINT+CMD; sobrescrever `command` cairia no dispatch
@@ -37,7 +43,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-mathoms}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpass}
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${MATHOMS_DOCKER_POSTGRES_PORT:-5433}:5432"
     volumes:
       - mathoms_dev_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -95,7 +101,7 @@ services:
       MATHOMS_FERNET_KEY: ${MATHOMS_FERNET_KEY:-03RkjFvWj5Bd2oPYr65XbcZosiu15kPdl8acj9H_OYg=}
       MATHOMS_LOG_FORMAT: ${MATHOMS_LOG_FORMAT:-plain}
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${MATHOMS_DOCKER_API_PORT:-8010}:8000"
     volumes:
       # Hot-reload: código montado read-only; o watcher do uvicorn só lê.
       - ./backend:/app/backend:ro
@@ -188,10 +194,13 @@ services:
     working_dir: /app/frontend
     command: ["sh", "-c", "[ -d node_modules/next ] || npm ci; npx next dev --turbopack -H 0.0.0.0 -p 3000"]
     environment:
+      # BACKEND_INTERNAL_URL é container→container (rede do compose): porta do
+      # container (8000), não a publicada no host. NEXT_PUBLIC_API_URL é
+      # browser→host: tem de bater com a porta publicada do api (default 8010).
       BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://api:8000}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:${MATHOMS_DOCKER_API_PORT:-8010}}
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${MATHOMS_DOCKER_FRONTEND_PORT:-3010}:3000"
     volumes:
       - ./frontend:/app/frontend
       - mathoms_dev_frontend_modules:/app/frontend/node_modules
@@ -213,7 +222,7 @@ services:
       INTERNAL_OPS_API_BASE: "${INTERNAL_OPS_API_BASE:-http://api:8000}"
       NODE_ENV: production
     ports:
-      - "127.0.0.1:3100:3100"
+      - "127.0.0.1:${MATHOMS_DOCKER_OPS_PORT:-3110}:3100"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
