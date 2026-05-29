@@ -35,6 +35,7 @@ instanciados com defaults.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
@@ -101,7 +102,7 @@ from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesAnalyzer,
     InvestimentosClassesConfig,
 )
-from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer
+from pipeline.domain.services.irpf_analyzer import IRPFAnalyzer, partition_irpf_payloads
 from pipeline.domain.services.orcamento_calculator import (
     OrcamentoProspectivo,
     OrcamentoProspectivoCalculator,
@@ -160,6 +161,8 @@ _E4_FLUXO_KEY = "fluxo_mensal_detalhado"
 _E4_PATRIMONIO_KEY = "patrimonio"
 _E4_INVESTIMENTOS_KEY = "investimentos"
 _IRPF_FULL_STAGE = "extract_irpf_full"
+
+_logger = logging.getLogger("mathoms.pipeline.e5")
 
 
 # =============================================================================
@@ -948,7 +951,12 @@ def _read_irpf_payloads_with_keys(
         return [], []
     pairs = [(k, store.read(_IRPF_FULL_STAGE, k)) for k in keys]
     filtered = [(k, p) for k, p in pairs if p]
-    return [p for _, p in filtered], [k for k, _ in filtered]
+    payloads, payload_keys, skipped = partition_irpf_payloads(
+        [p for _, p in filtered], [k for k, _ in filtered]
+    )
+    for key, reason in skipped:
+        _logger.warning("irpf_payload_skipped", extra={"artifact_key": key, "reason": reason})
+    return payloads, payload_keys
 
 
 def _try_load_irpf_analyzer(store: ArtifactStore) -> IRPFAnalyzer | None:

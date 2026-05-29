@@ -9,6 +9,7 @@ Date: 2026-04-05
 """
 
 import json
+import logging
 import math
 import re
 import sys
@@ -17,6 +18,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import scripts.pipeline_common as _pc
+
+_logger = logging.getLogger("mathoms.pipeline.e5")
 
 # ============================================================================
 # PATHS & CONFIG — inicializados por _init_config(), re-invocável via root_dir
@@ -2976,17 +2979,21 @@ def _e5_run_sanity_checks(legacy: Dict[str, Any]):
 
 def _e5_read_irpf_payloads(store) -> tuple[list[dict], list[str]] | None:
     """Lê payloads E1.6 + retorna ``artifact_key`` de cada um (tie-break do dedup)."""
+    from pipeline.domain.services.irpf_analyzer import partition_irpf_payloads
+
     try:
         keys = list(store.list_keys("extract_irpf_full"))
     except Exception:
         return None
-    if not keys:
-        return None
-    pairs = [(k, store.read("extract_irpf_full", k)) for k in keys]
-    filtered = [(k, p) for k, p in pairs if p]
+    filtered = [(k, p) for k in keys if (p := store.read("extract_irpf_full", k))]
     if not filtered:
         return None
-    return [p for _, p in filtered], [k for k, _ in filtered]
+    payloads, payload_keys, skipped = partition_irpf_payloads(
+        [p for _, p in filtered], [k for k, _ in filtered]
+    )
+    for key, reason in skipped:
+        _logger.warning("irpf_payload_skipped", extra={"artifact_key": key, "reason": reason})
+    return (payloads, payload_keys) if payloads else None
 
 
 def _e5_kpis_from_analyzer(analyzer, ultimo: int) -> Dict[str, Any]:
