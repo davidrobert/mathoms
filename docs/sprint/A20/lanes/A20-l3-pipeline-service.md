@@ -3,7 +3,7 @@ id: A20.l3
 type: lane
 title: "Docker dev↔prod parity — L3 pipeline-service non-root + healthcheck por service"
 sprint: A20
-status: open
+status: shipped
 priority: P0
 branch_slug: a20-l3-pipeline-service-hardening
 depends_on: []
@@ -16,7 +16,7 @@ adrs_canonical:
 tags:
   - type/lane
   - sprint/a20
-  - status/ready
+  - status/shipped
   - priority/p0
   - area/infra
   - area/docker
@@ -28,6 +28,32 @@ tags:
 > **Onda A** em [[MOC-sprint-a20]]. Lane curtíssima (XS) que resolve **P0.4
 > (pipeline-service rodando como root)** e **P1.1 (healthcheck no Dockerfile
 > multi-modo quebrado)**.
+
+## Status de entrega
+
+**Shipped 2026-05-29** — changelog [[CHG-2026-05-29-A20-L3-PIPELINE-SERVICE-HARDENING]].
+Fecha o último gate de [[ADR-252]] → `Decidido` (D4), com L6 (D1/D2) e L7
+(D3/D5) já mergeados.
+
+**Correções vs draft** (revisão sre-devops co-design):
+- **Módulo Celery = `backend.app.worker`** (lane dizia `backend.celery_app` —
+  path inexistente). Verificado: `celery_app = Celery("fin")` em
+  `backend/app/worker.py`.
+- **beat fica SEM healthcheck** (não `test -f pidfile`): beat é PID 1 → crash
+  reinicia via `restart: unless-stopped`. pidfile fica stale e mascara morte;
+  `--pidfile` ainda arrisca crash-loop falso. `inspect ping` é só para workers.
+- **pipeline-service HEALTHCHECK no Dockerfile** (single-modo) via `urllib`
+  (base slim sem curl), não no compose — não existe compose que o referencie.
+- **Build do pipeline-service estava quebrado** (`pip install` antes do `COPY`
+  do source → setuptools "package directory 'app' does not exist"); COPY
+  reordenado antes do install para o fix non-root ser verificável.
+
+**Validação autônoma:** `docker build` OK; `docker run ... whoami` → `mathoms`;
+`docker inspect --format '{{.Config.User}}'` → `mathoms` (critérios 1-2);
+backend Dockerfile sem instrução de health (critério 5); compose dev/prod
+parseiam, healthcheck do worker = `inspect ping`, beat = nenhum. **Critérios
+3-4** (stack inteira `healthy` + worker `pong` em runtime) exigem boot
+completo (porta 8000 em uso por uvicorn host) → deferidos ao CI smoke ([[A20.l9]]).
 
 ## Resumo
 
@@ -76,19 +102,24 @@ backend (linha 56, hardcoded `curl /health` que falha em worker/beat) para
    json | jq -r '.[].Health'` retorna `healthy` para **todos** os services
    (5+: postgres, redis-broker, redis-cache, api, worker, beat, frontend,
    pipeline-service quando ativo).
-4. `docker exec <worker-container> celery -A backend.celery_app inspect ping`
-   retorna `pong` em ≤2s.
+4. `docker exec <worker-container> celery -A backend.app.worker inspect ping`
+   retorna `pong` (comando do healthcheck; `backend.app.worker`, não
+   `backend.celery_app`).
 5. Backend Dockerfile não tem mais `HEALTHCHECK` instruction (`grep
    HEALTHCHECK Dockerfile` retorna vazio).
 
 ## Definition of Done
 
-- [ ] PR mergeado em `main` com CI verde.
-- [ ] [[ADR-252]] referencia esta lane (sub-decisão de healthcheck por service).
-- [ ] Smoke local em macOS + Linux: compose sobe, todos healthy em <90s.
-- [ ] Runbook `docs/reference/runbooks/docker_healthchecks.md` documenta como
+- [x] PR mergeado em `main` com CI verde.
+- [x] [[ADR-252]] referencia esta lane (sub-decisão de healthcheck por service) →
+      flipada para `Decidido` (L3 era o último gate).
+- [ ] Smoke local em macOS + Linux: compose sobe, todos healthy em <90s —
+      **deferido** ao CI smoke ([[A20.l9]]); boot completo exige porta 8000
+      livre (uvicorn host em uso).
+- [x] Runbook `docs/reference/runbooks/docker_healthchecks.md` documenta como
       debugar healthcheck flaky.
-- [ ] [CHANGELOG](../../../CHANGELOG.md) entry registrada.
+- [x] [CHANGELOG](../../../CHANGELOG.md) entry registrada
+      ([[CHG-2026-05-29-A20-L3-PIPELINE-SERVICE-HARDENING]]).
 
 ## Riscos top 3
 

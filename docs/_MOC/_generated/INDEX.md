@@ -249,7 +249,7 @@
 | ADR-249 | adr | Proposto |  | SHA pinning de imagens base + Dependabot Docker — Sprint A20 | `adr/249-sha-pinning-bases-dependabot-docker.md` |
 | ADR-250 | adr | Proposto |  | GHCR como registry de imagens + tagging strategy — Sprint A20 | `adr/250-ghcr-registry-tagging-strategy.md` |
 | ADR-251 | adr | Proposto |  | Trivy image scan blocking + SBOM CycloneDX — Sprint A20 | `adr/251-trivy-image-scan-blocking-sbom.md` |
-| ADR-252 | adr | Proposto |  | Compose dev unificado + Makefile targets opt-in — Sprint A20 | `adr/252-compose-dev-unificado-makefile-onboarding.md` |
+| ADR-252 | adr | Decidido |  | Compose dev unificado + Makefile targets opt-in — Sprint A20 | `adr/252-compose-dev-unificado-makefile-onboarding.md` |
 | ADR-253 | adr | Proposto |  | Postgres driver consolidation (asyncpg-only) — Sprint A20 | `adr/253-postgres-driver-consolidation.md` |
 | ADR-254 | adr | Decidido |  | Python lockfile com hashes — pip-tools vs uv — Sprint A20 | `adr/254-python-lockfile-com-hashes.md` |
 | ADR-255 | adr | Proposto |  | Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) | `adr/255-dedup-transacoes-cross-document.md` |
@@ -473,6 +473,7 @@
 | CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED | changelog-entry |  | A19 |  | `sprint/A19/changelog/CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED.md` |
 | CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED.md` |
 | CHG-2026-05-29-A20-L1-BACKEND-MULTISTAGE | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L1-BACKEND-MULTISTAGE.md` |
+| CHG-2026-05-29-A20-L3-PIPELINE-SERVICE-HARDENING | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L3-PIPELINE-SERVICE-HARDENING.md` |
 | CHG-2026-05-29-A20-L6-COMPOSE-DEV | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L6-COMPOSE-DEV.md` |
 | CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
@@ -528,7 +529,7 @@
 | A20.l13 | lane | planned | A20 | LLM Hardening — W3 telemetria OTLP mathoms.llm.* por prompt_version | `sprint/A20/lanes/A20-l13-llm-w3-telemetry.md` |
 | A20.l14 | lane | planned | A20 | LLM Hardening — W4 cross-cutting (InstitutionCatalogProvider + RFB YAML) | `sprint/A20/lanes/A20-l14-llm-w4-cross-cutting.md` |
 | A20.l2 | lane | open | A20 | Docker dev↔prod parity — L2 SHA pinning de bases + Dependabot Docker | `sprint/A20/lanes/A20-l2-sha-pinning.md` |
-| A20.l3 | lane | open | A20 | Docker dev↔prod parity — L3 pipeline-service non-root + healthcheck por service | `sprint/A20/lanes/A20-l3-pipeline-service.md` |
+| A20.l3 | lane | shipped | A20 | Docker dev↔prod parity — L3 pipeline-service non-root + healthcheck por service | `sprint/A20/lanes/A20-l3-pipeline-service.md` |
 | A20.l4 | lane | open | A20 | Docker dev↔prod parity — L4 GHCR push em CI + tagging strategy | `sprint/A20/lanes/A20-l4-ghcr-push.md` |
 | A20.l5 | lane | open | A20 | Docker dev↔prod parity — L5 Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/lanes/A20-l5-trivy-sbom.md` |
 | A20.l6 | lane | shipped | A20 | Docker dev↔prod parity — L6 docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/lanes/A20-l6-compose-dev.md` |
