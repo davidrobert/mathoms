@@ -12,20 +12,15 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint atual
 
-**Nenhuma sprint `current` no momento** — A20 foi pausada pelo owner em
-2026-05-29 (objetivo de DX entregue; ver §Sprints pausadas). Próximas na fila
-em §Sprint candidate; promova uma a `current` (flip do frontmatter + regen do
-index) ao decidir retomar.
+### A21 — Launch Trust: número confiável + gates de F3/LGPD (`current` 2026-05-30)
 
-## Sprint candidate (próxima)
-
-### A21 — Launch Trust: número confiável + gates de F3/LGPD (`candidate` 2026-05-30)
-
-**Prioridade do owner.** Primeira janela do plano [[PLAN-launch-trust]] — 9 lanes em 4 trilhas paralelas, **zero passo humano externo, zero deploy em prod** (restrição de design). Entrega F1 inteira (confiabilidade do número em `consolidate_baseline`) e abre os gates de F3 (defesa de injeção [[ADR-175]] em `main`) e de LGPD (audit log Art.37 + export/deleção Art.18). Hard-rank por destravamento: `l1→l5→l6→l7→l8` antes de `l2/l3/l4/l9`.
+**Kickoff dado pelo owner em 2026-05-30.** Primeira janela do plano [[PLAN-launch-trust]] — 9 lanes em 4 trilhas paralelas, **zero passo humano externo, zero deploy em prod** (restrição de design). Entrega F1 inteira (confiabilidade do número em `consolidate_baseline`, incl. INV-9 filtro PF×PJ da [[ADR-268]]) e abre os gates de F3 (defesa de injeção [[ADR-175]] em `main`) e de LGPD (audit log Art.37 + export/deleção Art.18). Hard-rank por destravamento: `l1→l5→l6→l7→l8` antes de `l2/l3/l4/l9`. Lanes sem deps liberadas no dia 1: `l1`, `l5`, `l7`, `l8`.
 
 - **Plano dono:** [plan/LAUNCH_TRUST/_README.md](../plan/LAUNCH_TRUST/_README.md).
 - **Sprint:** [sprint/A21/_README.md](../sprint/A21/_README.md).
-- **Promoção a `current`:** flip do frontmatter quando o owner der kickoff.
+- **ADR Proposto antes do PR:** l3 (EntityDedup), l4 (previdência), l7/l8 (LGPD).
+
+## Sprint candidate (próxima)
 
 ### A18 — Comprovantes de Bem + Apólices + FIPE refresh (`candidate` 2026-05-21)
 

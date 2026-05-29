@@ -45,6 +45,14 @@ implementam o **mesmo algoritmo** — o header do segundo diz literalmente
   — a rede de segurança é o que prova que a extração não mudou comportamento.
 - Zero mudança em `fn_rate`/`fp_rate` vs. baseline pré-refactor.
 
+## Fronteira de escopo
+
+- **Filtro PF×PJ ([[ADR-268]]) NÃO entra no contrato.** `detect_pj_suffix`
+  é **pré-filtro de não-pessoa** (decide o que *é* entidade), não regra de
+  dedup (decide se duas entidades são a mesma). O runner `run_entity_dedup`
+  opera só sobre PFs já filtradas. INV-9 vive em l1; o contrato de l3 não o
+  absorve.
+
 ## Dependências e risco
 
 - Depende de l1 + l2 (a rede tem que estar verde **antes** do refactor).
