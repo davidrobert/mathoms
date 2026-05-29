@@ -250,7 +250,7 @@
 | ADR-250 | adr | Proposto |  | GHCR como registry de imagens + tagging strategy — Sprint A20 | `adr/250-ghcr-registry-tagging-strategy.md` |
 | ADR-251 | adr | Proposto |  | Trivy image scan blocking + SBOM CycloneDX — Sprint A20 | `adr/251-trivy-image-scan-blocking-sbom.md` |
 | ADR-252 | adr | Decidido |  | Compose dev unificado + Makefile targets opt-in — Sprint A20 | `adr/252-compose-dev-unificado-makefile-onboarding.md` |
-| ADR-253 | adr | Proposto |  | Postgres driver consolidation (asyncpg-only) — Sprint A20 | `adr/253-postgres-driver-consolidation.md` |
+| ADR-253 | adr | Decidido |  | Postgres driver — drop psycopg2 → psycopg v3 (sync) — Sprint A20 | `adr/253-postgres-driver-consolidation.md` |
 | ADR-254 | adr | Decidido |  | Python lockfile com hashes — pip-tools vs uv — Sprint A20 | `adr/254-python-lockfile-com-hashes.md` |
 | ADR-255 | adr | Proposto |  | Dedup de transações cross-document no pipeline E3→E4 (chave determinística + needs_review) | `adr/255-dedup-transacoes-cross-document.md` |
 | ADR-256 | adr | Decidido |  | Stages do pipeline compartilham unit-of-work via `WorkspaceContext.get_artifact_store().session` | `adr/256-uow-stages-pipeline-store-session.md` |
@@ -477,6 +477,7 @@
 | CHG-2026-05-29-A20-L3-PIPELINE-SERVICE-HARDENING | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L3-PIPELINE-SERVICE-HARDENING.md` |
 | CHG-2026-05-29-A20-L6-COMPOSE-DEV | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L6-COMPOSE-DEV.md` |
 | CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING.md` |
+| CHG-2026-05-29-A20-L8-POSTGRES-DRIVER | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L8-POSTGRES-DRIVER.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -535,7 +536,7 @@
 | A20.l5 | lane | open | A20 | Docker dev↔prod parity — L5 Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/lanes/A20-l5-trivy-sbom.md` |
 | A20.l6 | lane | shipped | A20 | Docker dev↔prod parity — L6 docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/lanes/A20-l6-compose-dev.md` |
 | A20.l7 | lane | shipped | A20 | Docker dev↔prod parity — L7 Makefile targets + SETUP.md revisado | `sprint/A20/lanes/A20-l7-makefile.md` |
-| A20.l8 | lane | open | A20 | Docker dev↔prod parity — L8 Postgres driver consolidation (asyncpg-only) | `sprint/A20/lanes/A20-l8-postgres-driver.md` |
+| A20.l8 | lane | shipped | A20 | Docker dev↔prod parity — L8 Postgres driver (psycopg2 → psycopg v3 swap) | `sprint/A20/lanes/A20-l8-postgres-driver.md` |
 | A20.l9 | lane | blocked | A20 | Docker dev↔prod parity — L9 Smoke E2E em compose (login + relatório + PDF) | `sprint/A20/lanes/A20-l9-smoke-e2e.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
