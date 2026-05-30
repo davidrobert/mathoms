@@ -1,8 +1,11 @@
-"""Dedup de imóveis co-declarados em IRPFs cônjuge↔titular (ADR-246, ADR-265)."""
+"""Dedup de imóveis co-declarados em IRPFs cônjuge↔titular como policy sobre
+``run_entity_dedup`` (ADR-246, ADR-265, ADR-276); diferente de investimentos,
+imóvel não é marca-a-mercado (maior-valor-vence) e ``remap_groups`` reagrupa por
+endereço canônico (cross-código ADR-246 + fuzzy via/número ADR-265) antes de emitir.
+"""
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
@@ -11,8 +14,15 @@ from pipeline.domain.services.canonical_fuzzy_match import (
     extract_complemento,
     matches_fuzzy,
 )
-
-logger = logging.getLogger("mathoms.pipeline.consolidate")
+from pipeline.domain.services.entity_dedup import (
+    DedupOutcome,
+    GroupedEntries,
+    log_dedup,
+    run_entity_dedup,
+)
+from pipeline.domain.services.entity_dedup import (
+    DedupWarning as _CoreWarning,
+)
 
 _DIVERGENCE_THRESHOLD_PCT = 10.0
 _CASAL_LABEL = "casal"
@@ -44,14 +54,60 @@ def dedup_imoveis_consolidados(
     titular_key: str | None = None,
 ) -> DedupResult:
     """Deduplica imoveis_consolidados por identidade cross-IRPF (ADR-246, ADR-265)."""
-    # Passes: identidade exata → cross-codigo (ADR-246) → fuzzy via+num (ADR-265).
-    items = [e for e in (imoveis or []) if isinstance(e, dict)]
-    grouped, order, unidentified = _group_by_identity(items)
-    _merge_cross_codigo(grouped, order)
-    _merge_fuzzy_via_num(grouped, order)
-    result = _build_result(items, grouped, order, unidentified, titular_key)
-    _log_if_deduped(result)
-    return result
+    outcome = run_entity_dedup(imoveis, _ImovelPolicy(titular_key))
+    log_dedup("consolidate.imoveis_dedup", outcome, dropped_key="dropped_property_ids")
+    return _to_result(outcome)
+
+
+def _to_result(outcome: DedupOutcome) -> DedupResult:
+    return DedupResult(
+        imoveis=outcome.items,
+        warnings=tuple(_to_imovel_warning(w) for w in outcome.warnings),
+        count_before=outcome.count_before,
+        count_after=outcome.count_after,
+        dropped_property_ids=outcome.dropped_ids,
+    )
+
+
+def _to_imovel_warning(w: _CoreWarning) -> DedupWarning:
+    return DedupWarning(property_id=w.entity_id, type=w.type, values=w.values, diff_pct=w.diff_pct)
+
+
+class _ImovelPolicy:
+    """Chave `pid`/`canon`; reagrupa por cross-código + fuzzy; maior-valor-vence."""
+
+    def __init__(self, titular_key: str | None) -> None:
+        self._titular_key = titular_key
+
+    def identity_key(self, entry: dict) -> tuple | None:
+        return _identity_key(entry)
+
+    def remap_groups(self, grouped: GroupedEntries) -> GroupedEntries:
+        # Reusa os passes verbatim sobre a forma dict+order (ADR-246/265).
+        as_dict = {key: group for key, group in grouped}
+        order = [key for key, _ in grouped]
+        _merge_cross_codigo(as_dict, order)
+        _merge_fuzzy_via_num(as_dict, order)
+        return [(key, as_dict[key]) for key in order]
+
+    def emit_group(
+        self, group: list[dict]
+    ) -> tuple[list[dict], tuple[_CoreWarning, ...], tuple[str, ...]]:
+        if len(group) == 1:
+            return [group[0]], (), ()
+        merged, warning = _merge_group(group, titular_key=self._titular_key)
+        warnings = (warning,) if warning is not None else ()
+        dropped = _dropped_pids(group, merged.get("property_id"))
+        return [merged], warnings, dropped
+
+
+def _dropped_pids(group: list[dict], winner_pid: object) -> tuple[str, ...]:
+    out: list[str] = []
+    for entry in group:
+        pid = entry.get("property_id")
+        if pid and pid != winner_pid:
+            out.append(str(pid))
+    return tuple(out)
 
 
 def _merge_cross_codigo(grouped: dict[tuple, list[dict]], order: list[tuple]) -> None:
@@ -180,82 +236,6 @@ def _group_complemento(entries: list[dict]) -> str | None:
     return None
 
 
-def _build_result(
-    items: list[dict],
-    grouped: dict[tuple, list[dict]],
-    order: list[tuple],
-    unidentified: list[dict],
-    titular_key: str | None,
-) -> DedupResult:
-    out: list[dict] = []
-    warnings: list[DedupWarning] = []
-    dropped_ids: list[str] = []
-    for key in order:
-        _emit_group(grouped[key], titular_key, out, warnings, dropped_ids)
-    out.extend(unidentified)
-    return DedupResult(
-        imoveis=out,
-        warnings=tuple(warnings),
-        count_before=len(items),
-        count_after=len(out),
-        dropped_property_ids=tuple(dropped_ids),
-    )
-
-
-def _emit_group(
-    group: list[dict],
-    titular_key: str | None,
-    out: list[dict],
-    warnings: list[DedupWarning],
-    dropped_ids: list[str],
-) -> None:
-    if len(group) == 1:
-        out.append(group[0])
-        return
-    merged, warning = _merge_group(group, titular_key=titular_key)
-    out.append(merged)
-    if warning is not None:
-        warnings.append(warning)
-    winner_pid = merged.get("property_id")
-    for entry in group:
-        pid = entry.get("property_id")
-        if pid and pid != winner_pid:
-            dropped_ids.append(str(pid))
-
-
-def _log_if_deduped(result: DedupResult) -> None:
-    if result.count_after >= result.count_before:
-        return
-    logger.info(
-        "consolidate.imoveis_dedup",
-        extra={
-            "stage": "E1.5c",
-            "count_before": result.count_before,
-            "count_after": result.count_after,
-            "dropped_property_ids": list(result.dropped_property_ids),
-            "warnings_count": len(result.warnings),
-        },
-    )
-
-
-def _group_by_identity(
-    items: list[dict],
-) -> tuple[dict[tuple, list[dict]], list[tuple], list[dict]]:
-    grouped: dict[tuple, list[dict]] = {}
-    order: list[tuple] = []
-    unidentified: list[dict] = []
-    for entry in items:
-        key = _identity_key(entry)
-        if key is None:
-            unidentified.append(entry)
-            continue
-        if key not in grouped:
-            grouped[key] = []
-            order.append(key)
-        grouped[key].append(entry)
-    return grouped, order, unidentified
-
-
 def _identity_key(entry: dict) -> tuple | None:
     pid = entry.get("property_id")
     if pid:
@@ -267,7 +247,7 @@ def _identity_key(entry: dict) -> tuple | None:
     return None
 
 
-def _merge_group(group: list[dict], *, titular_key: str | None) -> tuple[dict, DedupWarning | None]:
+def _merge_group(group: list[dict], *, titular_key: str | None) -> tuple[dict, _CoreWarning | None]:
     """Merge N entries do mesmo imóvel — maior valor vence; co-titularidade aditiva."""
     ordered = sorted(group, key=lambda e: _winner_sort_key(e, titular_key), reverse=True)
     winner = dict(ordered[0])
@@ -361,7 +341,7 @@ def _entry_proprietarios(entry: dict) -> list[str]:
     return []
 
 
-def _maybe_warning(group: list[dict], property_id: str | None) -> DedupWarning | None:
+def _maybe_warning(group: list[dict], property_id: str | None) -> _CoreWarning | None:
     values = [float(_entry_value(e)) for e in group]
     if not values:
         return None
@@ -371,8 +351,8 @@ def _maybe_warning(group: list[dict], property_id: str | None) -> DedupWarning |
     diff_pct = (max_v - min(values)) / max_v * 100.0
     if diff_pct <= _DIVERGENCE_THRESHOLD_PCT:
         return None
-    return DedupWarning(
-        property_id=str(property_id) if property_id else None,
+    return _CoreWarning(
+        entity_id=str(property_id) if property_id else None,
         type="valor_divergente",
         values=tuple(values),
         diff_pct=round(diff_pct, 2),

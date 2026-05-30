@@ -1,0 +1,924 @@
+{
+  "imovel::canonical_fallback": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "_dedup_warning": {
+          "diff_pct": 20.0,
+          "type": "valor_divergente",
+          "values": [
+            500000.0,
+            400000.0
+          ]
+        },
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "endereco_canonical": "av joao dias 2192",
+        "proprietario": "casal",
+        "proprietarios": [
+          "mariana",
+          "david"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 20.0,
+        "property_id": null,
+        "type": "valor_divergente",
+        "values": [
+          500000.0,
+          400000.0
+        ]
+      }
+    ]
+  },
+  "imovel::cross_codigo_antes_fuzzy_3": {
+    "count_after": 1,
+    "count_before": 3,
+    "dropped": [],
+    "items": [
+      {
+        "_dedup_warning": {
+          "diff_pct": 100.0,
+          "type": "valor_divergente",
+          "values": [
+            800000.0,
+            750000.0,
+            0.0
+          ]
+        },
+        "codigo_rfb": "11",
+        "descricao": "APTO 34 BENEDITO CALIXTO 190",
+        "endereco_canonical": "benedito calixto 190",
+        "proprietario": "casal",
+        "proprietarios": [
+          "david",
+          "alt2",
+          "alt1"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 800000
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 100.0,
+        "property_id": null,
+        "type": "valor_divergente",
+        "values": [
+          800000.0,
+          750000.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  "imovel::cross_codigo_especifico_generico": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "_dedup_warning": {
+          "diff_pct": 100.0,
+          "type": "valor_divergente",
+          "values": [
+            212000.0,
+            0.0
+          ]
+        },
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "endereco_canonical": "major freire 496",
+        "proprietario": "casal",
+        "proprietarios": [
+          "david",
+          "david_camargo"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 212000
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 100.0,
+        "property_id": null,
+        "type": "valor_divergente",
+        "values": [
+          212000.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  "imovel::diff_codigo_same_canonical": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "endereco_canonical": "av paulista 1500",
+        "proprietario": "david",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 400000
+        }
+      },
+      {
+        "codigo_rfb": "12",
+        "descricao": "APT LIVING WISH",
+        "endereco_canonical": "av paulista 1500",
+        "proprietario": "mariana",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::divergence_above_threshold": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "_dedup_warning": {
+          "diff_pct": 33.33,
+          "type": "valor_divergente",
+          "values": [
+            600000.0,
+            400000.0
+          ]
+        },
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "property_id": "uuid-z",
+        "proprietario": "casal",
+        "proprietarios": [
+          "mariana",
+          "david"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 600000
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 33.33,
+        "property_id": "uuid-z",
+        "type": "valor_divergente",
+        "values": [
+          600000.0,
+          400000.0
+        ]
+      }
+    ]
+  },
+  "imovel::divergence_below_10pct": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "property_id": "uuid-y",
+        "proprietario": "casal",
+        "proprietarios": [
+          "mariana",
+          "david"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 525000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::dois_especificos_divergentes": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "endereco_canonical": "rua y 200",
+        "proprietario": "david",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      },
+      {
+        "codigo_rfb": "12",
+        "descricao": "APT LIVING WISH",
+        "endereco_canonical": "rua y 200",
+        "proprietario": "mariana",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 400000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::empty_codigo": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "",
+        "descricao": "APT LIVING WISH",
+        "endereco_canonical": "rua x",
+        "proprietario": "david",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 400000
+        }
+      },
+      {
+        "codigo_rfb": "",
+        "descricao": "APT LIVING WISH",
+        "endereco_canonical": "rua x",
+        "proprietario": "mariana",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::especifico_dois_genericos": {
+    "count_after": 1,
+    "count_before": 3,
+    "dropped": [],
+    "items": [
+      {
+        "_dedup_warning": {
+          "diff_pct": 100.0,
+          "type": "valor_divergente",
+          "values": [
+            500000.0,
+            0.0,
+            0.0
+          ]
+        },
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "endereco_canonical": "rua w 400",
+        "proprietario": "casal",
+        "proprietarios": [
+          "david",
+          "mariana",
+          "david_alt"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 100.0,
+        "property_id": null,
+        "type": "valor_divergente",
+        "values": [
+          500000.0,
+          0.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  "imovel::fuzzy_complemento_divergente": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APTO 34 - PAULISTA 100",
+        "endereco_canonical": "paulista 100",
+        "proprietario": "david",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      },
+      {
+        "codigo_rfb": "11",
+        "descricao": "APTO 51 - PAULISTA 102",
+        "endereco_canonical": "paulista 102",
+        "proprietario": "mariana",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 600000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::fuzzy_delta_grande": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "EDIFICIO X PAULISTA 1500",
+        "endereco_canonical": "paulista 1500",
+        "proprietario": "david",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      },
+      {
+        "codigo_rfb": "11",
+        "descricao": "EDIFICIO Y PAULISTA 1490",
+        "endereco_canonical": "paulista 1490",
+        "proprietario": "david",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 600000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::fuzzy_founder_190_186": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APTO 34 BENEDITO CALIXTO 190",
+        "endereco_canonical": "benedito calixto 190",
+        "proprietario": "david",
+        "proprietarios": [
+          "david"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 800000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::no_pid_no_canonical": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "proprietario": "david",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 400000
+        }
+      },
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "proprietario": "mariana",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::recent_year_wins": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "property_id": "uuid-ry",
+        "proprietario": "casal",
+        "proprietarios": [
+          "mariana",
+          "david"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::same_pid_two_members": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "property_id": "uuid-x",
+        "proprietario": "casal",
+        "proprietarios": [
+          "mariana_xxx",
+          "david_robert"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 530000.0
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::single": {
+    "count_after": 1,
+    "count_before": 1,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "property_id": "uuid-a",
+        "proprietario": "david_robert",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 477436.58
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::three_declarations": {
+    "count_after": 1,
+    "count_before": 3,
+    "dropped": [],
+    "items": [
+      {
+        "_dedup_warning": {
+          "diff_pct": 25.0,
+          "type": "valor_divergente",
+          "values": [
+            400000.0,
+            350000.0,
+            300000.0
+          ]
+        },
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "property_id": "uuid-3",
+        "proprietario": "casal",
+        "proprietarios": [
+          "mariana",
+          "filho",
+          "david"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 400000
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 25.0,
+        "property_id": "uuid-3",
+        "type": "valor_divergente",
+        "values": [
+          400000.0,
+          350000.0,
+          300000.0
+        ]
+      }
+    ]
+  },
+  "imovel::tie_value_year_titular": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "property_id": "uuid-t",
+        "proprietario": "casal",
+        "proprietarios": [
+          "david_robert",
+          "mariana"
+        ],
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 500000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "imovel::two_distinct": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "property_id": "uuid-a",
+        "proprietario": "david",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 400000
+        }
+      },
+      {
+        "codigo_rfb": "11",
+        "descricao": "APT LIVING WISH",
+        "property_id": "uuid-b",
+        "proprietario": "david",
+        "tipo": "imovel",
+        "valores_31_12": {
+          "2024": 600000
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "invest::absent_recent_year": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [
+      "4989c974c692111b"
+    ],
+    "items": [
+      {
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2022": 5000.0,
+          "2024": 6000.0
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "invest::cross_year_series": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [
+      "4989c974c692111b"
+    ],
+    "items": [
+      {
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2023": 8000.0,
+          "2024": 9500.0
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "invest::desc_normalized": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [
+      "6f7497e6ae849391"
+    ],
+    "items": [
+      {
+        "descricao": "Tesouro  SELIC",
+        "instituicao": "XP Investimentos",
+        "investment_id": "6f7497e6ae849391",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2023": 1.0,
+          "2024": 2.0
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "invest::different_institution": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP",
+        "investment_id": "e510072fa66125be",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 1000.0
+        }
+      },
+      {
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "BTG",
+        "investment_id": "ed0d92788c11177f",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 1000.0
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "invest::divergent_split": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "_dedup_warning": {
+          "type": "possivel_duplicata"
+        },
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 10000.0
+        }
+      },
+      {
+        "_dedup_warning": {
+          "type": "possivel_duplicata"
+        },
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "mariana",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 7000.0
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 0.0,
+        "investment_id": "4989c974c692111b",
+        "type": "possivel_duplicata",
+        "values": [
+          10000.0,
+          7000.0
+        ]
+      }
+    ]
+  },
+  "invest::joint_identical": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [
+      "4989c974c692111b"
+    ],
+    "items": [
+      {
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "casal",
+        "proprietarios": [
+          "david",
+          "mariana"
+        ],
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 25000.0
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "invest::same_year_conflict": {
+    "count_after": 1,
+    "count_before": 2,
+    "dropped": [
+      "4989c974c692111b"
+    ],
+    "items": [
+      {
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 10500.0
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 4.8,
+        "investment_id": "4989c974c692111b",
+        "type": "valor_divergente_ano",
+        "values": [
+          10000.0,
+          10500.0
+        ]
+      }
+    ]
+  },
+  "invest::single": {
+    "count_after": 1,
+    "count_before": 1,
+    "dropped": [],
+    "items": [
+      {
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 10000.0
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "invest::three_partial_match": {
+    "count_after": 3,
+    "count_before": 3,
+    "dropped": [],
+    "items": [
+      {
+        "_dedup_warning": {
+          "type": "possivel_duplicata"
+        },
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 100.0
+        }
+      },
+      {
+        "_dedup_warning": {
+          "type": "possivel_duplicata"
+        },
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "mariana",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 100.0
+        }
+      },
+      {
+        "_dedup_warning": {
+          "type": "possivel_duplicata"
+        },
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "joao",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 999.0
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 0.0,
+        "investment_id": "4989c974c692111b",
+        "type": "possivel_duplicata",
+        "values": [
+          100.0,
+          100.0,
+          999.0
+        ]
+      }
+    ]
+  },
+  "invest::two_distinct": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "descricao": "Selic",
+        "instituicao": "XP Investimentos",
+        "investment_id": "af22ca70d768eb56",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 1000.0
+        }
+      },
+      {
+        "descricao": "IPCA",
+        "instituicao": "XP Investimentos",
+        "investment_id": "35d9506f00f112fa",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 2000.0
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "invest::unidentified_no_desc": {
+    "count_after": 1,
+    "count_before": 1,
+    "dropped": [],
+    "items": [
+      {
+        "proprietario": "david",
+        "tipo": "outros",
+        "valores_31_12": {
+          "2024": 1.0
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "invest::zero_never_joint": {
+    "count_after": 2,
+    "count_before": 2,
+    "dropped": [],
+    "items": [
+      {
+        "_dedup_warning": {
+          "type": "possivel_duplicata"
+        },
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "david",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 0.0
+        }
+      },
+      {
+        "_dedup_warning": {
+          "type": "possivel_duplicata"
+        },
+        "descricao": "Tesouro Selic 2029",
+        "instituicao": "XP Investimentos",
+        "investment_id": "4989c974c692111b",
+        "proprietario": "mariana",
+        "tipo": "renda_fixa",
+        "valores_31_12": {
+          "2024": 0.0
+        }
+      }
+    ],
+    "warnings": [
+      {
+        "diff_pct": 0.0,
+        "investment_id": "4989c974c692111b",
+        "type": "possivel_duplicata",
+        "values": [
+          0.0,
+          0.0
+        ]
+      }
+    ]
+  }
+}
