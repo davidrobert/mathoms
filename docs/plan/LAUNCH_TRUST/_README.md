@@ -331,8 +331,14 @@ viram lanes deste plano:
 | **F2-G2** | **Audit log de acesso a dado sensível (LGPD Art.37)** | **P0** | obrigação legal — quem acessou CPF/financeiro de quem, quando |
 | **F2-G3** | **Data-subject rights — export/deleção (LGPD Art.18)** | **P0** | direito do titular; sem isto, não-conforme para cliente brasileiro |
 
-**SLOs de launch (sre-devops):** RPO ≤ 24h, RTO ≤ 30min (consistente com a
-janela do runbook de rollback de pipeline, ADR-212).
+**SLOs de launch (sre-devops):** RPO ≤ 24h. Dois RTOs distintos, não confundir:
+
+- **RTO de rollback de deploy ≤ 30min** — reverter um deploy ruim (revert PR
+  + downgrade de migration). Janela do runbook de rollback de pipeline
+  ([[ADR-212]]). Aplica-se a regressão de código, não a perda de dado.
+- **RTO de DR ≤ 4h** — disaster recovery real (perda de host/filesystem,
+  corrupção, ransomware): pull do backup off-site (R2) + `pg_restore` + smoke
+  ([[ADR-174]]). O drill de restore (G1) prova o **mecanismo** desse caminho.
 
 ---
 
