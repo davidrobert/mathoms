@@ -1,0 +1,19 @@
+{
+  "pipeline_stage": "E1.5_Baseline_Patrimonial",
+  "data_processamento": "2024-12-31",
+  "membros": ["david"],
+  "imoveis_consolidados": [
+    {
+      "descricao": "Apartamento (golden divergente ADR-274)",
+      "codigo_rfb": "12",
+      "proprietario": "david",
+      "valores_31_12": {"2024": 350000.0}
+    }
+  ],
+  "patrimonio_por_ano": {
+    "2025": {
+      "total_bens": 350000.0,
+      "total_dividas": 0.0
+    }
+  }
+}

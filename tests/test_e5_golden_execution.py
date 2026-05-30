@@ -34,6 +34,16 @@ _BASELINE_MIN = (
     / "e2"
     / "minimal-baseline-1.5_consolidated.json"
 )
+# ADR-274: itens em ano-base (2024) mas patrimonio_por_ano chaveado em
+# exercício (2025) — reproduz o off-by-one que zerava imóveis no relatório.
+_BASELINE_DIVERGENT = (
+    _REPO
+    / "tests"
+    / "fixtures"
+    / "pipeline_golden"
+    / "e2"
+    / "minimal-baseline-divergent-1.5_consolidated.json"
+)
 # A7.5: ``parametros_fiscais.json`` + ``taxas.json`` saíram de ``config/`` —
 # fixtures locais cobrem tests legacy que precisam dos JSONs em disco.
 _LEGACY_CONFIGS = _REPO / "tests" / "fixtures" / "legacy_configs"
@@ -199,3 +209,21 @@ def test_e5_execution_with_baseline_patrimonial(e5_tenant_with_baseline: Path):
     jsonschema.validate(payload, schema)
 
     assert_qa_log_md(e5_tenant_with_baseline)
+
+
+def test_e5_divergent_baseline_imoveis_not_zeroed(e5_tenant_with_baseline: Path):
+    """ADR-274 end-to-end: baseline com itens em ano-base (2024) e resumo
+    chaveado em exercício (2025) não pode zerar imóveis. Antes do fix, o
+    resolver buscava ``valores_31_12['2025']`` (miss) → ``valor_31_12_ano_base``
+    = 0 → classe 'Imóveis Investimento' = 0 (sintoma do relatório)."""
+    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.e5_analyze import main_with_store as e5_mws
+
+    ctx = _new_e5_ctx(e5_tenant_with_baseline, e3_fixture=_E3_FIXTURE, baseline=_BASELINE_DIVERGENT)
+    e4_mws(ctx)
+    e5_mws(ctx)
+    payload = ctx.artifact_store.read("E5", "analise_financeira")
+
+    classes = {c["categoria"]: c["valor"] for c in payload["investimentos"]["tabela_classes"]}
+    assert classes.get("Imóveis Investimento", 0) == 350_000.0
+    assert payload["patrimonio"]["bruto"] == 350_000.0

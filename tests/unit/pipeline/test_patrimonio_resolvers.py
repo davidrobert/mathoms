@@ -19,6 +19,7 @@ from pipeline.domain.services.patrimonio_resolvers import (
     _is_conjuge_exclusive,
     _resolve_ano_ref,
     _resolve_item_valor,
+    _resolve_summary_year,
     build_members_from_consolidated,
     build_members_from_declarations,
     resolve_members,
@@ -402,10 +403,13 @@ def test_resolve_ano_ref_patrimonio_por_ano():
             "2024": {"total_bens": 500, "total_dividas": 50},
         }
     }
-    ano, bens, div = _resolve_ano_ref(baseline)
-    assert ano == "2024"
-    assert bens == 500
-    assert div == 50
+    res = _resolve_ano_ref(baseline)
+    assert res.value_year == "2024"
+    assert res.summary_year == "2024"
+    summary_year, total_bens, total_dividas = _resolve_summary_year(baseline)
+    assert summary_year == "2024"
+    assert total_bens == 500
+    assert total_dividas == 50
 
 
 def test_resolve_ano_ref_e15_v2_resumo():
@@ -416,10 +420,12 @@ def test_resolve_ano_ref_e15_v2_resumo():
         },
         "cálculo_patrimonio_liquido": {"2024": {"ativo_total": 1_000_000, "passivo_total": 50_000}},
     }
-    ano, bens, div = _resolve_ano_ref(baseline)
-    assert ano == "2024"
-    assert bens == 1_000_000
-    assert div == 50_000
+    res = _resolve_ano_ref(baseline)
+    assert res.value_year == "2024"
+    assert res.summary_year == "2024"
+    _, total_bens, total_dividas = _resolve_summary_year(baseline)
+    assert total_bens == 1_000_000
+    assert total_dividas == 50_000
 
 
 def test_resolve_ano_ref_e15_v2_calculo_fallback_when_resumo_total_zero():
@@ -431,10 +437,12 @@ def test_resolve_ano_ref_e15_v2_calculo_fallback_when_resumo_total_zero():
         },
         "cálculo_patrimonio_liquido": {"2024": {"ativo_total": 999, "passivo_total": 11}},
     }
-    ano, bens, div = _resolve_ano_ref(baseline)
-    assert ano == "2024"
-    assert bens == 999
-    assert div == 11
+    res = _resolve_ano_ref(baseline)
+    assert res.value_year == "2024"
+    assert res.summary_year == "2024"
+    _, total_bens, total_dividas = _resolve_summary_year(baseline)
+    assert total_bens == 999
+    assert total_dividas == 11
 
 
 def test_resolve_ano_ref_calculo_sem_cedilha_aceito():
@@ -443,10 +451,12 @@ def test_resolve_ano_ref_calculo_sem_cedilha_aceito():
         "resumo_patrimonial": {"31_12_2024": {}},
         "calculo_patrimonio_liquido": {"2024": {"ativo_total": 42, "passivo_total": 7}},
     }
-    ano, bens, div = _resolve_ano_ref(baseline)
-    assert ano == "2024"
-    assert bens == 42
-    assert div == 7
+    res = _resolve_ano_ref(baseline)
+    assert res.value_year == "2024"
+    assert res.summary_year == "2024"
+    _, total_bens, total_dividas = _resolve_summary_year(baseline)
+    assert total_bens == 42
+    assert total_dividas == 7
 
 
 # =============================================================================

@@ -422,6 +422,30 @@ def _resolve_member(item: dict, resolver) -> str:
     return (item.get("membro") or _TITULAR or "").strip().lower()
 
 
+def _coerce_ano(item: object) -> int | None:
+    """``ano`` numérico do item, ignorando sentinel 999999; None se inválido."""
+    if not isinstance(item, dict):
+        return None
+    ano = item.get("ano")
+    if ano is None or str(ano) == "999999":
+        return None
+    try:
+        return int(ano)
+    except (TypeError, ValueError):
+        return None
+
+
+def _max_item_ano(itens: list, fallback) -> int:
+    """Maior ano-base (31/12) entre os itens; ``fallback`` se nenhum válido (ADR-274)."""
+    anos = [a for item in itens if (a := _coerce_ano(item)) is not None]
+    if anos:
+        return max(anos)
+    try:
+        return int(fallback)
+    except (TypeError, ValueError):
+        return date.today().year - 1
+
+
 def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     """Consolida schema flat ``itens[]`` do E1.5 atual para as chaves que o E5 espera.
 
@@ -445,7 +469,10 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
     itens = baseline.get("itens", [])
     resumo = baseline.get("resumo", {})
     ano_ref = resumo.get("ano_referencia") or (date.today().year - 1)
-    ano_str = str(ano_ref)
+    # ADR-274: chave do resumo em ano-base 31/12 (máximo `ano` dos itens),
+    # alinhada a `valores_31_12`. Não usar o exercício de `resumo.ano_referencia`.
+    ano_base = _max_item_ano(itens, ano_ref)
+    ano_str = str(ano_base)
 
     imoveis_consolidados: List[dict] = []
     veiculos_consolidados: List[dict] = []
@@ -475,7 +502,7 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
         # IRPFs de anos distintos no mesmo `itens[]` produzam série temporal
         # (`valores_31_12 = {"2023": x, "2024": y}`) em vez de colapsarem num
         # falso conflito de mesmo-ano no dedup cross-year.
-        item_ano_str = str(item.get("ano") or ano_ref)
+        item_ano_str = str(item.get("ano") or ano_base)
 
         is_divida = categoria == "outros" and valor < 0
         if is_divida:
@@ -501,7 +528,8 @@ def consolidate_from_itens(baseline: dict, resolver=None) -> dict:
             entry["tipo"] = "imovel"
             # codigo_rfb necessário para PropertyIdentity (ADR-215 P2).
             entry["codigo_rfb"] = str(item.get("codigo", "") or "").strip()
-            entry["ano_referencia"] = ano_ref
+            # ADR-274: first_seen_year é o ano-base do próprio item (não exercício).
+            entry["ano_referencia"] = int(item_ano_str)
             imoveis_consolidados.append(entry)
         elif categoria == "veiculo":
             entry["tipo"] = "veiculo"

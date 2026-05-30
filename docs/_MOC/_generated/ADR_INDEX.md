@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-264 ADRs (ADR-001 a ADR-273) em [`docs/adr/`](../../adr/).
+265 ADRs (ADR-001 a ADR-274) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 200
-- **Proposto**: 60
+- **Proposto**: 61
 - **Roadmap**: 4
 
 ## Fundação
@@ -479,7 +479,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-271]] — Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c · phase A20.invest-dedup
 - [[ADR-272]] — Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) · phase A20.failure-diagnostics
 
-### Proposto (15)
+### Proposto (16)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -496,6 +496,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-267]] — Identidade canônica de membro do workspace via CPF (não slug-de-nome) · phase A17.member-identity
 - [[ADR-268]] — Filtro PF vs PJ no Contribuinte do IRPF — rejeitar razão social como nome de membro · phase A17.member-identity
 - [[ADR-273]] — Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) · phase A20.failure-diagnostics
+- [[ADR-274]] — Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício · phase A21.patrimonio-ano-base
 
 ## relatorio
 

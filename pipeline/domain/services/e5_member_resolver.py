@@ -1,18 +1,4 @@
-"""E5MemberResolver — resolve membros do baseline em 4 formatos (Sessão A5c).
-
-Extrai ``_resolve_members`` (e5_analyze.py:274) + ``_build_members_from_declarations``
-(311) + ``_build_members_from_consolidated`` (429) em um domain service puro.
-
-Os 4 formatos de baseline aceitos:
-1. ``members``/``membros`` como **dict** com sub-dicts por key (``david``, ``mariana``).
-2. ``membros`` como **lista de dicts** com ``nome`` — match por substring.
-3. ``declarations[]`` IRPF — constrói membros sintéticos a partir de ``bens_direitos``.
-4. Consolidado v1.5 — ``imoveis_consolidados``, ``investimentos_consolidados``, etc.
-
-Função pura. Config tipada (R9/ISP) recebe ``titular_key`` / ``conjuge_key`` +
-nomes exibidos. Retorna :class:`ResolvedMembers` com dois dicts prontos para
-consumo pelo ``MemberAnalyzer`` (A3c) e ``InvestimentosClassesAnalyzer`` (A5b).
-"""
+"""E5MemberResolver — resolve membros do baseline em 4 formatos (dict, lista, declarations[] IRPF, consolidado v1.5) num domain service puro (A5c)."""
 
 from __future__ import annotations
 
@@ -20,6 +6,8 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
+
+from pipeline.domain.services.patrimonio_types import resolve_value_year
 
 
 def _safe_float(val) -> float:
@@ -340,6 +328,13 @@ class E5MemberResolver:
         )
 
     def _resolve_ano_ref_and_totals(self, baseline: dict) -> tuple[str, float, float]:
+        """``(value_year ano-base, total_bens, total_dividas do resumo)`` (ADR-274)."""
+        summary_year, total_bens, total_dividas = self._resolve_summary_year(baseline)
+        value_year = resolve_value_year(baseline, summary_year)
+        return value_year, total_bens, total_dividas
+
+    @staticmethod
+    def _resolve_summary_year(baseline: dict) -> tuple[str, float, float]:
         pat_ano = baseline.get("patrimonio_por_ano", {}) or {}
         if pat_ano:
             anos = sorted(pat_ano.keys())

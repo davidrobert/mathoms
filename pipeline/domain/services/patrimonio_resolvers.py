@@ -21,11 +21,13 @@ Quatro formatos de baseline suportados (ordem de precedência em :func:`resolve_
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
 from pipeline.domain.services.patrimonio_types import (
     MemberIdentity,
+    resolve_value_year,
     safe_float,
 )
 
@@ -241,14 +243,20 @@ def build_members_from_declarations(baseline: dict, identity: MemberIdentity) ->
 # =============================================================================
 
 
-def _resolve_ano_ref(baseline: dict) -> tuple[str, float, float]:
-    """Determina ``ano_ref``, ``total_bens`` e ``total_dividas`` do baseline.
+@dataclass(frozen=True)
+class AnoResolution:
+    """Desacopla o ano de valor (itens, 31/12) do ano-chave do resumo (ADR-274)."""
 
-    Tenta o formato **original** (``patrimonio_por_ano``) antes do **E1.5 v2**
-    (``resumo_patrimonial`` / ``cálculo_patrimonio_liquido``).
+    # value_year resolve valores_31_12 por-item; summary_year é a chave de
+    # patrimonio_por_ano. Totais vêm de _resolve_summary_year (não aqui).
+    value_year: str
+    summary_year: str
 
-    Sempre retorna string de 4 dígitos para ``ano_ref`` (default: ano anterior).
-    """
+
+def _resolve_summary_year(baseline: dict) -> tuple[str, float, float]:
+    """Ano-chave do resumo + ``total_bens``/``total_dividas`` (ADR-274)."""
+    # Formato original (patrimonio_por_ano) antes do E1.5 v2 (resumo_patrimonial
+    # / cálculo_patrimonio_liquido). Default: ano anterior.
     pat_ano = baseline.get("patrimonio_por_ano", {}) or {}
     if pat_ano:
         anos = sorted(pat_ano.keys())
@@ -282,6 +290,13 @@ def _resolve_ano_ref(baseline: dict) -> tuple[str, float, float]:
         total_bens = safe_float(calculo.get(ano_ref, {}).get("ativo_total", 0))
     total_dividas = safe_float(calculo.get(ano_ref, {}).get("passivo_total", 0))
     return ano_ref, total_bens, total_dividas
+
+
+def _resolve_ano_ref(baseline: dict) -> AnoResolution:
+    """Resolve ano-base de valor (itens) e ano de resumo, desacoplados (ADR-274)."""
+    summary_year, _, _ = _resolve_summary_year(baseline)
+    value_year = resolve_value_year(baseline, summary_year)
+    return AnoResolution(value_year, summary_year)
 
 
 def _resolve_item_valor(item: dict, ano_ref: str) -> float:
@@ -466,7 +481,8 @@ def build_members_from_consolidated(baseline: dict, identity: MemberIdentity) ->
     Quando ``total_bens`` do resumo diverge do sintético dos itens, a diferença
     é alocada ao titular (comportamento do legado).
     """
-    ano_ref, total_bens_summary, _ = _resolve_ano_ref(baseline)
+    summary_year, total_bens_summary, _ = _resolve_summary_year(baseline)
+    ano_ref = resolve_value_year(baseline, summary_year)
 
     titular_imoveis, conjuge_imoveis = _split_imoveis(baseline, identity, ano_ref)
     titular_inv, conjuge_inv = _split_investimentos(baseline, identity, ano_ref)
