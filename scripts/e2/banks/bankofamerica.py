@@ -24,7 +24,13 @@ from scripts.e2.common import (
 LOG_PREFIX = "E2-EXTRATO"
 
 PARSERS = [
-    (r"^bankofamerica_extratoconta_", "parse_bankofamerica"),
+    # E0 canoniza conta em dólar como subtipo `extratocontausd` (type_classifier);
+    # o anchor genérico com underscore final (`extratoconta_`) nunca casava esse
+    # subtipo → extrato caía no fallback LLM, que não estrutura saldo → conta
+    # sumia da exposição cambial do relatório (workspace 5@5.com, run 7aae4799).
+    # Grupo de moeda opcional cobre genérico + subtipos conhecidos de uma vez
+    # (padrão subtipo-agnóstico do parse_wise); parser já é moeda-agnóstico.
+    (r"^bankofamerica_extratoconta(usd|brl|globalusd|globaleur)?_", "parse_bankofamerica"),
 ]
 
 
