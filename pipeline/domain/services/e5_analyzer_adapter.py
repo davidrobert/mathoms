@@ -131,6 +131,7 @@ from pipeline.domain.services.pontos_urgentes_analyzer import (
     PontoUrgenteItem,
 )
 from pipeline.domain.services.previdencia_analyzer import (
+    CapacidadePgblIRPF,
     PrevidenciaAnalysis,
     PrevidenciaAnalyzer,
     PrevidenciaConfig,
@@ -589,8 +590,11 @@ class E5AnalyzerAdapter:
         ]
         endividamento = self._endividamento.analyze(patrimonio_full, endiv_members)
 
-        # 12. Previdência.
-        previdencia = self._previdencia.analyze(fluxo_legacy)
+        # 12. Previdência — ancora na capacidade PGBL restante do IRPF do
+        #     titular quando há declaração (ADR-277, INV-PREV-3); sem IRPF,
+        #     o analyzer cai no proxy de receita PJ.
+        capacidade_pgbl = _build_capacidade_pgbl(irpf_analyzer)
+        previdencia = self._previdencia.analyze(fluxo_legacy, capacidade_irpf=capacidade_pgbl)
 
         # 13. Investimentos por classe + Top 15 ativos + instituições por membro.
         #     Usa nomes de exibição (titular_nome/conjuge_nome) — paridade com
@@ -974,6 +978,22 @@ def _try_load_irpf_analyzer(store: ArtifactStore) -> IRPFAnalyzer | None:
     except Exception:
         return None
     return analyzer if analyzer.anos_base_disponiveis() else None
+
+
+def _build_capacidade_pgbl(irpf: IRPFAnalyzer | None) -> CapacidadePgblIRPF | None:
+    """Capacidade PGBL restante do ano-base default (ADR-266/277). ``None`` quando
+    não há IRPF ou ano-base resolvível → analyzer usa o proxy de receita PJ."""
+    if irpf is None:
+        return None
+    ano = irpf.ano_base_default()
+    if ano is None:
+        return None
+    return CapacidadePgblIRPF(
+        restante_anual=irpf.pgbl_capacidade_dedutivel(ano),
+        renda_tributavel_anual=irpf.rendimentos_tributaveis(ano),
+        ano_base=ano,
+        fonte="irpf_pgbl_capacidade",
+    )
 
 
 def _passive_income_config_from_goals(goals: dict | None) -> PassiveIncomeConfig:
