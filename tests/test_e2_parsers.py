@@ -74,6 +74,27 @@ class TestParserRegistry:
     def test_picpay_pdf(self):
         assert route_to_parser("picpay_extratoconta_202601_202604-0_original.pdf") is not None
 
+    def test_bankofamerica_usd(self):
+        # Regressão: conta em dólar é classificada como `extratocontausd`; sem o
+        # pattern dedicado o extrato cai no fallback LLM e o saldo some da
+        # exposição cambial do relatório (workspace 5@5.com, run 7aae4799).
+        from scripts.e2.banks.bankofamerica import parse_bankofamerica
+
+        parser = route_to_parser("c05bd7bd0953_bankofamerica_extratocontausd_2026-0_original.pdf")
+        assert parser is parse_bankofamerica
+
+    def test_bankofamerica_generic_extratoconta(self):
+        from scripts.e2.banks.bankofamerica import parse_bankofamerica
+
+        parser = route_to_parser("bankofamerica_extratoconta_202601_202604-0_original.pdf")
+        assert parser is parse_bankofamerica
+
+    def test_bankofamerica_globalusd(self):
+        from scripts.e2.banks.bankofamerica import parse_bankofamerica
+
+        parser = route_to_parser("bankofamerica_extratocontaglobalusd_2026-0_original.pdf")
+        assert parser is parse_bankofamerica
+
     def test_unknown_file_returns_none(self):
         assert route_to_parser("random_document.txt") is None
 
