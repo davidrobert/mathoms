@@ -1,4 +1,4 @@
-"""Tests Fase 2 (ADR-272) — adapter materializa review_reasons em DB real (SQLite via TestSyncSession, nunca mock): consolidação 1-por-(run,code), occurrence_count agregado, cap e query-mãe."""
+"""Tests Fase 2 (ADR-272) — adapter materializa review_reasons em DB real (SQLite via SyncSessionLocal, nunca mock): consolidação 1-por-(run,code), occurrence_count agregado, cap e query-mãe."""
 
 from __future__ import annotations
 
@@ -8,9 +8,10 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
+import pytest_asyncio
 from sqlalchemy import select, text
 
-from backend.app.core.database import Base
+from backend.app.core.database import SyncSessionLocal
 from backend.app.models.pipeline_run import (
     PipelineRun,
     PipelineRunStatus,
@@ -23,19 +24,18 @@ from backend.app.tasks.pipeline_task import (
     _materialize_review_reasons,
     _record_stage_needs_review,
 )
-from backend.tests.conftest import TestSyncSession, _sync_test_engine
 
 
-@pytest.fixture
-def sync_db():
-    # TestSyncSession (engine síncrono) não enxerga tabelas criadas pelo engine
-    # async do setup_db (WAL cross-connection); cria o schema no engine síncrono.
-    Base.metadata.create_all(_sync_test_engine)
-    session = TestSyncSession()
-    try:
+@pytest_asyncio.fixture
+async def sync_db(db):
+    # Depender de `db` (async) força o autouse `setup_db` a criar o schema no
+    # arquivo SQLite compartilhado. Usamos `SyncSessionLocal` (mesma factory que
+    # o código de produção sob teste abre internamente), não `_sync_test_engine`
+    # da conftest — esse usa StaticPool e mantém uma conexão com snapshot vazio
+    # do schema, enxergando 0 tabelas (drift conhecido). `SyncSessionLocal`
+    # abre conexão nova por sessão e vê o DDL recém-criado.
+    with SyncSessionLocal() as session:
         yield session
-    finally:
-        session.close()
 
 
 @dataclass
@@ -102,7 +102,8 @@ def _seed_run(db, *, run_id: str, ws_id: str, log_id: str) -> None:
     db.commit()
 
 
-def test_consolidates_same_code_to_single_row(sync_db) -> None:
+@pytest.mark.asyncio
+async def test_consolidates_same_code_to_single_row(sync_db) -> None:
     ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
     reasons = [
         _reason("extract.missing_required_field", occ=1),
@@ -123,7 +124,8 @@ def test_consolidates_same_code_to_single_row(sync_db) -> None:
     assert rows[0].occurrence_count == 3
 
 
-def test_idempotent_across_calls_accumulates_count(sync_db) -> None:
+@pytest.mark.asyncio
+async def test_idempotent_across_calls_accumulates_count(sync_db) -> None:
     ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
     _materialize(sync_db, run_id, ws_id, [_reason("domain.validation_conflict", occ=2)])
     _materialize(sync_db, run_id, ws_id, [_reason("domain.validation_conflict", occ=5)])
@@ -132,7 +134,8 @@ def test_idempotent_across_calls_accumulates_count(sync_db) -> None:
     assert rows[0].occurrence_count == 7
 
 
-def test_distinct_codes_separate_rows(sync_db) -> None:
+@pytest.mark.asyncio
+async def test_distinct_codes_separate_rows(sync_db) -> None:
     ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
     reasons = [
         _reason("extract.missing_required_field"),
@@ -145,7 +148,8 @@ def test_distinct_codes_separate_rows(sync_db) -> None:
     assert _count(sync_db, run_id) == 2
 
 
-def test_cap_limits_new_rows(sync_db) -> None:
+@pytest.mark.asyncio
+async def test_cap_limits_new_rows(sync_db) -> None:
     ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
     over_cap = _REVIEW_REASON_ROW_CAP + 10
     reasons = [_reason(f"synthetic.code_{i}") for i in range(over_cap)]
@@ -157,7 +161,8 @@ def test_cap_limits_new_rows(sync_db) -> None:
     assert _count(sync_db, run_id) == _REVIEW_REASON_ROW_CAP
 
 
-def test_empty_code_payload_skipped(sync_db) -> None:
+@pytest.mark.asyncio
+async def test_empty_code_payload_skipped(sync_db) -> None:
     ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
     inserted = _materialize_review_reasons(
         sync_db,
@@ -171,7 +176,8 @@ def test_empty_code_payload_skipped(sync_db) -> None:
     assert _count(sync_db, run_id) == 1
 
 
-def test_query_mae_uses_composite_index(sync_db) -> None:
+@pytest.mark.asyncio
+async def test_query_mae_uses_composite_index(sync_db) -> None:
     ws_id, run_id = str(uuid.uuid4()), str(uuid.uuid4())
     _materialize(sync_db, run_id, ws_id, [_reason("domain.validation_conflict", occ=4)])
     row = sync_db.execute(
@@ -199,7 +205,8 @@ def _needs_review_detail() -> dict:
     }
 
 
-def test_record_stage_needs_review_persists_reasons(sync_db) -> None:
+@pytest.mark.asyncio
+async def test_record_stage_needs_review_persists_reasons(sync_db) -> None:
     ws_id, run_id, log_id = str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())
     _seed_run(sync_db, run_id=run_id, ws_id=ws_id, log_id=log_id)
     result = _FakeStageResult(detail=_needs_review_detail())
