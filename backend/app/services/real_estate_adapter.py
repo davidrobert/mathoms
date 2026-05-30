@@ -118,7 +118,7 @@ def _quantize_pct(v: Decimal) -> Decimal:
 def build_property_inputs(
     identities: list[PropertyIdentity],
     overrides: Mapping[str, WorkspacePropertyOverride],
-    bens_direitos_by_property: Mapping[str, Decimal],
+    valor_by_property: Mapping[str, Decimal],
     sources: CascadeSources,
     *,
     config: RealEstateConfig,
@@ -129,7 +129,7 @@ def build_property_inputs(
     for ident in identities:
         classification = _resolve_classification(ident, overrides)
         if classification in ("locado", "comercial", "especulacao"):
-            v = bens_direitos_by_property.get(ident.id, _ZERO)
+            v = valor_by_property.get(ident.id, _ZERO)
             valor_total_investment += v
             investment_identities.append(ident)
 
@@ -141,7 +141,7 @@ def build_property_inputs(
     inputs: list[PropertyInput] = []
     for ident in identities:
         classification = _resolve_classification(ident, overrides)
-        valor_imovel = bens_direitos_by_property.get(ident.id, _ZERO)
+        valor_imovel = valor_by_property.get(ident.id, _ZERO)
 
         aluguel_anual: Decimal | None
         aluguel_origem: OrigemLiteral
@@ -230,7 +230,7 @@ def calculate_for_workspace(
     *,
     identities: list[PropertyIdentity],
     overrides: Mapping[str, WorkspacePropertyOverride],
-    bens_direitos_by_property: Mapping[str, Decimal],
+    valor_by_property: Mapping[str, Decimal],
     sources: CascadeSources,
     patrimonio_liquido: Decimal,
     as_of_date: date,
@@ -243,7 +243,7 @@ def calculate_for_workspace(
     inputs = build_property_inputs(
         identities=identities,
         overrides=overrides,
-        bens_direitos_by_property=bens_direitos_by_property,
+        valor_by_property=valor_by_property,
         sources=sources,
         config=cfg,
     )

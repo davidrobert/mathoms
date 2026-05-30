@@ -93,6 +93,16 @@ def _base_e5_data(patrimonio_liquido: str = "5000000") -> dict:
     }
 
 
+def _baseline(*valores_by_pid: tuple[str, str], ano: str = "2024") -> dict:
+    """Baseline E1.5c sintético: valor-por-imóvel chaveado por property_id (ADR-246/274)."""
+    return {
+        "imoveis_consolidados": [
+            {"property_id": pid, "codigo_rfb": "11", "valores_31_12": {ano: float(valor)}}
+            for pid, valor in valores_by_pid
+        ]
+    }
+
+
 # ────────────────────────── Empty states ──────────────────────────────────────
 
 
@@ -126,15 +136,12 @@ def test_returns_payload_quando_property_identity_existe(db):
 
 
 def test_irpf_pro_rata_carne_leao_distribui_aluguel(db):
-    """IRPF rendimentos_pf entra como cascade fonte #2 (pro-rata pelo valor IRPF)."""
+    """IRPF rendimentos_pf entra como cascade fonte #2 (pro-rata pelo valor do baseline)."""
     _seed_market_rates(db)
     _seed_property(db, "ws1", "pA", codigo_rfb="11", endereco="Apto A", classification="locado")
     _seed_property(db, "ws1", "pB", codigo_rfb="11", endereco="Apto B", classification="locado")
     irpf = {
-        "bens_direitos": [
-            {"codigo_rfb": "11", "descricao": "Apto A", "valor_brl": "2000000", "membro_key": "t1"},
-            {"codigo_rfb": "11", "descricao": "Apto B", "valor_brl": "1000000", "membro_key": "t1"},
-        ],
+        "bens_direitos": [],
         "rendimentos_pf": [
             {
                 "pagador_nome": "Inquilino X",
@@ -148,6 +155,7 @@ def test_irpf_pro_rata_carne_leao_distribui_aluguel(db):
         workspace_id="ws1",
         e5_data=_base_e5_data(),
         irpf_payload=irpf,
+        baseline_payload=_baseline(("pA", "2000000"), ("pB", "1000000")),
         db=db,
     )
     assert payload is not None
@@ -201,17 +209,12 @@ def test_e4_receita_aluguel_usada_quando_irpf_sem_rendimentos_pf(db):
     e5["fluxo_caixa"]["receita_despesa_mensal_detalhado"]["labels"] = [
         f"2024-{m:02d}" for m in range(1, 13)
     ]
-    # IRPF traz só bens_direitos (para popular valor_imovel) — rendimentos_pf vazio
-    irpf = {
-        "bens_direitos": [
-            {"codigo_rfb": "11", "descricao": "Apto A", "valor_brl": "1000000", "membro_key": "t1"}
-        ],
-        "rendimentos_pf": [],
-    }
+    # Baseline popula valor_imovel; IRPF sem rendimentos_pf → cascade cai no E4.
     payload = populate_real_estate(
         workspace_id="ws1",
         e5_data=e5,
-        irpf_payload=irpf,
+        irpf_payload={"bens_direitos": [], "rendimentos_pf": []},
+        baseline_payload=_baseline(("pA", "1000000")),
         db=db,
     )
     assert payload is not None
@@ -257,29 +260,34 @@ def test_benchmarks_zero_quando_market_rates_sem_seed(db):
     assert b["ifix_yield_pct"] == 0.0
 
 
-# ────────────────────────── Matching IRPF bem ↔ property ─────────────────────
+# ───────────────── Valor-por-imóvel vem do baseline E1.5c (não do IRPF cru) ─────
 
 
-def test_matching_bens_direitos_por_codigo_e_titular(db):
-    """Bem IRPF com codigo_rfb + titular_key match com property_identity."""
+def test_valor_imovel_vem_do_baseline_por_property_id(db):
+    """Valor do imóvel investido casa por property_id estável do baseline consolidado."""
     _seed_market_rates(db)
-    _seed_property(
-        db,
-        "ws1",
-        "pA",
-        codigo_rfb="11",
-        titular_key="alice",
-        endereco="Apto Vila Madalena",
-        classification="locado",
+    _seed_property(db, "ws1", "pA", endereco="Apto Vila Madalena", classification="locado")
+    payload = populate_real_estate(
+        workspace_id="ws1",
+        e5_data=_base_e5_data(),
+        irpf_payload=None,
+        baseline_payload=_baseline(("pA", "1500000")),
+        db=db,
     )
+    assert payload is not None
+    assert payload["imoveis"][0]["valor_imovel"] == pytest.approx(1500000.0, abs=0.01)
+
+
+def test_extract_irpf_full_shape_nao_zera_valor_regressao(db):
+    """Regressão: shape REAL do extract_irpf_full (campo `codigo`, membro_key=role 'titular')
+    não casava no matcher antigo → valor 0 → cap_rate None → card vazio. Agora valor vem do
+    baseline por property_id, independente do shape do IRPF cru."""
+    _seed_market_rates(db)
+    _seed_property(db, "ws1", "pInv", titular_key="david_robert", classification="locado")
+    # IRPF E1.6 real: `codigo` (não `codigo_rfb`) + `membro_key` é PAPEL, não slug.
     irpf = {
         "bens_direitos": [
-            {
-                "codigo_rfb": "11",
-                "descricao": "APARTAMENTO VILA MADALENA",
-                "valor_brl": "1500000",
-                "membro_key": "alice",
-            }
+            {"codigo": "11", "membro_key": "titular", "valor_brl": "800000", "descricao": "Apto"}
         ],
         "rendimentos_pf": [],
     }
@@ -287,10 +295,12 @@ def test_matching_bens_direitos_por_codigo_e_titular(db):
         workspace_id="ws1",
         e5_data=_base_e5_data(),
         irpf_payload=irpf,
+        baseline_payload=_baseline(("pInv", "800000")),
         db=db,
     )
     assert payload is not None
-    assert payload["imoveis"][0]["valor_imovel"] == pytest.approx(1500000.0, abs=0.01)
+    assert payload["imoveis"][0]["valor_imovel"] == pytest.approx(800000.0, abs=0.01)
+    assert payload["cap_rate_liquido_pct"] is not None  # valor_total > 0 → cap_rate calcula
 
 
 # Tests de cascade #1 (Informe) vivem em
