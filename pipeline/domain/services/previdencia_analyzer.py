@@ -111,6 +111,16 @@ class PrevidenciaConfig:
 
 
 @dataclass(frozen=True)
+class CapacidadePgblIRPF:
+    """Capacidade PGBL dedutível restante do titular, lida do IRPF (ADR-277)."""
+
+    restante_anual: Decimal  # Σ(tributável×12% − já_aportado), clamp ≥0 (ADR-189)
+    renda_tributavel_anual: Decimal
+    ano_base: int
+    fonte: str
+
+
+@dataclass(frozen=True)
 class PrevidenciaAnalysis:
     status: str  # "Calculado" | "N/D"
     nota: str
@@ -119,6 +129,7 @@ class PrevidenciaAnalysis:
     aporte_mensal: float
     aliquota_marginal: float
     economia_ir_anual: float
+    fonte_recomendacao: str = "proxy_receita_pj"  # | "irpf_capacidade" (ADR-277)
 
     def to_legacy_dict(self) -> dict:
         return {
@@ -129,6 +140,7 @@ class PrevidenciaAnalysis:
             "aporte_mensal": round(self.aporte_mensal, 2),
             "aliquota_marginal": self.aliquota_marginal,
             "economia_ir_anual": round(self.economia_ir_anual, 2),
+            "fonte_recomendacao": self.fonte_recomendacao,
         }
 
 
@@ -146,7 +158,40 @@ class PrevidenciaAnalyzer:
     def __init__(self, config: PrevidenciaConfig | None = None) -> None:
         self._config = config or PrevidenciaConfig()
 
-    def analyze(self, fluxo: dict[str, Any]) -> PrevidenciaAnalysis:
+    def analyze(
+        self,
+        fluxo: dict[str, Any],
+        capacidade_irpf: CapacidadePgblIRPF | None = None,
+    ) -> PrevidenciaAnalysis:
+        """Recomenda aporte PGBL. Com IRPF do titular, ancora na capacidade
+        restante (já líquida do aportado, INV-PREV-3); sem IRPF, usa o proxy
+        de receita PJ (ADR-277)."""
+        if capacidade_irpf is not None:
+            return self._analyze_via_irpf(capacidade_irpf)
+        return self._analyze_via_proxy(fluxo)
+
+    def _analyze_via_irpf(self, cap: CapacidadePgblIRPF) -> PrevidenciaAnalysis:
+        restante = max(0.0, float(cap.restante_anual))
+        renda_trib = float(cap.renda_tributavel_anual)
+        aliquota = self._resolve_aliquota(renda_trib)
+        nota = (
+            f"Capacidade PGBL restante do IRPF {cap.ano_base}: R$ {restante:,.0f} "
+            "(já descontado o aportado)."
+            if restante > 0
+            else f"Sem capacidade PGBL restante no ano-base {cap.ano_base} (teto atingido)."
+        )
+        return PrevidenciaAnalysis(
+            status="Calculado",
+            nota=nota,
+            renda_tributavel_anual=renda_trib,
+            limite_pgbl_anual=restante,
+            aporte_mensal=restante / 12.0,
+            aliquota_marginal=aliquota,
+            economia_ir_anual=restante * (aliquota / 100.0),
+            fonte_recomendacao="irpf_capacidade",
+        )
+
+    def _analyze_via_proxy(self, fluxo: dict) -> PrevidenciaAnalysis:
         receita_pj = _safe_float(fluxo.get("por_fonte", {}).get("receita_pj", 0))
         num_months = len(
             (fluxo.get("receita_despesa_mensal_detalhado", {}) or {}).get("labels", []) or []
