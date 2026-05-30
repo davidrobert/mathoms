@@ -38,12 +38,16 @@ LOG_PREFIX_EXTRATO = "E2-EXTRATO"
 LOG_PREFIX_FATURA = "E2-FATURA"
 
 PARSERS = [
+    # c6bank enumera porque tem roteamento format-specific (PJ-CSV → parser de CSV
+    # vs. PDF → parser de PDF). Os patterns format-specific vêm primeiro; o último
+    # é um fallback subtipo-agnóstico (sem terminador) que cobre subtipos de moeda
+    # em PDF (extratocontausd/brl/eur/...) sem reabrir o furo do anchor `_` final.
     (r"^c6bank_extratocontapj_.*\.csv$", "parse_c6bank_csv"),
     (r"^c6bank_extratoconta_.*\.csv$", "parse_c6bank_csv"),
     (r"^c6bank_extratocontaglobalusd_", "parse_c6bank"),
     (r"^c6bank_extratocontaglobaleur_", "parse_c6bank"),
     (r"^c6bank_extratocontapj_", "parse_c6bank"),
-    (r"^c6bank_extratoconta_", "parse_c6bank"),
+    (r"^c6bank_extratoconta", "parse_c6bank"),
     (r"c6bank_faturacarbon.*\.csv$", "parse_c6_carbon_csv"),
     (r"c6bank_faturacarbon", "parse_c6_carbon"),
 ]

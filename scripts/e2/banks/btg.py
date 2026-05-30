@@ -23,7 +23,8 @@ from scripts.e2.common import (
 LOG_PREFIX = "E2-EXTRATO"
 
 PARSERS = [
-    (r"^btgpactual_extratoconta_", "parse_btg"),
+    # Anchor subtipo-agnóstico (sem terminador) — ver bankofamerica.py.
+    (r"^btgpactual_extratoconta", "parse_btg"),
 ]
 
 
