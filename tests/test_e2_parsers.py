@@ -22,6 +22,7 @@ from scripts.e2.registry import (
     BANK_MODULES,
     is_non_statement_type,
     is_processable,
+    known_bank_extrato_without_parser,
     route_to_parser,
 )
 
@@ -190,6 +191,38 @@ class TestExtratoRoutingInvariant:
             f"E0 ganhou subtipo(s) de extrato não cobertos pela invariante: "
             f"{sorted(unknown)}. Adicione a _KNOWN_TRANSACTIONAL_EXTRATO_CODES "
             f"(e confirme que os parsers roteiam) ou trate explicitamente."
+        )
+
+
+class TestKnownBankRoutingHoleSignal:
+    """`known_bank_extrato_without_parser` separa o furo de roteamento (banco
+    conhecido sem parser → ERROR) do banco genuinamente sem suporte (LLM esperado
+    → WARN). É o sinal de observabilidade que teria pego o incidente em produção."""
+
+    def test_unsupported_bank_is_not_flagged(self):
+        # nubank: prefixo sem parser registrado → LLM esperado, não é furo
+        assert (
+            known_bank_extrato_without_parser("nubank_extratoconta_202601-0_original.csv") is None
+        )
+
+    def test_routing_success_is_not_flagged(self):
+        # itau roteia normalmente → não é furo
+        assert (
+            known_bank_extrato_without_parser("itau_extratocontausd_202601-0_original.pdf") is None
+        )
+
+    def test_known_bank_routing_hole_is_flagged(self, monkeypatch):
+        import scripts.e2.registry as reg
+
+        # Simula regressão de anchor: roteamento falha mesmo para banco conhecido
+        monkeypatch.setattr(reg, "route_to_parser", lambda _f: None)
+        assert (
+            known_bank_extrato_without_parser("itau_extratocontausd_202601-0_original.pdf")
+            == "itau"
+        )
+        # Banco desconhecido continua não sinalizado mesmo sem rota
+        assert (
+            known_bank_extrato_without_parser("nubank_extratoconta_202601-0_original.csv") is None
         )
 
 
