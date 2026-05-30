@@ -77,9 +77,19 @@ Schedule semanal: mesmos jobs, mas em failure abre Issue label `security` em vez
 Allowlist em `.gitleaks.toml` (commitado) com regras explícitas por path/regex/SHA:
 
 - Paths whitelist: `_archive/**`, `EXEMPLO_DE_RELATORIO.html`, `tests/fixtures/**`, `frontend/src/test/**`, `dev/snapshots/**`, `docs/archive/**`.
-- Regex whitelist: CPF sintético (`\b[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}\b` em paths de teste), `MATHOMS_FERNET_KEY` em `.github/workflows/ci.yml` (dev key documentada — ver TODO cicd-onda-3 lá), strings `dev-secret-key-change-in-production` em fixtures de gate de prod.
+- Regex whitelist: `MATHOMS_FERNET_KEY` em `.github/workflows/ci.yml` (dev key documentada — ver TODO cicd-onda-3 lá), strings `dev-secret-key-change-in-production` em fixtures de gate de prod. (CPF sintético é coberto por `paths`, não por regex global — ver Adendo 2026-05-30 abaixo.)
 
-Baseline 1x: `gitleaks detect --report-path baseline.json` no PR de criação; SHAs históricos com matches conhecidos vão em `[[allowlist.commits]]` no `.gitleaks.toml`.
+Baseline 1x: `gitleaks detect --report-path baseline.json` no PR de criação; SHAs históricos com matches conhecidos vão na chave `commits` da tabela `[allowlist]` do `.gitleaks.toml`.
+
+#### Adendo 2026-05-30 — sintaxe singular + paridade de versão local↔CI
+
+**Sintaxe da allowlist (corrigido em #541).** A implementação original escreveu a allowlist global como **array-of-tables `[[allowlists]]`**. Com `[extend] useDefault = true`, o merge do gitleaks com o config default embutido **descarta** a allowlist top-level no formato array — só a tabela **singular `[allowlist]`** sobrevive. O plural ficava silenciosamente **inerte** (segredo sintético legítimo voltava a ser flagado) e só não explodia porque o hook roda `protect --staged` (não rescaneia arquivo não-alterado). Correção em #541: converter para `[allowlist]` singular. Provado empiricamente com o binário pinado do hook (`[allowlist]` → `no leaks found`; `[[allowlists]]` → `leaks found: 1`). **Não reintroduzir `[[allowlists]]` enquanto `useDefault = true` estiver ativo.**
+
+**Paridade de versão (este PR).** Os dois binários em uso divergiam em versão: pre-commit em rev `v8.21.2`, CI (`gitleaks-action@v2.3.9`) hardcoda **8.24.3**. Versões diferentes têm rulesets de detecção e semântica de merge de allowlist divergentes — classe de bug "passa local, quebra CI" (ou vice-versa). Correção: pinar o rev do pre-commit em `v8.24.3` + `GITLEAKS_VERSION: "8.24.3"` explícito no `security.yml` (blinda contra drift do default do action). Regra operacional: **ao bumpar um, bumpe o outro no mesmo PR**. Ratificado por sessão `sre-devops` 2026-05-30.
+
+**Escopo do regex de CPF.** Dentro de uma `[allowlist]` plana, `paths`/`regexes`/`commits` combinam por **OR** — um regex de CPF global **afrouxaria** a detecção em código de produção (CPF real deixaria de disparar). Decisão: CPF sintético é coberto **apenas pelos `paths`** de teste/docs; política de CPF/PII pertence ao hook dedicado "Anti-PII em fixtures", não ao gitleaks.
+
+**Janela de detecção (gap conhecido, não corrigido aqui).** `gitleaks-action` em `pull_request` varre **apenas o range de commits do PR** — um secret real introduzido fora do diff escaneado só é pego pelo scan full-history do schedule semanal (`--log-opts="--all"`). Janela = até 7 dias. Aceitável enquanto o schedule tem dono que tria a Issue `security`; fechar de vez exigiria GHAS push protection (diferido). Documentado no runbook §"Janela de detecção".
 
 ### D4 — GitHub secret scanning
 
