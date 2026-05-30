@@ -91,7 +91,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W3-T02 | BB-001 + SR-008 Email Resend + verify + password reset | 3 | blocked | sre-devops | P0 | L | W1-T06 |
 | W3-T03 | SR-002 JWT 15min + refresh 7d + family revocation | 3 | blocked | sre-devops + senior-cto | P0 | L | W1-T06 (ADR-170) |
 | W3-T04 | SR-003 Fernet rotation real (MultiFernet) | 3 | blocked | sre-devops | P0 | M | W1-T06 (ADR-171) |
-| W3-T05 | SR-009 Prompt injection defense (sanitize + adversarial fixtures) | 3 | blocked | sre-devops + data-engineer | P0 | M | W1-T06 (ADR-175) |
+| W3-T05 | SR-009 Prompt injection defense (sanitize + adversarial fixtures) | 3 | shipped | sre-devops + data-engineer | P0 | M | W1-T06 (ADR-175) |
 | W4-T01 | SR-004 + BB-007 Off-site backup R2 + restore drill | 4 | blocked | sre-devops | P0 | M | — |
 | W4-T02 | SR-010 Coolify webhook + SHA-pinned images + dev.9 | 4 | blocked | sre-devops | P0 | M | W2-T03 |
 | W4-T03 | SR-011 + BB-015 Sentry SaaS EU + frontend hookup | 4 | blocked | sre-devops | P1 | S | — |
@@ -427,16 +427,17 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 
 ### [W3-T05] SR-009 Prompt injection defense
 
-> **⏭️ Agendada em A21** (federada por [[PLAN-launch-trust]] §F3-O3 — lanes
-> [[A21.l5]] decide [[ADR-175]] + [[A21.l6]] implementa). **Não pegue
-> independente** — owner real é `prompt-engineer` (Layers 2/4 são LLM/prompt),
-> não `sre-devops`. No merge de A21.l6, este checkbox flippa `blocked → shipped`.
+> **✅ Shipped em A21.l6** (federada por [[PLAN-launch-trust]] §F3-O3 — lanes
+> [[A21.l5]] decidiu [[ADR-175]] + [[A21.l6]] implementou). 4 camadas no
+> choke-point único `LLMService.call` + reconciliação `parecer_distiller`.
+> Layer 3 (strict schema) tem **finding de audit** registrado em [[A21.l6]]:
+> só 2/10 schemas usam `extra="forbid"` — flip dos 3 `allow` é follow-up.
 
 - **deps:** W1-T06 (ADR-175)
 - **owner:** sre-devops + data-engineer
 - **severity:** P0 · **effort:** M
-- **files_touched:** `pipeline/llm/text_extractor.py`, `pipeline/llm/prompts/_sanitization.py` (NOVO), `tests/fixtures/pdf/adversarial/` (NOVO), `tests/test_prompt_injection_defense.py` (NOVO)
-- **acceptance_criteria:** strip de unicode invisível, ANSI, padrões prompt-leak; system prompt clausula explícita; allowlist Pydantic strict; regression test com PDF adversarial; telemetria `mathoms.llm.input_sanitized`.
+- **files_touched:** `pipeline/llm/litellm_client.py`, `pipeline/llm/prompts/_sanitization.py` (NOVO), `tests/test_prompt_injection_defense.py` (NOVO), `backend/app/services/parecer_distiller.py`
+- **acceptance_criteria:** strip de unicode invisível, ANSI, padrões prompt-leak; system prompt clausula explícita; allowlist Pydantic strict; regression test adversarial determinístico; telemetria `mathoms.llm.input_sanitized`.
 
 ---
 

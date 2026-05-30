@@ -25,8 +25,13 @@ from pipeline.llm.error_classification import (
     classify_error,
 )
 from pipeline.llm.pricing import MODEL_PRICING, estimate_cost_usd
+from pipeline.llm.prompts._sanitization import sanitize_and_wrap
 
 logger = logging.getLogger(__name__)
+
+# Telemetria de Layer 1 (ADR-175): emite ``pattern`` (enum fechado de categoria),
+# NUNCA o trecho casado — explode cardinalidade E vaza conteúdo financeiro.
+_sanitization_logger = logging.getLogger("mathoms.llm.input_sanitized")
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -286,6 +291,19 @@ class LLMService:
 
         # Tag de stage para todos os logs desta chamada — formato "[stage] " para scan visual rápido.
         tag = f"[{stage}] " if stage else ""
+
+        # Layer 1 + Layer 2 (ADR-175) — choke-point único: sanitiza/sandwich
+        # apenas ``user_prompt`` (dado do usuário). ``system_prompt`` é nosso,
+        # controlado — nunca tocado. Call-site novo herda a defesa por construção.
+        user_prompt, sanitized_patterns = sanitize_and_wrap(user_prompt)
+        for pattern in sanitized_patterns:
+            _sanitization_logger.warning(
+                "input sanitized: pattern=%s stage=%s",
+                pattern,
+                stage or "unknown",
+                extra={"pattern": pattern, "stage": stage or "unknown"},
+            )
+
         prompt_chars = len(system_prompt) + len(user_prompt)
         schema_name = getattr(output_schema, "__name__", str(output_schema))
 

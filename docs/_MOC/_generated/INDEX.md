@@ -546,7 +546,7 @@
 | A21.l3 | lane | planned | A21 | Contrato EntityDedup (Protocol + runner compartilhado) | `sprint/A21/lanes/A21-l3-entity-dedup-contract.md` |
 | A21.l4 | lane | planned | A21 | Dedup previdência PGBL/VGBL (ativo × dedução fiscal, cross-axis) | `sprint/A21/lanes/A21-l4-previdencia-dedup.md` |
 | A21.l5 | lane | shipped | A21 | Decidir ADR-175 (defesa de injeção LLM em camadas) Proposto→Decidido | `sprint/A21/lanes/A21-l5-adr175-decide.md` |
-| A21.l6 | lane | planned | A21 | W3-T05 — defesa de injeção LLM (4 camadas + adversarial fixtures + telemetria) | `sprint/A21/lanes/A21-l6-prompt-injection-defense.md` |
+| A21.l6 | lane | shipped | A21 | W3-T05 — defesa de injeção LLM (4 camadas + adversarial fixtures + telemetria) | `sprint/A21/lanes/A21-l6-prompt-injection-defense.md` |
 | A21.l7 | lane | open | A21 | LGPD Art.37 — audit log de acesso a dado sensível | `sprint/A21/lanes/A21-l7-lgpd-audit-log.md` |
 | A21.l8 | lane | open | A21 | LGPD Art.18 — export/deleção (data-subject rights) | `sprint/A21/lanes/A21-l8-lgpd-data-subject-rights.md` |
 | A21.l9 | lane | open | A21 | Backup/restore mechanism + drill CI-local (subset W4-T01) | `sprint/A21/lanes/A21-l9-backup-restore-drill-ci.md` |
