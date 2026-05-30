@@ -12,10 +12,28 @@ A hierarquia de arquivos:
 
 from __future__ import annotations
 
+import logging
+import re
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
 from typing import Any, Literal, Mapping
+
+logger = logging.getLogger("mathoms.pipeline.patrimonio")
+
+# Período sentinel de fatura sem data (propaga E0→E2→E3); nunca é ano-base.
+_SENTINEL_PERIODO = "999999"
+
+# Listas consolidadas (v1 + v2) varridas por ``_max_value_year``.
+_CONSOLIDATED_LIST_KEYS = (
+    "imoveis_consolidados",
+    "bens_imoveis_consolidados",
+    "investimentos_consolidados",
+    "investimentos_financeiros_consolidados",
+    "veiculos_consolidados",
+    "dividas",
+    "dividas_consolidadas",
+)
 
 
 def safe_float(val: Any, default: float = 0.0) -> float:
@@ -24,6 +42,71 @@ def safe_float(val: Any, default: float = 0.0) -> float:
         return float(val)
     except (ValueError, TypeError):
         return default
+
+
+@dataclass(frozen=True)
+class AnoReferenciaDivergenceWarning:
+    """Ano-base dos itens (31/12) ≠ ano-chave do resumo (exercício) — ADR-274."""
+
+    # Em artefato pós-Layer-2 não dispara; se disparar, a consolidação regrediu.
+    value_year: str
+    summary_year: str
+
+    def format(self) -> str:
+        return (
+            f"ano_referencia divergente: itens em 31/12/{self.value_year} mas "
+            f"resumo chaveado em {self.summary_year} (exercício). Resolvendo "
+            f"valores por-item em {self.value_year} (self-heal, ADR-274)."
+        )
+
+
+def _years_in_vals(vals: object) -> set[int]:
+    """Anos 31/12 numa dict ``valores_31_12``/``saldo_31_12`` (ADR-274)."""
+    # Regex (?:19|20)\d{2} aceita "YYYY" e legado "31_12_YYYY"; exclui o
+    # sentinel 999999 (viraria 9999, fora do range de ano-base real).
+    if not isinstance(vals, dict):
+        return set()
+    out: set[int] = set()
+    for key in vals:
+        if _SENTINEL_PERIODO in str(key):
+            continue
+        match = re.search(r"(?:19|20)\d{2}", str(key))
+        if match:
+            out.add(int(match.group(0)))
+    return out
+
+
+def _years_in_list(seq: object) -> set[int]:
+    """Anos 31/12 numa lista consolidada de itens (ADR-274)."""
+    out: set[int] = set()
+    for item in seq or []:
+        if isinstance(item, dict):
+            out |= _years_in_vals(item.get("valores_31_12"))
+            out |= _years_in_vals(item.get("saldo_31_12"))
+    return out
+
+
+def _max_value_year(baseline: dict) -> str | None:
+    """Maior ano-base 31/12 entre os itens consolidados; ``None`` se nenhum."""
+    years: set[int] = set()
+    for list_key in _CONSOLIDATED_LIST_KEYS:
+        years |= _years_in_list(baseline.get(list_key))
+    return str(max(years)) if years else None
+
+
+def resolve_value_year(baseline: dict, summary_year: str) -> str:
+    """Ano-base de resolução por-item; warning tipado se divergir (ADR-274)."""
+    # value_year = máximo dos itens; ausente → summary_year. Divergência
+    # sinaliza consolidação keyed em exercício (pré-Layer-2) — warning ADR-097.
+    value_year = _max_value_year(baseline) or summary_year
+    if value_year != summary_year:
+        warning = AnoReferenciaDivergenceWarning(value_year, summary_year)
+        logger.warning(
+            "patrimonio_ano_divergente: %s",
+            warning.format(),
+            extra={"value_year": value_year, "summary_year": summary_year},
+        )
+    return value_year
 
 
 # =============================================================================
