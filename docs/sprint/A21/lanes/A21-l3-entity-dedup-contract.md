@@ -4,7 +4,7 @@ type: lane
 title: "Contrato EntityDedup (Protocol + runner compartilhado)"
 sprint: A21
 plan: PLAN-launch-trust
-status: planned
+status: shipped
 priority: P1
 branch_slug: a21-l3-entity-dedup-contract
 depends_on:
@@ -14,7 +14,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a21
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---

@@ -3,18 +3,21 @@ id: MOC-sprint-a21
 type: moc
 title: "Sprint A21 — Launch Trust: número confiável + gates de F3/LGPD abertos"
 aliases: ["A21", "Sprint A21"]
-sprint_status: current
+sprint_status: done
 date: "2026-05-30"
 theme: "confiabilidade"
 ---
 
 # Sprint A21 — Launch Trust: número confiável + gates abertos
 
-> **Status:** `current` — kickoff dado pelo owner em 2026-05-30. Lanes sem deps
-> (`l1`, `l5`, `l7`, `l8`) liberadas para pickup imediato.
+> **Status:** `done` — **9/9 lanes mergeadas em `main`** em 2026-05-30
+> (kickoff e fechamento no mesmo dia). Os dois gates de F3 (F1-O0 verde +
+> defesa de injeção em `main`) e o pré-requisito de LGPD ficaram verdes;
+> A22 está livre para fechar F3. Transição `current → done`; corrente passa
+> a ser [[MOC-sprint-a22]].
 >
 > **Plano dono:** [[PLAN-launch-trust]] ([plan/LAUNCH_TRUST/_README.md](../../plan/LAUNCH_TRUST/_README.md)).
-> Esta sprint é a **primeira janela de execução** do plano.
+> Esta sprint foi a **primeira janela de execução** do plano.
 
 ## Resumo
 
@@ -45,15 +48,15 @@ real R2 (exige bucket/credencial — A21 entrega só o mecanismo testável em CI
 
 ## KRs da janela (nenhum depende de humano externo ou prod)
 
-| KR | Métrica | Meta | Mapeia |
-|---|---|---|---|
-| A21-KR1 | Suíte INV-1..9 verde em CI, sem skip (INV-9 = filtro PJ, [[ADR-268]]) | 9/9 | KR1 (F1) |
-| A21-KR2 | `fn_rate` no golden multi-ano anotado | ≤ 5% | KR2 (F1) |
-| A21-KR3 | `fp_rate` no golden (red line) | **0%** | KR3 (F1) |
-| A21-KR4 | Previdência cross-axis: plano conta 1× como ativo, dedução não soma ao PL (teste verde) | shipped | F1-O4 |
-| A21-KR5 | ADR-175 `Decidido` em `main` + `test_prompt_injection_defense.py` verde (≥1 fixture por vetor) | shipped | **gate (b) de F3** |
-| A21-KR6 | LGPD: audit log Art.37 grava acesso a CPF/financeiro + rota Art.18 export/deleção testada | shipped | KR6 (F2) |
-| A21-KR7 | `restore_drill` recupera Postgres efêmero em CI, RTO medido ≤ 30min | drill local verde | KR4 parcial (F2) |
+| KR | Métrica | Meta | Mapeia | Resultado |
+|---|---|---|---|---|
+| A21-KR1 | Suíte INV-1..9 verde em CI, sem skip (INV-9 = filtro PJ, [[ADR-268]]) | 9/9 | KR1 (F1) | ✅ atingido (l1 · #524) |
+| A21-KR2 | `fn_rate` no golden multi-ano anotado | ≤ 5% | KR2 (F1) | ✅ atingido (l2 · #533) |
+| A21-KR3 | `fp_rate` no golden (red line) | **0%** | KR3 (F1) | ✅ atingido (l2 · #533) |
+| A21-KR4 | Previdência cross-axis: plano conta 1× como ativo, dedução não soma ao PL (teste verde) | shipped | F1-O4 | ✅ atingido (l4 · #535, ADR-277) |
+| A21-KR5 | ADR-175 `Decidido` em `main` + `test_prompt_injection_defense.py` verde (≥1 fixture por vetor) | shipped | **gate (b) de F3** | ✅ atingido (l5 · #525 + l6 · #527) |
+| A21-KR6 | LGPD: audit log Art.37 grava acesso a CPF/financeiro + rota Art.18 export/deleção testada | shipped | KR6 (F2) | ✅ atingido (l7+l8 · #529, ADR-275) |
+| A21-KR7 | `restore_drill` recupera Postgres efêmero em CI, RTO medido ≤ 30min | drill local verde | KR4 parcial (F2) | ✅ parcial atingido (l9 · #538 — mecanismo CI; off-site R2 → A22) |
 
 > KR5 hard-block é o teste **mockado/determinístico** em PR; LLM-real nightly
 > fica como Should (depende de orçamento de provider). KR7 é **parcial** —
@@ -65,17 +68,21 @@ Hard-rank por **destravamento** (não por frente). Ordem de must-merge:
 `l1 → l5 → l6 → l7 → l8` (abrem gates) antes de `l2/l3/l4/l9`. Se a sprint
 apertar, l3/l4/l9 escorregam para A22 sem perder os gates.
 
-| Lane | Frente | Prioridade | Effort | Depende de | Owner |
-|---|---|---|---|---|---|
-| [[A21.l1]] | F1-O0 | P0 | M | — | data-engineer |
-| [[A21.l2]] | F1-O1 | P0 | M | l1 | data-engineer |
-| [[A21.l3]] | F1-O2 | P1 | L | l1, l2 | senior-cto |
-| [[A21.l4]] | F1-O4 | P1 | M | l3 | financial-planner |
-| [[A21.l5]] | F3-O3 | P0 | XS | — | senior-cto + prompt-engineer |
-| [[A21.l6]] | F3-O3 | P0 | M | l5 | prompt-engineer + data-engineer |
-| [[A21.l7]] | F2-G2 | P0 | M | — | senior-cto + data-engineer |
-| [[A21.l8]] | F2-G3 | P0 | M | — | senior-cto + data-engineer |
-| [[A21.l9]] | F2-2.1 | P1 | S | — | sre-devops |
+| Lane | Frente | Prioridade | Effort | Depende de | Owner | Status |
+|---|---|---|---|---|---|---|
+| [[A21.l1]] | F1-O0 | P0 | M | — | data-engineer | ✅ #524 |
+| [[A21.l2]] | F1-O1 | P0 | M | l1 | data-engineer | ✅ #533 |
+| [[A21.l3]] | F1-O2 | P1 | L | l1, l2 | senior-cto | ✅ #534 (ADR-276) |
+| [[A21.l4]] | F1-O4 | P1 | M | l3 | financial-planner | ✅ #535 (ADR-277) |
+| [[A21.l5]] | F3-O3 | P0 | XS | — | senior-cto + prompt-engineer | ✅ #525 |
+| [[A21.l6]] | F3-O3 | P0 | M | l5 | prompt-engineer + data-engineer | ✅ #527 |
+| [[A21.l7]] | F2-G2 | P0 | M | — | senior-cto + data-engineer | ✅ #529 (ADR-275) |
+| [[A21.l8]] | F2-G3 | P0 | M | — | senior-cto + data-engineer | ✅ #529 (ADR-275) |
+| [[A21.l9]] | F2-2.1 | P1 | S | — | sre-devops | ✅ #536 + #538 |
+
+> **Colateral:** durante a l9, descoberto bug latente na allowlist do
+> gitleaks (`[[allowlists]]` plural inerte com `useDefault = true`).
+> Corrigido fora de lane em #541 + #542 (paridade local↔CI), [[ADR-230]] §D3.
 
 ## Sequenciamento — 4 trilhas paralelas no dia 1
 

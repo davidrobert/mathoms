@@ -4,7 +4,7 @@ type: lane
 title: "Dedup previdência PGBL/VGBL (ativo × dedução fiscal, cross-axis)"
 sprint: A21
 plan: PLAN-launch-trust
-status: planned
+status: shipped
 priority: P1
 branch_slug: a21-l4-previdencia-dedup
 depends_on:
@@ -13,7 +13,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a21
-  - status/planned
+  - status/shipped
   - priority/p1
   - area/pipeline
 ---

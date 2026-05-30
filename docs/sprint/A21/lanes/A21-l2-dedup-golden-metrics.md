@@ -4,7 +4,7 @@ type: lane
 title: "Golden multi-ano anotado + métrica fn_rate/fp_rate"
 sprint: A21
 plan: PLAN-launch-trust
-status: planned
+status: shipped
 priority: P0
 branch_slug: a21-l2-dedup-golden-metrics
 depends_on:
@@ -13,7 +13,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a21
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/pipeline
 ---
