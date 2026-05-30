@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """Tests for E2 bank parser registry and parsing functions."""
 
+import functools
+import importlib
+import re
 import sys
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -13,7 +18,13 @@ from scripts.e2.common import (
     parse_usd,
     safe_date,
 )
-from scripts.e2.registry import is_non_statement_type, is_processable, route_to_parser
+from scripts.e2.registry import (
+    BANK_MODULES,
+    is_non_statement_type,
+    is_processable,
+    known_bank_extrato_without_parser,
+    route_to_parser,
+)
 
 # =============================================================================
 # Registry routing tests
@@ -112,6 +123,106 @@ class TestParserRegistry:
     def test_santander_extrato_with_hash_prefix(self):
         assert (
             route_to_parser("deadbeef1234_santander_extratoconta_202601-0_original.xls") is not None
+        )
+
+
+# =============================================================================
+# Invariante de roteamento E0→E2 (fecha a classe de furo de subtipo de moeda)
+# =============================================================================
+
+
+@functools.lru_cache(maxsize=1)
+def _extrato_family_codes() -> frozenset[str]:
+    """Códigos `extratoconta*` que o E0 pode emitir, das DUAS fontes divergentes
+    de doc-type: type_classifier (content-based, web) + e0_route (filename, CLI)."""
+    from backend.app.services.classification.type_classifier import TYPE_RULES
+    from scripts.e0_route import DOC_TYPE_PATTERNS
+
+    codes = {r.code for r in TYPE_RULES if r.code.startswith("extratoconta")}
+    codes |= {code for _pat, code, _grp in DOC_TYPE_PATTERNS if code.startswith("extratoconta")}
+    return frozenset(codes)
+
+
+@functools.lru_cache(maxsize=1)
+def _banks_with_extrato_parser() -> frozenset[str]:
+    """Prefixos de banco cujo módulo registra um parser de extrato — derivado
+    dos PARSERS reais, não hardcoded, para acompanhar bancos novos."""
+    prefixes: set[str] = set()
+    for module_name in BANK_MODULES:
+        mod = importlib.import_module(f"scripts.e2.banks.{module_name}")
+        for pattern_str, _func in getattr(mod, "PARSERS", []):
+            prefixes.update(re.findall(r"\^([a-z0-9]+)_extratoconta", pattern_str))
+    return frozenset(prefixes)
+
+
+# Allowlist de subtipos de extrato sabidamente transacionais. Se o E0 ganhar um
+# subtipo novo (ex.: extratocontagbp), o drift-guard abaixo falha — força revisão
+# consciente: ou o subtipo entra aqui, ou precisa de tratamento dedicado.
+_KNOWN_TRANSACTIONAL_EXTRATO_CODES = {
+    "extratoconta",
+    "extratocontausd",
+    "extratocontabrl",
+    "extratocontaeur",
+    "extratocontaglobalusd",
+    "extratocontaglobaleur",
+    "extratocontapj",
+    "extratocontapersonnalite",
+}
+
+
+class TestExtratoRoutingInvariant:
+    """Todo `(banco, subtipo_de_moeda)` que o E0 sabe emitir DEVE rotear para um
+    parser determinístico. Fecha a classe de bug em que anchor `_<terminador>`
+    nunca casa subtipos de moeda → extrato cai no LLM e some do relatório."""
+
+    @pytest.mark.parametrize("bank", sorted(_banks_with_extrato_parser()))
+    @pytest.mark.parametrize("code", sorted(_extrato_family_codes()))
+    @pytest.mark.parametrize("ext", ["pdf", "csv", "xls"])
+    def test_every_extrato_subtype_routes(self, bank: str, code: str, ext: str):
+        filename = f"{bank}_{code}_202601_202604-0_original.{ext}"
+        assert route_to_parser(filename) is not None, (
+            f"{filename} não roteia — extrato de banco conhecido cairia no LLM "
+            f"fallback e sumiria do relatório (regressão do furo de subtipo de moeda)"
+        )
+
+    def test_no_unknown_extrato_subtype_drift(self):
+        unknown = _extrato_family_codes() - _KNOWN_TRANSACTIONAL_EXTRATO_CODES
+        assert not unknown, (
+            f"E0 ganhou subtipo(s) de extrato não cobertos pela invariante: "
+            f"{sorted(unknown)}. Adicione a _KNOWN_TRANSACTIONAL_EXTRATO_CODES "
+            f"(e confirme que os parsers roteiam) ou trate explicitamente."
+        )
+
+
+class TestKnownBankRoutingHoleSignal:
+    """`known_bank_extrato_without_parser` separa o furo de roteamento (banco
+    conhecido sem parser → ERROR) do banco genuinamente sem suporte (LLM esperado
+    → WARN). É o sinal de observabilidade que teria pego o incidente em produção."""
+
+    def test_unsupported_bank_is_not_flagged(self):
+        # nubank: prefixo sem parser registrado → LLM esperado, não é furo
+        assert (
+            known_bank_extrato_without_parser("nubank_extratoconta_202601-0_original.csv") is None
+        )
+
+    def test_routing_success_is_not_flagged(self):
+        # itau roteia normalmente → não é furo
+        assert (
+            known_bank_extrato_without_parser("itau_extratocontausd_202601-0_original.pdf") is None
+        )
+
+    def test_known_bank_routing_hole_is_flagged(self, monkeypatch):
+        import scripts.e2.registry as reg
+
+        # Simula regressão de anchor: roteamento falha mesmo para banco conhecido
+        monkeypatch.setattr(reg, "route_to_parser", lambda _f: None)
+        assert (
+            known_bank_extrato_without_parser("itau_extratocontausd_202601-0_original.pdf")
+            == "itau"
+        )
+        # Banco desconhecido continua não sinalizado mesmo sem rota
+        assert (
+            known_bank_extrato_without_parser("nubank_extratoconta_202601-0_original.csv") is None
         )
 
 

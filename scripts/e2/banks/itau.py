@@ -35,10 +35,14 @@ LOG_PREFIX_EXTRATO = "E2-EXTRATO"
 LOG_PREFIX_FATURA = "E2-FATURA"
 
 PARSERS = [
+    # Anchors subtipo-agnósticos (sem underscore terminador) — casam subtipos de
+    # moeda do E0 (extratocontausd/brl/eur/...). Ordem preserva o roteamento
+    # format-specific: `.xls$` → parse_itau_xls antes do fallback any-ext.
+    # Ver bankofamerica.py para o rationale completo.
     (r"^itau_extratocontapersonnalite_.*\.xls$", "parse_itau_xls"),
-    (r"^itau_extratoconta_.*\.xls$", "parse_itau_xls"),
+    (r"^itau_extratoconta.*\.xls$", "parse_itau_xls"),
     (r"^itau_extratocontapersonnalite_", "parse_itau"),
-    (r"^itau_extratoconta_", "parse_itau"),
+    (r"^itau_extratoconta", "parse_itau"),
     (r"^itau_cdbresumo_.*\.xls$", "parse_itau_cdb_html_xls"),
     (r"^itau_cdbdetalhes_.*\.xls$", "parse_itau_cdb_html_xls"),
     (r"itau_faturapaoacucar.*\.csv$", "parse_itau_paoacucar_csv"),

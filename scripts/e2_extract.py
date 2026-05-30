@@ -24,6 +24,7 @@ from scripts.e2.common import DATA_DIR, OUTPUT_DIR, log
 from scripts.e2.registry import (
     NON_STATEMENT_TYPES,
     is_investment_type,
+    known_bank_extrato_without_parser,
     route_to_parser,
 )
 from scripts.e2.validation import validate_extrato_result, validate_fatura_result
@@ -128,7 +129,18 @@ def process_file(file_path: Path, dry_run: bool = False) -> Optional[Dict[str, A
     parser_fn = route_to_parser(filename)
     if parser_fn is None:
         prefix = LOG_FATURA if _is_fatura_file(filename) else LOG_EXTRATO
-        log(prefix, "WARN", f"Sem parser determinístico para: {filename}")
+        routing_hole_bank = known_bank_extrato_without_parser(filename)
+        if routing_hole_bank:
+            log(
+                prefix,
+                "ERROR",
+                f"ROTEAMENTO FUROU: extrato de banco conhecido '{routing_hole_bank}' "
+                f"sem parser determinístico ({filename}) — vai para o LLM e pode sumir "
+                f"do relatório. Provável regressão de anchor; ver "
+                f"tests/test_e2_parsers.py::TestExtratoRoutingInvariant.",
+            )
+        else:
+            log(prefix, "WARN", f"Sem parser determinístico para: {filename}")
         return generate_llm_fallback(file_path, filename)
 
     if dry_run:

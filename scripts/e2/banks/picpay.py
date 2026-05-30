@@ -25,7 +25,8 @@ from scripts.e2.common import (
 LOG_PREFIX = "E2-EXTRATO"
 
 PARSERS = [
-    (r"^picpay_extratoconta_", "parse_picpay"),
+    # Anchor subtipo-agnóstico (sem terminador) — ver bankofamerica.py.
+    (r"^picpay_extratoconta", "parse_picpay"),
 ]
 
 

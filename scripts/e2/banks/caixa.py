@@ -31,8 +31,10 @@ from scripts.e2.common import (
 LOG_PREFIX = "E2-EXTRATO"
 
 PARSERS = [
-    (r"^caixa_extratoconta_", "parse_caixa"),
-    (r"^caixaeconomica_extratoconta_", "parse_caixa"),
+    # Anchor subtipo-agnóstico (sem terminador) — casa subtipos de moeda que o E0
+    # anexa (extratocontausd/brl/eur/...). Ver bankofamerica.py para o rationale.
+    (r"^caixa_extratoconta", "parse_caixa"),
+    (r"^caixaeconomica_extratoconta", "parse_caixa"),
 ]
 
 # Índices das colunas da tabela Caixa:
