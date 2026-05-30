@@ -1,21 +1,23 @@
-"""Dedup de investimentos cross-IRPF — cross-year + cross-declarante (ADR-271)."""
-
-# Espelha imoveis_dedup (ADR-246) com duas divergências de domínio, detalhadas
-# na ADR-271: (1) cross-year une `valores_31_12` e o valor corrente é o ano mais
-# recente — investimento é marcado a mercado, não piso histórico como imóvel;
-# (2) cross-declarante funde APENAS quando o valor 31/12 é idêntico ao centavo
-# (conta conjunta = mesmo saldo declarado 2×). Calibração conservadora:
-# falso-positivo (some patrimônio real) é pior que falso-negativo (infla PL).
+"""Dedup de investimentos cross-IRPF (cross-year + cross-declarante) como policy
+sobre ``run_entity_dedup`` (ADR-271, ADR-276); duas divergências vs. imóveis:
+cross-year une ``valores_31_12`` marcando a mercado (ano mais recente, não piso),
+e cross-declarante funde APENAS com valor 31/12 idêntico ao centavo (conta
+conjunta) — calibração conservadora, falso-positivo (some PL) pior que falso-negativo.
+"""
 
 from __future__ import annotations
 
 import hashlib
-import logging
 from dataclasses import dataclass
 
 from pipeline.domain.services._tx_identity import cents_int, normalize_descricao
-
-logger = logging.getLogger("mathoms.pipeline.consolidate")
+from pipeline.domain.services.entity_dedup import (
+    DedupOutcome,
+    DedupWarning,
+    GroupedEntries,
+    log_dedup,
+    run_entity_dedup,
+)
 
 _CASAL_LABEL = "casal"
 
@@ -41,45 +43,48 @@ def dedup_investimentos_consolidados(
     investimentos: list[dict] | None,
 ) -> InvestDedupResult:
     """Deduplica ``investimentos_consolidados`` por identidade cross-IRPF (ADR-271)."""
-    items = [e for e in (investimentos or []) if isinstance(e, dict)]
-    result = _dedup_grouped(items)
-    _log_if_deduped(result)
-    return result
+    outcome = run_entity_dedup(investimentos, _InvestmentPolicy())
+    log_dedup("consolidate.investimentos_dedup", outcome, dropped_key="dropped_keys")
+    return _to_result(outcome)
 
 
-def _dedup_grouped(items: list[dict]) -> InvestDedupResult:
-    grouped, order, unidentified = _group_by_identity(items)
-    out: list[dict] = []
-    warnings: list[InvestDedupWarning] = []
-    dropped: list[str] = []
-    for key in order:
-        _emit_group(key, grouped[key], out, warnings, dropped)
-    out.extend(unidentified)
+def _to_result(outcome: DedupOutcome) -> InvestDedupResult:
     return InvestDedupResult(
-        investimentos=out,
-        warnings=tuple(warnings),
-        count_before=len(items),
-        count_after=len(out),
-        dropped_keys=tuple(dropped),
+        investimentos=outcome.items,
+        warnings=tuple(_to_invest_warning(w) for w in outcome.warnings),
+        count_before=outcome.count_before,
+        count_after=outcome.count_after,
+        dropped_keys=outcome.dropped_ids,
     )
 
 
-def _group_by_identity(
-    items: list[dict],
-) -> tuple[dict[tuple, list[dict]], list[tuple], list[dict]]:
-    grouped: dict[tuple, list[dict]] = {}
-    order: list[tuple] = []
-    unidentified: list[dict] = []
-    for entry in items:
-        key = _identity_key(entry)
-        if key is None:
-            unidentified.append(entry)
-            continue
-        if key not in grouped:
-            grouped[key] = []
-            order.append(key)
-        grouped[key].append(entry)
-    return grouped, order, unidentified
+def _to_invest_warning(w: DedupWarning) -> InvestDedupWarning:
+    return InvestDedupWarning(
+        investment_id=w.entity_id, type=w.type, values=w.values, diff_pct=w.diff_pct
+    )
+
+
+class _InvestmentPolicy:
+    """Chave exata `(tipo, instituicao_norm, descricao_norm)`; sem reagrupamento."""
+
+    def identity_key(self, entry: dict) -> tuple | None:
+        return _identity_key(entry)
+
+    def remap_groups(self, grouped: GroupedEntries) -> GroupedEntries:
+        return grouped
+
+    def emit_group(
+        self, group: list[dict]
+    ) -> tuple[list[dict], tuple[DedupWarning, ...], tuple[str, ...]]:
+        inv_id = _investment_id(_identity_key(group[0]))
+        if len(group) == 1:
+            return [_stamp_id(group[0], inv_id)], (), ()
+        warnings: list[DedupWarning] = []
+        per_owner = _merge_cross_year(group, inv_id, warnings)
+        if len(per_owner) == 1:
+            return per_owner, tuple(warnings), _dropped(group, inv_id)
+        entries, dec_warnings, dropped = _emit_cross_declarante(inv_id, per_owner, group)
+        return entries, tuple(warnings) + dec_warnings, dropped
 
 
 def _identity_key(entry: dict) -> tuple | None:
@@ -92,34 +97,19 @@ def _identity_key(entry: dict) -> tuple | None:
     return (tipo, inst, desc)
 
 
-def _investment_id(key: tuple) -> str:
-    raw = "|".join(str(p) for p in key)
+def _investment_id(key: tuple | None) -> str:
+    raw = "|".join(str(p) for p in (key or ()))
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
-def _emit_group(
-    key: tuple,
-    group: list[dict],
-    out: list[dict],
-    warnings: list[InvestDedupWarning],
-    dropped: list[str],
-) -> None:
-    inv_id = _investment_id(key)
-    if len(group) == 1:
-        out.append(_stamp_id(group[0], inv_id))
-        return
-    per_owner = _merge_cross_year(group, inv_id, warnings)
-    if len(per_owner) == 1:
-        out.append(per_owner[0])
-        _record_dropped(group, inv_id, kept=1, dropped=dropped)
-        return
-    _emit_cross_declarante(inv_id, per_owner, out, warnings, dropped, group)
+def _dropped(group: list[dict], inv_id: str) -> tuple[str, ...]:
+    return tuple(inv_id for _ in range(max(0, len(group) - 1)))
 
 
 def _merge_cross_year(
     group: list[dict],
     inv_id: str,
-    warnings: list[InvestDedupWarning],
+    warnings: list[DedupWarning],
 ) -> list[dict]:
     """Funde entries do mesmo proprietário (anos sucessivos) em uma por owner."""
     by_owner: dict[str, list[dict]] = {}
@@ -136,7 +126,7 @@ def _merge_cross_year(
 def _merge_owner_entries(
     entries: list[dict],
     inv_id: str,
-    warnings: list[InvestDedupWarning],
+    warnings: list[DedupWarning],
 ) -> dict:
     if len(entries) == 1:
         return _stamp_id(entries[0], inv_id)
@@ -152,7 +142,7 @@ def _union_valores(
     acc: dict[str, float],
     entry: dict,
     inv_id: str,
-    warnings: list[InvestDedupWarning],
+    warnings: list[DedupWarning],
 ) -> None:
     for ano, valor in (entry.get("valores_31_12") or {}).items():
         v = _safe_float(valor)
@@ -166,26 +156,22 @@ def _union_valores(
 def _emit_cross_declarante(
     inv_id: str,
     per_owner: list[dict],
-    out: list[dict],
-    warnings: list[InvestDedupWarning],
-    dropped: list[str],
     group: list[dict],
-) -> None:
+) -> tuple[list[dict], tuple[DedupWarning, ...], tuple[str, ...]]:
     """Mesmo ativo, proprietários distintos: funde só se valor idêntico ao centavo."""
     if _is_joint_account(per_owner):
-        out.append(_merge_joint(per_owner, inv_id))
-        _record_dropped(group, inv_id, kept=1, dropped=dropped)
-        return
+        return [_merge_joint(per_owner, inv_id)], (), _dropped(group, inv_id)
+    entries: list[dict] = []
     for entry in per_owner:
         stamped = dict(entry)
         stamped["_dedup_warning"] = {"type": "possivel_duplicata"}
-        out.append(stamped)
-    warnings.append(_duplicata_warning(inv_id, per_owner))
+        entries.append(stamped)
+    return entries, (_duplicata_warning(inv_id, per_owner),), ()
 
 
-def _duplicata_warning(inv_id: str, per_owner: list[dict]) -> InvestDedupWarning:
-    return InvestDedupWarning(
-        investment_id=inv_id,
+def _duplicata_warning(inv_id: str, per_owner: list[dict]) -> DedupWarning:
+    return DedupWarning(
+        entity_id=inv_id,
         type="possivel_duplicata",
         values=tuple(_latest_value(e) for e in per_owner),
         diff_pct=0.0,
@@ -218,10 +204,10 @@ def _latest_value(entry: dict) -> float:
     return _safe_float(entry.get("valor", 0))
 
 
-def _year_conflict_warning(inv_id: str, a: float, b: float) -> InvestDedupWarning:
+def _year_conflict_warning(inv_id: str, a: float, b: float) -> DedupWarning:
     diff_pct = abs(a - b) / max(abs(a), abs(b)) * 100 if max(abs(a), abs(b)) else 0.0
-    return InvestDedupWarning(
-        investment_id=inv_id,
+    return DedupWarning(
+        entity_id=inv_id,
         type="valor_divergente_ano",
         values=(a, b),
         diff_pct=round(diff_pct, 1),
@@ -236,11 +222,6 @@ def _stamp_id(entry: dict, inv_id: str) -> dict:
     return out
 
 
-def _record_dropped(group: list[dict], inv_id: str, *, kept: int, dropped: list[str]) -> None:
-    for _ in range(max(0, len(group) - kept)):
-        dropped.append(inv_id)
-
-
 def _safe_float(value) -> float:
     try:
         return float(value)
@@ -248,16 +229,8 @@ def _safe_float(value) -> float:
         return 0.0
 
 
-def _log_if_deduped(result: InvestDedupResult) -> None:
-    if result.count_after >= result.count_before:
-        return
-    logger.info(
-        "consolidate.investimentos_dedup",
-        extra={
-            "stage": "E1.5c",
-            "count_before": result.count_before,
-            "count_after": result.count_after,
-            "dropped_keys": list(result.dropped_keys),
-            "warnings_count": len(result.warnings),
-        },
-    )
+__all__ = [
+    "InvestDedupResult",
+    "InvestDedupWarning",
+    "dedup_investimentos_consolidados",
+]
