@@ -70,6 +70,12 @@ celery_app.conf.update(
             "task": "fin.lgpd.process_user_deletions",
             "schedule": 86400.0,  # diário
         },
+        # LGPD Art. 37 / ADR-274 D5 — purga audit de leitura >365d (retenção).
+        # Audit de mutação (Art.16) sobrevive — filtro é READ_ACCESS_ACTIONS.
+        "lgpd-purge-expired-audit-logs": {
+            "task": "fin.lgpd.purge_expired_audit_logs",
+            "schedule": 86400.0,  # diário
+        },
         # ADR-172 (W2-T04) — detector de runs travados.
         "detect-stuck-runs": {
             "task": "fin.detect_stuck_runs",
