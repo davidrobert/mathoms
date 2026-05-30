@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — últimos 14 dias
 
-23 entries entre 2026-05-20 e 2026-05-29.
+24 entries entre 2026-05-20 e 2026-05-30.
+
+## 2026-05-30 (1 entries)
+
+- [[CHG-2026-05-30-A21-L7L8-LGPD]] — LGPD Art.37 (auditoria de acesso) + Art.18 (retenção enforçada). Reusa (lane [[A21.l7]])
 
 ## 2026-05-29 (7 entries)
 

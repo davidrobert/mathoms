@@ -4,16 +4,18 @@ type: lane
 title: "LGPD Art.37 — audit log de acesso a dado sensível"
 sprint: A21
 plan: PLAN-launch-trust
-status: open
+status: shipped
 priority: P0
 branch_slug: a21-l7-lgpd-audit-log
 depends_on: []
 parallel_with:
   - "[[A21.l8]]"
+adrs:
+  - "[[ADR-274]]"
 tags:
   - type/lane
   - sprint/a21
-  - status/open
+  - status/shipped
   - priority/p0
   - area/seguranca
 ---

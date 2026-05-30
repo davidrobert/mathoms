@@ -2,7 +2,7 @@
 id: ADR-274
 type: adr
 title: "Auditoria de acesso + política de retenção LGPD"
-status: Proposto
+status: Decidido
 phase: A21 (l7 + l8)
 date: "2026-05-30"
 relates_to:
@@ -16,14 +16,14 @@ tags:
   - area/security
   - area/persistence
   - area/backend
-  - status/proposto
+  - status/decidido
   - type/adr
   - methodology/lgpd
 ---
 
 # ADR-274 — Auditoria de acesso + política de retenção LGPD
 
-**Status:** Proposto (A21 · l7 + l8) • **Data:** 2026-05-30 •
+**Status:** Decidido (A21 · l7 + l8) • **Data:** 2026-05-30 •
 **Planos:** [[PLAN-launch-trust]] §F2-G2 (l7) + §F2-G3 (l8)
 
 **Contexto:** o launch BR exige (a) **LGPD Art.37** — registrar *quem* acessou
@@ -68,11 +68,13 @@ antecipada.
 
 **D4 — Anti-PII por allowlist tipada, não blocklist.** O `details` da `action`
 de leitura é um `AccessAuditDetails` (Pydantic `extra="forbid"`) com campos
-**fechados** (ex.: `resource_kind`, `count`, `period`) — **nunca** CPF, valor
-monetário, nome ou conteúdo de extrato. Um **teste de guarda de escrita
-obrigatório** rejeita payload contendo padrão de CPF/valor. Inverte a
-blocklist frágil de `internal_ops/audit.py` (`_FORBIDDEN_KEYS`) para o caso
-de leitura: só passa o que está declarado.
+**fechados** (`method`, `route`, `query_keys`) — **nunca** CPF, valor
+monetário, nome ou conteúdo de extrato. `route` é o **template** da rota
+(`/.../{report_id}`), não o path com IDs reais; `query_keys` são só as
+**chaves** ordenadas, não os valores. Um **teste de guarda de escrita
+obrigatório** (`assert_pii_free`) rejeita payload contendo padrão de
+CPF/valor. Inverte a blocklist frágil de `internal_ops/audit.py`
+(`_FORBIDDEN_KEYS`) para o caso de leitura: só passa o que está declarado.
 
 **D5 — Retenção diferenciada read vs. mutation, declarada e enforçada.**
 Beat Celery diário **dedicado** `purge_expired_audit_logs` apaga **somente**
@@ -113,6 +115,17 @@ após 365d. Mutation-audit sobrevive ao purge (teste explícito).
 - ⚠️ Escrita síncrona de leitura adiciona 1 INSERT por GET quente — mitigável
   por async se ferir SLO (D3).
 - ⚠️ Índices compostos `(workspace_id, created_at)` + `(actor_user_id, created_at)`
-  via migration `CREATE INDEX CONCURRENTLY` (substitui índice single em
-  `created_at`) para consulta de incident-response e purge eficientes.
+  (migration `adr274auditidx`, substituem o índice single em `created_at`)
+  para consulta de incident-response e purge eficientes. Pré-prod (tabela
+  vazia) usa `CREATE INDEX` simples — instantâneo; em escala de produção a
+  recriação deve usar `CREATE INDEX CONCURRENTLY` em janela dedicada
+  (follow-up gated por volume).
 - ❌ Particionamento e colapso de leitura ficam como follow-up gated por volume.
+
+**Implementação (A21):** l7 — `services/access_audit.py` (dependency +
+`AccessAuditDetails` + `assert_pii_free`), `READ_ACCESS_ACTIONS` em
+`services/audit.py`, deps anexadas em reports/transactions/family_members/
+documents/planner_review, test-guard `test_access_audit.py`, migration
+`adr274auditidx`. l8 — `purge_expired_audit_logs` (beat diário em `worker.py`),
+test `test_purge_audit_logs.py`. Export + auto-deleção já existiam
+(`test_lgpd_self_service.py`).

@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 200
-- **Proposto**: 61
+- **Decidido**: 201
+- **Proposto**: 60
 - **Roadmap**: 4
 
 ## Fundação
@@ -191,7 +191,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Pipeline DDD/SOLID + Infra+Domínio (Sprint A6)
 
-### Decidido (35)
+### Decidido (36)
 
 - [[ADR-082]] — PipelineArtifact: artefatos computacionais no banco
 - [[ADR-083]] — ArtifactStore: abstração de I/O para artefatos
@@ -228,13 +228,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-119]] — Contrato `LiveStep` para progresso de etapas do pipeline · phase A6-ux
 - [[ADR-120]] — Readers user-facing consultam `ArtifactStore` (DB-first) com fallback disco · phase A6
 - [[ADR-212]] — Sunset `MATHOMS_USE_DB_ARTIFACTS` + `DiskArtifactStore` + CLI standalone do pipeline · phase A12.sunset-disk-artifact
+- [[ADR-274]] — Auditoria de acesso + política de retenção LGPD · phase A21 (l7 + l8)
 
-### Proposto (4)
+### Proposto (3)
 
 - [[ADR-092]] — Renomear scripts para nomes descritivos de domínio · phase execução na Fase 9 pós-Caminho B dos stages
 - [[ADR-095]] — Segurança de `content_json` (LGPD) · phase execução distribuída em Fases 1-4 do plano
 - [[ADR-096]] — Observabilidade de cutover · phase execução paralela à Fase 2
-- [[ADR-274]] — Auditoria de acesso + política de retenção LGPD · phase A21 (l7 + l8)
 
 ## Internacionalização (F12)
 
