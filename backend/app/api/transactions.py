@@ -29,6 +29,8 @@ from backend.app.schemas.transactions import (
     TransactionOverrideRequest,
     TransactionOverrideResponse,
 )
+from backend.app.services.access_audit import record_access_audit
+from backend.app.services.audit import AuditAction
 
 router = APIRouter(
     prefix="/workspaces/{workspace_id}/transactions",
@@ -58,7 +60,11 @@ def _filters(
     )
 
 
-@router.get("", response_model=TransactionListResponse)
+@router.get(
+    "",
+    response_model=TransactionListResponse,
+    dependencies=[Depends(record_access_audit(AuditAction.transactions_read, "transaction"))],
+)
 async def list_transactions(
     filters: TransactionFilters = Depends(_filters),
     page: int = Query(1, ge=1),
@@ -72,6 +78,7 @@ async def list_transactions(
 @router.get(
     "/export",
     response_class=StreamingResponse,
+    dependencies=[Depends(record_access_audit(AuditAction.transactions_export, "transaction"))],
     responses={200: {"description": "CSV com BOM (UTF-8).", "content": {"text/csv": {}}}},
 )
 async def export_transactions(
