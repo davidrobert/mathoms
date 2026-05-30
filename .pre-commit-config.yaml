@@ -29,9 +29,12 @@ repos:
   # gitleaks — varre stage atual ([[ADR-230]] §D3, Sprint A11 W2-T03).
   # Dupla camada: pre-commit (rápido, local) + CI workflow (full history,
   # defesa contra `git commit --no-verify`). Config em .gitleaks.toml.
+  # rev pinado em v8.24.3 = MESMA versão do binário do CI
+  # (gitleaks-action@v2.3.9 hardcoda gitleaks 8.24.3) → paridade de regras de
+  # detecção local↔CI. Ao bumpar, bumpe os dois no mesmo PR (ver ADR-230 §D3).
   # ----------------------------------------------------------------------
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.21.2
+    rev: v8.24.3
     hooks:
       - id: gitleaks
 
