@@ -3,18 +3,16 @@
 from __future__ import annotations
 
 import json
-import re
 from typing import Any, Mapping
 
 from backend.app.services.parecer_manifest import ManifestData
+from pipeline.llm.prompts._sanitization import contains_injection_pattern
 from pipeline.llm.value_formatter import format_value
 
-# Anti-injection para narrativas E5 (ADR-203 §D9).
-_INJECTION_RE = re.compile(
-    r"</?(system|instructions?|assistant|prompt|im_end|im_start)\b|"
-    r"ignore\s+(previous|all|prior)\s+instruction",
-    re.IGNORECASE,
-)
+# Anti-injection de **saída** (ADR-203 §D9): redação de narrativas E5 destiladas
+# no exec context do parecer. Fonte única de "o que é injeção" reconciliada com
+# Layer 1 (ADR-175): consome ``contains_injection_pattern`` em vez de regex local.
+# Distingue-se da entrada (Layer 1 stripa); aqui redata com marcador.
 _MAX_NARRATIVA_CHARS = 500
 _TRUNCATION_MARKER = "\n…[exec context truncado em max_exec_context_bytes]"
 
@@ -67,7 +65,7 @@ def redact_narrativas_inline(s: Any) -> Any:
     """Sanitiza strings de narrativas (truncate + redact se padrão hostil)."""
     if isinstance(s, str):
         s = s[:_MAX_NARRATIVA_CHARS] + ("…" if len(s) > _MAX_NARRATIVA_CHARS else "")
-        if _INJECTION_RE.search(s):
+        if contains_injection_pattern(s):
             return "[REDACTED_SUSPECT_PATTERN]"
         return s
     if isinstance(s, Mapping):

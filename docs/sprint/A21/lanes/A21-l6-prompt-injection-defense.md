@@ -4,7 +4,7 @@ type: lane
 title: "W3-T05 — defesa de injeção LLM (4 camadas + adversarial fixtures + telemetria)"
 sprint: A21
 plan: PLAN-launch-trust
-status: planned
+status: shipped
 priority: P0
 branch_slug: a21-l6-prompt-injection-defense
 depends_on:
@@ -15,7 +15,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a21
-  - status/planned
+  - status/shipped
   - priority/p0
   - area/llm
   - area/seguranca
@@ -74,6 +74,42 @@ As 4 camadas de [[ADR-175]], **com escopo confirmado pelo co-design de l5**
 - Grep de dados sensíveis em `tests/fixtures/pdf/adversarial/` com zero hits.
 - No merge: flippar checkbox **W3-T05** em [[PLAN-platform-review]]
   `blocked → shipped` (regra anti-drift — não re-implementar em A22).
+
+## Achado de implementação (2026-05-30)
+
+Entregue em `agent/a21-l6-prompt-injection-defense`. As 6 partes:
+
+- **Layer 1** — `pipeline/llm/prompts/_sanitization.py` (função pura, regex
+  compilado = constante ADR-111): `sanitize_user_content` + `wrap_user_doc` +
+  `sanitize_and_wrap` + `contains_injection_pattern` (fonte canônica de
+  detecção). Strip de zero-width/bidi, ANSI, system-tag, prompt-leak, e
+  auto-neutralização do delimitador.
+- **Layer 2** — sandwich PT-BR em `wrap_user_doc` (cláusula antes +
+  `<USER_DOC>`…`</USER_DOC>` + reforço depois).
+- **Choke-point** — `sanitize_and_wrap(user_prompt)` aplicado em
+  `LLMService.call` sobre `user_prompt` (string E bloco multimodal `text`);
+  `system_prompt` intocado. Teste no portão prova herança por todo call-site.
+- **Telemetria** — logger nomeado `mathoms.llm.input_sanitized` emite só o
+  `pattern` (enum fechado), nunca o trecho casado.
+- **Layer 4** — `tests/test_prompt_injection_defense.py` (14 testes): 5 vetores
+  + choke-point + system-prompt-intacto + monetário→`LLMValidationError`.
+  Fixtures são strings in-test (zero-PII, determinístico) — **não** há
+  `tests/fixtures/pdf/adversarial/` (vetores não precisam de PDF binário no
+  gate determinístico; LLM-real nightly é follow-up).
+- **Reconciliação ADR-203** — `parecer_distiller` consome
+  `contains_injection_pattern` (regex local `_INJECTION_RE` removido).
+
+**Layer 3 — finding do audit (não-flip, follow-up).** `extra="forbid"` cobre
+apenas **2/10** output_schemas (`CRLVPayload`, `InformeAluguelExtract`). 3 usam
+`extra="allow"` (`ApolicePayload`, `IRPFFullOutput`, `InformeRendimentosBase`) —
+**superfície residual**: campo forjado propaga ao model (domínio só lê campos
+conhecidos, mas `model_dump()` carregaria o extra). 5 usam default `ignore`
+(extra silenciosamente dropado — seguro p/ injeção, mas não sinaliza). Flippar
+`allow→forbid` é mudança de comportamento de extração (LLM legítimo pode
+retornar campo extra tolerado) — exige paridade de extração + sign-off
+`prompt-engineer`/`data-engineer`, fora do escopo de A21 (pure-engineering,
+sem risco de regressão de domínio). **Follow-up:** lane dedicada para flippar
+os 3 `allow`→`forbid` com goldens de extração, ou justificar cada `allow`.
 
 ## Dependências
 
