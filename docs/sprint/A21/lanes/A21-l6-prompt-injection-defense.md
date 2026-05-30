@@ -36,21 +36,42 @@ sanitização: `pipeline/llm/prompts/_sanitization.py` **não existe**.
 
 ## Escopo
 
-As 4 camadas de [[ADR-175]]:
+As 4 camadas de [[ADR-175]], **com escopo confirmado pelo co-design de l5**
+(`senior-cto` + `prompt-engineer`):
 
-1. **Sanitization** — `pipeline/llm/prompts/_sanitization.py` (strip de
-   zero-width, neutralização de system-tags forjadas, markdown malicioso).
-2. **System clause** — delimitação `<USER_DOC>...</USER_DOC>` no system prompt
-   (PT-BR, comportamento consistente Claude/GPT).
-3. **Pydantic strict** — já existe via [[ADR-026]]; confirmar cobertura.
+1. **Sanitization** — `pipeline/llm/prompts/_sanitization.py` (função pura,
+   regex compilado): strip de zero-width/ANSI, padrões prompt-leak,
+   **e auto-neutralização do próprio delimitador** (`<USER_DOC>`/`</USER_DOC>`
+   no input do usuário). **Choke-point único:** aplicada dentro de
+   `LLMService.call` (`pipeline/llm/litellm_client.py`) sobre `user_prompt`,
+   **nunca** `system_prompt`. Chamada LLM fora do portão é proibida.
+2. **System clause (sandwich)** — cláusula `<USER_DOC>...</USER_DOC>` antes do
+   bloco + **reforço curto após** `</USER_DOC>` (PT-BR; mitiga recency bias).
+   Eval cross-provider Claude/GPT-4 é gate de **produção** (nightly), não de
+   merge.
+3. **Pydantic strict** — já existe via [[ADR-026]]; **auditar** cobertura de
+   `additionalProperties=false` em todos os output_schemas + inventariar
+   campos string livres como superfície residual (não só "confirmar").
 4. **Adversarial fixtures** — `tests/test_prompt_injection_defense.py` com ≥1
-   fixture por vetor (zero-width, system-tag, markdown injection).
-5. **Telemetria** — `mathoms.llm.input_sanitized` (contagem de neutralizações).
+   fixture por vetor para **5 vetores**: `zero_width`, `system_tag`,
+   `markdown_injection`, `delimiter_breakout`, `monetary_field_payload`.
+   Para `monetary_field_payload` o assert é **destino `needs_review`** ([[ADR-027]]),
+   não neutralização. Base64/idioma-misto: out-of-scope (follow-up nominal).
+5. **Telemetria** — `mathoms.llm.input_sanitized{pattern}` emitida de dentro de
+   `LLMService.call`; `pattern` é **enum fechado** (`zero_width`, `ansi_escape`,
+   `system_tag`, `prompt_leak`, `delimiter_breakout`) — nunca o trecho casado
+   (dados sensíveis).
+6. **Reconciliar** `parecer_distiller._INJECTION_RE` ([[ADR-203]]): consome o
+   sanitizer canônico da Layer 1 ou declara-se exceção justificada.
 
 ## Critério de aceite
 
-- `test_prompt_injection_defense.py` verde (≥1 fixture por vetor) — hard-block
-  **mockado/determinístico** em PR (A21-KR5).
+- `test_prompt_injection_defense.py` verde (≥1 fixture por vetor, 5 vetores) —
+  hard-block **mockado/determinístico** em PR (A21-KR5); assert de `needs_review`
+  presente no vetor monetário.
+- Teste prova que **todo** call-site de `LLMService.call` passa pela sanitização
+  (teste no choke-point, não por stage).
+- Grep de dados sensíveis em `tests/fixtures/pdf/adversarial/` com zero hits.
 - No merge: flippar checkbox **W3-T05** em [[PLAN-platform-review]]
   `blocked → shipped` (regra anti-drift — não re-implementar em A22).
 

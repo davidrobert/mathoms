@@ -5,18 +5,13 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-4 open · 1 in_progress.
+3 open.
 
-## Open (4)
+## Open (3)
 
-- [[A21.l5]] — Decidir ADR-175 (defesa de injeção LLM em camadas) Proposto→Decidido · priority P0 · branch `a21-l5-adr175-decide`
 - [[A21.l7]] — LGPD Art.37 — audit log de acesso a dado sensível · priority P0 · branch `a21-l7-lgpd-audit-log`
 - [[A21.l8]] — LGPD Art.18 — export/deleção (data-subject rights) · priority P0 · branch `a21-l8-lgpd-data-subject-rights`
 - [[A21.l9]] — Backup/restore mechanism + drill CI-local (subset W4-T01) · priority P1 · branch `a21-l9-backup-restore-drill-ci`
-
-## In progress (1)
-
-- [[A21.l1]] — Suíte de invariantes de consolidação INV-1..9 (E1.5c) · priority P0 · branch `a21-l1-consolidation-invariants`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

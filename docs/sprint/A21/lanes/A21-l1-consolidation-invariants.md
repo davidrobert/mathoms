@@ -4,7 +4,7 @@ type: lane
 title: "Suíte de invariantes de consolidação INV-1..9 (E1.5c)"
 sprint: A21
 plan: PLAN-launch-trust
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: a21-l1-consolidation-invariants
 depends_on: []
@@ -12,7 +12,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a21
-  - status/open
+  - status/shipped
   - priority/p0
   - area/pipeline
 ---

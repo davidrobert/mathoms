@@ -4,7 +4,7 @@ type: lane
 title: "Decidir ADR-175 (defesa de injeção LLM em camadas) Proposto→Decidido"
 sprint: A21
 plan: PLAN-launch-trust
-status: open
+status: shipped
 priority: P0
 branch_slug: a21-l5-adr175-decide
 depends_on: []
@@ -14,7 +14,7 @@ adrs:
 tags:
   - type/lane
   - sprint/a21
-  - status/open
+  - status/shipped
   - priority/p0
   - area/llm
   - area/seguranca

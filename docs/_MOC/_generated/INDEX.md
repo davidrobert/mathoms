@@ -172,7 +172,7 @@
 | ADR-172 | adr | Decidido |  | Stuck-runs detector via heartbeat + Celery beat | `adr/172-stuck-runs-detector-via-heartbeat-celery-beat.md` |
 | ADR-173 | adr | Proposto |  | LLM budget hard-stop + LLMCallLog populada universal | `adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md` |
 | ADR-174 | adr | Proposto |  | Off-site backup criptografado em Cloudflare R2 + restore drill | `adr/174-off-site-backup-criptografado-em-cloudflare-r2.md` |
-| ADR-175 | adr | Proposto |  | Prompt injection defense em camadas (sanitize + system clause + Pydantic strict) | `adr/175-prompt-injection-defense-em-camadas-sanitize.md` |
+| ADR-175 | adr | Decidido |  | Prompt injection defense em camadas (sanitize + system clause + Pydantic strict) | `adr/175-prompt-injection-defense-em-camadas-sanitize.md` |
 | ADR-176 | adr | Proposto |  | Chave estável `cenarios_conjuge` no bloco de narrativas E5.N | `adr/176-chave-estavel-cenarios-conjuge-no-bloco-de.md` |
 | ADR-177 | adr | Decidido |  | Thresholds e referências metodológicas como código (rules-as-code consolidation `goals.json`) | `adr/177-thresholds-e-referencias-metodologicas-como.md` |
 | ADR-178 | adr | Decidido |  | `Risk` aggregate workspace-scoped | `adr/178-risk-aggregate-workspace-scoped.md` |
@@ -541,11 +541,11 @@
 | A20.l7 | lane | shipped | A20 | Docker dev↔prod parity — L7 Makefile targets + SETUP.md revisado | `sprint/A20/lanes/A20-l7-makefile.md` |
 | A20.l8 | lane | shipped | A20 | Docker dev↔prod parity — L8 Postgres driver (psycopg2 → psycopg v3 swap) | `sprint/A20/lanes/A20-l8-postgres-driver.md` |
 | A20.l9 | lane | blocked | A20 | Docker dev↔prod parity — L9 Smoke E2E em compose (login + relatório + PDF) | `sprint/A20/lanes/A20-l9-smoke-e2e.md` |
-| A21.l1 | lane | in_progress | A21 | Suíte de invariantes de consolidação INV-1..9 (E1.5c) | `sprint/A21/lanes/A21-l1-consolidation-invariants.md` |
+| A21.l1 | lane | shipped | A21 | Suíte de invariantes de consolidação INV-1..9 (E1.5c) | `sprint/A21/lanes/A21-l1-consolidation-invariants.md` |
 | A21.l2 | lane | planned | A21 | Golden multi-ano anotado + métrica fn_rate/fp_rate | `sprint/A21/lanes/A21-l2-dedup-golden-metrics.md` |
 | A21.l3 | lane | planned | A21 | Contrato EntityDedup (Protocol + runner compartilhado) | `sprint/A21/lanes/A21-l3-entity-dedup-contract.md` |
 | A21.l4 | lane | planned | A21 | Dedup previdência PGBL/VGBL (ativo × dedução fiscal, cross-axis) | `sprint/A21/lanes/A21-l4-previdencia-dedup.md` |
-| A21.l5 | lane | open | A21 | Decidir ADR-175 (defesa de injeção LLM em camadas) Proposto→Decidido | `sprint/A21/lanes/A21-l5-adr175-decide.md` |
+| A21.l5 | lane | shipped | A21 | Decidir ADR-175 (defesa de injeção LLM em camadas) Proposto→Decidido | `sprint/A21/lanes/A21-l5-adr175-decide.md` |
 | A21.l6 | lane | planned | A21 | W3-T05 — defesa de injeção LLM (4 camadas + adversarial fixtures + telemetria) | `sprint/A21/lanes/A21-l6-prompt-injection-defense.md` |
 | A21.l7 | lane | open | A21 | LGPD Art.37 — audit log de acesso a dado sensível | `sprint/A21/lanes/A21-l7-lgpd-audit-log.md` |
 | A21.l8 | lane | open | A21 | LGPD Art.18 — export/deleção (data-subject rights) | `sprint/A21/lanes/A21-l8-lgpd-data-subject-rights.md` |
