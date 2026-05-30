@@ -272,6 +272,7 @@
 | ADR-274 | adr | Proposto |  | Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício | `adr/274-patrimonio-ano-base-vs-exercicio.md` |
 | ADR-275 | adr | Decidido |  | Auditoria de acesso + política de retenção LGPD | `adr/275-auditoria-de-acesso-e-retencao-lgpd.md` |
 | ADR-276 | adr | Proposto |  | EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais no E1.5c | `adr/276-entity-dedup-policy-contract.md` |
+| ADR-277 | adr | Proposto |  | Previdência F1-O4: reconciliação da recomendação PGBL (não dedup de ativo) | `adr/277-previdencia-reconciliacao-recomendacao-pgbl.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

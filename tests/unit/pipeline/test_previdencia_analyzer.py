@@ -9,7 +9,10 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
+from decimal import Decimal  # noqa: E402
+
 from pipeline.domain.services.previdencia_analyzer import (  # noqa: E402
+    CapacidadePgblIRPF,
     IRPFBracket,
     PrevidenciaAnalysis,
     PrevidenciaAnalyzer,
@@ -219,3 +222,77 @@ class TestLegacyDict:
     def test_result_is_analysis_type(self):
         r = PrevidenciaAnalyzer().analyze(_fluxo(pj=0))
         assert isinstance(r, PrevidenciaAnalysis)
+
+
+# =============================================================================
+# ADR-277 — reconciliação da recomendação PGBL via capacidade IRPF
+# =============================================================================
+
+
+def _capacidade(restante: str, renda: str = "38400", ano: int = 2024) -> CapacidadePgblIRPF:
+    return CapacidadePgblIRPF(
+        restante_anual=Decimal(restante),
+        renda_tributavel_anual=Decimal(renda),
+        ano_base=ano,
+        fonte="irpf_pgbl_capacidade",
+    )
+
+
+class TestReconciliacaoIRPF:
+    def test_inv_prev_3_recomenda_capacidade_restante_nao_teto_bruto(self):
+        """INV-PREV-3: com já_aportado > 0, recomenda a capacidade RESTANTE,
+        nunca o teto bruto que o proxy de receita PJ devolveria."""
+        proxy = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000, num_months=12))
+        recon = PrevidenciaAnalyzer().analyze(
+            _fluxo(pj=120_000, num_months=12), capacidade_irpf=_capacidade("608")
+        )
+
+        assert proxy.limite_pgbl_anual == pytest.approx(4_608.0)  # teto bruto
+        assert recon.limite_pgbl_anual == pytest.approx(608.0)  # restante real
+        assert recon.aporte_mensal * 12 <= recon.limite_pgbl_anual + 1e-6
+        assert recon.fonte_recomendacao == "irpf_capacidade"
+
+    def test_inv_prev_3_no_teto_recomenda_zero(self):
+        recon = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000), capacidade_irpf=_capacidade("0"))
+
+        assert recon.status == "Calculado"
+        assert recon.limite_pgbl_anual == 0.0
+        assert recon.aporte_mensal == 0.0
+        assert recon.fonte_recomendacao == "irpf_capacidade"
+
+    def test_economia_usa_aliquota_marginal_da_renda_tributavel(self):
+        cfg = PrevidenciaConfig.from_fiscal(
+            {"irpf_tabela_progressiva": {"faixas": [{"limite_anual": None, "aliquota_pct": 27.5}]}}
+        )
+        recon = PrevidenciaAnalyzer(cfg).analyze(_fluxo(pj=0), capacidade_irpf=_capacidade("1000"))
+
+        assert recon.economia_ir_anual == pytest.approx(275.0)
+
+    def test_sem_capacidade_mantem_proxy(self):
+        """Sem IRPF do titular → fallback ao proxy de receita PJ, sem mudança."""
+        r = PrevidenciaAnalyzer().analyze(_fluxo(pj=120_000), capacidade_irpf=None)
+
+        assert r.fonte_recomendacao == "proxy_receita_pj"
+        assert r.limite_pgbl_anual == pytest.approx(4_608.0)
+
+
+class TestINVPREV2:
+    def test_recomendacao_nunca_vira_linha_de_ativo(self):
+        """INV-PREV-2: PrevidenciaAnalysis é recomendação de aporte (fluxo
+        dedutível), não tem campo de saldo/ativo patrimonial."""
+        import dataclasses
+
+        names = {f.name for f in dataclasses.fields(PrevidenciaAnalysis)}
+        assert not (names & {"saldo", "saldo_31_12", "ativo", "valor", "valor_31_12"})
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="ADR-277 INV-PREV-1 (dedup de ativo previdência informe+G04): lane futura, "
+    "sem caminho de input vivo — informe de previdência é órfão hoje.",
+)
+class TestINVPREV1Deferred:
+    def test_mesmo_plano_informe_e_g04_vira_um_unico_ativo(self):
+        from pipeline.domain.services import previdencia_dedup  # noqa: F401
+
+        raise AssertionError("contrato de dedup de ativo de previdência ainda não existe")
