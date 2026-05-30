@@ -54,6 +54,18 @@ paths = [
     '''^EXEMPLO_DE_RELATORIO\.html$''',
 ]
 
+[[allowlists]]
+description = "Artifact-key fixtures de IRPF em testes (irpfdeclaracao_AAAA; não é secret — generic-api-key false-positive)"
+condition = "OR"
+regexTarget = "line"
+regexes = [
+    '''irpfdeclaracao_[0-9]{4}''',
+]
+paths = [
+    '''^tests/''',
+    '''^backend/tests/''',
+]
+
 # Baseline de commits SHAs históricos com matches conhecidos.
 # Popular via: `gitleaks detect --report-path .gitleaks-baseline.json`
 # Entries adicionadas após análise de matches legítimos.
