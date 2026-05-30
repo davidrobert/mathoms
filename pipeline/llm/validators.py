@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Literal
 
+from pipeline.domain.review_reason import ReviewReason, ReviewReasonCode
 from pipeline.llm.schemas.e1_members import MembersExtractOutput
 from pipeline.llm.schemas.e2_llm_extract import LLMExtractOutput
 from pipeline.llm.schemas.e15_baseline import BaselinePatrimonialOutput
@@ -41,6 +42,77 @@ PERIOD_RE = re.compile(r"^\d{6}$")
 Severity = Literal["error", "warning"]
 
 
+# ADR-272 Fase 2: projeção do vocabulário ADR-165 (granular) → ReviewReasonCode
+# (consultável). Lossy de propósito. offending_keys = chaves de context comprovadamente
+# NÃO-monetárias a expor; None = valor monetário (omitido, pois redact_pii não mascara
+# float cru "1234.56" sem confundir com confidence "0.62"/ano "2024"). code ausente aqui
+# não vira ReviewReason (projetor descarta com WARNING). Fase 2 cobre só e15.*.
+_REVIEW_REASON_MAP: dict[str, tuple[ReviewReasonCode, str, str, tuple[str, ...] | None]] = {
+    "e15.items.empty": (
+        ReviewReasonCode.extract_missing_required_field,
+        "Baseline patrimonial sem itens",
+        "baseline com >=1 item patrimonial",
+        (),
+    ),
+    "e15.item.empty_code": (
+        ReviewReasonCode.extract_missing_required_field,
+        "Item patrimonial sem code",
+        "item.code nao-vazio",
+        ("index",),
+    ),
+    "e15.item.empty_description": (
+        ReviewReasonCode.extract_missing_required_field,
+        "Item patrimonial sem descricao",
+        "item.description nao-vazio",
+        ("index",),
+    ),
+    "e15.item.missing_member_key": (
+        ReviewReasonCode.extract_missing_required_field,
+        "Item patrimonial sem member_key",
+        "item.member_key presente",
+        ("index",),
+    ),
+    "e15.item.non_standard_category": (
+        ReviewReasonCode.domain_validation_conflict,
+        "Categoria de item nao-padrao",
+        "category em VALID_CATEGORIES",
+        ("index", "category"),
+    ),
+    "e15.item.invalid_year": (
+        ReviewReasonCode.domain_validation_conflict,
+        "Ano de item fora do intervalo",
+        "2000 <= year <= 2100",
+        ("index", "year"),
+    ),
+    "e15.totals.assets_mismatch": (
+        ReviewReasonCode.domain_validation_conflict,
+        "Soma de ativos diverge do total declarado",
+        "soma(itens>0) == total_assets_brl",
+        None,
+    ),
+    "e15.totals.net_worth_mismatch": (
+        ReviewReasonCode.domain_validation_conflict,
+        "Patrimonio liquido diverge de ativos menos passivos",
+        "net_worth_brl == total_assets_brl - total_liabilities_brl",
+        None,
+    ),
+    "e15.contribuinte.invalid_reference_year": (
+        ReviewReasonCode.domain_validation_conflict,
+        "Ano de referencia invalido",
+        "reference_year >= 2000",
+        ("reference_year",),
+    ),
+}
+
+
+def _offending_value(context: dict[str, Any], keys: tuple[str, ...] | None) -> str:
+    """offending_value seguro: só campos não-monetários; monetário (keys=None) é omitido."""
+    if keys is None:
+        return "(valores monetarios omitidos)"
+    pairs = [f"{k}={context[k]}" for k in keys if context.get(k) is not None]
+    return "; ".join(pairs) or "(sem detalhe)"
+
+
 @dataclass(frozen=True)
 class ValidationIssue:
     """Issue de validação estruturada (ADR-165) — code+path+context+legacy_message."""
@@ -59,6 +131,24 @@ class ValidationIssue:
             "context": self.context,
             "legacy_message": self.legacy_message,
         }
+
+    def to_review_reason(
+        self, *, stage: str, artifact_key: str, document_id: str | None
+    ) -> ReviewReason | None:
+        """Projeta (ADR-272) para ReviewReason; None se o code não está mapeado."""
+        mapped = _REVIEW_REASON_MAP.get(self.code)
+        if mapped is None:
+            return None
+        code, message, expected, offending_keys = mapped
+        return ReviewReason(
+            code=code,
+            stage=stage,
+            artifact_key=artifact_key,
+            document_id=document_id,
+            offending_value=_offending_value(self.context, offending_keys),
+            expected=expected,
+            message=message,
+        )
 
 
 class ValidationResult:

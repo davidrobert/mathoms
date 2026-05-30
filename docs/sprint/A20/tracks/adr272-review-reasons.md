@@ -38,7 +38,7 @@ Promover `needs_review` (hoje `bool` puro) para **razão estruturada consultáve
 
 | Garantia | Mecanismo de prova |
 |---|---|
-| **Corretude** | Teste de paridade: `StageReview.validation_issues` populado **da mesma** `ReviewReason` que vai para `review_reasons` — sem divergência. `EXPLAIN` da query-mãe usa o índice composto. |
+| **Corretude** | Teste de paridade: `review_reasons` é projeção pobre das **mesmas** `ValidationIssue` do pass (`{code} ⊆ codes das issues`) — nunca há reason sem issue de origem. `EXPLAIN` da query-mãe usa o índice composto. |
 | **Completude** | Gate `dev/check_needs_review_has_reason.py`: todo ponto que seta `needs_review=true` na superfície pipeline/extração anexa uma `ReviewReason`. Superfície enumerada e fechada (escopo exclui document-upload). |
 | **Precisão** | `ReviewReasonCode` namespaced + `offending_value`/`expected` estruturados; teste afirma que dois produtores distintos (`ValidationIssue` + ≥1 warning de domínio) geram `ReviewReason` válida sem o adapter conhecer o tipo concreto. |
 | **Sem regressão** | Fase 1 não toca call-site (só infra). Fase 2 adiciona projeção sem remover `validation_issues`/`validation_errors`. Suíte `backend/tests` + `tests` verde após cada fase; migração testada com `pytest.mark.migration` (upgrade+downgrade+PRAGMA). |
@@ -62,10 +62,10 @@ Flippa [[ADR-272]] para `Decidido (Sprint A20)` no merge.
 
 - `ValidationIssue.to_review_reason()` (mapeia `severity/path/context → code/offending_value/expected`, passando `context` pela redação).
 - ≥1 warning de domínio implementa `to_review_reason()` (ex.: `DebtVsIrpfDeclaracaoConflict`).
-- [`backend/app/tasks/pipeline_task.py`](../../../../backend/app/tasks/pipeline_task.py) `_record_stage_needs_review()`: consome `list[ToReviewReason]`, materializa rows em `review_reasons` **e** popula `StageReview.validation_issues` da mesma fonte (cap + `occurrence_count`).
-- Teste de paridade (validation_issues ↔ review_reasons) + teste do cap (run com 800 dups → ≤50 rows).
+- **Projeção no stage, persistência burra no adapter.** `ValidationIssue`/warnings **não atravessam** o boundary Celery (`result.detail` é JSON; só dicts sobrevivem). Portanto o stage ([`pipeline/stages/extract_baseline.py`](../../../../pipeline/stages/extract_baseline.py)) projeta via `project_review_reasons()` e emite `validation["review_reasons"]` como dicts; [`pipeline_task.py`](../../../../backend/app/tasks/pipeline_task.py) `_record_stage_needs_review()` consome **`validation["review_reasons"]` dicts** e materializa rows (`_materialize_review_reasons`, cap 50 + `occurrence_count`). `StageReview.validation_issues` continua vindo de `validation["issues"]` (`ValidationResult`) — **não** é derivado de `review_reasons`.
+- Teste de paridade (`{review_reason codes} ⊆ {issue-derived coarse codes}`) + teste do cap + teste da query-mãe com `EXPLAIN`.
 
-**DoD:** PR em `main` CI verde; query-mãe demonstrada em teste com `EXPLAIN`.
+**DoD:** PR em `main` CI verde; query-mãe demonstrada em teste com `EXPLAIN`; adapter testado contra DB real (SQLite via `TestSyncSession`), nunca mock.
 
 ### Fase 3 — completude (back-fill da superfície + gate)
 

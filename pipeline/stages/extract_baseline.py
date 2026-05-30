@@ -193,6 +193,7 @@ def run(ctx: WorkspaceContext) -> dict:
     service = LLMService(config)
     store = ctx.get_artifact_store()
 
+    from pipeline.domain.review_reason_projection import project_review_reasons
     from pipeline.llm.validators import validate_e15_output
 
     per_file_baselines: list[dict] = []
@@ -202,6 +203,7 @@ def run(ctx: WorkspaceContext) -> dict:
     errors: list[str] = []
     warnings: list[str] = []
     issues: list[dict] = []  # ADR-165: ValidationIssue dicts agregadas cross-doc
+    review_reasons: list[dict] = []  # ADR-272 Fase 2: projeção consultável por-doc
     total = len(docs_with_text)
 
     estimated = ctx.stage_duration_estimates.get("E1.5")
@@ -252,6 +254,13 @@ def run(ctx: WorkspaceContext) -> dict:
             warnings.extend(validation.warnings)
         if validation.issues:
             issues.extend(i.to_dict() for i in validation.issues)
+            reasons = project_review_reasons(
+                list(validation.issues),
+                stage="E1.5",
+                artifact_key=_artifact_key_for(doc),
+                document_id=None,
+            )
+            review_reasons.extend(rr.to_dict() for rr in reasons)
 
         emit_item_progress(
             ctx.pipeline_run_id,
@@ -319,6 +328,7 @@ def run(ctx: WorkspaceContext) -> dict:
             "errors": errors,
             "warnings": warnings,
             "issues": issues,
+            "review_reasons": review_reasons,
         },
         "files_processed": len(per_file_baselines),
     }
