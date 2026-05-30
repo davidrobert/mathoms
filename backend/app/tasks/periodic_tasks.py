@@ -22,8 +22,9 @@ from backend.app.models import (
     User,
     Workspace,
 )
+from backend.app.models.audit_log import AuditLog
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
-from backend.app.services.audit import AuditAction, audit_log_sync
+from backend.app.services.audit import READ_ACCESS_ACTIONS, AuditAction, audit_log_sync
 from backend.app.services.events import publish_run_failed
 from backend.app.services.pipeline_failure_reasons import HEARTBEAT_TIMEOUT
 from backend.app.services.task_notification_service import (
@@ -34,6 +35,14 @@ from backend.app.worker import celery_app
 logger = logging.getLogger(__name__)
 
 DELETION_GRACE_DAYS = 30
+
+#: ADR-275 D5 — retenção de audit de **leitura** (Art.37). Audit de mutação
+#: (Art.16) NÃO é purgado (base legal + prazo distintos), portanto fica fora
+#: do filtro ``action IN READ_ACCESS_ACTIONS``.
+AUDIT_READ_RETENTION_DAYS = 365
+
+#: Tamanho do lote de delete — evita lock longo na tabela append-only quente.
+_AUDIT_PURGE_BATCH_SIZE = 10_000
 
 #: ADR-172 — threshold após o qual um run ``running`` sem heartbeat é
 #: considerado travado. Worst-case detection: ``beat_freq + threshold``.
@@ -308,4 +317,54 @@ def detect_stuck_runs(self) -> dict[str, int]:
         _publish_failed_safe(run_id)
     result = {"detected": len(detected)}
     logger.info("detect_stuck_runs: %s", result)
+    return result
+
+
+def _purge_one_batch(db: Session, cutoff: datetime) -> int:
+    """Apaga um lote de audit de leitura expirado; retorna rows removidas."""
+    ids = (
+        db.execute(
+            select(AuditLog.id)
+            .where(
+                AuditLog.action.in_(READ_ACCESS_ACTIONS),
+                AuditLog.created_at < cutoff,
+            )
+            .limit(_AUDIT_PURGE_BATCH_SIZE)
+        )
+        .scalars()
+        .all()
+    )
+    if not ids:
+        return 0
+    db.execute(AuditLog.__table__.delete().where(AuditLog.id.in_(ids)))
+    return len(ids)
+
+
+def _drain_expired_read_audit(db: Session, cutoff: datetime) -> int:
+    """Drena todos os lotes de audit de leitura < ``cutoff``; commita por lote; retorna total."""
+    deleted = 0
+    while True:
+        batch = _purge_one_batch(db, cutoff)
+        deleted += batch
+        db.commit()
+        if batch < _AUDIT_PURGE_BATCH_SIZE:
+            return deleted
+
+
+@celery_app.task(name="fin.lgpd.purge_expired_audit_logs", bind=True, max_retries=1)
+def purge_expired_audit_logs(self) -> dict[str, int | str]:
+    """ADR-275 D5 — purga audit de **leitura** (Art.37) com >365d, em lotes; grava meta-linha ``audit.purge`` (fora de ``READ_ACCESS_ACTIONS``) com contagem + cutoff, sem PII; nunca toca audit de mutação."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=AUDIT_READ_RETENTION_DAYS)
+    with SyncSessionLocal() as db:
+        deleted = _drain_expired_read_audit(db, cutoff)
+        if deleted:
+            audit_log_sync(
+                db,
+                action=AuditAction.audit_purge,
+                resource_type="audit_log",
+                details={"deleted_count": deleted, "cutoff_date": cutoff.isoformat()},
+            )
+            db.commit()
+    result: dict[str, int | str] = {"deleted": deleted, "cutoff": cutoff.isoformat()}
+    logger.info("purge_expired_audit_logs: %s", result)
     return result

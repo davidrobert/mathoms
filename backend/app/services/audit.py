@@ -72,6 +72,34 @@ class AuditAction(str, enum.Enum):
     lgpd_deletion_canceled = "lgpd.deletion_canceled"
     lgpd_deletion_completed = "lgpd.deletion_completed"
 
+    # LGPD Art. 37 — auditoria de acesso a leitura de dado sensível (ADR-275)
+    report_read = "report.read"
+    report_download = "report.download"
+    transactions_read = "transactions.read"
+    transactions_export = "transactions.export"
+    family_member_read = "family_member.read"
+    document_read = "document.read"
+    document_download = "document.download"
+
+    # Meta — purge de retenção de audit de leitura (ADR-275 D5; retido, não purgado)
+    audit_purge = "audit.purge"
+
+
+# Ações de **leitura** (Art.37) — retenção 365d, purgadas por
+# ``purge_expired_audit_logs`` (ADR-275 D5). Audit de mutação NÃO entra aqui:
+# base legal + prazo distintos (Art.16), sobrevive ao purge.
+READ_ACCESS_ACTIONS: frozenset[str] = frozenset(
+    {
+        AuditAction.report_read.value,
+        AuditAction.report_download.value,
+        AuditAction.transactions_read.value,
+        AuditAction.transactions_export.value,
+        AuditAction.family_member_read.value,
+        AuditAction.document_read.value,
+        AuditAction.document_download.value,
+    }
+)
+
 
 def client_meta(request: Optional[Request] = None) -> tuple[Optional[str], Optional[str]]:
     """Extrai (ip, user_agent) de um Request FastAPI.

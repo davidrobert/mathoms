@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-265 ADRs (ADR-001 a ADR-274) em [`docs/adr/`](../../adr/).
+266 ADRs (ADR-001 a ADR-275) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 200
+- **Decidido**: 201
 - **Proposto**: 61
 - **Roadmap**: 4
 
@@ -191,7 +191,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Pipeline DDD/SOLID + Infra+Domínio (Sprint A6)
 
-### Decidido (35)
+### Decidido (36)
 
 - [[ADR-082]] — PipelineArtifact: artefatos computacionais no banco
 - [[ADR-083]] — ArtifactStore: abstração de I/O para artefatos
@@ -228,6 +228,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-119]] — Contrato `LiveStep` para progresso de etapas do pipeline · phase A6-ux
 - [[ADR-120]] — Readers user-facing consultam `ArtifactStore` (DB-first) com fallback disco · phase A6
 - [[ADR-212]] — Sunset `MATHOMS_USE_DB_ARTIFACTS` + `DiskArtifactStore` + CLI standalone do pipeline · phase A12.sunset-disk-artifact
+- [[ADR-275]] — Auditoria de acesso + política de retenção LGPD · phase A21 (l7 + l8)
 
 ### Proposto (3)
 

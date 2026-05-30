@@ -47,6 +47,7 @@ from backend.app.schemas.dto.document import (
     DocumentUploadResponse,
     document_to_response,
 )
+from backend.app.services.access_audit import record_access_audit
 from backend.app.services.audit import AuditAction, client_meta
 from backend.app.services.document_canonical_rename import (
     maybe_rename_after_manual_override,
@@ -365,6 +366,13 @@ async def retry_unlock(
 @router.get(
     "/{document_id}/file",
     response_class=FileResponse,
+    dependencies=[
+        Depends(
+            record_access_audit(
+                AuditAction.document_download, "document", resource_id_param="document_id"
+            )
+        )
+    ],
     responses={
         200: {
             "description": (
@@ -408,7 +416,17 @@ async def get_document_file(
     )
 
 
-@router.get("/{document_id}/extract-json", response_model=DocumentExtractJsonResponse)
+@router.get(
+    "/{document_id}/extract-json",
+    response_model=DocumentExtractJsonResponse,
+    dependencies=[
+        Depends(
+            record_access_audit(
+                AuditAction.document_read, "document", resource_id_param="document_id"
+            )
+        )
+    ],
+)
 async def get_document_extract_json(
     document_id: str,
     workspace: Workspace = Depends(get_current_workspace),

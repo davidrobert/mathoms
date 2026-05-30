@@ -22,7 +22,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -30,6 +30,14 @@ from backend.app.core.database import Base
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
+
+    # ADR-275 (l7): leitura quente é workspace- e actor-scoped, ordenada por
+    # tempo. Compostos cobrem `WHERE <col>=? ORDER BY created_at DESC`; o
+    # single-col `created_at` foi removido (redundante — purge filtra por action).
+    __table_args__ = (
+        Index("ix_audit_logs_workspace_created", "workspace_id", "created_at"),
+        Index("ix_audit_logs_actor_created", "actor_user_id", "created_at"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     workspace_id: Mapped[str | None] = mapped_column(
@@ -54,7 +62,6 @@ class AuditLog(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
-        index=True,
     )
 
     workspace = relationship("Workspace")

@@ -41,6 +41,8 @@ from backend.app.schemas.report import (
     ReportResponse,
     ReportTasksResponse,
 )
+from backend.app.services.access_audit import record_access_audit
+from backend.app.services.audit import AuditAction
 from backend.app.services.config_defaults import ConfigDefaultsLoader
 from backend.app.services.transfer_detector_resolver import (
     resolve_internal_transfer_detector,
@@ -54,7 +56,11 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=ReportListResponse)
+@router.get(
+    "",
+    response_model=ReportListResponse,
+    dependencies=[Depends(record_access_audit(AuditAction.report_read, "report"))],
+)
 async def list_reports(
     workspace: Workspace = Depends(get_current_workspace),
     db: AsyncSession = Depends(get_db),
@@ -68,7 +74,11 @@ _ANCHOR_DESC = (
 )
 
 
-@router.get("/consumo-pontuais", response_model=ConsumoPontuaisResponse)
+@router.get(
+    "/consumo-pontuais",
+    response_model=ConsumoPontuaisResponse,
+    dependencies=[Depends(record_access_audit(AuditAction.report_read, "report"))],
+)
 async def list_consumo_pontuais(
     period: str = Query("3m", pattern=r"^(3m|6m|12m|ytd)$"),
     anchor_date: date | None = Query(None, description=_ANCHOR_DESC),
@@ -84,7 +94,15 @@ async def list_consumo_pontuais(
     )
 
 
-@router.get("/{report_id}", response_model=ReportResponse)
+@router.get(
+    "/{report_id}",
+    response_model=ReportResponse,
+    dependencies=[
+        Depends(
+            record_access_audit(AuditAction.report_read, "report", resource_id_param="report_id")
+        )
+    ],
+)
 async def get_report(
     report_id: str,
     workspace: Workspace = Depends(get_current_workspace),
@@ -96,6 +114,11 @@ async def get_report(
 @router.get(
     "/{report_id}/data",
     response_class=JSONResponse,
+    dependencies=[
+        Depends(
+            record_access_audit(AuditAction.report_read, "report", resource_id_param="report_id")
+        )
+    ],
     responses={
         200: {
             "description": (
@@ -119,6 +142,13 @@ async def get_report_data(
 @router.get(
     "/{report_id}/download.pdf",
     response_class=Response,
+    dependencies=[
+        Depends(
+            record_access_audit(
+                AuditAction.report_download, "report", resource_id_param="report_id"
+            )
+        )
+    ],
     responses={
         200: {
             "description": "PDF binary (application/pdf).",

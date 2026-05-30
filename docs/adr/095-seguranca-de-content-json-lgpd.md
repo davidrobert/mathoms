@@ -5,7 +5,8 @@ title: "Segurança de `content_json` (LGPD)"
 status: Proposto
 phase: "execução distribuída em Fases 1-4 do plano"
 date: "2026-04-19"
-relates_to: []
+relates_to:
+  - "[[ADR-275]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 095"]
@@ -42,15 +43,18 @@ agregações SQL e torna relatórios O(n) em memória. Risco aceitável: valores
 sem nome/CPF têm baixa identificabilidade isolada. Proteger via controles
 de acesso (D3).
 
-**D3 — Audit log em acesso a `pipeline_artifacts`.** Toda leitura via API
-(`GET /reports/{id}/data`, etc.) registra em `access_audit_log`
-(tabela nova): `user_id, workspace_id, artifact_id, timestamp, ip`.
-Retenção: 1 ano. Consultado em incident response.
+**D3 — Audit log em acesso a `pipeline_artifacts`.** ⚠️ **Superseded por
+[[ADR-275]] (A21):** a tabela nova `access_audit_log` foi rejeitada — leitura
+sensível reusa `audit_logs` ([[ADR-115]]) com `action` de leitura. Ver ADR-275
+D1/D2. ~~Toda leitura via API registra em `access_audit_log` (tabela nova):
+`user_id, workspace_id, artifact_id, timestamp, ip`. Retenção: 1 ano.~~
 
-**D4 — Política de retenção.** Artefatos ativos: indefinido (user pode
-deletar via `/workspace/delete`). Artefatos de runs não-ativas: 2 anos →
-soft delete. Direito ao esquecimento: `DELETE /workspace/{id}/artifacts`
-remove TODOS os `pipeline_artifacts` + `documents.*_content` em até 24h úteis.
+**D4 — Política de retenção.** ⚠️ **Superseded por [[ADR-275]] (A21):**
+contrato de retenção diferenciado read/mutation + beat `purge_expired_audit_logs`
+formalizado lá. ~~Artefatos ativos: indefinido (user pode deletar via
+`/workspace/delete`). Artefatos de runs não-ativas: 2 anos → soft delete.
+Direito ao esquecimento: `DELETE /workspace/{id}/artifacts` remove TODOS os
+`pipeline_artifacts` + `documents.*_content` em até 24h úteis.~~
 
 **D5 — Masking em logs.** `DBArtifactStore.read/write` log sem `content_json`
 em nível INFO; nível DEBUG só em dev. Nomes de membros viram `member_<hash[:6]>`

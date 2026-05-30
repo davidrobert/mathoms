@@ -270,6 +270,7 @@
 | ADR-272 | adr | Decidido |  | Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) | `adr/272-needs-review-razao-estruturada.md` |
 | ADR-273 | adr | Proposto |  | Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) | `adr/273-logging-estruturado-pipeline.md` |
 | ADR-274 | adr | Proposto |  | Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício | `adr/274-patrimonio-ano-base-vs-exercicio.md` |
+| ADR-275 | adr | Decidido |  | Auditoria de acesso + política de retenção LGPD | `adr/275-auditoria-de-acesso-e-retencao-lgpd.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -482,6 +483,7 @@
 | CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING.md` |
 | CHG-2026-05-29-A20-L8-POSTGRES-DRIVER | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L8-POSTGRES-DRIVER.md` |
 | CHG-2026-05-29-ADR-238-DATA-ADESAO-NAO-HARDFAIL | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-ADR-238-DATA-ADESAO-NAO-HARDFAIL.md` |
+| CHG-2026-05-30-A21-L7L8-LGPD | changelog-entry |  | A21 |  | `sprint/A21/changelog/CHG-2026-05-30-A21-L7L8-LGPD.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -548,8 +550,8 @@
 | A21.l4 | lane | planned | A21 | Dedup previdência PGBL/VGBL (ativo × dedução fiscal, cross-axis) | `sprint/A21/lanes/A21-l4-previdencia-dedup.md` |
 | A21.l5 | lane | shipped | A21 | Decidir ADR-175 (defesa de injeção LLM em camadas) Proposto→Decidido | `sprint/A21/lanes/A21-l5-adr175-decide.md` |
 | A21.l6 | lane | shipped | A21 | W3-T05 — defesa de injeção LLM (4 camadas + adversarial fixtures + telemetria) | `sprint/A21/lanes/A21-l6-prompt-injection-defense.md` |
-| A21.l7 | lane | open | A21 | LGPD Art.37 — audit log de acesso a dado sensível | `sprint/A21/lanes/A21-l7-lgpd-audit-log.md` |
-| A21.l8 | lane | open | A21 | LGPD Art.18 — export/deleção (data-subject rights) | `sprint/A21/lanes/A21-l8-lgpd-data-subject-rights.md` |
+| A21.l7 | lane | shipped | A21 | LGPD Art.37 — audit log de acesso a dado sensível | `sprint/A21/lanes/A21-l7-lgpd-audit-log.md` |
+| A21.l8 | lane | shipped | A21 | LGPD Art.18 — export/deleção (data-subject rights) | `sprint/A21/lanes/A21-l8-lgpd-data-subject-rights.md` |
 | A21.l9 | lane | open | A21 | Backup/restore mechanism + drill CI-local (subset W4-T01) | `sprint/A21/lanes/A21-l9-backup-restore-drill-ci.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |

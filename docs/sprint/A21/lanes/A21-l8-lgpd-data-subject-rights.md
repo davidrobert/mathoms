@@ -4,16 +4,18 @@ type: lane
 title: "LGPD Art.18 — export/deleção (data-subject rights)"
 sprint: A21
 plan: PLAN-launch-trust
-status: open
+status: shipped
 priority: P0
 branch_slug: a21-l8-lgpd-data-subject-rights
 depends_on: []
 parallel_with:
   - "[[A21.l7]]"
+adrs:
+  - "[[ADR-275]]"
 tags:
   - type/lane
   - sprint/a21
-  - status/open
+  - status/shipped
   - priority/p0
   - area/seguranca
 ---

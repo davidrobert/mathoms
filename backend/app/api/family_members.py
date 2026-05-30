@@ -43,6 +43,8 @@ from backend.app.schemas.dto.family_member import (
     IrpfDismissCommand,
     SuggestionsFromIrpfResponse,
 )
+from backend.app.services.access_audit import record_access_audit
+from backend.app.services.audit import AuditAction
 from backend.app.services.irpf_suggestion_adapters import (
     DBInstitutionLabelResolver,
     DBIrpfArtifactSource,
@@ -60,7 +62,11 @@ def _get_repo(db: AsyncSession = Depends(get_db)) -> FamilyMemberRepository:
     return FamilyMemberRepository(db)
 
 
-@router.get("/members", response_model=FamilyMemberListResponse)
+@router.get(
+    "/members",
+    response_model=FamilyMemberListResponse,
+    dependencies=[Depends(record_access_audit(AuditAction.family_member_read, "family_member"))],
+)
 async def list_members(
     workspace: Workspace = Depends(get_current_workspace),
     repo: FamilyMemberRepository = Depends(_get_repo),
@@ -114,7 +120,17 @@ async def delete_member(
     await delete_family_member(member_id, workspace_id=workspace.id, repo=repo)
 
 
-@router.get("/members/{member_id}/accounts", response_model=list[BankAccountResponse])
+@router.get(
+    "/members/{member_id}/accounts",
+    response_model=list[BankAccountResponse],
+    dependencies=[
+        Depends(
+            record_access_audit(
+                AuditAction.family_member_read, "bank_account", resource_id_param="member_id"
+            )
+        )
+    ],
+)
 async def list_accounts(
     member_id: str,
     workspace: Workspace = Depends(get_current_workspace),
@@ -211,6 +227,7 @@ async def delete_account(
 @router.get(
     "/members/suggestions-from-irpf",
     response_model=SuggestionsFromIrpfResponse,
+    dependencies=[Depends(record_access_audit(AuditAction.family_member_read, "irpf_suggestion"))],
 )
 async def list_suggestions_from_irpf(
     workspace: Workspace = Depends(get_current_workspace),

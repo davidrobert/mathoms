@@ -22,6 +22,8 @@ from backend.app.repositories.planner_review_repository import (
     PlannerReviewRepository,
 )
 from backend.app.schemas.dto.planner_review import PlannerReviewResponse
+from backend.app.services.access_audit import record_access_audit
+from backend.app.services.audit import AuditAction
 from backend.app.services.crypto import read_artifact_content
 from backend.app.services.pipeline_service import resolve_llm_tier_async
 from backend.app.services.planner_review_tier_filter import apply_tier_filter
@@ -129,7 +131,17 @@ def _build_response(
     )
 
 
-@router.get("", response_model=PlannerReviewResponse)
+@router.get(
+    "",
+    response_model=PlannerReviewResponse,
+    dependencies=[
+        Depends(
+            record_access_audit(
+                AuditAction.report_read, "planner_review", resource_id_param="report_id"
+            )
+        )
+    ],
+)
 async def get_planner_review(
     report_id: str,
     workspace: Workspace = Depends(get_current_workspace),
