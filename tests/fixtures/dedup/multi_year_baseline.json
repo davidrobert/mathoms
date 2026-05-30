@@ -1,0 +1,220 @@
+{
+  "_meta": {
+    "lane": "A21.l2",
+    "plan": "PLAN-launch-trust",
+    "purpose": "Golden zero-PII para medir fn_rate/fp_rate do dedup E1.5c (investimentos cross-year/cross-declarante ADR-271 + imoveis comunhao ADR-246).",
+    "pii_note": "CPFs sao placeholders na whitelist do gate anti-PII (111.111.111-11, 123.456.789-09), nunca PII real. Membros sao chaves ficticias; valores sao redondos e fora de qualquer faixa real. A identidade do dedup vem de membro+descricao+ano, nao do CPF (resolver ADR-267 nao roda neste harness).",
+    "schema": "itens[] no formato flat consumido por consolidate_from_itens; cada item ganha item_id (ignorado pela consolidacao) usado so para anotar a ground-truth em _expected."
+  },
+  "itens": [
+    {
+      "item_id": "series_2022",
+      "cpf": "111.111.111-11",
+      "codigo": "04",
+      "descricao": "TESOURO IPCA 2035",
+      "categoria": "investimento",
+      "instituicao": "tesouro_direto",
+      "valor_brl": 60000.0,
+      "membro": "david_robert",
+      "ano": 2022
+    },
+    {
+      "item_id": "series_2023",
+      "cpf": "111.111.111-11",
+      "codigo": "04",
+      "descricao": "TESOURO IPCA 2035",
+      "categoria": "investimento",
+      "instituicao": "tesouro_direto",
+      "valor_brl": 70000.0,
+      "membro": "david_robert",
+      "ano": 2023
+    },
+    {
+      "item_id": "series_2024",
+      "cpf": "111.111.111-11",
+      "codigo": "04",
+      "descricao": "TESOURO IPCA 2035",
+      "categoria": "investimento",
+      "instituicao": "tesouro_direto",
+      "valor_brl": 85000.0,
+      "membro": "david_robert",
+      "ano": 2024
+    },
+    {
+      "item_id": "joint_david",
+      "cpf": "111.111.111-11",
+      "codigo": "04",
+      "descricao": "CDB BANCO EXEMPLO 500",
+      "categoria": "investimento",
+      "instituicao": "banco_exemplo",
+      "valor_brl": 50000.0,
+      "membro": "david_robert",
+      "ano": 2024
+    },
+    {
+      "item_id": "joint_mariana",
+      "cpf": "123.456.789-09",
+      "codigo": "04",
+      "descricao": "CDB BANCO EXEMPLO 500",
+      "categoria": "investimento",
+      "instituicao": "banco_exemplo",
+      "valor_brl": 50000.0,
+      "membro": "mariana_silva",
+      "ano": 2024
+    },
+    {
+      "item_id": "prev_2023",
+      "cpf": "123.456.789-09",
+      "codigo": "97",
+      "descricao": "PREVIDENCIA PGBL PLANO XPTO",
+      "categoria": "investimento",
+      "instituicao": "previd_xpto",
+      "valor_brl": 40000.0,
+      "membro": "mariana_silva",
+      "ano": 2023
+    },
+    {
+      "item_id": "prev_2024",
+      "cpf": "123.456.789-09",
+      "codigo": "97",
+      "descricao": "PREVIDENCIA PGBL PLANO XPTO",
+      "categoria": "investimento",
+      "instituicao": "previd_xpto",
+      "valor_brl": 48000.0,
+      "membro": "mariana_silva",
+      "ano": 2024
+    },
+    {
+      "item_id": "apt_david",
+      "cpf": "111.111.111-11",
+      "codigo": "11",
+      "descricao": "APARTAMENTO EDIFICIO MODELO APT 90 - RUA FICTICIA 400, SAO PAULO/SP",
+      "categoria": "imovel",
+      "valor_brl": 480000.0,
+      "membro": "david_robert",
+      "ano": 2024
+    },
+    {
+      "item_id": "apt_mariana",
+      "cpf": "123.456.789-09",
+      "codigo": "11",
+      "descricao": "APARTAMENTO EDIFICIO MODELO APT 90 - RUA FICTICIA 400, SAO PAULO/SP",
+      "categoria": "imovel",
+      "valor_brl": 500000.0,
+      "membro": "mariana_silva",
+      "ano": 2024
+    },
+    {
+      "item_id": "solo_fundo",
+      "cpf": "123.456.789-09",
+      "codigo": "07",
+      "descricao": "FUNDO ACOES ZETA",
+      "categoria": "investimento",
+      "instituicao": "corretora_zeta",
+      "valor_brl": 30000.0,
+      "membro": "mariana_silva",
+      "ano": 2024
+    },
+    {
+      "item_id": "adv_david",
+      "cpf": "111.111.111-11",
+      "codigo": "04",
+      "descricao": "CDB BANCO COMUM 777",
+      "categoria": "investimento",
+      "instituicao": "banco_comum",
+      "valor_brl": 42000.0,
+      "membro": "david_robert",
+      "ano": 2024
+    },
+    {
+      "item_id": "adv_mariana",
+      "cpf": "123.456.789-09",
+      "codigo": "04",
+      "descricao": "CDB BANCO COMUM 777",
+      "categoria": "investimento",
+      "instituicao": "banco_comum",
+      "valor_brl": 38000.0,
+      "membro": "mariana_silva",
+      "ano": 2024
+    },
+    {
+      "item_id": "div_2023",
+      "cpf": "111.111.111-11",
+      "codigo": "",
+      "descricao": "FINANCIAMENTO IMOVEL CAIXA",
+      "categoria": "outros",
+      "valor_brl": -250000.0,
+      "membro": "david_robert",
+      "ano": 2023
+    },
+    {
+      "item_id": "div_2024",
+      "cpf": "111.111.111-11",
+      "codigo": "",
+      "descricao": "FINANCIAMENTO IMOVEL CAIXA",
+      "categoria": "outros",
+      "valor_brl": -200000.0,
+      "membro": "david_robert",
+      "ano": 2024
+    }
+  ],
+  "resumo": {
+    "total_ativos": 0.0,
+    "total_passivos": 0.0,
+    "patrimonio_liquido": 0.0,
+    "ano_referencia": 2024
+  },
+  "_expected": {
+    "comment": "Ground-truth de identidade. Cada bloco lista item_ids que pertencem a MESMA entidade real. Itens em blocos distintos (e itens em distinct_entities) NUNCA devem fundir. coverage_only nao entra em fn/fp (categoria nao deduplicada).",
+    "known_duplicates": [
+      {
+        "entity_label": "series_tesouro",
+        "item_ids": ["series_2022", "series_2023", "series_2024"],
+        "reason": "mesma pessoa, serie cross-year 2022-2024 (ADR-271 cross-year)"
+      },
+      {
+        "entity_label": "joint_cdb",
+        "item_ids": ["joint_david", "joint_mariana"],
+        "reason": "conta conjunta de casal, identica ao centavo (ADR-271 cross-declarante)"
+      },
+      {
+        "entity_label": "prev_pgbl",
+        "item_ids": ["prev_2023", "prev_2024"],
+        "reason": "previdencia PGBL como ativo, serie cross-year (lado deducao vive fora de E1.5c)"
+      },
+      {
+        "entity_label": "comunhao_apt",
+        "item_ids": ["apt_david", "apt_mariana"],
+        "reason": "imovel em comunhao co-declarado por 2 conjuges (ADR-246, maior valor vence)"
+      }
+    ],
+    "distinct_entities": [
+      {
+        "entity_label": "solo_fundo",
+        "item_ids": ["solo_fundo"],
+        "reason": "ativo unico, controle"
+      },
+      {
+        "entity_label": "adv_david",
+        "item_ids": ["adv_david"],
+        "reason": "RED LINE FP: mesma descricao de adv_mariana mas valor diferente -> NAO e conta conjunta -> nunca fundir"
+      },
+      {
+        "entity_label": "adv_mariana",
+        "item_ids": ["adv_mariana"],
+        "reason": "RED LINE FP: par com adv_david; sistema deve marcar possivel_duplicata, nao fundir"
+      }
+    ],
+    "coverage_only": [
+      {
+        "entity_label": "div_financiamento",
+        "item_ids": ["div_2023", "div_2024"],
+        "reason": "dividas nao passam por dedup em E1.5c (fora de ADR-271); presentes so para cobertura de conservacao, excluidas de fn/fp"
+      }
+    ],
+    "metrics": {
+      "fn_rate_max": 0.05,
+      "fp_rate_max": 0.0
+    }
+  }
+}
