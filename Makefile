@@ -401,6 +401,7 @@ dev-bootstrap:
 ## dev-pull: git pull --ff-only + npm install em ambos os frontends
 dev-pull:
 	@echo "▶  Verificando working tree…"
+	@git update-index -q --refresh
 	@if ! git diff --quiet || ! git diff --cached --quiet; then \
 	   echo "   ❌ Working tree sujo. Commit ou stash antes."; \
 	   exit 1; \
@@ -552,6 +553,7 @@ dev-fresh: _dev-fresh-preflight dev-kill-stale dev-pull clean-all dev-up
 .PHONY: _dev-fresh-preflight
 _dev-fresh-preflight:
 	@echo "▶  Pre-flight (dev-fresh): working tree…"
+	@git update-index -q --refresh
 	@if ! git diff --quiet || ! git diff --cached --quiet; then \
 	   echo "   ❌ Working tree sujo. Commit ou stash antes de rodar dev-fresh."; \
 	   echo "      (sem isso, dev-kill-stale derrubaria a stack e dev-pull abortaria,"; \
