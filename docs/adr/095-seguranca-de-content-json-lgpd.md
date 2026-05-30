@@ -6,7 +6,7 @@ status: Proposto
 phase: "execução distribuída em Fases 1-4 do plano"
 date: "2026-04-19"
 relates_to:
-  - "[[ADR-274]]"
+  - "[[ADR-275]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 095"]
@@ -44,12 +44,12 @@ sem nome/CPF têm baixa identificabilidade isolada. Proteger via controles
 de acesso (D3).
 
 **D3 — Audit log em acesso a `pipeline_artifacts`.** ⚠️ **Superseded por
-[[ADR-274]] (A21):** a tabela nova `access_audit_log` foi rejeitada — leitura
-sensível reusa `audit_logs` ([[ADR-115]]) com `action` de leitura. Ver ADR-274
+[[ADR-275]] (A21):** a tabela nova `access_audit_log` foi rejeitada — leitura
+sensível reusa `audit_logs` ([[ADR-115]]) com `action` de leitura. Ver ADR-275
 D1/D2. ~~Toda leitura via API registra em `access_audit_log` (tabela nova):
 `user_id, workspace_id, artifact_id, timestamp, ip`. Retenção: 1 ano.~~
 
-**D4 — Política de retenção.** ⚠️ **Superseded por [[ADR-274]] (A21):**
+**D4 — Política de retenção.** ⚠️ **Superseded por [[ADR-275]] (A21):**
 contrato de retenção diferenciado read/mutation + beat `purge_expired_audit_logs`
 formalizado lá. ~~Artefatos ativos: indefinido (user pode deletar via
 `/workspace/delete`). Artefatos de runs não-ativas: 2 anos → soft delete.

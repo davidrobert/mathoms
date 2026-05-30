@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 DELETION_GRACE_DAYS = 30
 
-#: ADR-274 D5 — retenção de audit de **leitura** (Art.37). Audit de mutação
+#: ADR-275 D5 — retenção de audit de **leitura** (Art.37). Audit de mutação
 #: (Art.16) NÃO é purgado (base legal + prazo distintos), portanto fica fora
 #: do filtro ``action IN READ_ACCESS_ACTIONS``.
 AUDIT_READ_RETENTION_DAYS = 365
@@ -353,7 +353,7 @@ def _drain_expired_read_audit(db: Session, cutoff: datetime) -> int:
 
 @celery_app.task(name="fin.lgpd.purge_expired_audit_logs", bind=True, max_retries=1)
 def purge_expired_audit_logs(self) -> dict[str, int | str]:
-    """ADR-274 D5 — purga audit de **leitura** (Art.37) com >365d, em lotes; grava meta-linha ``audit.purge`` (fora de ``READ_ACCESS_ACTIONS``) com contagem + cutoff, sem PII; nunca toca audit de mutação."""
+    """ADR-275 D5 — purga audit de **leitura** (Art.37) com >365d, em lotes; grava meta-linha ``audit.purge`` (fora de ``READ_ACCESS_ACTIONS``) com contagem + cutoff, sem PII; nunca toca audit de mutação."""
     cutoff = datetime.now(timezone.utc) - timedelta(days=AUDIT_READ_RETENTION_DAYS)
     with SyncSessionLocal() as db:
         deleted = _drain_expired_read_audit(db, cutoff)

@@ -1,4 +1,4 @@
-"""LGPD Art.37 ([[ADR-274]]) — auditoria de acesso a leitura de dado sensível: dependency FastAPI por rota grava 1 linha em ``audit_logs`` (reuso, não tabela nova) e commita ANTES do handler (sobrevive a falha posterior do handler); ``details`` é allowlist tipada (``AccessAuditDetails`` ``extra="forbid"``) com guarda de escrita anti-PII (nunca CPF/valor)."""
+"""LGPD Art.37 ([[ADR-275]]) — auditoria de acesso a leitura de dado sensível: dependency FastAPI por rota grava 1 linha em ``audit_logs`` (reuso, não tabela nova) e commita ANTES do handler (sobrevive a falha posterior do handler); ``details`` é allowlist tipada (``AccessAuditDetails`` ``extra="forbid"``) com guarda de escrita anti-PII (nunca CPF/valor)."""
 
 from __future__ import annotations
 

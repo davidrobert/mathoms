@@ -1,4 +1,4 @@
-"""LGPD Art.37 (ADR-274 l7) — auditoria de acesso: guarda de cobertura sobre as rotas GET sensíveis (auditada OU allowlist justificada, default invertido anti-drift), guarda anti-PII de escrita (CPF/valor rejeitados), e integração provando que GET auditado grava 1 linha em ``audit_logs`` sem PII enquanto rota allowlist não grava."""
+"""LGPD Art.37 (ADR-275 l7) — auditoria de acesso: guarda de cobertura sobre as rotas GET sensíveis (auditada OU allowlist justificada, default invertido anti-drift), guarda anti-PII de escrita (CPF/valor rejeitados), e integração provando que GET auditado grava 1 linha em ``audit_logs`` sem PII enquanto rota allowlist não grava."""
 
 from __future__ import annotations
 
@@ -63,7 +63,7 @@ def test_every_sensitive_get_is_audited_or_allowlisted():
         offenders.append(route.path)
     assert (
         not offenders
-    ), f"rotas GET sensíveis sem audit de acesso nem allowlist (ADR-274): {sorted(set(offenders))}"
+    ), f"rotas GET sensíveis sem audit de acesso nem allowlist (ADR-275): {sorted(set(offenders))}"
 
 
 def test_allowlist_has_no_stale_entries():

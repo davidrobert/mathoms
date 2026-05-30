@@ -1,4 +1,4 @@
-"""ADR-274 D5 (l8) — purge de retenção: ``purge_expired_audit_logs`` apaga SÓ audit de leitura >365d, preserva leitura recente E todo audit de mutação (Art.16), e grava 1 meta-linha ``audit.purge`` (sem PII) que sobrevive a purges futuros."""
+"""ADR-275 D5 (l8) — purge de retenção: ``purge_expired_audit_logs`` apaga SÓ audit de leitura >365d, preserva leitura recente E todo audit de mutação (Art.16), e grava 1 meta-linha ``audit.purge`` (sem PII) que sobrevive a purges futuros."""
 
 from __future__ import annotations
 

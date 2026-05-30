@@ -1,6 +1,6 @@
-"""ADR-274: índices compostos para consulta de audit de acesso (LGPD Art.37).
+"""ADR-275: índices compostos para consulta de audit de acesso (LGPD Art.37).
 
-Revision ID: adr274auditidx
+Revision ID: adr275auditidx
 Revises: adr272reviewreasons
 Create Date: 2026-05-30
 
@@ -25,14 +25,14 @@ workspace- ou actor-scoped (coberta pelos compostos).
 Pré-produção: tabela vazia, ``CREATE INDEX`` é instantâneo e não exige
 ``CONCURRENTLY``. Em escala de produção (tabela grande, append-only quente),
 a recriação destes índices deve usar ``CREATE INDEX CONCURRENTLY`` em janela
-dedicada — follow-up rastreado na ADR-274 (consequências).
+dedicada — follow-up rastreado na ADR-275 (consequências).
 """
 
 from typing import Sequence, Union
 
 from alembic import op
 
-revision: str = "adr274auditidx"
+revision: str = "adr275auditidx"
 down_revision: Union[str, Sequence[str], None] = "adr272reviewreasons"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

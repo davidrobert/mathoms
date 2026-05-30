@@ -111,7 +111,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `ip_address` | `VARCHAR(45)` | yes | — | — |
 | `user_agent` | `TEXT` | yes | — | — |
 | `details` | `JSON` | yes | — | — |
-| `created_at` | `DATETIME` | no | callable: `<lambda>` | INDEX |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Constraints:**
 
@@ -121,9 +121,10 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 **Indexes:**
 
 - `ix_audit_logs_action` (action)
+- `ix_audit_logs_actor_created` (actor_user_id, created_at)
 - `ix_audit_logs_actor_user_id` (actor_user_id)
-- `ix_audit_logs_created_at` (created_at)
 - `ix_audit_logs_resource_id` (resource_id)
+- `ix_audit_logs_workspace_created` (workspace_id, created_at)
 - `ix_audit_logs_workspace_id` (workspace_id)
 
 ### `bank_accounts`

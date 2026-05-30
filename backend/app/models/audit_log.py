@@ -31,7 +31,7 @@ from backend.app.core.database import Base
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
-    # ADR-274 (l7): leitura quente é workspace- e actor-scoped, ordenada por
+    # ADR-275 (l7): leitura quente é workspace- e actor-scoped, ordenada por
     # tempo. Compostos cobrem `WHERE <col>=? ORDER BY created_at DESC`; o
     # single-col `created_at` foi removido (redundante — purge filtra por action).
     __table_args__ = (

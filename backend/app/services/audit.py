@@ -72,7 +72,7 @@ class AuditAction(str, enum.Enum):
     lgpd_deletion_canceled = "lgpd.deletion_canceled"
     lgpd_deletion_completed = "lgpd.deletion_completed"
 
-    # LGPD Art. 37 — auditoria de acesso a leitura de dado sensível (ADR-274)
+    # LGPD Art. 37 — auditoria de acesso a leitura de dado sensível (ADR-275)
     report_read = "report.read"
     report_download = "report.download"
     transactions_read = "transactions.read"
@@ -81,12 +81,12 @@ class AuditAction(str, enum.Enum):
     document_read = "document.read"
     document_download = "document.download"
 
-    # Meta — purge de retenção de audit de leitura (ADR-274 D5; retido, não purgado)
+    # Meta — purge de retenção de audit de leitura (ADR-275 D5; retido, não purgado)
     audit_purge = "audit.purge"
 
 
 # Ações de **leitura** (Art.37) — retenção 365d, purgadas por
-# ``purge_expired_audit_logs`` (ADR-274 D5). Audit de mutação NÃO entra aqui:
+# ``purge_expired_audit_logs`` (ADR-275 D5). Audit de mutação NÃO entra aqui:
 # base legal + prazo distintos (Art.16), sobrevive ao purge.
 READ_ACCESS_ACTIONS: frozenset[str] = frozenset(
     {

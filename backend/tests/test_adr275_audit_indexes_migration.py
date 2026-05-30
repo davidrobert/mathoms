@@ -1,4 +1,4 @@
-"""Tests da migration ``adr274auditidx``: índices compostos ``(workspace_id, created_at)`` e ``(actor_user_id, created_at)`` cobrem ``WHERE <col>=? ORDER BY created_at DESC`` (caminho quente de leitura ADR-274 l7); o single-col ``ix_audit_logs_created_at`` é removido (redundante)."""
+"""Tests da migration ``adr275auditidx``: índices compostos ``(workspace_id, created_at)`` e ``(actor_user_id, created_at)`` cobrem ``WHERE <col>=? ORDER BY created_at DESC`` (caminho quente de leitura ADR-275 l7); o single-col ``ix_audit_logs_created_at`` é removido (redundante)."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ ALEMBIC_INI = PROJECT_ROOT / "backend" / "alembic.ini"
 ALEMBIC_DIR = PROJECT_ROOT / "backend" / "alembic"
 
 PARENT_REVISION = "adr272reviewreasons"
-TARGET_REVISION = "adr274auditidx"
+TARGET_REVISION = "adr275auditidx"
 
 WS_INDEX = "ix_audit_logs_workspace_created"
 ACTOR_INDEX = "ix_audit_logs_actor_created"
@@ -34,7 +34,7 @@ def _alembic_config(async_url: str) -> Config:
 
 @pytest.fixture
 def alembic_engine(monkeypatch):
-    fd, db_path_str = tempfile.mkstemp(suffix=".db", prefix="adr274_test_")
+    fd, db_path_str = tempfile.mkstemp(suffix=".db", prefix="adr275_test_")
     os.close(fd)
     db_path = Path(db_path_str)
     async_url = f"sqlite+aiosqlite:///{db_path}"

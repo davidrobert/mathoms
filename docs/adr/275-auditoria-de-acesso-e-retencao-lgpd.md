@@ -1,5 +1,5 @@
 ---
-id: ADR-274
+id: ADR-275
 type: adr
 title: "Auditoria de acesso + política de retenção LGPD"
 status: Decidido
@@ -11,7 +11,7 @@ relates_to:
   - "[[ADR-110]]"
 supersedes: []
 superseded_by: []
-aliases: ["ADR 274"]
+aliases: ["ADR 275"]
 tags:
   - area/security
   - area/persistence
@@ -21,7 +21,7 @@ tags:
   - methodology/lgpd
 ---
 
-# ADR-274 — Auditoria de acesso + política de retenção LGPD
+# ADR-275 — Auditoria de acesso + política de retenção LGPD
 
 **Status:** Decidido (A21 · l7 + l8) • **Data:** 2026-05-30 •
 **Planos:** [[PLAN-launch-trust]] §F2-G2 (l7) + §F2-G3 (l8)
@@ -115,7 +115,7 @@ após 365d. Mutation-audit sobrevive ao purge (teste explícito).
 - ⚠️ Escrita síncrona de leitura adiciona 1 INSERT por GET quente — mitigável
   por async se ferir SLO (D3).
 - ⚠️ Índices compostos `(workspace_id, created_at)` + `(actor_user_id, created_at)`
-  (migration `adr274auditidx`, substituem o índice single em `created_at`)
+  (migration `adr275auditidx`, substituem o índice single em `created_at`)
   para consulta de incident-response e purge eficientes. Pré-prod (tabela
   vazia) usa `CREATE INDEX` simples — instantâneo; em escala de produção a
   recriação deve usar `CREATE INDEX CONCURRENTLY` em janela dedicada
@@ -126,6 +126,6 @@ após 365d. Mutation-audit sobrevive ao purge (teste explícito).
 `AccessAuditDetails` + `assert_pii_free`), `READ_ACCESS_ACTIONS` em
 `services/audit.py`, deps anexadas em reports/transactions/family_members/
 documents/planner_review, test-guard `test_access_audit.py`, migration
-`adr274auditidx`. l8 — `purge_expired_audit_logs` (beat diário em `worker.py`),
+`adr275auditidx`. l8 — `purge_expired_audit_logs` (beat diário em `worker.py`),
 test `test_purge_audit_logs.py`. Export + auto-deleção já existiam
 (`test_lgpd_self_service.py`).

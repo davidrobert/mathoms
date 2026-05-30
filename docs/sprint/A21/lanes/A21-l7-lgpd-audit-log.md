@@ -11,7 +11,7 @@ depends_on: []
 parallel_with:
   - "[[A21.l8]]"
 adrs:
-  - "[[ADR-274]]"
+  - "[[ADR-275]]"
 tags:
   - type/lane
   - sprint/a21
