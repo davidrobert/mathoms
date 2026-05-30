@@ -113,13 +113,23 @@ Ou aceite explicitamente em PR com justificativa e SLO no comentário.
 
 ### Atualizar `.gitleaks.toml`
 
-Tipos de allowlist (ver arquivo):
+A allowlist global usa a tabela **singular `[allowlist]`** (uma só), **não** o array-of-tables `[[allowlists]]`. Chaves dentro dela:
 
-- `paths = ["..."]` — globs de paths a ignorar.
-- `regexes = ["..."]` — padrões dentro do conteúdo (CPF sintético, dev keys documentadas).
+- `paths = ["..."]` — regexes de paths a ignorar (fixtures, archive, docs; CPFs sintéticos que vivem nesses locais já caem aqui).
+- `regexes = ["..."]` — padrões dentro do conteúdo (dev keys documentadas, p.ex. a Fernet sintética de CI).
 - `commits = ["sha"]` — SHAs históricos com matches conhecidos.
 
-**Nunca** allow generalizado em `^backend/` ou `^pipeline/` — código de produção que vaza secret é incidente, não false positive.
+> ⚠️ **NÃO use `[[allowlists]]` (plural/array-of-tables) global** enquanto `[extend] useDefault = true` estiver ativo. O merge com o config default descarta a allowlist top-level no formato array — só a `[allowlist]` singular sobrevive, e o plural vira **silenciosamente inerte**. Ver [[ADR-230]] §D3 Adendo 2026-05-30. Para um novo allow, edite as listas da `[allowlist]` existente.
+
+**Nunca** allow generalizado em `^backend/` ou `^pipeline/` — código de produção que vaza secret é incidente, não false positive. Idem regex global de dado pessoal (p.ex. CPF): mantenha o escopo via `paths` de teste/docs, não como regex global que cega a detecção em produção.
+
+### Paridade de versão local↔CI
+
+O rev do hook em `.pre-commit-config.yaml` (`gitleaks@v8.24.3`) é pinado para **casar com o binário do CI** (`gitleaks-action@v2.3.9` hardcoda 8.24.3, reforçado por `GITLEAKS_VERSION: "8.24.3"` no `security.yml`). **Ao bumpar um, bumpe o outro no mesmo PR** — versões diferentes têm rulesets de detecção e semântica de merge de allowlist divergentes (classe de bug "passa local, quebra CI", ou allowlist inerte).
+
+### Janela de detecção (PR-range vs. full-history)
+
+`gitleaks-action` em `pull_request` varre **apenas os commits do PR** — secret real introduzido fora do diff escaneado **não** é pego no PR. Cobertura full-history (`--log-opts="--all"`) vem só do **schedule semanal**. Implicação: janela de detecção de até **7 dias** para secret fora de um diff escaneado. Mitigação: o schedule precisa rodar e ter dono que tria a Issue `security` (ver §"Como triar Issue de schedule"). Fechar a janela de vez exigiria GHAS push protection (diferido — ver §"Push protection").
 
 ### Baseline inicial
 
@@ -129,7 +139,7 @@ Após merge desta ADR, gerar baseline:
 gitleaks detect --report-path .gitleaks-baseline.json
 ```
 
-Revisar manualmente. SHAs com matches **legítimos** (key documentada já no histórico, fixture antiga) vão em `[[allowlists]] commits=[...]`. SHAs com secret **real** disparam incidente.
+Revisar manualmente. SHAs com matches **legítimos** (key documentada já no histórico, fixture antiga) vão na chave `commits = [...]` da `[allowlist]`. SHAs com secret **real** disparam incidente.
 
 ## Como triar Issue de schedule
 
