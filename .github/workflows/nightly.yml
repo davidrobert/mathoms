@@ -490,3 +490,111 @@ jobs:
               ].join('\n'),
               labels: ['visual-regression', 'ops'],
             });
+
+  backup-restore-drill:
+    # Prova de MECANISMO do ciclo dump→restore (A21.l9 · ADR-174 / ADR-228 G2).
+    # NÃO é o drill real de DR (snapshot R2 → host prod-like, RTO/RPO medidos —
+    # gate G1, pós-cutover). Aqui, com dado sintético zero-PII, garantimos que
+    # `pg_dump -Fc` → `pg_restore` preserva row-count + sha256 por tabela,
+    # alembic_version (sem schema drift) e o round-trip Fernet do vault.
+    # Runbook: docs/reference/runbooks/disaster_recovery.md.
+    #
+    # Job enxuto: instala só backend deps + postgresql-client (NÃO o venv de
+    # 200 deps com playwright/reportlab). Schedule no cron pesado 3×/sem.
+    name: Backup/restore drill (prova de mecanismo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # PR opt-in via label `backup-drill`; dispatch sempre roda.
+    if: |
+      (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1,3,5') ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'backup-drill')
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fin_test
+          POSTGRES_PASSWORD: fin_test
+          POSTGRES_DB: fin_test
+        ports:
+          - 5433:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      # asyncpg URL p/ alembic + seed; sync_database_url deriva psycopg (ADR-253).
+      MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
+      # Chave sintética de CI — NÃO é segredo de produção (mesma de ci.yml).
+      # gitleaks:allow — allowlist global do .gitleaks.toml usa `[[allowlists]]`
+      # (plural), não honrado pelo binário pinado do hook; inline é version-robust.
+      MATHOMS_FERNET_KEY: "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" # gitleaks:allow
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install backend deps + postgresql-client-16
+        run: |
+          pip install -r requirements.in -r backend/requirements.in
+          # Pin client = 16 p/ casar com o server postgres:16-alpine. pg_dump
+          # mais NOVO que o server emite SETs que o server rejeita
+          # (ex.: `transaction_timeout`, inexistente no 16) → pg_restore falha.
+          # Não confiar no default do runner (drift quando ubuntu-latest sobe);
+          # instalar do PGDG fixa a major independente da imagem do runner.
+          sudo apt-get update && sudo apt-get install -y curl ca-certificates
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update && sudo apt-get install -y postgresql-client-16
+
+      - name: Run alembic migrations (source DB = head)
+        run: cd backend && alembic upgrade head
+
+      - name: Seed sintético zero-PII
+        run: python3 dev/drill_seed.py
+
+      - name: Restore drill (dump → restore DB separado → asserts)
+        run: python3 dev/restore_drill.py --source-dsn "$MATHOMS_DATABASE_URL" --restore-db fin_restore
+
+      - name: Open issue on drill failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const today = new Date().toISOString().slice(0, 10);
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'backup-drill-fail',
+              per_page: 5,
+            });
+            if (existing.data.length > 0) {
+              core.notice(`Issue backup-drill-fail já aberta: #${existing.data[0].number}`);
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[backup-drill] Restore drill falhou — ${today}`,
+              body: [
+                `**Restore drill noturno falhou.** O ciclo dump→restore regrediu:`,
+                `perda/corrupção de linha, schema drift (alembic_version), ou o`,
+                `round-trip Fernet do vault não decifrou.`,
+                ``,
+                `Run: ${runUrl}`,
+                ``,
+                `## Próximos passos`,
+                `1. Veja qual asserção falhou no log do step "Restore drill".`,
+                `2. Se for Fernet: a chave de restore diverge da que cifrou (perda total real em prod).`,
+                `3. Se for schema/manifesto: migration ou dump/restore quebrou.`,
+                ``,
+                `Runbook: docs/reference/runbooks/disaster_recovery.md · [[ADR-228]] G2.`,
+              ].join('\n'),
+              labels: ['backup-drill-fail', 'ops'],
+            });
