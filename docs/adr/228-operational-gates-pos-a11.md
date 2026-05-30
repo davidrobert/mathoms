@@ -103,6 +103,16 @@ go-live, não de A11.
 servir tráfego real (cutover `dev.mathoms.ai` → `app.mathoms.ai`).
 Janela curta proposital — drill atrasado vira drill esquecido.
 
+> **Nota (A21.l9):** o ciclo dump→restore tem **prova de mecanismo** em CI
+> desde A21.l9 — `dev/restore_drill.py` no job `backup-restore-drill`
+> ([[PLAN-launch-trust]] F2 wave 2.1) reconstroi um DB sintético zero-PII e
+> assere row-count + `sha256` + `alembic_version`==head + **round-trip
+> Fernet**. Isso cobre a regressão silenciosa do caminho de restore (schema
+> drift, ciphertext não-decifrável) enquanto **G2 segue aberto**: o drill de
+> CI **não** prova o caminho real (snapshot R2 → host prod-like → RTO/RPO
+> medidos). G2 continua exigindo o drill real pós-cutover. Ver
+> [`disaster_recovery.md`](../reference/runbooks/disaster_recovery.md).
+
 ### D3 — Closure desta ADR
 
 ADR-228 flippa para `Decidido (Sprint A<N>)` quando os 5 gates estão
