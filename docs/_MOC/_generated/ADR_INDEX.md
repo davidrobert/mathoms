@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-267 ADRs (ADR-001 a ADR-276) em [`docs/adr/`](../../adr/).
+268 ADRs (ADR-001 a ADR-277) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 201
-- **Proposto**: 62
+- **Proposto**: 63
 - **Roadmap**: 4
 
 ## Fundação
@@ -480,7 +480,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-271]] — Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c · phase A20.invest-dedup
 - [[ADR-272]] — Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) · phase A20.failure-diagnostics
 
-### Proposto (17)
+### Proposto (18)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -499,6 +499,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-273]] — Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) · phase A20.failure-diagnostics
 - [[ADR-274]] — Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício · phase A21.patrimonio-ano-base
 - [[ADR-276]] — EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais no E1.5c · phase A21.l3
+- [[ADR-277]] — Previdência F1-O4: reconciliação da recomendação PGBL (não dedup de ativo) · phase A21.l4
 
 ## relatorio
 

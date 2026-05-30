@@ -250,11 +250,18 @@ Cada uma vira uma `EntityDedupPolicy`. Regras de domínio (`financial-planner`):
   usa `max(ano)` (saldo devedor mais recente); queda de saldo é normal
   (amortização) → INV-8 warning, não erro. Schema de `dividas` deixa de ser
   array livre.
-- **F1-O4 previdência:** double-count **cross-axis** — mesmo plano é ativo E
-  dedução fiscal. Policy reconcilia os dois eixos: conta como **1 ativo**;
-  a dedução PGBL alimenta a base fiscal sem somar ao PL. Lembrar invariante
-  da memória: base PGBL = renda tributável PF (folclore "receita×32%"
-  rejeitado, ADR-236).
+- **F1-O4 previdência:** **reinterpretada como reconciliação de recomendação,
+  não dedup de lista** ([[ADR-277]]). O co-design (financial-planner +
+  senior-cto) apurou que o cross-axis ativo×dedução **não existe** (saldo é
+  estoque do PL; aporte é fluxo dedutível — nunca vira linha de ativo) e que
+  o double-count de ativo cross-fonte (informe de previdência + G04) é
+  **latente** (informe órfão, sem consumidor injetando saldo no consolidado).
+  O bug **real e visível** é o `PrevidenciaAnalyzer` recomendar o teto PGBL
+  cheio sem subtrair o já aportado no IRPF (INV-PREV-3). Fix: `PrevidenciaAnalyzer`
+  recebe `CapacidadePgblIRPF` tipada (capacidade restante construída pelo
+  adapter via `irpf_analyzer.pgbl_capacidade_dedutivel`); dedup de ativo
+  (INV-PREV-1) fica `xfail(strict)` até existir caminho de input vivo. Base
+  PGBL = renda tributável PF (folclore "receita×32%" rejeitado, [[ADR-236]]).
 - **F1-O5 veículo:** chave = placa/renavam (âncora forte já existe);
   cross-year usa valor FIPE mais recente. Menor risco de FP (âncora forte) →
   P2.
