@@ -269,7 +269,7 @@
 | ADR-271 | adr | Decidido |  | Dedup de investimentos cross-IRPF (cross-year + cross-declarante) no consolidador E1.5c | `adr/271-dedup-investimentos-cross-irpf.md` |
 | ADR-272 | adr | Decidido |  | Razão estruturada de needs_review (ReviewReason tipado + tabela review_reasons consultável) | `adr/272-needs-review-razao-estruturada.md` |
 | ADR-273 | adr | Proposto |  | Logging estruturado do pipeline (contextvars neutros + bind backend→pipeline + tail bounded) | `adr/273-logging-estruturado-pipeline.md` |
-| ADR-274 | adr | Proposto |  | Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício | `adr/274-patrimonio-ano-base-vs-exercicio.md` |
+| ADR-274 | adr | Proposto |  | Auditoria de acesso + política de retenção LGPD | `adr/274-auditoria-de-acesso-e-retencao-lgpd.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
