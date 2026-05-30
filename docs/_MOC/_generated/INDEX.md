@@ -547,14 +547,19 @@
 | A20.l8 | lane | shipped | A20 | Docker dev↔prod parity — L8 Postgres driver (psycopg2 → psycopg v3 swap) | `sprint/A20/lanes/A20-l8-postgres-driver.md` |
 | A20.l9 | lane | blocked | A20 | Docker dev↔prod parity — L9 Smoke E2E em compose (login + relatório + PDF) | `sprint/A20/lanes/A20-l9-smoke-e2e.md` |
 | A21.l1 | lane | shipped | A21 | Suíte de invariantes de consolidação INV-1..9 (E1.5c) | `sprint/A21/lanes/A21-l1-consolidation-invariants.md` |
-| A21.l2 | lane | planned | A21 | Golden multi-ano anotado + métrica fn_rate/fp_rate | `sprint/A21/lanes/A21-l2-dedup-golden-metrics.md` |
-| A21.l3 | lane | planned | A21 | Contrato EntityDedup (Protocol + runner compartilhado) | `sprint/A21/lanes/A21-l3-entity-dedup-contract.md` |
-| A21.l4 | lane | planned | A21 | Dedup previdência PGBL/VGBL (ativo × dedução fiscal, cross-axis) | `sprint/A21/lanes/A21-l4-previdencia-dedup.md` |
+| A21.l2 | lane | shipped | A21 | Golden multi-ano anotado + métrica fn_rate/fp_rate | `sprint/A21/lanes/A21-l2-dedup-golden-metrics.md` |
+| A21.l3 | lane | shipped | A21 | Contrato EntityDedup (Protocol + runner compartilhado) | `sprint/A21/lanes/A21-l3-entity-dedup-contract.md` |
+| A21.l4 | lane | shipped | A21 | Dedup previdência PGBL/VGBL (ativo × dedução fiscal, cross-axis) | `sprint/A21/lanes/A21-l4-previdencia-dedup.md` |
 | A21.l5 | lane | shipped | A21 | Decidir ADR-175 (defesa de injeção LLM em camadas) Proposto→Decidido | `sprint/A21/lanes/A21-l5-adr175-decide.md` |
 | A21.l6 | lane | shipped | A21 | W3-T05 — defesa de injeção LLM (4 camadas + adversarial fixtures + telemetria) | `sprint/A21/lanes/A21-l6-prompt-injection-defense.md` |
 | A21.l7 | lane | shipped | A21 | LGPD Art.37 — audit log de acesso a dado sensível | `sprint/A21/lanes/A21-l7-lgpd-audit-log.md` |
 | A21.l8 | lane | shipped | A21 | LGPD Art.18 — export/deleção (data-subject rights) | `sprint/A21/lanes/A21-l8-lgpd-data-subject-rights.md` |
-| A21.l9 | lane | open | A21 | Backup/restore mechanism + drill CI-local (subset W4-T01) | `sprint/A21/lanes/A21-l9-backup-restore-drill-ci.md` |
+| A21.l9 | lane | shipped | A21 | Backup/restore mechanism + drill CI-local (subset W4-T01) | `sprint/A21/lanes/A21-l9-backup-restore-drill-ci.md` |
+| A22.l1 | lane | open | A22 | 24 golden fixtures do Parecer + métrica de eval em CI | `sprint/A22/lanes/A22-l1-parecer-golden-eval.md` |
+| A22.l2 | lane | planned | A22 | Validação em 3 camadas (schema → invariante → 7 red lines hard-block) | `sprint/A22/lanes/A22-l2-validacao-3-camadas-red-lines.md` |
+| A22.l3 | lane | open | A22 | Fallback needs_review atômico (LLM down → relatório não quebra) | `sprint/A22/lanes/A22-l3-fallback-needs-review-atomico.md` |
+| A22.l4 | lane | planned | A22 | Drift detection (3 sinais) + pin de model-snapshot | `sprint/A22/lanes/A22-l4-drift-detection-model-pin.md` |
+| A22.l5 | lane | open | A22 | Dedup de dívida cross-year (max(ano) + warning) + schema formal de dividas | `sprint/A22/lanes/A22-l5-dedup-divida-cross-year.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -625,6 +630,7 @@
 | MOC-sprint-a19 | moc |  |  | Sprint A19 — Card S_PROTECAO (4º pilar AUVP Proteção Patrimonial) | `sprint/A19/_README.md` |
 | MOC-sprint-a20 | moc |  |  | Sprint A20 — Docker dev↔prod parity + P0 production gates | `sprint/A20/_README.md` |
 | MOC-sprint-a21 | moc |  |  | Sprint A21 — Launch Trust: número confiável + gates de F3/LGPD abertos | `sprint/A21/_README.md` |
+| MOC-sprint-a22 | moc |  |  | Sprint A22 — Launch Trust: Parecer defensável (F3) | `sprint/A22/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
