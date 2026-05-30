@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiError } from "@/lib/api";
 import {
   declareLastroOverride as apiDeclare,
-  fetchExposicaoCambialV2 as apiFetch,
+  fetchExposicaoCambialV2 as apiFetch, // gitleaks:allow — identificador camelCase, não-segredo (FP generic-api-key, ADR-230 §D3)
   listLastroOverrides as apiList,
   removeLastroOverride as apiRemove,
   type AssetOverrideCommand,
