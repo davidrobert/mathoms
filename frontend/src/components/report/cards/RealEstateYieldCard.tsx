@@ -5,6 +5,7 @@ import type {
   RealEstateAlerta,
   RealEstateBenchmarks,
   RealEstateData,
+  RealEstateExcludedProperty,
   RealEstateImovel,
   RealEstateSpreads,
 } from "@/types/report-analysis";
@@ -22,7 +23,7 @@ const HUGE_NEGATIVE_SPREAD_PP = -3.0;
 export function RealEstateYieldCard({ data }: RealEstateYieldCardProps) {
   if (!data) return <RealEstateEmptyState />;
   if (data.cap_rate_liquido_pct === null) {
-    return <RealEstateEmptyState reason="sem_dado" />;
+    return <RealEstateEmptyState reason="sem_dado" excluded={data.excluded_properties} />;
   }
   return (
     <ReportCard
@@ -319,7 +320,13 @@ function RealEstateFooter({ benchmarks }: { benchmarks: RealEstateBenchmarks }) 
 
 // ───────────────────────── Empty state ────────────────────────────────────
 
-function RealEstateEmptyState({ reason }: { reason?: "sem_dado" } = {}) {
+function RealEstateEmptyState({
+  reason,
+  excluded = [],
+}: {
+  reason?: "sem_dado";
+  excluded?: readonly RealEstateExcludedProperty[];
+} = {}) {
   return (
     <ReportCard
       size="full"
@@ -335,7 +342,41 @@ function RealEstateEmptyState({ reason }: { reason?: "sem_dado" } = {}) {
         Carregue declarações IRPF recentes e classifique os imóveis em Configurações → Imóveis para
         ver cap rate, concentração e comparação com renda fixa e FIIs.
       </p>
+      <RealEstateExcludedSummary excluded={excluded} />
     </ReportCard>
+  );
+}
+
+/**
+ * No empty state ``sem_dado``, lista os imóveis intencionalmente excluídos do
+ * cálculo de yield (residência principal, desconhecido, etc.) — sem isso o
+ * usuário não tem sinal de que o card não está quebrado, só não tem imóvel de
+ * investimento elegível.
+ */
+function RealEstateExcludedSummary({
+  excluded,
+}: {
+  excluded: readonly RealEstateExcludedProperty[];
+}) {
+  if (excluded.length === 0) return null;
+  return (
+    <div className="mt-4 border-t pt-4 border-[var(--surface-border)]">
+      <p className="text-sm font-semibold text-[var(--surface-foreground)]">
+        {excluded.length}{" "}
+        {excluded.length === 1
+          ? "imóvel foi excluído do cálculo de yield"
+          : "imóveis foram excluídos do cálculo de yield"}
+      </p>
+      <ul className="mt-2 space-y-2 text-sm">
+        {excluded.map((e, idx) => (
+          <li key={`${e.property_id}-${idx}`}>
+            <span className="font-semibold text-[var(--surface-foreground)]">{e.descricao}</span>{" "}
+            <span className="text-[var(--surface-muted-foreground)]">({e.classification})</span>
+            <span className="block text-[var(--surface-muted-foreground)]">{e.motivo}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
