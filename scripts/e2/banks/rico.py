@@ -23,7 +23,8 @@ from scripts.e2.common import (
 LOG_PREFIX = "E2-EXTRATO"
 
 PARSERS = [
-    (r"^rico_extratoconta_", "parse_rico"),
+    # Anchor subtipo-agnóstico (sem terminador) — ver bankofamerica.py.
+    (r"^rico_extratoconta", "parse_rico"),
 ]
 
 

@@ -29,7 +29,9 @@ LOG_PREFIX = "E2-EXTRATO"
 
 PARSERS = [
     (r"^bradesco_extratopoupanca_", "parse_bradesco"),
-    (r"^bradesco_extratoconta_", "parse_bradesco"),
+    # Anchor subtipo-agnóstico (sem terminador) — ver bankofamerica.py. Poupança
+    # tem stem distinto (`extratopoupanca`) e permanece com anchor próprio acima.
+    (r"^bradesco_extratoconta", "parse_bradesco"),
 ]
 
 

@@ -43,8 +43,11 @@ LOG_PREFIX_EXTRATO = "E2-EXTRATO"
 LOG_PREFIX_FATURA = "E2-FATURA"
 
 PARSERS = [
-    (r"^santander_extratoconta_.*\.xls$", "parse_santander_xls"),
-    (r"^santander_extratoconta_", "parse_santander_conta"),
+    # Anchors subtipo-agnósticos (sem underscore terminador) — casam subtipos de
+    # moeda do E0 (extratocontausd/brl/eur/...). Ordem preserva format-specific:
+    # `.xls$` → parse_santander_xls antes do fallback any-ext. Ver bankofamerica.py.
+    (r"^santander_extratoconta.*\.xls$", "parse_santander_xls"),
+    (r"^santander_extratoconta", "parse_santander_conta"),
     (r"^santander_cdbresumo_.*\.xlsx$", "parse_santander_cdb_xlsx"),
     (r"^santander_cdbdetalhes_.*\.xlsx$", "parse_santander_cdb_xlsx"),
     (r"santander_faturaunique.*\.csv$", "parse_santander_fatura_csv"),
