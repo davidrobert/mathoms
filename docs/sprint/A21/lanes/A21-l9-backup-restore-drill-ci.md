@@ -4,7 +4,7 @@ type: lane
 title: "Backup/restore mechanism + drill CI-local (subset W4-T01)"
 sprint: A21
 plan: PLAN-launch-trust
-status: open
+status: shipped
 priority: P1
 branch_slug: a21-l9-backup-restore-drill-ci
 depends_on: []
@@ -12,7 +12,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a21
-  - status/open
+  - status/shipped
   - priority/p1
   - area/infra
 ---
