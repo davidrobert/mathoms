@@ -714,6 +714,7 @@ def _e5n_invoke_real_estate(populate_fn, session_factory, workspace_id, store, e
                 e5_data=e5_data,
                 irpf_payload=_e5n_load_irpf(store),
                 informe_payloads=_e5n_load_informes(store),
+                baseline_payload=_e5n_load_baseline(store),
                 db=db,
             )
     except Exception as exc:  # noqa: BLE001 — degradação graceful
@@ -750,6 +751,16 @@ def _e5n_load_irpf(store) -> dict | None:
         return None
     # Lê o primeiro disponível — workspaces dogfood têm 1 IRPF por ano-base; v1 OK.
     return store.read("extract_irpf_full", keys[0])
+
+
+def _e5n_load_baseline(store) -> dict | None:
+    """Lê o baseline E1.5c consolidado (fonte canônica de valor-por-imóvel · ADR-246/274)."""
+    try:
+        return store.read("E1.5c", "baseline_patrimonial") or store.read(
+            "E1.5", "baseline_patrimonial"
+        )
+    except Exception:  # noqa: BLE001 — baseline ausente não bloqueia real_estate
+        return None
 
 
 def _e5n_load_informes(store) -> list[dict]:

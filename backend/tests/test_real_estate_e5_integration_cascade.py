@@ -155,6 +155,9 @@ def test_informe_sem_match_endereco_cai_para_proximo_fallback(db):
         workspace_id="ws1",
         e5_data=_e5(),
         irpf_payload=_irpf_carne_leao("Apto Vila Madalena", "24000"),
+        baseline_payload={
+            "imoveis_consolidados": [{"property_id": "pA", "valores_31_12": {"2024": 1000000.0}}]
+        },
         db=db,
         informe_payloads=[_informe("Imóvel inexistente em outra cidade", "60000")],
     )

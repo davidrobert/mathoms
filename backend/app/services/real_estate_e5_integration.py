@@ -29,6 +29,7 @@ def populate_real_estate(
     db: Session,
     as_of_date: date | None = None,
     informe_payloads: Sequence[dict] | None = None,
+    baseline_payload: dict | None = None,
 ) -> dict | None:
     """Calcula payload `real_estate` (None quando workspace sem property_identity)."""
     identities = _load_identities(db, workspace_id)
@@ -36,7 +37,7 @@ def populate_real_estate(
         return None
     return result_to_payload(
         _calculate(
-            db, identities, e5_data, irpf_payload, informe_payloads, workspace_id, as_of_date
+            db, identities, e5_data, irpf_payload, informe_payloads, as_of_date, baseline_payload
         )
     )
 
@@ -47,15 +48,16 @@ def _calculate(
     e5_data: dict,
     irpf_payload: dict | None,
     informe_payloads: Sequence[dict] | None,
-    workspace_id: str,
     as_of_date: date | None,
+    baseline_payload: dict | None,
 ):
     """Resolve cascade D9 + chama service puro (boundary backend/ adapter)."""
+    workspace_id = identities[0].workspace_id
     return calculate_for_workspace(
         db,
         identities=identities,
         overrides=_load_overrides(db, workspace_id),
-        bens_direitos_by_property=_bens_direitos_by_property(identities, irpf_payload),
+        valor_by_property=_valor_by_property(identities, baseline_payload),
         sources=_build_cascade_sources(irpf_payload, e5_data, informe_payloads, identities),
         patrimonio_liquido=_to_decimal(_get_path(e5_data, "patrimonio", "liquido")),
         as_of_date=as_of_date or date.today(),
@@ -78,41 +80,35 @@ def _load_overrides(db: Session, workspace_id: str) -> dict[str, WorkspaceProper
     return {o.property_id: o for o in db.execute(stmt).scalars().all()}
 
 
-def _bens_direitos_by_property(
+def _valor_by_property(
     identities: list[PropertyIdentity],
-    irpf_payload: dict | None,
+    baseline_payload: dict | None,
 ) -> dict[str, Decimal]:
-    """Soma valor IRPF por property_id usando matching (titular_key, codigo_rfb, endereco)."""
-    if not irpf_payload:
-        return {ident.id: _ZERO for ident in identities}
+    """Valor-por-imóvel do baseline E1.5c consolidado (join por property_id estável).
 
-    bens = irpf_payload.get("bens_direitos") or []
+    Lê `imoveis_consolidados[].valores_31_12` — já deduplicado (ADR-246, sem
+    double-count de comunhão) e chaveado por ano-base (ADR-274). É a mesma fonte
+    que gerou os PropertyIdentity via property_identity_enricher, então o
+    `property_id` casa por construção — sem re-matching frágil por codigo_rfb/role.
+    """
     by_property: dict[str, Decimal] = {ident.id: _ZERO for ident in identities}
-    for bem in bens:
-        codigo = (bem.get("codigo_rfb") or "").strip()
-        descricao = (bem.get("descricao") or "").strip().lower()
-        valor = _to_decimal(bem.get("valor_brl"))
-        membro = (bem.get("membro_key") or "").strip()
-        match = _match_identity(identities, codigo=codigo, descricao=descricao, membro=membro)
-        if match is not None:
-            by_property[match.id] += valor
+    if not baseline_payload:
+        return by_property
+    known = set(by_property)
+    for imovel in baseline_payload.get("imoveis_consolidados") or []:
+        pid = imovel.get("property_id")
+        if pid in known:
+            by_property[pid] += _imovel_valor_ano_base(imovel)
     return by_property
 
 
-def _match_identity(
-    identities: list[PropertyIdentity], *, codigo: str, descricao: str, membro: str
-) -> PropertyIdentity | None:
-    """Match por (codigo_rfb, titular_key) + substring endereco_canonical (ADR-215 P2 espelho)."""
-    cands = [
-        i for i in identities if i.codigo_rfb == codigo and (not membro or i.titular_key == membro)
-    ]
-    if len(cands) <= 1:
-        return cands[0] if cands else None
-    for ident in cands:
-        endereco = (ident.endereco_canonical or "").lower()
-        if endereco and (endereco in descricao or descricao in endereco):
-            return ident
-    return cands[0]
+def _imovel_valor_ano_base(imovel: dict) -> Decimal:
+    """Valor 31/12 do imóvel no ano-base (maior ano numérico em `valores_31_12`)."""
+    vals = imovel.get("valores_31_12") or {}
+    years = [y for y in vals if str(y).isdigit()]
+    if not years:
+        return _ZERO
+    return _to_decimal(vals[max(years, key=int)])
 
 
 def _extract_irpf_entries(irpf_payload: dict | None) -> tuple[IRPFAluguelEntry, ...]:
