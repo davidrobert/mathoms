@@ -44,19 +44,25 @@ Para cada blocker, decisão textual + file:line + consequências no respectivo A
 - **B2** (ADR-281) — `rule_ref` via dict literal eager + gate `check_lineage_refs`;
   ruling explícito [[ADR-111]] + entrada em `STATELESS_AUDIT.md §2`.
 - **B3** (ADR-278) — K4 inclui `moeda`+`direction` com `hash_version`.
-- **B4** (ADR-278) — auditoria de produtores E2; `natural_key` 2-passos.
+- **B4** (ADR-278) — **estratégia** de migração `natural_key` (2-passos
+  nullable→obrigatório); a **auditoria de produtores E2 roda em F1**
+  (`dl-f1-natural-key`), não no F0. O F0 decide o *como*, não executa o inventário.
 - **B5** (ADR-278) — inventário de leitores de `valor`; gate de paridade decimal.
-- **B6** (ADR-279) — retenção `artifact_lineage_edge` (DELETE cross-run).
+- **B6** (ADR-279) — retenção `artifact_lineage_edge`: `DELETE` cross-run, janela
+  = último run por workspace (N=1).
 - **B7** (ADR-278) — `SaldoContinuityValidator` filtra por `SourceRef.kind`.
 - **B8** (ADR-279) — `member_hashes` ancorado ao `run_id`; sobreviventes pós-dedup.
+- **[[ADR-280]]** — critério de corte Extract \| Transform fechado (gate F0 por
+  critério, não por blocker numerado).
 
 Plus detalhes de migration (CONCURRENTLY fora de transação Alembic; ordem
 schema→strict do W6-T01).
 
 ## Critério de aceite (G0)
 
-- 4 ADR `Proposto` mergeados em `main` com B1–B8 cada um com resolução textual +
-  file:line + consequências.
+- 4 ADR `Proposto` mergeados em `main`; B1–B3, B5–B8 com resolução textual +
+  file:line + consequências; **B4 com estratégia de migração decidida** (execução
+  validada em F1); [[ADR-280]] (critério de corte) fechado.
 - Emenda B1 em [[ADR-146]] + supersedure bidirecional [[ADR-045]]↔[[ADR-281]].
 - Gates de doc verdes (`validate_frontmatter`, `check_doc_links`,
   `check_adr_anchors`, `check_doc_filename_id`, `build_doc_index --check`).

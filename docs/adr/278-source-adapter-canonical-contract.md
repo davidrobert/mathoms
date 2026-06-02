@@ -12,6 +12,7 @@ relates_to:
   - "[[ADR-146]]"
   - "[[ADR-226]]"
   - "[[ADR-241]]"
+  - "[[ADR-271]]"
 supersedes: []
 superseded_by: []
 aliases: ["ADR 278", "SourceAdapter", "SourceRef"]

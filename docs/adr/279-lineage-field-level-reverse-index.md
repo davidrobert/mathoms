@@ -35,7 +35,7 @@ tags:
 - Bloco `_lineage` inline: `{value (Decimal string), label, transform, rule_ref, edge_type, signals, member_hashes, inputs}`. Invariantes: zero timestamp/UUID, `inputs` sorted, `value` espelhado (gate em cents int), folha = `data_source_id`/`SourceRef[]`.
 - `LineageResolver` read-only, stateless ([[ADR-111]]) — nós `dangling`/`no_lineage`, nunca exceção.
 - Tabela `artifact_lineage_edge` derivada/rebuildável via stage terminal `materialize_lineage`; `rule_ref` como coluna TEXT; índices `(workspace_id, rule_ref)` e `(workspace_id, source_document_id)`.
-- **B6:** `materialize_lineage` faz `DELETE` cross-run (retenção — [[ADR-241]] matou o GC implícito).
+- **B6:** `materialize_lineage` faz `DELETE` cross-run — janela de retenção = **último run por workspace (N=1)** ([[ADR-241]] matou o GC implícito de `pipeline_artifacts`; edges field-level multiplicam ~10-100×, e a tabela é rebuildável). Diff de regressão (`lineage_diff`) usa o `_lineage` inline, não a edge table — então N=1 não prejudica debug histórico. Revisar N se a query de impacto reversa precisar de mais runs.
 - **B8:** `member_hashes` = K4 sobreviventes pós-dedup, resolver ancora lookup ao `run_id` do agregado (não most-recent workspace-scoped). Gate `check_lineage_sum`.
 - `_lineage` declarado em `e5_analysis.schema.json` antes/junto do flip→strict (PLATFORM_REVIEW W6-T01).
 

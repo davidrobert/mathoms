@@ -3,16 +3,16 @@ id: MOC-sprint-a23
 type: moc
 title: "Sprint A23 — Data Lineage backbone (walking skeleton)"
 aliases: ["A23", "Sprint A23"]
-sprint_status: candidate
+sprint_status: current
 date: "2026-06-02"
 theme: "data-lineage"
 ---
 
 # Sprint A23 — Data Lineage backbone (walking skeleton)
 
-> **Status:** `candidate` — criada 2026-06-02. Janela 1 do plano
-> [[PLAN-data-lineage]] (lineage fim-a-fim + fonte plugável + extração limpa).
-> Promover sobre A18/A19 é decisão do owner; registrada como candidate na fila.
+> **Status:** `current` — promovida em 2026-06-02, sucedendo [[MOC-sprint-a22]]
+> (`paused` com débito). Janela 1 do plano [[PLAN-data-lineage]] (lineage
+> fim-a-fim + fonte plugável + extração limpa).
 >
 > **Plano dono:** [[PLAN-data-lineage]] ([plan/DATA_LINEAGE/_README.md](../../plan/DATA_LINEAGE/_README.md)).
 
