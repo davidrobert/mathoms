@@ -103,7 +103,7 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 
 - Status: `draft` · Sprint atual: A23
 - Sprints envolvidas: A23
-- Lanes: 0 done · 0 in_progress · 1 open · 0 blocked
+- Lanes: 0 done · 0 in_progress · 2 open · 0 blocked
 - ADRs canônicas: [[ADR-278]], [[ADR-279]], [[ADR-280]], [[ADR-281]]
 
 ### PLAN-llm-prompts-hardening — LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting

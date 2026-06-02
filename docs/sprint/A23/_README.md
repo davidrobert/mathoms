@@ -54,12 +54,17 @@ F0(G0) ──► F1(G1) ──► F2-discovery(G2) ──► F2-slice1 ──►
 
 - **Onda 0 — Gate:** `A23.l1` (P0) — fechar a família de ADR (B1–B8). **Docs-only**,
   mergeável sem CI verde, mas gate de raciocínio antes de qualquer código.
-- **Onda 1 — Contrato aditivo (golden-safe):** `natural_key`+moeda+direction (B3/B4),
-  `data_source`+`SourceRef`, `amount` decimal (B5), `check_extract_no_domain_imports`.
-  Gate G1: goldens E3/E4/E5 verdes **sem rebaseline**.
+- **Onda 1 — Contrato aditivo (golden-safe):** começa por **`A23.l2` substrato de
+  golden** (diff tool + snapshot do view-model + invariantes de conservação; fecha
+  DE-005) **antes** de qualquer rebaseline; depois `natural_key`+moeda+direction
+  (B3/B4), `data_source`+`SourceRef`, `amount` decimal (B5),
+  `check_extract_no_domain_imports`, runbook de migrations (G-e). Gate G1: goldens
+  E3/E4/E5 **+ snapshot do view-model + invariantes** verdes **sem rebaseline**.
 - **Onda 2 — De-leak (gargalo) ∥ E5→E6:** discovery dimensionado (gate) → de-leak
-  slice1 → residual (∥). `evidencia_path` condicional-obrigatório (F4, paraleliza,
-  independe de F2/F3).
+  slice1 (com **disciplina de rebaseline**: commit isolado + manifesto justificado
+  por valor + 2º revisor; G-c) → residual (∥). `evidencia_path`
+  condicional-obrigatório (F4, paraleliza). Antes do merge: **diff de dogfood**
+  (dado real do founder, local/gitignored; G-f).
 - **Onda 3 — Backbone (walking skeleton):** `_lineage` no `patrimonio_calculator`
   + `lineage_registry` + `LineageResolver` + CLI + gates `check_lineage_refs`/
   `check_lineage_sum`. Depois os outros 3 calculadores.
