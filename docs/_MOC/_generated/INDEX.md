@@ -273,6 +273,10 @@
 | ADR-275 | adr | Decidido |  | Auditoria de acesso + política de retenção LGPD | `adr/275-auditoria-de-acesso-e-retencao-lgpd.md` |
 | ADR-276 | adr | Proposto |  | EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais no E1.5c | `adr/276-entity-dedup-policy-contract.md` |
 | ADR-277 | adr | Proposto |  | Previdência F1-O4: reconciliação da recomendação PGBL (não dedup de ativo) | `adr/277-previdencia-reconciliacao-recomendacao-pgbl.md` |
+| ADR-278 | adr | Proposto |  | SourceAdapter + SourceRef + data_source + contrato canônico E2 v3 | `adr/278-source-adapter-canonical-contract.md` |
+| ADR-279 | adr | Proposto |  | Lineage field-level inline (_lineage) + índice reverso artifact_lineage_edge | `adr/279-lineage-field-level-reverse-index.md` |
+| ADR-280 | adr | Proposto |  | Critério de corte Extract | Transform + check de pureza de extração | `adr/280-extract-transform-cut-criterion.md` |
+| ADR-281 | adr | Proposto |  | rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) | `adr/281-lineage-rule-ref-debug-substrate.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -560,6 +564,7 @@
 | A22.l3 | lane | open | A22 | Fallback needs_review atômico (LLM down → relatório não quebra) | `sprint/A22/lanes/A22-l3-fallback-needs-review-atomico.md` |
 | A22.l4 | lane | planned | A22 | Drift detection (3 sinais) + pin de model-snapshot | `sprint/A22/lanes/A22-l4-drift-detection-model-pin.md` |
 | A22.l5 | lane | open | A22 | Dedup de dívida cross-year (max(ano) + warning) + schema formal de dividas | `sprint/A22/lanes/A22-l5-dedup-divida-cross-year.md` |
+| A23.l1 | lane | open | A23 | Data Lineage F0 — fechar 4 ADR Proposto + emenda ADR-146 (B1–B8) | `sprint/A23/lanes/A23-l1-data-lineage-f0-adr-gate.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -631,6 +636,7 @@
 | MOC-sprint-a20 | moc |  |  | Sprint A20 — Docker dev↔prod parity + P0 production gates | `sprint/A20/_README.md` |
 | MOC-sprint-a21 | moc |  |  | Sprint A21 — Launch Trust: número confiável + gates de F3/LGPD abertos | `sprint/A21/_README.md` |
 | MOC-sprint-a22 | moc |  |  | Sprint A22 — Launch Trust: Parecer defensável (F3) | `sprint/A22/_README.md` |
+| MOC-sprint-a23 | moc |  |  | Sprint A23 — Data Lineage backbone (walking skeleton) | `sprint/A23/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
@@ -638,6 +644,7 @@
 | PLAN-cat-learning-loop | plan | in_progress |  | Categorization Learning Loop — promoção de override de transação para regra | `plan/CAT_LEARNING_LOOP/_README.md` |
 | PLAN-cenarios-estresse | plan | in_progress |  | Cenários de Estresse — plano canônico | `plan/CENARIOS_ESTRESSE/_README.md` |
 | PLAN-competitive-pierre | plan | draft |  | Resposta competitiva — Pierre + ChatGPT Finance (recon, MCP, chat, memories, reposicionamento) | `plan/COMPETITIVE_PIERRE/_README.md` |
+| PLAN-data-lineage | plan | draft |  | Data Lineage fim-a-fim + Fonte plugável | `plan/DATA_LINEAGE/_README.md` |
 | PLAN-i18n | plan | paused |  | Internacionalização (i18n) | `plan/I18N/_README.md` |
 | PLAN-internal-admin | plan | in_progress |  | Console interno (operadores) — IA-0 a IA-4 | `plan/INTERNAL_ADMIN/_README.md` |
 | PLAN-launch-trust | plan | in_progress |  | Launch Trust — três frentes que precisam estar verdes antes de produção | `plan/LAUNCH_TRUST/_README.md` |

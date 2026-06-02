@@ -34,6 +34,12 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 - **Plano:** [sprint/A19/_README.md](../sprint/A19/_README.md).
 
+### A23 — Data Lineage backbone (walking skeleton) (`candidate` 2026-06-02)
+
+**Janela 1 do plano [[PLAN-data-lineage]].** Ataca a confiabilidade *rastreável* do número (gênero do bug R$ 811k): backbone de lineage fim-a-fim legível por LLM, acoplado a fonte plugável (`SourceAdapter`/`SourceRef`) e extração limpa. Gate F0 abre 4 ADR `Proposto` ([[ADR-278]]–[[ADR-281]]) + emenda [[ADR-146]] (resolve B1–B8); nenhuma lane abre antes. Entrega Ondas 0–3 (skeleton patrimônio líquido); F5/F6/F7 ficam para A24. Argumento de prioridade: continuidade do tema *Launch Trust* (confiabilidade do número), não mais ingestão — promoção sobre A18/A19 é decisão do owner.
+
+- **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) · **Sprint:** [sprint/A23/_README.md](../sprint/A23/_README.md).
+
 ## Sprints pausadas
 
 Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando o owner decidir.

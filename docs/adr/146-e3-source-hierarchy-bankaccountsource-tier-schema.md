@@ -5,7 +5,7 @@ title: "E3 source hierarchy + `BankAccount.source_tier` schema"
 status: Decidido
 phase: "Sprint A7.6 · CTO sign-off 2026-04-27"
 date: "2026-04-27"
-relates_to: ["[[ADR-143]]", "[[ADR-097]]"]
+relates_to: ["[[ADR-143]]", "[[ADR-097]]", "[[ADR-278]]"]
 supersedes: []
 superseded_by: []
 aliases: ["ADR 146"]
@@ -64,3 +64,18 @@ Function que enforce a hierarchy vai para docstring em `pipeline/domain/services
 - ⚠️ Documentação da regra default fica em docstring de **uma** função (income_origin_resolver). Se a função for refatorada/extraída, o docstring deve migrar junto. Mitigação: regra documentada em ADR-146 mesmo (esta) é o índice canônico.
 - ⚠️ **Test fixture obrigatório:** dois artefatos mesmo-tier reconciliados deterministicamente entre runs (regra de tie-breaking via timestamp). Sub-task de A7.6 que migra o resolver deve incluir `tests/unit/pipeline/test_e3_source_tier_tie_breaking.py` com 2 specs: (a) tier mais alto vence ainda que extração mais antiga; (b) mesmo tier → timestamp mais recente vence.
 - ❌ `source_tier` per-account ignora granularidade temporal (banco pode ter parser melhorando ao longo do tempo). Aceito — granularidade temporal exige ADR específica futura.
+
+## Emenda (A23 — plano [[PLAN-data-lineage]], blocker B1)
+
+O tie-break original (§Regra de reconciliação, linha 45: "ties dentro do mesmo
+tier resolvem via timestamp da extração — mais recente vence") é
+**não-determinístico** entre re-extrações e contradiz o invariante "zero
+timestamp em `_lineage`" da [[ADR-279]]. Ao promover `pick_winner` a base da
+`SourcePrecedencePolicy` cross-source ([[ADR-278]]), o tie-break passa a ser
+`(tier, kind-priority, alfabético por artifact_key)` — alinhado ao survivor
+estável da [[ADR-255]]. Reusa só a **hierarquia de tier** de `pick_winner`, não
+o desempate por `extracted_at`.
+
+**Impacto:** muda o tie-break do reconciler E3 → rebaseline de goldens E3
+esperado (commit isolado). O `pick_winner` deixa de ser dead code órfão (hoje
+declarado mas ignorado pelo dedup) e passa a ser exercido pela policy.

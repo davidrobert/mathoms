@@ -5,21 +5,21 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-757 notas indexadas pelo frontmatter em `docs/`.
+764 notas indexadas pelo frontmatter em `docs/`.
 
 ## Por tipo
 
 | type | notas |
 | --- | ---: |
-| adr | 268 |
+| adr | 272 |
 | archive-index | 1 |
 | changelog-entry | 212 |
 | doc | 2 |
 | domain-rule | 11 |
-| lane | 120 |
+| lane | 121 |
 | marketing-draft | 1 |
-| moc | 15 |
-| plan | 16 |
+| moc | 16 |
+| plan | 17 |
 | runbook | 1 |
 | track | 110 |
 
@@ -28,7 +28,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | type | status | notas |
 | --- | --- | ---: |
 | adr | Decidido | 201 |
-| adr | Proposto | 63 |
+| adr | Proposto | 67 |
 | adr | Roadmap | 4 |
 | archive-index | (sem status) | 1 |
 | changelog-entry | (sem status) | 212 |
@@ -37,13 +37,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | lane | blocked | 9 |
 | lane | cancelled | 1 |
 | lane | in_progress | 9 |
-| lane | open | 10 |
+| lane | open | 11 |
 | lane | planned | 9 |
 | lane | shipped | 82 |
 | marketing-draft | draft | 1 |
-| moc | (sem status) | 15 |
+| moc | (sem status) | 16 |
 | plan | done | 1 |
-| plan | draft | 6 |
+| plan | draft | 7 |
 | plan | in_progress | 7 |
 | plan | paused | 2 |
 | runbook | ativo | 1 |
@@ -65,6 +65,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | A20 | paused |
 | A21 | done |
 | A22 | current |
+| A23 | candidate |
 | A6 | done |
 | A7 | done |
 | A8 | done |
