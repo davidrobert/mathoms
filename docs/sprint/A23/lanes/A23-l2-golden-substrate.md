@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F1 — substrato de golden (diff tool + view-model snapshot + invariantes)"
 sprint: A23
 plan: PLAN-data-lineage
-status: planned
+status: open
 priority: P0
 branch_slug: a23-l2-golden-substrate
 adrs:
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a23
-  - status/planned
+  - status/open
   - priority/p0
   - area/data-lineage
   - area/pipeline

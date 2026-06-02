@@ -4,9 +4,10 @@ type: lane
 title: "Data Lineage F0 — fechar 4 ADR Proposto + emenda ADR-146 (B1–B8)"
 sprint: A23
 plan: PLAN-data-lineage
-status: open
+status: shipped
 priority: P0
 branch_slug: a23-l1-data-lineage-f0-adr-gate
+ship_date: 2026-06-03
 adrs:
   - "[[ADR-278]]"
   - "[[ADR-279]]"
@@ -18,7 +19,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a23
-  - status/open
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/pipeline

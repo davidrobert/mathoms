@@ -23,6 +23,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - Lanes: 0 done · 1 in_progress · 0 open · 0 blocked
 - ADRs canônicas: —
 
+### PLAN-data-lineage — Data Lineage fim-a-fim + Fonte plugável
+
+- Status: `in_progress` · Sprint atual: A23
+- Sprints envolvidas: A23
+- Lanes: 1 done · 0 in_progress · 1 open · 0 blocked
+- ADRs canônicas: [[ADR-278]], [[ADR-279]], [[ADR-280]], [[ADR-281]]
+
 ### PLAN-internal-admin — Console interno (operadores) — IA-0 a IA-4
 
 - Status: `in_progress` · Sprint atual: A11
@@ -98,13 +105,6 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A11
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-183]], [[ADR-262]], [[ADR-263]], [[ADR-264]]
-
-### PLAN-data-lineage — Data Lineage fim-a-fim + Fonte plugável
-
-- Status: `draft` · Sprint atual: A23
-- Sprints envolvidas: A23
-- Lanes: 0 done · 0 in_progress · 2 open · 0 blocked
-- ADRs canônicas: [[ADR-278]], [[ADR-279]], [[ADR-280]], [[ADR-281]]
 
 ### PLAN-llm-prompts-hardening — LLM Prompts Hardening — LGPD + ADR-090 + PROMPT_VERSION + telemetria + cross-cutting
 

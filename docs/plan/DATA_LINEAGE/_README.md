@@ -2,7 +2,7 @@
 id: PLAN-data-lineage
 type: plan
 title: "Data Lineage fim-a-fim + Fonte plugável"
-status: draft
+status: in_progress
 created_at: 2026-06-02
 last_review: 2026-06-02
 sprint_origem: A23
@@ -31,8 +31,10 @@ tags:
 > Veredito: espinha sólida, sem redesenho; correções cirúrgicas no F0 ADR
 > antes de abrir lanes.
 >
-> **Status `draft` até F0 mergear** (F0 é gate; nenhuma lane F1+ abre antes de
-> B1–B8 travados). Vira `in_progress` no merge da família de ADR.
+> **Gate F0 fechado (A23.l1, 2026-06-03):** os 4 ADR ([[ADR-278]]–[[ADR-281]])
+> estão **`Decidido`** com B1–B8 resolvidos textualmente (B4 como estratégia) +
+> emenda [[ADR-146]]. Plano `in_progress`; lanes de implementação (F1+) conformam,
+> não reabrem. Próxima lane: `A23.l2` (substrato de golden, antes de F2).
 
 ## Context
 
