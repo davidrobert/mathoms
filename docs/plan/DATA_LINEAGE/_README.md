@@ -74,8 +74,8 @@ o mesmo contrato.
 ### O que já existe (reusar, não inventar)
 - **[[ADR-045]] "Data lineage via tooltip" (Decidido, F6)**: tooltip de UI com
   fonte/banco/data/método; drill-down explicitamente adiado "para o futuro".
-  **Este projeto é esse futuro** — a família de ADR estende/supersede a
-  [[ADR-045]]; o tooltip vira a ponta visível do substrato.
+  **Este projeto é esse futuro** — a [[ADR-281]] (debug substrate) estende/supersede
+  a [[ADR-045]]; o tooltip vira a ponta visível do substrato (renderer humano).
 - **K4 hash** (`compute_transaction_hash`, `pipeline/domain/services/_tx_identity.py:100`,
   [[ADR-255]]): chave natural source-independent. Hoje subproduto interno do
   dedup E3. **Promover a campo de contrato** — ⚠️ hoje usa `abs(valor)` sem
@@ -271,14 +271,20 @@ As revisões `senior-cto` + `data-engineer` convergiram independentemente.
 
 | # | Blocker | Resolução decidida | ADR |
 |---|---------|--------------------|-----|
-| **B1** | `pick_winner` desempata por `extracted_at` (timestamp) → não-determinístico | Tie-break = `(tier, kind-priority, alfabético por artifact_key)` ([[ADR-255]]); muda E3 → rebaseline + emenda [[ADR-146]] | A + 146 |
-| **B2** | `@lineage_rule` decorator = import-side-effect (banido); não cabe [[ADR-111]] (a) | **Dict literal eager** + gate `check_lineage_refs` (import real) | D |
-| **B3** | K4 usa `abs(valor)` sem `moeda`/`direction` → colisão entrada/saída e BRL/USD | Incluir `moeda`+`direction` no hash, com `natural_key.hash_version` | A |
-| **B4** | `natural_key` obrigatório não é aditivo se nem todo produtor E2 emite K4 | Auditar produtores E2; migração 2-passos nullable→obrigatório | A |
-| **B5** | Migração `valor`→`amount` incompleta | Inventário de leitores; gate `Decimal(amount)==Decimal(str(valor))`; `compute_transaction_hash` ingere `Decimal`/cents | A |
-| **B6** | `artifact_lineage_edge` sem retenção ([[ADR-241]] matou GC) | `materialize_lineage` faz `DELETE` cross-run | B |
-| **B7** | Fusão cross-kind no E3 contamina `SaldoContinuityValidator` | Validator filtra por `SourceRef.kind`; feed reconcilia linha, não saldo-âncora | A |
-| **B8** | `member_hashes` × [[ADR-241]] incremental: most-recent resolve hash errado | Resolver ancora ao `run_id`; `member_hashes` = sobreviventes pós-dedup | B |
+| **B1** | `pick_winner` desempata por `extracted_at` (timestamp) → não-determinístico | Tie-break = `(tier, kind-priority, alfabético por artifact_key)` ([[ADR-255]]); muda E3 → rebaseline + emenda [[ADR-146]] | [[ADR-278]] + [[ADR-146]] |
+| **B2** | `@lineage_rule` decorator = import-side-effect (banido); não cabe [[ADR-111]] (a) | **Dict literal eager** + gate `check_lineage_refs` (import real) | [[ADR-281]] |
+| **B3** | K4 usa `abs(valor)` sem `moeda`/`direction` → colisão entrada/saída e BRL/USD | Incluir `moeda`+`direction` no hash, com `natural_key.hash_version` | [[ADR-278]] |
+| **B4** | `natural_key` obrigatório não é aditivo se nem todo produtor E2 emite K4 | **Estratégia** decidida no F0 (2-passos nullable→obrigatório); inventário/execução validam em F1 (`dl-f1-natural-key`) | [[ADR-278]] |
+| **B5** | Migração `valor`→`amount` incompleta | Inventário de leitores; gate `Decimal(amount)==Decimal(str(valor))`; `compute_transaction_hash` ingere `Decimal`/cents | [[ADR-278]] |
+| **B6** | `artifact_lineage_edge` sem retenção ([[ADR-241]] matou GC) | `materialize_lineage` faz `DELETE` cross-run; janela = **último run por workspace (N=1)** | [[ADR-279]] |
+| **B7** | Fusão cross-kind no E3 contamina `SaldoContinuityValidator` | Validator filtra por `SourceRef.kind`; feed reconcilia linha, não saldo-âncora | [[ADR-278]] |
+| **B8** | `member_hashes` × [[ADR-241]] incremental: most-recent resolve hash errado | Resolver ancora ao `run_id`; `member_hashes` = sobreviventes pós-dedup | [[ADR-279]] |
+
+> **[[ADR-280]]** (critério de corte Extract \| Transform) também é gate F0, mas
+> entra por **critério de pureza**, não por blocker numerado — não há `B` que ela
+> "resolva"; ela trava o de-leak da F2. **B4** fecha no F0 só como *estratégia*; o
+> inventário de produtores E2 roda em F1 (por isso a aditividade de G1 é
+> condicional — ver Verificação F1).
 
 Detalhes de migration: `CREATE INDEX CONCURRENTLY` exige `autocommit_block`/
 `postgresql_concurrently=True` (fora de transação Alembic); `_lineage` declarado
@@ -299,7 +305,7 @@ F0(G0) ──► F1(G1) ──► F2-discovery(G2) ──► F2-slice1 ──►
 
 | Onda | Lane | P | Gate |
 |------|------|---|------|
-| **0 — Gate** | `A23.l1` F0 — família 4 ADR `Proposto` (A/B/C/D) + emenda [[ADR-146]] (B1). Resolve B1–B8 | P0 | **G0:** 4 ADR mergeados com B1–B8 resolvidos textualmente |
+| **0 — Gate** | `A23.l1` F0 — 4 ADR `Proposto` ([[ADR-278]]/[[ADR-279]]/[[ADR-280]]/[[ADR-281]]) + emenda [[ADR-146]]. Resolve B1–B3,B5–B8 textualmente; B4 como estratégia (executa em F1) | P0 | **G0:** 4 ADR mergeados; B1–B3,B5–B8 com decisão textual + file:line; B4 com estratégia de migração; [[ADR-280]] (critério de corte) fechado |
 | **1 — Contrato aditivo** | `dl-f1-natural-key` (K4+moeda+direction+hash_version, B3/B4) · `dl-f1-data-source` (tabela+coluna+SourceRef) · `dl-f1-amount-decimal` (B5) · `dl-f1-extract-check` | P0/P1 | **G1:** goldens E3/E4/E5 **verdes sem rebaseline** (aditividade) |
 | **2 — De-leak ∥ E5→E6** | `dl-f2-discovery` (gate, blast radius numérico) · `dl-f2-deleak-slice1` · `dl-f2-deleak-residual` (∥) · `dl-f4-evidencia-path` (∥, independe de F2/F3) | P0/P1 | **G2:** discovery fechado; slice1 rebaselineado verde |
 | **3 — Backbone (skeleton)** | `dl-f3-skeleton-patrimonio` (walking skeleton) · `dl-f3-skeleton-resto` (reserva/despesa/total investido) | P0/P1 | **G3:** ver abaixo |

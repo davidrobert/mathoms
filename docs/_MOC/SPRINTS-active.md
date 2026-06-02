@@ -12,13 +12,13 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint atual
 
-### A22 — Launch Trust: Parecer defensável (F3) (`current` 2026-05-31)
+### A23 — Data Lineage backbone (walking skeleton) (`current` 2026-06-02)
 
-**Promovida em 2026-05-31, sucedendo A21 (`done`).** Segunda janela do plano [[PLAN-launch-trust]] — fecha o **núcleo da Frente 3** (Parecer defensável): eval em CI com 24 goldens + 7 red lines hard-block (KR7), validação em 3 camadas, fallback `needs_review` atômico (KR8), drift detection (Should). Em paralelo, a lane F1-O3 fecha a dívida cross-year sobre o contrato `EntityDedup` de A21.l3. Restrição da A21 mantida: **zero passo humano, zero deploy**. Deploy GHCR + off-site R2 permanecem owner-gated ([[ADR-228]] G2/G3), fora da janela. 5 lanes em 3 trilhas; gate interno `l1` (goldens) antes de `l2`/`l4`.
+**Promovida em 2026-06-02, sucedendo A22 (`paused`).** Janela 1 do plano [[PLAN-data-lineage]] — ataca a confiabilidade *rastreável* do número (gênero do bug R$ 811k): backbone de lineage fim-a-fim legível por LLM, acoplado a fonte plugável (`SourceAdapter`/`SourceRef`) e extração limpa. **Gate F0** abre 4 ADR `Proposto` ([[ADR-278]]–[[ADR-281]]) + emenda [[ADR-146]] (resolve B1–B8); **nenhuma lane de código abre antes**. Entrega Ondas 0–3 (skeleton patrimônio líquido); F5/F6/F7 ficam para A24.
 
-- **Plano dono:** [plan/LAUNCH_TRUST/_README.md](../plan/LAUNCH_TRUST/_README.md).
-- **Sprint:** [sprint/A22/_README.md](../sprint/A22/_README.md).
-- **ADR Proposto antes do PR:** l2 (7 red lines = invariante + boundary schema), l5 (schema formal de `dividas`).
+- **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md).
+- **Sprint:** [sprint/A23/_README.md](../sprint/A23/_README.md).
+- **Entrada:** lane `A23.l1` (gate F0) — fechar as 4 ADR resolvendo B1–B8.
 
 ## Sprint candidate (próxima)
 
@@ -34,15 +34,17 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 - **Plano:** [sprint/A19/_README.md](../sprint/A19/_README.md).
 
-### A23 — Data Lineage backbone (walking skeleton) (`candidate` 2026-06-02)
-
-**Janela 1 do plano [[PLAN-data-lineage]].** Ataca a confiabilidade *rastreável* do número (gênero do bug R$ 811k): backbone de lineage fim-a-fim legível por LLM, acoplado a fonte plugável (`SourceAdapter`/`SourceRef`) e extração limpa. Gate F0 abre 4 ADR `Proposto` ([[ADR-278]]–[[ADR-281]]) + emenda [[ADR-146]] (resolve B1–B8); nenhuma lane abre antes. Entrega Ondas 0–3 (skeleton patrimônio líquido); F5/F6/F7 ficam para A24. Argumento de prioridade: continuidade do tema *Launch Trust* (confiabilidade do número), não mais ingestão — promoção sobre A18/A19 é decisão do owner.
-
-- **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) · **Sprint:** [sprint/A23/_README.md](../sprint/A23/_README.md).
-
 ## Sprints pausadas
 
 Sprints com escopo aberto cujo trabalho foi suspenso. Retomada não-bloqueada: lanes ready continuam ready, frontmatter volta a `current`/`candidate` quando o owner decidir.
+
+### A22 — Launch Trust: Parecer defensável (F3) (`paused` 2026-06-02)
+
+**Suspensa em 2026-06-02 em favor de A23 (Data Lineage)** — re-priorização do owner (transição `current → paused`, [[ADR-234]]). Débito conhecido: 5 lanes abertas (`l1`/`l3`/`l5` open, `l2`/`l4` planned), **nenhuma shipped**. Fecha o núcleo da Frente 3 (Parecer defensável): eval em CI com 24 goldens + 7 red lines hard-block (KR7), validação em 3 camadas, fallback `needs_review` atômico (KR8). Restrição mantida: zero passo humano, zero deploy.
+
+- **Plano dono:** [plan/LAUNCH_TRUST/_README.md](../plan/LAUNCH_TRUST/_README.md) · **Sprint:** [sprint/A22/_README.md](../sprint/A22/_README.md).
+- **ADR Proposto antes do PR (ao retomar):** l2 (7 red lines), l5 (schema formal de `dividas`).
+- **Retomada:** flip `paused → current` quando o owner decidir retomar F3.
 
 ### A20 — Docker dev↔prod parity + P0 production gates (`paused` 2026-05-29)
 

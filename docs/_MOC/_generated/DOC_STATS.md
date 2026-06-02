@@ -64,8 +64,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | A19 | candidate |
 | A20 | paused |
 | A21 | done |
-| A22 | current |
-| A23 | candidate |
+| A22 | paused |
+| A23 | current |
 | A6 | done |
 | A7 | done |
 | A8 | done |

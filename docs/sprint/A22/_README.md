@@ -3,20 +3,25 @@ id: MOC-sprint-a22
 type: moc
 title: "Sprint A22 — Launch Trust: Parecer defensável (F3)"
 aliases: ["A22", "Sprint A22"]
-sprint_status: current
+sprint_status: paused
 date: "2026-05-31"
 theme: "parecer-defensavel"
 ---
 
 # Sprint A22 — Launch Trust: Parecer defensável (F3)
 
-> **Status:** `current` — promovida em 2026-05-31, sucedendo [[MOC-sprint-a21]]
-> (`done`, 9/9 lanes). Segunda janela de execução do plano [[PLAN-launch-trust]].
+> **Status:** `paused` — suspensa em 2026-06-02 (transição `current → paused`,
+> [[ADR-234]]) em favor de [[MOC-sprint-a23]] (Data Lineage), por re-priorização
+> do owner. Débito conhecido: 5 lanes abertas (`l1`/`l3`/`l5` open, `l2`/`l4`
+> planned), nenhuma shipped. Segunda janela de execução do plano
+> [[PLAN-launch-trust]].
 >
 > **Plano dono:** [[PLAN-launch-trust]] ([plan/LAUNCH_TRUST/_README.md](../../plan/LAUNCH_TRUST/_README.md)).
 > A21 abriu os dois gates de F3 (F1-O0 verde + defesa de injeção [[ADR-175]] em
 > `main`); A22 fecha o **núcleo de F3** — a malha de eval + guardrails que torna
 > o Parecer do Planejador defensável diante de um cliente pagante.
+>
+> **Retomada:** flip `paused → current` quando o owner decidir retomar F3.
 
 ## Resumo
 
