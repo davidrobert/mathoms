@@ -286,7 +286,9 @@ mistura doc + código, a regra normal volta a valer.
   legado↔novo (Caminho A vs Caminho B) foram descontinuados em A6c.3 quando
   Caminho A foi removido. Re-construção de baselines snapshot é débito
   rastreado em [docs/plan/PLATFORM_REVIEW/_README.md](docs/plan/PLATFORM_REVIEW/_README.md)
-  §W6-T01 (DE-005).
+  §W6-T01 (DE-005) — **em fechamento** pela lane `dl-f1-golden-substrate`
+  (`docs/sprint/A23/lanes/A23-l2-golden-substrate.md`): `dev/golden_diff.py` +
+  snapshot do view-model + invariantes de conservação.
 - Endpoint JSON novo → teste + rodar `make update-openapi-snapshot`
   (ADR-109).
 - **Saúde do test suite (ADR-210)** — pre-commit roda `dev/check_test_health.py`

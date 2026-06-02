@@ -306,8 +306,8 @@ F0(G0) ──► F1(G1) ──► F2-discovery(G2) ──► F2-slice1 ──►
 | Onda | Lane | P | Gate |
 |------|------|---|------|
 | **0 — Gate** | `A23.l1` F0 — 4 ADR `Proposto` ([[ADR-278]]/[[ADR-279]]/[[ADR-280]]/[[ADR-281]]) + emenda [[ADR-146]]. Resolve B1–B3,B5–B8 textualmente; B4 como estratégia (executa em F1) | P0 | **G0:** 4 ADR mergeados; B1–B3,B5–B8 com decisão textual + file:line; B4 com estratégia de migração; [[ADR-280]] (critério de corte) fechado |
-| **1 — Contrato aditivo** | `dl-f1-natural-key` (K4+moeda+direction+hash_version, B3/B4) · `dl-f1-data-source` (tabela+coluna+SourceRef) · `dl-f1-amount-decimal` (B5) · `dl-f1-extract-check` | P0/P1 | **G1:** goldens E3/E4/E5 **verdes sem rebaseline** (aditividade) |
-| **2 — De-leak ∥ E5→E6** | `dl-f2-discovery` (gate, blast radius numérico) · `dl-f2-deleak-slice1` · `dl-f2-deleak-residual` (∥) · `dl-f4-evidencia-path` (∥, independe de F2/F3) | P0/P1 | **G2:** discovery fechado; slice1 rebaselineado verde |
+| **1 — Contrato aditivo + substrato de golden** | **`dl-f1-golden-substrate`** (P0 — `dev/golden_diff.py` valor-a-valor cents int + snapshot do view-model de `/reports/[id]/data` + invariantes de conservação; **fecha DE-005**; ANTES de F2 tocar golden) · `dl-f1-natural-key` (K4+moeda+direction+hash_version, B3/B4) · `dl-f1-data-source` (tabela+coluna+SourceRef) · `dl-f1-amount-decimal` (B5) · `dl-f1-extract-check` · `dl-f1-migration-runbook` (G-e) | P0/P1 | **G1:** goldens E3/E4/E5 **+ snapshot do view-model + invariantes de conservação** verdes **sem rebaseline** (aditividade) |
+| **2 — De-leak ∥ E5→E6** | `dl-f2-discovery` (gate, blast radius numérico) · `dl-f2-deleak-slice1` (+ **disciplina de rebaseline**: commit isolado + manifesto justificado + 2º revisor) · `dl-f2-deleak-residual` (∥) · `dl-f4-evidencia-path` (∥, independe de F2/F3) | P0/P1 | **G2:** discovery fechado; slice1 rebaselineado verde **com manifesto justificado por valor**; diff de dogfood (dado real, local) sem surpresa |
 | **3 — Backbone (skeleton)** | `dl-f3-skeleton-patrimonio` (walking skeleton) · `dl-f3-skeleton-resto` (reserva/despesa/total investido) | P0/P1 | **G3:** ver abaixo |
 | **4 — Fast-follow** | `dl-f5-reverso` · `dl-f6-produto-n1n2` · `dl-f7-debug-llm` | P1 | pós-G3 |
 
@@ -336,18 +336,53 @@ KR mensurável na 1ª janela: **KR2 parcial (1/6 — patrimônio líquido)** + p
 
 ---
 
+## Guard-rails de regressão
+
+Consolidado da revisão multi-agente (`senior-cto` + `data-engineer` + `product-designer`
++ `sre-devops` + `product-manager`, 2026-06-03). **Reframe central:** o eixo é
+**número vs. pixel**, não "quanto guard-rail". Um snapshot prova `novo ≠ velho`,
+nunca `novo == correto` — quando se rebaselina de propósito (F2/F3), o golden vira
+tautologia. Daí: **(a)** o número se protege com snapshot de *valor* (cents int)
++ invariantes de conservação que sobrevivem ao rebaseline; **(b)** o pixel é
+secundário e flaky — visual snapshot **não** é gate de F2/F3 (não pega R$ 1.200.000
+→ R$ 1.200.100, subpixel), só entra na F6 (UI nova).
+
+| # | Guard-rail | P | Onde |
+|---|---|---|---|
+| **G-a** | Lane `dl-f1-golden-substrate`: `dev/golden_diff.py` (valor-a-valor, cents int, classifica `unchanged\|moved\|value_delta\|new\|removed`, comenta no PR) + snapshot do **view-model** de `/reports/[id]/data` (sintético, determinístico) + asserção de completude `monetary_fields ⊆ snapshot`. **Fecha DE-005.** | P0 | Onda 1, ANTES de F2 |
+| **G-b** | Invariantes de conservação por balde (`patrimônio == Σ7categorias − dívidas`, `fluxo == Σreceitas − Σdespesas`, + `check_lineage_sum`) — a "segunda testemunha" que quebra sozinha se o rebaseline cimentar valor errado. | P0 | estende `test_e5_golden_execution` |
+| **G-c** | Disciplina de rebaseline: `check_golden_rebaseline_isolation.py` (golden + código de produção no mesmo commit → falha) + manifesto justificando cada `value_delta` (file:line + ADR) + label `golden-rebaseline` + 2º revisor/CODEOWNERS. Goodhart-safe (justifica *por valor*). | P0 | critério de `dl-f2-deleak-slice1` + PR template |
+| **G-d** | Snapshot textual de número no render (Vitest, todo PR): ~6 KPIs hero + 6 agregados KR2 com assertion de valor formatado pt-BR (pega "certo no pipeline, errado na tela"). | P0 | F3/F6 |
+| **G-e** | Runbook `data_lineage_migrations.md` (4 migrations: `data_source`, `data_source_id`, `artifact_lineage_edge`, 2-fases `amount`/`natural_key`) com janela PITR + rollback por fase + asserção `CONCURRENTLY`/`autocommit_block` no `test_alembic_guardrails`. | P0 | F1 |
+| **G-f** | Processo de dogfood: diff de números do relatório do workspace **real** do founder antes/depois de PRs F2/F3 — **local/gitignored** (PII real fora do git/CI). Step no SMOKE_TEST_HUMAN, não pytest. | P1 (processo) | Sprint goal A23 |
+| **G-g** | Gate E2E condicional por path: filtro `lineage` no `changes` job; re-armar visual + `@critical` só em `report OR lineage` (emenda [[ADR-210]]); `--retries=2`; informativo-até-estável; **canary pós-merge** (nightly) com visual-full + dogfood golden. | P1 | CI |
+| **G-h** | **Visual snapshot NÃO é gate de F2/F3** (ferramenta errada p/ número, flaky em dogfood). Reusar visual só na F6 (UI nova: selo N1/popover N2) com **máscara do selo** (`data-mask-snapshot`) + snapshot isolado do affordance + variante **flag-ON** (não só flag-off). | — (corte + F6) | F6/A24 |
+
+**PR-gate (barato, sempre) ≠ canary pós-merge (caro):** G-a/G-b/G-d e os gates
+de cents int rodam em PR; G-g (visual-full + dogfood golden) roda no canary
+nightly porque é onde o relatório end-to-end regride sem o gate barato perceber.
+
+---
+
 ## Verificação (por fase)
-- **F1**: golden de paridade K4 — (a) 2 shapes de fonte → mesmo hash, (b) float↔decimal
+- **F1**: **`dl-f1-golden-substrate` entregue ANTES das demais lanes da onda** —
+  `golden_diff` + snapshot do view-model + invariantes de conservação (G-a/G-b);
+  golden de paridade K4 — (a) 2 shapes de fonte → mesmo hash, (b) float↔decimal
   de borda (`0.575`) → mesmo hash, (c) entrada R$100 ≠ saída R$100 ≠ USD100 (B3);
   gate `Decimal(amount)==Decimal(str(valor))` (B5); migration dry-run com volume
-  de prod (`CREATE INDEX CONCURRENTLY` fora de transação); `tests/test_e{3,4,5}_golden_execution.py`
+  de prod (`CREATE INDEX CONCURRENTLY` fora de transação) + **runbook G-e**;
+  `tests/test_e{3,4,5}_golden_execution.py` **+ snapshot do view-model + invariantes**
   **verdes sem re-baseline** (só vale se `natural_key` entrar nullable onde produtor
   não emite K4, B4).
-- **F2**: rebaseline E2/E3 em commit separado; discovery de consumidores com blast
-  radius numérico antes de mover.
+- **F2**: rebaseline E2/E3 em commit separado **via `golden_diff` + manifesto
+  justificado por valor + label `golden-rebaseline` + 2º revisor** (G-c;
+  `check_golden_rebaseline_isolation` falha se golden + código no mesmo commit);
+  discovery de consumidores com blast radius numérico antes de mover; **diff de
+  dogfood (dado real, local/gitignored) sem surpresa antes do merge** (G-f).
 - **F3**: gate `_lineage.value == artifact[field]` em cents int; `check_lineage_sum`
   incl. caso incremental (B8) + tx colapsada por dedup; mesmo run 2× → `_lineage`
-  byte-idêntico; CLI resolve patrimônio líquido → fonte.
+  byte-idêntico **(estendido ao snapshot do view-model)**; snapshot textual dos
+  KPIs/agregados no render (G-d); CLI resolve patrimônio líquido → fonte.
 - **Q1** (quando houver feed): golden mesma tx PDF+feed idênticos → 1 linha,
   `SourceRef[]` com 2 origens; divergentes ≥ R$ 10k → sobrevivente mantém valor do
   extrato oficial + `signals.source_divergence`; golden feed+extrato mesma conta →
@@ -355,7 +390,15 @@ KR mensurável na 1ª janela: **KR2 parcial (1/6 — patrimônio líquido)** + p
 - **F4**: golden estrutural ≥3 negative cases; tokens +<5%; `check_planner_manifest_coverage`.
 - **F5**: query reversa "números que dependem da fonte X"; `reback_lineage`
   reconstrói cadeia P0; teste de retenção (2 runs não acumulam edges).
-- **F6**: flag off ⇒ relatório === atual; teste de confiança 5s dogfood; copy gate; a11y.
+- **F6**: flag off ⇒ relatório === atual **E flag-ON === flag-off exceto máscara do
+  selo** (G-h — cobre o estado que o cliente vê, não só o isolamento); selo N1 sob
+  `data-mask-snapshot` + snapshot **isolado** do affordance (selo não altera
+  baseline/line-height; popover não estoura o card; light+dark); teste de confiança
+  5s dogfood (roteiro: dogfooder responde "de onde veio?" em 1 frase sem abrir nada
+  técnico); copy gate (4 verbos + zero jargão de pipeline, COPY_GUIDELINES §6.3);
+  a11y (aria-label sem jargão, teclado, `Escape`, foco retorna, `prefers-reduced-motion`,
+  badge needs_review forma+texto+`--semantic-warning-*`); mobile: N2 desktop-first,
+  `<md` degrada para N3 drawer.
 - **F7**: `check_lineage_refs` (ref quebrado → falha); golden de `lineage_diff`;
   eval de injeção verde (`localization_accuracy@node ≥85%`).
 
