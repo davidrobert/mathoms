@@ -156,6 +156,41 @@ describe("RealEstateYieldCard", () => {
     expect(screen.getByText(/Sem dados de aluguel suficientes/)).toBeInTheDocument();
   });
 
+  it("cap_rate null + excluded_properties lista os imóveis excluídos no empty state", () => {
+    const data = makeData({
+      cap_rate_liquido_pct: null,
+      excluded_properties: [
+        {
+          property_id: "p1",
+          descricao: "Casa Residência",
+          classification: "residencia_principal",
+          motivo: "Residência principal — não conta como investimento.",
+        },
+        {
+          property_id: "p2",
+          descricao: "Lote sem uso",
+          classification: "desconhecido",
+          motivo: "Classificação desconhecida — não elegível ao cálculo de yield.",
+        },
+      ],
+    });
+    render(<RealEstateYieldCard data={data} />);
+    expect(screen.getByText(/Sem dados de aluguel suficientes/)).toBeInTheDocument();
+    expect(screen.getByText(/2 imóveis foram excluídos do cálculo de yield/)).toBeInTheDocument();
+    expect(screen.getByText(/Casa Residência/)).toBeInTheDocument();
+    expect(screen.getByText(/\(residencia_principal\)/)).toBeInTheDocument();
+    expect(screen.getByText(/não conta como investimento/)).toBeInTheDocument();
+    expect(screen.getByText(/Lote sem uso/)).toBeInTheDocument();
+    expect(screen.getByText(/\(desconhecido\)/)).toBeInTheDocument();
+  });
+
+  it("cap_rate null sem excluded_properties mostra só o empty state", () => {
+    const data = makeData({ cap_rate_liquido_pct: null, excluded_properties: [] });
+    render(<RealEstateYieldCard data={data} />);
+    expect(screen.getByText(/Sem dados de aluguel suficientes/)).toBeInTheDocument();
+    expect(screen.queryByText(/excluído do cálculo de yield/)).not.toBeInTheDocument();
+  });
+
   it("footer cita a data dos benchmarks", () => {
     render(<RealEstateYieldCard data={makeData()} />);
     expect(screen.getByText(/2026-05-15/)).toBeInTheDocument();
