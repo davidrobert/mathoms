@@ -1,10 +1,16 @@
-"""Identidade determinística de transações para dedup cross-document (ADR-255)."""
+"""Identidade determinística de transações K4 versionada (ADR-255 + ADR-278 B3):
+``_hash_v1`` é o contrato congelado com o DB histórico (abs sem moeda/direction,
+float); ``_hash_v2`` é o novo (moeda+direction, cents int via Decimal, sem drift);
+``compute_natural_key`` é a API de contrato; ``compute_transaction_hash`` é shim
+deprecado de ``_hash_v1``."""
 
 from __future__ import annotations
 
 import hashlib
 import re
 import unicodedata
+from dataclasses import dataclass
+from decimal import ROUND_HALF_UP, Decimal
 
 _WHITESPACE_RE = re.compile(r"\s+")
 
@@ -97,7 +103,92 @@ def cents_int(valor: float | int) -> int:
     return int(round(float(valor) * 100))
 
 
-def compute_transaction_hash(
+def decimal_cents(valor: float | int | str | Decimal) -> int:
+    """Magnitude em centavos via ``Decimal(str(v))`` (ADR-090; rounding inline, ADR-111)."""
+    # str() (não Decimal(float)) torna a borda determinística: 0.575→58 ROUND_HALF_UP,
+    # corrige o int(round(0.575*100))==57 do cents_int legado.
+    dec = valor if isinstance(valor, Decimal) else Decimal(str(valor))
+    return int(abs(dec).scaleb(2).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def _infer_tipo(valor: float | int, tipo_conta: str) -> str | None:
+    # Espelho EXATO da inferência por sinal de _normalize_tipo (E4): fatura com
+    # valor<0 é crédito (estorno); fatura positivo sem tipo → None. Drift travado
+    # por test_derive_direction_matches_normalize_tipo.
+    is_fatura = (tipo_conta or "").lower().startswith("fatura")
+    if not is_fatura:
+        return "credito" if valor > 0 else "debito"
+    if valor < 0:
+        return "credito"
+    return None
+
+
+def derive_direction(*, tipo: str | None, valor: float | int, tipo_conta: str | None) -> str:
+    """``credit``/``debit`` — ``tipo`` vence (ADR-278 D2); ausente infere por sinal."""
+    # NÃO derivar do sinal cru: fatura inverte (estorno) e quebraria o dedup.
+    norm = _strip_accents(tipo).strip().lower() if tipo else _infer_tipo(valor, tipo_conta or "")
+    return "credit" if norm == "credito" else "debit"
+
+
+@dataclass(frozen=True)
+class HashInputs:
+    """Inputs normalizados do hash K4 v2 (ADR-278 D3); ``valor_cents`` é magnitude."""
+
+    data: str
+    banco: str
+    titular: str
+    tipo_conta: str
+    valor_cents: int
+    moeda: str
+    direction: str
+    descricao: str
+
+
+@dataclass(frozen=True)
+class NaturalKey:
+    """Chave natural versionada — campo de contrato E2 (ADR-278 §38)."""
+
+    hash: str
+    hash_version: int
+
+    def to_dict(self) -> dict:
+        return {"hash": self.hash, "hash_version": self.hash_version}
+
+
+# Construtor canônico de HashInputs — ponto único de mapeamento emit↔recompute (ADR-278 D3).
+def build_hash_inputs(
+    data: str | None,
+    banco: str | None,
+    titular: str | None,
+    tipo_conta: str | None,
+    valor: float | int | str | Decimal,
+    moeda: str | None,
+    descricao: str | None,
+    tipo: str | None = None,
+) -> HashInputs:
+    return HashInputs(
+        data=data or "",
+        banco=banco or "",
+        titular=titular or "",
+        tipo_conta=tipo_conta or "",
+        valor_cents=decimal_cents(valor),
+        moeda=(moeda or "").strip().upper(),
+        direction=derive_direction(tipo=tipo, valor=_coerce_signed(valor), tipo_conta=tipo_conta),
+        descricao=descricao or "",
+    )
+
+
+def _coerce_signed(valor: float | int | str | Decimal) -> float:
+    """Sinal preservado para inferência de direction (não para o cents)."""
+    if isinstance(valor, (int, float)):
+        return float(valor)
+    try:
+        return float(Decimal(str(valor)))
+    except Exception:
+        return 0.0
+
+
+def _hash_v1(
     *,
     data: str | None,
     banco: str | None,
@@ -106,7 +197,8 @@ def compute_transaction_hash(
     valor: float | int,
     descricao: str | None,
 ) -> str:
-    """sha256[:16] determinístico — chave K4 da ADR-255 (sinal em ``kind``)."""
+    # CONGELADO (ADR-278 D1): abs(valor) sem moeda/direction, ingere float (bug de
+    # arredondamento de propósito) — mudar invalida hashes gravados em pipeline_artifacts.
     parts = (
         data or "",
         normalize_banco(banco),
@@ -116,3 +208,43 @@ def compute_transaction_hash(
         normalize_descricao(descricao),
     )
     return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()[:16]
+
+
+def _hash_v2(inputs: HashInputs) -> str:
+    """Hash K4 v2 — moeda + direction discriminam; cents int (ADR-278 B3)."""
+    parts = (
+        inputs.data,
+        normalize_banco(inputs.banco),
+        normalize_titular(inputs.titular),
+        normalize_tipo_conta(inputs.tipo_conta),
+        str(inputs.valor_cents),
+        inputs.moeda,
+        inputs.direction,
+        normalize_descricao(inputs.descricao),
+    )
+    return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()[:16]
+
+
+def compute_natural_key(inputs: HashInputs) -> NaturalKey:
+    """API de contrato — sempre v2 (moeda+direction). Puro/stateless (ADR-111)."""
+    return NaturalKey(hash=_hash_v2(inputs), hash_version=2)
+
+
+def compute_transaction_hash(
+    *,
+    data: str | None,
+    banco: str | None,
+    titular: str | None,
+    tipo_conta: str | None,
+    valor: float | int,
+    descricao: str | None,
+) -> str:
+    """DEPRECATED (ADR-278 B4): shim de ``_hash_v1`` no recompute E4; remover no passo 2."""
+    return _hash_v1(
+        data=data,
+        banco=banco,
+        titular=titular,
+        tipo_conta=tipo_conta,
+        valor=valor,
+        descricao=descricao,
+    )

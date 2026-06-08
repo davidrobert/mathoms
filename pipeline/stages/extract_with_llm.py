@@ -9,6 +9,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from pipeline.domain.services.e2_natural_key import stamp_natural_key
+
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
@@ -252,6 +254,15 @@ def _process_one_e2_llm_document(
 
         safe_stem = _e2_extract_stem(doc).replace(" ", "_")[:80]
         progress.emit(doc.name, "persisting")
+        # ADR-278 B4: estampa K4 natural_key + direction (vocabulário LLM:
+        # instituicao/membro/tipo_documento resolvido por fallback na costura).
+        nk_stats = stamp_natural_key(e2_json)
+        logger.info(
+            "E2-llm: natural_key %d/%d para %s",
+            nk_stats.with_key,
+            nk_stats.tx_total,
+            doc.name,
+        )
         # Validação JSON-schema é executada pelo hook pós-write em
         # DBArtifactStore.write (ADR-212 PR3 — SCHEMA_BY_STAGE inclui
         # "E2-llm" → "e2_extract.schema.json").

@@ -351,11 +351,16 @@ def run_with_store(
                 items_total=total_files,
                 phase="persisting",
             )
+            # ADR-278 B4: estampa K4 natural_key + direction antes de persistir.
+            from pipeline.domain.services.e2_natural_key import stamp_natural_key
+
+            nk_stats = stamp_natural_key(result)
             store.write(stage, key, result)
             log(
                 LOG_UNIFIED,
                 "INFO" if n_tx > 0 else "WARN",
-                f"  → store.write({stage}, {key}, {n_tx} tx)",
+                f"  → store.write({stage}, {key}, {n_tx} tx) "
+                f"[natural_key {nk_stats.with_key}/{nk_stats.tx_total}]",
             )
 
         except Exception as e:

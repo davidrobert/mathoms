@@ -29,7 +29,17 @@
         "properties": {
           "data": {"type": "string"},
           "descricao": {"type": "string"},
-          "valor": {"type": "number"}
+          "valor": {"type": "number"},
+          "direction": {"type": ["string", "null"], "enum": ["debit", "credit", null]},
+          "natural_key": {
+            "type": ["object", "null"],
+            "required": ["hash", "hash_version"],
+            "properties": {
+              "hash": {"type": "string", "minLength": 1},
+              "hash_version": {"type": "integer", "enum": [1, 2]}
+            },
+            "additionalProperties": false
+          }
         }
       }
     },
