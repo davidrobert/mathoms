@@ -1,21 +1,22 @@
-"""Renderer do CHANGELOG_RECENT.md — entries dos últimos 14 dias agregados por dia (F5.C)."""
+"""Renderer do CHANGELOG_RECENT.md — janela de 14 dias desde a última entrega (F5.C)."""
 
 # Mantém build_doc_index.py <500 linhas (guideline CLAUDE.md). Recebe notas via
 # Protocol estrutural (ChangelogEntryLike) — não importa Note do orquestrador, evita ciclo.
 # Spec: docs/plan/DOC_REORG/_README.md §3.4 (frontmatter) + prompt F5.C (formato render).
 #
 # Determinismo: dias em ordem decrescente (mais recente primeiro), entries dentro
-# do dia ordenadas por id ascendente. `today_fn` é injetável para smoke tests.
+# do dia ordenadas por id ascendente. A janela ancora na data do entry mais
+# recente, não no relógio — ver _entry_cutoff().
 
 from __future__ import annotations
 
 import os
 import re
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Protocol
 
-_CHANGELOG_RECENT_TITLE = "CHANGELOG_RECENT — últimos 14 dias"
+_CHANGELOG_RECENT_TITLE = "CHANGELOG_RECENT — entregas recentes"
 _CHANGELOG_RECENT_FOOTER = ("---", "> Regenerar: `python3 dev/build_doc_index.py --inline`")
 _WINDOW_DAYS = 14
 _EMPTY_STUB = "_Nenhuma entrega recente registrada como changelog-entry._"
@@ -147,10 +148,13 @@ def _render_day_section(day: date, entries: list[ChangelogEntryLike]) -> list[st
     return out
 
 
-def _summary_line(pairs: list[tuple[date, ChangelogEntryLike]]) -> str:
-    """Frase 'N entries entre <data_min> e <data_max>.' a partir dos pares filtrados."""
+# Prefixo de janela desarma o leitor que assume '14 dias corridos a partir de
+# hoje' — a âncora é a última entrega registrada, não o relógio.
+def _summary_line(pairs: list[tuple[date, ChangelogEntryLike]], anchor: date) -> str:
+    """Frase de resumo: janela ancorada + 'N entries entre <data_min> e <data_max>.'."""
     days = [d for d, _ in pairs]
-    return f"{len(pairs)} entries entre {min(days).isoformat()} e {max(days).isoformat()}."
+    window = f"Janela de {_WINDOW_DAYS} dias a partir da última entrega registrada ({anchor.isoformat()})."
+    return f"{window} {len(pairs)} entries entre {min(days).isoformat()} e {max(days).isoformat()}."
 
 
 def _render_no_entries(header_fn: Callable[[str], list[str]]) -> list[str]:
@@ -161,28 +165,31 @@ def _render_no_entries(header_fn: Callable[[str], list[str]]) -> list[str]:
     return lines
 
 
-def _today_utc() -> date:
-    """Data corrente em UTC — runner CI vs. dev local (BRT) divergiam ao
-    redor da meia-noite UTC, causando drift recorrente em
-    `CHANGELOG_RECENT.md` (run [25615590101](https://github.com/davidrobert/mathoms/actions/runs/25615590101))."""
-    return datetime.now(timezone.utc).date()
+def _dated_pairs(entries: list[ChangelogEntryLike]) -> list[tuple[date, ChangelogEntryLike]]:
+    """Pares (date, entry) com data válida no frontmatter. Entries sem data são ignoradas."""
+    return [(d, e) for e in entries if (d := _entry_date(e)) is not None]
 
 
+# Janela ancora na data do entry mais recente (`max(date) - 14d`), não no relógio:
+# torna o output função pura das notas versionadas. O gate `doc-index` compara
+# commitado vs. regenerado e seria flaky por construção se dependesse de
+# `datetime.now()` — a âncora no relógio já causou drift por timezone
+# (run 25615590101) e por envelhecimento de branch (PR #543).
 def render_changelog_recent(
     entries: list[ChangelogEntryLike],
     header_fn: Callable[[str], list[str]],
-    today_fn: Callable[[], date] = _today_utc,
 ) -> list[str]:
     """Monta as linhas do CHANGELOG_RECENT.md — entrypoint do renderer."""
     if not entries:
         return _render_no_entries(header_fn)
-    cutoff = today_fn() - timedelta(days=_WINDOW_DAYS)
-    pairs = _filter_recent(entries, cutoff)
-    if not pairs:
+    dated = _dated_pairs(entries)
+    if not dated:
         return _render_no_entries(header_fn)
+    anchor = max(d for d, _ in dated)
+    pairs = _filter_recent(entries, anchor - timedelta(days=_WINDOW_DAYS))
     by_day = _group_by_day(pairs)
     lines = header_fn(_CHANGELOG_RECENT_TITLE)
-    lines.extend((_summary_line(pairs), ""))
+    lines.extend((_summary_line(pairs, anchor), ""))
     for day in sorted(by_day, reverse=True):
         lines.extend(_render_day_section(day, by_day[day]))
     lines.extend(_CHANGELOG_RECENT_FOOTER)

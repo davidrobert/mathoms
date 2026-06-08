@@ -4,19 +4,17 @@
 # (guideline CLAUDE.md). Convenção: 1 arquivo de smoke por renderer não-trivial.
 # Não é rodado por pytest — snapshot em tests/test_doc_indexes_snapshot.py cobre integração.
 #
-# Diferente do sprint smoke, aqui injetamos `today_fn` via fixture para simular janela
-# de 14 dias sem depender de `date.today()` real (que mudaria a cada CI run).
+# A janela ancora na data do entry mais recente (max(date) - 14d), não no relógio:
+# o output é função pura das notas, então os asserts não injetam `today`.
 
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
 from typing import Any, Callable
 
 DOCS = Path(__file__).resolve().parent.parent / "docs"
 
-# Hoje "fixo" usado pelos smoke tests — cutoff vira 2026-04-23 (14 dias antes).
-_FIXED_TODAY = date(2026, 5, 7)
+ChangelogBuildFn = Callable[[list], str]
 
 
 def _build_entry_raw(
@@ -60,9 +58,9 @@ def _make_test_changelog_entry(
     return _build_entry_note(note_cls, raw, sprint)
 
 
-def _assert_changelog_empty_vault(build_fn: Callable[[list, date], str]) -> list[str]:
+def _assert_changelog_empty_vault(build_fn: ChangelogBuildFn) -> list[str]:
     """changelog-1: vault sem changelog-entries — stub coerente."""
-    out = build_fn([], _FIXED_TODAY)
+    out = build_fn([])
     bad: list[str] = []
     if "Nenhuma entrega recente registrada como changelog-entry." not in out:
         bad.append("changelog-1: empty vault — sem stub esperado")
@@ -71,8 +69,8 @@ def _assert_changelog_empty_vault(build_fn: Callable[[list, date], str]) -> list
     return bad
 
 
-def _assert_changelog_today(build_fn: Callable[[list, date], str], note_cls: type) -> list[str]:
-    """changelog-2: 1 entry no dia de hoje — aparece com summary + lane."""
+def _assert_changelog_today(build_fn: ChangelogBuildFn, note_cls: type) -> list[str]:
+    """changelog-2: 1 entry — aparece com título, janela ancorada, summary + lane."""
     entry = _make_test_changelog_entry(
         note_cls,
         id_="CHG-2026-05-07-A10-2",
@@ -81,9 +79,10 @@ def _assert_changelog_today(build_fn: Callable[[list, date], str], note_cls: typ
         sprint="A10",
         lane="[[A10.2]]",
     )
-    out = build_fn([entry], _FIXED_TODAY)
+    out = build_fn([entry])
     fragments = (
-        "CHANGELOG_RECENT — últimos 14 dias",
+        "CHANGELOG_RECENT — entregas recentes",
+        "Janela de 14 dias a partir da última entrega registrada (2026-05-07).",
         "1 entries entre 2026-05-07 e 2026-05-07.",
         "## 2026-05-07 (1 entries)",
         "- [[CHG-2026-05-07-A10-2]] — Rules-as-code consolidation goals.json (lane [[A10.2]])",
@@ -91,22 +90,36 @@ def _assert_changelog_today(build_fn: Callable[[list, date], str], note_cls: typ
     return [f"changelog-2: fragmento ausente: {f!r}" for f in fragments if f not in out]
 
 
-def _assert_changelog_old_filtered(
-    build_fn: Callable[[list, date], str], note_cls: type
-) -> list[str]:
-    """changelog-3: entry de 30 dias atrás é descartada (fora da janela de 14d)."""
-    entry = _make_test_changelog_entry(
-        note_cls,
-        id_="CHG-2026-04-07-OLD",
-        date_="2026-04-07",
-        summary="Velho demais",
+def _assert_changelog_old_filtered(build_fn: ChangelogBuildFn, note_cls: type) -> list[str]:
+    """changelog-3: entry >14d antes da entrega mais recente é descartada."""
+    recent = _make_test_changelog_entry(
+        note_cls, id_="CHG-2026-05-07-NEW", date_="2026-05-07", summary="Recente"
     )
-    out = build_fn([entry], _FIXED_TODAY)
+    old = _make_test_changelog_entry(
+        note_cls, id_="CHG-2026-04-07-OLD", date_="2026-04-07", summary="Velho demais"
+    )
+    out = build_fn([recent, old])
     bad: list[str] = []
-    if "Nenhuma entrega recente registrada como changelog-entry." not in out:
-        bad.append("changelog-3: entry fora da janela — deveria emitir stub")
+    if "[[CHG-2026-05-07-NEW]]" not in out:
+        bad.append("changelog-3: entry âncora (2026-05-07) deveria aparecer")
     if "[[CHG-2026-04-07-OLD]]" in out:
-        bad.append("changelog-3: entry de 30d atrás não deveria aparecer")
+        bad.append("changelog-3: entry 30d antes da âncora não deveria aparecer")
+    return bad
+
+
+def _assert_changelog_single_old_entry_shown(
+    build_fn: ChangelogBuildFn, note_cls: type
+) -> list[str]:
+    """changelog-3b: entry antiga, porém a mais recente da vault, é a âncora e aparece."""
+    entry = _make_test_changelog_entry(
+        note_cls, id_="CHG-2024-01-15-ONLY", date_="2024-01-15", summary="Única entrega"
+    )
+    out = build_fn([entry])
+    bad: list[str] = []
+    if "[[CHG-2024-01-15-ONLY]]" not in out:
+        bad.append("changelog-3b: única entry (âncora) deveria aparecer, independente da idade")
+    if "Janela de 14 dias a partir da última entrega registrada (2024-01-15)." not in out:
+        bad.append("changelog-3b: âncora deveria ser a data da própria entry (2024-01-15)")
     return bad
 
 
@@ -125,11 +138,9 @@ def _grouping_fixture(note_cls: type) -> list:
     ]
 
 
-def _assert_changelog_grouping_and_order(
-    build_fn: Callable[[list, date], str], note_cls: type
-) -> list[str]:
+def _assert_changelog_grouping_and_order(build_fn: ChangelogBuildFn, note_cls: type) -> list[str]:
     """changelog-4: 3 entries em 2 dias — agrupa, dia recente primeiro, id asc no dia."""
-    out = build_fn(_grouping_fixture(note_cls), _FIXED_TODAY)
+    out = build_fn(_grouping_fixture(note_cls))
     bad: list[str] = []
     p_07, p_06 = out.find("## 2026-05-07"), out.find("## 2026-05-06")
     if not (0 < p_07 < p_06):
@@ -146,9 +157,7 @@ def _assert_changelog_grouping_and_order(
     return bad
 
 
-def _assert_changelog_summary_range(
-    build_fn: Callable[[list, date], str], note_cls: type
-) -> list[str]:
+def _assert_changelog_summary_range(build_fn: ChangelogBuildFn, note_cls: type) -> list[str]:
     """changelog-5: sumário usa min/max das datas filtradas, não intervalo nominal."""
     entries = [
         _make_test_changelog_entry(
@@ -158,15 +167,13 @@ def _assert_changelog_summary_range(
             note_cls, id_="CHG-2026-05-07-Y", date_="2026-05-07", summary="Y"
         ),
     ]
-    out = build_fn(entries, _FIXED_TODAY)
+    out = build_fn(entries)
     if "2 entries entre 2026-05-01 e 2026-05-07." not in out:
         return ["changelog-5: sumário deveria reportar min/max 2026-05-01 e 2026-05-07"]
     return []
 
 
-def _assert_changelog_no_lane_suffix(
-    build_fn: Callable[[list, date], str], note_cls: type
-) -> list[str]:
+def _assert_changelog_no_lane_suffix(build_fn: ChangelogBuildFn, note_cls: type) -> list[str]:
     """changelog-6: entry sem `lane:` — bullet sem sufixo `(lane ...)`."""
     entry = _make_test_changelog_entry(
         note_cls,
@@ -174,7 +181,7 @@ def _assert_changelog_no_lane_suffix(
         date_="2026-05-07",
         summary="Sem lane",
     )
-    out = build_fn([entry], _FIXED_TODAY)
+    out = build_fn([entry])
     if "[[CHG-2026-05-07-NOLANE]] — Sem lane\n" not in out:
         return [
             "changelog-6: entry sem lane deveria render `- [[id]] — summary`"
@@ -184,7 +191,7 @@ def _assert_changelog_no_lane_suffix(
 
 
 def _assert_changelog_generated_relative_links(
-    build_fn: Callable[[list, date], str], note_cls: type
+    build_fn: ChangelogBuildFn, note_cls: type
 ) -> list[str]:
     """changelog-7: summary com link relativo é rebaseado para CHANGELOG_RECENT."""
     entry = _make_test_changelog_entry(
@@ -194,34 +201,31 @@ def _assert_changelog_generated_relative_links(
         summary="[docs/plan/CENARIOS_ESTRESSE/_README.md](../../../plan/CENARIOS_ESTRESSE/_README.md)",
         sprint="A10",
     )
-    out = build_fn([entry], _FIXED_TODAY)
+    out = build_fn([entry])
     if "(../../plan/CENARIOS_ESTRESSE/_README.md)" not in out:
         return ["changelog-7: link relativo deveria ser rebaseado para _generated/"]
     return []
 
 
-def _assert_changelog_idempotency(
-    build_fn: Callable[[list, date], str], note_cls: type
-) -> list[str]:
+def _assert_changelog_idempotency(build_fn: ChangelogBuildFn, note_cls: type) -> list[str]:
     """changelog-8: build determinístico — 2x mesmo input = mesmo output."""
     entries = [
         _make_test_changelog_entry(
             note_cls, id_="CHG-2026-05-07-IDEMP", date_="2026-05-07", summary="X"
         ),
     ]
-    if build_fn(entries, _FIXED_TODAY) != build_fn(entries, _FIXED_TODAY):
-        return ["changelog-7: build NÃO é idempotente"]
+    if build_fn(entries) != build_fn(entries):
+        return ["changelog-8: build NÃO é idempotente"]
     return []
 
 
-def run_changelog_smoke_tests(
-    changelog_build_fn: Callable[[list, date], str], note_cls: type
-) -> list[str]:
-    """8 smoke tests do CHANGELOG_RECENT (F5.C). Retorna lista de falhas (vazia = ok)."""
+def run_changelog_smoke_tests(changelog_build_fn: ChangelogBuildFn, note_cls: type) -> list[str]:
+    """9 smoke tests do CHANGELOG_RECENT (F5.C). Retorna lista de falhas (vazia = ok)."""
     failures: list[str] = []
     failures.extend(_assert_changelog_empty_vault(changelog_build_fn))
     failures.extend(_assert_changelog_today(changelog_build_fn, note_cls))
     failures.extend(_assert_changelog_old_filtered(changelog_build_fn, note_cls))
+    failures.extend(_assert_changelog_single_old_entry_shown(changelog_build_fn, note_cls))
     failures.extend(_assert_changelog_grouping_and_order(changelog_build_fn, note_cls))
     failures.extend(_assert_changelog_summary_range(changelog_build_fn, note_cls))
     failures.extend(_assert_changelog_no_lane_suffix(changelog_build_fn, note_cls))

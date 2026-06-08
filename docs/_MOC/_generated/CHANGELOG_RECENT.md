@@ -1,9 +1,9 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# CHANGELOG_RECENT — últimos 14 dias
+# CHANGELOG_RECENT — entregas recentes
 
-9 entries entre 2026-05-28 e 2026-05-30.
+Janela de 14 dias a partir da última entrega registrada (2026-05-30). 24 entries entre 2026-05-20 e 2026-05-30.
 
 ## 2026-05-30 (1 entries)
 
@@ -22,6 +22,30 @@
 ## 2026-05-28 (1 entries)
 
 - [[CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED]] — feat(adr-271): dedup de investimentos cross-IRPF (cross-year + cross-declarante)
+
+## 2026-05-22 (4 entries)
+
+- [[CHG-2026-05-22-A18-L1-CRLV-SHIPPED]] — feat(adr-239): A18 L1 (CRLV-e + tabela vehicles + reconciliação fuzzy IRPF G02) (lane [[A18.l1]])
+- [[CHG-2026-05-22-A18-L2-APOLICE-SHIPPED]] — feat(adr-239): A18 L2 (apólice polimórfica auto/residencial/combinada V1 (lane [[A18.l2]])
+- [[CHG-2026-05-22-A18-L3-FIPE-SHIPPED]] — docs(adr-239): A18 L3 (FIPE refresh assíncrono via BrasilAPI) flippada (lane [[A18.l3]])
+- [[CHG-2026-05-22-A19-L1-PROTECAO-SHIPPED]] — feat(adr-240): A19 L1 (card S_PROTECAO — 4º pilar AUVP Proteção Patrimonial) (lane [[A19.l1]])
+
+## 2026-05-21 (8 entries)
+
+- [[CHG-2026-05-21-A17-L1-PREVIDENCIA-SHIPPED]] — feat(adr-238): A17 L1 (previdência privada PGBL/VGBL) entregue em 5 PRs (lane [[A17.l1]])
+- [[CHG-2026-05-21-DOCS-A17-L3-WISE-ADDED]] — docs(a17-l3): adiciona Wise (conta multi-moeda no exterior) ao escopo (lane [[A17.l3]])
+- [[CHG-2026-05-21-DOCS-ADR-238-PROPOSTO]] — docs(adr-238): Proposto — Ingestão de Informes de Rendimentos anuais (lane [[A17.l1]])
+- [[CHG-2026-05-21-DOCS-ADR-239-PROPOSTO]] — docs(adr-239): Proposto — Comprovantes de Bem (CRLV) + Apólices polimórficas (lane [[A18.l1]])
+- [[CHG-2026-05-21-DOCS-ADR-240-PROPOSTO]] — docs(adr-240): Proposto — Card S_PROTECAO no relatório como 4º pilar AUVP (lane [[A19.l1]])
+- [[CHG-2026-05-21-FEAT-ADR-236-P1-BUSINESS-PROFILE]] — feat(adr-236 P1): BusinessProfile expandido com 4 campos A16 + admin (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
+- [[CHG-2026-05-21-FEAT-ADR-236-P2-CLASSIFIER-PJ-IRPF]] — feat(adr-236 P2): classifier E4 com 5 labels PJ-side + leitor IRPF (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
+- [[CHG-2026-05-21-FEAT-ADR-236-P6-CUTOVER-TELEMETRIA]] — feat(adr-236 P6): cutover + telemetria LGPD-safe + flip ADR-236 para (lane [[TRACK-a16-adr236-tributario-pj-cascata]])
+
+## 2026-05-20 (3 entries)
+
+- [[CHG-2026-05-20-A15-FU3-IMOVEL-FINANCIADO]] — feat: Sprint A15 — FU-3 imóvel financiado (ADR-227 Decidido). Cria agregado
+- [[CHG-2026-05-20-FEAT-ADR-235-NU-PROPRIETARIO]] — feat(adr-235): adiciona classification `nu_proprietario` ao enum — (lane [[TRACK-a16-adr235-nu-proprietario-flip]])
+- [[CHG-2026-05-20-FEAT-BACKEND-SECURITY-HEADERS]] — feat(backend): security headers + CORS strict no FastAPI (ADR-232). Middleware (lane [[A11.w2]])
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`
