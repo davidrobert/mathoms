@@ -4,7 +4,9 @@
 > **Onda 1 (F1 — contrato aditivo)** do plano [DATA_LINEAGE](../plan/DATA_LINEAGE/_README.md).
 > A23.l1 (gate F0), A23.l2 (substrato de golden, #552) e A23.l3 (`dl-f1-natural-key`
 > B3/B4, #553) já estão em `main`. Restam 4 lanes: `dl-f1-data-source`,
-> `dl-f1-amount-decimal`, `dl-f1-extract-check`, `dl-f1-migration-runbook`.
+> `dl-f1-amount-decimal`, `dl-f1-extract-check`, `dl-f1-migration-runbook`. A dívida
+> D6 da A23.l3 ganhou decisão em [[ADR-282]] (Proposto) — implementação fica para o
+> passo 2 de B4, fora desta onda.
 >
 > **Uso:** copie o bloco abaixo no início da sessão. O orquestrador respeita as
 > convenções de [CLAUDE.md](../../CLAUDE.md) e delega aos especialistas de
@@ -33,9 +35,11 @@ restantes da Onda 1 (F1: contrato aditivo). Fatie em branches/PRs próprios.
   - config/schemas/e2_extract.schema.json: ADICIONOU transacoes[].natural_key
     {hash,hash_version} + transacoes[].direction (opcionais). ⚠️ NÃO sobrescreva
     esses campos ao editar o schema — só ADICIONE amount ao lado.
-  - Dívida D6 registrada: backend/app/services/transaction_service.py:17
-    (generate_transaction_hash) é hash incompatível, pré-requisito do PASSO 2 de B4.
-    NÃO é desta onda.
+  - Dívida D6 (backend/app/services/transaction_service.py:17 generate_transaction_hash,
+    hash incompatível que alimenta TransactionOverride + learning loop): a DECISÃO está
+    na ADR-282 (docs/adr/282-override-identity-natural-key-v2.md, Proposto) — a
+    implementação da migration é pré-requisito do PASSO 2 de B4, NÃO é desta onda.
+    Se tocar D6/passo-2, CONFORME à ADR-282 (não reabra).
 
 ## Leia primeiro (canônico — não confie só neste prompt)
 1. CLAUDE.md (raiz) — regras, code style (funções ≤20 linhas, docstring 1 linha;
