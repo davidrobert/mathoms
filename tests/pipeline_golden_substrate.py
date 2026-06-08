@@ -1,0 +1,83 @@
+"""Substrato compartilhado dos goldens E3→E4→E5 (A23.l2): config mínima de tenant + run puro num ``InMemoryArtifactStore`` ([[ADR-212]]), determinístico. Reusado pelos invariantes de conservação, snapshot do view-model e fixture dogfood."""
+
+from __future__ import annotations
+
+import json
+import shutil
+from pathlib import Path
+from typing import Any
+
+_REPO = Path(__file__).resolve().parents[1]
+_LEGACY_CONFIGS = _REPO / "tests" / "fixtures" / "legacy_configs"
+
+_DEFAULT_FAMILY = {
+    "titular": "david",
+    "membros": {"david": {"nome_curto": "David", "data_nascimento": "1985-06-15"}},
+}
+_DEFAULT_GOALS = {"independencia_financeira": {"if_meta": 1_000_000.0, "trs_pct": 4.0}}
+
+
+def _dump(path: Path, data: dict) -> None:
+    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+
+def _categorization(expense_keywords: dict | None) -> dict:
+    return {
+        "expense_keywords": expense_keywords or {},
+        "income_keywords": {"renda": ["PIX"]},
+        "internal_transfer_patterns": [],
+        "pj_source_mapping": {},
+        "clt_source_mapping": {},
+    }
+
+
+def _copy_legacy(cfg: Path) -> None:
+    shutil.copy(_REPO / "config" / "scoring.json", cfg / "scoring.json")
+    shutil.copy(_LEGACY_CONFIGS / "parametros_fiscais.json", cfg / "parametros_fiscais.json")
+    shutil.copy(_LEGACY_CONFIGS / "taxas.json", cfg / "taxas.json")
+
+
+def write_e5_config(
+    tmp_path: Path,
+    *,
+    family: dict | None = None,
+    goals: dict | None = None,
+    expense_keywords: dict | None = None,
+) -> None:
+    """Escreve config mínima de tenant para rodar E4/E5 isolado."""
+    cfg = tmp_path / "config"
+    cfg.mkdir(parents=True, exist_ok=True)
+    _dump(cfg / "categorization.json", _categorization(expense_keywords))
+    _dump(cfg / "family_members.json", family or _DEFAULT_FAMILY)
+    _dump(cfg / "goals.json", goals or _DEFAULT_GOALS)
+    (cfg / "pipeline.json").write_text("{}", encoding="utf-8")
+    _copy_legacy(cfg)
+
+
+def _seed_store(e3_payloads: dict[str, dict], baseline: dict | None):
+    from pipeline.artifact_store import InMemoryArtifactStore
+
+    store = InMemoryArtifactStore()
+    for key, payload in e3_payloads.items():
+        store.seed("E3", key, payload)
+    if baseline is not None:
+        store.seed("E1.5c", "baseline_patrimonial", baseline)
+    return store
+
+
+def run_e3_e4_e5(
+    root: Path, *, e3_payloads: dict[str, dict], baseline: dict | None = None
+) -> dict[str, Any]:
+    """Roda E4→E5 sobre E3 seeded (``artifact_key → payload``); retorna ``analise_financeira``."""
+    from pipeline.context import WorkspaceContext
+    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.e5_analyze import main_with_store as e5_mws
+
+    ctx = WorkspaceContext(root=root, artifact_store=_seed_store(e3_payloads, baseline))
+    e4_mws(ctx)
+    e5_mws(ctx)
+    return ctx.artifact_store.read("E5", "analise_financeira")
+
+
+def load_fixture(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
