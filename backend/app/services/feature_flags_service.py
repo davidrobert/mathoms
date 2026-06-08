@@ -50,6 +50,12 @@ DEFAULTS: dict[str, bool] = {
     # ação. Flag permanece como circuit-breaker para desligar por workspace
     # se aparecer bug não-capturado pelos testes.
     "irpf_prefill_enabled": True,
+    # ADR-282 — read-path do override casa no natural_key v2 (em vez do legado
+    # generate_transaction_hash). Default False: ativado por workspace só após o
+    # backfill (slice 3) cobrir 100% + dogfood de reancoragem verde. Enquanto off,
+    # os write-paths apenas populam natural_key_hash (dual-write); o match continua
+    # no transaction_hash legado.
+    "override_natural_key_v2_enabled": False,
 }
 
 
