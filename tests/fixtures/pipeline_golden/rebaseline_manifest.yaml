@@ -1,0 +1,30 @@
+# Manifesto de rebaseline de golden (A23.l2 · guard-rail G-a/G-c).
+#
+# Todo value_delta MONETÁRIO num golden rebaselineado precisa de uma entrada
+# aqui — `dev/golden_diff.py --manifest` falha (exit 1) para delta monetário
+# não-justificado. Match é EXATO ao centavo: (golden, path, old_cents, new_cents).
+# Entrada que não casa nenhum value_delta atual (stale/órfã) também falha — o
+# manifesto não acumula waivers mortos.
+#
+# A disciplina completa (commit isolado golden↔código, label `golden-rebaseline`,
+# 2º revisor) é entregue na F2 (`dl-f2-deleak-slice1`, check_golden_rebaseline_isolation).
+# Esta lane (A23.l2) entrega só o reader + formato + gate de cobertura.
+#
+# Formato de cada entrada:
+#   - golden: nome do arquivo golden (igual ao --golden-id passado no CI)
+#     path: dot-path do campo (ex.: patrimonio.liquido, composicao[Caixa].valor)
+#     old_cents: valor antigo em cents int
+#     new_cents: valor novo em cents int
+#     adr: ADR que justifica a mudança (ex.: ADR-271)
+#     rationale: por que o número mudou (1 linha)
+#     ref: file:line da mudança de produção (G-c)
+#
+# Exemplo (comentado — manifesto começa VAZIO, sem rebaseline pendente):
+# - golden: minimal-conta-3_reconciled.json
+#   path: patrimonio.liquido
+#   old_cents: 40000000
+#   new_cents: 39950000
+#   adr: ADR-271
+#   rationale: "dedup cross-year colapsa conta conjunta; -R$500 esperado"
+#   ref: pipeline/domain/services/e5_serialization.py:312
+[]

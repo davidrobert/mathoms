@@ -1,0 +1,559 @@
+{
+  "_report_lineage": {
+    "consumed_document_count": 3,
+    "consumed_document_ids": [
+      "doc-1",
+      "doc-2",
+      "doc-3"
+    ],
+    "pipeline_run_id": "run-dogfood",
+    "source_document_count": 3,
+    "source_document_ids": [
+      "doc-1",
+      "doc-2",
+      "doc-3"
+    ]
+  },
+  "alertas": [
+    "Score financeiro: 6.4/10 (Bom)",
+    "Rentabilidade: N/D"
+  ],
+  "cenarios_conjuge": {
+    "anos_if": [
+      3025
+    ],
+    "aportes": [
+      0
+    ],
+    "cenarios": [
+      {
+        "ano_if": 3025,
+        "aporte_mensal": 0,
+        "idade_alex": 1040,
+        "nome": "Sem renda do cônjuge",
+        "prazo_if_anos": 999,
+        "resumo": "Sem renda do cônjuge, aporte cai para R$ 0/mês (66% do base). IF em 999 anos (3025)."
+      }
+    ],
+    "idade_alex_if": [
+      1040
+    ],
+    "labels": [
+      "Sem renda do cônjuge"
+    ],
+    "prazos_if": [
+      999
+    ],
+    "premissas": {
+      "aporte_base": 0,
+      "fator_reduzido": "0.660000",
+      "investivel_atual": 13000000,
+      "meta_if": 100000000,
+      "retorno_real_anual_pct": "6.000000",
+      "salario__clt_brl": 0
+    }
+  },
+  "changelog": null,
+  "comparisons": null,
+  "consumo_consciente": {
+    "analise": "Nenhum gasto pontual relevante ≥ R$ 2,000 identificado no período analisado — padrão de consumo dentro dos limites recorrentes.",
+    "equivalente_meses_aporte": 0,
+    "folga_mensal": 150000,
+    "folga_pct": "50.000000",
+    "itens": [],
+    "teto_sugerido": 172500,
+    "total_pontuais": 0
+  },
+  "data_analise": "<volatile>",
+  "diagnostico_comportamental": [
+    {
+      "evidencia": "Taxa de poupança recorrente de 50,0% — acima da referência de 25%",
+      "mudanca_sugerida": "Manter e automatizar aportes mensais",
+      "padrao": "Disciplina de poupança"
+    }
+  ],
+  "endividamento": {
+    "detalhe": "Financiamento imobiliário (Alex)",
+    "dividas": [
+      {
+        "descricao": "Financiamento imobiliário (Alex)",
+        "parcela_mensal": 0,
+        "saldo_devedor": 15000000,
+        "taxa_juros": "N/D"
+      }
+    ],
+    "percentual_patrimonio": "20.550000",
+    "total_dividas": 15000000
+  },
+  "equilibrio_cerbasi": {
+    "classificacao": "Gastador",
+    "futuro": "Independência Financeira",
+    "pct_futuro": 0,
+    "pct_presente": 10000,
+    "presente": "Consolidação patrimonial"
+  },
+  "exposicao_cambial": {
+    "detalhes": [],
+    "pct_investivel_financeiro": 0,
+    "por_moeda": [],
+    "tier": "empty",
+    "total_brl": 0
+  },
+  "fluxo_caixa": {
+    "despesa_mensal_essencial": 0,
+    "despesa_mensal_media": 150000,
+    "despesa_total": 150000,
+    "despesas_por_categoria": {
+      "nao_identificado": 150000
+    },
+    "fluxo_liquido": 150000,
+    "janela_12m": {
+      "despesa_mensal_essencial": 0,
+      "despesa_mensal_media": 150000,
+      "despesa_total": 150000,
+      "fluxo_liquido": 150000,
+      "n_meses": 1,
+      "periodo": "2026-01 a 2026-01",
+      "receita_one_time": 0,
+      "receita_recorrente": 300000,
+      "receita_recorrente_mensal": 300000,
+      "receita_total": 300000,
+      "taxa_poupanca_recorrente": "50.000000",
+      "taxa_poupanca_total": "50.000000"
+    },
+    "por_fonte": {
+      "renda": 300000
+    },
+    "por_fonte_detalhado": {
+      "Outras Receitas": 300000
+    },
+    "receita_despesa_mensal_detalhado": {
+      "despesa_datasets": [
+        {
+          "data": [
+            "1500.000000"
+          ],
+          "label": "Nao Identificado"
+        }
+      ],
+      "labels": [
+        "26/01"
+      ],
+      "receita_datasets": [
+        {
+          "data": [
+            "3000.000000"
+          ],
+          "label": "Outras Receitas"
+        }
+      ],
+      "totais_despesa": [
+        150000
+      ],
+      "totais_receita": [
+        300000
+      ]
+    },
+    "receita_one_time": 0,
+    "receita_recorrente": 300000,
+    "receita_recorrente_mensal": 300000,
+    "receita_total": 300000,
+    "tabela_receitas": [
+      {
+        "categoria": "Renda",
+        "pct": "100.000000",
+        "valor": 300000
+      }
+    ]
+  },
+  "goals": {
+    "ano_if": 3025,
+    "david_idade_if": 1040,
+    "idade_alex_if": 1040,
+    "if_gap": 87000000,
+    "if_meta": 100000000,
+    "if_pct": "13.000000",
+    "if_trs": "4.000000",
+    "if_trs_monthly_value": 333333,
+    "prazo_anos_realista": "999.000000",
+    "renda_passiva_estimada_4pct": 43333,
+    "retorno_esperado_pct_aa": "6.000000"
+  },
+  "if_monte_carlo": {
+    "aporte_mensal_usado": 0,
+    "caminho_p10": [],
+    "caminho_p50": [],
+    "caminho_p90": [],
+    "exibir_cone": false,
+    "idade_meta_usada": 1040,
+    "motivo_sem_cone": "acumulação inicial — foco em consistência de aporte",
+    "p10_ano_if": null,
+    "p50_ano_if": null,
+    "p90_ano_if": null,
+    "prob_if_ate_idade_meta": "<volatile>",
+    "sigma_usado": "0.110000"
+  },
+  "investimentos": {
+    "instituicoes_por_membro": [
+      {
+        "instituicoes": [],
+        "membro": "Alex"
+      }
+    ],
+    "n_imoveis_total": 1,
+    "tabela_classes": [
+      {
+        "categoria": "Imóveis Investimento",
+        "pct": "88.240000",
+        "valor": 60000000
+      },
+      {
+        "categoria": "Renda Fixa",
+        "pct": "11.760000",
+        "valor": 8000000
+      }
+    ],
+    "top_ativos": [
+      {
+        "classe": "Imóveis Investimento",
+        "instituicao": "",
+        "membro": "Alex",
+        "nome": "APARTAMENTO RUA FICTICIA 100",
+        "pct_carteira": 8824,
+        "posicao": 100,
+        "tipo_origem": "imovel",
+        "valor": 60000000
+      },
+      {
+        "classe": "Renda Fixa",
+        "instituicao": "",
+        "membro": "Alex",
+        "nome": "Investimento",
+        "pct_carteira": 1176,
+        "posicao": 200,
+        "tipo_origem": "investimento",
+        "valor": 8000000
+      }
+    ],
+    "total": 68000000
+  },
+  "orcamento_prospectivo": {
+    "categorias": {
+      "nao_identificado": 150000
+    },
+    "legenda": "Orçamento prospectivo baseado na média dos últimos 1 meses. Recomenda-se revisar mensalmente e ajustar projeções.",
+    "media_mensal": 150000,
+    "total": 150000
+  },
+  "passive_income": {
+    "acumuladores_pct_gerador": "0.000000",
+    "ano_referencia_irpf": null,
+    "defasagem_meses": null,
+    "patrimonio_gerador_brl": 0,
+    "renda_passiva_anual_brl": 0,
+    "renda_passiva_mensal_brl": 0,
+    "renda_passiva_por_fonte_brl": {
+      "alugueis": 0,
+      "aplicacoes": 0,
+      "dividendos": 0,
+      "exterior": 0,
+      "ganho_capital": 0,
+      "jcp": 0
+    },
+    "status": "sem_irpf",
+    "trs_efetiva_pct": "0.000000"
+  },
+  "patrimonio": {
+    "bruto": 73000000,
+    "caixa_detalhes": [],
+    "caixa_me_detalhe": [],
+    "caixa_moeda_estrangeira": 5000000,
+    "composicao": [
+      {
+        "categoria": "Imóveis de Renda",
+        "pct": "82.190000",
+        "valor": 60000000
+      },
+      {
+        "categoria": "Investimentos Alex",
+        "pct": "10.960000",
+        "valor": 8000000
+      },
+      {
+        "categoria": "Caixa e Moeda Estrangeira",
+        "pct": "6.850000",
+        "valor": 5000000
+      },
+      {
+        "categoria": "Residência",
+        "pct": "0.000000",
+        "valor": 0
+      },
+      {
+        "categoria": "Investimentos ",
+        "pct": "0.000000",
+        "valor": 0
+      },
+      {
+        "categoria": "Veículos",
+        "pct": "0.000000",
+        "valor": 0
+      }
+    ],
+    "dividas": 15000000,
+    "fonte_investimentos": "irpf",
+    "imoveis_geradores": 0,
+    "imoveis_investimento": 60000000,
+    "imoveis_nao_geradores": 60000000,
+    "imoveis_no_if": true,
+    "investimentos_": 0,
+    "investimentos_alex": 8000000,
+    "investivel_efetivo": 13000000,
+    "investivel_financeiro": 13000000,
+    "liquido": 58000000,
+    "residencia": 0,
+    "tabela_categorias": [
+      {
+        "categoria": "Imóveis de Renda",
+        "pct": "82.190000",
+        "valor": 60000000
+      },
+      {
+        "categoria": "Investimentos Alex",
+        "pct": "10.960000",
+        "valor": 8000000
+      },
+      {
+        "categoria": "Caixa e Moeda Estrangeira",
+        "pct": "6.850000",
+        "valor": 5000000
+      },
+      {
+        "categoria": "Residência",
+        "pct": "0.000000",
+        "valor": 0
+      },
+      {
+        "categoria": "Investimentos ",
+        "pct": "0.000000",
+        "valor": 0
+      },
+      {
+        "categoria": "Veículos",
+        "pct": "0.000000",
+        "valor": 0
+      }
+    ],
+    "veiculos": 0,
+    "wise_fiscal_flags": []
+  },
+  "periodo_dados": "2026-01 a 2026-01",
+  "pontos_fortes": [
+    {
+      "descricao": "Classificação «Bom» (6.4/10) indica solidez financeira geral.",
+      "icone": "trophy",
+      "titulo": "Score Financeiro Positivo"
+    },
+    {
+      "descricao": "Poupança recorrente de 50.0% da renda — acima da referência de 30%.",
+      "icone": "savings",
+      "titulo": "Taxa de Poupança Elevada"
+    },
+    {
+      "descricao": "Cobertura de 87 meses de despesas — acima dos 12 meses recomendados.",
+      "icone": "emergency",
+      "titulo": "Reserva de Emergência Excelente"
+    },
+    {
+      "descricao": "Patrimônio investível cobre 87 meses de despesas — margem de segurança ampla.",
+      "icone": "patrimony",
+      "titulo": "Colchão Patrimonial Robusto"
+    }
+  ],
+  "pontos_urgentes": [
+    {
+      "acao": "Reduzir endividamento",
+      "impacto": "Taxa de endividamento em 20.6% — meta < 20%",
+      "prazo": "Próximo trimestre",
+      "prioridade": "Alta"
+    },
+    {
+      "acao": "Contratar seguro de vida e invalidez",
+      "impacto": "Proteção patrimonial da família — nenhuma apólice identificada",
+      "prazo": "Imediato",
+      "prioridade": "Alta"
+    },
+    {
+      "acao": "Consolidar dados de rentabilidade dos investimentos",
+      "impacto": "Sem dados de performance, impossível otimizar alocação",
+      "prazo": "Próximo trimestre",
+      "prioridade": "Média"
+    }
+  ],
+  "previdencia_pgbl": {
+    "aliquota_marginal": "0.000000",
+    "aporte_mensal": 0,
+    "economia_ir_anual": 0,
+    "fonte_recomendacao": "proxy_receita_pj",
+    "limite_pgbl_anual": 0,
+    "nota": "Sem receita PJ identificada para cálculo de PGBL.",
+    "renda_tributavel_anual": 0,
+    "status": "N/D"
+  },
+  "programa_milhas": {},
+  "ratios": {
+    "aliquota_efetiva_ir_pct": "N/D",
+    "cobertura_despesas_meses": "86.670000",
+    "janela_n_meses": 1,
+    "janela_referencia": "2026-01 a 2026-01",
+    "rentabilidade": {
+      "ano_base": null,
+      "cobertura_despesa_essencial_pct": null,
+      "defasagem_meses": null,
+      "meta_pct": "5.000000",
+      "status": "sem_irpf",
+      "valor_pct": null
+    },
+    "rentabilidade_pct": "N/D",
+    "taxa_endividamento_pct": "20.550000",
+    "taxa_poupanca_recorrente_pct": "50.000000",
+    "taxa_poupanca_total_pct": "50.000000"
+  },
+  "reserva_emergencia": {
+    "avaliacao_liquidity": "Excessiva",
+    "cobertura_meses": "86.700000",
+    "composicao_liquida": {
+      "caixa_moeda_estrangeira": 5000000,
+      "cobertura_meses": "86.700000",
+      "investimentos_": 0,
+      "investimentos_alex": 8000000,
+      "total_liquido": 13000000
+    },
+    "despesas_mensais": 150000,
+    "niveis": [
+      "3 meses",
+      "6 meses",
+      "12 meses",
+      "24 meses"
+    ],
+    "nivel_12_meses": "18000.000000",
+    "nivel_6_meses": "9000.000000",
+    "total_liquida": 13000000
+  },
+  "score": {
+    "breakdown": [
+      {
+        "contribuicao": 250,
+        "dimensao": "Taxa Poupança Recorrente",
+        "max": 10,
+        "peso": "0.250000",
+        "valor": 1000
+      },
+      {
+        "contribuicao": 188,
+        "dimensao": "Cobertura Despesas (meses)",
+        "max": 10,
+        "peso": "0.187500",
+        "valor": 1000
+      },
+      {
+        "contribuicao": 122,
+        "dimensao": "Taxa Endividamento",
+        "max": 10,
+        "peso": "0.187500",
+        "valor": 650
+      },
+      {
+        "contribuicao": 28,
+        "dimensao": "Progresso Independência Financeira",
+        "max": 10,
+        "peso": "0.250000",
+        "valor": 110
+      },
+      {
+        "contribuicao": 50,
+        "dimensao": "Diversificação Patrimonial (origem)",
+        "max": 10,
+        "peso": "0.125000",
+        "valor": 400
+      }
+    ],
+    "classificacao": "Bom",
+    "componentes": [
+      {
+        "code": "taxa_poupanca_recorrente",
+        "nome": "Taxa Poupança Recorrente",
+        "nota": "10.000000",
+        "peso": "2.000000",
+        "status": "emitted",
+        "valor": 5000
+      },
+      {
+        "code": "cobertura_despesas",
+        "nome": "Cobertura Despesas (meses)",
+        "nota": "10.000000",
+        "peso": "1.500000",
+        "status": "emitted",
+        "valor": 8667
+      },
+      {
+        "code": "taxa_endividamento",
+        "nome": "Taxa Endividamento",
+        "nota": "6.500000",
+        "peso": "1.500000",
+        "status": "emitted",
+        "valor": 2055
+      },
+      {
+        "code": "progresso_if",
+        "nome": "Progresso Independência Financeira",
+        "nota": "1.100000",
+        "peso": "2.000000",
+        "status": "emitted",
+        "valor": 1300
+      },
+      {
+        "code": "diversificacao",
+        "nome": "Diversificação Patrimonial (origem)",
+        "nota": "4.000000",
+        "peso": "1.000000",
+        "status": "emitted",
+        "valor": 300
+      }
+    ],
+    "conclusion": "A classificação 'Bom' reflete melhora em Taxa Poupança Recorrente e Cobertura Despesas (meses).",
+    "context": "Indicador geral de saúde financeira da família, com score de 6.4/10 (Bom). Reflete equilíbrio entre pontos fortes e oportunidades de melhoria.",
+    "formula": "Score = (Taxa Poupança Recorrente×2 + Cobertura Despesas (meses)×1.5 + Taxa Endividamento×1.5 + Progresso Independência Financeira×2 + Diversificação Patrimonial (origem)×1) / 8",
+    "max": 10,
+    "score_version": "1.0-legacy",
+    "valor": 640
+  },
+  "tarefas": [
+    {
+      "e": "Próximo trimestre",
+      "impacto": "Taxa de endividamento em 20.6% — meta < 20%",
+      "n": 1,
+      "p": "alta",
+      "t": "Reduzir endividamento"
+    },
+    {
+      "e": "Imediato",
+      "impacto": "Proteção patrimonial da família — nenhuma apólice identificada",
+      "n": 2,
+      "p": "alta",
+      "t": "Contratar seguro de vida e invalidez"
+    },
+    {
+      "e": "Próximo trimestre",
+      "impacto": "Sem dados de performance, impossível otimizar alocação",
+      "n": 3,
+      "p": "média",
+      "t": "Consolidar dados de rentabilidade dos investimentos"
+    }
+  ],
+  "tarefas_status": {
+    "1": "pendente",
+    "2": "pendente",
+    "3": "pendente"
+  }
+}

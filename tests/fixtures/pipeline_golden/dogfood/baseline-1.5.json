@@ -1,0 +1,11 @@
+{
+  "pipeline_stage": "E1.5_Baseline_Patrimonial",
+  "data_processamento": "2024-12-31",
+  "itens": [
+    {"codigo": "31", "descricao": "CDB BANCO FICTICIO", "categoria": "investimento", "valor_brl": 50000.0, "membro": "alex", "ano": 2023, "instituicao": "bancoficticio"},
+    {"codigo": "31", "descricao": "CDB BANCO FICTICIO", "categoria": "investimento", "valor_brl": 80000.0, "membro": "alex", "ano": 2024, "instituicao": "bancoficticio"},
+    {"codigo": "11", "descricao": "APARTAMENTO RUA FICTICIA 100", "categoria": "imovel", "valor_brl": 600000.0, "membro": "alex", "ano": 2024},
+    {"codigo": "51", "descricao": "FINANCIAMENTO IMOVEL FICTICIO", "categoria": "outros", "valor_brl": -150000.0, "membro": "alex", "ano": 2024}
+  ],
+  "resumo": {"ano_referencia": 2024, "membros": ["alex", "bia"]}
+}

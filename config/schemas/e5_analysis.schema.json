@@ -43,14 +43,34 @@
     },
     "patrimonio": {
       "type": "object",
+      "description": "A23.l2 (data-lineage): campos monetários consumidos pelas invariantes de conservação ficam declarados aqui antes do flip→strict (W6-T01) — liquido == bruto − dividas; bruto == Σ composicao[].valor (por balde).",
       "required": ["bruto", "liquido"],
       "properties": {
         "bruto": {"type": "number"},
-        "liquido": {"type": "number"}
+        "liquido": {"type": "number"},
+        "dividas": {"type": "number"},
+        "composicao": {
+          "type": "array",
+          "description": "Decomposição patrimonial por balde (Σ valor == bruto). Cada item: categoria + valor + pct.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "categoria": {"type": "string"},
+              "valor": {"type": "number"},
+              "pct": {"type": "number"}
+            }
+          }
+        }
       }
     },
     "fluxo_caixa": {
-      "type": "object"
+      "type": "object",
+      "description": "A23.l2 (data-lineage): campos da invariante de conservação de fluxo declarados antes do flip→strict (W6-T01) — fluxo_liquido == receita_total − despesa_total.",
+      "properties": {
+        "receita_total": {"type": "number"},
+        "despesa_total": {"type": "number"},
+        "fluxo_liquido": {"type": "number"}
+      }
     },
     "ratios": {
       "type": "object",
