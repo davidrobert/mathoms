@@ -1289,6 +1289,17 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `rule_id` | `VARCHAR(36)` | yes | — | FK→categorization_rules.id, INDEX |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `deleted_at` | `DATETIME` | yes | — | — |
+| `natural_key_hash` | `VARCHAR(16)` | yes | — | — |
+| `hash_version` | `SMALLINT` | yes | — | — |
+| `tx_data` | `VARCHAR(10)` | yes | — | — |
+| `tx_banco` | `VARCHAR(255)` | yes | — | — |
+| `tx_titular` | `VARCHAR(255)` | yes | — | — |
+| `tx_tipo_conta` | `VARCHAR(255)` | yes | — | — |
+| `tx_valor_cents` | `INTEGER` | yes | — | — |
+| `tx_moeda` | `VARCHAR(3)` | yes | — | — |
+| `tx_direction` | `VARCHAR(6)` | yes | — | — |
+| `tx_descricao` | `TEXT` | yes | — | — |
+| `orphaned_at` | `DATETIME` | yes | — | — |
 
 **Constraints:**
 
@@ -2533,6 +2544,17 @@ type TransactionOverride struct {
 	RuleId *string `db:"rule_id" json:"rule_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
+	NaturalKeyHash *string `db:"natural_key_hash" json:"natural_key_hash"`
+	HashVersion *string `db:"hash_version" json:"hash_version"`
+	TxData *string `db:"tx_data" json:"tx_data"`
+	TxBanco *string `db:"tx_banco" json:"tx_banco"`
+	TxTitular *string `db:"tx_titular" json:"tx_titular"`
+	TxTipoConta *string `db:"tx_tipo_conta" json:"tx_tipo_conta"`
+	TxValorCents *int `db:"tx_valor_cents" json:"tx_valor_cents"`
+	TxMoeda *string `db:"tx_moeda" json:"tx_moeda"`
+	TxDirection *string `db:"tx_direction" json:"tx_direction"`
+	TxDescricao *string `db:"tx_descricao" json:"tx_descricao"`
+	OrphanedAt *time.Time `db:"orphaned_at" json:"orphaned_at"`
 }
 ```
 

@@ -18,6 +18,7 @@ from backend.app.models.transaction_override import (
 from backend.app.repositories.categorization_rule_repository import (
     CategorizationRuleRepository,
 )
+from backend.app.services.override_identity import identity_from_classified_tx
 from backend.app.services.report_publication import is_month_closed_sync
 from backend.app.services.transaction_service import generate_transaction_hash
 from pipeline.domain.services.transaction_classifier import ClassifiedTransaction
@@ -121,7 +122,7 @@ def _build_insert_values(
     *, workspace_id: str, tx_hash: str, tx: ClassifiedTransaction
 ) -> dict[str, Any]:
     """Valores para INSERT ... ON CONFLICT (``orig == new`` por contrato P3)."""
-    return {
+    values = {
         "id": str(uuid.uuid4()),
         "workspace_id": workspace_id,
         "transaction_hash": tx_hash,
@@ -133,6 +134,10 @@ def _build_insert_values(
         "created_at": datetime.now(timezone.utc),
         "deleted_at": None,
     }
+    # ADR-282 dual-write: popula natural_key v2 + snapshot (match segue no
+    # transaction_hash legado enquanto a flag está off).
+    values.update(identity_from_classified_tx(tx).as_columns())
+    return values
 
 
 def _dialect_insert(db: Session):
