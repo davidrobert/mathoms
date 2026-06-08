@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4)"
 sprint: A23
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: a23-l3-natural-key
 adrs:
@@ -16,7 +16,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a23
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/pipeline
@@ -212,6 +212,30 @@ override auto-suficiente (snapshot de inputs), migração coluna-nova + dual-wri
 backfill por replay-E4 (quiesce de pipeline) + cutover por flag, órfão em quarentena.
 **Gate:** o passo 2 (flip dedup E4→v2) fica **bloqueado** até o backfill da
 [[ADR-282]] completar + dogfood de reancoragem verde.
+
+## Entregue (status: shipped — PR #553, commit `7b7a4028`, 2026-06-08)
+
+- **`pipeline/domain/services/_tx_identity.py`** — `_hash_v1` congelado (shim
+  `compute_transaction_hash`) + `_hash_v2` (cents int via `Decimal`, moeda+direction,
+  ROUND_HALF_UP inline) + `HashInputs`/`build_hash_inputs` + `derive_direction`
+  (espelha `_normalize_tipo`) + `compute_natural_key`/`NaturalKey`.
+- **`pipeline/domain/services/e2_natural_key.py`** — `stamp_natural_key` na costura do
+  write-path comum (`scripts/e2_extract.py:354` + `pipeline/stages/extract_with_llm.py:258`),
+  cobre vocabulário determinístico e LLM; faturas sem titular → `natural_key=null`
+  (classe-c); log de cobertura `with_key/tx_total`.
+- **`config/schemas/e2_extract.schema.json`** — `transacoes[].natural_key {hash,
+  hash_version}` + `transacoes[].direction` opcionais (válidos em strict).
+- **`tests/unit/pipeline/test_natural_key_v2.py`** — paridade (a/b/c), `test_v1_frozen`,
+  `test_v2_frozen`, `test_v2_sign_distinguishes_direction`, `test_emit_recompute_parity`
+  (incl. fatura-estorno), determinismo sob `localcontext`, anti-drift
+  `derive_direction↔_normalize_tipo`, estampagem.
+- **Aditividade (G1) confirmada:** goldens E3/E4/E5 + view-model snapshot + invariantes
+  verdes **sem rebaseline** (v2 emitido mas não consumido, D4).
+
+**Pendente (fora desta lane, registrado):** passo 2 de B4 (nullable→obrigatório) gated
+por cobertura 100% (faturas resolverem titular) **e** pela dívida D6 — cuja decisão é
+[[ADR-282]] (Proposto); implementação da migration de `TransactionOverride` é
+pré-requisito do flip de consumo no E4.
 
 ## Não-escopo (lanes irmãs)
 

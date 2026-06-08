@@ -5,10 +5,14 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1 in_progress.
+Nenhuma lane prontidão atual.
 
-## In progress (1)
+## Todas as lanes da sprint (para inspeção)
 
+### shipped (3)
+
+- [[A23.l1]] — Data Lineage F0 — fechar 4 ADR Proposto + emenda ADR-146 (B1–B8) · priority P0 · branch `a23-l1-data-lineage-f0-adr-gate`
+- [[A23.l2]] — Data Lineage F1 — substrato de golden (diff tool + view-model snapshot + invariantes) · priority P0 · branch `a23-l2-golden-substrate`
 - [[A23.l3]] — Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4) · priority P0 · branch `a23-l3-natural-key`
 
 ---

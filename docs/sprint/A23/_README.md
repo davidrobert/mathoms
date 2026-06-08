@@ -72,6 +72,31 @@ F0(G0) ──► F1(G1) ──► F2-discovery(G2) ──► F2-slice1 ──►
 Lanes F1+ são criadas **sob demanda quando o F0 mergear** (gate serial). Detalhe
 de prioridade/ondas em [[PLAN-data-lineage]] §Ondas.
 
+## Estado atual (atualizado 2026-06-08)
+
+| Lane | Escopo | Status | PR |
+|------|--------|--------|----|
+| [[A23.l1]] | F0 — gate das 4 ADR (B1–B8) + emenda [[ADR-146]] | ✅ shipped | — (docs) |
+| [[A23.l2]] | `dl-f1-golden-substrate` — `golden_diff` + view-model snapshot + invariantes (fecha DE-005) | ✅ shipped | #552 |
+| [[A23.l3]] | `dl-f1-natural-key` — K4 v2 (moeda+direction+hash_version), B3/B4 passo 1 | ✅ shipped | #553 |
+| `dl-f1-data-source` | tabela `data_source` + `data_source_id` + `SourceRef`/`SourceAdapter` ([[ADR-278]]) | 🔜 a criar (P0, central) | — |
+| `dl-f1-amount-decimal` | campo `amount` decimal ao lado de `valor` (B5) | 🔜 a criar | — |
+| `dl-f1-extract-check` | `check_extract_no_domain_imports` (critério [[ADR-280]]) | 🔜 a criar | — |
+| `dl-f1-migration-runbook` | runbook PITR das migrations (G-e) | 🔜 a criar (após data-source) | — |
+
+**Onda 0 fechada; Onda 1 em andamento** (3/7 lanes shipped). As 4 lanes restantes
+da Onda 1 têm prompt de orquestração self-contained em
+[agent_prompts/orchestrator_a23_onda1_lanes.md](../../agent_prompts/orchestrator_a23_onda1_lanes.md)
+(ordem, dependências, co-design por lane, guard-rails de aditividade G1). Ondas 2–3
+(de-leak + backbone) abrem após a Onda 1.
+
+**Dívidas/follow-ups conhecidos:**
+- **D6** (dívida da [[A23.l3]]): `generate_transaction_hash` (`transaction_service.py`)
+  incompatível com K4 v2 → decisão em [[ADR-282]] (Proposto); implementação da migration
+  de `TransactionOverride` é **pré-requisito do passo 2 de B4** (flip de consumo no E4).
+- **Passo 2 de B4** (`natural_key` nullable→obrigatório): gated por cobertura 100%
+  (faturas resolverem titular) + D6 resolvida.
+
 ## KRs da janela
 
 - **KR2 (parcial):** 1/6 agregados de decisão (patrimônio líquido) com lineage
