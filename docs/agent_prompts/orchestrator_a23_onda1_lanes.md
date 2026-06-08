@@ -1,0 +1,108 @@
+# Orquestração — A23 Data Lineage · Onda 1 (4 lanes irmãs restantes)
+
+> Instância do [_TEMPLATE_orchestrator.md](_TEMPLATE_orchestrator.md) para fechar a
+> **Onda 1 (F1 — contrato aditivo)** do plano [DATA_LINEAGE](../plan/DATA_LINEAGE/_README.md).
+> A23.l1 (gate F0), A23.l2 (substrato de golden, #552) e A23.l3 (`dl-f1-natural-key`
+> B3/B4, #553) já estão em `main`. Restam 4 lanes: `dl-f1-data-source`,
+> `dl-f1-amount-decimal`, `dl-f1-extract-check`, `dl-f1-migration-runbook`.
+>
+> **Uso:** copie o bloco abaixo no início da sessão. O orquestrador respeita as
+> convenções de [CLAUDE.md](../../CLAUDE.md) e delega aos especialistas de
+> [`.claude/agents/`](../../.claude/agents/).
+>
+> **Quando arquivar:** quando as 4 lanes estiverem `shipped` em `main`. Mover para
+> [`archive/`](archive/) com data.
+
+---
+
+```
+Continue a Onda 1 da sprint A23 (Data Lineage) do Mathoms AI — as 4 lanes irmãs
+restantes da Onda 1 (F1: contrato aditivo). Fatie em branches/PRs próprios.
+
+## Onde estamos (já mergeado em main — NÃO refazer, NÃO clobberar)
+- Gate F0 FECHADO: ADR-278/279/280/281 Decididas. Plano PLAN-data-lineage in_progress.
+- A23.l1 (F0 ADR gate) ✅ · A23.l2 (substrato de golden, #552) ✅ — USE
+  dev/golden_diff.py + backend/tests/test_report_view_model_snapshot.py +
+  tests/test_e5_conservation_invariants.py para paridade/aditividade.
+- A23.l3 (dl-f1-natural-key, B3/B4, #553) ✅ JÁ MERGEADA. Entregou:
+  - pipeline/domain/services/_tx_identity.py: _hash_v1 CONGELADO (não tocar) +
+    _hash_v2 (cents int via Decimal, moeda+direction) + HashInputs +
+    build_hash_inputs + derive_direction + compute_natural_key/NaturalKey.
+  - pipeline/domain/services/e2_natural_key.py: stamp_natural_key na costura do
+    write-path comum (scripts/e2_extract.py:354 + pipeline/stages/extract_with_llm.py:258).
+  - config/schemas/e2_extract.schema.json: ADICIONOU transacoes[].natural_key
+    {hash,hash_version} + transacoes[].direction (opcionais). ⚠️ NÃO sobrescreva
+    esses campos ao editar o schema — só ADICIONE amount ao lado.
+  - Dívida D6 registrada: backend/app/services/transaction_service.py:17
+    (generate_transaction_hash) é hash incompatível, pré-requisito do PASSO 2 de B4.
+    NÃO é desta onda.
+
+## Leia primeiro (canônico — não confie só neste prompt)
+1. CLAUDE.md (raiz) — regras, code style (funções ≤20 linhas, docstring 1 linha;
+   o gate dev/check_code_style_regression.py é exigente), git/PR, delegação.
+2. docs/plan/DATA_LINEAGE/_README.md — §Arquitetura camadas A/B, §Ondas (tabela
+   Onda 1), §Guard-rails (G-e), §Verificação F1/F2, blocker B5, ADR-280.
+3. docs/adr/278-source-adapter-canonical-contract.md (data_source SEM FK polimórfica,
+   data_source_id nullable ON DELETE SET NULL, B5 amount 2-fases) +
+   docs/adr/280-extract-transform-cut-criterion.md (critério Extract|Transform).
+4. docs/sprint/A23/lanes/A23-l3-natural-key.md — ESPELHE o formato (frontmatter,
+   co-design, inventário, critério de aceite) ao criar as lanes novas.
+
+## As 4 lanes (crie docs/sprint/A23/lanes/A23-l{4,5,6,7}-*.md espelhando A23.l3)
+
+ORDEM/DEPENDÊNCIAS:
+- A23.l4 = dl-f1-data-source (P0, CENTRAL — faça primeiro): tabela `data_source`
+  (id, workspace_id FK CASCADE, kind, institution_code, external_account_ref,
+  display_name, created_at; unique (workspace_id,kind,institution_code,external_account_ref))
+  + coluna pipeline_artifacts.data_source_id nullable FK ON DELETE SET NULL
+  (document_id PERMANECE) + SourceRef discriminated union + SourceAdapter Protocol
+  em pipeline/domain/ports/source.py (NOVO). Migration Alembic: ADD COLUMN NULL +
+  CREATE INDEX CONCURRENTLY (fora de transação: autocommit_block /
+  postgresql_concurrently=True) + backfill idempotente kind='document' para artefatos
+  E2 com document_id. ⚠️ pipeline/** NÃO importa sqlalchemy — SourceRef/SourceAdapter
+  são tipos de domínio puros; o adapter DB vive em backend/app/services/.
+- A23.l5 = dl-f1-amount-decimal (B5, paralelo a l4): campo `amount` decimal string
+  (ADR-090) ao lado de `valor` em transacoes[] do contrato E2 (additive ao
+  e2_extract.schema.json — ADICIONE, preserve natural_key/direction da l3).
+  Inventário de TODOS os leitores de transacoes[].valor (E3 reconciler, cents_int,
+  dedup). Gate Decimal(amount)==Decimal(str(valor)) enquanto coexistem; NÃO deprecar
+  valor nesta onda. Sem DDL (amount vive no content_json).
+- A23.l6 = dl-f1-extract-check (ADR-280, paralelo): dev/check_extract_no_domain_imports.py
+  (NOVO) — extração (scripts/e2/banks/*, extract_baseline, extract_irpf_full) ∌
+  imports de category_template / *_dedup / ConfigStore. Estende validate_full_order.
+  Rotula consolidate_baseline (E1.5c) como Transform. NÃO mover código ainda (de-leak
+  é F2); este lane só TRAVA o critério de pureza com o gate. Espelhe
+  dev/check_pipeline_boundaries.py como padrão.
+- A23.l7 = dl-f1-migration-runbook (G-e, DEPOIS de l4): runbook
+  docs/reference/runbooks/data_lineage_migrations.md (4 migrations: data_source,
+  data_source_id, artifact_lineage_edge [F3, futura], 2-fases amount/natural_key)
+  com janela PITR + rollback por fase + asserção CONCURRENTLY/autocommit_block em
+  backend/tests/.../test_alembic_guardrails. Documenta a migration que a l4 criar.
+
+## Inegociáveis
+- Dinheiro nunca float (ADR-090); stateless (ADR-111); pipeline/** não importa
+  fastapi/celery/sqlalchemy (dev/check_pipeline_boundaries.py). CI VERDE antes do
+  merge. Concluído = PR squashed em main com CI verde (docs-only não espera CI).
+- ADITIVIDADE (G1): contrato aditivo, NÃO consumir ainda → goldens E3/E4/E5 +
+  view-model snapshot + invariantes de conservação VERDES SEM REBASELINE. Prove com
+  dev/golden_diff.py. Se algo exigir rebaseline, parou — reavalie (é sinal de que não
+  é aditivo).
+- Migration online segura: ADD COLUMN NULL, CREATE INDEX CONCURRENTLY fora de transação,
+  backfill idempotente. Testar em modo strict: MATHOMS_PIPELINE_SCHEMA_MODE=strict.
+- Co-design ANTES de codar (eles revisam SEU design, não redecidem ADR):
+  - l4 data-source → data-engineer (schema/migration/backfill/índices) + senior-cto
+    (SourceRef union + SourceAdapter port). Migration → sre-devops (CONCURRENTLY/PITR).
+  - l5 amount-decimal → data-engineer (inventário de leitores + gate de paridade B5).
+  - l6 extract-check → senior-cto (boundary gate, padrão check_pipeline_boundaries).
+  - l7 migration-runbook → sre-devops (runbook/PITR/rollback) + information-architect
+    (forma do runbook) + data-engineer (conteúdo da migration).
+
+## Antes de começar
+- git fetch origin && git worktree list && git for-each-ref --sort=-committerdate
+  refs/remotes/origin/agent/ | head  (confirme que ninguém está em a23-l4/l5/l6/l7-*)
+- Crie UMA branch por lane: agent/a23-l4-data-source/<yyyyMMdd-HHmm> a partir de
+  origin/main (idem l5/l6/l7). Não misture lanes no mesmo PR.
+- Comece pela l4 (central). l5/l6 podem rodar em paralelo. l7 só depois da migration
+  da l4 existir. Anuncie cada operação git. Comece lendo as fontes e propondo
+  plano + co-design por lane.
+```
