@@ -418,9 +418,9 @@ def _build_sprint_current_in_memory(notes: list[Note]) -> str:
     return _join(render_sprint_current(lanes, set(), _header, statuses))
 
 
-def _build_changelog_recent_with_today(entries: list[Note], today) -> str:
-    """Variant injetável de today (usada por smoke tests para janela determinística)."""
-    return _join(render_changelog_recent(entries, _header, today_fn=lambda: today))
+def _build_changelog_recent_in_memory(entries: list[Note]) -> str:
+    """Variant sem IO de disco (usada por smoke tests). Janela ancora em max(date)."""
+    return _join(render_changelog_recent(entries, _header))
 
 
 def _run_self_test() -> int:
@@ -436,7 +436,7 @@ def _run_self_test() -> int:
         category_fn=category_for_adr,
         plan_build_fn=build_plan_progress_md,
         sprint_build_fn=_build_sprint_current_in_memory,
-        changelog_build_fn=_build_changelog_recent_with_today,
+        changelog_build_fn=_build_changelog_recent_in_memory,
     )
 
 
