@@ -202,16 +202,10 @@ SHA-256 **full** (não `[:16]`), ordem de campos distinta, sem `tipo_conta`, ing
 transaction_hash`) + Categorization Learning Loop. **Não migra nesta lane** — mas
 sem alinhá-lo ao K4 v2, o passo 2 quebra sticky-override silenciosamente.
 
-**Registrada e decidida em [[ADR-282]]** (Proposto, 2026-06-08; co-design
-`data-engineer` + `senior-cto`). Reenquadramento: o override **não** armazena o K4
-do pipeline — armazena `generate_transaction_hash` (re-hash do output E4), que tem
-os mesmos defeitos que [[ADR-255]] corrigiu (drift de sufixo PIX **orfaniza
-categorização manual hoje**, independente do passo 2). Decisão: unificar a
-identidade do override em `compute_natural_key` v2 recomputado no E4, com linha de
-override auto-suficiente (snapshot de inputs), migração coluna-nova + dual-write +
-backfill por replay-E4 (quiesce de pipeline) + cutover por flag, órfão em quarentena.
-**Gate:** o passo 2 (flip dedup E4→v2) fica **bloqueado** até o backfill da
-[[ADR-282]] completar + dogfood de reancoragem verde.
+> **Decisão:** [[ADR-282]] (Proposto). **Implementação:** [[A23.l4]] (slices 1–3 em
+> A23; cutover + M2 destrutiva em A24). O passo 2 (flip dedup E4→v2) fica **bloqueado**
+> até o cutover da [[ADR-282]] + dogfood de reancoragem verde. Estado por-slice vive
+> na [[A23.l4]] — não duplicar aqui.
 
 ## Entregue (status: shipped — PR #553, commit `7b7a4028`, 2026-06-08)
 

@@ -41,7 +41,8 @@ tags:
 > `dl-f1-amount-decimal` (B5), `dl-f1-extract-check`, `dl-f1-migration-runbook` (G-e)
 > — prompt de orquestração pronto em
 > [agent_prompts/orchestrator_a23_onda1_lanes.md](../../agent_prompts/orchestrator_a23_onda1_lanes.md).
-> Dívida D6 da l3 tem decisão em [[ADR-282]] (Proposto); implementação no passo 2 de B4.
+> Dívida D6 da l3: decisão [[ADR-282]] (Proposto), implementação em [[A23.l4]] (slices
+> 1–3 em A23; cutover/M2 em A24) — pré-requisito do passo 2 de B4.
 
 ## Context
 
@@ -315,7 +316,7 @@ F0(G0) ──► F1(G1) ──► F2-discovery(G2) ──► F2-slice1 ──►
 | Onda | Lane | P | Gate |
 |------|------|---|------|
 | **0 — Gate** | `A23.l1` F0 — 4 ADR `Proposto` ([[ADR-278]]/[[ADR-279]]/[[ADR-280]]/[[ADR-281]]) + emenda [[ADR-146]]. Resolve B1–B3,B5–B8 textualmente; B4 como estratégia (executa em F1) | P0 | **G0:** 4 ADR mergeados; B1–B3,B5–B8 com decisão textual + file:line; B4 com estratégia de migração; [[ADR-280]] (critério de corte) fechado |
-| **1 — Contrato aditivo + substrato de golden** | **`dl-f1-golden-substrate`** (P0 · [[A23.l2]] ✅ #552 — `dev/golden_diff.py` valor-a-valor cents int + snapshot do view-model de `/reports/[id]/data` + invariantes de conservação; **fecha DE-005**; ANTES de F2 tocar golden) · `dl-f1-natural-key` (K4+moeda+direction+hash_version, B3/B4 · [[A23.l3]] ✅ #553; **passo 2 gated por [[ADR-282]]** — unificar identidade de `TransactionOverride` no v2 antes do flip de consumo E4, senão orfaniza override em massa) · `dl-f1-data-source` (tabela+coluna+SourceRef) · `dl-f1-amount-decimal` (B5) · `dl-f1-extract-check` · `dl-f1-migration-runbook` (G-e) — 4 restantes em [orchestrator_a23_onda1_lanes.md](../../agent_prompts/orchestrator_a23_onda1_lanes.md) | P0/P1 | **G1:** goldens E3/E4/E5 **+ snapshot do view-model + invariantes de conservação** verdes **sem rebaseline** (aditividade) |
+| **1 — Contrato aditivo + substrato de golden** | **`dl-f1-golden-substrate`** (P0 · [[A23.l2]] ✅ #552 — `dev/golden_diff.py` valor-a-valor cents int + snapshot do view-model de `/reports/[id]/data` + invariantes de conservação; **fecha DE-005**; ANTES de F2 tocar golden) · `dl-f1-natural-key` (K4+moeda+direction+hash_version, B3/B4 · [[A23.l3]] ✅ #553; D6/3º-hash → [[A23.l4]] ([[ADR-282]]) que **gateia o passo 2** — unificar identidade de `TransactionOverride` no v2 antes do flip de consumo E4, senão orfaniza override em massa) · `dl-f1-data-source` (tabela+coluna+SourceRef) · `dl-f1-amount-decimal` (B5) · `dl-f1-extract-check` · `dl-f1-migration-runbook` (G-e) — 4 restantes em [orchestrator_a23_onda1_lanes.md](../../agent_prompts/orchestrator_a23_onda1_lanes.md) | P0/P1 | **G1:** goldens E3/E4/E5 **+ snapshot do view-model + invariantes de conservação** verdes **sem rebaseline** (aditividade) |
 | **2 — De-leak ∥ E5→E6** | `dl-f2-discovery` (gate, blast radius numérico) · `dl-f2-deleak-slice1` (+ **disciplina de rebaseline**: commit isolado + manifesto justificado + 2º revisor) · `dl-f2-deleak-residual` (∥) · `dl-f4-evidencia-path` (∥, independe de F2/F3) | P0/P1 | **G2:** discovery fechado; slice1 rebaselineado verde **com manifesto justificado por valor**; diff de dogfood (dado real, local) sem surpresa |
 | **3 — Backbone (skeleton)** | `dl-f3-skeleton-patrimonio` (walking skeleton) · `dl-f3-skeleton-resto` (reserva/despesa/total investido) | P0/P1 | **G3:** ver abaixo |
 | **4 — Fast-follow** | `dl-f5-reverso` · `dl-f6-produto-n1n2` · `dl-f7-debug-llm` | P1 | pós-G3 |

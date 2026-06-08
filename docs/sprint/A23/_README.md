@@ -83,19 +83,22 @@ de prioridade/ondas em [[PLAN-data-lineage]] §Ondas.
 | `dl-f1-amount-decimal` | campo `amount` decimal ao lado de `valor` (B5) | 🔜 a criar | — |
 | `dl-f1-extract-check` | `check_extract_no_domain_imports` (critério [[ADR-280]]) | 🔜 a criar | — |
 | `dl-f1-migration-runbook` | runbook PITR das migrations (G-e) | 🔜 a criar (após data-source) | — |
+| [[A23.l4]] | D6 — alinhar 3º hash (`TransactionOverride`) ao K4 v2 ([[ADR-282]]); slices 1–3 (expand aditivo) | 🚧 in_progress (P0) | slice 1 #556 |
 
-**Onda 0 fechada; Onda 1 em andamento** (3/7 lanes shipped). As 4 lanes restantes
-da Onda 1 têm prompt de orquestração self-contained em
+**Onda 0 fechada; Onda 1 em andamento** (3/7 lanes de contrato shipped; +[[A23.l4]]
+D6, P0, em andamento). As 4 lanes de contrato restantes têm prompt de orquestração
+self-contained em
 [agent_prompts/orchestrator_a23_onda1_lanes.md](../../agent_prompts/orchestrator_a23_onda1_lanes.md)
 (ordem, dependências, co-design por lane, guard-rails de aditividade G1). Ondas 2–3
 (de-leak + backbone) abrem após a Onda 1.
 
 **Dívidas/follow-ups conhecidos:**
 - **D6** (dívida da [[A23.l3]]): `generate_transaction_hash` (`transaction_service.py`)
-  incompatível com K4 v2 → decisão em [[ADR-282]] (Proposto); implementação da migration
-  de `TransactionOverride` é **pré-requisito do passo 2 de B4** (flip de consumo no E4).
+  incompatível com K4 v2 → decisão em [[ADR-282]] (Proposto); implementação em [[A23.l4]]
+  (slices 1–3 aditivos em A23; cutover + M2 destrutiva em A24). Corrige bug **vivo** de
+  orfanização de override (drift de sufixo PIX) **e** é pré-requisito do passo 2 de B4.
 - **Passo 2 de B4** (`natural_key` nullable→obrigatório): gated por cobertura 100%
-  (faturas resolverem titular) + D6 resolvida.
+  (faturas resolverem titular) + cutover da [[A23.l4]] (slices 4–5 em A24).
 
 ## KRs da janela
 
