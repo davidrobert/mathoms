@@ -200,8 +200,18 @@ mapeamento exato de string antes de o E4 consumir o `natural_key` v2.
 SHA-256 **full** (não `[:16]`), ordem de campos distinta, sem `tipo_conta`, ingere
 `valor` string crua. Alimenta `TransactionOverride` (UK `workspace_id,
 transaction_hash`) + Categorization Learning Loop. **Não migra nesta lane** — mas
-sem alinhá-lo ao K4 v2, o passo 2 quebra sticky-override silenciosamente. Registrar
-linha de backlog para o passo 2.
+sem alinhá-lo ao K4 v2, o passo 2 quebra sticky-override silenciosamente.
+
+**Registrada e decidida em [[ADR-282]]** (Proposto, 2026-06-08; co-design
+`data-engineer` + `senior-cto`). Reenquadramento: o override **não** armazena o K4
+do pipeline — armazena `generate_transaction_hash` (re-hash do output E4), que tem
+os mesmos defeitos que [[ADR-255]] corrigiu (drift de sufixo PIX **orfaniza
+categorização manual hoje**, independente do passo 2). Decisão: unificar a
+identidade do override em `compute_natural_key` v2 recomputado no E4, com linha de
+override auto-suficiente (snapshot de inputs), migração coluna-nova + dual-write +
+backfill por replay-E4 (quiesce de pipeline) + cutover por flag, órfão em quarentena.
+**Gate:** o passo 2 (flip dedup E4→v2) fica **bloqueado** até o backfill da
+[[ADR-282]] completar + dogfood de reancoragem verde.
 
 ## Não-escopo (lanes irmãs)
 

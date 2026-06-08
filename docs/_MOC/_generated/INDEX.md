@@ -277,6 +277,7 @@
 | ADR-279 | adr | Decidido |  | Lineage field-level inline (_lineage) + índice reverso artifact_lineage_edge | `adr/279-lineage-field-level-reverse-index.md` |
 | ADR-280 | adr | Decidido |  | Critério de corte Extract | Transform + check de pureza de extração | `adr/280-extract-transform-cut-criterion.md` |
 | ADR-281 | adr | Decidido |  | rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) | `adr/281-lineage-rule-ref-debug-substrate.md` |
+| ADR-282 | adr | Proposto |  | Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) | `adr/282-override-identity-natural-key-v2.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

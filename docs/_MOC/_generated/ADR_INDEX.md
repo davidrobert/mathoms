@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-272 ADRs (ADR-001 a ADR-281) em [`docs/adr/`](../../adr/).
+273 ADRs (ADR-001 a ADR-282) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 205
-- **Proposto**: 63
+- **Proposto**: 64
 - **Roadmap**: 4
 
 ## Fundação
@@ -328,6 +328,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-185]] — Política de edição e evolução de overrides de `category_templates` · phase A11.cat-overrides
 - [[ADR-186]] — Promoção de override de transação para regra de categorização (learning loop) · phase A12.P2
 - [[ADR-188]] — Evolução de schema e semântica do learning loop em P3 (soft-delete, partial unique, revert_count split) · phase A12.P3
+
+## data-lineage
+
+### Proposto (1)
+
+- [[ADR-282]] — Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) · phase A23 · pré-passo-2 B4
 
 ## docs
 
