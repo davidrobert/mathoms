@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4)"
 sprint: A23
 plan: PLAN-data-lineage
-status: open
+status: in_progress
 priority: P0
 branch_slug: a23-l3-natural-key
 adrs:
@@ -16,7 +16,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a23
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/data-lineage
   - area/pipeline
@@ -168,6 +168,40 @@ Aditividade (G1): goldens E3/E4/E5 + view-model snapshot + invariantes ([[A23.l2
 `data-engineer` (contrato E2 + inventário de produtores + estratégia 2-passos) —
 co-design com `senior-cto` (API do hash + paridade emit↔recompute + determinismo).
 **Co-design registrado** (D1–D6 acima, 2026-06-08).
+
+## Inventário B4 (executado — 2026-06-08)
+
+**12 produtores de `transacoes` que validam `e2_extract.schema.json`** (alvo B4),
+todos cobertos pela costura `stamp_natural_key` no write-path comum:
+
+| Produtor | Caminho de write | Vocabulário | titular None? | Classe |
+|---|---|---|---|---|
+| 11 parsers determinísticos (bankofamerica, bradesco, btg, c6bank, caixa, itau, picpay, rico, santander, wise) — extratos | `e2_extract.py:354` via `make_result_template` | `banco`/`titular`/`tipo_conta` | raro (detect falha) | A |
+| Faturas (c6bank, itau, santander) | idem | idem, `titular=None` explícito | **sim** (`c6bank.py:616`, `itau.py:573`, `santander.py:505`) | C → `natural_key=null` |
+| LLM fallback (`E2-llm`) | `extract_with_llm.py:258` | `instituicao`/`membro`/`tipo_documento` (fallback na costura) | possível | A/B |
+
+**Fora de B4** (schema próprio, não `e2_extract`): `quintoandar` (`itens`,
+`informe_aluguel.schema.json`), `extract_informes_anuais` (`informe_base`),
+`extract_comprovantes_bens` (`crlv`). Confirmado em `SCHEMA_BY_STAGE`
+(`db_artifact_store.py:81`).
+
+**Cobertura medida** (log no write-path): `with_key/tx_total` por artefato. Gap
+residual do passo 1 = faturas classe-c (titular ausente). Passo 2
+(nullable→obrigatório) destrava quando a lista classe-c esvaziar (resolver titular
+de fatura) — gate de cobertura == 100%.
+
+**Risco de paridade para o passo 2** (não bloqueia F1 por D4): `tipo_conta` no E2
+(`tipo` default `"extrato"` / `"fatura…"`) vs `tipo_conta_raw` no E4 — fechar o
+mapeamento exato de string antes de o E4 consumir o `natural_key` v2.
+
+## D6 — dívida cross-stack (fora do escopo F1)
+
+`backend/app/services/transaction_service.py:17` (`generate_transaction_hash`):
+SHA-256 **full** (não `[:16]`), ordem de campos distinta, sem `tipo_conta`, ingere
+`valor` string crua. Alimenta `TransactionOverride` (UK `workspace_id,
+transaction_hash`) + Categorization Learning Loop. **Não migra nesta lane** — mas
+sem alinhá-lo ao K4 v2, o passo 2 quebra sticky-override silenciosamente. Registrar
+linha de backlog para o passo 2.
 
 ## Não-escopo (lanes irmãs)
 

@@ -5,9 +5,9 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1 open.
+1 in_progress.
 
-## Open (1)
+## In progress (1)
 
 - [[A23.l3]] — Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4) · priority P0 · branch `a23-l3-natural-key`
 
