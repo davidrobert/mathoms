@@ -491,6 +491,9 @@
 | CHG-2026-05-29-A20-L8-POSTGRES-DRIVER | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-A20-L8-POSTGRES-DRIVER.md` |
 | CHG-2026-05-29-ADR-238-DATA-ADESAO-NAO-HARDFAIL | changelog-entry |  | A20 |  | `sprint/A20/changelog/CHG-2026-05-29-ADR-238-DATA-ADESAO-NAO-HARDFAIL.md` |
 | CHG-2026-05-30-A21-L7L8-LGPD | changelog-entry |  | A21 |  | `sprint/A21/changelog/CHG-2026-05-30-A21-L7L8-LGPD.md` |
+| CHG-2026-06-03-A23-L1 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-03-A23-L1.md` |
+| CHG-2026-06-08-A23-L2 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-08-A23-L2.md` |
+| CHG-2026-06-08-A23-L3 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-08-A23-L3.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -567,7 +570,7 @@
 | A22.l5 | lane | open | A22 | Dedup de dívida cross-year (max(ano) + warning) + schema formal de dividas | `sprint/A22/lanes/A22-l5-dedup-divida-cross-year.md` |
 | A23.l1 | lane | shipped | A23 | Data Lineage F0 — fechar 4 ADR Proposto + emenda ADR-146 (B1–B8) | `sprint/A23/lanes/A23-l1-data-lineage-f0-adr-gate.md` |
 | A23.l2 | lane | shipped | A23 | Data Lineage F1 — substrato de golden (diff tool + view-model snapshot + invariantes) | `sprint/A23/lanes/A23-l2-golden-substrate.md` |
-| A23.l3 | lane | in_progress | A23 | Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4) | `sprint/A23/lanes/A23-l3-natural-key.md` |
+| A23.l3 | lane | shipped | A23 | Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4) | `sprint/A23/lanes/A23-l3-natural-key.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |

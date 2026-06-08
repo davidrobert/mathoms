@@ -17,8 +17,8 @@ aliases: ["SPRINTS-active", "sprints-active"]
 **Promovida em 2026-06-02, sucedendo A22 (`paused`).** Janela 1 do plano [[PLAN-data-lineage]] — ataca a confiabilidade *rastreável* do número (gênero do bug R$ 811k): backbone de lineage fim-a-fim legível por LLM, acoplado a fonte plugável (`SourceAdapter`/`SourceRef`) e extração limpa. **Gate F0** abre 4 ADR `Proposto` ([[ADR-278]]–[[ADR-281]]) + emenda [[ADR-146]] (resolve B1–B8); **nenhuma lane de código abre antes**. Entrega Ondas 0–3 (skeleton patrimônio líquido); F5/F6/F7 ficam para A24.
 
 - **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md).
-- **Sprint:** [sprint/A23/_README.md](../sprint/A23/_README.md).
-- **Entrada:** lane `A23.l1` (gate F0) — fechar as 4 ADR resolvendo B1–B8.
+- **Sprint:** [sprint/A23/_README.md](../sprint/A23/_README.md) (§Estado atual — tabela de lanes).
+- **Progresso:** Onda 0 ✅ (`A23.l1` gate F0). Onda 1 em andamento: `A23.l2` substrato de golden ✅ (#552), `A23.l3` `natural_key` B3/B4 ✅ (#553). Restam 4 lanes (data-source, amount-decimal B5, extract-check, migration-runbook G-e) — prompt em [agent_prompts/orchestrator_a23_onda1_lanes.md](../agent_prompts/orchestrator_a23_onda1_lanes.md). Dívida D6 → [[ADR-282]] (Proposto).
 
 ## Sprint candidate (próxima)
 
