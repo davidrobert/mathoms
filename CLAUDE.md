@@ -284,11 +284,15 @@ mistura doc + código, a regra normal volta a valer.
 - **Goldens de execução** (pós-A6c.3): runs canônicos com schema validation
   em `tests/test_e{3,4,5}_golden_execution.py`. Goldens de paridade
   legado↔novo (Caminho A vs Caminho B) foram descontinuados em A6c.3 quando
-  Caminho A foi removido. Re-construção de baselines snapshot é débito
-  rastreado em [docs/plan/PLATFORM_REVIEW/_README.md](docs/plan/PLATFORM_REVIEW/_README.md)
-  §W6-T01 (DE-005) — **em fechamento** pela lane `dl-f1-golden-substrate`
-  (`docs/sprint/A23/lanes/A23-l2-golden-substrate.md`): `dev/golden_diff.py` +
-  snapshot do view-model + invariantes de conservação.
+  Caminho A foi removido. Re-construção de baselines snapshot (débito **DE-005**,
+  [docs/plan/PLATFORM_REVIEW/_README.md](docs/plan/PLATFORM_REVIEW/_README.md)
+  §W6-T01) **fechado** pela lane A23.l2
+  (`docs/sprint/A23/lanes/A23-l2-golden-substrate.md`): `dev/golden_diff.py`
+  (diff valor-a-valor em cents int + manifesto de rebaseline),
+  `backend/tests/test_report_view_model_snapshot.py` (snapshot do view-model,
+  zero float, `monetary_fields ⊆ snapshot`), `tests/test_e5_conservation_invariants.py`
+  (invariantes de conservação por balde, tolerância zero) e fixture sintética
+  PII-zero em `tests/fixtures/pipeline_golden/dogfood/`.
 - Endpoint JSON novo → teste + rodar `make update-openapi-snapshot`
   (ADR-109).
 - **Saúde do test suite (ADR-210)** — pre-commit roda `dev/check_test_health.py`
