@@ -59,7 +59,7 @@ fecha o lineage reverso. Detalhe e alternativas rejeitadas em [[ADR-282]].
 
 | # | Slice | PR | Status | Escopo |
 |---|---|---|---|---|
-| 1 | Fundação aditiva | [#556](https://github.com/davidrobert/mathoms/pull/556) | 🚧 em CI | Migration aditiva (`natural_key_hash`/`hash_version`/snapshot 8 inputs/`orphaned_at` + índice parcial `ix_txov_ws_natural_key`); adapter `override_identity.py` (`ClassifiedTransaction → HashInputs → compute_natural_key`); dual-write no **learning loop** (caminho limpo); flag `override_natural_key_v2_enabled=False`. Zero-behavior-change. |
+| 1 | Fundação aditiva | [#556](https://github.com/davidrobert/mathoms/pull/556) | ✅ shipped (`c96c4915`) | Migration aditiva (`natural_key_hash`/`hash_version`/snapshot 8 inputs/`orphaned_at` + índice parcial `ix_txov_ws_natural_key`); adapter `override_identity.py` (`ClassifiedTransaction → HashInputs → compute_natural_key`); dual-write no **learning loop** (caminho limpo); flag `override_natural_key_v2_enabled=False`. Zero-behavior-change. |
 | 2 | Read-path | — | ⬜ pendente | Propagar `direction` no E4 (alinhado [[ADR-278]]) + adapter `inputs_from_transaction_item` (`TransactionItem` não carrega `tipo`/`direction` → derivar via `derive_direction`, D2) + dual-write em `create_override` e `_apply_engine`. |
 | 3 | Backfill (report-only) | — | ⬜ pendente | Script idempotente, **report-only antes de escrever**, **quiesce-aware** (coordena lock com `pipeline_reset`): replay-E4, recomputa v1+v2 por linha, mapa `{v1:v2}`, log `{workspace_id, overrides_total, reanchored, orphaned, collided}`. |
 
