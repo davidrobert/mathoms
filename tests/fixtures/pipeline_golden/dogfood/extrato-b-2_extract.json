@@ -1,0 +1,12 @@
+{
+  "pipeline_stage": "E2",
+  "banco": "itau",
+  "tipo": "extratoconta",
+  "moeda": "BRL",
+  "periodo": {"inicio": "2026-01-01", "fim": "2026-01-31"},
+  "saldo_inicial": 0.0,
+  "saldo_final": 1500.0,
+  "transacoes": [
+    {"data": "2026-01-15", "descricao": "PIX RECEBIDO ALUGUEL", "valor": 3000.0}
+  ]
+}

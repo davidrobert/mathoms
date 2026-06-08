@@ -48,6 +48,8 @@ def test_is_monetary_default_and_non_monetary_allowlist():
     assert not is_monetary("if.ano_if")
     assert not is_monetary("reserva.cobertura_meses")
     assert not is_monetary("rentabilidade.retorno_real_anual_pct")
+    assert not is_monetary("_report_lineage.source_document_count")
+    assert not is_monetary("e3.transacoes_total")
 
 
 def test_unchanged_is_classified():

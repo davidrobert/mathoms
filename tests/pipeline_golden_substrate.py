@@ -79,5 +79,31 @@ def run_e3_e4_e5(
     return ctx.artifact_store.read("E5", "analise_financeira")
 
 
+def _seed_dogfood_store(raw_baseline: dict, e2_extracts: dict[str, dict]):
+    from pipeline.artifact_store import InMemoryArtifactStore
+
+    store = InMemoryArtifactStore()
+    store.seed("E1.5", "baseline_patrimonial", raw_baseline)
+    for key, payload in e2_extracts.items():
+        store.seed("E2-extratos", key, payload)
+    return store
+
+
+def run_dogfood_pipeline(
+    root: Path, *, raw_baseline: dict, e2_extracts: dict[str, dict]
+) -> dict[str, Any]:
+    """Roda E1.5c→E3→E4→E5 sobre baseline bruto + extratos E2 seeded; exercita dedup genuíno (ADR-271 em E1.5c, ADR-255 em E3); retorna ``analise_financeira``."""
+    from pipeline.context import WorkspaceContext
+    from scripts.e3_reconcile import main_with_store as e3_mws
+    from scripts.e4_categorize import main_with_store as e4_mws
+    from scripts.e5_analyze import main_with_store as e5_mws
+    from scripts.e15_consolidate import main_with_store as e15_mws
+
+    ctx = WorkspaceContext(root=root, artifact_store=_seed_dogfood_store(raw_baseline, e2_extracts))
+    for stage in (e15_mws, e3_mws, e4_mws, e5_mws):
+        stage(ctx)
+    return ctx.artifact_store.read("E5", "analise_financeira")
+
+
 def load_fixture(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))

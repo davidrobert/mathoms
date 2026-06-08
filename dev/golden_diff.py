@@ -20,6 +20,7 @@ _NON_MONETARY_EXACT = frozenset(
         "nota",
         "max",
         "n",
+        "count",
         "sigma_usado",
         "fator_reduzido",
         "aliquota_marginal",
@@ -52,6 +53,7 @@ _NON_MONETARY_SUFFIXES = (
     "_ano_if",
     "idade_if",
     "_aa",
+    "_count",
 )
 _NON_MONETARY_PREFIXES = ("idade_", "anos_", "ano_", "nivel_", "prazo_", "prazos_")
 
