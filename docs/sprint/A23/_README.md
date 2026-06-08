@@ -83,7 +83,7 @@ de prioridade/ondas em [[PLAN-data-lineage]] §Ondas.
 | `dl-f1-amount-decimal` | campo `amount` decimal ao lado de `valor` (B5) | 🔜 a criar | — |
 | `dl-f1-extract-check` | `check_extract_no_domain_imports` (critério [[ADR-280]]) | 🔜 a criar | — |
 | `dl-f1-migration-runbook` | runbook PITR das migrations (G-e) | 🔜 a criar (após data-source) | — |
-| [[A23.l4]] | D6 — alinhar 3º hash (`TransactionOverride`) ao K4 v2 ([[ADR-282]]); slices 1–3 (expand aditivo) | 🚧 in_progress (P0) | slice 1 #556 |
+| [[A23.l4]] | D6 — alinhar 3º hash (`TransactionOverride`) ao K4 v2 ([[ADR-282]]); slices 1–3 (expand aditivo) | 🚧 in_progress (P0) — slice 1/3 ✅ | slice 1 #556 ✅ |
 
 **Onda 0 fechada; Onda 1 em andamento** (3/7 lanes de contrato shipped; +[[A23.l4]]
 D6, P0, em andamento). As 4 lanes de contrato restantes têm prompt de orquestração
