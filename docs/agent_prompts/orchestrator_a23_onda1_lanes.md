@@ -1,5 +1,11 @@
 # Orquestração — A23 Data Lineage · Onda 1 (4 lanes irmãs restantes)
 
+> **⚠️ Parcialmente superado.** `dl-f1-data-source` foi entregue como **[[A23.l5]]** (#564,
+> em `main`). As 3 lanes restantes (`dl-f1-amount-decimal`, `dl-f1-extract-check`,
+> `dl-f1-migration-runbook` — esta última agora também materializa o FK DB deferido da
+> A23.l5) seguem em [`orchestrator_a23_onda1_restante.md`](orchestrator_a23_onda1_restante.md),
+> que é a instância **corrente**. Mantido aqui por histórico do co-design das 4 lanes.
+
 > Instância do [_TEMPLATE_orchestrator.md](_TEMPLATE_orchestrator.md) para fechar a
 > **Onda 1 (F1 — contrato aditivo)** do plano [DATA_LINEAGE](../plan/DATA_LINEAGE/_README.md).
 > A23.l1 (gate F0), A23.l2 (substrato de golden, #552) e A23.l3 (`dl-f1-natural-key`

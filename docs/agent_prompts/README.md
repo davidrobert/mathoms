@@ -41,7 +41,8 @@ Prompts reusáveis para sessões em que **um agente orquestrador** coordena espe
 |---|---|---|
 | [`_TEMPLATE_orchestrator.md`](_TEMPLATE_orchestrator.md) | Template genérico para qualquer feature multi-especialista | ativo |
 | [`orchestrator_a17_a18_a19.md`](orchestrator_a17_a18_a19.md) | Roadmap A17 (informes anuais) → A18 (CRLV + apólices + FIPE) → A19 (card S_PROTECAO 4º pilar AUVP) | ativo (2026-05-21) |
-| [`orchestrator_a23_onda1_lanes.md`](orchestrator_a23_onda1_lanes.md) | A23 Data Lineage · Onda 1 — 4 lanes irmãs restantes (data-source, amount-decimal B5, extract-check, migration-runbook G-e) após A23.l1/l2/l3 | ativo (2026-06-08) |
+| [`orchestrator_a23_onda1_lanes.md`](orchestrator_a23_onda1_lanes.md) | A23 Data Lineage · Onda 1 — 4 lanes irmãs (data-source, amount-decimal B5, extract-check, migration-runbook G-e) após A23.l1/l2/l3 | superado por `_restante` (data-source ✅ #564) |
+| [`orchestrator_a23_onda1_restante.md`](orchestrator_a23_onda1_restante.md) | A23 Data Lineage · Onda 1 — 3 lanes restantes (amount-decimal B5, extract-check ADR-280, migration-runbook G-e + FK DB deferido da A23.l5) após A23.l4/l5 | ativo (2026-06-08) |
 
 **Convenção:** instâncias do template viram `orchestrator_<scope>.md` em `docs/agent_prompts/`. Quando o escopo é entregue (todas as ADRs flippadas `Decidido`), arquivar em [`archive/`](archive/) com data: `git mv orchestrator_<scope>.md archive/orchestrator_<scope>-YYYY-MM-DD.md`.
 
