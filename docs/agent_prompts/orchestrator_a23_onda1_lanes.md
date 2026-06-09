@@ -3,10 +3,17 @@
 > Instância do [_TEMPLATE_orchestrator.md](_TEMPLATE_orchestrator.md) para fechar a
 > **Onda 1 (F1 — contrato aditivo)** do plano [DATA_LINEAGE](../plan/DATA_LINEAGE/_README.md).
 > A23.l1 (gate F0), A23.l2 (substrato de golden, #552) e A23.l3 (`dl-f1-natural-key`
-> B3/B4, #553) já estão em `main`. Restam 4 lanes: `dl-f1-data-source`,
-> `dl-f1-amount-decimal`, `dl-f1-extract-check`, `dl-f1-migration-runbook`. A dívida
-> D6 da A23.l3 ganhou decisão em [[ADR-282]] (Proposto) — implementação fica para o
-> passo 2 de B4, fora desta onda.
+> B3/B4, #553) já estão em `main`. Restam 4 lanes de contrato:
+> `dl-f1-data-source`, `dl-f1-amount-decimal`, `dl-f1-extract-check`,
+> `dl-f1-migration-runbook`. A dívida D6 da A23.l3 ganhou decisão em [[ADR-282]]
+> (Proposto) e implementação própria na lane **[[A23.l4]]** (`a23-l4-override-hash-k4-parity`,
+> slices 1–3 aditivos em A23; slice 1 ✅ #556) — **fora do escopo deste prompt**.
+>
+> ⚠️ **Numeração:** este prompt referencia as 4 lanes de contrato pelo
+> **`branch_slug`** (`dl-f1-*`), não por `A23.l{n}` — o número `A23.l4` já está
+> ocupado pela lane override-hash/D6. Ao criar os arquivos de lane, use os próximos
+> ids sequenciais livres (`A23.l5`–`A23.l8`); a fonte de verdade do estado é
+> [`docs/sprint/A23/_README.md`](../sprint/A23/_README.md) §Estado atual.
 >
 > **Uso:** copie o bloco abaixo no início da sessão. O orquestrador respeita as
 > convenções de [CLAUDE.md](../../CLAUDE.md) e delega aos especialistas de
@@ -52,10 +59,10 @@ restantes da Onda 1 (F1: contrato aditivo). Fatie em branches/PRs próprios.
 4. docs/sprint/A23/lanes/A23-l3-natural-key.md — ESPELHE o formato (frontmatter,
    co-design, inventário, critério de aceite) ao criar as lanes novas.
 
-## As 4 lanes (crie docs/sprint/A23/lanes/A23-l{4,5,6,7}-*.md espelhando A23.l3)
+## As 4 lanes (crie docs/sprint/A23/lanes/A23-l{5,6,7,8}-*.md espelhando A23.l3 — branch_slug `dl-f1-*`)
 
 ORDEM/DEPENDÊNCIAS:
-- A23.l4 = dl-f1-data-source (P0, CENTRAL — faça primeiro): tabela `data_source`
+- dl-f1-data-source (P0, CENTRAL — faça primeiro): tabela `data_source`
   (id, workspace_id FK CASCADE, kind, institution_code, external_account_ref,
   display_name, created_at; unique (workspace_id,kind,institution_code,external_account_ref))
   + coluna pipeline_artifacts.data_source_id nullable FK ON DELETE SET NULL
@@ -65,19 +72,19 @@ ORDEM/DEPENDÊNCIAS:
   postgresql_concurrently=True) + backfill idempotente kind='document' para artefatos
   E2 com document_id. ⚠️ pipeline/** NÃO importa sqlalchemy — SourceRef/SourceAdapter
   são tipos de domínio puros; o adapter DB vive em backend/app/services/.
-- A23.l5 = dl-f1-amount-decimal (B5, paralelo a l4): campo `amount` decimal string
+- dl-f1-amount-decimal (B5, paralelo a data-source): campo `amount` decimal string
   (ADR-090) ao lado de `valor` em transacoes[] do contrato E2 (additive ao
   e2_extract.schema.json — ADICIONE, preserve natural_key/direction da l3).
   Inventário de TODOS os leitores de transacoes[].valor (E3 reconciler, cents_int,
   dedup). Gate Decimal(amount)==Decimal(str(valor)) enquanto coexistem; NÃO deprecar
   valor nesta onda. Sem DDL (amount vive no content_json).
-- A23.l6 = dl-f1-extract-check (ADR-280, paralelo): dev/check_extract_no_domain_imports.py
+- dl-f1-extract-check (ADR-280, paralelo): dev/check_extract_no_domain_imports.py
   (NOVO) — extração (scripts/e2/banks/*, extract_baseline, extract_irpf_full) ∌
   imports de category_template / *_dedup / ConfigStore. Estende validate_full_order.
   Rotula consolidate_baseline (E1.5c) como Transform. NÃO mover código ainda (de-leak
   é F2); este lane só TRAVA o critério de pureza com o gate. Espelhe
   dev/check_pipeline_boundaries.py como padrão.
-- A23.l7 = dl-f1-migration-runbook (G-e, DEPOIS de l4): runbook
+- dl-f1-migration-runbook (G-e, DEPOIS de data-source): runbook
   docs/reference/runbooks/data_lineage_migrations.md (4 migrations: data_source,
   data_source_id, artifact_lineage_edge [F3, futura], 2-fases amount/natural_key)
   com janela PITR + rollback por fase + asserção CONCURRENTLY/autocommit_block em
@@ -94,19 +101,21 @@ ORDEM/DEPENDÊNCIAS:
 - Migration online segura: ADD COLUMN NULL, CREATE INDEX CONCURRENTLY fora de transação,
   backfill idempotente. Testar em modo strict: MATHOMS_PIPELINE_SCHEMA_MODE=strict.
 - Co-design ANTES de codar (eles revisam SEU design, não redecidem ADR):
-  - l4 data-source → data-engineer (schema/migration/backfill/índices) + senior-cto
+  - data-source → data-engineer (schema/migration/backfill/índices) + senior-cto
     (SourceRef union + SourceAdapter port). Migration → sre-devops (CONCURRENTLY/PITR).
-  - l5 amount-decimal → data-engineer (inventário de leitores + gate de paridade B5).
-  - l6 extract-check → senior-cto (boundary gate, padrão check_pipeline_boundaries).
-  - l7 migration-runbook → sre-devops (runbook/PITR/rollback) + information-architect
+  - amount-decimal → data-engineer (inventário de leitores + gate de paridade B5).
+  - extract-check → senior-cto (boundary gate, padrão check_pipeline_boundaries).
+  - migration-runbook → sre-devops (runbook/PITR/rollback) + information-architect
     (forma do runbook) + data-engineer (conteúdo da migration).
 
 ## Antes de começar
 - git fetch origin && git worktree list && git for-each-ref --sort=-committerdate
-  refs/remotes/origin/agent/ | head  (confirme que ninguém está em a23-l4/l5/l6/l7-*)
-- Crie UMA branch por lane: agent/a23-l4-data-source/<yyyyMMdd-HHmm> a partir de
-  origin/main (idem l5/l6/l7). Não misture lanes no mesmo PR.
-- Comece pela l4 (central). l5/l6 podem rodar em paralelo. l7 só depois da migration
-  da l4 existir. Anuncie cada operação git. Comece lendo as fontes e propondo
-  plano + co-design por lane.
+  refs/remotes/origin/agent/ | head  (confirme que ninguém está em dl-f1-data-source/
+  amount-decimal/extract-check/migration-runbook)
+- Crie UMA branch por lane: agent/dl-f1-data-source/<yyyyMMdd-HHmm> a partir de
+  origin/main (idem amount-decimal/extract-check/migration-runbook). Não misture
+  lanes no mesmo PR.
+- Comece por data-source (central). amount-decimal/extract-check podem rodar em
+  paralelo. migration-runbook só depois da migration da data-source existir. Anuncie
+  cada operação git. Comece lendo as fontes e propondo plano + co-design por lane.
 ```
