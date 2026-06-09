@@ -180,6 +180,27 @@ def _e5_with_instituicoes(por_membro, n_imoveis=0):
     }
 
 
+# ADR-283 — contrato por-transação E2 (audit AST dos 12 parsers em scripts/e2/banks/).
+_E2_EXTRACT_BASE = {
+    "pipeline_stage": "E2",
+    "banco": "c6bank",
+    "tipo": "faturaunique",
+    "moeda": "BRL",
+}
+_E2_TRANSACAO_TODOS_CAMPOS = {
+    "data": "2026-01-15",
+    "descricao": "COMPRA INTERNACIONAL",
+    "valor": -250.0,
+    "direction": "debit",
+    "tipo_lancamento": "iof",
+    "parcela": "1/3",
+    "nr_doc": "00012345",
+    "cartao": "Carbon",
+    "forex": {"moeda_original": "USD", "valor_original": 50.0, "cotacao": 5.0},
+    "natural_key": {"hash": "abc123", "hash_version": 2},
+}
+
+
 class TestValidateArtifact:
     def test_valid_e2_extract(self, tmp_path):
         data = {
@@ -192,6 +213,30 @@ class TestValidateArtifact:
         path = tmp_path / "test.json"
         path.write_text(json.dumps(data))
         assert validate_artifact(path, "e2_extract.schema.json") is True
+
+    def test_e2_transacao_accepts_all_audited_optional_fields(self, tmp_path, monkeypatch):
+        """ADR-283 — campos por-transação dos 12 parsers passam em strict."""
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        data = {**_E2_EXTRACT_BASE, "transacoes": [_E2_TRANSACAO_TODOS_CAMPOS]}
+        path = tmp_path / "e2.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e2_extract.schema.json") is True
+
+    def test_e2_transacao_strict_rejects_unknown_field(self, tmp_path, monkeypatch):
+        """ADR-283 — campo não declarado na transação falha em strict (sinal de drift)."""
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        data = {
+            "pipeline_stage": "E2",
+            "banco": "itau",
+            "tipo": "extratoconta",
+            "moeda": "BRL",
+            "transacoes": [
+                {"data": "2026-01-15", "descricao": "PIX", "valor": -100.0, "campo_fantasma": "x"}
+            ],
+        }
+        path = tmp_path / "e2.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e2_extract.schema.json") is False
 
     def test_invalid_e2_missing_banco(self, tmp_path, caplog, monkeypatch):
         import logging
