@@ -67,6 +67,11 @@ class PipelineArtifact(Base):
         ForeignKey("documents.id", ondelete="SET NULL"),
         nullable=True,
     )
+    # ADR-278: fonte canônica plugável (coarse). ``document_id`` permanece como folha
+    # fina; generaliza a origem (document hoje, feed Open Finance amanhã). O FK DB
+    # (ON DELETE SET NULL) é Postgres-específico e entra na lane dl-f1-migration-runbook;
+    # aqui a coluna é nullable indexada e a integridade é garantida no app layer.
+    data_source_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
     content_json: Mapped[dict] = mapped_column(JSON, nullable=False)
     schema_version: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
@@ -105,5 +110,10 @@ class PipelineArtifact(Base):
         Index(
             "ix_pipeline_artifacts_document_id",
             "document_id",
+        ),
+        # ADR-278: lineage reverso (F7) consulta artefatos por fonte.
+        Index(
+            "ix_pipeline_artifacts_data_source_id",
+            "data_source_id",
         ),
     )

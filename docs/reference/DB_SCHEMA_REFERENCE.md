@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 59
+**Total de tabelas:** 60
 
 ---
 
@@ -20,6 +20,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`category_keywords`](#categorykeywords)
 - [`category_templates`](#categorytemplates)
 - [`data_export_requests`](#dataexportrequests)
+- [`data_source`](#datasource)
 - [`debt`](#debt)
 - [`decision_events`](#decisionevents)
 - [`decisions`](#decisions)
@@ -272,6 +273,27 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_data_export_requests_expires_at` (expires_at)
 - `ix_data_export_requests_status` (status)
 - `ix_data_export_requests_user_id` (user_id)
+
+### `data_source`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, INDEX |
+| `kind` | `VARCHAR(20)` | no | — | — |
+| `institution_code` | `VARCHAR(64)` | no | server: `` | — |
+| `external_account_ref` | `VARCHAR(128)` | no | server: `` | — |
+| `display_name` | `VARCHAR(255)` | no | — | — |
+| `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+- UNIQUE (workspace_id, kind, institution_code, external_account_ref) — `uq_data_source_natural_key`
+
+**Indexes:**
+
+- `ix_data_source_workspace_id` (workspace_id)
 
 ### `debt`
 
@@ -698,6 +720,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `stage` | `VARCHAR(50)` | no | — | — |
 | `artifact_key` | `VARCHAR(255)` | no | — | — |
 | `document_id` | `VARCHAR(36)` | yes | — | FK→documents.id |
+| `data_source_id` | `VARCHAR(36)` | yes | — | — |
 | `content_json` | `JSON` | no | — | — |
 | `schema_version` | `VARCHAR(20)` | yes | — | — |
 | `byte_size` | `INTEGER` | yes | — | — |
@@ -712,6 +735,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 **Indexes:**
 
+- `ix_pipeline_artifacts_data_source_id` (data_source_id)
 - `ix_pipeline_artifacts_document_id` (document_id)
 - `ix_pipeline_artifacts_pipeline_run_id` (pipeline_run_id)
 - `ix_pipeline_artifacts_workspace_id` (workspace_id)
@@ -1851,6 +1875,20 @@ type DataExportRequest struct {
 }
 ```
 
+### `data_source` → `type DataSource struct`
+
+```go
+type DataSource struct {
+	Id string `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	Kind string `db:"kind" json:"kind"`
+	InstitutionCode string `db:"institution_code" json:"institution_code"`
+	ExternalAccountRef string `db:"external_account_ref" json:"external_account_ref"`
+	DisplayName string `db:"display_name" json:"display_name"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+```
+
 ### `debt` → `type Debt struct`
 
 ```go
@@ -2151,6 +2189,7 @@ type PipelineArtifact struct {
 	Stage string `db:"stage" json:"stage"`
 	ArtifactKey string `db:"artifact_key" json:"artifact_key"`
 	DocumentId *string `db:"document_id" json:"document_id"`
+	DataSourceId *string `db:"data_source_id" json:"data_source_id"`
 	ContentJson json.RawMessage `db:"content_json" json:"content_json"`
 	SchemaVersion *string `db:"schema_version" json:"schema_version"`
 	ByteSize *int `db:"byte_size" json:"byte_size"`
