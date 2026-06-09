@@ -79,7 +79,7 @@ de prioridade/ondas em [[PLAN-data-lineage]] §Ondas.
 | [[A23.l1]] | F0 — gate das 4 ADR (B1–B8) + emenda [[ADR-146]] | ✅ shipped | — (docs) |
 | [[A23.l2]] | `dl-f1-golden-substrate` — `golden_diff` + view-model snapshot + invariantes (fecha DE-005) | ✅ shipped | #552 |
 | [[A23.l3]] | `dl-f1-natural-key` — K4 v2 (moeda+direction+hash_version), B3/B4 passo 1 | ✅ shipped | #553 |
-| `dl-f1-data-source` | tabela `data_source` + `data_source_id` + `SourceRef`/`SourceAdapter` ([[ADR-278]]) | 🔜 a criar (P0, central) | — |
+| [[A23.l5]] | `dl-f1-data-source` — tabela `data_source` + `data_source_id` + `SourceRef` ([[ADR-278]]); `SourceAdapter` + FK DB adiados | 🚧 em PR (P0, central) | — |
 | `dl-f1-amount-decimal` | campo `amount` decimal ao lado de `valor` (B5) | 🔜 a criar | — |
 | `dl-f1-extract-check` | `check_extract_no_domain_imports` (critério [[ADR-280]]) | 🔜 a criar | — |
 | `dl-f1-migration-runbook` | runbook PITR das migrations (G-e) | 🔜 a criar (após data-source) | — |
