@@ -374,7 +374,9 @@ repos:
         entry: python3 dev/check_doc_markdown_links.py
         language: system
         files: ^docs/.*\.md$
-        exclude: ^docs/archive/
+        # Qualquer dir `archive/` (inclui docs/agent_prompts/archive/) — docs
+        # arquivados são arqueologia congelada; seus links relativos não são gate.
+        exclude: (^|/)archive/
         pass_filenames: true
 
       - id: doc-index
