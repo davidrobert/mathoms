@@ -30,6 +30,7 @@
           "data": {"type": "string"},
           "descricao": {"type": "string"},
           "valor": {"type": "number"},
+          "amount": {"type": ["string", "null"]},
           "direction": {"type": ["string", "null"], "enum": ["debit", "credit", null]},
           "natural_key": {
             "type": ["object", "null"],

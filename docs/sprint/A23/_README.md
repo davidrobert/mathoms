@@ -79,16 +79,16 @@ de prioridade/ondas em [[PLAN-data-lineage]] §Ondas.
 | [[A23.l1]] | F0 — gate das 4 ADR (B1–B8) + emenda [[ADR-146]] | ✅ shipped | — (docs) |
 | [[A23.l2]] | `dl-f1-golden-substrate` — `golden_diff` + view-model snapshot + invariantes (fecha DE-005) | ✅ shipped | #552 |
 | [[A23.l3]] | `dl-f1-natural-key` — K4 v2 (moeda+direction+hash_version), B3/B4 passo 1 | ✅ shipped | #553 |
-| [[A23.l5]] | `dl-f1-data-source` — tabela `data_source` + `data_source_id` + `SourceRef` ([[ADR-278]]); `SourceAdapter` + FK DB adiados | 🚧 em PR (P0, central) | — |
-| `dl-f1-amount-decimal` | campo `amount` decimal ao lado de `valor` (B5) | 🔜 a criar | — |
-| `dl-f1-extract-check` | `check_extract_no_domain_imports` (critério [[ADR-280]]) | 🔜 a criar | — |
-| `dl-f1-migration-runbook` | runbook PITR das migrations (G-e) | 🔜 a criar (após data-source) | — |
-| [[A23.l4]] | D6 — alinhar 3º hash (`TransactionOverride`) ao K4 v2 ([[ADR-282]]); slices 1–3 (expand aditivo) | 🚧 in_progress (P0) — slice 1/3 ✅ | slice 1 #556 ✅ |
+| [[A23.l5]] | `dl-f1-data-source` — tabela `data_source` + `data_source_id` + `SourceRef` ([[ADR-278]]); `SourceAdapter` + FK DB adiados | ✅ shipped | #564 |
+| [[A23.l6]] | `dl-f1-amount-decimal` — campo `amount` decimal ao lado de `valor` (B5) | 🚧 em PR (P0) | — |
+| `A23.l7` | `dl-f1-extract-check` — `check_extract_no_domain_imports` (critério [[ADR-280]]) | 🔜 a criar | — |
+| `A23.l8` | `dl-f1-migration-runbook` — runbook PITR das migrations + FK DB (G-e) | 🔜 a criar (após data-source) | — |
+| [[A23.l4]] | D6 — alinhar 3º hash (`TransactionOverride`) ao K4 v2 ([[ADR-282]]); slices 1–3 (expand aditivo) | 🚧 in_progress (P0) — slices 1–3 ✅ | #556/#562/#563 ✅ |
 
-**Onda 0 fechada; Onda 1 em andamento** (3/7 lanes de contrato shipped; +[[A23.l4]]
-D6, P0, em andamento). As 4 lanes de contrato restantes têm prompt de orquestração
-self-contained em
-[agent_prompts/orchestrator_a23_onda1_lanes.md](../../agent_prompts/orchestrator_a23_onda1_lanes.md)
+**Onda 0 fechada; Onda 1 em andamento** (4/7 lanes de contrato shipped; +[[A23.l4]]
+D6, P0, slices 1–3 ✅). As 3 lanes de contrato restantes ([[A23.l6]] + `A23.l7`/`A23.l8`)
+têm prompt de orquestração self-contained em
+[agent_prompts/orchestrator_a23_onda1_restante.md](../../agent_prompts/orchestrator_a23_onda1_restante.md)
 (ordem, dependências, co-design por lane, guard-rails de aditividade G1). Ondas 2–3
 (de-leak + backbone) abrem após a Onda 1.
 
