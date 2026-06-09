@@ -60,8 +60,8 @@ fecha o lineage reverso. Detalhe e alternativas rejeitadas em [[ADR-282]].
 | # | Slice | PR | Status | Escopo |
 |---|---|---|---|---|
 | 1 | Fundação aditiva | [#556](https://github.com/davidrobert/mathoms/pull/556) | ✅ shipped (`c96c4915`) | Migration aditiva (`natural_key_hash`/`hash_version`/snapshot 8 inputs/`orphaned_at` + índice parcial `ix_txov_ws_natural_key`); adapter `override_identity.py` (`ClassifiedTransaction → HashInputs → compute_natural_key`); dual-write no **learning loop** (caminho limpo); flag `override_natural_key_v2_enabled=False`. Zero-behavior-change. |
-| 2 | Read-path | — | ⬜ pendente | Propagar `direction` no E4 (alinhado [[ADR-278]]) + adapter `inputs_from_transaction_item` (`TransactionItem` não carrega `tipo`/`direction` → derivar via `derive_direction`, D2) + dual-write em `create_override` e `_apply_engine`. |
-| 3 | Backfill (report-only) | — | ⬜ pendente | Script idempotente, **report-only antes de escrever**, **quiesce-aware** (coordena lock com `pipeline_reset`): replay-E4, recomputa v1+v2 por linha, mapa `{v1:v2}`, log `{workspace_id, overrides_total, reanchored, orphaned, collided}`. |
+| 2 | Read-path | [#562](https://github.com/davidrobert/mathoms/pull/562) | ✅ shipped (`2c0a8f70`) | Adapter `inputs_from_transaction_item` + dual-write em `create_override` e `_apply_engine`. **Opção C** (co-design `senior-cto`+`data-engineer`): `direction` vem do **bucket E4** (`tipo` no `TransactionItem`), NÃO do sinal — E4 grava despesa com `abs(valor)`; emitir `direction` no artefato quebraria o view-model snapshot (G1). Goldens verdes sem rebaseline. |
+| 3 | Backfill (report-only) | 🚧 em PR | 🚧 em revisão | Service `internal_ops/backfill_override_identity.py` (`plan`/`apply`): reusa `load_transactions` como fonte `{v1:v2}`, **revalida `IS NULL`** (TOCTOU), `resolve_collision` puro (chave total `source/created_at/id`), bucket **`ambiguous`** (1-velho→N-novo → quarentena, [[ADR-282]] §6b), quiesce via `pipeline_runs.status` + `pg_advisory_xact_lock`. Idempotência `natural_key_hash IS NULL AND orphaned_at IS NULL`. Log `{...overrides_total, reanchored, orphaned, ambiguous, collided}`. |
 
 Slices 4–5 (cutover + M2 destrutiva) → §Não-escopo (próxima janela / A24).
 
@@ -76,9 +76,10 @@ Gate por slice:
 - **Slice 2** — `test_override_hash_equals_dedup_hash` verde (**invariante central**:
   hash do override == hash v2 do dedup para a mesma linha E4); casos fatura-estorno +
   drift-sufixo-PIX no read-path do backend; `make update-openapi-snapshot` se DTO mudar.
-- **Slice 3** — `test_override_backfill_reanchors` + `test_collision_precedence` verdes;
-  **dry-run inspecionado por humano** (mapeados/órfãos/colididos); nada escrito em
-  report-only.
+- **Slice 3** — `test_backfill_reanchors_legacy_override` + `test_backfill_collision_precedence`
+  + `test_backfill_quarantines_ambiguous_v1` (Decisão 6b) + `test_backfill_aborts_when_run_active`
+  + `test_backfill_idempotent_rerun` verdes; **dry-run inspecionado por humano** (mapeados/órfãos/
+  ambíguos/colididos); nada escrito em report-only.
 
 ## Sequenciamento
 
