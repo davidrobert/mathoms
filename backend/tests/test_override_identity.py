@@ -5,8 +5,12 @@ auto-suficiente (re-hasheável só do snapshot, sem replay de E4)."""
 
 from __future__ import annotations
 
+from decimal import Decimal
+
+from backend.app.schemas.transactions import TransactionItem
 from backend.app.services.override_identity import (
     identity_from_classified_tx,
+    identity_from_transaction_item,
     inputs_from_classified_tx,
 )
 from pipeline.domain.services._tx_identity import (
@@ -32,6 +36,25 @@ def _tx(**over) -> ClassifiedTransaction:
     )
     base.update(over)
     return ClassifiedTransaction(**base)
+
+
+def _item(**over) -> TransactionItem:
+    """``TransactionItem`` como ``load_transactions`` produz (``tipo`` do bucket E4)."""
+    base = dict(
+        data="2026-03-15",
+        descricao="PAGAMENTO LOJA",
+        valor=Decimal("50.0"),
+        banco="c6bank",
+        categoria="Lazer",
+        tipo_conta="conta_corrente",
+        titular="Test User",
+        moeda="BRL",
+        tipo="debito",
+        transaction_hash="legacy",
+        row_id="legacy:0",
+    )
+    base.update(over)
+    return TransactionItem(**base)
 
 
 def test_identity_equals_dedup_natural_key_v2() -> None:
@@ -108,3 +131,48 @@ def test_adapter_returns_raw_inputs_not_normalized() -> None:
     inputs = inputs_from_classified_tx(_tx(descricao="PAGAMENTO LOJA — TRANSF ENVIADA PIX"))
     assert inputs.descricao == "PAGAMENTO LOJA — TRANSF ENVIADA PIX"
     assert inputs.valor_cents == 5000
+
+
+# -- Read-path (slice 2): TransactionItem == ClassifiedTransaction para a mesma linha E4 --
+
+
+def _pair(*, kind: str, tipo: str, valor, **common):
+    """Mesma linha E4 como (clean) ClassifiedTransaction e (read) TransactionItem."""
+    clean = identity_from_classified_tx(_tx(kind=kind, tipo=tipo, valor=valor, **common))
+    read = identity_from_transaction_item(_item(tipo=tipo, valor=Decimal(str(valor)), **common))
+    return clean, read
+
+
+def test_override_hash_equals_dedup_hash_despesa() -> None:
+    """Invariante central: read-path (despesa) == clean path da MESMA linha E4."""
+    clean, read = _pair(kind="despesa", tipo="debito", valor=50.0)
+    assert read.natural_key_hash == clean.natural_key_hash
+    assert read.hash_version == 2
+
+
+def test_override_hash_equals_dedup_hash_receita() -> None:
+    """Invariante central: read-path (receita) == clean path da MESMA linha E4."""
+    clean, read = _pair(kind="receita", tipo="credito", valor=3000.0, descricao="SALARIO")
+    assert read.natural_key_hash == clean.natural_key_hash
+
+
+def test_override_hash_equals_dedup_hash_estorno_fatura() -> None:
+    """Estorno de fatura (valor<0, bucket receitas → tipo credito): read == clean."""
+    clean, read = _pair(kind="receita", tipo="credito", valor=-120.0, tipo_conta="fatura_cartao")
+    assert read.natural_key_hash == clean.natural_key_hash
+    assert read.tx_direction == "credit"
+
+
+def test_despesa_read_path_direction_is_debit_despite_abs() -> None:
+    """E4 grava despesa com ``abs(valor)`` (positivo); tipo do bucket garante ``debit``."""
+    read = identity_from_transaction_item(_item(tipo="debito", valor=Decimal("50.0")))
+    assert read.tx_direction == "debit"
+
+
+def test_pix_drift_read_path_same_hash() -> None:
+    """C6 re-extraído com sufixo PIX no read-path → MESMO hash (não orfaniza override)."""
+    plain = identity_from_transaction_item(_item(descricao="PAGAMENTO LOJA"))
+    suffixed = identity_from_transaction_item(
+        _item(descricao="PAGAMENTO LOJA — TRANSF ENVIADA PIX")
+    )
+    assert plain.natural_key_hash == suffixed.natural_key_hash

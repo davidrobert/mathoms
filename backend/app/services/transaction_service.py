@@ -64,6 +64,10 @@ def load_transactions(workspace_id: str, tenant_root: str) -> list[TransactionIt
                 tipo_conta=tx.get("tipo_conta"),
                 titular=tx.get("titular"),
                 moeda=tx.get("moeda"),
+                # ADR-282: bucket E4 carrega a direction de domínio que o ``abs``
+                # da despesa destrói no payload — ``credito`` p/ receita, ``debito``
+                # p/ despesa. Único sinal autoritativo de tipo no read-path.
+                tipo="credito" if tx.get("_tx_type") == "receita" else "debito",
                 transaction_hash=tx_hash,
                 row_id=f"{tx_hash}:{idx}",
                 is_overridden=False,

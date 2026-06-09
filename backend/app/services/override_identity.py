@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from backend.app.schemas.transactions import TransactionItem
 from pipeline.domain.services._tx_identity import (
     HashInputs,
     build_hash_inputs,
@@ -81,3 +82,25 @@ def inputs_from_classified_tx(tx: ClassifiedTransaction) -> HashInputs:
 def identity_from_classified_tx(tx: ClassifiedTransaction) -> OverrideIdentity:
     """Hash v2 + snapshot de uma linha E4 classificada (caminho do learning loop)."""
     return _identity_from_inputs(inputs_from_classified_tx(tx))
+
+
+def inputs_from_transaction_item(item: TransactionItem) -> HashInputs:
+    """Adapter D3 read-path — ``TransactionItem`` (``load_transactions``) → ``HashInputs``."""
+    # ``tipo`` vem do bucket E4 (credito/debito), NÃO do sinal: a despesa é gravada
+    # com ``abs(valor)``, então inferir direction por sinal daria ``credit`` em toda
+    # despesa. Casa por construção com ``inputs_from_classified_tx`` (ADR-282 read-path).
+    return build_hash_inputs(
+        data=item.data,
+        banco=item.banco,
+        titular=item.titular,
+        tipo_conta=item.tipo_conta,
+        valor=item.valor,
+        moeda=item.moeda,
+        descricao=item.descricao,
+        tipo=item.tipo,
+    )
+
+
+def identity_from_transaction_item(item: TransactionItem) -> OverrideIdentity:
+    """Hash v2 + snapshot de uma linha E4 do read-path (override manual / apply de regra)."""
+    return _identity_from_inputs(inputs_from_transaction_item(item))

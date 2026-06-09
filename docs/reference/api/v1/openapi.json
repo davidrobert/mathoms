@@ -12249,6 +12249,17 @@
             "title": "Row Id",
             "type": "string"
           },
+          "tipo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tipo"
+          },
           "tipo_conta": {
             "anyOf": [
               {
