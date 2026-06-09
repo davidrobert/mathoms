@@ -12,6 +12,7 @@ from backend.app.models.data_export_request import (
     DataExportRequest,
     DataExportRequestStatus,
 )
+from backend.app.models.data_source import DataSource
 from backend.app.models.debt import (
     DEBT_SOURCE_BASELINE_IRPF_MIGRATION,
     DEBT_SOURCE_OPEN_BANKING_FUTURO,
@@ -246,6 +247,7 @@ __all__ = [
     "DataExportRequest",
     "DataExportRequestStatus",
     "VALID_DATA_EXPORT_STATUSES",
+    "DataSource",
     "PipelineArtifact",
     "PipelineRunCost",
     "PlannerFieldRequest",
