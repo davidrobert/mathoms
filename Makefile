@@ -27,7 +27,9 @@ MAKEFLAGS      += --no-print-directory
 # ---------------------------------------------------------------------------
 
 VENV    := .venv/bin
-PYTHON  := $(VENV)/python
+# Usa o python do venv quando existe; senão cai para python3 do PATH (worktrees em
+# .claude/worktrees/ e ambientes sem venv não têm .venv/bin/python).
+PYTHON  := $(shell [ -x .venv/bin/python ] && echo .venv/bin/python || command -v python3)
 PIP     := $(VENV)/pip
 
 # Pass-through para CLIs externas. Ex.: `make test-pipeline PYTEST_ARGS="-x -k saldo"`
@@ -756,26 +758,30 @@ codex-check:
 update-openapi-snapshot: update-pipeline-service-openapi
 	@mkdir -p docs/reference/api/v1
 	@FERNET_KEY="$${MATHOMS_FERNET_KEY:-$(ephemeral_fernet)}"; \
+	 out=docs/reference/api/v1/openapi.json; tmp=$$(mktemp); \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 $(PYTHON) -c 'import json; from backend.app.main import app; \
 	   print(json.dumps(app.openapi(), indent=2, sort_keys=True))' \
-	 > docs/reference/api/v1/openapi.json
+	 > "$$tmp" && mv "$$tmp" "$$out" || { rm -f "$$tmp"; exit 1; }
 	@echo "✓ docs/reference/api/v1/openapi.json regenerado. Comite o diff."
 
 ## update-pipeline-service-openapi: Regenera docs/reference/api/v1/pipeline-service.openapi.json (A6f.1 · ADR-112)
 update-pipeline-service-openapi:
 	@mkdir -p docs/reference/api/v1
-	@PYTHONPATH="$(CURDIR)/pipeline-service:$(CURDIR)" \
+	@out=docs/reference/api/v1/pipeline-service.openapi.json; tmp=$$(mktemp); \
+	 PYTHONPATH="$(CURDIR)/pipeline-service:$(CURDIR)" \
 	 $(PYTHON) -c 'import json; from app.main import create_app; \
 	   print(json.dumps(create_app().openapi(), indent=2, sort_keys=True))' \
-	 > docs/reference/api/v1/pipeline-service.openapi.json
+	 > "$$tmp" && mv "$$tmp" "$$out" || { rm -f "$$tmp"; exit 1; }
 	@echo "✓ docs/reference/api/v1/pipeline-service.openapi.json regenerado. Comite o diff."
 
 ## update-db-schema-reference: Regenera docs/reference/DB_SCHEMA_REFERENCE.md (A6f.4 · ADR-102 R20)
 update-db-schema-reference:
 	@FERNET_KEY="$${MATHOMS_FERNET_KEY:-$(ephemeral_fernet)}"; \
+	 out=docs/reference/DB_SCHEMA_REFERENCE.md; tmp=$$(mktemp); \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
-	 $(PYTHON) dev/generate_db_schema_reference.py > docs/reference/DB_SCHEMA_REFERENCE.md
+	 $(PYTHON) dev/generate_db_schema_reference.py > "$$tmp" \
+	 && mv "$$tmp" "$$out" || { rm -f "$$tmp"; exit 1; }
 	@echo "✓ docs/reference/DB_SCHEMA_REFERENCE.md regenerado. Comite o diff."
 
 # ---------------------------------------------------------------------------
