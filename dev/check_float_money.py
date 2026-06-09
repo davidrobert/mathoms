@@ -23,6 +23,30 @@ import subprocess
 import sys
 from pathlib import Path
 
+# ADR-283 — full-scan de colunas SQLAlchemy ``Float`` em models/.
+# Detecção ESTRUTURAL (mapped_column(Float)/Column(Float)), não regex de nome:
+# o vetor de drift irreversível é a coluna persistida, não o nome do campo.
+# Allowlist NOMINAL ``(path_rel, coluna) -> motivo`` — Float legítimo (não-money)
+# ou legado com drop rastreado. Heurística de nome erra; allowlist explícita não.
+MODELS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
+    ("backend/app/models/report.py", "score"): "índice 0–100, não monetário",
+    ("backend/app/models/llm_config.py", "temperature"): "parâmetro LLM, não monetário",
+    (
+        "backend/app/models/document.py",
+        "classification_confidence",
+    ): "confidence 0–1, não monetário",
+    ("backend/app/models/category.py", "monthly_cap"): (
+        "Float legado órfão; cents canônico vive em workspace_category_overrides."
+        "monthly_cap_brl_cents (ADR-137). Drop rastreado em A12.cat-legacy-sunset"
+    ),
+}
+# ``<nome>: Mapped[...] = mapped_column(`` ou ``<nome> = mapped_column(`` / ``Column(``.
+_MODEL_COLUMN = re.compile(
+    r"^\s*([a-zA-Z_][a-zA-Z_0-9]*)\s*(?::\s*Mapped\[[^=]*\])?\s*=\s*"
+    r"(?:mapped_column|sa\.Column|Column)\("
+)
+_FLOAT_TYPE = re.compile(r"\b(?:sa\.)?Float\b")
+
 # Tokens monetários — case-insensitive match no nome do campo.
 MONEY_TOKENS = re.compile(
     r"(amount|valor|brl|saldo|money|total|price|cost|despesa|receita|"
@@ -105,18 +129,73 @@ def check_file(file_path: str) -> list[tuple[int, str, str]]:
     return offenders
 
 
-def main(argv: list[str]) -> int:
-    all_offenders: list[tuple[str, int, str, str]] = []
+def _repo_rel(path: Path) -> str:
+    try:
+        return path.relative_to(Path.cwd()).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def _float_column_on_line(line: str) -> str | None:
+    """Nome da coluna se a linha declara um SQLAlchemy ``Float``, senão ``None``."""
+    if not _FLOAT_TYPE.search(line):
+        return None
+    m = _MODEL_COLUMN.match(line)
+    return m.group(1) if m else None
+
+
+def _model_float_offenders(py: Path) -> list[tuple[str, int, str]]:
+    rel = _repo_rel(py)
+    out: list[tuple[str, int, str]] = []
+    for line_no, line in enumerate(py.read_text(encoding="utf-8").splitlines(), 1):
+        column = _float_column_on_line(line)
+        if column and (rel, column) not in MODELS_FLOAT_ALLOWLIST:
+            out.append((rel, line_no, column))
+    return out
+
+
+def scan_models_float_columns(models_dir: str) -> list[tuple[str, int, str]]:
+    """Return [(path_rel, line_no, column)] de colunas Float fora da allowlist."""
+    offenders: list[tuple[str, int, str]] = []
+    for py in sorted(Path(models_dir).rglob("*.py")):
+        offenders.extend(_model_float_offenders(py))
+    return offenders
+
+
+def _run_models_scan(models_dir: str) -> int:
+    offenders = scan_models_float_columns(models_dir)
+    if not offenders:
+        return 0
+    print(
+        "ERRO: coluna SQLAlchemy `Float` monetária em models — violação do ADR-090:",
+        file=sys.stderr,
+    )
+    for rel, line_no, column in offenders:
+        print(f"  {rel}:{line_no} — {column}", file=sys.stderr)
+    print(
+        "\nADR-090: dinheiro nunca é float. Use `Numeric(18, 2)` na coluna.\n"
+        "Se a coluna NÃO é monetária (índice/ratio/parâmetro) ou é legado com\n"
+        "drop rastreado, adicione (path, coluna) a MODELS_FLOAT_ALLOWLIST com motivo.",
+        file=sys.stderr,
+    )
+    return 1
+
+
+def _collect_diff_offenders(argv: list[str]) -> list[tuple[str, int, str, str]]:
+    out: list[tuple[str, int, str, str]] = []
     for arg in argv:
-        p = Path(arg)
-        if p.suffix != ".py":
+        if Path(arg).suffix != ".py":
             continue
         for line_no, name, content in check_file(arg):
-            all_offenders.append((arg, line_no, name, content))
-    if not all_offenders:
+            out.append((arg, line_no, name, content))
+    return out
+
+
+def _report_diff_offenders(offenders: list[tuple[str, int, str, str]]) -> int:
+    if not offenders:
         return 0
     print("ERRO: `: float` em campo monetário — violação do ADR-090:", file=sys.stderr)
-    for file_path, line_no, name, content in all_offenders:
+    for file_path, line_no, name, content in offenders:
         print(f"  {file_path}:{line_no} — {name}", file=sys.stderr)
         print(f"    {content.strip()}", file=sys.stderr)
     print(
@@ -129,6 +208,13 @@ def main(argv: list[str]) -> int:
         file=sys.stderr,
     )
     return 1
+
+
+def main(argv: list[str]) -> int:
+    if argv and argv[0] == "--scan-models":
+        models_dir = argv[1] if len(argv) > 1 else "backend/app/models"
+        return _run_models_scan(models_dir)
+    return _report_diff_offenders(_collect_diff_offenders(argv))
 
 
 if __name__ == "__main__":

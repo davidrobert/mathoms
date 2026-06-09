@@ -2,8 +2,9 @@
 
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -36,8 +37,12 @@ class Report(Base):
     tasks_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # F11.6b — referência às premissas vigentes (metas + hash do goals.json) para comparar relatórios.
     premissas_snapshot_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # ``score`` é índice 0–100 (não monetário) → Float é legítimo.
     score: Mapped[float] = mapped_column(Float, nullable=True)
-    patrimonio_liquido: Mapped[float] = mapped_column(Float, nullable=True)
+    # ADR-283 — agregado monetário (BRL consolidado). ``Numeric(18,2)`` honra
+    # ADR-090 (dinheiro nunca é float); o read-path em goal_service já devolve
+    # ``Decimal`` para o cálculo de meta IF.
+    patrimonio_liquido: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

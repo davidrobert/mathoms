@@ -86,6 +86,16 @@ repos:
         pass_filenames: true
         types: [python]
 
+      - id: float-money-models
+        # ADR-283: full-scan de colunas SQLAlchemy `Float` em models/ (rede de
+        # segurança contra regressão de persistência). Allowlist nominal no
+        # próprio gate; roda sempre, independente de diff.
+        name: "Proíbe coluna Float monetária em models (ADR-090/ADR-283)"
+        entry: python3 dev/check_float_money.py --scan-models backend/app/models
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: forbidden-paths
         name: "Bloqueia paths sensíveis (storage/, .env, *.db, …)"
         entry: python dev/check_forbidden_paths.py

@@ -1055,7 +1055,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `tasks_snapshot_json` | `JSON` | yes | — | — |
 | `premissas_snapshot_json` | `JSON` | yes | — | — |
 | `score` | `FLOAT` | yes | — | — |
-| `patrimonio_liquido` | `FLOAT` | yes | — | — |
+| `patrimonio_liquido` | `NUMERIC(18, 2)` | yes | — | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
 **Constraints:**
@@ -2407,7 +2407,7 @@ type Report struct {
 	TasksSnapshotJson json.RawMessage `db:"tasks_snapshot_json" json:"tasks_snapshot_json"`
 	PremissasSnapshotJson json.RawMessage `db:"premissas_snapshot_json" json:"premissas_snapshot_json"`
 	Score *float64 `db:"score" json:"score"`
-	PatrimonioLiquido *float64 `db:"patrimonio_liquido" json:"patrimonio_liquido"`
+	PatrimonioLiquido *decimal.Decimal `db:"patrimonio_liquido" json:"patrimonio_liquido"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 ```

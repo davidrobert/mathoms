@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-273 ADRs (ADR-001 a ADR-282) em [`docs/adr/`](../../adr/).
+274 ADRs (ADR-001 a ADR-283) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 205
-- **Proposto**: 64
+- **Proposto**: 65
 - **Roadmap**: 4
 
 ## Fundação
@@ -315,11 +315,12 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-213]] — Sunset stage `audit_documents` (e cleanup de `_STAGE_TO_DIR` órfão) · phase A12.sunset-audit
 - [[ADR-214]] — `Decision.code` é server-generated com `pg_advisory_xact_lock` · phase A12.decision-code-autogen
 
-### Proposto (3)
+### Proposto (4)
 
 - [[ADR-211]] — llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) · phase A12
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-269]] — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado · phase A17.task-suggestion-dedup
+- [[ADR-283]] — Float monetário persistido e hardening de boundary de schema (patrimonio_liquido, gate models, E2 items) · phase Débito técnico
 
 ## categorization
 
