@@ -137,10 +137,20 @@ então o passo 2 não causa colisão *direta*. Os problemas reais:
    `product-designer`).
 
 6. **Política de colisão N-velho→1-novo — precedência determinística, sem perda.** `manual >
-   rule`; entre dois `manual`, `created_at` mais recente vence; entre dois `rule`, idem. O
+   rule`; entre dois `manual`, `created_at` mais recente vence; entre dois `rule`, idem;
+   `id` (uuid) é o desempate terminal (chave total — sem flakiness sob `created_at` idêntico). O
    perdedor vira `deleted_at = now()` (soft-delete já existe, [[ADR-188]] §D1) com `notes` de
    auditoria (`"colapsado em <id> durante migração natural_key v2 (ADR-282)"`). Todas as
    colisões no report de dry-run antes do write.
+
+6b. **Política de ambiguidade 1-velho→N-novo — quarentena, nunca palpite (emenda, co-design
+   `data-engineer`+`senior-cto` 2026-06-08).** O inverso da colisão: `generate_transaction_hash`
+   v1 não tem `tipo_conta` nem moeda/direction, então um único `transaction_hash` legado pode
+   resolver para **N** `natural_key` v2 distintos no E4 atual (duas contas do mesmo membro/data/
+   desc/valor que o v1 fundia e o v2 separa). Reancorar para um v2 arbitrário propagaria a
+   categorização manual para a conta errada (gênero do incidente "membro identity por CPF"). Logo:
+   v1 que mapeia para >1 `natural_key` v2 → **`orphaned_at` (quarentena), nunca reancora**.
+   Bucket próprio (`ambiguous`) no report e no log.
 
 7. **Sequenciamento — gate obrigatório.** Esta migração **DEVE aterrissar antes do passo 2**
    (flip do consumo v2 no dedup E4). Flipar o dedup enquanto o override usa
@@ -189,12 +199,14 @@ v2 SHA-16) **não é breaking de shape de contrato** — não exige dual-read no
   == `natural_key.hash` v2 do dedup (invariante central).
 - `test_override_backfill_reanchors` — fixture com overrides v1 legados → backfill reancora os
   presentes no E4, **reporta** órfãos; nada dropado.
+- `test_backfill_quarantines_ambiguous_v1` — v1 que resolve para >1 `natural_key` v2 → `orphaned_at`,
+  não reancora (Decisão 6b).
 - `test_dual_read_window` — match casa v2 e v1-legado durante a janela.
 - Casos **fatura-estorno** (`valor<0`, `tipo_conta="fatura…"`) e **drift-sufixo-PIX** no
   read-path do backend (não só no `cash_flow_builder`).
 - `test_collision_precedence` — `manual > rule`; mais recente vence; perdedor soft-deleted com
   `notes`.
-- Log estruturado no backfill `{workspace_id, overrides_total, reanchored, orphaned, collided}`
+- Log estruturado no backfill `{workspace_id, overrides_total, reanchored, orphaned, ambiguous, collided}`
   (namespace `mathoms.categorization.*`).
 - `make update-openapi-snapshot` commitado; `dev/check_pipeline_boundaries.py` verde
   (recompute do backend importa `_tx_identity` de `pipeline/` — domínio puro, OK); migration
