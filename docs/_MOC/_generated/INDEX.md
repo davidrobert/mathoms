@@ -573,6 +573,7 @@
 | A23.l3 | lane | shipped | A23 | Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4) | `sprint/A23/lanes/A23-l3-natural-key.md` |
 | A23.l4 | lane | in_progress | A23 | Data Lineage F1 — alinhar 3º hash (override) ao K4 v2 (D6) | `sprint/A23/lanes/A23-l4-override-hash-k4-parity.md` |
 | A23.l5 | lane | in_progress | A23 | Data Lineage F1 — fonte plugável (data_source + SourceRef) | `sprint/A23/lanes/A23-l5-data-source.md` |
+| A23.l6 | lane | in_progress | A23 | Data Lineage F1 — amount decimal ao lado de valor (B5) | `sprint/A23/lanes/A23-l6-amount-decimal.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
