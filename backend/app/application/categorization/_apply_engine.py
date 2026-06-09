@@ -25,6 +25,7 @@ from backend.app.models.transaction_override import (
 from backend.app.repositories.categorization_rule_repository import (
     CategorizationRuleRepository,
 )
+from backend.app.services.override_identity import identity_from_transaction_item
 from backend.app.services.report_publication import is_month_closed_sync
 from pipeline.domain.services.categorization_service import normalize_narrative
 from pipeline.domain.services.internal_transfer_detector import (
@@ -109,7 +110,7 @@ def _should_skip_for_apply(tx, ctx: _ApplyCtx) -> bool:
 
 def _build_override_values(tx, ctx: _ApplyCtx) -> dict:
     """Valores para INSERT ``transaction_overrides(source='rule')``."""
-    return {
+    values = {
         "id": str(uuid.uuid4()),
         "workspace_id": ctx.workspace_id,
         "transaction_hash": tx.transaction_hash,
@@ -121,6 +122,10 @@ def _build_override_values(tx, ctx: _ApplyCtx) -> dict:
         "created_at": datetime.now(timezone.utc),
         "deleted_at": None,
     }
+    # ADR-282 dual-write: hash v2 + snapshot (match segue no transaction_hash
+    # legado enquanto a flag está off). Paridade com o learning loop.
+    values.update(identity_from_transaction_item(tx).as_columns())
+    return values
 
 
 def _dialect_insert(db: Session):

@@ -12,6 +12,7 @@ from backend.app.schemas.transactions import (
     TransactionOverrideRequest,
     TransactionOverrideResponse,
 )
+from backend.app.services.override_identity import identity_from_transaction_item
 from backend.app.services.transaction_service import load_transactions
 
 
@@ -27,6 +28,9 @@ async def create_override(
     if not matching:
         raise NotFoundError("Transação não encontrada")
     original_category = matching[0].categoria
+    # ADR-282 dual-write: hash v2 + snapshot da linha E4; o match segue no
+    # ``transaction_hash`` legado enquanto a flag está off (zero-behavior).
+    identity_columns = identity_from_transaction_item(matching[0]).as_columns()
 
     result = await db.execute(
         select(TransactionOverride).where(
@@ -40,6 +44,8 @@ async def create_override(
         existing.new_category = body.new_category
         existing.notes = body.notes
         existing.reviewed = True
+        for column, value in identity_columns.items():
+            setattr(existing, column, value)
         await db.commit()
         await db.refresh(existing)
         return TransactionOverrideResponse.model_validate(existing)
@@ -51,6 +57,7 @@ async def create_override(
         new_category=body.new_category,
         notes=body.notes,
         reviewed=True,
+        **identity_columns,
     )
     db.add(override)
     await db.commit()

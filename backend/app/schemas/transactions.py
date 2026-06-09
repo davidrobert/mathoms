@@ -25,6 +25,11 @@ class TransactionItem(BaseModel):
     tipo_conta: Optional[str] = None
     titular: Optional[str] = None
     moeda: Optional[str] = None
+    # ADR-282 read-path: ``credito``/``debito`` derivado do bucket E4
+    # (receitas→credito, despesas→debito) — NÃO do sinal de ``valor`` (E4 grava
+    # despesa com ``abs``, então sinal daria direction errada). Alimenta o hash
+    # v2 do override via ``inputs_from_transaction_item``.
+    tipo: Optional[str] = None
     # Identidade lógica (data|descricao|valor|banco|titular). Múltiplas
     # transações físicas idênticas (ex.: 2 lattes no mesmo dia) compartilham
     # este hash — propositalmente, pois TransactionOverride é unique por hash.
