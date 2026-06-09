@@ -133,6 +133,9 @@ STAGE_REGISTRY: dict[str, StageSpec] = {
     "extract_baseline": StageSpec(
         "extract_baseline", writes=("extract_baseline",), is_llm=True, tier="premium"
     ),
+    # consolidate_baseline (E1.5c) é TRANSFORM (ADR-280): lê cross-IRPF + dedup, logo
+    # PODE importar domínio — por isso fica fora do glob `extract_*` do gate de pureza
+    # de extração (dev/check_extract_no_domain_imports.py).
     "consolidate_baseline": StageSpec(
         "consolidate_baseline", reads=("extract_baseline",), writes=("consolidate_baseline",)
     ),
@@ -267,6 +270,8 @@ def build_from_map(order: list[str]) -> dict[str, list[str]]:
     return {stage: order[i:] for i, stage in enumerate(order)}
 
 
+# Pureza de extração (Extract|Transform, ADR-280) é gate estático ortogonal a ordem:
+# ver dev/check_extract_no_domain_imports.py (extração ∌ imports de domínio).
 def validate_full_order(order: list[str]) -> None:
     """Valida que ``order`` é consistente com as dependências declaradas.
 

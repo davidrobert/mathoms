@@ -119,6 +119,18 @@ repos:
         always_run: true
         types: [python]
 
+      - id: extract-no-domain-imports
+        # ADR-280: extração pura (scripts/e2/**, pipeline/stages/extract_*) não
+        # importa domínio (category_template / *_dedup / config_store). Trava o
+        # critério Extract|Transform; de-leak de regras que hoje vazam é F2.
+        name: "Extração pura: proíbe imports de domínio (ADR-280)"
+        entry: python3 dev/check_extract_no_domain_imports.py
+        language: system
+        # Invariante global (varre as raízes de extração todas), não por-arquivo.
+        pass_filenames: false
+        always_run: true
+        types: [python]
+
       - id: classification-exhaustive
         # ADR-235 A16: bloqueia switch/match sobre `classification` sem
         # branch default — enum cresce (nu_proprietario foi o último

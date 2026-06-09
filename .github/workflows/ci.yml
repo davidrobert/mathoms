@@ -312,6 +312,9 @@ jobs:
       - name: Pipeline package import boundaries (P1)
         run: python dev/check_pipeline_boundaries.py --verbose
 
+      - name: Extract purity — no domain imports (ADR-280)
+        run: python dev/check_extract_no_domain_imports.py --verbose
+
   backend-tests:
     name: Backend tests (backend/tests/)
     runs-on: ubuntu-latest
