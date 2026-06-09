@@ -18,7 +18,7 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 - **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md).
 - **Sprint:** [sprint/A23/_README.md](../sprint/A23/_README.md) (§Estado atual — tabela de lanes).
-- **Progresso:** Onda 0 ✅ (`A23.l1` gate F0). Onda 1 em andamento: `A23.l2` substrato de golden ✅ (#552), `A23.l3` `natural_key` B3/B4 ✅ (#553). Restam 4 lanes (data-source, amount-decimal B5, extract-check, migration-runbook G-e) — prompt em [agent_prompts/orchestrator_a23_onda1_lanes.md](../agent_prompts/orchestrator_a23_onda1_lanes.md). Dívida D6 → [[ADR-282]] (Proposto).
+- **Progresso:** Onda 0 ✅ (`A23.l1` gate F0). **Onda 1 (contrato aditivo) COMPLETA** (7/7): `A23.l2` golden (#552), `A23.l3` `natural_key` (#553), `A23.l5` `data_source` (#564), `A23.l6` `amount` decimal B5 (#567), `A23.l7` extract-check ADR-280 (#568), `A23.l8` runbook + FK DB (#569); +`A23.l4` D6 slices 1–3 (#556/#562/#563, slices 4–5 cutover → A24). Prompts arquivados em [agent_prompts/archive/](../agent_prompts/archive/). Ondas 2–3 (de-leak + backbone) abrem agora.
 
 ## Sprint candidate (próxima)
 
