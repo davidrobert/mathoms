@@ -10,7 +10,7 @@ import hashlib
 import re
 import unicodedata
 from dataclasses import dataclass
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 _WHITESPACE_RE = re.compile(r"\s+")
 
@@ -109,6 +109,17 @@ def decimal_cents(valor: float | int | str | Decimal) -> int:
     # corrige o int(round(0.575*100))==57 do cents_int legado.
     dec = valor if isinstance(valor, Decimal) else Decimal(str(valor))
     return int(abs(dec).scaleb(2).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def to_amount_string(valor: float | int | str | Decimal | None) -> str | None:
+    """Espelho decimal-string de ``valor`` (ADR-278 B5; wire decimal, ADR-090): ponto-fixo via ``format(dec,"f")`` (mata notação científica), sem quantizar (preserva FX 3+ casas), sinal preservado; ``None`` se ausente/não-numérico (stamp omite a chave)."""
+    if valor is None:
+        return None
+    try:
+        dec = valor if isinstance(valor, Decimal) else Decimal(str(valor))
+    except (InvalidOperation, ValueError):
+        return None
+    return format(dec, "f")
 
 
 def _infer_tipo(valor: float | int, tipo_conta: str) -> str | None:

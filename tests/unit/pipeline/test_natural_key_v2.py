@@ -12,6 +12,7 @@ from pipeline.domain.services._tx_identity import (
     compute_transaction_hash,
     decimal_cents,
     derive_direction,
+    to_amount_string,
 )
 from pipeline.domain.services.e2_natural_key import stamp_natural_key
 from pipeline.domain.services.transaction_classifier import _normalize_tipo
@@ -216,3 +217,66 @@ class TestStamp:
     def test_empty_transacoes(self):
         stats = stamp_natural_key({"banco": "C6", "titular": "ana", "tipo_conta": "corrente"})
         assert stats.tx_total == 0 and stats.with_key == 0
+
+
+class TestAmountString:
+    """``to_amount_string`` — espelho decimal canônico de ``valor`` (ADR-278 B5)."""
+
+    def test_float_mirror(self):
+        assert to_amount_string(1234.56) == "1234.56"
+
+    def test_signed_preserved(self):
+        assert to_amount_string(-50.0) == "-50.0"
+
+    def test_no_scientific_notation_large(self):
+        # repr(float) grande vira E+ no Decimal; format("f") força ponto-fixo.
+        out = to_amount_string(1e16)
+        assert "E" not in out and "e" not in out
+        assert Decimal(out) == Decimal("1E+16")
+
+    def test_edge_575_preserves_third_digit(self):
+        # Não quantiza: 3ª casa de borda preservada (paridade com decimal_cents).
+        assert to_amount_string(0.575) == "0.575"
+        assert decimal_cents(to_amount_string(0.575)) == decimal_cents(0.575)
+
+    def test_decimal_and_str_shapes(self):
+        assert to_amount_string(Decimal("100.00")) == "100.00"
+        assert to_amount_string("100.5") == "100.5"
+
+    def test_none_and_nonnumeric_return_none(self):
+        # valor ausente ou BR-string ("1.234,56") → None (stamp omite a chave).
+        assert to_amount_string(None) is None
+        assert to_amount_string("1.234,56") is None
+
+
+class TestStampAmount:
+    """``amount`` estampado ao lado de ``valor`` no write-path comum (ADR-278 B5)."""
+
+    def test_amount_mirrors_valor_at_cents(self):
+        result = {
+            "banco": "C6",
+            "moeda": "BRL",
+            "titular": "ana",
+            "tipo_conta": "corrente",
+            "transacoes": [
+                {"data": "2026-01-01", "descricao": "pix", "valor": 100.0},
+                {"data": "2026-01-02", "descricao": "saque", "valor": -50.5},
+            ],
+        }
+        stamp_natural_key(result)
+        txs = result["transacoes"]
+        for tx in txs:
+            assert decimal_cents(tx["amount"]) == decimal_cents(tx["valor"])
+            assert Decimal(tx["amount"]) == Decimal(str(tx["valor"]))
+        assert txs[0]["amount"] == "100.0" and txs[1]["amount"] == "-50.5"
+
+    def test_amount_omitted_when_valor_absent(self):
+        result = {
+            "banco": "C6",
+            "moeda": "BRL",
+            "titular": "ana",
+            "tipo_conta": "corrente",
+            "transacoes": [{"data": "2026-01-01", "descricao": "sem valor"}],
+        }
+        stamp_natural_key(result)
+        assert "amount" not in result["transacoes"][0]
