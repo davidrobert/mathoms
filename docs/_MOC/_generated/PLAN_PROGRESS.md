@@ -27,7 +27,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 - Status: `in_progress` · Sprint atual: A23
 - Sprints envolvidas: A23
-- Lanes: 3 done · 3 in_progress · 0 open · 0 blocked
+- Lanes: 3 done · 4 in_progress · 0 open · 0 blocked
 - ADRs canônicas: [[ADR-278]], [[ADR-279]], [[ADR-280]], [[ADR-281]]
 
 ### PLAN-internal-admin — Console interno (operadores) — IA-0 a IA-4
