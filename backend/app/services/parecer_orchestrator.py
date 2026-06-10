@@ -14,6 +14,12 @@ from dataclasses import dataclass, replace
 from typing import Any, Mapping, Optional
 
 from backend.app.services.parecer_distiller import distill_exec_context
+from backend.app.services.parecer_evidencia import (
+    EVIDENCIA_VERIFICATION_VERSION,
+    EvidenciaVerification,
+    resolve_evidencia_mode,
+    verify_evidencia,
+)
 from backend.app.services.parecer_finalization import (
     compute_suggestion_dedup_key,
     empty_needs_review_output,
@@ -55,6 +61,8 @@ class ParecerGenerationResult:
     cache_hit: bool = False
     status: str = "Gerado"
     error_detail: Optional[str] = None
+    evidencia_summary: Optional[dict] = None
+    evidencia_entries: Optional[list[dict]] = None
 
     def __post_init__(self) -> None:
         if self.tool_trace is None:
@@ -91,7 +99,11 @@ def compute_cache_key(
     """Chave Redis canônica do parecer (ADR-199 §pattern ADR-144)."""
     e5_raw = json.dumps(e5_data, sort_keys=True, ensure_ascii=False, default=str)
     e5_hash = hashlib.sha256(e5_raw.encode("utf-8")).hexdigest()[:16]
-    composite = f"{workspace_id}:{e5_hash}:{manifest_version}:{schema_version}:{model_id}"
+    # ev{N} invalida caches pré-F4 (sem citação verificada — ADR-279 §E).
+    composite = (
+        f"{workspace_id}:{e5_hash}:{manifest_version}:{schema_version}:{model_id}"
+        f":ev{EVIDENCIA_VERIFICATION_VERSION}"
+    )
     digest = hashlib.sha256(composite.encode("utf-8")).hexdigest()
     return f"mathoms:llm:parecer_planejador:{digest}"
 
@@ -361,6 +373,29 @@ def _check_sigilo(raw: ParecerPlanejadorOutput, config: ParecerOrchestratorConfi
     return f"sigilo §13 violations: {violations[:3]}"
 
 
+def _check_evidencia(
+    raw: ParecerPlanejadorOutput,
+    manifest: ManifestData,
+    e5_data: Mapping[str, Any],
+    config: ParecerOrchestratorConfig,
+) -> tuple[EvidenciaVerification, Optional[str]]:
+    """Citação verificada E5→E6 (ADR-279 §E) — strict + violação → motivo de needs_review."""
+    drill = PlannerDrillDown(
+        e5_data=e5_data, section_whitelist=manifest.tools_section_whitelist, format_hints={}
+    )
+    verification = verify_evidencia(output=raw, drill=drill)
+    if not verification.violations:
+        return verification, None
+    mode = resolve_evidencia_mode(manifest.evidencia_verification_mode)
+    logger.warning(
+        "parecer_planejador_evidencia_violations",
+        extra={"workspace_id": config.workspace_id, "mode": mode},
+    )
+    if mode != "strict":
+        return verification, None
+    return verification, f"evidencia unverified: {verification.violations[0]}"
+
+
 def _generate_with_llm(
     *,
     llm: Any,
@@ -406,6 +441,20 @@ def _generate_with_llm(
             config=config,
             elapsed_ms=_elapsed_ms(start),
         )
+    evidencia, evidencia_err = _check_evidencia(raw, manifest, e5_data, config)
+    if evidencia_err:
+        base = _needs_review(
+            reason=evidencia_err,
+            persona_hash=persona_hash,
+            manifest=manifest,
+            config=config,
+            elapsed_ms=_elapsed_ms(start),
+        )
+        return replace(
+            base,
+            evidencia_summary=evidencia.summary(needs_review_triggered=True),
+            evidencia_entries=evidencia.entries,
+        )
     final = finalize_output(
         output=raw,
         workspace_id=config.workspace_id,
@@ -415,7 +464,7 @@ def _generate_with_llm(
         manifest_version=manifest.version,
     )
     _write_cache(cache, cache_key, final, ttl_s=config.cache_ttl_s)
-    return _success_result(
+    success = _success_result(
         output=final,
         persona_hash=persona_hash,
         manifest=manifest,
@@ -423,6 +472,11 @@ def _generate_with_llm(
         tools=tools,
         llm=llm,
         elapsed_ms=_elapsed_ms(start),
+    )
+    return replace(
+        success,
+        evidencia_summary=evidencia.summary(needs_review_triggered=False),
+        evidencia_entries=evidencia.entries,
     )
 
 
