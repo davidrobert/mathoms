@@ -678,7 +678,7 @@ jobs:
         with:
           name: lineage-eval-report
           path: lineage-eval-report.json
-          retention-days: 90
+          retention-days: 30
 
       - name: Open issue on eval failure
         if: failure() && github.event_name == 'schedule'
