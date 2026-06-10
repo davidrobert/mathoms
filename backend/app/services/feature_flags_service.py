@@ -23,6 +23,7 @@ from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from backend.app.models.feature_flag import FeatureFlag
 
@@ -63,6 +64,15 @@ DEFAULTS: dict[str, bool] = {
 }
 
 
+def _merge_with_defaults(flags_json: Any) -> dict[str, bool]:
+    flags: dict[str, bool] = dict(DEFAULTS)
+    if isinstance(flags_json, dict):
+        for k, v in flags_json.items():
+            if k in flags and isinstance(v, bool):
+                flags[k] = v
+    return flags
+
+
 async def _get_flags_row(workspace_id: str, *, db: AsyncSession) -> FeatureFlag | None:
     stmt = select(FeatureFlag).where(
         FeatureFlag.workspace_id == workspace_id,
@@ -74,12 +84,7 @@ async def get_flags(workspace_id: str, *, db: AsyncSession) -> dict[str, bool]:
     """Retorna dict com todas as flags aplicáveis ao workspace (defaults
     + overrides). Sempre tem todas as chaves de DEFAULTS."""
     row = await _get_flags_row(workspace_id, db=db)
-    flags: dict[str, bool] = dict(DEFAULTS)
-    if row and isinstance(row.flags_json, dict):
-        for k, v in row.flags_json.items():
-            if k in flags and isinstance(v, bool):
-                flags[k] = v
-    return flags
+    return _merge_with_defaults(row.flags_json if row else None)
 
 
 async def is_enabled(
@@ -94,6 +99,17 @@ async def is_enabled(
         return False
     flags = await get_flags(workspace_id, db=db)
     return flags.get(flag, False)
+
+
+def is_enabled_sync(workspace_id: str, flag: str, *, db: Session) -> bool:
+    """Variante sync de ``is_enabled`` — learning loop / apply engine / preview
+    rodam com ``Session`` (Celery + service layer sync)."""
+    if flag not in DEFAULTS:
+        return False
+    row = db.execute(
+        select(FeatureFlag).where(FeatureFlag.workspace_id == workspace_id)
+    ).scalar_one_or_none()
+    return _merge_with_defaults(row.flags_json if row else None).get(flag, False)
 
 
 async def set_flag(
@@ -123,4 +139,4 @@ async def set_flag(
     return await get_flags(workspace_id, db=db)
 
 
-__all__ = ["DEFAULTS", "get_flags", "is_enabled", "set_flag"]
+__all__ = ["DEFAULTS", "get_flags", "is_enabled", "is_enabled_sync", "set_flag"]
