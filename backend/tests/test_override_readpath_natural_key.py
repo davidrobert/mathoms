@@ -17,6 +17,7 @@ from backend.app.application.categorization._apply_engine import (
 from backend.app.application.transaction.create_override import create_override
 from backend.app.models.transaction_override import TransactionOverride
 from backend.app.schemas.transactions import TransactionItem, TransactionOverrideRequest
+from backend.app.services.override_dual_read import OverrideMatchIndex
 from backend.app.services.override_identity import identity_from_transaction_item
 from backend.tests import factories
 
@@ -84,7 +85,7 @@ def test_apply_engine_build_override_values_includes_v2_columns():
         detector=None,
         db=None,
         closed_cache={},
-        existing_by_hash={},
+        match_index=OverrideMatchIndex(workspace_id="ws-1", v2_enabled=False),
     )
     values = _build_override_values(item, ctx)
     _assert_v2(values.__getitem__, identity_from_transaction_item(item))
