@@ -138,7 +138,7 @@ gera o sinal que hoje falta. O **top-level continua `additionalProperties:true`*
    `Decimal`, nunca o wire. Custo > benefício. Entregue no lugar: DTO migrado
    `Optional[float]` → `Optional[MoneyBRL]` (boundary deixa de coagir a float;
    snapshot OpenAPI inalterado — wire comprovadamente idêntico).
-3. **Strict per-stage em prod** — instrumentar WARN-counter → medir → flip começando por E2; expandir corpus golden E2 por banco como pré-condição.
+3. **Strict per-stage em prod** — instrumentar WARN-counter → medir → flip começando por E2; expandir corpus golden E2 por banco como pré-condição. **Operacionalizado em [[ADR-284]]** + runbook [`schema_validation_strict_flip.md`](../reference/runbooks/schema_validation_strict_flip.md).
 
 ## Critério de aceite
 
