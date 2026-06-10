@@ -597,3 +597,128 @@ jobs:
               ].join('\n'),
               labels: ['backup-drill-fail', 'ops'],
             });
+
+  lineage-eval:
+    # Eval de injeção de bug do debug substrate de lineage (ADR-281 · A25.l4
+    # F7): 29 casos (24 famílias + 5 selados) × 3 trials com LLM real,
+    # localization_accuracy@node vs baseline commitada
+    # (dev/snapshots/lineage_eval_baseline.json). Roda no cron pesado 3×/sem
+    # (custo: cap duro $5/run ⇒ ≤ $15/sem) + workflow_dispatch (usado p/ gerar
+    # a PRIMEIRA baseline real: baixe o artefato lineage-eval-report.json e
+    # commite-o no path da baseline — ver _doc do placeholder).
+    # Falha → Issue auto `lineage-eval-fail`, que trava PRs tocando a
+    # superfície de lineage via dev/check_lineage_eval_gate.py (ci.yml).
+    name: Lineage eval (localização de bug via LLM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: |
+      (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1,3,5') ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'lineage-eval')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv (SHA-pinned v8.1.0)
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.5.x"
+
+      - name: Restore venv cache
+        id: venv-cache
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v4
+          restore-keys: |
+            venv-${{ runner.os }}-py313-
+
+      - name: Install Python deps (cache miss, via uv)
+        if: steps.venv-cache.outputs.cache-hit != 'true'
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
+        run: |
+          [ -d .venv ] || uv venv .venv
+          uv pip install -r requirements.in -r backend/requirements.in
+          uv pip install pytest pytest-asyncio
+
+      - name: Activate venv (PATH)
+        run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Check API key secret presence
+        id: key-check
+        run: |
+          # Sem o secret, skipa com warning (não bloqueia o Nightly inteiro).
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY_LINEAGE_EVAL }}" ]; then
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Secret ANTHROPIC_API_KEY_LINEAGE_EVAL ausente — skip lineage-eval"
+          else
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run lineage eval (29 casos × 3 trials, cap $5)
+        if: steps.key-check.outputs.has_key == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_LINEAGE_EVAL }}
+          MATHOMS_RUN_LINEAGE_EVAL: "1"
+          MATHOMS_LINEAGE_EVAL_REPORT: lineage-eval-report.json
+        run: |
+          pytest tests/lineage_eval/test_lineage_eval_real.py \
+            -m lineage_eval -q --tb=short
+
+      - name: Upload eval report (JSON por caso — telemetria + fonte da baseline)
+        if: always() && steps.key-check.outputs.has_key == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lineage-eval-report
+          path: lineage-eval-report.json
+          retention-days: 90
+
+      - name: Open issue on eval failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const today = new Date().toISOString().slice(0, 10);
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'lineage-eval-fail',
+              per_page: 5,
+            });
+            if (existing.data.length > 0) {
+              core.notice(`Issue lineage-eval-fail já aberta: #${existing.data[0].number}`);
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[lineage-eval] localization_accuracy abaixo do gate — ${today}`,
+              body: [
+                `**Eval de lineage (ADR-281 · A25.l4 F7) falhou no nightly.**`,
+                `KR1: localization_accuracy@node ≥ 85% e ≥ baseline−2pp; KR3: p95 ≤ 6 tool iterations.`,
+                ``,
+                `Run: ${runUrl} (artefato lineage-eval-report.json tem o detalhe por caso/família).`,
+                ``,
+                `## Efeito colateral`,
+                `Enquanto esta Issue estiver aberta, PRs que tocam pipeline/domain/services/lineage_*,`,
+                `lineage_registry.py ou config/prompts/lineage_debug.yaml falham no gate`,
+                `dev/check_lineage_eval_gate.py (ci.yml · pipeline-tests).`,
+                ``,
+                `## Próximos passos`,
+                `1. Baixe o artefato e veja quais famílias/casos regrediram (selados = bug histórico).`,
+                `2. Drift de modelo/prompt → ajuste config/prompts/lineage_debug.yaml em PR dedicado.`,
+                `3. Regressão de renderer/tools → bisect nos commits de pipeline/domain/services/lineage_*.`,
+                ``,
+                `Política: ADR-281 §eval (regressão > 2pp bloqueia merge).`,
+              ].join('\n'),
+              labels: ['lineage-eval-fail', 'ops'],
+            });
