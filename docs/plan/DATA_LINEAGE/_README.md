@@ -46,7 +46,7 @@ tags:
 > + F4 evidencia_path). Recorte de sprint (product-manager, 2026-06-09): A23={F0,F1} fechada,
 > **A24={F2,F3,F4}**, **A25={F5,F6,F7}** — isola o perfil de risco do de-leak da fundação
 > aditiva já estável. A F2 tem revisão própria (senior-cto + data-engineer, 2026-06-09) →
-> §"Blockers da F2 (gate G2)". Prompt: [agent_prompts/orchestrator_a24_f2f3.md](../../agent_prompts/orchestrator_a24_f2f3.md).
+> §"Blockers da F2 (gate G2)". Prompt: [agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md](../../agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md) (arquivado — F2+F3 shipped).
 
 ## Context
 

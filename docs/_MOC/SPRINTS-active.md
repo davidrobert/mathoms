@@ -17,7 +17,7 @@ aliases: ["SPRINTS-active", "sprints-active"]
 **Promovida em 2026-06-09, sucedendo A23 (`done` — Ondas 0–1 / contrato aditivo, 7 lanes em `main`).** A **fase de RISCO** do plano [[PLAN-data-lineage]]: de-leak da extração ([[ADR-280]] — toca goldens E2/E3/E4 + dedup [[ADR-246]]/[[ADR-271]]) + walking skeleton do lineage ([[ADR-279]]) + `evidencia_path` E5→E6 (∥). Recortada em sprint própria (product-manager 2026-06-09) para isolar o perfil de risco da fundação aditiva já estável.
 
 - **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) (§"Blockers da F2 (gate G2)").
-- **Sprint:** [sprint/A24/_README.md](../sprint/A24/_README.md). **Prompt:** [agent_prompts/orchestrator_a24_f2f3.md](../agent_prompts/orchestrator_a24_f2f3.md).
+- **Sprint:** [sprint/A24/_README.md](../sprint/A24/_README.md). **Prompt:** [agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md](../agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md).
 - **Sprint goal:** G3 / **KR2 1/6** — patrimônio líquido localizável por 1 comando CLI, `check_lineage_sum` verde.
 - **Revisão de risco (senior-cto + data-engineer, 2026-06-09):** de-leak é cirúrgico (`tipo_lancamento` dead-downstream; `numero_conta_norm` já re-normalizado). Risco real na rede de rebaseline → substrato endurecido (invariante por categoria, manifesto `reason`/`adr`, `check_golden_rebaseline_isolation`) ANTES do 1º rebaseline. Discovery é o 1º gate.
 
