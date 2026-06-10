@@ -23,6 +23,15 @@
         "mode": {
           "type": "string",
           "enum": ["warn", "strict"]
+        },
+        "mode_overrides": {
+          "type": "object",
+          "description": "Flip per-schema (ADR-284) — key é o filename em config/schemas/ (cobre todos os stage-aliases que compartilham o schema). Precedência: env MATHOMS_PIPELINE_SCHEMA_MODE > mode_overrides > mode. Keys são validadas contra config/schemas/ por teste (tests/test_schema_validation.py).",
+          "propertyNames": { "pattern": "\\.schema\\.json$" },
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["warn", "strict"]
+          }
         }
       },
       "required": ["enabled", "mode"],

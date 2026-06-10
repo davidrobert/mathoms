@@ -6,7 +6,8 @@
 
   "schema_validation": {
     "enabled": true,
-    "mode": "warn"
+    "mode": "warn",
+    "mode_overrides": {}
   },
 
   "llm": {
