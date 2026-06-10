@@ -5,7 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-2 in_progress.
+1 open · 2 in_progress.
+
+## Open (1)
+
+- [[A24.l7]] — Schema strict flip — baseline → de-drift de vocabulário → flip E2 (ADR-284) · priority P2 · branch `schema-strict-flip`
 
 ## In progress (2)
 

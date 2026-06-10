@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 206
-- **Proposto**: 65
+- **Decidido**: 207
+- **Proposto**: 64
 - **Roadmap**: 4
 
 ## Fundação
@@ -113,7 +113,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Produção & Infra (F7)
 
-### Decidido (11)
+### Decidido (12)
 
 - [[ADR-007]] — Fernet app-level para criptografia · phase F4→F7
 - [[ADR-040]] — Billing adiado para pós-launch · phase F7
@@ -126,14 +126,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-061]] — Telemetria privacy-first · phase F7
 - [[ADR-108]] — Estratégia de subdomínios `mathoms.ai` + Cloudflare DNS
 - [[ADR-116]] — F7F-Local: stack Next separada + anonimização default + auth yaml+bcrypt+JWT (F7F-Local) · phase F7F-Local
+- [[ADR-284]] — Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift · phase Débito técnico (A24)
 
-### Proposto (5)
+### Proposto (4)
 
 - [[ADR-058]] — VPS CX32 para sizing · phase F7
 - [[ADR-206]] — Telemetria de campo faltante como signal de evolução do manifest (estende ADR-188) · phase Ato 1 — fundação arquitetural do PLANNER_REVIEW
 - [[ADR-210]] — Saúde do test suite do CI — gates, telemetria e ciclo de vida · phase Sprint A12 (test health · CI cost)
 - [[ADR-260]] — Telemetria LLM por prompt_version — labels compostos em LLMCallLog SQL + OTLP · phase A20.W2 + A20.W3
-- [[ADR-284]] — Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift · phase Débito técnico
 
 ## Testing
 
