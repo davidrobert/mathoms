@@ -279,7 +279,7 @@
 | ADR-281 | adr | Decidido |  | rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) | `adr/281-lineage-rule-ref-debug-substrate.md` |
 | ADR-282 | adr | Proposto |  | Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) | `adr/282-override-identity-natural-key-v2.md` |
 | ADR-283 | adr | Decidido |  | Float monetário persistido e hardening de boundary de schema (patrimonio_liquido, gate models, E2 items) | `adr/283-float-monetario-persistido-e-hardening-de-boundary.md` |
-| ADR-284 | adr | Proposto |  | Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift | `adr/284-schema-validation-mode-overrides-per-stage.md` |
+| ADR-284 | adr | Decidido |  | Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift | `adr/284-schema-validation-mode-overrides-per-stage.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -585,6 +585,7 @@
 | A24.l4 | lane | in_progress | A24 | Data Lineage F4 — evidencia_path: citação verificada E5→E6 no parecer | `sprint/A24/lanes/A24-l4-evidencia-path.md` |
 | A24.l5 | lane | blocked | A24 | Data Lineage F3 — walking skeleton: _lineage no patrimônio líquido | `sprint/A24/lanes/A24-l5-skeleton-patrimonio.md` |
 | A24.l6 | lane | blocked | A24 | Data Lineage F3 — skeleton resto: reserva, despesa, total investido | `sprint/A24/lanes/A24-l6-skeleton-resto.md` |
+| A24.l7 | lane | open | A24 | Schema strict flip — baseline → de-drift de vocabulário → flip E2 (ADR-284) | `sprint/A24/lanes/A24-l7-schema-strict-flip.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -708,6 +709,7 @@
 | TRACK-a20-l5-trivy-sbom | track | ready | A20 | Track A20.L5 — Trivy image scan blocking + SBOM CycloneDX | `sprint/A20/tracks/a20-l5-trivy-sbom.md` |
 | TRACK-a20-l6-compose-dev | track | consumed | A20 | Track A20.L6 — docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/tracks/a20-l6-compose-dev.md` |
 | TRACK-a20-l9-smoke-e2e | track | ready | A20 | Track A20.L9 — Smoke E2E em compose (gate de fechamento do sprint) | `sprint/A20/tracks/a20-l9-smoke-e2e.md` |
+| TRACK-a24-l7-schema-strict-flip | track | ready | A24 | Track A24.l7 — baseline → de-drift vocabulário E2 → flip strict per-schema | `sprint/A24/tracks/a24-l7-schema-strict-flip.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |

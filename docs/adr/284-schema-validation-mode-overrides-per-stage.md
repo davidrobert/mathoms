@@ -2,8 +2,8 @@
 id: ADR-284
 type: adr
 title: "Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift"
-status: Proposto
-phase: "Débito técnico"
+status: Decidido
+phase: "Débito técnico (A24)"
 date: "2026-06-09"
 relates_to:
   - "[[ADR-283]]"
@@ -15,7 +15,7 @@ superseded_by: []
 aliases: ["ADR 284", "schema mode overrides", "strict flip per-stage", "schema drift telemetry"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/backend
   - area/observability
@@ -23,7 +23,7 @@ tags:
 
 # ADR-284 — Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift
 
-**Status:** Proposto (Débito técnico) • **Data:** 2026-06-09 • **Relaciona**
+**Status:** Decidido (Débito técnico, A24 — PR #577) • **Data:** 2026-06-09 • **Relaciona**
 [[ADR-283]] (decisão D + §Follow-ups #3), [[ADR-212]] (hook pós-write),
 [[ADR-242]] (categoria_sugerida), [[ADR-278]] (amount/natural_key).
 
