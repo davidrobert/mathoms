@@ -1,0 +1,4 @@
+{
+  "status": "pending_first_real_run",
+  "_doc": "Baseline do eval de localização via lineage (ADR-281 · A25.l4 F7). Placeholder até o primeiro run real: dispare o job 'lineage-eval' do workflow Nightly (workflow_dispatch), baixe o artefato lineage-eval-report.json e commite-o aqui (sem o array 'trials' se preferir enxuto — o comparador só lê metrics.localization_accuracy_at_node). Enquanto placeholder, o gate aplica apenas o floor KR1 (>=85%); com baseline real, aplica tambem regressao > 2pp (config/prompts/lineage_debug.yaml)."
+}
