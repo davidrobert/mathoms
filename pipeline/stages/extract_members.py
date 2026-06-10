@@ -43,15 +43,13 @@ def _member_info(m) -> dict:
 
 
 def _conta_entry(m, acc) -> dict:
-    from pipeline.domain.services.account_normalization import normalize_account_number
-
-    raw_num = getattr(acc, "account_number", None)
+    # A24.l2 (ADR-280): extração emite só raw; normalização canônica roda nos
+    # consumidores (config_parsers._make_account / investments_consolidator).
     return {
         "member_key": m.key,
         "institution_code": acc.institution_code,
         "account_type": getattr(acc, "account_type", "") or "",
-        "account_number_raw": raw_num,
-        "account_number_norm": normalize_account_number(raw_num),
+        "account_number_raw": getattr(acc, "account_number", None),
         "agency": getattr(acc, "agency", None),
         "is_joint": False,
         "co_titulares": [],

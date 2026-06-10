@@ -163,17 +163,15 @@ def process_file(file_path: Path, dry_run: bool = False) -> Optional[Dict[str, A
             log(prefix, level, f"  {filename}: {issue}")
             result.setdefault("notas", []).append(issue)
 
-    # ADR-226 PR2 — popula numero_conta_norm canônico (idempotente, parsers
-    # continuam entregando numero_conta heterogêneo)
-    from scripts.e2.common import finalize_e2_result
-
     # Parsers regex per-bank (scripts/e2/banks/*) não populam arquivo_origem
     # no top-level — só o E2-llm fallback faz. Sem isso, BankStatement.from_e2_dict
     # define tx.source_document=None, o E3 grava tx sem arquivo_origem, e os
     # ClassifiedTransaction.source_doc_id (ADR-255 Camada B) ficam vazios,
     # quebrando a auditabilidade cross-document observada no workspace 5@5.com.
     result.setdefault("arquivo_origem", filename)
-    return finalize_e2_result(result)
+    # A24.l2 (ADR-280): extração emite só numero_conta raw; a normalização
+    # canônica roda nos consumidores (fallback em document.from_e2_dict).
+    return result
 
 
 def make_output_name(filename: str) -> str:
