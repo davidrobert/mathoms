@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F1 — alinhar 3º hash (override) ao K4 v2 (D6)"
 sprint: A23
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: a23-l4-override-hash-k4-parity
 adrs:
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a23
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/backend
@@ -61,9 +61,12 @@ fecha o lineage reverso. Detalhe e alternativas rejeitadas em [[ADR-282]].
 |---|---|---|---|---|
 | 1 | Fundação aditiva | [#556](https://github.com/davidrobert/mathoms/pull/556) | ✅ shipped (`c96c4915`) | Migration aditiva (`natural_key_hash`/`hash_version`/snapshot 8 inputs/`orphaned_at` + índice parcial `ix_txov_ws_natural_key`); adapter `override_identity.py` (`ClassifiedTransaction → HashInputs → compute_natural_key`); dual-write no **learning loop** (caminho limpo); flag `override_natural_key_v2_enabled=False`. Zero-behavior-change. |
 | 2 | Read-path | [#562](https://github.com/davidrobert/mathoms/pull/562) | ✅ shipped (`2c0a8f70`) | Adapter `inputs_from_transaction_item` + dual-write em `create_override` e `_apply_engine`. **Opção C** (co-design `senior-cto`+`data-engineer`): `direction` vem do **bucket E4** (`tipo` no `TransactionItem`), NÃO do sinal — E4 grava despesa com `abs(valor)`; emitir `direction` no artefato quebraria o view-model snapshot (G1). Goldens verdes sem rebaseline. |
-| 3 | Backfill (report-only) | 🚧 em PR | 🚧 em revisão | Service `internal_ops/backfill_override_identity.py` (`plan`/`apply`): reusa `load_transactions` como fonte `{v1:v2}`, **revalida `IS NULL`** (TOCTOU), `resolve_collision` puro (chave total `source/created_at/id`), bucket **`ambiguous`** (1-velho→N-novo → quarentena, [[ADR-282]] §6b), quiesce via `pipeline_runs.status` + `pg_advisory_xact_lock`. Idempotência `natural_key_hash IS NULL AND orphaned_at IS NULL`. Log `{...overrides_total, reanchored, orphaned, ambiguous, collided}`. |
+| 3 | Backfill (report-only) | [#563](https://github.com/davidrobert/mathoms/pull/563) | ✅ shipped (2026-06-09) | Service `internal_ops/backfill_override_identity.py` (`plan`/`apply`): reusa `load_transactions` como fonte `{v1:v2}`, **revalida `IS NULL`** (TOCTOU), `resolve_collision` puro (chave total `source/created_at/id`), bucket **`ambiguous`** (1-velho→N-novo → quarentena, [[ADR-282]] §6b), quiesce via `pipeline_runs.status` + `pg_advisory_xact_lock`. Idempotência `natural_key_hash IS NULL AND orphaned_at IS NULL`. Log `{...overrides_total, reanchored, orphaned, ambiguous, collided}`. |
 
-Slices 4–5 (cutover + M2 destrutiva) → §Não-escopo (próxima janela / A24).
+Slices 4–5 (cutover + M2 destrutiva) → §Não-escopo. **Lane `shipped` em 2026-06-09**
+(escopo A23 = slices 1–3, todos em `main`). O cutover (slice 4) é a lane [[A25.l1]]
+(kickoff 2026-06-10); a M2 destrutiva (slice 5) vira carry-over pós-[[A25.l2]]
+(gate: counter `v1_fallback` zerado por ≥1 sprint — co-design DE+CTO 2026-06-10).
 
 ## Critério de aceite
 

@@ -3,30 +3,59 @@ id: MOC-sprint-a25
 type: moc
 title: "Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM"
 aliases: ["A25", "Sprint A25"]
-sprint_status: candidate
-date: "2026-06-09"
+sprint_status: current
+date: "2026-06-10"
 theme: "data-lineage"
 ---
 
 # Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM
 
-> **Status:** `candidate` — fast-follow do plano [[PLAN-data-lineage]], abre quando
-> [[MOC-sprint-a24]] (walking skeleton, G3/KR2 1/6) fechar. Perfil distinto de A24:
-> query reversa + UI cliente + agente LLM de debug, com eval de injeção de bug.
+> **Status:** `current` — promovida em 2026-06-10, sucedendo [[MOC-sprint-a24]]
+> (`done` — G3 atingido, KR2 4/6, de-leak cirúrgico confirmado no dado real via G-f).
+> Fast-follow do plano [[PLAN-data-lineage]]: a A25 **colhe o valor** do substrato —
+> query reversa, primeira UI cliente do lineage e o agente de debug LLM — mais dois
+> herdados (cutover override v2 e a **decisão** do flip strict do `evidencia_path`).
+> Perfil DIFERENTE da A24: pouco risco de número (lineage é aditivo), muito risco de
+> UI/UX (F6) e de eval LLM (F7 define KR1/KR3).
 >
 > **Plano dono:** [[PLAN-data-lineage]] ([plan/DATA_LINEAGE/_README.md](../../plan/DATA_LINEAGE/_README.md)).
+> **Prompt de orquestração:** [agent_prompts/orchestrator_a25_f5f6f7.md](../../agent_prompts/orchestrator_a25_f5f6f7.md)
+> (pré-revisado PM+CTO 2026-06-10).
 
 ## Escopo
 
-- **F5 — lineage reverso:** query "números que dependem da fonte X"; `artifact_lineage_edge`
-  + stage terminal `materialize_lineage` (retenção [[ADR-241]]: último run por workspace).
-- **F6 — produto N1/N2 (drill-down "por que esse número?"):** selo `<MonetaryValue/>`
-  + popover "Como chegamos a esse número" (4 verbos 1ª pessoa); UI cliente régua
-  COPY_GUIDELINES §6.3. Visual snapshot só aqui (G-h).
-- **F7 — substrato de debug LLM + eval:** renderer de trace linearizada, `lineage_diff`,
-  tools (`explain_number`/`expand_node`/`trace_source`), eval de injeção determinística
-  (KR1 `localization_accuracy@node ≥ 85%`; KR3 `tool_iterations_p95 ≤ 6`).
+- **F5 — lineage reverso** ([[A25.l3]]): `artifact_lineage_edge` + hook pós-run +
+  query "números que dependem da fonte X"; retenção N=1 (B6).
+- **F6 — produto N1/N2** ([[A25.l5]]): selo `<MonetaryValue/>` + popover "Como
+  chegamos a esse número" (4 verbos 1ª pessoa); régua COPY_GUIDELINES §6.3; visual
+  snapshot só aqui (G-h).
+- **F7 — debug LLM + eval** ([[A25.l4]]): renderer linearizado, `lineage_diff`,
+  tools, eval de injeção (KR1 ≥85%, KR3 p95 ≤6; nightly G-g).
+- **Herdados:** cutover override v2 ([[A25.l1]], slice 4 da [[A23.l4]]) → flip dedup
+  E4→v2 ([[A25.l2]], exige ADR Proposto) → KR2 6/6 ([[A25.l6]], stretch) + decisão
+  flip strict `evidencia_path` ([[A25.l7]], requisito de done).
 
-## Abertura
+## Lanes (kickoff 2026-06-10 — co-design registrado em cada lane)
 
-Lanes abrem quando A24 fechar (G3 verde). KRs KR1/KR3 nascem em F7.
+| Lane | Slug | Status | Dep |
+|---|---|---|---|
+| [[A25.l1]] | `a23l4-cutover-override` (dual-read 6 call-sites + flag; M2 → carry-over) | open | A23.l4 s3 ✅ #563 |
+| [[A25.l2]] | `dedup-e4-flip-v2` (⚠️ ADR Proposto antes de codar; rebaseline manifestado) | blocked | l1 |
+| [[A25.l3]] | `dl-f5-reverso` (edge table + hook pós-run; teto run→doc documentado) | open | — |
+| [[A25.l4]] | `dl-f7-debug-llm` (renderer/diff/tools/eval nightly) | open | — |
+| [[A25.l5]] | `dl-f6-produto-n1n2` (selo+popover; collapsed_count via `_lineage.signals`) | open | — |
+| [[A25.l6]] | `kr2-resto` (P2/stretch — fluxo_liquido + endividamento.total_dividas + member_hashes reais) | blocked | l2 |
+| [[A25.l7]] | `evidencia-strict-decision` (ÚLTIMA — decisão informada, gate <5% sobre ≥20 gerações) | planned | telemetria |
+
+**Precedência de corte (squeeze):** F7 > F6. MLP = l3+l4+l5 + decisão l7;
+l1 must-condicional; l2 must-se-l1; l6 stretch cortável.
+
+## KRs da janela
+
+- **KR1** `localization_accuracy@node ≥ 85%` (nasce em F7; regressão >2pp bloqueia área).
+- **KR3** `tool_iterations_p95 ≤ 6`; trace inline ≤1.5k tokens.
+- **KR2 6/6** (stretch, via l6) — lista canônica dos 6 registrada no plano §KRs
+  (kickoff 2026-06-10): patrimônio (liquido+bruto = 1), reserva, despesa_total,
+  investimentos.total, fluxo_liquido, endividamento.total_dividas.
+- **Requisito de done:** decisão registrada do flip `warn→strict` do
+  `evidencia_path` (flip OU carry-over A26 com gate idêntico).
