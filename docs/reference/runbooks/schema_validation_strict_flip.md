@@ -46,7 +46,7 @@ resolvidos **ou aceitos por escrito** na linha do §7:
 
 - `KNOWN_DRIFT_CASES` (vocabulário `instituicao`/`tipo_documento` vs
   `banco`/`tipo`): **bloqueador** quando não-vazio. ✅ **Esvaziado em
-  2026-06-10 ([[ADR-285]])** — cdbresumo emite `banco` aditivo; o writer
+  2026-06-10 ([[ADR-286]])** — cdbresumo emite `banco` aditivo; o writer
   E2-llm ganhou contrato dedicado `e2_llm_artifact.schema.json` (stage
   `E2-llm` remapeado em `SCHEMA_BY_STAGE`). Consequência: o ciclo deste
   runbook cobre **2 schemas E2 independentes** — `e2_extract.schema.json` e

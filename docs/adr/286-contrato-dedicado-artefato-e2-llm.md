@@ -1,5 +1,5 @@
 ---
-id: ADR-285
+id: ADR-286
 type: adr
 title: "Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo"
 status: Decidido
@@ -11,7 +11,7 @@ relates_to:
   - "[[ADR-280]]"
 supersedes: []
 superseded_by: []
-aliases: ["ADR 285", "e2 llm artifact schema", "vocabulario dual e2"]
+aliases: ["ADR 286", "e2 llm artifact schema", "vocabulario dual e2"]
 tags:
   - type/adr
   - status/decidido
@@ -19,7 +19,7 @@ tags:
   - area/data-lineage
 ---
 
-# ADR-285 — Contrato dedicado para o artefato E2-llm + banco aditivo em cdbresumo
+# ADR-286 — Contrato dedicado para o artefato E2-llm + banco aditivo em cdbresumo
 
 **Status:** Decidido (A24.l7) • **Data:** 2026-06-10 • **Relaciona**
 [[ADR-284]] (flip strict per-schema — este é o de-drift do gate),

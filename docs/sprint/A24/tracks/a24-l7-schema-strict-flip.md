@@ -40,14 +40,14 @@ Self-contained: executável sem contexto da sessão de origem. Branch
 
 Pré-requisito: commit `a2efb418` deployado em prod há ≥7 dias. Rodar as
 queries do runbook §2 para **`e2_extract.schema.json` E
-`e2_llm_artifact.schema.json`** (pós-[[ADR-285]] o ciclo tem 2 schemas, cada
+`e2_llm_artifact.schema.json`** (pós-[[ADR-286]] o ciclo tem 2 schemas, cada
 um flippa independente). Go = **0 records** por schema. Drift inesperado
 encontrado → corrigir writer ou declarar campo no schema (gate: corpus) e
 reiniciar a janela daquele schema.
 
 ### 2. De-drift de vocabulário (bloqueador hard do flip) — ✅ entregue 2026-06-10
 
-Resolvido em [[ADR-285]] (co-design `data-engineer`): cdbresumo emite `banco`
+Resolvido em [[ADR-286]] (co-design `data-engineer`): cdbresumo emite `banco`
 aditivo (valor = `instituicao`; zero downstream — E3 skipa cdbresumo, E4 lê
 `instituicao or banco`); writer E2-llm **não foi tocado** (emitir `banco`/
 `tipo` mudaria `AccountGrouper.key`/`from_e2_dict` → identidade E3, escopo

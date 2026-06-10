@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-277 ADRs (ADR-001 a ADR-285) em [`docs/adr/`](../../adr/).
+277 ADRs (ADR-001 a ADR-286) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
@@ -492,7 +492,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-279]] — Lineage field-level inline (_lineage) + índice reverso artifact_lineage_edge · phase A23 · F0
 - [[ADR-280]] — Critério de corte Extract | Transform + check de pureza de extração · phase A23 · F0
 - [[ADR-281]] — rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) · phase A23 · F0
-- [[ADR-285]] — Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo · phase A24.l7
+- [[ADR-286]] — Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo · phase A24.l7
 
 ### Proposto (18)
 

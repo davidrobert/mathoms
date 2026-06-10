@@ -34,7 +34,7 @@ tags:
 1. **Baseline 7d** — começa no deploy de `a2efb418` em prod. Check agendado
    ~2026-06-17: rodar queries do runbook §2 (go = 0 WARN p/ `e2_extract`).
 2. **De-drift de vocabulário (bloqueador hard)** — ✅ **entregue 2026-06-10**
-   ([[ADR-285]], co-design `data-engineer`): cdbresumo emite `banco` aditivo
+   ([[ADR-286]], co-design `data-engineer`): cdbresumo emite `banco` aditivo
    (valor = `instituicao`); writer E2-llm ganhou contrato dedicado
    `e2_llm_artifact.schema.json` (vocabulário próprio explícito; tocar o
    writer mudaria identidade E3 — canonicalização é follow-up do plano

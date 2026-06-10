@@ -301,14 +301,10 @@ def test_llm_writer_valida_em_strict_no_contrato_dedicado(monkeypatch):
 
 
 def test_llm_artifact_ref_compartilhado_resolve_e_fecha_transacao(monkeypatch, caplog):
-    """Prova que o $ref cross-file (e2_llm_artifact → e2_extract#/$defs/transacao) RESOLVE.
-
-    $ref unresolvable degrada para WARN '$ref unresolvable' em modo warn
-    (_handle_validation_error) — sem este pin, um typo de $id deixaria o gate
-    verde até o flip strict. Campo desconhecido na transação DEVE produzir
-    drift de additionalProperties no path da transação (só acontece se o $ref
-    resolveu no contrato fechado) e rejeitar em strict.
-    """
+    """Prova que o $ref cross-file (e2_llm_artifact → e2_extract#/$defs/transacao) RESOLVE — $ref unresolvable degrada p/ WARN silencioso em modo warn e um typo de $id deixaria o gate verde até o flip strict."""
+    # Campo desconhecido na transação DEVE produzir drift de
+    # additionalProperties no path da transação (só acontece se o $ref
+    # resolveu no contrato fechado) e rejeitar em strict.
     _capture_warn_telemetry(monkeypatch, caplog)
     e2_json = _synthetic_llm_extract_artifact()
     e2_json["transacoes"][0]["campo_fantasma"] = "x"

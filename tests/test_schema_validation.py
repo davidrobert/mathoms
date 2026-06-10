@@ -232,7 +232,7 @@ class TestValidateArtifact:
             Path(__file__).resolve().parent.parent / "config/schemas/e2_extract.schema.json"
         )
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
-        # ADR-285: transação vive em $defs/transacao (compartilhada com
+        # ADR-286: transação vive em $defs/transacao (compartilhada com
         # e2_llm_artifact via $ref) — o gate navega o $defs.
         transacao = schema["$defs"]["transacao"]
         assert schema["properties"]["transacoes"]["items"] == {"$ref": "#/$defs/transacao"}
