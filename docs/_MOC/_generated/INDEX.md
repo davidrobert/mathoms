@@ -716,6 +716,7 @@
 | TRACK-a6e4-thin-routers | track | consumed | A6 | Track A6e.4 — Routers finos (17 routers × ≤50 linhas) | `sprint/A6/tracks/a6e4-thin-routers.md` |
 | TRACK-a6e5-v1-prefix | track | consumed | A6 | Track A6e.5 — `/api/v1/` prefix + aliases + OpenAPI versionado | `sprint/A6/tracks/a6e5-v1-prefix.md` |
 | TRACK-a6f1-pipeline-service | track | consumed | A6 | Track A6f.1 — Pipeline-as-Service (HTTP boundary) | `sprint/A6/tracks/a6f1-pipeline-service.md` |
+| TRACK-a6g-eslint-max-lines-ratchet | track | ready | A6 | Track A6g.RATCHET — max-lines-per-function warn→error com ratchet de disables | `sprint/A6/tracks/a6g-eslint-max-lines-ratchet.md` |
 | TRACK-a6g2-pipeline-style-sweep | track | consumed | A6 | Track A6g.2 — Pipeline Code Style Sweep | `sprint/A6/tracks/a6g2-pipeline-style-sweep.md` |
 | TRACK-a6g3-backend-style-sweep | track | consumed | A6 | Track A6g.3 — Backend Python code style sweep | `sprint/A6/tracks/a6g3-backend-style-sweep.md` |
 | TRACK-a6g3b-decimal-money-migration | track | consumed | A6 | Track A6g.3b — Migração completa `float` → `Decimal` em money DTOs + math | `sprint/A6/tracks/a6g3b-decimal-money-migration.md` |
