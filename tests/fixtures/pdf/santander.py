@@ -7,6 +7,7 @@ from typing import Any
 from reportlab.lib.units import cm
 
 from tests.fixtures.pdf.formatters import (
+    draw_text_lines,
     format_brl,
     iso_date_to_br,
     period_to_br_range,
@@ -59,3 +60,40 @@ def draw_santander_extrato(
 
     final_saldo = rows[-1][1] if rows else 0.0
     return y, final_saldo
+
+
+def draw_santander_unique_fatura(
+    c: Any,
+    width: float,
+    height: float,
+    y: float,
+    period: str,
+    transactions: list[Transaction],
+    account_holder: str,
+) -> tuple[float, float]:
+    """Fatura Santander Unique — paridade com ``parse_santander_unique`` (header `R$ total venc fech` + `Detalhamento da Fatura` + card `NOME - NNNN XXXX XXXX NNNN`)."""
+    yy, mm = period.split("-")
+    holder_upper = "".join(ch for ch in account_holder.upper() if ch.isalpha() or ch == " ").strip()
+    total = sum(float(t.get("amount", 0)) for t in transactions)
+
+    c.setFont("Helvetica", 9)
+    return draw_text_lines(
+        c, y, _unique_lines(period, transactions, holder_upper, mm, yy, total)
+    ), total
+
+
+def _unique_lines(period, transactions, holder_upper, mm, yy, total) -> list[str]:
+    from tests.fixtures.pdf.itau import _ddmm_tx_line
+
+    return [
+        f"R$ {format_brl(abs(total))} 15/{mm}/{yy} 10/{mm}/{yy}",
+        "Saldo Anterior 0,00",
+        f"Total Despesas/Débitos no Brasil {format_brl(abs(total))}",
+        "Detalhamento da Fatura",
+        f"{holder_upper} - 1234 XXXX XXXX 5678",
+        "Despesas",
+        *(
+            _ddmm_tx_line(tx, period, signed=True)
+            for tx in sorted(transactions, key=lambda t: str(t.get("date", "")))
+        ),
+    ]

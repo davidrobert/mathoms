@@ -11,8 +11,8 @@
 #   KNOWN_DRIFT_CASES — writer vivo cujo output viola o schema do stage;
 #     paths exatos pinados; flip do schema bloqueado enquanto não esvazia
 #     (runbook schema_validation_strict_flip §1). Esvaziado em A24.l7.
-#   INPUT_GAPS — parser sem input sintético viável (PDF de fatura com layout
-#     dedicado; XLS binário exige xlwt). Débito explícito do gate.
+#   INPUT_GAPS — parser sem input sintético viável. Esvaziado em A24.l7
+#     (layouts de fatura no gerador + XLS binário via xlwt dev-dep).
 
 from __future__ import annotations
 
@@ -39,7 +39,9 @@ _BRADESCO_TX = [
 ]
 
 
-def _pdf_builder(bank: str, transactions=None) -> Callable[[Path, str], Path]:
+def _pdf_builder(
+    bank: str, transactions=None, kind: str = "extrato"
+) -> Callable[[Path, str], Path]:
     def _build(tmp_path: Path, filename: str) -> Path:
         from tests.fixtures.pdf_generator import generate_statement
 
@@ -47,12 +49,30 @@ def _pdf_builder(bank: str, transactions=None) -> Callable[[Path, str], Path]:
         path.write_bytes(
             generate_statement(
                 bank,  # type: ignore[arg-type]
-                "extrato",
+                kind,  # type: ignore[arg-type]
                 period="2026-04",
                 transactions=transactions or _SAMPLE_TX,
                 account_holder="Titular Golden",
             )
         )
+        return path
+
+    return _build
+
+
+_FATURA_TX = [
+    {"date": "2026-04-05", "description": "MERCADO SINTETICO", "amount": 250.50},
+    {"date": "2026-04-12", "description": "RESTAURANTE SINTETICO", "amount": 90.00},
+]
+
+
+def _xls_builder(generator_name: str) -> Callable[[Path, str], Path]:
+    def _build(tmp_path: Path, filename: str) -> Path:
+        from tests.fixtures.pdf import xls as xls_mod
+
+        generate = getattr(xls_mod, generator_name)
+        path = tmp_path / filename
+        path.write_bytes(generate("2026-04", _SAMPLE_TX, account_holder="Titular Golden"))
         return path
 
     return _build
@@ -170,6 +190,28 @@ PASS_CASES: Dict[str, Tuple[str, Callable[[Path, str], Path]]] = {
         "santander_cdbresumo_202604.xlsx",
         _santander_cdb_xlsx_builder,
     ),
+    # Faturas PDF com layout sintético dedicado (A24.l7 passo 3 — ex-INPUT_GAPS).
+    "c6bank.parse_c6_carbon": (
+        "c6bank_faturacarbon_202604.pdf",
+        _pdf_builder("c6bank", _FATURA_TX, kind="fatura"),
+    ),
+    "itau.parse_itau_paoacucar": (
+        "itau_faturapaoacucar_202604.pdf",
+        _pdf_builder("itau", _FATURA_TX, kind="fatura"),
+    ),
+    "santander.parse_santander_unique": (
+        "santander_faturaunique_202604.pdf",
+        _pdf_builder("santander", _FATURA_TX, kind="fatura"),
+    ),
+    # XLS binário gerado com xlwt (dev-dep, A24.l7 passo 3 — ex-INPUT_GAPS).
+    "itau.parse_itau_xls": (
+        "itau_extratocontapersonnalite_202604.xls",
+        _xls_builder("generate_itau_xls"),
+    ),
+    "santander.parse_santander_xls": (
+        "santander_extratoconta_202604.xls",
+        _xls_builder("generate_santander_xls"),
+    ),
 }
 
 # Writers vivos cujo output viola o schema do seu stage HOJE — paths pinados;
@@ -178,16 +220,11 @@ PASS_CASES: Dict[str, Tuple[str, Callable[[Path, str], Path]]] = {
 # contrato dedicado e2_llm_artifact.schema.json (ver test_llm_writer_*).
 KNOWN_DRIFT_CASES: Dict[str, Tuple[str, Callable[[Path, str], Path], set]] = {}
 
-# Parser registrado sem input sintético viável nesta lane (runbook §1 — débito
-# da pré-condição do flip). PDF de fatura: layout dedicado pendente no gerador
-# tests/fixtures/pdf/. XLS binário: escrita exige xlwt (não é dependência).
-INPUT_GAPS: Dict[str, str] = {
-    "c6bank.parse_c6_carbon": "PDF fatura Carbon — layout sintético pendente",
-    "itau.parse_itau_paoacucar": "PDF fatura Pão de Açúcar — layout sintético pendente",
-    "santander.parse_santander_unique": "PDF fatura Unique — layout sintético pendente",
-    "itau.parse_itau_xls": "XLS binário (xlrd lê, xlwt não é dependência p/ gerar)",
-    "santander.parse_santander_xls": "XLS binário (xlrd lê, xlwt não é dependência p/ gerar)",
-}
+# Parser registrado sem input sintético viável (runbook §1 — débito da
+# pré-condição do flip). Esvaziado em A24.l7 passo 3: faturas PDF ganharam
+# layout dedicado no gerador tests/fixtures/pdf/ e os XLS binários são
+# gerados via xlwt (dev-dep em requirements-dev.txt).
+INPUT_GAPS: Dict[str, str] = {}
 
 
 def _registered_parser_funcs() -> set[str]:

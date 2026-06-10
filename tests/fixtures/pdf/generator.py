@@ -49,14 +49,17 @@ except ImportError as exc:  # pragma: no cover
 from tests.fixtures.pdf.bankofamerica import draw_bankofamerica_extrato
 from tests.fixtures.pdf.bradesco import draw_bradesco_extrato
 from tests.fixtures.pdf.btg import draw_btgpactual_movimentacao
-from tests.fixtures.pdf.c6 import draw_c6_extrato
+from tests.fixtures.pdf.c6 import draw_c6_carbon_fatura, draw_c6_extrato
 from tests.fixtures.pdf.caixa import draw_caixa_extrato
 from tests.fixtures.pdf.formatters import format_brl
-from tests.fixtures.pdf.itau import draw_itau_extrato
+from tests.fixtures.pdf.itau import draw_itau_extrato, draw_itau_paoacucar_fatura
 from tests.fixtures.pdf.picpay import draw_picpay_extrato
 from tests.fixtures.pdf.quintoandar import draw_quintoandar_fatura
 from tests.fixtures.pdf.rico import draw_rico_extrato
-from tests.fixtures.pdf.santander import draw_santander_extrato
+from tests.fixtures.pdf.santander import (
+    draw_santander_extrato,
+    draw_santander_unique_fatura,
+)
 from tests.fixtures.pdf.wise import draw_wise_extrato
 
 BankCode = Literal[
@@ -188,9 +191,30 @@ def _draw_generic_table(c, width, height, y, transactions) -> tuple[float, float
 
 
 def _draw_bank_body(
-    c, width, height, y, bank, period, transactions, account_number, agency
+    c,
+    width,
+    height,
+    y,
+    bank,
+    period,
+    transactions,
+    account_number,
+    agency,
+    *,
+    kind="extrato",
+    account_holder="Founder Teste",
 ) -> tuple[float, float]:
-    """Despacha para o layout dedicado do banco; fallback: tabela genérica."""
+    """Despacha para o layout dedicado do banco/kind; fallback: tabela genérica."""
+    if kind == "fatura":
+        # Faturas de cartão com layout dedicado (A24.l7 — corpus do flip strict).
+        if bank == "c6bank":
+            return draw_c6_carbon_fatura(c, width, height, y, period, transactions, account_holder)
+        if bank == "itau":
+            return draw_itau_paoacucar_fatura(c, width, height, y, period, transactions)
+        if bank == "santander":
+            return draw_santander_unique_fatura(
+                c, width, height, y, period, transactions, account_holder
+            )
     if bank == "c6bank":
         return draw_c6_extrato(c, width, height, y, period, transactions, account_number)
     if bank == "bradesco":
@@ -304,7 +328,19 @@ def generate_statement(
 
     y = _draw_header(c, width, height, bank, kind, period)
     y = _draw_account_block(c, y, account_holder, cpf, agency, account_number)
-    _draw_bank_body(c, width, height, y, bank, period, transactions, account_number, agency)
+    _draw_bank_body(
+        c,
+        width,
+        height,
+        y,
+        bank,
+        period,
+        transactions,
+        account_number,
+        agency,
+        kind=kind,
+        account_holder=account_holder,
+    )
 
     _draw_footer(c, width, creation_date)
     c.showPage()

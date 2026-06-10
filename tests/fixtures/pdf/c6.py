@@ -8,6 +8,7 @@ from reportlab.lib.units import cm
 
 from tests.fixtures.pdf.formatters import (
     MONTH_BR,
+    draw_text_lines,
     format_brl,
     iso_date_to_br,
     period_to_br_range,
@@ -80,3 +81,76 @@ def draw_c6_extrato(
         y -= line_height
 
     return y, running
+
+
+_MONTH_ABBR_BR = (
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago",
+    "set",
+    "out",
+    "nov",
+    "dez",
+)
+_MONTH_FULL_BR = (
+    "janeiro",
+    "fevereiro",
+    "março",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
+)
+
+
+def draw_c6_carbon_fatura(
+    c: Any,
+    width: float,
+    height: float,
+    y: float,
+    period: str,
+    transactions: list[Transaction],
+    account_holder: str,
+) -> tuple[float, float]:
+    """Fatura C6 Carbon — paridade com ``parse_c6_carbon`` (linhas `D mes DESC VALOR`)."""
+    yy, mm = period.split("-")
+    month_idx = int(mm) - 1
+    holder_upper = account_holder.upper()
+
+    total = sum(float(t.get("amount", 0)) for t in transactions)
+    c.setFont("Helvetica", 9)
+    y = draw_text_lines(c, y, _carbon_lines(period, transactions, holder_upper, month_idx, total))
+    return y, total
+
+
+def _carbon_lines(period, transactions, holder_upper, month_idx, total) -> list[str]:
+    return [
+        f"Vencimento: 15 de {_MONTH_FULL_BR[month_idx]}",
+        f"Valor da fatura: R$ {format_brl(abs(total))}",
+        "Limite total: R$ 50.000,00",
+        f"C6 Carbon Final 1234 - {holder_upper} Cartão",
+        *(
+            _carbon_tx_line(tx, period)
+            for tx in sorted(transactions, key=lambda t: str(t.get("date", "")))
+        ),
+        f"Subtotal deste cartão R$ {format_brl(abs(total))}",
+    ]
+
+
+def _carbon_tx_line(tx: Transaction, period: str) -> str:
+    amt = float(tx.get("amount", 0))
+    iso = str(tx.get("date", f"{period}-01"))
+    day = int(iso.split("-")[2])
+    abbr = _MONTH_ABBR_BR[int(iso.split("-")[1]) - 1]
+    desc = str(tx.get("description", "Lancamento"))[:50]
+    return f"{day} {abbr} {desc} {format_brl(abs(amt))}"

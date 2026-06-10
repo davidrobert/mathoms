@@ -104,7 +104,7 @@ jobs:
           path: .venv
           # Mesma key dos jobs de ci.yml — reusa cache populado pelo
           # último PR mergeado. Hit típico em main-smoke noturno.
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v3
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v4
           restore-keys: |
             venv-${{ runner.os }}-py313-
 
@@ -115,7 +115,7 @@ jobs:
         run: |
           [ -d .venv ] || uv venv .venv
           uv pip install -r requirements.in -r backend/requirements.in
-          uv pip install reportlab pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+          uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
           uv pip install --system pre-commit ruff==0.6.0 jsonschema pyyaml
 
       - name: Activate venv (PATH)

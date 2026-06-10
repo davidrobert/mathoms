@@ -52,9 +52,12 @@ resolvidos **ou aceitos por escrito** na linha do §7:
   runbook cobre **2 schemas E2 independentes** — `e2_extract.schema.json` e
   `e2_llm_artifact.schema.json` — cada um com baseline (§2) e flip (§3)
   próprios.
-- `INPUT_GAPS` (parsers sem input sintético — PDFs de fatura dedicados, XLS
-  binário): aceitável flipar se o baseline (§2) mostrar zero WARN nos tipos
-  correspondentes na janela.
+- `INPUT_GAPS` (parsers sem input sintético): aceitável flipar se o baseline
+  (§2) mostrar zero WARN nos tipos correspondentes na janela. ✅ **Esvaziado
+  em 2026-06-10 (A24.l7 passo 3)** — corpus cobre **22/22 writers** em
+  real-parse (faturas PDF com layout sintético dedicado; XLS binário via
+  `xlwt` dev-dep). Para `e2_extract` e `e2_llm_artifact`, a pré-condição de
+  corpus está integralmente fechada — o gate restante é só o baseline (§1.3).
 
 ### 1.3. Baseline de 7 dias zero-WARN para o schema alvo
 

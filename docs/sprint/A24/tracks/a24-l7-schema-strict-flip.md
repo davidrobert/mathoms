@@ -55,13 +55,14 @@ DATA_LINEAGE) — ganhou contrato dedicado `e2_llm_artifact.schema.json` com
 transação compartilhada via `$ref e2_extract.schema.json#/$defs/transacao`
 + pin de resolução do `$ref`. `KNOWN_DRIFT_CASES == {}`.
 
-### 3. INPUT_GAPS do corpus
+### 3. INPUT_GAPS do corpus — ✅ entregue 2026-06-10
 
-5 parsers sem input sintético (`INPUT_GAPS` no corpus): PDFs de fatura
-Carbon/Pão de Açúcar/Unique (estender gerador `tests/fixtures/pdf/`) e
-2 XLS binários (escrita exige `xlwt`; alternativa aceita: cobrir via
-baseline zero-WARN nos tipos correspondentes, runbook §1.2, e registrar
-aceite no §7).
+`INPUT_GAPS == {}`: layouts de fatura Carbon/Pão de Açúcar/Unique adicionados
+ao gerador (`draw_c6_carbon_fatura`/`draw_itau_paoacucar_fatura`/
+`draw_santander_unique_fatura`, dispatch por `kind="fatura"`) e XLS binário
+gerado via `xlwt` (`tests/fixtures/pdf/xls.py`, dev-dep em
+requirements-dev.txt — `xlrd` só lê BIFF). **Corpus 22/22 real-parse em
+strict**; todos os 5 ex-gaps extraem ≥2 transações + saldos.
 
 ### 4. Flip + verificação + alerta
 
