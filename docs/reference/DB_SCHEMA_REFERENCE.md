@@ -6,12 +6,13 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 61
+**Total de tabelas:** 62
 
 ---
 
 ## Índice
 
+- [`artifact_lineage_edge`](#artifactlineageedge)
 - [`asset_catalog`](#assetcatalog)
 - [`audit_logs`](#auditlogs)
 - [`bank_accounts`](#bankaccounts)
@@ -77,6 +78,36 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 ---
 
 ## Tabelas
+
+### `artifact_lineage_edge`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `INTEGER` | no | — | PK |
+| `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id |
+| `run_id` | `VARCHAR(36)` | no | — | FK→pipeline_runs.id |
+| `src_stage` | `VARCHAR(50)` | no | — | — |
+| `src_key` | `VARCHAR(255)` | no | — | — |
+| `src_field` | `VARCHAR(255)` | no | `''` | — |
+| `dst_stage` | `VARCHAR(50)` | no | — | — |
+| `dst_key` | `VARCHAR(255)` | no | — | — |
+| `dst_field` | `VARCHAR(255)` | no | — | — |
+| `edge_type` | `VARCHAR(32)` | no | — | — |
+| `rule_ref` | `TEXT` | no | `''` | — |
+| `source_document_id` | `VARCHAR(36)` | yes | — | FK→documents.id |
+| `data_source_id` | `VARCHAR(36)` | yes | — | — |
+| `winner` | `BOOLEAN` | no | `True` | — |
+
+**Constraints:**
+
+- FOREIGN KEY (run_id) REFERENCES pipeline_runs.id ON DELETE CASCADE — `(unnamed)`
+- FOREIGN KEY (source_document_id) REFERENCES documents.id ON DELETE SET NULL — `(unnamed)`
+- FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_artifact_lineage_edge_ws_doc` (workspace_id, source_document_id)
+- `ix_artifact_lineage_edge_ws_run` (workspace_id, run_id)
 
 ### `asset_catalog`
 
@@ -1761,6 +1792,27 @@ import (
 
 	"github.com/shopspring/decimal"
 )
+```
+
+### `artifact_lineage_edge` → `type ArtifactLineageEdge struct`
+
+```go
+type ArtifactLineageEdge struct {
+	Id int `db:"id" json:"id"`
+	WorkspaceId string `db:"workspace_id" json:"workspace_id"`
+	RunId string `db:"run_id" json:"run_id"`
+	SrcStage string `db:"src_stage" json:"src_stage"`
+	SrcKey string `db:"src_key" json:"src_key"`
+	SrcField string `db:"src_field" json:"src_field"`
+	DstStage string `db:"dst_stage" json:"dst_stage"`
+	DstKey string `db:"dst_key" json:"dst_key"`
+	DstField string `db:"dst_field" json:"dst_field"`
+	EdgeType string `db:"edge_type" json:"edge_type"`
+	RuleRef string `db:"rule_ref" json:"rule_ref"`
+	SourceDocumentId *string `db:"source_document_id" json:"source_document_id"`
+	DataSourceId *string `db:"data_source_id" json:"data_source_id"`
+	Winner bool `db:"winner" json:"winner"`
+}
 ```
 
 ### `asset_catalog` → `type AssetCatalog struct`

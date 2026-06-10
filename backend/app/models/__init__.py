@@ -1,3 +1,4 @@
+from backend.app.models.artifact_lineage_edge import ArtifactLineageEdge
 from backend.app.models.asset_catalog import AssetCatalog, WorkspaceAssetOverride
 from backend.app.models.audit_log import AuditLog
 from backend.app.models.categorization_rule import CategorizationRule
@@ -245,6 +246,7 @@ __all__ = [
     "VALID_OVERRIDE_SOURCES",
     "CategorizationRule",
     "Notification",
+    "ArtifactLineageEdge",
     "AuditLog",
     "DataExportRequest",
     "DataExportRequestStatus",
