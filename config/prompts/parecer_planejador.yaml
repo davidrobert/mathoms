@@ -376,6 +376,9 @@ tools:
 max_tool_iterations: 6
 max_total_input_tokens: 50000
 max_exec_context_bytes: 5120  # ~5KB hard limit base (pré tool calls)
+# Citação verificada E5→E6 (ADR-279 §E · F4): warn loga violação sem bloquear;
+# strict marca needs_review. Override operacional: env MATHOMS_PARECER_EVIDENCIA_MODE.
+evidencia_verification_mode: "warn"
 
 # ==============================================================================
 # HARD CAPS (ADR-202 §D5)

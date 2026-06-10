@@ -83,6 +83,11 @@
       "maximum": 65536,
       "description": "Hard limit do exec context base (pré tool calls)."
     },
+    "evidencia_verification_mode": {
+      "type": "string",
+      "enum": ["warn", "strict"],
+      "description": "Citação verificada E5→E6 (ADR-279 §E · F4): warn loga violação; strict marca needs_review. Override via env MATHOMS_PARECER_EVIDENCIA_MODE."
+    },
     "hard_caps": {
       "type": "object",
       "additionalProperties": false,

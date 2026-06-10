@@ -84,6 +84,10 @@ def _build_artifact_json(result) -> dict:
     }
     if result.error_detail:
         payload["_meta"]["error_detail"] = result.error_detail
+    if result.evidencia_entries is not None:
+        # Detalhe por-path da citação verificada (ADR-279 §E · F4). Sem
+        # timestamp/latência/valor monetário — preserva byte-identidade e PII.
+        payload["_meta"]["evidencia_verification"] = result.evidencia_entries
     return payload
 
 
@@ -94,7 +98,7 @@ def _needs_review_return(result, workspace_id: str, store) -> dict:
         extra={"workspace_id": workspace_id, "reason": result.error_detail},
     )
     store.write(ARTIFACT_STAGE, ARTIFACT_KEY, _build_artifact_json(result))
-    return {
+    status = {
         "success": False,
         "status": "needs_review",
         "reason": result.error_detail,
@@ -102,6 +106,9 @@ def _needs_review_return(result, workspace_id: str, store) -> dict:
         "cost_usd": result.cost_usd,
         "latency_ms": result.latency_ms,
     }
+    if result.evidencia_summary is not None:
+        status["evidencia_verification"] = result.evidencia_summary
+    return status
 
 
 def _summary_counts(output) -> dict:
@@ -132,7 +139,7 @@ def _success_return(result, workspace_id: str) -> dict:
             "riscos_count": summary["riscos_count"],
         },
     )
-    return {
+    status = {
         "success": True,
         "status": result.status,
         "cache_hit": result.cache_hit,
@@ -147,6 +154,9 @@ def _success_return(result, workspace_id: str) -> dict:
         "tier_at_generation": result.tier_at_generation,
         "parecer_summary": summary,
     }
+    if result.evidencia_summary is not None:
+        status["evidencia_verification"] = result.evidencia_summary
+    return status
 
 
 def _load_orchestrator():

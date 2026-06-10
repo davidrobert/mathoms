@@ -22,6 +22,7 @@ class ManifestData:
     max_tool_iterations: int
     max_total_input_tokens: int
     max_exec_context_bytes: int
+    evidencia_verification_mode: str = "warn"
 
 
 def _resolve_repo_path(rel: str) -> Path:
@@ -83,6 +84,7 @@ def load_manifest(path: Optional[str] = None) -> ManifestData:
         max_tool_iterations=int(raw.get("max_tool_iterations", 6)),
         max_total_input_tokens=int(raw.get("max_total_input_tokens", 50_000)),
         max_exec_context_bytes=int(raw.get("max_exec_context_bytes", 5120)),
+        evidencia_verification_mode=str(raw.get("evidencia_verification_mode", "warn")),
     )
 
 

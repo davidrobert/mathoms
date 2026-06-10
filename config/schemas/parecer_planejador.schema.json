@@ -207,6 +207,27 @@
           "type": "string",
           "maxLength": 500,
           "description": "Diagnóstico curto quando status='needs_review' (LLM failure, sigilo violation, etc.)."
+        },
+        "evidencia_verification": {
+          "type": "array",
+          "description": "Detalhe por-path da citação verificada E5→E6 (ADR-279 §E · F4). Aditivo opcional — zero timestamp/latência/valor monetário (preserva byte-identidade e PII).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["item_type", "item_index", "outcome"],
+            "properties": {
+              "item_type": {
+                "type": "string",
+                "enum": ["risco", "sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"]
+              },
+              "item_index": {"type": "integer", "minimum": 0},
+              "path": {"type": ["string", "null"]},
+              "outcome": {
+                "type": "string",
+                "enum": ["verified", "missing_path", "whitelist_miss", "resolve_null", "value_mismatch"]
+              }
+            }
+          }
         }
       }
     }
