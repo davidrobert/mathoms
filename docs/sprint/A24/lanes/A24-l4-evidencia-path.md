@@ -73,7 +73,9 @@ Pydantic / `$defs`).
 
 ## Não-escopo
 
-- Flip `warn→strict` (PR separado, pós-telemetria).
+- Flip `warn→strict` (PR separado, pós-telemetria) — **promovido a requisito de
+  fechamento da Sprint A25** (decisão owner 2026-06-10; registrado em
+  [[PLAN-data-lineage]] §Ondas, Onda 4).
 - UX do estado `needs_review` no relatório (product-designer, fase F6).
 - Threshold de materialidade do match (se contencioso → `financial-planner`).
 
