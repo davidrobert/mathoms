@@ -116,12 +116,16 @@ async def login(
 async def refresh(
     request: Request, response: Response, db: AsyncSession = Depends(get_db)
 ) -> TokenResponse:
-    """Rotaciona o refresh cookie e emite access novo (ADR-170 · W3-T03).
+    """Rotaciona o refresh cookie e emite access novo (ADR-170 · W3-T03)."""
+    cookie_value = _validate_refresh_request(request)
+    _enforce_refresh_rate(request, cookie_value)
+    return await _rotate_session(cookie_value, response, db)
 
-    Rota sempre montada (OpenAPI estável); flag off → 404. Header custom
-    ``X-Refresh-Request`` é a defesa CSRF (form cross-origin não o seta sem
-    preflight, que a allowlist CORS nega).
-    """
+
+def _validate_refresh_request(request: Request) -> str:
+    """Guards do refresh: flag off → 404 (rota sempre montada, OpenAPI estável);
+    header custom ``X-Refresh-Request`` é a defesa CSRF (form cross-origin não
+    o seta sem preflight, que a allowlist CORS nega)."""
     if not settings.AUTH_REFRESH_FLOW:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     if request.headers.get("x-refresh-request") != "1":
@@ -133,8 +137,7 @@ async def refresh(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="missing refresh cookie"
         )
-    _enforce_refresh_rate(request, cookie_value)
-    return await _rotate_session(cookie_value, response, db)
+    return cookie_value
 
 
 def _enforce_refresh_rate(request: Request, cookie_value: str) -> None:

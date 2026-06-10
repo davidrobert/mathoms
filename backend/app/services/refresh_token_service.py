@@ -96,7 +96,12 @@ async def rotate_refresh_token(db: AsyncSession, cookie_value: str) -> Optional[
     family = await db.get(RefreshTokenFamily, family_id)
     if family is None or not _family_alive(family):
         return None
-    presented = _hash_secret(secret)
+    return _resolve_presented_hash(family, _hash_secret(secret))
+
+
+def _resolve_presented_hash(
+    family: RefreshTokenFamily, presented: str
+) -> Optional[RefreshRotation]:
     if presented == family.token_hash:
         return _rotate(family)
     if _is_grace_hit(family, presented):
