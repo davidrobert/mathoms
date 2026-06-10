@@ -87,6 +87,46 @@ async def test_get_latest_for_workspace(db: AsyncSession):
     assert got == {"score": 20}
 
 
+def _add_e5_artifacts_with_tied_created_at(s, ws_id: str, entries) -> None:
+    """Insere artefatos E5 com created_at idêntico — reproduz empate de flush."""
+    from datetime import datetime, timezone
+
+    tied = datetime.now(timezone.utc)
+    for run_id, content in entries:
+        s.add(
+            PipelineArtifact(
+                workspace_id=ws_id,
+                pipeline_run_id=run_id,
+                stage="E5",
+                artifact_key="analise",
+                content_json=content,
+                created_at=tied,
+            )
+        )
+    s.commit()
+
+
+@pytest.mark.asyncio
+async def test_get_latest_for_workspace_tiebreak_on_equal_created_at(db: AsyncSession):
+    """created_at idêntico → tie-break por id: o último inserido vence sempre."""
+    ws_id, r1, r2, _ = await _seed(db)
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            _add_e5_artifacts_with_tied_created_at(
+                s, ws_id, [(r1, {"score": 10}), (r2, {"score": 20})]
+            )
+            repo = PipelineArtifactRepository(s)
+            latest = repo.get_latest_for_workspace(ws_id, stage="E5", artifact_key="analise")
+            return latest.content_json if latest else None
+
+    raw = await db.connection()
+    got = await raw.run_sync(_do)
+    assert got == {"score": 20}, "empate em created_at deve resolver pelo maior id (último write)"
+
+
 @pytest.mark.asyncio
 async def test_list_latest_keys(db: AsyncSession):
     ws_id, r1, r2, _ = await _seed(db)

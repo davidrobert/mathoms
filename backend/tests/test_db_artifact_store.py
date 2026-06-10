@@ -385,6 +385,54 @@ async def test_workspace_fallback_returns_most_recent(db: AsyncSession):
     assert payload["version"] == "new", "fallback deve pegar a entrada mais recente"
 
 
+def _add_completed_and_running_runs(s, ws_id: str) -> tuple[str, str]:
+    runs = [
+        PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.completed),
+        PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running),
+    ]
+    s.add_all(runs)
+    s.flush()
+    return runs[0].id, runs[1].id
+
+
+def _insert_baselines_with_tied_created_at(s, ws_id: str, entries) -> None:
+    """Insere E1.5c com created_at idêntico — reproduz empate de microssegundo."""
+    from datetime import datetime, timezone
+
+    tied = datetime.now(timezone.utc)
+    for run_id, version in entries:
+        s.add(
+            PipelineArtifact(
+                workspace_id=ws_id,
+                pipeline_run_id=run_id,
+                stage="E1.5c",
+                artifact_key="baseline_patrimonial",
+                content_json={"version": version},
+                created_at=tied,
+            )
+        )
+    s.commit()
+
+
+@pytest.mark.asyncio
+async def test_workspace_fallback_deterministic_on_created_at_tie(db: AsyncSession):
+    """created_at empatado entre runs → fallback resolve pelo maior id, sem flake."""
+    ws_id, run_a = await _seed_ws_and_run(db, email="tiebreak@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b, run_c = _add_completed_and_running_runs(s, ws_id)
+            _insert_baselines_with_tied_created_at(s, ws_id, [(run_a, "old"), (run_b, "new")])
+            store_c = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_c)
+            return store_c.read("E1.5c", "baseline_patrimonial")
+
+    raw = await db.connection()
+    payload = await raw.run_sync(_do)
+    assert payload == {"version": "new"}, "empate em created_at deve resolver pelo maior id"
+
+
 @pytest.mark.asyncio
 async def test_workspace_fallback_isolated_by_workspace(db: AsyncSession):
     """Fallback NUNCA cruza workspaces — outro workspace não enxerga baseline alheio."""

@@ -256,7 +256,10 @@ class DBArtifactStore:
                 stage=stage,
                 artifact_key=key,
             )
-            .order_by(PipelineArtifact.created_at.desc())
+            # id como tie-break: created_at (default datetime.now) pode empatar
+            # no microssegundo entre writes do mesmo flush — "mais recente"
+            # precisa ser determinístico no hot path ADR-241.
+            .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
             .first()
         )
 

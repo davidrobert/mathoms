@@ -56,7 +56,7 @@ async def _fetch_contribuinte_endereco(workspace_id: str, db: AsyncSession) -> O
             PipelineArtifact.workspace_id == workspace_id,
             PipelineArtifact.stage == "extract_irpf_full",
         )
-        .order_by(PipelineArtifact.created_at.desc())
+        .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         .limit(1)
     )
     result = await db.execute(stmt)

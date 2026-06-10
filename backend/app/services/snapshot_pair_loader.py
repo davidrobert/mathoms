@@ -67,7 +67,7 @@ def _fetch_previous(
             PipelineArtifact.artifact_key == _ANALYZE_ARTIFACT_KEY,
             PipelineArtifact.created_at < current_created_at,
         )
-        .order_by(PipelineArtifact.created_at.desc())
+        .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         .limit(1)
     )
     return session.execute(stmt).scalar_one_or_none()
