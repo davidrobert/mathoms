@@ -164,7 +164,6 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `code` | `VARCHAR(50)` | no | — | — |
 | `name` | `VARCHAR(100)` | no | — | — |
 | `category_type` | `VARCHAR(10)` | no | — | — |
-| `monthly_cap` | `FLOAT` | yes | — | — |
 | `order` | `INTEGER` | no | `0` | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |
 
@@ -1802,7 +1801,6 @@ type Category struct {
 	Code string `db:"code" json:"code"`
 	Name string `db:"name" json:"name"`
 	CategoryType string `db:"category_type" json:"category_type"`
-	MonthlyCap *float64 `db:"monthly_cap" json:"monthly_cap"`
 	Order int `db:"order" json:"order"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }

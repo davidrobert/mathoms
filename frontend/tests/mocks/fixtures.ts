@@ -13,7 +13,6 @@
  * - Valores monetários são redondos e óbvios para facilitar leitura.
  */
 import type {
-  CategoryConfig,
   DashboardResponse,
   DocumentResponse,
   FamilyMemberConfig,
@@ -127,27 +126,6 @@ const members: FamilyMemberConfig[] = [
   },
 ];
 
-const categories: CategoryConfig[] = [
-  {
-    id: "cat-1",
-    code: "alimentacao",
-    name: "Alimentação",
-    category_type: "expense",
-    monthly_cap: 2000,
-    order: 1,
-    keywords: ["mercado", "padaria", "ifood"],
-  },
-  {
-    id: "cat-2",
-    code: "salario",
-    name: "Salário",
-    category_type: "income",
-    monthly_cap: null,
-    order: 1,
-    keywords: ["pagto folha", "salario"],
-  },
-];
-
 const transactions: TransactionItem[] = [
   {
     data: "2026-04-05",
@@ -223,7 +201,6 @@ export const fixtures = {
   vaultPasswords,
   pipelineRun,
   members,
-  categories,
   transactions,
   dashboard,
   notifications,

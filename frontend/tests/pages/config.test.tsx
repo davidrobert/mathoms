@@ -71,8 +71,15 @@ describe("ConfigPage", () => {
 
   it("trocar de tab → outra tab vira ativa", async () => {
     server.use(
-      http.get("/api/v1/workspaces/:workspaceId/config/categories", () =>
-        HttpResponse.json({ categories: [], total: 0 }),
+      http.get(
+        "/api/v1/workspaces/:workspaceId/config/category-overrides/resolved",
+        () =>
+          HttpResponse.json({
+            categories: [],
+            total: 0,
+            template_version_used: 1,
+            latest_template_version: 1,
+          }),
       ),
     );
     const user = userEvent.setup();

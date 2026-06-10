@@ -290,39 +290,12 @@ class TestIsolationMembers:
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Categories
+# Categories — CRUD legado /config/categories removido em
+# A12.cat-legacy-sunset (ADR-283 §B). Isolation do caminho moderno
+# (category-overrides) é coberta pelo predicado workspace_id no repo;
+# a categoria de B permanece no fixture como assinatura de leak
+# (_b_signatures) para os demais endpoints.
 # ─────────────────────────────────────────────────────────────────────
-
-
-class TestIsolationCategories:
-    @pytest.mark.asyncio
-    async def test_list_categories_only_a(self, client: AsyncClient, tenants):
-        r = await client.get(
-            f"/api/workspaces/{tenants['a']['ws'].id}/config/categories",
-            headers=_auth(tenants["a"]["token"]),
-        )
-        assert r.status_code == 200, r.text
-        body = r.json()
-        assert body["total"] == 1
-        assert body["categories"][0]["code"] == "alimentacao_a"
-        _assert_no_b_leak(body, tenants, "GET /config/categories")
-
-    @pytest.mark.asyncio
-    async def test_update_category_of_b_returns_404(self, client: AsyncClient, tenants):
-        r = await client.put(
-            f"/api/workspaces/{tenants['a']['ws'].id}/config/categories/{tenants['b']['category'].id}",
-            headers=_auth(tenants["a"]["token"]),
-            json={"name": "Hijacked"},
-        )
-        assert r.status_code == 404, r.text
-
-    @pytest.mark.asyncio
-    async def test_delete_category_of_b_returns_404(self, client: AsyncClient, tenants):
-        r = await client.delete(
-            f"/api/workspaces/{tenants['a']['ws'].id}/config/categories/{tenants['b']['category'].id}",
-            headers=_auth(tenants["a"]["token"]),
-        )
-        assert r.status_code == 404, r.text
 
 
 # ─────────────────────────────────────────────────────────────────────
