@@ -126,7 +126,16 @@ gera o sinal que hoje falta. O **top-level continua `additionalProperties:true`*
 ## Follow-ups rastreados
 
 1. **Drop `Category.monthly_cap`** → lane `A12.cat-legacy-sunset` (após sunset do endpoint legado).
-2. **Wire-string decimal** em `ReportResponse.patrimonio_liquido` (+ frontend + OpenAPI snapshot).
+2. **Wire-string decimal** em `ReportResponse.patrimonio_liquido` — ✅ **resolvido
+   por não-decisão (2026-06-09)**. Avaliação: `MoneyBRL` (A6g.3b) serializa
+   `number` no wire por design — a convenção implementada da [[ADR-090]] para
+   DTOs é Decimal-em-memória + number-no-JSON, não string. Wire-string de
+   verdade exigiria tipo serializador novo + breaking no frontend (`meta-if`
+   lê `number`), para um campo NULL em prod cujo cálculo fiscal-sensível
+   (meta IF) lê o DB direto via `get_latest_report_patrimonio_liquido` →
+   `Decimal`, nunca o wire. Custo > benefício. Entregue no lugar: DTO migrado
+   `Optional[float]` → `Optional[MoneyBRL]` (boundary deixa de coagir a float;
+   snapshot OpenAPI inalterado — wire comprovadamente idêntico).
 3. **Strict per-stage em prod** — instrumentar WARN-counter → medir → flip começando por E2; expandir corpus golden E2 por banco como pré-condição.
 
 ## Critério de aceite
