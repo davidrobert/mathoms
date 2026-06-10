@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-PROMPT_VERSION = "1.2.0"
+PROMPT_VERSION = "1.3.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -90,6 +90,10 @@ SYSTEM_PROMPT_TEMPLATE = """\
       sinalização: "Identificamos apólice com vigência vencida na data
       DD/MM/AAAA — confirme se está em processo de renovação". Sem
       urgência teatral.
+
+11. **Citação verificada (ADR-279):** valor `R$` na prosa (`descricao`,
+    `evidencia`, `acao`) exige `evidencia_path` que resolva no E5 para o
+    número citado. Ex.: "R$ 84.000" → `$.reserva_emergencia.total_liquida`.
 """
 
 
