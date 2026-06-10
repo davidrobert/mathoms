@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F3 — skeleton resto: reserva, despesa, total investido"
 sprint: A24
 plan: PLAN-data-lineage
-status: blocked
+status: in_progress
 priority: P1
 branch_slug: dl-f3-skeleton-resto
 adrs:
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a24
-  - status/blocked
+  - status/in-progress
   - priority/p1
   - area/data-lineage
   - area/pipeline

@@ -584,8 +584,8 @@
 | A24.l2 | lane | shipped | A24 | Data Lineage F2 — de-leak numero_conta_norm (extração emite raw) | `sprint/A24/lanes/A24-l2-deleak-account-norm.md` |
 | A24.l3 | lane | shipped | A24 | Data Lineage F2 — de-leak tipo_lancamento (delete do output + contrato) | `sprint/A24/lanes/A24-l3-deleak-tipo-lancamento.md` |
 | A24.l4 | lane | shipped | A24 | Data Lineage F4 — evidencia_path: citação verificada E5→E6 no parecer | `sprint/A24/lanes/A24-l4-evidencia-path.md` |
-| A24.l5 | lane | in_progress | A24 | Data Lineage F3 — walking skeleton: _lineage no patrimônio líquido | `sprint/A24/lanes/A24-l5-skeleton-patrimonio.md` |
-| A24.l6 | lane | blocked | A24 | Data Lineage F3 — skeleton resto: reserva, despesa, total investido | `sprint/A24/lanes/A24-l6-skeleton-resto.md` |
+| A24.l5 | lane | shipped | A24 | Data Lineage F3 — walking skeleton: _lineage no patrimônio líquido | `sprint/A24/lanes/A24-l5-skeleton-patrimonio.md` |
+| A24.l6 | lane | in_progress | A24 | Data Lineage F3 — skeleton resto: reserva, despesa, total investido | `sprint/A24/lanes/A24-l6-skeleton-resto.md` |
 | A24.l7 | lane | open | A24 | Schema strict flip — baseline → de-drift de vocabulário → flip E2 (ADR-284) | `sprint/A24/lanes/A24-l7-schema-strict-flip.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
