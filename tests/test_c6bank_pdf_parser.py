@@ -19,13 +19,11 @@ def test_duas_transacoes_mesmo_dia_nao_se_misturam():
         "data": "2026-04-22",
         "descricao": "Itau Unibanco S/A",
         "valor": -194886.65,
-        "tipo_lancamento": "Pagamento",
     }
     assert txs[1] == {
         "data": "2026-04-22",
         "descricao": "Pix enviado para Eliane Costa Goncalves",
         "valor": -230.00,
-        "tipo_lancamento": "Saída PIX",
     }
 
 
@@ -40,7 +38,8 @@ def test_entrada_pix_valor_positivo():
 
     assert len(txs) == 1
     assert txs[0]["valor"] == 50000.0
-    assert txs[0]["tipo_lancamento"] == "Entrada PIX"
+    assert txs[0]["descricao"] == "Pix recebido de DAVID CAMPOS"
+    assert "tipo_lancamento" not in txs[0]
 
 
 def test_global_usd_valores_assinados():
@@ -61,7 +60,6 @@ def test_descricao_vazia_ok():
     txs, _ = _parse_c6_extrato_text(text, "2026-05-01", "2026-05-31")
 
     assert len(txs) == 1
-    assert txs[0]["tipo_lancamento"] == "Saída PIX"
     assert txs[0]["descricao"] == ""
     assert txs[0]["valor"] == -1950.0
 
@@ -133,14 +131,15 @@ def test_descricao_nao_concatena_cabecalho_tabela():
 
 
 def test_outros_gastos_e_resgate():
-    """Tipos menos comuns que precisam ser reconhecidos via prefix match."""
+    """Tipos menos comuns precisam ser reconhecidos via prefix match — o split
+    tipo/descrição segue interno ao parser (limpa a descrição); o campo
+    `tipo_lancamento` não é mais emitido (de-leak ADR-280, A24.l3)."""
     text = (
         "26/04 27/04 Outros gastos C6TAG ESTACIONAMENTO -R$ 22,00\n"
         "22/04 22/04 Entradas RESGATE DE CDB R$ 2.587,91\n"
     )
     txs, _ = _parse_c6_extrato_text(text, "2026-04-01", "2026-04-30")
     assert len(txs) == 2
-    assert txs[0]["tipo_lancamento"] == "Outros gastos"
     assert txs[0]["descricao"] == "C6TAG ESTACIONAMENTO"
-    assert txs[1]["tipo_lancamento"] == "Entradas"
     assert txs[1]["descricao"] == "RESGATE DE CDB"
+    assert all("tipo_lancamento" not in tx for tx in txs)

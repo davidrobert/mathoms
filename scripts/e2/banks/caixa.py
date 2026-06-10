@@ -68,47 +68,6 @@ def _parse_valor_cd(text: str) -> Optional[float]:
     return -val if negative else val
 
 
-def _classify(historico: str) -> str:
-    h = historico.upper()
-    if "PIX ENVIADO" in h:
-        return "Saída PIX"
-    if "PIX RECEBIDO" in h or "PIX CREDITO" in h or "PIX CREDIT" in h:
-        return "Entrada PIX"
-    if "PIX" in h and ("DEVOL" in h or "DEVOLUC" in h):
-        return "Devolução PIX"
-    if "TED" in h and ("ENVIAD" in h or "SAIDA" in h or "DEBIT" in h):
-        return "Saída TED/Transferência"
-    if "TED" in h and ("RECEBID" in h or "CREDIT" in h or "ENTRADA" in h):
-        return "Entrada TED/Transferência"
-    if "TED" in h:
-        return "TED"
-    if "DOC" in h and "ENVIAD" in h:
-        return "Saída DOC"
-    if "DOC" in h and "RECEBID" in h:
-        return "Entrada DOC"
-    if "BOLETO" in h or "PAGAMENTO" in h:
-        return "Pagamento Boleto"
-    if "SAQUE" in h:
-        return "Saque"
-    if "DEPOSITO" in h or "DEPÓSITO" in h:
-        return "Depósito"
-    if "TARIFA" in h or "TAXA" in h:
-        return "Tarifa Bancária"
-    if "JUROS" in h or "IOF" in h:
-        return "Encargos Bancários"
-    if "RENDIMENTO" in h or "APLICAC" in h:
-        return "Investimento/Rendimento"
-    if "RESGATE" in h:
-        return "Resgate Investimento"
-    if "SALARIO" in h or "SALÁRIO" in h:
-        return "Salário"
-    if "TRANSFERENCIA" in h or "TRANSFERÊNCIA" in h:
-        return "Transferência"
-    if "COMPRA" in h:
-        return "Compra/Débito"
-    return "Outros"
-
-
 def _date_iso(date_str: str) -> Optional[str]:
     """Converte 'DD/MM/YYYY' (com ou sem ' - HH:MM:SS') para 'YYYY-MM-DD'."""
     m = re.match(r"(\d{2})/(\d{2})/(\d{4})", date_str)
@@ -180,7 +139,6 @@ def _row_to_tx(cells: List[str]) -> Optional[Dict[str, Any]]:
         "data": data_iso,
         "descricao": desc,
         "valor": valor,
-        "tipo_lancamento": _classify(historico),
     }
     if nr_doc and nr_doc not in ("000000", "None", ""):
         tx["nr_doc"] = nr_doc
@@ -214,7 +172,6 @@ def _parse_text_fallback(all_text: str) -> List[Dict[str, Any]]:
                 "data": data_iso,
                 "descricao": historico,
                 "valor": val,
-                "tipo_lancamento": _classify(historico),
             }
         )
     return transactions
@@ -238,8 +195,7 @@ Extraia todos os dados do extrato e retorne APENAS um JSON válido (sem markdown
     {
       "data": "YYYY-MM-DD",
       "descricao": "histórico completo (incluindo favorecido se houver)",
-      "valor": número (negativo para débito/saída, positivo para crédito/entrada),
-      "tipo_lancamento": "Saída PIX | Entrada PIX | Devolução PIX | Saída TED/Transferência | Entrada TED/Transferência | Pagamento Boleto | Saque | Depósito | Tarifa Bancária | Encargos Bancários | Salário | Transferência | Outros"
+      "valor": número (negativo para débito/saída, positivo para crédito/entrada)
     }
   ]
 }
@@ -332,7 +288,6 @@ def _extract_via_llm(pdf_path: Path, result: Dict[str, Any]) -> bool:
                 "data": tx["data"],
                 "descricao": tx.get("descricao", ""),
                 "valor": float(tx["valor"]),
-                "tipo_lancamento": tx.get("tipo_lancamento", "Outros"),
             }
         )
 
