@@ -227,6 +227,9 @@ def diff_golden(old: dict, new: dict, *, classify: ClassifyFn = is_monetary) -> 
 
 # ──────────────────────────────── manifesto ────────────────────────────────
 
+_ADR_RE = r"^ADR-\d+$"
+_REF_RE = r"^\S+:\d+$"
+
 
 @dataclass(frozen=True)
 class ManifestEntry:
@@ -234,15 +237,44 @@ class ManifestEntry:
     path: str
     old_cents: int
     new_cents: int
+    adr: str  # justificativa obrigatória (F2-DB6); fora da chave de match
+    rationale: str
+    ref: str  # file:line da mudança de produção (G-c)
+
+
+def _validated_entry(e: dict) -> ManifestEntry:
+    import re
+
+    required = ("golden", "path", "old_cents", "new_cents", "adr", "rationale", "ref")
+    missing = [
+        k for k in required if k not in e or (isinstance(e.get(k), str) and not e[k].strip())
+    ]
+    if missing:
+        raise ValueError(f"entrada de manifesto sem campo(s) obrigatório(s) {missing}: {e!r}")
+    if not re.match(_ADR_RE, str(e["adr"])):
+        raise ValueError(
+            f"manifesto: adr deve casar {_ADR_RE!r}, got {e['adr']!r} em {e['path']!r}"
+        )
+    if not re.match(_REF_RE, str(e["ref"])):
+        raise ValueError(
+            f"manifesto: ref deve ser file:line ({_REF_RE!r}), got {e['ref']!r} em {e['path']!r}"
+        )
+    return ManifestEntry(
+        e["golden"],
+        e["path"],
+        int(e["old_cents"]),
+        int(e["new_cents"]),
+        str(e["adr"]),
+        str(e["rationale"]),
+        str(e["ref"]),
+    )
 
 
 def load_manifest(path: Path) -> list[ManifestEntry]:
     import yaml
 
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) or []
-    return [
-        ManifestEntry(e["golden"], e["path"], int(e["old_cents"]), int(e["new_cents"])) for e in raw
-    ]
+    return [_validated_entry(e) for e in raw]
 
 
 def check_manifest(

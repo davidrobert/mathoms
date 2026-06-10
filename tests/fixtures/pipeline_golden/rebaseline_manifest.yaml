@@ -6,16 +6,18 @@
 # Entrada que não casa nenhum value_delta atual (stale/órfã) também falha — o
 # manifesto não acumula waivers mortos.
 #
-# A disciplina completa (commit isolado golden↔código, label `golden-rebaseline`,
-# 2º revisor) é entregue na F2 (`dl-f2-deleak-slice1`, check_golden_rebaseline_isolation).
-# Esta lane (A23.l2) entrega só o reader + formato + gate de cobertura.
+# Disciplina completa (G-c, entregue em A24.l1 `dl-f2-discovery`): `adr`,
+# `rationale` e `ref` são OBRIGATÓRIOS (load_manifest falha sem eles — F2-DB6);
+# commit de golden+manifesto isolado de código de produção é enforçado por
+# `dev/check_golden_rebaseline_isolation.py` (F2-DB5); label `golden-rebaseline`
+# + 2º revisor são a camada humana.
 #
-# Formato de cada entrada:
+# Formato de cada entrada (todos os campos obrigatórios):
 #   - golden: nome do arquivo golden (igual ao --golden-id passado no CI)
 #     path: dot-path do campo (ex.: patrimonio.liquido, composicao[Caixa].valor)
 #     old_cents: valor antigo em cents int
 #     new_cents: valor novo em cents int
-#     adr: ADR que justifica a mudança (ex.: ADR-271)
+#     adr: ADR que justifica a mudança (formato ADR-NNN)
 #     rationale: por que o número mudou (1 linha)
 #     ref: file:line da mudança de produção (G-c)
 #

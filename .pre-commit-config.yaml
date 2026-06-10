@@ -141,6 +141,28 @@ repos:
         always_run: true
         types: [python]
 
+      - id: golden-rebaseline-isolation
+        # F2-DB5 (G-c · A24.l1): commit que mistura golden
+        # (tests/fixtures/pipeline_golden/**) com código de produção
+        # (pipeline/**, scripts/**, backend/app/**) falha — rebaseline viaja
+        # em commit próprio com manifesto justificado. Name-only, por commit.
+        name: "Rebaseline de golden isolado de código de produção (G-c)"
+        entry: python3 dev/check_golden_rebaseline_isolation.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: no-leak-field-consumers
+        # F2-DB8 (A24.l1): guarda contínua do de-leak — novo reader de
+        # tipo_lancamento/numero_conta_norm em pipeline/** ou backend/** falha.
+        # O strip+rerun com zero delta foi a prova one-shot do discovery.
+        name: "Proíbe novo consumidor de campo em de-leak F2 (ADR-280)"
+        entry: python3 dev/check_no_leak_field_consumers.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        types: [python]
+
       - id: classification-exhaustive
         # ADR-235 A16: bloqueia switch/match sobre `classification` sem
         # branch default — enum cresce (nu_proprietario foi o último

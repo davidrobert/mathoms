@@ -124,11 +124,23 @@ def test_changed_and_relocated_value_does_not_become_moved():
     assert kinds["b.saldo"] == "new"
 
 
+def _entry(old_cents: int, new_cents: int) -> ManifestEntry:
+    return ManifestEntry(
+        "g1",
+        "patrimonio.liquido",
+        old_cents,
+        new_cents,
+        "ADR-271",
+        "dedup cross-year colapsa conta conjunta",
+        "pipeline/domain/services/e5_serialization.py:312",
+    )
+
+
 def test_check_manifest_covered_vs_uncovered():
     old = {"patrimonio": {"liquido": 400_000.0}}
     new = {"patrimonio": {"liquido": 399_500.0}}
     diffs = diff_golden(old, new)
-    entry = ManifestEntry("g1", "patrimonio.liquido", 40_000_000, 39_950_000)
+    entry = _entry(40_000_000, 39_950_000)
 
     uncovered, orphans = check_manifest(diffs, [entry], "g1")
     assert not uncovered and not orphans
@@ -140,7 +152,7 @@ def test_check_manifest_covered_vs_uncovered():
 def test_check_manifest_orphan_entry_fails():
     old = {"patrimonio": {"liquido": 400_000.0}}
     diffs = diff_golden(old, dict(old))  # sem mudança
-    entry = ManifestEntry("g1", "patrimonio.liquido", 40_000_000, 39_950_000)
+    entry = _entry(40_000_000, 39_950_000)
     uncovered, orphans = check_manifest(diffs, [entry], "g1")
     assert not uncovered and len(orphans) == 1
 
@@ -149,7 +161,7 @@ def test_check_manifest_wrong_cents_does_not_cover():
     old = {"patrimonio": {"liquido": 400_000.0}}
     new = {"patrimonio": {"liquido": 399_500.0}}
     diffs = diff_golden(old, new)
-    entry = ManifestEntry("g1", "patrimonio.liquido", 40_000_000, 39_999_999)  # cents errado
+    entry = _entry(40_000_000, 39_999_999)  # cents errado
     uncovered, orphans = check_manifest(diffs, [entry], "g1")
     assert len(uncovered) == 1 and len(orphans) == 1
 
@@ -159,3 +171,58 @@ def test_diff_is_deterministic_sorted():
     new = {"z": 1.5, "a": 2.5, "m": {"k": 3.5}}
     paths = [d.path for d in diff_golden(old, new)]
     assert paths == sorted(paths)
+
+
+# ──────────────────── F2-DB6: justificativa obrigatória ────────────────────
+
+
+def _write_manifest(tmp_path, entries) -> Path:
+    import yaml
+
+    p = tmp_path / "manifest.yaml"
+    p.write_text(yaml.safe_dump(entries), encoding="utf-8")
+    return p
+
+
+_FULL_ENTRY = {
+    "golden": "g1",
+    "path": "patrimonio.liquido",
+    "old_cents": 40_000_000,
+    "new_cents": 39_950_000,
+    "adr": "ADR-271",
+    "rationale": "dedup cross-year colapsa conta conjunta",
+    "ref": "pipeline/domain/services/e5_serialization.py:312",
+}
+
+
+def test_load_manifest_accepts_full_entry(tmp_path):
+    from dev.golden_diff import load_manifest
+
+    entries = load_manifest(_write_manifest(tmp_path, [_FULL_ENTRY]))
+    assert entries[0].adr == "ADR-271"
+    assert entries[0].ref.endswith(":312")
+
+
+@pytest.mark.parametrize("missing", ["adr", "rationale", "ref"])
+def test_load_manifest_rejects_missing_justification(tmp_path, missing):
+    from dev.golden_diff import load_manifest
+
+    entry = {k: v for k, v in _FULL_ENTRY.items() if k != missing}
+    with pytest.raises(ValueError, match=missing):
+        load_manifest(_write_manifest(tmp_path, [entry]))
+
+
+@pytest.mark.parametrize(
+    ("field", "bad", "expect"),
+    [
+        ("adr", "271", "adr deve casar"),
+        ("ref", "e5_serialization.py", "file:line"),
+        ("rationale", "   ", "rationale"),
+    ],
+)
+def test_load_manifest_rejects_bad_shape(tmp_path, field, bad, expect):
+    from dev.golden_diff import load_manifest
+
+    entry = {**_FULL_ENTRY, field: bad}
+    with pytest.raises(ValueError, match=expect):
+        load_manifest(_write_manifest(tmp_path, [entry]))

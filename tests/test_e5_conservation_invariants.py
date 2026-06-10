@@ -59,3 +59,27 @@ def test_patrimonio_liquido_equals_bruto_minus_dividas(e5_payload: dict):
 def test_fluxo_liquido_equals_receita_minus_despesa(e5_payload: dict):
     fc = e5_payload["fluxo_caixa"]
     assert _cents(fc["fluxo_liquido"]) == _cents(fc["receita_total"]) - _cents(fc["despesa_total"])
+
+
+# F2-DB7 (A24.l1): decomposição POR CATEGORIA — Goodhart-safe. Mover tx entre
+# categorias mantém o total e passa nos testes acima; estes quebram. Identidade
+# sobre o payload serializado (round(v,2) por valor — e5_analyze.py:1444-1453);
+# vale exato em cents porque dados bancários são 2dp (e4_categorize round(Σ,2)).
+
+
+def test_despesa_total_equals_sum_per_category(e5_payload: dict):
+    fc = e5_payload["fluxo_caixa"]
+    soma = sum(_cents(v) for v in fc.get("despesas_por_categoria", {}).values())
+    assert _cents(fc["despesa_total"]) == soma
+
+
+def test_receita_total_equals_sum_por_fonte(e5_payload: dict):
+    fc = e5_payload["fluxo_caixa"]
+    soma = sum(_cents(v) for v in fc.get("por_fonte", {}).values())
+    assert _cents(fc["receita_total"]) == soma
+
+
+def test_receita_total_equals_recorrente_plus_one_time(e5_payload: dict):
+    fc = e5_payload["fluxo_caixa"]
+    split = _cents(fc["receita_recorrente"]) + _cents(fc["receita_one_time"])
+    assert _cents(fc["receita_total"]) == split
