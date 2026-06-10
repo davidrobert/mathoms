@@ -70,14 +70,19 @@ def reserva_total_liquida_field(reserva: ReservaReport, identity: MemberIdentity
     }
 
 
-def despesa_total_field(
-    fluxo_legacy: FluxoLegacyDict, despesas_e4: DespesasE4Payload
-) -> LineageField:
-    refs = [
+def _despesa_refs(fluxo_legacy: FluxoLegacyDict) -> list[dict[str, str]]:
+    return [
         e5_input_ref(f"fluxo_caixa.despesas_por_categoria.{categoria}")
         for categoria in fluxo_legacy.get("despesas_por_categoria") or {}
     ]
+
+
+def despesa_total_field(
+    fluxo_legacy: FluxoLegacyDict, despesas_e4: DespesasE4Payload
+) -> LineageField:
+    refs = _despesa_refs(fluxo_legacy)
     hashes, signals = despesa_member_hashes(despesas_e4)
+    signals = {**signals, **conferencia_signals_from_e4(despesas_e4)}
     field: LineageField = {
         "value": money_str(fluxo_legacy["despesa_total"]),
         "label": "Despesa total do período",
@@ -105,6 +110,26 @@ def total_investido_field(investimentos_legacy: InvestimentosLegacyDict) -> Line
         "edge_type": "aggregation",
         "member_hashes": [],
         "inputs": sorted_inputs(refs),
+    }
+
+
+_CONFERENCIA_SIGNAL_KEYS = ("tx_total", "dedup_collapsed", "dedup_review")
+
+
+def conferencia_signals_from_e4(despesas_e4: DespesasE4Payload) -> dict[str, str]:
+    """Propaga sinais de conferência do ``_lineage`` do artefato E4 ``despesas``
+    (ADR-279 · A25.l5 N2). Artefato pré-A25 sem o bloco → ``{}`` (popover N2
+    degrada para verbo sem número). Valor não-string-int é descartado."""
+    e4_lineage = despesas_e4.get("_lineage")
+    if not isinstance(e4_lineage, dict):
+        return {}
+    e4_signals = e4_lineage.get("signals")
+    if not isinstance(e4_signals, dict):
+        return {}
+    return {
+        key: e4_signals[key]
+        for key in _CONFERENCIA_SIGNAL_KEYS
+        if isinstance(e4_signals.get(key), str) and e4_signals[key].isdigit()
     }
 
 

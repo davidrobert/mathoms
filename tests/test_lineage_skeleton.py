@@ -144,13 +144,18 @@ def test_l6_aggregate_equals_sum_of_lineage_inputs(e5_payload: dict, field_name:
 
 def test_despesa_k4_coverage_partial_contract(e5_payload: dict):
     """Q3/B8: fixtures não estampam natural_key v2 em E4 (só transaction_hash v1,
-    ADR-278 B4) → member_hashes vazio + signals.k4_coverage=partial quando há tx."""
+    ADR-278 B4) → member_hashes vazio + signals.k4_coverage=partial quando há tx.
+    A25.l5 (N2): sinais de conferência do dedup E4 viajam junto — string int."""
     entry = _field(e5_payload, "fluxo_caixa.despesa_total")
     assert entry["member_hashes"] == []
+    signals = entry.get("signals") or {}
     if _cents(entry["value"]) > 0:
-        assert entry["signals"] == {"k4_coverage": "partial"}
+        assert signals.get("k4_coverage") == "partial"
     else:
-        assert "signals" not in entry
+        assert "k4_coverage" not in signals
+    for key in ("tx_total", "dedup_collapsed", "dedup_review"):
+        assert signals.get(key, "0").isdigit()
+    assert int(signals.get("dedup_collapsed", "0")) <= int(signals.get("tx_total", "0"))
 
 
 def test_lineage_byte_identical_across_runs(tmp_path: Path):
@@ -233,6 +238,25 @@ def test_despesa_member_hashes_partial_or_v1_only_empties_and_signals():
     v1 = {"dados": {"lazer": [_tx(30.0, "a" * 16, version=1)]}}
     for e4 in (sem_key, parcial, v1):
         assert despesa_member_hashes(e4) == ([], {"k4_coverage": "partial"})
+
+
+def test_conferencia_signals_from_e4_propagates_only_valid_string_ints():
+    """A25.l5 (N2): só chaves de conferência com string-int passam; artefato
+    pré-A25 (sem ``_lineage``) ou malformado degrada para ``{}``."""
+    from pipeline.domain.services.e5_lineage import conferencia_signals_from_e4
+
+    ok = {"_lineage": {"signals": {"tx_total": "12", "dedup_collapsed": "2", "dedup_review": "1"}}}
+    assert conferencia_signals_from_e4(ok) == {
+        "tx_total": "12",
+        "dedup_collapsed": "2",
+        "dedup_review": "1",
+    }
+    assert conferencia_signals_from_e4({}) == {}
+    assert conferencia_signals_from_e4({"_lineage": "corrompido"}) == {}
+    assert conferencia_signals_from_e4({"_lineage": {"signals": {"tx_total": 12}}}) == {}
+    assert conferencia_signals_from_e4({"_lineage": {"signals": {"tx_total": "-3"}}}) == {}
+    extra = {"_lineage": {"signals": {"tx_total": "5", "stage": "E4"}}}
+    assert conferencia_signals_from_e4(extra) == {"tx_total": "5"}
 
 
 def test_despesa_member_hashes_inline_cap_exceeded_empties_and_signals():
