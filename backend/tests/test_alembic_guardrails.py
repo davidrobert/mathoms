@@ -100,11 +100,6 @@ KNOWN_PRE_EXISTING_DRIFT: set[str] = {
     # a alteração já está versionada — só não é via batch_alter_table
     # tradicional (que recriaria a tabela inteira).
     "modify_type:documents:doc_type",
-    # A12.cat-legacy-sunset (ADR-283 §B): monthly_cap saiu do model no PR de
-    # sunset do endpoint legado; a coluna DB só pode ser dropada no deploy
-    # SEGUINTE (código velho mapeando a coluna quebraria contra DB migrado).
-    # Remova esta entrada no PR da migration de DROP COLUMN.
-    "remove_column:categories:monthly_cap",
 }
 
 

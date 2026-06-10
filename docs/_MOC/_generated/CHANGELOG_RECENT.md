@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — entregas recentes
 
-Janela de 14 dias a partir da última entrega registrada (2026-06-08). 12 entries entre 2026-05-28 e 2026-06-08.
+Janela de 14 dias a partir da última entrega registrada (2026-06-09). 13 entries entre 2026-05-28 e 2026-06-09.
+
+## 2026-06-09 (1 entries)
+
+- [[CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET]] — backend(a12): sunset do CRUD legado /config/categories em 2 PRs ordenados (lane [[A12.cat-legacy-sunset]])
 
 ## 2026-06-08 (2 entries)
 

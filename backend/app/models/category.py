@@ -19,9 +19,6 @@ class Category(Base):
     code: Mapped[str] = mapped_column(String(50), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     category_type: Mapped[str] = mapped_column(String(10), nullable=False)
-    # Coluna DB ``monthly_cap`` (Float) existe até a migration de drop da lane
-    # A12.cat-legacy-sunset; cap canônico vive em
-    # workspace_category_overrides.monthly_cap_brl_cents (ADR-137 · ADR-283 §B).
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

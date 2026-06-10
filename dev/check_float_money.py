@@ -35,10 +35,6 @@ MODELS_FLOAT_ALLOWLIST: dict[tuple[str, str], str] = {
         "backend/app/models/document.py",
         "classification_confidence",
     ): "confidence 0–1, não monetário",
-    ("backend/app/models/category.py", "monthly_cap"): (
-        "Float legado órfão; cents canônico vive em workspace_category_overrides."
-        "monthly_cap_brl_cents (ADR-137). Drop rastreado em A12.cat-legacy-sunset"
-    ),
 }
 # ``<nome>: Mapped[...] = mapped_column(`` ou ``<nome> = mapped_column(`` / ``Column(``.
 _MODEL_COLUMN = re.compile(
