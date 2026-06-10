@@ -113,6 +113,10 @@ from pipeline.domain.services.passive_income_calculator import (
     PassiveIncomeResult,
 )
 from pipeline.domain.services.patrimonio_calculator import PatrimonioCalculator
+from pipeline.domain.services.patrimonio_lineage import (
+    build_patrimonio_lineage,
+    componentes_from_report,
+)
 from pipeline.domain.services.patrimonio_types import (
     CaixaDetalhe,
     MemberIdentity,
@@ -227,6 +231,9 @@ class E5AnalysisResult:
     # moeda estrangeira (caixa USD/EUR + ativos classificados "Internacional"
     # por ADR-193). Consumido pelo Card "Exposição Cambial" no relatório.
     exposicao_cambial: ExposicaoCambialResult | None = None
+    # ADR-279 (A24.l5): bloco ``_lineage`` field-level do patrimônio,
+    # anexado ao output em ``e5_serialization.build_e5_output``.
+    lineage: dict[str, Any] | None = None
 
 
 # =============================================================================
@@ -688,6 +695,7 @@ class E5AnalyzerAdapter:
             passive_income=passive_income,
             monte_carlo_if=monte_carlo_if,
             exposicao_cambial=exposicao_cambial,
+            lineage=build_patrimonio_lineage(componentes_from_report(patrimonio_full)),
         )
 
     # -- Helpers de wiring --

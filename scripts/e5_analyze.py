@@ -2946,6 +2946,7 @@ def _e5_extract_legacy_dicts(result) -> Dict[str, Any]:
             if getattr(result, "exposicao_cambial", None) is not None
             else None
         ),
+        "lineage": getattr(result, "lineage", None),
     }
 
 
@@ -3119,6 +3120,7 @@ def _e5_compose_output(
         monte_carlo_if=monte_carlo_if,
         premissas_economicas=premissas_economicas,
         exposicao_cambial=legacy.get("exposicao_cambial"),
+        lineage=legacy.get("lineage"),
     )
     return build_e5_output(output_inputs)
 
