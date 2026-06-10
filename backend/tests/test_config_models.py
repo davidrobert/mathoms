@@ -15,8 +15,6 @@ from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.schemas.config import (
     BankAccountSchema,
-    CategoryCreateRequest,
-    CategorySchema,
     ConfigImportRequest,
     FamilyMemberCreateRequest,
     FamilyMemberSchema,
@@ -24,6 +22,7 @@ from backend.app.schemas.config import (
     PipelineConfigSchema,
     ReportLayoutSchema,
 )
+from backend.app.schemas.dto.category import CategoryUpdateCommand
 
 
 @pytest_asyncio.fixture
@@ -150,7 +149,6 @@ class TestCategoryModel:
             code="moradia",
             name="Moradia",
             category_type="expense",
-            monthly_cap=5000.0,
             order=0,
         )
         db.add(cat)
@@ -168,7 +166,6 @@ class TestCategoryModel:
         )
         loaded = result.scalar_one()
         assert loaded.code == "moradia"
-        assert loaded.monthly_cap == 5000.0
         assert len(loaded.keywords) == 3
         assert {kw.keyword for kw in loaded.keywords} == {"ELETROPAULO", "ENEL", "CONDOMINIO"}
 
@@ -339,24 +336,18 @@ class TestBankAccountSchema:
 
 
 class TestCategorySchema:
-    def test_valid_expense(self):
-        schema = CategoryCreateRequest(
-            code="moradia", name="Moradia", category_type="expense", keywords=["ENEL", "SABESP"]
-        )
+    def test_valid_partial_update(self):
+        schema = CategoryUpdateCommand(category_type="expense", keywords=["ENEL", "SABESP"])
         assert schema.category_type == "expense"
-        assert len(schema.keywords) == 2
-
-    def test_valid_income(self):
-        schema = CategoryCreateRequest(code="receita_pj", name="Receita PJ", category_type="income")
-        assert schema.category_type == "income"
+        assert schema.keywords is not None and len(schema.keywords) == 2
 
     def test_invalid_type(self):
         with pytest.raises(ValueError):
-            CategoryCreateRequest(code="x", name="X", category_type="other")
+            CategoryUpdateCommand(category_type="other")
 
     def test_negative_cap_rejected(self):
         with pytest.raises(ValueError):
-            CategoryCreateRequest(code="x", name="X", category_type="expense", monthly_cap=-100)
+            CategoryUpdateCommand(monthly_cap=-100)
 
 
 class TestPipelineConfigSchema:

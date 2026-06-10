@@ -386,7 +386,6 @@ async def make_category(
     code: Optional[str] = None,
     name: Optional[str] = None,
     category_type: str = "expense",
-    monthly_cap: Optional[float] = None,
     order: int = 0,
     keywords: Optional[list[str]] = None,
 ) -> Category:
@@ -398,7 +397,6 @@ async def make_category(
         code=code or f"cat_{n}",
         name=name or f"Categoria {n}",
         category_type=category_type,
-        monthly_cap=monthly_cap,
         order=order or n,
     )
     db.add(cat)

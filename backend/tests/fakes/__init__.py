@@ -12,7 +12,6 @@ o repo SQLAlchemy real. Uso típico::
     await use_case(..., repo=repo)
 """
 
-from backend.tests.fakes.category import FakeCategoryRepository
 from backend.tests.fakes.config_blob import (
     FakeConfigBlobRepository,
     FakeGlobalDefaultsLoader,
@@ -33,7 +32,6 @@ from backend.tests.fakes.task import (
 )
 
 __all__ = [
-    "FakeCategoryRepository",
     "FakeClassificationService",
     "FakeConfigBlobRepository",
     "FakeDocumentRepository",

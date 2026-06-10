@@ -205,13 +205,6 @@ export const handlers = [
     new HttpResponse(null, { status: 204 }),
   ),
 
-  http.get(`${API}/config/categories`, () =>
-    HttpResponse.json({ categories: fixtures.categories, total: fixtures.categories.length }),
-  ),
-  http.post(`${API}/config/categories`, () => HttpResponse.json(fixtures.categories[0])),
-  http.put(`${API}/config/categories/:id`, () => HttpResponse.json(fixtures.categories[0])),
-  http.delete(`${API}/config/categories/:id`, () => new HttpResponse(null, { status: 204 })),
-
   http.get(`${API}/config/pipeline`, () => HttpResponse.json({})),
   http.put(`${API}/config/pipeline`, () => HttpResponse.json({})),
 

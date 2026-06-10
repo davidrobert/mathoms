@@ -15,12 +15,8 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 # A6e aliases (preservam nomes legados apontando para os DTOs canônicos).
-from backend.app.schemas.dto.category.command import (
-    CategoryCreateCommand as CategoryCreateRequest,
-)
-from backend.app.schemas.dto.category.command import (
-    CategoryUpdateCommand as CategoryUpdateRequest,
-)
+# CategoryCreateRequest/CategoryUpdateRequest removidos em A12.cat-legacy-sunset
+# junto com o CRUD legado /config/categories.
 from backend.app.schemas.dto.category.response import (
     CategoryListResponse as _CategoryListResponse,
 )

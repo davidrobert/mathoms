@@ -10,7 +10,6 @@ from fastapi.responses import JSONResponse
 
 from backend.app.api.audit import router as audit_router
 from backend.app.api.auth import router as auth_router
-from backend.app.api.categories import router as categories_router
 from backend.app.api.categorization_rules import router as categorization_rules_router
 from backend.app.api.category_overrides import router as category_overrides_router
 from backend.app.api.config import router as config_router
@@ -217,7 +216,6 @@ _ALL_ROUTERS = (
     pipeline_router,
     config_router,
     family_members_router,
-    categories_router,
     categorization_rules_router,
     category_overrides_router,
     llm_router,

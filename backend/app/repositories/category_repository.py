@@ -126,7 +126,6 @@ class CategoryRepository:
         code: str,
         name: str,
         category_type: str,
-        monthly_cap: Optional[float] = None,
         order: int = 0,
         keywords: Optional[list[str]] = None,
     ) -> Category:
@@ -140,7 +139,6 @@ class CategoryRepository:
             code=code,
             name=name,
             category_type=category_type,
-            monthly_cap=monthly_cap,
             order=order,
             keywords=[CategoryKeyword(keyword=kw) for kw in (keywords or [])],
         )

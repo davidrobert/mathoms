@@ -282,108 +282,16 @@ class TestAccountsAPI:
 
 
 # =============================================================================
-# Categories — CRUD
+# Categories — CRUD legado removido em A12.cat-legacy-sunset (ADR-283 §B).
+# Caminho moderno coberto em test_category_overrides_api.py.
 # =============================================================================
 
 
-class TestCategoriesAPI:
+class TestCategoriesLegacyEndpointGone:
     @pytest.mark.asyncio
-    async def test_list_categories_fallback(self, auth_client: AsyncClient):
-        """Pos-A7.5: endpoint legacy ``/categories`` perde fallback de disco
-        (``config/categorization.json`` deletado). Workspaces novos veem
-        lista vazia até customizar via ``/category-overrides/resolved``
-        (A7.3 — resolver lê ``category_template`` global do seed)."""
+    async def test_legacy_categories_endpoint_returns_404(self, auth_client: AsyncClient):
         resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/categories")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["total"] == 0
-        assert data["categories"] == []
-
-    @pytest.mark.asyncio
-    async def test_create_category(self, auth_client: AsyncClient):
-        resp = await auth_client.post(
-            f"/api/workspaces/{auth_client.ws_id}/config/categories",
-            json={
-                "code": "test_cat",
-                "name": "Test Category",
-                "category_type": "expense",
-                "keywords": ["KEYWORD1", "KEYWORD2"],
-            },
-        )
-        assert resp.status_code == 201
-        data = resp.json()
-        assert data["code"] == "test_cat"
-        assert len(data["keywords"]) == 2
-
-    @pytest.mark.asyncio
-    async def test_create_category_duplicate(self, auth_client: AsyncClient):
-        await auth_client.post(
-            f"/api/workspaces/{auth_client.ws_id}/config/categories",
-            json={
-                "code": "dup_cat",
-                "name": "Dup",
-                "category_type": "expense",
-            },
-        )
-        resp = await auth_client.post(
-            f"/api/workspaces/{auth_client.ws_id}/config/categories",
-            json={
-                "code": "dup_cat",
-                "name": "Dup2",
-                "category_type": "expense",
-            },
-        )
-        assert resp.status_code == 409
-
-    @pytest.mark.asyncio
-    async def test_update_category_keywords(self, auth_client: AsyncClient):
-        create_resp = await auth_client.post(
-            f"/api/workspaces/{auth_client.ws_id}/config/categories",
-            json={
-                "code": "upd_cat",
-                "name": "Update",
-                "category_type": "expense",
-                "keywords": ["OLD"],
-            },
-        )
-        cat_id = create_resp.json()["id"]
-        resp = await auth_client.put(
-            f"/api/workspaces/{auth_client.ws_id}/config/categories/{cat_id}",
-            json={
-                "keywords": ["NEW1", "NEW2", "NEW3"],
-            },
-        )
-        assert resp.status_code == 200
-        assert set(resp.json()["keywords"]) == {"NEW1", "NEW2", "NEW3"}
-        assert len(resp.json()["keywords"]) == 3
-
-    @pytest.mark.asyncio
-    async def test_delete_category(self, auth_client: AsyncClient):
-        create_resp = await auth_client.post(
-            f"/api/workspaces/{auth_client.ws_id}/config/categories",
-            json={
-                "code": "del_cat",
-                "name": "Del",
-                "category_type": "income",
-            },
-        )
-        cat_id = create_resp.json()["id"]
-        resp = await auth_client.delete(
-            f"/api/workspaces/{auth_client.ws_id}/config/categories/{cat_id}"
-        )
-        assert resp.status_code == 204
-
-    @pytest.mark.asyncio
-    async def test_create_category_invalid_type(self, auth_client: AsyncClient):
-        resp = await auth_client.post(
-            f"/api/workspaces/{auth_client.ws_id}/config/categories",
-            json={
-                "code": "bad",
-                "name": "Bad",
-                "category_type": "other",
-            },
-        )
-        assert resp.status_code == 422
+        assert resp.status_code == 404
 
 
 # =============================================================================
@@ -534,10 +442,12 @@ class TestImportExport:
         assert resp.status_code == 200
         assert "categorization" in resp.json()["imported"]
 
-        resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/categories")
-        codes = {c["code"] for c in resp.json()["categories"]}
-        assert "moradia" in codes
-        assert "receita_pj" in codes
+        # CRUD legado /config/categories removido (A12.cat-legacy-sunset);
+        # round-trip verificado via /config/export, que lê a mesma tabela.
+        resp = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/export")
+        categorization = resp.json()["categorization"]
+        assert "moradia" in categorization["expense_keywords"]
+        assert "receita_pj" in categorization["income_keywords"]
 
     @pytest.mark.asyncio
     async def test_import_pipeline_blob(self, auth_client: AsyncClient):

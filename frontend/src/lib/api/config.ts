@@ -173,25 +173,8 @@ export async function dismissIrpfSuggestion(
   });
 }
 
-// ─── Config: Categories ───
-
-export async function listCategories(workspaceId: string): Promise<{ categories: CategoryConfig[]; total: number }> {
-  return apiFetch(`/workspaces/${workspaceId}/config/categories`);
-}
-
-export async function createCategory(workspaceId: string, data: Omit<CategoryConfig, "id">): Promise<CategoryConfig> {
-  return apiFetch(`/workspaces/${workspaceId}/config/categories`, { method: "POST", body: JSON.stringify(data) });
-}
-
-export async function updateCategory(workspaceId: string, id: string, data: Partial<CategoryConfig>): Promise<CategoryConfig> {
-  return apiFetch(`/workspaces/${workspaceId}/config/categories/${id}`, { method: "PUT", body: JSON.stringify(data) });
-}
-
-export async function deleteCategory(workspaceId: string, id: string): Promise<void> {
-  return apiFetch(`/workspaces/${workspaceId}/config/categories/${id}`, { method: "DELETE" });
-}
-
-// ─── Config: Category Overrides (modern · A7.3 · ADR-137 · ADR-185) ───
+// ─── Config: Category Overrides (A7.3 · ADR-137 · ADR-185) ───
+// CRUD legado /config/categories removido em A12.cat-legacy-sunset.
 //
 // W4 do PLAN-category-overrides-ux: read+write path consome o template
 // global versionado + overrides por workspace. Read inclui sinal de v
