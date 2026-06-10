@@ -315,6 +315,18 @@ jobs:
       - name: Extract purity — no domain imports (ADR-280)
         run: python dev/check_extract_no_domain_imports.py --verbose
 
+      - name: No leak-field consumers (F2 de-leak guard · ADR-280)
+        run: python dev/check_no_leak_field_consumers.py --verbose
+
+      - name: Golden rebaseline isolation per-commit (G-c · F2-DB5)
+        if: github.event_name == 'pull_request'
+        # Por COMMIT (não PR-diff): permite PR misto com commit de rebaseline
+        # isolado (fluxo G-c). Deepen: checkout é shallow (depth 1).
+        run: |
+          git fetch --no-tags --deepen=500 origin
+          python dev/check_golden_rebaseline_isolation.py \
+            --commit-range "${{ github.event.pull_request.base.sha }}..HEAD"
+
   backend-tests:
     name: Backend tests (backend/tests/)
     runs-on: ubuntu-latest
