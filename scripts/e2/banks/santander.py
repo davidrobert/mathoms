@@ -769,7 +769,6 @@ def parse_santander_unique(pdf_path: Path, filename: str) -> Dict[str, Any]:
                             "descricao": "IOF DESPESA NO EXTERIOR",
                             "valor": parse_brl(iof_m.group(1)),
                             "cartao": current_card,
-                            "tipo_lancamento": "iof",
                         }
                     )
                 continue

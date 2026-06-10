@@ -69,40 +69,6 @@ def _parse_csv_number(text: str) -> Optional[float]:
         return parse_brl(text)
 
 
-def _classify_c6_csv_lancamento(titulo: str, descricao: str) -> str:
-    """Classify a C6 CSV transaction into tipo_lancamento based on titulo/descricao."""
-    combined = f"{titulo} {descricao}".lower()
-
-    if "pix enviado" in combined:
-        return "Saída PIX"
-    elif "pix recebido" in combined:
-        return "Entrada PIX"
-    elif "devol recebida pix" in combined or "devol enviada pix" in combined:
-        return "Devolução PIX"
-    elif "ted enviada" in combined or "transf enviada" in combined:
-        return "Saída TED/Transferência"
-    elif "ted recebida" in combined or "transf recebida" in combined:
-        return "Entrada TED/Transferência"
-    elif "c6tag" in combined:
-        return "C6 Tag (Pedágio/Estacionamento)"
-    elif "boleto" in combined or "guia" in combined:
-        return "Pagamento Boleto"
-    elif "juros" in combined or "iof" in combined:
-        return "Encargos Bancários"
-    elif "rendimento" in combined or "aplicação" in combined or "aplicacao" in combined:
-        return "Investimento/Rendimento"
-    elif "resgate" in combined:
-        return "Resgate Investimento"
-    elif "salário" in combined or "salario" in combined:
-        return "Salário"
-    elif "13" in titulo and "salário" in combined.replace("á", "a"):
-        return "13º Salário"
-    elif "compra" in combined or "débito" in combined or "debito" in combined:
-        return "Compra/Débito"
-    else:
-        return "Outros"
-
-
 # =============================================================================
 # Helpers — fatura CSV
 # =============================================================================
@@ -244,13 +210,10 @@ def parse_c6bank_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         else:
             desc_full = titulo or descricao or ""
 
-        tipo_lanc = _classify_c6_csv_lancamento(titulo, descricao)
-
         tx = {
             "data": data_iso,
             "descricao": desc_full,
             "valor": valor,
-            "tipo_lancamento": tipo_lanc,
         }
 
         result["transacoes"].append(tx)
@@ -430,12 +393,11 @@ def _build_tx_from_match(
     d1 = tx_match.group("d1")
     dd_i, mm_i = (int(x) for x in d1.split("/"))
     year = resolve_year_from_period(dd_i, mm_i, periodo_inicio, periodo_fim)
-    tipo, desc = _split_c6_tipo_desc(tx_match.group("rest"))
+    _, desc = _split_c6_tipo_desc(tx_match.group("rest"))
     return {
         "data": safe_date(year, mm_i, dd_i),
         "descricao": desc,
         "valor": valor,
-        "tipo_lancamento": tipo or None,
     }
 
 
@@ -709,16 +671,6 @@ def parse_c6_carbon_csv(csv_path: Path, filename: str) -> Dict[str, Any]:
         else:
             total_nacionais += valor_brl
 
-        desc_lower = descricao_raw.lower()
-        if "inclusao de pagamento" in desc_lower:
-            tx["tipo_lancamento"] = "pagamento"
-        elif "anuidade" in desc_lower:
-            tx["tipo_lancamento"] = "anuidade"
-        elif "estorno" in desc_lower:
-            tx["tipo_lancamento"] = "estorno"
-        elif "iof" in desc_lower:
-            tx["tipo_lancamento"] = "iof"
-
         result["transacoes"].append(tx)
 
     result["total_compras_nacionais"] = round(total_nacionais, 2) if total_nacionais else None
@@ -909,8 +861,6 @@ def parse_c6_carbon(pdf_path: Path, filename: str) -> Dict[str, Any]:
                             tx["parcela"] = parcela
                         if forex_info:
                             tx["forex"] = forex_info
-                        if iof_m and not forex_m:
-                            tx["tipo_lancamento"] = "iof"
 
                         result["transacoes"].append(tx)
 

@@ -192,7 +192,6 @@ _E2_TRANSACAO_TODOS_CAMPOS = {
     "descricao": "COMPRA INTERNACIONAL",
     "valor": -250.0,
     "direction": "debit",
-    "tipo_lancamento": "iof",
     "parcela": "1/3",
     "nr_doc": "00012345",
     "cartao": "Carbon",
@@ -221,6 +220,33 @@ class TestValidateArtifact:
         path = tmp_path / "e2.json"
         path.write_text(json.dumps(data))
         assert validate_artifact(path, "e2_extract.schema.json") is True
+
+    def test_e2_contract_no_methodological_fields(self, tmp_path, monkeypatch):
+        """ADR-280 (F2-B5) — campo metodológico em de-leak é proibido por AUSÊNCIA no contrato.
+
+        `additionalProperties:false` faz o enforcement: o campo não declarado
+        falha em strict. Reintroduzir `tipo_lancamento` no schema quebra a
+        primeira asserção; reintroduzir num writer quebra a segunda.
+        """
+        schema_path = (
+            Path(__file__).resolve().parent.parent / "config/schemas/e2_extract.schema.json"
+        )
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        tx_properties = schema["properties"]["transacoes"]["items"]["properties"]
+        for leak_field in ("tipo_lancamento",):
+            assert (
+                leak_field not in tx_properties
+            ), f"{leak_field} voltou ao contrato E2 — de-leak ADR-280 exige re-derivar na Transform"
+        assert schema["properties"]["transacoes"]["items"]["additionalProperties"] is False
+
+        monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+        data = {
+            **_E2_EXTRACT_BASE,
+            "transacoes": [{**_E2_TRANSACAO_TODOS_CAMPOS, "tipo_lancamento": "iof"}],
+        }
+        path = tmp_path / "e2.json"
+        path.write_text(json.dumps(data))
+        assert validate_artifact(path, "e2_extract.schema.json") is False
 
     def test_e2_transacao_strict_rejects_unknown_field(self, tmp_path, monkeypatch):
         """ADR-283 — campo não declarado na transação falha em strict (sinal de drift)."""
