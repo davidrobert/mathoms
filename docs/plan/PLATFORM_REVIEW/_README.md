@@ -87,10 +87,10 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W2-T04 | SR-007 Stuck-runs detector + heartbeat | 2 | done | sre-devops | P0 | S | W1-T06 (ADR-172) |
 | W2-T05 | DE-002 + DE-008 extract_with_llm incremental + PROMPT_VERSION | 2 | done | data-engineer | P1 | S | — |
 | W2-T06 | DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases | 2 | done | data-engineer | P1 | S | — |
-| W3-T01 | SR-006 + DE-013 LLM budget hard-stop + LLMCallLog populada | 3 | blocked | data-engineer + sre-devops | P0 | M | W1-T06 (ADR-173), W2-T05 |
-| W3-T02 | BB-001 + SR-008 Email Resend + verify + password reset | 3 | blocked | sre-devops | P0 | L | W1-T06 |
-| W3-T03 | SR-002 JWT 15min + refresh 7d + family revocation | 3 | blocked | sre-devops + senior-cto | P0 | L | W1-T06 (ADR-170) |
-| W3-T04 | SR-003 Fernet rotation real (MultiFernet) | 3 | blocked | sre-devops | P0 | M | W1-T06 (ADR-171) |
+| W3-T01 | SR-006 + DE-013 LLM budget hard-stop + LLMCallLog populada | 3 | ready | data-engineer + sre-devops | P0 | M | W1-T06 (ADR-173) ✅, W2-T05 ✅ |
+| W3-T02 | BB-001 + SR-008 Email Resend + verify + password reset | 3 | ready (owner-gated: aprovação Resend EU) | sre-devops | P0 | L | W1-T06 ✅ |
+| W3-T03 | SR-002 JWT 15min + refresh 7d + family revocation | 3 | in_progress (2026-06-09) | sre-devops + senior-cto | P0 | L | W1-T06 (ADR-170) ✅ |
+| W3-T04 | SR-003 Fernet rotation real (MultiFernet) | 3 | ready | sre-devops | P0 | M | W1-T06 (ADR-171) ✅ |
 | W3-T05 | SR-009 Prompt injection defense (sanitize + adversarial fixtures) | 3 | shipped | sre-devops + data-engineer | P0 | M | W1-T06 (ADR-175) |
 | W4-T01 | SR-004 + BB-007 Off-site backup R2 + restore drill | 4 | blocked | sre-devops | P0 | M | — |
 | W4-T02 | SR-010 Coolify webhook + SHA-pinned images + dev.9 | 4 | blocked | sre-devops | P0 | M | W2-T03 |
@@ -108,6 +108,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W6-T04 | Doc hygiene (BACKLOG split + CHANGELOG retention + CLAUDE.md slim) | 6 | in_progress (PR #111) | senior-cto | P2 | M | W1-T03 |
 | W6-T05 | DE-017 + DE-010 Pipeline artifacts retention + cascade-on-delete | 6 | scoped (track) | data-engineer | P2 | M | — |
 | W6-T06 | CTO-001 ADR-150 decisão (Caminho 1 / rejeitada / adiada) | 6 | in_progress (PR #110, decidido Caminho 3 — Roadmap) | senior-cto | P1 | S decidir + L se Caminho 1 | — |
+| W6-T07 | CTO-015 `services/` taxonomy — split por natureza (ADR-285) + drenagem boy-scout p/ `application/` | 6 | blocked (gate: ≤1 PR ativo tocando `services/`) | senior-cto | P3 | M | ADR-285 |
 
 ---
 
@@ -592,6 +593,27 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **files_touched:** `docs/DECISIONS.md` ADR-150 status, `services/` ou `pipeline-service/` (depende decisão)
 - **acceptance_criteria:** sessão CTO + senior-cto + sre-devops decide Caminho 1 / rejeitada / adiada; ADR-150 atualizada; se Caminho 1: lane A6h aberta com 3 PRs; se rejeitada: skeleton Go deletado.
 
+### [W6-T07] CTO-015 `services/` taxonomy — split por natureza + drenagem boy-scout
+
+- **deps:** [[ADR-285]] (Proposto 2026-06-09). **Gate de pickup (Frente 1):** ≤1 PR
+  ativo tocando `backend/app/services/` — em 2026-06 há 5+ PRs em voo; abrir o
+  split agora garante conflito de rebase cross-cutting.
+- **severity:** P3 · **effort:** M (Frente 1) + contínuo (Frente 2) · **owner:** senior-cto
+- **origem:** finding **CTO-015** (avaliação senior-cto 2026-06-09): recomendação
+  "quebrar `services/` em subpacotes por domínio" **recusada** — duplicaria a
+  taxonomia de domínio que já existe em `application/<domain>/` (R15/ADR-101).
+  Rationale completo em [[ADR-285]].
+- **Frente 1 (lane futura):** subpacotes por natureza técnica (`security/`,
+  `storage/`, `pipeline/`, `documents/`); 1 subpacote por PR com shim de
+  re-export temporário; codemod final de imports em PR separado.
+- **Frente 2 (boy-scout, sem gate de fechamento):** lane que já toca
+  `*_service.py` de domínio avalia drenar a lógica de use-case para
+  `application/<domain>/`, deixando em `services/` só adapter fino.
+- **acceptance_criteria (Frente 1):** 4 subpacotes criados; shims removidos no PR
+  final; 5 patch-strings dotted de testes atualizados; `pytest backend/tests -q`
+  verde; OpenAPI snapshot sem diff; entrada em `STATELESS_AUDIT.md` §2 se path
+  de singleton lazy mudar; ADR-285 flippa `Decidido` no merge do 1º subpacote.
+
 ---
 
 ## Trade-offs registrados (decisões CTO)
@@ -755,3 +777,4 @@ Antes de pegar W2+, executar:
 
 - **2026-05-06** — plano criado a partir de revisão multi-agente (138 findings consolidados em 32 tasks).
 - **2026-05-07** — orquestração Wave 5 + Wave 6 (8 tasks unblocked em paralelo). 6 tasks com track docs criados em `docs/agent_prompts/track_w{5,6}t*.md` (W5-T01/T03/T04/T05, W6-T01/T05). 2 tasks executadas: W6-T04 (PR #111 — subagent catalog auto-gen + branch-cleanup) e W6-T06 (PR #110 — ADR-150 → Roadmap, Caminho 3). 3 tasks permanecem bloqueadas (W5-T02 dep W5-T01, W6-T02 dep W3-T01, W6-T03 dep W2-T06).
+- **2026-06-09** — sync de status Wave 3 (stale desde w2_done ✅ 2026-05-20): W3-T01/T04 `blocked`→`ready`, W3-T02 `ready (owner-gated: Resend)`, **W3-T03 pickup → in_progress** (implementação ADR-170, co-design sre-devops: payload mantém `{sub, exp, tv}` com emenda na ADR, cookie path `/api/v1/auth`, teto absoluto 30d, grace window 60s anti-falso-positivo de reuse, CSRF via header custom). Registrado finding **CTO-015** (W6-T07): split de `services/` por natureza técnica (ADR-285 Proposto) + drenagem boy-scout para `application/`; recomendação "split por domínio" recusada.
