@@ -14942,7 +14942,7 @@
     },
     "/api/v1/auth/refresh": {
       "post": {
-        "description": "Rotaciona o refresh cookie e emite access novo (ADR-170 \u00b7 W3-T03).\n\nRota sempre montada (OpenAPI est\u00e1vel); flag off \u2192 404. Header custom\n``X-Refresh-Request`` \u00e9 a defesa CSRF (form cross-origin n\u00e3o o seta sem\npreflight, que a allowlist CORS nega).",
+        "description": "Rotaciona o refresh cookie e emite access novo (ADR-170 \u00b7 W3-T03).",
         "operationId": "refresh_api_v1_auth_refresh_post",
         "responses": {
           "200": {
