@@ -282,6 +282,7 @@
 | ADR-284 | adr | Decidido |  | Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift | `adr/284-schema-validation-mode-overrides-per-stage.md` |
 | ADR-285 | adr | Proposto |  | backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio | `adr/285-services-subpacotes-por-natureza-tecnica.md` |
 | ADR-286 | adr | Decidido |  | Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo | `adr/286-contrato-dedicado-artefato-e2-llm.md` |
+| ADR-287 | adr | Proposto |  | Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) | `adr/287-flip-dedup-e4-identidade-v2.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
