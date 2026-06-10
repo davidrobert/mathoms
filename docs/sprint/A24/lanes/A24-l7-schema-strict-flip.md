@@ -42,9 +42,10 @@ tags:
    compartilhada via `$ref` com pin de resolução.
    **Consequência p/ o passo 1:** o baseline passa a ter **2 schemas** no
    ciclo — `e2_extract` e `e2_llm_artifact` (cada um flippa independente).
-3. **INPUT_GAPS** — layouts sintéticos p/ 3 PDFs de fatura (Carbon, Pão de
-   Açúcar, Unique); decidir os 2 XLS binários (xlwt ou aceitar via baseline
-   zero-WARN nos tipos correspondentes, runbook §1.2).
+3. **INPUT_GAPS** — ✅ **entregue 2026-06-10**: layouts sintéticos de fatura
+   (Carbon, Pão de Açúcar, Unique) no gerador `tests/fixtures/pdf/` + XLS
+   binário via `xlwt` (dev-dep). **Corpus 22/22 real-parse em strict** —
+   pré-condição de código do flip 100% fechada; resta só o baseline (1).
 4. **Flip** — PR de 1 linha (`mode_overrides`), procedimento runbook §3,
    verificação §4, rollback §5. Registrar no §7 (histórico).
 5. **Alerta pós-flip** — ticket (não page) em rate>0/1h p/ o schema flipado.
