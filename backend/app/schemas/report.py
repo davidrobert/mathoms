@@ -14,7 +14,10 @@ class ReportResponse(BaseModel):
     title: str
     period: Optional[str] = None
     score: Optional[float] = None
-    patrimonio_liquido: Optional[float] = None
+    # ADR-283 follow-up 2: Decimal em memória, number no wire (convenção
+    # MoneyBRL/A6g.3b) — wire-string foi avaliado e rejeitado (campo NULL em
+    # prod; cálculo de meta IF lê o DB direto, nunca o wire).
+    patrimonio_liquido: Optional[MoneyBRL] = None
     created_at: datetime
     # F11.4a — linhagem: execução do pipeline que gerou o relatório (FK opcional).
     pipeline_run_id: Optional[str] = None
