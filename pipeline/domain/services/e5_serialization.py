@@ -241,6 +241,9 @@ class E5OutputInputs:
     # ativos com lastro internacional ADR-193). None quando analyzer não
     # foi injetado (CLI legado/testes pré-G).
     exposicao_cambial: dict[str, Any] | None = None
+    # ADR-279 (A24.l5) — bloco ``_lineage`` field-level (patrimônio no
+    # skeleton). None quando o adapter não produziu (testes legados).
+    lineage: dict[str, Any] | None = None
 
 
 def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
@@ -288,6 +291,10 @@ def build_e5_output(inputs: E5OutputInputs) -> dict[str, Any]:
     }
     if inputs.exposicao_cambial is not None:
         output["exposicao_cambial"] = inputs.exposicao_cambial
+
+    # ADR-279: lineage field-level inline — aditivo, declarado no schema E5.
+    if inputs.lineage is not None:
+        output["_lineage"] = inputs.lineage
 
     # ADR-166: chave estável universal — confirma em prod que payload migrou.
     _logger.info(

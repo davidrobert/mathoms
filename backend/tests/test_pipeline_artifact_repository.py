@@ -48,10 +48,15 @@ async def test_get_latest_for_workspace(db: AsyncSession):
     ws_id, r1, r2, _ = await _seed(db)
 
     def _do(sync_conn):
+        from datetime import datetime, timedelta, timezone
+
         from sqlalchemy.orm import Session
 
         with Session(sync_conn) as s:
-            # run1 grava, depois run2 grava (mais recente)
+            # run1 grava, depois run2 grava (mais recente). created_at explícito:
+            # dois defaults datetime.now() no mesmo flush podem empatar no
+            # microssegundo e ORDER BY created_at DESC fica arbitrário (flake).
+            t0 = datetime.now(timezone.utc)
             s.add(
                 PipelineArtifact(
                     workspace_id=ws_id,
@@ -59,6 +64,7 @@ async def test_get_latest_for_workspace(db: AsyncSession):
                     stage="E5",
                     artifact_key="analise",
                     content_json={"score": 10},
+                    created_at=t0,
                 )
             )
             s.add(
@@ -68,6 +74,7 @@ async def test_get_latest_for_workspace(db: AsyncSession):
                     stage="E5",
                     artifact_key="analise",
                     content_json={"score": 20},
+                    created_at=t0 + timedelta(microseconds=1),
                 )
             )
             s.commit()

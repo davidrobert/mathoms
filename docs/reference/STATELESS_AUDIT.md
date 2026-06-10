@@ -59,6 +59,7 @@ do módulo (grep `^_[A-Z_]+` e `^[A-Z][A-Z_]+:`):
 | `services/vault.py:48` | `_singleton` | `VaultService` lazy singleton | ✅ mesma lógica — cada worker inicializa o seu, interop zero necessário |
 | `core/database.py:11` | `engine` | `AsyncEngine` module-level | ✅ SQLAlchemy pool; cada worker tem seu pool para o DB compartilhado |
 | ~~`pipeline/adapters/file_config_store.py`~~ | ~~`FileConfigStore._cache`~~ | ~~`dict[str, Any]` por instância~~ | ✅ **removido em Sprint A7.5** (commit `5d1cf7a` · ADR-134) — produto roda 100% DB-first via `DBConfigStore` |
+| `pipeline/domain/lineage_registry.py:16` | `LINEAGE_RULE_REFS` | `dict[str, dict[str, str]]` literal eager | ✅ categoria (a) — mapping de domínio imutável (ADR-281 B2, bridge nó-de-lineage → código); refactor-safe via `dev/check_lineage_refs.py` |
 
 **Veredito:** ✅ **OK**. Todos os globais são (a) constantes imutáveis —
 safe; ou (b) singletons idempotentes inicializados lazy — cada worker

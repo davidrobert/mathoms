@@ -7,6 +7,53 @@
   "properties": {
     "periodo_dados": {"type": "string"},
     "data_analise": {"type": "string"},
+    "_lineage": {
+      "type": "object",
+      "description": "Lineage field-level inline (ADR-279 · A24.l5 walking skeleton). fields é mapa field→entry via additionalProperties. value é STRING decimal com 2 casas — escapa do to_cents/manifesto do golden_diff. Zero timestamp/UUID; inputs com sort canônico (stage, artifact_key, field). member_hashes vazio em agregados baseline-fed; obrigatório em transaction-fed (l6/F5).",
+      "required": ["lineage_version", "fields"],
+      "additionalProperties": false,
+      "properties": {
+        "lineage_version": {"type": "string"},
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["value", "label", "transform", "rule_ref", "edge_type", "inputs"],
+            "additionalProperties": false,
+            "properties": {
+              "value": {"type": "string"},
+              "label": {"type": "string"},
+              "transform": {"type": "string"},
+              "rule_ref": {
+                "type": "object",
+                "required": ["adr", "ref"],
+                "additionalProperties": false,
+                "properties": {
+                  "adr": {"type": "string"},
+                  "ref": {"type": "string"}
+                }
+              },
+              "edge_type": {"type": "string"},
+              "signals": {"type": "object"},
+              "member_hashes": {"type": "array", "items": {"type": "string"}},
+              "inputs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["stage", "artifact_key", "field"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "stage": {"type": "string"},
+                    "artifact_key": {"type": "string"},
+                    "field": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "score": {
       "type": "object",
       "description": "ADR-217: score patrimonial canônico (service puro em pipeline/domain/services/score_calculator.py). score_version trava a fórmula no payload — bump exige ADR sucessora. Renderer ScoreCard consome via components[i].status para distinguir 'emitted' (dado presente) de 'absent_normalized' (componente declarado mas sem dado — peso vira penalidade natural).",

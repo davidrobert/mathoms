@@ -238,6 +238,11 @@ jobs:
         # `ruff check .` explícito removido (ADR-210 §camada 2): pre-commit
         # já roda `ruff` e `ruff-format` como hooks. Reduz duplicação de
         # ~3-5s por PR sem perder cobertura.
+        # SKIP lineage-refs: o hook importa pipeline/ de verdade (numpy etc.)
+        # e o env deste job é só lint; o gate roda com venv completo no job
+        # de pipeline (step "Lineage rule_refs", ci.yml §pipeline-tests).
+        env:
+          SKIP: lineage-refs
         run: pre-commit run --all-files
 
       - name: code style baseline regression
@@ -317,6 +322,9 @@ jobs:
 
       - name: No leak-field consumers (F2 de-leak guard · ADR-280)
         run: python dev/check_no_leak_field_consumers.py --verbose
+
+      - name: Lineage rule_refs resolvem por import real (ADR-281 · A24.l5)
+        run: python dev/check_lineage_refs.py
 
       - name: Golden rebaseline isolation per-commit (G-c · F2-DB5)
         if: github.event_name == 'pull_request'
