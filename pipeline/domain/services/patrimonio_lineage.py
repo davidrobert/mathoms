@@ -16,21 +16,19 @@ obrigatórios só em agregados transaction-fed (l6).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
 from typing import Any
 
 from pipeline.domain.lineage_registry import LINEAGE_RULE_REFS
+from pipeline.domain.services.lineage_fields import (
+    LineageBlock,
+    LineageField,
+    e5_input_ref,
+    lineage_block,
+    money_str,
+    sorted_inputs,
+)
 
-LINEAGE_VERSION = "1.0"
-_E5_STAGE = "E5"
-_E5_KEY = "analise_financeira"
-
-# Payloads JSON wire-shaped (mesmo padrão de SnapshotPayload em
-# economic_assumptions_snapshot.py) — shape canônico está em
-# config/schemas/e5_analysis.schema.json (`_lineage`).
 PatrimonioReport = dict[str, Any]
-LineageBlock = dict[str, Any]
-LineageField = dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -53,53 +51,43 @@ def componentes_from_report(report: PatrimonioReport) -> PatrimonioComponentes:
     )
 
 
-def build_patrimonio_lineage(componentes: PatrimonioComponentes) -> LineageBlock:
-    """Bloco ``_lineage`` (shape ADR-279): zero timestamp/UUID, inputs sorted."""
+def patrimonio_lineage_fields(componentes: PatrimonioComponentes) -> dict[str, LineageField]:
+    """Entradas de ``_lineage.fields`` do patrimônio (shape ADR-279)."""
     return {
-        "lineage_version": LINEAGE_VERSION,
-        "fields": {
-            "patrimonio.liquido": _liquido_field(componentes),
-            "patrimonio.bruto": _bruto_field(componentes),
-        },
+        "patrimonio.liquido": _liquido_field(componentes),
+        "patrimonio.bruto": _bruto_field(componentes),
     }
 
 
-def _money_str(value: float) -> str:
-    return f"{Decimal(str(value)):.2f}"
-
-
-def _input_ref(field: str) -> dict[str, str]:
-    return {"stage": _E5_STAGE, "artifact_key": _E5_KEY, "field": field}
-
-
-def _sorted_inputs(refs: list[dict[str, str]]) -> list[dict[str, str]]:
-    return sorted(refs, key=lambda r: (r["stage"], r["artifact_key"], r["field"]))
+def build_patrimonio_lineage(componentes: PatrimonioComponentes) -> LineageBlock:
+    """Bloco ``_lineage`` (shape ADR-279): zero timestamp/UUID, inputs sorted."""
+    return lineage_block(patrimonio_lineage_fields(componentes))
 
 
 def _liquido_field(c: PatrimonioComponentes) -> LineageField:
     return {
-        "value": _money_str(c.liquido),
+        "value": money_str(c.liquido),
         "label": "Patrimônio líquido",
         "transform": "bruto − dividas",
         "rule_ref": dict(LINEAGE_RULE_REFS["patrimonio.liquido"]),
         "edge_type": "formula",
         "member_hashes": [],
-        "inputs": _sorted_inputs(
-            [_input_ref("patrimonio.bruto"), _input_ref("patrimonio.dividas")]
+        "inputs": sorted_inputs(
+            [e5_input_ref("patrimonio.bruto"), e5_input_ref("patrimonio.dividas")]
         ),
     }
 
 
 def _bruto_field(c: PatrimonioComponentes) -> LineageField:
     refs = [
-        _input_ref(f"patrimonio.composicao[{categoria}].valor") for categoria, _ in c.composicao
+        e5_input_ref(f"patrimonio.composicao[{categoria}].valor") for categoria, _ in c.composicao
     ]
     return {
-        "value": _money_str(c.bruto),
+        "value": money_str(c.bruto),
         "label": "Patrimônio bruto",
         "transform": "soma das categorias da composição",
         "rule_ref": dict(LINEAGE_RULE_REFS["patrimonio.bruto"]),
         "edge_type": "aggregation",
         "member_hashes": [],
-        "inputs": _sorted_inputs(refs),
+        "inputs": sorted_inputs(refs),
     }
