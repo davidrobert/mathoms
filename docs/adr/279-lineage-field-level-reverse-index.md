@@ -46,3 +46,4 @@ tags:
 - ⚠️ `_lineage` precisa estar declarado em `e5_analysis.schema.json` **antes/junto** do flip→strict (PLATFORM_REVIEW W6-T01) — dependência cross-plano a coordenar.
 - ⚠️ Determinismo do payload garantido por gate (zero timestamp/UUID, `inputs` sorted, run 2× byte-idêntico, `value` espelhado em cents int + `check_lineage_sum`) + snapshot do view-model (G-a/G-b).
 - ⚠️ `artifact_lineage_edge` é derivada/rebuildável (retenção N=1) — **não** fonte primária; reconstruível por `materialize_lineage`. MCP prod + índice reverso por `rule_ref` deferidos até o loop de debug fechar sobre goldens (F7).
+- ℹ️ **Nota F4 (A24.l4):** a camada 3 da citação verificada E5→E6 confere **magnitude** (match em cents exato ou meia-casa-significativa para prosa abreviada), não semântica — colisão de valor entre paths distintos é resíduo aceito.
