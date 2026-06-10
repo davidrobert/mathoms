@@ -84,8 +84,8 @@ F2 + F4 entregues em 2026-06-09/10 (zero rebaseline — de-leak confirmado cirú
 | [[A24.l4]] | `dl-f4-evidencia-path` (∥ independente) | ✅ shipped (#580) | — |
 | [[A24.l2]] | `dl-f2-deleak-account-norm` | ✅ shipped (#585) | l1 |
 | [[A24.l3]] | `dl-f2-deleak-tipo-lancamento` | ✅ shipped (#586) | l1 |
-| [[A24.l5]] | `dl-f3-skeleton-patrimonio` (G3) | in_progress | l2+l3 ✅ |
-| [[A24.l6]] | `dl-f3-skeleton-resto` | blocked | l5 |
+| [[A24.l5]] | `dl-f3-skeleton-patrimonio` (G3) | ✅ shipped (#588) — **G3 atingido, KR2 1/6** | l2+l3 ✅ |
+| [[A24.l6]] | `dl-f3-skeleton-resto` | in_progress | l5 ✅ |
 
 Prompt de orquestração:
 [agent_prompts/orchestrator_a24_f2f3.md](../../agent_prompts/orchestrator_a24_f2f3.md).

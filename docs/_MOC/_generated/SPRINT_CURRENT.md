@@ -13,7 +13,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## In progress (1)
 
-- [[A24.l5]] — Data Lineage F3 — walking skeleton: _lineage no patrimônio líquido · priority P0 · branch `dl-f3-skeleton-patrimonio`
+- [[A24.l6]] — Data Lineage F3 — skeleton resto: reserva, despesa, total investido · priority P1 · branch `dl-f3-skeleton-resto`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

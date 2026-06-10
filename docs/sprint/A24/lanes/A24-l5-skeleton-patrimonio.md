@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F3 — walking skeleton: _lineage no patrimônio líquido"
 sprint: A24
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: dl-f3-skeleton-patrimonio
 adrs:
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a24
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/pipeline
