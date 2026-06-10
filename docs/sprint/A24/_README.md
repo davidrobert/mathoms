@@ -75,16 +75,16 @@ A24:  F2-discovery(G2) ──► F2-deleak-account-norm ──► F3-skeleton-pa
 
 ## Estado atual
 
-Lanes criadas em 2026-06-09 (co-design `senior-cto` + `data-engineer` p/ F2;
+F2 + F4 entregues em 2026-06-09/10 (zero rebaseline — de-leak confirmado cirúrgico). Lanes criadas em 2026-06-09 (co-design `senior-cto` + `data-engineer` p/ F2;
 `prompt-engineer` + `data-engineer` p/ F4 — decisões registradas em cada lane):
 
 | Lane | Slug | Status | Dep |
 |---|---|---|---|
-| [[A24.l1]] | `dl-f2-discovery` (gate G2 + substrato F2-DB5/6/7) | in_progress | — |
-| [[A24.l4]] | `dl-f4-evidencia-path` (∥ independente) | in_progress | — |
-| [[A24.l2]] | `dl-f2-deleak-account-norm` | blocked | l1 |
-| [[A24.l3]] | `dl-f2-deleak-tipo-lancamento` | blocked | l1 |
-| [[A24.l5]] | `dl-f3-skeleton-patrimonio` (G3) | blocked | l2+l3 |
+| [[A24.l1]] | `dl-f2-discovery` (gate G2 + substrato F2-DB5/6/7) | ✅ shipped (#578) | — |
+| [[A24.l4]] | `dl-f4-evidencia-path` (∥ independente) | ✅ shipped (#580) | — |
+| [[A24.l2]] | `dl-f2-deleak-account-norm` | ✅ shipped (#585) | l1 |
+| [[A24.l3]] | `dl-f2-deleak-tipo-lancamento` | ✅ shipped (#586) | l1 |
+| [[A24.l5]] | `dl-f3-skeleton-patrimonio` (G3) | in_progress | l2+l3 ✅ |
 | [[A24.l6]] | `dl-f3-skeleton-resto` | blocked | l5 |
 
 Prompt de orquestração:
