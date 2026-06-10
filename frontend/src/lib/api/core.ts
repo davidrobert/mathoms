@@ -85,10 +85,44 @@ export function setTokenRevokedHandler(handler: (() => void) | null) {
   onTokenRevoked = handler;
 }
 
-export async function apiFetch<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
+// ADR-170 · W3-T03 — refresh transparente: 401 genérico tenta POST
+// /auth/refresh uma vez (cookie httpOnly viaja sozinho; o header custom é a
+// defesa CSRF) e repete a request original. Promise compartilhada evita
+// stampede intra-tab; a race inter-tab é coberta pela grace window do backend.
+let refreshInFlight: Promise<string | null> | null = null;
+
+// Endpoints onde refresh não faz sentido (evita recursão / loop em login).
+const NO_REFRESH_PATHS = [
+  "/auth/refresh",
+  "/auth/login",
+  "/auth/register",
+  "/auth/logout",
+];
+
+async function requestRefreshedToken(): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      headers: { "X-Refresh-Request": "1" },
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { access_token?: string };
+    return body.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function refreshAccessToken(): Promise<string | null> {
+  if (!refreshInFlight) {
+    refreshInFlight = requestRefreshedToken().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
+function buildHeaders(options: RequestInit): Record<string, string> {
   const token = getToken();
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
@@ -96,33 +130,74 @@ export async function apiFetch<T>(
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  if (
-    !headers["Content-Type"] &&
-    !(options.body instanceof FormData)
-  ) {
+  if (!headers["Content-Type"] && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
+  return headers;
+}
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+function isTokenRevoked(detail: ApiErrorDetail): boolean {
+  return (
+    typeof detail === "object" &&
+    !Array.isArray(detail) &&
+    detail?.code === "token_revoked"
+  );
+}
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    const detail: ApiErrorDetail = body.detail ?? `HTTP ${res.status}`;
+async function parseSuccess<T>(res: Response): Promise<T> {
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
 
-    // F9.2 · forced logout — detecta token_revoked e limpa sessão.
-    if (
-      res.status === 401 &&
-      typeof detail === "object" &&
-      !Array.isArray(detail) &&
-      detail?.code === "token_revoked"
-    ) {
-      clearToken();
-      if (onTokenRevoked) onTokenRevoked();
-    }
+async function parseDetail(res: Response): Promise<ApiErrorDetail> {
+  const body = (await res.json().catch(() => ({}))) as {
+    detail?: ApiErrorDetail;
+  };
+  return body.detail ?? `HTTP ${res.status}`;
+}
 
+async function retryAfterRefresh<T>(
+  path: string,
+  options: RequestInit
+): Promise<T> {
+  const retry = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: buildHeaders(options),
+  });
+  if (retry.ok) return parseSuccess<T>(retry);
+  throw new ApiError(retry.status, await parseDetail(retry));
+}
+
+export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: buildHeaders(options),
+  });
+  if (res.ok) return parseSuccess<T>(res);
+
+  const detail = await parseDetail(res);
+
+  // F9.2 · forced logout — token_revoked nunca tenta refresh (tv bumped →
+  // a família de refresh também já era; backend revoga na rotação).
+  if (res.status === 401 && isTokenRevoked(detail)) {
+    clearToken();
+    if (onTokenRevoked) onTokenRevoked();
     throw new ApiError(res.status, detail);
   }
 
-  if (res.status === 204) return undefined as T;
-  return res.json();
+  const refreshable =
+    res.status === 401 && !!getToken() && !NO_REFRESH_PATHS.includes(path);
+  if (refreshable) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed !== null) {
+      setToken(refreshed);
+      return retryAfterRefresh<T>(path, options);
+    }
+    clearToken();
+  }
+
+  throw new ApiError(res.status, detail);
 }
