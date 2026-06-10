@@ -2,23 +2,24 @@
 id: ADR-170
 type: adr
 title: "Refresh tokens com httpOnly cookie e family-based revocation"
-status: Proposto
+status: Decidido
+phase: "Sprint A11.W3"
 date: "2026-05-06"
 relates_to: ["[[ADR-003]]", "[[ADR-057]]", "[[ADR-109]]"]
-supersedes: []
+supersedes: ["[[ADR-057]]"]
 superseded_by: []
 aliases: ["ADR 170"]
 tags:
   - area/auth
   - area/persistence
-  - status/proposto
+  - status/decidido
   - type/adr
 size_lines: 34
 ---
 
 # ADR-170 — Refresh tokens com httpOnly cookie e family-based revocation
 
-**Status:** Proposto • **Data:** 2026-05-06 • **Relaciona** [ADR-003](#adr-003--jwt-custom-para-auth), [ADR-057](#adr-057--jwt-15min--refresh-7d), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** SR-002 em [docs/plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (Wave 1 backfill, implementação em W3-T03).
+**Status:** Decidido (Sprint A11.W3) • **Data:** 2026-05-06 • **Relaciona** [ADR-003](#adr-003--jwt-custom-para-auth), [ADR-057](#adr-057--jwt-15min--refresh-7d), [ADR-109](#adr-109--auth-portability-jwt-hs256--fernet-documentados-como-contratos-portáveis-a6f5a). **Origem:** SR-002 em [docs/plan/PLATFORM_REVIEW/_README.md](../plan/PLATFORM_REVIEW/_README.md) (Wave 1 backfill, implementação em W3-T03).
 
 **Contexto:** ADR-057 estabeleceu access 15 min + refresh 7 dias, mas o backend hoje emite **só** access tokens com TTL longo via `core/security.py`. Não há refresh token em circulação, não há revocation, e tokens roubados continuam válidos até a expiração natural. Em fluxos `Bearer` o front salva o access em `localStorage` (XSS = takeover). ADR-109 documenta JWT HS256 como contrato portável; uma migração para refresh-flow é breaking — exige nova ADR antes do PR.
 
@@ -45,6 +46,37 @@ size_lines: 34
 - ⚠️ Migração breaking exige PR coordenado backend+frontend (W3-T03 endereça).
 - ❌ Não substitui WAF + CSP — defesa em profundidade requer ambas.
 
-**Implementação:** lane W3-T03 (Wave 3). Esta ADR vira `Decidido (W3-T03)` no merge da implementação. Supersede parcialmente ADR-057 (refresh era roadmap).
+**Implementação:** lane W3-T03 (Wave 3), entregue 2026-06-09. Supersede parcialmente ADR-057 (refresh era roadmap).
+
+## Emendas na implementação (W3-T03, co-design sre-devops 2026-06-09)
+
+Desvios deliberados da §Decisão original, registrados no flip para `Decidido`:
+
+- **Payload do access JWT permanece `{sub, exp, tv}`** (contrato [[ADR-109]],
+  `test_auth_portability.py` intacto). `workspace_id` rejeitado — token é
+  user-scoped, workspace resolve por request (multi-workspace); `jti` rejeitado
+  — sem denylist é claim morto; `iat` desnecessário. `tv` já entrega
+  invalidação de access stale. **Bônus:** a família guarda
+  `token_version_at_issue` — `tv` bump (forced logout F9) revoga a família na
+  rotação seguinte, não só os access tokens.
+- **Cookie path efetivo `/api/v1/auth`** (não `/auth/refresh`) — a rota monta
+  sob `API_PREFIX` e o path precisa cobrir `/refresh` **e** `/logout`.
+- **Teto absoluto de 30d** via `created_at` sobre o sliding de 7d — sliding
+  puro permitiria sessão eterna com refresh roubado renovado a cada 6 dias.
+- **Grace window de 60s**: hash anterior aceito sem revogar (retorna access
+  sem re-rotacionar) — 2 tabs refrescando em paralelo não é reuse. Fora da
+  janela ou secret desconhecido → família revogada.
+- **CSRF**: header custom `X-Refresh-Request: 1` obrigatório no refresh —
+  form cross-origin não o seta sem preflight (allowlist CORS nega).
+- **`Cache-Control: no-store`** em login/register/refresh/logout.
+- **Flag off → `/auth/refresh` responde 404** com rota sempre montada
+  (OpenAPI snapshot estável, independente de env).
+- **Secret independente de SECRET_KEY/Fernet** (`secrets.token_urlsafe(32)`,
+  persiste só sha256) — rotação de chaves do app não invalida sessões.
+- **Débito aceito:** access token continua em `localStorage` (não em memória)
+  — TTL 15min reduz a janela XSS de 24h→15min; mover para memória é refactor
+  frontend maior (SSR/multi-tab), follow-up. Mitigação complementar: CSP.
+- **Remoção da flag `MATHOMS_AUTH_REFRESH_FLOW`:** 1 release estável após
+  ativação em prod — flag órfã é débito.
 
 **Referências:** [plan/PLATFORM_REVIEW/_README.md §W3-T03](../plan/PLATFORM_REVIEW/_README.md), finding SR-002.

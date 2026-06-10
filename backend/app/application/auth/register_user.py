@@ -5,15 +5,16 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.application.auth.login_user import issue_session_tokens
 from backend.app.application.base import ConflictError
-from backend.app.core.security import create_access_token, hash_password
+from backend.app.core.security import hash_password
 from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.models.workspace_member import WorkspaceMember
-from backend.app.schemas.auth import RegisterRequest, TokenResponse
+from backend.app.schemas.auth import RegisterRequest, SessionTokens
 
 
-async def register_user(body: RegisterRequest, *, db: AsyncSession) -> TokenResponse:
+async def register_user(body: RegisterRequest, *, db: AsyncSession) -> SessionTokens:
     if await _email_exists(body.email, db=db):
         raise ConflictError("Email já cadastrado")
 
@@ -41,8 +42,7 @@ async def register_user(body: RegisterRequest, *, db: AsyncSession) -> TokenResp
     await db.commit()
     await db.refresh(user)
 
-    token = create_access_token(subject=user.id, token_version=user.token_version)
-    return TokenResponse(access_token=token)
+    return await issue_session_tokens(user, db=db)
 
 
 async def _email_exists(email: str, *, db: AsyncSession) -> bool:

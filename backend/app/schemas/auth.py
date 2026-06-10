@@ -1,5 +1,8 @@
 """Auth request/response schemas."""
 
+from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -17,6 +20,15 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class SessionTokens(TokenResponse):
+    """Resultado interno de login/register (ADR-170). Os campos de refresh
+    nunca saem no body — ``response_model=TokenResponse`` filtra; o router
+    usa para emitir o Set-Cookie httpOnly."""
+
+    refresh_cookie: Optional[str] = None
+    refresh_expires_at: Optional[datetime] = None
 
 
 class UserResponse(BaseModel):

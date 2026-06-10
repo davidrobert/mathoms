@@ -167,7 +167,7 @@
 | ADR-167 | adr | Decidido |  | Eligibility gate de cenário do cônjuge no domain service | `adr/167-eligibility-gate-de-cenario-do-conjuge-no-domain.md` |
 | ADR-168 | adr | Decidido |  | Remoção do Modo USA do relatório | `adr/168-remocao-do-modo-usa-do-relatorio.md` |
 | ADR-169 | adr | Decidido |  | Modo incremental estendido aos stages globais E1 | `adr/169-modo-incremental-estendido-aos-stages-globais-e1.md` |
-| ADR-170 | adr | Proposto |  | Refresh tokens com httpOnly cookie e family-based revocation | `adr/170-refresh-tokens-com-httponly-cookie-e-family.md` |
+| ADR-170 | adr | Decidido |  | Refresh tokens com httpOnly cookie e family-based revocation | `adr/170-refresh-tokens-com-httponly-cookie-e-family.md` |
 | ADR-171 | adr | Proposto |  | Fernet rotation operacionalizada via MultiFernet | `adr/171-fernet-rotation-operacionalizada-via-multifernet.md` |
 | ADR-172 | adr | Decidido |  | Stuck-runs detector via heartbeat + Celery beat | `adr/172-stuck-runs-detector-via-heartbeat-celery-beat.md` |
 | ADR-173 | adr | Proposto |  | LLM budget hard-stop + LLMCallLog populada universal | `adr/173-llm-budget-hard-stop-llmcalllog-populada-universal.md` |
@@ -498,6 +498,7 @@
 | CHG-2026-06-08-A23-L2 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-08-A23-L2.md` |
 | CHG-2026-06-08-A23-L3 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-08-A23-L3.md` |
 | CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET.md` |
+| CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |

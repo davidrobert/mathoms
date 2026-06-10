@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 207
-- **Proposto**: 65
+- **Decidido**: 208
+- **Proposto**: 64
 - **Roadmap**: 4
 
 ## Fundação
@@ -299,9 +299,9 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## auth
 
-### Proposto (1)
+### Decidido (1)
 
-- [[ADR-170]] — Refresh tokens com httpOnly cookie e family-based revocation
+- [[ADR-170]] — Refresh tokens com httpOnly cookie e family-based revocation · phase Sprint A11.W3
 
 ## backend
 

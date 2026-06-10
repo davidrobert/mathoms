@@ -6,7 +6,7 @@
 
 Referência canônica de schema do banco. Cobre todos os models registrados em `backend/app/models/` via `Base.metadata`.
 
-**Total de tabelas:** 60
+**Total de tabelas:** 61
 
 ---
 
@@ -48,6 +48,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - [`property_identity`](#propertyidentity)
 - [`property_market_value`](#propertymarketvalue)
 - [`protections`](#protections)
+- [`refresh_token_families`](#refreshtokenfamilies)
 - [`report_layouts`](#reportlayouts)
 - [`report_publications`](#reportpublications)
 - [`reports`](#reports)
@@ -997,6 +998,30 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_protections_ws_category` (workspace_id, category)
 - `ix_protections_ws_ends_at` (workspace_id, ends_at)
 - `ix_protections_ws_status` (workspace_id, status)
+
+### `refresh_token_families`
+
+| Column | Type | Nullable | Default | Tags |
+|---|---|---|---|---|
+| `id` | `VARCHAR(36)` | no | callable: `<lambda>` | PK |
+| `user_id` | `VARCHAR(36)` | no | — | FK→users.id, INDEX |
+| `token_hash` | `VARCHAR(64)` | no | — | — |
+| `token_version_at_issue` | `INTEGER` | no | server: `0` | — |
+| `prev_token_hash` | `VARCHAR(64)` | yes | — | — |
+| `prev_rotated_at` | `DATETIME` | yes | — | — |
+| `rotation_count` | `INTEGER` | no | server: `0` | — |
+| `created_at` | `DATETIME` | no | callable: `_utcnow` | — |
+| `last_used_at` | `DATETIME` | no | callable: `_utcnow` | — |
+| `expires_at` | `DATETIME` | no | — | — |
+| `revoked_at` | `DATETIME` | yes | — | — |
+
+**Constraints:**
+
+- FOREIGN KEY (user_id) REFERENCES users.id ON DELETE CASCADE — `(unnamed)`
+
+**Indexes:**
+
+- `ix_refresh_token_families_user_id` (user_id)
 
 ### `report_layouts`
 
@@ -2362,6 +2387,24 @@ type Protection struct {
 	Notes *string `db:"notes" json:"notes"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+```
+
+### `refresh_token_families` → `type RefreshTokenFamilie struct`
+
+```go
+type RefreshTokenFamilie struct {
+	Id string `db:"id" json:"id"`
+	UserId string `db:"user_id" json:"user_id"`
+	TokenHash string `db:"token_hash" json:"token_hash"`
+	TokenVersionAtIssue int `db:"token_version_at_issue" json:"token_version_at_issue"`
+	PrevTokenHash *string `db:"prev_token_hash" json:"prev_token_hash"`
+	PrevRotatedAt *time.Time `db:"prev_rotated_at" json:"prev_rotated_at"`
+	RotationCount int `db:"rotation_count" json:"rotation_count"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	LastUsedAt time.Time `db:"last_used_at" json:"last_used_at"`
+	ExpiresAt time.Time `db:"expires_at" json:"expires_at"`
+	RevokedAt *time.Time `db:"revoked_at" json:"revoked_at"`
 }
 ```
 

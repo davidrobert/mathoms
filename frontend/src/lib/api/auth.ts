@@ -1,4 +1,4 @@
-import { apiFetch } from "./core";
+import { API_BASE, apiFetch, clearToken } from "./core";
 
 // ─── Auth Types ───
 
@@ -40,4 +40,15 @@ export async function login(
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+}
+
+/** Logout best-effort (ADR-170): revoga a família de refresh no backend
+ * (cookie httpOnly viaja sozinho) e limpa o access token local. */
+export async function logout(): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/auth/logout`, { method: "POST" });
+  } catch {
+    // best-effort — sessão local é limpa de qualquer forma
+  }
+  clearToken();
 }

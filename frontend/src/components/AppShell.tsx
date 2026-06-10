@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { getMe, clearToken, type UserResponse } from "@/lib/api";
+import { getMe, clearToken, logout, type UserResponse } from "@/lib/api";
 import { useWorkspace } from "@/lib/WorkspaceProvider";
 import { useSuggestionsCount } from "@/app/(app)/plano/_components/useSuggestionsCount";
 import { cn } from "@/lib/cn";
@@ -164,8 +164,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               size="sm"
               className="flex-1"
               onClick={() => {
-                clearToken();
-                router.replace("/login");
+                void logout().finally(() => router.replace("/login"));
               }}
             >
               <LogOut className="mr-2 h-3.5 w-3.5" />
