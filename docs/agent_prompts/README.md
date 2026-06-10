@@ -18,7 +18,7 @@ Os 62 tracks que viviam em `docs/agent_prompts/track_*.md` foram migrados para `
 | W5 (Onda 5 do A11) | [`../sprint/W5/tracks/`](../sprint/W5/tracks/) | 4 |
 | W6 (Onda 6 do A11) | [`../sprint/W6/tracks/`](../sprint/W6/tracks/) | 2 |
 
-**Total:** 62 tracks migrados (F3) + 6 tracks A20 criados 2026-05-29.
+**Total:** 62 tracks migrados (F3) + 6 tracks A20 criados 2026-05-29 + 1 track A6 (`a6g-eslint-max-lines-ratchet`, follow-up A6g.6b) criado 2026-06-09.
 
 ## Pickup — onde olhar agora
 
