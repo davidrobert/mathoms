@@ -2,16 +2,17 @@
 
 # Cada writer E2 vivo roda de verdade sobre input sintético e o artefato
 # resultante (pós stamp_natural_key, espelho exato do write-path de produção
-# em run_with_store/extract_with_llm) é validado contra e2_extract.schema.json
-# com strict forçado. Três buckets, enumeração exaustiva garantida por
+# em run_with_store/extract_with_llm) é validado com strict forçado contra o
+# schema do SEU stage: e2_extract.schema.json (parsers determinísticos) ou
+# e2_llm_artifact.schema.json (writer E2-llm — vocabulário próprio, A24.l7).
+# Três buckets, enumeração exaustiva garantida por
 # test_corpus_cobre_todos_os_parsers:
 #   PASS_CASES — output valida em strict hoje.
-#   KNOWN_DRIFT_CASES — writer vivo cujo output viola o schema hoje
-#     (vocabulário instituicao/tipo_documento vs banco/tipo). Paths exatos
-#     pinados; flip de E2 bloqueado enquanto o bucket não esvazia
-#     (runbook schema_validation_strict_flip §1).
-#   INPUT_GAPS — parser sem input sintético viável nesta lane (PDF de fatura
-#     com layout dedicado; XLS binário exige xlwt). Débito explícito do gate.
+#   KNOWN_DRIFT_CASES — writer vivo cujo output viola o schema do stage;
+#     paths exatos pinados; flip do schema bloqueado enquanto não esvazia
+#     (runbook schema_validation_strict_flip §1). Esvaziado em A24.l7.
+#   INPUT_GAPS — parser sem input sintético viável (PDF de fatura com layout
+#     dedicado; XLS binário exige xlwt). Débito explícito do gate.
 
 from __future__ import annotations
 
@@ -162,22 +163,20 @@ PASS_CASES: Dict[str, Tuple[str, Callable[[Path, str], Path]]] = {
         _text_builder(_SANTANDER_FATURA_CSV),
     ),
     "wise.parse_wise": ("wise_extratoconta_202604_golden.pdf", _pdf_builder("wise")),
-}
-
-# Writers vivos cujo output viola o schema HOJE — paths pinados; flip bloqueado
-# até resolver o vocabulário (banco vs instituicao / tipo vs tipo_documento).
-KNOWN_DRIFT_CASES: Dict[str, Tuple[str, Callable[[Path, str], Path], set]] = {
-    "itau.parse_itau_cdb_html_xls": (
-        "itau_cdbresumo_202604.xls",
-        _text_builder(_ITAU_CDB_HTML),
-        {"$.banco"},
-    ),
+    # cdbresumo: emitem `banco` aditivo ao lado de `instituicao` desde A24.l7
+    # (valor idêntico — E4 lê `instituicao or banco`; sem transacoes, sem E3).
+    "itau.parse_itau_cdb_html_xls": ("itau_cdbresumo_202604.xls", _text_builder(_ITAU_CDB_HTML)),
     "santander.parse_santander_cdb_xlsx": (
         "santander_cdbresumo_202604.xlsx",
         _santander_cdb_xlsx_builder,
-        {"$.banco"},
     ),
 }
+
+# Writers vivos cujo output viola o schema do seu stage HOJE — paths pinados;
+# flip do schema correspondente bloqueado até o bucket esvaziar. Esvaziado em
+# A24.l7: cdbresumo promovidos a PASS (banco aditivo); writer E2-llm ganhou
+# contrato dedicado e2_llm_artifact.schema.json (ver test_llm_writer_*).
+KNOWN_DRIFT_CASES: Dict[str, Tuple[str, Callable[[Path, str], Path], set]] = {}
 
 # Parser registrado sem input sintético viável nesta lane (runbook §1 — débito
 # da pré-condição do flip). PDF de fatura: layout dedicado pendente no gerador
@@ -228,7 +227,9 @@ def test_parser_output_valida_em_strict(case_key: str, tmp_path: Path, monkeypat
     monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
     filename, builder = PASS_CASES[case_key]
     result = _parse_and_stamp(tmp_path, case_key, filename, builder)
-    assert result.get("transacoes") or result.get("itens"), f"{case_key}: parse vazio"
+    # cdbresumo emite posicoes (posições de investimento), não transacoes.
+    parsed_rows = result.get("transacoes") or result.get("itens") or result.get("posicoes")
+    assert parsed_rows or result.get("saldo_atual") is not None, f"{case_key}: parse vazio"
     assert validate_dict(result, "e2_extract.schema.json", source=f"corpus/{case_key}") is True
 
 
@@ -292,10 +293,33 @@ def test_known_drift_pinado(case_key: str, tmp_path: Path, monkeypatch, caplog):
     assert validate_dict(result, "e2_extract.schema.json", source=f"corpus/{case_key}") is False
 
 
-def test_llm_writer_output_drift_pinado(monkeypatch, caplog):
-    """Writer E2-llm emite instituicao/tipo_documento (viola required — bloqueador do flip, runbook §1); campos por-tx declarados no schema não aparecem no drift."""
+def test_llm_writer_valida_em_strict_no_contrato_dedicado(monkeypatch):
+    """Writer E2-llm valida em strict contra e2_llm_artifact.schema.json (A24.l7) — o vocabulário instituicao/tipo_documento é contrato versionado próprio; canonicalização é follow-up DATA_LINEAGE."""
+    monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+    e2_json = _synthetic_llm_extract_artifact()
+    assert validate_dict(e2_json, "e2_llm_artifact.schema.json", source="corpus/e2-llm") is True
+
+
+def test_llm_artifact_ref_compartilhado_resolve_e_fecha_transacao(monkeypatch, caplog):
+    """Prova que o $ref cross-file (e2_llm_artifact → e2_extract#/$defs/transacao) RESOLVE.
+
+    $ref unresolvable degrada para WARN '$ref unresolvable' em modo warn
+    (_handle_validation_error) — sem este pin, um typo de $id deixaria o gate
+    verde até o flip strict. Campo desconhecido na transação DEVE produzir
+    drift de additionalProperties no path da transação (só acontece se o $ref
+    resolveu no contrato fechado) e rejeitar em strict.
+    """
     _capture_warn_telemetry(monkeypatch, caplog)
     e2_json = _synthetic_llm_extract_artifact()
-    assert validate_dict(e2_json, "e2_extract.schema.json", source="corpus/e2-llm") is True
-    observed = _observed_drift_paths(caplog)
-    assert observed == {"$.banco", "$.tipo"}, f"drift do writer LLM mudou: {sorted(observed)}"
+    e2_json["transacoes"][0]["campo_fantasma"] = "x"
+    assert validate_dict(e2_json, "e2_llm_artifact.schema.json", source="corpus/e2-llm") is True
+    assert "unresolvable" not in caplog.text.lower()
+    drift = [
+        r
+        for r in caplog.records
+        if r.name == "mathoms.pipeline.schema_validation" and hasattr(r, "validation_path")
+    ]
+    assert {r.validation_path for r in drift} == {"$.transacoes[].campo_fantasma"}
+    assert {r.validator_keyword for r in drift} == {"additionalProperties"}
+    monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
+    assert validate_dict(e2_json, "e2_llm_artifact.schema.json", source="corpus/e2-llm") is False

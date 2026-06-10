@@ -232,12 +232,15 @@ class TestValidateArtifact:
             Path(__file__).resolve().parent.parent / "config/schemas/e2_extract.schema.json"
         )
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
-        tx_properties = schema["properties"]["transacoes"]["items"]["properties"]
+        # ADR-285: transação vive em $defs/transacao (compartilhada com
+        # e2_llm_artifact via $ref) — o gate navega o $defs.
+        transacao = schema["$defs"]["transacao"]
+        assert schema["properties"]["transacoes"]["items"] == {"$ref": "#/$defs/transacao"}
         for leak_field in ("tipo_lancamento",):
             assert (
-                leak_field not in tx_properties
+                leak_field not in transacao["properties"]
             ), f"{leak_field} voltou ao contrato E2 — de-leak ADR-280 exige re-derivar na Transform"
-        assert schema["properties"]["transacoes"]["items"]["additionalProperties"] is False
+        assert transacao["additionalProperties"] is False
 
         monkeypatch.setenv("MATHOMS_PIPELINE_SCHEMA_MODE", "strict")
         data = {
