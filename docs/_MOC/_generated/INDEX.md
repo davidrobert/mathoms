@@ -278,7 +278,7 @@
 | ADR-280 | adr | Decidido |  | Critério de corte Extract | Transform + check de pureza de extração | `adr/280-extract-transform-cut-criterion.md` |
 | ADR-281 | adr | Decidido |  | rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) | `adr/281-lineage-rule-ref-debug-substrate.md` |
 | ADR-282 | adr | Proposto |  | Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) | `adr/282-override-identity-natural-key-v2.md` |
-| ADR-283 | adr | Proposto |  | Float monetário persistido e hardening de boundary de schema (patrimonio_liquido, gate models, E2 items) | `adr/283-float-monetario-persistido-e-hardening-de-boundary.md` |
+| ADR-283 | adr | Decidido |  | Float monetário persistido e hardening de boundary de schema (patrimonio_liquido, gate models, E2 items) | `adr/283-float-monetario-persistido-e-hardening-de-boundary.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |
@@ -495,6 +495,7 @@
 | CHG-2026-06-03-A23-L1 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-03-A23-L1.md` |
 | CHG-2026-06-08-A23-L2 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-08-A23-L2.md` |
 | CHG-2026-06-08-A23-L3 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-08-A23-L3.md` |
+| CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |

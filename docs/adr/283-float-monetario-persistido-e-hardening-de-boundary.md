@@ -2,8 +2,8 @@
 id: ADR-283
 type: adr
 title: "Float monetário persistido e hardening de boundary de schema (patrimonio_liquido, gate models, E2 items)"
-status: Proposto
-phase: "Débito técnico"
+status: Decidido
+phase: "Débito técnico (A12)"
 date: "2026-06-09"
 relates_to:
   - "[[ADR-090]]"
@@ -15,7 +15,7 @@ superseded_by: []
 aliases: ["ADR 283", "float money debt", "patrimonio_liquido numeric", "E2 additionalProperties"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/backend
   - area/persistence
   - area/data-lineage
@@ -23,7 +23,7 @@ tags:
 
 # ADR-283 — Float monetário persistido e hardening de boundary de schema
 
-**Status:** Proposto (Débito técnico) • **Data:** 2026-06-09 • **Relaciona**
+**Status:** Decidido (Débito técnico, A12) • **Data:** 2026-06-09 • **Relaciona**
 [[ADR-090]] (dinheiro nunca é float), [[ADR-114]] (gates de code-style),
 [[ADR-137]] (catálogo de categorias em cents), [[ADR-212]] (DBArtifactStore + schema validation).
 
@@ -125,7 +125,9 @@ gera o sinal que hoje falta. O **top-level continua `additionalProperties:true`*
 
 ## Follow-ups rastreados
 
-1. **Drop `Category.monthly_cap`** → lane `A12.cat-legacy-sunset` (após sunset do endpoint legado).
+1. **Drop `Category.monthly_cap`** → lane `A12.cat-legacy-sunset` — ✅ entregue
+   2026-06-09: PR #573 (sunset do endpoint + `monthly_cap` fora do model) +
+   migration `f2a3b4c5d6e7` (DROP COLUMN, PR 2/2).
 2. **Wire-string decimal** em `ReportResponse.patrimonio_liquido` — ✅ **resolvido
    por não-decisão (2026-06-09)**. Avaliação: `MoneyBRL` (A6g.3b) serializa
    `number` no wire por design — a convenção implementada da [[ADR-090]] para
