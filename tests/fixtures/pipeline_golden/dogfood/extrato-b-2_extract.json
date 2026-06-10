@@ -9,6 +9,6 @@
   "saldo_inicial": 0.0,
   "saldo_final": 1500.0,
   "transacoes": [
-    {"data": "2026-01-15", "descricao": "PIX RECEBIDO ALUGUEL", "valor": 3000.0, "tipo_lancamento": "Entrada PIX"}
+    {"data": "2026-01-15", "descricao": "PIX RECEBIDO ALUGUEL", "valor": 3000.0}
   ]
 }
