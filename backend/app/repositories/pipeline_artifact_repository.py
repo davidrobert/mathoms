@@ -30,14 +30,16 @@ class PipelineArtifactRepository:
     def get_latest_for_workspace(
         self, workspace_id: str, *, stage: str, artifact_key: Optional[str] = None
     ) -> Optional[PipelineArtifact]:
-        """Artefato mais recente (maior ``created_at``) para ``(workspace, stage[, key])``."""
+        """Artefato mais recente para ``(workspace, stage[, key])`` — ``created_at``
+        desc com tie-break por ``id`` autoincrement: dois writes no mesmo flush
+        empatam ``created_at`` no microssegundo e o resultado vira arbitrário."""
         q = (
             select(PipelineArtifact)
             .where(
                 PipelineArtifact.workspace_id == workspace_id,
                 PipelineArtifact.stage == stage,
             )
-            .order_by(PipelineArtifact.created_at.desc())
+            .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         )
         if artifact_key is not None:
             q = q.where(PipelineArtifact.artifact_key == artifact_key)

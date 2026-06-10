@@ -90,7 +90,7 @@ async def _load_latest_e5_artifact(
             PipelineArtifact.workspace_id == workspace_id,
             PipelineArtifact.stage == "analyze_finances",
         )
-        .order_by(PipelineArtifact.created_at.desc())
+        .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         .limit(1)
     )
     result = await db.execute(stmt)

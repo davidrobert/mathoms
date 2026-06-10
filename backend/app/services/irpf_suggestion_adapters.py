@@ -51,7 +51,7 @@ class DBIrpfArtifactSource:
                 PipelineArtifact.stage == "E1",
                 PipelineArtifact.artifact_key == "members",
             )
-            .order_by(PipelineArtifact.created_at.desc())
+            .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
             .limit(1)
         )
         result = await self._db.execute(stmt)

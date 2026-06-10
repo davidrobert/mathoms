@@ -262,7 +262,7 @@ def _read_run_artifact(
             PipelineArtifact.stage.in_(stages),
             PipelineArtifact.artifact_key == artifact_key,
         )
-        .order_by(PipelineArtifact.created_at.desc())
+        .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         .first()
     )
     return row.content_json if row else None
@@ -277,7 +277,7 @@ def _read_latest_workspace_artifact(
             PipelineArtifact.workspace_id == workspace_id,
             PipelineArtifact.stage.in_(stages),
         )
-        .order_by(PipelineArtifact.created_at.desc())
+        .order_by(PipelineArtifact.created_at.desc(), PipelineArtifact.id.desc())
         .first()
     )
     return row.content_json if row else None
