@@ -59,3 +59,40 @@ def draw_santander_extrato(
 
     final_saldo = rows[-1][1] if rows else 0.0
     return y, final_saldo
+
+
+def draw_santander_unique_fatura(
+    c: Any,
+    width: float,
+    height: float,
+    y: float,
+    period: str,
+    transactions: list[Transaction],
+    account_holder: str,
+) -> tuple[float, float]:
+    """Fatura Santander Unique — paridade com ``parse_santander_unique`` (header `R$ total venc fech` + `Detalhamento da Fatura` + card `NOME - NNNN XXXX XXXX NNNN`)."""
+    yy, mm = period.split("-")
+    holder_upper = "".join(ch for ch in account_holder.upper() if ch.isalpha() or ch == " ").strip()
+    total = sum(float(t.get("amount", 0)) for t in transactions)
+
+    c.setFont("Helvetica", 9)
+    lines = [
+        f"R$ {format_brl(abs(total))} 15/{mm}/{yy} 10/{mm}/{yy}",
+        "Saldo Anterior 0,00",
+        f"Total Despesas/Débitos no Brasil {format_brl(abs(total))}",
+        "Detalhamento da Fatura",
+        f"{holder_upper} - 1234 XXXX XXXX 5678",
+        "Despesas",
+    ]
+    for line in lines:
+        c.drawString(2 * cm, y, line)
+        y -= 0.45 * cm
+
+    for tx in sorted(transactions, key=lambda t: str(t.get("date", ""))):
+        amt = float(tx.get("amount", 0))
+        iso = str(tx.get("date", f"{period}-01"))
+        _, m_iso, d_iso = iso.split("-")
+        desc = str(tx.get("description", "Lancamento"))[:50]
+        c.drawString(2 * cm, y, f"{d_iso}/{m_iso} {desc} {format_brl(amt)}")
+        y -= 0.42 * cm
+    return y, total

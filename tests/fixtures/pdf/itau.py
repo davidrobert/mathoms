@@ -81,3 +81,38 @@ def draw_itau_extrato(
     table.drawOn(c, 2 * cm, y - th)
     y = y - th - 0.45 * cm
     return y, running
+
+
+def draw_itau_paoacucar_fatura(
+    c: Any,
+    width: float,
+    height: float,
+    y: float,
+    period: str,
+    transactions: list[Transaction],
+) -> tuple[float, float]:
+    """Fatura Pão de Açúcar — paridade com ``parse_itau_paoacucar`` (seção `Lançamentos: compras e saques` + card `(final NNNN)`)."""
+    yy, mm = period.split("-")
+    total = sum(float(t.get("amount", 0)) for t in transactions)
+
+    c.setFont("Helvetica", 9)
+    lines = [
+        "Cartão 1234.XXXX.5678",
+        f"Vencimento: 10/{mm}/{yy}",
+        f"Total desta fatura {format_brl(abs(total))}",
+        f"Lançamentos atuais {format_brl(abs(total))}",
+        "Lançamentos: compras e saques",
+        "PAO DE ACUCAR PLATINUM(final 5678)",
+    ]
+    for line in lines:
+        c.drawString(2 * cm, y, line)
+        y -= 0.45 * cm
+
+    for tx in sorted(transactions, key=lambda t: str(t.get("date", ""))):
+        amt = float(tx.get("amount", 0))
+        iso = str(tx.get("date", f"{period}-01"))
+        _, m_iso, d_iso = iso.split("-")
+        desc = str(tx.get("description", "Lancamento"))[:50]
+        c.drawString(2 * cm, y, f"{d_iso}/{m_iso} {desc} {format_brl(abs(amt))}")
+        y -= 0.42 * cm
+    return y, total

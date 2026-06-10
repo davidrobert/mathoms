@@ -80,3 +80,73 @@ def draw_c6_extrato(
         y -= line_height
 
     return y, running
+
+
+_MONTH_ABBR_BR = (
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago",
+    "set",
+    "out",
+    "nov",
+    "dez",
+)
+_MONTH_FULL_BR = (
+    "janeiro",
+    "fevereiro",
+    "março",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
+)
+
+
+def draw_c6_carbon_fatura(
+    c: Any,
+    width: float,
+    height: float,
+    y: float,
+    period: str,
+    transactions: list[Transaction],
+    account_holder: str,
+) -> tuple[float, float]:
+    """Fatura C6 Carbon — paridade com ``parse_c6_carbon`` (linhas `D mes DESC VALOR`)."""
+    yy, mm = period.split("-")
+    month_idx = int(mm) - 1
+    holder_upper = account_holder.upper()
+
+    total = sum(float(t.get("amount", 0)) for t in transactions)
+    c.setFont("Helvetica", 9)
+    lines = [
+        f"Vencimento: 15 de {_MONTH_FULL_BR[month_idx]}",
+        f"Valor da fatura: R$ {format_brl(abs(total))}",
+        "Limite total: R$ 50.000,00",
+        f"C6 Carbon Final 1234 - {holder_upper} Cartão",
+    ]
+    for line in lines:
+        c.drawString(2 * cm, y, line)
+        y -= 0.45 * cm
+
+    for tx in sorted(transactions, key=lambda t: str(t.get("date", ""))):
+        amt = float(tx.get("amount", 0))
+        iso = str(tx.get("date", f"{period}-01"))
+        day = int(iso.split("-")[2])
+        abbr = _MONTH_ABBR_BR[int(iso.split("-")[1]) - 1]
+        desc = str(tx.get("description", "Lancamento"))[:50]
+        c.drawString(2 * cm, y, f"{day} {abbr} {desc} {format_brl(abs(amt))}")
+        y -= 0.42 * cm
+
+    c.drawString(2 * cm, y, f"Subtotal deste cartão R$ {format_brl(abs(total))}")
+    y -= 0.45 * cm
+    return y, total
