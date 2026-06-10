@@ -50,6 +50,10 @@ DEFAULTS: dict[str, bool] = {
     # ação. Flag permanece como circuit-breaker para desligar por workspace
     # se aparecer bug não-capturado pelos testes.
     "irpf_prefill_enabled": True,
+    # ADR-279 · A25.l5 — selo de proveniência N1 + popover N2 no relatório
+    # (/reports/[id]). Default False: rollout controlado por workspace
+    # (dogfood primeiro); flag off ⇒ relatório idêntico ao atual.
+    "report_provenance_enabled": False,
     # ADR-282 — read-path do override casa no natural_key v2 (em vez do legado
     # generate_transaction_hash). Default False: ativado por workspace só após o
     # backfill (slice 3) cobrir 100% + dogfood de reancoragem verde. Enquanto off,

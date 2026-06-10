@@ -50,7 +50,10 @@ export function ReservaEmergenciaCard({
           <div>
             <dt className="text-[var(--surface-muted-foreground)]">Total líquido</dt>
             <dd>
-              <MonetaryValue value={total} />
+              <MonetaryValue
+                value={total}
+                provenance={{ fieldId: "reserva_emergencia.total_liquida" }}
+              />
             </dd>
           </div>
           <div>

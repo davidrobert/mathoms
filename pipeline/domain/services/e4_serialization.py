@@ -26,6 +26,7 @@ from __future__ import annotations
 from typing import Mapping
 
 from pipeline.domain.services.e4_categorizer_adapter import CategorizationResult
+from pipeline.domain.services.lineage_fields import LINEAGE_VERSION
 
 # Chaves de artifact aceitas pelo ``DiskArtifactStore`` para o stage ``E4``
 # (o store anexa ``-4_unified.json`` via ``stage_suffix``).
@@ -62,6 +63,30 @@ def build_patrimonio_artifact(baseline) -> dict | None:
     return dict(baseline.data)
 
 
+def conferencia_signals(result: CategorizationResult) -> dict[str, str]:
+    """Sinais de conferência do dedup K4 (ADR-279 · A25.l5 N2): ``tx_total`` =
+    lançamentos classificados ANTES do dedup; ``dedup_collapsed``/``dedup_review``
+    vêm do :class:`DedupReport` (até A24, só telemetria de log). Strings int
+    (zero float no lineage); transporte via artefato ``despesas`` é o único
+    canal E4→E5 que sobrevive ao modo incremental."""
+    report = result.cash_flow.dedup_report
+    return {
+        "tx_total": str(len(result.classified)),
+        "dedup_collapsed": str(report.collapsed_count),
+        "dedup_review": str(report.review_count),
+    }
+
+
+def _despesas_with_conferencia(result: CategorizationResult) -> dict:
+    """``despesas`` + bloco ``_lineage`` (metadata ADR-279, não contrato E4)."""
+    despesas = result.cash_flow.despesas.to_legacy_dict()
+    despesas["_lineage"] = {
+        "lineage_version": LINEAGE_VERSION,
+        "signals": conferencia_signals(result),
+    }
+    return despesas
+
+
 def serialize_e4_artifacts(result: CategorizationResult) -> dict[str, dict]:
     """Produz os payloads E4 a partir de um :class:`CategorizationResult`.
 
@@ -73,7 +98,7 @@ def serialize_e4_artifacts(result: CategorizationResult) -> dict[str, dict]:
     patrimonio = build_patrimonio_artifact(result.baseline)
     payloads: dict[str, dict] = {
         "receitas": result.cash_flow.receitas.to_legacy_dict(),
-        "despesas": result.cash_flow.despesas.to_legacy_dict(),
+        "despesas": _despesas_with_conferencia(result),
         "fluxo_mensal_detalhado": result.cash_flow.fluxo_mensal.to_legacy_dict(),
     }
     if patrimonio is not None:

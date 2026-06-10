@@ -17,7 +17,10 @@
           "ref": "pipeline.domain.services.fluxo_caixa_enricher:FluxoCaixaEnricher.enrich"
         },
         "signals": {
-          "k4_coverage": "partial"
+          "dedup_collapsed": "0",
+          "dedup_review": "0",
+          "k4_coverage": "partial",
+          "tx_total": "2"
         },
         "transform": "soma das despesas por categoria",
         "value": "1500.00"

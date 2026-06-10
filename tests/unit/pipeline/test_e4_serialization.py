@@ -37,6 +37,19 @@ _FIXED_NOW = datetime(2026, 4, 19, 10, 0, 0, tzinfo=timezone(timedelta(hours=-3)
 _FIXED_DATE = date(2026, 4, 19)
 
 
+def _conta_com_despesa_duplicada() -> dict:
+    """Payload E3 com 2 despesas idênticas (colapsam no dedup K4) + 1 receita."""
+    mercado = {"data": "2026-01-10", "descricao": "MERCADO", "valor": -100, "tipo": "debito"}
+    salario = {"data": "2026-01-05", "descricao": "SALARIO EMP", "valor": 5000, "tipo": "credito"}
+    return {
+        "banco": "Itaú",
+        "tipo_conta": "extratoconta",
+        "moeda": "BRL",
+        "titular": "david",
+        "transacoes": [mercado, dict(mercado), salario],
+    }
+
+
 def _adapter() -> E4CategorizerAdapter:
     cfg = ClassifierConfig.from_configs(
         categorization={
@@ -207,6 +220,26 @@ class TestSerializeE4Artifacts:
 
         d = payloads["despesas"]
         assert d["total_geral"] == 100.0  # valor absoluto
+
+    def test_despesas_carries_conferencia_lineage_signals(self):
+        """A25.l5 (ADR-279 N2): ``despesas`` é o único payload E4 com bloco
+        ``_lineage`` — transporte dos sinais de dedup que sobrevive ao modo
+        incremental (E5 re-roda sozinho lendo artefatos persistidos)."""
+        store = InMemoryArtifactStore()
+        store.seed("E3", "a", _conta_com_despesa_duplicada())
+        result = _adapter().categorize_via_store(store)
+
+        payloads = serialize_e4_artifacts(result)
+
+        block = payloads["despesas"]["_lineage"]
+        assert block["lineage_version"] == "1.0"
+        assert block["signals"] == {
+            "tx_total": "3",
+            "dedup_collapsed": "1",
+            "dedup_review": "0",
+        }
+        for key in ("receitas", "fluxo_mensal_detalhado", "investimentos", "seguros"):
+            assert "_lineage" not in payloads[key]
 
     def test_patrimonio_omitted_when_no_baseline(self):
         """ADR-132 T2 (defesa em profundidade): sem baseline, ``patrimonio`` é

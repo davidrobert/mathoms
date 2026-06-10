@@ -22,6 +22,13 @@
     display: none !important;
   }
 
+  /* ────── Selo de proveniência (A25.l5 · ADR-279) — affordance interativa
+   * não imprime: PDF mostra o número limpo; popover nunca renderiza. ────── */
+  [data-provenance-seal] {
+    text-decoration: none !important;
+    cursor: default !important;
+  }
+
   /* ────── Article fills page ────── */
   [data-report-mode] {
     max-width: 100% !important;
