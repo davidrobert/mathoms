@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F2 — de-leak tipo_lancamento (delete do output + contrato)"
 sprint: A24
 plan: PLAN-data-lineage
-status: blocked
+status: shipped
 priority: P0
 branch_slug: dl-f2-deleak-tipo-lancamento
 adrs:
@@ -15,7 +15,7 @@ parallel_with: ["[[A24.l2]]"]
 tags:
   - type/lane
   - sprint/a24
-  - status/blocked
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/pipeline

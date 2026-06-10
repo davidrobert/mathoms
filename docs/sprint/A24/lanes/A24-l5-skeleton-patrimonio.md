@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F3 — walking skeleton: _lineage no patrimônio líquido"
 sprint: A24
 plan: PLAN-data-lineage
-status: blocked
+status: in_progress
 priority: P0
 branch_slug: dl-f3-skeleton-patrimonio
 adrs:
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a24
-  - status/blocked
+  - status/in-progress
   - priority/p0
   - area/data-lineage
   - area/pipeline
@@ -53,6 +53,33 @@ stage, via **1 comando CLI**, num run canônico.
 - Invariantes de conservação (incl. por categoria) verdes pós-rebaseline (2ª testemunha).
 - Snapshot textual de KPIs no render (G-d) verde.
 
+## Decisões de co-design (senior-cto + data-engineer, 2026-06-10 — travadas)
+
+1. **Mecanismo**: `calculate()` retorna resultado + componentes JÁ computados (generaliza
+   `componentes_calculo`, [[ADR-216]] D9) — NÃO método irmão que recompute (2 fontes de
+   verdade divergem em refactor); adapter traduz e anexa em `build_e5_output`.
+2. **Topologia 2 níveis intra-E5**: `liquido ← [bruto, dividas]`; `bruto ← buckets da
+   composicao`. NÃO apontar direto p/ E4/E3 (calculador funde fallback IRPF + residual de
+   caixa — ref E4 seria mentira no caso `has_current_positions`). Salto até `SourceRef` é l6/F5.
+3. **`value` = STRING** `f"{Decimal(str(payload_float)):.2f}"` derivada do float do payload
+   (nunca recálculo paralelo) — espelhamento tautológico-verde por construção, escapa do
+   `to_cents`/manifesto do `golden_diff` (string não dispara value_delta monetário).
+4. **`member_hashes: []`** é contrato p/ `formula`/`aggregation` sobre buckets (patrimônio é
+   baseline-fed); hashes não-vazios obrigatórios só em agregados transaction-fed (l6). Q3/B8
+   intactos (lookup por run_id só ativa com hashes).
+5. **`rule_ref` = [[ADR-145]]** + `patrimonio_calculator:PatrimonioCalculator.calculate`;
+   fórmula `liquido = bruto − dividas` coberta pela taxonomia — sem ADR nova.
+6. **`inputs` sort canônico `(stage, artifact_key, field)`** — load-bearing p/ byte-identidade
+   E p/ golden_diff (array sem natural key cai em diff posicional).
+7. **`check_lineage_sum`** lê os termos dos `inputs[]` do bloco (não hardcode) — mesma
+   identidade dos invariantes de conservação da l1.
+8. **Resolver recursivo, skeleton PARA em E4** (`source_leaf`/`no_lineage`); CLI `dev/` é
+   casca fina sobre `LineageResolver` (miolo reusável na fase MCP, [[ADR-281]]).
+9. E5 está em modo `warn` ([[ADR-284]]) — declaração do `_lineage` no schema é defensiva
+   (`value` string, `fields` como mapa, item/input `additionalProperties:false`).
+10. Rebaseline (se o view-model snapshot capturar `_lineage`): commit isolado + manifesto —
+    provar empiricamente, não assumir.
+
 ## Owner
 
-Co-design `senior-cto` + `data-engineer` antes de codar (obrigatório, registrar aqui).
+Agente da lane com co-design `senior-cto` + `data-engineer` (2026-06-10).

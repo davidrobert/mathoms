@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F2 — discovery do de-leak + substrato de rebaseline endurecido"
 sprint: A24
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P0
 branch_slug: dl-f2-discovery
 adrs:
@@ -15,7 +15,7 @@ parallel_with: ["[[A24.l4]]"]
 tags:
   - type/lane
   - sprint/a24
-  - status/in-progress
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/pipeline
@@ -70,9 +70,9 @@ Outros").
 
 ## Resultado do blast radius (preencher no fechamento da lane)
 
-- [ ] Strip `tipo_lancamento` + `numero_conta_norm` → E3 byte-idêntico (tese "cirúrgico")
-- [ ] golden_diff E4/E5 pós-strip: zero `value_delta`
-- [ ] Qualquer delta = consumidor oculto = **blocker** (reabrir discovery)
+- [x] Strip `tipo_lancamento` + `numero_conta_norm` → E3 byte-idêntico (tese "cirúrgico") — PR #578
+- [x] golden_diff E4/E5 pós-strip: zero `value_delta` monetário (controle base×base isola `consolidation_date`/Monte Carlo)
+- [x] Nenhum consumidor oculto encontrado — gate G2 fechado (merge 2026-06-09, #578)
 
 ## Critério de aceite
 

@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F4 — evidencia_path: citação verificada E5→E6 no parecer"
 sprint: A24
 plan: PLAN-data-lineage
-status: in_progress
+status: shipped
 priority: P1
 branch_slug: dl-f4-evidencia-path
 adrs:
@@ -16,7 +16,7 @@ parallel_with: ["[[A24.l1]]"]
 tags:
   - type/lane
   - sprint/a24
-  - status/in-progress
+  - status/shipped
   - priority/p1
   - area/data-lineage
   - area/llm
