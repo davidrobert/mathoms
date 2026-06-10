@@ -107,6 +107,7 @@ from backend.app.models.protection import (
     VALID_PROTECTION_STATUSES,
     Protection,
 )
+from backend.app.models.refresh_token_family import RefreshTokenFamily
 from backend.app.models.report import Report
 from backend.app.models.report_publication import ReportPublication
 from backend.app.models.review_reason import ReviewReason
@@ -199,6 +200,7 @@ __all__ = [
     "EconomicAssumption",
     "WorkspaceEconomicAssumptionOverride",
     "MarketRate",
+    "RefreshTokenFamily",
     "Report",
     "Document",
     "DocumentStatus",

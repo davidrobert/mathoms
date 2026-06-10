@@ -2,23 +2,51 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Optional, Union
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.application.base import AccountLockedError, AuthenticationError
+from backend.app.core.config import settings
 from backend.app.core.security import create_access_token, verify_password
 from backend.app.models.user import User
-from backend.app.schemas.auth import LoginRequest, TokenResponse
+from backend.app.schemas.auth import LoginRequest, SessionTokens
 from backend.app.services.brute_force_lockout import (
     BruteForceLockoutService,
     LockoutState,
     NoOpBruteForceLockoutService,
     get_default_lockout_service,
 )
+from backend.app.services.refresh_token_service import issue_refresh_family
 
 LockoutService = Union[BruteForceLockoutService, NoOpBruteForceLockoutService]
+
+
+def access_token_ttl() -> Optional[timedelta]:
+    """ADR-170: 15min com refresh flow on; None = default 24h (ADR-057 legado)."""
+    if settings.AUTH_REFRESH_FLOW:
+        return timedelta(minutes=settings.AUTH_REFRESH_ACCESS_TTL_MINUTES)
+    return None
+
+
+async def issue_session_tokens(user: User, *, db: AsyncSession) -> SessionTokens:
+    """Access JWT + (flag on) família de refresh nova. Comita a família."""
+    token = create_access_token(
+        subject=user.id,
+        expires_delta=access_token_ttl(),
+        token_version=user.token_version,
+    )
+    if not settings.AUTH_REFRESH_FLOW:
+        return SessionTokens(access_token=token)
+    cookie_value, expires_at = await issue_refresh_family(
+        db, user.id, token_version=user.token_version
+    )
+    await db.commit()
+    return SessionTokens(
+        access_token=token, refresh_cookie=cookie_value, refresh_expires_at=expires_at
+    )
 
 
 def _raise_locked(state: LockoutState) -> None:
@@ -47,8 +75,8 @@ async def login_user(
     *,
     db: AsyncSession,
     lockout: Optional[LockoutService] = None,
-) -> TokenResponse:
-    """Login com proteção brute-force (7B.13)."""
+) -> SessionTokens:
+    """Login com proteção brute-force (7B.13) + refresh family (ADR-170)."""
     if lockout is None:
         lockout = get_default_lockout_service()
     pre = lockout.check_locked(body.email)
@@ -56,5 +84,4 @@ async def login_user(
         _raise_locked(pre)
     user = await _authenticate_or_raise(db, body.email, body.password, lockout)
     lockout.record_success(body.email)
-    token = create_access_token(subject=user.id, token_version=user.token_version)
-    return TokenResponse(access_token=token)
+    return await issue_session_tokens(user, db=db)

@@ -36,6 +36,18 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24h
     ALGORITHM: str = "HS256"
 
+    # ADR-170 (W3-T03) — refresh flow. Default off até frontend mergear +
+    # 1 release estável; quando off, comportamento ADR-057 legado (access 24h,
+    # sem cookie) fica intacto. Env: MATHOMS_AUTH_REFRESH_FLOW.
+    AUTH_REFRESH_FLOW: bool = False
+    AUTH_REFRESH_ACCESS_TTL_MINUTES: int = 15
+    AUTH_REFRESH_TTL_DAYS: int = 7  # sliding por rotação
+    AUTH_REFRESH_ABSOLUTE_CAP_DAYS: int = 30  # teto via created_at (emenda ADR-170)
+    AUTH_REFRESH_GRACE_WINDOW_S: int = 60  # anti-falso-positivo de reuse (2 tabs)
+    # Secure por config explícita, nunca por request.scheme — TLS termina no
+    # Traefik e o backend vê http interno. Override False só em dev local.
+    AUTH_COOKIE_SECURE: bool = True
+
     # 7B.13 — brute-force lockout em /auth/login. Cooldown escalonado por
     # e-mail; contador em Redis (ADR-111). Override via env para tuning.
     BRUTE_FORCE_THRESHOLD: int = 5
