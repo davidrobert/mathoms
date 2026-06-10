@@ -10,11 +10,11 @@ aliases: ["SPRINTS-active", "sprints-active"]
 >
 > **Fonte de verdade da sprint corrente:** o campo `sprint_status` no frontmatter de cada `docs/sprint/<X>/_README.md`. Valores: `current` (única) · `candidate` (próxima) · `paused` (escopo aberto, ceu prioridade — múltiplas permitidas) · `done` (encerrada). Validado por `python3 dev/build_doc_index.py --check` — falha se houver 2+ MOCs com `current` ou status fora do vocabulário. Ao virar a sprint, edite os `_README.md` envolvidos **antes** de regenerar. Transições típicas: `current → done` (escopo entregue) · `candidate → current` (promoção); transições com débito conhecido: `current → paused` ou `candidate → paused` ([[ADR-234]]).
 
-## Sprint atual
+## Sprint recém-fechada
 
-### A24 — Data Lineage: extração limpa + walking skeleton (`current` 2026-06-09)
+### A24 — Data Lineage: extração limpa + walking skeleton (`done` 2026-06-10)
 
-**Promovida em 2026-06-09, sucedendo A23 (`done` — Ondas 0–1 / contrato aditivo, 7 lanes em `main`).** A **fase de RISCO** do plano [[PLAN-data-lineage]]: de-leak da extração ([[ADR-280]] — toca goldens E2/E3/E4 + dedup [[ADR-246]]/[[ADR-271]]) + walking skeleton do lineage ([[ADR-279]]) + `evidencia_path` E5→E6 (∥). Recortada em sprint própria (product-manager 2026-06-09) para isolar o perfil de risco da fundação aditiva já estável.
+**Fechada em 2026-06-10 — 6 lanes em `main` (#578/#580/#585/#586/#588/#590), G3 atingido, KR2 4/6, zero rebaseline de valor, G-f validado pelo owner.** Promovida em 2026-06-09, sucedendo A23 (`done` — Ondas 0–1 / contrato aditivo, 7 lanes em `main`). A **fase de RISCO** do plano [[PLAN-data-lineage]]: de-leak da extração ([[ADR-280]] — toca goldens E2/E3/E4 + dedup [[ADR-246]]/[[ADR-271]]) + walking skeleton do lineage ([[ADR-279]]) + `evidencia_path` E5→E6 (∥). Recortada em sprint própria (product-manager 2026-06-09) para isolar o perfil de risco da fundação aditiva já estável.
 
 - **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) (§"Blockers da F2 (gate G2)").
 - **Sprint:** [sprint/A24/_README.md](../sprint/A24/_README.md). **Prompt:** [agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md](../agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md).
@@ -23,9 +23,9 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint candidate (próxima)
 
-### A25 — Data Lineage: reverso + produto N1/N2 + debug LLM (`candidate`, downstream de A24)
+### A25 — Data Lineage: reverso + produto N1/N2 + debug LLM (`candidate`, **pronta para promover** — A24 fechou)
 
-**Fast-follow de A24.** F5 (lineage reverso) + F6 (produto N1/N2 drill-down "por que esse número?") + F7 (substrato de debug LLM + eval de injeção, KR1 ≥85% / KR3 ≤6). Perfil distinto (UI cliente + LLM eval). Abre quando A24 fechar (G3 verde).
+**Fast-follow de A24.** Inclui requisitos herdados: flip `warn→strict` do `evidencia_path` (requisito de done) + cutover K4→E4 ([[A23.l4]] M2). F5 (lineage reverso) + F6 (produto N1/N2 drill-down "por que esse número?") + F7 (substrato de debug LLM + eval de injeção, KR1 ≥85% / KR3 ≤6). Perfil distinto (UI cliente + LLM eval). Abre quando A24 fechar (G3 verde).
 
 - **Sprint:** [sprint/A25/_README.md](../sprint/A25/_README.md) · **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md).
 

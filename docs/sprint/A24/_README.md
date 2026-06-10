@@ -3,14 +3,15 @@ id: MOC-sprint-a24
 type: moc
 title: "Sprint A24 — Data Lineage: extração limpa + walking skeleton"
 aliases: ["A24", "Sprint A24"]
-sprint_status: current
+sprint_status: done
 date: "2026-06-09"
 theme: "data-lineage"
 ---
 
 # Sprint A24 — Data Lineage: extração limpa + walking skeleton
 
-> **Status:** `current` — promovida em 2026-06-09, sucedendo [[MOC-sprint-a23]]
+> **Status:** `done` — fechada em 2026-06-10 (G3 atingido, KR2 4/6, G-f validado
+> pelo owner). Promovida em 2026-06-09, sucedendo [[MOC-sprint-a23]]
 > (`done`, Ondas 0–1 entregues). Esta é a **fase de RISCO** do plano
 > [[PLAN-data-lineage]]: o de-leak da extração (toca goldens E2/E3/E4 + dedup
 > [[ADR-246]]/[[ADR-271]]) e o walking skeleton do lineage. Recortada em sprint própria
@@ -92,5 +93,16 @@ Prompt de orquestração:
 
 ## KRs da janela
 
-- **KR2 1/6** — patrimônio líquido com lineage fim-a-fim + `check_lineage_sum` verde (atingido em G3).
+- **KR2 1/6** — patrimônio líquido com lineage fim-a-fim + `check_lineage_sum` verde (atingido em G3). **Superado: KR2 4/6** (l6 adicionou reserva/despesa/total investido).
 - Processo: tempo de localização "número errado → função" cai de E0→E5 manual para 1 comando CLI.
+
+## G-f — dogfood real (executado 2026-06-10, validado pelo owner)
+
+Experimento isolado sobre o workspace real: recompute E3→E4→E5 dos mesmos
+artefatos E2/baseline com código pré-A24 (`a2efb418`) vs pós-A24 (`main`),
+mesma config e data, zero escrita no DB (InMemoryArtifactStore + leitura via
+vault). Resultado: **2.769 campos idênticos, 0 `value_delta` monetário** fora
+de `if_monte_carlo.caminho_p*` (provado ruído de RNG — pré×pré diverge nos
+mesmos 120 campos) e de `snapshot_at` (timestamp); única estrutura nova é o
+`_lineage` (feature da A24). De-leak confirmado cirúrgico também no dado real.
+Relatório local (PII): `_scratch/gf_report_isolado.md` (gitignored).
