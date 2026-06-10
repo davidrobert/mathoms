@@ -104,7 +104,7 @@ jobs:
           path: .venv
           # Mesma key dos jobs de ci.yml — reusa cache populado pelo
           # último PR mergeado. Hit típico em main-smoke noturno.
-          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v4
+          key: venv-${{ runner.os }}-py313-${{ hashFiles('requirements.in', 'backend/requirements.in') }}-v5
           restore-keys: |
             venv-${{ runner.os }}-py313-
 
