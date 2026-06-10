@@ -1,6 +1,50 @@
 {
   "_lineage": {
     "fields": {
+      "fluxo_caixa.despesa_total": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesas_por_categoria.nao_identificado",
+            "stage": "E5"
+          }
+        ],
+        "label": "Despesa total do período",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-137",
+          "ref": "pipeline.domain.services.fluxo_caixa_enricher:FluxoCaixaEnricher.enrich"
+        },
+        "signals": {
+          "k4_coverage": "partial"
+        },
+        "transform": "soma das despesas por categoria",
+        "value": "1500.00"
+      },
+      "investimentos.total": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "investimentos.tabela_classes[Imóveis Investimento].valor",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "investimentos.tabela_classes[Renda Fixa].valor",
+            "stage": "E5"
+          }
+        ],
+        "label": "Total investido",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-193",
+          "ref": "pipeline.domain.services.investimentos_classes_analyzer:InvestimentosClassesAnalyzer.analyze"
+        },
+        "transform": "soma das classes de ativo da carteira",
+        "value": "680000.00"
+      },
       "patrimonio.bruto": {
         "edge_type": "aggregation",
         "inputs": [
@@ -66,6 +110,29 @@
         },
         "transform": "bruto − dividas",
         "value": "580000.00"
+      },
+      "reserva_emergencia.total_liquida": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.caixa_moeda_estrangeira",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.investimentos_alex",
+            "stage": "E5"
+          }
+        ],
+        "label": "Reserva de emergência — total líquido",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-218",
+          "ref": "pipeline.domain.services.reserva_emergencia_calculator:EmergencyReserveCalculator.calculate"
+        },
+        "transform": "investimentos líquidos por membro + caixa em moeda estrangeira",
+        "value": "130000.00"
       }
     },
     "lineage_version": "1.0"
