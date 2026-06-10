@@ -649,6 +649,8 @@
 | MOC-sprint-a21 | moc |  |  | Sprint A21 — Launch Trust: número confiável + gates de F3/LGPD abertos | `sprint/A21/_README.md` |
 | MOC-sprint-a22 | moc |  |  | Sprint A22 — Launch Trust: Parecer defensável (F3) | `sprint/A22/_README.md` |
 | MOC-sprint-a23 | moc |  |  | Sprint A23 — Data Lineage backbone (walking skeleton) | `sprint/A23/_README.md` |
+| MOC-sprint-a24 | moc |  |  | Sprint A24 — Data Lineage: extração limpa + walking skeleton | `sprint/A24/_README.md` |
+| MOC-sprint-a25 | moc |  |  | Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM | `sprint/A25/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |

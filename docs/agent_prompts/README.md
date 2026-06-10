@@ -41,6 +41,7 @@ Prompts reusáveis para sessões em que **um agente orquestrador** coordena espe
 |---|---|---|
 | [`_TEMPLATE_orchestrator.md`](_TEMPLATE_orchestrator.md) | Template genérico para qualquer feature multi-especialista | ativo |
 | [`orchestrator_a17_a18_a19.md`](orchestrator_a17_a18_a19.md) | Roadmap A17 (informes anuais) → A18 (CRLV + apólices + FIPE) → A19 (card S_PROTECAO 4º pilar AUVP) | ativo (2026-05-21) |
+| [`orchestrator_a24_f2f3.md`](orchestrator_a24_f2f3.md) | A24 Data Lineage · F2 (de-leak da extração) + F3 (walking skeleton) + F4 (evidencia_path ∥) — fase de risco; pré-revisado (F2-B/F2-DB) | ativo (2026-06-09) |
 
 **Convenção:** instâncias do template viram `orchestrator_<scope>.md` em `docs/agent_prompts/`. Quando o escopo é entregue (todas as ADRs flippadas `Decidido`), arquivar em [`archive/`](archive/) com data: `git mv orchestrator_<scope>.md archive/orchestrator_<scope>-YYYY-MM-DD.md`.
 
