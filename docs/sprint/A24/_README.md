@@ -75,8 +75,19 @@ A24:  F2-discovery(G2) ──► F2-deleak-account-norm ──► F3-skeleton-pa
 
 ## Estado atual
 
-Lanes criadas **sob demanda**; `dl-f2-discovery` é o **primeiro gate** (dimensiona blast
-radius + endurece substrato antes de qualquer rebaseline). Prompt de orquestração:
+Lanes criadas em 2026-06-09 (co-design `senior-cto` + `data-engineer` p/ F2;
+`prompt-engineer` + `data-engineer` p/ F4 — decisões registradas em cada lane):
+
+| Lane | Slug | Status | Dep |
+|---|---|---|---|
+| [[A24.l1]] | `dl-f2-discovery` (gate G2 + substrato F2-DB5/6/7) | in_progress | — |
+| [[A24.l4]] | `dl-f4-evidencia-path` (∥ independente) | in_progress | — |
+| [[A24.l2]] | `dl-f2-deleak-account-norm` | blocked | l1 |
+| [[A24.l3]] | `dl-f2-deleak-tipo-lancamento` | blocked | l1 |
+| [[A24.l5]] | `dl-f3-skeleton-patrimonio` (G3) | blocked | l2+l3 |
+| [[A24.l6]] | `dl-f3-skeleton-resto` | blocked | l5 |
+
+Prompt de orquestração:
 [agent_prompts/orchestrator_a24_f2f3.md](../../agent_prompts/orchestrator_a24_f2f3.md).
 
 ## KRs da janela

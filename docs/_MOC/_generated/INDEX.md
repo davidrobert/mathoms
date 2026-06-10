@@ -579,6 +579,12 @@
 | A23.l6 | lane | in_progress | A23 | Data Lineage F1 — amount decimal ao lado de valor (B5) | `sprint/A23/lanes/A23-l6-amount-decimal.md` |
 | A23.l7 | lane | in_progress | A23 | Data Lineage F1 — gate de pureza de extração (ADR-280) | `sprint/A23/lanes/A23-l7-extract-check.md` |
 | A23.l8 | lane | in_progress | A23 | Data Lineage F1 — runbook de migrations + FK DB (G-e) | `sprint/A23/lanes/A23-l8-migration-runbook.md` |
+| A24.l1 | lane | in_progress | A24 | Data Lineage F2 — discovery do de-leak + substrato de rebaseline endurecido | `sprint/A24/lanes/A24-l1-f2-discovery.md` |
+| A24.l2 | lane | blocked | A24 | Data Lineage F2 — de-leak numero_conta_norm (extração emite raw) | `sprint/A24/lanes/A24-l2-deleak-account-norm.md` |
+| A24.l3 | lane | blocked | A24 | Data Lineage F2 — de-leak tipo_lancamento (delete do output + contrato) | `sprint/A24/lanes/A24-l3-deleak-tipo-lancamento.md` |
+| A24.l4 | lane | in_progress | A24 | Data Lineage F4 — evidencia_path: citação verificada E5→E6 no parecer | `sprint/A24/lanes/A24-l4-evidencia-path.md` |
+| A24.l5 | lane | blocked | A24 | Data Lineage F3 — walking skeleton: _lineage no patrimônio líquido | `sprint/A24/lanes/A24-l5-skeleton-patrimonio.md` |
+| A24.l6 | lane | blocked | A24 | Data Lineage F3 — skeleton resto: reserva, despesa, total investido | `sprint/A24/lanes/A24-l6-skeleton-resto.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
