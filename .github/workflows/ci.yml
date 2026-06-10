@@ -238,6 +238,11 @@ jobs:
         # `ruff check .` explícito removido (ADR-210 §camada 2): pre-commit
         # já roda `ruff` e `ruff-format` como hooks. Reduz duplicação de
         # ~3-5s por PR sem perder cobertura.
+        # SKIP lineage-refs: o hook importa pipeline/ de verdade (numpy etc.)
+        # e o env deste job é só lint; o gate roda com venv completo no job
+        # de pipeline (step "Lineage rule_refs", ci.yml §pipeline-tests).
+        env:
+          SKIP: lineage-refs
         run: pre-commit run --all-files
 
       - name: code style baseline regression
