@@ -9,17 +9,19 @@
 #   - model_id pinado LITERAL (sem alias "latest") — drift de modelo é mudança
 #     de baseline e exige PR explícito neste arquivo.
 #   - temperature 0.0.
-#   - FOLLOW-UP: pipeline/llm/litellm_client.py não expõe `seed`; até lá a
-#     estabilidade é medida por trials_agreement (N=3 trials/caso). Não
-#     bloqueia a lane (decisão travada A25.l4 §6).
+#   - seed pinado (best-effort): LLMService.call expõe `seed` desde PR #606;
+#     provider sem suporte (ex.: Anthropic) descarta via litellm.drop_params.
+#     trials_agreement (N=3 trials/caso) permanece como métrica observada de
+#     estabilidade — seed não garante determinismo bit-a-bit em todo provider.
 #
 # Custo (decisão travada A25.l4 §8): cap duro US$ 5.00/run agregado; soft
 # US$ 0.10/call (log warning). Telemetria: logger mathoms.llm.lineage_eval +
 # artefato JSON por caso no CI.
 
-version: "1.0"
+version: "1.1"
 model_id: "anthropic/claude-sonnet-4-20250514"
 temperature: 0.0
+seed: 281
 max_tokens: 1024
 max_tool_iterations: 6
 trials_per_case: 3

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import MISSING, dataclass, field
 from pathlib import Path
 
 import yaml
@@ -40,14 +40,16 @@ class LineageDebugConfig:
     usd_cap_run: float  # gasto estimado de API LLM (rate USD), não money de domínio (ADR-090)
     usd_cap_call_soft: float  # idem — soft cap por call (rate USD)
     system_prompt: str
+    seed: int | None = None  # best-effort (provider sem suporte descarta via drop_params)
 
 
 def load_lineage_debug_config(path: Path | None = None) -> LineageDebugConfig:
     raw = yaml.safe_load((path or _DEFAULT_CONFIG_PATH).read_text(encoding="utf-8"))
-    try:
-        return LineageDebugConfig(**{f: raw[f] for f in LineageDebugConfig.__dataclass_fields__})
-    except KeyError as exc:
-        raise ValueError(f"lineage_debug.yaml sem campo obrigatório: {exc}") from exc
+    fields = LineageDebugConfig.__dataclass_fields__
+    missing = [n for n, f in fields.items() if f.default is MISSING and n not in raw]
+    if missing:
+        raise ValueError(f"lineage_debug.yaml sem campo obrigatório: {missing}")
+    return LineageDebugConfig(**{n: raw[n] for n in fields if n in raw})
 
 
 @dataclass
@@ -142,6 +144,7 @@ def _next_step(
             max_tokens=config.max_tokens,
             temperature=config.temperature,
             stage="lineage-debug",
+            seed=config.seed,
         )
     except LLMValidationError as exc:
         outcome.parse_failures += 1

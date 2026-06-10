@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
+import yaml
 
 from pipeline.artifact_store import InMemoryArtifactStore
 from pipeline.domain.lineage_registry import LINEAGE_RULE_REFS
@@ -137,9 +138,11 @@ class _ScriptedLLM:
     def __init__(self, script: list) -> None:
         self._script = list(script)
         self.calls = 0
+        self.kwargs_seen: list[dict] = []
 
     def call(self, **kwargs):
         self.calls += 1
+        self.kwargs_seen.append(kwargs)
         item = self._script.pop(0)
         if isinstance(item, Exception):
             raise item
@@ -182,6 +185,31 @@ def test_config_pins_model_literal_and_temperature_zero(config):
     assert config.trials_per_case == 3
     assert config.accuracy_floor == 0.85
     assert config.usd_cap_run == 5.0
+    assert config.seed == 281
+
+
+def test_config_seed_is_optional_for_backward_compat(tmp_path):
+    """YAML sem ``seed`` (formato v1.0) carrega com seed=None — não quebra override antigo."""
+    from pipeline.llm.lineage_debug import _DEFAULT_CONFIG_PATH
+
+    raw = yaml.safe_load(_DEFAULT_CONFIG_PATH.read_text(encoding="utf-8"))
+    del raw["seed"]
+    legacy = tmp_path / "lineage_debug.yaml"
+    legacy.write_text(yaml.safe_dump(raw), encoding="utf-8")
+    assert load_lineage_debug_config(legacy).seed is None
+
+
+def test_localize_passes_pinned_seed_to_llm_service(dogfood_e5, config):
+    """Determinismo (ADR-281): o seed do YAML chega em TODA chamada do harness."""
+    llm = _ScriptedLLM([_localize_step((E5, KEY, "patrimonio.bruto"))])
+    localize(
+        complaint="número errado",
+        entry_field="patrimonio.liquido",
+        tools=_tools_for(dogfood_e5),
+        llm_service=llm,
+        config=config,
+    )
+    assert llm.kwargs_seen and all(k["seed"] == 281 for k in llm.kwargs_seen)
 
 
 def test_localize_oracle_hits_target(dogfood_e5, config):

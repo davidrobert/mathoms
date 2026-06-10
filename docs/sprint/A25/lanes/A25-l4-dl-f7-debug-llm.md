@@ -53,8 +53,9 @@ KR1 `localization_accuracy@node ≥ 85%` · KR3 `tool_iterations_p95 ≤ 6`.
 4. **Harness:** `localize(tree_b, tree_a) → LocalizationResult` — 1 chamada Anthropic
    + loop de tools capado a 6 (reusa a mecânica do tool-loop do parecer). Structured
    output Pydantic; parse-fail 2× = miss, não crash. N=3 trials/caso + flag
-   `trials_agreement` (mitiga ausência de `seed` no `litellm_client` — **follow-up**:
-   expor `seed` via extra_body). Model pinado **literal**
+   `trials_agreement` (follow-up `seed` **entregue**: PR #606 expôs `seed` em
+   `LLMService.call`; harness pina `seed: 281` no YAML — best-effort, provider
+   sem suporte descarta via `drop_params`). Model pinado **literal**
    `anthropic/claude-sonnet-4-20250514` (snapshot datado, já é o pin de prod) em YAML
    próprio; temp=0.
 5. **Eval roda em NIGHTLY (G-g), não em PR.** PR roda só os goldens determinísticos
@@ -79,7 +80,8 @@ KR1 `localization_accuracy@node ≥ 85%` · KR3 `tool_iterations_p95 ≤ 6`.
 - Suite 24+5 casos; KR1 ≥85% no nightly com baseline commitada; KR3 p95 ≤6.
 - `check_lineage_eval_gate` + Issue-sentinela funcionando (testado com Issue fake).
 - Cap de custo + skip sem key; zero PII nas fixtures.
-- Follow-up `seed` no `litellm_client` registrado.
+- Follow-up `seed` no `litellm_client` registrado — **entregue** (PR #606 client +
+  plumbing no harness/YAML).
 
 ## Owner
 
