@@ -34,7 +34,6 @@ THIN_ROUTERS = frozenset(
     {
         "audit.py",
         "auth.py",
-        "categories.py",
         "config.py",
         "dashboard.py",
         "documents.py",
