@@ -120,9 +120,11 @@ SCHEMA_BY_STAGE: dict[str, str] = {
 """Stage → schema file mapping para validação pós-write (ADR-212 PR3).
 
 Stages sem entrada aqui não são validados (passthrough). Modo strict/warn
-herdado de ``pipeline.json::schema_validation`` ou env
-``MATHOMS_PIPELINE_SCHEMA_MODE``. Em ``strict`` + payload inválido,
-``write()`` propaga ``ValidationError`` do jsonschema.
+por schema: env ``MATHOMS_PIPELINE_SCHEMA_MODE`` (global) >
+``pipeline.json::schema_validation.mode_overrides[<schema>]`` (flip
+per-schema, ADR-284) > ``mode`` global. Em ``strict`` + payload inválido,
+``write()`` propaga ``ValidationError`` do jsonschema (enforcement real
+desde ADR-284 — antes o bool de ``validate_dict`` era descartado).
 """
 
 
@@ -326,15 +328,33 @@ class DBArtifactStore:
             )
         )
 
-    @staticmethod
-    def _validate_schema(stage: str, key: str, data: dict) -> None:
-        # ADR-212 PR3 — strict propaga jsonschema.ValidationError; warn loga.
+    def _validation_context(self, stage: str, key: str) -> dict:
+        return {
+            "workspace_id": self._workspace_id,
+            "pipeline_run_id": self._pipeline_run_id,
+            "stage": stage,
+            "artifact_key": key,
+        }
+
+    def _validate_schema(self, stage: str, key: str, data: dict) -> None:
+        # ADR-212 PR3 + ADR-284 — warn loga drift com workspace_id; strict
+        # propaga ValidationError e o write não acontece (antes o bool era
+        # descartado e strict era no-op).
         schema_name = SCHEMA_BY_STAGE.get(stage)
         if schema_name is None:
             return
         from scripts.pipeline_common import validate_dict
 
-        validate_dict(data, schema_name, source=f"{stage}/{key}")
+        valid = validate_dict(
+            data, schema_name, source=f"{stage}/{key}", context=self._validation_context(stage, key)
+        )
+        if not valid:
+            import jsonschema
+
+            raise jsonschema.ValidationError(
+                f"payload de {stage}/{key} viola {schema_name} em modo strict — "
+                "paths em drift no logger mathoms.pipeline.schema_validation"
+            )
 
     def delete(self, stage: str, key: str) -> None:
         row = self._get(stage, key)

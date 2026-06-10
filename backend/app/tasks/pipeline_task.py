@@ -472,6 +472,13 @@ def _is_cancelled(run_id: str) -> bool:
         return run is not None and run.status == PipelineRunStatus.cancelled
 
 
+def _is_schema_validation_error(exc: Exception) -> bool:
+    """Erro de contrato é determinístico — nunca retryable (ADR-284); sem a guarda, stages com ``retryable_errors`` casariam substring do texto e queimariam backoff."""
+    import jsonschema
+
+    return isinstance(exc, jsonschema.ValidationError)
+
+
 def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
     """Execute a stage with configurable retry on transient errors.
 
@@ -488,7 +495,7 @@ def _run_stage_with_retry(ctx, stage_name: str, _run_stage):
         except Exception as exc:
             last_tb = traceback.format_exc()
             error_msg = str(exc)[:2000]
-            if retry_cfg.should_retry(attempts, error_msg):
+            if not _is_schema_validation_error(exc) and retry_cfg.should_retry(attempts, error_msg):
                 attempts += 1
                 time.sleep(retry_cfg.delay_for_attempt(attempts - 1))
                 continue
