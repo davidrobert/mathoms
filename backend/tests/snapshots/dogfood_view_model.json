@@ -1,4 +1,75 @@
 {
+  "_lineage": {
+    "fields": {
+      "patrimonio.bruto": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.composicao[Caixa e Moeda Estrangeira].valor",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.composicao[Imóveis de Renda].valor",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.composicao[Investimentos Alex].valor",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.composicao[Investimentos ].valor",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.composicao[Residência].valor",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.composicao[Veículos].valor",
+            "stage": "E5"
+          }
+        ],
+        "label": "Patrimônio bruto",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-145",
+          "ref": "pipeline.domain.services.patrimonio_calculator:PatrimonioCalculator.calculate"
+        },
+        "transform": "soma das categorias da composição",
+        "value": "730000.00"
+      },
+      "patrimonio.liquido": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.bruto",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.dividas",
+            "stage": "E5"
+          }
+        ],
+        "label": "Patrimônio líquido",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-145",
+          "ref": "pipeline.domain.services.patrimonio_calculator:PatrimonioCalculator.calculate"
+        },
+        "transform": "bruto − dividas",
+        "value": "580000.00"
+      }
+    },
+    "lineage_version": "1.0"
+  },
   "_report_lineage": {
     "consumed_document_count": 3,
     "consumed_document_ids": [
