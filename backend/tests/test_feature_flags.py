@@ -18,6 +18,12 @@ async def test_get_flags_returns_defaults_for_new_workspace(db):
     assert flags == feature_flags_service.DEFAULTS
 
 
+def test_report_provenance_defaults_off():
+    """A25.l5 (ADR-279): rollout do selo/popover é opt-in por workspace —
+    default True aqui seria cutover global silencioso."""
+    assert feature_flags_service.DEFAULTS["report_provenance_enabled"] is False
+
+
 @pytest.mark.asyncio
 async def test_set_flag_persists_override(db):
     ws = await factories.make_workspace(db)
