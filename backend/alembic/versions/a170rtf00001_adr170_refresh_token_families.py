@@ -1,16 +1,7 @@
-"""ADR-170 (W3-T03): refresh_token_families — refresh rotativo + family revocation.
-
-Revision ID: a170rtf00001
-Revises: f2a3b4c5d6e7
-Create Date: 2026-06-09
-
-Tabela aditiva, sem alterar ``users``. Linhas são sessões efêmeras
-(regeneráveis por re-login): rollback = revert do PR + ``alembic
-downgrade -1`` — usuários com refresh em voo caem para re-login.
-Persiste apenas hashes sha256 (nunca o secret); secret é independente
-de SECRET_KEY/Fernet, então rotação de chaves do app não invalida
-sessões refresh.
-"""
+"""ADR-170 (W3-T03): refresh_token_families — tabela aditiva de sessões
+efêmeras (regeneráveis por re-login; rollback = revert + downgrade -1),
+só hashes sha256, secret independente de SECRET_KEY/Fernet.
+Revision ID: a170rtf00001 · Revises: f2a3b4c5d6e7 · Create Date: 2026-06-09."""
 
 from typing import Sequence, Union
 

@@ -1,9 +1,6 @@
-"""Refresh token rotativo com family-based revocation (ADR-170 · W3-T03).
-
-Wire format do cookie: ``<family_id>.<secret-256bit-urlsafe>``. Persiste
-apenas ``sha256(secret)``. O secret é independente de SECRET_KEY/Fernet —
-rotação de chaves criptográficas do app não invalida sessões refresh.
-"""
+"""Refresh token rotativo com family revocation (ADR-170 · W3-T03) — wire
+``<family_id>.<secret>``, persiste só sha256; secret independente de
+SECRET_KEY/Fernet (rotação de chaves do app não invalida sessões)."""
 
 from __future__ import annotations
 
@@ -65,10 +62,8 @@ def parse_refresh_cookie(cookie_value: str) -> Optional[tuple[str, str]]:
 async def issue_refresh_family(
     db: AsyncSession, user_id: str, *, token_version: int = 0
 ) -> tuple[str, datetime]:
-    """Cria família nova (1 por login) e retorna ``(cookie_value, expires_at)``.
-
-    Caller comita. Faz purge oportunístico das famílias mortas do usuário.
-    """
+    """Cria família nova (1 por login), com purge oportunístico das famílias
+    mortas do usuário; retorna ``(cookie_value, expires_at)``. Caller comita."""
     await _purge_stale_families(db, user_id)
     secret = secrets.token_urlsafe(32)
     now = _utcnow()
@@ -85,10 +80,8 @@ async def issue_refresh_family(
 
 
 async def rotate_refresh_token(db: AsyncSession, cookie_value: str) -> Optional[RefreshRotation]:
-    """Rotaciona o secret da família. None = inválido/expirado/revogado/reuse.
-
-    Caller comita (inclusive no caso de reuse — o revoke precisa persistir).
-    """
+    """Rotaciona o secret da família; None = inválido/expirado/revogado/reuse.
+    Caller comita (inclusive no reuse — o revoke precisa persistir)."""
     parsed = parse_refresh_cookie(cookie_value)
     if parsed is None:
         return None

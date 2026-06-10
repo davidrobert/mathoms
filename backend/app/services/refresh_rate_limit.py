@@ -1,9 +1,6 @@
-"""Rate limit em /auth/refresh — por família e por IP (ADR-170 · W3-T03).
-
-Mesmo padrão Redis fail-open de ``register_rate_limit`` (ADR-111: contador
-em Redis, nunca em memória). Por família detecta replay/loop bugado antes
-da reuse-detection; por IP defende contra enumeration de family_id.
-"""
+"""Rate limit em /auth/refresh por família (detecta replay/loop antes da
+reuse-detection) e por IP (anti-enumeration de family_id) — mesmo padrão
+Redis fail-open de ``register_rate_limit`` (ADR-111, nunca em memória)."""
 
 from __future__ import annotations
 

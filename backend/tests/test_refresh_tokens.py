@@ -1,8 +1,6 @@
-"""ADR-170 (W3-T03) — refresh tokens: rotação, reuse, grace window, logout, flag.
-
-Cookie path é ``/api/v1/auth`` — testes usam o prefixo canônico (o alias
-legado ``/api/auth`` não recebe o cookie por design).
-"""
+"""ADR-170 (W3-T03) — refresh tokens: rotação, reuse, grace window, logout,
+flag. Cookie path é ``/api/v1/auth`` — testes usam o prefixo canônico (o
+alias legado ``/api/auth`` não recebe o cookie por design)."""
 
 from datetime import datetime, timedelta, timezone
 

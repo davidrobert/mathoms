@@ -15,12 +15,9 @@ def _utcnow() -> datetime:
 
 
 class RefreshTokenFamily(Base):
-    """Uma linha por login (família). Persiste apenas hashes sha256 do secret.
-
-    Reuse de secret consumido fora da grace window revoga a família inteira.
-    ``expires_at`` desliza +7d por rotação com teto absoluto de 30d a partir
-    de ``created_at`` (ADR-170, emenda W3-T03).
-    """
+    """Uma linha por login (família); persiste apenas hashes sha256 do secret.
+    Reuse fora da grace window revoga a família inteira; ``expires_at`` desliza
+    +7d por rotação com teto absoluto de 30d (ADR-170, emenda W3-T03)."""
 
     __tablename__ = "refresh_token_families"
 
