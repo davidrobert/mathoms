@@ -56,12 +56,20 @@ def _resolve(payload: dict, field: str) -> dict:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--field", default="patrimonio.liquido", help="dot-path no payload E5")
+    parser.add_argument(
+        "--format",
+        choices=("human", "llm"),
+        default="human",
+        help="human = árvore indentada (ADR-279); llm = linearizado anomaly-first (ADR-281 F7)",
+    )
     args = parser.parse_args(argv)
 
     from pipeline.domain.services.lineage_render import render_lineage_tree
+    from pipeline.domain.services.lineage_render_llm import render_lineage_linear
 
     node = _resolve(_run_dogfood(), args.field)
-    print(render_lineage_tree(node))
+    renderer = render_lineage_linear if args.format == "llm" else render_lineage_tree
+    print(renderer(node))
     return 1 if node["node_type"] == "dangling" else 0
 
 

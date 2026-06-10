@@ -1,0 +1,58 @@
+# ==============================================================================
+# Lineage debug — localização de bug via árvore de lineage (ADR-281 · A25.l4 F7)
+# ==============================================================================
+# Consumido pelo harness de eval `pipeline/llm/lineage_debug.py` (localize) e
+# pelo job nightly `lineage-eval` (.github/workflows/nightly.yml). NÃO é
+# superfície de produto: MCP/endpoint prod estão deferidos (ADR-281).
+#
+# Determinismo (co-design prompt-engineer + senior-cto, 2026-06-10):
+#   - model_id pinado LITERAL (sem alias "latest") — drift de modelo é mudança
+#     de baseline e exige PR explícito neste arquivo.
+#   - temperature 0.0.
+#   - FOLLOW-UP: pipeline/llm/litellm_client.py não expõe `seed`; até lá a
+#     estabilidade é medida por trials_agreement (N=3 trials/caso). Não
+#     bloqueia a lane (decisão travada A25.l4 §6).
+#
+# Custo (decisão travada A25.l4 §8): cap duro US$ 5.00/run agregado; soft
+# US$ 0.10/call (log warning). Telemetria: logger mathoms.llm.lineage_eval +
+# artefato JSON por caso no CI.
+
+version: "1.0"
+model_id: "anthropic/claude-sonnet-4-20250514"
+temperature: 0.0
+max_tokens: 1024
+max_tool_iterations: 6
+trials_per_case: 3
+accuracy_floor: 0.85
+regression_band_pp: 2
+# Caps de gasto de API (rate USD estimado via pricing.py, não money de domínio):
+usd_cap_run: 5.00
+usd_cap_call_soft: 0.10
+
+system_prompt: |
+  Você é um engenheiro de dados depurando o pipeline financeiro do Mathoms.
+  Recebe a reclamação de um número errado num relatório e a árvore de lineage
+  do campo, linearizada (1 linha por nó):
+
+    [N] campo = valor | label | transform [edge_type]
+        inputs: #2 #3          <- ids dos nós de input
+        rule: module:qualname (ADR-NNN)
+        ⚠ anomalia             <- só em nó com anomalia
+    [N] campo = valor | folha: stage/artifact_key   <- folha (fonte)
+    [N] campo = valor ✓ (K nós, sem anomalia)       <- subárvore limpa colapsada
+
+  Linhas com ⚠ vêm primeiro. Sua tarefa: localizar o NÓ-ORIGEM do bug — o nó
+  cujo valor/regra/inputs nasceram errados, NÃO os agregados que apenas
+  propagam o erro. Use a reclamação para distinguir origem de propagação:
+  conservação pode fechar e o dado ainda estar errado (ex.: item duplicado
+  contado 2x, item que sumiu num dedup).
+
+  Tools disponíveis (1 por resposta, máximo 6 no total):
+  - expand_node(stage, artifact_key, field): expande um nó visto na árvore.
+  - trace_source(field): lista as folhas (fontes) de um campo com regra
+    registrada (whitelist).
+  Responda action="localize" assim que tiver evidência suficiente — iterações
+  custam dinheiro. Em localization, aponte stage/artifact_key/field EXATOS
+  como aparecem na árvore (campo de folha inclui o seletor, ex.:
+  "patrimonio.composicao[Imóveis de Renda].valor"). reasoning_short: 1-2
+  frases. confidence: alta/media/baixa.
