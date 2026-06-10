@@ -117,10 +117,15 @@ def _no_lineage(stage: str, key: str, field: str, value: Any) -> LineageNode:
     return {**_base_node("no_lineage", stage, key, field), "value": value}
 
 
+# Sinais de qualidade do entry propagados ao nó quando presentes (F7,
+# ADR-281): o renderer LLM trata needs_review/range_check como anomalia.
+_QUALITY_SIGNAL_KEYS = ("needs_review", "range_check", "signals")
+
+
 def _lineage_node(
     stage: str, key: str, field: str, entry: dict, children: list[LineageNode]
 ) -> LineageNode:
-    return {
+    node = {
         **_base_node("lineage", stage, key, field),
         "value": entry.get("value"),
         "label": entry.get("label"),
@@ -129,3 +134,7 @@ def _lineage_node(
         "rule_ref": entry.get("rule_ref"),
         "inputs": children,
     }
+    for signal_key in _QUALITY_SIGNAL_KEYS:
+        if signal_key in entry:
+            node[signal_key] = entry[signal_key]
+    return node
