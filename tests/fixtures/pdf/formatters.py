@@ -100,3 +100,13 @@ __all__ = [
     "MONTH_BR",
     "MONTH_EN",
 ]
+
+
+def draw_text_lines(c, y: float, lines: list[str], *, step_cm: float = 0.45) -> float:
+    """Desenha linhas de texto sequenciais (uma por linha lógica) e retorna o y final."""
+    from reportlab.lib.units import cm
+
+    for line in lines:
+        c.drawString(2 * cm, y, line)
+        y -= step_cm * cm
+    return y
