@@ -4,10 +4,10 @@ type: plan
 title: "Data Lineage fim-a-fim + Fonte plugável"
 status: in_progress
 created_at: 2026-06-02
-last_review: 2026-06-02
+last_review: 2026-06-09
 sprint_origem: A23
-sprint_atual: A23
-sprints_envolvidas: [A23]
+sprint_atual: A24
+sprints_envolvidas: [A23, A24, A25]
 paused_at: null
 pause_reason: null
 adrs_canonical:
@@ -36,13 +36,17 @@ tags:
 > emenda [[ADR-146]]. Plano `in_progress`; lanes de implementação (F1+) conformam,
 > não reabrem.
 >
-> **Onda 1 (F1, contrato aditivo) COMPLETA (7/7):** `A23.l2` substrato de golden ✅
-> (#552, fecha DE-005) · `A23.l3` `dl-f1-natural-key` B3/B4 ✅ (#553) · `A23.l5`
+> **A23 FECHADA — Onda 1 (F1, contrato aditivo) COMPLETA (7/7):** `A23.l2` substrato de
+> golden ✅ (#552, fecha DE-005) · `A23.l3` `dl-f1-natural-key` B3/B4 ✅ (#553) · `A23.l5`
 > `dl-f1-data-source` ✅ (#564) · `A23.l6` `dl-f1-amount-decimal` B5 ✅ (#567) · `A23.l7`
 > `dl-f1-extract-check` ✅ (#568) · `A23.l8` `dl-f1-migration-runbook` + FK DB ✅ (#569).
-> Prompts de orquestração arquivados em [agent_prompts/archive/](../../agent_prompts/archive/).
-> Dívida D6 da l3: decisão [[ADR-282]], implementação em [[A23.l4]] (slices 1–3 em A23 ✅;
-> cutover/M2 em A24) — pré-requisito do passo 2 de B4.
+> Dívida D6 da l3: [[ADR-282]], impl. em [[A23.l4]] (slices 1–3 ✅; cutover/M2 → A25).
+>
+> **Sprint corrente: [[MOC-sprint-a24]]** (fase de RISCO — F2 de-leak + F3 walking skeleton
+> + F4 evidencia_path). Recorte de sprint (product-manager, 2026-06-09): A23={F0,F1} fechada,
+> **A24={F2,F3,F4}**, **A25={F5,F6,F7}** — isola o perfil de risco do de-leak da fundação
+> aditiva já estável. A F2 tem revisão própria (senior-cto + data-engineer, 2026-06-09) →
+> §"Blockers da F2 (gate G2)". Prompt: [agent_prompts/orchestrator_a24_f2f3.md](../../agent_prompts/orchestrator_a24_f2f3.md).
 
 ## Context
 
@@ -303,7 +307,40 @@ W6-T01).
 
 ---
 
-## Ondas, lanes e dependências (sprint A23)
+## Blockers da F2 — gate obrigatório no G2 (A24)
+
+Revisão multi-agente `senior-cto` (boundary) + `data-engineer` (contrato/dados),
+2026-06-09, sob corretude/completude/consistência/precisão. **Achado central:** o
+de-leak é **cirúrgico, não sistêmico** — `tipo_lancamento` é dead-downstream (zero
+consumidores em `pipeline/`/`backend/`; só parser-interno + testes; `e2_natural_key.py:59`
+confirma que não alimenta a K4) e `numero_conta_norm` já é re-normalizado em todo
+consumidor (`document.from_e2_dict:158`/`account_resolver.py:63` fallback;
+`bank_accounts` lê norm da config, não do E2). **O risco real está na rede de
+rebaseline, não em mover os campos.** Espinha sólida; correções no substrato antes do
+1º rebaseline.
+
+| # | Blocker | Eixo | Resolução decidida |
+|---|---------|------|--------------------|
+| **F2-DB7** | Invariantes de conservação (`test_e5_conservation_invariants`) cobrem só totais; mover tx entre categorias mantém total e passa (Goodhart) | completude | +invariante `Σ despesas[cat] == despesa_total` e idem receita (cents int, tolerância zero) — par com `golden_diff` valor-a-valor fecha o buraco |
+| **F2-DB6** | `ManifestEntry` (`golden_diff.py`) não carrega justificativa que G-c exige | precisão | estender com `reason` (file:line) + `adr` obrigatórios; `check_manifest` rejeita sem eles |
+| **F2-DB5** | `check_golden_rebaseline_isolation.py` **não existe** | completude | criar (golden + código de produção no mesmo commit → falha) — entrega do discovery, antes do 1º rebaseline |
+| **F2-DB1** | Remover `tipo_lancamento`/`numero_conta_norm` quebra o contrato fechado [[ADR-283]] (`additionalProperties:false`; `test_schema_validation.py:195`) | consistência | tratar schema E2 como contrato versionado — remover do schema na MESMA PR + migrar o teste; mudança esperada (manifesto + runbook) |
+| **F2-B4** | Gate `check_extract_no_domain_imports` **não cobre** `account_normalization` (dívida declarada na linha 17 do check) | enforcement | ampliar `_is_forbidden` com `account_normalization` na PR de `deleak-account-norm` (senão a regressão volta silenciosa) |
+| **F2-B5** | Gate pega IMPORT, não regex inline (`tipo_lancamento` nunca dispara) | enforcement | NÃO construir gate de regex (alto falso-positivo); enforcement por **ausência-de-campo** (`test_e2_contract_no_methodological_fields`) |
+| **F2-B6** | "skeleton (patrimônio)" não isola os vazamentos (são caminho fluxo de caixa, não patrimônio) → slice1 ≈ residual | corretude | **re-fatiar por VAZAMENTO:** `deleak-account-norm` (no-op de golden) + `deleak-tipo-lancamento` (delete/contrato), ortogonais e não-colidentes |
+| **F2-DB2** | Reshape do hint `{value,origin,confidence}` é breaking em 3 superfícies (Pydantic + serializer + E4) | escopo | **DEFERIDO** — F2 só anexa `origin=llm_extract` flat (mín. aditivo, [[ADR-242]] §D4); objeto aninhado é follow-up. `category_hint` sai da fila de de-leak |
+| **F2-B8** | G3 "run 2× byte-idêntico" é inverificável sobre payload E2 bruto (campos removidos mudam) com LLM no caminho | precisão | byte-identidade sobre o **view-model snapshot** (zero-float, determinístico), não payload E2; reafirmar que reclassificar hint NÃO dispara 2ª passada LLM |
+| **F2-DB8** | Fixtures sintéticas não exercitam `tipo_lancamento`/`categoria_sugerida` → diff de golden ~vazio = **falso conforto** | precisão | blast radius do discovery roda sobre **dogfood (dado real, local/gitignored, G-f)**; esperado **zero `value_delta`** (de-leak cirúrgico) — qualquer delta = consumidor oculto, blocker |
+
+> **B4 da F2 (`numero_conta_norm`)** é consistente com [[ADR-226]] — o partial unique de
+> `bank_accounts` é sobre o norm da config (`BankAccountRecord`), não do artefato E2.
+> Emitir só `numero_conta` raw é seguro porque a normalização canônica roda em todo
+> keying (5 call-sites mapeados). Manter o fallback `d.get("numero_conta_norm") or
+> normalize(...)` durante a janela (defesa em profundidade).
+
+---
+
+## Ondas, lanes e dependências (sprints A23–A25)
 
 Sequência base `F0 → F1 → F2 → F3` é serial (Q2). F4 paraleliza. F5/F6/F7 fast-follow.
 
@@ -313,13 +350,13 @@ F0(G0) ──► F1(G1) ──► F2-discovery(G2) ──► F2-slice1 ──►
                                           F2-residual ─────┘ (paralelo a F3)
 ```
 
-| Onda | Lane | P | Gate |
-|------|------|---|------|
-| **0 — Gate** | `A23.l1` F0 — 4 ADR `Proposto` ([[ADR-278]]/[[ADR-279]]/[[ADR-280]]/[[ADR-281]]) + emenda [[ADR-146]]. Resolve B1–B3,B5–B8 textualmente; B4 como estratégia (executa em F1) | P0 | **G0:** 4 ADR mergeados; B1–B3,B5–B8 com decisão textual + file:line; B4 com estratégia de migração; [[ADR-280]] (critério de corte) fechado |
-| **1 — Contrato aditivo + substrato de golden** | **`dl-f1-golden-substrate`** (P0 · [[A23.l2]] ✅ #552 — `dev/golden_diff.py` valor-a-valor cents int + snapshot do view-model de `/reports/[id]/data` + invariantes de conservação; **fecha DE-005**; ANTES de F2 tocar golden) · `dl-f1-natural-key` (K4+moeda+direction+hash_version, B3/B4 · [[A23.l3]] ✅ #553; D6/3º-hash → [[A23.l4]] ([[ADR-282]]) que **gateia o passo 2** — unificar identidade de `TransactionOverride` no v2 antes do flip de consumo E4, senão orfaniza override em massa) · `dl-f1-data-source` ✅ #564 · `dl-f1-amount-decimal` (B5) ✅ #567 · `dl-f1-extract-check` ✅ #568 · `dl-f1-migration-runbook` (G-e) ✅ #569 — **onda completa**; prompts em [agent_prompts/archive/](../../agent_prompts/archive/) | P0/P1 | **G1:** goldens E3/E4/E5 **+ snapshot do view-model + invariantes de conservação** verdes **sem rebaseline** (aditividade) ✅ |
-| **2 — De-leak ∥ E5→E6** | `dl-f2-discovery` (gate, blast radius numérico) · `dl-f2-deleak-slice1` (+ **disciplina de rebaseline**: commit isolado + manifesto justificado + 2º revisor) · `dl-f2-deleak-residual` (∥) · `dl-f4-evidencia-path` (∥, independe de F2/F3) | P0/P1 | **G2:** discovery fechado; slice1 rebaselineado verde **com manifesto justificado por valor**; diff de dogfood (dado real, local) sem surpresa |
-| **3 — Backbone (skeleton)** | `dl-f3-skeleton-patrimonio` (walking skeleton) · `dl-f3-skeleton-resto` (reserva/despesa/total investido) | P0/P1 | **G3:** ver abaixo |
-| **4 — Fast-follow** | `dl-f5-reverso` · `dl-f6-produto-n1n2` · `dl-f7-debug-llm` | P1 | pós-G3 |
+| Onda | Sprint | Lane | P | Gate |
+|------|--------|------|---|------|
+| **0 — Gate** | A23 ✅ | `A23.l1` F0 — 4 ADR `Proposto` ([[ADR-278]]/[[ADR-279]]/[[ADR-280]]/[[ADR-281]]) + emenda [[ADR-146]]. Resolve B1–B3,B5–B8 textualmente; B4 como estratégia (executa em F1) | P0 | **G0:** 4 ADR mergeados; B1–B3,B5–B8 com decisão textual + file:line; B4 com estratégia de migração; [[ADR-280]] (critério de corte) fechado |
+| **1 — Contrato aditivo + substrato de golden** | A23 ✅ | **`dl-f1-golden-substrate`** (P0 · [[A23.l2]] ✅ #552 — `dev/golden_diff.py` valor-a-valor cents int + snapshot do view-model de `/reports/[id]/data` + invariantes de conservação; **fecha DE-005**; ANTES de F2 tocar golden) · `dl-f1-natural-key` (K4+moeda+direction+hash_version, B3/B4 · [[A23.l3]] ✅ #553; D6/3º-hash → [[A23.l4]] ([[ADR-282]]) que **gateia o passo 2** — unificar identidade de `TransactionOverride` no v2 antes do flip de consumo E4, senão orfaniza override em massa) · `dl-f1-data-source` ✅ #564 · `dl-f1-amount-decimal` (B5) ✅ #567 · `dl-f1-extract-check` ✅ #568 · `dl-f1-migration-runbook` (G-e) ✅ #569 — **onda completa**; prompts em [agent_prompts/archive/](../../agent_prompts/archive/) | P0/P1 | **G1:** goldens E3/E4/E5 **+ snapshot do view-model + invariantes de conservação** verdes **sem rebaseline** (aditividade) ✅ |
+| **2 — De-leak ∥ E5→E6** | **A24** 🚧 | `dl-f2-discovery` (gate — blast radius **sobre dogfood**, não fixtures, F2-DB8; endurece substrato F2-DB5/6/7 ANTES do 1º rebaseline) · **re-fatiado por vazamento** (F2-B6): `dl-f2-deleak-account-norm` (no-op de golden + amplia gate com `account_normalization`, F2-B4) · `dl-f2-deleak-tipo-lancamento` (delete do contrato fechado [[ADR-283]] + enforcement por **ausência-de-campo**, F2-DB1/B5) · `dl-f4-evidencia-path` (∥, independe de F2/F3). `category_hint` **fora da fila** (só rótulo `origin` flat, F2-DB2) | P0/P1 | **G2:** discovery fechado + substrato endurecido (invariante por categoria F2-DB7, manifesto com `reason`/`adr` F2-DB6, `check_golden_rebaseline_isolation` F2-DB5); rebaseline isolado + manifesto justificado por valor; diff de dogfood **zero `value_delta`** (de-leak é cirúrgico) |
+| **3 — Backbone (skeleton)** | **A24** 🚧 | `dl-f3-skeleton-patrimonio` (walking skeleton) · `dl-f3-skeleton-resto` (reserva/despesa/total investido) | P0/P1 | **G3:** ver abaixo (byte-identidade sobre **view-model snapshot**, não payload E2 — F2-B8) |
+| **4 — Fast-follow** | A25 | `dl-f5-reverso` · `dl-f6-produto-n1n2` · `dl-f7-debug-llm` | P1 | pós-G3 |
 
 **Walking skeleton (G3, critério de "pronto" da 1ª janela):** equipe localiza a
 origem do **patrimônio líquido** *sem abrir um único arquivo de stage*, via 1
@@ -361,7 +398,7 @@ secundário e flaky — visual snapshot **não** é gate de F2/F3 (não pega R$ 
 |---|---|---|---|
 | **G-a** | Lane `dl-f1-golden-substrate`: `dev/golden_diff.py` (valor-a-valor, cents int, classifica `unchanged\|moved\|value_delta\|new\|removed`, comenta no PR) + snapshot do **view-model** de `/reports/[id]/data` (sintético, determinístico) + asserção de completude `monetary_fields ⊆ snapshot`. **Fecha DE-005.** | P0 | Onda 1, ANTES de F2 |
 | **G-b** | Invariantes de conservação por balde (`patrimônio == Σ7categorias − dívidas`, `fluxo == Σreceitas − Σdespesas`, + `check_lineage_sum`) — a "segunda testemunha" que quebra sozinha se o rebaseline cimentar valor errado. | P0 | estende `test_e5_golden_execution` |
-| **G-c** | Disciplina de rebaseline: `check_golden_rebaseline_isolation.py` (golden + código de produção no mesmo commit → falha) + manifesto justificando cada `value_delta` (file:line + ADR) + label `golden-rebaseline` + 2º revisor/CODEOWNERS. Goodhart-safe (justifica *por valor*). | P0 | critério de `dl-f2-deleak-slice1` + PR template |
+| **G-c** | Disciplina de rebaseline (peças a CRIAR no discovery da F2, antes do 1º rebaseline — F2-DB5/6/7): `check_golden_rebaseline_isolation.py` (golden + código de produção no mesmo commit → falha) + `ManifestEntry` estendido com `reason` (file:line) + `adr` obrigatórios + invariante de conservação **por categoria** (Goodhart-safe — mover tx entre categorias não passa silencioso) + label `golden-rebaseline` + 2º revisor/CODEOWNERS. | P0 | criado em `dl-f2-discovery`; aplicado em `dl-f2-deleak-*` + PR template |
 | **G-d** | Snapshot textual de número no render (Vitest, todo PR): ~6 KPIs hero + 6 agregados KR2 com assertion de valor formatado pt-BR (pega "certo no pipeline, errado na tela"). | P0 | F3/F6 |
 | **G-e** | Runbook `data_lineage_migrations.md` (4 migrations: `data_source`, `data_source_id`, `artifact_lineage_edge`, 2-fases `amount`/`natural_key`) com janela PITR + rollback por fase + asserção `CONCURRENTLY`/`autocommit_block` no `test_alembic_guardrails`. | P0 | F1 |
 | **G-f** | Processo de dogfood: diff de números do relatório do workspace **real** do founder antes/depois de PRs F2/F3 — **local/gitignored** (PII real fora do git/CI). Step no SMOKE_TEST_HUMAN, não pytest. | P1 (processo) | Sprint goal A23 |
@@ -384,11 +421,14 @@ nightly porque é onde o relatório end-to-end regride sem o gate barato percebe
   `tests/test_e{3,4,5}_golden_execution.py` **+ snapshot do view-model + invariantes**
   **verdes sem re-baseline** (só vale se `natural_key` entrar nullable onde produtor
   não emite K4, B4).
-- **F2**: rebaseline E2/E3 em commit separado **via `golden_diff` + manifesto
-  justificado por valor + label `golden-rebaseline` + 2º revisor** (G-c;
-  `check_golden_rebaseline_isolation` falha se golden + código no mesmo commit);
-  discovery de consumidores com blast radius numérico antes de mover; **diff de
-  dogfood (dado real, local/gitignored) sem surpresa antes do merge** (G-f).
+- **F2** (re-fatiado por vazamento, §"Blockers da F2"): substrato endurecido no
+  discovery **antes do 1º rebaseline** — `check_golden_rebaseline_isolation` (a criar,
+  F2-DB5), `ManifestEntry` com `reason`/`adr` (F2-DB6), invariante por categoria
+  (F2-DB7); rebaseline em commit separado **via `golden_diff` + manifesto justificado
+  por valor + label `golden-rebaseline` + 2º revisor** (G-c); blast radius do discovery
+  **sobre dogfood, não fixtures** (F2-DB8) — esperado **zero `value_delta`** (de-leak
+  cirúrgico); remoção de campo conforma ao contrato fechado [[ADR-283]] na mesma PR
+  (F2-DB1) + enforcement por ausência-de-campo (F2-B5).
 - **F3**: gate `_lineage.value == artifact[field]` em cents int; `check_lineage_sum`
   incl. caso incremental (B8) + tx colapsada por dedup; mesmo run 2× → `_lineage`
   byte-idêntico **(estendido ao snapshot do view-model)**; snapshot textual dos

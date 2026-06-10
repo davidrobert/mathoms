@@ -12,15 +12,22 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint atual
 
-### A23 — Data Lineage backbone (walking skeleton) (`current` 2026-06-02)
+### A24 — Data Lineage: extração limpa + walking skeleton (`current` 2026-06-09)
 
-**Promovida em 2026-06-02, sucedendo A22 (`paused`).** Janela 1 do plano [[PLAN-data-lineage]] — ataca a confiabilidade *rastreável* do número (gênero do bug R$ 811k): backbone de lineage fim-a-fim legível por LLM, acoplado a fonte plugável (`SourceAdapter`/`SourceRef`) e extração limpa. **Gate F0** abre 4 ADR `Proposto` ([[ADR-278]]–[[ADR-281]]) + emenda [[ADR-146]] (resolve B1–B8); **nenhuma lane de código abre antes**. Entrega Ondas 0–3 (skeleton patrimônio líquido); F5/F6/F7 ficam para A24.
+**Promovida em 2026-06-09, sucedendo A23 (`done` — Ondas 0–1 / contrato aditivo, 7 lanes em `main`).** A **fase de RISCO** do plano [[PLAN-data-lineage]]: de-leak da extração ([[ADR-280]] — toca goldens E2/E3/E4 + dedup [[ADR-246]]/[[ADR-271]]) + walking skeleton do lineage ([[ADR-279]]) + `evidencia_path` E5→E6 (∥). Recortada em sprint própria (product-manager 2026-06-09) para isolar o perfil de risco da fundação aditiva já estável.
 
-- **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md).
-- **Sprint:** [sprint/A23/_README.md](../sprint/A23/_README.md) (§Estado atual — tabela de lanes).
-- **Progresso:** Onda 0 ✅ (`A23.l1` gate F0). **Onda 1 (contrato aditivo) COMPLETA** (7/7): `A23.l2` golden (#552), `A23.l3` `natural_key` (#553), `A23.l5` `data_source` (#564), `A23.l6` `amount` decimal B5 (#567), `A23.l7` extract-check ADR-280 (#568), `A23.l8` runbook + FK DB (#569); +`A23.l4` D6 slices 1–3 (#556/#562/#563, slices 4–5 cutover → A24). Prompts arquivados em [agent_prompts/archive/](../agent_prompts/archive/). Ondas 2–3 (de-leak + backbone) abrem agora.
+- **Plano dono:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) (§"Blockers da F2 (gate G2)").
+- **Sprint:** [sprint/A24/_README.md](../sprint/A24/_README.md). **Prompt:** [agent_prompts/orchestrator_a24_f2f3.md](../agent_prompts/orchestrator_a24_f2f3.md).
+- **Sprint goal:** G3 / **KR2 1/6** — patrimônio líquido localizável por 1 comando CLI, `check_lineage_sum` verde.
+- **Revisão de risco (senior-cto + data-engineer, 2026-06-09):** de-leak é cirúrgico (`tipo_lancamento` dead-downstream; `numero_conta_norm` já re-normalizado). Risco real na rede de rebaseline → substrato endurecido (invariante por categoria, manifesto `reason`/`adr`, `check_golden_rebaseline_isolation`) ANTES do 1º rebaseline. Discovery é o 1º gate.
 
 ## Sprint candidate (próxima)
+
+### A25 — Data Lineage: reverso + produto N1/N2 + debug LLM (`candidate`, downstream de A24)
+
+**Fast-follow de A24.** F5 (lineage reverso) + F6 (produto N1/N2 drill-down "por que esse número?") + F7 (substrato de debug LLM + eval de injeção, KR1 ≥85% / KR3 ≤6). Perfil distinto (UI cliente + LLM eval). Abre quando A24 fechar (G3 verde).
+
+- **Sprint:** [sprint/A25/_README.md](../sprint/A25/_README.md) · **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md).
 
 ### A18 — Comprovantes de Bem + Apólices + FIPE refresh (`candidate` 2026-05-21)
 

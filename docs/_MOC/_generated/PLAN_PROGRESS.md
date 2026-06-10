@@ -25,7 +25,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ### PLAN-data-lineage — Data Lineage fim-a-fim + Fonte plugável
 
-- Status: `in_progress` · Sprint atual: A23
+- Status: `in_progress` · Sprint atual: A24
 - Sprints envolvidas: A23
 - Lanes: 3 done · 5 in_progress · 0 open · 0 blocked
 - ADRs canônicas: [[ADR-278]], [[ADR-279]], [[ADR-280]], [[ADR-281]]

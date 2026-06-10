@@ -3,16 +3,21 @@ id: MOC-sprint-a23
 type: moc
 title: "Sprint A23 — Data Lineage backbone (walking skeleton)"
 aliases: ["A23", "Sprint A23"]
-sprint_status: current
+sprint_status: done
 date: "2026-06-02"
 theme: "data-lineage"
 ---
 
-# Sprint A23 — Data Lineage backbone (walking skeleton)
+# Sprint A23 — Data Lineage: contrato aditivo + fonte plugável
 
-> **Status:** `current` — promovida em 2026-06-02, sucedendo [[MOC-sprint-a22]]
-> (`paused` com débito). Janela 1 do plano [[PLAN-data-lineage]] (lineage
-> fim-a-fim + fonte plugável + extração limpa).
+> **Status:** `done` — A23 entregou as **Ondas 0–1** (gate F0 + contrato aditivo)
+> 100% em `main`: 7 lanes de contrato ([[A23.l1]]/[[A23.l2]]/[[A23.l3]]/[[A23.l5]]/
+> [[A23.l6]]/[[A23.l7]]/[[A23.l8]]) + [[A23.l4]] (D6) slices 1–3. Gates G0/G1 verdes
+> **sem rebaseline** (aditividade provada). Transição `current → done`; corrente passa
+> a [[MOC-sprint-a24]]. A fase de RISCO (F2 de-leak + F3 walking skeleton + F4
+> evidencia_path) foi recortada para uma sprint própria — ver [[MOC-sprint-a24]]
+> (decisão de corte: product-manager 2026-06-09, isola perfil de risco da fundação
+> aditiva já estável).
 >
 > **Plano dono:** [[PLAN-data-lineage]] ([plan/DATA_LINEAGE/_README.md](../../plan/DATA_LINEAGE/_README.md)).
 
@@ -26,17 +31,20 @@ patrimônio inflado — dedup; [[ADR-271]]/[[ADR-246]]/[[ADR-255]]). A A23 ataca
 reescrever downstream) e à **extração limpa** (de-leak de transformação que vaza
 nos parsers E2). O lineage é legível por LLM desde o dia 1 (bridge nó→código).
 
-A A23 entrega **apenas as Ondas 0–3 (MVP/skeleton)** — patrimônio líquido
-fim-a-fim. F5/F6/F7 (reverso, produto N1/N2, debug substrate completo) abrem
-A24.
+A A23 entregou **apenas as Ondas 0–1 (gate F0 + contrato aditivo)** — fundação
+golden-safe. As Ondas 2–3 (de-leak + walking skeleton) foram recortadas para
+[[MOC-sprint-a24]] (fase de risco isolada); F5/F6/F7 (reverso, produto N1/N2, debug
+substrate completo) para [[MOC-sprint-a25]].
 
-## Sprint goal
+## Sprint goal (entregue)
 
-> Equipe localiza a origem do **patrimônio líquido** *sem abrir um único arquivo
-> de stage*, via 1 comando CLI, num run canônico — com `check_lineage_sum`
-> provando `Σ amount[member_hashes] == value` (cents int) e o mesmo run 2×
-> produzindo `_lineage` byte-idêntico. Em paralelo, a fonte vira plugável
-> (contrato canônico aditivo) e a extração fica genuinamente pura.
+> **Contrato aditivo + fonte plugável prontos, golden-safe.** O artefato E2 vira
+> contrato canônico endurecido (`natural_key` v2, `amount` decimal, `direction`,
+> `source_ref`), a origem é plugável (`data_source`/`SourceRef` + FK DB), e o critério
+> de pureza de extração está travado por gate — tudo **sem rebaseline** (G1).
+>
+> O goal de localização do patrimônio líquido (G3 / walking skeleton) foi recortado
+> para [[MOC-sprint-a24]] (fase de risco).
 
 ## Gate F0 (bloqueante absoluto)
 
@@ -60,17 +68,11 @@ F0(G0) ──► F1(G1) ──► F2-discovery(G2) ──► F2-slice1 ──►
   (B3/B4), `data_source`+`SourceRef`, `amount` decimal (B5),
   `check_extract_no_domain_imports`, runbook de migrations (G-e). Gate G1: goldens
   E3/E4/E5 **+ snapshot do view-model + invariantes** verdes **sem rebaseline**.
-- **Onda 2 — De-leak (gargalo) ∥ E5→E6:** discovery dimensionado (gate) → de-leak
-  slice1 (com **disciplina de rebaseline**: commit isolado + manifesto justificado
-  por valor + 2º revisor; G-c) → residual (∥). `evidencia_path`
-  condicional-obrigatório (F4, paraleliza). Antes do merge: **diff de dogfood**
-  (dado real do founder, local/gitignored; G-f).
-- **Onda 3 — Backbone (walking skeleton):** `_lineage` no `patrimonio_calculator`
-  + `lineage_registry` + `LineageResolver` + CLI + gates `check_lineage_refs`/
-  `check_lineage_sum`. Depois os outros 3 calculadores.
+- **Onda 2 — De-leak (gargalo) ∥ E5→E6:** → **recortada para [[MOC-sprint-a24]]**
+  (fase de risco isolada).
+- **Onda 3 — Backbone (walking skeleton):** → **recortada para [[MOC-sprint-a24]]**.
 
-Lanes F1+ são criadas **sob demanda quando o F0 mergear** (gate serial). Detalhe
-de prioridade/ondas em [[PLAN-data-lineage]] §Ondas.
+Detalhe de prioridade/ondas + mapeamento onda→sprint em [[PLAN-data-lineage]] §Ondas.
 
 ## Estado atual (atualizado 2026-06-09)
 
