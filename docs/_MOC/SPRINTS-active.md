@@ -10,6 +10,27 @@ aliases: ["SPRINTS-active", "sprints-active"]
 >
 > **Fonte de verdade da sprint corrente:** o campo `sprint_status` no frontmatter de cada `docs/sprint/<X>/_README.md`. Valores: `current` (única) · `candidate` (próxima) · `paused` (escopo aberto, ceu prioridade — múltiplas permitidas) · `done` (encerrada). Validado por `python3 dev/build_doc_index.py --check` — falha se houver 2+ MOCs com `current` ou status fora do vocabulário. Ao virar a sprint, edite os `_README.md` envolvidos **antes** de regenerar. Transições típicas: `current → done` (escopo entregue) · `candidate → current` (promoção); transições com débito conhecido: `current → paused` ou `candidate → paused` ([[ADR-234]]).
 
+## Sprint corrente
+
+### A25 — Data Lineage: reverso + produto N1/N2 + debug LLM (`current` 2026-06-10)
+
+**Promovida em 2026-06-10, sucedendo A24 (`done` — G3, KR2 4/6, G-f validado).**
+Fast-follow do plano [[PLAN-data-lineage]] que **colhe o valor** do substrato: F5
+(query reversa via `artifact_lineage_edge`, hook pós-run, N=1) + F6 (1ª UI cliente —
+selo N1 + popover N2 "Como chegamos a esse número", régua §6.3) + F7 (debug LLM:
+renderer linearizado, `lineage_diff`, tools, eval de injeção — **KR1 ≥85% / KR3 p95
+≤6**, nightly G-g) + herdados: cutover override v2 ([[A23.l4]] slice 4 → flip dedup
+E4→v2 com ADR própria) e **decisão** do flip `warn→strict` do `evidencia_path`
+(requisito de done — gate <5% sobre ≥20 gerações; amostra insuficiente → carry-over
+documentado). Perfil distinto da A24: pouco risco de número, muito risco de UI/UX e
+eval LLM. Precedência de corte: **F7 > F6**.
+
+- **Sprint:** [sprint/A25/_README.md](../sprint/A25/_README.md) (7 lanes, co-design
+  registrado por lane em 2026-06-10) · **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md).
+- **Prompt:** [agent_prompts/orchestrator_a25_f5f6f7.md](../agent_prompts/orchestrator_a25_f5f6f7.md).
+- **Abrem já (∥):** l1 (cutover) + l3 (reverso) + l4 (debug LLM) + l5 (produto);
+  l2 após l1 (+ADR); l6 stretch após l2; l7 por último.
+
 ## Sprint recém-fechada
 
 ### A24 — Data Lineage: extração limpa + walking skeleton (`done` 2026-06-10)
@@ -22,12 +43,6 @@ aliases: ["SPRINTS-active", "sprints-active"]
 - **Revisão de risco (senior-cto + data-engineer, 2026-06-09):** de-leak é cirúrgico (`tipo_lancamento` dead-downstream; `numero_conta_norm` já re-normalizado). Risco real na rede de rebaseline → substrato endurecido (invariante por categoria, manifesto `reason`/`adr`, `check_golden_rebaseline_isolation`) ANTES do 1º rebaseline. Discovery é o 1º gate.
 
 ## Sprint candidate (próxima)
-
-### A25 — Data Lineage: reverso + produto N1/N2 + debug LLM (`candidate`, **pronta para promover** — A24 fechou)
-
-**Fast-follow de A24.** Inclui requisitos herdados: flip `warn→strict` do `evidencia_path` (requisito de done) + cutover K4→E4 ([[A23.l4]] M2). F5 (lineage reverso) + F6 (produto N1/N2 drill-down "por que esse número?") + F7 (substrato de debug LLM + eval de injeção, KR1 ≥85% / KR3 ≤6). Perfil distinto (UI cliente + LLM eval). Abre quando A24 fechar (G3 verde).
-
-- **Sprint:** [sprint/A25/_README.md](../sprint/A25/_README.md) · **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md).
 
 ### A18 — Comprovantes de Bem + Apólices + FIPE refresh (`candidate` 2026-05-21)
 

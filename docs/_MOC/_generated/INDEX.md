@@ -577,7 +577,7 @@
 | A23.l1 | lane | shipped | A23 | Data Lineage F0 — fechar 4 ADR Proposto + emenda ADR-146 (B1–B8) | `sprint/A23/lanes/A23-l1-data-lineage-f0-adr-gate.md` |
 | A23.l2 | lane | shipped | A23 | Data Lineage F1 — substrato de golden (diff tool + view-model snapshot + invariantes) | `sprint/A23/lanes/A23-l2-golden-substrate.md` |
 | A23.l3 | lane | shipped | A23 | Data Lineage F1 — K4 natural_key como campo de contrato E2 (B3/B4) | `sprint/A23/lanes/A23-l3-natural-key.md` |
-| A23.l4 | lane | in_progress | A23 | Data Lineage F1 — alinhar 3º hash (override) ao K4 v2 (D6) | `sprint/A23/lanes/A23-l4-override-hash-k4-parity.md` |
+| A23.l4 | lane | shipped | A23 | Data Lineage F1 — alinhar 3º hash (override) ao K4 v2 (D6) | `sprint/A23/lanes/A23-l4-override-hash-k4-parity.md` |
 | A23.l5 | lane | in_progress | A23 | Data Lineage F1 — fonte plugável (data_source + SourceRef) | `sprint/A23/lanes/A23-l5-data-source.md` |
 | A23.l6 | lane | in_progress | A23 | Data Lineage F1 — amount decimal ao lado de valor (B5) | `sprint/A23/lanes/A23-l6-amount-decimal.md` |
 | A23.l7 | lane | in_progress | A23 | Data Lineage F1 — gate de pureza de extração (ADR-280) | `sprint/A23/lanes/A23-l7-extract-check.md` |
@@ -589,6 +589,13 @@
 | A24.l5 | lane | shipped | A24 | Data Lineage F3 — walking skeleton: _lineage no patrimônio líquido | `sprint/A24/lanes/A24-l5-skeleton-patrimonio.md` |
 | A24.l6 | lane | shipped | A24 | Data Lineage F3 — skeleton resto: reserva, despesa, total investido | `sprint/A24/lanes/A24-l6-skeleton-resto.md` |
 | A24.l7 | lane | open | A24 | Schema strict flip — baseline → de-drift de vocabulário → flip E2 (ADR-284) | `sprint/A24/lanes/A24-l7-schema-strict-flip.md` |
+| A25.l1 | lane | open | A25 | Override v2 — cutover de leitura (A23.l4 slice 4) + gate M2 | `sprint/A25/lanes/A25-l1-a23l4-cutover-override.md` |
+| A25.l2 | lane | blocked | A25 | Flip do consumo E4 para identidade v2 (passo 2 da B4) | `sprint/A25/lanes/A25-l2-dedup-e4-flip-v2.md` |
+| A25.l3 | lane | open | A25 | Data Lineage F5 — edge table artifact_lineage_edge + query reversa | `sprint/A25/lanes/A25-l3-dl-f5-reverso.md` |
+| A25.l4 | lane | open | A25 | Data Lineage F7 — debug substrate LLM: renderer, lineage_diff, tools, eval | `sprint/A25/lanes/A25-l4-dl-f7-debug-llm.md` |
+| A25.l5 | lane | open | A25 | Data Lineage F6 — produto N1/N2: selo + popover 'Como chegamos a esse número' | `sprint/A25/lanes/A25-l5-dl-f6-produto-n1n2.md` |
+| A25.l6 | lane | blocked | A25 | KR2 6/6 — fluxo_liquido + endividamento.total_dividas + member_hashes reais | `sprint/A25/lanes/A25-l6-kr2-resto.md` |
+| A25.l7 | lane | planned | A25 | Decisão do flip warn→strict do evidencia_path (requisito de done da A25) | `sprint/A25/lanes/A25-l7-evidencia-strict-decision.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |

@@ -4,9 +4,9 @@ type: plan
 title: "Data Lineage fim-a-fim + Fonte plugável"
 status: in_progress
 created_at: 2026-06-02
-last_review: 2026-06-09
+last_review: 2026-06-10
 sprint_origem: A23
-sprint_atual: A24
+sprint_atual: A25
 sprints_envolvidas: [A23, A24, A25]
 paused_at: null
 pause_reason: null
@@ -42,11 +42,15 @@ tags:
 > `dl-f1-extract-check` ✅ (#568) · `A23.l8` `dl-f1-migration-runbook` + FK DB ✅ (#569).
 > Dívida D6 da l3: [[ADR-282]], impl. em [[A23.l4]] (slices 1–3 ✅; cutover/M2 → A25).
 >
-> **Sprint corrente: [[MOC-sprint-a24]]** (fase de RISCO — F2 de-leak + F3 walking skeleton
-> + F4 evidencia_path). Recorte de sprint (product-manager, 2026-06-09): A23={F0,F1} fechada,
-> **A24={F2,F3,F4}**, **A25={F5,F6,F7}** — isola o perfil de risco do de-leak da fundação
-> aditiva já estável. A F2 tem revisão própria (senior-cto + data-engineer, 2026-06-09) →
-> §"Blockers da F2 (gate G2)". Prompt: [agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md](../../agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md) (arquivado — F2+F3 shipped).
+> **A24 FECHADA (2026-06-10)** — G3 atingido, KR2 4/6, zero rebaseline de valor,
+> G-f validado pelo owner (de-leak cirúrgico confirmado no dado real). Prompt:
+> [agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md](../../agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md) (arquivado — F2+F3+F4 shipped).
+>
+> **Sprint corrente: [[MOC-sprint-a25]]** (fast-follow — F5 reverso + F6 produto N1/N2
+> + F7 debug LLM + herdados: cutover override v2 → flip dedup E4→v2 + decisão flip
+> strict do `evidencia_path`). Kickoff + co-design por lane em 2026-06-10; lista
+> canônica do KR2 fechada (§KRs). Prompt:
+> [agent_prompts/orchestrator_a25_f5f6f7.md](../../agent_prompts/orchestrator_a25_f5f6f7.md).
 
 ## Context
 
@@ -356,7 +360,7 @@ F0(G0) ──► F1(G1) ──► F2-discovery(G2) ──► F2-slice1 ──►
 | **1 — Contrato aditivo + substrato de golden** | A23 ✅ | **`dl-f1-golden-substrate`** (P0 · [[A23.l2]] ✅ #552 — `dev/golden_diff.py` valor-a-valor cents int + snapshot do view-model de `/reports/[id]/data` + invariantes de conservação; **fecha DE-005**; ANTES de F2 tocar golden) · `dl-f1-natural-key` (K4+moeda+direction+hash_version, B3/B4 · [[A23.l3]] ✅ #553; D6/3º-hash → [[A23.l4]] ([[ADR-282]]) que **gateia o passo 2** — unificar identidade de `TransactionOverride` no v2 antes do flip de consumo E4, senão orfaniza override em massa) · `dl-f1-data-source` ✅ #564 · `dl-f1-amount-decimal` (B5) ✅ #567 · `dl-f1-extract-check` ✅ #568 · `dl-f1-migration-runbook` (G-e) ✅ #569 — **onda completa**; prompts em [agent_prompts/archive/](../../agent_prompts/archive/) | P0/P1 | **G1:** goldens E3/E4/E5 **+ snapshot do view-model + invariantes de conservação** verdes **sem rebaseline** (aditividade) ✅ |
 | **2 — De-leak ∥ E5→E6** | **A24** ✅ | `dl-f2-discovery` (gate — blast radius **sobre dogfood**, não fixtures, F2-DB8; endurece substrato F2-DB5/6/7 ANTES do 1º rebaseline) · **re-fatiado por vazamento** (F2-B6): `dl-f2-deleak-account-norm` (no-op de golden + amplia gate com `account_normalization`, F2-B4) · `dl-f2-deleak-tipo-lancamento` (delete do contrato fechado [[ADR-283]] + enforcement por **ausência-de-campo**, F2-DB1/B5) · `dl-f4-evidencia-path` (∥, independe de F2/F3). `category_hint` **fora da fila** (só rótulo `origin` flat, F2-DB2) | P0/P1 | **G2:** discovery fechado + substrato endurecido (invariante por categoria F2-DB7, manifesto com `reason`/`adr` F2-DB6, `check_golden_rebaseline_isolation` F2-DB5); rebaseline isolado + manifesto justificado por valor; diff de dogfood **zero `value_delta`** (de-leak é cirúrgico) |
 | **3 — Backbone (skeleton)** | **A24** ✅ (l5 #588 G3 · l6 #590 — **KR2 4/6**; K4→E4 destrava member_hashes no cutover [[A23.l4]] M2/A25) | `dl-f3-skeleton-patrimonio` (walking skeleton) · `dl-f3-skeleton-resto` (reserva/despesa/total investido) | P0/P1 | **G3:** ver abaixo (byte-identidade sobre **view-model snapshot**, não payload E2 — F2-B8) |
-| **4 — Fast-follow** | A25 | `dl-f5-reverso` · `dl-f6-produto-n1n2` · `dl-f7-debug-llm` · cutover K4→E4 ([[A23.l4]] M2 — destrava `member_hashes` reais) · **flip `warn→strict` do `evidencia_path`** (requisito de fechamento da A25; gate: telemetria de ≥1 sprint com taxa de violação <5% — decisão owner 2026-06-10) | P1 | pós-G3 |
+| **4 — Fast-follow** | **A25** (current; lanes criadas 2026-06-10 com co-design) | [[A25.l3]] `dl-f5-reverso` (hook pós-run, teto run→doc) · [[A25.l5]] `dl-f6-produto-n1n2` (∥, independe da edge table) · [[A25.l4]] `dl-f7-debug-llm` (eval nightly) · [[A25.l1]] cutover override v2 (slice 4 da [[A23.l4]]; **M2 → carry-over pós-l2**, gate `v1_fallback`=0 por ≥1 sprint) → [[A25.l2]] flip dedup E4→v2 (**ADR Proposto antes de codar**; destrava `member_hashes` reais) → [[A25.l6]] KR2 6/6 (stretch) · [[A25.l7]] **decisão** flip `warn→strict` do `evidencia_path` (requisito de done; gate <5% sobre ≥20 gerações; amostra insuficiente → carry-over A26 documentado — decisão owner 2026-06-10) | P0/P1 | pós-G3 ✅ |
 
 **Walking skeleton (G3, critério de "pronto" da 1ª janela):** equipe localiza a
 origem do **patrimônio líquido** *sem abrir um único arquivo de stage*, via 1
@@ -383,11 +387,24 @@ com golden substrate + rebaseline manifestado.
 | # | Key Result | Baseline | Meta |
 |---|---|---|---|
 | **KR1** | `localization_accuracy@node` (suite de injeção de bug) | suite nasce em F7; proxy = 5 bugs históricos | **≥ 85%** (regressão >2% bloqueia) |
-| **KR2** | Agregados de decisão com lineage fim-a-fim | 0/6 (só `componentes_calculo`) | **6/6** + `check_lineage_sum` verde |
+| **KR2** | Agregados de decisão com lineage fim-a-fim | 4/6 pós-A24 | **6/6** + `check_lineage_sum` verde |
 | **KR3** | `tool_iterations_p95` p/ "número errado → função" | não-instrumentado; cravar tempo de arqueologia manual no kickoff | `tool_iterations_p95 ≤ 6`; inline ≤ 1.5k tokens |
 
+**Lista canônica dos 6 agregados do KR2** (kickoff A25, product-manager 2026-06-10 —
+patrimônio liquido+bruto contam como **1** agregado: mesmo `PatrimonioCalculator`,
+topologia 2 níveis intra-E5):
+
+| # | id | dot-path (payload real) | Decisão do cliente | Status |
+|---|---|---|---|---|
+| 1 | patrimônio | `patrimonio.liquido` (+`bruto`) | quanto tenho (net worth) | ✅ A24.l5 |
+| 2 | reserva | `reserva_emergencia.total_liquida` | tenho colchão | ✅ A24.l6 |
+| 3 | despesa | `fluxo_caixa.despesa_total` | quanto consumo | ✅ A24.l6 |
+| 4 | investido | `investimentos.total` | quanto trabalha por mim | ✅ A24.l6 |
+| 5 | fluxo | `fluxo_caixa.fluxo_liquido` | capacidade de poupança | A25.l6 |
+| 6 | dívidas | `endividamento.total_dividas` (⚠️ NÃO `dividas.total` — dot-path real) | quitar vs. investir | A25.l6 |
+
 KR mensurável na 1ª janela: **KR2 parcial (1/6 — patrimônio líquido)** + processo
-("tempo de localização cai de E0→E5 manual para 1 comando CLI").
+("tempo de localização cai de E0→E5 manual para 1 comando CLI"). Pós-A24: 4/6.
 
 ---
 
