@@ -54,8 +54,11 @@ def test_e1_output_includes_contas_array() -> None:
     assert len(result["contas"]) == 2
 
     by_member = {c["member_key"]: c for c in result["contas"]}
-    assert by_member["david"]["account_number_norm"] == "123456"
-    assert by_member["mariana"]["account_number_norm"] == "789012"
+    # A24.l2 (ADR-280): extração emite só raw; norm é re-derivado nos
+    # consumidores (config_parsers._make_account / investments_consolidator).
+    assert "account_number_norm" not in by_member["david"]
+    assert by_member["david"]["account_number_raw"] == "12345-6"
+    assert by_member["mariana"]["account_number_raw"] == "78901-2"
 
     # banco_membro legado preservado (colide em itau — bug latente, mas contas[] resolve)
     assert result["banco_membro"]["itau"] in {"david", "mariana"}

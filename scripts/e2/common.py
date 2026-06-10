@@ -371,13 +371,12 @@ def detect_member_from_card_name(nome_cartao: str) -> Optional[str]:
 
 
 def make_result_template(banco: str, tipo: str, moeda: str = "BRL") -> Dict[str, Any]:
-    """Create a standard E2 result dictionary (ADR-226: numero_conta_norm aditivo)."""
+    """Create a standard E2 result dictionary (ADR-280: extração emite numero_conta raw)."""
     return {
         "banco": banco,
         "tipo": tipo,
         "moeda": moeda,
         "numero_conta": None,
-        "numero_conta_norm": None,  # ADR-226 PR2 — digits-only canônico
         "agencia": None,  # branch/agency number (digits only)
         "tipo_conta": None,  # "corrente" | "poupanca" | "pj" | "investimento"
         "documento_titular": None,  # CPF or CNPJ of the account holder
@@ -388,12 +387,3 @@ def make_result_template(banco: str, tipo: str, moeda: str = "BRL") -> Dict[str,
         "transacoes": [],
         "notas": [],
     }
-
-
-def finalize_e2_result(result: Dict[str, Any]) -> Dict[str, Any]:
-    """Pós-processa dict E2 antes de gravar (ADR-226 PR2): popula `numero_conta_norm`."""
-    from pipeline.domain.services.account_normalization import normalize_account_number
-
-    if result.get("numero_conta_norm") is None and result.get("numero_conta") is not None:
-        result["numero_conta_norm"] = normalize_account_number(str(result["numero_conta"]))
-    return result

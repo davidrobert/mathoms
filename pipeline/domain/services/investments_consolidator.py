@@ -60,12 +60,19 @@ class InvestmentsConsolidatorConfig:
 
 
 def _parse_account_record(raw: dict) -> BankAccountRecord:
+    from pipeline.domain.services.account_normalization import normalize_account_number
+
+    raw_num = raw.get("account_number_raw")
+    # fallback da janela A24.l2 (ADR-280): members novos emitem só raw
+    norm = raw.get("account_number_norm") or normalize_account_number(
+        str(raw_num) if raw_num is not None else None
+    )
     return BankAccountRecord(
         member_key=str(raw.get("member_key") or ""),
         institution_code=str(raw.get("institution_code") or ""),
         account_type=str(raw.get("account_type") or ""),
-        account_number_norm=raw.get("account_number_norm"),
-        account_number_raw=raw.get("account_number_raw"),
+        account_number_norm=norm,
+        account_number_raw=raw_num,
         agency=raw.get("agency"),
     )
 

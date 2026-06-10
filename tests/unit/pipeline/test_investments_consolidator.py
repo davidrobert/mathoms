@@ -309,3 +309,45 @@ class TestLegacyDict:
         out = c.consolidate([]).to_legacy_dict()
 
         assert "avisos_validacao" not in out
+
+
+class TestParseAccountRecordNormFallback:
+    def test_members_without_norm_rederives_from_raw(self):
+        # A24.l2 (ADR-280): members novos emitem só account_number_raw.
+        from pipeline.domain.services.investments_consolidator import (
+            InvestmentsConsolidatorConfig,
+        )
+
+        cfg = InvestmentsConsolidatorConfig.from_family(
+            {
+                "contas": [
+                    {
+                        "member_key": "david",
+                        "institution_code": "itau",
+                        "account_type": "corrente",
+                        "account_number_raw": "12.345-6",
+                    }
+                ]
+            }
+        )
+        assert cfg.accounts[0].account_number_norm == "123456"
+
+    def test_legacy_members_with_norm_keeps_emitted_value(self):
+        from pipeline.domain.services.investments_consolidator import (
+            InvestmentsConsolidatorConfig,
+        )
+
+        cfg = InvestmentsConsolidatorConfig.from_family(
+            {
+                "contas": [
+                    {
+                        "member_key": "david",
+                        "institution_code": "itau",
+                        "account_type": "corrente",
+                        "account_number_raw": "12.345-6",
+                        "account_number_norm": "123456",
+                    }
+                ]
+            }
+        )
+        assert cfg.accounts[0].account_number_norm == "123456"

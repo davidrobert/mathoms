@@ -30,6 +30,23 @@ class TestForbiddenMatcher:
         assert GATE._is_forbidden("pipeline.ports.config_store")
         assert GATE._is_forbidden("backend.app.services.db_config_store")
 
+    def test_account_normalization_forbidden_since_a24_l2(self):
+        # F2-B4: de-leak de numero_conta_norm amplia o matcher.
+        assert GATE._is_forbidden("pipeline.domain.services.account_normalization")
+
+    def test_account_normalization_leak_detected(self, tmp_path: Path, monkeypatch):
+        leaky = tmp_path / "scripts" / "e2" / "leaky_norm.py"
+        leaky.parent.mkdir(parents=True)
+        leaky.write_text(
+            "from pipeline.domain.services.account_normalization import normalize_account_number\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(GATE, "_REPO_ROOT", tmp_path)
+        monkeypatch.setattr(GATE, "_EXTRACTION_GLOBS", ("scripts/e2/**/*.py",))
+        violations = GATE.collect_violations()
+        assert len(violations) == 1
+        assert "account_normalization" in violations[0]
+
     def test_precision_no_false_positive(self):
         # `dedup_metrics` não termina em _dedup nem contém deduplicator → permitido.
         assert not GATE._is_forbidden("pipeline.metrics.dedup_metrics")

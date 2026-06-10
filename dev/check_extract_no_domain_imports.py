@@ -12,9 +12,9 @@
 # `consolidate_baseline` (E1.5c) é Transform — fora do glob por design (PODE importar
 # domínio: lê cross-IRPF + dedup).
 #
-# Proíbe (conjunto MÍNIMO de F1, ampliável quando F2 mover regras): `category_template`,
-# `*_dedup`/`*deduplicator*`, `config_store` (Protocol + impls). NÃO cobre
-# `account_normalization`/`numero_conta_norm` nesta onda (alvo de F2).
+# Proíbe: `category_template`, `*_dedup`/`*deduplicator*`, `config_store`
+# (Protocol + impls) e, desde A24.l2 (de-leak F2-B4), `account_normalization` —
+# extração emite `numero_conta` raw; normalização canônica é dos consumidores.
 
 from __future__ import annotations
 
@@ -35,6 +35,7 @@ def _is_forbidden(module: str) -> bool:
     return any(
         "category_template" in p
         or "config_store" in p
+        or "account_normalization" in p
         or p.endswith("_dedup")
         or "deduplicator" in p
         for p in parts
