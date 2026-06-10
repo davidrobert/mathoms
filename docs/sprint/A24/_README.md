@@ -88,7 +88,7 @@ F2 + F4 entregues em 2026-06-09/10 (zero rebaseline — de-leak confirmado cirú
 | [[A24.l6]] | `dl-f3-skeleton-resto` | ✅ shipped (#590) — **KR2 4/6** | l5 ✅ |
 
 Prompt de orquestração:
-[agent_prompts/orchestrator_a24_f2f3.md](../../agent_prompts/orchestrator_a24_f2f3.md).
+[agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md](../../agent_prompts/archive/orchestrator_a24_f2f3-2026-06-10.md) (arquivado).
 
 ## KRs da janela
 
