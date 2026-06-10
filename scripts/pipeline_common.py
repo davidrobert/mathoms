@@ -31,7 +31,7 @@ import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 # =============================================================================
 # Structured logging — all pipeline scripts should use this logger
@@ -228,16 +228,21 @@ def write_json_atomic(
 # =============================================================================
 
 
-def _effective_schema_validation_mode() -> str:
+def _effective_schema_validation_mode(schema_name: Optional[str] = None) -> str:
     """Return ``strict`` or ``warn``.
 
-    ``MATHOMS_PIPELINE_SCHEMA_MODE`` overrides ``pipeline.json`` (for CI / local gates).
+    Precedência (ADR-284): env ``MATHOMS_PIPELINE_SCHEMA_MODE`` (global, CI /
+    escape hatch) > ``schema_validation.mode_overrides[schema_name]`` (flip
+    per-schema) > ``schema_validation.mode`` (global).
     """
     env = os.environ.get("MATHOMS_PIPELINE_SCHEMA_MODE", "").strip().lower()
     if env in ("strict", "warn"):
         return env
     config = load_json_config("pipeline.json")
     sv = config.get("schema_validation", {})
+    overrides = sv.get("mode_overrides", {})
+    if schema_name and overrides.get(schema_name) in ("strict", "warn"):
+        return overrides[schema_name]
     return sv.get("mode", "warn")
 
 
@@ -302,13 +307,7 @@ def _get_schema_registry() -> Any:
 
 
 def _handle_validation_error(exc: Exception, source: str, schema_name: str, mode: str) -> bool:
-    """Traduz exceção do validator em retorno + log. Re-levanta o que não for esperado."""
-    import jsonschema
-
-    if isinstance(exc, jsonschema.ValidationError):
-        msg = f"Schema validation falhou para {source}: {exc.message}"
-        log_stage("WARN" if mode == "warn" else "ERROR", msg)
-        return mode == "warn"
+    """Traduz exceção inesperada do validator em retorno + log. Re-levanta o resto."""
     cls = type(exc).__name__
     # jsonschema 4.18+ wrappa Unresolvable do referencing fora de ValidationError.
     if "Unresolvable" in cls or "RefResolution" in cls:
@@ -317,32 +316,57 @@ def _handle_validation_error(exc: Exception, source: str, schema_name: str, mode
     raise exc
 
 
-def validate_dict(data: dict, schema_name: str, *, source: str = "<dict>") -> bool:
-    """Valida ``data`` (já em memória) contra schema em ``config/schemas/`` (ADR-212 PR3)."""
+def _schema_to_validate(schema_name: str) -> tuple[Optional[dict], bool]:
+    """Pré-checks de validação — ``(schema, retorno)``: schema ``None`` quando não há o que validar e ``retorno`` é a resposta do short-circuit."""
     config = load_json_config("pipeline.json")
-    sv = config.get("schema_validation", {})
-    if not sv.get("enabled", False):
-        return True
+    if not config.get("schema_validation", {}).get("enabled", False):
+        return None, True
     try:
-        import jsonschema
+        import jsonschema  # noqa: F401
     except ImportError:
         log_stage("WARN", "jsonschema não instalado — validação de schema pulada")
-        return True
+        return None, True
     schema_path = CONFIG_DIR / "schemas" / schema_name
     if not schema_path.exists():
-        return True
+        return None, True
     schema = read_json(schema_path)
     if schema is None:
-        return False
-    mode = _effective_schema_validation_mode()
+        return None, False
+    return schema, True
+
+
+def _build_schema_validator(schema: dict) -> Any:
+    import jsonschema
+
     registry = _get_schema_registry()
     validator_cls = jsonschema.validators.validator_for(schema)
-    validator = validator_cls(schema, registry=registry) if registry else validator_cls(schema)
+    return validator_cls(schema, registry=registry) if registry else validator_cls(schema)
+
+
+def validate_dict(
+    data: dict,
+    schema_name: str,
+    *,
+    source: str = "<dict>",
+    context: Optional[Mapping[str, str]] = None,
+) -> bool:
+    """Valida ``data`` contra schema em ``config/schemas/`` (ADR-212 PR3); ``context`` (ADR-284) leva workspace_id/stage/artifact_key p/ telemetria de drift (contextvars não cobrem Celery). Retorna ``False`` em strict inválido — o raise é do caller."""
+    schema, short_circuit = _schema_to_validate(schema_name)
+    if schema is None:
+        return short_circuit
+    mode = _effective_schema_validation_mode(schema_name)
+    validator = _build_schema_validator(schema)
     try:
-        validator.validate(data)
-        return True
+        errors = list(validator.iter_errors(data))
     except Exception as exc:
         return _handle_validation_error(exc, source, schema_name, mode)
+    if not errors:
+        return True
+    from scripts.schema_drift_telemetry import handle_validation_failure
+
+    return handle_validation_failure(
+        errors, source=source, schema_name=schema_name, mode=mode, context=context
+    )
 
 
 # =============================================================================

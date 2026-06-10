@@ -3,7 +3,7 @@
   "title": "E2 Extract",
   "description": "Schema mínimo para artefatos E2 (extratos e faturas extraídos). Valida presença de campos obrigatórios sem restringir campos adicionais.",
   "type": "object",
-  "required": ["pipeline_stage", "banco", "tipo", "moeda"],
+  "required": ["banco", "tipo", "moeda"],
   "properties": {
     "pipeline_stage": {
       "type": "string",
@@ -25,7 +25,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "description": "ADR-283 — contrato fechado da transação E2. Campos enumerados a partir do audit dos 12 parsers em scripts/e2/banks/ + enriquecimento (direction/natural_key). additionalProperties:false gera sinal de drift em modo warn sem abortar o run; ao adicionar campo novo a um parser, declare-o aqui.",
+        "description": "ADR-283/ADR-284 — contrato fechado da transação E2. Campos enumerados a partir do audit dos parsers em scripts/e2/banks/ + writer LLM (_output_to_e2_json) + enriquecimento (direction/natural_key/amount). additionalProperties:false gera sinal de drift em modo warn sem abortar o run; ao adicionar campo novo a um writer, declare-o aqui (gate: tests/test_e2_schema_strict_corpus.py).",
         "required": ["data", "descricao", "valor"],
         "properties": {
           "data": {"type": "string"},
@@ -34,6 +34,9 @@
           "amount": {"type": ["string", "null"]},
           "direction": {"type": ["string", "null"], "enum": ["debit", "credit", null]},
           "tipo_lancamento": {"type": ["string", "null"]},
+          "tipo": {"type": ["string", "null"]},
+          "categoria_sugerida": {"type": ["string", "null"]},
+          "saldo_apos": {"type": ["number", "null"]},
           "parcela": {"type": ["string", "null"]},
           "nr_doc": {"type": ["string", "null"]},
           "cartao": {"type": ["string", "null"]},
