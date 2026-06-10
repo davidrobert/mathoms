@@ -122,6 +122,10 @@ gera o sinal que hoje falta. O **top-level continua `additionalProperties:true`*
 - Regressão de coluna `Float` monetária em `models/` é bloqueada no pre-commit.
 - Drift de shape de transação E2 passa a gerar sinal (WARN) sem risco de abortar prod.
 - Custo: 1 migration, 1 hook novo, enumeração do contrato E2. Sem mudança de comportamento de runtime (wire inalterado, mode `warn` inalterado).
+- **Emenda (A24.l3, 2026-06-10):** `tipo_lancamento` saiu do contrato por-transação
+  (§D) — de-leak [[ADR-280]]; o campo era dead-downstream (zero consumidores em
+  `pipeline/`/`backend/`), os parsers deixaram de emiti-lo, e a reintrodução é
+  bloqueada por `test_e2_contract_no_methodological_fields` (ausência-de-campo, F2-B5).
 
 ## Follow-ups rastreados
 
