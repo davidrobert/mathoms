@@ -1,9 +1,50 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "e2_extract.schema.json",
   "title": "E2 Extract",
-  "description": "Schema mínimo para artefatos E2 (extratos e faturas extraídos). Valida presença de campos obrigatórios sem restringir campos adicionais.",
+  "description": "Schema mínimo para artefatos E2 determinísticos (extratos, faturas e posições extraídos pelos parsers de scripts/e2/banks/). Valida presença de campos obrigatórios sem restringir campos adicionais no top-level. O artefato do writer LLM (stage E2-llm) tem contrato próprio em e2_llm_artifact.schema.json (vocabulário instituicao/tipo_documento), compartilhando o sub-contrato de transação via $defs/transacao.",
   "type": "object",
   "required": ["banco", "tipo", "moeda"],
+  "$defs": {
+    "transacao": {
+      "type": "object",
+      "description": "ADR-283/ADR-284 — contrato fechado da transação E2, compartilhado por e2_extract e e2_llm_artifact via $ref. Campos enumerados a partir do audit dos parsers em scripts/e2/banks/ + writer LLM (_output_to_e2_json) + enriquecimento (direction/natural_key/amount). additionalProperties:false gera sinal de drift em modo warn sem abortar o run; ao adicionar campo novo a um writer, declare-o aqui (gate: tests/test_e2_schema_strict_corpus.py). Campos metodológicos em de-leak (ADR-280, ex.: tipo_lancamento) ficam FORA por construção — gate: test_e2_contract_no_methodological_fields.",
+      "required": ["data", "descricao", "valor"],
+      "properties": {
+        "data": {"type": "string"},
+        "descricao": {"type": "string"},
+        "valor": {"type": "number"},
+        "amount": {"type": ["string", "null"]},
+        "direction": {"type": ["string", "null"], "enum": ["debit", "credit", null]},
+        "tipo": {"type": ["string", "null"]},
+        "categoria_sugerida": {"type": ["string", "null"]},
+        "saldo_apos": {"type": ["number", "null"]},
+        "parcela": {"type": ["string", "null"]},
+        "nr_doc": {"type": ["string", "null"]},
+        "cartao": {"type": ["string", "null"]},
+        "forex": {
+          "type": ["object", "null"],
+          "required": ["moeda_original", "valor_original"],
+          "properties": {
+            "moeda_original": {"type": "string"},
+            "valor_original": {"type": "number"},
+            "cotacao": {"type": ["number", "null"]}
+          },
+          "additionalProperties": true
+        },
+        "natural_key": {
+          "type": ["object", "null"],
+          "required": ["hash", "hash_version"],
+          "properties": {
+            "hash": {"type": "string", "minLength": 1},
+            "hash_version": {"type": "integer", "enum": [1, 2]}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
   "properties": {
     "pipeline_stage": {
       "type": "string",
@@ -23,44 +64,7 @@
     },
     "transacoes": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "description": "ADR-283/ADR-284 — contrato fechado da transação E2. Campos enumerados a partir do audit dos parsers em scripts/e2/banks/ + writer LLM (_output_to_e2_json) + enriquecimento (direction/natural_key/amount). additionalProperties:false gera sinal de drift em modo warn sem abortar o run; ao adicionar campo novo a um writer, declare-o aqui (gate: tests/test_e2_schema_strict_corpus.py). Campos metodológicos em de-leak (ADR-280, ex.: tipo_lancamento) ficam FORA por construção — gate: test_e2_contract_no_methodological_fields.",
-        "required": ["data", "descricao", "valor"],
-        "properties": {
-          "data": {"type": "string"},
-          "descricao": {"type": "string"},
-          "valor": {"type": "number"},
-          "amount": {"type": ["string", "null"]},
-          "direction": {"type": ["string", "null"], "enum": ["debit", "credit", null]},
-          "tipo": {"type": ["string", "null"]},
-          "categoria_sugerida": {"type": ["string", "null"]},
-          "saldo_apos": {"type": ["number", "null"]},
-          "parcela": {"type": ["string", "null"]},
-          "nr_doc": {"type": ["string", "null"]},
-          "cartao": {"type": ["string", "null"]},
-          "forex": {
-            "type": ["object", "null"],
-            "required": ["moeda_original", "valor_original"],
-            "properties": {
-              "moeda_original": {"type": "string"},
-              "valor_original": {"type": "number"},
-              "cotacao": {"type": ["number", "null"]}
-            },
-            "additionalProperties": true
-          },
-          "natural_key": {
-            "type": ["object", "null"],
-            "required": ["hash", "hash_version"],
-            "properties": {
-              "hash": {"type": "string", "minLength": 1},
-              "hash_version": {"type": "integer", "enum": [1, 2]}
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      }
+      "items": {"$ref": "#/$defs/transacao"}
     },
     "periodo_inicio": {"type": "string"},
     "periodo_fim": {"type": "string"},

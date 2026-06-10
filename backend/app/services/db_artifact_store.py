@@ -87,14 +87,16 @@ SCHEMA_BY_STAGE: dict[str, str] = {
     "consolidate_baseline": "baseline_patrimonial.schema.json",
     # E1.6 — IRPF full (ADR-157)
     "extract_irpf_full": "e16_irpf_full.schema.json",
-    # E2 — extratos / faturas / LLM fallback (todos compartilham mesmo schema)
+    # E2 — extratos / faturas (parsers determinísticos, vocabulário banco/tipo)
     "E2": "e2_extract.schema.json",
     "E2-faturas": "e2_extract.schema.json",
     "E2-extratos": "e2_extract.schema.json",
-    "E2-llm": "e2_extract.schema.json",
     "extract_invoices": "e2_extract.schema.json",
     "extract_statements": "e2_extract.schema.json",
-    "extract_with_llm": "e2_extract.schema.json",
+    # E2-llm — writer LLM tem vocabulário próprio (instituicao/tipo_documento);
+    # contrato dedicado, transação compartilhada via $ref (ADR-284/A24.l7).
+    "E2-llm": "e2_llm_artifact.schema.json",
+    "extract_with_llm": "e2_llm_artifact.schema.json",
     # E2-informe-aluguel — informe de rendimentos de imobiliária (Onda 0.5 · ADR-216).
     # Schema dedicado para cap rate líquido em S4 (cascade D9 fonte #1).
     "E2-informe-aluguel": "informe_aluguel.schema.json",

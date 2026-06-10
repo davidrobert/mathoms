@@ -39,25 +39,21 @@ Self-contained: executável sem contexto da sessão de origem. Branch
 ### 1. Verificar baseline (gate, não-código)
 
 Pré-requisito: commit `a2efb418` deployado em prod há ≥7 dias. Rodar as
-queries do runbook §2 para `e2_extract.schema.json`. Go = **0 records**.
-Drift inesperado encontrado → corrigir writer ou declarar campo no schema
-(gate: corpus) e reiniciar a janela.
+queries do runbook §2 para **`e2_extract.schema.json` E
+`e2_llm_artifact.schema.json`** (pós-[[ADR-286]] o ciclo tem 2 schemas, cada
+um flippa independente). Go = **0 records** por schema. Drift inesperado
+encontrado → corrigir writer ou declarar campo no schema (gate: corpus) e
+reiniciar a janela daquele schema.
 
-### 2. De-drift de vocabulário (bloqueador hard do flip)
+### 2. De-drift de vocabulário (bloqueador hard do flip) — ✅ entregue 2026-06-10
 
-Os 3 writers pinados em `KNOWN_DRIFT_CASES` violam `required` do schema:
-
-| Writer | Emite | Schema exige |
-|---|---|---|
-| `itau.parse_itau_cdb_html_xls` | `instituicao` | `banco` |
-| `santander.parse_santander_cdb_xlsx` | `instituicao` | `banco` |
-| `_output_to_e2_json` (E2-llm, `pipeline/stages/extract_with_llm.py`) | `instituicao`/`tipo_documento` | `banco`/`tipo` |
-
-Opções (decidir com `data-engineer`): (a) normalizar no writer — emitir
-`banco`/`tipo` ao lado do vocabulário atual (aditivo, sem quebrar leitores
-E4 de `instituicao`); (b) schema dedicado p/ cdbresumo em `SCHEMA_BY_STAGE`.
-Em ambos os casos, promover os cases de `KNOWN_DRIFT_CASES` → `PASS_CASES`
-no corpus (o teste pinado falha quando o drift some — é o lembrete).
+Resolvido em [[ADR-286]] (co-design `data-engineer`): cdbresumo emite `banco`
+aditivo (valor = `instituicao`; zero downstream — E3 skipa cdbresumo, E4 lê
+`instituicao or banco`); writer E2-llm **não foi tocado** (emitir `banco`/
+`tipo` mudaria `AccountGrouper.key`/`from_e2_dict` → identidade E3, escopo
+DATA_LINEAGE) — ganhou contrato dedicado `e2_llm_artifact.schema.json` com
+transação compartilhada via `$ref e2_extract.schema.json#/$defs/transacao`
++ pin de resolução do `$ref`. `KNOWN_DRIFT_CASES == {}`.
 
 ### 3. INPUT_GAPS do corpus
 

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "e2_llm_artifact.schema.json",
+  "title": "E2 LLM Artifact",
+  "description": "Contrato do artefato do stage E2-llm (output de _output_to_e2_json em pipeline/stages/extract_with_llm.py). O writer LLM emite vocabulário próprio — instituicao/tipo_documento em vez de banco/tipo — resolvido por fallback na costura E3 (stamp_natural_key, from_e2_dict). ADR-284/A24.l7: este schema torna a dualidade explícita e versionada em vez de mascará-la sob e2_extract.schema.json (que mentia para este writer). Canonicalização do vocabulário (emitir banco/tipo de verdade) implica churn de identidade no E3 (AccountGrouper.key, BankStatement.from_e2_dict) e é follow-up rastreado no plano DATA_LINEAGE — não deste contrato. Sub-contrato de transação compartilhado com e2_extract via $ref ($defs/transacao).",
+  "type": "object",
+  "required": ["instituicao", "tipo_documento", "moeda"],
+  "properties": {
+    "instituicao": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tipo_documento": {
+      "type": "string",
+      "minLength": 1
+    },
+    "moeda": {
+      "type": "string",
+      "enum": ["BRL", "USD", "EUR"]
+    },
+    "arquivo_origem": {"type": ["string", "null"]},
+    "extraido_por": {"type": "string", "enum": ["llm"]},
+    "prompt_version": {"type": ["string", "null"]},
+    "membro": {"type": ["string", "null"]},
+    "transacoes": {
+      "type": "array",
+      "items": {"$ref": "e2_extract.schema.json#/$defs/transacao"}
+    },
+    "investimentos": {"type": "array"},
+    "_meta": {"type": "object"}
+  },
+  "additionalProperties": true
+}

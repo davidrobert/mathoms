@@ -407,6 +407,9 @@ def parse_itau_cdb_html_xls(xls_path: Path, filename: str) -> Dict[str, Any]:
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Itaú CDB HTML-XLS: {filename}")
 
     result = {
+        # ADR-284/A24.l7: `banco` aditivo ao lado de `instituicao` (valor idêntico)
+        # — satisfaz required do e2_extract.schema.json; E4 lê `instituicao or banco`.
+        "banco": BANCO_ITAU,
         "instituicao": BANCO_ITAU,
         "tipo": "cdbresumo",
         "tipo_produto": None,

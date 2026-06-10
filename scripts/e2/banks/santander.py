@@ -239,6 +239,9 @@ def parse_santander_cdb_xlsx(xlsx_path: Path, filename: str) -> Dict[str, Any]:
     log(LOG_PREFIX_EXTRATO, "INFO", f"Parsing Santander CDB XLSX: {filename}")
 
     result = {
+        # ADR-284/A24.l7: `banco` aditivo ao lado de `instituicao` (valor idêntico)
+        # — satisfaz required do e2_extract.schema.json; E4 lê `instituicao or banco`.
+        "banco": BANCO_SANTANDER,
         "instituicao": BANCO_SANTANDER,
         "tipo": "cdbresumo",
         "tipo_produto": "CDB",
