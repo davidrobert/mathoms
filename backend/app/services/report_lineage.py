@@ -40,7 +40,8 @@ async def workspace_ready_documents_summary(
 # Stages E2 (extração) — descritivos e legados. Cada artifact_key = 1 documento.
 # ``document_id`` é FK opcional não populada pelo pipeline atual; contamos
 # artifact_keys distintos como proxy do conjunto de documentos consumidos.
-_EXTRACTION_STAGES: tuple[str, ...] = (
+# Público desde A25.l3: lineage_edge_writer reusa para a folha coarse (ADR-279).
+EXTRACTION_STAGES: tuple[str, ...] = (
     "extract_statements",
     "extract_invoices",
     "extract_with_llm",
@@ -60,7 +61,7 @@ async def consumed_documents_for_run(
         select(PipelineArtifact.artifact_key)
         .where(
             PipelineArtifact.pipeline_run_id == pipeline_run_id,
-            PipelineArtifact.stage.in_(_EXTRACTION_STAGES),
+            PipelineArtifact.stage.in_(EXTRACTION_STAGES),
         )
         .distinct()
     )

@@ -1,8 +1,8 @@
-# Runbook — Data Lineage: migrations da Onda 1 (F1)
+# Runbook — Data Lineage: migrations das Ondas 1 (F1) e F5
 
-> **ADRs:** [[ADR-278]] (data_source + FK) · [[ADR-282]] (override natural_key v2) · [[ADR-279]]/[[ADR-280]] (contexto)
-> **Migrations cobertas:** `adr282_override_natural_key.py` · `adr278_data_source.py` (#564) · `adr278fk_data_source_fk.py` (esta lane) · 2-fases `amount`/`natural_key` (🔜 futuras)
-> **Afeta:** `data_source`, `pipeline_artifacts.data_source_id`, `transaction_overrides`
+> **ADRs:** [[ADR-278]] (data_source + FK) · [[ADR-282]] (override natural_key v2) · [[ADR-279]] (edge table F5) · [[ADR-280]] (contexto)
+> **Migrations cobertas:** `adr282_override_natural_key.py` · `adr278_data_source.py` (#564) · `adr278fk_data_source_fk.py` · `adr279edges_artifact_lineage_edge.py` (A25.l3) · 2-fases `amount`/`natural_key` (🔜 futuras)
+> **Afeta:** `data_source`, `pipeline_artifacts.data_source_id`, `transaction_overrides`, `artifact_lineage_edge`
 > **Prerequisito:** PITR habilitado (ver §RPO/RTO) · `MATHOMS_FERNET_KEY` confirmada
 > **Owner:** SRE on-call.
 > **Janela alvo:** RTO de rollback ≤ 30min (rollback de deploy, dado íntegro) · RPO 0 (DDL não perde dado).
@@ -165,6 +165,44 @@ Em SQLite: nada a verificar — o FK não existe lá por design ([[ADR-278]], mo
 
 ---
 
+## Fase E — `adr279edges` (tabela derivada `artifact_lineage_edge`, F5 · A25.l3)
+
+Cria a tabela do índice reverso field-level ([[ADR-279]]): edges derivadas do
+`_lineage` E5 pelo hook pós-run (`_run_post_processing` → `lineage_edge_writer`),
+retenção **N=1 por workspace** (B6). Tabela **derivada/rebuildável** — nunca fonte
+primária (auditoria histórica usa o `_lineage` inline em `pipeline_artifacts`), o que
+torna esta fase a de menor risco do runbook: perda total da tabela se reconstrói com
+1 run do pipeline por workspace.
+
+### E.1 Pré-check
+- `alembic current` == revision anterior (`a170rtf00001`).
+
+### E.2 Aplicar
+- `cd backend && alembic upgrade adr279edges`
+- Em Postgres: FKs (`workspaces`/`pipeline_runs`/`documents` inline; `data_source`
+  via `ADD CONSTRAINT` — tabela nasce vazia, instantâneo) + índices
+  `(workspace_id, run_id)` e `(workspace_id, source_document_id)` via
+  `CREATE INDEX CONCURRENTLY` fora de transação (`autocommit_block`). Em SQLite:
+  índices simples, FK de `data_source` não materializa (coluna plain, app layer).
+
+### E.3 Pós-check
+```sql
+\d artifact_lineage_edge   -- tabela + 2 índices + FKs presentes
+-- População ocorre no próximo run bem-sucedido de cada workspace (hook best-effort);
+-- tabela vazia logo após o upgrade é o estado esperado.
+SELECT COUNT(*) FROM artifact_lineage_edge;
+```
+
+### E.4 Rollback
+- `alembic downgrade a170rtf00001` → `DROP TABLE` (instantâneo; dado é derivado,
+  RPO 0 por definição — rebuild via run do pipeline).
+
+### E.5 Critério de abortar
+- Nenhum específico: tabela nova e vazia. Falha de DDL → investigar e re-aplicar;
+  o produto segue funcionando sem a tabela (hook é best-effort, loga warning).
+
+---
+
 ## Tabela-resumo
 
 | Fase | Migration | Reversível? | Mecanismo de rollback | Postgres-only? | Status |
@@ -173,6 +211,7 @@ Em SQLite: nada a verificar — o FK não existe lá por design ([[ADR-278]], mo
 | B | `adr278_data_source` | Sim | `downgrade -1` (drop col/índice/tabela) | Não | ✅ #564 |
 | C | `adr278fk_data_source_fk` | Sim | `downgrade` → `DROP CONSTRAINT IF EXISTS` | **Sim** (no-op SQLite) | 🚧 esta lane |
 | D | `amount`/`natural_key` 2-fases | — | — | — | 🔜 futura (A24) |
+| E | `adr279edges_artifact_lineage_edge` | Sim | `downgrade` → `DROP TABLE` (derivada, rebuildável) | Não (FKs/CONCURRENTLY só no PG) | 🚧 A25.l3 |
 
 ## Operação futura — recriar índice em escala (`CONCURRENTLY`)
 

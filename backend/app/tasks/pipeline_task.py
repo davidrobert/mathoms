@@ -1159,6 +1159,14 @@ def _finalize_run(run_id: str, has_failure: bool) -> None:
         db.commit()
 
 
+def _materialize_lineage_edges(ws_id: str, run_id: str) -> None:
+    """Hook pós-run do índice reverso (ADR-279 · A25.l3) — DELETE+INSERT atômico no writer."""
+    from backend.app.services.lineage_edge_writer import materialize_lineage_edges
+
+    with SyncSessionLocal() as db:
+        materialize_lineage_edges(db, workspace_id=ws_id, run_id=run_id)
+
+
 def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
     """Passos pós-sucesso: sync documents, gerar report, persistir sugestões.
 
@@ -1190,6 +1198,15 @@ def _run_post_processing(ws_id: str, run_id: str, tenant_root: Path) -> None:
         # Loga traceback completo: bug silencioso aqui (warning sem stack)
         # mascarou a regressão A6c+ADR-129 por ~12h em prod.
         post_logger.exception("report_creation_failed for ws=%s run=%s", ws_id, run_id)
+
+    # ADR-279 / A25.l3: materializa o índice reverso artifact_lineage_edge
+    # (retenção N=1 por workspace). Best-effort: tabela derivada/rebuildável —
+    # falha nunca aborta o run; run falho não chega aqui (edges do último run
+    # bem-sucedido permanecem).
+    try:
+        _materialize_lineage_edges(ws_id, run_id)
+    except Exception as exc:
+        post_logger.warning("Failed to materialize lineage edges: %s", exc)
 
     # ADR-074 / F8.4: persiste tarefas_sugeridas do E5.N no DB
     # (se existirem no JSON de análise).
