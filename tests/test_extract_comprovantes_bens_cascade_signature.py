@@ -33,6 +33,7 @@ _EXPECTED_CALL_KWARGS = frozenset(
         "stage",
         "image_bytes",
         "image_media_type",
+        "seed",
     }
 )
 

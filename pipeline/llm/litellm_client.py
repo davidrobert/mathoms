@@ -263,6 +263,7 @@ class LLMService:
         stage: str | None = None,
         image_bytes: bytes | None = None,
         image_media_type: str = "image/jpeg",
+        seed: int | None = None,
     ) -> LLMCallResult:
         """Call an LLM with structured output enforcement.
 
@@ -277,6 +278,8 @@ class LLMService:
                 junto ao user_prompt (Anthropic vision). Apenas para providers que
                 suportam visão (anthropic, openai).
             image_media_type: MIME type da imagem (ex: "image/jpeg", "image/png").
+            seed: best-effort determinism (eval de lineage, ADR-281). ``None`` =
+                omitido do payload; provider sem suporte descarta (``drop_params``).
 
         Raises:
             LLMValidationError: if output fails validation after all retries
@@ -336,6 +339,8 @@ class LLMService:
         else:
             user_content = user_prompt
 
+        seed_kwargs: dict[str, Any] = {} if seed is None else {"seed": seed}
+
         last_exception = None
         retries_used = 0
         start_total = time.monotonic()
@@ -364,6 +369,7 @@ class LLMService:
                     # método — fonte única, observável, com backoff por tipo.
                     timeout=LLM_CALL_TIMEOUT_S,
                     num_retries=0,
+                    **seed_kwargs,
                 )
 
                 elapsed = int((time.monotonic() - start) * 1000)
