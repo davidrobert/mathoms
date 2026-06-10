@@ -141,6 +141,16 @@ repos:
         always_run: true
         types: [python]
 
+      - id: lineage-refs
+        # ADR-281 B2 (A24.l5): cada rule_ref do lineage_registry resolve
+        # module:qualname por import real + ADR referenciada existe em
+        # docs/adr/. Rename sem atualizar o dict quebra aqui.
+        name: "Lineage rule_refs resolvem por import real + ADR existe (ADR-281)"
+        entry: python3 dev/check_lineage_refs.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: golden-rebaseline-isolation
         # F2-DB5 (G-c · A24.l1): commit que mistura golden
         # (tests/fixtures/pipeline_golden/**) com código de produção

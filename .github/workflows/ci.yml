@@ -318,6 +318,9 @@ jobs:
       - name: No leak-field consumers (F2 de-leak guard · ADR-280)
         run: python dev/check_no_leak_field_consumers.py --verbose
 
+      - name: Lineage rule_refs resolvem por import real (ADR-281 · A24.l5)
+        run: python dev/check_lineage_refs.py
+
       - name: Golden rebaseline isolation per-commit (G-c · F2-DB5)
         if: github.event_name == 'pull_request'
         # Por COMMIT (não PR-diff): permite PR misto com commit de rebaseline
