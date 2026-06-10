@@ -64,7 +64,7 @@ export function PatrimonioCategoriasCard({
             <tr className="font-semibold">
               <td className="pt-3">Total Bruto</td>
               <td className="pt-3 text-right">
-                <MonetaryValue value={total} />
+                <MonetaryValue value={total} provenance={{ fieldId: "patrimonio.bruto" }} />
               </td>
               <td className="pt-3 text-right font-mono tabular-nums">100,0%</td>
             </tr>

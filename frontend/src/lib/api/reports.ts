@@ -70,6 +70,21 @@ export interface ReportAnalysisData {
     consumed_document_count: number;
     consumed_document_ids: string[];
   };
+  /** ADR-279 · A25.l5 — bloco `_lineage` field-level do E5. Tipado de
+   * propósito SÓ com o subset que a UI consome (label/edge_type/signals);
+   * member_hashes/inputs/rule_ref existem no wire mas são proibidos na UI
+   * cliente (lista negra do popover N2). */
+  _lineage?: {
+    lineage_version: string;
+    fields: Record<
+      string,
+      {
+        label?: string;
+        edge_type?: string;
+        signals?: Record<string, string>;
+      }
+    >;
+  };
   periodo_dados?: string;
   data_analise?: string;
   patrimonio?: Record<string, unknown>;

@@ -21,7 +21,11 @@ export function InvestimentosClasseCard({ investimentos }: InvestimentosClasseCa
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           Sem posições de investimento detalhadas neste período.
           {total > 0 && (
-            <> Total investido: <MonetaryValue value={total} />.</>
+            <>
+              {" "}
+              Total investido:{" "}
+              <MonetaryValue value={total} provenance={{ fieldId: "investimentos.total" }} />.
+            </>
           )}
         </p>
       </ReportCard>

@@ -1,4 +1,8 @@
+"use client";
+
 import { cn } from "@/lib/cn";
+import { ProvenancePopover } from "./provenance/ProvenancePopover";
+import { useProvenanceEntry } from "./provenance/ReportProvenanceProvider";
 
 export type Currency = "BRL" | "USD";
 
@@ -42,6 +46,10 @@ interface MonetaryValueProps {
   className?: string;
   /** Test hook (Vitest/Playwright). */
   "data-testid"?: string;
+  /** A25.l5 (ADR-279) — selo de proveniência N1. Ausente ⇒ render idêntico
+   * (zero selo/handler). Presente, ativa selo+popover N2 SE o
+   * `ReportProvenanceProvider` tiver dados para o campo (flag on). */
+  provenance?: { fieldId: string };
 }
 
 /** F9 · ADR-076 · F1.1 + Onda 10 #1 — Exibe valor monetário com
@@ -71,7 +79,9 @@ export function MonetaryValue({
   title,
   className,
   "data-testid": dataTestId,
+  provenance,
 }: MonetaryValueProps) {
+  const provenanceEntry = useProvenanceEntry(provenance?.fieldId);
   const sizeClass = SIZE_CLASS[size];
   if (value === null || value === undefined || Number.isNaN(value)) {
     return (
@@ -101,6 +111,25 @@ export function MonetaryValue({
         ? "text-loss"
         : "text-muted-foreground"
     : undefined;
+
+  if (provenanceEntry) {
+    // Selo só nos dígitos: sinal +/− fica fora do sublinhado pontilhado.
+    const negative = formatted.startsWith("-");
+    const digits = negative ? formatted.slice(1) : formatted;
+    return (
+      <span
+        className={cn(sizeClass, "tabular-nums", colorClass, className)}
+        title={title}
+        data-testid={dataTestId}
+      >
+        {signed && value > 0 ? "+" : ""}
+        {negative ? "-" : ""}
+        <ProvenancePopover entry={provenanceEntry} hero={size === "hero"}>
+          {digits}
+        </ProvenancePopover>
+      </span>
+    );
+  }
 
   return (
     <span

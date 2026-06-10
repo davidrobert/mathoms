@@ -8,7 +8,9 @@ import pkg from "../../../package.json";
 import { LAYOUT, type SectionSpec } from "@/generated/report-layout";
 import { type UseReportDataState } from "@/hooks/useReportData";
 import { formatPeriodCoverPtBR } from "@/lib/format";
+import { useFeatureFlags } from "@/lib/useFeatureFlags";
 import { ExecutiveSummarySection } from "./ExecutiveSummarySection";
+import { ReportProvenanceProvider } from "./provenance/ReportProvenanceProvider";
 import { ReportPremissasBlock } from "./ReportPremissasBlock";
 import { ReportSourceStrip } from "./ReportSourceStrip";
 import { ReportToc, type TocGroup } from "./ReportToc";
@@ -149,6 +151,10 @@ export function ReportShell({
 }: ReportShellProps) {
   const { mode } = useReportMode();
   const { open: sidebarOpen, toggle: toggleSidebar } = useReportTocOpen();
+  // A25.l5 (ADR-279) — selo N1/popover N2; durante loading isEnabled é false,
+  // então o relatório nasce sem selo e ganha a máscara quando a flag chega.
+  const { isEnabled: isFlagEnabled } = useFeatureFlags(workspaceId);
+  const provenanceEnabled = isFlagEnabled("report_provenance_enabled");
 
   const analysisPeriodFromSnapshot =
     dataState.status === "success"
@@ -296,7 +302,10 @@ export function ReportShell({
           )}
 
           {dataState.status === "success" && (
-            <>
+            <ReportProvenanceProvider
+              data={dataState.data}
+              enabled={provenanceEnabled}
+            >
               {mode === "estrategico" && (
                 <ReportCover
                   title="Planejamento Financeiro"
@@ -383,7 +392,7 @@ export function ReportShell({
               consumedDocumentCount={consumedDocumentCount}
             />
             <ExportToolbar />
-            </>
+            </ReportProvenanceProvider>
           )}
         </main>
       </div>
