@@ -370,6 +370,14 @@ real da `SourcePrecedencePolicy` (desenhada no F0, exercida só com feed; thresh
 de materialidade pode passar por `financial-planner` na ativação) · MCP prod do
 debug substrate + índice reverso por `rule_ref`.
 
+**Follow-up herdado de A24.l7 ([[ADR-285]], candidato à onda 4):** canonicalizar
+o vocabulário do writer E2-llm (`instituicao`/`tipo_documento` → `banco`/`tipo`).
+Hoje é contrato dedicado `e2_llm_artifact.schema.json`; emitir o vocabulário
+canônico flipa `AccountGrouper.key()` (de `None` para `AccountKey` real) e
+`BankStatement.from_e2_dict` (`institution` ""→valor) para todo doc LLM — muda
+grouping/identidade de artefatos E3, exatamente o churn que este plano trata
+com golden substrate + rebaseline manifestado.
+
 ## KRs
 
 | # | Key Result | Baseline | Meta |

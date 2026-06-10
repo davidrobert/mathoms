@@ -33,11 +33,15 @@ tags:
 
 1. **Baseline 7d** — começa no deploy de `a2efb418` em prod. Check agendado
    ~2026-06-17: rodar queries do runbook §2 (go = 0 WARN p/ `e2_extract`).
-2. **De-drift de vocabulário (bloqueador hard)** — writers cdbresumo
-   (Itaú/Santander) e E2-llm emitem `instituicao`/`tipo_documento` em vez de
-   `banco`/`tipo`. Resolver no writer (preferido) ou schema dedicado p/
-   cdbresumo. Gate: bucket `KNOWN_DRIFT_CASES` de
-   `tests/test_e2_schema_strict_corpus.py` esvazia (cases promovidos a PASS).
+2. **De-drift de vocabulário (bloqueador hard)** — ✅ **entregue 2026-06-10**
+   ([[ADR-285]], co-design `data-engineer`): cdbresumo emite `banco` aditivo
+   (valor = `instituicao`); writer E2-llm ganhou contrato dedicado
+   `e2_llm_artifact.schema.json` (vocabulário próprio explícito; tocar o
+   writer mudaria identidade E3 — canonicalização é follow-up do plano
+   [[PLAN-data-lineage]]). Bucket `KNOWN_DRIFT_CASES` vazio; transação
+   compartilhada via `$ref` com pin de resolução.
+   **Consequência p/ o passo 1:** o baseline passa a ter **2 schemas** no
+   ciclo — `e2_extract` e `e2_llm_artifact` (cada um flippa independente).
 3. **INPUT_GAPS** — layouts sintéticos p/ 3 PDFs de fatura (Carbon, Pão de
    Açúcar, Unique); decidir os 2 XLS binários (xlwt ou aceitar via baseline
    zero-WARN nos tipos correspondentes, runbook §1.2).

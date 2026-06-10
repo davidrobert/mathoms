@@ -45,8 +45,13 @@ O flip exige adicionalmente que os buckets de débito do corpus estejam
 resolvidos **ou aceitos por escrito** na linha do §7:
 
 - `KNOWN_DRIFT_CASES` (vocabulário `instituicao`/`tipo_documento` vs
-  `banco`/`tipo` — cdbresumo Itaú/Santander + writer E2-llm): **bloqueador**.
-  Flipar com este bucket não-vazio aborta todo write E2-llm e de cdbresumo.
+  `banco`/`tipo`): **bloqueador** quando não-vazio. ✅ **Esvaziado em
+  2026-06-10 ([[ADR-285]])** — cdbresumo emite `banco` aditivo; o writer
+  E2-llm ganhou contrato dedicado `e2_llm_artifact.schema.json` (stage
+  `E2-llm` remapeado em `SCHEMA_BY_STAGE`). Consequência: o ciclo deste
+  runbook cobre **2 schemas E2 independentes** — `e2_extract.schema.json` e
+  `e2_llm_artifact.schema.json` — cada um com baseline (§2) e flip (§3)
+  próprios.
 - `INPUT_GAPS` (parsers sem input sintético — PDFs de fatura dedicados, XLS
   binário): aceitável flipar se o baseline (§2) mostrar zero WARN nos tipos
   correspondentes na janela.
