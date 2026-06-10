@@ -89,7 +89,7 @@ Tasks com `status=ready` e sem deps. Pegue qualquer uma como pickup imediato.
 | W2-T06 | DE-009 STAGE_TO_DIR/SUFFIX descriptive aliases | 2 | done | data-engineer | P1 | S | — |
 | W3-T01 | SR-006 + DE-013 LLM budget hard-stop + LLMCallLog populada | 3 | ready | data-engineer + sre-devops | P0 | M | W1-T06 (ADR-173) ✅, W2-T05 ✅ |
 | W3-T02 | BB-001 + SR-008 Email Resend + verify + password reset | 3 | ready (owner-gated: aprovação Resend EU) | sre-devops | P0 | L | W1-T06 ✅ |
-| W3-T03 | SR-002 JWT 15min + refresh 7d + family revocation | 3 | in_progress (2026-06-09) | sre-devops + senior-cto | P0 | L | W1-T06 (ADR-170) ✅ |
+| W3-T03 | SR-002 JWT 15min + refresh 7d + family revocation | 3 | done (2026-06-09, PR #584) | sre-devops + senior-cto | P0 | L | W1-T06 (ADR-170) ✅ |
 | W3-T04 | SR-003 Fernet rotation real (MultiFernet) | 3 | ready | sre-devops | P0 | M | W1-T06 (ADR-171) ✅ |
 | W3-T05 | SR-009 Prompt injection defense (sanitize + adversarial fixtures) | 3 | shipped | sre-devops + data-engineer | P0 | M | W1-T06 (ADR-175) |
 | W4-T01 | SR-004 + BB-007 Off-site backup R2 + restore drill | 4 | blocked | sre-devops | P0 | M | — |
@@ -415,7 +415,8 @@ Soma: **6 tasks Quick Wins** desbloqueiam 4 P0 + 2 P1 em <2 dias dev total.
 - **deps:** W1-T06 (ADR-170)
 - **owner:** sre-devops + senior-cto
 - **severity:** P0 · **effort:** L
-- **files_touched:** `backend/app/core/security.py`, `backend/app/api/auth.py`, `backend/app/models/refresh_token_family.py`, frontend `authClient.ts` interceptor 401
+- **status:** done (2026-06-09, [PR #584](https://github.com/davidrobert/mathoms/pull/584)) — [[ADR-170]] `Decidido (Sprint A11.W3)` com seção de emendas (payload mantém `{sub, exp, tv}` — ADR-109; cookie path `/api/v1/auth`; teto absoluto 30d; grace window 60s; CSRF via header custom; `token_version_at_issue` faz tv bump revogar a família). Flag `MATHOMS_AUTH_REFRESH_FLOW` default off; access em memória ficou como débito registrado na ADR. Changelog: `docs/sprint/A11/changelog/CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS.md`.
+- **files_touched:** `backend/app/core/security.py` (intacto — payload preservado), `backend/app/api/auth.py`, `backend/app/models/refresh_token_family.py`, `backend/app/services/refresh_token_service.py` + `refresh_rate_limit.py`, `frontend/src/lib/api/core.ts` interceptor 401
 - **acceptance_criteria:** access 15min payload mínimo; refresh 7d httpOnly cookie + Secure + SameSite=Lax; family-based revocation; reuse detection invalida família; frontend interceptor 401 → refresh transparente; backward-compat por 1 release com flag.
 
 ### [W3-T04] SR-003 Fernet rotation real (MultiFernet)
@@ -778,3 +779,4 @@ Antes de pegar W2+, executar:
 - **2026-05-06** — plano criado a partir de revisão multi-agente (138 findings consolidados em 32 tasks).
 - **2026-05-07** — orquestração Wave 5 + Wave 6 (8 tasks unblocked em paralelo). 6 tasks com track docs criados em `docs/agent_prompts/track_w{5,6}t*.md` (W5-T01/T03/T04/T05, W6-T01/T05). 2 tasks executadas: W6-T04 (PR #111 — subagent catalog auto-gen + branch-cleanup) e W6-T06 (PR #110 — ADR-150 → Roadmap, Caminho 3). 3 tasks permanecem bloqueadas (W5-T02 dep W5-T01, W6-T02 dep W3-T01, W6-T03 dep W2-T06).
 - **2026-06-09** — sync de status Wave 3 (stale desde w2_done ✅ 2026-05-20): W3-T01/T04 `blocked`→`ready`, W3-T02 `ready (owner-gated: Resend)`, **W3-T03 pickup → in_progress** (implementação ADR-170, co-design sre-devops: payload mantém `{sub, exp, tv}` com emenda na ADR, cookie path `/api/v1/auth`, teto absoluto 30d, grace window 60s anti-falso-positivo de reuse, CSRF via header custom). Registrado finding **CTO-015** (W6-T07): split de `services/` por natureza técnica (ADR-285 Proposto) + drenagem boy-scout para `application/`; recomendação "split por domínio" recusada.
+- **2026-06-09 (noite)** — **W3-T03 entregue** ([PR #584](https://github.com/davidrobert/mathoms/pull/584)): refresh tokens httpOnly com family revocation; [[ADR-170]] flippada `Decidido (Sprint A11.W3)` com emendas; supersedure bidirecional [[ADR-057]] ↔ [[ADR-170]]. Wave 3 restante: W3-T01/T04 `ready`, W3-T02 `ready (owner-gated)`.
