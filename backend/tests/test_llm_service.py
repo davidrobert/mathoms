@@ -62,7 +62,7 @@ class TestLLMConfig:
     def test_defaults(self):
         cfg = LLMConfig()
         assert cfg.provider == "anthropic"
-        assert cfg.model_name == "claude-sonnet-4-20250514"
+        assert cfg.model_name == "claude-sonnet-4-6"
         assert cfg.max_tokens == 4096
         assert cfg.temperature == 0.1
 

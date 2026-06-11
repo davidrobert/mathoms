@@ -5986,14 +5986,14 @@
             "type": "integer"
           },
           "model_name": {
-            "default": "claude-sonnet-4-20250514",
+            "default": "claude-sonnet-4-6",
             "maxLength": 100,
             "minLength": 1,
             "title": "Model Name",
             "type": "string"
           },
           "provider": {
-            "description": "LLM provider (anthropic, openai, ollama, groq, deepseek, together_ai)",
+            "description": "LLM provider (anthropic, openai, ollama, groq, deepseek, together_ai, google, openrouter)",
             "title": "Provider",
             "type": "string"
           },
@@ -6046,6 +6046,16 @@
             "title": "Model Name",
             "type": "string"
           },
+          "model_status": {
+            "default": "ok",
+            "description": "'deprecated' quando model_name est\u00e1 em DEPRECATED_MODELS do cat\u00e1logo (aposentadoria anunciada pelo provider). Sinal para a UI pedir atualiza\u00e7\u00e3o \u2014 nunca migramos o row automaticamente (ADR-288).",
+            "enum": [
+              "ok",
+              "deprecated"
+            ],
+            "title": "Model Status",
+            "type": "string"
+          },
           "provider": {
             "title": "Provider",
             "type": "string"
@@ -6090,7 +6100,7 @@
             "type": "integer"
           },
           "model": {
-            "default": "claude-sonnet-4-20250514",
+            "default": "claude-sonnet-4-6",
             "minLength": 1,
             "title": "Model",
             "type": "string"
@@ -6198,6 +6208,74 @@
           "model"
         ],
         "title": "LLMConfigTestResponse",
+        "type": "object"
+      },
+      "LLMModelInfo": {
+        "description": "Um modelo dispon\u00edvel para sele\u00e7\u00e3o na UI (ADR-288).",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "pricing_known": {
+            "description": "True quando estimate_cost_usd consegue precificar o modelo",
+            "title": "Pricing Known",
+            "type": "boolean"
+          },
+          "source": {
+            "default": "curated",
+            "enum": [
+              "curated",
+              "provider"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "value": {
+            "description": "ID do modelo no provider (vai em model_name)",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label",
+          "pricing_known"
+        ],
+        "title": "LLMModelInfo",
+        "type": "object"
+      },
+      "LLMModelsResponse": {
+        "description": "Modelos dispon\u00edveis por provider \u2014 cat\u00e1logo curado + (F2) din\u00e2mico (ADR-288).",
+        "properties": {
+          "default_model": {
+            "title": "Default Model",
+            "type": "string"
+          },
+          "fetched_dynamic": {
+            "default": false,
+            "description": "True quando a lista foi enriquecida via API do provider (F2)",
+            "title": "Fetched Dynamic",
+            "type": "boolean"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/LLMModelInfo"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "models",
+          "default_model"
+        ],
+        "title": "LLMModelsResponse",
         "type": "object"
       },
       "LLMSpendByWorkspaceResponse": {
@@ -16645,6 +16723,64 @@
           }
         ],
         "summary": "Save Llm Config",
+        "tags": [
+          "llm"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/config/llm/models": {
+      "get": {
+        "description": "Modelos por provider (cat\u00e1logo curado, ADR-288 F1) \u2014 global, sob workspace por auth.",
+        "operationId": "get_llm_models_api_v1_workspaces__workspace_id__config_llm_models_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "provider",
+            "required": false,
+            "schema": {
+              "default": "anthropic",
+              "title": "Provider",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LLMModelsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Llm Models",
         "tags": [
           "llm"
         ]

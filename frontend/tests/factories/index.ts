@@ -312,6 +312,7 @@ export function makeLLMConfig(
     api_key_masked: "sk-a****1234",
     api_key_status: "valid",
     model_name: "claude-opus-4-6",
+    model_status: "ok",
     max_tokens: 4096,
     temperature: 0.0,
     created_at: isoNow(),

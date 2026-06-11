@@ -179,7 +179,7 @@ def config():
 
 
 def test_config_pins_model_literal_and_temperature_zero(config):
-    assert config.model_id == "anthropic/claude-sonnet-4-20250514"
+    assert config.model_id == "anthropic/claude-sonnet-4-6"
     assert config.temperature == 0.0
     assert config.max_tool_iterations == 6
     assert config.trials_per_case == 3

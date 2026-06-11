@@ -7,7 +7,9 @@ import {
   deleteLLMConfig,
   testLLMConnection,
   getLLMTier,
+  getLLMModels,
   type LLMConfigResponse,
+  type LLMModelInfo,
   type LLMTierResponse,
 } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -54,58 +56,6 @@ const PROVIDERS = [
   { value: "ollama", label: "Ollama (local)" },
 ] as const;
 
-const MODELS_BY_PROVIDER: Record<string, { value: string; label: string }[]> = {
-  anthropic: [
-    { value: "claude-opus-4-7", label: "Claude Opus 4.7" },
-    { value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6" },
-    { value: "claude-haiku-4-5", label: "Claude Haiku 4.5" },
-    { value: "claude-opus-4-6", label: "Claude Opus 4.6" },
-    { value: "claude-sonnet-4-5", label: "Claude Sonnet 4.5" },
-    { value: "claude-opus-4-5", label: "Claude Opus 4.5" },
-  ],
-  openai: [
-    { value: "gpt-5.5", label: "GPT-5.5" },
-    { value: "gpt-5.5-pro", label: "GPT-5.5 Pro" },
-    { value: "gpt-5.4", label: "GPT-5.4" },
-    { value: "gpt-5.4-mini", label: "GPT-5.4 Mini" },
-    { value: "gpt-5.4-nano", label: "GPT-5.4 Nano" },
-    { value: "gpt-5", label: "GPT-5" },
-    { value: "gpt-5-mini", label: "GPT-5 Mini" },
-    { value: "gpt-5-nano", label: "GPT-5 Nano" },
-    { value: "o3", label: "o3" },
-    { value: "o3-pro", label: "o3 Pro" },
-    { value: "gpt-4.1", label: "GPT-4.1" },
-    { value: "gpt-4.1-mini", label: "GPT-4.1 Mini" },
-    { value: "gpt-4o", label: "GPT-4o" },
-    { value: "gpt-4o-mini", label: "GPT-4o Mini" },
-  ],
-  google: [
-    { value: "gemini/gemini-2.5-pro", label: "Gemini 2.5 Pro" },
-    { value: "gemini/gemini-2.5-flash", label: "Gemini 2.5 Flash" },
-    { value: "gemini/gemini-2.0-flash", label: "Gemini 2.0 Flash" },
-  ],
-  groq: [
-    { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B" },
-    { value: "llama-3.1-8b-instant", label: "Llama 3.1 8B" },
-    { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B" },
-  ],
-  openrouter: [
-    { value: "anthropic/claude-opus-4-7", label: "Claude Opus 4.7" },
-    { value: "anthropic/claude-sonnet-4-6", label: "Claude Sonnet 4.6" },
-    { value: "anthropic/claude-haiku-4-5", label: "Claude Haiku 4.5" },
-    { value: "openai/gpt-5.5", label: "GPT-5.5" },
-    { value: "openai/gpt-5", label: "GPT-5" },
-    { value: "openai/gpt-4o", label: "GPT-4o" },
-    { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro" },
-  ],
-  ollama: [
-    { value: "llama3.3", label: "Llama 3.3" },
-    { value: "mistral", label: "Mistral" },
-    { value: "codellama", label: "Code Llama" },
-    { value: "qwen2.5-coder", label: "Qwen 2.5 Coder" },
-  ],
-};
-
 export default function LLMTab() {
   const { workspace } = useWorkspace();
   if (!workspace) return null;
@@ -129,14 +79,32 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const availableModels = MODELS_BY_PROVIDER[provider] ?? [];
+  // Catálogo vem do backend (ADR-288) — fonte única, sem lista hardcoded.
+  const [availableModels, setAvailableModels] = useState<LLMModelInfo[]>([]);
+  const [defaultModel, setDefaultModel] = useState("");
 
-  const handleProviderChange = (v: string) => {
+  const fetchModels = useCallback(
+    async (p: string): Promise<{ models: LLMModelInfo[]; defaultModel: string }> => {
+      try {
+        const res = await getLLMModels(workspace.id, p);
+        setAvailableModels(res.models);
+        setDefaultModel(res.default_model);
+        return { models: res.models, defaultModel: res.default_model };
+      } catch {
+        setAvailableModels([]);
+        setDefaultModel("");
+        return { models: [], defaultModel: "" };
+      }
+    },
+    [workspace.id],
+  );
+
+  const handleProviderChange = async (v: string) => {
     setProvider(v);
-    const models = MODELS_BY_PROVIDER[v] ?? [];
+    const { models, defaultModel: def } = await fetchModels(v);
     const currentInList = models.some((m) => m.value === modelName);
     if (!currentInList) {
-      setModelName(models[0]?.value ?? "");
+      setModelName(def || models[0]?.value || "");
       setCustomModel(models.length === 0);
     }
   };
@@ -147,10 +115,11 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
       const [cfg, t] = await Promise.all([getLLMConfig(workspace.id), getLLMTier(workspace.id)]);
       setConfig(cfg);
       setTier(t);
+      const activeProvider = cfg?.provider ?? "anthropic";
+      const { models } = await fetchModels(activeProvider);
       if (cfg) {
         setProvider(cfg.provider);
         setModelName(cfg.model_name);
-        const models = MODELS_BY_PROVIDER[cfg.provider] ?? [];
         const inList = models.some((m) => m.value === cfg.model_name);
         setCustomModel(!inList);
       }
@@ -159,7 +128,7 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchModels, workspace.id]);
 
   useEffect(() => {
     fetchData();
@@ -213,7 +182,8 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
       setConfig(null);
       setProvider("anthropic");
       setApiKey("");
-      setModelName(MODELS_BY_PROVIDER["anthropic"][0]?.value ?? "");
+      const { models, defaultModel: def } = await fetchModels("anthropic");
+      setModelName(def || models[0]?.value || "");
       setCustomModel(false);
       toast.success("Configuração LLM removida");
       const t = await getLLMTier(workspace.id);
@@ -236,6 +206,7 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
   const tierLabel = tier?.tier === "premium" ? "Premium" : "Free";
   const tierVariant = tier?.tier === "premium" ? "default" : "secondary";
   const isKeyInvalid = config?.api_key_status === "invalid";
+  const isModelDeprecated = config?.model_status === "deprecated";
 
   return (
     <div className="space-y-6">
@@ -289,6 +260,25 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
         </CardHeader>
 
         <CardContent className="space-y-5">
+          {isModelDeprecated && (
+            <div
+              role="alert"
+              className="flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm"
+            >
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              <div className="space-y-1">
+                <p className="font-medium text-amber-700">
+                  Modelo descontinuado pelo provedor
+                </p>
+                <p className="text-muted-foreground">
+                  O modelo <span className="font-mono">{config?.model_name}</span> tem
+                  aposentadoria anunciada e vai parar de responder. Selecione um modelo
+                  atual{defaultModel ? ` (sugestão: ${defaultModel})` : ""} e re-salve a
+                  configuração.
+                </p>
+              </div>
+            </div>
+          )}
           {isKeyInvalid && (
             <div
               role="alert"
@@ -343,7 +333,7 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
               {customModel || availableModels.length === 0 ? (
                 <Input
                   id="llm-model"
-                  placeholder="ex: claude-opus-4-7, gpt-5.5"
+                  placeholder="ex: claude-opus-4-8, gpt-5.5"
                   value={modelName}
                   onChange={(e) => setModelName(e.target.value)}
                 />

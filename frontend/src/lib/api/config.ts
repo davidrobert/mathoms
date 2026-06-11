@@ -330,10 +330,25 @@ export interface LLMConfigResponse {
   api_key_masked: string;
   api_key_status: "valid" | "invalid";
   model_name: string;
+  model_status: "ok" | "deprecated";
   max_tokens: number;
   temperature: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface LLMModelInfo {
+  value: string;
+  label: string;
+  source: "curated" | "provider";
+  pricing_known: boolean;
+}
+
+export interface LLMModelsResponse {
+  provider: string;
+  models: LLMModelInfo[];
+  default_model: string;
+  fetched_dynamic: boolean;
 }
 
 export interface LLMTierResponse {
@@ -365,4 +380,8 @@ export async function testLLMConnection(workspaceId: string): Promise<{ success:
 
 export async function getLLMTier(workspaceId: string): Promise<LLMTierResponse> {
   return apiFetch(`/workspaces/${workspaceId}/config/llm/tier`);
+}
+
+export async function getLLMModels(workspaceId: string, provider: string): Promise<LLMModelsResponse> {
+  return apiFetch(`/workspaces/${workspaceId}/config/llm/models?provider=${encodeURIComponent(provider)}`);
 }
