@@ -39,7 +39,10 @@ export function EndividamentoCard({
               Total de dívidas
             </p>
             <p className="mt-1 font-mono text-3xl font-semibold tabular-nums">
-              <MonetaryValue value={total} />
+              <MonetaryValue
+                value={total}
+                provenance={{ fieldId: "endividamento.total_dividas" }}
+              />
             </p>
             <p className="mt-1 text-sm text-[var(--surface-muted-foreground)]">
               <span className="font-mono tabular-nums">

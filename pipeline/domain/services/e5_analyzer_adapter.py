@@ -698,6 +698,7 @@ class E5AnalyzerAdapter:
                 reserva=reserva,
                 fluxo_legacy=fluxo_legacy,
                 investimentos_legacy=investimentos_classes.to_legacy_dict(),
+                endividamento_legacy=endividamento.to_legacy_dict(),
                 despesas_e4=despesas,
                 identity=self._identity,
             ),

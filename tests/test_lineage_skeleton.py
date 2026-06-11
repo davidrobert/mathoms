@@ -117,16 +117,18 @@ def test_lineage_shape_invariants(e5_payload: dict):
         assert keys == sorted(keys)
 
 
-# ─────────────────────── agregados da l6 (A24.l6) ───────────────────────
+# ──────────────── agregados da l6 (A24.l6 + A25.l6 KR2 6/6) ────────────────
 
 _L6_FIELDS = (
     "reserva_emergencia.total_liquida",
     "fluxo_caixa.despesa_total",
     "investimentos.total",
+    "endividamento.total_dividas",
 )
+_FORMULA_FIELDS = ("fluxo_caixa.fluxo_liquido",)
 
 
-@pytest.mark.parametrize("field_name", _L6_FIELDS)
+@pytest.mark.parametrize("field_name", _L6_FIELDS + _FORMULA_FIELDS)
 def test_l6_value_mirrors_payload(e5_payload: dict, field_name: str):
     """to_cents(_lineage.fields[X].value) == to_cents(payload[X]) — campo é o dot-path."""
     assert _cents(_field(e5_payload, field_name)["value"]) == _resolved_cents(
@@ -140,6 +142,27 @@ def test_l6_aggregate_equals_sum_of_lineage_inputs(e5_payload: dict, field_name:
     entry = _field(e5_payload, field_name)
     soma = sum(_resolved_cents(e5_payload, i["field"]) for i in entry["inputs"])
     assert _cents(entry["value"]) == soma
+
+
+def test_fluxo_liquido_equals_receita_minus_despesa_inputs(e5_payload: dict):
+    """check_lineage_sum (A25.l6): receita_total − despesa_total (resolvidos
+    dos inputs[]) == value — mesma identidade do invariante G-b."""
+    entry = _field(e5_payload, "fluxo_caixa.fluxo_liquido")
+    by_field = {i["field"]: _resolved_cents(e5_payload, i["field"]) for i in entry["inputs"]}
+    assert set(by_field) == {"fluxo_caixa.despesa_total", "fluxo_caixa.receita_total"}
+    assert (
+        _cents(entry["value"])
+        == by_field["fluxo_caixa.receita_total"] - by_field["fluxo_caixa.despesa_total"]
+    )
+
+
+def test_total_dividas_is_distinct_node_of_patrimonio_dividas(e5_payload: dict):
+    """A25.l6: nó declarado no enforcer (EndividamentoAnalyzer) aponta para
+    ``patrimonio.dividas`` — 2 nós distintos, 1 fonte, mesmo valor em cents."""
+    entry = _field(e5_payload, "endividamento.total_dividas")
+    assert [i["field"] for i in entry["inputs"]] == ["patrimonio.dividas"]
+    assert entry["edge_type"] == "aggregation"
+    assert _cents(entry["value"]) == _resolved_cents(e5_payload, "patrimonio.dividas")
 
 
 def test_despesa_k4_coverage_partial_contract(e5_payload: dict):
@@ -189,6 +212,20 @@ def test_resolver_walks_l6_aggregates_to_leaves(e5_payload: dict, field_name: st
     tree = _seeded_resolver(e5_payload).resolve("E5", "analise_financeira", field_name)
     assert tree["node_type"] == "lineage"
     assert all(leaf["node_type"] == "no_lineage" for leaf in tree["inputs"])
+
+
+def test_resolver_walks_fluxo_liquido_through_despesa_total(e5_payload: dict):
+    """A25.l6: fluxo_liquido desce 2 níveis — despesa_total é nó lineage
+    (com folhas próprias), receita_total é folha no_lineage."""
+    tree = _seeded_resolver(e5_payload).resolve(
+        "E5", "analise_financeira", "fluxo_caixa.fluxo_liquido"
+    )
+    assert tree["node_type"] == "lineage"
+    by_field = {n["field"]: n for n in tree["inputs"]}
+    assert by_field["fluxo_caixa.receita_total"]["node_type"] == "no_lineage"
+    despesa = by_field["fluxo_caixa.despesa_total"]
+    assert despesa["node_type"] == "lineage"
+    assert all(leaf["node_type"] == "no_lineage" for leaf in despesa["inputs"])
 
 
 def test_resolver_field_without_lineage_is_no_lineage_node(e5_payload: dict):

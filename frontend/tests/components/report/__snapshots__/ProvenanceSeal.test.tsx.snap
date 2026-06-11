@@ -2,4 +2,6 @@
 
 exports[`popover N2 — copy exata > snapshot textual pt-BR dos valores expostos (G-d) 1`] = `"Como chegamos a esse númeroDespesa total do períodoLi 12 documentos que você enviouConferi 120 lançamentos — 3 apareciam repetidos e contei só uma vezClassifiquei cada lançamento por categoriaCalculei somando o que entra e subtraindo o que saiO número acima é o que vale. Aqui só mostro como conferi."`;
 
+exports[`popover N2 — copy exata > snapshot textual pt-BR — endividamento total_dividas (G-d, A25.l6) 1`] = `"Como chegamos a esse númeroEndividamento — total de dívidasLi 12 documentos que você enviouCalculei somando o que entra e subtraindo o que saiO número acima é o que vale. Aqui só mostro como conferi."`;
+
 exports[`selo N1 — flag on > affordance light+dark via tokens (markup tema-agnóstico) — snapshot isolado 1`] = `"<span data-provenance-seal="true" aria-label="Como chegamos ao Reserva de emergência — total líquido" class="cursor-help underline decoration-dotted underline-offset-[3px] focus-visible:outline-none decoration-1 decoration-[var(--border)] hover:decoration-[var(--brand-primary)] focus-visible:decoration-[var(--brand-primary)]" role="button" tabindex="0" data-base-ui-click-trigger="" id="base-ui-_r_5_" data-slot="popover-trigger" aria-haspopup="dialog" aria-expanded="false">R$&nbsp;1.000,00</span>"`;
