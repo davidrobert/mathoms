@@ -387,7 +387,7 @@ com golden substrate + rebaseline manifestado.
 | # | Key Result | Baseline | Meta |
 |---|---|---|---|
 | **KR1** | `localization_accuracy@node` (suite de injeção de bug) | suite nasce em F7; proxy = 5 bugs históricos | **≥ 85%** (regressão >2% bloqueia) |
-| **KR2** | Agregados de decisão com lineage fim-a-fim | 4/6 pós-A24 | **6/6** + `check_lineage_sum` verde |
+| **KR2** | Agregados de decisão com lineage fim-a-fim | 4/6 pós-A24 | **6/6** ✅ (A25.l6-A #609, 2026-06-11) + `check_lineage_sum` verde |
 | **KR3** | `tool_iterations_p95` p/ "número errado → função" | não-instrumentado; cravar tempo de arqueologia manual no kickoff | `tool_iterations_p95 ≤ 6`; inline ≤ 1.5k tokens |
 
 **Lista canônica dos 6 agregados do KR2** (kickoff A25, product-manager 2026-06-10 —
@@ -400,8 +400,8 @@ topologia 2 níveis intra-E5):
 | 2 | reserva | `reserva_emergencia.total_liquida` | tenho colchão | ✅ A24.l6 |
 | 3 | despesa | `fluxo_caixa.despesa_total` | quanto consumo | ✅ A24.l6 |
 | 4 | investido | `investimentos.total` | quanto trabalha por mim | ✅ A24.l6 |
-| 5 | fluxo | `fluxo_caixa.fluxo_liquido` | capacidade de poupança | A25.l6 |
-| 6 | dívidas | `endividamento.total_dividas` (⚠️ NÃO `dividas.total` — dot-path real) | quitar vs. investir | A25.l6 |
+| 5 | fluxo | `fluxo_caixa.fluxo_liquido` | capacidade de poupança | ✅ A25.l6-A #609 |
+| 6 | dívidas | `endividamento.total_dividas` (⚠️ NÃO `dividas.total` — dot-path real) | quitar vs. investir | ✅ A25.l6-A #609 |
 
 KR mensurável na 1ª janela: **KR2 parcial (1/6 — patrimônio líquido)** + processo
 ("tempo de localização cai de E0→E5 manual para 1 comando CLI"). Pós-A24: 4/6.

@@ -44,7 +44,7 @@ theme: "data-lineage"
 | [[A25.l3]] | `dl-f5-reverso` (edge table + hook pós-run; teto run→doc documentado) | ✅ shipped #600 | — |
 | [[A25.l4]] | `dl-f7-debug-llm` (renderer/diff/tools/eval nightly + seed #606/#607) | ✅ shipped #603 | — |
 | [[A25.l5]] | `dl-f6-produto-n1n2` (selo+popover; teste 5s dogfood pendente, flag off) | ✅ shipped #602 | — |
-| [[A25.l6]] | `kr2-resto` (parte A — 2 agregados — em andamento ∥; parte B member_hashes após l2) | in_progress | parte B: l2 |
+| [[A25.l6]] | `kr2-resto` (parte A ✅ #609 — **KR2 6/6 lineage**; parte B member_hashes após l2) | in_progress | parte B: l2 |
 | [[A25.l7]] | `evidencia-strict-decision` (ÚLTIMA — decisão informada, gate <5% sobre ≥20 gerações; amostra 0 em 2026-06-11) | planned | telemetria |
 
 **Precedência de corte (squeeze):** F7 > F6. MLP = l3+l4+l5 + decisão l7;
