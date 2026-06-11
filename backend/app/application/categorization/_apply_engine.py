@@ -73,11 +73,7 @@ def _hash_scope(matching: list, v2_enabled: bool):
 
 
 def _existing_override_index(
-    db: Session,
-    workspace_id: str,
-    *,
-    matching: list,
-    v2_enabled: bool,
+    db: Session, workspace_id: str, *, matching: list, v2_enabled: bool
 ) -> OverrideMatchIndex:
     """Overrides ativos das txs candidatas (sticky check; scope p/ perf, ADR-188 PR3 R2/R3)."""
     if not matching:
