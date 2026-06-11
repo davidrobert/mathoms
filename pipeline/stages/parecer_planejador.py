@@ -6,6 +6,8 @@ import logging
 import os
 from typing import TYPE_CHECKING
 
+from pipeline.llm.models_catalog import PARECER_MODEL as _DEFAULT_MODEL
+
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
 
@@ -14,7 +16,6 @@ logger = logging.getLogger("mathoms.pipeline.parecer_planejador")
 STAGE_NAME = "review_finances_holistic"
 ARTIFACT_STAGE = "E6-parecer"
 ARTIFACT_KEY = "parecer_planejador"
-_DEFAULT_MODEL = "anthropic/claude-sonnet-4-20250514"
 
 
 def _is_enabled() -> bool:

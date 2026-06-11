@@ -23,7 +23,7 @@ class LLMConfig(Base):
     provider: Mapped[str] = mapped_column(String(50), nullable=False, default="anthropic")
     api_key_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
     model_name: Mapped[str] = mapped_column(
-        String(100), nullable=False, default="claude-sonnet-4-20250514"
+        String(100), nullable=False, default="claude-sonnet-4-6"
     )
     max_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=4096)
     temperature: Mapped[float] = mapped_column(Float, nullable=False, default=0.1)

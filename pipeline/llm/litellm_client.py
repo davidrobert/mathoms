@@ -24,6 +24,7 @@ from pipeline.llm.error_classification import (
     LLMErrorType,
     classify_error,
 )
+from pipeline.llm.models_catalog import SUPPORTED_PROVIDERS, default_model_for
 from pipeline.llm.pricing import MODEL_PRICING, estimate_cost_usd
 from pipeline.llm.prompts._sanitization import sanitize_and_wrap
 
@@ -34,16 +35,6 @@ logger = logging.getLogger(__name__)
 _sanitization_logger = logging.getLogger("mathoms.llm.input_sanitized")
 
 T = TypeVar("T", bound=BaseModel)
-
-
-SUPPORTED_PROVIDERS = {
-    "anthropic": {"prefix": "anthropic/", "env_key": "ANTHROPIC_API_KEY"},
-    "openai": {"prefix": "openai/", "env_key": "OPENAI_API_KEY"},
-    "ollama": {"prefix": "ollama/", "env_key": None},
-    "groq": {"prefix": "groq/", "env_key": "GROQ_API_KEY"},
-    "deepseek": {"prefix": "deepseek/", "env_key": "DEEPSEEK_API_KEY"},
-    "together_ai": {"prefix": "together_ai/", "env_key": "TOGETHERAI_API_KEY"},
-}
 
 
 class LLMError(Exception):
@@ -137,7 +128,7 @@ class LLMConfig:
 
     provider: str = "anthropic"
     api_key: str = ""
-    model_name: str = "claude-sonnet-4-20250514"
+    model_name: str = default_model_for("anthropic")
     max_tokens: int = 4096
     temperature: float = 0.1
 
@@ -163,7 +154,7 @@ class LLMService:
     """Orchestrates LLM calls with retry, structured output, and token tracking.
 
     Usage:
-        config = LLMConfig(provider="anthropic", api_key="sk-...", model_name="claude-sonnet-4-20250514")
+        config = LLMConfig(provider="anthropic", api_key="sk-...", model_name="claude-sonnet-4-6")
         service = LLMService(config)
 
         result = service.call(

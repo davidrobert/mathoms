@@ -12,6 +12,9 @@ from backend.app.application.llm_config import (
     get_llm_config as _get_llm_config,
 )
 from backend.app.application.llm_config import (
+    get_llm_models as _get_llm_models,
+)
+from backend.app.application.llm_config import (
     get_llm_tier as _get_llm_tier,
 )
 from backend.app.application.llm_config import (
@@ -28,6 +31,7 @@ from backend.app.schemas.llm import (
     LLMConfigResponse,
     LLMConfigTestRequest,
     LLMConfigTestResponse,
+    LLMModelsResponse,
     LLMTierResponse,
 )
 from backend.app.services.vault import get_vault
@@ -79,6 +83,15 @@ async def test_llm_connection(
     db: AsyncSession = Depends(get_db),
 ) -> LLMConfigTestResponse:
     return await _test_llm_connection(workspace.id, body, db=db, vault=get_vault())
+
+
+@router.get("/llm/models", response_model=LLMModelsResponse)
+async def get_llm_models(
+    provider: str = "anthropic",
+    workspace: Workspace = Depends(get_current_workspace),
+) -> LLMModelsResponse:
+    """Modelos por provider (catálogo curado, ADR-288 F1) — global, sob workspace por auth."""
+    return _get_llm_models(provider)
 
 
 @router.get("/llm/tier", response_model=LLMTierResponse)

@@ -7,6 +7,7 @@ from typing import Optional
 
 MODEL_PRICING: dict[str, dict[str, float]] = {
     # Anthropic — Claude 4.x family (2026; preços oficiais docs.anthropic.com)
+    "claude-opus-4-8": {"input": 5.0, "output": 25.0},
     "claude-opus-4-7": {"input": 5.0, "output": 25.0},
     "claude-opus-4-6": {"input": 5.0, "output": 25.0},
     "claude-opus-4-5": {"input": 5.0, "output": 25.0},
@@ -52,6 +53,7 @@ MODEL_PRICING: dict[str, dict[str, float]] = {
     # Google Gemini (preços referência 2026; ajustar se mudarem)
     "gemini-2.0-flash": {"input": 0.075, "output": 0.30},
     "gemini-2.5-pro": {"input": 1.25, "output": 5.0},
+    "gemini-2.5-flash": {"input": 0.30, "output": 2.50},
 }
 
 

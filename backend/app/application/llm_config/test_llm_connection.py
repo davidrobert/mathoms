@@ -9,6 +9,7 @@ from backend.app.application.base.errors import NotFoundError, ValidationError
 from backend.app.models.llm_config import LLMConfig
 from backend.app.schemas.llm import LLMConfigTestRequest, LLMConfigTestResponse
 from backend.app.services.vault import VaultService
+from pipeline.llm.models_catalog import default_model_for
 
 
 async def test_llm_connection(
@@ -32,7 +33,7 @@ def _resolve_credentials(
 ) -> tuple[str, str, str]:
     if body and body.api_key:
         provider = body.provider or (cfg.provider if cfg else "anthropic")
-        model_name = body.model_name or (cfg.model_name if cfg else "claude-sonnet-4-20250514")
+        model_name = body.model_name or (cfg.model_name if cfg else default_model_for(provider))
         return provider, body.api_key, model_name
     if cfg is None:
         raise NotFoundError(
