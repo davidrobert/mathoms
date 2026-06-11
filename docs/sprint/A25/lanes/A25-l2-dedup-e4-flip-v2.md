@@ -27,6 +27,11 @@ tags:
 > **Plano:** [[PLAN-data-lineage]] · executa o passo 2 da estratégia B4 ([[ADR-278]]).
 > **Bloqueada por [[A25.l1]]** (gate de sequenciamento [[ADR-282]] §7: cutover de
 > leitura do override + dogfood de reancoragem ANTES do flip).
+>
+> **Estado do gate (2026-06-11):** [[A25.l1]] shipped (#604) e [[ADR-287]] `Proposto`
+> em main (#605) — o desenho exigido abaixo está pronto. Dry-run dogfood executado:
+> 7/7 overrides já órfãos hoje (denominador de reancoráveis = 0; detalhes em
+> [[A25.l1]] §Resultado). **Aguarda inspeção do owner** para destravar.
 
 ## Objetivo
 

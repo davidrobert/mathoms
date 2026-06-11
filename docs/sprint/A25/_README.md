@@ -39,13 +39,13 @@ theme: "data-lineage"
 
 | Lane | Slug | Status | Dep |
 |---|---|---|---|
-| [[A25.l1]] | `a23l4-cutover-override` (dual-read 6 call-sites + flag; M2 → carry-over) | open | A23.l4 s3 ✅ #563 |
-| [[A25.l2]] | `dedup-e4-flip-v2` (⚠️ ADR Proposto antes de codar; rebaseline manifestado) | blocked | l1 |
-| [[A25.l3]] | `dl-f5-reverso` (edge table + hook pós-run; teto run→doc documentado) | open | — |
-| [[A25.l4]] | `dl-f7-debug-llm` (renderer/diff/tools/eval nightly) | open | — |
-| [[A25.l5]] | `dl-f6-produto-n1n2` (selo+popover; collapsed_count via `_lineage.signals`) | open | — |
-| [[A25.l6]] | `kr2-resto` (P2/stretch — fluxo_liquido + endividamento.total_dividas + member_hashes reais) | blocked | l2 |
-| [[A25.l7]] | `evidencia-strict-decision` (ÚLTIMA — decisão informada, gate <5% sobre ≥20 gerações) | planned | telemetria |
+| [[A25.l1]] | `a23l4-cutover-override` (dual-read 6 call-sites + flag; M2 → carry-over) | ✅ shipped #604 | A23.l4 s3 ✅ #563 |
+| [[A25.l2]] | `dedup-e4-flip-v2` ([[ADR-287]] `Proposto` ✅ #605; dry-run dogfood 7/7 órfãos — aguarda inspeção owner) | blocked | l1 ✅ + owner |
+| [[A25.l3]] | `dl-f5-reverso` (edge table + hook pós-run; teto run→doc documentado) | ✅ shipped #600 | — |
+| [[A25.l4]] | `dl-f7-debug-llm` (renderer/diff/tools/eval nightly + seed #606/#607) | ✅ shipped #603 | — |
+| [[A25.l5]] | `dl-f6-produto-n1n2` (selo+popover; teste 5s dogfood pendente, flag off) | ✅ shipped #602 | — |
+| [[A25.l6]] | `kr2-resto` (parte A — 2 agregados — em andamento ∥; parte B member_hashes após l2) | in_progress | parte B: l2 |
+| [[A25.l7]] | `evidencia-strict-decision` (ÚLTIMA — decisão informada, gate <5% sobre ≥20 gerações; amostra 0 em 2026-06-11) | planned | telemetria |
 
 **Precedência de corte (squeeze):** F7 > F6. MLP = l3+l4+l5 + decisão l7;
 l1 must-condicional; l2 must-se-l1; l6 stretch cortável.

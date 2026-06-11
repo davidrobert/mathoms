@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F6 — produto N1/N2: selo + popover 'Como chegamos a esse número'"
 sprint: A25
 plan: PLAN-data-lineage
-status: open
+status: shipped
 priority: P1
 branch_slug: dl-f6-produto-n1n2
 adrs:
@@ -15,7 +15,7 @@ parallel_with: ["[[A25.l1]]", "[[A25.l3]]", "[[A25.l4]]"]
 tags:
   - type/lane
   - sprint/a25
-  - status/open
+  - status/shipped
   - priority/p1
   - area/data-lineage
   - area/frontend
@@ -93,6 +93,13 @@ Teste de valor: dogfooder responde "de onde veio?" em 1 frase sem abrir nada té
   needs_review forma+texto+cor.
 - **Teste de confiança 5s dogfood** — único teste de VALOR da F6, não pular.
 - Export PDF === relatório atual no número.
+
+## Resultado (shipped 2026-06-11, #602)
+
+Sinais de conferência em `_lineage.signals` (E5) + flag `report_provenance_enabled`
+(off) + selo N1 + `ProvenancePopover` N2 com a copy travada + supressão no print +
+rebaseline não-monetário isolado. **Pendência humana:** teste de confiança 5s no
+dogfood com flag-ON (roteiro no §Critério).
 
 ## Owner
 

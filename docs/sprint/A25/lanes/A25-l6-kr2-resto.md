@@ -4,7 +4,7 @@ type: lane
 title: "KR2 6/6 — fluxo_liquido + endividamento.total_dividas + member_hashes reais"
 sprint: A25
 plan: PLAN-data-lineage
-status: blocked
+status: in_progress
 priority: P2
 branch_slug: kr2-resto
 adrs:
@@ -15,7 +15,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a25
-  - status/blocked
+  - status/in-progress
   - priority/p2
   - area/data-lineage
   - area/pipeline
