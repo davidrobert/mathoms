@@ -98,6 +98,42 @@ def extract_one_informe(
     return payload, result
 
 
+def _log_informe_telemetry(entry: dict[str, Any], result) -> None:
+    logger.info(
+        "extract_informe_aluguel",
+        extra={
+            "doc": entry["file"],
+            "imoveis": entry["imoveis"],
+            "imobiliaria_cnpj_present": entry["imobiliaria_cnpj_present"],
+            "locador_cpf_present": entry["locador_cpf_present"],
+            "tokens_in": result.tokens_in,
+            "tokens_out": result.tokens_out,
+            "cost_usd": result.cost_estimate_usd,
+        },
+    )
+
+
+def _extract_and_persist(doc: Path, config: LLMConfig, store) -> dict[str, Any]:
+    """Extrai 1 informe, persiste e loga telemetria — retorna entry de `processed`."""
+    payload, result = extract_one_informe(doc, config)
+    key = _artifact_key_for(doc)
+    # Schema validation roda no hook pós-write de DBArtifactStore
+    # (ADR-212 PR3 — SCHEMA_BY_STAGE['extract_informe_aluguel']).
+    store.write("extract_informe_aluguel", key, payload)
+    entry = {
+        "file": _redact_filename_pii(doc.name),
+        "artifact_key": key,
+        "imoveis": len(payload.get("imoveis", [])),
+        "confidence": payload.get("confidence"),
+        # Flags de presença detectam drift de layout/extração de texto sem
+        # logar o identificador em si (ADR-288 — PII fica fora dos logs).
+        "imobiliaria_cnpj_present": payload.get("imobiliaria_cnpj") is not None,
+        "locador_cpf_present": payload.get("locador_cpf") is not None,
+    }
+    _log_informe_telemetry(entry, result)
+    return entry
+
+
 def run(ctx: WorkspaceContext) -> dict[str, Any]:
     """Stage runner — persiste informes encontrados em ``data/income_tax_br/`` (não registrado em STAGE_REGISTRY)."""
     from pipeline.llm.litellm_client import LLMConfig
@@ -129,29 +165,7 @@ def run(ctx: WorkspaceContext) -> dict[str, Any]:
 
     for doc in docs:
         try:
-            payload, result = extract_one_informe(doc, config)
-            key = _artifact_key_for(doc)
-            # Schema validation roda no hook pós-write de DBArtifactStore
-            # (ADR-212 PR3 — SCHEMA_BY_STAGE['extract_informe_aluguel']).
-            store.write("extract_informe_aluguel", key, payload)
-            processed.append(
-                {
-                    "file": _redact_filename_pii(doc.name),
-                    "artifact_key": key,
-                    "imoveis": len(payload.get("imoveis", [])),
-                    "confidence": payload.get("confidence"),
-                }
-            )
-            logger.info(
-                "extract_informe_aluguel",
-                extra={
-                    "doc": _redact_filename_pii(doc.name),
-                    "imoveis": len(payload.get("imoveis", [])),
-                    "tokens_in": result.tokens_in,
-                    "tokens_out": result.tokens_out,
-                    "cost_usd": result.cost_estimate_usd,
-                },
-            )
+            processed.append(_extract_and_persist(doc, config, store))
         except Exception as exc:
             logger.error(
                 "extract_informe_aluguel failed for %s: %s", _redact_filename_pii(doc.name), exc

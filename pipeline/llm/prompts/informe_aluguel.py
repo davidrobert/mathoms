@@ -18,9 +18,9 @@ REGRAS DE EXTRAÇÃO:
 
 2. **Anuais**: todos os valores devem ser o SOMATÓRIO do período coberto pelo informe (geralmente 12 meses). Se o informe traz só mensal, multiplique pelos `meses_locado_no_periodo`.
 
-3. **CNPJ da imobiliária**: somente dígitos (14 chars). Ex.: `"12.345.678/0001-90"` → `"12345678000190"`.
+3. **CNPJ da imobiliária**: copie do documento quando estiver presente e legível, com ou sem máscara (`"12.345.678/0001-90"` é aceito e normalizado automaticamente). Se o CNPJ NÃO estiver presente ou não for legível, use `null` — NUNCA um valor de preenchimento, placeholder, abreviação ou número fabricado. CNPJ ausente é informação válida, não erro: reduza `confidence` e registre em `notes` (ex.: "CNPJ da imobiliária não consta no informe").
 
-4. **CPF do locador**: somente dígitos (11 chars). Ex.: `"123.456.789-00"` → `"12345678900"`.
+4. **CPF do locador**: mesma regra — copie quando presente e legível (máscara aceita, normalizada automaticamente); ausente/ilegível → `null`, nunca placeholder.
 
 5. **Endereço**: completo, com rua/número/bairro/cidade quando disponível. Use o que estiver no informe; não invente.
 
@@ -44,7 +44,7 @@ REGRAS DE EXTRAÇÃO:
 
 13. **Validação implícita**: `aluguel_liquido_anual ≈ aluguel_bruto_anual − taxa_administracao_anual − ir_retido_anual − iptu_anual_pago − condominio_anual_pago`. Discrepância > 5% reduz `confidence` para < 0.8 e popula `notes` explicando.
 
-NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou valores padrão (`0` para IR retido em locação PF; `nao_informado` para índice).
+NÃO ALUCINAR — campos sem dado claro devem ser `null` (Optional) ou valores padrão (`0` para IR retido em locação PF; `nao_informado` para índice). Vale especialmente para identificadores fiscais (CNPJ/CPF): ausente ou ilegível → `null`, jamais placeholder ou número inventado.
 
 Sigilo metodológico: NÃO mencionar Perini/Cerbasi/AUVP no output. Output é dado bruto extraído; interpretação fica em outras camadas.
 """
@@ -76,7 +76,7 @@ Para CADA imóvel listado no informe, popule uma entrada em `imoveis` com:
 - notas (observações relevantes)
 
 E nos campos top-level:
-- imobiliaria_cnpj (14 dígitos)
+- imobiliaria_cnpj (como aparece no documento; null se ausente/ilegível)
 - imobiliaria_nome
 - ano_referencia (geralmente o ano-base IRPF: relatório de 2025 referencia ano 2024)
 - locador_cpf (11 dígitos, se identificável)
