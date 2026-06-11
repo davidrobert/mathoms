@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F5 — edge table artifact_lineage_edge + query reversa"
 sprint: A25
 plan: PLAN-data-lineage
-status: open
+status: shipped
 priority: P0
 branch_slug: dl-f5-reverso
 adrs:
@@ -14,7 +14,7 @@ parallel_with: ["[[A25.l1]]", "[[A25.l4]]", "[[A25.l5]]"]
 tags:
   - type/lane
   - sprint/a25
-  - status/open
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/backend
@@ -77,6 +77,12 @@ histórica usa o `_lineage` inline do E5 daquele run (`pipeline_artifacts`).
 - `test_reverse_query_by_source_document`: run canônico retorna os agregados que
   dependem do doc X (no nível run→doc; teto documentado no teste).
 - Hook best-effort em `_run_post_processing`; roda só em run bem-sucedido.
+
+## Resultado (shipped 2026-06-10, #600)
+
+Migration + deriver puro (`lineage_edge_deriver.py`) + writer N=1
+(`lineage_edge_writer.py`) + hook best-effort em `_run_post_processing` + query
+reversa. Teto run→doc documentado nos testes (15 testes da lane).
 
 ## Owner
 

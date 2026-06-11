@@ -4,7 +4,7 @@ type: lane
 title: "Data Lineage F7 — debug substrate LLM: renderer, lineage_diff, tools, eval"
 sprint: A25
 plan: PLAN-data-lineage
-status: open
+status: shipped
 priority: P0
 branch_slug: dl-f7-debug-llm
 adrs:
@@ -14,7 +14,7 @@ parallel_with: ["[[A25.l1]]", "[[A25.l3]]", "[[A25.l5]]"]
 tags:
   - type/lane
   - sprint/a25
-  - status/open
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/llm
@@ -82,6 +82,13 @@ KR1 `localization_accuracy@node ≥ 85%` · KR3 `tool_iterations_p95 ≤ 6`.
 - Cap de custo + skip sem key; zero PII nas fixtures.
 - Follow-up `seed` no `litellm_client` registrado — **entregue** (PR #606 client +
   plumbing no harness/YAML).
+
+## Resultado (shipped 2026-06-11, #603 + follow-ups #606/#607)
+
+Renderer linearizado + `lineage_diff` + tools + harness `localize` + suite 24+5 +
+gate `check_lineage_eval_gate` + job nightly. Follow-up `seed` entregue no mesmo
+dia (#606 client + #607 plumbing, `seed: 281` pinado no YAML). Baseline real do
+KR1 sai do primeiro nightly com `ANTHROPIC_API_KEY`.
 
 ## Owner
 

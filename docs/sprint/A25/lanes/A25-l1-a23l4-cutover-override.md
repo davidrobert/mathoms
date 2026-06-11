@@ -4,7 +4,7 @@ type: lane
 title: "Override v2 — cutover de leitura (A23.l4 slice 4) + gate M2"
 sprint: A25
 plan: PLAN-data-lineage
-status: open
+status: shipped
 priority: P0
 branch_slug: a23l4-cutover-override
 adrs:
@@ -15,7 +15,7 @@ parallel_with: ["[[A25.l3]]", "[[A25.l4]]", "[[A25.l5]]"]
 tags:
   - type/lane
   - sprint/a25
-  - status/open
+  - status/shipped
   - priority/p0
   - area/data-lineage
   - area/backend
@@ -71,6 +71,22 @@ dual-read v2→fallback-v1 atrás de flag por workspace. Desbloqueia o passo 2 d
 - Gate dogfood ≥98% + zero `ambiguous` não-investigado registrado no SMOKE_TEST_HUMAN
   **antes** de declarar a [[A25.l2]] desbloqueada.
 - `make update-openapi-snapshot` se `hash_version` entrar em DTO.
+
+## Resultado (shipped 2026-06-11, #604)
+
+Dual-read v2→v1 nos 6 call-sites (`OverrideMatchIndex` em
+`backend/app/services/override_dual_read.py`), counter
+`mathoms.categorization.dualread.v1_fallback`, flag-OFF zero-behavior,
+goldens sem rebaseline.
+
+**Gate dogfood executado (2026-06-11, dry-run preview, zero escrita):**
+`overrides_total=7 · reanchored=0 · orphaned=7 · ambiguous=0 · collided=0` —
+nenhum hash v1 armazenado casa com o E4 atual (overrides de 04/28–05/11 vs E4 de
+05/30; re-extrações no intervalo). **Os 7 overrides já estão funcionalmente órfãos
+hoje** — confirma o bug vivo da [[ADR-282]] §Contexto. Denominador de reancoráveis
+= 0 ⇒ taxa vácua. Relatório: `_scratch/a25_l1_dogfood_gate_report.md` (local).
+**Decisão de inspeção pendente do owner** antes de declarar a [[A25.l2]]
+desbloqueada (aplicar backfill real quarentena os 7; ADR-282 §5 — nunca drop).
 
 ## Owner
 
