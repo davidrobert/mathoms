@@ -215,20 +215,35 @@ def test_extract_happy_path_valida():
     assert ext.confidence == 0.95
 
 
-def test_extract_rejeita_cnpj_com_mascara():
-    """CNPJ deve ser 14 dígitos sem máscara — coerção é responsabilidade do extractor."""
-    with pytest.raises(ValueError):
-        _build_extract(imobiliaria_cnpj="12.345.678/0001-90")
+def test_extract_normaliza_cnpj_com_mascara():
+    """Máscara é normalizada deterministicamente no validator (ADR-288) —
+    antes era hard-fail e a coerção dependia só de instrução de prompt."""
+    ext = _build_extract(imobiliaria_cnpj="12.345.678/0001-90")
+    assert ext.imobiliaria_cnpj == "12345678000190"
 
 
-def test_extract_rejeita_cnpj_curto():
-    with pytest.raises(ValueError):
-        _build_extract(imobiliaria_cnpj="123")
+def test_extract_cnpj_ilegivel_vira_none_regressao_prod_2026_06_11():
+    """Regressão prod 2026-06-11 (workspace 5@5.com): informe QuintoAndar sem
+    CNPJ legível no texto extraído → LLM emitiu ``<UNKNOWN>``, o campo required
+    com pattern estrito queimou 4 retries (124s) e o informe foi perdido.
+    Pós-ADR-288 (lição ADR-238): sentinel/garbage degrada para None na 1ª
+    validação — zero retries, documento preservado."""
+    for sentinel in ("<UNKNOWN>", "", "N/A", "nao informado", "123"):
+        ext = _build_extract(imobiliaria_cnpj=sentinel)
+        assert ext.imobiliaria_cnpj is None, f"sentinel {sentinel!r} deveria virar None"
+    ext = _build_extract(imobiliaria_cnpj=None)
+    assert ext.imobiliaria_cnpj is None
 
 
-def test_extract_rejeita_cpf_locador_com_mascara():
-    with pytest.raises(ValueError):
-        _build_extract(locador_cpf="000.000.000-00")  # placeholder LGPD-safe
+def test_extract_normaliza_cpf_locador_com_mascara():
+    """CPF mascarado tinha o mesmo bug latente do CNPJ — normalização ADR-288."""
+    ext = _build_extract(locador_cpf="000.000.000-00")  # placeholder LGPD-safe
+    assert ext.locador_cpf == "00000000000"
+
+
+def test_extract_cpf_locador_ilegivel_vira_none():
+    ext = _build_extract(locador_cpf="<UNKNOWN>")
+    assert ext.locador_cpf is None
 
 
 def test_extract_aceita_locador_cpf_none():
@@ -284,9 +299,8 @@ def test_extract_serializa_para_json_com_decimais_string():
 # ─────────────────────── JSON Schema (DBArtifactStore ADR-212) ──────────────
 
 
-def test_payload_passa_no_json_schema_canonico():
-    """Payload de InformeAluguelExtract deve validar contra
-    ``config/schemas/informe_aluguel.schema.json`` (ADR-212 hook pós-write)."""
+def _canonical_validator():
+    """Validator do schema canônico (ADR-212 hook pós-write) — skip sem jsonschema."""
     schema_path = (
         Path(__file__).resolve().parent.parent
         / "config"
@@ -294,17 +308,32 @@ def test_payload_passa_no_json_schema_canonico():
         / "informe_aluguel.schema.json"
     )
     assert schema_path.exists(), "schema canônico precisa existir para validação ADR-212"
-
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
-    ext = _build_extract()
-    payload = ext.model_dump(mode="json")
+    jsonschema = pytest.importorskip(
+        "jsonschema", reason="jsonschema não disponível neste ambiente — gate roda em CI"
+    )
+    return jsonschema.Draft202012Validator(schema)
 
-    try:
-        from jsonschema import Draft202012Validator
-    except ImportError:
-        pytest.skip("jsonschema não disponível neste ambiente — gate roda em CI")
 
-    Draft202012Validator(schema).validate(payload)
+def test_payload_passa_no_json_schema_canonico():
+    """Payload de InformeAluguelExtract deve validar contra
+    ``config/schemas/informe_aluguel.schema.json`` (ADR-212 hook pós-write)."""
+    payload = _build_extract().model_dump(mode="json")
+    _canonical_validator().validate(payload)
+
+
+def test_payload_cnpj_null_passa_no_json_schema_canonico():
+    """ADR-288: payload com ``imobiliaria_cnpj=null`` (ilegível no documento)
+    valida no schema do hook pós-write; pattern segue rejeitando string inválida."""
+    validator = _canonical_validator()
+    from jsonschema import ValidationError
+
+    payload = _build_extract(imobiliaria_cnpj="<UNKNOWN>").model_dump(mode="json")
+    assert payload["imobiliaria_cnpj"] is None
+    validator.validate(payload)
+
+    with pytest.raises(ValidationError):
+        validator.validate(dict(payload, imobiliaria_cnpj="123"))
 
 
 # ─────────────────────── Prompt format ──────────────────────────────────────
@@ -321,6 +350,15 @@ def test_system_prompt_referencia_rules_metodologicas():
     # (entre aspas) — alinha com pattern e16_irpf_full e evita o bug prod
     # 2026-05-18 onde LLM emitia number e _coerce_decimal rejeitava.
     assert '"1234.56"' in SYSTEM_PROMPT
+
+
+def test_system_prompt_proibe_placeholder_em_identificadores_adr288():
+    """ADR-288: contrato positivo — CNPJ/CPF ausente/ilegível → null, nunca
+    placeholder (proíbe a categoria, não enumera sentinels)."""
+    sp = SYSTEM_PROMPT.lower()
+    assert "placeholder" in sp
+    assert "`null`" in SYSTEM_PROMPT
+    assert "informação válida" in SYSTEM_PROMPT
 
 
 def test_system_prompt_sigilo_metodologico_adr207():

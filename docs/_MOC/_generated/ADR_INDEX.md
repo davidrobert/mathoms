@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-278 ADRs (ADR-001 a ADR-287) em [`docs/adr/`](../../adr/).
+279 ADRs (ADR-001 a ADR-288) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 209
+- **Decidido**: 210
 - **Proposto**: 65
 - **Roadmap**: 4
 
@@ -69,13 +69,14 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## LLM
 
-### Decidido (5)
+### Decidido (6)
 
 - [[ADR-024]] — LiteLLM como proxy universal · phase F4
 - [[ADR-025]] — BYOK (Bring Your Own Key) · phase F4
 - [[ADR-026]] — Instructor + Pydantic para structured output · phase F4
 - [[ADR-027]] — Retry → needs_review em falha de validação · phase F4
 - [[ADR-028]] — E7 full scope na Fase 4 · phase F4
+- [[ADR-288]] — Identificador fiscal ilegível em extração LLM degrada para None determinístico — nunca hard-fail retryable
 
 ### Proposto (1)
 

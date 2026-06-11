@@ -2,13 +2,26 @@
 
 from __future__ import annotations
 
+import re
 from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-PROMPT_VERSION = "informe-aluguel-v1.1.0"
+PROMPT_VERSION = "informe-aluguel-v1.2.0"
+
+_NON_DIGITS = re.compile(r"\D")
+
+
+def _normalize_pii_digits(v, *, expected_len: int) -> Optional[str]:
+    """Identificador fiscal no boundary LLM: strip de máscara; ilegível/sentinel → None (ADR-288)."""
+    # Sentinels (<UNKNOWN>, N/A…) e truncados não somam expected_len dígitos e
+    # degradam para None — documento sobrevive em vez de queimar retries (ADR-238).
+    if v is None:
+        return None
+    digits = _NON_DIGITS.sub("", v if isinstance(v, str) else str(v))
+    return digits if len(digits) == expected_len else None
 
 
 def _coerce_decimal(v):
@@ -130,10 +143,13 @@ class InformeAluguelImovel(_SubModel):
 class InformeAluguelExtract(_SubModel):
     """Top-level — informe anual da imobiliária para um locador no ano de referência."""
 
-    imobiliaria_cnpj: str = Field(
-        ...,
+    imobiliaria_cnpj: Optional[str] = Field(
+        None,
         pattern=r"^\d{14}$",
-        description="CNPJ da imobiliária (somente dígitos, 14 chars). Coercionar de '12.345.678/0001-90' no extractor.",
+        description=(
+            "CNPJ da imobiliária (somente dígitos, 14 chars) ou None quando ilegível/ausente "
+            "no documento. Máscara é normalizada deterministicamente no validator (ADR-288)."
+        ),
     )
     imobiliaria_nome: str = Field(
         ..., min_length=2, description="Razão social ou nome fantasia da imobiliária."
@@ -180,3 +196,13 @@ class InformeAluguelExtract(_SubModel):
         default=PROMPT_VERSION,
         description="Versão do prompt que produziu o output — usado para invalidação de cache (ADR-157 sub-decisão 7).",
     )
+
+    @field_validator("imobiliaria_cnpj", mode="before")
+    @classmethod
+    def _normalize_cnpj(cls, v):
+        return _normalize_pii_digits(v, expected_len=14)
+
+    @field_validator("locador_cpf", mode="before")
+    @classmethod
+    def _normalize_cpf(cls, v):
+        return _normalize_pii_digits(v, expected_len=11)

@@ -13,9 +13,9 @@
   ],
   "properties": {
     "imobiliaria_cnpj": {
-      "type": "string",
+      "type": ["string", "null"],
       "pattern": "^\\d{14}$",
-      "description": "CNPJ da imobiliária (14 dígitos sem máscara)."
+      "description": "CNPJ da imobiliária (14 dígitos sem máscara) ou null quando ilegível/ausente no documento (ADR-288)."
     },
     "imobiliaria_nome": {
       "type": "string",
