@@ -1,6 +1,24 @@
 {
   "_lineage": {
     "fields": {
+      "endividamento.total_dividas": {
+        "edge_type": "aggregation",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "patrimonio.dividas",
+            "stage": "E5"
+          }
+        ],
+        "label": "Endividamento — total de dívidas",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-227",
+          "ref": "pipeline.domain.services.endividamento_analyzer:EndividamentoAnalyzer.analyze"
+        },
+        "transform": "consolidação das dívidas do patrimônio",
+        "value": "150000.00"
+      },
       "fluxo_caixa.despesa_total": {
         "edge_type": "aggregation",
         "inputs": [
@@ -23,6 +41,29 @@
           "tx_total": "2"
         },
         "transform": "soma das despesas por categoria",
+        "value": "1500.00"
+      },
+      "fluxo_caixa.fluxo_liquido": {
+        "edge_type": "formula",
+        "inputs": [
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.despesa_total",
+            "stage": "E5"
+          },
+          {
+            "artifact_key": "analise_financeira",
+            "field": "fluxo_caixa.receita_total",
+            "stage": "E5"
+          }
+        ],
+        "label": "Fluxo líquido do período",
+        "member_hashes": [],
+        "rule_ref": {
+          "adr": "ADR-137",
+          "ref": "pipeline.domain.services.fluxo_caixa_enricher:FluxoCaixaEnricher.enrich"
+        },
+        "transform": "receita total − despesa total",
         "value": "1500.00"
       },
       "investimentos.total": {
