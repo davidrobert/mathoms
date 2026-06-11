@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy import update as sa_update
 from sqlalchemy.orm import Session
 
@@ -25,8 +25,14 @@ from backend.app.models.transaction_override import (
 from backend.app.repositories.categorization_rule_repository import (
     CategorizationRuleRepository,
 )
+from backend.app.services.feature_flags_service import is_enabled_sync
+from backend.app.services.override_dual_read import (
+    OVERRIDE_NATURAL_KEY_V2_FLAG,
+    OverrideMatchIndex,
+)
 from backend.app.services.override_identity import identity_from_transaction_item
 from backend.app.services.report_publication import is_month_closed_sync
+from backend.app.services.transaction_service import natural_key_for_match
 from pipeline.domain.services.categorization_service import normalize_narrative
 from pipeline.domain.services.internal_transfer_detector import (
     InternalTransferDetector,
@@ -54,26 +60,35 @@ class _ApplyCtx:
     detector: InternalTransferDetector
     db: Session
     closed_cache: dict[str, bool]
-    existing_by_hash: dict[str, TransactionOverride]
+    match_index: OverrideMatchIndex
 
 
-def _existing_overrides_by_hash(
-    db: Session,
-    workspace_id: str,
-    *,
-    matching_hashes: Optional[list[str]] = None,
-) -> dict[str, TransactionOverride]:
-    """Overrides ativos por transaction_hash (sticky check); scope opcional p/ perf (ADR-188 PR3 R2/R3)."""
-    stmt = select(TransactionOverride).where(
-        TransactionOverride.workspace_id == workspace_id,
-        TransactionOverride.deleted_at.is_(None),
+def _hash_scope(matching: list, v2_enabled: bool):
+    """Scope SQL por v1 (+v2 sob flag-ON — dual-read ADR-282)."""
+    scope = TransactionOverride.transaction_hash.in_([tx.transaction_hash for tx in matching])
+    if not v2_enabled:
+        return scope
+    v2_hashes = [identity_from_transaction_item(tx).natural_key_hash for tx in matching]
+    return or_(scope, TransactionOverride.natural_key_hash.in_(v2_hashes))
+
+
+def _existing_override_index(
+    db: Session, workspace_id: str, *, matching: list, v2_enabled: bool
+) -> OverrideMatchIndex:
+    """Overrides ativos das txs candidatas (sticky check; scope p/ perf, ADR-188 PR3 R2/R3)."""
+    if not matching:
+        return OverrideMatchIndex(workspace_id=workspace_id, v2_enabled=v2_enabled)
+    stmt = (
+        select(TransactionOverride)
+        .where(
+            TransactionOverride.workspace_id == workspace_id,
+            TransactionOverride.deleted_at.is_(None),
+            _hash_scope(matching, v2_enabled),
+        )
+        .order_by(TransactionOverride.created_at, TransactionOverride.id)
     )
-    if matching_hashes is not None:
-        if not matching_hashes:
-            return {}
-        stmt = stmt.where(TransactionOverride.transaction_hash.in_(matching_hashes))
     rows = db.execute(stmt).scalars().all()
-    return {ovr.transaction_hash: ovr for ovr in rows}
+    return OverrideMatchIndex.from_overrides(rows, workspace_id=workspace_id, v2_enabled=v2_enabled)
 
 
 def _is_existing_sticky(
@@ -99,13 +114,12 @@ def _period_is_closed(
     return ctx.closed_cache[period]
 
 
-def _should_skip_for_apply(tx, ctx: _ApplyCtx) -> bool:
-    """Pula tx se: mês fechado, manual override, internal transfer, ou já tem rule override."""
-    if ctx.detector.is_internal_transfer(tx.descricao or "", banco=tx.banco or ""):
-        return True
-    if _is_existing_sticky(ctx.existing_by_hash.get(tx.transaction_hash), ctx.rule.id):
-        return True
-    return _period_is_closed(period_from_data(tx.data), ctx)
+def _match_existing(tx, ctx: _ApplyCtx) -> Optional[TransactionOverride]:
+    """Override ativo da tx — dual-read v2→v1 sob flag-ON (ADR-282)."""
+    return ctx.match_index.match(
+        natural_key_hash=natural_key_for_match(tx, ctx.match_index),
+        legacy_hash=tx.transaction_hash,
+    )
 
 
 def _build_override_values(tx, ctx: _ApplyCtx) -> dict:
@@ -185,23 +199,42 @@ def count_matching(rule_keyword: str, rule_target: str, transactions: list) -> i
     return len(_matching_transactions(proxy, transactions))
 
 
+def _update_rule_override_in_place(existing: TransactionOverride, tx, ctx: _ApplyCtx) -> None:
+    """Existing casado via v2 com v1 drifted não dispara o ON CONFLICT (UK é no
+    v1) — update in-place evita duplicata de ``natural_key_hash`` (ADR-282)."""
+    existing.rule_id = ctx.rule.id
+    existing.new_category = ctx.rule.target_category
+    existing.original_category = tx.categoria
+    for column, value in identity_from_transaction_item(tx).as_columns().items():
+        setattr(existing, column, value)
+
+
 def _apply_one(tx, ctx: _ApplyCtx) -> bool:
     """``True`` se aplicou; ``False`` se pulou (sticky/mês fechado/transfer)."""
-    if _should_skip_for_apply(tx, ctx):
+    if ctx.detector.is_internal_transfer(tx.descricao or "", banco=tx.banco or ""):
         return False
-    _upsert_rule_override(_build_override_values(tx, ctx), ctx.db)
+    existing = _match_existing(tx, ctx)
+    if _is_existing_sticky(existing, ctx.rule.id):
+        return False
+    if _period_is_closed(period_from_data(tx.data), ctx):
+        return False
+    if ctx.match_index.v2_enabled and existing is not None:
+        _update_rule_override_in_place(existing, tx, ctx)
+    else:
+        _upsert_rule_override(_build_override_values(tx, ctx), ctx.db)
     return True
 
 
-def _build_ctx(*, workspace_id: str, rule: CategorizationRule, detector, db, matching_hashes):
+def _build_ctx(*, workspace_id: str, rule: CategorizationRule, detector, db, matching):
+    v2_enabled = is_enabled_sync(workspace_id, OVERRIDE_NATURAL_KEY_V2_FLAG, db=db)
     return _ApplyCtx(
         workspace_id=workspace_id,
         rule=rule,
         detector=detector,
         db=db,
         closed_cache={},
-        existing_by_hash=_existing_overrides_by_hash(
-            db, workspace_id, matching_hashes=matching_hashes
+        match_index=_existing_override_index(
+            db, workspace_id, matching=matching, v2_enabled=v2_enabled
         ),
     )
 
@@ -221,7 +254,7 @@ def apply_retroactive_sync(
         rule=rule,
         detector=detector,
         db=db,
-        matching_hashes=[tx.transaction_hash for tx in matching],
+        matching=matching,
     )
     applied = sum(1 for tx in matching if _apply_one(tx, ctx))
     if applied > 0:
@@ -244,7 +277,7 @@ def apply_retroactive_async_safe(
         rule=rule,
         detector=detector,
         db=db,
-        matching_hashes=[tx.transaction_hash for tx in matching],
+        matching=matching,
     )
     for tx in matching:
         _apply_one(tx, ctx)

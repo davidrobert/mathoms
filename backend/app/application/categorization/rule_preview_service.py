@@ -27,7 +27,13 @@ from backend.app.schemas.dto.categorization_rule import (
     WarningEntry,
 )
 from backend.app.schemas.transactions import TransactionItem
+from backend.app.services.feature_flags_service import is_enabled_sync
+from backend.app.services.override_dual_read import (
+    OVERRIDE_NATURAL_KEY_V2_FLAG,
+    OverrideMatchIndex,
+)
 from backend.app.services.report_publication import is_month_closed_sync
+from backend.app.services.transaction_service import natural_key_for_match
 from pipeline.domain.services.categorization_service import (
     CategorizationRulesV2,
     LearnedRule,
@@ -83,20 +89,24 @@ def _build_synthetic_rules(keyword: str, target_category: str) -> Categorization
     )
 
 
-def _load_active_manual_hashes(db: Session, workspace_id: str) -> set[str]:
-    """Hashes de transações com override manual ativo (sticky no apply)."""
+def _load_active_manual_index(
+    db: Session, workspace_id: str, *, v2_enabled: bool
+) -> OverrideMatchIndex:
+    """Overrides manuais ativos (sticky no apply) — dual-read v2→v1 (ADR-282)."""
     rows = (
         db.execute(
-            select(TransactionOverride.transaction_hash).where(
+            select(TransactionOverride)
+            .where(
                 TransactionOverride.workspace_id == workspace_id,
                 TransactionOverride.source == OVERRIDE_SOURCE_MANUAL,
                 TransactionOverride.deleted_at.is_(None),
             )
+            .order_by(TransactionOverride.created_at, TransactionOverride.id)
         )
         .scalars()
         .all()
     )
-    return set(rows)
+    return OverrideMatchIndex.from_overrides(rows, workspace_id=workspace_id, v2_enabled=v2_enabled)
 
 
 def _load_active_conflicts(db: Session, workspace_id: str, keyword: str) -> list[ConflictEntry]:
@@ -132,7 +142,7 @@ class _PreviewCtx:
 
     workspace_id: str
     rules: CategorizationRulesV2
-    manual_hashes: set[str]
+    manual_index: OverrideMatchIndex
     detector: InternalTransferDetector
     closed_cache: dict[str, bool]
     db: Session
@@ -154,7 +164,13 @@ def _classify_match(
         if period not in ctx.closed_cache:
             ctx.closed_cache[period] = is_month_closed_sync(ctx.workspace_id, period, db=ctx.db)
         in_closed = ctx.closed_cache[period]
-    with_manual = tx.transaction_hash in ctx.manual_hashes
+    with_manual = (
+        ctx.manual_index.match(
+            natural_key_hash=natural_key_for_match(tx, ctx.manual_index),
+            legacy_hash=tx.transaction_hash,
+        )
+        is not None
+    )
     blocked_transfer = ctx.detector.is_internal_transfer(tx.descricao or "", banco=tx.banco or "")
     return in_closed, with_manual, blocked_transfer, period
 
@@ -310,10 +326,11 @@ def _build_preview_ctx(
     detector: InternalTransferDetector,
     db: Session,
 ) -> _PreviewCtx:
+    v2_enabled = is_enabled_sync(workspace_id, OVERRIDE_NATURAL_KEY_V2_FLAG, db=db)
     return _PreviewCtx(
         workspace_id=workspace_id,
         rules=_build_synthetic_rules(keyword, target_category),
-        manual_hashes=_load_active_manual_hashes(db, workspace_id),
+        manual_index=_load_active_manual_index(db, workspace_id, v2_enabled=v2_enabled),
         detector=detector,
         closed_cache={},
         db=db,

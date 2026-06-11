@@ -18,6 +18,11 @@ from backend.app.models.transaction_override import (
 from backend.app.repositories.categorization_rule_repository import (
     CategorizationRuleRepository,
 )
+from backend.app.services.feature_flags_service import is_enabled_sync
+from backend.app.services.override_dual_read import (
+    OVERRIDE_NATURAL_KEY_V2_FLAG,
+    OverrideMatchIndex,
+)
 from backend.app.services.override_identity import identity_from_classified_tx
 from backend.app.services.report_publication import is_month_closed_sync
 from backend.app.services.transaction_service import generate_transaction_hash
@@ -64,19 +69,23 @@ def _tx_hash(tx: ClassifiedTransaction) -> str:
     )
 
 
-def _preload_overrides(db: Session, workspace_id: str) -> dict[str, TransactionOverride]:
-    """Overrides ATIVOS (``deleted_at IS NULL`` · ADR-188 §D1) por transaction_hash."""
+def _preload_override_index(
+    db: Session, workspace_id: str, *, v2_enabled: bool
+) -> OverrideMatchIndex:
+    """Overrides ATIVOS (``deleted_at IS NULL`` · ADR-188 §D1) — dual-read ADR-282."""
     rows = (
         db.execute(
-            select(TransactionOverride).where(
+            select(TransactionOverride)
+            .where(
                 TransactionOverride.workspace_id == workspace_id,
                 TransactionOverride.deleted_at.is_(None),
             )
+            .order_by(TransactionOverride.created_at, TransactionOverride.id)
         )
         .scalars()
         .all()
     )
-    return {ovr.transaction_hash: ovr for ovr in rows}
+    return OverrideMatchIndex.from_overrides(rows, workspace_id=workspace_id, v2_enabled=v2_enabled)
 
 
 def _is_month_closed_cached(
@@ -93,7 +102,7 @@ class _LoopState:
 
     workspace_id: str
     db: Session
-    existing_by_hash: dict[str, TransactionOverride]
+    match_index: OverrideMatchIndex
     closed_months_cache: dict[str, bool]
 
 
@@ -169,7 +178,7 @@ def _upsert_via_on_conflict(state: _LoopState, values: dict[str, Any]) -> None:
 
 
 def _reflect_in_loop_state(state: _LoopState, values: dict[str, Any]) -> None:
-    """Espelha INSERT no ``existing_by_hash`` — sticky intra-run (fix #194)."""
+    """Espelha INSERT no ``match_index`` — sticky intra-run (fix #194)."""
     ovr = TransactionOverride(
         id=values["id"],
         workspace_id=values["workspace_id"],
@@ -181,8 +190,10 @@ def _reflect_in_loop_state(state: _LoopState, values: dict[str, Any]) -> None:
         reviewed=values["reviewed"],
         created_at=values["created_at"],
         deleted_at=None,
+        natural_key_hash=values["natural_key_hash"],
+        hash_version=values["hash_version"],
     )
-    state.existing_by_hash[values["transaction_hash"]] = ovr
+    state.match_index.add(ovr)
 
 
 def _upsert_rule_override(tx, tx_hash: str, existing, state: _LoopState) -> None:
@@ -196,10 +207,19 @@ def _upsert_rule_override(tx, tx_hash: str, existing, state: _LoopState) -> None
     _reflect_in_loop_state(state, values)
 
 
+def _natural_key_for(tx: ClassifiedTransaction, state: _LoopState) -> str | None:
+    """Hash v2 da linha E4 classificada — ``None`` com flag off (ADR-282)."""
+    if not state.match_index.v2_enabled:
+        return None
+    return identity_from_classified_tx(tx).natural_key_hash
+
+
 def _process_one(tx: ClassifiedTransaction, state: _LoopState) -> str:
     """``'applied'`` | ``'skipped_sticky'`` | ``'skipped_closed_month'``."""
     tx_hash = _tx_hash(tx)
-    existing = state.existing_by_hash.get(tx_hash)
+    existing = state.match_index.match(
+        natural_key_hash=_natural_key_for(tx, state), legacy_hash=tx_hash
+    )
     skip = _check_skip(tx, existing, state)
     if skip is not None:
         return skip
@@ -241,10 +261,11 @@ def apply_learning_loop(
     matched = [t for t in classified if t.learned_rule_id is not None]
     if not matched:
         return LearningLoopStats()
+    v2_enabled = is_enabled_sync(workspace_id, OVERRIDE_NATURAL_KEY_V2_FLAG, db=db)
     state = _LoopState(
         workspace_id=workspace_id,
         db=db,
-        existing_by_hash=_preload_overrides(db, workspace_id),
+        match_index=_preload_override_index(db, workspace_id, v2_enabled=v2_enabled),
         closed_months_cache={},
     )
     counts, applied_per_rule = _run_loop(matched, state)

@@ -9,6 +9,8 @@ from typing import Any, Optional
 
 from backend.app.schemas.transactions import TransactionItem, TransactionSummary
 from backend.app.services.artifact_reader import read_latest_artifact
+from backend.app.services.override_dual_read import OverrideMatchIndex
+from backend.app.services.override_identity import identity_from_transaction_item
 from pipeline.stage_spec import resolve_stage_name
 
 logger = logging.getLogger(__name__)
@@ -86,17 +88,26 @@ def _apply_one_override(tx: TransactionItem, override: Any) -> TransactionItem:
     )
 
 
+def natural_key_for_match(tx: TransactionItem, index: OverrideMatchIndex) -> Optional[str]:
+    """Hash v2 da linha E4 para o dual-read — ``None`` com flag off (ADR-282)."""
+    if not index.v2_enabled:
+        return None
+    return identity_from_transaction_item(tx).natural_key_hash
+
+
 def apply_overrides(
     transactions: list[TransactionItem],
-    overrides_map: dict[str, Any],
+    match_index: OverrideMatchIndex,
 ) -> list[TransactionItem]:
-    """Aplica overrides (A12 P4 propaga ``source`` para badge da UI)."""
-    return [
-        _apply_one_override(tx, overrides_map[tx.transaction_hash])
-        if tx.transaction_hash in overrides_map
-        else tx
-        for tx in transactions
-    ]
+    """Aplica overrides via dual-read v2→v1 (ADR-282; A12 P4 propaga ``source``)."""
+    result: list[TransactionItem] = []
+    for tx in transactions:
+        override = match_index.match(
+            natural_key_hash=natural_key_for_match(tx, match_index),
+            legacy_hash=tx.transaction_hash,
+        )
+        result.append(tx if override is None else _apply_one_override(tx, override))
+    return result
 
 
 def filter_transactions(

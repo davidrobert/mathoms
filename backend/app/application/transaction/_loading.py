@@ -8,6 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.application.transaction.filters import TransactionFilters
 from backend.app.core.config import settings
 from backend.app.models.transaction_override import TransactionOverride
+from backend.app.services.feature_flags_service import is_enabled
+from backend.app.services.override_dual_read import (
+    OVERRIDE_NATURAL_KEY_V2_FLAG,
+    OverrideMatchIndex,
+)
 from backend.app.services.transaction_service import (
     apply_overrides,
     filter_transactions,
@@ -19,7 +24,7 @@ def _tenant_root(workspace_id: str) -> str:
     return str(settings.STORAGE_ROOT / workspace_id)
 
 
-async def load_overrides_map(workspace_id: str, db: AsyncSession) -> dict[str, TransactionOverride]:
+async def load_override_index(workspace_id: str, db: AsyncSession) -> OverrideMatchIndex:
     # ADR-188 §D1 — soft-delete preserva histórico; read-path ignora linhas
     # com ``deleted_at IS NOT NULL`` para manter paridade com o pipeline.
     result = await db.execute(
@@ -28,7 +33,10 @@ async def load_overrides_map(workspace_id: str, db: AsyncSession) -> dict[str, T
             TransactionOverride.deleted_at.is_(None),
         )
     )
-    return {o.transaction_hash: o for o in result.scalars().all()}
+    v2_enabled = await is_enabled(workspace_id, OVERRIDE_NATURAL_KEY_V2_FLAG, db=db)
+    return OverrideMatchIndex.from_overrides(
+        result.scalars().all(), workspace_id=workspace_id, v2_enabled=v2_enabled
+    )
 
 
 async def load_filtered_transactions(
@@ -38,8 +46,8 @@ async def load_filtered_transactions(
     db: AsyncSession,
 ):
     transactions = load_transactions(workspace_id, _tenant_root(workspace_id))
-    overrides_map = await load_overrides_map(workspace_id, db)
-    transactions = apply_overrides(transactions, overrides_map)
+    match_index = await load_override_index(workspace_id, db)
+    transactions = apply_overrides(transactions, match_index)
     return filter_transactions(
         transactions,
         member=filters.member,
