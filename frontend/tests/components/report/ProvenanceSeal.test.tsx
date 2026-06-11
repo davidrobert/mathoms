@@ -17,6 +17,7 @@ import type { ReportAnalysisData } from "@/lib/api";
 
 const RESERVA_LABEL = "Reserva de emergência — total líquido";
 const DESPESA_LABEL = "Despesa total do período";
+const ENDIVIDAMENTO_LABEL = "Endividamento — total de dívidas";
 
 function makeData(overrides: Partial<ReportAnalysisData> = {}): ReportAnalysisData {
   return {
@@ -38,6 +39,10 @@ function makeData(overrides: Partial<ReportAnalysisData> = {}): ReportAnalysisDa
           label: DESPESA_LABEL,
           edge_type: "aggregation",
           signals: { tx_total: "120", dedup_collapsed: "3", dedup_review: "0" },
+        },
+        "endividamento.total_dividas": {
+          label: ENDIVIDAMENTO_LABEL,
+          edge_type: "aggregation",
         },
       },
     },
@@ -156,6 +161,11 @@ describe("popover N2 — copy exata", () => {
 
   it("snapshot textual pt-BR dos valores expostos (G-d)", async () => {
     const { popup } = await openPopover();
+    expect(popup.textContent).toMatchSnapshot();
+  });
+
+  it("snapshot textual pt-BR — endividamento total_dividas (G-d, A25.l6)", async () => {
+    const { popup } = await openPopover({ fieldId: "endividamento.total_dividas" });
     expect(popup.textContent).toMatchSnapshot();
   });
 

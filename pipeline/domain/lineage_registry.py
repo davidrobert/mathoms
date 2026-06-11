@@ -19,6 +19,9 @@ _FLUXO_ENRICH = "pipeline.domain.services.fluxo_caixa_enricher:FluxoCaixaEnriche
 _INVESTIMENTOS_ANALYZE = (
     "pipeline.domain.services.investimentos_classes_analyzer:InvestimentosClassesAnalyzer.analyze"
 )
+_ENDIVIDAMENTO_ANALYZE = (
+    "pipeline.domain.services.endividamento_analyzer:EndividamentoAnalyzer.analyze"
+)
 
 LINEAGE_RULE_REFS: dict[str, dict[str, str]] = {
     "patrimonio.liquido": {"adr": "ADR-145", "ref": _PATRIMONIO_CALCULATE},
@@ -32,4 +35,11 @@ LINEAGE_RULE_REFS: dict[str, dict[str, str]] = {
     # Total investido soma as classes da taxonomia canônica ADR-193 (posições
     # com chave própria ADR-271, não K4).
     "investimentos.total": {"adr": "ADR-193", "ref": _INVESTIMENTOS_ANALYZE},
+    # A25.l6 — fluxo líquido (capacidade de poupança) é formula sobre os
+    # agregados do mesmo enricher; reusa o enforcer de fluxo (ADR-137).
+    "fluxo_caixa.fluxo_liquido": {"adr": "ADR-137", "ref": _FLUXO_ENRICH},
+    # A25.l6 — endividamento consolida dívidas do baseline (agregado Debt,
+    # ADR-227); nó distinto de patrimonio.dividas com o mesmo valor — o
+    # lineage é declarado no enforcer do campo, não re-derivado.
+    "endividamento.total_dividas": {"adr": "ADR-227", "ref": _ENDIVIDAMENTO_ANALYZE},
 }
