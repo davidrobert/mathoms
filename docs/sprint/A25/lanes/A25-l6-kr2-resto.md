@@ -65,6 +65,14 @@ verdade); são nós distintos do mesmo valor — correto.
   (view-model snapshot); invariantes de conservação verdes pós-rebaseline; rebaseline
   auditável (G-c). Sem ADR nova (ambos reusam ADR canônica do enforcer).
 
+## Resultado parcial — parte A shipped (2026-06-11, #609)
+
+**KR2 6/6 na dimensão lineage:** `fluxo_caixa.fluxo_liquido` (formula,
+2 inputs) + `endividamento.total_dividas` (aggregation, ADR-227) resolvíveis via
+`dev/explain_number.py`; 7 refs no registry; rebaseline isolado com zero
+`value_delta` monetário. **Parte B** (member_hashes reais no nó de despesa +
+teto inline 200) permanece bloqueada pela [[A25.l2]].
+
 ## Owner
 
 Agente da lane; co-design herdado de [[A24.l5]] (`senior-cto` + `data-engineer`).
