@@ -2,7 +2,8 @@
 id: ADR-288
 type: adr
 title: "Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois)"
-status: Proposto
+status: Decidido
+phase: "F1"
 date: "2026-06-11"
 relates_to:
   - "[[ADR-144]]"
@@ -14,14 +15,15 @@ superseded_by: []
 aliases: ["ADR 288", "llm models catalog", "lista de modelos llm"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/backend
   - area/llm
 ---
 
 # ADR-288 — Catálogo de modelos LLM como fonte única + endpoint `GET /llm/models`
 
-**Status:** Proposto • **Data:** 2026-06-11 • **Relaciona** [[ADR-144]]
+**Status:** Decidido (F1 entregue; F2 dinâmico segue Roadmap nesta ADR) •
+**Data:** 2026-06-11 • **Relaciona** [[ADR-144]]
 (cache LLM Redis), [[ADR-111]] (stateless — proíbe cache in-memory),
 [[ADR-109]]/[[ADR-102]] (response_model + snapshot OpenAPI).
 
