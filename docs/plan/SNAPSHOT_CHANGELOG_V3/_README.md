@@ -7,7 +7,7 @@ sprint_origem: A11
 sprint_atual: A11
 sprints_envolvidas: ["A11"]
 created_at: "2026-05-11"
-last_review: "2026-05-11"
+last_review: "2026-06-12"
 adrs_canonical:
   - "[[ADR-190]]"
   - "[[ADR-148]]"
@@ -172,6 +172,11 @@ Lanes:
   `backend/app/generated/report_layout.py`.
 - **W4-T07** `frontend`: deleta `<SectionSnapshotDiff />` de S1/S2/S3.
   Cria `<VariacaoSection />` consumida pelo layout gerado.
+  **Nota 2026-06-12:** o card "Histórico de Ciclos" do APP_E (mesmo
+  `data.changelog`, duplicado no apêndice) sai **fora** de W4 via
+  [[TRACK-remove-historico-ciclos-app-e]] — W4-T07 não precisa tocá-lo.
+  Se W4-T07 rodar antes do track, ver nota de sequência no próprio track
+  (`SnapshotChangelogList` pode ficar órfão).
 - **W4-T08** `tests`: invariante decomposição (W4-T01), Vitest da
   seção V0 renderizando com payload sintético, golden de E5 com
   decomposição.
@@ -185,6 +190,88 @@ Critério de aceite W4:
   YoY), card V0 cai para tabela plain v2.8 com aviso `caption`
   contextualizado ("comparativo limitado — primeira janela com 6 meses
   disponível em ago/2026").
+
+### W5 — Série temporal multi-ciclo de KPIs (backlog — **bloqueada por dado**)
+
+**Status:** backlog, não datada. **Não é "pendente" como W2–W4** —
+está bloqueada por pré-requisito que ainda não existe (ver entry gate).
+Nenhum agente deve pegar esta onda antes do gate abrir.
+
+#### O que é (e por que existe)
+
+Um **chart de linha** com a evolução de KPIs de acompanhamento ao longo
+de N ciclos de relatório — a "curva" que prova disciplina entre revisões
+planejador↔cliente. Candidatos a KPI (subconjunto das 10 métricas
+canônicas de W3, [[ADR-190]] D1):
+
+- `taxa_poupanca_pct` — consistência de poupança (Cerbasi);
+- `M_IF_PCT` — progresso rumo à independência financeira (Perini:
+  a tese de IF se prova em muitos ciclos, não num delta);
+- `M_AUVP_DESVIO` (pp) — aderência à alocação alvo (AUVP);
+- `M_RESERVA_MESES` — robustez da reserva;
+- `M_DIVIDA_PCT` — trajetória do endividamento.
+
+**Origem:** a remoção do card "Histórico de Ciclos" do APP_E
+([[TRACK-remove-historico-ciclos-app-e]], 2026-06-12). O rótulo daquele
+card **prometia** série multi-ciclo, mas o dado era um único par
+t vs. t-1 (mesmo `data.changelog` dos diffs por seção). A revisão
+`financial-planner` confirmou: a necessidade metodológica real é a
+**série** (accountability longitudinal), não o retrospecto single-pair.
+Registrar W5 aqui evita que "remover duplicata pobre" seja confundido
+com "decidir que histórico multi-ciclo não tem valor".
+
+#### O que NÃO é
+
+- **Não é o changelog v3** (card V0 de W4): V0 responde "o que mudou
+  desde o último relatório" (par único, decomposição waterfall). W5
+  responde "**estou melhorando ao longo do tempo?**" (tendência).
+- **Não é tabela de auditoria** de relatórios passados ([[ADR-148]]
+  D2.a já rejeitou essa forma).
+- **Não ressuscita** o card do APP_E — a superfície provável é nova
+  (seção própria ou expansão do V0), decidida em co-design com
+  `product-designer` quando o gate abrir.
+
+#### Entry gate (pré-requisitos quantitativos — todos obrigatórios)
+
+1. **W3 entregue** — métricas canônicas calculadas no E5 + cadência
+   (`load_snapshot_window` via `snapshot_index` por `period_yyyymm`,
+   W3-T03).
+2. **≥3 snapshots publicados imutáveis** no workspace
+   (`published_at != null`, [[ADR-187]] — mesma exigência do R5).
+   Com 2 pontos não há tendência; com 3 há o mínimo honesto.
+3. **`load_snapshot_window` retorna janela ≥3** em workspace seed,
+   consultável sem hack (instrumentação verificada, não presumida).
+
+#### Escopo provável (refinar quando o gate abrir)
+
+- `pipeline`: serializar série por métrica (lista de
+  `{period_yyyymm, valor}`) no payload E5 — aditivo, não-breaking
+  (premissa 1 do plano).
+- `backend`: DTO da série no payload do relatório + OpenAPI snapshot.
+- `frontend`: chart de linha (tokens-only, `<MonetaryValue/>` onde
+  monetário, máscara em snapshot visual), com co-design
+  `product-designer` + `financial-planner` para escolha de KPIs
+  exibidos e copy.
+- **Fallback obrigatório:** workspace com <3 snapshots mostra estado
+  vazio honesto ("série disponível a partir do 3º relatório — próximo
+  em <mês>"), nunca chart degenerado — mesmo padrão de fallback
+  contextual de W4-T08.
+
+#### KR de valor (medido pós-entrega, separado do entry gate)
+
+**≥2 de 3 usuários beta leem corretamente a *direção*
+(melhora/piora/estável) de 2 KPIs distintos em <15s, sem ajuda.**
+Task-success (HEART), anti-Goodhart: mede leitura de tendência, não
+existência do chart nem tempo de tela. Consistente com o critério
+global #4 deste plano.
+
+#### Riscos próprios
+
+| ID | Risco | Mitigação |
+|---|---|---|
+| W5-R1 | Workspace dogfood demora a acumular 3 snapshots publicados | Gate explícito; não promover lane antes; fallback honesto especificado |
+| W5-R2 | Série de KPI com mudança de metodologia entre ciclos (ex.: recalibração de threshold W2-D4) quebra comparabilidade | Snapshot imutável ([[ADR-187]]) congela o valor da época; anotar quebras de série no chart (marcador), nunca recalcular retroativo |
+| W5-R3 | Goodhart no KR (entregar só a linha "bonita" de poupança) | KR exige 2 KPIs **distintos**; seleção de KPIs é co-design, não default do dev |
 
 ## Critério de aceite global do plano
 
@@ -216,6 +303,13 @@ priorizadas mas ainda não datadas.
 
 ## Histórico
 
+- **2026-06-12:** card "Histórico de Ciclos" (Apêndice E) marcado para
+  remoção fora de W4 via [[TRACK-remove-historico-ciclos-app-e]]
+  (revisão `product-designer` + `financial-planner` +
+  `product-manager`: duplicata single-pair do `data.changelog`, rótulo
+  enganoso, apêndice forward-looking); aberta **W5** (série temporal
+  multi-ciclo de KPIs) como backlog bloqueado por dado — a lacuna
+  metodológica real que o card não cobria.
 - **2026-05-11:** plano criado pós-revisão paralela
   `product-designer` + `financial-planner` (sessão).
   [[ADR-190]] como Proposto, W1 entregue mesmo dia.
