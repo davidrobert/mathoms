@@ -34,6 +34,9 @@ _EXPECTED_CALL_KWARGS = frozenset(
         "image_bytes",
         "image_media_type",
         "seed",
+        # timeout base por call-site — emenda ADR-270 (2026-06-12); cascade
+        # apolice não passa (usa default 120s).
+        "timeout_s",
     }
 )
 

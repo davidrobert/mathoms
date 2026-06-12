@@ -82,6 +82,9 @@ class ParecerOrchestratorConfig:
     schema_version: str = _SCHEMA_VERSION
     max_tokens: int = 16_384
     temperature: float = 0.1
+    # Geração mais longa do pipeline (16k max_tokens) estourou o cap global de
+    # 120s pós-migração claude-sonnet-4-6 — emenda ADR-270 (2026-06-12).
+    llm_timeout_s: float = 240.0
 
 
 # ----------------------------------------------------------------------
@@ -166,19 +169,6 @@ def _extract_last_call_metrics(llm: Any) -> tuple[int, int, float]:
         getattr(last, "tokens_out", 0) or 0,
         float(getattr(last, "cost_estimate_usd", 0.0) or 0.0),
     )
-
-
-def _invoke_llm(
-    *, llm: Any, system_prompt: str, user_prompt: str, max_tokens: int
-) -> ParecerPlanejadorOutput:
-    """Chama LLM com Instructor — output já validado pelo schema Pydantic."""
-    return llm.call(
-        system_prompt=system_prompt,
-        user_prompt=user_prompt,
-        output_schema=ParecerPlanejadorOutput,
-        stage="review_finances_holistic",
-        max_tokens=max_tokens,
-    ).output
 
 
 # ----------------------------------------------------------------------
@@ -336,13 +326,19 @@ def _call_llm_safe(
     system_prompt: str,
     user_prompt: str,
     max_tokens: int,
+    timeout_s: float,
     workspace_id: str,
 ) -> tuple[Optional[ParecerPlanejadorOutput], Optional[str]]:
-    """Invoca LLM; retorna ``(output, None)`` ou ``(None, error_msg)``."""
+    """Invoca LLM com Instructor (output validado pelo schema); exceção vira ``(None, error_msg)``."""
     try:
-        return _invoke_llm(
-            llm=llm, system_prompt=system_prompt, user_prompt=user_prompt, max_tokens=max_tokens
-        ), None
+        return llm.call(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            output_schema=ParecerPlanejadorOutput,
+            stage="review_finances_holistic",
+            max_tokens=max_tokens,
+            timeout_s=timeout_s,
+        ).output, None
     except Exception as exc:  # noqa: BLE001 — todas exceções viram needs_review
         logger.warning(
             "parecer_planejador_llm_call_failed",
@@ -423,6 +419,7 @@ def _generate_with_llm(
         system_prompt=system_prompt,
         user_prompt=user_prompt,
         max_tokens=config.max_tokens,
+        timeout_s=config.llm_timeout_s,
         workspace_id=config.workspace_id,
     )
     if raw is None:

@@ -310,6 +310,16 @@ class TestGenerateParecerOrchestrator:
         # fake_llm2 não foi chamado
         assert fake_llm2.summary.calls == []
 
+    def test_llm_call_uses_parecer_timeout_base(self):
+        """Parecer passa timeout_s=240 — emenda ADR-270 (incidente 4×120s, 2026-06-12)."""
+        e5 = {"patrimonio": {"bruto": 1}}
+        fake = _FakeLLMService(output=make_valid_parecer_output())
+        config = ParecerOrchestratorConfig(workspace_id="ws-timeout", tier="premium")
+
+        generate_parecer(e5_data=e5, config=config, llm_service=fake, cache=InMemoryLLMCache())
+
+        assert fake.last_call_kwargs["timeout_s"] == 240.0
+
     def test_dedup_keys_recalculated_deterministic(self):
         e5 = {"patrimonio": {"bruto": 1}}
         fake = _FakeLLMService(output=make_valid_parecer_output())
