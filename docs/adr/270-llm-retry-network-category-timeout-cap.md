@@ -116,6 +116,42 @@ Worst case 4 attempts × 120s timeout + 30+60+120s = 210s sleep + ~480s timeouts
 - `_client.chat.completions.create(...)` recebe `timeout=120` e `num_retries=0` (assert em mock).
 - Goldens `pytest tests -q -k "baseline or irpf"` sem delta — fix mexe só em network boundary, não em prompts.
 
+## Emenda 2026-06-12 — timeout base por call-site + escalada em retry (incidente parecer)
+
+**Gatilho:** run `ae06c5e1-2ad1-446b-aa25-f7302ec538db` (workspace `1b9f2cf5-...`) falhou em
+`review_finances_holistic` após 494s: 4 tentativas, **todas** `litellm.Timeout` exatamente no
+cap de 120s. Dois minutos antes, no mesmo worker, chamada ao mesmo modelo (`claude-sonnet-4-6`,
+2k tokens out) completou em 25,7s — rede e provider OK. A migração de modelo ([[ADR-289]],
+EOL do `claude-sonnet-4-20250514`) empurrou a latência do parecer (16k
+`max_tokens`, output típico 4-5k tokens, antes 58-66s) para além dos 120s. A premissa do §1
+("120s cobre p95 de prompts grandes 45-90s") envelheceu para esse call-site — e o retry,
+reusando o mesmo cap, falhava **deterministicamente**: 494s queimados sem chance de sucesso.
+
+**Decisão (revisa §1 e §3):**
+
+1. **`LLM_CALL_TIMEOUT_S=120` deixa de ser cap fixo e vira timeout base.**
+   `LLMService.call` ganha `timeout_s: float | None` (default 120s). Call-site com geração
+   sabidamente longa declara seu budget — mesmo padrão de `max_tokens`. O parecer passa
+   `timeout_s=240` (`ParecerOrchestratorConfig.llm_timeout_s`).
+2. **Escalada em retry para `error_type=timeout`:** a tentativa seguinte a um timeout dobra o
+   cap, com teto `LLM_TIMEOUT_ESCALATION_CEILING_S=600`. Tentativa 1 mantém o base — o
+   fast-fail contra DNS hang do §1 fica preservado. Demais error_types não escalam.
+3. **Teto de tentativas para timeout: `LLM_TIMEOUT_MAX_ATTEMPTS=2`** (1 base + 1 escalada),
+   independente do `max_retries` global. Se dobrar o budget não resolveu, o problema não é
+   budget — insistir só inflaria o pior caso (4 tentativas escalonadas ≈ 22min de stage preso).
+4. **Telemetria:** logs `LLM call START` e `attempt failed` incluem `timeout_s` efetivo da
+   tentativa — drift de latência por stage visível sem eval novo.
+
+Pior caso do parecer: 240s + backoff 2s + 480s ≈ **12min** (vs 494s falhando sempre); o caso
+observado no incidente teria sucedido **na 1ª tentativa** com base 240s.
+
+**Critério de aceite da emenda:** testes em `tests/test_litellm_client_retry.py`
+(escalada, teto 600s, cap de 2 tentativas, não-escalada de provider_error) +
+`tests/test_parecer_orchestrator.py::test_llm_call_uses_parecer_timeout_base`.
+
+**Follow-up (débito):** caracterizar p95 real do parecer com `claude-sonnet-4-6` (5-10
+execuções) para validar se 240s é o base correto.
+
 ## Follow-ups
 
 - Telemetria: emitir `mathoms.llm.error_type` como dimension no logger estruturado quando call falha definitivamente. Escopo de Sprint A17.observability se prioritário.

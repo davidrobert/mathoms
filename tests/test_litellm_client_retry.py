@@ -12,6 +12,8 @@ from pipeline.llm.error_classification import (
     BACKOFF_DELAYS,
     BACKOFF_DELAYS_NETWORK,
     LLM_CALL_TIMEOUT_S,
+    LLM_TIMEOUT_ESCALATION_CEILING_S,
+    LLM_TIMEOUT_MAX_ATTEMPTS,
     RETRYABLE_ERRORS,
     LLMErrorType,
     classify_error,
@@ -117,6 +119,70 @@ def test_call_propagates_timeout_and_disables_internal_retries() -> None:
     kwargs = create_mock.call_args.kwargs
     assert kwargs["timeout"] == LLM_CALL_TIMEOUT_S
     assert kwargs["num_retries"] == 0
+
+
+# ---------- escalada de timeout (emenda ADR-270, incidente parecer 2026-06-12) ----------
+
+_TIMEOUT_EXC = Exception(
+    "litellm.Timeout: AnthropicException - litellm.Timeout: "
+    "Connection timed out after 120.0 seconds."
+)
+
+
+def test_timeout_escalates_on_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Retry após timeout dobra o cap — reusar 120s contra geração >120s falha sempre."""
+    monkeypatch.setattr("pipeline.llm.litellm_client.time.sleep", lambda s: None)
+    create_mock = MagicMock(side_effect=_TIMEOUT_EXC)
+    svc = _build_svc_with_mock_client(create_mock)
+    with pytest.raises(LLMError) as excinfo:
+        svc.call(system_prompt="sys", user_prompt="usr", output_schema=_Out)
+    assert excinfo.value.error_type == LLMErrorType.timeout
+    timeouts = [c.kwargs["timeout"] for c in create_mock.call_args_list]
+    assert timeouts == [LLM_CALL_TIMEOUT_S, LLM_CALL_TIMEOUT_S * 2]
+
+
+def test_timeout_attempts_capped_below_max_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Timeout para após LLM_TIMEOUT_MAX_ATTEMPTS mesmo com max_retries maior — se a
+    escalada não resolveu, o problema não é budget; insistir infla o pior caso."""
+    monkeypatch.setattr("pipeline.llm.litellm_client.time.sleep", lambda s: None)
+    create_mock = MagicMock(side_effect=_TIMEOUT_EXC)
+    svc = _build_svc_with_mock_client(create_mock)
+    with pytest.raises(LLMError):
+        svc.call(system_prompt="sys", user_prompt="usr", output_schema=_Out, max_retries=3)
+    assert create_mock.call_count == LLM_TIMEOUT_MAX_ATTEMPTS
+
+
+def test_timeout_escalation_respects_ceiling(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Base custom alta (timeout_s=400) escala para o teto de 600s, não 800s."""
+    monkeypatch.setattr("pipeline.llm.litellm_client.time.sleep", lambda s: None)
+    create_mock = MagicMock(side_effect=_TIMEOUT_EXC)
+    svc = _build_svc_with_mock_client(create_mock)
+    with pytest.raises(LLMError):
+        svc.call(system_prompt="sys", user_prompt="usr", output_schema=_Out, timeout_s=400.0)
+    timeouts = [c.kwargs["timeout"] for c in create_mock.call_args_list]
+    assert timeouts == [400.0, LLM_TIMEOUT_ESCALATION_CEILING_S]
+
+
+def test_custom_timeout_s_propagated_on_success() -> None:
+    """Call-site com geração longa (parecer) passa timeout_s base maior que o default."""
+    fake_response = MagicMock()
+    fake_response._raw_response = None
+    create_mock = MagicMock(return_value=fake_response)
+    svc = _build_svc_with_mock_client(create_mock)
+    svc.call(system_prompt="sys", user_prompt="usr", output_schema=_Out, timeout_s=240.0)
+    assert create_mock.call_args.kwargs["timeout"] == 240.0
+
+
+def test_non_timeout_errors_do_not_escalate(monkeypatch: pytest.MonkeyPatch) -> None:
+    """provider_error mantém o cap base em todas as tentativas (escalada é só p/ timeout)."""
+    monkeypatch.setattr("pipeline.llm.litellm_client.time.sleep", lambda s: None)
+    create_mock = MagicMock(side_effect=Exception("internal server error from anthropic"))
+    svc = _build_svc_with_mock_client(create_mock)
+    with pytest.raises(LLMError):
+        svc.call(system_prompt="sys", user_prompt="usr", output_schema=_Out, max_retries=2)
+    timeouts = {c.kwargs["timeout"] for c in create_mock.call_args_list}
+    assert timeouts == {LLM_CALL_TIMEOUT_S}
+    assert create_mock.call_count == 3
 
 
 # ---------- backoff selection (smoke) ----------

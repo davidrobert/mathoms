@@ -20,9 +20,13 @@ from pipeline.llm.error_classification import (
     BACKOFF_DELAYS,
     BACKOFF_DELAYS_NETWORK,
     LLM_CALL_TIMEOUT_S,
+    LLM_TIMEOUT_ESCALATION_CEILING_S,
+    LLM_TIMEOUT_MAX_ATTEMPTS,
+    MAX_COMPLETION_TOKENS_CEILING,
     RETRYABLE_ERRORS,
     LLMErrorType,
     classify_error,
+    is_completion_truncated_max_tokens,
 )
 from pipeline.llm.models_catalog import SUPPORTED_PROVIDERS, default_model_for
 from pipeline.llm.pricing import MODEL_PRICING, estimate_cost_usd
@@ -133,19 +137,6 @@ class LLMConfig:
     temperature: float = 0.1
 
 
-def _is_completion_truncated_max_tokens(exc: Exception) -> bool:
-    """True when the provider cut the completion off at max_tokens (structured output then fails)."""
-    msg = str(exc).lower()
-    if not any(x in msg for x in ("max_tokens", "max output tokens", "maximum output")):
-        return False
-    return any(
-        x in msg for x in ("incomplete", "length limit", "truncat", "cut off", "stopped before")
-    )
-
-
-# Pydantic / API caps for completion budget (aligned with backend LLMConfigCreateRequest)
-_MAX_COMPLETION_TOKENS_CEILING = 200_000
-
 # Compat: testes legados importam ``_classify_error`` deste módulo.
 _classify_error = classify_error
 
@@ -255,6 +246,7 @@ class LLMService:
         image_bytes: bytes | None = None,
         image_media_type: str = "image/jpeg",
         seed: int | None = None,
+        timeout_s: float | None = None,
     ) -> LLMCallResult:
         """Call an LLM with structured output enforcement.
 
@@ -271,6 +263,8 @@ class LLMService:
             image_media_type: MIME type da imagem (ex: "image/jpeg", "image/png").
             seed: best-effort determinism (eval de lineage, ADR-281). ``None`` =
                 omitido do payload; provider sem suporte descarta (``drop_params``).
+            timeout_s: timeout base da 1ª tentativa (default LLM_CALL_TIMEOUT_S).
+                Call-site com geração longa passa valor maior — emenda ADR-270.
 
         Raises:
             LLMValidationError: if output fails validation after all retries
@@ -301,13 +295,17 @@ class LLMService:
         prompt_chars = len(system_prompt) + len(user_prompt)
         schema_name = getattr(output_schema, "__name__", str(output_schema))
 
+        effective_timeout = timeout_s if timeout_s is not None else LLM_CALL_TIMEOUT_S
+
         is_multimodal = image_bytes is not None
         logger.info(
-            "%sLLM call START: model=%s max_tokens=%d temp=%.2f prompt_chars=%d schema=%s%s",
+            "%sLLM call START: model=%s max_tokens=%d temp=%.2f timeout_s=%.0f "
+            "prompt_chars=%d schema=%s%s",
             tag,
             self._config.model_name,
             effective_max_tokens,
             effective_temperature,
+            effective_timeout,
             prompt_chars,
             schema_name,
             f" image={len(image_bytes)}B" if is_multimodal else "",
@@ -334,6 +332,7 @@ class LLMService:
 
         last_exception = None
         retries_used = 0
+        timeout_attempts = 0
         start_total = time.monotonic()
 
         attempt = 0
@@ -343,7 +342,7 @@ class LLMService:
 
                 # Instructor retry mínimo: truncation é tratada pelo loop externo
                 # que dobra max_tokens. Retry interno aqui só cobre erros de validação
-                # pontuais (enum errado, tipo incorreto) — ver _is_completion_truncated_max_tokens.
+                # pontuais (enum errado, tipo incorreto) — ver is_completion_truncated_max_tokens.
                 response = self._client.chat.completions.create(
                     model=model,
                     messages=[
@@ -358,7 +357,8 @@ class LLMService:
                     # ADR-270: cap por-call + desabilita retry interno do
                     # LiteLLM/Anthropic SDK. Retries são do outer loop deste
                     # método — fonte única, observável, com backoff por tipo.
-                    timeout=LLM_CALL_TIMEOUT_S,
+                    # Emenda 2026-06-12: cap escala após timeout (ver except).
+                    timeout=effective_timeout,
                     num_retries=0,
                     **seed_kwargs,
                 )
@@ -405,9 +405,9 @@ class LLMService:
             except Exception as exc:
                 last_exception = exc
 
-                if _is_completion_truncated_max_tokens(exc):
+                if is_completion_truncated_max_tokens(exc):
                     prev_cap = effective_max_tokens
-                    bumped = min(effective_max_tokens * 2, _MAX_COMPLETION_TOKENS_CEILING)
+                    bumped = min(effective_max_tokens * 2, MAX_COMPLETION_TOKENS_CEILING)
                     if bumped > effective_max_tokens:
                         effective_max_tokens = bumped
                         logger.warning(
@@ -422,11 +422,12 @@ class LLMService:
                 error_type = classify_error(exc)
 
                 logger.warning(
-                    "%sLLM call attempt %d/%d failed: type=%s error=%s",
+                    "%sLLM call attempt %d/%d failed: type=%s timeout_s=%.0f error=%s",
                     tag,
                     attempt + 1,
                     max_retries + 1,
                     error_type.value,
+                    effective_timeout,
                     str(exc)[:200],
                 )
 
@@ -445,6 +446,15 @@ class LLMService:
                 if error_type not in RETRYABLE_ERRORS and error_type != LLMErrorType.validation:
                     if attempt >= max_retries:
                         break
+
+                if error_type == LLMErrorType.timeout:
+                    # Retry com o mesmo cap falha deterministicamente quando a geração
+                    # excede o budget: dobra o cap (teto 600s) e limita a 2 tentativas —
+                    # emenda ADR-270 (incidente parecer 2026-06-12).
+                    timeout_attempts += 1
+                    if timeout_attempts >= LLM_TIMEOUT_MAX_ATTEMPTS:
+                        break
+                    effective_timeout = min(effective_timeout * 2, LLM_TIMEOUT_ESCALATION_CEILING_S)
 
                 if attempt < max_retries:
                     # ADR-270: backoff network-specific (30/60/120s) aguenta
