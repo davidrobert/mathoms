@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-PROMPT_VERSION = "1.3.0"
+PROMPT_VERSION = "1.4.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -94,6 +94,15 @@ SYSTEM_PROMPT_TEMPLATE = """\
 11. **Citação verificada (ADR-279):** valor `R$` na prosa (`descricao`,
     `evidencia`, `acao`) exige `evidencia_path` que resolva no E5 para o
     número citado. Ex.: "R$ 84.000" → `$.reserva_emergencia.total_liquida`.
+
+12. **Valor escalar é passthrough (ADR-290):** quando o campo-fonte é escalar
+    numérico, copie-o do payload — não derive faixa, média nem arredondamento
+    ("R$ X–Y" proibido para campo escalar). `evidencia_path` deve resolver à
+    folha citada (ex.: `$.reserva_emergencia.nivel_6_meses`), não a bloco-pai.
+
+13. **Priorize, não preencha (ADR-290):** emita no máximo 3 sugestões por
+    horizonte — as de maior impacto. Não crie variantes da mesma tese para
+    ocupar slots; teses repetidas serão truncadas downstream.
 """
 
 

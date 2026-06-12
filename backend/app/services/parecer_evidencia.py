@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any, Iterator, Optional
 
+from pipeline.llm.prompts.parecer_planejador import PROMPT_VERSION
 from pipeline.llm.schemas.parecer_planejador import ParecerPlanejadorOutput
 from pipeline.llm.tools.planner_drill_down import PlannerDrillDown
 
@@ -24,6 +25,27 @@ _VALID_MODES = ("warn", "strict")
 _MONEY_RE = re.compile(
     r"R\$\s*(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?(?:\s*(milh(?:[õo]es|[ãa]o)|mil|mi)\b)?"
 )
+
+# Faixa monetária inventada ("R$ 250-300 mil", "R$ 260 a 520 mil") — telemetria
+# KR2 do PLAN-suggestion-lifecycle (ADR-290 F2): faixa só é legítima quando o
+# campo-fonte é faixa (ver _LEGIT_RANGE_PATH_PREFIXES).
+_RANGE_RE = re.compile(r"R\$\s*[\d.,]+\s*(?:-|–|\ba\b|\baté\b)\s*(?:R\$\s*)?[\d.,]+")
+
+# Paths cujo valor é legitimamente faixa/banda (percentis Monte Carlo, cenários,
+# projeções) — suprimem a camada value_mismatch (mitigação do risco R3 do plano;
+# escolha validada com prompt-engineer 2026-06-12). Escalares exatos
+# (reserva_emergencia, endividamento, patrimonio) ficam FORA por design.
+_LEGIT_RANGE_PATH_PREFIXES = (
+    "$.if_monte_carlo",
+    "$.cenarios_conjuge",
+    "$.passive_income",
+    "$.ratios.rentabilidade",
+)
+
+
+def _is_legit_range_path(path: str) -> bool:
+    return path.startswith(_LEGIT_RANGE_PATH_PREFIXES)
+
 
 _LAYERS = ("missing_path", "whitelist_miss", "resolve_null", "value_mismatch")
 _REASON_TO_LAYER = {
@@ -51,12 +73,19 @@ class EvidenciaVerification:
     failures_by_layer: dict[str, int] = field(default_factory=lambda: dict.fromkeys(_LAYERS, 0))
     entries: list[dict] = field(default_factory=list)
     violations: list[str] = field(default_factory=list)  # "tipo:índice:camada"
+    # KR2/KR4 (ADR-290 F2) — denominador p/ taxa de mismatch + faixa inventada
+    # em campo escalar (drift de prompt 1.3.0 → 1.4.0).
+    money_tokens_total: int = 0
+    range_in_scalar_count: int = 0
 
     def summary(self, *, needs_review_triggered: bool) -> dict:
         return {
             "evidencia_verified": self.verified,
             "evidencia_failed": self.failed,
             "failures_by_layer": dict(self.failures_by_layer),
+            "money_tokens_total": self.money_tokens_total,
+            "range_in_scalar_count": self.range_in_scalar_count,
+            "prompt_version": PROMPT_VERSION,
             "needs_review_triggered": needs_review_triggered,
         }
 
@@ -75,6 +104,9 @@ def verify_evidencia(
     result = EvidenciaVerification()
     for item_type, index, prose_fields, path in _iter_items(output):
         tokens = _extract_money_tokens(prose_fields)
+        result.money_tokens_total += len(tokens)
+        if path is None or not _is_legit_range_path(path):
+            result.range_in_scalar_count += _count_ranges(prose_fields)
         if not tokens and path is None:
             continue
         failed_layer = "missing_path" if path is None else _check_item(drill, tokens, path)
@@ -98,6 +130,9 @@ def _check_item(drill: PlannerDrillDown, tokens: list[MoneyToken], path: str) ->
     tool_result = drill.get_e5_jsonpath(path)
     if not tool_result.found:
         return _REASON_TO_LAYER.get(tool_result.reason or "", "resolve_null")
+    if _is_legit_range_path(path):
+        # Campo-fonte é faixa/banda legítima — value_mismatch suprimido (R3).
+        return None
     if not tokens:
         return None
     leaves = _numeric_leaves(tool_result.value)
@@ -143,6 +178,11 @@ def _extract_money_tokens(prose_fields: list[Optional[str]]) -> list[MoneyToken]
             continue
         tokens.extend(_token_from_match(m) for m in _MONEY_RE.finditer(text))
     return tokens
+
+
+def _count_ranges(prose_fields: list[Optional[str]]) -> int:
+    """Faixas R$ X–Y na prosa de item cujo campo-fonte não é faixa legítima."""
+    return sum(len(_RANGE_RE.findall(text)) for text in prose_fields if text)
 
 
 def _token_from_match(m: re.Match) -> MoneyToken:

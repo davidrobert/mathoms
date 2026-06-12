@@ -128,6 +128,15 @@ em commit separado.
 
 ### F2 — Valores determinísticos no parecer (prompt + validação)
 
+> ✅ **Código entregue** (branch `agent/sug-lifecycle-f2/20260612-1750`):
+> PROMPT_VERSION 1.4.0 (regras 12 passthrough + 13 cap de geração), hints
+> imperativos nos 2 manifests de seção, manifest 1.4 (invalida cache),
+> whitelist de faixa legítima + contadores `money_tokens_total`/
+> `range_in_scalar_count` no validador ADR-279, eval determinístico
+> `TestValorDeterministicoF2`. **Nota (prompt-engineer):** truncamento
+> determinístico do cap 3/horizonte fica em F3; gate ≥98% de match é
+> operacional (telemetria em runs reais), não pytest.
+
 - `config/prompts/parecer_planejador.yaml`: hints imperativos — citar
   **exatamente** `$.reserva_emergencia.nivel_6_meses`/`nivel_12_meses` (e
   análogos), nunca faixa/arredondamento próprio. Bump `PROMPT_VERSION` 1.4.0.

@@ -23,8 +23,9 @@ from tests.test_parecer_planejador_golden import (
 _REPO = Path(__file__).resolve().parents[1]
 _OUTPUT_SCHEMA = _REPO / "config" / "schemas" / "parecer_planejador.schema.json"
 
-# Baseline pré-F4 do SYSTEM_PROMPT_TEMPLATE (chars; aproximação tokens = len//4).
-_PROMPT_BASELINE_CHARS = 4664
+# Baseline do SYSTEM_PROMPT_TEMPLATE (chars; aproximação tokens = len//4).
+# 4664 pré-F4 (ADR-279) → 5411 em 1.4.0 (regras 12-13, ADR-290 F2).
+_PROMPT_BASELINE_CHARS = 5411
 
 
 def _risco(descricao: str, path: str | None) -> Risco:
@@ -177,6 +178,50 @@ class TestStrictModePositives:
 
 
 # -----------------------------------------------------------------------
+# Valor determinístico (ADR-290 F2) — faixa inventada em campo escalar
+# bloqueia; faixa legítima (Monte Carlo/cenários/projeções) é suprimida.
+# Eval golden determinístico do KR2; o ≥98% de match é gate operacional
+# medido em runs reais via telemetria (money_tokens_total / value_mismatch).
+# -----------------------------------------------------------------------
+
+
+class TestValorDeterministicoF2:
+    @pytest.fixture(autouse=True)
+    def _strict(self, monkeypatch):
+        monkeypatch.setenv("MATHOMS_PARECER_EVIDENCIA_MODE", "strict")
+
+    def test_faixa_inventada_em_campo_escalar_bloqueia(self):
+        result, store = _run_with_risco(
+            "Recomendamos reserva entre R$ 250-300 mil para a família.",
+            "$.reserva_emergencia.total_liquida",
+        )
+        assert result["status"] == "needs_review"
+        assert _risco_entries(store)[0]["outcome"] == "value_mismatch"
+        agg = result["evidencia_verification"]
+        assert agg["range_in_scalar_count"] == 1
+
+    def test_faixa_legitima_monte_carlo_suprimida(self):
+        result, store = _run_with_risco(
+            "Projeção indica patrimônio entre R$ 4,0 mi a R$ 6,5 mi no percentil 90.",
+            "$.if_monte_carlo.prazo_p50",
+        )
+        assert result["success"] is True
+        assert _risco_entries(store)[0]["outcome"] == "verified"
+        assert result["evidencia_verification"]["range_in_scalar_count"] == 0
+
+    def test_match_exato_conta_tokens_na_telemetria(self):
+        result, _ = _run_with_risco(
+            "Reserva total líquida de R$ 84.000 cobre poucos meses.",
+            "$.reserva_emergencia.total_liquida",
+        )
+        assert result["success"] is True
+        agg = result["evidencia_verification"]
+        assert agg["money_tokens_total"] >= 1
+        assert agg["range_in_scalar_count"] == 0
+        assert agg["prompt_version"] == "1.4.0"
+
+
+# -----------------------------------------------------------------------
 # Extração de tokens monetários — regex ancorada em R$
 # -----------------------------------------------------------------------
 
@@ -291,4 +336,12 @@ class TestPromptTokenBudget:
         current_tokens = len(SYSTEM_PROMPT_TEMPLATE) // 4
         delta = abs(current_tokens - baseline_tokens) / baseline_tokens
         assert delta < 0.05, f"delta de tokens {delta:.2%} excede 5% (F4)"
-        assert PROMPT_VERSION == "1.3.0"
+        assert PROMPT_VERSION == "1.4.0"
+
+    def test_regras_valor_deterministico_presentes(self):
+        """ADR-290 F2 — regras 12 (passthrough escalar) e 13 (cap de geração)."""
+        from pipeline.llm.prompts.parecer_planejador import SYSTEM_PROMPT_TEMPLATE
+
+        assert "Valor escalar é passthrough" in SYSTEM_PROMPT_TEMPLATE
+        assert "Priorize, não preencha" in SYSTEM_PROMPT_TEMPLATE
+        assert "máximo 3 sugestões" in SYSTEM_PROMPT_TEMPLATE
