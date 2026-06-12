@@ -130,6 +130,26 @@ def test_descricao_nao_concatena_cabecalho_tabela():
     assert txs[1]["descricao"] == "Pix recebido de ARVO SAUDE LTDA"
 
 
+def test_descricao_nao_concatena_cabecalho_tabela_quebrado_em_duas_linhas():
+    """Variante do cabeçalho quebrado pela extração de texto: "Data Data" numa
+    linha e "Tipo Descrição Valor lançamento contábil" na seguinte — a segunda
+    escapava de `_C6_NOISE_PREFIXES` e vazava na descrição (prod 2026-06-12,
+    pré-preenchia keyword de regra de categorização com o lixo)."""
+    text = (
+        "28/11 28/11 Entrada PIX Pix recebido de ARVO SAUDE LTDA R$ 46.624,29\n"
+        "Data Data\n"
+        "Tipo Descrição Valor lançamento contábil\n"
+        "29/12 29/12 Entrada PIX Pix recebido de ARVO SAUDE LTDA R$ 46.624,29\n"
+    )
+    txs, _ = _parse_c6_extrato_text(text, "2025-11-01", "2025-12-31")
+    assert len(txs) == 2
+    for tx in txs:
+        assert "Tipo Descrição" not in tx["descricao"], tx["descricao"]
+        assert "lançamento contábil" not in tx["descricao"]
+    assert txs[0]["descricao"] == "Pix recebido de ARVO SAUDE LTDA"
+    assert txs[1]["descricao"] == "Pix recebido de ARVO SAUDE LTDA"
+
+
 def test_outros_gastos_e_resgate():
     """Tipos menos comuns precisam ser reconhecidos via prefix match — o split
     tipo/descrição segue interno ao parser (limpa a descrição); o campo
