@@ -202,30 +202,14 @@ describe("ApendiceDSection", () => {
 });
 
 describe("ApendiceESection", () => {
-  it("primeiro relatório (changelog ausente) mostra copy de primeiro ciclo", () => {
+  it("renderiza seção forward-looking sem card Histórico de Ciclos", () => {
     render(<ApendiceESection data={emptyData()} />);
-    expect(
-      screen.getByText(/Primeiro relatório do workspace/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Apêndice E/)).toBeInTheDocument();
+    expect(screen.queryByText(/Histórico de Ciclos/)).toBeNull();
+    expect(screen.queryByText(/Primeiro relatório do workspace/)).toBeNull();
   });
 
-  it("changelog null (sem ciclo anterior) usa copy de primeiro relatório", () => {
-    const data = { changelog: null } as unknown as ReportAnalysisData;
-    render(<ApendiceESection data={data} />);
-    expect(
-      screen.getByText(/Primeiro relatório do workspace/),
-    ).toBeInTheDocument();
-  });
-
-  it("changelog vazio (nada acima do threshold) usa copy de sem mudança material", () => {
-    const data = { changelog: [] } as unknown as ReportAnalysisData;
-    render(<ApendiceESection data={data} />);
-    expect(
-      screen.getByText(/Nenhuma mudança material desde o último relatório/),
-    ).toBeInTheDocument();
-  });
-
-  it("renderiza SnapshotChangelogList consolidado quando data.changelog tem entries (v2.8 · ADR-148)", () => {
+  it("changelog populado NÃO renderiza no APP_E (anti-regressão de duplicação — TRACK-remove-historico-ciclos-app-e)", () => {
     const data = {
       changelog: [
         {
@@ -235,25 +219,17 @@ describe("ApendiceESection", () => {
           delta_signal: "up",
           delta_pct: 20,
         },
-        {
-          section_id: "T5",
-          summary:
-            "Despesas totais subiram R$ 8.500,00 desde o relatório anterior (+8,5%)",
-          delta_signal: "up",
-          delta_pct: 8.5,
-        },
       ],
     } as unknown as ReportAnalysisData;
     render(<ApendiceESection data={data} />);
     expect(
-      screen.getByText(
-        "Patrimônio líquido cresceu R$ 200.000,00 desde o relatório anterior (+20,0%)",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Despesas totais subiram R$ 8.500,00 desde o relatório anterior (+8,5%)",
-      ),
-    ).toBeInTheDocument();
+      screen.queryByText(/Patrimônio líquido cresceu R\$ 200\.000,00/),
+    ).toBeNull();
+    expect(screen.queryByText(/Histórico de Ciclos/)).toBeNull();
+  });
+
+  it("renderiza fallback summary quando narrativas ausentes", () => {
+    render(<ApendiceESection data={emptyData()} />);
+    expect(screen.getByText("Próximos passos do roadmap.")).toBeInTheDocument();
   });
 });

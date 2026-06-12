@@ -275,7 +275,7 @@ const SECTION_SUMMARIES: Record<
   APP_B: () => "Premissas econômicas e metodologias que fundamentam as projeções.",
   APP_C: () => "Cenários de estresse para validar a margem de segurança do plano.",
   APP_D: () => "Referências metodológicas e lineage dos dados.",
-  APP_E: () => "Histórico de ciclos e próximos passos do roadmap.",
+  APP_E: () => "Próximos passos do roadmap.",
 };
 
 /**

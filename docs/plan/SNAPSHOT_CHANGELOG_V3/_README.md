@@ -173,10 +173,10 @@ Lanes:
 - **W4-T07** `frontend`: deleta `<SectionSnapshotDiff />` de S1/S2/S3.
   Cria `<VariacaoSection />` consumida pelo layout gerado.
   **Nota 2026-06-12:** o card "Histórico de Ciclos" do APP_E (mesmo
-  `data.changelog`, duplicado no apêndice) sai **fora** de W4 via
-  [[TRACK-remove-historico-ciclos-app-e]] — W4-T07 não precisa tocá-lo.
-  Se W4-T07 rodar antes do track, ver nota de sequência no próprio track
-  (`SnapshotChangelogList` pode ficar órfão).
+  `data.changelog`, duplicado no apêndice) foi **removido em PR #618**
+  via [[TRACK-remove-historico-ciclos-app-e]] — W4-T07 não precisa
+  tocá-lo. Ao deletar `SectionSnapshotDiff`, `SnapshotChangelogList`
+  perde o último consumidor — removê-lo junto.
 - **W4-T08** `tests`: invariante decomposição (W4-T01), Vitest da
   seção V0 renderizando com payload sintético, golden de E5 com
   decomposição.

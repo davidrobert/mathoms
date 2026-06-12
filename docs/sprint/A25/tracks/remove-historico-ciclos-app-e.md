@@ -5,12 +5,13 @@ title: "Remover card 'Histórico de Ciclos' (Apêndice E) do relatório React"
 lane: null
 sprint: A25
 plan: PLAN-snapshot-changelog-v3
-status: ready
+status: consumed
 created_at: "2026-06-12"
+consumed_at: "2026-06-12"
 agent_role: null
 tags:
   - type/track
-  - status/ready
+  - status/consumed
   - area/report
   - sprint/a25
   - priority/p2
@@ -161,10 +162,18 @@ acima pressupõe ordem track → W4).
 
 ## Critério de aceite (gate verificável)
 
+> **Consumido em 2026-06-12 — PR #618.** Gate ajustado na execução: o
+> grep retorna 4 hits residuais **intencionais** — asserções de
+> ausência no teste anti-regressão (`queryByText(/Histórico de
+> Ciclos/)` é o próprio enforcement) e o rationale na docstring de
+> `ApendiceESection`. "Zero dead code" vale para código que renderiza
+> ou produz o card; asserção de ausência + rationale não são dead code.
+
 Card removido quando **todas** as condições valem:
 
 - `rg -i "histórico de ciclos" frontend/src frontend/tests backend config`
-  → 0 hits.
+  → 0 hits **fora de** asserções de ausência em teste e rationale de
+  docstring/comentário.
 - `npx tsc --noEmit` e `npm test -- --run` verdes; nenhum import/type
   órfão (`SnapshotChangelogEntryView` permanece **somente** via
   `SnapshotChangelogList`/`SectionSnapshotDiff`).
