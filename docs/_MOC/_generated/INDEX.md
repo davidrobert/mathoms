@@ -505,6 +505,7 @@
 | CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET.md` |
 | CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS.md` |
 | CHG-2026-06-12-REMOVE-HISTORICO-CICLOS | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-12-REMOVE-HISTORICO-CICLOS.md` |
+| CHG-2026-06-12-SUGGESTION-LIFECYCLE-F1-F4 | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-12-SUGGESTION-LIFECYCLE-F1-F4.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -726,7 +727,7 @@
 | TRACK-a20-l6-compose-dev | track | consumed | A20 | Track A20.L6 — docker-compose.dev.yml unificado + cleanup composes legados | `sprint/A20/tracks/a20-l6-compose-dev.md` |
 | TRACK-a20-l9-smoke-e2e | track | ready | A20 | Track A20.L9 — Smoke E2E em compose (gate de fechamento do sprint) | `sprint/A20/tracks/a20-l9-smoke-e2e.md` |
 | TRACK-a24-l7-schema-strict-flip | track | ready | A24 | Track A24.l7 — baseline → de-drift vocabulário E2 → flip strict per-schema | `sprint/A24/tracks/a24-l7-schema-strict-flip.md` |
-| TRACK-a25-suggestion-lifecycle | track | ready | A25 | Track A25 — SUGGESTION_LIFECYCLE F1→F4: supersede-per-run, thesis_key, valores determinísticos, cap/ordering, backfill dogfood | `sprint/A25/tracks/a25-suggestion-lifecycle.md` |
+| TRACK-a25-suggestion-lifecycle | track | consumed | A25 | Track A25 — SUGGESTION_LIFECYCLE F1→F4: supersede-per-run, thesis_key, valores determinísticos, cap/ordering, backfill dogfood | `sprint/A25/tracks/a25-suggestion-lifecycle.md` |
 | TRACK-a6e-events-domain-events | track | consumed | A6 | Track A6e.events — Domain events tipados (ADR-101 R17) | `sprint/A6/tracks/a6e-events-domain-events.md` |
 | TRACK-a6e3-use-cases | track | consumed | A6 | Track A6e.3 — Application Layer (use cases) — slice inicial | `sprint/A6/tracks/a6e3-use-cases.md` |
 | TRACK-a6e3b-use-cases-rest | track | consumed | A6 | Track A6e.3b — Application layer: ConfigBlob + Document + Task (use cases) | `sprint/A6/tracks/a6e3b-use-cases-rest.md` |
