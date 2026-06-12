@@ -370,6 +370,48 @@ async def test_trigger_from_stage_e5_requires_e3_and_e4_superset(
     assert {"E3", "E4"} <= set(kwargs["base_run_fallback_stages"])
 
 
+async def _add_failed_run_with_e5(db: AsyncSession, ws_id: str) -> str:
+    """Run falhado com artifact E5 — base mínima p/ from_stage=parecer (ADR-291)."""
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+
+    prior = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.failed)
+    db.add(prior)
+    await db.flush()
+    db.add(
+        PipelineArtifact(
+            workspace_id=ws_id,
+            pipeline_run_id=prior.id,
+            stage="E5",
+            artifact_key="analise_financeira",
+            content_json={},
+        )
+    )
+    await db.commit()
+    return prior.id
+
+
+@pytest.mark.asyncio
+async def test_trigger_from_stage_descriptive_name_accepted(
+    auth_client_with_doc: AsyncClient, db: AsyncSession
+):
+    """from_stage descritivo (``failed_at_stage`` pós-F9.2) é aceito — o botão
+    "Reprocessar a partir de <stage>" da UI envia o nome descritivo, e o set
+    legado hardcoded devolvia 422 (incidente parecer 2026-06-12)."""
+    auth_client = auth_client_with_doc
+    prior_id = await _add_failed_run_with_e5(db, auth_client.ws_id)
+
+    with patch(_START) as mock_start:
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/run",
+            json={"from_stage": "review_finances_holistic", "skip_llm": False},
+        )
+    assert resp.status_code == 202
+    kwargs = mock_start.call_args.kwargs
+    assert kwargs["stages"] == ["review_finances_holistic"]
+    assert kwargs["base_run_id"] == prior_id
+
+
 @pytest.mark.asyncio
 async def test_trigger_from_stage_e3_does_not_pin_base_run(
     auth_client_with_doc: AsyncClient,
