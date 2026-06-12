@@ -40,6 +40,20 @@ def compute_suggestion_dedup_key(*, workspace_id: str, ancora: str, acao: str) -
     return hashlib.sha256(composite.encode("utf-8")).hexdigest()
 
 
+def compute_suggestion_thesis_key(
+    *,
+    workspace_id: str,
+    tema_canonico: Optional[str],
+    section_id: Optional[str],
+    ancora: Optional[str],
+) -> Optional[str]:
+    """Identidade semântica da tese (ADR-290 B1) — estável entre runs, independe de redação/valor. Campo-fonte ausente → None (linha fica fora do supersede)."""
+    if not (tema_canonico and section_id and ancora):
+        return None
+    composite = f"{workspace_id}|{tema_canonico}|{section_id}|{ancora}"
+    return hashlib.sha256(composite.encode("utf-8")).hexdigest()
+
+
 def severity_from_prioridade(prio: str) -> str:
     """Mapping ADR-153: P0→danger, P1→warning, P2→info."""
     return {"P0": "danger", "P1": "warning", "P2": "info"}.get(prio, "info")
