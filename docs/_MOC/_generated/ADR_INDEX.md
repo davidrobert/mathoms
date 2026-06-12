@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-280 ADRs (ADR-001 a ADR-289) em [`docs/adr/`](../../adr/).
+281 ADRs (ADR-001 a ADR-290) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 211
-- **Proposto**: 65
+- **Proposto**: 66
 - **Roadmap**: 4
 
 ## Fundação
@@ -319,12 +319,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-283]] — Float monetário persistido e hardening de boundary de schema (patrimonio_liquido, gate models, E2 items) · phase Débito técnico (A12)
 - [[ADR-289]] — Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois) · phase F1
 
-### Proposto (4)
+### Proposto (5)
 
 - [[ADR-211]] — llm_config e pipeline.json como overrides DB-direto (cutover completo do A7) · phase A12
 - [[ADR-221]] — Ingestão de market rates dirigida por catálogo — Bacen SGS + Tesouro Direto · phase A12
 - [[ADR-269]] — Dedup de TaskSuggestion via soft-supersede + dedup_key normalizado · phase A17.task-suggestion-dedup
 - [[ADR-285]] — backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio · phase Débito técnico
+- [[ADR-290]] — Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion
 
 ## categorization
 
