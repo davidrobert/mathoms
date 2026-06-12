@@ -697,7 +697,7 @@
 | PLAN-residencia-e-uso | plan | draft |  | Residência e uso econômico de imóveis — override DB substitui keyword | `plan/RESIDENCIA_E_USO/_README.md` |
 | PLAN-s4-real-estate-enrichment | plan | draft |  | S4 Real Estate — Enriquecimento do card de yield (cap rate líquido + benchmarks + tabela por imóvel) | `plan/S4_REAL_ESTATE_ENRICHMENT/_README.md` |
 | PLAN-snapshot-changelog-v3 | plan | in_progress |  | Snapshot changelog v3 — métricas, cadência, decomposição e direção semântica | `plan/SNAPSHOT_CHANGELOG_V3/_README.md` |
-| PLAN-suggestion-lifecycle | plan | draft |  | Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key, valores determinísticos | `plan/SUGGESTION_LIFECYCLE/_README.md` |
+| PLAN-suggestion-lifecycle | plan | in_progress |  | Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key, valores determinísticos | `plan/SUGGESTION_LIFECYCLE/_README.md` |
 | PLAN-tributario-pj | plan | draft |  | Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto) | `plan/TRIBUTARIO_PJ/_README.md` |
 | runbook-python-dependencies | runbook | ativo |  | Runbook — Dependências Python (pip-tools lockfile com hashes) | `reference/runbooks/python_dependencies.md` |
 | TRACK-a11-w2-t04-stuck-runs-heartbeat | track | ready | A11 | W2-T04 — Stuck-runs detector + last_heartbeat_at | `sprint/A11/tracks/w2-t04-stuck-runs-heartbeat.md` |

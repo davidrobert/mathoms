@@ -65,6 +65,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-190]], [[ADR-148]]
 
+### PLAN-suggestion-lifecycle — Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key, valores determinísticos
+
+- Status: `in_progress` · Sprint atual: A25
+- Sprints envolvidas: A25
+- Lanes: _(sem lanes vinculadas por `plan:`)_
+- ADRs canônicas: [[ADR-290]]
+
 ## Pausados (`paused`)
 
 ### PLAN-i18n — Internacionalização (i18n)
@@ -133,13 +140,6 @@ GTM 2026-05-15 mantém pausada até atingir um dos 3 gatilhos de §10.
 - Sprints envolvidas: A12
 - Lanes: _(sem lanes vinculadas por `plan:`)_
 - ADRs canônicas: [[ADR-216]]
-
-### PLAN-suggestion-lifecycle — Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key, valores determinísticos
-
-- Status: `draft` · Sprint atual: A25
-- Sprints envolvidas: A25
-- Lanes: _(sem lanes vinculadas por `plan:`)_
-- ADRs canônicas: [[ADR-290]]
 
 ### PLAN-tributario-pj — Tributário PJ — Cascata Fiscal canônica (modelo de domínio + narrator correto)
 

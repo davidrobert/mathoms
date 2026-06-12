@@ -43,8 +43,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 | marketing-draft | draft | 1 |
 | moc | (sem status) | 18 |
 | plan | done | 1 |
-| plan | draft | 7 |
-| plan | in_progress | 8 |
+| plan | draft | 6 |
+| plan | in_progress | 9 |
 | plan | paused | 2 |
 | runbook | ativo | 1 |
 | track | consumed | 81 |
