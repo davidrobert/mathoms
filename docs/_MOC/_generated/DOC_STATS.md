@@ -5,7 +5,7 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-808 notas indexadas pelo frontmatter em `docs/`.
+809 notas indexadas pelo frontmatter em `docs/`.
 
 ## Por tipo
 
