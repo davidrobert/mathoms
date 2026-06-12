@@ -1216,6 +1216,9 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `rationale` | `TEXT` | no | — | — |
 | `amount_brl_cents` | `BIGINT` | yes | — | — |
 | `dedup_key` | `VARCHAR(64)` | no | — | — |
+| `thesis_key` | `VARCHAR(64)` | yes | — | — |
+| `superseded_at` | `DATETIME` | yes | — | — |
+| `superseded_by_run_id` | `VARCHAR(36)` | yes | — | — |
 | `status` | `VARCHAR(32)` | no | `'Pendente'` | — |
 | `accepted_decision_id` | `VARCHAR(36)` | yes | — | FK→decisions.id |
 | `dismissed_reason` | `VARCHAR(32)` | yes | — | — |
@@ -1237,6 +1240,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 - `ix_sugagg_ws_dedup` (workspace_id, dedup_key)
 - `ix_sugagg_ws_section` (workspace_id, section_id)
 - `ix_sugagg_ws_status` (workspace_id, status)
+- `ix_sugagg_ws_thesis` (workspace_id, thesis_key)
 
 ### `task_attachments`
 
@@ -2577,6 +2581,9 @@ type Suggestion struct {
 	Rationale string `db:"rationale" json:"rationale"`
 	AmountBrlCents *int64 `db:"amount_brl_cents" json:"amount_brl_cents"`
 	DedupKey string `db:"dedup_key" json:"dedup_key"`
+	ThesisKey *string `db:"thesis_key" json:"thesis_key"`
+	SupersededAt *time.Time `db:"superseded_at" json:"superseded_at"`
+	SupersededByRunId *string `db:"superseded_by_run_id" json:"superseded_by_run_id"`
 	Status string `db:"status" json:"status"`
 	AcceptedDecisionId *string `db:"accepted_decision_id" json:"accepted_decision_id"`
 	DismissedReason *string `db:"dismissed_reason" json:"dismissed_reason"`

@@ -2,7 +2,8 @@
 id: ADR-290
 type: adr
 title: "Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion"
-status: Proposto
+status: Decidido
+phase: "A25"
 date: "2026-06-12"
 relates_to:
   - "[[ADR-153]]"
@@ -15,14 +16,14 @@ superseded_by: []
 aliases: ["ADR 290", "suggestion supersede", "thesis_key"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/backend
   - area/llm
 ---
 
 # ADR-290 — Supersede-per-run + thesis_key para `Suggestion` `origin=llm`
 
-**Status:** Proposto • **Data:** 2026-06-12 •
+**Status:** Decidido (A25) • **Data:** 2026-06-12 •
 **Plano:** [[PLAN-suggestion-lifecycle]]
 
 ## Contexto

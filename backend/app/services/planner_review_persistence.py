@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select
@@ -14,9 +13,8 @@ from backend.app.models.pipeline_run import PipelineRun
 from backend.app.models.pipeline_run_cost import PipelineRunCost
 from backend.app.models.planner_field_request import PlannerFieldRequest
 from backend.app.models.planner_review import PlannerReview
-from backend.app.models.suggestion import Suggestion
 from backend.app.services.crypto import read_artifact_content
-from backend.app.services.parecer_finalization import severity_from_prioridade
+from backend.app.services.suggestion_supersede import persist_suggestions_for_run
 
 logger = logging.getLogger("mathoms.pipeline.planner_review_persistence")
 
@@ -26,7 +24,6 @@ _PARECER_STAGE = "E6-parecer"
 _PARECER_KEY = "parecer_planejador"
 _E5_STAGE = "E5"
 _E5_KEY = "analise_financeira"
-_SUGGESTION_KIND = "parecer_planejador"
 
 
 def _usd_to_cents(usd: float) -> int:
@@ -128,67 +125,6 @@ def _build_cost_row(*, workspace_id: str, run_id: str, detail: dict) -> Pipeline
     )
 
 
-def _existing_dedup_keys(db: Session, *, workspace_id: str) -> set[str]:
-    """Suggestions ativas (qualquer status) para o workspace — idempotência ADR-153."""
-    rows = db.execute(
-        select(Suggestion.dedup_key).where(Suggestion.workspace_id == workspace_id)
-    ).all()
-    return {row[0] for row in rows}
-
-
-def _iter_sugestoes(content_json: dict):
-    """Yields tuples (horizon, sug_dict) achatando os 3 buckets."""
-    for horizon in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas"):
-        for sug in content_json.get(horizon, []) or []:
-            yield horizon, sug
-
-
-def _build_suggestion(*, workspace_id: str, report_id: Optional[str], sug: dict) -> Suggestion:
-    """Constrói Suggestion(origin='llm') — title vem do `acao`, rationale do `impacto`."""
-    return Suggestion(
-        workspace_id=workspace_id,
-        report_id=report_id,
-        section_id=sug["section_id"],
-        kind=_SUGGESTION_KIND,
-        category=None,
-        origin="llm",
-        severity=severity_from_prioridade(sug["prioridade"]),
-        title=sug["acao"][:500],
-        rationale=sug["impacto_qualitativo"],
-        amount_brl_cents=_extract_amount_cents(sug),
-        dedup_key=sug["suggestion_dedup_key"],
-        status="Pendente",
-    )
-
-
-def _extract_amount_cents(sug: dict) -> Optional[int]:
-    """Converte ``impacto_estimado.valor_estimado_brl`` (BRL) → cents (ADR-090). Opcional — só presente quando confianca='alta' (ADR-202 §D6)."""
-    impacto = sug.get("impacto_estimado")
-    if not impacto:
-        return None
-    valor_brl = impacto.get("valor_estimado_brl")
-    if valor_brl is None:
-        return None
-    return int(round(float(valor_brl) * 100))
-
-
-def _find_report_id(db: Session, *, workspace_id: str, run_id: str) -> Optional[str]:
-    """Resolve `report_id` para FK opcional em Suggestion. None = ainda sem Report."""
-    from backend.app.models.report import Report
-
-    row = (
-        db.execute(
-            select(Report.id).where(
-                Report.workspace_id == workspace_id,
-                Report.pipeline_run_id == run_id,
-            )
-        )
-        .scalars()
-        .first()
-    )
-    return row
-
-
 def _load_artifacts(
     db: Session, *, workspace_id: str, run_id: str
 ) -> Optional[tuple[PipelineArtifact, PipelineArtifact]]:
@@ -219,26 +155,6 @@ def _find_existing_review(
         .scalars()
         .first()
     )
-
-
-def _persist_suggestions_from_artifact(
-    db: Session, *, workspace_id: str, parecer_artifact: PipelineArtifact
-) -> int:
-    """Bulk-insert de Suggestions com dedup; retorna count criado."""
-    existing_keys = _existing_dedup_keys(db, workspace_id=workspace_id)
-    report_id = _find_report_id(
-        db, workspace_id=workspace_id, run_id=parecer_artifact.pipeline_run_id
-    )
-    created = 0
-    for _horizon, sug in _iter_sugestoes(
-        read_artifact_content(parecer_artifact.content_json) or {}
-    ):
-        if sug["suggestion_dedup_key"] in existing_keys:
-            continue
-        db.add(_build_suggestion(workspace_id=workspace_id, report_id=report_id, sug=sug))
-        existing_keys.add(sug["suggestion_dedup_key"])
-        created += 1
-    return created
 
 
 def _iter_field_requests(content_json: dict):
@@ -309,8 +225,8 @@ def _do_persist(
     db.add(cost_row)
     # Flush para garantir ``review.id`` disponível antes de FKs em field_requests.
     db.flush()
-    created = _persist_suggestions_from_artifact(
-        db, workspace_id=workspace_id, parecer_artifact=parecer_artifact
+    suggestion_stats = persist_suggestions_for_run(
+        db, workspace_id=workspace_id, run_id=run_id, parecer_artifact=parecer_artifact
     )
     field_requests_created = _persist_field_requests(
         db,
@@ -324,7 +240,7 @@ def _do_persist(
             "workspace_id": workspace_id,
             "run_id": run_id,
             "review_id": review.id,
-            "suggestions_created": created,
+            **suggestion_stats,
             "field_requests_created": field_requests_created,
             "cost_usd_cents": cost_row.cost_usd_cents,
         },
