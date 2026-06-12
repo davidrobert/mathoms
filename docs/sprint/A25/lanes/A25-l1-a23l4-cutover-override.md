@@ -88,6 +88,15 @@ hoje** — confirma o bug vivo da [[ADR-282]] §Contexto. Denominador de reancor
 **Decisão de inspeção pendente do owner** antes de declarar a [[A25.l2]]
 desbloqueada (aplicar backfill real quarentena os 7; ADR-282 §5 — nunca drop).
 
+**Inspeção do owner concluída (2026-06-12):** confirmado no app que as
+categorizações de 04/28–05/11 não estavam mais aplicadas — 7/7 órfãos reais.
+Owner recriou 5 overrides manuais via UI (nasceram com `natural_key_hash` v2,
+intocados pelo backfill). **Backfill real aplicado** (`preview=False`, pós-run
+`completed`, advisory lock + quiesce): `orphaned=7`, zero drop, zero legado
+restante (`natural_key_hash IS NULL AND orphaned_at IS NULL` = 0). Audit:
+`override.backfill_natural_key`. Ambiguous = 0 ⇒ critério "zero não-investigado"
+satisfeito por vacuidade. **[[A25.l2]] desbloqueada.**
+
 ## Owner
 
 Agente da lane; co-design `data-engineer` + `senior-cto` (2026-06-10).

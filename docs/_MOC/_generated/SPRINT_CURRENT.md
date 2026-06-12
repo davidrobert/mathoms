@@ -5,7 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-1 in_progress.
+1 open · 1 in_progress.
+
+## Open (1)
+
+- [[A25.l2]] — Flip do consumo E4 para identidade v2 (passo 2 da B4) · priority P0 · branch `dedup-e4-flip-v2`
 
 ## In progress (1)
 

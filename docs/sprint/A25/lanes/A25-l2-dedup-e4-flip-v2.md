@@ -4,7 +4,7 @@ type: lane
 title: "Flip do consumo E4 para identidade v2 (passo 2 da B4)"
 sprint: A25
 plan: PLAN-data-lineage
-status: blocked
+status: open
 priority: P0
 branch_slug: dedup-e4-flip-v2
 adrs:
@@ -16,7 +16,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a25
-  - status/blocked
+  - status/open
   - priority/p0
   - area/data-lineage
   - area/pipeline
@@ -28,10 +28,11 @@ tags:
 > **Bloqueada por [[A25.l1]]** (gate de sequenciamento [[ADR-282]] §7: cutover de
 > leitura do override + dogfood de reancoragem ANTES do flip).
 >
-> **Estado do gate (2026-06-11):** [[A25.l1]] shipped (#604) e [[ADR-287]] `Proposto`
-> em main (#605) — o desenho exigido abaixo está pronto. Dry-run dogfood executado:
-> 7/7 overrides já órfãos hoje (denominador de reancoráveis = 0; detalhes em
-> [[A25.l1]] §Resultado). **Aguarda inspeção do owner** para destravar.
+> **Gate FECHADO (2026-06-12):** [[A25.l1]] shipped (#604), [[ADR-287]] `Proposto`
+> em main (#605), inspeção do owner concluída (7/7 órfãos confirmados no app) e
+> **backfill real aplicado** — 7 quarentenados, zero legado restante (detalhes em
+> [[A25.l1]] §Resultado). **Lane DESBLOQUEADA** — pré-condição "overrides
+> reancorados em v2" satisfeita por quarentena (não havia reancorável).
 
 ## Objetivo
 
