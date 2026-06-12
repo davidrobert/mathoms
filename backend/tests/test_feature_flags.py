@@ -24,6 +24,12 @@ def test_report_provenance_defaults_off():
     assert feature_flags_service.DEFAULTS["report_provenance_enabled"] is False
 
 
+def test_dedup_natural_key_v2_defaults_off():
+    """A25.l2 (ADR-287): flip de identidade do dedup E4 muda totais por
+    categoria — default True seria rebaseline global silencioso."""
+    assert feature_flags_service.DEFAULTS["dedup_natural_key_v2_enabled"] is False
+
+
 @pytest.mark.asyncio
 async def test_set_flag_persists_override(db):
     ws = await factories.make_workspace(db)

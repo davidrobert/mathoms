@@ -61,6 +61,11 @@ DEFAULTS: dict[str, bool] = {
     # os write-paths apenas populam natural_key_hash (dual-write); o match continua
     # no transaction_hash legado.
     "override_natural_key_v2_enabled": False,
+    # ADR-287 · A25.l2 — dedup/chaveamento E3→E4 deriva identidade do
+    # natural_key v2 (+moeda +direction) em vez do shim v1. Default False:
+    # o flip muda quais linhas colapsam (totais por categoria) → rollout por
+    # workspace com dogfood; rollback = flag off (E4 volta a v1).
+    "dedup_natural_key_v2_enabled": False,
 }
 
 

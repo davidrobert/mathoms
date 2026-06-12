@@ -241,6 +241,20 @@ def compute_natural_key(inputs: HashInputs) -> NaturalKey:
     return NaturalKey(hash=_hash_v2(inputs), hash_version=2)
 
 
+def compute_identity_hash(inputs: HashInputs, *, valor: float | int, natural_key_v2: bool) -> str:
+    """Dispatch do recompute E3→E4 (ADR-287): v2 sob flag; v1 ingere ``valor`` float cru."""
+    if natural_key_v2:
+        return _hash_v2(inputs)
+    return _hash_v1(
+        data=inputs.data,
+        banco=inputs.banco,
+        titular=inputs.titular,
+        tipo_conta=inputs.tipo_conta,
+        valor=valor,
+        descricao=inputs.descricao,
+    )
+
+
 def compute_transaction_hash(
     *,
     data: str | None,

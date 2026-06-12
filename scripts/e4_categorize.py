@@ -1059,12 +1059,12 @@ def generate_qa_log(despesas: List[Dict], log_path: Path) -> None:
 # ============================================================================
 
 
-def _e4_build_adapter(ctx, *, learned_rules_v2=None):
+def _e4_build_adapter(ctx, *, learned_rules_v2=None, dedup_natural_key_v2=False):
     """Carrega configs + monta E4CategorizerAdapter.
 
-    ``learned_rules_v2`` (ADR-186 §D5 · A12.P2): regras workspace-aprendidas
-    injetadas (já carregadas do DB pelo backend adapter). ``None`` = workspace
-    sem regras OU execução CLI/golden (sem ``ctx.workspace_id``).
+    ``learned_rules_v2`` (ADR-186 §D5): regras workspace já carregadas do DB;
+    ``dedup_natural_key_v2`` (ADR-287 · A25.l2): flag resolvida por
+    ``_e4_dedup_v2_enabled``. Defaults preservam CLI/golden (zero-behavior).
     """
     from pipeline.domain.services.e4_categorizer_adapter import E4CategorizerAdapter
 
@@ -1075,8 +1075,23 @@ def _e4_build_adapter(ctx, *, learned_rules_v2=None):
         categorization=categorization_cfg,
         family=family_cfg,
         learned_rules_v2=learned_rules_v2,
+        dedup_natural_key_v2=dedup_natural_key_v2,
     )
     return adapter, categorization_cfg, pipeline_cfg
+
+
+def _e4_dedup_v2_enabled(ctx, store) -> bool:
+    """Flag ``dedup_natural_key_v2_enabled`` (ADR-287); CLI/golden sem DB → ``False``."""
+    if ctx.workspace_id is None:
+        return False
+    try:
+        from backend.app.services.db_artifact_store import DBArtifactStore
+        from backend.app.services.feature_flags_service import is_enabled_sync
+    except ImportError:
+        return False
+    if not isinstance(store, DBArtifactStore):
+        return False
+    return is_enabled_sync(ctx.workspace_id, "dedup_natural_key_v2_enabled", db=store.session)
 
 
 def _e4_load_learned_rules(ctx, store):
@@ -1218,8 +1233,13 @@ def main_with_store(ctx) -> Dict[str, Any]:
             f"(workspace {ctx.workspace_id})"
         )
 
+    # ADR-287 (A25.l2) — identidade v2 no dedup E3→E4, rollout por workspace.
+    dedup_v2 = _e4_dedup_v2_enabled(ctx, store)
+    if dedup_v2:
+        print("[E4.0] dedup_natural_key_v2_enabled=True — identidade v2 (ADR-287)")
+
     adapter, categorization_cfg, pipeline_cfg = _e4_build_adapter(
-        ctx, learned_rules_v2=learned_rules_v2
+        ctx, learned_rules_v2=learned_rules_v2, dedup_natural_key_v2=dedup_v2
     )
 
     result = adapter.categorize_via_store(store)
