@@ -132,6 +132,97 @@ describe("CreateRuleDialog · preview + create flow (A12 P4)", () => {
     expect(screen.getByTestId("rule-target-select")).toHaveValue("Alimentação");
   });
 
+  it("mostra microcopy explicando matching por trecho sob o campo keyword", () => {
+    render(
+      <CreateRuleDialog
+        open
+        onOpenChange={vi.fn()}
+        workspaceId="ws-1"
+        defaultKeyword="MERCADO PAGO IFOOD"
+        defaultTargetCategory="Alimentação"
+        categoryOptions={["Alimentação"]}
+      />,
+    );
+    expect(
+      screen.getByText(/encurte para o trecho que se repete/i),
+    ).toBeInTheDocument();
+  });
+
+  it("hint de match único aparece com keyword longa (pré-fill não-editado)", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.post(
+        `${API}/workspaces/:ws/categorization/rules/preview`,
+        () =>
+          HttpResponse.json({
+            matches_total: 1,
+            matches_in_closed_months: 0,
+            matches_with_manual_override: 0,
+            matches_blocked_internal_transfers: 0,
+            matches_amount_total_brl_cents: 4_662_429,
+            matches_by_month: {},
+            conflicts: [],
+            low_risk: true,
+            requires_user_confirmation: false,
+            warnings: [],
+          }),
+      ),
+    );
+    render(
+      <CreateRuleDialog
+        open
+        onOpenChange={vi.fn()}
+        workspaceId="ws-1"
+        defaultKeyword="Pix recebido de ARVO SAUDE LTDA"
+        defaultTargetCategory="receita_pj"
+        categoryOptions={["receita_pj"]}
+      />,
+    );
+    await user.click(screen.getByTestId("rule-preview-button"));
+    await waitFor(() => {
+      expect(screen.getByTestId("rule-single-match-hint")).toBeInTheDocument();
+    });
+  });
+
+  it("hint de match único NÃO aparece com keyword curta", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.post(
+        `${API}/workspaces/:ws/categorization/rules/preview`,
+        () =>
+          HttpResponse.json({
+            matches_total: 1,
+            matches_in_closed_months: 0,
+            matches_with_manual_override: 0,
+            matches_blocked_internal_transfers: 0,
+            matches_amount_total_brl_cents: 10_000,
+            matches_by_month: {},
+            conflicts: [],
+            low_risk: true,
+            requires_user_confirmation: false,
+            warnings: [],
+          }),
+      ),
+    );
+    render(
+      <CreateRuleDialog
+        open
+        onOpenChange={vi.fn()}
+        workspaceId="ws-1"
+        defaultKeyword="IFOOD"
+        defaultTargetCategory="Alimentação"
+        categoryOptions={["Alimentação"]}
+      />,
+    );
+    await user.click(screen.getByTestId("rule-preview-button"));
+    await waitFor(() => {
+      expect(screen.getByText(/transações no total/i)).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByTestId("rule-single-match-hint"),
+    ).not.toBeInTheDocument();
+  });
+
   it("'Ver impacto' chama /preview e renderiza contadores", async () => {
     const user = userEvent.setup();
     render(

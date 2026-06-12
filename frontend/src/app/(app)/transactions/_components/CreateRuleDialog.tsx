@@ -50,6 +50,10 @@ interface CreateRuleDialogProps {
   onCreated?: () => void;
 }
 
+// Keyword longa + 1 match único = sinal de pré-fill não-editado (descrição
+// completa da tx); hint nudga encurtar pra regra re-casar lançamentos futuros.
+const SINGLE_MATCH_HINT_KEYWORD_LEN = 25;
+
 function logEvent(name: string, payload: Record<string, unknown>): void {
   // Logging estruturado (sem PII — só length de keyword + counts numéricos).
   console.info("[learning_loop]", name, payload);
@@ -308,6 +312,10 @@ export function CreateRuleDialog({
               minLength={2}
               maxLength={255}
             />
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              Encurte para o trecho que se repete — ex.: o nome do
+              estabelecimento ou da contraparte.
+            </p>
             {keyword.length > 0 && keyword.length < 4 && (
               <p className="mt-1 text-[10px] text-[var(--semantic-warning)]">
                 Palavras curtas (&lt;4 caracteres) podem produzir muitos
@@ -358,6 +366,16 @@ export function CreateRuleDialog({
           {preview && (
             <>
               <PreviewSummary preview={preview} />
+              {preview.matches_total === 1 &&
+                keyword.length >= SINGLE_MATCH_HINT_KEYWORD_LEN && (
+                  <p
+                    data-testid="rule-single-match-hint"
+                    className="text-[10px] text-muted-foreground"
+                  >
+                    Esta regra só casa esta transação. Para pegar lançamentos
+                    futuros parecidos, encurte a palavra-chave.
+                  </p>
+                )}
               <ConflictNotice conflicts={preview.conflicts} />
               <WarningNotice warnings={preview.warnings} />
 
