@@ -23,8 +23,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
 from pipeline.domain.services._tx_identity import (
+    build_hash_inputs,
     cents_int,
-    compute_transaction_hash,
+    compute_identity_hash,
     normalize_banco,
     normalize_descricao,
     normalize_tipo_conta,
@@ -85,16 +86,15 @@ class DedupReport:
         }
 
 
-def _tx_hash(tx: ClassifiedTransaction) -> str:
-    """Prefere ``tx.transaction_hash`` (PR2); fallback computed (PR1)."""
-    return getattr(tx, "transaction_hash", None) or compute_transaction_hash(
-        data=tx.data,
-        banco=tx.banco,
-        titular=tx.titular,
-        tipo_conta=tx.tipo_conta,
-        valor=tx.valor,
-        descricao=tx.descricao,
+def _tx_hash(tx: ClassifiedTransaction, *, natural_key_v2: bool = False) -> str:
+    """Prefere ``tx.transaction_hash`` (PR2); fallback computed (PR1, v1/v2 por ADR-287)."""
+    explicit = getattr(tx, "transaction_hash", None)
+    if explicit:
+        return explicit
+    inputs = build_hash_inputs(
+        tx.data, tx.banco, tx.titular, tx.tipo_conta, tx.valor, tx.moeda, tx.descricao, tipo=tx.tipo
     )
+    return compute_identity_hash(inputs, valor=tx.valor, natural_key_v2=natural_key_v2)
 
 
 def _classify_review_reason(
@@ -129,9 +129,11 @@ def _try_dedup_one(
     seen: dict[str, ClassifiedTransaction],
     collisions: dict[str, int],
     reasons: dict[str, str],
+    *,
+    natural_key_v2: bool = False,
 ) -> None:
     """Atualiza state in-place com 1 transação (primeira vence)."""
-    h = _tx_hash(tx)
+    h = _tx_hash(tx, natural_key_v2=natural_key_v2)
     if h not in seen:
         seen[h] = tx
         return
@@ -145,13 +147,15 @@ def _try_dedup_one(
 
 def _dedup_transactions(
     transactions: list[ClassifiedTransaction],
+    *,
+    natural_key_v2: bool = False,
 ) -> tuple[list[ClassifiedTransaction], DedupReport]:
     """Dedup K4 dentro de 1 kind (caller separa receita/despesa/transferencia)."""
     seen: dict[str, ClassifiedTransaction] = {}
     collisions: dict[str, int] = defaultdict(int)
     reasons: dict[str, str] = {}
     for tx in transactions:
-        _try_dedup_one(tx, seen, collisions, reasons)
+        _try_dedup_one(tx, seen, collisions, reasons, natural_key_v2=natural_key_v2)
     entries = tuple(
         _make_review_entry(h, seen[h], reasons[h], collisions[h]) for h in sorted(reasons)
     )
@@ -278,8 +282,11 @@ class CashFlowBuilder:
     Stateless — sem config externa; a clock é injetável para testes determinísticos.
     """
 
-    def __init__(self, *, now=None) -> None:
+    def __init__(self, *, now=None, dedup_natural_key_v2: bool = False) -> None:
         self._now = now
+        # ADR-287 (A25.l2) — fallback de hash no dedup usa v2 quando o flag
+        # do workspace está ligado; off preserva o shim v1 (zero-behavior).
+        self._dedup_natural_key_v2 = dedup_natural_key_v2
 
     def _iso_now(self) -> str:
         return (self._now or datetime.now(_BRT)).isoformat()
@@ -290,7 +297,10 @@ class CashFlowBuilder:
         # ADR-255 Camada A — dedup K4 por kind (sinal em ``kind``, não em valor).
         txs = list(transactions)
         by_kind = {
-            k: _dedup_transactions([t for t in txs if t.kind == k])
+            k: _dedup_transactions(
+                [t for t in txs if t.kind == k],
+                natural_key_v2=self._dedup_natural_key_v2,
+            )
             for k in ("receita", "despesa", "transferencia")
         }
         receitas, rep_r = by_kind["receita"]

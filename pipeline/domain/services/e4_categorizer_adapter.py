@@ -122,6 +122,7 @@ class E4CategorizerAdapter:
         categorization: dict | None = None,
         family: dict | None = None,
         learned_rules_v2: CategorizationRulesV2 | None = None,
+        dedup_natural_key_v2: bool = False,
     ) -> "E4CategorizerAdapter":
         """Constrói o adapter a partir dos dicts de config.
 
@@ -129,6 +130,8 @@ class E4CategorizerAdapter:
         — injetar quando ``ctx.workspace_id`` está disponível (via adapter
         ``backend/app/services/categorization_rules_adapter.py``). Default
         ``None`` preserva paridade legado (workspaces sem regras).
+        ``dedup_natural_key_v2`` (ADR-287 · A25.l2): identidade v2 no
+        classifier + dedup do builder. Default ``False`` = shim v1 congelado.
         """
         from dataclasses import replace
 
@@ -142,9 +145,12 @@ class E4CategorizerAdapter:
         )
         if learned_rules_v2 is not None:
             classifier_cfg = replace(classifier_cfg, learned_rules_v2=learned_rules_v2)
+        if dedup_natural_key_v2:
+            classifier_cfg = replace(classifier_cfg, dedup_natural_key_v2=True)
         inv_cfg = InvestmentsConsolidatorConfig.from_family(family=family)
         return cls(
             classifier=TransactionClassifier(classifier_cfg),
+            cash_flow_builder=CashFlowBuilder(dedup_natural_key_v2=dedup_natural_key_v2),
             investments_consolidator=InvestmentsConsolidator(inv_cfg),
         )
 

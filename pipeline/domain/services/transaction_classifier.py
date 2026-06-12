@@ -139,6 +139,9 @@ class ClassifierConfig:
     pj_label_config: PJLabelConfig = field(
         default_factory=lambda: PJLabelConfig(pj_source_mapping={})
     )
+    # ADR-287 (A25.l2) — identidade v2 (+moeda +direction) no transaction_hash.
+    # False = shim v1 congelado (zero-behavior); flip por feature flag workspace.
+    dedup_natural_key_v2: bool = False
 
     @classmethod
     def from_configs(
@@ -341,6 +344,9 @@ class TransactionClassifier:
         category_hint = tx.get("categoria_sugerida")
 
         data_str = tx.get("data", "")
+        identity_inputs = _tx_identity.build_hash_inputs(
+            data_str, banco_raw, titular, tipo_conta_raw, valor, moeda, descricao_raw, tipo=tipo
+        )
         common = dict(
             data=data_str,
             descricao=descricao_raw,
@@ -350,13 +356,9 @@ class TransactionClassifier:
             titular=titular,
             # ADR-255 Camada B — identidade determinística propagada de E3.
             source_doc_id=tx.get("arquivo_origem"),
-            transaction_hash=_tx_identity.compute_transaction_hash(
-                data=data_str,
-                banco=banco_raw,
-                titular=titular,
-                tipo_conta=tipo_conta_raw,
-                valor=valor,
-                descricao=descricao_raw,
+            # ADR-287 (A25.l2): flag off = shim v1 congelado (zero-behavior).
+            transaction_hash=_tx_identity.compute_identity_hash(
+                identity_inputs, valor=valor, natural_key_v2=self._config.dedup_natural_key_v2
             ),
         )
 
