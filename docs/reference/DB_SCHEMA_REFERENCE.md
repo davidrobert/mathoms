@@ -667,7 +667,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `workspace_id` | `VARCHAR(36)` | no | — | FK→workspaces.id, UNIQUE, INDEX |
 | `provider` | `VARCHAR(50)` | no | `'anthropic'` | — |
 | `api_key_encrypted` | `TEXT` | no | — | — |
-| `model_name` | `VARCHAR(100)` | no | `'claude-sonnet-4-20250514'` | — |
+| `model_name` | `VARCHAR(100)` | no | `'claude-sonnet-4-6'` | — |
 | `max_tokens` | `INTEGER` | no | `4096` | — |
 | `temperature` | `FLOAT` | no | `0.1` | — |
 | `created_at` | `DATETIME` | no | callable: `<lambda>` | — |

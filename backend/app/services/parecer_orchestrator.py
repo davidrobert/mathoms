@@ -28,6 +28,7 @@ from backend.app.services.parecer_finalization import (
     validate_anti_sigilo,
 )
 from backend.app.services.parecer_manifest import ManifestData, load_manifest, load_persona
+from pipeline.llm.models_catalog import PARECER_MODEL
 from pipeline.llm.prompts.parecer_planejador import (
     PROMPT_VERSION,
     SYSTEM_PROMPT_TEMPLATE,
@@ -76,7 +77,7 @@ class ParecerOrchestratorConfig:
     workspace_id: str
     tier: str = "premium"
     cache_ttl_s: int = 7 * 24 * 3600
-    model_id: str = "anthropic/claude-sonnet-4-20250514"
+    model_id: str = PARECER_MODEL
     api_key: Optional[str] = None
     schema_version: str = _SCHEMA_VERSION
     max_tokens: int = 16_384

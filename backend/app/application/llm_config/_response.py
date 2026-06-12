@@ -5,6 +5,7 @@ from __future__ import annotations
 from backend.app.models.llm_config import LLMConfig
 from backend.app.schemas.llm import LLMConfigResponse
 from backend.app.services.vault import VaultService
+from pipeline.llm.models_catalog import DEPRECATED_MODELS
 
 
 def mask_api_key(key: str) -> str:
@@ -24,6 +25,7 @@ def to_response(cfg: LLMConfig, *, vault: VaultService) -> LLMConfigResponse:
         api_key_masked=masked,
         api_key_status="valid" if is_valid else "invalid",
         model_name=cfg.model_name,
+        model_status="deprecated" if cfg.model_name in DEPRECATED_MODELS else "ok",
         max_tokens=cfg.max_tokens,
         temperature=cfg.temperature,
         created_at=cfg.created_at.isoformat() if cfg.created_at else "",

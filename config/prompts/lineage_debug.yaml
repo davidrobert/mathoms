@@ -18,8 +18,11 @@
 # US$ 0.10/call (log warning). Telemetria: logger mathoms.llm.lineage_eval +
 # artefato JSON por caso no CI.
 
-version: "1.1"
-model_id: "anthropic/claude-sonnet-4-20250514"
+# 1.2: model_id claude-sonnet-4-20250514 → claude-sonnet-4-6 (EOL 2026-06-15;
+#      ADR-289). Baseline ainda era placeholder — primeiro baseline real do
+#      nightly deve ser capturado já sob o modelo novo.
+version: "1.2"
+model_id: "anthropic/claude-sonnet-4-6"
 temperature: 0.0
 seed: 281
 max_tokens: 1024

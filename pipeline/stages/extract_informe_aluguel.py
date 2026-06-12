@@ -137,6 +137,7 @@ def _extract_and_persist(doc: Path, config: LLMConfig, store) -> dict[str, Any]:
 def run(ctx: WorkspaceContext) -> dict[str, Any]:
     """Stage runner — persiste informes encontrados em ``data/income_tax_br/`` (não registrado em STAGE_REGISTRY)."""
     from pipeline.llm.litellm_client import LLMConfig
+    from pipeline.llm.models_catalog import default_model_for
 
     llm_config_data = ctx.load_config("llm_config.json")
     if not llm_config_data or not llm_config_data.get("api_key"):
@@ -147,10 +148,11 @@ def run(ctx: WorkspaceContext) -> dict[str, Any]:
         return {"skipped": True, "reason": "No informe_aluguel documents found"}
 
     docs = docs[:_MAX_DOCS_PER_RUN]
+    provider = str(llm_config_data.get("provider") or "anthropic")
     config = LLMConfig(
-        provider=str(llm_config_data.get("provider") or "anthropic"),
+        provider=provider,
         api_key=str(llm_config_data.get("api_key") or ""),
-        model_name=str(llm_config_data.get("model_name") or "claude-sonnet-4-20250514"),
+        model_name=str(llm_config_data.get("model_name") or default_model_for(provider)),
         max_tokens=int(llm_config_data.get("max_tokens") or 4096),
         temperature=float(
             llm_config_data["temperature"]

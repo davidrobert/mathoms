@@ -69,7 +69,7 @@ function PipelineTabContent({ workspace }: { workspace: UserWorkspace }) {
       {success && <div className="rounded-lg bg-gain/10 p-3 text-sm text-gain">{success}</div>}
 
       <ConfigSection title="LLM" description="Configurações do modelo de linguagem" fields={[
-        { key: "model", label: "Modelo", value: llm.model as string ?? "claude-sonnet-4-20250514", type: "text" },
+        { key: "model", label: "Modelo", value: llm.model as string ?? "claude-sonnet-4-6", type: "text" },
         { key: "max_tokens", label: "Max Tokens", value: llm.max_tokens as number ?? 500, type: "number" },
         { key: "confidence_threshold", label: "Threshold de confiança", value: llm.confidence_threshold as number ?? 0.7, type: "number", step: "0.1" },
       ]} onSave={(data) => handleSave("llm", data)} saving={saving} />

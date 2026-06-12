@@ -123,11 +123,13 @@ def _e2_llm_queue_stats(data_dir: Path, docs: list[Path]) -> dict[str, int]:
 def _llm_config_from_runtime(data: dict) -> Any:
     """Build ``LLMConfig`` from serialized llm_config.json (ignore unknown keys)."""
     from pipeline.llm.litellm_client import LLMConfig
+    from pipeline.llm.models_catalog import default_model_for
 
+    provider = str(data.get("provider") or "anthropic")
     return LLMConfig(
-        provider=str(data.get("provider") or "anthropic"),
+        provider=provider,
         api_key=str(data.get("api_key") or ""),
-        model_name=str(data.get("model_name") or "claude-sonnet-4-20250514"),
+        model_name=str(data.get("model_name") or default_model_for(provider)),
         max_tokens=int(data.get("max_tokens") or 4096),
         temperature=float(data["temperature"] if data.get("temperature") is not None else 0.1),
     )

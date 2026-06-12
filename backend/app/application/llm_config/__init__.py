@@ -7,6 +7,7 @@ de conectividade.
 
 from backend.app.application.llm_config.delete_llm_config import delete_llm_config
 from backend.app.application.llm_config.get_llm_config import get_llm_config
+from backend.app.application.llm_config.get_llm_models import get_llm_models
 from backend.app.application.llm_config.get_llm_tier import get_llm_tier
 from backend.app.application.llm_config.save_llm_config import save_llm_config
 from backend.app.application.llm_config.test_llm_connection import test_llm_connection
@@ -14,6 +15,7 @@ from backend.app.application.llm_config.test_llm_connection import test_llm_conn
 __all__ = [
     "delete_llm_config",
     "get_llm_config",
+    "get_llm_models",
     "get_llm_tier",
     "save_llm_config",
     "test_llm_connection",

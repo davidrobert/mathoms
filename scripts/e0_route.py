@@ -233,8 +233,10 @@ _PREVIEW_MAX_CHARS = _file_limits.get("preview_max_chars", 2000)
 _PREVIEW_MAX_ROWS = _file_limits.get("preview_max_rows", 20)
 _MIN_PDF_BYTES = _file_limits.get("min_pdf_bytes", 1024)
 
+from pipeline.llm.models_catalog import default_model_for as _default_model_for
+
 _llm_cfg = PIPE_CONFIG.get("llm", {})
-_LLM_MODEL = _llm_cfg.get("model", "claude-sonnet-4-20250514")
+_LLM_MODEL = _llm_cfg.get("model") or _default_model_for("anthropic")
 _LLM_MAX_TOKENS = _llm_cfg.get("max_tokens", 500)
 _LLM_CONFIDENCE_THRESHOLD = _llm_cfg.get("confidence_threshold", 0.7)
 
