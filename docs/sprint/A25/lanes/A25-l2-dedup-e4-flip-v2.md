@@ -70,6 +70,31 @@ só gate de sequenciamento. Decisão do co-design (senior-cto, 2026-06-10): abri
 - Dogfood (G-f): diff de números do workspace real pré/pós-flip inspecionado pelo
   owner antes do flip a 100%.
 
+## Resultado parcial — slice 1 + G-f (2026-06-12)
+
+**Slice 1 shipped (#619):** flag `dedup_natural_key_v2_enabled` default OFF em
+DEFAULTS; `transaction_classifier`/`cash_flow_builder` derivam identidade do
+dispatch `compute_identity_hash` (v2 sob flag; shim v1 congelado); flag flui como
+campo tipado (`ClassifierConfig` → adapter → boundary de `scripts/e4_categorize.py`);
+16 testes de paridade de colapso + zero-behavior. **Desvio documentado:** critério
+drift-PIX da [[ADR-287]] estava obsoleto — v1 também colapsa drift desde
+[[ADR-255]] it.2; testes refletem o comportamento real.
+
+**Dogfood G-f executado e APROVADO pelo owner (2026-06-12):** dois runs full no
+workspace real (flag off → on), diff valor-a-valor: **zero delta monetário**
+(`new=0, removed=0`; nenhuma linha separada/fundida; nenhum total mudou).
+3.936 deltas de `transaction_hash` (v1→v2, por construção) + 122 de Monte Carlo
+(RNG não-seedado do `if_projector` — ruído entre quaisquer runs) + 3 timestamps.
+Flag permanece **ON no dogfood**; rollback = flag off. Implicação: REBASELINE de
+goldens não se materializa com default OFF — reavaliar critério no cutover final.
+`k4_coverage` segue `partial` (ativação de `member_hashes` é a [[A25.l6]] parte B).
+
+**Bug pré-existente descoberto (fora da lane, registrado):** run com
+`from_stage="E4"` produz E4/E5 vazios silenciosamente — `DBArtifactStore.read` é
+run-scoped e E3 não está em `_WORKSPACE_SCOPED_STAGES` (fallback não se aplica);
+`list_keys` acha as keys, `read` retorna None. Detectado porque os 2 primeiros runs
+do G-f (parciais) zeraram E4 com flag on E off; discriminado com run full.
+
 ## Owner
 
 Agente da lane; co-design `data-engineer` + `senior-cto` (gatilho obrigatório na ADR).
