@@ -6048,7 +6048,7 @@
           },
           "model_status": {
             "default": "ok",
-            "description": "'deprecated' quando model_name est\u00e1 em DEPRECATED_MODELS do cat\u00e1logo (aposentadoria anunciada pelo provider). Sinal para a UI pedir atualiza\u00e7\u00e3o \u2014 nunca migramos o row automaticamente (ADR-288).",
+            "description": "'deprecated' quando model_name est\u00e1 em DEPRECATED_MODELS do cat\u00e1logo (aposentadoria anunciada pelo provider). Sinal para a UI pedir atualiza\u00e7\u00e3o \u2014 nunca migramos o row automaticamente (ADR-289).",
             "enum": [
               "ok",
               "deprecated"
@@ -6211,7 +6211,7 @@
         "type": "object"
       },
       "LLMModelInfo": {
-        "description": "Um modelo dispon\u00edvel para sele\u00e7\u00e3o na UI (ADR-288).",
+        "description": "Um modelo dispon\u00edvel para sele\u00e7\u00e3o na UI (ADR-289).",
         "properties": {
           "label": {
             "title": "Label",
@@ -6246,7 +6246,7 @@
         "type": "object"
       },
       "LLMModelsResponse": {
-        "description": "Modelos dispon\u00edveis por provider \u2014 cat\u00e1logo curado + (F2) din\u00e2mico (ADR-288).",
+        "description": "Modelos dispon\u00edveis por provider \u2014 cat\u00e1logo curado + (F2) din\u00e2mico (ADR-289).",
         "properties": {
           "default_model": {
             "title": "Default Model",
@@ -16730,7 +16730,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/config/llm/models": {
       "get": {
-        "description": "Modelos por provider (cat\u00e1logo curado, ADR-288 F1) \u2014 global, sob workspace por auth.",
+        "description": "Modelos por provider (cat\u00e1logo curado, ADR-289 F1) \u2014 global, sob workspace por auth.",
         "operationId": "get_llm_models_api_v1_workspaces__workspace_id__config_llm_models_get",
         "parameters": [
           {
