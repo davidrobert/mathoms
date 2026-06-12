@@ -127,6 +127,48 @@ async def test_nao_toca_aceitas_descartadas_deterministicas_nem_outro_workspace(
     assert {k: statuses[k] for k in esperado} == esperado
 
 
+async def test_mode_invalido_falha(db):
+    ws = await make_workspace(db)
+    result = await backfill_supersede_pending_suggestions(
+        db, workspace_id=ws.id, actor="test", apply=False, mode="semantic"
+    )
+    assert result.ok is False
+    assert result.error == "invalid_mode"
+
+
+async def _seed_two_batches(db, ws_id: str) -> tuple[list[str], list[str]]:
+    """(ids antigas, ids do burst recente) — burst = janela de 1h do mais novo."""
+    velha1 = await _seed(db, ws_id, title="Run antigo A", created_at=_OLD - timedelta(days=10))
+    velha2 = await _seed(db, ws_id, title="Run antigo B", created_at=_OLD - timedelta(days=3))
+    nova1 = await _seed(db, ws_id, title="Run novo A", created_at=_OLD)
+    nova2 = await _seed(db, ws_id, title="Run novo B", created_at=_OLD - timedelta(minutes=30))
+    return [velha1.id, velha2.id], [nova1.id, nova2.id]
+
+
+async def test_latest_batch_dry_run_lista_kept_e_nao_muta(db):
+    ws = await make_workspace(db)
+    _velhas, novas = await _seed_two_batches(db, ws.id)
+    dry = await backfill_supersede_pending_suggestions(
+        db, workspace_id=ws.id, actor="test", apply=False, mode="latest_batch"
+    )
+    assert dry.ok and dry.details["superseded_planned"] == 2
+    assert set(dry.details["kept_ids"]) == set(novas)
+    assert set((await _statuses(db, ws.id)).values()) == {"Pendente"}
+
+
+async def test_latest_batch_apply_supersede_anteriores_ao_burst(db):
+    """Modo 'último parecer vence': lote mais recente (janela 1h) fica; resto Superseded."""
+    ws = await make_workspace(db)
+    velhas, novas = await _seed_two_batches(db, ws.id)
+    result = await backfill_supersede_pending_suggestions(
+        db, workspace_id=ws.id, actor="test", apply=True, mode="latest_batch"
+    )
+    assert result.ok and result.details["superseded"] == 2
+    statuses = await _statuses(db, ws.id)
+    assert all(statuses[i] == "Pendente" for i in novas)
+    assert all(statuses[i] == "Superseded" for i in velhas)
+
+
 async def test_concorrencia_ignora_criadas_apos_inicio(db):
     """Pendente criada depois do início do backfill (pipeline ativo) fica fora."""
     ws = await make_workspace(db)
