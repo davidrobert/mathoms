@@ -35,53 +35,53 @@
   "description": "Custo em tokens de queries-benchmark sobre docs/ (ADR-182). tokens = ceil(chars/4).",
   "latest": {
     "Q1": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
       "tokens": 453
     },
     "Q10": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
       "tokens": 730
     },
     "Q2": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
       "tokens": 453
     },
     "Q3": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
       "tokens": 351
     },
     "Q4": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
       "tokens": 351
     },
     "Q5": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
       "tokens": 804
     },
     "Q6": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
-      "tokens": 566
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
+      "tokens": 637
     },
     "Q7": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
       "tokens": 685
     },
     "Q8": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
       "tokens": 677
     },
     "Q9": {
-      "measured_at": "2026-06-02",
-      "phase": "A23-data-lineage",
+      "measured_at": "2026-06-12",
+      "phase": "A25-plan-suggestion-lifecycle",
       "tokens": 686
     }
   },
