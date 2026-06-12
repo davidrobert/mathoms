@@ -137,8 +137,7 @@ class LLMConfig:
     temperature: float = 0.1
 
 
-# Compat: testes legados importam ``_classify_error`` deste módulo.
-_classify_error = classify_error
+_classify_error = classify_error  # compat: nome histórico deste módulo
 
 
 class LLMService:
@@ -263,8 +262,7 @@ class LLMService:
             image_media_type: MIME type da imagem (ex: "image/jpeg", "image/png").
             seed: best-effort determinism (eval de lineage, ADR-281). ``None`` =
                 omitido do payload; provider sem suporte descarta (``drop_params``).
-            timeout_s: timeout base da 1ª tentativa (default LLM_CALL_TIMEOUT_S).
-                Call-site com geração longa passa valor maior — emenda ADR-270.
+            timeout_s: timeout base da 1ª tentativa (default LLM_CALL_TIMEOUT_S) — ADR-270.
 
         Raises:
             LLMValidationError: if output fails validation after all retries
@@ -340,9 +338,8 @@ class LLMService:
             try:
                 start = time.monotonic()
 
-                # Instructor retry mínimo: truncation é tratada pelo loop externo
-                # que dobra max_tokens. Retry interno aqui só cobre erros de validação
-                # pontuais (enum errado, tipo incorreto) — ver is_completion_truncated_max_tokens.
+                # Reask do Instructor (max_retries=2): re-pergunta COM o erro de
+                # validação no contexto — único retry útil a temp baixa (ADR-270).
                 response = self._client.chat.completions.create(
                     model=model,
                     messages=[
@@ -352,12 +349,10 @@ class LLMService:
                     response_model=output_schema,
                     max_tokens=effective_max_tokens,
                     temperature=effective_temperature,
-                    max_retries=1,
+                    max_retries=2,
                     api_key=self._config.api_key,
-                    # ADR-270: cap por-call + desabilita retry interno do
-                    # LiteLLM/Anthropic SDK. Retries são do outer loop deste
-                    # método — fonte única, observável, com backoff por tipo.
-                    # Emenda 2026-06-12: cap escala após timeout (ver except).
+                    # ADR-270: cap por-call (escala após timeout — ver except) +
+                    # num_retries=0 desabilita retry interno do LiteLLM/SDK.
                     timeout=effective_timeout,
                     num_retries=0,
                     **seed_kwargs,
@@ -446,6 +441,11 @@ class LLMService:
                 if error_type not in RETRYABLE_ERRORS and error_type != LLMErrorType.validation:
                     if attempt >= max_retries:
                         break
+
+                if error_type == LLMErrorType.validation:
+                    # Reask interno (com feedback) já esgotou as chances; retry externo
+                    # fresco a temp baixa reproduz o mesmo output — emenda ADR-270.
+                    break
 
                 if error_type == LLMErrorType.timeout:
                     # Retry com o mesmo cap falha deterministicamente quando a geração

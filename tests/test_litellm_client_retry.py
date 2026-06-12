@@ -18,7 +18,7 @@ from pipeline.llm.error_classification import (
     LLMErrorType,
     classify_error,
 )
-from pipeline.llm.litellm_client import LLMConfig, LLMError, LLMService
+from pipeline.llm.litellm_client import LLMConfig, LLMError, LLMService, LLMValidationError
 
 
 class _Out(BaseModel):
@@ -183,6 +183,35 @@ def test_non_timeout_errors_do_not_escalate(monkeypatch: pytest.MonkeyPatch) -> 
     timeouts = {c.kwargs["timeout"] for c in create_mock.call_args_list}
     assert timeouts == {LLM_CALL_TIMEOUT_S}
     assert create_mock.call_count == 3
+
+
+# ---------- validation: reask interno, sem outer loop (emenda ADR-270) ----------
+
+
+def test_validation_error_does_not_consume_outer_loop(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Validation falha → 1 chamada externa só. O reask interno do Instructor (com
+    feedback do erro) já esgotou as chances reais; retry externo fresco a temp baixa
+    reproduz o mesmo output (incidente parecer 2026-06-12: 3×140s desperdiçados)."""
+    monkeypatch.setattr("pipeline.llm.litellm_client.time.sleep", lambda s: None)
+    validation_exc = Exception(
+        "4 validation errors for ParecerPlanejadorOutput\ndiagnostico_geral\n"
+        "  String should have at most 500 characters [type=string_too_long]"
+    )
+    create_mock = MagicMock(side_effect=validation_exc)
+    svc = _build_svc_with_mock_client(create_mock)
+    with pytest.raises(LLMValidationError):
+        svc.call(system_prompt="sys", user_prompt="usr", output_schema=_Out, max_retries=3)
+    assert create_mock.call_count == 1
+
+
+def test_instructor_reask_uses_two_retries() -> None:
+    """max_retries=2 no Instructor — reask com feedback é o único retry útil p/ validation."""
+    fake_response = MagicMock()
+    fake_response._raw_response = None
+    create_mock = MagicMock(return_value=fake_response)
+    svc = _build_svc_with_mock_client(create_mock)
+    svc.call(system_prompt="sys", user_prompt="usr", output_schema=_Out)
+    assert create_mock.call_args.kwargs["max_retries"] == 2
 
 
 # ---------- backoff selection (smoke) ----------

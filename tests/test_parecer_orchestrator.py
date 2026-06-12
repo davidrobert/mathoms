@@ -310,6 +310,22 @@ class TestGenerateParecerOrchestrator:
         # fake_llm2 não foi chamado
         assert fake_llm2.summary.calls == []
 
+    def test_cache_key_changes_with_prompt_version(self):
+        """prompt_version entra na chave (emenda ADR-199): bump de prompt sem
+        invalidação servia output do prompt velho até o TTL expirar."""
+        from backend.app.services.parecer_orchestrator import compute_cache_key
+
+        kwargs = dict(
+            e5_data={"patrimonio": {"bruto": 1}},
+            manifest_version="1.4",
+            schema_version="1.0",
+            model_id="anthropic/claude-sonnet-4-6",
+            workspace_id="ws-pv",
+        )
+        key_v1 = compute_cache_key(**kwargs, prompt_version="1.4.0")
+        key_v2 = compute_cache_key(**kwargs, prompt_version="1.5.0")
+        assert key_v1 != key_v2
+
     def test_llm_call_uses_parecer_timeout_base(self):
         """Parecer passa timeout_s=240 — emenda ADR-270 (incidente 4×120s, 2026-06-12)."""
         e5 = {"patrimonio": {"bruto": 1}}
