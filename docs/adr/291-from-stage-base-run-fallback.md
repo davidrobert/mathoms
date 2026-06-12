@@ -2,7 +2,7 @@
 id: ADR-291
 type: adr
 title: "from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291)"
-status: Proposto
+status: Decidido
 phase: "A25 · dogfood"
 date: "2026-06-12"
 relates_to:
@@ -15,14 +15,14 @@ superseded_by: []
 aliases: ["ADR 291", "base_run fallback", "from_stage base run"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/pipeline
   - area/persistence
 ---
 
 # ADR-291 — `from_stage` lê stages run-scoped upstream de um `base_run` pinado
 
-**Status:** Proposto (A25 · dogfood) • **Data:** 2026-06-12 • **Relaciona**
+**Status:** Decidido (A25 · dogfood) • **Data:** 2026-06-12 • **Relaciona**
 [[ADR-132]] (lifecycle scoping), [[ADR-241]] (E2 workspace-scoped),
 [[ADR-278]] (data lineage), [[ADR-080]] (incremental).
 
