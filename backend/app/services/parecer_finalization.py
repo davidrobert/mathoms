@@ -108,6 +108,63 @@ def _fix_dedup_keys(sugs: list[Sugestao], workspace_id: str) -> list[Sugestao]:
     return out
 
 
+# ADR-290 F3 — cap de geração. Prompt (regra 13) é best-effort; invariante
+# de produto é garantido aqui, deterministicamente, antes do persist.
+GENERATION_CAP_PER_HORIZON = 3
+
+
+def _truncation_rank(s: Sugestao) -> tuple[int, int]:
+    """(P0 primeiro, |impacto| desc) — P0 sem valor nunca é cortado por R$ alto
+    de prioridade menor (proteção fiduciária; count(P0) ≤ 2 cabe no cap)."""
+    cents = (
+        abs(int(round(s.impacto_estimado.valor_estimado_brl * 100)))
+        if s.impacto_estimado is not None
+        else -1
+    )
+    return (1 if s.prioridade == "P0" else 0, cents)
+
+
+def _truncate_horizon(sugs: list[Sugestao]) -> list[Sugestao]:
+    """Mantém as GENERATION_CAP_PER_HORIZON de maior rank, na ordem original."""
+    if len(sugs) <= GENERATION_CAP_PER_HORIZON:
+        return list(sugs)
+    ranked = sorted(sugs, key=_truncation_rank, reverse=True)
+    keep = {id(s) for s in ranked[:GENERATION_CAP_PER_HORIZON]}
+    return [s for s in sugs if id(s) in keep]
+
+
+def _finalize_horizon(sugs: list[Sugestao], workspace_id: str) -> list[Sugestao]:
+    return _fix_dedup_keys(_truncate_horizon(sugs), workspace_id)
+
+
+def _capped_horizons(
+    output: ParecerPlanejadorOutput, workspace_id: str
+) -> dict[str, list[Sugestao]]:
+    return {
+        h: _finalize_horizon(getattr(output, h), workspace_id)
+        for h in ("sugestoes_execucao", "sugestoes_taticas", "sugestoes_estrategicas")
+    }
+
+
+def _stamped_metadata(
+    output: ParecerPlanejadorOutput,
+    *,
+    persona_hash: str,
+    manifest_version: str,
+    model_id: str,
+    tier: str,
+) -> Metadata:
+    return output.metadata.model_copy(
+        update={
+            "persona_hash": persona_hash,
+            "manifest_version": manifest_version,
+            "model_id": model_id,
+            "tier_at_generation": tier,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+
+
 def finalize_output(
     *,
     output: ParecerPlanejadorOutput,
@@ -117,24 +174,16 @@ def finalize_output(
     persona_hash: str,
     manifest_version: str,
 ) -> ParecerPlanejadorOutput:
-    """Sobrescreve metadata + recalcula suggestion_dedup_keys determinísticos."""
-    now_iso = datetime.now(timezone.utc).isoformat()
-    metadata = output.metadata.model_copy(
-        update={
-            "persona_hash": persona_hash,
-            "manifest_version": manifest_version,
-            "model_id": model_id,
-            "tier_at_generation": tier,
-            "generated_at": now_iso,
-        }
+    """Sobrescreve metadata + cap de geração (ADR-290 F3) + dedup_keys determinísticos."""
+    metadata = _stamped_metadata(
+        output,
+        persona_hash=persona_hash,
+        manifest_version=manifest_version,
+        model_id=model_id,
+        tier=tier,
     )
     return output.model_copy(
-        update={
-            "metadata": metadata,
-            "sugestoes_execucao": _fix_dedup_keys(output.sugestoes_execucao, workspace_id),
-            "sugestoes_taticas": _fix_dedup_keys(output.sugestoes_taticas, workspace_id),
-            "sugestoes_estrategicas": _fix_dedup_keys(output.sugestoes_estrategicas, workspace_id),
-        }
+        update={"metadata": metadata, **_capped_horizons(output, workspace_id)}
     )
 
 
