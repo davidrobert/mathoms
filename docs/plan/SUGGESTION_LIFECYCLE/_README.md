@@ -2,7 +2,7 @@
 id: PLAN-suggestion-lifecycle
 type: plan
 title: Ciclo de vida de sugestões do Parecer no /acao — supersede, thesis_key, valores determinísticos
-status: draft
+status: in_progress
 created_at: 2026-06-12
 sprint_origem: A25
 sprint_atual: A25
@@ -11,7 +11,7 @@ adrs_canonical:
   - "[[ADR-290]]"
 tags:
   - type/plan
-  - status/draft
+  - status/in-progress
   - area/llm
   - area/backend
   - area/produto
