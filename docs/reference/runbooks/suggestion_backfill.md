@@ -50,6 +50,16 @@ heurístico `(section_id, título normalizado)`; título re-redigido pelo LLM
 entre runs **não** agrupa (fica Pendente; o supersede automático de runs
 pós-F1 resolve daí em diante).
 
+## Modo `latest_batch` ("último parecer vence")
+
+Quando o dry-run heurístico encontra **0 grupos** (LLM re-redigiu títulos em
+todos os runs — caso dogfood 2026-06-12, 165 pendentes → 0 duplicatas), use
+`mode="latest_batch"`: mantém o burst mais recente de pendentes (janela de
+1h cobre o persist de um run) e supersede todas as anteriores — semântica
+ADR-290 ("inbox converge para o parecer mais recente"). Aprovado pelo owner
+em 2026-06-12. Mesma chamada com `mode="latest_batch"`; o dry-run retorna
+`kept_ids` + `cutoff` para revisão.
+
 ## Apply
 
 Mesmo bloco com `apply=True` + `await db.commit()` após o resultado `ok`.
