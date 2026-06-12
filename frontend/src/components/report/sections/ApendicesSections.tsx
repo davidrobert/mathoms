@@ -5,12 +5,8 @@ import { ReportCard } from "../ReportCard";
 import { SectionSummary } from "../SectionSummary";
 import { PremissasEconomicasCard } from "../cards/PremissasEconomicasCard";
 import { StressScenarioCard } from "../cards/StressScenarioCard";
-import {
-  SnapshotChangelogList,
-  type SnapshotChangelogEntryView,
-} from "../ui/SnapshotChangelogList";
 import { deriveSectionSummary } from "../utils/conclusionUtils";
-import type { ChangelogEntryRead, ReportAnalysisData } from "@/lib/api";
+import type { ReportAnalysisData } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import {
   formatGoalVigenciaDate,
@@ -381,44 +377,23 @@ export function ApendiceDSection({ data }: { data: ReportAnalysisData }) {
   );
 }
 
-function toEntryView(entry: ChangelogEntryRead): SnapshotChangelogEntryView {
-  return {
-    section_id: entry.section_id,
-    summary: entry.summary,
-    delta_signal: entry.delta_signal,
-    delta_pct: entry.delta_pct,
-  };
-}
-
 /** ADR-117/122 · Fase 10 — APP_E: Próximos Ciclos e Roadmap.
  *
- * Consolida `data.changelog` (v2.8 · ADR-148) em "Histórico de Ciclos" — uma
- * leitura panorâmica das mudanças do ciclo, complementar aos diffs por seção
- * em S1/S2/S3/T2/T3/T5. `null` (primeiro relatório) e `[]` (nada acima do
- * threshold) renderizam mensagens distintas — D3 da ADR-148.
+ * Seção forward-looking: roadmap e próximos passos, alimentada por
+ * narrativas E5.N com fallback determinístico. Variação vs. relatório
+ * anterior é responsabilidade dos diffs por seção (SectionSnapshotDiff)
+ * e da futura seção V0 (ADR-190) — o card "Histórico de Ciclos" foi
+ * removido em 2026-06-12 (TRACK-remove-historico-ciclos-app-e):
+ * duplicava `data.changelog` single-pair com rótulo enganoso.
  */
 export function ApendiceESection({ data }: { data: ReportAnalysisData }) {
   const narrativas = getNarrativas(data);
   const fallback = deriveSectionSummary("APP_E", data);
-  const changelog = data.changelog;
-  const entries = (changelog ?? []).map(toEntryView);
 
   return (
     <ReportSection id="APP_E" title="Apêndice E — Próximos Ciclos e Roadmap">
       <SectionSummary narrativas={narrativas} sectionId="APP_E" />
       <SectionFallback narrativas={narrativas} sectionId="APP_E" text={fallback} />
-
-      <ReportCard variant="highlight" title="Histórico de Ciclos" size="full">
-        {entries.length > 0 ? (
-          <SnapshotChangelogList entries={entries} />
-        ) : (
-          <p className="text-sm text-[var(--surface-muted-foreground)]">
-            {changelog === null || changelog === undefined
-              ? "Primeiro relatório do workspace — sem comparativo com ciclo anterior."
-              : "Nenhuma mudança material desde o último relatório."}
-          </p>
-        )}
-      </ReportCard>
     </ReportSection>
   );
 }
