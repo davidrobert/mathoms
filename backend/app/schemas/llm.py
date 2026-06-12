@@ -24,7 +24,13 @@ class LLMConfigCreateRequest(BaseModel):
     """Create or update LLM configuration for a workspace."""
 
     provider: str = Field(..., description=f"LLM provider ({', '.join(VALID_PROVIDERS)})")
-    api_key: str = Field(..., min_length=1, description="API key (will be encrypted at rest)")
+    api_key: Optional[str] = Field(
+        default=None,
+        description=(
+            "API key (will be encrypted at rest). Em update pode ser omitida para "
+            "reusar a chave já salva (mesmo provider); obrigatória ao criar."
+        ),
+    )
     model_name: str = Field(default=default_model_for("anthropic"), min_length=1, max_length=100)
     max_tokens: int = Field(default=4096, ge=1, le=200000)
     temperature: float = Field(default=0.1, ge=0.0, le=2.0)
