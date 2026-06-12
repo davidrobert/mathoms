@@ -56,7 +56,7 @@ class LLMConfigResponse(BaseModel):
         description=(
             "'deprecated' quando model_name está em DEPRECATED_MODELS do catálogo "
             "(aposentadoria anunciada pelo provider). Sinal para a UI pedir "
-            "atualização — nunca migramos o row automaticamente (ADR-288)."
+            "atualização — nunca migramos o row automaticamente (ADR-289)."
         ),
     )
     max_tokens: int
@@ -95,7 +95,7 @@ class LLMTierResponse(BaseModel):
 
 
 class LLMModelInfo(BaseModel):
-    """Um modelo disponível para seleção na UI (ADR-288)."""
+    """Um modelo disponível para seleção na UI (ADR-289)."""
 
     value: str = Field(..., description="ID do modelo no provider (vai em model_name)")
     label: str
@@ -106,7 +106,7 @@ class LLMModelInfo(BaseModel):
 
 
 class LLMModelsResponse(BaseModel):
-    """Modelos disponíveis por provider — catálogo curado + (F2) dinâmico (ADR-288)."""
+    """Modelos disponíveis por provider — catálogo curado + (F2) dinâmico (ADR-289)."""
 
     provider: str
     models: list[LLMModelInfo]

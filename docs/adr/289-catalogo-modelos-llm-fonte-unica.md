@@ -1,5 +1,5 @@
 ---
-id: ADR-288
+id: ADR-289
 type: adr
 title: "Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois)"
 status: Decidido
@@ -12,7 +12,7 @@ relates_to:
   - "[[ADR-102]]"
 supersedes: []
 superseded_by: []
-aliases: ["ADR 288", "llm models catalog", "lista de modelos llm"]
+aliases: ["ADR 289", "llm models catalog", "lista de modelos llm"]
 tags:
   - type/adr
   - status/decidido
@@ -20,7 +20,7 @@ tags:
   - area/llm
 ---
 
-# ADR-288 — Catálogo de modelos LLM como fonte única + endpoint `GET /llm/models`
+# ADR-289 — Catálogo de modelos LLM como fonte única + endpoint `GET /llm/models`
 
 **Status:** Decidido (F1 entregue; F2 dinâmico segue Roadmap nesta ADR) •
 **Data:** 2026-06-11 • **Relaciona** [[ADR-144]]

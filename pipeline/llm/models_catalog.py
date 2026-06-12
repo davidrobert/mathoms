@@ -1,11 +1,11 @@
-"""Catálogo curado de modelos LLM — fonte única de lista + default (ADR-288)."""
+"""Catálogo curado de modelos LLM — fonte única de lista + default (ADR-289)."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 #: Registro de providers suportados → prefixo LiteLLM + env key.
-#: ADR-288: prefixo LiteLLM do Google é "gemini/" e a env é GEMINI_API_KEY
+#: ADR-289: prefixo LiteLLM do Google é "gemini/" e a env é GEMINI_API_KEY
 #: (não "google/"/GOOGLE_API_KEY — erro silencioso que passa local).
 SUPPORTED_PROVIDERS: dict[str, dict[str, str | None]] = {
     "anthropic": {"prefix": "anthropic/", "env_key": "ANTHROPIC_API_KEY"},
@@ -89,7 +89,7 @@ MODELS_BY_PROVIDER: dict[str, tuple[CatalogModel, ...]] = {
 }
 
 #: Modelos com aposentadoria anunciada pelo provider — alimenta
-#: ``model_status="deprecated"`` no LLMConfigResponse (ADR-288 §3).
+#: ``model_status="deprecated"`` no LLMConfigResponse (ADR-289 §3).
 DEPRECATED_MODELS: frozenset[str] = frozenset(
     {
         "claude-sonnet-4-20250514",  # Anthropic — retira 2026-06-15
@@ -111,12 +111,12 @@ _DEFAULT_BY_PROVIDER: dict[str, str] = {
 
 
 def default_model_for(provider: str = "anthropic") -> str:
-    """Default canônico por provider — substitui literais datados (ADR-288 §5)."""
+    """Default canônico por provider — substitui literais datados (ADR-289 §5)."""
     return _DEFAULT_BY_PROVIDER.get(provider, _DEFAULT_BY_PROVIDER["anthropic"])
 
 
 #: Pin PRÓPRIO do Parecer Planejador (formato LiteLLM ``provider/model``).
 #: Não segue ``default_model_for``: o parecer tem golden mensal com baseline
 #: versionado — mudança de modelo exige PR explícito, nunca efeito colateral
-#: de bump do default global (ADR-288; paridade com lineage_debug.yaml).
+#: de bump do default global (ADR-289; paridade com lineage_debug.yaml).
 PARECER_MODEL = "anthropic/claude-sonnet-4-6"

@@ -19,7 +19,7 @@
 # artefato JSON por caso no CI.
 
 # 1.2: model_id claude-sonnet-4-20250514 → claude-sonnet-4-6 (EOL 2026-06-15;
-#      ADR-288). Baseline ainda era placeholder — primeiro baseline real do
+#      ADR-289). Baseline ainda era placeholder — primeiro baseline real do
 #      nightly deve ser capturado já sob o modelo novo.
 version: "1.2"
 model_id: "anthropic/claude-sonnet-4-6"

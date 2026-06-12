@@ -13,7 +13,7 @@ from pipeline.llm.litellm_client import LLMService
 
 # Modelos referenciados em código de produção. Atualizar se default mudar.
 PRODUCTION_DEFAULT_MODELS: list[str] = [
-    "claude-sonnet-4-6",  # config/pipeline.json + backend defaults (ADR-288)
+    "claude-sonnet-4-6",  # config/pipeline.json + backend defaults (ADR-289)
     "claude-haiku-4-5",  # backend/app/services/section_summary_orchestrator.py
 ]
 

@@ -1,4 +1,4 @@
-"""Use case: lista modelos disponíveis por provider — catálogo curado (ADR-288 F1)."""
+"""Use case: lista modelos disponíveis por provider — catálogo curado (ADR-289 F1)."""
 
 from __future__ import annotations
 

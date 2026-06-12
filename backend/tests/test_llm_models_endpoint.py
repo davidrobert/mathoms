@@ -1,4 +1,4 @@
-"""GET /llm/models + model_status + providers novos (ADR-288 F1)."""
+"""GET /llm/models + model_status + providers novos (ADR-289 F1)."""
 
 import pytest
 from httpx import AsyncClient
@@ -41,7 +41,7 @@ async def test_llm_models_google_sem_hack_de_prefixo(auth_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_save_provider_google_e_openrouter_aceitos(auth_client: AsyncClient):
-    """google/openrouter passavam 422 antes da ADR-288."""
+    """google/openrouter passavam 422 antes da ADR-289."""
     for provider, model in (("google", "gemini-2.5-flash"), ("openrouter", "openai/gpt-5")):
         resp = await auth_client.put(
             f"/api/workspaces/{auth_client.ws_id}/config/llm",

@@ -79,7 +79,7 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  // Catálogo vem do backend (ADR-288) — fonte única, sem lista hardcoded.
+  // Catálogo vem do backend (ADR-289) — fonte única, sem lista hardcoded.
   const [availableModels, setAvailableModels] = useState<LLMModelInfo[]>([]);
   const [defaultModel, setDefaultModel] = useState("");
 

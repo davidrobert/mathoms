@@ -1,4 +1,4 @@
-"""Invariantes do catálogo de modelos LLM (ADR-288)."""
+"""Invariantes do catálogo de modelos LLM (ADR-289)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from pipeline.llm.models_catalog import (
 from pipeline.llm.pricing import estimate_cost_usd
 
 #: Providers cujo pricing é rastreado em MODEL_PRICING — modelo curado desses
-#: providers SEM pricing é regressão de tracking de custo (ADR-288 §1).
+#: providers SEM pricing é regressão de tracking de custo (ADR-289 §1).
 _PRICED_PROVIDERS = ("anthropic", "openai", "google", "deepseek", "openrouter")
 
 

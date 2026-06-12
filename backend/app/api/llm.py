@@ -90,7 +90,7 @@ async def get_llm_models(
     provider: str = "anthropic",
     workspace: Workspace = Depends(get_current_workspace),
 ) -> LLMModelsResponse:
-    """Modelos por provider (catálogo curado, ADR-288 F1) — global, sob workspace por auth."""
+    """Modelos por provider (catálogo curado, ADR-289 F1) — global, sob workspace por auth."""
     return _get_llm_models(provider)
 
 
