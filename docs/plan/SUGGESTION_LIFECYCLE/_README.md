@@ -156,6 +156,17 @@ em commit separado.
 
 ### F3 — Cap + priorização cliente-facing (prompt + UI)
 
+> ✅ **Código entregue** (branch `agent/sug-lifecycle-f3/20260612-1830`):
+> helper `frontend/src/lib/suggestionOrdering.ts` (severidade → gate
+> metodológico → sem-valor antes → impacto desc; mapeamento seção/categoria
+> → gate validado com `financial-planner`), InboxTab com cap de 12
+> acionáveis + disclosures (overflow e `info`, padrão `DisclosureToggle`
+> com aria-expanded), deep-link `?section=`, cards inline ≤3/seção,
+> "Próximos passos" só acionáveis (copy do `product-designer`), e
+> truncamento determinístico do cap de geração (3/horizonte, P0 protegido)
+> em `finalize_output`. Nota PD aceita: confiança não reordena
+> silenciosamente — não persiste no aggregate; desempate é created_at.
+
 - Prompt (cap de geração): "máx. 3 sugestões por horizonte, as de maior
   impacto; não preencha slots com variantes da mesma ação".
 - Ordering `/acao` (InboxTab; cap de display): severidade (danger sempre topo,
