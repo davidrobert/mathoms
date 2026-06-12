@@ -1,7 +1,7 @@
 """ADR-291: pipeline_runs.base_run_id — lineage do run base em from_stage.
 
 Revision ID: adr291baserun
-Revises: adr279edges
+Revises: adr290supersede
 Create Date: 2026-06-12
 
 Run disparado com ``from_stage`` lê os stages run-scoped upstream
@@ -24,7 +24,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "adr291baserun"
-down_revision: Union[str, Sequence[str], None] = "adr279edges"
+down_revision: Union[str, Sequence[str], None] = "adr290supersede"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
