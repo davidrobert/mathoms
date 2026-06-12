@@ -10,6 +10,9 @@ Ciclo de vida (state machine simples — não event-sourced):
     Pendente ─accept──────► Aceita     ┐
     Pendente ─modify──────► Modificada │ → terminal (Decision criada)
     Pendente ─dismiss─────► Descartada ┘ (terminal, com `dismissed_reason`)
+    Pendente ─supersede───► Superseded   (terminal soft, ADR-290 — run novo
+                                          do parecer torna a tese obsoleta;
+                                          só origin='llm' kind='parecer_planejador')
 
 Re-geração via :func:`pipeline.domain.services.suggestion_generator`
 usa ``dedup_key`` para idempotência: hash determinístico que tolera
@@ -42,7 +45,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.core.database import Base
 
 VALID_SUGGESTION_AGGREGATE_STATUSES: frozenset[str] = frozenset(
-    {"Pendente", "Aceita", "Modificada", "Descartada"}
+    {"Pendente", "Aceita", "Modificada", "Descartada", "Superseded"}
 )
 
 VALID_SUGGESTION_SEVERITIES: frozenset[str] = frozenset({"info", "warning", "danger"})
@@ -115,6 +118,14 @@ class Suggestion(Base):
     rationale: Mapped[str] = mapped_column(Text, nullable=False)
     amount_brl_cents: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     dedup_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    # ADR-290 B1: identidade semântica da tese (ws|tema|section|ancora) —
+    # estável entre runs, independente de redação/valor. NULL = fora do
+    # supersede (rows pré-migration ou campo-fonte ausente no artifact).
+    thesis_key: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    superseded_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    superseded_by_run_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="Pendente")
     accepted_decision_id: Mapped[Optional[str]] = mapped_column(
@@ -152,6 +163,7 @@ class Suggestion(Base):
         Index("ix_sugagg_ws_status", "workspace_id", "status"),
         Index("ix_sugagg_ws_dedup", "workspace_id", "dedup_key"),
         Index("ix_sugagg_ws_section", "workspace_id", "section_id"),
+        Index("ix_sugagg_ws_thesis", "workspace_id", "thesis_key"),
         UniqueConstraint(
             "workspace_id",
             "dedup_key",
