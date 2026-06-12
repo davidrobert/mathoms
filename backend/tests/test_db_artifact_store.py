@@ -724,3 +724,175 @@ async def test_run_scoped_read_does_not_emit_fallback_log(db: AsyncSession):
         r for r in handler.records if r.msg == "mathoms.pipeline.artifact.workspace_fallback"
     ]
     assert records == []
+
+
+# =============================================================================
+# ADR-291 — Fallback pinado em base_run para runs com from_stage
+# =============================================================================
+#
+# Bug observado (dogfood A25.l2): from_stage="E4" cria run novo; E3 é
+# run-scoped → read() retornava None para todas as keys que list_keys via,
+# E4/E5 saíam vazios e o relatório zerava silenciosamente. Fix: store recebe
+# base_run_id + base_run_fallback_stages e lê os stages upstream não
+# reagendados de UM run coerente (pin exato, não latest-per-key).
+
+
+@pytest.mark.asyncio
+async def test_base_run_fallback_reads_pinned_run_not_latest(db: AsyncSession):
+    """Fallback lê do run PINADO mesmo existindo run mais recente com a key."""
+    ws_id, run_a = await _seed_ws_and_run(db, email="base-run-pin@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.completed)
+            run_c_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add_all([run_b_obj, run_c_obj])
+            s.flush()
+            run_b, run_c = run_b_obj.id, run_c_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write("E3", "itau_202601", {"transacoes": [{"origem": "run_a"}]})
+            store_b = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+            store_b.write("E3", "itau_202601", {"transacoes": [{"origem": "run_b"}]})
+            s.commit()
+
+            store_c = DBArtifactStore(
+                s,
+                workspace_id=ws_id,
+                pipeline_run_id=run_c,
+                base_run_id=run_a,
+                base_run_fallback_stages=frozenset({"E3", "reconcile_transactions"}),
+            )
+            return store_c.read("E3", "itau_202601")
+
+    raw = await db.connection()
+    payload = await raw.run_sync(_do)
+    assert payload == {
+        "transacoes": [{"origem": "run_a"}]
+    }, "fallback deve ler do base_run pinado, nunca latest-per-key (ADR-291)"
+
+
+@pytest.mark.asyncio
+async def test_base_run_fallback_does_not_apply_to_stage_outside_set(db: AsyncSession):
+    """Stage fora de base_run_fallback_stages permanece run-scoped estrito (ADR-291)."""
+    # Protege contra conta-fantasma: stage recomputado no run atual nunca
+    # pode ressuscitar keys antigas via fallback.
+    ws_id, run_a = await _seed_ws_and_run(db, email="base-run-outside@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write("E3", "conta_removida", {"transacoes": [{"v": 1}]})
+            store_a.write("E4", "despesas", {"total_transacoes": 10})
+            s.commit()
+
+            store_b = DBArtifactStore(
+                s,
+                workspace_id=ws_id,
+                pipeline_run_id=run_b,
+                base_run_id=run_a,
+                base_run_fallback_stages=frozenset({"E4", "categorize_transactions"}),
+            )
+            return store_b.read("E3", "conta_removida"), store_b.read("E4", "despesas")
+
+    raw = await db.connection()
+    e3_val, e4_val = await raw.run_sync(_do)
+    assert e3_val is None, "E3 fora do set de fallback deve continuar run-scoped"
+    assert e4_val == {"total_transacoes": 10}
+
+
+@pytest.mark.asyncio
+async def test_base_run_fallback_prefers_current_run_row(db: AsyncSession):
+    """Row do run atual vence o fallback — stage que regrava no run (E5.N) lê o próprio output."""
+    ws_id, run_a = await _seed_ws_and_run(db, email="base-run-current@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write("E5", "analise_financeira", {"versao": "base"})
+            s.commit()
+
+            store_b = DBArtifactStore(
+                s,
+                workspace_id=ws_id,
+                pipeline_run_id=run_b,
+                base_run_id=run_a,
+                base_run_fallback_stages=frozenset({"E5", "analyze_finances"}),
+            )
+            before = store_b.read("E5", "analise_financeira")
+            store_b.write("E5", "analise_financeira", {"versao": "merged_no_run_atual"})
+            s.commit()
+            after = store_b.read("E5", "analise_financeira")
+            return before, after
+
+    raw = await db.connection()
+    before, after = await raw.run_sync(_do)
+    assert before == {"versao": "base"}
+    assert after == {"versao": "merged_no_run_atual"}
+
+
+@pytest.mark.asyncio
+async def test_e4_adapter_reads_e3_from_base_run_or_fails_loud(db: AsyncSession):
+    """Reprodução do bug do dogfood A25.l2 na costura real store↔adapter (ADR-291)."""
+    # Run novo (from_stage=E4) com pin lê E3 do run base; sem pin, o guard do
+    # adapter aborta alto — nunca E4 vazio silencioso.
+    import pytest as _pytest
+
+    from pipeline.domain.services.e4_categorizer_adapter import E4CategorizerAdapter
+
+    ws_id, run_a = await _seed_ws_and_run(db, email="e4-base-run@test.com")
+
+    def _do(sync_conn):
+        from sqlalchemy.orm import Session
+
+        with Session(sync_conn) as s:
+            run_b_obj = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.running)
+            s.add(run_b_obj)
+            s.flush()
+            run_b = run_b_obj.id
+
+            store_a = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_a)
+            store_a.write(
+                "E3",
+                "itau_extratoconta_BRL_202601_202604",
+                {"transacoes": [{"data": "2026-01-05", "valor": "-12.34"}]},
+            )
+            s.commit()
+
+            adapter = E4CategorizerAdapter.from_configs()
+
+            pinned = DBArtifactStore(
+                s,
+                workspace_id=ws_id,
+                pipeline_run_id=run_b,
+                base_run_id=run_a,
+                base_run_fallback_stages=frozenset({"E3", "reconcile_transactions"}),
+            )
+            accounts = adapter.load_reconciled_accounts(pinned)
+
+            unpinned = _store_on_sync_conn(s, workspace_id=ws_id, pipeline_run_id=run_b)
+            with _pytest.raises(RuntimeError, match="0 payloads"):
+                adapter.load_reconciled_accounts(unpinned)
+
+            return accounts
+
+    raw = await db.connection()
+    accounts = await raw.run_sync(_do)
+    assert len(accounts) == 1
+    assert accounts[0]["transacoes"], "E3 do run base deve chegar ao E4 com transações"

@@ -5,12 +5,12 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-281 ADRs (ADR-001 a ADR-290) em [`docs/adr/`](../../adr/).
+282 ADRs (ADR-001 a ADR-291) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
 - **Decidido**: 212
-- **Proposto**: 65
+- **Proposto**: 66
 - **Roadmap**: 4
 
 ## Fundação
@@ -498,7 +498,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-281]] — rule_ref derivado de dict literal + lineage_diff (substrato de debug LLM) · phase A23 · F0
 - [[ADR-286]] — Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo · phase A24.l7
 
-### Proposto (18)
+### Proposto (19)
 
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
 - [[ADR-209]] — Convenção numérica de percentual no contrato E5 — valor absoluto · phase Pré-requisito PR-2 do PLANNER_REVIEW
@@ -518,6 +518,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-274]] — Contrato de ano no consolidador E1.5c→E5: chave de resumo em ano-base 31/12, não exercício · phase A21.patrimonio-ano-base
 - [[ADR-276]] — EntityDedupPolicy: contrato comum de dedup de entidades patrimoniais no E1.5c · phase A21.l3
 - [[ADR-277]] — Previdência F1-O4: reconciliação da recomendação PGBL (não dedup de ativo) · phase A21.l4
+- [[ADR-291]] — from_stage lê stages run-scoped upstream de um base_run pinado (fallback ADR-291) · phase A25 · dogfood
 
 ## relatorio
 

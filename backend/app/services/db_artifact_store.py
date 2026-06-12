@@ -1,4 +1,4 @@
-"""DBArtifactStore — SQLAlchemy ArtifactStore. Sessão injetada (ADR-083); validate→encrypt→write (ADR-212 PR3 + ADR-231); fallback workspace para stages em _WORKSPACE_SCOPED_STAGES (ADR-132 / ADR-157 / ADR-238 / ADR-241)."""
+"""DBArtifactStore — SQLAlchemy ArtifactStore. Sessão injetada (ADR-083); validate→encrypt→write (ADR-212 PR3 + ADR-231); fallback workspace para stages em _WORKSPACE_SCOPED_STAGES (ADR-132 / ADR-157 / ADR-238 / ADR-241); fallback run-pinado em base_run para from_stage (ADR-291)."""
 
 from __future__ import annotations
 
@@ -212,10 +212,17 @@ class DBArtifactStore:
         *,
         workspace_id: str,
         pipeline_run_id: str,
+        base_run_id: Optional[str] = None,
+        base_run_fallback_stages: frozenset[str] = frozenset(),
     ) -> None:
         self._session = session
         self._workspace_id = workspace_id
         self._pipeline_run_id = pipeline_run_id
+        # ADR-291 — from_stage lê stages run-scoped upstream de UM run base
+        # coerente (pin, não latest-per-key — preserva invariantes ADR-241).
+        # O set nunca contém stage agendado no run atual.
+        self._base_run_id = base_run_id
+        self._base_run_fallback_stages = base_run_fallback_stages
 
     @property
     def workspace_id(self) -> str:
@@ -250,6 +257,19 @@ class DBArtifactStore:
             key=key,
         )
 
+    def _get_in_base_run(self, stage: str, key: str) -> Optional[PipelineArtifact]:
+        # ADR-291 — match EXATO no run base (não latest-per-key); mecânica
+        # distinta de _get_latest_in_workspace, não fundir.
+        return (
+            self._session.query(PipelineArtifact)
+            .filter_by(
+                pipeline_run_id=self._base_run_id,
+                stage=stage,
+                artifact_key=key,
+            )
+            .one_or_none()
+        )
+
     def _get_latest_in_workspace(self, stage: str, key: str) -> Optional[PipelineArtifact]:
         return (
             self._session.query(PipelineArtifact)
@@ -267,6 +287,23 @@ class DBArtifactStore:
 
     def read(self, stage: str, key: str) -> Optional[dict]:
         row = self._get(stage, key)
+        if (
+            row is None
+            and self._base_run_id is not None
+            and stage in self._base_run_fallback_stages
+        ):
+            row = self._get_in_base_run(stage, key)
+            if row is not None:
+                _artifact_logger.info(
+                    "mathoms.pipeline.artifact.base_run_fallback",
+                    extra={
+                        "workspace_id": self._workspace_id,
+                        "stage": stage,
+                        "artifact_key": key,
+                        "current_run_id": self._pipeline_run_id,
+                        "base_run_id": self._base_run_id,
+                    },
+                )
         if row is None and stage in _WORKSPACE_SCOPED_STAGES:
             row = self._get_latest_in_workspace(stage, key)
             if row is not None:

@@ -834,6 +834,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 | `incremental_doc_ids` | `JSON` | yes | — | — |
 | `started_at` | `DATETIME` | no | callable: `<lambda>` | — |
 | `completed_at` | `DATETIME` | yes | — | — |
+| `base_run_id` | `VARCHAR(36)` | yes | — | FK→pipeline_runs.id |
 | `tier_at_run` | `VARCHAR(20)` | no | `'free'` | — |
 | `paused_at_stage` | `VARCHAR(50)` | yes | — | — |
 | `celery_task_id` | `VARCHAR(255)` | yes | — | — |
@@ -842,6 +843,7 @@ Referência canônica de schema do banco. Cobre todos os models registrados em `
 
 **Constraints:**
 
+- FOREIGN KEY (base_run_id) REFERENCES pipeline_runs.id ON DELETE SET NULL — `(unnamed)`
 - FOREIGN KEY (workspace_id) REFERENCES workspaces.id ON DELETE CASCADE — `(unnamed)`
 
 **Indexes:**
@@ -2321,6 +2323,7 @@ type PipelineRun struct {
 	IncrementalDocIds json.RawMessage `db:"incremental_doc_ids" json:"incremental_doc_ids"`
 	StartedAt time.Time `db:"started_at" json:"started_at"`
 	CompletedAt *time.Time `db:"completed_at" json:"completed_at"`
+	BaseRunId *string `db:"base_run_id" json:"base_run_id"`
 	TierAtRun string `db:"tier_at_run" json:"tier_at_run"`
 	PausedAtStage *string `db:"paused_at_stage" json:"paused_at_stage"`
 	CeleryTaskId *string `db:"celery_task_id" json:"celery_task_id"`

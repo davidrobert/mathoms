@@ -679,12 +679,25 @@ def _load_stage_duration_estimates(ws_id: str) -> dict[str, int]:
         session.close()
 
 
-def _open_artifact_session(ws_id: str, run_id: str):
+def _open_artifact_session(
+    ws_id: str,
+    run_id: str,
+    base_run_id: str | None = None,
+    base_run_fallback_stages: frozenset[str] = frozenset(),
+):
     """Abre sessão nova + DBArtifactStore. Chamado por-stage pelo loop."""
+    # base_run_id + base_run_fallback_stages ativam o fallback run-pinado para
+    # runs com from_stage (ADR-291); defaults preservam full/incremental/resume.
     from backend.app.services.db_artifact_store import DBArtifactStore
 
     session = SyncSessionLocal()
-    store = DBArtifactStore(session, workspace_id=ws_id, pipeline_run_id=run_id)
+    store = DBArtifactStore(
+        session,
+        workspace_id=ws_id,
+        pipeline_run_id=run_id,
+        base_run_id=base_run_id,
+        base_run_fallback_stages=base_run_fallback_stages,
+    )
     return session, store
 
 
@@ -1036,6 +1049,8 @@ def _execute_stages_loop(
     tier: str,
     llm_stages,
     run_stage_fn,
+    base_run_id: str | None = None,
+    base_run_fallback_stages: frozenset[str] = frozenset(),
 ) -> tuple[bool, bool]:
     """Executa o loop principal de stages.
 
@@ -1077,7 +1092,9 @@ def _execute_stages_loop(
         _record_stage_running(run_id, stage_name, log_id, stage_started_at, progress_pct)
 
         # Sessão por-stage (libera write-lock entre stages).
-        stage_session, store = _open_artifact_session(ws_id, run_id)
+        stage_session, store = _open_artifact_session(
+            ws_id, run_id, base_run_id, base_run_fallback_stages
+        )
         ctx.artifact_store = store
 
         start_mono = time.monotonic()
@@ -1278,6 +1295,8 @@ def run_pipeline_task(
     tier: str = "free",
     incremental: bool = False,
     incremental_doc_paths: list[str] | None = None,
+    base_run_id: str | None = None,
+    base_run_fallback_stages: list[str] | None = None,
 ) -> dict:
     """Execute pipeline stages sequentially as a Celery task.
 
@@ -1340,6 +1359,8 @@ def run_pipeline_task(
             tier,
             llm_stages,
             _exec_stage,
+            base_run_id=base_run_id,
+            base_run_fallback_stages=frozenset(base_run_fallback_stages or []),
         )
 
         _finalize_pipeline_outcome(run_id, ws_id, tenant_root, has_failure, paused_for_review)

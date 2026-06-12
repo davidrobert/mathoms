@@ -384,3 +384,35 @@ class TestSchemaConformance:
         assert "origens" in d["receitas"]
         assert "categorias" in d["despesas"]
         assert "meses_ordenados" in d
+
+
+class TestLoadReconciledAccountsGuard:
+    """ADR-291 — keys de E3 visíveis sem payload legível abortam alto."""
+
+    # Cenário do bug: from_stage="E4" criava run novo; list_keys
+    # (workspace-wide) via as keys de E3 de runs anteriores mas read
+    # (run-scoped) retornava None para todas → relatório zerado silencioso.
+
+    def test_raises_when_keys_visible_but_no_payload_readable(self):
+        import pytest
+
+        class _KeysWithoutPayloads(InMemoryArtifactStore):
+            def read(self, stage, key):
+                return None
+
+        store = _KeysWithoutPayloads()
+        store.seed("E3", "itau_extratoconta_202601", {"transacoes": [{"v": 1}]})
+        adapter = E4CategorizerAdapter.from_configs()
+        with pytest.raises(RuntimeError, match="0 payloads"):
+            adapter.load_reconciled_accounts(store)
+
+    def test_empty_workspace_returns_empty_without_raise(self):
+        store = InMemoryArtifactStore()
+        adapter = E4CategorizerAdapter.from_configs()
+        assert adapter.load_reconciled_accounts(store) == []
+
+    def test_readable_payload_without_transacoes_does_not_raise(self):
+        store = InMemoryArtifactStore()
+        store.seed("E3", "itau_extratoconta_202601", {"transacoes": []})
+        adapter = E4CategorizerAdapter.from_configs()
+        assert adapter.load_reconciled_accounts(store) == []
