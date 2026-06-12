@@ -342,6 +342,13 @@ _C6_NOISE_PREFIXES: Tuple[str, ...] = (
     # (mesma tx em 2 extratos vira hashes distintos). Observado em prod
     # 2026-05-24, workspace 1b9f2cf5 (5 PIXes Arvo duplicados).
     "Data Data",
+    # Variante com o mesmo cabeçalho quebrado em 2 linhas pela extração de
+    # texto ("Data Data" + "Tipo Descrição Valor lançamento contábil") — a
+    # segunda linha escapava do filtro e era concatenada na descrição da tx
+    # anterior. Observado em prod 2026-06-12 (PIX Arvo Saúde, mesmo workspace
+    # do incidente de 2026-05-24 acima).
+    "Tipo Descrição",
+    "Tipo Descricao",
     "Janeiro",
     "Fevereiro",
     "Março",
