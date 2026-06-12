@@ -3,7 +3,11 @@
 
 # CHANGELOG_RECENT — entregas recentes
 
-Janela de 14 dias a partir da última entrega registrada (2026-06-09). 14 entries entre 2026-05-28 e 2026-06-09.
+Janela de 14 dias a partir da última entrega registrada (2026-06-12). 14 entries entre 2026-05-29 e 2026-06-12.
+
+## 2026-06-12 (1 entries)
+
+- [[CHG-2026-06-12-REMOVE-HISTORICO-CICLOS]] — Remove card 'Histórico de Ciclos' do Apêndice E do relatório React — duplicata single-pair do data.changelog (ADR-148) já exibido via SectionSnapshotDiff, com rótulo enganoso em apêndice forward-looking. Backlog W5 (série temporal multi-ciclo de KPIs) registrado no plano SNAPSHOT_CHANGELOG_V3 para a lacuna metodológica real.
 
 ## 2026-06-09 (2 entries)
 
@@ -32,10 +36,6 @@ Janela de 14 dias a partir da última entrega registrada (2026-06-09). 14 entrie
 - [[CHG-2026-05-29-A20-L7-MAKEFILE-ONBOARDING]] — A20.L7 — Makefile dev-*-docker + SETUP.md "Onboarding em <5min" (D3+D5). (lane [[A20.l7]])
 - [[CHG-2026-05-29-A20-L8-POSTGRES-DRIVER]] — A20.L8 — swap do driver sync legado psycopg2-binary → psycopg[binary] v3 (lane [[A20.l8]])
 - [[CHG-2026-05-29-ADR-238-DATA-ADESAO-NAO-HARDFAIL]] — fix(adr-238): data_adesao deixa de ser hard-fail em previdência regressiva.
-
-## 2026-05-28 (1 entries)
-
-- [[CHG-2026-05-28-ADR-271-INVEST-DEDUP-SHIPPED]] — feat(adr-271): dedup de investimentos cross-IRPF (cross-year + cross-declarante)
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

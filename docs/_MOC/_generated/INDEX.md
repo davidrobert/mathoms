@@ -503,6 +503,7 @@
 | CHG-2026-06-08-A23-L3 | changelog-entry |  | A23 |  | `sprint/A23/changelog/CHG-2026-06-08-A23-L3.md` |
 | CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET | changelog-entry |  | A12 |  | `sprint/A12/changelog/CHG-2026-06-09-BACKEND-CAT-LEGACY-SUNSET.md` |
 | CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS | changelog-entry |  | A11 |  | `sprint/A11/changelog/CHG-2026-06-09-FEAT-AUTH-REFRESH-TOKENS.md` |
+| CHG-2026-06-12-REMOVE-HISTORICO-CICLOS | changelog-entry |  | A25 |  | `sprint/A25/changelog/CHG-2026-06-12-REMOVE-HISTORICO-CICLOS.md` |
 | FAQ-bank-account-member | doc |  |  | FAQ — Como o Mathoms decide de qual membro é cada conta | `reference/FAQ_bank_account_member.md` |
 | FAQ-cascata-fiscal-pj | doc |  |  | FAQ — Como o Mathoms calcula a cascata fiscal PJ e a base PGBL | `reference/FAQ_cascata_fiscal_pj.md` |
 | RULE-alocacao-alvo-7-classes | domain-rule |  |  |  | `reference/rules/rule-alocacao-alvo-7-classes.md` |
@@ -791,7 +792,7 @@
 | TRACK-pipeline-review-screen | track | consumed | A11 | Track Pipeline Review — Tela de revisão real (caminho B) | `sprint/A11/tracks/pipeline-review-screen.md` |
 | TRACK-platform-review | track | consumed | A11 | Track Platform Review — Orquestração Multi-Agent (revisão + plano) | `sprint/A11/tracks/platform-review.md` |
 | TRACK-real-estate-efficiency | track | consumed | A11 | Track — Real estate efficiency feature (ADR-160) | `sprint/A11/tracks/real-estate-efficiency.md` |
-| TRACK-remove-historico-ciclos-app-e | track | ready | A25 | Remover card 'Histórico de Ciclos' (Apêndice E) do relatório React | `sprint/A25/tracks/remove-historico-ciclos-app-e.md` |
+| TRACK-remove-historico-ciclos-app-e | track | consumed | A25 | Remover card 'Histórico de Ciclos' (Apêndice E) do relatório React | `sprint/A25/tracks/remove-historico-ciclos-app-e.md` |
 | TRACK-report-a11y-finalize | track | consumed | A11 | Track Report a11y + Playwright finalize — resíduo F12 do Report Premium | `sprint/A11/tracks/report-a11y-finalize.md` |
 | TRACK-report-appearance-menu | track | consumed | A11 | Track Report Appearance Menu — refinement ADR-121 Fase 4 | `sprint/A11/tracks/report-appearance-menu.md` |
 | TRACK-report-publication-impl | track | consumed | A11 | Report publication — schema + API + helper (mês fechado imutável) | `sprint/A11/tracks/report-publication-impl.md` |
