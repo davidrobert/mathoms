@@ -185,6 +185,14 @@ em commit separado.
 
 ### F4 — Backfill dogfood (heurístico) — depende de F1
 
+> ✅ **Código entregue** (branch `agent/sug-lifecycle-f4/20260612-1930`):
+> service `backend/app/services/internal_ops/suggestion_backfill.py`
+> (workspace obrigatório, dry-run default, audit em apply, skip de
+> `created_at` > início) + runbook
+> `docs/reference/runbooks/suggestion_backfill.md` + 5 testes.
+> **Pendente operacional:** rodar dry-run no dogfood, **revisar o
+> relatório com humano** e aplicar (aceite 158 → ≤14 acionáveis).
+
 - **Reescopo (achado `data-engineer`):** linhas antigas não armazenam
   `tema_canonico`/`ancora_metodologica` nem `pipeline_run_id` confiável
   (`report_id` é FK opcional `SET NULL`) → **não é possível recomputar
