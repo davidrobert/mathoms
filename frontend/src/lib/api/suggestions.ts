@@ -11,7 +11,10 @@ export type SuggestionAggregateStatus =
   | "Pendente"
   | "Aceita"
   | "Modificada"
-  | "Descartada";
+  | "Descartada"
+  // ADR-290 — terminal soft: run novo do parecer tornou a tese obsoleta.
+  // Fora do inbox ativo; aparece só em listagens sem filtro de status.
+  | "Superseded";
 
 export type SuggestionSeverity = "info" | "warning" | "danger";
 

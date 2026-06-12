@@ -15,6 +15,11 @@ import { AlertOctagon, AlertTriangle, ArrowRight, Info } from "lucide-react";
 
 import type { Suggestion, SuggestionSeverity } from "@/lib/api";
 import { useSuggestions } from "@/hooks/useSuggestions";
+import {
+  INLINE_SECTION_CAP,
+  isActionable,
+  suggestionPriorityComparator,
+} from "@/lib/suggestionOrdering";
 
 /** Onda 10 #4 — severidades canalizadas pelos tokens semânticos do
  * design-system (`tokens.css` §--semantic-*). Mapeamento:
@@ -76,24 +81,36 @@ interface SuggestionCalloutInlineProps {
 }
 
 /** Callout inline — busca sugestões pendentes da seção e renderiza
- *  cards compactos com link "Promover para ação". */
+ *  cards compactos com link "Promover para ação". ADR-290 F3: ordering
+ *  metodológico + cap de 3 por seção com link de overflow para /acao. */
 export function SuggestionCalloutInline({
   sectionId,
   workspaceId,
 }: SuggestionCalloutInlineProps) {
   const { suggestions, loading } = useSuggestions(workspaceId, "Pendente");
   if (loading) return null;
-  const items = suggestions.filter((s) => s.section_id === sectionId);
+  const items = suggestions
+    .filter((s) => s.section_id === sectionId)
+    .sort(suggestionPriorityComparator);
   if (items.length === 0) return null;
+  const shown = items.slice(0, INLINE_SECTION_CAP);
 
   return (
     <div
       className="md:col-span-2 flex flex-col gap-2"
       data-suggestion-callout-section={sectionId}
     >
-      {items.map((s) => (
+      {shown.map((s) => (
         <SuggestionItem key={s.id} suggestion={s} workspaceId={workspaceId} />
       ))}
+      {items.length > shown.length && workspaceId && (
+        <Link
+          href={`/acao?tab=inbox&section=${sectionId}`}
+          className="self-start text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
+        >
+          Ver as {items.length} sugestões desta seção em /acao
+        </Link>
+      )}
     </div>
   );
 }
@@ -154,12 +171,18 @@ interface SuggestionCalloutSummaryProps {
   workspaceId: string;
 }
 
-/** Agregador "Próximos passos" — lista resumida no fim do relatório. */
+/** Agregador "Próximos passos" — lista resumida no fim do relatório.
+ *  ADR-290 F3: só acionáveis (danger+warning), mesmo ordering do /acao;
+ *  `info` omitidas com indicação discreta. */
 export function SuggestionCalloutSummary({
   workspaceId,
 }: SuggestionCalloutSummaryProps) {
   const { suggestions, loading } = useSuggestions(workspaceId, "Pendente");
   if (loading || suggestions.length === 0) return null;
+  const sorted = [...suggestions].sort(suggestionPriorityComparator);
+  const actionable = sorted.filter(isActionable);
+  const infoCount = sorted.length - actionable.length;
+  if (actionable.length === 0 && infoCount === 0) return null;
 
   return (
     <section
@@ -174,9 +197,9 @@ export function SuggestionCalloutSummary({
         Próximos passos
       </h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        {suggestions.length === 1
-          ? "1 sugestão acionável a partir deste relatório"
-          : `${suggestions.length} sugestões acionáveis a partir deste relatório`}{" "}
+        {actionable.length === 1
+          ? "1 ação priorizada a partir deste relatório"
+          : `${actionable.length} ações priorizadas a partir deste relatório`}{" "}
         — revise em{" "}
         <Link href="/acao" className="font-medium underline hover:no-underline">
           /acao
@@ -184,7 +207,7 @@ export function SuggestionCalloutSummary({
         para virarem decisões.
       </p>
       <ul className="mt-4 flex flex-col gap-2">
-        {suggestions.map((s) => {
+        {actionable.map((s) => {
           const variant =
             SEVERITY_VARIANTS[s.severity] ?? SEVERITY_VARIANTS.info;
           const Icon = variant.Icon;
@@ -207,6 +230,18 @@ export function SuggestionCalloutSummary({
           );
         })}
       </ul>
+      {infoCount > 0 && (
+        <p className="mt-4 text-[11px] text-muted-foreground">
+          +{" "}
+          {infoCount === 1
+            ? "1 sugestão informativa não listada aqui"
+            : `${infoCount} sugestões informativas não listadas aqui`}{" "}
+          —{" "}
+          <Link href="/acao?tab=inbox" className="underline hover:no-underline">
+            ver em /acao
+          </Link>
+        </p>
+      )}
     </section>
   );
 }
