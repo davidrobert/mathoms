@@ -106,6 +106,13 @@ em commit separado.
 
 ### F1 — Estancar o acúmulo (backend + migration + telemetria)
 
+> ✅ **Código entregue** (branch `agent/sug-lifecycle-f1/20260612-1630`):
+> migration `adr290supersede`, `compute_suggestion_thesis_key`,
+> service `backend/app/services/suggestion_supersede.py`, telemetria KR4,
+> 10 testes de supersede + 3 de migration. ADR-290 flippada para
+> `Decidido (A25)` no mesmo PR. **Pendente:** gate de estabilidade ≥90%
+> (2 runs reais no dogfood — medição pós-merge).
+
 - Migration Alembic reversível: `thesis_key` (nullable, btree não-unique
   `(workspace_id, thesis_key)`), `superseded_at`, `superseded_by_run_id`.
   Sem `NOT NULL`, sem backfill na migration. Test com
