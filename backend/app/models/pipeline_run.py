@@ -54,6 +54,13 @@ class PipelineRun(Base):
     )
     completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # ADR-291 — run com from_stage lê stages run-scoped upstream deste run
+    # base. NULL = run full/incremental/resume (sem base). SET NULL preserva
+    # o run quando GC deletar o base (lineage degrada graciosamente).
+    base_run_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("pipeline_runs.id", ondelete="SET NULL"), nullable=True
+    )
+
     tier_at_run: Mapped[str] = mapped_column(String(20), nullable=False, default="free")
     paused_at_stage: Mapped[str] = mapped_column(String(50), nullable=True)
     celery_task_id: Mapped[str] = mapped_column(String(255), nullable=True)

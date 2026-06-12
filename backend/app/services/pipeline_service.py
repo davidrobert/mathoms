@@ -89,6 +89,8 @@ def _dispatch_celery_task(
     tier: str,
     incremental: bool,
     incremental_doc_paths: list[str] | None,
+    base_run_id: str | None = None,
+    base_run_fallback_stages: list[str] | None = None,
 ) -> str:
     from backend.app.tasks.pipeline_task import run_pipeline_task
 
@@ -103,6 +105,8 @@ def _dispatch_celery_task(
         tier=tier,
         incremental=incremental,
         incremental_doc_paths=incremental_doc_paths or [],
+        base_run_id=base_run_id,
+        base_run_fallback_stages=base_run_fallback_stages or [],
     )
     with SyncSessionLocal() as db:
         run = db.get(PipelineRun, run_id)
@@ -135,6 +139,8 @@ def start_pipeline_run(
     tier: str | None = None,
     incremental: bool = False,
     incremental_doc_paths: list[str] | None = None,
+    base_run_id: str | None = None,
+    base_run_fallback_stages: list[str] | None = None,
 ) -> str | None:
     """Launch the pipeline as a Celery task.
 
@@ -152,6 +158,8 @@ def start_pipeline_run(
         tier,
         incremental,
         incremental_doc_paths,
+        base_run_id,
+        base_run_fallback_stages,
     )
     try:
         return _dispatch_celery_task(*args)
@@ -176,6 +184,8 @@ def _start_fallback_thread(
     tier,
     incremental=False,
     incremental_doc_paths=None,
+    base_run_id=None,
+    base_run_fallback_stages=None,
 ):
     """Fallback: run pipeline in a daemon thread when Celery/Redis is unavailable."""
     import threading
@@ -194,6 +204,8 @@ def _start_fallback_thread(
             tier=tier,
             incremental=incremental,
             incremental_doc_paths=incremental_doc_paths or [],
+            base_run_id=base_run_id,
+            base_run_fallback_stages=base_run_fallback_stages or [],
         )
 
     t = threading.Thread(target=_thread_target, daemon=True, name=f"pipeline-{run_id[:8]}")

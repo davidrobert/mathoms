@@ -157,13 +157,20 @@ class E4CategorizerAdapter:
     # -- Loading --
 
     def load_reconciled_accounts(self, store: ArtifactStore) -> list[dict]:
-        """Lê todos os extratos E3 reconciliados do store."""
-        out: list[dict] = []
-        for key in store.list_keys("E3"):
-            data = store.read("E3", key)
-            if isinstance(data, dict) and data.get("transacoes"):
-                out.append(data)
-        return out
+        """Lê os extratos E3 do store; keys visíveis sem payload legível abortam alto (ADR-291)."""
+        keys = list(store.list_keys("E3"))
+        payloads = [store.read("E3", key) for key in keys]
+        readable = [p for p in payloads if isinstance(p, dict)]
+        if keys and not readable:
+            # Sempre from_stage sem fallback de base_run ou workspace que
+            # perdeu todos os extratos — nunca completar com relatório zerado
+            # silencioso. Workspace vazio legítimo tem list_keys vazio.
+            raise RuntimeError(
+                f"E3 list_keys retornou {len(keys)} chaves mas 0 payloads legíveis "
+                "no run atual — from_stage sem fallback de base_run ou extratos "
+                "removidos do workspace; abortando em vez de zerar o relatório (ADR-291)"
+            )
+        return [p for p in readable if p.get("transacoes")]
 
     def load_baseline(self, store: ArtifactStore) -> dict | None:
         """Lê baseline E1.5c do store; ``None`` se ausente."""

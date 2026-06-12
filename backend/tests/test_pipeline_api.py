@@ -243,3 +243,145 @@ async def test_pipeline_unauthorized(client: AsyncClient):
 async def test_list_runs_unauthorized(client: AsyncClient):
     resp = await client.get("/api/workspaces/00000000-0000-0000-0000-000000000000/pipeline/runs")
     assert resp.status_code in (401, 403)
+
+
+# ---------------------------------------------------------------------------
+# ADR-291 — from_stage exige run base coerente (fallback pinado)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_trigger_from_stage_e4_without_prior_run_returns_422(
+    auth_client_with_doc: AsyncClient,
+):
+    """Sem run anterior com E3, from_stage=E4 falha alto — nunca relatório zerado."""
+    auth_client = auth_client_with_doc
+    with patch(_START) as mock_start:
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/run",
+            json={"from_stage": "E4", "skip_llm": True},
+        )
+    assert resp.status_code == 422
+    assert "pipeline completo" in resp.json()["detail"]
+    mock_start.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_trigger_from_stage_e4_pins_base_run_with_e3(
+    auth_client_with_doc: AsyncClient, db: AsyncSession
+):
+    """Com run anterior contendo E3, from_stage=E4 pina o base_run e propaga o fallback."""
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+
+    auth_client = auth_client_with_doc
+    ws_id = auth_client.ws_id
+
+    prior = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.completed)
+    db.add(prior)
+    await db.flush()
+    db.add(
+        PipelineArtifact(
+            workspace_id=ws_id,
+            pipeline_run_id=prior.id,
+            stage="E3",
+            artifact_key="itau_extratoconta_BRL_202601_202604",
+            content_json={"transacoes": [{"v": 1}]},
+        )
+    )
+    await db.commit()
+    prior_id = prior.id
+
+    with patch(_START) as mock_start:
+        resp = await auth_client.post(
+            f"/api/workspaces/{ws_id}/pipeline/run",
+            json={"from_stage": "E4", "skip_llm": True},
+        )
+    assert resp.status_code == 202
+    kwargs = mock_start.call_args.kwargs
+    assert kwargs["base_run_id"] == prior_id
+    assert "E3" in kwargs["base_run_fallback_stages"]
+    assert "reconcile_transactions" in kwargs["base_run_fallback_stages"]
+    # E4/E5 são recomputados no run novo — não entram no fallback.
+    assert "E4" not in kwargs["base_run_fallback_stages"]
+
+    run_id = resp.json()["id"]
+    created = await db.get(PipelineRun, run_id)
+    assert created.base_run_id == prior_id
+
+
+@pytest.mark.asyncio
+async def test_trigger_from_stage_e5_requires_e3_and_e4_superset(
+    auth_client_with_doc: AsyncClient, db: AsyncSession
+):
+    """from_stage=E5 lê E3 E E4 — run com só E3 não qualifica como base (pin único, ADR-291)."""
+    from backend.app.models.pipeline_artifact import PipelineArtifact
+    from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
+
+    auth_client = auth_client_with_doc
+    ws_id = auth_client.ws_id
+
+    only_e3 = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.failed)
+    db.add(only_e3)
+    await db.flush()
+    db.add(
+        PipelineArtifact(
+            workspace_id=ws_id,
+            pipeline_run_id=only_e3.id,
+            stage="E3",
+            artifact_key="itau_x",
+            content_json={"transacoes": []},
+        )
+    )
+    await db.commit()
+
+    with patch(_START) as mock_start:
+        resp = await auth_client.post(
+            f"/api/workspaces/{ws_id}/pipeline/run",
+            json={"from_stage": "E5", "skip_llm": True},
+        )
+    assert resp.status_code == 422
+    mock_start.assert_not_called()
+
+    full = PipelineRun(workspace_id=ws_id, status=PipelineRunStatus.completed)
+    db.add(full)
+    await db.flush()
+    for stage, key in (("E3", "itau_x"), ("E4", "despesas")):
+        db.add(
+            PipelineArtifact(
+                workspace_id=ws_id,
+                pipeline_run_id=full.id,
+                stage=stage,
+                artifact_key=key,
+                content_json={},
+            )
+        )
+    await db.commit()
+    full_id = full.id
+
+    with patch(_START) as mock_start:
+        resp = await auth_client.post(
+            f"/api/workspaces/{ws_id}/pipeline/run",
+            json={"from_stage": "E5", "skip_llm": True},
+        )
+    assert resp.status_code == 202
+    kwargs = mock_start.call_args.kwargs
+    assert kwargs["base_run_id"] == full_id
+    assert {"E3", "E4"} <= set(kwargs["base_run_fallback_stages"])
+
+
+@pytest.mark.asyncio
+async def test_trigger_from_stage_e3_does_not_pin_base_run(
+    auth_client_with_doc: AsyncClient,
+):
+    """from_stage=E3 lê só E2 (workspace-scoped, ADR-241) — sem base_run, sem 422."""
+    auth_client = auth_client_with_doc
+    with patch(_START) as mock_start:
+        resp = await auth_client.post(
+            f"/api/workspaces/{auth_client.ws_id}/pipeline/run",
+            json={"from_stage": "E3", "skip_llm": True},
+        )
+    assert resp.status_code == 202
+    kwargs = mock_start.call_args.kwargs
+    assert kwargs["base_run_id"] is None
+    assert kwargs["base_run_fallback_stages"] == []

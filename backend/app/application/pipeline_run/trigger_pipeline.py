@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,9 +13,12 @@ from backend.app.application.base.errors import ConflictError, ValidationError
 from backend.app.core.config import settings
 from backend.app.models.document import DOCUMENT_CLASSIFIED_OK, Document, DocumentStatus
 from backend.app.models.goal import Goal
+from backend.app.models.pipeline_artifact import PipelineArtifact
 from backend.app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from backend.app.schemas.pipeline import PipelineRunRequest, PipelineRunResponse
 from backend.app.services.pipeline_service import resolve_llm_tier_async, start_pipeline_run
+
+_logger = logging.getLogger("mathoms.pipeline.trigger")
 
 _ACTIVE_RUN_MESSAGE = "Já existe uma execução ativa neste workspace. Cancele ou aguarde."
 _MISSING_IF_GOAL_MESSAGE = (
@@ -35,6 +40,9 @@ async def trigger_pipeline(
         workspace_id, body=body, db=db
     )
     stages = _resolve_stages(body)
+    base_run_id, base_run_fallback_stages = await _resolve_base_run(
+        workspace_id, from_stage=body.from_stage, stages=stages, db=db
+    )
 
     tier = await resolve_llm_tier_async(db, workspace_id)
     run = await _create_run(
@@ -43,6 +51,7 @@ async def trigger_pipeline(
         doc_count=doc_count,
         incremental_doc_ids=incremental_doc_ids,
         tier=tier,
+        base_run_id=base_run_id,
         db=db,
     )
 
@@ -55,6 +64,8 @@ async def trigger_pipeline(
         tier=tier,
         incremental=body.incremental,
         incremental_doc_paths=incremental_doc_paths or [],
+        base_run_id=base_run_id,
+        base_run_fallback_stages=base_run_fallback_stages,
     )
     return PipelineRunResponse.model_validate(run)
 
@@ -116,13 +127,11 @@ async def _count_documents(workspace_id: str, *, db: AsyncSession) -> tuple[int,
 def _validate_counts(body: PipelineRunRequest, *, doc_count: int, new_doc_count: int) -> None:
     if body.incremental and new_doc_count == 0:
         raise ValidationError(
-            "Nenhum documento novo desde a última execução. "
-            "Use 'Processar todos' para reprocessar."
+            "Nenhum documento novo desde a última execução. Use 'Processar todos' para reprocessar."
         )
     if doc_count == 0 and not body.from_stage:
         raise ValidationError(
-            "Nenhum documento pronto para processar. "
-            "Envie documentos antes de executar o pipeline."
+            "Nenhum documento pronto para processar. Envie documentos antes de executar o pipeline."
         )
 
 
@@ -176,6 +185,83 @@ def _resolve_stages(body: PipelineRunRequest) -> list[str]:
     return FULL_ORDER[:]
 
 
+def _stage_forms(artifact_stage: str) -> set[str]:
+    """Formas legada + descritiva de um artifact stage (janela F9.2 → F9.6)."""
+    from pipeline.stage_spec import LEGACY_TO_DESCRIPTIVE
+
+    return {artifact_stage, LEGACY_TO_DESCRIPTIVE.get(artifact_stage, artifact_stage)}
+
+
+async def _runs_with_artifacts(workspace_id: str, artifact_stage: str, *, db: AsyncSession):
+    result = await db.execute(
+        select(PipelineArtifact.pipeline_run_id)
+        .where(
+            PipelineArtifact.workspace_id == workspace_id,
+            PipelineArtifact.stage.in_(_stage_forms(artifact_stage)),
+        )
+        .distinct()
+    )
+    return {row[0] for row in result}
+
+
+async def _latest_run_with_all(
+    workspace_id: str, needed: frozenset[str], *, db: AsyncSession
+) -> str | None:
+    """Run mais recente do workspace com artefatos de TODOS os stages pedidos (superset)."""
+    candidates: set[str] | None = None
+    for artifact_stage in sorted(needed):
+        runs = await _runs_with_artifacts(workspace_id, artifact_stage, db=db)
+        candidates = runs if candidates is None else candidates & runs
+        if not candidates:
+            return None
+    result = await db.execute(
+        select(PipelineRun.id)
+        .where(PipelineRun.id.in_(candidates))
+        .order_by(PipelineRun.started_at.desc())
+        .limit(1)
+    )
+    return result.scalar_one()
+
+
+async def _resolve_base_run(
+    workspace_id: str, *, from_stage: str | None, stages: list[str], db: AsyncSession
+) -> tuple[str | None, list[str]]:
+    """Resolve o run base coerente para ``from_stage`` (ADR-291)."""
+    # Pin em run ÚNICO — nunca latest-per-stage — preserva os invariantes
+    # cross-account da ADR-241 (E3↔E4↔E5 internamente consistentes entre si).
+    # Presença de rows em pipeline_artifacts é o critério (sessão por-stage só
+    # comita em sucesso), não pipeline_runs.status.
+    from pipeline.stage_spec import run_scoped_upstream_reads
+
+    needed = run_scoped_upstream_reads(stages) if from_stage else frozenset()
+    if not needed:
+        return None, []
+    base_run_id = await _latest_run_with_all(workspace_id, needed, db=db)
+    if base_run_id is None:
+        raise ValidationError(
+            f"Reprocessar a partir de {from_stage} requer uma execução anterior "
+            f"com artefatos de {', '.join(sorted(needed))}. "
+            "Execute o pipeline completo primeiro."
+        )
+    fallback_stages = sorted({form for stage in needed for form in _stage_forms(stage)})
+    _log_base_run_resolved(workspace_id, from_stage, base_run_id, fallback_stages)
+    return base_run_id, fallback_stages
+
+
+def _log_base_run_resolved(
+    workspace_id: str, from_stage: str | None, base_run_id: str, fallback_stages: list[str]
+) -> None:
+    _logger.info(
+        "mathoms.pipeline.trigger.base_run_resolved",
+        extra={
+            "workspace_id": workspace_id,
+            "from_stage": from_stage,
+            "base_run_id": base_run_id,
+            "fallback_stages": fallback_stages,
+        },
+    )
+
+
 async def _create_run(
     workspace_id: str,
     *,
@@ -183,6 +269,7 @@ async def _create_run(
     doc_count: int,
     incremental_doc_ids: list[str] | None,
     tier: str,
+    base_run_id: str | None = None,
     db: AsyncSession,
 ) -> PipelineRun:
     run = PipelineRun(
@@ -192,6 +279,7 @@ async def _create_run(
         incremental=body.incremental,
         incremental_doc_ids=incremental_doc_ids,
         tier_at_run=tier,
+        base_run_id=base_run_id,
     )
     db.add(run)
     try:

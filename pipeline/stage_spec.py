@@ -329,3 +329,48 @@ LEGACY_FROM_ALIASES: dict[str, str] = {
     "E2": "extract_invoices",  # "a partir de E2" = rodar todo E2-*
     "E7": "validate_cross",  # "a partir de E7" = rodar todo E7-*
 }
+
+
+# =============================================================================
+# Leituras run-scoped entre stages (ADR-291)
+# =============================================================================
+#
+# E3/E4/E5 são run-scoped por design (ADR-132/241 — invariantes cross-account).
+# Run com ``from_stage`` não reexecuta os produtores upstream; o trigger usa
+# estes mapas para resolver um run base coerente cujos artefatos serão lidos
+# via fallback pinado do ``DBArtifactStore``. Keys de artifact em formato
+# legado — formato persistido em ``pipeline_artifacts.stage`` até F9.3.
+
+RUN_SCOPED_ARTIFACT_PRODUCERS: dict[str, str] = {
+    "E3": "reconcile_transactions",
+    "E4": "categorize_transactions",
+    "E5": "analyze_finances",
+}
+
+# Stage descritivo → artifact stages run-scoped que ele LÊ do store.
+# generate_narratives lê E5 e regrava o merge no run atual; validate_cross e
+# review_finances_holistic são read-only sobre E5.
+RUN_SCOPED_READS: dict[str, frozenset[str]] = {
+    "categorize_transactions": frozenset({"E3"}),
+    "analyze_finances": frozenset({"E3", "E4"}),
+    "generate_narratives": frozenset({"E5"}),
+    "validate_cross": frozenset({"E5"}),
+    "review_finances_holistic": frozenset({"E5"}),
+}
+
+
+def run_scoped_upstream_reads(scheduled: list[str]) -> frozenset[str]:
+    """Artifact stages run-scoped que ``scheduled`` lê mas não produz (ADR-291)."""
+    # Em FULL_ORDER produtores precedem consumidores: leitura de artifact cujo
+    # produtor está agendado é satisfeita no próprio run — só o resto precisa
+    # vir de um run base.
+    scheduled_descriptive = {resolve_stage_name(s) for s in scheduled}
+    reads: set[str] = set()
+    for stage in scheduled_descriptive:
+        reads |= RUN_SCOPED_READS.get(stage, frozenset())
+    produced = {
+        artifact
+        for artifact, producer in RUN_SCOPED_ARTIFACT_PRODUCERS.items()
+        if producer in scheduled_descriptive
+    }
+    return frozenset(reads - produced)
