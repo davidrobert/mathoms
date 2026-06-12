@@ -13,7 +13,15 @@ from backend.app.models.stage_review import StageReviewStatus
 # `pipeline/llm/validators.py`. Nested dict não é permitido no boundary.
 ValidationContextValue = Union[str, int, float, bool, None]
 
-VALID_FROM_STAGES = {"E0", "E1", "E2", "E3", "E4", "E5", "E5.N", "E7"}
+
+def _valid_from_stages() -> frozenset[str]:
+    """Keys do FROM_MAP — fonte única (descritivos pós-F9.2 + aliases legados)."""
+    # O set hardcoded legado (E0..E7) rejeitava ``failed_at_stage`` descritivo
+    # (ex.: ``review_finances_holistic``), quebrando o botão "Reprocessar a
+    # partir de <stage>" da UI para todo run pós-F9.2 (incidente 2026-06-12).
+    from pipeline.orchestrator import FROM_MAP
+
+    return frozenset(FROM_MAP)
 
 
 class PipelineRunRequest(BaseModel):
@@ -25,8 +33,8 @@ class PipelineRunRequest(BaseModel):
     @field_validator("from_stage")
     @classmethod
     def validate_from_stage(cls, v: Optional[str] = None) -> Optional[str]:
-        if v is not None and v not in VALID_FROM_STAGES:
-            raise ValueError(f"from_stage inválido: {v}. Válidos: {sorted(VALID_FROM_STAGES)}")
+        if v is not None and v not in _valid_from_stages():
+            raise ValueError(f"from_stage inválido: {v}. Válidos: {sorted(_valid_from_stages())}")
         return v
 
 
