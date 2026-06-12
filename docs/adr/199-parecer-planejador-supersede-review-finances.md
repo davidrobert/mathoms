@@ -153,3 +153,20 @@ Output validado por `config/schemas/parecer_planejador.schema.json`: 6+ sections
 - **Pricing exato (Premium tier)** — `gtm-strategist` fechou faixa R$ 79-149/mês BYOK em [[ADR-208]]; valor final + cobrança por workspace vs. por usuário pendente.
 - **Mapeamento `ancora_metodologica → tema_canonico`** (1:N) — `financial-planner` co-design no Ato 2 ([[ADR-207]]).
 - **Política de retenção pareceres `Superseded`** — `data-engineer` decide se TTL aplica ou se retém eternamente (default: reter, auditoria).
+
+## Emenda 2026-06-12 — `prompt_version` entra na cache key
+
+Incidente do parecer (ver emenda em [[ADR-270]]) expôs bug latente: a chave Redis
+(`compute_cache_key`, pattern ADR-144) compunha
+`workspace:e5_hash:manifest_version:schema_version:model_id:evN` — **sem**
+`PROMPT_VERSION`. Bump de prompt (ex.: 1.4.0 → 1.5.0, limites de concisão
+pós-migração [[ADR-289]]) não invalidava cache: parecer cacheado continuava
+servindo output do prompt velho até o TTL (7d), e cache hit nunca exercitava o
+prompt novo — tornando todo bump cosmético em hit.
+
+**Decisão:** o prompt é entrada da geração, logo é entrada da chave.
+`compute_cache_key` ganha `prompt_version` (default `PROMPT_VERSION` do módulo
+de prompts) no composite (`:p{prompt_version}`). Todo bump futuro é
+auto-invalidante; alternativa de bumpar `manifest_version` "de carona" foi
+rejeitada — manifest descreve a projeção do E5, não o prompt. Teste:
+`tests/test_parecer_orchestrator.py::test_cache_key_changes_with_prompt_version`.
