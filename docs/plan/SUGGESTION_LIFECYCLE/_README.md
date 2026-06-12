@@ -50,6 +50,15 @@ tags:
 4. **Sem cap ativo cliente-facing** — 158 pendentes (11 danger, 104 warning,
    46 info); metodologias (Cerbasi/AUVP/Perini) convergem em poucas ações
    ativas, máx. 2 danger (invariante R3 da persona já diz "max 2 P0").
+5. **O vazamento atinge 3 superfícies, não só o `/acao`** — as pendentes são
+   consultadas **live** (`status=Pendente`) também dentro do relatório:
+   cards "Promover para ação" por seção (`SuggestionCalloutInline`,
+   `frontend/src/components/report/sections/SuggestionCallout.tsx:79` — S3
+   sozinha renderiza 71 cards hoje) e a seção "Próximos passos"
+   (`SuggestionCalloutSummary`, mesma file L157 — lista todas as 158
+   cross-section), ambas sem cap. A seção "Plano de Ação" do relatório
+   (`PlanoDeAcaoSection`) renderiza o aggregate `decisions` (ADR-136), **não**
+   `suggestions` — 3 linhas no dogfood, fora do escopo deste plano.
 
 **Dois caps em camadas distintas (não confundir):**
 
@@ -137,7 +146,15 @@ em commit separado.
   não filtrável) → gate metodológico (proteção/liquidez → dívida → alocação →
   renda → fiscal) → impacto (`amount_brl_cents`) × peso de confiança; esforço
   só desempate; `info` colapsado por default e fora do cap.
-- Gatilho `product-designer` na lane de UI (copy + hierarquia + colapso).
+- **Superfícies do relatório (mesma lane):** `SuggestionCalloutInline`
+  (cards "Promover para ação" por seção) e `SuggestionCalloutSummary`
+  ("Próximos passos") aplicam o **mesmo** ordering + colapso de `info`;
+  cap de display por superfície (ex.: ≤3 cards inline por seção com
+  "ver todas em /acao"; "Próximos passos" mostra só acionáveis ordenadas).
+  F1/F4 já reduzem o volume na fonte (queries são live em
+  `status=Pendente`); aqui é hierarquia, não dados.
+- Gatilho `product-designer` na lane de UI (copy + hierarquia + colapso),
+  cobrindo `/acao` **e** as duas superfícies do relatório.
 
 ### F4 — Backfill dogfood (heurístico) — depende de F1
 
@@ -205,7 +222,8 @@ Regra geral: fase concluída = PR mergeado em `main` com CI verde
   telemetria por versão.
 - **F3:** parecer novo emite ≤3/horizonte; **teste de snapshot do ordering**
   com fixture multi-severidade (danger no topo independente de filtro);
-  `info` colapsado e fora do cap.
+  `info` colapsado e fora do cap; cards inline do relatório ≤3 por seção
+  com link "ver todas"; "Próximos passos" usa o mesmo ordering do `/acao`.
 - **F4:** dry-run aprovado + relatório de diff revisado antes do apply;
   dogfood 158 → ≤14 pendentes acionáveis; rollback documentado; runbook
   curto do backfill.
@@ -221,5 +239,5 @@ critério do PM) após o merge deste plano + ADR-290. Mapeamento previsto:
 | --- | --- | --- | --- |
 | `suggestion-supersede` | F1 | migration + supersede + telemetria + gate de chave | `sug-supersede-*` |
 | `parecer-valores-deterministicos` | F2 | prompt 1.4.0 + validador igualdade + eval golden | `parecer-valores-*` |
-| `acao-inbox-cap-ordering` | F3 | cap de geração + ordering/colapso UI | `acao-ordering-*` |
+| `acao-inbox-cap-ordering` | F3 | cap de geração + ordering/colapso UI (`/acao` + cards inline e "Próximos passos" do relatório) | `acao-ordering-*` |
 | `suggestion-backfill-dogfood` | F4 | script internal_ops + runbook + apply dogfood | `sug-backfill-*` |
