@@ -3,11 +3,12 @@
 
 # CHANGELOG_RECENT — entregas recentes
 
-Janela de 14 dias a partir da última entrega registrada (2026-06-12). 14 entries entre 2026-05-29 e 2026-06-12.
+Janela de 14 dias a partir da última entrega registrada (2026-06-12). 15 entries entre 2026-05-29 e 2026-06-12.
 
-## 2026-06-12 (1 entries)
+## 2026-06-12 (2 entries)
 
 - [[CHG-2026-06-12-REMOVE-HISTORICO-CICLOS]] — Remove card 'Histórico de Ciclos' do Apêndice E do relatório React — duplicata single-pair do data.changelog (ADR-148) já exibido via SectionSnapshotDiff, com rótulo enganoso em apêndice forward-looking. Backlog W5 (série temporal multi-ciclo de KPIs) registrado no plano SNAPSHOT_CHANGELOG_V3 para a lacuna metodológica real.
+- [[CHG-2026-06-12-SUGGESTION-LIFECYCLE-F1-F4]] — PLAN-suggestion-lifecycle F1–F4 mergeados em main: supersede-per-run + thesis_key para Suggestion origin=llm (ADR-290 Decidido), prompt 1.4.0 com passthrough de escalar + whitelist de faixa legítima no validador ADR-279, ordering metodológico + caps de display nas 3 superfícies + cap de geração determinístico, e backfill internal_ops com runbook. Apply executado no dogfood via modo latest_batch (aprovado pelo owner após dry-run heurístico achar 0 duplicatas): 165 → 7 Pendentes (5 acionáveis, 0 danger; aceite ≤14 ✓), 158 Superseded soft. Pendência operacional: gate de estabilidade thesis_key ≥90% em 2 runs reais.
 
 ## 2026-06-09 (2 entries)
 

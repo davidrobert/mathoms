@@ -4,13 +4,14 @@ type: track
 title: "Track A25 — SUGGESTION_LIFECYCLE F1→F4: supersede-per-run, thesis_key, valores determinísticos, cap/ordering, backfill dogfood"
 sprint: A25
 plan: PLAN-suggestion-lifecycle
-status: ready
+status: consumed
+consumed_at: "2026-06-12"
 created_at: "2026-06-12"
 agent_role: senior-engineer
 tags:
   - type/track
   - sprint/a25
-  - status/ready
+  - status/consumed
   - priority/p1
   - area/backend
   - area/llm
@@ -18,6 +19,14 @@ tags:
 ---
 
 # Track A25 — SUGGESTION_LIFECYCLE F1→F4
+
+> ✅ **Consumido em 2026-06-12** — F1 (#622), F2 (#623), F3 (#624) e
+> F4 (#626 + follow-up #627 `latest_batch`) squash-merged em `main` com
+> CI verde. Backfill **aplicado** no dogfood (owner aprovou "último
+> parecer vence" após dry-run heurístico achar 0 duplicatas): 165 → 7
+> Pendentes (5 acionáveis, 0 danger; aceite ≤14 ✓), 158 Superseded soft.
+> **Pendência operacional** (ver [[PLAN-suggestion-lifecycle]]): gate de
+> estabilidade thesis_key ≥90% em 2 runs reais do pipeline.
 
 > **Prompt self-contained.** Você é um engenheiro sênior executando o plano
 > [[PLAN-suggestion-lifecycle]] (`docs/plan/SUGGESTION_LIFECYCLE/_README.md`)
