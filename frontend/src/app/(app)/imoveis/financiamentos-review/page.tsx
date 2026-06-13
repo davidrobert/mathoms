@@ -149,7 +149,7 @@ interface DebtRowActionsProps {
 
 function DebtRowActions({ debt, properties, onAssign }: DebtRowActionsProps) {
   const [submitting, setSubmitting] = useState(false);
-  const handleChange = async (value: string) => {
+  const handleChange = async (value: string | null) => {
     setSubmitting(true);
     try {
       await onAssign(value === "__none__" ? null : value);

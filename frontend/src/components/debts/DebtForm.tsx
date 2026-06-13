@@ -208,7 +208,7 @@ export function DebtForm({ initial, properties, members, onSubmit, onCancel }: D
           <Label htmlFor="debt-member">Membro vinculado</Label>
           <Select
             value={state.family_member_id || "__none__"}
-            onValueChange={(v) => update("family_member_id")(v === "__none__" ? "" : v)}
+            onValueChange={(v) => update("family_member_id")(v && v !== "__none__" ? v : "")}
           >
             <SelectTrigger id="debt-member">
               <SelectValue placeholder="Sem vínculo" />
@@ -227,7 +227,7 @@ export function DebtForm({ initial, properties, members, onSubmit, onCancel }: D
           <Label htmlFor="debt-property">Imóvel vinculado</Label>
           <Select
             value={state.property_id || "__none__"}
-            onValueChange={(v) => update("property_id")(v === "__none__" ? "" : v)}
+            onValueChange={(v) => update("property_id")(v && v !== "__none__" ? v : "")}
           >
             <SelectTrigger id="debt-property">
               <SelectValue placeholder="Sem vínculo" />
