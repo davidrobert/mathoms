@@ -17,6 +17,7 @@
     "start": "next start",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
+    "type-check": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
