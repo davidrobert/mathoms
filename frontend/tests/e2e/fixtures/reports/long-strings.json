@@ -176,5 +176,99 @@
   "tarefas_status": {},
   "narrativas": {
     "perfil_familia": "Família com perfil moderado-arrojado, foco em independência financeira de longo prazo via dividendos e juros sobre capital próprio, com horizonte de 25 anos para constituir patrimônio capaz de gerar renda passiva equivalente a 80% da renda atual."
+  },
+  "real_estate":   {
+    "cap_rate_liquido_pct": 1.3,
+    "cap_rate_bruto_pct": 1.7,
+    "componentes_calculo": {
+      "aluguel_anual_bruto": {
+        "valor": 50400,
+        "origem": "informe",
+        "confidence": "high"
+      }
+    },
+    "benchmarks": {
+      "cdi_liquido_pct": 8.99,
+      "ntnb_liquido_pct": 5.52,
+      "ifix_yield_pct": 9.2,
+      "as_of_date": "2026-04-30"
+    },
+    "spreads_pp": {
+      "vs_cdi": -7.69,
+      "vs_ntnb": -4.22,
+      "vs_ifix": -7.9
+    },
+    "spread_brl_anual": {
+      "vs_cdi": -92280,
+      "vs_ntnb": -50640,
+      "vs_ifix": -94800
+    },
+    "concentracao_pct": 38,
+    "valor_total_imoveis": 3450000,
+    "imoveis": [
+      {
+        "property_id": "ls-1",
+        "descricao": "Apartamento residencial de altíssimo padrão com quatro suítes, varanda gourmet integrada, três vagas de garagem demarcadas e depósito privativo no subsolo do edifício",
+        "classification": "locado",
+        "valor_imovel": 2250000,
+        "valor_imovel_origem": "irpf",
+        "aluguel_mensal_bruto": 4200,
+        "taxa_administracao_mensal": 210,
+        "iptu_mensal": 400,
+        "condominio_mensal": 850,
+        "ir_retido_mensal": 0,
+        "meses_locado_no_ano": 12,
+        "vacancia_pct_empirica": 0,
+        "cap_rate_bruto_pct": 2.1,
+        "cap_rate_liquido_pct": 1.6,
+        "gap_reajuste_pct": null,
+        "status_contrato": "atualizado",
+        "indice_reajuste": "IGP-M",
+        "data_ultimo_reajuste": "2025-08-15",
+        "endereco_canonical": "Avenida Engenheiro Luís Carlos Berrini, 1500, Conjunto 142, Bloco B, Bairro Cidade Monções, São Paulo — Capital, CEP 04571-000",
+        "imobiliaria_cnpj": null,
+        "imobiliaria_nome": "Administradora Predial e Intermediação Imobiliária do Litoral Norte Sociedade Limitada",
+        "origem_aluguel": "informe"
+      },
+      {
+        "property_id": "ls-2",
+        "descricao": "Sala comercial em torre corporativa triple A com certificação ambiental, infraestrutura de cabeamento estruturado e gerador de emergência redundante",
+        "classification": "comercial",
+        "valor_imovel": 1200000,
+        "valor_imovel_origem": "mercado",
+        "aluguel_mensal_bruto": 2100,
+        "taxa_administracao_mensal": 210,
+        "iptu_mensal": 400,
+        "condominio_mensal": 850,
+        "ir_retido_mensal": 0,
+        "meses_locado_no_ano": 12,
+        "vacancia_pct_empirica": 0,
+        "cap_rate_bruto_pct": 2.1,
+        "cap_rate_liquido_pct": 1.6,
+        "gap_reajuste_pct": 12.4,
+        "status_contrato": "reajuste_pendente",
+        "indice_reajuste": "IGP-M",
+        "data_ultimo_reajuste": "2025-08-15",
+        "endereco_canonical": "Praça Quinze de Novembro, sem número, Edifício Memorial da República, Distrito Federal",
+        "imobiliaria_cnpj": null,
+        "imobiliaria_nome": "Gestão Patrimonial e Locação Corporativa Associados",
+        "origem_aluguel": "informe"
+      }
+    ],
+    "excluded_properties": [
+      {
+        "property_id": "ls-x1",
+        "descricao": "Terreno não edificado em loteamento fechado aguardando regularização fundiária junto à prefeitura municipal",
+        "classification": "especulacao",
+        "motivo": "imóvel sem renda de aluguel declarada no período analisado"
+      }
+    ],
+    "alertas": [
+      {
+        "code": "contrato_reajuste_pendente",
+        "severity": "warning",
+        "context": "Contrato da sala comercial com reajuste pendente há mais de doze meses; gap estimado de doze vírgula quatro por cento frente ao índice contratual IGP-M acumulado no período"
+      }
+    ]
   }
 }
