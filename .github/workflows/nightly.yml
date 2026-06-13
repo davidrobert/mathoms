@@ -46,6 +46,15 @@ concurrency:
   group: nightly-${{ github.ref }}
   cancel-in-progress: true
 
+# Os steps "Open issue on … failure" (main-smoke, visual, backup-drill,
+# lineage-eval) chamam github.rest.issues.create/listForRepo. Com o
+# GITHUB_TOKEN default read-only do repo, falhavam com "Resource not
+# accessible by integration" — o alerta noturno nunca era aberto. issues:
+# write destrava; contents: read mantém o checkout.
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   main-smoke:
     # Safety net diário após remoção do trigger `push: main` de ci.yml
@@ -116,7 +125,15 @@ jobs:
           [ -d .venv ] || uv venv .venv
           uv pip install -r requirements.in -r backend/requirements.in
           uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
-          uv pip install --system pre-commit ruff==0.6.0 jsonschema pyyaml
+
+      - name: Install system lint tools (sempre — não vão no venv cache)
+        # pre-commit/ruff/jsonschema/pyyaml instalam no system python via
+        # `--system`, FORA do `.venv` cacheado. Em cache HIT do venv (caso
+        # comum no nightly, reusando venv de PR mergeado) o step acima é
+        # pulado; sem este step dedicado o Lint gate quebra com
+        # `pre-commit: command not found` (exit 127). Espelha o lint job de
+        # ci.yml, que instala essas tools incondicionalmente.
+        run: uv pip install --system pre-commit ruff==0.6.0 jsonschema pyyaml
 
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -328,6 +345,10 @@ jobs:
           MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
           MATHOMS_REDIS_URL: redis://localhost:6380/0
           MATHOMS_LLM_MOCK: "1"
+          # Chave sintética de CI — NÃO é segredo de produção (mesma de
+          # ci.yml / backup-drill; allowlisted em .gitleaks.toml). Sem ela
+          # o vault aborta no boot: "MATHOMS_FERNET_KEY não configurada".
+          MATHOMS_FERNET_KEY: "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" # gitleaks:allow
         run: |
           uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 \
             > /tmp/uvicorn.log 2>&1 &
