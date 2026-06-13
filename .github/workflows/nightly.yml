@@ -328,6 +328,10 @@ jobs:
           MATHOMS_DATABASE_URL: "postgresql+asyncpg://fin_test:fin_test@localhost:5433/fin_test"
           MATHOMS_REDIS_URL: redis://localhost:6380/0
           MATHOMS_LLM_MOCK: "1"
+          # Chave sintética de CI — NÃO é segredo de produção (mesma de ci.yml;
+          # allowlisted em .gitleaks.toml via regex global). Sem ela o vault
+          # (Fernet) aborta o boot do backend.
+          MATHOMS_FERNET_KEY: "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" # gitleaks:allow
         run: |
           uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 \
             > /tmp/uvicorn.log 2>&1 &
