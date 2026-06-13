@@ -127,5 +127,62 @@
   "tarefas_status": {},
   "narrativas": {
     "perfil_familia": "Início de jornada de planejamento; histórico de dados curto (4 meses ativos)."
+  },
+  "real_estate":   {
+    "cap_rate_liquido_pct": 0.9,
+    "cap_rate_bruto_pct": 1.1,
+    "componentes_calculo": {
+      "aluguel_anual_bruto": {
+        "valor": 8400,
+        "origem": "irpf",
+        "confidence": "low"
+      }
+    },
+    "benchmarks": {
+      "cdi_liquido_pct": 8.99,
+      "ntnb_liquido_pct": 5.52,
+      "ifix_yield_pct": 9.2,
+      "as_of_date": "2026-04-30"
+    },
+    "spreads_pp": {
+      "vs_cdi": -8.09,
+      "vs_ntnb": -4.62,
+      "vs_ifix": -8.3
+    },
+    "spread_brl_anual": {
+      "vs_cdi": -64720,
+      "vs_ntnb": -36960,
+      "vs_ifix": -66400
+    },
+    "concentracao_pct": 100,
+    "valor_total_imoveis": 800000,
+    "imoveis": [
+      {
+        "property_id": "sp-1",
+        "descricao": "Kitnet",
+        "classification": "locado",
+        "valor_imovel": 800000,
+        "valor_imovel_origem": "irpf",
+        "aluguel_mensal_bruto": 700,
+        "taxa_administracao_mensal": null,
+        "iptu_mensal": null,
+        "condominio_mensal": null,
+        "ir_retido_mensal": 0,
+        "meses_locado_no_ano": null,
+        "vacancia_pct_empirica": null,
+        "cap_rate_bruto_pct": null,
+        "cap_rate_liquido_pct": null,
+        "gap_reajuste_pct": null,
+        "status_contrato": "desconhecido",
+        "indice_reajuste": null,
+        "data_ultimo_reajuste": null,
+        "endereco_canonical": null,
+        "imobiliaria_cnpj": null,
+        "imobiliaria_nome": null,
+        "origem_aluguel": "irpf"
+      }
+    ],
+    "excluded_properties": [],
+    "alertas": []
   }
 }

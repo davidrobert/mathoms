@@ -168,5 +168,92 @@
   "tarefas_status": {},
   "narrativas": {
     "perfil_familia": "Patrimônio em fase de consolidação avançada; foco em otimização tributária e proteção patrimonial."
+  },
+  "real_estate":   {
+    "cap_rate_liquido_pct": 2.4,
+    "cap_rate_bruto_pct": 3.1,
+    "componentes_calculo": {
+      "aluguel_anual_bruto": {
+        "valor": 2880000,
+        "origem": "informe",
+        "confidence": "high"
+      }
+    },
+    "benchmarks": {
+      "cdi_liquido_pct": 8.99,
+      "ntnb_liquido_pct": 5.52,
+      "ifix_yield_pct": 9.2,
+      "as_of_date": "2026-04-30"
+    },
+    "spreads_pp": {
+      "vs_cdi": -6.59,
+      "vs_ntnb": -3.12,
+      "vs_ifix": -6.8
+    },
+    "spread_brl_anual": {
+      "vs_cdi": -7908000,
+      "vs_ntnb": -3744000,
+      "vs_ifix": -8160000
+    },
+    "concentracao_pct": 61,
+    "valor_total_imoveis": 120000000,
+    "imoveis": [
+      {
+        "property_id": "lv-1",
+        "descricao": "Edifício comercial inteiro",
+        "classification": "comercial",
+        "valor_imovel": 72500000,
+        "valor_imovel_origem": "mercado",
+        "aluguel_mensal_bruto": 185000,
+        "taxa_administracao_mensal": 18500,
+        "iptu_mensal": 42000,
+        "condominio_mensal": 0,
+        "ir_retido_mensal": 27500,
+        "meses_locado_no_ano": 12,
+        "vacancia_pct_empirica": 0,
+        "cap_rate_bruto_pct": 2.1,
+        "cap_rate_liquido_pct": 1.6,
+        "gap_reajuste_pct": null,
+        "status_contrato": "atualizado",
+        "indice_reajuste": "IGP-M",
+        "data_ultimo_reajuste": "2025-08-15",
+        "endereco_canonical": "Rua das Acácias, 100",
+        "imobiliaria_cnpj": null,
+        "imobiliaria_nome": "Imobiliária Centro",
+        "origem_aluguel": "informe"
+      },
+      {
+        "property_id": "lv-2",
+        "descricao": "Galpão logístico",
+        "classification": "comercial",
+        "valor_imovel": 47500000,
+        "valor_imovel_origem": "mercado",
+        "aluguel_mensal_bruto": 155000,
+        "taxa_administracao_mensal": 15500,
+        "iptu_mensal": 38000,
+        "condominio_mensal": 850,
+        "ir_retido_mensal": 0,
+        "meses_locado_no_ano": 12,
+        "vacancia_pct_empirica": 0,
+        "cap_rate_bruto_pct": 2.1,
+        "cap_rate_liquido_pct": 1.6,
+        "gap_reajuste_pct": null,
+        "status_contrato": "atualizado",
+        "indice_reajuste": "IGP-M",
+        "data_ultimo_reajuste": "2025-08-15",
+        "endereco_canonical": "Rua das Acácias, 100",
+        "imobiliaria_cnpj": null,
+        "imobiliaria_nome": "Imobiliária Centro",
+        "origem_aluguel": "informe"
+      }
+    ],
+    "excluded_properties": [],
+    "alertas": [
+      {
+        "code": "concentracao_alta",
+        "severity": "critical",
+        "context": "61% do patrimônio concentrado em imóveis comerciais"
+      }
+    ]
   }
 }
