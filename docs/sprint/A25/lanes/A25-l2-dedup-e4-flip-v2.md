@@ -4,7 +4,7 @@ type: lane
 title: "Flip do consumo E4 para identidade v2 (passo 2 da B4)"
 sprint: A25
 plan: PLAN-data-lineage
-status: open
+status: in_progress
 priority: P0
 branch_slug: dedup-e4-flip-v2
 adrs:
@@ -16,7 +16,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a25
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/data-lineage
   - area/pipeline

@@ -40,7 +40,7 @@ theme: "data-lineage"
 | Lane | Slug | Status | Dep |
 |---|---|---|---|
 | [[A25.l1]] | `a23l4-cutover-override` (dual-read 6 call-sites + flag; M2 → carry-over) | ✅ shipped #604 | A23.l4 s3 ✅ #563 |
-| [[A25.l2]] | `dedup-e4-flip-v2` ([[ADR-287]] `Proposto` ✅ #605; dry-run dogfood 7/7 órfãos — aguarda inspeção owner) | blocked | l1 ✅ + owner |
+| [[A25.l2]] | `dedup-e4-flip-v2` ([[ADR-287]] `Proposto` #605; **slice 1 shipped #619/#621** — flag `dedup_natural_key_v2_enabled` OFF + dispatch `compute_identity_hash` + 16 testes paridade; **G-f aprovado pelo owner 2026-06-12** — zero delta monetário) | open (slice 1 ✅; residual: cutover flip ON + rebaseline G-c + `member_hashes` reais via l6B) | l1 ✅ |
 | [[A25.l3]] | `dl-f5-reverso` (edge table + hook pós-run; teto run→doc documentado) | ✅ shipped #600 | — |
 | [[A25.l4]] | `dl-f7-debug-llm` (renderer/diff/tools/eval nightly + seed #606/#607) | ✅ shipped #603 | — |
 | [[A25.l5]] | `dl-f6-produto-n1n2` (selo+popover; teste 5s dogfood pendente, flag off) | ✅ shipped #602 | — |
