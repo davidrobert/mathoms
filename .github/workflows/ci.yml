@@ -4,7 +4,7 @@
 # 1. lint-all  — pre-commit + ruff + style baseline + PII + tenancy (1 job)
 # 2. pipeline-tests (pytest em tests/) com venv cache
 # 3. backend-tests (pytest em backend/tests/) com Redis service + venv cache
-# 4. frontend-checks (ESLint + Vitest, setup compartilhado)
+# 4. frontend-checks (ESLint + tsc --noEmit + Vitest, setup compartilhado)
 # 5. frontend-e2e (Playwright + backend real) — opt-in via label `e2e`
 # 6. frontend-visual (Playwright snapshots) — opt-in via label `visual`
 #    ou workflow_dispatch; scan completo fica no nightly.
@@ -438,9 +438,10 @@ jobs:
   frontend-checks:
     # A6g.6 slice 2, ADR-114: gate @typescript-eslint/no-explicit-any +
     # no-unused-vars bloqueantes; max-lines/-per-function progressivos.
-    # Consolida ESLint + Vitest para pagar checkout/setup-node/npm ci uma vez
-    # por PR frontend. Trade-off aceito: se lint falha, Vitest não roda.
-    name: Frontend checks (ESLint + Vitest)
+    # Consolida ESLint + tsc + Vitest para pagar checkout/setup-node/npm ci
+    # uma vez por PR frontend. Trade-off aceito: fail-fast por step (se lint
+    # falha, type-check/Vitest não rodam).
+    name: Frontend checks (ESLint + tsc + Vitest)
     runs-on: ubuntu-latest
     # ESLint observado ~43s; Vitest observado ~1m49s. 7min dá buffer sem
     # esconder hang real em npm/Vitest.
@@ -465,6 +466,12 @@ jobs:
 
       - name: ESLint
         run: npm run lint
+
+      - name: Type-check (tsc --noEmit)
+        # Fecha buraco: ESLint (no-explicit-any) não pega type errors; antes
+        # só o nightly lighthouse (next build) os pegava — depois de chegar
+        # em main. tsc roda aqui pois npm ci já instalou TypeScript (~30s).
+        run: npm run type-check
 
       - name: Run Vitest
         run: npm test -- --reporter=default --reporter=junit --outputFile=./vitest-results.xml
