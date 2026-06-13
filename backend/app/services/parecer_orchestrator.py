@@ -99,14 +99,15 @@ def compute_cache_key(
     schema_version: str,
     model_id: str,
     workspace_id: str,
+    prompt_version: str = PROMPT_VERSION,
 ) -> str:
     """Chave Redis canônica do parecer (ADR-199 §pattern ADR-144)."""
     e5_raw = json.dumps(e5_data, sort_keys=True, ensure_ascii=False, default=str)
     e5_hash = hashlib.sha256(e5_raw.encode("utf-8")).hexdigest()[:16]
-    # ev{N} invalida caches pré-F4 (sem citação verificada — ADR-279 §E).
+    # ev{N}: ADR-279 §E. p{prompt_version}: bump de prompt auto-invalida (emenda ADR-199).
     composite = (
         f"{workspace_id}:{e5_hash}:{manifest_version}:{schema_version}:{model_id}"
-        f":ev{EVIDENCIA_VERIFICATION_VERSION}"
+        f":ev{EVIDENCIA_VERIFICATION_VERSION}:p{prompt_version}"
     )
     digest = hashlib.sha256(composite.encode("utf-8")).hexdigest()
     return f"mathoms:llm:parecer_planejador:{digest}"
@@ -321,13 +322,7 @@ def generate_parecer(
 
 
 def _call_llm_safe(
-    *,
-    llm: Any,
-    system_prompt: str,
-    user_prompt: str,
-    max_tokens: int,
-    timeout_s: float,
-    workspace_id: str,
+    *, llm: Any, system_prompt: str, user_prompt: str, config: ParecerOrchestratorConfig
 ) -> tuple[Optional[ParecerPlanejadorOutput], Optional[str]]:
     """Invoca LLM com Instructor (output validado pelo schema); exceção vira ``(None, error_msg)``."""
     try:
@@ -336,13 +331,13 @@ def _call_llm_safe(
             user_prompt=user_prompt,
             output_schema=ParecerPlanejadorOutput,
             stage="review_finances_holistic",
-            max_tokens=max_tokens,
-            timeout_s=timeout_s,
+            max_tokens=config.max_tokens,
+            timeout_s=config.llm_timeout_s,
         ).output, None
     except Exception as exc:  # noqa: BLE001 — todas exceções viram needs_review
         logger.warning(
             "parecer_planejador_llm_call_failed",
-            extra={"workspace_id": workspace_id, "error": str(exc)[:200]},
+            extra={"workspace_id": config.workspace_id, "error": str(exc)[:200]},
         )
         return None, f"LLM call failed: {exc}"
 
@@ -415,12 +410,7 @@ def _generate_with_llm(
         format_hints=manifest.format_hints,
     )
     raw, err = _call_llm_safe(
-        llm=llm,
-        system_prompt=system_prompt,
-        user_prompt=user_prompt,
-        max_tokens=config.max_tokens,
-        timeout_s=config.llm_timeout_s,
-        workspace_id=config.workspace_id,
+        llm=llm, system_prompt=system_prompt, user_prompt=user_prompt, config=config
     )
     if raw is None:
         return _needs_review(

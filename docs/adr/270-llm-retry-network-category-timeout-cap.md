@@ -145,12 +145,33 @@ reusando o mesmo cap, falhava **deterministicamente**: 494s queimados sem chance
 Pior caso do parecer: 240s + backoff 2s + 480s ≈ **12min** (vs 494s falhando sempre); o caso
 observado no incidente teria sucedido **na 1ª tentativa** com base 240s.
 
+**Decisão complementar — `validation` sai do outer loop (mesma data):** com o
+timeout resolvido, a re-execução expôs a camada seguinte: `string_too_long`
+quase determinístico (modelo novo mais verboso que os `max_length` do schema).
+O outer loop re-tentava validation **fresco** 3× a temp 0.1 — reproduzindo o
+mesmo erro a ~140s/tentativa. Revisão:
+
+5. **Reask interno do Instructor sobe de 1 → 2** (`max_retries=2` no
+   `create`): re-pergunta COM o erro de validação no contexto — único retry
+   que muda o resultado em validation.
+6. **`validation` deixa de consumir o outer loop**: esgotado o reask interno,
+   `LLMValidationError` → needs_review direto. Outer loop fica reservado a
+   transientes (timeout/network/rate_limit/provider_error).
+7. Causa proximal tratada no prompt (1.5.0: limites de concisão por campo,
+   margem ~15% sob o schema) — schema `max_length` inalterado (contrato de
+   renderer; truncation silenciosa rejeitada). Cache: ver emenda [[ADR-199]]
+   (`prompt_version` na chave).
+
 **Critério de aceite da emenda:** testes em `tests/test_litellm_client_retry.py`
-(escalada, teto 600s, cap de 2 tentativas, não-escalada de provider_error) +
+(escalada, teto 600s, cap de 2 tentativas, não-escalada de provider_error,
+validation = 1 chamada externa, reask interno 2) +
 `tests/test_parecer_orchestrator.py::test_llm_call_uses_parecer_timeout_base`.
 
-**Follow-up (débito):** caracterizar p95 real do parecer com `claude-sonnet-4-6` (5-10
-execuções) para validar se 240s é o base correto.
+**Follow-ups (débito):** (a) caracterizar p95 real do parecer com
+`claude-sonnet-4-6` (5-10 execuções) para validar se 240s é o base correto;
+(b) smoke eval de comprimento de campos prosa vs `max_length` como gate de
+cutover de modelo — [[ADR-289]] trocou o modelo sem eval real e esta classe de
+regressão é invisível ao CI mockado.
 
 ## Follow-ups
 

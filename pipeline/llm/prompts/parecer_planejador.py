@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Bump quando o conteúdo abaixo mudar — gate CI valida (W2-T05).
-PROMPT_VERSION = "1.4.0"
+PROMPT_VERSION = "1.5.0"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -35,6 +35,12 @@ SYSTEM_PROMPT_TEMPLATE = """\
    - 3-6 pontos fortes; ≤12 riscos; ≤5 sugestões por horizonte (3 horizontes =
      ≤15 total); ≤10 métricas; ≤5 notas.
    - **count(P0) ≤ 2** no agregado dos 3 horizontes (raro por construção).
+   - **Concisão (limites rígidos de caracteres):** cada campo de prosa tem teto
+     validado downstream — exceder = resposta descartada. Escreva denso, sem
+     preâmbulo; frase curta > frase explicativa. Tetos-guia (deixe ~15% de
+     folga): `diagnostico_geral` ≤ 420; `descricao` de risco/sugestão/ponto
+     forte ≤ 340; `acao` ≤ 240; `impacto_qualitativo` ≤ 270; `evidencia` ≤ 250;
+     `caveat` ≤ 200; `conteudo` de nota ≤ 500.
 
 5. **Persona_hash, manifest_version, model_id, tier_at_generation, generated_at**
    em `metadata` são placeholders — o orchestrator sobrescreve após sua resposta.

@@ -24,8 +24,9 @@ _REPO = Path(__file__).resolve().parents[1]
 _OUTPUT_SCHEMA = _REPO / "config" / "schemas" / "parecer_planejador.schema.json"
 
 # Baseline do SYSTEM_PROMPT_TEMPLATE (chars; aproximação tokens = len//4).
-# 4664 pré-F4 (ADR-279) → 5411 em 1.4.0 (regras 12-13, ADR-290 F2).
-_PROMPT_BASELINE_CHARS = 5411
+# 4664 pré-F4 (ADR-279) → 5411 em 1.4.0 (regras 12-13, ADR-290 F2) → 5846 em
+# 1.5.0 (limites de concisão na regra 4, incidente string_too_long 2026-06-12).
+_PROMPT_BASELINE_CHARS = 5846
 
 
 def _risco(descricao: str, path: str | None) -> Risco:
@@ -218,7 +219,7 @@ class TestValorDeterministicoF2:
         agg = result["evidencia_verification"]
         assert agg["money_tokens_total"] >= 1
         assert agg["range_in_scalar_count"] == 0
-        assert agg["prompt_version"] == "1.4.0"
+        assert agg["prompt_version"] == "1.5.0"
 
 
 # -----------------------------------------------------------------------
@@ -336,7 +337,7 @@ class TestPromptTokenBudget:
         current_tokens = len(SYSTEM_PROMPT_TEMPLATE) // 4
         delta = abs(current_tokens - baseline_tokens) / baseline_tokens
         assert delta < 0.05, f"delta de tokens {delta:.2%} excede 5% (F4)"
-        assert PROMPT_VERSION == "1.4.0"
+        assert PROMPT_VERSION == "1.5.0"
 
     def test_regras_valor_deterministico_presentes(self):
         """ADR-290 F2 — regras 12 (passthrough escalar) e 13 (cap de geração)."""
