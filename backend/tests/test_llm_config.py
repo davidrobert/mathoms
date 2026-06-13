@@ -291,6 +291,53 @@ async def test_update_llm_config(auth_client: AsyncClient):
     assert data["max_tokens"] == 16384
 
 
+async def _put_llm(auth_client: AsyncClient, payload: dict):
+    return await auth_client.put(f"/api/workspaces/{auth_client.ws_id}/config/llm", json=payload)
+
+
+@pytest.mark.asyncio
+async def test_update_model_only_reuses_saved_api_key(auth_client: AsyncClient):
+    """Regressão UI /config LLM: PUT sem api_key troca o modelo reusando a chave salva."""
+    create = {
+        "provider": "anthropic",
+        "api_key": "sk-ant-model-only-1234567890",
+        "model_name": "claude-sonnet-4-20250514",
+        "max_tokens": 16384,
+    }
+    first = (await _put_llm(auth_client, create)).json()
+
+    resp = await _put_llm(auth_client, {"provider": "anthropic", "model_name": "claude-opus-4-8"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["model_name"] == "claude-opus-4-8"
+    assert data["api_key_masked"] == first["api_key_masked"]
+    assert data["api_key_status"] == "valid"
+    assert data["max_tokens"] == 16384
+
+    tier = await auth_client.get(f"/api/workspaces/{auth_client.ws_id}/config/llm/tier")
+    assert tier.json()["tier"] == "premium"
+
+
+@pytest.mark.asyncio
+async def test_create_without_api_key_rejected(auth_client: AsyncClient):
+    """PUT sem api_key e sem config existente → 422."""
+    resp = await _put_llm(auth_client, {"provider": "anthropic", "model_name": "claude-opus-4-8"})
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_provider_change_without_api_key_rejected(auth_client: AsyncClient):
+    """Trocar provider reusando chave de outro provider → 422 (chaves não são portáveis)."""
+    create = {
+        "provider": "anthropic",
+        "api_key": "sk-ant-provider-switch",
+        "model_name": "claude-sonnet-4-20250514",
+    }
+    await _put_llm(auth_client, create)
+    resp = await _put_llm(auth_client, {"provider": "openai", "model_name": "gpt-4o"})
+    assert resp.status_code == 422
+
+
 @pytest.mark.asyncio
 async def test_delete_llm_config(auth_client: AsyncClient):
     """DELETE /api/config/llm removes config."""

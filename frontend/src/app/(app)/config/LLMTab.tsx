@@ -135,16 +135,24 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
   }, [fetchData]);
 
   const handleSave = async () => {
-    if (!provider || !apiKey || !modelName) {
+    if (!provider || !modelName) {
       toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+    if (!apiKey && !config) {
+      toast.error("Informe a chave de API");
+      return;
+    }
+    if (!apiKey && config && provider !== config.provider) {
+      toast.error("Trocar de provedor exige informar a chave de API do novo provedor");
       return;
     }
     setSaving(true);
     try {
       const updated = await saveLLMConfig(workspace.id, {
         provider,
-        api_key: apiKey,
         model_name: modelName,
+        ...(apiKey ? { api_key: apiKey } : {}),
       });
       setConfig(updated);
       setApiKey("");
@@ -207,6 +215,11 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
   const tierVariant = tier?.tier === "premium" ? "default" : "secondary";
   const isKeyInvalid = config?.api_key_status === "invalid";
   const isModelDeprecated = config?.model_status === "deprecated";
+  // Sem chave nova, salvar só faz sentido para mudança de modelo no mesmo
+  // provider (backend reusa a chave criptografada; trocar provider exige chave).
+  const modelChangedSameProvider =
+    config !== null && provider === config.provider && modelName !== config.model_name;
+  const canSave = Boolean(apiKey) || modelChangedSameProvider;
 
   return (
     <div className="space-y-6">
@@ -392,7 +405,7 @@ function LLMTabContent({ workspace }: { workspace: UserWorkspace }) {
           <Separator />
 
           <div className="flex flex-wrap gap-3">
-            <Button onClick={handleSave} disabled={saving || !apiKey}>
+            <Button onClick={handleSave} disabled={saving || !canSave}>
               {saving ? (
                 <Spinner className="mr-2 h-4 w-4" />
               ) : (

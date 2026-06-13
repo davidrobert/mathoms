@@ -362,7 +362,7 @@ export async function getLLMConfig(workspaceId: string): Promise<LLMConfigRespon
 
 export async function saveLLMConfig(workspaceId: string, data: {
   provider: string;
-  api_key: string;
+  api_key?: string;
   model_name: string;
   max_tokens?: number;
   temperature?: number;

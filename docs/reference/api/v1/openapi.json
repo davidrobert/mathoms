@@ -5973,10 +5973,16 @@
         "description": "Create or update LLM configuration for a workspace.",
         "properties": {
           "api_key": {
-            "description": "API key (will be encrypted at rest)",
-            "minLength": 1,
-            "title": "Api Key",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "API key (will be encrypted at rest). Em update pode ser omitida para reusar a chave j\u00e1 salva (mesmo provider); obrigat\u00f3ria ao criar.",
+            "title": "Api Key"
           },
           "max_tokens": {
             "default": 4096,
@@ -6006,8 +6012,7 @@
           }
         },
         "required": [
-          "provider",
-          "api_key"
+          "provider"
         ],
         "title": "LLMConfigCreateRequest",
         "type": "object"
