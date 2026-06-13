@@ -125,13 +125,29 @@ def _build_cost_row(*, workspace_id: str, run_id: str, detail: dict) -> Pipeline
     )
 
 
+def _find_e5_with_base_run_fallback(
+    db: Session, *, workspace_id: str, run_id: str
+) -> Optional[PipelineArtifact]:
+    """E5 do run; em run ``from_stage`` (ADR-291) o E5 vive no base_run pinado."""
+    e5 = _find_artifact(db, workspace_id=workspace_id, run_id=run_id, stage=_E5_STAGE, key=_E5_KEY)
+    if e5 is not None:
+        return e5
+    run = db.get(PipelineRun, run_id)
+    base_run_id = run.base_run_id if run is not None else None
+    if not base_run_id:
+        return None
+    return _find_artifact(
+        db, workspace_id=workspace_id, run_id=base_run_id, stage=_E5_STAGE, key=_E5_KEY
+    )
+
+
 def _load_artifacts(
     db: Session, *, workspace_id: str, run_id: str
 ) -> Optional[tuple[PipelineArtifact, PipelineArtifact]]:
     """Carrega (parecer, E5) artifacts; ``None`` se algum sumiu."""
     kwargs = {"workspace_id": workspace_id, "run_id": run_id}
     parecer = _find_artifact(db, stage=_PARECER_STAGE, key=_PARECER_KEY, **kwargs)
-    e5 = _find_artifact(db, stage=_E5_STAGE, key=_E5_KEY, **kwargs)
+    e5 = _find_e5_with_base_run_fallback(db, **kwargs)
     if parecer is None or e5 is None:
         logger.warning(
             "planner_review_persistence_artifacts_missing",
