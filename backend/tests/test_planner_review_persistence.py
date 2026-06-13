@@ -177,6 +177,36 @@ async def test_persist_creates_review_cost_and_suggestion(db, sync_session):
     _assert_suggestion_row(sync_session, workspace.id)
 
 
+@pytest.mark.asyncio
+async def test_persist_from_stage_run_reads_e5_do_base_run(db, sync_session):
+    """Run ``from_stage`` (ADR-291) não tem E5 próprio — o E5 vive no base_run
+    pinado. Sem o fallback, o parecer regenerado nunca publicava PlannerReview
+    (incidente 2026-06-12, run 79ddd9d3)."""
+    workspace = await factories.make_workspace(db)
+    base_run = await factories.make_run(db, workspace=workspace)
+    await make_artifacts(db, workspace, base_run)
+
+    retry_run = await factories.make_run(db, workspace=workspace)
+    retry_run.base_run_id = base_run.id
+    parecer_novo = PipelineArtifact(
+        workspace_id=workspace.id,
+        pipeline_run_id=retry_run.id,
+        stage="E6-parecer",
+        artifact_key="parecer_planejador",
+        content_json=make_artifact_content(),
+    )
+    db.add(parecer_novo)
+    await db.commit()
+
+    review_id = persist_planner_review(
+        sync_session, workspace_id=workspace.id, run_id=retry_run.id, detail=make_detail()
+    )
+    sync_session.commit()
+    assert review_id is not None
+    review = sync_session.get(PlannerReview, review_id)
+    assert review.pipeline_run_id == retry_run.id
+
+
 def _call_persist(sync_session, workspace_id: str, run_id: str) -> str | None:
     out = persist_planner_review(
         sync_session, workspace_id=workspace_id, run_id=run_id, detail=make_detail()
