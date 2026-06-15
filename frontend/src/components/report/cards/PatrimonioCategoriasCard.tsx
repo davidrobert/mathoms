@@ -25,7 +25,7 @@ export function PatrimonioCategoriasCard({
 
   if (rows.length === 0) {
     return (
-      <ReportCard variant="feature" title="Composição Patrimonial">
+      <ReportCard variant="feature" title="Composição Patrimonial por Categoria">
         <p className="text-sm text-[var(--surface-muted-foreground)]">
           Sem dados de composição patrimonial neste período.
         </p>
@@ -34,7 +34,7 @@ export function PatrimonioCategoriasCard({
   }
 
   return (
-    <ReportCard variant="feature" title="Composição Patrimonial">
+    <ReportCard variant="feature" title="Composição Patrimonial por Categoria">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
