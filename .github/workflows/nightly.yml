@@ -403,6 +403,11 @@ jobs:
         env:
           PW_CROSS_BROWSER: "1"
           MATHOMS_LLM_MOCK: "1"
+          # Stamp único por run: o auth helper gera e2e-w${idx}-${stamp}@test.com
+          # (design: 1 stamp por run). Sem isso o fallback Date.now() roda por
+          # processo de worker e cada reciclagem cria emails novos, inflando
+          # registros e poluindo o DB. Bound aos workers, não às reciclagens.
+          PW_RUN_STAMP: "${{ github.run_id }}-${{ github.run_attempt }}"
         run: |
           cd frontend
           npm run test:e2e -- --project=firefox --project=webkit
