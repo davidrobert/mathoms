@@ -1080,18 +1080,26 @@ def _e4_build_adapter(ctx, *, learned_rules_v2=None, dedup_natural_key_v2=False)
     return adapter, categorization_cfg, pipeline_cfg
 
 
-def _e4_dedup_v2_enabled(ctx, store) -> bool:
-    """Flag ``dedup_natural_key_v2_enabled`` (ADR-287); CLI/golden sem DB → ``False``."""
+def _e4_has_db_store(ctx, store) -> bool:
+    """Caminho de produção: workspace real + ``DBArtifactStore`` (flag DB soberana)."""
     if ctx.workspace_id is None:
         return False
     try:
         from backend.app.services.db_artifact_store import DBArtifactStore
-        from backend.app.services.feature_flags_service import is_enabled_sync
     except ImportError:
         return False
-    if not isinstance(store, DBArtifactStore):
-        return False
-    return is_enabled_sync(ctx.workspace_id, "dedup_natural_key_v2_enabled", db=store.session)
+    return isinstance(store, DBArtifactStore)
+
+
+def _e4_dedup_v2_enabled(ctx, store) -> bool:
+    """Flag ``dedup_natural_key_v2_enabled`` (ADR-287): DB soberana com DB; env único override sem DB."""
+    if _e4_has_db_store(ctx, store):
+        from backend.app.services.feature_flags_service import is_enabled_sync
+
+        return is_enabled_sync(ctx.workspace_id, "dedup_natural_key_v2_enabled", db=store.session)
+    # Sem DB (golden/CLI) o env substitui o antigo `False` morto — escape hatch de
+    # teste/rebaseline, nunca consultado em prod (lá sempre há DBArtifactStore). ADR-282 §1.
+    return os.environ.get("MATHOMS_DEDUP_NATURAL_KEY_V2") == "1"
 
 
 def _e4_load_learned_rules(ctx, store):
