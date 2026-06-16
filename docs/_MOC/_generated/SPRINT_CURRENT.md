@@ -1,7 +1,7 @@
 > Auto-gerado por `dev/build_doc_index.py`. Não edite manualmente.
 > Para regenerar: `python3 dev/build_doc_index.py --inline`.
 
-# SPRINT_CURRENT — Lanes da sprint corrente — A25
+# SPRINT_CURRENT — Lanes da sprint corrente — A26
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
@@ -9,15 +9,16 @@ Nenhuma lane prontidão atual.
 
 ## Todas as lanes da sprint (para inspeção)
 
-### shipped (7)
+### blocked (4)
 
-- [[A25.l1]] — Override v2 — cutover de leitura (A23.l4 slice 4) + gate M2 · priority P0 · branch `a23l4-cutover-override`
-- [[A25.l2]] — Flip do consumo E4 para identidade v2 (passo 2 da B4) · priority P0 · branch `dedup-e4-flip-v2`
-- [[A25.l3]] — Data Lineage F5 — edge table artifact_lineage_edge + query reversa · priority P0 · branch `dl-f5-reverso`
-- [[A25.l4]] — Data Lineage F7 — debug substrate LLM: renderer, lineage_diff, tools, eval · priority P0 · branch `dl-f7-debug-llm`
-- [[A25.l5]] — Data Lineage F6 — produto N1/N2: selo + popover 'Como chegamos a esse número' · priority P1 · branch `dl-f6-produto-n1n2`
-- [[A25.l6]] — KR2 6/6 — fluxo_liquido + endividamento.total_dividas + member_hashes reais · priority P2 · branch `kr2-resto`
-- [[A25.l7]] — Decisão do flip warn→strict do evidencia_path (requisito de done da A25) · priority P0 · branch `evidencia-strict-decision`
+- [[A26.l2]] — Flip evidencia_path warn→strict (gate per-parecer <5%) · priority P1 · branch `evidencia-flip-strict`
+- [[A26.l3]] — M2-A — drop do shim v1 do dedup (compute_transaction_hash) · priority P2 · branch `drop-dedup-v1-shim`
+- [[A26.l4]] — Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada) · priority P2 · branch `override-v2-on-instrumentacao`
+- [[A26.l5]] — M2-B — drop destrutivo do estado legado de identidade do override (Fase E) · priority P2 · branch `m2-override-drop`
+
+### planned (1)
+
+- [[A26.l1]] — Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM · priority P1 · branch `evidencia-prompt-catalogo`
 
 ---
 > Regenerar: `python3 dev/build_doc_index.py --inline`

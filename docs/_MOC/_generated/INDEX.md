@@ -603,6 +603,11 @@
 | A25.l5 | lane | shipped | A25 | Data Lineage F6 — produto N1/N2: selo + popover 'Como chegamos a esse número' | `sprint/A25/lanes/A25-l5-dl-f6-produto-n1n2.md` |
 | A25.l6 | lane | shipped | A25 | KR2 6/6 — fluxo_liquido + endividamento.total_dividas + member_hashes reais | `sprint/A25/lanes/A25-l6-kr2-resto.md` |
 | A25.l7 | lane | shipped | A25 | Decisão do flip warn→strict do evidencia_path (requisito de done da A25) | `sprint/A25/lanes/A25-l7-evidencia-strict-decision.md` |
+| A26.l1 | lane | planned | A26 | Fix de citação do evidencia_path — catálogo de paths disponíveis + eval golden LLM | `sprint/A26/lanes/A26-l1-evidencia-prompt-catalogo.md` |
+| A26.l2 | lane | blocked | A26 | Flip evidencia_path warn→strict (gate per-parecer <5%) | `sprint/A26/lanes/A26-l2-evidencia-flip-strict.md` |
+| A26.l3 | lane | blocked | A26 | M2-A — drop do shim v1 do dedup (compute_transaction_hash) | `sprint/A26/lanes/A26-l3-drop-dedup-v1-shim.md` |
+| A26.l4 | lane | blocked | A26 | Override v2 ON no default + instrumentação do gate (v2_match_count + query agendada) | `sprint/A26/lanes/A26-l4-override-v2-on-instrumentacao.md` |
+| A26.l5 | lane | blocked | A26 | M2-B — drop destrutivo do estado legado de identidade do override (Fase E) | `sprint/A26/lanes/A26-l5-m2-override-drop.md` |
 | A5f | lane | shipped | A6 | E1.5c Caminho B | `sprint/A6/lanes/A5f-e1-5c-caminho-b.md` |
 | A6-human | lane | shipped | A6 | Teste manual end-to-end (David) | `sprint/A6/lanes/A6-human-teste-manual-end-to-end.md` |
 | A6-readers.dbfirst | lane | shipped | A6 | Readers DB-first com fallback disco | `sprint/A6/lanes/A6-readers-dbfirst-readers-db-first-com-fallback-disco.md` |
@@ -677,6 +682,7 @@
 | MOC-sprint-a23 | moc |  |  | Sprint A23 — Data Lineage backbone (walking skeleton) | `sprint/A23/_README.md` |
 | MOC-sprint-a24 | moc |  |  | Sprint A24 — Data Lineage: extração limpa + walking skeleton | `sprint/A24/_README.md` |
 | MOC-sprint-a25 | moc |  |  | Sprint A25 — Data Lineage: reverso + produto N1/N2 + debug LLM | `sprint/A25/_README.md` |
+| MOC-sprint-a26 | moc |  |  | Sprint A26 — Data Lineage: consolidação | `sprint/A26/_README.md` |
 | MOC-sprint-a6 | moc |  |  | Sprint A6 — Migração Infra+Domínio | `sprint/A6/_README.md` |
 | MOC-sprint-a7 | moc |  |  | Sprint A7 — Config DB Cutover | `sprint/A7/_README.md` |
 | MOC-sprint-a8 | moc |  |  | Sprint A8 — Continuação multi-tenant | `sprint/A8/_README.md` |
