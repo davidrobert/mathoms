@@ -24,10 +24,10 @@ def test_report_provenance_defaults_off():
     assert feature_flags_service.DEFAULTS["report_provenance_enabled"] is False
 
 
-def test_dedup_natural_key_v2_defaults_off():
-    """A25.l2 (ADR-287): flip de identidade do dedup E4 muda totais por
-    categoria — default True seria rebaseline global silencioso."""
-    assert feature_flags_service.DEFAULTS["dedup_natural_key_v2_enabled"] is False
+def test_dedup_natural_key_v2_defaults_on():
+    """A25.l2 (ADR-287): cutover concluído — default True pós-G-f (zero delta no
+    dado real) + goldens v2≡v1. Rollback é flag off por workspace, não o default."""
+    assert feature_flags_service.DEFAULTS["dedup_natural_key_v2_enabled"] is True
 
 
 @pytest.mark.asyncio
