@@ -73,6 +73,22 @@ verdade); são nós distintos do mesmo valor — correto.
 `value_delta` monetário. **Parte B** (member_hashes reais no nó de despesa +
 teto inline 200) permanece bloqueada pela [[A25.l2]].
 
+## Resultado — parte B implementada com a l2 (2026-06-13)
+
+⚠️ **Premissa "member_hashes ativa com o flip da l2" estava incompleta.**
+`member_hashes` lê `natural_key.hash` v2 (objeto K4 `{hash, hash_version}`) do item
+de despesa E4 — eixo **ortogonal** ao `transaction_hash` que o dedup v2 muda. O item
+E4 só carregava `transaction_hash`. A parte B exigiu **mudança de código** (não só o
+flip): o classifier E4 passa a recomputar e estampar `natural_key` via
+`build_item_identity` (`_tx_identity`), só sob v2 + discriminantes (gate classe-c
+[[ADR-278]] reusado de `_has_discriminants` — nunca hash degenerado). Cobertura full
+provada por fixture K4 dedicada (`test_member_hashes_k4_full.py`: `k4_coverage` full,
+sobreviventes pós-dedup, `check_lineage_sum` tolerância zero). A **dogfood** é
+classe-c (`titular` resolvido vazio sem mapa de membros) → `partial`, por design
+PII-zero — cobre o ramo `partial`; a fixture K4 cobre o ramo full. Sem ADR nova
+(reusa contrato K4 [[ADR-278]] + lineage [[ADR-279]]); registrado em [[ADR-287]]
+§Cutover. Co-design `senior-cto` (recompute vs propagate) + `data-engineer` (fixture).
+
 ## Owner
 
 Agente da lane; co-design herdado de [[A24.l5]] (`senior-cto` + `data-engineer`).

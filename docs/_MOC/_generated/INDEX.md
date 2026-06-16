@@ -282,7 +282,7 @@
 | ADR-284 | adr | Decidido |  | Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift | `adr/284-schema-validation-mode-overrides-per-stage.md` |
 | ADR-285 | adr | Proposto |  | backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio | `adr/285-services-subpacotes-por-natureza-tecnica.md` |
 | ADR-286 | adr | Decidido |  | Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo | `adr/286-contrato-dedicado-artefato-e2-llm.md` |
-| ADR-287 | adr | Proposto |  | Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) | `adr/287-flip-dedup-e4-identidade-v2.md` |
+| ADR-287 | adr | Decidido |  | Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) | `adr/287-flip-dedup-e4-identidade-v2.md` |
 | ADR-288 | adr | Decidido |  | Identificador fiscal ilegível em extração LLM degrada para None determinístico — nunca hard-fail retryable | `adr/288-identificador-fiscal-ilegivel-degrada-para-none-no-boundary-llm.md` |
 | ADR-289 | adr | Decidido |  | Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois) | `adr/289-catalogo-modelos-llm-fonte-unica.md` |
 | ADR-290 | adr | Decidido |  | Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion | `adr/290-supersede-per-run-thesis-key-suggestion.md` |

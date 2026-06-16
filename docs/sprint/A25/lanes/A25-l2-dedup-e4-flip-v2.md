@@ -95,6 +95,22 @@ run-scoped e E3 não está em `_WORKSPACE_SCOPED_STAGES` (fallback não se aplic
 `list_keys` acha as keys, `read` retorna None. Detectado porque os 2 primeiros runs
 do G-f (parciais) zeraram E4 com flag on E off; discriminado com run full.
 
+## Resultado — cutover final (2026-06-13)
+
+Fechado em 3 commits (resolver com env override + sentinela anti-perenidade; flip
+DEFAULTS→True; member_hashes via [[A25.l6]] parte B). Achados que emendam o critério
+([[ADR-287]] §Cutover):
+
+- **Rebaseline materializou-se vazio:** goldens E3/E4/E5 + view-model snapshot +
+  conservação + lineage byte-idênticos sob v2 — fixtures sintéticas não exercem os
+  casos discriminantes do v2; paridade de colapso coberta pelos 16 testes de domínio.
+  Consistente com o G-f. Backend suite inteira verde com o flip (2647 passed).
+- **Resolver com 2 ramos (sem 3º):** DB soberano em produção; env
+  `MATHOMS_DEDUP_NATURAL_KEY_V2` materializa v2 nos goldens InMemory (sentinela
+  anti-perenidade [[ADR-282]] §1). env **não** setado no CI (redundante — v2≡v1).
+- **DEFAULTS→True** (rollback = flag off por workspace); **drop do shim v1 (M2) é
+  carry-over ≥1 sprint**.
+
 ## Owner
 
 Agente da lane; co-design `data-engineer` + `senior-cto` (gatilho obrigatório na ADR).
