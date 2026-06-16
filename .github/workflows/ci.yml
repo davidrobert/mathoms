@@ -303,6 +303,19 @@ jobs:
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
           uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
 
+      - name: Garante test-deps no venv (sempre — cache pode não tê-los)
+        # O venv cache (key v5) é compartilhado entre pipeline-tests,
+        # backend-tests e o main-smoke do nightly. Em cache HIT o step acima
+        # é pulado; se o venv foi populado antes de xlwt entrar (#596), os
+        # tests quebram com ModuleNotFoundError (ex.: xlwt em
+        # test_e2_schema_strict_corpus). uv pip install é idempotente e
+        # rápido quando já satisfeito. Mesma classe do fix do nightly (#647).
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
+        run: |
+          [ -d .venv ] || uv venv .venv
+          uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+
       - name: Activate venv (PATH)
         run: echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
@@ -393,6 +406,15 @@ jobs:
           [ -d .venv ] || uv venv .venv
           uv pip install -r requirements.in -r backend/requirements.in
           # pytest-xdist habilita paralelismo (-n auto) em backend-tests.
+          uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
+
+      - name: Garante test-deps no venv (sempre — cache pode não tê-los)
+        # Ver pipeline-tests: cache HIT pula o install acima; venv populado
+        # antes de xlwt (#596) quebra com ModuleNotFoundError. Idempotente.
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
+        run: |
+          [ -d .venv ] || uv venv .venv
           uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
 
       - name: Activate venv (PATH)
@@ -544,6 +566,11 @@ jobs:
           # (exposto em 6380). Celery worker ficava em retry loop eterno.
           MATHOMS_REDIS_URL: redis://localhost:6380/0
           MATHOMS_LLM_MOCK: "1"
+          # E2E registra usuários do único IP do runner; o default 10/hora
+          # estoura à medida que o set @critical cresce → login 401 em
+          # cascata (#644). Desabilita o throttle no backend de teste, como
+          # backend/tests/conftest.py (_disable_register_rate_limit).
+          MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR: "0"
         run: |
           uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 \
             > /tmp/uvicorn.log 2>&1 &
@@ -584,6 +611,9 @@ jobs:
         env:
           # F6.5F.11 (ADR-070): mock LLM em CI default; PW_REAL_LLM=1 no nightly
           MATHOMS_LLM_MOCK: "1"
+          # Stamp único por run para o auth helper (e2e-w${idx}-${stamp}); sem
+          # isso o fallback Date.now() roda por worker e infla registros (#644).
+          PW_RUN_STAMP: "${{ github.run_id }}-${{ github.run_attempt }}"
         run: |
           cd frontend
           # Cross-browser (Firefox + WebKit) movido para nightly.yml.
