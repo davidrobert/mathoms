@@ -124,6 +124,18 @@ jobs:
         run: |
           [ -d .venv ] || uv venv .venv
           uv pip install -r requirements.in -r backend/requirements.in
+
+      - name: Garante test-deps no venv (sempre — cache pode não tê-los)
+        # O venv cache é compartilhado com ci.yml; dependendo de qual job o
+        # populou, pode não conter reportlab/xlwt/pytest-xdist/etc. Em cache
+        # HIT do venv o step acima é pulado → Pipeline/Backend tests quebram
+        # com ModuleNotFoundError (ex.: xlwt em test_e2_schema_strict_corpus).
+        # uv pip install é idempotente e rápido quando já satisfeito. Mesma
+        # classe do fix do pre-commit `--system` abaixo.
+        env:
+          VIRTUAL_ENV: ${{ github.workspace }}/.venv
+        run: |
+          [ -d .venv ] || uv venv .venv
           uv pip install reportlab xlwt pytest pytest-asyncio pytest-cov pytest-xdist fakeredis
 
       - name: Install system lint tools (sempre — não vão no venv cache)
@@ -349,6 +361,13 @@ jobs:
           # ci.yml / backup-drill; allowlisted em .gitleaks.toml). Sem ela
           # o vault aborta no boot: "MATHOMS_FERNET_KEY não configurada".
           MATHOMS_FERNET_KEY: "NwHpLJlLGSeC7NIS6gfVdVSYh_pObKqY4G_CwkQ1kuA=" # gitleaks:allow
+          # Desabilita o rate limit de registro (default 10/IP/hora). O job
+          # roda a suíte E2E COMPLETA × 2 browsers (PW_CROSS_BROWSER=1, sem o
+          # filtro @critical do ci.yml), registrando >10 usuários do mesmo IP
+          # → "Too many register attempts" bloqueava e cascateava em
+          # "Credenciais inválidas"/toBeVisible timeout (category-overrides,
+          # drill-down…). 0 = falha aberta (register_rate_limit.py).
+          MATHOMS_REGISTER_RATE_LIMIT_PER_HOUR: "0"
         run: |
           uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 \
             > /tmp/uvicorn.log 2>&1 &
