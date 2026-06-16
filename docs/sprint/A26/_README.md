@@ -3,26 +3,28 @@ id: MOC-sprint-a26
 type: moc
 title: "Sprint A26 — Data Lineage: consolidação"
 aliases: ["A26", "Sprint A26"]
-sprint_status: candidate
+sprint_status: current
 date: "2026-06-16"
 theme: "data-lineage"
 ---
 
 # Sprint A26 — Data Lineage: consolidação
 
-> **Status:** `candidate` (reservada 2026-06-16) — sucede [[MOC-sprint-a25]] (`done`).
+> **Status:** `current` (promovida 2026-06-16) — sucede [[MOC-sprint-a25]] (`done`).
 > 5ª janela do plano [[PLAN-data-lineage]]: **remove as redes de segurança** criadas
 > na A23–A25 (shims de identidade v1, modo `warn` permissivo do `evidencia_path`)
 > depois que a observação em produção confirma que é seguro. Co-design 2026-06-16:
 > `product-manager` + `information-architect` (forma) + `data-engineer` (migrações
 > destrutivas) + `prompt-engineer` (flip strict) + `sre-devops` (runbook Fase E).
+> Prompt de orquestração: [agent_prompts/orchestrator_a26_consolidacao.md](../../agent_prompts/orchestrator_a26_consolidacao.md).
 >
-> **Pré-condição de promoção `candidate → current`:** a maioria das lanes está
-> bloqueada por **gates de volume de produção** (≥20 gerações de parecer; ≥1 sprint de
-> tráfego com flags v2 a 100% + counter `dualread.v1_fallback` zerado **com uso real
-> exercitado**). Produto é pré-launch — esses gates fecham por **tráfego**, não por
-> calendário. Exceção: [[A26.l1]] (fix de prompt do `evidencia_path`) **não depende de
-> tráfego** e é elegível para pickup imediato, fora desta sprint, ligada ao plano.
+> **Ponto de entrada = [[A26.l1]]** (fix de prompt do `evidencia_path`) — **única lane
+> `open`, sem gate de tráfego**; destrava a métrica de todos os gates seguintes. As
+> demais (l2–l5) estão `blocked` por **gates de volume de produção** (≥20 gerações de
+> parecer; ≥1 sprint com flags v2 a 100% + counter `dualread.v1_fallback` zerado **com
+> uso real exercitado**) — pré-launch, fecham por **tráfego/dogfood**, não por calendário.
+> Insumos para destravar: `ANTHROPIC_API_KEY` no ambiente + ~20 gerações de parecer +
+> exercício do override v2 por ≥1 sprint + confirmar PITR do Postgres.
 
 ## Tese
 
@@ -46,7 +48,7 @@ lane destrutiva tem um **gate verificável**, não um prazo.
 
 | Lane | Slug | Regime | Status | Dep / Gate |
 |---|---|---|---|---|
-| [[A26.l1]] | `evidencia-prompt-catalogo` | A (sem gate) | planned | — · elegível fora da sprint |
+| [[A26.l1]] | `evidencia-prompt-catalogo` | A (sem gate) | **open** | — · ponto de entrada da sprint |
 | [[A26.l2]] | `evidencia-flip-strict` | B | blocked | l1 + gate per-parecer <5% sobre ≥20 ger (ou eval holdout) |
 | [[A26.l3]] | `drop-dedup-v1-shim` | B (reversível) | blocked | dedup v2 100% + counter zerado ≥1 sprint |
 | [[A26.l4]] | `override-v2-on-instrumentacao` | B (habilitador) | blocked | flip override flag→True + `v2_match_count` + query agendada `v1_fallback` |

@@ -12,9 +12,24 @@ aliases: ["SPRINTS-active", "sprints-active"]
 
 ## Sprint corrente
 
-Nenhuma sprint corrente no momento. **A25 encerrou `done` em 2026-06-16** sem promoção
-de sucessora (decisão do owner). Próxima `candidate` na fila: A18 (ver abaixo) — será
-promovida via `candidate → current` quando o owner decidir.
+### A26 — Data Lineage: consolidação (`current` 2026-06-16)
+
+**Promovida em 2026-06-16, sucedendo A25 (`done`).** 5ª janela do plano [[PLAN-data-lineage]]:
+**remove as redes de segurança** da frente (shims de identidade v1, modo `warn` do
+`evidencia_path`) após observação de produção. 5 lanes em 2 regimes: **Regime A** —
+[[A26.l1]] (fix de citação do `evidencia_path`, **única `open`, sem gate — ponto de
+entrada**) + **Regime B** — l2 flip strict · l3 drop shim dedup · l4 override v2 ON +
+instrumentação · l5 M2 override destrutiva (todas `blocked` por **volume de tráfego**:
+≥20 gerações de parecer; ≥1 sprint com flags v2 a 100% + `dualread.v1_fallback` zerado
+com uso real). Co-design 2026-06-16 (PM + IA + data-engineer + prompt-engineer +
+sre-devops). Sem ADR nova (ADR-279/287 cobrem; ADR-282 flippa `Decidido` quando a M2
+override fechar). **Insumos para destravar l2–l5:** `ANTHROPIC_API_KEY` + ~20 gerações
+de parecer + exercício do override v2 por ≥1 sprint + confirmar PITR do Postgres.
+
+- **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) (5 lanes) · **Plano:**
+  [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5 · **Prompt:**
+  [agent_prompts/orchestrator_a26_consolidacao.md](../agent_prompts/orchestrator_a26_consolidacao.md).
+- **Precedência de corte:** Must l1+l2 · Should l3+l4 · Could/cortável l5 (→ A27).
 
 ## Sprint recém-fechada
 
@@ -44,26 +59,6 @@ flip vira lane própria na A26. Requisito de done cumprido; modo segue `warn`.
 - **Revisão de risco (senior-cto + data-engineer, 2026-06-09):** de-leak é cirúrgico (`tipo_lancamento` dead-downstream; `numero_conta_norm` já re-normalizado). Risco real na rede de rebaseline → substrato endurecido (invariante por categoria, manifesto `reason`/`adr`, `check_golden_rebaseline_isolation`) ANTES do 1º rebaseline. Discovery é o 1º gate.
 
 ## Sprint candidate (próxima)
-
-> Ordem relativa entre candidates é **decisão de priorização do owner** (número maior não
-> implica prioridade — A18 é mais antiga; A26 é continuação direta da frente recém-fechada).
-
-### A26 — Data Lineage: consolidação (`candidate` 2026-06-16)
-
-**Reservada — 5ª janela do plano [[PLAN-data-lineage]], sucede A25.** Remove as redes de
-segurança da frente Data Lineage (shims de identidade v1, modo `warn` do `evidencia_path`)
-após observação em produção. 5 lanes em 2 regimes: **Regime A** (l1 — fix de citação do
-`evidencia_path`, executável já, sem gate) + **Regime B** (l2 flip strict · l3 drop shim
-dedup · l4 override v2 ON + instrumentação · l5 M2 override destrutiva), todas gated por
-**volume de tráfego de produção** (≥20 gerações de parecer; ≥1 sprint com flags v2 a 100%
-+ `dualread.v1_fallback` zerado com uso real). Co-design 2026-06-16 (PM + IA + data-engineer
-+ prompt-engineer + sre-devops). Sem ADR nova (ADR-279/287 cobrem; ADR-282 flippa `Decidido`
-quando a M2 override fechar). **Pré-condição de promoção `candidate → current`:** existir
-tráfego que feche os gates — pré-launch, fecham por uso, não por calendário. Exceção: l1
-não depende de tráfego e é elegível para pickup imediato.
-
-- **Sprint:** [sprint/A26/_README.md](../sprint/A26/_README.md) (5 lanes) · **Plano:** [plan/DATA_LINEAGE/_README.md](../plan/DATA_LINEAGE/_README.md) §Onda 5.
-- **Carry-overs de origem:** [[A25.l7]] (decisão evidencia_path) · [[ADR-287]] §Cutover · [[A25.l1]] §5.
 
 ### A18 — Comprovantes de Bem + Apólices + FIPE refresh (`candidate` 2026-05-21)
 
