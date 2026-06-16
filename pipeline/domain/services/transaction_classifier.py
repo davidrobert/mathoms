@@ -139,8 +139,7 @@ class ClassifierConfig:
     pj_label_config: PJLabelConfig = field(
         default_factory=lambda: PJLabelConfig(pj_source_mapping={})
     )
-    # ADR-287 (A25.l2) — identidade v2 (+moeda +direction) no transaction_hash.
-    # False = shim v1 congelado (zero-behavior); flip por feature flag workspace.
+    # ADR-287 (A25.l2) — identidade v2 no transaction_hash; False = shim v1 (zero-behavior).
     dedup_natural_key_v2: bool = False
 
     @classmethod
@@ -197,6 +196,8 @@ class ClassifiedTransaction:
     # ADR-255 Camada B — identidade determinística cross-document
     source_doc_id: str | None = None  # `arquivo_origem` propagado do E3
     transaction_hash: str | None = None  # sha256[:16] K4 (consumido por cash_flow_builder)
+    # K4 {hash, hash_version} do lineage E5 (v2+discriminantes; ADR-279/287 l6B)
+    natural_key: dict | None = None
 
     def to_legacy_dict(self) -> dict:
         """Serializa no schema usado pelo `process_transactions` legado."""
@@ -219,11 +220,13 @@ class ClassifiedTransaction:
         return out
 
     def _append_identity(self, out: dict) -> None:
-        """ADR-255 — surface up source_doc_id + transaction_hash quando presentes."""
+        """ADR-255/ADR-279 — surface up source_doc_id + transaction_hash + natural_key (v2)."""
         if self.source_doc_id is not None:
             out["source_doc_id"] = self.source_doc_id
         if self.transaction_hash is not None:
             out["transaction_hash"] = self.transaction_hash
+        if self.natural_key is not None:
+            out["natural_key"] = self.natural_key
 
 
 # =============================================================================
@@ -347,6 +350,9 @@ class TransactionClassifier:
         identity_inputs = _tx_identity.build_hash_inputs(
             data_str, banco_raw, titular, tipo_conta_raw, valor, moeda, descricao_raw, tipo=tipo
         )
+        tx_hash, natural_key = _tx_identity.build_item_identity(
+            identity_inputs, valor=valor, natural_key_v2=self._config.dedup_natural_key_v2
+        )
         common = dict(
             data=data_str,
             descricao=descricao_raw,
@@ -354,12 +360,9 @@ class TransactionClassifier:
             moeda=moeda,
             tipo_conta=tipo_conta_raw,
             titular=titular,
-            # ADR-255 Camada B — identidade determinística propagada de E3.
-            source_doc_id=tx.get("arquivo_origem"),
-            # ADR-287 (A25.l2): flag off = shim v1 congelado (zero-behavior).
-            transaction_hash=_tx_identity.compute_identity_hash(
-                identity_inputs, valor=valor, natural_key_v2=self._config.dedup_natural_key_v2
-            ),
+            source_doc_id=tx.get("arquivo_origem"),  # ADR-255 Camada B
+            transaction_hash=tx_hash,
+            natural_key=natural_key,
         )
 
         # 1. Transferência interna precoce (paridade legado + hint LLM reforça).

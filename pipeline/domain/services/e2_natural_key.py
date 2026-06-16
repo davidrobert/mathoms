@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from pipeline.domain.services._tx_identity import (
     _coerce_signed,
+    _has_discriminants,
     build_hash_inputs,
     compute_natural_key,
     derive_direction,
@@ -32,10 +33,6 @@ def _first(*values: str | None) -> str | None:
         if v:
             return v
     return None
-
-
-def _has_discriminants(banco: str | None, titular: str | None, tipo_conta: str | None) -> bool:
-    return bool((banco or "").strip() and (titular or "").strip() and (tipo_conta or "").strip())
 
 
 def _tx_key(tx: dict, *, banco, titular, tipo_conta, moeda, eligible: bool) -> dict | None:

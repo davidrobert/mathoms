@@ -282,7 +282,7 @@
 | ADR-284 | adr | Decidido |  | Schema validation: mode_overrides per-schema, enforcement strict real e telemetria de drift | `adr/284-schema-validation-mode-overrides-per-stage.md` |
 | ADR-285 | adr | Proposto |  | backend/app/services/: subpacotes por natureza técnica, nunca por domínio de negócio | `adr/285-services-subpacotes-por-natureza-tecnica.md` |
 | ADR-286 | adr | Decidido |  | Contrato dedicado para o artefato E2-llm (e2_llm_artifact.schema.json) + banco aditivo em cdbresumo | `adr/286-contrato-dedicado-artefato-e2-llm.md` |
-| ADR-287 | adr | Proposto |  | Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) | `adr/287-flip-dedup-e4-identidade-v2.md` |
+| ADR-287 | adr | Decidido |  | Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) | `adr/287-flip-dedup-e4-identidade-v2.md` |
 | ADR-288 | adr | Decidido |  | Identificador fiscal ilegível em extração LLM degrada para None determinístico — nunca hard-fail retryable | `adr/288-identificador-fiscal-ilegivel-degrada-para-none-no-boundary-llm.md` |
 | ADR-289 | adr | Decidido |  | Catálogo de modelos LLM como fonte única + endpoint GET /llm/models (curado agora, dinâmico depois) | `adr/289-catalogo-modelos-llm-fonte-unica.md` |
 | ADR-290 | adr | Decidido |  | Supersede-per-run + thesis_key para Suggestion origin=llm (parecer) — extensão de ADR-269 ao aggregate Suggestion | `adr/290-supersede-per-run-thesis-key-suggestion.md` |
@@ -597,7 +597,7 @@
 | A24.l6 | lane | shipped | A24 | Data Lineage F3 — skeleton resto: reserva, despesa, total investido | `sprint/A24/lanes/A24-l6-skeleton-resto.md` |
 | A24.l7 | lane | open | A24 | Schema strict flip — baseline → de-drift de vocabulário → flip E2 (ADR-284) | `sprint/A24/lanes/A24-l7-schema-strict-flip.md` |
 | A25.l1 | lane | shipped | A25 | Override v2 — cutover de leitura (A23.l4 slice 4) + gate M2 | `sprint/A25/lanes/A25-l1-a23l4-cutover-override.md` |
-| A25.l2 | lane | open | A25 | Flip do consumo E4 para identidade v2 (passo 2 da B4) | `sprint/A25/lanes/A25-l2-dedup-e4-flip-v2.md` |
+| A25.l2 | lane | in_progress | A25 | Flip do consumo E4 para identidade v2 (passo 2 da B4) | `sprint/A25/lanes/A25-l2-dedup-e4-flip-v2.md` |
 | A25.l3 | lane | shipped | A25 | Data Lineage F5 — edge table artifact_lineage_edge + query reversa | `sprint/A25/lanes/A25-l3-dl-f5-reverso.md` |
 | A25.l4 | lane | shipped | A25 | Data Lineage F7 — debug substrate LLM: renderer, lineage_diff, tools, eval | `sprint/A25/lanes/A25-l4-dl-f7-debug-llm.md` |
 | A25.l5 | lane | shipped | A25 | Data Lineage F6 — produto N1/N2: selo + popover 'Como chegamos a esse número' | `sprint/A25/lanes/A25-l5-dl-f6-produto-n1n2.md` |

@@ -166,6 +166,11 @@ class NaturalKey:
         return {"hash": self.hash, "hash_version": self.hash_version}
 
 
+def _has_discriminants(banco: str | None, titular: str | None, tipo_conta: str | None) -> bool:
+    """Gate classe-c do K4 (ADR-278): sem os três, ``natural_key=None`` (nunca hash degenerado)."""
+    return bool((banco or "").strip() and (titular or "").strip() and (tipo_conta or "").strip())
+
+
 # Construtor canônico de HashInputs — ponto único de mapeamento emit↔recompute (ADR-278 D3).
 def build_hash_inputs(
     data: str | None,
@@ -253,6 +258,21 @@ def compute_identity_hash(inputs: HashInputs, *, valor: float | int, natural_key
         valor=valor,
         descricao=inputs.descricao,
     )
+
+
+def build_item_identity(
+    inputs: HashInputs, *, valor: float | int, natural_key_v2: bool
+) -> tuple[str, dict | None]:
+    """Identidade do item E4: ``transaction_hash`` (dedup, ADR-287) + ``natural_key``
+    estruturado (K4 do lineage, ADR-279) só sob v2 + discriminantes (gate classe-c
+    ADR-278, nunca hash degenerado). ``natural_key.hash == transaction_hash`` quando v2."""
+    tx_hash = compute_identity_hash(inputs, valor=valor, natural_key_v2=natural_key_v2)
+    natural_key = (
+        compute_natural_key(inputs).to_dict()
+        if natural_key_v2 and _has_discriminants(inputs.banco, inputs.titular, inputs.tipo_conta)
+        else None
+    )
+    return tx_hash, natural_key
 
 
 def compute_transaction_hash(

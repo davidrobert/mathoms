@@ -2,8 +2,8 @@
 id: ADR-287
 type: adr
 title: "Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4)"
-status: Proposto
-phase: "A25 · l2"
+status: Decidido
+phase: "A25 · l2/l6B"
 date: "2026-06-10"
 relates_to:
   - "[[ADR-278]]"
@@ -16,14 +16,14 @@ superseded_by: []
 aliases: ["ADR 287", "flip dedup v2", "passo 2 B4"]
 tags:
   - type/adr
-  - status/proposto
+  - status/decidido
   - area/data-lineage
   - area/pipeline
 ---
 
 # ADR-287 — Flip do dedup E4 para identidade `natural_key` v2
 
-**Status:** Proposto (A25 · l2) • **Data:** 2026-06-10 • **Relaciona** [[ADR-278]]
+**Status:** Decidido (A25 · l2/l6B) • **Data:** 2026-06-10 • **Relaciona** [[ADR-278]]
 (B3/B4), [[ADR-282]] (§7 gate), [[ADR-255]], [[ADR-090]], [[ADR-279]] (member_hashes).
 
 > Executa o **passo 2 da estratégia B4** ([[ADR-278]]): E4 passa a consumir a
@@ -86,3 +86,29 @@ transaction-fed do lineage ([[ADR-279]]).
 - Dogfood (G-f): diff de números do workspace real pré/pós-flip inspecionado pelo
   owner antes do flip a 100%.
 - Flag-OFF byte-idêntico ao comportamento atual (zero-behavior sem flag).
+
+## Cutover (Decidido — A25.l2/l6B, 2026-06-13)
+
+Fechado em 3 commits sob a flag por workspace (resolver com 2 ramos: DB soberano em
+produção; env `MATHOMS_DEDUP_NATURAL_KEY_V2` materializa v2 nos goldens InMemory —
+sentinela anti-perenidade trava o 3º caminho, [[ADR-282]] §1). Achados que emendam o
+critério acima:
+
+- **Rebaseline materializou-se vazio.** Goldens E3/E4/E5 + view-model snapshot +
+  conservação + lineage passam byte-idênticos sob v2 — as fixtures sintéticas não
+  exercem os casos discriminantes do v2 (entrada/saída de mesmo valor fora de
+  transferência; BRL/USD colidindo). Consistente com o G-f (zero delta monetário no
+  dado real). A paridade de colapso é coberta pelos 16 testes de domínio
+  (`test_dedup_natural_key_v2_flag.py`), não por rebaseline de execução.
+- **Critério drift-PIX obsoleto** — v1 já colapsa drift desde [[ADR-255]] it.2; o
+  "2 sob v1" do critério não se aplica ao shim atual. Confirmado pelo G-f.
+- **`member_hashes` reais (l6B) eram eixo ortogonal ao flip.** Dependem de
+  `natural_key`{hash, hash_version} estampado **no item E4**, não do `transaction_hash`
+  que o dedup muda. O E4 recomputa `natural_key` (via `build_item_identity` em
+  `_tx_identity`) só sob v2 + discriminantes (gate classe-c reusado de `_has_discriminants`
+  — nunca hash degenerado). Cobertura full provada por fixture K4 dedicada; a dogfood
+  é classe-c (`titular` resolvido vazio sem mapa de membros) → `k4_coverage=partial`,
+  por design PII-zero.
+- **Default flipado para `True`** após G-f aprovado. **Rollback = flag off por
+  workspace** (E4 volta a v1). **Drop do shim v1 (M2) é carry-over ≥1 sprint** com
+  counter de fallback zerado — não faz parte deste cutover.

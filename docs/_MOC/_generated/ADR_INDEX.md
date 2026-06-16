@@ -9,8 +9,8 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## Sumário por status
 
-- **Decidido**: 213
-- **Proposto**: 65
+- **Decidido**: 214
+- **Proposto**: 64
 - **Roadmap**: 4
 
 ## Fundação
@@ -337,10 +337,13 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## data-lineage
 
-### Proposto (2)
+### Decidido (1)
+
+- [[ADR-287]] — Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) · phase A25 · l2/l6B
+
+### Proposto (1)
 
 - [[ADR-282]] — Identidade de TransactionOverride unificada no natural_key v2 (fecha D6 da A23.l3) · phase A23 · pré-passo-2 B4
-- [[ADR-287]] — Flip do dedup E4 para identidade natural_key v2 (passo 2 da B4) · phase A25 · l2
 
 ## docs
 

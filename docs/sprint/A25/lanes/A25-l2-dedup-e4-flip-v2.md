@@ -4,7 +4,7 @@ type: lane
 title: "Flip do consumo E4 para identidade v2 (passo 2 da B4)"
 sprint: A25
 plan: PLAN-data-lineage
-status: open
+status: in_progress
 priority: P0
 branch_slug: dedup-e4-flip-v2
 adrs:
@@ -16,7 +16,7 @@ parallel_with: []
 tags:
   - type/lane
   - sprint/a25
-  - status/open
+  - status/in-progress
   - priority/p0
   - area/data-lineage
   - area/pipeline
@@ -94,6 +94,22 @@ goldens não se materializa com default OFF — reavaliar critério no cutover f
 run-scoped e E3 não está em `_WORKSPACE_SCOPED_STAGES` (fallback não se aplica);
 `list_keys` acha as keys, `read` retorna None. Detectado porque os 2 primeiros runs
 do G-f (parciais) zeraram E4 com flag on E off; discriminado com run full.
+
+## Resultado — cutover final (2026-06-13)
+
+Fechado em 3 commits (resolver com env override + sentinela anti-perenidade; flip
+DEFAULTS→True; member_hashes via [[A25.l6]] parte B). Achados que emendam o critério
+([[ADR-287]] §Cutover):
+
+- **Rebaseline materializou-se vazio:** goldens E3/E4/E5 + view-model snapshot +
+  conservação + lineage byte-idênticos sob v2 — fixtures sintéticas não exercem os
+  casos discriminantes do v2; paridade de colapso coberta pelos 16 testes de domínio.
+  Consistente com o G-f. Backend suite inteira verde com o flip (2647 passed).
+- **Resolver com 2 ramos (sem 3º):** DB soberano em produção; env
+  `MATHOMS_DEDUP_NATURAL_KEY_V2` materializa v2 nos goldens InMemory (sentinela
+  anti-perenidade [[ADR-282]] §1). env **não** setado no CI (redundante — v2≡v1).
+- **DEFAULTS→True** (rollback = flag off por workspace); **drop do shim v1 (M2) é
+  carry-over ≥1 sprint**.
 
 ## Owner
 
